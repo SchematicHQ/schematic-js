@@ -1,5 +1,8 @@
 import zlib from 'zlib';
 import querystring from 'querystring';
+import { v4 as uuidv4 } from 'uuid';
+
+const anonymousIdKey = 'schematicId';
 
 type EventType = 'identify' | 'track';
 
@@ -21,23 +24,29 @@ type EventBodyTrack = {
   traits: Record<string, any>;
 };
 
+type EventBody = EventBodyIdentify | EventBodyTrack;
+
+type Event = {
+  api_key: string;
+  body: EventBody;
+  sent_at: string;
+  tracker_event_id: string;
+  tracker_user_id: string;
+  type: EventType;
+};
+
 class Schematic {
   private apiKey: string;
-  private eventQueue: { type: EventType; data: object }[];
+  private eventQueue: Event[];
 
   constructor(apiKey: string) {
     this.apiKey = apiKey;
     this.eventQueue = [];
   }
 
-  private sendRequest(eventType: EventType, eventData: object): void {
+  private sendEvent(event: Event): void {
     const url = 'https://api.schematichq.com/e';
-
-    const payload = JSON.stringify({
-      type: eventType,
-      api_key: this.apiKey,
-      body: eventData,
-    });
+    const payload = JSON.stringify(event);
 
     zlib.deflate(payload, (err, compressedData) => {
       if (err) {
@@ -59,43 +68,64 @@ class Schematic {
     while (this.eventQueue.length > 0) {
       const event = this.eventQueue.shift();
       if (event) {
-        this.sendRequest(event.type, event.data);
+        this.sendEvent(event);
       }
     }
   }
 
-  private storeEvent(eventType: EventType, eventData: object): void {
-    this.eventQueue.push({ type: eventType, data: eventData });
+  private storeEvent(event: Event): void {
+    this.eventQueue.push(event);
   }
 
   private clearStoredEvents(): void {
     this.eventQueue = [];
   }
 
-  identify(userId: string, traits: Record<string, any>): void {
-    const eventData: EventBodyIdentify = {
-      id: userId,
-      traits,
+  private handleEvent(eventType: EventType, eventBody: EventBody): void {
+    const event: Event = {
+      api_key: this.apiKey,
+      body: eventBody,
+      sent_at: new Date().toISOString(),
+      tracker_event_id: uuidv4(),
+      tracker_user_id: this.getAnonymousId(),
+      type: eventType,
     };
 
     if (document.hidden) {
-      this.storeEvent('identify', eventData);
+      this.storeEvent(event);
     } else {
-      this.sendRequest('identify', eventData);
+      this.sendEvent(event);
     }
   }
 
-  track(event: string, properties: Record<string, any>): void {
-    const eventData: EventBodyTrack = {
-      event,
-      traits: properties,
+  private getAnonymousId(): string {
+    const storedAnonymousId = localStorage.getItem(anonymousIdKey);
+    if (storedAnonymousId) {
+      return storedAnonymousId;
+    }
+
+    const generatedAnonymousId = uuidv4();
+    localStorage.setItem(anonymousIdKey, generatedAnonymousId);
+    return generatedAnonymousId;
+  }
+
+  identify(userId: string, traits: Record<string, any>, customer?: EventBodyCustomer): void {
+    const eventBody: EventBodyIdentify = {
+      id: userId,
+      customer,
+      traits,
     };
 
-    if (document.hidden) {
-      this.storeEvent('track', eventData);
-    } else {
-      this.sendRequest('track', eventData);
-    }
+    this.handleEvent('identify', eventBody);
+  }
+
+  track(event: string, traits: Record<string, any>): void {
+    const eventBody: EventBodyTrack = {
+      event,
+      traits: traits,
+    };
+
+    this.handleEvent('track', eventBody);
   }
 
   initialize(): void {

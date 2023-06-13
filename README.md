@@ -16,22 +16,28 @@ yarn run build
 
 
 ```javascript
-const apiKey = 'your-api-key';
-const eventClient = new EventClient(apiKey);
+const schematic = new Schematic('your-api-key');
 
 // Send an identify event
 const userId = 'my-user-id';
 const traits = {
   anykey: 'anyval',
 };
-eventClient.identify(userId, traits);
+const customer = {
+  id: 'my-customer-id',
+  name: 'My Customer',
+  traits: {
+    'location': 'Atlanta, GA'
+  },
+};
+schematic.identify(userId, traits, customer);
 
 // Send a track event
 const event = 'purchase';
-const properties = {
+const traits = {
   userId: 'my-user-id',
   product: 'ABC123',
   quantity: 2,
 };
-eventClient.track(userId, event, properties);
+schematic.track(event, traits);
 ```
