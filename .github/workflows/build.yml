@@ -16,9 +16,21 @@ jobs:
       - name: Run install
         uses: borales/actions-yarn@v4
         with:
-          cmd: install # will run `yarn install` command
+          cmd: install
 
       - name: Build production bundle
         uses: borales/actions-yarn@v4
         with:
-          cmd: build # will run `yarn build` command
+          cmd: build
+
+  notify_slack: # Notify only on failure
+    name: Notify Slack
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - uses: drilonrecica/action-slack-notify@0.0.3
+        if: ${{ needs.build.result != 'success' }}
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_TITLE: Failed to build schematic-js
+          SLACK_COLOR: "#FF0000"
