@@ -1,0 +1,37 @@
+{
+  "dependencies": {
+    "querystring": "^0.2.1",
+    "zlib": "^1.0.5"
+  },
+  "devDependencies": {
+    "@parcel/packager-ts": "^2.9.2",
+    "@parcel/transformer-typescript-types": "^2.9.2",
+    "@types/browserify": "^12.0.37",
+    "@types/node": "^20.3.1",
+    "assert": "^2.0.0",
+    "buffer": "^6.0.3",
+    "events": "^3.3.0",
+    "parcel": "^2.9.2",
+    "process": "^0.11.10",
+    "querystring-es3": "^0.2.1",
+    "stream-browserify": "^3.0.0",
+    "typescript": "^5.0.2",
+    "util": "^0.12.5"
+  },
+  "main": "dist/schematic.js",
+  "modules": false,
+  "name": "schematic-js",
+  "scripts": {
+    "build": "parcel build",
+    "clean": "rm -rf dist && rm -rf .parcel-cache",
+    "watch": "parcel watch"
+  },
+  "source": "src/main.ts",
+  "targets": {
+    "default": {
+      "sourceMap": false
+    }
+  },
+  "types": "dist/types.d.ts",
+  "version": "0.0.1"
+}
