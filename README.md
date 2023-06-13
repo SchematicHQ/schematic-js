@@ -1,4 +1,4 @@
-# keynes-js
+# schematic-js
 
 ## Install
 
