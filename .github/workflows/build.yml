@@ -34,3 +34,4 @@ jobs:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_TITLE: Failed to build schematic-js
           SLACK_COLOR: "#FF0000"
+          SLACK_ICON: https://schematic-public-assets.s3.amazonaws.com/logos/logo-transparent.png

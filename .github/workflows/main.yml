@@ -14,3 +14,4 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_TITLE: Updated schematic-js
+          SLACK_ICON: https://schematic-public-assets.s3.amazonaws.com/logos/logo-transparent.png

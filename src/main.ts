@@ -22,6 +22,7 @@ type EventBodyTrack = {
   event: string;
   feature?: string;
   traits: Record<string, any>;
+  customerId?: string;
 };
 
 type EventBody = EventBodyIdentify | EventBodyTrack;
@@ -45,6 +46,7 @@ class Schematic {
   }
 
   private sendEvent(event: Event): void {
+    // TODO: Chunk payload to ensure URL length does not exceed 1024 characters. Requires capture/backend support
     const url = 'https://api.schematichq.com/e';
     const payload = JSON.stringify(event);
 
