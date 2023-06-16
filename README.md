@@ -33,11 +33,10 @@ const customer = {
 schematic.identify(userId, traits, customer);
 
 // Send a track event
-const event = 'purchase';
+const event = 'query';
 const traits = {
-  userId: 'my-user-id',
-  product: 'ABC123',
-  quantity: 2,
+  customerId: 'my-customer-id',
+  feature: 'feat_cns2asuKAG2',
 };
 schematic.track(event, traits);
 ```
