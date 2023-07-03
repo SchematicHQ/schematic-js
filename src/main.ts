@@ -6,7 +6,7 @@ const anonymousIdKey = 'schematicId';
 
 type EventType = 'identify' | 'track';
 
-type EventBodyCustomer = {
+type EventBodyCompany = {
   id: string;
   name?: string;
   traits: Record<string, any>;
@@ -15,14 +15,14 @@ type EventBodyCustomer = {
 type EventBodyIdentify = {
   id: string;
   traits: Record<string, any>;
-  customer?: EventBodyCustomer;
+  company?: EventBodyCompany;
 };
 
 type EventBodyTrack = {
   event: string;
   feature?: string;
   traits: Record<string, any>;
-  customerId?: string;
+  companyId?: string;
 };
 
 type EventBody = EventBodyIdentify | EventBodyTrack;
@@ -111,10 +111,10 @@ class Schematic {
     return generatedAnonymousId;
   }
 
-  identify(userId: string, traits: Record<string, any>, customer?: EventBodyCustomer): void {
+  identify(userId: string, traits: Record<string, any>, company?: EventBodyCompany): void {
     const eventBody: EventBodyIdentify = {
       id: userId,
-      customer,
+      company,
       traits,
     };
 

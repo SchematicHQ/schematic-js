@@ -23,19 +23,19 @@ const userId = 'my-user-id';
 const traits = {
   anykey: 'anyval',
 };
-const customer = {
-  id: 'my-customer-id',
-  name: 'My Customer',
+const company = {
+  id: 'my-company-id',
+  name: 'My Company',
   traits: {
     'location': 'Atlanta, GA'
   },
 };
-schematic.identify(userId, traits, customer);
+schematic.identify(userId, traits, company);
 
 // Send a track event
 const event = 'query';
 const traits = {
-  customerId: 'my-customer-id',
+  companyId: 'my-company-id',
   feature: 'feat_cns2asuKAG2',
 };
 schematic.track(event, traits);
