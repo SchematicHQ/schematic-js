@@ -9,34 +9,51 @@ yarn install
 ## Build
 
 ```
-yarn run build
+yarn build
 ```
 
 ## Usage example
 
-
 ```javascript
-const schematic = new Schematic('your-api-key');
+const schematic = new Schematic("your-api-key");
 
 // Send an identify event
-const userId = 'my-user-id';
+const userId = "my-user-id";
+const keys = {
+  id: userId,
+};
 const traits = {
-  anykey: 'anyval',
+  anykey: "anyval",
 };
 const company = {
-  id: 'my-company-id',
-  name: 'My Company',
+  name: "My Company",
+  keys: {
+    id: "my-company-id",
+  },
   traits: {
-    'location': 'Atlanta, GA'
+    location: "Atlanta, GA",
   },
 };
-schematic.identify(userId, traits, company);
+schematic.identify({ keys, traits, company });
 
 // Send a track event
-const event = 'query';
+const event = "query";
 const traits = {
-  companyId: 'my-company-id',
-  feature: 'feat_cns2asuKAG2',
 };
-schematic.track(event, traits);
+const company = {
+};
+const user = {
+},
+schematic.track({
+  event: "query",
+  traits: {
+      feature: "feat_cns2asuKAG2",
+  },
+  company: {
+    id: "my-company-id",
+  },
+  user: {
+    id: "my-user-id",
+  },
+});
 ```

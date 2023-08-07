@@ -1,28 +1,28 @@
-import zlib from 'zlib';
-import querystring from 'querystring';
-import { v4 as uuidv4 } from 'uuid';
+import zlib from "zlib";
+import querystring from "querystring";
+import { v4 as uuidv4 } from "uuid";
 
-const anonymousIdKey = 'schematicId';
+const anonymousIdKey = "schematicId";
 
-type EventType = 'identify' | 'track';
+type EventType = "identify" | "track";
 
 type EventBodyCompany = {
-  id: string;
+  keys: Record<string, string>;
   name?: string;
   traits: Record<string, any>;
 };
 
 type EventBodyIdentify = {
-  id: string;
-  traits: Record<string, any>;
   company?: EventBodyCompany;
+  keys: Record<string, string>;
+  traits: Record<string, any>;
 };
 
 type EventBodyTrack = {
   event: string;
-  feature?: string;
   traits: Record<string, any>;
-  companyId?: string;
+  company?: Record<string, string>;
+  user?: Record<string, string>;
 };
 
 type EventBody = EventBodyIdentify | EventBodyTrack;
@@ -47,21 +47,21 @@ class Schematic {
 
   private sendEvent(event: Event): void {
     // TODO: Chunk payload to ensure URL length does not exceed 1024 characters. Requires capture/backend support
-    const url = 'https://api.schematichq.com/e';
+    const url = "https://api.schematichq.com/e";
     const payload = JSON.stringify(event);
 
     zlib.deflate(payload, (err, compressedData) => {
       if (err) {
-        console.error('Error compressing event data:', err);
+        console.error("Error compressing event data:", err);
         return;
       }
 
-      const base64EncodedData = compressedData.toString('base64');
+      const base64EncodedData = compressedData.toString("base64");
       const escapedData = querystring.escape(base64EncodedData);
       const requestUrl = `${url}?p=${escapedData}`;
 
       const request = new XMLHttpRequest();
-      request.open('GET', requestUrl);
+      request.open("GET", requestUrl);
       request.send();
     });
   }
@@ -111,33 +111,22 @@ class Schematic {
     return generatedAnonymousId;
   }
 
-  identify(userId: string, traits: Record<string, any>, company?: EventBodyCompany): void {
-    const eventBody: EventBodyIdentify = {
-      id: userId,
-      company,
-      traits,
-    };
-
-    this.handleEvent('identify', eventBody);
+  identify(body: EventBodyIdentify): void {
+    this.handleEvent("identify", body);
   }
 
-  track(event: string, traits: Record<string, any>): void {
-    const eventBody: EventBodyTrack = {
-      event,
-      traits: traits,
-    };
-
-    this.handleEvent('track', eventBody);
+  track(body: EventBodyTrack): void {
+    this.handleEvent("track", body);
   }
 
   initialize(): void {
     // Add an event listener to detect when the window is about to close
-    window.addEventListener('beforeunload', () => {
+    window.addEventListener("beforeunload", () => {
       this.flushEventQueue();
     });
 
     // Retrieve and process any stored events from local storage
-    const storedEvents = localStorage.getItem('eventQueue');
+    const storedEvents = localStorage.getItem("eventQueue");
     if (storedEvents) {
       this.eventQueue = JSON.parse(storedEvents);
       this.flushEventQueue();

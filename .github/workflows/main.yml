@@ -10,7 +10,7 @@ jobs:
     name: Notify Slack
     runs-on: ubuntu-latest
     steps:
-      - uses: drilonrecica/action-slack-notify@0.0.3
+      - uses: rtCamp/action-slack-notify@v2
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_TITLE: Updated schematic-js
