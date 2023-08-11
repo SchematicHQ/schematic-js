@@ -1,6 +1,5 @@
-import zlib from "zlib";
-import querystring from "querystring";
-import { v4 as uuidv4 } from "uuid";
+import * as pako from "pako";
+import * as uuid from "uuid";
 
 const anonymousIdKey = "schematicId";
 
@@ -36,6 +35,7 @@ type Event = {
   type: EventType;
 };
 
+/* @preserve */
 class Schematic {
   private apiKey: string;
   private eventQueue: Event[];
@@ -50,20 +50,22 @@ class Schematic {
     const url = "https://api.schematichq.com/e";
     const payload = JSON.stringify(event);
 
-    zlib.deflate(payload, (err, compressedData) => {
-      if (err) {
-        console.error("Error compressing event data:", err);
-        return;
-      }
+    const compressedData = pako.deflate(payload);
 
-      const base64EncodedData = compressedData.toString("base64");
-      const escapedData = querystring.escape(base64EncodedData);
-      const requestUrl = `${url}?p=${escapedData}`;
+    if (!compressedData) {
+      console.error("Error compressing event data.");
+      return;
+    }
 
-      const request = new XMLHttpRequest();
-      request.open("GET", requestUrl);
-      request.send();
-    });
+    const base64EncodedData = btoa(
+      String.fromCharCode(...Array.from(compressedData)),
+    );
+    const escapedData = encodeURIComponent(base64EncodedData);
+    const requestUrl = `${url}?p=${escapedData}`;
+
+    const request = new XMLHttpRequest();
+    request.open("GET", requestUrl);
+    request.send();
   }
 
   private flushEventQueue(): void {
@@ -88,7 +90,7 @@ class Schematic {
       api_key: this.apiKey,
       body: eventBody,
       sent_at: new Date().toISOString(),
-      tracker_event_id: uuidv4(),
+      tracker_event_id: uuid.v4(),
       tracker_user_id: this.getAnonymousId(),
       type: eventType,
     };
@@ -106,7 +108,7 @@ class Schematic {
       return storedAnonymousId;
     }
 
-    const generatedAnonymousId = uuidv4();
+    const generatedAnonymousId = uuid.v4();
     localStorage.setItem(anonymousIdKey, generatedAnonymousId);
     return generatedAnonymousId;
   }
@@ -135,4 +137,4 @@ class Schematic {
   }
 }
 
-export default Schematic;
+(window as any).Schematic = Schematic;
