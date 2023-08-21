@@ -52,6 +52,7 @@ schematic.track({
   company: {
     id: "my-company-id",
   },
+  name: "My User",
   user: {
     id: "my-user-id",
   },

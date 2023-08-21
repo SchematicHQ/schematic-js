@@ -14,6 +14,7 @@ type EventBodyCompany = {
 type EventBodyIdentify = {
   company?: EventBodyCompany;
   keys: Record<string, string>;
+  name?: string;
   traits: Record<string, any>;
 };
 
@@ -47,7 +48,7 @@ class Schematic {
 
   private sendEvent(event: Event): void {
     // TODO: Chunk payload to ensure URL length does not exceed 1024 characters. Requires capture/backend support
-    const url = "https://api.schematichq.com/e";
+    const url = "https://c.schematichq.com/e";
     const payload = JSON.stringify(event);
 
     const compressedData = pako.deflate(payload);
