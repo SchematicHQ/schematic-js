@@ -52,26 +52,26 @@ class Schematic {
   }
 
   private sendEvent(event: Event): void {
-    // TODO: Chunk payload to ensure URL length does not exceed 1024 characters. Requires capture/backend support
     const captureUrl = "https://c.schematichq.com/e";
     const payload = JSON.stringify(event);
 
-    const compressedData = pako.deflate(payload);
-
-    if (!compressedData) {
-      console.error("Error compressing event data.");
-      return;
-    }
-
-    const base64EncodedData = btoa(
-      String.fromCharCode(...Array.from(compressedData)),
-    );
-    const escapedData = encodeURIComponent(base64EncodedData);
-    const requestUrl = `${captureUrl}?p=${escapedData}`;
-
-    const request = new XMLHttpRequest();
-    request.open("GET", requestUrl);
-    request.send();
+    fetch(captureUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json;charset=UTF-8",
+      },
+      body: payload,
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(
+            `Network response was not ok: ${response.statusText}`,
+          );
+        }
+      })
+      .catch((error) => {
+        console.error("There was a problem with the fetch operation:", error);
+      });
   }
 
   private flushEventQueue(): void {
