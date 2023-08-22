@@ -36,6 +36,11 @@ type Event = {
   type: EventType;
 };
 
+type FlagCheckContext = {
+  company?: Record<string, string>;
+  user?: Record<string, string>;
+};
+
 /* @preserve */
 class Schematic {
   private apiKey: string;
@@ -48,7 +53,7 @@ class Schematic {
 
   private sendEvent(event: Event): void {
     // TODO: Chunk payload to ensure URL length does not exceed 1024 characters. Requires capture/backend support
-    const url = "https://c.schematichq.com/e";
+    const captureUrl = "https://c.schematichq.com/e";
     const payload = JSON.stringify(event);
 
     const compressedData = pako.deflate(payload);
@@ -62,7 +67,7 @@ class Schematic {
       String.fromCharCode(...Array.from(compressedData)),
     );
     const escapedData = encodeURIComponent(base64EncodedData);
-    const requestUrl = `${url}?p=${escapedData}`;
+    const requestUrl = `${captureUrl}?p=${escapedData}`;
 
     const request = new XMLHttpRequest();
     request.open("GET", requestUrl);
@@ -112,6 +117,37 @@ class Schematic {
     const generatedAnonymousId = uuid.v4();
     localStorage.setItem(anonymousIdKey, generatedAnonymousId);
     return generatedAnonymousId;
+  }
+
+  async checkFlag(key: string, context: FlagCheckContext): Promise<boolean> {
+    if (!context.company && !context.user) {
+      return Promise.resolve(false);
+    }
+
+    const requestUrl = `https://api.schematichq.com/flags/${key}/check`;
+    const requestBody = JSON.stringify(context);
+
+    return fetch(requestUrl, {
+      method: "POST",
+      headers: {
+        "X-Schematic-Api-Key": this.apiKey,
+        "Content-Type": "application/json;charset=UTF-8",
+      },
+      body: requestBody,
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        return data.value;
+      })
+      .catch((error) => {
+        console.error("There was a problem with the fetch operation:", error);
+        return false;
+      });
   }
 
   identify(body: EventBodyIdentify): void {
