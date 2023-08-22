@@ -1,4 +1,3 @@
-import * as pako from "pako";
 import * as uuid from "uuid";
 
 const anonymousIdKey = "schematicId";
