@@ -141,7 +141,7 @@ class Schematic {
         return response.json();
       })
       .then((data) => {
-        return data.value;
+        return data.data.value;
       })
       .catch((error) => {
         console.error("There was a problem with the fetch operation:", error);
