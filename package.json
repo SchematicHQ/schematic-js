@@ -19,7 +19,8 @@
     "clean": "rm -rf dist && rm -rf .parcel-cache",
     "watch": "parcel watch src/browser.ts --public-url ./"
   },
-  "source": "src/browser.ts",
+  "main": "src/main.ts",
+  "source": "src/main.ts",
   "targets": {
     "default": {
       "isLibrary": false,
@@ -28,5 +29,6 @@
       "outputFormat": "global"
     }
   },
+  "types": "src/main.d.ts",
   "version": "0.0.1"
 }
