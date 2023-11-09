@@ -43,12 +43,37 @@ jobs:
         run: |
           echo "::set-output name=version::$(node -p "require('./package.json').version")"
 
-      - name: Publish browser build
+      - name: Deploy browser build
         run: |
-          aws s3 cp --acl=public-read dist/main.js s3://$S3_BUCKET/js/schematic.js
-          aws s3 cp --acl=public-read dist/main.js s3://$S3_BUCKET/js/schematic.${{ steps.package.outputs.version }}.js
+          aws s3 cp --acl=public-read dist/browser.js s3://$S3_BUCKET/js/schematic.js
+          aws s3 cp --acl=public-read dist/browser.js s3://$S3_BUCKET/js/schematic.${{ steps.package.outputs.version }}.js
           aws configure set preview.cloudfront true
           aws cloudfront create-invalidation --distribution-id ${{ env.CDN_DISTRIBUTION_ID }} --paths "/js/schematic.js" "/js/schematic.${{ steps.package.outputs.version }}.js"
+
+  publish:
+    name: Publish
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set Node.js 16.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@schematichq'
+      - name: Set up .npmrc
+        run: touch .npmrc && echo "//npm.pkg.github.com/:_authToken=$AUTH_TOKEN" > .npmrc
+        env:
+          AUTH_TOKEN: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
+      - name: NPM check
+        run: npm whoami --registry https://npm.pkg.github.com
+      - run: yarn publish
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.CH_PERSONAL_ACCESS_TOKEN }}
 
   notify_slack:
     name: Notify Slack
