@@ -10,7 +10,10 @@
     "typescript": "^5.0.2"
   },
   "modules": false,
-  "name": "schematic-js",
+  "name": "@schematichq/schematic-js",
+  "publishConfig": {
+    "@schematichq:registry": "https://npm.pkg.github.com"
+  },
   "scripts": {
     "build": "parcel build src/browser.ts --public-url ./ --detailed-report",
     "clean": "rm -rf dist && rm -rf .parcel-cache",
