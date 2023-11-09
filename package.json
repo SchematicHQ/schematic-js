@@ -1,6 +1,5 @@
 {
   "dependencies": {
-    "@types/pako": "^2.0.0",
     "@types/uuid": "^9.0.2",
     "uuid": "^9.0.0"
   },
@@ -13,11 +12,11 @@
   "modules": false,
   "name": "schematic-js",
   "scripts": {
-    "build": "parcel build src/main.ts --public-url ./ --detailed-report",
+    "build": "parcel build src/browser.ts --public-url ./ --detailed-report",
     "clean": "rm -rf dist && rm -rf .parcel-cache",
-    "watch": "parcel watch src/main.ts --public-url ./"
+    "watch": "parcel watch src/browser.ts --public-url ./"
   },
-  "source": "src/main.ts",
+  "source": "src/browser.ts",
   "targets": {
     "default": {
       "isLibrary": false,

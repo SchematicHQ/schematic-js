@@ -41,7 +41,7 @@ type FlagCheckContext = {
 };
 
 /* @preserve */
-class Schematic {
+export class Schematic {
   private apiKey: string;
   private eventQueue: Event[];
 
@@ -172,5 +172,3 @@ class Schematic {
     }
   }
 }
-
-(window as any).Schematic = Schematic;

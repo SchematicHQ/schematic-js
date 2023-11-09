@@ -43,7 +43,7 @@ jobs:
         run: |
           echo "::set-output name=version::$(node -p "require('./package.json').version")"
 
-      - name: Deploy
+      - name: Publish browser build
         run: |
           aws s3 cp --acl=public-read dist/main.js s3://$S3_BUCKET/js/schematic.js
           aws s3 cp --acl=public-read dist/main.js s3://$S3_BUCKET/js/schematic.${{ steps.package.outputs.version }}.js
