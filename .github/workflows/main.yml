@@ -26,10 +26,10 @@ jobs:
         with:
           cmd: install
 
-      - name: Build production bundle
+      - name: Build browser bundle
         uses: borales/actions-yarn@v4
         with:
-          cmd: build
+          cmd: build:browser
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -64,6 +64,10 @@ jobs:
           node-version: 16.x
           registry-url: 'https://npm.pkg.github.com'
           scope: '@schematichq'
+      - name: Build NPM bundle
+        uses: borales/actions-yarn@v4
+        with:
+          cmd: build:node
       - name: Set up .npmrc
         run: touch .npmrc && echo "//npm.pkg.github.com/:_authToken=$AUTH_TOKEN" > .npmrc
         env:

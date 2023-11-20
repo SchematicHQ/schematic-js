@@ -1,34 +1,31 @@
 {
+  "author": "Ben Papillon <ben@schematichq.com>",
   "dependencies": {
     "@types/uuid": "^9.0.2",
     "uuid": "^9.0.0"
   },
   "devDependencies": {
-    "@parcel/packager-ts": "^2.9.2",
-    "@parcel/transformer-typescript-types": "^2.9.2",
-    "parcel": "^2.9.2",
+    "@microsoft/api-extractor": "^7.38.3",
+    "esbuild": "^0.19.6",
     "typescript": "^5.0.2"
   },
+  "files": [
+    "dist/schematic.js",
+    "dist/schematic.d.ts"
+  ],
+  "license": "MIT",
+  "main": "dist/schematic.js",
   "modules": false,
   "name": "@schematichq/schematic-js",
   "publishConfig": {
     "@schematichq:registry": "https://npm.pkg.github.com"
   },
+  "repository": "git@github.com:SchematicHQ/schematic-js.git",
   "scripts": {
-    "build": "parcel build src/browser.ts --public-url ./ --detailed-report",
-    "clean": "rm -rf dist && rm -rf .parcel-cache",
-    "watch": "parcel watch src/browser.ts --public-url ./"
+    "build:node": "npx esbuild src/index.ts --bundle --outfile=dist/schematic.js --platform=node && npx tsc && npx api-extractor run",
+    "build:browser": "npx esbuild src/browser.ts --bundle --outfile=dist/browser.js --platform=browser",
+    "clean": "rm -rf dist"
   },
-  "main": "src/main.ts",
-  "source": "src/main.ts",
-  "targets": {
-    "default": {
-      "isLibrary": false,
-      "context": "browser",
-      "sourceMap": false,
-      "outputFormat": "global"
-    }
-  },
-  "types": "src/main.d.ts",
-  "version": "0.0.1"
+  "types": "dist/schematic.d.ts",
+  "version": "0.0.2"
 }
