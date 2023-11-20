@@ -71,7 +71,7 @@ jobs:
       - name: Build
         uses: borales/actions-yarn@v4
         with:
-          cmd: build:node
+          cmd: build:npm
       - name: Set up .npmrc
         run: touch .npmrc && echo "//npm.pkg.github.com/:_authToken=$AUTH_TOKEN" > .npmrc
         env:

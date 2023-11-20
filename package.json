@@ -22,10 +22,10 @@
   },
   "repository": "git@github.com:SchematicHQ/schematic-js.git",
   "scripts": {
-    "build:node": "npx esbuild src/index.ts --bundle --outfile=dist/schematic.js --platform=node && npx tsc && npx api-extractor run",
+    "build:npm": "npx esbuild src/index.ts --bundle --outfile=dist/schematic.js --platform=browser && npx tsc && npx api-extractor run",
     "build:browser": "npx esbuild src/browser.ts --bundle --outfile=dist/browser.js --platform=browser",
     "clean": "rm -rf dist"
   },
   "types": "dist/schematic.d.ts",
-  "version": "0.0.2"
+  "version": "0.0.3"
 }

@@ -28,4 +28,4 @@ jobs:
       - name: NPM Build
         uses: borales/actions-yarn@v4
         with:
-          cmd: build:node
+          cmd: build:npm
