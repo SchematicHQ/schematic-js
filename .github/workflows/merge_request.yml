@@ -20,12 +20,22 @@ jobs:
         with:
           cmd: install
 
-      - name: Browser Build
+      - name: Build browser bundle
         uses: borales/actions-yarn@v4
         with:
           cmd: build:browser
 
-      - name: NPM Build
+      - name: Build ESM
         uses: borales/actions-yarn@v4
         with:
-          cmd: build:npm
+          cmd: build:esm
+
+      - name: Build CJS
+        uses: borales/actions-yarn@v4
+        with:
+          cmd: build:cjs
+
+      - name: Build types
+        uses: borales/actions-yarn@v4
+        with:
+          cmd: build:types

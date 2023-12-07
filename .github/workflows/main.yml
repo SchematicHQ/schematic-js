@@ -45,8 +45,8 @@ jobs:
 
       - name: Deploy browser build
         run: |
-          aws s3 cp --acl=public-read dist/browser.js s3://$S3_BUCKET/js/schematic.js
-          aws s3 cp --acl=public-read dist/browser.js s3://$S3_BUCKET/js/schematic.${{ steps.package.outputs.version }}.js
+          aws s3 cp --acl=public-read dist/schematic.browser.js s3://$S3_BUCKET/js/schematic.js
+          aws s3 cp --acl=public-read dist/schematic.browser.js s3://$S3_BUCKET/js/schematic.${{ steps.package.outputs.version }}.js
           aws configure set preview.cloudfront true
           aws cloudfront create-invalidation --distribution-id ${{ env.CDN_DISTRIBUTION_ID }} --paths "/js/schematic.js" "/js/schematic.${{ steps.package.outputs.version }}.js"
 
@@ -68,10 +68,18 @@ jobs:
         uses: borales/actions-yarn@v4
         with:
           cmd: install
-      - name: Build
+      - name: Build CJS
         uses: borales/actions-yarn@v4
         with:
-          cmd: build:npm
+          cmd: build:cjs
+      - name: Build ESM
+        uses: borales/actions-yarn@v4
+        with:
+          cmd: build:esm
+      - name: Build types
+        uses: borales/actions-yarn@v4
+        with:
+          cmd: build:types
       - name: Set up .npmrc
         run: touch .npmrc && echo "//npm.pkg.github.com/:_authToken=$AUTH_TOKEN" > .npmrc
         env:

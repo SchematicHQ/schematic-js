@@ -1,4 +1,8 @@
 {
+  "name": "@schematichq/schematic-js",
+  "main": "dist/schematic.cjs.js",
+  "module": "dist/schematic.esm.js",
+  "browser": "dist/schematic.browser.js",
   "author": "Ben Papillon <ben@schematichq.com>",
   "dependencies": {
     "@types/uuid": "^9.0.2",
@@ -10,22 +14,23 @@
     "typescript": "^5.0.2"
   },
   "files": [
-    "dist/schematic.js",
+    "dist/schematic.cjs.js",
+    "dist/schematic.esm.js",
+    "dist/schematic.browser.js",
     "dist/schematic.d.ts"
   ],
   "license": "MIT",
-  "main": "dist/schematic.js",
-  "modules": false,
-  "name": "@schematichq/schematic-js",
   "publishConfig": {
     "@schematichq:registry": "https://npm.pkg.github.com"
   },
   "repository": "git@github.com:SchematicHQ/schematic-js.git",
   "scripts": {
-    "build:npm": "npx esbuild src/index.ts --bundle --outfile=dist/schematic.js --platform=neutral && npx tsc && npx api-extractor run",
-    "build:browser": "npx esbuild src/browser.ts --bundle --minify --outfile=dist/browser.js --platform=browser",
+    "build:browser": "npx esbuild src/browser.ts --bundle --minify --outfile=dist/schematic.browser.js --platform=browser",
+    "build:cjs": "npx esbuild src/index.ts --bundle --format=cjs --outfile=dist/schematic.cjs.js --platform=neutral",
+    "build:esm": "npx esbuild src/index.ts --bundle --format=esm --outfile=dist/schematic.esm.js --platform=neutral",
+    "build:types": "npx tsc && npx api-extractor run",
     "clean": "rm -rf dist"
   },
   "types": "dist/schematic.d.ts",
-  "version": "0.0.4"
+  "version": "0.0.5"
 }
