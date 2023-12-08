@@ -40,28 +40,38 @@ type FlagCheckContext = {
   user?: Record<string, string>;
 };
 
+type StoragePersister = {
+  setItem(key: string, value: any): void;
+  getItem(key: string): any;
+  removeItem(key: string): void;
+};
+
 /* @preserve */
 export class Schematic {
   private apiKey: string;
   private eventQueue: Event[];
+  private storage: StoragePersister;
 
-  constructor(apiKey: string) {
+  constructor(apiKey: string, storage?: StoragePersister) {
     this.apiKey = apiKey;
     this.eventQueue = [];
+    this.storage = storage || localStorage;
   }
 
   private sendEvent(event: Event): void {
     const captureUrl = "https://c.schematichq.com/e";
     const payload = JSON.stringify(event);
 
-    fetch(captureUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json;charset=UTF-8",
-      },
-      body: payload,
-    })
-      .then((response) => {
+    if (navigator?.sendBeacon) {
+      navigator.sendBeacon(captureUrl, payload);
+    } else {
+      fetch(captureUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json;charset=UTF-8",
+        },
+        body: payload,
+      }).then((response) => {
         if (!response.ok) {
           throw new Error(
             `Network response was not ok: ${response.statusText}`,
@@ -71,6 +81,7 @@ export class Schematic {
       .catch((error) => {
         console.error("There was a problem with the fetch operation:", error);
       });
+    }
   }
 
   private flushEventQueue(): void {
@@ -84,10 +95,6 @@ export class Schematic {
 
   private storeEvent(event: Event): void {
     this.eventQueue.push(event);
-  }
-
-  private clearStoredEvents(): void {
-    this.eventQueue = [];
   }
 
   private handleEvent(eventType: EventType, eventBody: EventBody): void {
@@ -108,13 +115,17 @@ export class Schematic {
   }
 
   private getAnonymousId(): string {
-    const storedAnonymousId = localStorage.getItem(anonymousIdKey);
+    if (!this.storage) {
+      return uuid.v4();
+    }
+
+    const storedAnonymousId = this.storage.getItem(anonymousIdKey);
     if (storedAnonymousId) {
       return storedAnonymousId;
     }
 
     const generatedAnonymousId = uuid.v4();
-    localStorage.setItem(anonymousIdKey, generatedAnonymousId);
+    this.storage.setItem(anonymousIdKey, generatedAnonymousId);
     return generatedAnonymousId;
   }
 
@@ -159,16 +170,10 @@ export class Schematic {
 
   initialize(): void {
     // Add an event listener to detect when the window is about to close
-    window.addEventListener("beforeunload", () => {
-      this.flushEventQueue();
-    });
-
-    // Retrieve and process any stored events from local storage
-    const storedEvents = localStorage.getItem("eventQueue");
-    if (storedEvents) {
-      this.eventQueue = JSON.parse(storedEvents);
-      this.flushEventQueue();
-      this.clearStoredEvents();
+    if (typeof window !== 'undefined') {
+      window.addEventListener("beforeunload", () => {
+        this.flushEventQueue();
+      });
     }
   }
 }
