@@ -33,5 +33,5 @@
     "clean": "rm -rf dist"
   },
   "types": "dist/schematic.d.ts",
-  "version": "0.0.6"
+  "version": "0.0.7"
 }

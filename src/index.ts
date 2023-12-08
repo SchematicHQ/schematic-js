@@ -62,26 +62,22 @@ export class Schematic {
     const captureUrl = "https://c.schematichq.com/e";
     const payload = JSON.stringify(event);
 
-    if (navigator?.sendBeacon) {
-      navigator.sendBeacon(captureUrl, payload);
-    } else {
-      fetch(captureUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json;charset=UTF-8",
-        },
-        body: payload,
-      }).then((response) => {
-        if (!response.ok) {
-          throw new Error(
-            `Network response was not ok: ${response.statusText}`,
-          );
-        }
-      })
-      .catch((error) => {
-        console.error("There was a problem with the fetch operation:", error);
-      });
-    }
+    fetch(captureUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json;charset=UTF-8",
+      },
+      body: payload,
+    }).then((response) => {
+      if (!response.ok) {
+        throw new Error(
+          `Network response was not ok: ${response.statusText}`,
+        );
+      }
+    })
+    .catch((error) => {
+      console.error("There was a problem with the fetch operation:", error);
+    });
   }
 
   private flushEventQueue(): void {
