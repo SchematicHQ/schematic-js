@@ -2,14 +2,8 @@ import { Schematic } from "./index";
 
 const mockFetch = jest.fn();
 global.fetch = mockFetch;
-// const mockLocalStorage = {
-//   setItem: jest.fn(),
-//   getItem: jest.fn(),
-//   removeItem: jest.fn(),
-// };
-// global.localStorage = mockLocalStorage;
 
-describe("EntityTraitDefinitionsService", () => {
+describe("Schematic", () => {
   let schematic: Schematic;
 
   beforeEach(() => {
@@ -18,8 +12,6 @@ describe("EntityTraitDefinitionsService", () => {
 
   afterEach(() => {
     mockFetch.mockClear();
-    // mockLocalStorage.setItem.mockClear();
-    // mockLocalStorage.getItem.mockClear();
   });
 
   describe("identify", () => {
@@ -28,6 +20,9 @@ describe("EntityTraitDefinitionsService", () => {
         keys: { userId: "123" },
         traits: { name: "John Doe" },
       };
+      const apiResponse = { ok: true };
+      mockFetch.mockResolvedValue(apiResponse);
+
       schematic.identify(eventBody);
 
       expect(mockFetch).toHaveBeenCalledTimes(1);
@@ -39,8 +34,6 @@ describe("EntityTraitDefinitionsService", () => {
         body: expect.any(String),
       });
     });
-
-    // Add more identify tests for different scenarios...
   });
 
   describe("track", () => {
@@ -49,6 +42,8 @@ describe("EntityTraitDefinitionsService", () => {
         event: "Page View",
         traits: { url: "https://example.com" },
       };
+      const apiResponse = { ok: true };
+      mockFetch.mockResolvedValue(apiResponse);
       schematic.track(eventBody);
 
       expect(mockFetch).toHaveBeenCalledTimes(1);
@@ -60,8 +55,6 @@ describe("EntityTraitDefinitionsService", () => {
         body: expect.any(String),
       });
     });
-
-    // Add more track tests for different scenarios...
   });
 
   describe("initialize", () => {
@@ -77,6 +70,8 @@ describe("EntityTraitDefinitionsService", () => {
         event: "Page View",
         traits: { url: "https://example.com" },
       };
+      const apiResponse = { ok: true };
+      mockFetch.mockResolvedValue(apiResponse);
       schematic.track(eventBody);
       window.dispatchEvent(new Event("beforeunload"));
 
@@ -89,8 +84,6 @@ describe("EntityTraitDefinitionsService", () => {
         body: expect.any(String),
       });
     });
-
-    // Add more initialize tests for different scenarios...
   });
 
   describe("checkFlag", () => {
@@ -120,7 +113,5 @@ describe("EntityTraitDefinitionsService", () => {
       });
       expect(flagValue).toBe(true);
     });
-
-    // Add more checkFlag tests for different scenarios...
   });
 });

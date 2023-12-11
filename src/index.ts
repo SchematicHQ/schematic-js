@@ -7,6 +7,7 @@ type EventType = "identify" | "track";
 type EventBodyCompany = {
   keys: Record<string, string>;
   name?: string;
+  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
   traits: Record<string, any>;
 };
 
@@ -14,11 +15,13 @@ type EventBodyIdentify = {
   company?: EventBodyCompany;
   keys: Record<string, string>;
   name?: string;
+  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
   traits: Record<string, any>;
 };
 
 type EventBodyTrack = {
   event: string;
+  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
   traits: Record<string, any>;
   company?: Record<string, string>;
   user?: Record<string, string>;
@@ -41,7 +44,9 @@ type FlagCheckContext = {
 };
 
 type StoragePersister = {
+  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
   setItem(key: string, value: any): void;
+  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
   getItem(key: string): any;
   removeItem(key: string): void;
 };
@@ -116,7 +121,7 @@ export class Schematic {
     }
 
     const storedAnonymousId = this.storage.getItem(anonymousIdKey);
-    if (storedAnonymousId) {
+    if (typeof storedAnonymousId !== "undefined") {
       return storedAnonymousId;
     }
 
