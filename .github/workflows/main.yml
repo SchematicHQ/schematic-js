@@ -6,9 +6,40 @@ on:
       - main
 
 jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 20.x
+      - uses: borales/actions-yarn@v4
+        with:
+          cmd: install
+      - uses: borales/actions-yarn@v4
+        with:
+          cmd: lint
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 20.x
+      - uses: borales/actions-yarn@v4
+        with:
+          cmd: install
+      - uses: borales/actions-yarn@v4
+        with:
+          cmd: test
+
   deploy:
     name: Browser Deploy
     runs-on: ubuntu-latest
+    needs: ["test", "lint"]
     env:
       AWS_REGION: "us-east-1"
       CDN_DISTRIBUTION_ID: "EIY5G2ECS6996"
@@ -56,6 +87,7 @@ jobs:
     permissions:
       packages: write
       contents: read
+    needs: ["test", "lint"]
     steps:
       - uses: actions/checkout@v4
       - name: Set Node.js 20.x

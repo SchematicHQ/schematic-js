@@ -9,33 +9,42 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-
-      - name: Set Node.js 20.x
-        uses: actions/setup-node@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: 20.x
-
-      - name: Run install
-        uses: borales/actions-yarn@v4
+      - uses: borales/actions-yarn@v4
         with:
           cmd: install
-
-      - name: Build browser bundle
-        uses: borales/actions-yarn@v4
+      - uses: borales/actions-yarn@v4
         with:
-          cmd: build:browser
+          cmd: build
 
-      - name: Build ESM
-        uses: borales/actions-yarn@v4
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
-          cmd: build:esm
+          node-version: 20.x
+      - uses: borales/actions-yarn@v4
+        with:
+          cmd: install
+      - uses: borales/actions-yarn@v4
+        with:
+          cmd: lint
 
-      - name: Build CJS
-        uses: borales/actions-yarn@v4
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
-          cmd: build:cjs
-
-      - name: Build types
-        uses: borales/actions-yarn@v4
+          node-version: 20.x
+      - uses: borales/actions-yarn@v4
         with:
-          cmd: build:types
+          cmd: install
+      - uses: borales/actions-yarn@v4
+        with:
+          cmd: test
