@@ -50,12 +50,12 @@ type StoragePersister = {
 export class Schematic {
   private apiKey: string;
   private eventQueue: Event[];
-  private storage: StoragePersister;
+  private storage: StoragePersister | undefined;
 
   constructor(apiKey: string, storage?: StoragePersister) {
     this.apiKey = apiKey;
     this.eventQueue = [];
-    this.storage = storage || localStorage;
+    this.storage = storage || typeof localStorage !== "undefined" ? localStorage : undefined;
   }
 
   private sendEvent(event: Event): void {
