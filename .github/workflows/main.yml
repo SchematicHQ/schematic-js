@@ -68,18 +68,10 @@ jobs:
         uses: borales/actions-yarn@v4
         with:
           cmd: install
-      - name: Build CJS
+      - name: Build
         uses: borales/actions-yarn@v4
         with:
-          cmd: build:cjs
-      - name: Build ESM
-        uses: borales/actions-yarn@v4
-        with:
-          cmd: build:esm
-      - name: Build types
-        uses: borales/actions-yarn@v4
-        with:
-          cmd: build:types
+          cmd: build
       - name: Set up .npmrc
         run: touch .npmrc && echo "//npm.pkg.github.com/:_authToken=$AUTH_TOKEN" > .npmrc
         env:

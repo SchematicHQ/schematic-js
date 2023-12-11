@@ -103,7 +103,7 @@ export class Schematic {
       type: eventType,
     };
 
-    if (document.hidden) {
+    if (typeof document !== "undefined" && document.hidden) {
       this.storeEvent(event);
     } else {
       this.sendEvent(event);
@@ -165,7 +165,6 @@ export class Schematic {
   }
 
   initialize(): void {
-    // Add an event listener to detect when the window is about to close
     if (typeof window !== 'undefined') {
       window.addEventListener("beforeunload", () => {
         this.flushEventQueue();
