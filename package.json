@@ -29,10 +29,10 @@
     "dist/schematic.d.ts"
   ],
   "license": "MIT",
-  "publishConfig": {
-    "@schematichq:registry": "https://npm.pkg.github.com"
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/SchematicHQ/schematic-js.git"
   },
-  "repository": "git@github.com:SchematicHQ/schematic-js.git",
   "scripts": {
     "build": "npx tsc && yarn clean && yarn build:browser && yarn build:cjs && yarn build:esm && yarn build:types",
     "build:browser": "npx esbuild src/browser.ts --bundle --minify --outfile=dist/schematic.browser.js --platform=browser",
@@ -44,5 +44,5 @@
     "test": "jest --config jest.config.js"
   },
   "types": "dist/schematic.d.ts",
-  "version": "0.0.9"
+  "version": "0.0.11"
 }

@@ -60,7 +60,12 @@ export class Schematic {
   constructor(apiKey: string, storage?: StoragePersister) {
     this.apiKey = apiKey;
     this.eventQueue = [];
-    this.storage = storage || typeof localStorage !== "undefined" ? localStorage : undefined;
+
+    if (storage) {
+      this.storage = storage;
+    } else if (typeof localStorage !== "undefined") {
+      this.storage = localStorage;
+    }
   }
 
   private sendEvent(event: Event): void {
@@ -154,6 +159,40 @@ export class Schematic {
       })
       .then((data) => {
         return data.data.value;
+      })
+      .catch((error) => {
+        console.error("There was a problem with the fetch operation:", error);
+        return false;
+      });
+  }
+
+  async checkFlags(context: FlagCheckContext): Promise<Record<string, boolean>> {
+    if (!context.company && !context.user) {
+      return Promise.resolve({});
+    }
+
+    const requestUrl = "https://api.schematichq.com/flags/check";
+    const requestBody = JSON.stringify(context);
+
+    return fetch(requestUrl, {
+      method: "POST",
+      headers: {
+        "X-Schematic-Api-Key": this.apiKey,
+        "Content-Type": "application/json;charset=UTF-8",
+      },
+      body: requestBody,
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        return data.data.flags.reduce((acc: Record<string, boolean>, flag: { flag: string; value: boolean }) => {
+          acc[flag.flag] = flag.value;
+          return acc;
+        });
       })
       .catch((error) => {
         console.error("There was a problem with the fetch operation:", error);
