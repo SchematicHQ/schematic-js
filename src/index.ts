@@ -2,34 +2,36 @@ import * as uuid from "uuid";
 
 const anonymousIdKey = "schematicId";
 
-type EventType = "identify" | "track";
+export type EventType = "identify" | "track";
 
-type EventBodyCompany = {
-  keys: Record<string, string>;
+export type Keys = Record<string, string>;
+
+/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+export type Traits = Record<string, any>;
+
+export type EventBodyCompany = {
+  keys: Keys;
   name?: string;
-  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-  traits: Record<string, any>;
+  traits: Traits;
 };
 
-type EventBodyIdentify = {
+export type EventBodyIdentify = {
   company?: EventBodyCompany;
-  keys: Record<string, string>;
+  keys: Keys;
   name?: string;
-  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-  traits: Record<string, any>;
+  traits: Traits;
 };
 
-type EventBodyTrack = {
+export type EventBodyTrack = {
+  company?: Keys;
   event: string;
-  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-  traits: Record<string, any>;
-  company?: Record<string, string>;
-  user?: Record<string, string>;
+  traits: Traits;
+  user?: Keys;
 };
 
-type EventBody = EventBodyIdentify | EventBodyTrack;
+export type EventBody = EventBodyIdentify | EventBodyTrack;
 
-type Event = {
+export type Event = {
   api_key: string;
   body: EventBody;
   sent_at: string;
@@ -38,10 +40,23 @@ type Event = {
   type: EventType;
 };
 
-type FlagCheckContext = {
-  company?: Record<string, string>;
-  user?: Record<string, string>;
+export type FlagCheckContext = {
+  company?: Keys;
+  user?: Keys;
 };
+
+export type FlagCheckResponseBody = {
+  company_id?: string;
+  error?: string;
+  reason: string;
+  rule_id?: string;
+  user_id?: string;
+  value: boolean;
+}
+
+export type FlagCheckWithKeyResponseBody = FlagCheckResponseBody & {
+  flag: string;
+}
 
 type StoragePersister = {
   /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
@@ -65,6 +80,12 @@ export class Schematic {
       this.storage = storage;
     } else if (typeof localStorage !== "undefined") {
       this.storage = localStorage;
+    }
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener("beforeunload", () => {
+        this.flushEventQueue();
+      });
     }
   }
 
@@ -136,7 +157,7 @@ export class Schematic {
   }
 
   async checkFlag(key: string, context: FlagCheckContext): Promise<boolean> {
-    if (!context.company && !context.user) {
+    if (!context.company) {
       return Promise.resolve(false);
     }
 
@@ -167,7 +188,7 @@ export class Schematic {
   }
 
   async checkFlags(context: FlagCheckContext): Promise<Record<string, boolean>> {
-    if (!context.company && !context.user) {
+    if (!context.company) {
       return Promise.resolve({});
     }
 
@@ -177,8 +198,8 @@ export class Schematic {
     return fetch(requestUrl, {
       method: "POST",
       headers: {
-        "X-Schematic-Api-Key": this.apiKey,
         "Content-Type": "application/json;charset=UTF-8",
+        "X-Schematic-Api-Key": this.apiKey,
       },
       body: requestBody,
     })
@@ -189,10 +210,10 @@ export class Schematic {
         return response.json();
       })
       .then((data) => {
-        return data.data.flags.reduce((acc: Record<string, boolean>, flag: { flag: string; value: boolean }) => {
-          acc[flag.flag] = flag.value;
-          return acc;
-        });
+        return data.data.flags.reduce((accum: Record<string, boolean>, flag: FlagCheckWithKeyResponseBody) => {
+          accum[flag.flag] = flag.value;
+          return accum;
+        }, {});
       })
       .catch((error) => {
         console.error("There was a problem with the fetch operation:", error);
@@ -206,13 +227,5 @@ export class Schematic {
 
   track(body: EventBodyTrack): void {
     this.handleEvent("track", body);
-  }
-
-  initialize(): void {
-    if (typeof window !== 'undefined') {
-      window.addEventListener("beforeunload", () => {
-        this.flushEventQueue();
-      });
-    }
   }
 }
