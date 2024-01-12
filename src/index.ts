@@ -157,10 +157,6 @@ export class Schematic {
   }
 
   async checkFlag(key: string, context: FlagCheckContext): Promise<boolean> {
-    if (!context.company) {
-      return Promise.resolve(false);
-    }
-
     const requestUrl = `https://api.schematichq.com/flags/${key}/check`;
     const requestBody = JSON.stringify(context);
 
@@ -188,10 +184,6 @@ export class Schematic {
   }
 
   async checkFlags(context: FlagCheckContext): Promise<Record<string, boolean>> {
-    if (!context.company) {
-      return Promise.resolve({});
-    }
-
     const requestUrl = "https://api.schematichq.com/flags/check";
     const requestBody = JSON.stringify(context);
 
