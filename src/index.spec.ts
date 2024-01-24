@@ -107,7 +107,7 @@ describe("Schematic", () => {
         json: jest.fn().mockResolvedValueOnce(expectedResponse),
       });
 
-      const flagValue = await schematic.checkFlag("FLAG_KEY", context);
+      const flagValue = await schematic.checkFlag({ key: "FLAG_KEY", context});
 
       expect(mockFetch).toHaveBeenCalledTimes(1);
       expect(mockFetch).toHaveBeenCalledWith(expect.any(String), {
