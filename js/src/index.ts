@@ -282,7 +282,7 @@ export class Schematic {
   };
 
   private sendEvent = (event: Event): void => {
-    const captureUrl = this.getUrl(this.apiUrl, "e");
+    const captureUrl = this.getUrl(this.eventUrl, "e");
     const payload = JSON.stringify(event);
 
     fetch(captureUrl, {
