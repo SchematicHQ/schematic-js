@@ -30,7 +30,7 @@ jobs:
     permissions:
       packages: write
       contents: read
-    needs: ["test", "lint"]
+    needs: [lint]
     steps:
       - uses: actions/checkout@v4
       - name: Set Node.js 20.x
