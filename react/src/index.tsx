@@ -33,7 +33,7 @@ const SchematicProvider: React.FC<SchematicProviderProps> = ({
   const [flagValues, setFlagValues] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
-    if (!publishableKey) {
+    if (publishableKey === undefined) {
       return;
     }
 
