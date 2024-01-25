@@ -108,7 +108,9 @@ export class Schematic {
 
     if (this.useWebSocket) {
       const contextVals = this.values[contextString(context)] ?? {};
-      return typeof contextVals[key] === "undefined" ? fallback : contextVals[key];
+      return typeof contextVals[key] === "undefined"
+        ? fallback
+        : contextVals[key];
     }
 
     const requestUrl = `https://api.schematichq.com/flags/${key}/check`;

@@ -1,9 +1,11 @@
-name: Main
+name: Deploy schematic-js
 
 on:
   push:
     branches:
       - main
+    paths:
+      - js/**
 
 jobs:
   lint:
@@ -17,9 +19,11 @@ jobs:
       - uses: borales/actions-yarn@v4
         with:
           cmd: install
+        working-directory: ./js
       - uses: borales/actions-yarn@v4
         with:
           cmd: lint
+        working-directory: ./js
 
   test:
     name: Test
@@ -32,9 +36,11 @@ jobs:
       - uses: borales/actions-yarn@v4
         with:
           cmd: install
+        working-directory: ./js
       - uses: borales/actions-yarn@v4
         with:
           cmd: test
+        working-directory: ./js
 
   deploy:
     name: Browser Deploy
@@ -56,11 +62,13 @@ jobs:
         uses: borales/actions-yarn@v4
         with:
           cmd: install
+        working-directory: ./js
 
       - name: Build browser bundle
         uses: borales/actions-yarn@v4
         with:
           cmd: build:browser
+        working-directory: ./js
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -68,11 +76,13 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
+        working-directory: ./js
 
       - name: Get package version
         id: package
         run: |
           echo "::set-output name=version::$(node -p "require('./package.json').version")"
+        working-directory: ./js
 
       - name: Deploy browser build
         run: |
@@ -80,6 +90,7 @@ jobs:
           aws s3 cp --acl=public-read dist/schematic.browser.js s3://$S3_BUCKET/js/schematic.${{ steps.package.outputs.version }}.js
           aws configure set preview.cloudfront true
           aws cloudfront create-invalidation --distribution-id ${{ env.CDN_DISTRIBUTION_ID }} --paths "/js/schematic.js" "/js/schematic.${{ steps.package.outputs.version }}.js"
+        working-directory: ./js
 
   publish:
     name: NPM Publish
@@ -98,15 +109,19 @@ jobs:
         uses: borales/actions-yarn@v4
         with:
           cmd: install
+        working-directory: ./js
       - name: Build
         uses: borales/actions-yarn@v4
         with:
           cmd: build
+        working-directory: ./js
       - name: Set up .npmrc
         run: touch .npmrc && echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > .npmrc
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        working-directory: ./js
       - run: yarn publish --access public
+        working-directory: ./js
 
   notify_slack:
     name: Notify Slack

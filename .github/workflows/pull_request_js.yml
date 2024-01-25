@@ -1,0 +1,58 @@
+name: Pull request - schematic-js
+
+on:
+  pull_request:
+    paths:
+      - js/**
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 20.x
+      - uses: borales/actions-yarn@v4
+        with:
+          cmd: install
+        working-directory: ./js
+      - uses: borales/actions-yarn@v4
+        with:
+          cmd: build
+        working-directory: ./js
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 20.x
+      - uses: borales/actions-yarn@v4
+        with:
+          cmd: install
+        working-directory: ./js
+      - uses: borales/actions-yarn@v4
+        with:
+          cmd: lint
+        working-directory: ./js
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 20.x
+      - uses: borales/actions-yarn@v4
+        with:
+          cmd: install
+        working-directory: ./js
+      - uses: borales/actions-yarn@v4
+        with:
+          cmd: test
+        working-directory: ./js

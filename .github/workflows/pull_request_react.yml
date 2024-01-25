@@ -1,7 +1,9 @@
-name: Merge request
+name: Pull request - schematic-react
 
 on:
   pull_request:
+    paths:
+      - react/**
 
 jobs:
   build:
@@ -15,9 +17,11 @@ jobs:
       - uses: borales/actions-yarn@v4
         with:
           cmd: install
+        working-directory: ./react
       - uses: borales/actions-yarn@v4
         with:
           cmd: build
+        working-directory: ./react
 
   lint:
     name: Lint
@@ -30,21 +34,8 @@ jobs:
       - uses: borales/actions-yarn@v4
         with:
           cmd: install
+        working-directory: ./react
       - uses: borales/actions-yarn@v4
         with:
           cmd: lint
-
-  test:
-    name: Test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 20.x
-      - uses: borales/actions-yarn@v4
-        with:
-          cmd: install
-      - uses: borales/actions-yarn@v4
-        with:
-          cmd: test
+        working-directory: ./react
