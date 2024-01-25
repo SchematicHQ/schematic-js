@@ -64,6 +64,8 @@ type StoragePersister = {
 };
 
 type SchematicOptions = {
+  apiUrl?: string;
+  eventUrl?: string;
   flagListener?: (values: Record<string, boolean>) => void;
   storage?: StoragePersister;
   useWebSocket?: boolean;
@@ -78,6 +80,8 @@ export type CheckOptions = {
 /* @preserve */
 export class Schematic {
   private apiKey: string;
+  private apiUrl = "api.schematichq.com";
+  private eventUrl = "c.schematichq.com";
   private conn: WebSocket | null = null;
   private context: SchematicContext = {};
   private eventQueue: Event[];
@@ -98,6 +102,14 @@ export class Schematic {
       this.storage = localStorage;
     }
 
+    if (options?.apiUrl !== undefined) {
+      this.apiUrl = options.apiUrl;
+    }
+
+    if (options?.eventUrl !== undefined) {
+      this.eventUrl = options.eventUrl;
+    }
+
     if (typeof window !== "undefined") {
       window.addEventListener("beforeunload", () => {
         this.flushEventQueue();
@@ -116,7 +128,7 @@ export class Schematic {
         : contextVals[key];
     }
 
-    const requestUrl = `https://api.schematichq.com/flags/${key}/check`;
+    const requestUrl = this.getUrl(this.apiUrl, `flags/${key}/check`);
     return fetch(requestUrl, {
       method: "POST",
       headers: {
@@ -146,7 +158,7 @@ export class Schematic {
   ): Promise<Record<string, boolean>> => {
     context = context || this.context;
 
-    const requestUrl = "https://api.schematichq.com/flags/check";
+    const requestUrl = this.getUrl(this.apiUrl, "flags/check");
     const requestBody = JSON.stringify(context);
 
     return fetch(requestUrl, {
@@ -215,6 +227,19 @@ export class Schematic {
     this.handleEvent("track", body);
   };
 
+  private getUrl = (domain: string, path: string, urlType?: string): string => {
+    let scheme = "http";
+    if (urlType === "ws") {
+      scheme = "ws";
+    }
+
+    if (typeof window === "undefined" || window.location.protocol === "https:") {
+      return `${scheme}s://${domain}/${path}`;
+    }
+
+    return `${scheme}://${domain}/${path}`;
+  }
+
   private flushEventQueue = (): void => {
     while (this.eventQueue.length > 0) {
       const event = this.eventQueue.shift();
@@ -257,7 +282,7 @@ export class Schematic {
   };
 
   private sendEvent = (event: Event): void => {
-    const captureUrl = "https://c.schematichq.com/e";
+    const captureUrl = this.getUrl(this.apiUrl, "e");
     const payload = JSON.stringify(event);
 
     fetch(captureUrl, {
@@ -289,7 +314,7 @@ export class Schematic {
         resolve();
       }
 
-      const wsUrl = "wss://api.schematichq.com/flags/bootstrap";
+      const wsUrl = this.getUrl(this.apiUrl, "flags/bootstrap", "ws");
       const webSocket = new WebSocket(wsUrl);
       this.conn = webSocket;
 

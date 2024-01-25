@@ -76,12 +76,13 @@ const useSchematicEvents = () => {
 const useSchematicFlag = (key: string, fallback?: boolean) => {
   const { flagValues } = useSchematic();
   const [value, setValue] = useState(fallback ?? false);
+  const flagValue = flagValues[key];
 
   useEffect(() => {
-    typeof flagValues[key] === "undefined"
+    typeof flagValue === "undefined"
       ? setValue(fallback ?? false)
-      : setValue(flagValues[key]);
-  }, [key, fallback, flagValues[key]]);
+      : setValue(flagValue);
+  }, [key, fallback, flagValue]);
 
   return value;
 };

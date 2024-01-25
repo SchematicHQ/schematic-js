@@ -4,12 +4,12 @@
   "module": "dist/schematic.esm.js",
   "author": "Ben Papillon <ben@schematichq.com>",
   "dependencies": {
-    "@types/uuid": "^9.0.2",
     "uuid": "^9.0.0"
   },
   "devDependencies": {
     "@microsoft/api-extractor": "^7.38.3",
     "@types/jest": "^29.5.11",
+    "@types/uuid": "^9.0.2",
     "@typescript-eslint/eslint-plugin": "^6.13.2",
     "@typescript-eslint/parser": "^6.13.2",
     "esbuild": "^0.19.9",
@@ -44,5 +44,5 @@
     "test": "jest --config jest.config.js"
   },
   "types": "dist/schematic.d.ts",
-  "version": "0.1.2"
+  "version": "0.1.3"
 }
