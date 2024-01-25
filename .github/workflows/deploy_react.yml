@@ -48,6 +48,9 @@ jobs:
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         working-directory: ./react
+      - name: Test .npmrc
+        run: cat .npmrc
+        working-directory: ./react
       - run: yarn publish --access public
         working-directory: ./react
 
