@@ -14,6 +14,7 @@ export interface SchematicFlags {
 interface SchematicProviderProps {
   children: ReactNode;
   publishableKey?: string;
+  apiUrl?: string;
 }
 
 interface SchematicContextProps {
@@ -26,8 +27,9 @@ const SchematicContext = createContext<SchematicContextProps>({
 });
 
 const SchematicProvider: React.FC<SchematicProviderProps> = ({
-  publishableKey,
+  apiUrl,
   children,
+  publishableKey,
 }) => {
   const [client, setClient] = useState<SchematicJS.Schematic | undefined>();
   const [flagValues, setFlagValues] = useState<Record<string, boolean>>({});
@@ -38,6 +40,7 @@ const SchematicProvider: React.FC<SchematicProviderProps> = ({
     }
 
     const client = new SchematicJS.Schematic(publishableKey, {
+      apiUrl,
       flagListener: setFlagValues,
       useWebSocket: true,
     });
