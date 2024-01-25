@@ -94,3 +94,17 @@ export {
   useSchematicEvents,
   useSchematicFlag,
 };
+
+export type {
+  Event,
+  EventBody,
+  EventBodyCompany,
+  EventBodyIdentify,
+  EventBodyTrack,
+  EventType,
+  FlagCheckResponseBody,
+  FlagCheckWithKeyResponseBody,
+  Keys,
+  SchematicContext,
+  Traits,
+} from "@schematichq/schematic-js";
