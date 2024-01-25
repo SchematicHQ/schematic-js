@@ -14,14 +14,12 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 20.x
-      - uses: borales/actions-yarn@v4
-        with:
-          cmd: install
+      - name: Yarn install
         working-directory: ./react
-      - uses: borales/actions-yarn@v4
-        with:
-          cmd: build
+        run: yarn install
+      - name: Build
         working-directory: ./react
+        run: yarn build
 
   lint:
     name: Lint
@@ -31,11 +29,9 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 20.x
-      - uses: borales/actions-yarn@v4
-        with:
-          cmd: install
+      - name: Yarn install
         working-directory: ./react
-      - uses: borales/actions-yarn@v4
-        with:
-          cmd: lint
+        run: yarn install
+      - name: Lint
         working-directory: ./react
+        run: yarn lint
