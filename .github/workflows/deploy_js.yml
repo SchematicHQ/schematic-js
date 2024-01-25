@@ -16,14 +16,12 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 20.x
-      - uses: borales/actions-yarn@v4
-        with:
-          cmd: install
+      - name: Yarn install
         working-directory: ./js
-      - uses: borales/actions-yarn@v4
-        with:
-          cmd: lint
+        run: yarn install
+      - name: Lint
         working-directory: ./js
+        run: yarn lint
 
   test:
     name: Test
@@ -33,14 +31,12 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 20.x
-      - uses: borales/actions-yarn@v4
-        with:
-          cmd: install
+      - name: Yarn install
         working-directory: ./js
-      - uses: borales/actions-yarn@v4
-        with:
-          cmd: test
+        run: yarn install
+      - name: Test
         working-directory: ./js
+        run: yarn test
 
   deploy:
     name: Browser Deploy
@@ -58,17 +54,13 @@ jobs:
         with:
           node-version: 20.x
 
-      - name: Run install
-        uses: borales/actions-yarn@v4
-        with:
-          cmd: install
+      - name: Yarn install
         working-directory: ./js
+        run: yarn install
 
       - name: Build browser bundle
-        uses: borales/actions-yarn@v4
-        with:
-          cmd: build:browser
         working-directory: ./js
+        run: yarn build:browser
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -106,15 +98,11 @@ jobs:
         with:
           node-version: 20.x
       - name: Yarn install
-        uses: borales/actions-yarn@v4
-        with:
-          cmd: install
         working-directory: ./js
+        run: yarn install
       - name: Build
-        uses: borales/actions-yarn@v4
-        with:
-          cmd: build
         working-directory: ./js
+        run: yarn build
       - name: Set up .npmrc
         run: touch .npmrc && echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > .npmrc
         env:

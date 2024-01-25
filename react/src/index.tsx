@@ -22,6 +22,30 @@ interface SchematicContextProps {
 
 const SchematicContext = createContext<SchematicContextProps>({});
 
+const SchematicProvider: React.FC<SchematicProviderProps> = ({ publishableKey, children }) => {
+  const [client, setClient] = useState<SchematicJS.Schematic | undefined>();
+
+  useEffect(() => {
+    const client = new SchematicJS.Schematic(publishableKey, {
+      useWebSocket: true,
+    });
+    setClient(client);
+    return client.cleanup;
+  }, [publishableKey]);
+
+  const contextValue: SchematicContextProps = {
+    client,
+  };
+
+  return (
+    <SchematicContext.Provider value={contextValue}>
+      {children}
+    </SchematicContext.Provider>
+  );
+};
+
+const useSchematic = () => useContext(SchematicContext);
+
 const useSchematicContext = () => {
   const { client } = useSchematic();
   const { setContext } = client ?? {};
@@ -54,29 +78,5 @@ const useSchematicFlag = (key: string, fallback?: boolean) => {
 
   return value;
 };
-
-const SchematicProvider: React.FC<SchematicProviderProps> = ({ publishableKey, children }) => {
-  const [client, setClient] = useState<SchematicJS.Schematic | undefined>();
-
-  useEffect(() => {
-    const client = new SchematicJS.Schematic(publishableKey, {
-      useWebSocket: true,
-    });
-    setClient(client);
-    return client.cleanup;
-  }, [publishableKey]);
-
-  const contextValue: SchematicContextProps = {
-    client,
-  };
-
-  return (
-    <SchematicContext.Provider value={contextValue}>
-      {children}
-    </SchematicContext.Provider>
-  );
-};
-
-const useSchematic = () => useContext(SchematicContext);
 
 export { SchematicProvider, useSchematic, useSchematicContext, useSchematicEvents, useSchematicFlag };
