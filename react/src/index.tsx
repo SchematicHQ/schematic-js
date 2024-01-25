@@ -13,20 +13,32 @@ export interface SchematicFlags {
 
 interface SchematicProviderProps {
   children: ReactNode;
-  publishableKey: string;
+  publishableKey?: string;
 }
 
 interface SchematicContextProps {
   client?: SchematicJS.Schematic;
+  flagValues: Record<string, boolean>;
 }
 
-const SchematicContext = createContext<SchematicContextProps>({});
+const SchematicContext = createContext<SchematicContextProps>({
+  flagValues: {},
+});
 
-const SchematicProvider: React.FC<SchematicProviderProps> = ({ publishableKey, children }) => {
+const SchematicProvider: React.FC<SchematicProviderProps> = ({
+  publishableKey,
+  children,
+}) => {
   const [client, setClient] = useState<SchematicJS.Schematic | undefined>();
+  const [flagValues, setFlagValues] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
+    if (!publishableKey) {
+      return;
+    }
+
     const client = new SchematicJS.Schematic(publishableKey, {
+      flagListener: setFlagValues,
       useWebSocket: true,
     });
     setClient(client);
@@ -35,6 +47,7 @@ const SchematicProvider: React.FC<SchematicProviderProps> = ({ publishableKey, c
 
   const contextValue: SchematicContextProps = {
     client,
+    flagValues,
   };
 
   return (
@@ -51,7 +64,7 @@ const useSchematicContext = () => {
   const { setContext } = client ?? {};
 
   return { setContext };
-}
+};
 
 const useSchematicEvents = () => {
   const { client } = useSchematic();
@@ -61,22 +74,22 @@ const useSchematicEvents = () => {
 };
 
 const useSchematicFlag = (key: string, fallback?: boolean) => {
-  const { client } = useSchematic();
-  const { checkFlag } = client ?? {};
+  const { flagValues } = useSchematic();
   const [value, setValue] = useState(fallback ?? false);
 
   useEffect(() => {
-    if (!checkFlag) {
-      setValue(fallback ?? false);
-      return;
-    }
-
-    checkFlag({ key, fallback }).then((result) => {
-      setValue(result);
-    });
-  }, [key, fallback, checkFlag]);
+    typeof flagValues[key] === "undefined"
+      ? setValue(fallback ?? false)
+      : setValue(flagValues[key]);
+  }, [key, fallback, flagValues[key]]);
 
   return value;
 };
 
-export { SchematicProvider, useSchematic, useSchematicContext, useSchematicEvents, useSchematicFlag };
+export {
+  SchematicProvider,
+  useSchematic,
+  useSchematicContext,
+  useSchematicEvents,
+  useSchematicFlag,
+};
