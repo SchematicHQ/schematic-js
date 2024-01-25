@@ -64,6 +64,7 @@ type StoragePersister = {
 };
 
 type SchematicOptions = {
+  flagListener?: (values: Record<string, boolean>) => void;
   storage?: StoragePersister;
   useWebSocket?: boolean;
 };
@@ -83,11 +84,13 @@ export class Schematic {
   private storage: StoragePersister | undefined;
   private useWebSocket: boolean = false;
   private values: Record<string, Record<string, boolean>> = {};
+  private flagListener?: (values: Record<string, boolean>) => void;
 
   constructor(apiKey: string, options?: SchematicOptions) {
     this.apiKey = apiKey;
     this.eventQueue = [];
     this.useWebSocket = options?.useWebSocket ?? false;
+    this.flagListener = options?.flagListener;
 
     if (options?.storage) {
       this.storage = options.storage;
@@ -331,6 +334,10 @@ export class Schematic {
             },
             {},
           );
+
+          if (this.flagListener) {
+            this.flagListener(this.values[contextString(context)]);
+          }
 
           if (!resolved) {
             resolved = true;
