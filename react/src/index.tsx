@@ -15,6 +15,8 @@ interface SchematicProviderProps {
   children: ReactNode;
   publishableKey?: string;
   apiUrl?: string;
+  eventUrl?: string;
+  webSocketUrl?: string;
 }
 
 interface SchematicContextProps {
@@ -29,7 +31,9 @@ const SchematicContext = createContext<SchematicContextProps>({
 const SchematicProvider: React.FC<SchematicProviderProps> = ({
   apiUrl,
   children,
+  eventUrl,
   publishableKey,
+  webSocketUrl,
 }) => {
   const [client, setClient] = useState<SchematicJS.Schematic | undefined>();
   const [flagValues, setFlagValues] = useState<Record<string, boolean>>({});
@@ -41,12 +45,14 @@ const SchematicProvider: React.FC<SchematicProviderProps> = ({
 
     const client = new SchematicJS.Schematic(publishableKey, {
       apiUrl,
+      eventUrl,
       flagListener: setFlagValues,
       useWebSocket: true,
+      webSocketUrl,
     });
     setClient(client);
     return client.cleanup;
-  }, [publishableKey]);
+  }, [apiUrl, eventUrl, publishableKey, webSocketUrl]);
 
   const contextValue: SchematicContextProps = {
     client,
