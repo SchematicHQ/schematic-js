@@ -116,7 +116,8 @@ export class Schematic {
       this.webSocketUrl = options.webSocketUrl;
     }
 
-    if (typeof window !== "undefined") {
+    /* eslint-disable-next-line @typescript-eslint/strict-boolean-expressions */
+    if (window?.addEventListener) {
       window.addEventListener("beforeunload", () => {
         this.flushEventQueue();
       });
@@ -266,7 +267,7 @@ export class Schematic {
       type: eventType,
     };
 
-    if (typeof document !== "undefined" && document.hidden) {
+    if (document?.hidden) {
       this.storeEvent(event);
     } else {
       this.sendEvent(event);
