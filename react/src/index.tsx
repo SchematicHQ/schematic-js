@@ -13,10 +13,9 @@ export interface SchematicFlags {
 
 interface SchematicProviderProps {
   children: ReactNode;
+  client?: SchematicJS.Schematic;
+  clientOpts?: SchematicJS.SchematicOptions;
   publishableKey?: string;
-  apiUrl?: string;
-  eventUrl?: string;
-  webSocketUrl?: string;
 }
 
 interface SchematicContextProps {
@@ -24,35 +23,49 @@ interface SchematicContextProps {
   flagValues: Record<string, boolean>;
 }
 
+interface SchematicHookOpts {
+  client?: SchematicJS.Schematic;
+}
+
+type UseSchematicFlagOpts = SchematicHookOpts & {
+  fallback?: boolean;
+}
+
 const SchematicContext = createContext<SchematicContextProps>({
   flagValues: {},
 });
 
+
 const SchematicProvider: React.FC<SchematicProviderProps> = ({
-  apiUrl,
   children,
-  eventUrl,
+  client: providedClient,
+  clientOpts,
   publishableKey,
-  webSocketUrl,
 }) => {
   const [client, setClient] = useState<SchematicJS.Schematic | undefined>();
   const [flagValues, setFlagValues] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
+    // If a client was explicitly provided, always use this
+    if (providedClient) {
+      setClient(providedClient);
+      return providedClient.cleanup;
+    }
+
+    // Otherwise, if a publishable key was provided, create a new client
+    // with the client options
     if (publishableKey === undefined) {
       return;
     }
 
-    const client = new SchematicJS.Schematic(publishableKey, {
-      apiUrl,
-      eventUrl,
+    const newClient = new SchematicJS.Schematic(publishableKey, {
+      ...clientOpts,
       flagListener: setFlagValues,
       useWebSocket: true,
-      webSocketUrl,
     });
-    setClient(client);
-    return client.cleanup;
-  }, [apiUrl, eventUrl, publishableKey, webSocketUrl]);
+    setClient(newClient);
+    return newClient.cleanup;
+  }, [clientOpts, providedClient, publishableKey]);
 
   const contextValue: SchematicContextProps = {
     client,
@@ -68,31 +81,48 @@ const SchematicProvider: React.FC<SchematicProviderProps> = ({
 
 const useSchematic = () => useContext(SchematicContext);
 
-const useSchematicContext = () => {
-  const { client } = useSchematic();
+const useSchematicClient = (opts?: SchematicHookOpts) => {
+  const schematic = useSchematic();
+  const { client } = opts ?? {};
+
+  if (client) {
+    return client;
+  }
+
+  return schematic.client;
+};
+
+const useSchematicContext = (opts?: SchematicHookOpts) => {
+  const client = useSchematicClient(opts);
   const { setContext } = client ?? {};
 
   return { setContext };
 };
 
-const useSchematicEvents = () => {
-  const { client } = useSchematic();
+const useSchematicEvents = (opts?: SchematicHookOpts) => {
+  const client = useSchematicClient(opts);
   const { track, identify } = client ?? {};
 
   return { track, identify };
 };
 
-const useSchematicFlag = (key: string, fallback?: boolean) => {
+const useSchematicFlag = (key: string, opts?: UseSchematicFlagOpts) => {
   const { flagValues } = useSchematic();
+  const { client } = opts ?? {};
+  const { fallback = false } = opts ?? {};
+
   const [value, setValue] = useState(fallback ?? false);
   const flagValue = flagValues[key];
 
   useEffect(() => {
     typeof flagValue === "undefined"
-      ? setValue(fallback ?? false)
+      ? setValue(fallback)
       : setValue(flagValue);
   }, [key, fallback, flagValue]);
 
+  if (client) {
+    return client.checkFlag({ key, fallback});
+  }
   return value;
 };
 
@@ -105,6 +135,12 @@ export {
 };
 
 export type {
+  SchematicHookOpts,
+  SchematicProviderProps,
+  UseSchematicFlagOpts,
+}
+
+export type {
   Event,
   EventBody,
   EventBodyCompany,
@@ -114,6 +150,8 @@ export type {
   FlagCheckResponseBody,
   FlagCheckWithKeyResponseBody,
   Keys,
+  Schematic,
+  SchematicOptions,
   SchematicContext,
   Traits,
 } from "@schematichq/schematic-js";
