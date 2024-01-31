@@ -55,7 +55,7 @@ export type FlagCheckWithKeyResponseBody = FlagCheckResponseBody & {
   flag: string;
 };
 
-type StoragePersister = {
+export type StoragePersister = {
   /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
   setItem(key: string, value: any): void;
   /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
@@ -63,7 +63,7 @@ type StoragePersister = {
   removeItem(key: string): void;
 };
 
-type SchematicOptions = {
+export type SchematicOptions = {
   apiUrl?: string;
   webSocketUrl?: string;
   eventUrl?: string;
