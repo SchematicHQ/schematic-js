@@ -124,7 +124,7 @@ export class Schematic {
     }
   }
 
-  checkFlag = async (options: CheckOptions): Promise<boolean> => {
+  async checkFlag(options: CheckOptions): Promise<boolean> {
     const { fallback = false, key } = options;
     const context = options.context || this.context;
 
@@ -307,7 +307,7 @@ export class Schematic {
         resolve();
       }
 
-      const wsUrl = `${this.webSocketUrl}/flags/bootstrap`;
+      const wsUrl = `${this.webSocketUrl}/flags/subscribe`;
       const webSocket = new WebSocket(wsUrl);
       this.conn = webSocket;
 
@@ -342,16 +342,10 @@ export class Schematic {
         this.conn.onmessage = (event) => {
           const message = JSON.parse(event.data);
 
-          this.values[contextString(context)] = (message.flags ?? []).reduce(
-            (
-              accum: Record<string, boolean>,
-              flag: FlagCheckWithKeyResponseBody,
-            ) => {
-              accum[flag.flag] = flag.value;
-              return accum;
-            },
-            {},
-          );
+          // Message may contain only a subset of flags; merge with existing context
+          (message.flags ?? []).forEach((flag: FlagCheckWithKeyResponseBody) => {
+            this.values[contextString(context)][flag.flag] = flag.value;
+          });
 
           if (this.flagListener) {
             this.flagListener(this.values[contextString(context)]);
