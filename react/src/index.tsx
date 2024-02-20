@@ -120,9 +120,14 @@ const useSchematicFlag = (key: string, opts?: UseSchematicFlagOpts) => {
       : setValue(flagValue);
   }, [key, fallback, flagValue]);
 
-  if (client) {
-    return client.checkFlag({ key, fallback});
-  }
+  useEffect(() => {
+    if (!client) return;
+
+    client.checkFlag({ key, fallback }).then((value) => {
+      setValue(value);
+    });
+  }, [client, key, fallback]);
+
   return value;
 };
 
@@ -140,6 +145,10 @@ export type {
   UseSchematicFlagOpts,
 }
 
+export {
+  Schematic,
+} from "@schematichq/schematic-js";
+
 export type {
   Event,
   EventBody,
@@ -150,7 +159,6 @@ export type {
   FlagCheckResponseBody,
   FlagCheckWithKeyResponseBody,
   Keys,
-  Schematic,
   SchematicOptions,
   SchematicContext,
   Traits,
