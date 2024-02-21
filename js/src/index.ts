@@ -307,7 +307,7 @@ export class Schematic {
         resolve();
       }
 
-      const wsUrl = `${this.webSocketUrl}/flags/subscribe`;
+      const wsUrl = `${this.webSocketUrl}/flags/bootstrap`;
       const webSocket = new WebSocket(wsUrl);
       this.conn = webSocket;
 
@@ -343,6 +343,7 @@ export class Schematic {
           const message = JSON.parse(event.data);
 
           // Message may contain only a subset of flags; merge with existing context
+          this.values[contextString(context)] ||= {};
           (message.flags ?? []).forEach((flag: FlagCheckWithKeyResponseBody) => {
             this.values[contextString(context)][flag.flag] = flag.value;
           });
