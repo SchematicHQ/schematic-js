@@ -19,6 +19,7 @@
     "jest-environment-jsdom": "^29.7.0",
     "jest-esbuild": "^0.3.0",
     "jest-fetch-mock": "^3.0.3",
+    "prettier": "^3.3.1",
     "ts-jest": "^29.1.1",
     "typescript": "^5.0.2"
   },
@@ -40,9 +41,10 @@
     "build:esm": "npx esbuild src/index.ts --bundle --format=esm --outfile=dist/schematic.esm.js",
     "build:types": "npx tsc && npx api-extractor run",
     "clean": "rm -rf dist",
+    "format": "prettier --write src/*.ts",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --fix",
     "test": "jest --config jest.config.js"
   },
   "types": "dist/schematic.d.ts",
-  "version": "0.1.9"
+  "version": "0.1.10"
 }

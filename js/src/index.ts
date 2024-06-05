@@ -157,7 +157,7 @@ export class Schematic {
         console.error("There was a problem with the fetch operation:", error);
         return fallback;
       });
-  };
+  }
 
   // Make a REST API call to fetch all flag values for a given context
   checkFlags = async (
@@ -327,6 +327,7 @@ export class Schematic {
       if (contextString(context) == contextString(this.context)) {
         // Don't reset if context has not changed
         resolve();
+        return;
       }
 
       this.context = context;
@@ -343,10 +344,15 @@ export class Schematic {
           const message = JSON.parse(event.data);
 
           // Message may contain only a subset of flags; merge with existing context
-          this.values[contextString(context)] ||= {};
-          (message.flags ?? []).forEach((flag: FlagCheckWithKeyResponseBody) => {
-            this.values[contextString(context)][flag.flag] = flag.value;
-          });
+          if (!(contextString(context) in this.values)) {
+            this.values[contextString(context)] = {};
+          }
+
+          (message.flags ?? []).forEach(
+            (flag: FlagCheckWithKeyResponseBody) => {
+              this.values[contextString(context)][flag.flag] = flag.value;
+            },
+          );
 
           if (this.flagListener) {
             this.flagListener(this.values[contextString(context)]);

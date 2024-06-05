@@ -95,9 +95,9 @@ describe("Schematic", () => {
       const expectedResponse = {
         data: {
           companyId: "comp_YRucCyZ3us4",
-          flag:  "FLAG_KEY",
-          reason:  "Matched rule rule_iuBRNdJEjYh",
-          ruleId:  "rule_iuBRNdJEjYh",
+          flag: "FLAG_KEY",
+          reason: "Matched rule rule_iuBRNdJEjYh",
+          ruleId: "rule_iuBRNdJEjYh",
           userId: "user_6oRr9UTncXf",
           value: true,
         },
@@ -107,7 +107,7 @@ describe("Schematic", () => {
         json: jest.fn().mockResolvedValueOnce(expectedResponse),
       });
 
-      const flagValue = await schematic.checkFlag({ key: "FLAG_KEY", context});
+      const flagValue = await schematic.checkFlag({ key: "FLAG_KEY", context });
 
       expect(mockFetch).toHaveBeenCalledTimes(1);
       expect(mockFetch).toHaveBeenCalledWith(expect.any(String), {
@@ -133,17 +133,17 @@ describe("Schematic", () => {
           flags: [
             {
               companyId: "comp_YRucCyZ3us4",
-              flag:  "FLAG_KEY1",
-              reason:  "Matched rule rule_iuBRNdJEjYh",
-              ruleId:  "rule_iuBRNdJEjYh",
+              flag: "FLAG_KEY1",
+              reason: "Matched rule rule_iuBRNdJEjYh",
+              ruleId: "rule_iuBRNdJEjYh",
               userId: "user_6oRr9UTncXf",
               value: true,
             },
             {
               companyId: "comp_YRucCyZ3us4",
-              flag:  "FLAG_KEY2",
-              reason:  "No rules matched",
-              ruleId:  null,
+              flag: "FLAG_KEY2",
+              reason: "No rules matched",
+              ruleId: null,
               userId: "user_6oRr9UTncXf",
               value: false,
             },
