@@ -42,9 +42,9 @@
     "test": "jest --config jest.config.js"
   },
   "types": "dist/schematic-react.d.ts",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "dependencies": {
-    "@schematichq/schematic-js": "^0.1.8"
+    "@schematichq/schematic-js": "^0.1.10"
   },
   "peerDependencies": {
     "react": ">=18"
