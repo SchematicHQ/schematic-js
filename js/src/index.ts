@@ -13,22 +13,20 @@ export type SchematicContext = {
   user?: Keys;
 };
 
-export type EventBodyCompany = {
-  keys: Keys;
-  name?: string;
-  traits: Traits;
-};
-
 export type EventBodyIdentify = {
-  company?: EventBodyCompany;
-  keys: Keys;
+  company?: {
+    keys?: Keys;
+    name?: string;
+    traits?: Traits;
+  };
+  keys?: Keys;
   name?: string;
-  traits: Traits;
+  traits?: Traits;
 };
 
 export type EventBodyTrack = SchematicContext & {
   event: string;
-  traits: Traits;
+  traits?: Traits;
 };
 
 export type EventBody = EventBodyIdentify | EventBodyTrack;
@@ -206,8 +204,13 @@ export class Schematic {
   };
 
   // Send an identify event
-  identify = (body: EventBodyIdentify): void => {
-    this.handleEvent("identify", body);
+  identify = (body: EventBodyIdentify): Promise<void> => {
+    this.setContext({
+      company: body.company?.keys,
+      user: body.keys,
+    });
+
+    return this.handleEvent("identify", body);
   };
 
   // Set the flag evaluation context; if the context has changed,
@@ -229,8 +232,14 @@ export class Schematic {
   };
 
   // Send track event
-  track = (body: EventBodyTrack): void => {
-    this.handleEvent("track", body);
+  track = (body: EventBodyTrack): Promise<void> => {
+    const { company, user, event, traits } = body;
+    return this.handleEvent("track", {
+      company: company ?? this.context.company,
+      event,
+      traits: traits ?? {},
+      user: user ?? this.context.user,
+    });
   };
 
   private flushEventQueue = (): void => {
@@ -257,7 +266,10 @@ export class Schematic {
     return generatedAnonymousId;
   };
 
-  private handleEvent = (eventType: EventType, eventBody: EventBody): void => {
+  private handleEvent = (
+    eventType: EventType,
+    eventBody: EventBody,
+  ): Promise<void> => {
     const event: Event = {
       api_key: this.apiKey,
       body: eventBody,
@@ -268,37 +280,34 @@ export class Schematic {
     };
 
     if (document?.hidden) {
-      this.storeEvent(event);
+      return this.storeEvent(event);
     } else {
-      this.sendEvent(event);
+      return this.sendEvent(event);
     }
   };
 
-  private sendEvent = (event: Event): void => {
+  private sendEvent = async (event: Event): Promise<void> => {
     const captureUrl = `${this.eventUrl}/e`;
     const payload = JSON.stringify(event);
 
-    fetch(captureUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json;charset=UTF-8",
-      },
-      body: payload,
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(
-            `Network response was not ok: ${response.statusText}`,
-          );
-        }
-      })
-      .catch((error) => {
-        console.error("There was a problem with the fetch operation:", error);
+    try {
+      await fetch(captureUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json;charset=UTF-8",
+        },
+        body: payload,
       });
+    } catch (error) {
+      console.error("Error sending Schematic event: ", error);
+    }
+
+    return Promise.resolve();
   };
 
-  private storeEvent = (event: Event): void => {
+  private storeEvent = (event: Event): Promise<void> => {
     this.eventQueue.push(event);
+    return Promise.resolve();
   };
 
   private wsConnect = (): Promise<void> => {

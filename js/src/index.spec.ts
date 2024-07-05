@@ -55,6 +55,92 @@ describe("Schematic", () => {
         body: expect.any(String),
       });
     });
+
+    it("should use set context if none is provided in track call", async () => {
+      const setContext = {
+        user: { userId: "123" },
+        company: { companyId: "456" },
+      };
+      schematic.setContext(setContext);
+
+      const eventBody = {
+        event: "Page View",
+        traits: { url: "https://example.com" },
+      };
+      const apiResponse = { ok: true };
+      mockFetch.mockResolvedValue(apiResponse);
+
+      await schematic.track(eventBody);
+
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      expect(mockFetch).toHaveBeenCalledWith(
+        "https://c.schematichq.com/e",
+        expect.objectContaining({
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json;charset=UTF-8",
+          },
+          body: expect.any(String),
+        }),
+      );
+
+      const [[, { body }]] = mockFetch.mock.calls;
+      const parsedBody = JSON.parse(body);
+      expect(parsedBody).toMatchObject({
+        api_key: "API_KEY",
+        body: {
+          company: { companyId: "456" },
+          user: { userId: "123" },
+          event: "Page View",
+          traits: { url: "https://example.com" },
+        },
+        type: "track",
+      });
+    });
+
+    it("should use provided context over set context in track call", async () => {
+      const setContext = {
+        user: { userId: "123" },
+        company: { companyId: "456" },
+      };
+      schematic.setContext(setContext);
+
+      const eventBody = {
+        event: "Page View",
+        traits: { url: "https://example.com" },
+        user: { userId: "789" },
+        company: { companyId: "101" },
+      };
+      const apiResponse = { ok: true };
+      mockFetch.mockResolvedValue(apiResponse);
+
+      await schematic.track(eventBody);
+
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      expect(mockFetch).toHaveBeenCalledWith(
+        "https://c.schematichq.com/e",
+        expect.objectContaining({
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json;charset=UTF-8",
+          },
+          body: expect.any(String),
+        }),
+      );
+
+      const [[, { body }]] = mockFetch.mock.calls;
+      const parsedBody = JSON.parse(body);
+      expect(parsedBody).toMatchObject({
+        api_key: "API_KEY",
+        body: {
+          company: { companyId: "101" },
+          user: { userId: "789" },
+          event: "Page View",
+          traits: { url: "https://example.com" },
+        },
+        type: "track",
+      });
+    });
   });
 
   describe("initialize", () => {
