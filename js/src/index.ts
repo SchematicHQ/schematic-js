@@ -91,12 +91,14 @@ export class Schematic {
   private useWebSocket: boolean = false;
   private values: Record<string, Record<string, boolean>> = {};
   private flagListener?: (values: Record<string, boolean>) => void;
+  private listeners: (() => void)[];
 
   constructor(apiKey: string, options?: SchematicOptions) {
     this.apiKey = apiKey;
     this.eventQueue = [];
     this.useWebSocket = options?.useWebSocket ?? false;
     this.flagListener = options?.flagListener;
+    this.listeners = [];
 
     if (options?.storage) {
       this.storage = options.storage;
@@ -233,6 +235,23 @@ export class Schematic {
     this.handleEvent("track", body);
   };
 
+  emitChange() {
+    for (const listener of this.listeners) {
+      listener();
+    }
+  }
+
+  subscribe(listener: () => void) {
+    this.listeners = [...this.listeners, listener];
+    return () => {
+      this.listeners = this.listeners.filter((l) => l !== listener);
+    };
+  }
+
+  getSnapshot() {
+    return this.values[contextString(this.context)];
+  }
+
   private flushEventQueue = (): void => {
     while (this.eventQueue.length > 0) {
       const event = this.eventQueue.shift();
@@ -353,6 +372,8 @@ export class Schematic {
               this.values[contextString(context)][flag.flag] = flag.value;
             },
           );
+
+          this.emitChange();
 
           if (this.flagListener) {
             this.flagListener(this.values[contextString(context)]);

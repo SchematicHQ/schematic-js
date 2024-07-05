@@ -4,6 +4,7 @@ import React, {
   useContext,
   useEffect,
   useState,
+  useSyncExternalStore,
   ReactNode,
 } from "react";
 
@@ -29,12 +30,11 @@ interface SchematicHookOpts {
 
 type UseSchematicFlagOpts = SchematicHookOpts & {
   fallback?: boolean;
-}
+};
 
 const SchematicContext = createContext<SchematicContextProps>({
   flagValues: {},
 });
-
 
 const SchematicProvider: React.FC<SchematicProviderProps> = ({
   children,
@@ -107,28 +107,11 @@ const useSchematicEvents = (opts?: SchematicHookOpts) => {
 };
 
 const useSchematicFlag = (key: string, opts?: UseSchematicFlagOpts) => {
-  const { flagValues } = useSchematic();
-  const { client } = opts ?? {};
-  const { fallback = false } = opts ?? {};
+  const ctx = useSchematic();
+  const client = opts?.client || ctx.client;
+  const flags = useSyncExternalStore(client?.subscribe, client?.getSnapshot);
 
-  const [value, setValue] = useState(fallback ?? false);
-  const flagValue = flagValues[key];
-
-  useEffect(() => {
-    typeof flagValue === "undefined"
-      ? setValue(fallback)
-      : setValue(flagValue);
-  }, [key, fallback, flagValue]);
-
-  useEffect(() => {
-    if (!client) return;
-
-    client.checkFlag({ key, fallback }).then((value) => {
-      setValue(value);
-    });
-  }, [client, key, fallback]);
-
-  return value;
+  return flags[key];
 };
 
 export {
@@ -139,15 +122,9 @@ export {
   useSchematicFlag,
 };
 
-export type {
-  SchematicHookOpts,
-  SchematicProviderProps,
-  UseSchematicFlagOpts,
-}
+export type { SchematicHookOpts, SchematicProviderProps, UseSchematicFlagOpts };
 
-export {
-  Schematic,
-} from "@schematichq/schematic-js";
+export { Schematic } from "@schematichq/schematic-js";
 
 export type {
   Event,
