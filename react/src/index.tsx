@@ -3,6 +3,7 @@ import React, {
   createContext,
   useContext,
   useEffect,
+  useMemo,
   useState,
   ReactNode,
 } from "react";
@@ -11,12 +12,21 @@ export interface SchematicFlags {
   [key: string]: boolean;
 }
 
-interface SchematicProviderProps {
+type BaseSchematicProviderProps = Omit<SchematicJS.SchematicOptions, 'client' | 'publishableKey'> & {
   children: ReactNode;
-  client?: SchematicJS.Schematic;
-  clientOpts?: SchematicJS.SchematicOptions;
-  publishableKey?: string;
-}
+};
+
+type SchematicProviderPropsWithClient = BaseSchematicProviderProps & {
+  client: SchematicJS.Schematic;
+  publishableKey?: never;
+};
+
+type SchematicProviderPropsWithPublishableKey = BaseSchematicProviderProps & {
+  client?: never;
+  publishableKey: string;
+};
+
+type SchematicProviderProps = SchematicProviderPropsWithClient | SchematicProviderPropsWithPublishableKey;
 
 interface SchematicContextProps {
   client?: SchematicJS.Schematic;
@@ -29,43 +39,54 @@ interface SchematicHookOpts {
 
 type UseSchematicFlagOpts = SchematicHookOpts & {
   fallback?: boolean;
-}
+};
 
 const SchematicContext = createContext<SchematicContextProps>({
   flagValues: {},
 });
 
-
 const SchematicProvider: React.FC<SchematicProviderProps> = ({
   children,
   client: providedClient,
-  clientOpts,
   publishableKey,
+  ...clientOpts
 }) => {
-  const [client, setClient] = useState<SchematicJS.Schematic | undefined>();
+  const [client, setClient] = useState<SchematicJS.Schematic>();
   const [flagValues, setFlagValues] = useState<Record<string, boolean>>({});
+  /* eslint-disable-next-line react-hooks/exhaustive-deps */
+  const memoizedClientOpts = useMemo(() => clientOpts, [JSON.stringify(clientOpts)]);
+  const { useWebSocket = true } = clientOpts;
 
   useEffect(() => {
+    let cleanupFunction: (() => void) | undefined;
+
     // If a client was explicitly provided, always use this
     if (providedClient) {
       setClient(providedClient);
-      return providedClient.cleanup;
+      cleanupFunction = () => {
+        providedClient.cleanup().catch(error => {
+          console.error("Error during cleanup:", error);
+        });
+      };
+    } else {
+      // Otherwise, if a publishable key was provided, create a new client
+      // with the client options
+      const newClient = new SchematicJS.Schematic(publishableKey, {
+        ...memoizedClientOpts,
+        flagListener: setFlagValues,
+        useWebSocket,
+      });
+      setClient(newClient);
+      cleanupFunction = () => {
+        newClient.cleanup().catch(error => {
+          console.error("Error during cleanup:", error);
+        });
+      };
     }
 
-    // Otherwise, if a publishable key was provided, create a new client
-    // with the client options
-    if (publishableKey === undefined) {
-      return;
-    }
-
-    const newClient = new SchematicJS.Schematic(publishableKey, {
-      ...clientOpts,
-      flagListener: setFlagValues,
-      useWebSocket: true,
-    });
-    setClient(newClient);
-    return newClient.cleanup;
-  }, [clientOpts, providedClient, publishableKey]);
+    // Return the cleanup function
+    return cleanupFunction;
+  }, [memoizedClientOpts, providedClient, publishableKey, useWebSocket]);
 
   const contextValue: SchematicContextProps = {
     client,
@@ -111,22 +132,18 @@ const useSchematicFlag = (key: string, opts?: UseSchematicFlagOpts) => {
   const { client } = opts ?? {};
   const { fallback = false } = opts ?? {};
 
-  const [value, setValue] = useState(fallback ?? false);
+  const [value, setValue] = useState(fallback);
   const flagValue = flagValues[key];
 
   useEffect(() => {
-    typeof flagValue === "undefined"
-      ? setValue(fallback)
-      : setValue(flagValue);
-  }, [key, fallback, flagValue]);
-
-  useEffect(() => {
-    if (!client) return;
-
-    client.checkFlag({ key, fallback }).then((value) => {
-      setValue(value);
-    });
-  }, [client, key, fallback]);
+    if (typeof flagValue !== "undefined") {
+      setValue(flagValue);
+    } else if (client) {
+      client.checkFlag({ key, fallback }).then(setValue);
+    } else {
+      setValue(fallback);
+    }
+  }, [key, fallback, flagValue, client]);
 
   return value;
 };
@@ -139,20 +156,13 @@ export {
   useSchematicFlag,
 };
 
-export type {
-  SchematicHookOpts,
-  SchematicProviderProps,
-  UseSchematicFlagOpts,
-}
+export type { SchematicHookOpts, SchematicProviderProps, UseSchematicFlagOpts };
 
-export {
-  Schematic,
-} from "@schematichq/schematic-js";
+export { Schematic } from "@schematichq/schematic-js";
 
 export type {
   Event,
   EventBody,
-  EventBodyCompany,
   EventBodyIdentify,
   EventBodyTrack,
   EventType,
