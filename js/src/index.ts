@@ -82,7 +82,7 @@ export class Schematic {
   private apiUrl = "https://api.schematichq.com";
   private webSocketUrl = "wss://api.schematichq.com";
   private eventUrl = "https://c.schematichq.com";
-  private conn: WebSocket | null = null;
+  private conn: Promise<WebSocket> | null = null;
   private context: SchematicContext = {};
   private eventQueue: Event[];
   private storage: StoragePersister | undefined;
@@ -197,9 +197,16 @@ export class Schematic {
       });
   };
 
-  cleanup = (): void => {
+  cleanup = async (): Promise<void> => {
     if (this.conn) {
-      this.conn.close();
+      try {
+        const socket = await this.conn;
+        socket.close();
+      } catch (error) {
+        console.error("Error during cleanup:", error);
+      } finally {
+        this.conn = null;
+      }
     }
   };
 
@@ -217,17 +224,18 @@ export class Schematic {
   // this will open a websocket connection (if not already open)
   // and submit this context. The promise will resolve when the
   // websocket sends back an initial set of flag values.
-  setContext = (context: SchematicContext): Promise<void> => {
+  setContext = async (context: SchematicContext): Promise<void> => {
     if (!this.useWebSocket) {
       this.context = context;
       return Promise.resolve();
     }
 
-    return new Promise((resolve) => {
-      this.wsConnect().then(() => {
-        this.wsSendMessage(context);
-        resolve();
-      });
+    if (!this.conn) {
+      this.conn = this.wsConnect();
+    }
+
+    return this.conn.then((socket) => {
+      return this.wsSendMessage(socket, context);
     });
   };
 
@@ -310,18 +318,17 @@ export class Schematic {
     return Promise.resolve();
   };
 
-  private wsConnect = (): Promise<void> => {
-    return new Promise((resolve) => {
-      if (this.conn) {
-        resolve();
-      }
-
+  private wsConnect = (): Promise<WebSocket> => {
+    return new Promise((resolve, reject) => {
       const wsUrl = `${this.webSocketUrl}/flags/bootstrap`;
       const webSocket = new WebSocket(wsUrl);
-      this.conn = webSocket;
 
       webSocket.onopen = () => {
-        resolve();
+        resolve(webSocket);
+      };
+
+      webSocket.onerror = (error) => {
+        reject(error);
       };
 
       webSocket.onclose = () => {
@@ -330,8 +337,10 @@ export class Schematic {
     });
   };
 
-  // Sends a message with a new context over the websocket connection
-  private wsSendMessage = (context: SchematicContext): Promise<void> => {
+  private wsSendMessage = (
+    socket: WebSocket,
+    context: SchematicContext,
+  ): Promise<void> => {
     return new Promise((resolve, reject) => {
       if (contextString(context) == contextString(this.context)) {
         // Don't reset if context has not changed
@@ -341,15 +350,10 @@ export class Schematic {
 
       this.context = context;
 
-      if (!this.conn) {
-        reject("Not connected");
-        return;
-      }
-
-      if (this.conn.readyState === WebSocket.OPEN) {
+      const sendMessage = () => {
         let resolved = false;
 
-        this.conn.onmessage = (event) => {
+        const messageHandler = (event: MessageEvent) => {
           const message = JSON.parse(event.data);
 
           // Message may contain only a subset of flags; merge with existing context
@@ -371,24 +375,26 @@ export class Schematic {
             resolved = true;
             resolve();
           }
+
+          socket.removeEventListener("message", messageHandler);
         };
 
-        this.conn.onerror = (error) => {
-          console.error("Schematic websocket error: ", error);
-        };
+        socket.addEventListener("message", messageHandler);
 
-        this.conn.send(
+        socket.send(
           JSON.stringify({
             apiKey: this.apiKey,
             data: context,
           }),
         );
-      } else if (this.conn.readyState === WebSocket.CONNECTING) {
-        this.conn.onopen = () => {
-          this.wsSendMessage(context);
-        };
+      };
+
+      if (socket.readyState === WebSocket.OPEN) {
+        sendMessage();
+      } else if (socket.readyState === WebSocket.CONNECTING) {
+        socket.addEventListener("open", sendMessage);
       } else {
-        reject("Not connected");
+        reject("WebSocket is not open or connecting");
       }
     });
   };
