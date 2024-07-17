@@ -1,0 +1,25 @@
+{
+  "Invoices": {},
+  "PaymentMethod": {},
+  "PlanManager": {
+    "name": "Professional",
+    "description": "Perfect for scaling teams using Billy",
+    "price": 285,
+    "addOns": [
+      {
+        "name": "Single Sign On",
+        "price": 285
+      }
+    ],
+    "usageBased": [
+      {
+        "name": "AI Bot",
+        "type": "query",
+        "price": 2,
+        "amount": 15
+      }
+    ],
+    "callToAction": "Change Plan"
+  },
+  "NextBillDue": {}
+}
