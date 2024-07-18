@@ -15,10 +15,10 @@ import testData from "./assets/json/test-data.json";
 import testProps from "./assets/json/test-props.json";
 // import { GlobalStyle } from "./globalStyle";
 
-const components: Record<string, React.FunctionComponent | undefined> = {
+/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+const components: Record<string, React.FunctionComponent<any> | undefined> = {
   Invoices,
   PaymentMethod,
-  // @ts-expect-error: props are unknown
   CurrentPlan,
   NextBillDue,
 };
