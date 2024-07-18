@@ -1,140 +1,178 @@
 {
-  "ROOT": {
-    "type": { "resolvedName": "Container" },
-    "isCanvas": true,
-    "props": {
-      "className": "bg-white bg-[url('/builder/mesh.png')] px-16 overflow-y-auto max-h-full pb-16",
-      "font": "Inter"
+  "componentProps": {
+    "PlanManager": {},
+    "CurrentPlan": {
+      "name": "Professional",
+      "description": "Perfect for scaling teams using Billy",
+      "price": 285,
+      "addOns": [
+        {
+          "name": "Single Sign On",
+          "price": 285
+        }
+      ],
+      "usageBased": [
+        {
+          "name": "AI Bot",
+          "type": "query",
+          "price": 2,
+          "amount": 15
+        }
+      ],
+      "callToAction": "Change Plan"
     },
-    "displayName": "Container",
-    "custom": {},
-    "hidden": false,
-    "nodes": ["8AQbBQRowL"],
-    "linkedNodes": {}
-  },
-  "8AQbBQRowL": {
-    "type": { "resolvedName": "Container" },
-    "isCanvas": true,
-    "props": { "className": "flex-row flex space-x-16" },
-    "displayName": "Container",
-    "custom": {},
-    "parent": "ROOT",
-    "hidden": false,
-    "nodes": ["b5pj2QKoha", "07kFaIHsKX"],
-    "linkedNodes": {}
-  },
-  "b5pj2QKoha": {
-    "type": { "resolvedName": "PlanManager" },
-    "isCanvas": true,
-    "props": {},
-    "displayName": "Plan Card",
-    "custom": {},
-    "parent": "8AQbBQRowL",
-    "hidden": false,
-    "nodes": ["0TmUsdDYDv", "oOE2WjNPwK"],
-    "linkedNodes": {}
-  },
-  "0TmUsdDYDv": {
-    "type": { "resolvedName": "CurrentPlan" },
-    "isCanvas": false,
-    "props": {
-      "header": {
-        "isVisible": true,
-        "title": {
-          "fontFamily": "Manrope",
-          "fontSize": 37,
-          "fontWeight": 800,
-          "color": "#000000"
+    "IncludedFeatures": {
+      "features": [
+        {
+          "name": "Seats",
+          "type": "limit",
+          "value": 5,
+          "limit": 10
         },
-        "description": {
-          "isVisible": true,
-          "fontFamily": "Public Sans",
-          "fontSize": 16,
-          "fontWeight": 400,
-          "color": "#000000"
+        {
+          "name": "AI Query",
+          "type": "usage",
+          "value": 15,
+          "date": "2024-08-12"
         },
-        "price": {
-          "isVisible": true,
-          "fontFamily": "Inter",
-          "fontSize": 16,
-          "color": "#000000"
+        {
+          "name": "Projects",
+          "type": "limit",
+          "value": 4,
+          "limit": 5
+        },
+        {
+          "name": "Slack Integration",
+          "type": "addon"
+        }
+      ]
+    }
+  },
+  "editorState": {
+    "ROOT": {
+      "type": {
+        "resolvedName": "Container"
+      },
+      "isCanvas": true,
+      "props": {
+        "style": {
+          "padding": "4rem",
+          "backgroundColor": "#1f2937"
         }
       },
-      "addOns": {
-        "isVisible": true
-      },
-      "usageBased": {
-        "isVisible": true
-      },
-      "callToAction": {
-        "isVisible": true,
-        "size": "medium",
-        "color": "#ffffff",
-        "backgroundColor": "#000000"
-      }
+      "displayName": "Container",
+      "custom": {},
+      "hidden": false,
+      "nodes": ["8AQbBQRowL"],
+      "linkedNodes": {}
     },
-    "displayName": "Current Plan",
-    "custom": {
-      "fonts": ["Manrope", "Public Sans", "Inter"]
+    "8AQbBQRowL": {
+      "type": {
+        "resolvedName": "Container"
+      },
+      "isCanvas": true,
+      "props": {},
+      "displayName": "Container",
+      "custom": {},
+      "parent": "ROOT",
+      "hidden": false,
+      "nodes": ["b5pj2QKoha"],
+      "linkedNodes": {}
     },
-    "parent": "b5pj2QKoha",
-    "hidden": false,
-    "nodes": [],
-    "linkedNodes": {}
-  },
-  "oOE2WjNPwK": {
-    "type": { "resolvedName": "IncludedFeatures" },
-    "isCanvas": false,
-    "props": { "isVisible": false },
-    "displayName": "Included Features",
-    "custom": {},
-    "parent": "b5pj2QKoha",
-    "hidden": false,
-    "nodes": [],
-    "linkedNodes": {}
-  },
-  "07kFaIHsKX": {
-    "type": { "resolvedName": "BillingCard" },
-    "isCanvas": true,
-    "props": {},
-    "displayName": "BillingCard",
-    "custom": {},
-    "parent": "8AQbBQRowL",
-    "hidden": false,
-    "nodes": ["y6qA3ep_YE", "1hG_XfkZyg", "n8ZZXFvBM_"],
-    "linkedNodes": {}
-  },
-  "y6qA3ep_YE": {
-    "type": { "resolvedName": "NextBillDue" },
-    "isCanvas": false,
-    "props": {},
-    "displayName": "NextBillDue",
-    "custom": {},
-    "parent": "07kFaIHsKX",
-    "hidden": false,
-    "nodes": [],
-    "linkedNodes": {}
-  },
-  "1hG_XfkZyg": {
-    "type": { "resolvedName": "PaymentMethod" },
-    "isCanvas": false,
-    "props": {},
-    "displayName": "PaymentMethod",
-    "custom": {},
-    "parent": "07kFaIHsKX",
-    "hidden": false,
-    "nodes": [],
-    "linkedNodes": {}
-  },
-  "n8ZZXFvBM_": {
-    "type": { "resolvedName": "Invoices" },
-    "isCanvas": false,
-    "props": {},
-    "displayName": "Invoices",
-    "custom": {},
-    "parent": "07kFaIHsKX",
-    "hidden": false,
-    "nodes": [],
-    "linkedNodes": {}
+    "b5pj2QKoha": {
+      "type": {
+        "resolvedName": "PlanManager"
+      },
+      "isCanvas": true,
+      "props": {
+        "layout": "merged"
+      },
+      "displayName": "Plan Card",
+      "custom": {},
+      "parent": "8AQbBQRowL",
+      "hidden": false,
+      "nodes": ["0TmUsdDYDv", "oOE2WjNPwK"],
+      "linkedNodes": {}
+    },
+    "0TmUsdDYDv": {
+      "type": {
+        "resolvedName": "CurrentPlan"
+      },
+      "isCanvas": false,
+      "props": {
+        "header": {
+          "isVisible": true,
+          "title": {
+            "fontFamily": "Manrope",
+            "fontSize": 37,
+            "fontWeight": 800,
+            "color": "#000000"
+          },
+          "description": {
+            "isVisible": true,
+            "fontFamily": "Public Sans",
+            "fontSize": 16,
+            "fontWeight": 400,
+            "color": "#000000"
+          },
+          "price": {
+            "isVisible": true,
+            "fontFamily": "Inter",
+            "fontSize": 16,
+            "color": "#000000"
+          }
+        },
+        "addOns": {
+          "isVisible": true
+        },
+        "usageBased": {
+          "isVisible": true
+        },
+        "callToAction": {
+          "isVisible": true,
+          "size": "medium",
+          "color": "#ffffff",
+          "backgroundColor": "#000000"
+        }
+      },
+      "displayName": "Current Plan",
+      "custom": {
+        "fonts": ["Manrope", "Public Sans", "Inter"]
+      },
+      "parent": "b5pj2QKoha",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "oOE2WjNPwK": {
+      "type": {
+        "resolvedName": "IncludedFeatures"
+      },
+      "isCanvas": false,
+      "props": {
+        "name": {
+          "text": "Included features",
+          "style": {
+            "fontFamily": "Inter",
+            "fontSize": 15,
+            "fontWeight": 500,
+            "color": "#000000"
+          }
+        },
+        "limits": {
+          "isVisible": true
+        },
+        "usage": {
+          "isVisible": true
+        },
+        "count": 4
+      },
+      "displayName": "Included Features",
+      "custom": {},
+      "parent": "b5pj2QKoha",
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    }
   }
 }

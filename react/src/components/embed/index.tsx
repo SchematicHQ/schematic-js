@@ -9,19 +9,21 @@ import {
 } from "react";
 import { ThemeProvider } from "styled-components";
 import * as Craft from "@craftjs/core";
-import { Invoices, NextBillDue, PaymentMethod, CurrentPlan } from "../";
+
+import { CurrentPlan } from "../current-plan";
+import { IncludedFeatures } from "../included-features";
+import { PlanManager } from "../plan-manager";
+
 import { lightTheme, darkTheme } from "./theme";
+// import { GlobalStyle } from "./globalStyle";
 
 import testData from "./assets/json/test-data.json";
-import testProps from "./assets/json/test-props.json";
-// import { GlobalStyle } from "./globalStyle";
 
 /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
 const components: Record<string, React.FunctionComponent<any> | undefined> = {
-  Invoices,
-  PaymentMethod,
   CurrentPlan,
-  NextBillDue,
+  IncludedFeatures,
+  PlanManager,
 };
 
 type SerializedNode = Omit<Craft.SerializedNode, "parent"> & {
@@ -32,7 +34,7 @@ type SerializedNodeWithChildren = SerializedNode & {
   children: SerializedNodeWithChildren[];
 };
 
-function parseData(data: Record<string, SerializedNode>) {
+function parseEditorState(data: Record<string, SerializedNode>) {
   const initialMap: Record<string, SerializedNodeWithChildren> = {};
   const map = Object.entries(data).reduce((acc, [id, node]) => {
     return { ...acc, [id]: { ...node, children: [] } };
@@ -98,32 +100,43 @@ function createRenderer(
   };
 }
 
-async function mockFetch(id: string) {
-  const data = parseData(testData);
-  return new Promise<SerializedNodeWithChildren[]>((resolve) => {
-    setTimeout(() => {
-      console.debug("test data fetched with id", id);
-      resolve(data);
-    }, 100); // simulate network delay
-  });
-}
+async function fetchComponent(name: string, temporaryAccessToken: string) {
+  const controller = new AbortController();
+  const parsedEditorState = parseEditorState(testData.editorState);
 
-async function mockFetchProps() {
-  return new Promise<Record<string, object | undefined>>((resolve) => {
+  return new Promise<{
+    editorState: SerializedNodeWithChildren[];
+    componentProps: Record<string, object | undefined>;
+  }>((resolve) => {
+    fetch(`https://localhost/components/embed/${name}`, {
+      headers: {
+        "X-Temporary-Access-Token": temporaryAccessToken,
+      },
+      signal: controller.signal,
+    })
+      .catch(() => {
+        // do nothing
+      })
+      .finally(() => {
+        resolve({
+          editorState: parsedEditorState,
+          componentProps: testData.componentProps,
+        });
+      });
+
     setTimeout(() => {
-      console.debug("test props fetched");
-      resolve(testProps);
-    }, 100); // simulate network delay
+      controller.abort();
+    });
   });
 }
 
 export interface EmbedProps {
-  embedId: string;
-  theme?: "light" | "dark";
+  name: string;
   temporaryAccessToken: string;
+  theme?: "light" | "dark";
 }
 
-export const Embed = ({ embedId, theme }: EmbedProps) => {
+export const Embed = ({ name, temporaryAccessToken, theme }: EmbedProps) => {
   const styleRef = useRef<HTMLLinkElement | null>(null);
   const [children, setChildren] = useState<React.ReactNode>("Loading");
 
@@ -161,13 +174,13 @@ export const Embed = ({ embedId, theme }: EmbedProps) => {
   }, [fonts]);
 
   useEffect(() => {
-    Promise.all([mockFetch(embedId), mockFetchProps()]).then(
-      ([node, propsMap]) => {
-        const renderer = createRenderer(propsMap);
-        setChildren(node.map(renderer));
+    fetchComponent(name, temporaryAccessToken).then(
+      ({ editorState, componentProps }) => {
+        const renderer = createRenderer(componentProps);
+        setChildren(editorState.map(renderer));
       },
     );
-  }, [embedId]);
+  }, [name, temporaryAccessToken]);
 
   return (
     <ThemeProvider theme={theme === "light" ? lightTheme : darkTheme}>

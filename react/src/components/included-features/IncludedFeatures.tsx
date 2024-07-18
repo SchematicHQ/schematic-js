@@ -1,12 +1,82 @@
+import { RecursivePartial } from "../../types";
 import { Icon } from "../icon";
 import { ProgressBar } from "../progress-bar";
 
-export const IncludedFeatures = () => {
+interface FeatureProps {
+  name: string;
+  type: string;
+  value?: number;
+  limit?: number;
+  date?: string;
+}
+
+interface ContentProps {
+  features: FeatureProps[];
+}
+
+interface DesignProps {
+  name: {
+    text: string;
+    style: {
+      fontFamily: string;
+      fontSize: number;
+      fontWeight: number;
+      color: string;
+    };
+  };
+  limits: {
+    isVisible: boolean;
+  };
+  usage: {
+    isVisible: boolean;
+  };
+  count: number;
+}
+
+export interface IncludedFeaturesProps
+  extends RecursivePartial<DesignProps>,
+    React.HTMLAttributes<HTMLDivElement> {
+  contents: ContentProps;
+}
+
+function resolveDesignProps(props: RecursivePartial<DesignProps>) {
+  return {
+    name: {
+      text: props.name?.text || "Included features",
+      style: {
+        fontFamily: props.name?.style?.fontFamily || "Inter",
+        fontSize: props.name?.style?.fontSize || 16,
+        fontWeight: props.name?.style?.fontWeight || 500,
+        color: props.name?.style?.color || "#000000",
+      },
+    },
+    limits: {
+      isVisible: props.limits?.isVisible || true,
+    },
+    usage: {
+      isVisible: props.usage?.isVisible || true,
+    },
+    count: props.count || 4,
+  };
+}
+
+export const IncludedFeatures = ({
+  className,
+  contents,
+  style,
+  ...props
+}: IncludedFeaturesProps) => {
+  const designPropsWithDefaults = resolveDesignProps(props);
+  const { features } = contents;
+
   return (
-    <div className="relative z-[2] px-8 py-8 bg-white cursor-pointer">
+    <div
+      className="relative z-[2] px-8 py-8 bg-white cursor-pointer"
+      {...props}
+    >
       <div className="relative z-[1] bg-white flex flex-col space-y-4">
         <div className="text-sm text-gray-400 leading-none">
-          Included features
+          {designPropsWithDefaults.name.text}
         </div>
         <div className="flex flex-col space-y-4">
           <div className="flex flex-row justify-between items-center">

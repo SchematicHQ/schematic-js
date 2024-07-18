@@ -14,10 +14,6 @@ export const Container = styled.div<{
   padding: 40px 50px;
   color: ${({ theme }) => theme.text};
   background-color: ${({ theme }) => theme.background};
-  border-radius: 8px;
-  box-shadow:
-    0px 1px 20px 0px #1018280f,
-    0px 1px 3px 0px #1018281a;
 
   *,
   *::before,
