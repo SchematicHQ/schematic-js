@@ -3,6 +3,7 @@ import {
   isValidElement,
   useEffect,
   useMemo,
+  useRef,
   useState,
   Children,
 } from "react";
@@ -123,35 +124,39 @@ export interface EmbedProps {
 }
 
 export const Embed = ({ embedId, theme }: EmbedProps) => {
+  const styleRef = useRef<HTMLLinkElement | null>(null);
   const [children, setChildren] = useState<React.ReactNode>("Loading");
 
   const fonts = useMemo(() => {
     const fontSet = new Set<string>();
-
     function lookForFont(node: React.ReactNode) {
       if (isValidElement(node)) {
-        if (node.props?.custom?.font) {
-          fontSet.add(node.props.custom.font);
-        }
-
+        const fonts = node.props?.custom?.fonts as string[] | undefined;
+        fonts?.forEach((font) => {
+          fontSet.add(font);
+        });
         Children.forEach(node.props.children, lookForFont);
       }
     }
-
     Children.forEach(children, lookForFont);
-
     return [...fontSet];
   }, [children]);
+
+  useEffect(() => {
+    const style = document.createElement("link");
+    style.rel = "stylesheet";
+    document.head.appendChild(style);
+    styleRef.current = style;
+  }, []);
 
   useEffect(() => {
     if (fonts.length > 0) {
       const src = `https://fonts.googleapis.com/css2?${fonts
         .map((font) => `family=${font}:wght@200..800&display=swap`)
         .join("&")}`;
-      const style = document.createElement("link");
-      style.rel = "stylesheet";
-      style.href = src;
-      document.head.appendChild(style);
+      if (styleRef.current) {
+        styleRef.current.href = src;
+      }
     }
   }, [fonts]);
 

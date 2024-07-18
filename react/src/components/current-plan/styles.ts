@@ -62,7 +62,7 @@ export const Button = styled(UIButton)<{
   $color?: string;
   $backgroundColor?: string;
 }>`
-  font-family: "Inter", sans-serif;
+  font-family: "Public Sans", sans-serif;
   font-size: ${17 / 16}rem;
   font-weight: 500;
   text-align: center;
@@ -72,10 +72,4 @@ export const Button = styled(UIButton)<{
   color: ${({ $color, theme }) => $color || theme.text};
   background-color: ${({ $backgroundColor, theme }) =>
     $backgroundColor || theme.button};
-
-  &:hover {
-    color: ${({ $color, theme }) => $color || theme.text};
-    background-color: ${({ $backgroundColor, theme }) =>
-      $backgroundColor || theme.button};
-  }
 `;

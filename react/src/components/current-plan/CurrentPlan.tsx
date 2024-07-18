@@ -132,6 +132,7 @@ export const CurrentPlan = ({
                 $size={designPropsWithDefaults.header.description.fontSize}
                 $weight={designPropsWithDefaults.header.description.fontWeight}
                 $color={designPropsWithDefaults.header.description.color}
+                $margin="0 0 1.5rem"
               >
                 {contents.description}
               </BlockText>
