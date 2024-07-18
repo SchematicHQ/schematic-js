@@ -4,11 +4,12 @@ import { Button as UIButton } from "../button";
 const TEXT_BASE_SIZE = 16;
 
 export const Container = styled.div<{
-  $maxWidth?: string;
+  $minWidth?: string;
 }>`
+  box-sizing: border-box;
   font-size: ${TEXT_BASE_SIZE}px;
-  ${({ $maxWidth = "542px" }) => css`
-    max-width: ${$maxWidth};
+  ${({ $minWidth = "542px" }) => css`
+    min-width: ${$minWidth};
   `};
   padding: 40px 50px;
   color: ${({ theme }) => theme.text};
@@ -17,17 +18,27 @@ export const Container = styled.div<{
   box-shadow:
     0px 1px 20px 0px #1018280f,
     0px 1px 3px 0px #1018281a;
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: inherit;
+  }
 `;
 
 export const Flex = styled.div<{
   $flexDirection?: string;
   $justifyContent?: string;
   $alignItems?: string;
+  $gap?: string;
+  $width?: string;
 }>`
   display: flex;
   flex-direction: ${({ $flexDirection = "row" }) => $flexDirection};
-  justify-content: ${({ $justifyContent = "center" }) => $justifyContent};
-  align-items: ${({ $alignItems = "center" }) => $alignItems};
+  justify-content: ${({ $justifyContent = "start" }) => $justifyContent};
+  align-items: ${({ $alignItems = "start" }) => $alignItems};
+  ${({ $gap }) => $gap && `gap: ${$gap}`};
+  ${({ $width }) => $width && `width: ${$width}`};
 `;
 
 export const BlockText = styled.div<{
@@ -35,16 +46,22 @@ export const BlockText = styled.div<{
   $size?: number;
   $weight?: number;
   $color?: string;
+  $textAlign?: string;
+  $margin?: string;
 }>`
   font-family: ${({ $font = "Inter" }) => `${$font}, sans-serif`};
   font-size: ${({ $size = 16 }) => `${$size / TEXT_BASE_SIZE}rem`};
   font-weight: ${({ $weight = 400 }) => $weight};
   line-height: 1.25;
+  ${({ $textAlign }) => $textAlign && `text-align: ${$textAlign}`};
+  ${({ $margin }) => $margin && `margin: ${$margin}`};
   color: ${({ $color, theme }) => $color || theme.text};
 `;
 
 export const Button = styled(UIButton)`
+  text-align: center;
   width: 100%;
+  padding: 0.875rem 0;
   border-radius: 10px;
   background-color: ${({ theme }) => theme.button};
 `;

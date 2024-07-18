@@ -26,6 +26,17 @@
   "b5pj2QKoha": {
     "type": { "resolvedName": "PlanManager" },
     "isCanvas": true,
+    "props": {},
+    "displayName": "Plan Card",
+    "custom": {},
+    "parent": "8AQbBQRowL",
+    "hidden": false,
+    "nodes": ["0TmUsdDYDv", "oOE2WjNPwK"],
+    "linkedNodes": {}
+  },
+  "0TmUsdDYDv": {
+    "type": { "resolvedName": "CurrentPlan" },
+    "isCanvas": false,
     "props": {
       "header": {
         "isVisible": true,
@@ -62,19 +73,10 @@
         "backgroundColor": "#000000"
       }
     },
-    "displayName": "Plan Card",
-    "custom": {},
-    "parent": "8AQbBQRowL",
-    "hidden": false,
-    "nodes": ["0TmUsdDYDv", "oOE2WjNPwK"],
-    "linkedNodes": {}
-  },
-  "0TmUsdDYDv": {
-    "type": { "resolvedName": "CurrentPlan" },
-    "isCanvas": false,
-    "props": { "isVisible": true, "style": {} },
     "displayName": "Current Plan",
-    "custom": {},
+    "custom": {
+      "fonts": ["Manrope", "Public Sans", "Inter"]
+    },
     "parent": "b5pj2QKoha",
     "hidden": false,
     "nodes": [],
@@ -83,7 +85,7 @@
   "oOE2WjNPwK": {
     "type": { "resolvedName": "IncludedFeatures" },
     "isCanvas": false,
-    "props": { "isVisible": true, "style": {} },
+    "props": { "isVisible": false },
     "displayName": "Included Features",
     "custom": {},
     "parent": "b5pj2QKoha",

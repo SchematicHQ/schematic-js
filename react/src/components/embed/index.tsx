@@ -8,7 +8,7 @@ import {
 } from "react";
 import { ThemeProvider } from "styled-components";
 import * as Craft from "@craftjs/core";
-import { Invoices, NextBillDue, PaymentMethod, PlanManager } from "../";
+import { Invoices, NextBillDue, PaymentMethod, CurrentPlan } from "../";
 import { lightTheme, darkTheme } from "./theme";
 
 import testData from "./assets/json/test-data.json";
@@ -19,7 +19,7 @@ const components: Record<string, React.FunctionComponent | undefined> = {
   Invoices,
   PaymentMethod,
   // @ts-expect-error: props are unknown
-  PlanManager,
+  CurrentPlan,
   NextBillDue,
 };
 
@@ -64,7 +64,7 @@ function createRenderer(
     node: SerializedNodeWithChildren,
     index: number,
   ): React.ReactNode {
-    const { type, props, children } = node;
+    const { type, props, custom, children } = node;
     const name = typeof type !== "string" ? type.resolvedName : type;
 
     const component = useFallback
@@ -77,16 +77,21 @@ function createRenderer(
       return null;
     }
 
-    const clientProps = useFallback ? propsMap[name] || {} : propsMap[name];
-    if (!clientProps) {
+    const contents = useFallback ? propsMap[name] || {} : propsMap[name];
+    if (!contents) {
       console.warn("`schematic-embed`: Missing client configuration.");
       return null;
     }
 
     const resolvedChildren = children.map(renderNode);
-    return createElement<{ clientProps: object; designProps: object }>(
+    return createElement<{ clientProps: object }>(
       component,
-      { clientProps, designProps: props, key: index },
+      {
+        ...props,
+        ...(component !== "div" && { contents }),
+        ...(Object.keys(custom).length > 0 && { custom }),
+        key: index,
+      },
       children.length > 0 ? resolvedChildren : name,
     );
   };
@@ -120,13 +125,13 @@ export interface EmbedProps {
 export const Embed = ({ embedId, theme }: EmbedProps) => {
   const [children, setChildren] = useState<React.ReactNode>("Loading");
 
-  /* const fonts = useMemo(() => {
+  const fonts = useMemo(() => {
     const fontSet = new Set<string>();
 
     function lookForFont(node: React.ReactNode) {
       if (isValidElement(node)) {
-        if (node.props.font) {
-          fontSet.add(node.props.font);
+        if (node.props?.custom?.font) {
+          fontSet.add(node.props.custom.font);
         }
 
         Children.forEach(node.props.children, lookForFont);
@@ -148,7 +153,7 @@ export const Embed = ({ embedId, theme }: EmbedProps) => {
       style.href = src;
       document.head.appendChild(style);
     }
-  }, [fonts]); */
+  }, [fonts]);
 
   useEffect(() => {
     Promise.all([mockFetch(embedId), mockFetchProps()]).then(

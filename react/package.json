@@ -21,7 +21,6 @@
     "jest-fetch-mock": "^3.0.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "styled-components": "^6.1.12",
     "ts-jest": "^29.1.1",
     "typescript": "^5.0.2"
   },
@@ -47,7 +46,8 @@
   "types": "dist/schematic-react.d.ts",
   "version": "0.1.8",
   "dependencies": {
-    "@schematichq/schematic-js": "^0.1.12"
+    "@schematichq/schematic-js": "^0.1.12",
+    "styled-components": "^6.1.12"
   },
   "peerDependencies": {
     "react": ">=18",

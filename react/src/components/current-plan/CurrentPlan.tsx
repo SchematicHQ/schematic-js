@@ -2,7 +2,7 @@ import { useTheme } from "styled-components";
 import { RecursivePartial } from "../../types";
 import { Container, Flex, BlockText, Button } from "./styles";
 
-interface ClientProps {
+interface ContentProps {
   name: string;
   description: string;
   price: number;
@@ -46,9 +46,10 @@ interface DesignProps {
   };
 }
 
-export interface PlanManagerProps extends React.HTMLAttributes<HTMLDivElement> {
-  clientProps: ClientProps;
-  designProps: RecursivePartial<DesignProps>;
+export interface CurrentPlanProps
+  extends RecursivePartial<DesignProps>,
+    React.HTMLAttributes<HTMLDivElement> {
+  contents: ContentProps;
 }
 
 function resolveDesignProps(props: RecursivePartial<DesignProps>) {
@@ -93,28 +94,37 @@ function resolveDesignProps(props: RecursivePartial<DesignProps>) {
   };
 }
 
-export const PlanManager = ({
+export const CurrentPlan = ({
   className,
-  clientProps,
-  designProps = {},
+  contents,
   style = {},
-}: PlanManagerProps) => {
-  const designPropsWithDefaults = resolveDesignProps(designProps);
+  ...props
+}: CurrentPlanProps) => {
+  const designPropsWithDefaults = resolveDesignProps(props);
 
   const theme = useTheme();
 
   return (
     <Container className={className} style={style}>
-      <div>
-        <Flex $justifyContent="space-between">
+      <Flex
+        $flexDirection="column"
+        $gap="0.75rem"
+        style={{ marginBottom: "3rem" }}
+      >
+        <Flex
+          $justifyContent="space-between"
+          $alignItems="center"
+          $width="100%"
+        >
           <div>
             <BlockText
               $font={designPropsWithDefaults.header.title.fontFamily}
               $size={designPropsWithDefaults.header.title.fontSize}
               $weight={designPropsWithDefaults.header.title.fontWeight}
               $color={designPropsWithDefaults.header.title.color}
+              $margin="0 0 0.75rem"
             >
-              {clientProps.name}
+              {contents.name}
             </BlockText>
             {designPropsWithDefaults.header.description.isVisible && (
               <BlockText
@@ -123,7 +133,7 @@ export const PlanManager = ({
                 $weight={designPropsWithDefaults.header.description.fontWeight}
                 $color={designPropsWithDefaults.header.description.color}
               >
-                {clientProps.description}
+                {contents.description}
               </BlockText>
             )}
           </div>
@@ -133,7 +143,7 @@ export const PlanManager = ({
             $weight={designPropsWithDefaults.header.price.fontWeight}
             $color={designPropsWithDefaults.header.price.color}
           >
-            ${clientProps.price}/mo
+            ${contents.price}/mo
           </BlockText>
         </Flex>
 
@@ -145,14 +155,21 @@ export const PlanManager = ({
               Add-Ons
             </BlockText>
 
-            {clientProps.addOns.map((addon) => (
-              <Flex key={addon.name} $justifyContent="space-between">
-                <BlockText $font="Manrope" $size={18} $weight={800}>
-                  {addon.name}
-                </BlockText>
-                <BlockText $weight={500}>${addon.price}/mo</BlockText>
-              </Flex>
-            ))}
+            <div style={{ width: "100%", marginBottom: "1rem" }}>
+              {contents.addOns.map((addon) => (
+                <Flex
+                  key={addon.name}
+                  $justifyContent="space-between"
+                  $alignItems="center"
+                  $width="100%"
+                >
+                  <BlockText $font="Manrope" $size={18} $weight={800}>
+                    {addon.name}
+                  </BlockText>
+                  <BlockText $weight={500}>${addon.price}/mo</BlockText>
+                </Flex>
+              ))}
+            </div>
           </>
         )}
 
@@ -162,12 +179,17 @@ export const PlanManager = ({
               Usage-Based
             </BlockText>
 
-            {clientProps.usageBased.map((addon) => (
-              <Flex key={addon.name} $justifyContent="space-between">
+            {contents.usageBased.map((addon) => (
+              <Flex
+                key={addon.name}
+                $justifyContent="space-between"
+                $alignItems="center"
+                $width="100%"
+              >
                 <BlockText $font="Manrope" $size={18} $weight={800}>
                   {addon.name}
                 </BlockText>
-                <div>
+                <Flex $flexDirection="column" $alignItems="center">
                   <BlockText $weight={500}>
                     ${addon.price}/{addon.type}
                   </BlockText>
@@ -175,15 +197,15 @@ export const PlanManager = ({
                     {addon.amount} {addon.type} | $
                     {(addon.price || 0) * (addon.amount || 0)}
                   </BlockText>
-                </div>
+                </Flex>
               </Flex>
             ))}
           </>
         )}
-      </div>
+      </Flex>
 
       <Button size="lg" color="black">
-        {clientProps.callToAction}
+        {contents.callToAction}
       </Button>
     </Container>
   );

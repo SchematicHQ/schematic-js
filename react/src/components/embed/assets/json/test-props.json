@@ -1,7 +1,8 @@
 {
   "Invoices": {},
   "PaymentMethod": {},
-  "PlanManager": {
+  "PlanManager": {},
+  "CurrentPlan": {
     "name": "Professional",
     "description": "Perfect for scaling teams using Billy",
     "price": 285,
@@ -21,5 +22,6 @@
     ],
     "callToAction": "Change Plan"
   },
+  "IncludedFeatures": {},
   "NextBillDue": {}
 }
