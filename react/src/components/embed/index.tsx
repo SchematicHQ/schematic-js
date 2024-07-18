@@ -92,7 +92,7 @@ function createRenderer(
         ...(Object.keys(custom).length > 0 && { custom }),
         key: index,
       },
-      children.length > 0 ? resolvedChildren : name,
+      resolvedChildren,
     );
   };
 }

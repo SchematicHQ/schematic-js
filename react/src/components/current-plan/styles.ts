@@ -58,10 +58,24 @@ export const BlockText = styled.div<{
   color: ${({ $color, theme }) => $color || theme.text};
 `;
 
-export const Button = styled(UIButton)`
+export const Button = styled(UIButton)<{
+  $color?: string;
+  $backgroundColor?: string;
+}>`
+  font-family: "Inter", sans-serif;
+  font-size: ${17 / 16}rem;
+  font-weight: 500;
   text-align: center;
   width: 100%;
-  padding: 0.875rem 0;
+  padding: 1rem 0;
   border-radius: 10px;
-  background-color: ${({ theme }) => theme.button};
+  color: ${({ $color, theme }) => $color || theme.text};
+  background-color: ${({ $backgroundColor, theme }) =>
+    $backgroundColor || theme.button};
+
+  &:hover {
+    color: ${({ $color, theme }) => $color || theme.text};
+    background-color: ${({ $backgroundColor, theme }) =>
+      $backgroundColor || theme.button};
+  }
 `;

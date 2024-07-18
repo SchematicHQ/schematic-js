@@ -40,8 +40,10 @@ interface DesignProps {
   usageBased: {
     isVisible: boolean;
   };
-  callToAction: TextDesignProps & {
-    size: "small" | "medium" | "large";
+  callToAction: {
+    isVisible: boolean;
+    size: "sm" | "md" | "lg";
+    color: string;
     backgroundColor: string;
   };
 }
@@ -85,9 +87,7 @@ function resolveDesignProps(props: RecursivePartial<DesignProps>) {
     },
     callToAction: {
       isVisible: props.callToAction?.isVisible || true,
-      fontFamily: props.callToAction?.fontFamily || "Public Sans",
-      fontSize: props.callToAction?.fontSize || 17,
-      fontWeight: props.callToAction?.fontWeight || 500,
+      size: props.callToAction?.size || "md",
       color: props.callToAction?.color || "white",
       backgroundColor: props.callToAction?.backgroundColor || "black",
     },
@@ -204,7 +204,11 @@ export const CurrentPlan = ({
         )}
       </Flex>
 
-      <Button size="lg" color="black">
+      <Button
+        size={designPropsWithDefaults.callToAction.size}
+        $color={designPropsWithDefaults.callToAction.color}
+        $backgroundColor={designPropsWithDefaults.callToAction.backgroundColor}
+      >
         {contents.callToAction}
       </Button>
     </Container>
