@@ -1,6 +1,7 @@
 import { useTheme } from "styled-components";
 import { RecursivePartial } from "../../types";
-import { Container, Flex, BlockText, Button } from "./styles";
+import { Container, Button } from "./styles";
+import { BlockText, Flex } from "../styles";
 
 interface ContentProps {
   name: string;

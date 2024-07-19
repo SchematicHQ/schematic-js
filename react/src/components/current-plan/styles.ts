@@ -22,38 +22,6 @@ export const Container = styled.div<{
   }
 `;
 
-export const Flex = styled.div<{
-  $flexDirection?: string;
-  $justifyContent?: string;
-  $alignItems?: string;
-  $gap?: string;
-  $width?: string;
-}>`
-  display: flex;
-  flex-direction: ${({ $flexDirection = "row" }) => $flexDirection};
-  justify-content: ${({ $justifyContent = "start" }) => $justifyContent};
-  align-items: ${({ $alignItems = "start" }) => $alignItems};
-  ${({ $gap }) => $gap && `gap: ${$gap}`};
-  ${({ $width }) => $width && `width: ${$width}`};
-`;
-
-export const BlockText = styled.div<{
-  $font?: string;
-  $size?: number;
-  $weight?: number;
-  $color?: string;
-  $textAlign?: string;
-  $margin?: string;
-}>`
-  font-family: ${({ $font = "Inter" }) => `${$font}, sans-serif`};
-  font-size: ${({ $size = 16 }) => `${$size / TEXT_BASE_SIZE}rem`};
-  font-weight: ${({ $weight = 400 }) => $weight};
-  line-height: 1.25;
-  ${({ $textAlign }) => $textAlign && `text-align: ${$textAlign}`};
-  ${({ $margin }) => $margin && `margin: ${$margin}`};
-  color: ${({ $color, theme }) => $color || theme.text};
-`;
-
 export const Button = styled(UIButton)<{
   $color?: string;
   $backgroundColor?: string;

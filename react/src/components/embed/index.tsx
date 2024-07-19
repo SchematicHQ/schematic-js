@@ -14,8 +14,7 @@ import { CurrentPlan } from "../current-plan";
 import { IncludedFeatures } from "../included-features";
 import { PlanManager } from "../plan-manager";
 
-import { lightTheme, darkTheme } from "./theme";
-// import { GlobalStyle } from "./globalStyle";
+import { light, dark } from "./theme";
 
 import testData from "./assets/json/test-data.json";
 
@@ -136,7 +135,11 @@ export interface EmbedProps {
   theme?: "light" | "dark";
 }
 
-export const Embed = ({ name, temporaryAccessToken, theme }: EmbedProps) => {
+export const Embed = ({
+  name,
+  temporaryAccessToken,
+  theme = "light",
+}: EmbedProps) => {
   const styleRef = useRef<HTMLLinkElement | null>(null);
   const [children, setChildren] = useState<React.ReactNode>("Loading");
 
@@ -183,7 +186,7 @@ export const Embed = ({ name, temporaryAccessToken, theme }: EmbedProps) => {
   }, [name, temporaryAccessToken]);
 
   return (
-    <ThemeProvider theme={theme === "light" ? lightTheme : darkTheme}>
+    <ThemeProvider theme={theme === "dark" ? dark : light}>
       {children}
     </ThemeProvider>
   );

@@ -1,4 +1,8 @@
-export interface ProgressBarProps {
+import { Container } from "./styles";
+import { Flex } from "../styles";
+
+export interface ProgressBarProps
+  extends React.ComponentPropsWithoutRef<typeof Flex> {
   progress: number;
   value: number;
   total?: number | string;
@@ -10,6 +14,7 @@ export const ProgressBar = ({
   value,
   total = 0,
   color = "gray",
+  ...props
 }: ProgressBarProps) => {
   const barColorMap = {
     gray: "bg-gray-400/30",
@@ -19,12 +24,15 @@ export const ProgressBar = ({
   };
 
   return (
-    <div className="relative group flex items-center space-x-4">
+    <Container $alignItems="center" $gap="1rem" {...props}>
       <div className="relative flex flex-1 items-center space-x-4">
         <div className="flex flex-1 relative h-2 bg-gray-50 rounded-full overflow-hidden">
           <div
             className={`h-full rounded-full ${barColorMap[color]}`}
-            style={{ width: `${Math.min(progress, 100)}%` }}
+            style={{
+              width: `${Math.min(progress, 100)}%`,
+              backgroundColor: "#2563eb",
+            }}
           />
         </div>
         <div
@@ -42,6 +50,6 @@ export const ProgressBar = ({
           {value}/{total}
         </div>
       )}
-    </div>
+    </Container>
   );
 };

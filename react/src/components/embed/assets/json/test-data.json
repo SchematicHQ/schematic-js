@@ -26,24 +26,28 @@
         {
           "name": "Seats",
           "type": "limit",
+          "icon": "alarm",
           "value": 5,
-          "limit": 10
+          "total": 10
         },
         {
           "name": "AI Query",
           "type": "usage",
+          "icon": "server-search",
           "value": 15,
           "date": "2024-08-12"
         },
         {
           "name": "Projects",
           "type": "limit",
+          "icon": "folder",
           "value": 4,
-          "limit": 5
+          "total": 5
         },
         {
           "name": "Slack Integration",
-          "type": "addon"
+          "type": "addon",
+          "icon": "hash"
         }
       ]
     }

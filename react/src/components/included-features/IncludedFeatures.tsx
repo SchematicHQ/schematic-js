@@ -1,14 +1,26 @@
 import { RecursivePartial } from "../../types";
-import { Icon } from "../icon";
+import { Icon, IconRound, IconNameTypes } from "../icon";
 import { ProgressBar } from "../progress-bar";
+import { Container } from "./styles";
+import { BlockText, Flex } from "../styles";
 
-interface FeatureProps {
+interface BaseFeatureProps {
   name: string;
-  type: string;
-  value?: number;
-  limit?: number;
-  date?: string;
+  type: "limit" | "usage" | "addon";
+  icon: IconNameTypes;
 }
+
+interface LimitFeatureProps extends BaseFeatureProps {
+  value: number;
+  total: number;
+}
+
+interface UsageFeatureProps extends BaseFeatureProps {
+  value: number;
+  date: string;
+}
+
+type FeatureProps = LimitFeatureProps & UsageFeatureProps & BaseFeatureProps;
 
 interface ContentProps {
   features: FeatureProps[];
@@ -60,6 +72,60 @@ function resolveDesignProps(props: RecursivePartial<DesignProps>) {
   };
 }
 
+const LimitFeature = ({
+  name,
+  icon,
+  value,
+  total,
+}: Omit<LimitFeatureProps, "type">) => {
+  return (
+    <Flex>
+      <Flex $flexBasis="50%" $gap="1rem">
+        <IconRound name={icon} size="sm" />
+        <BlockText
+          $font="Public Sans"
+          $size={18}
+          $weight={500}
+          $alignItems="center"
+        >
+          {name}
+        </BlockText>
+      </Flex>
+      <ProgressBar
+        $flexBasis="50%"
+        progress={(value / total) * 100}
+        value={value}
+        total={total}
+        color="blue"
+        style={{ marginLeft: "2rem" }}
+      />
+    </Flex>
+  );
+};
+
+const UsageFeature = ({
+  name,
+  icon,
+  value,
+  date,
+}: Omit<UsageFeatureProps, "type">) => {
+  return (
+    <div>
+      <IconRound name={icon} size="sm" />
+      {name}
+    </div>
+  );
+};
+
+const AddonFeature = ({ name, icon }: Omit<BaseFeatureProps, "type">) => {
+  return (
+    <div>
+      <IconRound name={icon} size="sm" />
+      {name}
+    </div>
+  );
+};
+
 export const IncludedFeatures = ({
   className,
   contents,
@@ -70,15 +136,30 @@ export const IncludedFeatures = ({
   const { features } = contents;
 
   return (
-    <div
-      className="relative z-[2] px-8 py-8 bg-white cursor-pointer"
-      {...props}
-    >
-      <div className="relative z-[1] bg-white flex flex-col space-y-4">
-        <div className="text-sm text-gray-400 leading-none">
-          {designPropsWithDefaults.name.text}
-        </div>
-        <div className="flex flex-col space-y-4">
+    <Container {...props}>
+      <BlockText
+        $font="Inter"
+        $size={15}
+        $weight={500}
+        $color="#767676"
+        $margin="0 0 1.5rem"
+      >
+        {designPropsWithDefaults.name.text}
+      </BlockText>
+
+      {features.map((feature) => {
+        switch (feature.type) {
+          case "limit":
+            return <LimitFeature key={feature.name} {...feature} />;
+          case "usage":
+            return <UsageFeature key={feature.name} {...feature} />;
+          case "addon":
+          default:
+            return <AddonFeature key={feature.name} {...feature} />;
+        }
+      })}
+
+      {/* <div className="flex flex-col space-y-4">
           <div className="flex flex-row justify-between items-center">
             <div className="flex flex-row items-center space-x-2">
               <Icon
@@ -87,7 +168,7 @@ export const IncludedFeatures = ({
               />
               <span className="text-sm font-medium">Seats</span>
             </div>
-            <div className="relative flex-1 max-w-[50%]">
+            <div className="flex-1 max-w-[50%]">
               <ProgressBar value={25} total={100} progress={25} color="blue" />
             </div>
           </div>
@@ -99,7 +180,7 @@ export const IncludedFeatures = ({
               />
               <span className="text-sm font-medium">AI Query</span>
             </div>
-            <div className="relative flex-1 max-w-[50%]">
+            <div className="flex-1 max-w-[50%]">
               <div className="flex flex-col items-end space-y-1">
                 <div className="text-sm leading-none">$2/query</div>
                 <div className="text-sm text-gray-400 leading-none">
@@ -116,18 +197,16 @@ export const IncludedFeatures = ({
               />
               <span className="text-sm font-medium">Projects</span>
             </div>
-            <div className="relative flex-1 max-w-[50%]">
+            <div className="flex-1 max-w-[50%]">
               <ProgressBar value={4} total={5} progress={75} color="blue" />
             </div>
           </div>
-        </div>
-        <div className="flex flex-row space-x-2 items-center mt-3">
-          <Icon name="chevron-down" className="text-gray-400 leading-none" />
-          <span className="text-blue-400 font-medium font-display text-sm">
-            See all
-          </span>
-        </div>
+        </div> */}
+
+      <div>
+        <Icon name="chevron-down" />
+        <span>See all</span>
       </div>
-    </div>
+    </Container>
   );
 };
