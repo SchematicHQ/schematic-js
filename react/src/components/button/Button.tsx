@@ -11,7 +11,7 @@ export interface ButtonProps
 }
 
 export const Button = ({
-  color = "black",
+  color = "white",
   size = "md",
   variant = "fill",
   disabled = false,

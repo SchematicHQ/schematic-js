@@ -1,6 +1,7 @@
 import styled, { css } from "styled-components";
 import { Button as UIButton } from "../button";
 import { Container as UIContainer } from "../styles";
+import { lighten, darken } from "../../utils";
 
 export const Container = styled(UIContainer)`
   ${({ $minWidth = 542 }) => css`
@@ -19,8 +20,27 @@ export const Button = styled(UIButton)<{
   text-align: center;
   width: 100%;
   color: ${({ $color, theme }) => $color || theme.text};
-  background-color: ${({ $backgroundColor, theme }) =>
-    $backgroundColor || theme.button};
+  ${({ $backgroundColor, theme }) => {
+    const color = $backgroundColor || theme.button;
+    return css`
+      background-color: ${color};
+      border-color: ${color};
+    `;
+  }}
+
+  &:hover {
+    ${({ $backgroundColor, theme }) => {
+      const specified = $backgroundColor || theme.button;
+      const lightened = lighten(specified, 12.5);
+      const color =
+        specified === lightened ? darken(specified, 12.5) : lightened;
+
+      return css`
+        background-color: ${color};
+        border-color: ${color};
+      `;
+    }}
+  }
 
   ${({ $size = "md" }) => {
     switch ($size) {
