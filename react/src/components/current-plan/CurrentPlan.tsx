@@ -1,7 +1,7 @@
 import { useTheme } from "styled-components";
 import { RecursivePartial } from "../../types";
 import { Container, Button } from "./styles";
-import { BlockText, Flex } from "../styles";
+import { Box, Flex, FlexText } from "../styles";
 
 interface ContentProps {
   name: string;
@@ -107,18 +107,15 @@ export const CurrentPlan = ({
 
   return (
     <Container className={className} style={style}>
-      <Flex
-        $flexDirection="column"
-        $gap="0.75rem"
-        style={{ marginBottom: "3rem" }}
-      >
+      <Flex $direction="column" $gap={12} $margin="0 0 3rem">
         <Flex
           $justifyContent="space-between"
           $alignItems="center"
           $width="100%"
+          $margin="0 0 1.5rem"
         >
           <div>
-            <BlockText
+            <FlexText
               $font={designPropsWithDefaults.header.title.fontFamily}
               $size={designPropsWithDefaults.header.title.fontSize}
               $weight={designPropsWithDefaults.header.title.fontWeight}
@@ -126,38 +123,37 @@ export const CurrentPlan = ({
               $margin="0 0 0.75rem"
             >
               {contents.name}
-            </BlockText>
+            </FlexText>
             {designPropsWithDefaults.header.description.isVisible && (
-              <BlockText
+              <FlexText
                 $font={designPropsWithDefaults.header.description.fontFamily}
                 $size={designPropsWithDefaults.header.description.fontSize}
                 $weight={designPropsWithDefaults.header.description.fontWeight}
                 $color={designPropsWithDefaults.header.description.color}
-                $margin="0 0 1.5rem"
               >
                 {contents.description}
-              </BlockText>
+              </FlexText>
             )}
           </div>
-          <BlockText
+          <FlexText
             $font={designPropsWithDefaults.header.price.fontFamily}
             $size={designPropsWithDefaults.header.price.fontSize}
             $weight={designPropsWithDefaults.header.price.fontWeight}
             $color={designPropsWithDefaults.header.price.color}
           >
             ${contents.price}/mo
-          </BlockText>
+          </FlexText>
         </Flex>
 
         {/* TODO: finish resolving props below */}
 
         {designPropsWithDefaults.addOns && (
           <>
-            <BlockText $size={15} $weight={500} $color={theme.textDetail}>
+            <FlexText $size={15} $weight={500} $color={theme.textDetail}>
               Add-Ons
-            </BlockText>
+            </FlexText>
 
-            <div style={{ width: "100%", marginBottom: "1rem" }}>
+            <Box $width="100%" $margin="0 0 1rem">
               {contents.addOns.map((addon) => (
                 <Flex
                   key={addon.name}
@@ -165,21 +161,21 @@ export const CurrentPlan = ({
                   $alignItems="center"
                   $width="100%"
                 >
-                  <BlockText $font="Manrope" $size={18} $weight={800}>
+                  <FlexText $font="Manrope" $size={18} $weight={800}>
                     {addon.name}
-                  </BlockText>
-                  <BlockText $weight={500}>${addon.price}/mo</BlockText>
+                  </FlexText>
+                  <FlexText $weight={500}>${addon.price}/mo</FlexText>
                 </Flex>
               ))}
-            </div>
+            </Box>
           </>
         )}
 
         {designPropsWithDefaults.addOns && (
           <>
-            <BlockText $size={15} $weight={500} $color={theme.textDetail}>
+            <FlexText $size={15} $weight={500} $color={theme.textDetail}>
               Usage-Based
-            </BlockText>
+            </FlexText>
 
             {contents.usageBased.map((addon) => (
               <Flex
@@ -188,17 +184,17 @@ export const CurrentPlan = ({
                 $alignItems="center"
                 $width="100%"
               >
-                <BlockText $font="Manrope" $size={18} $weight={800}>
+                <FlexText $font="Manrope" $size={18} $weight={800}>
                   {addon.name}
-                </BlockText>
-                <Flex $flexDirection="column" $alignItems="center">
-                  <BlockText $weight={500}>
+                </FlexText>
+                <Flex $direction="column" $alignItems="center">
+                  <FlexText $weight={500}>
                     ${addon.price}/{addon.type}
-                  </BlockText>
-                  <BlockText $size={14} $color={theme.textDetail}>
+                  </FlexText>
+                  <FlexText $size={14} $color={theme.textDetail}>
                     {addon.amount} {addon.type} | $
                     {(addon.price || 0) * (addon.amount || 0)}
-                  </BlockText>
+                  </FlexText>
                 </Flex>
               </Flex>
             ))}

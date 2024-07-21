@@ -3,11 +3,10 @@ import icons from "../../assets/icons/icons.js";
 
 export type IconNameTypes = keyof typeof icons;
 
-export interface IconProps {
+export interface IconProps extends React.HTMLAttributes<HTMLElement> {
   name: IconNameTypes;
-  className?: string;
 }
 
-export const Icon = ({ name, className }: IconProps) => {
-  return <i className={cx("i", `i-${name}`, className)} />;
+export const Icon = ({ name, className, ...props }: IconProps) => {
+  return <i className={cx("i", `i-${name}`, className)} {...props} />;
 };

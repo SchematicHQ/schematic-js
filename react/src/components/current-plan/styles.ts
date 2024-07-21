@@ -1,39 +1,47 @@
 import styled, { css } from "styled-components";
 import { Button as UIButton } from "../button";
+import { Container as UIContainer } from "../styles";
 
-const TEXT_BASE_SIZE = 16;
-
-export const Container = styled.div<{
-  $minWidth?: string;
-}>`
-  box-sizing: border-box;
-  font-size: ${TEXT_BASE_SIZE}px;
-  ${({ $minWidth = "542px" }) => css`
-    min-width: ${$minWidth};
+export const Container = styled(UIContainer)`
+  ${({ $minWidth = 542 }) => css`
+    min-width: ${$minWidth}px;
   `};
-  padding: 40px 50px;
-  color: ${({ theme }) => theme.text};
-  background-color: ${({ theme }) => theme.background};
-
-  *,
-  *::before,
-  *::after {
-    box-sizing: inherit;
-  }
+  padding: ${40 / 16}rem ${50 / 16}rem;
 `;
 
 export const Button = styled(UIButton)<{
+  $size?: "sm" | "md" | "lg";
   $color?: string;
   $backgroundColor?: string;
 }>`
   font-family: "Public Sans", sans-serif;
-  font-size: ${17 / 16}rem;
   font-weight: 500;
   text-align: center;
   width: 100%;
-  padding: 1rem 0;
-  border-radius: 10px;
   color: ${({ $color, theme }) => $color || theme.text};
   background-color: ${({ $backgroundColor, theme }) =>
     $backgroundColor || theme.button};
+
+  ${({ $size = "md" }) => {
+    switch ($size) {
+      case "sm":
+        return css`
+          font-size: ${15 / 16}rem;
+          padding: ${12 / 16}rem 0;
+          border-radius: ${8 / 16}rem;
+        `;
+      case "md":
+        return css`
+          font-size: ${17 / 16}rem;
+          padding: ${16 / 16}rem 0;
+          border-radius: ${10 / 16}rem;
+        `;
+      case "lg":
+        return css`
+          font-size: ${19 / 16}rem;
+          padding: ${20 / 16}rem 0;
+          border-radius: ${12 / 16}rem;
+        `;
+    }
+  }}
 `;

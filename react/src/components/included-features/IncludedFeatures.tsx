@@ -1,8 +1,10 @@
+import { useMemo, useState } from "react";
 import { RecursivePartial } from "../../types";
 import { Icon, IconRound, IconNameTypes } from "../icon";
 import { ProgressBar } from "../progress-bar";
 import { Container } from "./styles";
-import { BlockText, Flex } from "../styles";
+import { Box, Flex, FlexText, Text } from "../styles";
+import { ezdate } from "../../utils";
 
 interface BaseFeatureProps {
   name: string;
@@ -17,6 +19,7 @@ interface LimitFeatureProps extends BaseFeatureProps {
 
 interface UsageFeatureProps extends BaseFeatureProps {
   value: number;
+  unit: string;
   date: string;
 }
 
@@ -68,7 +71,7 @@ function resolveDesignProps(props: RecursivePartial<DesignProps>) {
     usage: {
       isVisible: props.usage?.isVisible || true,
     },
-    count: props.count || 4,
+    count: props.count || 3,
   };
 }
 
@@ -79,25 +82,25 @@ const LimitFeature = ({
   total,
 }: Omit<LimitFeatureProps, "type">) => {
   return (
-    <Flex>
-      <Flex $flexBasis="50%" $gap="1rem">
+    <Flex $justifyContent="space-between" $margin="0 0 1.5rem">
+      <Flex $gap={16}>
         <IconRound name={icon} size="sm" />
-        <BlockText
+        <FlexText
+          $alignItems="center"
           $font="Public Sans"
           $size={18}
           $weight={500}
-          $alignItems="center"
+          $align="center"
         >
           {name}
-        </BlockText>
+        </FlexText>
       </Flex>
       <ProgressBar
-        $flexBasis="50%"
         progress={(value / total) * 100}
         value={value}
         total={total}
         color="blue"
-        style={{ marginLeft: "2rem" }}
+        barWidth="140px"
       />
     </Flex>
   );
@@ -107,22 +110,56 @@ const UsageFeature = ({
   name,
   icon,
   value,
+  unit,
   date,
 }: Omit<UsageFeatureProps, "type">) => {
   return (
-    <div>
-      <IconRound name={icon} size="sm" />
-      {name}
-    </div>
+    <Flex $justifyContent="space-between" $margin="0 0 1.5rem">
+      <Flex $gap={16}>
+        <IconRound name={icon} size="sm" />
+        <FlexText
+          $alignItems="center"
+          $font="Public Sans"
+          $size={18}
+          $weight={500}
+          $align="center"
+        >
+          {name}
+        </FlexText>
+      </Flex>
+      <Box>
+        <FlexText $justifyContent="end" $font="Public Sans" $weight={500}>
+          {value} {unit} used
+        </FlexText>
+        <FlexText
+          $justifyContent="end"
+          $font="Public Sans"
+          $size={14}
+          $color="#8A8A8A"
+        >
+          Resets {ezdate(date)}
+        </FlexText>
+      </Box>
+    </Flex>
   );
 };
 
 const AddonFeature = ({ name, icon }: Omit<BaseFeatureProps, "type">) => {
   return (
-    <div>
-      <IconRound name={icon} size="sm" />
-      {name}
-    </div>
+    <Flex $justifyContent="space-between" $margin="0 0 1.5rem">
+      <Flex $gap={16}>
+        <IconRound name={icon} size="sm" />
+        <FlexText
+          $alignItems="center"
+          $font="Public Sans"
+          $size={18}
+          $weight={500}
+          $align="center"
+        >
+          {name}
+        </FlexText>
+      </Flex>
+    </Flex>
   );
 };
 
@@ -135,9 +172,24 @@ export const IncludedFeatures = ({
   const designPropsWithDefaults = resolveDesignProps(props);
   const { features } = contents;
 
+  const [numVisible, setNumVisible] = useState(designPropsWithDefaults.count);
+
+  const isExpanded = useMemo(
+    () => numVisible > designPropsWithDefaults.count,
+    [numVisible, designPropsWithDefaults.count],
+  );
+
+  const resize = () => {
+    setNumVisible((prev) =>
+      prev > designPropsWithDefaults.count
+        ? designPropsWithDefaults.count
+        : features.length,
+    );
+  };
+
   return (
     <Container {...props}>
-      <BlockText
+      <FlexText
         $font="Inter"
         $size={15}
         $weight={500}
@@ -145,9 +197,9 @@ export const IncludedFeatures = ({
         $margin="0 0 1.5rem"
       >
         {designPropsWithDefaults.name.text}
-      </BlockText>
+      </FlexText>
 
-      {features.map((feature) => {
+      {features.slice(0, numVisible).map((feature) => {
         switch (feature.type) {
           case "limit":
             return <LimitFeature key={feature.name} {...feature} />;
@@ -159,54 +211,20 @@ export const IncludedFeatures = ({
         }
       })}
 
-      {/* <div className="flex flex-col space-y-4">
-          <div className="flex flex-row justify-between items-center">
-            <div className="flex flex-row items-center space-x-2">
-              <Icon
-                name="alarm"
-                className="text-2xl leading-none bg-gray-300 rounded-full w-10 h-10 flex items-center justify-center"
-              />
-              <span className="text-sm font-medium">Seats</span>
-            </div>
-            <div className="flex-1 max-w-[50%]">
-              <ProgressBar value={25} total={100} progress={25} color="blue" />
-            </div>
-          </div>
-          <div className="flex flex-row justify-between items-center">
-            <div className="flex flex-row items-center space-x-2">
-              <Icon
-                name="server-search"
-                className="text-2xl leading-none bg-gray-300 rounded-full w-10 h-10 flex items-center justify-center"
-              />
-              <span className="text-sm font-medium">AI Query</span>
-            </div>
-            <div className="flex-1 max-w-[50%]">
-              <div className="flex flex-col items-end space-y-1">
-                <div className="text-sm leading-none">$2/query</div>
-                <div className="text-sm text-gray-400 leading-none">
-                  15 queries | $30
-                </div>
-              </div>{" "}
-            </div>
-          </div>
-          <div className="flex flex-row justify-between items-center">
-            <div className="flex flex-row items-center space-x-2">
-              <Icon
-                name="folder"
-                className="text-2xl leading-none bg-gray-300 rounded-full w-10 h-10 flex items-center justify-center"
-              />
-              <span className="text-sm font-medium">Projects</span>
-            </div>
-            <div className="flex-1 max-w-[50%]">
-              <ProgressBar value={4} total={5} progress={75} color="blue" />
-            </div>
-          </div>
-        </div> */}
-
-      <div>
-        <Icon name="chevron-down" />
-        <span>See all</span>
-      </div>
+      <Flex $alignItems="center" $gap={4}>
+        <Icon
+          name={isExpanded ? "chevron-up" : "chevron-down"}
+          style={{ fontSize: "1.25rem", color: "#D0D0D0" }}
+        />
+        <Text
+          onClick={resize}
+          $weight={500}
+          $color="#194BFB"
+          style={{ cursor: "pointer" }}
+        >
+          See all
+        </Text>
+      </Flex>
     </Container>
   );
 };

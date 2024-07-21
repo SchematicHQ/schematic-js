@@ -1,5 +1,6 @@
+import CSS from "csstype";
 import { Container } from "./styles";
-import { Flex } from "../styles";
+import { Box, Flex, FlexText } from "../styles";
 
 export interface ProgressBarProps
   extends React.ComponentPropsWithoutRef<typeof Flex> {
@@ -7,6 +8,7 @@ export interface ProgressBarProps
   value: number;
   total?: number | string;
   color?: "gray" | "orange" | "blue" | "red";
+  barWidth?: CSS.Property.Width;
 }
 
 export const ProgressBar = ({
@@ -14,41 +16,67 @@ export const ProgressBar = ({
   value,
   total = 0,
   color = "gray",
+  barWidth,
   ...props
 }: ProgressBarProps) => {
   const barColorMap = {
-    gray: "bg-gray-400/30",
-    orange: "bg-orange-500/60",
-    blue: "bg-blue-500",
-    red: "bg-red-600/60",
+    gray: "#9CA3AF",
+    blue: "#2563EB",
+    yellow: "#FFAA06",
+    orange: "#DB6769",
+    red: "#EF4444",
   };
 
   return (
-    <Container $alignItems="center" $gap="1rem" {...props}>
-      <div className="relative flex flex-1 items-center space-x-4">
-        <div className="flex flex-1 relative h-2 bg-gray-50 rounded-full overflow-hidden">
-          <div
-            className={`h-full rounded-full ${barColorMap[color]}`}
-            style={{
-              width: `${Math.min(progress, 100)}%`,
-              backgroundColor: "#2563eb",
-            }}
-          />
-        </div>
-        <div
-          className="absolute bottom-full -translate-y-2 -translate-x-[83%] invisible opacity-0  group-hover:opacity-100 group-hover:visible"
-          style={{ left: `${progress}%` }}
+    <Container $alignItems="center" $gap={16} {...props}>
+      <Flex
+        className="group"
+        $alignItems="center"
+        $width={barWidth}
+        $position="relative"
+      >
+        <Flex
+          $position="relative"
+          $overflow="hidden"
+          $width="100%"
+          $height={8}
+          $background="#F2F4F7"
+          $borderRadius="full"
         >
-          <div className="py-2 px-3 font-body text-xs rounded-lg font-medium  shadow-lg bg-white">
+          <Box
+            $width={`${Math.min(progress, 100)}%`}
+            $height="100%"
+            $background={barColorMap[color]}
+            $borderRadius="full"
+          />
+        </Flex>
+        <Box
+          className="-translate-y-2 -translate-x-[50%] invisible opacity-0 group-hover:opacity-100 group-hover:visible"
+          style={{ left: `${progress}%` }}
+          $position="absolute"
+          $bottom="100%"
+        >
+          <FlexText
+            $size={12}
+            $weight={500}
+            $padding={`${8 / 16}rem ${12 / 16}rem`}
+            $background="#FFFFFF"
+            $borderRadius={8}
+            $boxShadow="0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)"
+          >
             {progress}%
-          </div>
-          <div className="absolute left-[50%] translate-x-[-50%] h-0 w-0 border-x-[6px] border-x-transparent border-t-[6px] border-t-white"></div>
-        </div>
-      </div>
+          </FlexText>
+          <Box
+            className="translate-x-[-50%] h-0 w-0 border-x-[6px] border-x-transparent border-t-[6px] border-t-white"
+            $position="absolute"
+            $left="50%"
+          ></Box>
+        </Box>
+      </Flex>
       {total !== 0 && (
-        <div className="font-body text-sm leading-none">
+        <FlexText $size={14} $weight={500}>
           {value}/{total}
-        </div>
+        </FlexText>
       )}
     </Container>
   );

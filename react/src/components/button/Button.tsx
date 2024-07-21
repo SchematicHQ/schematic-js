@@ -7,17 +7,25 @@ export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   color?: ButtonStyleTypes;
   size?: ButtonSizeTypes;
+  variant?: "fill" | "outline";
 }
 
 export const Button = ({
-  color = "white",
+  color = "black",
   size = "md",
+  variant = "fill",
   disabled = false,
   children,
   ...props
 }: ButtonProps) => {
   return (
-    <styles.Button size={size} color={color} disabled={disabled} {...props}>
+    <styles.Button
+      $color={color}
+      $size={size}
+      $variant={variant}
+      disabled={disabled}
+      {...props}
+    >
       {children}
     </styles.Button>
   );

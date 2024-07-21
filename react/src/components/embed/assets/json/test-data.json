@@ -35,6 +35,7 @@
           "type": "usage",
           "icon": "server-search",
           "value": 15,
+          "unit": "queries",
           "date": "2024-08-12"
         },
         {
@@ -134,7 +135,7 @@
         },
         "callToAction": {
           "isVisible": true,
-          "size": "medium",
+          "size": "md",
           "color": "#ffffff",
           "backgroundColor": "#000000"
         }
@@ -169,7 +170,7 @@
         "usage": {
           "isVisible": true
         },
-        "count": 4
+        "count": 3
       },
       "displayName": "Included Features",
       "custom": {},
