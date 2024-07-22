@@ -9,5 +9,5 @@ export const PlanManager = ({
   children,
   layout = "merged",
 }: PlanManagerProps) => {
-  return <Container layout={layout}>{children}</Container>;
+  return <Container $layout={layout}>{children}</Container>;
 };

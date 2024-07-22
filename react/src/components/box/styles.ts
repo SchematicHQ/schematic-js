@@ -8,6 +8,7 @@ export type BoxProps = ComponentProps;
 export const Box = styled.div<BoxProps>((props) => {
   return Object.entries(props).reduce(
     (acc, [key, value]) => {
+      console.log(key);
       if (key.startsWith("$")) {
         acc.push(
           attr(

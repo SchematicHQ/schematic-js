@@ -109,7 +109,7 @@ export const CurrentPlan = ({
 
   return (
     <Container className={className} style={style}>
-      <Flex $dir="column" $gap={`${12 / 16}rem`} $margin="0 0 3rem">
+      <Flex $flexDirection="column" $gap={`${12 / 16}rem`} $margin="0 0 3rem">
         <Flex
           $justifyContent="space-between"
           $alignItems="center"
@@ -117,19 +117,18 @@ export const CurrentPlan = ({
           $margin="0 0 1.5rem"
         >
           <div>
-            <Text
-              as={Flex}
-              $font={designPropsWithDefaults.header.title.fontFamily}
-              $size={`${designPropsWithDefaults.header.title.fontSize / 16}rem`}
-              $weight={`${designPropsWithDefaults.header.title.fontWeight}`}
-              $color={designPropsWithDefaults.header.title.color}
-              $margin="0 0 0.75rem"
-            >
-              {contents.name}
-            </Text>
+            <Box $margin="0 0 0.75rem">
+              <Text
+                $font={designPropsWithDefaults.header.title.fontFamily}
+                $size={`${designPropsWithDefaults.header.title.fontSize / 16}rem`}
+                $weight={`${designPropsWithDefaults.header.title.fontWeight}`}
+                $color={designPropsWithDefaults.header.title.color}
+              >
+                {contents.name}
+              </Text>
+            </Box>
             {designPropsWithDefaults.header.description.isVisible && (
               <Text
-                as={Flex}
                 $font={designPropsWithDefaults.header.description.fontFamily}
                 $size={`${designPropsWithDefaults.header.description.fontSize / 16}rem`}
                 $weight={`${designPropsWithDefaults.header.description.fontWeight}`}
@@ -140,7 +139,6 @@ export const CurrentPlan = ({
             )}
           </div>
           <Text
-            as={Flex}
             $font={designPropsWithDefaults.header.price.fontFamily}
             $size={`${designPropsWithDefaults.header.price.fontSize / 16}`}
             $weight={`${designPropsWithDefaults.header.price.fontWeight}`}
@@ -155,7 +153,6 @@ export const CurrentPlan = ({
         {designPropsWithDefaults.addOns && (
           <>
             <Text
-              as={Flex}
               $size={`${15 / 16}rem`}
               $weight="500"
               $color={theme.textDetail}
@@ -171,17 +168,10 @@ export const CurrentPlan = ({
                   $alignItems="center"
                   $width="100%"
                 >
-                  <Text
-                    as={Flex}
-                    $font="Manrope"
-                    $size={`${18 / 16}rem`}
-                    $weight="800"
-                  >
+                  <Text $font="Manrope" $size={`${18 / 16}rem`} $weight="800">
                     {addon.name}
                   </Text>
-                  <Text as={Flex} $weight="500">
-                    ${addon.price}/mo
-                  </Text>
+                  <Text $weight="500">${addon.price}/mo</Text>
                 </Flex>
               ))}
             </Box>
@@ -191,7 +181,6 @@ export const CurrentPlan = ({
         {designPropsWithDefaults.addOns && (
           <>
             <Text
-              as={Flex}
               $size={`${15 / 16}rem`}
               $weight="500"
               $color={theme.textDetail}
@@ -206,23 +195,14 @@ export const CurrentPlan = ({
                 $alignItems="center"
                 $width="100%"
               >
-                <Text
-                  as={Flex}
-                  $font="Manrope"
-                  $size={`${18 / 16}rem`}
-                  $weight="800"
-                >
+                <Text $font="Manrope" $size={`${18 / 16}rem`} $weight="800">
                   {addon.name}
                 </Text>
-                <Flex $dir="column" $alignItems="center">
-                  <Text as={Flex} $weight="500">
+                <Flex $flexDirection="column" $alignItems="center">
+                  <Text $weight="500">
                     ${addon.price}/{addon.type}
                   </Text>
-                  <Text
-                    as={Flex}
-                    $size={`${14 / 16}rem`}
-                    $color={theme.textDetail}
-                  >
+                  <Text $size={`${14 / 16}rem`} $color={theme.textDetail}>
                     {addon.amount} {addon.type} | $
                     {(addon.price || 0) * (addon.amount || 0)}
                   </Text>
