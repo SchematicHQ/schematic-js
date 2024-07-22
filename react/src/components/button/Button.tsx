@@ -2,18 +2,19 @@ import * as styles from "./styles";
 
 export type ButtonStyleTypes = "blue" | "white" | "red" | "black";
 export type ButtonSizeTypes = "sm" | "md" | "lg";
+export type ButtonVariantTypes = "solid" | "outline" | "ghost" | "link";
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   color?: ButtonStyleTypes;
   size?: ButtonSizeTypes;
-  variant?: "fill" | "outline";
+  variant?: ButtonVariantTypes;
 }
 
 export const Button = ({
   color = "white",
   size = "md",
-  variant = "fill",
+  variant = "solid",
   disabled = false,
   children,
   ...props

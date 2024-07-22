@@ -1,10 +1,13 @@
 import { useMemo, useState } from "react";
-import { RecursivePartial } from "../../types";
-import { Icon, IconRound, IconNameTypes } from "../icon";
-import { ProgressBar } from "../progress-bar";
-import { Container } from "./styles";
-import { Box, Flex, FlexText, Text } from "../styles";
 import { ezdate } from "../../utils";
+import { RecursivePartial } from "../../types";
+import { Box } from "../box";
+import { Button } from "../button";
+import { Flex } from "../flex";
+import { Icon, IconRound, type IconNameTypes } from "../icon";
+import { ProgressBar } from "../progress-bar";
+import { Text } from "../text";
+import { Container } from "./styles";
 
 interface BaseFeatureProps {
   name: string;
@@ -82,18 +85,19 @@ const LimitFeature = ({
   total,
 }: Omit<LimitFeatureProps, "type">) => {
   return (
-    <Flex $justifyContent="space-between" $margin="0 0 1.5rem">
-      <Flex $gap={16}>
+    <Flex $margin="0 0 1.5rem">
+      <Flex $gap={`${16 / 16}rem`}>
         <IconRound name={icon} size="sm" />
-        <FlexText
+        <Text
+          as={Flex}
           $alignItems="center"
           $font="Public Sans"
-          $size={18}
-          $weight={500}
+          $size={`${18 / 16}rem`}
+          $weight="500"
           $align="center"
         >
           {name}
-        </FlexText>
+        </Text>
       </Flex>
       <ProgressBar
         progress={(value / total) * 100}
@@ -115,30 +119,32 @@ const UsageFeature = ({
 }: Omit<UsageFeatureProps, "type">) => {
   return (
     <Flex $justifyContent="space-between" $margin="0 0 1.5rem">
-      <Flex $gap={16}>
+      <Flex $gap={`${16 / 16}rem`}>
         <IconRound name={icon} size="sm" />
-        <FlexText
+        <Text
+          as={Flex}
           $alignItems="center"
           $font="Public Sans"
-          $size={18}
-          $weight={500}
+          $size={`${18 / 16}rem`}
+          $weight="500"
           $align="center"
         >
           {name}
-        </FlexText>
+        </Text>
       </Flex>
       <Box>
-        <FlexText $justifyContent="end" $font="Public Sans" $weight={500}>
+        <Text as={Flex} $justifyContent="end" $font="Public Sans" $weight="500">
           {value} {unit} used
-        </FlexText>
-        <FlexText
+        </Text>
+        <Text
+          as={Flex}
           $justifyContent="end"
           $font="Public Sans"
-          $size={14}
+          $size={`${14 / 16}rem`}
           $color="#8A8A8A"
         >
           Resets {ezdate(date)}
-        </FlexText>
+        </Text>
       </Box>
     </Flex>
   );
@@ -147,17 +153,18 @@ const UsageFeature = ({
 const AddonFeature = ({ name, icon }: Omit<BaseFeatureProps, "type">) => {
   return (
     <Flex $justifyContent="space-between" $margin="0 0 1.5rem">
-      <Flex $gap={16}>
+      <Flex $gap={`${16 / 16}rem`}>
         <IconRound name={icon} size="sm" />
-        <FlexText
+        <Text
+          as={Flex}
           $alignItems="center"
           $font="Public Sans"
-          $size={18}
-          $weight={500}
+          $size={`${18 / 16}rem`}
+          $weight="500"
           $align="center"
         >
           {name}
-        </FlexText>
+        </Text>
       </Flex>
     </Flex>
   );
@@ -189,15 +196,16 @@ export const IncludedFeatures = ({
 
   return (
     <Container {...props}>
-      <FlexText
+      <Text
+        as={Flex}
         $font="Inter"
-        $size={15}
-        $weight={500}
+        $size={`${15 / 16}rem`}
+        $weight="500"
         $color="#767676"
         $margin="0 0 1.5rem"
       >
         {designPropsWithDefaults.name.text}
-      </FlexText>
+      </Text>
 
       {features.slice(0, numVisible).map((feature) => {
         switch (feature.type) {
@@ -211,19 +219,14 @@ export const IncludedFeatures = ({
         }
       })}
 
-      <Flex $alignItems="center" $gap={4}>
+      <Flex $alignItems="center" $gap={`${4 / 16}rem`}>
         <Icon
           name={isExpanded ? "chevron-up" : "chevron-down"}
           style={{ fontSize: "1.25rem", color: "#D0D0D0" }}
         />
-        <Text
-          onClick={resize}
-          $weight={500}
-          $color="#194BFB"
-          style={{ cursor: "pointer" }}
-        >
-          See all
-        </Text>
+        <Button onClick={resize} color="blue" variant="link">
+          <Text $weight="500">See all</Text>
+        </Button>
       </Flex>
     </Container>
   );

@@ -1,7 +1,7 @@
 import styled, { css } from "styled-components";
-import { Button as UIButton } from "../button";
-import { Container as UIContainer } from "../styles";
 import { lighten, darken } from "../../utils";
+import { Button as UIButton } from "../button";
+import { Container as UIContainer } from "../container";
 
 export const Container = styled(UIContainer)`
   ${({ $minWidth = 542 }) => css`

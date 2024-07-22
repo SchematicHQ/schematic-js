@@ -1,7 +1,9 @@
 import { useTheme } from "styled-components";
 import { RecursivePartial } from "../../types";
+import { Box } from "../box";
+import { Flex } from "../flex";
+import { Text } from "../text";
 import { Container, Button } from "./styles";
-import { Box, Flex, FlexText } from "../styles";
 
 interface ContentProps {
   name: string;
@@ -107,7 +109,7 @@ export const CurrentPlan = ({
 
   return (
     <Container className={className} style={style}>
-      <Flex $direction="column" $gap={12} $margin="0 0 3rem">
+      <Flex $dir="column" $gap={`${12 / 16}rem`} $margin="0 0 3rem">
         <Flex
           $justifyContent="space-between"
           $alignItems="center"
@@ -115,43 +117,51 @@ export const CurrentPlan = ({
           $margin="0 0 1.5rem"
         >
           <div>
-            <FlexText
+            <Text
+              as={Flex}
               $font={designPropsWithDefaults.header.title.fontFamily}
-              $size={designPropsWithDefaults.header.title.fontSize}
-              $weight={designPropsWithDefaults.header.title.fontWeight}
+              $size={`${designPropsWithDefaults.header.title.fontSize / 16}rem`}
+              $weight={`${designPropsWithDefaults.header.title.fontWeight}`}
               $color={designPropsWithDefaults.header.title.color}
               $margin="0 0 0.75rem"
             >
               {contents.name}
-            </FlexText>
+            </Text>
             {designPropsWithDefaults.header.description.isVisible && (
-              <FlexText
+              <Text
+                as={Flex}
                 $font={designPropsWithDefaults.header.description.fontFamily}
-                $size={designPropsWithDefaults.header.description.fontSize}
-                $weight={designPropsWithDefaults.header.description.fontWeight}
+                $size={`${designPropsWithDefaults.header.description.fontSize / 16}rem`}
+                $weight={`${designPropsWithDefaults.header.description.fontWeight}`}
                 $color={designPropsWithDefaults.header.description.color}
               >
                 {contents.description}
-              </FlexText>
+              </Text>
             )}
           </div>
-          <FlexText
+          <Text
+            as={Flex}
             $font={designPropsWithDefaults.header.price.fontFamily}
-            $size={designPropsWithDefaults.header.price.fontSize}
-            $weight={designPropsWithDefaults.header.price.fontWeight}
+            $size={`${designPropsWithDefaults.header.price.fontSize / 16}`}
+            $weight={`${designPropsWithDefaults.header.price.fontWeight}`}
             $color={designPropsWithDefaults.header.price.color}
           >
             ${contents.price}/mo
-          </FlexText>
+          </Text>
         </Flex>
 
         {/* TODO: finish resolving props below */}
 
         {designPropsWithDefaults.addOns && (
           <>
-            <FlexText $size={15} $weight={500} $color={theme.textDetail}>
+            <Text
+              as={Flex}
+              $size={`${15 / 16}rem`}
+              $weight="500"
+              $color={theme.textDetail}
+            >
               Add-Ons
-            </FlexText>
+            </Text>
 
             <Box $width="100%" $margin="0 0 1rem">
               {contents.addOns.map((addon) => (
@@ -161,10 +171,17 @@ export const CurrentPlan = ({
                   $alignItems="center"
                   $width="100%"
                 >
-                  <FlexText $font="Manrope" $size={18} $weight={800}>
+                  <Text
+                    as={Flex}
+                    $font="Manrope"
+                    $size={`${18 / 16}rem`}
+                    $weight="800"
+                  >
                     {addon.name}
-                  </FlexText>
-                  <FlexText $weight={500}>${addon.price}/mo</FlexText>
+                  </Text>
+                  <Text as={Flex} $weight="500">
+                    ${addon.price}/mo
+                  </Text>
                 </Flex>
               ))}
             </Box>
@@ -173,9 +190,14 @@ export const CurrentPlan = ({
 
         {designPropsWithDefaults.addOns && (
           <>
-            <FlexText $size={15} $weight={500} $color={theme.textDetail}>
+            <Text
+              as={Flex}
+              $size={`${15 / 16}rem`}
+              $weight="500"
+              $color={theme.textDetail}
+            >
               Usage-Based
-            </FlexText>
+            </Text>
 
             {contents.usageBased.map((addon) => (
               <Flex
@@ -184,17 +206,26 @@ export const CurrentPlan = ({
                 $alignItems="center"
                 $width="100%"
               >
-                <FlexText $font="Manrope" $size={18} $weight={800}>
+                <Text
+                  as={Flex}
+                  $font="Manrope"
+                  $size={`${18 / 16}rem`}
+                  $weight="800"
+                >
                   {addon.name}
-                </FlexText>
-                <Flex $direction="column" $alignItems="center">
-                  <FlexText $weight={500}>
+                </Text>
+                <Flex $dir="column" $alignItems="center">
+                  <Text as={Flex} $weight="500">
                     ${addon.price}/{addon.type}
-                  </FlexText>
-                  <FlexText $size={14} $color={theme.textDetail}>
+                  </Text>
+                  <Text
+                    as={Flex}
+                    $size={`${14 / 16}rem`}
+                    $color={theme.textDetail}
+                  >
                     {addon.amount} {addon.type} | $
                     {(addon.price || 0) * (addon.amount || 0)}
-                  </FlexText>
+                  </Text>
                 </Flex>
               </Flex>
             ))}
@@ -203,7 +234,7 @@ export const CurrentPlan = ({
       </Flex>
 
       <Button
-        size={designPropsWithDefaults.callToAction.size}
+        $size={designPropsWithDefaults.callToAction.size}
         $color={designPropsWithDefaults.callToAction.color}
         $backgroundColor={designPropsWithDefaults.callToAction.backgroundColor}
       >
