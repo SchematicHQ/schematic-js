@@ -99,45 +99,40 @@ function createRenderer(
   };
 }
 
-async function fetchComponent(name: string, temporaryAccessToken: string) {
-  const controller = new AbortController();
+async function fetchComponent(id: string, accessToken: string) {
+  const apiUrl = "https://api.schematichq.com";
   const parsedEditorState = parseEditorState(testData.editorState);
 
   return new Promise<{
     editorState: SerializedNodeWithChildren[];
     componentProps: Record<string, object | undefined>;
   }>((resolve) => {
-    fetch(`https://localhost/components/embed/${name}`, {
+    fetch(`${apiUrl}/components/${id}/hydrate`, {
       headers: {
-        "X-Temporary-Access-Token": temporaryAccessToken,
+        "X-Schematic-Api-Key": accessToken,
       },
-      signal: controller.signal,
     })
-      .catch(() => {
-        // do nothing
-      })
-      .finally(() => {
-        resolve({
-          editorState: parsedEditorState,
-          componentProps: testData.componentProps,
-        });
+    .then((response) => {
+      console.log(response);
+      resolve({
+        editorState: parsedEditorState,
+        componentProps: testData.componentProps,
       });
-
-    setTimeout(() => {
-      controller.abort();
+    }).catch((r) => {
+      console.log("OH NO!", r);
     });
   });
 }
 
 export interface EmbedProps {
-  name: string;
-  temporaryAccessToken: string;
+  accessToken: string;
+  id: string;
   theme?: "light" | "dark";
 }
 
 export const Embed = ({
-  name,
-  temporaryAccessToken,
+  id,
+  accessToken,
   theme = "light",
 }: EmbedProps) => {
   const styleRef = useRef<HTMLLinkElement | null>(null);
@@ -177,13 +172,19 @@ export const Embed = ({
   }, [fonts]);
 
   useEffect(() => {
-    fetchComponent(name, temporaryAccessToken).then(
-      ({ editorState, componentProps }) => {
-        const renderer = createRenderer(componentProps);
-        setChildren(editorState.map(renderer));
-      },
-    );
-  }, [name, temporaryAccessToken]);
+    if (accessToken.length === 0) {
+      setChildren(<div>Please provide an access token.</div>);
+    } else if (accessToken.slice(0, 6) !== "token_") {
+      setChildren(<div>Invalid access token; your temporary access token will start with "token_"</div>);
+    } else {
+      fetchComponent(id, accessToken).then(
+        ({ editorState, componentProps }) => {
+          const renderer = createRenderer(componentProps);
+          setChildren(editorState.map(renderer));
+        },
+      );
+    }
+  }, [id, accessToken]);
 
   return (
     <ThemeProvider theme={theme === "dark" ? dark : light}>
