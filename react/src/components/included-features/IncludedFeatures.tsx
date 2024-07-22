@@ -85,19 +85,19 @@ const LimitFeature = ({
   total,
 }: Omit<LimitFeatureProps, "type">) => {
   return (
-    <Flex $margin="0 0 1.5rem">
+    <Flex $justifyContent="space-between" $margin="0 0 1.5rem">
       <Flex $gap={`${16 / 16}rem`}>
         <IconRound name={icon} size="sm" />
-        <Text
-          as={Flex}
-          $alignItems="center"
-          $font="Public Sans"
-          $size={`${18 / 16}rem`}
-          $weight="500"
-          $align="center"
-        >
-          {name}
-        </Text>
+        <Flex $alignItems="center">
+          <Text
+            $font="Public Sans"
+            $size={`${18 / 16}rem`}
+            $weight="500"
+            $align="center"
+          >
+            {name}
+          </Text>
+        </Flex>
       </Flex>
       <ProgressBar
         progress={(value / total) * 100}
@@ -121,27 +121,27 @@ const UsageFeature = ({
     <Flex $justifyContent="space-between" $margin="0 0 1.5rem">
       <Flex $gap={`${16 / 16}rem`}>
         <IconRound name={icon} size="sm" />
-        <Text
-          as={Flex}
-          $alignItems="center"
-          $font="Public Sans"
-          $size={`${18 / 16}rem`}
-          $weight="500"
-          $align="center"
-        >
-          {name}
-        </Text>
+        <Flex $alignItems="center">
+          <Text
+            $font="Public Sans"
+            $size={`${18 / 16}rem`}
+            $weight="500"
+            $align="center"
+          >
+            {name}
+          </Text>
+        </Flex>
       </Flex>
       <Box>
-        <Text as={Flex} $justifyContent="end" $font="Public Sans" $weight="500">
+        <Text as={Box} $font="Public Sans" $weight="500" $align="right">
           {value} {unit} used
         </Text>
         <Text
-          as={Flex}
-          $justifyContent="end"
+          as={Box}
           $font="Public Sans"
           $size={`${14 / 16}rem`}
           $color="#8A8A8A"
+          $align="right"
         >
           Resets {ezdate(date)}
         </Text>
@@ -155,16 +155,16 @@ const AddonFeature = ({ name, icon }: Omit<BaseFeatureProps, "type">) => {
     <Flex $justifyContent="space-between" $margin="0 0 1.5rem">
       <Flex $gap={`${16 / 16}rem`}>
         <IconRound name={icon} size="sm" />
-        <Text
-          as={Flex}
-          $alignItems="center"
-          $font="Public Sans"
-          $size={`${18 / 16}rem`}
-          $weight="500"
-          $align="center"
-        >
-          {name}
-        </Text>
+        <Flex $alignItems="center">
+          <Text
+            $font="Public Sans"
+            $size={`${18 / 16}rem`}
+            $weight="500"
+            $align="center"
+          >
+            {name}
+          </Text>
+        </Flex>
       </Flex>
     </Flex>
   );
@@ -196,16 +196,16 @@ export const IncludedFeatures = ({
 
   return (
     <Container {...props}>
-      <Text
-        as={Flex}
-        $font="Inter"
-        $size={`${15 / 16}rem`}
-        $weight="500"
-        $color="#767676"
-        $margin="0 0 1.5rem"
-      >
-        {designPropsWithDefaults.name.text}
-      </Text>
+      <Box $margin="0 0 1.5rem">
+        <Text
+          $font="Inter"
+          $size={`${15 / 16}rem`}
+          $weight="500"
+          $color="#767676"
+        >
+          {designPropsWithDefaults.name.text}
+        </Text>
+      </Box>
 
       {features.slice(0, numVisible).map((feature) => {
         switch (feature.type) {

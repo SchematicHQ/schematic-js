@@ -8,11 +8,8 @@ export type RecursivePartial<T> = {
       : T[P];
 };
 
-type CSSProp = keyof CSS.Properties;
-type TransientCSSProp<S extends string> = `$${S}`;
-type TransientCSSKeys = TransientCSSProp<CSSProp>;
 type CSSProps = {
-  [Property in TransientCSSKeys]?: string;
+  [Property in keyof CSS.Properties as `$${string & Property}`]: CSS.Properties[Property];
 };
 export interface ComponentProps extends CSSProps {
   children?: React.ReactNode;

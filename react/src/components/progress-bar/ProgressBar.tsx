@@ -58,17 +58,16 @@ export const ProgressBar = ({
           $bottom="100%"
           $left={`${progress}%`}
         >
-          <Text
-            as={Flex}
-            $size={`${12 / 16}rem`}
-            $weight="500"
+          <Box
             $padding={`${8 / 16}rem ${12 / 16}rem`}
             $background="#FFFFFF"
             $borderRadius={`${8 / 16}rem`}
             $boxShadow="0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)"
           >
-            {progress}%
-          </Text>
+            <Text $size={`${12 / 16}rem`} $weight="500">
+              {progress}%
+            </Text>
+          </Box>
           <Box
             className="translate-x-[-50%] h-0 w-0 border-x-[6px] border-x-transparent border-t-[6px] border-t-white"
             $position="absolute"
@@ -77,7 +76,7 @@ export const ProgressBar = ({
         </Box>
       </Flex>
       {total !== 0 && (
-        <Text as={Flex} $size={`${14 / 16}rem`} $weight="500">
+        <Text $size={`${14 / 16}rem`} $weight="500">
           {value}/{total}
         </Text>
       )}
