@@ -10,6 +10,7 @@ import {
 import { ThemeProvider } from "styled-components";
 import * as Craft from "@craftjs/core";
 
+import { ComponentsApi, Configuration } from "../../api";
 import { CurrentPlan } from "../current-plan";
 import { IncludedFeatures } from "../included-features";
 import { PlanManager } from "../plan-manager";
@@ -100,27 +101,27 @@ function createRenderer(
 }
 
 async function fetchComponent(id: string, accessToken: string) {
-  const apiUrl = "https://api.schematichq.com";
   const parsedEditorState = parseEditorState(testData.editorState);
+
+  const apiConfig = new Configuration({ apiKey: accessToken });
+  const api = new ComponentsApi(apiConfig);
 
   return new Promise<{
     editorState: SerializedNodeWithChildren[];
     componentProps: Record<string, object | undefined>;
   }>((resolve) => {
-    fetch(`${apiUrl}/components/${id}/hydrate`, {
-      headers: {
-        "X-Schematic-Api-Key": accessToken,
-      },
-    })
-    .then((response) => {
-      console.log(response);
-      resolve({
-        editorState: parsedEditorState,
-        componentProps: testData.componentProps,
+    api
+      .hydrateComponent({ componentId: id })
+      .then((response) => {
+        console.log(response?.data);
+        resolve({
+          editorState: parsedEditorState,
+          componentProps: testData.componentProps,
+        });
+      })
+      .catch((r) => {
+        console.log("OH NO!", r);
       });
-    }).catch((r) => {
-      console.log("OH NO!", r);
-    });
   });
 }
 
@@ -130,11 +131,7 @@ export interface EmbedProps {
   theme?: "light" | "dark";
 }
 
-export const Embed = ({
-  id,
-  accessToken,
-  theme = "light",
-}: EmbedProps) => {
+export const Embed = ({ id, accessToken, theme = "light" }: EmbedProps) => {
   const styleRef = useRef<HTMLLinkElement | null>(null);
   const [children, setChildren] = useState<React.ReactNode>("Loading");
 
@@ -175,7 +172,12 @@ export const Embed = ({
     if (accessToken.length === 0) {
       setChildren(<div>Please provide an access token.</div>);
     } else if (accessToken.slice(0, 6) !== "token_") {
-      setChildren(<div>Invalid access token; your temporary access token will start with "token_"</div>);
+      setChildren(
+        <div>
+          Invalid access token; your temporary access token will start with
+          "token_"
+        </div>,
+      );
     } else {
       fetchComponent(id, accessToken).then(
         ({ editorState, componentProps }) => {
