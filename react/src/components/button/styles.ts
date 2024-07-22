@@ -1,9 +1,14 @@
 import styled, { css } from "styled-components";
+import {
+  ButtonStyleTypes,
+  ButtonSizeTypes,
+  ButtonVariantTypes,
+} from "./Button";
 
 export const Button = styled.button<{
-  $color: string;
-  $size: "sm" | "md" | "lg";
-  $variant: string;
+  $color: ButtonStyleTypes;
+  $size: ButtonSizeTypes;
+  $variant: ButtonVariantTypes;
 }>`
   appearance: none;
   font-family: Manrope, Arial, Helvetica, sans-serif;
@@ -41,44 +46,32 @@ export const Button = styled.button<{
   }}
 
   ${({ $color, $variant }) => {
+    let color = "#ffffff";
+    let bgColor;
     switch ($color) {
       case "blue":
-      default: {
-        const color = "#194bfb";
-        return css`
-          color: ${$variant === "outline" ? color : "#ffffff"};
-          background-color: ${$variant === "outline" ? "transparent" : color};
-          border-color: ${color};
-        `;
-      }
-
-      case "red": {
-        const color = "#ef4444";
-        return css`
-          color: ${$variant === "outline" ? color : "#ffffff"};
-          background-color: ${$variant === "outline" ? "transparent" : color};
-          border-color: ${color};
-        `;
-      }
-
-      case "white": {
-        const color = "#ffffff";
-        return css`
-          color: #000000;
-          background-color: ${color};
-          border-color: #000000;
-        `;
-      }
-
-      case "black": {
-        const color = "#000000";
-        return css`
-          color: #ffffff;
-          background-color: ${color}
-          border-color: ${color};
-        `;
-      }
+      default:
+        bgColor = "#194bfb";
+        break;
+      case "red":
+        bgColor = "#ef4444";
+        break;
+      case "white":
+        color = "#000000";
+        bgColor = "#ffffff";
+        break;
+      case "black":
+        bgColor = "#000000";
+        break;
     }
+
+    return css`
+      color: ${$variant === "outline" ? color : "#ffffff"};
+      background-color: ${$variant === "solid" ? bgColor : "transparent"};
+      border-color: ${$variant === "solid" || $variant === "outline"
+        ? bgColor
+        : "transparent"};
+    `;
   }}
 
   &-disabled {
