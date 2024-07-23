@@ -10,6 +10,7 @@ import {
 import { ThemeProvider } from "styled-components";
 import * as Craft from "@craftjs/core";
 
+import { ComponentsApi, Configuration } from "../../api";
 import { CurrentPlan } from "../current-plan";
 import { IncludedFeatures } from "../included-features";
 import { PlanManager } from "../plan-manager";
@@ -99,47 +100,38 @@ function createRenderer(
   };
 }
 
-async function fetchComponent(name: string, temporaryAccessToken: string) {
-  const controller = new AbortController();
+async function fetchComponent(id: string, accessToken: string) {
   const parsedEditorState = parseEditorState(testData.editorState);
+
+  const apiConfig = new Configuration({ apiKey: accessToken });
+  const api = new ComponentsApi(apiConfig);
 
   return new Promise<{
     editorState: SerializedNodeWithChildren[];
     componentProps: Record<string, object | undefined>;
   }>((resolve) => {
-    fetch(`https://localhost/components/embed/${name}`, {
-      headers: {
-        "X-Temporary-Access-Token": temporaryAccessToken,
-      },
-      signal: controller.signal,
-    })
-      .catch(() => {
-        // do nothing
-      })
-      .finally(() => {
+    api
+      .hydrateComponent({ componentId: id })
+      .then((response) => {
+        console.log(response?.data);
         resolve({
           editorState: parsedEditorState,
           componentProps: testData.componentProps,
         });
+      })
+      .catch((r) => {
+        console.log("OH NO!", r);
       });
-
-    setTimeout(() => {
-      controller.abort();
-    });
   });
 }
 
 export interface EmbedProps {
-  name: string;
-  temporaryAccessToken: string;
+  accessToken: string;
+  id: string;
   theme?: "light" | "dark";
 }
 
-export const Embed = ({
-  name,
-  temporaryAccessToken,
-  theme = "light",
-}: EmbedProps) => {
+export const Embed = ({ id, accessToken, theme = "light" }: EmbedProps) => {
   const styleRef = useRef<HTMLLinkElement | null>(null);
   const [children, setChildren] = useState<React.ReactNode>("Loading");
 
@@ -177,13 +169,24 @@ export const Embed = ({
   }, [fonts]);
 
   useEffect(() => {
-    fetchComponent(name, temporaryAccessToken).then(
-      ({ editorState, componentProps }) => {
-        const renderer = createRenderer(componentProps);
-        setChildren(editorState.map(renderer));
-      },
-    );
-  }, [name, temporaryAccessToken]);
+    if (accessToken.length === 0) {
+      setChildren(<div>Please provide an access token.</div>);
+    } else if (accessToken.slice(0, 6) !== "token_") {
+      setChildren(
+        <div>
+          Invalid access token; your temporary access token will start with
+          "token_"
+        </div>,
+      );
+    } else {
+      fetchComponent(id, accessToken).then(
+        ({ editorState, componentProps }) => {
+          const renderer = createRenderer(componentProps);
+          setChildren(editorState.map(renderer));
+        },
+      );
+    }
+  }, [id, accessToken]);
 
   return (
     <ThemeProvider theme={theme === "dark" ? dark : light}>

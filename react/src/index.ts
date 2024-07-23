@@ -10,6 +10,8 @@ import {
 
 export * from "./components";
 
+export { Embed } from "./components";
+
 export {
   SchematicProvider,
   useSchematic,
