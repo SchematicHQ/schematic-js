@@ -1,5 +1,5 @@
 import cx from "classnames";
-import icons from "../../assets/icons/icons.js";
+import icons from "../../../assets/icons/icons.js";
 
 export type IconNameTypes = keyof typeof icons;
 

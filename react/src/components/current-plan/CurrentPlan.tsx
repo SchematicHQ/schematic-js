@@ -1,26 +1,28 @@
+import { useMemo } from "react";
 import { useTheme } from "styled-components";
-import { RecursivePartial } from "../../types";
-import { Box } from "../box";
-import { Flex } from "../flex";
-import { Text } from "../text";
+import { useSchematicEmbed } from "../../hooks";
+import type { RecursivePartial } from "../../types";
+import { Box } from "../ui/box";
+import { Flex } from "../ui/flex";
+import { Text } from "../ui/text";
 import { Container, Button } from "./styles";
 
-interface ContentProps {
-  name: string;
-  description: string;
-  price: number;
-  addOns: {
+/* interface ContentProps {
+  name?: string;
+  description?: string;
+  price?: number;
+  addOns?: {
     name: string;
     price: number;
   }[];
-  usageBased: {
+  usageBased?: {
     name: string;
     type: string;
     price: number;
     amount: number;
   }[];
-  callToAction: string;
-}
+  callToAction?: string;
+} */
 
 interface TextDesignProps {
   isVisible?: boolean;
@@ -31,19 +33,19 @@ interface TextDesignProps {
 }
 
 interface DesignProps {
-  header: {
+  header?: {
     isVisible: boolean;
     title: TextDesignProps;
     description: TextDesignProps;
     price: TextDesignProps;
   };
-  addOns: {
+  addOns?: {
     isVisible: boolean;
   };
-  usageBased: {
+  usageBased?: {
     isVisible: boolean;
   };
-  callToAction: {
+  callToAction?: {
     isVisible: boolean;
     size: "sm" | "md" | "lg";
     color: string;
@@ -53,9 +55,7 @@ interface DesignProps {
 
 export interface CurrentPlanProps
   extends RecursivePartial<DesignProps>,
-    React.HTMLAttributes<HTMLDivElement> {
-  contents: ContentProps;
-}
+    React.HTMLAttributes<HTMLDivElement> {}
 
 function resolveDesignProps(props: RecursivePartial<DesignProps>) {
   return {
@@ -97,60 +97,76 @@ function resolveDesignProps(props: RecursivePartial<DesignProps>) {
   };
 }
 
-export const CurrentPlan = ({
-  className,
-  contents,
-  style = {},
-  ...props
-}: CurrentPlanProps) => {
+export const CurrentPlan = (props: CurrentPlanProps) => {
   const designPropsWithDefaults = resolveDesignProps(props);
 
   const theme = useTheme();
 
+  const { data } = useSchematicEmbed();
+
+  const [plan, ...addons] = useMemo(() => {
+    return (data.company?.plans || []).map(({ name, description }) => {
+      return {
+        name,
+        description,
+        // TODO: resolve plan/addon prices
+        price: undefined,
+      };
+    });
+  }, [data.company?.plans]);
+
   return (
-    <Container className={className} style={style}>
+    <Container>
       <Flex $flexDirection="column" $gap={`${12 / 16}rem`} $margin="0 0 3rem">
-        <Flex
-          $justifyContent="space-between"
-          $alignItems="center"
-          $width="100%"
-          $margin="0 0 1.5rem"
-        >
-          <div>
-            <Box $margin="0 0 0.75rem">
-              <Text
-                $font={designPropsWithDefaults.header.title.fontFamily}
-                $size={`${designPropsWithDefaults.header.title.fontSize / 16}rem`}
-                $weight={`${designPropsWithDefaults.header.title.fontWeight}`}
-                $color={designPropsWithDefaults.header.title.color}
-              >
-                {contents.name}
-              </Text>
-            </Box>
-            {designPropsWithDefaults.header.description.isVisible && (
-              <Text
-                $font={designPropsWithDefaults.header.description.fontFamily}
-                $size={`${designPropsWithDefaults.header.description.fontSize / 16}rem`}
-                $weight={`${designPropsWithDefaults.header.description.fontWeight}`}
-                $color={designPropsWithDefaults.header.description.color}
-              >
-                {contents.description}
-              </Text>
-            )}
-          </div>
-          <Text
-            $font={designPropsWithDefaults.header.price.fontFamily}
-            $size={`${designPropsWithDefaults.header.price.fontSize / 16}`}
-            $weight={`${designPropsWithDefaults.header.price.fontWeight}`}
-            $color={designPropsWithDefaults.header.price.color}
+        {designPropsWithDefaults.header.isVisible && (
+          <Flex
+            $justifyContent="space-between"
+            $alignItems="center"
+            $width="100%"
+            $margin="0 0 1.5rem"
           >
-            ${contents.price}/mo
-          </Text>
-        </Flex>
+            <div>
+              <Box $margin="0 0 0.75rem">
+                <Text
+                  $font={designPropsWithDefaults.header.title.fontFamily}
+                  $size={`${designPropsWithDefaults.header.title.fontSize / 16}rem`}
+                  $weight={`${designPropsWithDefaults.header.title.fontWeight}`}
+                  $color={designPropsWithDefaults.header.title.color}
+                >
+                  {plan.name}
+                </Text>
+              </Box>
 
-        {/* TODO: finish resolving props below */}
+              {designPropsWithDefaults.header.description.isVisible &&
+                plan.description && (
+                  <Text
+                    $font={
+                      designPropsWithDefaults.header.description.fontFamily
+                    }
+                    $size={`${designPropsWithDefaults.header.description.fontSize / 16}rem`}
+                    $weight={`${designPropsWithDefaults.header.description.fontWeight}`}
+                    $color={designPropsWithDefaults.header.description.color}
+                  >
+                    {plan.description}
+                  </Text>
+                )}
+            </div>
 
-        {designPropsWithDefaults.addOns && (
+            {designPropsWithDefaults.header.price.isVisible &&
+              plan.price! >= 0 && (
+                <Text
+                  $font={designPropsWithDefaults.header.price.fontFamily}
+                  $size={`${designPropsWithDefaults.header.price.fontSize / 16}`}
+                  $weight={`${designPropsWithDefaults.header.price.fontWeight}`}
+                  $color={designPropsWithDefaults.header.price.color}
+                >
+                  ${plan.price}/mo
+                </Text>
+              )}
+          </Flex>
+        )}
+
+        {designPropsWithDefaults.addOns.isVisible && (
           <>
             <Text
               $size={`${15 / 16}rem`}
@@ -161,9 +177,9 @@ export const CurrentPlan = ({
             </Text>
 
             <Box $width="100%" $margin="0 0 1rem">
-              {contents.addOns.map((addon) => (
+              {addons.map((addon, index) => (
                 <Flex
-                  key={addon.name}
+                  key={index}
                   $justifyContent="space-between"
                   $alignItems="center"
                   $width="100%"
@@ -171,55 +187,27 @@ export const CurrentPlan = ({
                   <Text $font="Manrope" $size={`${18 / 16}rem`} $weight="800">
                     {addon.name}
                   </Text>
-                  <Text $weight="500">${addon.price}/mo</Text>
+                  {addon.price! >= 0 && (
+                    <Text $weight="500">${addon.price}/mo</Text>
+                  )}
                 </Flex>
               ))}
             </Box>
           </>
         )}
-
-        {designPropsWithDefaults.addOns && (
-          <>
-            <Text
-              $size={`${15 / 16}rem`}
-              $weight="500"
-              $color={theme.textDetail}
-            >
-              Usage-Based
-            </Text>
-
-            {contents.usageBased.map((addon) => (
-              <Flex
-                key={addon.name}
-                $justifyContent="space-between"
-                $alignItems="center"
-                $width="100%"
-              >
-                <Text $font="Manrope" $size={`${18 / 16}rem`} $weight="800">
-                  {addon.name}
-                </Text>
-                <Flex $flexDirection="column" $alignItems="center">
-                  <Text $weight="500">
-                    ${addon.price}/{addon.type}
-                  </Text>
-                  <Text $size={`${14 / 16}rem`} $color={theme.textDetail}>
-                    {addon.amount} {addon.type} | $
-                    {(addon.price || 0) * (addon.amount || 0)}
-                  </Text>
-                </Flex>
-              </Flex>
-            ))}
-          </>
-        )}
       </Flex>
 
-      <Button
-        $size={designPropsWithDefaults.callToAction.size}
-        $color={designPropsWithDefaults.callToAction.color}
-        $backgroundColor={designPropsWithDefaults.callToAction.backgroundColor}
-      >
-        {contents.callToAction}
-      </Button>
+      {designPropsWithDefaults.callToAction.isVisible && (
+        <Button
+          $size={designPropsWithDefaults.callToAction.size}
+          $color={designPropsWithDefaults.callToAction.color}
+          $backgroundColor={
+            designPropsWithDefaults.callToAction.backgroundColor
+          }
+        >
+          Change Plan
+        </Button>
+      )}
     </Container>
   );
 };

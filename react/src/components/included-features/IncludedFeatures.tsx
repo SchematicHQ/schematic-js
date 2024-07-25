@@ -1,39 +1,17 @@
 import { useMemo, useState } from "react";
-import { ezdate } from "../../utils";
-import { RecursivePartial } from "../../types";
-import { Box } from "../box";
-import { Button } from "../button";
-import { Flex } from "../flex";
-import { Icon, IconRound, type IconNameTypes } from "../icon";
-import { ProgressBar } from "../progress-bar";
-import { Text } from "../text";
+import { type FeatureUsageResponseData } from "../../api";
+import { useSchematicEmbed } from "../../hooks";
+import type { RecursivePartial } from "../../types";
+import { Box } from "../ui/box";
+import { Button } from "../ui/button";
+import { Flex } from "../ui/flex";
+import { Icon } from "../ui/icon";
+import { ProgressBar } from "../ui/progress-bar";
+import { Text } from "../ui/text";
 import { Container } from "./styles";
 
-interface BaseFeatureProps {
-  name: string;
-  type: "limit" | "usage" | "addon";
-  icon: IconNameTypes;
-}
-
-interface LimitFeatureProps extends BaseFeatureProps {
-  value: number;
-  total: number;
-}
-
-interface UsageFeatureProps extends BaseFeatureProps {
-  value: number;
-  unit: string;
-  date: string;
-}
-
-type FeatureProps = LimitFeatureProps & UsageFeatureProps & BaseFeatureProps;
-
-interface ContentProps {
-  features: FeatureProps[];
-}
-
 interface DesignProps {
-  name: {
+  name?: {
     text: string;
     style: {
       fontFamily: string;
@@ -42,20 +20,18 @@ interface DesignProps {
       color: string;
     };
   };
-  limits: {
+  limits?: {
     isVisible: boolean;
   };
-  usage: {
+  usage?: {
     isVisible: boolean;
   };
-  count: number;
+  count?: number;
 }
 
 export interface IncludedFeaturesProps
   extends RecursivePartial<DesignProps>,
-    React.HTMLAttributes<HTMLDivElement> {
-  contents: ContentProps;
-}
+    React.HTMLAttributes<HTMLDivElement> {}
 
 function resolveDesignProps(props: RecursivePartial<DesignProps>) {
   return {
@@ -79,15 +55,19 @@ function resolveDesignProps(props: RecursivePartial<DesignProps>) {
 }
 
 const LimitFeature = ({
-  name,
-  icon,
-  value,
-  total,
-}: Omit<LimitFeatureProps, "type">) => {
+  feature,
+  allocation,
+  usage,
+}: FeatureUsageResponseData) => {
+  if (!feature) {
+    return null;
+  }
+
   return (
     <Flex $justifyContent="space-between" $margin="0 0 1.5rem">
       <Flex $gap={`${16 / 16}rem`}>
-        <IconRound name={icon} size="sm" />
+        {/* TODO: resolve icon */}
+        {/* <IconRound name={feature.icon} size="sm" /> */}
         <Flex $alignItems="center">
           <Text
             $font="Public Sans"
@@ -95,32 +75,33 @@ const LimitFeature = ({
             $weight="500"
             $align="center"
           >
-            {name}
+            {feature.name}
           </Text>
         </Flex>
       </Flex>
-      <ProgressBar
-        progress={(value / total) * 100}
-        value={value}
-        total={total}
-        color="blue"
-        barWidth="140px"
-      />
+      {typeof usage === "number" && typeof allocation === "number" && (
+        <ProgressBar
+          progress={(usage / allocation) * 100}
+          value={usage}
+          total={allocation}
+          color="blue"
+          barWidth="140px"
+        />
+      )}
     </Flex>
   );
 };
 
-const UsageFeature = ({
-  name,
-  icon,
-  value,
-  unit,
-  date,
-}: Omit<UsageFeatureProps, "type">) => {
+const UsageFeature = ({ feature, usage }: FeatureUsageResponseData) => {
+  if (!feature) {
+    return null;
+  }
+
   return (
     <Flex $justifyContent="space-between" $margin="0 0 1.5rem">
       <Flex $gap={`${16 / 16}rem`}>
-        <IconRound name={icon} size="sm" />
+        {/* TODO: resolve icon */}
+        {/* <IconRound name={feature.icon} size="sm" /> */}
         <Flex $alignItems="center">
           <Text
             $font="Public Sans"
@@ -128,33 +109,39 @@ const UsageFeature = ({
             $weight="500"
             $align="center"
           >
-            {name}
+            {feature.name}
           </Text>
         </Flex>
       </Flex>
       <Box>
         <Text as={Box} $font="Public Sans" $weight="500" $align="right">
-          {value} {unit} used
+          {usage} {feature.featureType} used
         </Text>
-        <Text
+        {/* TODO: resolve date */}
+        {/* <Text
           as={Box}
           $font="Public Sans"
           $size={`${14 / 16}rem`}
           $color="#8A8A8A"
           $align="right"
         >
-          Resets {ezdate(date)}
-        </Text>
+          Resets {toMonthDay(date)}
+        </Text> */}
       </Box>
     </Flex>
   );
 };
 
-const AddonFeature = ({ name, icon }: Omit<BaseFeatureProps, "type">) => {
+const AddonFeature = ({ feature }: FeatureUsageResponseData) => {
+  if (!feature) {
+    return null;
+  }
+
   return (
     <Flex $justifyContent="space-between" $margin="0 0 1.5rem">
       <Flex $gap={`${16 / 16}rem`}>
-        <IconRound name={icon} size="sm" />
+        {/* TODO: resolve icon */}
+        {/* <IconRound name={feature.icon} size="sm" /> */}
         <Flex $alignItems="center">
           <Text
             $font="Public Sans"
@@ -162,7 +149,7 @@ const AddonFeature = ({ name, icon }: Omit<BaseFeatureProps, "type">) => {
             $weight="500"
             $align="center"
           >
-            {name}
+            {feature.name}
           </Text>
         </Flex>
       </Flex>
@@ -170,14 +157,8 @@ const AddonFeature = ({ name, icon }: Omit<BaseFeatureProps, "type">) => {
   );
 };
 
-export const IncludedFeatures = ({
-  className,
-  contents,
-  style,
-  ...props
-}: IncludedFeaturesProps) => {
+export const IncludedFeatures = (props: IncludedFeaturesProps) => {
   const designPropsWithDefaults = resolveDesignProps(props);
-  const { features } = contents;
 
   const [numVisible, setNumVisible] = useState(designPropsWithDefaults.count);
 
@@ -185,6 +166,34 @@ export const IncludedFeatures = ({
     () => numVisible > designPropsWithDefaults.count,
     [numVisible, designPropsWithDefaults.count],
   );
+
+  const { data } = useSchematicEmbed();
+
+  const features = useMemo(() => {
+    return (data.featureUsage?.features || []).map(
+      ({
+        access,
+        allocation,
+        allocationType,
+        feature,
+        period,
+        usage,
+        ...props
+      }) => {
+        return {
+          access,
+          allocation,
+          allocationType,
+          feature,
+          period,
+          // TODO: resolve feature price
+          price: undefined,
+          usage,
+          ...props,
+        };
+      },
+    );
+  }, [data.featureUsage]);
 
   const resize = () => {
     setNumVisible((prev) =>
@@ -195,7 +204,7 @@ export const IncludedFeatures = ({
   };
 
   return (
-    <Container {...props}>
+    <Container>
       <Box $margin="0 0 1.5rem">
         <Text
           $font="Inter"
@@ -207,17 +216,25 @@ export const IncludedFeatures = ({
         </Text>
       </Box>
 
-      {features.slice(0, numVisible).map((feature) => {
-        switch (feature.type) {
-          case "limit":
-            return <LimitFeature key={feature.name} {...feature} />;
-          case "usage":
-            return <UsageFeature key={feature.name} {...feature} />;
-          case "addon":
-          default:
-            return <AddonFeature key={feature.name} {...feature} />;
+      {features.slice(0, numVisible).reduce((acc, feature, index) => {
+        if (feature.allocationType === "boolean") {
+          return [...acc, <AddonFeature key={index} {...feature} />];
         }
-      })}
+
+        if (
+          feature.allocationType === "numeric" ||
+          feature.allocationType === "trait" ||
+          feature.allocationType === "unlimited"
+        ) {
+          if (typeof feature.allocation === "number") {
+            return [...acc, <LimitFeature key={index} {...feature} />];
+          }
+
+          return [...acc, <UsageFeature key={index} {...feature} />];
+        }
+
+        return acc;
+      }, [] as React.ReactElement[])}
 
       <Flex $alignItems="center" $gap={`${4 / 16}rem`}>
         <Icon

@@ -1,12 +1,6 @@
 import styled, { css } from "styled-components";
 
 export const Container = styled.div<{ $layout: "merged" | "separate" }>`
-  width: 542px;
-  overflow: hidden;
-  box-shadow:
-    0px 1px 20px 0px #1018280f,
-    0px 1px 3px 0px #1018281a;
-
   ${({ $layout }) =>
     $layout === "merged"
       ? css`

@@ -1,4 +1,4 @@
-import { TEXT_BASE_SIZE } from "../../const";
+import { TEXT_BASE_SIZE } from "../../../const";
 import { Box } from "../box";
 import { Flex } from "../flex";
 import { Text } from "../text";

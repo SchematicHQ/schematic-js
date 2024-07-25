@@ -1,13 +1,10 @@
 import { Container } from "./styles";
 
-interface PlanManagerProps {
+export interface PlanCardProps {
   children?: React.ReactNode;
   layout?: "merged" | "separate";
 }
 
-export const PlanManager = ({
-  children,
-  layout = "merged",
-}: PlanManagerProps) => {
+export const PlanCard = ({ children, layout = "merged" }: PlanCardProps) => {
   return <Container $layout={layout}>{children}</Container>;
 };

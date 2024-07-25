@@ -1,7 +1,7 @@
 import styled from "styled-components";
-import { TEXT_BASE_SIZE } from "../../const";
-import { attr } from "../../utils";
-import { type ComponentProps } from "../../types";
+import { TEXT_BASE_SIZE } from "../../../const";
+import { attr } from "../../../utils";
+import type { ComponentProps } from "../../../types";
 
 export interface TextProps extends ComponentProps {
   $align?: ComponentProps["$textAlign"];

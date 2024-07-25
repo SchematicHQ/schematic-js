@@ -1,55 +1,53 @@
 import { createElement } from "react";
+import type { SerializedNodeWithChildren } from "../../types";
+import { Container } from "../container";
 import { CurrentPlan } from "../current-plan";
 import { IncludedFeatures } from "../included-features";
-import { PlanManager } from "../plan-manager";
-import { SerializedNodeWithChildren } from "./parser";
+import { PlanCard } from "../plan-card";
 
 /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-const components: Record<string, React.FC<any> | undefined> = {
+const components: Record<string, (props: any) => JSX.Element | undefined> = {
+  Container,
+  ResizableContainer: Container,
   CurrentPlan,
   IncludedFeatures,
-  PlanManager,
+  PlanCard,
 };
 
 interface RenderOptions {
   useFallback?: boolean;
 }
 
-export function createRenderer(
-  propsMap: Record<string, object | undefined>,
-  options?: RenderOptions,
-) {
+export function createRenderer(options?: RenderOptions) {
   const { useFallback = true } = options || {};
 
   return function renderNode(
     node: SerializedNodeWithChildren,
     index: number,
   ): React.ReactNode {
-    const { type, props, custom, children } = node;
+    const { type, props = {}, custom = {}, children } = node;
     const name = typeof type !== "string" ? type.resolvedName : type;
 
     const component = useFallback
       ? components[name] || "div"
       : components[name];
-    if (!component) {
-      console.warn(
+    if (!components[name]) {
+      console.debug(
         "`schematic-embed`: Encounted an unknown component during render cycle.",
+        name,
       );
-      return null;
     }
 
-    const contents = useFallback ? propsMap[name] || {} : propsMap[name];
-    if (!contents) {
-      console.warn("`schematic-embed`: Missing client configuration.");
+    if (!component) {
       return null;
     }
 
     const resolvedChildren = children.map(renderNode);
-    return createElement<{ clientProps: object }>(
+    const { className, ...rest } = props;
+    return createElement(
       component,
       {
-        ...props,
-        ...(component !== "div" && { contents }),
+        ...rest,
         ...(Object.keys(custom).length > 0 && { custom }),
         key: index,
       },

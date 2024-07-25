@@ -1,7 +1,7 @@
 import { Icon, IconNameTypes } from "./Icon";
 import { Container } from "./styles";
 
-interface IconRoundProps {
+export interface IconRoundProps {
   name: IconNameTypes;
   style?: "outline" | "filled";
   size?: "tn" | "sm" | "md" | "lg";

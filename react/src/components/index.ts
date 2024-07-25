@@ -1,10 +1,9 @@
-export * from "./button";
-export * from "./current-plan";
 export * from "./embed";
-export * from "./icon";
+
+export * from "./plan-card";
+export * from "./current-plan";
 export * from "./included-features";
+
 export * from "./invoices";
 export * from "./next-bill-due";
 export * from "./payment-method";
-export * from "./plan-manager";
-export * from "./progress-bar";
