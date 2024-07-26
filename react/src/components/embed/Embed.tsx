@@ -1,7 +1,5 @@
-import { ThemeProvider } from "styled-components";
 import { EmbedProvider } from "../../context";
 import { ComponentTree } from "./ComponentTree";
-import { light, dark } from "./theme";
 
 export interface EmbedProps {
   accessToken: string;
@@ -9,7 +7,7 @@ export interface EmbedProps {
   theme?: "light" | "dark";
 }
 
-export const Embed = ({ id, accessToken, theme = "light" }: EmbedProps) => {
+export const Embed = ({ id, accessToken }: EmbedProps) => {
   if (accessToken.length === 0) {
     return <div>Please provide an access token.</div>;
   }
@@ -24,12 +22,8 @@ export const Embed = ({ id, accessToken, theme = "light" }: EmbedProps) => {
   }
 
   return (
-    <ThemeProvider theme={theme === "dark" ? dark : light}>
-      <>
-        <EmbedProvider accessToken={accessToken} id={id}>
-          <ComponentTree />
-        </EmbedProvider>
-      </>
-    </ThemeProvider>
+    <EmbedProvider accessToken={accessToken} id={id}>
+      <ComponentTree />
+    </EmbedProvider>
   );
 };

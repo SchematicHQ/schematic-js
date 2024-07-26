@@ -53,9 +53,8 @@ interface DesignProps {
   };
 }
 
-export interface CurrentPlanProps
-  extends RecursivePartial<DesignProps>,
-    React.HTMLAttributes<HTMLDivElement> {}
+export type CurrentPlanProps = RecursivePartial<DesignProps> &
+  React.HTMLAttributes<HTMLDivElement>;
 
 function resolveDesignProps(props: RecursivePartial<DesignProps>) {
   return {
@@ -102,7 +101,9 @@ export const CurrentPlan = (props: CurrentPlanProps) => {
 
   const theme = useTheme();
 
-  const { data } = useSchematicEmbed();
+  const { data, nodes } = useSchematicEmbed();
+  const root = nodes.at(0);
+  const { sectionLayout, borderRadius } = root?.props || {};
 
   const [plan, ...addons] = useMemo(() => {
     return (data.company?.plans || []).map(({ name, description }) => {
@@ -116,7 +117,22 @@ export const CurrentPlan = (props: CurrentPlanProps) => {
   }, [data.company?.plans]);
 
   return (
-    <Container style={props.style}>
+    <Container
+      style={{
+        ...(sectionLayout === "merged" && {
+          borderBottom: "1px solid #D9D9D9",
+        }),
+        ...(sectionLayout === "merged" &&
+          borderRadius && {
+            borderTopLeftRadius: borderRadius,
+            borderTopRightRadius: borderRadius,
+          }),
+        ...(sectionLayout === "separate" &&
+          borderRadius && {
+            borderRadius,
+          }),
+      }}
+    >
       <Flex $flexDirection="column" $gap={`${12 / 16}rem`} $margin="0 0 3rem">
         {designPropsWithDefaults.header.isVisible && (
           <Flex

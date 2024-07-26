@@ -8,7 +8,7 @@ import {
   SchematicHookOpts,
 } from "./hooks";
 
-export { Embed } from "./components";
+export * from "./components";
 
 export {
   SchematicProvider,

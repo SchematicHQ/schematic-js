@@ -29,9 +29,8 @@ interface DesignProps {
   count?: number;
 }
 
-export interface IncludedFeaturesProps
-  extends RecursivePartial<DesignProps>,
-    React.HTMLAttributes<HTMLDivElement> {}
+export type IncludedFeaturesProps = RecursivePartial<DesignProps> &
+  React.HTMLAttributes<HTMLDivElement>;
 
 function resolveDesignProps(props: RecursivePartial<DesignProps>) {
   return {
@@ -166,7 +165,9 @@ export const IncludedFeatures = (props: IncludedFeaturesProps) => {
     [numVisible, designPropsWithDefaults.count],
   );
 
-  const { data } = useSchematicEmbed();
+  const { data, nodes } = useSchematicEmbed();
+  const root = nodes.at(0);
+  const { sectionLayout, borderRadius } = root?.props || {};
 
   const features = useMemo(() => {
     return (data.featureUsage?.features || []).map(
@@ -203,7 +204,19 @@ export const IncludedFeatures = (props: IncludedFeaturesProps) => {
   };
 
   return (
-    <Container style={props.style}>
+    <Container
+      style={{
+        ...(sectionLayout === "merged" &&
+          borderRadius && {
+            borderBottomLeftRadius: borderRadius,
+            borderBottomRightRadius: borderRadius,
+          }),
+        ...(sectionLayout === "separate" &&
+          borderRadius && {
+            borderRadius,
+          }),
+      }}
+    >
       <Box $margin="0 0 1.5rem">
         <Text
           $font="Inter"

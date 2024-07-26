@@ -3,7 +3,10 @@
     "type": { "resolvedName": "Container" },
     "isCanvas": false,
     "props": {
-      "className": "bg-white bg-[url('/builder/mesh.png')] overflow-y-auto h-full max-h-full p-12"
+      "className": "bg-white bg-[url('/builder/mesh.png')] overflow-y-auto h-full max-h-full p-12",
+      "borderRadius": 30,
+      "sectionLayout": "separate",
+      "theme": "light"
     },
     "displayName": "Container",
     "custom": {},
