@@ -1,10 +1,10 @@
 import {
-  isValidElement,
+  // isValidElement,
   useEffect,
-  useMemo,
-  useRef,
+  // useMemo,
+  // useRef,
   useState,
-  Children,
+  // Children,
 } from "react";
 import { ThemeProvider } from "styled-components";
 import { useSchematicEmbed } from "../../hooks";
@@ -12,14 +12,17 @@ import { createRenderer } from "./renderer";
 import { light, dark } from "./theme";
 
 export const ComponentTree = () => {
-  const styleRef = useRef<HTMLLinkElement | null>(null);
+  // const styleRef = useRef<HTMLLinkElement | null>(null);
 
   const [children, setChildren] = useState<React.ReactNode>("Loading");
 
   const { nodes } = useSchematicEmbed();
   const root = nodes.at(0);
 
-  const fonts = useMemo(() => {
+  /**
+   * @TODO: load fonts from the root node props
+   */
+  /* const fonts = useMemo(() => {
     const fontSet = new Set<string>();
 
     function lookForFont(node: React.ReactNode) {
@@ -54,7 +57,7 @@ export const ComponentTree = () => {
         styleRef.current.href = src;
       }
     }
-  }, [fonts]);
+  }, [fonts]); */
 
   useEffect(() => {
     const renderer = createRenderer();

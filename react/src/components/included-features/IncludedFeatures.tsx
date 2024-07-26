@@ -114,8 +114,10 @@ const UsageFeature = ({ feature, usage }: FeatureUsageResponseData) => {
         <Text as={Box} $font="Public Sans" $weight="500" $align="right">
           {usage} {feature.featureType} used
         </Text>
-        {/* TODO: resolve date */}
-        {/* <Text
+        {/**
+          * @TODO: resolve date
+          *
+        <Text
           as={Box}
           $font="Public Sans"
           $size={`${14 / 16}rem`}
@@ -123,7 +125,8 @@ const UsageFeature = ({ feature, usage }: FeatureUsageResponseData) => {
           $align="right"
         >
           Resets {toMonthDay(date)}
-        </Text> */}
+        </Text>
+        */}
       </Box>
     </Flex>
   );
@@ -186,7 +189,9 @@ export const IncludedFeatures = (props: IncludedFeaturesProps) => {
           allocationType,
           feature,
           period,
-          // TODO: resolve feature price
+          /**
+           * @TODO: resolve feature price
+           */
           price: undefined,
           usage,
           ...props,
@@ -228,26 +233,28 @@ export const IncludedFeatures = (props: IncludedFeaturesProps) => {
         </Text>
       </Box>
 
-      {features.slice(0, numVisible).reduce((acc, feature, index) => {
-        if (feature.allocationType === "boolean") {
-          return [...acc, <AddonFeature key={index} {...feature} />];
-        }
-
-        if (
-          feature.allocationType === "numeric" ||
-          feature.allocationType === "trait" ||
-          feature.allocationType === "unlimited"
-        ) {
-          console.log(feature.allocation);
-          if (typeof feature.allocation === "number") {
-            return [...acc, <LimitFeature key={index} {...feature} />];
+      {features
+        .slice(0, numVisible)
+        .reduce((acc: React.ReactElement[], feature, index) => {
+          if (feature.allocationType === "boolean") {
+            return [...acc, <AddonFeature key={index} {...feature} />];
           }
 
-          return [...acc, <UsageFeature key={index} {...feature} />];
-        }
+          if (
+            feature.allocationType === "numeric" ||
+            feature.allocationType === "trait" ||
+            feature.allocationType === "unlimited"
+          ) {
+            console.log(feature.allocation);
+            if (typeof feature.allocation === "number") {
+              return [...acc, <LimitFeature key={index} {...feature} />];
+            }
 
-        return acc;
-      }, [] as React.ReactElement[])}
+            return [...acc, <UsageFeature key={index} {...feature} />];
+          }
+
+          return acc;
+        }, [])}
 
       <Flex $alignItems="center" $gap={`${4 / 16}rem`}>
         <Icon

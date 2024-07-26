@@ -78,6 +78,7 @@ export const EmbedProvider = ({
         const { data } = response;
 
         if (data.component?.ast) {
+          // ast from response is actually an object with keys as numbers
           const compressed = data.component.ast as CompressedEditorState;
           const json = inflate(Uint8Array.from(Object.values(compressed)), {
             to: "string",

@@ -110,7 +110,9 @@ export const CurrentPlan = (props: CurrentPlanProps) => {
       return {
         name,
         description,
-        // TODO: resolve plan/addon prices
+        /**
+         * @TODO: resolve plan/addon prices
+         */
         price: undefined,
       };
     });

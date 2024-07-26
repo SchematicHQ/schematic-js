@@ -10,6 +10,7 @@ export const Box = styled.div<BoxProps>((props) => {
   return Object.entries(props).reduce((acc, [key, value]) => {
     if (key.startsWith("$")) {
       acc.push(
+        // keys will always be CSS properties
         attr(camelToHyphen(key.slice(1)) as keyof CSS.PropertiesHyphen, value),
       );
     }
