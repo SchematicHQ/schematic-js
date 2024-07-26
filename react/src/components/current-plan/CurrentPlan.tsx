@@ -116,7 +116,7 @@ export const CurrentPlan = (props: CurrentPlanProps) => {
   }, [data.company?.plans]);
 
   return (
-    <Container>
+    <Container style={props.style}>
       <Flex $flexDirection="column" $gap={`${12 / 16}rem`} $margin="0 0 3rem">
         {designPropsWithDefaults.header.isVisible && (
           <Flex

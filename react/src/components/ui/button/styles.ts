@@ -1,4 +1,5 @@
 import styled, { css } from "styled-components";
+import { Text } from "../text";
 import {
   ButtonStyleTypes,
   ButtonSizeTypes,
@@ -21,25 +22,34 @@ export const Button = styled.button<{
     cursor: pointer;
   }
 
-  ${({ $size }) => {
+  ${({ $size, $variant }) => {
     switch ($size) {
       case "sm":
         return css`
           font-size: ${12 / 16}rem;
-          padding: ${7 / 16}rem ${20 / 16}rem;
+          ${$variant !== "link" &&
+          css`
+            padding: ${7 / 16}rem ${20 / 16}rem;
+          `}
           border-radius: ${4 / 16}rem;
         `;
       case "md":
       default:
         return css`
           font-size: ${14 / 16}rem;
-          padding: ${8 / 16}rem ${24 / 16}rem;
+          ${$variant !== "link" &&
+          css`
+            padding: ${8 / 16}rem ${24 / 16}rem;
+          `}
           border-radius: ${8 / 16}rem;
         `;
       case "lg":
         return css`
           font-size: ${16 / 16}rem;
-          padding: ${9 / 16}rem ${28 / 16}rem;
+          ${$variant !== "link" &&
+          css`
+            padding: ${9 / 16}rem ${28 / 16}rem;
+          `}
           border-radius: ${12 / 16}rem;
         `;
     }
@@ -65,12 +75,19 @@ export const Button = styled.button<{
         break;
     }
 
+    color = $variant === "ghost" || $variant === "link" ? bgColor : color;
+    bgColor = $variant === "solid" ? bgColor : "transparent";
+    const borderColor =
+      $variant === "solid" || $variant === "outline" ? bgColor : "transparent";
+
     return css`
-      color: ${$variant === "outline" ? color : "#ffffff"};
-      background-color: ${$variant === "solid" ? bgColor : "transparent"};
-      border-color: ${$variant === "solid" || $variant === "outline"
-        ? bgColor
-        : "transparent"};
+      color: ${color};
+      background-color: ${bgColor};
+      border-color: ${borderColor};
+
+      ${Text} {
+        color: ${color};
+      }
     `;
   }}
 

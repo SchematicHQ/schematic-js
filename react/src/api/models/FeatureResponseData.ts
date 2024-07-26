@@ -48,7 +48,7 @@ export interface FeatureResponseData {
    * @type {string}
    * @memberof FeatureResponseData
    */
-  icon?: string | null;
+  icon: string;
   /**
    *
    * @type {string}
@@ -98,6 +98,7 @@ export function instanceOfFeatureResponseData(
     return false;
   if (!("featureType" in value) || value["featureType"] === undefined)
     return false;
+  if (!("icon" in value) || value["icon"] === undefined) return false;
   if (!("id" in value) || value["id"] === undefined) return false;
   if (!("name" in value) || value["name"] === undefined) return false;
   if (!("updatedAt" in value) || value["updatedAt"] === undefined) return false;
@@ -121,7 +122,7 @@ export function FeatureResponseDataFromJSONTyped(
     eventSubtype:
       json["event_subtype"] == null ? undefined : json["event_subtype"],
     featureType: json["feature_type"],
-    icon: json["icon"] == null ? undefined : json["icon"],
+    icon: json["icon"],
     id: json["id"],
     lifecyclePhase:
       json["lifecycle_phase"] == null ? undefined : json["lifecycle_phase"],

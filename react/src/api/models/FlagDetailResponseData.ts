@@ -25,12 +25,6 @@ import {
   FeatureResponseDataFromJSONTyped,
   FeatureResponseDataToJSON,
 } from "./FeatureResponseData";
-import type { FlagCheckLogResponseData } from "./FlagCheckLogResponseData";
-import {
-  FlagCheckLogResponseDataFromJSON,
-  FlagCheckLogResponseDataFromJSONTyped,
-  FlagCheckLogResponseDataToJSON,
-} from "./FlagCheckLogResponseData";
 
 /**
  *
@@ -92,12 +86,6 @@ export interface FlagDetailResponseData {
    * @memberof FlagDetailResponseData
    */
   lastCheckedAt?: Date | null;
-  /**
-   *
-   * @type {FlagCheckLogResponseData}
-   * @memberof FlagDetailResponseData
-   */
-  latestCheck?: FlagCheckLogResponseData;
   /**
    *
    * @type {string}
@@ -173,10 +161,6 @@ export function FlagDetailResponseDataFromJSONTyped(
       json["last_checked_at"] == null
         ? undefined
         : new Date(json["last_checked_at"]),
-    latestCheck:
-      json["latest_check"] == null
-        ? undefined
-        : FlagCheckLogResponseDataFromJSON(json["latest_check"]),
     maintainerId:
       json["maintainer_id"] == null ? undefined : json["maintainer_id"],
     name: json["name"],
@@ -204,7 +188,6 @@ export function FlagDetailResponseDataToJSON(
       value["lastCheckedAt"] == null
         ? undefined
         : (value["lastCheckedAt"] as any).toISOString(),
-    latest_check: FlagCheckLogResponseDataToJSON(value["latestCheck"]),
     maintainer_id: value["maintainerId"],
     name: value["name"],
     rules: (value["rules"] as Array<any>).map(RuleDetailResponseDataToJSON),

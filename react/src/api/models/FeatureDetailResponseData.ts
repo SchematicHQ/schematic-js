@@ -85,7 +85,7 @@ export interface FeatureDetailResponseData {
    * @type {string}
    * @memberof FeatureDetailResponseData
    */
-  icon?: string | null;
+  icon: string;
   /**
    *
    * @type {string}
@@ -148,6 +148,7 @@ export function instanceOfFeatureDetailResponseData(
   if (!("featureType" in value) || value["featureType"] === undefined)
     return false;
   if (!("flags" in value) || value["flags"] === undefined) return false;
+  if (!("icon" in value) || value["icon"] === undefined) return false;
   if (!("id" in value) || value["id"] === undefined) return false;
   if (!("name" in value) || value["name"] === undefined) return false;
   if (!("plans" in value) || value["plans"] === undefined) return false;
@@ -179,7 +180,7 @@ export function FeatureDetailResponseDataFromJSONTyped(
         : EventSummaryResponseDataFromJSON(json["event_summary"]),
     featureType: json["feature_type"],
     flags: (json["flags"] as Array<any>).map(FlagDetailResponseDataFromJSON),
-    icon: json["icon"] == null ? undefined : json["icon"],
+    icon: json["icon"],
     id: json["id"],
     lifecyclePhase:
       json["lifecycle_phase"] == null ? undefined : json["lifecycle_phase"],

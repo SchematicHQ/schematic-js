@@ -5,7 +5,7 @@ import type { RecursivePartial } from "../../types";
 import { Box } from "../ui/box";
 import { Button } from "../ui/button";
 import { Flex } from "../ui/flex";
-import { Icon } from "../ui/icon";
+import { Icon, IconRound, type IconNameTypes } from "../ui/icon";
 import { ProgressBar } from "../ui/progress-bar";
 import { Text } from "../ui/text";
 import { Container } from "./styles";
@@ -66,8 +66,7 @@ const LimitFeature = ({
   return (
     <Flex $justifyContent="space-between" $margin="0 0 1.5rem">
       <Flex $gap={`${16 / 16}rem`}>
-        {/* TODO: resolve icon */}
-        {/* <IconRound name={feature.icon} size="sm" /> */}
+        <IconRound name={feature.icon as IconNameTypes} size="sm" />
         <Flex $alignItems="center">
           <Text
             $font="Public Sans"
@@ -79,10 +78,10 @@ const LimitFeature = ({
           </Text>
         </Flex>
       </Flex>
-      {typeof usage === "number" && typeof allocation === "number" && (
+      {typeof allocation === "number" && (
         <ProgressBar
-          progress={(usage / allocation) * 100}
-          value={usage}
+          progress={(usage || 0 / allocation) * 100}
+          value={usage || 0}
           total={allocation}
           color="blue"
           barWidth="140px"
@@ -100,8 +99,7 @@ const UsageFeature = ({ feature, usage }: FeatureUsageResponseData) => {
   return (
     <Flex $justifyContent="space-between" $margin="0 0 1.5rem">
       <Flex $gap={`${16 / 16}rem`}>
-        {/* TODO: resolve icon */}
-        {/* <IconRound name={feature.icon} size="sm" /> */}
+        <IconRound name={feature.icon as IconNameTypes} size="sm" />
         <Flex $alignItems="center">
           <Text
             $font="Public Sans"
@@ -140,8 +138,9 @@ const AddonFeature = ({ feature }: FeatureUsageResponseData) => {
   return (
     <Flex $justifyContent="space-between" $margin="0 0 1.5rem">
       <Flex $gap={`${16 / 16}rem`}>
-        {/* TODO: resolve icon */}
-        {/* <IconRound name={feature.icon} size="sm" /> */}
+        {feature.icon && (
+          <IconRound name={feature.icon as IconNameTypes} size="sm" />
+        )}
         <Flex $alignItems="center">
           <Text
             $font="Public Sans"
@@ -204,7 +203,7 @@ export const IncludedFeatures = (props: IncludedFeaturesProps) => {
   };
 
   return (
-    <Container>
+    <Container style={props.style}>
       <Box $margin="0 0 1.5rem">
         <Text
           $font="Inter"
@@ -226,6 +225,7 @@ export const IncludedFeatures = (props: IncludedFeaturesProps) => {
           feature.allocationType === "trait" ||
           feature.allocationType === "unlimited"
         ) {
+          console.log(feature.allocation);
           if (typeof feature.allocation === "number") {
             return [...acc, <LimitFeature key={index} {...feature} />];
           }

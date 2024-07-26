@@ -42,7 +42,7 @@ export interface PlanResponseData {
    * @type {string}
    * @memberof PlanResponseData
    */
-  icon?: string | null;
+  icon: string;
   /**
    *
    * @type {string}
@@ -80,6 +80,7 @@ export function instanceOfPlanResponseData(
   if (!("createdAt" in value) || value["createdAt"] === undefined) return false;
   if (!("description" in value) || value["description"] === undefined)
     return false;
+  if (!("icon" in value) || value["icon"] === undefined) return false;
   if (!("id" in value) || value["id"] === undefined) return false;
   if (!("name" in value) || value["name"] === undefined) return false;
   if (!("planType" in value) || value["planType"] === undefined) return false;
@@ -102,7 +103,7 @@ export function PlanResponseDataFromJSONTyped(
     audienceType: json["audience_type"],
     createdAt: new Date(json["created_at"]),
     description: json["description"],
-    icon: json["icon"] == null ? undefined : json["icon"],
+    icon: json["icon"],
     id: json["id"],
     name: json["name"],
     planType: json["plan_type"],
