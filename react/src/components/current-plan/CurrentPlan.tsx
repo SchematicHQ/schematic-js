@@ -101,9 +101,7 @@ export const CurrentPlan = (props: CurrentPlanProps) => {
 
   const theme = useTheme();
 
-  const { data, nodes } = useSchematicEmbed();
-  const root = nodes.at(0);
-  const { sectionLayout, borderRadius } = root?.props || {};
+  const { data } = useSchematicEmbed();
 
   const [plan, ...addons] = useMemo(() => {
     return (data.company?.plans || []).map(({ name, description }) => {
@@ -119,22 +117,7 @@ export const CurrentPlan = (props: CurrentPlanProps) => {
   }, [data.company?.plans]);
 
   return (
-    <Container
-      style={{
-        ...(sectionLayout === "merged" && {
-          borderBottom: "1px solid #D9D9D9",
-        }),
-        ...(sectionLayout === "merged" &&
-          borderRadius && {
-            borderTopLeftRadius: borderRadius,
-            borderTopRightRadius: borderRadius,
-          }),
-        ...(sectionLayout === "separate" &&
-          borderRadius && {
-            borderRadius,
-          }),
-      }}
-    >
+    <Container>
       <Flex $flexDirection="column" $gap={`${12 / 16}rem`} $margin="0 0 3rem">
         {designPropsWithDefaults.header.isVisible && (
           <Flex

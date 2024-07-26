@@ -1,17 +1,21 @@
 import styled, { css } from "styled-components";
+import { Container as UIContainer } from "../container";
 
-export const Container = styled.div<{ $layout: "merged" | "separate" }>`
-  ${({ $layout }) =>
+export const Container = styled(UIContainer)<{
+  $layout?: "merged" | "separate";
+  $radius?: number;
+}>`
+  ${({ $layout = "merged", $radius = 8 }) =>
     $layout === "merged"
       ? css`
           > :first-child {
-            border-top-left-radius: 8px;
-            border-top-right-radius: 8px;
+            border-top-left-radius: ${$radius / 16}rem;
+            border-top-right-radius: ${$radius / 16}rem;
           }
 
           > :last-child {
-            border-bottom-left-radius: 8px;
-            border-bottom-right-radius: 8px;
+            border-bottom-left-radius: ${$radius / 16}rem;
+            border-bottom-right-radius: ${$radius / 16}rem;
           }
 
           > :not(:last-child) {
@@ -24,7 +28,7 @@ export const Container = styled.div<{ $layout: "merged" | "separate" }>`
           }
 
           > * {
-            border-radius: 8px;
+            border-radius: ${$radius / 16}rem;
           }
         `}
 `;

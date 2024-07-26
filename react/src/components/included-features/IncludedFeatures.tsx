@@ -168,9 +168,7 @@ export const IncludedFeatures = (props: IncludedFeaturesProps) => {
     [numVisible, designPropsWithDefaults.count],
   );
 
-  const { data, nodes } = useSchematicEmbed();
-  const root = nodes.at(0);
-  const { sectionLayout, borderRadius } = root?.props || {};
+  const { data } = useSchematicEmbed();
 
   const features = useMemo(() => {
     return (data.featureUsage?.features || []).map(
@@ -209,19 +207,7 @@ export const IncludedFeatures = (props: IncludedFeaturesProps) => {
   };
 
   return (
-    <Container
-      style={{
-        ...(sectionLayout === "merged" &&
-          borderRadius && {
-            borderBottomLeftRadius: borderRadius,
-            borderBottomRightRadius: borderRadius,
-          }),
-        ...(sectionLayout === "separate" &&
-          borderRadius && {
-            borderRadius,
-          }),
-      }}
-    >
+    <Container>
       <Box $margin="0 0 1.5rem">
         <Text
           $font="Inter"
