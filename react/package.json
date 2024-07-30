@@ -51,7 +51,7 @@
     "tsc": "npx tsc"
   },
   "types": "dist/schematic-react.d.ts",
-  "version": "0.1.8",
+  "version": "0.2.0-rc.0",
   "dependencies": {
     "@schematichq/schematic-js": "^0.1.12",
     "pako": "^2.1.0",
