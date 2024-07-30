@@ -6,18 +6,15 @@ import {
   useState,
   // Children,
 } from "react";
-import { ThemeProvider } from "styled-components";
-import { useSchematicEmbed } from "../../hooks";
+import { useEmbed } from "../../hooks";
 import { createRenderer } from "./renderer";
-import { light, dark } from "./theme";
 
 export const ComponentTree = () => {
   // const styleRef = useRef<HTMLLinkElement | null>(null);
 
   const [children, setChildren] = useState<React.ReactNode>("Loading");
 
-  const { nodes } = useSchematicEmbed();
-  const root = nodes.at(0);
+  const { error, nodes } = useEmbed();
 
   /**
    * @TODO: load fonts from the root node props
@@ -64,9 +61,9 @@ export const ComponentTree = () => {
     setChildren(nodes.map(renderer));
   }, [nodes]);
 
-  return (
-    <ThemeProvider theme={root?.props.theme === "dark" ? dark : light}>
-      {children}
-    </ThemeProvider>
-  );
+  if (error) {
+    return <div>{error.message}</div>;
+  }
+
+  return <>{children}</>;
 };

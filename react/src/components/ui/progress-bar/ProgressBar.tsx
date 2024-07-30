@@ -1,7 +1,5 @@
 import { TEXT_BASE_SIZE } from "../../../const";
-import { Box } from "../box";
-import { Flex } from "../flex";
-import { Text } from "../text";
+import { Box, Flex, Text } from "../../ui";
 import { Container } from "./styles";
 
 export interface ProgressBarProps
@@ -31,12 +29,7 @@ export const ProgressBar = ({
 
   return (
     <Container $alignItems="center" $gap={`${16 / 16}rem`} {...props}>
-      <Flex
-        className="group"
-        $alignItems="center"
-        $width={`${barWidth}`}
-        $position="relative"
-      >
+      <Flex $alignItems="center" $width={`${barWidth}`} $position="relative">
         <Flex
           $position="relative"
           $overflow="hidden"
@@ -52,6 +45,9 @@ export const ProgressBar = ({
             $borderRadius="9999px"
           />
         </Flex>
+        {/**
+           * @TODO: transform hover tip to styled components
+           **
         <Box
           className="-translate-y-2 -translate-x-[50%] invisible opacity-0 group-hover:opacity-100 group-hover:visible"
           $position="absolute"
@@ -73,7 +69,7 @@ export const ProgressBar = ({
             $position="absolute"
             $left="50%"
           ></Box>
-        </Box>
+        </Box> */}
       </Flex>
       {total !== 0 && (
         <Text $size={`${14 / 16}rem`} $weight="500">

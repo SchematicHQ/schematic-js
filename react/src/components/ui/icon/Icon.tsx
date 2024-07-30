@@ -1,5 +1,6 @@
 import cx from "classnames";
 import icons from "../../../assets/icons/icons.js";
+import { Icon as StyledIcon } from "./styles";
 
 export type IconNameTypes = keyof typeof icons;
 
@@ -8,5 +9,5 @@ export interface IconProps extends React.HTMLAttributes<HTMLElement> {
 }
 
 export const Icon = ({ name, className, ...props }: IconProps) => {
-  return <i className={cx("i", `i-${name}`, className)} {...props} />;
+  return <StyledIcon className={cx("i", `i-${name}`, className)} {...props} />;
 };

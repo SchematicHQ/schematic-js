@@ -1,14 +1,17 @@
 import { useMemo, useState } from "react";
-import { type FeatureUsageResponseData } from "../../api";
-import { useSchematicEmbed } from "../../hooks";
-import type { RecursivePartial } from "../../types";
-import { Box } from "../ui/box";
-import { Button } from "../ui/button";
-import { Flex } from "../ui/flex";
-import { Icon, IconRound, type IconNameTypes } from "../ui/icon";
-import { ProgressBar } from "../ui/progress-bar";
-import { Text } from "../ui/text";
-import { Container } from "./styles";
+import { type FeatureUsageResponseData } from "../../../api";
+import { useEmbed } from "../../../hooks";
+import type { RecursivePartial, ElementProps } from "../../../types";
+import {
+  Box,
+  Button,
+  Flex,
+  Icon,
+  IconRound,
+  ProgressBar,
+  Text,
+  type IconNameTypes,
+} from "../../ui";
 
 interface DesignProps {
   name?: {
@@ -29,7 +32,8 @@ interface DesignProps {
   count?: number;
 }
 
-export type IncludedFeaturesProps = RecursivePartial<DesignProps> &
+export type IncludedFeaturesProps = ElementProps &
+  RecursivePartial<DesignProps> &
   React.HTMLAttributes<HTMLDivElement>;
 
 function resolveDesignProps(props: RecursivePartial<DesignProps>) {
@@ -57,7 +61,7 @@ const LimitFeature = ({
   feature,
   allocation,
   usage,
-}: FeatureUsageResponseData) => {
+}: RecursivePartial<FeatureUsageResponseData>) => {
   if (!feature) {
     return null;
   }
@@ -79,7 +83,7 @@ const LimitFeature = ({
       </Flex>
       {typeof allocation === "number" && (
         <ProgressBar
-          progress={(usage || 0 / allocation) * 100}
+          progress={((usage || 0) / allocation) * 100}
           value={usage || 0}
           total={allocation}
           color="blue"
@@ -90,7 +94,10 @@ const LimitFeature = ({
   );
 };
 
-const UsageFeature = ({ feature, usage }: FeatureUsageResponseData) => {
+const UsageFeature = ({
+  feature,
+  usage,
+}: RecursivePartial<FeatureUsageResponseData>) => {
   if (!feature) {
     return null;
   }
@@ -110,7 +117,7 @@ const UsageFeature = ({ feature, usage }: FeatureUsageResponseData) => {
           </Text>
         </Flex>
       </Flex>
-      <Box>
+      <Flex $alignItems="center">
         <Text as={Box} $font="Public Sans" $weight="500" $align="right">
           {usage} {feature.featureType} used
         </Text>
@@ -127,12 +134,14 @@ const UsageFeature = ({ feature, usage }: FeatureUsageResponseData) => {
           Resets {toMonthDay(date)}
         </Text>
         */}
-      </Box>
+      </Flex>
     </Flex>
   );
 };
 
-const AddonFeature = ({ feature }: FeatureUsageResponseData) => {
+const AddonFeature = ({
+  feature,
+}: RecursivePartial<FeatureUsageResponseData>) => {
   if (!feature) {
     return null;
   }
@@ -158,8 +167,13 @@ const AddonFeature = ({ feature }: FeatureUsageResponseData) => {
   );
 };
 
-export const IncludedFeatures = (props: IncludedFeaturesProps) => {
+export const IncludedFeatures = ({
+  className,
+  ...props
+}: IncludedFeaturesProps) => {
   const designPropsWithDefaults = resolveDesignProps(props);
+
+  const { data } = useEmbed();
 
   const [numVisible, setNumVisible] = useState(designPropsWithDefaults.count);
 
@@ -167,8 +181,6 @@ export const IncludedFeatures = (props: IncludedFeaturesProps) => {
     () => numVisible > designPropsWithDefaults.count,
     [numVisible, designPropsWithDefaults.count],
   );
-
-  const { data } = useSchematicEmbed();
 
   const features = useMemo(() => {
     return (data.featureUsage?.features || []).map(
@@ -207,7 +219,7 @@ export const IncludedFeatures = (props: IncludedFeaturesProps) => {
   };
 
   return (
-    <Container>
+    <div className={className}>
       <Box $margin="0 0 1.5rem">
         <Text
           $font="Inter"
@@ -231,7 +243,6 @@ export const IncludedFeatures = (props: IncludedFeaturesProps) => {
             feature.allocationType === "trait" ||
             feature.allocationType === "unlimited"
           ) {
-            console.log(feature.allocation);
             if (typeof feature.allocation === "number") {
               return [...acc, <LimitFeature key={index} {...feature} />];
             }
@@ -251,6 +262,6 @@ export const IncludedFeatures = (props: IncludedFeaturesProps) => {
           <Text $weight="500">See all</Text>
         </Button>
       </Flex>
-    </Container>
+    </div>
   );
 };

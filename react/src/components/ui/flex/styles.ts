@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { Box } from "../box";
+import { Box } from "../../ui/box";
 
 export const Flex = styled(Box)`
   display: flex;

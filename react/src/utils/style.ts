@@ -7,7 +7,7 @@ type Value = string | number;
 
 export function attr(key: Key, value?: Value) {
   return (
-    value &&
+    typeof value !== "undefined" &&
     css`
       ${key}: ${value};
     `

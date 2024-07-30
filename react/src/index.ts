@@ -1,16 +1,27 @@
-import { SchematicProvider, SchematicProviderProps } from "./context";
 import {
+  EmbedContext,
+  EmbedProvider,
+  SchematicProvider,
+  type EmbedContextProps,
+  type EmbedProviderProps,
+  type SchematicProviderProps,
+} from "./context";
+import {
+  useEmbed,
   useSchematic,
   useSchematicContext,
   useSchematicEvents,
   useSchematicFlag,
-  UseSchematicFlagOpts,
-  SchematicHookOpts,
+  type UseSchematicFlagOpts,
+  type SchematicHookOpts,
 } from "./hooks";
 
 export * from "./components";
 
 export {
+  EmbedContext,
+  EmbedProvider,
+  useEmbed,
   SchematicProvider,
   useSchematic,
   useSchematicContext,
@@ -18,7 +29,13 @@ export {
   useSchematicFlag,
 };
 
-export type { SchematicHookOpts, SchematicProviderProps, UseSchematicFlagOpts };
+export type {
+  EmbedContextProps,
+  EmbedProviderProps,
+  SchematicHookOpts,
+  SchematicProviderProps,
+  UseSchematicFlagOpts,
+};
 
 export { Schematic } from "@schematichq/schematic-js";
 

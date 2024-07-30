@@ -1,11 +1,8 @@
 import { useMemo } from "react";
-import { useTheme } from "styled-components";
-import { useSchematicEmbed } from "../../hooks";
-import type { RecursivePartial } from "../../types";
-import { Box } from "../ui/box";
-import { Flex } from "../ui/flex";
-import { Text } from "../ui/text";
-import { Container, Button } from "./styles";
+import { useEmbed } from "../../../hooks";
+import type { RecursivePartial, ElementProps } from "../../../types";
+import { Box, Flex, Text } from "../../ui";
+import { Button } from "./styles";
 
 /* interface ContentProps {
   name?: string;
@@ -53,7 +50,8 @@ interface DesignProps {
   };
 }
 
-export type CurrentPlanProps = RecursivePartial<DesignProps> &
+export type PlanManagerProps = ElementProps &
+  RecursivePartial<DesignProps> &
   React.HTMLAttributes<HTMLDivElement>;
 
 function resolveDesignProps(props: RecursivePartial<DesignProps>) {
@@ -96,14 +94,12 @@ function resolveDesignProps(props: RecursivePartial<DesignProps>) {
   };
 }
 
-export const CurrentPlan = (props: CurrentPlanProps) => {
+export const PlanManager = ({ className, ...props }: PlanManagerProps) => {
   const designPropsWithDefaults = resolveDesignProps(props);
 
-  const theme = useTheme();
+  const { data } = useEmbed();
 
-  const { data } = useSchematicEmbed();
-
-  const [plan, ...addons] = useMemo(() => {
+  const plans = useMemo(() => {
     return (data.company?.plans || []).map(({ name, description }) => {
       return {
         name,
@@ -116,10 +112,13 @@ export const CurrentPlan = (props: CurrentPlanProps) => {
     });
   }, [data.company?.plans]);
 
+  const plan = plans.at(0);
+  const addons = plans.slice(1);
+
   return (
-    <Container>
+    <div className={className}>
       <Flex $flexDirection="column" $gap={`${12 / 16}rem`} $margin="0 0 3rem">
-        {designPropsWithDefaults.header.isVisible && (
+        {designPropsWithDefaults.header.isVisible && plan && (
           <Flex
             $justifyContent="space-between"
             $alignItems="center"
@@ -169,11 +168,7 @@ export const CurrentPlan = (props: CurrentPlanProps) => {
 
         {designPropsWithDefaults.addOns.isVisible && (
           <>
-            <Text
-              $size={`${15 / 16}rem`}
-              $weight="500"
-              $color={theme.textDetail}
-            >
+            <Text $size={`${15 / 16}rem`} $weight="500">
               Add-Ons
             </Text>
 
@@ -209,6 +204,6 @@ export const CurrentPlan = (props: CurrentPlanProps) => {
           Change Plan
         </Button>
       )}
-    </Container>
+    </div>
   );
 };

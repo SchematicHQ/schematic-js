@@ -1,4 +1,4 @@
-import { Icon } from "../ui/icon";
+import { Icon } from "../../ui/icon";
 
 export const Invoices = () => {
   return (

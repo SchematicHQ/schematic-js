@@ -1,5 +1,11 @@
 import styled, { css } from "styled-components";
 
+export const Icon = styled.i`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`;
+
 export const Container = styled.div<{
   $size: "tn" | "sm" | "md" | "lg";
   $style: "outline" | "filled";

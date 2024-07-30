@@ -40,6 +40,12 @@ import {
 export interface CompanyDetailResponseData {
   /**
    *
+   * @type {Array<PreviewObject>}
+   * @memberof CompanyDetailResponseData
+   */
+  addOns: Array<PreviewObject>;
+  /**
+   *
    * @type {Date}
    * @memberof CompanyDetailResponseData
    */
@@ -88,6 +94,12 @@ export interface CompanyDetailResponseData {
   name: string;
   /**
    *
+   * @type {PreviewObject}
+   * @memberof CompanyDetailResponseData
+   */
+  plan?: PreviewObject;
+  /**
+   *
    * @type {Array<PreviewObject>}
    * @memberof CompanyDetailResponseData
    */
@@ -118,6 +130,7 @@ export interface CompanyDetailResponseData {
 export function instanceOfCompanyDetailResponseData(
   value: object,
 ): value is CompanyDetailResponseData {
+  if (!("addOns" in value) || value["addOns"] === undefined) return false;
   if (!("createdAt" in value) || value["createdAt"] === undefined) return false;
   if (!("entityTraits" in value) || value["entityTraits"] === undefined)
     return false;
@@ -146,6 +159,7 @@ export function CompanyDetailResponseDataFromJSONTyped(
     return json;
   }
   return {
+    addOns: (json["add_ons"] as Array<any>).map(PreviewObjectFromJSON),
     createdAt: new Date(json["created_at"]),
     entityTraits: (json["entity_traits"] as Array<any>).map(
       EntityTraitDetailResponseDataFromJSON,
@@ -157,6 +171,8 @@ export function CompanyDetailResponseDataFromJSONTyped(
       json["last_seen_at"] == null ? undefined : new Date(json["last_seen_at"]),
     logoUrl: json["logo_url"] == null ? undefined : json["logo_url"],
     name: json["name"],
+    plan:
+      json["plan"] == null ? undefined : PreviewObjectFromJSON(json["plan"]),
     plans: (json["plans"] as Array<any>).map(PreviewObjectFromJSON),
     traits: json["traits"] == null ? undefined : json["traits"],
     updatedAt: new Date(json["updated_at"]),
@@ -171,6 +187,7 @@ export function CompanyDetailResponseDataToJSON(
     return value;
   }
   return {
+    add_ons: (value["addOns"] as Array<any>).map(PreviewObjectToJSON),
     created_at: value["createdAt"].toISOString(),
     entity_traits: (value["entityTraits"] as Array<any>).map(
       EntityTraitDetailResponseDataToJSON,
@@ -184,6 +201,7 @@ export function CompanyDetailResponseDataToJSON(
         : (value["lastSeenAt"] as any).toISOString(),
     logo_url: value["logoUrl"],
     name: value["name"],
+    plan: PreviewObjectToJSON(value["plan"]),
     plans: (value["plans"] as Array<any>).map(PreviewObjectToJSON),
     traits: value["traits"],
     updated_at: value["updatedAt"].toISOString(),

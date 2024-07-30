@@ -1,5 +1,5 @@
 import styled, { css } from "styled-components";
-import { Text } from "../text";
+import { Text } from "../../ui/text";
 import {
   ButtonStyleTypes,
   ButtonSizeTypes,
