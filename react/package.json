@@ -4,7 +4,6 @@
   "module": "dist/schematic-react.esm.js",
   "author": "Ben Papillon <ben@schematichq.com>",
   "devDependencies": {
-    "@craftjs/core": "^0.2.8",
     "@microsoft/api-extractor": "^7.38.3",
     "@openapitools/openapi-generator-cli": "^2.13.4",
     "@types/jest": "^29.5.11",
@@ -53,6 +52,7 @@
   "types": "dist/schematic-react.d.ts",
   "version": "0.2.0-rc.0",
   "dependencies": {
+    "@craftjs/core": "^0.2.9",
     "@schematichq/schematic-js": "^0.1.12",
     "pako": "^2.1.0",
     "styled-components": "^6.1.12"

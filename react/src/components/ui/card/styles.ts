@@ -4,6 +4,8 @@ import { TEXT_BASE_SIZE } from "../../../const";
 export const StyledCard = styled.div<{
   $sectionLayout?: "merged" | "separate";
   $borderRadius?: number;
+  $borderWidth?: number;
+  $boxPadding?: number;
 }>`
   box-sizing: border-box;
   font-size: ${TEXT_BASE_SIZE}px;
@@ -13,17 +15,18 @@ export const StyledCard = styled.div<{
   *::after {
     box-sizing: inherit;
   }
+  ${({ $boxPadding = 50 }) => css`
+    > * {
+      padding: ${$boxPadding / 16}rem ${$boxPadding / 16}rem;
+      color: ${({ theme }) => theme.color};
+      background: ${({ theme }) => theme.background};
+      box-shadow:
+        0px 1px 20px 0px #1018280f,
+        0px 1px 3px 0px #1018281a;
+    }
+  `}
 
-  > * {
-    padding: ${40 / 16}rem ${50 / 16}rem;
-    color: ${({ theme }) => theme.color};
-    background: ${({ theme }) => theme.background};
-    box-shadow:
-      0px 1px 20px 0px #1018280f,
-      0px 1px 3px 0px #1018281a;
-  }
-
-  ${({ $sectionLayout = "merged", $borderRadius = 8 }) =>
+  ${({ $sectionLayout = "merged", $borderRadius = 8, $borderWidth = 1 }) =>
     $sectionLayout === "merged"
       ? css`
           > :first-child {
@@ -37,7 +40,7 @@ export const StyledCard = styled.div<{
           }
 
           > :not(:last-child) {
-            border-bottom: 1px solid #eaeaea;
+            border-bottom: ${$borderWidth / 16}rem solid #eaeaea;
           }
         `
       : css`
