@@ -1,16 +1,16 @@
 import {
-  // isValidElement,
+  isValidElement,
   useEffect,
-  // useMemo,
-  // useRef,
+  useMemo,
+  useRef,
   useState,
-  // Children,
+  Children,
 } from "react";
 import { useEmbed } from "../../hooks";
 import { createRenderer } from "./renderer";
 
 export const ComponentTree = () => {
-  // const styleRef = useRef<HTMLLinkElement | null>(null);
+  const styleRef = useRef<HTMLLinkElement | null>(null);
 
   const [children, setChildren] = useState<React.ReactNode>("Loading");
 
@@ -19,8 +19,8 @@ export const ComponentTree = () => {
   /**
    * @TODO: load fonts from the root node props
    */
-  /* const fonts = useMemo(() => {
-    const fontSet = new Set<string>();
+  const fonts = useMemo(() => {
+    const fontSet = new Set<string>(["Manrope", "Public Sans", "Inter"]);
 
     function lookForFont(node: React.ReactNode) {
       if (isValidElement(node)) {
@@ -39,7 +39,13 @@ export const ComponentTree = () => {
   }, [children]);
 
   useEffect(() => {
+    const element = document.getElementById("schematic-fonts");
+    if (element) {
+      return void (styleRef.current = element as HTMLLinkElement);
+    }
+
     const style = document.createElement("link");
+    style.id = "schematic-fonts";
     style.rel = "stylesheet";
     document.head.appendChild(style);
     styleRef.current = style;
@@ -54,7 +60,7 @@ export const ComponentTree = () => {
         styleRef.current.href = src;
       }
     }
-  }, [fonts]); */
+  }, [fonts]);
 
   useEffect(() => {
     const renderer = createRenderer();

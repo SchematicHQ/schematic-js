@@ -23,9 +23,8 @@ export const Button = styled(UIButton)<{
   &:hover {
     ${({ $backgroundColor, theme }) => {
       const specified = $backgroundColor || theme.button;
-      const lightened = lighten(specified, 12.5);
-      const color =
-        specified === lightened ? darken(specified, 12.5) : lightened;
+      const lightened = lighten(specified, 15);
+      const color = specified === lightened ? darken(specified, 15) : lightened;
 
       return css`
         background-color: ${color};

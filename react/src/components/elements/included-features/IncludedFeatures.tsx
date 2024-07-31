@@ -1,5 +1,4 @@
-import { useMemo, useState } from "react";
-import { type FeatureUsageResponseData } from "../../../api";
+import { forwardRef, useMemo, useState } from "react";
 import { useEmbed } from "../../../hooks";
 import type { RecursivePartial, ElementProps } from "../../../types";
 import {
@@ -14,7 +13,7 @@ import {
 } from "../../ui";
 
 interface DesignProps {
-  name?: {
+  title: {
     text: string;
     style: {
       fontFamily: string;
@@ -23,13 +22,13 @@ interface DesignProps {
       color: string;
     };
   };
-  limits?: {
+  limits: {
     isVisible: boolean;
   };
-  usage?: {
+  usage: {
     isVisible: boolean;
   };
-  count?: number;
+  count: number;
 }
 
 export type IncludedFeaturesProps = ElementProps &
@@ -38,13 +37,13 @@ export type IncludedFeaturesProps = ElementProps &
 
 function resolveDesignProps(props: RecursivePartial<DesignProps>) {
   return {
-    name: {
-      text: props.name?.text || "Included features",
+    title: {
+      text: props.title?.text || "Included features",
       style: {
-        fontFamily: props.name?.style?.fontFamily || "Inter",
-        fontSize: props.name?.style?.fontSize || 16,
-        fontWeight: props.name?.style?.fontWeight || 500,
-        color: props.name?.style?.color || "#000000",
+        fontFamily: props.title?.style?.fontFamily || "Inter",
+        fontSize: props.title?.style?.fontSize || 15,
+        fontWeight: props.title?.style?.fontWeight || 500,
+        color: props.title?.style?.color || "#767676",
       },
     },
     limits: {
@@ -57,120 +56,10 @@ function resolveDesignProps(props: RecursivePartial<DesignProps>) {
   };
 }
 
-const LimitFeature = ({
-  feature,
-  allocation,
-  usage,
-}: RecursivePartial<FeatureUsageResponseData>) => {
-  if (!feature) {
-    return null;
-  }
-
-  return (
-    <Flex $justifyContent="space-between" $margin="0 0 1.5rem">
-      <Flex $gap={`${16 / 16}rem`}>
-        <IconRound name={feature.icon as IconNameTypes} size="sm" />
-        <Flex $alignItems="center">
-          <Text
-            $font="Public Sans"
-            $size={`${18 / 16}rem`}
-            $weight="500"
-            $align="center"
-          >
-            {feature.name}
-          </Text>
-        </Flex>
-      </Flex>
-      {typeof allocation === "number" && (
-        <ProgressBar
-          progress={((usage || 0) / allocation) * 100}
-          value={usage || 0}
-          total={allocation}
-          color="blue"
-          barWidth="140px"
-        />
-      )}
-    </Flex>
-  );
-};
-
-const UsageFeature = ({
-  feature,
-  usage,
-}: RecursivePartial<FeatureUsageResponseData>) => {
-  if (!feature) {
-    return null;
-  }
-
-  return (
-    <Flex $justifyContent="space-between" $margin="0 0 1.5rem">
-      <Flex $gap={`${16 / 16}rem`}>
-        <IconRound name={feature.icon as IconNameTypes} size="sm" />
-        <Flex $alignItems="center">
-          <Text
-            $font="Public Sans"
-            $size={`${18 / 16}rem`}
-            $weight="500"
-            $align="center"
-          >
-            {feature.name}
-          </Text>
-        </Flex>
-      </Flex>
-      <Flex $alignItems="center">
-        <Text as={Box} $font="Public Sans" $weight="500" $align="right">
-          {usage} {feature.featureType} used
-        </Text>
-        {/**
-          * @TODO: resolve date
-          *
-        <Text
-          as={Box}
-          $font="Public Sans"
-          $size={`${14 / 16}rem`}
-          $color="#8A8A8A"
-          $align="right"
-        >
-          Resets {toMonthDay(date)}
-        </Text>
-        */}
-      </Flex>
-    </Flex>
-  );
-};
-
-const AddonFeature = ({
-  feature,
-}: RecursivePartial<FeatureUsageResponseData>) => {
-  if (!feature) {
-    return null;
-  }
-
-  return (
-    <Flex $justifyContent="space-between" $margin="0 0 1.5rem">
-      <Flex $gap={`${16 / 16}rem`}>
-        {feature.icon && (
-          <IconRound name={feature.icon as IconNameTypes} size="sm" />
-        )}
-        <Flex $alignItems="center">
-          <Text
-            $font="Public Sans"
-            $size={`${18 / 16}rem`}
-            $weight="500"
-            $align="center"
-          >
-            {feature.name}
-          </Text>
-        </Flex>
-      </Flex>
-    </Flex>
-  );
-};
-
-export const IncludedFeatures = ({
-  className,
-  ...props
-}: IncludedFeaturesProps) => {
+export const IncludedFeatures = forwardRef<
+  HTMLDivElement | null,
+  IncludedFeaturesProps
+>(({ className, ...props }, ref) => {
   const designPropsWithDefaults = resolveDesignProps(props);
 
   const { data } = useEmbed();
@@ -219,7 +108,7 @@ export const IncludedFeatures = ({
   };
 
   return (
-    <div className={className}>
+    <div ref={ref} className={className}>
       <Box $margin="0 0 1.5rem">
         <Text
           $font="Inter"
@@ -227,31 +116,87 @@ export const IncludedFeatures = ({
           $weight="500"
           $color="#767676"
         >
-          {designPropsWithDefaults.name.text}
+          {designPropsWithDefaults.title.text}
         </Text>
       </Box>
 
       {features
         .slice(0, numVisible)
-        .reduce((acc: React.ReactElement[], feature, index) => {
-          if (feature.allocationType === "boolean") {
-            return [...acc, <AddonFeature key={index} {...feature} />];
-          }
-
-          if (
-            feature.allocationType === "numeric" ||
-            feature.allocationType === "trait" ||
-            feature.allocationType === "unlimited"
-          ) {
-            if (typeof feature.allocation === "number") {
-              return [...acc, <LimitFeature key={index} {...feature} />];
+        .reduce(
+          (
+            acc: React.ReactElement[],
+            { allocation, allocationType, feature, usage },
+            index,
+          ) => {
+            if (!allocationType) {
+              return acc;
             }
 
-            return [...acc, <UsageFeature key={index} {...feature} />];
-          }
+            return [
+              ...acc,
+              <Flex
+                key={index}
+                $justifyContent="space-between"
+                $margin="0 0 1.5rem"
+              >
+                <Flex $gap={`${16 / 16}rem`}>
+                  {feature?.icon && (
+                    <IconRound name={feature.icon as IconNameTypes} size="sm" />
+                  )}
+                  {feature?.name && (
+                    <Flex $alignItems="center">
+                      <Text
+                        $font="Public Sans"
+                        $size={`${18 / 16}rem`}
+                        $weight="500"
+                        $align="center"
+                      >
+                        {feature.name}
+                      </Text>
+                    </Flex>
+                  )}
+                </Flex>
 
-          return acc;
-        }, [])}
+                {typeof allocation === "number" ? (
+                  <ProgressBar
+                    progress={((usage || 0) / allocation) * 100}
+                    value={usage || 0}
+                    total={allocation}
+                    color="blue"
+                    barWidth="140px"
+                  />
+                ) : (
+                  <Flex $alignItems="center">
+                    {feature?.featureType && (
+                      <Text
+                        as={Box}
+                        $font="Public Sans"
+                        $weight="500"
+                        $align="right"
+                      >
+                        {usage} {feature.featureType} used
+                      </Text>
+                    )}
+                    {/**
+                      * @TODO: resolve date
+                      *
+                    <Text
+                      as={Box}
+                      $font="Public Sans"
+                      $size={`${14 / 16}rem`}
+                      $color="#8A8A8A"
+                      $align="right"
+                    >
+                      Resets {toMonthDay(date)}
+                    </Text>
+                    */}
+                  </Flex>
+                )}
+              </Flex>,
+            ];
+          },
+          [],
+        )}
 
       <Flex $alignItems="center" $gap={`${4 / 16}rem`}>
         <Icon
@@ -264,4 +209,4 @@ export const IncludedFeatures = ({
       </Flex>
     </div>
   );
-};
+});

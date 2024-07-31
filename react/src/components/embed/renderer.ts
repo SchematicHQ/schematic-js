@@ -1,13 +1,18 @@
 import { createElement } from "react";
 import type { SerializedNodeWithChildren } from "../../types";
-import { IncludedFeatures, PlanManager } from "../../components/elements";
-import { Card } from "../../components/ui";
+import { Card } from "../../components/elements";
+import {
+  IncludedFeatures,
+  PlanManager,
+  UpcomingBill,
+} from "../../components/elements";
 
 /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
 const components: Record<string, React.FC<any> | undefined> = {
   Card,
-  IncludedFeatures,
   PlanManager,
+  IncludedFeatures,
+  UpcomingBill,
 };
 
 interface RenderOptions {
