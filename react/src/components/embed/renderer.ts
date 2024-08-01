@@ -43,13 +43,15 @@ export function createRenderer(options?: RenderOptions) {
       return null;
     }
 
-    const { className, style, ...rootProps } = props;
-    const resolvedProps = node.id === "ROOT" ? rootProps : props;
+    const { className, style, ...rest } = props;
+    const resolvedProps = component === "div" ? rest : props;
     const resolvedChildren = children.map(renderNode);
     return createElement(
       component,
       {
-        ...resolvedProps,
+        className,
+        style,
+        ...(component !== "div" && { resolvedProps }),
         ...(Object.keys(custom).length > 0 && { custom }),
         key: index,
       },

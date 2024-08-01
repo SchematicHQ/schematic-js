@@ -1,8 +1,8 @@
 import styled, { css } from "styled-components";
 import { lighten, darken } from "../../../utils";
-import { Button as UIButton } from "../../ui/button";
+import { Button } from "../../ui/button";
 
-export const Button = styled(UIButton)<{
+export const StyledButton = styled(Button)<{
   $size?: "sm" | "md" | "lg";
   $color?: string;
   $backgroundColor?: string;

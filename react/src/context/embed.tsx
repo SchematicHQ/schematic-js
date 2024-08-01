@@ -1,5 +1,5 @@
 import { createContext, useCallback, useEffect, useState } from "react";
-import { inflate } from "pako";
+// import { inflate } from "pako";
 import { ThemeProvider } from "styled-components";
 import {
   ComponentsApi,
@@ -9,11 +9,13 @@ import {
 import { light, dark } from "../components/theme";
 import type {
   RecursivePartial,
-  CompressedEditorState,
+  // CompressedEditorState,
   SerializedEditorState,
   SerializedNodeWithChildren,
   Settings,
 } from "../types";
+
+import testAst from "../assets/json/test-data-ast.json";
 
 const defaultSettings: Settings = {
   theme: "light",
@@ -66,11 +68,11 @@ async function fetchComponent(id: string, accessToken: string) {
 
   if (data.component?.ast) {
     // ast from response is actually an object with keys as numbers
-    const compressed = data.component.ast as CompressedEditorState;
+    /* const compressed = data.component.ast as CompressedEditorState;
     const json = inflate(Uint8Array.from(Object.values(compressed)), {
       to: "string",
-    });
-    const ast = getEditorState(json);
+    }); */
+    const ast = getEditorState(JSON.stringify(testAst));
     if (ast) {
       Object.assign(settings, ast.ROOT.props);
       nodes.push(...parseEditorState(ast));

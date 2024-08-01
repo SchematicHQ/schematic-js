@@ -157,7 +157,7 @@ export const IncludedFeatures = forwardRef<
                   )}
                 </Flex>
 
-                {typeof allocation === "number" ? (
+                {typeof allocation === "number" && (
                   <ProgressBar
                     progress={((usage || 0) / allocation) * 100}
                     value={usage || 0}
@@ -165,33 +165,36 @@ export const IncludedFeatures = forwardRef<
                     color="blue"
                     barWidth="140px"
                   />
-                ) : (
-                  <Flex $alignItems="center">
-                    {feature?.featureType && (
+                )}
+
+                {allocationType !== "boolean" &&
+                  typeof allocation !== "number" && (
+                    <Flex $alignItems="center">
+                      {feature?.featureType && (
+                        <Text
+                          as={Box}
+                          $font="Public Sans"
+                          $weight="500"
+                          $align="right"
+                        >
+                          {usage} {feature.featureType} used
+                        </Text>
+                      )}
+                      {/**
+                        * @TODO: resolve date
+                        **
                       <Text
                         as={Box}
                         $font="Public Sans"
-                        $weight="500"
+                        $size={`${14 / 16}rem`}
+                        $color="#8A8A8A"
                         $align="right"
                       >
-                        {usage} {feature.featureType} used
+                        Resets {toMonthDay(date)}
                       </Text>
-                    )}
-                    {/**
-                      * @TODO: resolve date
-                      *
-                    <Text
-                      as={Box}
-                      $font="Public Sans"
-                      $size={`${14 / 16}rem`}
-                      $color="#8A8A8A"
-                      $align="right"
-                    >
-                      Resets {toMonthDay(date)}
-                    </Text>
-                    */}
-                  </Flex>
-                )}
+                      */}
+                    </Flex>
+                  )}
               </Flex>,
             ];
           },

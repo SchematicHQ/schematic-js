@@ -1,8 +1,9 @@
-import { forwardRef, useMemo } from "react";
+import { forwardRef, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { useEmbed } from "../../../hooks";
 import type { RecursivePartial, ElementProps } from "../../../types";
-import { Box, Flex, Text } from "../../ui";
-import { Button } from "./styles";
+import { Box, Flex, Icon, Text } from "../../ui";
+import { StyledButton } from "./styles";
 
 interface TextDesignProps {
   isVisible: boolean;
@@ -31,7 +32,10 @@ interface DesignProps {
 
 export type PlanManagerProps = ElementProps &
   RecursivePartial<DesignProps> &
-  React.HTMLAttributes<HTMLDivElement>;
+  React.HTMLAttributes<HTMLDivElement> & {
+    layout?: "portal" | "checkout";
+    root?: HTMLElement | null;
+  };
 
 function resolveDesignProps(props: RecursivePartial<DesignProps>) {
   return {
@@ -75,8 +79,10 @@ function resolveDesignProps(props: RecursivePartial<DesignProps>) {
 }
 
 export const PlanManager = forwardRef<HTMLDivElement | null, PlanManagerProps>(
-  ({ className, ...props }, ref) => {
+  ({ className, layout, root, ...props }, ref) => {
     const designPropsWithDefaults = resolveDesignProps(props);
+
+    const [showModal, setShowModal] = useState(false);
 
     const { data } = useEmbed();
 
@@ -175,7 +181,11 @@ export const PlanManager = forwardRef<HTMLDivElement | null, PlanManagerProps>(
         </Flex>
 
         {designPropsWithDefaults.callToAction.isVisible && (
-          <Button
+          <StyledButton
+            onClick={() => {
+              if (layout !== "checkout") return;
+              setShowModal(true);
+            }}
             $size={designPropsWithDefaults.callToAction.size}
             $color={designPropsWithDefaults.callToAction.color}
             $backgroundColor={
@@ -183,8 +193,73 @@ export const PlanManager = forwardRef<HTMLDivElement | null, PlanManagerProps>(
             }
           >
             Change Plan
-          </Button>
+          </StyledButton>
         )}
+
+        {layout === "checkout" &&
+          showModal &&
+          createPortal(
+            <Box
+              $position="absolute"
+              $top="50%"
+              $left="50%"
+              $zIndex="999999"
+              $transform="translate(-50%, -50%)"
+              $width="100%"
+              $height="100%"
+              $backgroundColor="#B5B5B580"
+            >
+              <Flex
+                $position="relative"
+                $top="50%"
+                $left="50%"
+                $transform="translate(-50%, -50%)"
+                $width="956px"
+                $height="700px"
+                $backgroundColor="#FBFBFB"
+                $borderRadius="8px"
+                $boxShadow="0px 1px 20px 0px #1018280F, 0px 1px 3px 0px #1018281A;"
+              >
+                <Box
+                  $position="absolute"
+                  $top="0.25rem"
+                  $right="0.75rem"
+                  $cursor="pointer"
+                  onClick={() => {
+                    setShowModal(false);
+                  }}
+                >
+                  <Icon
+                    name="close"
+                    style={{ fontSize: 36, color: "#B8B8B8" }}
+                  />
+                </Box>
+
+                <Flex $flexDirection="column" $gap="1rem">
+                  <Text $size="1.5rem" $weight="800">
+                    Select plan
+                  </Text>
+
+                  <Flex $flexDirection="column" $gap="1rem">
+                    {plans.map((plan, index) => (
+                      <Flex
+                        key={index}
+                        $justifyContent="space-between"
+                        $alignItems="center"
+                        $width="100%"
+                      >
+                        <Text $size="1.25rem" $weight="800">
+                          {plan.name}
+                        </Text>
+                        {plan.price! >= 0 && <Text>${plan.price}/mo</Text>}
+                      </Flex>
+                    ))}
+                  </Flex>
+                </Flex>
+              </Flex>
+            </Box>,
+            root || document.body,
+          )}
       </div>
     );
   },
