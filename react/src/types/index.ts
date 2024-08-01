@@ -1,24 +1,4 @@
-// import * as  Craft from "@craftjs/core";
-
-type SerializedNodeType = {
-  type:
-    | string
-    | {
-        resolvedName: string;
-      };
-  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-  props: Record<string, any>;
-  name: string;
-  displayName: string;
-  isCanvas: boolean;
-  parent?: string | null;
-  linkedNodes: Record<string, string>;
-  nodes: string[];
-  hidden: boolean;
-  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-  custom?: any;
-  _childCanvas?: Record<string, string>;
-};
+import * as Craft from "@craftjs/core";
 
 export type RecursivePartial<T> = {
   [P in keyof T]?: T[P] extends (infer U)[]
@@ -35,17 +15,17 @@ export interface ComponentProps extends TransientCSSProperties {
   children?: React.ReactNode;
 }
 
-export type CompressedEditorState = Record<number, number>;
-export type SerializedEditorState = Record<string, SerializedNode>;
-
-export type SerializedNode = Omit<SerializedNodeType, "parent"> & {
+export type SerializedNode = Omit<Craft.SerializedNode, "parent"> & {
+  id: string;
   parent?: string | null;
 };
 
 export type SerializedNodeWithChildren = SerializedNode & {
   children: SerializedNodeWithChildren[];
-  id?: string;
 };
+
+export type CompressedEditorState = Record<number, number>;
+export type SerializedEditorState = Record<string, SerializedNode>;
 
 export interface Settings {
   theme: "light" | "dark";
