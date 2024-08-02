@@ -13,7 +13,7 @@ export const StyledButton = styled(Button)<{
   width: 100%;
   color: ${({ $color, theme }) => $color || theme.text};
   ${({ $backgroundColor, theme }) => {
-    const color = $backgroundColor || theme.button;
+    const color = $backgroundColor || theme.primary;
     return css`
       background-color: ${color};
       border-color: ${color};
@@ -22,7 +22,7 @@ export const StyledButton = styled(Button)<{
 
   &:hover {
     ${({ $backgroundColor, theme }) => {
-      const specified = $backgroundColor || theme.button;
+      const specified = $backgroundColor || theme.primary;
       const lightened = lighten(specified, 15);
       const color = specified === lightened ? darken(specified, 15) : lightened;
 

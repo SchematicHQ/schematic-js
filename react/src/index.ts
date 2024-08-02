@@ -2,6 +2,8 @@ import {
   EmbedContext,
   EmbedProvider,
   SchematicProvider,
+  defaultTheme,
+  defaultSettings,
   type EmbedContextProps,
   type EmbedProviderProps,
   type SchematicProviderProps,
@@ -21,6 +23,8 @@ export * from "./components";
 export {
   EmbedContext,
   EmbedProvider,
+  defaultTheme,
+  defaultSettings,
   useEmbed,
   SchematicProvider,
   useSchematic,

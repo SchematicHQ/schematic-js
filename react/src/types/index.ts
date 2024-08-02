@@ -27,15 +27,32 @@ export type SerializedNodeWithChildren = SerializedNode & {
 export type CompressedEditorState = Record<number, number>;
 export type SerializedEditorState = Record<string, SerializedNode>;
 
-export interface Settings {
-  theme: "light" | "dark";
-  sectionLayout: "merged" | "separate";
-  borderWidth: number;
-  borderColor: string;
-  borderRadius: number;
-  boxShadow: string;
-  boxPadding: number;
+interface EmbedThemeColorSettings {
+  primary: string;
+  secondary: string;
+  text: string;
+  link: string;
+  card: string;
 }
+
+export interface EmbedThemeSettings {
+  numberOfColumns: 1 | 2 | 3;
+  sectionLayout: "merged" | "separate";
+  colorMode: "light" | "dark";
+  light: EmbedThemeColorSettings;
+  dark: EmbedThemeColorSettings;
+  card: {
+    borderRadius: number;
+    hasShadow: boolean;
+    padding: number;
+  };
+}
+
+export interface EmbedSettings {
+  theme: EmbedThemeSettings;
+}
+
+export type EmbedLayout = "portal" | "checkout" | "payment" | "disabled";
 
 export interface ElementProps {
   children?: React.ReactNode;

@@ -1,4 +1,5 @@
 import styled, { css } from "styled-components";
+import { TEXT_BASE_SIZE } from "../../../const";
 
 export const Icon = styled.i`
   display: flex;
@@ -37,10 +38,10 @@ export const Container = styled.div<{
     }
 
     return css`
-      font-size: ${(base * scale) / 16}rem;
+      font-size: ${(base * scale) / TEXT_BASE_SIZE}rem;
       line-height: 1;
-      width: ${((base + 8) * scale) / 16}rem;
-      height: ${((base + 8) * scale) / 16}rem;
+      width: ${((base + 8) * scale) / TEXT_BASE_SIZE}rem;
+      height: ${((base + 8) * scale) / TEXT_BASE_SIZE}rem;
     `;
   }}
   ${({ $style }) =>

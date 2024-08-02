@@ -15,38 +15,36 @@ export const StyledCard = styled.div<{
   }
 
   > * {
-    padding: ${40 / 16}rem ${50 / 16}rem;
-    color: ${({ theme }) => theme.color};
-    background: ${({ theme }) => theme.background};
-    box-shadow:
-      0px 1px 20px 0px #1018280f,
-      0px 1px 3px 0px #1018281a;
+    padding: ${40 / TEXT_BASE_SIZE}rem ${50 / TEXT_BASE_SIZE}rem;
+    color: ${({ theme }) => theme.text};
   }
 
-  ${({ $sectionLayout = "merged", $borderRadius = 8 }) =>
-    $sectionLayout === "merged"
-      ? css`
-          > :first-child {
-            border-top-left-radius: ${$borderRadius / 16}rem;
-            border-top-right-radius: ${$borderRadius / 16}rem;
-          }
+  ${({ $sectionLayout = "merged", $borderRadius = 8 }) => {
+    const borderRadius = `${$borderRadius / TEXT_BASE_SIZE}rem`;
+    const boxShadow = "0px 1px 20px 0px #1018280f, 0px 1px 3px 0px #1018281a";
 
-          > :last-child {
-            border-bottom-left-radius: ${$borderRadius / 16}rem;
-            border-bottom-right-radius: ${$borderRadius / 16}rem;
-          }
+    if ($sectionLayout === "merged") {
+      return css`
+        background: ${({ theme }) => theme.card};
+        border-radius: ${borderRadius};
+        box-shadow: ${boxShadow};
 
-          > :not(:last-child) {
-            border-bottom: 1px solid #eaeaea;
-          }
-        `
-      : css`
-          > :not(:last-child) {
-            margin-bottom: 2rem;
-          }
+        > :not(:last-child) {
+          border-bottom: 1px solid #eaeaea;
+        }
+      `;
+    }
 
-          > * {
-            border-radius: ${$borderRadius / 16}rem;
-          }
-        `}
+    return css`
+      > :not(:last-child) {
+        margin-bottom: 2rem;
+      }
+
+      > * {
+        background: ${({ theme }) => theme.card};
+        border-radius: ${borderRadius};
+        box-shadow: ${boxShadow};
+      }
+    `;
+  }}
 `;

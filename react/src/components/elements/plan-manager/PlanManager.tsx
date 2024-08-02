@@ -1,5 +1,6 @@
-import { forwardRef, useMemo, useState } from "react";
+import { forwardRef, useMemo } from "react";
 import { createPortal } from "react-dom";
+import { TEXT_BASE_SIZE } from "../../../const";
 import { useEmbed } from "../../../hooks";
 import type { RecursivePartial, ElementProps } from "../../../types";
 import { Box, Flex, Icon, Text } from "../../ui";
@@ -33,7 +34,6 @@ interface DesignProps {
 export type PlanManagerProps = ElementProps &
   RecursivePartial<DesignProps> &
   React.HTMLAttributes<HTMLDivElement> & {
-    layout?: "portal" | "checkout";
     root?: HTMLElement | null;
   };
 
@@ -79,12 +79,10 @@ function resolveDesignProps(props: RecursivePartial<DesignProps>) {
 }
 
 export const PlanManager = forwardRef<HTMLDivElement | null, PlanManagerProps>(
-  ({ className, layout, root, ...props }, ref) => {
+  ({ className, root, ...props }, ref) => {
     const designPropsWithDefaults = resolveDesignProps(props);
 
-    const [showModal, setShowModal] = useState(false);
-
-    const { data } = useEmbed();
+    const { data, layout, setLayout } = useEmbed();
 
     const plans = useMemo(() => {
       return (data.company?.plans || []).map(({ name, description }) => {
@@ -104,7 +102,11 @@ export const PlanManager = forwardRef<HTMLDivElement | null, PlanManagerProps>(
 
     return (
       <div ref={ref} className={className}>
-        <Flex $flexDirection="column" $gap={`${12 / 16}rem`} $margin="0 0 3rem">
+        <Flex
+          $flexDirection="column"
+          $gap={`${12 / TEXT_BASE_SIZE}rem`}
+          $margin="0 0 3rem"
+        >
           {designPropsWithDefaults.header.isVisible && plan && (
             <Flex
               $justifyContent="space-between"
@@ -116,7 +118,7 @@ export const PlanManager = forwardRef<HTMLDivElement | null, PlanManagerProps>(
                 <Box $margin="0 0 0.75rem">
                   <Text
                     $font={designPropsWithDefaults.header.title.fontFamily}
-                    $size={`${designPropsWithDefaults.header.title.fontSize / 16}rem`}
+                    $size={`${designPropsWithDefaults.header.title.fontSize / TEXT_BASE_SIZE}rem`}
                     $weight={`${designPropsWithDefaults.header.title.fontWeight}`}
                     $color={designPropsWithDefaults.header.title.color}
                   >
@@ -130,7 +132,7 @@ export const PlanManager = forwardRef<HTMLDivElement | null, PlanManagerProps>(
                       $font={
                         designPropsWithDefaults.header.description.fontFamily
                       }
-                      $size={`${designPropsWithDefaults.header.description.fontSize / 16}rem`}
+                      $size={`${designPropsWithDefaults.header.description.fontSize / TEXT_BASE_SIZE}rem`}
                       $weight={`${designPropsWithDefaults.header.description.fontWeight}`}
                       $color={designPropsWithDefaults.header.description.color}
                     >
@@ -143,7 +145,7 @@ export const PlanManager = forwardRef<HTMLDivElement | null, PlanManagerProps>(
                 plan.price! >= 0 && (
                   <Text
                     $font={designPropsWithDefaults.header.price.fontFamily}
-                    $size={`${designPropsWithDefaults.header.price.fontSize / 16}`}
+                    $size={`${designPropsWithDefaults.header.price.fontSize / TEXT_BASE_SIZE}`}
                     $weight={`${designPropsWithDefaults.header.price.fontWeight}`}
                     $color={designPropsWithDefaults.header.price.color}
                   >
@@ -155,7 +157,7 @@ export const PlanManager = forwardRef<HTMLDivElement | null, PlanManagerProps>(
 
           {designPropsWithDefaults.addOns.isVisible && (
             <>
-              <Text $size={`${15 / 16}rem`} $weight="500">
+              <Text $size={`${15 / TEXT_BASE_SIZE}rem`} $weight="500">
                 Add-Ons
               </Text>
 
@@ -167,7 +169,11 @@ export const PlanManager = forwardRef<HTMLDivElement | null, PlanManagerProps>(
                     $alignItems="center"
                     $width="100%"
                   >
-                    <Text $font="Manrope" $size={`${18 / 16}rem`} $weight="800">
+                    <Text
+                      $font="Manrope"
+                      $size={`${18 / TEXT_BASE_SIZE}rem`}
+                      $weight="800"
+                    >
                       {addon.name}
                     </Text>
                     {addon.price! >= 0 && (
@@ -184,7 +190,7 @@ export const PlanManager = forwardRef<HTMLDivElement | null, PlanManagerProps>(
           <StyledButton
             onClick={() => {
               if (layout !== "checkout") return;
-              setShowModal(true);
+              setLayout("checkout");
             }}
             $size={designPropsWithDefaults.callToAction.size}
             $color={designPropsWithDefaults.callToAction.color}
@@ -197,7 +203,6 @@ export const PlanManager = forwardRef<HTMLDivElement | null, PlanManagerProps>(
         )}
 
         {layout === "checkout" &&
-          showModal &&
           createPortal(
             <Box
               $position="absolute"
@@ -219,6 +224,10 @@ export const PlanManager = forwardRef<HTMLDivElement | null, PlanManagerProps>(
                 $backgroundColor="#FBFBFB"
                 $borderRadius="8px"
                 $boxShadow="0px 1px 20px 0px #1018280F, 0px 1px 3px 0px #1018281A;"
+                id="select-plan-dialog"
+                role="dialog"
+                aria-labelledby="select-plan-dialog-label"
+                aria-modal="true"
               >
                 <Box
                   $position="absolute"
@@ -226,7 +235,7 @@ export const PlanManager = forwardRef<HTMLDivElement | null, PlanManagerProps>(
                   $right="0.75rem"
                   $cursor="pointer"
                   onClick={() => {
-                    setShowModal(false);
+                    setLayout("portal");
                   }}
                 >
                   <Icon
@@ -236,7 +245,12 @@ export const PlanManager = forwardRef<HTMLDivElement | null, PlanManagerProps>(
                 </Box>
 
                 <Flex $flexDirection="column" $gap="1rem">
-                  <Text $size="1.5rem" $weight="800">
+                  <Text
+                    as="h1"
+                    id="select-plan-dialog-label"
+                    $size="1.5rem"
+                    $weight="800"
+                  >
                     Select plan
                   </Text>
 

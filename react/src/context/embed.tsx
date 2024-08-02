@@ -6,25 +6,45 @@ import {
   Configuration,
   type ComponentHydrateResponseData,
 } from "../api";
-import { light, dark } from "../components/theme";
 import type {
   RecursivePartial,
   // CompressedEditorState,
   SerializedEditorState,
   SerializedNodeWithChildren,
-  Settings,
+  EmbedThemeSettings,
+  EmbedSettings,
+  EmbedLayout,
 } from "../types";
 
 import testAst from "../assets/json/test-data-ast.json";
 
-const defaultSettings: Settings = {
-  theme: "light",
+export const defaultTheme: EmbedThemeSettings = {
+  numberOfColumns: 2,
   sectionLayout: "merged",
-  borderWidth: 0,
-  borderColor: "#E9E9E9",
-  borderRadius: 10,
-  boxShadow: "none",
-  boxPadding: 50,
+  colorMode: "light",
+  light: {
+    primary: "#194BFB",
+    secondary: "#000000",
+    text: "#121212",
+    link: "#194BFB",
+    card: "#FFFFFF",
+  },
+  dark: {
+    primary: "#194BFB",
+    secondary: "#8A8A8A",
+    text: "#FFFFFF",
+    link: "#194BFB",
+    card: "#1B1B1B",
+  },
+  card: {
+    borderRadius: 10,
+    hasShadow: true,
+    padding: 50,
+  },
+};
+
+export const defaultSettings: EmbedSettings = {
+  theme: defaultTheme,
 };
 
 /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
@@ -59,7 +79,7 @@ function parseEditorState(data: SerializedEditorState) {
 }
 
 async function fetchComponent(id: string, accessToken: string) {
-  const settings = { ...defaultSettings };
+  const settings: EmbedSettings = { ...defaultSettings };
   const nodes: SerializedNodeWithChildren[] = [];
   const config = new Configuration({ apiKey: accessToken });
   const api = new ComponentsApi(config);
@@ -86,26 +106,26 @@ async function fetchComponent(id: string, accessToken: string) {
   };
 }
 
-type SetData = (data: RecursivePartial<ComponentHydrateResponseData>) => void;
-type SetSettings = (settings: RecursivePartial<Settings>) => void;
-
 export interface EmbedContextProps {
   data: RecursivePartial<ComponentHydrateResponseData>;
   nodes: SerializedNodeWithChildren[];
-  settings: RecursivePartial<Settings>;
+  settings: RecursivePartial<EmbedSettings>;
+  layout: EmbedLayout;
   error?: Error;
-  setData: SetData;
-  setSettings: SetSettings;
-  updateSettings: SetSettings;
+  setData: (data: RecursivePartial<ComponentHydrateResponseData>) => void;
+  updateSettings: (settings: RecursivePartial<EmbedSettings>) => void;
+  setLayout: (layout: EmbedLayout) => void;
 }
 
 export const EmbedContext = createContext<EmbedContextProps>({
   data: {},
   nodes: [],
-  settings: {},
+  settings: { ...defaultSettings },
+  layout: "portal",
+  error: undefined,
   setData: () => {},
-  setSettings: () => {},
   updateSettings: () => {},
+  setLayout: () => {},
 });
 
 export interface EmbedProviderProps {
@@ -119,13 +139,17 @@ export const EmbedProvider = ({
   accessToken,
   children,
 }: EmbedProviderProps) => {
-  const [state, setState] = useState<EmbedContextProps>({
-    data: {},
-    nodes: [],
-    settings: { ...defaultSettings },
-    setData: () => {},
-    setSettings: () => {},
-    updateSettings: () => {},
+  const [state, setState] = useState(() => {
+    return {
+      data: {} as RecursivePartial<ComponentHydrateResponseData>,
+      nodes: [] as SerializedNodeWithChildren[],
+      settings: { ...defaultSettings } as EmbedSettings,
+      layout: "portal" as EmbedLayout,
+      error: undefined,
+      setData: () => {},
+      updateSettings: () => {},
+      setLayout: () => {},
+    };
   });
 
   useEffect(() => {
@@ -144,27 +168,27 @@ export const EmbedProvider = ({
     (data: RecursivePartial<ComponentHydrateResponseData>) => {
       setState((prev) => ({
         ...prev,
-        data,
-      }));
-    },
-    [setState],
-  );
-
-  const setSettings = useCallback(
-    (settings: RecursivePartial<Settings>) => {
-      setState((prev) => ({
-        ...prev,
-        settings,
+        data: Object.assign({}, data),
       }));
     },
     [setState],
   );
 
   const updateSettings = useCallback(
-    (settings: RecursivePartial<Settings>) => {
+    (settings: RecursivePartial<EmbedSettings>) => {
       setState((prev) => ({
         ...prev,
-        settings: { ...prev.settings, ...settings },
+        settings: Object.assign({}, prev.settings, settings),
+      }));
+    },
+    [setState],
+  );
+
+  const setLayout = useCallback(
+    (layout: EmbedLayout) => {
+      setState((prev) => ({
+        ...prev,
+        layout,
       }));
     },
     [setState],
@@ -176,13 +200,20 @@ export const EmbedProvider = ({
         data: state.data,
         nodes: state.nodes,
         settings: state.settings,
+        layout: state.layout,
         error: state.error,
         setData,
-        setSettings,
         updateSettings,
+        setLayout,
       }}
     >
-      <ThemeProvider theme={state.settings.theme === "dark" ? dark : light}>
+      <ThemeProvider
+        theme={
+          state.settings.theme.colorMode === "dark"
+            ? state.settings.theme.dark
+            : state.settings.theme.light
+        }
+      >
         {children}
       </ThemeProvider>
     </EmbedContext.Provider>

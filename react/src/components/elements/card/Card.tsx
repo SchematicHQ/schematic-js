@@ -23,8 +23,8 @@ export const Card = forwardRef<HTMLDivElement | null, CardProps>(
       <StyledCard
         ref={ref}
         className={className}
-        $sectionLayout={settings.sectionLayout}
-        $borderRadius={settings.borderRadius}
+        $sectionLayout={settings.theme?.sectionLayout}
+        $borderRadius={settings.theme?.card?.borderRadius}
       >
         {children}
       </StyledCard>
