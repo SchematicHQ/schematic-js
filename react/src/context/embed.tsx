@@ -23,6 +23,16 @@ const defaultSettings: Settings = {
   borderRadius: 10,
   boxShadow: "none",
   boxPadding: 50,
+  design: {
+    typography: {
+      heading1: {
+        fontSize: 5,
+      },
+      heading2: {
+        fontSize: 20,
+      },
+    },
+  },
 };
 
 /* eslint-disable-next-line @typescript-eslint/no-explicit-any */

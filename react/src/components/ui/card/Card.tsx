@@ -1,6 +1,7 @@
 import { forwardRef } from "react";
 import { useEmbed } from "../../../hooks";
 import { StyledCard } from "./styles";
+import { DesignSettings } from "../../../types";
 
 export interface CardProps {
   children?: React.ReactNode;
@@ -19,6 +20,7 @@ export const Card = forwardRef<HTMLDivElement | null, CardProps>(
 
     const { settings } = useEmbed();
 
+    console.log(settings.design?.typography?.heading1?.fontSize, "@@!!!");
     return (
       <StyledCard
         ref={ref}
@@ -27,6 +29,7 @@ export const Card = forwardRef<HTMLDivElement | null, CardProps>(
         $borderRadius={settings.borderRadius}
         $borderWidth={settings.borderWidth}
         $boxPadding={settings.boxPadding}
+        $design={settings.design as DesignSettings}
       >
         {children}
       </StyledCard>
