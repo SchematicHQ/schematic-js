@@ -4,6 +4,7 @@ import { TEXT_BASE_SIZE } from "../../../const";
 export const StyledCard = styled.div<{
   $sectionLayout?: "merged" | "separate";
   $borderRadius?: number;
+  $color?: string;
 }>`
   box-sizing: border-box;
   font-size: ${TEXT_BASE_SIZE}px;
@@ -15,8 +16,8 @@ export const StyledCard = styled.div<{
   }
 
   > * {
-    padding: ${40 / TEXT_BASE_SIZE}rem ${50 / TEXT_BASE_SIZE}rem;
-    color: ${({ theme }) => theme.text};
+    padding: ${36 / TEXT_BASE_SIZE}rem ${48 / TEXT_BASE_SIZE}rem;
+    color: ${({ theme }) => theme.typography.text.color};
   }
 
   ${({ $sectionLayout = "merged", $borderRadius = 8 }) => {
@@ -25,7 +26,7 @@ export const StyledCard = styled.div<{
 
     if ($sectionLayout === "merged") {
       return css`
-        background: ${({ theme }) => theme.card};
+        background: ${({ theme }) => theme.card.background};
         border-radius: ${borderRadius};
         box-shadow: ${boxShadow};
 
@@ -37,11 +38,11 @@ export const StyledCard = styled.div<{
 
     return css`
       > :not(:last-child) {
-        margin-bottom: 2rem;
+        margin-bottom: 1rem;
       }
 
       > * {
-        background: ${({ theme }) => theme.card};
+        background: ${({ theme }) => theme.card.background};
         border-radius: ${borderRadius};
         box-shadow: ${boxShadow};
       }

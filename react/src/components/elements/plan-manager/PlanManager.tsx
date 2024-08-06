@@ -2,87 +2,75 @@ import { forwardRef, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { TEXT_BASE_SIZE } from "../../../const";
 import { useEmbed } from "../../../hooks";
-import type { RecursivePartial, ElementProps } from "../../../types";
+import type { RecursivePartial, ElementProps, FontStyle } from "../../../types";
 import { Box, Flex, Icon, Text } from "../../ui";
 import { StyledButton } from "./styles";
-
-interface TextDesignProps {
-  isVisible: boolean;
-  fontFamily: string;
-  fontSize: number;
-  fontWeight: number;
-  color: string;
-}
 
 interface DesignProps {
   header: {
     isVisible: boolean;
-    title: TextDesignProps;
-    description: TextDesignProps;
-    price: TextDesignProps;
+    title: {
+      fontStyle?: FontStyle;
+    };
+    description: {
+      isVisible: boolean;
+      fontStyle?: FontStyle;
+    };
+    price: {
+      isVisible: boolean;
+      fontStyle?: FontStyle;
+    };
   };
-  addOns: TextDesignProps;
+  addOns: {
+    isVisible: boolean;
+    fontStyle?: FontStyle;
+    showLabel: boolean;
+  };
   callToAction: {
     isVisible: boolean;
-    size: "sm" | "md" | "lg";
-    color: string;
-    backgroundColor: string;
-    borderColor: string;
   };
 }
+
+const resolveDesignProps = (
+  props: RecursivePartial<DesignProps>,
+): DesignProps => {
+  return {
+    header: {
+      isVisible: props.header?.isVisible ?? true,
+      title: {
+        fontStyle: props.header?.title?.fontStyle,
+      },
+      description: {
+        isVisible: props.header?.description?.isVisible ?? true,
+        fontStyle: props.header?.description?.fontStyle,
+      },
+      price: {
+        isVisible: props.header?.price?.isVisible ?? true,
+        fontStyle: props.header?.price?.fontStyle,
+      },
+    },
+    addOns: {
+      isVisible: props.addOns?.isVisible ?? true,
+      fontStyle: props.addOns?.fontStyle,
+      showLabel: props.addOns?.showLabel ?? true,
+    },
+    callToAction: {
+      isVisible: props.callToAction?.isVisible ?? true,
+    },
+  };
+};
 
 export type PlanManagerProps = ElementProps &
   RecursivePartial<DesignProps> &
   React.HTMLAttributes<HTMLDivElement> & {
-    root?: HTMLElement | null;
+    domNode?: HTMLElement | null;
   };
-
-function resolveDesignProps(props: RecursivePartial<DesignProps>) {
-  return {
-    header: {
-      isVisible: props.header?.isVisible || true,
-      title: {
-        fontFamily: props.header?.title?.fontFamily || "Manrope",
-        fontSize: props.header?.title?.fontSize || 37,
-        fontWeight: props.header?.title?.fontWeight || 800,
-        color: props.header?.title?.color || "#344054",
-      },
-      description: {
-        isVisible: props.header?.description?.isVisible || true,
-        fontFamily: props.header?.description?.fontFamily || "Public Sans",
-        fontSize: props.header?.description?.fontSize || 16,
-        fontWeight: props.header?.description?.fontWeight || 400,
-        color: props.header?.description?.color || "#020202",
-      },
-      price: {
-        isVisible: props.header?.price?.isVisible || true,
-        fontFamily: props.header?.price?.fontFamily || "Inter",
-        fontSize: props.header?.price?.fontSize || 16,
-        fontWeight: props.header?.price?.fontWeight || 500,
-        color: props.header?.price?.color || "#344054",
-      },
-    },
-    addOns: {
-      isVisible: props.addOns?.isVisible || true,
-      fontFamily: props.addOns?.fontFamily || "Manrope",
-      fontSize: props.addOns?.fontSize || 18,
-      fontWeight: props.addOns?.fontWeight || 800,
-      color: props.addOns?.color || "black",
-    },
-    callToAction: {
-      isVisible: props.callToAction?.isVisible || true,
-      size: props.callToAction?.size || "md",
-      color: props.callToAction?.color || "white",
-      backgroundColor: props.callToAction?.backgroundColor || "black",
-    },
-  };
-}
 
 export const PlanManager = forwardRef<HTMLDivElement | null, PlanManagerProps>(
-  ({ className, root, ...props }, ref) => {
-    const designPropsWithDefaults = resolveDesignProps(props);
+  ({ children, className, domNode, ...props }, ref) => {
+    const { header, addOns, callToAction } = resolveDesignProps(props);
 
-    const { data, layout, setLayout } = useEmbed();
+    const { data, settings, layout, setLayout } = useEmbed();
 
     const plans = useMemo(() => {
       return (data.company?.plans || []).map(({ name, description }) => {
@@ -107,7 +95,7 @@ export const PlanManager = forwardRef<HTMLDivElement | null, PlanManagerProps>(
           $gap={`${12 / TEXT_BASE_SIZE}rem`}
           $margin="0 0 3rem"
         >
-          {designPropsWithDefaults.header.isVisible && plan && (
+          {header.isVisible && plan && (
             <Flex
               $justifyContent="space-between"
               $alignItems="center"
@@ -117,47 +105,43 @@ export const PlanManager = forwardRef<HTMLDivElement | null, PlanManagerProps>(
               <div>
                 <Box $margin="0 0 0.75rem">
                   <Text
-                    $font={designPropsWithDefaults.header.title.fontFamily}
-                    $size={`${designPropsWithDefaults.header.title.fontSize / TEXT_BASE_SIZE}rem`}
-                    $weight={`${designPropsWithDefaults.header.title.fontWeight}`}
-                    $color={designPropsWithDefaults.header.title.color}
+                    $font={settings.theme?.typography?.heading1?.fontFamily}
+                    $size={settings.theme?.typography?.heading1?.fontSize}
+                    $weight={settings.theme?.typography?.heading1?.fontWeight}
+                    $color={settings.theme?.typography?.heading1?.color}
                   >
                     {plan.name}
                   </Text>
                 </Box>
 
-                {designPropsWithDefaults.header.description.isVisible &&
-                  plan.description && (
-                    <Text
-                      $font={
-                        designPropsWithDefaults.header.description.fontFamily
-                      }
-                      $size={`${designPropsWithDefaults.header.description.fontSize / TEXT_BASE_SIZE}rem`}
-                      $weight={`${designPropsWithDefaults.header.description.fontWeight}`}
-                      $color={designPropsWithDefaults.header.description.color}
-                    >
-                      {plan.description}
-                    </Text>
-                  )}
-              </div>
-
-              {designPropsWithDefaults.header.price.isVisible &&
-                plan.price! >= 0 && (
+                {header.description.isVisible && plan.description && (
                   <Text
-                    $font={designPropsWithDefaults.header.price.fontFamily}
-                    $size={`${designPropsWithDefaults.header.price.fontSize / TEXT_BASE_SIZE}`}
-                    $weight={`${designPropsWithDefaults.header.price.fontWeight}`}
-                    $color={designPropsWithDefaults.header.price.color}
+                    $font={settings.theme?.typography?.text?.fontFamily}
+                    $size={settings.theme?.typography?.text?.fontSize}
+                    $weight={settings.theme?.typography?.text?.fontWeight}
+                    $color={settings.theme?.typography?.text?.color}
                   >
-                    ${plan.price}/mo
+                    {plan.description}
                   </Text>
                 )}
+              </div>
+
+              {header.price.isVisible && plan.price! >= 0 && (
+                <Text
+                  $font={settings.theme?.typography?.text?.fontFamily}
+                  $size={settings.theme?.typography?.text?.fontSize}
+                  $weight={settings.theme?.typography?.text?.fontWeight}
+                  $color={settings.theme?.typography?.text?.color}
+                >
+                  ${plan.price}/mo
+                </Text>
+              )}
             </Flex>
           )}
 
-          {designPropsWithDefaults.addOns.isVisible && (
+          {addOns.isVisible && (
             <>
-              <Text $size={`${15 / TEXT_BASE_SIZE}rem`} $weight="500">
+              <Text $size={15} $weight={500} $color="#767676">
                 Add-Ons
               </Text>
 
@@ -169,15 +153,11 @@ export const PlanManager = forwardRef<HTMLDivElement | null, PlanManagerProps>(
                     $alignItems="center"
                     $width="100%"
                   >
-                    <Text
-                      $font="Manrope"
-                      $size={`${18 / TEXT_BASE_SIZE}rem`}
-                      $weight="800"
-                    >
+                    <Text $font="Manrope" $size={18} $weight={800}>
                       {addon.name}
                     </Text>
                     {addon.price! >= 0 && (
-                      <Text $weight="500">${addon.price}/mo</Text>
+                      <Text $weight={500}>${addon.price}/mo</Text>
                     )}
                   </Flex>
                 ))}
@@ -186,21 +166,19 @@ export const PlanManager = forwardRef<HTMLDivElement | null, PlanManagerProps>(
           )}
         </Flex>
 
-        {designPropsWithDefaults.callToAction.isVisible && (
+        {callToAction.isVisible && (
           <StyledButton
             onClick={() => {
               if (layout !== "checkout") return;
               setLayout("checkout");
             }}
-            $size={designPropsWithDefaults.callToAction.size}
-            $color={designPropsWithDefaults.callToAction.color}
-            $backgroundColor={
-              designPropsWithDefaults.callToAction.backgroundColor
-            }
+            $color={settings.theme.secondary}
           >
             Change Plan
           </StyledButton>
         )}
+
+        {children}
 
         {layout === "checkout" &&
           createPortal(
@@ -248,8 +226,8 @@ export const PlanManager = forwardRef<HTMLDivElement | null, PlanManagerProps>(
                   <Text
                     as="h1"
                     id="select-plan-dialog-label"
-                    $size="1.5rem"
-                    $weight="800"
+                    $size={24}
+                    $weight={800}
                   >
                     Select plan
                   </Text>
@@ -262,7 +240,7 @@ export const PlanManager = forwardRef<HTMLDivElement | null, PlanManagerProps>(
                         $alignItems="center"
                         $width="100%"
                       >
-                        <Text $size="1.25rem" $weight="800">
+                        <Text $size={20} $weight={800}>
                           {plan.name}
                         </Text>
                         {plan.price! >= 0 && <Text>${plan.price}/mo</Text>}
@@ -272,7 +250,7 @@ export const PlanManager = forwardRef<HTMLDivElement | null, PlanManagerProps>(
                 </Flex>
               </Flex>
             </Box>,
-            root || document.body,
+            domNode || document.body,
           )}
       </div>
     );

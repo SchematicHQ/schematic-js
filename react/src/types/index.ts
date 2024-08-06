@@ -1,4 +1,5 @@
 import * as Craft from "@craftjs/core";
+import type { EmbedThemeSettings } from "../styled";
 
 export type RecursivePartial<T> = {
   [P in keyof T]?: T[P] extends (infer U)[]
@@ -27,26 +28,7 @@ export type SerializedNodeWithChildren = SerializedNode & {
 export type CompressedEditorState = Record<number, number>;
 export type SerializedEditorState = Record<string, SerializedNode>;
 
-interface EmbedThemeColorSettings {
-  primary: string;
-  secondary: string;
-  text: string;
-  link: string;
-  card: string;
-}
-
-export interface EmbedThemeSettings {
-  numberOfColumns: 1 | 2 | 3;
-  sectionLayout: "merged" | "separate";
-  colorMode: "light" | "dark";
-  light: EmbedThemeColorSettings;
-  dark: EmbedThemeColorSettings;
-  card: {
-    borderRadius: number;
-    hasShadow: boolean;
-    padding: number;
-  };
-}
+export type FontStyle = keyof EmbedThemeSettings["typography"];
 
 export interface EmbedSettings {
   theme: EmbedThemeSettings;

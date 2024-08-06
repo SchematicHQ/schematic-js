@@ -6,12 +6,12 @@ import {
   Configuration,
   type ComponentHydrateResponseData,
 } from "../api";
+import type { EmbedThemeSettings } from "../styled";
 import type {
   RecursivePartial,
   // CompressedEditorState,
   SerializedEditorState,
   SerializedNodeWithChildren,
-  EmbedThemeSettings,
   EmbedSettings,
   EmbedLayout,
 } from "../types";
@@ -22,24 +22,63 @@ export const defaultTheme: EmbedThemeSettings = {
   numberOfColumns: 2,
   sectionLayout: "merged",
   colorMode: "light",
-  light: {
-    primary: "#194BFB",
-    secondary: "#000000",
-    text: "#121212",
-    link: "#194BFB",
-    card: "#FFFFFF",
-  },
-  dark: {
-    primary: "#194BFB",
-    secondary: "#8A8A8A",
-    text: "#FFFFFF",
-    link: "#194BFB",
-    card: "#1B1B1B",
-  },
+  primary: "#194BFB",
+  secondary: "#000000",
   card: {
+    background: "#FFFFFF",
     borderRadius: 10,
     hasShadow: true,
     padding: 50,
+  },
+  typography: {
+    heading1: {
+      fontFamily: "Manrope",
+      fontSize: 37,
+      fontWeight: 800,
+      color: "#000000",
+    },
+    heading2: {
+      fontFamily: "Manrope",
+      fontSize: 24,
+      fontWeight: 700,
+      color: "#000000",
+    },
+    heading3: {
+      fontFamily: "Manrope",
+      fontSize: 20,
+      fontWeight: 600,
+      color: "#000000",
+    },
+    heading4: {
+      fontFamily: "Manrope",
+      fontSize: 18,
+      fontWeight: 500,
+      color: "#000000",
+    },
+    heading5: {
+      fontFamily: "Manrope",
+      fontSize: 16,
+      fontWeight: 500,
+      color: "#000000",
+    },
+    heading6: {
+      fontFamily: "Manrope",
+      fontSize: 14,
+      fontWeight: 400,
+      color: "#000000",
+    },
+    text: {
+      fontFamily: "Public Sans",
+      fontSize: 16,
+      fontWeight: 400,
+      color: "#000000",
+    },
+    link: {
+      fontFamily: "Inter",
+      fontSize: 16,
+      fontWeight: 400,
+      color: "#194BFB",
+    },
   },
 };
 
@@ -109,7 +148,7 @@ async function fetchComponent(id: string, accessToken: string) {
 export interface EmbedContextProps {
   data: RecursivePartial<ComponentHydrateResponseData>;
   nodes: SerializedNodeWithChildren[];
-  settings: RecursivePartial<EmbedSettings>;
+  settings: EmbedSettings;
   layout: EmbedLayout;
   error?: Error;
   setData: (data: RecursivePartial<ComponentHydrateResponseData>) => void;
@@ -207,15 +246,7 @@ export const EmbedProvider = ({
         setLayout,
       }}
     >
-      <ThemeProvider
-        theme={
-          state.settings.theme.colorMode === "dark"
-            ? state.settings.theme.dark
-            : state.settings.theme.light
-        }
-      >
-        {children}
-      </ThemeProvider>
+      <ThemeProvider theme={state.settings.theme}>{children}</ThemeProvider>
     </EmbedContext.Provider>
   );
 };

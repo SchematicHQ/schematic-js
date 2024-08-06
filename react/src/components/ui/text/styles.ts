@@ -18,7 +18,7 @@ export const Text = styled.span<TextProps>`
   font-weight: ${({ $weight = 400 }) => $weight};
   line-height: 1.25;
   ${({ $align }) => attr("text-align", $align)};
-  color: ${({ $color, theme }) => $color || theme.text};
+  color: ${({ $color, theme }) => $color || theme.typography.text.color};
 
   &:focus-visible {
     outline: 2px solid ${({ theme }) => theme.primary};

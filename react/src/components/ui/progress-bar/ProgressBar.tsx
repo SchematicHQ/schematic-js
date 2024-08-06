@@ -33,7 +33,12 @@ export const ProgressBar = ({
       $gap={`${16 / TEXT_BASE_SIZE}rem`}
       {...props}
     >
-      <Flex $alignItems="center" $width={`${barWidth}`} $position="relative">
+      <Flex
+        $position="relative"
+        $alignItems="center"
+        $width={`${barWidth}`}
+        $maxWidth="100%"
+      >
         <Flex
           $position="relative"
           $overflow="hidden"
@@ -64,7 +69,7 @@ export const ProgressBar = ({
             $borderRadius={`${8 / TEXT_BASE_SIZE}rem`}
             $boxShadow="0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)"
           >
-            <Text $size={`${12 / TEXT_BASE_SIZE}rem`} $weight="500">
+            <Text $size={12} $weight={500}>
               {progress}%
             </Text>
           </Box>
@@ -76,7 +81,7 @@ export const ProgressBar = ({
         </Box> */}
       </Flex>
       {total !== 0 && (
-        <Text $size={`${14 / TEXT_BASE_SIZE}rem`} $weight="500">
+        <Text $size={14} $weight={500}>
           {value}/{total}
         </Text>
       )}

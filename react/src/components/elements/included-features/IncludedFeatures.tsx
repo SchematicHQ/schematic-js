@@ -94,12 +94,7 @@ export const IncludedFeatures = forwardRef<
   return (
     <div ref={ref} className={className}>
       <Box $margin="0 0 1.5rem">
-        <Text
-          $font="Inter"
-          $size={`${15 / TEXT_BASE_SIZE}rem`}
-          $weight="500"
-          $color="#767676"
-        >
+        <Text $font="Inter" $size={15} $weight={500} $color="#767676">
           {designPropsWithDefaults.title.text}
         </Text>
       </Box>
@@ -129,8 +124,8 @@ export const IncludedFeatures = forwardRef<
                   <Flex $alignItems="center">
                     <Text
                       $font="Public Sans"
-                      $size={`${18 / TEXT_BASE_SIZE}rem`}
-                      $weight="500"
+                      $size={18}
+                      $weight={500}
                       $align="center"
                     >
                       {feature.name}
@@ -145,7 +140,7 @@ export const IncludedFeatures = forwardRef<
                   value={usage || 0}
                   total={allocation}
                   color="blue"
-                  barWidth="140px"
+                  barWidth="128px"
                 />
               )}
 
@@ -156,7 +151,7 @@ export const IncludedFeatures = forwardRef<
                       <Text
                         as={Box}
                         $font="Public Sans"
-                        $weight="500"
+                        $weight={500}
                         $align="right"
                       >
                         {usage} {feature.featureType} used
@@ -168,7 +163,7 @@ export const IncludedFeatures = forwardRef<
                       <Text
                         as={Box}
                         $font="Public Sans"
-                        $size={`${14 / TEXT_BASE_SIZE}rem`}
+                        $size={14}
                         $color="#8A8A8A"
                         $align="right"
                       >

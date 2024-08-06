@@ -1,19 +1,23 @@
 import styled, { css } from "styled-components";
-import { lighten, darken } from "../../../utils";
+import { hexToHSL, lighten, darken } from "../../../utils";
 import { Button } from "../../ui/button";
 
 export const StyledButton = styled(Button)<{
   $size?: "sm" | "md" | "lg";
   $color?: string;
-  $backgroundColor?: string;
 }>`
   font-family: "Public Sans", sans-serif;
   font-weight: 500;
   text-align: center;
   width: 100%;
-  color: ${({ $color, theme }) => $color || theme.text};
-  ${({ $backgroundColor, theme }) => {
-    const color = $backgroundColor || theme.primary;
+  color: ${({ $color, theme }) => {
+    const { l } = hexToHSL($color || theme.secondary);
+    const color = l > 50 ? "#000000" : "#FFFFFF";
+    return color;
+  }};
+
+  ${({ $color, theme }) => {
+    const color = $color || theme.primary;
     return css`
       background-color: ${color};
       border-color: ${color};
@@ -21,8 +25,8 @@ export const StyledButton = styled(Button)<{
   }}
 
   &:hover {
-    ${({ $backgroundColor, theme }) => {
-      const specified = $backgroundColor || theme.primary;
+    ${({ $color, theme }) => {
+      const specified = $color || theme.primary;
       const lightened = lighten(specified, 15);
       const color = specified === lightened ? darken(specified, 15) : lightened;
 

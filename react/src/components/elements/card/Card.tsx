@@ -25,6 +25,7 @@ export const Card = forwardRef<HTMLDivElement | null, CardProps>(
         className={className}
         $sectionLayout={settings.theme?.sectionLayout}
         $borderRadius={settings.theme?.card?.borderRadius}
+        $color={settings.theme?.typography?.text?.color}
       >
         {children}
       </StyledCard>

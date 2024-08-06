@@ -1,9 +1,9 @@
 import { createElement } from "react";
 import type { SerializedNodeWithChildren } from "../../types";
-import { Card } from "../../components/elements";
 import {
-  IncludedFeatures,
+  Card,
   PlanManager,
+  IncludedFeatures,
   UpcomingBill,
 } from "../../components/elements";
 
@@ -43,14 +43,13 @@ export function createRenderer(options?: RenderOptions) {
       return null;
     }
 
-    const { className, style, ...rest } = props;
+    const { className, ...rest } = props;
     const resolvedProps = component === "div" ? rest : props;
     const resolvedChildren = children.map(renderNode);
     return createElement(
       component,
       {
         className,
-        style,
         ...(component !== "div" && { resolvedProps }),
         ...(Object.keys(custom).length > 0 && { custom }),
         key: index,
