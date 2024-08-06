@@ -6,7 +6,7 @@ export const StyledCard = styled.div<{
   $sectionLayout?: "merged" | "separate";
   $borderRadius?: number;
   $borderWidth?: number;
-  $boxPadding?: number;
+  $padding?: number;
   $design?: DesignSettings;
 }>`
   box-sizing: border-box;

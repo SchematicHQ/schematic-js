@@ -42,7 +42,7 @@ export interface Settings {
   borderColor: string;
   borderRadius: number;
   boxShadow: string;
-  boxPadding: number;
+  padding: number;
   design: DesignSettings;
 }
 
