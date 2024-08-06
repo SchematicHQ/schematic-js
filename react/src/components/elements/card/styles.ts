@@ -1,5 +1,6 @@
 import styled, { css } from "styled-components";
 import { TEXT_BASE_SIZE } from "../../../const";
+import { DesignSettings } from "../../../types";
 
 export const StyledCard = styled.div<{
   $sectionLayout?: "merged" | "separate";
