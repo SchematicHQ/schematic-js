@@ -21,10 +21,10 @@ import { mapValues } from "../runtime";
 export interface ComponentResponseData {
   /**
    *
-   * @type {Array<number>}
+   * @type {{ [key: string]: number; }}
    * @memberof ComponentResponseData
    */
-  ast: Array<number>;
+  ast?: { [key: string]: number };
   /**
    *
    * @type {Date}
@@ -69,7 +69,6 @@ export interface ComponentResponseData {
 export function instanceOfComponentResponseData(
   value: object,
 ): value is ComponentResponseData {
-  if (!("ast" in value) || value["ast"] === undefined) return false;
   if (!("createdAt" in value) || value["createdAt"] === undefined) return false;
   if (!("id" in value) || value["id"] === undefined) return false;
   if (!("name" in value) || value["name"] === undefined) return false;
@@ -93,7 +92,7 @@ export function ComponentResponseDataFromJSONTyped(
     return json;
   }
   return {
-    ast: json["ast"],
+    ast: json["ast"] == null ? undefined : json["ast"],
     createdAt: new Date(json["created_at"]),
     id: json["id"],
     name: json["name"],

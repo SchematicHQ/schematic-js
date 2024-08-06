@@ -9,7 +9,6 @@ import {
 import type { EmbedThemeSettings } from "../styled";
 import type {
   RecursivePartial,
-  // CompressedEditorState,
   SerializedEditorState,
   SerializedNodeWithChildren,
   EmbedSettings,
@@ -126,8 +125,7 @@ async function fetchComponent(id: string, accessToken: string) {
   const { data } = response;
 
   if (data.component?.ast) {
-    // ast from response is actually an object with keys as numbers
-    /* const compressed = data.component.ast as CompressedEditorState;
+    /* const compressed = data.component.ast;
     const json = inflate(Uint8Array.from(Object.values(compressed)), {
       to: "string",
     }); */
