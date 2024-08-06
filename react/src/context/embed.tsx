@@ -18,7 +18,7 @@ import type {
 const defaultSettings: Settings = {
   theme: "light",
   sectionLayout: "merged",
-  borderWidth: 0,
+  borderWidth: 1,
   borderColor: "#E9E9E9",
   borderRadius: 10,
   boxShadow: "none",
