@@ -35,7 +35,31 @@ export interface Settings {
   borderRadius: number;
   boxShadow: string;
   boxPadding: number;
+  design: DesignSettings;
 }
+
+export interface DesignSettings {
+  typography: TypographyObject;
+}
+
+export interface TypographyStyles {
+  fontSize: number;
+}
+
+export type TypographyTypes =
+  | "heading1"
+  | "heading2"
+  | "heading3"
+  | "heading4"
+  | "heading5"
+  | "heading6"
+  | "text"
+  | "link";
+
+export type TypographyObject = {
+  heading1: TypographyStyles;
+  heading2: TypographyStyles;
+};
 
 export interface ElementProps {
   children?: React.ReactNode;
