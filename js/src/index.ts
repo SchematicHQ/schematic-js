@@ -1,8 +1,6 @@
 import * as uuid from "uuid";
 
-import { fetchPolyfill } from "./fetch";
-
-const fetcher = fetch ?? fetchPolyfill;
+import "cross-fetch/polyfill";
 
 const anonymousIdKey = "schematicId";
 export type EventType = "identify" | "track";
@@ -138,7 +136,7 @@ export class Schematic {
     }
 
     const requestUrl = `${this.apiUrl}/flags/${key}/check`;
-    return fetcher(requestUrl, {
+    return fetch(requestUrl, {
       method: "POST",
       headers: {
         "X-Schematic-Api-Key": this.apiKey,
@@ -169,7 +167,7 @@ export class Schematic {
 
     const requestUrl = `${this.apiUrl}/flags/check`;
     const requestBody = JSON.stringify(context);
-    return fetcher(requestUrl, {
+    return fetch(requestUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json;charset=UTF-8",
@@ -303,7 +301,7 @@ export class Schematic {
     const payload = JSON.stringify(event);
 
     try {
-      await fetcher(captureUrl, {
+      await fetch(captureUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json;charset=UTF-8",

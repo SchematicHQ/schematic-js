@@ -4,6 +4,7 @@
   "module": "dist/schematic.esm.js",
   "author": "Ben Papillon <ben@schematichq.com>",
   "dependencies": {
+    "cross-fetch": "^4.0.0",
     "uuid": "^9.0.0"
   },
   "devDependencies": {
