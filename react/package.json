@@ -53,7 +53,7 @@
   "types": "dist/schematic-react.d.ts",
   "version": "0.2.0-rc.0",
   "dependencies": {
-    "@schematichq/schematic-js": "^0.1.12",
+    "@schematichq/schematic-js": "^0.1.13",
     "pako": "^2.1.0",
     "styled-components": "^6.1.12"
   },
