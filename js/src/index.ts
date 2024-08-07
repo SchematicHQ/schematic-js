@@ -1,5 +1,7 @@
 import * as uuid from "uuid";
 
+import "cross-fetch/polyfill";
+
 const anonymousIdKey = "schematicId";
 export type EventType = "identify" | "track";
 
