@@ -83,6 +83,21 @@ export const defaultTheme: EmbedThemeSettings = {
 
 export const defaultSettings: EmbedSettings = {
   theme: defaultTheme,
+  // borderWidth: 1,
+  // borderColor: "#E9E9E9",
+  // borderRadius: 10,
+  // boxShadow: "none",
+  // padding: 50,
+  // design: {
+  //   typography: {
+  //     heading1: {
+  //       fontSize: 5,
+  //     },
+  //     heading2: {
+  //       fontSize: 20,
+  //     },
+  //   },
+  // },
 };
 
 /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
