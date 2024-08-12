@@ -1,6 +1,11 @@
 index.ts
 models/ApiError.ts
 models/BillingPlan.ts
+models/BillingPriceResponseData.ts
+models/BillingProductDetailResponseData.ts
+models/BillingSubscriptionResponseData.ts
+models/ChangeSubscriptionRequestBody.ts
+models/ChangeSubscriptionWebResponse.ts
 models/CompanyDetailResponseData.ts
 models/ComponentHydrateResponseData.ts
 models/ComponentResponseData.ts
@@ -15,6 +20,8 @@ models/FeatureUsageDetailResponseData.ts
 models/FeatureUsageResponseData.ts
 models/FlagDetailResponseData.ts
 models/HydrateComponentResponse.ts
+models/ListActivePlansResponse.ts
+models/PlanDetailResponseData.ts
 models/PlanResponseData.ts
 models/PreviewObject.ts
 models/RuleConditionDetailResponseData.ts
