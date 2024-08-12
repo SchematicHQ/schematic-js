@@ -31,6 +31,12 @@ import {
   EntityTraitDetailResponseDataFromJSONTyped,
   EntityTraitDetailResponseDataToJSON,
 } from "./EntityTraitDetailResponseData";
+import type { BillingPlan } from "./BillingPlan";
+import {
+  BillingPlanFromJSON,
+  BillingPlanFromJSONTyped,
+  BillingPlanToJSON,
+} from "./BillingPlan";
 
 /**
  *
@@ -94,10 +100,10 @@ export interface CompanyDetailResponseData {
   name: string;
   /**
    *
-   * @type {PreviewObject}
+   * @type {BillingPlan}
    * @memberof CompanyDetailResponseData
    */
-  plan?: PreviewObject;
+  plan?: BillingPlan;
   /**
    *
    * @type {Array<PreviewObject>}
@@ -171,8 +177,7 @@ export function CompanyDetailResponseDataFromJSONTyped(
       json["last_seen_at"] == null ? undefined : new Date(json["last_seen_at"]),
     logoUrl: json["logo_url"] == null ? undefined : json["logo_url"],
     name: json["name"],
-    plan:
-      json["plan"] == null ? undefined : PreviewObjectFromJSON(json["plan"]),
+    plan: json["plan"] == null ? undefined : BillingPlanFromJSON(json["plan"]),
     plans: (json["plans"] as Array<any>).map(PreviewObjectFromJSON),
     traits: json["traits"] == null ? undefined : json["traits"],
     updatedAt: new Date(json["updated_at"]),
@@ -201,7 +206,7 @@ export function CompanyDetailResponseDataToJSON(
         : (value["lastSeenAt"] as any).toISOString(),
     logo_url: value["logoUrl"],
     name: value["name"],
-    plan: PreviewObjectToJSON(value["plan"]),
+    plan: BillingPlanToJSON(value["plan"]),
     plans: (value["plans"] as Array<any>).map(PreviewObjectToJSON),
     traits: value["traits"],
     updated_at: value["updatedAt"].toISOString(),
