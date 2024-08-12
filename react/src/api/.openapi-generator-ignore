@@ -4,6 +4,7 @@ models/**
 
 # Specifically generate only these model files
 !models/ApiError.ts
+!models/BillingPlan.ts
 !models/CompanyDetailResponseData.ts
 !models/ComponentHydrateResponseData.ts
 !models/ComponentResponseData.ts

@@ -21,12 +21,6 @@ import { mapValues } from "../runtime";
 export interface PlanResponseData {
   /**
    *
-   * @type {string}
-   * @memberof PlanResponseData
-   */
-  audienceType: string;
-  /**
-   *
    * @type {Date}
    * @memberof PlanResponseData
    */
@@ -75,8 +69,6 @@ export interface PlanResponseData {
 export function instanceOfPlanResponseData(
   value: object,
 ): value is PlanResponseData {
-  if (!("audienceType" in value) || value["audienceType"] === undefined)
-    return false;
   if (!("createdAt" in value) || value["createdAt"] === undefined) return false;
   if (!("description" in value) || value["description"] === undefined)
     return false;
@@ -100,7 +92,6 @@ export function PlanResponseDataFromJSONTyped(
     return json;
   }
   return {
-    audienceType: json["audience_type"],
     createdAt: new Date(json["created_at"]),
     description: json["description"],
     icon: json["icon"],
@@ -116,7 +107,6 @@ export function PlanResponseDataToJSON(value?: PlanResponseData | null): any {
     return value;
   }
   return {
-    audience_type: value["audienceType"],
     created_at: value["createdAt"].toISOString(),
     description: value["description"],
     icon: value["icon"],
