@@ -1,3 +1,3 @@
 /* tslint:disable */
-
-export * from "./ComponentsApi";
+/* eslint-disable */
+export * from "./CheckoutApi";

@@ -25,6 +25,12 @@ import {
   FeatureUsageDetailResponseDataFromJSONTyped,
   FeatureUsageDetailResponseDataToJSON,
 } from "./FeatureUsageDetailResponseData";
+import type { StripeEmbedInfo } from "./StripeEmbedInfo";
+import {
+  StripeEmbedInfoFromJSON,
+  StripeEmbedInfoFromJSONTyped,
+  StripeEmbedInfoToJSON,
+} from "./StripeEmbedInfo";
 import type { CompanyDetailResponseData } from "./CompanyDetailResponseData";
 import {
   CompanyDetailResponseDataFromJSON,
@@ -56,6 +62,12 @@ export interface ComponentHydrateResponseData {
    * @memberof ComponentHydrateResponseData
    */
   featureUsage?: FeatureUsageDetailResponseData;
+  /**
+   *
+   * @type {StripeEmbedInfo}
+   * @memberof ComponentHydrateResponseData
+   */
+  stripeEmbed?: StripeEmbedInfo;
 }
 
 /**
@@ -93,6 +105,10 @@ export function ComponentHydrateResponseDataFromJSONTyped(
       json["feature_usage"] == null
         ? undefined
         : FeatureUsageDetailResponseDataFromJSON(json["feature_usage"]),
+    stripeEmbed:
+      json["stripe_embed"] == null
+        ? undefined
+        : StripeEmbedInfoFromJSON(json["stripe_embed"]),
   };
 }
 
@@ -106,5 +122,6 @@ export function ComponentHydrateResponseDataToJSON(
     company: CompanyDetailResponseDataToJSON(value["company"]),
     component: ComponentResponseDataToJSON(value["component"]),
     feature_usage: FeatureUsageDetailResponseDataToJSON(value["featureUsage"]),
+    stripe_embed: StripeEmbedInfoToJSON(value["stripeEmbed"]),
   };
 }
