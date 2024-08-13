@@ -46,7 +46,7 @@
     "clean": "rm -rf dist",
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --fix",
-    "openapi": "npx openapi-generator-cli generate -c openapi-config.yaml",
+    "openapi": "rm -rf src/api/ && npx openapi-generator-cli generate -c openapi-config.yaml && prettier --write \"src/api/**/*.{ts,tsx}\"",
     "test": "jest --config jest.config.js",
     "tsc": "npx tsc"
   },

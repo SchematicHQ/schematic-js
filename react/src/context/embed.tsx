@@ -2,7 +2,7 @@ import { createContext, useCallback, useEffect, useState } from "react";
 import { inflate } from "pako";
 import { ThemeProvider } from "styled-components";
 import {
-  ComponentsApi,
+  CheckoutApi,
   Configuration,
   type ComponentHydrateResponseData,
 } from "../api";
@@ -60,7 +60,7 @@ async function fetchComponent(id: string, accessToken: string) {
   const settings = { ...defaultSettings };
   const nodes: SerializedNodeWithChildren[] = [];
   const config = new Configuration({ apiKey: accessToken });
-  const api = new ComponentsApi(config);
+  const api = new CheckoutApi(config);
   const response = await api.hydrateComponent({ componentId: id });
   const { data } = response;
 
