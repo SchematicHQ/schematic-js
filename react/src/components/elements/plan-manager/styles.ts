@@ -1,19 +1,29 @@
 import styled, { css } from "styled-components";
-import { lighten, darken } from "../../../utils";
-import { Button as UIButton } from "../../ui/button";
+import { hexToHSL, lighten, darken } from "../../../utils";
+import { Button, Text } from "../../ui";
 
-export const Button = styled(UIButton)<{
+export const StyledButton = styled(Button)<{
   $size?: "sm" | "md" | "lg";
-  $color?: string;
-  $backgroundColor?: string;
+  $color?: "primary" | "secondary" | "tertiary";
 }>`
   font-family: "Public Sans", sans-serif;
   font-weight: 500;
   text-align: center;
   width: 100%;
-  color: ${({ $color, theme }) => $color || theme.text};
-  ${({ $backgroundColor, theme }) => {
-    const color = $backgroundColor || theme.button;
+  ${({ $color = "primary", theme }) => {
+    const { l } = hexToHSL(theme[$color]);
+    const color = l > 50 ? "#000000" : "#FFFFFF";
+    return css`
+      color: ${color};
+
+      ${Text} {
+        color: ${color};
+      }
+    `;
+  }};
+
+  ${({ $color = "primary", theme }) => {
+    const color = theme[$color];
     return css`
       background-color: ${color};
       border-color: ${color};
@@ -21,11 +31,10 @@ export const Button = styled(UIButton)<{
   }}
 
   &:hover {
-    ${({ $backgroundColor, theme }) => {
-      const specified = $backgroundColor || theme.button;
-      const lightened = lighten(specified, 12.5);
-      const color =
-        specified === lightened ? darken(specified, 12.5) : lightened;
+    ${({ $color = "primary", theme }) => {
+      const specified = theme[$color];
+      const lightened = lighten(specified, 15);
+      const color = specified === lightened ? darken(specified, 15) : lightened;
 
       return css`
         background-color: ${color};

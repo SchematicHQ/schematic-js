@@ -1,12 +1,14 @@
+import { type ConfigurationParameters } from "../../api";
 import { EmbedProvider } from "../../context";
 import { ComponentTree } from "./ComponentTree";
 
 export interface EmbedProps {
   accessToken?: string;
   id?: string;
+  apiConfig?: ConfigurationParameters;
 }
 
-export const SchematicEmbed = ({ id, accessToken }: EmbedProps) => {
+export const SchematicEmbed = ({ id, accessToken, apiConfig }: EmbedProps) => {
   if (accessToken?.length === 0) {
     return <div>Please provide an access token.</div>;
   }
@@ -21,7 +23,7 @@ export const SchematicEmbed = ({ id, accessToken }: EmbedProps) => {
   }
 
   return (
-    <EmbedProvider id={id} accessToken={accessToken}>
+    <EmbedProvider id={id} accessToken={accessToken} apiConfig={apiConfig}>
       <ComponentTree />
     </EmbedProvider>
   );

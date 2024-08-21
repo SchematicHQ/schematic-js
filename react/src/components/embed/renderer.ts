@@ -1,13 +1,22 @@
 import { createElement } from "react";
 import type { SerializedNodeWithChildren } from "../../types";
-import { IncludedFeatures, PlanManager } from "../../components/elements";
-import { Card } from "../../components/ui";
+import {
+  Card,
+  PlanManager,
+  IncludedFeatures,
+  UpcomingBill,
+  PaymentMethod,
+  MeteredFeatures,
+} from "../../components/elements";
 
 /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
 const components: Record<string, React.FC<any> | undefined> = {
   Card,
-  IncludedFeatures,
   PlanManager,
+  IncludedFeatures,
+  UpcomingBill,
+  PaymentMethod,
+  MeteredFeatures,
 };
 
 interface RenderOptions {
@@ -38,13 +47,14 @@ export function createRenderer(options?: RenderOptions) {
       return null;
     }
 
-    const { className, style, ...rootProps } = props;
-    const resolvedProps = node.id === "ROOT" ? rootProps : props;
+    const { className, ...rest } = props;
+    const resolvedProps = component === "div" ? rest : props;
     const resolvedChildren = children.map(renderNode);
     return createElement(
       component,
       {
-        ...resolvedProps,
+        className,
+        ...(component !== "div" && { resolvedProps }),
         ...(Object.keys(custom).length > 0 && { custom }),
         key: index,
       },

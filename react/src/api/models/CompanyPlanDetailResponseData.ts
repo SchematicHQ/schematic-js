@@ -19,6 +19,12 @@ import {
   FeatureDetailResponseDataFromJSONTyped,
   FeatureDetailResponseDataToJSON,
 } from "./FeatureDetailResponseData";
+import type { PlanEntitlementResponseData } from "./PlanEntitlementResponseData";
+import {
+  PlanEntitlementResponseDataFromJSON,
+  PlanEntitlementResponseDataFromJSONTyped,
+  PlanEntitlementResponseDataToJSON,
+} from "./PlanEntitlementResponseData";
 import type { BillingProductDetailResponseData } from "./BillingProductDetailResponseData";
 import {
   BillingProductDetailResponseDataFromJSON,
@@ -68,6 +74,12 @@ export interface CompanyPlanDetailResponseData {
    * @memberof CompanyPlanDetailResponseData
    */
   description: string;
+  /**
+   *
+   * @type {Array<PlanEntitlementResponseData>}
+   * @memberof CompanyPlanDetailResponseData
+   */
+  entitlements: Array<PlanEntitlementResponseData>;
   /**
    *
    * @type {Array<FeatureDetailResponseData>}
@@ -124,6 +136,8 @@ export function instanceOfCompanyPlanDetailResponseData(
   if (!("current" in value) || value["current"] === undefined) return false;
   if (!("description" in value) || value["description"] === undefined)
     return false;
+  if (!("entitlements" in value) || value["entitlements"] === undefined)
+    return false;
   if (!("features" in value) || value["features"] === undefined) return false;
   if (!("icon" in value) || value["icon"] === undefined) return false;
   if (!("id" in value) || value["id"] === undefined) return false;
@@ -158,6 +172,9 @@ export function CompanyPlanDetailResponseDataFromJSONTyped(
     createdAt: new Date(json["created_at"]),
     current: json["current"],
     description: json["description"],
+    entitlements: (json["entitlements"] as Array<any>).map(
+      PlanEntitlementResponseDataFromJSON,
+    ),
     features: (json["features"] as Array<any>).map(
       FeatureDetailResponseDataFromJSON,
     ),
@@ -185,6 +202,9 @@ export function CompanyPlanDetailResponseDataToJSON(
     created_at: value["createdAt"].toISOString(),
     current: value["current"],
     description: value["description"],
+    entitlements: (value["entitlements"] as Array<any>).map(
+      PlanEntitlementResponseDataToJSON,
+    ),
     features: (value["features"] as Array<any>).map(
       FeatureDetailResponseDataToJSON,
     ),

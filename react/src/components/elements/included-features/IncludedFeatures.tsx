@@ -1,186 +1,64 @@
-import { useMemo, useState } from "react";
-import { type FeatureUsageResponseData } from "../../../api";
+import { forwardRef, useMemo } from "react";
 import { useEmbed } from "../../../hooks";
+import { type FontStyle } from "../../../context";
 import type { RecursivePartial, ElementProps } from "../../../types";
-import {
-  Box,
-  Button,
-  Flex,
-  Icon,
-  IconRound,
-  ProgressBar,
-  Text,
-  type IconNameTypes,
-} from "../../ui";
+import { Box, Flex, IconRound, Text, type IconNameTypes } from "../../ui";
 
 interface DesignProps {
-  name?: {
+  header: {
+    isVisible: boolean;
+    fontStyle: FontStyle;
     text: string;
-    style: {
-      fontFamily: string;
-      fontSize: number;
-      fontWeight: number;
-      color: string;
-    };
   };
-  limits?: {
+  icons: {
     isVisible: boolean;
+    fontStyle: FontStyle;
+    style: "light" | "dark";
   };
-  usage?: {
+  entitlement: {
     isVisible: boolean;
+    fontStyle: FontStyle;
   };
-  count?: number;
+  usage: {
+    isVisible: boolean;
+    fontStyle: FontStyle;
+  };
 }
 
-export type IncludedFeaturesProps = ElementProps &
-  RecursivePartial<DesignProps> &
-  React.HTMLAttributes<HTMLDivElement>;
-
-function resolveDesignProps(props: RecursivePartial<DesignProps>) {
+function resolveDesignProps(props: RecursivePartial<DesignProps>): DesignProps {
   return {
-    name: {
-      text: props.name?.text || "Included features",
-      style: {
-        fontFamily: props.name?.style?.fontFamily || "Inter",
-        fontSize: props.name?.style?.fontSize || 16,
-        fontWeight: props.name?.style?.fontWeight || 500,
-        color: props.name?.style?.color || "#000000",
-      },
+    header: {
+      isVisible: props.header?.isVisible ?? true,
+      fontStyle: props.header?.fontStyle ?? "heading4",
+      text: props.header?.text ?? "Included features",
     },
-    limits: {
-      isVisible: props.limits?.isVisible || true,
+    icons: {
+      isVisible: props.icons?.isVisible ?? true,
+      fontStyle: props.icons?.fontStyle ?? "heading3",
+      style: props.icons?.style ?? "light",
+    },
+    entitlement: {
+      isVisible: props.entitlement?.isVisible ?? true,
+      fontStyle: props.entitlement?.fontStyle ?? "heading5",
     },
     usage: {
-      isVisible: props.usage?.isVisible || true,
+      isVisible: props.usage?.isVisible ?? true,
+      fontStyle: props.usage?.fontStyle ?? "heading6",
     },
-    count: props.count || 3,
   };
 }
 
-const LimitFeature = ({
-  feature,
-  allocation,
-  usage,
-}: RecursivePartial<FeatureUsageResponseData>) => {
-  if (!feature) {
-    return null;
-  }
+export type IncludedFeaturesProps = DesignProps;
 
-  return (
-    <Flex $justifyContent="space-between" $margin="0 0 1.5rem">
-      <Flex $gap={`${16 / 16}rem`}>
-        <IconRound name={feature.icon as IconNameTypes} size="sm" />
-        <Flex $alignItems="center">
-          <Text
-            $font="Public Sans"
-            $size={`${18 / 16}rem`}
-            $weight="500"
-            $align="center"
-          >
-            {feature.name}
-          </Text>
-        </Flex>
-      </Flex>
-      {typeof allocation === "number" && (
-        <ProgressBar
-          progress={((usage || 0) / allocation) * 100}
-          value={usage || 0}
-          total={allocation}
-          color="blue"
-          barWidth="140px"
-        />
-      )}
-    </Flex>
-  );
-};
+export const IncludedFeatures = forwardRef<
+  HTMLDivElement | null,
+  ElementProps &
+    RecursivePartial<DesignProps> &
+    React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...rest }, ref) => {
+  const props = resolveDesignProps(rest);
 
-const UsageFeature = ({
-  feature,
-  usage,
-}: RecursivePartial<FeatureUsageResponseData>) => {
-  if (!feature) {
-    return null;
-  }
-
-  return (
-    <Flex $justifyContent="space-between" $margin="0 0 1.5rem">
-      <Flex $gap={`${16 / 16}rem`}>
-        <IconRound name={feature.icon as IconNameTypes} size="sm" />
-        <Flex $alignItems="center">
-          <Text
-            $font="Public Sans"
-            $size={`${18 / 16}rem`}
-            $weight="500"
-            $align="center"
-          >
-            {feature.name}
-          </Text>
-        </Flex>
-      </Flex>
-      <Flex $alignItems="center">
-        <Text as={Box} $font="Public Sans" $weight="500" $align="right">
-          {usage} {feature.featureType} used
-        </Text>
-        {/**
-          * @TODO: resolve date
-          *
-        <Text
-          as={Box}
-          $font="Public Sans"
-          $size={`${14 / 16}rem`}
-          $color="#8A8A8A"
-          $align="right"
-        >
-          Resets {toMonthDay(date)}
-        </Text>
-        */}
-      </Flex>
-    </Flex>
-  );
-};
-
-const AddonFeature = ({
-  feature,
-}: RecursivePartial<FeatureUsageResponseData>) => {
-  if (!feature) {
-    return null;
-  }
-
-  return (
-    <Flex $justifyContent="space-between" $margin="0 0 1.5rem">
-      <Flex $gap={`${16 / 16}rem`}>
-        {feature.icon && (
-          <IconRound name={feature.icon as IconNameTypes} size="sm" />
-        )}
-        <Flex $alignItems="center">
-          <Text
-            $font="Public Sans"
-            $size={`${18 / 16}rem`}
-            $weight="500"
-            $align="center"
-          >
-            {feature.name}
-          </Text>
-        </Flex>
-      </Flex>
-    </Flex>
-  );
-};
-
-export const IncludedFeatures = ({
-  className,
-  ...props
-}: IncludedFeaturesProps) => {
-  const designPropsWithDefaults = resolveDesignProps(props);
-
-  const { data } = useEmbed();
-
-  const [numVisible, setNumVisible] = useState(designPropsWithDefaults.count);
-
-  const isExpanded = useMemo(
-    () => numVisible > designPropsWithDefaults.count,
-    [numVisible, designPropsWithDefaults.count],
-  );
+  const { data, settings } = useEmbed();
 
   const features = useMemo(() => {
     return (data.featureUsage?.features || []).map(
@@ -210,58 +88,139 @@ export const IncludedFeatures = ({
     );
   }, [data.featureUsage]);
 
-  const resize = () => {
-    setNumVisible((prev) =>
-      prev > designPropsWithDefaults.count
-        ? designPropsWithDefaults.count
-        : features.length,
-    );
-  };
-
   return (
-    <div className={className}>
-      <Box $margin="0 0 1.5rem">
-        <Text
-          $font="Inter"
-          $size={`${15 / 16}rem`}
-          $weight="500"
-          $color="#767676"
-        >
-          {designPropsWithDefaults.name.text}
-        </Text>
-      </Box>
-
-      {features
-        .slice(0, numVisible)
-        .reduce((acc: React.ReactElement[], feature, index) => {
-          if (feature.allocationType === "boolean") {
-            return [...acc, <AddonFeature key={index} {...feature} />];
-          }
-
-          if (
-            feature.allocationType === "numeric" ||
-            feature.allocationType === "trait" ||
-            feature.allocationType === "unlimited"
-          ) {
-            if (typeof feature.allocation === "number") {
-              return [...acc, <LimitFeature key={index} {...feature} />];
+    <Flex ref={ref} className={className} $flexDirection="column" $gap="1.5rem">
+      {props.header.isVisible && (
+        <Box>
+          <Text
+            $font={settings.theme.typography[props.header.fontStyle].fontFamily}
+            $size={settings.theme.typography[props.header.fontStyle].fontSize}
+            $weight={
+              settings.theme.typography[props.header.fontStyle].fontWeight
             }
+            $color={settings.theme.typography[props.header.fontStyle].color}
+          >
+            {props.header.text}
+          </Text>
+        </Box>
+      )}
 
-            return [...acc, <UsageFeature key={index} {...feature} />];
+      {features.reduce(
+        (
+          acc: React.ReactElement[],
+          { allocation, allocationType, feature, usage },
+          index,
+        ) => {
+          if (!allocationType) {
+            return acc;
           }
 
-          return acc;
-        }, [])}
+          return [
+            ...acc,
+            <Flex
+              key={index}
+              $flexWrap="wrap"
+              $justifyContent="space-between"
+              $alignItems="center"
+              $gap="1rem"
+            >
+              <Flex $flexShrink="0" $gap="1rem">
+                {props.icons.isVisible && feature?.icon && (
+                  <IconRound
+                    name={feature.icon as IconNameTypes}
+                    size="sm"
+                    colors={[
+                      settings.theme.card.background,
+                      settings.theme.primary,
+                    ]}
+                  />
+                )}
 
-      <Flex $alignItems="center" $gap={`${4 / 16}rem`}>
-        <Icon
-          name={isExpanded ? "chevron-up" : "chevron-down"}
-          style={{ fontSize: "1.25rem", color: "#D0D0D0" }}
-        />
-        <Button onClick={resize} color="blue" variant="link">
-          <Text $weight="500">See all</Text>
-        </Button>
-      </Flex>
-    </div>
+                {feature?.name && (
+                  <Flex $alignItems="center">
+                    <Text
+                      $font={
+                        settings.theme.typography[props.icons.fontStyle]
+                          .fontFamily
+                      }
+                      $size={
+                        settings.theme.typography[props.icons.fontStyle]
+                          .fontSize
+                      }
+                      $weight={
+                        settings.theme.typography[props.icons.fontStyle]
+                          .fontWeight
+                      }
+                      $color={
+                        settings.theme.typography[props.icons.fontStyle].color
+                      }
+                      $align="center"
+                    >
+                      {feature.name}
+                    </Text>
+                  </Flex>
+                )}
+              </Flex>
+
+              {allocationType === "numeric" && feature?.name && (
+                <Box $textAlign="right">
+                  {props.entitlement.isVisible && (
+                    <Text
+                      as={Box}
+                      $font={
+                        settings.theme.typography[props.entitlement.fontStyle]
+                          .fontFamily
+                      }
+                      $size={
+                        settings.theme.typography[props.entitlement.fontStyle]
+                          .fontSize
+                      }
+                      $weight={
+                        settings.theme.typography[props.entitlement.fontStyle]
+                          .fontWeight
+                      }
+                      $color={
+                        settings.theme.typography[props.entitlement.fontStyle]
+                          .color
+                      }
+                    >
+                      {typeof allocation === "number"
+                        ? `${allocation} ${feature.name}`
+                        : `Unlimited ${feature.name}`}
+                    </Text>
+                  )}
+
+                  {props.usage.isVisible && (
+                    <Text
+                      as={Box}
+                      $font={
+                        settings.theme.typography[props.usage.fontStyle]
+                          .fontFamily
+                      }
+                      $size={
+                        settings.theme.typography[props.usage.fontStyle]
+                          .fontSize
+                      }
+                      $weight={
+                        settings.theme.typography[props.usage.fontStyle]
+                          .fontWeight
+                      }
+                      $color={
+                        settings.theme.typography[props.usage.fontStyle].color
+                      }
+                    >
+                      {typeof allocation === "number"
+                        ? `${usage} of ${allocation} used`
+                        : `${usage} used`}
+                    </Text>
+                  )}
+                </Box>
+              )}
+            </Flex>,
+          ];
+        },
+        [],
+      )}
+    </Flex>
   );
-};
+});

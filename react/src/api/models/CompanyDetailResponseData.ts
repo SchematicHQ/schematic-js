@@ -46,10 +46,10 @@ import {
 export interface CompanyDetailResponseData {
   /**
    *
-   * @type {Array<PreviewObject>}
+   * @type {Array<BillingPlan>}
    * @memberof CompanyDetailResponseData
    */
-  addOns: Array<PreviewObject>;
+  addOns: Array<BillingPlan>;
   /**
    *
    * @type {Date}
@@ -165,7 +165,7 @@ export function CompanyDetailResponseDataFromJSONTyped(
     return json;
   }
   return {
-    addOns: (json["add_ons"] as Array<any>).map(PreviewObjectFromJSON),
+    addOns: (json["add_ons"] as Array<any>).map(BillingPlanFromJSON),
     createdAt: new Date(json["created_at"]),
     entityTraits: (json["entity_traits"] as Array<any>).map(
       EntityTraitDetailResponseDataFromJSON,
@@ -192,7 +192,7 @@ export function CompanyDetailResponseDataToJSON(
     return value;
   }
   return {
-    add_ons: (value["addOns"] as Array<any>).map(PreviewObjectToJSON),
+    add_ons: (value["addOns"] as Array<any>).map(BillingPlanToJSON),
     created_at: value["createdAt"].toISOString(),
     entity_traits: (value["entityTraits"] as Array<any>).map(
       EntityTraitDetailResponseDataToJSON,
