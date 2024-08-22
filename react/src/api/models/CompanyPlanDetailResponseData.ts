@@ -25,6 +25,12 @@ import {
   PlanEntitlementResponseDataFromJSONTyped,
   PlanEntitlementResponseDataToJSON,
 } from "./PlanEntitlementResponseData";
+import type { BillingPriceResponseData } from "./BillingPriceResponseData";
+import {
+  BillingPriceResponseDataFromJSON,
+  BillingPriceResponseDataFromJSONTyped,
+  BillingPriceResponseDataToJSON,
+} from "./BillingPriceResponseData";
 import type { BillingProductDetailResponseData } from "./BillingProductDetailResponseData";
 import {
   BillingProductDetailResponseDataFromJSON,
@@ -100,6 +106,12 @@ export interface CompanyPlanDetailResponseData {
   id: string;
   /**
    *
+   * @type {BillingPriceResponseData}
+   * @memberof CompanyPlanDetailResponseData
+   */
+  monthlyPrice?: BillingPriceResponseData;
+  /**
+   *
    * @type {string}
    * @memberof CompanyPlanDetailResponseData
    */
@@ -122,6 +134,12 @@ export interface CompanyPlanDetailResponseData {
    * @memberof CompanyPlanDetailResponseData
    */
   valid: boolean;
+  /**
+   *
+   * @type {BillingPriceResponseData}
+   * @memberof CompanyPlanDetailResponseData
+   */
+  yearlyPrice?: BillingPriceResponseData;
 }
 
 /**
@@ -180,10 +198,18 @@ export function CompanyPlanDetailResponseDataFromJSONTyped(
     ),
     icon: json["icon"],
     id: json["id"],
+    monthlyPrice:
+      json["monthly_price"] == null
+        ? undefined
+        : BillingPriceResponseDataFromJSON(json["monthly_price"]),
     name: json["name"],
     planType: json["plan_type"],
     updatedAt: new Date(json["updated_at"]),
     valid: json["valid"],
+    yearlyPrice:
+      json["yearly_price"] == null
+        ? undefined
+        : BillingPriceResponseDataFromJSON(json["yearly_price"]),
   };
 }
 
@@ -210,9 +236,11 @@ export function CompanyPlanDetailResponseDataToJSON(
     ),
     icon: value["icon"],
     id: value["id"],
+    monthly_price: BillingPriceResponseDataToJSON(value["monthlyPrice"]),
     name: value["name"],
     plan_type: value["planType"],
     updated_at: value["updatedAt"].toISOString(),
     valid: value["valid"],
+    yearly_price: BillingPriceResponseDataToJSON(value["yearlyPrice"]),
   };
 }
