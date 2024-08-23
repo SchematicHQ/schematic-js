@@ -1,4 +1,5 @@
 import styled, { css } from "styled-components";
+import { TEXT_BASE_SIZE } from "../../../const";
 import { Text } from "../../ui/text";
 import {
   ButtonStyleTypes,
@@ -26,49 +27,49 @@ export const Button = styled.button<{
     switch ($size) {
       case "sm":
         return css`
-          font-size: ${12 / 16}rem;
+          font-size: ${12 / TEXT_BASE_SIZE}rem;
           ${$variant !== "link" &&
           css`
-            padding: ${7 / 16}rem ${20 / 16}rem;
+            padding: ${7 / TEXT_BASE_SIZE}rem ${20 / TEXT_BASE_SIZE}rem;
           `}
-          border-radius: ${4 / 16}rem;
+          border-radius: ${4 / TEXT_BASE_SIZE}rem;
         `;
       case "md":
       default:
         return css`
-          font-size: ${14 / 16}rem;
+          font-size: ${14 / TEXT_BASE_SIZE}rem;
           ${$variant !== "link" &&
           css`
-            padding: ${8 / 16}rem ${24 / 16}rem;
+            padding: ${8 / TEXT_BASE_SIZE}rem ${24 / TEXT_BASE_SIZE}rem;
           `}
-          border-radius: ${8 / 16}rem;
+          border-radius: ${8 / TEXT_BASE_SIZE}rem;
         `;
       case "lg":
         return css`
-          font-size: ${16 / 16}rem;
+          font-size: ${16 / TEXT_BASE_SIZE}rem;
           ${$variant !== "link" &&
           css`
-            padding: ${9 / 16}rem ${28 / 16}rem;
+            padding: ${9 / TEXT_BASE_SIZE}rem ${28 / TEXT_BASE_SIZE}rem;
           `}
-          border-radius: ${12 / 16}rem;
+          border-radius: ${12 / TEXT_BASE_SIZE}rem;
         `;
     }
   }}
 
   ${({ $color, $variant }) => {
-    let color = "#ffffff";
+    let color = "#FFFFFF";
     let bgColor;
     switch ($color) {
       case "blue":
       default:
-        bgColor = "#194bfb";
+        bgColor = "#194BFB";
         break;
       case "red":
-        bgColor = "#ef4444";
+        bgColor = "#EF4444";
         break;
       case "white":
         color = "#000000";
-        bgColor = "#ffffff";
+        bgColor = "#FFFFFF";
         break;
       case "black":
         bgColor = "#000000";

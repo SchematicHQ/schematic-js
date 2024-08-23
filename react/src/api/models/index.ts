@@ -1,5 +1,5 @@
 /* tslint:disable */
-/* eslint-disable */
+ 
 export * from "./ApiError";
 export * from "./BillingPlan";
 export * from "./BillingPriceResponseData";
@@ -31,6 +31,7 @@ export * from "./FlagResponseData";
 export * from "./HydrateComponentResponse";
 export * from "./ListActivePlansResponse";
 export * from "./PlanDetailResponseData";
+export * from "./PlanEntitlementResponseData";
 export * from "./PlanResponseData";
 export * from "./PreviewObject";
 export * from "./RuleConditionDetailResponseData";

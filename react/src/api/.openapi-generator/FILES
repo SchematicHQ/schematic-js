@@ -33,6 +33,7 @@ models/FlagResponseData.ts
 models/HydrateComponentResponse.ts
 models/ListActivePlansResponse.ts
 models/PlanDetailResponseData.ts
+models/PlanEntitlementResponseData.ts
 models/PlanResponseData.ts
 models/PreviewObject.ts
 models/RuleConditionDetailResponseData.ts

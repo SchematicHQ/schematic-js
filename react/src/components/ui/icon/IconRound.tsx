@@ -1,19 +1,22 @@
 import { Icon, IconNameTypes } from "./Icon";
 import { Container } from "./styles";
 
-export interface IconRoundProps {
+export interface IconRoundProps extends React.HTMLAttributes<HTMLElement> {
   name: IconNameTypes;
-  style?: "outline" | "filled";
+  variant?: "outline" | "filled";
   size?: "tn" | "sm" | "md" | "lg";
+  colors?: [string, string];
 }
 
 export const IconRound = ({
   name,
-  style = "filled",
+  variant = "filled",
   size = "md",
+  colors = ["white", "#e5e7eb"],
+  ...props
 }: IconRoundProps) => {
   return (
-    <Container $size={size} $style={style}>
+    <Container $size={size} $variant={variant} $colors={colors} {...props}>
       <Icon name={name} />
     </Container>
   );

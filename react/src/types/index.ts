@@ -27,16 +27,6 @@ export type SerializedNodeWithChildren = SerializedNode & {
 export type CompressedEditorState = Record<number, number>;
 export type SerializedEditorState = Record<string, SerializedNode>;
 
-export interface Settings {
-  theme: "light" | "dark";
-  sectionLayout: "merged" | "separate";
-  borderWidth: number;
-  borderColor: string;
-  borderRadius: number;
-  boxShadow: string;
-  boxPadding: number;
-}
-
 export interface ElementProps {
   children?: React.ReactNode;
   className?: string;

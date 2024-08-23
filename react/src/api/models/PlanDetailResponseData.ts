@@ -19,6 +19,12 @@ import {
   FeatureDetailResponseDataFromJSONTyped,
   FeatureDetailResponseDataToJSON,
 } from "./FeatureDetailResponseData";
+import type { BillingPriceResponseData } from "./BillingPriceResponseData";
+import {
+  BillingPriceResponseDataFromJSON,
+  BillingPriceResponseDataFromJSONTyped,
+  BillingPriceResponseDataToJSON,
+} from "./BillingPriceResponseData";
 import type { BillingProductDetailResponseData } from "./BillingProductDetailResponseData";
 import {
   BillingProductDetailResponseDataFromJSON,
@@ -82,6 +88,12 @@ export interface PlanDetailResponseData {
   id: string;
   /**
    *
+   * @type {BillingPriceResponseData}
+   * @memberof PlanDetailResponseData
+   */
+  monthlyPrice?: BillingPriceResponseData;
+  /**
+   *
    * @type {string}
    * @memberof PlanDetailResponseData
    */
@@ -98,6 +110,12 @@ export interface PlanDetailResponseData {
    * @memberof PlanDetailResponseData
    */
   updatedAt: Date;
+  /**
+   *
+   * @type {BillingPriceResponseData}
+   * @memberof PlanDetailResponseData
+   */
+  yearlyPrice?: BillingPriceResponseData;
 }
 
 /**
@@ -148,9 +166,17 @@ export function PlanDetailResponseDataFromJSONTyped(
     ),
     icon: json["icon"],
     id: json["id"],
+    monthlyPrice:
+      json["monthly_price"] == null
+        ? undefined
+        : BillingPriceResponseDataFromJSON(json["monthly_price"]),
     name: json["name"],
     planType: json["plan_type"],
     updatedAt: new Date(json["updated_at"]),
+    yearlyPrice:
+      json["yearly_price"] == null
+        ? undefined
+        : BillingPriceResponseDataFromJSON(json["yearly_price"]),
   };
 }
 
@@ -173,8 +199,10 @@ export function PlanDetailResponseDataToJSON(
     ),
     icon: value["icon"],
     id: value["id"],
+    monthly_price: BillingPriceResponseDataToJSON(value["monthlyPrice"]),
     name: value["name"],
     plan_type: value["planType"],
     updated_at: value["updatedAt"].toISOString(),
+    yearly_price: BillingPriceResponseDataToJSON(value["yearlyPrice"]),
   };
 }

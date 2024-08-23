@@ -8,7 +8,7 @@ export interface CardProps {
 }
 
 export const Card = forwardRef<HTMLDivElement | null, CardProps>(
-  ({ children, className }: CardProps, ref) => {
+  ({ children, className }, ref) => {
     /* const transientProps = Object.entries(props).reduce((acc: React.CSSProperties, [key, value]) => {
       if (typeof value !== "undefined") {
         return { ...acc, [`$${key}`]: value };
@@ -23,8 +23,10 @@ export const Card = forwardRef<HTMLDivElement | null, CardProps>(
       <StyledCard
         ref={ref}
         className={className}
-        $sectionLayout={settings.sectionLayout}
-        $borderRadius={settings.borderRadius}
+        $sectionLayout={settings.theme?.sectionLayout}
+        $borderRadius={settings.theme?.card?.borderRadius}
+        $padding={settings.theme?.card?.padding}
+        $shadow={settings.theme?.card?.hasShadow}
       >
         {children}
       </StyledCard>

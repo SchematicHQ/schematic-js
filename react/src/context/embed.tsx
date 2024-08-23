@@ -1,28 +1,121 @@
-import { createContext, useCallback, useEffect, useState } from "react";
+import { createContext, useCallback, useEffect, useRef, useState } from "react";
 import { inflate } from "pako";
 import { ThemeProvider } from "styled-components";
 import {
   CheckoutApi,
   Configuration,
+  type ConfigurationParameters,
   type ComponentHydrateResponseData,
 } from "../api";
-import { light, dark } from "../components/theme";
 import type {
   RecursivePartial,
-  CompressedEditorState,
   SerializedEditorState,
   SerializedNodeWithChildren,
-  Settings,
 } from "../types";
 
-const defaultSettings: Settings = {
-  theme: "light",
+export interface TypographySettings {
+  fontFamily: string;
+  fontSize: number;
+  fontWeight: number;
+  color: string;
+}
+
+export interface EmbedThemeSettings {
+  numberOfColumns: 1 | 2 | 3;
+  sectionLayout: "merged" | "separate";
+  colorMode: "light" | "dark";
+  primary: string;
+  secondary: string;
+  card: {
+    background: string;
+    borderRadius: number;
+    hasShadow: boolean;
+    padding: number;
+  };
+  typography: {
+    heading1: TypographySettings;
+    heading2: TypographySettings;
+    heading3: TypographySettings;
+    heading4: TypographySettings;
+    heading5: TypographySettings;
+    heading6: TypographySettings;
+    text: TypographySettings;
+    link: TypographySettings;
+  };
+}
+
+export type FontStyle = keyof EmbedThemeSettings["typography"];
+
+export const defaultTheme: EmbedThemeSettings = {
+  numberOfColumns: 2,
   sectionLayout: "merged",
-  borderWidth: 0,
-  borderColor: "#E9E9E9",
-  borderRadius: 10,
-  boxShadow: "none",
-  boxPadding: 50,
+  colorMode: "light",
+  primary: "#000000",
+  secondary: "#000000",
+  card: {
+    background: "#FFFFFF",
+    borderRadius: 10,
+    hasShadow: true,
+    padding: 45,
+  },
+  typography: {
+    heading1: {
+      fontFamily: "Manrope",
+      fontSize: 37,
+      fontWeight: 800,
+      color: "#000000",
+    },
+    heading2: {
+      fontFamily: "Manrope",
+      fontSize: 29,
+      fontWeight: 800,
+      color: "#000000",
+    },
+    heading3: {
+      fontFamily: "Manrope",
+      fontSize: 20,
+      fontWeight: 600,
+      color: "#000000",
+    },
+    heading4: {
+      fontFamily: "Manrope",
+      fontSize: 18,
+      fontWeight: 800,
+      color: "#000000",
+    },
+    heading5: {
+      fontFamily: "Public Sans",
+      fontSize: 17,
+      fontWeight: 500,
+      color: "#000000",
+    },
+    heading6: {
+      fontFamily: "Public Sans",
+      fontSize: 14,
+      fontWeight: 400,
+      color: "#8A8A8A",
+    },
+    text: {
+      fontFamily: "Public Sans",
+      fontSize: 16,
+      fontWeight: 400,
+      color: "#000000",
+    },
+    link: {
+      fontFamily: "Inter",
+      fontSize: 16,
+      fontWeight: 400,
+      color: "#194BFB",
+    },
+  },
+};
+
+export type EmbedSettings = {
+  theme: EmbedThemeSettings;
+};
+
+export const defaultSettings: EmbedSettings = {
+  theme: defaultTheme,
 };
 
 /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
@@ -56,21 +149,24 @@ function parseEditorState(data: SerializedEditorState) {
   return arr;
 }
 
-async function fetchComponent(id: string, accessToken: string) {
-  const settings = { ...defaultSettings };
+async function fetchComponent(
+  id: string,
+  accessToken: string,
+  options?: ConfigurationParameters,
+) {
+  const settings: EmbedSettings = { ...defaultSettings };
   const nodes: SerializedNodeWithChildren[] = [];
-  const config = new Configuration({ apiKey: accessToken });
+  const config = new Configuration({ ...options, apiKey: accessToken });
   const api = new CheckoutApi(config);
   const response = await api.hydrateComponent({ componentId: id });
   const { data } = response;
 
   if (data.component?.ast) {
-    // ast from response is actually an object with keys as numbers
-    const compressed = data.component.ast as CompressedEditorState;
+    const compressed = data.component.ast;
     const json = inflate(Uint8Array.from(Object.values(compressed)), {
       to: "string",
     });
-    const ast = getEditorState(json);
+    const ast = getEditorState(JSON.stringify(json));
     if (ast) {
       Object.assign(settings, ast.ROOT.props);
       nodes.push(...parseEditorState(ast));
@@ -84,85 +180,124 @@ async function fetchComponent(id: string, accessToken: string) {
   };
 }
 
-type SetData = (data: RecursivePartial<ComponentHydrateResponseData>) => void;
-type SetSettings = (settings: RecursivePartial<Settings>) => void;
+export type EmbedLayout = "portal" | "checkout" | "payment" | "disabled";
 
 export interface EmbedContextProps {
   data: RecursivePartial<ComponentHydrateResponseData>;
   nodes: SerializedNodeWithChildren[];
-  settings: RecursivePartial<Settings>;
+  settings: EmbedSettings;
+  layout: EmbedLayout;
   error?: Error;
-  setData: SetData;
-  setSettings: SetSettings;
-  updateSettings: SetSettings;
+  setData: (data: RecursivePartial<ComponentHydrateResponseData>) => void;
+  updateSettings: (settings: RecursivePartial<EmbedSettings>) => void;
+  setLayout: (layout: EmbedLayout) => void;
 }
 
 export const EmbedContext = createContext<EmbedContextProps>({
   data: {},
   nodes: [],
-  settings: {},
+  settings: { ...defaultSettings },
+  layout: "portal",
+  error: undefined,
   setData: () => {},
-  setSettings: () => {},
   updateSettings: () => {},
+  setLayout: () => {},
 });
 
 export interface EmbedProviderProps {
   id?: string;
   accessToken?: string;
+  apiConfig?: ConfigurationParameters;
   children?: React.ReactNode;
 }
 
 export const EmbedProvider = ({
   id,
   accessToken,
+  apiConfig,
   children,
 }: EmbedProviderProps) => {
-  const [state, setState] = useState<EmbedContextProps>({
-    data: {},
-    nodes: [],
-    settings: { ...defaultSettings },
-    setData: () => {},
-    setSettings: () => {},
-    updateSettings: () => {},
+  const styleRef = useRef<HTMLLinkElement | null>(null);
+
+  const [state, setState] = useState(() => {
+    return {
+      data: {} as RecursivePartial<ComponentHydrateResponseData>,
+      nodes: [] as SerializedNodeWithChildren[],
+      settings: { ...defaultSettings } as EmbedSettings,
+      layout: "portal" as EmbedLayout,
+      error: undefined,
+      setData: () => {},
+      updateSettings: () => {},
+      setLayout: () => {},
+    };
   });
+
+  useEffect(() => {
+    const element = document.getElementById("schematic-fonts");
+    if (element) {
+      return void (styleRef.current = element as HTMLLinkElement);
+    }
+
+    const style = document.createElement("link");
+    style.id = "schematic-fonts";
+    style.rel = "stylesheet";
+    document.head.appendChild(style);
+    styleRef.current = style;
+  }, []);
 
   useEffect(() => {
     if (!id || !accessToken) {
       return;
     }
 
-    fetchComponent(id, accessToken)
+    fetchComponent(id, accessToken, apiConfig)
       .then((resolvedData) => {
         setState((prev) => ({ ...prev, ...resolvedData }));
       })
       .catch((error) => setState((prev) => ({ ...prev, error })));
-  }, [id, accessToken]);
+  }, [id, accessToken, apiConfig]);
+
+  useEffect(() => {
+    const fontSet = new Set<string>([]);
+    Object.values(state.settings.theme.typography).forEach(({ fontFamily }) => {
+      fontSet.add(fontFamily);
+    });
+
+    if (fontSet.size > 0) {
+      const src = `https://fonts.googleapis.com/css2?${[...fontSet]
+        .map((fontFamily) => `family=${fontFamily}&display=swap`)
+        .join("&")}`;
+      if (styleRef.current) {
+        styleRef.current.href = src;
+      }
+    }
+  }, [state.settings.theme.typography]);
 
   const setData = useCallback(
     (data: RecursivePartial<ComponentHydrateResponseData>) => {
       setState((prev) => ({
         ...prev,
-        data,
-      }));
-    },
-    [setState],
-  );
-
-  const setSettings = useCallback(
-    (settings: RecursivePartial<Settings>) => {
-      setState((prev) => ({
-        ...prev,
-        settings,
+        data: Object.assign({}, data),
       }));
     },
     [setState],
   );
 
   const updateSettings = useCallback(
-    (settings: RecursivePartial<Settings>) => {
+    (settings: RecursivePartial<EmbedSettings>) => {
       setState((prev) => ({
         ...prev,
-        settings: { ...prev.settings, ...settings },
+        settings: Object.assign({}, prev.settings, settings),
+      }));
+    },
+    [setState],
+  );
+
+  const setLayout = useCallback(
+    (layout: EmbedLayout) => {
+      setState((prev) => ({
+        ...prev,
+        layout,
       }));
     },
     [setState],
@@ -174,15 +309,14 @@ export const EmbedProvider = ({
         data: state.data,
         nodes: state.nodes,
         settings: state.settings,
+        layout: state.layout,
         error: state.error,
         setData,
-        setSettings,
         updateSettings,
+        setLayout,
       }}
     >
-      <ThemeProvider theme={state.settings.theme === "dark" ? dark : light}>
-        {children}
-      </ThemeProvider>
+      <ThemeProvider theme={state.settings.theme}>{children}</ThemeProvider>
     </EmbedContext.Provider>
   );
 };

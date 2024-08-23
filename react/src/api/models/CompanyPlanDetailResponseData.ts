@@ -19,6 +19,18 @@ import {
   FeatureDetailResponseDataFromJSONTyped,
   FeatureDetailResponseDataToJSON,
 } from "./FeatureDetailResponseData";
+import type { PlanEntitlementResponseData } from "./PlanEntitlementResponseData";
+import {
+  PlanEntitlementResponseDataFromJSON,
+  PlanEntitlementResponseDataFromJSONTyped,
+  PlanEntitlementResponseDataToJSON,
+} from "./PlanEntitlementResponseData";
+import type { BillingPriceResponseData } from "./BillingPriceResponseData";
+import {
+  BillingPriceResponseDataFromJSON,
+  BillingPriceResponseDataFromJSONTyped,
+  BillingPriceResponseDataToJSON,
+} from "./BillingPriceResponseData";
 import type { BillingProductDetailResponseData } from "./BillingProductDetailResponseData";
 import {
   BillingProductDetailResponseDataFromJSON,
@@ -70,6 +82,12 @@ export interface CompanyPlanDetailResponseData {
   description: string;
   /**
    *
+   * @type {Array<PlanEntitlementResponseData>}
+   * @memberof CompanyPlanDetailResponseData
+   */
+  entitlements: Array<PlanEntitlementResponseData>;
+  /**
+   *
    * @type {Array<FeatureDetailResponseData>}
    * @memberof CompanyPlanDetailResponseData
    */
@@ -86,6 +104,12 @@ export interface CompanyPlanDetailResponseData {
    * @memberof CompanyPlanDetailResponseData
    */
   id: string;
+  /**
+   *
+   * @type {BillingPriceResponseData}
+   * @memberof CompanyPlanDetailResponseData
+   */
+  monthlyPrice?: BillingPriceResponseData;
   /**
    *
    * @type {string}
@@ -110,6 +134,12 @@ export interface CompanyPlanDetailResponseData {
    * @memberof CompanyPlanDetailResponseData
    */
   valid: boolean;
+  /**
+   *
+   * @type {BillingPriceResponseData}
+   * @memberof CompanyPlanDetailResponseData
+   */
+  yearlyPrice?: BillingPriceResponseData;
 }
 
 /**
@@ -123,6 +153,8 @@ export function instanceOfCompanyPlanDetailResponseData(
   if (!("createdAt" in value) || value["createdAt"] === undefined) return false;
   if (!("current" in value) || value["current"] === undefined) return false;
   if (!("description" in value) || value["description"] === undefined)
+    return false;
+  if (!("entitlements" in value) || value["entitlements"] === undefined)
     return false;
   if (!("features" in value) || value["features"] === undefined) return false;
   if (!("icon" in value) || value["icon"] === undefined) return false;
@@ -158,15 +190,26 @@ export function CompanyPlanDetailResponseDataFromJSONTyped(
     createdAt: new Date(json["created_at"]),
     current: json["current"],
     description: json["description"],
+    entitlements: (json["entitlements"] as Array<any>).map(
+      PlanEntitlementResponseDataFromJSON,
+    ),
     features: (json["features"] as Array<any>).map(
       FeatureDetailResponseDataFromJSON,
     ),
     icon: json["icon"],
     id: json["id"],
+    monthlyPrice:
+      json["monthly_price"] == null
+        ? undefined
+        : BillingPriceResponseDataFromJSON(json["monthly_price"]),
     name: json["name"],
     planType: json["plan_type"],
     updatedAt: new Date(json["updated_at"]),
     valid: json["valid"],
+    yearlyPrice:
+      json["yearly_price"] == null
+        ? undefined
+        : BillingPriceResponseDataFromJSON(json["yearly_price"]),
   };
 }
 
@@ -185,14 +228,19 @@ export function CompanyPlanDetailResponseDataToJSON(
     created_at: value["createdAt"].toISOString(),
     current: value["current"],
     description: value["description"],
+    entitlements: (value["entitlements"] as Array<any>).map(
+      PlanEntitlementResponseDataToJSON,
+    ),
     features: (value["features"] as Array<any>).map(
       FeatureDetailResponseDataToJSON,
     ),
     icon: value["icon"],
     id: value["id"],
+    monthly_price: BillingPriceResponseDataToJSON(value["monthlyPrice"]),
     name: value["name"],
     plan_type: value["planType"],
     updated_at: value["updatedAt"].toISOString(),
     valid: value["valid"],
+    yearly_price: BillingPriceResponseDataToJSON(value["yearlyPrice"]),
   };
 }

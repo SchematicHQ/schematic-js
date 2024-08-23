@@ -91,15 +91,20 @@ export function hslToHex({ h, s, l }: { h: number; s: number; l: number }) {
   return "#" + rs + gs + bs;
 }
 
-export function adjustHexLightness(color: string, amount: number) {
+export function adjustLightness(color: string, amount: number) {
   const { h, s, l } = hexToHSL(color);
   return hslToHex({ h, s, l: Math.max(Math.min(l + amount, 100), 0) });
 }
 
 export function lighten(color: string, amount: number) {
-  return adjustHexLightness(color, amount);
+  return adjustLightness(color, amount);
 }
 
 export function darken(color: string, amount: number) {
-  return adjustHexLightness(color, -amount);
+  return adjustLightness(color, -amount);
+}
+
+export function invert(color: string) {
+  const hex = color.replace("#", "");
+  return `#${(Number(`0x1${hex}`) ^ 0xffffff).toString(16).slice(1).toUpperCase()}`;
 }

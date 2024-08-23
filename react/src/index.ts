@@ -1,4 +1,6 @@
 import {
+  defaultSettings,
+  defaultTheme,
   EmbedContext,
   EmbedProvider,
   SchematicProvider,
@@ -12,21 +14,23 @@ import {
   useSchematicContext,
   useSchematicEvents,
   useSchematicFlag,
-  type UseSchematicFlagOpts,
   type SchematicHookOpts,
+  type UseSchematicFlagOpts,
 } from "./hooks";
 
 export * from "./components";
 
 export {
-  EmbedContext,
-  EmbedProvider,
+  defaultSettings,
+  defaultTheme,
   useEmbed,
-  SchematicProvider,
   useSchematic,
   useSchematicContext,
   useSchematicEvents,
   useSchematicFlag,
+  EmbedContext,
+  EmbedProvider,
+  SchematicProvider,
 };
 
 export type {
@@ -48,7 +52,7 @@ export type {
   FlagCheckResponseBody,
   FlagCheckWithKeyResponseBody,
   Keys,
-  SchematicOptions,
   SchematicContext,
+  SchematicOptions,
   Traits,
 } from "@schematichq/schematic-js";
