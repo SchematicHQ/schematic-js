@@ -13,6 +13,12 @@
  */
 
 import { mapValues } from "../runtime";
+import type { CompanyPlanDetailResponseData } from "./CompanyPlanDetailResponseData";
+import {
+  CompanyPlanDetailResponseDataFromJSON,
+  CompanyPlanDetailResponseDataFromJSONTyped,
+  CompanyPlanDetailResponseDataToJSON,
+} from "./CompanyPlanDetailResponseData";
 import type { ComponentResponseData } from "./ComponentResponseData";
 import {
   ComponentResponseDataFromJSON,
@@ -46,6 +52,12 @@ import {
 export interface ComponentHydrateResponseData {
   /**
    *
+   * @type {Array<CompanyPlanDetailResponseData>}
+   * @memberof ComponentHydrateResponseData
+   */
+  activePlans: Array<CompanyPlanDetailResponseData>;
+  /**
+   *
    * @type {CompanyDetailResponseData}
    * @memberof ComponentHydrateResponseData
    */
@@ -76,6 +88,8 @@ export interface ComponentHydrateResponseData {
 export function instanceOfComponentHydrateResponseData(
   value: object,
 ): value is ComponentHydrateResponseData {
+  if (!("activePlans" in value) || value["activePlans"] === undefined)
+    return false;
   return true;
 }
 
@@ -93,6 +107,9 @@ export function ComponentHydrateResponseDataFromJSONTyped(
     return json;
   }
   return {
+    activePlans: (json["active_plans"] as Array<any>).map(
+      CompanyPlanDetailResponseDataFromJSON,
+    ),
     company:
       json["company"] == null
         ? undefined
@@ -119,6 +136,9 @@ export function ComponentHydrateResponseDataToJSON(
     return value;
   }
   return {
+    active_plans: (value["activePlans"] as Array<any>).map(
+      CompanyPlanDetailResponseDataToJSON,
+    ),
     company: CompanyDetailResponseDataToJSON(value["company"]),
     component: ComponentResponseDataToJSON(value["component"]),
     feature_usage: FeatureUsageDetailResponseDataToJSON(value["featureUsage"]),

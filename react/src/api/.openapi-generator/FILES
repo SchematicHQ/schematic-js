@@ -31,7 +31,6 @@ models/FeatureUsageResponseData.ts
 models/FlagDetailResponseData.ts
 models/FlagResponseData.ts
 models/HydrateComponentResponse.ts
-models/ListActivePlansResponse.ts
 models/PlanDetailResponseData.ts
 models/PlanEntitlementResponseData.ts
 models/PlanResponseData.ts

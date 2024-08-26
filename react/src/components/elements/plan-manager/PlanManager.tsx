@@ -5,6 +5,7 @@ import { type FontStyle } from "../../../context";
 import type { RecursivePartial, ElementProps } from "../../../types";
 import { Box, Flex, Icon, Text } from "../../ui";
 import { darken } from "../../../utils";
+import { CheckoutForm } from "./CheckoutForm";
 import { StyledButton } from "./styles";
 
 interface DesignProps {
@@ -320,6 +321,8 @@ export const PlanManager = forwardRef<
                 </Flex>
               </Flex>
             </Flex>
+
+            <CheckoutForm />
           </Box>,
           portal || document.body,
         )}

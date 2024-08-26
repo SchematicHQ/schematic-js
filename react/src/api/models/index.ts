@@ -29,7 +29,6 @@ export * from "./FeatureUsageResponseData";
 export * from "./FlagDetailResponseData";
 export * from "./FlagResponseData";
 export * from "./HydrateComponentResponse";
-export * from "./ListActivePlansResponse";
 export * from "./PlanDetailResponseData";
 export * from "./PlanEntitlementResponseData";
 export * from "./PlanResponseData";
