@@ -78,7 +78,7 @@ export const PlanManager = forwardRef<
 >(({ children, className, portal, ...rest }, ref) => {
   const props = resolveDesignProps(rest);
 
-  const { data, settings, layout, setLayout } = useEmbed();
+  const { data, settings, stripe, layout, setLayout } = useEmbed();
 
   const { plan, plans, addOns } = useMemo(() => {
     return {
@@ -237,7 +237,6 @@ export const PlanManager = forwardRef<
       {props.callToAction.isVisible && (
         <StyledButton
           onClick={() => {
-            if (layout !== "checkout") return;
             setLayout("checkout");
           }}
           $size={props.callToAction.buttonSize}
@@ -322,7 +321,7 @@ export const PlanManager = forwardRef<
               </Flex>
             </Flex>
 
-            <CheckoutForm />
+            {stripe && data.stripeEmbed?.customerEkey && <CheckoutForm />}
           </Box>,
           portal || document.body,
         )}

@@ -1,4 +1,3 @@
-export * from "./card";
 export * from "./plan-manager";
 export * from "./included-features";
 export * from "./metered-features";

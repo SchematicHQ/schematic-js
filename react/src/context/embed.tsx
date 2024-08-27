@@ -168,7 +168,7 @@ async function fetchComponent(
     const json = inflate(Uint8Array.from(Object.values(compressed)), {
       to: "string",
     });
-    const ast = getEditorState(JSON.stringify(json));
+    const ast = getEditorState(json);
     if (ast) {
       Object.assign(settings, ast.ROOT.props);
       nodes.push(...parseEditorState(ast));
@@ -332,6 +332,21 @@ export const EmbedProvider = ({
     [setState],
   );
 
+  const renderChildren = useCallback(() => {
+    if (state.data.stripeEmbed?.customerEkey) {
+      return (
+        <Elements
+          stripe={state.stripe}
+          options={{ clientSecret: state.data.stripeEmbed.customerEkey }}
+        >
+          {children}
+        </Elements>
+      );
+    }
+
+    return children;
+  }, [children, state.data.stripeEmbed, state.stripe]);
+
   return (
     <EmbedContext.Provider
       value={{
@@ -348,12 +363,7 @@ export const EmbedProvider = ({
       }}
     >
       <ThemeProvider theme={state.settings.theme}>
-        <Elements
-          stripe={state.stripe}
-          options={{ clientSecret: state.data.stripeEmbed?.customerEkey }}
-        >
-          {children}
-        </Elements>
+        {renderChildren()}
       </ThemeProvider>
     </EmbedContext.Provider>
   );
