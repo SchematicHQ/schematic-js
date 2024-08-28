@@ -1,9 +1,15 @@
-import { forwardRef, useMemo } from "react";
+import {
+  Dispatch,
+  forwardRef,
+  ReactNode,
+  SetStateAction,
+  useState,
+} from "react";
 import { createPortal } from "react-dom";
 import { useEmbed } from "../../../hooks";
 import { type FontStyle } from "../../../context";
 import type { RecursivePartial, ElementProps } from "../../../types";
-import { Box, Flex, Icon, Text } from "../../ui";
+import { Box, Flex, Icon, IconRound, Text } from "../../ui";
 import { darken } from "../../../utils";
 import { StyledButton } from "./styles";
 
@@ -76,31 +82,42 @@ export const PlanManager = forwardRef<
     }
 >(({ children, className, portal, ...rest }, ref) => {
   const props = resolveDesignProps(rest);
+  const [pricePeriod, setPricePeriod] = useState<"month" | "year">("month");
 
   const { data, settings, layout, setLayout } = useEmbed();
 
-  const { plan, plans, addOns } = useMemo(() => {
+  // const { plan, activePlans, addOns } = useMemo(() => {
+  //   return {
+  //     plan: data.company?.plan || {},
+  //     activePlans: data.activePlans,
+  //     addOns:
+  //       data.featureUsage?.features?.map(({ feature }) => ({
+  //         name: feature?.name,
+  //         description: feature?.description,
+  //         price: undefined,
+  //       })) || [],
+  //   };
+  // }, [data.company]);
+
+  const addOns = data?.featureUsage?.features || [];
+  const avaliablePlans = (data?.activePlans || []).map((plan) => {
     return {
-      plan: data.company?.plan || {},
-      plans:
-        data.company?.plans?.map(({ name, description }) => ({
-          name,
-          description,
-          price: undefined,
-        })) || [],
-      addOns:
-        data.company?.addOns?.map(({ name, description }) => ({
-          name,
-          description,
-          price: undefined,
-        })) || [],
+      price:
+        pricePeriod === "year"
+          ? plan?.yearlyPrice?.price
+          : plan?.monthlyPrice?.price,
+      current: plan.current,
+      name: plan.name,
+      description: plan.description,
     };
-  }, [data.company]);
+  });
+
+  const currentPlan = avaliablePlans?.find((p) => p.current === true);
 
   return (
     <div ref={ref} className={className}>
       <Flex $flexDirection="column" $gap="0.75rem" $margin="0 0 3rem">
-        {props.header.isVisible && plan && (
+        {props.header.isVisible && currentPlan && (
           <Flex
             $justifyContent="space-between"
             $alignItems="center"
@@ -128,39 +145,40 @@ export const PlanManager = forwardRef<
                   }
                   $lineHeight={1}
                 >
-                  {plan.name}
+                  {currentPlan.name}
                 </Text>
               </Box>
 
-              {props.header.description.isVisible && plan.description && (
-                <Text
-                  $font={
-                    settings.theme.typography[
-                      props.header.description.fontStyle
-                    ].fontFamily
-                  }
-                  $size={
-                    settings.theme.typography[
-                      props.header.description.fontStyle
-                    ].fontSize
-                  }
-                  $weight={
-                    settings.theme.typography[
-                      props.header.description.fontStyle
-                    ].fontWeight
-                  }
-                  $color={
-                    settings.theme.typography[
-                      props.header.description.fontStyle
-                    ].color
-                  }
-                >
-                  {plan.description}
-                </Text>
-              )}
+              {props.header.description.isVisible &&
+                currentPlan.description && (
+                  <Text
+                    $font={
+                      settings.theme.typography[
+                        props.header.description.fontStyle
+                      ].fontFamily
+                    }
+                    $size={
+                      settings.theme.typography[
+                        props.header.description.fontStyle
+                      ].fontSize
+                    }
+                    $weight={
+                      settings.theme.typography[
+                        props.header.description.fontStyle
+                      ].fontWeight
+                    }
+                    $color={
+                      settings.theme.typography[
+                        props.header.description.fontStyle
+                      ].color
+                    }
+                  >
+                    {currentPlan.description}
+                  </Text>
+                )}
             </div>
 
-            {props.header.price.isVisible && plan.planPrice! >= 0 && (
+            {props.header.price.isVisible && (
               <Text
                 $font={
                   settings.theme.typography[props.header.price.fontStyle]
@@ -178,7 +196,7 @@ export const PlanManager = forwardRef<
                   settings.theme.typography[props.header.price.fontStyle].color
                 }
               >
-                ${plan.planPrice}/{plan.planPeriod}
+                {currentPlan.price}
               </Text>
             )}
           </Flex>
@@ -221,11 +239,11 @@ export const PlanManager = forwardRef<
                       settings.theme.typography[props.addOns.fontStyle].color
                     }
                   >
-                    {addOn.name}
+                    {addOn?.feature?.name}
                   </Text>
-                  {addOn.price! >= 0 && (
+                  {/* {addOn.price! >= 0 && (
                     <Text $weight={500}>${addOn.price}/mo</Text>
-                  )}
+                  )} */}
                 </Flex>
               ))}
             </Box>
@@ -256,73 +274,442 @@ export const PlanManager = forwardRef<
 
       {layout === "checkout" &&
         createPortal(
-          <Box
-            $position="absolute"
-            $top="50%"
-            $left="50%"
-            $zIndex="999999"
-            $transform="translate(-50%, -50%)"
-            $width="100%"
-            $height="100%"
-            $backgroundColor="#B5B5B580"
-          >
-            <Flex
-              $position="relative"
-              $top="50%"
-              $left="50%"
-              $transform="translate(-50%, -50%)"
-              $width="956px"
-              $height="700px"
-              $backgroundColor="#FBFBFB"
-              $borderRadius="8px"
-              $boxShadow="0px 1px 20px 0px #1018280F, 0px 1px 3px 0px #1018281A;"
-              id="select-plan-dialog"
-              role="dialog"
-              aria-labelledby="select-plan-dialog-label"
-              aria-modal="true"
-            >
-              <Box
-                $position="absolute"
-                $top="0.25rem"
-                $right="0.75rem"
-                $cursor="pointer"
-                onClick={() => {
-                  setLayout("portal");
-                }}
-              >
-                <Icon name="close" style={{ fontSize: 36, color: "#B8B8B8" }} />
-              </Box>
-
-              <Flex $flexDirection="column" $gap="1rem">
-                <Text
-                  as="h1"
-                  id="select-plan-dialog-label"
-                  $size={24}
-                  $weight={800}
-                >
-                  Select plan
-                </Text>
-
-                <Flex $flexDirection="column" $gap="1rem">
-                  {plans.map((plan, index) => (
-                    <Flex
-                      key={index}
-                      $justifyContent="space-between"
-                      $alignItems="center"
-                      $width="100%"
-                    >
-                      <Text $size={20} $weight={800}>
-                        {plan.name}
-                      </Text>
-                      {plan.price! >= 0 && <Text>${plan.price}/mo</Text>}
-                    </Flex>
-                  ))}
+          <OverlayWrapper>
+            <OverlayHeader>
+              <Flex $gap="1rem">
+                <Flex $flexDirection="row" $gap="0.5rem" $alignItems="center">
+                  <Box
+                    $width="15px"
+                    $height="15px"
+                    $border="2px solid #DDDDDD"
+                    $borderRadius="999px"
+                    $backgroundColor="white"
+                  />
+                  <div
+                    style={{
+                      fontWeight: "700",
+                    }}
+                  >
+                    1. Select plan
+                  </div>
+                  <Icon
+                    name="chevron-right"
+                    style={{ fontSize: 16, color: "#D0D0D0" }}
+                  />
+                </Flex>
+                <Flex $flexDirection="row" $gap="0.5rem" $alignItems="center">
+                  <Box
+                    $width="15px"
+                    $height="15px"
+                    $border="2px solid #DDDDDD"
+                    $borderRadius="999px"
+                    $backgroundColor="white"
+                  />
+                  <div>2. Customize with Add-ons</div>
+                  <Icon
+                    name="chevron-right"
+                    style={{ fontSize: 16, color: "#D0D0D0" }}
+                  />
+                </Flex>
+                <Flex $flexDirection="row" $gap="0.5rem" $alignItems="center">
+                  <Box
+                    $width="15px"
+                    $height="15px"
+                    $border="2px solid #DDDDDD"
+                    $borderRadius="999px"
+                    $backgroundColor="white"
+                  />
+                  <div>3. Checkout</div>
+                  <Icon
+                    name="chevron-right"
+                    style={{ fontSize: 16, color: "#D0D0D0" }}
+                  />
                 </Flex>
               </Flex>
+            </OverlayHeader>
+
+            {/* Content + Sidebar */}
+            <Flex $flexDirection="row" $height="100%">
+              <Flex
+                $flexDirection="column"
+                $gap="1rem"
+                $padding="2rem 2.5rem 2rem 2.5rem"
+                $backgroundColor="#FBFBFB"
+                $borderRadius="0 0.5rem 0"
+                $flex="1"
+                $height="100%"
+              >
+                <Flex $flexDirection="column" $gap="1rem" $marginBottom="1rem">
+                  <Text
+                    as="h1"
+                    id="select-plan-dialog-label"
+                    $size={18}
+                    $marginBottom=".5rem"
+                  >
+                    Select plan
+                  </Text>
+                  <Text
+                    as="p"
+                    id="select-plan-dialog-description"
+                    $size={14}
+                    $weight={400}
+                  >
+                    Choose your base plan
+                  </Text>
+                </Flex>
+
+                <Flex $flexDirection="row" $gap="1rem" $flex="1" $height="100%">
+                  {avaliablePlans.map((plan) => {
+                    return (
+                      <Flex
+                        $height="100%"
+                        $flexDirection="column"
+                        $backgroundColor="white"
+                        $border={plan?.current ? `2px solid #194BFB` : ""}
+                        $flex="1"
+                        $borderRadius=".5rem"
+                        $boxShadow="0px 1px 3px rgba(16, 24, 40, 0.1), 0px 1px 20px rgba(16, 24, 40, 0.06)"
+                      >
+                        <Flex
+                          $flexDirection="column"
+                          $position="relative"
+                          $gap="1rem"
+                          $width="100%"
+                          $height="auto"
+                          $padding="1.5rem"
+                          $borderBottom="1px solid #DEDEDE"
+                        >
+                          <Text $size={20} $weight={600}>
+                            {plan?.name}
+                          </Text>
+                          <Text $size={14}>{plan?.description}</Text>
+                          <Text>
+                            <Box $display="inline-block" $fontSize=".90rem">
+                              $
+                            </Box>
+                            <Box $display="inline-block" $fontSize="1.5rem">
+                              {currentPlan?.price ? currentPlan.price : "350"}
+                            </Box>
+                            <Box $display="inline-block" $fontSize=".75rem">
+                              /{pricePeriod}
+                            </Box>
+                          </Text>
+                          {plan?.current && (
+                            <Flex
+                              $position="absolute"
+                              $right="1rem"
+                              $top="1rem"
+                              $fontSize=".75rem"
+                              $color="white"
+                              $backgroundColor="#194BFB"
+                              $borderRadius="999px"
+                              $padding=".125rem .85rem"
+                            >
+                              Current plan
+                            </Flex>
+                          )}
+                        </Flex>
+                        <Flex
+                          $flexDirection="column"
+                          $position="relative"
+                          $gap="0.5rem"
+                          $flex="1"
+                          $width="100%"
+                          $height="auto"
+                          $padding="1.5rem"
+                        >
+                          {[{}, {}, {}].map(() => {
+                            return (
+                              <Flex $flexShrink="0" $gap="1rem">
+                                <IconRound
+                                  name="server-search"
+                                  size="tn"
+                                  colors={["#00000", "#F5F5F5"]}
+                                />
+
+                                <Flex $alignItems="center">
+                                  <Text $size=".75rem" $color="#00000">
+                                    5 Queries/mo
+                                  </Text>
+                                </Flex>
+                              </Flex>
+                            );
+                          })}
+                        </Flex>
+                        <Flex
+                          $flexDirection="column"
+                          $position="relative"
+                          $gap="1rem"
+                          $width="100%"
+                          $height="auto"
+                          $padding="1.5rem"
+                        >
+                          {plan.current ? (
+                            <Flex
+                              $flexDirection="row"
+                              $gap=".5rem"
+                              $justifyContent="center"
+                              $alignItems="center"
+                            >
+                              <Icon
+                                name="check-rounded"
+                                style={{
+                                  fontSize: 24,
+                                  lineHeight: "1em",
+                                  color: "#194BFB",
+                                }}
+                              />
+
+                              <span
+                                style={{
+                                  fontSize: "1rem",
+                                  color: "#7B7B7B",
+                                }}
+                              >
+                                Selected
+                              </span>
+                            </Flex>
+                          ) : (
+                            <StyledButton
+                              $size="sm"
+                              $color="secondary"
+                              $style="outline"
+                              onClick={() => {}}
+                            >
+                              Select
+                            </StyledButton>
+                          )}
+                        </Flex>
+                      </Flex>
+                    );
+                  })}
+                </Flex>
+              </Flex>
+
+              <OverlaySideBar
+                setPricePeriod={setPricePeriod}
+                pricePeriod={pricePeriod}
+              />
             </Flex>
-          </Box>,
+          </OverlayWrapper>,
           portal || document.body,
         )}
     </div>
   );
 });
+
+export const OverlayHeader = ({ children }: { children: ReactNode }) => {
+  const { setLayout } = useEmbed();
+
+  return (
+    <Flex
+      $paddingLeft="2.5rem"
+      $paddingRight="2.5rem"
+      $padding=".75rem 2.5rem"
+      $flexDirection="row"
+      $justifyContent="space-between"
+      $alignItems="center"
+      $borderBottom="1px solid #DEDEDE"
+      $gap="1rem"
+      $backgroundColor="#FFFFFF"
+      $borderRadius=".5rem .5rem 0 0"
+    >
+      {children}
+
+      <div>
+        <Box
+          $cursor="pointer"
+          onClick={() => {
+            setLayout("portal");
+          }}
+        >
+          <Icon name="close" style={{ fontSize: 36, color: "#B8B8B8" }} />
+        </Box>
+      </div>
+    </Flex>
+  );
+};
+
+export const OverlayWrapper = ({
+  children,
+  size = "lg",
+}: {
+  children: ReactNode;
+  size?: "md" | "lg";
+}) => {
+  const sizeWidthMap = {
+    md: "700px",
+    lg: "75%",
+  };
+
+  const sizeHeighthMap = {
+    md: "auto",
+    lg: "75%",
+  };
+
+  const sizeMaxWidthMap = {
+    md: "auto",
+    lg: "1140px",
+  };
+
+  return (
+    <Box
+      $position="absolute"
+      $top="50%"
+      $left="50%"
+      $zIndex="999999"
+      $transform="translate(-50%, -50%)"
+      $width="100%"
+      $height="100%"
+      $backgroundColor="#B5B5B580"
+    >
+      <Flex
+        $position="relative"
+        $top="40%"
+        $left="50%"
+        $transform="translate(-50%, -50%)"
+        $maxWidth={sizeMaxWidthMap[size]}
+        $width={sizeWidthMap[size]}
+        $height={sizeHeighthMap[size]}
+        $backgroundColor="#FBFBFB"
+        $borderRadius="8px"
+        $boxShadow="0px 1px 20px 0px #1018280F, 0px 1px 3px 0px #1018281A;"
+        id="select-plan-dialog"
+        role="dialog"
+        $borderBottom="1px solid #DEDEDE"
+        aria-labelledby="select-plan-dialog-label"
+        aria-modal="true"
+        $flexDirection="column"
+      >
+        {children}
+      </Flex>
+    </Box>
+  );
+};
+
+export const OverlaySideBar = ({
+  setPricePeriod,
+  pricePeriod,
+}: {
+  setPricePeriod: Dispatch<SetStateAction<"month" | "year">>;
+  pricePeriod: "month" | "year";
+}) => {
+  return (
+    <Flex
+      $flexDirection="column"
+      $background="white"
+      $borderRadius="0 0 0.5rem"
+      $maxWidth="275px"
+      $height="100%"
+      $boxShadow="0px 1px 20px 0px #1018280F, 0px 1px 3px 0px #1018281A;"
+    >
+      <Flex
+        $flexDirection="column"
+        $position="relative"
+        $gap="1rem"
+        $width="100%"
+        $height="auto"
+        $padding="1.5rem"
+        $borderBottom="1px solid #DEDEDE"
+      >
+        <Flex $flexDirection="row" $justifyContent="space-between">
+          <Text $size={20} $weight={600}>
+            Subscription
+          </Text>
+
+          <Flex
+            $border="1px solid #D9D9D9"
+            $padding=".15rem .45rem .15rem .55rem"
+            $alignItems="center"
+            $borderRadius="5px"
+            $fontSize="12px"
+          >
+            <Box $display="inline-block" $marginRight=".5rem">
+              $ USD
+            </Box>
+            <Icon
+              name="chevron-down"
+              style={{
+                fontSize: "20px",
+                lineHeight: "1em",
+              }}
+            />
+          </Flex>
+        </Flex>
+
+        <Flex
+          $flexDirection="row"
+          $border="1px solid #D9D9D9"
+          $borderRadius="40px"
+          $fontSize="12px"
+          $textAlign="center"
+          $cursor="pointer"
+        >
+          <Box
+            onClick={() => setPricePeriod("month")}
+            $padding=".25rem .5rem"
+            $flex="1"
+            $fontWeight={pricePeriod === "month" ? "600" : "400"}
+            $backgroundColor={pricePeriod === "month" ? "#DDDDDD" : "white"}
+            $borderRadius="40px"
+          >
+            Billed monthly
+          </Box>
+          <Box
+            onClick={() => setPricePeriod("year")}
+            $padding=".25rem .5rem"
+            $flex="1"
+            $fontWeight={pricePeriod === "year" ? "600" : "400"}
+            $backgroundColor={pricePeriod === "year" ? "#DDDDDD" : "white"}
+            $borderRadius="40px"
+          >
+            Billed yearly
+          </Box>
+        </Flex>
+
+        <Box $fontSize="11px" $color="#194BFB">
+          Save up to 33% with yearly billing
+        </Box>
+      </Flex>
+      <Flex
+        $flexDirection="column"
+        $position="relative"
+        $gap="1rem"
+        $width="100%"
+        $height="auto"
+        $padding="1.5rem"
+        $flex="1"
+        $borderBottom="1px solid #DEDEDE"
+      >
+        Plan details..
+      </Flex>
+      <Flex
+        $flexDirection="column"
+        $position="relative"
+        $gap=".75rem"
+        $width="100%"
+        $height="auto"
+        $padding="1.5rem"
+      >
+        <Flex $fontSize="12px" $color="#5D5D5D" $justifyContent="space-between">
+          <Box $fontSize="12px" $color="#5D5D5D">
+            Monthly total:{" "}
+          </Box>
+          <Box $fontSize="12px" $color="#000000">
+            $285/mo
+          </Box>
+        </Flex>
+        <StyledButton $size="sm">
+          <Flex $gap=".5rem" $alignItems="center" $justifyContent="center">
+            <span>Next: Add ons</span>
+            <Icon name="arrow-right" />
+          </Flex>
+        </StyledButton>
+
+        <Box $fontSize="12px" $color="#5D5D5D">
+          Discounts & credits applied at checkout
+        </Box>
+      </Flex>
+    </Flex>
+  );
+};
