@@ -5,6 +5,7 @@ import { type FontStyle } from "../../../context";
 import type { RecursivePartial, ElementProps } from "../../../types";
 import { Box, Flex, Icon, Text } from "../../ui";
 import { darken, lighten, hexToHSL } from "../../../utils";
+import { OverlayHeader, OverlayWrapper } from "../plan-manager";
 
 interface DesignProps {
   header: {
@@ -136,55 +137,24 @@ export const PaymentMethod = forwardRef<
 
       {layout === "payment" &&
         createPortal(
-          <Box
-            $position="absolute"
-            $top="50%"
-            $left="50%"
-            $zIndex="999999"
-            $transform="translate(-50%, -50%)"
-            $width="100%"
-            $height="100%"
-            $backgroundColor="#B5B5B580"
-          >
-            <Flex
-              $position="relative"
-              $top="50%"
-              $left="50%"
-              $transform="translate(-50%, -50%)"
-              $width="956px"
-              $height="700px"
-              $backgroundColor="#FBFBFB"
-              $borderRadius="8px"
-              $boxShadow="0px 1px 20px 0px #1018280F, 0px 1px 3px 0px #1018281A;"
-              id="select-plan-dialog"
-              role="dialog"
-              aria-labelledby="select-plan-dialog-label"
-              aria-modal="true"
-            >
-              <Box
-                $position="absolute"
-                $top="0.25rem"
-                $right="0.75rem"
-                $cursor="pointer"
-                onClick={() => {
-                  setLayout("portal");
-                }}
+          <OverlayWrapper size="md">
+            <OverlayHeader>
+              <Box $fontWeight="600">Edit payment method</Box>
+            </OverlayHeader>
+            <Flex $flexDirection="row" $height="100%">
+              <Flex
+                $flexDirection="column"
+                $gap="1rem"
+                $padding="2.5rem"
+                $backgroundColor="#FBFBFB"
+                $borderRadius="0 0 0.5rem 0.5rem"
+                $flex="1"
+                $height="100%"
               >
-                <Icon name="close" style={{ fontSize: 36, color: "#B8B8B8" }} />
-              </Box>
-
-              <Flex $flexDirection="column" $gap="1rem">
-                <Text
-                  as="h1"
-                  id="select-plan-dialog-label"
-                  $size={24}
-                  $weight={800}
-                >
-                  Add payment method
-                </Text>
+                Stripe fields embed here...
               </Flex>
             </Flex>
-          </Box>,
+          </OverlayWrapper>,
           portal || document.body,
         )}
     </div>
