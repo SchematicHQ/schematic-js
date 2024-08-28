@@ -1,10 +1,9 @@
-import { forwardRef, useMemo } from "react";
+import { forwardRef, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useEmbed } from "../../../hooks";
 import { type FontStyle } from "../../../context";
 import type { RecursivePartial, ElementProps } from "../../../types";
 import { Box, Flex, Icon, Text } from "../../ui";
-import { darken } from "../../../utils";
 import { CheckoutForm } from "./CheckoutForm";
 import { StyledButton } from "./styles";
 
@@ -78,35 +77,43 @@ export const PlanManager = forwardRef<
 >(({ children, className, portal, ...rest }, ref) => {
   const props = resolveDesignProps(rest);
 
-  const { data, settings, stripe, layout, setLayout } = useEmbed();
+  const [planPeriod /*, setPlanPeriod */] = useState<"month" | "year">("month");
 
-  const { plan, plans, addOns } = useMemo(() => {
+  const { data, settings, layout, setLayout } = useEmbed();
+
+  const { plan, canChangePlan } = useMemo(() => {
+    const canChangePlan = data.stripeEmbed?.publishableKey;
+    const availablePlans = data.activePlans?.map(
+      ({ name, description, current, monthlyPrice, yearlyPrice }) => ({
+        name,
+        description,
+        price:
+          planPeriod === "month" ? monthlyPrice?.price : yearlyPrice?.price,
+        current,
+      }),
+    );
+
     return {
-      plan: data.company?.plan || {},
-      plans:
-        data.company?.plans?.map(({ name, description }) => ({
-          name,
-          description,
-          price: undefined,
-        })) || [],
-      addOns:
-        data.company?.addOns?.map(({ name, description }) => ({
-          name,
-          description,
-          price: undefined,
-        })) || [],
+      plan: data.company?.plan,
+      canChangePlan,
+      currentPlan: availablePlans?.find((plan) => plan.current === true),
+      availablePlans,
     };
-  }, [data.company]);
+  }, [data.company, data.stripeEmbed, data.activePlans, planPeriod]);
 
   return (
     <div ref={ref} className={className}>
-      <Flex $flexDirection="column" $gap="0.75rem" $margin="0 0 3rem">
+      <Flex
+        $flexDirection="column"
+        $gap="0.75rem"
+        {...(canChangePlan && { $margin: "0 0 0.5rem" })}
+      >
         {props.header.isVisible && plan && (
           <Flex
             $justifyContent="space-between"
             $alignItems="center"
             $width="100%"
-            $margin="0 0 1.5rem"
+            {...(canChangePlan && { $margin: "0 0 1.5rem" })}
           >
             <div>
               <Box $margin="0 0 0.75rem">
@@ -161,80 +168,35 @@ export const PlanManager = forwardRef<
               )}
             </div>
 
-            {props.header.price.isVisible && plan.planPrice! >= 0 && (
-              <Text
-                $font={
-                  settings.theme.typography[props.header.price.fontStyle]
-                    .fontFamily
-                }
-                $size={
-                  settings.theme.typography[props.header.price.fontStyle]
-                    .fontSize
-                }
-                $weight={
-                  settings.theme.typography[props.header.price.fontStyle]
-                    .fontWeight
-                }
-                $color={
-                  settings.theme.typography[props.header.price.fontStyle].color
-                }
-              >
-                ${plan.planPrice}/{plan.planPeriod}
-              </Text>
-            )}
-          </Flex>
-        )}
-
-        {props.addOns.isVisible && (
-          <>
-            {props.addOns.showLabel && (
-              <Text
-                $font={settings.theme.typography.text.fontFamily}
-                $size={settings.theme.typography.text.fontSize}
-                $weight={500}
-                $color={darken(settings.theme.typography.text.color, 20)}
-              >
-                Add-Ons
-              </Text>
-            )}
-
-            <Box $width="100%" $margin="0 0 1rem">
-              {addOns.map((addOn, index) => (
-                <Flex
-                  key={index}
-                  $justifyContent="space-between"
-                  $alignItems="center"
-                  $width="100%"
+            {props.header.price.isVisible &&
+              plan.planPrice! >= 0 &&
+              plan.planPeriod && (
+                <Text
+                  $font={
+                    settings.theme.typography[props.header.price.fontStyle]
+                      .fontFamily
+                  }
+                  $size={
+                    settings.theme.typography[props.header.price.fontStyle]
+                      .fontSize
+                  }
+                  $weight={
+                    settings.theme.typography[props.header.price.fontStyle]
+                      .fontWeight
+                  }
+                  $color={
+                    settings.theme.typography[props.header.price.fontStyle]
+                      .color
+                  }
                 >
-                  <Text
-                    $font={
-                      settings.theme.typography[props.addOns.fontStyle]
-                        .fontFamily
-                    }
-                    $size={
-                      settings.theme.typography[props.addOns.fontStyle].fontSize
-                    }
-                    $weight={
-                      settings.theme.typography[props.addOns.fontStyle]
-                        .fontWeight
-                    }
-                    $color={
-                      settings.theme.typography[props.addOns.fontStyle].color
-                    }
-                  >
-                    {addOn.name}
-                  </Text>
-                  {addOn.price! >= 0 && (
-                    <Text $weight={500}>${addOn.price}/mo</Text>
-                  )}
-                </Flex>
-              ))}
-            </Box>
-          </>
+                  ${plan.planPrice}/{plan.planPeriod}
+                </Text>
+              )}
+          </Flex>
         )}
       </Flex>
 
-      {props.callToAction.isVisible && (
+      {canChangePlan && props.callToAction.isVisible && (
         <StyledButton
           onClick={() => {
             setLayout("checkout");
@@ -252,9 +214,8 @@ export const PlanManager = forwardRef<
         </StyledButton>
       )}
 
-      {children}
-
-      {layout === "checkout" &&
+      {canChangePlan &&
+        layout === "checkout" &&
         createPortal(
           <Box
             $position="absolute"
@@ -266,7 +227,7 @@ export const PlanManager = forwardRef<
             $height="100%"
             $backgroundColor="#B5B5B580"
           >
-            <Flex
+            <Box
               $position="relative"
               $top="50%"
               $left="50%"
@@ -281,47 +242,28 @@ export const PlanManager = forwardRef<
               aria-labelledby="select-plan-dialog-label"
               aria-modal="true"
             >
-              <Box
-                $position="absolute"
-                $top="0.25rem"
-                $right="0.75rem"
+              <Flex
+                $justifyContent="flex-end"
                 $cursor="pointer"
                 onClick={() => {
                   setLayout("portal");
                 }}
               >
-                <Icon name="close" style={{ fontSize: 36, color: "#B8B8B8" }} />
-              </Box>
-
-              <Flex $flexDirection="column" $gap="1rem">
-                <Text
-                  as="h1"
-                  id="select-plan-dialog-label"
-                  $size={24}
-                  $weight={800}
-                >
-                  Select plan
-                </Text>
-
-                <Flex $flexDirection="column" $gap="1rem">
-                  {plans.map((plan, index) => (
-                    <Flex
-                      key={index}
-                      $justifyContent="space-between"
-                      $alignItems="center"
-                      $width="100%"
-                    >
-                      <Text $size={20} $weight={800}>
-                        {plan.name}
-                      </Text>
-                      {plan.price! >= 0 && <Text>${plan.price}/mo</Text>}
-                    </Flex>
-                  ))}
-                </Flex>
+                <Icon
+                  name="close"
+                  style={{
+                    fontSize: 36,
+                    lineHeight: 1,
+                    padding: "0.875rem",
+                    color: "#B8B8B8",
+                  }}
+                />
               </Flex>
-            </Flex>
 
-            {stripe && data.stripeEmbed?.customerEkey && <CheckoutForm />}
+              <Flex $flexDirection="column" $gap="1rem" $width="100%">
+                <CheckoutForm />
+              </Flex>
+            </Box>
           </Box>,
           portal || document.body,
         )}

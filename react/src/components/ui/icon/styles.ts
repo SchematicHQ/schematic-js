@@ -15,6 +15,7 @@ export const Container = styled.div<{
   display: flex;
   justify-content: center;
   align-items: center;
+  flex-shrink: 0;
   border-radius: 9999px;
   ${({ $size }) => {
     const base = 24;

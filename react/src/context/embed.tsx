@@ -176,7 +176,7 @@ async function fetchComponent(
   }
 
   let stripe: Promise<Stripe | null> | null = null;
-  if (data.stripeEmbed) {
+  if (data.stripeEmbed?.publishableKey) {
     stripe = loadStripe(data.stripeEmbed.publishableKey);
   }
 
@@ -267,7 +267,7 @@ export const EmbedProvider = ({
     fetchComponent(id, accessToken, apiConfig)
       .then(async (resolvedData) => {
         let stripe: Promise<Stripe | null> | null = null;
-        if (resolvedData.data?.stripeEmbed) {
+        if (resolvedData.data?.stripeEmbed?.publishableKey) {
           stripe = loadStripe(resolvedData.data.stripeEmbed.publishableKey);
         }
 
@@ -332,12 +332,12 @@ export const EmbedProvider = ({
     [setState],
   );
 
-  const renderChildren = useCallback(() => {
-    if (state.data.stripeEmbed?.customerEkey) {
+  const renderChildren = () => {
+    if (state.stripe) {
       return (
         <Elements
           stripe={state.stripe}
-          options={{ clientSecret: state.data.stripeEmbed.customerEkey }}
+          options={{ mode: "payment", amount: 200, currency: "usd" }}
         >
           {children}
         </Elements>
@@ -345,7 +345,7 @@ export const EmbedProvider = ({
     }
 
     return children;
-  }, [children, state.data.stripeEmbed, state.stripe]);
+  };
 
   return (
     <EmbedContext.Provider

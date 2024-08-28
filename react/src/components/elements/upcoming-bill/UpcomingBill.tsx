@@ -51,25 +51,33 @@ export const UpcomingBill = forwardRef<
 >(({ className, ...rest }, ref) => {
   const props = resolveDesignProps(rest);
 
-  const { settings } = useEmbed();
+  const { data, settings, stripe } = useEmbed();
 
-  const { bill } = useMemo(() => {
-    /**
-     * @TODO: resolve from data
-     */
+  const { latestInvoice } = useMemo(() => {
     return {
-      bill: {
-        amount: 200,
-        period: "monthly",
-        dueDate: toPrettyDate(new Date("2024-06-12")),
-        endDate: new Date("2025-05-12").toLocaleDateString(),
+      latestInvoice: {
+        ...(data.subscription?.latestInvoice?.amountDue && {
+          amountDue: data.subscription.latestInvoice.amountDue,
+        }),
+        ...(data.subscription?.interval && {
+          interval: data.subscription.interval,
+        }),
+        ...(data.subscription?.latestInvoice?.dueDate && {
+          dueDate: toPrettyDate(
+            new Date(data.subscription.latestInvoice.dueDate),
+          ),
+        }),
       },
     };
-  }, []);
+  }, [data.subscription]);
+
+  if (!stripe) {
+    return null;
+  }
 
   return (
     <div ref={ref} className={className}>
-      {props.header.isVisible && (
+      {props.header.isVisible && latestInvoice.dueDate && (
         <Flex
           $justifyContent="space-between"
           $alignItems="center"
@@ -83,63 +91,64 @@ export const UpcomingBill = forwardRef<
             }
             $color={settings.theme.typography[props.header.fontStyle].color}
           >
-            {props.header.prefix} {bill.dueDate}
+            {props.header.prefix} {latestInvoice.dueDate}
           </Text>
         </Flex>
       )}
 
-      <Flex $justifyContent="space-between" $alignItems="start" $gap="1rem">
-        {props.price.isVisible && (
-          <Flex $alignItems="end" $flexGrow="1">
+      {latestInvoice.amountDue && (
+        <Flex $justifyContent="space-between" $alignItems="start" $gap="1rem">
+          {props.price.isVisible && (
+            <Flex $alignItems="end" $flexGrow="1">
+              <Text
+                $font={
+                  settings.theme.typography[props.price.fontStyle].fontFamily
+                }
+                $size={
+                  settings.theme.typography[props.price.fontStyle].fontSize
+                }
+                $weight={
+                  settings.theme.typography[props.price.fontStyle].fontWeight
+                }
+                $color={settings.theme.typography[props.price.fontStyle].color}
+                $lineHeight={1}
+              >
+                <Text
+                  $size="0.75em"
+                  $color={
+                    settings.theme.typography[props.price.fontStyle].color
+                  }
+                >
+                  $
+                </Text>
+                {latestInvoice.amountDue}
+              </Text>
+            </Flex>
+          )}
+
+          <Box $maxWidth="10rem" $lineHeight="1" $textAlign="right">
             <Text
               $font={
-                settings.theme.typography[props.price.fontStyle].fontFamily
+                settings.theme.typography[props.contractEndDate.fontStyle]
+                  .fontFamily
               }
-              $size={settings.theme.typography[props.price.fontStyle].fontSize}
+              $size={
+                settings.theme.typography[props.contractEndDate.fontStyle]
+                  .fontSize
+              }
               $weight={
-                settings.theme.typography[props.price.fontStyle].fontWeight
+                settings.theme.typography[props.contractEndDate.fontStyle]
+                  .fontWeight
               }
-              $color={settings.theme.typography[props.price.fontStyle].color}
-              $lineHeight={1}
+              $color={
+                settings.theme.typography[props.contractEndDate.fontStyle].color
+              }
             >
-              <Text
-                $size="0.75em"
-                $color={settings.theme.typography[props.price.fontStyle].color}
-              >
-                $
-              </Text>
-              {bill.amount}
+              Estimated monthly bill.
             </Text>
-          </Flex>
-        )}
-
-        <Box $maxWidth="140px" $lineHeight="1">
-          <Text
-            $font={
-              settings.theme.typography[props.contractEndDate.fontStyle]
-                .fontFamily
-            }
-            $size={
-              settings.theme.typography[props.contractEndDate.fontStyle]
-                .fontSize
-            }
-            $weight={
-              settings.theme.typography[props.contractEndDate.fontStyle]
-                .fontWeight
-            }
-            $color={
-              settings.theme.typography[props.contractEndDate.fontStyle].color
-            }
-          >
-            Estimated monthly bill.
-            {props.contractEndDate.isVisible && (
-              <>
-                &nbsp;{props.contractEndDate.prefix} {bill.endDate}.
-              </>
-            )}
-          </Text>
-        </Box>
-      </Flex>
+          </Box>
+        </Flex>
+      )}
     </div>
   );
 });
