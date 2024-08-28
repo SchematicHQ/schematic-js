@@ -225,7 +225,7 @@ export const PlanManager = forwardRef<
             $transform="translate(-50%, -50%)"
             $width="100%"
             $height="100%"
-            $backgroundColor="#B5B5B580"
+            $backgroundColor="#D9D9D9"
           >
             <Box
               $position="relative"
