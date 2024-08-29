@@ -5,15 +5,17 @@ import { StyledViewport } from "./styles";
 export interface ViewportProps extends React.HTMLProps<HTMLDivElement> {}
 
 export const Viewport = forwardRef<HTMLDivElement | null, ViewportProps>(
-  (props, ref) => {
-    const { settings } = useEmbed();
+  ({ children, ...props }, ref) => {
+    const { settings, layout } = useEmbed();
 
     return (
       <StyledViewport
         ref={ref}
         $numberOfColumns={settings.theme.numberOfColumns}
         {...props}
-      />
+      >
+        {layout === "disabled" ? <div className="">DISABLED</div> : children}
+      </StyledViewport>
     );
   },
 );

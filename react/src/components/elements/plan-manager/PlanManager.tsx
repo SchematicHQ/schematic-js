@@ -331,7 +331,7 @@ export const PlanManager = forwardRef<
       canChangePlan,
       availablePlans,
     };
-  }, [data.company, data.stripeEmbed, data.activePlans, planPeriod]);
+  }, [data.company, data.activePlans, stripe, planPeriod]);
 
   return (
     <div ref={ref} className={className}>

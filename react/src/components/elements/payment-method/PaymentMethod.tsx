@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { useEmbed } from "../../../hooks";
 import { type FontStyle } from "../../../context";
 import type { RecursivePartial, ElementProps } from "../../../types";
-import { Box, Flex, Icon, Text } from "../../ui";
+import { Box, Flex, Text } from "../../ui";
 import { darken, lighten, hexToHSL } from "../../../utils";
 import { OverlayHeader, OverlayWrapper } from "../plan-manager";
 
