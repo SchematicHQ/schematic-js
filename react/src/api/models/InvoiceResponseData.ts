@@ -16,107 +16,107 @@ import { mapValues } from "../runtime";
 /**
  *
  * @export
- * @interface BillingInvoiceResponseData
+ * @interface InvoiceResponseData
  */
-export interface BillingInvoiceResponseData {
+export interface InvoiceResponseData {
   /**
    *
    * @type {number}
-   * @memberof BillingInvoiceResponseData
+   * @memberof InvoiceResponseData
    */
   amountDue: number;
   /**
    *
    * @type {number}
-   * @memberof BillingInvoiceResponseData
+   * @memberof InvoiceResponseData
    */
   amountPaid: number;
   /**
    *
    * @type {number}
-   * @memberof BillingInvoiceResponseData
+   * @memberof InvoiceResponseData
    */
   amountRemaining: number;
   /**
    *
    * @type {string}
-   * @memberof BillingInvoiceResponseData
+   * @memberof InvoiceResponseData
    */
   collectionMethod: string;
   /**
    *
    * @type {string}
-   * @memberof BillingInvoiceResponseData
+   * @memberof InvoiceResponseData
    */
   companyId?: string | null;
   /**
    *
    * @type {Date}
-   * @memberof BillingInvoiceResponseData
+   * @memberof InvoiceResponseData
    */
   createdAt: Date;
   /**
    *
    * @type {string}
-   * @memberof BillingInvoiceResponseData
+   * @memberof InvoiceResponseData
    */
   currency: string;
   /**
    *
    * @type {string}
-   * @memberof BillingInvoiceResponseData
+   * @memberof InvoiceResponseData
    */
   customerExternalId: string;
   /**
    *
    * @type {Date}
-   * @memberof BillingInvoiceResponseData
+   * @memberof InvoiceResponseData
    */
   dueDate?: Date | null;
   /**
    *
    * @type {string}
-   * @memberof BillingInvoiceResponseData
+   * @memberof InvoiceResponseData
    */
   environmentId: string;
   /**
    *
    * @type {string}
-   * @memberof BillingInvoiceResponseData
+   * @memberof InvoiceResponseData
    */
   externalId: string;
   /**
    *
    * @type {string}
-   * @memberof BillingInvoiceResponseData
+   * @memberof InvoiceResponseData
    */
   id: string;
   /**
    *
    * @type {string}
-   * @memberof BillingInvoiceResponseData
+   * @memberof InvoiceResponseData
    */
   subscriptionExternalId?: string | null;
   /**
    *
    * @type {number}
-   * @memberof BillingInvoiceResponseData
+   * @memberof InvoiceResponseData
    */
   subtotal: number;
   /**
    *
    * @type {Date}
-   * @memberof BillingInvoiceResponseData
+   * @memberof InvoiceResponseData
    */
   updatedAt: Date;
 }
 
 /**
- * Check if a given object implements the BillingInvoiceResponseData interface.
+ * Check if a given object implements the InvoiceResponseData interface.
  */
-export function instanceOfBillingInvoiceResponseData(
+export function instanceOfInvoiceResponseData(
   value: object,
-): value is BillingInvoiceResponseData {
+): value is InvoiceResponseData {
   if (!("amountDue" in value) || value["amountDue"] === undefined) return false;
   if (!("amountPaid" in value) || value["amountPaid"] === undefined)
     return false;
@@ -141,16 +141,14 @@ export function instanceOfBillingInvoiceResponseData(
   return true;
 }
 
-export function BillingInvoiceResponseDataFromJSON(
-  json: any,
-): BillingInvoiceResponseData {
-  return BillingInvoiceResponseDataFromJSONTyped(json, false);
+export function InvoiceResponseDataFromJSON(json: any): InvoiceResponseData {
+  return InvoiceResponseDataFromJSONTyped(json, false);
 }
 
-export function BillingInvoiceResponseDataFromJSONTyped(
+export function InvoiceResponseDataFromJSONTyped(
   json: any,
   ignoreDiscriminator: boolean,
-): BillingInvoiceResponseData {
+): InvoiceResponseData {
   if (json == null) {
     return json;
   }
@@ -176,8 +174,8 @@ export function BillingInvoiceResponseDataFromJSONTyped(
   };
 }
 
-export function BillingInvoiceResponseDataToJSON(
-  value?: BillingInvoiceResponseData | null,
+export function InvoiceResponseDataToJSON(
+  value?: InvoiceResponseData | null,
 ): any {
   if (value == null) {
     return value;

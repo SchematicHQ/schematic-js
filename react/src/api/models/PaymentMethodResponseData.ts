@@ -16,101 +16,101 @@ import { mapValues } from "../runtime";
 /**
  *
  * @export
- * @interface BillingPaymentMethodResponseData
+ * @interface PaymentMethodResponseData
  */
-export interface BillingPaymentMethodResponseData {
+export interface PaymentMethodResponseData {
   /**
    *
    * @type {string}
-   * @memberof BillingPaymentMethodResponseData
+   * @memberof PaymentMethodResponseData
    */
   cardBrand?: string | null;
   /**
    *
    * @type {number}
-   * @memberof BillingPaymentMethodResponseData
+   * @memberof PaymentMethodResponseData
    */
   cardExpMonth?: number | null;
   /**
    *
    * @type {number}
-   * @memberof BillingPaymentMethodResponseData
+   * @memberof PaymentMethodResponseData
    */
   cardExpYear?: number | null;
   /**
    *
    * @type {string}
-   * @memberof BillingPaymentMethodResponseData
+   * @memberof PaymentMethodResponseData
    */
   cardLast4?: string | null;
   /**
    *
    * @type {string}
-   * @memberof BillingPaymentMethodResponseData
+   * @memberof PaymentMethodResponseData
    */
   companyId?: string | null;
   /**
    *
    * @type {Date}
-   * @memberof BillingPaymentMethodResponseData
+   * @memberof PaymentMethodResponseData
    */
   createdAt: Date;
   /**
    *
    * @type {string}
-   * @memberof BillingPaymentMethodResponseData
+   * @memberof PaymentMethodResponseData
    */
   customerExternalId: string;
   /**
    *
    * @type {string}
-   * @memberof BillingPaymentMethodResponseData
+   * @memberof PaymentMethodResponseData
    */
   environmentId: string;
   /**
    *
    * @type {string}
-   * @memberof BillingPaymentMethodResponseData
+   * @memberof PaymentMethodResponseData
    */
   externalId: string;
   /**
    *
    * @type {string}
-   * @memberof BillingPaymentMethodResponseData
+   * @memberof PaymentMethodResponseData
    */
   id: string;
   /**
    *
    * @type {string}
-   * @memberof BillingPaymentMethodResponseData
+   * @memberof PaymentMethodResponseData
    */
   invoiceExternalId?: string | null;
   /**
    *
    * @type {string}
-   * @memberof BillingPaymentMethodResponseData
+   * @memberof PaymentMethodResponseData
    */
   paymentMethodType: string;
   /**
    *
    * @type {string}
-   * @memberof BillingPaymentMethodResponseData
+   * @memberof PaymentMethodResponseData
    */
   subscriptionExternalId?: string | null;
   /**
    *
    * @type {Date}
-   * @memberof BillingPaymentMethodResponseData
+   * @memberof PaymentMethodResponseData
    */
   updatedAt: Date;
 }
 
 /**
- * Check if a given object implements the BillingPaymentMethodResponseData interface.
+ * Check if a given object implements the PaymentMethodResponseData interface.
  */
-export function instanceOfBillingPaymentMethodResponseData(
+export function instanceOfPaymentMethodResponseData(
   value: object,
-): value is BillingPaymentMethodResponseData {
+): value is PaymentMethodResponseData {
   if (!("createdAt" in value) || value["createdAt"] === undefined) return false;
   if (
     !("customerExternalId" in value) ||
@@ -131,16 +131,16 @@ export function instanceOfBillingPaymentMethodResponseData(
   return true;
 }
 
-export function BillingPaymentMethodResponseDataFromJSON(
+export function PaymentMethodResponseDataFromJSON(
   json: any,
-): BillingPaymentMethodResponseData {
-  return BillingPaymentMethodResponseDataFromJSONTyped(json, false);
+): PaymentMethodResponseData {
+  return PaymentMethodResponseDataFromJSONTyped(json, false);
 }
 
-export function BillingPaymentMethodResponseDataFromJSONTyped(
+export function PaymentMethodResponseDataFromJSONTyped(
   json: any,
   ignoreDiscriminator: boolean,
-): BillingPaymentMethodResponseData {
+): PaymentMethodResponseData {
   if (json == null) {
     return json;
   }
@@ -170,8 +170,8 @@ export function BillingPaymentMethodResponseDataFromJSONTyped(
   };
 }
 
-export function BillingPaymentMethodResponseDataToJSON(
-  value?: BillingPaymentMethodResponseData | null,
+export function PaymentMethodResponseDataToJSON(
+  value?: PaymentMethodResponseData | null,
 ): any {
   if (value == null) {
     return value;

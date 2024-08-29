@@ -66,7 +66,7 @@ export const PaymentMethod = forwardRef<
     };
   }, [data.subscription?.paymentMethod]);
 
-  if (!stripe) {
+  if (!stripe || !data.subscription?.paymentMethod) {
     return null;
   }
 

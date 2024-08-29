@@ -2,23 +2,18 @@ import { forwardRef } from "react";
 import { useEmbed } from "../../../hooks";
 import { StyledViewport } from "./styles";
 
-export interface ViewportProps {
-  children?: React.ReactNode;
-  className?: string;
-}
+export interface ViewportProps extends React.HTMLProps<HTMLDivElement> {}
 
 export const Viewport = forwardRef<HTMLDivElement | null, ViewportProps>(
-  ({ children, className }, ref) => {
+  (props, ref) => {
     const { settings } = useEmbed();
 
     return (
       <StyledViewport
         ref={ref}
-        className={className}
         $numberOfColumns={settings.theme.numberOfColumns}
-      >
-        {children}
-      </StyledViewport>
+        {...props}
+      />
     );
   },
 );

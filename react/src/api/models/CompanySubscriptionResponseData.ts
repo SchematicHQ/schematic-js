@@ -19,18 +19,18 @@ import {
   BillingProductForSubscriptionResponseDataFromJSONTyped,
   BillingProductForSubscriptionResponseDataToJSON,
 } from "./BillingProductForSubscriptionResponseData";
-import type { BillingInvoiceResponseData } from "./BillingInvoiceResponseData";
+import type { InvoiceResponseData } from "./InvoiceResponseData";
 import {
-  BillingInvoiceResponseDataFromJSON,
-  BillingInvoiceResponseDataFromJSONTyped,
-  BillingInvoiceResponseDataToJSON,
-} from "./BillingInvoiceResponseData";
-import type { BillingPaymentMethodResponseData } from "./BillingPaymentMethodResponseData";
+  InvoiceResponseDataFromJSON,
+  InvoiceResponseDataFromJSONTyped,
+  InvoiceResponseDataToJSON,
+} from "./InvoiceResponseData";
+import type { PaymentMethodResponseData } from "./PaymentMethodResponseData";
 import {
-  BillingPaymentMethodResponseDataFromJSON,
-  BillingPaymentMethodResponseDataFromJSONTyped,
-  BillingPaymentMethodResponseDataToJSON,
-} from "./BillingPaymentMethodResponseData";
+  PaymentMethodResponseDataFromJSON,
+  PaymentMethodResponseDataFromJSONTyped,
+  PaymentMethodResponseDataToJSON,
+} from "./PaymentMethodResponseData";
 
 /**
  *
@@ -58,16 +58,16 @@ export interface CompanySubscriptionResponseData {
   interval: string;
   /**
    *
-   * @type {BillingInvoiceResponseData}
+   * @type {InvoiceResponseData}
    * @memberof CompanySubscriptionResponseData
    */
-  latestInvoice?: BillingInvoiceResponseData;
+  latestInvoice?: InvoiceResponseData;
   /**
    *
-   * @type {BillingPaymentMethodResponseData}
+   * @type {PaymentMethodResponseData}
    * @memberof CompanySubscriptionResponseData
    */
-  paymentMethod?: BillingPaymentMethodResponseData;
+  paymentMethod?: PaymentMethodResponseData;
   /**
    *
    * @type {Array<BillingProductForSubscriptionResponseData>}
@@ -132,11 +132,11 @@ export function CompanySubscriptionResponseDataFromJSONTyped(
     latestInvoice:
       json["latest_invoice"] == null
         ? undefined
-        : BillingInvoiceResponseDataFromJSON(json["latest_invoice"]),
+        : InvoiceResponseDataFromJSON(json["latest_invoice"]),
     paymentMethod:
       json["payment_method"] == null
         ? undefined
-        : BillingPaymentMethodResponseDataFromJSON(json["payment_method"]),
+        : PaymentMethodResponseDataFromJSON(json["payment_method"]),
     products: (json["products"] as Array<any>).map(
       BillingProductForSubscriptionResponseDataFromJSON,
     ),
@@ -158,10 +158,8 @@ export function CompanySubscriptionResponseDataToJSON(
         ? undefined
         : (value["expiredAt"] as any).toISOString(),
     interval: value["interval"],
-    latest_invoice: BillingInvoiceResponseDataToJSON(value["latestInvoice"]),
-    payment_method: BillingPaymentMethodResponseDataToJSON(
-      value["paymentMethod"],
-    ),
+    latest_invoice: InvoiceResponseDataToJSON(value["latestInvoice"]),
+    payment_method: PaymentMethodResponseDataToJSON(value["paymentMethod"]),
     products: (value["products"] as Array<any>).map(
       BillingProductForSubscriptionResponseDataToJSON,
     ),

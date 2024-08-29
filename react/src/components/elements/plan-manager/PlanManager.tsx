@@ -312,10 +312,10 @@ export const PlanManager = forwardRef<
   );
   const [planPeriod, setPlanPeriod] = useState<"month" | "year">("month");
 
-  const { data, settings, layout, setLayout } = useEmbed();
+  const { data, settings, layout, stripe, setLayout } = useEmbed();
 
   const { currentPlan, canChangePlan, availablePlans } = useMemo(() => {
-    const canChangePlan = data.stripeEmbed?.publishableKey;
+    const canChangePlan = stripe !== null;
     const availablePlans = data.activePlans?.map(
       ({ name, description, current, monthlyPrice, yearlyPrice }) => ({
         name,

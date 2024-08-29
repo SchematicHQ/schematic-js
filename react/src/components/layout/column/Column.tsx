@@ -1,17 +1,15 @@
 import { forwardRef } from "react";
 import { Card } from "../card";
+import { StyledColumn } from "./styles";
 
-export interface ColumnProps {
-  children?: React.ReactNode;
-  className?: string;
-}
+export interface ColumnProps extends React.HTMLProps<HTMLDivElement> {}
 
 export const Column = forwardRef<HTMLDivElement | null, ColumnProps>(
-  ({ children, className }, ref) => {
+  ({ children, ...props }, ref) => {
     return (
-      <div ref={ref} className={className}>
+      <StyledColumn ref={ref} {...props}>
         <Card>{children}</Card>
-      </div>
+      </StyledColumn>
     );
   },
 );

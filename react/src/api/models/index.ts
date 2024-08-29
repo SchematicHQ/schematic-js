@@ -1,8 +1,6 @@
 /* tslint:disable */
  
 export * from "./ApiError";
-export * from "./BillingInvoiceResponseData";
-export * from "./BillingPaymentMethodResponseData";
 export * from "./BillingPlan";
 export * from "./BillingPriceResponseData";
 export * from "./BillingProductDetailResponseData";
@@ -33,6 +31,8 @@ export * from "./FeatureUsageResponseData";
 export * from "./FlagDetailResponseData";
 export * from "./FlagResponseData";
 export * from "./HydrateComponentResponse";
+export * from "./InvoiceResponseData";
+export * from "./PaymentMethodResponseData";
 export * from "./PlanDetailResponseData";
 export * from "./PlanEntitlementResponseData";
 export * from "./PlanResponseData";
