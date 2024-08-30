@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { ReactNode, useState } from "react";
 import {
-  PaymentElement,
   LinkAuthenticationElement,
+  PaymentElement,
 } from "@stripe/react-stripe-js";
+
 import { useStripe, useElements } from "@stripe/react-stripe-js";
+import { Flex, Box } from "../../ui";
 
 export const CheckoutForm = () => {
   const stripe = useStripe();
@@ -48,25 +50,94 @@ export const CheckoutForm = () => {
   };
 
   return (
-    <form id="payment-form" onSubmit={handleSubmit}>
-      <LinkAuthenticationElement
-        id="link-authentication-element"
-        // Access the email value like so:
-        // onChange={(event) => {
-        //  setEmail(event.value.email);
-        // }}
-        //
-        // Prefill the email field like so:
-        // options={{defaultValues: {email: 'foo@bar.com'}}}
-      />
-      <PaymentElement id="payment-element" />
-      <button disabled={isLoading || !stripe || !elements} id="submit">
-        <span id="button-text">
-          {isLoading ? <div className="spinner" id="spinner"></div> : "Pay now"}
-        </span>
-      </button>
-      {/* Show any error or success messages */}
-      {message && <div id="payment-message">{message}</div>}
+    <form
+      id="payment-form"
+      onSubmit={handleSubmit}
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        height: "100%",
+      }}
+    >
+      <Box
+        $fontSize="18px"
+        $marginBottom="1.5rem"
+        $display="inline-block"
+        $width="100%"
+      >
+        Add payment method{" "}
+      </Box>
+      <Flex
+        $flexDirection="column"
+        $gap="1.5rem"
+        $marginBottom="1.5rem"
+        $width="100%"
+      >
+        <LinkAuthenticationElement
+          id="link-authentication-element"
+          // Access the email value like so:
+          // onChange={(event) => {
+          //  setEmail(event.value.email);
+          // }}
+          //
+          // Prefill the email field like so:
+          // options={{defaultValues: {email: 'foo@bar.com'}}}
+        />
+      </Flex>
+
+      <Flex $flexDirection="column" $width="100%" $flex="1" $height="100%">
+        <PaymentElement id="payment-element" />
+
+        {/* Show any error or success messages */}
+        {message && <div id="payment-message">{message}</div>}
+      </Flex>
+
+      <div>
+        <button
+          disabled={isLoading || !stripe || !elements}
+          id="submit"
+          style={{
+            backgroundColor: "#000000",
+            color: "#ffffff",
+            paddingTop: ".75rem",
+            paddingBottom: ".75rem",
+            fontSize: "15px",
+            width: "100%",
+            borderRadius: ".5rem",
+            textAlign: "center",
+            cursor: "pointer",
+          }}
+        >
+          <span id="button-text" style={{ marginTop: "2.5rem" }}>
+            {isLoading ? (
+              <div className="spinner" id="spinner"></div>
+            ) : (
+              "Save payment method"
+            )}
+          </span>
+        </button>
+      </div>
     </form>
+  );
+};
+
+export const StripeField = ({
+  name,
+  label,
+  children,
+}: {
+  name: string;
+  label?: string;
+  children: ReactNode;
+}) => {
+  return (
+    <div>
+      {label && (
+        <label className="" htmlFor={name}>
+          {label}
+        </label>
+      )}
+      <div>{children}</div>
+    </div>
   );
 };

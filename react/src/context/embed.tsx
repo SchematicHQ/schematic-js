@@ -1,7 +1,7 @@
 import { createContext, useCallback, useEffect, useRef, useState } from "react";
 import { inflate } from "pako";
 import { ThemeProvider } from "styled-components";
-import { loadStripe, type Stripe } from "@stripe/stripe-js";
+import { Appearance, loadStripe, type Stripe } from "@stripe/stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
 import {
   CheckoutApi,
@@ -226,6 +226,32 @@ export interface EmbedProviderProps {
   children?: React.ReactNode;
 }
 
+const appearance: Appearance = {
+  theme: "stripe",
+  variables: {
+    // Base
+    spacingUnit: ".25rem",
+    colorPrimary: "#0570de",
+    colorBackground: "#FFFFFF",
+    colorText: "#30313d",
+    colorDanger: "#df1b41",
+    fontFamily: "Public Sans, system-ui, sans-serif",
+    borderRadius: ".5rem",
+
+    // Layout
+    gridRowSpacing: "1.5rem",
+    gridColumnSpacing: "1.5rem",
+  },
+  rules: {
+    ".Label": {
+      color: "#020202",
+      fontWeight: "400",
+      fontSize: "16px",
+      marginBottom: "12px",
+    },
+  },
+};
+
 export const EmbedProvider = ({
   id,
   accessToken,
@@ -335,7 +361,12 @@ export const EmbedProvider = ({
       return (
         <Elements
           stripe={state.stripe}
-          options={{ mode: "payment", currency: "usd", amount: 200 }}
+          options={{
+            mode: "payment",
+            currency: "usd",
+            amount: 200,
+            appearance,
+          }}
         >
           {children}
         </Elements>

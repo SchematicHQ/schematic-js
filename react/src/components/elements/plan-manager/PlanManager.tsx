@@ -78,10 +78,11 @@ export const OverlayWrapper = ({
       $width="100%"
       $height="100%"
       $backgroundColor="#D9D9D9"
+      $overflow="hidden"
     >
       <Flex
         $position="relative"
-        $top="50%"
+        $top="44%"
         $left="50%"
         $transform="translate(-50%, -50%)"
         $maxWidth={sizeMaxWidthMap[size]}
@@ -199,7 +200,63 @@ export const OverlaySideBar = ({
         $flex="1"
         $borderBottom="1px solid #DEDEDE"
       >
-        Plan details..
+        <Box $fontSize="14px" $color="#5D5D5D">
+          Plan
+        </Box>
+
+        <Flex
+          $flexDirection="column"
+          $fontSize="14px"
+          $color="#5D5D5D"
+          $gap=".5rem"
+        >
+          <Flex
+            $flexDirection="row"
+            $alignItems="center"
+            $justifyContent="space-between"
+            $fontSize="14px"
+            $color="#5D5D5D"
+          >
+            <Flex $fontSize="14px" $color="#5D5D5D">
+              Free
+            </Flex>
+
+            <Flex $fontSize="12px" $color="#000000">
+              $0/{pricePeriod}
+            </Flex>
+          </Flex>
+
+          <Box
+            $width="100%"
+            $textAlign="left"
+            $opacity="50%"
+            $marginBottom="-.25rem"
+            $marginTop="-.25rem"
+          >
+            <Icon
+              name="arrow-down"
+              style={{
+                display: "inline-block",
+              }}
+            />
+          </Box>
+
+          <Flex
+            $flexDirection="row"
+            $alignItems="center"
+            $justifyContent="space-between"
+            $fontSize="14px"
+            $color="#5D5D5D"
+          >
+            <Flex $fontSize="14px" $color="#000000" $fontWeight="600">
+              Professional
+            </Flex>
+
+            <Flex $fontSize="12px" $color="#000000">
+              $285/{pricePeriod}
+            </Flex>
+          </Flex>
+        </Flex>
       </Flex>
       <Flex
         $flexDirection="column"
