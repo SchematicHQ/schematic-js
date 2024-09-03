@@ -1,6 +1,8 @@
 import { createContext, useCallback, useEffect, useRef, useState } from "react";
 import { inflate } from "pako";
 import { ThemeProvider } from "styled-components";
+import { loadStripe, type Stripe } from "@stripe/stripe-js";
+import { Elements } from "@stripe/react-stripe-js";
 import {
   CheckoutApi,
   Configuration,
@@ -166,17 +168,23 @@ async function fetchComponent(
     const json = inflate(Uint8Array.from(Object.values(compressed)), {
       to: "string",
     });
-    const ast = getEditorState(JSON.stringify(json));
+    const ast = getEditorState(json);
     if (ast) {
       Object.assign(settings, ast.ROOT.props);
       nodes.push(...parseEditorState(ast));
     }
   }
 
+  let stripe: Promise<Stripe | null> | null = null;
+  if (data.stripeEmbed?.publishableKey) {
+    stripe = loadStripe(data.stripeEmbed.publishableKey);
+  }
+
   return {
     data,
     nodes,
     settings,
+    stripe,
   };
 }
 
@@ -186,10 +194,12 @@ export interface EmbedContextProps {
   data: RecursivePartial<ComponentHydrateResponseData>;
   nodes: SerializedNodeWithChildren[];
   settings: EmbedSettings;
+  stripe: Promise<Stripe | null> | null;
   layout: EmbedLayout;
   error?: Error;
   setData: (data: RecursivePartial<ComponentHydrateResponseData>) => void;
   updateSettings: (settings: RecursivePartial<EmbedSettings>) => void;
+  setStripe: (stripe: Promise<Stripe | null> | null) => void;
   setLayout: (layout: EmbedLayout) => void;
 }
 
@@ -197,10 +207,12 @@ export const EmbedContext = createContext<EmbedContextProps>({
   data: {},
   nodes: [],
   settings: { ...defaultSettings },
+  stripe: null,
   layout: "portal",
   error: undefined,
   setData: () => {},
   updateSettings: () => {},
+  setStripe: () => {},
   setLayout: () => {},
 });
 
@@ -224,10 +236,12 @@ export const EmbedProvider = ({
       data: {} as RecursivePartial<ComponentHydrateResponseData>,
       nodes: [] as SerializedNodeWithChildren[],
       settings: { ...defaultSettings } as EmbedSettings,
+      stripe: null as Promise<Stripe | null> | null,
       layout: "portal" as EmbedLayout,
-      error: undefined,
+      error: undefined as Error | undefined,
       setData: () => {},
       updateSettings: () => {},
+      setStripe: () => {},
       setLayout: () => {},
     };
   });
@@ -251,7 +265,7 @@ export const EmbedProvider = ({
     }
 
     fetchComponent(id, accessToken, apiConfig)
-      .then((resolvedData) => {
+      .then(async (resolvedData) => {
         setState((prev) => ({ ...prev, ...resolvedData }));
       })
       .catch((error) => setState((prev) => ({ ...prev, error })));
@@ -293,6 +307,16 @@ export const EmbedProvider = ({
     [setState],
   );
 
+  const setStripe = useCallback(
+    (stripe: Promise<Stripe | null> | null) => {
+      setState((prev) => ({
+        ...prev,
+        stripe,
+      }));
+    },
+    [setState],
+  );
+
   const setLayout = useCallback(
     (layout: EmbedLayout) => {
       setState((prev) => ({
@@ -303,20 +327,68 @@ export const EmbedProvider = ({
     [setState],
   );
 
+  const renderChildren = () => {
+    if (state.stripe) {
+      return (
+        <Elements
+          stripe={state.stripe}
+          options={{
+            appearance: {
+              theme: "stripe",
+              variables: {
+                // Base
+                spacingUnit: ".25rem",
+                colorPrimary: "#0570de",
+                colorBackground: "#FFFFFF",
+                colorText: "#30313d",
+                colorDanger: "#df1b41",
+                fontFamily: "Public Sans, system-ui, sans-serif",
+                borderRadius: ".5rem",
+
+                // Layout
+                gridRowSpacing: "1.5rem",
+                gridColumnSpacing: "1.5rem",
+              },
+              rules: {
+                ".Label": {
+                  color: "#020202",
+                  fontWeight: "400",
+                  fontSize: "16px",
+                  marginBottom: "12px",
+                },
+              },
+            },
+            ...(state.data.stripeEmbed?.customerEkey && {
+              clientSecret: state.data.stripeEmbed.customerEkey,
+            }),
+          }}
+        >
+          {children}
+        </Elements>
+      );
+    }
+
+    return children;
+  };
+
   return (
     <EmbedContext.Provider
       value={{
         data: state.data,
         nodes: state.nodes,
         settings: state.settings,
+        stripe: state.stripe,
         layout: state.layout,
         error: state.error,
         setData,
         updateSettings,
+        setStripe,
         setLayout,
       }}
     >
-      <ThemeProvider theme={state.settings.theme}>{children}</ThemeProvider>
+      <ThemeProvider theme={state.settings.theme}>
+        {renderChildren()}
+      </ThemeProvider>
     </EmbedContext.Provider>
   );
 };

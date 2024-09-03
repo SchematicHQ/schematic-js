@@ -68,7 +68,7 @@ export const IncludedFeatures = forwardRef<
         allocationType,
         feature,
         period,
-        usage,
+        usage = 0,
         ...props
       }) => {
         return {
@@ -124,7 +124,7 @@ export const IncludedFeatures = forwardRef<
               $alignItems="center"
               $gap="1rem"
             >
-              <Flex $flexShrink="0" $gap="1rem">
+              <Flex $gap="1rem">
                 {props.icons.isVisible && feature?.icon && (
                   <IconRound
                     name={feature.icon as IconNameTypes}
@@ -154,7 +154,6 @@ export const IncludedFeatures = forwardRef<
                       $color={
                         settings.theme.typography[props.icons.fontStyle].color
                       }
-                      $align="center"
                     >
                       {feature.name}
                     </Text>
