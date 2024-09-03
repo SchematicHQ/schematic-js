@@ -53,8 +53,7 @@ export const PaymentMethod = forwardRef<
     let monthsToExpiration: number | undefined;
     if (typeof cardExpYear === "number" && typeof cardExpMonth === "number") {
       const timeToExpiration = Math.round(
-        // TODO: is `cardExpMonth` a zero-based index?
-        +new Date(cardExpYear, cardExpMonth) - +new Date(),
+        +new Date(cardExpYear, cardExpMonth - 1) - +new Date(),
       );
       monthsToExpiration = Math.round(
         timeToExpiration / (1000 * 60 * 60 * 24 * 30),
