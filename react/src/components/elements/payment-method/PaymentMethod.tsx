@@ -3,8 +3,10 @@ import { createPortal } from "react-dom";
 import { useEmbed } from "../../../hooks";
 import { type FontStyle } from "../../../context";
 import type { RecursivePartial, ElementProps } from "../../../types";
-import { Box, Flex, Icon, Text } from "../../ui";
+import { Box, Flex, Text } from "../../ui";
 import { darken, lighten, hexToHSL } from "../../../utils";
+import { OverlayHeader, OverlayWrapper } from "../plan-manager";
+import { StyledButton } from "../plan-manager/styles";
 
 interface DesignProps {
   header: {
@@ -42,27 +44,31 @@ export const PaymentMethod = forwardRef<
 >(({ children, className, portal, ...rest }, ref) => {
   const props = resolveDesignProps(rest);
 
-  const { settings, layout, setLayout } = useEmbed();
+  const { data, settings, stripe, layout, setLayout } = useEmbed();
 
   const paymentMethod = useMemo(() => {
-    /**
-     * @TODO: Replace this with payment details from data context
-     */
-    const cardNumber = "4512";
-    const expirationDate = "2024-12-22";
+    const { cardLast4, cardExpMonth, cardExpYear } =
+      data.subscription?.paymentMethod || {};
 
-    const timeToExpiration = Math.round(
-      +new Date(expirationDate) - +new Date(),
-    );
-    const monthsToExpiration = Math.round(
-      timeToExpiration / (1000 * 60 * 60 * 24 * 30),
-    );
+    let monthsToExpiration: number | undefined;
+    if (typeof cardExpYear === "number" && typeof cardExpMonth === "number") {
+      const timeToExpiration = Math.round(
+        +new Date(cardExpYear, cardExpMonth - 1) - +new Date(),
+      );
+      monthsToExpiration = Math.round(
+        timeToExpiration / (1000 * 60 * 60 * 24 * 30),
+      );
+    }
 
     return {
-      cardNumber,
+      cardLast4,
       monthsToExpiration,
     };
-  }, []);
+  }, [data.subscription?.paymentMethod]);
+
+  if (!stripe || !data.subscription?.paymentMethod) {
+    return null;
+  }
 
   return (
     <div ref={ref} className={className}>
@@ -83,100 +89,260 @@ export const PaymentMethod = forwardRef<
             Payment Method
           </Text>
 
-          {Math.abs(paymentMethod.monthsToExpiration) < 4 && (
+          {typeof paymentMethod.monthsToExpiration === "number" &&
+            Math.abs(paymentMethod.monthsToExpiration) < 4 && (
+              <Text
+                $font={settings.theme.typography.text.fontFamily}
+                $size={14}
+                $color="#DB6769"
+              >
+                {paymentMethod.monthsToExpiration > 0
+                  ? `Expires in ${paymentMethod.monthsToExpiration} mo`
+                  : "Expired"}
+              </Text>
+            )}
+        </Flex>
+      )}
+
+      {paymentMethod.cardLast4 && (
+        <Flex
+          $justifyContent="space-between"
+          $alignItems="center"
+          $margin="0 0 1rem"
+          $background={`${hexToHSL(settings.theme.card.background).l > 50 ? darken(settings.theme.card.background, 10) : lighten(settings.theme.card.background, 20)}`}
+          $padding="0.375rem 1rem"
+          $borderRadius="9999px"
+        >
+          <Text $font={settings.theme.typography.text.fontFamily} $size={14}>
+            💳 Card ending in {paymentMethod.cardLast4}
+          </Text>
+
+          {props.functions.allowEdit && (
             <Text
-              $font={settings.theme.typography.text.fontFamily}
-              $size={14}
-              $color="#DB6769"
+              tabIndex={0}
+              onClick={() => {
+                if (layout !== "payment") return;
+                setLayout("payment");
+              }}
+              $font={settings.theme.typography.link.fontFamily}
+              $size={settings.theme.typography.link.fontSize}
+              $weight={settings.theme.typography.link.fontWeight}
+              $color={settings.theme.typography.link.color}
             >
-              {paymentMethod.monthsToExpiration > 0
-                ? `Expires in ${paymentMethod.monthsToExpiration} mo`
-                : "Expired"}
+              Edit
             </Text>
           )}
         </Flex>
       )}
 
-      <Flex
-        $justifyContent="space-between"
-        $alignItems="center"
-        $margin="0 0 1rem"
-        $background={`${hexToHSL(settings.theme.card.background).l > 50 ? darken(settings.theme.card.background, 10) : lighten(settings.theme.card.background, 20)}`}
-        $padding="0.375rem 1rem"
-        $borderRadius="9999px"
-      >
-        <Text $font={settings.theme.typography.text.fontFamily} $size={14}>
-          💳 Card ending in {paymentMethod.cardNumber}
-        </Text>
-
-        {props.functions.allowEdit && (
-          <Text
-            tabIndex={0}
-            onClick={() => {
-              if (layout !== "payment") return;
-              setLayout("payment");
-            }}
-            $font={settings.theme.typography.link.fontFamily}
-            $size={settings.theme.typography.link.fontSize}
-            $weight={settings.theme.typography.link.fontWeight}
-            $color={settings.theme.typography.link.color}
-          >
-            Edit
-          </Text>
-        )}
-      </Flex>
-
       {layout === "payment" &&
         createPortal(
-          <Box
-            $position="absolute"
-            $top="50%"
-            $left="50%"
-            $zIndex="999999"
-            $transform="translate(-50%, -50%)"
-            $width="100%"
-            $height="100%"
-            $backgroundColor="#B5B5B580"
-          >
+          <OverlayWrapper size="md">
+            <OverlayHeader>
+              <Box $fontWeight="600">Edit payment method</Box>
+            </OverlayHeader>
             <Flex
-              $position="relative"
-              $top="50%"
-              $left="50%"
-              $transform="translate(-50%, -50%)"
-              $width="956px"
-              $height="700px"
-              $backgroundColor="#FBFBFB"
-              $borderRadius="8px"
-              $boxShadow="0px 1px 20px 0px #1018280F, 0px 1px 3px 0px #1018281A;"
-              id="select-plan-dialog"
-              role="dialog"
-              aria-labelledby="select-plan-dialog-label"
-              aria-modal="true"
+              $flexDirection="column"
+              $padding="2.5rem"
+              $height="100%"
+              $gap="1.5rem"
             >
-              <Box
-                $position="absolute"
-                $top="0.25rem"
-                $right="0.75rem"
-                $cursor="pointer"
-                onClick={() => {
-                  setLayout("portal");
-                }}
+              <Flex
+                $flexDirection="column"
+                $gap="1rem"
+                $backgroundColor="#FBFBFB"
+                $borderRadius="0 0 0.5rem 0.5rem"
+                $flex="1"
+                $height="100%"
               >
-                <Icon name="close" style={{ fontSize: 36, color: "#B8B8B8" }} />
-              </Box>
+                <Flex $flexDirection="column" $height="100%">
+                  <Box
+                    $fontSize="18px"
+                    $marginBottom="1.5rem"
+                    $display="inline-block"
+                    $width="100%"
+                  >
+                    Default
+                  </Box>
+                  <Flex $gap="1rem">
+                    <Flex
+                      $alignItems="center"
+                      $padding=".5rem 1rem"
+                      $border="1px solid #E2E5E9"
+                      $borderRadius=".5rem"
+                      $backgroundColor="#ffffff"
+                      $flexDirection="row"
+                      $gap="1rem"
+                      $width="100%"
+                    >
+                      <Flex
+                        $flexDirection="row"
+                        $justifyContent="space-between"
+                        $flex="1"
+                      >
+                        <Flex
+                          $flexDirection="row"
+                          $alignItems="center"
+                          $gap="1rem"
+                        >
+                          <Box $display="inline-block">
+                            <svg
+                              viewBox="0 0 24 16"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="26px"
+                              height="auto"
+                            >
+                              <g>
+                                <rect
+                                  stroke="#DDD"
+                                  fill="#FFF"
+                                  x=".25"
+                                  y=".25"
+                                  width="23"
+                                  height="15.5"
+                                  rx="2"
+                                />
+                                <path
+                                  d="M2.788 5.914A7.201 7.201 0 0 0 1 5.237l.028-.125h2.737c.371.013.672.125.77.519l.595 2.836.182.854 1.666-4.21h1.799l-2.674 6.167H4.304L2.788 5.914Zm7.312 5.37H8.399l1.064-6.172h1.7L10.1 11.284Zm6.167-6.021-.232 1.333-.153-.066a3.054 3.054 0 0 0-1.268-.236c-.671 0-.972.269-.98.531 0 .29.365.48.96.762.98.44 1.435.979 1.428 1.681-.014 1.28-1.176 2.108-2.96 2.108-.764-.007-1.5-.158-1.898-.328l.238-1.386.224.099c.553.23.917.328 1.596.328.49 0 1.015-.19 1.022-.604 0-.27-.224-.466-.882-.769-.644-.295-1.505-.788-1.491-1.674C11.878 5.84 13.06 5 14.74 5c.658 0 1.19.138 1.526.263Zm2.26 3.834h1.415c-.07-.308-.392-1.786-.392-1.786l-.12-.531c-.083.23-.23.604-.223.59l-.68 1.727Zm2.1-3.985L22 11.284h-1.575s-.154-.71-.203-.926h-2.184l-.357.926h-1.785l2.527-5.66c.175-.4.483-.512.889-.512h1.316Z"
+                                  fill="#1434CB"
+                                />
+                              </g>
+                            </svg>
+                          </Box>
+                          <Box $whiteSpace="nowrap">Visa **** 4242</Box>
+                        </Flex>
 
-              <Flex $flexDirection="column" $gap="1rem">
-                <Text
-                  as="h1"
-                  id="select-plan-dialog-label"
-                  $size={24}
-                  $weight={800}
-                >
-                  Add payment method
-                </Text>
+                        <Flex $alignItems="center">
+                          <Box $fontSize="12px" $color="#5D5D5D">
+                            Expires: 3/30
+                          </Box>
+                        </Flex>
+                      </Flex>
+                    </Flex>
+
+                    <Flex>
+                      <StyledButton
+                        $size="sm"
+                        $color="secondary"
+                        $variant="outline"
+                        style={{
+                          whiteSpace: "nowrap",
+                          paddingLeft: "1rem",
+                          paddingRight: "1rem",
+                        }}
+                      >
+                        Edit
+                      </StyledButton>
+                    </Flex>
+                  </Flex>
+                </Flex>
+              </Flex>
+              <Flex
+                $flexDirection="column"
+                $gap="1rem"
+                $backgroundColor="#FBFBFB"
+                $borderRadius="0 0 0.5rem 0.5rem"
+                $flex="1"
+                $height="100%"
+              >
+                <Flex $flexDirection="column" $height="100%">
+                  <Box
+                    $fontSize="18px"
+                    $marginBottom="1.5rem"
+                    $display="inline-block"
+                    $width="100%"
+                  >
+                    Others
+                  </Box>
+                  <Flex $gap="1rem">
+                    <Flex
+                      $alignItems="center"
+                      $padding=".5rem 1rem"
+                      $border="1px solid #E2E5E9"
+                      $borderRadius=".5rem"
+                      $backgroundColor="#ffffff"
+                      $flexDirection="row"
+                      $gap="1rem"
+                      $width="100%"
+                    >
+                      <Flex
+                        $flexDirection="row"
+                        $justifyContent="space-between"
+                        $flex="1"
+                      >
+                        <Flex
+                          $flexDirection="row"
+                          $alignItems="center"
+                          $gap="1rem"
+                        >
+                          <Box $display="inline-block">
+                            <svg
+                              viewBox="0 0 24 16"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="26px"
+                              height="auto"
+                            >
+                              <g>
+                                <rect
+                                  stroke="#DDD"
+                                  fill="#FFF"
+                                  x=".25"
+                                  y=".25"
+                                  width="23"
+                                  height="15.5"
+                                  rx="2"
+                                />
+                                <path
+                                  d="M2.788 5.914A7.201 7.201 0 0 0 1 5.237l.028-.125h2.737c.371.013.672.125.77.519l.595 2.836.182.854 1.666-4.21h1.799l-2.674 6.167H4.304L2.788 5.914Zm7.312 5.37H8.399l1.064-6.172h1.7L10.1 11.284Zm6.167-6.021-.232 1.333-.153-.066a3.054 3.054 0 0 0-1.268-.236c-.671 0-.972.269-.98.531 0 .29.365.48.96.762.98.44 1.435.979 1.428 1.681-.014 1.28-1.176 2.108-2.96 2.108-.764-.007-1.5-.158-1.898-.328l.238-1.386.224.099c.553.23.917.328 1.596.328.49 0 1.015-.19 1.022-.604 0-.27-.224-.466-.882-.769-.644-.295-1.505-.788-1.491-1.674C11.878 5.84 13.06 5 14.74 5c.658 0 1.19.138 1.526.263Zm2.26 3.834h1.415c-.07-.308-.392-1.786-.392-1.786l-.12-.531c-.083.23-.23.604-.223.59l-.68 1.727Zm2.1-3.985L22 11.284h-1.575s-.154-.71-.203-.926h-2.184l-.357.926h-1.785l2.527-5.66c.175-.4.483-.512.889-.512h1.316Z"
+                                  fill="#1434CB"
+                                />
+                              </g>
+                            </svg>
+                          </Box>
+                          <Box $whiteSpace="nowrap">Visa **** 2929</Box>
+                        </Flex>
+
+                        <Flex $alignItems="center">
+                          <Box $fontSize="12px" $color="#5D5D5D">
+                            Expires: 3/30
+                          </Box>
+                        </Flex>
+                      </Flex>
+                    </Flex>
+
+                    <Flex $gap="1rem">
+                      <StyledButton
+                        $size="sm"
+                        $color="secondary"
+                        $variant="outline"
+                        style={{
+                          whiteSpace: "nowrap",
+                          paddingLeft: "1rem",
+                          paddingRight: "1rem",
+                        }}
+                      >
+                        Make Default
+                      </StyledButton>
+                      <StyledButton
+                        $size="sm"
+                        $color="secondary"
+                        $variant="outline"
+                        style={{
+                          whiteSpace: "nowrap",
+                          paddingLeft: "1rem",
+                          paddingRight: "1rem",
+                        }}
+                      >
+                        Edit
+                      </StyledButton>
+                    </Flex>
+                  </Flex>
+                </Flex>
               </Flex>
             </Flex>
-          </Box>,
+          </OverlayWrapper>,
           portal || document.body,
         )}
     </div>

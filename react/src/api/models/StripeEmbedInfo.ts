@@ -24,7 +24,7 @@ export interface StripeEmbedInfo {
    * @type {string}
    * @memberof StripeEmbedInfo
    */
-  customerEkey: string;
+  customerEkey?: string | null;
   /**
    *
    * @type {string}
@@ -39,8 +39,6 @@ export interface StripeEmbedInfo {
 export function instanceOfStripeEmbedInfo(
   value: object,
 ): value is StripeEmbedInfo {
-  if (!("customerEkey" in value) || value["customerEkey"] === undefined)
-    return false;
   if (!("publishableKey" in value) || value["publishableKey"] === undefined)
     return false;
   return true;
@@ -58,7 +56,8 @@ export function StripeEmbedInfoFromJSONTyped(
     return json;
   }
   return {
-    customerEkey: json["customer_ekey"],
+    customerEkey:
+      json["customer_ekey"] == null ? undefined : json["customer_ekey"],
     publishableKey: json["publishable_key"],
   };
 }

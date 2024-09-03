@@ -1,17 +1,11 @@
 import * as SchematicJS from "@schematichq/schematic-js";
-import React, {
-  createContext,
-  useEffect,
-  useMemo,
-  useState,
-  ReactNode,
-} from "react";
+import { createContext, useEffect, useMemo, useState } from "react";
 
 type BaseSchematicProviderProps = Omit<
   SchematicJS.SchematicOptions,
   "client" | "publishableKey"
 > & {
-  children: ReactNode;
+  children: React.ReactNode;
 };
 
 type SchematicProviderPropsWithClient = BaseSchematicProviderProps & {

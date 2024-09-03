@@ -1,22 +1,23 @@
 import { createElement } from "react";
 import type { SerializedNodeWithChildren } from "../../types";
+import { Root, Viewport, Column, Card } from "../../components/layout";
 import {
-  Card,
   PlanManager,
   IncludedFeatures,
   UpcomingBill,
   PaymentMethod,
-  MeteredFeatures,
 } from "../../components/elements";
 
 /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
 const components: Record<string, React.FC<any> | undefined> = {
+  Root,
+  Viewport,
+  Column,
   Card,
   PlanManager,
   IncludedFeatures,
   UpcomingBill,
   PaymentMethod,
-  MeteredFeatures,
 };
 
 interface RenderOptions {
@@ -24,7 +25,7 @@ interface RenderOptions {
 }
 
 export function createRenderer(options?: RenderOptions) {
-  const { useFallback = true } = options || {};
+  const { useFallback = false } = options || {};
 
   return function renderNode(
     node: SerializedNodeWithChildren,
@@ -55,7 +56,8 @@ export function createRenderer(options?: RenderOptions) {
       {
         className,
         ...(component !== "div" && { resolvedProps }),
-        ...(Object.keys(custom).length > 0 && { custom }),
+        ...(component !== "div" &&
+          Object.keys(custom).length > 0 && { custom }),
         key: index,
       },
       resolvedChildren,
