@@ -53,31 +53,29 @@ export const UpcomingBill = forwardRef<
 
   const { data, settings, stripe } = useEmbed();
 
-  const { latestInvoice } = useMemo(() => {
+  const { upcomingInvoice } = useMemo(() => {
     return {
-      latestInvoice: {
-        ...(data.subscription?.latestInvoice?.amountDue && {
-          amountDue: data.subscription.latestInvoice.amountDue,
+      upcomingInvoice: {
+        ...(data.upcomingInvoice?.amountDue && {
+          amountDue: data.upcomingInvoice.amountDue,
         }),
         ...(data.subscription?.interval && {
           interval: data.subscription.interval,
         }),
-        ...(data.subscription?.latestInvoice?.dueDate && {
-          dueDate: toPrettyDate(
-            new Date(data.subscription.latestInvoice.dueDate),
-          ),
+        ...(data.upcomingInvoice?.dueDate && {
+          dueDate: toPrettyDate(new Date(data.upcomingInvoice.dueDate)),
         }),
       },
     };
-  }, [data.subscription]);
+  }, [data.subscription, data.upcomingInvoice]);
 
-  if (!stripe || !data.subscription?.latestInvoice) {
+  if (!stripe || !data.upcomingInvoice) {
     return null;
   }
 
   return (
     <div ref={ref} className={className}>
-      {props.header.isVisible && latestInvoice.dueDate && (
+      {props.header.isVisible && upcomingInvoice.dueDate && (
         <Flex
           $justifyContent="space-between"
           $alignItems="center"
@@ -91,12 +89,12 @@ export const UpcomingBill = forwardRef<
             }
             $color={settings.theme.typography[props.header.fontStyle].color}
           >
-            {props.header.prefix} {latestInvoice.dueDate}
+            {props.header.prefix} {upcomingInvoice.dueDate}
           </Text>
         </Flex>
       )}
 
-      {latestInvoice.amountDue && (
+      {upcomingInvoice.amountDue && (
         <Flex $justifyContent="space-between" $alignItems="start" $gap="1rem">
           {props.price.isVisible && (
             <Flex $alignItems="end" $flexGrow="1">
@@ -121,7 +119,7 @@ export const UpcomingBill = forwardRef<
                 >
                   $
                 </Text>
-                {latestInvoice.amountDue}
+                {upcomingInvoice.amountDue}
               </Text>
             </Flex>
           )}
