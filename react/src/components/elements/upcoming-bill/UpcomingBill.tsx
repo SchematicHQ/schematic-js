@@ -67,7 +67,7 @@ export const UpcomingBill = forwardRef<
         }),
       },
     };
-  }, [data.subscription]);
+  }, [data.subscription, data.upcomingInvoice]);
 
   if (!stripe || !data.upcomingInvoice) {
     return null;
