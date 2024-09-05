@@ -30,26 +30,13 @@ export const CheckoutForm = ({ plan, period }: CheckoutFormProps) => {
 
     const priceId =
       period === "month" ? plan.monthlyPrice?.id : plan.yearlyPrice?.id;
-    if (!api || !priceId) {
+    if (!api || !stripe || !elements || !priceId) {
       return;
     }
 
     setIsLoading(true);
 
-    try {
-      await api.checkout({
-        changeSubscriptionRequestBody: {
-          newPlanId: plan.id,
-          newPriceId: priceId,
-        },
-      });
-    } catch (error) {
-      setMessage(
-        error instanceof Error ? error.message : "An unexpected error occured.",
-      );
-    }
-
-    /* const { error } = await stripe.confirmPayment({
+    const { error } = await stripe.confirmPayment({
       elements,
       confirmParams: {
         return_url: window.location.href,
@@ -60,7 +47,7 @@ export const CheckoutForm = ({ plan, period }: CheckoutFormProps) => {
       setMessage(error.message as string);
     } else {
       setMessage("An unexpected error occured.");
-    } */
+    }
 
     setIsLoading(false);
   };
