@@ -44,7 +44,7 @@ export const PaymentMethod = forwardRef<
 >(({ children, className, portal, ...rest }, ref) => {
   const props = resolveDesignProps(rest);
 
-  const { data, settings, stripe, layout, setLayout } = useEmbed();
+  const { data, settings, stripe, layout } = useEmbed();
 
   const paymentMethod = useMemo(() => {
     const { cardLast4, cardExpMonth, cardExpYear } =
@@ -116,22 +116,6 @@ export const PaymentMethod = forwardRef<
           <Text $font={settings.theme.typography.text.fontFamily} $size={14}>
             💳 Card ending in {paymentMethod.cardLast4}
           </Text>
-
-          {props.functions.allowEdit && (
-            <Text
-              tabIndex={0}
-              onClick={() => {
-                if (layout !== "payment") return;
-                setLayout("payment");
-              }}
-              $font={settings.theme.typography.link.fontFamily}
-              $size={settings.theme.typography.link.fontSize}
-              $weight={settings.theme.typography.link.fontWeight}
-              $color={settings.theme.typography.link.color}
-            >
-              Edit
-            </Text>
-          )}
         </Flex>
       )}
 

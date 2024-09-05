@@ -43,6 +43,12 @@ import {
   CompanyDetailResponseDataFromJSONTyped,
   CompanyDetailResponseDataToJSON,
 } from "./CompanyDetailResponseData";
+import type { InvoiceResponseData } from "./InvoiceResponseData";
+import {
+  InvoiceResponseDataFromJSON,
+  InvoiceResponseDataFromJSONTyped,
+  InvoiceResponseDataToJSON,
+} from "./InvoiceResponseData";
 import type { CompanySubscriptionResponseData } from "./CompanySubscriptionResponseData";
 import {
   CompanySubscriptionResponseDataFromJSON,
@@ -92,6 +98,12 @@ export interface ComponentHydrateResponseData {
    * @memberof ComponentHydrateResponseData
    */
   subscription?: CompanySubscriptionResponseData;
+  /**
+   *
+   * @type {InvoiceResponseData}
+   * @memberof ComponentHydrateResponseData
+   */
+  upcomingInvoice?: InvoiceResponseData;
 }
 
 /**
@@ -142,6 +154,10 @@ export function ComponentHydrateResponseDataFromJSONTyped(
       json["subscription"] == null
         ? undefined
         : CompanySubscriptionResponseDataFromJSON(json["subscription"]),
+    upcomingInvoice:
+      json["upcoming_invoice"] == null
+        ? undefined
+        : InvoiceResponseDataFromJSON(json["upcoming_invoice"]),
   };
 }
 
@@ -160,5 +176,6 @@ export function ComponentHydrateResponseDataToJSON(
     feature_usage: FeatureUsageDetailResponseDataToJSON(value["featureUsage"]),
     stripe_embed: StripeEmbedInfoToJSON(value["stripeEmbed"]),
     subscription: CompanySubscriptionResponseDataToJSON(value["subscription"]),
+    upcoming_invoice: InvoiceResponseDataToJSON(value["upcomingInvoice"]),
   };
 }

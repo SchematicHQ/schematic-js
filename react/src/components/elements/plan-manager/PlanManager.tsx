@@ -10,11 +10,18 @@ import { createPortal } from "react-dom";
 import { useEmbed } from "../../../hooks";
 import { type FontStyle } from "../../../context";
 import type { RecursivePartial, ElementProps } from "../../../types";
-import { Box, Flex, Icon, IconRound, Text } from "../../ui";
+import { Box, Flex, Icon, IconRound, Text, type IconNameTypes } from "../../ui";
 import { CheckoutForm } from "./CheckoutForm";
 import { StyledButton } from "./styles";
+import type { BillingPlan, CompanyPlanDetailResponseData } from "../../../api";
 
-export const OverlayHeader = ({ children }: { children: ReactNode }) => {
+export const OverlayHeader = ({
+  children,
+  onClose,
+}: {
+  children: ReactNode;
+  onClose?: () => void;
+}) => {
   const { setLayout } = useEmbed();
 
   return (
@@ -37,6 +44,9 @@ export const OverlayHeader = ({ children }: { children: ReactNode }) => {
           $cursor="pointer"
           onClick={() => {
             setLayout("portal");
+            if (onClose) {
+              onClose();
+            }
           }}
         >
           <Icon name="close" style={{ fontSize: 36, color: "#B8B8B8" }} />
@@ -107,12 +117,30 @@ export const OverlayWrapper = ({
 export const OverlaySideBar = ({
   pricePeriod,
   setPricePeriod,
+  checkoutStage,
   setCheckoutStage,
+  currentPlan,
+  selectedPlan,
 }: {
   pricePeriod: "month" | "year";
   setPricePeriod: Dispatch<SetStateAction<"month" | "year">>;
+  checkoutStage: "plan" | "checkout";
   setCheckoutStage: Dispatch<SetStateAction<"plan" | "checkout">>;
+  currentPlan?: BillingPlan;
+  selectedPlan?: CompanyPlanDetailResponseData;
 }) => {
+  const { api } = useEmbed();
+
+  const savingsPercentage = useMemo(() => {
+    if (selectedPlan && pricePeriod === "month") {
+      const monthly = (selectedPlan?.monthlyPrice?.price || 0) * 12;
+      const yearly = selectedPlan?.yearlyPrice?.price || 0;
+      return ((monthly - yearly) / monthly) * 100;
+    }
+
+    return 0;
+  }, [selectedPlan, pricePeriod]);
+
   return (
     <Flex
       $flexDirection="column"
@@ -135,25 +163,6 @@ export const OverlaySideBar = ({
           <Text $size={20} $weight={600}>
             Subscription
           </Text>
-
-          <Flex
-            $border="1px solid #D9D9D9"
-            $padding=".15rem .45rem .15rem .55rem"
-            $alignItems="center"
-            $borderRadius="5px"
-            $fontSize="12px"
-          >
-            <Box $display="inline-block" $marginRight=".5rem">
-              $ USD
-            </Box>
-            <Icon
-              name="chevron-down"
-              style={{
-                fontSize: "20px",
-                lineHeight: "1em",
-              }}
-            />
-          </Flex>
         </Flex>
 
         <Flex
@@ -186,9 +195,11 @@ export const OverlaySideBar = ({
           </Box>
         </Flex>
 
-        <Box $fontSize="11px" $color="#194BFB">
-          Save up to 33% with yearly billing
-        </Box>
+        {savingsPercentage > 0 && (
+          <Box $fontSize="11px" $color="#194BFB">
+            Save up to {savingsPercentage}% with yearly billing
+          </Box>
+        )}
       </Flex>
       <Flex
         $flexDirection="column"
@@ -210,52 +221,62 @@ export const OverlaySideBar = ({
           $color="#5D5D5D"
           $gap=".5rem"
         >
-          <Flex
-            $flexDirection="row"
-            $alignItems="center"
-            $justifyContent="space-between"
-            $fontSize="14px"
-            $color="#5D5D5D"
-          >
-            <Flex $fontSize="14px" $color="#5D5D5D">
-              Free
-            </Flex>
+          {currentPlan && (
+            <Flex
+              $flexDirection="row"
+              $alignItems="center"
+              $justifyContent="space-between"
+              $fontSize="14px"
+              $color="#5D5D5D"
+            >
+              <Flex $fontSize="14px" $color="#5D5D5D">
+                {currentPlan.name}
+              </Flex>
 
-            <Flex $fontSize="12px" $color="#000000">
-              $0/{pricePeriod}
+              <Flex $fontSize="12px" $color="#000000">
+                ${currentPlan.planPrice}/{currentPlan.planPeriod}
+              </Flex>
             </Flex>
-          </Flex>
+          )}
 
-          <Box
-            $width="100%"
-            $textAlign="left"
-            $opacity="50%"
-            $marginBottom="-.25rem"
-            $marginTop="-.25rem"
-          >
-            <Icon
-              name="arrow-down"
-              style={{
-                display: "inline-block",
-              }}
-            />
-          </Box>
+          {selectedPlan && (
+            <>
+              <Box
+                $width="100%"
+                $textAlign="left"
+                $opacity="50%"
+                $marginBottom="-.25rem"
+                $marginTop="-.25rem"
+              >
+                <Icon
+                  name="arrow-down"
+                  style={{
+                    display: "inline-block",
+                  }}
+                />
+              </Box>
 
-          <Flex
-            $flexDirection="row"
-            $alignItems="center"
-            $justifyContent="space-between"
-            $fontSize="14px"
-            $color="#5D5D5D"
-          >
-            <Flex $fontSize="14px" $color="#000000" $fontWeight="600">
-              Professional
-            </Flex>
+              <Flex
+                $flexDirection="row"
+                $alignItems="center"
+                $justifyContent="space-between"
+                $fontSize="14px"
+                $color="#5D5D5D"
+              >
+                <Flex $fontSize="14px" $color="#000000" $fontWeight="600">
+                  {selectedPlan.name}
+                </Flex>
 
-            <Flex $fontSize="12px" $color="#000000">
-              $285/{pricePeriod}
-            </Flex>
-          </Flex>
+                <Flex $fontSize="12px" $color="#000000">
+                  $
+                  {pricePeriod === "month"
+                    ? selectedPlan.monthlyPrice?.price
+                    : selectedPlan.yearlyPrice?.price}
+                  /{pricePeriod}
+                </Flex>
+              </Flex>
+            </>
+          )}
         </Flex>
       </Flex>
       <Flex
@@ -266,25 +287,60 @@ export const OverlaySideBar = ({
         $height="auto"
         $padding="1.5rem"
       >
-        <Flex $fontSize="12px" $color="#5D5D5D" $justifyContent="space-between">
-          <Box $fontSize="12px" $color="#5D5D5D">
-            Monthly total:{" "}
-          </Box>
-          <Box $fontSize="12px" $color="#000000">
-            $285/mo
-          </Box>
-        </Flex>
-        <StyledButton
-          $size="sm"
-          onClick={() => {
-            setCheckoutStage("checkout");
-          }}
-        >
-          <Flex $gap=".5rem" $alignItems="center" $justifyContent="center">
-            <span>Next: Checkout</span>
-            <Icon name="arrow-right" />
+        {selectedPlan && (
+          <Flex
+            $fontSize="12px"
+            $color="#5D5D5D"
+            $justifyContent="space-between"
+          >
+            <Box $fontSize="12px" $color="#5D5D5D">
+              Monthly total:{" "}
+            </Box>
+            <Box $fontSize="12px" $color="#000000">
+              $
+              {pricePeriod === "month"
+                ? selectedPlan.monthlyPrice?.price
+                : selectedPlan.yearlyPrice?.price}
+              /{pricePeriod}
+            </Box>
           </Flex>
-        </StyledButton>
+        )}
+        {checkoutStage === "plan" ? (
+          <StyledButton
+            $size="sm"
+            onClick={() => {
+              setCheckoutStage("checkout");
+            }}
+            {...(!selectedPlan && { disabled: true })}
+          >
+            <Flex $gap="0.5rem" $alignItems="center" $justifyContent="center">
+              <span>Next: Checkout</span>
+              <Icon name="arrow-right" />
+            </Flex>
+          </StyledButton>
+        ) : (
+          <StyledButton
+            disabled={
+              !api || !selectedPlan || selectedPlan?.id === currentPlan?.id
+            }
+            onClick={async () => {
+              const priceId =
+                pricePeriod === "month"
+                  ? selectedPlan?.monthlyPrice?.id
+                  : selectedPlan?.yearlyPrice?.id;
+              if (!api || !selectedPlan || !priceId) return;
+              await api.checkout({
+                changeSubscriptionRequestBody: {
+                  newPlanId: selectedPlan.id,
+                  newPriceId: priceId,
+                },
+              });
+            }}
+            $size="md"
+          >
+            Pay now
+          </StyledButton>
+        )}
 
         <Box $fontSize="12px" $color="#5D5D5D">
           Discounts & credits applied at checkout
@@ -368,27 +424,18 @@ export const PlanManager = forwardRef<
     "plan",
   );
   const [planPeriod, setPlanPeriod] = useState<"month" | "year">("month");
+  const [selectedPlan, setSelectedPlan] =
+    useState<CompanyPlanDetailResponseData>();
 
   const { data, settings, layout, stripe, setLayout } = useEmbed();
 
   const { currentPlan, canChangePlan, availablePlans } = useMemo(() => {
-    const canChangePlan = stripe !== null;
-    const availablePlans = data.activePlans?.map(
-      ({ name, description, current, monthlyPrice, yearlyPrice }) => ({
-        name,
-        description,
-        price:
-          planPeriod === "month" ? monthlyPrice?.price : yearlyPrice?.price,
-        current,
-      }),
-    );
-
     return {
       currentPlan: data.company?.plan,
-      canChangePlan,
-      availablePlans,
+      canChangePlan: stripe !== null,
+      availablePlans: data.activePlans,
     };
-  }, [data.company, data.activePlans, stripe, planPeriod]);
+  }, [data.company, data.activePlans, stripe]);
 
   return (
     <div ref={ref} className={className}>
@@ -511,19 +558,40 @@ export const PlanManager = forwardRef<
             <OverlayHeader>
               <Flex $gap="1rem">
                 <Flex $flexDirection="row" $gap="0.5rem" $alignItems="center">
-                  <Box
-                    $width="15px"
-                    $height="15px"
-                    $border="2px solid #DDDDDD"
-                    $borderRadius="999px"
-                    $backgroundColor="white"
-                  />
+                  {checkoutStage === "plan" ? (
+                    <Box
+                      $width="15px"
+                      $height="15px"
+                      $backgroundColor="white"
+                      $border="2px solid #DDDDDD"
+                      $borderRadius="999px"
+                    />
+                  ) : (
+                    <IconRound
+                      name="check"
+                      style={{
+                        color: "#FFFFFF",
+                        backgroundColor: "#DDDDDD",
+                        fontSize: 16,
+                        width: "1rem",
+                        height: "1rem",
+                      }}
+                    />
+                  )}
                   <div
-                    {...(checkoutStage === "plan" && {
-                      style: {
-                        fontWeight: "700",
-                      },
-                    })}
+                    tabIndex={0}
+                    {...(checkoutStage === "plan"
+                      ? {
+                          style: {
+                            fontWeight: "700",
+                          },
+                        }
+                      : {
+                          style: {
+                            cursor: "pointer",
+                          },
+                          onClick: () => setCheckoutStage("plan"),
+                        })}
                   >
                     1. Select plan
                   </div>
@@ -541,6 +609,7 @@ export const PlanManager = forwardRef<
                     $backgroundColor="white"
                   />
                   <div
+                    tabIndex={0}
                     {...(checkoutStage === "checkout" && {
                       style: {
                         fontWeight: "700",
@@ -549,10 +618,6 @@ export const PlanManager = forwardRef<
                   >
                     2. Checkout
                   </div>
-                  <Icon
-                    name="chevron-right"
-                    style={{ fontSize: 16, color: "#D0D0D0" }}
-                  />
                 </Flex>
               </Flex>
             </OverlayHeader>
@@ -602,11 +667,12 @@ export const PlanManager = forwardRef<
                       {availablePlans?.map((plan) => {
                         return (
                           <Flex
+                            key={plan.id}
                             $height="100%"
                             $flexDirection="column"
                             $backgroundColor="white"
-                            $border={plan?.current ? `2px solid #194BFB` : ""}
                             $flex="1"
+                            $border={`2px solid ${plan.id === selectedPlan?.id ? "#194BFB" : "transparent"}`}
                             $borderRadius=".5rem"
                             $boxShadow="0px 1px 3px rgba(16, 24, 40, 0.1), 0px 1px 20px rgba(16, 24, 40, 0.06)"
                           >
@@ -616,30 +682,36 @@ export const PlanManager = forwardRef<
                               $gap="1rem"
                               $width="100%"
                               $height="auto"
-                              $padding="1.5rem"
+                              $padding="2rem 1.5rem 1.5rem"
                               $borderBottom="1px solid #DEDEDE"
                             >
                               <Text $size={20} $weight={600}>
-                                {plan?.name}
+                                {plan.name}
                               </Text>
-                              <Text $size={14}>{plan?.description}</Text>
+                              <Text $size={14}>{plan.description}</Text>
                               <Text>
                                 <Box $display="inline-block" $fontSize=".90rem">
                                   $
                                 </Box>
                                 <Box $display="inline-block" $fontSize="1.5rem">
-                                  {plan?.price ? plan.price : "350"}
+                                  {
+                                    (planPeriod === "month"
+                                      ? plan.monthlyPrice
+                                      : plan.yearlyPrice
+                                    )?.price
+                                  }
                                 </Box>
                                 <Box $display="inline-block" $fontSize=".75rem">
                                   /{planPeriod}
                                 </Box>
                               </Text>
-                              {plan?.current && (
+                              {(plan.current ||
+                                plan.id === currentPlan?.id) && (
                                 <Flex
                                   $position="absolute"
                                   $right="1rem"
                                   $top="1rem"
-                                  $fontSize=".75rem"
+                                  $fontSize=".625rem"
                                   $color="white"
                                   $backgroundColor="#194BFB"
                                   $borderRadius="999px"
@@ -658,18 +730,22 @@ export const PlanManager = forwardRef<
                               $height="auto"
                               $padding="1.5rem"
                             >
-                              {[{}, {}, {}].map(() => {
+                              {plan.features.map((feature) => {
                                 return (
-                                  <Flex $flexShrink="0" $gap="1rem">
+                                  <Flex
+                                    key={feature.id}
+                                    $flexShrink="0"
+                                    $gap="1rem"
+                                  >
                                     <IconRound
-                                      name="server-search"
+                                      name={feature.icon as IconNameTypes}
                                       size="tn"
-                                      colors={["#00000", "#F5F5F5"]}
+                                      colors={["#000000", "#F5F5F5"]}
                                     />
 
                                     <Flex $alignItems="center">
                                       <Text $size=".75rem" $color="#00000">
-                                        5 Queries/mo
+                                        {feature.name}
                                       </Text>
                                     </Flex>
                                   </Flex>
@@ -684,41 +760,47 @@ export const PlanManager = forwardRef<
                               $height="auto"
                               $padding="1.5rem"
                             >
-                              {plan.current ? (
+                              {plan.id === selectedPlan?.id && (
                                 <Flex
-                                  $flexDirection="row"
-                                  $gap=".5rem"
                                   $justifyContent="center"
                                   $alignItems="center"
+                                  $gap="0.25rem"
+                                  $fontSize="0.9375rem"
+                                  $padding="0.625rem 0"
                                 >
                                   <Icon
                                     name="check-rounded"
                                     style={{
-                                      fontSize: 24,
-                                      lineHeight: "1em",
+                                      fontSize: 20,
+                                      lineHeight: "1",
                                       color: "#194BFB",
                                     }}
                                   />
 
                                   <span
                                     style={{
-                                      fontSize: "1rem",
                                       color: "#7B7B7B",
+                                      lineHeight: "1.4",
                                     }}
                                   >
                                     Selected
                                   </span>
                                 </Flex>
-                              ) : (
-                                <StyledButton
-                                  $size="sm"
-                                  $color="secondary"
-                                  $variant="outline"
-                                  onClick={() => {}}
-                                >
-                                  Select
-                                </StyledButton>
                               )}
+
+                              {!(plan.current || plan.id === currentPlan?.id) &&
+                                plan.id !== selectedPlan?.id && (
+                                  <StyledButton
+                                    $size="sm"
+                                    $color="secondary"
+                                    $variant="outline"
+                                    onClick={() => {
+                                      setSelectedPlan(plan);
+                                    }}
+                                  >
+                                    Select
+                                  </StyledButton>
+                                )}
                             </Flex>
                           </Flex>
                         );
@@ -727,13 +809,18 @@ export const PlanManager = forwardRef<
                   </>
                 )}
 
-                {checkoutStage === "checkout" && <CheckoutForm />}
+                {selectedPlan && checkoutStage === "checkout" && (
+                  <CheckoutForm plan={selectedPlan} period={planPeriod} />
+                )}
               </Flex>
 
               <OverlaySideBar
                 pricePeriod={planPeriod}
                 setPricePeriod={setPlanPeriod}
+                checkoutStage={checkoutStage}
                 setCheckoutStage={setCheckoutStage}
+                currentPlan={currentPlan}
+                selectedPlan={selectedPlan}
               />
             </Flex>
           </OverlayWrapper>,

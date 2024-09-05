@@ -4,11 +4,21 @@ import {
   PaymentElement,
 } from "@stripe/react-stripe-js";
 import { useStripe, useElements } from "@stripe/react-stripe-js";
+import type { CompanyPlanDetailResponseData } from "../../../api";
+import { useEmbed } from "../../../hooks";
 import { Box, Flex } from "../../ui";
+import { StyledButton } from "./styles";
 
-export const CheckoutForm = () => {
+interface CheckoutFormProps {
+  plan: CompanyPlanDetailResponseData;
+  period: "month" | "year";
+}
+
+export const CheckoutForm = ({ plan, period }: CheckoutFormProps) => {
   const stripe = useStripe();
   const elements = useElements();
+
+  const { api, data } = useEmbed();
 
   const [message, setMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -18,13 +28,28 @@ export const CheckoutForm = () => {
   ) => {
     event.preventDefault();
 
-    if (!stripe || !elements) {
+    const priceId =
+      period === "month" ? plan.monthlyPrice?.id : plan.yearlyPrice?.id;
+    if (!api || !priceId) {
       return;
     }
 
     setIsLoading(true);
 
-    const { error } = await stripe.confirmPayment({
+    try {
+      await api.checkout({
+        changeSubscriptionRequestBody: {
+          newPlanId: plan.id,
+          newPriceId: priceId,
+        },
+      });
+    } catch (error) {
+      setMessage(
+        error instanceof Error ? error.message : "An unexpected error occured.",
+      );
+    }
+
+    /* const { error } = await stripe.confirmPayment({
       elements,
       confirmParams: {
         return_url: window.location.href,
@@ -35,7 +60,7 @@ export const CheckoutForm = () => {
       setMessage(error.message as string);
     } else {
       setMessage("An unexpected error occured.");
-    }
+    } */
 
     setIsLoading(false);
   };
@@ -82,29 +107,22 @@ export const CheckoutForm = () => {
       </Flex>
 
       <div>
-        <button
-          disabled={isLoading || !stripe || !elements}
+        <StyledButton
           id="submit"
-          style={{
-            backgroundColor: "#000000",
-            color: "#ffffff",
-            paddingTop: ".75rem",
-            paddingBottom: ".75rem",
-            fontSize: "15px",
-            width: "100%",
-            borderRadius: ".5rem",
-            textAlign: "center",
-            cursor: "pointer",
-          }}
+          disabled={
+            isLoading ||
+            !stripe ||
+            !elements ||
+            !data.stripeEmbed?.publishableKey ||
+            !data.stripeEmbed?.customerEkey
+          }
+          $size="md"
+          $color="secondary"
         >
-          <span id="button-text" style={{ marginTop: "2.5rem" }}>
-            {isLoading ? (
-              <div className="spinner" id="spinner"></div>
-            ) : (
-              "Save payment method"
-            )}
+          <span id="button-text">
+            {isLoading ? "Loading" : "Save payment method"}
           </span>
-        </button>
+        </StyledButton>
       </div>
     </form>
   );
