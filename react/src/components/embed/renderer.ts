@@ -55,7 +55,7 @@ export function createRenderer(options?: RenderOptions) {
       component,
       {
         className,
-        ...(component !== "div" && { resolvedProps }),
+        ...(component !== "div" && { ...resolvedProps }),
         ...(component !== "div" &&
           Object.keys(custom).length > 0 && { custom }),
         key: index,
