@@ -10,6 +10,7 @@
     "@stripe/react-stripe-js": "^2.8.0",
     "@stripe/stripe-js": "^4.3.0",
     "@types/jest": "^29.5.11",
+    "@types/lodash.merge": "^4.6.9",
     "@types/pako": "^2.0.3",
     "@types/react": "^18.2.79",
     "@types/react-dom": "^18.2.25",
@@ -55,15 +56,16 @@
     "tsc": "npx tsc"
   },
   "types": "dist/schematic-react.d.ts",
-  "version": "0.2.0-rc.2",
+  "version": "0.2.0-rc.3",
   "dependencies": {
     "@schematichq/schematic-js": "^0.1.13",
+    "lodash.merge": "^4.6.2",
     "pako": "^2.1.0",
     "styled-components": "^6.1.12"
   },
   "peerDependencies": {
-    "@stripe/stripe-js": ">4",
     "@stripe/react-stripe-js": ">2",
+    "@stripe/stripe-js": ">4",
     "react": ">=18",
     "react-dom": ">=18"
   },

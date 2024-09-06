@@ -11,10 +11,9 @@ export const StyledButton = styled(Button)<{
   font-weight: 500;
   text-align: center;
   width: 100%;
-
-  ${({ $color = "primary", theme }) => {
+  ${({ disabled, $color = "primary", theme }) => {
     const { l } = hexToHSL(theme[$color]);
-    const textColor = l > 50 ? "#000000" : "#FFFFFF";
+    const textColor = disabled ? "#989898" : l > 50 ? "#000000" : "#FFFFFF";
     return css`
       color: ${textColor};
 
@@ -24,8 +23,8 @@ export const StyledButton = styled(Button)<{
     `;
   }};
 
-  ${({ $color = "primary", theme, $variant = "filled" }) => {
-    const color = theme[$color];
+  ${({ disabled, $color = "primary", theme, $variant = "filled" }) => {
+    const color = disabled ? "#EEEEEE" : theme[$color];
     return $variant === "filled"
       ? css`
           background-color: ${color};
@@ -42,10 +41,15 @@ export const StyledButton = styled(Button)<{
   }}
 
   &:hover {
-    ${({ $color = "primary", theme, $variant = "filled" }) => {
+    ${({ disabled }) => disabled && "cursor: not-allowed;"}
+    ${({ disabled, $color = "primary", theme, $variant = "filled" }) => {
       const specified = theme[$color];
       const lightened = lighten(specified, 15);
-      const color = specified === lightened ? darken(specified, 15) : lightened;
+      const color = disabled
+        ? "#EEEEEE"
+        : specified === lightened
+          ? darken(specified, 15)
+          : lightened;
 
       return $variant === "filled"
         ? css`

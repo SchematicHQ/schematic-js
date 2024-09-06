@@ -1,6 +1,7 @@
 import { createContext, useCallback, useEffect, useRef, useState } from "react";
 import { inflate } from "pako";
 import { ThemeProvider } from "styled-components";
+import merge from "lodash.merge";
 import { loadStripe, type Stripe } from "@stripe/stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
 import {
@@ -151,15 +152,10 @@ function parseEditorState(data: SerializedEditorState) {
   return arr;
 }
 
-async function fetchComponent(
-  id: string,
-  accessToken: string,
-  options?: ConfigurationParameters,
-) {
+async function fetchComponent(id: string, api: CheckoutApi) {
   const settings: EmbedSettings = { ...defaultSettings };
   const nodes: SerializedNodeWithChildren[] = [];
-  const config = new Configuration({ ...options, apiKey: accessToken });
-  const api = new CheckoutApi(config);
+
   const response = await api.hydrateComponent({ componentId: id });
   const { data } = response;
 
@@ -191,7 +187,8 @@ async function fetchComponent(
 export type EmbedLayout = "portal" | "checkout" | "payment" | "disabled";
 
 export interface EmbedContextProps {
-  data: RecursivePartial<ComponentHydrateResponseData>;
+  api: CheckoutApi | null;
+  data: ComponentHydrateResponseData;
   nodes: SerializedNodeWithChildren[];
   settings: EmbedSettings;
   stripe: Promise<Stripe | null> | null;
@@ -204,7 +201,10 @@ export interface EmbedContextProps {
 }
 
 export const EmbedContext = createContext<EmbedContextProps>({
-  data: {},
+  api: null,
+  data: {
+    activePlans: [],
+  },
   nodes: [],
   settings: { ...defaultSettings },
   stripe: null,
@@ -231,14 +231,29 @@ export const EmbedProvider = ({
 }: EmbedProviderProps) => {
   const styleRef = useRef<HTMLLinkElement | null>(null);
 
-  const [state, setState] = useState(() => {
+  const [state, setState] = useState<{
+    api: CheckoutApi | null;
+    data: ComponentHydrateResponseData;
+    nodes: SerializedNodeWithChildren[];
+    settings: EmbedSettings;
+    stripe: Promise<Stripe | null> | null;
+    layout: EmbedLayout;
+    error: Error | undefined;
+    setData: (data: RecursivePartial<ComponentHydrateResponseData>) => void;
+    updateSettings: (settings: RecursivePartial<EmbedSettings>) => void;
+    setStripe: (stripe: Promise<Stripe | null> | null) => void;
+    setLayout: (layout: EmbedLayout) => void;
+  }>(() => {
     return {
-      data: {} as RecursivePartial<ComponentHydrateResponseData>,
-      nodes: [] as SerializedNodeWithChildren[],
-      settings: { ...defaultSettings } as EmbedSettings,
-      stripe: null as Promise<Stripe | null> | null,
-      layout: "portal" as EmbedLayout,
-      error: undefined as Error | undefined,
+      api: null,
+      data: {
+        activePlans: [],
+      },
+      nodes: [],
+      settings: { ...defaultSettings },
+      stripe: null,
+      layout: "portal",
+      error: undefined,
       setData: () => {},
       updateSettings: () => {},
       setStripe: () => {},
@@ -260,16 +275,26 @@ export const EmbedProvider = ({
   }, []);
 
   useEffect(() => {
-    if (!id || !accessToken) {
+    if (!accessToken) {
       return;
     }
 
-    fetchComponent(id, accessToken, apiConfig)
+    const config = new Configuration({ ...apiConfig, apiKey: accessToken });
+    const api = new CheckoutApi(config);
+    setState((prev) => ({ ...prev, api }));
+  }, [accessToken, apiConfig]);
+
+  useEffect(() => {
+    if (!id || !state.api) {
+      return;
+    }
+
+    fetchComponent(id, state.api)
       .then(async (resolvedData) => {
         setState((prev) => ({ ...prev, ...resolvedData }));
       })
       .catch((error) => setState((prev) => ({ ...prev, error })));
-  }, [id, accessToken, apiConfig]);
+  }, [id, state.api]);
 
   useEffect(() => {
     const fontSet = new Set<string>([]);
@@ -289,20 +314,22 @@ export const EmbedProvider = ({
 
   const setData = useCallback(
     (data: RecursivePartial<ComponentHydrateResponseData>) => {
-      setState((prev) => ({
-        ...prev,
-        data: Object.assign({}, data),
-      }));
+      setState((prev) => {
+        const updated = { ...prev };
+        merge(updated.data, data);
+        return updated;
+      });
     },
     [setState],
   );
 
   const updateSettings = useCallback(
     (settings: RecursivePartial<EmbedSettings>) => {
-      setState((prev) => ({
-        ...prev,
-        settings: Object.assign({}, prev.settings, settings),
-      }));
+      setState((prev) => {
+        const updated = { ...prev };
+        merge(updated.settings, settings);
+        return updated;
+      });
     },
     [setState],
   );
@@ -358,9 +385,11 @@ export const EmbedProvider = ({
                 },
               },
             },
-            ...(state.data.stripeEmbed?.customerEkey && {
-              clientSecret: state.data.stripeEmbed.customerEkey,
-            }),
+            ...(state.data.stripeEmbed?.customerEkey
+              ? {
+                  clientSecret: state.data.stripeEmbed.customerEkey,
+                }
+              : { mode: "payment", currency: "usd", amount: 999999 }),
           }}
         >
           {children}
@@ -374,6 +403,7 @@ export const EmbedProvider = ({
   return (
     <EmbedContext.Provider
       value={{
+        api: state.api,
         data: state.data,
         nodes: state.nodes,
         settings: state.settings,
