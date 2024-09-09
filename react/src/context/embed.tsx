@@ -385,9 +385,9 @@ export const EmbedProvider = ({
                 },
               },
             },
-            ...(state.data.stripeEmbed?.customerEkey
+            ...(state.data.stripeEmbed?.setupIntentClientSecret
               ? {
-                  clientSecret: state.data.stripeEmbed.customerEkey,
+                  clientSecret: state.data.stripeEmbed.setupIntentClientSecret,
                 }
               : { mode: "payment", currency: "usd", amount: 999999 }),
           }}

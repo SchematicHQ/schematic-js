@@ -101,7 +101,7 @@ export const CheckoutForm = ({ plan, period }: CheckoutFormProps) => {
             !stripe ||
             !elements ||
             !data.stripeEmbed?.publishableKey ||
-            !data.stripeEmbed?.customerEkey
+            !data.stripeEmbed?.setupIntentClientSecret
           }
           $size="md"
           $color="secondary"
