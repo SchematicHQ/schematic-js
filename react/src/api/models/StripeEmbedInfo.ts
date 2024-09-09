@@ -31,6 +31,12 @@ export interface StripeEmbedInfo {
    * @memberof StripeEmbedInfo
    */
   publishableKey: string;
+  /**
+   *
+   * @type {string}
+   * @memberof StripeEmbedInfo
+   */
+  setupIntentClientSecret?: string | null;
 }
 
 /**
@@ -59,6 +65,10 @@ export function StripeEmbedInfoFromJSONTyped(
     customerEkey:
       json["customer_ekey"] == null ? undefined : json["customer_ekey"],
     publishableKey: json["publishable_key"],
+    setupIntentClientSecret:
+      json["setup_intent_client_secret"] == null
+        ? undefined
+        : json["setup_intent_client_secret"],
   };
 }
 
@@ -69,5 +79,6 @@ export function StripeEmbedInfoToJSON(value?: StripeEmbedInfo | null): any {
   return {
     customer_ekey: value["customerEkey"],
     publishable_key: value["publishableKey"],
+    setup_intent_client_secret: value["setupIntentClientSecret"],
   };
 }

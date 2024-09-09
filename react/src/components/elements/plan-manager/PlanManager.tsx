@@ -121,6 +121,7 @@ export const OverlaySideBar = ({
   setCheckoutStage,
   currentPlan,
   selectedPlan,
+  paymentMethodId,
 }: {
   pricePeriod: "month" | "year";
   setPricePeriod: Dispatch<SetStateAction<"month" | "year">>;
@@ -128,6 +129,7 @@ export const OverlaySideBar = ({
   setCheckoutStage: Dispatch<SetStateAction<"plan" | "checkout">>;
   currentPlan?: BillingPlan;
   selectedPlan?: CompanyPlanDetailResponseData;
+  paymentMethodId?: string;
 }) => {
   const { api } = useEmbed();
 
@@ -135,7 +137,7 @@ export const OverlaySideBar = ({
     if (selectedPlan && pricePeriod === "month") {
       const monthly = (selectedPlan?.monthlyPrice?.price || 0) * 12;
       const yearly = selectedPlan?.yearlyPrice?.price || 0;
-      return ((monthly - yearly) / monthly) * 100;
+      return Math.round(((monthly - yearly) / monthly) * 10000) / 100;
     }
 
     return 0;
@@ -321,18 +323,25 @@ export const OverlaySideBar = ({
         ) : (
           <StyledButton
             disabled={
-              !api || !selectedPlan || selectedPlan?.id === currentPlan?.id
+              !api ||
+              !selectedPlan ||
+              selectedPlan?.id === currentPlan?.id ||
+              !paymentMethodId
             }
             onClick={async () => {
               const priceId =
                 pricePeriod === "month"
                   ? selectedPlan?.monthlyPrice?.id
                   : selectedPlan?.yearlyPrice?.id;
-              if (!api || !selectedPlan || !priceId) return;
+              if (!api || !selectedPlan || !priceId || !paymentMethodId) {
+                return;
+              }
+
               await api.checkout({
                 changeSubscriptionRequestBody: {
                   newPlanId: selectedPlan.id,
                   newPriceId: priceId,
+                  paymentMethodId: paymentMethodId,
                 },
               });
             }}
@@ -403,7 +412,7 @@ const resolveDesignProps = (
     callToAction: {
       isVisible: props.callToAction?.isVisible ?? true,
       buttonSize: props.callToAction?.buttonSize ?? "md",
-      buttonStyle: props.callToAction?.buttonStyle ?? "secondary",
+      buttonStyle: props.callToAction?.buttonStyle ?? "primary",
     },
   };
 };
@@ -426,6 +435,7 @@ export const PlanManager = forwardRef<
   const [planPeriod, setPlanPeriod] = useState<"month" | "year">("month");
   const [selectedPlan, setSelectedPlan] =
     useState<CompanyPlanDetailResponseData>();
+  const [paymentMethodId, setPaymentMethodId] = useState<string | undefined>();
 
   const { data, settings, layout, stripe, setLayout } = useEmbed();
 
@@ -792,7 +802,7 @@ export const PlanManager = forwardRef<
                                 plan.id !== selectedPlan?.id && (
                                   <StyledButton
                                     $size="sm"
-                                    $color="secondary"
+                                    $color="primary"
                                     $variant="outline"
                                     onClick={() => {
                                       setSelectedPlan(plan);
@@ -810,7 +820,13 @@ export const PlanManager = forwardRef<
                 )}
 
                 {selectedPlan && checkoutStage === "checkout" && (
-                  <CheckoutForm plan={selectedPlan} period={planPeriod} />
+                  <CheckoutForm
+                    plan={selectedPlan}
+                    period={planPeriod}
+                    onConfirm={(value) => {
+                      setPaymentMethodId(value);
+                    }}
+                  />
                 )}
               </Flex>
 
@@ -821,6 +837,7 @@ export const PlanManager = forwardRef<
                 setCheckoutStage={setCheckoutStage}
                 currentPlan={currentPlan}
                 selectedPlan={selectedPlan}
+                paymentMethodId={paymentMethodId}
               />
             </Flex>
           </OverlayWrapper>,

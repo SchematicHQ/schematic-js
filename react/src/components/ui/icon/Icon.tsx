@@ -1,8 +1,6 @@
 import cx from "classnames";
-import icons from "../../../assets/icons/icons.js";
+import icons from "./icons.js";
 import { Icon as StyledIcon } from "./styles";
-
-import "../../../assets/icons/icons.css";
 
 export type IconNameTypes = keyof typeof icons;
 
