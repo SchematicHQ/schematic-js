@@ -463,8 +463,7 @@ function parseEditorState(data: SerializedEditorState) {
 
 async function fetchComponent(id: string, api: CheckoutApi) {
   const nodes: SerializedNodeWithChildren[] = [];
-
-  let settings: EmbedSettings = { ...defaultSettings };
+  const settings: EmbedSettings = { ...defaultSettings };
 
   const response = await api.hydrateComponent({ componentId: id });
   const { data } = response;
@@ -476,7 +475,7 @@ async function fetchComponent(id: string, api: CheckoutApi) {
     });
     const ast = getEditorState(json);
     if (ast) {
-      settings = { ...settings, ...ast.ROOT.props.settings };
+      merge(settings, ast.ROOT.props.settings);
       nodes.push(...parseEditorState(ast));
     }
   }
