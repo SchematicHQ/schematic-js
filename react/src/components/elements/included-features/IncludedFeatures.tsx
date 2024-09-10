@@ -2,6 +2,7 @@ import { forwardRef, useMemo } from "react";
 import { useEmbed } from "../../../hooks";
 import { type FontStyle } from "../../../context";
 import type { RecursivePartial, ElementProps } from "../../../types";
+import { lighten, darken, hexToHSL } from "../../../utils";
 import { Box, Flex, IconRound, Text, type IconNameTypes } from "../../ui";
 
 interface DesignProps {
@@ -130,8 +131,8 @@ export const IncludedFeatures = forwardRef<
                     name={feature.icon as IconNameTypes}
                     size="sm"
                     colors={[
-                      settings.theme.card.background,
                       settings.theme.primary,
+                      `${hexToHSL(settings.theme.card.background).l > 50 ? darken(settings.theme.card.background, 10) : lighten(settings.theme.card.background, 20)}`,
                     ]}
                   />
                 )}

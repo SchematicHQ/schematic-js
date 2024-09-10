@@ -9,17 +9,13 @@ import { useEmbed } from "../../../hooks";
 import { Box, Flex } from "../../ui";
 import { StyledButton } from "./styles";
 
-interface CheckoutFormProps {
+interface PaymentFormProps {
   plan: CompanyPlanDetailResponseData;
   period: "month" | "year";
   onConfirm?: (paymentMethodId: string) => void;
 }
 
-export const CheckoutForm = ({
-  plan,
-  period,
-  onConfirm,
-}: CheckoutFormProps) => {
+export const PaymentForm = ({ plan, period, onConfirm }: PaymentFormProps) => {
   const stripe = useStripe();
   const elements = useElements();
 
