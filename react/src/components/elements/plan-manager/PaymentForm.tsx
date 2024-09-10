@@ -9,12 +9,13 @@ import { useEmbed } from "../../../hooks";
 import { Box, Flex } from "../../ui";
 import { StyledButton } from "./styles";
 
-interface CheckoutFormProps {
+interface PaymentFormProps {
   plan: CompanyPlanDetailResponseData;
   period: "month" | "year";
+  onConfirm?: (paymentMethodId: string) => void;
 }
 
-export const CheckoutForm = ({ plan, period }: CheckoutFormProps) => {
+export const PaymentForm = ({ plan, period, onConfirm }: PaymentFormProps) => {
   const stripe = useStripe();
   const elements = useElements();
 
@@ -22,6 +23,7 @@ export const CheckoutForm = ({ plan, period }: CheckoutFormProps) => {
 
   const [message, setMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isConfirmed, setIsConfirmed] = useState(false);
 
   const handleSubmit: React.FormEventHandler<HTMLFormElement> = async (
     event,
@@ -35,21 +37,40 @@ export const CheckoutForm = ({ plan, period }: CheckoutFormProps) => {
     }
 
     setIsLoading(true);
+    setIsConfirmed(false);
 
-    const { error } = await stripe.confirmPayment({
-      elements,
-      confirmParams: {
-        return_url: window.location.href,
-      },
-    });
+    try {
+      const { setupIntent, error } = await stripe.confirmSetup({
+        elements,
+        confirmParams: {
+          return_url: window.location.href,
+        },
+        redirect: "if_required",
+      });
 
-    if (error.type === "card_error" || error.type === "validation_error") {
-      setMessage(error.message as string);
-    } else {
-      setMessage("An unexpected error occured.");
+      if (onConfirm && typeof setupIntent?.payment_method === "string") {
+        onConfirm(setupIntent.payment_method);
+        setIsConfirmed(true);
+      } else {
+        // TODO: handle other payment method types
+      }
+
+      if (error?.type === "card_error" || error?.type === "validation_error") {
+        setMessage(error.message as string);
+      } else {
+        setMessage("An unexpected error occured.");
+      }
+
+      setIsLoading(false);
+    } catch (error) {
+      if (error instanceof Error) {
+        setMessage(error.message);
+      } else {
+        setMessage("An unexpected error occured.");
+      }
+
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
   };
 
   return (
@@ -60,6 +81,8 @@ export const CheckoutForm = ({ plan, period }: CheckoutFormProps) => {
         display: "flex",
         flexDirection: "column",
         height: "100%",
+        overflowX: "hidden",
+        overflowY: "auto",
       }}
     >
       <Box
@@ -101,10 +124,11 @@ export const CheckoutForm = ({ plan, period }: CheckoutFormProps) => {
             !stripe ||
             !elements ||
             !data.stripeEmbed?.publishableKey ||
-            !data.stripeEmbed?.customerEkey
+            !data.stripeEmbed?.setupIntentClientSecret ||
+            isConfirmed
           }
           $size="md"
-          $color="secondary"
+          $color="primary"
         >
           <span id="button-text">
             {isLoading ? "Loading" : "Save payment method"}

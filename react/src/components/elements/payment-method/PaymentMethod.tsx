@@ -208,7 +208,7 @@ export const PaymentMethod = forwardRef<
                     <Flex>
                       <StyledButton
                         $size="sm"
-                        $color="secondary"
+                        $color="primary"
                         $variant="outline"
                         style={{
                           whiteSpace: "nowrap",
@@ -299,7 +299,7 @@ export const PaymentMethod = forwardRef<
                     <Flex $gap="1rem">
                       <StyledButton
                         $size="sm"
-                        $color="secondary"
+                        $color="primary"
                         $variant="outline"
                         style={{
                           whiteSpace: "nowrap",
@@ -311,7 +311,7 @@ export const PaymentMethod = forwardRef<
                       </StyledButton>
                       <StyledButton
                         $size="sm"
-                        $color="secondary"
+                        $color="primary"
                         $variant="outline"
                         style={{
                           whiteSpace: "nowrap",

@@ -62,7 +62,7 @@ function resolveDesignProps(props: RecursivePartial<DesignProps>): DesignProps {
     callToAction: {
       isVisible: props.callToAction?.isVisible ?? true,
       buttonSize: props.callToAction?.buttonSize ?? "md",
-      buttonStyle: props.callToAction?.buttonStyle ?? "secondary",
+      buttonStyle: props.callToAction?.buttonStyle ?? "primary",
     },
   };
 }

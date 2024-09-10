@@ -31,6 +31,12 @@ export interface ChangeSubscriptionRequestBody {
    * @memberof ChangeSubscriptionRequestBody
    */
   newPriceId: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ChangeSubscriptionRequestBody
+   */
+  paymentMethodId?: string | null;
 }
 
 /**
@@ -61,6 +67,8 @@ export function ChangeSubscriptionRequestBodyFromJSONTyped(
   return {
     newPlanId: json["new_plan_id"],
     newPriceId: json["new_price_id"],
+    paymentMethodId:
+      json["payment_method_id"] == null ? undefined : json["payment_method_id"],
   };
 }
 
@@ -73,5 +81,6 @@ export function ChangeSubscriptionRequestBodyToJSON(
   return {
     new_plan_id: value["newPlanId"],
     new_price_id: value["newPriceId"],
+    payment_method_id: value["paymentMethodId"],
   };
 }

@@ -2,7 +2,7 @@ import { forwardRef, useMemo } from "react";
 import { useEmbed } from "../../../hooks";
 import { type FontStyle } from "../../../context";
 import type { RecursivePartial, ElementProps } from "../../../types";
-import { toPrettyDate } from "../../../utils";
+import { toPrettyDate, formatCurrency } from "../../../utils";
 import { Box, Flex, Text } from "../../ui";
 
 interface DesignProps {
@@ -111,15 +111,7 @@ export const UpcomingBill = forwardRef<
                 $color={settings.theme.typography[props.price.fontStyle].color}
                 $lineHeight={1}
               >
-                <Text
-                  $size="0.75em"
-                  $color={
-                    settings.theme.typography[props.price.fontStyle].color
-                  }
-                >
-                  $
-                </Text>
-                {upcomingInvoice.amountDue}
+                {formatCurrency(upcomingInvoice.amountDue)}
               </Text>
             </Flex>
           )}

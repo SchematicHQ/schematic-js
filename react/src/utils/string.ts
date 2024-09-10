@@ -5,3 +5,35 @@ export function hyphenToCamel(str: string) {
 export function camelToHyphen(str: string) {
   return str.replace(/([a-z][A-Z])/g, (g) => `${g[0]}-${g[1].toLowerCase()}`);
 }
+
+export function formatCurrency(amount: number) {
+  try {
+    const dollars = amount / 100;
+
+    const formatValue = (value: number, symbol: string): string => {
+      let formatted = value.toFixed(1);
+      if (formatted.endsWith(".0")) {
+        formatted = formatted.slice(0, -2);
+      }
+      return `$${formatted}${symbol}`;
+    };
+
+    if (dollars >= 1_000_000) {
+      return formatValue(dollars / 1_000_000, "M");
+    } else if (dollars >= 1_000) {
+      return formatValue(dollars / 1_000, "k");
+    } else {
+      return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+      }).format(dollars);
+    }
+  } catch (error) {
+    console.error("Error formatting currency", error);
+
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+    }).format(amount / 100);
+  }
+}
