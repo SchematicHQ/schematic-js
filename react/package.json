@@ -1,5 +1,6 @@
 {
   "name": "@schematichq/schematic-react",
+  "version": "0.2.0-rc.4",
   "main": "dist/schematic-react.cjs.js",
   "module": "dist/schematic-react.esm.js",
   "types": "dist/schematic-react.d.ts",
@@ -27,7 +28,6 @@
     "test": "jest --config jest.config.js",
     "tsc": "npx tsc"
   },
-  "version": "0.2.0-rc.3",
   "dependencies": {
     "@schematichq/schematic-js": "^0.1.13",
     "@stripe/react-stripe-js": "^2.8.0",
