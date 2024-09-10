@@ -1,5 +1,13 @@
 import * as SchematicJS from "@schematichq/schematic-js";
-import { createContext, useEffect, useMemo, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 
 type BaseSchematicProviderProps = Omit<
   SchematicJS.SchematicOptions,
@@ -22,13 +30,18 @@ export type SchematicProviderProps =
   | SchematicProviderPropsWithClient
   | SchematicProviderPropsWithPublishableKey;
 
+export type FlagData = {
+  isLoading?: boolean;
+  values?: Record<string, boolean>;
+};
+
 export interface SchematicContextProps {
   client?: SchematicJS.Schematic;
-  flagValues: Record<string, boolean>;
+  flagData: FlagData;
 }
 
 export const SchematicContext = createContext<SchematicContextProps>({
-  flagValues: {},
+  flagData: { isLoading: true, values: {} },
 });
 
 export const SchematicProvider: React.FC<SchematicProviderProps> = ({
@@ -37,50 +50,63 @@ export const SchematicProvider: React.FC<SchematicProviderProps> = ({
   publishableKey,
   ...clientOpts
 }) => {
-  const [client, setClient] = useState<SchematicJS.Schematic>();
-  const [flagValues, setFlagValues] = useState<Record<string, boolean>>({});
-  const memoizedClientOpts = useMemo(
-    () => clientOpts,
-    /* eslint-disable-next-line react-hooks/exhaustive-deps */
-    [JSON.stringify(clientOpts)],
+  const renderCount = useRef(0);
+  renderCount.current += 1;
+
+  const [client, setClient] = useState<SchematicJS.Schematic | undefined>(
+    providedClient,
   );
+  const clientOptsRef = useRef(clientOpts);
   const { useWebSocket = true } = clientOpts;
 
-  useEffect(() => {
-    let cleanupFunction: (() => void) | undefined;
+  // Create client
+  const memoizedClientOpts = useMemo(() => {
+    return clientOptsRef.current;
+  }, []);
 
-    // If a client was explicitly provided, always use this
-    if (providedClient) {
-      setClient(providedClient);
-      cleanupFunction = () => {
-        providedClient.cleanup().catch((error) => {
-          console.error("Error during cleanup:", error);
-        });
-      };
-    } else {
-      // Otherwise, if a publishable key was provided, create a new client
-      // with the client options
-      const newClient = new SchematicJS.Schematic(publishableKey, {
+  const createClient = useCallback(() => {
+    if (publishableKey) {
+      return new SchematicJS.Schematic(publishableKey, {
         ...memoizedClientOpts,
-        flagListener: setFlagValues,
         useWebSocket,
       });
-      setClient(newClient);
-      cleanupFunction = () => {
-        newClient.cleanup().catch((error) => {
-          console.error("Error during cleanup:", error);
-        });
-      };
+    }
+    return undefined;
+  }, [publishableKey, memoizedClientOpts, useWebSocket]);
+
+  useEffect(() => {
+    if (!providedClient && !client) {
+      const newClient = createClient();
+      if (newClient) {
+        setClient(newClient);
+      }
     }
 
-    // Return the cleanup function
-    return cleanupFunction;
-  }, [memoizedClientOpts, providedClient, publishableKey, useWebSocket]);
+    return () => {
+      if (client && !providedClient) {
+        client.cleanup().catch((error) => {
+          console.error("Error during cleanup:", error);
+        });
+      }
+    };
+  }, [providedClient, client, createClient]);
 
-  const contextValue: SchematicContextProps = {
-    client,
-    flagValues,
-  };
+  const flagData = useSyncExternalStore(
+    useCallback(
+      (callback) => {
+        return client?.subscribe(callback) ?? (() => {});
+      },
+      [client],
+    ),
+    useCallback(() => {
+      return client?.getSnapshot() ?? {};
+    }, [client]),
+    () => ({}),
+  );
+
+  const contextValue = useMemo(() => {
+    return { client, flagData };
+  }, [client, flagData]);
 
   return (
     <SchematicContext.Provider value={contextValue}>

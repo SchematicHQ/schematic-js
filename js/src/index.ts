@@ -87,6 +87,8 @@ export class Schematic {
   private conn: Promise<WebSocket> | null = null;
   private context: SchematicContext = {};
   private eventQueue: Event[];
+  private isLoading: boolean = false;
+  private listeners: Set<() => void> = new Set();
   private storage: StoragePersister | undefined;
   private useWebSocket: boolean = false;
   private values: Record<string, Record<string, boolean>> = {};
@@ -232,13 +234,22 @@ export class Schematic {
       return Promise.resolve();
     }
 
+    this.isLoading = true;
+
     if (!this.conn) {
       this.conn = this.wsConnect();
     }
 
-    return this.conn.then((socket) => {
-      return this.wsSendMessage(socket, context);
-    });
+    try {
+      // Wait for socket to be open
+      const socket = await this.conn;
+
+      // Send a message indicating interest in flags for this context
+      await this.wsSendMessage(socket, context);
+    } finally {
+      this.isLoading = false;
+      this.notifyListeners();
+    }
   };
 
   // Send track event
@@ -373,12 +384,13 @@ export class Schematic {
             this.flagListener(this.values[contextString(context)]);
           }
 
+          this.isLoading = false;
+          this.listeners.forEach((listener) => listener());
+
           if (!resolved) {
             resolved = true;
             resolve();
           }
-
-          socket.removeEventListener("message", messageHandler);
         };
 
         socket.addEventListener("message", messageHandler);
@@ -399,6 +411,28 @@ export class Schematic {
         reject("WebSocket is not open or connecting");
       }
     });
+  };
+
+  getSnapshot = () => {
+    const contextStr = contextString(this.context);
+    return {
+      flags: { ...this.values[contextStr] },
+      isLoading: this.isLoading,
+    };
+  };
+
+  subscribe = (listener: () => void) => {
+    this.listeners.add(listener);
+    return () => {
+      this.listeners.delete(listener);
+    };
+  };
+
+  private notifyListeners = () => {
+    this.listeners.forEach((listener) => listener());
+    if (this.flagListener) {
+      this.flagListener(this.getSnapshot().flags);
+    }
   };
 }
 

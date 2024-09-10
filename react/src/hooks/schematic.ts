@@ -41,23 +41,33 @@ export const useSchematicEvents = (opts?: SchematicHookOpts) => {
   return { track, identify };
 };
 
-export const useSchematicFlag = (key: string, opts?: UseSchematicFlagOpts) => {
-  const { flagValues } = useSchematic();
-  const { client } = opts ?? {};
-  const { fallback = false } = opts ?? {};
+export const useSchematicIsLoading = () => {
+  const { flagData } = useSchematic();
+  const { isLoading = true } = flagData;
+  return isLoading;
+};
 
-  const [value, setValue] = useState(fallback);
-  const flagValue = flagValues[key];
+export const useSchematicFlag = (key: string, opts?: UseSchematicFlagOpts) => {
+  const { flagData, client } = useSchematic();
+  const { fallback = false } = opts ?? {};
+  const { values = {} } = flagData;
+
+  // Use the flag value from the synchronized store if available
+  const flagValue = values[key];
+
+  // Only use local state for the initial fallback and async client.checkFlag
+  const [localValue, setLocalValue] = useState<boolean | undefined>(undefined);
 
   useEffect(() => {
-    if (typeof flagValue !== "undefined") {
-      setValue(flagValue);
-    } else if (client) {
-      client.checkFlag({ key, fallback }).then(setValue);
-    } else {
-      setValue(fallback);
+    if (typeof flagValue === "undefined" && client) {
+      client.checkFlag({ key, fallback }).then(setLocalValue);
     }
   }, [key, fallback, flagValue, client]);
 
-  return value;
+  // Prioritize the synchronized flag value, then local value, then fallback
+  return typeof flagValue !== "undefined"
+    ? flagValue
+    : typeof localValue !== "undefined"
+      ? localValue
+      : fallback;
 };

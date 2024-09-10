@@ -96,6 +96,12 @@ export interface InvoiceResponseData {
    * @type {string}
    * @memberof InvoiceResponseData
    */
+  paymentMethodExternalId?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof InvoiceResponseData
+   */
   subscriptionExternalId?: string | null;
   /**
    *
@@ -165,6 +171,10 @@ export function InvoiceResponseDataFromJSONTyped(
     environmentId: json["environment_id"],
     externalId: json["external_id"],
     id: json["id"],
+    paymentMethodExternalId:
+      json["payment_method_external_id"] == null
+        ? undefined
+        : json["payment_method_external_id"],
     subscriptionExternalId:
       json["subscription_external_id"] == null
         ? undefined
@@ -196,6 +206,7 @@ export function InvoiceResponseDataToJSON(
     environment_id: value["environmentId"],
     external_id: value["externalId"],
     id: value["id"],
+    payment_method_external_id: value["paymentMethodExternalId"],
     subscription_external_id: value["subscriptionExternalId"],
     subtotal: value["subtotal"],
     updated_at: value["updatedAt"].toISOString(),
