@@ -6,7 +6,7 @@ import {
 import { useStripe, useElements } from "@stripe/react-stripe-js";
 import type { CompanyPlanDetailResponseData } from "../../../api";
 import { useEmbed } from "../../../hooks";
-import { Box, Flex } from "../../ui";
+import { Box, Flex, Text } from "../../ui";
 import { StyledButton } from "./styles";
 
 interface PaymentFormProps {
@@ -85,13 +85,8 @@ export const PaymentForm = ({ plan, period, onConfirm }: PaymentFormProps) => {
         overflowY: "auto",
       }}
     >
-      <Box
-        $fontSize="18px"
-        $marginBottom="1.5rem"
-        $display="inline-block"
-        $width="100%"
-      >
-        Add payment method{" "}
+      <Box $width="100%" $marginBottom="1.5rem">
+        <Text $size={18}>Add payment method</Text>
       </Box>
       <Flex
         $flexDirection="column"

@@ -462,8 +462,8 @@ function parseEditorState(data: SerializedEditorState) {
 }
 
 async function fetchComponent(id: string, api: CheckoutApi) {
-  const settings: EmbedSettings = { ...defaultSettings };
   const nodes: SerializedNodeWithChildren[] = [];
+  const settings: EmbedSettings = { ...defaultSettings };
 
   const response = await api.hydrateComponent({ componentId: id });
   const { data } = response;
@@ -624,9 +624,11 @@ export const EmbedProvider = ({
   const setData = useCallback(
     (data: RecursivePartial<ComponentHydrateResponseData>) => {
       setState((prev) => {
-        const updated = { ...prev };
-        merge(updated.data, data);
-        return updated;
+        const updatedData = merge({}, prev.data, { ...data });
+        return {
+          ...prev,
+          data: updatedData,
+        };
       });
     },
     [setState],
@@ -635,9 +637,11 @@ export const EmbedProvider = ({
   const updateSettings = useCallback(
     (settings: RecursivePartial<EmbedSettings>) => {
       setState((prev) => {
-        const updated = { ...prev };
-        merge(updated.settings, settings);
-        return updated;
+        const updatedSettings = merge({}, prev.settings, { ...settings });
+        return {
+          ...prev,
+          settings: updatedSettings,
+        };
       });
     },
     [setState],

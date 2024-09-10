@@ -3,9 +3,8 @@ import { createPortal } from "react-dom";
 import { useEmbed } from "../../../hooks";
 import { type FontStyle } from "../../../context";
 import type { RecursivePartial, ElementProps } from "../../../types";
-import { Box, Flex, Text } from "../../ui";
+import { Box, Flex, Modal, ModalHeader, Text } from "../../ui";
 import { darken, lighten, hexToHSL } from "../../../utils";
-import { OverlayHeader, OverlayWrapper } from "../plan-manager";
 import { StyledButton } from "../plan-manager/styles";
 
 interface DesignProps {
@@ -121,10 +120,10 @@ export const PaymentMethod = forwardRef<
 
       {layout === "payment" &&
         createPortal(
-          <OverlayWrapper size="md">
-            <OverlayHeader>
+          <Modal size="md">
+            <ModalHeader>
               <Box $fontWeight="600">Edit payment method</Box>
-            </OverlayHeader>
+            </ModalHeader>
             <Flex
               $flexDirection="column"
               $padding="2.5rem"
@@ -155,20 +154,11 @@ export const PaymentMethod = forwardRef<
                       $border="1px solid #E2E5E9"
                       $borderRadius=".5rem"
                       $backgroundColor="#ffffff"
-                      $flexDirection="row"
                       $gap="1rem"
                       $width="100%"
                     >
-                      <Flex
-                        $flexDirection="row"
-                        $justifyContent="space-between"
-                        $flex="1"
-                      >
-                        <Flex
-                          $flexDirection="row"
-                          $alignItems="center"
-                          $gap="1rem"
-                        >
+                      <Flex $justifyContent="space-between" $flex="1">
+                        <Flex $alignItems="center" $gap="1rem">
                           <Box $display="inline-block">
                             <svg
                               viewBox="0 0 24 16"
@@ -246,20 +236,11 @@ export const PaymentMethod = forwardRef<
                       $border="1px solid #E2E5E9"
                       $borderRadius=".5rem"
                       $backgroundColor="#ffffff"
-                      $flexDirection="row"
                       $gap="1rem"
                       $width="100%"
                     >
-                      <Flex
-                        $flexDirection="row"
-                        $justifyContent="space-between"
-                        $flex="1"
-                      >
-                        <Flex
-                          $flexDirection="row"
-                          $alignItems="center"
-                          $gap="1rem"
-                        >
+                      <Flex $justifyContent="space-between" $flex="1">
+                        <Flex $alignItems="center" $gap="1rem">
                           <Box $display="inline-block">
                             <svg
                               viewBox="0 0 24 16"
@@ -326,7 +307,7 @@ export const PaymentMethod = forwardRef<
                 </Flex>
               </Flex>
             </Flex>
-          </OverlayWrapper>,
+          </Modal>,
           portal || document.body,
         )}
     </div>
