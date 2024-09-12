@@ -19,18 +19,30 @@ export const Viewport = forwardRef<HTMLDivElement | null, ViewportProps>(
           <Box $width="100%">
             <Flex
               $flexDirection="column"
-              $padding="6rem"
+              $padding={`${settings.theme.card.padding / 16}rem`}
               $width="100%"
               $height="auto"
-              $borderRadius=".5rem"
-              $backgroundColor="#F4F4F4"
+              $borderRadius={`${settings.theme.card.borderRadius / 16}rem`}
+              $backgroundColor={settings.theme.card.background}
               $alignItems="center"
               $justifyContent="center"
             >
-              <Box $fontSize="37px" $marginBottom="8px" $fontWeight="600">
+              <Box
+                $marginBottom="8px"
+                $fontSize={`${settings.theme.typography.heading1.fontSize / 16}rem`}
+                $fontFamily={settings.theme.typography.heading1.fontFamily}
+                $fontWeight={settings.theme.typography.heading1.fontWeight}
+                $color={settings.theme.typography.heading1.color}
+              >
                 Coming soon
               </Box>
-              <Box $fontSize="16px">
+              <Box
+                $marginBottom="8px"
+                $fontSize={`${settings.theme.typography.text.fontSize / 16}rem`}
+                $fontFamily={settings.theme.typography.text.fontFamily}
+                $fontWeight={settings.theme.typography.text.fontWeight}
+                $color={settings.theme.typography.text.color}
+              >
                 The plan manager will be back very soon.
               </Box>
             </Flex>
