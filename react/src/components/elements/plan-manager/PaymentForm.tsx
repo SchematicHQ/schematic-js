@@ -124,7 +124,7 @@ export const PaymentForm = ({ plan, period, onConfirm }: PaymentFormProps) => {
           $color="primary"
         >
           <Text id="button-text">
-            {isLoading ? "Loading" : "Save payment method"}
+            {!isLoading ? "Loading" : "Save payment method"}
           </Text>
         </StyledButton>
       </div>
