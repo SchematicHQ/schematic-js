@@ -1,5 +1,5 @@
 import styled, { css } from "styled-components";
-import { hexToHSL, lighten, darken } from "../../../utils";
+import { hexToHSL, hslToHex, lighten, darken } from "../../../utils";
 import { Button, Text } from "../../ui";
 
 export const StyledButton = styled(Button)<{
@@ -13,7 +13,21 @@ export const StyledButton = styled(Button)<{
   width: 100%;
   ${({ disabled, $color = "primary", theme }) => {
     const { l } = hexToHSL(theme[$color]);
-    const textColor = disabled ? "#989898" : l > 50 ? "#000000" : "#FFFFFF";
+
+    let textColor;
+    let colorFn;
+    if (l > 50) {
+      textColor = "#000000";
+      colorFn = lighten;
+    } else {
+      textColor = "#FFFFFF";
+      colorFn = darken;
+    }
+
+    if (disabled) {
+      textColor = colorFn(textColor, 42.5);
+    }
+
     return css`
       color: ${textColor};
 
@@ -24,7 +38,13 @@ export const StyledButton = styled(Button)<{
   }};
 
   ${({ disabled, $color = "primary", theme, $variant = "filled" }) => {
-    const color = disabled ? "#EEEEEE" : theme[$color];
+    let color = theme[$color];
+    if (disabled) {
+      const { l } = hexToHSL(theme.card.background);
+      color = hslToHex({ h: 0, s: 0, l });
+      color = l > 50 ? darken(color, 7.5) : lighten(color, 7.5);
+    }
+
     return $variant === "filled"
       ? css`
           background-color: ${color};
@@ -32,24 +52,27 @@ export const StyledButton = styled(Button)<{
         `
       : css`
           background-color: transparent;
-          border-color: #d2d2d2;
-          color: #194bfb;
+          border-color: ${color};
+          color: ${color};
+
           ${Text} {
-            color: #194bfb;
+            color: ${color};
           }
         `;
   }}
 
-  &:hover {
-    ${({ disabled }) => disabled && "cursor: not-allowed;"}
-    ${({ disabled, $color = "primary", theme, $variant = "filled" }) => {
+  &:disabled:hover {
+    cursor: not-allowed;
+  }
+
+  &:not(:disabled):hover {
+    ${({ $color = "primary", theme, $variant = "filled" }) => {
       const specified = theme[$color];
       const lightened = lighten(specified, 15);
-      const color = disabled
-        ? "#EEEEEE"
-        : specified === lightened
-          ? darken(specified, 15)
-          : lightened;
+      const color = specified === lightened ? darken(specified, 15) : lightened;
+
+      const { l } = hexToHSL(theme[$color]);
+      const textColor = l > 50 ? "#000000" : "#FFFFFF";
 
       return $variant === "filled"
         ? css`
@@ -59,9 +82,10 @@ export const StyledButton = styled(Button)<{
         : css`
             background-color: ${color};
             border-color: ${color};
-            color: #ffffff;
+            color: ${textColor};
+
             ${Text} {
-              color: #ffffff;
+              color: ${textColor};
             }
           `;
     }}

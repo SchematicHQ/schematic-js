@@ -37,7 +37,7 @@ export const StyledCard = styled.div<{
         const borderColor =
           l > 50
             ? darken(theme.card.background, 10)
-            : lighten(theme.card.background, 30);
+            : lighten(theme.card.background, 20);
         const borderRadius = `${$borderRadius / TEXT_BASE_SIZE}rem`;
         const boxShadow =
           "0px 1px 20px 0px #1018280F, 0px 1px 3px 0px #1018281A";

@@ -1,6 +1,7 @@
 import { useCallback } from "react";
+import { useTheme } from "styled-components";
 import { useEmbed } from "../../../hooks";
-import { lighten } from "../../../utils";
+import { lighten, darken, hexToHSL } from "../../../utils";
 import { Box, Flex, Icon } from "../";
 
 interface ModalHeaderProps {
@@ -9,7 +10,8 @@ interface ModalHeaderProps {
 }
 
 export const ModalHeader = ({ children, onClose }: ModalHeaderProps) => {
-  const { settings, setLayout } = useEmbed();
+  const theme = useTheme();
+  const { setLayout } = useEmbed();
 
   const handleClose = useCallback(() => {
     setLayout("portal");
@@ -18,20 +20,33 @@ export const ModalHeader = ({ children, onClose }: ModalHeaderProps) => {
 
   return (
     <Flex
-      $paddingLeft="2.5rem"
-      $paddingRight="2.5rem"
-      $padding="0.75rem 2.5rem"
       $justifyContent="space-between"
       $alignItems="center"
-      $borderBottom="1px solid #DEDEDE"
       $gap="1rem"
-      $backgroundColor={lighten(settings.theme.card.background, 2)}
-      $borderRadius="0.5rem 0.5rem 0 0"
+      $height="3.75rem"
+      $padding="0 0.625rem 0 2.5rem"
+      $backgroundColor={theme.card.background}
+      $borderBottomWidth="1px"
+      $borderBottomStyle="solid"
+      $borderBottomColor={
+        hexToHSL(theme.card.background).l > 50
+          ? darken(theme.card.background, 15)
+          : lighten(theme.card.background, 15)
+      }
     >
       {children}
 
       <Box $cursor="pointer" onClick={handleClose}>
-        <Icon name="close" style={{ fontSize: 36, color: "#B8B8B8" }} />
+        <Icon
+          name="close"
+          style={{
+            fontSize: 36,
+            color:
+              hexToHSL(theme.card.background).l > 50
+                ? darken(theme.card.background, 27.5)
+                : lighten(theme.card.background, 27.5),
+          }}
+        />
       </Box>
     </Flex>
   );

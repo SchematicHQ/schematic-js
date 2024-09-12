@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef } from "react";
+import { useTheme } from "styled-components";
 import { useEmbed } from "../../../hooks";
+import { lighten, darken, hexToHSL } from "../../../utils";
 import { Box, Flex } from "../";
 
 interface ModalProps {
@@ -8,25 +10,11 @@ interface ModalProps {
   onClose?: () => void;
 }
 
-export const Modal = ({ children, size = "lg", onClose }: ModalProps) => {
+export const Modal = ({ children, onClose }: ModalProps) => {
+  const theme = useTheme();
   const { setLayout } = useEmbed();
 
   const ref = useRef<HTMLDivElement>(null);
-
-  const sizeWidthMap = {
-    md: "700px",
-    lg: "75%",
-  };
-
-  const sizeHeighthMap = {
-    md: "auto",
-    lg: "75%",
-  };
-
-  const sizeMaxWidthMap = {
-    md: "auto",
-    lg: "1140px",
-  };
 
   const handleClose = useCallback(() => {
     setLayout("portal");
@@ -58,7 +46,11 @@ export const Modal = ({ children, size = "lg", onClose }: ModalProps) => {
       $transform="translate(-50%, -50%)"
       $width="100%"
       $height="100%"
-      $backgroundColor="#D9D9D9"
+      $backgroundColor={
+        hexToHSL(theme.card.background).l > 50
+          ? darken(theme.card.background, 15)
+          : lighten(theme.card.background, 15)
+      }
       $overflow="hidden"
     >
       <Flex
@@ -67,11 +59,14 @@ export const Modal = ({ children, size = "lg", onClose }: ModalProps) => {
         $left="50%"
         $transform="translate(-50%, -50%)"
         $flexDirection="column"
-        $maxWidth={sizeMaxWidthMap[size]}
-        $width={sizeWidthMap[size]}
-        $height={sizeHeighthMap[size]}
-        $backgroundColor="#FBFBFB"
-        $borderBottom="1px solid #DEDEDE"
+        $overflow="hidden"
+        $width="calc(100% - 5rem)"
+        $height="calc(100% - 5rem)"
+        $backgroundColor={
+          hexToHSL(theme.card.background).l > 50
+            ? darken(theme.card.background, 2.5)
+            : lighten(theme.card.background, 2.5)
+        }
         $borderRadius="0.5rem"
         $boxShadow="0px 1px 20px 0px #1018280F, 0px 1px 3px 0px #1018281A;"
         id="select-plan-dialog"
