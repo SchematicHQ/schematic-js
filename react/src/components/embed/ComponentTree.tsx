@@ -1,5 +1,6 @@
 import { useEffect, useState, Children } from "react";
 import { useTheme } from "styled-components";
+import { TEXT_BASE_SIZE } from "../../const";
 import { useEmbed } from "../../hooks";
 import { createRenderer } from "./renderer";
 import { Box, Flex } from "../ui";
@@ -13,7 +14,7 @@ const Loading = () => {
       $height="100%"
       $alignItems="center"
       $justifyContent="center"
-      $padding={`${theme.card.padding / 16}rem`}
+      $padding={`${theme.card.padding / TEXT_BASE_SIZE}rem`}
     >
       <Loader />
     </Flex>
@@ -25,17 +26,17 @@ const Error = ({ message }: { message: string }) => {
   return (
     <Flex
       $flexDirection="column"
-      $padding={`${theme.card.padding / 16}rem`}
+      $padding={`${theme.card.padding / TEXT_BASE_SIZE}rem`}
       $width="100%"
       $height="auto"
-      $borderRadius={`${theme.card.borderRadius / 16}rem`}
+      $borderRadius={`${theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
       $backgroundColor={theme.card.background}
       $alignItems="center"
       $justifyContent="center"
     >
       <Box
-        $marginBottom="8px"
-        $fontSize={`${theme.typography.heading1.fontSize / 16}rem`}
+        $marginBottom={`${8 / TEXT_BASE_SIZE}rem`}
+        $fontSize={`${theme.typography.heading1.fontSize / TEXT_BASE_SIZE}rem`}
         $fontFamily={theme.typography.heading1.fontFamily}
         $fontWeight={theme.typography.heading1.fontWeight}
         $color={theme.typography.heading1.color}
@@ -43,8 +44,8 @@ const Error = ({ message }: { message: string }) => {
         404 Error
       </Box>
       <Box
-        $marginBottom="8px"
-        $fontSize={`${theme.typography.text.fontSize / 16}rem`}
+        $marginBottom={`${8 / TEXT_BASE_SIZE}rem`}
+        $fontSize={`${theme.typography.text.fontSize / TEXT_BASE_SIZE}rem`}
         $fontFamily={theme.typography.text.fontFamily}
         $fontWeight={theme.typography.text.fontWeight}
         $color={theme.typography.text.color}
