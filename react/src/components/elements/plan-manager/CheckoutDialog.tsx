@@ -170,6 +170,9 @@ export const CheckoutDialog = () => {
       {!isCheckoutComplete && (
         <Flex $position="relative">
           <Flex
+            $position="absolute"
+            $top="0"
+            $left="0"
             $flexDirection="column"
             $gap="1rem"
             $padding="2rem 2.5rem 2rem 2.5rem"
@@ -380,6 +383,9 @@ export const CheckoutDialog = () => {
           </Flex>
 
           <Flex
+            $position="absolute"
+            $top="0"
+            $right="0"
             $flexDirection="column"
             $background={settings.theme.card.background}
             $borderRadius="0 0 0.5rem"
