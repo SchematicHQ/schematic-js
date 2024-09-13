@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
+import { useTheme } from "styled-components";
 import type { CompanyPlanDetailResponseData } from "../../../api";
 import { useEmbed } from "../../../hooks";
-import { lighten, darken, formatCurrency } from "../../../utils";
+import { lighten, darken, hexToHSL, formatCurrency } from "../../../utils";
 import {
   Box,
   Flex,
@@ -25,6 +26,8 @@ export const CheckoutDialog = () => {
   const [paymentMethodId, setPaymentMethodId] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(false);
   const [isCheckoutComplete, setIsCheckoutComplete] = useState(false);
+
+  const theme = useTheme();
 
   const { api, data, settings } = useEmbed();
 
@@ -56,15 +59,24 @@ export const CheckoutDialog = () => {
                   <Box
                     $width="0.9375rem"
                     $height="0.9375rem"
-                    $border="2px solid #DDDDDD"
+                    $borderWidth="2px"
+                    $borderStyle="solid"
+                    $borderColor={
+                      hexToHSL(theme.card.background).l > 50
+                        ? darken(theme.card.background, 12.5)
+                        : lighten(theme.card.background, 12.5)
+                    }
                     $borderRadius="9999px"
                   />
                 ) : (
                   <IconRound
                     name="check"
                     style={{
-                      color: "#FFFFFF",
-                      backgroundColor: "#DDDDDD",
+                      color: theme.card.background,
+                      backgroundColor:
+                        hexToHSL(theme.card.background).l > 50
+                          ? darken(theme.card.background, 12.5)
+                          : lighten(theme.card.background, 12.5),
                       fontSize: 16,
                       width: "1rem",
                       height: "1rem",
@@ -90,14 +102,26 @@ export const CheckoutDialog = () => {
                 </Box>
                 <Icon
                   name="chevron-right"
-                  style={{ fontSize: 16, color: "#D0D0D0" }}
+                  style={{
+                    fontSize: 16,
+                    color:
+                      hexToHSL(theme.card.background).l > 50
+                        ? darken(theme.card.background, 17.5)
+                        : lighten(theme.card.background, 17.5),
+                  }}
                 />
               </Flex>
               <Flex $gap="0.5rem" $alignItems="center">
                 <Box
                   $width="0.9375rem"
                   $height="0.9375rem"
-                  $border="2px solid #DDDDDD"
+                  $borderWidth="2px"
+                  $borderStyle="solid"
+                  $borderColor={
+                    hexToHSL(theme.card.background).l > 50
+                      ? darken(theme.card.background, 12.5)
+                      : lighten(theme.card.background, 12.5)
+                  }
                   $borderRadius="9999px"
                 />
                 <Box
@@ -118,22 +142,32 @@ export const CheckoutDialog = () => {
 
       {isCheckoutComplete && (
         <Flex $justifyContent="center" $alignItems="center" $flexGrow="1">
-          <Text as="h1" $size={37} $weight={800}>
+          <Text
+            as="h1"
+            $font={theme.typography.heading1.fontFamily}
+            $size={theme.typography.heading1.fontSize}
+            $weight={theme.typography.heading1.fontWeight}
+            $color={theme.typography.heading1.color}
+          >
             Subscription updated!
           </Text>
         </Flex>
       )}
 
       {!isCheckoutComplete && (
-        <Flex $height="100%">
+        <Flex $position="relative" $flexGrow="1">
           <Flex
+            $position="absolute"
+            $top="0"
+            $left="0"
             $flexDirection="column"
             $gap="1rem"
             $padding="2rem 2.5rem 2rem 2.5rem"
-            $backgroundColor={darken(settings.theme.card.background, 2)}
-            $borderRadius="0 0.5rem 0"
+            $backgroundColor={darken(settings.theme.card.background, 2.5)}
             $flex="1"
+            $width="72.5%"
             $height="100%"
+            $overflow="auto"
           >
             {checkoutStage === "plan" && (
               <>
@@ -156,7 +190,7 @@ export const CheckoutDialog = () => {
                   </Text>
                 </Flex>
 
-                <Flex $gap="1rem" $flex="1" $height="100%">
+                <Flex $gap="1rem" $flexGrow="1">
                   {availablePlans?.map((plan) => {
                     return (
                       <Flex
@@ -165,7 +199,13 @@ export const CheckoutDialog = () => {
                         $flexDirection="column"
                         $backgroundColor={settings.theme.card.background}
                         $flex="1"
-                        $border={`2px solid ${plan.id === selectedPlan?.id ? "#194BFB" : "transparent"}`}
+                        $outlineWidth="2px"
+                        $outlineStyle="solid"
+                        $outlineColor={
+                          plan.id === selectedPlan?.id
+                            ? theme.primary
+                            : "transparent"
+                        }
                         $borderRadius={`${settings.theme.card.borderRadius / 16}rem`}
                         {...(settings.theme.card.hasShadow && {
                           $boxShadow:
@@ -179,7 +219,13 @@ export const CheckoutDialog = () => {
                           $width="100%"
                           $height="auto"
                           $padding={`${settings.theme.card.padding / 16}rem`}
-                          $borderBottom="1px solid #DEDEDE"
+                          $borderBottomWidth="1px"
+                          $borderStyle="solid"
+                          $borderColor={
+                            hexToHSL(theme.card.background).l > 50
+                              ? darken(theme.card.background, 17.5)
+                              : lighten(theme.card.background, 17.5)
+                          }
                         >
                           <Text $size={20} $weight={600}>
                             {plan.name}
@@ -204,8 +250,12 @@ export const CheckoutDialog = () => {
                               $right="1rem"
                               $top="1rem"
                               $fontSize="0.625rem"
-                              $color="white"
-                              $backgroundColor="#194BFB"
+                              $color={
+                                hexToHSL(theme.primary).l > 50
+                                  ? "#000000"
+                                  : "#FFFFFF"
+                              }
+                              $backgroundColor={theme.primary}
                               $borderRadius="9999px"
                               $padding="0.125rem 0.85rem"
                             >
@@ -232,7 +282,10 @@ export const CheckoutDialog = () => {
                                 <IconRound
                                   name={feature.icon as IconNameTypes}
                                   size="tn"
-                                  colors={["#000000", "#F5F5F5"]}
+                                  colors={[
+                                    settings.theme.primary,
+                                    `${hexToHSL(settings.theme.card.background).l > 50 ? darken(settings.theme.card.background, 10) : lighten(settings.theme.card.background, 20)}`,
+                                  ]}
                                 />
 
                                 <Flex $alignItems="center">
@@ -263,13 +316,16 @@ export const CheckoutDialog = () => {
                                 style={{
                                   fontSize: 20,
                                   lineHeight: "1",
-                                  color: "#194BFB",
+                                  color: theme.primary,
                                 }}
                               />
 
                               <Text
                                 style={{
-                                  color: "#7B7B7B",
+                                  color:
+                                    hexToHSL(theme.card.background).l > 50
+                                      ? "#000000"
+                                      : "#FFFFFF",
                                   lineHeight: "1.4",
                                 }}
                               >
@@ -281,6 +337,7 @@ export const CheckoutDialog = () => {
                           {!(plan.current || plan.id === currentPlan?.id) &&
                             plan.id !== selectedPlan?.id && (
                               <StyledButton
+                                disabled={plan.valid === false}
                                 $size="sm"
                                 $color="primary"
                                 $variant="outline"
@@ -311,10 +368,13 @@ export const CheckoutDialog = () => {
           </Flex>
 
           <Flex
+            $position="absolute"
+            $top="0"
+            $right="0"
             $flexDirection="column"
-            $background={lighten(settings.theme.card.background, 2)}
+            $background={settings.theme.card.background}
             $borderRadius="0 0 0.5rem"
-            $maxWidth="275px"
+            $width="27.5%"
             $height="100%"
             $boxShadow="0px 1px 20px 0px #1018280F, 0px 1px 3px 0px #1018281A;"
           >
@@ -502,18 +562,19 @@ export const CheckoutDialog = () => {
               )}
               {checkoutStage === "plan" ? (
                 <StyledButton
-                  $size="sm"
+                  disabled={!selectedPlan}
                   onClick={() => {
                     setCheckoutStage("checkout");
                   }}
-                  {...(!selectedPlan && { disabled: true })}
+                  $size="sm"
                 >
                   <Flex
                     $gap="0.5rem"
                     $alignItems="center"
                     $justifyContent="center"
+                    $padding="0 1rem"
                   >
-                    <span>Next: Checkout</span>
+                    <Text $align="left">Next: Checkout</Text>
                     <Icon name="arrow-right" />
                   </Flex>
                 </StyledButton>

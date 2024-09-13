@@ -57,8 +57,6 @@ export const PaymentForm = ({ plan, period, onConfirm }: PaymentFormProps) => {
 
       if (error?.type === "card_error" || error?.type === "validation_error") {
         setMessage(error.message as string);
-      } else {
-        setMessage("An unexpected error occured.");
       }
 
       setIsLoading(false);
@@ -108,7 +106,7 @@ export const PaymentForm = ({ plan, period, onConfirm }: PaymentFormProps) => {
 
       <Flex $flexDirection="column" $width="100%" $flex="1" $height="100%">
         <PaymentElement id="payment-element" />
-        {message && <div id="payment-message">{message}</div>}
+        {message && <Text id="payment-message">{message}</Text>}
       </Flex>
 
       <div>
@@ -125,9 +123,9 @@ export const PaymentForm = ({ plan, period, onConfirm }: PaymentFormProps) => {
           $size="md"
           $color="primary"
         >
-          <span id="button-text">
-            {isLoading ? "Loading" : "Save payment method"}
-          </span>
+          <Text id="button-text">
+            {!isLoading ? "Loading" : "Save payment method"}
+          </Text>
         </StyledButton>
       </div>
     </form>
