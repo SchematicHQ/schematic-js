@@ -23,6 +23,7 @@ export const ModalHeader = ({ children, onClose }: ModalHeaderProps) => {
       $justifyContent="space-between"
       $alignItems="center"
       $gap="1rem"
+      $width="100%"
       $height="3.75rem"
       $padding="0 0.625rem 0 2.5rem"
       $backgroundColor={theme.card.background}

@@ -60,8 +60,10 @@ export const Modal = ({ children, onClose }: ModalProps) => {
         $transform="translate(-50%, -50%)"
         $flexDirection="column"
         $overflow="hidden"
-        $width="calc(100% - 5rem)"
-        $height="calc(100% - 5rem)"
+        $width="max-content"
+        $height="max-content"
+        $maxWidth="100%"
+        $maxHeight="100vh"
         $backgroundColor={
           hexToHSL(theme.card.background).l > 50
             ? darken(theme.card.background, 2.5)

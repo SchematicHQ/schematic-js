@@ -503,6 +503,15 @@ export interface EmbedContextProps {
   stripe: Promise<Stripe | null> | null;
   layout: EmbedLayout;
   error?: Error;
+  fetchComponent: (
+    id: string,
+    api: CheckoutApi,
+  ) => Promise<{
+    data: ComponentHydrateResponseData;
+    nodes: SerializedNodeWithChildren[];
+    settings: EmbedSettings;
+    stripe: Promise<Stripe | null> | null;
+  }>;
   setData: (data: RecursivePartial<ComponentHydrateResponseData>) => void;
   updateSettings: (settings: RecursivePartial<EmbedSettings>) => void;
   setStripe: (stripe: Promise<Stripe | null> | null) => void;
@@ -519,6 +528,7 @@ export const EmbedContext = createContext<EmbedContextProps>({
   stripe: null,
   layout: "portal",
   error: undefined,
+  fetchComponent,
   setData: () => {},
   updateSettings: () => {},
   setStripe: () => {},
@@ -548,6 +558,15 @@ export const EmbedProvider = ({
     stripe: Promise<Stripe | null> | null;
     layout: EmbedLayout;
     error: Error | undefined;
+    fetchComponent: (
+      id: string,
+      api: CheckoutApi,
+    ) => Promise<{
+      data: ComponentHydrateResponseData;
+      nodes: SerializedNodeWithChildren[];
+      settings: EmbedSettings;
+      stripe: Promise<Stripe | null> | null;
+    }>;
     setData: (data: RecursivePartial<ComponentHydrateResponseData>) => void;
     updateSettings: (settings: RecursivePartial<EmbedSettings>) => void;
     setStripe: (stripe: Promise<Stripe | null> | null) => void;
@@ -563,6 +582,7 @@ export const EmbedProvider = ({
       stripe: null,
       layout: "portal",
       error: undefined,
+      fetchComponent,
       setData: () => {},
       updateSettings: () => {},
       setStripe: () => {},
@@ -723,6 +743,7 @@ export const EmbedProvider = ({
         stripe: state.stripe,
         layout: state.layout,
         error: state.error,
+        fetchComponent: state.fetchComponent,
         setData,
         updateSettings,
         setStripe,

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTheme } from "styled-components";
 import type { CompanyPlanDetailResponseData } from "../../../api";
 import { useEmbed } from "../../../hooks";
@@ -26,10 +26,11 @@ export const CheckoutDialog = () => {
   const [paymentMethodId, setPaymentMethodId] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(false);
   const [isCheckoutComplete, setIsCheckoutComplete] = useState(false);
+  const [error, setError] = useState<string | undefined>();
 
   const theme = useTheme();
 
-  const { api, data, settings } = useEmbed();
+  const { api, data, settings, fetchComponent } = useEmbed();
 
   const { currentPlan, availablePlans } = useMemo(() => {
     return {
@@ -47,6 +48,13 @@ export const CheckoutDialog = () => {
 
     return 0;
   }, [selectedPlan]);
+
+  // TODO: reload component after checkout
+  useEffect(() => {
+    if (isCheckoutComplete && api && data.component?.id) {
+      fetchComponent(data.component.id, api);
+    }
+  }, [isCheckoutComplete, api, data.component?.id, fetchComponent]);
 
   return (
     <Modal>
@@ -85,20 +93,20 @@ export const CheckoutDialog = () => {
                 )}
                 <Box
                   tabIndex={0}
-                  {...(checkoutStage === "plan"
-                    ? {
-                        style: {
-                          fontWeight: "700",
-                        },
-                      }
-                    : {
-                        style: {
-                          cursor: "pointer",
-                        },
-                        onClick: () => setCheckoutStage("plan"),
-                      })}
+                  {...(checkoutStage !== "plan" && {
+                    $opacity: 0.625,
+                    $cursor: "pointer",
+                    onClick: () => setCheckoutStage("plan"),
+                  })}
                 >
-                  <Text>1. Select plan</Text>
+                  <Text
+                    $font={theme.typography.text.fontFamily}
+                    $size={theme.typography.text.fontSize}
+                    $weight={checkoutStage === "plan" ? 700 : 400}
+                    $color={theme.typography.text.color}
+                  >
+                    1. Select plan
+                  </Text>
                 </Box>
                 <Icon
                   name="chevron-right"
@@ -126,13 +134,18 @@ export const CheckoutDialog = () => {
                 />
                 <Box
                   tabIndex={0}
-                  {...(checkoutStage === "checkout" && {
-                    style: {
-                      fontWeight: "700",
-                    },
+                  {...(checkoutStage !== "checkout" && {
+                    $opacity: 0.625,
                   })}
                 >
-                  <Text>2. Checkout</Text>
+                  <Text
+                    $font={theme.typography.text.fontFamily}
+                    $size={theme.typography.text.fontSize}
+                    $weight={checkoutStage === "checkout" ? 700 : 400}
+                    $color={theme.typography.text.color}
+                  >
+                    2. Checkout
+                  </Text>
                 </Box>
               </Flex>
             </>
@@ -141,7 +154,7 @@ export const CheckoutDialog = () => {
       </ModalHeader>
 
       {isCheckoutComplete && (
-        <Flex $justifyContent="center" $alignItems="center" $flexGrow="1">
+        <Flex $justifyContent="center" $alignItems="center">
           <Text
             as="h1"
             $font={theme.typography.heading1.fontFamily}
@@ -155,27 +168,25 @@ export const CheckoutDialog = () => {
       )}
 
       {!isCheckoutComplete && (
-        <Flex $position="relative" $flexGrow="1">
+        <Flex $position="relative">
           <Flex
-            $position="absolute"
-            $top="0"
-            $left="0"
             $flexDirection="column"
             $gap="1rem"
             $padding="2rem 2.5rem 2rem 2.5rem"
             $backgroundColor={darken(settings.theme.card.background, 2.5)}
             $flex="1"
-            $width="72.5%"
-            $height="100%"
             $overflow="auto"
           >
             {checkoutStage === "plan" && (
               <>
                 <Flex $flexDirection="column" $gap="1rem" $marginBottom="1rem">
                   <Text
-                    as="h1"
+                    as="h3"
                     id="select-plan-dialog-label"
-                    $size={18}
+                    $font={theme.typography.heading3.fontFamily}
+                    $size={theme.typography.heading3.fontSize}
+                    $weight={theme.typography.heading3.fontWeight}
+                    $color={theme.typography.heading3.color}
                     $marginBottom="0.5rem"
                   >
                     Select plan
@@ -183,19 +194,20 @@ export const CheckoutDialog = () => {
                   <Text
                     as="p"
                     id="select-plan-dialog-description"
-                    $size={14}
-                    $weight={400}
+                    $font={theme.typography.text.fontFamily}
+                    $size={theme.typography.text.fontSize}
+                    $weight={theme.typography.text.fontWeight}
+                    $color={theme.typography.text.color}
                   >
                     Choose your base plan
                   </Text>
                 </Flex>
 
-                <Flex $gap="1rem" $flexGrow="1">
+                <Flex $flexWrap="wrap" $gap="1rem" $flexGrow="1">
                   {availablePlans?.map((plan) => {
                     return (
                       <Flex
                         key={plan.id}
-                        $height="100%"
                         $flexDirection="column"
                         $backgroundColor={settings.theme.card.background}
                         $flex="1"
@@ -368,14 +380,10 @@ export const CheckoutDialog = () => {
           </Flex>
 
           <Flex
-            $position="absolute"
-            $top="0"
-            $right="0"
             $flexDirection="column"
             $background={settings.theme.card.background}
             $borderRadius="0 0 0.5rem"
-            $width="27.5%"
-            $height="100%"
+            $width="21.5rem"
             $boxShadow="0px 1px 20px 0px #1018280F, 0px 1px 3px 0px #1018281A;"
           >
             <Flex
@@ -385,7 +393,13 @@ export const CheckoutDialog = () => {
               $width="100%"
               $height="auto"
               $padding="1.5rem"
-              $borderBottom="1px solid #DEDEDE"
+              $borderBottomWidth="1px"
+              $borderStyle="solid"
+              $borderColor={
+                hexToHSL(settings.theme.card.background).l > 50
+                  ? darken(settings.theme.card.background, 15)
+                  : lighten(settings.theme.card.background, 15)
+              }
             >
               <Flex $justifyContent="space-between">
                 <Text $size={20} $weight={600}>
@@ -394,7 +408,13 @@ export const CheckoutDialog = () => {
               </Flex>
 
               <Flex
-                $border="1px solid #D9D9D9"
+                $borderWidth="1px"
+                $borderStyle="solid"
+                $borderColor={
+                  hexToHSL(settings.theme.card.background).l > 50
+                    ? darken(settings.theme.card.background, 15)
+                    : lighten(settings.theme.card.background, 15)
+                }
                 $borderRadius="2.5rem"
                 $cursor="pointer"
               >
@@ -436,7 +456,7 @@ export const CheckoutDialog = () => {
 
               {savingsPercentage > 0 && (
                 <Box>
-                  <Text $size={11} $color="#194BFB">
+                  <Text $size={11} $color={theme.primary}>
                     {planPeriod === "month"
                       ? `Save up to ${savingsPercentage}% with yearly billing`
                       : `You are saving ${savingsPercentage}% with yearly billing`}
@@ -452,10 +472,23 @@ export const CheckoutDialog = () => {
               $height="auto"
               $padding="1.5rem"
               $flex="1"
-              $borderBottom="1px solid #DEDEDE"
+              $borderBottomWidth="1px"
+              $borderStyle="solid"
+              $borderColor={
+                hexToHSL(settings.theme.card.background).l > 50
+                  ? darken(settings.theme.card.background, 15)
+                  : lighten(settings.theme.card.background, 15)
+              }
             >
               <Box>
-                <Text $size={14} $color="#5D5D5D">
+                <Text
+                  $size={14}
+                  $color={
+                    hexToHSL(settings.theme.card.background).l > 50
+                      ? darken(settings.theme.card.background, 62.5)
+                      : lighten(settings.theme.card.background, 62.5)
+                  }
+                >
                   Plan
                 </Text>
               </Box>
@@ -463,7 +496,11 @@ export const CheckoutDialog = () => {
               <Flex
                 $flexDirection="column"
                 $fontSize="0.875rem"
-                $color="#5D5D5D"
+                $color={
+                  hexToHSL(settings.theme.card.background).l > 50
+                    ? darken(settings.theme.card.background, 62.5)
+                    : lighten(settings.theme.card.background, 62.5)
+                }
                 $gap="0.5rem"
               >
                 {currentPlan && (
@@ -471,9 +508,29 @@ export const CheckoutDialog = () => {
                     $alignItems="center"
                     $justifyContent="space-between"
                     $fontSize="0.875rem"
-                    $color="#5D5D5D"
+                    $color={
+                      hexToHSL(settings.theme.card.background).l > 50
+                        ? darken(settings.theme.card.background, 62.5)
+                        : lighten(settings.theme.card.background, 62.5)
+                    }
                   >
-                    <Flex $fontSize="0.875rem" $color="#5D5D5D">
+                    <Flex
+                      $fontSize="0.875rem"
+                      {...(selectedPlan
+                        ? {
+                            $color:
+                              hexToHSL(settings.theme.card.background).l > 50
+                                ? darken(settings.theme.card.background, 62.5)
+                                : lighten(settings.theme.card.background, 62.5),
+                            $textDecoration: "line-through",
+                          }
+                        : {
+                            $color:
+                              hexToHSL(settings.theme.card.background).l > 50
+                                ? "#000000"
+                                : "#FFFFFF",
+                          })}
+                    >
                       {currentPlan.name}
                     </Flex>
 
@@ -508,17 +565,32 @@ export const CheckoutDialog = () => {
                       $alignItems="center"
                       $justifyContent="space-between"
                       $fontSize="0.875rem"
-                      $color="#5D5D5D"
+                      $color={
+                        hexToHSL(settings.theme.card.background).l > 50
+                          ? darken(settings.theme.card.background, 62.5)
+                          : lighten(settings.theme.card.background, 62.5)
+                      }
                     >
                       <Flex
                         $fontSize="0.875rem"
-                        $color="#000000"
+                        $color={
+                          hexToHSL(settings.theme.card.background).l > 50
+                            ? "#000000"
+                            : "#FFFFFF"
+                        }
                         $fontWeight="600"
                       >
                         {selectedPlan.name}
                       </Flex>
 
-                      <Flex $fontSize="0.75rem" $color="#000000">
+                      <Flex
+                        $fontSize="0.75rem"
+                        $color={
+                          hexToHSL(settings.theme.card.background).l > 50
+                            ? "#000000"
+                            : "#FFFFFF"
+                        }
+                      >
                         {formatCurrency(
                           (planPeriod === "month"
                             ? selectedPlan.monthlyPrice
@@ -535,7 +607,7 @@ export const CheckoutDialog = () => {
             <Flex
               $flexDirection="column"
               $position="relative"
-              $gap="0.75rem"
+              $gap="1rem"
               $width="100%"
               $height="auto"
               $padding="1.5rem"
@@ -543,13 +615,31 @@ export const CheckoutDialog = () => {
               {selectedPlan && (
                 <Flex
                   $fontSize="0.75rem"
-                  $color="#5D5D5D"
+                  $color={
+                    hexToHSL(settings.theme.card.background).l > 50
+                      ? darken(settings.theme.card.background, 62.5)
+                      : lighten(settings.theme.card.background, 62.5)
+                  }
                   $justifyContent="space-between"
                 >
-                  <Box $fontSize="0.75rem" $color="#5D5D5D">
+                  <Box
+                    $fontSize="0.75rem"
+                    $color={
+                      hexToHSL(settings.theme.card.background).l > 50
+                        ? darken(settings.theme.card.background, 62.5)
+                        : lighten(settings.theme.card.background, 62.5)
+                    }
+                  >
                     {planPeriod === "month" ? "Monthly" : "Yearly"} total:{" "}
                   </Box>
-                  <Box $fontSize="0.75rem" $color="#000000">
+                  <Box
+                    $fontSize="0.75rem"
+                    $color={
+                      hexToHSL(settings.theme.card.background).l > 50
+                        ? "#000000"
+                        : "#FFFFFF"
+                    }
+                  >
                     {formatCurrency(
                       (planPeriod === "month"
                         ? selectedPlan.monthlyPrice
@@ -560,6 +650,7 @@ export const CheckoutDialog = () => {
                   </Box>
                 </Flex>
               )}
+
               {checkoutStage === "plan" ? (
                 <StyledButton
                   disabled={!selectedPlan}
@@ -607,12 +698,13 @@ export const CheckoutDialog = () => {
                           paymentMethodId: paymentMethodId,
                         },
                       });
+                      // throw new Error("Test error.");
                       setIsCheckoutComplete(true);
-                    } catch (error) {
-                      // TODO: handle checkout error
-                      console.error(error);
+                    } catch {
+                      setError(
+                        "Error processing payment. Please try a different payment method.",
+                      );
                     } finally {
-                      setIsCheckoutComplete(true);
                       setIsLoading(false);
                     }
                   }}
@@ -622,9 +714,26 @@ export const CheckoutDialog = () => {
                 </StyledButton>
               )}
 
-              <Box $fontSize="0.75rem" $color="#5D5D5D">
-                Discounts & credits applied at checkout
+              <Box>
+                <Text
+                  $size={15}
+                  $color={
+                    hexToHSL(theme.card.background).l > 50
+                      ? darken(theme.card.background, 62.5)
+                      : lighten(theme.card.background, 62.5)
+                  }
+                >
+                  Discounts & credits applied at checkout
+                </Text>
               </Box>
+
+              {error && (
+                <Box>
+                  <Text $size={15} $weight={500} $color="#DB6669">
+                    {error}
+                  </Text>
+                </Box>
+              )}
             </Flex>
           </Flex>
         </Flex>
