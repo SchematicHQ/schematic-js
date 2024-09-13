@@ -1,5 +1,6 @@
-import styled, { css, keyframes } from "styled-components";
-import { useEmbed } from "../../../hooks";
+import styled, { keyframes } from "styled-components";
+import { TEXT_BASE_SIZE } from "../../../const";
+import { hexToHSL } from "../../../utils";
 
 const spin = keyframes`
   0% {
@@ -10,16 +11,13 @@ const spin = keyframes`
   }
 `;
 
-export const Loader = styled.div(() => {
-  const { settings } = useEmbed();
-
-  return css`
-    border: 4px solid rgba(0, 0, 0, 0.1);
-    border-top: 4px solid ${settings.theme.primary};
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    animation: ${spin} 1.5s linear infinite;
-    display: inline-block;
-  `;
-});
+export const Loader = styled.div`
+  border: ${({ theme }) =>
+    `${4 / TEXT_BASE_SIZE}rem solid hsla(0, 0%, ${hexToHSL(theme.card.background).l > 50 ? 0 : 100}%, 0.1)`};
+  border-top: ${4 / TEXT_BASE_SIZE}rem solid ${({ theme }) => theme.primary};
+  border-radius: 50%;
+  width: ${40 / TEXT_BASE_SIZE}rem;
+  height: ${40 / TEXT_BASE_SIZE}rem;
+  animation: ${spin} 1.5s linear infinite;
+  display: inline-block;
+`;
