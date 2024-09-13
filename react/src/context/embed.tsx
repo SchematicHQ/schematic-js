@@ -598,6 +598,7 @@ export const EmbedProvider = ({
       return;
     }
 
+    setState((prev) => ({ ...prev, error: undefined }));
     fetchComponent(id, state.api)
       .then(async (resolvedData) => {
         setState((prev) => ({ ...prev, ...resolvedData }));
