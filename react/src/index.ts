@@ -1,6 +1,7 @@
 import {
   defaultSettings,
   defaultTheme,
+  useSchematic,
   EmbedContext,
   EmbedProvider,
   SchematicProvider,
@@ -10,7 +11,6 @@ import {
 } from "./context";
 import {
   useEmbed,
-  useSchematic,
   useSchematicContext,
   useSchematicEvents,
   useSchematicFlag,
