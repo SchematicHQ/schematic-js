@@ -1,5 +1,5 @@
 import * as SchematicJS from "@schematichq/schematic-js";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useMemo, useSyncExternalStore } from "react";
 import { SchematicContext } from "../context";
 
 export interface SchematicFlags {
@@ -24,40 +24,51 @@ export const useSchematicClient = (opts?: SchematicHookOpts) => {
     return client;
   }
 
-  return schematic.client;
+  // TODO: Fix this in types
+  return schematic.client as SchematicJS.Schematic;
 };
 
 export const useSchematicContext = (opts?: SchematicHookOpts) => {
   const client = useSchematicClient(opts);
-  const { setContext } = client ?? {};
-
+  const { setContext } = client;
   return { setContext };
 };
 
 export const useSchematicEvents = (opts?: SchematicHookOpts) => {
   const client = useSchematicClient(opts);
-  const { track, identify } = client ?? {};
-
+  const { track, identify } = client;
   return { track, identify };
 };
 
 export const useSchematicFlag = (key: string, opts?: UseSchematicFlagOpts) => {
-  const { flagValues } = useSchematic();
-  const { client } = opts ?? {};
-  const { fallback = false } = opts ?? {};
+  const client = useSchematicClient(opts);
+  const fallback = opts?.fallback ?? false;
 
-  const [value, setValue] = useState(fallback);
-  const flagValue = flagValues[key];
+  const subscribe = useMemo(
+    () => (callback: () => void) => client.addFlagValueListener(key, callback),
+    [client, key],
+  );
 
-  useEffect(() => {
-    if (typeof flagValue !== "undefined") {
-      setValue(flagValue);
-    } else if (client) {
-      client.checkFlag({ key, fallback }).then(setValue);
-    } else {
-      setValue(fallback);
-    }
-  }, [key, fallback, flagValue, client]);
+  const getSnapshot = useMemo(
+    () => () => {
+      const value = client.getFlagValue(key);
+      return typeof value === "undefined" ? fallback : value;
+    },
+    [client, key, fallback],
+  );
 
-  return value;
+  return useSyncExternalStore(subscribe, getSnapshot);
+};
+
+export const useSchematicIsPending = (opts?: SchematicHookOpts) => {
+  const client = useSchematicClient(opts);
+
+  const subscribe = useMemo(
+    () => (callback: () => void) => client.addIsPendingListener(callback),
+    [client],
+  );
+
+  const getSnapshot = useMemo(() => () => client.getIsPending(), [client]);
+
+  return useSyncExternalStore(subscribe, getSnapshot);
 };
