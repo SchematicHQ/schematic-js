@@ -1,5 +1,5 @@
 import { forwardRef, useMemo } from "react";
-import { useEmbed } from "../../../hooks";
+import { useTheme } from "styled-components";
 import { type FontStyle } from "../../../context";
 import type { RecursivePartial, ElementProps } from "../../../types";
 import { toPrettyDate } from "../../../utils";
@@ -63,7 +63,7 @@ export const Invoices = forwardRef<
 >(({ className, ...rest }, ref) => {
   const props = resolveDesignProps(rest);
 
-  const { settings } = useEmbed();
+  const theme = useTheme();
 
   const { invoices } = useMemo(() => {
     /**
@@ -89,14 +89,10 @@ export const Invoices = forwardRef<
         {props.header.isVisible && (
           <Flex $justifyContent="space-between" $alignItems="center">
             <Text
-              $font={
-                settings.theme.typography[props.header.fontStyle].fontFamily
-              }
-              $size={settings.theme.typography[props.header.fontStyle].fontSize}
-              $weight={
-                settings.theme.typography[props.header.fontStyle].fontWeight
-              }
-              $color={settings.theme.typography[props.header.fontStyle].color}
+              $font={theme.typography[props.header.fontStyle].fontFamily}
+              $size={theme.typography[props.header.fontStyle].fontSize}
+              $weight={theme.typography[props.header.fontStyle].fontWeight}
+              $color={theme.typography[props.header.fontStyle].color}
             >
               Invoices
             </Text>
@@ -114,20 +110,12 @@ export const Invoices = forwardRef<
                 <Flex key={index} $justifyContent="space-between">
                   {props.date.isVisible && (
                     <Text
-                      $font={
-                        settings.theme.typography[props.date.fontStyle]
-                          .fontFamily
-                      }
-                      $size={
-                        settings.theme.typography[props.date.fontStyle].fontSize
-                      }
+                      $font={theme.typography[props.date.fontStyle].fontFamily}
+                      $size={theme.typography[props.date.fontStyle].fontSize}
                       $weight={
-                        settings.theme.typography[props.date.fontStyle]
-                          .fontWeight
+                        theme.typography[props.date.fontStyle].fontWeight
                       }
-                      $color={
-                        settings.theme.typography[props.date.fontStyle].color
-                      }
+                      $color={theme.typography[props.date.fontStyle].color}
                     >
                       {toPrettyDate(date)}
                     </Text>
@@ -136,20 +124,13 @@ export const Invoices = forwardRef<
                   {props.amount.isVisible && (
                     <Text
                       $font={
-                        settings.theme.typography[props.amount.fontStyle]
-                          .fontFamily
+                        theme.typography[props.amount.fontStyle].fontFamily
                       }
-                      $size={
-                        settings.theme.typography[props.amount.fontStyle]
-                          .fontSize
-                      }
+                      $size={theme.typography[props.amount.fontStyle].fontSize}
                       $weight={
-                        settings.theme.typography[props.amount.fontStyle]
-                          .fontWeight
+                        theme.typography[props.amount.fontStyle].fontWeight
                       }
-                      $color={
-                        settings.theme.typography[props.amount.fontStyle].color
-                      }
+                      $color={theme.typography[props.amount.fontStyle].color}
                     >
                       ${amount}
                     </Text>
@@ -164,16 +145,10 @@ export const Invoices = forwardRef<
             <Icon name="chevron-down" style={{ color: "#D0D0D0" }} />
 
             <Text
-              $font={
-                settings.theme.typography[props.collapse.fontStyle].fontFamily
-              }
-              $size={
-                settings.theme.typography[props.collapse.fontStyle].fontSize
-              }
-              $weight={
-                settings.theme.typography[props.collapse.fontStyle].fontWeight
-              }
-              $color={settings.theme.typography[props.collapse.fontStyle].color}
+              $font={theme.typography[props.collapse.fontStyle].fontFamily}
+              $size={theme.typography[props.collapse.fontStyle].fontSize}
+              $weight={theme.typography[props.collapse.fontStyle].fontWeight}
+              $color={theme.typography[props.collapse.fontStyle].color}
             >
               See all
             </Text>

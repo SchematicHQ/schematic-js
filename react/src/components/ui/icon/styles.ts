@@ -1,5 +1,6 @@
 import styled, { css } from "styled-components";
 import { TEXT_BASE_SIZE } from "../../../const";
+import { hexToHSL } from "../../../utils";
 
 export const Icon = styled.i`
   display: flex;
@@ -17,6 +18,9 @@ export const Container = styled.div<{
   align-items: center;
   flex-shrink: 0;
   border-radius: 9999px;
+
+  filter: brightness(0.94);
+
   ${({ $size }) => {
     const base = 24;
     let scale = 1.0;
@@ -44,14 +48,21 @@ export const Container = styled.div<{
       height: ${((base + 8) * scale) / TEXT_BASE_SIZE}rem;
     `;
   }}
+
   ${({ $variant, $colors }) =>
     $variant === "outline"
       ? css`
-          color: ${$colors[0]};
           background-color: transparent;
+
+          ${Icon} {
+            color: ${$colors[0]};
+          }
         `
       : css`
-          color: ${$colors[0]};
           background-color: ${$colors[1]};
+
+          ${Icon} {
+            color: ${$colors[0]};
+          }
         `}
 `;

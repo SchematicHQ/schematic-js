@@ -1,8 +1,9 @@
 import { forwardRef, useMemo } from "react";
+import { useTheme } from "styled-components";
 import { useEmbed } from "../../../hooks";
 import { type FontStyle } from "../../../context";
 import type { RecursivePartial, ElementProps } from "../../../types";
-import { lighten, darken, hexToHSL } from "../../../utils";
+import { hexToHSL, hslToHex, lighten, darken } from "../../../utils";
 import { Box, Flex, IconRound, Text, type IconNameTypes } from "../../ui";
 
 interface DesignProps {
@@ -35,12 +36,12 @@ function resolveDesignProps(props: RecursivePartial<DesignProps>): DesignProps {
     },
     icons: {
       isVisible: props.icons?.isVisible ?? true,
-      fontStyle: props.icons?.fontStyle ?? "heading3",
+      fontStyle: props.icons?.fontStyle ?? "heading5",
       style: props.icons?.style ?? "light",
     },
     entitlement: {
       isVisible: props.entitlement?.isVisible ?? true,
-      fontStyle: props.entitlement?.fontStyle ?? "heading5",
+      fontStyle: props.entitlement?.fontStyle ?? "text",
     },
     usage: {
       isVisible: props.usage?.isVisible ?? true,
@@ -59,7 +60,8 @@ export const IncludedFeatures = forwardRef<
 >(({ className, ...rest }, ref) => {
   const props = resolveDesignProps(rest);
 
-  const { data, settings } = useEmbed();
+  const theme = useTheme();
+  const { data } = useEmbed();
 
   const features = useMemo(() => {
     return (data.featureUsage?.features || []).map(
@@ -94,12 +96,10 @@ export const IncludedFeatures = forwardRef<
       {props.header.isVisible && (
         <Box>
           <Text
-            $font={settings.theme.typography[props.header.fontStyle].fontFamily}
-            $size={settings.theme.typography[props.header.fontStyle].fontSize}
-            $weight={
-              settings.theme.typography[props.header.fontStyle].fontWeight
-            }
-            $color={settings.theme.typography[props.header.fontStyle].color}
+            $font={theme.typography[props.header.fontStyle].fontFamily}
+            $size={theme.typography[props.header.fontStyle].fontSize}
+            $weight={theme.typography[props.header.fontStyle].fontWeight}
+            $color={theme.typography[props.header.fontStyle].color}
           >
             {props.header.text}
           </Text>
@@ -125,36 +125,24 @@ export const IncludedFeatures = forwardRef<
               $alignItems="center"
               $gap="1rem"
             >
-              <Flex $gap="1rem">
+              <Flex $gap="1rem" $backgroundColor={theme.card.background}>
                 {props.icons.isVisible && feature?.icon && (
                   <IconRound
                     name={feature.icon as IconNameTypes}
                     size="sm"
-                    colors={[
-                      settings.theme.primary,
-                      `${hexToHSL(settings.theme.card.background).l > 50 ? darken(settings.theme.card.background, 10) : lighten(settings.theme.card.background, 20)}`,
-                    ]}
+                    colors={[theme.primary, theme.card.background]}
                   />
                 )}
 
                 {feature?.name && (
                   <Flex $alignItems="center">
                     <Text
-                      $font={
-                        settings.theme.typography[props.icons.fontStyle]
-                          .fontFamily
-                      }
-                      $size={
-                        settings.theme.typography[props.icons.fontStyle]
-                          .fontSize
-                      }
+                      $font={theme.typography[props.icons.fontStyle].fontFamily}
+                      $size={theme.typography[props.icons.fontStyle].fontSize}
                       $weight={
-                        settings.theme.typography[props.icons.fontStyle]
-                          .fontWeight
+                        theme.typography[props.icons.fontStyle].fontWeight
                       }
-                      $color={
-                        settings.theme.typography[props.icons.fontStyle].color
-                      }
+                      $color={theme.typography[props.icons.fontStyle].color}
                     >
                       {feature.name}
                     </Text>
@@ -168,20 +156,17 @@ export const IncludedFeatures = forwardRef<
                     <Text
                       as={Box}
                       $font={
-                        settings.theme.typography[props.entitlement.fontStyle]
-                          .fontFamily
+                        theme.typography[props.entitlement.fontStyle].fontFamily
                       }
                       $size={
-                        settings.theme.typography[props.entitlement.fontStyle]
-                          .fontSize
+                        theme.typography[props.entitlement.fontStyle].fontSize
                       }
                       $weight={
-                        settings.theme.typography[props.entitlement.fontStyle]
-                          .fontWeight
+                        theme.typography[props.entitlement.fontStyle].fontWeight
                       }
+                      $lineHeight={1.5}
                       $color={
-                        settings.theme.typography[props.entitlement.fontStyle]
-                          .color
+                        theme.typography[props.entitlement.fontStyle].color
                       }
                     >
                       {typeof allocation === "number"
@@ -193,21 +178,13 @@ export const IncludedFeatures = forwardRef<
                   {props.usage.isVisible && (
                     <Text
                       as={Box}
-                      $font={
-                        settings.theme.typography[props.usage.fontStyle]
-                          .fontFamily
-                      }
-                      $size={
-                        settings.theme.typography[props.usage.fontStyle]
-                          .fontSize
-                      }
+                      $font={theme.typography[props.usage.fontStyle].fontFamily}
+                      $size={theme.typography[props.usage.fontStyle].fontSize}
                       $weight={
-                        settings.theme.typography[props.usage.fontStyle]
-                          .fontWeight
+                        theme.typography[props.usage.fontStyle].fontWeight
                       }
-                      $color={
-                        settings.theme.typography[props.usage.fontStyle].color
-                      }
+                      $lineHeight={1.5}
+                      $color={theme.typography[props.usage.fontStyle].color}
                     >
                       {typeof allocation === "number"
                         ? `${usage} of ${allocation} used`

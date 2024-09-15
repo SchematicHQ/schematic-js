@@ -30,7 +30,7 @@ export const CheckoutDialog = () => {
 
   const theme = useTheme();
 
-  const { api, data, settings, fetchComponent } = useEmbed();
+  const { api, data, fetchComponent } = useEmbed();
 
   const { currentPlan, availablePlans } = useMemo(() => {
     return {
@@ -49,12 +49,17 @@ export const CheckoutDialog = () => {
     return 0;
   }, [selectedPlan]);
 
+  const isLightBackground = useMemo(() => {
+    return hexToHSL(theme.card.background).l > 50;
+  }, [theme.card.background]);
+
   // TODO: reload component after checkout
   useEffect(() => {
     if (isCheckoutComplete && api && data.component?.id) {
       fetchComponent(data.component.id, api);
     }
   }, [isCheckoutComplete, api, data.component?.id, fetchComponent]);
+  console.log(theme.typography);
 
   return (
     <Modal>
@@ -65,84 +70,81 @@ export const CheckoutDialog = () => {
               <Flex $gap="0.5rem" $alignItems="center">
                 {checkoutStage === "plan" ? (
                   <Box
-                    $width="0.9375rem"
-                    $height="0.9375rem"
+                    $width={`${theme.typography.heading5.fontSize / 16}rem`}
+                    $height={`${theme.typography.heading5.fontSize / 16}rem`}
                     $borderWidth="2px"
                     $borderStyle="solid"
-                    $borderColor={
-                      hexToHSL(theme.card.background).l > 50
-                        ? darken(theme.card.background, 12.5)
-                        : lighten(theme.card.background, 12.5)
-                    }
+                    $borderColor="#DDDDDD"
+                    $mixBlendMode={isLightBackground ? "multiply" : "screen"}
+                    $filter={`invert(${isLightBackground ? 0 : 1})`}
                     $borderRadius="9999px"
                   />
                 ) : (
                   <IconRound
                     name="check"
+                    colors={[theme.card.background, "#DDDDDD"]}
                     style={{
-                      color: theme.card.background,
-                      backgroundColor:
-                        hexToHSL(theme.card.background).l > 50
-                          ? darken(theme.card.background, 12.5)
-                          : lighten(theme.card.background, 12.5),
-                      fontSize: 16,
-                      width: "1rem",
-                      height: "1rem",
+                      fontSize: `${theme.typography.heading5.fontSize / 16}rem`,
+                      width: `${theme.typography.heading5.fontSize / 16}rem`,
+                      height: `${theme.typography.heading5.fontSize / 16}rem`,
                     }}
                   />
                 )}
                 <Box
                   tabIndex={0}
                   {...(checkoutStage !== "plan" && {
-                    $opacity: 0.625,
-                    $cursor: "pointer",
                     onClick: () => setCheckoutStage("plan"),
+                    $mixBlendMode: isLightBackground ? "multiply" : "screen",
+                    $filter: `invert(${isLightBackground ? 0 : 1})`,
+                    $cursor: "pointer",
                   })}
                 >
                   <Text
-                    $font={theme.typography.text.fontFamily}
-                    $size={theme.typography.text.fontSize}
-                    $weight={checkoutStage === "plan" ? 700 : 400}
-                    $color={theme.typography.text.color}
+                    $font={theme.typography.heading5.fontFamily}
+                    $size={theme.typography.heading5.fontSize}
+                    $weight={theme.typography.heading5.fontWeight}
+                    $color={checkoutStage === "plan" ? "#000000" : "#5B5B5B"}
                   >
                     1. Select plan
                   </Text>
                 </Box>
-                <Icon
-                  name="chevron-right"
-                  style={{
-                    fontSize: 16,
-                    color:
-                      hexToHSL(theme.card.background).l > 50
-                        ? darken(theme.card.background, 17.5)
-                        : lighten(theme.card.background, 17.5),
-                  }}
-                />
               </Flex>
+
+              <Icon
+                name="chevron-right"
+                style={{
+                  fontSize: 16,
+                  color: isLightBackground
+                    ? darken(theme.card.background, 17.5)
+                    : lighten(theme.card.background, 17.5),
+                }}
+              />
+
               <Flex $gap="0.5rem" $alignItems="center">
                 <Box
-                  $width="0.9375rem"
-                  $height="0.9375rem"
+                  $width={`${theme.typography.heading5.fontSize / 16}rem`}
+                  $height={`${theme.typography.heading5.fontSize / 16}rem`}
                   $borderWidth="2px"
                   $borderStyle="solid"
-                  $borderColor={
-                    hexToHSL(theme.card.background).l > 50
-                      ? darken(theme.card.background, 12.5)
-                      : lighten(theme.card.background, 12.5)
-                  }
+                  $borderColor="#DDDDDD"
+                  $mixBlendMode={isLightBackground ? "multiply" : "screen"}
+                  $filter={`invert(${isLightBackground ? 0 : 1})`}
                   $borderRadius="9999px"
                 />
                 <Box
                   tabIndex={0}
                   {...(checkoutStage !== "checkout" && {
-                    $opacity: 0.625,
+                    $mixBlendMode: isLightBackground ? "multiply" : "screen",
+                    $filter: `invert(${isLightBackground ? 0 : 1})`,
                   })}
                 >
                   <Text
-                    $font={theme.typography.text.fontFamily}
-                    $size={theme.typography.text.fontSize}
-                    $weight={checkoutStage === "checkout" ? 700 : 400}
-                    $color={theme.typography.text.color}
+                    $font={theme.typography.heading5.fontFamily}
+                    $size={theme.typography.heading5.fontSize}
+                    $weight={theme.typography.heading5.fontWeight}
+                    $color={
+                      checkoutStage === "checkout" ? "#000000" : "#5B5B5B"
+                    }
                   >
                     2. Checkout
                   </Text>
@@ -170,13 +172,10 @@ export const CheckoutDialog = () => {
       {!isCheckoutComplete && (
         <Flex $position="relative">
           <Flex
-            $position="absolute"
-            $top="0"
-            $left="0"
             $flexDirection="column"
             $gap="1rem"
             $padding="2rem 2.5rem 2rem 2.5rem"
-            $backgroundColor={darken(settings.theme.card.background, 2.5)}
+            $backgroundColor={darken(theme.card.background, 2.5)}
             $flex="1"
             $overflow="auto"
           >
@@ -212,7 +211,7 @@ export const CheckoutDialog = () => {
                       <Flex
                         key={plan.id}
                         $flexDirection="column"
-                        $backgroundColor={settings.theme.card.background}
+                        $backgroundColor={theme.card.background}
                         $flex="1"
                         $outlineWidth="2px"
                         $outlineStyle="solid"
@@ -221,8 +220,8 @@ export const CheckoutDialog = () => {
                             ? theme.primary
                             : "transparent"
                         }
-                        $borderRadius={`${settings.theme.card.borderRadius / 16}rem`}
-                        {...(settings.theme.card.hasShadow && {
+                        $borderRadius={`${theme.card.borderRadius / 16}rem`}
+                        {...(theme.card.hasShadow && {
                           $boxShadow:
                             "0px 1px 3px rgba(16, 24, 40, 0.1), 0px 1px 20px rgba(16, 24, 40, 0.06)",
                         })}
@@ -233,7 +232,7 @@ export const CheckoutDialog = () => {
                           $gap="1rem"
                           $width="100%"
                           $height="auto"
-                          $padding={`${settings.theme.card.padding / 16}rem`}
+                          $padding={`${theme.card.padding / 16}rem`}
                           $borderBottomWidth="1px"
                           $borderStyle="solid"
                           $borderColor={
@@ -298,8 +297,8 @@ export const CheckoutDialog = () => {
                                   name={feature.icon as IconNameTypes}
                                   size="tn"
                                   colors={[
-                                    settings.theme.primary,
-                                    `${hexToHSL(settings.theme.card.background).l > 50 ? darken(settings.theme.card.background, 10) : lighten(settings.theme.card.background, 20)}`,
+                                    theme.primary,
+                                    `${hexToHSL(theme.card.background).l > 50 ? darken(theme.card.background, 10) : lighten(theme.card.background, 20)}`,
                                   ]}
                                 />
 
@@ -336,13 +335,8 @@ export const CheckoutDialog = () => {
                               />
 
                               <Text
-                                style={{
-                                  color:
-                                    hexToHSL(theme.card.background).l > 50
-                                      ? "#000000"
-                                      : "#FFFFFF",
-                                  lineHeight: "1.4",
-                                }}
+                                $lineHeight="1.4"
+                                $color={theme.typography.text.color}
                               >
                                 Selected
                               </Text>
@@ -383,11 +377,8 @@ export const CheckoutDialog = () => {
           </Flex>
 
           <Flex
-            $position="absolute"
-            $top="0"
-            $right="0"
             $flexDirection="column"
-            $background={settings.theme.card.background}
+            $background={theme.card.background}
             $borderRadius="0 0 0.5rem"
             $width="21.5rem"
             $boxShadow="0px 1px 20px 0px #1018280F, 0px 1px 3px 0px #1018281A;"
@@ -402,9 +393,9 @@ export const CheckoutDialog = () => {
               $borderBottomWidth="1px"
               $borderStyle="solid"
               $borderColor={
-                hexToHSL(settings.theme.card.background).l > 50
-                  ? darken(settings.theme.card.background, 15)
-                  : lighten(settings.theme.card.background, 15)
+                hexToHSL(theme.card.background).l > 50
+                  ? darken(theme.card.background, 15)
+                  : lighten(theme.card.background, 15)
               }
             >
               <Flex $justifyContent="space-between">
@@ -417,9 +408,9 @@ export const CheckoutDialog = () => {
                 $borderWidth="1px"
                 $borderStyle="solid"
                 $borderColor={
-                  hexToHSL(settings.theme.card.background).l > 50
-                    ? darken(settings.theme.card.background, 15)
-                    : lighten(settings.theme.card.background, 15)
+                  hexToHSL(theme.card.background).l > 50
+                    ? darken(theme.card.background, 15)
+                    : lighten(theme.card.background, 15)
                 }
                 $borderRadius="2.5rem"
                 $cursor="pointer"
@@ -432,8 +423,8 @@ export const CheckoutDialog = () => {
                   $flex="1"
                   $backgroundColor={
                     planPeriod === "month"
-                      ? darken(settings.theme.card.background, 8)
-                      : lighten(settings.theme.card.background, 2)
+                      ? darken(theme.card.background, 8)
+                      : lighten(theme.card.background, 2)
                   }
                   $borderRadius="2.5rem"
                 >
@@ -449,8 +440,8 @@ export const CheckoutDialog = () => {
                   $flex="1"
                   $backgroundColor={
                     planPeriod === "year"
-                      ? darken(settings.theme.card.background, 8)
-                      : lighten(settings.theme.card.background, 2)
+                      ? darken(theme.card.background, 8)
+                      : lighten(theme.card.background, 2)
                   }
                   $borderRadius="2.5rem"
                 >
@@ -481,18 +472,18 @@ export const CheckoutDialog = () => {
               $borderBottomWidth="1px"
               $borderStyle="solid"
               $borderColor={
-                hexToHSL(settings.theme.card.background).l > 50
-                  ? darken(settings.theme.card.background, 15)
-                  : lighten(settings.theme.card.background, 15)
+                hexToHSL(theme.card.background).l > 50
+                  ? darken(theme.card.background, 15)
+                  : lighten(theme.card.background, 15)
               }
             >
               <Box>
                 <Text
                   $size={14}
                   $color={
-                    hexToHSL(settings.theme.card.background).l > 50
-                      ? darken(settings.theme.card.background, 62.5)
-                      : lighten(settings.theme.card.background, 62.5)
+                    hexToHSL(theme.card.background).l > 50
+                      ? darken(theme.card.background, 62.5)
+                      : lighten(theme.card.background, 62.5)
                   }
                 >
                   Plan
@@ -503,9 +494,9 @@ export const CheckoutDialog = () => {
                 $flexDirection="column"
                 $fontSize="0.875rem"
                 $color={
-                  hexToHSL(settings.theme.card.background).l > 50
-                    ? darken(settings.theme.card.background, 62.5)
-                    : lighten(settings.theme.card.background, 62.5)
+                  hexToHSL(theme.card.background).l > 50
+                    ? darken(theme.card.background, 62.5)
+                    : lighten(theme.card.background, 62.5)
                 }
                 $gap="0.5rem"
               >
@@ -515,9 +506,9 @@ export const CheckoutDialog = () => {
                     $justifyContent="space-between"
                     $fontSize="0.875rem"
                     $color={
-                      hexToHSL(settings.theme.card.background).l > 50
-                        ? darken(settings.theme.card.background, 62.5)
-                        : lighten(settings.theme.card.background, 62.5)
+                      hexToHSL(theme.card.background).l > 50
+                        ? darken(theme.card.background, 62.5)
+                        : lighten(theme.card.background, 62.5)
                     }
                   >
                     <Flex
@@ -525,14 +516,14 @@ export const CheckoutDialog = () => {
                       {...(selectedPlan
                         ? {
                             $color:
-                              hexToHSL(settings.theme.card.background).l > 50
-                                ? darken(settings.theme.card.background, 62.5)
-                                : lighten(settings.theme.card.background, 62.5),
+                              hexToHSL(theme.card.background).l > 50
+                                ? darken(theme.card.background, 62.5)
+                                : lighten(theme.card.background, 62.5),
                             $textDecoration: "line-through",
                           }
                         : {
                             $color:
-                              hexToHSL(settings.theme.card.background).l > 50
+                              hexToHSL(theme.card.background).l > 50
                                 ? "#000000"
                                 : "#FFFFFF",
                           })}
@@ -572,15 +563,15 @@ export const CheckoutDialog = () => {
                       $justifyContent="space-between"
                       $fontSize="0.875rem"
                       $color={
-                        hexToHSL(settings.theme.card.background).l > 50
-                          ? darken(settings.theme.card.background, 62.5)
-                          : lighten(settings.theme.card.background, 62.5)
+                        hexToHSL(theme.card.background).l > 50
+                          ? darken(theme.card.background, 62.5)
+                          : lighten(theme.card.background, 62.5)
                       }
                     >
                       <Flex
                         $fontSize="0.875rem"
                         $color={
-                          hexToHSL(settings.theme.card.background).l > 50
+                          hexToHSL(theme.card.background).l > 50
                             ? "#000000"
                             : "#FFFFFF"
                         }
@@ -592,7 +583,7 @@ export const CheckoutDialog = () => {
                       <Flex
                         $fontSize="0.75rem"
                         $color={
-                          hexToHSL(settings.theme.card.background).l > 50
+                          hexToHSL(theme.card.background).l > 50
                             ? "#000000"
                             : "#FFFFFF"
                         }
@@ -622,18 +613,18 @@ export const CheckoutDialog = () => {
                 <Flex
                   $fontSize="0.75rem"
                   $color={
-                    hexToHSL(settings.theme.card.background).l > 50
-                      ? darken(settings.theme.card.background, 62.5)
-                      : lighten(settings.theme.card.background, 62.5)
+                    hexToHSL(theme.card.background).l > 50
+                      ? darken(theme.card.background, 62.5)
+                      : lighten(theme.card.background, 62.5)
                   }
                   $justifyContent="space-between"
                 >
                   <Box
                     $fontSize="0.75rem"
                     $color={
-                      hexToHSL(settings.theme.card.background).l > 50
-                        ? darken(settings.theme.card.background, 62.5)
-                        : lighten(settings.theme.card.background, 62.5)
+                      hexToHSL(theme.card.background).l > 50
+                        ? darken(theme.card.background, 62.5)
+                        : lighten(theme.card.background, 62.5)
                     }
                   >
                     {planPeriod === "month" ? "Monthly" : "Yearly"} total:{" "}
@@ -641,7 +632,7 @@ export const CheckoutDialog = () => {
                   <Box
                     $fontSize="0.75rem"
                     $color={
-                      hexToHSL(settings.theme.card.background).l > 50
+                      hexToHSL(theme.card.background).l > 50
                         ? "#000000"
                         : "#FFFFFF"
                     }

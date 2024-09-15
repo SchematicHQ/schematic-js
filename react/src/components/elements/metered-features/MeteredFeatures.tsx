@@ -1,4 +1,5 @@
 import { forwardRef, useMemo } from "react";
+import { useTheme } from "styled-components";
 import { useEmbed } from "../../../hooks";
 import { type FontStyle } from "../../../context";
 import type { RecursivePartial, ElementProps } from "../../../types";
@@ -77,7 +78,8 @@ export const MeteredFeatures = forwardRef<
 >(({ className, ...rest }, ref) => {
   const props = resolveDesignProps(rest);
 
-  const { data, settings } = useEmbed();
+  const theme = useTheme();
+  const { data } = useEmbed();
 
   const features = useMemo(() => {
     return (data.featureUsage?.features || []).map(
@@ -139,21 +141,15 @@ export const MeteredFeatures = forwardRef<
                       <Text
                         as={Box}
                         $font={
-                          settings.theme.typography[props.header.fontStyle]
-                            .fontFamily
+                          theme.typography[props.header.fontStyle].fontFamily
                         }
                         $size={
-                          settings.theme.typography[props.header.fontStyle]
-                            .fontSize
+                          theme.typography[props.header.fontStyle].fontSize
                         }
                         $weight={
-                          settings.theme.typography[props.header.fontStyle]
-                            .fontWeight
+                          theme.typography[props.header.fontStyle].fontWeight
                         }
-                        $color={
-                          settings.theme.typography[props.header.fontStyle]
-                            .color
-                        }
+                        $color={theme.typography[props.header.fontStyle].color}
                       >
                         {feature.name}
                       </Text>
@@ -162,24 +158,19 @@ export const MeteredFeatures = forwardRef<
                         <Text
                           as={Box}
                           $font={
-                            settings.theme.typography[
-                              props.description.fontStyle
-                            ].fontFamily
+                            theme.typography[props.description.fontStyle]
+                              .fontFamily
                           }
                           $size={
-                            settings.theme.typography[
-                              props.description.fontStyle
-                            ].fontSize
+                            theme.typography[props.description.fontStyle]
+                              .fontSize
                           }
                           $weight={
-                            settings.theme.typography[
-                              props.description.fontStyle
-                            ].fontWeight
+                            theme.typography[props.description.fontStyle]
+                              .fontWeight
                           }
                           $color={
-                            settings.theme.typography[
-                              props.description.fontStyle
-                            ].color
+                            theme.typography[props.description.fontStyle].color
                           }
                         >
                           {feature.description}
@@ -194,24 +185,19 @@ export const MeteredFeatures = forwardRef<
                         <Text
                           as={Box}
                           $font={
-                            settings.theme.typography[
-                              props.allocation.fontStyle
-                            ].fontFamily
+                            theme.typography[props.allocation.fontStyle]
+                              .fontFamily
                           }
                           $size={
-                            settings.theme.typography[
-                              props.allocation.fontStyle
-                            ].fontSize
+                            theme.typography[props.allocation.fontStyle]
+                              .fontSize
                           }
                           $weight={
-                            settings.theme.typography[
-                              props.allocation.fontStyle
-                            ].fontWeight
+                            theme.typography[props.allocation.fontStyle]
+                              .fontWeight
                           }
                           $color={
-                            settings.theme.typography[
-                              props.allocation.fontStyle
-                            ].color
+                            theme.typography[props.allocation.fontStyle].color
                           }
                         >
                           {typeof allocation === "number"
@@ -224,21 +210,15 @@ export const MeteredFeatures = forwardRef<
                         <Text
                           as={Box}
                           $font={
-                            settings.theme.typography[props.usage.fontStyle]
-                              .fontFamily
+                            theme.typography[props.usage.fontStyle].fontFamily
                           }
                           $size={
-                            settings.theme.typography[props.usage.fontStyle]
-                              .fontSize
+                            theme.typography[props.usage.fontStyle].fontSize
                           }
                           $weight={
-                            settings.theme.typography[props.usage.fontStyle]
-                              .fontWeight
+                            theme.typography[props.usage.fontStyle].fontWeight
                           }
-                          $color={
-                            settings.theme.typography[props.usage.fontStyle]
-                              .color
-                          }
+                          $color={theme.typography[props.usage.fontStyle].color}
                         >
                           {typeof allocation === "number"
                             ? `${usage} of ${allocation} used`

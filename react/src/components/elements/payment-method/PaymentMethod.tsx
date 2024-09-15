@@ -1,10 +1,11 @@
 import { forwardRef, useMemo } from "react";
 import { createPortal } from "react-dom";
+import { useTheme } from "styled-components";
 import { useEmbed } from "../../../hooks";
 import { type FontStyle } from "../../../context";
 import type { RecursivePartial, ElementProps } from "../../../types";
 import { Box, Flex, Modal, ModalHeader, Text } from "../../ui";
-import { darken, lighten, hexToHSL } from "../../../utils";
+import { hexToHSL } from "../../../utils";
 import { StyledButton } from "../plan-manager/styles";
 
 interface DesignProps {
@@ -43,7 +44,8 @@ export const PaymentMethod = forwardRef<
 >(({ children, className, portal, ...rest }, ref) => {
   const props = resolveDesignProps(rest);
 
-  const { data, settings, stripe, layout } = useEmbed();
+  const theme = useTheme();
+  const { data, stripe, layout } = useEmbed();
 
   const paymentMethod = useMemo(() => {
     const { cardLast4, cardExpMonth, cardExpYear } =
@@ -65,6 +67,10 @@ export const PaymentMethod = forwardRef<
     };
   }, [data.subscription?.paymentMethod]);
 
+  const isLightBackground = useMemo(() => {
+    return hexToHSL(theme.card.background).l > 50;
+  }, [theme.card.background]);
+
   if (!stripe || !data.subscription?.paymentMethod) {
     return null;
   }
@@ -78,12 +84,10 @@ export const PaymentMethod = forwardRef<
           $margin="0 0 1rem"
         >
           <Text
-            $font={settings.theme.typography[props.header.fontStyle].fontFamily}
-            $size={settings.theme.typography[props.header.fontStyle].fontSize}
-            $weight={
-              settings.theme.typography[props.header.fontStyle].fontWeight
-            }
-            $color={settings.theme.typography[props.header.fontStyle].color}
+            $font={theme.typography[props.header.fontStyle].fontFamily}
+            $size={theme.typography[props.header.fontStyle].fontSize}
+            $weight={theme.typography[props.header.fontStyle].fontWeight}
+            $color={theme.typography[props.header.fontStyle].color}
           >
             Payment Method
           </Text>
@@ -91,7 +95,7 @@ export const PaymentMethod = forwardRef<
           {typeof paymentMethod.monthsToExpiration === "number" &&
             Math.abs(paymentMethod.monthsToExpiration) < 4 && (
               <Text
-                $font={settings.theme.typography.text.fontFamily}
+                $font={theme.typography.text.fontFamily}
                 $size={14}
                 $color="#DB6769"
               >
@@ -108,11 +112,11 @@ export const PaymentMethod = forwardRef<
           $justifyContent="space-between"
           $alignItems="center"
           $margin="0 0 1rem"
-          $background={`${hexToHSL(settings.theme.card.background).l > 50 ? darken(settings.theme.card.background, 10) : lighten(settings.theme.card.background, 20)}`}
+          $background="#F5F5F5"
           $padding="0.375rem 1rem"
           $borderRadius="9999px"
         >
-          <Text $font={settings.theme.typography.text.fontFamily} $size={14}>
+          <Text $font={theme.typography.text.fontFamily} $size={14}>
             💳 Card ending in {paymentMethod.cardLast4}
           </Text>
         </Flex>
