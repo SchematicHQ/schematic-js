@@ -1,96 +1,38 @@
 import * as uuid from "uuid";
 
 import "cross-fetch/polyfill";
+import {
+  CheckOptions,
+  Event,
+  EventBody,
+  EventBodyIdentify,
+  EventBodyTrack,
+  EventType,
+  FlagCheckWithKeyResponseBody,
+  SchematicContext,
+  SchematicOptions,
+  StoragePersister,
+} from "./types";
+import { contextString } from "./utils";
 
 const anonymousIdKey = "schematicId";
-export type EventType = "identify" | "track";
-
-export type Keys = Record<string, string>;
-
-/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-export type Traits = Record<string, any>;
-
-export type SchematicContext = {
-  company?: Keys;
-  user?: Keys;
-};
-
-export type EventBodyIdentify = {
-  company?: {
-    keys?: Keys;
-    name?: string;
-    traits?: Traits;
-  };
-  keys?: Keys;
-  name?: string;
-  traits?: Traits;
-};
-
-export type EventBodyTrack = SchematicContext & {
-  event: string;
-  traits?: Traits;
-};
-
-export type EventBody = EventBodyIdentify | EventBodyTrack;
-
-export type Event = {
-  api_key: string;
-  body: EventBody;
-  sent_at: string;
-  tracker_event_id: string;
-  tracker_user_id: string;
-  type: EventType;
-};
-
-export type FlagCheckResponseBody = {
-  company_id?: string;
-  error?: string;
-  reason: string;
-  rule_id?: string;
-  user_id?: string;
-  value: boolean;
-};
-
-export type FlagCheckWithKeyResponseBody = FlagCheckResponseBody & {
-  flag: string;
-};
-
-export type StoragePersister = {
-  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-  setItem(key: string, value: any): void;
-  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-  getItem(key: string): any;
-  removeItem(key: string): void;
-};
-
-export type SchematicOptions = {
-  apiUrl?: string;
-  webSocketUrl?: string;
-  eventUrl?: string;
-  flagListener?: (values: Record<string, boolean>) => void;
-  storage?: StoragePersister;
-  useWebSocket?: boolean;
-};
-
-export type CheckOptions = {
-  context?: SchematicContext;
-  fallback?: boolean;
-  key: string;
-};
 
 /* @preserve */
 export class Schematic {
   private apiKey: string;
   private apiUrl = "https://api.schematichq.com";
-  private webSocketUrl = "wss://api.schematichq.com";
-  private eventUrl = "https://c.schematichq.com";
   private conn: Promise<WebSocket> | null = null;
   private context: SchematicContext = {};
   private eventQueue: Event[];
+  private eventUrl = "https://c.schematichq.com";
+  private flagListener?: (values: Record<string, boolean>) => void;
+  private flagValueListeners: Record<string, Set<() => void>> = {};
+  private isPending: boolean = true;
+  private isPendingListeners: Set<() => void> = new Set();
   private storage: StoragePersister | undefined;
   private useWebSocket: boolean = false;
   private values: Record<string, Record<string, boolean>> = {};
-  private flagListener?: (values: Record<string, boolean>) => void;
+  private webSocketUrl = "wss://api.schematichq.com";
 
   constructor(apiKey: string, options?: SchematicOptions) {
     this.apiKey = apiKey;
@@ -117,13 +59,15 @@ export class Schematic {
     }
 
     /* eslint-disable-next-line @typescript-eslint/strict-boolean-expressions */
-    if (window?.addEventListener) {
+    if (typeof window !== "undefined" && window?.addEventListener) {
       window.addEventListener("beforeunload", () => {
         this.flushEventQueue();
       });
     }
   }
 
+  // Get value for a single flag
+  // If in websocket mode, return the local value, otherwise make an API call
   async checkFlag(options: CheckOptions): Promise<boolean> {
     const { fallback = false, key } = options;
     const context = options.context || this.context;
@@ -159,7 +103,7 @@ export class Schematic {
       });
   }
 
-  // Make a REST API call to fetch all flag values for a given context
+  // Make an API call to fetch all flag values for a given context (use if not in websocket mode)
   checkFlags = async (
     context?: SchematicContext,
   ): Promise<Record<string, boolean>> => {
@@ -199,19 +143,6 @@ export class Schematic {
       });
   };
 
-  cleanup = async (): Promise<void> => {
-    if (this.conn) {
-      try {
-        const socket = await this.conn;
-        socket.close();
-      } catch (error) {
-        console.error("Error during cleanup:", error);
-      } finally {
-        this.conn = null;
-      }
-    }
-  };
-
   // Send an identify event
   identify = (body: EventBodyIdentify): Promise<void> => {
     this.setContext({
@@ -232,13 +163,18 @@ export class Schematic {
       return Promise.resolve();
     }
 
-    if (!this.conn) {
-      this.conn = this.wsConnect();
-    }
+    try {
+      this.setIsPending(true);
 
-    return this.conn.then((socket) => {
-      return this.wsSendMessage(socket, context);
-    });
+      if (!this.conn) {
+        this.conn = this.wsConnect();
+      }
+
+      const socket = await this.conn;
+      await this.wsSendMessage(socket, context);
+    } catch (error) {
+      console.error("Error setting Schematic context:", error);
+    }
   };
 
   // Send track event
@@ -251,6 +187,10 @@ export class Schematic {
       user: user ?? this.context.user,
     });
   };
+
+  /**
+   * Event processing
+   */
 
   private flushEventQueue = (): void => {
     while (this.eventQueue.length > 0) {
@@ -320,6 +260,24 @@ export class Schematic {
     return Promise.resolve();
   };
 
+  /**
+   * Websocket management
+   */
+
+  cleanup = async (): Promise<void> => {
+    if (this.conn) {
+      try {
+        const socket = await this.conn;
+        socket.close();
+      } catch (error) {
+        console.error("Error during cleanup:", error);
+      } finally {
+        this.conn = null;
+      }
+    }
+  };
+
+  // Open a websocket connection
   private wsConnect = (): Promise<WebSocket> => {
     return new Promise((resolve, reject) => {
       const wsUrl = `${this.webSocketUrl}/flags/bootstrap`;
@@ -339,13 +297,15 @@ export class Schematic {
     });
   };
 
+  // Send a message on the websocket indicating interest in a particular evaluation context
+  // and wait for the initial set of flag values to be returned
   private wsSendMessage = (
     socket: WebSocket,
     context: SchematicContext,
   ): Promise<void> => {
     return new Promise((resolve, reject) => {
+      // Confirm that the context has changed; if it hasn't, we don't need to do anything
       if (contextString(context) == contextString(this.context)) {
-        // Don't reset if context has not changed
         resolve();
         return;
       }
@@ -358,27 +318,32 @@ export class Schematic {
         const messageHandler = (event: MessageEvent) => {
           const message = JSON.parse(event.data);
 
-          // Message may contain only a subset of flags; merge with existing context
+          // Initialize flag values for context
           if (!(contextString(context) in this.values)) {
             this.values[contextString(context)] = {};
           }
 
+          // Message may contain only a subset of flags; merge with existing context
           (message.flags ?? []).forEach(
             (flag: FlagCheckWithKeyResponseBody) => {
               this.values[contextString(context)][flag.flag] = flag.value;
+              this.notifyFlagValueListeners(flag.flag);
             },
           );
 
+          // Notify flag listener (deprecating soon)
           if (this.flagListener) {
-            this.flagListener(this.values[contextString(context)]);
+            this.flagListener(this.getFlagValues());
           }
 
+          // Update pending state
+          this.setIsPending(false);
+
+          // If this is the first message received on the websocket, we need to resolve the promise
           if (!resolved) {
             resolved = true;
             resolve();
           }
-
-          socket.removeEventListener("message", messageHandler);
         };
 
         socket.addEventListener("message", messageHandler);
@@ -392,28 +357,66 @@ export class Schematic {
       };
 
       if (socket.readyState === WebSocket.OPEN) {
+        // If websocket is already open, send message immediately
         sendMessage();
       } else if (socket.readyState === WebSocket.CONNECTING) {
+        // If websocket is connecting, wait for it to open before sending message
         socket.addEventListener("open", sendMessage);
       } else {
+        // If websocket is closed, reject the promise
         reject("WebSocket is not open or connecting");
       }
     });
   };
+
+  /**
+   * State management
+   */
+
+  // isPending state
+  getIsPending = (): boolean => {
+    return this.isPending;
+  };
+
+  addIsPendingListener = (listener: () => void) => {
+    this.isPendingListeners.add(listener);
+    return () => {
+      this.isPendingListeners.delete(listener);
+    };
+  };
+
+  private setIsPending = (isPending: boolean) => {
+    this.isPending = isPending;
+    this.isPendingListeners.forEach((listener) => listener());
+  };
+
+  // flagValues state
+  getFlagValue = (flagKey: string) => {
+    const values = this.getFlagValues();
+    return values[flagKey];
+  };
+
+  getFlagValues = () => {
+    const contextStr = contextString(this.context);
+    return this.values[contextStr] ?? {};
+  };
+
+  addFlagValueListener = (flagKey: string, listener: () => void) => {
+    if (!(flagKey in this.flagValueListeners)) {
+      this.flagValueListeners[flagKey] = new Set();
+    }
+
+    this.flagValueListeners[flagKey].add(listener);
+
+    return () => {
+      this.flagValueListeners[flagKey].delete(listener);
+    };
+  };
+
+  private notifyFlagValueListeners = (flagKey: string) => {
+    const listeners = this.flagValueListeners?.[flagKey] ?? [];
+    listeners.forEach((listener) => listener());
+  };
 }
 
-function contextString(context: SchematicContext): string {
-  const sortedContext = Object.keys(context).reduce((acc, key) => {
-    const sortedKeys = Object.keys(
-      context[key as keyof SchematicContext] || {},
-    ).sort();
-    const sortedObj = sortedKeys.reduce((obj, sortedKey) => {
-      obj[sortedKey] = context[key as keyof SchematicContext]![sortedKey];
-      return obj;
-    }, {} as Keys);
-    acc[key as keyof SchematicContext] = sortedObj;
-    return acc;
-  }, {} as SchematicContext);
-
-  return JSON.stringify(sortedContext);
-}
+export * from "./types";
