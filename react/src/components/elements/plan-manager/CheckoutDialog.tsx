@@ -3,7 +3,7 @@ import { useTheme } from "styled-components";
 import type { CompanyPlanDetailResponseData } from "../../../api";
 import { TEXT_BASE_SIZE } from "../../../const";
 import { useEmbed } from "../../../hooks";
-import { hexToHSL, lighten, darken, formatCurrency } from "../../../utils";
+import { hexToHSL, formatCurrency } from "../../../utils";
 import {
   Box,
   Flex,
@@ -31,7 +31,7 @@ export const CheckoutDialog = () => {
 
   const theme = useTheme();
 
-  const { api, data, isPending, hydrate, setLayout } = useEmbed();
+  const { api, data, hydrate, setLayout } = useEmbed();
 
   const { currentPlan, availablePlans } = useMemo(() => {
     return {

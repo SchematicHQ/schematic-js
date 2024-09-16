@@ -3,7 +3,7 @@ import { useTheme } from "styled-components";
 import { useEmbed } from "../../../hooks";
 import { type FontStyle } from "../../../context";
 import type { RecursivePartial, ElementProps } from "../../../types";
-import { hexToHSL, lighten, darken } from "../../../utils";
+import { hexToHSL } from "../../../utils";
 import { Box, Flex, IconRound, Text, type IconNameTypes } from "../../ui";
 
 interface DesignProps {

@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from "react";
 import { useTheme } from "styled-components";
 import { useEmbed } from "../../../hooks";
-import { lighten, darken, hexToHSL } from "../../../utils";
+import { hexToHSL } from "../../../utils";
 import { Box, Flex, Icon } from "../";
 
 interface ModalHeaderProps {
