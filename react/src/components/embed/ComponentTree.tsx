@@ -66,12 +66,12 @@ export const ComponentTree = () => {
     setChildren(nodes.map(renderer));
   }, [nodes]);
 
-  if (Children.count(children) === 0) {
-    return <Loading />;
-  }
-
   if (error) {
     return <Error message={error.message} />;
+  }
+
+  if (Children.count(children) === 0) {
+    return <Loading />;
   }
 
   return <>{children}</>;

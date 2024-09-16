@@ -29,7 +29,7 @@
     "tsc": "npx tsc"
   },
   "dependencies": {
-    "@schematichq/schematic-js": "^0.1.13",
+    "@schematichq/schematic-js": "^0.1.14",
     "@stripe/react-stripe-js": "^2.8.0",
     "@stripe/stripe-js": "^4.3.0",
     "lodash.merge": "^4.6.2",
