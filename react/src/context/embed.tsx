@@ -461,38 +461,6 @@ function parseEditorState(data: SerializedEditorState) {
   return arr;
 }
 
-async function fetchComponent(id: string, api: CheckoutApi) {
-  const nodes: SerializedNodeWithChildren[] = [];
-  const settings: EmbedSettings = { ...defaultSettings };
-
-  const response = await api.hydrateComponent({ componentId: id });
-  const { data } = response;
-
-  if (data.component?.ast) {
-    const compressed = data.component.ast;
-    const json = inflate(Uint8Array.from(Object.values(compressed)), {
-      to: "string",
-    });
-    const ast = getEditorState(json);
-    if (ast) {
-      merge(settings, ast.ROOT.props.settings);
-      nodes.push(...parseEditorState(ast));
-    }
-  }
-
-  let stripe: Promise<Stripe | null> | null = null;
-  if (data.stripeEmbed?.publishableKey) {
-    stripe = loadStripe(data.stripeEmbed.publishableKey);
-  }
-
-  return {
-    data,
-    nodes,
-    settings,
-    stripe,
-  };
-}
-
 export type EmbedLayout = "portal" | "checkout" | "payment" | "disabled";
 
 export interface EmbedContextProps {
@@ -503,15 +471,8 @@ export interface EmbedContextProps {
   stripe: Promise<Stripe | null> | null;
   layout: EmbedLayout;
   error?: Error;
-  fetchComponent: (
-    id: string,
-    api: CheckoutApi,
-  ) => Promise<{
-    data: ComponentHydrateResponseData;
-    nodes: SerializedNodeWithChildren[];
-    settings: EmbedSettings;
-    stripe: Promise<Stripe | null> | null;
-  }>;
+  isPending: boolean;
+  hydrate: () => void;
   setData: (data: RecursivePartial<ComponentHydrateResponseData>) => void;
   updateSettings: (settings: RecursivePartial<EmbedSettings>) => void;
   setStripe: (stripe: Promise<Stripe | null> | null) => void;
@@ -528,7 +489,8 @@ export const EmbedContext = createContext<EmbedContextProps>({
   stripe: null,
   layout: "portal",
   error: undefined,
-  fetchComponent,
+  isPending: false,
+  hydrate: () => {},
   setData: () => {},
   updateSettings: () => {},
   setStripe: () => {},
@@ -557,16 +519,9 @@ export const EmbedProvider = ({
     settings: EmbedSettings;
     stripe: Promise<Stripe | null> | null;
     layout: EmbedLayout;
+    isPending: boolean;
     error: Error | undefined;
-    fetchComponent: (
-      id: string,
-      api: CheckoutApi,
-    ) => Promise<{
-      data: ComponentHydrateResponseData;
-      nodes: SerializedNodeWithChildren[];
-      settings: EmbedSettings;
-      stripe: Promise<Stripe | null> | null;
-    }>;
+    hydrate: () => void;
     setData: (data: RecursivePartial<ComponentHydrateResponseData>) => void;
     updateSettings: (settings: RecursivePartial<EmbedSettings>) => void;
     setStripe: (stripe: Promise<Stripe | null> | null) => void;
@@ -581,8 +536,9 @@ export const EmbedProvider = ({
       settings: { ...defaultSettings },
       stripe: null,
       layout: "portal",
+      isPending: false,
       error: undefined,
-      fetchComponent,
+      hydrate: () => {},
       setData: () => {},
       updateSettings: () => {},
       setStripe: () => {},
@@ -590,57 +546,56 @@ export const EmbedProvider = ({
     };
   });
 
-  useEffect(() => {
-    const element = document.getElementById("schematic-fonts");
-    if (element) {
-      return void (styleRef.current = element as HTMLLinkElement);
-    }
+  const hydrate = useCallback(async () => {
+    setState((prev) => ({ ...prev, isPending: true, error: undefined }));
 
-    const style = document.createElement("link");
-    style.id = "schematic-fonts";
-    style.rel = "stylesheet";
-    document.head.appendChild(style);
-    styleRef.current = style;
-  }, []);
+    try {
+      const nodes: SerializedNodeWithChildren[] = [];
+      const settings: EmbedSettings = { ...defaultSettings };
 
-  useEffect(() => {
-    if (!accessToken) {
-      return;
-    }
-
-    const config = new Configuration({ ...apiConfig, apiKey: accessToken });
-    const api = new CheckoutApi(config);
-    setState((prev) => ({ ...prev, api }));
-  }, [accessToken, apiConfig]);
-
-  useEffect(() => {
-    if (!id || !state.api) {
-      return;
-    }
-
-    setState((prev) => ({ ...prev, error: undefined }));
-    fetchComponent(id, state.api)
-      .then(async (resolvedData) => {
-        setState((prev) => ({ ...prev, ...resolvedData }));
-      })
-      .catch((error) => setState((prev) => ({ ...prev, error })));
-  }, [id, state.api]);
-
-  useEffect(() => {
-    const fontSet = new Set<string>([]);
-    Object.values(state.settings.theme.typography).forEach(({ fontFamily }) => {
-      fontSet.add(fontFamily);
-    });
-
-    if (fontSet.size > 0) {
-      const src = `https://fonts.googleapis.com/css2?${[...fontSet]
-        .map((fontFamily) => `family=${fontFamily}&display=swap`)
-        .join("&")}`;
-      if (styleRef.current) {
-        styleRef.current.href = src;
+      if (!id || !state.api) {
+        throw new Error("Invalid component id or api instance.");
       }
+
+      const response = await state.api.hydrateComponent({ componentId: id });
+      const { data } = response;
+
+      if (data.component?.ast) {
+        const compressed = data.component.ast;
+        const json = inflate(Uint8Array.from(Object.values(compressed)), {
+          to: "string",
+        });
+        const ast = getEditorState(json);
+        if (ast) {
+          merge(settings, ast.ROOT.props.settings);
+          nodes.push(...parseEditorState(ast));
+        }
+      }
+
+      let stripe: Promise<Stripe | null> | null = null;
+      if (data.stripeEmbed?.publishableKey) {
+        stripe = loadStripe(data.stripeEmbed.publishableKey);
+      }
+
+      setState((prev) => ({
+        ...prev,
+        data,
+        nodes,
+        settings,
+        stripe,
+        isPending: false,
+      }));
+    } catch (error) {
+      setState((prev) => ({
+        ...prev,
+        isPending: false,
+        error:
+          error instanceof Error
+            ? error
+            : new Error("An unknown error occurred."),
+      }));
     }
-  }, [state.settings.theme.typography]);
+  }, [id, state.api]);
 
   const setData = useCallback(
     (data: RecursivePartial<ComponentHydrateResponseData>) => {
@@ -687,6 +642,49 @@ export const EmbedProvider = ({
     },
     [setState],
   );
+
+  useEffect(() => {
+    const element = document.getElementById("schematic-fonts");
+    if (element) {
+      return void (styleRef.current = element as HTMLLinkElement);
+    }
+
+    const style = document.createElement("link");
+    style.id = "schematic-fonts";
+    style.rel = "stylesheet";
+    document.head.appendChild(style);
+    styleRef.current = style;
+  }, []);
+
+  useEffect(() => {
+    if (!accessToken) {
+      return;
+    }
+
+    const config = new Configuration({ ...apiConfig, apiKey: accessToken });
+    const api = new CheckoutApi(config);
+    setState((prev) => ({ ...prev, api }));
+  }, [accessToken, apiConfig]);
+
+  useEffect(() => {
+    hydrate();
+  }, [hydrate]);
+
+  useEffect(() => {
+    const fontSet = new Set<string>([]);
+    Object.values(state.settings.theme.typography).forEach(({ fontFamily }) => {
+      fontSet.add(fontFamily);
+    });
+
+    if (fontSet.size > 0) {
+      const src = `https://fonts.googleapis.com/css2?${[...fontSet]
+        .map((fontFamily) => `family=${fontFamily}&display=swap`)
+        .join("&")}`;
+      if (styleRef.current) {
+        styleRef.current.href = src;
+      }
+    }
+  }, [state.settings.theme.typography]);
 
   const renderChildren = () => {
     if (state.stripe) {
@@ -744,7 +742,8 @@ export const EmbedProvider = ({
         stripe: state.stripe,
         layout: state.layout,
         error: state.error,
-        fetchComponent: state.fetchComponent,
+        isPending: state.isPending,
+        hydrate,
         setData,
         updateSettings,
         setStripe,

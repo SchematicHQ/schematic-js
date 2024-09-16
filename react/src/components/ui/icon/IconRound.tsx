@@ -4,7 +4,7 @@ import { Container } from "./styles";
 export interface IconRoundProps extends React.HTMLAttributes<HTMLElement> {
   name: IconNameTypes;
   variant?: "outline" | "filled";
-  size?: "tn" | "sm" | "md" | "lg";
+  size?: "tn" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl";
   colors?: [string, string];
 }
 

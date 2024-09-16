@@ -1,6 +1,5 @@
 import styled, { css } from "styled-components";
 import { TEXT_BASE_SIZE } from "../../../const";
-import { hexToHSL } from "../../../utils";
 
 export const Icon = styled.i`
   display: flex;
@@ -9,7 +8,7 @@ export const Icon = styled.i`
 `;
 
 export const Container = styled.div<{
-  $size: "tn" | "sm" | "md" | "lg";
+  $size: "tn" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl";
   $variant: "outline" | "filled";
   $colors: [string, string];
 }>`
@@ -18,8 +17,6 @@ export const Container = styled.div<{
   align-items: center;
   flex-shrink: 0;
   border-radius: 9999px;
-
-  filter: brightness(0.94);
 
   ${({ $size }) => {
     const base = 24;
@@ -38,6 +35,15 @@ export const Container = styled.div<{
         break;
       case "lg":
         scale *= 1.75;
+        break;
+      case "xl":
+        scale *= 2;
+        break;
+      case "2xl":
+        scale *= 2.5;
+        break;
+      case "3xl":
+        scale *= 3;
         break;
     }
 

@@ -3,7 +3,7 @@ import { useTheme } from "styled-components";
 import { useEmbed } from "../../../hooks";
 import { type FontStyle } from "../../../context";
 import type { RecursivePartial, ElementProps } from "../../../types";
-import { hexToHSL, hslToHex, lighten, darken } from "../../../utils";
+import { hexToHSL, lighten, darken } from "../../../utils";
 import { Box, Flex, IconRound, Text, type IconNameTypes } from "../../ui";
 
 interface DesignProps {
@@ -91,6 +91,10 @@ export const IncludedFeatures = forwardRef<
     );
   }, [data.featureUsage]);
 
+  const isLightBackground = useMemo(() => {
+    return hexToHSL(theme.card.background).l > 50;
+  }, [theme.card.background]);
+
   return (
     <Flex ref={ref} className={className} $flexDirection="column" $gap="1.5rem">
       {props.header.isVisible && (
@@ -125,12 +129,17 @@ export const IncludedFeatures = forwardRef<
               $alignItems="center"
               $gap="1rem"
             >
-              <Flex $gap="1rem" $backgroundColor={theme.card.background}>
+              <Flex $gap="1rem">
                 {props.icons.isVisible && feature?.icon && (
                   <IconRound
                     name={feature.icon as IconNameTypes}
                     size="sm"
-                    colors={[theme.primary, theme.card.background]}
+                    colors={[
+                      theme.primary,
+                      isLightBackground
+                        ? "hsla(0, 0%, 0%, 0.0625)"
+                        : "hsla(0, 0%, 100%, 0.25)",
+                    ]}
                   />
                 )}
 

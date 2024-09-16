@@ -1,20 +1,24 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useTheme } from "styled-components";
 import { useEmbed } from "../../../hooks";
-import { lighten, darken, hexToHSL } from "../../../utils";
+import { hexToHSL } from "../../../utils";
 import { Box, Flex } from "../";
 
 interface ModalProps {
   children: React.ReactNode;
-  size?: "md" | "lg";
+  size?: "sm" | "md" | "lg" | "auto";
   onClose?: () => void;
 }
 
-export const Modal = ({ children, onClose }: ModalProps) => {
+export const Modal = ({ children, size = "auto", onClose }: ModalProps) => {
   const theme = useTheme();
   const { setLayout } = useEmbed();
 
   const ref = useRef<HTMLDivElement>(null);
+
+  const isLightBackground = useMemo(() => {
+    return hexToHSL(theme.card.background).l > 50;
+  }, [theme.card.background]);
 
   const handleClose = useCallback(() => {
     setLayout("portal");
@@ -47,9 +51,7 @@ export const Modal = ({ children, onClose }: ModalProps) => {
       $width="100%"
       $height="100%"
       $backgroundColor={
-        hexToHSL(theme.card.background).l > 50
-          ? darken(theme.card.background, 15)
-          : lighten(theme.card.background, 15)
+        isLightBackground ? "hsl(0, 0%, 85%)" : "hsl(0, 0%, 15%)"
       }
       $overflow="hidden"
     >
@@ -60,15 +62,15 @@ export const Modal = ({ children, onClose }: ModalProps) => {
         $transform="translate(-50%, -50%)"
         $flexDirection="column"
         $overflow="hidden"
-        $width="max-content"
-        $height="max-content"
-        $maxWidth="100%"
-        $maxHeight="100vh"
-        $backgroundColor={
-          hexToHSL(theme.card.background).l > 50
-            ? darken(theme.card.background, 2.5)
-            : lighten(theme.card.background, 2.5)
-        }
+        {...(size === "auto"
+          ? { $width: "min-content", $height: "min-content" }
+          : {
+              $width: "100%",
+              $height: "100%",
+              $maxWidth: "1366px",
+              $maxHeight: "768px",
+            })}
+        $backgroundColor={theme.card.background}
         $borderRadius="0.5rem"
         $boxShadow="0px 1px 20px 0px #1018280F, 0px 1px 3px 0px #1018281A;"
         id="select-plan-dialog"

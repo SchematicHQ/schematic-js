@@ -71,7 +71,7 @@ export const UpcomingBill = forwardRef<
     };
   }, [data.subscription, data.upcomingInvoice]);
 
-  if (!stripe || !data.upcomingInvoice) {
+  if (!stripe || !upcomingInvoice.amountDue || !upcomingInvoice.dueDate) {
     return null;
   }
 

@@ -71,7 +71,7 @@ export const PaymentMethod = forwardRef<
     return hexToHSL(theme.card.background).l > 50;
   }, [theme.card.background]);
 
-  if (!stripe || !data.subscription?.paymentMethod) {
+  if (!stripe || !paymentMethod.cardLast4) {
     return null;
   }
 
@@ -112,7 +112,11 @@ export const PaymentMethod = forwardRef<
           $justifyContent="space-between"
           $alignItems="center"
           $margin="0 0 1rem"
-          $background="#F5F5F5"
+          $backgroundColor={
+            isLightBackground
+              ? "hsla(0, 0%, 0%, 0.0625)"
+              : "hsla(0, 0%, 100%, 0.125)"
+          }
           $padding="0.375rem 1rem"
           $borderRadius="9999px"
         >
