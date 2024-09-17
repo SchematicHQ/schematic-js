@@ -1,4 +1,6 @@
 import { forwardRef } from "react";
+import { useTheme } from "styled-components";
+import { TEXT_BASE_SIZE } from "../../../const";
 import { useEmbed } from "../../../hooks";
 import { StyledViewport } from "./styles";
 import { Box, Flex } from "../../ui";
@@ -7,41 +9,42 @@ export interface ViewportProps extends React.HTMLProps<HTMLDivElement> {}
 
 export const Viewport = forwardRef<HTMLDivElement | null, ViewportProps>(
   ({ children, ...props }, ref) => {
-    const { settings, layout } = useEmbed();
+    const theme = useTheme();
+    const { layout } = useEmbed();
 
     return (
       <StyledViewport
         ref={ref}
-        $numberOfColumns={settings.theme.numberOfColumns}
+        $numberOfColumns={theme.numberOfColumns}
         {...props}
       >
         {layout === "disabled" ? (
           <Box $width="100%">
             <Flex
               $flexDirection="column"
-              $padding={`${settings.theme.card.padding / 16}rem`}
+              $padding={`${theme.card.padding / TEXT_BASE_SIZE}rem`}
               $width="100%"
               $height="auto"
-              $borderRadius={`${settings.theme.card.borderRadius / 16}rem`}
-              $backgroundColor={settings.theme.card.background}
+              $borderRadius={`${theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
+              $backgroundColor={theme.card.background}
               $alignItems="center"
               $justifyContent="center"
             >
               <Box
                 $marginBottom="8px"
-                $fontSize={`${settings.theme.typography.heading1.fontSize / 16}rem`}
-                $fontFamily={settings.theme.typography.heading1.fontFamily}
-                $fontWeight={settings.theme.typography.heading1.fontWeight}
-                $color={settings.theme.typography.heading1.color}
+                $fontSize={`${theme.typography.heading1.fontSize / TEXT_BASE_SIZE}rem`}
+                $fontFamily={theme.typography.heading1.fontFamily}
+                $fontWeight={theme.typography.heading1.fontWeight}
+                $color={theme.typography.heading1.color}
               >
                 Coming soon
               </Box>
               <Box
                 $marginBottom="8px"
-                $fontSize={`${settings.theme.typography.text.fontSize / 16}rem`}
-                $fontFamily={settings.theme.typography.text.fontFamily}
-                $fontWeight={settings.theme.typography.text.fontWeight}
-                $color={settings.theme.typography.text.color}
+                $fontSize={`${theme.typography.text.fontSize / TEXT_BASE_SIZE}rem`}
+                $fontFamily={theme.typography.text.fontFamily}
+                $fontWeight={theme.typography.text.fontWeight}
+                $color={theme.typography.text.color}
               >
                 The plan manager will be back very soon.
               </Box>

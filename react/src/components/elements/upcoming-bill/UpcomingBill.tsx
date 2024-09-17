@@ -1,4 +1,5 @@
 import { forwardRef, useMemo } from "react";
+import { useTheme } from "styled-components";
 import { useEmbed } from "../../../hooks";
 import { type FontStyle } from "../../../context";
 import type { RecursivePartial, ElementProps } from "../../../types";
@@ -51,7 +52,8 @@ export const UpcomingBill = forwardRef<
 >(({ className, ...rest }, ref) => {
   const props = resolveDesignProps(rest);
 
-  const { data, settings, stripe } = useEmbed();
+  const theme = useTheme();
+  const { data, stripe } = useEmbed();
 
   const { upcomingInvoice } = useMemo(() => {
     return {
@@ -69,7 +71,7 @@ export const UpcomingBill = forwardRef<
     };
   }, [data.subscription, data.upcomingInvoice]);
 
-  if (!stripe || !data.upcomingInvoice) {
+  if (!stripe || !upcomingInvoice.amountDue || !upcomingInvoice.dueDate) {
     return null;
   }
 
@@ -82,12 +84,10 @@ export const UpcomingBill = forwardRef<
           $margin="0 0 0.75rem"
         >
           <Text
-            $font={settings.theme.typography[props.header.fontStyle].fontFamily}
-            $size={settings.theme.typography[props.header.fontStyle].fontSize}
-            $weight={
-              settings.theme.typography[props.header.fontStyle].fontWeight
-            }
-            $color={settings.theme.typography[props.header.fontStyle].color}
+            $font={theme.typography[props.header.fontStyle].fontFamily}
+            $size={theme.typography[props.header.fontStyle].fontSize}
+            $weight={theme.typography[props.header.fontStyle].fontWeight}
+            $color={theme.typography[props.header.fontStyle].color}
           >
             {props.header.prefix} {upcomingInvoice.dueDate}
           </Text>
@@ -99,16 +99,10 @@ export const UpcomingBill = forwardRef<
           {props.price.isVisible && (
             <Flex $alignItems="end" $flexGrow="1">
               <Text
-                $font={
-                  settings.theme.typography[props.price.fontStyle].fontFamily
-                }
-                $size={
-                  settings.theme.typography[props.price.fontStyle].fontSize
-                }
-                $weight={
-                  settings.theme.typography[props.price.fontStyle].fontWeight
-                }
-                $color={settings.theme.typography[props.price.fontStyle].color}
+                $font={theme.typography[props.price.fontStyle].fontFamily}
+                $size={theme.typography[props.price.fontStyle].fontSize}
+                $weight={theme.typography[props.price.fontStyle].fontWeight}
+                $color={theme.typography[props.price.fontStyle].color}
                 $lineHeight={1}
               >
                 {formatCurrency(upcomingInvoice.amountDue)}
@@ -119,20 +113,13 @@ export const UpcomingBill = forwardRef<
           <Box $maxWidth="10rem" $lineHeight="1" $textAlign="right">
             <Text
               $font={
-                settings.theme.typography[props.contractEndDate.fontStyle]
-                  .fontFamily
+                theme.typography[props.contractEndDate.fontStyle].fontFamily
               }
-              $size={
-                settings.theme.typography[props.contractEndDate.fontStyle]
-                  .fontSize
-              }
+              $size={theme.typography[props.contractEndDate.fontStyle].fontSize}
               $weight={
-                settings.theme.typography[props.contractEndDate.fontStyle]
-                  .fontWeight
+                theme.typography[props.contractEndDate.fontStyle].fontWeight
               }
-              $color={
-                settings.theme.typography[props.contractEndDate.fontStyle].color
-              }
+              $color={theme.typography[props.contractEndDate.fontStyle].color}
             >
               Estimated monthly bill.
             </Text>

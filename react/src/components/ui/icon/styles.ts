@@ -8,7 +8,7 @@ export const Icon = styled.i`
 `;
 
 export const Container = styled.div<{
-  $size: "tn" | "sm" | "md" | "lg";
+  $size: "tn" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl";
   $variant: "outline" | "filled";
   $colors: [string, string];
 }>`
@@ -17,6 +17,7 @@ export const Container = styled.div<{
   align-items: center;
   flex-shrink: 0;
   border-radius: 9999px;
+
   ${({ $size }) => {
     const base = 24;
     let scale = 1.0;
@@ -35,6 +36,15 @@ export const Container = styled.div<{
       case "lg":
         scale *= 1.75;
         break;
+      case "xl":
+        scale *= 2;
+        break;
+      case "2xl":
+        scale *= 2.5;
+        break;
+      case "3xl":
+        scale *= 3;
+        break;
     }
 
     return css`
@@ -44,14 +54,21 @@ export const Container = styled.div<{
       height: ${((base + 8) * scale) / TEXT_BASE_SIZE}rem;
     `;
   }}
+
   ${({ $variant, $colors }) =>
     $variant === "outline"
       ? css`
-          color: ${$colors[0]};
           background-color: transparent;
+
+          ${Icon} {
+            color: ${$colors[0]};
+          }
         `
       : css`
-          color: ${$colors[0]};
           background-color: ${$colors[1]};
+
+          ${Icon} {
+            color: ${$colors[0]};
+          }
         `}
 `;

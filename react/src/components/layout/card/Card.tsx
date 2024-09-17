@@ -1,5 +1,5 @@
 import { forwardRef } from "react";
-import { useEmbed } from "../../../hooks";
+import { useTheme } from "styled-components";
 import { StyledCard } from "./styles";
 
 export interface CardProps {
@@ -17,16 +17,16 @@ export const Card = forwardRef<HTMLDivElement | null, CardProps>(
       return acc;
     }, {}); */
 
-    const { settings } = useEmbed();
+    const theme = useTheme();
 
     return (
       <StyledCard
         ref={ref}
         className={className}
-        $sectionLayout={settings.theme?.sectionLayout}
-        $borderRadius={settings.theme?.card?.borderRadius}
-        $padding={settings.theme?.card?.padding}
-        $shadow={settings.theme?.card?.hasShadow}
+        $sectionLayout={theme?.sectionLayout}
+        $borderRadius={theme?.card?.borderRadius}
+        $padding={theme?.card?.padding}
+        $shadow={theme?.card?.hasShadow}
       >
         {children}
       </StyledCard>

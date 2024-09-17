@@ -44,13 +44,13 @@ export const ProgressBar = ({
           $overflow="hidden"
           $width="100%"
           $height={`${8 / TEXT_BASE_SIZE}rem`}
-          $background="#F2F4F7"
+          $backgroundColor="#F2F4F7"
           $borderRadius="9999px"
         >
           <Box
             $width={`${Math.min(progress, 100)}%`}
             $height="100%"
-            $background={barColorMap[color]}
+            $backgroundColor={barColorMap[color]}
             $borderRadius="9999px"
           />
         </Flex>
@@ -65,7 +65,7 @@ export const ProgressBar = ({
         >
           <Box
             $padding={`${8 / TEXT_BASE_SIZE}rem ${12 / TEXT_BASE_SIZE}rem`}
-            $background="#FFFFFF"
+            $backgroundColor="#FFFFFF"
             $borderRadius={`${8 / TEXT_BASE_SIZE}rem`}
             $boxShadow="0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)"
           >

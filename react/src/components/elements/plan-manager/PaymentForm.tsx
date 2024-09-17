@@ -38,6 +38,7 @@ export const PaymentForm = ({ plan, period, onConfirm }: PaymentFormProps) => {
 
     setIsLoading(true);
     setIsConfirmed(false);
+    setMessage(null);
 
     try {
       const { setupIntent, error } = await stripe.confirmSetup({
@@ -58,15 +59,9 @@ export const PaymentForm = ({ plan, period, onConfirm }: PaymentFormProps) => {
       if (error?.type === "card_error" || error?.type === "validation_error") {
         setMessage(error.message as string);
       }
-
-      setIsLoading(false);
     } catch (error) {
-      if (error instanceof Error) {
-        setMessage(error.message);
-      } else {
-        setMessage("An unexpected error occured.");
-      }
-
+      setMessage("A problem occurred while saving your payment method.");
+    } finally {
       setIsLoading(false);
     }
   };
@@ -89,8 +84,8 @@ export const PaymentForm = ({ plan, period, onConfirm }: PaymentFormProps) => {
       <Flex
         $flexDirection="column"
         $gap="1.5rem"
-        $marginBottom="1.5rem"
         $width="100%"
+        $marginBottom="1.5rem"
       >
         <LinkAuthenticationElement
           id="link-authentication-element"
@@ -104,30 +99,35 @@ export const PaymentForm = ({ plan, period, onConfirm }: PaymentFormProps) => {
         />
       </Flex>
 
-      <Flex $flexDirection="column" $width="100%" $flex="1" $height="100%">
+      <Box $marginBottom="1.5rem">
         <PaymentElement id="payment-element" />
-        {message && <Text id="payment-message">{message}</Text>}
-      </Flex>
+      </Box>
 
-      <div>
-        <StyledButton
-          id="submit"
-          disabled={
-            isLoading ||
-            !stripe ||
-            !elements ||
-            !data.stripeEmbed?.publishableKey ||
-            !data.stripeEmbed?.setupIntentClientSecret ||
-            isConfirmed
-          }
-          $size="md"
-          $color="primary"
-        >
-          <Text id="button-text">
-            {!isLoading ? "Loading" : "Save payment method"}
+      <StyledButton
+        id="submit"
+        disabled={
+          isLoading ||
+          !stripe ||
+          !elements ||
+          !data.stripeEmbed?.publishableKey ||
+          !data.stripeEmbed?.setupIntentClientSecret ||
+          isConfirmed
+        }
+        $size="md"
+        $color="primary"
+      >
+        <Text id="button-text">
+          {isLoading ? "Loading" : "Save payment method"}
+        </Text>
+      </StyledButton>
+
+      {message && (
+        <Box $margin="1rem 0">
+          <Text id="payment-message" $size={15} $weight={500} $color="#DB6669">
+            {message}
           </Text>
-        </StyledButton>
-      </div>
+        </Box>
+      )}
     </form>
   );
 };

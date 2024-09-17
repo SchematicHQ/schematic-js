@@ -1,6 +1,6 @@
 import styled, { css } from "styled-components";
 import { TEXT_BASE_SIZE } from "../../../const";
-import { darken, lighten, hexToHSL } from "../../../utils";
+import { hexToHSL } from "../../../utils";
 
 export const StyledCard = styled.div<{
   $sectionLayout?: "merged" | "separate";
@@ -35,9 +35,7 @@ export const StyledCard = styled.div<{
       ${() => {
         const { l } = hexToHSL(theme.card.background);
         const borderColor =
-          l > 50
-            ? darken(theme.card.background, 10)
-            : lighten(theme.card.background, 20);
+          l > 50 ? "hsla(0, 0%, 0%, 0.1)" : "hsla(0, 0%, 100%, 0.2)";
         const borderRadius = `${$borderRadius / TEXT_BASE_SIZE}rem`;
         const boxShadow =
           "0px 1px 20px 0px #1018280F, 0px 1px 3px 0px #1018281A";

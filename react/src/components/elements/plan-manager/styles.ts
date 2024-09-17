@@ -1,4 +1,5 @@
 import styled, { css } from "styled-components";
+import { TEXT_BASE_SIZE } from "../../../const";
 import { hexToHSL, hslToHex, lighten, darken } from "../../../utils";
 import { Button, Text } from "../../ui";
 
@@ -42,7 +43,7 @@ export const StyledButton = styled(Button)<{
     if (disabled) {
       const { l } = hexToHSL(theme.card.background);
       color = hslToHex({ h: 0, s: 0, l });
-      color = l > 50 ? darken(color, 7.5) : lighten(color, 7.5);
+      color = l > 50 ? darken(color, 0.075) : lighten(color, 0.15);
     }
 
     return $variant === "filled"
@@ -68,8 +69,9 @@ export const StyledButton = styled(Button)<{
   &:not(:disabled):hover {
     ${({ $color = "primary", theme, $variant = "filled" }) => {
       const specified = theme[$color];
-      const lightened = lighten(specified, 15);
-      const color = specified === lightened ? darken(specified, 15) : lightened;
+      const lightened = lighten(specified, 0.15);
+      const color =
+        specified === lightened ? darken(specified, 0.15) : lightened;
 
       const { l } = hexToHSL(theme[$color]);
       const textColor = l > 50 ? "#000000" : "#FFFFFF";
@@ -95,21 +97,21 @@ export const StyledButton = styled(Button)<{
     switch ($size) {
       case "sm":
         return css`
-          font-size: ${15 / 16}rem;
-          padding: ${12 / 16}rem 0;
-          border-radius: ${6 / 16}rem;
+          font-size: ${15 / TEXT_BASE_SIZE}rem;
+          padding: ${12 / TEXT_BASE_SIZE}rem 0;
+          border-radius: ${6 / TEXT_BASE_SIZE}rem;
         `;
       case "md":
         return css`
-          font-size: ${17 / 16}rem;
-          padding: ${16 / 16}rem 0;
-          border-radius: ${8 / 16}rem;
+          font-size: ${17 / TEXT_BASE_SIZE}rem;
+          padding: ${16 / TEXT_BASE_SIZE}rem 0;
+          border-radius: ${8 / TEXT_BASE_SIZE}rem;
         `;
       case "lg":
         return css`
-          font-size: ${19 / 16}rem;
-          padding: ${20 / 16}rem 0;
-          border-radius: ${10 / 16}rem;
+          font-size: ${19 / TEXT_BASE_SIZE}rem;
+          padding: ${20 / TEXT_BASE_SIZE}rem 0;
+          border-radius: ${10 / TEXT_BASE_SIZE}rem;
         `;
     }
   }}

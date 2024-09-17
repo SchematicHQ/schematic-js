@@ -1,6 +1,7 @@
 import {
   defaultSettings,
   defaultTheme,
+  useSchematic,
   EmbedContext,
   EmbedProvider,
   SchematicProvider,
@@ -10,10 +11,10 @@ import {
 } from "./context";
 import {
   useEmbed,
-  useSchematic,
   useSchematicContext,
   useSchematicEvents,
   useSchematicFlag,
+  useSchematicIsPending,
   type SchematicHookOpts,
   type UseSchematicFlagOpts,
 } from "./hooks";
@@ -28,6 +29,7 @@ export {
   useSchematicContext,
   useSchematicEvents,
   useSchematicFlag,
+  useSchematicIsPending,
   EmbedContext,
   EmbedProvider,
   SchematicProvider,

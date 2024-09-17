@@ -93,7 +93,7 @@ export function hslToHex({ h, s, l }: { h: number; s: number; l: number }) {
 
 export function adjustLightness(color: string, amount: number) {
   const { h, s, l } = hexToHSL(color);
-  return hslToHex({ h, s, l: Math.max(Math.min(l + amount, 100), 0) });
+  return hslToHex({ h, s, l: Math.max(Math.min(l + amount * 100, 100), 0) });
 }
 
 export function lighten(color: string, amount: number) {
@@ -102,6 +102,11 @@ export function lighten(color: string, amount: number) {
 
 export function darken(color: string, amount: number) {
   return adjustLightness(color, -amount);
+}
+
+export function hsla(color: string, amount: number) {
+  const { h, s, l } = hexToHSL(color);
+  return `hsla(${h}, ${s}%, ${l}%, ${amount})`;
 }
 
 export function invert(color: string) {

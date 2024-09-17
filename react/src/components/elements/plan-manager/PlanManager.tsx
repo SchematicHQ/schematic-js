@@ -1,5 +1,6 @@
 import { forwardRef, useMemo } from "react";
 import { createPortal } from "react-dom";
+import { useTheme } from "styled-components";
 import { useEmbed } from "../../../hooks";
 import { type FontStyle } from "../../../context";
 import type { RecursivePartial, ElementProps } from "../../../types";
@@ -60,7 +61,7 @@ const resolveDesignProps = (
     },
     callToAction: {
       isVisible: props.callToAction?.isVisible ?? true,
-      buttonSize: props.callToAction?.buttonSize ?? "md",
+      buttonSize: props.callToAction?.buttonSize ?? "lg",
       buttonStyle: props.callToAction?.buttonStyle ?? "primary",
     },
   };
@@ -78,7 +79,8 @@ export const PlanManager = forwardRef<
 >(({ children, className, portal, ...rest }, ref) => {
   const props = resolveDesignProps(rest);
 
-  const { data, settings, layout, stripe, setLayout } = useEmbed();
+  const theme = useTheme();
+  const { data, layout, stripe, setLayout } = useEmbed();
 
   const { currentPlan, canChangePlan } = useMemo(() => {
     return {
@@ -105,21 +107,15 @@ export const PlanManager = forwardRef<
               <Box $margin="0 0 0.75rem">
                 <Text
                   $font={
-                    settings.theme.typography[props.header.title.fontStyle]
-                      .fontFamily
+                    theme.typography[props.header.title.fontStyle].fontFamily
                   }
                   $size={
-                    settings.theme.typography[props.header.title.fontStyle]
-                      .fontSize
+                    theme.typography[props.header.title.fontStyle].fontSize
                   }
                   $weight={
-                    settings.theme.typography[props.header.title.fontStyle]
-                      .fontWeight
+                    theme.typography[props.header.title.fontStyle].fontWeight
                   }
-                  $color={
-                    settings.theme.typography[props.header.title.fontStyle]
-                      .color
-                  }
+                  $color={theme.typography[props.header.title.fontStyle].color}
                   $lineHeight={1}
                 >
                   {currentPlan.name}
@@ -130,24 +126,19 @@ export const PlanManager = forwardRef<
                 currentPlan.description && (
                   <Text
                     $font={
-                      settings.theme.typography[
-                        props.header.description.fontStyle
-                      ].fontFamily
+                      theme.typography[props.header.description.fontStyle]
+                        .fontFamily
                     }
                     $size={
-                      settings.theme.typography[
-                        props.header.description.fontStyle
-                      ].fontSize
+                      theme.typography[props.header.description.fontStyle]
+                        .fontSize
                     }
                     $weight={
-                      settings.theme.typography[
-                        props.header.description.fontStyle
-                      ].fontWeight
+                      theme.typography[props.header.description.fontStyle]
+                        .fontWeight
                     }
                     $color={
-                      settings.theme.typography[
-                        props.header.description.fontStyle
-                      ].color
+                      theme.typography[props.header.description.fontStyle].color
                     }
                   >
                     {currentPlan.description}
@@ -160,21 +151,15 @@ export const PlanManager = forwardRef<
               currentPlan.planPeriod && (
                 <Text
                   $font={
-                    settings.theme.typography[props.header.price.fontStyle]
-                      .fontFamily
+                    theme.typography[props.header.price.fontStyle].fontFamily
                   }
                   $size={
-                    settings.theme.typography[props.header.price.fontStyle]
-                      .fontSize
+                    theme.typography[props.header.price.fontStyle].fontSize
                   }
                   $weight={
-                    settings.theme.typography[props.header.price.fontStyle]
-                      .fontWeight
+                    theme.typography[props.header.price.fontStyle].fontWeight
                   }
-                  $color={
-                    settings.theme.typography[props.header.price.fontStyle]
-                      .color
-                  }
+                  $color={theme.typography[props.header.price.fontStyle].color}
                 >
                   {formatCurrency(currentPlan.planPrice)}/
                   {currentPlan.planPeriod}
@@ -192,13 +177,7 @@ export const PlanManager = forwardRef<
           $size={props.callToAction.buttonSize}
           $color={props.callToAction.buttonStyle}
         >
-          <Text
-            $font={settings.theme.typography.text.fontFamily}
-            $size={settings.theme.typography.text.fontSize}
-            $weight={settings.theme.typography.text.fontWeight}
-          >
-            Change Plan
-          </Text>
+          Change Plan
         </StyledButton>
       )}
 

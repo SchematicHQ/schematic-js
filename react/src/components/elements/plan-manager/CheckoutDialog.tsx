@@ -1,8 +1,9 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTheme } from "styled-components";
 import type { CompanyPlanDetailResponseData } from "../../../api";
+import { TEXT_BASE_SIZE } from "../../../const";
 import { useEmbed } from "../../../hooks";
-import { lighten, darken, hexToHSL, formatCurrency } from "../../../utils";
+import { hexToHSL, formatCurrency } from "../../../utils";
 import {
   Box,
   Flex,
@@ -26,10 +27,11 @@ export const CheckoutDialog = () => {
   const [paymentMethodId, setPaymentMethodId] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(false);
   const [isCheckoutComplete, setIsCheckoutComplete] = useState(false);
+  const [error, setError] = useState<string | undefined>();
 
   const theme = useTheme();
 
-  const { api, data, settings } = useEmbed();
+  const { api, data, hydrate, setLayout } = useEmbed();
 
   const { currentPlan, availablePlans } = useMemo(() => {
     return {
@@ -48,91 +50,109 @@ export const CheckoutDialog = () => {
     return 0;
   }, [selectedPlan]);
 
+  const isLightBackground = useMemo(() => {
+    return hexToHSL(theme.card.background).l > 50;
+  }, [theme.card.background]);
+
+  // TODO: reload component after checkout
+  useEffect(() => {
+    if (isCheckoutComplete && api && data.component?.id) {
+      hydrate();
+    }
+  }, [isCheckoutComplete, api, data.component?.id, hydrate]);
+
   return (
-    <Modal>
-      <ModalHeader>
+    <Modal size={isCheckoutComplete ? "auto" : "lg"}>
+      <ModalHeader bordered={!isCheckoutComplete}>
         <Flex $gap="1rem">
           {!isCheckoutComplete && (
             <>
               <Flex $gap="0.5rem" $alignItems="center">
                 {checkoutStage === "plan" ? (
                   <Box
-                    $width="0.9375rem"
-                    $height="0.9375rem"
+                    $width={`${20 / TEXT_BASE_SIZE}rem`}
+                    $height={`${20 / TEXT_BASE_SIZE}rem`}
                     $borderWidth="2px"
                     $borderStyle="solid"
                     $borderColor={
-                      hexToHSL(theme.card.background).l > 50
-                        ? darken(theme.card.background, 12.5)
-                        : lighten(theme.card.background, 12.5)
+                      isLightBackground
+                        ? "hsla(0, 0%, 0%, 0.125)"
+                        : "hsla(0, 0%, 100%, 0.25)"
                     }
                     $borderRadius="9999px"
                   />
                 ) : (
                   <IconRound
                     name="check"
+                    colors={[
+                      theme.card.background,
+                      isLightBackground
+                        ? "hsla(0, 0%, 0%, 0.125)"
+                        : "hsla(0, 0%, 100%, 0.25)",
+                    ]}
                     style={{
-                      color: theme.card.background,
-                      backgroundColor:
-                        hexToHSL(theme.card.background).l > 50
-                          ? darken(theme.card.background, 12.5)
-                          : lighten(theme.card.background, 12.5),
-                      fontSize: 16,
-                      width: "1rem",
-                      height: "1rem",
+                      fontSize: `${16 / TEXT_BASE_SIZE}rem`,
+                      width: `${20 / TEXT_BASE_SIZE}rem`,
+                      height: `${20 / TEXT_BASE_SIZE}rem`,
                     }}
                   />
                 )}
                 <Box
                   tabIndex={0}
-                  {...(checkoutStage === "plan"
-                    ? {
-                        style: {
-                          fontWeight: "700",
-                        },
-                      }
-                    : {
-                        style: {
-                          cursor: "pointer",
-                        },
-                        onClick: () => setCheckoutStage("plan"),
-                      })}
+                  {...(checkoutStage !== "plan" && {
+                    onClick: () => setCheckoutStage("plan"),
+                    $opacity: "0.6375",
+                    $cursor: "pointer",
+                  })}
                 >
-                  <Text>1. Select plan</Text>
+                  <Text
+                    $font={theme.typography.text.fontFamily}
+                    $size={19}
+                    $weight={checkoutStage === "plan" ? 600 : 400}
+                    $color={theme.typography.text.color}
+                  >
+                    1. Select plan
+                  </Text>
                 </Box>
-                <Icon
-                  name="chevron-right"
-                  style={{
-                    fontSize: 16,
-                    color:
-                      hexToHSL(theme.card.background).l > 50
-                        ? darken(theme.card.background, 17.5)
-                        : lighten(theme.card.background, 17.5),
-                  }}
-                />
               </Flex>
+
+              <Icon
+                name="chevron-right"
+                style={{
+                  fontSize: 16,
+                  color: isLightBackground
+                    ? "hsla(0, 0%, 0%, 0.175)"
+                    : "hsla(0, 0%, 100%, 0.35)",
+                }}
+              />
+
               <Flex $gap="0.5rem" $alignItems="center">
                 <Box
-                  $width="0.9375rem"
-                  $height="0.9375rem"
+                  $width={`${20 / TEXT_BASE_SIZE}rem`}
+                  $height={`${20 / TEXT_BASE_SIZE}rem`}
                   $borderWidth="2px"
                   $borderStyle="solid"
                   $borderColor={
-                    hexToHSL(theme.card.background).l > 50
-                      ? darken(theme.card.background, 12.5)
-                      : lighten(theme.card.background, 12.5)
+                    isLightBackground
+                      ? "hsla(0, 0%, 0%, 0.125)"
+                      : "hsla(0, 0%, 100%, 0.25)"
                   }
                   $borderRadius="9999px"
                 />
                 <Box
                   tabIndex={0}
-                  {...(checkoutStage === "checkout" && {
-                    style: {
-                      fontWeight: "700",
-                    },
+                  {...(checkoutStage !== "checkout" && {
+                    $opacity: "0.6375",
                   })}
                 >
-                  <Text>2. Checkout</Text>
+                  <Text
+                    $font={theme.typography.text.fontFamily}
+                    $size={19}
+                    $weight={checkoutStage === "plan" ? 600 : 400}
+                    $color={theme.typography.text.color}
+                  >
+                    2. Checkout
+                  </Text>
                 </Box>
               </Flex>
             </>
@@ -141,7 +161,25 @@ export const CheckoutDialog = () => {
       </ModalHeader>
 
       {isCheckoutComplete && (
-        <Flex $justifyContent="center" $alignItems="center" $flexGrow="1">
+        <Flex
+          $flexDirection="column"
+          $justifyContent="center"
+          $alignItems="center"
+          $flexGrow="1"
+          $gap={`${32 / TEXT_BASE_SIZE}rem`}
+          $padding={`${32 / TEXT_BASE_SIZE}rem ${40 / TEXT_BASE_SIZE}rem`}
+          $whiteSpace="nowrap"
+        >
+          <IconRound
+            name="check"
+            size="3xl"
+            colors={[
+              theme.card.background,
+              isLightBackground
+                ? "hsla(0, 0%, 0%, 0.125)"
+                : "hsla(0, 0%, 100%, 0.125)",
+            ]}
+          />
           <Text
             as="h1"
             $font={theme.typography.heading1.fontFamily}
@@ -151,31 +189,35 @@ export const CheckoutDialog = () => {
           >
             Subscription updated!
           </Text>
+          <StyledButton onClick={() => setLayout("portal")}>Close</StyledButton>
         </Flex>
       )}
 
       {!isCheckoutComplete && (
-        <Flex $position="relative" $flexGrow="1">
+        <Flex $position="relative" $height="calc(100% - 5rem)">
           <Flex
-            $position="absolute"
-            $top="0"
-            $left="0"
             $flexDirection="column"
+            $flexGrow="1"
             $gap="1rem"
             $padding="2rem 2.5rem 2rem 2.5rem"
-            $backgroundColor={darken(settings.theme.card.background, 2.5)}
+            $backgroundColor={
+              isLightBackground
+                ? "hsla(0, 0%, 0%, 0.025)"
+                : "hsla(0, 0%, 100%, 0.025)"
+            }
             $flex="1"
-            $width="72.5%"
-            $height="100%"
             $overflow="auto"
           >
             {checkoutStage === "plan" && (
               <>
                 <Flex $flexDirection="column" $gap="1rem" $marginBottom="1rem">
                   <Text
-                    as="h1"
+                    as="h3"
                     id="select-plan-dialog-label"
-                    $size={18}
+                    $font={theme.typography.heading3.fontFamily}
+                    $size={theme.typography.heading3.fontSize}
+                    $weight={theme.typography.heading3.fontWeight}
+                    $color={theme.typography.heading3.color}
                     $marginBottom="0.5rem"
                   >
                     Select plan
@@ -183,22 +225,25 @@ export const CheckoutDialog = () => {
                   <Text
                     as="p"
                     id="select-plan-dialog-description"
-                    $size={14}
-                    $weight={400}
+                    $font={theme.typography.text.fontFamily}
+                    $size={theme.typography.text.fontSize}
+                    $weight={theme.typography.text.fontWeight}
+                    $color={theme.typography.text.color}
                   >
                     Choose your base plan
                   </Text>
                 </Flex>
 
-                <Flex $gap="1rem" $flexGrow="1">
+                <Flex $flexWrap="wrap" $gap="1rem" $flexGrow="1">
                   {availablePlans?.map((plan) => {
                     return (
                       <Flex
                         key={plan.id}
-                        $height="100%"
                         $flexDirection="column"
-                        $backgroundColor={settings.theme.card.background}
-                        $flex="1"
+                        $width="100%"
+                        $minWidth="280px"
+                        $maxWidth={`calc(${100 / 3}% - 1rem)`}
+                        $backgroundColor={theme.card.background}
                         $outlineWidth="2px"
                         $outlineStyle="solid"
                         $outlineColor={
@@ -206,8 +251,8 @@ export const CheckoutDialog = () => {
                             ? theme.primary
                             : "transparent"
                         }
-                        $borderRadius={`${settings.theme.card.borderRadius / 16}rem`}
-                        {...(settings.theme.card.hasShadow && {
+                        $borderRadius={`${theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
+                        {...(theme.card.hasShadow && {
                           $boxShadow:
                             "0px 1px 3px rgba(16, 24, 40, 0.1), 0px 1px 20px rgba(16, 24, 40, 0.06)",
                         })}
@@ -218,13 +263,13 @@ export const CheckoutDialog = () => {
                           $gap="1rem"
                           $width="100%"
                           $height="auto"
-                          $padding={`${settings.theme.card.padding / 16}rem`}
+                          $padding={`${theme.card.padding / TEXT_BASE_SIZE}rem`}
                           $borderBottomWidth="1px"
                           $borderStyle="solid"
                           $borderColor={
-                            hexToHSL(theme.card.background).l > 50
-                              ? darken(theme.card.background, 17.5)
-                              : lighten(theme.card.background, 17.5)
+                            isLightBackground
+                              ? "hsla(0, 0%, 0%, 0.175)"
+                              : "hsla(0, 0%, 100%, 0.175)"
                           }
                         >
                           <Text $size={20} $weight={600}>
@@ -283,8 +328,10 @@ export const CheckoutDialog = () => {
                                   name={feature.icon as IconNameTypes}
                                   size="tn"
                                   colors={[
-                                    settings.theme.primary,
-                                    `${hexToHSL(settings.theme.card.background).l > 50 ? darken(settings.theme.card.background, 10) : lighten(settings.theme.card.background, 20)}`,
+                                    theme.primary,
+                                    isLightBackground
+                                      ? "hsla(0, 0%, 0%, 0.0625)"
+                                      : "hsla(0, 0%, 100%, 0.0625)",
                                   ]}
                                 />
 
@@ -321,13 +368,8 @@ export const CheckoutDialog = () => {
                               />
 
                               <Text
-                                style={{
-                                  color:
-                                    hexToHSL(theme.card.background).l > 50
-                                      ? "#000000"
-                                      : "#FFFFFF",
-                                  lineHeight: "1.4",
-                                }}
+                                $lineHeight="1.4"
+                                $color={theme.typography.text.color}
                               >
                                 Selected
                               </Text>
@@ -338,12 +380,12 @@ export const CheckoutDialog = () => {
                             plan.id !== selectedPlan?.id && (
                               <StyledButton
                                 disabled={plan.valid === false}
+                                {...(plan.valid === true && {
+                                  onClick: () => setSelectedPlan(plan),
+                                })}
                                 $size="sm"
                                 $color="primary"
                                 $variant="outline"
-                                onClick={() => {
-                                  setSelectedPlan(plan);
-                                }}
                               >
                                 Select
                               </StyledButton>
@@ -368,14 +410,10 @@ export const CheckoutDialog = () => {
           </Flex>
 
           <Flex
-            $position="absolute"
-            $top="0"
-            $right="0"
             $flexDirection="column"
-            $background={settings.theme.card.background}
+            $backgroundColor={theme.card.background}
             $borderRadius="0 0 0.5rem"
-            $width="27.5%"
-            $height="100%"
+            $width="21.5rem"
             $boxShadow="0px 1px 20px 0px #1018280F, 0px 1px 3px 0px #1018281A;"
           >
             <Flex
@@ -385,16 +423,34 @@ export const CheckoutDialog = () => {
               $width="100%"
               $height="auto"
               $padding="1.5rem"
-              $borderBottom="1px solid #DEDEDE"
+              $borderBottomWidth="1px"
+              $borderStyle="solid"
+              $borderColor={
+                isLightBackground
+                  ? "hsla(0, 0%, 0%, 0.1)"
+                  : "hsla(0, 0%, 100%, 0.2)"
+              }
             >
               <Flex $justifyContent="space-between">
-                <Text $size={20} $weight={600}>
+                <Text
+                  as="h3"
+                  $font={theme.typography.heading3.fontFamily}
+                  $size={theme.typography.heading3.fontSize}
+                  $weight={theme.typography.heading3.fontWeight}
+                  $color={theme.typography.heading3.color}
+                >
                   Subscription
                 </Text>
               </Flex>
 
               <Flex
-                $border="1px solid #D9D9D9"
+                $borderWidth="1px"
+                $borderStyle="solid"
+                $borderColor={
+                  isLightBackground
+                    ? "hsla(0, 0%, 0%, 0.1)"
+                    : "hsla(0, 0%, 100%, 0.2)"
+                }
                 $borderRadius="2.5rem"
                 $cursor="pointer"
               >
@@ -404,14 +460,19 @@ export const CheckoutDialog = () => {
                   $alignItems="center"
                   $padding="0.25rem 0.5rem"
                   $flex="1"
-                  $backgroundColor={
-                    planPeriod === "month"
-                      ? darken(settings.theme.card.background, 8)
-                      : lighten(settings.theme.card.background, 2)
-                  }
+                  {...(planPeriod === "month" && {
+                    $backgroundColor: isLightBackground
+                      ? "hsla(0, 0%, 0%, 0.075)"
+                      : "hsla(0, 0%, 100%, 0.15)",
+                  })}
                   $borderRadius="2.5rem"
                 >
-                  <Text $size={12} $weight={planPeriod === "month" ? 600 : 400}>
+                  <Text
+                    $font={theme.typography.text.fontFamily}
+                    $size={14}
+                    $weight={planPeriod === "month" ? 600 : 400}
+                    $color={theme.typography.text.color}
+                  >
                     Billed monthly
                   </Text>
                 </Flex>
@@ -421,14 +482,19 @@ export const CheckoutDialog = () => {
                   $alignItems="center"
                   $padding="0.25rem 0.5rem"
                   $flex="1"
-                  $backgroundColor={
-                    planPeriod === "year"
-                      ? darken(settings.theme.card.background, 8)
-                      : lighten(settings.theme.card.background, 2)
-                  }
+                  {...(planPeriod === "year" && {
+                    $backgroundColor: isLightBackground
+                      ? "hsla(0, 0%, 0%, 0.075)"
+                      : "hsla(0, 0%, 100%, 0.15)",
+                  })}
                   $borderRadius="2.5rem"
                 >
-                  <Text $size={12} $weight={planPeriod === "year" ? 600 : 400}>
+                  <Text
+                    $font={theme.typography.text.fontFamily}
+                    $size={14}
+                    $weight={planPeriod === "year" ? 600 : 400}
+                    $color={theme.typography.text.color}
+                  >
                     Billed yearly
                   </Text>
                 </Flex>
@@ -436,7 +502,12 @@ export const CheckoutDialog = () => {
 
               {savingsPercentage > 0 && (
                 <Box>
-                  <Text $size={11} $color="#194BFB">
+                  <Text
+                    $font={theme.typography.text.fontFamily}
+                    $size={11}
+                    $weight={theme.typography.text.fontWeight}
+                    $color={theme.primary}
+                  >
                     {planPeriod === "month"
                       ? `Save up to ${savingsPercentage}% with yearly billing`
                       : `You are saving ${savingsPercentage}% with yearly billing`}
@@ -452,36 +523,56 @@ export const CheckoutDialog = () => {
               $height="auto"
               $padding="1.5rem"
               $flex="1"
-              $borderBottom="1px solid #DEDEDE"
+              $borderBottomWidth="1px"
+              $borderStyle="solid"
+              $borderColor={
+                isLightBackground
+                  ? "hsla(0, 0%, 0%, 0.1)"
+                  : "hsla(0, 0%, 100%, 0.2)"
+              }
             >
-              <Box>
-                <Text $size={14} $color="#5D5D5D">
+              <Box $opacity="0.625">
+                <Text
+                  $font={theme.typography.text.fontFamily}
+                  $size={14}
+                  $weight={theme.typography.text.fontWeight}
+                  $color={theme.typography.text.color}
+                >
                   Plan
                 </Text>
               </Box>
 
-              <Flex
-                $flexDirection="column"
-                $fontSize="0.875rem"
-                $color="#5D5D5D"
-                $gap="0.5rem"
-              >
+              <Flex $flexDirection="column" $gap="0.5rem">
                 {currentPlan && (
-                  <Flex
-                    $alignItems="center"
-                    $justifyContent="space-between"
-                    $fontSize="0.875rem"
-                    $color="#5D5D5D"
-                  >
-                    <Flex $fontSize="0.875rem" $color="#5D5D5D">
-                      {currentPlan.name}
+                  <Flex $justifyContent="space-between" $alignItems="center">
+                    <Flex
+                      {...(selectedPlan && {
+                        $opacity: "0.625",
+                        $textDecoration: "line-through",
+                      })}
+                    >
+                      <Text
+                        $font={theme.typography.heading4.fontFamily}
+                        $size={theme.typography.heading4.fontSize}
+                        $weight={theme.typography.heading4.fontWeight}
+                        $color={theme.typography.heading4.color}
+                      >
+                        {currentPlan.name}
+                      </Text>
                     </Flex>
 
                     {typeof currentPlan.planPrice === "number" &&
                       currentPlan.planPeriod && (
-                        <Flex $fontSize="0.75rem" $color="#000000">
-                          {formatCurrency(currentPlan.planPrice)}/
-                          {currentPlan.planPeriod}
+                        <Flex>
+                          <Text
+                            $font={theme.typography.text.fontFamily}
+                            $size={theme.typography.text.fontSize}
+                            $weight={theme.typography.text.fontWeight}
+                            $color={theme.typography.text.color}
+                          >
+                            {formatCurrency(currentPlan.planPrice)}/
+                            {currentPlan.planPeriod}
+                          </Text>
                         </Flex>
                       )}
                   </Flex>
@@ -504,28 +595,33 @@ export const CheckoutDialog = () => {
                       />
                     </Box>
 
-                    <Flex
-                      $alignItems="center"
-                      $justifyContent="space-between"
-                      $fontSize="0.875rem"
-                      $color="#5D5D5D"
-                    >
-                      <Flex
-                        $fontSize="0.875rem"
-                        $color="#000000"
-                        $fontWeight="600"
-                      >
-                        {selectedPlan.name}
+                    <Flex $justifyContent="space-between" $alignItems="center">
+                      <Flex>
+                        <Text
+                          $font={theme.typography.heading4.fontFamily}
+                          $size={theme.typography.heading4.fontSize}
+                          $weight={theme.typography.heading4.fontWeight}
+                          $color={theme.typography.heading4.color}
+                        >
+                          {selectedPlan.name}
+                        </Text>
                       </Flex>
 
-                      <Flex $fontSize="0.75rem" $color="#000000">
-                        {formatCurrency(
-                          (planPeriod === "month"
-                            ? selectedPlan.monthlyPrice
-                            : selectedPlan.yearlyPrice
-                          )?.price ?? 0,
-                        )}
-                        /{planPeriod}
+                      <Flex>
+                        <Text
+                          $font={theme.typography.text.fontFamily}
+                          $size={theme.typography.text.fontSize}
+                          $weight={theme.typography.text.fontWeight}
+                          $color={theme.typography.text.color}
+                        >
+                          {formatCurrency(
+                            (planPeriod === "month"
+                              ? selectedPlan.monthlyPrice
+                              : selectedPlan.yearlyPrice
+                            )?.price ?? 0,
+                          )}
+                          /{planPeriod}
+                        </Text>
                       </Flex>
                     </Flex>
                   </>
@@ -535,43 +631,55 @@ export const CheckoutDialog = () => {
             <Flex
               $flexDirection="column"
               $position="relative"
-              $gap="0.75rem"
+              $gap="1rem"
               $width="100%"
               $height="auto"
               $padding="1.5rem"
             >
               {selectedPlan && (
-                <Flex
-                  $fontSize="0.75rem"
-                  $color="#5D5D5D"
-                  $justifyContent="space-between"
-                >
-                  <Box $fontSize="0.75rem" $color="#5D5D5D">
-                    {planPeriod === "month" ? "Monthly" : "Yearly"} total:{" "}
+                <Flex $justifyContent="space-between">
+                  <Box $opacity="0.625">
+                    <Text
+                      $font={theme.typography.text.fontFamily}
+                      $size={theme.typography.text.fontSize}
+                      $weight={theme.typography.text.fontWeight}
+                      $color={theme.typography.text.color}
+                    >
+                      {planPeriod === "month" ? "Monthly" : "Yearly"} total:{" "}
+                    </Text>
                   </Box>
-                  <Box $fontSize="0.75rem" $color="#000000">
-                    {formatCurrency(
-                      (planPeriod === "month"
-                        ? selectedPlan.monthlyPrice
-                        : selectedPlan.yearlyPrice
-                      )?.price ?? 0,
-                    )}
-                    /{planPeriod}
+
+                  <Box>
+                    <Text
+                      $font={theme.typography.text.fontFamily}
+                      $size={theme.typography.text.fontSize}
+                      $weight={theme.typography.text.fontWeight}
+                      $color={theme.typography.text.color}
+                    >
+                      {formatCurrency(
+                        (planPeriod === "month"
+                          ? selectedPlan.monthlyPrice
+                          : selectedPlan.yearlyPrice
+                        )?.price ?? 0,
+                      )}
+                      /{planPeriod}
+                    </Text>
                   </Box>
                 </Flex>
               )}
+
               {checkoutStage === "plan" ? (
                 <StyledButton
                   disabled={!selectedPlan}
-                  onClick={() => {
-                    setCheckoutStage("checkout");
-                  }}
+                  {...(selectedPlan && {
+                    onClick: () => setCheckoutStage("checkout"),
+                  })}
                   $size="sm"
                 >
                   <Flex
                     $gap="0.5rem"
-                    $alignItems="center"
                     $justifyContent="center"
+                    $alignItems="center"
                     $padding="0 1rem"
                   >
                     <Text $align="left">Next: Checkout</Text>
@@ -607,12 +715,13 @@ export const CheckoutDialog = () => {
                           paymentMethodId: paymentMethodId,
                         },
                       });
+                      // throw new Error("Test error.");
                       setIsCheckoutComplete(true);
-                    } catch (error) {
-                      // TODO: handle checkout error
-                      console.error(error);
+                    } catch {
+                      setError(
+                        "Error processing payment. Please try a different payment method.",
+                      );
                     } finally {
-                      setIsCheckoutComplete(true);
                       setIsLoading(false);
                     }
                   }}
@@ -622,9 +731,29 @@ export const CheckoutDialog = () => {
                 </StyledButton>
               )}
 
-              <Box $fontSize="0.75rem" $color="#5D5D5D">
-                Discounts & credits applied at checkout
+              <Box $opacity="0.625">
+                <Text
+                  $font={theme.typography.text.fontFamily}
+                  $size={theme.typography.text.fontSize}
+                  $weight={theme.typography.text.fontWeight}
+                  $color={theme.typography.text.color}
+                >
+                  Discounts & credits applied at checkout
+                </Text>
               </Box>
+
+              {error && (
+                <Box>
+                  <Text
+                    $font={theme.typography.text.fontFamily}
+                    $size={theme.typography.text.fontSize}
+                    $weight={500}
+                    $color="#DB6669"
+                  >
+                    {error}
+                  </Text>
+                </Box>
+              )}
             </Flex>
           </Flex>
         </Flex>
