@@ -461,7 +461,12 @@ function parseEditorState(data: SerializedEditorState) {
   return arr;
 }
 
-export type EmbedLayout = "portal" | "checkout" | "payment" | "disabled";
+export type EmbedLayout =
+  | "portal"
+  | "checkout"
+  | "payment"
+  | "success"
+  | "disabled";
 
 export interface EmbedContextProps {
   api: CheckoutApi | null;
@@ -554,7 +559,7 @@ export const EmbedProvider = ({
       const settings: EmbedSettings = { ...defaultSettings };
 
       if (!id || !state.api) {
-        throw new Error("Invalid component id or api instance.");
+        return new Error("Invalid component id or api instance.");
       }
 
       const response = await state.api.hydrateComponent({ componentId: id });
@@ -586,6 +591,7 @@ export const EmbedProvider = ({
         isPending: false,
       }));
     } catch (error) {
+      console.log(error, "@@@@@!");
       setState((prev) => ({
         ...prev,
         isPending: false,
