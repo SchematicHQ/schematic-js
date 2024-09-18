@@ -1,11 +1,4 @@
-import {
-  createContext,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { createContext, useCallback, useEffect, useRef, useState } from "react";
 import { inflate } from "pako";
 import { createGlobalStyle, ThemeProvider } from "styled-components";
 import merge from "lodash.merge";
@@ -22,7 +15,6 @@ import type {
   SerializedEditorState,
   SerializedNodeWithChildren,
 } from "../types";
-import { hexToHSL } from "../utils";
 
 const GlobalStyle = createGlobalStyle`
   @font-face {
@@ -554,10 +546,6 @@ export const EmbedProvider = ({
     };
   });
 
-  const isLightBackground = useMemo(() => {
-    return hexToHSL(state.settings.theme.card.background).l > 50;
-  }, [state.settings.theme.card.background]);
-
   const hydrate = useCallback(async () => {
     setState((prev) => ({ ...prev, isPending: true, error: undefined }));
 
@@ -725,7 +713,7 @@ export const EmbedProvider = ({
                   fontSize: "1rem",
                   fontWeight: "400",
                   marginBottom: "0.75rem",
-                  color: isLightBackground ? "#020202" : "#FFFFFF",
+                  color: state.settings.theme.typography.text.color,
                 },
               },
             },
