@@ -32,7 +32,10 @@ const FeatureName = ({
     return null;
   }
 
-  if (entitlement.valueType === "numeric") {
+  if (
+    entitlement.valueType === "numeric" ||
+    entitlement.valueType === "trait"
+  ) {
     let period;
     if (entitlement.metricPeriod) {
       period = {
