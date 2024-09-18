@@ -33,10 +33,13 @@ export const CheckoutDialog = () => {
 
   const { api, data, hydrate, setLayout } = useEmbed();
 
-  const { currentPlan, availablePlans } = useMemo(() => {
+  const { paymentMethod, currentPlan, availablePlans } = useMemo(() => {
     return {
+      paymentMethod: data.subscription?.paymentMethod,
       currentPlan: data.company?.plan,
-      availablePlans: data.activePlans,
+      availablePlans: data.activePlans.filter(
+        (plan) => plan.monthlyPrice && plan.yearlyPrice,
+      ),
     };
   }, [data.company, data.activePlans]);
 
@@ -692,7 +695,7 @@ export const CheckoutDialog = () => {
                     !api ||
                     !selectedPlan ||
                     selectedPlan?.id === currentPlan?.id ||
-                    !paymentMethodId ||
+                    !(paymentMethodId && paymentMethod) ||
                     isLoading
                   }
                   onClick={async () => {

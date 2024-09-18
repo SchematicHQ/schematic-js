@@ -37,6 +37,7 @@ models/InvoiceResponseData.ts
 models/PaymentMethodResponseData.ts
 models/PlanDetailResponseData.ts
 models/PlanEntitlementResponseData.ts
+models/PlanGroupPlanDetailResponseData.ts
 models/PlanResponseData.ts
 models/PreviewObject.ts
 models/RuleConditionDetailResponseData.ts

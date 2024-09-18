@@ -45,10 +45,10 @@ export const PaymentMethod = forwardRef<
   const props = resolveDesignProps(rest);
 
   const theme = useTheme();
-  const { data, stripe, layout } = useEmbed();
+  const { data, layout } = useEmbed();
 
   const paymentMethod = useMemo(() => {
-    const { cardLast4, cardExpMonth, cardExpYear } =
+    const { paymentMethodType, cardLast4, cardExpMonth, cardExpYear } =
       data.subscription?.paymentMethod || {};
 
     let monthsToExpiration: number | undefined;
@@ -62,6 +62,7 @@ export const PaymentMethod = forwardRef<
     }
 
     return {
+      paymentMethodType,
       cardLast4,
       monthsToExpiration,
     };
@@ -71,7 +72,7 @@ export const PaymentMethod = forwardRef<
     return hexToHSL(theme.card.background).l > 50;
   }, [theme.card.background]);
 
-  if (!stripe || !paymentMethod.cardLast4) {
+  if (!paymentMethod.paymentMethodType) {
     return null;
   }
 
@@ -107,24 +108,24 @@ export const PaymentMethod = forwardRef<
         </Flex>
       )}
 
-      {paymentMethod.cardLast4 && (
-        <Flex
-          $justifyContent="space-between"
-          $alignItems="center"
-          $margin="0 0 1rem"
-          $backgroundColor={
-            isLightBackground
-              ? "hsla(0, 0%, 0%, 0.0625)"
-              : "hsla(0, 0%, 100%, 0.125)"
-          }
-          $padding="0.375rem 1rem"
-          $borderRadius="9999px"
-        >
-          <Text $font={theme.typography.text.fontFamily} $size={14}>
-            💳 Card ending in {paymentMethod.cardLast4}
-          </Text>
-        </Flex>
-      )}
+      <Flex
+        $justifyContent="space-between"
+        $alignItems="center"
+        $margin="0 0 1rem"
+        $backgroundColor={
+          isLightBackground
+            ? "hsla(0, 0%, 0%, 0.0625)"
+            : "hsla(0, 0%, 100%, 0.125)"
+        }
+        $padding="0.375rem 1rem"
+        $borderRadius="9999px"
+      >
+        <Text $font={theme.typography.text.fontFamily} $size={14}>
+          {paymentMethod.cardLast4
+            ? `💳 Card ending in ${paymentMethod.cardLast4}`
+            : "Other existing payment method"}
+        </Text>
+      </Flex>
 
       {layout === "payment" &&
         createPortal(
