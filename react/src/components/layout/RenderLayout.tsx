@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useTheme } from "styled-components";
 import { useEmbed } from "../../hooks";
 import { ReactNode, useEffect } from "react";
@@ -43,20 +44,23 @@ const DisabledState = () => {
 };
 
 const SuccessState = () => {
+  const [isOpen, setIsOpen] = useState(true);
+
   const theme = useTheme();
   const { hydrate, data, api, setLayout, isPending } = useEmbed();
 
   useEffect(() => {
     if (api && data.component?.id) {
       hydrate();
+      setTimeout(() => setIsOpen(false), 2000);
     }
   }, [api, data.component?.id, hydrate]);
 
   useEffect(() => {
-    if (!isPending) {
+    if (!isPending && !isOpen) {
       setLayout("portal");
     }
-  }, [isPending]);
+  }, [isPending, isOpen, setLayout]);
 
   return (
     <Modal>
