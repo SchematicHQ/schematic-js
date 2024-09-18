@@ -11,7 +11,7 @@ import { StyledButton } from "./styles";
 
 interface PaymentFormProps {
   plan: CompanyPlanDetailResponseData;
-  period: "month" | "year";
+  period: string;
   onConfirm?: (paymentMethodId: string) => void;
 }
 

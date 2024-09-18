@@ -25,7 +25,9 @@ export const CheckoutDialog = () => {
   const [checkoutStage, setCheckoutStage] = useState<"plan" | "checkout">(
     "plan",
   );
-  const [planPeriod, setPlanPeriod] = useState<"month" | "year">("month");
+  const [planPeriod, setPlanPeriod] = useState<string>(
+    () => data.company?.plan?.planPeriod || "month",
+  );
   const [selectedPlan, setSelectedPlan] =
     useState<CompanyPlanDetailResponseData>();
   const [paymentMethodId, setPaymentMethodId] = useState<string | undefined>();
@@ -36,15 +38,39 @@ export const CheckoutDialog = () => {
     () => typeof data.subscription?.paymentMethod === "undefined",
   );
 
-  const { paymentMethod, currentPlan, availablePlans } = useMemo(() => {
-    return {
-      paymentMethod: data.subscription?.paymentMethod,
-      currentPlan: data.company?.plan,
-      availablePlans: data.activePlans.filter(
-        (plan) => plan.monthlyPrice && plan.yearlyPrice,
-      ),
-    };
-  }, [data.subscription?.paymentMethod, data.company, data.activePlans]);
+  const { paymentMethod, currentPlan, availablePlans, planPeriodOptions } =
+    useMemo(() => {
+      const showMonthlyPriceOption = data.activePlans.some(
+        (plan) => typeof plan.yearlyPrice !== "undefined",
+      );
+      const showYearlyPriceOption = data.activePlans.some(
+        (plan) => typeof plan.yearlyPrice !== "undefined",
+      );
+      const planPeriodOptions = [];
+      if (showMonthlyPriceOption) {
+        planPeriodOptions.push("month");
+      }
+      if (showYearlyPriceOption) {
+        planPeriodOptions.push("year");
+      }
+
+      return {
+        paymentMethod: data.subscription?.paymentMethod,
+        currentPlan: data.company?.plan,
+        availablePlans: data.activePlans.filter(
+          (plan) =>
+            plan.current ||
+            (plan.yearlyPrice && planPeriod === "year") ||
+            (plan.monthlyPrice && planPeriod === "month"),
+        ),
+        planPeriodOptions,
+      };
+    }, [
+      data.subscription?.paymentMethod,
+      data.company,
+      data.activePlans,
+      planPeriod,
+    ]);
 
   const savingsPercentage = useMemo(() => {
     if (selectedPlan) {
@@ -497,62 +523,64 @@ export const CheckoutDialog = () => {
                 </Text>
               </Flex>
 
-              <Flex
-                $borderWidth="1px"
-                $borderStyle="solid"
-                $borderColor={
-                  isLightBackground
-                    ? "hsla(0, 0%, 0%, 0.1)"
-                    : "hsla(0, 0%, 100%, 0.2)"
-                }
-                $borderRadius="2.5rem"
-                $cursor="pointer"
-              >
+              {planPeriodOptions.length > 1 && (
                 <Flex
-                  onClick={() => setPlanPeriod("month")}
-                  $justifyContent="center"
-                  $alignItems="center"
-                  $padding="0.25rem 0.5rem"
-                  $flex="1"
-                  {...(planPeriod === "month" && {
-                    $backgroundColor: isLightBackground
-                      ? "hsla(0, 0%, 0%, 0.075)"
-                      : "hsla(0, 0%, 100%, 0.15)",
-                  })}
+                  $borderWidth="1px"
+                  $borderStyle="solid"
+                  $borderColor={
+                    isLightBackground
+                      ? "hsla(0, 0%, 0%, 0.1)"
+                      : "hsla(0, 0%, 100%, 0.2)"
+                  }
                   $borderRadius="2.5rem"
+                  $cursor="pointer"
                 >
-                  <Text
-                    $font={theme.typography.text.fontFamily}
-                    $size={14}
-                    $weight={planPeriod === "month" ? 600 : 400}
-                    $color={theme.typography.text.color}
+                  <Flex
+                    onClick={() => setPlanPeriod("month")}
+                    $justifyContent="center"
+                    $alignItems="center"
+                    $padding="0.25rem 0.5rem"
+                    $flex="1"
+                    {...(planPeriod === "month" && {
+                      $backgroundColor: isLightBackground
+                        ? "hsla(0, 0%, 0%, 0.075)"
+                        : "hsla(0, 0%, 100%, 0.15)",
+                    })}
+                    $borderRadius="2.5rem"
                   >
-                    Billed monthly
-                  </Text>
-                </Flex>
-                <Flex
-                  onClick={() => setPlanPeriod("year")}
-                  $justifyContent="center"
-                  $alignItems="center"
-                  $padding="0.25rem 0.5rem"
-                  $flex="1"
-                  {...(planPeriod === "year" && {
-                    $backgroundColor: isLightBackground
-                      ? "hsla(0, 0%, 0%, 0.075)"
-                      : "hsla(0, 0%, 100%, 0.15)",
-                  })}
-                  $borderRadius="2.5rem"
-                >
-                  <Text
-                    $font={theme.typography.text.fontFamily}
-                    $size={14}
-                    $weight={planPeriod === "year" ? 600 : 400}
-                    $color={theme.typography.text.color}
+                    <Text
+                      $font={theme.typography.text.fontFamily}
+                      $size={14}
+                      $weight={planPeriod === "month" ? 600 : 400}
+                      $color={theme.typography.text.color}
+                    >
+                      Billed monthly
+                    </Text>
+                  </Flex>
+                  <Flex
+                    onClick={() => setPlanPeriod("year")}
+                    $justifyContent="center"
+                    $alignItems="center"
+                    $padding="0.25rem 0.5rem"
+                    $flex="1"
+                    {...(planPeriod === "year" && {
+                      $backgroundColor: isLightBackground
+                        ? "hsla(0, 0%, 0%, 0.075)"
+                        : "hsla(0, 0%, 100%, 0.15)",
+                    })}
+                    $borderRadius="2.5rem"
                   >
-                    Billed yearly
-                  </Text>
+                    <Text
+                      $font={theme.typography.text.fontFamily}
+                      $size={14}
+                      $weight={planPeriod === "year" ? 600 : 400}
+                      $color={theme.typography.text.color}
+                    >
+                      Billed yearly
+                    </Text>
+                  </Flex>
                 </Flex>
-              </Flex>
+              )}
 
               {savingsPercentage > 0 && (
                 <Box>
