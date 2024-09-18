@@ -18,6 +18,7 @@ import {
   Text,
   type IconNameTypes,
 } from "../../ui";
+import { PaymentMethod } from "../payment-method";
 import { PaymentForm } from "./PaymentForm";
 import { StyledButton } from "./styles";
 
@@ -81,27 +82,58 @@ const FeatureName = ({
 };
 
 export const CheckoutDialog = () => {
+  const theme = useTheme();
+  const { api, data, hydrate, setLayout } = useEmbed();
+
   const [checkoutStage, setCheckoutStage] = useState<"plan" | "checkout">(
     "plan",
   );
-  const [planPeriod, setPlanPeriod] = useState<"month" | "year">("month");
+  const [planPeriod, setPlanPeriod] = useState<string>(
+    () => data.company?.plan?.planPeriod || "month",
+  );
   const [selectedPlan, setSelectedPlan] =
     useState<CompanyPlanDetailResponseData>();
   const [paymentMethodId, setPaymentMethodId] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(false);
   const [isCheckoutComplete, setIsCheckoutComplete] = useState(false);
   const [error, setError] = useState<string | undefined>();
+  const [showPaymentForm, setShowPaymentForm] = useState(
+    () => typeof data.subscription?.paymentMethod === "undefined",
+  );
 
-  const theme = useTheme();
+  const { paymentMethod, currentPlan, availablePlans, planPeriodOptions } =
+    useMemo(() => {
+      const showMonthlyPriceOption = data.activePlans.some(
+        (plan) => typeof plan.yearlyPrice !== "undefined",
+      );
+      const showYearlyPriceOption = data.activePlans.some(
+        (plan) => typeof plan.yearlyPrice !== "undefined",
+      );
+      const planPeriodOptions = [];
+      if (showMonthlyPriceOption) {
+        planPeriodOptions.push("month");
+      }
+      if (showYearlyPriceOption) {
+        planPeriodOptions.push("year");
+      }
 
-  const { api, data, hydrate, setLayout } = useEmbed();
-
-  const { currentPlan, availablePlans } = useMemo(() => {
-    return {
-      currentPlan: data.company?.plan,
-      availablePlans: data.activePlans,
-    };
-  }, [data.company, data.activePlans]);
+      return {
+        paymentMethod: data.subscription?.paymentMethod,
+        currentPlan: data.company?.plan,
+        availablePlans: data.activePlans.filter(
+          (plan) =>
+            plan.current ||
+            (plan.yearlyPrice && planPeriod === "year") ||
+            (plan.monthlyPrice && planPeriod === "month"),
+        ),
+        planPeriodOptions,
+      };
+    }, [
+      data.subscription?.paymentMethod,
+      data.company,
+      data.activePlans,
+      planPeriod,
+    ]);
 
   const savingsPercentage = useMemo(() => {
     if (selectedPlan) {
@@ -123,6 +155,13 @@ export const CheckoutDialog = () => {
       hydrate();
     }
   }, [isCheckoutComplete, api, data.component?.id, hydrate]);
+
+  const allowCheckout =
+    api &&
+    selectedPlan &&
+    selectedPlan?.id !== currentPlan?.id &&
+    ((paymentMethod && !showPaymentForm) || paymentMethodId) &&
+    !isLoading;
 
   return (
     <Modal size={isCheckoutComplete ? "auto" : "lg"}>
@@ -469,13 +508,54 @@ export const CheckoutDialog = () => {
             )}
 
             {selectedPlan && checkoutStage === "checkout" && (
-              <PaymentForm
-                plan={selectedPlan}
-                period={planPeriod}
-                onConfirm={(value) => {
-                  setPaymentMethodId(value);
-                }}
-              />
+              <>
+                {showPaymentForm ? (
+                  <>
+                    <PaymentForm
+                      plan={selectedPlan}
+                      period={planPeriod}
+                      onConfirm={(value) => {
+                        setPaymentMethodId(value);
+                      }}
+                    />
+                    {typeof data.subscription?.paymentMethod !==
+                      "undefined" && (
+                      <Box
+                        tabIndex={0}
+                        onClick={() => setShowPaymentForm(false)}
+                        $cursor="pointer"
+                      >
+                        <Text
+                          $font={theme.typography.link.fontFamily}
+                          $size={theme.typography.link.fontSize}
+                          $weight={theme.typography.link.fontWeight}
+                          $color={theme.typography.link.color}
+                        >
+                          Use existing payment method
+                        </Text>
+                      </Box>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <PaymentMethod />
+                    <Box
+                      tabIndex={0}
+                      onClick={() => setShowPaymentForm(true)}
+                      $cursor="pointer"
+                    >
+                      <Text
+                        $font={theme.typography.link.fontFamily}
+                        $size={theme.typography.link.fontSize}
+                        $weight={theme.typography.link.fontWeight}
+                        $color={theme.typography.link.color}
+                      >
+                        Change payment method
+                      </Text>
+                    </Box>
+                  </>
+                )}
+              </>
             )}
           </Flex>
 
@@ -513,62 +593,64 @@ export const CheckoutDialog = () => {
                 </Text>
               </Flex>
 
-              <Flex
-                $borderWidth="1px"
-                $borderStyle="solid"
-                $borderColor={
-                  isLightBackground
-                    ? "hsla(0, 0%, 0%, 0.1)"
-                    : "hsla(0, 0%, 100%, 0.2)"
-                }
-                $borderRadius="2.5rem"
-                $cursor="pointer"
-              >
+              {planPeriodOptions.length > 1 && (
                 <Flex
-                  onClick={() => setPlanPeriod("month")}
-                  $justifyContent="center"
-                  $alignItems="center"
-                  $padding="0.25rem 0.5rem"
-                  $flex="1"
-                  {...(planPeriod === "month" && {
-                    $backgroundColor: isLightBackground
-                      ? "hsla(0, 0%, 0%, 0.075)"
-                      : "hsla(0, 0%, 100%, 0.15)",
-                  })}
+                  $borderWidth="1px"
+                  $borderStyle="solid"
+                  $borderColor={
+                    isLightBackground
+                      ? "hsla(0, 0%, 0%, 0.1)"
+                      : "hsla(0, 0%, 100%, 0.2)"
+                  }
                   $borderRadius="2.5rem"
+                  $cursor="pointer"
                 >
-                  <Text
-                    $font={theme.typography.text.fontFamily}
-                    $size={14}
-                    $weight={planPeriod === "month" ? 600 : 400}
-                    $color={theme.typography.text.color}
+                  <Flex
+                    onClick={() => setPlanPeriod("month")}
+                    $justifyContent="center"
+                    $alignItems="center"
+                    $padding="0.25rem 0.5rem"
+                    $flex="1"
+                    {...(planPeriod === "month" && {
+                      $backgroundColor: isLightBackground
+                        ? "hsla(0, 0%, 0%, 0.075)"
+                        : "hsla(0, 0%, 100%, 0.15)",
+                    })}
+                    $borderRadius="2.5rem"
                   >
-                    Billed monthly
-                  </Text>
-                </Flex>
-                <Flex
-                  onClick={() => setPlanPeriod("year")}
-                  $justifyContent="center"
-                  $alignItems="center"
-                  $padding="0.25rem 0.5rem"
-                  $flex="1"
-                  {...(planPeriod === "year" && {
-                    $backgroundColor: isLightBackground
-                      ? "hsla(0, 0%, 0%, 0.075)"
-                      : "hsla(0, 0%, 100%, 0.15)",
-                  })}
-                  $borderRadius="2.5rem"
-                >
-                  <Text
-                    $font={theme.typography.text.fontFamily}
-                    $size={14}
-                    $weight={planPeriod === "year" ? 600 : 400}
-                    $color={theme.typography.text.color}
+                    <Text
+                      $font={theme.typography.text.fontFamily}
+                      $size={14}
+                      $weight={planPeriod === "month" ? 600 : 400}
+                      $color={theme.typography.text.color}
+                    >
+                      Billed monthly
+                    </Text>
+                  </Flex>
+                  <Flex
+                    onClick={() => setPlanPeriod("year")}
+                    $justifyContent="center"
+                    $alignItems="center"
+                    $padding="0.25rem 0.5rem"
+                    $flex="1"
+                    {...(planPeriod === "year" && {
+                      $backgroundColor: isLightBackground
+                        ? "hsla(0, 0%, 0%, 0.075)"
+                        : "hsla(0, 0%, 100%, 0.15)",
+                    })}
+                    $borderRadius="2.5rem"
                   >
-                    Billed yearly
-                  </Text>
+                    <Text
+                      $font={theme.typography.text.fontFamily}
+                      $size={14}
+                      $weight={planPeriod === "year" ? 600 : 400}
+                      $color={theme.typography.text.color}
+                    >
+                      Billed yearly
+                    </Text>
+                  </Flex>
                 </Flex>
-              </Flex>
+              )}
 
               {savingsPercentage > 0 && (
                 <Box>
@@ -744,7 +826,6 @@ export const CheckoutDialog = () => {
                   {...(selectedPlan && {
                     onClick: () => setCheckoutStage("checkout"),
                   })}
-                  $size="sm"
                 >
                   <Flex
                     $gap="0.5rem"
@@ -752,50 +833,47 @@ export const CheckoutDialog = () => {
                     $alignItems="center"
                     $padding="0 1rem"
                   >
-                    <Text $align="left">Next: Checkout</Text>
+                    <Text $align="left" $lineHeight={1}>
+                      Next: Checkout
+                    </Text>
                     <Icon name="arrow-right" />
                   </Flex>
                 </StyledButton>
               ) : (
                 <StyledButton
-                  disabled={
-                    !api ||
-                    !selectedPlan ||
-                    selectedPlan?.id === currentPlan?.id ||
-                    !paymentMethodId ||
-                    isLoading
-                  }
-                  onClick={async () => {
-                    const priceId = (
-                      planPeriod === "month"
-                        ? selectedPlan?.monthlyPrice
-                        : selectedPlan?.yearlyPrice
-                    )?.id;
-                    if (!api || !selectedPlan || !priceId || !paymentMethodId) {
-                      return;
-                    }
+                  {...(allowCheckout
+                    ? {
+                        onClick: async () => {
+                          const priceId = (
+                            planPeriod === "month"
+                              ? selectedPlan?.monthlyPrice
+                              : selectedPlan?.yearlyPrice
+                          )?.id;
+                          if (!priceId) {
+                            return;
+                          }
 
-                    try {
-                      setIsLoading(true);
-                      setIsCheckoutComplete(false);
-                      await api.checkout({
-                        changeSubscriptionRequestBody: {
-                          newPlanId: selectedPlan.id,
-                          newPriceId: priceId,
-                          paymentMethodId: paymentMethodId,
+                          try {
+                            setIsLoading(true);
+                            setIsCheckoutComplete(false);
+                            await api.checkout({
+                              changeSubscriptionRequestBody: {
+                                newPlanId: selectedPlan.id,
+                                newPriceId: priceId,
+                                ...(paymentMethodId && { paymentMethodId }),
+                              },
+                            });
+                            setIsCheckoutComplete(true);
+                          } catch {
+                            setError(
+                              "Error processing payment. Please try a different payment method.",
+                            );
+                          } finally {
+                            setIsLoading(false);
+                          }
                         },
-                      });
-                      // throw new Error("Test error.");
-                      setIsCheckoutComplete(true);
-                    } catch {
-                      setError(
-                        "Error processing payment. Please try a different payment method.",
-                      );
-                    } finally {
-                      setIsLoading(false);
-                    }
-                  }}
-                  $size="md"
+                      }
+                    : { disabled: true })}
                 >
                   Pay now
                 </StyledButton>
