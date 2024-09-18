@@ -14,10 +14,14 @@ import {
   Text,
   type IconNameTypes,
 } from "../../ui";
+import { PaymentMethod } from "../payment-method";
 import { PaymentForm } from "./PaymentForm";
 import { StyledButton } from "./styles";
 
 export const CheckoutDialog = () => {
+  const theme = useTheme();
+  const { api, data, hydrate, setLayout } = useEmbed();
+
   const [checkoutStage, setCheckoutStage] = useState<"plan" | "checkout">(
     "plan",
   );
@@ -28,10 +32,9 @@ export const CheckoutDialog = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isCheckoutComplete, setIsCheckoutComplete] = useState(false);
   const [error, setError] = useState<string | undefined>();
-
-  const theme = useTheme();
-
-  const { api, data, hydrate, setLayout } = useEmbed();
+  const [showPaymentForm, setShowPaymentForm] = useState(
+    () => typeof data.subscription?.paymentMethod === "undefined",
+  );
 
   const { paymentMethod, currentPlan, availablePlans } = useMemo(() => {
     return {
@@ -41,7 +44,7 @@ export const CheckoutDialog = () => {
         (plan) => plan.monthlyPrice && plan.yearlyPrice,
       ),
     };
-  }, [data.company, data.activePlans]);
+  }, [data.subscription?.paymentMethod, data.company, data.activePlans]);
 
   const savingsPercentage = useMemo(() => {
     if (selectedPlan) {
@@ -63,6 +66,13 @@ export const CheckoutDialog = () => {
       hydrate();
     }
   }, [isCheckoutComplete, api, data.component?.id, hydrate]);
+
+  const allowCheckout =
+    api &&
+    selectedPlan &&
+    selectedPlan?.id !== currentPlan?.id &&
+    ((paymentMethod && !showPaymentForm) || paymentMethodId) &&
+    !isLoading;
 
   return (
     <Modal size={isCheckoutComplete ? "auto" : "lg"}>
@@ -402,13 +412,54 @@ export const CheckoutDialog = () => {
             )}
 
             {selectedPlan && checkoutStage === "checkout" && (
-              <PaymentForm
-                plan={selectedPlan}
-                period={planPeriod}
-                onConfirm={(value) => {
-                  setPaymentMethodId(value);
-                }}
-              />
+              <>
+                {showPaymentForm ? (
+                  <>
+                    <PaymentForm
+                      plan={selectedPlan}
+                      period={planPeriod}
+                      onConfirm={(value) => {
+                        setPaymentMethodId(value);
+                      }}
+                    />
+                    {typeof data.subscription?.paymentMethod !==
+                      "undefined" && (
+                      <Box
+                        tabIndex={0}
+                        onClick={() => setShowPaymentForm(false)}
+                        $cursor="pointer"
+                      >
+                        <Text
+                          $font={theme.typography.link.fontFamily}
+                          $size={theme.typography.link.fontSize}
+                          $weight={theme.typography.link.fontWeight}
+                          $color={theme.typography.link.color}
+                        >
+                          Use existing payment method
+                        </Text>
+                      </Box>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <PaymentMethod />
+                    <Box
+                      tabIndex={0}
+                      onClick={() => setShowPaymentForm(true)}
+                      $cursor="pointer"
+                    >
+                      <Text
+                        $font={theme.typography.link.fontFamily}
+                        $size={theme.typography.link.fontSize}
+                        $weight={theme.typography.link.fontWeight}
+                        $color={theme.typography.link.color}
+                      >
+                        Change payment method
+                      </Text>
+                    </Box>
+                  </>
+                )}
+              </>
             )}
           </Flex>
 
@@ -677,7 +728,6 @@ export const CheckoutDialog = () => {
                   {...(selectedPlan && {
                     onClick: () => setCheckoutStage("checkout"),
                   })}
-                  $size="sm"
                 >
                   <Flex
                     $gap="0.5rem"
@@ -685,50 +735,47 @@ export const CheckoutDialog = () => {
                     $alignItems="center"
                     $padding="0 1rem"
                   >
-                    <Text $align="left">Next: Checkout</Text>
+                    <Text $align="left" $lineHeight={1}>
+                      Next: Checkout
+                    </Text>
                     <Icon name="arrow-right" />
                   </Flex>
                 </StyledButton>
               ) : (
                 <StyledButton
-                  disabled={
-                    !api ||
-                    !selectedPlan ||
-                    selectedPlan?.id === currentPlan?.id ||
-                    !(paymentMethodId && paymentMethod) ||
-                    isLoading
-                  }
-                  onClick={async () => {
-                    const priceId = (
-                      planPeriod === "month"
-                        ? selectedPlan?.monthlyPrice
-                        : selectedPlan?.yearlyPrice
-                    )?.id;
-                    if (!api || !selectedPlan || !priceId || !paymentMethodId) {
-                      return;
-                    }
+                  {...(allowCheckout
+                    ? {
+                        onClick: async () => {
+                          const priceId = (
+                            planPeriod === "month"
+                              ? selectedPlan?.monthlyPrice
+                              : selectedPlan?.yearlyPrice
+                          )?.id;
+                          if (!priceId) {
+                            return;
+                          }
 
-                    try {
-                      setIsLoading(true);
-                      setIsCheckoutComplete(false);
-                      await api.checkout({
-                        changeSubscriptionRequestBody: {
-                          newPlanId: selectedPlan.id,
-                          newPriceId: priceId,
-                          paymentMethodId: paymentMethodId,
+                          try {
+                            setIsLoading(true);
+                            setIsCheckoutComplete(false);
+                            await api.checkout({
+                              changeSubscriptionRequestBody: {
+                                newPlanId: selectedPlan.id,
+                                newPriceId: priceId,
+                                ...(paymentMethodId && { paymentMethodId }),
+                              },
+                            });
+                            setIsCheckoutComplete(true);
+                          } catch {
+                            setError(
+                              "Error processing payment. Please try a different payment method.",
+                            );
+                          } finally {
+                            setIsLoading(false);
+                          }
                         },
-                      });
-                      // throw new Error("Test error.");
-                      setIsCheckoutComplete(true);
-                    } catch {
-                      setError(
-                        "Error processing payment. Please try a different payment method.",
-                      );
-                    } finally {
-                      setIsLoading(false);
-                    }
-                  }}
-                  $size="md"
+                      }
+                    : { disabled: true })}
                 >
                   Pay now
                 </StyledButton>

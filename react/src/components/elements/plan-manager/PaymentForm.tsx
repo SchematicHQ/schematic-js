@@ -7,7 +7,6 @@ import { useStripe, useElements } from "@stripe/react-stripe-js";
 import type { CompanyPlanDetailResponseData } from "../../../api";
 import { useEmbed } from "../../../hooks";
 import { Box, Flex, Text } from "../../ui";
-import { PaymentMethod } from "../payment-method";
 import { StyledButton } from "./styles";
 
 interface PaymentFormProps {
@@ -25,10 +24,6 @@ export const PaymentForm = ({ plan, period, onConfirm }: PaymentFormProps) => {
   const [message, setMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
-
-  if (data.subscription?.paymentMethod) {
-    return <PaymentMethod />;
-  }
 
   const handleSubmit: React.FormEventHandler<HTMLFormElement> = async (
     event,
@@ -78,7 +73,6 @@ export const PaymentForm = ({ plan, period, onConfirm }: PaymentFormProps) => {
       style={{
         display: "flex",
         flexDirection: "column",
-        height: "100%",
         overflowX: "hidden",
         overflowY: "auto",
       }}
