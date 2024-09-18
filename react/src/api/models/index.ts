@@ -35,6 +35,7 @@ export * from "./InvoiceResponseData";
 export * from "./PaymentMethodResponseData";
 export * from "./PlanDetailResponseData";
 export * from "./PlanEntitlementResponseData";
+export * from "./PlanGroupPlanDetailResponseData";
 export * from "./PlanResponseData";
 export * from "./PreviewObject";
 export * from "./RuleConditionDetailResponseData";

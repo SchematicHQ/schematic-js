@@ -41,123 +41,110 @@ import {
 /**
  *
  * @export
- * @interface CompanyPlanDetailResponseData
+ * @interface PlanGroupPlanDetailResponseData
  */
-export interface CompanyPlanDetailResponseData {
+export interface PlanGroupPlanDetailResponseData {
   /**
    *
    * @type {string}
-   * @memberof CompanyPlanDetailResponseData
+   * @memberof PlanGroupPlanDetailResponseData
    */
   audienceType?: string | null;
   /**
    *
    * @type {BillingProductDetailResponseData}
-   * @memberof CompanyPlanDetailResponseData
+   * @memberof PlanGroupPlanDetailResponseData
    */
   billingProduct?: BillingProductDetailResponseData;
   /**
    *
    * @type {number}
-   * @memberof CompanyPlanDetailResponseData
+   * @memberof PlanGroupPlanDetailResponseData
    */
   companyCount: number;
   /**
    *
    * @type {Date}
-   * @memberof CompanyPlanDetailResponseData
+   * @memberof PlanGroupPlanDetailResponseData
    */
   createdAt: Date;
   /**
    *
-   * @type {boolean}
-   * @memberof CompanyPlanDetailResponseData
-   */
-  current: boolean;
-  /**
-   *
    * @type {string}
-   * @memberof CompanyPlanDetailResponseData
+   * @memberof PlanGroupPlanDetailResponseData
    */
   description: string;
   /**
    *
    * @type {Array<PlanEntitlementResponseData>}
-   * @memberof CompanyPlanDetailResponseData
+   * @memberof PlanGroupPlanDetailResponseData
    */
   entitlements: Array<PlanEntitlementResponseData>;
   /**
    *
    * @type {Array<FeatureDetailResponseData>}
-   * @memberof CompanyPlanDetailResponseData
+   * @memberof PlanGroupPlanDetailResponseData
    */
   features: Array<FeatureDetailResponseData>;
   /**
    *
    * @type {string}
-   * @memberof CompanyPlanDetailResponseData
+   * @memberof PlanGroupPlanDetailResponseData
    */
   icon: string;
   /**
    *
    * @type {string}
-   * @memberof CompanyPlanDetailResponseData
+   * @memberof PlanGroupPlanDetailResponseData
    */
   id: string;
   /**
    *
    * @type {boolean}
-   * @memberof CompanyPlanDetailResponseData
+   * @memberof PlanGroupPlanDetailResponseData
    */
   isDefault: boolean;
   /**
    *
    * @type {BillingPriceResponseData}
-   * @memberof CompanyPlanDetailResponseData
+   * @memberof PlanGroupPlanDetailResponseData
    */
   monthlyPrice?: BillingPriceResponseData;
   /**
    *
    * @type {string}
-   * @memberof CompanyPlanDetailResponseData
+   * @memberof PlanGroupPlanDetailResponseData
    */
   name: string;
   /**
    *
    * @type {string}
-   * @memberof CompanyPlanDetailResponseData
+   * @memberof PlanGroupPlanDetailResponseData
    */
   planType: string;
   /**
    *
    * @type {Date}
-   * @memberof CompanyPlanDetailResponseData
+   * @memberof PlanGroupPlanDetailResponseData
    */
   updatedAt: Date;
   /**
    *
-   * @type {boolean}
-   * @memberof CompanyPlanDetailResponseData
-   */
-  valid: boolean;
-  /**
-   *
    * @type {BillingPriceResponseData}
-   * @memberof CompanyPlanDetailResponseData
+   * @memberof PlanGroupPlanDetailResponseData
    */
   yearlyPrice?: BillingPriceResponseData;
 }
 
 /**
- * Check if a given object implements the CompanyPlanDetailResponseData interface.
+ * Check if a given object implements the PlanGroupPlanDetailResponseData interface.
  */
-export function instanceOfCompanyPlanDetailResponseData(
+export function instanceOfPlanGroupPlanDetailResponseData(
   value: object,
-): value is CompanyPlanDetailResponseData {
+): value is PlanGroupPlanDetailResponseData {
   if (!("companyCount" in value) || value["companyCount"] === undefined)
     return false;
   if (!("createdAt" in value) || value["createdAt"] === undefined) return false;
-  if (!("current" in value) || value["current"] === undefined) return false;
   if (!("description" in value) || value["description"] === undefined)
     return false;
   if (!("entitlements" in value) || value["entitlements"] === undefined)
@@ -169,20 +156,19 @@ export function instanceOfCompanyPlanDetailResponseData(
   if (!("name" in value) || value["name"] === undefined) return false;
   if (!("planType" in value) || value["planType"] === undefined) return false;
   if (!("updatedAt" in value) || value["updatedAt"] === undefined) return false;
-  if (!("valid" in value) || value["valid"] === undefined) return false;
   return true;
 }
 
-export function CompanyPlanDetailResponseDataFromJSON(
+export function PlanGroupPlanDetailResponseDataFromJSON(
   json: any,
-): CompanyPlanDetailResponseData {
-  return CompanyPlanDetailResponseDataFromJSONTyped(json, false);
+): PlanGroupPlanDetailResponseData {
+  return PlanGroupPlanDetailResponseDataFromJSONTyped(json, false);
 }
 
-export function CompanyPlanDetailResponseDataFromJSONTyped(
+export function PlanGroupPlanDetailResponseDataFromJSONTyped(
   json: any,
   ignoreDiscriminator: boolean,
-): CompanyPlanDetailResponseData {
+): PlanGroupPlanDetailResponseData {
   if (json == null) {
     return json;
   }
@@ -195,7 +181,6 @@ export function CompanyPlanDetailResponseDataFromJSONTyped(
         : BillingProductDetailResponseDataFromJSON(json["billing_product"]),
     companyCount: json["company_count"],
     createdAt: new Date(json["created_at"]),
-    current: json["current"],
     description: json["description"],
     entitlements: (json["entitlements"] as Array<any>).map(
       PlanEntitlementResponseDataFromJSON,
@@ -213,7 +198,6 @@ export function CompanyPlanDetailResponseDataFromJSONTyped(
     name: json["name"],
     planType: json["plan_type"],
     updatedAt: new Date(json["updated_at"]),
-    valid: json["valid"],
     yearlyPrice:
       json["yearly_price"] == null
         ? undefined
@@ -221,8 +205,8 @@ export function CompanyPlanDetailResponseDataFromJSONTyped(
   };
 }
 
-export function CompanyPlanDetailResponseDataToJSON(
-  value?: CompanyPlanDetailResponseData | null,
+export function PlanGroupPlanDetailResponseDataToJSON(
+  value?: PlanGroupPlanDetailResponseData | null,
 ): any {
   if (value == null) {
     return value;
@@ -234,7 +218,6 @@ export function CompanyPlanDetailResponseDataToJSON(
     ),
     company_count: value["companyCount"],
     created_at: value["createdAt"].toISOString(),
-    current: value["current"],
     description: value["description"],
     entitlements: (value["entitlements"] as Array<any>).map(
       PlanEntitlementResponseDataToJSON,
@@ -249,7 +232,6 @@ export function CompanyPlanDetailResponseDataToJSON(
     name: value["name"],
     plan_type: value["planType"],
     updated_at: value["updatedAt"].toISOString(),
-    valid: value["valid"],
     yearly_price: BillingPriceResponseDataToJSON(value["yearlyPrice"]),
   };
 }
