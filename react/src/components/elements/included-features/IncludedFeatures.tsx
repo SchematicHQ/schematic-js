@@ -1,5 +1,6 @@
 import { forwardRef, useMemo } from "react";
 import { useTheme } from "styled-components";
+import pluralize from "pluralize";
 import { useEmbed } from "../../../hooks";
 import { type FontStyle } from "../../../context";
 import type { RecursivePartial, ElementProps } from "../../../types";
@@ -179,8 +180,8 @@ export const IncludedFeatures = forwardRef<
                       }
                     >
                       {typeof allocation === "number"
-                        ? `${allocation} ${feature.name}`
-                        : `Unlimited ${feature.name}`}
+                        ? pluralize(feature.name, allocation, true)
+                        : `Unlimited ${pluralize(feature.name)}`}
                     </Text>
                   )}
 
