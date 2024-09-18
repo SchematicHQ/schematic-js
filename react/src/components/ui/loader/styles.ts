@@ -12,7 +12,7 @@ const spin = keyframes`
 
 export const Loader = styled.div`
   border: ${4 / TEXT_BASE_SIZE}rem solid hsla(0, 0%, 50%, 0.125);
-  border-top: ${4 / TEXT_BASE_SIZE}rem solid ${({ theme }) => theme.primary};
+  border-top: ${4 / TEXT_BASE_SIZE}rem solid ${({ theme }) => theme.secondary};
   border-radius: 50%;
   width: ${56 / TEXT_BASE_SIZE}rem;
   height: ${56 / TEXT_BASE_SIZE}rem;

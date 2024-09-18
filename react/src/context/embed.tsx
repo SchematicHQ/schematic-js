@@ -362,8 +362,8 @@ export const defaultTheme: EmbedThemeSettings = {
   numberOfColumns: 2,
   sectionLayout: "merged",
   colorMode: "light",
-  primary: "#194BFB",
-  secondary: "#000000",
+  primary: "#000000",
+  secondary: "#194BFB",
   card: {
     background: "#FFFFFF",
     borderRadius: 10,
