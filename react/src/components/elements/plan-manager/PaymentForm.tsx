@@ -11,7 +11,7 @@ import { StyledButton } from "./styles";
 
 interface PaymentFormProps {
   plan: CompanyPlanDetailResponseData;
-  period: "month" | "year";
+  period: string;
   onConfirm?: (paymentMethodId: string) => void;
 }
 
@@ -73,7 +73,6 @@ export const PaymentForm = ({ plan, period, onConfirm }: PaymentFormProps) => {
       style={{
         display: "flex",
         flexDirection: "column",
-        height: "100%",
         overflowX: "hidden",
         overflowY: "auto",
       }}

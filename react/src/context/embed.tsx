@@ -701,13 +701,13 @@ export const EmbedProvider = ({
               theme: "stripe",
               variables: {
                 // Base
-                spacingUnit: ".25rem",
-                colorPrimary: "#0570de",
+                fontFamily: '"Public Sans", system-ui, sans-serif',
+                spacingUnit: "0.25rem",
+                borderRadius: "0.5rem",
+                colorText: "#30313D",
                 colorBackground: "#FFFFFF",
-                colorText: "#30313d",
-                colorDanger: "#df1b41",
-                fontFamily: "Public Sans, system-ui, sans-serif",
-                borderRadius: ".5rem",
+                colorPrimary: "#0570DE",
+                colorDanger: "#DF1B41",
 
                 // Layout
                 gridRowSpacing: "1.5rem",
@@ -715,10 +715,10 @@ export const EmbedProvider = ({
               },
               rules: {
                 ".Label": {
-                  color: "#020202",
+                  fontSize: "1rem",
                   fontWeight: "400",
-                  fontSize: "16px",
-                  marginBottom: "12px",
+                  marginBottom: "0.75rem",
+                  color: state.settings.theme.typography.text.color,
                 },
               },
             },
