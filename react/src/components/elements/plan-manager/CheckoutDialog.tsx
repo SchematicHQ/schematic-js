@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTheme } from "styled-components";
-import type { CompanyPlanDetailResponseData } from "../../../api";
+import pluralize from "pluralize";
+import type {
+  CompanyPlanDetailResponseData,
+  PlanEntitlementResponseData,
+} from "../../../api";
 import { TEXT_BASE_SIZE } from "../../../const";
 import { useEmbed } from "../../../hooks";
 import { hexToHSL, formatCurrency } from "../../../utils";
@@ -16,6 +20,62 @@ import {
 } from "../../ui";
 import { PaymentForm } from "./PaymentForm";
 import { StyledButton } from "./styles";
+
+const FeatureName = ({
+  entitlement,
+}: {
+  entitlement: PlanEntitlementResponseData;
+}) => {
+  const theme = useTheme();
+
+  if (!entitlement.feature?.name) {
+    return null;
+  }
+
+  if (entitlement.valueType === "numeric") {
+    let period;
+    if (entitlement.metricPeriod) {
+      period = {
+        current_day: "day",
+        current_month: "mo",
+        current_year: "yr",
+      }[entitlement.metricPeriod];
+    }
+
+    return (
+      <Flex $alignItems="center">
+        <Text
+          $font={theme.typography.text.fontFamily}
+          $size={theme.typography.text.fontSize}
+          $weight={theme.typography.text.fontWeight}
+          $color={theme.typography.text.color}
+        >
+          {typeof entitlement.valueNumeric === "number"
+            ? pluralize(
+                entitlement.feature.name,
+                entitlement.valueNumeric,
+                true,
+              )
+            : `Unlimited ${pluralize(entitlement.feature.name)}`}
+          {period && `/${period}`}
+        </Text>
+      </Flex>
+    );
+  }
+
+  return (
+    <Flex $alignItems="center">
+      <Text
+        $font={theme.typography.text.fontFamily}
+        $size={theme.typography.text.fontSize}
+        $weight={theme.typography.text.fontWeight}
+        $color={theme.typography.text.color}
+      >
+        {entitlement.feature.name}
+      </Text>
+    </Flex>
+  );
+};
 
 export const CheckoutDialog = () => {
   const [checkoutStage, setCheckoutStage] = useState<"plan" | "checkout">(
@@ -317,26 +377,33 @@ export const CheckoutDialog = () => {
                           $height="auto"
                           $padding="1.5rem"
                         >
-                          {plan.features.map((feature) => {
+                          {plan.entitlements.map((entitlement) => {
                             return (
                               <Flex
-                                key={feature.id}
-                                $flexShrink="0"
+                                key={entitlement.id}
+                                $flexWrap="wrap"
+                                $justifyContent="space-between"
+                                $alignItems="center"
                                 $gap="1rem"
                               >
-                                <IconRound
-                                  name={feature.icon as IconNameTypes}
-                                  size="tn"
-                                  colors={[
-                                    theme.primary,
-                                    isLightBackground
-                                      ? "hsla(0, 0%, 0%, 0.0625)"
-                                      : "hsla(0, 0%, 100%, 0.0625)",
-                                  ]}
-                                />
+                                <Flex $gap="1rem">
+                                  {entitlement.feature?.icon && (
+                                    <IconRound
+                                      name={
+                                        entitlement.feature
+                                          .icon as IconNameTypes
+                                      }
+                                      size="sm"
+                                      colors={[
+                                        theme.primary,
+                                        isLightBackground
+                                          ? "hsla(0, 0%, 0%, 0.0625)"
+                                          : "hsla(0, 0%, 100%, 0.25)",
+                                      ]}
+                                    />
+                                  )}
 
-                                <Flex $alignItems="center">
-                                  <Text $size={12}>{feature.name}</Text>
+                                  <FeatureName entitlement={entitlement} />
                                 </Flex>
                               </Flex>
                             );
