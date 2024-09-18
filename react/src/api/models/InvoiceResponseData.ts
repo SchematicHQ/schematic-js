@@ -84,7 +84,7 @@ export interface InvoiceResponseData {
    * @type {string}
    * @memberof InvoiceResponseData
    */
-  externalId: string;
+  externalId?: string | null;
   /**
    *
    * @type {string}
@@ -139,8 +139,6 @@ export function instanceOfInvoiceResponseData(
     return false;
   if (!("environmentId" in value) || value["environmentId"] === undefined)
     return false;
-  if (!("externalId" in value) || value["externalId"] === undefined)
-    return false;
   if (!("id" in value) || value["id"] === undefined) return false;
   if (!("subtotal" in value) || value["subtotal"] === undefined) return false;
   if (!("updatedAt" in value) || value["updatedAt"] === undefined) return false;
@@ -169,7 +167,7 @@ export function InvoiceResponseDataFromJSONTyped(
     customerExternalId: json["customer_external_id"],
     dueDate: json["due_date"] == null ? undefined : new Date(json["due_date"]),
     environmentId: json["environment_id"],
-    externalId: json["external_id"],
+    externalId: json["external_id"] == null ? undefined : json["external_id"],
     id: json["id"],
     paymentMethodExternalId:
       json["payment_method_external_id"] == null
