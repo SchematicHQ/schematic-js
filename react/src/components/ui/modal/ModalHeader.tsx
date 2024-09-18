@@ -5,7 +5,7 @@ import { hexToHSL } from "../../../utils";
 import { Box, Flex, Icon } from "../";
 
 interface ModalHeaderProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   bordered?: boolean;
   onClose?: () => void;
 }
@@ -29,7 +29,7 @@ export const ModalHeader = ({
 
   return (
     <Flex
-      $justifyContent="space-between"
+      $justifyContent={children ? "space-between" : "end"}
       $alignItems="center"
       $flexShrink="0"
       $gap="1rem"
