@@ -591,7 +591,6 @@ export const EmbedProvider = ({
         isPending: false,
       }));
     } catch (error) {
-      console.log(error, "@@@@@!");
       setState((prev) => ({
         ...prev,
         isPending: false,
