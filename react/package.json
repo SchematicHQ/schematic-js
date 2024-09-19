@@ -1,6 +1,6 @@
 {
   "name": "@schematichq/schematic-react",
-  "version": "0.2.0-rc.7",
+  "version": "0.2.0-rc.8",
   "main": "dist/schematic-react.cjs.js",
   "module": "dist/schematic-react.esm.js",
   "types": "dist/schematic-react.d.ts",
