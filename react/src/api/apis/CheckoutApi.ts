@@ -18,6 +18,7 @@ import type {
   ChangeSubscriptionRequestBody,
   CheckoutResponse,
   HydrateComponentResponse,
+  PreviewCheckoutResponse,
 } from "../models/index";
 import {
   ApiErrorFromJSON,
@@ -28,6 +29,8 @@ import {
   CheckoutResponseToJSON,
   HydrateComponentResponseFromJSON,
   HydrateComponentResponseToJSON,
+  PreviewCheckoutResponseFromJSON,
+  PreviewCheckoutResponseToJSON,
 } from "../models/index";
 
 export interface CheckoutRequest {
@@ -36,6 +39,10 @@ export interface CheckoutRequest {
 
 export interface HydrateComponentRequest {
   componentId: string;
+}
+
+export interface PreviewCheckoutRequest {
+  changeSubscriptionRequestBody: ChangeSubscriptionRequestBody;
 }
 
 /**
@@ -147,6 +154,64 @@ export class CheckoutApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<HydrateComponentResponse> {
     const response = await this.hydrateComponentRaw(
+      requestParameters,
+      initOverrides,
+    );
+    return await response.value();
+  }
+
+  /**
+   * Preview checkout
+   */
+  async previewCheckoutRaw(
+    requestParameters: PreviewCheckoutRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<PreviewCheckoutResponse>> {
+    if (requestParameters["changeSubscriptionRequestBody"] == null) {
+      throw new runtime.RequiredError(
+        "changeSubscriptionRequestBody",
+        'Required parameter "changeSubscriptionRequestBody" was null or undefined when calling previewCheckout().',
+      );
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    headerParameters["Content-Type"] = "application/json";
+
+    if (this.configuration && this.configuration.apiKey) {
+      headerParameters["X-Schematic-Api-Key"] = await this.configuration.apiKey(
+        "X-Schematic-Api-Key",
+      ); // ApiKeyAuth authentication
+    }
+
+    const response = await this.request(
+      {
+        path: `/checkout/preview`,
+        method: "POST",
+        headers: headerParameters,
+        query: queryParameters,
+        body: ChangeSubscriptionRequestBodyToJSON(
+          requestParameters["changeSubscriptionRequestBody"],
+        ),
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      PreviewCheckoutResponseFromJSON(jsonValue),
+    );
+  }
+
+  /**
+   * Preview checkout
+   */
+  async previewCheckout(
+    requestParameters: PreviewCheckoutRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<PreviewCheckoutResponse> {
+    const response = await this.previewCheckoutRaw(
       requestParameters,
       initOverrides,
     );

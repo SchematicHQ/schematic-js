@@ -6,6 +6,10 @@ export function camelToHyphen(str: string) {
   return str.replace(/([a-z][A-Z])/g, (g) => `${g[0]}-${g[1].toLowerCase()}`);
 }
 
+export function formatNumber(num: number) {
+  return new Intl.NumberFormat("en-US").format(num);
+}
+
 export function formatCurrency(amount: number) {
   try {
     const dollars = amount / 100;

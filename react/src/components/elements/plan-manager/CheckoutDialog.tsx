@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useTheme } from "styled-components";
 import pluralize from "pluralize";
 import type {
@@ -7,7 +7,7 @@ import type {
 } from "../../../api";
 import { TEXT_BASE_SIZE } from "../../../const";
 import { useEmbed } from "../../../hooks";
-import { hexToHSL, formatCurrency } from "../../../utils";
+import { hexToHSL, formatCurrency, formatNumber } from "../../../utils";
 import {
   Box,
   Flex,
@@ -41,8 +41,8 @@ const FeatureName = ({
     if (entitlement.metricPeriod) {
       period = {
         current_day: "day",
-        current_month: "mo",
-        current_year: "yr",
+        current_month: "month",
+        current_year: "year",
       }[entitlement.metricPeriod];
     }
 
@@ -55,13 +55,9 @@ const FeatureName = ({
           $color={theme.typography.text.color}
         >
           {typeof entitlement.valueNumeric === "number"
-            ? pluralize(
-                entitlement.feature.name,
-                entitlement.valueNumeric,
-                true,
-              )
+            ? `${formatNumber(entitlement.valueNumeric)} ${pluralize(entitlement.feature.name, entitlement.valueNumeric)}`
             : `Unlimited ${pluralize(entitlement.feature.name)}`}
-          {period && `/${period}`}
+          {period && ` per ${period}`}
         </Text>
       </Flex>
     );
@@ -147,6 +143,39 @@ export const CheckoutDialog = () => {
   const isLightBackground = useMemo(() => {
     return hexToHSL(theme.card.background).l > 50;
   }, [theme.card.background]);
+
+  const selectPlan = useCallback(
+    async (plan: CompanyPlanDetailResponseData) => {
+      setSelectedPlan(plan);
+
+      const priceId = (
+        planPeriod === "month" ? plan?.monthlyPrice : plan?.yearlyPrice
+      )?.id;
+      if (!priceId) {
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        const response = await api?.previewCheckout({
+          changeSubscriptionRequestBody: {
+            newPlanId: plan.id,
+            newPriceId: priceId,
+            ...(paymentMethod?.id && { paymentMethodId: paymentMethod.id }),
+            ...(paymentMethodId && { paymentMethodId }),
+          },
+        });
+        console.debug(response);
+      } catch {
+        setError(
+          "Error retrieving plan details. Please try again in a moment.",
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [api, paymentMethod, paymentMethodId, planPeriod],
+  );
 
   const allowCheckout =
     api &&
@@ -443,7 +472,7 @@ export const CheckoutDialog = () => {
                             <StyledButton
                               disabled={plan.valid === false}
                               {...(plan.valid === true && {
-                                onClick: () => setSelectedPlan(plan),
+                                onClick: () => selectPlan(plan),
                               })}
                               $size="sm"
                               $color="primary"
@@ -841,7 +870,7 @@ export const CheckoutDialog = () => {
               </Text>
             </Box>
 
-            {error && (
+            {!isLoading && error && (
               <Box>
                 <Text
                   $font={theme.typography.text.fontFamily}

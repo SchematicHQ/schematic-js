@@ -1,53 +1,53 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTheme } from "styled-components";
 import { useEmbed } from "../../hooks";
-import { ReactNode, useEffect } from "react";
 import { Box, Flex, IconRound, Text } from "../ui";
-import { TEXT_BASE_SIZE } from "../../const";
+import { Card } from "./card";
 
-const DisabledState = () => {
+const Disabled = () => {
   const theme = useTheme();
 
   return (
-    <Box $width="100%">
-      <Flex
-        $flexDirection="column"
-        $padding={`${theme.card.padding / TEXT_BASE_SIZE}rem`}
-        $width="100%"
-        $height="auto"
-        $borderRadius={`${theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
-        $backgroundColor={theme.card.background}
-        $alignItems="center"
-        $justifyContent="center"
-      >
-        <Box
-          $marginBottom="8px"
-          $fontSize={`${theme.typography.heading1.fontSize / TEXT_BASE_SIZE}rem`}
-          $fontFamily={theme.typography.heading1.fontFamily}
-          $fontWeight={theme.typography.heading1.fontWeight}
-          $color={theme.typography.heading1.color}
+    <Box $width="max-content" $height="max-content" $margin="0 auto">
+      <Card>
+        <Flex
+          $flexDirection="column"
+          $justifyContent="center"
+          $alignItems="center"
+          $whiteSpace="nowrap"
         >
-          Coming soon
-        </Box>
-        <Box
-          $marginBottom="8px"
-          $fontSize={`${theme.typography.text.fontSize / TEXT_BASE_SIZE}rem`}
-          $fontFamily={theme.typography.text.fontFamily}
-          $fontWeight={theme.typography.text.fontWeight}
-          $color={theme.typography.text.color}
-        >
-          The plan manager will be back very soon.
-        </Box>
-      </Flex>
+          <Box $marginBottom="0.5rem">
+            <Text
+              as="h1"
+              $font={theme.typography.heading1.fontFamily}
+              $size={theme.typography.heading1.fontSize}
+              $weight={theme.typography.heading1.fontWeight}
+              $color={theme.typography.heading1.color}
+            >
+              Portal not found
+            </Text>
+          </Box>
+
+          <Text
+            as="p"
+            $font={theme.typography.text.fontFamily}
+            $size={theme.typography.text.fontSize}
+            $weight={theme.typography.text.fontWeight}
+            $color={theme.typography.text.color}
+          >
+            Please try again later.
+          </Text>
+        </Flex>
+      </Card>
     </Box>
   );
 };
 
-const SuccessState = () => {
-  const [isOpen, setIsOpen] = useState(true);
-
+const Success = () => {
   const theme = useTheme();
   const { hydrate, data, api, setLayout, isPending } = useEmbed();
+
+  const [isOpen, setIsOpen] = useState(true);
 
   useEffect(() => {
     if (api && data.component?.id) {
@@ -63,56 +63,61 @@ const SuccessState = () => {
   }, [isPending, isOpen, setLayout]);
 
   return (
-    <Flex
-      $flexDirection="column"
-      $justifyContent="center"
-      $alignItems="center"
-      $gap={`${32 / TEXT_BASE_SIZE}rem`}
-      $width="min-content"
-      $height="min-content"
-      $margin="auto"
-      $padding={`${theme.card.padding / TEXT_BASE_SIZE}rem ${(theme.card.padding * 1.5) / TEXT_BASE_SIZE}rem`}
-      $whiteSpace="nowrap"
-      $backgroundColor={theme.card.background}
-      $borderRadius="0.5rem"
-      $boxShadow="0px 1px 20px 0px #1018280F, 0px 1px 3px 0px #1018281A;"
-    >
-      <IconRound
-        name="check"
-        size="3xl"
-        colors={[theme.card.background, theme.primary]}
-      />
-      <Text
-        as="h1"
-        $font={theme.typography.heading1.fontFamily}
-        $size={theme.typography.heading1.fontSize}
-        $weight={theme.typography.heading1.fontWeight}
-        $color={theme.typography.heading1.color}
-      >
-        Subscription updated!
-      </Text>
+    <Box $width="max-content" $height="max-content" $margin="0 auto">
+      <Card>
+        <Flex
+          $flexDirection="column"
+          $justifyContent="center"
+          $alignItems="center"
+          $whiteSpace="nowrap"
+        >
+          <Box $marginBottom="1.5rem">
+            <IconRound
+              name="check"
+              size="3xl"
+              colors={[theme.card.background, theme.primary]}
+            />
+          </Box>
 
-      <Text
-        as="p"
-        $font={theme.typography.text.fontFamily}
-        $size={theme.typography.text.fontSize}
-        $weight={theme.typography.text.fontWeight}
-        $color={theme.typography.text.color}
-      >
-        Loading...
-      </Text>
-    </Flex>
+          <Box $marginBottom="0.5rem">
+            <Text
+              as="h1"
+              $font={theme.typography.heading1.fontFamily}
+              $size={theme.typography.heading1.fontSize}
+              $weight={theme.typography.heading1.fontWeight}
+              $color={theme.typography.heading1.color}
+            >
+              Subscription updated!
+            </Text>
+          </Box>
+
+          <Text
+            as="p"
+            $font={theme.typography.text.fontFamily}
+            $size={theme.typography.text.fontSize}
+            $weight={theme.typography.text.fontWeight}
+            $color={theme.typography.text.color}
+          >
+            Loading…
+          </Text>
+        </Flex>
+      </Card>
+    </Box>
   );
 };
 
-export const RenderLayout = ({ children }: { children: ReactNode }) => {
+interface RenderLayoutProps {
+  children: React.ReactNode;
+}
+
+export const RenderLayout = ({ children }: RenderLayoutProps) => {
   const { layout } = useEmbed();
 
   switch (layout) {
     case "disabled":
-      return <DisabledState />;
+      return <Disabled />;
     case "success":
-      return <SuccessState />;
+      return <Success />;
     default:
       return children;
   }

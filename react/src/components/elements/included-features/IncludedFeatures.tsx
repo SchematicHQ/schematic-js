@@ -1,10 +1,10 @@
-import { forwardRef, useMemo } from "react";
+import { forwardRef, useLayoutEffect, useMemo, useRef } from "react";
 import { useTheme } from "styled-components";
 import pluralize from "pluralize";
 import { useEmbed } from "../../../hooks";
 import { type FontStyle } from "../../../context";
 import type { RecursivePartial, ElementProps } from "../../../types";
-import { hexToHSL } from "../../../utils";
+import { hexToHSL, formatNumber } from "../../../utils";
 import { Box, Flex, IconRound, Text, type IconNameTypes } from "../../ui";
 
 interface DesignProps {
@@ -64,6 +64,8 @@ export const IncludedFeatures = forwardRef<
   const theme = useTheme();
   const { data } = useEmbed();
 
+  const elements = useRef<HTMLElement[]>([]);
+
   const features = useMemo(() => {
     return (data.featureUsage?.features || []).map(
       ({
@@ -96,6 +98,43 @@ export const IncludedFeatures = forwardRef<
     return hexToHSL(theme.card.background).l > 50;
   }, [theme.card.background]);
 
+  useLayoutEffect(() => {
+    const assignRows = (parent: Element) => {
+      let isWrapped = true;
+      [...parent.children].forEach((el) => {
+        if (!(el instanceof HTMLElement)) {
+          return;
+        }
+
+        if (
+          !el.previousElementSibling ||
+          el.offsetLeft <= (el.previousElementSibling as HTMLElement).offsetLeft
+        ) {
+          isWrapped = !isWrapped;
+        }
+
+        if (isWrapped) {
+          el.style.textAlign = "left";
+        } else if (el.previousElementSibling) {
+          el.style.textAlign = "right";
+        }
+      });
+    };
+
+    elements.current.forEach((el) => {
+      if (!el) return;
+
+      const observer = new ResizeObserver((entries) => {
+        entries.forEach((entry) => {
+          assignRows(entry.target);
+        });
+      });
+
+      observer.observe(el);
+      assignRows(el);
+    });
+  }, [elements.current.length]);
+
   return (
     <Flex ref={ref} className={className} $flexDirection="column" $gap="1.5rem">
       {props.header.isVisible && (
@@ -125,6 +164,7 @@ export const IncludedFeatures = forwardRef<
             ...acc,
             <Flex
               key={index}
+              ref={(el) => elements.current.push(el!)}
               $flexWrap="wrap"
               $justifyContent="space-between"
               $alignItems="center"
@@ -161,7 +201,7 @@ export const IncludedFeatures = forwardRef<
               </Flex>
 
               {allocationType === "numeric" && feature?.name && (
-                <Box $textAlign="right">
+                <Box $textAlign="right" $paddingLeft="3.5rem">
                   {props.entitlement.isVisible && (
                     <Text
                       as={Box}
@@ -180,7 +220,7 @@ export const IncludedFeatures = forwardRef<
                       }
                     >
                       {typeof allocation === "number"
-                        ? pluralize(feature.name, allocation, true)
+                        ? `${formatNumber(allocation)} ${pluralize(feature.name, allocation)}`
                         : `Unlimited ${pluralize(feature.name)}`}
                     </Text>
                   )}
@@ -196,9 +236,13 @@ export const IncludedFeatures = forwardRef<
                       $lineHeight={1.5}
                       $color={theme.typography[props.usage.fontStyle].color}
                     >
-                      {typeof allocation === "number"
-                        ? `${usage} of ${allocation} used`
-                        : `${usage} used`}
+                      {typeof usage === "number" && (
+                        <>
+                          {typeof allocation === "number"
+                            ? `${formatNumber(usage)} of ${formatNumber(allocation)} used`
+                            : `${formatNumber(usage)} used`}
+                        </>
+                      )}
                     </Text>
                   )}
                 </Box>
