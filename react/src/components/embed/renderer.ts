@@ -31,7 +31,7 @@ export function createRenderer(options?: RenderOptions) {
     node: SerializedNodeWithChildren,
     index: number,
   ): React.ReactNode {
-    const { type, props = {}, custom = {}, children } = node;
+    const { type, props = {}, children } = node;
     const name = typeof type !== "string" ? type.resolvedName : type;
 
     const component = useFallback
@@ -54,11 +54,9 @@ export function createRenderer(options?: RenderOptions) {
     return createElement(
       component,
       {
+        key: index,
         className,
         ...(component !== "div" && { ...resolvedProps }),
-        ...(component !== "div" &&
-          Object.keys(custom).length > 0 && { custom }),
-        key: index,
       },
       resolvedChildren,
     );

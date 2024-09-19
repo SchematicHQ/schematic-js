@@ -7,4 +7,5 @@ export const StyledViewport = styled.div<{
   flex-wrap: wrap;
   margin-left: auto;
   margin-right: auto;
+  gap: 1rem;
 `;
