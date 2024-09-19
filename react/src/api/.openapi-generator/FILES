@@ -39,7 +39,9 @@ models/PlanDetailResponseData.ts
 models/PlanEntitlementResponseData.ts
 models/PlanGroupPlanDetailResponseData.ts
 models/PlanResponseData.ts
+models/PreviewCheckoutResponse.ts
 models/PreviewObject.ts
+models/PreviewSubscriptionChangeResponseData.ts
 models/RuleConditionDetailResponseData.ts
 models/RuleConditionGroupDetailResponseData.ts
 models/RuleConditionGroupResponseData.ts
