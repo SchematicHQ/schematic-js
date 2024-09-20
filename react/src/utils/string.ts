@@ -6,6 +6,10 @@ export function camelToHyphen(str: string) {
   return str.replace(/([a-z][A-Z])/g, (g) => `${g[0]}-${g[1].toLowerCase()}`);
 }
 
+export function formatNumber(num: number) {
+  return new Intl.NumberFormat("en-US").format(num);
+}
+
 export function formatCurrency(amount: number) {
   try {
     const dollars = amount / 100;
@@ -36,4 +40,18 @@ export function formatCurrency(amount: number) {
       currency: "USD",
     }).format(amount / 100);
   }
+}
+
+export function formatOrdinal(n: number) {
+  const enOrdinalRules = new Intl.PluralRules("en-US", { type: "ordinal" });
+  const suffixes = new Map([
+    ["one", "st"],
+    ["two", "nd"],
+    ["few", "rd"],
+    ["other", "th"],
+  ]);
+  const rule = enOrdinalRules.select(n);
+  const suffix = suffixes.get(rule);
+
+  return `${n}${suffix}`;
 }

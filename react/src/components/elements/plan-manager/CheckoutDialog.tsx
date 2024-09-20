@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useTheme } from "styled-components";
 import pluralize from "pluralize";
 import type {
@@ -7,7 +7,13 @@ import type {
 } from "../../../api";
 import { TEXT_BASE_SIZE } from "../../../const";
 import { useEmbed } from "../../../hooks";
-import { hexToHSL, formatCurrency } from "../../../utils";
+import {
+  hexToHSL,
+  formatCurrency,
+  formatNumber,
+  formatOrdinal,
+  getMonthName,
+} from "../../../utils";
 import {
   Box,
   Flex,
@@ -41,8 +47,8 @@ const FeatureName = ({
     if (entitlement.metricPeriod) {
       period = {
         current_day: "day",
-        current_month: "mo",
-        current_year: "yr",
+        current_month: "month",
+        current_year: "year",
       }[entitlement.metricPeriod];
     }
 
@@ -55,13 +61,9 @@ const FeatureName = ({
           $color={theme.typography.text.color}
         >
           {typeof entitlement.valueNumeric === "number"
-            ? pluralize(
-                entitlement.feature.name,
-                entitlement.valueNumeric,
-                true,
-              )
+            ? `${formatNumber(entitlement.valueNumeric)} ${pluralize(entitlement.feature.name, entitlement.valueNumeric)}`
             : `Unlimited ${pluralize(entitlement.feature.name)}`}
-          {period && `/${period}`}
+          {period && ` per ${period}`}
         </Text>
       </Flex>
     );
@@ -93,6 +95,11 @@ export const CheckoutDialog = () => {
   );
   const [selectedPlan, setSelectedPlan] =
     useState<CompanyPlanDetailResponseData>();
+  const [charges, setCharges] = useState<{
+    dueNow: number;
+    newCharges: number;
+    proration: number;
+  }>();
   const [paymentMethodId, setPaymentMethodId] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | undefined>();
@@ -144,9 +151,69 @@ export const CheckoutDialog = () => {
     return 0;
   }, [selectedPlan]);
 
+  const subscriptionPrice = useMemo(() => {
+    if (
+      !selectedPlan ||
+      !selectedPlan.monthlyPrice ||
+      !selectedPlan.yearlyPrice
+    ) {
+      return;
+    }
+
+    return formatCurrency(
+      (planPeriod === "month"
+        ? selectedPlan.monthlyPrice
+        : selectedPlan.yearlyPrice
+      )?.price,
+    );
+  }, [selectedPlan, planPeriod]);
+
   const isLightBackground = useMemo(() => {
     return hexToHSL(theme.card.background).l > 50;
   }, [theme.card.background]);
+
+  const selectPlan = useCallback(
+    async (plan: CompanyPlanDetailResponseData, newPeriod?: string) => {
+      setSelectedPlan(plan);
+      setCharges(undefined);
+
+      const period = newPeriod || planPeriod;
+      const priceId = (
+        period === "month" ? plan?.monthlyPrice : plan?.yearlyPrice
+      )?.id;
+      if (!priceId || !api) {
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        const { data } = await api.previewCheckout({
+          changeSubscriptionRequestBody: {
+            newPlanId: plan.id,
+            newPriceId: priceId,
+          },
+        });
+        setCharges(data);
+      } catch {
+        setError(
+          "Error retrieving plan details. Please try again in a moment.",
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [api, planPeriod],
+  );
+
+  const changePlanPeriod = useCallback(
+    (period: string) => {
+      setPlanPeriod(period);
+      if (selectedPlan) {
+        selectPlan(selectedPlan, period);
+      }
+    },
+    [selectedPlan, selectPlan],
+  );
 
   const allowCheckout =
     api &&
@@ -291,171 +358,192 @@ export const CheckoutDialog = () => {
               </Flex>
 
               <Flex $flexWrap="wrap" $gap="1rem" $flexGrow="1">
-                {availablePlans?.map((plan) => {
-                  return (
-                    <Flex
-                      key={plan.id}
-                      $flexDirection="column"
-                      $width="100%"
-                      $minWidth="280px"
-                      $maxWidth={`calc(${100 / 3}% - 1rem)`}
-                      $backgroundColor={theme.card.background}
-                      $outlineWidth="2px"
-                      $outlineStyle="solid"
-                      $outlineColor={
-                        plan.id === selectedPlan?.id
-                          ? theme.primary
-                          : "transparent"
-                      }
-                      $borderRadius={`${theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
-                      {...(theme.card.hasShadow && {
-                        $boxShadow:
-                          "0px 1px 3px rgba(16, 24, 40, 0.1), 0px 1px 20px rgba(16, 24, 40, 0.06)",
-                      })}
-                    >
+                {availablePlans
+                  .sort((a, b) => {
+                    if (
+                      planPeriod === "year" &&
+                      a.yearlyPrice &&
+                      b.yearlyPrice
+                    ) {
+                      return a.yearlyPrice?.price - b.yearlyPrice?.price;
+                    }
+
+                    if (
+                      planPeriod === "month" &&
+                      a.monthlyPrice &&
+                      b.monthlyPrice
+                    ) {
+                      return a.monthlyPrice.price - b.monthlyPrice.price;
+                    }
+
+                    return 0;
+                  })
+                  .map((plan) => {
+                    return (
                       <Flex
+                        key={plan.id}
                         $flexDirection="column"
-                        $position="relative"
-                        $gap="1rem"
                         $width="100%"
-                        $height="auto"
-                        $padding={`${theme.card.padding / TEXT_BASE_SIZE}rem`}
-                        $borderBottomWidth="1px"
-                        $borderStyle="solid"
-                        $borderColor={
-                          isLightBackground
-                            ? "hsla(0, 0%, 0%, 0.175)"
-                            : "hsla(0, 0%, 100%, 0.175)"
+                        $minWidth="280px"
+                        $maxWidth={`calc(${100 / 3}% - 1rem)`}
+                        $backgroundColor={theme.card.background}
+                        $outlineWidth="2px"
+                        $outlineStyle="solid"
+                        $outlineColor={
+                          plan.id === selectedPlan?.id
+                            ? theme.primary
+                            : "transparent"
                         }
-                      >
-                        <Text $size={20} $weight={600}>
-                          {plan.name}
-                        </Text>
-                        <Text $size={14}>{plan.description}</Text>
-                        <Text>
-                          <Box $display="inline-block" $fontSize="1.5rem">
-                            {formatCurrency(
-                              (planPeriod === "month"
-                                ? plan.monthlyPrice
-                                : plan.yearlyPrice
-                              )?.price ?? 0,
-                            )}
-                          </Box>
-                          <Box $display="inline-block" $fontSize="0.75rem">
-                            /{planPeriod}
-                          </Box>
-                        </Text>
-                        {(plan.current || plan.id === currentPlan?.id) && (
-                          <Flex
-                            $position="absolute"
-                            $right="1rem"
-                            $top="1rem"
-                            $fontSize="0.625rem"
-                            $color={
-                              hexToHSL(theme.primary).l > 50
-                                ? "#000000"
-                                : "#FFFFFF"
-                            }
-                            $backgroundColor={theme.primary}
-                            $borderRadius="9999px"
-                            $padding="0.125rem 0.85rem"
-                          >
-                            Current plan
-                          </Flex>
-                        )}
-                      </Flex>
-                      <Flex
-                        $flexDirection="column"
-                        $position="relative"
-                        $gap="0.5rem"
-                        $flex="1"
-                        $width="100%"
-                        $height="auto"
-                        $padding="1.5rem"
-                      >
-                        {plan.entitlements.map((entitlement) => {
-                          return (
-                            <Flex
-                              key={entitlement.id}
-                              $flexWrap="wrap"
-                              $justifyContent="space-between"
-                              $alignItems="center"
-                              $gap="1rem"
-                            >
-                              <Flex $gap="1rem">
-                                {entitlement.feature?.icon && (
-                                  <IconRound
-                                    name={
-                                      entitlement.feature.icon as IconNameTypes
-                                    }
-                                    size="sm"
-                                    colors={[
-                                      theme.primary,
-                                      isLightBackground
-                                        ? "hsla(0, 0%, 0%, 0.0625)"
-                                        : "hsla(0, 0%, 100%, 0.25)",
-                                    ]}
-                                  />
-                                )}
-
-                                <FeatureName entitlement={entitlement} />
-                              </Flex>
-                            </Flex>
-                          );
+                        $borderRadius={`${theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
+                        {...(theme.card.hasShadow && {
+                          $boxShadow:
+                            "0px 1px 3px rgba(16, 24, 40, 0.1), 0px 1px 20px rgba(16, 24, 40, 0.06)",
                         })}
-                      </Flex>
-                      <Flex
-                        $flexDirection="column"
-                        $position="relative"
-                        $gap="1rem"
-                        $width="100%"
-                        $height="auto"
-                        $padding="1.5rem"
                       >
-                        {plan.id === selectedPlan?.id && (
-                          <Flex
-                            $justifyContent="center"
-                            $alignItems="center"
-                            $gap="0.25rem"
-                            $fontSize="0.9375rem"
-                            $padding="0.625rem 0"
-                          >
-                            <Icon
-                              name="check-rounded"
-                              style={{
-                                fontSize: 20,
-                                lineHeight: "1",
-                                color: theme.primary,
-                              }}
-                            />
-
-                            <Text
-                              $lineHeight="1.4"
-                              $color={theme.typography.text.color}
+                        <Flex
+                          $flexDirection="column"
+                          $position="relative"
+                          $gap="1rem"
+                          $width="100%"
+                          $height="auto"
+                          $padding={`${theme.card.padding / TEXT_BASE_SIZE}rem`}
+                          $borderBottomWidth="1px"
+                          $borderStyle="solid"
+                          $borderColor={
+                            isLightBackground
+                              ? "hsla(0, 0%, 0%, 0.175)"
+                              : "hsla(0, 0%, 100%, 0.175)"
+                          }
+                        >
+                          <Text $size={20} $weight={600}>
+                            {plan.name}
+                          </Text>
+                          <Text $size={14}>{plan.description}</Text>
+                          <Text>
+                            <Box $display="inline-block" $fontSize="1.5rem">
+                              {formatCurrency(
+                                (planPeriod === "month"
+                                  ? plan.monthlyPrice
+                                  : plan.yearlyPrice
+                                )?.price ?? 0,
+                              )}
+                            </Box>
+                            <Box $display="inline-block" $fontSize="0.75rem">
+                              /{planPeriod}
+                            </Box>
+                          </Text>
+                          {(plan.current || plan.id === currentPlan?.id) && (
+                            <Flex
+                              $position="absolute"
+                              $right="1rem"
+                              $top="1rem"
+                              $fontSize="0.625rem"
+                              $color={
+                                hexToHSL(theme.primary).l > 50
+                                  ? "#000000"
+                                  : "#FFFFFF"
+                              }
+                              $backgroundColor={theme.primary}
+                              $borderRadius="9999px"
+                              $padding="0.125rem 0.85rem"
                             >
-                              Selected
-                            </Text>
-                          </Flex>
-                        )}
-
-                        {!(plan.current || plan.id === currentPlan?.id) &&
-                          plan.id !== selectedPlan?.id && (
-                            <StyledButton
-                              disabled={plan.valid === false}
-                              {...(plan.valid === true && {
-                                onClick: () => setSelectedPlan(plan),
-                              })}
-                              $size="sm"
-                              $color="primary"
-                              $variant="outline"
-                            >
-                              Select
-                            </StyledButton>
+                              Current plan
+                            </Flex>
                           )}
+                        </Flex>
+                        <Flex
+                          $flexDirection="column"
+                          $position="relative"
+                          $gap="0.5rem"
+                          $flex="1"
+                          $width="100%"
+                          $height="auto"
+                          $padding="1.5rem"
+                        >
+                          {plan.entitlements.map((entitlement) => {
+                            return (
+                              <Flex
+                                key={entitlement.id}
+                                $flexWrap="wrap"
+                                $justifyContent="space-between"
+                                $alignItems="center"
+                                $gap="1rem"
+                              >
+                                <Flex $gap="1rem">
+                                  {entitlement.feature?.icon && (
+                                    <IconRound
+                                      name={
+                                        entitlement.feature
+                                          .icon as IconNameTypes
+                                      }
+                                      size="sm"
+                                      colors={[
+                                        theme.primary,
+                                        isLightBackground
+                                          ? "hsla(0, 0%, 0%, 0.0625)"
+                                          : "hsla(0, 0%, 100%, 0.25)",
+                                      ]}
+                                    />
+                                  )}
+
+                                  <FeatureName entitlement={entitlement} />
+                                </Flex>
+                              </Flex>
+                            );
+                          })}
+                        </Flex>
+                        <Flex
+                          $flexDirection="column"
+                          $position="relative"
+                          $gap="1rem"
+                          $width="100%"
+                          $height="auto"
+                          $padding="1.5rem"
+                        >
+                          {plan.id === selectedPlan?.id && (
+                            <Flex
+                              $justifyContent="center"
+                              $alignItems="center"
+                              $gap="0.25rem"
+                              $fontSize="0.9375rem"
+                              $padding="0.625rem 0"
+                            >
+                              <Icon
+                                name="check-rounded"
+                                style={{
+                                  fontSize: 20,
+                                  lineHeight: "1",
+                                  color: theme.primary,
+                                }}
+                              />
+
+                              <Text
+                                $lineHeight="1.4"
+                                $color={theme.typography.text.color}
+                              >
+                                Selected
+                              </Text>
+                            </Flex>
+                          )}
+
+                          {!(plan.current || plan.id === currentPlan?.id) &&
+                            plan.id !== selectedPlan?.id && (
+                              <StyledButton
+                                disabled={plan.valid === false}
+                                {...(plan.valid === true && {
+                                  onClick: () => selectPlan(plan),
+                                })}
+                                $size="sm"
+                                $color="primary"
+                                $variant="outline"
+                              >
+                                Select
+                              </StyledButton>
+                            )}
+                        </Flex>
                       </Flex>
-                    </Flex>
-                  );
-                })}
+                    );
+                  })}
               </Flex>
             </>
           )}
@@ -558,7 +646,7 @@ export const CheckoutDialog = () => {
                 $cursor="pointer"
               >
                 <Flex
-                  onClick={() => setPlanPeriod("month")}
+                  onClick={() => changePlanPeriod("month")}
                   $justifyContent="center"
                   $alignItems="center"
                   $padding="0.25rem 0.5rem"
@@ -580,7 +668,7 @@ export const CheckoutDialog = () => {
                   </Text>
                 </Flex>
                 <Flex
-                  onClick={() => setPlanPeriod("year")}
+                  onClick={() => changePlanPeriod("year")}
                   $justifyContent="center"
                   $alignItems="center"
                   $padding="0.25rem 0.5rem"
@@ -622,7 +710,7 @@ export const CheckoutDialog = () => {
           <Flex
             $flexDirection="column"
             $position="relative"
-            $gap="1rem"
+            $gap="0.5rem"
             $width="100%"
             $height="auto"
             $padding="1.5rem"
@@ -683,12 +771,12 @@ export const CheckoutDialog = () => {
               )}
 
               {selectedPlan && (
-                <>
+                <Box $marginBottom="1rem">
                   <Box
                     $width="100%"
                     $textAlign="left"
                     $opacity="50%"
-                    $marginBottom="-0.25rem"
+                    $marginBottom="0.25rem"
                     $marginTop="-0.25rem"
                   >
                     <Icon
@@ -728,9 +816,58 @@ export const CheckoutDialog = () => {
                       </Text>
                     </Flex>
                   </Flex>
-                </>
+                </Box>
               )}
             </Flex>
+
+            {charges?.proration && (
+              <>
+                <Box $opacity="0.625">
+                  <Text
+                    $font={theme.typography.text.fontFamily}
+                    $size={14}
+                    $weight={theme.typography.text.fontWeight}
+                    $color={theme.typography.text.color}
+                  >
+                    {charges?.proration && charges.proration > 0
+                      ? "Proration"
+                      : "Credits"}
+                  </Text>
+                </Box>
+
+                <Flex $flexDirection="column" $gap="0.5rem">
+                  {currentPlan && (
+                    <Flex
+                      $justifyContent="space-between"
+                      $alignItems="center"
+                      $gap="1rem"
+                    >
+                      <Flex>
+                        <Text
+                          $font={theme.typography.heading4.fontFamily}
+                          $size={theme.typography.heading4.fontSize}
+                          $weight={theme.typography.heading4.fontWeight}
+                          $color={theme.typography.heading4.color}
+                        >
+                          Unused time with {currentPlan.name}
+                        </Text>
+                      </Flex>
+
+                      <Flex>
+                        <Text
+                          $font={theme.typography.text.fontFamily}
+                          $size={theme.typography.text.fontSize}
+                          $weight={theme.typography.text.fontWeight}
+                          $color={theme.typography.text.color}
+                        >
+                          {formatCurrency(charges.proration)}
+                        </Text>
+                      </Flex>
+                    </Flex>
+                  )}
+                </Flex>
+              </>
+            )}
           </Flex>
           <Flex
             $flexDirection="column"
@@ -740,7 +877,7 @@ export const CheckoutDialog = () => {
             $height="auto"
             $padding="1.5rem"
           >
-            {selectedPlan && (
+            {selectedPlan && subscriptionPrice && (
               <Flex $justifyContent="space-between">
                 <Box $opacity="0.625">
                   <Text
@@ -749,7 +886,7 @@ export const CheckoutDialog = () => {
                     $weight={theme.typography.text.fontWeight}
                     $color={theme.typography.text.color}
                   >
-                    {planPeriod === "month" ? "Monthly" : "Yearly"} total:{" "}
+                    {planPeriod === "month" ? "Monthly" : "Yearly"} total:
                   </Text>
                 </Box>
 
@@ -760,13 +897,33 @@ export const CheckoutDialog = () => {
                     $weight={theme.typography.text.fontWeight}
                     $color={theme.typography.text.color}
                   >
-                    {formatCurrency(
-                      (planPeriod === "month"
-                        ? selectedPlan.monthlyPrice
-                        : selectedPlan.yearlyPrice
-                      )?.price ?? 0,
-                    )}
-                    /{planPeriod}
+                    {subscriptionPrice}/{planPeriod}
+                  </Text>
+                </Box>
+              </Flex>
+            )}
+
+            {charges && (
+              <Flex $justifyContent="space-between">
+                <Box $opacity="0.625">
+                  <Text
+                    $font={theme.typography.text.fontFamily}
+                    $size={theme.typography.text.fontSize}
+                    $weight={theme.typography.text.fontWeight}
+                    $color={theme.typography.text.color}
+                  >
+                    Due today:
+                  </Text>
+                </Box>
+
+                <Box>
+                  <Text
+                    $font={theme.typography.text.fontFamily}
+                    $size={theme.typography.text.fontSize}
+                    $weight={theme.typography.text.fontWeight}
+                    $color={theme.typography.text.color}
+                  >
+                    {formatCurrency(charges.dueNow)}
                   </Text>
                 </Box>
               </Flex>
@@ -830,18 +987,7 @@ export const CheckoutDialog = () => {
               </StyledButton>
             )}
 
-            <Box $opacity="0.625">
-              <Text
-                $font={theme.typography.text.fontFamily}
-                $size={theme.typography.text.fontSize}
-                $weight={theme.typography.text.fontWeight}
-                $color={theme.typography.text.color}
-              >
-                Discounts & credits applied at checkout
-              </Text>
-            </Box>
-
-            {error && (
+            {!isLoading && error && (
               <Box>
                 <Text
                   $font={theme.typography.text.fontFamily}
@@ -853,6 +999,21 @@ export const CheckoutDialog = () => {
                 </Text>
               </Box>
             )}
+
+            <Box $opacity="0.625">
+              <Text
+                $font={theme.typography.text.fontFamily}
+                $size={theme.typography.text.fontSize}
+                $weight={theme.typography.text.fontWeight}
+                $color={theme.typography.text.color}
+              >
+                {checkoutStage === "plan"
+                  ? "Discounts & credits applied at checkout"
+                  : subscriptionPrice &&
+                    `You will be billed ${subscriptionPrice} for this subscription
+                    every ${planPeriod} on the ${data.subscription?.latestInvoice?.dueDate && formatOrdinal(new Date(data.subscription.latestInvoice.dueDate).getDate())} ${planPeriod === "year" && data.subscription?.latestInvoice?.dueDate ? `of ${getMonthName(data.subscription.latestInvoice.dueDate)}` : ""} unless you unsubscribe.`}
+              </Text>
+            </Box>
           </Flex>
         </Flex>
       </Flex>
