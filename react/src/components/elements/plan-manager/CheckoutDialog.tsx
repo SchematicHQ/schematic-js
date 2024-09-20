@@ -837,7 +837,11 @@ export const CheckoutDialog = () => {
 
                 <Flex $flexDirection="column" $gap="0.5rem">
                   {currentPlan && (
-                    <Flex $justifyContent="space-between" $alignItems="center">
+                    <Flex
+                      $justifyContent="space-between"
+                      $alignItems="center"
+                      $gap="1rem"
+                    >
                       <Flex>
                         <Text
                           $font={theme.typography.heading4.fontFamily}
