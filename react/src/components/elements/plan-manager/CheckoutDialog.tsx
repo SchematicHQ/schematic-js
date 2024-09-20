@@ -161,8 +161,6 @@ export const CheckoutDialog = () => {
           changeSubscriptionRequestBody: {
             newPlanId: plan.id,
             newPriceId: priceId,
-            ...(paymentMethod?.id && { paymentMethodId: paymentMethod.id }),
-            ...(paymentMethodId && { paymentMethodId }),
           },
         });
         console.debug(response);
@@ -320,171 +318,192 @@ export const CheckoutDialog = () => {
               </Flex>
 
               <Flex $flexWrap="wrap" $gap="1rem" $flexGrow="1">
-                {availablePlans?.map((plan) => {
-                  return (
-                    <Flex
-                      key={plan.id}
-                      $flexDirection="column"
-                      $width="100%"
-                      $minWidth="280px"
-                      $maxWidth={`calc(${100 / 3}% - 1rem)`}
-                      $backgroundColor={theme.card.background}
-                      $outlineWidth="2px"
-                      $outlineStyle="solid"
-                      $outlineColor={
-                        plan.id === selectedPlan?.id
-                          ? theme.primary
-                          : "transparent"
-                      }
-                      $borderRadius={`${theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
-                      {...(theme.card.hasShadow && {
-                        $boxShadow:
-                          "0px 1px 3px rgba(16, 24, 40, 0.1), 0px 1px 20px rgba(16, 24, 40, 0.06)",
-                      })}
-                    >
+                {availablePlans
+                  .sort((a, b) => {
+                    if (
+                      planPeriod === "year" &&
+                      a.yearlyPrice &&
+                      b.yearlyPrice
+                    ) {
+                      return a.yearlyPrice?.price - b.yearlyPrice?.price;
+                    }
+
+                    if (
+                      planPeriod === "month" &&
+                      a.monthlyPrice &&
+                      b.monthlyPrice
+                    ) {
+                      return a.monthlyPrice.price - b.monthlyPrice.price;
+                    }
+
+                    return 0;
+                  })
+                  .map((plan) => {
+                    return (
                       <Flex
+                        key={plan.id}
                         $flexDirection="column"
-                        $position="relative"
-                        $gap="1rem"
                         $width="100%"
-                        $height="auto"
-                        $padding={`${theme.card.padding / TEXT_BASE_SIZE}rem`}
-                        $borderBottomWidth="1px"
-                        $borderStyle="solid"
-                        $borderColor={
-                          isLightBackground
-                            ? "hsla(0, 0%, 0%, 0.175)"
-                            : "hsla(0, 0%, 100%, 0.175)"
+                        $minWidth="280px"
+                        $maxWidth={`calc(${100 / 3}% - 1rem)`}
+                        $backgroundColor={theme.card.background}
+                        $outlineWidth="2px"
+                        $outlineStyle="solid"
+                        $outlineColor={
+                          plan.id === selectedPlan?.id
+                            ? theme.primary
+                            : "transparent"
                         }
-                      >
-                        <Text $size={20} $weight={600}>
-                          {plan.name}
-                        </Text>
-                        <Text $size={14}>{plan.description}</Text>
-                        <Text>
-                          <Box $display="inline-block" $fontSize="1.5rem">
-                            {formatCurrency(
-                              (planPeriod === "month"
-                                ? plan.monthlyPrice
-                                : plan.yearlyPrice
-                              )?.price ?? 0,
-                            )}
-                          </Box>
-                          <Box $display="inline-block" $fontSize="0.75rem">
-                            /{planPeriod}
-                          </Box>
-                        </Text>
-                        {(plan.current || plan.id === currentPlan?.id) && (
-                          <Flex
-                            $position="absolute"
-                            $right="1rem"
-                            $top="1rem"
-                            $fontSize="0.625rem"
-                            $color={
-                              hexToHSL(theme.primary).l > 50
-                                ? "#000000"
-                                : "#FFFFFF"
-                            }
-                            $backgroundColor={theme.primary}
-                            $borderRadius="9999px"
-                            $padding="0.125rem 0.85rem"
-                          >
-                            Current plan
-                          </Flex>
-                        )}
-                      </Flex>
-                      <Flex
-                        $flexDirection="column"
-                        $position="relative"
-                        $gap="0.5rem"
-                        $flex="1"
-                        $width="100%"
-                        $height="auto"
-                        $padding="1.5rem"
-                      >
-                        {plan.entitlements.map((entitlement) => {
-                          return (
-                            <Flex
-                              key={entitlement.id}
-                              $flexWrap="wrap"
-                              $justifyContent="space-between"
-                              $alignItems="center"
-                              $gap="1rem"
-                            >
-                              <Flex $gap="1rem">
-                                {entitlement.feature?.icon && (
-                                  <IconRound
-                                    name={
-                                      entitlement.feature.icon as IconNameTypes
-                                    }
-                                    size="sm"
-                                    colors={[
-                                      theme.primary,
-                                      isLightBackground
-                                        ? "hsla(0, 0%, 0%, 0.0625)"
-                                        : "hsla(0, 0%, 100%, 0.25)",
-                                    ]}
-                                  />
-                                )}
-
-                                <FeatureName entitlement={entitlement} />
-                              </Flex>
-                            </Flex>
-                          );
+                        $borderRadius={`${theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
+                        {...(theme.card.hasShadow && {
+                          $boxShadow:
+                            "0px 1px 3px rgba(16, 24, 40, 0.1), 0px 1px 20px rgba(16, 24, 40, 0.06)",
                         })}
-                      </Flex>
-                      <Flex
-                        $flexDirection="column"
-                        $position="relative"
-                        $gap="1rem"
-                        $width="100%"
-                        $height="auto"
-                        $padding="1.5rem"
                       >
-                        {plan.id === selectedPlan?.id && (
-                          <Flex
-                            $justifyContent="center"
-                            $alignItems="center"
-                            $gap="0.25rem"
-                            $fontSize="0.9375rem"
-                            $padding="0.625rem 0"
-                          >
-                            <Icon
-                              name="check-rounded"
-                              style={{
-                                fontSize: 20,
-                                lineHeight: "1",
-                                color: theme.primary,
-                              }}
-                            />
-
-                            <Text
-                              $lineHeight="1.4"
-                              $color={theme.typography.text.color}
+                        <Flex
+                          $flexDirection="column"
+                          $position="relative"
+                          $gap="1rem"
+                          $width="100%"
+                          $height="auto"
+                          $padding={`${theme.card.padding / TEXT_BASE_SIZE}rem`}
+                          $borderBottomWidth="1px"
+                          $borderStyle="solid"
+                          $borderColor={
+                            isLightBackground
+                              ? "hsla(0, 0%, 0%, 0.175)"
+                              : "hsla(0, 0%, 100%, 0.175)"
+                          }
+                        >
+                          <Text $size={20} $weight={600}>
+                            {plan.name}
+                          </Text>
+                          <Text $size={14}>{plan.description}</Text>
+                          <Text>
+                            <Box $display="inline-block" $fontSize="1.5rem">
+                              {formatCurrency(
+                                (planPeriod === "month"
+                                  ? plan.monthlyPrice
+                                  : plan.yearlyPrice
+                                )?.price ?? 0,
+                              )}
+                            </Box>
+                            <Box $display="inline-block" $fontSize="0.75rem">
+                              /{planPeriod}
+                            </Box>
+                          </Text>
+                          {(plan.current || plan.id === currentPlan?.id) && (
+                            <Flex
+                              $position="absolute"
+                              $right="1rem"
+                              $top="1rem"
+                              $fontSize="0.625rem"
+                              $color={
+                                hexToHSL(theme.primary).l > 50
+                                  ? "#000000"
+                                  : "#FFFFFF"
+                              }
+                              $backgroundColor={theme.primary}
+                              $borderRadius="9999px"
+                              $padding="0.125rem 0.85rem"
                             >
-                              Selected
-                            </Text>
-                          </Flex>
-                        )}
-
-                        {!(plan.current || plan.id === currentPlan?.id) &&
-                          plan.id !== selectedPlan?.id && (
-                            <StyledButton
-                              disabled={plan.valid === false}
-                              {...(plan.valid === true && {
-                                onClick: () => selectPlan(plan),
-                              })}
-                              $size="sm"
-                              $color="primary"
-                              $variant="outline"
-                            >
-                              Select
-                            </StyledButton>
+                              Current plan
+                            </Flex>
                           )}
+                        </Flex>
+                        <Flex
+                          $flexDirection="column"
+                          $position="relative"
+                          $gap="0.5rem"
+                          $flex="1"
+                          $width="100%"
+                          $height="auto"
+                          $padding="1.5rem"
+                        >
+                          {plan.entitlements.map((entitlement) => {
+                            return (
+                              <Flex
+                                key={entitlement.id}
+                                $flexWrap="wrap"
+                                $justifyContent="space-between"
+                                $alignItems="center"
+                                $gap="1rem"
+                              >
+                                <Flex $gap="1rem">
+                                  {entitlement.feature?.icon && (
+                                    <IconRound
+                                      name={
+                                        entitlement.feature
+                                          .icon as IconNameTypes
+                                      }
+                                      size="sm"
+                                      colors={[
+                                        theme.primary,
+                                        isLightBackground
+                                          ? "hsla(0, 0%, 0%, 0.0625)"
+                                          : "hsla(0, 0%, 100%, 0.25)",
+                                      ]}
+                                    />
+                                  )}
+
+                                  <FeatureName entitlement={entitlement} />
+                                </Flex>
+                              </Flex>
+                            );
+                          })}
+                        </Flex>
+                        <Flex
+                          $flexDirection="column"
+                          $position="relative"
+                          $gap="1rem"
+                          $width="100%"
+                          $height="auto"
+                          $padding="1.5rem"
+                        >
+                          {plan.id === selectedPlan?.id && (
+                            <Flex
+                              $justifyContent="center"
+                              $alignItems="center"
+                              $gap="0.25rem"
+                              $fontSize="0.9375rem"
+                              $padding="0.625rem 0"
+                            >
+                              <Icon
+                                name="check-rounded"
+                                style={{
+                                  fontSize: 20,
+                                  lineHeight: "1",
+                                  color: theme.primary,
+                                }}
+                              />
+
+                              <Text
+                                $lineHeight="1.4"
+                                $color={theme.typography.text.color}
+                              >
+                                Selected
+                              </Text>
+                            </Flex>
+                          )}
+
+                          {!(plan.current || plan.id === currentPlan?.id) &&
+                            plan.id !== selectedPlan?.id && (
+                              <StyledButton
+                                disabled={plan.valid === false}
+                                {...(plan.valid === true && {
+                                  onClick: () => selectPlan(plan),
+                                })}
+                                $size="sm"
+                                $color="primary"
+                                $variant="outline"
+                              >
+                                Select
+                              </StyledButton>
+                            )}
+                        </Flex>
                       </Flex>
-                    </Flex>
-                  );
-                })}
+                    );
+                  })}
               </Flex>
             </>
           )}

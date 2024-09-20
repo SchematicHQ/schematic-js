@@ -85,9 +85,13 @@ export const PlanManager = forwardRef<
   const { currentPlan, canChangePlan } = useMemo(() => {
     return {
       currentPlan: data.company?.plan,
-      canChangePlan: stripe !== null,
+      canChangePlan:
+        data.activePlans.length > 0 &&
+        data.stripeEmbed?.publishableKey &&
+        data.stripeEmbed?.setupIntentClientSecret &&
+        stripe !== null,
     };
-  }, [data.company, stripe]);
+  }, [data.company, data.activePlans, data.stripeEmbed, stripe]);
 
   return (
     <div ref={ref} className={className}>
