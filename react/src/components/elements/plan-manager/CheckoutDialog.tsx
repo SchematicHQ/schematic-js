@@ -7,7 +7,13 @@ import type {
 } from "../../../api";
 import { TEXT_BASE_SIZE } from "../../../const";
 import { useEmbed } from "../../../hooks";
-import { hexToHSL, formatCurrency, formatNumber } from "../../../utils";
+import {
+  hexToHSL,
+  formatCurrency,
+  formatNumber,
+  formatOrdinal,
+  getMonthName,
+} from "../../../utils";
 import {
   Box,
   Flex,
@@ -89,6 +95,11 @@ export const CheckoutDialog = () => {
   );
   const [selectedPlan, setSelectedPlan] =
     useState<CompanyPlanDetailResponseData>();
+  const [charges, setCharges] = useState<{
+    dueNow: number;
+    newCharges: number;
+    proration: number;
+  }>();
   const [paymentMethodId, setPaymentMethodId] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | undefined>();
@@ -140,30 +151,49 @@ export const CheckoutDialog = () => {
     return 0;
   }, [selectedPlan]);
 
+  const subscriptionPrice = useMemo(() => {
+    if (
+      !selectedPlan ||
+      !selectedPlan.monthlyPrice ||
+      !selectedPlan.yearlyPrice
+    ) {
+      return;
+    }
+
+    return formatCurrency(
+      (planPeriod === "month"
+        ? selectedPlan.monthlyPrice
+        : selectedPlan.yearlyPrice
+      )?.price,
+    );
+  }, [selectedPlan, planPeriod]);
+
   const isLightBackground = useMemo(() => {
     return hexToHSL(theme.card.background).l > 50;
   }, [theme.card.background]);
 
   const selectPlan = useCallback(
-    async (plan: CompanyPlanDetailResponseData) => {
+    async (plan: CompanyPlanDetailResponseData, newPeriod?: string) => {
       setSelectedPlan(plan);
+      setCharges(undefined);
 
+      const period = newPeriod || planPeriod;
       const priceId = (
-        planPeriod === "month" ? plan?.monthlyPrice : plan?.yearlyPrice
+        period === "month" ? plan?.monthlyPrice : plan?.yearlyPrice
       )?.id;
-      if (!priceId) {
+      if (!priceId || !api) {
         return;
       }
 
       try {
         setIsLoading(true);
-        const response = await api?.previewCheckout({
+        const { data } = await api.previewCheckout({
           changeSubscriptionRequestBody: {
             newPlanId: plan.id,
             newPriceId: priceId,
           },
         });
-        console.debug(response);
+        setCharges(data);
       } catch {
         setError(
           "Error retrieving plan details. Please try again in a moment.",
@@ -172,7 +202,17 @@ export const CheckoutDialog = () => {
         setIsLoading(false);
       }
     },
-    [api, paymentMethod, paymentMethodId, planPeriod],
+    [api, planPeriod],
+  );
+
+  const changePlanPeriod = useCallback(
+    (period: string) => {
+      setPlanPeriod(period);
+      if (selectedPlan) {
+        selectPlan(selectedPlan, period);
+      }
+    },
+    [selectedPlan, selectPlan],
   );
 
   const allowCheckout =
@@ -606,7 +646,7 @@ export const CheckoutDialog = () => {
                 $cursor="pointer"
               >
                 <Flex
-                  onClick={() => setPlanPeriod("month")}
+                  onClick={() => changePlanPeriod("month")}
                   $justifyContent="center"
                   $alignItems="center"
                   $padding="0.25rem 0.5rem"
@@ -628,7 +668,7 @@ export const CheckoutDialog = () => {
                   </Text>
                 </Flex>
                 <Flex
-                  onClick={() => setPlanPeriod("year")}
+                  onClick={() => changePlanPeriod("year")}
                   $justifyContent="center"
                   $alignItems="center"
                   $padding="0.25rem 0.5rem"
@@ -670,7 +710,7 @@ export const CheckoutDialog = () => {
           <Flex
             $flexDirection="column"
             $position="relative"
-            $gap="1rem"
+            $gap="0.5rem"
             $width="100%"
             $height="auto"
             $padding="1.5rem"
@@ -731,12 +771,12 @@ export const CheckoutDialog = () => {
               )}
 
               {selectedPlan && (
-                <>
+                <Box $marginBottom="1rem">
                   <Box
                     $width="100%"
                     $textAlign="left"
                     $opacity="50%"
-                    $marginBottom="-0.25rem"
+                    $marginBottom="0.25rem"
                     $marginTop="-0.25rem"
                   >
                     <Icon
@@ -776,9 +816,54 @@ export const CheckoutDialog = () => {
                       </Text>
                     </Flex>
                   </Flex>
-                </>
+                </Box>
               )}
             </Flex>
+
+            {charges?.proration && (
+              <>
+                <Box $opacity="0.625">
+                  <Text
+                    $font={theme.typography.text.fontFamily}
+                    $size={14}
+                    $weight={theme.typography.text.fontWeight}
+                    $color={theme.typography.text.color}
+                  >
+                    {charges?.proration && charges.proration > 0
+                      ? "Proration"
+                      : "Credits"}
+                  </Text>
+                </Box>
+
+                <Flex $flexDirection="column" $gap="0.5rem">
+                  {currentPlan && (
+                    <Flex $justifyContent="space-between" $alignItems="center">
+                      <Flex>
+                        <Text
+                          $font={theme.typography.heading4.fontFamily}
+                          $size={theme.typography.heading4.fontSize}
+                          $weight={theme.typography.heading4.fontWeight}
+                          $color={theme.typography.heading4.color}
+                        >
+                          Unused time with {currentPlan.name}
+                        </Text>
+                      </Flex>
+
+                      <Flex>
+                        <Text
+                          $font={theme.typography.text.fontFamily}
+                          $size={theme.typography.text.fontSize}
+                          $weight={theme.typography.text.fontWeight}
+                          $color={theme.typography.text.color}
+                        >
+                          {formatCurrency(charges.proration)}
+                        </Text>
+                      </Flex>
+                    </Flex>
+                  )}
+                </Flex>
+              </>
+            )}
           </Flex>
           <Flex
             $flexDirection="column"
@@ -788,7 +873,7 @@ export const CheckoutDialog = () => {
             $height="auto"
             $padding="1.5rem"
           >
-            {selectedPlan && (
+            {selectedPlan && subscriptionPrice && (
               <Flex $justifyContent="space-between">
                 <Box $opacity="0.625">
                   <Text
@@ -797,7 +882,7 @@ export const CheckoutDialog = () => {
                     $weight={theme.typography.text.fontWeight}
                     $color={theme.typography.text.color}
                   >
-                    {planPeriod === "month" ? "Monthly" : "Yearly"} total:{" "}
+                    {planPeriod === "month" ? "Monthly" : "Yearly"} total:
                   </Text>
                 </Box>
 
@@ -808,13 +893,33 @@ export const CheckoutDialog = () => {
                     $weight={theme.typography.text.fontWeight}
                     $color={theme.typography.text.color}
                   >
-                    {formatCurrency(
-                      (planPeriod === "month"
-                        ? selectedPlan.monthlyPrice
-                        : selectedPlan.yearlyPrice
-                      )?.price ?? 0,
-                    )}
-                    /{planPeriod}
+                    {subscriptionPrice}/{planPeriod}
+                  </Text>
+                </Box>
+              </Flex>
+            )}
+
+            {charges && (
+              <Flex $justifyContent="space-between">
+                <Box $opacity="0.625">
+                  <Text
+                    $font={theme.typography.text.fontFamily}
+                    $size={theme.typography.text.fontSize}
+                    $weight={theme.typography.text.fontWeight}
+                    $color={theme.typography.text.color}
+                  >
+                    Due today:
+                  </Text>
+                </Box>
+
+                <Box>
+                  <Text
+                    $font={theme.typography.text.fontFamily}
+                    $size={theme.typography.text.fontSize}
+                    $weight={theme.typography.text.fontWeight}
+                    $color={theme.typography.text.color}
+                  >
+                    {formatCurrency(charges.dueNow)}
                   </Text>
                 </Box>
               </Flex>
@@ -878,17 +983,6 @@ export const CheckoutDialog = () => {
               </StyledButton>
             )}
 
-            <Box $opacity="0.625">
-              <Text
-                $font={theme.typography.text.fontFamily}
-                $size={theme.typography.text.fontSize}
-                $weight={theme.typography.text.fontWeight}
-                $color={theme.typography.text.color}
-              >
-                Discounts & credits applied at checkout
-              </Text>
-            </Box>
-
             {!isLoading && error && (
               <Box>
                 <Text
@@ -901,6 +995,21 @@ export const CheckoutDialog = () => {
                 </Text>
               </Box>
             )}
+
+            <Box $opacity="0.625">
+              <Text
+                $font={theme.typography.text.fontFamily}
+                $size={theme.typography.text.fontSize}
+                $weight={theme.typography.text.fontWeight}
+                $color={theme.typography.text.color}
+              >
+                {checkoutStage === "plan"
+                  ? "Discounts & credits applied at checkout"
+                  : subscriptionPrice &&
+                    `You will be billed ${subscriptionPrice} for this subscription
+                    every ${planPeriod} on the ${data.subscription?.latestInvoice?.dueDate && formatOrdinal(new Date(data.subscription.latestInvoice.dueDate).getDate())} ${planPeriod === "year" && data.subscription?.latestInvoice?.dueDate ? `of ${getMonthName(data.subscription.latestInvoice.dueDate)}` : ""} unless you unsubscribe.`}
+              </Text>
+            </Box>
           </Flex>
         </Flex>
       </Flex>
