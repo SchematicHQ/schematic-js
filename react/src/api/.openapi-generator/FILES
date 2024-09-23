@@ -32,6 +32,7 @@ models/FeatureUsageDetailResponseData.ts
 models/FeatureUsageResponseData.ts
 models/FlagDetailResponseData.ts
 models/FlagResponseData.ts
+models/GetSetupIntentResponse.ts
 models/HydrateComponentResponse.ts
 models/InvoiceResponseData.ts
 models/PaymentMethodResponseData.ts
@@ -49,6 +50,7 @@ models/RuleConditionResourceResponseData.ts
 models/RuleConditionResponseData.ts
 models/RuleDetailResponseData.ts
 models/RuleResponseData.ts
+models/SetupIntentResponseData.ts
 models/StripeEmbedInfo.ts
 models/index.ts
 runtime.ts

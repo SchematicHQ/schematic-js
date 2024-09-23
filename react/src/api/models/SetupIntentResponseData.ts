@@ -14,44 +14,46 @@
 
 import { mapValues } from "../runtime";
 /**
- *
+ * The returned resource
  * @export
- * @interface StripeEmbedInfo
+ * @interface SetupIntentResponseData
  */
-export interface StripeEmbedInfo {
+export interface SetupIntentResponseData {
   /**
    *
    * @type {string}
-   * @memberof StripeEmbedInfo
+   * @memberof SetupIntentResponseData
    */
   publishableKey: string;
   /**
    *
    * @type {string}
-   * @memberof StripeEmbedInfo
+   * @memberof SetupIntentResponseData
    */
   setupIntentClientSecret?: string | null;
 }
 
 /**
- * Check if a given object implements the StripeEmbedInfo interface.
+ * Check if a given object implements the SetupIntentResponseData interface.
  */
-export function instanceOfStripeEmbedInfo(
+export function instanceOfSetupIntentResponseData(
   value: object,
-): value is StripeEmbedInfo {
+): value is SetupIntentResponseData {
   if (!("publishableKey" in value) || value["publishableKey"] === undefined)
     return false;
   return true;
 }
 
-export function StripeEmbedInfoFromJSON(json: any): StripeEmbedInfo {
-  return StripeEmbedInfoFromJSONTyped(json, false);
+export function SetupIntentResponseDataFromJSON(
+  json: any,
+): SetupIntentResponseData {
+  return SetupIntentResponseDataFromJSONTyped(json, false);
 }
 
-export function StripeEmbedInfoFromJSONTyped(
+export function SetupIntentResponseDataFromJSONTyped(
   json: any,
   ignoreDiscriminator: boolean,
-): StripeEmbedInfo {
+): SetupIntentResponseData {
   if (json == null) {
     return json;
   }
@@ -64,7 +66,9 @@ export function StripeEmbedInfoFromJSONTyped(
   };
 }
 
-export function StripeEmbedInfoToJSON(value?: StripeEmbedInfo | null): any {
+export function SetupIntentResponseDataToJSON(
+  value?: SetupIntentResponseData | null,
+): any {
   if (value == null) {
     return value;
   }

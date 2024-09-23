@@ -5,6 +5,7 @@ export const StyledViewport = styled.div<{
 }>`
   display: flex;
   flex-wrap: wrap;
+  place-content: start;
   margin-left: auto;
   margin-right: auto;
   gap: 1rem;
