@@ -179,54 +179,58 @@ export const MeteredFeatures = forwardRef<
                     </Box>
                   )}
 
-                  {allocationType === "numeric" && feature?.name && (
-                    <Box $textAlign="right">
-                      {props.allocation.isVisible && (
-                        <Text
-                          as={Box}
-                          $font={
-                            theme.typography[props.allocation.fontStyle]
-                              .fontFamily
-                          }
-                          $size={
-                            theme.typography[props.allocation.fontStyle]
-                              .fontSize
-                          }
-                          $weight={
-                            theme.typography[props.allocation.fontStyle]
-                              .fontWeight
-                          }
-                          $color={
-                            theme.typography[props.allocation.fontStyle].color
-                          }
-                        >
-                          {typeof allocation === "number"
-                            ? `${allocation} ${feature.name}`
-                            : `Unlimited ${feature.name}`}
-                        </Text>
-                      )}
+                  {(allocationType === "numeric" ||
+                    allocationType === "unlimited") &&
+                    feature?.name && (
+                      <Box $textAlign="right">
+                        {props.allocation.isVisible && (
+                          <Text
+                            as={Box}
+                            $font={
+                              theme.typography[props.allocation.fontStyle]
+                                .fontFamily
+                            }
+                            $size={
+                              theme.typography[props.allocation.fontStyle]
+                                .fontSize
+                            }
+                            $weight={
+                              theme.typography[props.allocation.fontStyle]
+                                .fontWeight
+                            }
+                            $color={
+                              theme.typography[props.allocation.fontStyle].color
+                            }
+                          >
+                            {typeof allocation === "number"
+                              ? `${allocation} ${feature.name}`
+                              : `Unlimited ${feature.name}`}
+                          </Text>
+                        )}
 
-                      {props.usage.isVisible && (
-                        <Text
-                          as={Box}
-                          $font={
-                            theme.typography[props.usage.fontStyle].fontFamily
-                          }
-                          $size={
-                            theme.typography[props.usage.fontStyle].fontSize
-                          }
-                          $weight={
-                            theme.typography[props.usage.fontStyle].fontWeight
-                          }
-                          $color={theme.typography[props.usage.fontStyle].color}
-                        >
-                          {typeof allocation === "number"
-                            ? `${usage} of ${allocation} used`
-                            : `${usage} used`}
-                        </Text>
-                      )}
-                    </Box>
-                  )}
+                        {props.usage.isVisible && (
+                          <Text
+                            as={Box}
+                            $font={
+                              theme.typography[props.usage.fontStyle].fontFamily
+                            }
+                            $size={
+                              theme.typography[props.usage.fontStyle].fontSize
+                            }
+                            $weight={
+                              theme.typography[props.usage.fontStyle].fontWeight
+                            }
+                            $color={
+                              theme.typography[props.usage.fontStyle].color
+                            }
+                          >
+                            {typeof allocation === "number"
+                              ? `${usage} of ${allocation} used`
+                              : `${usage} used`}
+                          </Text>
+                        )}
+                      </Box>
+                    )}
                 </Flex>
 
                 {typeof usage === "number" &&

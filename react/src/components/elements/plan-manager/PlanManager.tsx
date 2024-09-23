@@ -88,7 +88,6 @@ export const PlanManager = forwardRef<
       canChangePlan:
         data.activePlans.length > 0 &&
         data.stripeEmbed?.publishableKey &&
-        data.stripeEmbed?.setupIntentClientSecret &&
         stripe !== null,
     };
   }, [data.company, data.activePlans, data.stripeEmbed, stripe]);

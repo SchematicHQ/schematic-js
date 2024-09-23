@@ -41,6 +41,7 @@ const FeatureName = ({
 
   if (
     entitlement.valueType === "numeric" ||
+    entitlement.valueType === "unlimited" ||
     entitlement.valueType === "trait"
   ) {
     let period;
@@ -126,12 +127,7 @@ export const CheckoutDialog = () => {
       return {
         paymentMethod: data.subscription?.paymentMethod,
         currentPlan: data.company?.plan,
-        availablePlans: data.activePlans.filter(
-          (plan) =>
-            plan.current ||
-            (plan.yearlyPrice && planPeriod === "year") ||
-            (plan.monthlyPrice && planPeriod === "month"),
-        ),
+        availablePlans: data.activePlans,
         planPeriodOptions,
       };
     }, [

@@ -17,6 +17,7 @@ import type {
   ApiError,
   ChangeSubscriptionRequestBody,
   CheckoutResponse,
+  GetSetupIntentResponse,
   HydrateComponentResponse,
   PreviewCheckoutResponse,
 } from "../models/index";
@@ -27,6 +28,8 @@ import {
   ChangeSubscriptionRequestBodyToJSON,
   CheckoutResponseFromJSON,
   CheckoutResponseToJSON,
+  GetSetupIntentResponseFromJSON,
+  GetSetupIntentResponseToJSON,
   HydrateComponentResponseFromJSON,
   HydrateComponentResponseToJSON,
   PreviewCheckoutResponseFromJSON,
@@ -35,6 +38,10 @@ import {
 
 export interface CheckoutRequest {
   changeSubscriptionRequestBody: ChangeSubscriptionRequestBody;
+}
+
+export interface GetSetupIntentRequest {
+  componentId: string;
 }
 
 export interface HydrateComponentRequest {
@@ -101,6 +108,62 @@ export class CheckoutApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<CheckoutResponse> {
     const response = await this.checkoutRaw(requestParameters, initOverrides);
+    return await response.value();
+  }
+
+  /**
+   * Get setup intent
+   */
+  async getSetupIntentRaw(
+    requestParameters: GetSetupIntentRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<GetSetupIntentResponse>> {
+    if (requestParameters["componentId"] == null) {
+      throw new runtime.RequiredError(
+        "componentId",
+        'Required parameter "componentId" was null or undefined when calling getSetupIntent().',
+      );
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    if (this.configuration && this.configuration.apiKey) {
+      headerParameters["X-Schematic-Api-Key"] = await this.configuration.apiKey(
+        "X-Schematic-Api-Key",
+      ); // ApiKeyAuth authentication
+    }
+
+    const response = await this.request(
+      {
+        path: `/components/{component_id}/setup-intent`.replace(
+          `{${"component_id"}}`,
+          encodeURIComponent(String(requestParameters["componentId"])),
+        ),
+        method: "GET",
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      GetSetupIntentResponseFromJSON(jsonValue),
+    );
+  }
+
+  /**
+   * Get setup intent
+   */
+  async getSetupIntent(
+    requestParameters: GetSetupIntentRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<GetSetupIntentResponse> {
+    const response = await this.getSetupIntentRaw(
+      requestParameters,
+      initOverrides,
+    );
     return await response.value();
   }
 
