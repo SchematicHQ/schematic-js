@@ -130,12 +130,7 @@ export const CheckoutDialog = () => {
         availablePlans: data.activePlans,
         planPeriodOptions,
       };
-    }, [
-      data.subscription?.paymentMethod,
-      data.company,
-      data.activePlans,
-      planPeriod,
-    ]);
+    }, [data.subscription?.paymentMethod, data.company, data.activePlans]);
 
   const savingsPercentage = useMemo(() => {
     if (selectedPlan) {
