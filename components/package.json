@@ -1,13 +1,13 @@
 {
-  "name": "@schematichq/schematic-react",
-  "version": "0.2.0-rc.10",
-  "main": "dist/schematic-react.cjs.js",
-  "module": "dist/schematic-react.esm.js",
-  "types": "dist/schematic-react.d.ts",
+  "name": "@schematichq/schematic-components",
+  "version": "0.1.0",
+  "main": "dist/schematic-components.cjs.js",
+  "module": "dist/schematic-components.esm.js",
+  "types": "dist/schematic-components.d.ts",
   "files": [
-    "dist/schematic-react.cjs.js",
-    "dist/schematic-react.esm.js",
-    "dist/schematic-react.d.ts"
+    "dist/schematic-components.cjs.js",
+    "dist/schematic-components.esm.js",
+    "dist/schematic-components.d.ts"
   ],
   "author": "Ben Papillon <ben@schematichq.com>",
   "license": "MIT",
@@ -18,8 +18,8 @@
   "scripts": {
     "dev": "yarn tsc --watch",
     "build": "yarn tsc && yarn openapi && yarn format && yarn lint && yarn clean && yarn build:cjs && yarn build:esm && yarn build:types",
-    "build:cjs": "npx esbuild src/index.ts --bundle --external:react --format=cjs --outfile=dist/schematic-react.cjs.js",
-    "build:esm": "npx esbuild src/index.ts --bundle --external:react --format=esm --outfile=dist/schematic-react.esm.js",
+    "build:cjs": "npx esbuild src/index.ts --bundle --loader:.ttf=dataurl --external:react --external:react-dom --external:@stripe/react-stripe-js --format=cjs --outfile=dist/schematic-components.cjs.js",
+    "build:esm": "npx esbuild src/index.ts --bundle --loader:.ttf=dataurl --external:react --external:react-dom --external:@stripe/react-stripe-js --format=esm --outfile=dist/schematic-components.esm.js",
     "build:types": "npx tsc && npx api-extractor run",
     "clean": "rm -rf dist",
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
@@ -29,15 +29,26 @@
     "tsc": "npx tsc"
   },
   "dependencies": {
-    "@schematichq/schematic-js": "^0.1.14"
+    "@stripe/react-stripe-js": "^2.8.0",
+    "@stripe/stripe-js": "^4.3.0",
+    "lodash.merge": "^4.6.2",
+    "pako": "^2.1.0",
+    "pluralize": "^8.0.0",
+    "styled-components": "^6.1.13"
   },
   "devDependencies": {
+    "@craftjs/core": "^0.2.10",
     "@microsoft/api-extractor": "^7.47.7",
     "@openapitools/openapi-generator-cli": "^2.13.5",
     "@types/jest": "^29.5.12",
+    "@types/lodash.merge": "^4.6.9",
+    "@types/pako": "^2.0.3",
+    "@types/pluralize": "^0.0.33",
     "@types/react": "^18.2.79",
+    "@types/react-dom": "^18.2.25",
     "@typescript-eslint/eslint-plugin": "^6.19.1",
     "@typescript-eslint/parser": "^6.13.2",
+    "classnames": "^2.5.1",
     "esbuild": "^0.23.1",
     "esbuild-jest": "^0.5.0",
     "eslint": "^8.57.0",
@@ -49,11 +60,13 @@
     "jest-fetch-mock": "^3.0.3",
     "prettier": "^3.3.3",
     "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "ts-jest": "^29.2.5",
     "typescript": "^5.5.4"
   },
   "peerDependencies": {
-    "react": ">=18"
+    "react": ">=18",
+    "react-dom": ">=18"
   },
   "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }
