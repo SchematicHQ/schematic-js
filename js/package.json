@@ -1,6 +1,6 @@
 {
   "name": "@schematichq/schematic-js",
-  "version": "1.0.0",
+  "version": "1.0.0-rc.0",
   "main": "dist/schematic.cjs.js",
   "module": "dist/schematic.esm.js",
   "types": "dist/schematic.d.ts",
