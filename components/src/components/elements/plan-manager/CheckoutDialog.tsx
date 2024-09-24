@@ -100,6 +100,7 @@ export const CheckoutDialog = () => {
     dueNow: number;
     newCharges: number;
     proration: number;
+    periodStart: Date;
   }>();
   const [paymentMethodId, setPaymentMethodId] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(false);
@@ -998,11 +999,9 @@ export const CheckoutDialog = () => {
                 $weight={theme.typography.text.fontWeight}
                 $color={theme.typography.text.color}
               >
-                {checkoutStage === "plan"
-                  ? "Discounts & credits applied at checkout"
-                  : subscriptionPrice &&
-                    `You will be billed ${subscriptionPrice} for this subscription
-                    every ${planPeriod} on the ${data.subscription?.latestInvoice?.dueDate && formatOrdinal(new Date(data.subscription.latestInvoice.dueDate).getDate())} ${planPeriod === "year" && data.subscription?.latestInvoice?.dueDate ? `of ${getMonthName(data.subscription.latestInvoice.dueDate)}` : ""} unless you unsubscribe.`}
+                {subscriptionPrice &&
+                  `You will be billed ${subscriptionPrice} for this subscription
+                    every ${planPeriod} ${charges?.periodStart ? `on the ${formatOrdinal(charges.periodStart.getDate())}` : ""} ${planPeriod === "year" && charges?.periodStart ? `of ${getMonthName(charges.periodStart)}` : ""} unless you unsubscribe.`}
               </Text>
             </Box>
           </Flex>
