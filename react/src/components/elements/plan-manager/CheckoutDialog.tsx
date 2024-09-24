@@ -27,6 +27,7 @@ import {
 import { PaymentMethod } from "../payment-method";
 import { PaymentForm } from "./PaymentForm";
 import { StyledButton } from "./styles";
+import { Tooltip } from "../../ui/tooltip";
 
 const FeatureName = ({
   entitlement,
@@ -519,17 +520,26 @@ export const CheckoutDialog = () => {
 
                           {!(plan.current || plan.id === currentPlan?.id) &&
                             plan.id !== selectedPlan?.id && (
-                              <StyledButton
-                                disabled={plan.valid === false}
-                                {...(plan.valid === true && {
-                                  onClick: () => selectPlan(plan),
-                                })}
-                                $size="sm"
-                                $color="primary"
-                                $variant="outline"
-                              >
-                                Select
-                              </StyledButton>
+                              <Box $position="relative">
+                                <StyledButton
+                                  disabled={!plan.valid === false}
+                                  {...(plan.valid === true && {
+                                    onClick: () => setSelectedPlan(plan),
+                                  })}
+                                  $size="sm"
+                                  $color="primary"
+                                  $variant="outline"
+                                >
+                                  {plan.valid === false ? (
+                                    <Tooltip
+                                      label="Over usage limit"
+                                      description=" Current usage exceeds limit of this plan"
+                                    />
+                                  ) : (
+                                    "Select"
+                                  )}
+                                </StyledButton>
+                              </Box>
                             )}
                         </Flex>
                       </Flex>

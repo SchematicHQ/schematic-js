@@ -33,6 +33,12 @@ export interface PreviewSubscriptionChangeResponseData {
   newCharges: number;
   /**
    *
+   * @type {Date}
+   * @memberof PreviewSubscriptionChangeResponseData
+   */
+  periodStart: Date;
+  /**
+   *
    * @type {number}
    * @memberof PreviewSubscriptionChangeResponseData
    */
@@ -47,6 +53,8 @@ export function instanceOfPreviewSubscriptionChangeResponseData(
 ): value is PreviewSubscriptionChangeResponseData {
   if (!("dueNow" in value) || value["dueNow"] === undefined) return false;
   if (!("newCharges" in value) || value["newCharges"] === undefined)
+    return false;
+  if (!("periodStart" in value) || value["periodStart"] === undefined)
     return false;
   if (!("proration" in value) || value["proration"] === undefined) return false;
   return true;
@@ -68,6 +76,7 @@ export function PreviewSubscriptionChangeResponseDataFromJSONTyped(
   return {
     dueNow: json["due_now"],
     newCharges: json["new_charges"],
+    periodStart: new Date(json["period_start"]),
     proration: json["proration"],
   };
 }
@@ -81,6 +90,7 @@ export function PreviewSubscriptionChangeResponseDataToJSON(
   return {
     due_now: value["dueNow"],
     new_charges: value["newCharges"],
+    period_start: value["periodStart"].toISOString(),
     proration: value["proration"],
   };
 }
