@@ -59,7 +59,7 @@ export const PaymentForm = ({ plan, period, onConfirm }: PaymentFormProps) => {
       if (error?.type === "card_error" || error?.type === "validation_error") {
         setMessage(error.message as string);
       }
-    } catch (error) {
+    } catch {
       setMessage("A problem occurred while saving your payment method.");
     } finally {
       setIsLoading(false);

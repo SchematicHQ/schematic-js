@@ -3,6 +3,7 @@ import { useTheme } from "styled-components";
 import { StyledViewport } from "./styles";
 import { RenderLayout } from "../RenderLayout";
 
+/* eslint-disable-next-line @typescript-eslint/no-empty-object-type */
 export interface ViewportProps extends React.HTMLProps<HTMLDivElement> {}
 
 export const Viewport = forwardRef<HTMLDivElement | null, ViewportProps>(
