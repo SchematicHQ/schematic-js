@@ -80,6 +80,7 @@ export const PaymentForm = ({ plan, period, onConfirm }: PaymentFormProps) => {
       <Box $width="100%" $marginBottom="1.5rem">
         <Text $size={18}>Add payment method</Text>
       </Box>
+
       <Flex
         $flexDirection="column"
         $gap="1.5rem"
@@ -128,26 +129,5 @@ export const PaymentForm = ({ plan, period, onConfirm }: PaymentFormProps) => {
         </Box>
       )}
     </form>
-  );
-};
-
-export const StripeField = ({
-  name,
-  label,
-  children,
-}: {
-  name: string;
-  label?: string;
-  children: React.ReactNode;
-}) => {
-  return (
-    <div>
-      {label && (
-        <label className="" htmlFor={name}>
-          {label}
-        </label>
-      )}
-      <div>{children}</div>
-    </div>
   );
 };
