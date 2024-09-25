@@ -67,8 +67,8 @@ export const Modal = ({ children, size = "auto", onClose }: ModalProps) => {
           : {
               $width: "100%",
               $height: "100%",
-              $maxWidth: "1366px",
-              $maxHeight: "768px",
+              $maxWidth: "1356px",
+              $maxHeight: "860px",
             })}
         $backgroundColor={theme.card.background}
         $borderRadius="0.5rem"

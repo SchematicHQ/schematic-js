@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useLayoutEffect, useMemo, useState } from "react";
 import { useTheme } from "styled-components";
 import pluralize from "pluralize";
 import type {
@@ -206,6 +206,13 @@ export const CheckoutDialog = () => {
     },
     [selectedPlan, selectPlan],
   );
+
+  useLayoutEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, []);
 
   const allowCheckout =
     api &&
@@ -593,14 +600,15 @@ export const CheckoutDialog = () => {
 
         <Flex
           $flexDirection="column"
+          $width="21.5rem"
+          $overflow="auto"
           $backgroundColor={theme.card.background}
           $borderRadius="0 0 0.5rem"
-          $width="21.5rem"
           $boxShadow="0px 1px 20px 0px #1018280F, 0px 1px 3px 0px #1018281A;"
         >
           <Flex
-            $flexDirection="column"
             $position="relative"
+            $flexDirection="column"
             $gap="1rem"
             $width="100%"
             $height="auto"
@@ -823,7 +831,7 @@ export const CheckoutDialog = () => {
                   >
                     {charges?.proration && charges.proration > 0
                       ? "Proration"
-                      : "Credits"}
+                      : "Credits*"}
                   </Text>
                 </Box>
 
@@ -861,6 +869,7 @@ export const CheckoutDialog = () => {
               </>
             )}
           </Flex>
+
           <Flex
             $flexDirection="column"
             $position="relative"
@@ -896,7 +905,7 @@ export const CheckoutDialog = () => {
             )}
 
             {charges && (
-              <Flex $justifyContent="space-between">
+              <Flex $justifyContent="space-between" $margin="-0.5rem 0 1rem">
                 <Box $opacity="0.625">
                   <Text
                     $font={theme.typography.text.fontFamily}
@@ -915,7 +924,7 @@ export const CheckoutDialog = () => {
                     $weight={theme.typography.text.fontWeight}
                     $color={theme.typography.text.color}
                   >
-                    {formatCurrency(charges.dueNow)}
+                    {formatCurrency(Math.max(0, charges.dueNow))}
                   </Text>
                 </Box>
               </Flex>
@@ -1002,6 +1011,17 @@ export const CheckoutDialog = () => {
                 {subscriptionPrice &&
                   `You will be billed ${subscriptionPrice} for this subscription
                     every ${planPeriod} ${charges?.periodStart ? `on the ${formatOrdinal(charges.periodStart.getDate())}` : ""} ${planPeriod === "year" && charges?.periodStart ? `of ${getMonthName(charges.periodStart)}` : ""} unless you unsubscribe.`}
+              </Text>
+            </Box>
+
+            <Box $opacity="0.625">
+              <Text
+                $font={theme.typography.text.fontFamily}
+                $size={theme.typography.text.fontSize * 0.75}
+                $weight={theme.typography.text.fontWeight}
+                $color={theme.typography.text.color}
+              >
+                <sup>*</sup>Credits applied to future invoices
               </Text>
             </Box>
           </Flex>
