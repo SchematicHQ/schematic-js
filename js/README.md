@@ -1,60 +1,88 @@
 # schematic-js
 
+`schematic-js` is a client-side JavaScript SDK for tracking event-based usage, identifying users, and checking flags using [Schematic](https://schematichq.com).
+
 ## Install
 
-```
-yarn install
-```
-
-## Build
-
-```
-yarn build
+```bash
+npm install @schematichq/schematic-js
+# or
+yarn add @schematichq/schematic-js
+# or
+pnpm add @schematichq/schematic-js
 ```
 
-## Usage example
+## Usage
 
-```javascript
+You can use Schematic to identify users; after this, your subsequent track events and flag checks will be associated with this user.
+
+```typescript
+import { Schematic } from "@schematichq/schematic-js";
+
 const schematic = new Schematic("your-api-key");
 
 // Send an identify event
-const userId = "my-user-id";
-const keys = {
-  id: userId,
-};
-const traits = {
-  anykey: "anyval",
-};
-const company = {
-  name: "My Company",
-  keys: {
-    id: "my-company-id",
-  },
-  traits: {
-    location: "Atlanta, GA",
-  },
-};
-schematic.identify({ keys, traits, company });
-
-// Send a track event
-const event = "query";
-const traits = {
-};
-const company = {
-};
-const user = {
-},
-schematic.track({
-  event: "query",
-  traits: {
-      feature: "feat_cns2asuKAG2",
-  },
-  company: {
-    id: "my-company-id",
-  },
-  name: "My User",
-  user: {
-    id: "my-user-id",
-  },
+schematic.identify({
+    keys: {
+        id: "my-user-id",
+    },
+    traits: {
+        anykey: "anyval",
+    },
+    company: {
+        name: "My Company",
+        keys: {
+            id: "my-company-id",
+        },
+        traits: {
+            location: "Atlanta, GA",
+        },
+    },
 });
+
+// Send a track event to record usage
+schematic.track({ event: "query" });
+
+// Check a flag
+schematic.checkFlag("some-flag-key");
 ```
+
+By default, `checkFlag` will perform a network request to get the flag value for this user. If you'd like to check all flags at once in order to minimize network requests, you can use `checkFlags`:
+
+```typescript
+import { Schematic } from "@schematichq/schematic-js";
+
+const schematic = new Schematic("your-api-key");
+
+schematic.identify({
+    keys: { id: "my-user-id" },
+    company: {
+        keys: { id: "my-company-id" },
+    },
+});
+
+schematic.checkFlags();
+```
+
+Alternatively, you can run in websocket mode, which will keep a persistent connection open to the Schematic service and receive flag updates in real time:
+
+```typescript
+import { Schematic } from "@schematichq/schematic-js";
+
+const schematic = new Schematic("your-api-key", { useWebSocket: true});
+
+schematic.identify({
+    keys: { id: "my-user-id" },
+    company: { keys: { id: "my-company-id" } },
+});
+
+schematic.checkFlag("some-flag-key");
+```
+
+## License
+
+MIT
+
+## Support
+
+Need help? Please open a GitHub issue or reach out to [support@schematichq.com](mailto:support@schematichq.com) and we'll be happy to assist.
