@@ -79,6 +79,12 @@ export interface CompanySubscriptionResponseData {
    * @type {string}
    * @memberof CompanySubscriptionResponseData
    */
+  status: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CompanySubscriptionResponseData
+   */
   subscriptionExternalId: string;
   /**
    *
@@ -101,6 +107,7 @@ export function instanceOfCompanySubscriptionResponseData(
     return false;
   if (!("interval" in value) || value["interval"] === undefined) return false;
   if (!("products" in value) || value["products"] === undefined) return false;
+  if (!("status" in value) || value["status"] === undefined) return false;
   if (
     !("subscriptionExternalId" in value) ||
     value["subscriptionExternalId"] === undefined
@@ -140,6 +147,7 @@ export function CompanySubscriptionResponseDataFromJSONTyped(
     products: (json["products"] as Array<any>).map(
       BillingProductForSubscriptionResponseDataFromJSON,
     ),
+    status: json["status"],
     subscriptionExternalId: json["subscription_external_id"],
     totalPrice: json["total_price"],
   };
@@ -163,6 +171,7 @@ export function CompanySubscriptionResponseDataToJSON(
     products: (value["products"] as Array<any>).map(
       BillingProductForSubscriptionResponseDataToJSON,
     ),
+    status: value["status"],
     subscription_external_id: value["subscriptionExternalId"],
     total_price: value["totalPrice"],
   };
