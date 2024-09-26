@@ -19,7 +19,7 @@ export const Tooltip = ({ label, description }: TooltipProps) => {
       <Box
         $position="absolute"
         $width="100%"
-        $marginBottom="1.5rem"
+        $marginBottom=".5rem"
         $left="50%"
         $bottom="100%"
         $transform="translateX(-50%)"
