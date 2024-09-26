@@ -19,7 +19,7 @@ export const PaymentForm = ({ plan, period, onConfirm }: PaymentFormProps) => {
   const stripe = useStripe();
   const elements = useElements();
 
-  const { api, data } = useEmbed();
+  const { api } = useEmbed();
 
   const [message, setMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -105,14 +105,7 @@ export const PaymentForm = ({ plan, period, onConfirm }: PaymentFormProps) => {
 
       <StyledButton
         id="submit"
-        disabled={
-          isLoading ||
-          !stripe ||
-          !elements ||
-          !data.stripeEmbed?.publishableKey ||
-          !data.stripeEmbed?.setupIntentClientSecret ||
-          isConfirmed
-        }
+        disabled={isLoading || !stripe || !elements || isConfirmed}
         $size="md"
         $color="primary"
       >

@@ -213,15 +213,13 @@ export const CheckoutDialog = () => {
   );
 
   useEffect(() => {
-    if (!stripe && data.stripeEmbed?.publishableKey) {
-      setStripe(loadStripe(data.stripeEmbed.publishableKey));
+    if (!stripe && setupIntent?.publishableKey) {
+      setStripe(loadStripe(setupIntent.publishableKey));
     }
-  }, [stripe, data.stripeEmbed?.publishableKey]);
+  }, [stripe, setupIntent?.publishableKey]);
 
   const allowCheckout =
     api &&
-    data.stripeEmbed &&
-    data.stripeEmbed.setupIntentClientSecret &&
     selectedPlan &&
     selectedPlan?.id !== currentPlan?.id &&
     ((paymentMethod && !showPaymentForm) || paymentMethodId) &&
@@ -564,9 +562,7 @@ export const CheckoutDialog = () => {
 
           {selectedPlan && checkoutStage === "checkout" && (
             <>
-              {showPaymentForm &&
-              setupIntent &&
-              data.stripeEmbed?.setupIntentClientSecret ? (
+              {showPaymentForm && setupIntent?.setupIntentClientSecret ? (
                 <Elements
                   stripe={stripe}
                   options={{
@@ -595,7 +591,7 @@ export const CheckoutDialog = () => {
                         },
                       },
                     },
-                    clientSecret: data.stripeEmbed.setupIntentClientSecret,
+                    clientSecret: setupIntent.setupIntentClientSecret,
                   }}
                 >
                   <PaymentForm
