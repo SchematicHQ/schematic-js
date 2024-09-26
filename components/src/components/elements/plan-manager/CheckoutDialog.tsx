@@ -408,20 +408,18 @@ export const CheckoutDialog = () => {
               <Flex $flexWrap="wrap" $gap="1rem" $flexGrow="1">
                 {availablePlans
                   .sort((a, b) => {
-                    if (
-                      planPeriod === "year" &&
-                      a.yearlyPrice &&
-                      b.yearlyPrice
-                    ) {
-                      return a.yearlyPrice?.price - b.yearlyPrice?.price;
+                    if (planPeriod === "year") {
+                      return (
+                        (a.yearlyPrice?.price ?? 0) -
+                        (b.yearlyPrice?.price ?? 0)
+                      );
                     }
 
-                    if (
-                      planPeriod === "month" &&
-                      a.monthlyPrice &&
-                      b.monthlyPrice
-                    ) {
-                      return a.monthlyPrice.price - b.monthlyPrice.price;
+                    if (planPeriod === "month") {
+                      return (
+                        (a.monthlyPrice?.price ?? 0) -
+                        (b.monthlyPrice?.price ?? 0)
+                      );
                     }
 
                     return 0;
