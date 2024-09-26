@@ -1,9 +1,19 @@
-import { useCallback, useLayoutEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useState,
+} from "react";
 import { useTheme } from "styled-components";
 import pluralize from "pluralize";
+import { loadStripe, type Stripe } from "@stripe/stripe-js";
+import { Elements } from "@stripe/react-stripe-js";
+
 import type {
   CompanyPlanDetailResponseData,
   PlanEntitlementResponseData,
+  SetupIntentResponseData,
 } from "../../../api";
 import { TEXT_BASE_SIZE } from "../../../const";
 import { useEmbed } from "../../../hooks";
@@ -108,6 +118,8 @@ export const CheckoutDialog = () => {
   const [showPaymentForm, setShowPaymentForm] = useState(
     () => typeof data.subscription?.paymentMethod === "undefined",
   );
+  const [stripe, setStripe] = useState<Promise<Stripe | null> | null>(null);
+  const [setupIntent, setSetupIntent] = useState<SetupIntentResponseData>();
 
   const { paymentMethod, currentPlan, availablePlans, planPeriodOptions } =
     useMemo(() => {
@@ -236,6 +248,12 @@ export const CheckoutDialog = () => {
     }
   }, [api, paymentMethodId, planPeriod, selectedPlan, setLayout]);
 
+  useEffect(() => {
+    if (!stripe && setupIntent?.publishableKey) {
+      setStripe(loadStripe(setupIntent.publishableKey));
+    }
+  }, [stripe, setupIntent?.publishableKey]);
+
   useLayoutEffect(() => {
     document.body.style.overflow = "hidden";
     return () => {
@@ -283,6 +301,7 @@ export const CheckoutDialog = () => {
                 }}
               />
             )}
+
             <Box
               tabIndex={0}
               {...(checkoutStage !== "plan" && {
@@ -325,6 +344,7 @@ export const CheckoutDialog = () => {
               }
               $borderRadius="9999px"
             />
+
             <Box
               tabIndex={0}
               {...(checkoutStage !== "checkout" && {
@@ -372,6 +392,7 @@ export const CheckoutDialog = () => {
                 >
                   Select plan
                 </Text>
+
                 <Text
                   as="p"
                   id="select-plan-dialog-description"
@@ -445,7 +466,9 @@ export const CheckoutDialog = () => {
                           <Text $size={20} $weight={600}>
                             {plan.name}
                           </Text>
+
                           <Text $size={14}>{plan.description}</Text>
+
                           <Text>
                             <Box $display="inline-block" $fontSize="1.5rem">
                               {formatCurrency(
@@ -455,10 +478,12 @@ export const CheckoutDialog = () => {
                                 )?.price ?? 0,
                               )}
                             </Box>
+
                             <Box $display="inline-block" $fontSize="0.75rem">
                               /{planPeriod}
                             </Box>
                           </Text>
+
                           {(plan.current || plan.id === currentPlan?.id) && (
                             <Flex
                               $position="absolute"
@@ -478,6 +503,7 @@ export const CheckoutDialog = () => {
                             </Flex>
                           )}
                         </Flex>
+
                         <Flex
                           $flexDirection="column"
                           $position="relative"
@@ -519,6 +545,7 @@ export const CheckoutDialog = () => {
                             );
                           })}
                         </Flex>
+
                         <Flex
                           $flexDirection="column"
                           $position="relative"
@@ -576,8 +603,38 @@ export const CheckoutDialog = () => {
 
           {selectedPlan && checkoutStage === "checkout" && (
             <>
-              {showPaymentForm ? (
-                <>
+              {showPaymentForm && setupIntent?.setupIntentClientSecret ? (
+                <Elements
+                  stripe={stripe}
+                  options={{
+                    appearance: {
+                      theme: "stripe",
+                      variables: {
+                        // Base
+                        fontFamily: '"Public Sans", system-ui, sans-serif',
+                        spacingUnit: "0.25rem",
+                        borderRadius: "0.5rem",
+                        colorText: "#30313D",
+                        colorBackground: "#FFFFFF",
+                        colorPrimary: "#0570DE",
+                        colorDanger: "#DF1B41",
+
+                        // Layout
+                        gridRowSpacing: "1.5rem",
+                        gridColumnSpacing: "1.5rem",
+                      },
+                      rules: {
+                        ".Label": {
+                          fontSize: "1rem",
+                          fontWeight: "400",
+                          marginBottom: "0.75rem",
+                          color: theme.typography.text.color,
+                        },
+                      },
+                    },
+                    clientSecret: setupIntent.setupIntentClientSecret,
+                  }}
+                >
                   <PaymentForm
                     plan={selectedPlan}
                     period={planPeriod}
@@ -585,7 +642,8 @@ export const CheckoutDialog = () => {
                       setPaymentMethodId(value);
                     }}
                   />
-                  {typeof data.subscription?.paymentMethod !== "undefined" && (
+
+                  {data.subscription?.paymentMethod && (
                     <Box
                       tabIndex={0}
                       onClick={() => setShowPaymentForm(false)}
@@ -601,10 +659,11 @@ export const CheckoutDialog = () => {
                       </Text>
                     </Box>
                   )}
-                </>
+                </Elements>
               ) : (
                 <>
                   <PaymentMethod />
+
                   <Box
                     tabIndex={0}
                     onClick={() => setShowPaymentForm(true)}
@@ -694,6 +753,7 @@ export const CheckoutDialog = () => {
                     Billed monthly
                   </Text>
                 </Flex>
+
                 <Flex
                   onClick={() => changePlanPeriod("year")}
                   $justifyContent="center"
@@ -734,6 +794,7 @@ export const CheckoutDialog = () => {
               </Box>
             )}
           </Flex>
+
           <Flex
             $flexDirection="column"
             $position="relative"
@@ -993,10 +1054,22 @@ export const CheckoutDialog = () => {
 
             {checkoutStage === "plan" ? (
               <StyledButton
-                disabled={!selectedPlan}
-                {...(selectedPlan && {
-                  onClick: () => setCheckoutStage("checkout"),
-                })}
+                {...(allowCheckout
+                  ? {
+                      onClick: async () => {
+                        if (!data.component?.id) {
+                          return;
+                        }
+
+                        const { data: setupIntent } = await api.getSetupIntent({
+                          componentId: data.component.id,
+                        });
+                        setSetupIntent(setupIntent);
+
+                        setCheckoutStage("checkout");
+                      },
+                    }
+                  : { disabled: true })}
               >
                 <Flex
                   $gap="0.5rem"

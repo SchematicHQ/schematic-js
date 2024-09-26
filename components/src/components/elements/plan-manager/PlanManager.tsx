@@ -80,17 +80,14 @@ export const PlanManager = forwardRef<
   const props = resolveDesignProps(rest);
 
   const theme = useTheme();
-  const { data, layout, stripe, setLayout } = useEmbed();
+  const { data, layout, setLayout } = useEmbed();
 
   const { currentPlan, canChangePlan } = useMemo(() => {
     return {
       currentPlan: data.company?.plan,
-      canChangePlan:
-        data.activePlans.length > 0 &&
-        data.stripeEmbed?.publishableKey &&
-        stripe !== null,
+      canChangePlan: data.activePlans.length > 0,
     };
-  }, [data.company, data.activePlans, data.stripeEmbed, stripe]);
+  }, [data.company, data.activePlans]);
 
   return (
     <div ref={ref} className={className}>
