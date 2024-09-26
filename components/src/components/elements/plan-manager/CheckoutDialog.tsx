@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useState,
+} from "react";
 import { useTheme } from "styled-components";
 import pluralize from "pluralize";
 import { loadStripe, type Stripe } from "@stripe/stripe-js";
@@ -104,6 +110,7 @@ export const CheckoutDialog = () => {
     dueNow: number;
     newCharges: number;
     proration: number;
+    periodStart: Date;
   }>();
   const [paymentMethodId, setPaymentMethodId] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(false);
@@ -218,10 +225,16 @@ export const CheckoutDialog = () => {
     }
   }, [stripe, setupIntent?.publishableKey]);
 
+  useLayoutEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, []);
+
   const allowCheckout =
     api &&
     selectedPlan &&
-    selectedPlan?.id !== currentPlan?.id &&
     ((paymentMethod && !showPaymentForm) || paymentMethodId) &&
     !isLoading;
 
@@ -538,20 +551,19 @@ export const CheckoutDialog = () => {
                             </Flex>
                           )}
 
-                          {!(plan.current || plan.id === currentPlan?.id) &&
-                            plan.id !== selectedPlan?.id && (
-                              <StyledButton
-                                disabled={plan.valid === false}
-                                {...(plan.valid === true && {
-                                  onClick: () => selectPlan(plan),
-                                })}
-                                $size="sm"
-                                $color="primary"
-                                $variant="outline"
-                              >
-                                Select
-                              </StyledButton>
-                            )}
+                          {plan.id !== selectedPlan?.id && (
+                            <StyledButton
+                              disabled={plan.valid === false}
+                              {...(plan.valid === true && {
+                                onClick: () => selectPlan(plan),
+                              })}
+                              $size="sm"
+                              $color="primary"
+                              $variant="outline"
+                            >
+                              Select
+                            </StyledButton>
+                          )}
                         </Flex>
                       </Flex>
                     );
@@ -645,14 +657,15 @@ export const CheckoutDialog = () => {
 
         <Flex
           $flexDirection="column"
+          $width="21.5rem"
+          $overflow="auto"
           $backgroundColor={theme.card.background}
           $borderRadius="0 0 0.5rem"
-          $width="21.5rem"
           $boxShadow="0px 1px 20px 0px #1018280F, 0px 1px 3px 0px #1018281A;"
         >
           <Flex
-            $flexDirection="column"
             $position="relative"
+            $flexDirection="column"
             $gap="1rem"
             $width="100%"
             $height="auto"
@@ -782,7 +795,11 @@ export const CheckoutDialog = () => {
 
             <Flex $flexDirection="column" $gap="0.5rem">
               {currentPlan && (
-                <Flex $justifyContent="space-between" $alignItems="center">
+                <Flex
+                  $justifyContent="space-between"
+                  $alignItems="center"
+                  $gap="1rem"
+                >
                   <Flex
                     {...(selectedPlan && {
                       $opacity: "0.625",
@@ -833,7 +850,11 @@ export const CheckoutDialog = () => {
                     />
                   </Box>
 
-                  <Flex $justifyContent="space-between" $alignItems="center">
+                  <Flex
+                    $justifyContent="space-between"
+                    $alignItems="center"
+                    $gap="1rem"
+                  >
                     <Flex>
                       <Text
                         $font={theme.typography.heading4.fontFamily}
@@ -925,7 +946,7 @@ export const CheckoutDialog = () => {
             $padding="1.5rem"
           >
             {selectedPlan && subscriptionPrice && (
-              <Flex $justifyContent="space-between">
+              <Flex $justifyContent="space-between" $gap="1rem">
                 <Box $opacity="0.625">
                   <Text
                     $font={theme.typography.text.fontFamily}
@@ -951,7 +972,7 @@ export const CheckoutDialog = () => {
             )}
 
             {charges && (
-              <Flex $justifyContent="space-between">
+              <Flex $justifyContent="space-between" $gap="1rem">
                 <Box $opacity="0.625">
                   <Text
                     $font={theme.typography.text.fontFamily}
@@ -970,7 +991,33 @@ export const CheckoutDialog = () => {
                     $weight={theme.typography.text.fontWeight}
                     $color={theme.typography.text.color}
                   >
-                    {formatCurrency(charges.dueNow)}
+                    {formatCurrency(Math.max(0, charges.dueNow))}
+                  </Text>
+                </Box>
+              </Flex>
+            )}
+
+            {charges?.dueNow && charges.dueNow < 0 && (
+              <Flex $justifyContent="space-between" $gap="1rem">
+                <Box $opacity="0.625">
+                  <Text
+                    $font={theme.typography.text.fontFamily}
+                    $size={theme.typography.text.fontSize}
+                    $weight={theme.typography.text.fontWeight}
+                    $color={theme.typography.text.color}
+                  >
+                    Credits to be applied to future invoices:
+                  </Text>
+                </Box>
+
+                <Box>
+                  <Text
+                    $font={theme.typography.text.fontFamily}
+                    $size={theme.typography.text.fontSize}
+                    $weight={theme.typography.text.fontWeight}
+                    $color={theme.typography.text.color}
+                  >
+                    {formatCurrency(Math.abs(charges.dueNow))}
                   </Text>
                 </Box>
               </Flex>
@@ -1066,11 +1113,9 @@ export const CheckoutDialog = () => {
                 $weight={theme.typography.text.fontWeight}
                 $color={theme.typography.text.color}
               >
-                {checkoutStage === "plan"
-                  ? "Discounts & credits applied at checkout"
-                  : subscriptionPrice &&
-                    `You will be billed ${subscriptionPrice} for this subscription
-                    every ${planPeriod} on the ${data.subscription?.latestInvoice?.dueDate && formatOrdinal(new Date(data.subscription.latestInvoice.dueDate).getDate())} ${planPeriod === "year" && data.subscription?.latestInvoice?.dueDate ? `of ${getMonthName(data.subscription.latestInvoice.dueDate)}` : ""} unless you unsubscribe.`}
+                {subscriptionPrice &&
+                  `You will be billed ${subscriptionPrice} for this subscription
+                    every ${planPeriod} ${charges?.periodStart ? `on the ${formatOrdinal(charges.periodStart.getDate())}` : ""} ${planPeriod === "year" && charges?.periodStart ? `of ${getMonthName(charges.periodStart)}` : ""} unless you unsubscribe.`}
               </Text>
             </Box>
           </Flex>
