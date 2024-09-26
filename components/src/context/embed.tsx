@@ -2,8 +2,6 @@ import { createContext, useCallback, useEffect, useRef, useState } from "react";
 import { inflate } from "pako";
 import { ThemeProvider } from "styled-components";
 import merge from "lodash.merge";
-import { loadStripe, type Stripe } from "@stripe/stripe-js";
-import { Elements } from "@stripe/react-stripe-js";
 import {
   CheckoutApi,
   Configuration,
@@ -165,14 +163,12 @@ export interface EmbedContextProps {
   data: ComponentHydrateResponseData;
   nodes: SerializedNodeWithChildren[];
   settings: EmbedSettings;
-  stripe: Promise<Stripe | null> | null;
   layout: EmbedLayout;
   error?: Error;
   isPending: boolean;
   hydrate: () => void;
   setData: (data: RecursivePartial<ComponentHydrateResponseData>) => void;
   updateSettings: (settings: RecursivePartial<EmbedSettings>) => void;
-  setStripe: (stripe: Promise<Stripe | null> | null) => void;
   setLayout: (layout: EmbedLayout) => void;
 }
 
@@ -183,14 +179,12 @@ export const EmbedContext = createContext<EmbedContextProps>({
   },
   nodes: [],
   settings: { ...defaultSettings },
-  stripe: null,
   layout: "portal",
   error: undefined,
   isPending: false,
   hydrate: () => {},
   setData: () => {},
   updateSettings: () => {},
-  setStripe: () => {},
   setLayout: () => {},
 });
 
@@ -214,14 +208,12 @@ export const EmbedProvider = ({
     data: ComponentHydrateResponseData;
     nodes: SerializedNodeWithChildren[];
     settings: EmbedSettings;
-    stripe: Promise<Stripe | null> | null;
     layout: EmbedLayout;
     isPending: boolean;
-    error: Error | undefined;
+    error?: Error;
     hydrate: () => void;
     setData: (data: RecursivePartial<ComponentHydrateResponseData>) => void;
     updateSettings: (settings: RecursivePartial<EmbedSettings>) => void;
-    setStripe: (stripe: Promise<Stripe | null> | null) => void;
     setLayout: (layout: EmbedLayout) => void;
   }>(() => {
     return {
@@ -231,14 +223,12 @@ export const EmbedProvider = ({
       },
       nodes: [],
       settings: { ...defaultSettings },
-      stripe: null,
       layout: "portal",
       isPending: false,
       error: undefined,
       hydrate: () => {},
       setData: () => {},
       updateSettings: () => {},
-      setStripe: () => {},
       setLayout: () => {},
     };
   });
@@ -269,17 +259,11 @@ export const EmbedProvider = ({
         }
       }
 
-      let stripe: Promise<Stripe | null> | null = null;
-      if (data.stripeEmbed?.publishableKey) {
-        stripe = loadStripe(data.stripeEmbed.publishableKey);
-      }
-
       setState((prev) => ({
         ...prev,
         data,
         nodes,
         settings,
-        stripe,
         isPending: false,
       }));
     } catch (error) {
@@ -320,16 +304,6 @@ export const EmbedProvider = ({
     [setState],
   );
 
-  const setStripe = useCallback(
-    (stripe: Promise<Stripe | null> | null) => {
-      setState((prev) => ({
-        ...prev,
-        stripe,
-      }));
-    },
-    [setState],
-  );
-
   const setLayout = useCallback(
     (layout: EmbedLayout) => {
       setState((prev) => ({
@@ -354,13 +328,11 @@ export const EmbedProvider = ({
   }, []);
 
   useEffect(() => {
-    if (!accessToken) {
-      return;
+    if (accessToken) {
+      const config = new Configuration({ ...apiConfig, apiKey: accessToken });
+      const api = new CheckoutApi(config);
+      setState((prev) => ({ ...prev, api }));
     }
-
-    const config = new Configuration({ ...apiConfig, apiKey: accessToken });
-    const api = new CheckoutApi(config);
-    setState((prev) => ({ ...prev, api }));
   }, [accessToken, apiConfig]);
 
   useEffect(() => {
@@ -383,52 +355,6 @@ export const EmbedProvider = ({
     }
   }, [state.settings.theme.typography]);
 
-  const renderChildren = () => {
-    if (state.stripe) {
-      return (
-        <Elements
-          stripe={state.stripe}
-          options={{
-            appearance: {
-              theme: "stripe",
-              variables: {
-                // Base
-                fontFamily: '"Public Sans", system-ui, sans-serif',
-                spacingUnit: "0.25rem",
-                borderRadius: "0.5rem",
-                colorText: "#30313D",
-                colorBackground: "#FFFFFF",
-                colorPrimary: "#0570DE",
-                colorDanger: "#DF1B41",
-
-                // Layout
-                gridRowSpacing: "1.5rem",
-                gridColumnSpacing: "1.5rem",
-              },
-              rules: {
-                ".Label": {
-                  fontSize: "1rem",
-                  fontWeight: "400",
-                  marginBottom: "0.75rem",
-                  color: state.settings.theme.typography.text.color,
-                },
-              },
-            },
-            ...(state.data.stripeEmbed?.setupIntentClientSecret
-              ? {
-                  clientSecret: state.data.stripeEmbed?.setupIntentClientSecret,
-                }
-              : { mode: "payment", currency: "usd", amount: 999999 }),
-          }}
-        >
-          {children}
-        </Elements>
-      );
-    }
-
-    return children;
-  };
-
   return (
     <EmbedContext.Provider
       value={{
@@ -436,20 +362,18 @@ export const EmbedProvider = ({
         data: state.data,
         nodes: state.nodes,
         settings: state.settings,
-        stripe: state.stripe,
         layout: state.layout,
         error: state.error,
         isPending: state.isPending,
         hydrate,
         setData,
         updateSettings,
-        setStripe,
         setLayout,
       }}
     >
       <ThemeProvider theme={state.settings.theme}>
         <GlobalStyle />
-        {renderChildren()}
+        {children}
       </ThemeProvider>
     </EmbedContext.Provider>
   );

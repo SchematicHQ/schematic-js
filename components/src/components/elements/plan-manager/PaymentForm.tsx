@@ -19,7 +19,7 @@ export const PaymentForm = ({ plan, period, onConfirm }: PaymentFormProps) => {
   const stripe = useStripe();
   const elements = useElements();
 
-  const { api, data } = useEmbed();
+  const { api } = useEmbed();
 
   const [message, setMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -80,6 +80,7 @@ export const PaymentForm = ({ plan, period, onConfirm }: PaymentFormProps) => {
       <Box $width="100%" $marginBottom="1.5rem">
         <Text $size={18}>Add payment method</Text>
       </Box>
+
       <Flex
         $flexDirection="column"
         $gap="1.5rem"
@@ -104,14 +105,7 @@ export const PaymentForm = ({ plan, period, onConfirm }: PaymentFormProps) => {
 
       <StyledButton
         id="submit"
-        disabled={
-          isLoading ||
-          !stripe ||
-          !elements ||
-          !data.stripeEmbed?.publishableKey ||
-          !data.stripeEmbed?.setupIntentClientSecret ||
-          isConfirmed
-        }
+        disabled={isLoading || !stripe || !elements || isConfirmed}
         $size="md"
         $color="primary"
       >
@@ -128,26 +122,5 @@ export const PaymentForm = ({ plan, period, onConfirm }: PaymentFormProps) => {
         </Box>
       )}
     </form>
-  );
-};
-
-export const StripeField = ({
-  name,
-  label,
-  children,
-}: {
-  name: string;
-  label?: string;
-  children: React.ReactNode;
-}) => {
-  return (
-    <div>
-      {label && (
-        <label className="" htmlFor={name}>
-          {label}
-        </label>
-      )}
-      <div>{children}</div>
-    </div>
   );
 };
