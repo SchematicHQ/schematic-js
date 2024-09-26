@@ -12,6 +12,8 @@ export const StyledButton = styled(Button)<{
   font-weight: 500;
   text-align: center;
   width: 100%;
+  padding: 0;
+
   ${({ disabled, $color = "primary", theme }) => {
     const { l } = hexToHSL(theme[$color]);
 
@@ -98,19 +100,19 @@ export const StyledButton = styled(Button)<{
       case "sm":
         return css`
           font-size: ${15 / TEXT_BASE_SIZE}rem;
-          padding: ${12 / TEXT_BASE_SIZE}rem 0;
+          height: ${40 / TEXT_BASE_SIZE}rem;
           border-radius: ${6 / TEXT_BASE_SIZE}rem;
         `;
       case "md":
         return css`
           font-size: ${17 / TEXT_BASE_SIZE}rem;
-          padding: ${16 / TEXT_BASE_SIZE}rem 0;
+          height: ${52 / TEXT_BASE_SIZE}rem;
           border-radius: ${8 / TEXT_BASE_SIZE}rem;
         `;
       case "lg":
         return css`
           font-size: ${19 / TEXT_BASE_SIZE}rem;
-          padding: ${20 / TEXT_BASE_SIZE}rem 0;
+          height: ${64 / TEXT_BASE_SIZE}rem;
           border-radius: ${10 / TEXT_BASE_SIZE}rem;
         `;
     }

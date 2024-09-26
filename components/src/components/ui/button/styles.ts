@@ -1,6 +1,6 @@
 import styled, { css } from "styled-components";
 import { TEXT_BASE_SIZE } from "../../../const";
-import { Text } from "../../ui/text";
+import { Text } from "../../ui";
 import {
   ButtonStyleTypes,
   ButtonSizeTypes,
@@ -16,8 +16,11 @@ export const Button = styled.button<{
   font-family: Manrope, Arial, Helvetica, sans-serif;
   font-weight: 800;
   line-height: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
   border: 1px solid transparent;
-  transition-property: all;
 
   &:hover {
     cursor: pointer;

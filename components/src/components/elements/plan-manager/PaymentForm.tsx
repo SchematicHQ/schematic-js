@@ -106,7 +106,7 @@ export const PaymentForm = ({ plan, period, onConfirm }: PaymentFormProps) => {
       <StyledButton
         id="submit"
         disabled={isLoading || !stripe || !elements || isConfirmed}
-        $size="md"
+        isLoading={isLoading}
         $color="primary"
       >
         <Text id="button-text">

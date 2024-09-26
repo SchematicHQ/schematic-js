@@ -1,3 +1,4 @@
+import { Loader } from "../loader";
 import * as styles from "./styles";
 
 export type ButtonStyleTypes = "blue" | "white" | "red" | "black";
@@ -9,6 +10,7 @@ export interface ButtonProps
   color?: ButtonStyleTypes;
   size?: ButtonSizeTypes;
   variant?: ButtonVariantTypes;
+  isLoading?: boolean;
 }
 
 export const Button = ({
@@ -16,6 +18,7 @@ export const Button = ({
   size = "md",
   variant = "solid",
   disabled = false,
+  isLoading = false,
   children,
   ...props
 }: ButtonProps) => {
@@ -27,6 +30,7 @@ export const Button = ({
       disabled={disabled}
       {...props}
     >
+      <Loader $size="sm" $isLoading={isLoading} />
       {children}
     </styles.Button>
   );
