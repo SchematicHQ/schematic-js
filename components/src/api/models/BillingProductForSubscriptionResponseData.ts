@@ -60,7 +60,7 @@ export interface BillingProductForSubscriptionResponseData {
    * @type {string}
    * @memberof BillingProductForSubscriptionResponseData
    */
-  interval?: string | null;
+  interval: string;
   /**
    *
    * @type {string}
@@ -78,7 +78,7 @@ export interface BillingProductForSubscriptionResponseData {
    * @type {string}
    * @memberof BillingProductForSubscriptionResponseData
    */
-  priceExternalId?: string | null;
+  priceExternalId: string;
   /**
    *
    * @type {number}
@@ -113,8 +113,11 @@ export function instanceOfBillingProductForSubscriptionResponseData(
   if (!("externalId" in value) || value["externalId"] === undefined)
     return false;
   if (!("id" in value) || value["id"] === undefined) return false;
+  if (!("interval" in value) || value["interval"] === undefined) return false;
   if (!("name" in value) || value["name"] === undefined) return false;
   if (!("price" in value) || value["price"] === undefined) return false;
+  if (!("priceExternalId" in value) || value["priceExternalId"] === undefined)
+    return false;
   if (!("quantity" in value) || value["quantity"] === undefined) return false;
   if (!("subscriptionId" in value) || value["subscriptionId"] === undefined)
     return false;
@@ -142,11 +145,10 @@ export function BillingProductForSubscriptionResponseDataFromJSONTyped(
     environmentId: json["environment_id"],
     externalId: json["external_id"],
     id: json["id"],
-    interval: json["interval"] == null ? undefined : json["interval"],
+    interval: json["interval"],
     name: json["name"],
     price: json["price"],
-    priceExternalId:
-      json["price_external_id"] == null ? undefined : json["price_external_id"],
+    priceExternalId: json["price_external_id"],
     quantity: json["quantity"],
     subscriptionId: json["subscription_id"],
     updatedAt: new Date(json["updated_at"]),
