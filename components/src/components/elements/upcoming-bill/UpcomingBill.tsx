@@ -53,7 +53,7 @@ export const UpcomingBill = forwardRef<
   const props = resolveDesignProps(rest);
 
   const theme = useTheme();
-  const { data, stripe } = useEmbed();
+  const { data } = useEmbed();
 
   const { upcomingInvoice } = useMemo(() => {
     return {
@@ -71,7 +71,7 @@ export const UpcomingBill = forwardRef<
     };
   }, [data.subscription, data.upcomingInvoice]);
 
-  if (!stripe || !upcomingInvoice.amountDue || !upcomingInvoice.dueDate) {
+  if (!upcomingInvoice.amountDue || !upcomingInvoice.dueDate) {
     return null;
   }
 
