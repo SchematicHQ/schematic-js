@@ -61,7 +61,7 @@ const resolveDesignProps = (
     },
     callToAction: {
       isVisible: props.callToAction?.isVisible ?? true,
-      buttonSize: props.callToAction?.buttonSize ?? "lg",
+      buttonSize: props.callToAction?.buttonSize ?? "md",
       buttonStyle: props.callToAction?.buttonStyle ?? "primary",
     },
   };
