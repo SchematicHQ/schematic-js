@@ -112,7 +112,7 @@ export const PaymentForm = ({ plan, period, onConfirm }: PaymentFormProps) => {
           !data.stripeEmbed?.setupIntentClientSecret ||
           isConfirmed
         }
-        $size="md"
+        isLoading={isLoading}
         $color="primary"
       >
         <Text id="button-text">

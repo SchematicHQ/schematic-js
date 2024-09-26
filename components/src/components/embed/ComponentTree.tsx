@@ -16,7 +16,7 @@ const Loading = () => {
       $justifyContent="center"
       $padding={`${theme.card.padding / TEXT_BASE_SIZE}rem`}
     >
-      <Loader />
+      <Loader $size="2xl" $color="#194BFB" />
     </Flex>
   );
 };

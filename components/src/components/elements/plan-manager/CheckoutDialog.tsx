@@ -207,6 +207,35 @@ export const CheckoutDialog = () => {
     [selectedPlan, selectPlan],
   );
 
+  const checkout = useCallback(async () => {
+    const priceId = (
+      planPeriod === "month"
+        ? selectedPlan?.monthlyPrice
+        : selectedPlan?.yearlyPrice
+    )?.id;
+    if (!api || !selectedPlan || !priceId) {
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      await api.checkout({
+        changeSubscriptionRequestBody: {
+          newPlanId: selectedPlan.id,
+          newPriceId: priceId,
+          ...(paymentMethodId && { paymentMethodId }),
+        },
+      });
+      setLayout("success");
+    } catch {
+      setError(
+        "Error processing payment. Please try a different payment method.",
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }, [api, paymentMethodId, planPeriod, selectedPlan, setLayout]);
+
   useLayoutEffect(() => {
     document.body.style.overflow = "hidden";
     return () => {
@@ -526,7 +555,7 @@ export const CheckoutDialog = () => {
 
                           {plan.id !== selectedPlan?.id && (
                             <StyledButton
-                              disabled={plan.valid === false}
+                              disabled={isLoading || plan.valid === false}
                               {...(plan.valid === true && {
                                 onClick: () => selectPlan(plan),
                               })}
@@ -983,38 +1012,9 @@ export const CheckoutDialog = () => {
               </StyledButton>
             ) : (
               <StyledButton
-                {...(allowCheckout
-                  ? {
-                      onClick: async () => {
-                        const priceId = (
-                          planPeriod === "month"
-                            ? selectedPlan?.monthlyPrice
-                            : selectedPlan?.yearlyPrice
-                        )?.id;
-                        if (!priceId) {
-                          return;
-                        }
-
-                        try {
-                          setIsLoading(true);
-                          await api.checkout({
-                            changeSubscriptionRequestBody: {
-                              newPlanId: selectedPlan.id,
-                              newPriceId: priceId,
-                              ...(paymentMethodId && { paymentMethodId }),
-                            },
-                          });
-                          setLayout("success");
-                        } catch {
-                          setError(
-                            "Error processing payment. Please try a different payment method.",
-                          );
-                        } finally {
-                          setIsLoading(false);
-                        }
-                      },
-                    }
-                  : { disabled: true })}
+                disabled={isLoading || !allowCheckout}
+                isLoading={isLoading}
+                {...(allowCheckout && { onClick: checkout })}
               >
                 Pay now
               </StyledButton>
