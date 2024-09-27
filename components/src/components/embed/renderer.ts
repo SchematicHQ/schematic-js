@@ -6,6 +6,7 @@ import {
   IncludedFeatures,
   UpcomingBill,
   PaymentMethod,
+  SchematicBrand,
 } from "../../components/elements";
 
 /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
@@ -18,6 +19,7 @@ const components: Record<string, React.FC<any> | undefined> = {
   IncludedFeatures,
   UpcomingBill,
   PaymentMethod,
+  SchematicBrand,
 };
 
 interface RenderOptions {
