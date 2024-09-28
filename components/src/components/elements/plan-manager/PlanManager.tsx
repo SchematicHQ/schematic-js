@@ -6,7 +6,7 @@ import { type FontStyle } from "../../../context";
 import type { RecursivePartial, ElementProps } from "../../../types";
 import { Box, Flex, Text } from "../../ui";
 import { formatCurrency } from "../../../utils";
-import { CheckoutDialog } from "./CheckoutDialog";
+import { Checkout } from "./Checkout";
 import { StyledButton } from "./styles";
 
 interface DesignProps {
@@ -183,7 +183,7 @@ export const PlanManager = forwardRef<
 
       {canChangePlan &&
         layout === "checkout" &&
-        createPortal(<CheckoutDialog />, portal || document.body)}
+        createPortal(<Checkout />, portal || document.body)}
     </div>
   );
 });

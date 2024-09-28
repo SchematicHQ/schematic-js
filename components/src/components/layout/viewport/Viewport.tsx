@@ -1,14 +1,28 @@
-import { forwardRef } from "react";
+import { forwardRef, useMemo } from "react";
 import { useTheme } from "styled-components";
+import { useEmbed } from "../../../hooks";
+import { Disabled } from "./Disabled";
+import { Success } from "./Success";
 import { StyledViewport } from "./styles";
-import { RenderLayout } from "../RenderLayout";
 
-/* eslint-disable-next-line @typescript-eslint/no-empty-object-type */
-export interface ViewportProps extends React.HTMLProps<HTMLDivElement> {}
+export type ViewportProps = React.HTMLProps<HTMLDivElement>;
 
 export const Viewport = forwardRef<HTMLDivElement | null, ViewportProps>(
   ({ children, ...props }, ref) => {
     const theme = useTheme();
+
+    const { layout } = useEmbed();
+
+    const renderedChildren = useMemo(() => {
+      switch (layout) {
+        case "disabled":
+          return <Disabled />;
+        case "success":
+          return <Success />;
+        default:
+          return children;
+      }
+    }, [layout, children]);
 
     return (
       <StyledViewport
@@ -16,7 +30,7 @@ export const Viewport = forwardRef<HTMLDivElement | null, ViewportProps>(
         $numberOfColumns={theme.numberOfColumns}
         {...props}
       >
-        <RenderLayout>{children}</RenderLayout>
+        {renderedChildren}
       </StyledViewport>
     );
   },

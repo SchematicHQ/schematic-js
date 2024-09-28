@@ -8,8 +8,7 @@ import {
   PaymentMethod,
 } from "../../components/elements";
 
-/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-const components: Record<string, React.FC<any> | undefined> = {
+const components: Record<string, React.FC | undefined> = {
   Root,
   Viewport,
   Column,

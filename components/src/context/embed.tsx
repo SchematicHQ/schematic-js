@@ -1,6 +1,6 @@
 import { createContext, useCallback, useEffect, useRef, useState } from "react";
-import { inflate } from "pako";
 import { ThemeProvider } from "styled-components";
+import { inflate } from "pako";
 import merge from "lodash.merge";
 import {
   CheckoutApi,
@@ -120,15 +120,24 @@ export const defaultSettings: EmbedSettings = {
   theme: defaultTheme,
 };
 
-/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-function isEditorState(obj: any): obj is SerializedEditorState {
+function isEditorState(obj: unknown): obj is SerializedEditorState {
+  if (!obj || typeof obj !== "object") {
+    return false;
+  }
+
   return Object.entries(obj).every(([key, value]) => {
     return typeof key === "string" && typeof value === "object";
   });
 }
 
 function getEditorState(json: string) {
-  const obj = JSON.parse(json);
+  let obj;
+  try {
+    obj = JSON.parse(json);
+  } catch {
+    console.error("Attempted to parse an invalid JSON string as EditorState.");
+  }
+
   return isEditorState(obj) ? obj : undefined;
 }
 

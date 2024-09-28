@@ -1,49 +1,10 @@
 import { useEffect, useState } from "react";
 import { useTheme } from "styled-components";
-import { useEmbed } from "../../hooks";
-import { Box, Flex, IconRound, Text } from "../ui";
-import { Card } from "./card";
+import { useEmbed } from "../../../hooks";
+import { Box, Flex, IconRound, Text } from "../../ui";
+import { Card } from "../..";
 
-const Disabled = () => {
-  const theme = useTheme();
-
-  return (
-    <Box $width="max-content" $height="max-content" $margin="0 auto">
-      <Card>
-        <Flex
-          $flexDirection="column"
-          $justifyContent="center"
-          $alignItems="center"
-          $whiteSpace="nowrap"
-        >
-          <Box $marginBottom="0.5rem">
-            <Text
-              as="h1"
-              $font={theme.typography.heading1.fontFamily}
-              $size={theme.typography.heading1.fontSize}
-              $weight={theme.typography.heading1.fontWeight}
-              $color={theme.typography.heading1.color}
-            >
-              Portal not found
-            </Text>
-          </Box>
-
-          <Text
-            as="p"
-            $font={theme.typography.text.fontFamily}
-            $size={theme.typography.text.fontSize}
-            $weight={theme.typography.text.fontWeight}
-            $color={theme.typography.text.color}
-          >
-            Please try again later.
-          </Text>
-        </Flex>
-      </Card>
-    </Box>
-  );
-};
-
-const Success = () => {
+export const Success = () => {
   const theme = useTheme();
   const { hydrate, data, api, setLayout, isPending } = useEmbed();
 
@@ -104,21 +65,4 @@ const Success = () => {
       </Card>
     </Box>
   );
-};
-
-interface RenderLayoutProps {
-  children: React.ReactNode;
-}
-
-export const RenderLayout = ({ children }: RenderLayoutProps) => {
-  const { layout } = useEmbed();
-
-  switch (layout) {
-    case "disabled":
-      return <Disabled />;
-    case "success":
-      return <Success />;
-    default:
-      return children;
-  }
 };
