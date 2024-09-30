@@ -54,7 +54,7 @@ export const SchematicProvider: React.FC<SchematicProviderProps> = ({
       // If the client was provided as an option, we don't need to clean it up;
       // assume whoever provided it will clean it up
       if (!providedClient) {
-        client.cleanup().catch((error) => {
+        client.cleanup().catch((error: unknown) => {
           console.error("Error during cleanup:", error);
         });
       }
