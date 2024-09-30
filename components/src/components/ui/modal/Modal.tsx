@@ -63,7 +63,7 @@ export const Modal = ({ children, size = "auto", onClose }: ModalProps) => {
         $flexDirection="column"
         $overflow="hidden"
         {...(size === "auto"
-          ? { $width: "min-content", $height: "min-content" }
+          ? { $width: "fit-content", $height: "fit-content" }
           : {
               $width: "100%",
               $height: "100%",
