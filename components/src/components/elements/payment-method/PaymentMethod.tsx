@@ -1,5 +1,6 @@
 import {
   forwardRef,
+  useCallback,
   useEffect,
   useLayoutEffect,
   useMemo,
@@ -15,6 +16,7 @@ import { useEmbed } from "../../../hooks";
 import type { RecursivePartial, ElementProps } from "../../../types";
 import { hexToHSL } from "../../../utils";
 import { Box, Flex, Modal, ModalHeader, Text } from "../../ui";
+import { PaymentForm } from "../plan-manager";
 
 interface DesignProps {
   header: {
@@ -40,49 +42,23 @@ const resolveDesignProps = (
   };
 };
 
-type PaymentMethodElementProps = DesignProps;
+interface PaymentMethodElementProps extends DesignProps {
+  cardLast4?: string;
+  monthsToExpiration?: number;
+  onEdit?: () => void;
+}
 
-const PaymentMethodElement = (props: PaymentMethodElementProps) => {
+const PaymentMethodElement = ({
+  cardLast4,
+  monthsToExpiration,
+  onEdit,
+  ...props
+}: PaymentMethodElementProps) => {
   const theme = useTheme();
-
-  const { api, data } = useEmbed();
-
-  const [stage, setStage] = useState<"view" | "edit">("view");
-  const [paymentMethodId, setPaymentMethodId] = useState<string | undefined>();
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | undefined>();
-  const [showPaymentForm, setShowPaymentForm] = useState(
-    () => typeof data.subscription?.paymentMethod === "undefined",
-  );
-  const [stripe, setStripe] = useState<Promise<Stripe | null> | null>(null);
-  const [setupIntent, setSetupIntent] = useState<SetupIntentResponseData>();
-
-  const { paymentMethod } = useMemo(() => {
-    return {
-      paymentMethod: data.subscription?.paymentMethod,
-    };
-  }, [data.subscription?.paymentMethod]);
 
   const isLightBackground = useMemo(() => {
     return hexToHSL(theme.card.background).l > 50;
   }, [theme.card.background]);
-
-  useEffect(() => {
-    if (!stripe && setupIntent?.publishableKey) {
-      setStripe(loadStripe(setupIntent.publishableKey));
-    }
-  }, [stripe, setupIntent?.publishableKey]);
-
-  useLayoutEffect(() => {
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, []);
-
-  if (!paymentMethod?.paymentMethodType) {
-    return null;
-  }
 
   return (
     <>
@@ -101,18 +77,17 @@ const PaymentMethodElement = (props: PaymentMethodElementProps) => {
             Payment Method
           </Text>
 
-          {typeof paymentMethod.monthsToExpiration === "number" &&
-            paymentMethod.monthsToExpiration < 4 && (
-              <Text
-                $font={theme.typography.text.fontFamily}
-                $size={14}
-                $color="#DB6769"
-              >
-                {paymentMethod.monthsToExpiration > 0
-                  ? `Expires in ${paymentMethod.monthsToExpiration} mo`
-                  : "Expired"}
-              </Text>
-            )}
+          {typeof monthsToExpiration === "number" && monthsToExpiration < 4 && (
+            <Text
+              $font={theme.typography.text.fontFamily}
+              $size={14}
+              $color="#DB6769"
+            >
+              {monthsToExpiration > 0
+                ? `Expires in ${monthsToExpiration} mo`
+                : "Expired"}
+            </Text>
+          )}
         </Flex>
       )}
 
@@ -129,10 +104,19 @@ const PaymentMethodElement = (props: PaymentMethodElementProps) => {
         $borderRadius="9999px"
       >
         <Text $font={theme.typography.text.fontFamily} $size={14}>
-          {paymentMethod.cardLast4
-            ? `💳 Card ending in ${paymentMethod.cardLast4}`
+          {cardLast4
+            ? `💳 Card ending in ${cardLast4}`
             : "Other existing payment method"}
         </Text>
+        {onEdit && (
+          <Text
+            onClick={onEdit}
+            $font={theme.typography.text.fontFamily}
+            $size={14}
+          >
+            Edit
+          </Text>
+        )}
       </Flex>
     </>
   );
@@ -151,7 +135,21 @@ export const PaymentMethod = forwardRef<
   const props = resolveDesignProps(rest);
 
   const theme = useTheme();
-  const { data, layout } = useEmbed();
+
+  const { api, data, layout, setLayout } = useEmbed();
+
+  const [paymentMethodId, setPaymentMethodId] = useState<string | undefined>();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | undefined>();
+  const [showPaymentForm, setShowPaymentForm] = useState(
+    () => typeof data.subscription?.paymentMethod === "undefined",
+  );
+  const [stripe, setStripe] = useState<Promise<Stripe | null> | null>(null);
+  const [setupIntent, setSetupIntent] = useState<SetupIntentResponseData>();
+
+  const isLightBackground = useMemo(() => {
+    return hexToHSL(theme.card.background).l > 50;
+  }, [theme.card.background]);
 
   const paymentMethod = useMemo(() => {
     const { paymentMethodType, cardLast4, cardExpMonth, cardExpYear } =
@@ -178,9 +176,40 @@ export const PaymentMethod = forwardRef<
     };
   }, [data.subscription?.paymentMethod]);
 
-  const isLightBackground = useMemo(() => {
-    return hexToHSL(theme.card.background).l > 50;
-  }, [theme.card.background]);
+  /* const changePaymentMethod = useCallback(async () => {
+    if (!api || !paymentMethodId) {
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      await api.changePaymentMethod({
+        changeSubscriptionRequestBody: {
+          newPaymentMethod: paymentMethodId,
+        },
+      });
+      setLayout("success");
+    } catch {
+      setError(
+        "Error processing payment. Please try a different payment method.",
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }, [api, paymentMethodId, setLayout]); */
+
+  useEffect(() => {
+    if (!stripe && setupIntent?.publishableKey) {
+      setStripe(loadStripe(setupIntent.publishableKey));
+    }
+  }, [stripe, setupIntent?.publishableKey]);
+
+  useLayoutEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, []);
 
   if (!paymentMethod.paymentMethodType) {
     return null;
@@ -188,7 +217,7 @@ export const PaymentMethod = forwardRef<
 
   return (
     <div ref={ref} className={className}>
-      <PaymentMethodElement {...props} />
+      <PaymentMethodElement onEdit={() => setLayout("payment")} {...props} />
 
       {layout === "payment" &&
         createPortal(
@@ -218,7 +247,92 @@ export const PaymentMethod = forwardRef<
                 $flex="1"
                 $overflow="auto"
               >
-                {stage === "view" && <PaymentMethodElement {...props} />}
+                {showPaymentForm ? (
+                  <Elements
+                    stripe={stripe}
+                    options={{
+                      appearance: {
+                        theme: "stripe",
+                        variables: {
+                          // Base
+                          fontFamily: '"Public Sans", system-ui, sans-serif',
+                          spacingUnit: "0.25rem",
+                          borderRadius: "0.5rem",
+                          colorText: "#30313D",
+                          colorBackground: "#FFFFFF",
+                          colorPrimary: "#0570DE",
+                          colorDanger: "#DF1B41",
+
+                          // Layout
+                          gridRowSpacing: "1.5rem",
+                          gridColumnSpacing: "1.5rem",
+                        },
+                        rules: {
+                          ".Label": {
+                            fontSize: "1rem",
+                            fontWeight: "400",
+                            marginBottom: "0.75rem",
+                            color: theme.typography.text.color,
+                          },
+                        },
+                      },
+                      clientSecret:
+                        setupIntent?.setupIntentClientSecret as string,
+                    }}
+                  >
+                    <PaymentForm
+                      onConfirm={(value) => {
+                        setPaymentMethodId(value);
+                      }}
+                    />
+
+                    {data.subscription?.paymentMethod && (
+                      <Box
+                        tabIndex={0}
+                        onClick={() => setShowPaymentForm(false)}
+                        $cursor="pointer"
+                      >
+                        <Text
+                          $font={theme.typography.link.fontFamily}
+                          $size={theme.typography.link.fontSize}
+                          $weight={theme.typography.link.fontWeight}
+                          $color={theme.typography.link.color}
+                        >
+                          Use existing payment method
+                        </Text>
+                      </Box>
+                    )}
+                  </Elements>
+                ) : (
+                  <>
+                    <PaymentMethodElement {...props} />
+
+                    <Box
+                      tabIndex={0}
+                      onClick={async () => {
+                        if (!api || !data.component?.id) {
+                          return;
+                        }
+
+                        const { data: setupIntent } = await api.getSetupIntent({
+                          componentId: data.component.id,
+                        });
+                        setSetupIntent(setupIntent);
+                        setShowPaymentForm(true);
+                      }}
+                      $cursor="pointer"
+                    >
+                      <Text
+                        $font={theme.typography.link.fontFamily}
+                        $size={theme.typography.link.fontSize}
+                        $weight={theme.typography.link.fontWeight}
+                        $color={theme.typography.link.color}
+                      >
+                        Change payment method
+                      </Text>
+                    </Box>
+                  </>
+                )}
               </Flex>
             </Flex>
           </Modal>,

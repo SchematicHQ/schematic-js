@@ -1,21 +1,18 @@
 import { useState } from "react";
-import {
-  LinkAuthenticationElement,
-  PaymentElement,
-} from "@stripe/react-stripe-js";
+import { PaymentElement } from "@stripe/react-stripe-js";
 import { useStripe, useElements } from "@stripe/react-stripe-js";
 import type { CompanyPlanDetailResponseData } from "../../../api";
 import { useEmbed } from "../../../hooks";
-import { Box, Flex, Text } from "../../ui";
+import { Box, Text } from "../../ui";
 import { StyledButton } from "./styles";
 
 interface PaymentFormProps {
-  plan: CompanyPlanDetailResponseData;
-  period: string;
+  plan?: CompanyPlanDetailResponseData;
+  period?: string;
   onConfirm?: (paymentMethodId: string) => void;
 }
 
-export const PaymentForm = ({ plan, period, onConfirm }: PaymentFormProps) => {
+export const PaymentForm = ({ onConfirm }: PaymentFormProps) => {
   const stripe = useStripe();
   const elements = useElements();
 
@@ -30,9 +27,7 @@ export const PaymentForm = ({ plan, period, onConfirm }: PaymentFormProps) => {
   ) => {
     event.preventDefault();
 
-    const priceId =
-      period === "month" ? plan.monthlyPrice?.id : plan.yearlyPrice?.id;
-    if (!api || !stripe || !elements || !priceId) {
+    if (!api || !stripe || !elements) {
       return;
     }
 
@@ -80,24 +75,6 @@ export const PaymentForm = ({ plan, period, onConfirm }: PaymentFormProps) => {
       <Box $width="100%" $marginBottom="1.5rem">
         <Text $size={18}>Add payment method</Text>
       </Box>
-
-      <Flex
-        $flexDirection="column"
-        $gap="1.5rem"
-        $width="100%"
-        $marginBottom="1.5rem"
-      >
-        <LinkAuthenticationElement
-          id="link-authentication-element"
-          // Access the email value like so:
-          // onChange={(event) => {
-          //  setEmail(event.value.email);
-          // }}
-          //
-          // Prefill the email field like so:
-          // options={{defaultValues: {email: 'foo@bar.com'}}}
-        />
-      </Flex>
 
       <Box $marginBottom="1.5rem">
         <PaymentElement id="payment-element" />
