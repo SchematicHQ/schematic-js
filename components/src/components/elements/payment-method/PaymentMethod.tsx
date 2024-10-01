@@ -43,7 +43,7 @@ const resolveDesignProps = (
 };
 
 interface PaymentMethodElementProps extends DesignProps {
-  cardLast4?: string;
+  cardLast4?: string | null;
   monthsToExpiration?: number;
   onEdit?: () => void;
 }
@@ -108,11 +108,14 @@ const PaymentMethodElement = ({
             ? `💳 Card ending in ${cardLast4}`
             : "Other existing payment method"}
         </Text>
+
         {onEdit && (
           <Text
             onClick={onEdit}
-            $font={theme.typography.text.fontFamily}
-            $size={14}
+            $font={theme.typography.link.fontFamily}
+            $size={theme.typography.link.fontSize}
+            $weight={theme.typography.link.fontWeight}
+            $color={theme.typography.link.color}
           >
             Edit
           </Text>
@@ -183,7 +186,7 @@ export const PaymentMethod = forwardRef<
 
     try {
       setIsLoading(true);
-      await api.changePaymentMethod({
+      await api.updatePaymentMethod({
         changeSubscriptionRequestBody: {
           newPaymentMethod: paymentMethodId,
         },
@@ -217,11 +220,15 @@ export const PaymentMethod = forwardRef<
 
   return (
     <div ref={ref} className={className}>
-      <PaymentMethodElement onEdit={() => setLayout("payment")} {...props} />
+      <PaymentMethodElement
+        onEdit={() => setLayout("payment")}
+        {...paymentMethod}
+        {...props}
+      />
 
       {layout === "payment" &&
         createPortal(
-          <Modal>
+          <Modal size="md">
             <ModalHeader bordered>
               <Text
                 $font={theme.typography.text.fontFamily}
@@ -287,28 +294,22 @@ export const PaymentMethod = forwardRef<
                     />
 
                     {data.subscription?.paymentMethod && (
-                      <Box
-                        tabIndex={0}
+                      <Text
                         onClick={() => setShowPaymentForm(false)}
-                        $cursor="pointer"
+                        $font={theme.typography.link.fontFamily}
+                        $size={theme.typography.link.fontSize}
+                        $weight={theme.typography.link.fontWeight}
+                        $color={theme.typography.link.color}
                       >
-                        <Text
-                          $font={theme.typography.link.fontFamily}
-                          $size={theme.typography.link.fontSize}
-                          $weight={theme.typography.link.fontWeight}
-                          $color={theme.typography.link.color}
-                        >
-                          Use existing payment method
-                        </Text>
-                      </Box>
+                        Use existing payment method
+                      </Text>
                     )}
                   </Elements>
                 ) : (
                   <>
-                    <PaymentMethodElement {...props} />
+                    <PaymentMethodElement {...paymentMethod} {...props} />
 
-                    <Box
-                      tabIndex={0}
+                    <Text
                       onClick={async () => {
                         if (!api || !data.component?.id) {
                           return;
@@ -320,17 +321,13 @@ export const PaymentMethod = forwardRef<
                         setSetupIntent(setupIntent);
                         setShowPaymentForm(true);
                       }}
-                      $cursor="pointer"
+                      $font={theme.typography.link.fontFamily}
+                      $size={theme.typography.link.fontSize}
+                      $weight={theme.typography.link.fontWeight}
+                      $color={theme.typography.link.color}
                     >
-                      <Text
-                        $font={theme.typography.link.fontFamily}
-                        $size={theme.typography.link.fontSize}
-                        $weight={theme.typography.link.fontWeight}
-                        $color={theme.typography.link.color}
-                      >
-                        Change payment method
-                      </Text>
-                    </Box>
+                      Change payment method
+                    </Text>
                   </>
                 )}
               </Flex>
