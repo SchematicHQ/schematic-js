@@ -1,5 +1,6 @@
 {
   "name": "schematic-js",
+  "version": "0.0.0",
   "private": true,
   "author": "Schematic <engineering@schematichq.com>",
   "license": "MIT",
