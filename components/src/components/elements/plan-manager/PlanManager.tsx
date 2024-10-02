@@ -90,84 +90,68 @@ export const PlanManager = forwardRef<
   }, [data.company, data.activePlans]);
 
   return (
-    <div ref={ref} className={className}>
-      <Flex
-        $flexDirection="column"
-        $gap="0.75rem"
-        {...(canChangePlan && { $margin: "0 0 0.5rem" })}
-      >
-        {props.header.isVisible && currentPlan && (
-          <Flex
-            $justifyContent="space-between"
-            $alignItems="center"
-            $width="100%"
-            {...(canChangePlan && { $margin: "0 0 1.5rem" })}
-          >
-            <div>
-              <Box $margin="0 0 0.75rem">
-                <Text
-                  $font={
-                    theme.typography[props.header.title.fontStyle].fontFamily
-                  }
-                  $size={
-                    theme.typography[props.header.title.fontStyle].fontSize
-                  }
-                  $weight={
-                    theme.typography[props.header.title.fontStyle].fontWeight
-                  }
-                  $color={theme.typography[props.header.title.fontStyle].color}
-                  $lineHeight={1}
-                >
-                  {currentPlan.name}
-                </Text>
-              </Box>
+    <Flex ref={ref} className={className} $flexDirection="column" $gap="2rem">
+      {props.header.isVisible && currentPlan && (
+        <Flex
+          $justifyContent="space-between"
+          $alignItems="center"
+          $width="100%"
+        >
+          <Flex $flexDirection="column" $gap="1rem">
+            <Text
+              as={Box}
+              $font={theme.typography[props.header.title.fontStyle].fontFamily}
+              $size={theme.typography[props.header.title.fontStyle].fontSize}
+              $weight={
+                theme.typography[props.header.title.fontStyle].fontWeight
+              }
+              $color={theme.typography[props.header.title.fontStyle].color}
+              $lineHeight={1}
+            >
+              {currentPlan.name}
+            </Text>
 
-              {props.header.description.isVisible &&
-                currentPlan.description && (
-                  <Text
-                    $font={
-                      theme.typography[props.header.description.fontStyle]
-                        .fontFamily
-                    }
-                    $size={
-                      theme.typography[props.header.description.fontStyle]
-                        .fontSize
-                    }
-                    $weight={
-                      theme.typography[props.header.description.fontStyle]
-                        .fontWeight
-                    }
-                    $color={
-                      theme.typography[props.header.description.fontStyle].color
-                    }
-                  >
-                    {currentPlan.description}
-                  </Text>
-                )}
-            </div>
-
-            {props.header.price.isVisible &&
-              typeof currentPlan.planPrice === "number" &&
-              currentPlan.planPeriod && (
-                <Text
-                  $font={
-                    theme.typography[props.header.price.fontStyle].fontFamily
-                  }
-                  $size={
-                    theme.typography[props.header.price.fontStyle].fontSize
-                  }
-                  $weight={
-                    theme.typography[props.header.price.fontStyle].fontWeight
-                  }
-                  $color={theme.typography[props.header.price.fontStyle].color}
-                >
-                  {formatCurrency(currentPlan.planPrice)}/
-                  {currentPlan.planPeriod}
-                </Text>
-              )}
+            {props.header.description.isVisible && currentPlan.description && (
+              <Text
+                as={Box}
+                $font={
+                  theme.typography[props.header.description.fontStyle]
+                    .fontFamily
+                }
+                $size={
+                  theme.typography[props.header.description.fontStyle].fontSize
+                }
+                $weight={
+                  theme.typography[props.header.description.fontStyle]
+                    .fontWeight
+                }
+                $color={
+                  theme.typography[props.header.description.fontStyle].color
+                }
+              >
+                {currentPlan.description}
+              </Text>
+            )}
           </Flex>
-        )}
-      </Flex>
+
+          {props.header.price.isVisible &&
+            typeof currentPlan.planPrice === "number" &&
+            currentPlan.planPeriod && (
+              <Text
+                $font={
+                  theme.typography[props.header.price.fontStyle].fontFamily
+                }
+                $size={theme.typography[props.header.price.fontStyle].fontSize}
+                $weight={
+                  theme.typography[props.header.price.fontStyle].fontWeight
+                }
+                $color={theme.typography[props.header.price.fontStyle].color}
+              >
+                {formatCurrency(currentPlan.planPrice)}/{currentPlan.planPeriod}
+              </Text>
+            )}
+        </Flex>
+      )}
 
       {canChangePlan && props.callToAction.isVisible && (
         <StyledButton
@@ -184,6 +168,6 @@ export const PlanManager = forwardRef<
       {canChangePlan &&
         layout === "checkout" &&
         createPortal(<CheckoutDialog />, portal || document.body)}
-    </div>
+    </Flex>
   );
 });
