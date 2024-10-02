@@ -72,10 +72,6 @@ export const PaymentForm = ({ onConfirm }: PaymentFormProps) => {
         overflowY: "auto",
       }}
     >
-      <Box $width="100%" $marginBottom="1.5rem">
-        <Text $size={18}>Add payment method</Text>
-      </Box>
-
       <Box $marginBottom="1.5rem">
         <PaymentElement id="payment-element" />
       </Box>

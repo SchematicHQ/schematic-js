@@ -43,12 +43,14 @@ const resolveDesignProps = (
 };
 
 interface PaymentMethodElementProps extends DesignProps {
+  size?: "sm" | "md" | "lg";
   cardLast4?: string | null;
   monthsToExpiration?: number;
   onEdit?: () => void;
 }
 
 const PaymentMethodElement = ({
+  size = "md",
   cardLast4,
   monthsToExpiration,
   onEdit,
@@ -60,14 +62,12 @@ const PaymentMethodElement = ({
     return hexToHSL(theme.card.background).l > 50;
   }, [theme.card.background]);
 
+  const sizeFactor = size === "lg" ? 2 : size === "md" ? 1 : 0.5;
+
   return (
-    <>
+    <Flex $flexDirection="column" $gap={`${sizeFactor}rem`}>
       {props.header.isVisible && (
-        <Flex
-          $justifyContent="space-between"
-          $alignItems="center"
-          $margin="0 0 1rem"
-        >
+        <Flex $justifyContent="space-between" $alignItems="center">
           <Text
             $font={theme.typography[props.header.fontStyle].fontFamily}
             $size={theme.typography[props.header.fontStyle].fontSize}
@@ -94,13 +94,12 @@ const PaymentMethodElement = ({
       <Flex
         $justifyContent="space-between"
         $alignItems="center"
-        $margin="0 0 1rem"
         $backgroundColor={
           isLightBackground
             ? "hsla(0, 0%, 0%, 0.0625)"
             : "hsla(0, 0%, 100%, 0.125)"
         }
-        $padding="0.375rem 1rem"
+        $padding={`${sizeFactor / 2}rem ${sizeFactor}rem`}
         $borderRadius="9999px"
       >
         <Text $font={theme.typography.text.fontFamily} $size={14}>
@@ -121,7 +120,7 @@ const PaymentMethodElement = ({
           </Text>
         )}
       </Flex>
-    </>
+    </Flex>
   );
 };
 
@@ -178,6 +177,25 @@ export const PaymentMethod = forwardRef<
     };
   }, [data.subscription?.paymentMethod]);
 
+  const createSetupIntent = useCallback(async () => {
+    if (!api || !data.component?.id) {
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const { data: setupIntent } = await api.getSetupIntent({
+        componentId: data.component.id,
+      });
+      setSetupIntent(setupIntent);
+      setShowPaymentForm(true);
+    } catch {
+      setError("Error initializing payment method change. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [api, data.component?.id]);
+
   const updatePaymentMethod = useCallback(
     async (id: string) => {
       if (!api || !id) {
@@ -186,20 +204,14 @@ export const PaymentMethod = forwardRef<
 
       try {
         setIsLoading(true);
-        const updatePaymentMethod =
-          // @ts-expect-error: api to be implemented
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          api.updatePaymentMethod as (...args: any) => Promise<void>;
-        await updatePaymentMethod({
-          changeSubscriptionRequestBody: {
-            newPaymentMethod: id,
+        await api.updatePaymentMethod({
+          updatePaymentMethodRequestBody: {
+            paymentMethodId: id,
           },
         });
         setLayout("success");
       } catch {
-        setError(
-          "Error processing payment. Please try a different payment method.",
-        );
+        setError("Error updating payment method. Please try again.");
       } finally {
         setIsLoading(false);
       }
@@ -234,7 +246,7 @@ export const PaymentMethod = forwardRef<
 
       {layout === "payment" &&
         createPortal(
-          <Modal size="md">
+          <Modal size="md" onClose={() => setShowPaymentForm(false)}>
             <ModalHeader bordered>
               <Text
                 $font={theme.typography.text.fontFamily}
@@ -257,7 +269,6 @@ export const PaymentMethod = forwardRef<
                     ? "hsla(0, 0%, 0%, 0.025)"
                     : "hsla(0, 0%, 100%, 0.025)"
                 }
-                $flex="1"
                 $overflow="auto"
               >
                 <>
@@ -275,7 +286,7 @@ export const PaymentMethod = forwardRef<
                             colorText: "#30313D",
                             colorBackground: "#FFFFFF",
                             colorPrimary: "#0570DE",
-                            colorDanger: "#DF1B41",
+                            colorDanger: "#DB6669",
 
                             // Layout
                             gridRowSpacing: "1.5rem",
@@ -295,48 +306,29 @@ export const PaymentMethod = forwardRef<
                       }}
                     >
                       <PaymentForm
-                        onConfirm={(value) => {
-                          updatePaymentMethod(value);
-                        }}
+                        onConfirm={(value) => updatePaymentMethod(value)}
+                      />
+                    </Elements>
+                  ) : (
+                    <Flex $flexDirection="column" $gap="2rem">
+                      <PaymentMethodElement
+                        size="lg"
+                        {...paymentMethod}
+                        {...props}
                       />
 
-                      {data.subscription?.paymentMethod && (
+                      <Box>
                         <Text
-                          onClick={() => setShowPaymentForm(false)}
+                          onClick={createSetupIntent}
                           $font={theme.typography.link.fontFamily}
                           $size={theme.typography.link.fontSize}
                           $weight={theme.typography.link.fontWeight}
                           $color={theme.typography.link.color}
                         >
-                          Use existing payment method
+                          Change payment method
                         </Text>
-                      )}
-                    </Elements>
-                  ) : (
-                    <>
-                      <PaymentMethodElement {...paymentMethod} {...props} />
-
-                      <Text
-                        onClick={async () => {
-                          if (!api || !data.component?.id) {
-                            return;
-                          }
-
-                          const { data: setupIntent } =
-                            await api.getSetupIntent({
-                              componentId: data.component.id,
-                            });
-                          setSetupIntent(setupIntent);
-                          setShowPaymentForm(true);
-                        }}
-                        $font={theme.typography.link.fontFamily}
-                        $size={theme.typography.link.fontSize}
-                        $weight={theme.typography.link.fontWeight}
-                        $color={theme.typography.link.color}
-                      >
-                        Change payment method
-                      </Text>
-                    </>
+                      </Box>
+                    </Flex>
                   )}
 
                   {!isLoading && error && (

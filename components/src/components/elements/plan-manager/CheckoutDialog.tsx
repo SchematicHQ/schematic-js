@@ -633,6 +633,10 @@ export const CheckoutDialog = () => {
                     clientSecret: setupIntent.setupIntentClientSecret,
                   }}
                 >
+                  <Box $width="100%" $marginBottom="1.5rem">
+                    <Text $size={18}>Add payment method</Text>
+                  </Box>
+
                   <PaymentForm
                     plan={selectedPlan}
                     period={planPeriod}
