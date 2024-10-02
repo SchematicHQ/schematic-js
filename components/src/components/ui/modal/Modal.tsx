@@ -51,9 +51,12 @@ export const Modal = ({ children, size = "auto", onClose }: ModalProps) => {
       $width="100%"
       $height="100%"
       $backgroundColor={
-        isLightBackground ? "hsla(0, 0%, 85%, 0.8)" : "hsla(0, 0%, 15%, 0.8)"
+        isLightBackground ? "hsla(0, 0%, 85%, 0.8)" : "hsla(0, 0%, 0%, 0.8)"
       }
       $overflow="hidden"
+      $scrollbarColor={`${isLightBackground ? "hsla(0, 0%, 0%, 0.15)" : "hsla(0, 0%, 100%, 0.15)"} transparent`}
+      $scrollbarWidth="thin"
+      $scrollbarGutter="stable both-edges"
     >
       <Flex
         $position="relative"

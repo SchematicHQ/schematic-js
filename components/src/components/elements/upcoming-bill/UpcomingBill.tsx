@@ -121,8 +121,7 @@ export const UpcomingBill = forwardRef<
               }
               $color={theme.typography[props.contractEndDate.fontStyle].color}
             >
-              Estimated{" "}
-              {upcomingInvoice.interval === "year" ? "yearly" : "monthly"} bill.
+              Estimated bill.
             </Text>
           </Box>
         </Flex>
