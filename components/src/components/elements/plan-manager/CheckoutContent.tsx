@@ -10,7 +10,15 @@ import type {
 import { TEXT_BASE_SIZE } from "../../../const";
 import { useEmbed } from "../../../hooks";
 import { hexToHSL, formatCurrency } from "../../../utils";
-import { Box, Flex, Icon, IconRound, Text, type IconNameTypes } from "../../ui";
+import {
+  Box,
+  Flex,
+  Icon,
+  IconRound,
+  Text,
+  Tooltip,
+  type IconNameTypes,
+} from "../../ui";
 import { PaymentMethod } from "../payment-method";
 import { FeatureName } from "./FeatureName";
 import { PaymentForm } from "./PaymentForm";
@@ -265,17 +273,26 @@ export const CheckoutContent = ({
                       )}
 
                       {plan.id !== selectedPlan?.id && (
-                        <StyledButton
-                          disabled={isLoading || plan.valid === false}
-                          {...(plan.valid === true && {
-                            onClick: () => selectPlan(plan),
-                          })}
-                          $size="sm"
-                          $color="primary"
-                          $variant="outline"
-                        >
-                          Select
-                        </StyledButton>
+                        <Box $position="relative">
+                          <StyledButton
+                            disabled={isLoading || plan.valid === false}
+                            {...(plan.valid === true && {
+                              onClick: () => selectPlan(plan),
+                            })}
+                            $size="sm"
+                            $color="primary"
+                            $variant="outline"
+                          >
+                            {plan.valid === false ? (
+                              <Tooltip
+                                label="Over usage limit"
+                                description=" Current usage exceeds limit of this plan"
+                              />
+                            ) : (
+                              "Select"
+                            )}
+                          </StyledButton>
+                        </Box>
                       )}
                     </Flex>
                   </Flex>

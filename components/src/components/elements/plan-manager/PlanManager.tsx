@@ -100,6 +100,7 @@ export const PlanManager = forwardRef<
           <Flex
             $justifyContent="space-between"
             $alignItems="center"
+            $gap="1rem"
             $width="100%"
             {...(canChangePlan && { $margin: "0 0 1.5rem" })}
           >

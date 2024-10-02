@@ -6,3 +6,4 @@ export * from "./loader";
 export * from "./modal";
 export * from "./progress-bar";
 export * from "./text";
+export * from "./tooltip";
