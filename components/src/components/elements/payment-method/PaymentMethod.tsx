@@ -141,7 +141,6 @@ export const PaymentMethod = forwardRef<
 
   const { api, data, layout, setLayout } = useEmbed();
 
-  const [paymentMethodId, setPaymentMethodId] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | undefined>();
   const [showPaymentForm, setShowPaymentForm] = useState(
@@ -179,27 +178,34 @@ export const PaymentMethod = forwardRef<
     };
   }, [data.subscription?.paymentMethod]);
 
-  /* const changePaymentMethod = useCallback(async () => {
-    if (!api || !paymentMethodId) {
-      return;
-    }
+  const updatePaymentMethod = useCallback(
+    async (id: string) => {
+      if (!api || !id) {
+        return;
+      }
 
-    try {
-      setIsLoading(true);
-      await api.updatePaymentMethod({
-        changeSubscriptionRequestBody: {
-          newPaymentMethod: paymentMethodId,
-        },
-      });
-      setLayout("success");
-    } catch {
-      setError(
-        "Error processing payment. Please try a different payment method.",
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  }, [api, paymentMethodId, setLayout]); */
+      try {
+        setIsLoading(true);
+        const updatePaymentMethod =
+          // @ts-expect-error: api to be implemented
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          api.updatePaymentMethod as (...args: any) => Promise<void>;
+        await updatePaymentMethod({
+          changeSubscriptionRequestBody: {
+            newPaymentMethod: id,
+          },
+        });
+        setLayout("success");
+      } catch {
+        setError(
+          "Error processing payment. Please try a different payment method.",
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [api, setLayout],
+  );
 
   useEffect(() => {
     if (!stripe && setupIntent?.publishableKey) {
@@ -254,82 +260,98 @@ export const PaymentMethod = forwardRef<
                 $flex="1"
                 $overflow="auto"
               >
-                {showPaymentForm ? (
-                  <Elements
-                    stripe={stripe}
-                    options={{
-                      appearance: {
-                        theme: "stripe",
-                        variables: {
-                          // Base
-                          fontFamily: '"Public Sans", system-ui, sans-serif',
-                          spacingUnit: "0.25rem",
-                          borderRadius: "0.5rem",
-                          colorText: "#30313D",
-                          colorBackground: "#FFFFFF",
-                          colorPrimary: "#0570DE",
-                          colorDanger: "#DF1B41",
+                <>
+                  {showPaymentForm ? (
+                    <Elements
+                      stripe={stripe}
+                      options={{
+                        appearance: {
+                          theme: "stripe",
+                          variables: {
+                            // Base
+                            fontFamily: '"Public Sans", system-ui, sans-serif',
+                            spacingUnit: "0.25rem",
+                            borderRadius: "0.5rem",
+                            colorText: "#30313D",
+                            colorBackground: "#FFFFFF",
+                            colorPrimary: "#0570DE",
+                            colorDanger: "#DF1B41",
 
-                          // Layout
-                          gridRowSpacing: "1.5rem",
-                          gridColumnSpacing: "1.5rem",
-                        },
-                        rules: {
-                          ".Label": {
-                            fontSize: "1rem",
-                            fontWeight: "400",
-                            marginBottom: "0.75rem",
-                            color: theme.typography.text.color,
+                            // Layout
+                            gridRowSpacing: "1.5rem",
+                            gridColumnSpacing: "1.5rem",
+                          },
+                          rules: {
+                            ".Label": {
+                              fontSize: "1rem",
+                              fontWeight: "400",
+                              marginBottom: "0.75rem",
+                              color: theme.typography.text.color,
+                            },
                           },
                         },
-                      },
-                      clientSecret:
-                        setupIntent?.setupIntentClientSecret as string,
-                    }}
-                  >
-                    <PaymentForm
-                      onConfirm={(value) => {
-                        setPaymentMethodId(value);
+                        clientSecret:
+                          setupIntent?.setupIntentClientSecret as string,
                       }}
-                    />
+                    >
+                      <PaymentForm
+                        onConfirm={(value) => {
+                          updatePaymentMethod(value);
+                        }}
+                      />
 
-                    {data.subscription?.paymentMethod && (
+                      {data.subscription?.paymentMethod && (
+                        <Text
+                          onClick={() => setShowPaymentForm(false)}
+                          $font={theme.typography.link.fontFamily}
+                          $size={theme.typography.link.fontSize}
+                          $weight={theme.typography.link.fontWeight}
+                          $color={theme.typography.link.color}
+                        >
+                          Use existing payment method
+                        </Text>
+                      )}
+                    </Elements>
+                  ) : (
+                    <>
+                      <PaymentMethodElement {...paymentMethod} {...props} />
+
                       <Text
-                        onClick={() => setShowPaymentForm(false)}
+                        onClick={async () => {
+                          if (!api || !data.component?.id) {
+                            return;
+                          }
+
+                          const { data: setupIntent } =
+                            await api.getSetupIntent({
+                              componentId: data.component.id,
+                            });
+                          setSetupIntent(setupIntent);
+                          setShowPaymentForm(true);
+                        }}
                         $font={theme.typography.link.fontFamily}
                         $size={theme.typography.link.fontSize}
                         $weight={theme.typography.link.fontWeight}
                         $color={theme.typography.link.color}
                       >
-                        Use existing payment method
+                        Change payment method
                       </Text>
-                    )}
-                  </Elements>
-                ) : (
-                  <>
-                    <PaymentMethodElement {...paymentMethod} {...props} />
+                    </>
+                  )}
 
-                    <Text
-                      onClick={async () => {
-                        if (!api || !data.component?.id) {
-                          return;
-                        }
-
-                        const { data: setupIntent } = await api.getSetupIntent({
-                          componentId: data.component.id,
-                        });
-                        setSetupIntent(setupIntent);
-                        setShowPaymentForm(true);
-                      }}
-                      $font={theme.typography.link.fontFamily}
-                      $size={theme.typography.link.fontSize}
-                      $weight={theme.typography.link.fontWeight}
-                      $color={theme.typography.link.color}
-                    >
-                      Change payment method
-                    </Text>
-                  </>
-                )}
+                  {!isLoading && error && (
+                    <Box>
+                      <Text
+                        $font={theme.typography.text.fontFamily}
+                        $size={theme.typography.text.fontSize}
+                        $weight={500}
+                        $color="#DB6669"
+                      >
+                        {error}
+                      </Text>
+                    </Box>
+                  )}
+                </>
               </Flex>
             </Flex>
           </Modal>,
