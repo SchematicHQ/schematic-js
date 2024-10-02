@@ -55,14 +55,16 @@ function resolveDesignProps(props: RecursivePartial<DesignProps>): DesignProps {
   };
 }
 
-function formatInvoices(invoices: ListInvoicesResponse["data"]) {
-  return invoices.map(({ amountDue, dueDate }) => ({
+function formatInvoices(invoices?: ListInvoicesResponse["data"]) {
+  return (invoices || []).map(({ amountDue, dueDate }) => ({
     ...(dueDate && { date: toPrettyDate(dueDate) }),
     amount: formatCurrency(amountDue),
   }));
 }
 
-export type InvoicesProps = DesignProps;
+export type InvoicesProps = DesignProps & {
+  data?: ListInvoicesResponse["data"];
+};
 
 export const Invoices = forwardRef<
   HTMLDivElement | null,
@@ -72,30 +74,9 @@ export const Invoices = forwardRef<
 
   const theme = useTheme();
 
-  const { api, data } = useEmbed();
+  const { api } = useEmbed();
 
-  const [invoices, setInvoices] = useState<
-    {
-      date?: string;
-      amount?: string;
-    }[]
-  >(() => {
-    const date = new Date();
-    const amount = formatCurrency(
-      data.subscription?.latestInvoice?.amountDue ?? 2000,
-    );
-    const period = data.company?.plan?.planPeriod ?? "month";
-    console.debug("planPeriod", period);
-
-    return new Array(6).fill(0).map(() => {
-      date.setMonth(date.getMonth() - 1);
-
-      return {
-        date: toPrettyDate(date),
-        amount,
-      };
-    });
-  });
+  const [invoices, setInvoices] = useState(() => formatInvoices(rest.data));
 
   useEffect(() => {
     api?.listInvoices().then(({ data }) => {
