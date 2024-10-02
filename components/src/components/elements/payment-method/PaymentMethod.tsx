@@ -25,6 +25,7 @@ interface DesignProps {
   };
   functions: {
     allowEdit: boolean;
+    showExpiration: boolean;
   };
 }
 
@@ -38,6 +39,7 @@ const resolveDesignProps = (
     },
     functions: {
       allowEdit: props.functions?.allowEdit ?? true,
+      showExpiration: props.functions?.showExpiration ?? true,
     },
   };
 };
@@ -77,17 +79,19 @@ const PaymentMethodElement = ({
             Payment Method
           </Text>
 
-          {typeof monthsToExpiration === "number" && monthsToExpiration < 4 && (
-            <Text
-              $font={theme.typography.text.fontFamily}
-              $size={14}
-              $color="#DB6769"
-            >
-              {monthsToExpiration > 0
-                ? `Expires in ${monthsToExpiration} mo`
-                : "Expired"}
-            </Text>
-          )}
+          {props.functions.showExpiration &&
+            typeof monthsToExpiration === "number" &&
+            monthsToExpiration < 4 && (
+              <Text
+                $font={theme.typography.text.fontFamily}
+                $size={14}
+                $color="#DB6769"
+              >
+                {monthsToExpiration > 0
+                  ? `Expires in ${monthsToExpiration} mo`
+                  : "Expired"}
+              </Text>
+            )}
         </Flex>
       )}
 
@@ -108,12 +112,13 @@ const PaymentMethodElement = ({
             : "Other existing payment method"}
         </Text>
 
-        {onEdit && (
+        {props.functions.allowEdit && onEdit && (
           <Text
             onClick={onEdit}
             $font={theme.typography.link.fontFamily}
             $size={theme.typography.link.fontSize}
             $weight={theme.typography.link.fontWeight}
+            $lineHeight={1}
             $color={theme.typography.link.color}
           >
             Edit
