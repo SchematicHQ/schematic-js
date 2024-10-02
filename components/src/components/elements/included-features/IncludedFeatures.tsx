@@ -170,7 +170,7 @@ export const IncludedFeatures = forwardRef<
               $alignItems="center"
               $gap="1rem"
             >
-              <Flex $gap="1rem">
+              <Flex $flexGrow="1" $flexBasis="min-content" $gap="1rem">
                 {props.icons.isVisible && feature?.icon && (
                   <IconRound
                     name={feature.icon as IconNameTypes}
@@ -203,53 +203,62 @@ export const IncludedFeatures = forwardRef<
               {(allocationType === "numeric" ||
                 allocationType === "unlimited") &&
                 feature?.name && (
-                  <Box $textAlign="right" $paddingLeft="3.5rem">
+                  <Box
+                    $flexGrow="1"
+                    $flexBasis="min-content"
+                    $textAlign="right"
+                  >
                     {props.entitlement.isVisible && (
-                      <Text
-                        as={Box}
-                        $font={
-                          theme.typography[props.entitlement.fontStyle]
-                            .fontFamily
-                        }
-                        $size={
-                          theme.typography[props.entitlement.fontStyle].fontSize
-                        }
-                        $weight={
-                          theme.typography[props.entitlement.fontStyle]
-                            .fontWeight
-                        }
-                        $lineHeight={1.5}
-                        $color={
-                          theme.typography[props.entitlement.fontStyle].color
-                        }
-                      >
-                        {typeof allocation === "number"
-                          ? `${formatNumber(allocation)} ${pluralize(feature.name, allocation)}`
-                          : `Unlimited ${pluralize(feature.name)}`}
-                      </Text>
+                      <Box>
+                        <Text
+                          $font={
+                            theme.typography[props.entitlement.fontStyle]
+                              .fontFamily
+                          }
+                          $size={
+                            theme.typography[props.entitlement.fontStyle]
+                              .fontSize
+                          }
+                          $weight={
+                            theme.typography[props.entitlement.fontStyle]
+                              .fontWeight
+                          }
+                          $lineHeight={1.5}
+                          $color={
+                            theme.typography[props.entitlement.fontStyle].color
+                          }
+                        >
+                          {typeof allocation === "number"
+                            ? `${formatNumber(allocation)} ${pluralize(feature.name, allocation)}`
+                            : `Unlimited ${pluralize(feature.name)}`}
+                        </Text>
+                      </Box>
                     )}
 
                     {props.usage.isVisible && (
-                      <Text
-                        as={Box}
-                        $font={
-                          theme.typography[props.usage.fontStyle].fontFamily
-                        }
-                        $size={theme.typography[props.usage.fontStyle].fontSize}
-                        $weight={
-                          theme.typography[props.usage.fontStyle].fontWeight
-                        }
-                        $lineHeight={1.5}
-                        $color={theme.typography[props.usage.fontStyle].color}
-                      >
-                        {typeof usage === "number" && (
-                          <>
-                            {typeof allocation === "number"
-                              ? `${formatNumber(usage)} of ${formatNumber(allocation)} used`
-                              : `${formatNumber(usage)} used`}
-                          </>
-                        )}
-                      </Text>
+                      <Box $whiteSpace="nowrap">
+                        <Text
+                          $font={
+                            theme.typography[props.usage.fontStyle].fontFamily
+                          }
+                          $size={
+                            theme.typography[props.usage.fontStyle].fontSize
+                          }
+                          $weight={
+                            theme.typography[props.usage.fontStyle].fontWeight
+                          }
+                          $lineHeight={1.5}
+                          $color={theme.typography[props.usage.fontStyle].color}
+                        >
+                          {typeof usage === "number" && (
+                            <>
+                              {typeof allocation === "number"
+                                ? `${formatNumber(usage)} of ${formatNumber(allocation)} used`
+                                : `${formatNumber(usage)} used`}
+                            </>
+                          )}
+                        </Text>
+                      </Box>
                     )}
                   </Box>
                 )}
