@@ -19,7 +19,10 @@ import type {
   CheckoutResponse,
   GetSetupIntentResponse,
   HydrateComponentResponse,
+  ListInvoicesResponse,
   PreviewCheckoutResponse,
+  UpdatePaymentMethodRequestBody,
+  UpdatePaymentMethodResponse,
 } from "../models/index";
 import {
   ApiErrorFromJSON,
@@ -32,8 +35,14 @@ import {
   GetSetupIntentResponseToJSON,
   HydrateComponentResponseFromJSON,
   HydrateComponentResponseToJSON,
+  ListInvoicesResponseFromJSON,
+  ListInvoicesResponseToJSON,
   PreviewCheckoutResponseFromJSON,
   PreviewCheckoutResponseToJSON,
+  UpdatePaymentMethodRequestBodyFromJSON,
+  UpdatePaymentMethodRequestBodyToJSON,
+  UpdatePaymentMethodResponseFromJSON,
+  UpdatePaymentMethodResponseToJSON,
 } from "../models/index";
 
 export interface CheckoutRequest {
@@ -48,8 +57,17 @@ export interface HydrateComponentRequest {
   componentId: string;
 }
 
+export interface ListInvoicesRequest {
+  limit?: number;
+  offset?: number;
+}
+
 export interface PreviewCheckoutRequest {
   changeSubscriptionRequestBody: ChangeSubscriptionRequestBody;
+}
+
+export interface UpdatePaymentMethodRequest {
+  updatePaymentMethodRequestBody: UpdatePaymentMethodRequestBody;
 }
 
 /**
@@ -224,6 +242,60 @@ export class CheckoutApi extends runtime.BaseAPI {
   }
 
   /**
+   * List invoices
+   */
+  async listInvoicesRaw(
+    requestParameters: ListInvoicesRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<ListInvoicesResponse>> {
+    const queryParameters: any = {};
+
+    if (requestParameters["limit"] != null) {
+      queryParameters["limit"] = requestParameters["limit"];
+    }
+
+    if (requestParameters["offset"] != null) {
+      queryParameters["offset"] = requestParameters["offset"];
+    }
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    if (this.configuration && this.configuration.apiKey) {
+      headerParameters["X-Schematic-Api-Key"] = await this.configuration.apiKey(
+        "X-Schematic-Api-Key",
+      ); // ApiKeyAuth authentication
+    }
+
+    const response = await this.request(
+      {
+        path: `/components/invoices`,
+        method: "GET",
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      ListInvoicesResponseFromJSON(jsonValue),
+    );
+  }
+
+  /**
+   * List invoices
+   */
+  async listInvoices(
+    requestParameters: ListInvoicesRequest = {},
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<ListInvoicesResponse> {
+    const response = await this.listInvoicesRaw(
+      requestParameters,
+      initOverrides,
+    );
+    return await response.value();
+  }
+
+  /**
    * Preview checkout
    */
   async previewCheckoutRaw(
@@ -275,6 +347,64 @@ export class CheckoutApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<PreviewCheckoutResponse> {
     const response = await this.previewCheckoutRaw(
+      requestParameters,
+      initOverrides,
+    );
+    return await response.value();
+  }
+
+  /**
+   * Update payment method
+   */
+  async updatePaymentMethodRaw(
+    requestParameters: UpdatePaymentMethodRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<UpdatePaymentMethodResponse>> {
+    if (requestParameters["updatePaymentMethodRequestBody"] == null) {
+      throw new runtime.RequiredError(
+        "updatePaymentMethodRequestBody",
+        'Required parameter "updatePaymentMethodRequestBody" was null or undefined when calling updatePaymentMethod().',
+      );
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    headerParameters["Content-Type"] = "application/json";
+
+    if (this.configuration && this.configuration.apiKey) {
+      headerParameters["X-Schematic-Api-Key"] = await this.configuration.apiKey(
+        "X-Schematic-Api-Key",
+      ); // ApiKeyAuth authentication
+    }
+
+    const response = await this.request(
+      {
+        path: `/checkout/paymentmethod/update`,
+        method: "POST",
+        headers: headerParameters,
+        query: queryParameters,
+        body: UpdatePaymentMethodRequestBodyToJSON(
+          requestParameters["updatePaymentMethodRequestBody"],
+        ),
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      UpdatePaymentMethodResponseFromJSON(jsonValue),
+    );
+  }
+
+  /**
+   * Update payment method
+   */
+  async updatePaymentMethod(
+    requestParameters: UpdatePaymentMethodRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<UpdatePaymentMethodResponse> {
+    const response = await this.updatePaymentMethodRaw(
       requestParameters,
       initOverrides,
     );

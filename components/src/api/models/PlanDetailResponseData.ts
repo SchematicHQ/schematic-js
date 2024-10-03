@@ -88,6 +88,12 @@ export interface PlanDetailResponseData {
   id: string;
   /**
    *
+   * @type {boolean}
+   * @memberof PlanDetailResponseData
+   */
+  isDefault: boolean;
+  /**
+   *
    * @type {BillingPriceResponseData}
    * @memberof PlanDetailResponseData
    */
@@ -132,6 +138,7 @@ export function instanceOfPlanDetailResponseData(
   if (!("features" in value) || value["features"] === undefined) return false;
   if (!("icon" in value) || value["icon"] === undefined) return false;
   if (!("id" in value) || value["id"] === undefined) return false;
+  if (!("isDefault" in value) || value["isDefault"] === undefined) return false;
   if (!("name" in value) || value["name"] === undefined) return false;
   if (!("planType" in value) || value["planType"] === undefined) return false;
   if (!("updatedAt" in value) || value["updatedAt"] === undefined) return false;
@@ -166,6 +173,7 @@ export function PlanDetailResponseDataFromJSONTyped(
     ),
     icon: json["icon"],
     id: json["id"],
+    isDefault: json["is_default"],
     monthlyPrice:
       json["monthly_price"] == null
         ? undefined
@@ -199,6 +207,7 @@ export function PlanDetailResponseDataToJSON(
     ),
     icon: value["icon"],
     id: value["id"],
+    is_default: value["isDefault"],
     monthly_price: BillingPriceResponseDataToJSON(value["monthlyPrice"]),
     name: value["name"],
     plan_type: value["planType"],

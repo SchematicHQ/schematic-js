@@ -32,11 +32,6 @@ interface DesignProps {
     isVisible: boolean;
     fontStyle: FontStyle;
   };
-  callToAction: {
-    isVisible: boolean;
-    buttonSize: "sm" | "md" | "lg";
-    buttonStyle: "primary" | "secondary" | "tertiary";
-  };
 }
 
 function resolveDesignProps(props: RecursivePartial<DesignProps>): DesignProps {
@@ -59,11 +54,6 @@ function resolveDesignProps(props: RecursivePartial<DesignProps>): DesignProps {
     usage: {
       isVisible: props.usage?.isVisible ?? true,
       fontStyle: props.usage?.fontStyle ?? "heading5",
-    },
-    callToAction: {
-      isVisible: props.callToAction?.isVisible ?? true,
-      buttonSize: props.callToAction?.buttonSize ?? "md",
-      buttonStyle: props.callToAction?.buttonStyle ?? "primary",
     },
   };
 }
