@@ -4,8 +4,9 @@ import { useTheme } from "styled-components";
 import { useEmbed } from "../../../hooks";
 import { type FontStyle } from "../../../context";
 import type { RecursivePartial, ElementProps } from "../../../types";
-import { Box, Flex, Text } from "../../ui";
 import { formatCurrency } from "../../../utils";
+import { Element } from "../../layout";
+import { Box, Flex, Text } from "../../ui";
 import { CheckoutDialog } from "./CheckoutDialog";
 import { StyledButton } from "./styles";
 
@@ -90,7 +91,7 @@ export const PlanManager = forwardRef<
   }, [data.company, data.activePlans]);
 
   return (
-    <div ref={ref} className={className}>
+    <Element ref={ref} className={className}>
       <Flex
         $flexDirection="column"
         $gap="0.75rem"
@@ -185,6 +186,6 @@ export const PlanManager = forwardRef<
       {canChangePlan &&
         layout === "checkout" &&
         createPortal(<CheckoutDialog />, portal || document.body)}
-    </div>
+    </Element>
   );
 });

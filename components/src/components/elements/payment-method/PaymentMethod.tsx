@@ -4,6 +4,7 @@ import { useTheme } from "styled-components";
 import { useEmbed } from "../../../hooks";
 import { type FontStyle } from "../../../context";
 import type { RecursivePartial, ElementProps } from "../../../types";
+import { Element } from "../../layout";
 import { Box, Flex, Modal, ModalHeader, Text } from "../../ui";
 import { hexToHSL } from "../../../utils";
 import { StyledButton } from "../plan-manager/styles";
@@ -81,7 +82,7 @@ export const PaymentMethod = forwardRef<
   }
 
   return (
-    <div ref={ref} className={className}>
+    <Element ref={ref} className={className}>
       {props.header.isVisible && (
         <Flex
           $justifyContent="space-between"
@@ -323,6 +324,6 @@ export const PaymentMethod = forwardRef<
           </Modal>,
           portal || document.body,
         )}
-    </div>
+    </Element>
   );
 });

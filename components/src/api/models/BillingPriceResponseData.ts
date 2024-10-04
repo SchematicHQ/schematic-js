@@ -24,6 +24,12 @@ export interface BillingPriceResponseData {
    * @type {string}
    * @memberof BillingPriceResponseData
    */
+  currency: string;
+  /**
+   *
+   * @type {string}
+   * @memberof BillingPriceResponseData
+   */
   externalPriceId: string;
   /**
    *
@@ -51,6 +57,7 @@ export interface BillingPriceResponseData {
 export function instanceOfBillingPriceResponseData(
   value: object,
 ): value is BillingPriceResponseData {
+  if (!("currency" in value) || value["currency"] === undefined) return false;
   if (!("externalPriceId" in value) || value["externalPriceId"] === undefined)
     return false;
   if (!("id" in value) || value["id"] === undefined) return false;
@@ -73,6 +80,7 @@ export function BillingPriceResponseDataFromJSONTyped(
     return json;
   }
   return {
+    currency: json["currency"],
     externalPriceId: json["external_price_id"],
     id: json["id"],
     interval: json["interval"],
@@ -87,6 +95,7 @@ export function BillingPriceResponseDataToJSON(
     return value;
   }
   return {
+    currency: value["currency"],
     external_price_id: value["externalPriceId"],
     id: value["id"],
     interval: value["interval"],

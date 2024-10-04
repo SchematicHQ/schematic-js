@@ -1,8 +1,11 @@
-import { forwardRef, useMemo } from "react";
+import { forwardRef, useLayoutEffect, useMemo, useRef } from "react";
 import { useTheme } from "styled-components";
+import pluralize from "pluralize";
 import { useEmbed } from "../../../hooks";
 import { type FontStyle } from "../../../context";
 import type { RecursivePartial, ElementProps } from "../../../types";
+import { formatNumber, hexToHSL } from "../../../utils";
+import { Element } from "../../layout";
 import {
   Box,
   Flex,
@@ -71,6 +74,8 @@ export const MeteredFeatures = forwardRef<
   const theme = useTheme();
   const { data } = useEmbed();
 
+  const elements = useRef<HTMLElement[]>([]);
+
   const features = useMemo(() => {
     return (data.featureUsage?.features || []).map(
       ({
@@ -99,35 +104,83 @@ export const MeteredFeatures = forwardRef<
     );
   }, [data.featureUsage]);
 
+  const isLightBackground = useMemo(() => {
+    return hexToHSL(theme.card.background).l > 50;
+  }, [theme.card.background]);
+
+  useLayoutEffect(() => {
+    const assignRows = (parent: Element) => {
+      let isWrapped = true;
+      [...parent.children].forEach((el) => {
+        if (!(el instanceof HTMLElement)) {
+          return;
+        }
+
+        if (
+          !el.previousElementSibling ||
+          el.offsetLeft <= (el.previousElementSibling as HTMLElement).offsetLeft
+        ) {
+          isWrapped = !isWrapped;
+        }
+
+        if (isWrapped) {
+          el.style.textAlign = "left";
+        } else if (el.previousElementSibling) {
+          el.style.textAlign = "right";
+        }
+      });
+    };
+
+    elements.current.forEach((el) => {
+      if (!el) return;
+
+      const observer = new ResizeObserver((entries) => {
+        entries.forEach((entry) => {
+          assignRows(entry.target);
+        });
+      });
+
+      observer.observe(el);
+      assignRows(el);
+    });
+  }, [elements.current.length]);
+
   return (
-    <Flex ref={ref} className={className} $flexDirection="column" $gap="1.5rem">
+    <Flex ref={ref} className={className} $flexDirection="column">
       {features.reduce(
         (
           acc: React.ReactElement[],
           { allocation, allocationType, feature, usage },
           index,
         ) => {
-          if (
-            !props.isVisible ||
-            allocationType !== "numeric" ||
-            typeof allocation !== "number"
-          ) {
+          if (allocationType !== "numeric") {
             return acc;
           }
 
           return [
             ...acc,
-            <Flex key={index} $gap="1.5rem">
+            <Element as={Flex} key={index} $gap="1.5rem">
               {props.icon.isVisible && feature?.icon && (
-                <Box $flexShrink="0">
-                  <IconRound name={feature.icon as IconNameTypes} size="sm" />
-                </Box>
+                <IconRound
+                  name={feature.icon as IconNameTypes}
+                  size="sm"
+                  colors={[
+                    theme.primary,
+                    isLightBackground
+                      ? "hsla(0, 0%, 0%, 0.0625)"
+                      : "hsla(0, 0%, 100%, 0.25)",
+                  ]}
+                />
               )}
 
-              <Box $flexGrow="1">
-                <Flex>
+              <Flex $flexDirection="column" $gap="2rem" $flexGrow="1">
+                <Flex
+                  ref={(el) => elements.current.push(el!)}
+                  $flexWrap="wrap"
+                  $gap="1rem"
+                >
                   {feature?.name && (
-                    <Box $flexGrow="1">
+                    <Flex $flexDirection="column" $gap="0.5rem" $flexGrow="1">
                       <Text
                         as={Box}
                         $font={
@@ -166,39 +219,18 @@ export const MeteredFeatures = forwardRef<
                           {feature.description}
                         </Text>
                       )}
-                    </Box>
+                    </Flex>
                   )}
 
                   {(allocationType === "numeric" ||
                     allocationType === "unlimited") &&
                     feature?.name && (
-                      <Box $textAlign="right">
-                        {props.allocation.isVisible && (
-                          <Text
-                            as={Box}
-                            $font={
-                              theme.typography[props.allocation.fontStyle]
-                                .fontFamily
-                            }
-                            $size={
-                              theme.typography[props.allocation.fontStyle]
-                                .fontSize
-                            }
-                            $weight={
-                              theme.typography[props.allocation.fontStyle]
-                                .fontWeight
-                            }
-                            $color={
-                              theme.typography[props.allocation.fontStyle].color
-                            }
-                          >
-                            {typeof allocation === "number"
-                              ? `${allocation} ${feature.name}`
-                              : `Unlimited ${feature.name}`}
-                          </Text>
-                        )}
-
-                        {props.usage.isVisible && (
+                      <Box
+                        $flexBasis="min-content"
+                        $flexGrow="1"
+                        $textAlign="right"
+                      >
+                        {props.usage.isVisible && typeof usage === "number" && (
                           <Text
                             as={Box}
                             $font={
@@ -210,20 +242,48 @@ export const MeteredFeatures = forwardRef<
                             $weight={
                               theme.typography[props.usage.fontStyle].fontWeight
                             }
+                            $lineHeight={1.25}
                             $color={
                               theme.typography[props.usage.fontStyle].color
                             }
                           >
-                            {typeof allocation === "number"
-                              ? `${usage} of ${allocation} used`
-                              : `${usage} used`}
+                            {formatNumber(usage)}{" "}
+                            {pluralize(feature.name, usage)}
                           </Text>
+                        )}
+
+                        {props.allocation.isVisible && (
+                          <Box $whiteSpace="nowrap">
+                            <Text
+                              $font={
+                                theme.typography[props.allocation.fontStyle]
+                                  .fontFamily
+                              }
+                              $size={
+                                theme.typography[props.allocation.fontStyle]
+                                  .fontSize
+                              }
+                              $weight={
+                                theme.typography[props.allocation.fontStyle]
+                                  .fontWeight
+                              }
+                              $color={
+                                theme.typography[props.allocation.fontStyle]
+                                  .color
+                              }
+                            >
+                              {typeof allocation === "number"
+                                ? `Limit of ${formatNumber(allocation)}`
+                                : "No limit"}
+                            </Text>
+                          </Box>
                         )}
                       </Box>
                     )}
                 </Flex>
 
-                {typeof usage === "number" &&
+                {props.isVisible &&
+                  typeof usage === "number" &&
                   typeof allocation === "number" && (
                     <Box>
                       <ProgressBar
@@ -234,8 +294,8 @@ export const MeteredFeatures = forwardRef<
                       />
                     </Box>
                   )}
-              </Box>
-            </Flex>,
+              </Flex>
+            </Element>,
           ];
         },
         [],

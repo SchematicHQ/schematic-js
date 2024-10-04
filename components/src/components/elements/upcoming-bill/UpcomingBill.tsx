@@ -4,6 +4,7 @@ import { useEmbed } from "../../../hooks";
 import { type FontStyle } from "../../../context";
 import type { RecursivePartial, ElementProps } from "../../../types";
 import { toPrettyDate, formatCurrency } from "../../../utils";
+import { Element } from "../../layout";
 import { Box, Flex, Text } from "../../ui";
 
 interface DesignProps {
@@ -76,7 +77,7 @@ export const UpcomingBill = forwardRef<
   }
 
   return (
-    <div ref={ref} className={className}>
+    <Element ref={ref} className={className}>
       {props.header.isVisible && upcomingInvoice.dueDate && (
         <Flex
           $justifyContent="space-between"
@@ -126,6 +127,6 @@ export const UpcomingBill = forwardRef<
           </Box>
         </Flex>
       )}
-    </div>
+    </Element>
   );
 });

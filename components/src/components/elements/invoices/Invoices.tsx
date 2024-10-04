@@ -3,6 +3,7 @@ import { useTheme } from "styled-components";
 import { type FontStyle } from "../../../context";
 import type { RecursivePartial, ElementProps } from "../../../types";
 import { toPrettyDate } from "../../../utils";
+import { Element } from "../../layout";
 import { Icon, Flex, Text } from "../../ui";
 
 interface DesignProps {
@@ -84,7 +85,7 @@ export const Invoices = forwardRef<
   }, []);
 
   return (
-    <div ref={ref} className={className}>
+    <Element ref={ref} className={className}>
       <Flex $flexDirection="column" $gap="1rem">
         {props.header.isVisible && (
           <Flex $justifyContent="space-between" $alignItems="center">
@@ -155,6 +156,6 @@ export const Invoices = forwardRef<
           </Flex>
         )}
       </Flex>
-    </div>
+    </Element>
   );
 });

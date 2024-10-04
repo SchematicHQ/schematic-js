@@ -5,6 +5,7 @@ import { useEmbed } from "../../../hooks";
 import { type FontStyle } from "../../../context";
 import type { RecursivePartial, ElementProps } from "../../../types";
 import { hexToHSL, formatNumber } from "../../../utils";
+import { Element } from "../../layout";
 import { Box, Flex, IconRound, Text, type IconNameTypes } from "../../ui";
 
 interface DesignProps {
@@ -136,7 +137,13 @@ export const IncludedFeatures = forwardRef<
   }, [elements.current.length]);
 
   return (
-    <Flex ref={ref} className={className} $flexDirection="column" $gap="1.5rem">
+    <Element
+      as={Flex}
+      ref={ref}
+      className={className}
+      $flexDirection="column"
+      $gap="1.5rem"
+    >
       {props.header.isVisible && (
         <Box>
           <Text
@@ -204,8 +211,8 @@ export const IncludedFeatures = forwardRef<
                 allocationType === "unlimited") &&
                 feature?.name && (
                   <Box
-                    $flexGrow="1"
                     $flexBasis="min-content"
+                    $flexGrow="1"
                     $textAlign="right"
                   >
                     {props.entitlement.isVisible && (
@@ -223,7 +230,7 @@ export const IncludedFeatures = forwardRef<
                             theme.typography[props.entitlement.fontStyle]
                               .fontWeight
                           }
-                          $lineHeight={1.5}
+                          $lineHeight={1.25}
                           $color={
                             theme.typography[props.entitlement.fontStyle].color
                           }
@@ -267,6 +274,6 @@ export const IncludedFeatures = forwardRef<
         },
         [],
       )}
-    </Flex>
+    </Element>
   );
 });
