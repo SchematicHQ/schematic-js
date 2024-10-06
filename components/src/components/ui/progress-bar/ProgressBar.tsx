@@ -7,7 +7,7 @@ export interface ProgressBarProps
   progress: number;
   value: number;
   total?: number | string;
-  color?: "gray" | "orange" | "blue" | "red";
+  color?: "gray" | "blue" | "yellow" | "orange" | "red";
   barWidth?: string | number;
 }
 

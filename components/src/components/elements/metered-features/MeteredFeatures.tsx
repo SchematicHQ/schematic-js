@@ -13,6 +13,7 @@ import {
   ProgressBar,
   Text,
   type IconNameTypes,
+  type ProgressBarProps,
 } from "../../ui";
 
 interface DesignProps {
@@ -290,7 +291,16 @@ export const MeteredFeatures = forwardRef<
                         progress={(usage / allocation) * 100}
                         value={usage}
                         total={allocation}
-                        color="blue"
+                        color={
+                          (
+                            [
+                              "blue",
+                              "blue",
+                              "yellow",
+                              "red",
+                            ] satisfies ProgressBarProps["color"][]
+                          )[Math.floor((usage / allocation) * 4)]
+                        }
                       />
                     </Box>
                   )}
