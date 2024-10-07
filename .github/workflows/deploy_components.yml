@@ -4,8 +4,8 @@ on:
   push:
     branches:
       - main
-    paths:
-      - components/**
+    tags:
+      - 'schematic-components@*'
   workflow_dispatch:
 
 jobs:
