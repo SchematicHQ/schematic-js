@@ -25,6 +25,12 @@ import {
   EntityKeyDetailResponseDataFromJSONTyped,
   EntityKeyDetailResponseDataToJSON,
 } from "./EntityKeyDetailResponseData";
+import type { BillingSubscriptionResponseData } from "./BillingSubscriptionResponseData";
+import {
+  BillingSubscriptionResponseDataFromJSON,
+  BillingSubscriptionResponseDataFromJSONTyped,
+  BillingSubscriptionResponseDataToJSON,
+} from "./BillingSubscriptionResponseData";
 import type { EntityTraitDetailResponseData } from "./EntityTraitDetailResponseData";
 import {
   EntityTraitDetailResponseDataFromJSON,
@@ -50,6 +56,12 @@ export interface CompanyDetailResponseData {
    * @memberof CompanyDetailResponseData
    */
   addOns: Array<BillingPlan>;
+  /**
+   *
+   * @type {Array<BillingSubscriptionResponseData>}
+   * @memberof CompanyDetailResponseData
+   */
+  billingSubscriptions: Array<BillingSubscriptionResponseData>;
   /**
    *
    * @type {Date}
@@ -137,6 +149,11 @@ export function instanceOfCompanyDetailResponseData(
   value: object,
 ): value is CompanyDetailResponseData {
   if (!("addOns" in value) || value["addOns"] === undefined) return false;
+  if (
+    !("billingSubscriptions" in value) ||
+    value["billingSubscriptions"] === undefined
+  )
+    return false;
   if (!("createdAt" in value) || value["createdAt"] === undefined) return false;
   if (!("entityTraits" in value) || value["entityTraits"] === undefined)
     return false;
@@ -166,6 +183,9 @@ export function CompanyDetailResponseDataFromJSONTyped(
   }
   return {
     addOns: (json["add_ons"] as Array<any>).map(BillingPlanFromJSON),
+    billingSubscriptions: (json["billing_subscriptions"] as Array<any>).map(
+      BillingSubscriptionResponseDataFromJSON,
+    ),
     createdAt: new Date(json["created_at"]),
     entityTraits: (json["entity_traits"] as Array<any>).map(
       EntityTraitDetailResponseDataFromJSON,
@@ -193,6 +213,9 @@ export function CompanyDetailResponseDataToJSON(
   }
   return {
     add_ons: (value["addOns"] as Array<any>).map(BillingPlanToJSON),
+    billing_subscriptions: (value["billingSubscriptions"] as Array<any>).map(
+      BillingSubscriptionResponseDataToJSON,
+    ),
     created_at: value["createdAt"].toISOString(),
     entity_traits: (value["entityTraits"] as Array<any>).map(
       EntityTraitDetailResponseDataToJSON,
