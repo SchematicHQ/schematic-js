@@ -12,7 +12,9 @@ export interface TextProps extends ComponentProps {
   $lineHeight?: ComponentProps["$lineHeight"];
 }
 
-export const Text = styled.span<TextProps>`
+export const Text = styled.span.attrs(({ onClick }) => ({
+  ...(onClick && { tabIndex: 0 }),
+}))<TextProps>`
   font-family: ${({ $font = "Inter" }) => `${$font}, sans-serif`};
   font-size: ${({ $size = 16 }) =>
     typeof $size === "number" ? `${$size / TEXT_BASE_SIZE}rem` : $size};
@@ -28,4 +30,13 @@ export const Text = styled.span<TextProps>`
     outline: 2px solid ${({ theme }) => theme.primary};
     outline-offset: 2px;
   }
+
+  ${({ onClick }) =>
+    onClick &&
+    css`
+      &:hover {
+        cursor: pointer;
+        text-decoration: underline;
+      }
+    `}
 `;

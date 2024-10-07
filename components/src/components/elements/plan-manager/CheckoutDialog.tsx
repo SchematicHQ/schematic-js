@@ -643,6 +643,10 @@ export const CheckoutDialog = () => {
                     clientSecret: setupIntent.setupIntentClientSecret,
                   }}
                 >
+                  <Box $width="100%" $marginBottom="1.5rem">
+                    <Text $size={18}>Add payment method</Text>
+                  </Box>
+
                   <PaymentForm
                     plan={selectedPlan}
                     period={planPeriod}
@@ -652,12 +656,9 @@ export const CheckoutDialog = () => {
                   />
 
                   {data.subscription?.paymentMethod && (
-                    <Box
-                      tabIndex={0}
-                      onClick={() => setShowPaymentForm(false)}
-                      $cursor="pointer"
-                    >
+                    <Box>
                       <Text
+                        onClick={() => setShowPaymentForm(false)}
                         $font={theme.typography.link.fontFamily}
                         $size={theme.typography.link.fontSize}
                         $weight={theme.typography.link.fontWeight}
@@ -672,12 +673,9 @@ export const CheckoutDialog = () => {
                 <>
                   <PaymentMethod />
 
-                  <Box
-                    tabIndex={0}
-                    onClick={() => setShowPaymentForm(true)}
-                    $cursor="pointer"
-                  >
+                  <Box>
                     <Text
+                      onClick={() => setShowPaymentForm(true)}
                       $font={theme.typography.link.fontFamily}
                       $size={theme.typography.link.fontSize}
                       $weight={theme.typography.link.fontWeight}
