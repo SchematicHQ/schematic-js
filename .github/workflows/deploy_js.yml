@@ -4,8 +4,8 @@ on:
   push:
     branches:
       - main
-    paths:
-      - js/**
+    tags:
+      - 'schematic-js@*'
   workflow_dispatch:
 
 jobs:
