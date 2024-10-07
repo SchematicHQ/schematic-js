@@ -1,8 +1,10 @@
-import { forwardRef, useMemo } from "react";
+import { forwardRef, useEffect, useState } from "react";
 import { useTheme } from "styled-components";
+import { type ListInvoicesResponse } from "../../../api";
 import { type FontStyle } from "../../../context";
+import { useEmbed } from "../../../hooks";
 import type { RecursivePartial, ElementProps } from "../../../types";
-import { toPrettyDate } from "../../../utils";
+import { formatCurrency, toPrettyDate } from "../../../utils";
 import { Element } from "../../layout";
 import { Icon, Flex, Text } from "../../ui";
 
@@ -54,35 +56,34 @@ function resolveDesignProps(props: RecursivePartial<DesignProps>): DesignProps {
   };
 }
 
-export type InvoicesProps = DesignProps;
+function formatInvoices(invoices?: ListInvoicesResponse["data"]) {
+  return (invoices || []).map(({ amountDue, dueDate }) => ({
+    ...(dueDate && { date: toPrettyDate(dueDate) }),
+    amount: formatCurrency(amountDue),
+  }));
+}
+
+export type InvoicesProps = DesignProps & {
+  data?: ListInvoicesResponse["data"];
+};
 
 export const Invoices = forwardRef<
   HTMLDivElement | null,
-  ElementProps &
-    RecursivePartial<DesignProps> &
-    React.HTMLAttributes<HTMLDivElement>
+  ElementProps & InvoicesProps & React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...rest }, ref) => {
   const props = resolveDesignProps(rest);
 
   const theme = useTheme();
 
-  const { invoices } = useMemo(() => {
-    /**
-     * @TODO: resolve from data
-     */
-    return {
-      invoices: [
-        {
-          date: toPrettyDate(new Date("2024-05-12")),
-          amount: 200,
-        },
-        {
-          date: toPrettyDate(new Date("2024-04-12")),
-          amount: 200,
-        },
-      ],
-    };
-  }, []);
+  const { api } = useEmbed();
+
+  const [invoices, setInvoices] = useState(() => formatInvoices(rest.data));
+
+  useEffect(() => {
+    api?.listInvoices().then(({ data }) => {
+      setInvoices(formatInvoices(data));
+    });
+  }, [api]);
 
   return (
     <Element ref={ref} className={className}>
@@ -118,7 +119,7 @@ export const Invoices = forwardRef<
                       }
                       $color={theme.typography[props.date.fontStyle].color}
                     >
-                      {toPrettyDate(date)}
+                      {date}
                     </Text>
                   )}
 
@@ -133,7 +134,7 @@ export const Invoices = forwardRef<
                       }
                       $color={theme.typography[props.amount.fontStyle].color}
                     >
-                      ${amount}
+                      {amount}
                     </Text>
                   )}
                 </Flex>

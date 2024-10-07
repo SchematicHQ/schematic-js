@@ -82,7 +82,7 @@ export const UpcomingBill = forwardRef<
         <Flex
           $justifyContent="space-between"
           $alignItems="center"
-          $margin="0 0 0.75rem"
+          $margin="0 0 1rem"
         >
           <Text
             $font={theme.typography[props.header.fontStyle].fontFamily}
