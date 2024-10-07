@@ -14,6 +14,7 @@ import type { SetupIntentResponseData } from "../../../api";
 import { type FontStyle } from "../../../context";
 import { useEmbed } from "../../../hooks";
 import type { RecursivePartial, ElementProps } from "../../../types";
+import { Element } from "../../layout";
 import { hexToHSL } from "../../../utils";
 import { Box, Flex, Modal, ModalHeader, Text } from "../../ui";
 import { PaymentForm } from "../plan-manager";
@@ -242,7 +243,7 @@ export const PaymentMethod = forwardRef<
   }
 
   return (
-    <div ref={ref} className={className}>
+    <Element ref={ref} className={className}>
       <PaymentMethodElement
         onEdit={() => setLayout("payment")}
         {...paymentMethod}
@@ -354,6 +355,6 @@ export const PaymentMethod = forwardRef<
           </Modal>,
           portal || document.body,
         )}
-    </div>
+    </Element>
   );
 });

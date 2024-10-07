@@ -1,6 +1,8 @@
 import { forwardRef } from "react";
 import { useTheme } from "styled-components";
-import { StyledCard } from "./styles";
+import { StyledCard, Element } from "./styles";
+
+export { Element };
 
 export interface CardProps {
   children?: React.ReactNode;

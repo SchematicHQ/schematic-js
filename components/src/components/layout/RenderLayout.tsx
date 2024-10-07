@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useTheme } from "styled-components";
 import { useEmbed } from "../../hooks";
 import { Box, Flex, IconRound, Text } from "../ui";
-import { Card } from "./card";
+import { Card, Element } from ".";
 
 const Disabled = () => {
   const theme = useTheme();
@@ -10,7 +10,8 @@ const Disabled = () => {
   return (
     <Box $width="max-content" $height="max-content" $margin="0 auto">
       <Card>
-        <Flex
+        <Element
+          as={Flex}
           $flexDirection="column"
           $justifyContent="center"
           $alignItems="center"
@@ -37,7 +38,7 @@ const Disabled = () => {
           >
             Please try again later.
           </Text>
-        </Flex>
+        </Element>
       </Card>
     </Box>
   );
@@ -65,7 +66,8 @@ const Success = () => {
   return (
     <Box $width="max-content" $height="max-content" $margin="0 auto">
       <Card>
-        <Flex
+        <Element
+          as={Flex}
           $flexDirection="column"
           $justifyContent="center"
           $alignItems="center"
@@ -100,7 +102,7 @@ const Success = () => {
           >
             Loading…
           </Text>
-        </Flex>
+        </Element>
       </Card>
     </Box>
   );

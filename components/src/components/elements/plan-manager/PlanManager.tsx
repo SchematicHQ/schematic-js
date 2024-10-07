@@ -4,8 +4,9 @@ import { useTheme } from "styled-components";
 import { useEmbed } from "../../../hooks";
 import { type FontStyle } from "../../../context";
 import type { RecursivePartial, ElementProps } from "../../../types";
-import { Box, Flex, Text } from "../../ui";
 import { formatCurrency } from "../../../utils";
+import { Element } from "../../layout";
+import { Box, Flex, Text } from "../../ui";
 import { CheckoutDialog } from "./CheckoutDialog";
 import { StyledButton } from "./styles";
 
@@ -90,12 +91,19 @@ export const PlanManager = forwardRef<
   }, [data.company, data.activePlans]);
 
   return (
-    <Flex ref={ref} className={className} $flexDirection="column" $gap="2rem">
+    <Element
+      as={Flex}
+      ref={ref}
+      className={className}
+      $flexDirection="column"
+      $gap="2rem"
+    >
       {props.header.isVisible && currentPlan && (
         <Flex
           $justifyContent="space-between"
           $alignItems="center"
-          $width="100%"
+          $flexWrap="wrap"
+          $gap="1rem"
         >
           <Flex $flexDirection="column" $gap="1rem">
             <Text
@@ -168,6 +176,6 @@ export const PlanManager = forwardRef<
       {canChangePlan &&
         layout === "checkout" &&
         createPortal(<CheckoutDialog />, portal || document.body)}
-    </Flex>
+    </Element>
   );
 });
