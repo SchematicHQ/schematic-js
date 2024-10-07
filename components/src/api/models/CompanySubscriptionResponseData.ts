@@ -43,6 +43,12 @@ export interface CompanySubscriptionResponseData {
    * @type {string}
    * @memberof CompanySubscriptionResponseData
    */
+  currency: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CompanySubscriptionResponseData
+   */
   customerExternalId: string;
   /**
    *
@@ -100,6 +106,7 @@ export interface CompanySubscriptionResponseData {
 export function instanceOfCompanySubscriptionResponseData(
   value: object,
 ): value is CompanySubscriptionResponseData {
+  if (!("currency" in value) || value["currency"] === undefined) return false;
   if (
     !("customerExternalId" in value) ||
     value["customerExternalId"] === undefined
@@ -132,6 +139,7 @@ export function CompanySubscriptionResponseDataFromJSONTyped(
     return json;
   }
   return {
+    currency: json["currency"],
     customerExternalId: json["customer_external_id"],
     expiredAt:
       json["expired_at"] == null ? undefined : new Date(json["expired_at"]),
@@ -160,6 +168,7 @@ export function CompanySubscriptionResponseDataToJSON(
     return value;
   }
   return {
+    currency: value["currency"],
     customer_external_id: value["customerExternalId"],
     expired_at:
       value["expiredAt"] == null
