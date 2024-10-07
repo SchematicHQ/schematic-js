@@ -35,6 +35,8 @@ models/FlagResponseData.ts
 models/GetSetupIntentResponse.ts
 models/HydrateComponentResponse.ts
 models/InvoiceResponseData.ts
+models/ListInvoicesParams.ts
+models/ListInvoicesResponse.ts
 models/PaymentMethodResponseData.ts
 models/PlanDetailResponseData.ts
 models/PlanEntitlementResponseData.ts
@@ -52,5 +54,7 @@ models/RuleDetailResponseData.ts
 models/RuleResponseData.ts
 models/SetupIntentResponseData.ts
 models/StripeEmbedInfo.ts
+models/UpdatePaymentMethodRequestBody.ts
+models/UpdatePaymentMethodResponse.ts
 models/index.ts
 runtime.ts
