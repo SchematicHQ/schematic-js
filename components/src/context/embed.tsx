@@ -2,6 +2,7 @@ import { createContext, useCallback, useEffect, useRef, useState } from "react";
 import { inflate } from "pako";
 import { ThemeProvider } from "styled-components";
 import merge from "lodash.merge";
+import { v4 as uuidv4 } from "uuid";
 import {
   CheckoutApi,
   Configuration,
@@ -202,6 +203,7 @@ export const EmbedProvider = ({
   children,
 }: EmbedProviderProps) => {
   const styleRef = useRef<HTMLLinkElement | null>(null);
+  const sessionIdRef = useRef<string>(uuidv4());
 
   const [state, setState] = useState<{
     api: CheckoutApi | null;
@@ -329,7 +331,16 @@ export const EmbedProvider = ({
 
   useEffect(() => {
     if (accessToken) {
-      const config = new Configuration({ ...apiConfig, apiKey: accessToken });
+      const { headers = {} } = apiConfig ?? {};
+      headers["X-Schematic-Components-Version"] =
+        process.env.SCHEMATIC_COMPONENTS_VERSION ?? "unknown";
+      headers["X-Schematic-Session-ID"] = sessionIdRef.current;
+
+      const config = new Configuration({
+        ...apiConfig,
+        apiKey: accessToken,
+        headers,
+      });
       const api = new CheckoutApi(config);
       setState((prev) => ({ ...prev, api }));
     }
