@@ -2,8 +2,6 @@ name: Deploy schematic-react
 
 on:
   push:
-    branches:
-      - main
     tags:
       - 'schematic-react@*'
   workflow_dispatch:

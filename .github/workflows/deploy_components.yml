@@ -2,8 +2,6 @@ name: Deploy schematic-components
 
 on:
   push:
-    branches:
-      - main
     tags:
       - 'schematic-components@*'
   workflow_dispatch:

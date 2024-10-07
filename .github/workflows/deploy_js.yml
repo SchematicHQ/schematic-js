@@ -2,8 +2,6 @@ name: Deploy schematic-js
 
 on:
   push:
-    branches:
-      - main
     tags:
       - 'schematic-js@*'
   workflow_dispatch:
