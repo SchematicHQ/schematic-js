@@ -21,6 +21,12 @@ import { mapValues } from "../runtime";
 export interface BillingSubscriptionResponseData {
   /**
    *
+   * @type {string}
+   * @memberof BillingSubscriptionResponseData
+   */
+  currency: string;
+  /**
+   *
    * @type {Date}
    * @memberof BillingSubscriptionResponseData
    */
@@ -33,10 +39,22 @@ export interface BillingSubscriptionResponseData {
   externalId: string;
   /**
    *
+   * @type {string}
+   * @memberof BillingSubscriptionResponseData
+   */
+  id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof BillingSubscriptionResponseData
+   */
+  interval: string;
+  /**
+   *
    * @type {number}
    * @memberof BillingSubscriptionResponseData
    */
-  id: number;
+  totalPrice: number;
   /**
    *
    * @type {Date}
@@ -51,9 +69,13 @@ export interface BillingSubscriptionResponseData {
 export function instanceOfBillingSubscriptionResponseData(
   value: object,
 ): value is BillingSubscriptionResponseData {
+  if (!("currency" in value) || value["currency"] === undefined) return false;
   if (!("externalId" in value) || value["externalId"] === undefined)
     return false;
   if (!("id" in value) || value["id"] === undefined) return false;
+  if (!("interval" in value) || value["interval"] === undefined) return false;
+  if (!("totalPrice" in value) || value["totalPrice"] === undefined)
+    return false;
   if (!("updatedAt" in value) || value["updatedAt"] === undefined) return false;
   return true;
 }
@@ -72,10 +94,13 @@ export function BillingSubscriptionResponseDataFromJSONTyped(
     return json;
   }
   return {
+    currency: json["currency"],
     expiredAt:
       json["expired_at"] == null ? undefined : new Date(json["expired_at"]),
     externalId: json["external_id"],
     id: json["id"],
+    interval: json["interval"],
+    totalPrice: json["total_price"],
     updatedAt: new Date(json["updated_at"]),
   };
 }
@@ -87,12 +112,15 @@ export function BillingSubscriptionResponseDataToJSON(
     return value;
   }
   return {
+    currency: value["currency"],
     expired_at:
       value["expiredAt"] == null
         ? undefined
         : (value["expiredAt"] as any).toISOString(),
     external_id: value["externalId"],
     id: value["id"],
+    interval: value["interval"],
+    total_price: value["totalPrice"],
     updated_at: value["updatedAt"].toISOString(),
   };
 }
