@@ -4,6 +4,7 @@ import { Root, Viewport, Column, Card } from "../../components/layout";
 import {
   PlanManager,
   IncludedFeatures,
+  MeteredFeatures,
   UpcomingBill,
   PaymentMethod,
 } from "../../components/elements";
@@ -16,6 +17,7 @@ const components: Record<string, React.FC<any> | undefined> = {
   Card,
   PlanManager,
   IncludedFeatures,
+  MeteredFeatures,
   UpcomingBill,
   PaymentMethod,
 };
