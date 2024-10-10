@@ -21,3 +21,5 @@ export const Viewport = forwardRef<HTMLDivElement | null, ViewportProps>(
     );
   },
 );
+
+Viewport.displayName = "Viewport";

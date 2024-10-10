@@ -1,10 +1,4 @@
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useState,
-} from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTheme } from "styled-components";
 import pluralize from "pluralize";
 import { loadStripe, type Stripe } from "@stripe/stripe-js";
@@ -255,8 +249,9 @@ export const CheckoutDialog = () => {
     }
   }, [stripe, setupIntent?.publishableKey]);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     document.body.style.overflow = "hidden";
+
     return () => {
       document.body.style.overflow = "";
     };

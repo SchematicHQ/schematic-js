@@ -160,3 +160,5 @@ export const Invoices = forwardRef<
     </Element>
   );
 });
+
+Invoices.displayName = "Invoices";

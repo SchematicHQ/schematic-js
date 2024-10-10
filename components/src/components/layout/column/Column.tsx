@@ -15,3 +15,5 @@ export const Column = forwardRef<HTMLDivElement | null, ColumnProps>(
     );
   },
 );
+
+Column.displayName = "Column";

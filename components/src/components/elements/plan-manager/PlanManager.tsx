@@ -179,3 +179,5 @@ export const PlanManager = forwardRef<
     </Element>
   );
 });
+
+PlanManager.displayName = "PlanManager";

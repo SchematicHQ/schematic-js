@@ -1,10 +1,14 @@
-import { forwardRef, useLayoutEffect, useMemo, useRef } from "react";
+import { forwardRef, useRef } from "react";
 import { useTheme } from "styled-components";
 import pluralize from "pluralize";
-import { useEmbed } from "../../../hooks";
 import { type FontStyle } from "../../../context";
+import {
+  useEmbed,
+  useIsLightBackground,
+  useWrapChildren,
+} from "../../../hooks";
 import type { RecursivePartial, ElementProps } from "../../../types";
-import { hexToHSL, formatNumber } from "../../../utils";
+import { formatNumber } from "../../../utils";
 import { Element } from "../../layout";
 import { Box, Flex, IconRound, Text, type IconNameTypes } from "../../ui";
 
@@ -63,78 +67,13 @@ export const IncludedFeatures = forwardRef<
   const props = resolveDesignProps(rest);
 
   const theme = useTheme();
+
   const { data } = useEmbed();
 
   const elements = useRef<HTMLElement[]>([]);
+  const shouldWrapChildren = useWrapChildren(elements.current);
 
-  const features = useMemo(() => {
-    return (data.featureUsage?.features || []).map(
-      ({
-        access,
-        allocation,
-        allocationType,
-        feature,
-        period,
-        usage = 0,
-        ...props
-      }) => {
-        return {
-          access,
-          allocation,
-          allocationType,
-          feature,
-          period,
-          /**
-           * @TODO: resolve feature price
-           */
-          price: undefined,
-          usage,
-          ...props,
-        };
-      },
-    );
-  }, [data.featureUsage]);
-
-  const isLightBackground = useMemo(() => {
-    return hexToHSL(theme.card.background).l > 50;
-  }, [theme.card.background]);
-
-  useLayoutEffect(() => {
-    const assignRows = (parent: Element) => {
-      let isWrapped = true;
-      [...parent.children].forEach((el) => {
-        if (!(el instanceof HTMLElement)) {
-          return;
-        }
-
-        if (
-          !el.previousElementSibling ||
-          el.offsetLeft <= (el.previousElementSibling as HTMLElement).offsetLeft
-        ) {
-          isWrapped = !isWrapped;
-        }
-
-        if (isWrapped) {
-          el.style.textAlign = "left";
-        } else if (el.previousElementSibling) {
-          el.style.textAlign = "right";
-        }
-      });
-    };
-
-    elements.current.forEach((el) => {
-      if (!el) return;
-
-      const observer = new ResizeObserver((entries) => {
-        entries.forEach((entry) => {
-          assignRows(entry.target);
-        });
-      });
-
-      observer.observe(el);
-      assignRows(el);
-    });
-  }, [elements.current.length]);
+  const isLightBackground = useIsLightBackground();
 
   return (
     <Element
@@ -157,21 +96,13 @@ export const IncludedFeatures = forwardRef<
         </Box>
       )}
 
-      {features.reduce(
-        (
-          acc: React.ReactElement[],
-          { allocation, allocationType, feature, usage },
-          index,
-        ) => {
-          if (!allocationType) {
-            return acc;
-          }
-
+      {(data.featureUsage?.features || []).reduce(
+        (acc: React.ReactElement[], { allocation, feature, usage }, index) => {
           return [
             ...acc,
             <Flex
               key={index}
-              ref={(el) => elements.current.push(el!)}
+              ref={(el) => el && elements.current.push(el)}
               $flexWrap="wrap"
               $justifyContent="space-between"
               $alignItems="center"
@@ -207,13 +138,13 @@ export const IncludedFeatures = forwardRef<
                 )}
               </Flex>
 
-              {(allocationType === "numeric" ||
-                allocationType === "unlimited") &&
+              {(feature?.featureType === "event" ||
+                feature?.featureType === "trait") &&
                 feature?.name && (
                   <Box
                     $flexBasis="min-content"
                     $flexGrow="1"
-                    $textAlign="right"
+                    $textAlign={shouldWrapChildren ? "left" : "right"}
                   >
                     {props.entitlement.isVisible && (
                       <Box>
@@ -277,3 +208,5 @@ export const IncludedFeatures = forwardRef<
     </Element>
   );
 });
+
+IncludedFeatures.displayName = "IncludedFeatures";
