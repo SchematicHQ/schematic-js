@@ -1,11 +1,4 @@
-import {
-  forwardRef,
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useState,
-} from "react";
+import { forwardRef, useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTheme } from "styled-components";
 import { loadStripe, type Stripe } from "@stripe/stripe-js";
@@ -231,12 +224,13 @@ export const PaymentMethod = forwardRef<
     }
   }, [stripe, setupIntent?.publishableKey]);
 
-  useLayoutEffect(() => {
-    document.body.style.overflow = "hidden";
+  useEffect(() => {
+    document.body.style.overflow = layout === "payment" ? "hidden" : "";
+
     return () => {
       document.body.style.overflow = "";
     };
-  }, []);
+  }, [layout]);
 
   if (!paymentMethod.paymentMethodType) {
     return null;
@@ -358,3 +352,5 @@ export const PaymentMethod = forwardRef<
     </Element>
   );
 });
+
+PaymentMethod.displayName = "PaymentMethod";

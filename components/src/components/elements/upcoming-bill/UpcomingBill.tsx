@@ -130,3 +130,5 @@ export const UpcomingBill = forwardRef<
     </Element>
   );
 });
+
+UpcomingBill.displayName = "UpcomingBill";
