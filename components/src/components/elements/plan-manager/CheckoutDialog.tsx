@@ -58,6 +58,7 @@ const FeatureName = ({
     let period;
     if (entitlement.metricPeriod) {
       period = {
+        billing: "billing period",
         current_day: "day",
         current_month: "month",
         current_year: "year",
