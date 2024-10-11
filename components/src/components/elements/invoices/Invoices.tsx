@@ -57,11 +57,41 @@ function resolveDesignProps(props: RecursivePartial<DesignProps>): DesignProps {
 }
 
 function formatInvoices(invoices?: ListInvoicesResponse["data"]) {
-  return (invoices || []).map(({ amountDue, dueDate }) => ({
+  return (invoices || []).map(({ amountDue, dueDate, url }) => ({
     ...(dueDate && { date: toPrettyDate(dueDate) }),
     amount: formatCurrency(amountDue),
+    url,
   }));
 }
+
+interface InvoiceDateProps {
+  date: string;
+  fontStyle: FontStyle;
+  url?: string | null;
+}
+
+const InvoiceDate = ({ date, fontStyle, url }: InvoiceDateProps) => {
+  const theme = useTheme();
+
+  const dateText = (
+    <Text
+      $font={theme.typography[fontStyle].fontFamily}
+      $size={theme.typography[fontStyle].fontSize}
+      $weight={theme.typography[fontStyle].fontWeight}
+      $color={theme.typography[fontStyle].color}
+    >
+      {date}
+    </Text>
+  );
+
+  if (url) {
+    <a href={url} target="_blank">
+      {dateText}
+    </a>;
+  }
+
+  return dateText;
+};
 
 export type InvoicesProps = DesignProps & {
   data?: ListInvoicesResponse["data"];
@@ -107,20 +137,15 @@ export const Invoices = forwardRef<
               0,
               (props.limit.isVisible && props.limit.number) || invoices.length,
             )
-            .map(({ date, amount }, index) => {
+            .map(({ date, amount, url }, index) => {
               return (
                 <Flex key={index} $justifyContent="space-between">
-                  {props.date.isVisible && (
-                    <Text
-                      $font={theme.typography[props.date.fontStyle].fontFamily}
-                      $size={theme.typography[props.date.fontStyle].fontSize}
-                      $weight={
-                        theme.typography[props.date.fontStyle].fontWeight
-                      }
-                      $color={theme.typography[props.date.fontStyle].color}
-                    >
-                      {date}
-                    </Text>
+                  {props.date.isVisible && date && (
+                    <InvoiceDate
+                      date={date}
+                      fontStyle={props.date.fontStyle}
+                      url={url}
+                    />
                   )}
 
                   {props.amount.isVisible && (
