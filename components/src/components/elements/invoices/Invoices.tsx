@@ -57,9 +57,10 @@ function resolveDesignProps(props: RecursivePartial<DesignProps>): DesignProps {
 }
 
 function formatInvoices(invoices?: ListInvoicesResponse["data"]) {
-  return (invoices || []).map(({ amountDue, dueDate }) => ({
+  return (invoices || []).map(({ amountDue, dueDate, url }) => ({
     ...(dueDate && { date: toPrettyDate(dueDate) }),
     amount: formatCurrency(amountDue),
+    url,
   }));
 }
 
@@ -107,7 +108,7 @@ export const Invoices = forwardRef<
               0,
               (props.limit.isVisible && props.limit.number) || invoices.length,
             )
-            .map(({ date, amount }, index) => {
+            .map(({ date, amount, url }, index) => {
               return (
                 <Flex key={index} $justifyContent="space-between">
                   {props.date.isVisible && (
@@ -119,7 +120,13 @@ export const Invoices = forwardRef<
                       }
                       $color={theme.typography[props.date.fontStyle].color}
                     >
-                      {date}
+                      {url ? (
+                        <a href={url} target="_blank">
+                          {date}
+                        </a>
+                      ) : (
+                        date
+                      )}
                     </Text>
                   )}
 

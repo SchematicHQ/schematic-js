@@ -24,6 +24,36 @@ export interface PaymentMethodResponseData {
    * @type {string}
    * @memberof PaymentMethodResponseData
    */
+  accountLast4?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof PaymentMethodResponseData
+   */
+  accountName?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof PaymentMethodResponseData
+   */
+  bankName?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof PaymentMethodResponseData
+   */
+  billingEmail?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof PaymentMethodResponseData
+   */
+  billingName?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof PaymentMethodResponseData
+   */
   cardBrand?: string | null;
   /**
    *
@@ -139,6 +169,15 @@ export function PaymentMethodResponseDataFromJSONTyped(
     return json;
   }
   return {
+    accountLast4:
+      json["account_last4"] == null ? undefined : json["account_last4"],
+    accountName:
+      json["account_name"] == null ? undefined : json["account_name"],
+    bankName: json["bank_name"] == null ? undefined : json["bank_name"],
+    billingEmail:
+      json["billing_email"] == null ? undefined : json["billing_email"],
+    billingName:
+      json["billing_name"] == null ? undefined : json["billing_name"],
     cardBrand: json["card_brand"] == null ? undefined : json["card_brand"],
     cardExpMonth:
       json["card_exp_month"] == null ? undefined : json["card_exp_month"],
@@ -167,6 +206,11 @@ export function PaymentMethodResponseDataToJSON(
     return value;
   }
   return {
+    account_last4: value["accountLast4"],
+    account_name: value["accountName"],
+    bank_name: value["bankName"],
+    billing_email: value["billingEmail"],
+    billing_name: value["billingName"],
     card_brand: value["cardBrand"],
     card_exp_month: value["cardExpMonth"],
     card_exp_year: value["cardExpYear"],

@@ -115,6 +115,12 @@ export interface InvoiceResponseData {
    * @memberof InvoiceResponseData
    */
   updatedAt: Date;
+  /**
+   *
+   * @type {string}
+   * @memberof InvoiceResponseData
+   */
+  url?: string | null;
 }
 
 /**
@@ -179,6 +185,7 @@ export function InvoiceResponseDataFromJSONTyped(
         : json["subscription_external_id"],
     subtotal: json["subtotal"],
     updatedAt: new Date(json["updated_at"]),
+    url: json["url"] == null ? undefined : json["url"],
   };
 }
 
@@ -208,5 +215,6 @@ export function InvoiceResponseDataToJSON(
     subscription_external_id: value["subscriptionExternalId"],
     subtotal: value["subtotal"],
     updated_at: value["updatedAt"].toISOString(),
+    url: value["url"],
   };
 }
