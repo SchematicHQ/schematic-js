@@ -64,6 +64,35 @@ function formatInvoices(invoices?: ListInvoicesResponse["data"]) {
   }));
 }
 
+interface InvoiceDateProps {
+  date: string;
+  fontStyle: FontStyle;
+  url?: string | null;
+}
+
+const InvoiceDate = ({ date, fontStyle, url }: InvoiceDateProps) => {
+  const theme = useTheme();
+
+  const dateText = (
+    <Text
+      $font={theme.typography[fontStyle].fontFamily}
+      $size={theme.typography[fontStyle].fontSize}
+      $weight={theme.typography[fontStyle].fontWeight}
+      $color={theme.typography[fontStyle].color}
+    >
+      {date}
+    </Text>
+  );
+
+  if (url) {
+    <a href={url} target="_blank">
+      {dateText}
+    </a>;
+  }
+
+  return dateText;
+};
+
 export type InvoicesProps = DesignProps & {
   data?: ListInvoicesResponse["data"];
 };
@@ -111,23 +140,12 @@ export const Invoices = forwardRef<
             .map(({ date, amount, url }, index) => {
               return (
                 <Flex key={index} $justifyContent="space-between">
-                  {props.date.isVisible && (
-                    <Text
-                      $font={theme.typography[props.date.fontStyle].fontFamily}
-                      $size={theme.typography[props.date.fontStyle].fontSize}
-                      $weight={
-                        theme.typography[props.date.fontStyle].fontWeight
-                      }
-                      $color={theme.typography[props.date.fontStyle].color}
-                    >
-                      {url ? (
-                        <a href={url} target="_blank">
-                          {date}
-                        </a>
-                      ) : (
-                        date
-                      )}
-                    </Text>
+                  {props.date.isVisible && date && (
+                    <InvoiceDate
+                      date={date}
+                      fontStyle={props.date.fontStyle}
+                      url={url}
+                    />
                   )}
 
                   {props.amount.isVisible && (
