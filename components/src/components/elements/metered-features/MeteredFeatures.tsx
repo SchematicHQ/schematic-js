@@ -87,195 +87,163 @@ export const MeteredFeatures = forwardRef<
 
   const isLightBackground = useIsLightBackground();
 
+  const features = (data.featureUsage?.features || []).filter(({ feature }) => {
+    return (
+      (feature?.featureType === "event" || feature?.featureType === "trait") &&
+      feature?.id &&
+      props.visibleFeatures?.includes(feature.id)
+    );
+  });
+
+  if (features.length === 0) {
+    return null;
+  }
+
   return (
     <Flex ref={ref} className={className} $flexDirection="column">
-      {props.visibleFeatures.length > 0 ? (
-        (data.featureUsage?.features || []).reduce(
-          (
-            acc: React.ReactElement[],
-            { allocation, feature, usage },
-            index,
-          ) => {
-            if (
-              (feature?.id && !props.visibleFeatures?.includes(feature.id)) ||
-              (feature?.featureType !== "event" &&
-                feature?.featureType !== "trait")
-            ) {
-              return acc;
-            }
+      {features.map(({ allocation, feature, usage }, index) => {
+        return (
+          <Element as={Flex} key={index} $gap="1.5rem">
+            {props.icon.isVisible && feature?.icon && (
+              <IconRound
+                name={feature.icon as IconNameTypes}
+                size="sm"
+                colors={[
+                  theme.primary,
+                  isLightBackground
+                    ? "hsla(0, 0%, 0%, 0.0625)"
+                    : "hsla(0, 0%, 100%, 0.25)",
+                ]}
+              />
+            )}
 
-            return [
-              ...acc,
-              <Element as={Flex} key={index} $gap="1.5rem">
-                {props.icon.isVisible && feature?.icon && (
-                  <IconRound
-                    name={feature.icon as IconNameTypes}
-                    size="sm"
-                    colors={[
-                      theme.primary,
-                      isLightBackground
-                        ? "hsla(0, 0%, 0%, 0.0625)"
-                        : "hsla(0, 0%, 100%, 0.25)",
-                    ]}
-                  />
+            <Flex $flexDirection="column" $gap="2rem" $flexGrow="1">
+              <Flex
+                ref={(el) => el && elements.current.push(el)}
+                $flexWrap="wrap"
+                $gap="1rem"
+              >
+                {feature?.name && (
+                  <Flex $flexDirection="column" $gap="0.5rem" $flexGrow="1">
+                    <Text
+                      as={Box}
+                      $font={
+                        theme.typography[props.header.fontStyle].fontFamily
+                      }
+                      $size={theme.typography[props.header.fontStyle].fontSize}
+                      $weight={
+                        theme.typography[props.header.fontStyle].fontWeight
+                      }
+                      $color={theme.typography[props.header.fontStyle].color}
+                    >
+                      {feature.name}
+                    </Text>
+
+                    {props.description.isVisible && (
+                      <Text
+                        as={Box}
+                        $font={
+                          theme.typography[props.description.fontStyle]
+                            .fontFamily
+                        }
+                        $size={
+                          theme.typography[props.description.fontStyle].fontSize
+                        }
+                        $weight={
+                          theme.typography[props.description.fontStyle]
+                            .fontWeight
+                        }
+                        $color={
+                          theme.typography[props.description.fontStyle].color
+                        }
+                      >
+                        {feature.description}
+                      </Text>
+                    )}
+                  </Flex>
                 )}
 
-                <Flex $flexDirection="column" $gap="2rem" $flexGrow="1">
-                  <Flex
-                    ref={(el) => el && elements.current.push(el)}
-                    $flexWrap="wrap"
-                    $gap="1rem"
-                  >
-                    {feature?.name && (
-                      <Flex $flexDirection="column" $gap="0.5rem" $flexGrow="1">
+                {(feature?.featureType === "event" ||
+                  feature?.featureType === "trait") &&
+                  feature?.name && (
+                    <Box
+                      $flexBasis="min-content"
+                      $flexGrow="1"
+                      $textAlign={shouldWrapChildren ? "left" : "right"}
+                    >
+                      {props.usage.isVisible && typeof usage === "number" && (
                         <Text
                           as={Box}
                           $font={
-                            theme.typography[props.header.fontStyle].fontFamily
+                            theme.typography[props.usage.fontStyle].fontFamily
                           }
                           $size={
-                            theme.typography[props.header.fontStyle].fontSize
+                            theme.typography[props.usage.fontStyle].fontSize
                           }
                           $weight={
-                            theme.typography[props.header.fontStyle].fontWeight
+                            theme.typography[props.usage.fontStyle].fontWeight
                           }
-                          $color={
-                            theme.typography[props.header.fontStyle].color
-                          }
+                          $lineHeight={1.25}
+                          $color={theme.typography[props.usage.fontStyle].color}
                         >
-                          {feature.name}
+                          {formatNumber(usage)} {pluralize(feature.name, usage)}
                         </Text>
+                      )}
 
-                        {props.description.isVisible && (
+                      {props.allocation.isVisible && (
+                        <Box $whiteSpace="nowrap">
                           <Text
-                            as={Box}
                             $font={
-                              theme.typography[props.description.fontStyle]
+                              theme.typography[props.allocation.fontStyle]
                                 .fontFamily
                             }
                             $size={
-                              theme.typography[props.description.fontStyle]
+                              theme.typography[props.allocation.fontStyle]
                                 .fontSize
                             }
                             $weight={
-                              theme.typography[props.description.fontStyle]
+                              theme.typography[props.allocation.fontStyle]
                                 .fontWeight
                             }
                             $color={
-                              theme.typography[props.description.fontStyle]
-                                .color
+                              theme.typography[props.allocation.fontStyle].color
                             }
                           >
-                            {feature.description}
+                            {typeof allocation === "number"
+                              ? `Limit of ${formatNumber(allocation)}`
+                              : "No limit"}
                           </Text>
-                        )}
-                      </Flex>
-                    )}
-
-                    {(feature?.featureType === "event" ||
-                      feature?.featureType === "trait") &&
-                      feature?.name && (
-                        <Box
-                          $flexBasis="min-content"
-                          $flexGrow="1"
-                          $textAlign={shouldWrapChildren ? "left" : "right"}
-                        >
-                          {props.usage.isVisible &&
-                            typeof usage === "number" && (
-                              <Text
-                                as={Box}
-                                $font={
-                                  theme.typography[props.usage.fontStyle]
-                                    .fontFamily
-                                }
-                                $size={
-                                  theme.typography[props.usage.fontStyle]
-                                    .fontSize
-                                }
-                                $weight={
-                                  theme.typography[props.usage.fontStyle]
-                                    .fontWeight
-                                }
-                                $lineHeight={1.25}
-                                $color={
-                                  theme.typography[props.usage.fontStyle].color
-                                }
-                              >
-                                {formatNumber(usage)}{" "}
-                                {pluralize(feature.name, usage)}
-                              </Text>
-                            )}
-
-                          {props.allocation.isVisible && (
-                            <Box $whiteSpace="nowrap">
-                              <Text
-                                $font={
-                                  theme.typography[props.allocation.fontStyle]
-                                    .fontFamily
-                                }
-                                $size={
-                                  theme.typography[props.allocation.fontStyle]
-                                    .fontSize
-                                }
-                                $weight={
-                                  theme.typography[props.allocation.fontStyle]
-                                    .fontWeight
-                                }
-                                $color={
-                                  theme.typography[props.allocation.fontStyle]
-                                    .color
-                                }
-                              >
-                                {typeof allocation === "number"
-                                  ? `Limit of ${formatNumber(allocation)}`
-                                  : "No limit"}
-                              </Text>
-                            </Box>
-                          )}
                         </Box>
                       )}
-                  </Flex>
+                    </Box>
+                  )}
+              </Flex>
 
-                  {props.isVisible &&
-                    typeof usage === "number" &&
-                    typeof allocation === "number" && (
-                      <Box>
-                        <ProgressBar
-                          progress={(usage / allocation) * 100}
-                          value={usage}
-                          total={allocation}
-                          color={
-                            (
-                              [
-                                "blue",
-                                "blue",
-                                "yellow",
-                                "red",
-                              ] satisfies ProgressBarProps["color"][]
-                            )[Math.floor((usage / allocation) * 4)]
-                          }
-                        />
-                      </Box>
-                    )}
-                </Flex>
-              </Element>,
-            ];
-          },
-          [],
-        )
-      ) : (
-        <Element as={Flex} $justifyContent="center">
-          <Text
-            $font={theme.typography.heading1.fontFamily}
-            $size={theme.typography.heading1.fontSize}
-            $weight={theme.typography.heading1.fontWeight}
-            $color={theme.typography.heading1.color}
-            $align="center"
-          >
-            No features selected
-          </Text>
-        </Element>
-      )}
+              {props.isVisible &&
+                typeof usage === "number" &&
+                typeof allocation === "number" && (
+                  <Box>
+                    <ProgressBar
+                      progress={(usage / allocation) * 100}
+                      value={usage}
+                      total={allocation}
+                      color={
+                        (
+                          [
+                            "blue",
+                            "blue",
+                            "yellow",
+                            "red",
+                          ] satisfies ProgressBarProps["color"][]
+                        )[Math.floor((usage / allocation) * 4)]
+                      }
+                    />
+                  </Box>
+                )}
+            </Flex>
+          </Element>
+        );
+      })}
     </Flex>
   );
 });
