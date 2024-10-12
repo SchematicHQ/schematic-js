@@ -3,21 +3,21 @@ import { useTheme } from "styled-components";
 import pluralize from "pluralize";
 import { loadStripe, type Stripe } from "@stripe/stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
-
 import type {
   CompanyPlanDetailResponseData,
   PlanEntitlementResponseData,
   SetupIntentResponseData,
-} from "../../../api";
-import { TEXT_BASE_SIZE } from "../../../const";
-import { useEmbed } from "../../../hooks";
+} from "../../api";
+import { TEXT_BASE_SIZE } from "../../const";
+import { useEmbed, useIsLightBackground } from "../../hooks";
 import {
   hexToHSL,
   formatCurrency,
   formatNumber,
   formatOrdinal,
   getMonthName,
-} from "../../../utils";
+} from "../../utils";
+import { PaymentMethod } from "../elements";
 import {
   Box,
   Flex,
@@ -26,12 +26,11 @@ import {
   Modal,
   ModalHeader,
   Text,
+  Tooltip,
   type IconNameTypes,
-} from "../../ui";
-import { PaymentMethod } from "../payment-method";
+} from "../ui";
 import { PaymentForm } from "./PaymentForm";
 import { StyledButton } from "./styles";
-import { Tooltip } from "../../ui/tooltip";
 
 const FeatureName = ({
   entitlement,
@@ -168,9 +167,7 @@ export const CheckoutDialog = () => {
     );
   }, [selectedPlan, planPeriod]);
 
-  const isLightBackground = useMemo(() => {
-    return hexToHSL(theme.card.background).l > 50;
-  }, [theme.card.background]);
+  const isLightBackground = useIsLightBackground();
 
   const selectPlan = useCallback(
     async (plan: CompanyPlanDetailResponseData, newPeriod?: string) => {

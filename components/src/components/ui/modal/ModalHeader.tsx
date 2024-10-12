@@ -1,8 +1,6 @@
-import { useCallback, useMemo } from "react";
-import { useTheme } from "styled-components";
-import { useEmbed } from "../../../hooks";
-import { hexToHSL } from "../../../utils";
-import { Box, Flex, Icon } from "../";
+import { useCallback } from "react";
+import { useEmbed, useIsLightBackground } from "../../../hooks";
+import { Box, Flex, Icon } from "..";
 
 interface ModalHeaderProps {
   children?: React.ReactNode;
@@ -15,12 +13,9 @@ export const ModalHeader = ({
   bordered = false,
   onClose,
 }: ModalHeaderProps) => {
-  const theme = useTheme();
   const { setLayout } = useEmbed();
 
-  const isLightBackground = useMemo(() => {
-    return hexToHSL(theme.card.background).l > 50;
-  }, [theme.card.background]);
+  const isLightBackground = useIsLightBackground();
 
   const handleClose = useCallback(() => {
     setLayout("portal");

@@ -1,7 +1,6 @@
-import React from "react";
 import { useTheme } from "styled-components";
-import { Box } from "../box";
 import { TEXT_BASE_SIZE } from "../../../const";
+import { Box } from "..";
 import { TooltipWrapper } from "./styles";
 
 interface TooltipProps {

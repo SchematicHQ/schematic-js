@@ -1,9 +1,12 @@
 import { useState } from "react";
-import { PaymentElement } from "@stripe/react-stripe-js";
-import { useStripe, useElements } from "@stripe/react-stripe-js";
-import type { CompanyPlanDetailResponseData } from "../../../api";
-import { useEmbed } from "../../../hooks";
-import { Box, Text } from "../../ui";
+import {
+  useStripe,
+  useElements,
+  PaymentElement,
+} from "@stripe/react-stripe-js";
+import type { CompanyPlanDetailResponseData } from "../../api";
+import { useEmbed } from "../../hooks";
+import { Box, Text } from "../ui";
 import { StyledButton } from "./styles";
 
 interface PaymentFormProps {

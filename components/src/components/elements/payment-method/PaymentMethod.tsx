@@ -5,12 +5,11 @@ import { loadStripe, type Stripe } from "@stripe/stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
 import type { SetupIntentResponseData } from "../../../api";
 import { type FontStyle } from "../../../context";
-import { useEmbed } from "../../../hooks";
+import { useEmbed, useIsLightBackground } from "../../../hooks";
 import type { RecursivePartial, ElementProps } from "../../../types";
+import { PaymentForm } from "../../embed";
 import { Element } from "../../layout";
-import { hexToHSL } from "../../../utils";
 import { Box, Flex, Modal, ModalHeader, Text } from "../../ui";
-import { PaymentForm } from "../plan-manager";
 
 interface DesignProps {
   header: {
@@ -54,9 +53,7 @@ const PaymentMethodElement = ({
 }: PaymentMethodElementProps) => {
   const theme = useTheme();
 
-  const isLightBackground = useMemo(() => {
-    return hexToHSL(theme.card.background).l > 50;
-  }, [theme.card.background]);
+  const isLightBackground = useIsLightBackground();
 
   const sizeFactor = size === "lg" ? 2 : size === "md" ? 1 : 0.5;
 
@@ -147,9 +144,7 @@ export const PaymentMethod = forwardRef<
   const [stripe, setStripe] = useState<Promise<Stripe | null> | null>(null);
   const [setupIntent, setSetupIntent] = useState<SetupIntentResponseData>();
 
-  const isLightBackground = useMemo(() => {
-    return hexToHSL(theme.card.background).l > 50;
-  }, [theme.card.background]);
+  const isLightBackground = useIsLightBackground();
 
   const paymentMethod = useMemo(() => {
     const { paymentMethodType, cardLast4, cardExpMonth, cardExpYear } =

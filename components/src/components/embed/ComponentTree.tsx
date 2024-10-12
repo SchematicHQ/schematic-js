@@ -2,9 +2,8 @@ import { useEffect, useState, Children } from "react";
 import { useTheme } from "styled-components";
 import { TEXT_BASE_SIZE } from "../../const";
 import { useEmbed } from "../../hooks";
+import { Box, Flex, Loader } from "../ui";
 import { createRenderer } from "./renderer";
-import { Box, Flex } from "../ui";
-import { Loader } from "../ui/loader";
 
 const Loading = () => {
   const theme = useTheme();
