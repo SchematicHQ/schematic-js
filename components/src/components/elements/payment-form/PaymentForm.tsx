@@ -4,10 +4,9 @@ import {
   useElements,
   PaymentElement,
 } from "@stripe/react-stripe-js";
-import type { CompanyPlanDetailResponseData } from "../../api";
-import { useEmbed } from "../../hooks";
-import { Box, Text } from "../ui";
-import { StyledButton } from "./styles";
+import type { CompanyPlanDetailResponseData } from "../../../api";
+import { useEmbed } from "../../../hooks";
+import { Box, EmbedButton, Text } from "../../ui";
 
 interface PaymentFormProps {
   plan?: CompanyPlanDetailResponseData;
@@ -79,7 +78,7 @@ export const PaymentForm = ({ onConfirm }: PaymentFormProps) => {
         <PaymentElement id="payment-element" />
       </Box>
 
-      <StyledButton
+      <EmbedButton
         id="submit"
         disabled={isLoading || !stripe || !elements || isConfirmed}
         isLoading={isLoading}
@@ -88,7 +87,7 @@ export const PaymentForm = ({ onConfirm }: PaymentFormProps) => {
         <Text id="button-text">
           {isLoading ? "Loading" : "Save payment method"}
         </Text>
-      </StyledButton>
+      </EmbedButton>
 
       {message && (
         <Box $margin="1rem 0">

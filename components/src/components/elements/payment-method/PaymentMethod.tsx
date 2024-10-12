@@ -5,9 +5,9 @@ import { loadStripe, type Stripe } from "@stripe/stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
 import type { SetupIntentResponseData } from "../../../api";
 import { type FontStyle } from "../../../context";
+import { PaymentForm } from "../../elements";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import type { RecursivePartial, ElementProps } from "../../../types";
-import { PaymentForm } from "../../embed";
 import { Element } from "../../layout";
 import { Box, Flex, Modal, ModalHeader, Text } from "../../ui";
 

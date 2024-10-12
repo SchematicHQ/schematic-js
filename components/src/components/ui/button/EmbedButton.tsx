@@ -1,9 +1,10 @@
 import styled, { css } from "styled-components";
-import { TEXT_BASE_SIZE } from "../../const";
-import { hexToHSL, hslToHex, lighten, darken } from "../../utils";
-import { Button, Text } from "../ui";
+import { TEXT_BASE_SIZE } from "../../../const";
+import { hexToHSL, hslToHex, lighten, darken } from "../../../utils";
+import { Text } from "../../ui";
+import { Button } from "./Button";
 
-export const StyledButton = styled(Button)<{
+export const EmbedButton = styled(Button)<{
   $size?: "sm" | "md" | "lg";
   $color?: "primary" | "secondary" | "tertiary";
   $variant?: "outline" | "filled";

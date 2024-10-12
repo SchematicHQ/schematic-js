@@ -1,6 +1,6 @@
 import { useTheme } from "styled-components";
 import { TEXT_BASE_SIZE } from "../../../const";
-import { Box } from "..";
+import { Box } from "../../ui";
 import { TooltipWrapper } from "./styles";
 
 interface TooltipProps {

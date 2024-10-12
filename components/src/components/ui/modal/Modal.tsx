@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef } from "react";
 import { useTheme } from "styled-components";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
-import { Box, Flex } from "..";
+import { Box, Flex } from "../../ui";
 
 interface ModalProps {
   children: React.ReactNode;

@@ -1,4 +1,4 @@
-import { Loader } from "..";
+import { Loader } from "../../ui";
 import * as styles from "./styles";
 
 export type ButtonStyleTypes = "blue" | "white" | "red" | "black";

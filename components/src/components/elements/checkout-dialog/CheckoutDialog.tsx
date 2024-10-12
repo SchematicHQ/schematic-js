@@ -7,19 +7,20 @@ import type {
   CompanyPlanDetailResponseData,
   PlanEntitlementResponseData,
   SetupIntentResponseData,
-} from "../../api";
-import { TEXT_BASE_SIZE } from "../../const";
-import { useEmbed, useIsLightBackground } from "../../hooks";
+} from "../../../api";
+import { TEXT_BASE_SIZE } from "../../../const";
+import { useEmbed, useIsLightBackground } from "../../../hooks";
 import {
   hexToHSL,
   formatCurrency,
   formatNumber,
   formatOrdinal,
   getMonthName,
-} from "../../utils";
-import { PaymentMethod } from "../elements";
+} from "../../../utils";
+import { PaymentForm, PaymentMethod } from "../../elements";
 import {
   Box,
+  EmbedButton,
   Flex,
   Icon,
   IconRound,
@@ -28,9 +29,7 @@ import {
   Text,
   Tooltip,
   type IconNameTypes,
-} from "../ui";
-import { PaymentForm } from "./PaymentForm";
-import { StyledButton } from "./styles";
+} from "../../ui";
 
 const FeatureName = ({
   entitlement,
@@ -574,7 +573,7 @@ export const CheckoutDialog = () => {
 
                           {plan.id !== selectedPlan?.id && (
                             <Box $position="relative">
-                              <StyledButton
+                              <EmbedButton
                                 disabled={isLoading || plan.valid === false}
                                 {...(plan.valid === true && {
                                   onClick: () => selectPlan(plan),
@@ -591,7 +590,7 @@ export const CheckoutDialog = () => {
                                 ) : (
                                   "Select"
                                 )}
-                              </StyledButton>
+                              </EmbedButton>
                             </Box>
                           )}
                         </Flex>
@@ -1052,7 +1051,7 @@ export const CheckoutDialog = () => {
             )}
 
             {checkoutStage === "plan" ? (
-              <StyledButton
+              <EmbedButton
                 {...(allowCheckout
                   ? {
                       onClick: async () => {
@@ -1081,15 +1080,15 @@ export const CheckoutDialog = () => {
                   </Text>
                   <Icon name="arrow-right" />
                 </Flex>
-              </StyledButton>
+              </EmbedButton>
             ) : (
-              <StyledButton
+              <EmbedButton
                 disabled={isLoading || !allowCheckout}
                 isLoading={isLoading}
                 {...(allowCheckout && { onClick: checkout })}
               >
                 Pay now
-              </StyledButton>
+              </EmbedButton>
             )}
 
             {!isLoading && error && (
