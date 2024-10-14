@@ -49,15 +49,13 @@ export const StyledCard = styled.div<StyledCardProps>(
         padding: ${($padding * 0.75) / TEXT_BASE_SIZE}rem
           ${$padding / TEXT_BASE_SIZE}rem;
 
-        &:not(:last-child) {
-          ${$sectionLayout === "merged"
-            ? css`
-                border-bottom: 1px solid ${borderColor};
-              `
-            : css`
-                margin-bottom: 1rem;
-              `}
-        }
+        ${$sectionLayout === "merged"
+          ? css`
+              border-bottom: 1px solid ${borderColor};
+            `
+          : css`
+              margin-bottom: 1rem;
+            `}
       }
     `;
   },
