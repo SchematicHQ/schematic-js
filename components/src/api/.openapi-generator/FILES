@@ -3,7 +3,6 @@ apis/CheckoutApi.ts
 apis/index.ts
 index.ts
 models/ApiError.ts
-models/BillingPlan.ts
 models/BillingPriceResponseData.ts
 models/BillingProductDetailResponseData.ts
 models/BillingProductForSubscriptionResponseData.ts
@@ -13,6 +12,7 @@ models/ChangeSubscriptionRequestBody.ts
 models/CheckoutResponse.ts
 models/CompanyDetailResponseData.ts
 models/CompanyPlanDetailResponseData.ts
+models/CompanyPlanWithBillingSubView.ts
 models/CompanyResponseData.ts
 models/CompanySubscriptionResponseData.ts
 models/ComponentHydrateResponseData.ts

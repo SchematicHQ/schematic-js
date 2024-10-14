@@ -13,6 +13,12 @@
  */
 
 import { mapValues } from "../runtime";
+import type { CompanyPlanWithBillingSubView } from "./CompanyPlanWithBillingSubView";
+import {
+  CompanyPlanWithBillingSubViewFromJSON,
+  CompanyPlanWithBillingSubViewFromJSONTyped,
+  CompanyPlanWithBillingSubViewToJSON,
+} from "./CompanyPlanWithBillingSubView";
 import type { PreviewObject } from "./PreviewObject";
 import {
   PreviewObjectFromJSON,
@@ -37,12 +43,6 @@ import {
   EntityTraitDetailResponseDataFromJSONTyped,
   EntityTraitDetailResponseDataToJSON,
 } from "./EntityTraitDetailResponseData";
-import type { BillingPlan } from "./BillingPlan";
-import {
-  BillingPlanFromJSON,
-  BillingPlanFromJSONTyped,
-  BillingPlanToJSON,
-} from "./BillingPlan";
 
 /**
  *
@@ -52,10 +52,10 @@ import {
 export interface CompanyDetailResponseData {
   /**
    *
-   * @type {Array<BillingPlan>}
+   * @type {Array<CompanyPlanWithBillingSubView>}
    * @memberof CompanyDetailResponseData
    */
-  addOns: Array<BillingPlan>;
+  addOns: Array<CompanyPlanWithBillingSubView>;
   /**
    *
    * @type {Array<BillingSubscriptionResponseData>}
@@ -112,10 +112,10 @@ export interface CompanyDetailResponseData {
   name: string;
   /**
    *
-   * @type {BillingPlan}
+   * @type {CompanyPlanWithBillingSubView}
    * @memberof CompanyDetailResponseData
    */
-  plan?: BillingPlan;
+  plan?: CompanyPlanWithBillingSubView;
   /**
    *
    * @type {Array<PreviewObject>}
@@ -182,7 +182,9 @@ export function CompanyDetailResponseDataFromJSONTyped(
     return json;
   }
   return {
-    addOns: (json["add_ons"] as Array<any>).map(BillingPlanFromJSON),
+    addOns: (json["add_ons"] as Array<any>).map(
+      CompanyPlanWithBillingSubViewFromJSON,
+    ),
     billingSubscriptions: (json["billing_subscriptions"] as Array<any>).map(
       BillingSubscriptionResponseDataFromJSON,
     ),
@@ -197,7 +199,10 @@ export function CompanyDetailResponseDataFromJSONTyped(
       json["last_seen_at"] == null ? undefined : new Date(json["last_seen_at"]),
     logoUrl: json["logo_url"] == null ? undefined : json["logo_url"],
     name: json["name"],
-    plan: json["plan"] == null ? undefined : BillingPlanFromJSON(json["plan"]),
+    plan:
+      json["plan"] == null
+        ? undefined
+        : CompanyPlanWithBillingSubViewFromJSON(json["plan"]),
     plans: (json["plans"] as Array<any>).map(PreviewObjectFromJSON),
     traits: json["traits"] == null ? undefined : json["traits"],
     updatedAt: new Date(json["updated_at"]),
@@ -212,7 +217,9 @@ export function CompanyDetailResponseDataToJSON(
     return value;
   }
   return {
-    add_ons: (value["addOns"] as Array<any>).map(BillingPlanToJSON),
+    add_ons: (value["addOns"] as Array<any>).map(
+      CompanyPlanWithBillingSubViewToJSON,
+    ),
     billing_subscriptions: (value["billingSubscriptions"] as Array<any>).map(
       BillingSubscriptionResponseDataToJSON,
     ),
@@ -229,7 +236,7 @@ export function CompanyDetailResponseDataToJSON(
         : (value["lastSeenAt"] as any).toISOString(),
     logo_url: value["logoUrl"],
     name: value["name"],
-    plan: BillingPlanToJSON(value["plan"]),
+    plan: CompanyPlanWithBillingSubViewToJSON(value["plan"]),
     plans: (value["plans"] as Array<any>).map(PreviewObjectToJSON),
     traits: value["traits"],
     updated_at: value["updatedAt"].toISOString(),
