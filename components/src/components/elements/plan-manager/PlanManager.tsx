@@ -83,12 +83,17 @@ export const PlanManager = forwardRef<
   const theme = useTheme();
   const { data, layout, setLayout } = useEmbed();
 
+  // Can change plan if there is a publishable key, a current plan with a billing association, and
+  // some active plans
   const { currentPlan, canChangePlan } = useMemo(() => {
     return {
       currentPlan: data.company?.plan,
-      canChangePlan: data.activePlans.length > 0,
+      canChangePlan:
+        data.stripeEmbed?.publishableKey &&
+        data.company?.plan?.billingProductId &&
+        data.activePlans.length > 0,
     };
-  }, [data.company, data.activePlans]);
+  }, [data.company, data.activePlans, data.stripeEmbed?.publishableKey]);
 
   return (
     <Element
