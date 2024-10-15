@@ -167,7 +167,7 @@ export interface EmbedContextProps {
   nodes: SerializedNodeWithChildren[];
   settings: EmbedSettings;
   layout: EmbedLayout;
-  mode: "edit" | "view";
+  mode: EmbedMode;
   error?: Error;
   isPending: boolean;
   hydrate: () => void;
