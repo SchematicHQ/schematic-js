@@ -159,12 +159,15 @@ export type EmbedLayout =
   | "success"
   | "disabled";
 
+export type EmbedMode = "edit" | "view";
+
 export interface EmbedContextProps {
   api: CheckoutApi | null;
   data: ComponentHydrateResponseData;
   nodes: SerializedNodeWithChildren[];
   settings: EmbedSettings;
   layout: EmbedLayout;
+  mode: "edit" | "view";
   error?: Error;
   isPending: boolean;
   hydrate: () => void;
@@ -181,6 +184,7 @@ export const EmbedContext = createContext<EmbedContextProps>({
   nodes: [],
   settings: { ...defaultSettings },
   layout: "portal",
+  mode: "view",
   error: undefined,
   isPending: false,
   hydrate: () => {},
@@ -194,6 +198,7 @@ export interface EmbedProviderProps {
   accessToken?: string;
   apiConfig?: ConfigurationParameters;
   children?: React.ReactNode;
+  mode?: EmbedMode;
 }
 
 export const EmbedProvider = ({
@@ -201,6 +206,7 @@ export const EmbedProvider = ({
   accessToken,
   apiConfig,
   children,
+  mode = "view",
 }: EmbedProviderProps) => {
   const styleRef = useRef<HTMLLinkElement | null>(null);
   const sessionIdRef = useRef<string>(uuidv4());
@@ -211,6 +217,7 @@ export const EmbedProvider = ({
     nodes: SerializedNodeWithChildren[];
     settings: EmbedSettings;
     layout: EmbedLayout;
+    mode: EmbedMode;
     isPending: boolean;
     error?: Error;
     hydrate: () => void;
@@ -226,6 +233,7 @@ export const EmbedProvider = ({
       nodes: [],
       settings: { ...defaultSettings },
       layout: "portal",
+      mode,
       isPending: false,
       error: undefined,
       hydrate: () => {},
@@ -374,6 +382,7 @@ export const EmbedProvider = ({
         nodes: state.nodes,
         settings: state.settings,
         layout: state.layout,
+        mode: state.mode,
         error: state.error,
         isPending: state.isPending,
         hydrate,
