@@ -144,7 +144,7 @@ export const PlanManager = forwardRef<
 
           {props.header.price.isVisible &&
             typeof currentPlan.planPrice === "number" &&
-            currentPlan.planPeriod && (
+            currentPlan.planPrice && (
               <Text
                 $font={
                   theme.typography[props.header.price.fontStyle].fontFamily

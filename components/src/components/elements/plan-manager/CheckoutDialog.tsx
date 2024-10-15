@@ -97,9 +97,7 @@ export const CheckoutDialog = () => {
   const [checkoutStage, setCheckoutStage] = useState<"plan" | "checkout">(
     "plan",
   );
-  const [planPeriod, setPlanPeriod] = useState<string>(
-    () => data.company?.plan?.planPeriod || "month",
-  );
+  const [planPeriod, setPlanPeriod] = useState<string>("month");
   const [selectedPlan, setSelectedPlan] =
     useState<CompanyPlanDetailResponseData>();
   const [charges, setCharges] = useState<{
@@ -119,27 +117,32 @@ export const CheckoutDialog = () => {
 
   const { paymentMethod, currentPlan, availablePlans, planPeriodOptions } =
     useMemo(() => {
-      const showMonthlyPriceOption = data.activePlans.some(
-        (plan) => typeof plan.yearlyPrice !== "undefined",
-      );
-      const showYearlyPriceOption = data.activePlans.some(
-        (plan) => typeof plan.yearlyPrice !== "undefined",
-      );
       const planPeriodOptions = [];
-      if (showMonthlyPriceOption) {
+      if (data.activePlans.some((plan) => plan.monthlyPrice)) {
         planPeriodOptions.push("month");
       }
-      if (showYearlyPriceOption) {
+      if (data.activePlans.some((plan) => plan.yearlyPrice)) {
         planPeriodOptions.push("year");
       }
 
       return {
         paymentMethod: data.subscription?.paymentMethod,
         currentPlan: data.company?.plan,
-        availablePlans: data.activePlans,
+        availablePlans: data.activePlans.filter((plan) => {
+          // TODO: preview-data should return sample monthly and yearly prices
+          return (
+            (planPeriod === "month" && plan.monthlyPrice) ||
+            (planPeriod === "year" && plan.yearlyPrice)
+          );
+        }),
         planPeriodOptions,
       };
-    }, [data.subscription?.paymentMethod, data.company, data.activePlans]);
+    }, [
+      data.subscription?.paymentMethod,
+      data.company,
+      data.activePlans,
+      planPeriod,
+    ]);
 
   const savingsPercentage = useMemo(() => {
     if (selectedPlan) {
@@ -848,7 +851,7 @@ export const CheckoutDialog = () => {
                   </Flex>
 
                   {typeof currentPlan.planPrice === "number" &&
-                    currentPlan.planPeriod && (
+                    currentPlan.planPrice && (
                       <Flex>
                         <Text
                           $font={theme.typography.text.fontFamily}

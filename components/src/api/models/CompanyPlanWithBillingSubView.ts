@@ -16,68 +16,82 @@ import { mapValues } from "../runtime";
 /**
  *
  * @export
- * @interface BillingPlan
+ * @interface CompanyPlanWithBillingSubView
  */
-export interface BillingPlan {
+export interface CompanyPlanWithBillingSubView {
   /**
    *
    * @type {string}
-   * @memberof BillingPlan
+   * @memberof CompanyPlanWithBillingSubView
+   */
+  billingProductId?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof CompanyPlanWithBillingSubView
    */
   description?: string | null;
   /**
    *
    * @type {string}
-   * @memberof BillingPlan
+   * @memberof CompanyPlanWithBillingSubView
    */
   id: string;
   /**
    *
    * @type {string}
-   * @memberof BillingPlan
+   * @memberof CompanyPlanWithBillingSubView
    */
   imageUrl?: string | null;
   /**
    *
    * @type {string}
-   * @memberof BillingPlan
+   * @memberof CompanyPlanWithBillingSubView
    */
   name: string;
   /**
    *
    * @type {string}
-   * @memberof BillingPlan
+   * @memberof CompanyPlanWithBillingSubView
    */
   planPeriod?: string | null;
   /**
    *
    * @type {number}
-   * @memberof BillingPlan
+   * @memberof CompanyPlanWithBillingSubView
    */
   planPrice?: number | null;
 }
 
 /**
- * Check if a given object implements the BillingPlan interface.
+ * Check if a given object implements the CompanyPlanWithBillingSubView interface.
  */
-export function instanceOfBillingPlan(value: object): value is BillingPlan {
+export function instanceOfCompanyPlanWithBillingSubView(
+  value: object,
+): value is CompanyPlanWithBillingSubView {
   if (!("id" in value) || value["id"] === undefined) return false;
   if (!("name" in value) || value["name"] === undefined) return false;
   return true;
 }
 
-export function BillingPlanFromJSON(json: any): BillingPlan {
-  return BillingPlanFromJSONTyped(json, false);
+export function CompanyPlanWithBillingSubViewFromJSON(
+  json: any,
+): CompanyPlanWithBillingSubView {
+  return CompanyPlanWithBillingSubViewFromJSONTyped(json, false);
 }
 
-export function BillingPlanFromJSONTyped(
+export function CompanyPlanWithBillingSubViewFromJSONTyped(
   json: any,
   ignoreDiscriminator: boolean,
-): BillingPlan {
+): CompanyPlanWithBillingSubView {
   if (json == null) {
     return json;
   }
   return {
+    billingProductId:
+      json["billing_product_id"] == null
+        ? undefined
+        : json["billing_product_id"],
     description: json["description"] == null ? undefined : json["description"],
     id: json["id"],
     imageUrl: json["image_url"] == null ? undefined : json["image_url"],
@@ -87,11 +101,14 @@ export function BillingPlanFromJSONTyped(
   };
 }
 
-export function BillingPlanToJSON(value?: BillingPlan | null): any {
+export function CompanyPlanWithBillingSubViewToJSON(
+  value?: CompanyPlanWithBillingSubView | null,
+): any {
   if (value == null) {
     return value;
   }
   return {
+    billing_product_id: value["billingProductId"],
     description: value["description"],
     id: value["id"],
     image_url: value["imageUrl"],
