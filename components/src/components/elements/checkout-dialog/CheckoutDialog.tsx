@@ -90,7 +90,7 @@ const FeatureName = ({
 
 export const CheckoutDialog = () => {
   const theme = useTheme();
-  const { api, data, setLayout } = useEmbed();
+  const { api, data, mode, setLayout } = useEmbed();
 
   const [checkoutStage, setCheckoutStage] = useState<"plan" | "checkout">(
     "plan",
@@ -127,8 +127,8 @@ export const CheckoutDialog = () => {
         paymentMethod: data.subscription?.paymentMethod,
         currentPlan: data.company?.plan,
         availablePlans: data.activePlans.filter((plan) => {
-          // TODO: preview-data should return sample monthly and yearly prices
           return (
+            mode === "edit" ||
             (planPeriod === "month" && plan.monthlyPrice) ||
             (planPeriod === "year" && plan.yearlyPrice)
           );
@@ -139,6 +139,7 @@ export const CheckoutDialog = () => {
       data.subscription?.paymentMethod,
       data.company,
       data.activePlans,
+      mode,
       planPeriod,
     ]);
 
@@ -847,7 +848,7 @@ export const CheckoutDialog = () => {
                   </Flex>
 
                   {typeof currentPlan.planPrice === "number" &&
-                    currentPlan.planPrice && (
+                    currentPlan.planPeriod && (
                       <Flex>
                         <Text
                           $font={theme.typography.text.fontFamily}
