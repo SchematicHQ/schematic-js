@@ -1,7 +1,7 @@
 import { forwardRef, useMemo } from "react";
 import { useTheme } from "styled-components";
-import { useEmbed } from "../../../hooks";
 import { type FontStyle } from "../../../context";
+import { useEmbed } from "../../../hooks";
 import type { RecursivePartial, ElementProps } from "../../../types";
 import { toPrettyDate, formatCurrency } from "../../../utils";
 import { Element } from "../../layout";
