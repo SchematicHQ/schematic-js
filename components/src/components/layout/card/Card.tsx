@@ -1,8 +1,7 @@
 import { forwardRef } from "react";
-import { useTheme } from "styled-components";
 import { StyledCard, Element } from "./styles";
 
-export { Element };
+export { StyledCard, Element };
 
 export interface CardProps {
   children?: React.ReactNode;
@@ -19,17 +18,8 @@ export const Card = forwardRef<HTMLDivElement | null, CardProps>(
       return acc;
     }, {}); */
 
-    const theme = useTheme();
-
     return (
-      <StyledCard
-        ref={ref}
-        className={className}
-        $sectionLayout={theme?.sectionLayout}
-        $borderRadius={theme?.card?.borderRadius}
-        $padding={theme?.card?.padding}
-        $shadow={theme?.card?.hasShadow}
-      >
+      <StyledCard ref={ref} className={className}>
         {children}
       </StyledCard>
     );

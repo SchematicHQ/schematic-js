@@ -40,7 +40,6 @@ interface DesignProps {
     isVisible: boolean;
     fontStyle: FontStyle;
   };
-  visibleFeatures: string[];
 }
 
 function resolveDesignProps(props: RecursivePartial<DesignProps>): DesignProps {
@@ -64,7 +63,6 @@ function resolveDesignProps(props: RecursivePartial<DesignProps>): DesignProps {
       isVisible: props.usage?.isVisible ?? true,
       fontStyle: props.usage?.fontStyle ?? "heading5",
     },
-    visibleFeatures: props.visibleFeatures ?? [],
   };
 }
 
@@ -88,11 +86,7 @@ export const MeteredFeatures = forwardRef<
   const isLightBackground = useIsLightBackground();
 
   const features = (data.featureUsage?.features || []).filter(({ feature }) => {
-    return (
-      (feature?.featureType === "event" || feature?.featureType === "trait") &&
-      feature?.id &&
-      props.visibleFeatures?.includes(feature.id)
-    );
+    return feature?.featureType === "event" || feature?.featureType === "trait";
   });
 
   if (features.length === 0) {
