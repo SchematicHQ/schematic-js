@@ -19,12 +19,6 @@ import {
   CompanyPlanWithBillingSubViewFromJSONTyped,
   CompanyPlanWithBillingSubViewToJSON,
 } from "./CompanyPlanWithBillingSubView";
-import type { PreviewObject } from "./PreviewObject";
-import {
-  PreviewObjectFromJSON,
-  PreviewObjectFromJSONTyped,
-  PreviewObjectToJSON,
-} from "./PreviewObject";
 import type { EntityKeyDetailResponseData } from "./EntityKeyDetailResponseData";
 import {
   EntityKeyDetailResponseDataFromJSON,
@@ -43,6 +37,12 @@ import {
   EntityTraitDetailResponseDataFromJSONTyped,
   EntityTraitDetailResponseDataToJSON,
 } from "./EntityTraitDetailResponseData";
+import type { GenericPreviewObject } from "./GenericPreviewObject";
+import {
+  GenericPreviewObjectFromJSON,
+  GenericPreviewObjectFromJSONTyped,
+  GenericPreviewObjectToJSON,
+} from "./GenericPreviewObject";
 
 /**
  *
@@ -118,10 +118,10 @@ export interface CompanyDetailResponseData {
   plan?: CompanyPlanWithBillingSubView;
   /**
    *
-   * @type {Array<PreviewObject>}
+   * @type {Array<GenericPreviewObject>}
    * @memberof CompanyDetailResponseData
    */
-  plans: Array<PreviewObject>;
+  plans: Array<GenericPreviewObject>;
   /**
    * A map of trait names to trait values
    * @type {object}
@@ -203,7 +203,7 @@ export function CompanyDetailResponseDataFromJSONTyped(
       json["plan"] == null
         ? undefined
         : CompanyPlanWithBillingSubViewFromJSON(json["plan"]),
-    plans: (json["plans"] as Array<any>).map(PreviewObjectFromJSON),
+    plans: (json["plans"] as Array<any>).map(GenericPreviewObjectFromJSON),
     traits: json["traits"] == null ? undefined : json["traits"],
     updatedAt: new Date(json["updated_at"]),
     userCount: json["user_count"],
@@ -237,7 +237,7 @@ export function CompanyDetailResponseDataToJSON(
     logo_url: value["logoUrl"],
     name: value["name"],
     plan: CompanyPlanWithBillingSubViewToJSON(value["plan"]),
-    plans: (value["plans"] as Array<any>).map(PreviewObjectToJSON),
+    plans: (value["plans"] as Array<any>).map(GenericPreviewObjectToJSON),
     traits: value["traits"],
     updated_at: value["updatedAt"].toISOString(),
     user_count: value["userCount"],
