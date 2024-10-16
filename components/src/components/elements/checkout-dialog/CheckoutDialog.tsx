@@ -90,13 +90,13 @@ const FeatureName = ({
 
 export const CheckoutDialog = () => {
   const theme = useTheme();
-  const { api, data, setLayout } = useEmbed();
+  const { api, data, mode, setLayout } = useEmbed();
 
   const [checkoutStage, setCheckoutStage] = useState<"plan" | "checkout">(
     "plan",
   );
-  const [planPeriod, setPlanPeriod] = useState<string>(
-    () => data.company?.plan?.planPeriod || "month",
+  const [planPeriod, setPlanPeriod] = useState(
+    data.company?.plan?.planPeriod || "month",
   );
   const [selectedPlan, setSelectedPlan] =
     useState<CompanyPlanDetailResponseData>();
@@ -117,27 +117,35 @@ export const CheckoutDialog = () => {
 
   const { paymentMethod, currentPlan, availablePlans, planPeriodOptions } =
     useMemo(() => {
-      const showMonthlyPriceOption = data.activePlans.some(
-        (plan) => typeof plan.yearlyPrice !== "undefined",
-      );
-      const showYearlyPriceOption = data.activePlans.some(
-        (plan) => typeof plan.yearlyPrice !== "undefined",
-      );
       const planPeriodOptions = [];
-      if (showMonthlyPriceOption) {
+      if (data.activePlans.some((plan) => plan.monthlyPrice)) {
         planPeriodOptions.push("month");
       }
-      if (showYearlyPriceOption) {
+      if (data.activePlans.some((plan) => plan.yearlyPrice)) {
         planPeriodOptions.push("year");
       }
 
       return {
         paymentMethod: data.subscription?.paymentMethod,
         currentPlan: data.company?.plan,
-        availablePlans: data.activePlans,
+        availablePlans:
+          mode === "edit"
+            ? data.activePlans
+            : data.activePlans.filter((plan) => {
+                return (
+                  (planPeriod === "month" && plan.monthlyPrice) ||
+                  (planPeriod === "year" && plan.yearlyPrice)
+                );
+              }),
         planPeriodOptions,
       };
-    }, [data.subscription?.paymentMethod, data.company, data.activePlans]);
+    }, [
+      data.subscription?.paymentMethod,
+      data.company,
+      data.activePlans,
+      mode,
+      planPeriod,
+    ]);
 
   const savingsPercentage = useMemo(() => {
     if (selectedPlan) {
