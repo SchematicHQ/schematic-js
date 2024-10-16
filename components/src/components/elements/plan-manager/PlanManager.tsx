@@ -1,14 +1,13 @@
-import { forwardRef, useMemo } from "react";
+import { forwardRef } from "react";
 import { createPortal } from "react-dom";
 import { useTheme } from "styled-components";
-import { useEmbed } from "../../../hooks";
 import { type FontStyle } from "../../../context";
+import { useEmbed, useIsLightBackground } from "../../../hooks";
 import type { RecursivePartial, ElementProps } from "../../../types";
-import { formatCurrency } from "../../../utils";
+import { formatCurrency, lighten, darken } from "../../../utils";
+import { CheckoutDialog } from "../../elements";
 import { Element } from "../../layout";
-import { Box, Flex, Text } from "../../ui";
-import { CheckoutDialog } from "./CheckoutDialog";
-import { StyledButton } from "./styles";
+import { Box, EmbedButton, Flex, Text } from "../../ui";
 
 interface DesignProps {
   header: {
@@ -81,14 +80,22 @@ export const PlanManager = forwardRef<
   const props = resolveDesignProps(rest);
 
   const theme = useTheme();
-  const { data, layout, setLayout } = useEmbed();
 
-  const { currentPlan, canChangePlan } = useMemo(() => {
-    return {
-      currentPlan: data.company?.plan,
-      canChangePlan: data.activePlans.length > 0,
-    };
-  }, [data.company, data.activePlans]);
+  const { data, layout, mode, setLayout } = useEmbed();
+
+  const isLightBackground = useIsLightBackground();
+
+  // Can change plan if there is a publishable key, a current plan with a billing association, and
+  // some active plans
+  const { currentPlan, canChangePlan, addOns } = {
+    currentPlan: data.company?.plan,
+    canChangePlan:
+      (mode === "edit" ||
+        (data.stripeEmbed?.publishableKey &&
+          data.company?.plan?.billingProductId)) &&
+      data.activePlans.length > 0,
+    addOns: data.company?.addOns || [],
+  };
 
   return (
     <Element
@@ -161,8 +168,58 @@ export const PlanManager = forwardRef<
         </Flex>
       )}
 
+      {props.addOns.isVisible && addOns.length > 0 && (
+        <Flex $flexDirection="column" $gap="1rem">
+          {props.addOns.showLabel && (
+            <Text
+              $font={theme.typography.text.fontFamily}
+              $size={theme.typography.text.fontSize}
+              $weight={theme.typography.text.fontWeight}
+              $color={
+                isLightBackground
+                  ? darken(theme.card.background, 0.46)
+                  : lighten(theme.card.background, 0.46)
+              }
+              $lineHeight={1}
+            >
+              Add-Ons
+            </Text>
+          )}
+
+          {addOns.map((addOn) => (
+            <Flex
+              key={addOn.id}
+              $justifyContent="space-between"
+              $alignItems="center"
+              $flexWrap="wrap"
+              $gap="1rem"
+            >
+              <Text
+                $font={theme.typography[props.addOns.fontStyle].fontFamily}
+                $size={theme.typography[props.addOns.fontStyle].fontSize}
+                $weight={theme.typography[props.addOns.fontStyle].fontWeight}
+                $color={theme.typography[props.addOns.fontStyle].color}
+              >
+                {addOn.name}
+              </Text>
+
+              {addOn.planPrice && addOn.planPeriod && (
+                <Text
+                  $font={theme.typography.text.fontFamily}
+                  $size={theme.typography.text.fontSize}
+                  $weight={theme.typography.text.fontWeight}
+                  $color={theme.typography.text.color}
+                >
+                  {formatCurrency(addOn.planPrice)}/{addOn.planPeriod}
+                </Text>
+              )}
+            </Flex>
+          ))}
+        </Flex>
+      )}
+
       {canChangePlan && props.callToAction.isVisible && (
-        <StyledButton
+        <EmbedButton
           onClick={() => {
             setLayout("checkout");
           }}
@@ -170,7 +227,7 @@ export const PlanManager = forwardRef<
           $color={props.callToAction.buttonStyle}
         >
           Change Plan
-        </StyledButton>
+        </EmbedButton>
       )}
 
       {canChangePlan &&

@@ -3,14 +3,13 @@ import { useTheme } from "styled-components";
 import pluralize from "pluralize";
 import { loadStripe, type Stripe } from "@stripe/stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
-
 import type {
   CompanyPlanDetailResponseData,
   PlanEntitlementResponseData,
   SetupIntentResponseData,
 } from "../../../api";
 import { TEXT_BASE_SIZE } from "../../../const";
-import { useEmbed } from "../../../hooks";
+import { useEmbed, useIsLightBackground } from "../../../hooks";
 import {
   hexToHSL,
   formatCurrency,
@@ -18,20 +17,19 @@ import {
   formatOrdinal,
   getMonthName,
 } from "../../../utils";
+import { PaymentForm, PaymentMethod } from "../../elements";
 import {
   Box,
+  EmbedButton,
   Flex,
   Icon,
   IconRound,
   Modal,
   ModalHeader,
   Text,
+  Tooltip,
   type IconNameTypes,
 } from "../../ui";
-import { PaymentMethod } from "../payment-method";
-import { PaymentForm } from "./PaymentForm";
-import { StyledButton } from "./styles";
-import { Tooltip } from "../../ui/tooltip";
 
 const FeatureName = ({
   entitlement,
@@ -92,13 +90,13 @@ const FeatureName = ({
 
 export const CheckoutDialog = () => {
   const theme = useTheme();
-  const { api, data, setLayout } = useEmbed();
+  const { api, data, mode, setLayout } = useEmbed();
 
   const [checkoutStage, setCheckoutStage] = useState<"plan" | "checkout">(
     "plan",
   );
-  const [planPeriod, setPlanPeriod] = useState<string>(
-    () => data.company?.plan?.planPeriod || "month",
+  const [planPeriod, setPlanPeriod] = useState(
+    data.company?.plan?.planPeriod || "month",
   );
   const [selectedPlan, setSelectedPlan] =
     useState<CompanyPlanDetailResponseData>();
@@ -119,27 +117,35 @@ export const CheckoutDialog = () => {
 
   const { paymentMethod, currentPlan, availablePlans, planPeriodOptions } =
     useMemo(() => {
-      const showMonthlyPriceOption = data.activePlans.some(
-        (plan) => typeof plan.yearlyPrice !== "undefined",
-      );
-      const showYearlyPriceOption = data.activePlans.some(
-        (plan) => typeof plan.yearlyPrice !== "undefined",
-      );
       const planPeriodOptions = [];
-      if (showMonthlyPriceOption) {
+      if (data.activePlans.some((plan) => plan.monthlyPrice)) {
         planPeriodOptions.push("month");
       }
-      if (showYearlyPriceOption) {
+      if (data.activePlans.some((plan) => plan.yearlyPrice)) {
         planPeriodOptions.push("year");
       }
 
       return {
         paymentMethod: data.subscription?.paymentMethod,
         currentPlan: data.company?.plan,
-        availablePlans: data.activePlans,
+        availablePlans:
+          mode === "edit"
+            ? data.activePlans
+            : data.activePlans.filter((plan) => {
+                return (
+                  (planPeriod === "month" && plan.monthlyPrice) ||
+                  (planPeriod === "year" && plan.yearlyPrice)
+                );
+              }),
         planPeriodOptions,
       };
-    }, [data.subscription?.paymentMethod, data.company, data.activePlans]);
+    }, [
+      data.subscription?.paymentMethod,
+      data.company,
+      data.activePlans,
+      mode,
+      planPeriod,
+    ]);
 
   const savingsPercentage = useMemo(() => {
     if (selectedPlan) {
@@ -168,9 +174,7 @@ export const CheckoutDialog = () => {
     );
   }, [selectedPlan, planPeriod]);
 
-  const isLightBackground = useMemo(() => {
-    return hexToHSL(theme.card.background).l > 50;
-  }, [theme.card.background]);
+  const isLightBackground = useIsLightBackground();
 
   const selectPlan = useCallback(
     async (plan: CompanyPlanDetailResponseData, newPeriod?: string) => {
@@ -577,7 +581,7 @@ export const CheckoutDialog = () => {
 
                           {plan.id !== selectedPlan?.id && (
                             <Box $position="relative">
-                              <StyledButton
+                              <EmbedButton
                                 disabled={isLoading || plan.valid === false}
                                 {...(plan.valid === true && {
                                   onClick: () => selectPlan(plan),
@@ -594,7 +598,7 @@ export const CheckoutDialog = () => {
                                 ) : (
                                   "Select"
                                 )}
-                              </StyledButton>
+                              </EmbedButton>
                             </Box>
                           )}
                         </Flex>
@@ -1055,7 +1059,7 @@ export const CheckoutDialog = () => {
             )}
 
             {checkoutStage === "plan" ? (
-              <StyledButton
+              <EmbedButton
                 {...(allowCheckout
                   ? {
                       onClick: async () => {
@@ -1084,15 +1088,15 @@ export const CheckoutDialog = () => {
                   </Text>
                   <Icon name="arrow-right" />
                 </Flex>
-              </StyledButton>
+              </EmbedButton>
             ) : (
-              <StyledButton
+              <EmbedButton
                 disabled={isLoading || !allowCheckout}
                 isLoading={isLoading}
                 {...(allowCheckout && { onClick: checkout })}
               >
                 Pay now
-              </StyledButton>
+              </EmbedButton>
             )}
 
             {!isLoading && error && (
