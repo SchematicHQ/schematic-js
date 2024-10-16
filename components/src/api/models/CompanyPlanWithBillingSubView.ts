@@ -48,19 +48,19 @@ export interface CompanyPlanWithBillingSubView {
    * @type {string}
    * @memberof CompanyPlanWithBillingSubView
    */
-  interval?: string | null;
+  name: string;
   /**
    *
    * @type {string}
    * @memberof CompanyPlanWithBillingSubView
    */
-  name: string;
+  planPeriod?: string | null;
   /**
    *
    * @type {number}
    * @memberof CompanyPlanWithBillingSubView
    */
-  price?: number | null;
+  planPrice?: number | null;
 }
 
 /**
@@ -95,9 +95,9 @@ export function CompanyPlanWithBillingSubViewFromJSONTyped(
     description: json["description"] == null ? undefined : json["description"],
     id: json["id"],
     imageUrl: json["image_url"] == null ? undefined : json["image_url"],
-    interval: json["interval"] == null ? undefined : json["interval"],
     name: json["name"],
-    price: json["price"] == null ? undefined : json["price"],
+    planPeriod: json["plan_period"] == null ? undefined : json["plan_period"],
+    planPrice: json["plan_price"] == null ? undefined : json["plan_price"],
   };
 }
 
@@ -112,8 +112,8 @@ export function CompanyPlanWithBillingSubViewToJSON(
     description: value["description"],
     id: value["id"],
     image_url: value["imageUrl"],
-    interval: value["interval"],
     name: value["name"],
-    price: value["price"],
+    plan_period: value["planPeriod"],
+    plan_price: value["planPrice"],
   };
 }

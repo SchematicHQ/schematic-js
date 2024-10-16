@@ -98,7 +98,7 @@ export const CheckoutDialog = () => {
     "plan",
   );
   const [planPeriod, setPlanPeriod] = useState<string>(
-    () => data.company?.plan?.interval || "month",
+    () => data.company?.plan?.planPeriod || "month",
   );
   const [selectedPlan, setSelectedPlan] =
     useState<CompanyPlanDetailResponseData>();
@@ -847,8 +847,8 @@ export const CheckoutDialog = () => {
                     </Text>
                   </Flex>
 
-                  {typeof currentPlan.price === "number" &&
-                    currentPlan.interval && (
+                  {typeof currentPlan.planPrice === "number" &&
+                    currentPlan.planPeriod && (
                       <Flex>
                         <Text
                           $font={theme.typography.text.fontFamily}
@@ -856,8 +856,8 @@ export const CheckoutDialog = () => {
                           $weight={theme.typography.text.fontWeight}
                           $color={theme.typography.text.color}
                         >
-                          {formatCurrency(currentPlan.price)}/
-                          {currentPlan.interval}
+                          {formatCurrency(currentPlan.planPrice)}/
+                          {currentPlan.planPeriod}
                         </Text>
                       </Flex>
                     )}

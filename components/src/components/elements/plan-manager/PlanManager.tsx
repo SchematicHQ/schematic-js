@@ -143,8 +143,8 @@ export const PlanManager = forwardRef<
           </Flex>
 
           {props.header.price.isVisible &&
-            typeof currentPlan.price === "number" &&
-            currentPlan.interval && (
+            typeof currentPlan.planPrice === "number" &&
+            currentPlan.planPeriod && (
               <Text
                 $font={
                   theme.typography[props.header.price.fontStyle].fontFamily
@@ -155,7 +155,7 @@ export const PlanManager = forwardRef<
                 }
                 $color={theme.typography[props.header.price.fontStyle].color}
               >
-                {formatCurrency(currentPlan.price)}/{currentPlan.interval}
+                {formatCurrency(currentPlan.planPrice)}/{currentPlan.planPeriod}
               </Text>
             )}
         </Flex>
