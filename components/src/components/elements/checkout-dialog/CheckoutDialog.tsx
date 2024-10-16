@@ -95,7 +95,9 @@ export const CheckoutDialog = () => {
   const [checkoutStage, setCheckoutStage] = useState<"plan" | "checkout">(
     "plan",
   );
-  const [planPeriod, setPlanPeriod] = useState<string>("month");
+  const [planPeriod, setPlanPeriod] = useState(
+    data.company?.plan?.planPeriod || "month",
+  );
   const [selectedPlan, setSelectedPlan] =
     useState<CompanyPlanDetailResponseData>();
   const [charges, setCharges] = useState<{
@@ -126,13 +128,15 @@ export const CheckoutDialog = () => {
       return {
         paymentMethod: data.subscription?.paymentMethod,
         currentPlan: data.company?.plan,
-        availablePlans: data.activePlans.filter((plan) => {
-          return (
-            mode === "edit" ||
-            (planPeriod === "month" && plan.monthlyPrice) ||
-            (planPeriod === "year" && plan.yearlyPrice)
-          );
-        }),
+        availablePlans:
+          mode === "edit"
+            ? data.activePlans
+            : data.activePlans.filter((plan) => {
+                return (
+                  (planPeriod === "month" && plan.monthlyPrice) ||
+                  (planPeriod === "year" && plan.yearlyPrice)
+                );
+              }),
         planPeriodOptions,
       };
     }, [
