@@ -98,8 +98,6 @@ export const CheckoutDialog = () => {
   const [planPeriod, setPlanPeriod] = useState(
     data.company?.plan?.planPeriod || "month",
   );
-  const [selectedPlan, setSelectedPlan] =
-    useState<CompanyPlanDetailResponseData>();
   const [charges, setCharges] = useState<{
     dueNow: number;
     newCharges: number;
@@ -147,6 +145,10 @@ export const CheckoutDialog = () => {
       planPeriod,
     ]);
 
+  const [selectedPlan, setSelectedPlan] = useState<
+    CompanyPlanDetailResponseData | undefined
+  >(() => availablePlans.find((plan) => plan.id === currentPlan?.id));
+
   const savingsPercentage = useMemo(() => {
     if (selectedPlan) {
       const monthly = (selectedPlan?.monthlyPrice?.price || 0) * 12;
@@ -178,8 +180,16 @@ export const CheckoutDialog = () => {
 
   const selectPlan = useCallback(
     async (plan: CompanyPlanDetailResponseData, newPeriod?: string) => {
-      setSelectedPlan(plan);
       setCharges(undefined);
+      if (
+        plan.id === currentPlan?.id &&
+        newPeriod &&
+        newPeriod === currentPlan?.planPeriod
+      ) {
+        return;
+      }
+
+      setSelectedPlan(plan);
 
       const period = newPeriod || planPeriod;
       const priceId = (
@@ -206,15 +216,16 @@ export const CheckoutDialog = () => {
         setIsLoading(false);
       }
     },
-    [api, planPeriod],
+    [api, currentPlan, planPeriod],
   );
 
   const changePlanPeriod = useCallback(
     (period: string) => {
-      setPlanPeriod(period);
       if (selectedPlan) {
         selectPlan(selectedPlan, period);
       }
+
+      setPlanPeriod(period);
     },
     [selectedPlan, selectPlan],
   );
@@ -265,6 +276,8 @@ export const CheckoutDialog = () => {
   const allowCheckout =
     api &&
     selectedPlan &&
+    (selectedPlan.id !== currentPlan?.id ||
+      planPeriod !== currentPlan.planPeriod) &&
     ((paymentMethod && !showPaymentForm) || paymentMethodId) &&
     !isLoading;
 
@@ -426,6 +439,8 @@ export const CheckoutDialog = () => {
                     return 0;
                   })
                   .map((plan) => {
+                    const isCurrentPlan = plan.id === selectedPlan?.id;
+
                     return (
                       <Flex
                         key={plan.id}
@@ -483,7 +498,7 @@ export const CheckoutDialog = () => {
                             </Box>
                           </Text>
 
-                          {(plan.current || plan.id === currentPlan?.id) && (
+                          {isCurrentPlan && (
                             <Flex
                               $position="absolute"
                               $right="1rem"
@@ -553,7 +568,29 @@ export const CheckoutDialog = () => {
                           $height="auto"
                           $padding="1.5rem"
                         >
-                          {plan.id === selectedPlan?.id && (
+                          {!isCurrentPlan ? (
+                            <Box $position="relative">
+                              <EmbedButton
+                                disabled={isLoading || plan.valid === false}
+                                isLoading={isLoading}
+                                {...(plan.valid === true && {
+                                  onClick: () => selectPlan(plan),
+                                })}
+                                $size="sm"
+                                $color="primary"
+                                $variant="outline"
+                              >
+                                {plan.valid === false ? (
+                                  <Tooltip
+                                    label="Over usage limit"
+                                    description=" Current usage exceeds limit of this plan"
+                                  />
+                                ) : (
+                                  "Select"
+                                )}
+                              </EmbedButton>
+                            </Box>
+                          ) : (
                             <Flex
                               $justifyContent="center"
                               $alignItems="center"
@@ -577,29 +614,6 @@ export const CheckoutDialog = () => {
                                 Selected
                               </Text>
                             </Flex>
-                          )}
-
-                          {plan.id !== selectedPlan?.id && (
-                            <Box $position="relative">
-                              <EmbedButton
-                                disabled={isLoading || plan.valid === false}
-                                {...(plan.valid === true && {
-                                  onClick: () => selectPlan(plan),
-                                })}
-                                $size="sm"
-                                $color="primary"
-                                $variant="outline"
-                              >
-                                {plan.valid === false ? (
-                                  <Tooltip
-                                    label="Over usage limit"
-                                    description=" Current usage exceeds limit of this plan"
-                                  />
-                                ) : (
-                                  "Select"
-                                )}
-                              </EmbedButton>
-                            </Box>
                           )}
                         </Flex>
                       </Flex>
@@ -836,7 +850,7 @@ export const CheckoutDialog = () => {
                   $gap="1rem"
                 >
                   <Flex
-                    {...(selectedPlan && {
+                    {...(allowCheckout && {
                       $opacity: "0.625",
                       $textDecoration: "line-through",
                     })}
@@ -868,7 +882,7 @@ export const CheckoutDialog = () => {
                 </Flex>
               )}
 
-              {selectedPlan && (
+              {allowCheckout && (
                 <Box $marginBottom="1rem">
                   <Box
                     $width="100%"
@@ -1060,6 +1074,7 @@ export const CheckoutDialog = () => {
 
             {checkoutStage === "plan" ? (
               <EmbedButton
+                isLoading={isLoading}
                 {...(allowCheckout
                   ? {
                       onClick: async () => {
