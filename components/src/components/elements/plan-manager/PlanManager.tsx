@@ -32,7 +32,7 @@ interface DesignProps {
   callToAction: {
     isVisible: boolean;
     buttonSize: "sm" | "md" | "lg";
-    buttonStyle: "primary" | "secondary" | "tertiary";
+    buttonStyle: "primary" | "secondary";
   };
 }
 
