@@ -182,7 +182,7 @@ export const PlanManager = forwardRef<
               }
               $lineHeight={1}
             >
-              Add-Ons
+              Addons
             </Text>
           )}
 

@@ -113,41 +113,49 @@ export const CheckoutDialog = () => {
   const [stripe, setStripe] = useState<Promise<Stripe | null> | null>(null);
   const [setupIntent, setSetupIntent] = useState<SetupIntentResponseData>();
 
-  const { paymentMethod, currentPlan, availablePlans, planPeriodOptions } =
-    useMemo(() => {
-      const planPeriodOptions = [];
-      if (data.activePlans.some((plan) => plan.monthlyPrice)) {
-        planPeriodOptions.push("month");
-      }
-      if (data.activePlans.some((plan) => plan.yearlyPrice)) {
-        planPeriodOptions.push("year");
-      }
+  const {
+    paymentMethod,
+    currentPlan,
+    availablePlans,
+    planPeriodOptions,
+    addOns,
+  } = useMemo(() => {
+    const planPeriodOptions = [];
+    if (data.activePlans.some((plan) => plan.monthlyPrice)) {
+      planPeriodOptions.push("month");
+    }
+    if (data.activePlans.some((plan) => plan.yearlyPrice)) {
+      planPeriodOptions.push("year");
+    }
 
-      return {
-        paymentMethod: data.subscription?.paymentMethod,
-        currentPlan: data.company?.plan,
-        availablePlans:
-          mode === "edit"
-            ? data.activePlans
-            : data.activePlans.filter((plan) => {
-                return (
-                  (planPeriod === "month" && plan.monthlyPrice) ||
-                  (planPeriod === "year" && plan.yearlyPrice)
-                );
-              }),
-        planPeriodOptions,
-      };
-    }, [
-      data.subscription?.paymentMethod,
-      data.company,
-      data.activePlans,
-      mode,
-      planPeriod,
-    ]);
+    return {
+      paymentMethod: data.subscription?.paymentMethod,
+      currentPlan: data.company?.plan,
+      availablePlans:
+        mode === "edit"
+          ? data.activePlans
+          : data.activePlans.filter((plan) => {
+              return (
+                (planPeriod === "month" && plan.monthlyPrice) ||
+                (planPeriod === "year" && plan.yearlyPrice)
+              );
+            }),
+      planPeriodOptions,
+      addOns: data.company?.plan ? [data.company?.plan] : [],
+    };
+  }, [
+    data.subscription?.paymentMethod,
+    data.company,
+    data.activePlans,
+    mode,
+    planPeriod,
+  ]);
 
   const [selectedPlan, setSelectedPlan] = useState<
     CompanyPlanDetailResponseData | undefined
   >(() => availablePlans.find((plan) => plan.id === currentPlan?.id));
+
+  const [selectedAddOns, setSelectedAddOns] = useState<string[]>([]);
 
   const savingsPercentage = useMemo(() => {
     if (selectedPlan) {
@@ -273,13 +281,15 @@ export const CheckoutDialog = () => {
     };
   }, []);
 
-  const allowCheckout =
+  const allowAddons =
     api &&
     selectedPlan &&
     (selectedPlan.id !== currentPlan?.id ||
       planPeriod !== currentPlan.planPeriod) &&
-    ((paymentMethod && !showPaymentForm) || paymentMethodId) &&
     !isLoading;
+
+  const allowCheckout =
+    allowAddons && ((paymentMethod && !showPaymentForm) || paymentMethodId);
 
   return (
     <Modal size="lg">
@@ -346,23 +356,42 @@ export const CheckoutDialog = () => {
           />
 
           <Flex $gap="0.5rem" $alignItems="center">
-            <Box
-              $width={`${20 / TEXT_BASE_SIZE}rem`}
-              $height={`${20 / TEXT_BASE_SIZE}rem`}
-              $borderWidth="2px"
-              $borderStyle="solid"
-              $borderColor={
-                isLightBackground
-                  ? "hsla(0, 0%, 0%, 0.125)"
-                  : "hsla(0, 0%, 100%, 0.25)"
-              }
-              $borderRadius="9999px"
-            />
+            {checkoutStage === "plan" || checkoutStage === "addons" ? (
+              <Box
+                $width={`${20 / TEXT_BASE_SIZE}rem`}
+                $height={`${20 / TEXT_BASE_SIZE}rem`}
+                $borderWidth="2px"
+                $borderStyle="solid"
+                $borderColor={
+                  isLightBackground
+                    ? "hsla(0, 0%, 0%, 0.125)"
+                    : "hsla(0, 0%, 100%, 0.25)"
+                }
+                $borderRadius="9999px"
+              />
+            ) : (
+              <IconRound
+                name="check"
+                colors={[
+                  theme.card.background,
+                  isLightBackground
+                    ? "hsla(0, 0%, 0%, 0.125)"
+                    : "hsla(0, 0%, 100%, 0.25)",
+                ]}
+                style={{
+                  fontSize: `${16 / TEXT_BASE_SIZE}rem`,
+                  width: `${20 / TEXT_BASE_SIZE}rem`,
+                  height: `${20 / TEXT_BASE_SIZE}rem`,
+                }}
+              />
+            )}
 
             <Box
               tabIndex={0}
-              {...(checkoutStage !== "addons" && {
-                $opacity: "0.6375",
+              {...(checkoutStage !== "addons" && { $opacity: "0.6375" })}
+              {...(checkoutStage === "checkout" && {
+                onClick: () => setCheckoutStage("addons"),
+                $cursor: "pointer",
               })}
             >
               <Text
@@ -371,7 +400,7 @@ export const CheckoutDialog = () => {
                 $weight={checkoutStage === "addons" ? 600 : 400}
                 $color={theme.typography.text.color}
               >
-                2. Customize with add ons
+                2. Customize with addons
               </Text>
             </Box>
           </Flex>
@@ -409,7 +438,7 @@ export const CheckoutDialog = () => {
               <Text
                 $font={theme.typography.text.fontFamily}
                 $size={19}
-                $weight={checkoutStage === "plan" ? 600 : 400}
+                $weight={checkoutStage === "checkout" ? 600 : 400}
                 $color={theme.typography.text.color}
               >
                 3. Checkout
@@ -508,7 +537,6 @@ export const CheckoutDialog = () => {
                           $position="relative"
                           $gap="1rem"
                           $width="100%"
-                          $height="auto"
                           $padding={`${theme.card.padding / TEXT_BASE_SIZE}rem`}
                           $borderBottomWidth="1px"
                           $borderStyle="solid"
@@ -565,7 +593,6 @@ export const CheckoutDialog = () => {
                           $gap="0.5rem"
                           $flex="1"
                           $width="100%"
-                          $height="auto"
                           $padding="1.5rem"
                         >
                           {plan.entitlements.map((entitlement) => {
@@ -606,14 +633,12 @@ export const CheckoutDialog = () => {
                           $position="relative"
                           $gap="1rem"
                           $width="100%"
-                          $height="auto"
                           $padding="1.5rem"
                         >
                           {!isCurrentPlan ? (
                             <Box $position="relative">
                               <EmbedButton
                                 disabled={isLoading || plan.valid === false}
-                                isLoading={isLoading}
                                 {...(plan.valid === true && {
                                   onClick: () => selectPlan(plan),
                                 })}
@@ -664,9 +689,160 @@ export const CheckoutDialog = () => {
             </>
           )}
 
-          {checkoutStage === "addons" && <div>Addons</div>}
+          {checkoutStage === "addons" && (
+            <>
+              <Flex $flexDirection="column" $gap="1rem" $marginBottom="1rem">
+                <Text
+                  as="h3"
+                  id="select-addons-dialog-label"
+                  $font={theme.typography.heading3.fontFamily}
+                  $size={theme.typography.heading3.fontSize}
+                  $weight={theme.typography.heading3.fontWeight}
+                  $color={theme.typography.heading3.color}
+                  $marginBottom="0.5rem"
+                >
+                  Customize with addons
+                </Text>
 
-          {selectedPlan && checkoutStage === "checkout" && (
+                <Text
+                  as="p"
+                  id="select-addons-dialog-description"
+                  $font={theme.typography.text.fontFamily}
+                  $size={theme.typography.text.fontSize}
+                  $weight={theme.typography.text.fontWeight}
+                  $color={theme.typography.text.color}
+                >
+                  Optionally add features to your subscription
+                </Text>
+              </Flex>
+
+              <Flex $flexWrap="wrap" $gap="1rem">
+                {addOns.map((addOn) => {
+                  const isAddOnSelected = selectedAddOns.includes(addOn.id);
+
+                  return (
+                    <Flex
+                      key={addOn.id}
+                      $flexDirection="column"
+                      $width="100%"
+                      $minWidth="280px"
+                      $maxWidth={`calc(${100 / 3}% - 1rem)`}
+                      $backgroundColor={theme.card.background}
+                      $outlineWidth="2px"
+                      $outlineStyle="solid"
+                      $outlineColor={
+                        isAddOnSelected ? theme.primary : "transparent"
+                      }
+                      $borderRadius={`${theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
+                      {...(theme.card.hasShadow && {
+                        $boxShadow:
+                          "0px 1px 3px rgba(16, 24, 40, 0.1), 0px 1px 20px rgba(16, 24, 40, 0.06)",
+                      })}
+                    >
+                      <Flex
+                        $flexDirection="column"
+                        $position="relative"
+                        $gap="1rem"
+                        $width="100%"
+                        $padding={`${theme.card.padding / TEXT_BASE_SIZE}rem`}
+                      >
+                        <Text $size={20} $weight={600}>
+                          {addOn.name}
+                        </Text>
+
+                        {addOn.description && (
+                          <Text $size={14}>{addOn.description}</Text>
+                        )}
+
+                        {addOn.planPrice && (
+                          <Text>
+                            <Box $display="inline-block" $fontSize="1.5rem">
+                              {formatCurrency(addOn.planPrice ?? 0)}
+                            </Box>
+
+                            {addOn.planPeriod && (
+                              <Box $display="inline-block" $fontSize="0.75rem">
+                                /{addOn.planPeriod}
+                              </Box>
+                            )}
+                          </Text>
+                        )}
+
+                        {isAddOnSelected && (
+                          <Flex
+                            $position="absolute"
+                            $right="1rem"
+                            $top="1rem"
+                            $fontSize="0.625rem"
+                            $color={
+                              hexToHSL(theme.primary).l > 50
+                                ? "#000000"
+                                : "#FFFFFF"
+                            }
+                            $backgroundColor={theme.primary}
+                            $borderRadius="9999px"
+                            $padding="0.125rem 0.85rem"
+                          >
+                            Active
+                          </Flex>
+                        )}
+                      </Flex>
+
+                      <Flex
+                        $flexDirection="column"
+                        $position="relative"
+                        $gap="1rem"
+                        $width="100%"
+                        $padding="1.5rem"
+                      >
+                        {!isAddOnSelected ? (
+                          <Box $position="relative">
+                            <EmbedButton
+                              disabled={isLoading}
+                              onClick={() =>
+                                setSelectedAddOns((prev) => [...prev, addOn.id])
+                              }
+                              $size="sm"
+                              $color="primary"
+                              $variant="outline"
+                            >
+                              Select
+                            </EmbedButton>
+                          </Box>
+                        ) : (
+                          <Flex
+                            $justifyContent="center"
+                            $alignItems="center"
+                            $gap="0.25rem"
+                            $fontSize="0.9375rem"
+                            $padding="0.625rem 0"
+                          >
+                            <Icon
+                              name="check-rounded"
+                              style={{
+                                fontSize: 20,
+                                lineHeight: "1",
+                                color: theme.primary,
+                              }}
+                            />
+
+                            <Text
+                              $lineHeight="1.4"
+                              $color={theme.typography.text.color}
+                            >
+                              Selected
+                            </Text>
+                          </Flex>
+                        )}
+                      </Flex>
+                    </Flex>
+                  );
+                })}
+              </Flex>
+            </>
+          )}
+
+          {checkoutStage === "checkout" && (
             <>
               {showPaymentForm && setupIntent?.setupIntentClientSecret ? (
                 <Elements
@@ -760,7 +936,6 @@ export const CheckoutDialog = () => {
             $flexDirection="column"
             $gap="1rem"
             $width="100%"
-            $height="auto"
             $padding="1.5rem"
             $borderBottomWidth="1px"
             $borderStyle="solid"
@@ -863,7 +1038,6 @@ export const CheckoutDialog = () => {
             $position="relative"
             $gap="0.5rem"
             $width="100%"
-            $height="auto"
             $padding="1.5rem"
             $flex="1"
             $borderBottomWidth="1px"
@@ -1034,7 +1208,6 @@ export const CheckoutDialog = () => {
             $position="relative"
             $gap="1rem"
             $width="100%"
-            $height="auto"
             $padding="1.5rem"
           >
             {selectedPlan && subscriptionPrice && (
@@ -1115,7 +1288,32 @@ export const CheckoutDialog = () => {
               </Flex>
             )}
 
-            {checkoutStage === "plan" ? (
+            {checkoutStage === "plan" && (
+              <EmbedButton
+                isLoading={isLoading}
+                {...(allowAddons
+                  ? {
+                      onClick: () => {
+                        setCheckoutStage("addons");
+                      },
+                    }
+                  : { disabled: true })}
+              >
+                <Flex
+                  $gap="0.5rem"
+                  $justifyContent="center"
+                  $alignItems="center"
+                  $padding="0 1rem"
+                >
+                  <Text $align="left" $lineHeight={1}>
+                    Next: Addons
+                  </Text>
+                  <Icon name="arrow-right" />
+                </Flex>
+              </EmbedButton>
+            )}
+
+            {checkoutStage === "addons" && (
               <EmbedButton
                 isLoading={isLoading}
                 {...(allowCheckout
@@ -1147,7 +1345,9 @@ export const CheckoutDialog = () => {
                   <Icon name="arrow-right" />
                 </Flex>
               </EmbedButton>
-            ) : (
+            )}
+
+            {checkoutStage === "checkout" && (
               <EmbedButton
                 disabled={isLoading || !allowCheckout}
                 isLoading={isLoading}

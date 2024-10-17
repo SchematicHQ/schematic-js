@@ -76,7 +76,7 @@ export const IncludedFeatures = forwardRef<
   const isLightBackground = useIsLightBackground();
 
   // Check if we should render this component at all:
-  // * If there are any plans or add-ons, render it, even if the list is empty.
+  // * If there are any plans or addons, render it, even if the list is empty.
   // * If there are any features, show it (e.g., there could be features available via company overrides
   //  even if the company has no plan or add-ons).
   // * If none of the above, don't render the component.

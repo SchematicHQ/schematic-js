@@ -27,7 +27,6 @@ const Error = ({ message }: { message: string }) => {
       $flexDirection="column"
       $padding={`${theme.card.padding / TEXT_BASE_SIZE}rem`}
       $width="100%"
-      $height="auto"
       $borderRadius={`${theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
       $backgroundColor={theme.card.background}
       $alignItems="center"
