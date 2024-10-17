@@ -6,7 +6,7 @@ import { Button } from "./Button";
 
 export const EmbedButton = styled(Button)<{
   $size?: "sm" | "md" | "lg";
-  $color?: "primary" | "secondary" | "tertiary";
+  $color?: "primary" | "secondary";
   $variant?: "outline" | "filled";
 }>`
   font-family: "Public Sans", sans-serif;
