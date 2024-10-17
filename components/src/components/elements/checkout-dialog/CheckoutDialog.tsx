@@ -92,9 +92,9 @@ export const CheckoutDialog = () => {
   const theme = useTheme();
   const { api, data, mode, setLayout } = useEmbed();
 
-  const [checkoutStage, setCheckoutStage] = useState<"plan" | "checkout">(
-    "plan",
-  );
+  const [checkoutStage, setCheckoutStage] = useState<
+    "plan" | "addons" | "checkout"
+  >("plan");
   const [planPeriod, setPlanPeriod] = useState(
     data.company?.plan?.planPeriod || "month",
   );
@@ -361,6 +361,47 @@ export const CheckoutDialog = () => {
 
             <Box
               tabIndex={0}
+              {...(checkoutStage !== "addons" && {
+                $opacity: "0.6375",
+              })}
+            >
+              <Text
+                $font={theme.typography.text.fontFamily}
+                $size={19}
+                $weight={checkoutStage === "addons" ? 600 : 400}
+                $color={theme.typography.text.color}
+              >
+                2. Customize with add ons
+              </Text>
+            </Box>
+          </Flex>
+
+          <Icon
+            name="chevron-right"
+            style={{
+              fontSize: 16,
+              color: isLightBackground
+                ? "hsla(0, 0%, 0%, 0.175)"
+                : "hsla(0, 0%, 100%, 0.35)",
+            }}
+          />
+
+          <Flex $gap="0.5rem" $alignItems="center">
+            <Box
+              $width={`${20 / TEXT_BASE_SIZE}rem`}
+              $height={`${20 / TEXT_BASE_SIZE}rem`}
+              $borderWidth="2px"
+              $borderStyle="solid"
+              $borderColor={
+                isLightBackground
+                  ? "hsla(0, 0%, 0%, 0.125)"
+                  : "hsla(0, 0%, 100%, 0.25)"
+              }
+              $borderRadius="9999px"
+            />
+
+            <Box
+              tabIndex={0}
               {...(checkoutStage !== "checkout" && {
                 $opacity: "0.6375",
               })}
@@ -371,7 +412,7 @@ export const CheckoutDialog = () => {
                 $weight={checkoutStage === "plan" ? 600 : 400}
                 $color={theme.typography.text.color}
               >
-                2. Checkout
+                3. Checkout
               </Text>
             </Box>
           </Flex>
@@ -622,6 +663,8 @@ export const CheckoutDialog = () => {
               </Flex>
             </>
           )}
+
+          {checkoutStage === "addons" && <div>Addons</div>}
 
           {selectedPlan && checkoutStage === "checkout" && (
             <>
