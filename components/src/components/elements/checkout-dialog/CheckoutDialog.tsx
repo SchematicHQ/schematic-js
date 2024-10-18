@@ -1,100 +1,42 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTheme } from "styled-components";
-import pluralize from "pluralize";
 import { loadStripe, type Stripe } from "@stripe/stripe-js";
-import { Elements } from "@stripe/react-stripe-js";
 import type {
   CompanyPlanDetailResponseData,
-  PlanEntitlementResponseData,
   SetupIntentResponseData,
 } from "../../../api";
-import { TEXT_BASE_SIZE } from "../../../const";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
-import {
-  hexToHSL,
-  formatCurrency,
-  formatNumber,
-  formatOrdinal,
-  getMonthName,
-} from "../../../utils";
-import { PaymentForm, PaymentMethod } from "../../elements";
+import { formatCurrency, formatOrdinal, getMonthName } from "../../../utils";
 import {
   Box,
   EmbedButton,
   Flex,
   Icon,
-  IconRound,
   Modal,
   ModalHeader,
   Text,
-  Tooltip,
-  type IconNameTypes,
 } from "../../ui";
+import { Navigation } from "./Navigation";
+import { Plan } from "./Plan";
+import { AddOns } from "./AddOns";
+import { Checkout } from "./Checkout";
 
-const FeatureName = ({
-  entitlement,
-}: {
-  entitlement: PlanEntitlementResponseData;
-}) => {
-  const theme = useTheme();
-
-  if (!entitlement.feature?.name) {
-    return null;
-  }
-
-  if (
-    entitlement.valueType === "numeric" ||
-    entitlement.valueType === "unlimited" ||
-    entitlement.valueType === "trait"
-  ) {
-    let period;
-    if (entitlement.metricPeriod) {
-      period = {
-        billing: "billing period",
-        current_day: "day",
-        current_month: "month",
-        current_year: "year",
-      }[entitlement.metricPeriod];
-    }
-
-    return (
-      <Flex $alignItems="center">
-        <Text
-          $font={theme.typography.text.fontFamily}
-          $size={theme.typography.text.fontSize}
-          $weight={theme.typography.text.fontWeight}
-          $color={theme.typography.text.color}
-        >
-          {typeof entitlement.valueNumeric === "number"
-            ? `${formatNumber(entitlement.valueNumeric)} ${pluralize(entitlement.feature.name, entitlement.valueNumeric)}`
-            : `Unlimited ${pluralize(entitlement.feature.name)}`}
-          {period && ` per ${period}`}
-        </Text>
-      </Flex>
-    );
-  }
-
-  return (
-    <Flex $alignItems="center">
-      <Text
-        $font={theme.typography.text.fontFamily}
-        $size={theme.typography.text.fontSize}
-        $weight={theme.typography.text.fontWeight}
-        $color={theme.typography.text.color}
-      >
-        {entitlement.feature.name}
-      </Text>
-    </Flex>
-  );
-};
+const checkoutStages = [
+  { id: "plan", name: "Select plan", description: "Choose your base plan" },
+  {
+    id: "addons",
+    name: "Customize with addons",
+    description: "Optionally add features to your subscription",
+  },
+  { id: "checkout", name: "Checkout", description: "" },
+];
 
 export const CheckoutDialog = () => {
   const theme = useTheme();
+
   const { api, data, mode, setLayout } = useEmbed();
 
-  const [checkoutStage, setCheckoutStage] = useState<
-    "plan" | "addons" | "checkout"
-  >("plan");
+  const [checkoutStage, setCheckoutStage] = useState("plan");
   const [planPeriod, setPlanPeriod] = useState(
     data.company?.plan?.planPeriod || "month",
   );
@@ -108,11 +50,12 @@ export const CheckoutDialog = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | undefined>();
   const [showPaymentForm, setShowPaymentForm] = useState(
-    () => typeof data.subscription?.paymentMethod === "undefined",
+    !data.subscription?.paymentMethod,
   );
   const [stripe, setStripe] = useState<Promise<Stripe | null> | null>(null);
   const [setupIntent, setSetupIntent] = useState<SetupIntentResponseData>();
 
+  // memoize data here since some state depends on it
   const {
     paymentMethod,
     currentPlan,
@@ -151,10 +94,10 @@ export const CheckoutDialog = () => {
     planPeriod,
   ]);
 
-  const [selectedPlan, setSelectedPlan] = useState<
-    CompanyPlanDetailResponseData | undefined
-  >(() => availablePlans.find((plan) => plan.id === currentPlan?.id));
-
+  // instantiation for state that depends on memoized data
+  const [selectedPlan, setSelectedPlan] = useState(() =>
+    availablePlans.find((plan) => plan.id === currentPlan?.id),
+  );
   const [selectedAddOns, setSelectedAddOns] = useState<string[]>([]);
 
   const savingsPercentage = useMemo(() => {
@@ -273,6 +216,7 @@ export const CheckoutDialog = () => {
     }
   }, [stripe, setupIntent?.publishableKey]);
 
+  // prevent scrolling when the checkout dialog is open
   useEffect(() => {
     document.body.style.overflow = "hidden";
 
@@ -295,156 +239,18 @@ export const CheckoutDialog = () => {
     <Modal size="lg">
       <ModalHeader bordered>
         <Flex $gap="1rem">
-          <Flex $gap="0.5rem" $alignItems="center">
-            {checkoutStage === "plan" ? (
-              <Box
-                $width={`${20 / TEXT_BASE_SIZE}rem`}
-                $height={`${20 / TEXT_BASE_SIZE}rem`}
-                $borderWidth="2px"
-                $borderStyle="solid"
-                $borderColor={
-                  isLightBackground
-                    ? "hsla(0, 0%, 0%, 0.125)"
-                    : "hsla(0, 0%, 100%, 0.25)"
-                }
-                $borderRadius="9999px"
-              />
-            ) : (
-              <IconRound
-                name="check"
-                colors={[
-                  theme.card.background,
-                  isLightBackground
-                    ? "hsla(0, 0%, 0%, 0.125)"
-                    : "hsla(0, 0%, 100%, 0.25)",
-                ]}
-                style={{
-                  fontSize: `${16 / TEXT_BASE_SIZE}rem`,
-                  width: `${20 / TEXT_BASE_SIZE}rem`,
-                  height: `${20 / TEXT_BASE_SIZE}rem`,
-                }}
-              />
-            )}
-
-            <Box
-              tabIndex={0}
-              {...(checkoutStage !== "plan" && {
-                onClick: () => setCheckoutStage("plan"),
-                $opacity: "0.6375",
-                $cursor: "pointer",
-              })}
-            >
-              <Text
-                $font={theme.typography.text.fontFamily}
-                $size={19}
-                $weight={checkoutStage === "plan" ? 600 : 400}
-                $color={theme.typography.text.color}
-              >
-                1. Select plan
-              </Text>
-            </Box>
-          </Flex>
-
-          <Icon
-            name="chevron-right"
-            style={{
-              fontSize: 16,
-              color: isLightBackground
-                ? "hsla(0, 0%, 0%, 0.175)"
-                : "hsla(0, 0%, 100%, 0.35)",
-            }}
-          />
-
-          <Flex $gap="0.5rem" $alignItems="center">
-            {checkoutStage === "plan" || checkoutStage === "addons" ? (
-              <Box
-                $width={`${20 / TEXT_BASE_SIZE}rem`}
-                $height={`${20 / TEXT_BASE_SIZE}rem`}
-                $borderWidth="2px"
-                $borderStyle="solid"
-                $borderColor={
-                  isLightBackground
-                    ? "hsla(0, 0%, 0%, 0.125)"
-                    : "hsla(0, 0%, 100%, 0.25)"
-                }
-                $borderRadius="9999px"
-              />
-            ) : (
-              <IconRound
-                name="check"
-                colors={[
-                  theme.card.background,
-                  isLightBackground
-                    ? "hsla(0, 0%, 0%, 0.125)"
-                    : "hsla(0, 0%, 100%, 0.25)",
-                ]}
-                style={{
-                  fontSize: `${16 / TEXT_BASE_SIZE}rem`,
-                  width: `${20 / TEXT_BASE_SIZE}rem`,
-                  height: `${20 / TEXT_BASE_SIZE}rem`,
-                }}
-              />
-            )}
-
-            <Box
-              tabIndex={0}
-              {...(checkoutStage !== "addons" && { $opacity: "0.6375" })}
-              {...(checkoutStage === "checkout" && {
-                onClick: () => setCheckoutStage("addons"),
-                $cursor: "pointer",
-              })}
-            >
-              <Text
-                $font={theme.typography.text.fontFamily}
-                $size={19}
-                $weight={checkoutStage === "addons" ? 600 : 400}
-                $color={theme.typography.text.color}
-              >
-                2. Customize with addons
-              </Text>
-            </Box>
-          </Flex>
-
-          <Icon
-            name="chevron-right"
-            style={{
-              fontSize: 16,
-              color: isLightBackground
-                ? "hsla(0, 0%, 0%, 0.175)"
-                : "hsla(0, 0%, 100%, 0.35)",
-            }}
-          />
-
-          <Flex $gap="0.5rem" $alignItems="center">
-            <Box
-              $width={`${20 / TEXT_BASE_SIZE}rem`}
-              $height={`${20 / TEXT_BASE_SIZE}rem`}
-              $borderWidth="2px"
-              $borderStyle="solid"
-              $borderColor={
-                isLightBackground
-                  ? "hsla(0, 0%, 0%, 0.125)"
-                  : "hsla(0, 0%, 100%, 0.25)"
-              }
-              $borderRadius="9999px"
+          {checkoutStages.map((stage, index, stages) => (
+            <Navigation
+              key={stage.id}
+              name={stage.name}
+              index={index}
+              activeIndex={checkoutStages.findIndex(
+                (s) => s.id === checkoutStage,
+              )}
+              isLast={index === stages.length - 1}
+              onClick={() => setCheckoutStage(stage.id)}
             />
-
-            <Box
-              tabIndex={0}
-              {...(checkoutStage !== "checkout" && {
-                $opacity: "0.6375",
-              })}
-            >
-              <Text
-                $font={theme.typography.text.fontFamily}
-                $size={19}
-                $weight={checkoutStage === "checkout" ? 600 : 400}
-                $color={theme.typography.text.color}
-              >
-                3. Checkout
-              </Text>
-            </Box>
-          </Flex>
+          ))}
         </Flex>
       </ModalHeader>
 
@@ -463,463 +269,34 @@ export const CheckoutDialog = () => {
           $overflow="auto"
         >
           {checkoutStage === "plan" && (
-            <>
-              <Flex $flexDirection="column" $gap="1rem" $marginBottom="1rem">
-                <Text
-                  as="h3"
-                  id="select-plan-dialog-label"
-                  $font={theme.typography.heading3.fontFamily}
-                  $size={theme.typography.heading3.fontSize}
-                  $weight={theme.typography.heading3.fontWeight}
-                  $color={theme.typography.heading3.color}
-                  $marginBottom="0.5rem"
-                >
-                  Select plan
-                </Text>
-
-                <Text
-                  as="p"
-                  id="select-plan-dialog-description"
-                  $font={theme.typography.text.fontFamily}
-                  $size={theme.typography.text.fontSize}
-                  $weight={theme.typography.text.fontWeight}
-                  $color={theme.typography.text.color}
-                >
-                  Choose your base plan
-                </Text>
-              </Flex>
-
-              <Flex $flexWrap="wrap" $gap="1rem" $flexGrow="1">
-                {availablePlans
-                  .sort((a, b) => {
-                    if (planPeriod === "year") {
-                      return (
-                        (a.yearlyPrice?.price ?? 0) -
-                        (b.yearlyPrice?.price ?? 0)
-                      );
-                    }
-
-                    if (planPeriod === "month") {
-                      return (
-                        (a.monthlyPrice?.price ?? 0) -
-                        (b.monthlyPrice?.price ?? 0)
-                      );
-                    }
-
-                    return 0;
-                  })
-                  .map((plan) => {
-                    const isCurrentPlan = plan.id === selectedPlan?.id;
-
-                    return (
-                      <Flex
-                        key={plan.id}
-                        $flexDirection="column"
-                        $width="100%"
-                        $minWidth="280px"
-                        $maxWidth={`calc(${100 / 3}% - 1rem)`}
-                        $backgroundColor={theme.card.background}
-                        $outlineWidth="2px"
-                        $outlineStyle="solid"
-                        $outlineColor={
-                          plan.id === selectedPlan?.id
-                            ? theme.primary
-                            : "transparent"
-                        }
-                        $borderRadius={`${theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
-                        {...(theme.card.hasShadow && {
-                          $boxShadow:
-                            "0px 1px 3px rgba(16, 24, 40, 0.1), 0px 1px 20px rgba(16, 24, 40, 0.06)",
-                        })}
-                      >
-                        <Flex
-                          $flexDirection="column"
-                          $position="relative"
-                          $gap="1rem"
-                          $width="100%"
-                          $padding={`${theme.card.padding / TEXT_BASE_SIZE}rem`}
-                          $borderBottomWidth="1px"
-                          $borderStyle="solid"
-                          $borderColor={
-                            isLightBackground
-                              ? "hsla(0, 0%, 0%, 0.175)"
-                              : "hsla(0, 0%, 100%, 0.175)"
-                          }
-                        >
-                          <Text $size={20} $weight={600}>
-                            {plan.name}
-                          </Text>
-
-                          <Text $size={14}>{plan.description}</Text>
-
-                          <Text>
-                            <Box $display="inline-block" $fontSize="1.5rem">
-                              {formatCurrency(
-                                (planPeriod === "month"
-                                  ? plan.monthlyPrice
-                                  : plan.yearlyPrice
-                                )?.price ?? 0,
-                              )}
-                            </Box>
-
-                            <Box $display="inline-block" $fontSize="0.75rem">
-                              /{planPeriod}
-                            </Box>
-                          </Text>
-
-                          {isCurrentPlan && (
-                            <Flex
-                              $position="absolute"
-                              $right="1rem"
-                              $top="1rem"
-                              $fontSize="0.625rem"
-                              $color={
-                                hexToHSL(theme.primary).l > 50
-                                  ? "#000000"
-                                  : "#FFFFFF"
-                              }
-                              $backgroundColor={theme.primary}
-                              $borderRadius="9999px"
-                              $padding="0.125rem 0.85rem"
-                            >
-                              Current plan
-                            </Flex>
-                          )}
-                        </Flex>
-
-                        <Flex
-                          $flexDirection="column"
-                          $position="relative"
-                          $gap="0.5rem"
-                          $flex="1"
-                          $width="100%"
-                          $padding="1.5rem"
-                        >
-                          {plan.entitlements.map((entitlement) => {
-                            return (
-                              <Flex
-                                key={entitlement.id}
-                                $flexWrap="wrap"
-                                $justifyContent="space-between"
-                                $alignItems="center"
-                                $gap="1rem"
-                              >
-                                <Flex $gap="1rem">
-                                  {entitlement.feature?.icon && (
-                                    <IconRound
-                                      name={
-                                        entitlement.feature
-                                          .icon as IconNameTypes
-                                      }
-                                      size="sm"
-                                      colors={[
-                                        theme.primary,
-                                        isLightBackground
-                                          ? "hsla(0, 0%, 0%, 0.0625)"
-                                          : "hsla(0, 0%, 100%, 0.25)",
-                                      ]}
-                                    />
-                                  )}
-
-                                  <FeatureName entitlement={entitlement} />
-                                </Flex>
-                              </Flex>
-                            );
-                          })}
-                        </Flex>
-
-                        <Flex
-                          $flexDirection="column"
-                          $position="relative"
-                          $gap="1rem"
-                          $width="100%"
-                          $padding="1.5rem"
-                        >
-                          {!isCurrentPlan ? (
-                            <Box $position="relative">
-                              <EmbedButton
-                                disabled={isLoading || plan.valid === false}
-                                {...(plan.valid === true && {
-                                  onClick: () => selectPlan(plan),
-                                })}
-                                $size="sm"
-                                $color="primary"
-                                $variant="outline"
-                              >
-                                {plan.valid === false ? (
-                                  <Tooltip
-                                    label="Over usage limit"
-                                    description=" Current usage exceeds limit of this plan"
-                                  />
-                                ) : (
-                                  "Select"
-                                )}
-                              </EmbedButton>
-                            </Box>
-                          ) : (
-                            <Flex
-                              $justifyContent="center"
-                              $alignItems="center"
-                              $gap="0.25rem"
-                              $fontSize="0.9375rem"
-                              $padding="0.625rem 0"
-                            >
-                              <Icon
-                                name="check-rounded"
-                                style={{
-                                  fontSize: 20,
-                                  lineHeight: "1",
-                                  color: theme.primary,
-                                }}
-                              />
-
-                              <Text
-                                $lineHeight="1.4"
-                                $color={theme.typography.text.color}
-                              >
-                                Selected
-                              </Text>
-                            </Flex>
-                          )}
-                        </Flex>
-                      </Flex>
-                    );
-                  })}
-              </Flex>
-            </>
+            <Plan
+              isLoading={isLoading}
+              plans={availablePlans}
+              selectedPlan={selectedPlan}
+              period={planPeriod}
+              selectPlan={selectPlan}
+            />
           )}
 
           {checkoutStage === "addons" && (
-            <>
-              <Flex $flexDirection="column" $gap="1rem" $marginBottom="1rem">
-                <Text
-                  as="h3"
-                  id="select-addons-dialog-label"
-                  $font={theme.typography.heading3.fontFamily}
-                  $size={theme.typography.heading3.fontSize}
-                  $weight={theme.typography.heading3.fontWeight}
-                  $color={theme.typography.heading3.color}
-                  $marginBottom="0.5rem"
-                >
-                  Customize with addons
-                </Text>
-
-                <Text
-                  as="p"
-                  id="select-addons-dialog-description"
-                  $font={theme.typography.text.fontFamily}
-                  $size={theme.typography.text.fontSize}
-                  $weight={theme.typography.text.fontWeight}
-                  $color={theme.typography.text.color}
-                >
-                  Optionally add features to your subscription
-                </Text>
-              </Flex>
-
-              <Flex $flexWrap="wrap" $gap="1rem">
-                {addOns.map((addOn) => {
-                  const isAddOnSelected = selectedAddOns.includes(addOn.id);
-
-                  return (
-                    <Flex
-                      key={addOn.id}
-                      $flexDirection="column"
-                      $width="100%"
-                      $minWidth="280px"
-                      $maxWidth={`calc(${100 / 3}% - 1rem)`}
-                      $backgroundColor={theme.card.background}
-                      $outlineWidth="2px"
-                      $outlineStyle="solid"
-                      $outlineColor={
-                        isAddOnSelected ? theme.primary : "transparent"
-                      }
-                      $borderRadius={`${theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
-                      {...(theme.card.hasShadow && {
-                        $boxShadow:
-                          "0px 1px 3px rgba(16, 24, 40, 0.1), 0px 1px 20px rgba(16, 24, 40, 0.06)",
-                      })}
-                    >
-                      <Flex
-                        $flexDirection="column"
-                        $position="relative"
-                        $gap="1rem"
-                        $width="100%"
-                        $padding={`${theme.card.padding / TEXT_BASE_SIZE}rem`}
-                      >
-                        <Text $size={20} $weight={600}>
-                          {addOn.name}
-                        </Text>
-
-                        {addOn.description && (
-                          <Text $size={14}>{addOn.description}</Text>
-                        )}
-
-                        {addOn.planPrice && (
-                          <Text>
-                            <Box $display="inline-block" $fontSize="1.5rem">
-                              {formatCurrency(addOn.planPrice ?? 0)}
-                            </Box>
-
-                            {addOn.planPeriod && (
-                              <Box $display="inline-block" $fontSize="0.75rem">
-                                /{addOn.planPeriod}
-                              </Box>
-                            )}
-                          </Text>
-                        )}
-
-                        {isAddOnSelected && (
-                          <Flex
-                            $position="absolute"
-                            $right="1rem"
-                            $top="1rem"
-                            $fontSize="0.625rem"
-                            $color={
-                              hexToHSL(theme.primary).l > 50
-                                ? "#000000"
-                                : "#FFFFFF"
-                            }
-                            $backgroundColor={theme.primary}
-                            $borderRadius="9999px"
-                            $padding="0.125rem 0.85rem"
-                          >
-                            Active
-                          </Flex>
-                        )}
-                      </Flex>
-
-                      <Flex
-                        $flexDirection="column"
-                        $position="relative"
-                        $gap="1rem"
-                        $width="100%"
-                        $padding="1.5rem"
-                      >
-                        {!isAddOnSelected ? (
-                          <Box $position="relative">
-                            <EmbedButton
-                              disabled={isLoading}
-                              onClick={() =>
-                                setSelectedAddOns((prev) => [...prev, addOn.id])
-                              }
-                              $size="sm"
-                              $color="primary"
-                              $variant="outline"
-                            >
-                              Select
-                            </EmbedButton>
-                          </Box>
-                        ) : (
-                          <Flex
-                            $justifyContent="center"
-                            $alignItems="center"
-                            $gap="0.25rem"
-                            $fontSize="0.9375rem"
-                            $padding="0.625rem 0"
-                          >
-                            <Icon
-                              name="check-rounded"
-                              style={{
-                                fontSize: 20,
-                                lineHeight: "1",
-                                color: theme.primary,
-                              }}
-                            />
-
-                            <Text
-                              $lineHeight="1.4"
-                              $color={theme.typography.text.color}
-                            >
-                              Selected
-                            </Text>
-                          </Flex>
-                        )}
-                      </Flex>
-                    </Flex>
-                  );
-                })}
-              </Flex>
-            </>
+            <AddOns
+              addOns={addOns}
+              selectedAddOns={selectedAddOns}
+              setSelectedAddOns={setSelectedAddOns}
+              isLoading={isLoading}
+            />
           )}
 
           {checkoutStage === "checkout" && (
-            <>
-              {showPaymentForm && setupIntent?.setupIntentClientSecret ? (
-                <Elements
-                  stripe={stripe}
-                  options={{
-                    appearance: {
-                      theme: "stripe",
-                      variables: {
-                        // Base
-                        fontFamily: '"Public Sans", system-ui, sans-serif',
-                        spacingUnit: "0.25rem",
-                        borderRadius: "0.5rem",
-                        colorText: "#30313D",
-                        colorBackground: "#FFFFFF",
-                        colorPrimary: "#0570DE",
-                        colorDanger: "#DF1B41",
-
-                        // Layout
-                        gridRowSpacing: "1.5rem",
-                        gridColumnSpacing: "1.5rem",
-                      },
-                      rules: {
-                        ".Label": {
-                          fontSize: "1rem",
-                          fontWeight: "400",
-                          marginBottom: "0.75rem",
-                          color: theme.typography.text.color,
-                        },
-                      },
-                    },
-                    clientSecret: setupIntent.setupIntentClientSecret,
-                  }}
-                >
-                  <Box $width="100%" $marginBottom="1.5rem">
-                    <Text $size={18}>Add payment method</Text>
-                  </Box>
-
-                  <PaymentForm
-                    plan={selectedPlan}
-                    period={planPeriod}
-                    onConfirm={(value) => {
-                      setPaymentMethodId(value);
-                    }}
-                  />
-
-                  {data.subscription?.paymentMethod && (
-                    <Box>
-                      <Text
-                        onClick={() => setShowPaymentForm(false)}
-                        $font={theme.typography.link.fontFamily}
-                        $size={theme.typography.link.fontSize}
-                        $weight={theme.typography.link.fontWeight}
-                        $color={theme.typography.link.color}
-                      >
-                        Use existing payment method
-                      </Text>
-                    </Box>
-                  )}
-                </Elements>
-              ) : (
-                <>
-                  <PaymentMethod />
-
-                  <Box>
-                    <Text
-                      onClick={() => setShowPaymentForm(true)}
-                      $font={theme.typography.link.fontFamily}
-                      $size={theme.typography.link.fontSize}
-                      $weight={theme.typography.link.fontWeight}
-                      $color={theme.typography.link.color}
-                    >
-                      Change payment method
-                    </Text>
-                  </Box>
-                </>
-              )}
-            </>
+            <Checkout
+              period={planPeriod}
+              plan={selectedPlan}
+              setPaymentMethodId={setPaymentMethodId}
+              setShowPaymentForm={setShowPaymentForm}
+              setupIntent={setupIntent}
+              showPaymentForm={showPaymentForm}
+              stripe={stripe}
+            />
           )}
         </Flex>
 

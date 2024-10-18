@@ -2,12 +2,13 @@ import styled, { css } from "styled-components";
 import { TEXT_BASE_SIZE } from "../../../const";
 import { hexToHSL, hslToHex, lighten, darken } from "../../../utils";
 import { Text } from "../../ui";
+import { Icon } from "../icon/styles";
 import { Button } from "./Button";
 
 export const EmbedButton = styled(Button)<{
   $size?: "sm" | "md" | "lg";
   $color?: "primary" | "secondary";
-  $variant?: "outline" | "filled";
+  $variant?: "outline" | "filled" | "text";
 }>`
   font-family: "Public Sans", sans-serif;
   font-weight: 500;
@@ -35,7 +36,8 @@ export const EmbedButton = styled(Button)<{
     return css`
       color: ${textColor};
 
-      ${Text} {
+      ${Text},
+      ${Icon} {
         color: ${textColor};
       }
     `;
@@ -49,20 +51,36 @@ export const EmbedButton = styled(Button)<{
       color = l > 50 ? darken(color, 0.075) : lighten(color, 0.15);
     }
 
-    return $variant === "filled"
-      ? css`
-          background-color: ${color};
-          border-color: ${color};
-        `
-      : css`
-          background-color: transparent;
-          border-color: ${color};
-          color: ${color};
+    if ($variant === "outline") {
+      return css`
+        background-color: transparent;
+        border-color: ${color};
+        color: ${color};
 
-          ${Text} {
-            color: ${color};
-          }
-        `;
+        ${Text},
+        ${Icon} {
+          color: ${color};
+        }
+      `;
+    }
+
+    if ($variant === "text") {
+      return css`
+        background-color: transparent;
+        border-color: transparent;
+        color: ${color};
+
+        ${Text},
+        ${Icon} {
+          color: ${color};
+        }
+      `;
+    }
+
+    return css`
+      background-color: ${color};
+      border-color: ${color};
+    `;
   }}
 
   &:disabled:hover {
@@ -79,20 +97,23 @@ export const EmbedButton = styled(Button)<{
       const { l } = hexToHSL(theme[$color]);
       const textColor = l > 50 ? "#000000" : "#FFFFFF";
 
-      return $variant === "filled"
-        ? css`
-            background-color: ${color};
-            border-color: ${color};
-          `
-        : css`
-            background-color: ${color};
-            border-color: ${color};
-            color: ${textColor};
+      if ($variant === "filled") {
+        return css`
+          background-color: ${color};
+          border-color: ${color};
+        `;
+      }
 
-            ${Text} {
-              color: ${textColor};
-            }
-          `;
+      return css`
+        background-color: ${color};
+        border-color: ${color};
+        color: ${textColor};
+
+        ${Text},
+        ${Icon} {
+          color: ${textColor};
+        }
+      `;
     }}
   }
 
