@@ -7,14 +7,16 @@ import { Box, EmbedButton, Flex, Icon, Text } from "../../ui";
 interface AddOnsProps {
   addOns: CompanyPlanWithBillingSubView[];
   selectedAddOns: string[];
-  setSelectedAddOns: React.Dispatch<React.SetStateAction<string[]>>;
+  select: (id: string) => void;
+  deselect: (id: string) => void;
   isLoading: boolean;
 }
 
 export const AddOns = ({
   addOns,
   selectedAddOns,
-  setSelectedAddOns,
+  select,
+  deselect,
   isLoading,
 }: AddOnsProps) => {
   const theme = useTheme();
@@ -128,9 +130,7 @@ export const AddOns = ({
                 {!isAddOnSelected ? (
                   <EmbedButton
                     disabled={isLoading}
-                    onClick={() =>
-                      setSelectedAddOns((prev) => [...prev, addOn.id])
-                    }
+                    onClick={() => select(addOn.id)}
                     $size="sm"
                     $color="primary"
                     $variant="outline"
@@ -140,17 +140,7 @@ export const AddOns = ({
                 ) : (
                   <EmbedButton
                     disabled={isLoading}
-                    onClick={() =>
-                      setSelectedAddOns((prev) => {
-                        const index = prev.indexOf(addOn.id);
-
-                        if (index > -1) {
-                          return prev.filter((_, i) => i !== index);
-                        }
-
-                        return prev;
-                      })
-                    }
+                    onClick={() => deselect(addOn.id)}
                     $size="sm"
                     $color="primary"
                     $variant="text"

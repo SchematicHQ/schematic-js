@@ -7,8 +7,8 @@ import { PaymentForm, PaymentMethod } from "../../elements";
 import { Box, Text } from "../../ui";
 
 interface CheckoutProps {
-  setPaymentMethodId: React.Dispatch<React.SetStateAction<string | undefined>>;
-  setShowPaymentForm: React.Dispatch<React.SetStateAction<boolean>>;
+  setPaymentMethodId: (id: string) => void;
+  togglePaymentForm: () => void;
   showPaymentForm: boolean;
   stripe: Promise<Stripe | null> | null;
   setupIntent?: SetupIntentResponseData;
@@ -16,7 +16,7 @@ interface CheckoutProps {
 
 export const Checkout = ({
   setPaymentMethodId,
-  setShowPaymentForm,
+  togglePaymentForm,
   setupIntent,
   showPaymentForm,
   stripe,
@@ -68,7 +68,7 @@ export const Checkout = ({
           {data.subscription?.paymentMethod && (
             <Box>
               <Text
-                onClick={() => setShowPaymentForm(false)}
+                onClick={togglePaymentForm}
                 $font={theme.typography.link.fontFamily}
                 $size={theme.typography.link.fontSize}
                 $weight={theme.typography.link.fontWeight}
@@ -85,7 +85,7 @@ export const Checkout = ({
 
           <Box>
             <Text
-              onClick={() => setShowPaymentForm(true)}
+              onClick={togglePaymentForm}
               $font={theme.typography.link.fontFamily}
               $size={theme.typography.link.fontSize}
               $weight={theme.typography.link.fontWeight}

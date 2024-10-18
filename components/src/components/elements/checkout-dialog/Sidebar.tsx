@@ -27,14 +27,12 @@ interface SidebarProps {
     plan: CompanyPlanDetailResponseData,
     newPeriod?: string,
   ) => Promise<void>;
-  setCheckoutStage: React.Dispatch<React.SetStateAction<string>>;
-  setError: React.Dispatch<React.SetStateAction<string | undefined>>;
-  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
-  setPlanPeriod: React.Dispatch<React.SetStateAction<string>>;
-  setSetupIntent: React.Dispatch<
-    React.SetStateAction<SetupIntentResponseData | undefined>
-  >;
+  setCheckoutStage: (stage: string) => void;
+  setError: (msg?: string) => void;
+  setPlanPeriod: (period: string) => void;
+  setSetupIntent: (intent: SetupIntentResponseData | undefined) => void;
   showPaymentForm: boolean;
+  toggleLoading: () => void;
 }
 
 export const Sidebar = ({
@@ -49,10 +47,10 @@ export const Sidebar = ({
   selectPlan,
   setCheckoutStage,
   setError,
-  setIsLoading,
   setPlanPeriod,
   setSetupIntent,
   showPaymentForm,
+  toggleLoading,
 }: SidebarProps) => {
   const theme = useTheme();
 
@@ -113,7 +111,7 @@ export const Sidebar = ({
     }
 
     try {
-      setIsLoading(true);
+      toggleLoading();
       await api.checkout({
         changeSubscriptionRequestBody: {
           newPlanId: selectedPlan.id,
@@ -127,16 +125,16 @@ export const Sidebar = ({
         "Error processing payment. Please try a different payment method.",
       );
     } finally {
-      setIsLoading(false);
+      toggleLoading();
     }
   }, [
     api,
     paymentMethodId,
     planPeriod,
     selectedPlan,
-    setLayout,
-    setIsLoading,
     setError,
+    setLayout,
+    toggleLoading,
   ]);
 
   const changePlanPeriod = useCallback(

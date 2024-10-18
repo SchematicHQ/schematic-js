@@ -181,14 +181,22 @@ export const CheckoutDialog = () => {
               addOns={addOns}
               isLoading={isLoading}
               selectedAddOns={selectedAddOns}
-              setSelectedAddOns={setSelectedAddOns}
+              select={(id: string) => {
+                setSelectedAddOns((prev) => [...prev, id]);
+              }}
+              deselect={(id: string) => {
+                setSelectedAddOns((prev) => {
+                  const idx = prev.indexOf(id);
+                  return idx > -1 ? prev.filter((_, i) => i !== idx) : prev;
+                });
+              }}
             />
           )}
 
           {checkoutStage === "checkout" && (
             <Checkout
-              setPaymentMethodId={setPaymentMethodId}
-              setShowPaymentForm={setShowPaymentForm}
+              setPaymentMethodId={(id) => setPaymentMethodId(id)}
+              togglePaymentForm={() => setShowPaymentForm((prev) => !prev)}
               setupIntent={setupIntent}
               showPaymentForm={showPaymentForm}
               stripe={stripe}
@@ -206,12 +214,12 @@ export const CheckoutDialog = () => {
           planPeriod={planPeriod}
           selectedPlan={selectedPlan}
           selectPlan={selectPlan}
-          setCheckoutStage={setCheckoutStage}
-          setError={setError}
-          setIsLoading={setIsLoading}
-          setPlanPeriod={setPlanPeriod}
-          setSetupIntent={setSetupIntent}
+          setCheckoutStage={(stage) => setCheckoutStage(stage)}
+          setError={(msg) => setError(msg)}
+          setPlanPeriod={(period) => setPlanPeriod(period)}
+          setSetupIntent={(intent) => setSetupIntent(intent)}
           showPaymentForm={showPaymentForm}
+          toggleLoading={() => setIsLoading((prev) => !prev)}
         />
       </Flex>
     </Modal>
