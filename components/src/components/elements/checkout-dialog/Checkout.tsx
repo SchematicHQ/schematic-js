@@ -1,27 +1,20 @@
 import { useTheme } from "styled-components";
 import { type Stripe } from "@stripe/stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
-import type {
-  CompanyPlanDetailResponseData,
-  SetupIntentResponseData,
-} from "../../../api";
+import type { SetupIntentResponseData } from "../../../api";
 import { useEmbed } from "../../../hooks";
 import { PaymentForm, PaymentMethod } from "../../elements";
 import { Box, Text } from "../../ui";
 
 interface CheckoutProps {
-  period: string;
   setPaymentMethodId: React.Dispatch<React.SetStateAction<string | undefined>>;
   setShowPaymentForm: React.Dispatch<React.SetStateAction<boolean>>;
   showPaymentForm: boolean;
   stripe: Promise<Stripe | null> | null;
-  plan?: CompanyPlanDetailResponseData;
   setupIntent?: SetupIntentResponseData;
 }
 
 export const Checkout = ({
-  period,
-  plan,
   setPaymentMethodId,
   setShowPaymentForm,
   setupIntent,
@@ -70,13 +63,7 @@ export const Checkout = ({
             <Text $size={18}>Add payment method</Text>
           </Box>
 
-          <PaymentForm
-            plan={plan}
-            period={period}
-            onConfirm={(value) => {
-              setPaymentMethodId(value);
-            }}
-          />
+          <PaymentForm onConfirm={(value) => setPaymentMethodId(value)} />
 
           {data.subscription?.paymentMethod && (
             <Box>
