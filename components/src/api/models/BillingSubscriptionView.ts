@@ -13,98 +13,135 @@
  */
 
 import { mapValues } from "../runtime";
+import type { BillingProductForSubscriptionResponseData } from "./BillingProductForSubscriptionResponseData";
+import {
+  BillingProductForSubscriptionResponseDataFromJSON,
+  BillingProductForSubscriptionResponseDataFromJSONTyped,
+  BillingProductForSubscriptionResponseDataToJSON,
+} from "./BillingProductForSubscriptionResponseData";
+import type { InvoiceResponseData } from "./InvoiceResponseData";
+import {
+  InvoiceResponseDataFromJSON,
+  InvoiceResponseDataFromJSONTyped,
+  InvoiceResponseDataToJSON,
+} from "./InvoiceResponseData";
+import type { PaymentMethodResponseData } from "./PaymentMethodResponseData";
+import {
+  PaymentMethodResponseDataFromJSON,
+  PaymentMethodResponseDataFromJSONTyped,
+  PaymentMethodResponseDataToJSON,
+} from "./PaymentMethodResponseData";
+
 /**
- * The created resource
+ *
  * @export
- * @interface BillingSubscriptionResponseData
+ * @interface BillingSubscriptionView
  */
-export interface BillingSubscriptionResponseData {
+export interface BillingSubscriptionView {
   /**
    *
    * @type {string}
-   * @memberof BillingSubscriptionResponseData
+   * @memberof BillingSubscriptionView
    */
   companyId?: string | null;
   /**
    *
    * @type {Date}
-   * @memberof BillingSubscriptionResponseData
+   * @memberof BillingSubscriptionView
    */
   createdAt: Date;
   /**
    *
    * @type {string}
-   * @memberof BillingSubscriptionResponseData
+   * @memberof BillingSubscriptionView
    */
   currency: string;
   /**
    *
    * @type {string}
-   * @memberof BillingSubscriptionResponseData
+   * @memberof BillingSubscriptionView
    */
   customerExternalId: string;
   /**
    *
    * @type {Date}
-   * @memberof BillingSubscriptionResponseData
+   * @memberof BillingSubscriptionView
    */
   expiredAt?: Date | null;
   /**
    *
    * @type {string}
-   * @memberof BillingSubscriptionResponseData
+   * @memberof BillingSubscriptionView
    */
   id: string;
   /**
    *
    * @type {string}
-   * @memberof BillingSubscriptionResponseData
+   * @memberof BillingSubscriptionView
    */
   interval: string;
   /**
    *
+   * @type {InvoiceResponseData}
+   * @memberof BillingSubscriptionView
+   */
+  latestInvoice?: InvoiceResponseData;
+  /**
+   *
    * @type {Array<number>}
-   * @memberof BillingSubscriptionResponseData
+   * @memberof BillingSubscriptionView
    */
   metadata: Array<number>;
   /**
    *
+   * @type {PaymentMethodResponseData}
+   * @memberof BillingSubscriptionView
+   */
+  paymentMethod?: PaymentMethodResponseData;
+  /**
+   *
    * @type {number}
-   * @memberof BillingSubscriptionResponseData
+   * @memberof BillingSubscriptionView
    */
   periodEnd: number;
   /**
    *
    * @type {number}
-   * @memberof BillingSubscriptionResponseData
+   * @memberof BillingSubscriptionView
    */
   periodStart: number;
   /**
    *
+   * @type {Array<BillingProductForSubscriptionResponseData>}
+   * @memberof BillingSubscriptionView
+   */
+  products: Array<BillingProductForSubscriptionResponseData>;
+  /**
+   *
    * @type {string}
-   * @memberof BillingSubscriptionResponseData
+   * @memberof BillingSubscriptionView
    */
   status: string;
   /**
    *
    * @type {string}
-   * @memberof BillingSubscriptionResponseData
+   * @memberof BillingSubscriptionView
    */
   subscriptionExternalId: string;
   /**
    *
    * @type {number}
-   * @memberof BillingSubscriptionResponseData
+   * @memberof BillingSubscriptionView
    */
   totalPrice: number;
 }
 
 /**
- * Check if a given object implements the BillingSubscriptionResponseData interface.
+ * Check if a given object implements the BillingSubscriptionView interface.
  */
-export function instanceOfBillingSubscriptionResponseData(
+export function instanceOfBillingSubscriptionView(
   value: object,
-): value is BillingSubscriptionResponseData {
+): value is BillingSubscriptionView {
   if (!("createdAt" in value) || value["createdAt"] === undefined) return false;
   if (!("currency" in value) || value["currency"] === undefined) return false;
   if (
@@ -118,6 +155,7 @@ export function instanceOfBillingSubscriptionResponseData(
   if (!("periodEnd" in value) || value["periodEnd"] === undefined) return false;
   if (!("periodStart" in value) || value["periodStart"] === undefined)
     return false;
+  if (!("products" in value) || value["products"] === undefined) return false;
   if (!("status" in value) || value["status"] === undefined) return false;
   if (
     !("subscriptionExternalId" in value) ||
@@ -129,16 +167,16 @@ export function instanceOfBillingSubscriptionResponseData(
   return true;
 }
 
-export function BillingSubscriptionResponseDataFromJSON(
+export function BillingSubscriptionViewFromJSON(
   json: any,
-): BillingSubscriptionResponseData {
-  return BillingSubscriptionResponseDataFromJSONTyped(json, false);
+): BillingSubscriptionView {
+  return BillingSubscriptionViewFromJSONTyped(json, false);
 }
 
-export function BillingSubscriptionResponseDataFromJSONTyped(
+export function BillingSubscriptionViewFromJSONTyped(
   json: any,
   ignoreDiscriminator: boolean,
-): BillingSubscriptionResponseData {
+): BillingSubscriptionView {
   if (json == null) {
     return json;
   }
@@ -151,17 +189,28 @@ export function BillingSubscriptionResponseDataFromJSONTyped(
       json["expired_at"] == null ? undefined : new Date(json["expired_at"]),
     id: json["id"],
     interval: json["interval"],
+    latestInvoice:
+      json["latest_invoice"] == null
+        ? undefined
+        : InvoiceResponseDataFromJSON(json["latest_invoice"]),
     metadata: json["metadata"],
+    paymentMethod:
+      json["payment_method"] == null
+        ? undefined
+        : PaymentMethodResponseDataFromJSON(json["payment_method"]),
     periodEnd: json["period_end"],
     periodStart: json["period_start"],
+    products: (json["products"] as Array<any>).map(
+      BillingProductForSubscriptionResponseDataFromJSON,
+    ),
     status: json["status"],
     subscriptionExternalId: json["subscription_external_id"],
     totalPrice: json["total_price"],
   };
 }
 
-export function BillingSubscriptionResponseDataToJSON(
-  value?: BillingSubscriptionResponseData | null,
+export function BillingSubscriptionViewToJSON(
+  value?: BillingSubscriptionView | null,
 ): any {
   if (value == null) {
     return value;
@@ -177,9 +226,14 @@ export function BillingSubscriptionResponseDataToJSON(
         : (value["expiredAt"] as any).toISOString(),
     id: value["id"],
     interval: value["interval"],
+    latest_invoice: InvoiceResponseDataToJSON(value["latestInvoice"]),
     metadata: value["metadata"],
+    payment_method: PaymentMethodResponseDataToJSON(value["paymentMethod"]),
     period_end: value["periodEnd"],
     period_start: value["periodStart"],
+    products: (value["products"] as Array<any>).map(
+      BillingProductForSubscriptionResponseDataToJSON,
+    ),
     status: value["status"],
     subscription_external_id: value["subscriptionExternalId"],
     total_price: value["totalPrice"],

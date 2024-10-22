@@ -273,12 +273,19 @@ export const CheckoutDialog = () => {
     };
   }, []);
 
-  const allowCheckout =
+  const allowSubmit =
     api &&
     selectedPlan &&
     (selectedPlan.id !== currentPlan?.id ||
       planPeriod !== currentPlan.planPeriod) &&
     ((paymentMethod && !showPaymentForm) || paymentMethodId) &&
+    !isLoading;
+
+  const allowCheckoutStage =
+    api &&
+    selectedPlan &&
+    (selectedPlan.id !== currentPlan?.id ||
+      planPeriod !== currentPlan.planPeriod) &&
     !isLoading;
 
   return (
@@ -850,7 +857,7 @@ export const CheckoutDialog = () => {
                   $gap="1rem"
                 >
                   <Flex
-                    {...(allowCheckout && {
+                    {...(allowSubmit && {
                       $opacity: "0.625",
                       $textDecoration: "line-through",
                     })}
@@ -882,7 +889,7 @@ export const CheckoutDialog = () => {
                 </Flex>
               )}
 
-              {allowCheckout && (
+              {allowSubmit && (
                 <Box $marginBottom="1rem">
                   <Box
                     $width="100%"
@@ -1075,7 +1082,7 @@ export const CheckoutDialog = () => {
             {checkoutStage === "plan" ? (
               <EmbedButton
                 isLoading={isLoading}
-                {...(allowCheckout
+                {...(allowCheckoutStage
                   ? {
                       onClick: async () => {
                         if (!data.component?.id) {
@@ -1106,9 +1113,9 @@ export const CheckoutDialog = () => {
               </EmbedButton>
             ) : (
               <EmbedButton
-                disabled={isLoading || !allowCheckout}
+                disabled={isLoading || !allowSubmit}
                 isLoading={isLoading}
-                {...(allowCheckout && { onClick: checkout })}
+                {...(allowSubmit && { onClick: checkout })}
               >
                 Pay now
               </EmbedButton>
