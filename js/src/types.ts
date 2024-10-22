@@ -72,3 +72,7 @@ export type CheckOptions = {
   fallback?: boolean;
   key: string;
 };
+
+export type BooleanListenerFn = (value: boolean) => void;
+export type ListenerFn = BooleanListenerFn | EmptyListenerFn;
+export type EmptyListenerFn = () => void;
