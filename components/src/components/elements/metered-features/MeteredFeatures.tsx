@@ -1,6 +1,7 @@
 import { forwardRef, useRef } from "react";
 import { useTheme } from "styled-components";
 import pluralize from "pluralize";
+import { type FeatureUsageResponseData } from "../../../api";
 import { type FontStyle } from "../../../context";
 import {
   useEmbed,
@@ -88,21 +89,30 @@ export const MeteredFeatures = forwardRef<
 
   const isLightBackground = useIsLightBackground();
 
-  const features = (data.featureUsage?.features || []).filter(({ feature }) => {
-    return (
-      (feature?.featureType === "event" || feature?.featureType === "trait") &&
-      feature?.id &&
-      (!props.visibleFeatures || props.visibleFeatures.includes(feature.id))
-    );
-  });
+  const featureUsage = (props.visibleFeatures || []).reduce(
+    (acc: FeatureUsageResponseData[], id) => {
+      const mappedFeatureUsage = data.featureUsage?.features.find(
+        (usage) => usage.feature?.id === id,
+      );
+      if (
+        mappedFeatureUsage?.feature?.featureType === "event" ||
+        mappedFeatureUsage?.feature?.featureType === "trait"
+      ) {
+        acc.push(mappedFeatureUsage);
+      }
 
-  if (features.length === 0) {
+      return acc;
+    },
+    [],
+  );
+
+  if (featureUsage.length === 0) {
     return null;
   }
 
   return (
     <Flex ref={ref} className={className} $flexDirection="column">
-      {features.map(({ allocation, feature, usage }, index) => {
+      {featureUsage.map(({ allocation, feature, usage }, index) => {
         return (
           <Element as={Flex} key={index} $gap="1.5rem">
             {props.icon.isVisible && feature?.icon && (

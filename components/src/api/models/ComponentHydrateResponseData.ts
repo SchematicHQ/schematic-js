@@ -67,6 +67,12 @@ export interface ComponentHydrateResponseData {
    * @type {Array<CompanyPlanDetailResponseData>}
    * @memberof ComponentHydrateResponseData
    */
+  activeAddOns: Array<CompanyPlanDetailResponseData>;
+  /**
+   *
+   * @type {Array<CompanyPlanDetailResponseData>}
+   * @memberof ComponentHydrateResponseData
+   */
   activePlans: Array<CompanyPlanDetailResponseData>;
   /**
    *
@@ -112,6 +118,8 @@ export interface ComponentHydrateResponseData {
 export function instanceOfComponentHydrateResponseData(
   value: object,
 ): value is ComponentHydrateResponseData {
+  if (!("activeAddOns" in value) || value["activeAddOns"] === undefined)
+    return false;
   if (!("activePlans" in value) || value["activePlans"] === undefined)
     return false;
   return true;
@@ -131,6 +139,9 @@ export function ComponentHydrateResponseDataFromJSONTyped(
     return json;
   }
   return {
+    activeAddOns: (json["ActiveAddOns"] as Array<any>).map(
+      CompanyPlanDetailResponseDataFromJSON,
+    ),
     activePlans: (json["active_plans"] as Array<any>).map(
       CompanyPlanDetailResponseDataFromJSON,
     ),
@@ -168,6 +179,9 @@ export function ComponentHydrateResponseDataToJSON(
     return value;
   }
   return {
+    ActiveAddOns: (value["activeAddOns"] as Array<any>).map(
+      CompanyPlanDetailResponseDataToJSON,
+    ),
     active_plans: (value["activePlans"] as Array<any>).map(
       CompanyPlanDetailResponseDataToJSON,
     ),
