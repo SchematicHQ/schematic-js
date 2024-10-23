@@ -1,6 +1,7 @@
 import { forwardRef, useRef } from "react";
 import { useTheme } from "styled-components";
 import pluralize from "pluralize";
+import { type FeatureUsageResponseData } from "../../../api";
 import { type FontStyle } from "../../../context";
 import {
   useEmbed,
@@ -40,6 +41,7 @@ interface DesignProps {
     isVisible: boolean;
     fontStyle: FontStyle;
   };
+  visibleFeatures?: string[];
 }
 
 function resolveDesignProps(props: RecursivePartial<DesignProps>): DesignProps {
@@ -63,6 +65,8 @@ function resolveDesignProps(props: RecursivePartial<DesignProps>): DesignProps {
       isVisible: props.usage?.isVisible ?? true,
       fontStyle: props.usage?.fontStyle ?? "heading5",
     },
+    // there is a typescript bug with `RecursivePartial` so we must cast to `string[] | undefined`
+    visibleFeatures: props.visibleFeatures as string[] | undefined,
   };
 }
 
@@ -85,17 +89,44 @@ export const MeteredFeatures = forwardRef<
 
   const isLightBackground = useIsLightBackground();
 
-  const features = (data.featureUsage?.features || []).filter(({ feature }) => {
-    return feature?.featureType === "event" || feature?.featureType === "trait";
-  });
+  const featureUsage = props.visibleFeatures
+    ? props.visibleFeatures.reduce((acc: FeatureUsageResponseData[], id) => {
+        const mappedFeatureUsage = data.featureUsage?.features.find(
+          (usage) => usage.feature?.id === id,
+        );
+        if (
+          mappedFeatureUsage?.feature?.featureType === "event" ||
+          mappedFeatureUsage?.feature?.featureType === "trait"
+        ) {
+          acc.push(mappedFeatureUsage);
+        }
 
-  if (features.length === 0) {
+        return acc;
+      }, [])
+    : (data.featureUsage?.features || []).filter(
+        (usage) =>
+          usage.feature?.featureType === "event" ||
+          usage.feature?.featureType === "trait",
+      );
+
+  // Check if we should render this component at all:
+  // * If there are any plans or add-ons, render it, even if the list is empty.
+  // * If there are any features, show it (e.g., there could be features available via company overrides
+  //  even if the company has no plan or add-ons).
+  // * If none of the above, don't render the component.
+  const shouldShowFeatures =
+    featureUsage.length > 0 ||
+    data.company?.plan ||
+    (data.company?.addOns ?? []).length > 0 ||
+    false;
+
+  if (!shouldShowFeatures) {
     return null;
   }
 
   return (
     <Flex ref={ref} className={className} $flexDirection="column">
-      {features.map(({ allocation, feature, usage }, index) => {
+      {featureUsage.map(({ allocation, feature, usage }, index) => {
         return (
           <Element as={Flex} key={index} $gap="1.5rem">
             {props.icon.isVisible && feature?.icon && (
