@@ -278,15 +278,10 @@ export const CheckoutDialog = () => {
     selectedPlan &&
     (selectedPlan.id !== currentPlan?.id ||
       planPeriod !== currentPlan.planPeriod) &&
-    ((paymentMethod && !showPaymentForm) || paymentMethodId) &&
     !isLoading;
 
-  const canCheckout =
-    api &&
-    selectedPlan &&
-    (selectedPlan.id !== currentPlan?.id ||
-      planPeriod !== currentPlan.planPeriod) &&
-    !isLoading;
+  const canCheckout = canUpdateSubscription &&
+    ((paymentMethod && !showPaymentForm) || paymentMethodId);
 
   return (
     <Modal size="lg">
@@ -857,7 +852,7 @@ export const CheckoutDialog = () => {
                   $gap="1rem"
                 >
                   <Flex
-                    {...(canUpdateSubscription && {
+                    {...(canCheckout && {
                       $opacity: "0.625",
                       $textDecoration: "line-through",
                     })}
@@ -889,7 +884,7 @@ export const CheckoutDialog = () => {
                 </Flex>
               )}
 
-              {canUpdateSubscription && (
+              {canCheckout && (
                 <Box $marginBottom="1rem">
                   <Box
                     $width="100%"
@@ -1082,7 +1077,7 @@ export const CheckoutDialog = () => {
             {checkoutStage === "plan" ? (
               <EmbedButton
                 isLoading={isLoading}
-                {...(canCheckout
+                {...(canUpdateSubscription
                   ? {
                       onClick: async () => {
                         if (!data.component?.id) {
@@ -1113,9 +1108,9 @@ export const CheckoutDialog = () => {
               </EmbedButton>
             ) : (
               <EmbedButton
-                disabled={isLoading || !canUpdateSubscription}
+                disabled={isLoading || !canCheckout}
                 isLoading={isLoading}
-                {...(canUpdateSubscription && { onClick: checkout })}
+                {...(canCheckout && { onClick: checkout })}
               >
                 Pay now
               </EmbedButton>
