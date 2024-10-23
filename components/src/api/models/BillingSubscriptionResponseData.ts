@@ -63,10 +63,10 @@ export interface BillingSubscriptionResponseData {
   interval: string;
   /**
    *
-   * @type {Array<number>}
+   * @type {object}
    * @memberof BillingSubscriptionResponseData
    */
-  metadata: Array<number>;
+  metadata?: object;
   /**
    *
    * @type {number}
@@ -114,7 +114,6 @@ export function instanceOfBillingSubscriptionResponseData(
     return false;
   if (!("id" in value) || value["id"] === undefined) return false;
   if (!("interval" in value) || value["interval"] === undefined) return false;
-  if (!("metadata" in value) || value["metadata"] === undefined) return false;
   if (!("periodEnd" in value) || value["periodEnd"] === undefined) return false;
   if (!("periodStart" in value) || value["periodStart"] === undefined)
     return false;
@@ -151,7 +150,7 @@ export function BillingSubscriptionResponseDataFromJSONTyped(
       json["expired_at"] == null ? undefined : new Date(json["expired_at"]),
     id: json["id"],
     interval: json["interval"],
-    metadata: json["metadata"],
+    metadata: json["metadata"] == null ? undefined : json["metadata"],
     periodEnd: json["period_end"],
     periodStart: json["period_start"],
     status: json["status"],

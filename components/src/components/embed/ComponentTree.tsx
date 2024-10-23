@@ -66,8 +66,6 @@ export const ComponentTree = () => {
   }, [nodes]);
 
   if (error) {
-    console.error(error);
-
     return <Error message={error.message} />;
   }
 

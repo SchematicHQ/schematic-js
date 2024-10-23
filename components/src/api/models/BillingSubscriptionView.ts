@@ -88,10 +88,10 @@ export interface BillingSubscriptionView {
   latestInvoice?: InvoiceResponseData;
   /**
    *
-   * @type {Array<number>}
+   * @type {object}
    * @memberof BillingSubscriptionView
    */
-  metadata: Array<number>;
+  metadata?: object;
   /**
    *
    * @type {PaymentMethodResponseData}
@@ -151,7 +151,6 @@ export function instanceOfBillingSubscriptionView(
     return false;
   if (!("id" in value) || value["id"] === undefined) return false;
   if (!("interval" in value) || value["interval"] === undefined) return false;
-  if (!("metadata" in value) || value["metadata"] === undefined) return false;
   if (!("periodEnd" in value) || value["periodEnd"] === undefined) return false;
   if (!("periodStart" in value) || value["periodStart"] === undefined)
     return false;
@@ -193,7 +192,7 @@ export function BillingSubscriptionViewFromJSONTyped(
       json["latest_invoice"] == null
         ? undefined
         : InvoiceResponseDataFromJSON(json["latest_invoice"]),
-    metadata: json["metadata"],
+    metadata: json["metadata"] == null ? undefined : json["metadata"],
     paymentMethod:
       json["payment_method"] == null
         ? undefined
