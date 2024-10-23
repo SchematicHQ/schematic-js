@@ -89,22 +89,25 @@ export const MeteredFeatures = forwardRef<
 
   const isLightBackground = useIsLightBackground();
 
-  const featureUsage = (props.visibleFeatures || []).reduce(
-    (acc: FeatureUsageResponseData[], id) => {
-      const mappedFeatureUsage = data.featureUsage?.features.find(
-        (usage) => usage.feature?.id === id,
-      );
-      if (
-        mappedFeatureUsage?.feature?.featureType === "event" ||
-        mappedFeatureUsage?.feature?.featureType === "trait"
-      ) {
-        acc.push(mappedFeatureUsage);
-      }
+  const featureUsage = props.visibleFeatures
+    ? props.visibleFeatures.reduce((acc: FeatureUsageResponseData[], id) => {
+        const mappedFeatureUsage = data.featureUsage?.features.find(
+          (usage) => usage.feature?.id === id,
+        );
+        if (
+          mappedFeatureUsage?.feature?.featureType === "event" ||
+          mappedFeatureUsage?.feature?.featureType === "trait"
+        ) {
+          acc.push(mappedFeatureUsage);
+        }
 
-      return acc;
-    },
-    [],
-  );
+        return acc;
+      }, [])
+    : (data.featureUsage?.features || []).filter(
+        (usage) =>
+          usage.feature?.featureType === "event" ||
+          usage.feature?.featureType === "trait",
+      );
 
   // Check if we should render this component at all:
   // * If there are any plans or add-ons, render it, even if the list is empty.

@@ -19,6 +19,12 @@ import {
   CompanyPlanDetailResponseDataFromJSONTyped,
   CompanyPlanDetailResponseDataToJSON,
 } from "./CompanyPlanDetailResponseData";
+import type { ComponentCapabilities } from "./ComponentCapabilities";
+import {
+  ComponentCapabilitiesFromJSON,
+  ComponentCapabilitiesFromJSONTyped,
+  ComponentCapabilitiesToJSON,
+} from "./ComponentCapabilities";
 import type { ComponentResponseData } from "./ComponentResponseData";
 import {
   ComponentResponseDataFromJSON,
@@ -74,6 +80,12 @@ export interface ComponentHydrateResponseData {
    * @memberof ComponentHydrateResponseData
    */
   activePlans: Array<CompanyPlanDetailResponseData>;
+  /**
+   *
+   * @type {ComponentCapabilities}
+   * @memberof ComponentHydrateResponseData
+   */
+  capabilities?: ComponentCapabilities;
   /**
    *
    * @type {CompanyDetailResponseData}
@@ -139,12 +151,16 @@ export function ComponentHydrateResponseDataFromJSONTyped(
     return json;
   }
   return {
-    activeAddOns: (json["ActiveAddOns"] as Array<any>).map(
+    activeAddOns: (json["active_add_ons"] as Array<any>).map(
       CompanyPlanDetailResponseDataFromJSON,
     ),
     activePlans: (json["active_plans"] as Array<any>).map(
       CompanyPlanDetailResponseDataFromJSON,
     ),
+    capabilities:
+      json["capabilities"] == null
+        ? undefined
+        : ComponentCapabilitiesFromJSON(json["capabilities"]),
     company:
       json["company"] == null
         ? undefined
@@ -179,12 +195,13 @@ export function ComponentHydrateResponseDataToJSON(
     return value;
   }
   return {
-    ActiveAddOns: (value["activeAddOns"] as Array<any>).map(
+    active_add_ons: (value["activeAddOns"] as Array<any>).map(
       CompanyPlanDetailResponseDataToJSON,
     ),
     active_plans: (value["activePlans"] as Array<any>).map(
       CompanyPlanDetailResponseDataToJSON,
     ),
+    capabilities: ComponentCapabilitiesToJSON(value["capabilities"]),
     company: CompanyDetailResponseDataToJSON(value["company"]),
     component: ComponentResponseDataToJSON(value["component"]),
     feature_usage: FeatureUsageDetailResponseDataToJSON(value["featureUsage"]),

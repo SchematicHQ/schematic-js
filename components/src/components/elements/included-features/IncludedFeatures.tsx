@@ -79,19 +79,18 @@ export const IncludedFeatures = forwardRef<
 
   const isLightBackground = useIsLightBackground();
 
-  const featureUsage = (props.visibleFeatures || []).reduce(
-    (acc: FeatureUsageResponseData[], id) => {
-      const mappedFeatureUsage = data.featureUsage?.features.find(
-        (usage) => usage.feature?.id === id,
-      );
-      if (mappedFeatureUsage) {
-        acc.push(mappedFeatureUsage);
-      }
+  const featureUsage = props.visibleFeatures
+    ? props.visibleFeatures.reduce((acc: FeatureUsageResponseData[], id) => {
+        const mappedFeatureUsage = data.featureUsage?.features.find(
+          (usage) => usage.feature?.id === id,
+        );
+        if (mappedFeatureUsage) {
+          acc.push(mappedFeatureUsage);
+        }
 
-      return acc;
-    },
-    [],
-  );
+        return acc;
+      }, [])
+    : data.featureUsage?.features || [];
 
   // Check if we should render this component at all:
   // * If there are any plans or add-ons, render it, even if the list is empty.
