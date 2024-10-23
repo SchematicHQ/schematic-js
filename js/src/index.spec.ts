@@ -206,6 +206,47 @@ describe("Schematic", () => {
       });
       expect(flagValue).toBe(true);
     });
+
+    it("should include additional headers", async () => {
+      const schematicWithHeaders = new Schematic("API_KEY", {
+        additionalHeaders: { "X-Additional-Header": "foo" },
+      });
+      const context = {
+        company: { companyId: "456" },
+        user: { userId: "123" },
+      };
+      const expectedResponse = {
+        data: {
+          companyId: "comp_YRucCyZ3us4",
+          flag: "FLAG_KEY",
+          reason: "Matched rule rule_iuBRNdJEjYh",
+          ruleId: "rule_iuBRNdJEjYh",
+          userId: "user_6oRr9UTncXf",
+          value: true,
+        },
+      };
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValueOnce(expectedResponse),
+      });
+
+      const flagValue = await schematicWithHeaders.checkFlag({
+        key: "FLAG_KEY",
+        context,
+      });
+
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      expect(mockFetch).toHaveBeenCalledWith(expect.any(String), {
+        method: "POST",
+        headers: {
+          "X-Schematic-Api-Key": "API_KEY",
+          "Content-Type": "application/json;charset=UTF-8",
+          "X-Additional-Header": "foo",
+        },
+        body: expect.any(String),
+      });
+      expect(flagValue).toBe(true);
+    });
   });
 
   describe("checkFlags", () => {
@@ -249,6 +290,57 @@ describe("Schematic", () => {
         headers: {
           "X-Schematic-Api-Key": "API_KEY",
           "Content-Type": "application/json;charset=UTF-8",
+        },
+        body: expect.any(String),
+      });
+      expect(flagValues).toEqual({
+        FLAG_KEY1: true,
+        FLAG_KEY2: false,
+      });
+    });
+
+    it("should include additional headers", async () => {
+      const schematicWithHeaders = new Schematic("API_KEY", {
+        additionalHeaders: { "X-Additional-Header": "foo" },
+      });
+      const context = {
+        company: { companyId: "456" },
+        user: { userId: "123" },
+      };
+      const expectedResponse = {
+        data: {
+          flags: [
+            {
+              companyId: "comp_YRucCyZ3us4",
+              flag: "FLAG_KEY1",
+              reason: "Matched rule rule_iuBRNdJEjYh",
+              ruleId: "rule_iuBRNdJEjYh",
+              userId: "user_6oRr9UTncXf",
+              value: true,
+            },
+            {
+              companyId: "comp_YRucCyZ3us4",
+              flag: "FLAG_KEY2",
+              reason: "No rules matched",
+              ruleId: null,
+              userId: "user_6oRr9UTncXf",
+              value: false,
+            },
+          ],
+        },
+      };
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValueOnce(expectedResponse),
+      });
+      const flagValues = await schematicWithHeaders.checkFlags(context);
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      expect(mockFetch).toHaveBeenCalledWith(expect.any(String), {
+        method: "POST",
+        headers: {
+          "X-Schematic-Api-Key": "API_KEY",
+          "Content-Type": "application/json;charset=UTF-8",
+          "X-Additional-Header": "foo",
         },
         body: expect.any(String),
       });
