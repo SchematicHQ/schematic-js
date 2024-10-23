@@ -179,6 +179,7 @@ export interface EmbedContextProps {
 export const EmbedContext = createContext<EmbedContextProps>({
   api: null,
   data: {
+    activeAddOns: [],
     activePlans: [],
     activeAddOns: [],
   },
@@ -229,6 +230,7 @@ export const EmbedProvider = ({
     return {
       api: null,
       data: {
+        activeAddOns: [],
         activePlans: [],
         activeAddOns: [],
       },

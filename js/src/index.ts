@@ -2,6 +2,9 @@ import * as uuid from "uuid";
 
 import "cross-fetch/polyfill";
 import {
+  BooleanListenerFn,
+  ListenerFn,
+  EmptyListenerFn,
   CheckOptions,
   Event,
   EventBody,
@@ -19,6 +22,7 @@ const anonymousIdKey = "schematicId";
 
 /* @preserve */
 export class Schematic {
+  private additionalHeaders: Record<string, string> = {};
   private apiKey: string;
   private apiUrl = "https://api.schematichq.com";
   private conn: Promise<WebSocket> | null = null;
@@ -26,9 +30,9 @@ export class Schematic {
   private eventQueue: Event[];
   private eventUrl = "https://c.schematichq.com";
   private flagListener?: (values: Record<string, boolean>) => void;
-  private flagValueListeners: Record<string, Set<() => void>> = {};
+  private flagValueListeners: Record<string, Set<ListenerFn>> = {};
   private isPending: boolean = true;
-  private isPendingListeners: Set<() => void> = new Set();
+  private isPendingListeners: Set<ListenerFn> = new Set();
   private storage: StoragePersister | undefined;
   private useWebSocket: boolean = false;
   private values: Record<string, Record<string, boolean>> = {};
@@ -39,6 +43,10 @@ export class Schematic {
     this.eventQueue = [];
     this.useWebSocket = options?.useWebSocket ?? false;
     this.flagListener = options?.flagListener;
+
+    if (options?.additionalHeaders) {
+      this.additionalHeaders = options.additionalHeaders;
+    }
 
     if (options?.storage) {
       this.storage = options.storage;
@@ -83,8 +91,9 @@ export class Schematic {
     return fetch(requestUrl, {
       method: "POST",
       headers: {
-        "X-Schematic-Api-Key": this.apiKey,
+        ...(this.additionalHeaders ?? {}),
         "Content-Type": "application/json;charset=UTF-8",
+        "X-Schematic-Api-Key": this.apiKey,
       },
       body: JSON.stringify(context),
     })
@@ -114,6 +123,7 @@ export class Schematic {
     return fetch(requestUrl, {
       method: "POST",
       headers: {
+        ...(this.additionalHeaders ?? {}),
         "Content-Type": "application/json;charset=UTF-8",
         "X-Schematic-Api-Key": this.apiKey,
       },
@@ -244,6 +254,7 @@ export class Schematic {
       await fetch(captureUrl, {
         method: "POST",
         headers: {
+          ...(this.additionalHeaders ?? {}),
           "Content-Type": "application/json;charset=UTF-8",
         },
         body: payload,
@@ -327,7 +338,7 @@ export class Schematic {
           (message.flags ?? []).forEach(
             (flag: FlagCheckWithKeyResponseBody) => {
               this.values[contextString(context)][flag.flag] = flag.value;
-              this.notifyFlagValueListeners(flag.flag);
+              this.notifyFlagValueListeners(flag.flag, flag.value);
             },
           );
 
@@ -378,7 +389,7 @@ export class Schematic {
     return this.isPending;
   };
 
-  addIsPendingListener = (listener: () => void) => {
+  addIsPendingListener = (listener: ListenerFn) => {
     this.isPendingListeners.add(listener);
     return () => {
       this.isPendingListeners.delete(listener);
@@ -387,7 +398,9 @@ export class Schematic {
 
   private setIsPending = (isPending: boolean) => {
     this.isPending = isPending;
-    this.isPendingListeners.forEach((listener) => listener());
+    this.isPendingListeners.forEach((listener) =>
+      notifyListener(listener, isPending),
+    );
   };
 
   // flagValues state
@@ -401,7 +414,7 @@ export class Schematic {
     return this.values[contextStr] ?? {};
   };
 
-  addFlagValueListener = (flagKey: string, listener: () => void) => {
+  addFlagValueListener = (flagKey: string, listener: ListenerFn) => {
     if (!(flagKey in this.flagValueListeners)) {
       this.flagValueListeners[flagKey] = new Set();
     }
@@ -413,10 +426,18 @@ export class Schematic {
     };
   };
 
-  private notifyFlagValueListeners = (flagKey: string) => {
+  private notifyFlagValueListeners = (flagKey: string, value: boolean) => {
     const listeners = this.flagValueListeners?.[flagKey] ?? [];
-    listeners.forEach((listener) => listener());
+    listeners.forEach((listener) => notifyListener(listener, value));
   };
 }
+
+const notifyListener = (listener: ListenerFn, value: boolean) => {
+  if (listener.length > 0) {
+    (listener as BooleanListenerFn)(value);
+  } else {
+    (listener as EmptyListenerFn)();
+  }
+};
 
 export * from "./types";
