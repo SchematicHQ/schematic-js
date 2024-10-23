@@ -22,6 +22,7 @@ const anonymousIdKey = "schematicId";
 
 /* @preserve */
 export class Schematic {
+  private additionalHeaders: Record<string, string> = {};
   private apiKey: string;
   private apiUrl = "https://api.schematichq.com";
   private conn: Promise<WebSocket> | null = null;
@@ -42,6 +43,10 @@ export class Schematic {
     this.eventQueue = [];
     this.useWebSocket = options?.useWebSocket ?? false;
     this.flagListener = options?.flagListener;
+
+    if (options?.additionalHeaders) {
+      this.additionalHeaders = options.additionalHeaders;
+    }
 
     if (options?.storage) {
       this.storage = options.storage;
@@ -86,8 +91,9 @@ export class Schematic {
     return fetch(requestUrl, {
       method: "POST",
       headers: {
-        "X-Schematic-Api-Key": this.apiKey,
+        ...(this.additionalHeaders ?? {}),
         "Content-Type": "application/json;charset=UTF-8",
+        "X-Schematic-Api-Key": this.apiKey,
       },
       body: JSON.stringify(context),
     })
@@ -117,6 +123,7 @@ export class Schematic {
     return fetch(requestUrl, {
       method: "POST",
       headers: {
+        ...(this.additionalHeaders ?? {}),
         "Content-Type": "application/json;charset=UTF-8",
         "X-Schematic-Api-Key": this.apiKey,
       },
@@ -247,6 +254,7 @@ export class Schematic {
       await fetch(captureUrl, {
         method: "POST",
         headers: {
+          ...(this.additionalHeaders ?? {}),
           "Content-Type": "application/json;charset=UTF-8",
         },
         body: payload,
