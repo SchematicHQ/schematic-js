@@ -280,7 +280,8 @@ export const CheckoutDialog = () => {
       planPeriod !== currentPlan.planPeriod) &&
     !isLoading;
 
-  const canCheckout = canUpdateSubscription &&
+  const canCheckout =
+    canUpdateSubscription &&
     ((paymentMethod && !showPaymentForm) || paymentMethodId);
 
   return (
