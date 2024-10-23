@@ -25,12 +25,6 @@ import {
   EntityKeyDetailResponseDataFromJSONTyped,
   EntityKeyDetailResponseDataToJSON,
 } from "./EntityKeyDetailResponseData";
-import type { BillingSubscriptionResponseData } from "./BillingSubscriptionResponseData";
-import {
-  BillingSubscriptionResponseDataFromJSON,
-  BillingSubscriptionResponseDataFromJSONTyped,
-  BillingSubscriptionResponseDataToJSON,
-} from "./BillingSubscriptionResponseData";
 import type { EntityTraitDetailResponseData } from "./EntityTraitDetailResponseData";
 import {
   EntityTraitDetailResponseDataFromJSON,
@@ -43,6 +37,12 @@ import {
   GenericPreviewObjectFromJSONTyped,
   GenericPreviewObjectToJSON,
 } from "./GenericPreviewObject";
+import type { BillingSubscriptionView } from "./BillingSubscriptionView";
+import {
+  BillingSubscriptionViewFromJSON,
+  BillingSubscriptionViewFromJSONTyped,
+  BillingSubscriptionViewToJSON,
+} from "./BillingSubscriptionView";
 
 /**
  *
@@ -58,10 +58,10 @@ export interface CompanyDetailResponseData {
   addOns: Array<CompanyPlanWithBillingSubView>;
   /**
    *
-   * @type {Array<BillingSubscriptionResponseData>}
+   * @type {Array<BillingSubscriptionView>}
    * @memberof CompanyDetailResponseData
    */
-  billingSubscriptions: Array<BillingSubscriptionResponseData>;
+  billingSubscriptions: Array<BillingSubscriptionView>;
   /**
    *
    * @type {Date}
@@ -186,7 +186,7 @@ export function CompanyDetailResponseDataFromJSONTyped(
       CompanyPlanWithBillingSubViewFromJSON,
     ),
     billingSubscriptions: (json["billing_subscriptions"] as Array<any>).map(
-      BillingSubscriptionResponseDataFromJSON,
+      BillingSubscriptionViewFromJSON,
     ),
     createdAt: new Date(json["created_at"]),
     entityTraits: (json["entity_traits"] as Array<any>).map(
@@ -221,7 +221,7 @@ export function CompanyDetailResponseDataToJSON(
       CompanyPlanWithBillingSubViewToJSON,
     ),
     billing_subscriptions: (value["billingSubscriptions"] as Array<any>).map(
-      BillingSubscriptionResponseDataToJSON,
+      BillingSubscriptionViewToJSON,
     ),
     created_at: value["createdAt"].toISOString(),
     entity_traits: (value["entityTraits"] as Array<any>).map(
