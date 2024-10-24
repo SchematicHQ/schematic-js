@@ -273,13 +273,16 @@ export const CheckoutDialog = () => {
     };
   }, []);
 
-  const allowCheckout =
+  const canUpdateSubscription =
     api &&
     selectedPlan &&
     (selectedPlan.id !== currentPlan?.id ||
       planPeriod !== currentPlan.planPeriod) &&
-    ((paymentMethod && !showPaymentForm) || paymentMethodId) &&
     !isLoading;
+
+  const canCheckout =
+    canUpdateSubscription &&
+    ((paymentMethod && !showPaymentForm) || paymentMethodId);
 
   return (
     <Modal size="lg">
@@ -850,7 +853,7 @@ export const CheckoutDialog = () => {
                   $gap="1rem"
                 >
                   <Flex
-                    {...(allowCheckout && {
+                    {...(canCheckout && {
                       $opacity: "0.625",
                       $textDecoration: "line-through",
                     })}
@@ -882,7 +885,7 @@ export const CheckoutDialog = () => {
                 </Flex>
               )}
 
-              {allowCheckout && (
+              {canCheckout && (
                 <Box $marginBottom="1rem">
                   <Box
                     $width="100%"
@@ -1075,7 +1078,7 @@ export const CheckoutDialog = () => {
             {checkoutStage === "plan" ? (
               <EmbedButton
                 isLoading={isLoading}
-                {...(allowCheckout
+                {...(canUpdateSubscription
                   ? {
                       onClick: async () => {
                         if (!data.component?.id) {
@@ -1106,9 +1109,9 @@ export const CheckoutDialog = () => {
               </EmbedButton>
             ) : (
               <EmbedButton
-                disabled={isLoading || !allowCheckout}
+                disabled={isLoading || !canCheckout}
                 isLoading={isLoading}
-                {...(allowCheckout && { onClick: checkout })}
+                {...(canCheckout && { onClick: checkout })}
               >
                 Pay now
               </EmbedButton>

@@ -1,0 +1,44 @@
+name: Dependabot fetch metadata
+on: pull_request
+
+permissions:
+  pull-requests: write
+  issues: write
+  repository-projects: write
+
+jobs:
+  dependabot:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    steps:
+      - name: Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@v2.2.0
+        with:
+          alert-lookup: true
+          compat-lookup: true
+          github-token: "${{ secrets.PAT_TOKEN }}"
+      - name: Run Linear Action for version updates
+        uses: SchematicHQ/devops-cli@main
+        if: ${{steps.metadata.outputs.update-type == 'version-update:semver-major' || steps.metadata.outputs.update-type == 'version-update:semver-minor' || steps.metadata.outputs.update-type == 'version-update:semver-patch'}}
+        with:
+          command: "linear"
+          title: ${{ steps.metadata.outputs.package-ecosystem }} - ${{ steps.metadata.outputs.directory }} - update ${{ steps.metadata.outputs.dependency-names }} from ${{ steps.metadata.outputs.previous-version }} to ${{ steps.metadata.outputs.new-version }}
+          description: "This issue was created by a Dependabot GitHub Action - ${{ steps.metadata.outputs.dependency-type }} - ${{ steps.metadata.outputs.update-type }}"
+          team: "SCH"
+          tags: "dependabot"
+        env:
+          LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run Linear Action for security updates
+        uses: SchematicHQ/devops-cli@main
+        if: ${{steps.metadata.outputs.alert-state == 'OPEN'}}
+        with:
+          command: "linear"
+          title: ${{ steps.metadata.outputs.package-ecosystem }} - ${{ steps.metadata.outputs.directory }} - update ${{ steps.metadata.outputs.dependency-names }} from ${{ steps.metadata.outputs.previous-version }} to ${{ steps.metadata.outputs.new-version }}
+          description: "This issue was created by a Dependabot GitHub Action - GHSA ID = ${{ steps.metadata.outputs.ghsa-id }} - CVSS = ${{ steps.metadata.outputs.cvss }} - compatibility-score = ${{ steps.metadata.outputs.compatibility-score }}"
+          team: "SCH"
+          tags: "dependabot,security"
+        env:
+          LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
