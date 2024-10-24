@@ -59,7 +59,7 @@ export const UpcomingBill = forwardRef<
   const { upcomingInvoice } = useMemo(() => {
     return {
       upcomingInvoice: {
-        ...(data.upcomingInvoice?.amountDue && {
+        ...(typeof data.upcomingInvoice?.amountDue === "number" && {
           amountDue: data.upcomingInvoice.amountDue,
         }),
         ...(data.subscription?.interval && {
@@ -72,13 +72,16 @@ export const UpcomingBill = forwardRef<
     };
   }, [data.subscription, data.upcomingInvoice]);
 
-  if (!upcomingInvoice.amountDue || !upcomingInvoice.dueDate) {
+  if (
+    typeof upcomingInvoice.amountDue !== "number" ||
+    !upcomingInvoice.dueDate
+  ) {
     return null;
   }
 
   return (
     <Element ref={ref} className={className}>
-      {props.header.isVisible && upcomingInvoice.dueDate && (
+      {props.header.isVisible && (
         <Flex
           $justifyContent="space-between"
           $alignItems="center"
@@ -95,38 +98,34 @@ export const UpcomingBill = forwardRef<
         </Flex>
       )}
 
-      {upcomingInvoice.amountDue && (
-        <Flex $justifyContent="space-between" $alignItems="start" $gap="1rem">
-          {props.price.isVisible && (
-            <Flex $alignItems="end" $flexGrow="1">
-              <Text
-                $font={theme.typography[props.price.fontStyle].fontFamily}
-                $size={theme.typography[props.price.fontStyle].fontSize}
-                $weight={theme.typography[props.price.fontStyle].fontWeight}
-                $color={theme.typography[props.price.fontStyle].color}
-                $lineHeight={1}
-              >
-                {formatCurrency(upcomingInvoice.amountDue)}
-              </Text>
-            </Flex>
-          )}
-
-          <Box $maxWidth="10rem" $lineHeight="1" $textAlign="right">
+      <Flex $justifyContent="space-between" $alignItems="start" $gap="1rem">
+        {props.price.isVisible && (
+          <Flex $alignItems="end" $flexGrow="1">
             <Text
-              $font={
-                theme.typography[props.contractEndDate.fontStyle].fontFamily
-              }
-              $size={theme.typography[props.contractEndDate.fontStyle].fontSize}
-              $weight={
-                theme.typography[props.contractEndDate.fontStyle].fontWeight
-              }
-              $color={theme.typography[props.contractEndDate.fontStyle].color}
+              $font={theme.typography[props.price.fontStyle].fontFamily}
+              $size={theme.typography[props.price.fontStyle].fontSize}
+              $weight={theme.typography[props.price.fontStyle].fontWeight}
+              $color={theme.typography[props.price.fontStyle].color}
+              $lineHeight={1}
             >
-              Estimated bill.
+              {formatCurrency(upcomingInvoice.amountDue)}
             </Text>
-          </Box>
-        </Flex>
-      )}
+          </Flex>
+        )}
+
+        <Box $maxWidth="10rem" $lineHeight="1" $textAlign="right">
+          <Text
+            $font={theme.typography[props.contractEndDate.fontStyle].fontFamily}
+            $size={theme.typography[props.contractEndDate.fontStyle].fontSize}
+            $weight={
+              theme.typography[props.contractEndDate.fontStyle].fontWeight
+            }
+            $color={theme.typography[props.contractEndDate.fontStyle].color}
+          >
+            Estimated bill.
+          </Text>
+        </Box>
+      </Flex>
     </Element>
   );
 });
