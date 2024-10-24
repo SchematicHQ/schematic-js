@@ -1,6 +1,6 @@
 {
   "name": "@schematichq/schematic-js",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "main": "dist/schematic.cjs.js",
   "module": "dist/schematic.esm.js",
   "types": "dist/schematic.d.ts",
@@ -44,6 +44,7 @@
     "jest-environment-jsdom": "^29.7.0",
     "jest-esbuild": "^0.3.0",
     "jest-fetch-mock": "^3.0.3",
+    "mock-socket": "^9.3.1",
     "prettier": "^3.3.3",
     "ts-jest": "^29.2.5",
     "typescript": "^5.6.2"
