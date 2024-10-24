@@ -79,37 +79,90 @@ export class Schematic {
   async checkFlag(options: CheckOptions): Promise<boolean> {
     const { fallback = false, key } = options;
     const context = options.context || this.context;
+    const contextStr = contextString(context);
 
-    if (this.useWebSocket) {
-      const contextVals = this.values[contextString(context)] ?? {};
+    if (!this.useWebSocket) {
+      const requestUrl = `${this.apiUrl}/flags/${key}/check`;
+      return fetch(requestUrl, {
+        method: "POST",
+        headers: {
+          ...(this.additionalHeaders ?? {}),
+          "Content-Type": "application/json;charset=UTF-8",
+          "X-Schematic-Api-Key": this.apiKey,
+        },
+        body: JSON.stringify(context),
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          return data.data.value;
+        })
+        .catch((error) => {
+          console.error("There was a problem with the fetch operation:", error);
+          return fallback;
+        });
+    }
+
+    // WebSocket path
+    try {
+      // Check if we already have values for this context
+      const existingVals = this.values[contextStr];
+      if (existingVals && typeof existingVals[key] !== "undefined") {
+        return existingVals[key];
+      }
+
+      // If we don't have values, we need to fetch them
+      try {
+        await this.setContext(context);
+      } catch (error) {
+        console.error("Failed to set context in checkFlag:", error);
+        // If setContext fails, fall back to REST API
+        return this.fallbackToRest(key, context, fallback);
+      }
+
+      // After setContext, check values again
+      const contextVals = this.values[contextStr] ?? {};
       return typeof contextVals[key] === "undefined"
         ? fallback
         : contextVals[key];
+    } catch (error) {
+      console.error("Unexpected error in checkFlag:", error);
+      return fallback;
     }
+  }
 
-    const requestUrl = `${this.apiUrl}/flags/${key}/check`;
-    return fetch(requestUrl, {
-      method: "POST",
-      headers: {
-        ...(this.additionalHeaders ?? {}),
-        "Content-Type": "application/json;charset=UTF-8",
-        "X-Schematic-Api-Key": this.apiKey,
-      },
-      body: JSON.stringify(context),
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-        return response.json();
-      })
-      .then((data) => {
-        return data.data.value;
-      })
-      .catch((error) => {
-        console.error("There was a problem with the fetch operation:", error);
-        return fallback;
+  // Helper method for falling back to REST API
+  private async fallbackToRest(
+    key: string,
+    context: SchematicContext,
+    fallback: boolean,
+  ): Promise<boolean> {
+    try {
+      const requestUrl = `${this.apiUrl}/flags/${key}/check`;
+      const response = await fetch(requestUrl, {
+        method: "POST",
+        headers: {
+          ...(this.additionalHeaders ?? {}),
+          "Content-Type": "application/json;charset=UTF-8",
+          "X-Schematic-Api-Key": this.apiKey,
+        },
+        body: JSON.stringify(context),
       });
+
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+
+      const data = await response.json();
+      return data.data.value;
+    } catch (error) {
+      console.error("Error in fallback REST call:", error);
+      return fallback;
+    }
   }
 
   // Make an API call to fetch all flag values for a given context (use if not in websocket mode)
