@@ -184,6 +184,7 @@ export const Invoices = forwardRef<
             onClick={toggleListSize}
             $alignItems="center"
             $gap="0.5rem"
+            $cursor="pointer"
           >
             <Icon
               name={`chevron-${listSize === props.limit.number ? "down" : "up"}`}
