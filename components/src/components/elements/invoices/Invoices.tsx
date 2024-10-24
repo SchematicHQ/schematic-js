@@ -79,8 +79,10 @@ interface InvoiceDateProps {
 const InvoiceDate = ({ date, fontStyle, url }: InvoiceDateProps) => {
   const theme = useTheme();
 
+  // pass an empty `onClick` function to get the correct link style
   const dateText = (
     <Text
+      {...(url && { onClick: () => {} })}
       $font={theme.typography[fontStyle].fontFamily}
       $size={theme.typography[fontStyle].fontSize}
       $weight={theme.typography[fontStyle].fontWeight}
@@ -179,19 +181,14 @@ export const Invoices = forwardRef<
         </Flex>
 
         {props.collapse.isVisible && (
-          <Flex
-            tabIndex={0}
-            onClick={toggleListSize}
-            $alignItems="center"
-            $gap="0.5rem"
-            $cursor="pointer"
-          >
+          <Flex $alignItems="center" $gap="0.5rem">
             <Icon
               name={`chevron-${listSize === props.limit.number ? "down" : "up"}`}
               style={{ color: "#D0D0D0" }}
             />
 
             <Text
+              onClick={toggleListSize}
               $font={theme.typography[props.collapse.fontStyle].fontFamily}
               $size={theme.typography[props.collapse.fontStyle].fontSize}
               $weight={theme.typography[props.collapse.fontStyle].fontWeight}
