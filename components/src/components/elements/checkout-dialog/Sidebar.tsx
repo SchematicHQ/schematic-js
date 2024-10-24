@@ -148,15 +148,16 @@ export const Sidebar = ({
     [selectedPlan, selectPlan, setPlanPeriod],
   );
 
-  const allowAddons =
+  const canUpdateSubscription =
     api &&
     selectedPlan &&
     (selectedPlan.id !== currentPlan?.id ||
       planPeriod !== currentPlan.planPeriod) &&
     !isLoading;
 
-  const allowCheckout =
-    allowAddons && ((paymentMethod && !showPaymentForm) || paymentMethodId);
+  const canCheckout =
+    canUpdateSubscription &&
+    ((paymentMethod && !showPaymentForm) || paymentMethodId);
 
   return (
     <Flex
@@ -299,7 +300,7 @@ export const Sidebar = ({
               $gap="1rem"
             >
               <Flex
-                {...(allowCheckout && {
+                {...(canUpdateSubscription && {
                   $opacity: "0.625",
                   $textDecoration: "line-through",
                 })}
@@ -331,7 +332,7 @@ export const Sidebar = ({
             </Flex>
           )}
 
-          {allowCheckout && (
+          {canUpdateSubscription && (
             <Box $marginBottom="1rem">
               <Box
                 $width="100%"
@@ -523,7 +524,7 @@ export const Sidebar = ({
         {checkoutStage === "plan" && (
           <EmbedButton
             isLoading={isLoading}
-            {...(allowAddons
+            {...(canUpdateSubscription
               ? {
                   onClick: () => {
                     setCheckoutStage("addons");
@@ -548,7 +549,7 @@ export const Sidebar = ({
         {checkoutStage === "addons" && (
           <EmbedButton
             isLoading={isLoading}
-            {...(allowCheckout
+            {...(canUpdateSubscription
               ? {
                   onClick: async () => {
                     if (!data.component?.id) {
@@ -581,9 +582,9 @@ export const Sidebar = ({
 
         {checkoutStage === "checkout" && (
           <EmbedButton
-            disabled={isLoading || !allowCheckout}
+            disabled={isLoading || !canCheckout}
             isLoading={isLoading}
-            {...(allowCheckout && { onClick: checkout })}
+            {...(canCheckout && { onClick: checkout })}
           >
             Pay now
           </EmbedButton>

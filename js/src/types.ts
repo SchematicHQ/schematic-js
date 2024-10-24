@@ -59,12 +59,13 @@ export type StoragePersister = {
 };
 
 export type SchematicOptions = {
+  additionalHeaders?: Record<string, string>;
   apiUrl?: string;
-  webSocketUrl?: string;
   eventUrl?: string;
   flagListener?: (values: Record<string, boolean>) => void;
   storage?: StoragePersister;
   useWebSocket?: boolean;
+  webSocketUrl?: string;
 };
 
 export type CheckOptions = {
@@ -72,3 +73,7 @@ export type CheckOptions = {
   fallback?: boolean;
   key: string;
 };
+
+export type BooleanListenerFn = (value: boolean) => void;
+export type ListenerFn = BooleanListenerFn | EmptyListenerFn;
+export type EmptyListenerFn = () => void;

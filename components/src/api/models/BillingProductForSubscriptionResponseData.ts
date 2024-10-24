@@ -21,12 +21,6 @@ import { mapValues } from "../runtime";
 export interface BillingProductForSubscriptionResponseData {
   /**
    *
-   * @type {string}
-   * @memberof BillingProductForSubscriptionResponseData
-   */
-  accountId: string;
-  /**
-   *
    * @type {Date}
    * @memberof BillingProductForSubscriptionResponseData
    */
@@ -105,7 +99,6 @@ export interface BillingProductForSubscriptionResponseData {
 export function instanceOfBillingProductForSubscriptionResponseData(
   value: object,
 ): value is BillingProductForSubscriptionResponseData {
-  if (!("accountId" in value) || value["accountId"] === undefined) return false;
   if (!("createdAt" in value) || value["createdAt"] === undefined) return false;
   if (!("currency" in value) || value["currency"] === undefined) return false;
   if (!("environmentId" in value) || value["environmentId"] === undefined)
@@ -139,7 +132,6 @@ export function BillingProductForSubscriptionResponseDataFromJSONTyped(
     return json;
   }
   return {
-    accountId: json["account_id"],
     createdAt: new Date(json["created_at"]),
     currency: json["currency"],
     environmentId: json["environment_id"],
@@ -162,7 +154,6 @@ export function BillingProductForSubscriptionResponseDataToJSON(
     return value;
   }
   return {
-    account_id: value["accountId"],
     created_at: value["createdAt"].toISOString(),
     currency: value["currency"],
     environment_id: value["environmentId"],

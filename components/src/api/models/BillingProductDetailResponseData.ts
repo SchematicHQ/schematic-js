@@ -28,12 +28,6 @@ import {
 export interface BillingProductDetailResponseData {
   /**
    *
-   * @type {Array<BillingPriceResponseData>}
-   * @memberof BillingProductDetailResponseData
-   */
-  prices: Array<BillingPriceResponseData>;
-  /**
-   *
    * @type {string}
    * @memberof BillingProductDetailResponseData
    */
@@ -76,6 +70,12 @@ export interface BillingProductDetailResponseData {
   price: number;
   /**
    *
+   * @type {Array<BillingPriceResponseData>}
+   * @memberof BillingProductDetailResponseData
+   */
+  prices: Array<BillingPriceResponseData>;
+  /**
+   *
    * @type {string}
    * @memberof BillingProductDetailResponseData
    */
@@ -100,7 +100,6 @@ export interface BillingProductDetailResponseData {
 export function instanceOfBillingProductDetailResponseData(
   value: object,
 ): value is BillingProductDetailResponseData {
-  if (!("prices" in value) || value["prices"] === undefined) return false;
   if (!("accountId" in value) || value["accountId"] === undefined) return false;
   if (!("createdAt" in value) || value["createdAt"] === undefined) return false;
   if (!("currency" in value) || value["currency"] === undefined) return false;
@@ -110,6 +109,7 @@ export function instanceOfBillingProductDetailResponseData(
     return false;
   if (!("name" in value) || value["name"] === undefined) return false;
   if (!("price" in value) || value["price"] === undefined) return false;
+  if (!("prices" in value) || value["prices"] === undefined) return false;
   if (!("productId" in value) || value["productId"] === undefined) return false;
   if (!("quantity" in value) || value["quantity"] === undefined) return false;
   if (!("updatedAt" in value) || value["updatedAt"] === undefined) return false;
@@ -130,9 +130,6 @@ export function BillingProductDetailResponseDataFromJSONTyped(
     return json;
   }
   return {
-    prices: (json["Prices"] as Array<any>).map(
-      BillingPriceResponseDataFromJSON,
-    ),
     accountId: json["account_id"],
     createdAt: new Date(json["created_at"]),
     currency: json["currency"],
@@ -140,6 +137,9 @@ export function BillingProductDetailResponseDataFromJSONTyped(
     externalId: json["external_id"],
     name: json["name"],
     price: json["price"],
+    prices: (json["prices"] as Array<any>).map(
+      BillingPriceResponseDataFromJSON,
+    ),
     productId: json["product_id"],
     quantity: json["quantity"],
     updatedAt: new Date(json["updated_at"]),
@@ -153,7 +153,6 @@ export function BillingProductDetailResponseDataToJSON(
     return value;
   }
   return {
-    Prices: (value["prices"] as Array<any>).map(BillingPriceResponseDataToJSON),
     account_id: value["accountId"],
     created_at: value["createdAt"].toISOString(),
     currency: value["currency"],
@@ -161,6 +160,7 @@ export function BillingProductDetailResponseDataToJSON(
     external_id: value["externalId"],
     name: value["name"],
     price: value["price"],
+    prices: (value["prices"] as Array<any>).map(BillingPriceResponseDataToJSON),
     product_id: value["productId"],
     quantity: value["quantity"],
     updated_at: value["updatedAt"].toISOString(),

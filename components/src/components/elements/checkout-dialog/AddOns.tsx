@@ -1,12 +1,13 @@
 import { useTheme } from "styled-components";
-import type { CompanyPlanWithBillingSubView } from "../../../api";
+import type { CompanyPlanDetailResponseData } from "../../../api";
 import { TEXT_BASE_SIZE } from "../../../const";
 import { hexToHSL, formatCurrency } from "../../../utils";
 import { Box, EmbedButton, Flex, Icon, Text } from "../../ui";
 
 interface AddOnsProps {
-  addOns: CompanyPlanWithBillingSubView[];
-  selectedAddOns: string[];
+  addOns: (CompanyPlanDetailResponseData & {
+    isSelected: boolean;
+  })[];
   select: (id: string) => void;
   deselect: (id: string) => void;
   isLoading: boolean;
@@ -14,7 +15,6 @@ interface AddOnsProps {
 
 export const AddOns = ({
   addOns,
-  selectedAddOns,
   select,
   deselect,
   isLoading,
@@ -50,8 +50,6 @@ export const AddOns = ({
 
       <Flex $flexWrap="wrap" $gap="1rem">
         {addOns.map((addOn) => {
-          const isAddOnSelected = selectedAddOns.includes(addOn.id);
-
           return (
             <Flex
               key={addOn.id}
@@ -62,11 +60,7 @@ export const AddOns = ({
               $backgroundColor={theme.card.background}
               $outlineWidth="2px"
               $outlineStyle="solid"
-              $outlineColor={
-                selectedAddOns.includes(addOn.id)
-                  ? theme.primary
-                  : "transparent"
-              }
+              $outlineColor={addOn.isSelected ? theme.primary : "transparent"}
               $borderRadius={`${theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
               {...(theme.card.hasShadow && {
                 $boxShadow:
@@ -102,7 +96,7 @@ export const AddOns = ({
                   </Text>
                 )}
 
-                {isAddOnSelected && (
+                {addOn.current && (
                   <Flex
                     $position="absolute"
                     $right="1rem"
@@ -127,7 +121,7 @@ export const AddOns = ({
                 $width="100%"
                 $padding="1.5rem"
               >
-                {!isAddOnSelected ? (
+                {!addOn.isSelected ? (
                   <EmbedButton
                     disabled={isLoading}
                     onClick={() => select(addOn.id)}

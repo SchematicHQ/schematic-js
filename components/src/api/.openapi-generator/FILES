@@ -8,6 +8,7 @@ models/BillingProductDetailResponseData.ts
 models/BillingProductForSubscriptionResponseData.ts
 models/BillingProductResponseData.ts
 models/BillingSubscriptionResponseData.ts
+models/BillingSubscriptionView.ts
 models/ChangeSubscriptionRequestBody.ts
 models/CheckoutResponse.ts
 models/CompanyDetailResponseData.ts
@@ -15,6 +16,7 @@ models/CompanyPlanDetailResponseData.ts
 models/CompanyPlanWithBillingSubView.ts
 models/CompanyResponseData.ts
 models/CompanySubscriptionResponseData.ts
+models/ComponentCapabilities.ts
 models/ComponentHydrateResponseData.ts
 models/ComponentResponseData.ts
 models/CountResponse.ts

@@ -45,35 +45,111 @@ export const CheckoutDialog = () => {
   const [setupIntent, setSetupIntent] = useState<SetupIntentResponseData>();
 
   // memoize data here since some state depends on it
-  const { currentPlan, availablePlans, addOns } = useMemo(() => {
-    const planPeriodOptions = [];
-    if (data.activePlans.some((plan) => plan.monthlyPrice)) {
-      planPeriodOptions.push("month");
-    }
-    if (data.activePlans.some((plan) => plan.yearlyPrice)) {
-      planPeriodOptions.push("year");
-    }
+  const { currentPlan, currentAddOns, availablePlans, availableAddOns } =
+    useMemo(() => {
+      const planPeriodOptions = [];
+      if (data.activePlans.some((plan) => plan.monthlyPrice)) {
+        planPeriodOptions.push("month");
+      }
+      if (data.activePlans.some((plan) => plan.yearlyPrice)) {
+        planPeriodOptions.push("year");
+      }
 
-    return {
-      currentPlan: data.company?.plan,
-      availablePlans:
-        mode === "edit"
-          ? data.activePlans
-          : data.activePlans.filter((plan) => {
+      return {
+        currentPlan: data.company?.plan,
+        currentAddOns: data.company?.addOns || [],
+        availablePlans:
+          mode === "edit"
+            ? data.activePlans
+            : data.activePlans.filter((plan) => {
+                return (
+                  (planPeriod === "month" && plan.monthlyPrice) ||
+                  (planPeriod === "year" && plan.yearlyPrice)
+                );
+              }),
+        availableAddOns: (mode === "edit"
+          ? data.activeAddOns
+          : data.activeAddOns.filter((addOn) => {
               return (
-                (planPeriod === "month" && plan.monthlyPrice) ||
-                (planPeriod === "year" && plan.yearlyPrice)
+                (planPeriod === "month" && addOn.monthlyPrice) ||
+                (planPeriod === "year" && addOn.yearlyPrice)
               );
-            }),
-      addOns: data.company?.plan ? [data.company?.plan] : [],
-    };
-  }, [data.company, data.activePlans, mode, planPeriod]);
+            })
+        ).concat(
+          {
+            companyCount: 1,
+            createdAt: new Date(),
+            current: false,
+            description: "",
+            entitlements: [],
+            features: [],
+            icon: "",
+            id: "1",
+            isDefault: false,
+            monthlyPrice: {
+              currency: "usd",
+              id: "1",
+              externalPriceId: "1",
+              interval: "monthly",
+              price: 5000,
+            },
+            name: "AddOn 1",
+            planType: "",
+            updatedAt: new Date(),
+            valid: true,
+            yearlyPrice: {
+              currency: "usd",
+              id: "1",
+              externalPriceId: "1",
+              interval: "yearly",
+              price: 50000,
+            },
+          },
+          {
+            companyCount: 1,
+            createdAt: new Date(),
+            current: false,
+            description: "",
+            entitlements: [],
+            features: [],
+            icon: "",
+            id: "2",
+            isDefault: false,
+            monthlyPrice: {
+              currency: "usd",
+              id: "1",
+              externalPriceId: "1",
+              interval: "monthly",
+              price: 500,
+            },
+            name: "AddOn 2",
+            planType: "",
+            updatedAt: new Date(),
+            valid: true,
+            yearlyPrice: {
+              currency: "usd",
+              id: "1",
+              externalPriceId: "1",
+              interval: "yearly",
+              price: 5000,
+            },
+          },
+        ),
+      };
+    }, [data.company, data.activePlans, data.activeAddOns, mode, planPeriod]);
 
   // instantiation for state that depends on memoized data
   const [selectedPlan, setSelectedPlan] = useState(() =>
     availablePlans.find((plan) => plan.id === currentPlan?.id),
   );
-  const [selectedAddOns, setSelectedAddOns] = useState<string[]>([]);
+  const [addOns, setAddOns] = useState(() =>
+    availableAddOns.map((addOn) => ({
+      ...addOn,
+      isSelected: currentAddOns.some(
+        (currentAddOn) => addOn.id === currentAddOn.id,
+      ),
+    })),
+  );
 
   const isLightBackground = useIsLightBackground();
 
@@ -180,16 +256,22 @@ export const CheckoutDialog = () => {
             <AddOns
               addOns={addOns}
               isLoading={isLoading}
-              selectedAddOns={selectedAddOns}
-              select={(id: string) => {
-                setSelectedAddOns((prev) => [...prev, id]);
-              }}
-              deselect={(id: string) => {
-                setSelectedAddOns((prev) => {
-                  const idx = prev.indexOf(id);
-                  return idx > -1 ? prev.filter((_, i) => i !== idx) : prev;
-                });
-              }}
+              select={(id) =>
+                setAddOns((prev) =>
+                  prev.map((addOn) => ({
+                    ...addOn,
+                    ...(addOn.id === id && { isSelected: true }),
+                  })),
+                )
+              }
+              deselect={(id) =>
+                setAddOns((prev) =>
+                  prev.map((addOn) => ({
+                    ...addOn,
+                    ...(addOn.id === id && { isSelected: false }),
+                  })),
+                )
+              }
             />
           )}
 
