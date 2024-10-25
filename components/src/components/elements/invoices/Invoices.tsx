@@ -57,11 +57,17 @@ function resolveDesignProps(props: RecursivePartial<DesignProps>): DesignProps {
 }
 
 function formatInvoices(invoices?: ListInvoicesResponse["data"]) {
-  return (invoices || []).map(({ amountDue, dueDate, url }) => ({
-    ...(dueDate && { date: toPrettyDate(dueDate) }),
-    amount: formatCurrency(amountDue),
-    url,
-  }));
+  return (invoices || [])
+    .filter(
+      ({ url, amountDue, amountPaid }) =>
+        url && (amountDue === 0 || amountPaid > 0),
+    )
+    .sort((a, b) => (a.dueDate && b.dueDate ? +b.dueDate - +a.dueDate : 1))
+    .map(({ amountDue, dueDate, url }) => ({
+      ...(dueDate && { date: toPrettyDate(dueDate) }),
+      amount: formatCurrency(amountDue),
+      url,
+    }));
 }
 
 interface InvoiceDateProps {
@@ -73,21 +79,25 @@ interface InvoiceDateProps {
 const InvoiceDate = ({ date, fontStyle, url }: InvoiceDateProps) => {
   const theme = useTheme();
 
+  // pass an empty `onClick` function to get the correct link style
   const dateText = (
     <Text
+      {...(url && { onClick: () => {} })}
       $font={theme.typography[fontStyle].fontFamily}
       $size={theme.typography[fontStyle].fontSize}
       $weight={theme.typography[fontStyle].fontWeight}
-      $color={theme.typography[fontStyle].color}
+      $color={url ? theme.typography.link.color : theme.typography.text.color}
     >
       {date}
     </Text>
   );
 
   if (url) {
-    <a href={url} target="_blank">
-      {dateText}
-    </a>;
+    return (
+      <a href={url} target="_blank">
+        {dateText}
+      </a>
+    );
   }
 
   return dateText;
@@ -99,15 +109,25 @@ export type InvoicesProps = DesignProps & {
 
 export const Invoices = forwardRef<
   HTMLDivElement | null,
-  ElementProps & InvoicesProps & React.HTMLAttributes<HTMLDivElement>
->(({ className, ...rest }, ref) => {
+  ElementProps &
+    RecursivePartial<DesignProps> & {
+      data?: ListInvoicesResponse["data"];
+    } & React.HTMLAttributes<HTMLDivElement>
+>(({ className, data, ...rest }, ref) => {
   const props = resolveDesignProps(rest);
 
   const theme = useTheme();
 
   const { api } = useEmbed();
 
-  const [invoices, setInvoices] = useState(() => formatInvoices(rest.data));
+  const [invoices, setInvoices] = useState(() => formatInvoices(data));
+  const [listSize, setListSize] = useState(props.limit.number);
+
+  const toggleListSize = () => {
+    setListSize((prev) =>
+      prev !== props.limit.number ? props.limit.number : 12,
+    );
+  };
 
   useEffect(() => {
     api?.listInvoices().then(({ data }) => {
@@ -132,52 +152,49 @@ export const Invoices = forwardRef<
         )}
 
         <Flex $flexDirection="column" $gap="0.5rem">
-          {invoices
-            .slice(
-              0,
-              (props.limit.isVisible && props.limit.number) || invoices.length,
-            )
-            .map(({ date, amount, url }, index) => {
-              return (
-                <Flex key={index} $justifyContent="space-between">
-                  {props.date.isVisible && date && (
-                    <InvoiceDate
-                      date={date}
-                      fontStyle={props.date.fontStyle}
-                      url={url}
-                    />
-                  )}
+          {invoices.slice(0, listSize).map(({ date, amount, url }, index) => {
+            return (
+              <Flex key={index} $justifyContent="space-between">
+                {props.date.isVisible && date && (
+                  <InvoiceDate
+                    date={date}
+                    fontStyle={props.date.fontStyle}
+                    url={url}
+                  />
+                )}
 
-                  {props.amount.isVisible && (
-                    <Text
-                      $font={
-                        theme.typography[props.amount.fontStyle].fontFamily
-                      }
-                      $size={theme.typography[props.amount.fontStyle].fontSize}
-                      $weight={
-                        theme.typography[props.amount.fontStyle].fontWeight
-                      }
-                      $color={theme.typography[props.amount.fontStyle].color}
-                    >
-                      {amount}
-                    </Text>
-                  )}
-                </Flex>
-              );
-            })}
+                {props.amount.isVisible && (
+                  <Text
+                    $font={theme.typography[props.amount.fontStyle].fontFamily}
+                    $size={theme.typography[props.amount.fontStyle].fontSize}
+                    $weight={
+                      theme.typography[props.amount.fontStyle].fontWeight
+                    }
+                    $color={theme.typography[props.amount.fontStyle].color}
+                  >
+                    {amount}
+                  </Text>
+                )}
+              </Flex>
+            );
+          })}
         </Flex>
 
         {props.collapse.isVisible && (
           <Flex $alignItems="center" $gap="0.5rem">
-            <Icon name="chevron-down" style={{ color: "#D0D0D0" }} />
+            <Icon
+              name={`chevron-${listSize === props.limit.number ? "down" : "up"}`}
+              style={{ color: "#D0D0D0" }}
+            />
 
             <Text
+              onClick={toggleListSize}
               $font={theme.typography[props.collapse.fontStyle].fontFamily}
               $size={theme.typography[props.collapse.fontStyle].fontSize}
               $weight={theme.typography[props.collapse.fontStyle].fontWeight}
               $color={theme.typography[props.collapse.fontStyle].color}
             >
-              See all
+              See {listSize === props.limit.number ? "more" : "less"}
             </Text>
           </Flex>
         )}
