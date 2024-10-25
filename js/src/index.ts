@@ -317,8 +317,7 @@ export class Schematic {
     return new Promise((resolve, reject) => {
       // Confirm that the context has changed; if it hasn't, we don't need to do anything
       if (contextString(context) == contextString(this.context)) {
-        resolve();
-        return;
+        return resolve(this.setIsPending(false));
       }
 
       this.context = context;
