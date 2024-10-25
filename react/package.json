@@ -1,6 +1,6 @@
 {
   "name": "@schematichq/schematic-react",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "main": "dist/schematic-react.cjs.js",
   "module": "dist/schematic-react.esm.js",
   "types": "dist/schematic-react.d.ts",
@@ -28,7 +28,7 @@
     "tsc": "npx tsc"
   },
   "dependencies": {
-    "@schematichq/schematic-js": "^1.0.0"
+    "@schematichq/schematic-js": "^1.0.2"
   },
   "devDependencies": {
     "@microsoft/api-extractor": "^7.47.9",
