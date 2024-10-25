@@ -11,6 +11,7 @@ interface AddOnsProps {
   select: (id: string) => void;
   deselect: (id: string) => void;
   isLoading: boolean;
+  period: string;
 }
 
 export const AddOns = ({
@@ -18,8 +19,11 @@ export const AddOns = ({
   select,
   deselect,
   isLoading,
+  period,
 }: AddOnsProps) => {
   const theme = useTheme();
+
+  const periodKey = period === "year" ? "yearlyPrice" : "monthlyPrice";
 
   return (
     <>
@@ -82,15 +86,15 @@ export const AddOns = ({
                   <Text $size={14}>{addOn.description}</Text>
                 )}
 
-                {addOn.planPrice && (
+                {addOn[periodKey] && (
                   <Text>
                     <Box $display="inline-block" $fontSize="1.5rem">
-                      {formatCurrency(addOn.planPrice ?? 0)}
+                      {formatCurrency(addOn[periodKey].price ?? 0)}
                     </Box>
 
-                    {addOn.planPeriod && (
+                    {period && (
                       <Box $display="inline-block" $fontSize="0.75rem">
-                        /{addOn.planPeriod}
+                        /{period}
                       </Box>
                     )}
                   </Text>

@@ -254,8 +254,9 @@ export const CheckoutDialog = () => {
 
           {checkoutStage === "addons" && (
             <AddOns
-              addOns={addOns}
               isLoading={isLoading}
+              period={planPeriod}
+              addOns={addOns}
               select={(id) =>
                 setAddOns((prev) =>
                   prev.map((addOn) => ({
