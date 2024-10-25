@@ -74,45 +74,113 @@ export class Schematic {
     }
   }
 
-  // Get value for a single flag
-  // If in websocket mode, return the local value, otherwise make an API call
+  /**
+   * Get value for a single flag.
+   * In WebSocket mode, returns cached values if connection is active, otherwise establishes
+   * new connection and then returns the requestedvalue. Falls back to REST API if WebSocket
+   * connection fails.
+   * In REST mode, makes an API call for each check.
+   */
   async checkFlag(options: CheckOptions): Promise<boolean> {
     const { fallback = false, key } = options;
     const context = options.context || this.context;
+    const contextStr = contextString(context);
 
-    if (this.useWebSocket) {
-      const contextVals = this.values[contextString(context)] ?? {};
+    if (!this.useWebSocket) {
+      const requestUrl = `${this.apiUrl}/flags/${key}/check`;
+      return fetch(requestUrl, {
+        method: "POST",
+        headers: {
+          ...(this.additionalHeaders ?? {}),
+          "Content-Type": "application/json;charset=UTF-8",
+          "X-Schematic-Api-Key": this.apiKey,
+        },
+        body: JSON.stringify(context),
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          return data.data.value;
+        })
+        .catch((error) => {
+          console.error("There was a problem with the fetch operation:", error);
+          return fallback;
+        });
+    }
+
+    try {
+      // If we have an active connection, return a cached value if available
+      const existingVals = this.values[contextStr];
+      if (
+        this.conn &&
+        typeof existingVals !== "undefined" &&
+        typeof existingVals[key] !== "undefined"
+      ) {
+        return existingVals[key];
+      }
+
+      // If we don't have values or connection is closed, we need to fetch them
+      try {
+        await this.setContext(context);
+      } catch (error) {
+        console.error(
+          "WebSocket connection failed, falling back to REST:",
+          error,
+        );
+        return this.fallbackToRest(key, context, fallback);
+      }
+
+      // After setting context and getting a response, return the value
+      const contextVals = this.values[contextStr] ?? {};
       return typeof contextVals[key] === "undefined"
         ? fallback
         : contextVals[key];
+    } catch (error) {
+      console.error("Unexpected error in checkFlag:", error);
+      return fallback;
     }
-
-    const requestUrl = `${this.apiUrl}/flags/${key}/check`;
-    return fetch(requestUrl, {
-      method: "POST",
-      headers: {
-        ...(this.additionalHeaders ?? {}),
-        "Content-Type": "application/json;charset=UTF-8",
-        "X-Schematic-Api-Key": this.apiKey,
-      },
-      body: JSON.stringify(context),
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-        return response.json();
-      })
-      .then((data) => {
-        return data.data.value;
-      })
-      .catch((error) => {
-        console.error("There was a problem with the fetch operation:", error);
-        return fallback;
-      });
   }
 
-  // Make an API call to fetch all flag values for a given context (use if not in websocket mode)
+  /**
+   * Helper method for falling back to REST API when WebSocket connection fails
+   */
+  private async fallbackToRest(
+    key: string,
+    context: SchematicContext,
+    fallback: boolean,
+  ): Promise<boolean> {
+    try {
+      const requestUrl = `${this.apiUrl}/flags/${key}/check`;
+      const response = await fetch(requestUrl, {
+        method: "POST",
+        headers: {
+          ...(this.additionalHeaders ?? {}),
+          "Content-Type": "application/json;charset=UTF-8",
+          "X-Schematic-Api-Key": this.apiKey,
+        },
+        body: JSON.stringify(context),
+      });
+
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+
+      const data = await response.json();
+      return data.data.value;
+    } catch (error) {
+      console.error("REST API call failed, using fallback value:", error);
+      return fallback;
+    }
+  }
+
+  /**
+   * Make an API call to fetch all flag values for a given context.
+   * Recommended for use in REST mode only.
+   */
   checkFlags = async (
     context?: SchematicContext,
   ): Promise<Record<string, boolean>> => {
@@ -153,20 +221,32 @@ export class Schematic {
       });
   };
 
-  // Send an identify event
+  /**
+   * Send an identify event.
+   * This will set the context for subsequent flag evaluation and events, and will also
+   * send an identify event to the Schematic API which will upsert a user and company.
+   */
   identify = (body: EventBodyIdentify): Promise<void> => {
-    this.setContext({
-      company: body.company?.keys,
-      user: body.keys,
-    });
+    try {
+      this.setContext({
+        company: body.company?.keys,
+        user: body.keys,
+      });
+    } catch (error) {
+      console.error("Error setting context:", error);
+    }
 
     return this.handleEvent("identify", body);
   };
 
-  // Set the flag evaluation context; if the context has changed,
-  // this will open a websocket connection (if not already open)
-  // and submit this context. The promise will resolve when the
-  // websocket sends back an initial set of flag values.
+  /**
+   * Set the flag evaluation context.
+   * In WebSocket mode, this will:
+   * 1. Open a websocket connection if not already open
+   * 2. Send the context to the server
+   * 3. Wait for initial flag values to be returned
+   * The promise resolves when initial flag values are received.
+   */
   setContext = async (context: SchematicContext): Promise<void> => {
     if (!this.useWebSocket) {
       this.context = context;
@@ -183,11 +263,15 @@ export class Schematic {
       const socket = await this.conn;
       await this.wsSendMessage(socket, context);
     } catch (error) {
-      console.error("Error setting Schematic context:", error);
+      console.error("Failed to establish WebSocket connection:", error);
+      throw error;
     }
   };
 
-  // Send track event
+  /**
+   * Send a track event
+   * Track usage for a company and/or user.
+   */
   track = (body: EventBodyTrack): Promise<void> => {
     const { company, user, event, traits } = body;
     return this.handleEvent("track", {
@@ -275,6 +359,9 @@ export class Schematic {
    * Websocket management
    */
 
+  /**
+   * If using websocket mode, close the connection when done.
+   */
   cleanup = async (): Promise<void> => {
     if (this.conn) {
       try {
