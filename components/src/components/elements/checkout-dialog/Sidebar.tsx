@@ -10,6 +10,7 @@ import { formatCurrency, formatOrdinal, getMonthName } from "../../../utils";
 import { Box, EmbedButton, Flex, Icon, Text } from "../../ui";
 
 interface SidebarProps {
+  addOns: (CompanyPlanDetailResponseData & { isSelected: boolean })[];
   charges?: {
     dueNow: number;
     newCharges: number;
@@ -36,6 +37,7 @@ interface SidebarProps {
 }
 
 export const Sidebar = ({
+  addOns,
   charges,
   checkoutStage,
   currentPlan,
@@ -147,6 +149,10 @@ export const Sidebar = ({
     },
     [selectedPlan, selectPlan, setPlanPeriod],
   );
+
+  const shortPeriod = (p: string) => (p === "month" ? "mo" : "yr");
+
+  const selectedAddOns = addOns.filter((addOn) => addOn.isSelected);
 
   const canUpdateSubscription =
     api &&
@@ -292,7 +298,7 @@ export const Sidebar = ({
           </Text>
         </Box>
 
-        <Flex $flexDirection="column" $gap="0.5rem">
+        <Flex $flexDirection="column" $gap="0.5rem" $marginBottom="1.5rem">
           {currentPlan && (
             <Flex
               $justifyContent="space-between"
@@ -325,7 +331,7 @@ export const Sidebar = ({
                       $color={theme.typography.text.color}
                     >
                       {formatCurrency(currentPlan.planPrice)}/
-                      {currentPlan.planPeriod}
+                      <sub>{shortPeriod(currentPlan.planPeriod)}</sub>
                     </Text>
                   </Flex>
                 )}
@@ -333,7 +339,7 @@ export const Sidebar = ({
           )}
 
           {canUpdateSubscription && (
-            <Box $marginBottom="1rem">
+            <Box>
               <Box
                 $width="100%"
                 $textAlign="left"
@@ -378,13 +384,66 @@ export const Sidebar = ({
                         : selectedPlan.yearlyPrice
                       )?.price ?? 0,
                     )}
-                    /{planPeriod}
+                    /<sub>{shortPeriod(planPeriod)}</sub>
                   </Text>
                 </Flex>
               </Flex>
             </Box>
           )}
         </Flex>
+
+        {selectedAddOns.length > 0 && (
+          <Flex $flexDirection="column" $gap="0.5rem" $marginBottom="1.5rem">
+            <Box $opacity="0.625">
+              <Text
+                $font={theme.typography.text.fontFamily}
+                $size={14}
+                $weight={theme.typography.text.fontWeight}
+                $color={theme.typography.text.color}
+              >
+                Add-ons
+              </Text>
+            </Box>
+
+            {selectedAddOns.map((addOn) => (
+              <Box key={addOn.id}>
+                <Flex
+                  $justifyContent="space-between"
+                  $alignItems="center"
+                  $gap="1rem"
+                >
+                  <Flex>
+                    <Text
+                      $font={theme.typography.heading4.fontFamily}
+                      $size={theme.typography.heading4.fontSize}
+                      $weight={theme.typography.heading4.fontWeight}
+                      $color={theme.typography.heading4.color}
+                    >
+                      {addOn.name}
+                    </Text>
+                  </Flex>
+
+                  <Flex>
+                    <Text
+                      $font={theme.typography.text.fontFamily}
+                      $size={theme.typography.text.fontSize}
+                      $weight={theme.typography.text.fontWeight}
+                      $color={theme.typography.text.color}
+                    >
+                      {formatCurrency(
+                        (planPeriod === "month"
+                          ? addOn.monthlyPrice
+                          : addOn.yearlyPrice
+                        )?.price ?? 0,
+                      )}
+                      /<sub>{shortPeriod(planPeriod)}</sub>
+                    </Text>
+                  </Flex>
+                </Flex>
+              </Box>
+            ))}
+          </Flex>
+        )}
 
         {charges?.proration && (
           <>
@@ -463,7 +522,7 @@ export const Sidebar = ({
                 $weight={theme.typography.text.fontWeight}
                 $color={theme.typography.text.color}
               >
-                {subscriptionPrice}/{planPeriod}
+                {subscriptionPrice}/<sub>{shortPeriod(planPeriod)}</sub>
               </Text>
             </Box>
           </Flex>

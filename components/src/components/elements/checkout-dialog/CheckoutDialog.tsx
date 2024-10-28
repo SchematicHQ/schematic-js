@@ -79,8 +79,8 @@ export const CheckoutDialog = () => {
           {
             companyCount: 1,
             createdAt: new Date(),
-            current: false,
-            description: "",
+            current: true,
+            description: "Use radar to track recent activity.",
             entitlements: [],
             features: [],
             icon: "",
@@ -93,7 +93,7 @@ export const CheckoutDialog = () => {
               interval: "monthly",
               price: 5000,
             },
-            name: "AddOn 1",
+            name: "Radar",
             planType: "",
             updatedAt: new Date(),
             valid: true,
@@ -102,14 +102,14 @@ export const CheckoutDialog = () => {
               id: "1",
               externalPriceId: "1",
               interval: "yearly",
-              price: 50000,
+              price: 1000,
             },
           },
           {
             companyCount: 1,
             createdAt: new Date(),
             current: false,
-            description: "",
+            description: "Echolocation for your codebase.",
             entitlements: [],
             features: [],
             icon: "",
@@ -122,7 +122,7 @@ export const CheckoutDialog = () => {
               interval: "monthly",
               price: 500,
             },
-            name: "AddOn 2",
+            name: "Sonar",
             planType: "",
             updatedAt: new Date(),
             valid: true,
@@ -145,9 +145,9 @@ export const CheckoutDialog = () => {
   const [addOns, setAddOns] = useState(() =>
     availableAddOns.map((addOn) => ({
       ...addOn,
-      isSelected: currentAddOns.some(
-        (currentAddOn) => addOn.id === currentAddOn.id,
-      ),
+      isSelected:
+        addOn.current ||
+        currentAddOns.some((currentAddOn) => addOn.id === currentAddOn.id),
     })),
   );
 
@@ -288,6 +288,7 @@ export const CheckoutDialog = () => {
         </Flex>
 
         <Sidebar
+          addOns={addOns}
           charges={charges}
           checkoutStage={checkoutStage}
           currentPlan={currentPlan}

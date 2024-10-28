@@ -5,9 +5,7 @@ import { hexToHSL, formatCurrency } from "../../../utils";
 import { Box, EmbedButton, Flex, Icon, Text } from "../../ui";
 
 interface AddOnsProps {
-  addOns: (CompanyPlanDetailResponseData & {
-    isSelected: boolean;
-  })[];
+  addOns: (CompanyPlanDetailResponseData & { isSelected: boolean })[];
   select: (id: string) => void;
   deselect: (id: string) => void;
   isLoading: boolean;
