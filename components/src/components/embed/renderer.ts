@@ -8,6 +8,7 @@ import {
   UpcomingBill,
   PaymentMethod,
   Invoices,
+  PricingTable,
 } from "../../components/elements";
 
 const components: Record<string, React.FC | undefined> = {
@@ -21,6 +22,7 @@ const components: Record<string, React.FC | undefined> = {
   UpcomingBill,
   PaymentMethod,
   Invoices,
+  PricingTable,
 };
 
 interface RenderOptions {
