@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { forwardRef, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { useTheme } from "styled-components";
 import pluralize from "pluralize";
 import type {
@@ -6,8 +7,12 @@ import type {
   CompanyPlanDetailResponseData,
 } from "../../../api";
 import { TEXT_BASE_SIZE } from "../../../const";
+import { type FontStyle } from "../../../context";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
-import { formatCurrency, hexToHSL } from "../../../utils";
+import type { ElementProps, RecursivePartial } from "../../../types";
+import { formatCurrency, formatNumber, hexToHSL } from "../../../utils";
+import { CheckoutDialog } from "../../elements";
+import { Element } from "../../layout";
 import {
   Box,
   Flex,
@@ -33,14 +38,103 @@ const getActivePlans = (
       );
 };
 
-export const PricingTable = () => {
+interface DesignProps {
+  showPeriodToggle: boolean;
+  showDiscount: boolean;
+  header: {
+    isVisible: boolean;
+    fontStyle: FontStyle;
+  };
+  plans: {
+    name: {
+      fontStyle: FontStyle;
+    };
+    description: {
+      isVisible: boolean;
+      fontStyle: FontStyle;
+    };
+    showInclusionText: boolean;
+    showFeatureIcons: boolean;
+    showEntitlements: boolean;
+  };
+  addOns: {
+    isVisible: boolean;
+    showDescription: boolean;
+    showFeatureIcons: boolean;
+    showEntitlements: boolean;
+  };
+  upgrade: {
+    isVisible: boolean;
+    buttonSize: "sm" | "md" | "lg";
+    buttonStyle: "primary" | "secondary";
+  };
+  downgrade: {
+    isVisible: boolean;
+    buttonSize: "sm" | "md" | "lg";
+    buttonStyle: "primary" | "secondary";
+  };
+}
+
+const resolveDesignProps = (
+  props: RecursivePartial<DesignProps>,
+): DesignProps => {
+  return {
+    showPeriodToggle: props.showPeriodToggle ?? true,
+    showDiscount: props.showDiscount ?? true,
+    header: {
+      isVisible: props.header?.isVisible ?? true,
+      fontStyle: props.header?.fontStyle ?? "heading2",
+    },
+    plans: {
+      name: {
+        fontStyle: props.plans?.name?.fontStyle ?? "heading1",
+      },
+      description: {
+        isVisible: props.plans?.description?.isVisible ?? true,
+        fontStyle: props.plans?.description?.fontStyle ?? "text",
+      },
+      showInclusionText: props.plans?.showInclusionText ?? true,
+      showFeatureIcons: props.plans?.showFeatureIcons ?? true,
+      showEntitlements: props.plans?.showEntitlements ?? true,
+    },
+    addOns: {
+      isVisible: props.addOns?.isVisible ?? true,
+      showDescription: props.addOns?.showDescription ?? true,
+      showFeatureIcons: props.addOns?.showFeatureIcons ?? true,
+      showEntitlements: props.addOns?.showEntitlements ?? true,
+    },
+    upgrade: {
+      isVisible: props.upgrade?.isVisible ?? true,
+      buttonSize: props.upgrade?.buttonSize ?? "md",
+      buttonStyle: props.upgrade?.buttonStyle ?? "primary",
+    },
+    downgrade: {
+      isVisible: props.downgrade?.isVisible ?? true,
+      buttonSize: props.downgrade?.buttonSize ?? "md",
+      buttonStyle: props.downgrade?.buttonStyle ?? "secondary",
+    },
+  };
+};
+
+export type PricingTableProps = DesignProps;
+
+export const PricingTable = forwardRef<
+  HTMLDivElement | null,
+  ElementProps &
+    RecursivePartial<DesignProps> &
+    React.HTMLAttributes<HTMLDivElement> & {
+      portal?: HTMLElement | null;
+    }
+>(({ children, className, portal, ...rest }, ref) => {
+  const props = resolveDesignProps(rest);
+
   const theme = useTheme();
 
-  const { data, mode } = useEmbed();
+  const { data, layout, mode } = useEmbed();
 
   const [period, setPeriod] = useState(() => data.company?.plan?.planPeriod);
 
-  const { plans, addOns, periods } = useMemo(() => {
+  const { canChangePlan, plans, addOns, periods } = useMemo(() => {
     const periods = [];
     if (data.activePlans.some((plan) => plan.monthlyPrice)) {
       periods.push("month");
@@ -50,16 +144,23 @@ export const PricingTable = () => {
     }
 
     return {
+      canChangePlan: data.capabilities?.checkout ?? true,
       plans: getActivePlans(data.activePlans, period, mode),
       addOns: getActivePlans(data.activeAddOns, period, mode),
       periods,
     };
-  }, [data.activePlans, data.activeAddOns, period, mode]);
+  }, [data.capabilities, data.activePlans, data.activeAddOns, period, mode]);
 
   const isLightBackground = useIsLightBackground();
 
   return (
-    <Flex $flexWrap="wrap" $gap="1rem" $flexGrow="1">
+    <Flex
+      ref={ref}
+      className={className}
+      $flexWrap="wrap"
+      $gap="1rem"
+      $flexGrow="1"
+    >
       {plans
         .sort((a, b) => {
           if (period === "year") {
@@ -74,7 +175,8 @@ export const PricingTable = () => {
         })
         .map((plan) => {
           return (
-            <Flex
+            <Element
+              as={Flex}
               key={plan.id}
               $flexDirection="column"
               $width="100%"
@@ -176,7 +278,37 @@ export const PricingTable = () => {
                           />
                         )}
 
-                        <FeatureName entitlement={entitlement} />
+                        {entitlement.feature?.name && (
+                          <Flex $alignItems="center">
+                            <Text
+                              $font={theme.typography.text.fontFamily}
+                              $size={theme.typography.text.fontSize}
+                              $weight={theme.typography.text.fontWeight}
+                              $color={theme.typography.text.color}
+                            >
+                              {entitlement.valueType === "numeric" ||
+                              entitlement.valueType === "unlimited" ||
+                              entitlement.valueType === "trait" ? (
+                                <>
+                                  {typeof entitlement.valueNumeric === "number"
+                                    ? `${formatNumber(entitlement.valueNumeric)} ${pluralize(entitlement.feature.name, entitlement.valueNumeric)}`
+                                    : `Unlimited ${pluralize(entitlement.feature.name)}`}
+                                  {entitlement.metricPeriod &&
+                                    ` per ${
+                                      {
+                                        billing: "billing period",
+                                        current_day: "day",
+                                        current_month: "month",
+                                        current_year: "year",
+                                      }[entitlement.metricPeriod]
+                                    }`}
+                                </>
+                              ) : (
+                                entitlement.feature.name
+                              )}
+                            </Text>
+                          </Flex>
+                        )}
                       </Flex>
                     </Flex>
                   );
@@ -196,7 +328,10 @@ export const PricingTable = () => {
                     <EmbedButton
                       disabled={!plan.valid}
                       {...(plan.valid === true && {
-                        onClick: () => selectPlan(plan),
+                        // TODO
+                        onClick: () => {
+                          // selectPlan(plan);
+                        },
                       })}
                       $size="sm"
                       $color="primary"
@@ -238,9 +373,13 @@ export const PricingTable = () => {
                   </Flex>
                 )}
               </Flex>
-            </Flex>
+            </Element>
           );
         })}
+
+      {canChangePlan &&
+        layout === "checkout" &&
+        createPortal(<CheckoutDialog />, portal || document.body)}
     </Flex>
   );
-};
+});
