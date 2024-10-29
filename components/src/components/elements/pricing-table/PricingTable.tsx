@@ -1,15 +1,27 @@
 import { useMemo, useState } from "react";
 import { useTheme } from "styled-components";
 import pluralize from "pluralize";
-import { type CompanyPlanDetailResponseData } from "../../../api";
+import type {
+  CompanyPlanWithBillingSubView,
+  CompanyPlanDetailResponseData,
+} from "../../../api";
 import { TEXT_BASE_SIZE } from "../../../const";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
-import * as Utils from "../../../utils";
-import { Flex } from "../../ui";
+import { formatCurrency, hexToHSL } from "../../../utils";
+import {
+  Box,
+  Flex,
+  EmbedButton,
+  Icon,
+  IconRound,
+  Text,
+  Tooltip,
+  type IconNameTypes,
+} from "../../ui";
 
 const getActivePlans = (
   plans: CompanyPlanDetailResponseData[],
-  period: string | null | undefined,
+  period: CompanyPlanWithBillingSubView["planPeriod"],
   mode: string,
 ) => {
   return mode === "edit"
@@ -61,8 +73,6 @@ export const PricingTable = () => {
           return 0;
         })
         .map((plan) => {
-          const isCurrentPlan = plan.id === selectedPlan?.id;
-
           return (
             <Flex
               key={plan.id}
@@ -73,9 +83,7 @@ export const PricingTable = () => {
               $backgroundColor={theme.card.background}
               $outlineWidth="2px"
               $outlineStyle="solid"
-              $outlineColor={
-                plan.id === selectedPlan?.id ? theme.primary : "transparent"
-              }
+              $outlineColor={plan.current ? theme.primary : "transparent"}
               $borderRadius={`${theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
               {...(theme.card.hasShadow && {
                 $boxShadow:
@@ -106,7 +114,7 @@ export const PricingTable = () => {
                 <Text>
                   <Box $display="inline-block" $fontSize="1.5rem">
                     {formatCurrency(
-                      (planPeriod === "month"
+                      (period === "month"
                         ? plan.monthlyPrice
                         : plan.yearlyPrice
                       )?.price ?? 0,
@@ -114,11 +122,11 @@ export const PricingTable = () => {
                   </Box>
 
                   <Box $display="inline-block" $fontSize="0.75rem">
-                    /{planPeriod}
+                    /{period}
                   </Box>
                 </Text>
 
-                {isCurrentPlan && (
+                {plan.current && (
                   <Flex
                     $position="absolute"
                     $right="1rem"
@@ -183,11 +191,10 @@ export const PricingTable = () => {
                 $height="auto"
                 $padding="1.5rem"
               >
-                {!isCurrentPlan ? (
+                {!plan.current ? (
                   <Box $position="relative">
                     <EmbedButton
-                      disabled={isLoading || plan.valid === false}
-                      isLoading={isLoading}
+                      disabled={!plan.valid}
                       {...(plan.valid === true && {
                         onClick: () => selectPlan(plan),
                       })}

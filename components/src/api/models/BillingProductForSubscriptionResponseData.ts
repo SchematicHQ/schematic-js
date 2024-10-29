@@ -60,6 +60,12 @@ export interface BillingProductForSubscriptionResponseData {
    * @type {string}
    * @memberof BillingProductForSubscriptionResponseData
    */
+  meterId?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof BillingProductForSubscriptionResponseData
+   */
   name: string;
   /**
    *
@@ -91,6 +97,12 @@ export interface BillingProductForSubscriptionResponseData {
    * @memberof BillingProductForSubscriptionResponseData
    */
   updatedAt: Date;
+  /**
+   *
+   * @type {string}
+   * @memberof BillingProductForSubscriptionResponseData
+   */
+  usageType: string;
 }
 
 /**
@@ -115,6 +127,7 @@ export function instanceOfBillingProductForSubscriptionResponseData(
   if (!("subscriptionId" in value) || value["subscriptionId"] === undefined)
     return false;
   if (!("updatedAt" in value) || value["updatedAt"] === undefined) return false;
+  if (!("usageType" in value) || value["usageType"] === undefined) return false;
   return true;
 }
 
@@ -138,12 +151,14 @@ export function BillingProductForSubscriptionResponseDataFromJSONTyped(
     externalId: json["external_id"],
     id: json["id"],
     interval: json["interval"],
+    meterId: json["meter_id"] == null ? undefined : json["meter_id"],
     name: json["name"],
     price: json["price"],
     priceExternalId: json["price_external_id"],
     quantity: json["quantity"],
     subscriptionId: json["subscription_id"],
     updatedAt: new Date(json["updated_at"]),
+    usageType: json["usage_type"],
   };
 }
 
@@ -160,11 +175,13 @@ export function BillingProductForSubscriptionResponseDataToJSON(
     external_id: value["externalId"],
     id: value["id"],
     interval: value["interval"],
+    meter_id: value["meterId"],
     name: value["name"],
     price: value["price"],
     price_external_id: value["priceExternalId"],
     quantity: value["quantity"],
     subscription_id: value["subscriptionId"],
     updated_at: value["updatedAt"].toISOString(),
+    usage_type: value["usageType"],
   };
 }
