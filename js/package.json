@@ -29,7 +29,7 @@
   },
   "dependencies": {
     "cross-fetch": "^4.0.0",
-    "uuid": "^10.0.0"
+    "uuid": "^11.0.1"
   },
   "devDependencies": {
     "@microsoft/api-extractor": "^7.47.9",
