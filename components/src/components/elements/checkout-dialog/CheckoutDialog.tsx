@@ -205,6 +205,7 @@ export const CheckoutDialog = () => {
           changeSubscriptionRequestBody: {
             newPlanId: plan.id,
             newPriceId: priceId,
+            addOnIds: [],
           },
         });
         setCharges(data);
@@ -246,6 +247,7 @@ export const CheckoutDialog = () => {
         changeSubscriptionRequestBody: {
           newPlanId: selectedPlan.id,
           newPriceId: priceId,
+          addOnIds: [],
           ...(paymentMethodId && { paymentMethodId }),
         },
       });
