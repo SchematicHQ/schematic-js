@@ -55,5 +55,6 @@ export * from "./RuleDetailResponseData";
 export * from "./RuleResponseData";
 export * from "./SetupIntentResponseData";
 export * from "./StripeEmbedInfo";
+export * from "./UpdateAddOnRequestBody";
 export * from "./UpdatePaymentMethodRequestBody";
 export * from "./UpdatePaymentMethodResponse";
