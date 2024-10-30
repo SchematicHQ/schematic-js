@@ -1,5 +1,9 @@
 name: Deploy schematic-js
 
+permissions:
+  id-token: write
+  contents: read
+
 on:
   push:
     tags:
