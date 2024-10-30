@@ -158,8 +158,8 @@ export const PricingTable = forwardRef<
       ref={ref}
       className={className}
       $flexWrap="wrap"
-      $gap="1rem"
-      $flexGrow="1"
+      $flexGrow="0"
+      $gap={`${theme.sectionLayout === "merged" ? 0 : 1}rem`}
     >
       {plans
         .sort((a, b) => {
@@ -173,24 +173,19 @@ export const PricingTable = forwardRef<
 
           return 0;
         })
-        .map((plan) => {
+        .map((plan, index) => {
           return (
             <Element
               as={Flex}
-              key={plan.id}
+              key={index}
+              $margin="0 !important"
+              $padding="0 !important"
               $flexDirection="column"
               $width="100%"
-              $minWidth="280px"
-              $maxWidth={`calc(${100 / 3}% - 1rem)`}
-              $backgroundColor={theme.card.background}
+              $maxWidth={`calc(${100 / (4 - theme.numberOfColumns)}% - ${theme.sectionLayout === "merged" ? 0 : (3 - theme.numberOfColumns) / (4 - theme.numberOfColumns)}rem)`}
               $outlineWidth="2px"
               $outlineStyle="solid"
               $outlineColor={plan.current ? theme.primary : "transparent"}
-              $borderRadius={`${theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
-              {...(theme.card.hasShadow && {
-                $boxShadow:
-                  "0px 1px 3px rgba(16, 24, 40, 0.1), 0px 1px 20px rgba(16, 24, 40, 0.06)",
-              })}
             >
               <Flex
                 $flexDirection="column"
