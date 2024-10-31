@@ -3,7 +3,7 @@ name: Deploy schematic-js
 on:
   push:
     tags:
-      - 'schematic-js@*'
+      - "schematic-js@*"
   workflow_dispatch:
 
 jobs:
@@ -43,8 +43,8 @@ jobs:
     needs: ["test", "lint"]
     env:
       AWS_REGION: "us-east-1"
-      CDN_DISTRIBUTION_ID: "EIY5G2ECS6996"
-      S3_BUCKET: "schematic-cdn"
+      CDN_DISTRIBUTION_ID: "E13KE8O1T1SCQI"
+      S3_BUCKET: "schematic-bucket-js"
     steps:
       - uses: actions/checkout@v4
 
@@ -61,12 +61,11 @@ jobs:
         working-directory: ./js
         run: yarn build:browser
 
-      - name: Configure AWS credentials
+      - name: 🚀auth-oidc-aws-prod
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ${{ vars.PROD_AWS_ROLE_ARN }}
+          aws-region: ${{ vars.PROD_AWS_REGION }}
 
       - name: Get package version
         id: package

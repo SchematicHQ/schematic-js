@@ -1,4 +1,5 @@
 import { Schematic } from "./index";
+import { Server as WebSocketServer } from "mock-socket";
 
 const mockFetch = jest.fn();
 global.fetch = mockFetch;
@@ -349,5 +350,256 @@ describe("Schematic", () => {
         FLAG_KEY2: false,
       });
     });
+  });
+});
+
+describe("Schematic WebSocket", () => {
+  let schematic: Schematic;
+  let mockServer: WebSocketServer;
+  const TEST_WS_URL = "ws://localhost:1234";
+  const FULL_WS_URL = `${TEST_WS_URL}/flags/bootstrap`;
+
+  beforeEach(() => {
+    mockServer?.stop();
+    mockServer = new WebSocketServer(FULL_WS_URL);
+    schematic = new Schematic("API_KEY", {
+      useWebSocket: true,
+      webSocketUrl: TEST_WS_URL,
+    });
+  });
+
+  afterEach(async () => {
+    await schematic.cleanup();
+    mockServer.stop();
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    mockFetch.mockClear();
+  });
+
+  it("should wait for WebSocket connection and initial message before returning flag value", async () => {
+    const context = {
+      company: { companyId: "456" },
+      user: { userId: "123" },
+    };
+
+    mockServer.on("connection", (socket) => {
+      socket.on("message", (data) => {
+        const parsedData = JSON.parse(data.toString());
+        expect(parsedData).toEqual({
+          apiKey: "API_KEY",
+          data: context,
+        });
+
+        setTimeout(() => {
+          socket.send(
+            JSON.stringify({
+              flags: [
+                {
+                  flag: "TEST_FLAG",
+                  value: true,
+                },
+              ],
+            }),
+          );
+        }, 100);
+      });
+    });
+
+    const flagValue = await schematic.checkFlag({
+      key: "TEST_FLAG",
+      context,
+      fallback: false,
+    });
+
+    expect(flagValue).toBe(true);
+  });
+
+  it("should handle connection closing and reopening", async () => {
+    const context = {
+      company: { companyId: "456" },
+      user: { userId: "123" },
+    };
+
+    let connectionCount = 0;
+
+    mockServer.on("connection", (socket) => {
+      connectionCount++;
+      socket.on("message", () => {
+        socket.send(
+          JSON.stringify({
+            flags: [
+              {
+                flag: "TEST_FLAG",
+                value: true,
+              },
+            ],
+          }),
+        );
+      });
+    });
+
+    const firstCheckResult = await schematic.checkFlag({
+      key: "TEST_FLAG",
+      context,
+      fallback: false,
+    });
+    expect(firstCheckResult).toBe(true);
+    expect(connectionCount).toBe(1);
+
+    mockServer.stop();
+    await schematic.cleanup();
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    mockServer = new WebSocketServer(FULL_WS_URL);
+    mockServer.on("connection", (socket) => {
+      connectionCount++;
+      socket.on("message", () => {
+        socket.send(
+          JSON.stringify({
+            flags: [
+              {
+                flag: "TEST_FLAG",
+                value: true,
+              },
+            ],
+          }),
+        );
+      });
+    });
+
+    const secondCheckResult = await schematic.checkFlag({
+      key: "TEST_FLAG",
+      context,
+      fallback: false,
+    });
+
+    expect(secondCheckResult).toBe(true);
+    expect(connectionCount).toBe(2);
+  }, 15000);
+
+  it("should fall back to REST API if WebSocket connection fails", async () => {
+    mockServer.stop();
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    const context = {
+      company: { companyId: "456" },
+      user: { userId: "123" },
+    };
+
+    // successful API response
+    mockFetch.mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            data: {
+              value: true,
+              flag: "TEST_FLAG",
+              companyId: context.company?.companyId,
+              userId: context.user?.userId,
+            },
+          }),
+      }),
+    );
+
+    const flagValue = await schematic.checkFlag({
+      key: "TEST_FLAG",
+      context,
+      fallback: false,
+    });
+
+    expect(flagValue).toBe(true);
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("should return fallback value if REST API call fails", async () => {
+    mockServer.stop();
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    const context = {
+      company: { companyId: "456" },
+      user: { userId: "123" },
+    };
+
+    // API response with server error
+    mockFetch.mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: false,
+        status: 500,
+        statusText: "Internal Server Error",
+      }),
+    );
+
+    const flagValue = await schematic.checkFlag({
+      key: "TEST_FLAG",
+      context,
+      fallback: true,
+    });
+
+    expect(flagValue).toBe(true); // fallback value
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("should return fallback value if REST API call throws", async () => {
+    mockServer.stop();
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    const context = {
+      company: { companyId: "456" },
+      user: { userId: "123" },
+    };
+
+    // network error
+    mockFetch.mockImplementationOnce(() =>
+      Promise.reject(new Error("Network error")),
+    );
+
+    const flagValue = await schematic.checkFlag({
+      key: "TEST_FLAG",
+      context,
+      fallback: true,
+    });
+
+    expect(flagValue).toBe(true); // fallback value
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("should use cached values for subsequent checks", async () => {
+    const context = {
+      company: { companyId: "456" },
+      user: { userId: "123" },
+    };
+
+    let messageCount = 0;
+    mockServer.on("connection", (socket) => {
+      socket.on("message", () => {
+        messageCount++;
+        socket.send(
+          JSON.stringify({
+            flags: [
+              {
+                flag: "TEST_FLAG",
+                value: true,
+              },
+            ],
+          }),
+        );
+      });
+    });
+
+    const firstValue = await schematic.checkFlag({
+      key: "TEST_FLAG",
+      context,
+      fallback: false,
+    });
+
+    const secondValue = await schematic.checkFlag({
+      key: "TEST_FLAG",
+      context,
+      fallback: false,
+    });
+
+    expect(firstValue).toBe(true);
+    expect(secondValue).toBe(true);
+    expect(messageCount).toBe(1);
   });
 });

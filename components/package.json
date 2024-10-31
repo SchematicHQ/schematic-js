@@ -35,7 +35,7 @@
     "pako": "^2.1.0",
     "pluralize": "^8.0.0",
     "styled-components": "^6.1.13",
-    "uuid": "^10.0.0"
+    "uuid": "^11.0.1"
   },
   "devDependencies": {
     "@craftjs/core": "^0.2.10",

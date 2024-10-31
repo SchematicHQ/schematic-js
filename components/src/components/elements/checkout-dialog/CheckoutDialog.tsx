@@ -180,6 +180,7 @@ export const CheckoutDialog = () => {
           changeSubscriptionRequestBody: {
             newPlanId: plan.id,
             newPriceId: priceId,
+            addOnIds: [],
           },
         });
         setCharges(data);

@@ -118,6 +118,7 @@ export const Sidebar = ({
         changeSubscriptionRequestBody: {
           newPlanId: selectedPlan.id,
           newPriceId: priceId,
+          addOnIds: [],
           ...(paymentMethodId && { paymentMethodId }),
         },
       });
