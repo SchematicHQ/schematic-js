@@ -4,6 +4,7 @@ import type {
   CompanyPlanWithBillingSubView,
   CompanyPlanDetailResponseData,
   SetupIntentResponseData,
+  UpdateAddOnRequestBody,
 } from "../../../api";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import { formatCurrency, formatOrdinal, getMonthName } from "../../../utils";
@@ -18,16 +19,14 @@ interface SidebarProps {
     periodStart: Date;
   };
   checkoutStage: string;
+  currentAddOns: CompanyPlanWithBillingSubView[];
   currentPlan?: CompanyPlanWithBillingSubView;
   error?: string;
   isLoading: boolean;
   paymentMethodId?: string;
   planPeriod: string;
   selectedPlan?: CompanyPlanDetailResponseData;
-  selectPlan: (
-    plan: CompanyPlanDetailResponseData,
-    newPeriod?: string,
-  ) => Promise<void>;
+  selectPlan: (plan: CompanyPlanDetailResponseData, newPeriod?: string) => void;
   setCheckoutStage: (stage: string) => void;
   setError: (msg?: string) => void;
   setPlanPeriod: (period: string) => void;
@@ -40,6 +39,7 @@ export const Sidebar = ({
   addOns,
   charges,
   checkoutStage,
+  currentAddOns,
   currentPlan,
   error,
   isLoading,
@@ -113,12 +113,30 @@ export const Sidebar = ({
     }
 
     try {
+      setError(undefined);
       toggleLoading();
       await api.checkout({
         changeSubscriptionRequestBody: {
           newPlanId: selectedPlan.id,
           newPriceId: priceId,
-          addOnIds: [],
+          addOnIds: addOns.reduce((acc: UpdateAddOnRequestBody[], addOn) => {
+            if (addOn.isSelected) {
+              const addOnPriceId = (
+                planPeriod === "month"
+                  ? addOn?.monthlyPrice
+                  : addOn?.yearlyPrice
+              )?.id;
+
+              if (addOnPriceId) {
+                acc.push({
+                  addOnId: addOn.id,
+                  priceId: addOnPriceId,
+                });
+              }
+            }
+
+            return acc;
+          }, []),
           ...(paymentMethodId && { paymentMethodId }),
         },
       });
@@ -135,6 +153,7 @@ export const Sidebar = ({
     paymentMethodId,
     planPeriod,
     selectedPlan,
+    addOns,
     setError,
     setLayout,
     toggleLoading,
@@ -155,11 +174,21 @@ export const Sidebar = ({
 
   const selectedAddOns = addOns.filter((addOn) => addOn.isSelected);
 
-  const canUpdateSubscription =
-    api &&
+  // TODO
+  const willPlanChange =
     selectedPlan &&
     (selectedPlan.id !== currentPlan?.id ||
-      planPeriod !== currentPlan.planPeriod) &&
+      planPeriod !== currentPlan.planPeriod);
+
+  const canUpdateSubscription =
+    api &&
+    (willPlanChange ||
+      addOns.length !== currentAddOns.length ||
+      addOns.every(
+        (addOn) =>
+          !addOn.isSelected ||
+          currentAddOns.some((currentAddOn) => currentAddOn.id === addOn.id),
+      )) &&
     !isLoading;
 
   const canCheckout =
@@ -307,7 +336,7 @@ export const Sidebar = ({
               $gap="1rem"
             >
               <Flex
-                {...(canUpdateSubscription && {
+                {...(willPlanChange && {
                   $opacity: "0.625",
                   $textDecoration: "line-through",
                 })}
@@ -339,7 +368,7 @@ export const Sidebar = ({
             </Flex>
           )}
 
-          {canUpdateSubscription && (
+          {willPlanChange && (
             <Box>
               <Box
                 $width="100%"
@@ -446,7 +475,7 @@ export const Sidebar = ({
           </Flex>
         )}
 
-        {charges?.proration && (
+        {typeof charges?.proration === "number" && (
           <>
             <Box $opacity="0.625">
               <Text
@@ -455,9 +484,7 @@ export const Sidebar = ({
                 $weight={theme.typography.text.fontWeight}
                 $color={theme.typography.text.color}
               >
-                {charges?.proration && charges.proration > 0
-                  ? "Proration"
-                  : "Credits"}
+                {charges.proration > 0 ? "Proration" : "Credits"}
               </Text>
             </Box>
 
@@ -555,7 +582,7 @@ export const Sidebar = ({
           </Flex>
         )}
 
-        {charges?.dueNow && charges.dueNow < 0 && (
+        {typeof charges?.dueNow === "number" && charges.dueNow < 0 && (
           <Flex $justifyContent="space-between" $gap="1rem">
             <Box $opacity="0.625">
               <Text

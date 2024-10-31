@@ -3,6 +3,7 @@ import { loadStripe, type Stripe } from "@stripe/stripe-js";
 import type {
   CompanyPlanDetailResponseData,
   SetupIntentResponseData,
+  UpdateAddOnRequestBody,
 } from "../../../api";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import { Flex, Modal, ModalHeader } from "../../ui";
@@ -67,74 +68,15 @@ export const CheckoutDialog = () => {
                   (planPeriod === "year" && plan.yearlyPrice)
                 );
               }),
-        availableAddOns: (mode === "edit"
-          ? data.activeAddOns
-          : data.activeAddOns.filter((addOn) => {
-              return (
-                (planPeriod === "month" && addOn.monthlyPrice) ||
-                (planPeriod === "year" && addOn.yearlyPrice)
-              );
-            })
-        ).concat(
-          {
-            companyCount: 1,
-            createdAt: new Date(),
-            current: true,
-            description: "Use radar to track recent activity.",
-            entitlements: [],
-            features: [],
-            icon: "",
-            id: "1",
-            isDefault: false,
-            monthlyPrice: {
-              currency: "usd",
-              id: "1",
-              externalPriceId: "1",
-              interval: "monthly",
-              price: 5000,
-            },
-            name: "Radar",
-            planType: "",
-            updatedAt: new Date(),
-            valid: true,
-            yearlyPrice: {
-              currency: "usd",
-              id: "1",
-              externalPriceId: "1",
-              interval: "yearly",
-              price: 1000,
-            },
-          },
-          {
-            companyCount: 1,
-            createdAt: new Date(),
-            current: false,
-            description: "Echolocation for your codebase.",
-            entitlements: [],
-            features: [],
-            icon: "",
-            id: "2",
-            isDefault: false,
-            monthlyPrice: {
-              currency: "usd",
-              id: "1",
-              externalPriceId: "1",
-              interval: "monthly",
-              price: 500,
-            },
-            name: "Sonar",
-            planType: "",
-            updatedAt: new Date(),
-            valid: true,
-            yearlyPrice: {
-              currency: "usd",
-              id: "1",
-              externalPriceId: "1",
-              interval: "yearly",
-              price: 5000,
-            },
-          },
-        ),
+        availableAddOns:
+          mode === "edit"
+            ? data.activeAddOns
+            : data.activeAddOns.filter((addOn) => {
+                return (
+                  (planPeriod === "month" && addOn.monthlyPrice) ||
+                  (planPeriod === "year" && addOn.yearlyPrice)
+                );
+              }),
       };
     }, [data.company, data.activePlans, data.activeAddOns, mode, planPeriod]);
 
@@ -145,44 +87,54 @@ export const CheckoutDialog = () => {
   const [addOns, setAddOns] = useState(() =>
     availableAddOns.map((addOn) => ({
       ...addOn,
-      isSelected:
-        addOn.current ||
-        currentAddOns.some((currentAddOn) => addOn.id === currentAddOn.id),
+      isSelected: currentAddOns.some(
+        (currentAddOn) => addOn.id === currentAddOn.id,
+      ),
     })),
   );
 
   const isLightBackground = useIsLightBackground();
 
-  const selectPlan = useCallback(
-    async (plan: CompanyPlanDetailResponseData, newPeriod?: string) => {
-      setCharges(undefined);
-      if (
-        plan.id === currentPlan?.id &&
-        newPeriod &&
-        newPeriod === currentPlan?.planPeriod
-      ) {
-        return;
-      }
-
-      setSelectedPlan(plan);
-
-      const period = newPeriod || planPeriod;
-      const priceId = (
-        period === "month" ? plan?.monthlyPrice : plan?.yearlyPrice
-      )?.id;
-      if (!priceId || !api) {
+  const previewCheckout = useCallback(
+    async (
+      plan: CompanyPlanDetailResponseData,
+      addOns: (CompanyPlanDetailResponseData & { isSelected: boolean })[],
+      period: string,
+    ) => {
+      const planPriceId =
+        period === "month" ? plan?.monthlyPrice?.id : plan?.yearlyPrice?.id;
+      if (!api || !planPriceId) {
         return;
       }
 
       try {
+        setError(undefined);
+        setCharges(undefined);
         setIsLoading(true);
+
         const { data } = await api.previewCheckout({
           changeSubscriptionRequestBody: {
             newPlanId: plan.id,
-            newPriceId: priceId,
-            addOnIds: [],
+            newPriceId: planPriceId,
+            addOnIds: addOns.reduce((acc: UpdateAddOnRequestBody[], addOn) => {
+              if (addOn.isSelected) {
+                const addOnPriceId = (
+                  period === "month" ? addOn?.monthlyPrice : addOn?.yearlyPrice
+                )?.id;
+
+                if (addOnPriceId) {
+                  acc.push({
+                    addOnId: addOn.id,
+                    priceId: addOnPriceId,
+                  });
+                }
+              }
+
+              return acc;
+            }, []),
           },
         });
+
         setCharges(data);
       } catch {
         setError(
@@ -192,7 +144,33 @@ export const CheckoutDialog = () => {
         setIsLoading(false);
       }
     },
-    [api, currentPlan, planPeriod],
+    [api],
+  );
+
+  const selectPlan = useCallback(
+    (plan: CompanyPlanDetailResponseData, newPeriod?: string) => {
+      setSelectedPlan(plan);
+      previewCheckout(plan, addOns, newPeriod || planPeriod);
+    },
+    [addOns, planPeriod, previewCheckout],
+  );
+
+  // TODO
+  const toggleAddOn = useCallback(
+    (id: string, newPeriod?: string) => {
+      const updatedAddOns = addOns.map((addOn) => ({
+        ...addOn,
+        ...(addOn.id === id && { isSelected: !addOn.isSelected }),
+      }));
+      setAddOns(updatedAddOns);
+
+      if (!selectedPlan) {
+        return;
+      }
+
+      previewCheckout(selectedPlan, updatedAddOns, newPeriod || planPeriod);
+    },
+    [selectedPlan, addOns, planPeriod, previewCheckout],
   );
 
   useEffect(() => {
@@ -258,22 +236,7 @@ export const CheckoutDialog = () => {
               isLoading={isLoading}
               period={planPeriod}
               addOns={addOns}
-              select={(id) =>
-                setAddOns((prev) =>
-                  prev.map((addOn) => ({
-                    ...addOn,
-                    ...(addOn.id === id && { isSelected: true }),
-                  })),
-                )
-              }
-              deselect={(id) =>
-                setAddOns((prev) =>
-                  prev.map((addOn) => ({
-                    ...addOn,
-                    ...(addOn.id === id && { isSelected: false }),
-                  })),
-                )
-              }
+              toggle={(id) => toggleAddOn(id)}
             />
           )}
 
@@ -292,6 +255,7 @@ export const CheckoutDialog = () => {
           addOns={addOns}
           charges={charges}
           checkoutStage={checkoutStage}
+          currentAddOns={currentAddOns}
           currentPlan={currentPlan}
           error={error}
           isLoading={isLoading}

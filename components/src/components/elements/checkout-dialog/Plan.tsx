@@ -11,10 +11,7 @@ interface PlanProps {
   plans: CompanyPlanDetailResponseData[];
   selectedPlan?: CompanyPlanDetailResponseData;
   period: string;
-  selectPlan: (
-    plan: CompanyPlanDetailResponseData,
-    newPeriod?: string,
-  ) => Promise<void>;
+  selectPlan: (plan: CompanyPlanDetailResponseData, newPeriod?: string) => void;
 }
 
 export const Plan = ({
@@ -71,8 +68,6 @@ export const Plan = ({
             return 0;
           })
           .map((plan) => {
-            const isCurrentPlan = plan.id === selectedPlan?.id;
-
             return (
               <Flex
                 key={plan.id}
@@ -127,7 +122,7 @@ export const Plan = ({
                     </Box>
                   </Text>
 
-                  {isCurrentPlan && (
+                  {plan.current && (
                     <Flex
                       $position="absolute"
                       $right="1rem"
@@ -179,7 +174,7 @@ export const Plan = ({
                   $width="100%"
                   $padding="1.5rem"
                 >
-                  {!isCurrentPlan ? (
+                  {plan.id !== selectedPlan?.id ? (
                     <Box $position="relative">
                       <EmbedButton
                         disabled={isLoading || plan.valid === false}

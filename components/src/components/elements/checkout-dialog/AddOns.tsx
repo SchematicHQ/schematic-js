@@ -6,19 +6,12 @@ import { Box, EmbedButton, Flex, Icon, Text } from "../../ui";
 
 interface AddOnsProps {
   addOns: (CompanyPlanDetailResponseData & { isSelected: boolean })[];
-  select: (id: string) => void;
-  deselect: (id: string) => void;
+  toggle: (id: string) => void;
   isLoading: boolean;
   period: string;
 }
 
-export const AddOns = ({
-  addOns,
-  select,
-  deselect,
-  isLoading,
-  period,
-}: AddOnsProps) => {
+export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
   const theme = useTheme();
 
   const periodKey = period === "year" ? "yearlyPrice" : "monthlyPrice";
@@ -126,7 +119,7 @@ export const AddOns = ({
                 {!addOn.isSelected ? (
                   <EmbedButton
                     disabled={isLoading}
-                    onClick={() => select(addOn.id)}
+                    onClick={() => toggle(addOn.id)}
                     $size="sm"
                     $color="primary"
                     $variant="outline"
@@ -136,7 +129,7 @@ export const AddOns = ({
                 ) : (
                   <EmbedButton
                     disabled={isLoading}
-                    onClick={() => deselect(addOn.id)}
+                    onClick={() => toggle(addOn.id)}
                     $size="sm"
                     $color="primary"
                     $variant="text"
