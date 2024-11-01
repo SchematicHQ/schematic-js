@@ -12,7 +12,7 @@ import { useEmbed, useIsLightBackground } from "../../../hooks";
 import type { ElementProps, RecursivePartial } from "../../../types";
 import { formatCurrency, formatNumber, hexToHSL } from "../../../utils";
 import { CheckoutDialog } from "../../elements";
-import { cardBoxShadow, Element, FussyChild } from "../../layout";
+import { cardBoxShadow, FussyChild } from "../../layout";
 import {
   Box,
   Flex,
@@ -161,6 +161,17 @@ export const PricingTable = forwardRef<
       $flexWrap="wrap"
       $gap="1rem"
     >
+      <Flex $justifyContent="space-between" $alignItems="center">
+        <Text
+          $font={theme.typography[props.header.fontStyle].fontFamily}
+          $fontSize={theme.typography[props.header.fontStyle].fontSize}
+          $fontWeight={theme.typography[props.header.fontStyle].fontWeight}
+          $color={theme.typography[props.header.fontStyle].color}
+        >
+          Plans
+        </Text>
+      </Flex>
+
       {plans
         .sort((a, b) => {
           if (period === "year") {
@@ -175,8 +186,7 @@ export const PricingTable = forwardRef<
         })
         .map((plan, index) => {
           return (
-            <Element
-              as={Flex}
+            <Flex
               key={index}
               $flexDirection="column"
               $width="100%"
@@ -369,7 +379,7 @@ export const PricingTable = forwardRef<
                   </Flex>
                 )}
               </Flex>
-            </Element>
+            </Flex>
           );
         })}
 
