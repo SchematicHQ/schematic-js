@@ -12,7 +12,7 @@ import { useEmbed, useIsLightBackground } from "../../../hooks";
 import type { ElementProps, RecursivePartial } from "../../../types";
 import { formatCurrency, formatNumber, hexToHSL } from "../../../utils";
 import { CheckoutDialog } from "../../elements";
-import { Element } from "../../layout";
+import { cardBoxShadow, Element, FussyChild } from "../../layout";
 import {
   Box,
   Flex,
@@ -154,12 +154,12 @@ export const PricingTable = forwardRef<
   const isLightBackground = useIsLightBackground();
 
   return (
-    <Flex
+    <FussyChild
+      as={Flex}
       ref={ref}
       className={className}
       $flexWrap="wrap"
-      $flexGrow="0"
-      $gap={`${theme.sectionLayout === "merged" ? 0 : 1}rem`}
+      $gap="1rem"
     >
       {plans
         .sort((a, b) => {
@@ -178,14 +178,15 @@ export const PricingTable = forwardRef<
             <Element
               as={Flex}
               key={index}
-              $margin="0 !important"
-              $padding="0 !important"
               $flexDirection="column"
               $width="100%"
-              $maxWidth={`calc(${100 / (4 - theme.numberOfColumns)}% - ${theme.sectionLayout === "merged" ? 0 : (3 - theme.numberOfColumns) / (4 - theme.numberOfColumns)}rem)`}
+              $maxWidth="320px"
+              $backgroundColor={theme.card.background}
+              $borderRadius={`${theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
               $outlineWidth="2px"
               $outlineStyle="solid"
               $outlineColor={plan.current ? theme.primary : "transparent"}
+              {...(theme.card.hasShadow && { $boxShadow: cardBoxShadow })}
             >
               <Flex
                 $flexDirection="column"
@@ -375,6 +376,6 @@ export const PricingTable = forwardRef<
       {canChangePlan &&
         layout === "checkout" &&
         createPortal(<CheckoutDialog />, portal || document.body)}
-    </Flex>
+    </FussyChild>
   );
 });

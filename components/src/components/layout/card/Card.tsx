@@ -1,7 +1,7 @@
 import { forwardRef } from "react";
-import { StyledCard, Element } from "./styles";
+import { cardBoxShadow, StyledCard, Element, FussyChild } from "./styles";
 
-export { StyledCard, Element };
+export { cardBoxShadow, StyledCard, Element, FussyChild };
 
 export interface CardProps {
   children?: React.ReactNode;
