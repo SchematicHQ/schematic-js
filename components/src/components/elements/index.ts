@@ -1,5 +1,3 @@
-export * from "./shared";
-
 export * from "./included-features";
 export * from "./invoices";
 export * from "./metered-features";

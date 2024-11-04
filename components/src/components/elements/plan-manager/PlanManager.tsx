@@ -5,7 +5,7 @@ import { type FontStyle } from "../../../context";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import type { RecursivePartial, ElementProps } from "../../../types";
 import { formatCurrency, lighten, darken } from "../../../utils";
-import { CheckoutDialog } from "../../elements";
+import { CheckoutDialog } from "../../shared";
 import { Element } from "../../layout";
 import { Box, EmbedButton, Flex, Text } from "../../ui";
 

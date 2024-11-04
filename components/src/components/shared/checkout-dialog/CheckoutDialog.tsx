@@ -17,7 +17,8 @@ import {
   formatOrdinal,
   getMonthName,
 } from "../../../utils";
-import { PaymentForm, PaymentMethod } from "../../elements";
+import { PaymentMethod } from "../../elements";
+import { PaymentForm, PeriodToggle } from "../../shared";
 import {
   Box,
   EmbedButton,
@@ -88,7 +89,11 @@ const FeatureName = ({
   );
 };
 
-export const CheckoutDialog = () => {
+export interface CheckoutDialogProps {
+  initialPlanId?: string;
+}
+
+export const CheckoutDialog = (props: CheckoutDialogProps) => {
   const theme = useTheme();
   const { api, data, mode, setLayout } = useEmbed();
 
@@ -147,7 +152,11 @@ export const CheckoutDialog = () => {
 
   const [selectedPlan, setSelectedPlan] = useState<
     CompanyPlanDetailResponseData | undefined
-  >(() => availablePlans.find((plan) => plan.id === currentPlan?.id));
+  >(() =>
+    availablePlans.find(
+      (plan) => plan.id === (props.initialPlanId || currentPlan?.id),
+    ),
+  );
 
   const savingsPercentage = useMemo(() => {
     if (selectedPlan) {
@@ -690,7 +699,7 @@ export const CheckoutDialog = () => {
                 </Elements>
               ) : (
                 <>
-                  <PaymentMethod />
+                  <PaymentMethod functions={{ allowEdit: false }} />
 
                   <Box>
                     <Text
@@ -745,63 +754,10 @@ export const CheckoutDialog = () => {
             </Flex>
 
             {planPeriodOptions.length > 1 && (
-              <Flex
-                $borderWidth="1px"
-                $borderStyle="solid"
-                $borderColor={
-                  isLightBackground
-                    ? "hsla(0, 0%, 0%, 0.1)"
-                    : "hsla(0, 0%, 100%, 0.2)"
-                }
-                $borderRadius="2.5rem"
-                $cursor="pointer"
-              >
-                <Flex
-                  onClick={() => changePlanPeriod("month")}
-                  $justifyContent="center"
-                  $alignItems="center"
-                  $padding="0.25rem 0.5rem"
-                  $flex="1"
-                  {...(planPeriod === "month" && {
-                    $backgroundColor: isLightBackground
-                      ? "hsla(0, 0%, 0%, 0.075)"
-                      : "hsla(0, 0%, 100%, 0.15)",
-                  })}
-                  $borderRadius="2.5rem"
-                >
-                  <Text
-                    $font={theme.typography.text.fontFamily}
-                    $size={14}
-                    $weight={planPeriod === "month" ? 600 : 400}
-                    $color={theme.typography.text.color}
-                  >
-                    Billed monthly
-                  </Text>
-                </Flex>
-
-                <Flex
-                  onClick={() => changePlanPeriod("year")}
-                  $justifyContent="center"
-                  $alignItems="center"
-                  $padding="0.25rem 0.5rem"
-                  $flex="1"
-                  {...(planPeriod === "year" && {
-                    $backgroundColor: isLightBackground
-                      ? "hsla(0, 0%, 0%, 0.075)"
-                      : "hsla(0, 0%, 100%, 0.15)",
-                  })}
-                  $borderRadius="2.5rem"
-                >
-                  <Text
-                    $font={theme.typography.text.fontFamily}
-                    $size={14}
-                    $weight={planPeriod === "year" ? 600 : 400}
-                    $color={theme.typography.text.color}
-                  >
-                    Billed yearly
-                  </Text>
-                </Flex>
-              </Flex>
+              <PeriodToggle
+                period={planPeriod}
+                changePeriod={changePlanPeriod}
+              />
             )}
 
             {savingsPercentage > 0 && (
