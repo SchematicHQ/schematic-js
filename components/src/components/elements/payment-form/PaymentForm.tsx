@@ -4,13 +4,10 @@ import {
   useElements,
   PaymentElement,
 } from "@stripe/react-stripe-js";
-import type { CompanyPlanDetailResponseData } from "../../../api";
 import { useEmbed } from "../../../hooks";
 import { Box, EmbedButton, Text } from "../../ui";
 
 interface PaymentFormProps {
-  plan?: CompanyPlanDetailResponseData;
-  period?: string;
   onConfirm?: (paymentMethodId: string) => void;
 }
 

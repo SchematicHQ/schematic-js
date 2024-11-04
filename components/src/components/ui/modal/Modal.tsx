@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef } from "react";
 import { useTheme } from "styled-components";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
-import { Box, Flex } from "../../ui";
+import { Flex } from "../../ui";
+import { Container } from "./styles";
 
 interface ModalProps {
   children: React.ReactNode;
@@ -27,7 +28,7 @@ export const Modal = ({ children, size = "auto", onClose }: ModalProps) => {
   }, []);
 
   return (
-    <Box
+    <Container
       ref={ref}
       tabIndex={0}
       onClick={(event) => {
@@ -83,6 +84,6 @@ export const Modal = ({ children, size = "auto", onClose }: ModalProps) => {
       >
         {children}
       </Flex>
-    </Box>
+    </Container>
   );
 };
