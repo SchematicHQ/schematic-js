@@ -13,12 +13,25 @@
  */
 
 import { mapValues } from "../runtime";
+import type { UpdateAddOnRequestBody } from "./UpdateAddOnRequestBody";
+import {
+  UpdateAddOnRequestBodyFromJSON,
+  UpdateAddOnRequestBodyFromJSONTyped,
+  UpdateAddOnRequestBodyToJSON,
+} from "./UpdateAddOnRequestBody";
+
 /**
  *
  * @export
  * @interface ChangeSubscriptionRequestBody
  */
 export interface ChangeSubscriptionRequestBody {
+  /**
+   *
+   * @type {Array<UpdateAddOnRequestBody>}
+   * @memberof ChangeSubscriptionRequestBody
+   */
+  addOnIds: Array<UpdateAddOnRequestBody>;
   /**
    *
    * @type {string}
@@ -45,6 +58,7 @@ export interface ChangeSubscriptionRequestBody {
 export function instanceOfChangeSubscriptionRequestBody(
   value: object,
 ): value is ChangeSubscriptionRequestBody {
+  if (!("addOnIds" in value) || value["addOnIds"] === undefined) return false;
   if (!("newPlanId" in value) || value["newPlanId"] === undefined) return false;
   if (!("newPriceId" in value) || value["newPriceId"] === undefined)
     return false;
@@ -65,6 +79,9 @@ export function ChangeSubscriptionRequestBodyFromJSONTyped(
     return json;
   }
   return {
+    addOnIds: (json["add_on_ids"] as Array<any>).map(
+      UpdateAddOnRequestBodyFromJSON,
+    ),
     newPlanId: json["new_plan_id"],
     newPriceId: json["new_price_id"],
     paymentMethodId:
@@ -79,6 +96,9 @@ export function ChangeSubscriptionRequestBodyToJSON(
     return value;
   }
   return {
+    add_on_ids: (value["addOnIds"] as Array<any>).map(
+      UpdateAddOnRequestBodyToJSON,
+    ),
     new_plan_id: value["newPlanId"],
     new_price_id: value["newPriceId"],
     payment_method_id: value["paymentMethodId"],
