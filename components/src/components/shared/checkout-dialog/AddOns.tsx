@@ -16,6 +16,8 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
 
   const periodKey = period === "year" ? "yearlyPrice" : "monthlyPrice";
 
+  const cardPadding = theme.card.padding / TEXT_BASE_SIZE;
+
   return (
     <>
       <Flex $flexDirection="column" $gap="1rem" $marginBottom="1rem">
@@ -67,7 +69,7 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
                 $position="relative"
                 $gap="1rem"
                 $width="100%"
-                $padding={`${theme.card.padding / TEXT_BASE_SIZE}rem`}
+                $padding={`${cardPadding}rem ${cardPadding}rem 0`}
               >
                 <Text $size={20} $weight={600}>
                   {addOn.name}
@@ -110,9 +112,11 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
               </Flex>
 
               <Flex
-                $flexDirection="column"
                 $position="relative"
+                $flexDirection="column"
+                $justifyContent="end"
                 $gap="1rem"
+                $flexGrow="1"
                 $width="100%"
                 $padding="1.5rem"
               >
