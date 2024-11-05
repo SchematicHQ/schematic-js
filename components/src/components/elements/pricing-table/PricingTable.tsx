@@ -48,6 +48,7 @@ interface DesignProps {
     fontStyle: FontStyle;
   };
   plans: {
+    isVisible: boolean;
     name: {
       fontStyle: FontStyle;
     };
@@ -88,6 +89,7 @@ const resolveDesignProps = (
       fontStyle: props.header?.fontStyle ?? "heading3",
     },
     plans: {
+      isVisible: props.plans?.isVisible ?? true,
       name: {
         fontStyle: props.plans?.name?.fontStyle ?? "heading2",
       },
@@ -107,13 +109,13 @@ const resolveDesignProps = (
     },
     upgrade: {
       isVisible: props.upgrade?.isVisible ?? true,
-      buttonSize: props.upgrade?.buttonSize ?? "md",
+      buttonSize: props.upgrade?.buttonSize ?? "sm",
       buttonStyle: props.upgrade?.buttonStyle ?? "primary",
     },
     downgrade: {
       isVisible: props.downgrade?.isVisible ?? true,
-      buttonSize: props.downgrade?.buttonSize ?? "md",
-      buttonStyle: props.downgrade?.buttonStyle ?? "secondary",
+      buttonSize: props.downgrade?.buttonSize ?? "sm",
+      buttonStyle: props.downgrade?.buttonStyle ?? "primary",
     },
   };
 };
@@ -134,8 +136,11 @@ export const PricingTable = forwardRef<
 
   const { data, layout, mode, setLayout } = useEmbed();
 
-  const [period, setPeriod] = useState(() => data.company?.plan?.planPeriod);
+  const [selectedPeriod, setSelectedPeriod] = useState(
+    () => data.company?.plan?.planPeriod || "month",
+  );
   const [selectedPlanId, setSelectedPlanId] = useState<string | undefined>();
+  const [selectedAddOnId, setSelectedAddOnId] = useState<string | undefined>();
 
   const { canChangePlan, plans, addOns, periods } = useMemo(() => {
     const periods = [];
@@ -148,15 +153,15 @@ export const PricingTable = forwardRef<
 
     return {
       canChangePlan: data.capabilities?.checkout ?? true,
-      plans: getActivePlans(data.activePlans, period, mode),
-      addOns: getActivePlans(data.activeAddOns, period, mode),
+      plans: getActivePlans(data.activePlans, selectedPeriod, mode),
+      addOns: getActivePlans(data.activeAddOns, selectedPeriod, mode),
       periods,
     };
   }, [
     data.capabilities?.checkout,
     data.activePlans,
     data.activeAddOns,
-    period,
+    selectedPeriod,
     mode,
   ]);
 
@@ -165,11 +170,11 @@ export const PricingTable = forwardRef<
   const cardPadding = theme.card.padding / TEXT_BASE_SIZE;
 
   const plansByPrice = plans.slice().sort((a, b) => {
-    if (period === "year") {
+    if (selectedPeriod === "year") {
       return (a.yearlyPrice?.price ?? 0) - (b.yearlyPrice?.price ?? 0);
     }
 
-    if (period === "month") {
+    if (selectedPeriod === "month") {
       return (a.monthlyPrice?.price ?? 0) - (b.monthlyPrice?.price ?? 0);
     }
 
@@ -181,269 +186,620 @@ export const PricingTable = forwardRef<
   );
 
   return (
-    <FussyChild ref={ref} className={className}>
-      <Flex
-        $justifyContent="space-between"
-        $alignItems="center"
-        $marginBottom="2rem"
-      >
-        {props.header.isVisible && (
+    <FussyChild
+      ref={ref}
+      className={className}
+      as={Flex}
+      $flexDirection="column"
+      $gap="3rem"
+    >
+      <Box>
+        <Flex
+          $justifyContent="space-between"
+          $alignItems="center"
+          $marginBottom="2rem"
+        >
           <Text
             $font={theme.typography[props.header.fontStyle].fontFamily}
             $size={theme.typography[props.header.fontStyle].fontSize}
             $weight={theme.typography[props.header.fontStyle].fontWeight}
             $color={theme.typography[props.header.fontStyle].color}
           >
-            Plans
+            {props.header.isVisible && plansByPrice.length > 0 && "Plans"}
           </Text>
-        )}
 
-        <PeriodToggle
-          period="month"
-          changePeriod={(period) => console.debug(period)}
-        />
-      </Flex>
+          <PeriodToggle
+            options={periods}
+            selectedOption={selectedPeriod}
+            onChange={(period) => setSelectedPeriod(period)}
+          />
+        </Flex>
 
-      <Flex $flexWrap="wrap" $gap="1rem">
-        {plansByPrice.map((plan, index) => {
-          return (
-            <Flex
-              key={index}
-              $flexDirection="column"
-              $width="100%"
-              $maxWidth="320px"
-              $backgroundColor={theme.card.background}
-              $borderRadius={`${theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
-              $outlineWidth="2px"
-              $outlineStyle="solid"
-              $outlineColor={plan.current ? theme.primary : "transparent"}
-              {...(theme.card.hasShadow && { $boxShadow: cardBoxShadow })}
-            >
-              <Flex
-                $flexDirection="column"
-                $position="relative"
-                $gap="1rem"
-                $width="100%"
-                $height="auto"
-                $padding={`${cardPadding}rem ${cardPadding}rem ${0.75 * cardPadding}rem`}
-                $borderBottomWidth="1px"
-                $borderStyle="solid"
-                $borderColor={
-                  isLightBackground
-                    ? "hsla(0, 0%, 0%, 0.175)"
-                    : "hsla(0, 0%, 100%, 0.175)"
-                }
-              >
-                <Text
-                  $font={
-                    theme.typography[props.plans.name.fontStyle].fontFamily
-                  }
-                  $size={theme.typography[props.plans.name.fontStyle].fontSize}
-                  $weight={
-                    theme.typography[props.plans.name.fontStyle].fontWeight
-                  }
-                  $color={theme.typography[props.plans.name.fontStyle].color}
-                >
-                  {plan.name}
-                </Text>
-
-                <Text
-                  $font={
-                    theme.typography[props.plans.description.fontStyle]
-                      .fontFamily
-                  }
-                  $size={
-                    theme.typography[props.plans.description.fontStyle].fontSize
-                  }
-                  $weight={
-                    theme.typography[props.plans.description.fontStyle]
-                      .fontWeight
-                  }
-                  $color={
-                    theme.typography[props.plans.description.fontStyle].color
-                  }
-                >
-                  {plan.description}
-                </Text>
-
-                <Text
-                  $font={theme.typography.text.fontFamily}
-                  $size={theme.typography.text.fontSize}
-                  $weight={theme.typography.text.fontWeight}
-                  $color={theme.typography.text.color}
-                >
-                  <Box $display="inline-block" $fontSize="1.5rem">
-                    {formatCurrency(
-                      (period === "month"
-                        ? plan.monthlyPrice
-                        : plan.yearlyPrice
-                      )?.price ?? 0,
-                    )}
-                  </Box>
-
-                  <Box $display="inline-block" $fontSize="0.75rem">
-                    /{period}
-                  </Box>
-                </Text>
-
-                {plan.current && (
-                  <Flex
-                    $position="absolute"
-                    $right="1rem"
-                    $top="1rem"
-                    $fontSize="0.625rem"
-                    $color={
-                      hexToHSL(theme.primary).l > 50 ? "#000000" : "#FFFFFF"
-                    }
-                    $backgroundColor={theme.primary}
-                    $borderRadius="9999px"
-                    $padding="0.125rem 0.85rem"
-                  >
-                    Current plan
-                  </Flex>
-                )}
-              </Flex>
-
-              <Flex
-                $flexDirection="column"
-                $justifyContent="space-between"
-                $gap={`${cardPadding}rem`}
-                $flexGrow="1"
-                $padding={`${0.75 * cardPadding}rem ${cardPadding}rem ${cardPadding}rem`}
-              >
+        {props.plans.isVisible && plansByPrice.length > 0 && (
+          <Flex $flexWrap="wrap" $gap="1rem">
+            {plansByPrice.map((plan, index) => {
+              return (
                 <Flex
+                  key={index}
                   $flexDirection="column"
-                  $position="relative"
-                  $gap="0.5rem"
+                  $width="100%"
+                  $maxWidth="320px"
+                  $backgroundColor={theme.card.background}
+                  $borderRadius={`${theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
+                  $outlineWidth="2px"
+                  $outlineStyle="solid"
+                  $outlineColor={plan.current ? theme.primary : "transparent"}
+                  {...(theme.card.hasShadow && { $boxShadow: cardBoxShadow })}
                 >
-                  {plan.entitlements.map((entitlement) => {
-                    return (
-                      <Flex
-                        key={entitlement.id}
-                        $flexWrap="wrap"
-                        $justifyContent="space-between"
-                        $alignItems="center"
-                        $gap="1rem"
-                      >
-                        <Flex $gap="1rem">
-                          {entitlement.feature?.icon && (
-                            <IconRound
-                              name={entitlement.feature.icon as IconNameTypes}
-                              size="sm"
-                              colors={[
-                                theme.primary,
-                                isLightBackground
-                                  ? "hsla(0, 0%, 0%, 0.0625)"
-                                  : "hsla(0, 0%, 100%, 0.25)",
-                              ]}
-                            />
-                          )}
-
-                          {entitlement.feature?.name && (
-                            <Flex $alignItems="center">
-                              <Text
-                                $font={theme.typography.text.fontFamily}
-                                $size={theme.typography.text.fontSize}
-                                $weight={theme.typography.text.fontWeight}
-                                $color={theme.typography.text.color}
-                              >
-                                {entitlement.valueType === "numeric" ||
-                                entitlement.valueType === "unlimited" ||
-                                entitlement.valueType === "trait" ? (
-                                  <>
-                                    {typeof entitlement.valueNumeric ===
-                                    "number"
-                                      ? `${formatNumber(entitlement.valueNumeric)} ${pluralize(entitlement.feature.name, entitlement.valueNumeric)}`
-                                      : `Unlimited ${pluralize(entitlement.feature.name)}`}
-                                    {entitlement.metricPeriod &&
-                                      ` per ${
-                                        {
-                                          billing: "billing period",
-                                          current_day: "day",
-                                          current_month: "month",
-                                          current_year: "year",
-                                        }[entitlement.metricPeriod]
-                                      }`}
-                                  </>
-                                ) : (
-                                  entitlement.feature.name
-                                )}
-                              </Text>
-                            </Flex>
-                          )}
-                        </Flex>
-                      </Flex>
-                    );
-                  })}
-                </Flex>
-
-                {plan.current ? (
                   <Flex
-                    $justifyContent="center"
-                    $alignItems="center"
-                    $gap="0.25rem"
-                    $fontSize="0.9375rem"
-                    $padding="0.625rem 0"
+                    $flexDirection="column"
+                    $position="relative"
+                    $gap="0.75rem"
+                    $width="100%"
+                    $height="auto"
+                    $padding={`${cardPadding}rem ${cardPadding}rem ${0.75 * cardPadding}rem`}
+                    $borderBottomWidth="1px"
+                    $borderStyle="solid"
+                    $borderColor={
+                      isLightBackground
+                        ? "hsla(0, 0%, 0%, 0.175)"
+                        : "hsla(0, 0%, 100%, 0.175)"
+                    }
                   >
-                    <Icon
-                      name="check-rounded"
-                      style={{
-                        fontSize: 20,
-                        lineHeight: "1",
-                        color: theme.primary,
-                      }}
-                    />
+                    <Box>
+                      <Text
+                        $font={
+                          theme.typography[props.plans.name.fontStyle]
+                            .fontFamily
+                        }
+                        $size={
+                          theme.typography[props.plans.name.fontStyle].fontSize
+                        }
+                        $weight={
+                          theme.typography[props.plans.name.fontStyle]
+                            .fontWeight
+                        }
+                        $color={
+                          theme.typography[props.plans.name.fontStyle].color
+                        }
+                      >
+                        {plan.name}
+                      </Text>
+                    </Box>
 
-                    <Text
-                      $lineHeight="1.4"
-                      $color={theme.typography.text.color}
-                    >
-                      Selected
-                    </Text>
+                    <Box $marginBottom="0.5rem">
+                      <Text
+                        $font={
+                          theme.typography[props.plans.description.fontStyle]
+                            .fontFamily
+                        }
+                        $size={
+                          theme.typography[props.plans.description.fontStyle]
+                            .fontSize
+                        }
+                        $weight={
+                          theme.typography[props.plans.description.fontStyle]
+                            .fontWeight
+                        }
+                        $color={
+                          theme.typography[props.plans.description.fontStyle]
+                            .color
+                        }
+                      >
+                        {plan.description}
+                      </Text>
+                    </Box>
+
+                    <Box>
+                      <Text
+                        $font={
+                          theme.typography[props.plans.name.fontStyle]
+                            .fontFamily
+                        }
+                        $size={
+                          theme.typography[props.plans.name.fontStyle].fontSize
+                        }
+                        $weight={
+                          theme.typography[props.plans.name.fontStyle]
+                            .fontWeight
+                        }
+                        $color={
+                          theme.typography[props.plans.name.fontStyle].color
+                        }
+                      >
+                        {formatCurrency(
+                          (selectedPeriod === "month"
+                            ? plan.monthlyPrice
+                            : plan.yearlyPrice
+                          )?.price ?? 0,
+                        )}
+                      </Text>
+
+                      <Text
+                        $font={
+                          theme.typography[props.plans.name.fontStyle]
+                            .fontFamily
+                        }
+                        $size={
+                          (16 / 30) *
+                          theme.typography[props.plans.name.fontStyle].fontSize
+                        }
+                        $weight={
+                          theme.typography[props.plans.name.fontStyle]
+                            .fontWeight
+                        }
+                        $color={
+                          theme.typography[props.plans.name.fontStyle].color
+                        }
+                      >
+                        /{selectedPeriod}
+                      </Text>
+                    </Box>
+
+                    {plan.current && (
+                      <Flex
+                        $position="absolute"
+                        $right="1rem"
+                        $top="1rem"
+                        $fontSize="0.625rem"
+                        $color={
+                          hexToHSL(theme.primary).l > 50 ? "#000000" : "#FFFFFF"
+                        }
+                        $backgroundColor={theme.primary}
+                        $borderRadius="9999px"
+                        $padding="0.125rem 0.85rem"
+                      >
+                        Current plan
+                      </Flex>
+                    )}
                   </Flex>
-                ) : (
-                  <Box $position="relative">
-                    <EmbedButton
-                      disabled={!plan.valid}
-                      {...(plan.valid === true && {
-                        onClick: () => {
-                          setSelectedPlanId(plan.id);
-                          setLayout("checkout");
-                        },
-                      })}
-                      {...(index > currentPlanIndex
-                        ? {
-                            $size: props.upgrade.buttonSize,
-                            $color: props.upgrade.buttonStyle,
-                            $variant: "filled",
-                          }
-                        : {
-                            $size: props.downgrade.buttonSize,
-                            $color: props.downgrade.buttonStyle,
-                            $variant: "outline",
-                          })}
+
+                  <Flex
+                    $flexDirection="column"
+                    $justifyContent="space-between"
+                    $gap={`${cardPadding}rem`}
+                    $flexGrow="1"
+                    $padding={`${0.75 * cardPadding}rem ${cardPadding}rem ${cardPadding}rem`}
+                  >
+                    <Flex
+                      $flexDirection="column"
+                      $position="relative"
+                      $gap="0.5rem"
                     >
-                      {plan.valid === false ? (
-                        <Tooltip
-                          label="Over usage limit"
-                          description=" Current usage exceeds limit of this plan"
+                      {plan.entitlements.map((entitlement) => {
+                        return (
+                          <Flex
+                            key={entitlement.id}
+                            $flexWrap="wrap"
+                            $justifyContent="space-between"
+                            $alignItems="center"
+                            $gap="1rem"
+                          >
+                            <Flex $gap="1rem">
+                              {entitlement.feature?.icon && (
+                                <IconRound
+                                  name={
+                                    entitlement.feature.icon as IconNameTypes
+                                  }
+                                  size="sm"
+                                  colors={[
+                                    theme.primary,
+                                    isLightBackground
+                                      ? "hsla(0, 0%, 0%, 0.0625)"
+                                      : "hsla(0, 0%, 100%, 0.25)",
+                                  ]}
+                                />
+                              )}
+
+                              {entitlement.feature?.name && (
+                                <Flex $alignItems="center">
+                                  <Text
+                                    $font={theme.typography.text.fontFamily}
+                                    $size={theme.typography.text.fontSize}
+                                    $weight={theme.typography.text.fontWeight}
+                                    $color={theme.typography.text.color}
+                                  >
+                                    {entitlement.valueType === "numeric" ||
+                                    entitlement.valueType === "unlimited" ||
+                                    entitlement.valueType === "trait" ? (
+                                      <>
+                                        {typeof entitlement.valueNumeric ===
+                                        "number"
+                                          ? `${formatNumber(entitlement.valueNumeric)} ${pluralize(entitlement.feature.name, entitlement.valueNumeric)}`
+                                          : `Unlimited ${pluralize(entitlement.feature.name)}`}
+                                        {entitlement.metricPeriod &&
+                                          ` per ${
+                                            {
+                                              billing: "billing period",
+                                              current_day: "day",
+                                              current_month: "month",
+                                              current_year: "year",
+                                            }[entitlement.metricPeriod]
+                                          }`}
+                                      </>
+                                    ) : (
+                                      entitlement.feature.name
+                                    )}
+                                  </Text>
+                                </Flex>
+                              )}
+                            </Flex>
+                          </Flex>
+                        );
+                      })}
+                    </Flex>
+
+                    {plan.current ? (
+                      <Flex
+                        $justifyContent="center"
+                        $alignItems="center"
+                        $gap="0.25rem"
+                        $fontSize="0.9375rem"
+                        $padding="0.625rem 0"
+                      >
+                        <Icon
+                          name="check-rounded"
+                          style={{
+                            fontSize: 20,
+                            lineHeight: "1",
+                            color: theme.primary,
+                          }}
                         />
-                      ) : (
-                        "Select"
-                      )}
-                    </EmbedButton>
-                  </Box>
+
+                        <Text
+                          $lineHeight="1.4"
+                          $color={theme.typography.text.color}
+                        >
+                          Selected
+                        </Text>
+                      </Flex>
+                    ) : (
+                      <Box $position="relative">
+                        <EmbedButton
+                          disabled={!plan.valid}
+                          {...(plan.valid === true && {
+                            onClick: () => {
+                              setSelectedPlanId(plan.id);
+                              setLayout("checkout");
+                            },
+                          })}
+                          {...(index > currentPlanIndex
+                            ? // plans are sorted by price, so we can determine grades by index
+                              {
+                                $size: props.upgrade.buttonSize,
+                                $color: props.upgrade.buttonStyle,
+                                $variant: "filled",
+                              }
+                            : {
+                                $size: props.downgrade.buttonSize,
+                                $color: props.downgrade.buttonStyle,
+                                $variant: "outline",
+                              })}
+                        >
+                          {plan.valid === false ? (
+                            <Tooltip
+                              label="Over usage limit"
+                              description=" Current usage exceeds limit of this plan"
+                            />
+                          ) : (
+                            "Select"
+                          )}
+                        </EmbedButton>
+                      </Box>
+                    )}
+                  </Flex>
+                </Flex>
+              );
+            })}
+          </Flex>
+        )}
+      </Box>
+
+      <Box>
+        {props.addOns.isVisible && addOns.length > 0 && (
+          <>
+            {props.header.isVisible && (
+              <Flex
+                $justifyContent="space-between"
+                $alignItems="center"
+                $marginBottom="2rem"
+              >
+                {props.addOns.isVisible && (
+                  <Text
+                    $font={theme.typography[props.header.fontStyle].fontFamily}
+                    $size={theme.typography[props.header.fontStyle].fontSize}
+                    $weight={
+                      theme.typography[props.header.fontStyle].fontWeight
+                    }
+                    $color={theme.typography[props.header.fontStyle].color}
+                  >
+                    Addons
+                  </Text>
                 )}
               </Flex>
+            )}
+
+            <Flex $flexWrap="wrap" $gap="1rem">
+              {addOns.map((addOn, index) => {
+                return (
+                  <Flex
+                    key={index}
+                    $flexDirection="column"
+                    $gap="2rem"
+                    $width="100%"
+                    $maxWidth="320px"
+                    $padding={`${cardPadding}rem`}
+                    $backgroundColor={theme.card.background}
+                    $borderRadius={`${theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
+                    $outlineWidth="2px"
+                    $outlineStyle="solid"
+                    $outlineColor={
+                      addOn.current ? theme.primary : "transparent"
+                    }
+                    {...(theme.card.hasShadow && { $boxShadow: cardBoxShadow })}
+                  >
+                    <Flex
+                      $flexDirection="column"
+                      $position="relative"
+                      $gap="0.75rem"
+                      $width="100%"
+                      $height="auto"
+                    >
+                      <Box>
+                        <Text
+                          $font={
+                            theme.typography[props.plans.name.fontStyle]
+                              .fontFamily
+                          }
+                          $size={
+                            theme.typography[props.plans.name.fontStyle]
+                              .fontSize
+                          }
+                          $weight={
+                            theme.typography[props.plans.name.fontStyle]
+                              .fontWeight
+                          }
+                          $color={
+                            theme.typography[props.plans.name.fontStyle].color
+                          }
+                        >
+                          {addOn.name}
+                        </Text>
+                      </Box>
+
+                      <Box $marginBottom="0.5rem">
+                        <Text
+                          $font={
+                            theme.typography[props.plans.description.fontStyle]
+                              .fontFamily
+                          }
+                          $size={
+                            theme.typography[props.plans.description.fontStyle]
+                              .fontSize
+                          }
+                          $weight={
+                            theme.typography[props.plans.description.fontStyle]
+                              .fontWeight
+                          }
+                          $color={
+                            theme.typography[props.plans.description.fontStyle]
+                              .color
+                          }
+                        >
+                          {addOn.description}
+                        </Text>
+                      </Box>
+
+                      <Box>
+                        <Text
+                          $font={
+                            theme.typography[props.plans.name.fontStyle]
+                              .fontFamily
+                          }
+                          $size={
+                            theme.typography[props.plans.name.fontStyle]
+                              .fontSize
+                          }
+                          $weight={
+                            theme.typography[props.plans.name.fontStyle]
+                              .fontWeight
+                          }
+                          $color={
+                            theme.typography[props.plans.name.fontStyle].color
+                          }
+                        >
+                          {formatCurrency(
+                            (selectedPeriod === "month"
+                              ? addOn.monthlyPrice
+                              : addOn.yearlyPrice
+                            )?.price ?? 0,
+                          )}
+                        </Text>
+
+                        <Text
+                          $font={
+                            theme.typography[props.plans.name.fontStyle]
+                              .fontFamily
+                          }
+                          $size={
+                            (16 / 30) *
+                            theme.typography[props.plans.name.fontStyle]
+                              .fontSize
+                          }
+                          $weight={
+                            theme.typography[props.plans.name.fontStyle]
+                              .fontWeight
+                          }
+                          $color={
+                            theme.typography[props.plans.name.fontStyle].color
+                          }
+                        >
+                          /{selectedPeriod}
+                        </Text>
+                      </Box>
+
+                      {addOn.current && (
+                        <Flex
+                          $position="absolute"
+                          $right="1rem"
+                          $top="1rem"
+                          $fontSize="0.625rem"
+                          $color={
+                            hexToHSL(theme.primary).l > 50
+                              ? "#000000"
+                              : "#FFFFFF"
+                          }
+                          $backgroundColor={theme.primary}
+                          $borderRadius="9999px"
+                          $padding="0.125rem 0.85rem"
+                        >
+                          Active
+                        </Flex>
+                      )}
+                    </Flex>
+
+                    <Flex
+                      $flexDirection="column"
+                      $justifyContent="space-between"
+                      $gap="2rem"
+                      $flexGrow="1"
+                    >
+                      <Flex
+                        $flexDirection="column"
+                        $position="relative"
+                        $gap="0.5rem"
+                      >
+                        {addOn.entitlements.map((entitlement) => {
+                          return (
+                            <Flex
+                              key={entitlement.id}
+                              $flexWrap="wrap"
+                              $justifyContent="space-between"
+                              $alignItems="center"
+                              $gap="1rem"
+                            >
+                              <Flex $gap="1rem">
+                                {entitlement.feature?.icon && (
+                                  <IconRound
+                                    name={
+                                      entitlement.feature.icon as IconNameTypes
+                                    }
+                                    size="sm"
+                                    colors={[
+                                      theme.primary,
+                                      isLightBackground
+                                        ? "hsla(0, 0%, 0%, 0.0625)"
+                                        : "hsla(0, 0%, 100%, 0.25)",
+                                    ]}
+                                  />
+                                )}
+
+                                {entitlement.feature?.name && (
+                                  <Flex $alignItems="center">
+                                    <Text
+                                      $font={theme.typography.text.fontFamily}
+                                      $size={theme.typography.text.fontSize}
+                                      $weight={theme.typography.text.fontWeight}
+                                      $color={theme.typography.text.color}
+                                    >
+                                      {entitlement.valueType === "numeric" ||
+                                      entitlement.valueType === "unlimited" ||
+                                      entitlement.valueType === "trait" ? (
+                                        <>
+                                          {typeof entitlement.valueNumeric ===
+                                          "number"
+                                            ? `${formatNumber(entitlement.valueNumeric)} ${pluralize(entitlement.feature.name, entitlement.valueNumeric)}`
+                                            : `Unlimited ${pluralize(entitlement.feature.name)}`}
+                                          {entitlement.metricPeriod &&
+                                            ` per ${
+                                              {
+                                                billing: "billing period",
+                                                current_day: "day",
+                                                current_month: "month",
+                                                current_year: "year",
+                                              }[entitlement.metricPeriod]
+                                            }`}
+                                        </>
+                                      ) : (
+                                        entitlement.feature.name
+                                      )}
+                                    </Text>
+                                  </Flex>
+                                )}
+                              </Flex>
+                            </Flex>
+                          );
+                        })}
+                      </Flex>
+
+                      {addOn.current ? (
+                        <Flex
+                          $justifyContent="center"
+                          $alignItems="center"
+                          $gap="0.25rem"
+                          $fontSize="0.9375rem"
+                          $padding="0.625rem 0"
+                        >
+                          <Icon
+                            name="check-rounded"
+                            style={{
+                              fontSize: 20,
+                              lineHeight: "1",
+                              color: theme.primary,
+                            }}
+                          />
+
+                          <Text
+                            $lineHeight="1.4"
+                            $color={theme.typography.text.color}
+                          >
+                            Selected
+                          </Text>
+                        </Flex>
+                      ) : (
+                        <Box $position="relative">
+                          <EmbedButton
+                            disabled={!addOn.valid}
+                            {...(addOn.valid === true && {
+                              onClick: () => {
+                                setSelectedAddOnId(addOn.id);
+                                setLayout("checkout");
+                              },
+                            })}
+                            {...(index > currentPlanIndex
+                              ? // plans are sorted by price, so we can determine grades by index
+                                {
+                                  $size: props.upgrade.buttonSize,
+                                  $color: props.upgrade.buttonStyle,
+                                  $variant: "filled",
+                                }
+                              : {
+                                  $size: props.downgrade.buttonSize,
+                                  $color: props.downgrade.buttonStyle,
+                                  $variant: "outline",
+                                })}
+                          >
+                            Add
+                          </EmbedButton>
+                        </Box>
+                      )}
+                    </Flex>
+                  </Flex>
+                );
+              })}
             </Flex>
-          );
-        })}
-      </Flex>
+          </>
+        )}
+      </Box>
 
       {canChangePlan &&
         layout === "checkout" &&
         createPortal(
-          <CheckoutDialog initialPlanId={selectedPlanId} />,
+          <CheckoutDialog
+            initialPeriod={selectedPeriod}
+            initialPlanId={selectedPlanId}
+            initialAddOnId={selectedAddOnId}
+          />,
           portal || document.body,
         )}
     </FussyChild>

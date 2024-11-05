@@ -20,6 +20,7 @@ import {
   type IconNameTypes,
   type ProgressBarProps,
 } from "../../ui";
+import * as styles from "./styles";
 
 interface DesignProps {
   isVisible: boolean;
@@ -125,7 +126,7 @@ export const MeteredFeatures = forwardRef<
   }
 
   return (
-    <Flex ref={ref} className={className} $flexDirection="column">
+    <styles.Container ref={ref} className={className}>
       {featureUsage.map(({ allocation, feature, usage }, index) => {
         return (
           <Element as={Flex} key={index} $gap="1.5rem">
@@ -269,7 +270,7 @@ export const MeteredFeatures = forwardRef<
           </Element>
         );
       })}
-    </Flex>
+    </styles.Container>
   );
 });
 

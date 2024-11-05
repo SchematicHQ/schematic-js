@@ -40,13 +40,15 @@ export const StyledCard = styled.div(({ theme }) => {
       padding: ${(theme.card.padding * 0.75) / TEXT_BASE_SIZE}rem
         ${theme.card.padding / TEXT_BASE_SIZE}rem;
 
-      ${theme.sectionLayout === "merged"
-        ? css`
-            border-bottom: 1px solid ${borderColor};
-          `
-        : css`
-            margin-bottom: 1rem;
-          `}
+      &:not(:last-child) {
+        ${theme.sectionLayout === "merged"
+          ? css`
+              border-bottom: 1px solid ${borderColor};
+            `
+          : css`
+              margin-bottom: 1rem;
+            `}
+      }
     }
   `;
 });

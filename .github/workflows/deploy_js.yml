@@ -1,9 +1,13 @@
 name: Deploy schematic-js
 
+permissions:
+  id-token: write
+  contents: read
+
 on:
   push:
     tags:
-      - 'schematic-js@*'
+      - "schematic-js@*"
   workflow_dispatch:
 
 jobs:
@@ -41,10 +45,6 @@ jobs:
     name: Browser Deploy
     runs-on: ubuntu-latest
     needs: ["test", "lint"]
-    env:
-      AWS_REGION: "us-east-1"
-      CDN_DISTRIBUTION_ID: "EIY5G2ECS6996"
-      S3_BUCKET: "schematic-cdn"
     steps:
       - uses: actions/checkout@v4
 
@@ -61,25 +61,24 @@ jobs:
         working-directory: ./js
         run: yarn build:browser
 
-      - name: Configure AWS credentials
+      - name: 🚀auth-oidc-aws-prod
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ${{ vars.PROD_AWS_ROLE_ARN }}
+          aws-region: ${{ vars.PROD_AWS_REGION }}
 
       - name: Get package version
         id: package
         run: |
-          echo "::set-output name=version::$(node -p "require('./package.json').version")"
+          echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
         working-directory: ./js
 
       - name: Deploy browser build
         run: |
-          aws s3 cp --acl=public-read dist/schematic.browser.js s3://$S3_BUCKET/js/schematic.js
-          aws s3 cp --acl=public-read dist/schematic.browser.js s3://$S3_BUCKET/js/schematic.${{ steps.package.outputs.version }}.js
+          aws s3 cp --acl=public-read dist/schematic.browser.js s3://${{ vars.PROD_JS_BUCKET_NAME }}/js/schematic.js
+          aws s3 cp --acl=public-read dist/schematic.browser.js s3://${{ vars.PROD_JS_BUCKET_NAME }}/js/schematic.${{ steps.package.outputs.version }}.js
           aws configure set preview.cloudfront true
-          aws cloudfront create-invalidation --distribution-id ${{ env.CDN_DISTRIBUTION_ID }} --paths "/js/schematic.js" "/js/schematic.${{ steps.package.outputs.version }}.js"
+          aws cloudfront create-invalidation --distribution-id ${{ vars.PROD_JS_DISTRIBUTION_ID }} --paths "/js/schematic.js" "/js/schematic.${{ steps.package.outputs.version }}.js"
         working-directory: ./js
 
   publish:

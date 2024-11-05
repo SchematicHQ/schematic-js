@@ -55,3 +55,7 @@ export function formatOrdinal(n: number) {
 
   return `${n}${suffix}`;
 }
+
+export function adjectify(str: string) {
+  return `${str}ly`;
+}
