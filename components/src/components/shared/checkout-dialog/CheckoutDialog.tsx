@@ -27,12 +27,14 @@ export interface CheckoutDialogProps {
   initialPeriod?: string;
   initialPlanId?: string;
   initialAddOnId?: string;
+  portal?: HTMLElement;
 }
 
 export const CheckoutDialog = ({
   initialPeriod,
   initialPlanId,
   initialAddOnId,
+  portal,
 }: CheckoutDialogProps) => {
   const { api, data, mode } = useEmbed();
 
@@ -194,10 +196,11 @@ export const CheckoutDialog = ({
 
   // prevent scrolling when the checkout dialog is open
   useEffect(() => {
-    document.body.style.overflow = "hidden";
+    const parent = portal || document.body;
+    parent.style.overflow = "hidden";
 
     return () => {
-      document.body.style.overflow = "";
+      parent.style.overflow = "";
     };
   }, []);
 

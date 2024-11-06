@@ -12,7 +12,7 @@ import { useEmbed, useIsLightBackground } from "../../../hooks";
 import type { ElementProps, RecursivePartial } from "../../../types";
 import { formatCurrency, formatNumber, hexToHSL } from "../../../utils";
 import { cardBoxShadow, FussyChild } from "../../layout";
-import { CheckoutDialog, PeriodToggle } from "../../shared";
+import { CheckoutDialog, PeriodToggle, Savings } from "../../shared";
 import {
   Box,
   Flex,
@@ -184,6 +184,7 @@ export const PricingTable = forwardRef<
   const currentPlanIndex = plansByPrice.findIndex(
     (plan) => plan.current === true,
   );
+  const currentPlan = plansByPrice[currentPlanIndex];
 
   return (
     <FussyChild
@@ -205,14 +206,25 @@ export const PricingTable = forwardRef<
             $weight={theme.typography[props.header.fontStyle].fontWeight}
             $color={theme.typography[props.header.fontStyle].color}
           >
-            {props.header.isVisible && plansByPrice.length > 0 && "Plans"}
+            {props.header.isVisible &&
+              props.plans.isVisible &&
+              plansByPrice.length > 0 &&
+              "Plans"}
           </Text>
 
-          <PeriodToggle
-            options={periods}
-            selectedOption={selectedPeriod}
-            onChange={(period) => setSelectedPeriod(period)}
-          />
+          <Flex $alignItems="center" $gap="1rem">
+            {props.showDiscount && (
+              <Savings plan={currentPlan} period={selectedPeriod} />
+            )}
+
+            {props.showPeriodToggle && (
+              <PeriodToggle
+                options={periods}
+                selectedOption={selectedPeriod}
+                onChange={(period) => setSelectedPeriod(period)}
+              />
+            )}
+          </Flex>
         </Flex>
 
         {props.plans.isVisible && plansByPrice.length > 0 && (
@@ -268,28 +280,30 @@ export const PricingTable = forwardRef<
                       </Text>
                     </Box>
 
-                    <Box $marginBottom="0.5rem">
-                      <Text
-                        $font={
-                          theme.typography[props.plans.description.fontStyle]
-                            .fontFamily
-                        }
-                        $size={
-                          theme.typography[props.plans.description.fontStyle]
-                            .fontSize
-                        }
-                        $weight={
-                          theme.typography[props.plans.description.fontStyle]
-                            .fontWeight
-                        }
-                        $color={
-                          theme.typography[props.plans.description.fontStyle]
-                            .color
-                        }
-                      >
-                        {plan.description}
-                      </Text>
-                    </Box>
+                    {props.plans.description.isVisible && (
+                      <Box $marginBottom="0.5rem">
+                        <Text
+                          $font={
+                            theme.typography[props.plans.description.fontStyle]
+                              .fontFamily
+                          }
+                          $size={
+                            theme.typography[props.plans.description.fontStyle]
+                              .fontSize
+                          }
+                          $weight={
+                            theme.typography[props.plans.description.fontStyle]
+                              .fontWeight
+                          }
+                          $color={
+                            theme.typography[props.plans.description.fontStyle]
+                              .color
+                          }
+                        >
+                          {plan.description}
+                        </Text>
+                      </Box>
+                    )}
 
                     <Box>
                       <Text
@@ -357,80 +371,87 @@ export const PricingTable = forwardRef<
 
                   <Flex
                     $flexDirection="column"
+                    $justifyContent="end"
                     $flexGrow="1"
                     $gap={`${cardPadding}rem`}
                     $padding={`${0.75 * cardPadding}rem ${cardPadding}rem 0`}
                   >
-                    <Flex
-                      $flexDirection="column"
-                      $position="relative"
-                      $gap="0.5rem"
-                      $flexGrow="1"
-                    >
-                      {props.plans.showInclusionText && index > 0 && (
-                        <Box $marginBottom="1.5rem">
-                          <Text
-                            $font={theme.typography.text.fontFamily}
-                            $size={theme.typography.text.fontSize}
-                            $weight={theme.typography.text.fontWeight}
-                            $color={theme.typography.text.color}
-                          >
-                            Everything in ${self[index - 1].name}, plus
-                          </Text>
-                        </Box>
-                      )}
-                      {plan.entitlements.map((entitlement) => {
-                        return (
-                          <Flex key={entitlement.id} $gap="1rem">
-                            {entitlement.feature?.icon && (
-                              <IconRound
-                                name={entitlement.feature.icon as IconNameTypes}
-                                size="sm"
-                                colors={[
-                                  theme.primary,
-                                  isLightBackground
-                                    ? "hsla(0, 0%, 0%, 0.0625)"
-                                    : "hsla(0, 0%, 100%, 0.25)",
-                                ]}
-                              />
-                            )}
+                    {props.plans.showEntitlements && (
+                      <Flex
+                        $flexDirection="column"
+                        $position="relative"
+                        $gap="0.5rem"
+                        $flexGrow="1"
+                      >
+                        {props.plans.showInclusionText && index > 0 && (
+                          <Box $marginBottom="1.5rem">
+                            <Text
+                              $font={theme.typography.text.fontFamily}
+                              $size={theme.typography.text.fontSize}
+                              $weight={theme.typography.text.fontWeight}
+                              $color={theme.typography.text.color}
+                            >
+                              Everything in ${self[index - 1].name}, plus
+                            </Text>
+                          </Box>
+                        )}
 
-                            {entitlement.feature?.name && (
-                              <Flex $alignItems="center">
-                                <Text
-                                  $font={theme.typography.text.fontFamily}
-                                  $size={theme.typography.text.fontSize}
-                                  $weight={theme.typography.text.fontWeight}
-                                  $color={theme.typography.text.color}
-                                >
-                                  {entitlement.valueType === "numeric" ||
-                                  entitlement.valueType === "unlimited" ||
-                                  entitlement.valueType === "trait" ? (
-                                    <>
-                                      {typeof entitlement.valueNumeric ===
-                                      "number"
-                                        ? `${formatNumber(entitlement.valueNumeric)} ${pluralize(entitlement.feature.name, entitlement.valueNumeric)}`
-                                        : `Unlimited ${pluralize(entitlement.feature.name)}`}
-                                      {entitlement.metricPeriod &&
-                                        ` per ${
-                                          {
-                                            billing: "billing period",
-                                            current_day: "day",
-                                            current_month: "month",
-                                            current_year: "year",
-                                          }[entitlement.metricPeriod]
-                                        }`}
-                                    </>
-                                  ) : (
-                                    entitlement.feature.name
-                                  )}
-                                </Text>
-                              </Flex>
-                            )}
-                          </Flex>
-                        );
-                      })}
-                    </Flex>
+                        {plan.entitlements.map((entitlement) => {
+                          return (
+                            <Flex key={entitlement.id} $gap="1rem">
+                              {props.plans.showFeatureIcons &&
+                                entitlement.feature?.icon && (
+                                  <IconRound
+                                    name={
+                                      entitlement.feature.icon as IconNameTypes
+                                    }
+                                    size="sm"
+                                    colors={[
+                                      theme.primary,
+                                      isLightBackground
+                                        ? "hsla(0, 0%, 0%, 0.0625)"
+                                        : "hsla(0, 0%, 100%, 0.25)",
+                                    ]}
+                                  />
+                                )}
+
+                              {entitlement.feature?.name && (
+                                <Flex $alignItems="center">
+                                  <Text
+                                    $font={theme.typography.text.fontFamily}
+                                    $size={theme.typography.text.fontSize}
+                                    $weight={theme.typography.text.fontWeight}
+                                    $color={theme.typography.text.color}
+                                  >
+                                    {entitlement.valueType === "numeric" ||
+                                    entitlement.valueType === "unlimited" ||
+                                    entitlement.valueType === "trait" ? (
+                                      <>
+                                        {typeof entitlement.valueNumeric ===
+                                        "number"
+                                          ? `${formatNumber(entitlement.valueNumeric)} ${pluralize(entitlement.feature.name, entitlement.valueNumeric)}`
+                                          : `Unlimited ${pluralize(entitlement.feature.name)}`}
+                                        {entitlement.metricPeriod &&
+                                          ` per ${
+                                            {
+                                              billing: "billing period",
+                                              current_day: "day",
+                                              current_month: "month",
+                                              current_year: "year",
+                                            }[entitlement.metricPeriod]
+                                          }`}
+                                      </>
+                                    ) : (
+                                      entitlement.feature.name
+                                    )}
+                                  </Text>
+                                </Flex>
+                              )}
+                            </Flex>
+                          );
+                        })}
+                      </Flex>
+                    )}
 
                     {plan.current ? (
                       <Flex
@@ -457,38 +478,45 @@ export const PricingTable = forwardRef<
                         </Text>
                       </Flex>
                     ) : (
-                      <Box $position="relative">
-                        <EmbedButton
-                          disabled={!plan.valid}
-                          {...(plan.valid === true && {
-                            onClick: () => {
-                              setSelectedPlanId(plan.id);
-                              setLayout("checkout");
-                            },
-                          })}
-                          {...(index > currentPlanIndex
-                            ? // plans are sorted by price, so we can determine grades by index
-                              {
-                                $size: props.upgrade.buttonSize,
-                                $color: props.upgrade.buttonStyle,
-                                $variant: "filled",
-                              }
-                            : {
-                                $size: props.downgrade.buttonSize,
-                                $color: props.downgrade.buttonStyle,
-                                $variant: "outline",
+                      <>
+                        {((index > currentPlanIndex &&
+                          props.upgrade.isVisible) ||
+                          (index < currentPlanIndex &&
+                            props.downgrade.isVisible)) && (
+                          // plans are sorted by price, so we can determine grades by index
+                          <Box $position="relative">
+                            <EmbedButton
+                              disabled={!plan.valid}
+                              {...(plan.valid === true && {
+                                onClick: () => {
+                                  setSelectedPlanId(plan.id);
+                                  setLayout("checkout");
+                                },
                               })}
-                        >
-                          {plan.valid === false ? (
-                            <Tooltip
-                              label="Over usage limit"
-                              description=" Current usage exceeds limit of this plan"
-                            />
-                          ) : (
-                            "Select"
-                          )}
-                        </EmbedButton>
-                      </Box>
+                              {...(index > currentPlanIndex
+                                ? {
+                                    $size: props.upgrade.buttonSize,
+                                    $color: props.upgrade.buttonStyle,
+                                    $variant: "filled",
+                                  }
+                                : {
+                                    $size: props.downgrade.buttonSize,
+                                    $color: props.downgrade.buttonStyle,
+                                    $variant: "outline",
+                                  })}
+                            >
+                              {plan.valid === false ? (
+                                <Tooltip
+                                  label="Over usage limit"
+                                  description=" Current usage exceeds limit of this plan"
+                                />
+                              ) : (
+                                "Select"
+                              )}
+                            </EmbedButton>
+                          </Box>
+                        )}
+                      </>
                     )}
                   </Flex>
                 </Flex>
@@ -507,18 +535,14 @@ export const PricingTable = forwardRef<
                 $alignItems="center"
                 $marginBottom="2rem"
               >
-                {props.addOns.isVisible && (
-                  <Text
-                    $font={theme.typography[props.header.fontStyle].fontFamily}
-                    $size={theme.typography[props.header.fontStyle].fontSize}
-                    $weight={
-                      theme.typography[props.header.fontStyle].fontWeight
-                    }
-                    $color={theme.typography[props.header.fontStyle].color}
-                  >
-                    Addons
-                  </Text>
-                )}
+                <Text
+                  $font={theme.typography[props.header.fontStyle].fontFamily}
+                  $size={theme.typography[props.header.fontStyle].fontSize}
+                  $weight={theme.typography[props.header.fontStyle].fontWeight}
+                  $color={theme.typography[props.header.fontStyle].color}
+                >
+                  Addons
+                </Text>
               </Flex>
             )}
 
@@ -570,28 +594,34 @@ export const PricingTable = forwardRef<
                         </Text>
                       </Box>
 
-                      <Box $marginBottom="0.5rem">
-                        <Text
-                          $font={
-                            theme.typography[props.plans.description.fontStyle]
-                              .fontFamily
-                          }
-                          $size={
-                            theme.typography[props.plans.description.fontStyle]
-                              .fontSize
-                          }
-                          $weight={
-                            theme.typography[props.plans.description.fontStyle]
-                              .fontWeight
-                          }
-                          $color={
-                            theme.typography[props.plans.description.fontStyle]
-                              .color
-                          }
-                        >
-                          {addOn.description}
-                        </Text>
-                      </Box>
+                      {props.addOns.showDescription && (
+                        <Box $marginBottom="0.5rem">
+                          <Text
+                            $font={
+                              theme.typography[
+                                props.plans.description.fontStyle
+                              ].fontFamily
+                            }
+                            $size={
+                              theme.typography[
+                                props.plans.description.fontStyle
+                              ].fontSize
+                            }
+                            $weight={
+                              theme.typography[
+                                props.plans.description.fontStyle
+                              ].fontWeight
+                            }
+                            $color={
+                              theme.typography[
+                                props.plans.description.fontStyle
+                              ].color
+                            }
+                          >
+                            {addOn.description}
+                          </Text>
+                        </Box>
+                      )}
 
                       <Box>
                         <Text
@@ -663,77 +693,84 @@ export const PricingTable = forwardRef<
 
                     <Flex
                       $flexDirection="column"
+                      $justifyContent="end"
                       $gap={`${cardPadding}rem`}
                       $flexGrow="1"
                     >
-                      <Flex
-                        $flexDirection="column"
-                        $position="relative"
-                        $gap="0.5rem"
-                        $flexGrow="1"
-                      >
-                        {addOn.entitlements.map((entitlement) => {
-                          return (
-                            <Flex
-                              key={entitlement.id}
-                              $flexWrap="wrap"
-                              $justifyContent="space-between"
-                              $alignItems="center"
-                              $gap="1rem"
-                            >
-                              <Flex $gap="1rem">
-                                {entitlement.feature?.icon && (
-                                  <IconRound
-                                    name={
-                                      entitlement.feature.icon as IconNameTypes
-                                    }
-                                    size="sm"
-                                    colors={[
-                                      theme.primary,
-                                      isLightBackground
-                                        ? "hsla(0, 0%, 0%, 0.0625)"
-                                        : "hsla(0, 0%, 100%, 0.25)",
-                                    ]}
-                                  />
-                                )}
+                      {props.addOns.showEntitlements && (
+                        <Flex
+                          $flexDirection="column"
+                          $position="relative"
+                          $gap="0.5rem"
+                          $flexGrow="1"
+                        >
+                          {addOn.entitlements.map((entitlement) => {
+                            return (
+                              <Flex
+                                key={entitlement.id}
+                                $flexWrap="wrap"
+                                $justifyContent="space-between"
+                                $alignItems="center"
+                                $gap="1rem"
+                              >
+                                <Flex $gap="1rem">
+                                  {props.addOns.showFeatureIcons &&
+                                    entitlement.feature?.icon && (
+                                      <IconRound
+                                        name={
+                                          entitlement.feature
+                                            .icon as IconNameTypes
+                                        }
+                                        size="sm"
+                                        colors={[
+                                          theme.primary,
+                                          isLightBackground
+                                            ? "hsla(0, 0%, 0%, 0.0625)"
+                                            : "hsla(0, 0%, 100%, 0.25)",
+                                        ]}
+                                      />
+                                    )}
 
-                                {entitlement.feature?.name && (
-                                  <Flex $alignItems="center">
-                                    <Text
-                                      $font={theme.typography.text.fontFamily}
-                                      $size={theme.typography.text.fontSize}
-                                      $weight={theme.typography.text.fontWeight}
-                                      $color={theme.typography.text.color}
-                                    >
-                                      {entitlement.valueType === "numeric" ||
-                                      entitlement.valueType === "unlimited" ||
-                                      entitlement.valueType === "trait" ? (
-                                        <>
-                                          {typeof entitlement.valueNumeric ===
-                                          "number"
-                                            ? `${formatNumber(entitlement.valueNumeric)} ${pluralize(entitlement.feature.name, entitlement.valueNumeric)}`
-                                            : `Unlimited ${pluralize(entitlement.feature.name)}`}
-                                          {entitlement.metricPeriod &&
-                                            ` per ${
-                                              {
-                                                billing: "billing period",
-                                                current_day: "day",
-                                                current_month: "month",
-                                                current_year: "year",
-                                              }[entitlement.metricPeriod]
-                                            }`}
-                                        </>
-                                      ) : (
-                                        entitlement.feature.name
-                                      )}
-                                    </Text>
-                                  </Flex>
-                                )}
+                                  {entitlement.feature?.name && (
+                                    <Flex $alignItems="center">
+                                      <Text
+                                        $font={theme.typography.text.fontFamily}
+                                        $size={theme.typography.text.fontSize}
+                                        $weight={
+                                          theme.typography.text.fontWeight
+                                        }
+                                        $color={theme.typography.text.color}
+                                      >
+                                        {entitlement.valueType === "numeric" ||
+                                        entitlement.valueType === "unlimited" ||
+                                        entitlement.valueType === "trait" ? (
+                                          <>
+                                            {typeof entitlement.valueNumeric ===
+                                            "number"
+                                              ? `${formatNumber(entitlement.valueNumeric)} ${pluralize(entitlement.feature.name, entitlement.valueNumeric)}`
+                                              : `Unlimited ${pluralize(entitlement.feature.name)}`}
+                                            {entitlement.metricPeriod &&
+                                              ` per ${
+                                                {
+                                                  billing: "billing period",
+                                                  current_day: "day",
+                                                  current_month: "month",
+                                                  current_year: "year",
+                                                }[entitlement.metricPeriod]
+                                              }`}
+                                          </>
+                                        ) : (
+                                          entitlement.feature.name
+                                        )}
+                                      </Text>
+                                    </Flex>
+                                  )}
+                                </Flex>
                               </Flex>
-                            </Flex>
-                          );
-                        })}
-                      </Flex>
+                            );
+                          })}
+                        </Flex>
+                      )}
 
                       {addOn.current ? (
                         <Flex
@@ -760,31 +797,35 @@ export const PricingTable = forwardRef<
                           </Text>
                         </Flex>
                       ) : (
-                        <Box $position="relative">
-                          <EmbedButton
-                            disabled={!addOn.valid}
-                            {...(addOn.valid === true && {
-                              onClick: () => {
-                                setSelectedAddOnId(addOn.id);
-                                setLayout("checkout");
-                              },
-                            })}
-                            {...(index > currentPlanIndex
-                              ? // plans are sorted by price, so we can determine grades by index
-                                {
-                                  $size: props.upgrade.buttonSize,
-                                  $color: props.upgrade.buttonStyle,
-                                  $variant: "filled",
-                                }
-                              : {
-                                  $size: props.downgrade.buttonSize,
-                                  $color: props.downgrade.buttonStyle,
-                                  $variant: "outline",
+                        <>
+                          {props.upgrade.isVisible && (
+                            <Box $position="relative">
+                              <EmbedButton
+                                disabled={!addOn.valid}
+                                {...(addOn.valid === true && {
+                                  onClick: () => {
+                                    setSelectedAddOnId(addOn.id);
+                                    setLayout("checkout");
+                                  },
                                 })}
-                          >
-                            Add
-                          </EmbedButton>
-                        </Box>
+                                {...(index > currentPlanIndex
+                                  ? // plans are sorted by price, so we can determine grades by index
+                                    {
+                                      $size: props.upgrade.buttonSize,
+                                      $color: props.upgrade.buttonStyle,
+                                      $variant: "filled",
+                                    }
+                                  : {
+                                      $size: props.downgrade.buttonSize,
+                                      $color: props.downgrade.buttonStyle,
+                                      $variant: "outline",
+                                    })}
+                              >
+                                Add
+                              </EmbedButton>
+                            </Box>
+                          )}
+                        </>
                       )}
                     </Flex>
                   </Flex>

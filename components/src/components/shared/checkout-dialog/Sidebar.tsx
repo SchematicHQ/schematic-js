@@ -8,7 +8,7 @@ import type {
 } from "../../../api";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import { formatCurrency, formatOrdinal, getMonthName } from "../../../utils";
-import { PeriodToggle } from "../../shared";
+import { PeriodToggle, Savings } from "../../shared";
 import { Box, EmbedButton, Flex, Icon, Text } from "../../ui";
 
 interface SidebarProps {
@@ -75,16 +75,6 @@ export const Sidebar = ({
       paymentMethod: data.subscription?.paymentMethod,
     };
   }, [data.activePlans, data.subscription?.paymentMethod]);
-
-  const savingsPercentage = useMemo(() => {
-    if (selectedPlan) {
-      const monthly = (selectedPlan?.monthlyPrice?.price || 0) * 12;
-      const yearly = selectedPlan?.yearlyPrice?.price || 0;
-      return Math.round(((monthly - yearly) / monthly) * 10000) / 100;
-    }
-
-    return 0;
-  }, [selectedPlan]);
 
   const subscriptionPrice = useMemo(() => {
     if (
@@ -238,20 +228,7 @@ export const Sidebar = ({
           />
         )}
 
-        {savingsPercentage > 0 && (
-          <Box>
-            <Text
-              $font={theme.typography.text.fontFamily}
-              $size={11}
-              $weight={theme.typography.text.fontWeight}
-              $color={theme.primary}
-            >
-              {planPeriod === "month"
-                ? `Save up to ${savingsPercentage}% with yearly billing`
-                : `You are saving ${savingsPercentage}% with yearly billing`}
-            </Text>
-          </Box>
-        )}
+        <Savings plan={selectedPlan} period={planPeriod} />
       </Flex>
 
       <Flex

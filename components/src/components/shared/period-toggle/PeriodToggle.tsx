@@ -21,6 +21,7 @@ export const PeriodToggle = ({
   return (
     <Flex
       $width="fit-content"
+      $backgroundColor={theme.card.background}
       $borderWidth="1px"
       $borderStyle="solid"
       $borderColor={
@@ -29,31 +30,34 @@ export const PeriodToggle = ({
       $borderRadius="2.5rem"
       $cursor="pointer"
     >
-      {options.map((option) => (
-        <Flex
-          key={option}
-          tabIndex={0}
-          onClick={() => onChange(option)}
-          $justifyContent="center"
-          $alignItems="center"
-          $padding="0.375rem 1rem"
-          {...(option === selectedOption && {
-            $backgroundColor: isLightBackground
-              ? "hsl(0, 0%, 92.5%)"
-              : "hsl(0, 0%, 7.5%)",
-          })}
-          $borderRadius="2.5rem"
-        >
-          <Text
-            $font={theme.typography.text.fontFamily}
-            $size={14}
-            $weight={option === selectedOption ? 600 : 400}
-            $color={theme.typography.text.color}
+      {options.map((option) => {
+        return (
+          <Flex
+            key={option}
+            tabIndex={0}
+            onClick={() => onChange(option)}
+            $justifyContent="center"
+            $alignItems="center"
+            $padding="0.375rem 1rem"
+            {...(option === selectedOption && {
+              $backgroundColor: isLightBackground
+                ? "hsl(0, 0%, 92.5%)"
+                : "hsl(0, 0%, 7.5%)",
+            })}
+            $borderRadius="2.5rem"
           >
-            Billed {adjectify(option)}
-          </Text>
-        </Flex>
-      ))}
+            <Text
+              $flexShrink="0"
+              $font={theme.typography.text.fontFamily}
+              $size={14}
+              $weight={option === selectedOption ? 600 : 400}
+              $color={theme.typography.text.color}
+            >
+              Billed {adjectify(option)}
+            </Text>
+          </Flex>
+        );
+      })}
     </Flex>
   );
 };

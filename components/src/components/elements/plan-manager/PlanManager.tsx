@@ -228,7 +228,10 @@ export const PlanManager = forwardRef<
 
       {canChangePlan &&
         layout === "checkout" &&
-        createPortal(<CheckoutDialog />, portal || document.body)}
+        createPortal(
+          <CheckoutDialog {...(portal && { portal })} />,
+          portal || document.body,
+        )}
     </Element>
   );
 });
