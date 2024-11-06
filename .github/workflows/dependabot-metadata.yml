@@ -1,0 +1,93 @@
+name: dependabot-metadata
+on: pull_request
+permissions: write-all
+
+jobs:
+  dependabot:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Fetch Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@v2.2.0
+        with:
+          alert-lookup: true
+          compat-lookup: true
+          github-token: "${{ secrets.PAT_TOKEN }}"
+    
+      - name: Run Linear Action for version updates
+        uses: SchematicHQ/devops-cli@main
+        id: linear-version
+        if: ${{steps.metadata.outputs.update-type == 'version-update:semver-major' || steps.metadata.outputs.update-type == 'version-update:semver-minor' || steps.metadata.outputs.update-type == 'version-update:semver-patch'}}
+        with:
+          command: "linear"
+          title: ${{ github.event.repository.name }} - update ${{ steps.metadata.outputs.dependency-names }} from ${{ steps.metadata.outputs.previous-version }} to ${{ steps.metadata.outputs.new-version }}
+          description: |
+            # This issue was created by a `Dependabot` GitHub Action
+            > `${{ github.workflow_ref }}`
+
+            * **repository:** `${{ github.event.repository.name }}`
+            * **directory:** `${{ steps.metadata.outputs.directory }}`
+            * **target-branch:** `${{ steps.metadata.outputs.target-branch }}`
+            * **package-ecosystem:** `${{ steps.metadata.outputs.package-ecosystem }}`
+            * **dependency-names:** `${{ steps.metadata.outputs.dependency-names }}`
+            * **previous-version:** `${{ steps.metadata.outputs.previous-version }}`
+            * **new-version:** `${{ steps.metadata.outputs.new-version }}`
+            * **dependency-type:** `${{ steps.metadata.outputs.dependency-type }}`
+            * **update-type:** `${{ steps.metadata.outputs.update-type }}`
+          team: "SCH"
+          pull_request_url: ${{ github.event.pull_request && github.event.pull_request.html_url || '' }}
+          branch_name: "dependabot/${{ steps.metadata.outputs.package-ecosystem }}/${{ steps.metadata.outputs.dependency-names }}-${{ steps.metadata.outputs.new-version }}"
+          tags: "dependabot"
+        env:
+          LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+
+      - name: Run Linear Action for security updates
+        uses: SchematicHQ/devops-cli@main
+        id: linear-security
+        if: ${{steps.metadata.outputs.alert-state == 'OPEN'}}
+        with:
+          command: "linear"
+          title: ${{ github.event.repository.name }} - Security - update ${{ steps.metadata.outputs.dependency-names }} from ${{ steps.metadata.outputs.previous-version }} to ${{ steps.metadata.outputs.new-version }}
+          description: |
+            # This issue was created by a `Security` - `Dependabot` GitHub Action
+            > `${{ github.workflow_ref }}`
+
+            * **GHSA ID:** = `${{ steps.metadata.outputs.ghsa-id }}`
+            * **CVSS:** = `${{ steps.metadata.outputs.cvss }}`
+            * **compatibility-score:** = `${{ steps.metadata.outputs.compatibility-score }}`
+            * **alert-state:** = `${{steps.metadata.outputs.alert-state }}`
+            * **repository:** `${{ github.event.repository.name }}`
+            * **directory:** `${{ steps.metadata.outputs.directory }}`
+            * **target-branch:** `${{ steps.metadata.outputs.target-branch }}`
+            * **package-ecosystem:** `${{ steps.metadata.outputs.package-ecosystem }}`
+            * **dependency-names:** `${{ steps.metadata.outputs.dependency-names }}`
+            * **previous-version:** `${{ steps.metadata.outputs.previous-version }}`
+            * **new-version:** `${{ steps.metadata.outputs.new-version }}`
+            * **dependency-type:** `${{ steps.metadata.outputs.dependency-type }}`
+            * **update-type:** `${{ steps.metadata.outputs.update-type }}`
+          team: "SCH"
+          pull_request_url: ${{ github.event.pull_request && github.event.pull_request.html_url || '' }}
+          branch_name: "dependabot/${{ steps.metadata.outputs.package-ecosystem }}${{ steps.metadata.outputs.dependency-names }}-${{ steps.metadata.outputs.new-version }}"
+          tags: "dependabot,security"
+        env:
+          LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+
+      - name: Get PR Title
+        id: pr-title
+        run: |
+          echo "PR_TITLE=$(gh pr view ${{ github.event.pull_request.number }} --json title -q .title)" >> $GITHUB_OUTPUT
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set PR Title
+        run: |
+          gh pr edit ${{ github.event.pull_request.number }} --title "fix ${{ steps.linear-version.outputs.linear_issue_id || steps.linear-security.outputs.linear_issue_id}} - ${{ env.PR_TITLE }}"
+        env:
+          PR_TITLE: ${{ steps.pr-title.outputs.PR_TITLE }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
