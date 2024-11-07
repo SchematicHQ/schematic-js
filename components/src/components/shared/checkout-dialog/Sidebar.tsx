@@ -63,10 +63,16 @@ export const Sidebar = ({
 
   const { planPeriodOptions, paymentMethod } = useMemo(() => {
     const planPeriodOptions = [];
-    if (data.activePlans.some((plan) => plan.monthlyPrice)) {
+    if (
+      data.activePlans.some((plan) => plan.monthlyPrice) ||
+      data.activeAddOns.some((addOn) => addOn.monthlyPrice)
+    ) {
       planPeriodOptions.push("month");
     }
-    if (data.activePlans.some((plan) => plan.yearlyPrice)) {
+    if (
+      data.activePlans.some((plan) => plan.yearlyPrice) ||
+      data.activeAddOns.some((addOn) => addOn.yearlyPrice)
+    ) {
       planPeriodOptions.push("year");
     }
 
@@ -74,7 +80,7 @@ export const Sidebar = ({
       planPeriodOptions,
       paymentMethod: data.subscription?.paymentMethod,
     };
-  }, [data.activePlans, data.subscription?.paymentMethod]);
+  }, [data.activePlans, data.activeAddOns, data.subscription?.paymentMethod]);
 
   const subscriptionPrice = useMemo(() => {
     if (

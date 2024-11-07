@@ -1,14 +1,14 @@
-import { forwardRef, useMemo, useState } from "react";
+import { forwardRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTheme } from "styled-components";
 import pluralize from "pluralize";
-import type {
-  CompanyPlanWithBillingSubView,
-  CompanyPlanDetailResponseData,
-} from "../../../api";
 import { TEXT_BASE_SIZE } from "../../../const";
 import { type FontStyle } from "../../../context";
-import { useEmbed, useIsLightBackground } from "../../../hooks";
+import {
+  useAvailablePlans,
+  useEmbed,
+  useIsLightBackground,
+} from "../../../hooks";
 import type { ElementProps, RecursivePartial } from "../../../types";
 import { formatCurrency, formatNumber, hexToHSL } from "../../../utils";
 import { cardBoxShadow, FussyChild } from "../../layout";
@@ -23,22 +23,6 @@ import {
   Tooltip,
   type IconNameTypes,
 } from "../../ui";
-
-const getActivePlans = (
-  plans: CompanyPlanDetailResponseData[],
-  period: CompanyPlanWithBillingSubView["planPeriod"],
-  mode: string,
-) => {
-  return mode === "edit"
-    ? plans
-    : plans
-        .filter(
-          (plan) =>
-            (period === "month" && plan.monthlyPrice) ||
-            (period === "year" && plan.yearlyPrice),
-        )
-        .map((plan) => ({ ...plan, isSelected: false }));
-};
 
 interface DesignProps {
   showPeriodToggle: boolean;
@@ -134,7 +118,7 @@ export const PricingTable = forwardRef<
 
   const theme = useTheme();
 
-  const { data, layout, mode, setLayout } = useEmbed();
+  const { data, layout, setLayout } = useEmbed();
 
   const [selectedPeriod, setSelectedPeriod] = useState(
     () => data.company?.plan?.planPeriod || "month",
@@ -142,30 +126,11 @@ export const PricingTable = forwardRef<
   const [selectedPlanId, setSelectedPlanId] = useState<string | undefined>();
   const [selectedAddOnId, setSelectedAddOnId] = useState<string | undefined>();
 
-  const { canChangePlan, plans, addOns, periods } = useMemo(() => {
-    const periods = [];
-    if (data.activePlans.some((plan) => plan.monthlyPrice)) {
-      periods.push("month");
-    }
-    if (data.activePlans.some((plan) => plan.yearlyPrice)) {
-      periods.push("year");
-    }
-
-    return {
-      canChangePlan: data.capabilities?.checkout ?? true,
-      plans: getActivePlans(data.activePlans, selectedPeriod, mode),
-      addOns: getActivePlans(data.activeAddOns, selectedPeriod, mode),
-      periods,
-    };
-  }, [
-    data.capabilities?.checkout,
-    data.activePlans,
-    data.activeAddOns,
-    selectedPeriod,
-    mode,
-  ]);
+  const { plans, addOns, periods } = useAvailablePlans(selectedPeriod);
 
   const isLightBackground = useIsLightBackground();
+
+  const canChangePlan = data.capabilities?.checkout ?? true;
 
   const cardPadding = theme.card.padding / TEXT_BASE_SIZE;
 
@@ -181,9 +146,7 @@ export const PricingTable = forwardRef<
     return 0;
   });
 
-  const currentPlanIndex = plansByPrice.findIndex(
-    (plan) => plan.current === true,
-  );
+  const currentPlanIndex = plansByPrice.findIndex((plan) => plan.current);
   const currentPlan = plansByPrice[currentPlanIndex];
 
   return (
