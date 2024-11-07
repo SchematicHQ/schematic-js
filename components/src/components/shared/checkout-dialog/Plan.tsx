@@ -25,6 +25,8 @@ export const Plan = ({
 
   const isLightBackground = useIsLightBackground();
 
+  const cardPadding = theme.card.padding / TEXT_BASE_SIZE;
+
   return (
     <>
       <Flex $flexDirection="column" $gap="1rem" $marginBottom="1rem">
@@ -92,7 +94,7 @@ export const Plan = ({
                   $position="relative"
                   $gap="1rem"
                   $width="100%"
-                  $padding={`${theme.card.padding / TEXT_BASE_SIZE}rem`}
+                  $padding={`${cardPadding}rem ${cardPadding}rem 1.5rem`}
                   $borderBottomWidth="1px"
                   $borderStyle="solid"
                   $borderColor={
@@ -146,7 +148,7 @@ export const Plan = ({
                   $gap="0.5rem"
                   $flex="1"
                   $width="100%"
-                  $padding="1.5rem"
+                  $padding="1.5rem 1.5rem 0"
                 >
                   {plan.entitlements.map(
                     ({

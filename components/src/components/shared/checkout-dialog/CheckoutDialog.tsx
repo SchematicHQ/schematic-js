@@ -23,12 +23,24 @@ const checkoutStages = [
   { id: "checkout", name: "Checkout", description: "" },
 ];
 
-export const CheckoutDialog = () => {
+export interface CheckoutDialogProps {
+  initialPeriod?: string;
+  initialPlanId?: string;
+  initialAddOnId?: string;
+  portal?: HTMLElement;
+}
+
+export const CheckoutDialog = ({
+  initialPeriod,
+  initialPlanId,
+  initialAddOnId,
+  portal,
+}: CheckoutDialogProps) => {
   const { api, data, mode } = useEmbed();
 
   const [checkoutStage, setCheckoutStage] = useState("plan");
   const [planPeriod, setPlanPeriod] = useState(
-    data.company?.plan?.planPeriod || "month",
+    initialPeriod || data.company?.plan?.planPeriod || "month",
   );
   const [charges, setCharges] = useState<{
     dueNow: number;
@@ -80,16 +92,19 @@ export const CheckoutDialog = () => {
       };
     }, [data.company, data.activePlans, data.activeAddOns, mode, planPeriod]);
 
-  // instantiation for state that depends on memoized data
-  const [selectedPlan, setSelectedPlan] = useState(() =>
-    availablePlans.find((plan) => plan.id === currentPlan?.id),
+  const [selectedPlan, setSelectedPlan] = useState<
+    CompanyPlanDetailResponseData | undefined
+  >(() =>
+    availablePlans.find(
+      (plan) => plan.id === (initialPlanId || currentPlan?.id),
+    ),
   );
   const [addOns, setAddOns] = useState(() =>
     availableAddOns.map((addOn) => ({
       ...addOn,
-      isSelected: currentAddOns.some(
-        (currentAddOn) => addOn.id === currentAddOn.id,
-      ),
+      isSelected:
+        addOn.id === initialAddOnId ||
+        currentAddOns.some((currentAddOn) => addOn.id === currentAddOn.id),
     })),
   );
 
@@ -181,12 +196,13 @@ export const CheckoutDialog = () => {
 
   // prevent scrolling when the checkout dialog is open
   useEffect(() => {
-    document.body.style.overflow = "hidden";
+    const parent = portal || document.body;
+    parent.style.overflow = "hidden";
 
     return () => {
-      document.body.style.overflow = "";
+      parent.style.overflow = "";
     };
-  }, []);
+  }, [portal]);
 
   return (
     <Modal size="lg">

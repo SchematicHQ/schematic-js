@@ -3,7 +3,8 @@ import { type Stripe } from "@stripe/stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
 import type { SetupIntentResponseData } from "../../../api";
 import { useEmbed } from "../../../hooks";
-import { PaymentForm, PaymentMethod } from "../../elements";
+import { PaymentMethod } from "../../elements";
+import { PaymentForm } from "../../shared";
 import { Box, Text } from "../../ui";
 
 interface CheckoutProps {

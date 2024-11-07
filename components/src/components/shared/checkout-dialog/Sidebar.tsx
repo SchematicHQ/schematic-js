@@ -8,6 +8,7 @@ import type {
 } from "../../../api";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import { formatCurrency, formatOrdinal, getMonthName } from "../../../utils";
+import { PeriodToggle, Savings } from "../../shared";
 import { Box, EmbedButton, Flex, Icon, Text } from "../../ui";
 
 interface SidebarProps {
@@ -56,16 +57,22 @@ export const Sidebar = ({
 }: SidebarProps) => {
   const theme = useTheme();
 
-  const { api, data, setLayout } = useEmbed();
+  const { api, data, mode, setLayout } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
 
   const { planPeriodOptions, paymentMethod } = useMemo(() => {
     const planPeriodOptions = [];
-    if (data.activePlans.some((plan) => plan.monthlyPrice)) {
+    if (
+      data.activePlans.some((plan) => plan.monthlyPrice) ||
+      data.activeAddOns.some((addOn) => addOn.monthlyPrice)
+    ) {
       planPeriodOptions.push("month");
     }
-    if (data.activePlans.some((plan) => plan.yearlyPrice)) {
+    if (
+      data.activePlans.some((plan) => plan.yearlyPrice) ||
+      data.activeAddOns.some((addOn) => addOn.yearlyPrice)
+    ) {
       planPeriodOptions.push("year");
     }
 
@@ -73,17 +80,7 @@ export const Sidebar = ({
       planPeriodOptions,
       paymentMethod: data.subscription?.paymentMethod,
     };
-  }, [data.activePlans, data.subscription?.paymentMethod]);
-
-  const savingsPercentage = useMemo(() => {
-    if (selectedPlan) {
-      const monthly = (selectedPlan?.monthlyPrice?.price || 0) * 12;
-      const yearly = selectedPlan?.yearlyPrice?.price || 0;
-      return Math.round(((monthly - yearly) / monthly) * 10000) / 100;
-    }
-
-    return 0;
-  }, [selectedPlan]);
+  }, [data.activePlans, data.activeAddOns, data.subscription?.paymentMethod]);
 
   const subscriptionPrice = useMemo(() => {
     if (
@@ -181,15 +178,16 @@ export const Sidebar = ({
       planPeriod !== currentPlan.planPeriod);
 
   const canUpdateSubscription =
-    api &&
-    (willPlanChange ||
-      addOns.length !== currentAddOns.length ||
-      addOns.every(
-        (addOn) =>
-          !addOn.isSelected ||
-          currentAddOns.some((currentAddOn) => currentAddOn.id === addOn.id),
-      )) &&
-    !isLoading;
+    mode === "edit" ||
+    (api &&
+      (willPlanChange ||
+        addOns.length !== currentAddOns.length ||
+        addOns.every(
+          (addOn) =>
+            !addOn.isSelected ||
+            currentAddOns.some((currentAddOn) => currentAddOn.id === addOn.id),
+        )) &&
+      !isLoading);
 
   const canCheckout =
     canUpdateSubscription &&
@@ -229,79 +227,14 @@ export const Sidebar = ({
         </Flex>
 
         {planPeriodOptions.length > 1 && (
-          <Flex
-            $borderWidth="1px"
-            $borderStyle="solid"
-            $borderColor={
-              isLightBackground
-                ? "hsla(0, 0%, 0%, 0.1)"
-                : "hsla(0, 0%, 100%, 0.2)"
-            }
-            $borderRadius="2.5rem"
-            $cursor="pointer"
-          >
-            <Flex
-              onClick={() => changePlanPeriod("month")}
-              $justifyContent="center"
-              $alignItems="center"
-              $padding="0.25rem 0.5rem"
-              $flex="1"
-              {...(planPeriod === "month" && {
-                $backgroundColor: isLightBackground
-                  ? "hsla(0, 0%, 0%, 0.075)"
-                  : "hsla(0, 0%, 100%, 0.15)",
-              })}
-              $borderRadius="2.5rem"
-            >
-              <Text
-                $font={theme.typography.text.fontFamily}
-                $size={14}
-                $weight={planPeriod === "month" ? 600 : 400}
-                $color={theme.typography.text.color}
-              >
-                Billed monthly
-              </Text>
-            </Flex>
-
-            <Flex
-              onClick={() => changePlanPeriod("year")}
-              $justifyContent="center"
-              $alignItems="center"
-              $padding="0.25rem 0.5rem"
-              $flex="1"
-              {...(planPeriod === "year" && {
-                $backgroundColor: isLightBackground
-                  ? "hsla(0, 0%, 0%, 0.075)"
-                  : "hsla(0, 0%, 100%, 0.15)",
-              })}
-              $borderRadius="2.5rem"
-            >
-              <Text
-                $font={theme.typography.text.fontFamily}
-                $size={14}
-                $weight={planPeriod === "year" ? 600 : 400}
-                $color={theme.typography.text.color}
-              >
-                Billed yearly
-              </Text>
-            </Flex>
-          </Flex>
+          <PeriodToggle
+            options={planPeriodOptions}
+            selectedOption={planPeriod}
+            onChange={changePlanPeriod}
+          />
         )}
 
-        {savingsPercentage > 0 && (
-          <Box>
-            <Text
-              $font={theme.typography.text.fontFamily}
-              $size={11}
-              $weight={theme.typography.text.fontWeight}
-              $color={theme.primary}
-            >
-              {planPeriod === "month"
-                ? `Save up to ${savingsPercentage}% with yearly billing`
-                : `You are saving ${savingsPercentage}% with yearly billing`}
-            </Text>
-          </Box>
-        )}
+        <Savings plan={selectedPlan} period={planPeriod} />
       </Flex>
 
       <Flex
@@ -639,7 +572,7 @@ export const Sidebar = ({
             {...(canUpdateSubscription
               ? {
                   onClick: async () => {
-                    if (!data.component?.id) {
+                    if (!api || !data.component?.id) {
                       return;
                     }
 
