@@ -202,7 +202,7 @@ export const CheckoutDialog = ({
     return () => {
       parent.style.overflow = "";
     };
-  }, []);
+  }, [portal]);
 
   return (
     <Modal size="lg">
