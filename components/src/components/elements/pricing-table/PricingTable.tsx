@@ -452,7 +452,7 @@ export const PricingTable = forwardRef<
                           <Box $position="relative">
                             <EmbedButton
                               disabled={!plan.valid}
-                              {...(plan.valid === true && {
+                              {...(plan.valid && {
                                 onClick: () => {
                                   setSelectedPlanId(plan.id);
                                   setLayout("checkout");
@@ -470,7 +470,7 @@ export const PricingTable = forwardRef<
                                     $variant: "outline",
                                   })}
                             >
-                              {plan.valid === false ? (
+                              {!plan.valid ? (
                                 <Tooltip
                                   label="Over usage limit"
                                   description=" Current usage exceeds limit of this plan"
@@ -773,7 +773,7 @@ export const PricingTable = forwardRef<
                             <Box $position="relative">
                               <EmbedButton
                                 disabled={!addOn.valid}
-                                {...(addOn.valid === true && {
+                                {...(addOn.valid && {
                                   onClick: () => {
                                     setSelectedAddOnId(addOn.id);
                                     setLayout("checkout");

@@ -179,15 +179,15 @@ export const Plan = ({
                   {plan.id !== selectedPlan?.id ? (
                     <Box $position="relative">
                       <EmbedButton
-                        disabled={isLoading || plan.valid === false}
-                        {...(plan.valid === true && {
+                        disabled={isLoading || !plan.valid}
+                        {...(plan.valid && {
                           onClick: () => selectPlan(plan),
                         })}
                         $size="sm"
                         $color="primary"
                         $variant="outline"
                       >
-                        {plan.valid === false ? (
+                        {!plan.valid ? (
                           <Tooltip
                             label="Over usage limit"
                             description=" Current usage exceeds limit of this plan"
