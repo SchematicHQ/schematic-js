@@ -1,4 +1,6 @@
 import { createContext, useCallback, useEffect, useRef, useState } from "react";
+import { initReactI18next } from "react-i18next";
+import i18n from "i18next";
 import { inflate } from "pako";
 import { ThemeProvider } from "styled-components";
 import merge from "lodash.merge";
@@ -9,6 +11,7 @@ import {
   type ConfigurationParameters,
   type ComponentHydrateResponseData,
 } from "../api";
+import en from "../locales/en.json";
 import type {
   RecursivePartial,
   SerializedEditorState,
@@ -121,11 +124,14 @@ export const defaultSettings: EmbedSettings = {
   theme: defaultTheme,
 };
 
-/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-function isEditorState(obj: any): obj is SerializedEditorState {
-  return Object.entries(obj).every(([key, value]) => {
-    return typeof key === "string" && typeof value === "object";
-  });
+function isEditorState(obj: unknown): obj is SerializedEditorState {
+  return (
+    obj !== null &&
+    typeof obj === "object" &&
+    Object.entries(obj).every(([key, value]) => {
+      return typeof key === "string" && typeof value === "object";
+    })
+  );
 }
 
 function getEditorState(json: string) {
@@ -325,6 +331,19 @@ export const EmbedProvider = ({
     },
     [setState],
   );
+
+  useEffect(() => {
+    i18n.use(initReactI18next).init({
+      resources: {
+        en,
+      },
+      lng: "en",
+      fallbackLng: "en",
+      interpolation: {
+        escapeValue: false,
+      },
+    });
+  }, []);
 
   useEffect(() => {
     const element = document.getElementById("schematic-fonts");

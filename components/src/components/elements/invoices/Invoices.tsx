@@ -1,4 +1,5 @@
 import { forwardRef, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 import { type ListInvoicesResponse } from "../../../api";
 import { type FontStyle } from "../../../context";
@@ -116,6 +117,8 @@ export const Invoices = forwardRef<
 >(({ className, data, ...rest }, ref) => {
   const props = resolveDesignProps(rest);
 
+  const { t } = useTranslation();
+
   const theme = useTheme();
 
   const { api } = useEmbed();
@@ -146,7 +149,7 @@ export const Invoices = forwardRef<
               $weight={theme.typography[props.header.fontStyle].fontWeight}
               $color={theme.typography[props.header.fontStyle].color}
             >
-              Invoices
+              {t("Invoices")}
             </Text>
           </Flex>
         )}
@@ -194,7 +197,7 @@ export const Invoices = forwardRef<
               $weight={theme.typography[props.collapse.fontStyle].fontWeight}
               $color={theme.typography[props.collapse.fontStyle].color}
             >
-              See {listSize === props.limit.number ? "more" : "less"}
+              {listSize === props.limit.number ? t("See more") : t("See less")}
             </Text>
           </Flex>
         )}

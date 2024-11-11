@@ -1,4 +1,5 @@
 import { forwardRef, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 import { type FontStyle } from "../../../context";
 import { useEmbed } from "../../../hooks";
@@ -53,7 +54,10 @@ export const UpcomingBill = forwardRef<
 >(({ className, ...rest }, ref) => {
   const props = resolveDesignProps(rest);
 
+  const { t } = useTranslation();
+
   const theme = useTheme();
+
   const { data } = useEmbed();
 
   const { upcomingInvoice } = useMemo(() => {
@@ -122,7 +126,7 @@ export const UpcomingBill = forwardRef<
             }
             $color={theme.typography[props.contractEndDate.fontStyle].color}
           >
-            Estimated bill.
+            {t("Estimated bill.")}
           </Text>
         </Box>
       </Flex>

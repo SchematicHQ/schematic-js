@@ -1,0 +1,14 @@
+{
+  "translation": {
+    "Change Plan": "Change Plan",
+    "Estimated bill.": "Estimated bill.",
+    "Invoices": "Invoices",
+    "See more": "See more",
+    "See less": "See less",
+    "Unlimited": "Unlimited {{name}}",
+    "usage": {
+      "limited": "{{amount}} of {{allocation}} used",
+      "unlimited": "{{amount}} used"
+    }
+  }
+}

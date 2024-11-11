@@ -1,5 +1,6 @@
 import { forwardRef } from "react";
 import { createPortal } from "react-dom";
+import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 import { type FontStyle } from "../../../context";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
@@ -80,6 +81,8 @@ export const PlanManager = forwardRef<
   const props = resolveDesignProps(rest);
 
   const theme = useTheme();
+
+  const { t } = useTranslation();
 
   const { data, layout, setLayout } = useEmbed();
 
@@ -222,7 +225,7 @@ export const PlanManager = forwardRef<
           $size={props.callToAction.buttonSize}
           $color={props.callToAction.buttonStyle}
         >
-          Change Plan
+          {t("Change Plan")}
         </EmbedButton>
       )}
 
