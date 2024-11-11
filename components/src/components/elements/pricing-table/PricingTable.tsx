@@ -148,8 +148,6 @@ export const PricingTable = forwardRef<
 
   const currentPlanIndex = plansByPrice.findIndex((plan) => plan.current);
   const currentPlan = plansByPrice[currentPlanIndex];
-  const isActivePlan =
-    currentPlan && data.company?.plan?.planPeriod === selectedPeriod;
 
   return (
     <FussyChild
@@ -195,9 +193,14 @@ export const PricingTable = forwardRef<
         {props.plans.isVisible && plansByPrice.length > 0 && (
           <Flex $flexWrap="wrap" $gap="1rem">
             {plansByPrice.map((plan, index, self) => {
+              const isActivePlan =
+                plan.current &&
+                data.company?.plan?.planPeriod === selectedPeriod;
+
               return (
                 <Flex
                   key={index}
+                  $position="relative"
                   $flexDirection="column"
                   $width="100%"
                   $maxWidth="320px"
@@ -211,7 +214,6 @@ export const PricingTable = forwardRef<
                 >
                   <Flex
                     $flexDirection="column"
-                    $position="relative"
                     $gap="0.75rem"
                     $width="100%"
                     $height="auto"
@@ -418,7 +420,7 @@ export const PricingTable = forwardRef<
                       </Flex>
                     )}
 
-                    {plan.current ? (
+                    {isActivePlan ? (
                       <Flex
                         $justifyContent="center"
                         $alignItems="center"
@@ -439,7 +441,7 @@ export const PricingTable = forwardRef<
                           $lineHeight="1.4"
                           $color={theme.typography.text.color}
                         >
-                          {isActivePlan ? "Current plan" : "Selected"}
+                          Current plan
                         </Text>
                       </Flex>
                     ) : (
@@ -642,7 +644,7 @@ export const PricingTable = forwardRef<
                         </Text>
                       </Box>
 
-                      {addOn.current && (
+                      {isActiveAddOn && (
                         <Flex
                           $position="absolute"
                           $right="1rem"
@@ -657,7 +659,7 @@ export const PricingTable = forwardRef<
                           $borderRadius="9999px"
                           $padding="0.125rem 0.85rem"
                         >
-                          {isActiveAddOn ? "Current addon" : "Selected"}
+                          Current addon
                         </Flex>
                       )}
                     </Flex>
@@ -743,7 +745,7 @@ export const PricingTable = forwardRef<
                         </Flex>
                       )}
 
-                      {addOn.current ? (
+                      {isActiveAddOn ? (
                         <Flex
                           $justifyContent="center"
                           $alignItems="center"
@@ -764,7 +766,7 @@ export const PricingTable = forwardRef<
                             $lineHeight="1.4"
                             $color={theme.typography.text.color}
                           >
-                            {isActiveAddOn ? "Current addon" : "Selected"}
+                            Current addon
                           </Text>
                         </Flex>
                       ) : (
