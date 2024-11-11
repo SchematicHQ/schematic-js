@@ -148,6 +148,8 @@ export const PricingTable = forwardRef<
 
   const currentPlanIndex = plansByPrice.findIndex((plan) => plan.current);
   const currentPlan = plansByPrice[currentPlanIndex];
+  const isActivePlan =
+    currentPlan && data.company?.plan?.planPeriod === selectedPeriod;
 
   return (
     <FussyChild
@@ -204,7 +206,7 @@ export const PricingTable = forwardRef<
                   $borderRadius={`${theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
                   $outlineWidth="2px"
                   $outlineStyle="solid"
-                  $outlineColor={plan.current ? theme.primary : "transparent"}
+                  $outlineColor={isActivePlan ? theme.primary : "transparent"}
                   {...(theme.card.hasShadow && { $boxShadow: cardBoxShadow })}
                 >
                   <Flex
@@ -314,7 +316,7 @@ export const PricingTable = forwardRef<
                       </Text>
                     </Box>
 
-                    {plan.current && (
+                    {isActivePlan && (
                       <Flex
                         $position="absolute"
                         $right="1rem"
@@ -354,7 +356,7 @@ export const PricingTable = forwardRef<
                               $weight={theme.typography.text.fontWeight}
                               $color={theme.typography.text.color}
                             >
-                              Everything in ${self[index - 1].name}, plus
+                              Everything in {self[index - 1].name}, plus
                             </Text>
                           </Box>
                         )}
@@ -437,7 +439,7 @@ export const PricingTable = forwardRef<
                           $lineHeight="1.4"
                           $color={theme.typography.text.color}
                         >
-                          Selected
+                          {isActivePlan ? "Current plan" : "Selected"}
                         </Text>
                       </Flex>
                     ) : (
@@ -474,7 +476,7 @@ export const PricingTable = forwardRef<
                                   description=" Current usage exceeds limit of this plan"
                                 />
                               ) : (
-                                "Select"
+                                "Choose plan"
                               )}
                             </EmbedButton>
                           </Box>
@@ -511,9 +513,16 @@ export const PricingTable = forwardRef<
 
             <Flex $flexWrap="wrap" $gap="1rem">
               {addOns.map((addOn, index) => {
+                const isActiveAddOn =
+                  addOn.current &&
+                  selectedPeriod ===
+                    data.company?.addOns.find((a) => a.id === addOn.id)
+                      ?.planPeriod;
+
                 return (
                   <Flex
                     key={index}
+                    $position="relative"
                     $flexDirection="column"
                     $gap="2rem"
                     $width="100%"
@@ -524,13 +533,12 @@ export const PricingTable = forwardRef<
                     $outlineWidth="2px"
                     $outlineStyle="solid"
                     $outlineColor={
-                      addOn.current ? theme.primary : "transparent"
+                      isActiveAddOn ? theme.primary : "transparent"
                     }
                     {...(theme.card.hasShadow && { $boxShadow: cardBoxShadow })}
                   >
                     <Flex
                       $flexDirection="column"
-                      $position="relative"
                       $gap="0.75rem"
                       $width="100%"
                       $height="auto"
@@ -649,7 +657,7 @@ export const PricingTable = forwardRef<
                           $borderRadius="9999px"
                           $padding="0.125rem 0.85rem"
                         >
-                          Active
+                          {isActiveAddOn ? "Current addon" : "Selected"}
                         </Flex>
                       )}
                     </Flex>
@@ -756,7 +764,7 @@ export const PricingTable = forwardRef<
                             $lineHeight="1.4"
                             $color={theme.typography.text.color}
                           >
-                            Selected
+                            {isActiveAddOn ? "Current addon" : "Selected"}
                           </Text>
                         </Flex>
                       ) : (
@@ -784,7 +792,7 @@ export const PricingTable = forwardRef<
                                       $variant: "outline",
                                     })}
                               >
-                                Add
+                                Choose addon
                               </EmbedButton>
                             </Box>
                           )}
@@ -812,3 +820,5 @@ export const PricingTable = forwardRef<
     </FussyChild>
   );
 });
+
+PricingTable.displayName = "PricingTable";

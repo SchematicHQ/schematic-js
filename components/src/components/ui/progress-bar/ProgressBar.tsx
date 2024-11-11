@@ -2,6 +2,15 @@ import { TEXT_BASE_SIZE } from "../../../const";
 import { Box, Flex, Text } from "../../ui";
 import { Container } from "./styles";
 
+export const progressColorMap = [
+  "blue",
+  "blue",
+  "blue",
+  "yellow",
+  "red",
+  "red",
+] satisfies ProgressBarProps["color"][];
+
 export interface ProgressBarProps
   extends React.ComponentPropsWithoutRef<typeof Flex> {
   progress: number;
