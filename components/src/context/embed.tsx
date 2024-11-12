@@ -1,7 +1,7 @@
 import { createContext, useCallback, useEffect, useRef, useState } from "react";
 import { inflate } from "pako";
 import { ThemeProvider } from "styled-components";
-import merge from "lodash.merge";
+import merge from "lodash/merge";
 import { v4 as uuidv4 } from "uuid";
 import {
   CheckoutApi,

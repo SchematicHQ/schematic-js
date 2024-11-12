@@ -180,9 +180,7 @@ export const Plan = ({
                     <Box $position="relative">
                       <EmbedButton
                         disabled={isLoading || !plan.valid}
-                        {...(plan.valid && {
-                          onClick: () => selectPlan(plan),
-                        })}
+                        onClick={() => selectPlan(plan)}
                         $size="sm"
                         $color="primary"
                         $variant="outline"

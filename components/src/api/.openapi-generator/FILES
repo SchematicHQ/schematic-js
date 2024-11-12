@@ -47,11 +47,11 @@ models/PlanGroupPlanDetailResponseData.ts
 models/PlanResponseData.ts
 models/PreviewCheckoutResponse.ts
 models/PreviewObject.ts
+models/PreviewObjectResponseData.ts
 models/PreviewSubscriptionChangeResponseData.ts
 models/RuleConditionDetailResponseData.ts
 models/RuleConditionGroupDetailResponseData.ts
 models/RuleConditionGroupResponseData.ts
-models/RuleConditionResourceResponseData.ts
 models/RuleConditionResponseData.ts
 models/RuleDetailResponseData.ts
 models/RuleResponseData.ts

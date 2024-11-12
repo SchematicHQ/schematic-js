@@ -30,7 +30,7 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
           $color={theme.typography.heading3.color}
           $marginBottom="0.5rem"
         >
-          Customize with addons
+          Customize with add-ons
         </Text>
 
         <Text

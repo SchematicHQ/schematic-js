@@ -123,8 +123,8 @@ export const PricingTable = forwardRef<
   const [selectedPeriod, setSelectedPeriod] = useState(
     () => data.company?.plan?.planPeriod || "month",
   );
-  const [selectedPlanId, setSelectedPlanId] = useState<string | undefined>();
-  const [selectedAddOnId, setSelectedAddOnId] = useState<string | undefined>();
+  const [selectedPlanId, setSelectedPlanId] = useState<string | null>();
+  const [selectedAddOnId, setSelectedAddOnId] = useState<string | null>();
 
   const { plans, addOns, periods } = useAvailablePlans(selectedPeriod);
 
@@ -331,7 +331,7 @@ export const PricingTable = forwardRef<
                         $borderRadius="9999px"
                         $padding="0.125rem 0.85rem"
                       >
-                        Current plan
+                        Active
                       </Flex>
                     )}
                   </Flex>
@@ -445,22 +445,18 @@ export const PricingTable = forwardRef<
                         </Text>
                       </Flex>
                     ) : (
-                      <>
-                        {((index > currentPlanIndex &&
-                          props.upgrade.isVisible) ||
-                          (index < currentPlanIndex &&
-                            props.downgrade.isVisible)) && (
-                          // plans are sorted by price, so we can determine grades by index
-                          <Box $position="relative">
-                            <EmbedButton
-                              disabled={!plan.valid}
-                              {...(plan.valid && {
-                                onClick: () => {
-                                  setSelectedPlanId(plan.id);
-                                  setLayout("checkout");
-                                },
-                              })}
-                              {...(index > currentPlanIndex
+                      (props.upgrade.isVisible ||
+                        props.downgrade.isVisible) && (
+                        <Box $position="relative">
+                          <EmbedButton
+                            disabled={!plan.valid}
+                            onClick={() => {
+                              setSelectedPlanId(isActivePlan ? null : plan.id);
+                              setLayout("checkout");
+                            }}
+                            {
+                              // plans are sorted by price, so we can determine grades by index
+                              ...(index > currentPlanIndex
                                 ? {
                                     $size: props.upgrade.buttonSize,
                                     $color: props.upgrade.buttonStyle,
@@ -470,20 +466,20 @@ export const PricingTable = forwardRef<
                                     $size: props.downgrade.buttonSize,
                                     $color: props.downgrade.buttonStyle,
                                     $variant: "outline",
-                                  })}
-                            >
-                              {!plan.valid ? (
-                                <Tooltip
-                                  label="Over usage limit"
-                                  description=" Current usage exceeds limit of this plan"
-                                />
-                              ) : (
-                                "Choose plan"
-                              )}
-                            </EmbedButton>
-                          </Box>
-                        )}
-                      </>
+                                  })
+                            }
+                          >
+                            {!plan.valid ? (
+                              <Tooltip
+                                label="Over usage limit"
+                                description="Current usage exceeds the limit of this plan."
+                              />
+                            ) : (
+                              "Choose plan"
+                            )}
+                          </EmbedButton>
+                        </Box>
+                      )
                     )}
                   </Flex>
                 </Flex>
@@ -508,7 +504,7 @@ export const PricingTable = forwardRef<
                   $weight={theme.typography[props.header.fontStyle].fontWeight}
                   $color={theme.typography[props.header.fontStyle].color}
                 >
-                  Addons
+                  Add-ons
                 </Text>
               </Flex>
             )}
@@ -659,7 +655,7 @@ export const PricingTable = forwardRef<
                           $borderRadius="9999px"
                           $padding="0.125rem 0.85rem"
                         >
-                          Current addon
+                          Active
                         </Flex>
                       )}
                     </Flex>
@@ -745,60 +741,33 @@ export const PricingTable = forwardRef<
                         </Flex>
                       )}
 
-                      {isActiveAddOn ? (
-                        <Flex
-                          $justifyContent="center"
-                          $alignItems="center"
-                          $gap="0.25rem"
-                          $fontSize="0.9375rem"
-                          $padding="0.625rem 0"
+                      {props.upgrade.isVisible && (
+                        <EmbedButton
+                          disabled={false && !addOn.valid}
+                          onClick={() => {
+                            setSelectedAddOnId(isActiveAddOn ? null : addOn.id);
+                            setLayout("checkout");
+                          }}
+                          {...(!isActiveAddOn
+                            ? {
+                                $size: props.upgrade.buttonSize,
+                                $color: props.upgrade.buttonStyle,
+                                $variant: "filled",
+                              }
+                            : {
+                                $size: props.downgrade.buttonSize,
+                                $color: props.downgrade.buttonStyle,
+                                $variant: "outline",
+                              })}
                         >
-                          <Icon
-                            name="check-rounded"
-                            style={{
-                              fontSize: 20,
-                              lineHeight: "1",
-                              color: theme.primary,
-                            }}
-                          />
-
-                          <Text
-                            $lineHeight="1.4"
-                            $color={theme.typography.text.color}
-                          >
-                            Current addon
+                          <Text>
+                            {isActiveAddOn
+                              ? "Remove add-on"
+                              : addOn.current
+                                ? "Change add-on"
+                                : "Choose add-on"}
                           </Text>
-                        </Flex>
-                      ) : (
-                        <>
-                          {props.upgrade.isVisible && (
-                            <Box $position="relative">
-                              <EmbedButton
-                                disabled={!addOn.valid}
-                                {...(addOn.valid && {
-                                  onClick: () => {
-                                    setSelectedAddOnId(addOn.id);
-                                    setLayout("checkout");
-                                  },
-                                })}
-                                {...(index > currentPlanIndex
-                                  ? // plans are sorted by price, so we can determine grades by index
-                                    {
-                                      $size: props.upgrade.buttonSize,
-                                      $color: props.upgrade.buttonStyle,
-                                      $variant: "filled",
-                                    }
-                                  : {
-                                      $size: props.downgrade.buttonSize,
-                                      $color: props.downgrade.buttonStyle,
-                                      $variant: "outline",
-                                    })}
-                              >
-                                Choose addon
-                              </EmbedButton>
-                            </Box>
-                          )}
-                        </>
+                        </EmbedButton>
                       )}
                     </Flex>
                   </Flex>

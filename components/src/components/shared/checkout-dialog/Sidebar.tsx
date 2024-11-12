@@ -179,7 +179,7 @@ export const Sidebar = ({
 
   const canUpdateSubscription =
     mode === "edit" ||
-    (api &&
+    (api !== null &&
       (willPlanChange ||
         addOns.length !== currentAddOns.length ||
         addOns.every(
@@ -543,14 +543,11 @@ export const Sidebar = ({
 
         {checkoutStage === "plan" && (
           <EmbedButton
+            disabled={!canUpdateSubscription}
+            onClick={() => {
+              setCheckoutStage(addOns.length ? "addons" : "checkout");
+            }}
             isLoading={isLoading}
-            {...(canUpdateSubscription
-              ? {
-                  onClick: () => {
-                    setCheckoutStage("addons");
-                  },
-                }
-              : { disabled: true })}
           >
             <Flex
               $gap="0.5rem"
@@ -559,7 +556,7 @@ export const Sidebar = ({
               $padding="0 1rem"
             >
               <Text $align="left" $lineHeight={1}>
-                Next: Addons
+                Next: {addOns.length ? "Addons" : "Checkout"}
               </Text>
               <Icon name="arrow-right" />
             </Flex>
@@ -568,23 +565,20 @@ export const Sidebar = ({
 
         {checkoutStage === "addons" && (
           <EmbedButton
+            disabled={!canUpdateSubscription}
+            onClick={async () => {
+              if (!api || !data.component?.id) {
+                return;
+              }
+
+              const { data: setupIntent } = await api.getSetupIntent({
+                componentId: data.component.id,
+              });
+              setSetupIntent(setupIntent);
+
+              setCheckoutStage("checkout");
+            }}
             isLoading={isLoading}
-            {...(canUpdateSubscription
-              ? {
-                  onClick: async () => {
-                    if (!api || !data.component?.id) {
-                      return;
-                    }
-
-                    const { data: setupIntent } = await api.getSetupIntent({
-                      componentId: data.component.id,
-                    });
-                    setSetupIntent(setupIntent);
-
-                    setCheckoutStage("checkout");
-                  },
-                }
-              : { disabled: true })}
           >
             <Flex
               $gap="0.5rem"
@@ -603,8 +597,8 @@ export const Sidebar = ({
         {checkoutStage === "checkout" && (
           <EmbedButton
             disabled={isLoading || !canCheckout}
+            onClick={checkout}
             isLoading={isLoading}
-            {...(canCheckout && { onClick: checkout })}
           >
             Pay now
           </EmbedButton>

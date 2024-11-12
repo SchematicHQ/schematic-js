@@ -19,12 +19,12 @@ import {
   EntityTraitDefinitionResponseDataFromJSONTyped,
   EntityTraitDefinitionResponseDataToJSON,
 } from "./EntityTraitDefinitionResponseData";
-import type { RuleConditionResourceResponseData } from "./RuleConditionResourceResponseData";
+import type { PreviewObjectResponseData } from "./PreviewObjectResponseData";
 import {
-  RuleConditionResourceResponseDataFromJSON,
-  RuleConditionResourceResponseDataFromJSONTyped,
-  RuleConditionResourceResponseDataToJSON,
-} from "./RuleConditionResourceResponseData";
+  PreviewObjectResponseDataFromJSON,
+  PreviewObjectResponseDataFromJSONTyped,
+  PreviewObjectResponseDataToJSON,
+} from "./PreviewObjectResponseData";
 
 /**
  *
@@ -118,10 +118,10 @@ export interface RuleConditionDetailResponseData {
   resourceIds: Array<string>;
   /**
    *
-   * @type {Array<RuleConditionResourceResponseData>}
+   * @type {Array<PreviewObjectResponseData>}
    * @memberof RuleConditionDetailResponseData
    */
-  resources: Array<RuleConditionResourceResponseData>;
+  resources: Array<PreviewObjectResponseData>;
   /**
    *
    * @type {string}
@@ -224,7 +224,7 @@ export function RuleConditionDetailResponseDataFromJSONTyped(
     planId: json["plan_id"] == null ? undefined : json["plan_id"],
     resourceIds: json["resource_ids"],
     resources: (json["resources"] as Array<any>).map(
-      RuleConditionResourceResponseDataFromJSON,
+      PreviewObjectResponseDataFromJSON,
     ),
     ruleId: json["rule_id"],
     trait:
@@ -263,7 +263,7 @@ export function RuleConditionDetailResponseDataToJSON(
     plan_id: value["planId"],
     resource_ids: value["resourceIds"],
     resources: (value["resources"] as Array<any>).map(
-      RuleConditionResourceResponseDataToJSON,
+      PreviewObjectResponseDataToJSON,
     ),
     rule_id: value["ruleId"],
     trait: EntityTraitDefinitionResponseDataToJSON(value["trait"]),

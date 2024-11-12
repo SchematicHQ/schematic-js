@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useState,
+} from "react";
 import { loadStripe, type Stripe } from "@stripe/stripe-js";
 import type {
   CompanyPlanDetailResponseData,
@@ -13,20 +19,10 @@ import { Plan } from "./Plan";
 import { AddOns } from "./AddOns";
 import { Checkout } from "./Checkout";
 
-const checkoutStages = [
-  { id: "plan", name: "Select plan", description: "Choose your base plan" },
-  {
-    id: "addons",
-    name: "Customize with addons",
-    description: "Optionally add features to your subscription",
-  },
-  { id: "checkout", name: "Checkout", description: "" },
-];
-
 export interface CheckoutDialogProps {
   initialPeriod?: string;
-  initialPlanId?: string;
-  initialAddOnId?: string;
+  initialPlanId?: string | null;
+  initialAddOnId?: string | null;
   portal?: HTMLElement;
 }
 
@@ -56,55 +52,86 @@ export const CheckoutDialog = ({
   );
   const [stripe, setStripe] = useState<Promise<Stripe | null> | null>(null);
   const [setupIntent, setSetupIntent] = useState<SetupIntentResponseData>();
+  const [top, setTop] = useState(0);
 
   // memoize data here since some state depends on it
-  const { currentPlan, currentAddOns, availablePlans, availableAddOns } =
-    useMemo(() => {
-      const planPeriodOptions = [];
-      if (data.activePlans.some((plan) => plan.monthlyPrice)) {
-        planPeriodOptions.push("month");
-      }
-      if (data.activePlans.some((plan) => plan.yearlyPrice)) {
-        planPeriodOptions.push("year");
-      }
+  const {
+    currentPlan,
+    currentAddOns,
+    availablePlans,
+    availableAddOns,
+    checkoutStages,
+  } = useMemo(() => {
+    const planPeriodOptions = [];
+    if (data.activePlans.some((plan) => plan.monthlyPrice)) {
+      planPeriodOptions.push("month");
+    }
+    if (data.activePlans.some((plan) => plan.yearlyPrice)) {
+      planPeriodOptions.push("year");
+    }
 
-      return {
-        currentPlan: data.company?.plan,
-        currentAddOns: data.company?.addOns || [],
-        availablePlans:
-          mode === "edit"
-            ? data.activePlans
-            : data.activePlans.filter((plan) => {
-                return (
-                  (planPeriod === "month" && plan.monthlyPrice) ||
-                  (planPeriod === "year" && plan.yearlyPrice)
-                );
-              }),
-        availableAddOns:
-          mode === "edit"
-            ? data.activeAddOns
-            : data.activeAddOns.filter((addOn) => {
-                return (
-                  (planPeriod === "month" && addOn.monthlyPrice) ||
-                  (planPeriod === "year" && addOn.yearlyPrice)
-                );
-              }),
-      };
-    }, [data.company, data.activePlans, data.activeAddOns, mode, planPeriod]);
+    const availablePlans =
+      mode === "edit"
+        ? data.activePlans
+        : data.activePlans.filter((plan) => {
+            return (
+              (planPeriod === "month" && plan.monthlyPrice) ||
+              (planPeriod === "year" && plan.yearlyPrice)
+            );
+          });
+    const availableAddOns =
+      mode === "edit"
+        ? data.activeAddOns
+        : data.activeAddOns.filter((addOn) => {
+            return (
+              (planPeriod === "month" && addOn.monthlyPrice) ||
+              (planPeriod === "year" && addOn.yearlyPrice)
+            );
+          });
+    const checkoutStages = [
+      {
+        id: "plan",
+        name: "Select plan",
+        description: "Choose your base plan",
+      },
+      {
+        id: "addons",
+        name: "Customize with addons",
+        description: "Optionally add features to your subscription",
+      },
+      { id: "checkout", name: "Checkout", description: "" },
+    ];
+    if (!availableAddOns.length) {
+      checkoutStages.splice(1, 1);
+    }
+
+    return {
+      currentPlan: data.company?.plan,
+      currentAddOns: data.company?.addOns || [],
+      availablePlans,
+      availableAddOns,
+      checkoutStages,
+    };
+  }, [data.company, data.activePlans, data.activeAddOns, mode, planPeriod]);
 
   const [selectedPlan, setSelectedPlan] = useState<
     CompanyPlanDetailResponseData | undefined
   >(() =>
     availablePlans.find(
-      (plan) => plan.id === (initialPlanId || currentPlan?.id),
+      (plan) =>
+        plan.id ===
+        (typeof initialPlanId !== "undefined"
+          ? initialPlanId
+          : currentPlan?.id),
     ),
   );
   const [addOns, setAddOns] = useState(() =>
     availableAddOns.map((addOn) => ({
       ...addOn,
       isSelected:
-        addOn.id === initialAddOnId ||
-        currentAddOns.some((currentAddOn) => addOn.id === currentAddOn.id),
+        typeof initialAddOnId !== "undefined"
+          ? addOn.id === initialAddOnId
+          : currentAddOns.some((currentAddOn) => addOn.id === currentAddOn.id),
     })),
   );
 
@@ -195,8 +222,11 @@ export const CheckoutDialog = ({
   }, [stripe, setupIntent?.publishableKey]);
 
   // prevent scrolling when the checkout dialog is open
-  useEffect(() => {
+  useLayoutEffect(() => {
     const parent = portal || document.body;
+    const value = Math.abs(parent.getBoundingClientRect().top ?? 0);
+    setTop(value);
+
     parent.style.overflow = "hidden";
 
     return () => {
@@ -205,7 +235,7 @@ export const CheckoutDialog = ({
   }, [portal]);
 
   return (
-    <Modal size="lg">
+    <Modal size="lg" top={top}>
       <ModalHeader bordered>
         <Flex $gap="1rem">
           {checkoutStages.map((stage, index, stages) => (
