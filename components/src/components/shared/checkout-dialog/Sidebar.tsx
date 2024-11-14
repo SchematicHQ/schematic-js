@@ -555,9 +555,7 @@ export const Sidebar = ({
               $alignItems="center"
               $padding="0 1rem"
             >
-              <Text $align="left" $lineHeight={1}>
-                Next: {addOns.length ? "Addons" : "Checkout"}
-              </Text>
+              Next: {addOns.length ? "Addons" : "Checkout"}
               <Icon name="arrow-right" />
             </Flex>
           </EmbedButton>
@@ -586,9 +584,7 @@ export const Sidebar = ({
               $alignItems="center"
               $padding="0 1rem"
             >
-              <Text $align="left" $lineHeight={1}>
-                Next: Checkout
-              </Text>
+              Next: Checkout
               <Icon name="arrow-right" />
             </Flex>
           </EmbedButton>

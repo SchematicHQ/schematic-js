@@ -188,7 +188,7 @@ export const IncludedFeatures = forwardRef<
                           theme.typography[props.entitlement.fontStyle]
                             .fontWeight
                         }
-                        $lineHeight={1.25}
+                        $leading={1.25}
                         $color={
                           theme.typography[props.entitlement.fontStyle].color
                         }
@@ -210,7 +210,7 @@ export const IncludedFeatures = forwardRef<
                         $weight={
                           theme.typography[props.usage.fontStyle].fontWeight
                         }
-                        $lineHeight={1.5}
+                        $leading={1.5}
                         $color={theme.typography[props.usage.fontStyle].color}
                       >
                         {typeof usage === "number" && (

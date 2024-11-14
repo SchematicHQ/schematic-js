@@ -209,7 +209,7 @@ export const MeteredFeatures = forwardRef<
                           $weight={
                             theme.typography[props.usage.fontStyle].fontWeight
                           }
-                          $lineHeight={1.25}
+                          $leading={1.25}
                           $color={theme.typography[props.usage.fontStyle].color}
                         >
                           {formatNumber(usage)} {pluralize(feature.name, usage)}

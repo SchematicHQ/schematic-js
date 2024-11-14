@@ -134,20 +134,8 @@ export const PricingTable = forwardRef<
 
   const cardPadding = theme.card.padding / TEXT_BASE_SIZE;
 
-  const plansByPrice = plans.slice().sort((a, b) => {
-    if (selectedPeriod === "year") {
-      return (a.yearlyPrice?.price ?? 0) - (b.yearlyPrice?.price ?? 0);
-    }
-
-    if (selectedPeriod === "month") {
-      return (a.monthlyPrice?.price ?? 0) - (b.monthlyPrice?.price ?? 0);
-    }
-
-    return 0;
-  });
-
-  const currentPlanIndex = plansByPrice.findIndex((plan) => plan.current);
-  const currentPlan = plansByPrice[currentPlanIndex];
+  const currentPlanIndex = plans.findIndex((plan) => plan.current);
+  const currentPlan = plans[currentPlanIndex];
 
   return (
     <FussyChild
@@ -171,7 +159,7 @@ export const PricingTable = forwardRef<
           >
             {props.header.isVisible &&
               props.plans.isVisible &&
-              plansByPrice.length > 0 &&
+              plans.length > 0 &&
               "Plans"}
           </Text>
 
@@ -190,9 +178,13 @@ export const PricingTable = forwardRef<
           </Flex>
         </Flex>
 
-        {props.plans.isVisible && plansByPrice.length > 0 && (
-          <Flex $flexWrap="wrap" $gap="1rem">
-            {plansByPrice.map((plan, index, self) => {
+        {props.plans.isVisible && plans.length > 0 && (
+          <Box
+            $display="grid"
+            $gridTemplateColumns="repeat(auto-fill, minmax(320px, 1fr))"
+            $gap="1rem"
+          >
+            {plans.map((plan, index, self) => {
               const isActivePlan =
                 plan.current &&
                 data.company?.plan?.planPeriod === selectedPeriod;
@@ -202,8 +194,6 @@ export const PricingTable = forwardRef<
                   key={index}
                   $position="relative"
                   $flexDirection="column"
-                  $width="100%"
-                  $maxWidth="320px"
                   $padding={`${cardPadding}rem 0`}
                   $backgroundColor={theme.card.background}
                   $borderRadius={`${theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
@@ -215,8 +205,6 @@ export const PricingTable = forwardRef<
                   <Flex
                     $flexDirection="column"
                     $gap="0.75rem"
-                    $width="100%"
-                    $height="auto"
                     $padding={`0 ${cardPadding}rem ${0.75 * cardPadding}rem`}
                     $borderBottomWidth="1px"
                     $borderStyle="solid"
@@ -344,12 +332,7 @@ export const PricingTable = forwardRef<
                     $padding={`${0.75 * cardPadding}rem ${cardPadding}rem 0`}
                   >
                     {props.plans.showEntitlements && (
-                      <Flex
-                        $flexDirection="column"
-                        $position="relative"
-                        $gap="0.5rem"
-                        $flexGrow="1"
-                      >
+                      <Flex $flexDirection="column" $gap="0.5rem" $flexGrow="1">
                         {props.plans.showInclusionText && index > 0 && (
                           <Box $marginBottom="1.5rem">
                             <Text
@@ -425,20 +408,20 @@ export const PricingTable = forwardRef<
                         $justifyContent="center"
                         $alignItems="center"
                         $gap="0.25rem"
-                        $fontSize="0.9375rem"
                         $padding="0.625rem 0"
                       >
                         <Icon
                           name="check-rounded"
                           style={{
                             fontSize: 20,
-                            lineHeight: "1",
+                            lineHeight: 1,
                             color: theme.primary,
                           }}
                         />
 
                         <Text
-                          $lineHeight="1.4"
+                          $size={15}
+                          $leading={1}
                           $color={theme.typography.text.color}
                         >
                           Current plan
@@ -447,45 +430,43 @@ export const PricingTable = forwardRef<
                     ) : (
                       (props.upgrade.isVisible ||
                         props.downgrade.isVisible) && (
-                        <Box $position="relative">
-                          <EmbedButton
-                            disabled={!plan.valid}
-                            onClick={() => {
-                              setSelectedPlanId(isActivePlan ? null : plan.id);
-                              setLayout("checkout");
-                            }}
-                            {
-                              // plans are sorted by price, so we can determine grades by index
-                              ...(index > currentPlanIndex
-                                ? {
-                                    $size: props.upgrade.buttonSize,
-                                    $color: props.upgrade.buttonStyle,
-                                    $variant: "filled",
-                                  }
-                                : {
-                                    $size: props.downgrade.buttonSize,
-                                    $color: props.downgrade.buttonStyle,
-                                    $variant: "outline",
-                                  })
-                            }
-                          >
-                            {!plan.valid ? (
-                              <Tooltip
-                                label="Over usage limit"
-                                description="Current usage exceeds the limit of this plan."
-                              />
-                            ) : (
-                              "Choose plan"
-                            )}
-                          </EmbedButton>
-                        </Box>
+                        <EmbedButton
+                          disabled={!plan.valid}
+                          onClick={() => {
+                            setSelectedPlanId(isActivePlan ? null : plan.id);
+                            setLayout("checkout");
+                          }}
+                          {
+                            // plans are sorted by price, so we can determine grades by index
+                            ...(index > currentPlanIndex
+                              ? {
+                                  $size: props.upgrade.buttonSize,
+                                  $color: props.upgrade.buttonStyle,
+                                  $variant: "filled",
+                                }
+                              : {
+                                  $size: props.downgrade.buttonSize,
+                                  $color: props.downgrade.buttonStyle,
+                                  $variant: "outline",
+                                })
+                          }
+                        >
+                          {!plan.valid ? (
+                            <Tooltip
+                              label="Over usage limit"
+                              description="Current usage exceeds the limit of this plan."
+                            />
+                          ) : (
+                            "Choose plan"
+                          )}
+                        </EmbedButton>
                       )
                     )}
                   </Flex>
                 </Flex>
               );
             })}
-          </Flex>
+          </Box>
         )}
       </Box>
 
@@ -509,7 +490,11 @@ export const PricingTable = forwardRef<
               </Flex>
             )}
 
-            <Flex $flexWrap="wrap" $gap="1rem">
+            <Box
+              $display="grid"
+              $gridTemplateColumns="repeat(auto-fill, minmax(320px, 1fr))"
+              $gap="1rem"
+            >
               {addOns.map((addOn, index) => {
                 const isActiveAddOn =
                   addOn.current &&
@@ -523,8 +508,6 @@ export const PricingTable = forwardRef<
                     $position="relative"
                     $flexDirection="column"
                     $gap="2rem"
-                    $width="100%"
-                    $maxWidth="320px"
                     $padding={`${cardPadding}rem`}
                     $backgroundColor={theme.card.background}
                     $borderRadius={`${theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
@@ -535,12 +518,7 @@ export const PricingTable = forwardRef<
                     }
                     {...(theme.card.hasShadow && { $boxShadow: cardBoxShadow })}
                   >
-                    <Flex
-                      $flexDirection="column"
-                      $gap="0.75rem"
-                      $width="100%"
-                      $height="auto"
-                    >
+                    <Flex $flexDirection="column" $gap="0.75rem">
                       <Box>
                         <Text
                           $font={
@@ -743,37 +721,35 @@ export const PricingTable = forwardRef<
 
                       {props.upgrade.isVisible && (
                         <EmbedButton
-                          disabled={false && !addOn.valid}
+                          disabled={!addOn.valid}
                           onClick={() => {
                             setSelectedAddOnId(isActiveAddOn ? null : addOn.id);
                             setLayout("checkout");
                           }}
-                          {...(!isActiveAddOn
-                            ? {
-                                $size: props.upgrade.buttonSize,
-                                $color: props.upgrade.buttonStyle,
-                                $variant: "filled",
-                              }
-                            : {
-                                $size: props.downgrade.buttonSize,
-                                $color: props.downgrade.buttonStyle,
-                                $variant: "outline",
-                              })}
-                        >
-                          <Text>
-                            {isActiveAddOn
-                              ? "Remove add-on"
+                          $size={props.upgrade.buttonSize}
+                          $color={
+                            isActiveAddOn ? "danger" : props.upgrade.buttonStyle
+                          }
+                          $variant={
+                            isActiveAddOn
+                              ? "ghost"
                               : addOn.current
-                                ? "Change add-on"
-                                : "Choose add-on"}
-                          </Text>
+                                ? "outline"
+                                : "filled"
+                          }
+                        >
+                          {isActiveAddOn
+                            ? "Remove add-on"
+                            : addOn.current
+                              ? "Change add-on"
+                              : "Choose add-on"}
                         </EmbedButton>
                       )}
                     </Flex>
                   </Flex>
                 );
               })}
-            </Flex>
+            </Box>
           </>
         )}
       </Box>

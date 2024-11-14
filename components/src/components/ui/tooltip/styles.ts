@@ -3,6 +3,8 @@ import { TEXT_BASE_SIZE } from "../../../const";
 import { Box } from "../../ui";
 
 export const TooltipWrapper = styled(Box)`
+  position: relative;
+
   .tooltip {
     position: absolute;
     left: 50%;

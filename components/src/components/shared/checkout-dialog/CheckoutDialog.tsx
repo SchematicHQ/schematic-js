@@ -11,7 +11,11 @@ import type {
   SetupIntentResponseData,
   UpdateAddOnRequestBody,
 } from "../../../api";
-import { useEmbed, useIsLightBackground } from "../../../hooks";
+import {
+  useAvailablePlans,
+  useEmbed,
+  useIsLightBackground,
+} from "../../../hooks";
 import { Flex, Modal, ModalHeader } from "../../ui";
 import { Navigation } from "./Navigation";
 import { Sidebar } from "./Sidebar";
@@ -32,7 +36,7 @@ export const CheckoutDialog = ({
   initialAddOnId,
   portal,
 }: CheckoutDialogProps) => {
-  const { api, data, mode } = useEmbed();
+  const { api, data } = useEmbed();
 
   const [checkoutStage, setCheckoutStage] = useState("plan");
   const [planPeriod, setPlanPeriod] = useState(
@@ -54,40 +58,11 @@ export const CheckoutDialog = ({
   const [setupIntent, setSetupIntent] = useState<SetupIntentResponseData>();
   const [top, setTop] = useState(0);
 
-  // memoize data here since some state depends on it
-  const {
-    currentPlan,
-    currentAddOns,
-    availablePlans,
-    availableAddOns,
-    checkoutStages,
-  } = useMemo(() => {
-    const planPeriodOptions = [];
-    if (data.activePlans.some((plan) => plan.monthlyPrice)) {
-      planPeriodOptions.push("month");
-    }
-    if (data.activePlans.some((plan) => plan.yearlyPrice)) {
-      planPeriodOptions.push("year");
-    }
+  const { plans: availablePlans, addOns: availableAddOns } =
+    useAvailablePlans(planPeriod);
 
-    const availablePlans =
-      mode === "edit"
-        ? data.activePlans
-        : data.activePlans.filter((plan) => {
-            return (
-              (planPeriod === "month" && plan.monthlyPrice) ||
-              (planPeriod === "year" && plan.yearlyPrice)
-            );
-          });
-    const availableAddOns =
-      mode === "edit"
-        ? data.activeAddOns
-        : data.activeAddOns.filter((addOn) => {
-            return (
-              (planPeriod === "month" && addOn.monthlyPrice) ||
-              (planPeriod === "year" && addOn.yearlyPrice)
-            );
-          });
+  // memoize data here since some state depends on it
+  const checkoutStages = useMemo(() => {
     const checkoutStages = [
       {
         id: "plan",
@@ -105,15 +80,10 @@ export const CheckoutDialog = ({
       checkoutStages.splice(1, 1);
     }
 
-    return {
-      currentPlan: data.company?.plan,
-      currentAddOns: data.company?.addOns || [],
-      availablePlans,
-      availableAddOns,
-      checkoutStages,
-    };
-  }, [data.company, data.activePlans, data.activeAddOns, mode, planPeriod]);
+    return checkoutStages;
+  }, [availableAddOns]);
 
+  const currentPlan = data.company?.plan;
   const [selectedPlan, setSelectedPlan] = useState<
     CompanyPlanDetailResponseData | undefined
   >(() =>
@@ -125,6 +95,8 @@ export const CheckoutDialog = ({
           : currentPlan?.id),
     ),
   );
+
+  const currentAddOns = data.company?.addOns || [];
   const [addOns, setAddOns] = useState(() =>
     availableAddOns.map((addOn) => ({
       ...addOn,
@@ -272,6 +244,7 @@ export const CheckoutDialog = ({
               isLoading={isLoading}
               period={planPeriod}
               plans={availablePlans}
+              currentPlan={currentPlan}
               selectedPlan={selectedPlan}
               selectPlan={selectPlan}
             />

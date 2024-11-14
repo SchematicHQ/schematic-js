@@ -109,7 +109,7 @@ const PaymentMethodElement = ({
             $font={theme.typography.link.fontFamily}
             $size={theme.typography.link.fontSize}
             $weight={theme.typography.link.fontWeight}
-            $lineHeight={1}
+            $leading={1}
             $color={theme.typography.link.color}
           >
             Edit

@@ -9,20 +9,31 @@ export interface TextProps extends ComponentProps {
   $size?: ComponentProps["$fontSize"];
   $weight?: ComponentProps["$fontWeight"];
   $color?: ComponentProps["$color"];
-  $lineHeight?: ComponentProps["$lineHeight"];
+  $leading?: ComponentProps["$lineHeight"];
 }
 
 export const Text = styled.span.attrs(({ onClick }) => ({
   ...(onClick && { tabIndex: 0 }),
 }))<TextProps>`
-  font-family: ${({ $font = "Inter" }) => `${$font}, sans-serif`};
-  font-size: ${({ $size = 16 }) =>
-    typeof $size === "number" ? `${$size / TEXT_BASE_SIZE}rem` : $size};
-  ${({ $weight = 400 }) => css`
-    font-weight: ${$weight};
-    font-variation-settings: "wght" ${$weight};
-  `};
-  line-height: ${({ $lineHeight = 1.25 }) => $lineHeight};
+  ${({ $font }) =>
+    $font &&
+    css`
+      font-family: ${$font}, sans-serif;
+    `};
+  ${({ $size }) =>
+    typeof $size !== "undefined" &&
+    css`
+      font-size: ${typeof $size === "number"
+        ? `${$size / TEXT_BASE_SIZE}rem`
+        : $size};
+    `};
+  ${({ $weight }) =>
+    typeof $weight !== "undefined" &&
+    css`
+      font-weight: ${$weight};
+      font-variation-settings: "wght" ${$weight};
+    `};
+  ${({ $leading }) => attr("line-height", $leading)};
   ${({ $align }) => attr("text-align", $align)};
   color: ${({ $color, theme }) => $color || theme.typography.text.color};
 

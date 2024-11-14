@@ -29,7 +29,7 @@ export const Tooltip = ({ label, description }: TooltipProps) => {
           $size={theme.typography.text.fontSize}
           $weight={theme.typography.text.fontWeight}
           $color={theme.typography.text.color}
-          $lineHeight={1.15}
+          $leading={1.15}
         >
           {description}
         </Text>

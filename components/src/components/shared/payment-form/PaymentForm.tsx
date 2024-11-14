@@ -81,9 +81,7 @@ export const PaymentForm = ({ onConfirm }: PaymentFormProps) => {
         isLoading={isLoading}
         $color="primary"
       >
-        <Text id="button-text">
-          {isLoading ? "Loading" : "Save payment method"}
-        </Text>
+        {isLoading ? "Loading" : "Save payment method"}
       </EmbedButton>
 
       {message && (

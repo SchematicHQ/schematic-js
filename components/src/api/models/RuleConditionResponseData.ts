@@ -75,6 +75,12 @@ export interface RuleConditionResponseData {
   metricPeriod?: string | null;
   /**
    *
+   * @type {string}
+   * @memberof RuleConditionResponseData
+   */
+  metricPeriodMonthReset?: string | null;
+  /**
+   *
    * @type {number}
    * @memberof RuleConditionResponseData
    */
@@ -182,6 +188,10 @@ export function RuleConditionResponseDataFromJSONTyped(
     id: json["id"],
     metricPeriod:
       json["metric_period"] == null ? undefined : json["metric_period"],
+    metricPeriodMonthReset:
+      json["metric_period_month_reset"] == null
+        ? undefined
+        : json["metric_period_month_reset"],
     metricValue:
       json["metric_value"] == null ? undefined : json["metric_value"],
     operator: json["operator"],
@@ -212,6 +222,7 @@ export function RuleConditionResponseDataToJSON(
     flag_id: value["flagId"],
     id: value["id"],
     metric_period: value["metricPeriod"],
+    metric_period_month_reset: value["metricPeriodMonthReset"],
     metric_value: value["metricValue"],
     operator: value["operator"],
     plan_id: value["planId"],
