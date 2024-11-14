@@ -193,7 +193,6 @@ export const CheckoutDialog = ({
     }
   }, [stripe, setupIntent?.publishableKey]);
 
-  // prevent scrolling when the checkout dialog is open
   useLayoutEffect(() => {
     const parent = portal || document.body;
     const value = Math.abs(parent.getBoundingClientRect().top ?? 0);

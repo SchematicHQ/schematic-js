@@ -191,6 +191,14 @@ export const Sidebar = ({
     canUpdateSubscription &&
     ((paymentMethod && !showPaymentForm) || paymentMethodId);
 
+  const removedAddOns = currentAddOns.filter(
+    (current) => !selectedAddOns.some((selected) => current.id === selected.id),
+  );
+  const addedAddOns = selectedAddOns.filter(
+    (selected) => !currentAddOns.some((current) => selected.id === current.id),
+  );
+  const willAddOnsChange = removedAddOns.length > 0 || addedAddOns.length > 0;
+
   return (
     <Flex
       $flexDirection="column"
@@ -265,13 +273,13 @@ export const Sidebar = ({
               $justifyContent="space-between"
               $alignItems="center"
               $gap="1rem"
+              {...(willPlanChange && {
+                $opacity: "0.625",
+                $textDecoration: "line-through",
+                $color: theme.typography.heading4.color,
+              })}
             >
-              <Flex
-                {...(willPlanChange && {
-                  $opacity: "0.625",
-                  $textDecoration: "line-through",
-                })}
-              >
+              <Box>
                 <Text
                   $font={theme.typography.heading4.fontFamily}
                   $size={theme.typography.heading4.fontSize}
@@ -280,11 +288,11 @@ export const Sidebar = ({
                 >
                   {currentPlan.name}
                 </Text>
-              </Flex>
+              </Box>
 
               {typeof currentPlan.planPrice === "number" &&
                 currentPlan.planPeriod && (
-                  <Flex>
+                  <Box>
                     <Text
                       $font={theme.typography.text.fontFamily}
                       $size={theme.typography.text.fontSize}
@@ -294,7 +302,7 @@ export const Sidebar = ({
                       {formatCurrency(currentPlan.planPrice)}/
                       <sub>{shortPeriod(currentPlan.planPeriod)}</sub>
                     </Text>
-                  </Flex>
+                  </Box>
                 )}
             </Flex>
           )}
@@ -353,7 +361,7 @@ export const Sidebar = ({
           )}
         </Flex>
 
-        {selectedAddOns.length > 0 && (
+        {willAddOnsChange && (
           <Flex $flexDirection="column" $gap="0.5rem" $marginBottom="1.5rem">
             <Box $opacity="0.625">
               <Text
@@ -366,42 +374,78 @@ export const Sidebar = ({
               </Text>
             </Box>
 
-            {selectedAddOns.map((addOn) => (
-              <Box key={addOn.id}>
-                <Flex
-                  $justifyContent="space-between"
-                  $alignItems="center"
-                  $gap="1rem"
-                >
-                  <Flex>
-                    <Text
-                      $font={theme.typography.heading4.fontFamily}
-                      $size={theme.typography.heading4.fontSize}
-                      $weight={theme.typography.heading4.fontWeight}
-                      $color={theme.typography.heading4.color}
-                    >
-                      {addOn.name}
-                    </Text>
-                  </Flex>
+            {removedAddOns.map((addOn) => (
+              <Flex
+                key={addOn.id}
+                $justifyContent="space-between"
+                $alignItems="center"
+                $gap="1rem"
+                $opacity="0.625"
+                $textDecoration="line-through"
+                $color={theme.typography.heading4.color}
+              >
+                <Box>
+                  <Text
+                    $font={theme.typography.heading4.fontFamily}
+                    $size={theme.typography.heading4.fontSize}
+                    $weight={theme.typography.heading4.fontWeight}
+                    $color={theme.typography.heading4.color}
+                  >
+                    {addOn.name}
+                  </Text>
+                </Box>
 
-                  <Flex>
+                {typeof addOn.planPrice === "number" && addOn.planPeriod && (
+                  <Box>
                     <Text
                       $font={theme.typography.text.fontFamily}
                       $size={theme.typography.text.fontSize}
                       $weight={theme.typography.text.fontWeight}
                       $color={theme.typography.text.color}
                     >
-                      {formatCurrency(
-                        (planPeriod === "month"
-                          ? addOn.monthlyPrice
-                          : addOn.yearlyPrice
-                        )?.price ?? 0,
-                      )}
-                      /<sub>{shortPeriod(planPeriod)}</sub>
+                      {formatCurrency(addOn.planPrice)}/
+                      <sub>{shortPeriod(addOn.planPeriod)}</sub>
                     </Text>
-                  </Flex>
-                </Flex>
-              </Box>
+                  </Box>
+                )}
+              </Flex>
+            ))}
+
+            {addedAddOns.map((addOn) => (
+              <Flex
+                key={addOn.id}
+                $justifyContent="space-between"
+                $alignItems="center"
+                $gap="1rem"
+              >
+                <Box>
+                  <Text
+                    $font={theme.typography.heading4.fontFamily}
+                    $size={theme.typography.heading4.fontSize}
+                    $weight={theme.typography.heading4.fontWeight}
+                    $color={theme.typography.heading4.color}
+                  >
+                    {addOn.name}
+                  </Text>
+                </Box>
+
+                <Box>
+                  <Text
+                    $font={theme.typography.text.fontFamily}
+                    $size={theme.typography.text.fontSize}
+                    $weight={theme.typography.text.fontWeight}
+                    $color={theme.typography.text.color}
+                  >
+                    {formatCurrency(
+                      (planPeriod === "month"
+                        ? addOn.monthlyPrice
+                        : addOn.yearlyPrice
+                      )?.price ?? 0,
+                    )}
+                    /<sub>{shortPeriod(planPeriod)}</sub>
+                  </Text>
+                </Box>
+              </Flex>
             ))}
           </Flex>
         )}
@@ -419,37 +463,39 @@ export const Sidebar = ({
               </Text>
             </Box>
 
-            <Flex $flexDirection="column" $gap="0.5rem">
-              {currentPlan && (
-                <Flex
-                  $justifyContent="space-between"
-                  $alignItems="center"
-                  $gap="1rem"
-                >
-                  <Flex>
-                    <Text
-                      $font={theme.typography.heading4.fontFamily}
-                      $size={theme.typography.heading4.fontSize}
-                      $weight={theme.typography.heading4.fontWeight}
-                      $color={theme.typography.heading4.color}
-                    >
-                      Unused time with {currentPlan.name}
-                    </Text>
-                  </Flex>
+            {charges.proration && (
+              <Flex $flexDirection="column" $gap="0.5rem">
+                {currentPlan && (
+                  <Flex
+                    $justifyContent="space-between"
+                    $alignItems="center"
+                    $gap="1rem"
+                  >
+                    <Flex>
+                      <Text
+                        $font={theme.typography.heading4.fontFamily}
+                        $size={theme.typography.heading4.fontSize}
+                        $weight={theme.typography.heading4.fontWeight}
+                        $color={theme.typography.heading4.color}
+                      >
+                        Unused time
+                      </Text>
+                    </Flex>
 
-                  <Flex>
-                    <Text
-                      $font={theme.typography.text.fontFamily}
-                      $size={theme.typography.text.fontSize}
-                      $weight={theme.typography.text.fontWeight}
-                      $color={theme.typography.text.color}
-                    >
-                      {formatCurrency(charges.proration)}
-                    </Text>
+                    <Flex>
+                      <Text
+                        $font={theme.typography.text.fontFamily}
+                        $size={theme.typography.text.fontSize}
+                        $weight={theme.typography.text.fontWeight}
+                        $color={theme.typography.text.color}
+                      >
+                        {formatCurrency(charges.proration)}
+                      </Text>
+                    </Flex>
                   </Flex>
-                </Flex>
-              )}
-            </Flex>
+                )}
+              </Flex>
+            )}
           </>
         )}
       </Flex>
@@ -515,7 +561,7 @@ export const Sidebar = ({
 
         {typeof charges?.dueNow === "number" && charges.dueNow < 0 && (
           <Flex $justifyContent="space-between" $gap="1rem">
-            <Box $opacity="0.625">
+            <Box $opacity="0.625" $lineHeight={1.15}>
               <Text
                 $font={theme.typography.text.fontFamily}
                 $size={theme.typography.text.fontSize}
