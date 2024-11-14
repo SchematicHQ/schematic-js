@@ -136,40 +136,42 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
                 )}
               </Flex>
 
-              {!addOn.isSelected ? (
-                <EmbedButton
-                  disabled={isLoading || !addOn.valid}
-                  onClick={() => toggle(addOn.id)}
-                  $size="sm"
-                  $color="primary"
-                  $variant="outline"
-                >
-                  Choose add-on
-                </EmbedButton>
-              ) : (
-                <EmbedButton
-                  disabled={isLoading || !addOn.valid}
-                  onClick={() => toggle(addOn.id)}
-                  $size="sm"
-                  $color={addOn.current ? "danger" : "primary"}
-                  $variant={addOn.current ? "ghost" : "text"}
-                >
-                  {addOn.current ? (
-                    "Remove add-on"
-                  ) : (
-                    <>
-                      <Icon
-                        name="check-rounded"
-                        style={{
-                          fontSize: 20,
-                          lineHeight: 1,
-                        }}
-                      />
-                      Selected
-                    </>
-                  )}
-                </EmbedButton>
-              )}
+              <Flex $flexDirection="column" $justifyContent="end" $flexGrow="1">
+                {!addOn.isSelected ? (
+                  <EmbedButton
+                    disabled={isLoading || !addOn.valid}
+                    onClick={() => toggle(addOn.id)}
+                    $size="sm"
+                    $color="primary"
+                    $variant="outline"
+                  >
+                    Choose add-on
+                  </EmbedButton>
+                ) : (
+                  <EmbedButton
+                    disabled={isLoading || !addOn.valid}
+                    onClick={() => toggle(addOn.id)}
+                    $size="sm"
+                    $color={addOn.current ? "danger" : "primary"}
+                    $variant={addOn.current ? "ghost" : "text"}
+                  >
+                    {addOn.current ? (
+                      "Remove add-on"
+                    ) : (
+                      <>
+                        <Icon
+                          name="check-rounded"
+                          style={{
+                            fontSize: 20,
+                            lineHeight: 1,
+                          }}
+                        />
+                        Selected
+                      </>
+                    )}
+                  </EmbedButton>
+                )}
+              </Flex>
             </Flex>
           );
         })}
