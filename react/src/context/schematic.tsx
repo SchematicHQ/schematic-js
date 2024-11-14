@@ -1,5 +1,5 @@
 import * as SchematicJS from "@schematichq/schematic-js";
-import React, { createContext, useEffect, useMemo } from "react";
+import React, { createContext, useEffect, useMemo, useRef } from "react";
 
 type BaseSchematicProviderProps = Omit<
   SchematicJS.SchematicOptions,
@@ -36,16 +36,21 @@ export const SchematicProvider: React.FC<SchematicProviderProps> = ({
   publishableKey,
   ...clientOpts
 }) => {
+  const initialOptsRef = useRef({
+    publishableKey,
+    useWebSocket: clientOpts.useWebSocket ?? true,
+    ...clientOpts,
+  });
+
   const client = useMemo(() => {
-    const { useWebSocket = true } = clientOpts;
     if (providedClient) {
       return providedClient;
     }
-    return new SchematicJS.Schematic(publishableKey!, {
-      useWebSocket,
-      ...clientOpts,
+
+    return new SchematicJS.Schematic(initialOptsRef.current.publishableKey!, {
+      ...initialOptsRef.current,
     });
-  }, [providedClient, publishableKey, clientOpts]);
+  }, [providedClient]);
 
   useEffect(() => {
     // Clean up Schematic client (i.e., close websocket connection) when the

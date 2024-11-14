@@ -77,6 +77,9 @@ schematic.identify({
 });
 
 await schematic.checkFlag("some-flag-key");
+
+// Close the connection when you're done with the Schematic client
+schematic.cleanup();
 ```
 
 ## License
