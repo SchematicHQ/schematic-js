@@ -171,7 +171,6 @@ export const Sidebar = ({
 
   const selectedAddOns = addOns.filter((addOn) => addOn.isSelected);
 
-  // TODO
   const willPlanChange =
     selectedPlan &&
     (selectedPlan.id !== currentPlan?.id ||
@@ -181,11 +180,10 @@ export const Sidebar = ({
     mode === "edit" ||
     (api !== null &&
       (willPlanChange ||
-        addOns.length !== currentAddOns.length ||
-        addOns.every(
-          (addOn) =>
-            !addOn.isSelected ||
-            currentAddOns.some((currentAddOn) => currentAddOn.id === addOn.id),
+        // TODO: test add-on comparison for finding "changes"
+        selectedAddOns.length !== currentAddOns.length ||
+        !selectedAddOns.every((addOn) =>
+          currentAddOns.some((currentAddOn) => addOn.id === currentAddOn.id),
         )) &&
       !isLoading);
 
@@ -543,7 +541,7 @@ export const Sidebar = ({
 
         {checkoutStage === "plan" && (
           <EmbedButton
-            disabled={!canUpdateSubscription}
+            disabled={!addOns.length && !canUpdateSubscription}
             onClick={() => {
               setCheckoutStage(addOns.length ? "addons" : "checkout");
             }}
