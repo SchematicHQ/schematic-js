@@ -1,7 +1,8 @@
 import { forwardRef } from "react";
 import { useTheme } from "styled-components";
-import { StyledViewport } from "./styles";
+import { Badge } from "../../ui/badge";
 import { RenderLayout } from "../RenderLayout";
+import { StyledViewport } from "./styles";
 
 /* eslint-disable-next-line @typescript-eslint/no-empty-object-type */
 export interface ViewportProps extends React.HTMLProps<HTMLDivElement> {}
@@ -17,6 +18,7 @@ export const Viewport = forwardRef<HTMLDivElement | null, ViewportProps>(
         {...props}
       >
         <RenderLayout>{children}</RenderLayout>
+        <Badge />
       </StyledViewport>
     );
   },

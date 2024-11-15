@@ -10,6 +10,7 @@ import {
   type ComponentHydrateResponseData,
 } from "../api";
 import type {
+  ComponentProps,
   RecursivePartial,
   SerializedEditorState,
   SerializedNodeWithChildren,
@@ -117,10 +118,16 @@ export const defaultTheme: EmbedThemeSettings = {
 
 export type EmbedSettings = {
   theme: EmbedThemeSettings;
+  badge: {
+    alignment: ComponentProps["$justifyContent"];
+  };
 };
 
 export const defaultSettings: EmbedSettings = {
   theme: defaultTheme,
+  badge: {
+    alignment: "start",
+  },
 };
 
 /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
