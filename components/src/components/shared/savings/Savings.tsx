@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useTheme } from "styled-components";
 import { type CompanyPlanDetailResponseData } from "../../../api";
-import { Text } from "../../ui";
+import { Text, Tooltip } from "../../ui";
 
 interface SavingsProps {
   plan?: CompanyPlanDetailResponseData;
@@ -25,13 +25,22 @@ export const Savings = ({ plan, period }: SavingsProps) => {
     savingsPercentage > 0 && (
       <Text
         $font={theme.typography.text.fontFamily}
-        $size={11}
+        $size={14}
         $weight={theme.typography.text.fontWeight}
-        $color={theme.primary}
+        $color={theme.typography.text.color}
+        style={{
+          whiteSpace: "nowrap",
+        }}
       >
-        {period === "month"
-          ? `Save up to ${savingsPercentage}% with yearly billing`
-          : `You are saving ${savingsPercentage}% with yearly billing`}
+        <Tooltip
+          label="Billed yearly"
+          position="right"
+          description={
+            period === "month"
+              ? `Save up to ${savingsPercentage}%`
+              : `You are saving ${savingsPercentage}%`
+          }
+        />
       </Text>
     )
   );

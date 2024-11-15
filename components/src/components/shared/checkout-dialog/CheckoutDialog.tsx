@@ -240,6 +240,7 @@ export const CheckoutDialog = ({
               plans={availablePlans}
               selectedPlan={selectedPlan}
               selectPlan={selectPlan}
+              setPlanPeriod={setPlanPeriod}
             />
           )}
 

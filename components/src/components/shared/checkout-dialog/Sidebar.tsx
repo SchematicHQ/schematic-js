@@ -8,7 +8,6 @@ import type {
 } from "../../../api";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import { formatCurrency, formatOrdinal, getMonthName } from "../../../utils";
-import { PeriodToggle, Savings } from "../../shared";
 import { Box, EmbedButton, Flex, Icon, Text } from "../../ui";
 import { SidebarWrapper } from "./styles";
 
@@ -48,10 +47,8 @@ export const Sidebar = ({
   paymentMethodId,
   planPeriod,
   selectedPlan,
-  selectPlan,
   setCheckoutStage,
   setError,
-  setPlanPeriod,
   setSetupIntent,
   showPaymentForm,
   toggleLoading,
@@ -62,26 +59,11 @@ export const Sidebar = ({
 
   const isLightBackground = useIsLightBackground();
 
-  const { planPeriodOptions, paymentMethod } = useMemo(() => {
-    const planPeriodOptions = [];
-    if (
-      data.activePlans.some((plan) => plan.monthlyPrice) ||
-      data.activeAddOns.some((addOn) => addOn.monthlyPrice)
-    ) {
-      planPeriodOptions.push("month");
-    }
-    if (
-      data.activePlans.some((plan) => plan.yearlyPrice) ||
-      data.activeAddOns.some((addOn) => addOn.yearlyPrice)
-    ) {
-      planPeriodOptions.push("year");
-    }
-
+  const { paymentMethod } = useMemo(() => {
     return {
-      planPeriodOptions,
       paymentMethod: data.subscription?.paymentMethod,
     };
-  }, [data.activePlans, data.activeAddOns, data.subscription?.paymentMethod]);
+  }, [data.subscription?.paymentMethod]);
 
   const subscriptionPrice = useMemo(() => {
     if (
@@ -157,17 +139,6 @@ export const Sidebar = ({
     toggleLoading,
   ]);
 
-  const changePlanPeriod = useCallback(
-    (period: string) => {
-      if (selectedPlan) {
-        selectPlan(selectedPlan, period);
-      }
-
-      setPlanPeriod(period);
-    },
-    [selectedPlan, selectPlan, setPlanPeriod],
-  );
-
   const shortPeriod = (p: string) => (p === "month" ? "mo" : "yr");
 
   const selectedAddOns = addOns.filter((addOn) => addOn.isSelected);
@@ -220,15 +191,14 @@ export const Sidebar = ({
           </Text>
         </Flex>
 
-        {planPeriodOptions.length > 1 && (
+        {/* {planPeriodOptions.length > 1 && (
           <PeriodToggle
             options={planPeriodOptions}
             selectedOption={planPeriod}
-            onChange={changePlanPeriod}
           />
-        )}
+        )} */}
 
-        <Savings plan={selectedPlan} period={planPeriod} />
+        {/* <Savings plan={selectedPlan} period={planPeriod} /> */}
       </Flex>
 
       <Flex

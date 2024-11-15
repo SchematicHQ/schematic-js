@@ -1,17 +1,20 @@
 import { useTheme } from "styled-components";
 import type { CompanyPlanDetailResponseData } from "../../../api";
 import { TEXT_BASE_SIZE } from "../../../const";
-import { useIsLightBackground } from "../../../hooks";
+import { useEmbed, useIsLightBackground } from "../../../hooks";
 import { hexToHSL, formatCurrency } from "../../../utils";
 import { Box, EmbedButton, Flex, Icon, Text, Tooltip } from "../../ui";
 import { PlanEntitlementRow } from "./PlanEntitlementRow";
 import { BodyHeadWrapper, PlanCard, PlansWrapper } from "./styles";
+import { PeriodToggle } from "../period-toggle";
+import { useCallback, useMemo } from "react";
 
 interface PlanProps {
   isLoading: boolean;
   plans: CompanyPlanDetailResponseData[];
   selectedPlan?: CompanyPlanDetailResponseData;
   period: string;
+  setPlanPeriod: (period: string) => void;
   selectPlan: (plan: CompanyPlanDetailResponseData, newPeriod?: string) => void;
 }
 
@@ -21,9 +24,40 @@ export const Plan = ({
   selectedPlan,
   period,
   selectPlan,
+  setPlanPeriod,
 }: PlanProps) => {
   const theme = useTheme();
+  const { data } = useEmbed();
+  const { planPeriodOptions } = useMemo(() => {
+    const planPeriodOptions = [];
+    if (
+      data.activePlans.some((plan) => plan.monthlyPrice) ||
+      data.activeAddOns.some((addOn) => addOn.monthlyPrice)
+    ) {
+      planPeriodOptions.push("month");
+    }
+    if (
+      data.activePlans.some((plan) => plan.yearlyPrice) ||
+      data.activeAddOns.some((addOn) => addOn.yearlyPrice)
+    ) {
+      planPeriodOptions.push("year");
+    }
 
+    return {
+      planPeriodOptions,
+    };
+  }, [data.activePlans, data.activeAddOns]);
+
+  const changePlanPeriod = useCallback(
+    (period: string) => {
+      if (selectedPlan) {
+        selectPlan(selectedPlan, period);
+      }
+
+      setPlanPeriod(period);
+    },
+    [selectedPlan, selectPlan, setPlanPeriod],
+  );
   const isLightBackground = useIsLightBackground();
 
   const cardPadding = theme.card.padding / TEXT_BASE_SIZE;
@@ -60,7 +94,15 @@ export const Plan = ({
           </Text>
         </Flex>
 
-        <Flex $alignItems="center">toggle here...</Flex>
+        <Flex $alignItems="center">
+          {planPeriodOptions.length > 1 && (
+            <PeriodToggle
+              options={planPeriodOptions}
+              selectedOption={period}
+              onChange={changePlanPeriod}
+            />
+          )}
+        </Flex>
       </BodyHeadWrapper>
 
       <PlansWrapper>

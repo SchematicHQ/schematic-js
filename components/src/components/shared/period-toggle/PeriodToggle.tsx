@@ -2,16 +2,20 @@ import { useTheme } from "styled-components";
 import { useIsLightBackground } from "../../../hooks";
 import { adjectify } from "../../../utils";
 import { Flex, Text } from "../../ui";
+import { Savings } from "../savings";
+import { CompanyPlanDetailResponseData } from "../../../api";
 
 interface PeriodToggleProps {
   options: string[];
   selectedOption: string;
+  selectedPlan?: CompanyPlanDetailResponseData;
   onChange: (period: string) => void;
 }
 
 export const PeriodToggle = ({
   options,
   selectedOption,
+  selectedPlan,
   onChange,
 }: PeriodToggleProps) => {
   const theme = useTheme();
@@ -54,6 +58,12 @@ export const PeriodToggle = ({
               $color={theme.typography.text.color}
             >
               Billed {adjectify(option)}
+              {/* 
+              
+               only show this savings part, if it's annually
+               
+              */}
+              <Savings plan={selectedPlan} period={option} />
             </Text>
           </Flex>
         );
