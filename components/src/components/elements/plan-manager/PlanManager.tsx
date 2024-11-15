@@ -102,7 +102,12 @@ export const PlanManager = forwardRef<
       $gap="2rem"
     >
       {props.header.isVisible && currentPlan && (
-        <Flex $justifyContent="space-between" $flexWrap="wrap" $gap="1rem">
+        <Flex
+          $justifyContent="space-between"
+          $alignItems="center"
+          $flexWrap="wrap"
+          $gap="1rem"
+        >
           <Flex $flexDirection="column" $gap="1rem">
             <Text
               as={Box}
