@@ -144,7 +144,6 @@ export const PricingTable = forwardRef<
       as={Flex}
       $flexDirection="column"
       $gap="3rem"
-      $marginTop="2rem"
     >
       <Box>
         <Flex
