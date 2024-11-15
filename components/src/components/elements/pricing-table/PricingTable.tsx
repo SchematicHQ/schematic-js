@@ -144,6 +144,7 @@ export const PricingTable = forwardRef<
       as={Flex}
       $flexDirection="column"
       $gap="3rem"
+      $marginTop="2rem"
     >
       <Box>
         <Flex
@@ -155,7 +156,7 @@ export const PricingTable = forwardRef<
             $font={theme.typography[props.header.fontStyle].fontFamily}
             $size={theme.typography[props.header.fontStyle].fontSize}
             $weight={theme.typography[props.header.fontStyle].fontWeight}
-            $color={theme.typography[props.header.fontStyle].color}
+            $color={theme.card.background}
           >
             {props.header.isVisible &&
               props.plans.isVisible &&
@@ -483,7 +484,7 @@ export const PricingTable = forwardRef<
                   $font={theme.typography[props.header.fontStyle].fontFamily}
                   $size={theme.typography[props.header.fontStyle].fontSize}
                   $weight={theme.typography[props.header.fontStyle].fontWeight}
-                  $color={theme.typography[props.header.fontStyle].color}
+                  $color={theme.card.background}
                 >
                   Add-ons
                 </Text>
