@@ -1,7 +1,7 @@
 import { useLayoutEffect, useState } from "react";
 
 export function useWrapChildren(elements: HTMLElement[]) {
-  const [shouldWrap, setShouldWrap] = useState(
+  const [shouldWrap, setShouldWrap] = useState<boolean[]>(() =>
     new Array(elements.length).fill(false),
   );
 
@@ -31,5 +31,5 @@ export function useWrapChildren(elements: HTMLElement[]) {
     });
   }, [elements]);
 
-  return shouldWrap.some((wrap) => wrap === true);
+  return shouldWrap.some((wrap) => wrap);
 }

@@ -106,14 +106,14 @@ export const UpcomingBill = forwardRef<
               $size={theme.typography[props.price.fontStyle].fontSize}
               $weight={theme.typography[props.price.fontStyle].fontWeight}
               $color={theme.typography[props.price.fontStyle].color}
-              $lineHeight={1}
+              $leading={1}
             >
               {formatCurrency(upcomingInvoice.amountDue)}
             </Text>
           </Flex>
         )}
 
-        <Box $maxWidth="10rem" $lineHeight="1" $textAlign="right">
+        <Box $maxWidth="10rem" $textAlign="right">
           <Text
             $font={theme.typography[props.contractEndDate.fontStyle].fontFamily}
             $size={theme.typography[props.contractEndDate.fontStyle].fontSize}
@@ -121,6 +121,7 @@ export const UpcomingBill = forwardRef<
               theme.typography[props.contractEndDate.fontStyle].fontWeight
             }
             $color={theme.typography[props.contractEndDate.fontStyle].color}
+            $leading={1}
           >
             Estimated bill.
           </Text>

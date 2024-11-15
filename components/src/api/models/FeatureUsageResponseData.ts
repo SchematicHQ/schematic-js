@@ -69,6 +69,12 @@ export interface FeatureUsageResponseData {
    */
   feature?: FeatureDetailResponseData;
   /**
+   * If the period is current_month, when the month resets.
+   * @type {string}
+   * @memberof FeatureUsageResponseData
+   */
+  monthReset?: string | null;
+  /**
    * The period over which usage is measured.
    * @type {string}
    * @memberof FeatureUsageResponseData
@@ -139,6 +145,7 @@ export function FeatureUsageResponseDataFromJSONTyped(
       json["feature"] == null
         ? undefined
         : FeatureDetailResponseDataFromJSON(json["feature"]),
+    monthReset: json["month_reset"] == null ? undefined : json["month_reset"],
     period: json["period"] == null ? undefined : json["period"],
     plan:
       json["plan"] == null ? undefined : PlanResponseDataFromJSON(json["plan"]),
@@ -159,6 +166,7 @@ export function FeatureUsageResponseDataToJSON(
     entitlement_id: value["entitlementId"],
     entitlement_type: value["entitlementType"],
     feature: FeatureDetailResponseDataToJSON(value["feature"]),
+    month_reset: value["monthReset"],
     period: value["period"],
     plan: PlanResponseDataToJSON(value["plan"]),
     usage: value["usage"],

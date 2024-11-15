@@ -33,7 +33,19 @@ export function useAvailablePlans(activePeriod: string) {
                 (activePeriod === "month" && plan.monthlyPrice) ||
                 (activePeriod === "year" && plan.yearlyPrice),
             )
-      ).map((plan) => ({ ...plan, isSelected: false }));
+      )
+        .sort((a, b) => {
+          if (activePeriod === "year") {
+            return (a.yearlyPrice?.price ?? 0) - (b.yearlyPrice?.price ?? 0);
+          }
+
+          if (activePeriod === "month") {
+            return (a.monthlyPrice?.price ?? 0) - (b.monthlyPrice?.price ?? 0);
+          }
+
+          return 0;
+        })
+        .map((plan) => ({ ...plan, isSelected: false }));
     },
     [activePeriod, mode],
   );

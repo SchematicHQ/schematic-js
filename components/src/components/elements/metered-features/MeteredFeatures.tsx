@@ -12,13 +12,13 @@ import type { RecursivePartial, ElementProps } from "../../../types";
 import { formatNumber } from "../../../utils";
 import { Element } from "../../layout";
 import {
+  progressColorMap,
   Box,
   Flex,
   IconRound,
   ProgressBar,
   Text,
   type IconNameTypes,
-  type ProgressBarProps,
 } from "../../ui";
 import * as styles from "./styles";
 
@@ -209,7 +209,7 @@ export const MeteredFeatures = forwardRef<
                           $weight={
                             theme.typography[props.usage.fontStyle].fontWeight
                           }
-                          $lineHeight={1.25}
+                          $leading={1.25}
                           $color={theme.typography[props.usage.fontStyle].color}
                         >
                           {formatNumber(usage)} {pluralize(feature.name, usage)}
@@ -254,14 +254,12 @@ export const MeteredFeatures = forwardRef<
                       value={usage}
                       total={allocation}
                       color={
-                        (
-                          [
-                            "blue",
-                            "blue",
-                            "yellow",
-                            "red",
-                          ] satisfies ProgressBarProps["color"][]
-                        )[Math.floor((usage / allocation) * 4)]
+                        progressColorMap[
+                          Math.floor(
+                            (Math.min(usage, allocation) / allocation) *
+                              (progressColorMap.length - 1),
+                          )
+                        ]
                       }
                     />
                   </Box>

@@ -1,6 +1,5 @@
 import { useTheme } from "styled-components";
-import { TEXT_BASE_SIZE } from "../../../const";
-import { Box } from "../../ui";
+import { Box, Text } from "../../ui";
 import { TooltipWrapper } from "./styles";
 
 interface TooltipProps {
@@ -13,25 +12,27 @@ export const Tooltip = ({ label, description }: TooltipProps) => {
 
   return (
     <TooltipWrapper>
-      <Box>{label}</Box>
+      <Box>
+        <Text
+          $font={theme.typography.text.fontFamily}
+          $size={theme.typography.text.fontSize}
+          $weight={theme.typography.text.fontWeight}
+          $color={theme.typography.text.color}
+        >
+          {label}
+        </Text>
+      </Box>
 
-      <Box
-        $position="absolute"
-        $width="100%"
-        $marginBottom=".5rem"
-        $left="50%"
-        $bottom="100%"
-        $transform="translateX(-50%)"
-        $boxShadow="0px 1px 20px 0px #1018280F, 0px 1px 3px 0px #1018281A;"
-        $borderRadius={`${theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
-        $backgroundColor={`${theme.card.background}`}
-        $color={`${theme.typography.text.color}`}
-        $padding={`${theme.card.padding / TEXT_BASE_SIZE / 2}rem`}
-        className="tooltip"
-        $opacity="0"
-        $visibility="hidden"
-      >
-        {description}
+      <Box className="tooltip">
+        <Text
+          $font={theme.typography.text.fontFamily}
+          $size={theme.typography.text.fontSize}
+          $weight={theme.typography.text.fontWeight}
+          $color={theme.typography.text.color}
+          $leading={1.15}
+        >
+          {description}
+        </Text>
       </Box>
     </TooltipWrapper>
   );

@@ -1,6 +1,5 @@
 import styled, { css } from "styled-components";
 import { TEXT_BASE_SIZE } from "../../../const";
-import { Text } from "../../ui";
 import {
   ButtonStyleTypes,
   ButtonSizeTypes,
@@ -88,10 +87,6 @@ export const Button = styled.button<{
       color: ${color};
       background-color: ${bgColor};
       border-color: ${borderColor};
-
-      ${Text} {
-        color: ${color};
-      }
     `;
   }}
 

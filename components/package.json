@@ -1,6 +1,6 @@
 {
   "name": "@schematichq/schematic-components",
-  "version": "0.3.14",
+  "version": "0.4.0-rc.2",
   "main": "dist/schematic-components.cjs.js",
   "module": "dist/schematic-components.esm.js",
   "types": "dist/schematic-components.d.ts",
@@ -29,28 +29,28 @@
     "tsc": "npx tsc"
   },
   "dependencies": {
-    "@stripe/stripe-js": "^4.5.0",
+    "@stripe/stripe-js": "^4.10.0",
     "classnames": "^2.5.1",
-    "lodash.merge": "^4.6.2",
+    "lodash": "^4.17.21",
     "pako": "^2.1.0",
     "pluralize": "^8.0.0",
     "styled-components": "^6.1.13",
-    "uuid": "^11.0.2"
+    "uuid": "^11.0.3"
   },
   "devDependencies": {
     "@craftjs/core": "^0.2.10",
     "@microsoft/api-extractor": "^7.47.9",
     "@openapitools/openapi-generator-cli": "^2.15.3",
-    "@stripe/react-stripe-js": "^2.8.0",
+    "@stripe/react-stripe-js": "^2.9.0",
     "@types/jest": "^29.5.13",
-    "@types/lodash.merge": "^4.6.9",
+    "@types/lodash": "^4.17.13",
     "@types/pako": "^2.0.3",
     "@types/pluralize": "^0.0.33",
     "@types/react": "^18.3.9",
     "@types/react-dom": "^18.3.0",
     "@types/uuid": "^10.0.0",
-    "@typescript-eslint/eslint-plugin": "^8.13.0",
-    "@typescript-eslint/parser": "^8.13.0",
+    "@typescript-eslint/eslint-plugin": "^8.14.0",
+    "@typescript-eslint/parser": "^8.14.0",
     "esbuild": "^0.24.0",
     "esbuild-jest": "^0.5.0",
     "eslint": "^8.57.1",

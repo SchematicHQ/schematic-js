@@ -117,7 +117,7 @@ export const PlanManager = forwardRef<
                 theme.typography[props.header.title.fontStyle].fontWeight
               }
               $color={theme.typography[props.header.title.fontStyle].color}
-              $lineHeight={1}
+              $leading={1}
             >
               {currentPlan.name}
             </Text>
@@ -176,7 +176,7 @@ export const PlanManager = forwardRef<
                   ? darken(theme.card.background, 0.46)
                   : lighten(theme.card.background, 0.46)
               }
-              $lineHeight={1}
+              $leading={1}
             >
               Addons
             </Text>

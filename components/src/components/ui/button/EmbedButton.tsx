@@ -1,14 +1,13 @@
 import styled, { css } from "styled-components";
 import { TEXT_BASE_SIZE } from "../../../const";
 import { hexToHSL, hslToHex, lighten, darken } from "../../../utils";
-import { Text } from "../../ui";
 import { Icon } from "../icon/styles";
 import { Button } from "./Button";
 
 export const EmbedButton = styled(Button)<{
   $size?: "sm" | "md" | "lg";
-  $color?: "primary" | "secondary";
-  $variant?: "outline" | "filled" | "text";
+  $color?: "primary" | "secondary" | "danger";
+  $variant?: "filled" | "outline" | "ghost" | "text";
 }>`
   font-family: "Public Sans", sans-serif;
   font-weight: 500;
@@ -36,7 +35,6 @@ export const EmbedButton = styled(Button)<{
     return css`
       color: ${textColor};
 
-      ${Text},
       ${Icon} {
         color: ${textColor};
       }
@@ -44,9 +42,10 @@ export const EmbedButton = styled(Button)<{
   }};
 
   ${({ disabled, $color = "primary", theme, $variant = "filled" }) => {
+    const { l } = hexToHSL(theme.card.background);
+
     let color = theme[$color];
     if (disabled) {
-      const { l } = hexToHSL(theme.card.background);
       color = hslToHex({ h: 0, s: 0, l });
       color = l > 50 ? darken(color, 0.075) : lighten(color, 0.15);
     }
@@ -57,7 +56,18 @@ export const EmbedButton = styled(Button)<{
         border-color: ${color};
         color: ${color};
 
-        ${Text},
+        ${Icon} {
+          color: ${color};
+        }
+      `;
+    }
+
+    if ($variant === "ghost") {
+      return css`
+        background-color: transparent;
+        border-color: #cbcbcb;
+        color: ${color};
+
         ${Icon} {
           color: ${color};
         }
@@ -70,7 +80,6 @@ export const EmbedButton = styled(Button)<{
         border-color: transparent;
         color: ${color};
 
-        ${Text},
         ${Icon} {
           color: ${color};
         }
@@ -104,16 +113,24 @@ export const EmbedButton = styled(Button)<{
         `;
       }
 
-      return css`
-        background-color: ${color};
-        border-color: ${color};
-        color: ${textColor};
-
-        ${Text},
-        ${Icon} {
+      if ($variant === "outline") {
+        return css`
+          background-color: ${color};
+          border-color: ${color};
           color: ${textColor};
-        }
-      `;
+
+          ${Icon} {
+            color: ${textColor};
+          }
+        `;
+      }
+
+      if ($variant === "ghost") {
+        return css`
+          border-color: ${darken("#CBCBCB", 0.075)};
+          box-shadow: 0 1px 2px ${lighten("#CBCBCB", 0.125)};
+        `;
+      }
     }}
   }
 

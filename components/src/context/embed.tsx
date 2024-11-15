@@ -1,7 +1,7 @@
 import { createContext, useCallback, useEffect, useRef, useState } from "react";
 import { inflate } from "pako";
 import { ThemeProvider } from "styled-components";
-import merge from "lodash.merge";
+import merge from "lodash/merge";
 import { v4 as uuidv4 } from "uuid";
 import {
   CheckoutApi,
@@ -29,6 +29,7 @@ export interface EmbedThemeSettings {
   colorMode: "light" | "dark";
   primary: string;
   secondary: string;
+  danger: string;
   card: {
     background: string;
     borderRadius: number;
@@ -55,6 +56,7 @@ export const defaultTheme: EmbedThemeSettings = {
   colorMode: "light",
   primary: "#000000",
   secondary: "#194BFB",
+  danger: "#D75A5C",
   card: {
     background: "#FFFFFF",
     borderRadius: 10,
@@ -367,8 +369,12 @@ export const EmbedProvider = ({
     });
 
     if (fontSet.size > 0) {
+      const weights = new Array(9).fill(0).map((_, i) => (i + 1) * 100);
       const src = `https://fonts.googleapis.com/css2?${[...fontSet]
-        .map((fontFamily) => `family=${fontFamily}&display=swap`)
+        .map(
+          (fontFamily) =>
+            `family=${fontFamily}:wght@${weights.join(";")}&display=swap`,
+        )
         .join("&")}`;
       if (styleRef.current) {
         styleRef.current.href = src;

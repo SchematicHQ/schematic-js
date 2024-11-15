@@ -82,7 +82,7 @@ export const Checkout = ({
         </Elements>
       ) : (
         <>
-          <PaymentMethod />
+          <PaymentMethod allowEdit={false} />
 
           <Box>
             <Text

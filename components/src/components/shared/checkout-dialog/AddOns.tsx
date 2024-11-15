@@ -2,6 +2,7 @@ import { useTheme } from "styled-components";
 import type { CompanyPlanDetailResponseData } from "../../../api";
 import { TEXT_BASE_SIZE } from "../../../const";
 import { hexToHSL, formatCurrency } from "../../../utils";
+import { cardBoxShadow } from "../../layout";
 import { Box, EmbedButton, Flex, Icon, Text } from "../../ui";
 
 interface AddOnsProps {
@@ -30,7 +31,7 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
           $color={theme.typography.heading3.color}
           $marginBottom="0.5rem"
         >
-          Customize with addons
+          Customize with add-ons
         </Text>
 
         <Text
@@ -45,52 +46,76 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
         </Text>
       </Flex>
 
-      <Flex $flexWrap="wrap" $gap="1rem">
+      <Box
+        $display="grid"
+        $gridTemplateColumns="repeat(auto-fill, minmax(300px, 1fr))"
+        $gap="1rem"
+      >
         {addOns.map((addOn) => {
           return (
             <Flex
               key={addOn.id}
+              $position="relative"
               $flexDirection="column"
-              $width="100%"
-              $minWidth="280px"
-              $maxWidth={`calc(${100 / 3}% - 1rem)`}
+              $gap="2rem"
+              $padding={`${cardPadding}rem`}
               $backgroundColor={theme.card.background}
+              $borderRadius={`${theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
               $outlineWidth="2px"
               $outlineStyle="solid"
               $outlineColor={addOn.isSelected ? theme.primary : "transparent"}
-              $borderRadius={`${theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
-              {...(theme.card.hasShadow && {
-                $boxShadow:
-                  "0px 1px 3px rgba(16, 24, 40, 0.1), 0px 1px 20px rgba(16, 24, 40, 0.06)",
-              })}
+              {...(theme.card.hasShadow && { $boxShadow: cardBoxShadow })}
             >
-              <Flex
-                $flexDirection="column"
-                $position="relative"
-                $gap="1rem"
-                $width="100%"
-                $padding={`${cardPadding}rem ${cardPadding}rem 0`}
-              >
-                <Text $size={20} $weight={600}>
-                  {addOn.name}
-                </Text>
+              <Flex $flexDirection="column" $gap="0.75rem">
+                <Box>
+                  <Text
+                    $font={theme.typography.heading3.fontFamily}
+                    $size={theme.typography.heading3.fontSize}
+                    $weight={theme.typography.heading3.fontWeight}
+                    $color={theme.typography.heading3.color}
+                  >
+                    {addOn.name}
+                  </Text>
+                </Box>
 
                 {addOn.description && (
-                  <Text $size={14}>{addOn.description}</Text>
+                  <Box $marginBottom="0.5rem">
+                    <Text
+                      $font={theme.typography.text.fontFamily}
+                      $size={theme.typography.text.fontSize}
+                      $weight={theme.typography.text.fontWeight}
+                      $color={theme.typography.text.color}
+                    >
+                      {addOn.description}
+                    </Text>
+                  </Box>
                 )}
 
                 {addOn[periodKey] && (
-                  <Text>
-                    <Box $display="inline-block" $fontSize="1.5rem">
-                      {formatCurrency(addOn[periodKey].price ?? 0)}
-                    </Box>
+                  <Box>
+                    <Text
+                      $font={theme.typography.heading2.fontFamily}
+                      $size={theme.typography.heading2.fontSize}
+                      $weight={theme.typography.heading2.fontWeight}
+                      $color={theme.typography.heading2.color}
+                    >
+                      {formatCurrency(
+                        (period === "month"
+                          ? addOn.monthlyPrice
+                          : addOn.yearlyPrice
+                        )?.price ?? 0,
+                      )}
+                    </Text>
 
-                    {period && (
-                      <Box $display="inline-block" $fontSize="0.75rem">
-                        /{period}
-                      </Box>
-                    )}
-                  </Text>
+                    <Text
+                      $font={theme.typography.heading2.fontFamily}
+                      $size={(16 / 30) * theme.typography.heading2.fontSize}
+                      $weight={theme.typography.heading2.fontWeight}
+                      $color={theme.typography.heading2.color}
+                    >
+                      /{period}
+                    </Text>
+                  </Box>
                 )}
 
                 {addOn.current && (
@@ -111,54 +136,46 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
                 )}
               </Flex>
 
-              <Flex
-                $position="relative"
-                $flexDirection="column"
-                $justifyContent="end"
-                $gap="1rem"
-                $flexGrow="1"
-                $width="100%"
-                $padding="1.5rem"
-              >
+              <Flex $flexDirection="column" $justifyContent="end" $flexGrow="1">
                 {!addOn.isSelected ? (
                   <EmbedButton
-                    disabled={isLoading}
+                    disabled={isLoading || !addOn.valid}
                     onClick={() => toggle(addOn.id)}
                     $size="sm"
                     $color="primary"
                     $variant="outline"
                   >
-                    Select
+                    Choose add-on
                   </EmbedButton>
                 ) : (
                   <EmbedButton
-                    disabled={isLoading}
+                    disabled={isLoading || !addOn.valid}
                     onClick={() => toggle(addOn.id)}
                     $size="sm"
-                    $color="primary"
-                    $variant="text"
+                    $color={addOn.current ? "danger" : "primary"}
+                    $variant={addOn.current ? "ghost" : "text"}
                   >
-                    <Icon
-                      name="check-rounded"
-                      style={{
-                        fontSize: 20,
-                        lineHeight: "1",
-                      }}
-                    />
-
-                    <Text
-                      $lineHeight="1.4"
-                      $color={theme.typography.text.color}
-                    >
-                      Selected
-                    </Text>
+                    {addOn.current ? (
+                      "Remove add-on"
+                    ) : (
+                      <>
+                        <Icon
+                          name="check-rounded"
+                          style={{
+                            fontSize: 20,
+                            lineHeight: 1,
+                          }}
+                        />
+                        Selected
+                      </>
+                    )}
                   </EmbedButton>
                 )}
               </Flex>
             </Flex>
           );
         })}
-      </Flex>
+      </Box>
     </>
   );
 };

@@ -1,4 +1,11 @@
-import { forwardRef, useCallback, useEffect, useMemo, useState } from "react";
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useState,
+} from "react";
 import { createPortal } from "react-dom";
 import { useTheme } from "styled-components";
 import { loadStripe, type Stripe } from "@stripe/stripe-js";
@@ -109,7 +116,7 @@ const PaymentMethodElement = ({
             $font={theme.typography.link.fontFamily}
             $size={theme.typography.link.fontSize}
             $weight={theme.typography.link.fontWeight}
-            $lineHeight={1}
+            $leading={1}
             $color={theme.typography.link.color}
           >
             Edit
@@ -128,8 +135,9 @@ export const PaymentMethod = forwardRef<
     RecursivePartial<DesignProps> &
     React.HTMLAttributes<HTMLDivElement> & {
       portal?: HTMLElement | null;
+      allowEdit?: boolean;
     }
->(({ children, className, portal, ...rest }, ref) => {
+>(({ children, className, portal, allowEdit = true, ...rest }, ref) => {
   const props = resolveDesignProps(rest);
 
   const theme = useTheme();
@@ -143,6 +151,7 @@ export const PaymentMethod = forwardRef<
   );
   const [stripe, setStripe] = useState<Promise<Stripe | null> | null>(null);
   const [setupIntent, setSetupIntent] = useState<SetupIntentResponseData>();
+  const [top, setTop] = useState(0);
 
   const isLightBackground = useIsLightBackground();
 
@@ -227,6 +236,18 @@ export const PaymentMethod = forwardRef<
     };
   }, [layout]);
 
+  useLayoutEffect(() => {
+    const parent = portal || document.body;
+    const value = Math.abs(parent.getBoundingClientRect().top ?? 0);
+    setTop(value);
+
+    parent.style.overflow = "hidden";
+
+    return () => {
+      parent.style.overflow = "";
+    };
+  }, [portal, layout]);
+
   if (!paymentMethod.paymentMethodType) {
     return null;
   }
@@ -234,14 +255,14 @@ export const PaymentMethod = forwardRef<
   return (
     <Element ref={ref} className={className}>
       <PaymentMethodElement
-        onEdit={() => setLayout("payment")}
+        {...(allowEdit && { onEdit: () => setLayout("payment") })}
         {...paymentMethod}
         {...props}
       />
 
       {layout === "payment" &&
         createPortal(
-          <Modal size="md" onClose={() => setShowPaymentForm(false)}>
+          <Modal size="md" top={top} onClose={() => setShowPaymentForm(false)}>
             <ModalHeader bordered>
               <Text
                 $font={theme.typography.text.fontFamily}
