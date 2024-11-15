@@ -76,6 +76,12 @@ export interface PlanEntitlementResponseData {
   metricPeriod?: string | null;
   /**
    *
+   * @type {string}
+   * @memberof PlanEntitlementResponseData
+   */
+  metricPeriodMonthReset?: string | null;
+  /**
+   *
    * @type {PlanResponseData}
    * @memberof PlanEntitlementResponseData
    */
@@ -172,6 +178,10 @@ export function PlanEntitlementResponseDataFromJSONTyped(
     id: json["id"],
     metricPeriod:
       json["metric_period"] == null ? undefined : json["metric_period"],
+    metricPeriodMonthReset:
+      json["metric_period_month_reset"] == null
+        ? undefined
+        : json["metric_period_month_reset"],
     plan:
       json["plan"] == null ? undefined : PlanResponseDataFromJSON(json["plan"]),
     planId: json["plan_id"],
@@ -203,6 +213,7 @@ export function PlanEntitlementResponseDataToJSON(
     feature_id: value["featureId"],
     id: value["id"],
     metric_period: value["metricPeriod"],
+    metric_period_month_reset: value["metricPeriodMonthReset"],
     plan: PlanResponseDataToJSON(value["plan"]),
     plan_id: value["planId"],
     rule_id: value["ruleId"],

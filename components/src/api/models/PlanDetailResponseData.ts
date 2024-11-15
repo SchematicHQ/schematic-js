@@ -94,6 +94,12 @@ export interface PlanDetailResponseData {
   isDefault: boolean;
   /**
    *
+   * @type {boolean}
+   * @memberof PlanDetailResponseData
+   */
+  isTrialable: boolean;
+  /**
+   *
    * @type {BillingPriceResponseData}
    * @memberof PlanDetailResponseData
    */
@@ -110,6 +116,12 @@ export interface PlanDetailResponseData {
    * @memberof PlanDetailResponseData
    */
   planType: string;
+  /**
+   *
+   * @type {number}
+   * @memberof PlanDetailResponseData
+   */
+  trialDays?: number | null;
   /**
    *
    * @type {Date}
@@ -139,6 +151,8 @@ export function instanceOfPlanDetailResponseData(
   if (!("icon" in value) || value["icon"] === undefined) return false;
   if (!("id" in value) || value["id"] === undefined) return false;
   if (!("isDefault" in value) || value["isDefault"] === undefined) return false;
+  if (!("isTrialable" in value) || value["isTrialable"] === undefined)
+    return false;
   if (!("name" in value) || value["name"] === undefined) return false;
   if (!("planType" in value) || value["planType"] === undefined) return false;
   if (!("updatedAt" in value) || value["updatedAt"] === undefined) return false;
@@ -174,12 +188,14 @@ export function PlanDetailResponseDataFromJSONTyped(
     icon: json["icon"],
     id: json["id"],
     isDefault: json["is_default"],
+    isTrialable: json["is_trialable"],
     monthlyPrice:
       json["monthly_price"] == null
         ? undefined
         : BillingPriceResponseDataFromJSON(json["monthly_price"]),
     name: json["name"],
     planType: json["plan_type"],
+    trialDays: json["trial_days"] == null ? undefined : json["trial_days"],
     updatedAt: new Date(json["updated_at"]),
     yearlyPrice:
       json["yearly_price"] == null
@@ -208,9 +224,11 @@ export function PlanDetailResponseDataToJSON(
     icon: value["icon"],
     id: value["id"],
     is_default: value["isDefault"],
+    is_trialable: value["isTrialable"],
     monthly_price: BillingPriceResponseDataToJSON(value["monthlyPrice"]),
     name: value["name"],
     plan_type: value["planType"],
+    trial_days: value["trialDays"],
     updated_at: value["updatedAt"].toISOString(),
     yearly_price: BillingPriceResponseDataToJSON(value["yearlyPrice"]),
   };

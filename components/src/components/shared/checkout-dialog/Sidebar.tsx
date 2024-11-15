@@ -10,6 +10,7 @@ import { useEmbed, useIsLightBackground } from "../../../hooks";
 import { formatCurrency, formatOrdinal, getMonthName } from "../../../utils";
 import { PeriodToggle, Savings } from "../../shared";
 import { Box, EmbedButton, Flex, Icon, Text } from "../../ui";
+import { SidebarWrapper } from "./styles";
 
 interface SidebarProps {
   addOns: (CompanyPlanDetailResponseData & { isSelected: boolean })[];
@@ -194,14 +195,7 @@ export const Sidebar = ({
     ((paymentMethod && !showPaymentForm) || paymentMethodId);
 
   return (
-    <Flex
-      $flexDirection="column"
-      $width="21.5rem"
-      $overflow="auto"
-      $backgroundColor={theme.card.background}
-      $borderRadius="0 0 0.5rem"
-      $boxShadow="0px 1px 20px 0px #1018280F, 0px 1px 3px 0px #1018281A;"
-    >
+    <SidebarWrapper>
       <Flex
         $position="relative"
         $flexDirection="column"
@@ -636,6 +630,6 @@ export const Sidebar = ({
           </Text>
         </Box>
       </Flex>
-    </Flex>
+    </SidebarWrapper>
   );
 };

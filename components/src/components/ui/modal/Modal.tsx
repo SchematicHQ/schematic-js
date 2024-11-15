@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useRef } from "react";
 import { useTheme } from "styled-components";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
-import { Flex } from "../../ui";
-import { Container } from "./styles";
+import { Container, ModalInnerWrapper } from "./styles";
+
+export type ModalSizeProps = "sm" | "md" | "lg" | "auto";
 
 interface ModalProps {
   children: React.ReactNode;
-  size?: "sm" | "md" | "lg" | "auto";
+  size?: ModalSizeProps;
   onClose?: () => void;
 }
 
@@ -56,34 +57,16 @@ export const Modal = ({ children, size = "auto", onClose }: ModalProps) => {
       $scrollbarWidth="thin"
       $scrollbarGutter="stable both-edges"
     >
-      <Flex
-        $position="relative"
-        $top="50%"
-        $left="50%"
-        $transform="translate(-50%, -50%)"
-        $flexDirection="column"
-        $overflow="hidden"
-        {...(size === "auto"
-          ? { $width: "fit-content", $height: "fit-content" }
-          : {
-              $width: "100%",
-              ...(size === "lg"
-                ? { $height: "100%" }
-                : { $height: "fit-content" }),
-              $maxWidth:
-                size === "sm" ? "480px" : size === "md" ? "688px" : "1356px",
-              $maxHeight: "860px",
-            })}
-        $backgroundColor={theme.card.background}
-        $borderRadius="0.5rem"
-        $boxShadow="0px 1px 20px 0px #1018280F, 0px 1px 3px 0px #1018281A;"
+      <ModalInnerWrapper
         id="select-plan-dialog"
         role="dialog"
         aria-labelledby="select-plan-dialog-label"
         aria-modal="true"
+        size={size}
+        theme={theme}
       >
         {children}
-      </Flex>
+      </ModalInnerWrapper>
     </Container>
   );
 };

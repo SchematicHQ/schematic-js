@@ -6,21 +6,29 @@ import type {
   UpdateAddOnRequestBody,
 } from "../../../api";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
-import { Flex, Modal, ModalHeader } from "../../ui";
+import { Modal, ModalHeader } from "../../ui";
 import { Navigation } from "./Navigation";
 import { Sidebar } from "./Sidebar";
 import { Plan } from "./Plan";
 import { AddOns } from "./AddOns";
 import { Checkout } from "./Checkout";
+import { BodyInnerWrapper, BodyWrapper } from "./styles";
+import { ModalHeaderInnerWrapper } from "../../ui/modal/styles";
 
 const checkoutStages = [
-  { id: "plan", name: "Select plan", description: "Choose your base plan" },
+  {
+    id: "plan",
+    name: "Select plan",
+    mobileName: "Plan",
+    description: "Choose your base plan",
+  },
   {
     id: "addons",
-    name: "Customize with addons",
+    name: "Addons",
+    mobileName: "Addons",
     description: "Optionally add features to your subscription",
   },
-  { id: "checkout", name: "Checkout", description: "" },
+  { id: "checkout", name: "Checkout", mobileName: "Checkout", description: "" },
 ];
 
 export interface CheckoutDialogProps {
@@ -207,7 +215,7 @@ export const CheckoutDialog = ({
   return (
     <Modal size="lg">
       <ModalHeader bordered>
-        <Flex $gap="1rem">
+        <ModalHeaderInnerWrapper>
           {checkoutStages.map((stage, index, stages) => (
             <Navigation
               key={stage.id}
@@ -220,23 +228,11 @@ export const CheckoutDialog = ({
               onClick={() => setCheckoutStage(stage.id)}
             />
           ))}
-        </Flex>
+        </ModalHeaderInnerWrapper>
       </ModalHeader>
 
-      <Flex $position="relative" $height="calc(100% - 5rem)">
-        <Flex
-          $flexDirection="column"
-          $flexGrow="1"
-          $gap="1rem"
-          $padding="2rem 2.5rem 2rem 2.5rem"
-          $backgroundColor={
-            isLightBackground
-              ? "hsla(0, 0%, 0%, 0.025)"
-              : "hsla(0, 0%, 100%, 0.025)"
-          }
-          $flex="1"
-          $overflow="auto"
-        >
+      <BodyWrapper>
+        <BodyInnerWrapper isLightBackground={isLightBackground} bordered={true}>
           {checkoutStage === "plan" && (
             <Plan
               isLoading={isLoading}
@@ -265,7 +261,7 @@ export const CheckoutDialog = ({
               stripe={stripe}
             />
           )}
-        </Flex>
+        </BodyInnerWrapper>
 
         <Sidebar
           addOns={addOns}
@@ -286,7 +282,7 @@ export const CheckoutDialog = ({
           showPaymentForm={showPaymentForm}
           toggleLoading={() => setIsLoading((prev) => !prev)}
         />
-      </Flex>
+      </BodyWrapper>
     </Modal>
   );
 };

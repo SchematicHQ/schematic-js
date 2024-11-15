@@ -1,7 +1,8 @@
 import { useTheme } from "styled-components";
 import { TEXT_BASE_SIZE } from "../../../const";
 import { useIsLightBackground } from "../../../hooks";
-import { Box, Flex, Icon, IconRound, Text } from "../../ui";
+import { Box, Flex, Icon, IconRound } from "../../ui";
+import { CheckoutStageLabel } from "./styles";
 
 interface NavigationProps {
   name: string;
@@ -21,14 +22,16 @@ export const Navigation = ({
   const theme = useTheme();
 
   const isLightBackground = useIsLightBackground();
-
+  const iconSize = `${20 / TEXT_BASE_SIZE}rem`;
   return (
     <>
       <Flex $gap="0.5rem" $alignItems="center">
         {index >= activeIndex ? (
           <Box
-            $width={`${20 / TEXT_BASE_SIZE}rem`}
-            $height={`${20 / TEXT_BASE_SIZE}rem`}
+            $width={iconSize}
+            $height={iconSize}
+            $minWidth={iconSize}
+            $minHeight={iconSize}
             $borderWidth="2px"
             $borderStyle="solid"
             $borderColor={
@@ -37,6 +40,7 @@ export const Navigation = ({
                 : "hsla(0, 0%, 100%, 0.25)"
             }
             $borderRadius="9999px"
+            className="checkout-stage-circle"
           />
         ) : (
           <IconRound
@@ -52,6 +56,7 @@ export const Navigation = ({
               width: `${20 / TEXT_BASE_SIZE}rem`,
               height: `${20 / TEXT_BASE_SIZE}rem`,
             }}
+            className="checkout-stage-circle"
           />
         )}
 
@@ -63,14 +68,9 @@ export const Navigation = ({
             $cursor: "pointer",
           })}
         >
-          <Text
-            $font={theme.typography.text.fontFamily}
-            $size={19}
-            $weight={index === activeIndex ? 600 : 400}
-            $color={theme.typography.text.color}
-          >
+          <CheckoutStageLabel stage={name}>
             {index + 1}. {name}
-          </Text>
+          </CheckoutStageLabel>
         </Box>
       </Flex>
 

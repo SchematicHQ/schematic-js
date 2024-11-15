@@ -3,6 +3,7 @@ import type { CompanyPlanDetailResponseData } from "../../../api";
 import { TEXT_BASE_SIZE } from "../../../const";
 import { hexToHSL, formatCurrency } from "../../../utils";
 import { Box, EmbedButton, Flex, Icon, Text } from "../../ui";
+import { BodyHeadWrapper } from "./styles";
 
 interface AddOnsProps {
   addOns: (CompanyPlanDetailResponseData & { isSelected: boolean })[];
@@ -20,30 +21,36 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
 
   return (
     <>
-      <Flex $flexDirection="column" $gap="1rem" $marginBottom="1rem">
-        <Text
-          as="h3"
-          id="select-addons-dialog-label"
-          $font={theme.typography.heading3.fontFamily}
-          $size={theme.typography.heading3.fontSize}
-          $weight={theme.typography.heading3.fontWeight}
-          $color={theme.typography.heading3.color}
-          $marginBottom="0.5rem"
+      <BodyHeadWrapper>
+        <Flex
+          $flexDirection="column"
+          $position="relative"
+          className="head-copy"
         >
-          Customize with addons
-        </Text>
+          <Text
+            as="h3"
+            id="select-addons-dialog-label"
+            $font={theme.typography.heading3.fontFamily}
+            $size={theme.typography.heading3.fontSize}
+            $weight={theme.typography.heading3.fontWeight}
+            $color={theme.typography.heading3.color}
+            $marginBottom="0.5rem"
+          >
+            Customize with addons
+          </Text>
 
-        <Text
-          as="p"
-          id="select-addons-dialog-description"
-          $font={theme.typography.text.fontFamily}
-          $size={theme.typography.text.fontSize}
-          $weight={theme.typography.text.fontWeight}
-          $color={theme.typography.text.color}
-        >
-          Optionally add features to your subscription
-        </Text>
-      </Flex>
+          <Text
+            as="p"
+            id="select-addons-dialog-description"
+            $font={theme.typography.text.fontFamily}
+            $size={theme.typography.text.fontSize}
+            $weight={theme.typography.text.fontWeight}
+            $color={theme.typography.text.color}
+          >
+            Optionally add features to your subscription
+          </Text>
+        </Flex>
+      </BodyHeadWrapper>
 
       <Flex $flexWrap="wrap" $gap="1rem">
         {addOns.map((addOn) => {

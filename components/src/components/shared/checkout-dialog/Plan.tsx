@@ -5,6 +5,7 @@ import { useIsLightBackground } from "../../../hooks";
 import { hexToHSL, formatCurrency } from "../../../utils";
 import { Box, EmbedButton, Flex, Icon, Text, Tooltip } from "../../ui";
 import { PlanEntitlementRow } from "./PlanEntitlementRow";
+import { BodyHeadWrapper, PlanCard, PlansWrapper } from "./styles";
 
 interface PlanProps {
   isLoading: boolean;
@@ -29,32 +30,40 @@ export const Plan = ({
 
   return (
     <>
-      <Flex $flexDirection="column" $gap="1rem" $marginBottom="1rem">
-        <Text
-          as="h3"
-          id="select-plan-dialog-label"
-          $font={theme.typography.heading3.fontFamily}
-          $size={theme.typography.heading3.fontSize}
-          $weight={theme.typography.heading3.fontWeight}
-          $color={theme.typography.heading3.color}
-          $marginBottom="0.5rem"
+      <BodyHeadWrapper>
+        <Flex
+          $flexDirection="column"
+          $position="relative"
+          className="head-copy"
         >
-          Select plan
-        </Text>
+          <Text
+            as="h3"
+            id="select-plan-dialog-label"
+            $font={theme.typography.heading3.fontFamily}
+            $size={theme.typography.heading3.fontSize}
+            $weight={theme.typography.heading3.fontWeight}
+            $color={theme.typography.heading3.color}
+            $marginBottom="0.5rem"
+          >
+            Select plan
+          </Text>
 
-        <Text
-          as="p"
-          id="select-plan-dialog-description"
-          $font={theme.typography.text.fontFamily}
-          $size={theme.typography.text.fontSize}
-          $weight={theme.typography.text.fontWeight}
-          $color={theme.typography.text.color}
-        >
-          Choose your base plan
-        </Text>
-      </Flex>
+          <Text
+            as="p"
+            id="select-plan-dialog-description"
+            $font={theme.typography.text.fontFamily}
+            $size={theme.typography.text.fontSize}
+            $weight={theme.typography.text.fontWeight}
+            $color={theme.typography.text.color}
+          >
+            Choose your base plan
+          </Text>
+        </Flex>
 
-      <Flex $flexWrap="wrap" $gap="1rem" $flexGrow="1">
+        <Flex $alignItems="center">toggle here...</Flex>
+      </BodyHeadWrapper>
+
+      <PlansWrapper>
         {plans
           .sort((a, b) => {
             if (period === "year") {
@@ -71,23 +80,11 @@ export const Plan = ({
           })
           .map((plan) => {
             return (
-              <Flex
+              <PlanCard
                 key={plan.id}
-                $flexDirection="column"
-                $width="100%"
-                $minWidth="280px"
-                $maxWidth={`calc(${100 / 3}% - 1rem)`}
-                $backgroundColor={theme.card.background}
-                $outlineWidth="2px"
-                $outlineStyle="solid"
-                $outlineColor={
-                  plan.id === selectedPlan?.id ? theme.primary : "transparent"
-                }
-                $borderRadius={`${theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
-                {...(theme.card.hasShadow && {
-                  $boxShadow:
-                    "0px 1px 3px rgba(16, 24, 40, 0.1), 0px 1px 20px rgba(16, 24, 40, 0.06)",
-                })}
+                isSelected={plan.id === selectedPlan?.id}
+                hasShadow={theme.card.hasShadow}
+                theme={theme}
               >
                 <Flex
                   $flexDirection="column"
@@ -223,10 +220,10 @@ export const Plan = ({
                     </Flex>
                   )}
                 </Flex>
-              </Flex>
+              </PlanCard>
             );
           })}
-      </Flex>
+      </PlansWrapper>
     </>
   );
 };

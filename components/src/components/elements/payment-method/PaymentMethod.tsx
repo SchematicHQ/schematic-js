@@ -220,8 +220,8 @@ export const PaymentMethod = forwardRef<
   }, [stripe, setupIntent?.publishableKey]);
 
   useEffect(() => {
-    document.body.style.overflow = layout === "payment" ? "hidden" : "";
-
+    document.body.style.overflow =
+      layout === "payment" || layout === "checkout" ? "hidden" : "";
     return () => {
       document.body.style.overflow = "";
     };

@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
-import { Box, Flex, Icon } from "../../ui";
+import { Box, Icon } from "../../ui";
+import { ModalHeaderWrapper } from "./styles";
 
 interface ModalHeaderProps {
   children?: React.ReactNode;
@@ -23,20 +24,10 @@ export const ModalHeader = ({
   }, [setLayout, onClose]);
 
   return (
-    <Flex
-      $justifyContent={children ? "space-between" : "end"}
-      $alignItems="center"
-      $flexShrink="0"
-      $gap="1rem"
-      $height="5rem"
-      $padding="0 1.5rem 0 3rem"
-      {...(bordered && {
-        $borderBottomWidth: "1px",
-        $borderBottomStyle: "solid",
-        $borderBottomColor: isLightBackground
-          ? "hsla(0, 0%, 0%, 0.15)"
-          : "hsla(0, 0%, 100%, 0.15)",
-      })}
+    <ModalHeaderWrapper
+      bordered={bordered}
+      isLightBackground={isLightBackground}
+      hasChildren={!!children}
     >
       {children}
 
@@ -51,6 +42,6 @@ export const ModalHeader = ({
           }}
         />
       </Box>
-    </Flex>
+    </ModalHeaderWrapper>
   );
 };
