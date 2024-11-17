@@ -43,7 +43,7 @@ export const Box = styled.div<BoxProps>((props) => {
   rules = Object.entries(props.$viewport?.md || {});
   if (rules.length) {
     styles.push(css`
-      @media (min-width: 768px) and (max-width: 1279px) {
+      @media (min-width: 768px) {
         ${rules.reduce(reducer, [])}
       }
     `);

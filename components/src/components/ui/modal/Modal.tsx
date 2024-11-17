@@ -62,6 +62,11 @@ export const Modal = ({
       $scrollbarColor={`${isLightBackground ? "hsla(0, 0%, 0%, 0.15)" : "hsla(0, 0%, 100%, 0.15)"} transparent`}
       $scrollbarWidth="thin"
       $scrollbarGutter="stable both-edges"
+      $viewport={{
+        sm: {
+          $gap: "0.16rem",
+        },
+      }}
     >
       <Flex
         $position="relative"
@@ -88,6 +93,11 @@ export const Modal = ({
         role="dialog"
         aria-labelledby="select-plan-dialog-label"
         aria-modal="true"
+        $viewport={{
+          sm: {
+            $overflowY: "auto",
+          },
+        }}
       >
         {children}
       </Flex>

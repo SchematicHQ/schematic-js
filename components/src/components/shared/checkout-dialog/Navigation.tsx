@@ -21,14 +21,24 @@ export const Navigation = ({
   const theme = useTheme();
 
   const isLightBackground = useIsLightBackground();
-
+  const iconSize = `${20 / TEXT_BASE_SIZE}rem`;
   return (
     <>
-      <Flex $gap="0.5rem" $alignItems="center">
+      <Flex
+        $gap="0.5rem"
+        $alignItems="center"
+        $viewport={{
+          sm: {
+            $gap: "0.16rem",
+          },
+        }}
+      >
         {index >= activeIndex ? (
           <Box
-            $width={`${20 / TEXT_BASE_SIZE}rem`}
-            $height={`${20 / TEXT_BASE_SIZE}rem`}
+            $width={iconSize}
+            $height={iconSize}
+            $minWidth={iconSize}
+            $minHeight={iconSize}
             $borderWidth="2px"
             $borderStyle="solid"
             $borderColor={
@@ -37,22 +47,36 @@ export const Navigation = ({
                 : "hsla(0, 0%, 100%, 0.25)"
             }
             $borderRadius="9999px"
-          />
-        ) : (
-          <IconRound
-            name="check"
-            colors={[
-              theme.card.background,
-              isLightBackground
-                ? "hsla(0, 0%, 0%, 0.125)"
-                : "hsla(0, 0%, 100%, 0.25)",
-            ]}
-            style={{
-              fontSize: `${16 / TEXT_BASE_SIZE}rem`,
-              width: `${20 / TEXT_BASE_SIZE}rem`,
-              height: `${20 / TEXT_BASE_SIZE}rem`,
+            $viewport={{
+              sm: {
+                $display: "none",
+              },
             }}
           />
+        ) : (
+          <Box
+            $display="inline-block"
+            $viewport={{
+              sm: {
+                $display: "none",
+              },
+            }}
+          >
+            <IconRound
+              name="check"
+              colors={[
+                theme.card.background,
+                isLightBackground
+                  ? "hsla(0, 0%, 0%, 0.125)"
+                  : "hsla(0, 0%, 100%, 0.25)",
+              ]}
+              style={{
+                fontSize: `${16 / TEXT_BASE_SIZE}rem`,
+                width: iconSize,
+                height: iconSize,
+              }}
+            />
+          </Box>
         )}
 
         <Box
@@ -65,11 +89,20 @@ export const Navigation = ({
         >
           <Text
             $font={theme.typography.text.fontFamily}
-            $size={19}
+            $size="1.1rem"
             $weight={index === activeIndex ? 600 : 400}
             $color={theme.typography.text.color}
           >
-            {index + 1}. {name}
+            <Box
+              $whiteSpace="nowrap"
+              $viewport={{
+                sm: {
+                  $fontSize: "1rem",
+                },
+              }}
+            >
+              {index + 1}. {name}
+            </Box>
           </Text>
         </Box>
       </Flex>

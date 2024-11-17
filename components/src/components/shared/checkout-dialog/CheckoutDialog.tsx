@@ -71,11 +71,12 @@ export const CheckoutDialog = ({
       },
       {
         id: "addons",
-        name: "Customize with addons",
+        name: "Addons",
         description: "Optionally add features to your subscription",
       },
       { id: "checkout", name: "Checkout", description: "" },
     ];
+
     if (!availableAddOns.length) {
       checkoutStages.splice(1, 1);
     }
@@ -208,7 +209,14 @@ export const CheckoutDialog = ({
   return (
     <Modal size="lg" top={top}>
       <ModalHeader bordered>
-        <Flex $gap="1rem">
+        <Flex
+          $gap="1rem"
+          $viewport={{
+            sm: {
+              $gap: "0.16rem",
+            },
+          }}
+        >
           {checkoutStages.map((stage, index, stages) => (
             <Navigation
               key={stage.id}
@@ -224,7 +232,16 @@ export const CheckoutDialog = ({
         </Flex>
       </ModalHeader>
 
-      <Flex $position="relative" $height="calc(100% - 5rem)">
+      <Flex
+        $position="relative"
+        $height="calc(100% - 5rem)"
+        $viewport={{
+          sm: {
+            $height: "auto",
+            $flexDirection: "column",
+          },
+        }}
+      >
         <Flex
           $flexDirection="column"
           $flexGrow="1"
@@ -237,6 +254,13 @@ export const CheckoutDialog = ({
           }
           $flex="1"
           $overflow="auto"
+          $viewport={{
+            sm: {
+              $padding: "1.5rem",
+              $height: "auto",
+              $flexDirection: "column",
+            },
+          }}
         >
           {checkoutStage === "plan" && (
             <Plan
@@ -246,6 +270,7 @@ export const CheckoutDialog = ({
               currentPlan={currentPlan}
               selectedPlan={selectedPlan}
               selectPlan={selectPlan}
+              setPlanPeriod={setPlanPeriod}
             />
           )}
 
@@ -280,10 +305,8 @@ export const CheckoutDialog = ({
           paymentMethodId={paymentMethodId}
           planPeriod={planPeriod}
           selectedPlan={selectedPlan}
-          selectPlan={selectPlan}
           setCheckoutStage={(stage) => setCheckoutStage(stage)}
           setError={(msg) => setError(msg)}
-          setPlanPeriod={(period) => setPlanPeriod(period)}
           setSetupIntent={(intent) => setSetupIntent(intent)}
           showPaymentForm={showPaymentForm}
           toggleLoading={() => setIsLoading((prev) => !prev)}

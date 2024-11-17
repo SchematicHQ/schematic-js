@@ -4,11 +4,13 @@ import type {
   CompanyPlanWithBillingSubView,
 } from "../../../api";
 import { TEXT_BASE_SIZE } from "../../../const";
-import { useIsLightBackground } from "../../../hooks";
+import { useEmbed, useIsLightBackground } from "../../../hooks";
 import { hexToHSL, formatCurrency } from "../../../utils";
 import { cardBoxShadow } from "../../layout";
 import { Box, EmbedButton, Flex, Icon, Text, Tooltip } from "../../ui";
 import { PlanEntitlementRow } from "./PlanEntitlementRow";
+import { useMemo, useCallback } from "react";
+import { PeriodToggle } from "../period-toggle";
 
 interface PlanProps {
   isLoading: boolean;
@@ -17,6 +19,7 @@ interface PlanProps {
   selectedPlan?: CompanyPlanDetailResponseData;
   period: string;
   selectPlan: (plan: CompanyPlanDetailResponseData, newPeriod?: string) => void;
+  setPlanPeriod: (period: string) => void;
 }
 
 export const Plan = ({
@@ -26,8 +29,41 @@ export const Plan = ({
   selectedPlan,
   period,
   selectPlan,
+  setPlanPeriod,
 }: PlanProps) => {
   const theme = useTheme();
+
+  const { data } = useEmbed();
+  const { planPeriodOptions } = useMemo(() => {
+    const planPeriodOptions = [];
+    if (
+      data.activePlans.some((plan) => plan.monthlyPrice) ||
+      data.activeAddOns.some((addOn) => addOn.monthlyPrice)
+    ) {
+      planPeriodOptions.push("month");
+    }
+    if (
+      data.activePlans.some((plan) => plan.yearlyPrice) ||
+      data.activeAddOns.some((addOn) => addOn.yearlyPrice)
+    ) {
+      planPeriodOptions.push("year");
+    }
+
+    return {
+      planPeriodOptions,
+    };
+  }, [data.activePlans, data.activeAddOns]);
+
+  const changePlanPeriod = useCallback(
+    (period: string) => {
+      if (selectedPlan) {
+        selectPlan(selectedPlan, period);
+      }
+
+      setPlanPeriod(period);
+    },
+    [selectedPlan, selectPlan, setPlanPeriod],
+  );
 
   const isLightBackground = useIsLightBackground();
 
@@ -37,29 +73,66 @@ export const Plan = ({
 
   return (
     <>
-      <Flex $flexDirection="column" $gap="1rem" $marginBottom="1rem">
-        <Text
-          as="h3"
-          id="select-plan-dialog-label"
-          $font={theme.typography.heading3.fontFamily}
-          $size={theme.typography.heading3.fontSize}
-          $weight={theme.typography.heading3.fontWeight}
-          $color={theme.typography.heading3.color}
-          $marginBottom="0.5rem"
+      <Flex
+        $flexDirection="row"
+        $justifyContent="space-between"
+        $gap="1rem"
+        $marginBottom="1rem"
+        $viewport={{
+          sm: {
+            $flexDirection: "column",
+            $justifyContent: "center",
+            $alignItems: "center",
+            $gap: "0.16rem",
+          },
+        }}
+      >
+        <Flex
+          $flexDirection="column"
+          $position="relative"
+          $viewport={{
+            sm: {
+              $justifyContent: "center",
+              $alignItems: "center",
+            },
+            md: {
+              $justifyContent: "start",
+              $alignItems: "start",
+            },
+          }}
         >
-          Select plan
-        </Text>
+          <Text
+            as="h3"
+            id="select-plan-dialog-label"
+            $font={theme.typography.heading3.fontFamily}
+            $size={theme.typography.heading3.fontSize}
+            $weight={theme.typography.heading3.fontWeight}
+            $color={theme.typography.heading3.color}
+            $marginBottom="0.5rem"
+          >
+            Select plan
+          </Text>
 
-        <Text
-          as="p"
-          id="select-plan-dialog-description"
-          $font={theme.typography.text.fontFamily}
-          $size={theme.typography.text.fontSize}
-          $weight={theme.typography.text.fontWeight}
-          $color={theme.typography.text.color}
-        >
-          Choose your base plan
-        </Text>
+          <Text
+            as="p"
+            id="select-plan-dialog-description"
+            $font={theme.typography.text.fontFamily}
+            $size={theme.typography.text.fontSize}
+            $weight={theme.typography.text.fontWeight}
+            $color={theme.typography.text.color}
+          >
+            Choose your base plan
+          </Text>
+        </Flex>
+        <Flex $alignItems="center">
+          {planPeriodOptions.length > 1 && (
+            <PeriodToggle
+              options={planPeriodOptions}
+              selectedOption={period}
+              onChange={changePlanPeriod}
+            />
+          )}
+        </Flex>
       </Flex>
 
       <Box
@@ -67,6 +140,11 @@ export const Plan = ({
         $gridTemplateColumns="repeat(auto-fill, minmax(300px, 1fr))"
         $gap="1rem"
         $flexGrow="1"
+        $viewport={{
+          sm: {
+            $justifyContent: "center",
+          },
+        }}
       >
         {plans.map((plan, index) => {
           const isActivePlan =
