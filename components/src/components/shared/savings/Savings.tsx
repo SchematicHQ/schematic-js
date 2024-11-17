@@ -28,6 +28,7 @@ export const Savings = ({ plan, period }: SavingsProps) => {
         $size={11}
         $weight={theme.typography.text.fontWeight}
         $color={theme.primary}
+        $leading={1}
       >
         {period === "month"
           ? `Save up to ${savingsPercentage}% with yearly billing`

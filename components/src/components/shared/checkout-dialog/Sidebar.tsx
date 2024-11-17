@@ -8,7 +8,6 @@ import type {
 } from "../../../api";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import { formatCurrency, formatOrdinal, getMonthName } from "../../../utils";
-import { PeriodToggle, Savings } from "../../shared";
 import { Box, EmbedButton, Flex, Icon, Text } from "../../ui";
 
 interface SidebarProps {
@@ -27,10 +26,8 @@ interface SidebarProps {
   paymentMethodId?: string;
   planPeriod: string;
   selectedPlan?: CompanyPlanDetailResponseData;
-  selectPlan: (plan: CompanyPlanDetailResponseData, newPeriod?: string) => void;
   setCheckoutStage: (stage: string) => void;
   setError: (msg?: string) => void;
-  setPlanPeriod: (period: string) => void;
   setSetupIntent: (intent: SetupIntentResponseData | undefined) => void;
   showPaymentForm: boolean;
   toggleLoading: () => void;
@@ -47,10 +44,8 @@ export const Sidebar = ({
   paymentMethodId,
   planPeriod,
   selectedPlan,
-  selectPlan,
   setCheckoutStage,
   setError,
-  setPlanPeriod,
   setSetupIntent,
   showPaymentForm,
   toggleLoading,
@@ -60,27 +55,6 @@ export const Sidebar = ({
   const { api, data, mode, setLayout } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
-
-  const { planPeriodOptions, paymentMethod } = useMemo(() => {
-    const planPeriodOptions = [];
-    if (
-      data.activePlans.some((plan) => plan.monthlyPrice) ||
-      data.activeAddOns.some((addOn) => addOn.monthlyPrice)
-    ) {
-      planPeriodOptions.push("month");
-    }
-    if (
-      data.activePlans.some((plan) => plan.yearlyPrice) ||
-      data.activeAddOns.some((addOn) => addOn.yearlyPrice)
-    ) {
-      planPeriodOptions.push("year");
-    }
-
-    return {
-      planPeriodOptions,
-      paymentMethod: data.subscription?.paymentMethod,
-    };
-  }, [data.activePlans, data.activeAddOns, data.subscription?.paymentMethod]);
 
   const subscriptionPrice = useMemo(() => {
     if (
@@ -156,17 +130,6 @@ export const Sidebar = ({
     toggleLoading,
   ]);
 
-  const changePlanPeriod = useCallback(
-    (period: string) => {
-      if (selectedPlan) {
-        selectPlan(selectedPlan, period);
-      }
-
-      setPlanPeriod(period);
-    },
-    [selectedPlan, selectPlan, setPlanPeriod],
-  );
-
   const shortPeriod = (p: string) => (p === "month" ? "mo" : "yr");
 
   const selectedAddOns = addOns.filter((addOn) => addOn.isSelected);
@@ -189,7 +152,7 @@ export const Sidebar = ({
 
   const canCheckout =
     canUpdateSubscription &&
-    ((paymentMethod && !showPaymentForm) || paymentMethodId);
+    ((data.subscription?.paymentMethod && !showPaymentForm) || paymentMethodId);
 
   const removedAddOns = currentAddOns.filter(
     (current) => !selectedAddOns.some((selected) => current.id === selected.id),
@@ -202,11 +165,15 @@ export const Sidebar = ({
   return (
     <Flex
       $flexDirection="column"
-      $width="21.5rem"
       $overflow="auto"
       $backgroundColor={theme.card.background}
       $borderRadius="0 0 0.5rem"
       $boxShadow="0px 1px 20px 0px #1018280F, 0px 1px 3px 0px #1018281A;"
+      $viewport={{
+        sm: {
+          $width: "21.5rem",
+        },
+      }}
     >
       <Flex
         $position="relative"
@@ -231,16 +198,6 @@ export const Sidebar = ({
             Subscription
           </Text>
         </Flex>
-
-        {planPeriodOptions.length > 1 && (
-          <PeriodToggle
-            options={planPeriodOptions}
-            selectedOption={planPeriod}
-            onChange={changePlanPeriod}
-          />
-        )}
-
-        <Savings plan={selectedPlan} period={planPeriod} />
       </Flex>
 
       <Flex

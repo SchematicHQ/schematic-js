@@ -28,8 +28,8 @@ export const ModalHeader = ({
       $alignItems="center"
       $flexShrink="0"
       $gap="1rem"
-      $height="5rem"
-      $padding="0 1.5rem 0 3rem"
+      $height="3.5rem"
+      $padding="0 1rem"
       {...(bordered && {
         $borderBottomWidth: "1px",
         $borderBottomStyle: "solid",
@@ -37,6 +37,12 @@ export const ModalHeader = ({
           ? "hsla(0, 0%, 0%, 0.15)"
           : "hsla(0, 0%, 100%, 0.15)",
       })}
+      $viewport={{
+        sm: {
+          $height: "5rem",
+          $padding: "0 1.5rem 0 3rem",
+        },
+      }}
     >
       {children}
 

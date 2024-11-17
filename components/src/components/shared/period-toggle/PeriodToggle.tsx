@@ -1,17 +1,21 @@
 import { useTheme } from "styled-components";
+import { type CompanyPlanDetailResponseData } from "../../../api";
 import { useIsLightBackground } from "../../../hooks";
 import { adjectify } from "../../../utils";
-import { Flex, Text } from "../../ui";
+import { Savings } from "../../shared";
+import { Flex, Text, Tooltip } from "../../ui";
 
 interface PeriodToggleProps {
   options: string[];
   selectedOption: string;
+  selectedPlan?: CompanyPlanDetailResponseData;
   onChange: (period: string) => void;
 }
 
 export const PeriodToggle = ({
   options,
   selectedOption,
+  selectedPlan,
   onChange,
 }: PeriodToggleProps) => {
   const theme = useTheme();
@@ -21,6 +25,7 @@ export const PeriodToggle = ({
   return (
     <Flex
       $width="fit-content"
+      $margin="0 auto"
       $backgroundColor={theme.card.background}
       $borderWidth="1px"
       $borderStyle="solid"
@@ -29,9 +34,14 @@ export const PeriodToggle = ({
       }
       $borderRadius="2.5rem"
       $cursor="pointer"
+      $viewport={{
+        sm: {
+          $margin: 0,
+        },
+      }}
     >
       {options.map((option) => {
-        return (
+        const element = (
           <Flex
             key={option}
             tabIndex={0}
@@ -57,6 +67,19 @@ export const PeriodToggle = ({
             </Text>
           </Flex>
         );
+
+        if (option === "year") {
+          return (
+            <Tooltip
+              label={element}
+              description={
+                <Savings plan={selectedPlan} period={selectedOption} />
+              }
+            />
+          );
+        }
+
+        return element;
       })}
     </Flex>
   );

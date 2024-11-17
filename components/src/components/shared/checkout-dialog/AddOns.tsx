@@ -21,31 +21,6 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
 
   return (
     <>
-      <Flex $flexDirection="column" $gap="1rem" $marginBottom="1rem">
-        <Text
-          as="h3"
-          id="select-addons-dialog-label"
-          $font={theme.typography.heading3.fontFamily}
-          $size={theme.typography.heading3.fontSize}
-          $weight={theme.typography.heading3.fontWeight}
-          $color={theme.typography.heading3.color}
-          $marginBottom="0.5rem"
-        >
-          Customize with add-ons
-        </Text>
-
-        <Text
-          as="p"
-          id="select-addons-dialog-description"
-          $font={theme.typography.text.fontFamily}
-          $size={theme.typography.text.fontSize}
-          $weight={theme.typography.text.fontWeight}
-          $color={theme.typography.text.color}
-        >
-          Optionally add features to your subscription
-        </Text>
-      </Flex>
-
       <Box
         $display="grid"
         $gridTemplateColumns="repeat(auto-fill, minmax(300px, 1fr))"

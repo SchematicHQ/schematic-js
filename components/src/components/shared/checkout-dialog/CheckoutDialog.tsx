@@ -5,6 +5,7 @@ import {
   useMemo,
   useState,
 } from "react";
+import { useTheme } from "styled-components";
 import { loadStripe, type Stripe } from "@stripe/stripe-js";
 import type {
   CompanyPlanDetailResponseData,
@@ -16,7 +17,8 @@ import {
   useEmbed,
   useIsLightBackground,
 } from "../../../hooks";
-import { Flex, Modal, ModalHeader } from "../../ui";
+import { PeriodToggle } from "../../shared";
+import { Flex, Modal, ModalHeader, Text } from "../../ui";
 import { Navigation } from "./Navigation";
 import { Sidebar } from "./Sidebar";
 import { Plan } from "./Plan";
@@ -36,6 +38,8 @@ export const CheckoutDialog = ({
   initialAddOnId,
   portal,
 }: CheckoutDialogProps) => {
+  const theme = useTheme();
+
   const { api, data } = useEmbed();
 
   const [checkoutStage, setCheckoutStage] = useState("plan");
@@ -58,23 +62,28 @@ export const CheckoutDialog = ({
   const [setupIntent, setSetupIntent] = useState<SetupIntentResponseData>();
   const [top, setTop] = useState(0);
 
-  const { plans: availablePlans, addOns: availableAddOns } =
-    useAvailablePlans(planPeriod);
+  const {
+    plans: availablePlans,
+    addOns: availableAddOns,
+    periods: availablePeriods,
+  } = useAvailablePlans(planPeriod);
 
   // memoize data here since some state depends on it
   const checkoutStages = useMemo(() => {
     const checkoutStages = [
       {
         id: "plan",
-        name: "Select plan",
+        name: "Plan",
+        label: "Select plan",
         description: "Choose your base plan",
       },
       {
         id: "addons",
-        name: "Customize with addons",
+        name: "Add-ons",
+        label: "Select add-ons",
         description: "Optionally add features to your subscription",
       },
-      { id: "checkout", name: "Checkout", description: "" },
+      { id: "checkout", name: "Checkout", label: "Checkout" },
     ];
     if (!availableAddOns.length) {
       checkoutStages.splice(1, 1);
@@ -169,6 +178,17 @@ export const CheckoutDialog = ({
     [addOns, planPeriod, previewCheckout],
   );
 
+  const changePlanPeriod = useCallback(
+    (period: string) => {
+      if (selectedPlan) {
+        selectPlan(selectedPlan, period);
+      }
+
+      setPlanPeriod(period);
+    },
+    [selectedPlan, selectPlan, setPlanPeriod],
+  );
+
   // TODO
   const toggleAddOn = useCallback(
     (id: string, newPeriod?: string) => {
@@ -205,10 +225,22 @@ export const CheckoutDialog = ({
     };
   }, [portal]);
 
+  const activeCheckoutStage = checkoutStages.find(
+    (stage) => stage.id === checkoutStage,
+  );
+
   return (
     <Modal size="lg" top={top}>
       <ModalHeader bordered>
-        <Flex $gap="1rem">
+        <Flex
+          $gap="0.5rem"
+          $overflow="hidden"
+          $viewport={{
+            sm: {
+              $gap: "1rem",
+            },
+          }}
+        >
           {checkoutStages.map((stage, index, stages) => (
             <Navigation
               key={stage.id}
@@ -224,20 +256,80 @@ export const CheckoutDialog = ({
         </Flex>
       </ModalHeader>
 
-      <Flex $position="relative" $height="calc(100% - 5rem)">
+      <Flex
+        $position="relative"
+        $flexDirection="column"
+        $height="auto"
+        $viewport={{
+          sm: {
+            $flexDirection: "row",
+            $height: "calc(100% - 5rem)",
+          },
+        }}
+      >
         <Flex
           $flexDirection="column"
           $flexGrow="1"
-          $gap="1rem"
-          $padding="2rem 2.5rem 2rem 2.5rem"
+          $gap="1.5rem"
+          $padding="1.5rem"
           $backgroundColor={
             isLightBackground
               ? "hsla(0, 0%, 0%, 0.025)"
               : "hsla(0, 0%, 100%, 0.025)"
           }
-          $flex="1"
           $overflow="auto"
+          $viewport={{
+            sm: {
+              $gap: "1rem",
+              $padding: "2rem 2.5rem 2rem 2.5rem",
+            },
+          }}
         >
+          {activeCheckoutStage && (
+            <Flex
+              $flexDirection="column"
+              $alignItems="center"
+              $gap="0.25rem"
+              $viewport={{
+                sm: {
+                  $alignItems: "start",
+                  $gap: "1rem",
+                  $marginBottom: "1rem",
+                },
+              }}
+            >
+              <Text
+                as="h3"
+                $font={theme.typography.heading3.fontFamily}
+                $size={theme.typography.heading3.fontSize}
+                $weight={theme.typography.heading3.fontWeight}
+                $color={theme.typography.heading3.color}
+                $marginBottom="0.5rem"
+              >
+                {activeCheckoutStage.label}
+              </Text>
+
+              {activeCheckoutStage?.description && (
+                <Text
+                  as="p"
+                  $font={theme.typography.text.fontFamily}
+                  $size={theme.typography.text.fontSize}
+                  $weight={theme.typography.text.fontWeight}
+                  $color={theme.typography.text.color}
+                >
+                  {activeCheckoutStage.description}
+                </Text>
+              )}
+            </Flex>
+          )}
+
+          <PeriodToggle
+            options={availablePeriods}
+            selectedOption={planPeriod}
+            selectedPlan={selectedPlan}
+            onChange={changePlanPeriod}
+          />
+
           {checkoutStage === "plan" && (
             <Plan
               isLoading={isLoading}
@@ -280,10 +372,8 @@ export const CheckoutDialog = ({
           paymentMethodId={paymentMethodId}
           planPeriod={planPeriod}
           selectedPlan={selectedPlan}
-          selectPlan={selectPlan}
           setCheckoutStage={(stage) => setCheckoutStage(stage)}
           setError={(msg) => setError(msg)}
-          setPlanPeriod={(period) => setPlanPeriod(period)}
           setSetupIntent={(intent) => setSetupIntent(intent)}
           showPaymentForm={showPaymentForm}
           toggleLoading={() => setIsLoading((prev) => !prev)}

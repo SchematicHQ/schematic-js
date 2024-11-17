@@ -69,7 +69,7 @@ export const Modal = ({
         $left="50%"
         $transform="translate(-50%, -50%)"
         $flexDirection="column"
-        $overflow="hidden"
+        $overflow="auto"
         {...(size === "auto"
           ? { $width: "fit-content", $height: "fit-content" }
           : {
@@ -82,12 +82,16 @@ export const Modal = ({
               $maxHeight: "860px",
             })}
         $backgroundColor={theme.card.background}
-        $borderRadius="0.5rem"
         $boxShadow="0px 1px 20px 0px #1018280F, 0px 1px 3px 0px #1018281A;"
         id="select-plan-dialog"
         role="dialog"
         aria-labelledby="select-plan-dialog-label"
         aria-modal="true"
+        $viewport={{
+          sm: {
+            $borderRadius: "0.5rem",
+          },
+        }}
       >
         {children}
       </Flex>
