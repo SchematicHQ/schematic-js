@@ -172,7 +172,10 @@ export const CheckoutDialog = ({
         setIsLoading(false);
 
         if (!newPeriod) {
-          checkoutRef.current?.focus();
+          checkoutRef.current?.scrollIntoView({
+            behavior: "smooth",
+            block: "nearest",
+          });
         }
       }
     },
@@ -236,7 +239,11 @@ export const CheckoutDialog = ({
 
   useLayoutEffect(() => {
     if (contentRef.current) {
-      contentRef.current.scrollTop = 0;
+      contentRef.current.scrollTo({
+        top: 0,
+        left: 0,
+        behavior: "smooth",
+      });
     }
   }, [checkoutStage]);
 
@@ -300,50 +307,63 @@ export const CheckoutDialog = ({
             },
           }}
         >
-          {activeCheckoutStage && (
-            <Flex
-              $flexDirection="column"
-              $alignItems="center"
-              $gap="0.25rem"
-              $viewport={{
-                sm: {
-                  $alignItems: "start",
-                  $gap: "1rem",
-                  $marginBottom: "1rem",
-                },
-              }}
-            >
-              <Text
-                as="h3"
-                $font={theme.typography.heading3.fontFamily}
-                $size={theme.typography.heading3.fontSize}
-                $weight={theme.typography.heading3.fontWeight}
-                $color={theme.typography.heading3.color}
-                $marginBottom="0.5rem"
+          <Flex
+            $flexDirection="column"
+            $gap="1.5rem"
+            $viewport={{
+              sm: {
+                $flexDirection: "row",
+                $justifyContent: "space-between",
+                $alignItems: "start",
+                $gap: "1rem",
+              },
+            }}
+          >
+            {activeCheckoutStage && (
+              <Flex
+                $flexDirection="column"
+                $alignItems="center"
+                $gap="0.25rem"
+                $viewport={{
+                  sm: {
+                    $alignItems: "start",
+                    $gap: "1rem",
+                    $marginBottom: "1rem",
+                  },
+                }}
               >
-                {activeCheckoutStage.label}
-              </Text>
-
-              {activeCheckoutStage?.description && (
                 <Text
-                  as="p"
-                  $font={theme.typography.text.fontFamily}
-                  $size={theme.typography.text.fontSize}
-                  $weight={theme.typography.text.fontWeight}
-                  $color={theme.typography.text.color}
+                  as="h3"
+                  $font={theme.typography.heading3.fontFamily}
+                  $size={theme.typography.heading3.fontSize}
+                  $weight={theme.typography.heading3.fontWeight}
+                  $color={theme.typography.heading3.color}
+                  $marginBottom="0.5rem"
                 >
-                  {activeCheckoutStage.description}
+                  {activeCheckoutStage.label}
                 </Text>
-              )}
-            </Flex>
-          )}
 
-          <PeriodToggle
-            options={availablePeriods}
-            selectedOption={planPeriod}
-            selectedPlan={selectedPlan}
-            onChange={changePlanPeriod}
-          />
+                {activeCheckoutStage?.description && (
+                  <Text
+                    as="p"
+                    $font={theme.typography.text.fontFamily}
+                    $size={theme.typography.text.fontSize}
+                    $weight={theme.typography.text.fontWeight}
+                    $color={theme.typography.text.color}
+                  >
+                    {activeCheckoutStage.description}
+                  </Text>
+                )}
+              </Flex>
+            )}
+
+            <PeriodToggle
+              options={availablePeriods}
+              selectedOption={planPeriod}
+              selectedPlan={selectedPlan}
+              onChange={changePlanPeriod}
+            />
+          </Flex>
 
           {checkoutStage === "plan" && (
             <Plan
