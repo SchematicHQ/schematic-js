@@ -18,8 +18,8 @@ interface SidebarProps {
     proration: number;
     periodStart: Date;
   };
+  checkoutRef?: React.RefObject<HTMLDivElement>;
   checkoutStage: string;
-  ctaRef?: React.RefObject<HTMLButtonElement>;
   currentAddOns: CompanyPlanWithBillingSubView[];
   currentPlan?: CompanyPlanWithBillingSubView;
   error?: string;
@@ -37,8 +37,8 @@ interface SidebarProps {
 export const Sidebar = ({
   addOns,
   charges,
+  checkoutRef,
   checkoutStage,
-  ctaRef,
   currentAddOns,
   currentPlan,
   error,
@@ -166,6 +166,8 @@ export const Sidebar = ({
 
   return (
     <Flex
+      ref={checkoutRef}
+      tabIndex={0}
       $flexDirection="column"
       $overflow="auto"
       $backgroundColor={theme.card.background}
@@ -547,7 +549,6 @@ export const Sidebar = ({
 
         {checkoutStage === "plan" && (
           <EmbedButton
-            ref={ctaRef}
             disabled={!addOns.length && !canUpdateSubscription}
             onClick={() => {
               setCheckoutStage(addOns.length ? "addons" : "checkout");
@@ -568,7 +569,6 @@ export const Sidebar = ({
 
         {checkoutStage === "addons" && (
           <EmbedButton
-            ref={ctaRef}
             disabled={!canUpdateSubscription}
             onClick={async () => {
               if (!api || !data.component?.id) {
@@ -598,7 +598,6 @@ export const Sidebar = ({
 
         {checkoutStage === "checkout" && (
           <EmbedButton
-            ref={ctaRef}
             disabled={isLoading || !canCheckout}
             onClick={checkout}
             isLoading={isLoading}

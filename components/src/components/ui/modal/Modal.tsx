@@ -1,4 +1,4 @@
-import { useCallback, useLayoutEffect, useRef } from "react";
+import { useCallback } from "react";
 import { useTheme } from "styled-components";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import { Flex } from "../../ui";
@@ -69,23 +69,29 @@ export const Modal = ({
         $transform="translate(-50%, -50%)"
         $flexDirection="column"
         $overflow="auto"
-        {...(size === "auto"
-          ? { $width: "fit-content", $height: "fit-content" }
-          : {
-              $width: "100%",
-              ...(size === "lg"
-                ? { $height: "100%" }
-                : { $height: "fit-content" }),
-              $maxWidth:
-                size === "sm" ? "480px" : size === "md" ? "688px" : "1356px",
-              $maxHeight: "860px",
-            })}
+        $width="100%"
+        $height="100vh"
         $backgroundColor={theme.card.background}
         $boxShadow="0px 1px 20px 0px #1018280F, 0px 1px 3px 0px #1018281A;"
         role="dialog"
         aria-modal="true"
         $viewport={{
           sm: {
+            ...(size === "auto"
+              ? { $width: "fit-content", $height: "fit-content" }
+              : {
+                  $width: "100%",
+                  ...(size === "lg"
+                    ? { $height: "100%" }
+                    : { $height: "fit-content" }),
+                  $maxWidth:
+                    size === "sm"
+                      ? "480px"
+                      : size === "md"
+                        ? "688px"
+                        : "1356px",
+                  $maxHeight: "860px",
+                }),
             $borderRadius: "0.5rem",
           },
         }}

@@ -93,12 +93,12 @@ const resolveDesignProps = (
     },
     upgrade: {
       isVisible: props.upgrade?.isVisible ?? true,
-      buttonSize: props.upgrade?.buttonSize ?? "sm",
+      buttonSize: props.upgrade?.buttonSize ?? "md",
       buttonStyle: props.upgrade?.buttonStyle ?? "primary",
     },
     downgrade: {
       isVisible: props.downgrade?.isVisible ?? true,
-      buttonSize: props.downgrade?.buttonSize ?? "sm",
+      buttonSize: props.downgrade?.buttonSize ?? "md",
       buttonStyle: props.downgrade?.buttonStyle ?? "primary",
     },
   };
@@ -312,7 +312,7 @@ export const PricingTable = forwardRef<
                         $position="absolute"
                         $right="1rem"
                         $top="1rem"
-                        $fontSize="0.625rem"
+                        $fontSize="0.75rem"
                         $color={
                           hexToHSL(theme.primary).l > 50 ? "#000000" : "#FFFFFF"
                         }
@@ -333,7 +333,7 @@ export const PricingTable = forwardRef<
                     $padding={`${0.75 * cardPadding}rem ${cardPadding}rem 0`}
                   >
                     {props.plans.showEntitlements && (
-                      <Flex $flexDirection="column" $gap="0.5rem" $flexGrow="1">
+                      <Flex $flexDirection="column" $gap="1rem" $flexGrow="1">
                         {props.plans.showInclusionText && index > 0 && (
                           <Box $marginBottom="1.5rem">
                             <Text
@@ -624,7 +624,7 @@ export const PricingTable = forwardRef<
                           $position="absolute"
                           $right="1rem"
                           $top="1rem"
-                          $fontSize="0.625rem"
+                          $fontSize="0.75rem"
                           $color={
                             hexToHSL(theme.primary).l > 50
                               ? "#000000"
@@ -649,7 +649,7 @@ export const PricingTable = forwardRef<
                         <Flex
                           $flexDirection="column"
                           $position="relative"
-                          $gap="0.5rem"
+                          $gap="1rem"
                           $flexGrow="1"
                         >
                           {addOn.entitlements.map((entitlement) => {

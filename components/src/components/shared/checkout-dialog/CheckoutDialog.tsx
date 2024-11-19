@@ -44,7 +44,7 @@ export const CheckoutDialog = ({
   const { api, data } = useEmbed();
 
   const contentRef = useRef<HTMLDivElement>(null);
-  const ctaRef = useRef<HTMLButtonElement>(null);
+  const checkoutRef = useRef<HTMLDivElement>(null);
 
   const [checkoutStage, setCheckoutStage] = useState("plan");
   const [planPeriod, setPlanPeriod] = useState(
@@ -77,7 +77,7 @@ export const CheckoutDialog = ({
     const checkoutStages = [
       {
         id: "plan",
-        name: "Select plan",
+        name: "Plan",
         label: "Select plan",
         description: "Choose your base plan",
       },
@@ -126,8 +126,9 @@ export const CheckoutDialog = ({
     async (
       plan: CompanyPlanDetailResponseData,
       addOns: (CompanyPlanDetailResponseData & { isSelected: boolean })[],
-      period: string,
+      newPeriod?: string,
     ) => {
+      const period = newPeriod || planPeriod;
       const planPriceId =
         period === "month" ? plan?.monthlyPrice?.id : plan?.yearlyPrice?.id;
       if (!api || !planPriceId) {
@@ -169,18 +170,21 @@ export const CheckoutDialog = ({
         );
       } finally {
         setIsLoading(false);
-        ctaRef.current?.focus();
+
+        if (!newPeriod) {
+          checkoutRef.current?.focus();
+        }
       }
     },
-    [api],
+    [api, planPeriod],
   );
 
   const selectPlan = useCallback(
     (plan: CompanyPlanDetailResponseData, newPeriod?: string) => {
       setSelectedPlan(plan);
-      previewCheckout(plan, addOns, newPeriod || planPeriod);
+      previewCheckout(plan, addOns, newPeriod);
     },
-    [addOns, planPeriod, previewCheckout],
+    [addOns, previewCheckout],
   );
 
   const changePlanPeriod = useCallback(
@@ -375,8 +379,8 @@ export const CheckoutDialog = ({
         <Sidebar
           addOns={addOns}
           charges={charges}
+          checkoutRef={checkoutRef}
           checkoutStage={checkoutStage}
-          ctaRef={ctaRef}
           currentAddOns={currentAddOns}
           currentPlan={currentPlan}
           error={error}

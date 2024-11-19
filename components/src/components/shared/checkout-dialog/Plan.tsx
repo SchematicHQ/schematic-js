@@ -131,7 +131,7 @@ export const Plan = ({
                     $position="absolute"
                     $right="1rem"
                     $top="1rem"
-                    $fontSize="0.625rem"
+                    $fontSize="0.75rem"
                     $color={
                       hexToHSL(theme.primary).l > 50 ? "#000000" : "#FFFFFF"
                     }

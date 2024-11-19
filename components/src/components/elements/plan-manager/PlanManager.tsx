@@ -148,18 +148,38 @@ export const PlanManager = forwardRef<
           {props.header.price.isVisible &&
             typeof currentPlan.planPrice === "number" &&
             currentPlan.planPeriod && (
-              <Text
-                $font={
-                  theme.typography[props.header.price.fontStyle].fontFamily
-                }
-                $size={theme.typography[props.header.price.fontStyle].fontSize}
-                $weight={
-                  theme.typography[props.header.price.fontStyle].fontWeight
-                }
-                $color={theme.typography[props.header.price.fontStyle].color}
-              >
-                {formatCurrency(currentPlan.planPrice)}/{currentPlan.planPeriod}
-              </Text>
+              <Box>
+                <Text
+                  $font={
+                    theme.typography[props.header.price.fontStyle].fontFamily
+                  }
+                  $size={
+                    theme.typography[props.header.price.fontStyle].fontSize
+                  }
+                  $weight={
+                    theme.typography[props.header.price.fontStyle].fontWeight
+                  }
+                  $color={theme.typography[props.header.price.fontStyle].color}
+                >
+                  {formatCurrency(currentPlan.planPrice)}
+                </Text>
+
+                <Text
+                  $font={
+                    theme.typography[props.header.price.fontStyle].fontFamily
+                  }
+                  $size={
+                    (16 / 30) *
+                    theme.typography[props.header.price.fontStyle].fontSize
+                  }
+                  $weight={
+                    theme.typography[props.header.price.fontStyle].fontWeight
+                  }
+                  $color={theme.typography[props.header.price.fontStyle].color}
+                >
+                  /{currentPlan.planPeriod}
+                </Text>
+              </Box>
             )}
         </Flex>
       )}

@@ -24,8 +24,7 @@ export const PeriodToggle = ({
 
   return (
     <Flex
-      $width="fit-content"
-      $margin="0 auto"
+      $margin={0}
       $backgroundColor={theme.card.background}
       $borderWidth="1px"
       $borderStyle="solid"
@@ -36,7 +35,7 @@ export const PeriodToggle = ({
       $cursor="pointer"
       $viewport={{
         sm: {
-          $margin: 0,
+          $width: "fit-content",
         },
       }}
     >
@@ -48,18 +47,24 @@ export const PeriodToggle = ({
             onClick={() => onChange(option)}
             $justifyContent="center"
             $alignItems="center"
-            $padding="0.375rem 1rem"
+            $flexGrow={1}
+            $padding="0.75rem 1rem"
             {...(option === selectedOption && {
               $backgroundColor: isLightBackground
                 ? "hsl(0, 0%, 92.5%)"
                 : "hsl(0, 0%, 7.5%)",
             })}
             $borderRadius="2.5rem"
+            $viewport={{
+              sm: {
+                $padding: "0.375rem 1rem",
+              },
+            }}
           >
             <Text
-              $flexShrink="0"
+              $flexShrink={0}
               $font={theme.typography.text.fontFamily}
-              $size={14}
+              $size={15}
               $weight={option === selectedOption ? 600 : 400}
               $color={theme.typography.text.color}
             >
@@ -75,6 +80,7 @@ export const PeriodToggle = ({
               description={
                 <Savings plan={selectedPlan} period={selectedOption} />
               }
+              $flexGrow={1}
             />
           );
         }
