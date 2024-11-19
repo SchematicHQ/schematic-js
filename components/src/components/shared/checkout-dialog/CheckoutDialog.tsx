@@ -3,6 +3,7 @@ import {
   useEffect,
   useLayoutEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { useTheme } from "styled-components";
@@ -42,6 +43,9 @@ export const CheckoutDialog = ({
 
   const { api, data } = useEmbed();
 
+  const contentRef = useRef<HTMLDivElement>(null);
+  const ctaRef = useRef<HTMLButtonElement>(null);
+
   const [checkoutStage, setCheckoutStage] = useState("plan");
   const [planPeriod, setPlanPeriod] = useState(
     initialPeriod || data.company?.plan?.planPeriod || "month",
@@ -73,7 +77,7 @@ export const CheckoutDialog = ({
     const checkoutStages = [
       {
         id: "plan",
-        name: "Plan",
+        name: "Select plan",
         label: "Select plan",
         description: "Choose your base plan",
       },
@@ -165,6 +169,7 @@ export const CheckoutDialog = ({
         );
       } finally {
         setIsLoading(false);
+        ctaRef.current?.focus();
       }
     },
     [api],
@@ -225,16 +230,22 @@ export const CheckoutDialog = ({
     };
   }, [portal]);
 
+  useLayoutEffect(() => {
+    if (contentRef.current) {
+      contentRef.current.scrollTop = 0;
+    }
+  }, [checkoutStage]);
+
   const activeCheckoutStage = checkoutStages.find(
     (stage) => stage.id === checkoutStage,
   );
 
   return (
-    <Modal size="lg" top={top}>
+    <Modal id="select-plan-dialog" size="lg" top={top} contentRef={contentRef}>
       <ModalHeader bordered>
         <Flex
+          $flexWrap="wrap"
           $gap="0.5rem"
-          $overflow="hidden"
           $viewport={{
             sm: {
               $gap: "1rem",
@@ -365,6 +376,7 @@ export const CheckoutDialog = ({
           addOns={addOns}
           charges={charges}
           checkoutStage={checkoutStage}
+          ctaRef={ctaRef}
           currentAddOns={currentAddOns}
           currentPlan={currentPlan}
           error={error}

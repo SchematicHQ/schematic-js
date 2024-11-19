@@ -22,9 +22,15 @@ export const Navigation = ({
 
   const isLightBackground = useIsLightBackground();
 
+  const showFullContent = index === activeIndex || index === activeIndex + 1;
+
   return (
     <>
-      <Flex $gap="0.5rem" $alignItems="center">
+      <Flex
+        $gap="0.5rem"
+        $alignItems="center"
+        {...(!showFullContent && { $flex: 1, $minWidth: 0 })}
+      >
         <Box
           $display="none"
           $viewport={{
@@ -67,7 +73,14 @@ export const Navigation = ({
         <Box
           tabIndex={0}
           $fontSize={`${16 / TEXT_BASE_SIZE}rem`}
-          $whiteSpace="nowrap"
+          $fontFamily={theme.typography.text.fontFamily}
+          $fontWeight={index === activeIndex ? 600 : 400}
+          $color={theme.typography.text.color}
+          {...(!showFullContent && {
+            $overflow: "hidden",
+            $whiteSpace: "nowrap",
+            $textOverflow: "ellipsis",
+          })}
           {...(index !== activeIndex && { $opacity: "0.6375" })}
           {...(index < activeIndex && {
             onClick,
@@ -79,13 +92,7 @@ export const Navigation = ({
             },
           }}
         >
-          <Text
-            $font={theme.typography.text.fontFamily}
-            $weight={index === activeIndex ? 600 : 400}
-            $color={theme.typography.text.color}
-          >
-            {index + 1}. {name}
-          </Text>
+          {index + 1}. {name}
         </Box>
       </Flex>
 

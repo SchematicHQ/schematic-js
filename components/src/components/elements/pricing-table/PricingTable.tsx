@@ -12,7 +12,7 @@ import {
 import type { ElementProps, RecursivePartial } from "../../../types";
 import { formatCurrency, formatNumber, hexToHSL } from "../../../utils";
 import { cardBoxShadow, FussyChild } from "../../layout";
-import { CheckoutDialog, PeriodToggle, Savings } from "../../shared";
+import { CheckoutDialog, PeriodToggle } from "../../shared";
 import {
   Box,
   Flex,
@@ -135,7 +135,6 @@ export const PricingTable = forwardRef<
   const cardPadding = theme.card.padding / TEXT_BASE_SIZE;
 
   const currentPlanIndex = plans.findIndex((plan) => plan.current);
-  const currentPlan = plans[currentPlanIndex];
 
   return (
     <FussyChild
@@ -143,19 +142,27 @@ export const PricingTable = forwardRef<
       className={className}
       as={Flex}
       $flexDirection="column"
-      $gap="3rem"
+      $gap="2rem"
     >
       <Box>
         <Flex
-          $justifyContent="space-between"
+          $flexDirection="column"
+          $justifyContent="center"
           $alignItems="center"
-          $marginBottom="2rem"
+          $gap="1rem"
+          $marginBottom="1rem"
+          $viewport={{
+            sm: {
+              $flexDirection: "row",
+              $justifyContent: "space-between",
+            },
+          }}
         >
           <Text
             $font={theme.typography[props.header.fontStyle].fontFamily}
             $size={theme.typography[props.header.fontStyle].fontSize}
             $weight={theme.typography[props.header.fontStyle].fontWeight}
-            $color={theme.typography[props.header.fontStyle].color}
+            $color={theme.card.background}
           >
             {props.header.isVisible &&
               props.plans.isVisible &&
@@ -163,19 +170,13 @@ export const PricingTable = forwardRef<
               "Plans"}
           </Text>
 
-          <Flex $alignItems="center" $gap="1rem">
-            {props.showDiscount && (
-              <Savings plan={currentPlan} period={selectedPeriod} />
-            )}
-
-            {props.showPeriodToggle && (
-              <PeriodToggle
-                options={periods}
-                selectedOption={selectedPeriod}
-                onChange={(period) => setSelectedPeriod(period)}
-              />
-            )}
-          </Flex>
+          {props.showPeriodToggle && (
+            <PeriodToggle
+              options={periods}
+              selectedOption={selectedPeriod}
+              onChange={(period) => setSelectedPeriod(period)}
+            />
+          )}
         </Flex>
 
         {props.plans.isVisible && plans.length > 0 && (
@@ -477,13 +478,13 @@ export const PricingTable = forwardRef<
               <Flex
                 $justifyContent="space-between"
                 $alignItems="center"
-                $marginBottom="2rem"
+                $marginBottom="1rem"
               >
                 <Text
                   $font={theme.typography[props.header.fontStyle].fontFamily}
                   $size={theme.typography[props.header.fontStyle].fontSize}
                   $weight={theme.typography[props.header.fontStyle].fontWeight}
-                  $color={theme.typography[props.header.fontStyle].color}
+                  $color={theme.card.background}
                 >
                   Add-ons
                 </Text>

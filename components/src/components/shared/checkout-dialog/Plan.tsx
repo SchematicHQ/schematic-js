@@ -52,7 +52,7 @@ export const Plan = ({
               key={plan.id}
               $position="relative"
               $flexDirection="column"
-              $padding={`${cardPadding}rem 0`}
+              $padding={`${0.75 * cardPadding}rem 0`}
               $backgroundColor={theme.card.background}
               $borderRadius={`${theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
               $outlineWidth="2px"
@@ -64,7 +64,7 @@ export const Plan = ({
             >
               <Flex
                 $flexDirection="column"
-                $gap="1rem"
+                $gap="0.5rem"
                 $padding={`0 ${cardPadding}rem ${0.75 * cardPadding}rem`}
                 $borderBottomWidth="1px"
                 $borderStyle="solid"
@@ -73,6 +73,11 @@ export const Plan = ({
                     ? "hsla(0, 0%, 0%, 0.175)"
                     : "hsla(0, 0%, 100%, 0.175)"
                 }
+                $viewport={{
+                  sm: {
+                    $gap: "1rem",
+                  },
+                }}
               >
                 <Box>
                   <Text
@@ -85,7 +90,7 @@ export const Plan = ({
                   </Text>
                 </Box>
 
-                <Box $marginBottom="0.5rem">
+                <Box $marginBottom="0.5rem" $lineHeight={1.35}>
                   <Text
                     $font={theme.typography.text.fontFamily}
                     $size={theme.typography.text.fontSize}
@@ -146,7 +151,7 @@ export const Plan = ({
                 $gap={`${cardPadding}rem`}
                 $padding={`${0.75 * cardPadding}rem ${cardPadding}rem 0`}
               >
-                <Flex $flexDirection="column" $gap="0.5rem" $flexGrow="1">
+                <Flex $flexDirection="column" $gap="1rem" $flexGrow="1">
                   {plan.entitlements.map(
                     ({
                       id,

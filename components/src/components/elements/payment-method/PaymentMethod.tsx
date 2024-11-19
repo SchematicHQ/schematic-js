@@ -228,20 +228,12 @@ export const PaymentMethod = forwardRef<
     }
   }, [stripe, setupIntent?.publishableKey]);
 
-  useEffect(() => {
-    document.body.style.overflow = layout === "payment" ? "hidden" : "";
-
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [layout]);
-
   useLayoutEffect(() => {
     const parent = portal || document.body;
     const value = Math.abs(parent.getBoundingClientRect().top ?? 0);
     setTop(value);
 
-    parent.style.overflow = "hidden";
+    parent.style.overflow = layout === "payment" ? "hidden" : "";
 
     return () => {
       parent.style.overflow = "";

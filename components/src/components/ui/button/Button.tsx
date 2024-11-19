@@ -1,3 +1,4 @@
+import { forwardRef } from "react";
 import { Loader } from "../../ui";
 import * as styles from "./styles";
 
@@ -13,25 +14,31 @@ export interface ButtonProps
   isLoading?: boolean;
 }
 
-export const Button = ({
-  color = "white",
-  size = "md",
-  variant = "solid",
-  disabled = false,
-  isLoading = false,
-  children,
-  ...props
-}: ButtonProps) => {
-  return (
-    <styles.Button
-      $color={color}
-      $size={size}
-      $variant={variant}
-      disabled={disabled}
-      {...props}
-    >
-      <Loader $size="sm" $isLoading={isLoading} />
-      {children}
-    </styles.Button>
-  );
-};
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
+  (
+    {
+      color = "white",
+      size = "md",
+      variant = "solid",
+      disabled = false,
+      isLoading = false,
+      children,
+      ...props
+    },
+    ref,
+  ) => {
+    return (
+      <styles.Button
+        ref={ref}
+        $color={color}
+        $size={size}
+        $variant={variant}
+        disabled={disabled}
+        {...props}
+      >
+        <Loader $size="sm" $isLoading={isLoading} />
+        {children}
+      </styles.Button>
+    );
+  },
+);

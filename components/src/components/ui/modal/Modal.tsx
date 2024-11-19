@@ -1,11 +1,12 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useLayoutEffect, useRef } from "react";
 import { useTheme } from "styled-components";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import { Flex } from "../../ui";
 import { Container } from "./styles";
 
-interface ModalProps {
+interface ModalProps extends React.HTMLAttributes<HTMLElement> {
   children: React.ReactNode;
+  contentRef?: React.RefObject<HTMLDivElement>;
   size?: "sm" | "md" | "lg" | "auto";
   top?: number;
   onClose?: () => void;
@@ -13,14 +14,15 @@ interface ModalProps {
 
 export const Modal = ({
   children,
+  contentRef,
   size = "auto",
   top = 0,
   onClose,
+  ...rest
 }: ModalProps) => {
   const theme = useTheme();
-  const { setLayout } = useEmbed();
 
-  const ref = useRef<HTMLDivElement>(null);
+  const { setLayout } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
 
@@ -29,13 +31,8 @@ export const Modal = ({
     onClose?.();
   }, [setLayout, onClose]);
 
-  useEffect(() => {
-    ref.current?.focus();
-  }, []);
-
   return (
     <Container
-      ref={ref}
       tabIndex={0}
       onClick={(event) => {
         if (event.target === event.currentTarget) {
@@ -47,6 +44,7 @@ export const Modal = ({
           handleClose();
         }
       }}
+      {...rest}
       $position="absolute"
       $top="50%"
       $left="50%"
@@ -64,6 +62,7 @@ export const Modal = ({
       $scrollbarGutter="stable both-edges"
     >
       <Flex
+        ref={contentRef}
         $position="relative"
         $top="50%"
         $left="50%"
@@ -83,9 +82,7 @@ export const Modal = ({
             })}
         $backgroundColor={theme.card.background}
         $boxShadow="0px 1px 20px 0px #1018280F, 0px 1px 3px 0px #1018281A;"
-        id="select-plan-dialog"
         role="dialog"
-        aria-labelledby="select-plan-dialog-label"
         aria-modal="true"
         $viewport={{
           sm: {

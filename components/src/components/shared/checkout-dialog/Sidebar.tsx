@@ -19,6 +19,7 @@ interface SidebarProps {
     periodStart: Date;
   };
   checkoutStage: string;
+  ctaRef?: React.RefObject<HTMLButtonElement>;
   currentAddOns: CompanyPlanWithBillingSubView[];
   currentPlan?: CompanyPlanWithBillingSubView;
   error?: string;
@@ -37,6 +38,7 @@ export const Sidebar = ({
   addOns,
   charges,
   checkoutStage,
+  ctaRef,
   currentAddOns,
   currentPlan,
   error,
@@ -203,7 +205,7 @@ export const Sidebar = ({
       <Flex
         $flexDirection="column"
         $position="relative"
-        $gap="0.5rem"
+        $gap="0.125rem"
         $width="100%"
         $padding="1.5rem"
         $flex="1"
@@ -277,6 +279,7 @@ export const Sidebar = ({
                   name="arrow-down"
                   style={{
                     display: "inline-block",
+                    color: theme.typography.text.color,
                   }}
                 />
               </Box>
@@ -544,6 +547,7 @@ export const Sidebar = ({
 
         {checkoutStage === "plan" && (
           <EmbedButton
+            ref={ctaRef}
             disabled={!addOns.length && !canUpdateSubscription}
             onClick={() => {
               setCheckoutStage(addOns.length ? "addons" : "checkout");
@@ -564,6 +568,7 @@ export const Sidebar = ({
 
         {checkoutStage === "addons" && (
           <EmbedButton
+            ref={ctaRef}
             disabled={!canUpdateSubscription}
             onClick={async () => {
               if (!api || !data.component?.id) {
@@ -593,6 +598,7 @@ export const Sidebar = ({
 
         {checkoutStage === "checkout" && (
           <EmbedButton
+            ref={ctaRef}
             disabled={isLoading || !canCheckout}
             onClick={checkout}
             isLoading={isLoading}
