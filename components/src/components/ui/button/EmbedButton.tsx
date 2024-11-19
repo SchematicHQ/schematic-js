@@ -138,20 +138,20 @@ export const EmbedButton = styled(Button)<{
     switch ($size) {
       case "sm":
         return css`
-          font-size: ${13 / TEXT_BASE_SIZE}rem;
-          height: ${32 / TEXT_BASE_SIZE}rem;
+          font-size: ${15 / TEXT_BASE_SIZE}rem;
+          height: ${40 / TEXT_BASE_SIZE}rem;
           border-radius: ${6 / TEXT_BASE_SIZE}rem;
         `;
       case "md":
         return css`
-          font-size: ${15 / TEXT_BASE_SIZE}rem;
-          height: ${44 / TEXT_BASE_SIZE}rem;
+          font-size: ${17 / TEXT_BASE_SIZE}rem;
+          height: ${52 / TEXT_BASE_SIZE}rem;
           border-radius: ${8 / TEXT_BASE_SIZE}rem;
         `;
       case "lg":
         return css`
-          font-size: ${17 / TEXT_BASE_SIZE}rem;
-          height: ${56 / TEXT_BASE_SIZE}rem;
+          font-size: ${19 / TEXT_BASE_SIZE}rem;
+          height: ${64 / TEXT_BASE_SIZE}rem;
           border-radius: ${10 / TEXT_BASE_SIZE}rem;
         `;
     }
