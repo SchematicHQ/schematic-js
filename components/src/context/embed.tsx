@@ -180,7 +180,7 @@ export interface EmbedContextProps {
   error?: Error;
   isPending: boolean;
   hydrate: () => void;
-  setData: (data: RecursivePartial<ComponentHydrateResponseData>) => void;
+  setData: (data: ComponentHydrateResponseData) => void;
   updateSettings: (settings: RecursivePartial<EmbedSettings>) => void;
   setLayout: (layout: EmbedLayout) => void;
 }
@@ -231,7 +231,7 @@ export const EmbedProvider = ({
     isPending: boolean;
     error?: Error;
     hydrate: () => void;
-    setData: (data: RecursivePartial<ComponentHydrateResponseData>) => void;
+    setData: (data: ComponentHydrateResponseData) => void;
     updateSettings: (settings: RecursivePartial<EmbedSettings>) => void;
     setLayout: (layout: EmbedLayout) => void;
   }>(() => {
@@ -300,14 +300,11 @@ export const EmbedProvider = ({
   }, [id, state.api]);
 
   const setData = useCallback(
-    (data: RecursivePartial<ComponentHydrateResponseData>) => {
-      setState((prev) => {
-        const updatedData = merge({}, prev.data, { ...data });
-        return {
-          ...prev,
-          data: updatedData,
-        };
-      });
+    (data: ComponentHydrateResponseData) => {
+      setState((prev) => ({
+        ...prev,
+        data,
+      }));
     },
     [setState],
   );
