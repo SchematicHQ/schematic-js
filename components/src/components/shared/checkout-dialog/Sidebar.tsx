@@ -588,7 +588,14 @@ export const Sidebar = ({
         {checkoutStage === "plan" && (
           <EmbedButton
             disabled={!addOns.length && !canUpdateSubscription}
-            onClick={() => {
+            onClick={async () => {
+              if (!addOns.length && api && data.component?.id) {
+                const { data: setupIntent } = await api.getSetupIntent({
+                  componentId: data.component.id,
+                });
+                setSetupIntent(setupIntent);
+              }
+
               setCheckoutStage(addOns.length ? "addons" : "checkout");
             }}
             isLoading={isLoading}

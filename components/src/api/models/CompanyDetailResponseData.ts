@@ -58,6 +58,12 @@ export interface CompanyDetailResponseData {
   addOns: Array<CompanyPlanWithBillingSubView>;
   /**
    *
+   * @type {BillingSubscriptionView}
+   * @memberof CompanyDetailResponseData
+   */
+  billingSubscription?: BillingSubscriptionView;
+  /**
+   *
    * @type {Array<BillingSubscriptionView>}
    * @memberof CompanyDetailResponseData
    */
@@ -185,6 +191,10 @@ export function CompanyDetailResponseDataFromJSONTyped(
     addOns: (json["add_ons"] as Array<any>).map(
       CompanyPlanWithBillingSubViewFromJSON,
     ),
+    billingSubscription:
+      json["billing_subscription"] == null
+        ? undefined
+        : BillingSubscriptionViewFromJSON(json["billing_subscription"]),
     billingSubscriptions: (json["billing_subscriptions"] as Array<any>).map(
       BillingSubscriptionViewFromJSON,
     ),
@@ -219,6 +229,9 @@ export function CompanyDetailResponseDataToJSON(
   return {
     add_ons: (value["addOns"] as Array<any>).map(
       CompanyPlanWithBillingSubViewToJSON,
+    ),
+    billing_subscription: BillingSubscriptionViewToJSON(
+      value["billingSubscription"],
     ),
     billing_subscriptions: (value["billingSubscriptions"] as Array<any>).map(
       BillingSubscriptionViewToJSON,
