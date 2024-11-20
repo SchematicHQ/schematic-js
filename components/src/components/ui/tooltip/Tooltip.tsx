@@ -1,39 +1,16 @@
-import { useTheme } from "styled-components";
-import { Box, Text } from "../../ui";
+import { Box, type BoxProps } from "../../ui";
 import { TooltipWrapper } from "./styles";
 
-interface TooltipProps {
-  label: string;
-  description: string;
+interface TooltipProps extends BoxProps {
+  label: React.ReactNode;
+  description: React.ReactNode;
 }
 
-export const Tooltip = ({ label, description }: TooltipProps) => {
-  const theme = useTheme();
-
+export const Tooltip = ({ label, description, ...rest }: TooltipProps) => {
   return (
-    <TooltipWrapper>
-      <Box>
-        <Text
-          $font={theme.typography.text.fontFamily}
-          $size={theme.typography.text.fontSize}
-          $weight={theme.typography.text.fontWeight}
-          $color={theme.typography.text.color}
-        >
-          {label}
-        </Text>
-      </Box>
-
-      <Box className="tooltip">
-        <Text
-          $font={theme.typography.text.fontFamily}
-          $size={theme.typography.text.fontSize}
-          $weight={theme.typography.text.fontWeight}
-          $color={theme.typography.text.color}
-          $leading={1.15}
-        >
-          {description}
-        </Text>
-      </Box>
+    <TooltipWrapper {...rest}>
+      <Box>{label}</Box>
+      <Box className="tooltip">{description}</Box>
     </TooltipWrapper>
   );
 };

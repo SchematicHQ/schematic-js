@@ -8,6 +8,8 @@ export type BoxProps = ComponentProps & {
     sm?: TransientCSSProperties;
     md?: TransientCSSProperties;
     lg?: TransientCSSProperties;
+    xl?: TransientCSSProperties;
+    "2xl"?: TransientCSSProperties;
     [key: string]: TransientCSSProperties | undefined;
   };
 };
@@ -25,50 +27,20 @@ export const Box = styled.div<BoxProps>((props) => {
   }
 
   const styles = Object.entries(props).reduce(reducer, []);
-  if (!props.$viewport) {
-    return styles;
-  }
 
-  const { sm, md, lg, ...others } = props.$viewport || {};
-
-  let rules = Object.entries(props.$viewport?.sm || {});
-  if (rules.length) {
+  for (const [key, value] of Object.entries(props.$viewport || {})) {
     styles.push(css`
-      @media (max-width: 767px) {
-        ${rules.reduce(reducer, [])}
+      ${{
+        sm: "@media (min-width: 640px)",
+        md: "@media (min-width: 768px)",
+        lg: "@media (min-width: 1024px)",
+        xl: "@media (min-width: 1280px)",
+        "2xl": "@media (min-width: 1536px)",
+      }[key] || key} {
+        ${Object.entries(value || {}).reduce(reducer, [])}
       }
     `);
   }
-
-  rules = Object.entries(props.$viewport?.md || {});
-  if (rules.length) {
-    styles.push(css`
-      @media (min-width: 768px) and (max-width: 1279px) {
-        ${rules.reduce(reducer, [])}
-      }
-    `);
-  }
-
-  rules = Object.entries(props.$viewport?.lg || {});
-  if (rules.length) {
-    styles.push(css`
-      @media (min-width: 1280px) {
-        ${rules.reduce(reducer, [])}
-      }
-    `);
-  }
-
-  Object.keys(others).forEach((key) => {
-    rules = Object.entries(props.$viewport?.[key] || {});
-    if (rules.length) {
-      styles.push(css`
-        ${[key]} {
-          ${rules.reduce(reducer, [])}
-        }
-      `);
-      return;
-    }
-  });
 
   return styles;
 });

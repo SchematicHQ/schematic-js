@@ -113,10 +113,10 @@ export const IncludedFeatures = forwardRef<
       ref={ref}
       className={className}
       $flexDirection="column"
-      $gap="1.5rem"
+      $gap="1rem"
     >
       {props.header.isVisible && (
-        <Box>
+        <Box $marginBottom="0.5rem">
           <Text
             $font={theme.typography[props.header.fontStyle].fontFamily}
             $size={theme.typography[props.header.fontStyle].fontSize}
@@ -175,7 +175,7 @@ export const IncludedFeatures = forwardRef<
                   $textAlign={shouldWrapChildren ? "left" : "right"}
                 >
                   {props.entitlement.isVisible && (
-                    <Box>
+                    <Box $whiteSpace="nowrap">
                       <Text
                         $font={
                           theme.typography[props.entitlement.fontStyle]

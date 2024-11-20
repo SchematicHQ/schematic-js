@@ -37,31 +37,6 @@ export const Plan = ({
 
   return (
     <>
-      <Flex $flexDirection="column" $gap="1rem" $marginBottom="1rem">
-        <Text
-          as="h3"
-          id="select-plan-dialog-label"
-          $font={theme.typography.heading3.fontFamily}
-          $size={theme.typography.heading3.fontSize}
-          $weight={theme.typography.heading3.fontWeight}
-          $color={theme.typography.heading3.color}
-          $marginBottom="0.5rem"
-        >
-          Select plan
-        </Text>
-
-        <Text
-          as="p"
-          id="select-plan-dialog-description"
-          $font={theme.typography.text.fontFamily}
-          $size={theme.typography.text.fontSize}
-          $weight={theme.typography.text.fontWeight}
-          $color={theme.typography.text.color}
-        >
-          Choose your base plan
-        </Text>
-      </Flex>
-
       <Box
         $display="grid"
         $gridTemplateColumns="repeat(auto-fill, minmax(300px, 1fr))"
@@ -77,7 +52,7 @@ export const Plan = ({
               key={plan.id}
               $position="relative"
               $flexDirection="column"
-              $padding={`${cardPadding}rem 0`}
+              $padding={`${0.75 * cardPadding}rem 0`}
               $backgroundColor={theme.card.background}
               $borderRadius={`${theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
               $outlineWidth="2px"
@@ -89,7 +64,7 @@ export const Plan = ({
             >
               <Flex
                 $flexDirection="column"
-                $gap="1rem"
+                $gap="0.5rem"
                 $padding={`0 ${cardPadding}rem ${0.75 * cardPadding}rem`}
                 $borderBottomWidth="1px"
                 $borderStyle="solid"
@@ -98,6 +73,11 @@ export const Plan = ({
                     ? "hsla(0, 0%, 0%, 0.175)"
                     : "hsla(0, 0%, 100%, 0.175)"
                 }
+                $viewport={{
+                  sm: {
+                    $gap: "1rem",
+                  },
+                }}
               >
                 <Box>
                   <Text
@@ -110,7 +90,7 @@ export const Plan = ({
                   </Text>
                 </Box>
 
-                <Box $marginBottom="0.5rem">
+                <Box $marginBottom="0.5rem" $lineHeight={1.35}>
                   <Text
                     $font={theme.typography.text.fontFamily}
                     $size={theme.typography.text.fontSize}
@@ -151,7 +131,7 @@ export const Plan = ({
                     $position="absolute"
                     $right="1rem"
                     $top="1rem"
-                    $fontSize="0.625rem"
+                    $fontSize="0.75rem"
                     $color={
                       hexToHSL(theme.primary).l > 50 ? "#000000" : "#FFFFFF"
                     }
@@ -171,7 +151,7 @@ export const Plan = ({
                 $gap={`${cardPadding}rem`}
                 $padding={`${0.75 * cardPadding}rem ${cardPadding}rem 0`}
               >
-                <Flex $flexDirection="column" $gap="0.5rem" $flexGrow="1">
+                <Flex $flexDirection="column" $gap="1rem" $flexGrow="1">
                   {plan.entitlements.map(
                     ({
                       id,

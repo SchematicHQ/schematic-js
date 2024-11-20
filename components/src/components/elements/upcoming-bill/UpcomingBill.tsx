@@ -113,7 +113,7 @@ export const UpcomingBill = forwardRef<
           </Flex>
         )}
 
-        <Box $maxWidth="10rem" $textAlign="right">
+        <Box $lineHeight={1.15} $maxWidth="10rem" $textAlign="right">
           <Text
             $font={theme.typography[props.contractEndDate.fontStyle].fontFamily}
             $size={theme.typography[props.contractEndDate.fontStyle].fontSize}

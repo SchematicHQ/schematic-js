@@ -10,6 +10,7 @@ export const TooltipWrapper = styled(Box)`
     left: 50%;
     transform: translateX(-50%);
     bottom: 100%;
+    line-height: 1;
     width: max-content;
     max-width: 100%;
     margin-bottom: 0.75rem;
