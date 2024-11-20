@@ -29,7 +29,7 @@
     "tsc": "npx tsc"
   },
   "dependencies": {
-    "@stripe/stripe-js": "^4.10.0",
+    "@stripe/stripe-js": "^5.2.0",
     "classnames": "^2.5.1",
     "lodash": "^4.17.21",
     "pako": "^2.1.0",
