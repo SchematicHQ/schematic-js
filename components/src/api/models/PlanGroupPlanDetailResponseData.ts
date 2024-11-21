@@ -109,6 +109,12 @@ export interface PlanGroupPlanDetailResponseData {
    * @type {boolean}
    * @memberof PlanGroupPlanDetailResponseData
    */
+  isFree: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof PlanGroupPlanDetailResponseData
+   */
   isTrialable: boolean;
   /**
    *
@@ -165,6 +171,7 @@ export function instanceOfPlanGroupPlanDetailResponseData(
   if (!("icon" in value) || value["icon"] === undefined) return false;
   if (!("id" in value) || value["id"] === undefined) return false;
   if (!("isDefault" in value) || value["isDefault"] === undefined) return false;
+  if (!("isFree" in value) || value["isFree"] === undefined) return false;
   if (!("isTrialable" in value) || value["isTrialable"] === undefined)
     return false;
   if (!("name" in value) || value["name"] === undefined) return false;
@@ -205,6 +212,7 @@ export function PlanGroupPlanDetailResponseDataFromJSONTyped(
     icon: json["icon"],
     id: json["id"],
     isDefault: json["is_default"],
+    isFree: json["is_free"],
     isTrialable: json["is_trialable"],
     monthlyPrice:
       json["monthly_price"] == null
@@ -244,6 +252,7 @@ export function PlanGroupPlanDetailResponseDataToJSON(
     icon: value["icon"],
     id: value["id"],
     is_default: value["isDefault"],
+    is_free: value["isFree"],
     is_trialable: value["isTrialable"],
     monthly_price: BillingPriceResponseDataToJSON(value["monthlyPrice"]),
     name: value["name"],

@@ -1,8 +1,8 @@
+import { useMemo } from "react";
 import { useTheme } from "styled-components";
 import { type CompanyPlanDetailResponseData } from "../../../api";
 import { useIsLightBackground } from "../../../hooks";
 import { adjectify } from "../../../utils";
-import { Savings } from "../../shared";
 import { Flex, Text, Tooltip } from "../../ui";
 
 interface PeriodToggleProps {
@@ -22,6 +22,16 @@ export const PeriodToggle = ({
 
   const isLightBackground = useIsLightBackground();
 
+  const savingsPercentage = useMemo(() => {
+    if (selectedPlan) {
+      const monthly = (selectedPlan?.monthlyPrice?.price || 0) * 12;
+      const yearly = selectedPlan?.yearlyPrice?.price || 0;
+      return Math.round(((monthly - yearly) / monthly) * 10000) / 100;
+    }
+
+    return 0;
+  }, [selectedPlan]);
+
   return (
     <Flex
       $margin={0}
@@ -34,7 +44,7 @@ export const PeriodToggle = ({
       $borderRadius="2.5rem"
       $cursor="pointer"
       $viewport={{
-        sm: {
+        md: {
           $width: "fit-content",
         },
       }}
@@ -48,6 +58,7 @@ export const PeriodToggle = ({
             $justifyContent="center"
             $alignItems="center"
             $flexGrow={1}
+            $whiteSpace="nowrap"
             $padding="0.75rem 1rem"
             {...(option === selectedOption && {
               $backgroundColor: isLightBackground
@@ -56,7 +67,7 @@ export const PeriodToggle = ({
             })}
             $borderRadius="2.5rem"
             $viewport={{
-              sm: {
+              md: {
                 $padding: "0.375rem 1rem",
               },
             }}
@@ -73,13 +84,25 @@ export const PeriodToggle = ({
           </Flex>
         );
 
-        if (option === "year") {
+        if (option === "year" && savingsPercentage > 0) {
           return (
             <Tooltip
-              label={element}
-              description={
-                <Savings plan={selectedPlan} period={selectedOption} />
+              key={option}
+              trigger={element}
+              content={
+                <Text
+                  $font={theme.typography.text.fontFamily}
+                  $size={11}
+                  $weight={theme.typography.text.fontWeight}
+                  $color={theme.primary}
+                  $leading={1}
+                >
+                  {selectedOption === "month"
+                    ? `Save up to ${savingsPercentage}% with yearly billing`
+                    : `You are saving ${savingsPercentage}% with yearly billing`}
+                </Text>
               }
+              zIndex={9999999}
               $flexGrow={1}
             />
           );

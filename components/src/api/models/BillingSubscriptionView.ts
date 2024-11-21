@@ -134,6 +134,12 @@ export interface BillingSubscriptionView {
    * @memberof BillingSubscriptionView
    */
   totalPrice: number;
+  /**
+   *
+   * @type {number}
+   * @memberof BillingSubscriptionView
+   */
+  trialEnd?: number | null;
 }
 
 /**
@@ -205,6 +211,7 @@ export function BillingSubscriptionViewFromJSONTyped(
     status: json["status"],
     subscriptionExternalId: json["subscription_external_id"],
     totalPrice: json["total_price"],
+    trialEnd: json["trial_end"] == null ? undefined : json["trial_end"],
   };
 }
 
@@ -236,5 +243,6 @@ export function BillingSubscriptionViewToJSON(
     status: value["status"],
     subscription_external_id: value["subscriptionExternalId"],
     total_price: value["totalPrice"],
+    trial_end: value["trialEnd"],
   };
 }

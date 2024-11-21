@@ -258,7 +258,7 @@ export const CheckoutDialog = ({
           $flexWrap="wrap"
           $gap="0.5rem"
           $viewport={{
-            sm: {
+            md: {
               $gap: "1rem",
             },
           }}
@@ -283,7 +283,7 @@ export const CheckoutDialog = ({
         $flexDirection="column"
         $height="auto"
         $viewport={{
-          sm: {
+          md: {
             $flexDirection: "row",
             $height: "calc(100% - 5rem)",
           },
@@ -301,17 +301,17 @@ export const CheckoutDialog = ({
           }
           $overflow="auto"
           $viewport={{
-            sm: {
-              $gap: "1rem",
+            md: {
               $padding: "2rem 2.5rem 2rem 2.5rem",
             },
           }}
         >
           <Flex
             $flexDirection="column"
+            $flexWrap="wrap"
             $gap="1.5rem"
             $viewport={{
-              sm: {
+              md: {
                 $flexDirection: "row",
                 $justifyContent: "space-between",
                 $alignItems: "start",
@@ -325,10 +325,8 @@ export const CheckoutDialog = ({
                 $alignItems="center"
                 $gap="0.25rem"
                 $viewport={{
-                  sm: {
+                  md: {
                     $alignItems: "start",
-                    $gap: "1rem",
-                    $marginBottom: "1rem",
                   },
                 }}
               >

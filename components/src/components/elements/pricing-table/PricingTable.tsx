@@ -152,7 +152,7 @@ export const PricingTable = forwardRef<
           $gap="1rem"
           $marginBottom="1rem"
           $viewport={{
-            sm: {
+            md: {
               $flexDirection: "row",
               $justifyContent: "space-between",
             },
@@ -454,8 +454,8 @@ export const PricingTable = forwardRef<
                         >
                           {!plan.valid ? (
                             <Tooltip
-                              label="Over usage limit"
-                              description="Current usage exceeds the limit of this plan."
+                              trigger="Over usage limit"
+                              content="Current usage exceeds the limit of this plan."
                             />
                           ) : (
                             "Choose plan"

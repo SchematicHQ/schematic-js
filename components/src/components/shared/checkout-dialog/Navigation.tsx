@@ -34,7 +34,7 @@ export const Navigation = ({
         <Box
           $display="none"
           $viewport={{
-            sm: {
+            md: {
               $display: "block",
             },
           }}
@@ -87,7 +87,7 @@ export const Navigation = ({
             $cursor: "pointer",
           })}
           $viewport={{
-            sm: {
+            md: {
               $fontSize: `${19 / TEXT_BASE_SIZE}rem`,
             },
           }}

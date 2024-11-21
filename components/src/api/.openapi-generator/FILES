@@ -4,8 +4,10 @@ apis/index.ts
 index.ts
 models/ApiError.ts
 models/BillingPriceResponseData.ts
+models/BillingPriceView.ts
 models/BillingProductDetailResponseData.ts
 models/BillingProductForSubscriptionResponseData.ts
+models/BillingProductPriceResponseData.ts
 models/BillingProductResponseData.ts
 models/BillingSubscriptionResponseData.ts
 models/BillingSubscriptionView.ts

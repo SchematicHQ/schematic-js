@@ -17,8 +17,10 @@ export const Viewport = forwardRef<HTMLDivElement | null, ViewportProps>(
         $numberOfColumns={theme.numberOfColumns}
         {...props}
       >
-        <RenderLayout>{children}</RenderLayout>
-        <Badge />
+        <RenderLayout>
+          {children}
+          <Badge />
+        </RenderLayout>
       </StyledViewport>
     );
   },

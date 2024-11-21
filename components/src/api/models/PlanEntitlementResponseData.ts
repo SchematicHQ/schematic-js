@@ -25,6 +25,12 @@ import {
   FeatureResponseDataFromJSONTyped,
   FeatureResponseDataToJSON,
 } from "./FeatureResponseData";
+import type { BillingPriceView } from "./BillingPriceView";
+import {
+  BillingPriceViewFromJSON,
+  BillingPriceViewFromJSONTyped,
+  BillingPriceViewToJSON,
+} from "./BillingPriceView";
 import type { PlanResponseData } from "./PlanResponseData";
 import {
   PlanResponseDataFromJSON,
@@ -70,6 +76,12 @@ export interface PlanEntitlementResponseData {
   id: string;
   /**
    *
+   * @type {BillingPriceView}
+   * @memberof PlanEntitlementResponseData
+   */
+  meteredPrice?: BillingPriceView;
+  /**
+   *
    * @type {string}
    * @memberof PlanEntitlementResponseData
    */
@@ -92,6 +104,12 @@ export interface PlanEntitlementResponseData {
    * @memberof PlanEntitlementResponseData
    */
   planId: string;
+  /**
+   *
+   * @type {string}
+   * @memberof PlanEntitlementResponseData
+   */
+  priceBehavior?: string | null;
   /**
    *
    * @type {string}
@@ -176,6 +194,10 @@ export function PlanEntitlementResponseDataFromJSONTyped(
         : FeatureResponseDataFromJSON(json["feature"]),
     featureId: json["feature_id"],
     id: json["id"],
+    meteredPrice:
+      json["metered_price"] == null
+        ? undefined
+        : BillingPriceViewFromJSON(json["metered_price"]),
     metricPeriod:
       json["metric_period"] == null ? undefined : json["metric_period"],
     metricPeriodMonthReset:
@@ -185,6 +207,8 @@ export function PlanEntitlementResponseDataFromJSONTyped(
     plan:
       json["plan"] == null ? undefined : PlanResponseDataFromJSON(json["plan"]),
     planId: json["plan_id"],
+    priceBehavior:
+      json["price_behavior"] == null ? undefined : json["price_behavior"],
     ruleId: json["rule_id"],
     updatedAt: new Date(json["updated_at"]),
     valueBool: json["value_bool"] == null ? undefined : json["value_bool"],
@@ -212,10 +236,12 @@ export function PlanEntitlementResponseDataToJSON(
     feature: FeatureResponseDataToJSON(value["feature"]),
     feature_id: value["featureId"],
     id: value["id"],
+    metered_price: BillingPriceViewToJSON(value["meteredPrice"]),
     metric_period: value["metricPeriod"],
     metric_period_month_reset: value["metricPeriodMonthReset"],
     plan: PlanResponseDataToJSON(value["plan"]),
     plan_id: value["planId"],
+    price_behavior: value["priceBehavior"],
     rule_id: value["ruleId"],
     updated_at: value["updatedAt"].toISOString(),
     value_bool: value["valueBool"],

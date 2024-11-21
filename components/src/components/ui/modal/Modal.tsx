@@ -76,7 +76,7 @@ export const Modal = ({
         role="dialog"
         aria-modal="true"
         $viewport={{
-          sm: {
+          md: {
             ...(size === "auto"
               ? { $width: "fit-content", $height: "fit-content" }
               : {

@@ -46,7 +46,7 @@ export const ModalHeader = ({
           : "hsla(0, 0%, 100%, 0.15)",
       })}
       $viewport={{
-        sm: {
+        md: {
           $height: "5rem",
           $padding: "0 1.5rem 0 3rem",
         },
