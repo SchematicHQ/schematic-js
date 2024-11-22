@@ -118,7 +118,7 @@ export const defaultTheme: EmbedThemeSettings = {
 
 export type EmbedSettings = {
   theme: EmbedThemeSettings;
-  badge: {
+  badge?: {
     alignment: ComponentProps["$justifyContent"];
   };
 };

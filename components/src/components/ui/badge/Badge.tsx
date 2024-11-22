@@ -5,7 +5,7 @@ export const Badge = () => {
   const { settings } = useEmbed();
   return (
     <Flex
-      $justifyContent={settings.badge.alignment}
+      $justifyContent={settings.badge?.alignment || "start"}
       $alignItems="center"
       $gridColumn="1 / -1"
     >
