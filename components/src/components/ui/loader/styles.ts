@@ -22,7 +22,7 @@ export const Loader = styled.div<{
   border-top-color: ${({ theme, $color }) => $color || theme.primary};
   border-radius: 50%;
   transition: all 0.1s;
-  animation: ${spin} 1.5s linear infinite;
+  animation: 1.5s linear infinite ${spin};
 
   ${({ $size = "md", $isLoading = true }) => {
     let px: number;

@@ -74,7 +74,7 @@ export const Plan = ({
                     : "hsla(0, 0%, 100%, 0.175)"
                 }
                 $viewport={{
-                  sm: {
+                  md: {
                     $gap: "1rem",
                   },
                 }}
@@ -207,8 +207,8 @@ export const Plan = ({
                   >
                     {!plan.valid ? (
                       <Tooltip
-                        label="Over usage limit"
-                        description="Current usage exceeds the limit of this plan."
+                        trigger="Over usage limit"
+                        content="Current usage exceeds the limit of this plan."
                       />
                     ) : (
                       "Choose plan"

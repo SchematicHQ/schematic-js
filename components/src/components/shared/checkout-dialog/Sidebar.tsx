@@ -169,12 +169,13 @@ export const Sidebar = ({
       ref={checkoutRef}
       tabIndex={0}
       $flexDirection="column"
+      $flexShrink={0}
       $overflow="auto"
       $backgroundColor={theme.card.background}
       $borderRadius="0 0 0.5rem"
       $boxShadow="0px 1px 20px 0px #1018280F, 0px 1px 3px 0px #1018281A;"
       $viewport={{
-        sm: {
+        md: {
           $width: "21.5rem",
         },
       }}

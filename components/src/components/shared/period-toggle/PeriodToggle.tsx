@@ -1,8 +1,8 @@
+import { useLayoutEffect, useMemo, useState } from "react";
 import { useTheme } from "styled-components";
 import { type CompanyPlanDetailResponseData } from "../../../api";
 import { useIsLightBackground } from "../../../hooks";
 import { adjectify } from "../../../utils";
-import { Savings } from "../../shared";
 import { Flex, Text, Tooltip } from "../../ui";
 
 interface PeriodToggleProps {
@@ -10,6 +10,7 @@ interface PeriodToggleProps {
   selectedOption: string;
   selectedPlan?: CompanyPlanDetailResponseData;
   onChange: (period: string) => void;
+  layerRef?: React.RefObject<HTMLDivElement>;
 }
 
 export const PeriodToggle = ({
@@ -17,10 +18,32 @@ export const PeriodToggle = ({
   selectedOption,
   selectedPlan,
   onChange,
+  layerRef,
 }: PeriodToggleProps) => {
   const theme = useTheme();
 
   const isLightBackground = useIsLightBackground();
+
+  const [tooltipZIndex, setTooltipZIndex] = useState<number>(1);
+
+  const savingsPercentage = useMemo(() => {
+    if (selectedPlan) {
+      const monthly = (selectedPlan?.monthlyPrice?.price || 0) * 12;
+      const yearly = selectedPlan?.yearlyPrice?.price || 0;
+      return Math.round(((monthly - yearly) / monthly) * 10000) / 100;
+    }
+
+    return 0;
+  }, [selectedPlan]);
+
+  useLayoutEffect(() => {
+    const element = layerRef?.current;
+    if (element) {
+      const style = getComputedStyle(element);
+      const value = style.getPropertyValue("z-index");
+      setTooltipZIndex(parseInt(value) + 1);
+    }
+  }, [layerRef]);
 
   return (
     <Flex
@@ -34,7 +57,7 @@ export const PeriodToggle = ({
       $borderRadius="2.5rem"
       $cursor="pointer"
       $viewport={{
-        sm: {
+        md: {
           $width: "fit-content",
         },
       }}
@@ -48,6 +71,7 @@ export const PeriodToggle = ({
             $justifyContent="center"
             $alignItems="center"
             $flexGrow={1}
+            $whiteSpace="nowrap"
             $padding="0.75rem 1rem"
             {...(option === selectedOption && {
               $backgroundColor: isLightBackground
@@ -56,7 +80,7 @@ export const PeriodToggle = ({
             })}
             $borderRadius="2.5rem"
             $viewport={{
-              sm: {
+              md: {
                 $padding: "0.375rem 1rem",
               },
             }}
@@ -73,13 +97,25 @@ export const PeriodToggle = ({
           </Flex>
         );
 
-        if (option === "year") {
+        if (option === "year" && savingsPercentage > 0) {
           return (
             <Tooltip
-              label={element}
-              description={
-                <Savings plan={selectedPlan} period={selectedOption} />
+              key={option}
+              trigger={element}
+              content={
+                <Text
+                  $font={theme.typography.text.fontFamily}
+                  $size={11}
+                  $weight={theme.typography.text.fontWeight}
+                  $color={theme.primary}
+                  $leading={1}
+                >
+                  {selectedOption === "month"
+                    ? `Save up to ${savingsPercentage}% with yearly billing`
+                    : `You are saving ${savingsPercentage}% with yearly billing`}
+                </Text>
               }
+              zIndex={tooltipZIndex}
               $flexGrow={1}
             />
           );

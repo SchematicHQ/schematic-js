@@ -51,7 +51,7 @@ const resolveDesignProps = (
       },
       price: {
         isVisible: props.header?.price?.isVisible ?? true,
-        fontStyle: props.header?.price?.fontStyle ?? "text",
+        fontStyle: props.header?.price?.fontStyle ?? "heading3",
       },
     },
     addOns: {
