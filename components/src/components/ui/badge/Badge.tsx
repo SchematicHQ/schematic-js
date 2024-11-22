@@ -4,7 +4,11 @@ import { Box, Flex } from "..";
 export const Badge = () => {
   const { settings } = useEmbed();
   return (
-    <Flex $justifyContent={settings.badge.alignment} $alignItems="center">
+    <Flex
+      $justifyContent={settings.badge.alignment}
+      $alignItems="center"
+      $gridColumn="1 / -1"
+    >
       <Box $fontSize="0.75rem" $marginRight="0.5rem">
         Powered by
       </Box>

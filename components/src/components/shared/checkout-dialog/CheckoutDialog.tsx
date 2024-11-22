@@ -43,6 +43,7 @@ export const CheckoutDialog = ({
 
   const { api, data } = useEmbed();
 
+  const modalRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const checkoutRef = useRef<HTMLDivElement>(null);
 
@@ -252,7 +253,13 @@ export const CheckoutDialog = ({
   );
 
   return (
-    <Modal id="select-plan-dialog" size="lg" top={top} contentRef={contentRef}>
+    <Modal
+      ref={modalRef}
+      id="select-plan-dialog"
+      size="lg"
+      top={top}
+      contentRef={contentRef}
+    >
       <ModalHeader bordered>
         <Flex
           $flexWrap="wrap"
@@ -360,6 +367,7 @@ export const CheckoutDialog = ({
               selectedOption={planPeriod}
               selectedPlan={selectedPlan}
               onChange={changePlanPeriod}
+              layerRef={modalRef}
             />
           </Flex>
 

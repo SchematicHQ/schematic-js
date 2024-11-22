@@ -3,32 +3,49 @@ import { createPortal } from "react-dom";
 import { type BoxProps } from "../../ui";
 import { Content, Trigger } from "./styles";
 
-interface TooltipProps extends BoxProps {
+export type Position = "top" | "right" | "bottom" | "left";
+
+export interface TooltipProps extends BoxProps {
   trigger: React.ReactNode;
   content: React.ReactNode;
+  position?: Position;
   zIndex?: number;
 }
 
 export const Tooltip = ({
   trigger,
   content,
-  zIndex,
+  position = "top",
+  zIndex = 1,
   ...rest
 }: TooltipProps) => {
   const ref = useRef<HTMLDivElement>(null);
 
   const [show, setShow] = useState(false);
-  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [coords, setCoords] = useState({ x: 0, y: 0 });
 
   useLayoutEffect(() => {
     if (ref.current) {
+      const { top: offsetTop, left: offsetLeft } =
+        document.body.getBoundingClientRect();
       const rect = ref.current.getBoundingClientRect();
-      setPosition({
-        x: Math.round(rect.left + rect.width / 2),
-        y: Math.round(rect.top),
+
+      let x = position === "left" ? rect.left : rect.right;
+      if (position === "top" || position === "bottom") {
+        x -= rect.width / 2;
+      }
+
+      let y = position === "top" ? rect.top : rect.bottom;
+      if (position === "left" || position === "right") {
+        y -= rect.height / 2;
+      }
+
+      setCoords({
+        x: Math.round(x - offsetLeft),
+        y: Math.round(y - offsetTop),
       });
     }
-  }, [trigger]);
+  }, [position, trigger]);
 
   return (
     <>
@@ -43,7 +60,7 @@ export const Tooltip = ({
 
       {show &&
         createPortal(
-          <Content position={position} zIndex={zIndex}>
+          <Content {...coords} position={position} zIndex={zIndex}>
             {content}
           </Content>,
           document.body,

@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useLayoutEffect, useMemo, useState } from "react";
 import { useTheme } from "styled-components";
 import { type CompanyPlanDetailResponseData } from "../../../api";
 import { useIsLightBackground } from "../../../hooks";
@@ -10,6 +10,7 @@ interface PeriodToggleProps {
   selectedOption: string;
   selectedPlan?: CompanyPlanDetailResponseData;
   onChange: (period: string) => void;
+  layerRef?: React.RefObject<HTMLDivElement>;
 }
 
 export const PeriodToggle = ({
@@ -17,10 +18,13 @@ export const PeriodToggle = ({
   selectedOption,
   selectedPlan,
   onChange,
+  layerRef,
 }: PeriodToggleProps) => {
   const theme = useTheme();
 
   const isLightBackground = useIsLightBackground();
+
+  const [tooltipZIndex, setTooltipZIndex] = useState<number>(1);
 
   const savingsPercentage = useMemo(() => {
     if (selectedPlan) {
@@ -31,6 +35,15 @@ export const PeriodToggle = ({
 
     return 0;
   }, [selectedPlan]);
+
+  useLayoutEffect(() => {
+    const element = layerRef?.current;
+    if (element) {
+      const style = getComputedStyle(element);
+      const value = style.getPropertyValue("z-index");
+      setTooltipZIndex(parseInt(value) + 1);
+    }
+  }, [layerRef]);
 
   return (
     <Flex
@@ -102,7 +115,7 @@ export const PeriodToggle = ({
                     : `You are saving ${savingsPercentage}% with yearly billing`}
                 </Text>
               }
-              zIndex={9999999}
+              zIndex={tooltipZIndex}
               $flexGrow={1}
             />
           );

@@ -1,12 +1,22 @@
 import styled from "styled-components";
-import { Flex } from "../../ui";
+import { Box } from "../../ui";
 
-export const StyledViewport = styled(Flex)<{
-  $numberOfColumns?: 1 | 2 | 3;
-}>`
-  flex-wrap: wrap;
-  place-content: start;
+export const StyledViewport = styled(Box)
+  .attrs(({ theme }) => ({
+    $gridTemplateColumns: `repeat(auto-fill, minmax(300px, 1fr))`,
+    $viewport: {
+      xl: {
+        $gridTemplateColumns: `repeat(${theme.numberOfColumns}, minmax(300px, 1fr))`,
+      },
+    },
+  }))
+  .withConfig({
+    shouldForwardProp: (prop) =>
+      !["$numberOfColumns", "numberOfColumns"].includes(prop),
+  })`
+  display: grid;
+
   margin-left: auto;
   margin-right: auto;
-  gap: 2rem;
+  gap: 1rem;
 `;
