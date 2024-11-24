@@ -31,7 +31,7 @@
   "dependencies": {
     "@stripe/stripe-js": "^5.2.0",
     "classnames": "^2.5.1",
-    "i18next": "^23.16.5",
+    "i18next": "^24.0.0",
     "lodash": "^4.17.21",
     "pako": "^2.1.0",
     "pluralize": "^8.0.0",
@@ -41,7 +41,7 @@
   },
   "devDependencies": {
     "@craftjs/core": "^0.2.10",
-    "@microsoft/api-extractor": "^7.47.9",
+    "@microsoft/api-extractor": "^7.48.0",
     "@openapitools/openapi-generator-cli": "^2.15.3",
     "@stripe/react-stripe-js": "^3.0.0",
     "@types/jest": "^29.5.13",
@@ -66,7 +66,7 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "ts-jest": "^29.2.5",
-    "typescript": "^5.6.2"
+    "typescript": "^5.7.2"
   },
   "peerDependencies": {
     "@stripe/react-stripe-js": ">=3",
