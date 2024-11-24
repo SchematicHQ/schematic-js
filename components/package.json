@@ -31,9 +31,11 @@
   "dependencies": {
     "@stripe/stripe-js": "^5.2.0",
     "classnames": "^2.5.1",
+    "i18next": "^23.16.5",
     "lodash": "^4.17.21",
     "pako": "^2.1.0",
     "pluralize": "^8.0.0",
+    "react-i18next": "^15.1.1",
     "styled-components": "^6.1.13",
     "uuid": "^11.0.3"
   },

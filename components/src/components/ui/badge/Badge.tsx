@@ -1,8 +1,12 @@
+import { useTranslation } from "react-i18next";
 import { useEmbed } from "../../../hooks";
 import { Box, Flex } from "..";
 
 export const Badge = () => {
+  const { t } = useTranslation();
+
   const { settings } = useEmbed();
+
   return (
     <Flex
       $justifyContent={settings.badge?.alignment || "start"}
@@ -10,7 +14,7 @@ export const Badge = () => {
       $gridColumn="1 / -1"
     >
       <Box $fontSize="0.75rem" $marginRight="0.5rem">
-        Powered by
+        {t("Powered by")}
       </Box>
 
       <svg

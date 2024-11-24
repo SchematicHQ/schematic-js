@@ -6,6 +6,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 import { loadStripe, type Stripe } from "@stripe/stripe-js";
 import type {
@@ -39,6 +40,8 @@ export const CheckoutDialog = ({
   initialAddOnId,
   portal,
 }: CheckoutDialogProps) => {
+  const { t } = useTranslation();
+
   const theme = useTheme();
 
   const { api, data } = useEmbed();
@@ -78,24 +81,24 @@ export const CheckoutDialog = ({
     const checkoutStages = [
       {
         id: "plan",
-        name: "Plan",
-        label: "Select plan",
-        description: "Choose your base plan",
+        name: t("Plan"),
+        label: t("Select plan"),
+        description: t("Choose your base plan"),
       },
       {
         id: "addons",
-        name: "Add-ons",
-        label: "Select add-ons",
-        description: "Optionally add features to your subscription",
+        name: t("Add-ons"),
+        label: t("Select add-ons"),
+        description: t("Optionally add features to your subscription"),
       },
-      { id: "checkout", name: "Checkout", label: "Checkout" },
+      { id: "checkout", name: t("Checkout"), label: t("Checkout") },
     ];
     if (!availableAddOns.length) {
       checkoutStages.splice(1, 1);
     }
 
     return checkoutStages;
-  }, [availableAddOns]);
+  }, [t, availableAddOns]);
 
   const currentPlan = data.company?.plan;
   const [selectedPlan, setSelectedPlan] = useState<
@@ -167,7 +170,7 @@ export const CheckoutDialog = ({
         setCharges(data);
       } catch {
         setError(
-          "Error retrieving plan details. Please try again in a moment.",
+          t("Error retrieving plan details. Please try again in a moment."),
         );
       } finally {
         setIsLoading(false);
@@ -180,7 +183,7 @@ export const CheckoutDialog = ({
         }
       }
     },
-    [api, planPeriod],
+    [t, api, planPeriod],
   );
 
   const selectPlan = useCallback(

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 import type { CompanyPlanDetailResponseData } from "../../../api";
 import { TEXT_BASE_SIZE } from "../../../const";
@@ -13,6 +14,8 @@ interface AddOnsProps {
 }
 
 export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
+  const { t } = useTranslation();
+
   const theme = useTheme();
 
   const periodKey = period === "year" ? "yearlyPrice" : "monthlyPrice";
@@ -106,7 +109,7 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
                     $borderRadius="9999px"
                     $padding="0.125rem 0.85rem"
                   >
-                    Active
+                    {t("Active")}
                   </Flex>
                 )}
               </Flex>
@@ -120,7 +123,7 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
                     $color="primary"
                     $variant="outline"
                   >
-                    Choose add-on
+                    {t("Choose add-on")}
                   </EmbedButton>
                 ) : (
                   <EmbedButton
@@ -131,7 +134,7 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
                     $variant={addOn.current ? "ghost" : "text"}
                   >
                     {addOn.current ? (
-                      "Remove add-on"
+                      t("Remove add-on")
                     ) : (
                       <>
                         <Icon
@@ -141,7 +144,7 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
                             lineHeight: 1,
                           }}
                         />
-                        Selected
+                        {t("Selected")}
                       </>
                     )}
                   </EmbedButton>

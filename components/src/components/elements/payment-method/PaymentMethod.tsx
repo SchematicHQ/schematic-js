@@ -7,6 +7,7 @@ import {
   useState,
 } from "react";
 import { createPortal } from "react-dom";
+import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 import { loadStripe, type Stripe } from "@stripe/stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
@@ -58,6 +59,8 @@ const PaymentMethodElement = ({
   onEdit,
   ...props
 }: PaymentMethodElementProps) => {
+  const { t } = useTranslation();
+
   const theme = useTheme();
 
   const isLightBackground = useIsLightBackground();
@@ -74,7 +77,7 @@ const PaymentMethodElement = ({
             $weight={theme.typography[props.header.fontStyle].fontWeight}
             $color={theme.typography[props.header.fontStyle].color}
           >
-            Payment Method
+            {t("Payment Method")}
           </Text>
 
           {props.functions.showExpiration &&
@@ -86,8 +89,8 @@ const PaymentMethodElement = ({
                 $color="#DB6769"
               >
                 {monthsToExpiration > 0
-                  ? `Expires in ${monthsToExpiration} mo`
-                  : "Expired"}
+                  ? t("Expires in x months", { months: monthsToExpiration })
+                  : t("Expired")}
               </Text>
             )}
         </Flex>
@@ -106,8 +109,8 @@ const PaymentMethodElement = ({
       >
         <Text $font={theme.typography.text.fontFamily} $size={14}>
           {cardLast4
-            ? `💳 Card ending in ${cardLast4}`
-            : "Other existing payment method"}
+            ? t("Card ending in", { value: cardLast4 })
+            : t("Other existing payment method")}
         </Text>
 
         {props.functions.allowEdit && onEdit && (
@@ -119,7 +122,7 @@ const PaymentMethodElement = ({
             $leading={1}
             $color={theme.typography.link.color}
           >
-            Edit
+            {t("Edit")}
           </Text>
         )}
       </Flex>
@@ -140,9 +143,13 @@ export const PaymentMethod = forwardRef<
 >(({ children, className, portal, allowEdit = true, ...rest }, ref) => {
   const props = resolveDesignProps(rest);
 
+  const { t } = useTranslation();
+
   const theme = useTheme();
 
   const { api, data, layout, setLayout } = useEmbed();
+
+  const isLightBackground = useIsLightBackground();
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | undefined>();
@@ -152,8 +159,6 @@ export const PaymentMethod = forwardRef<
   const [stripe, setStripe] = useState<Promise<Stripe | null> | null>(null);
   const [setupIntent, setSetupIntent] = useState<SetupIntentResponseData>();
   const [top, setTop] = useState(0);
-
-  const isLightBackground = useIsLightBackground();
 
   const paymentMethod = useMemo(() => {
     const { paymentMethodType, cardLast4, cardExpMonth, cardExpYear } =
@@ -193,11 +198,13 @@ export const PaymentMethod = forwardRef<
       setSetupIntent(setupIntent);
       setShowPaymentForm(true);
     } catch {
-      setError("Error initializing payment method change. Please try again.");
+      setError(
+        t("Error initializing payment method change. Please try again."),
+      );
     } finally {
       setIsLoading(false);
     }
-  }, [api, data.component?.id]);
+  }, [t, api, data.component?.id]);
 
   const updatePaymentMethod = useCallback(
     async (id: string) => {
@@ -214,12 +221,12 @@ export const PaymentMethod = forwardRef<
         });
         setLayout("success");
       } catch {
-        setError("Error updating payment method. Please try again.");
+        setError(t("Error updating payment method. Please try again."));
       } finally {
         setIsLoading(false);
       }
     },
-    [api, setLayout],
+    [t, api, setLayout],
   );
 
   useEffect(() => {
@@ -262,7 +269,7 @@ export const PaymentMethod = forwardRef<
                 $weight={600}
                 $color={theme.typography.text.color}
               >
-                Edit payment method
+                {t("Edit payment method")}
               </Text>
             </ModalHeader>
 
@@ -333,7 +340,7 @@ export const PaymentMethod = forwardRef<
                           $weight={theme.typography.link.fontWeight}
                           $color={theme.typography.link.color}
                         >
-                          Change payment method
+                          {t("Change payment method")}
                         </Text>
                       </Box>
                     </Flex>
