@@ -58,6 +58,12 @@ export interface CompanyPlanDetailResponseData {
   billingProduct?: BillingProductDetailResponseData;
   /**
    *
+   * @type {boolean}
+   * @memberof CompanyPlanDetailResponseData
+   */
+  companyCanTrial: boolean;
+  /**
+   *
    * @type {number}
    * @memberof CompanyPlanDetailResponseData
    */
@@ -172,6 +178,8 @@ export interface CompanyPlanDetailResponseData {
 export function instanceOfCompanyPlanDetailResponseData(
   value: object,
 ): value is CompanyPlanDetailResponseData {
+  if (!("companyCanTrial" in value) || value["companyCanTrial"] === undefined)
+    return false;
   if (!("companyCount" in value) || value["companyCount"] === undefined)
     return false;
   if (!("createdAt" in value) || value["createdAt"] === undefined) return false;
@@ -214,6 +222,7 @@ export function CompanyPlanDetailResponseDataFromJSONTyped(
       json["billing_product"] == null
         ? undefined
         : BillingProductDetailResponseDataFromJSON(json["billing_product"]),
+    companyCanTrial: json["company_can_trial"],
     companyCount: json["company_count"],
     createdAt: new Date(json["created_at"]),
     current: json["current"],
@@ -256,6 +265,7 @@ export function CompanyPlanDetailResponseDataToJSON(
     billing_product: BillingProductDetailResponseDataToJSON(
       value["billingProduct"],
     ),
+    company_can_trial: value["companyCanTrial"],
     company_count: value["companyCount"],
     created_at: value["createdAt"].toISOString(),
     current: value["current"],
