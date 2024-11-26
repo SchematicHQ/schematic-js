@@ -3,6 +3,7 @@ import type {
   CompanyPlanDetailResponseData,
   PlanEntitlementResponseData,
 } from "../api";
+import { RecursivePartial } from "../types";
 import { useEmbed } from ".";
 
 export function useAvailablePlans(activePeriod: string) {
@@ -59,8 +60,16 @@ export function useAvailablePlans(activePeriod: string) {
       addOns: getActivePlans(data.activeAddOns),
       usageBasedEntitlements:
         // @ts-expect-error: not implemented yet
-        (data.activeUsageBasedEntitlements ||
-          []) as PlanEntitlementResponseData[],
+        (data.activeUsageBasedEntitlements || [
+          {
+            id: "e1",
+            feature: { id: "f1", name: "Seats", description: "Allows seats" },
+            meteredPrice: {
+              price: 100,
+              interval: "month",
+            },
+          },
+        ]) as RecursivePartial<PlanEntitlementResponseData>[],
       periods: getAvailablePeriods(),
     };
   }, [

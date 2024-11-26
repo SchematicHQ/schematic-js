@@ -28,6 +28,7 @@ import { Plan } from "./Plan";
 import { AddOns } from "./AddOns";
 import { Usage } from "./Usage";
 import { Checkout } from "./Checkout";
+import { RecursivePartial } from "../../../types";
 
 export interface CheckoutDialogProps {
   initialPeriod?: string;
@@ -81,31 +82,40 @@ export const CheckoutDialog = ({
 
   // memoize data here since some state depends on it
   const checkoutStages = useMemo(() => {
-    const checkoutStages = [
+    const stages: {
+      id: string;
+      name: string;
+      label?: string;
+      description?: string;
+    }[] = [
       {
         id: "plan",
         name: t("Plan"),
         label: t("Select plan"),
         description: t("Choose your base plan"),
       },
-      {
+    ];
+
+    if (availableAddOns.length) {
+      stages.push({
         id: "addons",
         name: t("Add-ons"),
         label: t("Select add-ons"),
         description: t("Optionally add features to your subscription"),
-      },
-      {
-        id: "usage",
-        name: t("Select quantity"),
-      },
-      { id: "checkout", name: t("Checkout"), label: t("Checkout") },
-    ];
-    if (!availableAddOns.length) {
-      checkoutStages.splice(1, 1);
+      });
     }
 
-    return checkoutStages;
-  }, [t, availableAddOns]);
+    if (availableUsageBasedEntitlements.length) {
+      stages.push({
+        id: "usage",
+        name: t("Quantity"),
+      });
+    }
+
+    stages.push({ id: "checkout", name: t("Checkout"), label: t("Checkout") });
+
+    return stages;
+  }, [t, availableAddOns, availableUsageBasedEntitlements]);
 
   const currentPlan = data.company?.plan;
   const [selectedPlan, setSelectedPlan] = useState<
@@ -131,9 +141,10 @@ export const CheckoutDialog = ({
     })),
   );
 
-  // @ts-expect-error: not implemented yet
-  const currentUsageBasedEntitlements = (data.company?.usageBasedEntitlements ||
-    []) as PlanEntitlementResponseData[];
+  const currentUsageBasedEntitlements =
+    // @ts-expect-error: not implemented yet
+    (data.company?.usageBasedEntitlements ||
+      []) as RecursivePartial<PlanEntitlementResponseData>[];
   const [usageBasedEntitlements, setUsageBasedEntitlements] = useState(() =>
     availableUsageBasedEntitlements.map((entitlement) => ({
       ...entitlement,
@@ -471,6 +482,7 @@ export const CheckoutDialog = ({
           setSetupIntent={(intent) => setSetupIntent(intent)}
           showPaymentForm={showPaymentForm}
           toggleLoading={() => setIsLoading((prev) => !prev)}
+          usageBasedEntitlements={usageBasedEntitlements}
         />
       </Flex>
     </Modal>

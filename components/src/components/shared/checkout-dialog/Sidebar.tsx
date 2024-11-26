@@ -4,10 +4,12 @@ import { useTheme } from "styled-components";
 import type {
   CompanyPlanWithBillingSubView,
   CompanyPlanDetailResponseData,
+  PlanEntitlementResponseData,
   SetupIntentResponseData,
   UpdateAddOnRequestBody,
 } from "../../../api";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
+import { RecursivePartial } from "../../../types";
 import { formatCurrency, formatOrdinal, getMonthName } from "../../../utils";
 import { Box, EmbedButton, Flex, Icon, Text } from "../../ui";
 
@@ -33,6 +35,9 @@ interface SidebarProps {
   setSetupIntent: (intent: SetupIntentResponseData | undefined) => void;
   showPaymentForm: boolean;
   toggleLoading: () => void;
+  usageBasedEntitlements: (RecursivePartial<PlanEntitlementResponseData> & {
+    isSelected: boolean;
+  })[];
 }
 
 export const Sidebar = ({
@@ -52,6 +57,7 @@ export const Sidebar = ({
   setSetupIntent,
   showPaymentForm,
   toggleLoading,
+  usageBasedEntitlements,
 }: SidebarProps) => {
   const { t } = useTranslation();
 
@@ -563,7 +569,13 @@ export const Sidebar = ({
                 setSetupIntent(setupIntent);
               }
 
-              setCheckoutStage(addOns.length ? "addons" : "checkout");
+              setCheckoutStage(
+                addOns.length
+                  ? "addons"
+                  : usageBasedEntitlements.length
+                    ? "usage"
+                    : "checkout",
+              );
             }}
             isLoading={isLoading}
           >
@@ -573,7 +585,12 @@ export const Sidebar = ({
               $alignItems="center"
               $padding="0 1rem"
             >
-              {t("Next")}: {addOns.length ? t("Addons") : t("Checkout")}
+              {t("Next")}:{" "}
+              {addOns.length
+                ? t("Addons")
+                : usageBasedEntitlements.length
+                  ? t("Usage")
+                  : t("Checkout")}
               <Icon name="arrow-right" />
             </Flex>
           </EmbedButton>
@@ -581,7 +598,7 @@ export const Sidebar = ({
 
         {checkoutStage === "addons" && (
           <EmbedButton
-            disabled={!canUpdateSubscription}
+            disabled={!usageBasedEntitlements.length && !canUpdateSubscription}
             onClick={async () => {
               if (!api || !data.component?.id) {
                 return;
@@ -591,6 +608,33 @@ export const Sidebar = ({
                 componentId: data.component.id,
               });
               setSetupIntent(setupIntent);
+
+              setCheckoutStage(
+                usageBasedEntitlements.length ? "usage" : "checkout",
+              );
+            }}
+            isLoading={isLoading}
+          >
+            <Flex
+              $gap="0.5rem"
+              $justifyContent="center"
+              $alignItems="center"
+              $padding="0 1rem"
+            >
+              {t("Next")}:{" "}
+              {usageBasedEntitlements.length ? t("Usage") : t("Checkout")}
+              <Icon name="arrow-right" />
+            </Flex>
+          </EmbedButton>
+        )}
+
+        {checkoutStage === "usage" && (
+          <EmbedButton
+            disabled={!canUpdateSubscription}
+            onClick={async () => {
+              if (!api || !data.component?.id) {
+                return;
+              }
 
               setCheckoutStage("checkout");
             }}
