@@ -1,5 +1,8 @@
 import { useCallback, useMemo } from "react";
-import type { CompanyPlanDetailResponseData } from "../api";
+import type {
+  CompanyPlanDetailResponseData,
+  PlanEntitlementResponseData,
+} from "../api";
 import { useEmbed } from ".";
 
 export function useAvailablePlans(activePeriod: string) {
@@ -54,11 +57,17 @@ export function useAvailablePlans(activePeriod: string) {
     return {
       plans: getActivePlans(data.activePlans),
       addOns: getActivePlans(data.activeAddOns),
+      usageBasedEntitlements:
+        // @ts-expect-error: not implemented yet
+        (data.activeUsageBasedEntitlements ||
+          []) as PlanEntitlementResponseData[],
       periods: getAvailablePeriods(),
     };
   }, [
     data.activePlans,
     data.activeAddOns,
+    // @ts-expect-error: not implemented yet
+    data.activeUsageBasedEntitlements,
     getAvailablePeriods,
     getActivePlans,
   ]);

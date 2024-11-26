@@ -11,6 +11,7 @@ import { useTheme } from "styled-components";
 import { loadStripe, type Stripe } from "@stripe/stripe-js";
 import type {
   CompanyPlanDetailResponseData,
+  PlanEntitlementResponseData,
   SetupIntentResponseData,
   UpdateAddOnRequestBody,
 } from "../../../api";
@@ -25,6 +26,7 @@ import { Navigation } from "./Navigation";
 import { Sidebar } from "./Sidebar";
 import { Plan } from "./Plan";
 import { AddOns } from "./AddOns";
+import { Usage } from "./Usage";
 import { Checkout } from "./Checkout";
 
 export interface CheckoutDialogProps {
@@ -73,6 +75,7 @@ export const CheckoutDialog = ({
   const {
     plans: availablePlans,
     addOns: availableAddOns,
+    usageBasedEntitlements: availableUsageBasedEntitlements,
     periods: availablePeriods,
   } = useAvailablePlans(planPeriod);
 
@@ -90,6 +93,10 @@ export const CheckoutDialog = ({
         name: t("Add-ons"),
         label: t("Select add-ons"),
         description: t("Optionally add features to your subscription"),
+      },
+      {
+        id: "usage",
+        name: t("Select quantity"),
       },
       { id: "checkout", name: t("Checkout"), label: t("Checkout") },
     ];
@@ -121,6 +128,18 @@ export const CheckoutDialog = ({
         typeof initialAddOnId !== "undefined"
           ? addOn.id === initialAddOnId
           : currentAddOns.some((currentAddOn) => addOn.id === currentAddOn.id),
+    })),
+  );
+
+  // @ts-expect-error: not implemented yet
+  const currentUsageBasedEntitlements = (data.company?.usageBasedEntitlements ||
+    []) as PlanEntitlementResponseData[];
+  const [usageBasedEntitlements, setUsageBasedEntitlements] = useState(() =>
+    availableUsageBasedEntitlements.map((entitlement) => ({
+      ...entitlement,
+      isSelected: currentUsageBasedEntitlements.some(
+        (currentEntitlement) => entitlement.id === currentEntitlement.id,
+      ),
     })),
   );
 
@@ -221,6 +240,25 @@ export const CheckoutDialog = ({
       previewCheckout(selectedPlan, updatedAddOns, newPeriod || planPeriod);
     },
     [selectedPlan, addOns, planPeriod, previewCheckout],
+  );
+
+  const updateUsageBasedEntitlementQuantity = useCallback(
+    (id: string, newPeriod?: string) => {
+      const updatedUsageBasedEntitlements = usageBasedEntitlements.map(
+        (entitlement) => ({
+          ...entitlement,
+          ...(entitlement.id === id && { isSelected: !entitlement.isSelected }),
+        }),
+      );
+      setUsageBasedEntitlements(updatedUsageBasedEntitlements);
+
+      if (!selectedPlan) {
+        return;
+      }
+
+      previewCheckout(selectedPlan, addOns, newPeriod || planPeriod);
+    },
+    [selectedPlan, addOns, usageBasedEntitlements, planPeriod, previewCheckout],
   );
 
   useEffect(() => {
@@ -340,18 +378,20 @@ export const CheckoutDialog = ({
                   },
                 }}
               >
-                <Text
-                  as="h3"
-                  $font={theme.typography.heading3.fontFamily}
-                  $size={theme.typography.heading3.fontSize}
-                  $weight={theme.typography.heading3.fontWeight}
-                  $color={theme.typography.heading3.color}
-                  $marginBottom="0.5rem"
-                >
-                  {activeCheckoutStage.label}
-                </Text>
+                {activeCheckoutStage.label && (
+                  <Text
+                    as="h3"
+                    $font={theme.typography.heading3.fontFamily}
+                    $size={theme.typography.heading3.fontSize}
+                    $weight={theme.typography.heading3.fontWeight}
+                    $color={theme.typography.heading3.color}
+                    $marginBottom="0.5rem"
+                  >
+                    {activeCheckoutStage.label}
+                  </Text>
+                )}
 
-                {activeCheckoutStage?.description && (
+                {activeCheckoutStage.description && (
                   <Text
                     as="p"
                     $font={theme.typography.text.fontFamily}
@@ -391,6 +431,15 @@ export const CheckoutDialog = ({
               period={planPeriod}
               addOns={addOns}
               toggle={(id) => toggleAddOn(id)}
+            />
+          )}
+
+          {checkoutStage === "usage" && (
+            <Usage
+              isLoading={isLoading}
+              period={planPeriod}
+              usageBasedEntitlements={usageBasedEntitlements}
+              updateQuantity={(id) => updateUsageBasedEntitlementQuantity(id)}
             />
           )}
 
