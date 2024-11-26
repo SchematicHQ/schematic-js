@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   useStripe,
   useElements,
@@ -12,6 +13,8 @@ interface PaymentFormProps {
 }
 
 export const PaymentForm = ({ onConfirm }: PaymentFormProps) => {
+  const { t } = useTranslation();
+
   const stripe = useStripe();
   const elements = useElements();
 
@@ -54,7 +57,7 @@ export const PaymentForm = ({ onConfirm }: PaymentFormProps) => {
         setMessage(error.message as string);
       }
     } catch {
-      setMessage("A problem occurred while saving your payment method.");
+      setMessage(t("A problem occurred while saving your payment method."));
     } finally {
       setIsLoading(false);
     }
@@ -81,7 +84,7 @@ export const PaymentForm = ({ onConfirm }: PaymentFormProps) => {
         isLoading={isLoading}
         $color="primary"
       >
-        {isLoading ? "Loading" : "Save payment method"}
+        {isLoading ? t("Loading") : t("Save payment method")}
       </EmbedButton>
 
       {message && (

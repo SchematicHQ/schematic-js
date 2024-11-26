@@ -1,4 +1,5 @@
 import { useLayoutEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 import { type CompanyPlanDetailResponseData } from "../../../api";
 import { useIsLightBackground } from "../../../hooks";
@@ -20,6 +21,8 @@ export const PeriodToggle = ({
   onChange,
   layerRef,
 }: PeriodToggleProps) => {
+  const { t } = useTranslation();
+
   const theme = useTheme();
 
   const isLightBackground = useIsLightBackground();
@@ -51,9 +54,7 @@ export const PeriodToggle = ({
       $backgroundColor={theme.card.background}
       $borderWidth="1px"
       $borderStyle="solid"
-      $borderColor={
-        isLightBackground ? "hsl(0, 0%, 92.5%)" : "hsl(0, 0%, 7.5%)"
-      }
+      $borderColor={isLightBackground ? "hsl(0, 0%, 92.5%)" : "hsl(0, 0%, 15%)"}
       $borderRadius="2.5rem"
       $cursor="pointer"
       $viewport={{
@@ -76,7 +77,7 @@ export const PeriodToggle = ({
             {...(option === selectedOption && {
               $backgroundColor: isLightBackground
                 ? "hsl(0, 0%, 92.5%)"
-                : "hsl(0, 0%, 7.5%)",
+                : "hsl(0, 0%, 15%)",
             })}
             $borderRadius="2.5rem"
             $viewport={{
@@ -92,7 +93,7 @@ export const PeriodToggle = ({
               $weight={option === selectedOption ? 600 : 400}
               $color={theme.typography.text.color}
             >
-              Billed {adjectify(option)}
+              {t("Billed", { period: adjectify(option) })}
             </Text>
           </Flex>
         );
@@ -107,12 +108,16 @@ export const PeriodToggle = ({
                   $font={theme.typography.text.fontFamily}
                   $size={11}
                   $weight={theme.typography.text.fontWeight}
-                  $color={theme.primary}
+                  $color={theme.typography.text.color}
                   $leading={1}
                 >
                   {selectedOption === "month"
-                    ? `Save up to ${savingsPercentage}% with yearly billing`
-                    : `You are saving ${savingsPercentage}% with yearly billing`}
+                    ? t("Save with yearly billing", {
+                        percent: savingsPercentage,
+                      })
+                    : t("Saving with yearly billing", {
+                        percent: savingsPercentage,
+                      })}
                 </Text>
               }
               zIndex={tooltipZIndex}

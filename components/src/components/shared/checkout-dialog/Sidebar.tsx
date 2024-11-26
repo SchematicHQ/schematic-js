@@ -1,4 +1,5 @@
 import { useCallback, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 import type {
   CompanyPlanWithBillingSubView,
@@ -52,6 +53,8 @@ export const Sidebar = ({
   showPaymentForm,
   toggleLoading,
 }: SidebarProps) => {
+  const { t } = useTranslation();
+
   const theme = useTheme();
 
   const { api, data, mode, setLayout } = useEmbed();
@@ -116,12 +119,13 @@ export const Sidebar = ({
       setLayout("success");
     } catch {
       setError(
-        "Error processing payment. Please try a different payment method.",
+        t("Error processing payment. Please try a different payment method."),
       );
     } finally {
       toggleLoading();
     }
   }, [
+    t,
     api,
     paymentMethodId,
     planPeriod,
@@ -200,7 +204,7 @@ export const Sidebar = ({
             $weight={theme.typography.heading3.fontWeight}
             $color={theme.typography.heading3.color}
           >
-            Subscription
+            {t("Subscription")}
           </Text>
         </Flex>
       </Flex>
@@ -225,7 +229,7 @@ export const Sidebar = ({
             $weight={theme.typography.text.fontWeight}
             $color={theme.typography.text.color}
           >
-            Plan
+            {"Plan"}
           </Text>
         </Box>
 
@@ -333,7 +337,7 @@ export const Sidebar = ({
                 $weight={theme.typography.text.fontWeight}
                 $color={theme.typography.text.color}
               >
-                Add-ons
+                {t("Add-ons")}
               </Text>
             </Box>
 
@@ -422,7 +426,7 @@ export const Sidebar = ({
                 $weight={theme.typography.text.fontWeight}
                 $color={theme.typography.text.color}
               >
-                {charges.proration > 0 ? "Proration" : "Credits"}
+                {charges.proration > 0 ? t("Proration") : t("Credits")}
               </Text>
             </Box>
 
@@ -441,7 +445,7 @@ export const Sidebar = ({
                         $weight={theme.typography.heading4.fontWeight}
                         $color={theme.typography.heading4.color}
                       >
-                        Unused time
+                        {t("Unused time")}
                       </Text>
                     </Flex>
 
@@ -505,7 +509,7 @@ export const Sidebar = ({
                 $weight={theme.typography.text.fontWeight}
                 $color={theme.typography.text.color}
               >
-                Due today:
+                {t("Due today")}:
               </Text>
             </Box>
 
@@ -531,7 +535,7 @@ export const Sidebar = ({
                 $weight={theme.typography.text.fontWeight}
                 $color={theme.typography.text.color}
               >
-                Credits to be applied to future invoices:
+                {t("Credits to be applied to future invoices")}:
               </Text>
             </Box>
 
@@ -569,7 +573,7 @@ export const Sidebar = ({
               $alignItems="center"
               $padding="0 1rem"
             >
-              Next: {addOns.length ? "Addons" : "Checkout"}
+              {t("Next")}: {addOns.length ? t("Addons") : t("Checkout")}
               <Icon name="arrow-right" />
             </Flex>
           </EmbedButton>
@@ -598,7 +602,7 @@ export const Sidebar = ({
               $alignItems="center"
               $padding="0 1rem"
             >
-              Next: Checkout
+              {t("Next")}: {t("Checkout")}
               <Icon name="arrow-right" />
             </Flex>
           </EmbedButton>
@@ -610,7 +614,7 @@ export const Sidebar = ({
             onClick={checkout}
             isLoading={isLoading}
           >
-            Pay now
+            {t("Pay now")}
           </EmbedButton>
         )}
 
@@ -635,6 +639,7 @@ export const Sidebar = ({
             $color={theme.typography.text.color}
           >
             {subscriptionPrice &&
+              // TODO: localize
               `You will be billed ${subscriptionPrice} for this subscription
                 every ${planPeriod} ${charges?.periodStart ? `on the ${formatOrdinal(charges.periodStart.getDate())}` : ""} ${planPeriod === "year" && charges?.periodStart ? `of ${getMonthName(charges.periodStart)}` : ""} unless you unsubscribe.`}
           </Text>

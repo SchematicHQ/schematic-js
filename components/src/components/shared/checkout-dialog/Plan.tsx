@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 import type {
   CompanyPlanDetailResponseData,
@@ -27,6 +28,8 @@ export const Plan = ({
   period,
   selectPlan,
 }: PlanProps) => {
+  const { t } = useTranslation();
+
   const theme = useTheme();
 
   const isLightBackground = useIsLightBackground();
@@ -139,7 +142,7 @@ export const Plan = ({
                     $borderRadius="9999px"
                     $padding="0.125rem 0.85rem"
                   >
-                    Active
+                    {t("Active")}
                   </Flex>
                 )}
               </Flex>
@@ -192,7 +195,7 @@ export const Plan = ({
                       $leading={1}
                       $color={theme.typography.text.color}
                     >
-                      {isActivePlan ? "Current plan" : "Selected"}
+                      {isActivePlan ? t("Current plan") : t("Selected")}
                     </Text>
                   </Flex>
                 ) : (
@@ -207,11 +210,13 @@ export const Plan = ({
                   >
                     {!plan.valid ? (
                       <Tooltip
-                        trigger="Over usage limit"
-                        content="Current usage exceeds the limit of this plan."
+                        trigger={t("Over usage limit")}
+                        content={t(
+                          "Current usage exceeds the limit of this plan.",
+                        )}
                       />
                     ) : (
-                      "Choose plan"
+                      t("Choose plan")
                     )}
                   </EmbedButton>
                 )}

@@ -43,6 +43,12 @@ export interface PreviewSubscriptionChangeResponseData {
    * @memberof PreviewSubscriptionChangeResponseData
    */
   proration: number;
+  /**
+   *
+   * @type {Date}
+   * @memberof PreviewSubscriptionChangeResponseData
+   */
+  trialEnd?: Date | null;
 }
 
 /**
@@ -78,6 +84,8 @@ export function PreviewSubscriptionChangeResponseDataFromJSONTyped(
     newCharges: json["new_charges"],
     periodStart: new Date(json["period_start"]),
     proration: json["proration"],
+    trialEnd:
+      json["trial_end"] == null ? undefined : new Date(json["trial_end"]),
   };
 }
 
@@ -92,5 +100,9 @@ export function PreviewSubscriptionChangeResponseDataToJSON(
     new_charges: value["newCharges"],
     period_start: value["periodStart"].toISOString(),
     proration: value["proration"],
+    trial_end:
+      value["trialEnd"] == null
+        ? undefined
+        : (value["trialEnd"] as any).toISOString(),
   };
 }

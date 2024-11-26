@@ -1,5 +1,6 @@
 import { forwardRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 import pluralize from "pluralize";
 import { TEXT_BASE_SIZE } from "../../../const";
@@ -116,6 +117,8 @@ export const PricingTable = forwardRef<
 >(({ children, className, portal, ...rest }, ref) => {
   const props = resolveDesignProps(rest);
 
+  const { t } = useTranslation();
+
   const theme = useTheme();
 
   const { data, layout, setLayout } = useEmbed();
@@ -167,7 +170,7 @@ export const PricingTable = forwardRef<
             {props.header.isVisible &&
               props.plans.isVisible &&
               plans.length > 0 &&
-              "Plans"}
+              t("Plans")}
           </Text>
 
           {props.showPeriodToggle && (
@@ -320,7 +323,7 @@ export const PricingTable = forwardRef<
                         $borderRadius="9999px"
                         $padding="0.125rem 0.85rem"
                       >
-                        Active
+                        {t("Active")}
                       </Flex>
                     )}
                   </Flex>
@@ -342,7 +345,9 @@ export const PricingTable = forwardRef<
                               $weight={theme.typography.text.fontWeight}
                               $color={theme.typography.text.color}
                             >
-                              Everything in {self[index - 1].name}, plus
+                              {t("Everything in", {
+                                plan: self[index - 1].name,
+                              })}
                             </Text>
                           </Box>
                         )}
@@ -381,16 +386,24 @@ export const PricingTable = forwardRef<
                                         {typeof entitlement.valueNumeric ===
                                         "number"
                                           ? `${formatNumber(entitlement.valueNumeric)} ${pluralize(entitlement.feature.name, entitlement.valueNumeric)}`
-                                          : `Unlimited ${pluralize(entitlement.feature.name)}`}
-                                        {entitlement.metricPeriod &&
-                                          ` per ${
+                                          : t("Unlimited", {
+                                              item: pluralize(
+                                                entitlement.feature.name,
+                                              ),
+                                            })}
+                                        {entitlement.metricPeriod && (
+                                          <>
+                                            {t("per")}{" "}
                                             {
-                                              billing: "billing period",
-                                              current_day: "day",
-                                              current_month: "month",
-                                              current_year: "year",
-                                            }[entitlement.metricPeriod]
-                                          }`}
+                                              {
+                                                billing: "billing period",
+                                                current_day: "day",
+                                                current_month: "month",
+                                                current_year: "year",
+                                              }[entitlement.metricPeriod]
+                                            }
+                                          </>
+                                        )}
                                       </>
                                     ) : (
                                       entitlement.feature.name
@@ -425,7 +438,7 @@ export const PricingTable = forwardRef<
                           $leading={1}
                           $color={theme.typography.text.color}
                         >
-                          Current plan
+                          {t("Current plan")}
                         </Text>
                       </Flex>
                     ) : (
@@ -454,11 +467,13 @@ export const PricingTable = forwardRef<
                         >
                           {!plan.valid ? (
                             <Tooltip
-                              trigger="Over usage limit"
-                              content="Current usage exceeds the limit of this plan."
+                              trigger={t("Over usage limit")}
+                              content={t(
+                                "Current usage exceeds the limit of this plan.",
+                              )}
                             />
                           ) : (
-                            "Choose plan"
+                            t("Choose plan")
                           )}
                         </EmbedButton>
                       )
@@ -486,7 +501,7 @@ export const PricingTable = forwardRef<
                   $weight={theme.typography[props.header.fontStyle].fontWeight}
                   $color={theme.card.background}
                 >
-                  Add-ons
+                  {t("Add-ons")}
                 </Text>
               </Flex>
             )}
@@ -634,7 +649,7 @@ export const PricingTable = forwardRef<
                           $borderRadius="9999px"
                           $padding="0.125rem 0.85rem"
                         >
-                          Active
+                          {t("Active")}
                         </Flex>
                       )}
                     </Flex>
@@ -696,16 +711,24 @@ export const PricingTable = forwardRef<
                                             {typeof entitlement.valueNumeric ===
                                             "number"
                                               ? `${formatNumber(entitlement.valueNumeric)} ${pluralize(entitlement.feature.name, entitlement.valueNumeric)}`
-                                              : `Unlimited ${pluralize(entitlement.feature.name)}`}
-                                            {entitlement.metricPeriod &&
-                                              ` per ${
+                                              : t("Unlimited", {
+                                                  item: pluralize(
+                                                    entitlement.feature.name,
+                                                  ),
+                                                })}
+                                            {entitlement.metricPeriod && (
+                                              <>
+                                                {t("per")}{" "}
                                                 {
-                                                  billing: "billing period",
-                                                  current_day: "day",
-                                                  current_month: "month",
-                                                  current_year: "year",
-                                                }[entitlement.metricPeriod]
-                                              }`}
+                                                  {
+                                                    billing: "billing period",
+                                                    current_day: "day",
+                                                    current_month: "month",
+                                                    current_year: "year",
+                                                  }[entitlement.metricPeriod]
+                                                }
+                                              </>
+                                            )}
                                           </>
                                         ) : (
                                           entitlement.feature.name
@@ -740,10 +763,10 @@ export const PricingTable = forwardRef<
                           }
                         >
                           {isActiveAddOn
-                            ? "Remove add-on"
+                            ? t("Remove add-on")
                             : addOn.current
-                              ? "Change add-on"
-                              : "Choose add-on"}
+                              ? t("Change add-on")
+                              : t("Choose add-on")}
                         </EmbedButton>
                       )}
                     </Flex>

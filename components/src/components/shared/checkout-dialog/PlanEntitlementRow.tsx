@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 import pluralize from "pluralize";
 import type { PlanEntitlementResponseData } from "../../../api";
@@ -16,6 +17,8 @@ export const PlanEntitlementRow = ({
   valueNumeric,
   valueType,
 }: PlanEntitlementRowProps) => {
+  const { t } = useTranslation();
+
   const theme = useTheme();
 
   const isLightBackground = useIsLightBackground();
@@ -28,10 +31,10 @@ export const PlanEntitlementRow = ({
   let period;
   if (hasNumericValue && metricPeriod) {
     period = {
-      billing: "billing period",
-      current_day: "day",
-      current_month: "month",
-      current_year: "year",
+      billing: t("billing period"),
+      current_day: t("day"),
+      current_month: t("month"),
+      current_year: t("year"),
     }[metricPeriod];
   }
 
@@ -68,8 +71,13 @@ export const PlanEntitlementRow = ({
                 <>
                   {typeof valueNumeric === "number"
                     ? `${formatNumber(valueNumeric)} ${pluralize(feature.name, valueNumeric)}`
-                    : `Unlimited ${pluralize(feature.name)}`}
-                  {period && ` per ${period}`}
+                    : t("Unlimited", { item: pluralize(feature.name) })}
+                  {period && (
+                    <>
+                      {" "}
+                      {t("per")} {period}
+                    </>
+                  )}
                 </>
               ) : (
                 feature.name

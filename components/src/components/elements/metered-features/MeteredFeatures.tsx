@@ -1,4 +1,5 @@
 import { forwardRef, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 import pluralize from "pluralize";
 import { type FeatureUsageResponseData } from "../../../api";
@@ -83,6 +84,8 @@ export const MeteredFeatures = forwardRef<
 
   const elements = useRef<HTMLElement[]>([]);
   const shouldWrapChildren = useWrapChildren(elements.current);
+
+  const { t } = useTranslation();
 
   const theme = useTheme();
 
@@ -236,8 +239,10 @@ export const MeteredFeatures = forwardRef<
                             }
                           >
                             {typeof allocation === "number"
-                              ? `Limit of ${formatNumber(allocation)}`
-                              : "No limit"}
+                              ? t("Limit of", {
+                                  amount: formatNumber(allocation),
+                                })
+                              : t("No limit")}
                           </Text>
                         </Box>
                       )}

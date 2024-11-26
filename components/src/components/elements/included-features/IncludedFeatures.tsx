@@ -1,4 +1,5 @@
 import { forwardRef, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 import pluralize from "pluralize";
 import { type FeatureUsageResponseData } from "../../../api";
@@ -69,6 +70,8 @@ export const IncludedFeatures = forwardRef<
     React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...rest }, ref) => {
   const props = resolveDesignProps(rest);
+
+  const { t } = useTranslation();
 
   const theme = useTheme();
 
@@ -195,7 +198,7 @@ export const IncludedFeatures = forwardRef<
                       >
                         {typeof allocation === "number"
                           ? `${formatNumber(allocation)} ${pluralize(feature.name, allocation)}`
-                          : `Unlimited ${pluralize(feature.name)}`}
+                          : t("Unlimited", { item: pluralize(feature.name) })}
                       </Text>
                     </Box>
                   )}
@@ -216,8 +219,13 @@ export const IncludedFeatures = forwardRef<
                         {typeof usage === "number" && (
                           <>
                             {typeof allocation === "number"
-                              ? `${formatNumber(usage)} of ${formatNumber(allocation)} used`
-                              : `${formatNumber(usage)} used`}
+                              ? t("usage.limited", {
+                                  amount: formatNumber(usage),
+                                  allocation: formatNumber(allocation),
+                                })
+                              : t("usage.unlimited", {
+                                  amount: formatNumber(usage),
+                                })}
                           </>
                         )}
                       </Text>

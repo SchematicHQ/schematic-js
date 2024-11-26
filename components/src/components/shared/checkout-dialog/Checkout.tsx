@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 import { type Stripe } from "@stripe/stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
@@ -22,6 +23,8 @@ export const Checkout = ({
   showPaymentForm,
   stripe,
 }: CheckoutProps) => {
+  const { t } = useTranslation();
+
   const theme = useTheme();
 
   const { data } = useEmbed();
@@ -61,7 +64,7 @@ export const Checkout = ({
           }}
         >
           <Box $width="100%" $marginBottom="1.5rem">
-            <Text $size={18}>Add payment method</Text>
+            <Text $size={18}>{t("Add payment method")}</Text>
           </Box>
 
           <PaymentForm onConfirm={(value) => setPaymentMethodId(value)} />
@@ -75,7 +78,7 @@ export const Checkout = ({
                 $weight={theme.typography.link.fontWeight}
                 $color={theme.typography.link.color}
               >
-                Use existing payment method
+                {t("Use existing payment method")}
               </Text>
             </Box>
           )}
@@ -92,7 +95,7 @@ export const Checkout = ({
               $weight={theme.typography.link.fontWeight}
               $color={theme.typography.link.color}
             >
-              Change payment method
+              {t("Change payment method")}
             </Text>
           </Box>
         </>
