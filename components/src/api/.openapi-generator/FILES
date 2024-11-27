@@ -62,5 +62,6 @@ models/StripeEmbedInfo.ts
 models/UpdateAddOnRequestBody.ts
 models/UpdatePaymentMethodRequestBody.ts
 models/UpdatePaymentMethodResponse.ts
+models/UsageBasedEntitlementResponseData.ts
 models/index.ts
 runtime.ts

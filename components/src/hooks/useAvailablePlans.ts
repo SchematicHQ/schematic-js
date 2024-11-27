@@ -58,24 +58,21 @@ export function useAvailablePlans(activePeriod: string) {
     return {
       plans: getActivePlans(data.activePlans),
       addOns: getActivePlans(data.activeAddOns),
-      usageBasedEntitlements:
-        // @ts-expect-error: not implemented yet
-        (data.activeUsageBasedEntitlements || [
-          {
-            id: "e1",
-            feature: { id: "f1", name: "Seats", description: "Allows seats" },
-            meteredPrice: {
-              price: 100,
-              interval: "month",
-            },
+      usageBasedEntitlements: (data.activeUsageBasedEntitlements || [
+        {
+          id: "e1",
+          feature: { id: "f1", name: "Seats", description: "Allows seats" },
+          meteredPrice: {
+            price: 100,
+            interval: "month",
           },
-        ]) as RecursivePartial<PlanEntitlementResponseData>[],
+        },
+      ]) as RecursivePartial<PlanEntitlementResponseData>[],
       periods: getAvailablePeriods(),
     };
   }, [
     data.activePlans,
     data.activeAddOns,
-    // @ts-expect-error: not implemented yet
     data.activeUsageBasedEntitlements,
     getAvailablePeriods,
     getActivePlans,

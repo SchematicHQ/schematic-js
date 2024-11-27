@@ -449,6 +449,7 @@ export const CheckoutDialog = ({
             <Usage
               isLoading={isLoading}
               period={planPeriod}
+              selectedPlan={selectedPlan}
               usageBasedEntitlements={usageBasedEntitlements}
               updateQuantity={(id) => updateUsageBasedEntitlementQuantity(id)}
             />

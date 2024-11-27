@@ -196,6 +196,7 @@ export const EmbedContext = createContext<EmbedContextProps>({
   data: {
     activeAddOns: [],
     activePlans: [],
+    activeUsageBasedEntitlements: [],
   },
   nodes: [],
   settings: { ...defaultSettings },
@@ -246,6 +247,7 @@ export const EmbedProvider = ({
       data: {
         activeAddOns: [],
         activePlans: [],
+        activeUsageBasedEntitlements: [],
       },
       nodes: [],
       settings: { ...defaultSettings },
