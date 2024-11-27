@@ -79,7 +79,13 @@ export interface PlanEntitlementResponseData {
    * @type {BillingPriceView}
    * @memberof PlanEntitlementResponseData
    */
-  meteredPrice?: BillingPriceView;
+  meteredMonthlyPrice?: BillingPriceView;
+  /**
+   *
+   * @type {BillingPriceView}
+   * @memberof PlanEntitlementResponseData
+   */
+  meteredYearlyPrice?: BillingPriceView;
   /**
    *
    * @type {string}
@@ -194,10 +200,14 @@ export function PlanEntitlementResponseDataFromJSONTyped(
         : FeatureResponseDataFromJSON(json["feature"]),
     featureId: json["feature_id"],
     id: json["id"],
-    meteredPrice:
-      json["metered_price"] == null
+    meteredMonthlyPrice:
+      json["metered_monthly_price"] == null
         ? undefined
-        : BillingPriceViewFromJSON(json["metered_price"]),
+        : BillingPriceViewFromJSON(json["metered_monthly_price"]),
+    meteredYearlyPrice:
+      json["metered_yearly_price"] == null
+        ? undefined
+        : BillingPriceViewFromJSON(json["metered_yearly_price"]),
     metricPeriod:
       json["metric_period"] == null ? undefined : json["metric_period"],
     metricPeriodMonthReset:
@@ -236,7 +246,8 @@ export function PlanEntitlementResponseDataToJSON(
     feature: FeatureResponseDataToJSON(value["feature"]),
     feature_id: value["featureId"],
     id: value["id"],
-    metered_price: BillingPriceViewToJSON(value["meteredPrice"]),
+    metered_monthly_price: BillingPriceViewToJSON(value["meteredMonthlyPrice"]),
+    metered_yearly_price: BillingPriceViewToJSON(value["meteredYearlyPrice"]),
     metric_period: value["metricPeriod"],
     metric_period_month_reset: value["metricPeriodMonthReset"],
     plan: PlanResponseDataToJSON(value["plan"]),

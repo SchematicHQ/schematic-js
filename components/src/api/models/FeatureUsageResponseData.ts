@@ -69,6 +69,12 @@ export interface FeatureUsageResponseData {
    */
   feature?: FeatureDetailResponseData;
   /**
+   * The time at which the metric will resets.
+   * @type {Date}
+   * @memberof FeatureUsageResponseData
+   */
+  metricResetAt?: Date | null;
+  /**
    * If the period is current_month, when the month resets.
    * @type {string}
    * @memberof FeatureUsageResponseData
@@ -145,6 +151,10 @@ export function FeatureUsageResponseDataFromJSONTyped(
       json["feature"] == null
         ? undefined
         : FeatureDetailResponseDataFromJSON(json["feature"]),
+    metricResetAt:
+      json["metric_reset_at"] == null
+        ? undefined
+        : new Date(json["metric_reset_at"]),
     monthReset: json["month_reset"] == null ? undefined : json["month_reset"],
     period: json["period"] == null ? undefined : json["period"],
     plan:
@@ -166,6 +176,10 @@ export function FeatureUsageResponseDataToJSON(
     entitlement_id: value["entitlementId"],
     entitlement_type: value["entitlementType"],
     feature: FeatureDetailResponseDataToJSON(value["feature"]),
+    metric_reset_at:
+      value["metricResetAt"] == null
+        ? undefined
+        : (value["metricResetAt"] as any).toISOString(),
     month_reset: value["monthReset"],
     period: value["period"],
     plan: PlanResponseDataToJSON(value["plan"]),
