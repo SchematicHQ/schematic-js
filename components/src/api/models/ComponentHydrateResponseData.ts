@@ -19,6 +19,12 @@ import {
   CompanyPlanDetailResponseDataFromJSONTyped,
   CompanyPlanDetailResponseDataToJSON,
 } from "./CompanyPlanDetailResponseData";
+import type { UsageBasedEntitlementResponseData } from "./UsageBasedEntitlementResponseData";
+import {
+  UsageBasedEntitlementResponseDataFromJSON,
+  UsageBasedEntitlementResponseDataFromJSONTyped,
+  UsageBasedEntitlementResponseDataToJSON,
+} from "./UsageBasedEntitlementResponseData";
 import type { ComponentCapabilities } from "./ComponentCapabilities";
 import {
   ComponentCapabilitiesFromJSON,
@@ -82,6 +88,12 @@ export interface ComponentHydrateResponseData {
   activePlans: Array<CompanyPlanDetailResponseData>;
   /**
    *
+   * @type {Array<UsageBasedEntitlementResponseData>}
+   * @memberof ComponentHydrateResponseData
+   */
+  activeUsageBasedEntitlements: Array<UsageBasedEntitlementResponseData>;
+  /**
+   *
    * @type {ComponentCapabilities}
    * @memberof ComponentHydrateResponseData
    */
@@ -134,6 +146,11 @@ export function instanceOfComponentHydrateResponseData(
     return false;
   if (!("activePlans" in value) || value["activePlans"] === undefined)
     return false;
+  if (
+    !("activeUsageBasedEntitlements" in value) ||
+    value["activeUsageBasedEntitlements"] === undefined
+  )
+    return false;
   return true;
 }
 
@@ -157,6 +174,9 @@ export function ComponentHydrateResponseDataFromJSONTyped(
     activePlans: (json["active_plans"] as Array<any>).map(
       CompanyPlanDetailResponseDataFromJSON,
     ),
+    activeUsageBasedEntitlements: (
+      json["active_usage_based_entitlements"] as Array<any>
+    ).map(UsageBasedEntitlementResponseDataFromJSON),
     capabilities:
       json["capabilities"] == null
         ? undefined
@@ -201,6 +221,9 @@ export function ComponentHydrateResponseDataToJSON(
     active_plans: (value["activePlans"] as Array<any>).map(
       CompanyPlanDetailResponseDataToJSON,
     ),
+    active_usage_based_entitlements: (
+      value["activeUsageBasedEntitlements"] as Array<any>
+    ).map(UsageBasedEntitlementResponseDataToJSON),
     capabilities: ComponentCapabilitiesToJSON(value["capabilities"]),
     company: CompanyDetailResponseDataToJSON(value["company"]),
     component: ComponentResponseDataToJSON(value["component"]),
