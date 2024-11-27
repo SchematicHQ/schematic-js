@@ -496,19 +496,17 @@ export const PricingTable = forwardRef<
                             setSelectedPlanId(isActivePlan ? null : plan.id);
                             setLayout("checkout");
                           }}
-                          {
-                            ...(index > currentPlanIndex
-                              ? {
-                                  $size: props.upgrade.buttonSize,
-                                  $color: props.upgrade.buttonStyle,
-                                  $variant: "filled",
-                                }
-                              : {
-                                  $size: props.downgrade.buttonSize,
-                                  $color: props.downgrade.buttonStyle,
-                                  $variant: "outline",
-                                })
-                          }
+                          {...(index > currentPlanIndex
+                            ? {
+                                $size: props.upgrade.buttonSize,
+                                $color: props.upgrade.buttonStyle,
+                                $variant: "filled",
+                              }
+                            : {
+                                $size: props.downgrade.buttonSize,
+                                $color: props.downgrade.buttonStyle,
+                                $variant: "outline",
+                              })}
                         >
                           {!plan.valid ? (
                             <Tooltip
