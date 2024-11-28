@@ -175,7 +175,7 @@ export function ComponentHydrateResponseDataFromJSONTyped(
       CompanyPlanDetailResponseDataFromJSON,
     ),
     activeUsageBasedEntitlements: (
-      json["active_usage_based_entitlements"] as Array<any>
+      (json["active_usage_based_entitlements"] || []) as Array<any>
     ).map(UsageBasedEntitlementResponseDataFromJSON),
     capabilities:
       json["capabilities"] == null
@@ -222,7 +222,7 @@ export function ComponentHydrateResponseDataToJSON(
       CompanyPlanDetailResponseDataToJSON,
     ),
     active_usage_based_entitlements: (
-      value["activeUsageBasedEntitlements"] as Array<any>
+      (value["activeUsageBasedEntitlements"] || []) as Array<any>
     ).map(UsageBasedEntitlementResponseDataToJSON),
     capabilities: ComponentCapabilitiesToJSON(value["capabilities"]),
     company: CompanyDetailResponseDataToJSON(value["company"]),

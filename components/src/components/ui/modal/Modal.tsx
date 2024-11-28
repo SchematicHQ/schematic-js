@@ -49,7 +49,9 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(
         $height="100%"
         $marginTop={`${top}px`}
         $backgroundColor={
-          isLightBackground ? "hsla(0, 0%, 85%, 0.8)" : "hsla(0, 0%, 0%, 0.8)"
+          isLightBackground
+            ? "hsla(0, 0%, 87.5%, 0.9)"
+            : "hsla(0, 0%, 12.5%, 0.9)"
         }
         $overflow="hidden"
         $scrollbarColor={`${isLightBackground ? "hsla(0, 0%, 0%, 0.15)" : "hsla(0, 0%, 100%, 0.15)"} transparent`}
@@ -84,10 +86,12 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(
                         ? "480px"
                         : size === "md"
                           ? "688px"
-                          : "1356px",
-                    $maxHeight: "860px",
+                          : "1280px",
                   }),
               $borderRadius: "0.5rem",
+            },
+            "@media (min-height: 896px)": {
+              $maxHeight: "768px",
             },
           }}
         >

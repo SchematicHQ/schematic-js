@@ -237,10 +237,14 @@ export const PaymentMethod = forwardRef<
 
   useLayoutEffect(() => {
     const parent = portal || document.body;
-    const value = Math.abs(parent.getBoundingClientRect().top ?? 0);
+    const value = Math.abs(
+      (parent === document.body ? window.scrollY : parent.scrollTop) ?? 0,
+    );
     setTop(value);
 
-    parent.style.overflow = layout === "payment" ? "hidden" : "";
+    parent.style.overflow = ["checkout", "payment"].includes(layout)
+      ? "hidden"
+      : "";
 
     return () => {
       parent.style.overflow = "";
