@@ -2,16 +2,18 @@ import * as uuid from "uuid";
 
 import "cross-fetch/polyfill";
 import {
+  CheckFlagOutputWithFlagKey,
+  CreateEventRequestBodyEventTypeEnum,
+  EventBody,
+  EventBodyIdentify,
+  EventBodyTrack,
+} from "./api/models";
+import {
   BooleanListenerFn,
   ListenerFn,
   EmptyListenerFn,
   CheckOptions,
   Event,
-  EventBody,
-  EventBodyIdentify,
-  EventBodyTrack,
-  EventType,
-  FlagCheckWithKeyResponseBody,
   SchematicContext,
   SchematicOptions,
   StoragePersister,
@@ -207,7 +209,7 @@ export class Schematic {
         return (data?.data?.flags ?? []).reduce(
           (
             accum: Record<string, boolean>,
-            flag: FlagCheckWithKeyResponseBody,
+            flag: CheckFlagOutputWithFlagKey,
           ) => {
             accum[flag.flag] = flag.value;
             return accum;
@@ -311,16 +313,16 @@ export class Schematic {
   };
 
   private handleEvent = (
-    eventType: EventType,
+    eventType: CreateEventRequestBodyEventTypeEnum,
     eventBody: EventBody,
   ): Promise<void> => {
-    const event: Event = {
+    const event = {
       api_key: this.apiKey,
       body: eventBody,
-      sent_at: new Date().toISOString(),
+      eventType,
+      sentAt: new Date(),
       tracker_event_id: uuid.v4(),
       tracker_user_id: this.getAnonymousId(),
-      type: eventType,
     };
 
     if (document?.hidden) {
@@ -421,12 +423,10 @@ export class Schematic {
           }
 
           // Message may contain only a subset of flags; merge with existing context
-          (message.flags ?? []).forEach(
-            (flag: FlagCheckWithKeyResponseBody) => {
-              this.values[contextString(context)][flag.flag] = flag.value;
-              this.notifyFlagValueListeners(flag.flag, flag.value);
-            },
-          );
+          (message.flags ?? []).forEach((flag: CheckFlagOutputWithFlagKey) => {
+            this.values[contextString(context)][flag.flag] = flag.value;
+            this.notifyFlagValueListeners(flag.flag, flag.value);
+          });
 
           // Notify flag listener (deprecating soon)
           if (this.flagListener) {
