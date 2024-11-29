@@ -4,10 +4,12 @@ import "cross-fetch/polyfill";
 import {
   CheckFlagOutputWithFlagKey,
   CreateEventRequestBodyEventTypeEnum,
+  Configuration as apiConfig,
   EventBody,
   EventBodyIdentify,
   EventBodyTrack,
-} from "./api/models";
+  FeaturesApi,
+} from "./api";
 import {
   BooleanListenerFn,
   ListenerFn,
@@ -26,7 +28,7 @@ const anonymousIdKey = "schematicId";
 export class Schematic {
   private additionalHeaders: Record<string, string> = {};
   private apiKey: string;
-  private apiUrl = "https://api.schematichq.com";
+  private apiClient: FeaturesApi;
   private conn: Promise<WebSocket> | null = null;
   private context: SchematicContext = {};
   private eventQueue: Event[];
@@ -43,21 +45,24 @@ export class Schematic {
   constructor(apiKey: string, options?: SchematicOptions) {
     this.apiKey = apiKey;
     this.eventQueue = [];
-    this.useWebSocket = options?.useWebSocket ?? false;
     this.flagListener = options?.flagListener;
-
+    this.useWebSocket = options?.useWebSocket ?? false;
     if (options?.additionalHeaders) {
       this.additionalHeaders = options.additionalHeaders;
     }
+
+    this.apiClient = new FeaturesApi(
+      new apiConfig({
+        apiKey,
+        headers: options?.additionalHeaders,
+        basePath: options?.apiUrl,
+      }),
+    );
 
     if (options?.storage) {
       this.storage = options.storage;
     } else if (typeof localStorage !== "undefined") {
       this.storage = localStorage;
-    }
-
-    if (options?.apiUrl !== undefined) {
-      this.apiUrl = options.apiUrl;
     }
 
     if (options?.eventUrl !== undefined) {
@@ -89,29 +94,17 @@ export class Schematic {
     const contextStr = contextString(context);
 
     if (!this.useWebSocket) {
-      const requestUrl = `${this.apiUrl}/flags/${key}/check`;
-      return fetch(requestUrl, {
-        method: "POST",
-        headers: {
-          ...(this.additionalHeaders ?? {}),
-          "Content-Type": "application/json;charset=UTF-8",
-          "X-Schematic-Api-Key": this.apiKey,
-        },
-        body: JSON.stringify(context),
-      })
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error("Network response was not ok");
-          }
-          return response.json();
-        })
-        .then((data) => {
-          return data.data.value;
-        })
-        .catch((error) => {
-          console.error("There was a problem with the fetch operation:", error);
-          return fallback;
+      try {
+        const resp = await this.apiClient.checkFlag({
+          key,
+          checkFlagRequestBody: context,
         });
+
+        return resp?.data?.value ?? fallback;
+      } catch (error) {
+        console.error("There was a problem with the fetch operation:", error);
+        return fallback;
+      }
     }
 
     try {
@@ -156,23 +149,12 @@ export class Schematic {
     fallback: boolean,
   ): Promise<boolean> {
     try {
-      const requestUrl = `${this.apiUrl}/flags/${key}/check`;
-      const response = await fetch(requestUrl, {
-        method: "POST",
-        headers: {
-          ...(this.additionalHeaders ?? {}),
-          "Content-Type": "application/json;charset=UTF-8",
-          "X-Schematic-Api-Key": this.apiKey,
-        },
-        body: JSON.stringify(context),
+      const resp = await this.apiClient.checkFlag({
+        key,
+        checkFlagRequestBody: context,
       });
 
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-
-      const data = await response.json();
-      return data.data.value;
+      return resp?.data?.value ?? fallback;
     } catch (error) {
       console.error("REST API call failed, using fallback value:", error);
       return fallback;
@@ -186,41 +168,24 @@ export class Schematic {
   checkFlags = async (
     context?: SchematicContext,
   ): Promise<Record<string, boolean>> => {
-    context = context || this.context;
+    context = context ?? this.context;
 
-    const requestUrl = `${this.apiUrl}/flags/check`;
-    const requestBody = JSON.stringify(context);
-    return fetch(requestUrl, {
-      method: "POST",
-      headers: {
-        ...(this.additionalHeaders ?? {}),
-        "Content-Type": "application/json;charset=UTF-8",
-        "X-Schematic-Api-Key": this.apiKey,
-      },
-      body: requestBody,
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-        return response.json();
-      })
-      .then((data) => {
-        return (data?.data?.flags ?? []).reduce(
-          (
-            accum: Record<string, boolean>,
-            flag: CheckFlagOutputWithFlagKey,
-          ) => {
-            accum[flag.flag] = flag.value;
-            return accum;
-          },
-          {},
-        );
-      })
-      .catch((error) => {
-        console.error("There was a problem with the fetch operation:", error);
-        return false;
+    try {
+      const resp = await this.apiClient.checkFlags({
+        checkFlagRequestBody: context,
       });
+
+      return (resp?.data?.flags ?? []).reduce(
+        (accum: Record<string, boolean>, flag: CheckFlagOutputWithFlagKey) => {
+          accum[flag.flag] = flag.value;
+          return accum;
+        },
+        {},
+      );
+    } catch (error) {
+      console.error("There was a problem with the fetch operation:", error);
+      return {};
+    }
   };
 
   /**
