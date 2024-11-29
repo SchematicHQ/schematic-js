@@ -1,4 +1,5 @@
 import { Icon, IconNameTypes } from "./Icon";
+import iconsList from "./icons.js";
 import { Container } from "./styles";
 
 export interface IconRoundProps extends React.HTMLAttributes<HTMLElement> {
@@ -15,9 +16,16 @@ export const IconRound = ({
   colors = ["white", "#e5e7eb"],
   ...props
 }: IconRoundProps) => {
+  const iconNamesSet = new Set<IconNameTypes>(
+    Object.keys(iconsList) as IconNameTypes[],
+  );
+
+  const isIconName = (value: string): value is IconNameTypes => {
+    return iconNamesSet.has(value as IconNameTypes);
+  };
   return (
     <Container $size={size} $variant={variant} $colors={colors} {...props}>
-      <Icon name={name} />
+      {isIconName(name) ? <Icon name={name} /> : name}
     </Container>
   );
 };
