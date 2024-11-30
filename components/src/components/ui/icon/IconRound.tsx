@@ -3,7 +3,7 @@ import iconsList from "./icons.js";
 import { Container } from "./styles";
 
 export interface IconRoundProps extends React.HTMLAttributes<HTMLElement> {
-  name: IconNameTypes;
+  name: IconNameTypes | string;
   variant?: "outline" | "filled";
   size?: "tn" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl";
   colors?: [string, string];
@@ -25,7 +25,17 @@ export const IconRound = ({
   };
   return (
     <Container $size={size} $variant={variant} $colors={colors} {...props}>
-      {isIconName(name) ? <Icon name={name} /> : name}
+      {isIconName(name) ? (
+        <Icon name={name} />
+      ) : (
+        <span
+          style={{
+            fontSize: "1rem",
+          }}
+        >
+          {name}
+        </span>
+      )}
     </Container>
   );
 };

@@ -135,7 +135,7 @@ export const MeteredFeatures = forwardRef<
           <Element as={Flex} key={index} $gap="1.5rem">
             {props.icon.isVisible && feature?.icon && (
               <IconRound
-                name={feature.icon as IconNameTypes}
+                name={feature.icon as IconNameTypes | string}
                 size="sm"
                 colors={[
                   theme.primary,

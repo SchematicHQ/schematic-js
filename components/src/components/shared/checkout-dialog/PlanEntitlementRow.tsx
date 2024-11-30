@@ -48,7 +48,7 @@ export const PlanEntitlementRow = ({
       <Flex $gap="1rem">
         {feature?.icon && (
           <IconRound
-            name={feature.icon as IconNameTypes}
+            name={feature.icon as IconNameTypes | string}
             size="sm"
             colors={[
               theme.primary,
