@@ -1,4 +1,4 @@
-import { forwardRef, useRef } from "react";
+import { forwardRef, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 import pluralize from "pluralize";
@@ -12,7 +12,7 @@ import {
 import type { RecursivePartial, ElementProps } from "../../../types";
 import { formatNumber } from "../../../utils";
 import { Element } from "../../layout";
-import { Box, Flex, IconRound, Text, type IconNameTypes } from "../../ui";
+import { Box, Flex, Icon, IconRound, Text, type IconNameTypes } from "../../ui";
 
 interface DesignProps {
   header: {
@@ -69,6 +69,10 @@ export const IncludedFeatures = forwardRef<
     RecursivePartial<DesignProps> &
     React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...rest }, ref) => {
+  const visibleCount = 4;
+  const [showAll, setShowAll] = useState(visibleCount);
+  const [isExpanded, setIsExpanded] = useState(false); // New state
+
   const props = resolveDesignProps(rest);
 
   const { t } = useTranslation();
@@ -106,6 +110,15 @@ export const IncludedFeatures = forwardRef<
     (data.company?.addOns ?? []).length > 0 ||
     false;
 
+  const handleToggleShowAll = () => {
+    if (isExpanded) {
+      setShowAll(visibleCount);
+    } else {
+      setShowAll(featureUsage.length);
+    }
+    setIsExpanded(!isExpanded); // Toggle state
+  };
+
   if (!shouldShowFeatures) {
     return null;
   }
@@ -131,111 +144,143 @@ export const IncludedFeatures = forwardRef<
         </Box>
       )}
 
-      {featureUsage.map(({ allocation, feature, usage }, index) => {
-        return (
-          <Flex
-            key={index}
-            ref={(el) => el && elements.current.push(el)}
-            $flexWrap="wrap"
-            $justifyContent="space-between"
-            $alignItems="center"
-            $gap="1rem"
-          >
-            <Flex $flexGrow="1" $flexBasis="min-content" $gap="1rem">
-              {props.icons.isVisible && feature?.icon && (
-                <IconRound
-                  name={feature.icon as IconNameTypes}
-                  size="sm"
-                  colors={[
-                    theme.primary,
-                    isLightBackground
-                      ? "hsla(0, 0%, 0%, 0.0625)"
-                      : "hsla(0, 0%, 100%, 0.25)",
-                  ]}
-                />
-              )}
+      {featureUsage
+        .slice(0, showAll)
+        .map(({ allocation, feature, usage }, index) => {
+          return (
+            <Flex
+              key={index}
+              ref={(el) => el && elements.current.push(el)}
+              $flexWrap="wrap"
+              $justifyContent="space-between"
+              $alignItems="center"
+              $gap="1rem"
+            >
+              <Flex $flexGrow="1" $flexBasis="min-content" $gap="1rem">
+                {props.icons.isVisible && feature?.icon && (
+                  <IconRound
+                    name={feature.icon as IconNameTypes | string}
+                    size="sm"
+                    colors={[
+                      theme.primary,
+                      isLightBackground
+                        ? "hsla(0, 0%, 0%, 0.0625)"
+                        : "hsla(0, 0%, 100%, 0.25)",
+                    ]}
+                  />
+                )}
 
-              {feature?.name && (
-                <Flex $alignItems="center">
-                  <Text
-                    $font={theme.typography[props.icons.fontStyle].fontFamily}
-                    $size={theme.typography[props.icons.fontStyle].fontSize}
-                    $weight={theme.typography[props.icons.fontStyle].fontWeight}
-                    $color={theme.typography[props.icons.fontStyle].color}
+                {feature?.name && (
+                  <Flex $alignItems="center">
+                    <Text
+                      $font={theme.typography[props.icons.fontStyle].fontFamily}
+                      $size={theme.typography[props.icons.fontStyle].fontSize}
+                      $weight={
+                        theme.typography[props.icons.fontStyle].fontWeight
+                      }
+                      $color={theme.typography[props.icons.fontStyle].color}
+                    >
+                      {feature.name}
+                    </Text>
+                  </Flex>
+                )}
+              </Flex>
+
+              {(feature?.featureType === "event" ||
+                feature?.featureType === "trait") &&
+                feature?.name && (
+                  <Box
+                    $flexBasis="min-content"
+                    $flexGrow="1"
+                    $textAlign={shouldWrapChildren ? "left" : "right"}
                   >
-                    {feature.name}
-                  </Text>
-                </Flex>
-              )}
+                    {props.entitlement.isVisible && (
+                      <Box $whiteSpace="nowrap">
+                        <Text
+                          $font={
+                            theme.typography[props.entitlement.fontStyle]
+                              .fontFamily
+                          }
+                          $size={
+                            theme.typography[props.entitlement.fontStyle]
+                              .fontSize
+                          }
+                          $weight={
+                            theme.typography[props.entitlement.fontStyle]
+                              .fontWeight
+                          }
+                          $leading={1}
+                          $color={
+                            theme.typography[props.entitlement.fontStyle].color
+                          }
+                        >
+                          {typeof allocation === "number"
+                            ? `${formatNumber(allocation)} ${pluralize(
+                                feature.name,
+                                allocation,
+                              )}`
+                            : t("Unlimited", { item: pluralize(feature.name) })}
+                        </Text>
+                      </Box>
+                    )}
+                    {props.usage.isVisible && (
+                      <Box $whiteSpace="nowrap">
+                        <Text
+                          $font={
+                            theme.typography[props.usage.fontStyle].fontFamily
+                          }
+                          $size={
+                            theme.typography[props.usage.fontStyle].fontSize
+                          }
+                          $weight={
+                            theme.typography[props.usage.fontStyle].fontWeight
+                          }
+                          $leading={1}
+                          $color={theme.typography[props.usage.fontStyle].color}
+                        >
+                          {typeof usage === "number" && (
+                            <>
+                              {typeof allocation === "number"
+                                ? t("usage.limited", {
+                                    amount: formatNumber(usage),
+                                    allocation: formatNumber(allocation),
+                                  })
+                                : t("usage.unlimited", {
+                                    amount: formatNumber(usage),
+                                  })}
+                            </>
+                          )}
+                        </Text>
+                      </Box>
+                    )}
+                  </Box>
+                )}
             </Flex>
+          );
+        })}
 
-            {(feature?.featureType === "event" ||
-              feature?.featureType === "trait") &&
-              feature?.name && (
-                <Box
-                  $flexBasis="min-content"
-                  $flexGrow="1"
-                  $textAlign={shouldWrapChildren ? "left" : "right"}
-                >
-                  {props.entitlement.isVisible && (
-                    <Box $whiteSpace="nowrap">
-                      <Text
-                        $font={
-                          theme.typography[props.entitlement.fontStyle]
-                            .fontFamily
-                        }
-                        $size={
-                          theme.typography[props.entitlement.fontStyle].fontSize
-                        }
-                        $weight={
-                          theme.typography[props.entitlement.fontStyle]
-                            .fontWeight
-                        }
-                        $leading={1.25}
-                        $color={
-                          theme.typography[props.entitlement.fontStyle].color
-                        }
-                      >
-                        {typeof allocation === "number"
-                          ? `${formatNumber(allocation)} ${pluralize(feature.name, allocation)}`
-                          : t("Unlimited", { item: pluralize(feature.name) })}
-                      </Text>
-                    </Box>
-                  )}
-
-                  {props.usage.isVisible && (
-                    <Box $whiteSpace="nowrap">
-                      <Text
-                        $font={
-                          theme.typography[props.usage.fontStyle].fontFamily
-                        }
-                        $size={theme.typography[props.usage.fontStyle].fontSize}
-                        $weight={
-                          theme.typography[props.usage.fontStyle].fontWeight
-                        }
-                        $leading={1.5}
-                        $color={theme.typography[props.usage.fontStyle].color}
-                      >
-                        {typeof usage === "number" && (
-                          <>
-                            {typeof allocation === "number"
-                              ? t("usage.limited", {
-                                  amount: formatNumber(usage),
-                                  allocation: formatNumber(allocation),
-                                })
-                              : t("usage.unlimited", {
-                                  amount: formatNumber(usage),
-                                })}
-                          </>
-                        )}
-                      </Text>
-                    </Box>
-                  )}
-                </Box>
-              )}
-          </Flex>
-        );
-      })}
+      <Flex $alignItems="center" $justifyContent="start" $marginTop="1rem">
+        <Icon
+          name={isExpanded ? "chevron-up" : "chevron-down"}
+          style={{
+            fontSize: "1.4rem",
+            lineHeight: "1em",
+            marginRight: ".25rem",
+            color: "#D0D0D0",
+          }}
+        />
+        <Text
+          onClick={handleToggleShowAll}
+          $font={theme.typography.link.fontFamily}
+          $size={theme.typography.link.fontSize}
+          $weight={theme.typography.link.fontWeight}
+          $leading={1}
+          $color={theme.typography.link.color}
+          style={{ cursor: "pointer" }}
+        >
+          {isExpanded ? t("Hide all") : t("See all")}
+        </Text>
+      </Flex>
     </Element>
   );
 });

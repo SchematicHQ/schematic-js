@@ -115,6 +115,10 @@ export const PricingTable = forwardRef<
       portal?: HTMLElement | null;
     }
 >(({ children, className, portal, ...rest }, ref) => {
+  const visibleCount = 4;
+  const [showAll, setShowAll] = useState(visibleCount);
+  const [isExpanded, setIsExpanded] = useState(false);
+
   const props = resolveDesignProps(rest);
 
   const { t } = useTranslation();
@@ -139,6 +143,15 @@ export const PricingTable = forwardRef<
 
   const currentPlanIndex = plans.findIndex((plan) => plan.current);
 
+  const handleToggleShowAll = () => {
+    if (isExpanded) {
+      setShowAll(visibleCount);
+      setIsExpanded(false);
+    } else {
+      setShowAll(plans.length);
+      setIsExpanded(true);
+    }
+  };
   return (
     <FussyChild
       ref={ref}
@@ -352,68 +365,101 @@ export const PricingTable = forwardRef<
                           </Box>
                         )}
 
-                        {plan.entitlements.map((entitlement) => {
-                          return (
-                            <Flex key={entitlement.id} $gap="1rem">
-                              {props.plans.showFeatureIcons &&
-                                entitlement.feature?.icon && (
-                                  <IconRound
-                                    name={
-                                      entitlement.feature.icon as IconNameTypes
-                                    }
-                                    size="sm"
-                                    colors={[
-                                      theme.primary,
-                                      isLightBackground
-                                        ? "hsla(0, 0%, 0%, 0.0625)"
-                                        : "hsla(0, 0%, 100%, 0.25)",
-                                    ]}
-                                  />
-                                )}
+                        {plan.entitlements
+                          .slice(0, showAll)
+                          .map((entitlement) => {
+                            return (
+                              <Flex key={entitlement.id} $gap="1rem">
+                                {props.plans.showFeatureIcons &&
+                                  entitlement.feature?.icon && (
+                                    <IconRound
+                                      name={
+                                        entitlement.feature.icon as
+                                          | IconNameTypes
+                                          | string
+                                      }
+                                      size="sm"
+                                      colors={[
+                                        theme.primary,
+                                        isLightBackground
+                                          ? "hsla(0, 0%, 0%, 0.0625)"
+                                          : "hsla(0, 0%, 100%, 0.25)",
+                                      ]}
+                                    />
+                                  )}
 
-                              {entitlement.feature?.name && (
-                                <Flex $alignItems="center">
-                                  <Text
-                                    $font={theme.typography.text.fontFamily}
-                                    $size={theme.typography.text.fontSize}
-                                    $weight={theme.typography.text.fontWeight}
-                                    $color={theme.typography.text.color}
-                                  >
-                                    {entitlement.valueType === "numeric" ||
-                                    entitlement.valueType === "unlimited" ||
-                                    entitlement.valueType === "trait" ? (
-                                      <>
-                                        {typeof entitlement.valueNumeric ===
-                                        "number"
-                                          ? `${formatNumber(entitlement.valueNumeric)} ${pluralize(entitlement.feature.name, entitlement.valueNumeric)}`
-                                          : t("Unlimited", {
-                                              item: pluralize(
-                                                entitlement.feature.name,
-                                              ),
-                                            })}
-                                        {entitlement.metricPeriod && (
-                                          <>
-                                            {t("per")}{" "}
-                                            {
+                                {entitlement.feature?.name && (
+                                  <Flex $alignItems="center">
+                                    <Text
+                                      $font={theme.typography.text.fontFamily}
+                                      $size={theme.typography.text.fontSize}
+                                      $weight={theme.typography.text.fontWeight}
+                                      $color={theme.typography.text.color}
+                                    >
+                                      {entitlement.valueType === "numeric" ||
+                                      entitlement.valueType === "unlimited" ||
+                                      entitlement.valueType === "trait" ? (
+                                        <>
+                                          {typeof entitlement.valueNumeric ===
+                                          "number"
+                                            ? `${formatNumber(entitlement.valueNumeric)} ${pluralize(entitlement.feature.name, entitlement.valueNumeric)}`
+                                            : t("Unlimited", {
+                                                item: pluralize(
+                                                  entitlement.feature.name,
+                                                ),
+                                              })}
+                                          {entitlement.metricPeriod && (
+                                            <>
+                                              {t("per")}{" "}
                                               {
-                                                billing: "billing period",
-                                                current_day: "day",
-                                                current_month: "month",
-                                                current_year: "year",
-                                              }[entitlement.metricPeriod]
-                                            }
-                                          </>
-                                        )}
-                                      </>
-                                    ) : (
-                                      entitlement.feature.name
-                                    )}
-                                  </Text>
-                                </Flex>
-                              )}
-                            </Flex>
-                          );
-                        })}
+                                                {
+                                                  billing: "billing period",
+                                                  current_day: "day",
+                                                  current_month: "month",
+                                                  current_year: "year",
+                                                }[entitlement.metricPeriod]
+                                              }
+                                            </>
+                                          )}
+                                        </>
+                                      ) : (
+                                        entitlement.feature.name
+                                      )}
+                                    </Text>
+                                  </Flex>
+                                )}
+                              </Flex>
+                            );
+                          })}
+
+                        {plan.entitlements.length > 4 && (
+                          <Flex
+                            $alignItems="center"
+                            $justifyContent="start"
+                            $marginTop="1rem"
+                          >
+                            <Icon
+                              name={isExpanded ? "chevron-up" : "chevron-down"}
+                              style={{
+                                fontSize: "1.4rem",
+                                lineHeight: "1em",
+                                marginRight: ".25rem",
+                                color: "#D0D0D0",
+                              }}
+                            />
+                            <Text
+                              onClick={handleToggleShowAll}
+                              $font={theme.typography.link.fontFamily}
+                              $size={theme.typography.link.fontSize}
+                              $weight={theme.typography.link.fontWeight}
+                              $leading={1}
+                              $color={theme.typography.link.color}
+                              style={{ cursor: "pointer" }}
+                            >
+                              {isExpanded ? t("Hide all") : t("See all")}
+                            </Text>
+                          </Flex>
+                        )}
                       </Flex>
                     )}
 
@@ -451,7 +497,6 @@ export const PricingTable = forwardRef<
                             setLayout("checkout");
                           }}
                           {
-                            // plans are sorted by price, so we can determine grades by index
                             ...(index > currentPlanIndex
                               ? {
                                   $size: props.upgrade.buttonSize,
@@ -681,8 +726,9 @@ export const PricingTable = forwardRef<
                                     entitlement.feature?.icon && (
                                       <IconRound
                                         name={
-                                          entitlement.feature
-                                            .icon as IconNameTypes
+                                          entitlement.feature.icon as
+                                            | IconNameTypes
+                                            | string
                                         }
                                         size="sm"
                                         colors={[
