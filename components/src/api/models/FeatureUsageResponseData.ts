@@ -52,6 +52,12 @@ export interface FeatureUsageResponseData {
   allocationType: FeatureUsageResponseDataAllocationTypeEnum;
   /**
    *
+   * @type {Date}
+   * @memberof FeatureUsageResponseData
+   */
+  entitlementExpirationDate?: Date | null;
+  /**
+   *
    * @type {string}
    * @memberof FeatureUsageResponseData
    */
@@ -145,6 +151,10 @@ export function FeatureUsageResponseDataFromJSONTyped(
     access: json["access"],
     allocation: json["allocation"] == null ? undefined : json["allocation"],
     allocationType: json["allocation_type"],
+    entitlementExpirationDate:
+      json["entitlement_expiration_date"] == null
+        ? undefined
+        : new Date(json["entitlement_expiration_date"]),
     entitlementId: json["entitlement_id"],
     entitlementType: json["entitlement_type"],
     feature:
@@ -173,6 +183,10 @@ export function FeatureUsageResponseDataToJSON(
     access: value["access"],
     allocation: value["allocation"],
     allocation_type: value["allocationType"],
+    entitlement_expiration_date:
+      value["entitlementExpirationDate"] == null
+        ? undefined
+        : (value["entitlementExpirationDate"] as any).toISOString(),
     entitlement_id: value["entitlementId"],
     entitlement_type: value["entitlementType"],
     feature: FeatureDetailResponseDataToJSON(value["feature"]),

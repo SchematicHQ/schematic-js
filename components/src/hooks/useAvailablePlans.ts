@@ -1,9 +1,5 @@
 import { useCallback, useMemo } from "react";
-import type {
-  CompanyPlanDetailResponseData,
-  PlanEntitlementResponseData,
-} from "../api";
-import { RecursivePartial } from "../types";
+import type { CompanyPlanDetailResponseData } from "../api";
 import { useEmbed } from ".";
 
 export function useAvailablePlans(activePeriod: string) {
@@ -58,22 +54,11 @@ export function useAvailablePlans(activePeriod: string) {
     return {
       plans: getActivePlans(data.activePlans),
       addOns: getActivePlans(data.activeAddOns),
-      usageBasedEntitlements: (data.activeUsageBasedEntitlements || [
-        {
-          id: "e1",
-          feature: { id: "f1", name: "Seats", description: "Allows seats" },
-          meteredPrice: {
-            price: 100,
-            interval: "month",
-          },
-        },
-      ]) as RecursivePartial<PlanEntitlementResponseData>[],
       periods: getAvailablePeriods(),
     };
   }, [
     data.activePlans,
     data.activeAddOns,
-    data.activeUsageBasedEntitlements,
     getAvailablePeriods,
     getActivePlans,
   ]);

@@ -76,47 +76,10 @@ export const CheckoutDialog = ({
   const {
     plans: availablePlans,
     addOns: availableAddOns,
-    usageBasedEntitlements: availableUsageBasedEntitlements,
     periods: availablePeriods,
   } = useAvailablePlans(planPeriod);
 
   // memoize data here since some state depends on it
-  const checkoutStages = useMemo(() => {
-    const stages: {
-      id: string;
-      name: string;
-      label?: string;
-      description?: string;
-    }[] = [
-      {
-        id: "plan",
-        name: t("Plan"),
-        label: t("Select plan"),
-        description: t("Choose your base plan"),
-      },
-    ];
-
-    if (availableAddOns.length) {
-      stages.push({
-        id: "addons",
-        name: t("Add-ons"),
-        label: t("Select add-ons"),
-        description: t("Optionally add features to your subscription"),
-      });
-    }
-
-    if (availableUsageBasedEntitlements.length) {
-      stages.push({
-        id: "usage",
-        name: t("Quantity"),
-      });
-    }
-
-    stages.push({ id: "checkout", name: t("Checkout"), label: t("Checkout") });
-
-    return stages;
-  }, [t, availableAddOns, availableUsageBasedEntitlements]);
-
   const currentPlan = data.company?.plan;
   const [selectedPlan, setSelectedPlan] = useState<
     CompanyPlanDetailResponseData | undefined
@@ -141,18 +104,56 @@ export const CheckoutDialog = ({
     })),
   );
 
-  const currentUsageBasedEntitlements =
-    // @ts-expect-error: not implemented yet
-    (data.company?.usageBasedEntitlements ||
-      []) as RecursivePartial<PlanEntitlementResponseData>[];
+  const currentUsageBasedEntitlements = (data.activeUsageBasedEntitlements ||
+    []) as RecursivePartial<PlanEntitlementResponseData>[];
   const [usageBasedEntitlements, setUsageBasedEntitlements] = useState(() =>
-    availableUsageBasedEntitlements.map((entitlement) => ({
+    currentUsageBasedEntitlements.map((entitlement) => ({
       ...entitlement,
-      isSelected: currentUsageBasedEntitlements.some(
-        (currentEntitlement) => entitlement.id === currentEntitlement.id,
-      ),
+      isSelected: true,
     })),
   );
+
+  const checkoutStages = useMemo(() => {
+    const stages: {
+      id: string;
+      name: string;
+      label?: string;
+      description?: string;
+    }[] = [
+      {
+        id: "plan",
+        name: t("Plan"),
+        label: t("Select plan"),
+        description: t("Choose your base plan"),
+      },
+    ];
+
+    if (availableAddOns.length) {
+      stages.push({
+        id: "addons",
+        name: t("Add-ons"),
+        label: t("Select add-ons"),
+        description: t("Optionally add features to your subscription"),
+      });
+    }
+
+    if (
+      selectedPlan?.entitlements.filter(
+        (entitlement) =>
+          (planPeriod === "month" && entitlement.meteredMonthlyPrice) ||
+          (planPeriod === "year" && entitlement.meteredYearlyPrice),
+      ).length
+    ) {
+      stages.push({
+        id: "usage",
+        name: t("Quantity"),
+      });
+    }
+
+    stages.push({ id: "checkout", name: t("Checkout"), label: t("Checkout") });
+
+    return stages;
+  }, [t, planPeriod, availableAddOns, selectedPlan?.entitlements]);
 
   const isLightBackground = useIsLightBackground();
 

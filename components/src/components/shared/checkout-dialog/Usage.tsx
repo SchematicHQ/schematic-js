@@ -28,7 +28,6 @@ export const Usage = ({
   period,
 }: UsageProps) => {
   const { t } = useTranslation();
-
   const theme = useTheme();
 
   const periodKey = period === "year" ? "yearlyPrice" : "monthlyPrice";
