@@ -30,7 +30,7 @@ describe("Schematic", () => {
       expect(mockFetch).toHaveBeenCalledWith(expect.any(String), {
         method: "POST",
         headers: {
-          "Content-Type": "application/json;charset=UTF-8",
+          "Content-Type": "application/json",
         },
         body: expect.any(String),
       });
@@ -51,7 +51,7 @@ describe("Schematic", () => {
       expect(mockFetch).toHaveBeenCalledWith(expect.any(String), {
         method: "POST",
         headers: {
-          "Content-Type": "application/json;charset=UTF-8",
+          "Content-Type": "application/json",
         },
         body: expect.any(String),
       });
@@ -79,7 +79,7 @@ describe("Schematic", () => {
         expect.objectContaining({
           method: "POST",
           headers: {
-            "Content-Type": "application/json;charset=UTF-8",
+            "Content-Type": "application/json",
           },
           body: expect.any(String),
         }),
@@ -123,7 +123,7 @@ describe("Schematic", () => {
         expect.objectContaining({
           method: "POST",
           headers: {
-            "Content-Type": "application/json;charset=UTF-8",
+            "Content-Type": "application/json",
           },
           body: expect.any(String),
         }),
@@ -166,7 +166,7 @@ describe("Schematic", () => {
       expect(mockFetch).toHaveBeenCalledWith(expect.any(String), {
         method: "POST",
         headers: {
-          "Content-Type": "application/json;charset=UTF-8",
+          "Content-Type": "application/json",
         },
         body: expect.any(String),
       });
@@ -201,7 +201,7 @@ describe("Schematic", () => {
         method: "POST",
         headers: {
           "X-Schematic-Api-Key": "API_KEY",
-          "Content-Type": "application/json;charset=UTF-8",
+          "Content-Type": "application/json",
         },
         body: expect.any(String),
       });
@@ -241,7 +241,7 @@ describe("Schematic", () => {
         method: "POST",
         headers: {
           "X-Schematic-Api-Key": "API_KEY",
-          "Content-Type": "application/json;charset=UTF-8",
+          "Content-Type": "application/json",
           "X-Additional-Header": "foo",
         },
         body: expect.any(String),
@@ -290,7 +290,7 @@ describe("Schematic", () => {
         method: "POST",
         headers: {
           "X-Schematic-Api-Key": "API_KEY",
-          "Content-Type": "application/json;charset=UTF-8",
+          "Content-Type": "application/json",
         },
         body: expect.any(String),
       });
@@ -340,7 +340,7 @@ describe("Schematic", () => {
         method: "POST",
         headers: {
           "X-Schematic-Api-Key": "API_KEY",
-          "Content-Type": "application/json;charset=UTF-8",
+          "Content-Type": "application/json",
           "X-Additional-Header": "foo",
         },
         body: expect.any(String),

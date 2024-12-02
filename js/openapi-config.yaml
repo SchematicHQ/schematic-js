@@ -1,0 +1,5 @@
+generatorName: typescript-fetch
+inputSpec: https://openapi.schematichq.com/latest.yml
+enablePostProcessFile: true
+outputDir: ./src/api/
+
