@@ -198,7 +198,7 @@ export const PricingTable = forwardRef<
         {props.plans.isVisible && plans.length > 0 && (
           <Box
             $display="grid"
-            $gridTemplateColumns="repeat(auto-fit, minmax(320px, 1fr))"
+            $gridTemplateColumns="repeat(auto-fill, minmax(320px, 1fr))"
             $gap="1rem"
           >
             {plans.map((plan, index, self) => {
@@ -551,7 +551,7 @@ export const PricingTable = forwardRef<
 
             <Box
               $display="grid"
-              $gridTemplateColumns="repeat(auto-fit, minmax(320px, 1fr))"
+              $gridTemplateColumns="repeat(auto-fill, minmax(320px, 1fr))"
               $gap="1rem"
             >
               {addOns.map((addOn, index) => {

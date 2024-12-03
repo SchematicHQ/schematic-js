@@ -1,11 +1,16 @@
-import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 import type {
   CompanyPlanDetailResponseData,
   PlanEntitlementResponseData,
 } from "../../../api";
 import { TEXT_BASE_SIZE } from "../../../const";
-import { formatCurrency } from "../../../utils";
+import {
+  hexToHSL,
+  lighten,
+  darken,
+  formatCurrency,
+  shortenPeriod,
+} from "../../../utils";
 import { cardBoxShadow } from "../../layout";
 import { Box, Flex, Input, Text } from "../../ui";
 
@@ -13,25 +18,20 @@ interface UsageProps {
   isLoading: boolean;
   period: string;
   selectedPlan?: CompanyPlanDetailResponseData & { isSelected: boolean };
-  entitlements: (PlanEntitlementResponseData & {
-    quantity: number;
-  })[];
+  entitlements: PlanEntitlementResponseData[];
   updateQuantity: (id: string, quantity: number) => void;
 }
 
-export const Usage = ({
-  selectedPlan,
-  entitlements,
-  updateQuantity,
-  isLoading,
-  period,
-}: UsageProps) => {
-  const { t } = useTranslation();
+export const Usage = ({ entitlements, updateQuantity, period }: UsageProps) => {
   const theme = useTheme();
 
-  const periodKey = period === "year" ? "yearlyPrice" : "monthlyPrice";
-
   const cardPadding = theme.card.padding / TEXT_BASE_SIZE;
+
+  const unitPriceFontSize = 0.875 * theme.typography.text.fontSize;
+  const unitPriceColor =
+    hexToHSL(theme.typography.text.color).l > 50
+      ? darken(theme.typography.text.color, 0.46)
+      : lighten(theme.typography.text.color, 0.46);
 
   return (
     <>
@@ -83,7 +83,7 @@ export const Usage = ({
                   <Input
                     type="number"
                     pattern="[0-9]*"
-                    value={entitlement.quantity}
+                    value={entitlement.valueNumeric ?? 0}
                     onChange={(event) => {
                       event.preventDefault();
 
@@ -96,28 +96,41 @@ export const Usage = ({
                 </Flex>
 
                 <Box>
-                  <Text
-                    $font={theme.typography.text.fontFamily}
-                    $size={theme.typography.text.fontSize}
-                    $weight={theme.typography.text.fontWeight}
-                    $color={theme.typography.text.color}
-                  >
-                    {formatCurrency(
-                      (period === "month"
-                        ? entitlement.meteredMonthlyPrice
-                        : entitlement.meteredYearlyPrice
-                      )?.price ?? 0,
-                    )}
-                  </Text>
+                  <Box $whiteSpace="nowrap">
+                    <Text
+                      $font={theme.typography.text.fontFamily}
+                      $size={theme.typography.text.fontSize}
+                      $weight={theme.typography.text.fontWeight}
+                      $color={theme.typography.text.color}
+                    >
+                      {formatCurrency(
+                        ((period === "month"
+                          ? entitlement.meteredMonthlyPrice
+                          : entitlement.meteredYearlyPrice
+                        )?.price || 0) * (entitlement.valueNumeric || 0),
+                      )}
+                      <sub>/{shortenPeriod(period)}</sub>
+                    </Text>
+                  </Box>
 
-                  <Text
-                    $font={theme.typography.text.fontFamily}
-                    $size={(16 / 30) * theme.typography.text.fontSize}
-                    $weight={theme.typography.text.fontWeight}
-                    $color={theme.typography.text.color}
-                  >
-                    /{period}
-                  </Text>
+                  <Box $whiteSpace="nowrap">
+                    <Text
+                      $font={theme.typography.text.fontFamily}
+                      $size={unitPriceFontSize}
+                      $weight={theme.typography.text.fontWeight}
+                      $color={unitPriceColor}
+                    >
+                      {formatCurrency(
+                        (period === "month"
+                          ? entitlement.meteredMonthlyPrice
+                          : entitlement.meteredYearlyPrice
+                        )?.price || 0,
+                      )}
+                      <sub>
+                        /{entitlement.feature.name}/{shortenPeriod(period)}
+                      </sub>
+                    </Text>
+                  </Box>
                 </Box>
               </Flex>,
             );

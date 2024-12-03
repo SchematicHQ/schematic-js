@@ -18,3 +18,12 @@ export function getMonthName(date: Date | string) {
     month: "long",
   }).format(new Date(date));
 }
+
+export function shortenPeriod(period: string) {
+  switch (period) {
+    case "month":
+      return "mo";
+    case "year":
+      return "yr";
+  }
+}
