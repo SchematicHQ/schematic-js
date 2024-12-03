@@ -13,6 +13,12 @@
  */
 
 import { mapValues } from "../runtime";
+import type { UpdatePayInAdvanceRequestBody } from "./UpdatePayInAdvanceRequestBody";
+import {
+  UpdatePayInAdvanceRequestBodyFromJSON,
+  UpdatePayInAdvanceRequestBodyFromJSONTyped,
+  UpdatePayInAdvanceRequestBodyToJSON,
+} from "./UpdatePayInAdvanceRequestBody";
 import type { UpdateAddOnRequestBody } from "./UpdateAddOnRequestBody";
 import {
   UpdateAddOnRequestBodyFromJSON,
@@ -46,6 +52,12 @@ export interface ChangeSubscriptionRequestBody {
   newPriceId: string;
   /**
    *
+   * @type {Array<UpdatePayInAdvanceRequestBody>}
+   * @memberof ChangeSubscriptionRequestBody
+   */
+  payInAdvance: Array<UpdatePayInAdvanceRequestBody>;
+  /**
+   *
    * @type {string}
    * @memberof ChangeSubscriptionRequestBody
    */
@@ -61,6 +73,8 @@ export function instanceOfChangeSubscriptionRequestBody(
   if (!("addOnIds" in value) || value["addOnIds"] === undefined) return false;
   if (!("newPlanId" in value) || value["newPlanId"] === undefined) return false;
   if (!("newPriceId" in value) || value["newPriceId"] === undefined)
+    return false;
+  if (!("payInAdvance" in value) || value["payInAdvance"] === undefined)
     return false;
   return true;
 }
@@ -84,6 +98,9 @@ export function ChangeSubscriptionRequestBodyFromJSONTyped(
     ),
     newPlanId: json["new_plan_id"],
     newPriceId: json["new_price_id"],
+    payInAdvance: (json["pay_in_advance"] as Array<any>).map(
+      UpdatePayInAdvanceRequestBodyFromJSON,
+    ),
     paymentMethodId:
       json["payment_method_id"] == null ? undefined : json["payment_method_id"],
   };
@@ -101,6 +118,9 @@ export function ChangeSubscriptionRequestBodyToJSON(
     ),
     new_plan_id: value["newPlanId"],
     new_price_id: value["newPriceId"],
+    pay_in_advance: (value["payInAdvance"] as Array<any>).map(
+      UpdatePayInAdvanceRequestBodyToJSON,
+    ),
     payment_method_id: value["paymentMethodId"],
   };
 }

@@ -9,6 +9,7 @@ import type {
   SetupIntentResponseData,
   UpdateAddOnRequestBody,
   UsageBasedEntitlementResponseData,
+  UpdatePayInAdvanceRequestBody,
 } from "../../../api";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import {
@@ -130,14 +131,26 @@ export const Sidebar = ({
             return acc;
           }, []),
           ...(paymentMethodId && { paymentMethodId }),
-          // @ts-expect-error: TODO: update payload once checkout endpoint is updated
-          payInAdvance: payInAdvanceEntitlements.map((entitlement) => ({
-            priceId: (planPeriod === "month"
-              ? entitlement.meteredMonthlyPrice
-              : entitlement.meteredYearlyPrice
-            )?.priceId,
-            quantity: entitlement.valueNumeric,
-          })),
+          payInAdvance: payInAdvanceEntitlements.reduce(
+            (acc: UpdatePayInAdvanceRequestBody[], entitlement) => {
+              const priceId = (
+                planPeriod === "month"
+                  ? entitlement.meteredMonthlyPrice
+                  : entitlement.meteredYearlyPrice
+              )?.priceId;
+              const quantity = entitlement.valueNumeric;
+
+              if (priceId && typeof quantity === "number") {
+                acc.push({
+                  priceId,
+                  quantity,
+                });
+              }
+
+              return acc;
+            },
+            [],
+          ),
         },
       });
       setLayout("success");

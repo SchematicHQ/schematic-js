@@ -14,6 +14,7 @@ import type {
   PlanEntitlementResponseData,
   SetupIntentResponseData,
   UpdateAddOnRequestBody,
+  UpdatePayInAdvanceRequestBody,
 } from "../../../api";
 import {
   useAvailablePlans,
@@ -240,6 +241,10 @@ export const CheckoutDialog = ({
 
   const isLightBackground = useIsLightBackground();
 
+  const payInAdvanceEntitlements = usageBasedEntitlements.filter(
+    (entitlement) => entitlement.priceBehavior === "pay_in_advance",
+  );
+
   const previewCheckout = useCallback(
     async (
       plan: CompanyPlanDetailResponseData,
@@ -278,6 +283,26 @@ export const CheckoutDialog = ({
 
               return acc;
             }, []),
+            payInAdvance: payInAdvanceEntitlements.reduce(
+              (acc: UpdatePayInAdvanceRequestBody[], entitlement) => {
+                const priceId = (
+                  planPeriod === "month"
+                    ? entitlement.meteredMonthlyPrice
+                    : entitlement.meteredYearlyPrice
+                )?.priceId;
+                const quantity = entitlement.valueNumeric;
+
+                if (priceId && typeof quantity === "number") {
+                  acc.push({
+                    priceId,
+                    quantity,
+                  });
+                }
+
+                return acc;
+              },
+              [],
+            ),
           },
         });
 
