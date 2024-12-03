@@ -28,7 +28,6 @@ import { Plan } from "./Plan";
 import { AddOns } from "./AddOns";
 import { Usage } from "./Usage";
 import { Checkout } from "./Checkout";
-import { RecursivePartial } from "../../../types";
 
 export interface CheckoutDialogProps {
   initialPeriod?: string;
@@ -79,19 +78,91 @@ export const CheckoutDialog = ({
     periods: availablePeriods,
   } = useAvailablePlans(planPeriod);
 
+  const testifyPlan = (
+    plan: CompanyPlanDetailResponseData & { isSelected: boolean },
+  ) => {
+    return {
+      ...plan,
+      entitlements: [
+        ...(plan?.entitlements || []),
+        {
+          createdAt: new Date(),
+          environmentId: "1",
+          feature: {
+            createdAt: new Date(),
+            description: "test",
+            eventSubtype: "test",
+            featureType: "test",
+            icon: "wind",
+            id: "1",
+            lifecyclePhase: undefined,
+            maintainerId: "1",
+            name: "feature",
+            traitId: "1",
+            updatedAt: new Date(),
+          },
+          featureId: "1",
+          id: "1",
+          meteredMonthlyPrice: {
+            createdAt: new Date(),
+            currency: "usd",
+            id: "1",
+            interval: "month",
+            meterId: "1",
+            price: 100,
+            priceExternalId: "1",
+            priceId: "1",
+            productExternalId: "1",
+            productId: "1",
+            productName: "test",
+            updatedAt: new Date(),
+            usageType: "",
+          },
+          meteredYearlyPrice: {
+            createdAt: new Date(),
+            currency: "usd",
+            id: "mmp1",
+            interval: "year",
+            meterId: "1",
+            price: 1000,
+            priceExternalId: "1",
+            priceId: "1",
+            productExternalId: "1",
+            productId: "1",
+            productName: "test",
+            updatedAt: new Date(),
+            usageType: "metered",
+          },
+          metricPeriod: "month",
+          metricPeriodMonthReset: "billing_cycle",
+          planId: "1",
+          priceBehavior: "pay_in_advance",
+          ruleId: "1",
+          updatedAt: new Date(),
+          valueNumeric: undefined,
+          valueType: "quantity",
+        },
+      ],
+    };
+  };
+
   // memoize data here since some state depends on it
   const currentPlan = data.company?.plan;
-  const [selectedPlan, setSelectedPlan] = useState<
-    CompanyPlanDetailResponseData | undefined
-  >(() =>
-    availablePlans.find(
+  const [selectedPlan, setSelectedPlan] = useState(() => {
+    const p = availablePlans.find(
       (plan) =>
         plan.id ===
         (typeof initialPlanId !== "undefined"
           ? initialPlanId
           : currentPlan?.id),
-    ),
-  );
+    );
+
+    if (!p) {
+      return undefined;
+    }
+
+    return testifyPlan(p);
+  });
 
   const currentAddOns = data.company?.addOns || [];
   const [addOns, setAddOns] = useState(() =>
@@ -104,14 +175,26 @@ export const CheckoutDialog = ({
     })),
   );
 
-  const currentUsageBasedEntitlements = (data.activeUsageBasedEntitlements ||
-    []) as RecursivePartial<PlanEntitlementResponseData>[];
-  const [usageBasedEntitlements, setUsageBasedEntitlements] = useState(() =>
-    currentUsageBasedEntitlements.map((entitlement) => ({
-      ...entitlement,
-      isSelected: true,
-    })),
-  );
+  const currentUsageBasedEntitlements = data.activeUsageBasedEntitlements;
+  const [usageBasedEntitlements, setUsageBasedEntitlements] = useState(() => {
+    return (selectedPlan?.entitlements || []).reduce(
+      (
+        acc: (PlanEntitlementResponseData & { quantity: number })[],
+        entitlement,
+      ) => {
+        if (
+          entitlement.priceBehavior === "pay_in_advance" &&
+          ((planPeriod === "month" && entitlement.meteredMonthlyPrice) ||
+            (planPeriod === "year" && entitlement.meteredYearlyPrice))
+        ) {
+          acc.push({ ...entitlement, quantity: 0 });
+        }
+
+        return acc;
+      },
+      [],
+    );
+  });
 
   const checkoutStages = useMemo(() => {
     const stages: {
@@ -128,25 +211,26 @@ export const CheckoutDialog = ({
       },
     ];
 
+    if (
+      selectedPlan?.entitlements.filter(
+        (entitlement) =>
+          entitlement.priceBehavior === "pay_in_advance" &&
+          ((planPeriod === "month" && entitlement.meteredMonthlyPrice) ||
+            (planPeriod === "year" && entitlement.meteredYearlyPrice)),
+      ).length
+    ) {
+      stages.push({
+        id: "usage",
+        name: t("Quantity"),
+      });
+    }
+
     if (availableAddOns.length) {
       stages.push({
         id: "addons",
         name: t("Add-ons"),
         label: t("Select add-ons"),
         description: t("Optionally add features to your subscription"),
-      });
-    }
-
-    if (
-      selectedPlan?.entitlements.filter(
-        (entitlement) =>
-          (planPeriod === "month" && entitlement.meteredMonthlyPrice) ||
-          (planPeriod === "year" && entitlement.meteredYearlyPrice),
-      ).length
-    ) {
-      stages.push({
-        id: "usage",
-        name: t("Quantity"),
       });
     }
 
@@ -218,8 +302,11 @@ export const CheckoutDialog = ({
   );
 
   const selectPlan = useCallback(
-    (plan: CompanyPlanDetailResponseData, newPeriod?: string) => {
-      setSelectedPlan(plan);
+    (
+      plan: CompanyPlanDetailResponseData & { isSelected: boolean },
+      newPeriod?: string,
+    ) => {
+      setSelectedPlan(testifyPlan(plan));
       previewCheckout(plan, addOns, newPeriod);
     },
     [addOns, previewCheckout],
@@ -228,7 +315,7 @@ export const CheckoutDialog = ({
   const changePlanPeriod = useCallback(
     (period: string) => {
       if (selectedPlan) {
-        selectPlan(selectedPlan, period);
+        selectPlan(testifyPlan(selectedPlan), period);
       }
 
       setPlanPeriod(period);
@@ -255,22 +342,14 @@ export const CheckoutDialog = ({
   );
 
   const updateUsageBasedEntitlementQuantity = useCallback(
-    (id: string, newPeriod?: string) => {
-      const updatedUsageBasedEntitlements = usageBasedEntitlements.map(
-        (entitlement) => ({
-          ...entitlement,
-          ...(entitlement.id === id && { isSelected: !entitlement.isSelected }),
-        }),
+    (id: string, quantity: number) => {
+      setUsageBasedEntitlements((prev) =>
+        prev.map((entitlement) =>
+          entitlement.id === id ? { ...entitlement, quantity } : entitlement,
+        ),
       );
-      setUsageBasedEntitlements(updatedUsageBasedEntitlements);
-
-      if (!selectedPlan) {
-        return;
-      }
-
-      previewCheckout(selectedPlan, addOns, newPeriod || planPeriod);
     },
-    [selectedPlan, addOns, usageBasedEntitlements, planPeriod, previewCheckout],
+    [setUsageBasedEntitlements],
   );
 
   useEffect(() => {
@@ -437,22 +516,22 @@ export const CheckoutDialog = ({
             />
           )}
 
+          {checkoutStage === "usage" && (
+            <Usage
+              isLoading={isLoading}
+              period={planPeriod}
+              selectedPlan={selectedPlan}
+              entitlements={usageBasedEntitlements}
+              updateQuantity={updateUsageBasedEntitlementQuantity}
+            />
+          )}
+
           {checkoutStage === "addons" && (
             <AddOns
               isLoading={isLoading}
               period={planPeriod}
               addOns={addOns}
               toggle={(id) => toggleAddOn(id)}
-            />
-          )}
-
-          {checkoutStage === "usage" && (
-            <Usage
-              isLoading={isLoading}
-              period={planPeriod}
-              selectedPlan={selectedPlan}
-              usageBasedEntitlements={usageBasedEntitlements}
-              updateQuantity={(id) => updateUsageBasedEntitlementQuantity(id)}
             />
           )}
 

@@ -26,7 +26,7 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
     <>
       <Box
         $display="grid"
-        $gridTemplateColumns="repeat(auto-fill, minmax(300px, 1fr))"
+        $gridTemplateColumns="repeat(auto-fit, minmax(300px, 1fr))"
         $gap="1rem"
       >
         {addOns.map((addOn) => {

@@ -10,14 +10,18 @@ import { hexToHSL, formatCurrency } from "../../../utils";
 import { cardBoxShadow } from "../../layout";
 import { Box, EmbedButton, Flex, Icon, Text, Tooltip } from "../../ui";
 import { PlanEntitlementRow } from "./PlanEntitlementRow";
+import { useState } from "react";
 
 interface PlanProps {
   isLoading: boolean;
-  plans: CompanyPlanDetailResponseData[];
+  plans: (CompanyPlanDetailResponseData & { isSelected: boolean })[];
   currentPlan?: CompanyPlanWithBillingSubView;
-  selectedPlan?: CompanyPlanDetailResponseData;
+  selectedPlan?: CompanyPlanDetailResponseData & { isSelected: boolean };
   period: string;
-  selectPlan: (plan: CompanyPlanDetailResponseData, newPeriod?: string) => void;
+  selectPlan: (
+    plan: CompanyPlanDetailResponseData & { isSelected: boolean },
+    newPeriod?: string,
+  ) => void;
 }
 
 export const Plan = ({
@@ -28,6 +32,10 @@ export const Plan = ({
   period,
   selectPlan,
 }: PlanProps) => {
+  const visibleCount = 4;
+  const [showAll, setShowAll] = useState(visibleCount);
+  const [isExpanded, setIsExpanded] = useState(false);
+
   const { t } = useTranslation();
 
   const theme = useTheme();
@@ -38,11 +46,21 @@ export const Plan = ({
 
   const currentPlanIndex = plans.findIndex((plan) => plan.current);
 
+  const handleToggleShowAll = () => {
+    if (isExpanded) {
+      setShowAll(visibleCount);
+      setIsExpanded(false);
+    } else {
+      setShowAll(plans.length);
+      setIsExpanded(true);
+    }
+  };
+
   return (
     <>
       <Box
         $display="grid"
-        $gridTemplateColumns="repeat(auto-fill, minmax(300px, 1fr))"
+        $gridTemplateColumns="repeat(auto-fit, minmax(300px, 1fr))"
         $gap="1rem"
         $flexGrow="1"
       >
@@ -155,22 +173,53 @@ export const Plan = ({
                 $padding={`${0.75 * cardPadding}rem ${cardPadding}rem 0`}
               >
                 <Flex $flexDirection="column" $gap="1rem" $flexGrow="1">
-                  {plan.entitlements.map(
-                    ({
-                      id,
-                      feature,
-                      metricPeriod,
-                      valueNumeric,
-                      valueType,
-                    }) => (
-                      <PlanEntitlementRow
-                        key={id}
-                        feature={feature}
-                        metricPeriod={metricPeriod}
-                        valueNumeric={valueNumeric}
-                        valueType={valueType}
+                  {plan.entitlements
+                    .slice(0, showAll)
+                    .map(
+                      ({
+                        id,
+                        feature,
+                        metricPeriod,
+                        valueNumeric,
+                        valueType,
+                      }) => (
+                        <PlanEntitlementRow
+                          key={id}
+                          feature={feature}
+                          metricPeriod={metricPeriod}
+                          valueNumeric={valueNumeric}
+                          valueType={valueType}
+                        />
+                      ),
+                    )}
+
+                  {plan.entitlements.length > 4 && (
+                    <Flex
+                      $alignItems="center"
+                      $justifyContent="start"
+                      $marginTop="1rem"
+                    >
+                      <Icon
+                        name={isExpanded ? "chevron-up" : "chevron-down"}
+                        style={{
+                          fontSize: "1.4rem",
+                          lineHeight: "1em",
+                          marginRight: ".25rem",
+                          color: "#D0D0D0",
+                        }}
                       />
-                    ),
+                      <Text
+                        onClick={handleToggleShowAll}
+                        $font={theme.typography.link.fontFamily}
+                        $size={theme.typography.link.fontSize}
+                        $weight={theme.typography.link.fontWeight}
+                        $leading={1}
+                        $color={theme.typography.link.color}
+                        style={{ cursor: "pointer" }}
+                      >
+                        {isExpanded ? t("Hide all") : t("See all")}
+                      </Text>
+                    </Flex>
                   )}
                 </Flex>
 

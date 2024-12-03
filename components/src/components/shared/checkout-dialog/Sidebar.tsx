@@ -29,14 +29,14 @@ interface SidebarProps {
   isLoading: boolean;
   paymentMethodId?: string;
   planPeriod: string;
-  selectedPlan?: CompanyPlanDetailResponseData;
+  selectedPlan?: CompanyPlanDetailResponseData & { isSelected: boolean };
   setCheckoutStage: (stage: string) => void;
   setError: (msg?: string) => void;
   setSetupIntent: (intent: SetupIntentResponseData | undefined) => void;
   showPaymentForm: boolean;
   toggleLoading: () => void;
-  usageBasedEntitlements: (RecursivePartial<PlanEntitlementResponseData> & {
-    isSelected: boolean;
+  usageBasedEntitlements: (PlanEntitlementResponseData & {
+    quantity: number;
   })[];
 }
 
@@ -159,6 +159,9 @@ export const Sidebar = ({
         selectedAddOns.length !== currentAddOns.length ||
         !selectedAddOns.every((addOn) =>
           currentAddOns.some((currentAddOn) => addOn.id === currentAddOn.id),
+        ) ||
+        usageBasedEntitlements.every(
+          (entitlement) => typeof entitlement.quantity === "number",
         )) &&
       !isLoading);
 
@@ -560,9 +563,18 @@ export const Sidebar = ({
 
         {checkoutStage === "plan" && (
           <EmbedButton
-            disabled={!addOns.length && !canUpdateSubscription}
+            disabled={
+              !usageBasedEntitlements.length ||
+              !addOns.length ||
+              !canUpdateSubscription
+            }
             onClick={async () => {
-              if (!addOns.length && api && data.component?.id) {
+              if (
+                !addOns.length &&
+                !usageBasedEntitlements.length &&
+                api &&
+                data.component?.id
+              ) {
                 const { data: setupIntent } = await api.getSetupIntent({
                   componentId: data.component.id,
                 });
@@ -570,10 +582,10 @@ export const Sidebar = ({
               }
 
               setCheckoutStage(
-                addOns.length
-                  ? "addons"
-                  : usageBasedEntitlements.length
-                    ? "usage"
+                usageBasedEntitlements.length
+                  ? "usage"
+                  : addOns.length
+                    ? "addons"
                     : "checkout",
               );
             }}
@@ -586,32 +598,28 @@ export const Sidebar = ({
               $padding="0 1rem"
             >
               {t("Next")}:{" "}
-              {addOns.length
-                ? t("Addons")
-                : usageBasedEntitlements.length
-                  ? t("Usage")
+              {usageBasedEntitlements.length
+                ? t("Usage")
+                : addOns.length
+                  ? t("Addons")
                   : t("Checkout")}
               <Icon name="arrow-right" />
             </Flex>
           </EmbedButton>
         )}
 
-        {checkoutStage === "addons" && (
+        {checkoutStage === "usage" && (
           <EmbedButton
-            disabled={!usageBasedEntitlements.length && !canUpdateSubscription}
+            disabled={!addOns.length || !canUpdateSubscription}
             onClick={async () => {
-              if (!api || !data.component?.id) {
-                return;
+              if (!addOns.length && api && data.component?.id) {
+                const { data: setupIntent } = await api.getSetupIntent({
+                  componentId: data.component.id,
+                });
+                setSetupIntent(setupIntent);
               }
 
-              const { data: setupIntent } = await api.getSetupIntent({
-                componentId: data.component.id,
-              });
-              setSetupIntent(setupIntent);
-
-              setCheckoutStage(
-                usageBasedEntitlements.length ? "usage" : "checkout",
-              );
+              setCheckoutStage(addOns.length ? "addons" : "checkout");
             }}
             isLoading={isLoading}
           >
@@ -621,19 +629,21 @@ export const Sidebar = ({
               $alignItems="center"
               $padding="0 1rem"
             >
-              {t("Next")}:{" "}
-              {usageBasedEntitlements.length ? t("Usage") : t("Checkout")}
+              {t("Next")}: {addOns.length ? t("Addons") : t("Checkout")}
               <Icon name="arrow-right" />
             </Flex>
           </EmbedButton>
         )}
 
-        {checkoutStage === "usage" && (
+        {checkoutStage === "addons" && (
           <EmbedButton
             disabled={!canUpdateSubscription}
             onClick={async () => {
-              if (!api || !data.component?.id) {
-                return;
+              if (api && data.component?.id) {
+                const { data: setupIntent } = await api.getSetupIntent({
+                  componentId: data.component.id,
+                });
+                setSetupIntent(setupIntent);
               }
 
               setCheckoutStage("checkout");

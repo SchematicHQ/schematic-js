@@ -9,7 +9,7 @@ import { Flex, Text, Tooltip } from "../../ui";
 interface PeriodToggleProps {
   options: string[];
   selectedOption: string;
-  selectedPlan?: CompanyPlanDetailResponseData;
+  selectedPlan?: CompanyPlanDetailResponseData & { isSelected: boolean };
   onChange: (period: string) => void;
   layerRef?: React.RefObject<HTMLDivElement>;
 }
