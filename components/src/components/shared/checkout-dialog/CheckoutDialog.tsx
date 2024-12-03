@@ -160,7 +160,7 @@ export const CheckoutDialog = ({
       return undefined;
     }
 
-    return testifyPlan(p);
+    return p;
   });
 
   const currentAddOns = data.company?.addOns || [];
@@ -176,13 +176,13 @@ export const CheckoutDialog = ({
 
   const currentUsageBasedEntitlements = [
     ...data.activeUsageBasedEntitlements,
-    { ...testEntitlement },
+    // { ...testEntitlement },
   ];
   const [usageBasedEntitlements, setUsageBasedEntitlements] = useState(() => {
     return (selectedPlan?.entitlements || []).reduce(
       (acc: PlanEntitlementResponseData[], entitlement) => {
         if (
-          entitlement.priceBehavior === "pay_in_advance" &&
+          typeof entitlement.priceBehavior === "string" &&
           ((planPeriod === "month" && entitlement.meteredMonthlyPrice) ||
             (planPeriod === "year" && entitlement.meteredYearlyPrice))
         ) {

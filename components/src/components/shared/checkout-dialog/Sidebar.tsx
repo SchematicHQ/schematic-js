@@ -90,6 +90,10 @@ export const Sidebar = ({
     );
   }, [selectedPlan, planPeriod]);
 
+  const payInAdvanceEntitlements = usageBasedEntitlements.filter(
+    (entitlement) => entitlement.priceBehavior === "pay_in_advance",
+  );
+
   const checkout = useCallback(async () => {
     const priceId = (
       planPeriod === "month"
@@ -126,6 +130,14 @@ export const Sidebar = ({
             return acc;
           }, []),
           ...(paymentMethodId && { paymentMethodId }),
+          // @ts-expect-error: TODO: update payload once checkout endpoint is updated
+          payInAdvance: payInAdvanceEntitlements.map((entitlement) => ({
+            priceId: (planPeriod === "month"
+              ? entitlement.meteredMonthlyPrice
+              : entitlement.meteredYearlyPrice
+            )?.priceId,
+            quantity: entitlement.valueNumeric,
+          })),
         },
       });
       setLayout("success");
@@ -146,6 +158,7 @@ export const Sidebar = ({
     setError,
     setLayout,
     toggleLoading,
+    payInAdvanceEntitlements,
   ]);
 
   const selectedAddOns = addOns.filter((addOn) => addOn.isSelected);
@@ -164,7 +177,7 @@ export const Sidebar = ({
         !selectedAddOns.every((addOn) =>
           currentAddOns.some((currentAddOn) => addOn.id === currentAddOn.id),
         ) ||
-        usageBasedEntitlements.every(
+        payInAdvanceEntitlements.every(
           (entitlement) => typeof entitlement.valueNumeric === "number",
         )) &&
       !isLoading);
@@ -173,24 +186,32 @@ export const Sidebar = ({
     canUpdateSubscription &&
     ((data.subscription?.paymentMethod && !showPaymentForm) || paymentMethodId);
 
-  const removedUsageBasedEntitlements = currentUsageBasedEntitlements.filter(
-    (current) =>
-      !usageBasedEntitlements.some(
-        (selected) =>
-          current.featureId === selected.featureId &&
-          current.valueNumeric === selected.valueNumeric,
-      ),
-  );
-  const addedUsageBasedEntitlements = usageBasedEntitlements.filter(
-    (selected) =>
-      !currentUsageBasedEntitlements.some(
+  const changedUsageBasedEntitlements: PlanEntitlementResponseData[] = [];
+  const addedUsageBasedEntitlements = payInAdvanceEntitlements.reduce(
+    (acc: PlanEntitlementResponseData[], selected) => {
+      const changed = currentUsageBasedEntitlements.find(
         (current) =>
-          selected.featureId === current.featureId &&
-          selected.valueNumeric === current.valueNumeric,
-      ),
+          current.featureId === selected.featureId &&
+          current.valueNumeric !== selected.valueNumeric,
+      );
+
+      if (changed && changed.valueNumeric) {
+        changedUsageBasedEntitlements.push({
+          ...selected,
+          valueNumeric: changed.valueNumeric,
+        });
+      }
+
+      if (selected.valueNumeric) {
+        acc.push(selected);
+      }
+
+      return acc;
+    },
+    [],
   );
   const willUsageBasedEntitlementsChange =
-    removedUsageBasedEntitlements.length > 0 ||
+    changedUsageBasedEntitlements.length > 0 ||
     addedUsageBasedEntitlements.length > 0;
 
   const removedAddOns = currentAddOns.filter(
@@ -374,44 +395,55 @@ export const Sidebar = ({
               </Text>
             </Box>
 
-            {removedUsageBasedEntitlements.map((entitlement) => (
-              <Flex
-                key={entitlement.featureId}
-                $justifyContent="space-between"
-                $alignItems="center"
-                $gap="1rem"
-                $opacity="0.625"
-                $textDecoration="line-through"
-                $color={theme.typography.heading4.color}
-              >
-                <Box>
-                  <Text
-                    $font={theme.typography.heading4.fontFamily}
-                    $size={theme.typography.heading4.fontSize}
-                    $weight={theme.typography.heading4.fontWeight}
-                    $color={theme.typography.heading4.color}
-                  >
-                    TODO
-                    {/* entitlement.name */}
-                  </Text>
-                </Box>
+            {changedUsageBasedEntitlements.reduce(
+              (acc: JSX.Element[], entitlement) => {
+                if (entitlement.feature?.name) {
+                  acc.push(
+                    <Flex
+                      key={entitlement.id}
+                      $justifyContent="space-between"
+                      $alignItems="center"
+                      $gap="1rem"
+                      $opacity="0.625"
+                      $textDecoration="line-through"
+                      $color={theme.typography.heading4.color}
+                    >
+                      <Box>
+                        <Text
+                          $font={theme.typography.heading4.fontFamily}
+                          $size={theme.typography.heading4.fontSize}
+                          $weight={theme.typography.heading4.fontWeight}
+                          $color={theme.typography.heading4.color}
+                        >
+                          {entitlement.valueNumeric || 0}{" "}
+                          {pluralize(entitlement.feature.name)}
+                        </Text>
+                      </Box>
 
-                {typeof entitlement.meteredPrice?.price === "number" &&
-                  entitlement.metricPeriod && (
-                    <Box $whiteSpace="nowrap">
-                      <Text
-                        $font={theme.typography.text.fontFamily}
-                        $size={theme.typography.text.fontSize}
-                        $weight={theme.typography.text.fontWeight}
-                        $color={theme.typography.text.color}
-                      >
-                        {formatCurrency(entitlement.meteredPrice.price)}
-                        <sub>/{shortenPeriod(entitlement.metricPeriod)}</sub>
-                      </Text>
-                    </Box>
-                  )}
-              </Flex>
-            ))}
+                      <Box $whiteSpace="nowrap">
+                        <Text
+                          $font={theme.typography.text.fontFamily}
+                          $size={theme.typography.text.fontSize}
+                          $weight={theme.typography.text.fontWeight}
+                          $color={theme.typography.text.color}
+                        >
+                          {formatCurrency(
+                            ((planPeriod === "month"
+                              ? entitlement.meteredMonthlyPrice
+                              : entitlement.meteredYearlyPrice
+                            )?.price || 0) * (entitlement.valueNumeric || 0),
+                          )}
+                          <sub>/{shortenPeriod(planPeriod)}</sub>
+                        </Text>
+                      </Box>
+                    </Flex>,
+                  );
+                }
+
+                return acc;
+              },
+              [],
+            )}
 
             {addedUsageBasedEntitlements.reduce(
               (acc: JSX.Element[], entitlement) => {
@@ -689,15 +721,11 @@ export const Sidebar = ({
 
         {checkoutStage === "plan" && (
           <EmbedButton
-            disabled={
-              !usageBasedEntitlements.length ||
-              !addOns.length ||
-              !canUpdateSubscription
-            }
+            disabled={!canUpdateSubscription}
             onClick={async () => {
               if (
                 !addOns.length &&
-                !usageBasedEntitlements.length &&
+                !payInAdvanceEntitlements.length &&
                 api &&
                 data.component?.id
               ) {
@@ -708,7 +736,7 @@ export const Sidebar = ({
               }
 
               setCheckoutStage(
-                usageBasedEntitlements.length
+                payInAdvanceEntitlements.length
                   ? "usage"
                   : addOns.length
                     ? "addons"
@@ -724,7 +752,7 @@ export const Sidebar = ({
               $padding="0 1rem"
             >
               {t("Next")}:{" "}
-              {usageBasedEntitlements.length
+              {payInAdvanceEntitlements.length
                 ? t("Usage")
                 : addOns.length
                   ? t("Addons")
@@ -736,7 +764,7 @@ export const Sidebar = ({
 
         {checkoutStage === "usage" && (
           <EmbedButton
-            disabled={!addOns.length || !canUpdateSubscription}
+            disabled={!canUpdateSubscription}
             onClick={async () => {
               if (!addOns.length && api && data.component?.id) {
                 const { data: setupIntent } = await api.getSetupIntent({
