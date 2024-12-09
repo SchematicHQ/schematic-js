@@ -295,7 +295,7 @@ export const EmbedProvider = ({
           createdAt: new Date(),
           description: "test",
           eventSubtype: "test",
-          featureType: "test",
+          featureType: "trait",
           icon: "burger",
           id: "1",
           lifecyclePhase: undefined,
@@ -319,7 +319,7 @@ export const EmbedProvider = ({
           productId: "1",
           productName: "test",
           updatedAt: new Date(),
-          usageType: "",
+          usageType: "metered",
         },
         meteredYearlyPrice: {
           createdAt: new Date(),
@@ -353,7 +353,7 @@ export const EmbedProvider = ({
           createdAt: new Date(),
           description: "test",
           eventSubtype: "test",
-          featureType: "test",
+          featureType: "trait",
           icon: "alarm",
           id: "2",
           lifecyclePhase: undefined,
@@ -377,7 +377,7 @@ export const EmbedProvider = ({
           productId: "1",
           productName: "test",
           updatedAt: new Date(),
-          usageType: "",
+          usageType: "metered",
         },
         meteredYearlyPrice: {
           createdAt: new Date(),
@@ -409,11 +409,41 @@ export const EmbedProvider = ({
           ...plan,
           entitlements: [
             ...(plan?.entitlements || []),
-            { ...testPayAsYouGoEntitlement },
             { ...testPayInAdvanceEntitlement },
+            { ...testPayAsYouGoEntitlement },
           ],
         };
       });
+
+      data.featureUsage = {
+        features: [
+          ...(data.featureUsage?.features || []),
+          {
+            ...testPayInAdvanceEntitlement,
+            access: true,
+            allocationType: "numeric",
+            entitlementId: "2",
+            entitlementType: "numeric",
+            feature: {
+              ...testPayInAdvanceEntitlement.feature,
+              flags: [],
+              plans: [],
+            },
+          },
+          {
+            ...testPayAsYouGoEntitlement,
+            access: true,
+            allocationType: "numeric",
+            entitlementId: "2",
+            entitlementType: "numeric",
+            feature: {
+              ...testPayAsYouGoEntitlement.feature,
+              flags: [],
+              plans: [],
+            },
+          },
+        ],
+      };
 
       setState((prev) => ({
         ...prev,

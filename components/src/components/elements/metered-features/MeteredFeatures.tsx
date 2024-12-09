@@ -94,19 +94,23 @@ export const MeteredFeatures = forwardRef<
   const isLightBackground = useIsLightBackground();
 
   const featureUsage = props.visibleFeatures
-    ? props.visibleFeatures.reduce((acc: FeatureUsageResponseData[], id) => {
-        const mappedFeatureUsage = data.featureUsage?.features.find(
-          (usage) => usage.feature?.id === id,
-        );
-        if (
-          mappedFeatureUsage?.feature?.featureType === "event" ||
-          mappedFeatureUsage?.feature?.featureType === "trait"
-        ) {
-          acc.push(mappedFeatureUsage);
-        }
+    ? [props.visibleFeatures, "1", "2"].reduce(
+        (acc: FeatureUsageResponseData[], id) => {
+          const mappedFeatureUsage = data.featureUsage?.features.find(
+            (usage) => usage.feature?.id === id,
+          );
 
-        return acc;
-      }, [])
+          if (
+            mappedFeatureUsage?.feature?.featureType === "event" ||
+            mappedFeatureUsage?.feature?.featureType === "trait"
+          ) {
+            acc.push(mappedFeatureUsage);
+          }
+
+          return acc;
+        },
+        [],
+      )
     : (data.featureUsage?.features || []).filter(
         (usage) =>
           usage.feature?.featureType === "event" ||

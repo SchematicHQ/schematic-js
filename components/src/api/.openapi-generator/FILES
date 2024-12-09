@@ -9,6 +9,7 @@ models/BillingProductDetailResponseData.ts
 models/BillingProductForSubscriptionResponseData.ts
 models/BillingProductPriceResponseData.ts
 models/BillingProductResponseData.ts
+models/BillingSubscriptionDiscountView.ts
 models/BillingSubscriptionResponseData.ts
 models/BillingSubscriptionView.ts
 models/ChangeSubscriptionRequestBody.ts

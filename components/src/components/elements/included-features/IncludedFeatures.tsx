@@ -214,7 +214,7 @@ export const IncludedFeatures = forwardRef<
                             theme.typography[props.entitlement.fontStyle].color
                           }
                         >
-                          {typeof allocation === "number"
+                          {priceBehavior === "pay_in_advance" typeof allocation === "number"
                             ? `${formatNumber(allocation)} ${pluralize(
                                 feature.name,
                                 allocation,
@@ -223,6 +223,7 @@ export const IncludedFeatures = forwardRef<
                         </Text>
                       </Box>
                     )}
+
                     {props.usage.isVisible && (
                       <Box $whiteSpace="nowrap">
                         <Text

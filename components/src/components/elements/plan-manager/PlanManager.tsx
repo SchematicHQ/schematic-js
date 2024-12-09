@@ -6,7 +6,13 @@ import pluralize from "pluralize";
 import { type FontStyle } from "../../../context";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import type { RecursivePartial, ElementProps } from "../../../types";
-import { formatCurrency, hexToHSL, lighten, darken } from "../../../utils";
+import {
+  formatCurrency,
+  hexToHSL,
+  lighten,
+  darken,
+  shortenPeriod,
+} from "../../../utils";
 import { CheckoutDialog } from "../../shared";
 import { Element } from "../../layout";
 import { Box, EmbedButton, Flex, Text } from "../../ui";
@@ -180,7 +186,6 @@ export const PlanManager = forwardRef<
                     theme.typography[props.header.price.fontStyle].fontFamily
                   }
                   $size={
-                    (16 / 30) *
                     theme.typography[props.header.price.fontStyle].fontSize
                   }
                   $weight={
@@ -188,7 +193,7 @@ export const PlanManager = forwardRef<
                   }
                   $color={theme.typography[props.header.price.fontStyle].color}
                 >
-                  /{currentPlan.planPeriod}
+                  <sub>/{shortenPeriod(currentPlan.planPeriod)}</sub>
                 </Text>
               </Box>
             )}
@@ -237,7 +242,8 @@ export const PlanManager = forwardRef<
                   $weight={theme.typography.text.fontWeight}
                   $color={theme.typography.text.color}
                 >
-                  {formatCurrency(addOn.planPrice)}/{addOn.planPeriod}
+                  {formatCurrency(addOn.planPrice)}
+                  <sub>/{shortenPeriod(addOn.planPeriod)}</sub>
                 </Text>
               )}
             </Flex>
@@ -294,7 +300,7 @@ export const PlanManager = forwardRef<
                         )}
                       </>
                     ) : (
-                      pluralize(entitlement.feature.name)
+                      entitlement.feature.name
                     )}
                   </Text>
 
@@ -313,12 +319,15 @@ export const PlanManager = forwardRef<
                                 : lighten(theme.typography.text.color, 0.46)
                             }
                           >
-                            {formatCurrency(entitlementPrice.price)}/
-                            {pluralize(
-                              entitlement.feature.name.toLowerCase(),
-                              1,
-                            )}
-                            /{currentPlan.planPeriod}
+                            {formatCurrency(entitlementPrice.price)}
+                            <sub>
+                              /
+                              {pluralize(
+                                entitlement.feature.name.toLowerCase(),
+                                1,
+                              )}
+                            </sub>
+                            <sub>/{shortenPeriod(currentPlan.planPeriod)}</sub>
                           </Text>
                         )}
 
@@ -335,14 +344,16 @@ export const PlanManager = forwardRef<
                                 ? entitlement.valueNumeric
                                 : 1),
                           )}
-                          /
-                          {currentPlan?.planPeriod &&
-                          typeof entitlement.valueNumeric === "number"
-                            ? currentPlan.planPeriod
-                            : pluralize(
-                                entitlement.feature.name.toLowerCase(),
-                                1,
-                              )}
+                          <sub>
+                            /
+                            {currentPlan?.planPeriod &&
+                            typeof entitlement.valueNumeric === "number"
+                              ? shortenPeriod(currentPlan.planPeriod)
+                              : pluralize(
+                                  entitlement.feature.name.toLowerCase(),
+                                  1,
+                                )}
+                          </sub>
                         </Text>
                       )}
                     </Flex>

@@ -78,6 +78,10 @@ export const Sidebar = ({
     (entitlement) => entitlement.priceBehavior === "pay_in_advance",
   );
 
+  const payAsYouGoEntitlements = usageBasedEntitlements.filter(
+    (entitlement) => entitlement.priceBehavior === "pay_as_you_go",
+  );
+
   const subscriptionPrice = useMemo(() => {
     if (
       !selectedPlan ||
@@ -908,7 +912,7 @@ export const Sidebar = ({
           >
             {subscriptionPrice &&
               // TODO: localize
-              `You will be billed ${subscriptionPrice} for this subscription
+              `You will be billed ${subscriptionPrice} ${payAsYouGoEntitlements.length > 0 ? "plus usage based costs" : ""} for this subscription
                 every ${planPeriod} ${charges?.periodStart ? `on the ${formatOrdinal(charges.periodStart.getDate())}` : ""} ${planPeriod === "year" && charges?.periodStart ? `of ${getMonthName(charges.periodStart)}` : ""} unless you unsubscribe.`}
           </Text>
         </Box>

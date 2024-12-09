@@ -253,14 +253,11 @@ export const Plan = ({
                                   >
                                     {typeof price !== "undefined" ? (
                                       <>
-                                        {formatCurrency(price)} {t("per")}{" "}
-                                        {pluralize(feature.name, 1)}
+                                        {formatCurrency(price)}
                                         {priceBehavior === "pay_in_advance" && (
-                                          <>
-                                            {" "}
-                                            {t("per")} {period}
-                                          </>
+                                          <sub>/{shortenPeriod(period)}</sub>
                                         )}
+                                        {t("per")} {pluralize(feature.name, 1)}
                                       </>
                                     ) : hasNumericValue ? (
                                       <>

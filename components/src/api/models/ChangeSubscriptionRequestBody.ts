@@ -62,6 +62,12 @@ export interface ChangeSubscriptionRequestBody {
    * @memberof ChangeSubscriptionRequestBody
    */
   paymentMethodId?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof ChangeSubscriptionRequestBody
+   */
+  promoCode?: string | null;
 }
 
 /**
@@ -103,6 +109,7 @@ export function ChangeSubscriptionRequestBodyFromJSONTyped(
     ),
     paymentMethodId:
       json["payment_method_id"] == null ? undefined : json["payment_method_id"],
+    promoCode: json["promo_code"] == null ? undefined : json["promo_code"],
   };
 }
 
@@ -122,5 +129,6 @@ export function ChangeSubscriptionRequestBodyToJSON(
       UpdatePayInAdvanceRequestBodyToJSON,
     ),
     payment_method_id: value["paymentMethodId"],
+    promo_code: value["promoCode"],
   };
 }

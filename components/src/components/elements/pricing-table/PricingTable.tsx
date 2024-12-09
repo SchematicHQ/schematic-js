@@ -11,7 +11,12 @@ import {
   useIsLightBackground,
 } from "../../../hooks";
 import type { ElementProps, RecursivePartial } from "../../../types";
-import { formatCurrency, formatNumber, hexToHSL } from "../../../utils";
+import {
+  formatCurrency,
+  formatNumber,
+  hexToHSL,
+  shortenPeriod,
+} from "../../../utils";
 import { cardBoxShadow, FussyChild } from "../../layout";
 import { CheckoutDialog, PeriodToggle } from "../../shared";
 import {
@@ -399,27 +404,18 @@ export const PricingTable = forwardRef<
                                     >
                                       {typeof price !== "undefined" ? (
                                         <>
-                                          {formatCurrency(price)} {t("per")}{" "}
+                                          {formatCurrency(price)}
+                                          {entitlement.priceBehavior ===
+                                            "pay_in_advance" && (
+                                            <sub>
+                                              /{shortenPeriod(selectedPeriod)}
+                                            </sub>
+                                          )}{" "}
+                                          {t("per")}{" "}
                                           {pluralize(
                                             entitlement.feature.name,
                                             1,
                                           )}
-                                          {entitlement.metricPeriod &&
-                                            entitlement.priceBehavior ===
-                                              "pay_in_advance" && (
-                                              <>
-                                                {" "}
-                                                {t("per")}{" "}
-                                                {
-                                                  {
-                                                    billing: "billing period",
-                                                    current_day: "day",
-                                                    current_month: "month",
-                                                    current_year: "year",
-                                                  }[entitlement.metricPeriod]
-                                                }
-                                              </>
-                                            )}
                                         </>
                                       ) : entitlement.valueType === "numeric" ||
                                         entitlement.valueType === "unlimited" ||
