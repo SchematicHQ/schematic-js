@@ -79,73 +79,6 @@ export const CheckoutDialog = ({
     periods: availablePeriods,
   } = useAvailablePlans(planPeriod);
 
-  const testEntitlement = {
-    createdAt: new Date(),
-    environmentId: "1",
-    feature: {
-      createdAt: new Date(),
-      description: "test",
-      eventSubtype: "test",
-      featureType: "test",
-      icon: "wind",
-      id: "1",
-      lifecyclePhase: undefined,
-      maintainerId: "1",
-      name: "feature",
-      traitId: "1",
-      updatedAt: new Date(),
-    },
-    featureId: "1",
-    id: "1",
-    meteredMonthlyPrice: {
-      createdAt: new Date(),
-      currency: "usd",
-      id: "1",
-      interval: "month",
-      meterId: "1",
-      price: 100,
-      priceExternalId: "1",
-      priceId: "1",
-      productExternalId: "1",
-      productId: "1",
-      productName: "test",
-      updatedAt: new Date(),
-      usageType: "",
-    },
-    meteredYearlyPrice: {
-      createdAt: new Date(),
-      currency: "usd",
-      id: "mmp1",
-      interval: "year",
-      meterId: "1",
-      price: 1000,
-      priceExternalId: "1",
-      priceId: "1",
-      productExternalId: "1",
-      productId: "1",
-      productName: "test",
-      updatedAt: new Date(),
-      usageType: "metered",
-    },
-    metricPeriod: "month",
-    metricPeriodMonthReset: "billing_cycle",
-    planId: "1",
-    priceBehavior: "pay_in_advance",
-    ruleId: "1",
-    updatedAt: new Date(),
-    valueNumeric: undefined,
-    valueType: "quantity",
-  };
-
-  const testifyPlan = (
-    plan: CompanyPlanDetailResponseData & { isSelected: boolean },
-  ) => {
-    return {
-      ...plan,
-      entitlements: [...(plan?.entitlements || []), { ...testEntitlement }],
-    };
-  };
-
   // memoize data here since some state depends on it
   const currentPlan = data.company?.plan;
   const [selectedPlan, setSelectedPlan] = useState(() => {
@@ -246,14 +179,22 @@ export const CheckoutDialog = ({
   );
 
   const previewCheckout = useCallback(
-    async (
-      plan: CompanyPlanDetailResponseData,
-      addOns: (CompanyPlanDetailResponseData & { isSelected: boolean })[],
-      newPeriod?: string,
-    ) => {
-      const period = newPeriod || planPeriod;
+    async ({
+      plan,
+      addOns,
+      entitlements,
+      period,
+    }: {
+      plan: CompanyPlanDetailResponseData;
+      addOns: (CompanyPlanDetailResponseData & { isSelected: boolean })[];
+      entitlements: PlanEntitlementResponseData[];
+      period?: string;
+    }) => {
+      const periodValue = period || planPeriod;
       const planPriceId =
-        period === "month" ? plan?.monthlyPrice?.id : plan?.yearlyPrice?.id;
+        periodValue === "month"
+          ? plan?.monthlyPrice?.id
+          : plan?.yearlyPrice?.id;
       if (!api || !planPriceId) {
         return;
       }
@@ -270,7 +211,9 @@ export const CheckoutDialog = ({
             addOnIds: addOns.reduce((acc: UpdateAddOnRequestBody[], addOn) => {
               if (addOn.isSelected) {
                 const addOnPriceId = (
-                  period === "month" ? addOn?.monthlyPrice : addOn?.yearlyPrice
+                  periodValue === "month"
+                    ? addOn?.monthlyPrice
+                    : addOn?.yearlyPrice
                 )?.id;
 
                 if (addOnPriceId) {
@@ -283,7 +226,7 @@ export const CheckoutDialog = ({
 
               return acc;
             }, []),
-            payInAdvance: payInAdvanceEntitlements.reduce(
+            payInAdvance: entitlements.reduce(
               (acc: UpdatePayInAdvanceRequestBody[], entitlement) => {
                 const priceId = (
                   planPeriod === "month"
@@ -314,7 +257,7 @@ export const CheckoutDialog = ({
       } finally {
         setIsLoading(false);
 
-        if (!newPeriod) {
+        if (!period) {
           checkoutRef.current?.scrollIntoView({
             behavior: "smooth",
             block: "nearest",
@@ -331,20 +274,14 @@ export const CheckoutDialog = ({
       newPeriod?: string,
     ) => {
       setSelectedPlan(plan);
-      previewCheckout(plan, addOns, newPeriod);
+      previewCheckout({
+        plan,
+        addOns,
+        entitlements: payInAdvanceEntitlements,
+        period: newPeriod,
+      });
     },
-    [addOns, previewCheckout],
-  );
-
-  const changePlanPeriod = useCallback(
-    (period: string) => {
-      if (selectedPlan) {
-        selectPlan(selectedPlan, period);
-      }
-
-      setPlanPeriod(period);
-    },
-    [selectedPlan, selectPlan, setPlanPeriod],
+    [addOns, payInAdvanceEntitlements, previewCheckout],
   );
 
   // TODO
@@ -360,13 +297,41 @@ export const CheckoutDialog = ({
         return;
       }
 
-      previewCheckout(selectedPlan, updatedAddOns, newPeriod || planPeriod);
+      previewCheckout({
+        plan: selectedPlan,
+        addOns: updatedAddOns,
+        entitlements: payInAdvanceEntitlements,
+        period: newPeriod || planPeriod,
+      });
     },
-    [selectedPlan, addOns, planPeriod, previewCheckout],
+    [
+      selectedPlan,
+      addOns,
+      payInAdvanceEntitlements,
+      planPeriod,
+      previewCheckout,
+    ],
+  );
+
+  const changePlanPeriod = useCallback(
+    (period: string) => {
+      if (selectedPlan) {
+        selectPlan(selectedPlan, period);
+      }
+
+      setPlanPeriod(period);
+    },
+    [selectedPlan, selectPlan, setPlanPeriod],
   );
 
   const updateUsageBasedEntitlementQuantity = useCallback(
     (id: string, quantity: number) => {
+      const entitlements = payInAdvanceEntitlements.map((entitlement) =>
+        entitlement.id === id
+          ? { ...entitlement, valueNumeric: quantity }
+          : entitlement,
+      );
+
       setUsageBasedEntitlements((prev) =>
         prev.map((entitlement) =>
           entitlement.id === id
@@ -374,8 +339,25 @@ export const CheckoutDialog = ({
             : entitlement,
         ),
       );
+
+      if (!selectedPlan) {
+        return;
+      }
+
+      previewCheckout({
+        plan: selectedPlan,
+        addOns,
+        entitlements,
+        period: planPeriod,
+      });
     },
-    [setUsageBasedEntitlements],
+    [
+      selectedPlan,
+      addOns,
+      payInAdvanceEntitlements,
+      planPeriod,
+      previewCheckout,
+    ],
   );
 
   useEffect(() => {

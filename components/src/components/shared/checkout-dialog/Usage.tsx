@@ -25,10 +25,6 @@ interface UsageProps {
 export const Usage = ({ entitlements, updateQuantity, period }: UsageProps) => {
   const theme = useTheme();
 
-  const payInAdvanceEntitlements = entitlements.filter(
-    (entitlement) => entitlement.priceBehavior === "pay_in_advance",
-  );
-
   const cardPadding = theme.card.padding / TEXT_BASE_SIZE;
 
   const unitPriceFontSize = 0.875 * theme.typography.text.fontSize;
@@ -44,8 +40,11 @@ export const Usage = ({ entitlements, updateQuantity, period }: UsageProps) => {
         $gridTemplateColumns="repeat(auto-fit, minmax(300px, 1fr))"
         $gap="1rem"
       >
-        {payInAdvanceEntitlements.reduce((acc: JSX.Element[], entitlement) => {
-          if (entitlement.feature) {
+        {entitlements.reduce((acc: JSX.Element[], entitlement) => {
+          if (
+            entitlement.priceBehavior === "pay_in_advance" &&
+            entitlement.feature
+          ) {
             acc.push(
               <Flex
                 key={entitlement.id}

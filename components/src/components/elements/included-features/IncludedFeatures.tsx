@@ -99,6 +99,15 @@ export const IncludedFeatures = forwardRef<
       }, [])
     : data.featureUsage?.features || [];
 
+  const handleToggleShowAll = () => {
+    if (isExpanded) {
+      setShowAll(visibleCount);
+    } else {
+      setShowAll(featureUsage.length);
+    }
+    setIsExpanded(!isExpanded); // Toggle state
+  };
+
   // Check if we should render this component at all:
   // * If there are any plans or addons, render it, even if the list is empty.
   // * If there are any features, show it (e.g., there could be features available via company overrides
@@ -109,15 +118,6 @@ export const IncludedFeatures = forwardRef<
     data.company?.plan ||
     (data.company?.addOns ?? []).length > 0 ||
     false;
-
-  const handleToggleShowAll = () => {
-    if (isExpanded) {
-      setShowAll(visibleCount);
-    } else {
-      setShowAll(featureUsage.length);
-    }
-    setIsExpanded(!isExpanded); // Toggle state
-  };
 
   if (!shouldShowFeatures) {
     return null;

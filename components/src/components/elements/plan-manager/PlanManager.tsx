@@ -2,10 +2,11 @@ import { forwardRef } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
+import pluralize from "pluralize";
 import { type FontStyle } from "../../../context";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import type { RecursivePartial, ElementProps } from "../../../types";
-import { formatCurrency, lighten, darken } from "../../../utils";
+import { formatCurrency, hexToHSL, lighten, darken } from "../../../utils";
 import { CheckoutDialog } from "../../shared";
 import { Element } from "../../layout";
 import { Box, EmbedButton, Flex, Text } from "../../ui";
@@ -90,10 +91,17 @@ export const PlanManager = forwardRef<
 
   // Can change plan if there is a publishable key, a current plan with a billing association, and
   // some active plans
-  const { currentPlan, canChangePlan, addOns } = {
+  const { currentPlan, canChangePlan, addOns, usageBasedEntitlements } = {
     addOns: data.company?.addOns || [],
     canChangePlan: data.capabilities?.checkout ?? true,
     currentPlan: data.company?.plan,
+    usageBasedEntitlements: (
+      data.activePlans.find((plan) => plan.id === data.company?.plan?.id)
+        ?.entitlements || []
+    ).filter(
+      (entitlement) =>
+        entitlement.meteredMonthlyPrice || entitlement.meteredYearlyPrice,
+    ),
   };
 
   return (
@@ -234,6 +242,117 @@ export const PlanManager = forwardRef<
               )}
             </Flex>
           ))}
+        </Flex>
+      )}
+
+      {usageBasedEntitlements.length > 0 && (
+        <Flex $flexDirection="column" $gap="1rem">
+          <Text
+            $font={theme.typography.text.fontFamily}
+            $size={theme.typography.text.fontSize}
+            $weight={theme.typography.text.fontWeight}
+            $color={
+              isLightBackground
+                ? darken(theme.card.background, 0.46)
+                : lighten(theme.card.background, 0.46)
+            }
+            $leading={1}
+          >
+            Usage-based
+          </Text>
+
+          {usageBasedEntitlements.reduce((acc: JSX.Element[], entitlement) => {
+            const entitlementPrice =
+              currentPlan?.planPeriod && currentPlan.planPeriod === "month"
+                ? entitlement.meteredMonthlyPrice
+                : entitlement.meteredYearlyPrice;
+            const entitlementQuantity = entitlement.valueNumeric;
+
+            if (entitlement.feature?.name) {
+              acc.push(
+                <Flex
+                  key={entitlement.featureId}
+                  $justifyContent="space-between"
+                  $alignItems="center"
+                  $flexWrap="wrap"
+                  $gap="1rem"
+                >
+                  <Text
+                    $font={theme.typography[props.addOns.fontStyle].fontFamily}
+                    $size={theme.typography[props.addOns.fontStyle].fontSize}
+                    $weight={
+                      theme.typography[props.addOns.fontStyle].fontWeight
+                    }
+                    $color={theme.typography[props.addOns.fontStyle].color}
+                  >
+                    {typeof entitlementQuantity === "number" ? (
+                      <>
+                        {entitlementQuantity}{" "}
+                        {pluralize(
+                          entitlement.feature.name,
+                          entitlementQuantity,
+                        )}
+                      </>
+                    ) : (
+                      pluralize(entitlement.feature.name)
+                    )}
+                  </Text>
+
+                  {
+                    <Flex $alignItems="center" $gap="1rem">
+                      {entitlementPrice &&
+                        typeof entitlement.valueNumeric === "number" &&
+                        currentPlan?.planPeriod && (
+                          <Text
+                            $font={theme.typography.text.fontFamily}
+                            $size={0.875 * theme.typography.text.fontSize}
+                            $weight={theme.typography.text.fontWeight}
+                            $color={
+                              hexToHSL(theme.typography.text.color).l > 50
+                                ? darken(theme.typography.text.color, 0.46)
+                                : lighten(theme.typography.text.color, 0.46)
+                            }
+                          >
+                            {formatCurrency(entitlementPrice.price)}/
+                            {pluralize(
+                              entitlement.feature.name.toLowerCase(),
+                              1,
+                            )}
+                            /{currentPlan.planPeriod}
+                          </Text>
+                        )}
+
+                      {entitlementPrice?.price && (
+                        <Text
+                          $font={theme.typography.text.fontFamily}
+                          $size={theme.typography.text.fontSize}
+                          $weight={theme.typography.text.fontWeight}
+                          $color={theme.typography.text.color}
+                        >
+                          {formatCurrency(
+                            entitlementPrice.price *
+                              (typeof entitlement.valueNumeric === "number"
+                                ? entitlement.valueNumeric
+                                : 1),
+                          )}
+                          /
+                          {currentPlan?.planPeriod &&
+                          typeof entitlement.valueNumeric === "number"
+                            ? currentPlan.planPeriod
+                            : pluralize(
+                                entitlement.feature.name.toLowerCase(),
+                                1,
+                              )}
+                        </Text>
+                      )}
+                    </Flex>
+                  }
+                </Flex>,
+              );
+            }
+
+            return acc;
+          }, [])}
         </Flex>
       )}
 

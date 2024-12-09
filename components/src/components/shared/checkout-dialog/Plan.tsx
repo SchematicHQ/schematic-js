@@ -1,15 +1,29 @@
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
+import pluralize from "pluralize";
 import type {
   CompanyPlanDetailResponseData,
   CompanyPlanWithBillingSubView,
 } from "../../../api";
 import { TEXT_BASE_SIZE } from "../../../const";
 import { useIsLightBackground } from "../../../hooks";
-import { hexToHSL, formatCurrency } from "../../../utils";
+import {
+  hexToHSL,
+  formatCurrency,
+  formatNumber,
+  shortenPeriod,
+} from "../../../utils";
 import { cardBoxShadow } from "../../layout";
-import { Box, EmbedButton, Flex, Icon, Text, Tooltip } from "../../ui";
-import { PlanEntitlementRow } from "./PlanEntitlementRow";
+import {
+  Box,
+  EmbedButton,
+  Flex,
+  Icon,
+  IconRound,
+  Text,
+  Tooltip,
+  type IconNameTypes,
+} from "../../ui";
 import { useState } from "react";
 
 interface PlanProps {
@@ -179,18 +193,99 @@ export const Plan = ({
                       ({
                         id,
                         feature,
+                        meteredMonthlyPrice,
+                        meteredYearlyPrice,
                         metricPeriod,
+                        priceBehavior,
                         valueNumeric,
                         valueType,
-                      }) => (
-                        <PlanEntitlementRow
-                          key={id}
-                          feature={feature}
-                          metricPeriod={metricPeriod}
-                          valueNumeric={valueNumeric}
-                          valueType={valueType}
-                        />
-                      ),
+                      }) => {
+                        const hasNumericValue =
+                          valueType === "numeric" ||
+                          valueType === "unlimited" ||
+                          valueType === "trait";
+
+                        let metricPeriodText;
+                        if (hasNumericValue && metricPeriod) {
+                          metricPeriodText = {
+                            billing: t("billing period"),
+                            current_day: t("day"),
+                            current_month: t("month"),
+                            current_year: t("year"),
+                          }[metricPeriod];
+                        }
+
+                        const price = (
+                          period === "month"
+                            ? meteredMonthlyPrice
+                            : meteredYearlyPrice
+                        )?.price;
+
+                        return (
+                          <Flex
+                            key={id}
+                            $flexWrap="wrap"
+                            $justifyContent="space-between"
+                            $alignItems="center"
+                            $gap="1rem"
+                          >
+                            <Flex $gap="1rem">
+                              {feature?.icon && (
+                                <IconRound
+                                  name={feature.icon as IconNameTypes | string}
+                                  size="sm"
+                                  colors={[
+                                    theme.primary,
+                                    isLightBackground
+                                      ? "hsla(0, 0%, 0%, 0.0625)"
+                                      : "hsla(0, 0%, 100%, 0.25)",
+                                  ]}
+                                />
+                              )}
+
+                              {feature?.name && (
+                                <Flex $alignItems="center">
+                                  <Text
+                                    $font={theme.typography.text.fontFamily}
+                                    $size={theme.typography.text.fontSize}
+                                    $weight={theme.typography.text.fontWeight}
+                                    $color={theme.typography.text.color}
+                                  >
+                                    {typeof price !== "undefined" ? (
+                                      <>
+                                        {formatCurrency(price)} {t("per")}{" "}
+                                        {pluralize(feature.name, 1)}
+                                        {priceBehavior === "pay_in_advance" && (
+                                          <>
+                                            {" "}
+                                            {t("per")} {period}
+                                          </>
+                                        )}
+                                      </>
+                                    ) : hasNumericValue ? (
+                                      <>
+                                        {typeof valueNumeric === "number"
+                                          ? `${formatNumber(valueNumeric)} ${pluralize(feature.name, valueNumeric)}`
+                                          : t("Unlimited", {
+                                              item: pluralize(feature.name),
+                                            })}
+                                        {metricPeriodText && (
+                                          <>
+                                            {" "}
+                                            {t("per")} {metricPeriodText}
+                                          </>
+                                        )}
+                                      </>
+                                    ) : (
+                                      feature.name
+                                    )}
+                                  </Text>
+                                </Flex>
+                              )}
+                            </Flex>
+                          </Flex>
+                        );
+                      },
                     )}
 
                   {plan.entitlements.length > 4 && (

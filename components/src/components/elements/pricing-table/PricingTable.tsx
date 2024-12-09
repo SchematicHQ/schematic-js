@@ -116,8 +116,7 @@ export const PricingTable = forwardRef<
     }
 >(({ children, className, portal, ...rest }, ref) => {
   const visibleCount = 4;
-  const [showAll, setShowAll] = useState(visibleCount);
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [showCount, setShowCount] = useState(visibleCount);
 
   const props = resolveDesignProps(rest);
 
@@ -143,15 +142,10 @@ export const PricingTable = forwardRef<
 
   const currentPlanIndex = plans.findIndex((plan) => plan.current);
 
-  const handleToggleShowAll = () => {
-    if (isExpanded) {
-      setShowAll(visibleCount);
-      setIsExpanded(false);
-    } else {
-      setShowAll(plans.length);
-      setIsExpanded(true);
-    }
+  const handleToggleShowAll = (count: number) => {
+    setShowCount((prev) => (prev === visibleCount ? count : visibleCount));
   };
+
   return (
     <FussyChild
       ref={ref}
@@ -366,8 +360,14 @@ export const PricingTable = forwardRef<
                         )}
 
                         {plan.entitlements
-                          .slice(0, showAll)
+                          .slice(0, showCount)
                           .map((entitlement) => {
+                            const price = (
+                              selectedPeriod === "month"
+                                ? entitlement.meteredMonthlyPrice
+                                : entitlement.meteredYearlyPrice
+                            )?.price;
+
                             return (
                               <Flex key={entitlement.id} $gap="1rem">
                                 {props.plans.showFeatureIcons &&
@@ -395,10 +395,35 @@ export const PricingTable = forwardRef<
                                       $size={theme.typography.text.fontSize}
                                       $weight={theme.typography.text.fontWeight}
                                       $color={theme.typography.text.color}
+                                      $leading={1.35}
                                     >
-                                      {entitlement.valueType === "numeric" ||
-                                      entitlement.valueType === "unlimited" ||
-                                      entitlement.valueType === "trait" ? (
+                                      {typeof price !== "undefined" ? (
+                                        <>
+                                          {formatCurrency(price)} {t("per")}{" "}
+                                          {pluralize(
+                                            entitlement.feature.name,
+                                            1,
+                                          )}
+                                          {entitlement.metricPeriod &&
+                                            entitlement.priceBehavior ===
+                                              "pay_in_advance" && (
+                                              <>
+                                                {" "}
+                                                {t("per")}{" "}
+                                                {
+                                                  {
+                                                    billing: "billing period",
+                                                    current_day: "day",
+                                                    current_month: "month",
+                                                    current_year: "year",
+                                                  }[entitlement.metricPeriod]
+                                                }
+                                              </>
+                                            )}
+                                        </>
+                                      ) : entitlement.valueType === "numeric" ||
+                                        entitlement.valueType === "unlimited" ||
+                                        entitlement.valueType === "trait" ? (
                                         <>
                                           {typeof entitlement.valueNumeric ===
                                           "number"
@@ -408,8 +433,10 @@ export const PricingTable = forwardRef<
                                                   entitlement.feature.name,
                                                 ),
                                               })}
+
                                           {entitlement.metricPeriod && (
                                             <>
+                                              {" "}
                                               {t("per")}{" "}
                                               {
                                                 {
@@ -432,14 +459,18 @@ export const PricingTable = forwardRef<
                             );
                           })}
 
-                        {plan.entitlements.length > 4 && (
+                        {plan.entitlements.length > visibleCount && (
                           <Flex
                             $alignItems="center"
                             $justifyContent="start"
                             $marginTop="1rem"
                           >
                             <Icon
-                              name={isExpanded ? "chevron-up" : "chevron-down"}
+                              name={
+                                showCount > visibleCount
+                                  ? "chevron-up"
+                                  : "chevron-down"
+                              }
                               style={{
                                 fontSize: "1.4rem",
                                 lineHeight: "1em",
@@ -448,7 +479,9 @@ export const PricingTable = forwardRef<
                               }}
                             />
                             <Text
-                              onClick={handleToggleShowAll}
+                              onClick={() =>
+                                handleToggleShowAll(plan.entitlements.length)
+                              }
                               $font={theme.typography.link.fontFamily}
                               $size={theme.typography.link.fontSize}
                               $weight={theme.typography.link.fontWeight}
@@ -456,7 +489,9 @@ export const PricingTable = forwardRef<
                               $color={theme.typography.link.color}
                               style={{ cursor: "pointer" }}
                             >
-                              {isExpanded ? t("Hide all") : t("See all")}
+                              {showCount > visibleCount
+                                ? t("Hide all")
+                                : t("See all")}
                             </Text>
                           </Flex>
                         )}
@@ -762,6 +797,7 @@ export const PricingTable = forwardRef<
                                                 })}
                                             {entitlement.metricPeriod && (
                                               <>
+                                                {" "}
                                                 {t("per")}{" "}
                                                 {
                                                   {
