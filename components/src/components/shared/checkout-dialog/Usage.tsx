@@ -131,7 +131,7 @@ export const Usage = ({ entitlements, updateQuantity, period }: UsageProps) => {
                         )?.price || 0,
                       )}
                       <sub>
-                        /{entitlement.feature.name}/{shortenPeriod(period)}
+                        /{shortenPeriod(period)}/{entitlement.feature.name}
                       </sub>
                     </Text>
                   </Box>

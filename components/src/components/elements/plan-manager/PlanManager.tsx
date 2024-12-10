@@ -106,7 +106,8 @@ export const PlanManager = forwardRef<
         ?.entitlements || []
     ).filter(
       (entitlement) =>
-        entitlement.meteredMonthlyPrice || entitlement.meteredYearlyPrice,
+        entitlement.valueNumeric &&
+        (entitlement.meteredMonthlyPrice || entitlement.meteredYearlyPrice),
     ),
   };
 
@@ -214,7 +215,7 @@ export const PlanManager = forwardRef<
               }
               $leading={1}
             >
-              Addons
+              {t("Add-ons")}
             </Text>
           )}
 
@@ -264,17 +265,18 @@ export const PlanManager = forwardRef<
             }
             $leading={1}
           >
-            Usage-based
+            {t("Usage-based")}
           </Text>
 
           {usageBasedEntitlements.reduce((acc: JSX.Element[], entitlement) => {
-            const entitlementPrice =
-              currentPlan?.planPeriod && currentPlan.planPeriod === "month"
+            const price =
+              (currentPlan?.planPeriod && currentPlan.planPeriod === "month"
                 ? entitlement.meteredMonthlyPrice
-                : entitlement.meteredYearlyPrice;
-            const entitlementQuantity = entitlement.valueNumeric;
+                : entitlement.meteredYearlyPrice
+              )?.price ?? 0;
+            const quantity = entitlement.valueNumeric ?? 0;
 
-            if (entitlement.feature?.name) {
+            if (entitlement.feature?.name && quantity > 0) {
               acc.push(
                 <Flex
                   key={entitlement.featureId}
@@ -291,73 +293,65 @@ export const PlanManager = forwardRef<
                     }
                     $color={theme.typography[props.addOns.fontStyle].color}
                   >
-                    {typeof entitlementQuantity === "number" ? (
+                    {entitlement.priceBehavior === "pay_in_advance" ? (
                       <>
-                        {entitlementQuantity}{" "}
-                        {pluralize(
-                          entitlement.feature.name,
-                          entitlementQuantity,
-                        )}
+                        {quantity}{" "}
+                        {pluralize(entitlement.feature.name, quantity)}
                       </>
                     ) : (
                       entitlement.feature.name
                     )}
                   </Text>
 
-                  {
-                    <Flex $alignItems="center" $gap="1rem">
-                      {entitlementPrice &&
-                        typeof entitlement.valueNumeric === "number" &&
-                        currentPlan?.planPeriod && (
-                          <Text
-                            $font={theme.typography.text.fontFamily}
-                            $size={0.875 * theme.typography.text.fontSize}
-                            $weight={theme.typography.text.fontWeight}
-                            $color={
-                              hexToHSL(theme.typography.text.color).l > 50
-                                ? darken(theme.typography.text.color, 0.46)
-                                : lighten(theme.typography.text.color, 0.46)
-                            }
-                          >
-                            {formatCurrency(entitlementPrice.price)}
-                            <sub>
-                              /
-                              {pluralize(
-                                entitlement.feature.name.toLowerCase(),
-                                1,
-                              )}
-                            </sub>
-                            <sub>/{shortenPeriod(currentPlan.planPeriod)}</sub>
-                          </Text>
-                        )}
-
-                      {entitlementPrice?.price && (
+                  <Flex $alignItems="center" $gap="1rem">
+                    {entitlement.priceBehavior === "pay_in_advance" &&
+                      currentPlan?.planPeriod && (
                         <Text
                           $font={theme.typography.text.fontFamily}
-                          $size={theme.typography.text.fontSize}
+                          $size={0.875 * theme.typography.text.fontSize}
                           $weight={theme.typography.text.fontWeight}
-                          $color={theme.typography.text.color}
+                          $color={
+                            hexToHSL(theme.typography.text.color).l > 50
+                              ? darken(theme.typography.text.color, 0.46)
+                              : lighten(theme.typography.text.color, 0.46)
+                          }
                         >
-                          {formatCurrency(
-                            entitlementPrice.price *
-                              (typeof entitlement.valueNumeric === "number"
-                                ? entitlement.valueNumeric
-                                : 1),
-                          )}
+                          {formatCurrency(price)}
+                          <sub>/{shortenPeriod(currentPlan.planPeriod)}</sub>
                           <sub>
                             /
-                            {currentPlan?.planPeriod &&
-                            typeof entitlement.valueNumeric === "number"
-                              ? shortenPeriod(currentPlan.planPeriod)
-                              : pluralize(
-                                  entitlement.feature.name.toLowerCase(),
-                                  1,
-                                )}
+                            {pluralize(
+                              entitlement.feature.name.toLowerCase(),
+                              1,
+                            )}
                           </sub>
                         </Text>
                       )}
-                    </Flex>
-                  }
+
+                    <Text
+                      $font={theme.typography.text.fontFamily}
+                      $size={theme.typography.text.fontSize}
+                      $weight={theme.typography.text.fontWeight}
+                      $color={theme.typography.text.color}
+                    >
+                      {formatCurrency(
+                        price *
+                          (entitlement.priceBehavior === "pay_in_advance"
+                            ? quantity
+                            : 1),
+                      )}
+                      <sub>
+                        /
+                        {currentPlan?.planPeriod &&
+                        entitlement.priceBehavior === "pay_in_advance"
+                          ? shortenPeriod(currentPlan.planPeriod)
+                          : pluralize(
+                              entitlement.feature.name.toLowerCase(),
+                              1,
+                            )}
+                      </sub>
+                    </Text>
+                  </Flex>
                 </Flex>,
               );
             }

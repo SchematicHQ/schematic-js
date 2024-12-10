@@ -2,7 +2,11 @@ import { forwardRef, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 import pluralize from "pluralize";
-import { type FeatureUsageResponseData } from "../../../api";
+import type {
+  FeatureUsageResponseData,
+  PlanEntitlementResponseData,
+  UsageBasedEntitlementResponseData,
+} from "../../../api";
 import { type FontStyle } from "../../../context";
 import {
   useEmbed,
@@ -10,7 +14,7 @@ import {
   useWrapChildren,
 } from "../../../hooks";
 import type { RecursivePartial, ElementProps } from "../../../types";
-import { formatNumber } from "../../../utils";
+import { formatCurrency, formatNumber, shortenPeriod } from "../../../utils";
 import { Element } from "../../layout";
 import { Box, Flex, Icon, IconRound, Text, type IconNameTypes } from "../../ui";
 
@@ -86,6 +90,32 @@ export const IncludedFeatures = forwardRef<
 
   const isLightBackground = useIsLightBackground();
 
+  const usageBasedEntitlements = data.activeUsageBasedEntitlements.reduce(
+    (
+      acc: {
+        entitlement: PlanEntitlementResponseData;
+        usage: UsageBasedEntitlementResponseData;
+      }[],
+      usage,
+    ) => {
+      const entitlement = data.activePlans
+        .find((plan) => plan.id === data.company?.plan?.id)
+        ?.entitlements.find((entitlement) => {
+          return usage.featureId === entitlement.featureId;
+        });
+
+      if (entitlement) {
+        acc.push({
+          entitlement,
+          usage,
+        });
+      }
+
+      return acc;
+    },
+    [],
+  );
+
   const featureUsage = props.visibleFeatures
     ? props.visibleFeatures.reduce((acc: FeatureUsageResponseData[], id) => {
         const mappedFeatureUsage = data.featureUsage?.features.find(
@@ -99,11 +129,13 @@ export const IncludedFeatures = forwardRef<
       }, [])
     : data.featureUsage?.features || [];
 
+  const totalListSize = usageBasedEntitlements.length + featureUsage.length;
+
   const handleToggleShowAll = () => {
     if (isExpanded) {
       setShowAll(visibleCount);
     } else {
-      setShowAll(featureUsage.length);
+      setShowAll(totalListSize);
     }
     setIsExpanded(!isExpanded); // Toggle state
   };
@@ -114,7 +146,7 @@ export const IncludedFeatures = forwardRef<
   //  even if the company has no plan or add-ons).
   // * If none of the above, don't render the component.
   const shouldShowFeatures =
-    featureUsage.length > 0 ||
+    totalListSize > 0 ||
     data.company?.plan ||
     (data.company?.addOns ?? []).length > 0 ||
     false;
@@ -144,9 +176,123 @@ export const IncludedFeatures = forwardRef<
         </Box>
       )}
 
-      {featureUsage
-        .slice(0, showAll)
-        .map(({ allocation, feature, usage }, index) => {
+      {[
+        ...usageBasedEntitlements.map(({ entitlement, usage }, index) => {
+          return (
+            <Flex
+              key={featureUsage.length + index}
+              ref={(el) => el && elements.current.push(el)}
+              $flexWrap="wrap"
+              $justifyContent="space-between"
+              $alignItems="center"
+              $gap="1rem"
+            >
+              <Flex $flexGrow="1" $flexBasis="min-content" $gap="1rem">
+                {props.icons.isVisible && entitlement.feature?.icon && (
+                  <IconRound
+                    name={entitlement.feature.icon as IconNameTypes | string}
+                    size="sm"
+                    colors={[
+                      theme.primary,
+                      isLightBackground
+                        ? "hsla(0, 0%, 0%, 0.0625)"
+                        : "hsla(0, 0%, 100%, 0.25)",
+                    ]}
+                  />
+                )}
+
+                {entitlement.feature?.name && (
+                  <Flex $alignItems="center">
+                    <Text
+                      $font={theme.typography[props.icons.fontStyle].fontFamily}
+                      $size={theme.typography[props.icons.fontStyle].fontSize}
+                      $weight={
+                        theme.typography[props.icons.fontStyle].fontWeight
+                      }
+                      $color={theme.typography[props.icons.fontStyle].color}
+                    >
+                      {entitlement.feature.name}
+                    </Text>
+                  </Flex>
+                )}
+              </Flex>
+
+              {entitlement.feature?.name && (
+                <Box
+                  $flexBasis="min-content"
+                  $flexGrow="1"
+                  $textAlign={shouldWrapChildren ? "left" : "right"}
+                >
+                  {props.entitlement.isVisible && (
+                    <Box $whiteSpace="nowrap">
+                      <Text
+                        $font={
+                          theme.typography[props.entitlement.fontStyle]
+                            .fontFamily
+                        }
+                        $size={
+                          theme.typography[props.entitlement.fontStyle].fontSize
+                        }
+                        $weight={
+                          theme.typography[props.entitlement.fontStyle]
+                            .fontWeight
+                        }
+                        $leading={1}
+                        $color={
+                          theme.typography[props.entitlement.fontStyle].color
+                        }
+                      >
+                        {usage.priceBehavior === "pay_in_advance" &&
+                          typeof usage.valueNumeric === "number" &&
+                          `${formatNumber(usage.valueNumeric)} ${pluralize(
+                            entitlement.feature.name,
+                            usage.valueNumeric,
+                          )}`}
+
+                        {usage.priceBehavior === "pay_as_you_go" &&
+                          typeof usage.meteredPrice?.price === "number" &&
+                          `${formatCurrency(usage.meteredPrice.price)} ${t("per")} ${pluralize(
+                            entitlement.feature.name.toLowerCase(),
+                            1,
+                          )}`}
+                      </Text>
+                    </Box>
+                  )}
+
+                  {props.usage.isVisible && (
+                    <Box $whiteSpace="nowrap">
+                      <Text
+                        $font={
+                          theme.typography[props.usage.fontStyle].fontFamily
+                        }
+                        $size={theme.typography[props.usage.fontStyle].fontSize}
+                        $weight={
+                          theme.typography[props.usage.fontStyle].fontWeight
+                        }
+                        $leading={1}
+                        $color={theme.typography[props.usage.fontStyle].color}
+                      >
+                        {usage.priceBehavior === "pay_in_advance" &&
+                          typeof usage.meteredPrice?.interval === "string" &&
+                          typeof usage.meteredPrice?.price === "number" &&
+                          `${formatCurrency(usage.meteredPrice.price)}/${shortenPeriod(usage.meteredPrice.interval)}/${pluralize(entitlement.feature.name.toLowerCase(), 1)} • `}
+
+                        {usage.priceBehavior === "pay_as_you_go" &&
+                          typeof usage.valueNumeric === "number" &&
+                          `${usage.valueNumeric} ${pluralize(entitlement.feature.name.toLowerCase(), usage.valueNumeric)} ${t("used")} • `}
+
+                        {typeof usage.meteredPrice?.price === "number" &&
+                          typeof usage.valueNumeric === "number" &&
+                          `${formatCurrency(usage.meteredPrice.price * usage.valueNumeric)}`}
+                      </Text>
+                    </Box>
+                  )}
+                </Box>
+              )}
+            </Flex>
+          );
+        }),
+        ...featureUsage.map(({ allocation, feature, usage }, index) => {
           return (
             <Flex
               key={index}
@@ -214,7 +360,7 @@ export const IncludedFeatures = forwardRef<
                             theme.typography[props.entitlement.fontStyle].color
                           }
                         >
-                          {priceBehavior === "pay_in_advance" typeof allocation === "number"
+                          {typeof allocation === "number"
                             ? `${formatNumber(allocation)} ${pluralize(
                                 feature.name,
                                 allocation,
@@ -258,7 +404,8 @@ export const IncludedFeatures = forwardRef<
                 )}
             </Flex>
           );
-        })}
+        }),
+      ].slice(0, showAll)}
 
       <Flex $alignItems="center" $justifyContent="start" $marginTop="1rem">
         <Icon

@@ -284,7 +284,6 @@ export const CheckoutDialog = ({
     [addOns, payInAdvanceEntitlements, previewCheckout],
   );
 
-  // TODO
   const toggleAddOn = useCallback(
     (id: string, newPeriod?: string) => {
       const updatedAddOns = addOns.map((addOn) => ({

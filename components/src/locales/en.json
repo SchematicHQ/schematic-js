@@ -69,6 +69,8 @@
     "per": "per",
     "year": "year",
 
+    "used": "used",
+
     "usage": {
       "limited": "{{amount}} of {{allocation}} used",
       "unlimited": "{{amount}} used"

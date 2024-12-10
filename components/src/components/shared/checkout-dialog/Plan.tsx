@@ -256,7 +256,7 @@ export const Plan = ({
                                         {formatCurrency(price)}
                                         {priceBehavior === "pay_in_advance" && (
                                           <sub>/{shortenPeriod(period)}</sub>
-                                        )}
+                                        )}{" "}
                                         {t("per")} {pluralize(feature.name, 1)}
                                       </>
                                     ) : hasNumericValue ? (
