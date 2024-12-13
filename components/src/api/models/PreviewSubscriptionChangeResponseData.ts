@@ -24,6 +24,12 @@ export interface PreviewSubscriptionChangeResponseData {
    * @type {number}
    * @memberof PreviewSubscriptionChangeResponseData
    */
+  amountOff: number;
+  /**
+   *
+   * @type {number}
+   * @memberof PreviewSubscriptionChangeResponseData
+   */
   dueNow: number;
   /**
    *
@@ -33,10 +39,22 @@ export interface PreviewSubscriptionChangeResponseData {
   newCharges: number;
   /**
    *
+   * @type {number}
+   * @memberof PreviewSubscriptionChangeResponseData
+   */
+  percentOff: number;
+  /**
+   *
    * @type {Date}
    * @memberof PreviewSubscriptionChangeResponseData
    */
   periodStart: Date;
+  /**
+   *
+   * @type {boolean}
+   * @memberof PreviewSubscriptionChangeResponseData
+   */
+  promoCodeApplied: boolean;
   /**
    *
    * @type {number}
@@ -57,10 +75,15 @@ export interface PreviewSubscriptionChangeResponseData {
 export function instanceOfPreviewSubscriptionChangeResponseData(
   value: object,
 ): value is PreviewSubscriptionChangeResponseData {
+  if (!("amountOff" in value) || value["amountOff"] === undefined) return false;
   if (!("dueNow" in value) || value["dueNow"] === undefined) return false;
   if (!("newCharges" in value) || value["newCharges"] === undefined)
     return false;
+  if (!("percentOff" in value) || value["percentOff"] === undefined)
+    return false;
   if (!("periodStart" in value) || value["periodStart"] === undefined)
+    return false;
+  if (!("promoCodeApplied" in value) || value["promoCodeApplied"] === undefined)
     return false;
   if (!("proration" in value) || value["proration"] === undefined) return false;
   return true;
@@ -80,9 +103,12 @@ export function PreviewSubscriptionChangeResponseDataFromJSONTyped(
     return json;
   }
   return {
+    amountOff: json["amount_off"],
     dueNow: json["due_now"],
     newCharges: json["new_charges"],
+    percentOff: json["percent_off"],
     periodStart: new Date(json["period_start"]),
+    promoCodeApplied: json["promo_code_applied"],
     proration: json["proration"],
     trialEnd:
       json["trial_end"] == null ? undefined : new Date(json["trial_end"]),
@@ -96,9 +122,12 @@ export function PreviewSubscriptionChangeResponseDataToJSON(
     return value;
   }
   return {
+    amount_off: value["amountOff"],
     due_now: value["dueNow"],
     new_charges: value["newCharges"],
+    percent_off: value["percentOff"],
     period_start: value["periodStart"].toISOString(),
+    promo_code_applied: value["promoCodeApplied"],
     proration: value["proration"],
     trial_end:
       value["trialEnd"] == null

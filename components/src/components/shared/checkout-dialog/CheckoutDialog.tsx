@@ -28,31 +28,25 @@ import { AddOns } from "./AddOns";
 import { Checkout } from "./Checkout";
 
 export interface CheckoutDialogProps {
-  initialPeriod?: string;
-  initialPlanId?: string | null;
-  initialAddOnId?: string | null;
-  portal?: HTMLElement;
+  top?: number;
 }
 
-export const CheckoutDialog = ({
-  initialPeriod,
-  initialPlanId,
-  initialAddOnId,
-  portal,
-}: CheckoutDialogProps) => {
+export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   const { t } = useTranslation();
 
   const theme = useTheme();
 
-  const { api, data } = useEmbed();
+  const { api, data, selected } = useEmbed();
 
   const modalRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const checkoutRef = useRef<HTMLDivElement>(null);
 
-  const [checkoutStage, setCheckoutStage] = useState("plan");
+  const [checkoutStage, setCheckoutStage] = useState(() =>
+    selected.addOnId ? "addons" : "plan",
+  );
   const [planPeriod, setPlanPeriod] = useState(
-    initialPeriod || data.company?.plan?.planPeriod || "month",
+    selected.period || data.company?.plan?.planPeriod || "month",
   );
   const [charges, setCharges] = useState<{
     dueNow: number;
@@ -68,7 +62,6 @@ export const CheckoutDialog = ({
   );
   const [stripe, setStripe] = useState<Promise<Stripe | null> | null>(null);
   const [setupIntent, setSetupIntent] = useState<SetupIntentResponseData>();
-  const [top, setTop] = useState(0);
 
   const {
     plans: availablePlans,
@@ -107,8 +100,8 @@ export const CheckoutDialog = ({
     availablePlans.find(
       (plan) =>
         plan.id ===
-        (typeof initialPlanId !== "undefined"
-          ? initialPlanId
+        (typeof selected.planId !== "undefined"
+          ? selected.planId
           : currentPlan?.id),
     ),
   );
@@ -118,8 +111,8 @@ export const CheckoutDialog = ({
     availableAddOns.map((addOn) => ({
       ...addOn,
       isSelected:
-        typeof initialAddOnId !== "undefined"
-          ? addOn.id === initialAddOnId
+        typeof selected.addOnId !== "undefined"
+          ? addOn.id === selected.addOnId
           : currentAddOns.some((currentAddOn) => addOn.id === currentAddOn.id),
     })),
   );
@@ -164,6 +157,7 @@ export const CheckoutDialog = ({
 
               return acc;
             }, []),
+            payInAdvance: [],
           },
         });
 
@@ -228,18 +222,6 @@ export const CheckoutDialog = ({
       setStripe(loadStripe(setupIntent.publishableKey));
     }
   }, [stripe, setupIntent?.publishableKey]);
-
-  useLayoutEffect(() => {
-    const parent = portal || document.body;
-    const value = Math.abs(parent.getBoundingClientRect().top ?? 0);
-    setTop(value);
-
-    parent.style.overflow = "hidden";
-
-    return () => {
-      parent.style.overflow = "";
-    };
-  }, [portal]);
 
   useLayoutEffect(() => {
     if (contentRef.current) {

@@ -19,6 +19,12 @@ import {
   BillingProductForSubscriptionResponseDataFromJSONTyped,
   BillingProductForSubscriptionResponseDataToJSON,
 } from "./BillingProductForSubscriptionResponseData";
+import type { BillingSubscriptionDiscountView } from "./BillingSubscriptionDiscountView";
+import {
+  BillingSubscriptionDiscountViewFromJSON,
+  BillingSubscriptionDiscountViewFromJSONTyped,
+  BillingSubscriptionDiscountViewToJSON,
+} from "./BillingSubscriptionDiscountView";
 import type { InvoiceResponseData } from "./InvoiceResponseData";
 import {
   InvoiceResponseDataFromJSON,
@@ -50,6 +56,12 @@ export interface CompanySubscriptionResponseData {
    * @memberof CompanySubscriptionResponseData
    */
   customerExternalId: string;
+  /**
+   *
+   * @type {Array<BillingSubscriptionDiscountView>}
+   * @memberof CompanySubscriptionResponseData
+   */
+  discounts: Array<BillingSubscriptionDiscountView>;
   /**
    *
    * @type {Date}
@@ -112,6 +124,7 @@ export function instanceOfCompanySubscriptionResponseData(
     value["customerExternalId"] === undefined
   )
     return false;
+  if (!("discounts" in value) || value["discounts"] === undefined) return false;
   if (!("interval" in value) || value["interval"] === undefined) return false;
   if (!("products" in value) || value["products"] === undefined) return false;
   if (!("status" in value) || value["status"] === undefined) return false;
@@ -141,6 +154,9 @@ export function CompanySubscriptionResponseDataFromJSONTyped(
   return {
     currency: json["currency"],
     customerExternalId: json["customer_external_id"],
+    discounts: (json["discounts"] as Array<any>).map(
+      BillingSubscriptionDiscountViewFromJSON,
+    ),
     expiredAt:
       json["expired_at"] == null ? undefined : new Date(json["expired_at"]),
     interval: json["interval"],
@@ -170,6 +186,9 @@ export function CompanySubscriptionResponseDataToJSON(
   return {
     currency: value["currency"],
     customer_external_id: value["customerExternalId"],
+    discounts: (value["discounts"] as Array<any>).map(
+      BillingSubscriptionDiscountViewToJSON,
+    ),
     expired_at:
       value["expiredAt"] == null
         ? undefined
