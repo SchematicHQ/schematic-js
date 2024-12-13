@@ -1,12 +1,11 @@
 import { forwardRef, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
-import pluralize from "pluralize";
 import type {
   FeatureUsageResponseData,
-  PlanEntitlementResponseData,
   UsageBasedEntitlementResponseData,
 } from "../../../api";
+import { VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
 import { type FontStyle } from "../../../context";
 import {
   useEmbed,
@@ -14,11 +13,11 @@ import {
   useWrapChildren,
 } from "../../../hooks";
 import type { RecursivePartial, ElementProps } from "../../../types";
-import { formatCurrency, formatNumber, shortenPeriod } from "../../../utils";
 import { Element } from "../../layout";
 import { Box, Flex, Icon, IconRound, Text, type IconNameTypes } from "../../ui";
+import { Details } from "./Details";
 
-interface DesignProps {
+export interface DesignProps {
   header: {
     isVisible: boolean;
     fontStyle: FontStyle;
@@ -73,10 +72,6 @@ export const IncludedFeatures = forwardRef<
     RecursivePartial<DesignProps> &
     React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...rest }, ref) => {
-  const visibleCount = 4;
-  const [showAll, setShowAll] = useState(visibleCount);
-  const [isExpanded, setIsExpanded] = useState(false); // New state
-
   const props = resolveDesignProps(rest);
 
   const { t } = useTranslation();
@@ -90,54 +85,48 @@ export const IncludedFeatures = forwardRef<
 
   const isLightBackground = useIsLightBackground();
 
-  const usageBasedEntitlements = data.activeUsageBasedEntitlements.reduce(
-    (
-      acc: {
-        entitlement: PlanEntitlementResponseData;
-        usage: UsageBasedEntitlementResponseData;
-      }[],
-      usage,
-    ) => {
-      const entitlement = data.activePlans
-        .find((plan) => plan.id === data.company?.plan?.id)
-        ?.entitlements.find((entitlement) => {
-          return usage.featureId === entitlement.featureId;
-        });
+  const [showCount, setShowCount] = useState(VISIBLE_ENTITLEMENT_COUNT);
 
-      if (entitlement) {
-        acc.push({
-          entitlement,
-          usage,
-        });
-      }
+  const featureUsages: (FeatureUsageResponseData & {
+    usageData?: UsageBasedEntitlementResponseData;
+  })[] = props.visibleFeatures
+    ? props.visibleFeatures.reduce(
+        (
+          acc: (FeatureUsageResponseData & {
+            usageData?: UsageBasedEntitlementResponseData;
+          })[],
+          id,
+        ) => {
+          const mappedFeatureUsage = data.featureUsage?.features.find(
+            (usage) => usage.feature?.id === id,
+          );
 
-      return acc;
-    },
-    [],
-  );
+          if (mappedFeatureUsage) {
+            const usageBasedEntitlement =
+              data.activeUsageBasedEntitlements.find(
+                (entitlement) => entitlement.featureId === id,
+              );
 
-  const featureUsage = props.visibleFeatures
-    ? props.visibleFeatures.reduce((acc: FeatureUsageResponseData[], id) => {
-        const mappedFeatureUsage = data.featureUsage?.features.find(
-          (usage) => usage.feature?.id === id,
-        );
-        if (mappedFeatureUsage) {
-          acc.push(mappedFeatureUsage);
-        }
+            acc.push({
+              ...mappedFeatureUsage,
+              usageData: usageBasedEntitlement,
+            });
+          }
 
-        return acc;
-      }, [])
+          return acc;
+        },
+        [],
+      )
     : data.featureUsage?.features || [];
 
-  const totalListSize = usageBasedEntitlements.length + featureUsage.length;
+  const featureListSize = featureUsages.length;
 
   const handleToggleShowAll = () => {
-    if (isExpanded) {
-      setShowAll(visibleCount);
-    } else {
-      setShowAll(totalListSize);
-    }
-    setIsExpanded(!isExpanded); // Toggle state
+    setShowCount((prev) =>
+      prev > VISIBLE_ENTITLEMENT_COUNT
+        ? VISIBLE_ENTITLEMENT_COUNT
+        : featureListSize,
+    );
   };
 
   // Check if we should render this component at all:
@@ -146,7 +135,7 @@ export const IncludedFeatures = forwardRef<
   //  even if the company has no plan or add-ons).
   // * If none of the above, don't render the component.
   const shouldShowFeatures =
-    totalListSize > 0 ||
+    featureUsages.length > 0 ||
     data.company?.plan ||
     (data.company?.addOns ?? []).length > 0 ||
     false;
@@ -154,6 +143,9 @@ export const IncludedFeatures = forwardRef<
   if (!shouldShowFeatures) {
     return null;
   }
+
+  const shouldShowExpand = featureListSize > VISIBLE_ENTITLEMENT_COUNT;
+  const isExpanded = showCount > VISIBLE_ENTITLEMENT_COUNT;
 
   return (
     <Element
@@ -176,123 +168,15 @@ export const IncludedFeatures = forwardRef<
         </Box>
       )}
 
-      {[
-        ...usageBasedEntitlements.map(({ entitlement, usage }, index) => {
-          return (
-            <Flex
-              key={featureUsage.length + index}
-              ref={(el) => el && elements.current.push(el)}
-              $flexWrap="wrap"
-              $justifyContent="space-between"
-              $alignItems="center"
-              $gap="1rem"
-            >
-              <Flex $flexGrow="1" $flexBasis="min-content" $gap="1rem">
-                {props.icons.isVisible && entitlement.feature?.icon && (
-                  <IconRound
-                    name={entitlement.feature.icon as IconNameTypes | string}
-                    size="sm"
-                    colors={[
-                      theme.primary,
-                      isLightBackground
-                        ? "hsla(0, 0%, 0%, 0.0625)"
-                        : "hsla(0, 0%, 100%, 0.25)",
-                    ]}
-                  />
-                )}
+      {featureUsages
+        .slice(0, showCount)
+        .map(({ usageData, ...featureUsage }, index) => {
+          const { feature } = featureUsage;
+          const shouldShowDetails =
+            feature?.name &&
+            (feature?.featureType === "event" ||
+              feature?.featureType === "trait");
 
-                {entitlement.feature?.name && (
-                  <Flex $alignItems="center">
-                    <Text
-                      $font={theme.typography[props.icons.fontStyle].fontFamily}
-                      $size={theme.typography[props.icons.fontStyle].fontSize}
-                      $weight={
-                        theme.typography[props.icons.fontStyle].fontWeight
-                      }
-                      $color={theme.typography[props.icons.fontStyle].color}
-                    >
-                      {entitlement.feature.name}
-                    </Text>
-                  </Flex>
-                )}
-              </Flex>
-
-              {entitlement.feature?.name && (
-                <Box
-                  $flexBasis="min-content"
-                  $flexGrow="1"
-                  $textAlign={shouldWrapChildren ? "left" : "right"}
-                >
-                  {props.entitlement.isVisible && (
-                    <Box $whiteSpace="nowrap">
-                      <Text
-                        $font={
-                          theme.typography[props.entitlement.fontStyle]
-                            .fontFamily
-                        }
-                        $size={
-                          theme.typography[props.entitlement.fontStyle].fontSize
-                        }
-                        $weight={
-                          theme.typography[props.entitlement.fontStyle]
-                            .fontWeight
-                        }
-                        $leading={1}
-                        $color={
-                          theme.typography[props.entitlement.fontStyle].color
-                        }
-                      >
-                        {usage.priceBehavior === "pay_in_advance" &&
-                          typeof usage.valueNumeric === "number" &&
-                          `${formatNumber(usage.valueNumeric)} ${pluralize(
-                            entitlement.feature.name,
-                            usage.valueNumeric,
-                          )}`}
-
-                        {usage.priceBehavior === "pay_as_you_go" &&
-                          typeof usage.meteredPrice?.price === "number" &&
-                          `${formatCurrency(usage.meteredPrice.price)} ${t("per")} ${pluralize(
-                            entitlement.feature.name.toLowerCase(),
-                            1,
-                          )}`}
-                      </Text>
-                    </Box>
-                  )}
-
-                  {props.usage.isVisible && (
-                    <Box $whiteSpace="nowrap">
-                      <Text
-                        $font={
-                          theme.typography[props.usage.fontStyle].fontFamily
-                        }
-                        $size={theme.typography[props.usage.fontStyle].fontSize}
-                        $weight={
-                          theme.typography[props.usage.fontStyle].fontWeight
-                        }
-                        $leading={1}
-                        $color={theme.typography[props.usage.fontStyle].color}
-                      >
-                        {usage.priceBehavior === "pay_in_advance" &&
-                          typeof usage.meteredPrice?.interval === "string" &&
-                          typeof usage.meteredPrice?.price === "number" &&
-                          `${formatCurrency(usage.meteredPrice.price)}/${shortenPeriod(usage.meteredPrice.interval)}/${pluralize(entitlement.feature.name.toLowerCase(), 1)} • `}
-
-                        {usage.priceBehavior === "pay_as_you_go" &&
-                          typeof usage.valueNumeric === "number" &&
-                          `${usage.valueNumeric} ${pluralize(entitlement.feature.name.toLowerCase(), usage.valueNumeric)} ${t("used")} • `}
-
-                        {typeof usage.meteredPrice?.price === "number" &&
-                          typeof usage.valueNumeric === "number" &&
-                          `${formatCurrency(usage.meteredPrice.price * usage.valueNumeric)}`}
-                      </Text>
-                    </Box>
-                  )}
-                </Box>
-              )}
-            </Flex>
-          );
-        }),
-        ...featureUsage.map(({ allocation, feature, usage }, index) => {
           return (
             <Flex
               key={index}
@@ -332,103 +216,43 @@ export const IncludedFeatures = forwardRef<
                 )}
               </Flex>
 
-              {(feature?.featureType === "event" ||
-                feature?.featureType === "trait") &&
-                feature?.name && (
-                  <Box
-                    $flexBasis="min-content"
-                    $flexGrow="1"
-                    $textAlign={shouldWrapChildren ? "left" : "right"}
-                  >
-                    {props.entitlement.isVisible && (
-                      <Box $whiteSpace="nowrap">
-                        <Text
-                          $font={
-                            theme.typography[props.entitlement.fontStyle]
-                              .fontFamily
-                          }
-                          $size={
-                            theme.typography[props.entitlement.fontStyle]
-                              .fontSize
-                          }
-                          $weight={
-                            theme.typography[props.entitlement.fontStyle]
-                              .fontWeight
-                          }
-                          $leading={1}
-                          $color={
-                            theme.typography[props.entitlement.fontStyle].color
-                          }
-                        >
-                          {typeof allocation === "number"
-                            ? `${formatNumber(allocation)} ${pluralize(
-                                feature.name,
-                                allocation,
-                              )}`
-                            : t("Unlimited", { item: pluralize(feature.name) })}
-                        </Text>
-                      </Box>
-                    )}
-
-                    {props.usage.isVisible && (
-                      <Box $whiteSpace="nowrap">
-                        <Text
-                          $font={
-                            theme.typography[props.usage.fontStyle].fontFamily
-                          }
-                          $size={
-                            theme.typography[props.usage.fontStyle].fontSize
-                          }
-                          $weight={
-                            theme.typography[props.usage.fontStyle].fontWeight
-                          }
-                          $leading={1}
-                          $color={theme.typography[props.usage.fontStyle].color}
-                        >
-                          {typeof usage === "number" && (
-                            <>
-                              {typeof allocation === "number"
-                                ? t("usage.limited", {
-                                    amount: formatNumber(usage),
-                                    allocation: formatNumber(allocation),
-                                  })
-                                : t("usage.unlimited", {
-                                    amount: formatNumber(usage),
-                                  })}
-                            </>
-                          )}
-                        </Text>
-                      </Box>
-                    )}
-                  </Box>
-                )}
+              {shouldShowDetails && (
+                <Details
+                  featureUsage={featureUsage}
+                  shouldWrapChildren={shouldWrapChildren}
+                  usageData={usageData}
+                  {...props}
+                />
+              )}
             </Flex>
           );
-        }),
-      ].slice(0, showAll)}
+        })}
 
-      <Flex $alignItems="center" $justifyContent="start" $marginTop="1rem">
-        <Icon
-          name={isExpanded ? "chevron-up" : "chevron-down"}
-          style={{
-            fontSize: "1.4rem",
-            lineHeight: "1em",
-            marginRight: ".25rem",
-            color: "#D0D0D0",
-          }}
-        />
-        <Text
-          onClick={handleToggleShowAll}
-          $font={theme.typography.link.fontFamily}
-          $size={theme.typography.link.fontSize}
-          $weight={theme.typography.link.fontWeight}
-          $leading={1}
-          $color={theme.typography.link.color}
-          style={{ cursor: "pointer" }}
-        >
-          {isExpanded ? t("Hide all") : t("See all")}
-        </Text>
-      </Flex>
+      {shouldShowExpand && (
+        <Flex $alignItems="center" $justifyContent="start" $marginTop="1rem">
+          <Icon
+            name={isExpanded ? "chevron-up" : "chevron-down"}
+            style={{
+              fontSize: "1.4rem",
+              lineHeight: "1em",
+              marginRight: ".25rem",
+              color: "#D0D0D0",
+            }}
+          />
+
+          <Text
+            onClick={handleToggleShowAll}
+            $font={theme.typography.link.fontFamily}
+            $size={theme.typography.link.fontSize}
+            $weight={theme.typography.link.fontWeight}
+            $leading={1}
+            $color={theme.typography.link.color}
+            style={{ cursor: "pointer" }}
+          >
+            {isExpanded ? t("Hide all") : t("See all")}
+          </Text>
+        </Flex>
+      )}
     </Element>
   );
 });

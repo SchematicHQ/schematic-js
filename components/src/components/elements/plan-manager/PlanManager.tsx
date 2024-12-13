@@ -16,6 +16,7 @@ import {
 import { CheckoutDialog } from "../../shared";
 import { Element } from "../../layout";
 import { Box, EmbedButton, Flex, Text } from "../../ui";
+import { PlanEntitlementResponseData } from "../../../api";
 
 interface DesignProps {
   header: {
@@ -97,19 +98,38 @@ export const PlanManager = forwardRef<
 
   // Can change plan if there is a publishable key, a current plan with a billing association, and
   // some active plans
-  const { currentPlan, canChangePlan, addOns, usageBasedEntitlements } = {
+  const { currentPlan, canChangePlan, addOns } = {
     addOns: data.company?.addOns || [],
     canChangePlan: data.capabilities?.checkout ?? true,
     currentPlan: data.company?.plan,
-    usageBasedEntitlements: (
-      data.activePlans.find((plan) => plan.id === data.company?.plan?.id)
-        ?.entitlements || []
-    ).filter(
-      (entitlement) =>
-        entitlement.valueNumeric &&
-        (entitlement.meteredMonthlyPrice || entitlement.meteredYearlyPrice),
-    ),
   };
+
+  const usageBasedEntitlements = (
+    data.activePlans.find((plan) => plan.id === data.company?.plan?.id)
+      ?.entitlements || []
+  ).reduce(
+    (
+      acc: (PlanEntitlementResponseData & {
+        price: number;
+        quantity: number;
+      })[],
+      entitlement,
+    ) => {
+      const price = (
+        currentPlan?.planPeriod && currentPlan.planPeriod === "month"
+          ? entitlement.meteredMonthlyPrice
+          : entitlement.meteredYearlyPrice
+      )?.price;
+      const quantity = entitlement.valueNumeric;
+
+      if (typeof price === "number" && typeof quantity === "number") {
+        acc.push({ ...entitlement, price, quantity });
+      }
+
+      return acc;
+    },
+    [],
+  );
 
   return (
     <Element
@@ -269,14 +289,7 @@ export const PlanManager = forwardRef<
           </Text>
 
           {usageBasedEntitlements.reduce((acc: JSX.Element[], entitlement) => {
-            const price =
-              (currentPlan?.planPeriod && currentPlan.planPeriod === "month"
-                ? entitlement.meteredMonthlyPrice
-                : entitlement.meteredYearlyPrice
-              )?.price ?? 0;
-            const quantity = entitlement.valueNumeric ?? 0;
-
-            if (entitlement.feature?.name && quantity > 0) {
+            if (entitlement.feature?.name) {
               acc.push(
                 <Flex
                   key={entitlement.featureId}
@@ -295,8 +308,11 @@ export const PlanManager = forwardRef<
                   >
                     {entitlement.priceBehavior === "pay_in_advance" ? (
                       <>
-                        {quantity}{" "}
-                        {pluralize(entitlement.feature.name, quantity)}
+                        {entitlement.quantity}{" "}
+                        {pluralize(
+                          entitlement.feature.name,
+                          entitlement.quantity,
+                        )}
                       </>
                     ) : (
                       entitlement.feature.name
@@ -316,10 +332,9 @@ export const PlanManager = forwardRef<
                               : lighten(theme.typography.text.color, 0.46)
                           }
                         >
-                          {formatCurrency(price)}
-                          <sub>/{shortenPeriod(currentPlan.planPeriod)}</sub>
+                          {formatCurrency(entitlement.price)}
                           <sub>
-                            /
+                            /{shortenPeriod(currentPlan.planPeriod)}/
                             {pluralize(
                               entitlement.feature.name.toLowerCase(),
                               1,
@@ -335,9 +350,9 @@ export const PlanManager = forwardRef<
                       $color={theme.typography.text.color}
                     >
                       {formatCurrency(
-                        price *
+                        entitlement.price *
                           (entitlement.priceBehavior === "pay_in_advance"
-                            ? quantity
+                            ? entitlement.quantity
                             : 1),
                       )}
                       <sub>

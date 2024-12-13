@@ -108,26 +108,36 @@ export const CheckoutDialog = ({
     })),
   );
 
-  const currentUsageBasedEntitlements = [
-    ...data.activeUsageBasedEntitlements,
-    // { ...testEntitlement },
-  ];
+  const currentUsageBasedEntitlements = [...data.activeUsageBasedEntitlements];
+
+  const activeUsageBasedEntitlementsReducer = useCallback(
+    (
+      acc: PlanEntitlementResponseData[],
+      entitlement: PlanEntitlementResponseData,
+    ) => {
+      if (
+        typeof entitlement.priceBehavior === "string" &&
+        ((planPeriod === "month" && entitlement.meteredMonthlyPrice) ||
+          (planPeriod === "year" && entitlement.meteredYearlyPrice))
+      ) {
+        acc.push(entitlement);
+      }
+
+      return acc;
+    },
+    [planPeriod],
+  );
+
   const [usageBasedEntitlements, setUsageBasedEntitlements] = useState(() => {
     return (selectedPlan?.entitlements || []).reduce(
-      (acc: PlanEntitlementResponseData[], entitlement) => {
-        if (
-          typeof entitlement.priceBehavior === "string" &&
-          ((planPeriod === "month" && entitlement.meteredMonthlyPrice) ||
-            (planPeriod === "year" && entitlement.meteredYearlyPrice))
-        ) {
-          acc.push(entitlement);
-        }
-
-        return acc;
-      },
+      activeUsageBasedEntitlementsReducer,
       [],
     );
   });
+
+  const payInAdvanceEntitlements = usageBasedEntitlements.filter(
+    (entitlement) => entitlement.priceBehavior === "pay_in_advance",
+  );
 
   const checkoutStages = useMemo(() => {
     const stages: {
@@ -144,14 +154,7 @@ export const CheckoutDialog = ({
       },
     ];
 
-    if (
-      selectedPlan?.entitlements.filter(
-        (entitlement) =>
-          entitlement.priceBehavior === "pay_in_advance" &&
-          ((planPeriod === "month" && entitlement.meteredMonthlyPrice) ||
-            (planPeriod === "year" && entitlement.meteredYearlyPrice)),
-      ).length
-    ) {
+    if (payInAdvanceEntitlements.length) {
       stages.push({
         id: "usage",
         name: t("Quantity"),
@@ -170,13 +173,9 @@ export const CheckoutDialog = ({
     stages.push({ id: "checkout", name: t("Checkout"), label: t("Checkout") });
 
     return stages;
-  }, [t, planPeriod, availableAddOns, selectedPlan?.entitlements]);
+  }, [t, availableAddOns, payInAdvanceEntitlements]);
 
   const isLightBackground = useIsLightBackground();
-
-  const payInAdvanceEntitlements = usageBasedEntitlements.filter(
-    (entitlement) => entitlement.priceBehavior === "pay_in_advance",
-  );
 
   const previewCheckout = useCallback(
     async ({
@@ -274,6 +273,9 @@ export const CheckoutDialog = ({
       newPeriod?: string,
     ) => {
       setSelectedPlan(plan);
+      setUsageBasedEntitlements(
+        plan.entitlements.reduce(activeUsageBasedEntitlementsReducer, []),
+      );
       previewCheckout({
         plan,
         addOns,
@@ -281,7 +283,12 @@ export const CheckoutDialog = ({
         period: newPeriod,
       });
     },
-    [addOns, payInAdvanceEntitlements, previewCheckout],
+    [
+      addOns,
+      payInAdvanceEntitlements,
+      previewCheckout,
+      activeUsageBasedEntitlementsReducer,
+    ],
   );
 
   const toggleAddOn = useCallback(
@@ -503,13 +510,15 @@ export const CheckoutDialog = ({
               </Flex>
             )}
 
-            <PeriodToggle
-              options={availablePeriods}
-              selectedOption={planPeriod}
-              selectedPlan={selectedPlan}
-              onChange={changePlanPeriod}
-              layerRef={modalRef}
-            />
+            {activeCheckoutStage?.id !== "usage" && (
+              <PeriodToggle
+                options={availablePeriods}
+                selectedOption={planPeriod}
+                selectedPlan={selectedPlan}
+                onChange={changePlanPeriod}
+                layerRef={modalRef}
+              />
+            )}
           </Flex>
 
           {checkoutStage === "plan" && (

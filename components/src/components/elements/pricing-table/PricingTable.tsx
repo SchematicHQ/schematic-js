@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 import pluralize from "pluralize";
-import { TEXT_BASE_SIZE } from "../../../const";
+import { TEXT_BASE_SIZE, VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
 import { type FontStyle } from "../../../context";
 import {
   useAvailablePlans,
@@ -120,9 +120,6 @@ export const PricingTable = forwardRef<
       portal?: HTMLElement | null;
     }
 >(({ children, className, portal, ...rest }, ref) => {
-  const visibleCount = 4;
-  const [showCount, setShowCount] = useState(visibleCount);
-
   const props = resolveDesignProps(rest);
 
   const { t } = useTranslation();
@@ -141,14 +138,33 @@ export const PricingTable = forwardRef<
 
   const isLightBackground = useIsLightBackground();
 
+  const [entitlementCounts, setEntitlementCounts] = useState(() =>
+    plans.map((plan) => ({
+      size: plan.entitlements.length,
+      limit: VISIBLE_ENTITLEMENT_COUNT,
+    })),
+  );
+
   const canChangePlan = data.capabilities?.checkout ?? true;
 
   const cardPadding = theme.card.padding / TEXT_BASE_SIZE;
 
   const currentPlanIndex = plans.findIndex((plan) => plan.current);
 
-  const handleToggleShowAll = (count: number) => {
-    setShowCount((prev) => (prev === visibleCount ? count : visibleCount));
+  const handleToggleShowAll = (index: number) => {
+    setEntitlementCounts((prev) =>
+      prev.map((count, i) =>
+        i === index
+          ? {
+              size: count.size,
+              limit:
+                count.limit > VISIBLE_ENTITLEMENT_COUNT
+                  ? VISIBLE_ENTITLEMENT_COUNT
+                  : count.size,
+            }
+          : count,
+      ),
+    );
   };
 
   return (
@@ -204,6 +220,9 @@ export const PricingTable = forwardRef<
               const isActivePlan =
                 plan.current &&
                 data.company?.plan?.planPeriod === selectedPeriod;
+
+              const count = entitlementCounts[index];
+              const isExpanded = count.limit > VISIBLE_ENTITLEMENT_COUNT;
 
               return (
                 <Flex
@@ -365,15 +384,24 @@ export const PricingTable = forwardRef<
                         )}
 
                         {plan.entitlements
-                          .slice(0, showCount)
-                          .map((entitlement) => {
+                          .slice(0, count.limit)
+                          .reduce((acc: JSX.Element[], entitlement) => {
                             const price = (
                               selectedPeriod === "month"
                                 ? entitlement.meteredMonthlyPrice
                                 : entitlement.meteredYearlyPrice
                             )?.price;
 
-                            return (
+                            if (
+                              (entitlement.priceBehavior === "pay_in_advance" ||
+                                entitlement.priceBehavior ===
+                                  "pay_as_you_go") &&
+                              typeof price !== "number"
+                            ) {
+                              return acc;
+                            }
+
+                            acc.push(
                               <Flex key={entitlement.id} $gap="1rem">
                                 {props.plans.showFeatureIcons &&
                                   entitlement.feature?.icon && (
@@ -407,9 +435,10 @@ export const PricingTable = forwardRef<
                                           {formatCurrency(price)}
                                           {entitlement.priceBehavior ===
                                             "pay_in_advance" && (
-                                            <sub>
-                                              /{shortenPeriod(selectedPeriod)}
-                                            </sub>
+                                            <>
+                                              {" "}
+                                              {t("per")} {selectedPeriod}
+                                            </>
                                           )}{" "}
                                           {t("per")}{" "}
                                           {pluralize(
@@ -451,22 +480,20 @@ export const PricingTable = forwardRef<
                                     </Text>
                                   </Flex>
                                 )}
-                              </Flex>
+                              </Flex>,
                             );
-                          })}
 
-                        {plan.entitlements.length > visibleCount && (
+                            return acc;
+                          }, [])}
+
+                        {count.size > VISIBLE_ENTITLEMENT_COUNT && (
                           <Flex
                             $alignItems="center"
                             $justifyContent="start"
                             $marginTop="1rem"
                           >
                             <Icon
-                              name={
-                                showCount > visibleCount
-                                  ? "chevron-up"
-                                  : "chevron-down"
-                              }
+                              name={isExpanded ? "chevron-up" : "chevron-down"}
                               style={{
                                 fontSize: "1.4rem",
                                 lineHeight: "1em",
@@ -475,9 +502,7 @@ export const PricingTable = forwardRef<
                               }}
                             />
                             <Text
-                              onClick={() =>
-                                handleToggleShowAll(plan.entitlements.length)
-                              }
+                              onClick={() => handleToggleShowAll(index)}
                               $font={theme.typography.link.fontFamily}
                               $size={theme.typography.link.fontSize}
                               $weight={theme.typography.link.fontWeight}
@@ -485,9 +510,7 @@ export const PricingTable = forwardRef<
                               $color={theme.typography.link.color}
                               style={{ cursor: "pointer" }}
                             >
-                              {showCount > visibleCount
-                                ? t("Hide all")
-                                : t("See all")}
+                              {isExpanded ? t("Hide all") : t("See all")}
                             </Text>
                           </Flex>
                         )}

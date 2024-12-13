@@ -5,14 +5,9 @@ import type {
   CompanyPlanDetailResponseData,
   CompanyPlanWithBillingSubView,
 } from "../../../api";
-import { TEXT_BASE_SIZE } from "../../../const";
+import { TEXT_BASE_SIZE, VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
 import { useIsLightBackground } from "../../../hooks";
-import {
-  hexToHSL,
-  formatCurrency,
-  formatNumber,
-  shortenPeriod,
-} from "../../../utils";
+import { hexToHSL, formatCurrency, formatNumber } from "../../../utils";
 import { cardBoxShadow } from "../../layout";
 import {
   Box,
@@ -46,28 +41,38 @@ export const Plan = ({
   period,
   selectPlan,
 }: PlanProps) => {
-  const visibleCount = 4;
-  const [showAll, setShowAll] = useState(visibleCount);
-  const [isExpanded, setIsExpanded] = useState(false);
-
   const { t } = useTranslation();
 
   const theme = useTheme();
 
   const isLightBackground = useIsLightBackground();
 
+  // TODO: fix when plans array changes
+  const [entitlementCounts, setEntitlementCounts] = useState(() =>
+    plans.map((plan) => ({
+      size: plan.entitlements.length,
+      limit: VISIBLE_ENTITLEMENT_COUNT,
+    })),
+  );
+
   const cardPadding = theme.card.padding / TEXT_BASE_SIZE;
 
   const currentPlanIndex = plans.findIndex((plan) => plan.current);
 
-  const handleToggleShowAll = () => {
-    if (isExpanded) {
-      setShowAll(visibleCount);
-      setIsExpanded(false);
-    } else {
-      setShowAll(plans.length);
-      setIsExpanded(true);
-    }
+  const handleToggleShowAll = (index: number) => {
+    setEntitlementCounts((prev) =>
+      prev.map((count, i) =>
+        i === index
+          ? {
+              size: count.size,
+              limit:
+                count.limit > VISIBLE_ENTITLEMENT_COUNT
+                  ? VISIBLE_ENTITLEMENT_COUNT
+                  : count.size,
+            }
+          : count,
+      ),
+    );
   };
 
   return (
@@ -81,6 +86,9 @@ export const Plan = ({
         {plans.map((plan, index) => {
           const isActivePlan =
             plan.current && currentPlan?.planPeriod === period;
+
+          const count = entitlementCounts[index];
+          const isExpanded = count.limit > VISIBLE_ENTITLEMENT_COUNT;
 
           return (
             <Flex
@@ -188,104 +196,115 @@ export const Plan = ({
               >
                 <Flex $flexDirection="column" $gap="1rem" $flexGrow="1">
                   {plan.entitlements
-                    .slice(0, showAll)
-                    .map(
-                      ({
-                        id,
-                        feature,
-                        meteredMonthlyPrice,
-                        meteredYearlyPrice,
-                        metricPeriod,
-                        priceBehavior,
-                        valueNumeric,
-                        valueType,
-                      }) => {
-                        const hasNumericValue =
-                          valueType === "numeric" ||
-                          valueType === "unlimited" ||
-                          valueType === "trait";
+                    .slice(0, count.limit)
+                    .reduce((acc: JSX.Element[], entitlement) => {
+                      const hasNumericValue =
+                        entitlement.valueType === "numeric" ||
+                        entitlement.valueType === "unlimited" ||
+                        entitlement.valueType === "trait";
 
-                        let metricPeriodText;
-                        if (hasNumericValue && metricPeriod) {
-                          metricPeriodText = {
-                            billing: t("billing period"),
-                            current_day: t("day"),
-                            current_month: t("month"),
-                            current_year: t("year"),
-                          }[metricPeriod];
-                        }
+                      let metricPeriodText;
+                      if (hasNumericValue && entitlement.metricPeriod) {
+                        metricPeriodText = {
+                          billing: t("billing period"),
+                          current_day: t("day"),
+                          current_month: t("month"),
+                          current_year: t("year"),
+                        }[entitlement.metricPeriod];
+                      }
 
-                        const price = (
-                          period === "month"
-                            ? meteredMonthlyPrice
-                            : meteredYearlyPrice
-                        )?.price;
+                      const price = (
+                        period === "month"
+                          ? entitlement.meteredMonthlyPrice
+                          : entitlement.meteredYearlyPrice
+                      )?.price;
 
-                        return (
-                          <Flex
-                            key={id}
-                            $flexWrap="wrap"
-                            $justifyContent="space-between"
-                            $alignItems="center"
-                            $gap="1rem"
-                          >
-                            <Flex $gap="1rem">
-                              {feature?.icon && (
-                                <IconRound
-                                  name={feature.icon as IconNameTypes | string}
-                                  size="sm"
-                                  colors={[
-                                    theme.primary,
-                                    isLightBackground
-                                      ? "hsla(0, 0%, 0%, 0.0625)"
-                                      : "hsla(0, 0%, 100%, 0.25)",
-                                  ]}
-                                />
-                              )}
+                      if (
+                        (entitlement.priceBehavior === "pay_in_advance" ||
+                          entitlement.priceBehavior === "pay_as_you_go") &&
+                        typeof price !== "number"
+                      ) {
+                        return acc;
+                      }
 
-                              {feature?.name && (
-                                <Flex $alignItems="center">
-                                  <Text
-                                    $font={theme.typography.text.fontFamily}
-                                    $size={theme.typography.text.fontSize}
-                                    $weight={theme.typography.text.fontWeight}
-                                    $color={theme.typography.text.color}
-                                  >
-                                    {typeof price !== "undefined" ? (
-                                      <>
-                                        {formatCurrency(price)}
-                                        {priceBehavior === "pay_in_advance" && (
-                                          <sub>/{shortenPeriod(period)}</sub>
-                                        )}{" "}
-                                        {t("per")} {pluralize(feature.name, 1)}
-                                      </>
-                                    ) : hasNumericValue ? (
-                                      <>
-                                        {typeof valueNumeric === "number"
-                                          ? `${formatNumber(valueNumeric)} ${pluralize(feature.name, valueNumeric)}`
-                                          : t("Unlimited", {
-                                              item: pluralize(feature.name),
-                                            })}
-                                        {metricPeriodText && (
-                                          <>
-                                            {" "}
-                                            {t("per")} {metricPeriodText}
-                                          </>
-                                        )}
-                                      </>
-                                    ) : (
-                                      feature.name
-                                    )}
-                                  </Text>
-                                </Flex>
-                              )}
-                            </Flex>
+                      acc.push(
+                        <Flex
+                          key={entitlement.id}
+                          $flexWrap="wrap"
+                          $justifyContent="space-between"
+                          $alignItems="center"
+                          $gap="1rem"
+                        >
+                          <Flex $gap="1rem">
+                            {entitlement.feature?.icon && (
+                              <IconRound
+                                name={
+                                  entitlement.feature.icon as
+                                    | IconNameTypes
+                                    | string
+                                }
+                                size="sm"
+                                colors={[
+                                  theme.primary,
+                                  isLightBackground
+                                    ? "hsla(0, 0%, 0%, 0.0625)"
+                                    : "hsla(0, 0%, 100%, 0.25)",
+                                ]}
+                              />
+                            )}
+
+                            {entitlement.feature?.name && (
+                              <Flex $alignItems="center">
+                                <Text
+                                  $font={theme.typography.text.fontFamily}
+                                  $size={theme.typography.text.fontSize}
+                                  $weight={theme.typography.text.fontWeight}
+                                  $color={theme.typography.text.color}
+                                >
+                                  {typeof price !== "undefined" ? (
+                                    <>
+                                      {formatCurrency(price)}
+                                      {entitlement.priceBehavior ===
+                                        "pay_in_advance" && (
+                                        <>
+                                          {" "}
+                                          {t("per")} {period}
+                                        </>
+                                      )}{" "}
+                                      {t("per")}{" "}
+                                      {pluralize(entitlement.feature.name, 1)}
+                                    </>
+                                  ) : hasNumericValue ? (
+                                    <>
+                                      {typeof entitlement.valueNumeric ===
+                                      "number"
+                                        ? `${formatNumber(entitlement.valueNumeric)} ${pluralize(entitlement.feature.name, entitlement.valueNumeric)}`
+                                        : t("Unlimited", {
+                                            item: pluralize(
+                                              entitlement.feature.name,
+                                            ),
+                                          })}
+                                      {metricPeriodText && (
+                                        <>
+                                          {" "}
+                                          {t("per")} {metricPeriodText}
+                                        </>
+                                      )}
+                                    </>
+                                  ) : (
+                                    entitlement.feature.name
+                                  )}
+                                </Text>
+                              </Flex>
+                            )}
                           </Flex>
-                        );
-                      },
-                    )}
+                        </Flex>,
+                      );
 
-                  {plan.entitlements.length > 4 && (
+                      return acc;
+                    }, [])}
+
+                  {count.size > VISIBLE_ENTITLEMENT_COUNT && (
                     <Flex
                       $alignItems="center"
                       $justifyContent="start"
@@ -301,7 +320,7 @@ export const Plan = ({
                         }}
                       />
                       <Text
-                        onClick={handleToggleShowAll}
+                        onClick={() => handleToggleShowAll(index)}
                         $font={theme.typography.link.fontFamily}
                         $size={theme.typography.link.fontSize}
                         $weight={theme.typography.link.fontWeight}
