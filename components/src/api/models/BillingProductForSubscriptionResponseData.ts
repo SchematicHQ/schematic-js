@@ -81,6 +81,12 @@ export interface BillingProductForSubscriptionResponseData {
   priceExternalId: string;
   /**
    *
+   * @type {string}
+   * @memberof BillingProductForSubscriptionResponseData
+   */
+  priceId: string;
+  /**
+   *
    * @type {number}
    * @memberof BillingProductForSubscriptionResponseData
    */
@@ -123,6 +129,7 @@ export function instanceOfBillingProductForSubscriptionResponseData(
   if (!("price" in value) || value["price"] === undefined) return false;
   if (!("priceExternalId" in value) || value["priceExternalId"] === undefined)
     return false;
+  if (!("priceId" in value) || value["priceId"] === undefined) return false;
   if (!("quantity" in value) || value["quantity"] === undefined) return false;
   if (!("subscriptionId" in value) || value["subscriptionId"] === undefined)
     return false;
@@ -155,6 +162,7 @@ export function BillingProductForSubscriptionResponseDataFromJSONTyped(
     name: json["name"],
     price: json["price"],
     priceExternalId: json["price_external_id"],
+    priceId: json["price_id"],
     quantity: json["quantity"],
     subscriptionId: json["subscription_id"],
     updatedAt: new Date(json["updated_at"]),
@@ -179,6 +187,7 @@ export function BillingProductForSubscriptionResponseDataToJSON(
     name: value["name"],
     price: value["price"],
     price_external_id: value["priceExternalId"],
+    price_id: value["priceId"],
     quantity: value["quantity"],
     subscription_id: value["subscriptionId"],
     updated_at: value["updatedAt"].toISOString(),

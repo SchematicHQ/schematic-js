@@ -1,5 +1,4 @@
 import { forwardRef, useState } from "react";
-import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 import pluralize from "pluralize";
@@ -13,7 +12,7 @@ import {
 import type { ElementProps, RecursivePartial } from "../../../types";
 import { formatCurrency, formatNumber, hexToHSL } from "../../../utils";
 import { cardBoxShadow, FussyChild } from "../../layout";
-import { CheckoutDialog, PeriodToggle } from "../../shared";
+import { PeriodToggle } from "../../shared";
 import {
   Box,
   Flex,
@@ -111,10 +110,8 @@ export const PricingTable = forwardRef<
   HTMLDivElement | null,
   ElementProps &
     RecursivePartial<DesignProps> &
-    React.HTMLAttributes<HTMLDivElement> & {
-      portal?: HTMLElement | null;
-    }
->(({ children, className, portal, ...rest }, ref) => {
+    React.HTMLAttributes<HTMLDivElement>
+>(({ children, className, ...rest }, ref) => {
   const visibleCount = 4;
   const [showAll, setShowAll] = useState(visibleCount);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -125,19 +122,15 @@ export const PricingTable = forwardRef<
 
   const theme = useTheme();
 
-  const { data, layout, setLayout } = useEmbed();
+  const { data, setLayout, setSelected } = useEmbed();
 
   const [selectedPeriod, setSelectedPeriod] = useState(
     () => data.company?.plan?.planPeriod || "month",
   );
-  const [selectedPlanId, setSelectedPlanId] = useState<string | null>();
-  const [selectedAddOnId, setSelectedAddOnId] = useState<string | null>();
 
   const { plans, addOns, periods } = useAvailablePlans(selectedPeriod);
 
   const isLightBackground = useIsLightBackground();
-
-  const canChangePlan = data.capabilities?.checkout ?? true;
 
   const cardPadding = theme.card.padding / TEXT_BASE_SIZE;
 
@@ -493,22 +486,23 @@ export const PricingTable = forwardRef<
                         <EmbedButton
                           disabled={!plan.valid}
                           onClick={() => {
-                            setSelectedPlanId(isActivePlan ? null : plan.id);
+                            setSelected({
+                              period: selectedPeriod,
+                              planId: isActivePlan ? null : plan.id,
+                            });
                             setLayout("checkout");
                           }}
-                          {
-                            ...(index > currentPlanIndex
-                              ? {
-                                  $size: props.upgrade.buttonSize,
-                                  $color: props.upgrade.buttonStyle,
-                                  $variant: "filled",
-                                }
-                              : {
-                                  $size: props.downgrade.buttonSize,
-                                  $color: props.downgrade.buttonStyle,
-                                  $variant: "outline",
-                                })
-                          }
+                          {...(index > currentPlanIndex
+                            ? {
+                                $size: props.upgrade.buttonSize,
+                                $color: props.upgrade.buttonStyle,
+                                $variant: "filled",
+                              }
+                            : {
+                                $size: props.downgrade.buttonSize,
+                                $color: props.downgrade.buttonStyle,
+                                $variant: "outline",
+                              })}
                         >
                           {!plan.valid ? (
                             <Tooltip
@@ -793,7 +787,10 @@ export const PricingTable = forwardRef<
                         <EmbedButton
                           disabled={!addOn.valid}
                           onClick={() => {
-                            setSelectedAddOnId(isActiveAddOn ? null : addOn.id);
+                            setSelected({
+                              period: selectedPeriod,
+                              addOnId: isActiveAddOn ? null : addOn.id,
+                            });
                             setLayout("checkout");
                           }}
                           $size={props.upgrade.buttonSize}
@@ -823,17 +820,6 @@ export const PricingTable = forwardRef<
           </>
         )}
       </Box>
-
-      {canChangePlan &&
-        layout === "checkout" &&
-        createPortal(
-          <CheckoutDialog
-            initialPeriod={selectedPeriod}
-            initialPlanId={selectedPlanId}
-            initialAddOnId={selectedAddOnId}
-          />,
-          portal || document.body,
-        )}
     </FussyChild>
   );
 });

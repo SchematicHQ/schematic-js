@@ -113,6 +113,7 @@ export const Sidebar = ({
 
             return acc;
           }, []),
+          payInAdvance: [],
           ...(paymentMethodId && { paymentMethodId }),
         },
       });
