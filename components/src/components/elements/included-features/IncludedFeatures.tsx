@@ -30,6 +30,7 @@ interface DesignProps {
     fontStyle: FontStyle;
   };
   entitlementExpiration: {
+    isVisible: boolean;
     fontStyle: FontStyle;
   };
   usage: {
@@ -56,6 +57,7 @@ function resolveDesignProps(props: RecursivePartial<DesignProps>): DesignProps {
       fontStyle: props.entitlement?.fontStyle ?? "text",
     },
     entitlementExpiration: {
+      isVisible: props.entitlementExpiration?.isVisible ?? true,
       fontStyle: props.entitlementExpiration?.fontStyle ?? "heading6",
     },
     usage: {
@@ -194,36 +196,37 @@ export const IncludedFeatures = forwardRef<
                       >
                         {feature.name}
                       </Text>
-                      {entitlementExpirationDate && (
-                        <Text
-                          $font={
-                            theme.typography[
-                              props.entitlementExpiration.fontStyle
-                            ].fontFamily
-                          }
-                          $size={
-                            theme.typography[
-                              props.entitlementExpiration.fontStyle
-                            ].fontSize
-                          }
-                          $weight={
-                            theme.typography[
-                              props.entitlementExpiration.fontStyle
-                            ].fontWeight
-                          }
-                          $leading={1}
-                          $color={
-                            theme.typography[
-                              props.entitlementExpiration.fontStyle
-                            ].color
-                          }
-                        >
-                          Expires{" "}
-                          {toPrettyDate(entitlementExpirationDate, {
-                            month: "short",
-                          })}
-                        </Text>
-                      )}
+                      {props.entitlementExpiration.isVisible &&
+                        entitlementExpirationDate && (
+                          <Text
+                            $font={
+                              theme.typography[
+                                props.entitlementExpiration.fontStyle
+                              ].fontFamily
+                            }
+                            $size={
+                              theme.typography[
+                                props.entitlementExpiration.fontStyle
+                              ].fontSize
+                            }
+                            $weight={
+                              theme.typography[
+                                props.entitlementExpiration.fontStyle
+                              ].fontWeight
+                            }
+                            $leading={1}
+                            $color={
+                              theme.typography[
+                                props.entitlementExpiration.fontStyle
+                              ].color
+                            }
+                          >
+                            Expires{" "}
+                            {toPrettyDate(entitlementExpirationDate, {
+                              month: "short",
+                            })}
+                          </Text>
+                        )}
                     </Flex>
                   )}
                 </Flex>
