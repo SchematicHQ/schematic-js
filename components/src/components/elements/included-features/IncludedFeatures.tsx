@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 import type {
   FeatureUsageResponseData,
+  PlanEntitlementResponseData,
   UsageBasedEntitlementResponseData,
 } from "../../../api";
 import { VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
@@ -87,39 +88,51 @@ export const IncludedFeatures = forwardRef<
 
   const [showCount, setShowCount] = useState(VISIBLE_ENTITLEMENT_COUNT);
 
-  const featureUsages: (FeatureUsageResponseData & {
+  const entitlementData: {
+    entitlement?: PlanEntitlementResponseData;
+    featureUsage?: FeatureUsageResponseData;
     usageData?: UsageBasedEntitlementResponseData;
-  })[] = props.visibleFeatures
-    ? props.visibleFeatures.reduce(
-        (
-          acc: (FeatureUsageResponseData & {
-            usageData?: UsageBasedEntitlementResponseData;
-          })[],
-          id,
-        ) => {
-          const mappedFeatureUsage = data.featureUsage?.features.find(
-            (usage) => usage.feature?.id === id,
-          );
-
-          if (mappedFeatureUsage) {
-            const usageBasedEntitlement =
-              data.activeUsageBasedEntitlements.find(
-                (entitlement) => entitlement.featureId === id,
-              );
-
-            acc.push({
-              ...mappedFeatureUsage,
-              usageData: usageBasedEntitlement,
-            });
+  }[] = (
+    props.visibleFeatures
+      ? props.visibleFeatures
+      : data.featureUsage?.features.reduce((acc: string[], usage) => {
+          if (usage.feature?.id) {
+            acc.push(usage.feature.id);
           }
 
           return acc;
-        },
-        [],
-      )
-    : data.featureUsage?.features || [];
+        }, []) || []
+  ).reduce(
+    (
+      acc: {
+        entitlement?: PlanEntitlementResponseData;
+        featureUsage?: FeatureUsageResponseData;
+        usageData?: UsageBasedEntitlementResponseData;
+      }[],
+      id,
+    ) => {
+      const mappedEntitlement = data.activePlans
+        .find((plan) => plan.id === data.company?.plan?.id)
+        ?.entitlements.find((entitlement) => entitlement.featureId === id);
+      const mappedFeatureUsage = data.featureUsage?.features.find(
+        (usage) => usage.feature?.id === id,
+      );
+      const mappedUsageData = data.activeUsageBasedEntitlements.find(
+        (entitlement) => entitlement.featureId === id,
+      );
 
-  const featureListSize = featureUsages.length;
+      acc.push({
+        entitlement: mappedEntitlement,
+        featureUsage: mappedFeatureUsage,
+        usageData: mappedUsageData,
+      });
+
+      return acc;
+    },
+    [],
+  );
+
+  const featureListSize = entitlementData.length;
 
   const handleToggleShowAll = () => {
     setShowCount((prev) =>
@@ -135,7 +148,7 @@ export const IncludedFeatures = forwardRef<
   //  even if the company has no plan or add-ons).
   // * If none of the above, don't render the component.
   const shouldShowFeatures =
-    featureUsages.length > 0 ||
+    entitlementData.length > 0 ||
     data.company?.plan ||
     (data.company?.addOns ?? []).length > 0 ||
     false;
@@ -168,65 +181,60 @@ export const IncludedFeatures = forwardRef<
         </Box>
       )}
 
-      {featureUsages
-        .slice(0, showCount)
-        .map(({ usageData, ...featureUsage }, index) => {
-          const { feature } = featureUsage;
-          const shouldShowDetails =
-            feature?.name &&
-            (feature?.featureType === "event" ||
-              feature?.featureType === "trait");
+      {entitlementData.slice(0, showCount).map((details, index) => {
+        const { feature } = details.featureUsage || {};
+        const shouldShowDetails =
+          feature?.name &&
+          (feature?.featureType === "event" ||
+            feature?.featureType === "trait");
 
-          return (
-            <Flex
-              key={index}
-              ref={(el) => el && elements.current.push(el)}
-              $flexWrap="wrap"
-              $justifyContent="space-between"
-              $alignItems="center"
-              $gap="1rem"
-            >
-              <Flex $flexGrow="1" $flexBasis="min-content" $gap="1rem">
-                {props.icons.isVisible && feature?.icon && (
-                  <IconRound
-                    name={feature.icon as IconNameTypes | string}
-                    size="sm"
-                    colors={[
-                      theme.primary,
-                      isLightBackground
-                        ? "hsla(0, 0%, 0%, 0.0625)"
-                        : "hsla(0, 0%, 100%, 0.25)",
-                    ]}
-                  />
-                )}
-
-                {feature?.name && (
-                  <Flex $alignItems="center">
-                    <Text
-                      $font={theme.typography[props.icons.fontStyle].fontFamily}
-                      $size={theme.typography[props.icons.fontStyle].fontSize}
-                      $weight={
-                        theme.typography[props.icons.fontStyle].fontWeight
-                      }
-                      $color={theme.typography[props.icons.fontStyle].color}
-                    >
-                      {feature.name}
-                    </Text>
-                  </Flex>
-                )}
-              </Flex>
-
-              {shouldShowDetails && (
-                <Details
-                  featureUsage={featureUsage}
-                  shouldWrapChildren={shouldWrapChildren}
-                  usageData={usageData}
-                  {...props}
+        return (
+          <Flex
+            key={index}
+            ref={(el) => el && elements.current.push(el)}
+            $flexWrap="wrap"
+            $justifyContent="space-between"
+            $alignItems="center"
+            $gap="1rem"
+          >
+            <Flex $flexGrow="1" $flexBasis="min-content" $gap="1rem">
+              {props.icons.isVisible && feature?.icon && (
+                <IconRound
+                  name={feature.icon as IconNameTypes | string}
+                  size="sm"
+                  colors={[
+                    theme.primary,
+                    isLightBackground
+                      ? "hsla(0, 0%, 0%, 0.0625)"
+                      : "hsla(0, 0%, 100%, 0.25)",
+                  ]}
                 />
               )}
+
+              {feature?.name && (
+                <Flex $alignItems="center">
+                  <Text
+                    $font={theme.typography[props.icons.fontStyle].fontFamily}
+                    $size={theme.typography[props.icons.fontStyle].fontSize}
+                    $weight={theme.typography[props.icons.fontStyle].fontWeight}
+                    $color={theme.typography[props.icons.fontStyle].color}
+                  >
+                    {feature.name}
+                  </Text>
+                </Flex>
+              )}
             </Flex>
-          );
-        })}
+
+            {shouldShowDetails && (
+              <Details
+                details={details}
+                shouldWrapChildren={shouldWrapChildren}
+                {...props}
+              />
+            )}
+          </Flex>
+        );
+      })}
 
       {shouldShowExpand && (
         <Flex $alignItems="center" $justifyContent="start" $marginTop="1rem">

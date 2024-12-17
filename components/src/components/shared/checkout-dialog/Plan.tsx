@@ -47,32 +47,47 @@ export const Plan = ({
 
   const isLightBackground = useIsLightBackground();
 
-  // TODO: fix when plans array changes
   const [entitlementCounts, setEntitlementCounts] = useState(() =>
-    plans.map((plan) => ({
-      size: plan.entitlements.length,
-      limit: VISIBLE_ENTITLEMENT_COUNT,
-    })),
+    plans.reduce(
+      (
+        acc: Record<
+          string,
+          {
+            size: number;
+            limit: number;
+          }
+        >,
+        plan,
+      ) => {
+        acc[plan.id] = {
+          size: plan.entitlements.length,
+          limit: VISIBLE_ENTITLEMENT_COUNT,
+        };
+
+        return acc;
+      },
+      {},
+    ),
   );
 
   const cardPadding = theme.card.padding / TEXT_BASE_SIZE;
 
   const currentPlanIndex = plans.findIndex((plan) => plan.current);
 
-  const handleToggleShowAll = (index: number) => {
-    setEntitlementCounts((prev) =>
-      prev.map((count, i) =>
-        i === index
-          ? {
-              size: count.size,
-              limit:
-                count.limit > VISIBLE_ENTITLEMENT_COUNT
-                  ? VISIBLE_ENTITLEMENT_COUNT
-                  : count.size,
-            }
-          : count,
-      ),
-    );
+  const handleToggleShowAll = (id: string) => {
+    setEntitlementCounts((prev) => {
+      const count = { ...prev[id] };
+      return {
+        ...prev,
+        [id]: {
+          size: count.size,
+          limit:
+            count.limit > VISIBLE_ENTITLEMENT_COUNT
+              ? VISIBLE_ENTITLEMENT_COUNT
+              : count.size,
+        },
+      };
+    });
   };
 
   return (
@@ -87,8 +102,16 @@ export const Plan = ({
           const isActivePlan =
             plan.current && currentPlan?.planPeriod === period;
 
-          const count = entitlementCounts[index];
-          const isExpanded = count.limit > VISIBLE_ENTITLEMENT_COUNT;
+          const count = entitlementCounts[plan.id] as
+            | {
+                size: number;
+                limit: number;
+              }
+            | undefined;
+          let isExpanded = false;
+          if (count?.limit && count.limit > VISIBLE_ENTITLEMENT_COUNT) {
+            isExpanded = true;
+          }
 
           return (
             <Flex
@@ -196,7 +219,6 @@ export const Plan = ({
               >
                 <Flex $flexDirection="column" $gap="1rem" $flexGrow="1">
                   {plan.entitlements
-                    .slice(0, count.limit)
                     .reduce((acc: JSX.Element[], entitlement) => {
                       const hasNumericValue =
                         entitlement.valueType === "numeric" ||
@@ -302,9 +324,11 @@ export const Plan = ({
                       );
 
                       return acc;
-                    }, [])}
+                    }, [])
+                    .slice(0, count?.limit ?? VISIBLE_ENTITLEMENT_COUNT)}
 
-                  {count.size > VISIBLE_ENTITLEMENT_COUNT && (
+                  {(count?.size || plan.entitlements.length) >
+                    VISIBLE_ENTITLEMENT_COUNT && (
                     <Flex
                       $alignItems="center"
                       $justifyContent="start"
@@ -320,7 +344,7 @@ export const Plan = ({
                         }}
                       />
                       <Text
-                        onClick={() => handleToggleShowAll(index)}
+                        onClick={() => handleToggleShowAll(plan.id)}
                         $font={theme.typography.link.fontFamily}
                         $size={theme.typography.link.fontSize}
                         $weight={theme.typography.link.fontWeight}

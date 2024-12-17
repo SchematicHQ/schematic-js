@@ -1,5 +1,4 @@
 import { forwardRef, useState } from "react";
-import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 import pluralize from "pluralize";
@@ -11,14 +10,9 @@ import {
   useIsLightBackground,
 } from "../../../hooks";
 import type { ElementProps, RecursivePartial } from "../../../types";
-import {
-  formatCurrency,
-  formatNumber,
-  hexToHSL,
-  shortenPeriod,
-} from "../../../utils";
+import { formatCurrency, formatNumber, hexToHSL } from "../../../utils";
 import { cardBoxShadow, FussyChild } from "../../layout";
-import { CheckoutDialog, PeriodToggle } from "../../shared";
+import { PeriodToggle } from "../../shared";
 import {
   Box,
   Flex,
@@ -116,33 +110,49 @@ export const PricingTable = forwardRef<
   HTMLDivElement | null,
   ElementProps &
     RecursivePartial<DesignProps> &
-    React.HTMLAttributes<HTMLDivElement> & {
-      portal?: HTMLElement | null;
-    }
->(({ children, className, portal, ...rest }, ref) => {
+    React.HTMLAttributes<HTMLDivElement>
+>(({ children, className, ...rest }, ref) => {
+  const visibleCount = 4;
+  const [showAll, setShowAll] = useState(visibleCount);
+  const [isExpanded, setIsExpanded] = useState(false);
+
   const props = resolveDesignProps(rest);
 
   const { t } = useTranslation();
 
   const theme = useTheme();
 
-  const { data, layout, setLayout } = useEmbed();
+  const { data, setLayout, setSelected } = useEmbed();
 
   const [selectedPeriod, setSelectedPeriod] = useState(
     () => data.company?.plan?.planPeriod || "month",
   );
-  const [selectedPlanId, setSelectedPlanId] = useState<string | null>();
-  const [selectedAddOnId, setSelectedAddOnId] = useState<string | null>();
 
   const { plans, addOns, periods } = useAvailablePlans(selectedPeriod);
 
   const isLightBackground = useIsLightBackground();
 
   const [entitlementCounts, setEntitlementCounts] = useState(() =>
-    plans.map((plan) => ({
-      size: plan.entitlements.length,
-      limit: VISIBLE_ENTITLEMENT_COUNT,
-    })),
+    plans.reduce(
+      (
+        acc: Record<
+          string,
+          {
+            size: number;
+            limit: number;
+          }
+        >,
+        plan,
+      ) => {
+        acc[plan.id] = {
+          size: plan.entitlements.length,
+          limit: VISIBLE_ENTITLEMENT_COUNT,
+        };
+
+        return acc;
+      },
+      {},
+    ),
   );
 
   const canChangePlan = data.capabilities?.checkout ?? true;
@@ -151,20 +161,20 @@ export const PricingTable = forwardRef<
 
   const currentPlanIndex = plans.findIndex((plan) => plan.current);
 
-  const handleToggleShowAll = (index: number) => {
-    setEntitlementCounts((prev) =>
-      prev.map((count, i) =>
-        i === index
-          ? {
-              size: count.size,
-              limit:
-                count.limit > VISIBLE_ENTITLEMENT_COUNT
-                  ? VISIBLE_ENTITLEMENT_COUNT
-                  : count.size,
-            }
-          : count,
-      ),
-    );
+  const handleToggleShowAll = (id: number) => {
+    setEntitlementCounts((prev) => {
+      const count = { ...prev[id] };
+      return {
+        ...prev,
+        [id]: {
+          size: count.size,
+          limit:
+            count.limit > VISIBLE_ENTITLEMENT_COUNT
+              ? VISIBLE_ENTITLEMENT_COUNT
+              : count.size,
+        },
+      };
+    });
   };
 
   return (
@@ -221,8 +231,16 @@ export const PricingTable = forwardRef<
                 plan.current &&
                 data.company?.plan?.planPeriod === selectedPeriod;
 
-              const count = entitlementCounts[index];
-              const isExpanded = count.limit > VISIBLE_ENTITLEMENT_COUNT;
+              const count = entitlementCounts[plan.id] as
+                | {
+                    size: number;
+                    limit: number;
+                  }
+                | undefined;
+              let isExpanded = false;
+              if (count?.limit && count.limit > VISIBLE_ENTITLEMENT_COUNT) {
+                isExpanded = true;
+              }
 
               return (
                 <Flex
@@ -384,7 +402,6 @@ export const PricingTable = forwardRef<
                         )}
 
                         {plan.entitlements
-                          .slice(0, count.limit)
                           .reduce((acc: JSX.Element[], entitlement) => {
                             const price = (
                               selectedPeriod === "month"
@@ -484,9 +501,11 @@ export const PricingTable = forwardRef<
                             );
 
                             return acc;
-                          }, [])}
+                          }, [])
+                          .slice(0, count?.limit ?? VISIBLE_ENTITLEMENT_COUNT)}
 
-                        {count.size > VISIBLE_ENTITLEMENT_COUNT && (
+                        {(count?.size || plan.entitlements.length) >
+                          VISIBLE_ENTITLEMENT_COUNT && (
                           <Flex
                             $alignItems="center"
                             $justifyContent="start"
@@ -547,7 +566,10 @@ export const PricingTable = forwardRef<
                         <EmbedButton
                           disabled={!plan.valid}
                           onClick={() => {
-                            setSelectedPlanId(isActivePlan ? null : plan.id);
+                            setSelected({
+                              period: selectedPeriod,
+                              planId: isActivePlan ? null : plan.id,
+                            });
                             setLayout("checkout");
                           }}
                           {...(index > currentPlanIndex
@@ -846,7 +868,10 @@ export const PricingTable = forwardRef<
                         <EmbedButton
                           disabled={!addOn.valid}
                           onClick={() => {
-                            setSelectedAddOnId(isActiveAddOn ? null : addOn.id);
+                            setSelected({
+                              period: selectedPeriod,
+                              addOnId: isActiveAddOn ? null : addOn.id,
+                            });
                             setLayout("checkout");
                           }}
                           $size={props.upgrade.buttonSize}
@@ -876,17 +901,6 @@ export const PricingTable = forwardRef<
           </>
         )}
       </Box>
-
-      {canChangePlan &&
-        layout === "checkout" &&
-        createPortal(
-          <CheckoutDialog
-            initialPeriod={selectedPeriod}
-            initialPlanId={selectedPlanId}
-            initialAddOnId={selectedAddOnId}
-          />,
-          portal || document.body,
-        )}
     </FussyChild>
   );
 });

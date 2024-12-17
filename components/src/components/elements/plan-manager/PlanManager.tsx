@@ -1,5 +1,4 @@
 import { forwardRef } from "react";
-import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 import pluralize from "pluralize";
@@ -13,7 +12,6 @@ import {
   darken,
   shortenPeriod,
 } from "../../../utils";
-import { CheckoutDialog } from "../../shared";
 import { Element } from "../../layout";
 import { Box, EmbedButton, Flex, Text } from "../../ui";
 import { PlanEntitlementResponseData } from "../../../api";
@@ -92,7 +90,7 @@ export const PlanManager = forwardRef<
 
   const { t } = useTranslation();
 
-  const { data, layout, setLayout } = useEmbed();
+  const { data, setLayout } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
 
@@ -115,12 +113,14 @@ export const PlanManager = forwardRef<
       })[],
       entitlement,
     ) => {
-      const price = (
-        currentPlan?.planPeriod && currentPlan.planPeriod === "month"
-          ? entitlement.meteredMonthlyPrice
-          : entitlement.meteredYearlyPrice
-      )?.price;
       const quantity = entitlement.valueNumeric;
+
+      let price: number | undefined;
+      if (currentPlan?.planPeriod === "month") {
+        price = entitlement.meteredMonthlyPrice?.price;
+      } else if (currentPlan?.planPeriod === "year") {
+        price = entitlement.meteredYearlyPrice?.price;
+      }
 
       if (typeof price === "number" && typeof quantity === "number") {
         acc.push({ ...entitlement, price, quantity });
@@ -387,13 +387,6 @@ export const PlanManager = forwardRef<
           {t("Change plan")}
         </EmbedButton>
       )}
-
-      {canChangePlan &&
-        layout === "checkout" &&
-        createPortal(
-          <CheckoutDialog {...(portal && { portal })} />,
-          portal || document.body,
-        )}
     </Element>
   );
 });

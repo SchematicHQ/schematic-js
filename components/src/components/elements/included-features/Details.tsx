@@ -3,26 +3,31 @@ import { useTheme } from "styled-components";
 import pluralize from "pluralize";
 import type {
   FeatureUsageResponseData,
+  PlanEntitlementResponseData,
   UsageBasedEntitlementResponseData,
 } from "../../../api";
 import { useEmbed } from "../../../hooks";
 import { formatCurrency, formatNumber, shortenPeriod } from "../../../utils";
 import { Box, Text } from "../../ui";
 import { type DesignProps } from "./IncludedFeatures";
+import { Usage } from "../../shared/checkout-dialog/Usage";
 
 interface DetailsProps extends DesignProps {
-  featureUsage: FeatureUsageResponseData;
   shouldWrapChildren: boolean;
-  usageData?: UsageBasedEntitlementResponseData;
+  details: {
+    entitlement?: PlanEntitlementResponseData;
+    featureUsage?: FeatureUsageResponseData;
+    usageData?: UsageBasedEntitlementResponseData;
+  };
 }
 
 export const Details = ({
-  featureUsage,
+  details,
   shouldWrapChildren,
-  usageData,
   ...props
 }: DetailsProps) => {
-  const { allocation, feature, usage } = featureUsage;
+  const { entitlement, featureUsage, usageData } = details;
+  const { allocation, feature, usage } = details.featureUsage || {};
 
   const { t } = useTranslation();
 
@@ -34,24 +39,32 @@ export const Details = ({
     return null;
   }
 
+  const quantity = entitlement?.valueNumeric;
+
+  let price: number | undefined;
+  if (data.company?.plan?.planPeriod === "month") {
+    price = entitlement?.meteredMonthlyPrice?.price;
+  } else if (data.company?.plan?.planPeriod === "year") {
+    price = entitlement?.meteredYearlyPrice?.price;
+  }
+
   let text: React.ReactNode;
   if (
     usageData?.priceBehavior === "pay_in_advance" &&
-    typeof usageData.valueNumeric === "number"
+    typeof allocation === "number"
   ) {
     text = (
       <>
-        {formatNumber(usageData.valueNumeric)}{" "}
-        {pluralize(feature.name, usageData.valueNumeric)}
+        {formatNumber(allocation)} {pluralize(feature.name, allocation)}
       </>
     );
   } else if (
     usageData?.priceBehavior === "pay_as_you_go" &&
-    typeof usageData.meteredPrice?.price === "number"
+    typeof price === "number"
   ) {
     text = (
       <>
-        {formatCurrency(usageData.meteredPrice.price)} {t("per")}{" "}
+        {formatCurrency(price)} {t("per")}{" "}
         {pluralize(feature.name.toLowerCase(), 1)}
       </>
     );
@@ -70,9 +83,9 @@ export const Details = ({
     if (
       usageData?.priceBehavior === "pay_in_advance" &&
       typeof data.company?.plan?.planPeriod === "string" &&
-      typeof usageData?.meteredPrice?.price === "number"
+      typeof price === "number"
     ) {
-      usageText = `${formatCurrency(usageData.meteredPrice.price)}/${shortenPeriod(data.company.plan.planPeriod)}/${pluralize(feature.name.toLowerCase(), 1)} • `;
+      usageText = `${formatCurrency(price)}/${shortenPeriod(data.company.plan.planPeriod)}/${pluralize(feature.name.toLowerCase(), 1)} • `;
     } else if (
       usageData?.priceBehavior === "pay_as_you_go" &&
       typeof usageData?.valueNumeric === "number"
@@ -81,12 +94,17 @@ export const Details = ({
     }
 
     if (
-      typeof usageData?.meteredPrice?.price === "number" &&
-      typeof usageData?.valueNumeric === "number"
+      usageData?.priceBehavior === "pay_in_advance" &&
+      typeof price === "number" &&
+      typeof allocation === "number"
     ) {
-      usageText += formatCurrency(
-        usageData.meteredPrice.price * usageData.valueNumeric,
-      );
+      usageText += formatCurrency(price * allocation);
+    } else if (
+      usageData?.priceBehavior === "pay_as_you_go" &&
+      typeof price === "number" &&
+      typeof usageData.valueNumeric === "number"
+    ) {
+      usageText += formatCurrency(price * usageData.valueNumeric);
     }
   } else if (typeof usage === "number") {
     usageText =

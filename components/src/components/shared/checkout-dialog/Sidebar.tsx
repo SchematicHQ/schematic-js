@@ -144,6 +144,7 @@ export const Sidebar = ({
     try {
       setError(undefined);
       toggleLoading();
+
       await api.checkout({
         changeSubscriptionRequestBody: {
           newPlanId: selectedPlan.id,
@@ -166,7 +167,6 @@ export const Sidebar = ({
 
             return acc;
           }, []),
-          ...(paymentMethodId && { paymentMethodId }),
           payInAdvance: payInAdvanceEntitlements.reduce(
             (acc: UpdatePayInAdvanceRequestBody[], entitlement) => {
               const priceId = (
@@ -187,6 +187,7 @@ export const Sidebar = ({
             },
             [],
           ),
+          ...(paymentMethodId && { paymentMethodId }),
         },
       });
       setLayout("success");
@@ -251,7 +252,9 @@ export const Sidebar = ({
         });
       }
 
-      acc.push(selected);
+      if (selected.valueNumeric) {
+        acc.push(selected);
+      }
 
       return acc;
     },
@@ -647,7 +650,7 @@ export const Sidebar = ({
           </Flex>
         )}
 
-        {typeof charges?.proration === "number" && (
+        {typeof charges?.proration === "number" && charges.proration !== 0 && (
           <>
             <Box $opacity="0.625">
               <Text
@@ -660,39 +663,37 @@ export const Sidebar = ({
               </Text>
             </Box>
 
-            {charges.proration && (
-              <Flex $flexDirection="column" $gap="0.5rem">
-                {currentPlan && (
-                  <Flex
-                    $justifyContent="space-between"
-                    $alignItems="center"
-                    $gap="1rem"
-                  >
-                    <Flex>
-                      <Text
-                        $font={theme.typography.heading4.fontFamily}
-                        $size={theme.typography.heading4.fontSize}
-                        $weight={theme.typography.heading4.fontWeight}
-                        $color={theme.typography.heading4.color}
-                      >
-                        {t("Unused time")}
-                      </Text>
-                    </Flex>
-
-                    <Flex>
-                      <Text
-                        $font={theme.typography.text.fontFamily}
-                        $size={theme.typography.text.fontSize}
-                        $weight={theme.typography.text.fontWeight}
-                        $color={theme.typography.text.color}
-                      >
-                        {formatCurrency(charges.proration)}
-                      </Text>
-                    </Flex>
+            <Flex $flexDirection="column" $gap="0.5rem">
+              {currentPlan && (
+                <Flex
+                  $justifyContent="space-between"
+                  $alignItems="center"
+                  $gap="1rem"
+                >
+                  <Flex>
+                    <Text
+                      $font={theme.typography.heading4.fontFamily}
+                      $size={theme.typography.heading4.fontSize}
+                      $weight={theme.typography.heading4.fontWeight}
+                      $color={theme.typography.heading4.color}
+                    >
+                      {t("Unused time")}
+                    </Text>
                   </Flex>
-                )}
-              </Flex>
-            )}
+
+                  <Flex>
+                    <Text
+                      $font={theme.typography.text.fontFamily}
+                      $size={theme.typography.text.fontSize}
+                      $weight={theme.typography.text.fontWeight}
+                      $color={theme.typography.text.color}
+                    >
+                      {formatCurrency(charges.proration)}
+                    </Text>
+                  </Flex>
+                </Flex>
+              )}
+            </Flex>
           </>
         )}
       </Flex>

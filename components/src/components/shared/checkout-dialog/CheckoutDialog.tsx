@@ -31,31 +31,25 @@ import { Usage } from "./Usage";
 import { Checkout } from "./Checkout";
 
 export interface CheckoutDialogProps {
-  initialPeriod?: string;
-  initialPlanId?: string | null;
-  initialAddOnId?: string | null;
-  portal?: HTMLElement;
+  top?: number;
 }
 
-export const CheckoutDialog = ({
-  initialPeriod,
-  initialPlanId,
-  initialAddOnId,
-  portal,
-}: CheckoutDialogProps) => {
+export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   const { t } = useTranslation();
 
   const theme = useTheme();
 
-  const { api, data } = useEmbed();
+  const { api, data, selected } = useEmbed();
 
   const modalRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const checkoutRef = useRef<HTMLDivElement>(null);
 
-  const [checkoutStage, setCheckoutStage] = useState("plan");
+  const [checkoutStage, setCheckoutStage] = useState(() =>
+    selected.addOnId ? "addons" : "plan",
+  );
   const [planPeriod, setPlanPeriod] = useState(
-    initialPeriod || data.company?.plan?.planPeriod || "month",
+    selected.period || data.company?.plan?.planPeriod || "month",
   );
   const [charges, setCharges] = useState<{
     dueNow: number;
@@ -71,7 +65,6 @@ export const CheckoutDialog = ({
   );
   const [stripe, setStripe] = useState<Promise<Stripe | null> | null>(null);
   const [setupIntent, setSetupIntent] = useState<SetupIntentResponseData>();
-  const [top, setTop] = useState(0);
 
   const {
     plans: availablePlans,
@@ -85,8 +78,8 @@ export const CheckoutDialog = ({
     const p = availablePlans.find(
       (plan) =>
         plan.id ===
-        (typeof initialPlanId !== "undefined"
-          ? initialPlanId
+        (typeof selected.planId !== "undefined"
+          ? selected.planId
           : currentPlan?.id),
     );
 
@@ -102,8 +95,8 @@ export const CheckoutDialog = ({
     availableAddOns.map((addOn) => ({
       ...addOn,
       isSelected:
-        typeof initialAddOnId !== "undefined"
-          ? addOn.id === initialAddOnId
+        typeof selected.addOnId !== "undefined"
+          ? addOn.id === selected.addOnId
           : currentAddOns.some((currentAddOn) => addOn.id === currentAddOn.id),
     })),
   );
@@ -116,7 +109,8 @@ export const CheckoutDialog = ({
       entitlement: PlanEntitlementResponseData,
     ) => {
       if (
-        typeof entitlement.priceBehavior === "string" &&
+        (entitlement.priceBehavior === "pay_in_advance" ||
+          entitlement.priceBehavior === "pay_as_you_go") &&
         ((planPeriod === "month" && entitlement.meteredMonthlyPrice) ||
           (planPeriod === "year" && entitlement.meteredYearlyPrice))
       ) {
@@ -135,9 +129,11 @@ export const CheckoutDialog = ({
     );
   });
 
-  const payInAdvanceEntitlements = usageBasedEntitlements.filter(
-    (entitlement) => entitlement.priceBehavior === "pay_in_advance",
-  );
+  const payInAdvanceEntitlements = useMemo(() => {
+    return usageBasedEntitlements.filter(
+      (entitlement) => entitlement.priceBehavior === "pay_in_advance",
+    );
+  }, [usageBasedEntitlements]);
 
   const checkoutStages = useMemo(() => {
     const stages: {
@@ -203,6 +199,26 @@ export const CheckoutDialog = ({
         setCharges(undefined);
         setIsLoading(true);
 
+        const payInAdvance = entitlements.reduce(
+          (acc: UpdatePayInAdvanceRequestBody[], entitlement) => {
+            const priceId = (
+              periodValue === "month"
+                ? entitlement.meteredMonthlyPrice
+                : entitlement.meteredYearlyPrice
+            )?.priceId;
+            const quantity = entitlement.valueNumeric;
+
+            if (priceId && typeof quantity === "number") {
+              acc.push({
+                priceId,
+                quantity,
+              });
+            }
+
+            return acc;
+          },
+          [],
+        );
         const { data } = await api.previewCheckout({
           changeSubscriptionRequestBody: {
             newPlanId: plan.id,
@@ -225,26 +241,7 @@ export const CheckoutDialog = ({
 
               return acc;
             }, []),
-            payInAdvance: entitlements.reduce(
-              (acc: UpdatePayInAdvanceRequestBody[], entitlement) => {
-                const priceId = (
-                  planPeriod === "month"
-                    ? entitlement.meteredMonthlyPrice
-                    : entitlement.meteredYearlyPrice
-                )?.priceId;
-                const quantity = entitlement.valueNumeric;
-
-                if (priceId && typeof quantity === "number") {
-                  acc.push({
-                    priceId,
-                    quantity,
-                  });
-                }
-
-                return acc;
-              },
-              [],
-            ),
+            payInAdvance,
           },
         });
 
@@ -269,30 +266,30 @@ export const CheckoutDialog = ({
 
   const selectPlan = useCallback(
     (
-      plan: CompanyPlanDetailResponseData & { isSelected: boolean },
-      newPeriod?: string,
+      updatedPlan: CompanyPlanDetailResponseData & { isSelected: boolean },
+      updatedPeriod?: string,
     ) => {
-      setSelectedPlan(plan);
-      setUsageBasedEntitlements(
-        plan.entitlements.reduce(activeUsageBasedEntitlementsReducer, []),
+      setSelectedPlan(updatedPlan);
+      const entitlements = updatedPlan.entitlements.reduce(
+        activeUsageBasedEntitlementsReducer,
+        [],
       );
+      const updatedPayInAdvanceEntitlements = entitlements.filter(
+        (entitlement) => entitlement.priceBehavior === "pay_in_advance",
+      );
+      setUsageBasedEntitlements(entitlements);
       previewCheckout({
-        plan,
+        plan: updatedPlan,
         addOns,
-        entitlements: payInAdvanceEntitlements,
-        period: newPeriod,
+        entitlements: updatedPayInAdvanceEntitlements,
+        period: updatedPeriod,
       });
     },
-    [
-      addOns,
-      payInAdvanceEntitlements,
-      previewCheckout,
-      activeUsageBasedEntitlementsReducer,
-    ],
+    [addOns, previewCheckout, activeUsageBasedEntitlementsReducer],
   );
 
   const toggleAddOn = useCallback(
-    (id: string, newPeriod?: string) => {
+    (id: string, updatedPeriod?: string) => {
       const updatedAddOns = addOns.map((addOn) => ({
         ...addOn,
         ...(addOn.id === id && { isSelected: !addOn.isSelected }),
@@ -307,7 +304,7 @@ export const CheckoutDialog = ({
         plan: selectedPlan,
         addOns: updatedAddOns,
         entitlements: payInAdvanceEntitlements,
-        period: newPeriod || planPeriod,
+        period: updatedPeriod || planPeriod,
       });
     },
     [
@@ -371,18 +368,6 @@ export const CheckoutDialog = ({
       setStripe(loadStripe(setupIntent.publishableKey));
     }
   }, [stripe, setupIntent?.publishableKey]);
-
-  useLayoutEffect(() => {
-    const parent = portal || document.body;
-    const value = Math.abs(parent.getBoundingClientRect().top ?? 0);
-    setTop(value);
-
-    parent.style.overflow = "hidden";
-
-    return () => {
-      parent.style.overflow = "";
-    };
-  }, [portal]);
 
   useLayoutEffect(() => {
     if (contentRef.current) {
