@@ -96,10 +96,11 @@ export const PlanManager = forwardRef<
 
   // Can change plan if there is a publishable key, a current plan with a billing association, and
   // some active plans
-  const { currentPlan, canChangePlan, addOns } = {
+  const { addOns, canChangePlan, currentPlan, featureUsage } = {
     addOns: data.company?.addOns || [],
-    canChangePlan: data.capabilities?.checkout ?? true,
     currentPlan: data.company?.plan,
+    canChangePlan: data.capabilities?.checkout ?? true,
+    featureUsage: data.featureUsage,
   };
 
   const usageBasedEntitlements = (
@@ -113,7 +114,11 @@ export const PlanManager = forwardRef<
       })[],
       entitlement,
     ) => {
-      const quantity = entitlement.valueNumeric;
+      const mappedFeatureUsage = featureUsage?.features.find(
+        (usage) => usage.feature?.id === entitlement.feature?.id,
+      );
+
+      const quantity = mappedFeatureUsage?.allocation;
 
       let price: number | undefined;
       if (currentPlan?.planPeriod === "month") {
