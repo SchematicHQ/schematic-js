@@ -169,6 +169,13 @@ export const Sidebar = ({
   );
   const willAddOnsChange = removedAddOns.length > 0 || addedAddOns.length > 0;
 
+  const isTrialable = selectedPlan?.companyCanTrial;
+  const today = new Date();
+  const trialEndsOn = new Date(today);
+  if (isTrialable && selectedPlan.trialDays) {
+    trialEndsOn.setDate(trialEndsOn.getDate() + selectedPlan.trialDays);
+  }
+
   return (
     <Flex
       ref={checkoutRef}
@@ -272,6 +279,54 @@ export const Sidebar = ({
                   </Box>
                 )}
             </Flex>
+          )}
+          {selectedPlan && isTrialable && (
+            <Box>
+            <Box $opacity="0.625">
+              <Text
+                $font={theme.typography.text.fontFamily}
+                $size={14}
+                $weight={theme.typography.text.fontWeight}
+                $color={theme.typography.text.color}
+              >
+                {"Trial"}
+              </Text>
+            </Box>
+              <Flex
+                $justifyContent="space-between"
+                $alignItems="center"
+                $gap="1rem"
+              >
+                <Flex>
+                  <Text
+                    $font={theme.typography.heading4.fontFamily}
+                    $size={theme.typography.heading4.fontSize}
+                    $weight={theme.typography.heading4.fontWeight}
+                    $color={theme.typography.heading4.color}
+                  >
+                    {"Ends on " + trialEndsOn.toLocaleDateString()}
+                  </Text>
+                </Flex>
+                <Flex>
+                <Text
+                  $font={theme.typography.text.fontFamily}
+                  $size={theme.typography.text.fontSize}
+                  $weight={theme.typography.text.fontWeight}
+                  $color={theme.typography.text.color}
+                >
+                  -{formatCurrency(
+                    (planPeriod === "month"
+                      ? selectedPlan.monthlyPrice
+                      : selectedPlan.yearlyPrice
+                    )?.price ?? 0,
+                  )}
+                  /<sub>{shortPeriod(planPeriod)}</sub>
+                </Text>
+              </Flex>
+
+             
+            </Flex>
+            </Box>
           )}
 
           {willPlanChange && (

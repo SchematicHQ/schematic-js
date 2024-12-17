@@ -56,6 +56,7 @@
     "Select plan": "Select plan",
     "Selected": "Selected",
     "Subscription": "Subscription",
+    "Trial plan": "Trial plan for {{days}} days",
     "Unlimited": "Unlimited {{item}}",
     "Unused time": "Unused time",
     "Use existing payment method": "Use existing payment method",

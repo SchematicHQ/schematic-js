@@ -262,7 +262,7 @@ export const Plan = ({
                         )}
                       />
                     ) : (
-                      t("Choose plan")
+                      plan.companyCanTrial ? t("Trial plan", { days: plan.trialDays}): t("Choose plan")
                     )}
                   </EmbedButton>
                 )}

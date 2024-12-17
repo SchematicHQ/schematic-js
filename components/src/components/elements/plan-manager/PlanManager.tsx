@@ -94,7 +94,36 @@ export const PlanManager = forwardRef<
     currentPlan: data.company?.plan,
   };
 
+  const billingSubscription = data.company?.billingSubscription;
+  const showTrialBox = billingSubscription && billingSubscription.trialEnd !== undefined && billingSubscription.trialEnd !== 0 ;
+
+    const trialEnd = billingSubscription?.trialEnd && new Date(billingSubscription?.trialEnd * 1000) || new Date();
+    const now = new Date();
+    const diff = trialEnd.getTime() - now.getTime();
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+
   return (
+    <>
+    {showTrialBox && (
+     <Box $backgroundColor={isLightBackground ? "hsla(0, 0%, 0%, 0.04)" : "hsla(0, 0%, 100%, 0.04)"} $textAlign="center" $padding="1rem">
+      <Text
+        as="h3"
+        $font={theme.typography.heading3.fontFamily}
+        $size={theme.typography.heading3.fontSize}
+        $weight={theme.typography.heading3.fontWeight}
+        $color={theme.typography.heading3.color}
+       >Trial ends in {days} days
+      </Text>
+      <Text
+        as="p"
+        $font={theme.typography.text.fontFamily}
+        $size={theme.typography.text.fontSize * .8125}
+        $weight={theme.typography.text.fontWeight}
+        $color={theme.typography.text.color}
+      >
+      </Text>
+    </Box>
+    )}
     <Element
       as={Flex}
       ref={ref}
@@ -247,6 +276,7 @@ export const PlanManager = forwardRef<
         </EmbedButton>
       )}
     </Element>
+    </>
   );
 });
 
