@@ -6,7 +6,7 @@ import { ThemeProvider } from "styled-components";
 import merge from "lodash/merge";
 import { v4 as uuidv4 } from "uuid";
 import {
-  CheckoutApi,
+  CheckoutexternalApi,
   Configuration,
   type ConfigurationParameters,
   type ComponentHydrateResponseData,
@@ -183,7 +183,7 @@ export type EmbedSelected = {
 export type EmbedMode = "edit" | "view";
 
 export interface EmbedContextProps {
-  api: CheckoutApi | null;
+  api: CheckoutexternalApi | null;
   data: ComponentHydrateResponseData;
   nodes: SerializedNodeWithChildren[];
   settings: EmbedSettings;
@@ -239,7 +239,7 @@ export const EmbedProvider = ({
   const sessionIdRef = useRef<string>(uuidv4());
 
   const [state, setState] = useState<{
-    api: CheckoutApi | null;
+    api: CheckoutexternalApi | null;
     data: ComponentHydrateResponseData;
     nodes: SerializedNodeWithChildren[];
     settings: EmbedSettings;
@@ -402,7 +402,7 @@ export const EmbedProvider = ({
         apiKey: accessToken,
         headers,
       });
-      const api = new CheckoutApi(config);
+      const api = new CheckoutexternalApi(config);
       setState((prev) => ({ ...prev, api }));
     }
   }, [accessToken, apiConfig]);

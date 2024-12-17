@@ -19,6 +19,12 @@ import {
   FeatureDetailResponseDataFromJSONTyped,
   FeatureDetailResponseDataToJSON,
 } from "./FeatureDetailResponseData";
+import type { BillingPriceView } from "./BillingPriceView";
+import {
+  BillingPriceViewFromJSON,
+  BillingPriceViewFromJSONTyped,
+  BillingPriceViewToJSON,
+} from "./BillingPriceView";
 import type { PlanResponseData } from "./PlanResponseData";
 import {
   PlanResponseDataFromJSON,
@@ -87,6 +93,12 @@ export interface FeatureUsageResponseData {
    */
   monthReset?: string | null;
   /**
+   *
+   * @type {BillingPriceView}
+   * @memberof FeatureUsageResponseData
+   */
+  monthlyUsageBasedPrice?: BillingPriceView;
+  /**
    * The period over which usage is measured.
    * @type {string}
    * @memberof FeatureUsageResponseData
@@ -99,11 +111,23 @@ export interface FeatureUsageResponseData {
    */
   plan?: PlanResponseData;
   /**
+   *
+   * @type {string}
+   * @memberof FeatureUsageResponseData
+   */
+  priceBehavior?: string | null;
+  /**
    * The amount of usage that has been consumed; a null value indicates that usage is not being measured.
    * @type {number}
    * @memberof FeatureUsageResponseData
    */
   usage?: number | null;
+  /**
+   *
+   * @type {BillingPriceView}
+   * @memberof FeatureUsageResponseData
+   */
+  yearlyUsageBasedPrice?: BillingPriceView;
 }
 
 /**
@@ -166,10 +190,20 @@ export function FeatureUsageResponseDataFromJSONTyped(
         ? undefined
         : new Date(json["metric_reset_at"]),
     monthReset: json["month_reset"] == null ? undefined : json["month_reset"],
+    monthlyUsageBasedPrice:
+      json["monthly_usage_based_price"] == null
+        ? undefined
+        : BillingPriceViewFromJSON(json["monthly_usage_based_price"]),
     period: json["period"] == null ? undefined : json["period"],
     plan:
       json["plan"] == null ? undefined : PlanResponseDataFromJSON(json["plan"]),
+    priceBehavior:
+      json["price_behavior"] == null ? undefined : json["price_behavior"],
     usage: json["usage"] == null ? undefined : json["usage"],
+    yearlyUsageBasedPrice:
+      json["yearly_usage_based_price"] == null
+        ? undefined
+        : BillingPriceViewFromJSON(json["yearly_usage_based_price"]),
   };
 }
 
@@ -195,8 +229,15 @@ export function FeatureUsageResponseDataToJSON(
         ? undefined
         : (value["metricResetAt"] as any).toISOString(),
     month_reset: value["monthReset"],
+    monthly_usage_based_price: BillingPriceViewToJSON(
+      value["monthlyUsageBasedPrice"],
+    ),
     period: value["period"],
     plan: PlanResponseDataToJSON(value["plan"]),
+    price_behavior: value["priceBehavior"],
     usage: value["usage"],
+    yearly_usage_based_price: BillingPriceViewToJSON(
+      value["yearlyUsageBasedPrice"],
+    ),
   };
 }
