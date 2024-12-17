@@ -73,7 +73,7 @@ export interface UpdatePaymentMethodRequest {
 /**
  *
  */
-export class CheckoutApi extends runtime.BaseAPI {
+export class CheckoutexternalApi extends runtime.BaseAPI {
   /**
    * Checkout
    */
