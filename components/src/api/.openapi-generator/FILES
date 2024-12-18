@@ -1,5 +1,5 @@
 .openapi-generator-ignore
-apis/CheckoutApi.ts
+apis/CheckoutexternalApi.ts
 apis/index.ts
 index.ts
 models/ApiError.ts

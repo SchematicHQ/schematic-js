@@ -110,6 +110,12 @@ export interface CompanySubscriptionResponseData {
    * @memberof CompanySubscriptionResponseData
    */
   totalPrice: number;
+  /**
+   *
+   * @type {Date}
+   * @memberof CompanySubscriptionResponseData
+   */
+  trialEnd?: Date | null;
 }
 
 /**
@@ -174,6 +180,8 @@ export function CompanySubscriptionResponseDataFromJSONTyped(
     status: json["status"],
     subscriptionExternalId: json["subscription_external_id"],
     totalPrice: json["total_price"],
+    trialEnd:
+      json["trial_end"] == null ? undefined : new Date(json["trial_end"]),
   };
 }
 
@@ -202,5 +210,9 @@ export function CompanySubscriptionResponseDataToJSON(
     status: value["status"],
     subscription_external_id: value["subscriptionExternalId"],
     total_price: value["totalPrice"],
+    trial_end:
+      value["trialEnd"] == null
+        ? undefined
+        : (value["trialEnd"] as any).toISOString(),
   };
 }
