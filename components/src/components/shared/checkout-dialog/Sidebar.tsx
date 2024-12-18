@@ -3,13 +3,14 @@ import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 import pluralize from "pluralize";
 import type {
-  CompanyPlanWithBillingSubView,
   CompanyPlanDetailResponseData,
+  CompanyPlanWithBillingSubView,
+  FeatureUsageResponseData,
   PlanEntitlementResponseData,
   SetupIntentResponseData,
   UpdateAddOnRequestBody,
-  UsageBasedEntitlementResponseData,
   UpdatePayInAdvanceRequestBody,
+  UsageBasedEntitlementResponseData,
 } from "../../../api";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import {
@@ -32,7 +33,10 @@ interface SidebarProps {
   checkoutStage: string;
   currentAddOns: CompanyPlanWithBillingSubView[];
   currentPlan?: CompanyPlanWithBillingSubView;
-  currentUsageBasedEntitlements: UsageBasedEntitlementResponseData[];
+  currentUsageBasedEntitlements: {
+    usageData: UsageBasedEntitlementResponseData;
+    featureUsage?: FeatureUsageResponseData;
+  }[];
   error?: string;
   isLoading: boolean;
   paymentMethodId?: string;
@@ -43,7 +47,10 @@ interface SidebarProps {
   setSetupIntent: (intent: SetupIntentResponseData | undefined) => void;
   showPaymentForm: boolean;
   toggleLoading: () => void;
-  usageBasedEntitlements: PlanEntitlementResponseData[];
+  usageBasedEntitlements: {
+    entitlement: PlanEntitlementResponseData;
+    featureUsage?: FeatureUsageResponseData;
+  }[];
 }
 
 export const Sidebar = ({
@@ -75,11 +82,11 @@ export const Sidebar = ({
   const isLightBackground = useIsLightBackground();
 
   const payInAdvanceEntitlements = usageBasedEntitlements.filter(
-    (entitlement) => entitlement.priceBehavior === "pay_in_advance",
+    ({ entitlement }) => entitlement.priceBehavior === "pay_in_advance",
   );
 
   const payAsYouGoEntitlements = usageBasedEntitlements.filter(
-    (entitlement) => entitlement.priceBehavior === "pay_as_you_go",
+    ({ entitlement }) => entitlement.priceBehavior === "pay_as_you_go",
   );
 
   const subscriptionPrice = useMemo(() => {
@@ -114,10 +121,10 @@ export const Sidebar = ({
     total += addOnCost;
 
     const payInAdvanceCost = payInAdvanceEntitlements.reduce(
-      (sum, entitlement) => {
+      (sum, { entitlement, featureUsage }) => {
         return (
           sum +
-          (entitlement.valueNumeric || 0) *
+          (featureUsage?.allocation || 0) *
             ((planPeriod === "month"
               ? entitlement.meteredMonthlyPrice
               : entitlement.meteredYearlyPrice
@@ -168,13 +175,16 @@ export const Sidebar = ({
             return acc;
           }, []),
           payInAdvance: payInAdvanceEntitlements.reduce(
-            (acc: UpdatePayInAdvanceRequestBody[], entitlement) => {
+            (
+              acc: UpdatePayInAdvanceRequestBody[],
+              { entitlement, featureUsage },
+            ) => {
               const priceId = (
                 planPeriod === "month"
                   ? entitlement.meteredMonthlyPrice
                   : entitlement.meteredYearlyPrice
               )?.priceId;
-              const quantity = entitlement.valueNumeric;
+              const quantity = featureUsage?.allocation;
 
               if (priceId && typeof quantity === "number") {
                 acc.push({
@@ -228,7 +238,8 @@ export const Sidebar = ({
           currentAddOns.some((currentAddOn) => addOn.id === currentAddOn.id),
         ) ||
         payInAdvanceEntitlements.every(
-          (entitlement) => typeof entitlement.valueNumeric === "number",
+          ({ entitlement, featureUsage }) =>
+            typeof featureUsage?.allocation === "number",
         )) &&
       !isLoading);
 
@@ -236,25 +247,37 @@ export const Sidebar = ({
     canUpdateSubscription &&
     ((data.subscription?.paymentMethod && !showPaymentForm) || paymentMethodId);
 
-  const changedUsageBasedEntitlements: PlanEntitlementResponseData[] = [];
+  const changedUsageBasedEntitlements: {
+    usageData: UsageBasedEntitlementResponseData;
+    entitlement?: PlanEntitlementResponseData;
+    featureUsage?: FeatureUsageResponseData;
+  }[] = [];
   const addedUsageBasedEntitlements = usageBasedEntitlements.reduce(
-    (acc: PlanEntitlementResponseData[], selected) => {
+    (
+      acc: {
+        entitlement: PlanEntitlementResponseData;
+        featureUsage?: FeatureUsageResponseData;
+      }[],
+      selected,
+    ) => {
       const changed = currentUsageBasedEntitlements.find(
         (current) =>
-          current.featureId === selected.featureId &&
-          current.valueNumeric !== selected.valueNumeric,
+          current.usageData.featureId === selected.entitlement.featureId &&
+          current.featureUsage?.allocation !==
+            selected.featureUsage?.allocation,
+      );
+      const changedEntitlement = selectedPlan?.entitlements.find(
+        (entitlement) => entitlement.id === selected.entitlement.id,
       );
 
-      if (changed && changed.valueNumeric) {
+      if (changed) {
         changedUsageBasedEntitlements.push({
-          ...selected,
-          valueNumeric: changed.valueNumeric,
+          ...changed,
+          entitlement: changedEntitlement,
         });
       }
 
-      if (selected.valueNumeric) {
-        acc.push(selected);
-      }
+      acc.push(selected);
 
       return acc;
     },
@@ -446,11 +469,11 @@ export const Sidebar = ({
             </Box>
 
             {changedUsageBasedEntitlements.reduce(
-              (acc: JSX.Element[], entitlement) => {
-                if (entitlement.feature?.name) {
+              (acc: JSX.Element[], { entitlement, featureUsage }) => {
+                if (entitlement?.feature?.name) {
                   acc.push(
                     <Flex
-                      key={entitlement.id}
+                      key={entitlement.feature.id}
                       $justifyContent="space-between"
                       $alignItems="center"
                       $gap="1rem"
@@ -465,7 +488,7 @@ export const Sidebar = ({
                           $weight={theme.typography.heading4.fontWeight}
                           $color={theme.typography.heading4.color}
                         >
-                          {entitlement.valueNumeric || 0}{" "}
+                          {featureUsage?.allocation || 0}{" "}
                           {pluralize(entitlement.feature.name)}
                         </Text>
                       </Box>
@@ -481,7 +504,7 @@ export const Sidebar = ({
                             ((planPeriod === "month"
                               ? entitlement.meteredMonthlyPrice
                               : entitlement.meteredYearlyPrice
-                            )?.price || 0) * (entitlement.valueNumeric || 0),
+                            )?.price || 0) * (featureUsage?.allocation || 0),
                           )}
                           <sub>/{shortenPeriod(planPeriod)}</sub>
                         </Text>
@@ -496,7 +519,7 @@ export const Sidebar = ({
             )}
 
             {addedUsageBasedEntitlements.reduce(
-              (acc: JSX.Element[], entitlement) => {
+              (acc: JSX.Element[], { entitlement, featureUsage }) => {
                 if (entitlement.feature?.name) {
                   const price = (
                     planPeriod === "month"
@@ -518,12 +541,12 @@ export const Sidebar = ({
                           $weight={theme.typography.heading4.fontWeight}
                           $color={theme.typography.heading4.color}
                         >
-                          {entitlement.valueNumeric ? (
+                          {featureUsage?.allocation ? (
                             <>
-                              {entitlement.valueNumeric}{" "}
+                              {featureUsage.allocation}{" "}
                               {pluralize(
                                 entitlement.feature.name,
-                                entitlement.valueNumeric,
+                                featureUsage.allocation,
                               )}
                             </>
                           ) : (
@@ -540,9 +563,9 @@ export const Sidebar = ({
                           $color={theme.typography.text.color}
                         >
                           {typeof price === "number" &&
-                          typeof entitlement.valueNumeric === "number" ? (
+                          typeof featureUsage?.allocation === "number" ? (
                             <>
-                              {formatCurrency(price * entitlement.valueNumeric)}
+                              {formatCurrency(price * featureUsage.allocation)}
                               <sub>/{shortenPeriod(planPeriod)}</sub>
                             </>
                           ) : (

@@ -90,7 +90,7 @@ export const PlanManager = forwardRef<
 
   const { t } = useTranslation();
 
-  const { data, setLayout } = useEmbed();
+  const { data, setLayout, setSelected } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
 
@@ -377,6 +377,11 @@ export const PlanManager = forwardRef<
       {canChangePlan && props.callToAction.isVisible && (
         <EmbedButton
           onClick={() => {
+            setSelected({
+              planId: currentPlan?.id,
+              addOnId: undefined,
+              usage: false,
+            });
             setLayout("checkout");
           }}
           $size={props.callToAction.buttonSize}

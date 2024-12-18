@@ -570,6 +570,7 @@ export const PricingTable = forwardRef<
                             setSelected({
                               period: selectedPeriod,
                               planId: isActivePlan ? null : plan.id,
+                              usage: false,
                             });
                             setLayout("checkout");
                           }}
@@ -872,6 +873,7 @@ export const PricingTable = forwardRef<
                             setSelected({
                               period: selectedPeriod,
                               addOnId: isActiveAddOn ? null : addOn.id,
+                              usage: false,
                             });
                             setLayout("checkout");
                           }}

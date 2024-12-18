@@ -334,7 +334,7 @@ export const MeteredFeatures = forwardRef<
                             padding: "0 1rem 0 0.5rem",
                           }}
                         >
-                          {t("Add Seats")}
+                          {t("Add More")}
                         </EmbedButton>
                       )}
                     </Flex>
