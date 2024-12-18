@@ -10,7 +10,6 @@ import { useEmbed } from "../../../hooks";
 import { formatCurrency, formatNumber, shortenPeriod } from "../../../utils";
 import { Box, Text } from "../../ui";
 import { type DesignProps } from "./IncludedFeatures";
-import { Usage } from "../../shared/checkout-dialog/Usage";
 
 interface DetailsProps extends DesignProps {
   shouldWrapChildren: boolean;
@@ -27,7 +26,7 @@ export const Details = ({
   ...props
 }: DetailsProps) => {
   const { entitlement, featureUsage, usageData } = details;
-  const { allocation, feature, usage } = details.featureUsage || {};
+  const { allocation, feature, usage } = featureUsage || {};
 
   const { t } = useTranslation();
 

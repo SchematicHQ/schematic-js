@@ -14,6 +14,7 @@ import {
   useWrapChildren,
 } from "../../../hooks";
 import type { RecursivePartial, ElementProps } from "../../../types";
+import { toPrettyDate } from "../../../utils";
 import { Element } from "../../layout";
 import { Box, Flex, Icon, IconRound, Text, type IconNameTypes } from "../../ui";
 import { Details } from "./Details";
@@ -30,6 +31,10 @@ export interface DesignProps {
     style: "light" | "dark";
   };
   entitlement: {
+    isVisible: boolean;
+    fontStyle: FontStyle;
+  };
+  entitlementExpiration: {
     isVisible: boolean;
     fontStyle: FontStyle;
   };
@@ -55,6 +60,10 @@ function resolveDesignProps(props: RecursivePartial<DesignProps>): DesignProps {
     entitlement: {
       isVisible: props.entitlement?.isVisible ?? true,
       fontStyle: props.entitlement?.fontStyle ?? "text",
+    },
+    entitlementExpiration: {
+      isVisible: props.entitlementExpiration?.isVisible ?? true,
+      fontStyle: props.entitlementExpiration?.fontStyle ?? "heading6",
     },
     usage: {
       isVisible: props.usage?.isVisible ?? true,
@@ -182,7 +191,8 @@ export const IncludedFeatures = forwardRef<
       )}
 
       {entitlementData.slice(0, showCount).map((details, index) => {
-        const { feature } = details.featureUsage || {};
+        const { entitlementExpirationDate, feature } =
+          details.featureUsage || {};
         const shouldShowDetails =
           feature?.name &&
           (feature?.featureType === "event" ||
@@ -212,7 +222,7 @@ export const IncludedFeatures = forwardRef<
               )}
 
               {feature?.name && (
-                <Flex $alignItems="center">
+                <Flex $flexDirection="column">
                   <Text
                     $font={theme.typography[props.icons.fontStyle].fontFamily}
                     $size={theme.typography[props.icons.fontStyle].fontSize}
@@ -223,6 +233,34 @@ export const IncludedFeatures = forwardRef<
                   </Text>
                 </Flex>
               )}
+
+              {props.entitlementExpiration.isVisible &&
+                entitlementExpirationDate && (
+                  <Text
+                    $font={
+                      theme.typography[props.entitlementExpiration.fontStyle]
+                        .fontFamily
+                    }
+                    $size={
+                      theme.typography[props.entitlementExpiration.fontStyle]
+                        .fontSize
+                    }
+                    $weight={
+                      theme.typography[props.entitlementExpiration.fontStyle]
+                        .fontWeight
+                    }
+                    $leading={1}
+                    $color={
+                      theme.typography[props.entitlementExpiration.fontStyle]
+                        .color
+                    }
+                  >
+                    Expires{" "}
+                    {toPrettyDate(entitlementExpirationDate, {
+                      month: "short",
+                    })}
+                  </Text>
+                )}
             </Flex>
 
             {shouldShowDetails && (
