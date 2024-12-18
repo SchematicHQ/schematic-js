@@ -178,6 +178,7 @@ export type EmbedSelected = {
   period?: string;
   planId?: string | null;
   addOnId?: string | null;
+  usage?: boolean;
 };
 
 export type EmbedMode = "edit" | "view";

@@ -2,6 +2,7 @@ import { forwardRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 import pluralize from "pluralize";
+import { type FeatureUsageResponseData } from "../../../api";
 import { type FontStyle } from "../../../context";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import type { RecursivePartial, ElementProps } from "../../../types";
@@ -14,7 +15,6 @@ import {
 } from "../../../utils";
 import { Element } from "../../layout";
 import { Box, EmbedButton, Flex, Text } from "../../ui";
-import { PlanEntitlementResponseData } from "../../../api";
 
 interface DesignProps {
   header: {
@@ -103,32 +103,25 @@ export const PlanManager = forwardRef<
     featureUsage: data.featureUsage,
   };
 
-  const usageBasedEntitlements = (
-    data.activePlans.find((plan) => plan.id === data.company?.plan?.id)
-      ?.entitlements || []
-  ).reduce(
+  const usageBasedEntitlements = (featureUsage?.features || []).reduce(
     (
-      acc: (PlanEntitlementResponseData & {
+      acc: (FeatureUsageResponseData & {
         price: number;
         quantity: number;
       })[],
-      entitlement,
+      usage,
     ) => {
-      const mappedFeatureUsage = featureUsage?.features.find(
-        (usage) => usage.feature?.id === entitlement.feature?.id,
-      );
-
-      const quantity = mappedFeatureUsage?.allocation;
+      const quantity = usage?.allocation ?? 0;
 
       let price: number | undefined;
       if (currentPlan?.planPeriod === "month") {
-        price = entitlement.meteredMonthlyPrice?.price;
+        price = usage.monthlyUsageBasedPrice?.price;
       } else if (currentPlan?.planPeriod === "year") {
-        price = entitlement.meteredYearlyPrice?.price;
+        price = usage.yearlyUsageBasedPrice?.price;
       }
 
-      if (typeof price === "number" && typeof quantity === "number") {
-        acc.push({ ...entitlement, price, quantity });
+      if (typeof price === "number" && quantity > 0) {
+        acc.push({ ...usage, price, quantity });
       }
 
       return acc;
@@ -297,7 +290,7 @@ export const PlanManager = forwardRef<
             if (entitlement.feature?.name) {
               acc.push(
                 <Flex
-                  key={entitlement.featureId}
+                  key={entitlement.feature.id}
                   $justifyContent="space-between"
                   $alignItems="center"
                   $flexWrap="wrap"

@@ -3,7 +3,6 @@ import { useTheme } from "styled-components";
 import pluralize from "pluralize";
 import type {
   FeatureUsageResponseData,
-  PlanEntitlementResponseData,
   UsageBasedEntitlementResponseData,
 } from "../../../api";
 import { useEmbed } from "../../../hooks";
@@ -14,7 +13,6 @@ import { type DesignProps } from "./IncludedFeatures";
 interface DetailsProps extends DesignProps {
   shouldWrapChildren: boolean;
   details: {
-    entitlement?: PlanEntitlementResponseData;
     featureUsage?: FeatureUsageResponseData;
     usageData?: UsageBasedEntitlementResponseData;
   };
@@ -25,8 +23,15 @@ export const Details = ({
   shouldWrapChildren,
   ...props
 }: DetailsProps) => {
-  const { entitlement, featureUsage, usageData } = details;
-  const { allocation, feature, usage } = featureUsage || {};
+  const { featureUsage, usageData } = details;
+  const {
+    allocation,
+    feature,
+    usage,
+    monthlyUsageBasedPrice,
+    yearlyUsageBasedPrice,
+    priceBehavior,
+  } = featureUsage || {};
 
   const { t } = useTranslation();
 
@@ -38,29 +43,21 @@ export const Details = ({
     return null;
   }
 
-  const quantity = entitlement?.valueNumeric;
-
   let price: number | undefined;
   if (data.company?.plan?.planPeriod === "month") {
-    price = entitlement?.meteredMonthlyPrice?.price;
+    price = monthlyUsageBasedPrice?.price;
   } else if (data.company?.plan?.planPeriod === "year") {
-    price = entitlement?.meteredYearlyPrice?.price;
+    price = yearlyUsageBasedPrice?.price;
   }
 
   let text: React.ReactNode;
-  if (
-    usageData?.priceBehavior === "pay_in_advance" &&
-    typeof allocation === "number"
-  ) {
+  if (priceBehavior === "pay_in_advance" && typeof allocation === "number") {
     text = (
       <>
         {formatNumber(allocation)} {pluralize(feature.name, allocation)}
       </>
     );
-  } else if (
-    usageData?.priceBehavior === "pay_as_you_go" &&
-    typeof price === "number"
-  ) {
+  } else if (priceBehavior === "pay_as_you_go" && typeof price === "number") {
     text = (
       <>
         {formatCurrency(price)} {t("per")}{" "}
@@ -80,13 +77,13 @@ export const Details = ({
   let usageText: React.ReactNode;
   if (usageData) {
     if (
-      usageData?.priceBehavior === "pay_in_advance" &&
+      priceBehavior === "pay_in_advance" &&
       typeof data.company?.plan?.planPeriod === "string" &&
       typeof price === "number"
     ) {
       usageText = `${formatCurrency(price)}/${shortenPeriod(data.company.plan.planPeriod)}/${pluralize(feature.name.toLowerCase(), 1)} • `;
     } else if (
-      usageData?.priceBehavior === "pay_as_you_go" &&
+      priceBehavior === "pay_as_you_go" &&
       typeof usageData?.valueNumeric === "number"
     ) {
       usageText = `${usageData.valueNumeric} ${pluralize(feature.name.toLowerCase(), usageData.valueNumeric)} ${t("used")} • `;

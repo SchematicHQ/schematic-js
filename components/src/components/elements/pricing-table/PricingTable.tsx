@@ -161,7 +161,7 @@ export const PricingTable = forwardRef<
 
   const currentPlanIndex = plans.findIndex((plan) => plan.current);
 
-  const handleToggleShowAll = (id: number) => {
+  const handleToggleShowAll = (id: string) => {
     setEntitlementCounts((prev) => {
       const count = { ...prev[id] };
       return {
@@ -403,11 +403,12 @@ export const PricingTable = forwardRef<
 
                         {plan.entitlements
                           .reduce((acc: JSX.Element[], entitlement) => {
-                            const price = (
-                              selectedPeriod === "month"
-                                ? entitlement.meteredMonthlyPrice
-                                : entitlement.meteredYearlyPrice
-                            )?.price;
+                            let price: number | undefined;
+                            if (selectedPeriod === "month") {
+                              price = entitlement.meteredMonthlyPrice?.price;
+                            } else if (selectedPeriod === "year") {
+                              price = entitlement.meteredYearlyPrice?.price;
+                            }
 
                             if (
                               (entitlement.priceBehavior === "pay_in_advance" ||
@@ -521,7 +522,7 @@ export const PricingTable = forwardRef<
                               }}
                             />
                             <Text
-                              onClick={() => handleToggleShowAll(index)}
+                              onClick={() => handleToggleShowAll(plan.id)}
                               $font={theme.typography.link.fontFamily}
                               $size={theme.typography.link.fontSize}
                               $weight={theme.typography.link.fontWeight}

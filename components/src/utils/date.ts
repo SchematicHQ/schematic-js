@@ -7,18 +7,23 @@ export function toMonthDay(date: Date | string) {
 
 export function toPrettyDate(
   date: Date | string,
-  format?: { month: "long" | "short" },
+  format?: Intl.DateTimeFormatOptions,
 ) {
   return new Intl.DateTimeFormat("en-US", {
-    month: format?.month ? format.month : "long",
+    month: "long",
     day: "numeric",
     year: "numeric",
+    ...format,
   }).format(new Date(date));
 }
 
-export function getMonthName(date: Date | string) {
+export function getMonthName(
+  date: Date | string,
+  format?: Intl.DateTimeFormatOptions,
+) {
   return new Intl.DateTimeFormat("en-US", {
     month: "long",
+    ...format,
   }).format(new Date(date));
 }
 

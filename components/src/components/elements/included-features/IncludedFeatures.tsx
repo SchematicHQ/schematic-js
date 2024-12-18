@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 import type {
   FeatureUsageResponseData,
-  PlanEntitlementResponseData,
   UsageBasedEntitlementResponseData,
 } from "../../../api";
 import { VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
@@ -97,8 +96,7 @@ export const IncludedFeatures = forwardRef<
 
   const [showCount, setShowCount] = useState(VISIBLE_ENTITLEMENT_COUNT);
 
-  const entitlementData: {
-    entitlement?: PlanEntitlementResponseData;
+  const entitlements: {
     featureUsage?: FeatureUsageResponseData;
     usageData?: UsageBasedEntitlementResponseData;
   }[] = (
@@ -114,15 +112,11 @@ export const IncludedFeatures = forwardRef<
   ).reduce(
     (
       acc: {
-        entitlement?: PlanEntitlementResponseData;
         featureUsage?: FeatureUsageResponseData;
         usageData?: UsageBasedEntitlementResponseData;
       }[],
       id,
     ) => {
-      const mappedEntitlement = data.activePlans
-        .find((plan) => plan.id === data.company?.plan?.id)
-        ?.entitlements.find((entitlement) => entitlement.featureId === id);
       const mappedFeatureUsage = data.featureUsage?.features.find(
         (usage) => usage.feature?.id === id,
       );
@@ -131,7 +125,6 @@ export const IncludedFeatures = forwardRef<
       );
 
       acc.push({
-        entitlement: mappedEntitlement,
         featureUsage: mappedFeatureUsage,
         usageData: mappedUsageData,
       });
@@ -141,7 +134,7 @@ export const IncludedFeatures = forwardRef<
     [],
   );
 
-  const featureListSize = entitlementData.length;
+  const featureListSize = entitlements.length;
 
   const handleToggleShowAll = () => {
     setShowCount((prev) =>
@@ -157,7 +150,7 @@ export const IncludedFeatures = forwardRef<
   //  even if the company has no plan or add-ons).
   // * If none of the above, don't render the component.
   const shouldShowFeatures =
-    entitlementData.length > 0 ||
+    entitlements.length > 0 ||
     data.company?.plan ||
     (data.company?.addOns ?? []).length > 0 ||
     false;
@@ -190,9 +183,9 @@ export const IncludedFeatures = forwardRef<
         </Box>
       )}
 
-      {entitlementData.slice(0, showCount).map((details, index) => {
+      {entitlements.slice(0, showCount).map((entitlement, index) => {
         const { entitlementExpirationDate, feature } =
-          details.featureUsage || {};
+          entitlement.featureUsage || {};
         const shouldShowDetails =
           feature?.name &&
           (feature?.featureType === "event" ||
@@ -265,7 +258,7 @@ export const IncludedFeatures = forwardRef<
 
             {shouldShowDetails && (
               <Details
-                details={details}
+                details={entitlement}
                 shouldWrapChildren={shouldWrapChildren}
                 {...props}
               />

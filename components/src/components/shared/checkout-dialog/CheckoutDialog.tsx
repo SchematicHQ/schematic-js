@@ -46,7 +46,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   const checkoutRef = useRef<HTMLDivElement>(null);
 
   const [checkoutStage, setCheckoutStage] = useState(() =>
-    selected.addOnId ? "addons" : "plan",
+    selected.addOnId ? "addons" : selected.usage ? "usage" : "plan",
   );
   const [planPeriod, setPlanPeriod] = useState(
     selected.period || data.company?.plan?.planPeriod || "month",
