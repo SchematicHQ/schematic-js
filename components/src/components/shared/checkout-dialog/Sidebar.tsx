@@ -282,16 +282,16 @@ export const Sidebar = ({
           )}
           {selectedPlan && isTrialable && (
             <Box>
-            <Box $opacity="0.625">
-              <Text
-                $font={theme.typography.text.fontFamily}
-                $size={14}
-                $weight={theme.typography.text.fontWeight}
-                $color={theme.typography.text.color}
-              >
-                {"Trial"}
-              </Text>
-            </Box>
+              <Box $opacity="0.625">
+                <Text
+                  $font={theme.typography.text.fontFamily}
+                  $size={14}
+                  $weight={theme.typography.text.fontWeight}
+                  $color={theme.typography.text.color}
+                >
+                  {"Trial"}
+                </Text>
+              </Box>
               <Flex
                 $justifyContent="space-between"
                 $alignItems="center"
@@ -308,24 +308,23 @@ export const Sidebar = ({
                   </Text>
                 </Flex>
                 <Flex>
-                <Text
-                  $font={theme.typography.text.fontFamily}
-                  $size={theme.typography.text.fontSize}
-                  $weight={theme.typography.text.fontWeight}
-                  $color={theme.typography.text.color}
-                >
-                  -{formatCurrency(
-                    (planPeriod === "month"
-                      ? selectedPlan.monthlyPrice
-                      : selectedPlan.yearlyPrice
-                    )?.price ?? 0,
-                  )}
-                  /<sub>{shortPeriod(planPeriod)}</sub>
-                </Text>
+                  <Text
+                    $font={theme.typography.text.fontFamily}
+                    $size={theme.typography.text.fontSize}
+                    $weight={theme.typography.text.fontWeight}
+                    $color={theme.typography.text.color}
+                  >
+                    -
+                    {formatCurrency(
+                      (planPeriod === "month"
+                        ? selectedPlan.monthlyPrice
+                        : selectedPlan.yearlyPrice
+                      )?.price ?? 0,
+                    )}
+                    /<sub>{shortPeriod(planPeriod)}</sub>
+                  </Text>
+                </Flex>
               </Flex>
-
-             
-            </Flex>
             </Box>
           )}
 

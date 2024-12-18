@@ -120,7 +120,7 @@ export const PlanManager = forwardRef<
         $size={theme.typography.text.fontSize * .8125}
         $weight={theme.typography.text.fontWeight}
         $color={theme.typography.text.color}
-      >
+      >After the trial, {data.trialPaymentMethodRequired ? "subscription starts and you will be billed" : "subscription ends"}
       </Text>
     </Box>
     )}

@@ -13,6 +13,12 @@
  */
 
 import { mapValues } from "../runtime";
+import type { CompanyEventPeriodMetricsResponseData } from "./CompanyEventPeriodMetricsResponseData";
+import {
+  CompanyEventPeriodMetricsResponseDataFromJSON,
+  CompanyEventPeriodMetricsResponseDataFromJSONTyped,
+  CompanyEventPeriodMetricsResponseDataToJSON,
+} from "./CompanyEventPeriodMetricsResponseData";
 import type { CompanyPlanWithBillingSubView } from "./CompanyPlanWithBillingSubView";
 import {
   CompanyPlanWithBillingSubViewFromJSON,
@@ -112,6 +118,12 @@ export interface CompanyDetailResponseData {
   logoUrl?: string | null;
   /**
    *
+   * @type {Array<CompanyEventPeriodMetricsResponseData>}
+   * @memberof CompanyDetailResponseData
+   */
+  metrics: Array<CompanyEventPeriodMetricsResponseData>;
+  /**
+   *
    * @type {string}
    * @memberof CompanyDetailResponseData
    */
@@ -167,6 +179,7 @@ export function instanceOfCompanyDetailResponseData(
     return false;
   if (!("id" in value) || value["id"] === undefined) return false;
   if (!("keys" in value) || value["keys"] === undefined) return false;
+  if (!("metrics" in value) || value["metrics"] === undefined) return false;
   if (!("name" in value) || value["name"] === undefined) return false;
   if (!("plans" in value) || value["plans"] === undefined) return false;
   if (!("updatedAt" in value) || value["updatedAt"] === undefined) return false;
@@ -208,6 +221,9 @@ export function CompanyDetailResponseDataFromJSONTyped(
     lastSeenAt:
       json["last_seen_at"] == null ? undefined : new Date(json["last_seen_at"]),
     logoUrl: json["logo_url"] == null ? undefined : json["logo_url"],
+    metrics: (json["metrics"] as Array<any>).map(
+      CompanyEventPeriodMetricsResponseDataFromJSON,
+    ),
     name: json["name"],
     plan:
       json["plan"] == null
@@ -248,6 +264,9 @@ export function CompanyDetailResponseDataToJSON(
         ? undefined
         : (value["lastSeenAt"] as any).toISOString(),
     logo_url: value["logoUrl"],
+    metrics: (value["metrics"] as Array<any>).map(
+      CompanyEventPeriodMetricsResponseDataToJSON,
+    ),
     name: value["name"],
     plan: CompanyPlanWithBillingSubViewToJSON(value["plan"]),
     plans: (value["plans"] as Array<any>).map(GenericPreviewObjectToJSON),

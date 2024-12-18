@@ -13,6 +13,7 @@ export * from "./BillingSubscriptionView";
 export * from "./ChangeSubscriptionRequestBody";
 export * from "./CheckoutResponse";
 export * from "./CompanyDetailResponseData";
+export * from "./CompanyEventPeriodMetricsResponseData";
 export * from "./CompanyPlanDetailResponseData";
 export * from "./CompanyPlanWithBillingSubView";
 export * from "./CompanyResponseData";
