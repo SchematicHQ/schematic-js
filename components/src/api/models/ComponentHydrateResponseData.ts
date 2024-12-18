@@ -130,6 +130,12 @@ export interface ComponentHydrateResponseData {
   subscription?: CompanySubscriptionResponseData;
   /**
    *
+   * @type {boolean}
+   * @memberof ComponentHydrateResponseData
+   */
+  trialPaymentMethodRequired?: boolean | null;
+  /**
+   *
    * @type {InvoiceResponseData}
    * @memberof ComponentHydrateResponseData
    */
@@ -201,6 +207,10 @@ export function ComponentHydrateResponseDataFromJSONTyped(
       json["subscription"] == null
         ? undefined
         : CompanySubscriptionResponseDataFromJSON(json["subscription"]),
+    trialPaymentMethodRequired:
+      json["trial_payment_method_required"] == null
+        ? undefined
+        : json["trial_payment_method_required"],
     upcomingInvoice:
       json["upcoming_invoice"] == null
         ? undefined
@@ -230,6 +240,7 @@ export function ComponentHydrateResponseDataToJSON(
     feature_usage: FeatureUsageDetailResponseDataToJSON(value["featureUsage"]),
     stripe_embed: StripeEmbedInfoToJSON(value["stripeEmbed"]),
     subscription: CompanySubscriptionResponseDataToJSON(value["subscription"]),
+    trial_payment_method_required: value["trialPaymentMethodRequired"],
     upcoming_invoice: InvoiceResponseDataToJSON(value["upcomingInvoice"]),
   };
 }
