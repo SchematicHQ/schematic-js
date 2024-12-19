@@ -120,7 +120,12 @@ export const PlanManager = forwardRef<
         price = usage.yearlyUsageBasedPrice?.price;
       }
 
-      if (typeof price === "number" && quantity > 0) {
+      if (
+        (usage.priceBehavior === "pay_in_advance" ||
+          usage.priceBehavior === "pay_as_you_go") &&
+        typeof price === "number" &&
+        quantity > 0
+      ) {
         acc.push({ ...usage, price, quantity });
       }
 

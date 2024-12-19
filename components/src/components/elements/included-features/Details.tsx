@@ -30,8 +30,8 @@ export const Details = ({
     usage,
     monthlyUsageBasedPrice,
     yearlyUsageBasedPrice,
-    priceBehavior,
   } = featureUsage || {};
+  const { priceBehavior } = usageData || {};
 
   const { t } = useTranslation();
 
