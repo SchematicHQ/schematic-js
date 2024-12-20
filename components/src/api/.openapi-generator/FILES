@@ -15,6 +15,7 @@ models/BillingSubscriptionView.ts
 models/ChangeSubscriptionRequestBody.ts
 models/CheckoutResponse.ts
 models/CompanyDetailResponseData.ts
+models/CompanyEventPeriodMetricsResponseData.ts
 models/CompanyPlanDetailResponseData.ts
 models/CompanyPlanWithBillingSubView.ts
 models/CompanyResponseData.ts
