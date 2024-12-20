@@ -541,7 +541,8 @@ export const Sidebar = ({
                           $weight={theme.typography.heading4.fontWeight}
                           $color={theme.typography.heading4.color}
                         >
-                          {featureUsage?.allocation ? (
+                          {entitlement.priceBehavior === "pay_in_advance" &&
+                          featureUsage?.allocation ? (
                             <>
                               {featureUsage.allocation}{" "}
                               {pluralize(
@@ -562,7 +563,8 @@ export const Sidebar = ({
                           $weight={theme.typography.text.fontWeight}
                           $color={theme.typography.text.color}
                         >
-                          {typeof price === "number" &&
+                          {entitlement.priceBehavior === "pay_in_advance" &&
+                          typeof price === "number" &&
                           typeof featureUsage?.allocation === "number" ? (
                             <>
                               {formatCurrency(price * featureUsage.allocation)}
