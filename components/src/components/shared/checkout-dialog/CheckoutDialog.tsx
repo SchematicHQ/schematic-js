@@ -114,7 +114,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
         checkoutStages.splice(1, 1);
       }
 
-      if ( selectedPlan?.companyCanTrial) {
+      if ( selectedPlan?.companyCanTrial && !data.trialPaymentMethodRequired) {
         checkoutStages.pop();
       }
   

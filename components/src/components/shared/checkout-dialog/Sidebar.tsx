@@ -610,7 +610,7 @@ export const Sidebar = ({
 
         {checkoutStage === "plan" && (
           <>
-          {!selectedPlan?.companyCanTrial && (
+          {!selectedPlan?.companyCanTrial && data.trialPaymentMethodRequired && (
             <EmbedButton
               disabled={!addOns.length && !canUpdateSubscription}
               onClick={async () => {
@@ -621,7 +621,7 @@ export const Sidebar = ({
                   setSetupIntent(setupIntent);
                 }
 
-                setCheckoutStage((addOns.length) ? "addons" : "checkout");
+                setCheckoutStage((addOns.length && !selectedPlan?.companyCanTrial) ? "addons" : "checkout");
               }}
               isLoading={isLoading}
             >
@@ -636,7 +636,7 @@ export const Sidebar = ({
               </Flex>
             </EmbedButton>
           )}
-          {selectedPlan?.companyCanTrial && (
+          {selectedPlan?.companyCanTrial && !data.trialPaymentMethodRequired && (
             <EmbedButton
               disabled={!canUpdateSubscription}
               onClick={async () => {
