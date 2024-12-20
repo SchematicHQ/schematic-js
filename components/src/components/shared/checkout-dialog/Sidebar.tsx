@@ -10,6 +10,7 @@ import type {
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import { formatCurrency, formatOrdinal, getMonthName } from "../../../utils";
 import { Box, EmbedButton, Flex, Icon, Text } from "../../ui";
+import { PlanStageSidebarButton } from "./PlanStageSidebarButton";
 
 interface SidebarProps {
   addOns: (CompanyPlanDetailResponseData & { isSelected: boolean })[];
@@ -174,6 +175,18 @@ export const Sidebar = ({
   const trialEndsOn = new Date(today);
   if (isTrialable && selectedPlan.trialDays) {
     trialEndsOn.setDate(trialEndsOn.getDate() + selectedPlan.trialDays);
+  }
+
+  const setupPaymentAttempt = async () => {
+    if (!api || !data.component?.id) {
+      return;
+    }
+
+    const { data: setupIntent } = await api.getSetupIntent({
+      componentId: data.component.id,
+    });
+
+    setSetupIntent(setupIntent);
   }
 
   return (
@@ -345,7 +358,7 @@ export const Sidebar = ({
                   $weight={theme.typography.text.fontWeight}
                   $color={theme.typography.text.color}
                 >
-                  {"Trial"}
+                  {t("Trial")}
                 </Text>
               </Box>
               <Flex
@@ -360,7 +373,7 @@ export const Sidebar = ({
                     $weight={theme.typography.heading4.fontWeight}
                     $color={theme.typography.heading4.color}
                   >
-                    {"Ends on " + trialEndsOn.toLocaleDateString()}
+                    {t("Ends on", {date: trialEndsOn.toLocaleDateString()})}
                   </Text>
                 </Flex>
                 <Flex>
@@ -609,74 +622,24 @@ export const Sidebar = ({
         )}
 
         {checkoutStage === "plan" && (
-          <>
-          {!selectedPlan?.companyCanTrial && data.trialPaymentMethodRequired && (
-            <EmbedButton
-              disabled={!addOns.length && !canUpdateSubscription}
-              onClick={async () => {
-                if (!addOns.length && api && data.component?.id) {
-                  const { data: setupIntent } = await api.getSetupIntent({
-                    componentId: data.component.id,
-                  });
-                  setSetupIntent(setupIntent);
-                }
+          <PlanStageSidebarButton 
+            checkout={checkout}
+            addOns={addOns}
+            canUpdateSubscription={canUpdateSubscription}
+            setupPaymentAttempt={setupPaymentAttempt}
+            setCheckoutStage={setCheckoutStage}
+            selectedPlan={selectedPlan}
+            isLoading={isLoading}
+            trialPaymentMethodRequired={data.trialPaymentMethodRequired || false}
+          />
 
-                setCheckoutStage((addOns.length && !selectedPlan?.companyCanTrial) ? "addons" : "checkout");
-              }}
-              isLoading={isLoading}
-            >
-              <Flex
-                $gap="0.5rem"
-                $justifyContent="center"
-                $alignItems="center"
-                $padding="0 1rem"
-              >
-                {t("Next")}: {addOns.length ? t("Addons") : t("Checkout")}
-                <Icon name="arrow-right" />
-              </Flex>
-            </EmbedButton>
-          )}
-          {selectedPlan?.companyCanTrial && !data.trialPaymentMethodRequired && (
-            <EmbedButton
-              disabled={!canUpdateSubscription}
-              onClick={async () => {
-                if (api && data.component?.id) {
-                  const { data: setupIntent } = await api.getSetupIntent({
-                    componentId: data.component.id,
-                  });
-                  setSetupIntent(setupIntent);
-                }
-                checkout();
-              }}
-              isLoading={isLoading}
-            >
-              <Flex
-                $gap="0.5rem"
-                $justifyContent="center"
-                $alignItems="center"
-                $padding="0 1rem"
-              >
-                {t("Checkout Trial")}
-                <Icon name="arrow-right" />
-              </Flex>
-            </EmbedButton>
-          )}
-          </>
         )}
 
         {checkoutStage === "addons" && (
           <EmbedButton
             disabled={!canUpdateSubscription}
             onClick={async () => {
-              if (!api || !data.component?.id) {
-                return;
-              }
-
-              const { data: setupIntent } = await api.getSetupIntent({
-                componentId: data.component.id,
-              });
-              setSetupIntent(setupIntent);
-
+              setupPaymentAttempt();
               setCheckoutStage("checkout");
             }}
             isLoading={isLoading}

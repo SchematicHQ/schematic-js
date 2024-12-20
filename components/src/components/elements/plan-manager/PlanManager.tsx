@@ -112,7 +112,7 @@ export const PlanManager = forwardRef<
         $size={theme.typography.heading3.fontSize}
         $weight={theme.typography.heading3.fontWeight}
         $color={theme.typography.heading3.color}
-       >Trial ends in {days} days
+       >{t("Trial ends in", { days: days.toString()})}
       </Text>
       <Text
         as="p"
@@ -120,7 +120,7 @@ export const PlanManager = forwardRef<
         $size={theme.typography.text.fontSize * .8125}
         $weight={theme.typography.text.fontWeight}
         $color={theme.typography.text.color}
-      >After the trial, {data.trialPaymentMethodRequired ? "subscription starts and you will be billed" : "subscription ends"}
+      >After the trial, {data.trialPaymentMethodRequired ? t("Subscription starts") : t("Subscription ends")}
       </Text>
     </Box>
     )}
