@@ -113,6 +113,10 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       if (!availableAddOns.length || selectedPlan?.companyCanTrial) {
         checkoutStages.splice(1, 1);
       }
+
+      if ( selectedPlan?.companyCanTrial) {
+        checkoutStages.pop();
+      }
   
       return checkoutStages;
     }, [t, availableAddOns, selectedPlan]);
@@ -403,7 +407,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           setError={(msg) => setError(msg)}
           setSetupIntent={(intent) => setSetupIntent(intent)}
           showPaymentForm={showPaymentForm}
-          toggleLoading={() => setIsLoading((prev) => !prev)}
+          toggleLoading={() => setIsLoading((prev) => {console.log(!prev); return !prev;})}
         />
       </Flex>
     </Modal>

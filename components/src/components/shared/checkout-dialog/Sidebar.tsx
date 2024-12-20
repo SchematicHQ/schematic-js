@@ -96,7 +96,7 @@ export const Sidebar = ({
           newPlanId: selectedPlan.id,
           newPriceId: priceId,
           addOnIds: addOns.reduce((acc: UpdateAddOnRequestBody[], addOn) => {
-            if (addOn.isSelected) {
+            if (addOn.isSelected && !selectedPlan.companyCanTrial) {
               const addOnPriceId = (
                 planPeriod === "month"
                   ? addOn?.monthlyPrice
@@ -609,30 +609,59 @@ export const Sidebar = ({
         )}
 
         {checkoutStage === "plan" && (
-          <EmbedButton
-            disabled={!addOns.length && !canUpdateSubscription}
-            onClick={async () => {
-              if (!addOns.length && api && data.component?.id) {
-                const { data: setupIntent } = await api.getSetupIntent({
-                  componentId: data.component.id,
-                });
-                setSetupIntent(setupIntent);
-              }
+          <>
+          {!selectedPlan?.companyCanTrial && (
+            <EmbedButton
+              disabled={!addOns.length && !canUpdateSubscription}
+              onClick={async () => {
+                if (!addOns.length && api && data.component?.id) {
+                  const { data: setupIntent } = await api.getSetupIntent({
+                    componentId: data.component.id,
+                  });
+                  setSetupIntent(setupIntent);
+                }
 
-              setCheckoutStage((addOns.length && !selectedPlan?.companyCanTrial ) ? "addons" : "checkout");
-            }}
-            isLoading={isLoading}
-          >
-            <Flex
-              $gap="0.5rem"
-              $justifyContent="center"
-              $alignItems="center"
-              $padding="0 1rem"
+                setCheckoutStage((addOns.length) ? "addons" : "checkout");
+              }}
+              isLoading={isLoading}
             >
-              {t("Next")}: {(addOns.length && !selectedPlan?.companyCanTrial ) ? t("Addons") : t("Checkout")}
-              <Icon name="arrow-right" />
-            </Flex>
-          </EmbedButton>
+              <Flex
+                $gap="0.5rem"
+                $justifyContent="center"
+                $alignItems="center"
+                $padding="0 1rem"
+              >
+                {t("Next")}: {addOns.length ? t("Addons") : t("Checkout")}
+                <Icon name="arrow-right" />
+              </Flex>
+            </EmbedButton>
+          )}
+          {selectedPlan?.companyCanTrial && (
+            <EmbedButton
+              disabled={!canUpdateSubscription}
+              onClick={async () => {
+                if (api && data.component?.id) {
+                  const { data: setupIntent } = await api.getSetupIntent({
+                    componentId: data.component.id,
+                  });
+                  setSetupIntent(setupIntent);
+                }
+                checkout();
+              }}
+              isLoading={isLoading}
+            >
+              <Flex
+                $gap="0.5rem"
+                $justifyContent="center"
+                $alignItems="center"
+                $padding="0 1rem"
+              >
+                {t("Checkout Trial")}
+                <Icon name="arrow-right" />
+              </Flex>
+            </EmbedButton>
+          )}
+          </>
         )}
 
         {checkoutStage === "addons" && (
