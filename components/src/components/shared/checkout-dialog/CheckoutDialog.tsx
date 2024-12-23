@@ -119,7 +119,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       }
   
       return checkoutStages;
-    }, [t, availableAddOns, selectedPlan]);
+    }, [t, availableAddOns, selectedPlan, data.trialPaymentMethodRequired]);
 
   const isLightBackground = useIsLightBackground();
 
@@ -407,7 +407,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           setError={(msg) => setError(msg)}
           setSetupIntent={(intent) => setSetupIntent(intent)}
           showPaymentForm={showPaymentForm}
-          toggleLoading={() => setIsLoading((prev) => {console.log(!prev); return !prev;})}
+          toggleLoading={() => setIsLoading((prev) => !prev)}
         />
       </Flex>
     </Modal>
