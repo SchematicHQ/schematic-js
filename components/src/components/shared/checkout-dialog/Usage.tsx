@@ -2,7 +2,6 @@ import { useTheme } from "styled-components";
 import pluralize from "pluralize";
 import type {
   CompanyPlanDetailResponseData,
-  FeatureUsageResponseData,
   PlanEntitlementResponseData,
 } from "../../../api";
 import { TEXT_BASE_SIZE } from "../../../const";
@@ -22,7 +21,7 @@ interface UsageProps {
   selectedPlan?: CompanyPlanDetailResponseData & { isSelected: boolean };
   entitlements: {
     entitlement: PlanEntitlementResponseData;
-    featureUsage?: FeatureUsageResponseData;
+    quantity: number;
   }[];
   updateQuantity: (id: string, quantity: number) => void;
 }
@@ -46,7 +45,7 @@ export const Usage = ({ entitlements, updateQuantity, period }: UsageProps) => {
         $gap="1rem"
       >
         {entitlements.reduce(
-          (acc: JSX.Element[], { entitlement, featureUsage }) => {
+          (acc: JSX.Element[], { entitlement, quantity }) => {
             if (
               entitlement.priceBehavior === "pay_in_advance" &&
               entitlement.feature
@@ -91,9 +90,8 @@ export const Usage = ({ entitlements, updateQuantity, period }: UsageProps) => {
                   <Flex $flexDirection="column" $justifyContent="end">
                     <Input
                       type="number"
-                      pattern="[0-9]*"
                       min={0}
-                      value={featureUsage?.allocation ?? 0}
+                      value={quantity}
                       onChange={(event) => {
                         event.preventDefault();
 
@@ -117,7 +115,7 @@ export const Usage = ({ entitlements, updateQuantity, period }: UsageProps) => {
                           ((period === "month"
                             ? entitlement.meteredMonthlyPrice
                             : entitlement.meteredYearlyPrice
-                          )?.price || 0) * (featureUsage?.allocation || 0),
+                          )?.price || 0) * quantity,
                         )}
                         <sub>/{shortenPeriod(period)}</sub>
                       </Text>

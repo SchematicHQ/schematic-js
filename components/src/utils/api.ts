@@ -6,10 +6,7 @@ import type {
 export function isUsageBasedEntitlement(
   entitlement: FeatureUsageResponseData | PlanEntitlementResponseData,
 ) {
-  return (
-    entitlement.priceBehavior === "pay_in_advance" ||
-    entitlement.priceBehavior === "pay_as_you_go"
-  );
+  return typeof entitlement.priceBehavior === "string";
 }
 
 export function isPayInAdvanceEntitlement(

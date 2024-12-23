@@ -242,8 +242,7 @@ export const Plan = ({
                       )?.price;
 
                       if (
-                        (entitlement.priceBehavior === "pay_in_advance" ||
-                          entitlement.priceBehavior === "pay_as_you_go") &&
+                        entitlement.priceBehavior &&
                         typeof price !== "number"
                       ) {
                         return acc;

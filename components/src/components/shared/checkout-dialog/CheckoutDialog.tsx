@@ -11,7 +11,6 @@ import { useTheme } from "styled-components";
 import { loadStripe, type Stripe } from "@stripe/stripe-js";
 import type {
   CompanyPlanDetailResponseData,
-  FeatureUsageResponseData,
   PlanEntitlementResponseData,
   SetupIntentResponseData,
   UpdateAddOnRequestBody,
@@ -108,7 +107,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       (
         acc: {
           usageData: UsageBasedEntitlementResponseData;
-          featureUsage?: FeatureUsageResponseData;
+          quantity: number;
         }[],
         usageData,
       ) => {
@@ -116,41 +115,42 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           (usage) => usage.feature?.id === usageData.featureId,
         );
 
-        acc.push({ usageData, featureUsage });
+        acc.push({ usageData, quantity: featureUsage?.allocation || 0 });
 
         return acc;
       },
       [],
     );
 
-  const activeUsageBasedEntitlementsReducer = useCallback(
-    (
-      acc: {
-        entitlement: PlanEntitlementResponseData;
-        featureUsage?: FeatureUsageResponseData;
-      }[],
-      entitlement: PlanEntitlementResponseData,
-    ) => {
-      if (
-        (entitlement.priceBehavior === "pay_in_advance" ||
-          entitlement.priceBehavior === "pay_as_you_go") &&
-        ((planPeriod === "month" && entitlement.meteredMonthlyPrice) ||
-          (planPeriod === "year" && entitlement.meteredYearlyPrice))
-      ) {
-        const featureUsage = data.featureUsage?.features.find(
-          (usage) => usage.feature?.id === entitlement.feature?.id,
-        );
-        acc.push({ entitlement, featureUsage });
-      }
+  const createActiveUsageBasedEntitlementsReducer = useCallback(
+    (period = planPeriod) =>
+      (
+        acc: {
+          entitlement: PlanEntitlementResponseData;
+          quantity: number;
+        }[],
+        entitlement: PlanEntitlementResponseData,
+      ) => {
+        if (
+          entitlement.priceBehavior &&
+          ((period === "month" && entitlement.meteredMonthlyPrice) ||
+            (period === "year" && entitlement.meteredYearlyPrice))
+        ) {
+          const quantity =
+            data.featureUsage?.features.find(
+              (usage) => usage.feature?.id === entitlement.feature?.id,
+            )?.allocation || 0;
+          acc.push({ entitlement, quantity });
+        }
 
-      return acc;
-    },
+        return acc;
+      },
     [planPeriod, data.featureUsage?.features],
   );
 
   const [usageBasedEntitlements, setUsageBasedEntitlements] = useState(() => {
     return (selectedPlan?.entitlements || []).reduce(
-      activeUsageBasedEntitlementsReducer,
+      createActiveUsageBasedEntitlementsReducer(),
       [],
     );
   });
@@ -210,7 +210,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       addOns: (CompanyPlanDetailResponseData & { isSelected: boolean })[];
       entitlements: {
         entitlement: PlanEntitlementResponseData;
-        featureUsage?: FeatureUsageResponseData;
+        quantity: number;
       }[];
       period?: string;
     }) => {
@@ -229,16 +229,12 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
         setIsLoading(true);
 
         const payInAdvance = entitlements.reduce(
-          (
-            acc: UpdatePayInAdvanceRequestBody[],
-            { entitlement, featureUsage },
-          ) => {
+          (acc: UpdatePayInAdvanceRequestBody[], { entitlement, quantity }) => {
             const priceId = (
               periodValue === "month"
                 ? entitlement.meteredMonthlyPrice
                 : entitlement.meteredYearlyPrice
             )?.priceId;
-            const quantity = featureUsage?.allocation || 0;
 
             if (priceId) {
               acc.push({
@@ -301,14 +297,14 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       updatedPlan: CompanyPlanDetailResponseData & { isSelected: boolean },
       updatedPeriod?: string,
     ) => {
-      setSelectedPlan(updatedPlan);
       const entitlements = updatedPlan.entitlements.reduce(
-        activeUsageBasedEntitlementsReducer,
+        createActiveUsageBasedEntitlementsReducer(updatedPeriod),
         [],
       );
       const updatedPayInAdvanceEntitlements = entitlements.filter(
         ({ entitlement }) => entitlement.priceBehavior === "pay_in_advance",
       );
+      setSelectedPlan(updatedPlan);
       setUsageBasedEntitlements(entitlements);
       previewCheckout({
         plan: updatedPlan,
@@ -317,7 +313,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
         period: updatedPeriod,
       });
     },
-    [addOns, previewCheckout, activeUsageBasedEntitlementsReducer],
+    [addOns, previewCheckout, createActiveUsageBasedEntitlementsReducer],
   );
 
   const toggleAddOn = useCallback(
@@ -360,25 +356,25 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   );
 
   const updateUsageBasedEntitlementQuantity = useCallback(
-    (id: string, quantity: number) => {
+    (id: string, updatedQuantity: number) => {
       const entitlements = payInAdvanceEntitlements.map(
-        ({ entitlement, featureUsage }) =>
-          entitlement.id === id && featureUsage
+        ({ entitlement, quantity }) =>
+          entitlement.id === id
             ? {
                 entitlement,
-                featureUsage: { ...featureUsage, allocation: quantity },
+                quantity: updatedQuantity,
               }
-            : { entitlement, featureUsage },
+            : { entitlement, quantity },
       );
 
       setUsageBasedEntitlements((prev) =>
-        prev.map(({ entitlement, featureUsage }) =>
-          entitlement.id === id && featureUsage
+        prev.map(({ entitlement, quantity }) =>
+          entitlement.id === id
             ? {
                 entitlement,
-                featureUsage: { ...featureUsage, allocation: quantity },
+                quantity: updatedQuantity,
               }
-            : { entitlement, featureUsage },
+            : { entitlement, quantity },
         ),
       );
 
