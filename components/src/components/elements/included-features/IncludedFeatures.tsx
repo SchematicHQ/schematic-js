@@ -200,7 +200,12 @@ export const IncludedFeatures = forwardRef<
             $alignItems="center"
             $gap="1rem"
           >
-            <Flex $flexGrow="1" $flexBasis="min-content" $gap="1rem">
+            <Flex
+              $alignItems="center"
+              $flexGrow="1"
+              $flexBasis="min-content"
+              $gap="1rem"
+            >
               {props.icons.isVisible && feature?.icon && (
                 <IconRound
                   name={feature.icon as IconNameTypes | string}
@@ -215,16 +220,14 @@ export const IncludedFeatures = forwardRef<
               )}
 
               {feature?.name && (
-                <Flex $flexDirection="column">
-                  <Text
-                    $font={theme.typography[props.icons.fontStyle].fontFamily}
-                    $size={theme.typography[props.icons.fontStyle].fontSize}
-                    $weight={theme.typography[props.icons.fontStyle].fontWeight}
-                    $color={theme.typography[props.icons.fontStyle].color}
-                  >
-                    {feature.name}
-                  </Text>
-                </Flex>
+                <Text
+                  $font={theme.typography[props.icons.fontStyle].fontFamily}
+                  $size={theme.typography[props.icons.fontStyle].fontSize}
+                  $weight={theme.typography[props.icons.fontStyle].fontWeight}
+                  $color={theme.typography[props.icons.fontStyle].color}
+                >
+                  {feature.name}
+                </Text>
               )}
 
               {props.entitlementExpiration.isVisible &&

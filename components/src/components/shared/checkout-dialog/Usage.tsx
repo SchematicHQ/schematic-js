@@ -1,4 +1,5 @@
 import { useTheme } from "styled-components";
+import pluralize from "pluralize";
 import type {
   CompanyPlanDetailResponseData,
   FeatureUsageResponseData,
@@ -136,7 +137,8 @@ export const Usage = ({ entitlements, updateQuantity, period }: UsageProps) => {
                           )?.price || 0,
                         )}
                         <sub>
-                          /{shortenPeriod(period)}/{entitlement.feature.name}
+                          /{shortenPeriod(period)}/
+                          {pluralize(entitlement.feature.name.toLowerCase(), 1)}
                         </sub>
                       </Text>
                     </Box>

@@ -184,9 +184,9 @@ export const Sidebar = ({
                   ? entitlement.meteredMonthlyPrice
                   : entitlement.meteredYearlyPrice
               )?.priceId;
-              const quantity = featureUsage?.allocation;
+              const quantity = featureUsage?.allocation || 0;
 
-              if (priceId && typeof quantity === "number") {
+              if (priceId) {
                 acc.push({
                   priceId,
                   quantity,
@@ -238,8 +238,7 @@ export const Sidebar = ({
           currentAddOns.some((currentAddOn) => addOn.id === currentAddOn.id),
         ) ||
         payInAdvanceEntitlements.every(
-          ({ entitlement, featureUsage }) =>
-            typeof featureUsage?.allocation === "number",
+          ({ featureUsage }) => typeof featureUsage?.allocation === "number",
         )) &&
       !isLoading);
 

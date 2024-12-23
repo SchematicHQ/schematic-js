@@ -238,9 +238,9 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
                 ? entitlement.meteredMonthlyPrice
                 : entitlement.meteredYearlyPrice
             )?.priceId;
-            const quantity = featureUsage?.allocation;
+            const quantity = featureUsage?.allocation || 0;
 
-            if (priceId && typeof quantity === "number") {
+            if (priceId) {
               acc.push({
                 priceId,
                 quantity,

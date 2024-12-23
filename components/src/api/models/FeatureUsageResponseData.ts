@@ -81,7 +81,7 @@ export interface FeatureUsageResponseData {
    */
   feature?: FeatureDetailResponseData;
   /**
-   * The time at which the metric will resets.
+   * The time at which the metric will reset.
    * @type {Date}
    * @memberof FeatureUsageResponseData
    */

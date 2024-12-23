@@ -82,11 +82,8 @@ export const Details = ({
       typeof price === "number"
     ) {
       usageText = `${formatCurrency(price)}/${shortenPeriod(data.company.plan.planPeriod)}/${pluralize(feature.name.toLowerCase(), 1)} • `;
-    } else if (
-      priceBehavior === "pay_as_you_go" &&
-      typeof usageData?.valueNumeric === "number"
-    ) {
-      usageText = `${usageData.valueNumeric} ${pluralize(feature.name.toLowerCase(), usageData.valueNumeric)} ${t("used")} • `;
+    } else if (priceBehavior === "pay_as_you_go" && typeof usage === "number") {
+      usageText = `${usage} ${pluralize(feature.name.toLowerCase(), usage)} ${t("used")} • `;
     }
 
     if (
@@ -98,9 +95,9 @@ export const Details = ({
     } else if (
       usageData?.priceBehavior === "pay_as_you_go" &&
       typeof price === "number" &&
-      typeof usageData.valueNumeric === "number"
+      typeof usage === "number"
     ) {
-      usageText += formatCurrency(price * usageData.valueNumeric);
+      usageText += formatCurrency(price * usage);
     }
   } else if (typeof usage === "number") {
     usageText =
