@@ -112,10 +112,6 @@ export const PricingTable = forwardRef<
     RecursivePartial<DesignProps> &
     React.HTMLAttributes<HTMLDivElement>
 >(({ children, className, ...rest }, ref) => {
-  const visibleCount = 4;
-  const [showAll, setShowAll] = useState(visibleCount);
-  const [isExpanded, setIsExpanded] = useState(false);
-
   const props = resolveDesignProps(rest);
 
   const { t } = useTranslation();
