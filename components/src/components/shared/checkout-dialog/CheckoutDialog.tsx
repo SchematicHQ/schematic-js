@@ -107,15 +107,17 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       (
         acc: {
           usageData: UsageBasedEntitlementResponseData;
+          allocation: number;
           quantity: number;
         }[],
         usageData,
       ) => {
-        const featureUsage = data.featureUsage?.features.find(
-          (usage) => usage.feature?.id === usageData.featureId,
-        );
+        const allocation =
+          data.featureUsage?.features.find(
+            (usage) => usage.feature?.id === usageData.featureId,
+          )?.allocation || 0;
 
-        acc.push({ usageData, quantity: featureUsage?.allocation || 0 });
+        acc.push({ usageData, allocation, quantity: allocation });
 
         return acc;
       },
@@ -127,6 +129,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       (
         acc: {
           entitlement: PlanEntitlementResponseData;
+          allocation: number;
           quantity: number;
         }[],
         entitlement: PlanEntitlementResponseData,
@@ -136,11 +139,11 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           ((period === "month" && entitlement.meteredMonthlyPrice) ||
             (period === "year" && entitlement.meteredYearlyPrice))
         ) {
-          const quantity =
+          const allocation =
             data.featureUsage?.features.find(
               (usage) => usage.feature?.id === entitlement.feature?.id,
             )?.allocation || 0;
-          acc.push({ entitlement, quantity });
+          acc.push({ entitlement, allocation, quantity: allocation });
         }
 
         return acc;
@@ -210,6 +213,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       addOns: (CompanyPlanDetailResponseData & { isSelected: boolean })[];
       entitlements: {
         entitlement: PlanEntitlementResponseData;
+        allocation: number;
         quantity: number;
       }[];
       period?: string;
@@ -358,23 +362,25 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   const updateUsageBasedEntitlementQuantity = useCallback(
     (id: string, updatedQuantity: number) => {
       const entitlements = payInAdvanceEntitlements.map(
-        ({ entitlement, quantity }) =>
+        ({ entitlement, allocation, quantity }) =>
           entitlement.id === id
             ? {
                 entitlement,
+                allocation,
                 quantity: updatedQuantity,
               }
-            : { entitlement, quantity },
+            : { entitlement, allocation, quantity },
       );
 
       setUsageBasedEntitlements((prev) =>
-        prev.map(({ entitlement, quantity }) =>
+        prev.map(({ entitlement, allocation, quantity }) =>
           entitlement.id === id
             ? {
                 entitlement,
+                allocation,
                 quantity: updatedQuantity,
               }
-            : { entitlement, quantity },
+            : { entitlement, allocation, quantity },
         ),
       );
 

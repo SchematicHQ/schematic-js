@@ -81,7 +81,7 @@ export const Details = ({
       typeof data.company?.plan?.planPeriod === "string" &&
       typeof price === "number"
     ) {
-      usageText = `${formatCurrency(price)}/${shortenPeriod(data.company.plan.planPeriod)}/${pluralize(feature.name.toLowerCase(), 1)} • `;
+      usageText = `${formatCurrency(price)}/${pluralize(feature.name.toLowerCase(), 1)}/${shortenPeriod(data.company.plan.planPeriod)} • `;
     } else if (priceBehavior === "pay_as_you_go" && typeof usage === "number") {
       usageText = `${usage} ${pluralize(feature.name.toLowerCase(), usage)} ${t("used")} • `;
     }

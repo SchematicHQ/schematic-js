@@ -96,10 +96,10 @@ export const PlanManager = forwardRef<
 
   // Can change plan if there is a publishable key, a current plan with a billing association, and
   // some active plans
-  const { addOns, canChangePlan, currentPlan, featureUsage } = {
+  const { addOns, canCheckout, currentPlan, featureUsage } = {
     addOns: data.company?.addOns || [],
     currentPlan: data.company?.plan,
-    canChangePlan: data.capabilities?.checkout ?? true,
+    canCheckout: data.capabilities?.checkout ?? true,
     featureUsage: data.featureUsage,
   };
 
@@ -332,11 +332,12 @@ export const PlanManager = forwardRef<
                         >
                           {formatCurrency(entitlement.price)}
                           <sub>
-                            /{shortenPeriod(currentPlan.planPeriod)}/
+                            /
                             {pluralize(
                               entitlement.feature.name.toLowerCase(),
                               1,
                             )}
+                            /{shortenPeriod(currentPlan.planPeriod)}
                           </sub>
                         </Text>
                       )}
@@ -374,7 +375,7 @@ export const PlanManager = forwardRef<
         </Flex>
       )}
 
-      {canChangePlan && props.callToAction.isVisible && (
+      {canCheckout && props.callToAction.isVisible && (
         <EmbedButton
           onClick={() => {
             setSelected({

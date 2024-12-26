@@ -10,7 +10,7 @@ import {
   useWrapChildren,
 } from "../../../hooks";
 import type { RecursivePartial, ElementProps } from "../../../types";
-import { formatNumber, toPrettyDate } from "../../../utils";
+import { formatCurrency, formatNumber, toPrettyDate } from "../../../utils";
 import { Element } from "../../layout";
 import {
   progressColorMap,
@@ -195,7 +195,14 @@ export const MeteredFeatures = forwardRef<
                         }
                         $color={theme.typography[props.header.fontStyle].color}
                       >
-                        {feature.name}
+                        {priceBehavior === "pay_as_you_go"
+                          ? typeof usage === "number" && (
+                              <>
+                                {formatNumber(usage)}{" "}
+                                {pluralize(feature.name, usage)}
+                              </>
+                            )
+                          : feature.name}
                       </Text>
 
                       {props.description.isVisible && (
@@ -255,12 +262,16 @@ export const MeteredFeatures = forwardRef<
                                     {pluralize(feature.name, allocation)}
                                   </>
                                 )
-                              : typeof usage === "number" && (
-                                  <>
-                                    {formatNumber(usage)}{" "}
-                                    {pluralize(feature.name, usage)}
-                                  </>
-                                )}
+                              : priceBehavior === "pay_as_you_go"
+                                ? typeof price === "number" &&
+                                  typeof usage === "number" &&
+                                  formatCurrency(usage * price)
+                                : typeof usage === "number" && (
+                                    <>
+                                      {formatNumber(usage)}{" "}
+                                      {pluralize(feature.name, usage)}
+                                    </>
+                                  )}
                           </Text>
                         )}
 
@@ -284,7 +295,7 @@ export const MeteredFeatures = forwardRef<
                                   .color
                               }
                             >
-                              {priceBehavior === "pay_in_advance" && resetDate
+                              {priceBehavior && resetDate
                                 ? t("Resets", {
                                     date: toPrettyDate(resetDate, {
                                       month: "short",
@@ -306,7 +317,8 @@ export const MeteredFeatures = forwardRef<
 
                 {props.isVisible &&
                   typeof usage === "number" &&
-                  typeof allocation === "number" && (
+                  typeof allocation === "number" &&
+                  priceBehavior !== "pay_as_you_go" && (
                     <Flex $gap="2rem">
                       <ProgressBar
                         progress={(usage / allocation) * 100}

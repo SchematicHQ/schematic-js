@@ -34,6 +34,7 @@ interface SidebarProps {
   currentPlan?: CompanyPlanWithBillingSubView;
   currentUsageBasedEntitlements: {
     usageData: UsageBasedEntitlementResponseData;
+    allocation: number;
     quantity: number;
   }[];
   error?: string;
@@ -48,6 +49,7 @@ interface SidebarProps {
   toggleLoading: () => void;
   usageBasedEntitlements: {
     entitlement: PlanEntitlementResponseData;
+    allocation: number;
     quantity: number;
   }[];
 }

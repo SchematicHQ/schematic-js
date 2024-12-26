@@ -19,6 +19,7 @@
     "Credits": "Credits",
     "Current plan": "Current plan",
     "Current usage exceeds the limit of this plan.": "Current usage exceeds the limit of this plan.",
+    "Currently using": "Currently using {{quantity}} {{unit}}",
     "Due today": "Due today",
     "Edit payment method": "Edit payment method",
     "Edit": "Edit",

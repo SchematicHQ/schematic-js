@@ -155,7 +155,7 @@ export const PricingTable = forwardRef<
     ),
   );
 
-  const canChangePlan = data.capabilities?.checkout ?? true;
+  const canCheckout = data.capabilities?.checkout ?? true;
 
   const cardPadding = theme.card.padding / TEXT_BASE_SIZE;
 
@@ -402,6 +402,25 @@ export const PricingTable = forwardRef<
                         )}
 
                         {plan.entitlements
+                          .sort((a, b) => {
+                            if (
+                              a.feature?.name &&
+                              b.feature?.name &&
+                              a.feature?.name > b.feature?.name
+                            ) {
+                              return 1;
+                            }
+
+                            if (
+                              a.feature?.name &&
+                              b.feature?.name &&
+                              a.feature?.name < b.feature?.name
+                            ) {
+                              return -1;
+                            }
+
+                            return 0;
+                          })
                           .reduce((acc: JSX.Element[], entitlement) => {
                             let price: number | undefined;
                             if (selectedPeriod === "month") {
@@ -448,18 +467,17 @@ export const PricingTable = forwardRef<
                                     >
                                       {typeof price !== "undefined" ? (
                                         <>
-                                          {formatCurrency(price)}
+                                          {formatCurrency(price)} {t("per")}{" "}
+                                          {pluralize(
+                                            entitlement.feature.name,
+                                            1,
+                                          )}
                                           {entitlement.priceBehavior ===
                                             "pay_in_advance" && (
                                             <>
                                               {" "}
                                               {t("per")} {selectedPeriod}
                                             </>
-                                          )}{" "}
-                                          {t("per")}{" "}
-                                          {pluralize(
-                                            entitlement.feature.name,
-                                            1,
                                           )}
                                         </>
                                       ) : entitlement.valueType === "numeric" ||
@@ -563,7 +581,7 @@ export const PricingTable = forwardRef<
                       (props.upgrade.isVisible ||
                         props.downgrade.isVisible) && (
                         <EmbedButton
-                          disabled={!plan.valid}
+                          disabled={!plan.valid || !canCheckout}
                           onClick={() => {
                             setSelected({
                               period: selectedPeriod,
@@ -866,7 +884,7 @@ export const PricingTable = forwardRef<
 
                       {props.upgrade.isVisible && (
                         <EmbedButton
-                          disabled={!addOn.valid}
+                          disabled={!addOn.valid || !canCheckout}
                           onClick={() => {
                             setSelected({
                               period: selectedPeriod,
