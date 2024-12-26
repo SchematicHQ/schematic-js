@@ -261,6 +261,8 @@ export const Plan = ({
                           "Current usage exceeds the limit of this plan.",
                         )}
                       />
+                    ) : plan.companyCanTrial ? (
+                      t("Trial plan", { days: plan.trialDays })
                     ) : (
                       t("Choose plan")
                     )}

@@ -69,30 +69,6 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     periods: availablePeriods,
   } = useAvailablePlans(planPeriod);
 
-  // memoize data here since some state depends on it
-  const checkoutStages = useMemo(() => {
-    const checkoutStages = [
-      {
-        id: "plan",
-        name: t("Plan"),
-        label: t("Select plan"),
-        description: t("Choose your base plan"),
-      },
-      {
-        id: "addons",
-        name: t("Add-ons"),
-        label: t("Select add-ons"),
-        description: t("Optionally add features to your subscription"),
-      },
-      { id: "checkout", name: t("Checkout"), label: t("Checkout") },
-    ];
-    if (!availableAddOns.length) {
-      checkoutStages.splice(1, 1);
-    }
-
-    return checkoutStages;
-  }, [t, availableAddOns]);
-
   const currentPlan = data.company?.plan;
   const [selectedPlan, setSelectedPlan] = useState<
     CompanyPlanDetailResponseData | undefined
@@ -116,6 +92,34 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           : currentAddOns.some((currentAddOn) => addOn.id === currentAddOn.id),
     })),
   );
+
+    // memoize data here since some state depends on it
+    const checkoutStages = useMemo(() => {
+      const checkoutStages = [
+        {
+          id: "plan",
+          name: t("Plan"),
+          label: t("Select plan"),
+          description: t("Choose your base plan"),
+        },
+        {
+          id: "addons",
+          name: t("Add-ons"),
+          label: t("Select add-ons"),
+          description: t("Optionally add features to your subscription"),
+        },
+        { id: "checkout", name: t("Checkout"), label: t("Checkout") },
+      ];
+      if (!availableAddOns.length || selectedPlan?.companyCanTrial) {
+        checkoutStages.splice(1, 1);
+      }
+
+      if ( selectedPlan?.companyCanTrial && !data.trialPaymentMethodRequired) {
+        checkoutStages.pop();
+      }
+  
+      return checkoutStages;
+    }, [t, availableAddOns, selectedPlan, data.trialPaymentMethodRequired]);
 
   const isLightBackground = useIsLightBackground();
 
