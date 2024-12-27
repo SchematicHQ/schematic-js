@@ -73,7 +73,6 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     periods: availablePeriods,
   } = useAvailablePlans(planPeriod);
 
-  // memoize data here since some state depends on it
   const currentPlan = data.company?.plan;
   const [selectedPlan, setSelectedPlan] = useState(() => {
     const p = availablePlans.find(
@@ -186,7 +185,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       });
     }
 
-    if (availableAddOns.length) {
+    if (availableAddOns.length && !selectedPlan?.companyCanTrial) {
       stages.push({
         id: "addons",
         name: t("Add-ons"),
@@ -195,10 +194,22 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       });
     }
 
-    stages.push({ id: "checkout", name: t("Checkout"), label: t("Checkout") });
+    if (!selectedPlan?.companyCanTrial || data.trialPaymentMethodRequired) {
+      stages.push({
+        id: "checkout",
+        name: t("Checkout"),
+        label: t("Checkout"),
+      });
+    }
 
     return stages;
-  }, [t, availableAddOns, payInAdvanceEntitlements]);
+  }, [
+    t,
+    payInAdvanceEntitlements,
+    availableAddOns,
+    selectedPlan?.companyCanTrial,
+    data.trialPaymentMethodRequired,
+  ]);
 
   const isLightBackground = useIsLightBackground();
 

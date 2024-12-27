@@ -129,99 +129,204 @@ export const PlanManager = forwardRef<
     [],
   );
 
-  return (
-    <Element
-      as={Flex}
-      ref={ref}
-      className={className}
-      $flexDirection="column"
-      $gap="2rem"
-    >
-      {props.header.isVisible && currentPlan && (
-        <Flex
-          $justifyContent="space-between"
-          $alignItems="center"
-          $flexWrap="wrap"
-          $gap="1rem"
-        >
-          <Flex $flexDirection="column" $gap="1rem">
-            <Text
-              as={Box}
-              $font={theme.typography[props.header.title.fontStyle].fontFamily}
-              $size={theme.typography[props.header.title.fontStyle].fontSize}
-              $weight={
-                theme.typography[props.header.title.fontStyle].fontWeight
-              }
-              $color={theme.typography[props.header.title.fontStyle].color}
-              $leading={1}
-            >
-              {currentPlan.name}
-            </Text>
+  const billingSubscription = data.company?.billingSubscription;
+  const showTrialBox =
+    billingSubscription &&
+    billingSubscription.trialEnd !== undefined &&
+    billingSubscription.trialEnd !== 0;
 
-            {props.header.description.isVisible && currentPlan.description && (
+  const trialEndDate = billingSubscription?.trialEnd
+    ? new Date(billingSubscription.trialEnd * 1000)
+    : new Date();
+  const todayDate = new Date();
+  const trialEndDays = Math.floor(
+    trialEndDate.getTime() - todayDate.getTime() / (1000 * 60 * 60 * 24),
+  );
+
+  return (
+    <>
+      {showTrialBox && (
+        <Box
+          $backgroundColor={
+            isLightBackground
+              ? "hsla(0, 0%, 0%, 0.04)"
+              : "hsla(0, 0%, 100%, 0.04)"
+          }
+          $textAlign="center"
+          $padding="1rem"
+        >
+          <Text
+            as="h3"
+            $font={theme.typography.heading3.fontFamily}
+            $size={theme.typography.heading3.fontSize}
+            $weight={theme.typography.heading3.fontWeight}
+            $color={theme.typography.heading3.color}
+          >
+            {t("Trial ends in", { days: trialEndDays.toString() })}
+          </Text>
+          <Text
+            as="p"
+            $font={theme.typography.text.fontFamily}
+            $size={theme.typography.text.fontSize * 0.8125}
+            $weight={theme.typography.text.fontWeight}
+            $color={theme.typography.text.color}
+          >
+            {data.trialPaymentMethodRequired
+              ? t("After the trial, subscribe")
+              : t("After the trial, cancel")}
+          </Text>
+        </Box>
+      )}
+      <Element
+        as={Flex}
+        ref={ref}
+        className={className}
+        $flexDirection="column"
+        $gap="2rem"
+      >
+        {props.header.isVisible && currentPlan && (
+          <Flex
+            $justifyContent="space-between"
+            $alignItems="center"
+            $flexWrap="wrap"
+            $gap="1rem"
+          >
+            <Flex $flexDirection="column" $gap="1rem">
               <Text
                 as={Box}
                 $font={
-                  theme.typography[props.header.description.fontStyle]
-                    .fontFamily
+                  theme.typography[props.header.title.fontStyle].fontFamily
                 }
-                $size={
-                  theme.typography[props.header.description.fontStyle].fontSize
-                }
+                $size={theme.typography[props.header.title.fontStyle].fontSize}
                 $weight={
-                  theme.typography[props.header.description.fontStyle]
-                    .fontWeight
+                  theme.typography[props.header.title.fontStyle].fontWeight
                 }
-                $color={
-                  theme.typography[props.header.description.fontStyle].color
-                }
+                $color={theme.typography[props.header.title.fontStyle].color}
+                $leading={1}
               >
-                {currentPlan.description}
+                {currentPlan.name}
+              </Text>
+
+              {props.header.description.isVisible &&
+                currentPlan.description && (
+                  <Text
+                    as={Box}
+                    $font={
+                      theme.typography[props.header.description.fontStyle]
+                        .fontFamily
+                    }
+                    $size={
+                      theme.typography[props.header.description.fontStyle]
+                        .fontSize
+                    }
+                    $weight={
+                      theme.typography[props.header.description.fontStyle]
+                        .fontWeight
+                    }
+                    $color={
+                      theme.typography[props.header.description.fontStyle].color
+                    }
+                  >
+                    {currentPlan.description}
+                  </Text>
+                )}
+            </Flex>
+
+            {props.header.price.isVisible &&
+              typeof currentPlan.planPrice === "number" &&
+              currentPlan.planPeriod && (
+                <Box>
+                  <Text
+                    $font={
+                      theme.typography[props.header.price.fontStyle].fontFamily
+                    }
+                    $size={
+                      theme.typography[props.header.price.fontStyle].fontSize
+                    }
+                    $weight={
+                      theme.typography[props.header.price.fontStyle].fontWeight
+                    }
+                    $color={
+                      theme.typography[props.header.price.fontStyle].color
+                    }
+                  >
+                    {formatCurrency(currentPlan.planPrice)}
+                  </Text>
+
+                  <Text
+                    $font={
+                      theme.typography[props.header.price.fontStyle].fontFamily
+                    }
+                    $size={
+                      theme.typography[props.header.price.fontStyle].fontSize
+                    }
+                    $weight={
+                      theme.typography[props.header.price.fontStyle].fontWeight
+                    }
+                    $color={
+                      theme.typography[props.header.price.fontStyle].color
+                    }
+                  >
+                    <sub>/{shortenPeriod(currentPlan.planPeriod)}</sub>
+                  </Text>
+                </Box>
+              )}
+          </Flex>
+        )}
+
+        {props.addOns.isVisible && addOns.length > 0 && (
+          <Flex $flexDirection="column" $gap="1rem">
+            {props.addOns.showLabel && (
+              <Text
+                $font={theme.typography.text.fontFamily}
+                $size={theme.typography.text.fontSize}
+                $weight={theme.typography.text.fontWeight}
+                $color={
+                  isLightBackground
+                    ? darken(theme.card.background, 0.46)
+                    : lighten(theme.card.background, 0.46)
+                }
+                $leading={1}
+              >
+                {t("Add-ons")}
               </Text>
             )}
+
+            {addOns.map((addOn) => (
+              <Flex
+                key={addOn.id}
+                $justifyContent="space-between"
+                $alignItems="center"
+                $flexWrap="wrap"
+                $gap="1rem"
+              >
+                <Text
+                  $font={theme.typography[props.addOns.fontStyle].fontFamily}
+                  $size={theme.typography[props.addOns.fontStyle].fontSize}
+                  $weight={theme.typography[props.addOns.fontStyle].fontWeight}
+                  $color={theme.typography[props.addOns.fontStyle].color}
+                >
+                  {addOn.name}
+                </Text>
+
+                {addOn.planPrice && addOn.planPeriod && (
+                  <Text
+                    $font={theme.typography.text.fontFamily}
+                    $size={theme.typography.text.fontSize}
+                    $weight={theme.typography.text.fontWeight}
+                    $color={theme.typography.text.color}
+                  >
+                    {formatCurrency(addOn.planPrice)}
+                    <sub>/{shortenPeriod(addOn.planPeriod)}</sub>
+                  </Text>
+                )}
+              </Flex>
+            ))}
           </Flex>
+        )}
 
-          {props.header.price.isVisible &&
-            typeof currentPlan.planPrice === "number" &&
-            currentPlan.planPeriod && (
-              <Box>
-                <Text
-                  $font={
-                    theme.typography[props.header.price.fontStyle].fontFamily
-                  }
-                  $size={
-                    theme.typography[props.header.price.fontStyle].fontSize
-                  }
-                  $weight={
-                    theme.typography[props.header.price.fontStyle].fontWeight
-                  }
-                  $color={theme.typography[props.header.price.fontStyle].color}
-                >
-                  {formatCurrency(currentPlan.planPrice)}
-                </Text>
-
-                <Text
-                  $font={
-                    theme.typography[props.header.price.fontStyle].fontFamily
-                  }
-                  $size={
-                    theme.typography[props.header.price.fontStyle].fontSize
-                  }
-                  $weight={
-                    theme.typography[props.header.price.fontStyle].fontWeight
-                  }
-                  $color={theme.typography[props.header.price.fontStyle].color}
-                >
-                  <sub>/{shortenPeriod(currentPlan.planPeriod)}</sub>
-                </Text>
-              </Box>
-            )}
-        </Flex>
-      )}
-
-      {props.addOns.isVisible && addOns.length > 0 && (
-        <Flex $flexDirection="column" $gap="1rem">
-          {props.addOns.showLabel && (
+        {usageBasedEntitlements.length > 0 && (
+          <Flex $flexDirection="column" $gap="1rem">
             <Text
               $font={theme.typography.text.fontFamily}
               $size={theme.typography.text.fontSize}
@@ -233,165 +338,123 @@ export const PlanManager = forwardRef<
               }
               $leading={1}
             >
-              {t("Add-ons")}
+              {t("Usage-based")}
             </Text>
-          )}
 
-          {addOns.map((addOn) => (
-            <Flex
-              key={addOn.id}
-              $justifyContent="space-between"
-              $alignItems="center"
-              $flexWrap="wrap"
-              $gap="1rem"
-            >
-              <Text
-                $font={theme.typography[props.addOns.fontStyle].fontFamily}
-                $size={theme.typography[props.addOns.fontStyle].fontSize}
-                $weight={theme.typography[props.addOns.fontStyle].fontWeight}
-                $color={theme.typography[props.addOns.fontStyle].color}
-              >
-                {addOn.name}
-              </Text>
-
-              {addOn.planPrice && addOn.planPeriod && (
-                <Text
-                  $font={theme.typography.text.fontFamily}
-                  $size={theme.typography.text.fontSize}
-                  $weight={theme.typography.text.fontWeight}
-                  $color={theme.typography.text.color}
-                >
-                  {formatCurrency(addOn.planPrice)}
-                  <sub>/{shortenPeriod(addOn.planPeriod)}</sub>
-                </Text>
-              )}
-            </Flex>
-          ))}
-        </Flex>
-      )}
-
-      {usageBasedEntitlements.length > 0 && (
-        <Flex $flexDirection="column" $gap="1rem">
-          <Text
-            $font={theme.typography.text.fontFamily}
-            $size={theme.typography.text.fontSize}
-            $weight={theme.typography.text.fontWeight}
-            $color={
-              isLightBackground
-                ? darken(theme.card.background, 0.46)
-                : lighten(theme.card.background, 0.46)
-            }
-            $leading={1}
-          >
-            {t("Usage-based")}
-          </Text>
-
-          {usageBasedEntitlements.reduce((acc: JSX.Element[], entitlement) => {
-            if (entitlement.feature?.name) {
-              acc.push(
-                <Flex
-                  key={entitlement.feature.id}
-                  $justifyContent="space-between"
-                  $alignItems="center"
-                  $flexWrap="wrap"
-                  $gap="1rem"
-                >
-                  <Text
-                    $font={theme.typography[props.addOns.fontStyle].fontFamily}
-                    $size={theme.typography[props.addOns.fontStyle].fontSize}
-                    $weight={
-                      theme.typography[props.addOns.fontStyle].fontWeight
-                    }
-                    $color={theme.typography[props.addOns.fontStyle].color}
-                  >
-                    {entitlement.priceBehavior === "pay_in_advance" ? (
-                      <>
-                        {entitlement.quantity}{" "}
-                        {pluralize(
-                          entitlement.feature.name,
-                          entitlement.quantity,
+            {usageBasedEntitlements.reduce(
+              (acc: JSX.Element[], entitlement) => {
+                if (entitlement.feature?.name) {
+                  acc.push(
+                    <Flex
+                      key={entitlement.feature.id}
+                      $justifyContent="space-between"
+                      $alignItems="center"
+                      $flexWrap="wrap"
+                      $gap="1rem"
+                    >
+                      <Text
+                        $font={
+                          theme.typography[props.addOns.fontStyle].fontFamily
+                        }
+                        $size={
+                          theme.typography[props.addOns.fontStyle].fontSize
+                        }
+                        $weight={
+                          theme.typography[props.addOns.fontStyle].fontWeight
+                        }
+                        $color={theme.typography[props.addOns.fontStyle].color}
+                      >
+                        {entitlement.priceBehavior === "pay_in_advance" ? (
+                          <>
+                            {entitlement.quantity}{" "}
+                            {pluralize(
+                              entitlement.feature.name,
+                              entitlement.quantity,
+                            )}
+                          </>
+                        ) : (
+                          entitlement.feature.name
                         )}
-                      </>
-                    ) : (
-                      entitlement.feature.name
-                    )}
-                  </Text>
+                      </Text>
 
-                  <Flex $alignItems="center" $gap="1rem">
-                    {entitlement.priceBehavior === "pay_in_advance" &&
-                      currentPlan?.planPeriod && (
+                      <Flex $alignItems="center" $gap="1rem">
+                        {entitlement.priceBehavior === "pay_in_advance" &&
+                          currentPlan?.planPeriod && (
+                            <Text
+                              $font={theme.typography.text.fontFamily}
+                              $size={0.875 * theme.typography.text.fontSize}
+                              $weight={theme.typography.text.fontWeight}
+                              $color={
+                                hexToHSL(theme.typography.text.color).l > 50
+                                  ? darken(theme.typography.text.color, 0.46)
+                                  : lighten(theme.typography.text.color, 0.46)
+                              }
+                            >
+                              {formatCurrency(entitlement.price)}
+                              <sub>
+                                /
+                                {pluralize(
+                                  entitlement.feature.name.toLowerCase(),
+                                  1,
+                                )}
+                                /{shortenPeriod(currentPlan.planPeriod)}
+                              </sub>
+                            </Text>
+                          )}
+
                         <Text
                           $font={theme.typography.text.fontFamily}
-                          $size={0.875 * theme.typography.text.fontSize}
+                          $size={theme.typography.text.fontSize}
                           $weight={theme.typography.text.fontWeight}
-                          $color={
-                            hexToHSL(theme.typography.text.color).l > 50
-                              ? darken(theme.typography.text.color, 0.46)
-                              : lighten(theme.typography.text.color, 0.46)
-                          }
+                          $color={theme.typography.text.color}
                         >
-                          {formatCurrency(entitlement.price)}
+                          {formatCurrency(
+                            entitlement.price *
+                              (entitlement.priceBehavior === "pay_in_advance"
+                                ? entitlement.quantity
+                                : 1),
+                          )}
                           <sub>
                             /
-                            {pluralize(
-                              entitlement.feature.name.toLowerCase(),
-                              1,
-                            )}
-                            /{shortenPeriod(currentPlan.planPeriod)}
+                            {currentPlan?.planPeriod &&
+                            entitlement.priceBehavior === "pay_in_advance"
+                              ? shortenPeriod(currentPlan.planPeriod)
+                              : pluralize(
+                                  entitlement.feature.name.toLowerCase(),
+                                  1,
+                                )}
                           </sub>
                         </Text>
-                      )}
+                      </Flex>
+                    </Flex>,
+                  );
+                }
 
-                    <Text
-                      $font={theme.typography.text.fontFamily}
-                      $size={theme.typography.text.fontSize}
-                      $weight={theme.typography.text.fontWeight}
-                      $color={theme.typography.text.color}
-                    >
-                      {formatCurrency(
-                        entitlement.price *
-                          (entitlement.priceBehavior === "pay_in_advance"
-                            ? entitlement.quantity
-                            : 1),
-                      )}
-                      <sub>
-                        /
-                        {currentPlan?.planPeriod &&
-                        entitlement.priceBehavior === "pay_in_advance"
-                          ? shortenPeriod(currentPlan.planPeriod)
-                          : pluralize(
-                              entitlement.feature.name.toLowerCase(),
-                              1,
-                            )}
-                      </sub>
-                    </Text>
-                  </Flex>
-                </Flex>,
-              );
-            }
+                return acc;
+              },
+              [],
+            )}
+          </Flex>
+        )}
 
-            return acc;
-          }, [])}
-        </Flex>
-      )}
-
-      {canCheckout && props.callToAction.isVisible && (
-        <EmbedButton
-          onClick={() => {
-            setSelected({
-              planId: currentPlan?.id,
-              addOnId: undefined,
-              usage: false,
-            });
-            setLayout("checkout");
-          }}
-          $size={props.callToAction.buttonSize}
-          $color={props.callToAction.buttonStyle}
-        >
-          {t("Change plan")}
-        </EmbedButton>
-      )}
-    </Element>
+        {canCheckout && props.callToAction.isVisible && (
+          <EmbedButton
+            onClick={() => {
+              setSelected({
+                planId: currentPlan?.id,
+                addOnId: undefined,
+                usage: false,
+              });
+              setLayout("checkout");
+            }}
+            $size={props.callToAction.buttonSize}
+            $color={props.callToAction.buttonStyle}
+          >
+            {t("Change plan")}
+          </EmbedButton>
+        )}
+      </Element>
+    </>
   );
 });
 

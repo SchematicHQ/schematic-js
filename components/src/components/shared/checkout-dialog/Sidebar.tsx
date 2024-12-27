@@ -18,7 +18,8 @@ import {
   getMonthName,
   shortenPeriod,
 } from "../../../utils";
-import { Box, EmbedButton, Flex, Icon, Text } from "../../ui";
+import { Box, Flex, Icon, Text } from "../../ui";
+import { StageButton } from "./StageButton";
 
 interface SidebarProps {
   addOns: (CompanyPlanDetailResponseData & { isSelected: boolean })[];
@@ -158,7 +159,7 @@ export const Sidebar = ({
           newPlanId: selectedPlan.id,
           newPriceId: priceId,
           addOnIds: addOns.reduce((acc: UpdateAddOnRequestBody[], addOn) => {
-            if (addOn.isSelected) {
+            if (addOn.isSelected && !selectedPlan.companyCanTrial) {
               const addOnPriceId = (
                 planPeriod === "month"
                   ? addOn?.monthlyPrice
@@ -290,6 +291,13 @@ export const Sidebar = ({
     (selected) => !currentAddOns.some((current) => selected.id === current.id),
   );
   const willAddOnsChange = removedAddOns.length > 0 || addedAddOns.length > 0;
+
+  const isTrialable = selectedPlan?.companyCanTrial;
+  const today = new Date();
+  const trialEndsOn = new Date(today);
+  if (isTrialable && selectedPlan.trialDays) {
+    trialEndsOn.setDate(trialEndsOn.getDate() + selectedPlan.trialDays);
+  }
 
   return (
     <Flex
@@ -577,6 +585,54 @@ export const Sidebar = ({
           </Flex>
         )}
 
+        {selectedPlan && isTrialable && (
+          <Box>
+            <Box $opacity="0.625">
+              <Text
+                $font={theme.typography.text.fontFamily}
+                $size={14}
+                $weight={theme.typography.text.fontWeight}
+                $color={theme.typography.text.color}
+              >
+                {t("Trial")}
+              </Text>
+            </Box>
+            <Flex
+              $justifyContent="space-between"
+              $alignItems="center"
+              $gap="1rem"
+            >
+              <Flex>
+                <Text
+                  $font={theme.typography.heading4.fontFamily}
+                  $size={theme.typography.heading4.fontSize}
+                  $weight={theme.typography.heading4.fontWeight}
+                  $color={theme.typography.heading4.color}
+                >
+                  {t("Ends on", { date: trialEndsOn.toLocaleDateString() })}
+                </Text>
+              </Flex>
+              <Flex>
+                <Text
+                  $font={theme.typography.text.fontFamily}
+                  $size={theme.typography.text.fontSize}
+                  $weight={theme.typography.text.fontWeight}
+                  $color={theme.typography.text.color}
+                >
+                  -
+                  {formatCurrency(
+                    (planPeriod === "month"
+                      ? selectedPlan.monthlyPrice
+                      : selectedPlan.yearlyPrice
+                    )?.price ?? 0,
+                  )}
+                  /<sub>{shortenPeriod(planPeriod)}</sub>
+                </Text>
+              </Flex>
+            </Flex>
+          </Box>
+        )}
+
         {(willAddOnsChange || selectedAddOns.length > 0) && (
           <Flex $flexDirection="column" $gap="0.5rem" $marginBottom="1.5rem">
             <Box $opacity="0.625">
@@ -800,112 +856,19 @@ export const Sidebar = ({
           </Flex>
         )}
 
-        {checkoutStage === "plan" && (
-          <EmbedButton
-            disabled={!canUpdateSubscription}
-            onClick={async () => {
-              if (
-                !addOns.length &&
-                !payInAdvanceEntitlements.length &&
-                api &&
-                data.component?.id
-              ) {
-                const { data: setupIntent } = await api.getSetupIntent({
-                  componentId: data.component.id,
-                });
-                setSetupIntent(setupIntent);
-              }
-
-              setCheckoutStage(
-                payInAdvanceEntitlements.length
-                  ? "usage"
-                  : addOns.length
-                    ? "addons"
-                    : "checkout",
-              );
-            }}
-            isLoading={isLoading}
-          >
-            <Flex
-              $gap="0.5rem"
-              $justifyContent="center"
-              $alignItems="center"
-              $padding="0 1rem"
-            >
-              {t("Next")}:{" "}
-              {payInAdvanceEntitlements.length
-                ? t("Usage")
-                : addOns.length
-                  ? t("Addons")
-                  : t("Checkout")}
-              <Icon name="arrow-right" />
-            </Flex>
-          </EmbedButton>
-        )}
-
-        {checkoutStage === "usage" && (
-          <EmbedButton
-            disabled={!canUpdateSubscription}
-            onClick={async () => {
-              if (!addOns.length && api && data.component?.id) {
-                const { data: setupIntent } = await api.getSetupIntent({
-                  componentId: data.component.id,
-                });
-                setSetupIntent(setupIntent);
-              }
-
-              setCheckoutStage(addOns.length ? "addons" : "checkout");
-            }}
-            isLoading={isLoading}
-          >
-            <Flex
-              $gap="0.5rem"
-              $justifyContent="center"
-              $alignItems="center"
-              $padding="0 1rem"
-            >
-              {t("Next")}: {addOns.length ? t("Addons") : t("Checkout")}
-              <Icon name="arrow-right" />
-            </Flex>
-          </EmbedButton>
-        )}
-
-        {checkoutStage === "addons" && (
-          <EmbedButton
-            disabled={!canUpdateSubscription}
-            onClick={async () => {
-              if (api && data.component?.id) {
-                const { data: setupIntent } = await api.getSetupIntent({
-                  componentId: data.component.id,
-                });
-                setSetupIntent(setupIntent);
-              }
-
-              setCheckoutStage("checkout");
-            }}
-            isLoading={isLoading}
-          >
-            <Flex
-              $gap="0.5rem"
-              $justifyContent="center"
-              $alignItems="center"
-              $padding="0 1rem"
-            >
-              {t("Next")}: {t("Checkout")}
-              <Icon name="arrow-right" />
-            </Flex>
-          </EmbedButton>
-        )}
-
-        {checkoutStage === "checkout" && (
-          <EmbedButton
-            disabled={isLoading || !canCheckout}
-            onClick={checkout}
-            isLoading={isLoading}
-          >
-            {t("Pay now")}
-          </EmbedButton>
-        )}
+        <StageButton
+          canTrial={selectedPlan?.companyCanTrial === true}
+          canCheckout={canCheckout === true}
+          canUpdateSubscription={canUpdateSubscription}
+          checkout={checkout}
+          checkoutStage={checkoutStage}
+          hasAddOns={addOns.length > 0}
+          hasPayInAdvanceEntitlements={payInAdvanceEntitlements.length > 0}
+          isLoading={isLoading}
+          setCheckoutStage={setCheckoutStage}
+          setSetupIntent={setSetupIntent}
+          trialPaymentMethodRequired={data.trialPaymentMethodRequired === true}
+        />
 
         {!isLoading && error && (
           <Box>
