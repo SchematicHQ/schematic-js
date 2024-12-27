@@ -1,6 +1,6 @@
 {
   "name": "@schematichq/schematic-components",
-  "version": "0.4.0-rc.10",
+  "version": "0.4.0-rc.11",
   "main": "dist/schematic-components.cjs.js",
   "module": "dist/schematic-components.esm.js",
   "types": "dist/schematic-components.d.ts",
@@ -14,18 +14,6 @@
   "repository": {
     "type": "git",
     "url": "git+ssh://git@github.com/SchematicHQ/schematic-js.git"
-  },
-  "exports": {
-    ".": {
-      "import": {
-        "types": "./dist/index.d.ts",
-        "default": "./dist/schematic-components.esm.js"
-      },
-      "require": {
-        "types": "./dist/index.d.ts",
-        "default": "./dist/index.js"
-      }
-    }
   },
   "scripts": {
     "dev": "yarn tsc --watch",
