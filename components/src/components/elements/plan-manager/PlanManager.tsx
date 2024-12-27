@@ -95,187 +95,213 @@ export const PlanManager = forwardRef<
   };
 
   const billingSubscription = data.company?.billingSubscription;
-  const showTrialBox = billingSubscription && billingSubscription.trialEnd !== undefined && billingSubscription.trialEnd !== 0 ;
+  const showTrialBox =
+    billingSubscription &&
+    billingSubscription.trialEnd !== undefined &&
+    billingSubscription.trialEnd !== 0;
 
-    const trialEnd = billingSubscription?.trialEnd && new Date(billingSubscription?.trialEnd * 1000) || new Date();
-    const now = new Date();
-    const diff = trialEnd.getTime() - now.getTime();
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const trialEnd =
+    (billingSubscription?.trialEnd &&
+      new Date(billingSubscription?.trialEnd * 1000)) ||
+    new Date();
+  const now = new Date();
+  const diff = trialEnd.getTime() - now.getTime();
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
 
   return (
     <>
-    {showTrialBox && (
-     <Box $backgroundColor={isLightBackground ? "hsla(0, 0%, 0%, 0.04)" : "hsla(0, 0%, 100%, 0.04)"} $textAlign="center" $padding="1rem">
-      <Text
-        as="h3"
-        $font={theme.typography.heading3.fontFamily}
-        $size={theme.typography.heading3.fontSize}
-        $weight={theme.typography.heading3.fontWeight}
-        $color={theme.typography.heading3.color}
-       >{t("Trial ends in", { days: days.toString()})}
-      </Text>
-      <Text
-        as="p"
-        $font={theme.typography.text.fontFamily}
-        $size={theme.typography.text.fontSize * .8125}
-        $weight={theme.typography.text.fontWeight}
-        $color={theme.typography.text.color}
-      >{data.trialPaymentMethodRequired ? t("After the trial, subscribe") : t("After the trial, cancel")}
-      </Text>
-    </Box>
-    )}
-    <Element
-      as={Flex}
-      ref={ref}
-      className={className}
-      $flexDirection="column"
-      $gap="2rem"
-    >
-      {props.header.isVisible && currentPlan && (
-        <Flex
-          $justifyContent="space-between"
-          $alignItems="center"
-          $flexWrap="wrap"
-          $gap="1rem"
+      {showTrialBox && (
+        <Box
+          $backgroundColor={
+            isLightBackground
+              ? "hsla(0, 0%, 0%, 0.04)"
+              : "hsla(0, 0%, 100%, 0.04)"
+          }
+          $textAlign="center"
+          $padding="1rem"
         >
-          <Flex $flexDirection="column" $gap="1rem">
-            <Text
-              as={Box}
-              $font={theme.typography[props.header.title.fontStyle].fontFamily}
-              $size={theme.typography[props.header.title.fontStyle].fontSize}
-              $weight={
-                theme.typography[props.header.title.fontStyle].fontWeight
-              }
-              $color={theme.typography[props.header.title.fontStyle].color}
-              $leading={1}
-            >
-              {currentPlan.name}
-            </Text>
-
-            {props.header.description.isVisible && currentPlan.description && (
+          <Text
+            as="h3"
+            $font={theme.typography.heading3.fontFamily}
+            $size={theme.typography.heading3.fontSize}
+            $weight={theme.typography.heading3.fontWeight}
+            $color={theme.typography.heading3.color}
+          >
+            {t("Trial ends in", { days: days.toString() })}
+          </Text>
+          <Text
+            as="p"
+            $font={theme.typography.text.fontFamily}
+            $size={theme.typography.text.fontSize * 0.8125}
+            $weight={theme.typography.text.fontWeight}
+            $color={theme.typography.text.color}
+          >
+            {data.trialPaymentMethodRequired
+              ? t("After the trial, subscribe")
+              : t("After the trial, cancel")}
+          </Text>
+        </Box>
+      )}
+      <Element
+        as={Flex}
+        ref={ref}
+        className={className}
+        $flexDirection="column"
+        $gap="2rem"
+      >
+        {props.header.isVisible && currentPlan && (
+          <Flex
+            $justifyContent="space-between"
+            $alignItems="center"
+            $flexWrap="wrap"
+            $gap="1rem"
+          >
+            <Flex $flexDirection="column" $gap="1rem">
               <Text
                 as={Box}
                 $font={
-                  theme.typography[props.header.description.fontStyle]
-                    .fontFamily
+                  theme.typography[props.header.title.fontStyle].fontFamily
                 }
-                $size={
-                  theme.typography[props.header.description.fontStyle].fontSize
-                }
+                $size={theme.typography[props.header.title.fontStyle].fontSize}
                 $weight={
-                  theme.typography[props.header.description.fontStyle]
-                    .fontWeight
+                  theme.typography[props.header.title.fontStyle].fontWeight
                 }
-                $color={
-                  theme.typography[props.header.description.fontStyle].color
-                }
+                $color={theme.typography[props.header.title.fontStyle].color}
+                $leading={1}
               >
-                {currentPlan.description}
-              </Text>
-            )}
-          </Flex>
-
-          {props.header.price.isVisible &&
-            typeof currentPlan.planPrice === "number" &&
-            currentPlan.planPeriod && (
-              <Box>
-                <Text
-                  $font={
-                    theme.typography[props.header.price.fontStyle].fontFamily
-                  }
-                  $size={
-                    theme.typography[props.header.price.fontStyle].fontSize
-                  }
-                  $weight={
-                    theme.typography[props.header.price.fontStyle].fontWeight
-                  }
-                  $color={theme.typography[props.header.price.fontStyle].color}
-                >
-                  {formatCurrency(currentPlan.planPrice)}
-                </Text>
-
-                <Text
-                  $font={
-                    theme.typography[props.header.price.fontStyle].fontFamily
-                  }
-                  $size={
-                    (16 / 30) *
-                    theme.typography[props.header.price.fontStyle].fontSize
-                  }
-                  $weight={
-                    theme.typography[props.header.price.fontStyle].fontWeight
-                  }
-                  $color={theme.typography[props.header.price.fontStyle].color}
-                >
-                  /{currentPlan.planPeriod}
-                </Text>
-              </Box>
-            )}
-        </Flex>
-      )}
-
-      {props.addOns.isVisible && addOns.length > 0 && (
-        <Flex $flexDirection="column" $gap="1rem">
-          {props.addOns.showLabel && (
-            <Text
-              $font={theme.typography.text.fontFamily}
-              $size={theme.typography.text.fontSize}
-              $weight={theme.typography.text.fontWeight}
-              $color={
-                isLightBackground
-                  ? darken(theme.card.background, 0.46)
-                  : lighten(theme.card.background, 0.46)
-              }
-              $leading={1}
-            >
-              Addons
-            </Text>
-          )}
-
-          {addOns.map((addOn) => (
-            <Flex
-              key={addOn.id}
-              $justifyContent="space-between"
-              $alignItems="center"
-              $flexWrap="wrap"
-              $gap="1rem"
-            >
-              <Text
-                $font={theme.typography[props.addOns.fontStyle].fontFamily}
-                $size={theme.typography[props.addOns.fontStyle].fontSize}
-                $weight={theme.typography[props.addOns.fontStyle].fontWeight}
-                $color={theme.typography[props.addOns.fontStyle].color}
-              >
-                {addOn.name}
+                {currentPlan.name}
               </Text>
 
-              {addOn.planPrice && addOn.planPeriod && (
-                <Text
-                  $font={theme.typography.text.fontFamily}
-                  $size={theme.typography.text.fontSize}
-                  $weight={theme.typography.text.fontWeight}
-                  $color={theme.typography.text.color}
-                >
-                  {formatCurrency(addOn.planPrice)}/{addOn.planPeriod}
-                </Text>
-              )}
+              {props.header.description.isVisible &&
+                currentPlan.description && (
+                  <Text
+                    as={Box}
+                    $font={
+                      theme.typography[props.header.description.fontStyle]
+                        .fontFamily
+                    }
+                    $size={
+                      theme.typography[props.header.description.fontStyle]
+                        .fontSize
+                    }
+                    $weight={
+                      theme.typography[props.header.description.fontStyle]
+                        .fontWeight
+                    }
+                    $color={
+                      theme.typography[props.header.description.fontStyle].color
+                    }
+                  >
+                    {currentPlan.description}
+                  </Text>
+                )}
             </Flex>
-          ))}
-        </Flex>
-      )}
 
-      {canChangePlan && props.callToAction.isVisible && (
-        <EmbedButton
-          onClick={() => {
-            setLayout("checkout");
-          }}
-          $size={props.callToAction.buttonSize}
-          $color={props.callToAction.buttonStyle}
-        >
-          {t("Change plan")}
-        </EmbedButton>
-      )}
-    </Element>
+            {props.header.price.isVisible &&
+              typeof currentPlan.planPrice === "number" &&
+              currentPlan.planPeriod && (
+                <Box>
+                  <Text
+                    $font={
+                      theme.typography[props.header.price.fontStyle].fontFamily
+                    }
+                    $size={
+                      theme.typography[props.header.price.fontStyle].fontSize
+                    }
+                    $weight={
+                      theme.typography[props.header.price.fontStyle].fontWeight
+                    }
+                    $color={
+                      theme.typography[props.header.price.fontStyle].color
+                    }
+                  >
+                    {formatCurrency(currentPlan.planPrice)}
+                  </Text>
+
+                  <Text
+                    $font={
+                      theme.typography[props.header.price.fontStyle].fontFamily
+                    }
+                    $size={
+                      (16 / 30) *
+                      theme.typography[props.header.price.fontStyle].fontSize
+                    }
+                    $weight={
+                      theme.typography[props.header.price.fontStyle].fontWeight
+                    }
+                    $color={
+                      theme.typography[props.header.price.fontStyle].color
+                    }
+                  >
+                    /{currentPlan.planPeriod}
+                  </Text>
+                </Box>
+              )}
+          </Flex>
+        )}
+
+        {props.addOns.isVisible && addOns.length > 0 && (
+          <Flex $flexDirection="column" $gap="1rem">
+            {props.addOns.showLabel && (
+              <Text
+                $font={theme.typography.text.fontFamily}
+                $size={theme.typography.text.fontSize}
+                $weight={theme.typography.text.fontWeight}
+                $color={
+                  isLightBackground
+                    ? darken(theme.card.background, 0.46)
+                    : lighten(theme.card.background, 0.46)
+                }
+                $leading={1}
+              >
+                Addons
+              </Text>
+            )}
+
+            {addOns.map((addOn) => (
+              <Flex
+                key={addOn.id}
+                $justifyContent="space-between"
+                $alignItems="center"
+                $flexWrap="wrap"
+                $gap="1rem"
+              >
+                <Text
+                  $font={theme.typography[props.addOns.fontStyle].fontFamily}
+                  $size={theme.typography[props.addOns.fontStyle].fontSize}
+                  $weight={theme.typography[props.addOns.fontStyle].fontWeight}
+                  $color={theme.typography[props.addOns.fontStyle].color}
+                >
+                  {addOn.name}
+                </Text>
+
+                {addOn.planPrice && addOn.planPeriod && (
+                  <Text
+                    $font={theme.typography.text.fontFamily}
+                    $size={theme.typography.text.fontSize}
+                    $weight={theme.typography.text.fontWeight}
+                    $color={theme.typography.text.color}
+                  >
+                    {formatCurrency(addOn.planPrice)}/{addOn.planPeriod}
+                  </Text>
+                )}
+              </Flex>
+            ))}
+          </Flex>
+        )}
+
+        {canChangePlan && props.callToAction.isVisible && (
+          <EmbedButton
+            onClick={() => {
+              setLayout("checkout");
+            }}
+            $size={props.callToAction.buttonSize}
+            $color={props.callToAction.buttonStyle}
+          >
+            {t("Change plan")}
+          </EmbedButton>
+        )}
+      </Element>
     </>
   );
 });

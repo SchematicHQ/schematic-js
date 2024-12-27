@@ -187,7 +187,7 @@ export const Sidebar = ({
     });
 
     setSetupIntent(setupIntent);
-  }
+  };
 
   return (
     <Flex
@@ -350,52 +350,52 @@ export const Sidebar = ({
         </Flex>
 
         {selectedPlan && isTrialable && (
-            <Box>
-              <Box $opacity="0.625">
+          <Box>
+            <Box $opacity="0.625">
+              <Text
+                $font={theme.typography.text.fontFamily}
+                $size={14}
+                $weight={theme.typography.text.fontWeight}
+                $color={theme.typography.text.color}
+              >
+                {t("Trial")}
+              </Text>
+            </Box>
+            <Flex
+              $justifyContent="space-between"
+              $alignItems="center"
+              $gap="1rem"
+            >
+              <Flex>
+                <Text
+                  $font={theme.typography.heading4.fontFamily}
+                  $size={theme.typography.heading4.fontSize}
+                  $weight={theme.typography.heading4.fontWeight}
+                  $color={theme.typography.heading4.color}
+                >
+                  {t("Ends on", { date: trialEndsOn.toLocaleDateString() })}
+                </Text>
+              </Flex>
+              <Flex>
                 <Text
                   $font={theme.typography.text.fontFamily}
-                  $size={14}
+                  $size={theme.typography.text.fontSize}
                   $weight={theme.typography.text.fontWeight}
                   $color={theme.typography.text.color}
                 >
-                  {t("Trial")}
+                  -
+                  {formatCurrency(
+                    (planPeriod === "month"
+                      ? selectedPlan.monthlyPrice
+                      : selectedPlan.yearlyPrice
+                    )?.price ?? 0,
+                  )}
+                  /<sub>{shortPeriod(planPeriod)}</sub>
                 </Text>
-              </Box>
-              <Flex
-                $justifyContent="space-between"
-                $alignItems="center"
-                $gap="1rem"
-              >
-                <Flex>
-                  <Text
-                    $font={theme.typography.heading4.fontFamily}
-                    $size={theme.typography.heading4.fontSize}
-                    $weight={theme.typography.heading4.fontWeight}
-                    $color={theme.typography.heading4.color}
-                  >
-                    {t("Ends on", {date: trialEndsOn.toLocaleDateString()})}
-                  </Text>
-                </Flex>
-                <Flex>
-                  <Text
-                    $font={theme.typography.text.fontFamily}
-                    $size={theme.typography.text.fontSize}
-                    $weight={theme.typography.text.fontWeight}
-                    $color={theme.typography.text.color}
-                  >
-                    -
-                    {formatCurrency(
-                      (planPeriod === "month"
-                        ? selectedPlan.monthlyPrice
-                        : selectedPlan.yearlyPrice
-                      )?.price ?? 0,
-                    )}
-                    /<sub>{shortPeriod(planPeriod)}</sub>
-                  </Text>
-                </Flex>
               </Flex>
-            </Box>
-          )}
+            </Flex>
+          </Box>
+        )}
 
         {willAddOnsChange && (
           <Flex $flexDirection="column" $gap="0.5rem" $marginBottom="1.5rem">
@@ -622,7 +622,7 @@ export const Sidebar = ({
         )}
 
         {checkoutStage === "plan" && (
-          <PlanStageSidebarButton 
+          <PlanStageSidebarButton
             checkout={checkout}
             addOns={addOns}
             canUpdateSubscription={canUpdateSubscription}
@@ -630,9 +630,10 @@ export const Sidebar = ({
             setCheckoutStage={setCheckoutStage}
             selectedPlan={selectedPlan}
             isLoading={isLoading}
-            trialPaymentMethodRequired={data.trialPaymentMethodRequired || false}
+            trialPaymentMethodRequired={
+              data.trialPaymentMethodRequired || false
+            }
           />
-
         )}
 
         {checkoutStage === "addons" && (
