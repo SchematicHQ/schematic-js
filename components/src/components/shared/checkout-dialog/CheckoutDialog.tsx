@@ -93,33 +93,33 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     })),
   );
 
-    // memoize data here since some state depends on it
-    const checkoutStages = useMemo(() => {
-      const checkoutStages = [
-        {
-          id: "plan",
-          name: t("Plan"),
-          label: t("Select plan"),
-          description: t("Choose your base plan"),
-        },
-        {
-          id: "addons",
-          name: t("Add-ons"),
-          label: t("Select add-ons"),
-          description: t("Optionally add features to your subscription"),
-        },
-        { id: "checkout", name: t("Checkout"), label: t("Checkout") },
-      ];
-      if (!availableAddOns.length || selectedPlan?.companyCanTrial) {
-        checkoutStages.splice(1, 1);
-      }
+  // memoize data here since some state depends on it
+  const checkoutStages = useMemo(() => {
+    const checkoutStages = [
+      {
+        id: "plan",
+        name: t("Plan"),
+        label: t("Select plan"),
+        description: t("Choose your base plan"),
+      },
+      {
+        id: "addons",
+        name: t("Add-ons"),
+        label: t("Select add-ons"),
+        description: t("Optionally add features to your subscription"),
+      },
+      { id: "checkout", name: t("Checkout"), label: t("Checkout") },
+    ];
+    if (!availableAddOns.length || selectedPlan?.companyCanTrial) {
+      checkoutStages.splice(1, 1);
+    }
 
-      if ( selectedPlan?.companyCanTrial && !data.trialPaymentMethodRequired) {
-        checkoutStages.pop();
-      }
-  
-      return checkoutStages;
-    }, [t, availableAddOns, selectedPlan, data.trialPaymentMethodRequired]);
+    if (selectedPlan?.companyCanTrial && !data.trialPaymentMethodRequired) {
+      checkoutStages.pop();
+    }
+
+    return checkoutStages;
+  }, [t, availableAddOns, selectedPlan, data.trialPaymentMethodRequired]);
 
   const isLightBackground = useIsLightBackground();
 
