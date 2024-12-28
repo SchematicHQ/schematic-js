@@ -341,12 +341,12 @@ export const Sidebar = ({
       </Flex>
 
       <Flex
-        $flexDirection="column"
         $position="relative"
+        $flexDirection="column"
         $gap="0.125rem"
+        $flexGrow="1"
         $width="100%"
         $padding="1.5rem"
-        $flex="1"
         $borderBottomWidth="1px"
         $borderStyle="solid"
         $borderColor={
@@ -360,7 +360,7 @@ export const Sidebar = ({
             $weight={theme.typography.text.fontWeight}
             $color={theme.typography.text.color}
           >
-            {"Plan"}
+            {t("Plan")}
           </Text>
         </Box>
 
