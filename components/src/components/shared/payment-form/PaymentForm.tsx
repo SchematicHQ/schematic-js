@@ -5,6 +5,7 @@ import {
   useElements,
   PaymentElement,
 } from "@stripe/react-stripe-js";
+
 import { useEmbed } from "../../../hooks";
 import { Box, EmbedButton, Text } from "../../ui";
 
@@ -47,6 +48,7 @@ export const PaymentForm = ({ onConfirm }: PaymentFormProps) => {
       });
 
       if (onConfirm && typeof setupIntent?.payment_method === "string") {
+        elements.getElement("payment")?.collapse();
         onConfirm(setupIntent.payment_method);
         setIsConfirmed(true);
       } else {
