@@ -65,7 +65,7 @@
     "Selected": "Selected",
     "Subscription": "Subscription",
     "Trial": "Trial",
-    "Trial end in": "Trial end in {{days}} days",
+    "Trial ends in": "Trial ends in {{days}} days",
     "Trial plan": "Try free for {{days}} days",
     "Unlimited": "Unlimited {{item}}",
     "Unused time": "Unused time",
