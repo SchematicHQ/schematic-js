@@ -2,7 +2,7 @@ import { forwardRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 import pluralize from "pluralize";
-import { TEXT_BASE_SIZE } from "../../../const";
+import { TEXT_BASE_SIZE, VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
 import { type FontStyle } from "../../../context";
 import {
   useAvailablePlans,
@@ -112,10 +112,6 @@ export const PricingTable = forwardRef<
     RecursivePartial<DesignProps> &
     React.HTMLAttributes<HTMLDivElement>
 >(({ children, className, ...rest }, ref) => {
-  const visibleCount = 4;
-  const [showAll, setShowAll] = useState(visibleCount);
-  const [isExpanded, setIsExpanded] = useState(false);
-
   const props = resolveDesignProps(rest);
 
   const { t } = useTranslation();
@@ -132,19 +128,51 @@ export const PricingTable = forwardRef<
 
   const isLightBackground = useIsLightBackground();
 
+  const [entitlementCounts, setEntitlementCounts] = useState(() =>
+    plans.reduce(
+      (
+        acc: Record<
+          string,
+          {
+            size: number;
+            limit: number;
+          }
+        >,
+        plan,
+      ) => {
+        acc[plan.id] = {
+          size: plan.entitlements.length,
+          limit: VISIBLE_ENTITLEMENT_COUNT,
+        };
+
+        return acc;
+      },
+      {},
+    ),
+  );
+
+  const canCheckout = data.capabilities?.checkout ?? true;
+
   const cardPadding = theme.card.padding / TEXT_BASE_SIZE;
 
   const currentPlanIndex = plans.findIndex((plan) => plan.current);
 
-  const handleToggleShowAll = () => {
-    if (isExpanded) {
-      setShowAll(visibleCount);
-      setIsExpanded(false);
-    } else {
-      setShowAll(plans.length);
-      setIsExpanded(true);
-    }
+  const handleToggleShowAll = (id: string) => {
+    setEntitlementCounts((prev) => {
+      const count = { ...prev[id] };
+      return {
+        ...prev,
+        [id]: {
+          size: count.size,
+          limit:
+            count.limit > VISIBLE_ENTITLEMENT_COUNT
+              ? VISIBLE_ENTITLEMENT_COUNT
+              : count.size,
+        },
+      };
+    });
   };
+
   return (
     <FussyChild
       ref={ref}
@@ -198,6 +226,17 @@ export const PricingTable = forwardRef<
               const isActivePlan =
                 plan.current &&
                 data.company?.plan?.planPeriod === selectedPeriod;
+
+              const count = entitlementCounts[plan.id] as
+                | {
+                    size: number;
+                    limit: number;
+                  }
+                | undefined;
+              let isExpanded = false;
+              if (count?.limit && count.limit > VISIBLE_ENTITLEMENT_COUNT) {
+                isExpanded = true;
+              }
 
               return (
                 <Flex
@@ -359,9 +398,41 @@ export const PricingTable = forwardRef<
                         )}
 
                         {plan.entitlements
-                          .slice(0, showAll)
-                          .map((entitlement) => {
-                            return (
+                          .sort((a, b) => {
+                            if (
+                              a.feature?.name &&
+                              b.feature?.name &&
+                              a.feature?.name > b.feature?.name
+                            ) {
+                              return 1;
+                            }
+
+                            if (
+                              a.feature?.name &&
+                              b.feature?.name &&
+                              a.feature?.name < b.feature?.name
+                            ) {
+                              return -1;
+                            }
+
+                            return 0;
+                          })
+                          .reduce((acc: JSX.Element[], entitlement) => {
+                            let price: number | undefined;
+                            if (selectedPeriod === "month") {
+                              price = entitlement.meteredMonthlyPrice?.price;
+                            } else if (selectedPeriod === "year") {
+                              price = entitlement.meteredYearlyPrice?.price;
+                            }
+
+                            if (
+                              entitlement.priceBehavior &&
+                              typeof price !== "number"
+                            ) {
+                              return acc;
+                            }
+
+                            acc.push(
                               <Flex key={entitlement.id} $gap="1rem">
                                 {props.plans.showFeatureIcons &&
                                   entitlement.feature?.icon && (
@@ -388,10 +459,26 @@ export const PricingTable = forwardRef<
                                       $size={theme.typography.text.fontSize}
                                       $weight={theme.typography.text.fontWeight}
                                       $color={theme.typography.text.color}
+                                      $leading={1.35}
                                     >
-                                      {entitlement.valueType === "numeric" ||
-                                      entitlement.valueType === "unlimited" ||
-                                      entitlement.valueType === "trait" ? (
+                                      {typeof price !== "undefined" ? (
+                                        <>
+                                          {formatCurrency(price)} {t("per")}{" "}
+                                          {pluralize(
+                                            entitlement.feature.name,
+                                            1,
+                                          )}
+                                          {entitlement.priceBehavior ===
+                                            "pay_in_advance" && (
+                                            <>
+                                              {" "}
+                                              {t("per")} {selectedPeriod}
+                                            </>
+                                          )}
+                                        </>
+                                      ) : entitlement.valueType === "numeric" ||
+                                        entitlement.valueType === "unlimited" ||
+                                        entitlement.valueType === "trait" ? (
                                         <>
                                           {typeof entitlement.valueNumeric ===
                                           "number"
@@ -401,8 +488,10 @@ export const PricingTable = forwardRef<
                                                   entitlement.feature.name,
                                                 ),
                                               })}
+
                                           {entitlement.metricPeriod && (
                                             <>
+                                              {" "}
                                               {t("per")}{" "}
                                               {
                                                 {
@@ -421,11 +510,15 @@ export const PricingTable = forwardRef<
                                     </Text>
                                   </Flex>
                                 )}
-                              </Flex>
+                              </Flex>,
                             );
-                          })}
 
-                        {plan.entitlements.length > 4 && (
+                            return acc;
+                          }, [])
+                          .slice(0, count?.limit ?? VISIBLE_ENTITLEMENT_COUNT)}
+
+                        {(count?.size || plan.entitlements.length) >
+                          VISIBLE_ENTITLEMENT_COUNT && (
                           <Flex
                             $alignItems="center"
                             $justifyContent="start"
@@ -441,7 +534,7 @@ export const PricingTable = forwardRef<
                               }}
                             />
                             <Text
-                              onClick={handleToggleShowAll}
+                              onClick={() => handleToggleShowAll(plan.id)}
                               $font={theme.typography.link.fontFamily}
                               $size={theme.typography.link.fontSize}
                               $weight={theme.typography.link.fontWeight}
@@ -484,11 +577,12 @@ export const PricingTable = forwardRef<
                       (props.upgrade.isVisible ||
                         props.downgrade.isVisible) && (
                         <EmbedButton
-                          disabled={!plan.valid}
+                          disabled={!plan.valid || !canCheckout}
                           onClick={() => {
                             setSelected({
                               period: selectedPeriod,
                               planId: isActivePlan ? null : plan.id,
+                              usage: false,
                             });
                             setLayout("checkout");
                           }}
@@ -758,6 +852,7 @@ export const PricingTable = forwardRef<
                                                 })}
                                             {entitlement.metricPeriod && (
                                               <>
+                                                {" "}
                                                 {t("per")}{" "}
                                                 {
                                                   {
@@ -785,11 +880,12 @@ export const PricingTable = forwardRef<
 
                       {props.upgrade.isVisible && (
                         <EmbedButton
-                          disabled={!addOn.valid}
+                          disabled={!addOn.valid || !canCheckout}
                           onClick={() => {
                             setSelected({
                               period: selectedPeriod,
                               addOnId: isActiveAddOn ? null : addOn.id,
+                              usage: false,
                             });
                             setLayout("checkout");
                           }}

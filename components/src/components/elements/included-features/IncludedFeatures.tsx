@@ -1,8 +1,11 @@
 import { forwardRef, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
-import pluralize from "pluralize";
-import { type FeatureUsageResponseData } from "../../../api";
+import type {
+  FeatureUsageResponseData,
+  UsageBasedEntitlementResponseData,
+} from "../../../api";
+import { VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
 import { type FontStyle } from "../../../context";
 import {
   useEmbed,
@@ -10,11 +13,12 @@ import {
   useWrapChildren,
 } from "../../../hooks";
 import type { RecursivePartial, ElementProps } from "../../../types";
-import { formatNumber, toPrettyDate } from "../../../utils";
+import { toPrettyDate } from "../../../utils";
 import { Element } from "../../layout";
 import { Box, Flex, Icon, IconRound, Text, type IconNameTypes } from "../../ui";
+import { Details } from "./Details";
 
-interface DesignProps {
+export interface DesignProps {
   header: {
     isVisible: boolean;
     fontStyle: FontStyle;
@@ -77,10 +81,6 @@ export const IncludedFeatures = forwardRef<
     RecursivePartial<DesignProps> &
     React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...rest }, ref) => {
-  const visibleCount = 4;
-  const [showAll, setShowAll] = useState(visibleCount);
-  const [isExpanded, setIsExpanded] = useState(false); // New state
-
   const props = resolveDesignProps(rest);
 
   const { t } = useTranslation();
@@ -94,18 +94,55 @@ export const IncludedFeatures = forwardRef<
 
   const isLightBackground = useIsLightBackground();
 
-  const featureUsage = props.visibleFeatures
-    ? props.visibleFeatures.reduce((acc: FeatureUsageResponseData[], id) => {
-        const mappedFeatureUsage = data.featureUsage?.features.find(
-          (usage) => usage.feature?.id === id,
-        );
-        if (mappedFeatureUsage) {
-          acc.push(mappedFeatureUsage);
-        }
+  const [showCount, setShowCount] = useState(VISIBLE_ENTITLEMENT_COUNT);
 
-        return acc;
-      }, [])
-    : data.featureUsage?.features || [];
+  const entitlements: {
+    featureUsage?: FeatureUsageResponseData;
+    usageData?: UsageBasedEntitlementResponseData;
+  }[] = (
+    props.visibleFeatures
+      ? props.visibleFeatures
+      : data.featureUsage?.features.reduce((acc: string[], usage) => {
+          if (usage.feature?.id) {
+            acc.push(usage.feature.id);
+          }
+
+          return acc;
+        }, []) || []
+  ).reduce(
+    (
+      acc: {
+        featureUsage?: FeatureUsageResponseData;
+        usageData?: UsageBasedEntitlementResponseData;
+      }[],
+      id,
+    ) => {
+      const mappedFeatureUsage = data.featureUsage?.features.find(
+        (usage) => usage.feature?.id === id,
+      );
+      const mappedUsageData = data.activeUsageBasedEntitlements.find(
+        (entitlement) => entitlement.featureId === id,
+      );
+
+      acc.push({
+        featureUsage: mappedFeatureUsage,
+        usageData: mappedUsageData,
+      });
+
+      return acc;
+    },
+    [],
+  );
+
+  const featureListSize = entitlements.length;
+
+  const handleToggleShowAll = () => {
+    setShowCount((prev) =>
+      prev > VISIBLE_ENTITLEMENT_COUNT
+        ? VISIBLE_ENTITLEMENT_COUNT
+        : featureListSize,
+    );
+  };
 
   // Check if we should render this component at all:
   // * If there are any plans or addons, render it, even if the list is empty.
@@ -113,23 +150,17 @@ export const IncludedFeatures = forwardRef<
   //  even if the company has no plan or add-ons).
   // * If none of the above, don't render the component.
   const shouldShowFeatures =
-    featureUsage.length > 0 ||
+    entitlements.length > 0 ||
     data.company?.plan ||
     (data.company?.addOns ?? []).length > 0 ||
     false;
 
-  const handleToggleShowAll = () => {
-    if (isExpanded) {
-      setShowAll(visibleCount);
-    } else {
-      setShowAll(featureUsage.length);
-    }
-    setIsExpanded(!isExpanded); // Toggle state
-  };
-
   if (!shouldShowFeatures) {
     return null;
   }
+
+  const shouldShowExpand = featureListSize > VISIBLE_ENTITLEMENT_COUNT;
+  const isExpanded = showCount > VISIBLE_ENTITLEMENT_COUNT;
 
   return (
     <Element
@@ -152,184 +183,139 @@ export const IncludedFeatures = forwardRef<
         </Box>
       )}
 
-      {featureUsage
-        .slice(0, showAll)
-        .map(
-          (
-            { allocation, feature, usage, entitlementExpirationDate },
-            index,
-          ) => {
-            return (
+      {entitlements
+        .sort((a, b) => {
+          if (
+            a.featureUsage?.feature?.name &&
+            b.featureUsage?.feature?.name &&
+            a.featureUsage?.feature?.name > b.featureUsage?.feature?.name
+          ) {
+            return 1;
+          }
+
+          if (
+            a.featureUsage?.feature?.name &&
+            b.featureUsage?.feature?.name &&
+            a.featureUsage?.feature?.name < b.featureUsage?.feature?.name
+          ) {
+            return -1;
+          }
+
+          return 0;
+        })
+        .slice(0, showCount)
+        .map((entitlement, index) => {
+          const { entitlementExpirationDate, feature } =
+            entitlement.featureUsage || {};
+          const shouldShowDetails =
+            feature?.name &&
+            (feature?.featureType === "event" ||
+              feature?.featureType === "trait");
+
+          return (
+            <Flex
+              key={index}
+              ref={(el) => el && elements.current.push(el)}
+              $flexWrap="wrap"
+              $justifyContent="space-between"
+              $alignItems="center"
+              $gap="1rem"
+            >
               <Flex
-                key={index}
-                ref={(el) => el && elements.current.push(el)}
-                $flexWrap="wrap"
-                $justifyContent="space-between"
                 $alignItems="center"
+                $flexGrow="1"
+                $flexBasis="min-content"
                 $gap="1rem"
               >
-                <Flex $flexGrow="1" $flexBasis="min-content" $gap="1rem">
-                  {props.icons.isVisible && feature?.icon && (
-                    <IconRound
-                      name={feature.icon as IconNameTypes | string}
-                      size="sm"
-                      colors={[
-                        theme.primary,
-                        isLightBackground
-                          ? "hsla(0, 0%, 0%, 0.0625)"
-                          : "hsla(0, 0%, 100%, 0.25)",
-                      ]}
-                    />
-                  )}
+                {props.icons.isVisible && feature?.icon && (
+                  <IconRound
+                    name={feature.icon as IconNameTypes | string}
+                    size="sm"
+                    colors={[
+                      theme.primary,
+                      isLightBackground
+                        ? "hsla(0, 0%, 0%, 0.0625)"
+                        : "hsla(0, 0%, 100%, 0.25)",
+                    ]}
+                  />
+                )}
 
-                  {feature?.name && (
-                    <Flex $alignItems="left" $flexDirection="column">
-                      <Text
-                        $font={
-                          theme.typography[props.icons.fontStyle].fontFamily
-                        }
-                        $size={theme.typography[props.icons.fontStyle].fontSize}
-                        $weight={
-                          theme.typography[props.icons.fontStyle].fontWeight
-                        }
-                        $color={theme.typography[props.icons.fontStyle].color}
-                      >
-                        {feature.name}
-                      </Text>
-                      {props.entitlementExpiration.isVisible &&
-                        entitlementExpirationDate && (
-                          <Text
-                            $font={
-                              theme.typography[
-                                props.entitlementExpiration.fontStyle
-                              ].fontFamily
-                            }
-                            $size={
-                              theme.typography[
-                                props.entitlementExpiration.fontStyle
-                              ].fontSize
-                            }
-                            $weight={
-                              theme.typography[
-                                props.entitlementExpiration.fontStyle
-                              ].fontWeight
-                            }
-                            $leading={1}
-                            $color={
-                              theme.typography[
-                                props.entitlementExpiration.fontStyle
-                              ].color
-                            }
-                          >
-                            Expires{" "}
-                            {toPrettyDate(entitlementExpirationDate, {
-                              month: "short",
-                            })}
-                          </Text>
-                        )}
-                    </Flex>
-                  )}
-                </Flex>
+                {feature?.name && (
+                  <Text
+                    $font={theme.typography[props.icons.fontStyle].fontFamily}
+                    $size={theme.typography[props.icons.fontStyle].fontSize}
+                    $weight={theme.typography[props.icons.fontStyle].fontWeight}
+                    $color={theme.typography[props.icons.fontStyle].color}
+                  >
+                    {feature.name}
+                  </Text>
+                )}
 
-                {(feature?.featureType === "event" ||
-                  feature?.featureType === "trait") &&
-                  feature?.name && (
-                    <Box
-                      $flexBasis="min-content"
-                      $flexGrow="1"
-                      $textAlign={shouldWrapChildren ? "left" : "right"}
+                {props.entitlementExpiration.isVisible &&
+                  entitlementExpirationDate && (
+                    <Text
+                      $font={
+                        theme.typography[props.entitlementExpiration.fontStyle]
+                          .fontFamily
+                      }
+                      $size={
+                        theme.typography[props.entitlementExpiration.fontStyle]
+                          .fontSize
+                      }
+                      $weight={
+                        theme.typography[props.entitlementExpiration.fontStyle]
+                          .fontWeight
+                      }
+                      $leading={1}
+                      $color={
+                        theme.typography[props.entitlementExpiration.fontStyle]
+                          .color
+                      }
                     >
-                      {props.entitlement.isVisible && (
-                        <Box $whiteSpace="nowrap">
-                          <Text
-                            $font={
-                              theme.typography[props.entitlement.fontStyle]
-                                .fontFamily
-                            }
-                            $size={
-                              theme.typography[props.entitlement.fontStyle]
-                                .fontSize
-                            }
-                            $weight={
-                              theme.typography[props.entitlement.fontStyle]
-                                .fontWeight
-                            }
-                            $leading={1}
-                            $color={
-                              theme.typography[props.entitlement.fontStyle]
-                                .color
-                            }
-                          >
-                            {typeof allocation === "number"
-                              ? `${formatNumber(allocation)} ${pluralize(feature.name, allocation)}`
-                              : t("Unlimited", {
-                                  item: pluralize(feature.name),
-                                })}
-                          </Text>
-                        </Box>
-                      )}
-
-                      {props.usage.isVisible && (
-                        <Box $whiteSpace="nowrap">
-                          <Text
-                            $font={
-                              theme.typography[props.usage.fontStyle].fontFamily
-                            }
-                            $size={
-                              theme.typography[props.usage.fontStyle].fontSize
-                            }
-                            $weight={
-                              theme.typography[props.usage.fontStyle].fontWeight
-                            }
-                            $leading={1}
-                            $color={
-                              theme.typography[props.usage.fontStyle].color
-                            }
-                          >
-                            {typeof usage === "number" && (
-                              <>
-                                {typeof allocation === "number"
-                                  ? t("usage.limited", {
-                                      amount: formatNumber(usage),
-                                      allocation: formatNumber(allocation),
-                                    })
-                                  : t("usage.unlimited", {
-                                      amount: formatNumber(usage),
-                                    })}
-                              </>
-                            )}
-                          </Text>
-                        </Box>
-                      )}
-                    </Box>
+                      Expires{" "}
+                      {toPrettyDate(entitlementExpirationDate, {
+                        month: "short",
+                      })}
+                    </Text>
                   )}
               </Flex>
-            );
-          },
-        )}
 
-      <Flex $alignItems="center" $justifyContent="start" $marginTop="1rem">
-        <Icon
-          name={isExpanded ? "chevron-up" : "chevron-down"}
-          style={{
-            fontSize: "1.4rem",
-            lineHeight: "1em",
-            marginRight: ".25rem",
-            color: "#D0D0D0",
-          }}
-        />
-        <Text
-          onClick={handleToggleShowAll}
-          $font={theme.typography.link.fontFamily}
-          $size={theme.typography.link.fontSize}
-          $weight={theme.typography.link.fontWeight}
-          $leading={1}
-          $color={theme.typography.link.color}
-          style={{ cursor: "pointer" }}
-        >
-          {isExpanded ? t("Hide all") : t("See all")}
-        </Text>
-      </Flex>
+              {shouldShowDetails && (
+                <Details
+                  details={entitlement}
+                  shouldWrapChildren={shouldWrapChildren}
+                  {...props}
+                />
+              )}
+            </Flex>
+          );
+        })}
+
+      {shouldShowExpand && (
+        <Flex $alignItems="center" $justifyContent="start" $marginTop="1rem">
+          <Icon
+            name={isExpanded ? "chevron-up" : "chevron-down"}
+            style={{
+              fontSize: "1.4rem",
+              lineHeight: "1em",
+              marginRight: ".25rem",
+              color: "#D0D0D0",
+            }}
+          />
+
+          <Text
+            onClick={handleToggleShowAll}
+            $font={theme.typography.link.fontFamily}
+            $size={theme.typography.link.fontSize}
+            $weight={theme.typography.link.fontWeight}
+            $leading={1}
+            $color={theme.typography.link.color}
+            style={{ cursor: "pointer" }}
+          >
+            {isExpanded ? t("Hide all") : t("See all")}
+          </Text>
+        </Flex>
+      )}
     </Element>
   );
 });

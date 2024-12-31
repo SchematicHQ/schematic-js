@@ -16,7 +16,7 @@ export const Viewport = forwardRef<HTMLDivElement | null, ViewportProps>(
 
     const [top, setTop] = useState(0);
 
-    const canChangePlan = data.capabilities?.checkout ?? true;
+    const canCheckout = data.capabilities?.checkout ?? true;
 
     useLayoutEffect(() => {
       if (layout !== "checkout") {
@@ -41,7 +41,7 @@ export const Viewport = forwardRef<HTMLDivElement | null, ViewportProps>(
           <Badge />
         </StyledViewport>
 
-        {canChangePlan &&
+        {canCheckout &&
           layout === "checkout" &&
           createPortal(<CheckoutDialog top={top} />, portal || document.body)}
       </>

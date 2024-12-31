@@ -3,7 +3,7 @@ import { Box } from "../../ui";
 
 export const StyledViewport = styled(Box)
   .attrs(({ theme }) => ({
-    $gridTemplateColumns: `repeat(auto-fill, minmax(300px, 1fr))`,
+    $gridTemplateColumns: `repeat(auto-fit, minmax(300px, 1fr))`,
     $viewport: {
       xl: {
         $gridTemplateColumns: `repeat(${theme.numberOfColumns}, minmax(300px, 1fr))`,

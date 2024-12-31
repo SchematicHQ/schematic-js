@@ -29,7 +29,7 @@ export const Navigation = ({
       <Flex
         $gap="0.5rem"
         $alignItems="center"
-        {...(!showFullContent && { $flex: 1, $minWidth: 0 })}
+        {...(!showFullContent && { $flexGrow: 1, $minWidth: 0 })}
       >
         <Box
           $display="none"

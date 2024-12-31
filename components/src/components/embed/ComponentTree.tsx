@@ -39,7 +39,7 @@ const Error = ({ message }: { message: string }) => {
         $fontWeight={theme.typography.heading1.fontWeight}
         $color={theme.typography.heading1.color}
       >
-        404 Error
+        Error
       </Box>
       <Box
         $marginBottom={`${8 / TEXT_BASE_SIZE}rem`}
