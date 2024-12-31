@@ -171,7 +171,7 @@ export const PricingTable = forwardRef<
             $font={theme.typography[props.header.fontStyle].fontFamily}
             $size={theme.typography[props.header.fontStyle].fontSize}
             $weight={theme.typography[props.header.fontStyle].fontWeight}
-            $color={theme.card.background}
+            $color={theme.typography[props.header.fontStyle].color}
           >
             {props.header.isVisible &&
               props.plans.isVisible &&
@@ -538,7 +538,7 @@ export const PricingTable = forwardRef<
                   $font={theme.typography[props.header.fontStyle].fontFamily}
                   $size={theme.typography[props.header.fontStyle].fontSize}
                   $weight={theme.typography[props.header.fontStyle].fontWeight}
-                  $color={theme.card.background}
+                  $color={theme.typography[props.header.fontStyle].color}
                 >
                   {t("Add-ons")}
                 </Text>
