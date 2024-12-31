@@ -19,6 +19,12 @@ import {
   BillingProductForSubscriptionResponseDataFromJSONTyped,
   BillingProductForSubscriptionResponseDataToJSON,
 } from "./BillingProductForSubscriptionResponseData";
+import type { BillingSubscriptionDiscountView } from "./BillingSubscriptionDiscountView";
+import {
+  BillingSubscriptionDiscountViewFromJSON,
+  BillingSubscriptionDiscountViewFromJSONTyped,
+  BillingSubscriptionDiscountViewToJSON,
+} from "./BillingSubscriptionDiscountView";
 import type { InvoiceResponseData } from "./InvoiceResponseData";
 import {
   InvoiceResponseDataFromJSON,
@@ -62,6 +68,12 @@ export interface BillingSubscriptionView {
    * @memberof BillingSubscriptionView
    */
   customerExternalId: string;
+  /**
+   *
+   * @type {Array<BillingSubscriptionDiscountView>}
+   * @memberof BillingSubscriptionView
+   */
+  discounts: Array<BillingSubscriptionDiscountView>;
   /**
    *
    * @type {Date}
@@ -140,6 +152,12 @@ export interface BillingSubscriptionView {
    * @memberof BillingSubscriptionView
    */
   trialEnd?: number | null;
+  /**
+   *
+   * @type {string}
+   * @memberof BillingSubscriptionView
+   */
+  trialEndSetting?: string | null;
 }
 
 /**
@@ -155,6 +173,7 @@ export function instanceOfBillingSubscriptionView(
     value["customerExternalId"] === undefined
   )
     return false;
+  if (!("discounts" in value) || value["discounts"] === undefined) return false;
   if (!("id" in value) || value["id"] === undefined) return false;
   if (!("interval" in value) || value["interval"] === undefined) return false;
   if (!("periodEnd" in value) || value["periodEnd"] === undefined) return false;
@@ -190,6 +209,9 @@ export function BillingSubscriptionViewFromJSONTyped(
     createdAt: new Date(json["created_at"]),
     currency: json["currency"],
     customerExternalId: json["customer_external_id"],
+    discounts: (json["discounts"] as Array<any>).map(
+      BillingSubscriptionDiscountViewFromJSON,
+    ),
     expiredAt:
       json["expired_at"] == null ? undefined : new Date(json["expired_at"]),
     id: json["id"],
@@ -212,6 +234,8 @@ export function BillingSubscriptionViewFromJSONTyped(
     subscriptionExternalId: json["subscription_external_id"],
     totalPrice: json["total_price"],
     trialEnd: json["trial_end"] == null ? undefined : json["trial_end"],
+    trialEndSetting:
+      json["trial_end_setting"] == null ? undefined : json["trial_end_setting"],
   };
 }
 
@@ -226,6 +250,9 @@ export function BillingSubscriptionViewToJSON(
     created_at: value["createdAt"].toISOString(),
     currency: value["currency"],
     customer_external_id: value["customerExternalId"],
+    discounts: (value["discounts"] as Array<any>).map(
+      BillingSubscriptionDiscountViewToJSON,
+    ),
     expired_at:
       value["expiredAt"] == null
         ? undefined
@@ -244,5 +271,6 @@ export function BillingSubscriptionViewToJSON(
     subscription_external_id: value["subscriptionExternalId"],
     total_price: value["totalPrice"],
     trial_end: value["trialEnd"],
+    trial_end_setting: value["trialEndSetting"],
   };
 }

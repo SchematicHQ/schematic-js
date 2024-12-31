@@ -10,6 +10,7 @@ import { hexToHSL, formatCurrency } from "../../../utils";
 import { cardBoxShadow } from "../../layout";
 import { Box, EmbedButton, Flex, Icon, Text, Tooltip } from "../../ui";
 import { PlanEntitlementRow } from "./PlanEntitlementRow";
+import { useState } from "react";
 
 interface PlanProps {
   isLoading: boolean;
@@ -28,6 +29,10 @@ export const Plan = ({
   period,
   selectPlan,
 }: PlanProps) => {
+  const visibleCount = 4;
+  const [showAll, setShowAll] = useState(visibleCount);
+  const [isExpanded, setIsExpanded] = useState(false);
+
   const { t } = useTranslation();
 
   const theme = useTheme();
@@ -37,6 +42,16 @@ export const Plan = ({
   const cardPadding = theme.card.padding / TEXT_BASE_SIZE;
 
   const currentPlanIndex = plans.findIndex((plan) => plan.current);
+
+  const handleToggleShowAll = () => {
+    if (isExpanded) {
+      setShowAll(visibleCount);
+      setIsExpanded(false);
+    } else {
+      setShowAll(plans.length);
+      setIsExpanded(true);
+    }
+  };
 
   return (
     <>
@@ -155,22 +170,53 @@ export const Plan = ({
                 $padding={`${0.75 * cardPadding}rem ${cardPadding}rem 0`}
               >
                 <Flex $flexDirection="column" $gap="1rem" $flexGrow="1">
-                  {plan.entitlements.map(
-                    ({
-                      id,
-                      feature,
-                      metricPeriod,
-                      valueNumeric,
-                      valueType,
-                    }) => (
-                      <PlanEntitlementRow
-                        key={id}
-                        feature={feature}
-                        metricPeriod={metricPeriod}
-                        valueNumeric={valueNumeric}
-                        valueType={valueType}
+                  {plan.entitlements
+                    .slice(0, showAll)
+                    .map(
+                      ({
+                        id,
+                        feature,
+                        metricPeriod,
+                        valueNumeric,
+                        valueType,
+                      }) => (
+                        <PlanEntitlementRow
+                          key={id}
+                          feature={feature}
+                          metricPeriod={metricPeriod}
+                          valueNumeric={valueNumeric}
+                          valueType={valueType}
+                        />
+                      ),
+                    )}
+
+                  {plan.entitlements.length > 4 && (
+                    <Flex
+                      $alignItems="center"
+                      $justifyContent="start"
+                      $marginTop="1rem"
+                    >
+                      <Icon
+                        name={isExpanded ? "chevron-up" : "chevron-down"}
+                        style={{
+                          fontSize: "1.4rem",
+                          lineHeight: "1em",
+                          marginRight: ".25rem",
+                          color: "#D0D0D0",
+                        }}
                       />
-                    ),
+                      <Text
+                        onClick={handleToggleShowAll}
+                        $font={theme.typography.link.fontFamily}
+                        $size={theme.typography.link.fontSize}
+                        $weight={theme.typography.link.fontWeight}
+                        $leading={1}
+                        $color={theme.typography.link.color}
+                        style={{ cursor: "pointer" }}
+                      >
+                        {isExpanded ? t("Hide all") : t("See all")}
+                      </Text>
+                    </Flex>
                   )}
                 </Flex>
 
@@ -215,6 +261,8 @@ export const Plan = ({
                           "Current usage exceeds the limit of this plan.",
                         )}
                       />
+                    ) : plan.companyCanTrial ? (
+                      t("Trial plan", { days: plan.trialDays })
                     ) : (
                       t("Choose plan")
                     )}

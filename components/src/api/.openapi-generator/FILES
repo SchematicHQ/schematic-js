@@ -1,5 +1,5 @@
 .openapi-generator-ignore
-apis/CheckoutApi.ts
+apis/CheckoutexternalApi.ts
 apis/index.ts
 index.ts
 models/ApiError.ts
@@ -9,11 +9,13 @@ models/BillingProductDetailResponseData.ts
 models/BillingProductForSubscriptionResponseData.ts
 models/BillingProductPriceResponseData.ts
 models/BillingProductResponseData.ts
+models/BillingSubscriptionDiscountView.ts
 models/BillingSubscriptionResponseData.ts
 models/BillingSubscriptionView.ts
 models/ChangeSubscriptionRequestBody.ts
 models/CheckoutResponse.ts
 models/CompanyDetailResponseData.ts
+models/CompanyEventPeriodMetricsResponseData.ts
 models/CompanyPlanDetailResponseData.ts
 models/CompanyPlanWithBillingSubView.ts
 models/CompanyResponseData.ts
@@ -60,6 +62,7 @@ models/RuleResponseData.ts
 models/SetupIntentResponseData.ts
 models/StripeEmbedInfo.ts
 models/UpdateAddOnRequestBody.ts
+models/UpdatePayInAdvanceRequestBody.ts
 models/UpdatePaymentMethodRequestBody.ts
 models/UpdatePaymentMethodResponse.ts
 models/UsageBasedEntitlementResponseData.ts

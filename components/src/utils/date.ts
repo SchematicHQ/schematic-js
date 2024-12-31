@@ -5,9 +5,12 @@ export function toMonthDay(date: Date | string) {
   }).format(new Date(date));
 }
 
-export function toPrettyDate(date: Date | string) {
+export function toPrettyDate(
+  date: Date | string,
+  format?: { month: "long" | "short" },
+) {
   return new Intl.DateTimeFormat("en-US", {
-    month: "long",
+    month: format?.month ? format.month : "long",
     day: "numeric",
     year: "numeric",
   }).format(new Date(date));

@@ -1,5 +1,4 @@
 import { forwardRef, useState } from "react";
-import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 import pluralize from "pluralize";
@@ -13,7 +12,7 @@ import {
 import type { ElementProps, RecursivePartial } from "../../../types";
 import { formatCurrency, formatNumber, hexToHSL } from "../../../utils";
 import { cardBoxShadow, FussyChild } from "../../layout";
-import { CheckoutDialog, PeriodToggle } from "../../shared";
+import { PeriodToggle } from "../../shared";
 import {
   Box,
   Flex,
@@ -111,34 +110,41 @@ export const PricingTable = forwardRef<
   HTMLDivElement | null,
   ElementProps &
     RecursivePartial<DesignProps> &
-    React.HTMLAttributes<HTMLDivElement> & {
-      portal?: HTMLElement | null;
-    }
->(({ children, className, portal, ...rest }, ref) => {
+    React.HTMLAttributes<HTMLDivElement>
+>(({ children, className, ...rest }, ref) => {
+  const visibleCount = 4;
+  const [showAll, setShowAll] = useState(visibleCount);
+  const [isExpanded, setIsExpanded] = useState(false);
+
   const props = resolveDesignProps(rest);
 
   const { t } = useTranslation();
 
   const theme = useTheme();
 
-  const { data, layout, setLayout } = useEmbed();
+  const { data, setLayout, setSelected } = useEmbed();
 
   const [selectedPeriod, setSelectedPeriod] = useState(
     () => data.company?.plan?.planPeriod || "month",
   );
-  const [selectedPlanId, setSelectedPlanId] = useState<string | null>();
-  const [selectedAddOnId, setSelectedAddOnId] = useState<string | null>();
 
   const { plans, addOns, periods } = useAvailablePlans(selectedPeriod);
 
   const isLightBackground = useIsLightBackground();
 
-  const canChangePlan = data.capabilities?.checkout ?? true;
-
   const cardPadding = theme.card.padding / TEXT_BASE_SIZE;
 
   const currentPlanIndex = plans.findIndex((plan) => plan.current);
 
+  const handleToggleShowAll = () => {
+    if (isExpanded) {
+      setShowAll(visibleCount);
+      setIsExpanded(false);
+    } else {
+      setShowAll(plans.length);
+      setIsExpanded(true);
+    }
+  };
   return (
     <FussyChild
       ref={ref}
@@ -352,68 +358,101 @@ export const PricingTable = forwardRef<
                           </Box>
                         )}
 
-                        {plan.entitlements.map((entitlement) => {
-                          return (
-                            <Flex key={entitlement.id} $gap="1rem">
-                              {props.plans.showFeatureIcons &&
-                                entitlement.feature?.icon && (
-                                  <IconRound
-                                    name={
-                                      entitlement.feature.icon as IconNameTypes
-                                    }
-                                    size="sm"
-                                    colors={[
-                                      theme.primary,
-                                      isLightBackground
-                                        ? "hsla(0, 0%, 0%, 0.0625)"
-                                        : "hsla(0, 0%, 100%, 0.25)",
-                                    ]}
-                                  />
-                                )}
+                        {plan.entitlements
+                          .slice(0, showAll)
+                          .map((entitlement) => {
+                            return (
+                              <Flex key={entitlement.id} $gap="1rem">
+                                {props.plans.showFeatureIcons &&
+                                  entitlement.feature?.icon && (
+                                    <IconRound
+                                      name={
+                                        entitlement.feature.icon as
+                                          | IconNameTypes
+                                          | string
+                                      }
+                                      size="sm"
+                                      colors={[
+                                        theme.primary,
+                                        isLightBackground
+                                          ? "hsla(0, 0%, 0%, 0.0625)"
+                                          : "hsla(0, 0%, 100%, 0.25)",
+                                      ]}
+                                    />
+                                  )}
 
-                              {entitlement.feature?.name && (
-                                <Flex $alignItems="center">
-                                  <Text
-                                    $font={theme.typography.text.fontFamily}
-                                    $size={theme.typography.text.fontSize}
-                                    $weight={theme.typography.text.fontWeight}
-                                    $color={theme.typography.text.color}
-                                  >
-                                    {entitlement.valueType === "numeric" ||
-                                    entitlement.valueType === "unlimited" ||
-                                    entitlement.valueType === "trait" ? (
-                                      <>
-                                        {typeof entitlement.valueNumeric ===
-                                        "number"
-                                          ? `${formatNumber(entitlement.valueNumeric)} ${pluralize(entitlement.feature.name, entitlement.valueNumeric)}`
-                                          : t("Unlimited", {
-                                              item: pluralize(
-                                                entitlement.feature.name,
-                                              ),
-                                            })}
-                                        {entitlement.metricPeriod && (
-                                          <>
-                                            {t("per")}{" "}
-                                            {
+                                {entitlement.feature?.name && (
+                                  <Flex $alignItems="center">
+                                    <Text
+                                      $font={theme.typography.text.fontFamily}
+                                      $size={theme.typography.text.fontSize}
+                                      $weight={theme.typography.text.fontWeight}
+                                      $color={theme.typography.text.color}
+                                    >
+                                      {entitlement.valueType === "numeric" ||
+                                      entitlement.valueType === "unlimited" ||
+                                      entitlement.valueType === "trait" ? (
+                                        <>
+                                          {typeof entitlement.valueNumeric ===
+                                          "number"
+                                            ? `${formatNumber(entitlement.valueNumeric)} ${pluralize(entitlement.feature.name, entitlement.valueNumeric)}`
+                                            : t("Unlimited", {
+                                                item: pluralize(
+                                                  entitlement.feature.name,
+                                                ),
+                                              })}
+                                          {entitlement.metricPeriod && (
+                                            <>
+                                              {t("per")}{" "}
                                               {
-                                                billing: "billing period",
-                                                current_day: "day",
-                                                current_month: "month",
-                                                current_year: "year",
-                                              }[entitlement.metricPeriod]
-                                            }
-                                          </>
-                                        )}
-                                      </>
-                                    ) : (
-                                      entitlement.feature.name
-                                    )}
-                                  </Text>
-                                </Flex>
-                              )}
-                            </Flex>
-                          );
-                        })}
+                                                {
+                                                  billing: "billing period",
+                                                  current_day: "day",
+                                                  current_month: "month",
+                                                  current_year: "year",
+                                                }[entitlement.metricPeriod]
+                                              }
+                                            </>
+                                          )}
+                                        </>
+                                      ) : (
+                                        entitlement.feature.name
+                                      )}
+                                    </Text>
+                                  </Flex>
+                                )}
+                              </Flex>
+                            );
+                          })}
+
+                        {plan.entitlements.length > 4 && (
+                          <Flex
+                            $alignItems="center"
+                            $justifyContent="start"
+                            $marginTop="1rem"
+                          >
+                            <Icon
+                              name={isExpanded ? "chevron-up" : "chevron-down"}
+                              style={{
+                                fontSize: "1.4rem",
+                                lineHeight: "1em",
+                                marginRight: ".25rem",
+                                color: "#D0D0D0",
+                              }}
+                            />
+                            <Text
+                              onClick={handleToggleShowAll}
+                              $font={theme.typography.link.fontFamily}
+                              $size={theme.typography.link.fontSize}
+                              $weight={theme.typography.link.fontWeight}
+                              $leading={1}
+                              $color={theme.typography.link.color}
+                              style={{ cursor: "pointer" }}
+                            >
+                              {isExpanded ? t("Hide all") : t("See all")}
+                            </Text>
+                          </Flex>
+                        )}
                       </Flex>
                     )}
 
@@ -447,23 +486,23 @@ export const PricingTable = forwardRef<
                         <EmbedButton
                           disabled={!plan.valid}
                           onClick={() => {
-                            setSelectedPlanId(isActivePlan ? null : plan.id);
+                            setSelected({
+                              period: selectedPeriod,
+                              planId: isActivePlan ? null : plan.id,
+                            });
                             setLayout("checkout");
                           }}
-                          {
-                            // plans are sorted by price, so we can determine grades by index
-                            ...(index > currentPlanIndex
-                              ? {
-                                  $size: props.upgrade.buttonSize,
-                                  $color: props.upgrade.buttonStyle,
-                                  $variant: "filled",
-                                }
-                              : {
-                                  $size: props.downgrade.buttonSize,
-                                  $color: props.downgrade.buttonStyle,
-                                  $variant: "outline",
-                                })
-                          }
+                          {...(index > currentPlanIndex
+                            ? {
+                                $size: props.upgrade.buttonSize,
+                                $color: props.upgrade.buttonStyle,
+                                $variant: "filled",
+                              }
+                            : {
+                                $size: props.downgrade.buttonSize,
+                                $color: props.downgrade.buttonStyle,
+                                $variant: "outline",
+                              })}
                         >
                           {!plan.valid ? (
                             <Tooltip
@@ -681,8 +720,9 @@ export const PricingTable = forwardRef<
                                     entitlement.feature?.icon && (
                                       <IconRound
                                         name={
-                                          entitlement.feature
-                                            .icon as IconNameTypes
+                                          entitlement.feature.icon as
+                                            | IconNameTypes
+                                            | string
                                         }
                                         size="sm"
                                         colors={[
@@ -747,7 +787,10 @@ export const PricingTable = forwardRef<
                         <EmbedButton
                           disabled={!addOn.valid}
                           onClick={() => {
-                            setSelectedAddOnId(isActiveAddOn ? null : addOn.id);
+                            setSelected({
+                              period: selectedPeriod,
+                              addOnId: isActiveAddOn ? null : addOn.id,
+                            });
                             setLayout("checkout");
                           }}
                           $size={props.upgrade.buttonSize}
@@ -777,17 +820,6 @@ export const PricingTable = forwardRef<
           </>
         )}
       </Box>
-
-      {canChangePlan &&
-        layout === "checkout" &&
-        createPortal(
-          <CheckoutDialog
-            initialPeriod={selectedPeriod}
-            initialPlanId={selectedPlanId}
-            initialAddOnId={selectedAddOnId}
-          />,
-          portal || document.body,
-        )}
     </FussyChild>
   );
 });

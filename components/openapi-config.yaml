@@ -1,4 +1,4 @@
 generatorName: typescript-fetch
-inputSpec: https://schematic-openapi-da6da39.s3.amazonaws.com/checkout.yml
+inputSpec: https://openapi.schematichq.com/checkoutexternal.yml
 enablePostProcessFile: true
 outputDir: ./src/api/

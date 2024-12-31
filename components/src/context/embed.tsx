@@ -6,7 +6,7 @@ import { ThemeProvider } from "styled-components";
 import merge from "lodash/merge";
 import { v4 as uuidv4 } from "uuid";
 import {
-  CheckoutApi,
+  CheckoutexternalApi,
   Configuration,
   type ConfigurationParameters,
   type ComponentHydrateResponseData,
@@ -174,21 +174,29 @@ export type EmbedLayout =
   | "success"
   | "disabled";
 
+export type EmbedSelected = {
+  period?: string;
+  planId?: string | null;
+  addOnId?: string | null;
+};
+
 export type EmbedMode = "edit" | "view";
 
 export interface EmbedContextProps {
-  api: CheckoutApi | null;
+  api: CheckoutexternalApi | null;
   data: ComponentHydrateResponseData;
   nodes: SerializedNodeWithChildren[];
   settings: EmbedSettings;
   layout: EmbedLayout;
   mode: EmbedMode;
+  selected: EmbedSelected;
   error?: Error;
   isPending: boolean;
   hydrate: () => void;
   setData: (data: ComponentHydrateResponseData) => void;
   updateSettings: (settings: RecursivePartial<EmbedSettings>) => void;
   setLayout: (layout: EmbedLayout) => void;
+  setSelected: (selected: EmbedSelected) => void;
 }
 
 export const EmbedContext = createContext<EmbedContextProps>({
@@ -202,12 +210,14 @@ export const EmbedContext = createContext<EmbedContextProps>({
   settings: { ...defaultSettings },
   layout: "portal",
   mode: "view",
+  selected: {},
   error: undefined,
   isPending: false,
   hydrate: () => {},
   setData: () => {},
   updateSettings: () => {},
   setLayout: () => {},
+  setSelected: () => {},
 });
 
 export interface EmbedProviderProps {
@@ -229,18 +239,20 @@ export const EmbedProvider = ({
   const sessionIdRef = useRef<string>(uuidv4());
 
   const [state, setState] = useState<{
-    api: CheckoutApi | null;
+    api: CheckoutexternalApi | null;
     data: ComponentHydrateResponseData;
     nodes: SerializedNodeWithChildren[];
     settings: EmbedSettings;
     layout: EmbedLayout;
     mode: EmbedMode;
+    selected: EmbedSelected;
     isPending: boolean;
     error?: Error;
     hydrate: () => void;
     setData: (data: ComponentHydrateResponseData) => void;
     updateSettings: (settings: RecursivePartial<EmbedSettings>) => void;
     setLayout: (layout: EmbedLayout) => void;
+    setSelected: (selected: EmbedSelected) => void;
   }>(() => {
     return {
       api: null,
@@ -253,12 +265,14 @@ export const EmbedProvider = ({
       settings: { ...defaultSettings },
       layout: "portal",
       mode,
+      selected: {},
       isPending: false,
       error: undefined,
       hydrate: () => {},
       setData: () => {},
       updateSettings: () => {},
       setLayout: () => {},
+      setSelected: () => {},
     };
   });
 
@@ -340,6 +354,16 @@ export const EmbedProvider = ({
     [setState],
   );
 
+  const setSelected = useCallback(
+    (selected: RecursivePartial<EmbedSelected>) => {
+      setState((prev) => ({
+        ...prev,
+        selected,
+      }));
+    },
+    [setState],
+  );
+
   useEffect(() => {
     i18n.use(initReactI18next).init({
       resources: {
@@ -378,7 +402,7 @@ export const EmbedProvider = ({
         apiKey: accessToken,
         headers,
       });
-      const api = new CheckoutApi(config);
+      const api = new CheckoutexternalApi(config);
       setState((prev) => ({ ...prev, api }));
     }
   }, [accessToken, apiConfig]);
@@ -416,12 +440,14 @@ export const EmbedProvider = ({
         settings: state.settings,
         layout: state.layout,
         mode: state.mode,
+        selected: state.selected,
         error: state.error,
         isPending: state.isPending,
         hydrate,
         setData,
         updateSettings,
         setLayout,
+        setSelected,
       }}
     >
       <ThemeProvider theme={state.settings.theme}>
