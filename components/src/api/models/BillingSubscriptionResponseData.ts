@@ -103,6 +103,12 @@ export interface BillingSubscriptionResponseData {
    * @memberof BillingSubscriptionResponseData
    */
   trialEnd?: number | null;
+  /**
+   *
+   * @type {string}
+   * @memberof BillingSubscriptionResponseData
+   */
+  trialEndSetting?: string | null;
 }
 
 /**
@@ -163,6 +169,8 @@ export function BillingSubscriptionResponseDataFromJSONTyped(
     subscriptionExternalId: json["subscription_external_id"],
     totalPrice: json["total_price"],
     trialEnd: json["trial_end"] == null ? undefined : json["trial_end"],
+    trialEndSetting:
+      json["trial_end_setting"] == null ? undefined : json["trial_end_setting"],
   };
 }
 
@@ -190,5 +198,6 @@ export function BillingSubscriptionResponseDataToJSON(
     subscription_external_id: value["subscriptionExternalId"],
     total_price: value["totalPrice"],
     trial_end: value["trialEnd"],
+    trial_end_setting: value["trialEndSetting"],
   };
 }
