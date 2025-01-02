@@ -24,7 +24,9 @@ export const Viewport = forwardRef<HTMLDivElement | null, ViewportProps>(
       }
 
       const parent = portal || document.body;
-      const value = Math.abs(parent.getBoundingClientRect().top ?? 0);
+      const value = Math.abs(
+        (parent === document.body ? window.scrollY : parent.scrollTop) ?? 0,
+      );
       setTop(value);
 
       parent.style.overflow = "hidden";
