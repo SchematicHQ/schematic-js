@@ -243,7 +243,8 @@ export const Sidebar = ({
 
   const canCheckout =
     canUpdateSubscription &&
-    ((data.subscription?.paymentMethod && !showPaymentForm) || paymentMethodId);
+    ((data.subscription?.paymentMethod && !showPaymentForm) ||
+      typeof paymentMethodId === "string");
 
   const changedUsageBasedEntitlements: {
     usageData: UsageBasedEntitlementResponseData;
