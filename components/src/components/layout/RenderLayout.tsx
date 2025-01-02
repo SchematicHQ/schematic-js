@@ -46,16 +46,15 @@ const Disabled = () => {
 
 const Success = () => {
   const theme = useTheme();
-  const { hydrate, data, api, setLayout, isPending } = useEmbed();
+  const { setLayout, isPending } = useEmbed();
 
   const [isOpen, setIsOpen] = useState(true);
 
   useEffect(() => {
-    if (api && data.component?.id) {
-      hydrate();
-      setTimeout(() => setIsOpen(false), 2000);
-    }
-  }, [api, data.component?.id, hydrate]);
+    setTimeout(() => {
+      setIsOpen(false);
+    }, 2000);
+  }, []);
 
   useEffect(() => {
     if (!isPending && !isOpen) {

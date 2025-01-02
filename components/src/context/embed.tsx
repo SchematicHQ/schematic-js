@@ -193,7 +193,6 @@ export interface EmbedContextProps {
   selected: EmbedSelected;
   error?: Error;
   isPending: boolean;
-  hydrate: () => void;
   setData: (data: ComponentHydrateResponseData) => void;
   updateSettings: (settings: RecursivePartial<EmbedSettings>) => void;
   setLayout: (layout: EmbedLayout) => void;
@@ -214,7 +213,6 @@ export const EmbedContext = createContext<EmbedContextProps>({
   selected: {},
   error: undefined,
   isPending: false,
-  hydrate: () => {},
   setData: () => {},
   updateSettings: () => {},
   setLayout: () => {},
@@ -249,7 +247,6 @@ export const EmbedProvider = ({
     selected: EmbedSelected;
     isPending: boolean;
     error?: Error;
-    hydrate: () => void;
     setData: (data: ComponentHydrateResponseData) => void;
     updateSettings: (settings: RecursivePartial<EmbedSettings>) => void;
     setLayout: (layout: EmbedLayout) => void;
@@ -269,58 +266,12 @@ export const EmbedProvider = ({
       selected: {},
       isPending: false,
       error: undefined,
-      hydrate: () => {},
       setData: () => {},
       updateSettings: () => {},
       setLayout: () => {},
       setSelected: () => {},
     };
   });
-
-  const hydrate = useCallback(async () => {
-    setState((prev) => ({ ...prev, isPending: true, error: undefined }));
-
-    try {
-      const nodes: SerializedNodeWithChildren[] = [];
-      const settings: EmbedSettings = { ...defaultSettings };
-
-      if (!id || !state.api) {
-        return new Error("Invalid component id or api instance.");
-      }
-
-      const response = await state.api.hydrateComponent({ componentId: id });
-      const { data } = response;
-
-      if (data.component?.ast) {
-        const compressed = data.component.ast;
-        const json = inflate(Uint8Array.from(Object.values(compressed)), {
-          to: "string",
-        });
-        const ast = getEditorState(json);
-        if (ast) {
-          merge(settings, ast.ROOT.props.settings);
-          nodes.push(...parseEditorState(ast));
-        }
-      }
-
-      setState((prev) => ({
-        ...prev,
-        data,
-        nodes,
-        settings,
-        isPending: false,
-      }));
-    } catch (error) {
-      setState((prev) => ({
-        ...prev,
-        isPending: false,
-        error:
-          error instanceof Error
-            ? error
-            : new Error("An unknown error occurred."),
-      }));
-    }
-  }, [id, state.api]);
 
   const setData = useCallback(
     (data: ComponentHydrateResponseData) => {
@@ -409,8 +360,53 @@ export const EmbedProvider = ({
   }, [accessToken, apiConfig]);
 
   useEffect(() => {
+    setState((prev) => ({ ...prev, isPending: true, error: undefined }));
+
+    async function hydrate() {
+      try {
+        const nodes: SerializedNodeWithChildren[] = [];
+        const settings: EmbedSettings = { ...defaultSettings };
+
+        if (!id || !state.api) {
+          return;
+        }
+
+        const response = await state.api.hydrateComponent({ componentId: id });
+        const { data } = response;
+
+        if (data.component?.ast) {
+          const compressed = data.component.ast;
+          const json = inflate(Uint8Array.from(Object.values(compressed)), {
+            to: "string",
+          });
+          const ast = getEditorState(json);
+          if (ast) {
+            merge(settings, ast.ROOT.props.settings);
+            nodes.push(...parseEditorState(ast));
+          }
+        }
+
+        setState((prev) => ({
+          ...prev,
+          data,
+          nodes,
+          settings,
+          isPending: false,
+        }));
+      } catch (error) {
+        setState((prev) => ({
+          ...prev,
+          isPending: false,
+          error:
+            error instanceof Error
+              ? error
+              : new Error("An unknown error occurred."),
+        }));
+      }
+    }
+
     hydrate();
-  }, [hydrate]);
+  }, [id, state.api, state.layout]);
 
   useEffect(() => {
     const fontSet = new Set<string>([]);
@@ -444,7 +440,6 @@ export const EmbedProvider = ({
         selected: state.selected,
         error: state.error,
         isPending: state.isPending,
-        hydrate,
         setData,
         updateSettings,
         setLayout,
