@@ -285,45 +285,6 @@ export const Sidebar = ({
     changedUsageBasedEntitlements.length > 0 ||
     addedUsageBasedEntitlements.length > 0;
 
-  const changedUsageBasedEntitlements: {
-    usageData: UsageBasedEntitlementResponseData;
-    entitlement?: PlanEntitlementResponseData;
-    quantity: number;
-  }[] = [];
-  const addedUsageBasedEntitlements = usageBasedEntitlements.reduce(
-    (
-      acc: {
-        entitlement: PlanEntitlementResponseData;
-        quantity: number;
-      }[],
-      selected,
-    ) => {
-      const changed = currentUsageBasedEntitlements.find(
-        (current) =>
-          current.usageData.featureId === selected.entitlement.featureId &&
-          current.quantity !== selected.quantity,
-      );
-      const changedEntitlement = selectedPlan?.entitlements.find(
-        (entitlement) => entitlement.id === selected.entitlement.id,
-      );
-
-      if (changed) {
-        changedUsageBasedEntitlements.push({
-          ...changed,
-          entitlement: changedEntitlement,
-        });
-      }
-
-      acc.push(selected);
-
-      return acc;
-    },
-    [],
-  );
-  const willUsageBasedEntitlementsChange =
-    changedUsageBasedEntitlements.length > 0 ||
-    addedUsageBasedEntitlements.length > 0;
-
   const removedAddOns = currentAddOns.filter(
     (current) => !selectedAddOns.some((selected) => current.id === selected.id),
   );
