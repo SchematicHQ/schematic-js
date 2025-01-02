@@ -1,8 +1,8 @@
 import { forwardRef, useCallback } from "react";
 import { useTheme } from "styled-components";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
+import { Container } from "../../layout";
 import { Flex } from "../../ui";
-import { Container } from "./styles";
 
 interface ModalProps extends React.HTMLAttributes<HTMLElement> {
   children: React.ReactNode;

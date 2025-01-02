@@ -3,6 +3,7 @@
     "A problem occurred while saving your payment method.": "A problem occurred while saving your payment method.",
     "Active": "Active",
     "Add payment method": "Add payment method",
+    "Add Seats": "Add More",
     "Add-ons": "Add-ons",
     "After the trial, subscribe": "After the trial, subscription starts and you will be billed.",
     "After the trial, cancel": "After the trial, the subscription ends.",
@@ -21,6 +22,7 @@
     "Credits": "Credits",
     "Current plan": "Current plan",
     "Current usage exceeds the limit of this plan.": "Current usage exceeds the limit of this plan.",
+    "Currently using": "Currently using {{quantity}} {{unit}}",
     "Due today": "Due today",
     "Edit payment method": "Edit payment method",
     "Edit": "Edit",
@@ -51,6 +53,7 @@
     "Powered by": "Powered by",
     "Proration": "Proration",
     "Remove add-on": "Remove add-on",
+    "Resets": "Resets {{date}}",
     "Save payment method": "Save payment method",
     "Save with yearly billing": "Save up to {{percent}}% with yearly billing",
     "Saving with yearly billing": "You are saving {{percent}}% with yearly billing",
@@ -58,6 +61,7 @@
     "See more": "See more",
     "Select add-ons": "Select add-ons",
     "Select plan": "Select plan",
+    "Select quantity": "Select quantity",
     "Selected": "Selected",
     "Subscription": "Subscription",
     "Trial": "Trial",
@@ -65,6 +69,8 @@
     "Trial plan": "Try free for {{days}} days",
     "Unlimited": "Unlimited {{item}}",
     "Unused time": "Unused time",
+    "Usage": "Usage",
+    "Usage-based": "Usage-based",
     "Use existing payment method": "Use existing payment method",
     "Yearly": "Yearly",
 
@@ -72,6 +78,8 @@
     "month": "month",
     "per": "per",
     "year": "year",
+
+    "used": "used",
 
     "usage": {
       "limited": "{{amount}} of {{allocation}} used",

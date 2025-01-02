@@ -1,24 +1,36 @@
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
+import pluralize from "pluralize";
 import type {
   CompanyPlanDetailResponseData,
   CompanyPlanWithBillingSubView,
 } from "../../../api";
-import { TEXT_BASE_SIZE } from "../../../const";
+import { TEXT_BASE_SIZE, VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
 import { useIsLightBackground } from "../../../hooks";
-import { hexToHSL, formatCurrency } from "../../../utils";
+import { hexToHSL, formatCurrency, formatNumber } from "../../../utils";
 import { cardBoxShadow } from "../../layout";
-import { Box, EmbedButton, Flex, Icon, Text, Tooltip } from "../../ui";
-import { PlanEntitlementRow } from "./PlanEntitlementRow";
+import {
+  Box,
+  EmbedButton,
+  Flex,
+  Icon,
+  IconRound,
+  Text,
+  Tooltip,
+  type IconNameTypes,
+} from "../../ui";
 import { useState } from "react";
 
 interface PlanProps {
   isLoading: boolean;
-  plans: CompanyPlanDetailResponseData[];
+  plans: (CompanyPlanDetailResponseData & { isSelected: boolean })[];
   currentPlan?: CompanyPlanWithBillingSubView;
-  selectedPlan?: CompanyPlanDetailResponseData;
+  selectedPlan?: CompanyPlanDetailResponseData & { isSelected: boolean };
   period: string;
-  selectPlan: (plan: CompanyPlanDetailResponseData, newPeriod?: string) => void;
+  selectPlan: (
+    plan: CompanyPlanDetailResponseData & { isSelected: boolean },
+    newPeriod?: string,
+  ) => void;
 }
 
 export const Plan = ({
@@ -29,28 +41,53 @@ export const Plan = ({
   period,
   selectPlan,
 }: PlanProps) => {
-  const visibleCount = 4;
-  const [showAll, setShowAll] = useState(visibleCount);
-  const [isExpanded, setIsExpanded] = useState(false);
-
   const { t } = useTranslation();
 
   const theme = useTheme();
 
   const isLightBackground = useIsLightBackground();
 
+  const [entitlementCounts, setEntitlementCounts] = useState(() =>
+    plans.reduce(
+      (
+        acc: Record<
+          string,
+          {
+            size: number;
+            limit: number;
+          }
+        >,
+        plan,
+      ) => {
+        acc[plan.id] = {
+          size: plan.entitlements.length,
+          limit: VISIBLE_ENTITLEMENT_COUNT,
+        };
+
+        return acc;
+      },
+      {},
+    ),
+  );
+
   const cardPadding = theme.card.padding / TEXT_BASE_SIZE;
 
   const currentPlanIndex = plans.findIndex((plan) => plan.current);
 
-  const handleToggleShowAll = () => {
-    if (isExpanded) {
-      setShowAll(visibleCount);
-      setIsExpanded(false);
-    } else {
-      setShowAll(plans.length);
-      setIsExpanded(true);
-    }
+  const handleToggleShowAll = (id: string) => {
+    setEntitlementCounts((prev) => {
+      const count = { ...prev[id] };
+      return {
+        ...prev,
+        [id]: {
+          size: count.size,
+          limit:
+            count.limit > VISIBLE_ENTITLEMENT_COUNT
+              ? VISIBLE_ENTITLEMENT_COUNT
+              : count.size,
+        },
+      };
+    });
   };
 
   return (
@@ -64,6 +101,17 @@ export const Plan = ({
         {plans.map((plan, index) => {
           const isActivePlan =
             plan.current && currentPlan?.planPeriod === period;
+
+          const count = entitlementCounts[plan.id] as
+            | {
+                size: number;
+                limit: number;
+              }
+            | undefined;
+          let isExpanded = false;
+          if (count?.limit && count.limit > VISIBLE_ENTITLEMENT_COUNT) {
+            isExpanded = true;
+          }
 
           return (
             <Flex
@@ -171,26 +219,133 @@ export const Plan = ({
               >
                 <Flex $flexDirection="column" $gap="1rem" $flexGrow="1">
                   {plan.entitlements
-                    .slice(0, showAll)
-                    .map(
-                      ({
-                        id,
-                        feature,
-                        metricPeriod,
-                        valueNumeric,
-                        valueType,
-                      }) => (
-                        <PlanEntitlementRow
-                          key={id}
-                          feature={feature}
-                          metricPeriod={metricPeriod}
-                          valueNumeric={valueNumeric}
-                          valueType={valueType}
-                        />
-                      ),
-                    )}
+                    .sort((a, b) => {
+                      if (
+                        a.feature?.name &&
+                        b.feature?.name &&
+                        a.feature?.name > b.feature?.name
+                      ) {
+                        return 1;
+                      }
 
-                  {plan.entitlements.length > 4 && (
+                      if (
+                        a.feature?.name &&
+                        b.feature?.name &&
+                        a.feature?.name < b.feature?.name
+                      ) {
+                        return -1;
+                      }
+
+                      return 0;
+                    })
+                    .reduce((acc: JSX.Element[], entitlement) => {
+                      const hasNumericValue =
+                        entitlement.valueType === "numeric" ||
+                        entitlement.valueType === "unlimited" ||
+                        entitlement.valueType === "trait";
+
+                      let metricPeriodText;
+                      if (hasNumericValue && entitlement.metricPeriod) {
+                        metricPeriodText = {
+                          billing: t("billing period"),
+                          current_day: t("day"),
+                          current_month: t("month"),
+                          current_year: t("year"),
+                        }[entitlement.metricPeriod];
+                      }
+
+                      const price = (
+                        period === "month"
+                          ? entitlement.meteredMonthlyPrice
+                          : entitlement.meteredYearlyPrice
+                      )?.price;
+
+                      if (
+                        entitlement.priceBehavior &&
+                        typeof price !== "number"
+                      ) {
+                        return acc;
+                      }
+
+                      acc.push(
+                        <Flex
+                          key={entitlement.id}
+                          $flexWrap="wrap"
+                          $justifyContent="space-between"
+                          $alignItems="center"
+                          $gap="1rem"
+                        >
+                          <Flex $gap="1rem">
+                            {entitlement.feature?.icon && (
+                              <IconRound
+                                name={
+                                  entitlement.feature.icon as
+                                    | IconNameTypes
+                                    | string
+                                }
+                                size="sm"
+                                colors={[
+                                  theme.primary,
+                                  isLightBackground
+                                    ? "hsla(0, 0%, 0%, 0.0625)"
+                                    : "hsla(0, 0%, 100%, 0.25)",
+                                ]}
+                              />
+                            )}
+
+                            {entitlement.feature?.name && (
+                              <Flex $alignItems="center">
+                                <Text
+                                  $font={theme.typography.text.fontFamily}
+                                  $size={theme.typography.text.fontSize}
+                                  $weight={theme.typography.text.fontWeight}
+                                  $color={theme.typography.text.color}
+                                >
+                                  {typeof price !== "undefined" ? (
+                                    <>
+                                      {formatCurrency(price)} {t("per")}{" "}
+                                      {pluralize(entitlement.feature.name, 1)}
+                                      {entitlement.priceBehavior ===
+                                        "pay_in_advance" && (
+                                        <>
+                                          {" "}
+                                          {t("per")} {period}
+                                        </>
+                                      )}
+                                    </>
+                                  ) : hasNumericValue ? (
+                                    <>
+                                      {typeof entitlement.valueNumeric ===
+                                      "number"
+                                        ? `${formatNumber(entitlement.valueNumeric)} ${pluralize(entitlement.feature.name, entitlement.valueNumeric)}`
+                                        : t("Unlimited", {
+                                            item: pluralize(
+                                              entitlement.feature.name,
+                                            ),
+                                          })}
+                                      {metricPeriodText && (
+                                        <>
+                                          {" "}
+                                          {t("per")} {metricPeriodText}
+                                        </>
+                                      )}
+                                    </>
+                                  ) : (
+                                    entitlement.feature.name
+                                  )}
+                                </Text>
+                              </Flex>
+                            )}
+                          </Flex>
+                        </Flex>,
+                      );
+
+                      return acc;
+                    }, [])
+                    .slice(0, count?.limit ?? VISIBLE_ENTITLEMENT_COUNT)}
+
+                  {(count?.size || plan.entitlements.length) >
+                    VISIBLE_ENTITLEMENT_COUNT && (
                     <Flex
                       $alignItems="center"
                       $justifyContent="start"
@@ -206,7 +361,7 @@ export const Plan = ({
                         }}
                       />
                       <Text
-                        onClick={handleToggleShowAll}
+                        onClick={() => handleToggleShowAll(plan.id)}
                         $font={theme.typography.link.fontFamily}
                         $size={theme.typography.link.fontSize}
                         $weight={theme.typography.link.fontWeight}

@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { Box } from "..";
+import { Box } from "../../ui";
 
 export const Container = styled(Box)`
   sub,

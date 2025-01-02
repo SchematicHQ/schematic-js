@@ -178,6 +178,7 @@ export type EmbedSelected = {
   period?: string;
   planId?: string | null;
   addOnId?: string | null;
+  usage?: boolean;
 };
 
 export type EmbedMode = "edit" | "view";
@@ -202,9 +203,9 @@ export interface EmbedContextProps {
 export const EmbedContext = createContext<EmbedContextProps>({
   api: null,
   data: {
-    activeUsageBasedEntitlements: [],
     activeAddOns: [],
     activePlans: [],
+    activeUsageBasedEntitlements: [],
   },
   nodes: [],
   settings: { ...defaultSettings },
