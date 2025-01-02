@@ -2,6 +2,7 @@ import { forwardRef, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 import { type ListInvoicesResponse } from "../../../api";
+import { MAX_VISIBLE_INVOICE_COUNT } from "../../../const";
 import { type FontStyle } from "../../../context";
 import { useEmbed } from "../../../hooks";
 import type { RecursivePartial, ElementProps } from "../../../types";
@@ -128,7 +129,9 @@ export const Invoices = forwardRef<
 
   const toggleListSize = () => {
     setListSize((prev) =>
-      prev !== props.limit.number ? props.limit.number : 12,
+      prev !== props.limit.number
+        ? props.limit.number
+        : MAX_VISIBLE_INVOICE_COUNT,
     );
   };
 
@@ -137,6 +140,10 @@ export const Invoices = forwardRef<
       setInvoices(formatInvoices(data));
     });
   }, [api]);
+
+  if (invoices.length === 0) {
+    return null;
+  }
 
   return (
     <Element ref={ref} className={className}>
@@ -183,7 +190,7 @@ export const Invoices = forwardRef<
           })}
         </Flex>
 
-        {props.collapse.isVisible && (
+        {props.collapse.isVisible && invoices.length > props.limit.number && (
           <Flex $alignItems="center" $gap="0.5rem">
             <Icon
               name={`chevron-${listSize === props.limit.number ? "down" : "up"}`}
