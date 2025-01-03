@@ -140,8 +140,10 @@ export const PlanManager = forwardRef<
     : new Date();
   const todayDate = new Date();
   const trialEndDays = Math.floor(
-    trialEndDate.getTime() - todayDate.getTime() / (1000 * 60 * 60 * 24),
+    (trialEndDate.getTime() - todayDate.getTime()) / (1000 * 60 * 60 * 24),
   );
+
+  console.log(trialEndDate);
 
   return (
     <>
