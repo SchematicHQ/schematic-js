@@ -131,9 +131,7 @@ export const PlanManager = forwardRef<
 
   const billingSubscription = data.company?.billingSubscription;
   const showTrialBox =
-    billingSubscription &&
-    billingSubscription.trialEnd !== undefined &&
-    billingSubscription.trialEnd !== 0;
+    billingSubscription && billingSubscription.status == "trialing";
 
   const trialEndDate = billingSubscription?.trialEnd
     ? new Date(billingSubscription.trialEnd * 1000)
@@ -142,8 +140,6 @@ export const PlanManager = forwardRef<
   const trialEndDays = Math.floor(
     (trialEndDate.getTime() - todayDate.getTime()) / (1000 * 60 * 60 * 24),
   );
-
-  console.log(trialEndDate);
 
   return (
     <>
