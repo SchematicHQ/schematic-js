@@ -1,18 +1,9 @@
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
-import { loadStripe, type Stripe } from "@stripe/stripe-js";
 import type {
   CompanyPlanDetailResponseData,
   PlanEntitlementResponseData,
-  SetupIntentResponseData,
   UpdateAddOnRequestBody,
   UpdatePayInAdvanceRequestBody,
   UsageBasedEntitlementResponseData,
@@ -64,8 +55,6 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   const [showPaymentForm, setShowPaymentForm] = useState(
     !data.subscription?.paymentMethod,
   );
-  const [stripe, setStripe] = useState<Promise<Stripe | null> | null>(null);
-  const [setupIntent, setSetupIntent] = useState<SetupIntentResponseData>();
 
   const {
     plans: availablePlans,
@@ -415,12 +404,6 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     ],
   );
 
-  useEffect(() => {
-    if (!stripe && setupIntent?.publishableKey) {
-      setStripe(loadStripe(setupIntent.publishableKey));
-    }
-  }, [stripe, setupIntent?.publishableKey]);
-
   useLayoutEffect(() => {
     if (contentRef.current) {
       contentRef.current.scrollTo({
@@ -591,9 +574,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
           {checkoutStage === "checkout" && (
             <Checkout
-              setupIntent={setupIntent}
               showPaymentForm={showPaymentForm}
-              stripe={stripe}
               setPaymentMethodId={(id) => setPaymentMethodId(id)}
               togglePaymentForm={() => setShowPaymentForm((prev) => !prev)}
             />
@@ -615,7 +596,6 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           selectedPlan={selectedPlan}
           setCheckoutStage={(stage) => setCheckoutStage(stage)}
           setError={(msg) => setError(msg)}
-          setSetupIntent={(intent) => setSetupIntent(intent)}
           showPaymentForm={showPaymentForm}
           toggleLoading={() => setIsLoading((prev) => !prev)}
           usageBasedEntitlements={usageBasedEntitlements}

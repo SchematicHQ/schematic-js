@@ -1,33 +1,51 @@
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
-import { type Stripe } from "@stripe/stripe-js";
+import { loadStripe, type Stripe } from "@stripe/stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
 import type { SetupIntentResponseData } from "../../../api";
 import { useEmbed } from "../../../hooks";
 import { PaymentMethod } from "../../elements";
 import { PaymentForm } from "../../shared";
-import { Box, Text } from "../../ui";
+import { Box, Loader, Text } from "../../ui";
 
 interface CheckoutProps {
   setPaymentMethodId: (id: string) => void;
   togglePaymentForm: () => void;
   showPaymentForm: boolean;
-  stripe: Promise<Stripe | null> | null;
-  setupIntent?: SetupIntentResponseData;
 }
 
 export const Checkout = ({
   setPaymentMethodId,
   togglePaymentForm,
-  setupIntent,
   showPaymentForm,
-  stripe,
 }: CheckoutProps) => {
   const { t } = useTranslation();
 
   const theme = useTheme();
 
-  const { data } = useEmbed();
+  const { api, data } = useEmbed();
+
+  const [stripe, setStripe] = useState<Promise<Stripe | null> | null>(null);
+  const [setupIntent, setSetupIntent] = useState<SetupIntentResponseData>();
+
+  useEffect(() => {
+    if (!setupIntent && api && data.component?.id) {
+      api
+        .getSetupIntent({ componentId: data.component.id })
+        .then((res) => setSetupIntent(res.data));
+    }
+  }, [setupIntent, api, data.component?.id]);
+
+  useEffect(() => {
+    if (!stripe && setupIntent?.publishableKey) {
+      setStripe(loadStripe(setupIntent.publishableKey));
+    }
+  }, [stripe, setupIntent?.publishableKey]);
+
+  if (!stripe) {
+    return <Loader $size="lg" />;
+  }
 
   return (
     <>

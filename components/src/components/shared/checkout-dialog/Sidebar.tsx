@@ -6,7 +6,6 @@ import type {
   CompanyPlanDetailResponseData,
   CompanyPlanWithBillingSubView,
   PlanEntitlementResponseData,
-  SetupIntentResponseData,
   UpdateAddOnRequestBody,
   UpdatePayInAdvanceRequestBody,
   UsageBasedEntitlementResponseData,
@@ -45,7 +44,6 @@ interface SidebarProps {
   selectedPlan?: CompanyPlanDetailResponseData & { isSelected: boolean };
   setCheckoutStage: (stage: string) => void;
   setError: (msg?: string) => void;
-  setSetupIntent: (intent: SetupIntentResponseData | undefined) => void;
   showPaymentForm: boolean;
   toggleLoading: () => void;
   usageBasedEntitlements: {
@@ -70,7 +68,6 @@ export const Sidebar = ({
   selectedPlan,
   setCheckoutStage,
   setError,
-  setSetupIntent,
   showPaymentForm,
   toggleLoading,
   usageBasedEntitlements,
@@ -867,7 +864,6 @@ export const Sidebar = ({
           hasPayInAdvanceEntitlements={payInAdvanceEntitlements.length > 0}
           isLoading={isLoading}
           setCheckoutStage={setCheckoutStage}
-          setSetupIntent={setSetupIntent}
           trialPaymentMethodRequired={data.trialPaymentMethodRequired === true}
         />
 

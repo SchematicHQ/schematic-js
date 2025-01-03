@@ -1,5 +1,3 @@
-import type { SetupIntentResponseData } from "../../../api";
-import { useEmbed } from "../../../hooks";
 import { EmbedButton } from "../../ui";
 import { Flex } from "../../ui";
 import { Icon } from "../../ui";
@@ -15,7 +13,6 @@ type StageButtonProps = {
   hasPayInAdvanceEntitlements: boolean;
   isLoading: boolean;
   setCheckoutStage: (stage: string) => void;
-  setSetupIntent: (intent: SetupIntentResponseData | undefined) => void;
   trialPaymentMethodRequired: boolean;
 };
 
@@ -29,21 +26,9 @@ export const StageButton = ({
   hasPayInAdvanceEntitlements,
   isLoading,
   setCheckoutStage,
-  setSetupIntent,
   trialPaymentMethodRequired,
 }: StageButtonProps) => {
   const { t } = useTranslation();
-
-  const { api, data } = useEmbed();
-
-  const getPaymentIntent = async () => {
-    if (api && data.component?.id) {
-      const { data: setupIntent } = await api.getSetupIntent({
-        componentId: data.component.id,
-      });
-      setSetupIntent(setupIntent);
-    }
-  };
 
   if (checkoutStage === "plan") {
     if (canTrial) {
@@ -52,7 +37,6 @@ export const StageButton = ({
           <EmbedButton
             disabled={!hasAddOns && !canUpdateSubscription}
             onClick={async () => {
-              getPaymentIntent();
               setCheckoutStage("checkout");
             }}
             isLoading={isLoading}
@@ -74,7 +58,6 @@ export const StageButton = ({
         <EmbedButton
           disabled={!canUpdateSubscription}
           onClick={async () => {
-            getPaymentIntent();
             checkout();
           }}
           isLoading={isLoading}
@@ -96,10 +79,6 @@ export const StageButton = ({
       <EmbedButton
         disabled={!canUpdateSubscription}
         onClick={async () => {
-          if (!hasAddOns && !hasPayInAdvanceEntitlements) {
-            getPaymentIntent();
-          }
-
           setCheckoutStage(
             hasPayInAdvanceEntitlements
               ? "usage"
@@ -133,10 +112,6 @@ export const StageButton = ({
       <EmbedButton
         disabled={!canUpdateSubscription}
         onClick={async () => {
-          if (!hasAddOns) {
-            getPaymentIntent();
-          }
-
           setCheckoutStage(hasAddOns ? "addons" : "checkout");
         }}
         isLoading={isLoading}
@@ -159,7 +134,6 @@ export const StageButton = ({
       <EmbedButton
         disabled={!canUpdateSubscription}
         onClick={async () => {
-          getPaymentIntent();
           setCheckoutStage("checkout");
         }}
         isLoading={isLoading}
