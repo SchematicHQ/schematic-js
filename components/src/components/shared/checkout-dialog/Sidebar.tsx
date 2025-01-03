@@ -732,7 +732,9 @@ export const Sidebar = ({
                 $weight={theme.typography.text.fontWeight}
                 $color={theme.typography.text.color}
               >
-                {charges.proration > 0 ? t("Proration") : t("Credits")}
+                {charges.proration > 0
+                  ? t("Proration")
+                  : !selectedPlan?.companyCanTrial && t("Credits")}
               </Text>
             </Box>
 
