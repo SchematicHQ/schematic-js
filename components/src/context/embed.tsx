@@ -193,7 +193,7 @@ export interface EmbedContextProps {
   selected: EmbedSelected;
   error?: Error;
   isPending: boolean;
-  hydrate: () => void;
+  hydrate: () => Promise<void>;
   setData: (data: ComponentHydrateResponseData) => void;
   updateSettings: (settings: RecursivePartial<EmbedSettings>) => void;
   setLayout: (layout: EmbedLayout) => void;
@@ -214,7 +214,7 @@ export const EmbedContext = createContext<EmbedContextProps>({
   selected: {},
   error: undefined,
   isPending: false,
-  hydrate: () => {},
+  hydrate: async () => {},
   setData: () => {},
   updateSettings: () => {},
   setLayout: () => {},
@@ -249,7 +249,7 @@ export const EmbedProvider = ({
     selected: EmbedSelected;
     isPending: boolean;
     error?: Error;
-    hydrate: () => void;
+    hydrate: () => Promise<void>;
     setData: (data: ComponentHydrateResponseData) => void;
     updateSettings: (settings: RecursivePartial<EmbedSettings>) => void;
     setLayout: (layout: EmbedLayout) => void;
@@ -269,7 +269,7 @@ export const EmbedProvider = ({
       selected: {},
       isPending: false,
       error: undefined,
-      hydrate: () => {},
+      hydrate: async () => {},
       setData: () => {},
       updateSettings: () => {},
       setLayout: () => {},
@@ -285,7 +285,7 @@ export const EmbedProvider = ({
       const settings: EmbedSettings = { ...defaultSettings };
 
       if (!id || !state.api) {
-        return new Error("Invalid component id or api instance.");
+        return;
       }
 
       const response = await state.api.hydrateComponent({ componentId: id });

@@ -398,6 +398,7 @@ export const PricingTable = forwardRef<
                         )}
 
                         {plan.entitlements
+                          .slice()
                           .sort((a, b) => {
                             if (
                               a.feature?.name &&

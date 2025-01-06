@@ -9,6 +9,7 @@
     "After the trial, cancel": "After the trial, the subscription ends.",
     "Billed": "Billed {{period}}",
     "billing period": "billing period",
+    "Cannot downgrade entitlement": "Cannot downgrade to a lower quantity than current usage.",
     "Card ending in": "💳 Card ending in {{value}}",
     "Change add-on": "Change add-on",
     "Change payment method": "Change payment method",
