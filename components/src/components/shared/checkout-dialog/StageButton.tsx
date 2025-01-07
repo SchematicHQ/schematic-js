@@ -184,7 +184,7 @@ export const StageButton = ({
         onClick={checkout}
         isLoading={isLoading}
       >
-        {t("Pay now")}
+        {canTrial ? t("Start trial") : t("Pay now")}
       </EmbedButton>
     );
   }
