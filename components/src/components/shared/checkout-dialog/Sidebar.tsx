@@ -52,6 +52,7 @@ interface SidebarProps {
     entitlement: PlanEntitlementResponseData;
     allocation: number;
     quantity: number;
+    usage: number;
   }[];
 }
 
@@ -238,7 +239,9 @@ export const Sidebar = ({
         !selectedAddOns.every((addOn) =>
           currentAddOns.some((currentAddOn) => addOn.id === currentAddOn.id),
         ) ||
-        payInAdvanceEntitlements) &&
+        payInAdvanceEntitlements.every(
+          ({ quantity, usage }) => quantity >= usage,
+        )) &&
       !isLoading);
 
   const canCheckout =

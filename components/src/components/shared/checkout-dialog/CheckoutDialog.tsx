@@ -376,16 +376,24 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
   const updateUsageBasedEntitlementQuantity = useCallback(
     (id: string, updatedQuantity: number) => {
+      let shouldPreview = true;
       const entitlements = payInAdvanceEntitlements.map(
-        ({ entitlement, allocation, quantity, usage }) =>
-          entitlement.id === id
-            ? {
-                entitlement,
-                allocation,
-                quantity: updatedQuantity,
-                usage,
-              }
-            : { entitlement, allocation, quantity, usage },
+        ({ entitlement, allocation, quantity, usage }) => {
+          if (entitlement.id === id) {
+            if (updatedQuantity < usage) {
+              shouldPreview = false;
+            }
+
+            return {
+              entitlement,
+              allocation,
+              quantity: updatedQuantity,
+              usage,
+            };
+          }
+
+          return { entitlement, allocation, quantity, usage };
+        },
       );
 
       setUsageBasedEntitlements((prev) =>
@@ -401,7 +409,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
         ),
       );
 
-      if (!selectedPlan) {
+      if (!selectedPlan || !shouldPreview) {
         return;
       }
 
