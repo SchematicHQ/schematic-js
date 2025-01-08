@@ -570,9 +570,19 @@ export const Sidebar = ({
                                 <sub>/{shortenPeriod(planPeriod)}</sub>
                               </>
                             )}
-                          {entitlement.priceBehavior === "pay_as_you_go" && (
-                            <>TBD</>
-                          )}
+                          {entitlement.priceBehavior === "pay_as_you_go" &&
+                            typeof price === "number" && (
+                              <>
+                                {formatCurrency(price)}
+                                <sub>
+                                  /
+                                  {pluralize(
+                                    entitlement.feature.name.toLowerCase(),
+                                    1,
+                                  )}
+                                </sub>
+                              </>
+                            )}
                         </Text>
                       </Box>
                     </Flex>,

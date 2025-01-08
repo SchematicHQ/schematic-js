@@ -605,11 +605,10 @@ export const PricingTable = forwardRef<
                                 "Current usage exceeds the limit of this plan.",
                               )}
                             />
-                          ) : 
-                            plan.companyCanTrial ? (
-                              t("Trial plan", { days: plan.trialDays })
-                            ) : (
-                              t("Choose plan")
+                          ) : plan.companyCanTrial ? (
+                            t("Trial plan", { days: plan.trialDays })
+                          ) : (
+                            t("Choose plan")
                           )}
                         </EmbedButton>
                       )
