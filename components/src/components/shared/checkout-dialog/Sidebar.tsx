@@ -268,7 +268,7 @@ export const Sidebar = ({
         (entitlement) => entitlement.id === selected.entitlement.id,
       );
 
-      if (changed) {
+      if (changed && changed.quantity > 0) {
         changedUsageBasedEntitlements.push({
           ...changed,
           entitlement: changedEntitlement,
