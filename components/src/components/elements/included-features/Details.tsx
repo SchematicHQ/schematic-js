@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 import pluralize from "pluralize";
@@ -39,69 +40,84 @@ export const Details = ({
 
   const { data } = useEmbed();
 
-  if (!feature?.name) {
-    return null;
-  }
-
-  let price: number | undefined;
-  if (data.company?.plan?.planPeriod === "month") {
-    price = monthlyUsageBasedPrice?.price;
-  } else if (data.company?.plan?.planPeriod === "year") {
-    price = yearlyUsageBasedPrice?.price;
-  }
-
-  let text: React.ReactNode;
-  if (priceBehavior === "pay_in_advance" && typeof allocation === "number") {
-    text = (
-      <>
-        {formatNumber(allocation)} {pluralize(feature.name, allocation)}
-      </>
-    );
-  } else if (priceBehavior === "pay_as_you_go" && typeof price === "number") {
-    text = (
-      <>
-        {formatCurrency(price)} {t("per")}{" "}
-        {pluralize(feature.name.toLowerCase(), 1)}
-      </>
-    );
-  } else if (typeof allocation === "number") {
-    text = (
-      <>
-        {formatNumber(allocation)} {pluralize(feature.name, allocation)}
-      </>
-    );
-  } else {
-    text = t("Unlimited", { item: pluralize(feature.name) });
-  }
-
-  let usageText: React.ReactNode;
-  if (usageData) {
-    if (
-      priceBehavior === "pay_in_advance" &&
-      typeof data.company?.plan?.planPeriod === "string" &&
-      typeof price === "number"
-    ) {
-      usageText = `${formatCurrency(price)}/${pluralize(feature.name.toLowerCase(), 1)}/${shortenPeriod(data.company.plan.planPeriod)} • `;
-    } else if (priceBehavior === "pay_as_you_go" && typeof usage === "number") {
-      usageText = `${usage} ${pluralize(feature.name.toLowerCase(), usage)} ${t("used")} • `;
+  const price = useMemo(() => {
+    if (data.company?.plan?.planPeriod === "month") {
+      return monthlyUsageBasedPrice?.price;
     }
 
-    if (
-      usageData?.priceBehavior === "pay_in_advance" &&
-      typeof price === "number" &&
-      typeof allocation === "number"
-    ) {
-      usageText += formatCurrency(price * allocation);
-    } else if (
-      usageData?.priceBehavior === "pay_as_you_go" &&
-      typeof price === "number" &&
-      typeof usage === "number"
-    ) {
-      usageText += formatCurrency(price * usage);
+    if (data.company?.plan?.planPeriod === "year") {
+      return yearlyUsageBasedPrice?.price;
     }
-  } else if (typeof usage === "number") {
-    usageText =
-      typeof allocation === "number"
+  }, [
+    data.company?.plan?.planPeriod,
+    monthlyUsageBasedPrice,
+    yearlyUsageBasedPrice,
+  ]);
+
+  const text = useMemo(() => {
+    if (!feature?.name) {
+      return;
+    }
+
+    if (priceBehavior === "pay_in_advance" && typeof allocation === "number") {
+      return `${formatNumber(allocation)} ${pluralize(feature.name, allocation)}`;
+    }
+
+    if (priceBehavior === "pay_as_you_go" && typeof price === "number") {
+      return `${formatCurrency(price)} ${t("per")} ${pluralize(feature.name.toLowerCase(), 1)}`;
+    }
+
+    if (!priceBehavior && typeof allocation === "number") {
+      return `${formatNumber(allocation)} ${pluralize(feature.name, allocation)}`;
+    }
+
+    if (!priceBehavior) {
+      t("Unlimited", { item: pluralize(feature.name) });
+    }
+  }, [allocation, feature?.name, price, priceBehavior, t]);
+
+  const usageText = useMemo(() => {
+    if (!feature?.name) {
+      return;
+    }
+
+    if (usageData) {
+      let acc: string | undefined;
+
+      if (
+        priceBehavior === "pay_in_advance" &&
+        typeof data.company?.plan?.planPeriod === "string" &&
+        typeof price === "number"
+      ) {
+        acc = `${formatCurrency(price)}/${pluralize(feature.name.toLowerCase(), 1)}/${shortenPeriod(data.company.plan.planPeriod)}`;
+      } else if (
+        priceBehavior === "pay_as_you_go" &&
+        typeof usage === "number"
+      ) {
+        acc = `${usage} ${pluralize(feature.name.toLowerCase(), usage)} ${t("used")}`;
+      }
+
+      if (acc) {
+        if (
+          usageData?.priceBehavior === "pay_in_advance" &&
+          typeof price === "number" &&
+          typeof allocation === "number"
+        ) {
+          acc += ` • ${formatCurrency(price * allocation)}`;
+        } else if (
+          usageData?.priceBehavior === "pay_as_you_go" &&
+          typeof price === "number" &&
+          typeof usage === "number"
+        ) {
+          acc += ` • ${formatCurrency(price * usage)}`;
+        }
+
+        return acc;
+      }
+    }
+
+    if (typeof usage === "number") {
+      return typeof allocation === "number"
         ? t("usage.limited", {
             amount: formatNumber(usage),
             allocation: formatNumber(allocation),
@@ -109,7 +125,17 @@ export const Details = ({
         : t("usage.unlimited", {
             amount: formatNumber(usage),
           });
-  }
+    }
+  }, [
+    allocation,
+    data.company?.plan?.planPeriod,
+    feature?.name,
+    price,
+    priceBehavior,
+    t,
+    usage,
+    usageData,
+  ]);
 
   if (!text) {
     return null;
