@@ -219,6 +219,7 @@ export const Plan = ({
               >
                 <Flex $flexDirection="column" $gap="1rem" $flexGrow="1">
                   {plan.entitlements
+                    .slice()
                     .sort((a, b) => {
                       if (
                         a.feature?.name &&

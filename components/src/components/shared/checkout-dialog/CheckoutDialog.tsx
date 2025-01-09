@@ -108,15 +108,17 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           usageData: UsageBasedEntitlementResponseData;
           allocation: number;
           quantity: number;
+          usage: number;
         }[],
         usageData,
       ) => {
-        const allocation =
-          data.featureUsage?.features.find(
-            (usage) => usage.feature?.id === usageData.featureId,
-          )?.allocation || 0;
+        const featureUsage = data.featureUsage?.features.find(
+          (usage) => usage.feature?.id === usageData.featureId,
+        );
+        const allocation = featureUsage?.allocation || 0;
+        const usage = featureUsage?.usage || 0;
 
-        acc.push({ usageData, allocation, quantity: allocation });
+        acc.push({ usageData, allocation, quantity: allocation, usage });
 
         return acc;
       },
@@ -130,6 +132,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           entitlement: PlanEntitlementResponseData;
           allocation: number;
           quantity: number;
+          usage: number;
         }[],
         entitlement: PlanEntitlementResponseData,
       ) => {
@@ -138,11 +141,12 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           ((period === "month" && entitlement.meteredMonthlyPrice) ||
             (period === "year" && entitlement.meteredYearlyPrice))
         ) {
-          const allocation =
-            data.featureUsage?.features.find(
-              (usage) => usage.feature?.id === entitlement.feature?.id,
-            )?.allocation || 0;
-          acc.push({ entitlement, allocation, quantity: allocation });
+          const featureUsage = data.featureUsage?.features.find(
+            (usage) => usage.feature?.id === entitlement.feature?.id,
+          );
+          const allocation = featureUsage?.allocation || 0;
+          const usage = featureUsage?.usage || 0;
+          acc.push({ entitlement, allocation, quantity: allocation, usage });
         }
 
         return acc;
@@ -372,30 +376,40 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
   const updateUsageBasedEntitlementQuantity = useCallback(
     (id: string, updatedQuantity: number) => {
+      let shouldPreview = true;
       const entitlements = payInAdvanceEntitlements.map(
-        ({ entitlement, allocation, quantity }) =>
-          entitlement.id === id
-            ? {
-                entitlement,
-                allocation,
-                quantity: updatedQuantity,
-              }
-            : { entitlement, allocation, quantity },
+        ({ entitlement, allocation, quantity, usage }) => {
+          if (entitlement.id === id) {
+            if (updatedQuantity < usage) {
+              shouldPreview = false;
+            }
+
+            return {
+              entitlement,
+              allocation,
+              quantity: updatedQuantity,
+              usage,
+            };
+          }
+
+          return { entitlement, allocation, quantity, usage };
+        },
       );
 
       setUsageBasedEntitlements((prev) =>
-        prev.map(({ entitlement, allocation, quantity }) =>
+        prev.map(({ entitlement, allocation, quantity, usage }) =>
           entitlement.id === id
             ? {
                 entitlement,
                 allocation,
                 quantity: updatedQuantity,
+                usage,
               }
-            : { entitlement, allocation, quantity },
+            : { entitlement, allocation, quantity, usage },
         ),
       );
 
-      if (!selectedPlan) {
+      if (!selectedPlan || !shouldPreview) {
         return;
       }
 

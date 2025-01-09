@@ -27,7 +27,7 @@ export function useAvailablePlans(activePeriod: string) {
     (plans: CompanyPlanDetailResponseData[]) => {
       return (
         mode === "edit"
-          ? plans
+          ? plans.slice()
           : plans.filter(
               (plan) =>
                 (activePeriod === "month" && plan.monthlyPrice) ||

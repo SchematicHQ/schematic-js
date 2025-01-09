@@ -184,6 +184,7 @@ export const IncludedFeatures = forwardRef<
       )}
 
       {entitlements
+        .slice()
         .sort((a, b) => {
           if (
             a.featureUsage?.feature?.name &&
