@@ -96,10 +96,11 @@ export const PlanManager = forwardRef<
 
   // Can change plan if there is a publishable key, a current plan with a billing association, and
   // some active plans
-  const { addOns, canCheckout, currentPlan, featureUsage } = {
+  const { addOns, canCheckout, currentPlan, defaultPlan, featureUsage } = {
     addOns: data.company?.addOns || [],
     currentPlan: data.company?.plan,
     canCheckout: data.capabilities?.checkout ?? true,
+    defaultPlan: data.defaultPlan,
     featureUsage: data.featureUsage,
   };
 
@@ -171,7 +172,9 @@ export const PlanManager = forwardRef<
           >
             {data.trialPaymentMethodRequired
               ? t("After the trial, subscribe")
-              : t("After the trial, cancel")}
+              : (defaultPlan ? t("After the trial, cancel", {
+                  defaultPlanName: defaultPlan?.name,
+                }) : t("After the trial, cancel no default", { planName: currentPlan?.name }))}
           </Text>
         </Box>
       )}
