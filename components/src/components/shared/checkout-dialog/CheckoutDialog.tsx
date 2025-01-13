@@ -561,16 +561,15 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
               </Flex>
             )}
 
-            {activeCheckoutStage?.id !== "usage" &&
-              activeCheckoutStage?.id !== "checkout" && (
-                <PeriodToggle
-                  layerRef={modalRef}
-                  options={availablePeriods}
-                  selectedOption={planPeriod}
-                  selectedPlan={selectedPlan}
-                  onChange={changePlanPeriod}
-                />
-              )}
+            {checkoutStage === "plan" && (
+              <PeriodToggle
+                layerRef={modalRef}
+                options={availablePeriods}
+                selectedOption={planPeriod}
+                selectedPlan={selectedPlan}
+                onChange={changePlanPeriod}
+              />
+            )}
           </Flex>
 
           {checkoutStage === "plan" && (
