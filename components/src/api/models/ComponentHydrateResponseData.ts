@@ -13,6 +13,12 @@
  */
 
 import { mapValues } from "../runtime";
+import type { PlanDetailResponseData } from "./PlanDetailResponseData";
+import {
+  PlanDetailResponseDataFromJSON,
+  PlanDetailResponseDataFromJSONTyped,
+  PlanDetailResponseDataToJSON,
+} from "./PlanDetailResponseData";
 import type { CompanyPlanDetailResponseData } from "./CompanyPlanDetailResponseData";
 import {
   CompanyPlanDetailResponseDataFromJSON,
@@ -112,6 +118,12 @@ export interface ComponentHydrateResponseData {
   component?: ComponentResponseData;
   /**
    *
+   * @type {PlanDetailResponseData}
+   * @memberof ComponentHydrateResponseData
+   */
+  defaultPlan?: PlanDetailResponseData;
+  /**
+   *
    * @type {FeatureUsageDetailResponseData}
    * @memberof ComponentHydrateResponseData
    */
@@ -195,6 +207,10 @@ export function ComponentHydrateResponseDataFromJSONTyped(
       json["component"] == null
         ? undefined
         : ComponentResponseDataFromJSON(json["component"]),
+    defaultPlan:
+      json["default_plan"] == null
+        ? undefined
+        : PlanDetailResponseDataFromJSON(json["default_plan"]),
     featureUsage:
       json["feature_usage"] == null
         ? undefined
@@ -237,6 +253,7 @@ export function ComponentHydrateResponseDataToJSON(
     capabilities: ComponentCapabilitiesToJSON(value["capabilities"]),
     company: CompanyDetailResponseDataToJSON(value["company"]),
     component: ComponentResponseDataToJSON(value["component"]),
+    default_plan: PlanDetailResponseDataToJSON(value["defaultPlan"]),
     feature_usage: FeatureUsageDetailResponseDataToJSON(value["featureUsage"]),
     stripe_embed: StripeEmbedInfoToJSON(value["stripeEmbed"]),
     subscription: CompanySubscriptionResponseDataToJSON(value["subscription"]),
