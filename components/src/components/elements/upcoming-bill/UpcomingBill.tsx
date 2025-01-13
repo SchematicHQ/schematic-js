@@ -1,8 +1,9 @@
 import { forwardRef, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
+import { type BillingSubscriptionDiscountView } from "../../../api";
 import { type FontStyle } from "../../../context";
-import { useEmbed } from "../../../hooks";
+import { useEmbed, useIsLightBackground } from "../../../hooks";
 import type { RecursivePartial, ElementProps } from "../../../types";
 import { toPrettyDate, formatCurrency } from "../../../utils";
 import { Element } from "../../layout";
@@ -60,8 +61,33 @@ export const UpcomingBill = forwardRef<
 
   const { data } = useEmbed();
 
-  const { upcomingInvoice } = useMemo(() => {
+  const isLightBackground = useIsLightBackground();
+
+  const { upcomingInvoice, discounts } = useMemo(() => {
+    const discounts = (
+      (data.subscription?.discounts || []) as Pick<
+        BillingSubscriptionDiscountView,
+        "amountOff" | "customerFacingCode" | "isActive" | "percentOff"
+      >[]
+    )
+      .concat(
+        // TODO: remove this test data when ready
+        {
+          amountOff: undefined,
+          customerFacingCode: "TESTP20",
+          isActive: true,
+          percentOff: 20,
+        },
+      )
+      .map((discount) => ({
+        amountOff: discount.amountOff,
+        customerFacingCode: discount.customerFacingCode,
+        isActive: discount.isActive,
+        percentOff: discount.percentOff,
+      }));
+
     return {
+      discounts,
       upcomingInvoice: {
         ...(typeof data.upcomingInvoice?.amountDue === "number" && {
           amountDue: data.upcomingInvoice.amountDue,
@@ -129,6 +155,50 @@ export const UpcomingBill = forwardRef<
           >
             {t("Estimated bill.")}
           </Text>
+        </Box>
+      </Flex>
+
+      <Flex $justifyContent="space-between">
+        <Box>
+          <Text>{t("Discounts")}</Text>
+        </Box>
+        <Box>
+          {discounts.map((discount) => (
+            <Flex $alignItems="center" $gap="0.5rem">
+              <Flex
+                $alignItems="center"
+                $padding="0.1875rem 0.375rem"
+                $borderWidth="1px"
+                $borderStyle="solid"
+                $borderColor={
+                  isLightBackground
+                    ? "hsla(0, 0%, 0%, 0.15)"
+                    : "hsla(0, 0%, 100%, 0.15)"
+                }
+                $borderRadius="0.3125rem"
+              >
+                <Text
+                  $font={theme.typography.text.fontFamily}
+                  $size={0.75 * theme.typography.text.fontSize}
+                  $weight={theme.typography.text.fontWeight}
+                  $color={theme.typography.text.color}
+                >
+                  {discount.customerFacingCode}
+                </Text>
+              </Flex>
+
+              <Box>
+                <Text
+                  $font={theme.typography.text.fontFamily}
+                  $size={theme.typography.text.fontSize}
+                  $weight={theme.typography.text.fontWeight}
+                  $color={theme.typography.text.color}
+                >
+                  {t("Percent off", { percent: discount.percentOff })}
+                </Text>
+              </Box>
+            </Flex>
+          ))}
         </Box>
       </Flex>
     </Element>
