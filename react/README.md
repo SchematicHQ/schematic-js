@@ -65,7 +65,7 @@ const MyComponent = () => {
 };
 ```
 
-To check a flag, you can use the `useSchematicFlags` hook:
+To check a flag, you can use the `useSchematicFlag` hook:
 
 ```tsx
 import { useSchematicFlag } from "@schematichq/schematic-react";
