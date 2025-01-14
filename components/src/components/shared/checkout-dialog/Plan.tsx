@@ -316,14 +316,15 @@ export const Plan = ({
                                     </>
                                   ) : hasNumericValue ? (
                                     <>
-                                      {typeof entitlement.valueNumeric ===
-                                      "number"
-                                        ? `${formatNumber(entitlement.valueNumeric)} ${pluralize(entitlement.feature.name, entitlement.valueNumeric)}`
-                                        : t("Unlimited", {
+                                      {entitlement.valueType === "unlimited"
+                                        ? t("Unlimited", {
                                             item: pluralize(
                                               entitlement.feature.name,
                                             ),
-                                          })}
+                                          })
+                                        : typeof entitlement.valueNumeric ===
+                                            "number" &&
+                                          `${formatNumber(entitlement.valueNumeric)} ${pluralize(entitlement.feature.name, entitlement.valueNumeric)}`}
                                       {metricPeriodText && (
                                         <>
                                           {" "}

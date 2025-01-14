@@ -486,14 +486,15 @@ export const PricingTable = forwardRef<
                                         entitlement.valueType === "unlimited" ||
                                         entitlement.valueType === "trait" ? (
                                         <>
-                                          {typeof entitlement.valueNumeric ===
-                                          "number"
-                                            ? `${formatNumber(entitlement.valueNumeric)} ${pluralize(entitlement.feature.name, entitlement.valueNumeric)}`
-                                            : t("Unlimited", {
+                                          {entitlement.valueType === "unlimited"
+                                            ? t("Unlimited", {
                                                 item: pluralize(
                                                   entitlement.feature.name,
                                                 ),
-                                              })}
+                                              })
+                                            : typeof entitlement.valueNumeric ===
+                                                "number" &&
+                                              `${formatNumber(entitlement.valueNumeric)} ${pluralize(entitlement.feature.name, entitlement.valueNumeric)}`}
 
                                           {entitlement.metricPeriod && (
                                             <>
@@ -850,14 +851,16 @@ export const PricingTable = forwardRef<
                                         entitlement.valueType === "unlimited" ||
                                         entitlement.valueType === "trait" ? (
                                           <>
-                                            {typeof entitlement.valueNumeric ===
-                                            "number"
-                                              ? `${formatNumber(entitlement.valueNumeric)} ${pluralize(entitlement.feature.name, entitlement.valueNumeric)}`
-                                              : t("Unlimited", {
+                                            {entitlement.valueType ===
+                                            "unlimited"
+                                              ? t("Unlimited", {
                                                   item: pluralize(
                                                     entitlement.feature.name,
                                                   ),
-                                                })}
+                                                })
+                                              : typeof entitlement.valueNumeric ===
+                                                  "number" &&
+                                                `${formatNumber(entitlement.valueNumeric)} ${pluralize(entitlement.feature.name, entitlement.valueNumeric)}`}
                                             {entitlement.metricPeriod && (
                                               <>
                                                 {" "}
