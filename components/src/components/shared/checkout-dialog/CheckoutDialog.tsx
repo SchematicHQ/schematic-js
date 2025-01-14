@@ -118,7 +118,12 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
         const allocation = featureUsage?.allocation || 0;
         const usage = featureUsage?.usage || 0;
 
-        acc.push({ usageData, allocation, quantity: allocation, usage });
+        acc.push({
+          usageData,
+          allocation,
+          quantity: allocation ?? usage,
+          usage,
+        });
 
         return acc;
       },
@@ -146,7 +151,12 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           );
           const allocation = featureUsage?.allocation || 0;
           const usage = featureUsage?.usage || 0;
-          acc.push({ entitlement, allocation, quantity: allocation, usage });
+          acc.push({
+            entitlement,
+            allocation,
+            quantity: allocation ?? usage,
+            usage,
+          });
         }
 
         return acc;
