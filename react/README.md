@@ -69,11 +69,50 @@ To check a flag, you can use the `useSchematicFlag` hook:
 
 ```tsx
 import { useSchematicFlag } from "@schematichq/schematic-react";
+import { Feature, Fallback } from "./components";
 
 const MyComponent = () => {
     const isFeatureEnabled = useSchematicFlag("my-flag-key");
 
     return isFeatureEnabled ? <Feature /> : <Fallback />;
+};
+```
+
+For flags that are checking company access to a feature based on usage, you can render additional states using the `useSchematicFlagCheck` hook, e.g.:
+
+```tsx
+import {
+    useSchematicFlagCheck,
+    useSchematicIsPending,
+} from "@schematichq/schematic-react";
+import { Feature, Loader, NoAccess } from "./components";
+
+const MyComponent = () => {
+    const schematicIsPending = useSchematicIsPending();
+    const {
+        featureAllocation,
+        featureUsage,
+        featureUsageExceeded,
+        value: isFeatureEnabled,
+    } = useSchematicFlagCheck("my-flag-key");
+
+    // loading state
+    if (schematicIsPending) {
+        return <Loader />;
+    }
+
+    // usage exceeded state
+    if (featureUsageExceeded) {
+        return (
+            <div>
+                You have used all of your usage ({featureUsage} /{" "}
+                {featureAllocation})
+            </div>
+        );
+    }
+
+    // either feature or "no access" state
+    return isFeatureEnabled ? <Feature /> : <NoAccess />;
 };
 ```
 
