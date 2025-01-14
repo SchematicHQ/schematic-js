@@ -8,6 +8,7 @@ import {
   useAvailablePlans,
   useEmbed,
   useIsLightBackground,
+  useTrialEnd,
 } from "../../../hooks";
 import type { ElementProps, RecursivePartial } from "../../../types";
 import { formatCurrency, formatNumber, hexToHSL } from "../../../utils";
@@ -119,6 +120,8 @@ export const PricingTable = forwardRef<
   const theme = useTheme();
 
   const { data, setLayout, setSelected } = useEmbed();
+
+  const trialEndDays = useTrialEnd();
 
   const [selectedPeriod, setSelectedPeriod] = useState(
     () => data.company?.plan?.planPeriod || "month",
@@ -368,7 +371,9 @@ export const PricingTable = forwardRef<
                         $borderRadius="9999px"
                         $padding="0.125rem 0.85rem"
                       >
-                        {t("Active")}
+                        {trialEndDays
+                          ? t("Trial ends in", { days: trialEndDays })
+                          : t("Active")}
                       </Flex>
                     )}
                   </Flex>
@@ -481,14 +486,15 @@ export const PricingTable = forwardRef<
                                         entitlement.valueType === "unlimited" ||
                                         entitlement.valueType === "trait" ? (
                                         <>
-                                          {typeof entitlement.valueNumeric ===
-                                          "number"
-                                            ? `${formatNumber(entitlement.valueNumeric)} ${pluralize(entitlement.feature.name, entitlement.valueNumeric)}`
-                                            : t("Unlimited", {
+                                          {entitlement.valueType === "unlimited"
+                                            ? t("Unlimited", {
                                                 item: pluralize(
                                                   entitlement.feature.name,
                                                 ),
-                                              })}
+                                              })
+                                            : typeof entitlement.valueNumeric ===
+                                                "number" &&
+                                              `${formatNumber(entitlement.valueNumeric)} ${pluralize(entitlement.feature.name, entitlement.valueNumeric)}`}
 
                                           {entitlement.metricPeriod && (
                                             <>
@@ -845,14 +851,16 @@ export const PricingTable = forwardRef<
                                         entitlement.valueType === "unlimited" ||
                                         entitlement.valueType === "trait" ? (
                                           <>
-                                            {typeof entitlement.valueNumeric ===
-                                            "number"
-                                              ? `${formatNumber(entitlement.valueNumeric)} ${pluralize(entitlement.feature.name, entitlement.valueNumeric)}`
-                                              : t("Unlimited", {
+                                            {entitlement.valueType ===
+                                            "unlimited"
+                                              ? t("Unlimited", {
                                                   item: pluralize(
                                                     entitlement.feature.name,
                                                   ),
-                                                })}
+                                                })
+                                              : typeof entitlement.valueNumeric ===
+                                                  "number" &&
+                                                `${formatNumber(entitlement.valueNumeric)} ${pluralize(entitlement.feature.name, entitlement.valueNumeric)}`}
                                             {entitlement.metricPeriod && (
                                               <>
                                                 {" "}

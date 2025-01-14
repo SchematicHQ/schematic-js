@@ -111,8 +111,10 @@ export const Usage = ({ entitlements, updateQuantity, period }: UsageProps) => {
                   <Flex $flexDirection="column" $gap="0.5rem">
                     <Input
                       type="number"
-                      min={usage}
                       value={quantity}
+                      min={usage}
+                      autoFocus
+                      onFocus={(event) => event.target.select()}
                       onChange={(event) => {
                         event.preventDefault();
 

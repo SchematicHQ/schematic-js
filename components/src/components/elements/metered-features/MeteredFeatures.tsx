@@ -96,13 +96,6 @@ export const MeteredFeatures = forwardRef<
 
   const { planPeriod } = data.company?.plan || {};
 
-  // TODO: is there a better way to get the reset date?
-  let resetDate: Date | undefined;
-  if (data.subscription?.expiredAt) {
-    resetDate = new Date(data.subscription?.expiredAt);
-    resetDate.setDate(resetDate.getDate() + 1);
-  }
-
   const featureUsage = (
     props.visibleFeatures
       ? props.visibleFeatures.reduce((acc: FeatureUsageResponseData[], id) => {
@@ -147,6 +140,7 @@ export const MeteredFeatures = forwardRef<
             feature,
             usage,
             priceBehavior,
+            metricResetAt,
             monthlyUsageBasedPrice,
             yearlyUsageBasedPrice,
           },
@@ -295,9 +289,9 @@ export const MeteredFeatures = forwardRef<
                                   .color
                               }
                             >
-                              {priceBehavior && resetDate
+                              {priceBehavior && metricResetAt
                                 ? t("Resets", {
-                                    date: toPrettyDate(resetDate, {
+                                    date: toPrettyDate(metricResetAt, {
                                       month: "short",
                                       day: "numeric",
                                       year: undefined,
