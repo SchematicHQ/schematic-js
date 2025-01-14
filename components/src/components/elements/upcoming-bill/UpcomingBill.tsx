@@ -67,13 +67,18 @@ export const UpcomingBill = forwardRef<
     const discounts = (
       (data.subscription?.discounts || []) as Pick<
         BillingSubscriptionDiscountView,
-        "amountOff" | "customerFacingCode" | "isActive" | "percentOff"
+        | "amountOff"
+        | "couponId"
+        | "customerFacingCode"
+        | "isActive"
+        | "percentOff"
       >[]
     )
       .concat(
         // TODO: remove this test data when ready
         {
           amountOff: undefined,
+          couponId: "testp20",
           customerFacingCode: "TESTP20",
           isActive: true,
           percentOff: 20,
@@ -81,6 +86,7 @@ export const UpcomingBill = forwardRef<
       )
       .map((discount) => ({
         amountOff: discount.amountOff,
+        couponId: discount.couponId,
         customerFacingCode: discount.customerFacingCode,
         isActive: discount.isActive,
         percentOff: discount.percentOff,
@@ -164,7 +170,7 @@ export const UpcomingBill = forwardRef<
         </Box>
         <Box>
           {discounts.map((discount) => (
-            <Flex $alignItems="center" $gap="0.5rem">
+            <Flex key={discount.couponId} $alignItems="center" $gap="0.5rem">
               <Flex
                 $alignItems="center"
                 $padding="0.1875rem 0.375rem"

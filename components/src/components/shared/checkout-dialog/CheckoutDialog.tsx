@@ -12,6 +12,7 @@ import { loadStripe, type Stripe } from "@stripe/stripe-js";
 import type {
   CompanyPlanDetailResponseData,
   PlanEntitlementResponseData,
+  PreviewSubscriptionChangeResponseData,
   SetupIntentResponseData,
   UpdateAddOnRequestBody,
   UpdatePayInAdvanceRequestBody,
@@ -52,12 +53,8 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   const [planPeriod, setPlanPeriod] = useState(
     selected.period || data.company?.plan?.planPeriod || "month",
   );
-  const [charges, setCharges] = useState<{
-    dueNow: number;
-    newCharges: number;
-    proration: number;
-    periodStart: Date;
-  }>();
+  const [charges, setCharges] =
+    useState<PreviewSubscriptionChangeResponseData>();
   const [paymentMethodId, setPaymentMethodId] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | undefined>();
@@ -66,6 +63,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   );
   const [stripe, setStripe] = useState<Promise<Stripe | null> | null>(null);
   const [setupIntent, setSetupIntent] = useState<SetupIntentResponseData>();
+  const [promoCode, setPromoCode] = useState<string>();
 
   const {
     plans: availablePlans,
@@ -233,6 +231,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       addOns,
       entitlements,
       period,
+      discount,
     }: {
       plan: CompanyPlanDetailResponseData;
       addOns: (CompanyPlanDetailResponseData & { isSelected: boolean })[];
@@ -242,6 +241,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
         quantity: number;
       }[];
       period?: string;
+      discount?: string;
     }) => {
       const periodValue = period || planPeriod;
       const planPriceId =
@@ -251,6 +251,8 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       if (!api || !planPriceId) {
         return;
       }
+
+      const promoCodeValue = discount ?? promoCode;
 
       try {
         setError(undefined);
@@ -299,6 +301,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
               return acc;
             }, []),
             payInAdvance,
+            promoCode: promoCodeValue,
           },
         });
 
@@ -318,7 +321,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
         }
       }
     },
-    [t, api, planPeriod],
+    [t, api, planPeriod, promoCode],
   );
 
   const selectPlan = useCallback(
@@ -428,6 +431,31 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
         addOns,
         entitlements,
         period: planPeriod,
+      });
+    },
+    [
+      selectedPlan,
+      addOns,
+      payInAdvanceEntitlements,
+      planPeriod,
+      previewCheckout,
+    ],
+  );
+
+  const updatePromoCode = useCallback(
+    (code?: string) => {
+      setPromoCode(code);
+
+      if (!selectedPlan) {
+        return;
+      }
+
+      previewCheckout({
+        plan: selectedPlan,
+        addOns,
+        entitlements: payInAdvanceEntitlements,
+        period: planPeriod,
+        discount: code,
       });
     },
     [
@@ -619,6 +647,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
               stripe={stripe}
               setPaymentMethodId={(id) => setPaymentMethodId(id)}
               togglePaymentForm={() => setShowPaymentForm((prev) => !prev)}
+              updatePromoCode={(code) => updatePromoCode(code)}
             />
           )}
         </Flex>
@@ -635,12 +664,14 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           isLoading={isLoading}
           paymentMethodId={paymentMethodId}
           planPeriod={planPeriod}
+          promoCode={promoCode}
           selectedPlan={selectedPlan}
           setCheckoutStage={(stage) => setCheckoutStage(stage)}
           setError={(msg) => setError(msg)}
           setSetupIntent={(intent) => setSetupIntent(intent)}
           showPaymentForm={showPaymentForm}
           toggleLoading={() => setIsLoading((prev) => !prev)}
+          updatePromoCode={(code) => updatePromoCode(code)}
           usageBasedEntitlements={usageBasedEntitlements}
         />
       </Flex>

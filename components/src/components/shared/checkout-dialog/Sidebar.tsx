@@ -6,6 +6,7 @@ import type {
   CompanyPlanDetailResponseData,
   CompanyPlanWithBillingSubView,
   PlanEntitlementResponseData,
+  PreviewSubscriptionChangeResponseData,
   SetupIntentResponseData,
   UpdateAddOnRequestBody,
   UpdatePayInAdvanceRequestBody,
@@ -23,12 +24,7 @@ import { StageButton } from "./StageButton";
 
 interface SidebarProps {
   addOns: (CompanyPlanDetailResponseData & { isSelected: boolean })[];
-  charges?: {
-    dueNow: number;
-    newCharges: number;
-    proration: number;
-    periodStart: Date;
-  };
+  charges?: PreviewSubscriptionChangeResponseData;
   checkoutRef?: React.RefObject<HTMLDivElement>;
   checkoutStage: string;
   currentAddOns: CompanyPlanWithBillingSubView[];
@@ -42,12 +38,14 @@ interface SidebarProps {
   isLoading: boolean;
   paymentMethodId?: string;
   planPeriod: string;
+  promoCode?: string;
   selectedPlan?: CompanyPlanDetailResponseData & { isSelected: boolean };
   setCheckoutStage: (stage: string) => void;
   setError: (msg?: string) => void;
   setSetupIntent: (intent: SetupIntentResponseData | undefined) => void;
   showPaymentForm: boolean;
   toggleLoading: () => void;
+  updatePromoCode: (code?: string) => void;
   usageBasedEntitlements: {
     entitlement: PlanEntitlementResponseData;
     allocation: number;
@@ -68,12 +66,14 @@ export const Sidebar = ({
   isLoading,
   paymentMethodId,
   planPeriod,
+  promoCode,
   selectedPlan,
   setCheckoutStage,
   setError,
   setSetupIntent,
   showPaymentForm,
   toggleLoading,
+  updatePromoCode,
   usageBasedEntitlements,
 }: SidebarProps) => {
   const { t } = useTranslation();
@@ -200,6 +200,7 @@ export const Sidebar = ({
             [],
           ),
           ...(paymentMethodId && { paymentMethodId }),
+          ...(promoCode && { promoCode }),
         },
       });
       setLayout("success");
@@ -221,6 +222,7 @@ export const Sidebar = ({
     setLayout,
     toggleLoading,
     payInAdvanceEntitlements,
+    promoCode,
   ]);
 
   const selectedAddOns = addOns.filter((addOn) => addOn.isSelected);
@@ -793,6 +795,85 @@ export const Sidebar = ({
         $width="100%"
         $padding="1.5rem"
       >
+        {promoCode && (
+          <Flex $justifyContent="space-between" $gap="1rem">
+            <Box $opacity="0.625">
+              <Text
+                $font={theme.typography.text.fontFamily}
+                $size={theme.typography.text.fontSize}
+                $weight={theme.typography.text.fontWeight}
+                $color={theme.typography.text.color}
+              >
+                {t("Discount")}
+              </Text>
+            </Box>
+
+            <Flex
+              $alignItems="center"
+              $padding="0.1875rem 0.375rem"
+              $borderWidth="1px"
+              $borderStyle="solid"
+              $borderColor={
+                isLightBackground
+                  ? "hsla(0, 0%, 0%, 0.15)"
+                  : "hsla(0, 0%, 100%, 0.15)"
+              }
+              $borderRadius="0.3125rem"
+            >
+              <Text
+                $font={theme.typography.text.fontFamily}
+                $size={0.75 * theme.typography.text.fontSize}
+                $weight={theme.typography.text.fontWeight}
+                $color={theme.typography.text.color}
+              >
+                {promoCode}
+              </Text>
+
+              <Box
+                $cursor="pointer"
+                onClick={() => {
+                  updatePromoCode(undefined);
+                }}
+              >
+                <Icon
+                  name="close"
+                  style={{
+                    color: isLightBackground
+                      ? "hsl(0, 0%, 0%)"
+                      : "hsl(0, 0%, 100%)",
+                  }}
+                />
+              </Box>
+            </Flex>
+          </Flex>
+        )}
+
+        {typeof charges?.percentOff === "number" && charges.percentOff > 0 && (
+          <Flex $justifyContent="space-between" $gap="1rem">
+            <Box $opacity="0.625" $lineHeight={1.15}>
+              <Text
+                $font={theme.typography.text.fontFamily}
+                $size={theme.typography.text.fontSize}
+                $weight={theme.typography.text.fontWeight}
+                $color={theme.typography.text.color}
+              >
+                {t("X% off")}:
+              </Text>
+            </Box>
+
+            <Box>
+              <Text
+                $font={theme.typography.text.fontFamily}
+                $size={theme.typography.text.fontSize}
+                $weight={theme.typography.text.fontWeight}
+                $color={theme.typography.text.color}
+              >
+                -{formatCurrency(Math.abs(charges.amountOff))}
+              </Text>
+            </Box>
+          </Flex>
+        )}
+
         {selectedPlan && subscriptionPrice && (
           <Flex $justifyContent="space-between" $gap="1rem">
             <Box $opacity="0.625">
