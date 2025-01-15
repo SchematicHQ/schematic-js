@@ -1,4 +1,4 @@
-export type EventType = "identify" | "track";
+import { CreateEventRequestBody } from "./api/models";
 
 export type Keys = Record<string, string>;
 
@@ -10,44 +10,10 @@ export type SchematicContext = {
   user?: Keys;
 };
 
-export type EventBodyIdentify = {
-  company?: {
-    keys?: Keys;
-    name?: string;
-    traits?: Traits;
-  };
-  keys?: Keys;
-  name?: string;
-  traits?: Traits;
-};
-
-export type EventBodyTrack = SchematicContext & {
-  event: string;
-  traits?: Traits;
-};
-
-export type EventBody = EventBodyIdentify | EventBodyTrack;
-
-export type Event = {
+export type Event = CreateEventRequestBody & {
   api_key: string;
-  body: EventBody;
-  sent_at: string;
   tracker_event_id: string;
   tracker_user_id: string;
-  type: EventType;
-};
-
-export type FlagCheckResponseBody = {
-  company_id?: string;
-  error?: string;
-  reason: string;
-  rule_id?: string;
-  user_id?: string;
-  value: boolean;
-};
-
-export type FlagCheckWithKeyResponseBody = FlagCheckResponseBody & {
-  flag: string;
 };
 
 export type StoragePersister = {
