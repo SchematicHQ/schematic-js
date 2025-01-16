@@ -305,12 +305,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           },
         });
 
-        setCharges({
-          ...data,
-          promoCodeApplied: true,
-          percentOff: 20,
-          dueNow: 5000,
-        });
+        setCharges(data);
       } catch {
         setError(
           t("Error retrieving plan details. Please try again in a moment."),
