@@ -82,7 +82,11 @@ export const Usage = ({ entitlements, updateQuantity, period }: UsageProps) => {
                   $borderRadius={`${theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
                   {...(theme.card.hasShadow && { $boxShadow: cardBoxShadow })}
                 >
-                  <Flex $flexDirection="column" $gap="0.75rem">
+                  <Flex
+                    $flexDirection="column"
+                    $gap="0.75rem"
+                    $flexBasis={`calc(${100 / 3}% - 0.375rem)`}
+                  >
                     <Box>
                       <Text
                         $font={theme.typography.heading2.fontFamily}
@@ -108,8 +112,13 @@ export const Usage = ({ entitlements, updateQuantity, period }: UsageProps) => {
                     )}
                   </Flex>
 
-                  <Flex $flexDirection="column" $gap="0.5rem">
+                  <Flex
+                    $flexDirection="column"
+                    $gap="0.5rem"
+                    $flexBasis={`calc(${100 / 3}% - 0.375rem)`}
+                  >
                     <Input
+                      $size="lg"
                       type="number"
                       value={quantity}
                       min={usage}
@@ -147,7 +156,10 @@ export const Usage = ({ entitlements, updateQuantity, period }: UsageProps) => {
                     </Box>
                   </Flex>
 
-                  <Box>
+                  <Box
+                    $flexBasis={`calc(${100 / 3}% - 0.375rem)`}
+                    $textAlign="right"
+                  >
                     <Box $whiteSpace="nowrap">
                       <Text
                         $font={theme.typography.text.fontFamily}

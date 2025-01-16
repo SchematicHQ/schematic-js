@@ -29,6 +29,7 @@
     "Edit payment method": "Edit payment method",
     "Edit": "Edit",
     "Ends on": "Ends on {{date}}",
+    "Enter discount code": "Enter discount code",
     "Error initializing payment method change. Please try again.": "Error initializing payment method change. Please try again.",
     "Error processing payment. Please try a different payment method.": "Error processing payment. Please try a different payment method.",
     "Error retrieving plan details. Please try again in a moment.": "Error retrieving plan details. Please try again in a moment.",
@@ -76,6 +77,8 @@
     "Usage": "Usage",
     "Usage-based": "Usage-based",
     "Use existing payment method": "Use existing payment method",
+    "X% off": "{{percent}}% off",
+    "X off": "{{amount}} off",
     "Yearly": "Yearly",
 
     "day": "day",

@@ -102,13 +102,33 @@ export const IncludedFeatures = forwardRef<
   }[] = (
     props.visibleFeatures
       ? props.visibleFeatures
-      : data.featureUsage?.features.reduce((acc: string[], usage) => {
-          if (usage.feature?.id) {
-            acc.push(usage.feature.id);
-          }
+      : data.featureUsage?.features
+          .sort((a, b) => {
+            if (
+              a.feature?.name &&
+              b.feature?.name &&
+              a.feature?.name > b.feature?.name
+            ) {
+              return 1;
+            }
 
-          return acc;
-        }, []) || []
+            if (
+              a.feature?.name &&
+              b.feature?.name &&
+              a.feature?.name < b.feature?.name
+            ) {
+              return -1;
+            }
+
+            return 0;
+          })
+          .reduce((acc: string[], usage) => {
+            if (usage.feature?.id) {
+              acc.push(usage.feature.id);
+            }
+
+            return acc;
+          }, []) || []
   ).reduce(
     (
       acc: {
@@ -183,114 +203,92 @@ export const IncludedFeatures = forwardRef<
         </Box>
       )}
 
-      {entitlements
-        .slice()
-        .sort((a, b) => {
-          if (
-            a.featureUsage?.feature?.name &&
-            b.featureUsage?.feature?.name &&
-            a.featureUsage?.feature?.name > b.featureUsage?.feature?.name
-          ) {
-            return 1;
-          }
+      {entitlements.slice(0, showCount).map((entitlement, index) => {
+        const { entitlementExpirationDate, feature } =
+          entitlement.featureUsage || {};
+        const shouldShowDetails =
+          feature?.name &&
+          (feature?.featureType === "event" ||
+            feature?.featureType === "trait");
 
-          if (
-            a.featureUsage?.feature?.name &&
-            b.featureUsage?.feature?.name &&
-            a.featureUsage?.feature?.name < b.featureUsage?.feature?.name
-          ) {
-            return -1;
-          }
-
-          return 0;
-        })
-        .slice(0, showCount)
-        .map((entitlement, index) => {
-          const { entitlementExpirationDate, feature } =
-            entitlement.featureUsage || {};
-          const shouldShowDetails =
-            feature?.name &&
-            (feature?.featureType === "event" ||
-              feature?.featureType === "trait");
-
-          return (
+        return (
+          <Flex
+            key={index}
+            ref={(el) => el && elements.current.push(el)}
+            $flexWrap="wrap"
+            $justifyContent="space-between"
+            $alignItems="center"
+            $gap="1rem"
+          >
             <Flex
-              key={index}
-              ref={(el) => el && elements.current.push(el)}
-              $flexWrap="wrap"
-              $justifyContent="space-between"
               $alignItems="center"
+              $flexGrow="1"
+              $flexBasis="min-content"
               $gap="1rem"
             >
-              <Flex
-                $alignItems="center"
-                $flexGrow="1"
-                $flexBasis="min-content"
-                $gap="1rem"
-              >
-                {props.icons.isVisible && feature?.icon && (
-                  <IconRound
-                    name={feature.icon as IconNameTypes | string}
-                    size="sm"
-                    colors={[
-                      theme.primary,
-                      isLightBackground
-                        ? "hsla(0, 0%, 0%, 0.0625)"
-                        : "hsla(0, 0%, 100%, 0.25)",
-                    ]}
-                  />
-                )}
-
-                {feature?.name && (
-                  <Text
-                    $font={theme.typography[props.icons.fontStyle].fontFamily}
-                    $size={theme.typography[props.icons.fontStyle].fontSize}
-                    $weight={theme.typography[props.icons.fontStyle].fontWeight}
-                    $color={theme.typography[props.icons.fontStyle].color}
-                  >
-                    {feature.name}
-                  </Text>
-                )}
-
-                {props.entitlementExpiration.isVisible &&
-                  entitlementExpirationDate && (
-                    <Text
-                      $font={
-                        theme.typography[props.entitlementExpiration.fontStyle]
-                          .fontFamily
-                      }
-                      $size={
-                        theme.typography[props.entitlementExpiration.fontStyle]
-                          .fontSize
-                      }
-                      $weight={
-                        theme.typography[props.entitlementExpiration.fontStyle]
-                          .fontWeight
-                      }
-                      $leading={1}
-                      $color={
-                        theme.typography[props.entitlementExpiration.fontStyle]
-                          .color
-                      }
-                    >
-                      Expires{" "}
-                      {toPrettyDate(entitlementExpirationDate, {
-                        month: "short",
-                      })}
-                    </Text>
-                  )}
-              </Flex>
-
-              {shouldShowDetails && (
-                <Details
-                  details={entitlement}
-                  shouldWrapChildren={shouldWrapChildren}
-                  {...props}
+              {props.icons.isVisible && feature?.icon && (
+                <IconRound
+                  name={feature.icon as IconNameTypes | string}
+                  size="sm"
+                  colors={[
+                    theme.primary,
+                    isLightBackground
+                      ? "hsla(0, 0%, 0%, 0.0625)"
+                      : "hsla(0, 0%, 100%, 0.25)",
+                  ]}
                 />
               )}
+
+              {feature?.name && (
+                <Text
+                  $font={theme.typography[props.icons.fontStyle].fontFamily}
+                  $size={theme.typography[props.icons.fontStyle].fontSize}
+                  $weight={theme.typography[props.icons.fontStyle].fontWeight}
+                  $color={theme.typography[props.icons.fontStyle].color}
+                >
+                  {feature.name}
+                </Text>
+              )}
+
+              {props.entitlementExpiration.isVisible &&
+                entitlementExpirationDate && (
+                  <Text
+                    $font={
+                      theme.typography[props.entitlementExpiration.fontStyle]
+                        .fontFamily
+                    }
+                    $size={
+                      theme.typography[props.entitlementExpiration.fontStyle]
+                        .fontSize
+                    }
+                    $weight={
+                      theme.typography[props.entitlementExpiration.fontStyle]
+                        .fontWeight
+                    }
+                    $leading={1}
+                    $color={
+                      theme.typography[props.entitlementExpiration.fontStyle]
+                        .color
+                    }
+                  >
+                    Expires{" "}
+                    {toPrettyDate(entitlementExpirationDate, {
+                      month: "short",
+                    })}
+                  </Text>
+                )}
             </Flex>
-          );
-        })}
+
+            {shouldShowDetails && (
+              <Details
+                details={entitlement}
+                shouldWrapChildren={shouldWrapChildren}
+                {...props}
+              />
+            )}
+          </Flex>
+        );
+      })}
 
       {shouldShowExpand && (
         <Flex $alignItems="center" $justifyContent="start" $marginTop="1rem">

@@ -796,7 +796,11 @@ export const Sidebar = ({
         $padding="1.5rem"
       >
         {promoCode && (
-          <Flex $justifyContent="space-between" $gap="1rem">
+          <Flex
+            $justifyContent="space-between"
+            $alignItems="center"
+            $gap="1rem"
+          >
             <Box $opacity="0.625">
               <Text
                 $font={theme.typography.text.fontFamily}
@@ -810,10 +814,10 @@ export const Sidebar = ({
 
             <Flex
               $alignItems="center"
-              $padding="0.1875rem 0.375rem"
-              $borderWidth="1px"
-              $borderStyle="solid"
-              $borderColor={
+              $padding="0 0.375rem"
+              $outlineWidth="1px"
+              $outlineStyle="solid"
+              $outlineColor={
                 isLightBackground
                   ? "hsla(0, 0%, 0%, 0.15)"
                   : "hsla(0, 0%, 100%, 0.15)"
@@ -849,7 +853,11 @@ export const Sidebar = ({
         )}
 
         {typeof charges?.percentOff === "number" && charges.percentOff > 0 && (
-          <Flex $justifyContent="space-between" $gap="1rem">
+          <Flex
+            $justifyContent="space-between"
+            $alignItems="center"
+            $gap="1rem"
+          >
             <Box $opacity="0.625" $lineHeight={1.15}>
               <Text
                 $font={theme.typography.text.fontFamily}
@@ -857,7 +865,42 @@ export const Sidebar = ({
                 $weight={theme.typography.text.fontWeight}
                 $color={theme.typography.text.color}
               >
-                {t("X% off")}:
+                {t("X% off", { percent: charges.percentOff })}
+              </Text>
+            </Box>
+
+            <Box>
+              <Text
+                $font={theme.typography.text.fontFamily}
+                $size={theme.typography.text.fontSize}
+                $weight={theme.typography.text.fontWeight}
+                $color={theme.typography.text.color}
+              >
+                {formatCurrency(
+                  charges.dueNow *
+                    (1 - 1 / (1 - Math.abs(charges.percentOff / 100))),
+                )}
+              </Text>
+            </Box>
+          </Flex>
+        )}
+
+        {typeof charges?.amountOff === "number" && charges.amountOff > 0 && (
+          <Flex
+            $justifyContent="space-between"
+            $alignItems="center"
+            $gap="1rem"
+          >
+            <Box $opacity="0.625" $lineHeight={1.15}>
+              <Text
+                $font={theme.typography.text.fontFamily}
+                $size={theme.typography.text.fontSize}
+                $weight={theme.typography.text.fontWeight}
+                $color={theme.typography.text.color}
+              >
+                {t("X off", {
+                  amount: formatCurrency(Math.abs(charges.amountOff)),
+                })}
               </Text>
             </Box>
 
@@ -875,7 +918,11 @@ export const Sidebar = ({
         )}
 
         {selectedPlan && subscriptionPrice && (
-          <Flex $justifyContent="space-between" $gap="1rem">
+          <Flex
+            $justifyContent="space-between"
+            $alignItems="center"
+            $gap="1rem"
+          >
             <Box $opacity="0.625">
               <Text
                 $font={theme.typography.text.fontFamily}
@@ -902,7 +949,11 @@ export const Sidebar = ({
         )}
 
         {charges && (
-          <Flex $justifyContent="space-between" $gap="1rem">
+          <Flex
+            $justifyContent="space-between"
+            $alignItems="center"
+            $gap="1rem"
+          >
             <Box $opacity="0.625">
               <Text
                 $font={theme.typography.text.fontFamily}

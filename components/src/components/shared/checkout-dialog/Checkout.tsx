@@ -118,35 +118,49 @@ export const Checkout = ({
             </Text>
 
             <Flex
-              $justifyContent="space-between"
               $alignItems="center"
+              $gap="1rem"
               $backgroundColor={
                 isLightBackground
                   ? "hsla(0, 0%, 0%, 0.0625)"
                   : "hsla(0, 0%, 100%, 0.125)"
               }
-              $padding="0.5rem 1rem"
               $borderRadius="9999px"
             >
-              <Input
-                type="text"
-                value={discount}
-                onChange={(event) => {
-                  const value = event.target.value;
-                  setDiscount(value);
-                }}
-              />
+              <Box $flexGrow={1}>
+                <Input
+                  $size="full"
+                  $color="secondary"
+                  $variant="text"
+                  type="text"
+                  placeholder={t("Enter discount code")}
+                  value={discount}
+                  onChange={(event) => {
+                    const value = event.target.value;
+                    setDiscount(value);
+                  }}
+                  style={{
+                    backgroundColor: "transparent",
+                    border: "none",
+                    borderRadius: "9999px",
+                    maxWidth: "100%",
+                    padding: "0.5rem 1rem",
+                  }}
+                />
+              </Box>
 
-              <Text
-                onClick={() => updatePromoCode(discount)}
-                $font={theme.typography.link.fontFamily}
-                $size={theme.typography.link.fontSize}
-                $weight={theme.typography.link.fontWeight}
-                $leading={1}
-                $color={theme.typography.link.color}
-              >
-                {t("Apply discount")}
-              </Text>
+              <Box $flexShrink={0} $padding="0.5rem 1rem">
+                <Text
+                  onClick={() => updatePromoCode(discount)}
+                  $font={theme.typography.link.fontFamily}
+                  $size={theme.typography.link.fontSize}
+                  $weight={theme.typography.link.fontWeight}
+                  $leading={1}
+                  $color={theme.typography.link.color}
+                >
+                  {t("Apply discount")}
+                </Text>
+              </Box>
             </Flex>
           </Flex>
         </>
