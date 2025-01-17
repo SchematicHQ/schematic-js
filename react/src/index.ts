@@ -7,6 +7,7 @@ import {
   useSchematicContext,
   useSchematicEvents,
   useSchematicFlag,
+  useSchematicFlagCheck,
   useSchematicIsPending,
   type SchematicHookOpts,
   type UseSchematicFlagOpts,
@@ -17,22 +18,22 @@ export {
   useSchematicContext,
   useSchematicEvents,
   useSchematicFlag,
+  useSchematicFlagCheck,
   useSchematicIsPending,
   SchematicProvider,
 };
 
 export type { SchematicHookOpts, SchematicProviderProps, UseSchematicFlagOpts };
 
-export { Schematic } from "@schematichq/schematic-js";
+export { RuleType, Schematic, UsagePeriod } from "@schematichq/schematic-js";
 
 export type {
+  CheckFlagReturn,
   Event,
   EventBody,
   EventBodyIdentify,
   EventBodyTrack,
   EventType,
-  FlagCheckResponseBody,
-  FlagCheckWithKeyResponseBody,
   Keys,
   SchematicContext,
   SchematicOptions,

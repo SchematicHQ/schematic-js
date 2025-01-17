@@ -52,7 +52,10 @@ export const useSchematicEvents = (opts?: SchematicHookOpts) => {
   return useMemo(() => ({ track, identify }), [track, identify]);
 };
 
-export const useSchematicFlag = (key: string, opts?: UseSchematicFlagOpts) => {
+export const useSchematicFlag = (
+  key: string,
+  opts?: UseSchematicFlagOpts,
+): boolean => {
   const client = useSchematicClient(opts);
   const fallback = opts?.fallback ?? false;
 
@@ -65,6 +68,35 @@ export const useSchematicFlag = (key: string, opts?: UseSchematicFlagOpts) => {
     const value = client.getFlagValue(key);
     return typeof value === "undefined" ? fallback : value;
   }, [client, key, fallback]);
+
+  return useSyncExternalStore(subscribe, getSnapshot);
+};
+
+export const useSchematicFlagCheck = (
+  key: string,
+  opts?: UseSchematicFlagOpts,
+): SchematicJS.CheckFlagReturn => {
+  const client = useSchematicClient(opts);
+  const fallback = opts?.fallback ?? false;
+
+  const fallbackCheck = useMemo(
+    () => ({
+      flag: key,
+      reason: "Fallback",
+      value: fallback,
+    }),
+    [key, fallback],
+  );
+
+  const subscribe = useCallback(
+    (callback: () => void) => client.addFlagCheckListener(key, callback),
+    [client, key],
+  );
+
+  const getSnapshot = useCallback(() => {
+    const check = client.getFlagCheck(key);
+    return check ?? fallbackCheck;
+  }, [client, key, fallbackCheck]);
 
   return useSyncExternalStore(subscribe, getSnapshot);
 };
