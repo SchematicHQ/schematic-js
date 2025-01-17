@@ -3,15 +3,22 @@ import * as uuid from "uuid";
 import "cross-fetch/polyfill";
 import {
   BooleanListenerFn,
-  ListenerFn,
-  EmptyListenerFn,
+  CheckFlagResponseData,
+  CheckFlagResponseFromJSON,
+  CheckFlagReturn,
+  CheckFlagReturnFromJSON,
+  CheckFlagReturnListenerFn,
+  CheckFlagsResponseFromJSON,
   CheckOptions,
+  EmptyListenerFn,
   Event,
   EventBody,
   EventBodyIdentify,
   EventBodyTrack,
   EventType,
-  FlagCheckWithKeyResponseBody,
+  FlagCheckListenerFn,
+  FlagValueListenerFn,
+  PendingListenerFn,
   SchematicContext,
   SchematicOptions,
   StoragePersister,
@@ -29,20 +36,19 @@ export class Schematic {
   private context: SchematicContext = {};
   private eventQueue: Event[];
   private eventUrl = "https://c.schematichq.com";
-  private flagListener?: (values: Record<string, boolean>) => void;
-  private flagValueListeners: Record<string, Set<ListenerFn>> = {};
+  private flagCheckListeners: Record<string, Set<FlagCheckListenerFn>> = {};
+  private flagValueListeners: Record<string, Set<FlagValueListenerFn>> = {};
   private isPending: boolean = true;
-  private isPendingListeners: Set<ListenerFn> = new Set();
+  private isPendingListeners: Set<PendingListenerFn> = new Set();
   private storage: StoragePersister | undefined;
   private useWebSocket: boolean = false;
-  private values: Record<string, Record<string, boolean>> = {};
+  private checks: Record<string, Record<string, CheckFlagReturn>> = {};
   private webSocketUrl = "wss://api.schematichq.com";
 
   constructor(apiKey: string, options?: SchematicOptions) {
     this.apiKey = apiKey;
     this.eventQueue = [];
     this.useWebSocket = options?.useWebSocket ?? false;
-    this.flagListener = options?.flagListener;
 
     if (options?.additionalHeaders) {
       this.additionalHeaders = options.additionalHeaders;
@@ -103,8 +109,8 @@ export class Schematic {
           }
           return response.json();
         })
-        .then((data) => {
-          return data.data.value;
+        .then((response) => {
+          return CheckFlagResponseFromJSON(response).data.value;
         })
         .catch((error) => {
           console.error("There was a problem with the fetch operation:", error);
@@ -114,13 +120,13 @@ export class Schematic {
 
     try {
       // If we have an active connection, return a cached value if available
-      const existingVals = this.values[contextStr];
+      const existingVals = this.checks[contextStr];
       if (
         this.conn &&
         typeof existingVals !== "undefined" &&
         typeof existingVals[key] !== "undefined"
       ) {
-        return existingVals[key];
+        return existingVals[key].value;
       }
 
       // If we don't have values or connection is closed, we need to fetch them
@@ -135,10 +141,8 @@ export class Schematic {
       }
 
       // After setting context and getting a response, return the value
-      const contextVals = this.values[contextStr] ?? {};
-      return typeof contextVals[key] === "undefined"
-        ? fallback
-        : contextVals[key];
+      const contextVals = this.checks[contextStr] ?? {};
+      return contextVals[key]?.value ?? fallback;
     } catch (error) {
       console.error("Unexpected error in checkFlag:", error);
       return fallback;
@@ -169,8 +173,8 @@ export class Schematic {
         throw new Error("Network response was not ok");
       }
 
-      const data = await response.json();
-      return data.data.value;
+      const data = CheckFlagResponseFromJSON(await response.json());
+      return data?.data?.value ?? false;
     } catch (error) {
       console.error("REST API call failed, using fallback value:", error);
       return fallback;
@@ -201,14 +205,13 @@ export class Schematic {
         if (!response.ok) {
           throw new Error("Network response was not ok");
         }
+
         return response.json();
       })
-      .then((data) => {
-        return (data?.data?.flags ?? []).reduce(
-          (
-            accum: Record<string, boolean>,
-            flag: FlagCheckWithKeyResponseBody,
-          ) => {
+      .then((responseJson) => {
+        const resp = CheckFlagsResponseFromJSON(responseJson);
+        return (resp?.data?.flags ?? []).reduce(
+          (accum: Record<string, boolean>, flag: CheckFlagResponseData) => {
             accum[flag.flag] = flag.value;
             return accum;
           },
@@ -217,7 +220,7 @@ export class Schematic {
       })
       .catch((error) => {
         console.error("There was a problem with the fetch operation:", error);
-        return false;
+        return {};
       });
   };
 
@@ -415,23 +418,19 @@ export class Schematic {
         const messageHandler = (event: MessageEvent) => {
           const message = JSON.parse(event.data);
 
-          // Initialize flag values for context
-          if (!(contextString(context) in this.values)) {
-            this.values[contextString(context)] = {};
+          // Initialize flag checks for context
+          if (!(contextString(context) in this.checks)) {
+            this.checks[contextString(context)] = {};
           }
 
           // Message may contain only a subset of flags; merge with existing context
-          (message.flags ?? []).forEach(
-            (flag: FlagCheckWithKeyResponseBody) => {
-              this.values[contextString(context)][flag.flag] = flag.value;
-              this.notifyFlagValueListeners(flag.flag, flag.value);
-            },
-          );
-
-          // Notify flag listener (deprecating soon)
-          if (this.flagListener) {
-            this.flagListener(this.getFlagValues());
-          }
+          /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+          (message.flags ?? []).forEach((flag: any) => {
+            const flagCheck = CheckFlagReturnFromJSON(flag);
+            this.checks[contextString(context)][flagCheck.flag] = flagCheck;
+            this.notifyFlagCheckListeners(flag.flag, flagCheck);
+            this.notifyFlagValueListeners(flag.flag, flagCheck.value);
+          });
 
           // Update pending state
           this.setIsPending(false);
@@ -475,7 +474,7 @@ export class Schematic {
     return this.isPending;
   };
 
-  addIsPendingListener = (listener: ListenerFn) => {
+  addIsPendingListener = (listener: PendingListenerFn) => {
     this.isPendingListeners.add(listener);
     return () => {
       this.isPendingListeners.delete(listener);
@@ -485,22 +484,25 @@ export class Schematic {
   private setIsPending = (isPending: boolean) => {
     this.isPending = isPending;
     this.isPendingListeners.forEach((listener) =>
-      notifyListener(listener, isPending),
+      notifyPendingListener(listener, isPending),
     );
+  };
+
+  // flag checks state
+  getFlagCheck = (flagKey: string) => {
+    const contextStr = contextString(this.context);
+    const checks = this.checks[contextStr] ?? {};
+    return checks[flagKey];
   };
 
   // flagValues state
   getFlagValue = (flagKey: string) => {
-    const values = this.getFlagValues();
-    return values[flagKey];
+    const check = this.getFlagCheck(flagKey);
+    return check?.value;
   };
 
-  getFlagValues = () => {
-    const contextStr = contextString(this.context);
-    return this.values[contextStr] ?? {};
-  };
-
-  addFlagValueListener = (flagKey: string, listener: ListenerFn) => {
+  /** Register an event listener that will be notified with the boolean value for a given flag when this value changes */
+  addFlagValueListener = (flagKey: string, listener: FlagValueListenerFn) => {
     if (!(flagKey in this.flagValueListeners)) {
       this.flagValueListeners[flagKey] = new Set();
     }
@@ -512,13 +514,56 @@ export class Schematic {
     };
   };
 
+  /** Register an event listener that will be notified with the full flag check response for a given flag whenever this value changes */
+  addFlagCheckListener = (flagKey: string, listener: FlagCheckListenerFn) => {
+    if (!(flagKey in this.flagCheckListeners)) {
+      this.flagCheckListeners[flagKey] = new Set();
+    }
+
+    this.flagCheckListeners[flagKey].add(listener);
+
+    return () => {
+      this.flagCheckListeners[flagKey].delete(listener);
+    };
+  };
+
+  private notifyFlagCheckListeners = (
+    flagKey: string,
+    check: CheckFlagReturn,
+  ) => {
+    const listeners = this.flagCheckListeners?.[flagKey] ?? [];
+    listeners.forEach((listener) => notifyFlagCheckListener(listener, check));
+  };
+
   private notifyFlagValueListeners = (flagKey: string, value: boolean) => {
     const listeners = this.flagValueListeners?.[flagKey] ?? [];
-    listeners.forEach((listener) => notifyListener(listener, value));
+    listeners.forEach((listener) => notifyFlagValueListener(listener, value));
   };
 }
 
-const notifyListener = (listener: ListenerFn, value: boolean) => {
+const notifyPendingListener = (listener: PendingListenerFn, value: boolean) => {
+  if (listener.length > 0) {
+    (listener as BooleanListenerFn)(value);
+  } else {
+    (listener as EmptyListenerFn)();
+  }
+};
+
+const notifyFlagCheckListener = (
+  listener: FlagCheckListenerFn,
+  value: CheckFlagReturn,
+) => {
+  if (listener.length > 0) {
+    (listener as CheckFlagReturnListenerFn)(value);
+  } else {
+    (listener as EmptyListenerFn)();
+  }
+};
+
+const notifyFlagValueListener = (
+  listener: FlagValueListenerFn,
+  value: boolean,
+) => {
   if (listener.length > 0) {
     (listener as BooleanListenerFn)(value);
   } else {
