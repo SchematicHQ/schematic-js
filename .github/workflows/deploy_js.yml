@@ -75,8 +75,8 @@ jobs:
 
       - name: Deploy browser build
         run: |
-          aws s3 cp --acl=public-read dist/schematic.browser.js s3://${{ vars.PROD_JS_BUCKET_NAME }}/js/schematic.js
-          aws s3 cp --acl=public-read dist/schematic.browser.js s3://${{ vars.PROD_JS_BUCKET_NAME }}/js/schematic.${{ steps.package.outputs.version }}.js
+          aws s3 cp dist/schematic.browser.js s3://${{ vars.PROD_JS_BUCKET_NAME }}/js/schematic.js
+          aws s3 cp dist/schematic.browser.js s3://${{ vars.PROD_JS_BUCKET_NAME }}/js/schematic.${{ steps.package.outputs.version }}.js
           aws configure set preview.cloudfront true
           aws cloudfront create-invalidation --distribution-id ${{ vars.PROD_JS_DISTRIBUTION_ID }} --paths "/js/schematic.js" "/js/schematic.${{ steps.package.outputs.version }}.js"
         working-directory: ./js
