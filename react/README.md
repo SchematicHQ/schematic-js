@@ -14,6 +14,8 @@ pnpm add @schematichq/schematic-react
 
 ## Usage
 
+### SchematicProvider
+
 You can use the `SchematicProvider` to wrap your application and provide the Schematic instance to all components:
 
 ```tsx
@@ -26,6 +28,8 @@ ReactDOM.render(
     document.getElementById("root"),
 );
 ```
+
+### Setting context
 
 To set the user context for events and flag checks, you can use the `identify` function provided by the `useSchematicEvents` hook:
 
@@ -49,6 +53,8 @@ const MyComponent = () => {
 };
 ```
 
+### Tracking usage
+
 Once you've set the context with `identify`, you can track events:
 
 ```tsx
@@ -65,6 +71,8 @@ const MyComponent = () => {
 };
 ```
 
+### Checking flags
+
 To check a flag, you can use the `useSchematicFlag` hook:
 
 ```tsx
@@ -78,11 +86,13 @@ const MyComponent = () => {
 };
 ```
 
-For flags that are checking company access to a feature based on usage, you can render additional states using the `useSchematicFlagCheck` hook, e.g.:
+### Checking flags
+
+You can check entitlements (i.e., company access to a feature) using a flag check as well, and using the `useSchematicEntitlement` hook you can get additional data to render various feature states:
 
 ```tsx
 import {
-    useSchematicFlagCheck,
+    useSchematicEntitlement,
     useSchematicIsPending,
 } from "@schematichq/schematic-react";
 import { Feature, Loader, NoAccess } from "./components";
@@ -94,7 +104,7 @@ const MyComponent = () => {
         featureUsage,
         featureUsageExceeded,
         value: isFeatureEnabled,
-    } = useSchematicFlagCheck("my-flag-key");
+    } = useSchematicEntitlement("my-flag-key");
 
     // loading state
     if (schematicIsPending) {
@@ -111,7 +121,7 @@ const MyComponent = () => {
         );
     }
 
-    // either feature or "no access" state
+    // either feature state or "no access" state
     return isFeatureEnabled ? <Feature /> : <NoAccess />;
 };
 ```

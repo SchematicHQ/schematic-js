@@ -72,7 +72,7 @@ export const useSchematicFlag = (
   return useSyncExternalStore(subscribe, getSnapshot);
 };
 
-export const useSchematicFlagCheck = (
+export const useSchematicEntitlement = (
   key: string,
   opts?: UseSchematicFlagOpts,
 ): SchematicJS.CheckFlagReturn => {
