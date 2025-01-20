@@ -5,9 +5,9 @@ import {
 } from "./context";
 import {
   useSchematicContext,
+  useSchematicEntitlement,
   useSchematicEvents,
   useSchematicFlag,
-  useSchematicFlagCheck,
   useSchematicIsPending,
   type SchematicHookOpts,
   type UseSchematicFlagOpts,
@@ -16,9 +16,9 @@ import {
 export {
   useSchematic,
   useSchematicContext,
+  useSchematicEntitlement,
   useSchematicEvents,
   useSchematicFlag,
-  useSchematicFlagCheck,
   useSchematicIsPending,
   SchematicProvider,
 };
