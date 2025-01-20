@@ -86,7 +86,7 @@ const MyComponent = () => {
 };
 ```
 
-### Checking flags
+### Checking entitlements
 
 You can check entitlements (i.e., company access to a feature) using a flag check as well, and using the `useSchematicEntitlement` hook you can get additional data to render various feature states:
 
