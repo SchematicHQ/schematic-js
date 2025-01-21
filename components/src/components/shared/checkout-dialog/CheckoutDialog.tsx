@@ -151,26 +151,30 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     [planPeriod, data.featureUsage?.features],
   );
 
-  const [usageBasedEntitlements, setUsageBasedEntitlements] = useState(() => {
-    return (selectedPlan?.entitlements || []).reduce(
+  const [usageBasedEntitlements, setUsageBasedEntitlements] = useState(() =>
+    (selectedPlan?.entitlements || []).reduce(
       createActiveUsageBasedEntitlementsReducer(),
       [],
-    );
-  });
+    ),
+  );
 
-  const currentPlan = useMemo(() => {
-    return availablePlans.find(
-      (plan) =>
-        plan.id === data.company?.plan?.id &&
-        data.company?.plan.planPeriod === planPeriod,
-    );
-  }, [data.company?.plan, planPeriod, availablePlans]);
+  const currentPlan = useMemo(
+    () =>
+      availablePlans.find(
+        (plan) =>
+          plan.id === data.company?.plan?.id &&
+          data.company?.plan.planPeriod === planPeriod,
+      ),
+    [data.company?.plan, planPeriod, availablePlans],
+  );
 
-  const payInAdvanceEntitlements = useMemo(() => {
-    return usageBasedEntitlements.filter(
-      ({ entitlement }) => entitlement.priceBehavior === "pay_in_advance",
-    );
-  }, [usageBasedEntitlements]);
+  const payInAdvanceEntitlements = useMemo(
+    () =>
+      usageBasedEntitlements.filter(
+        ({ entitlement }) => entitlement.priceBehavior === "pay_in_advance",
+      ),
+    [usageBasedEntitlements],
+  );
 
   const checkoutStages = useMemo(() => {
     const stages: {

@@ -71,7 +71,6 @@ export const Sidebar = ({
   isLoading,
   paymentMethodId,
   planPeriod,
-  // previouslySelectedPlan,
   selectedPlan,
   setCheckoutStage,
   setError,
@@ -116,28 +115,25 @@ export const Sidebar = ({
       total += planPrice;
     }
 
-    const addOnCost = addOns.reduce((sum, addOn) => {
-      return (
+    const addOnCost = addOns.reduce(
+      (sum, addOn) =>
         sum +
         (addOn.isSelected
           ? (planPeriod === "month" ? addOn.monthlyPrice : addOn.yearlyPrice)
               ?.price || 0
-          : 0)
-      );
-    }, 0);
+          : 0),
+      0,
+    );
     total += addOnCost;
 
     const payInAdvanceCost = payInAdvanceEntitlements.reduce(
-      (sum, { entitlement, quantity }) => {
-        return (
-          sum +
-          quantity *
-            ((planPeriod === "month"
-              ? entitlement.meteredMonthlyPrice
-              : entitlement.meteredYearlyPrice
-            )?.price || 0)
-        );
-      },
+      (sum, { entitlement, quantity }) =>
+        sum +
+        quantity *
+          ((planPeriod === "month"
+            ? entitlement.meteredMonthlyPrice
+            : entitlement.meteredYearlyPrice
+          )?.price || 0),
       0,
     );
     total += payInAdvanceCost;
