@@ -2,6 +2,10 @@ import { useCallback, useMemo } from "react";
 import type { CompanyPlanDetailResponseData } from "../api";
 import { useEmbed } from ".";
 
+export interface SelectedPlan extends CompanyPlanDetailResponseData {
+  isSelected: boolean;
+}
+
 export function useAvailablePlans(activePeriod: string) {
   const { data, mode } = useEmbed();
 
@@ -25,7 +29,7 @@ export function useAvailablePlans(activePeriod: string) {
 
   const getActivePlans = useCallback(
     (plans: CompanyPlanDetailResponseData[]) => {
-      return (
+      const plansWithSelected: SelectedPlan[] = (
         mode === "edit"
           ? plans.slice()
           : plans.filter(
@@ -46,6 +50,8 @@ export function useAvailablePlans(activePeriod: string) {
           return 0;
         })
         .map((plan) => ({ ...plan, isSelected: false }));
+
+      return plansWithSelected;
     },
     [activePeriod, mode],
   );
