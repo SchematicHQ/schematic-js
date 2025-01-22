@@ -9,13 +9,14 @@ import {
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 import { loadStripe, type Stripe } from "@stripe/stripe-js";
-import type {
-  CompanyPlanDetailResponseData,
-  PlanEntitlementResponseData,
-  SetupIntentResponseData,
-  UpdateAddOnRequestBody,
-  UpdatePayInAdvanceRequestBody,
-  UsageBasedEntitlementResponseData,
+import {
+  ResponseError,
+  type CompanyPlanDetailResponseData,
+  type PlanEntitlementResponseData,
+  type SetupIntentResponseData,
+  type UpdateAddOnRequestBody,
+  type UpdatePayInAdvanceRequestBody,
+  type UsageBasedEntitlementResponseData,
 } from "../../../api";
 import {
   useAvailablePlans,
@@ -303,7 +304,16 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
         });
 
         setCharges(data);
-      } catch {
+      } catch (error) {
+        if (error instanceof ResponseError && error.response.status === 401) {
+          const data = await error.response.json();
+          if (data.error === "Access Token Invalid") {
+            return setError(
+              t("Session expired. Please refresh and try again."),
+            );
+          }
+        }
+
         setError(
           t("Error retrieving plan details. Please try again in a moment."),
         );
