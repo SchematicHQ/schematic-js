@@ -74,22 +74,9 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     periods: availablePeriods,
   } = useAvailablePlans(planPeriod);
 
-  const currentPlan = data.company?.plan;
-  const [selectedPlan, setSelectedPlan] = useState(() => {
-    const p = availablePlans.find(
-      (plan) =>
-        plan.id ===
-        (typeof selected.planId !== "undefined"
-          ? selected.planId
-          : currentPlan?.id),
-    );
-
-    if (!p) {
-      return undefined;
-    }
-
-    return p;
-  });
+  const [selectedPlan, setSelectedPlan] = useState(() =>
+    availablePlans.find((plan) => plan.current),
+  );
 
   const currentAddOns = data.company?.addOns || [];
   const [addOns, setAddOns] = useState(() =>
@@ -150,12 +137,12 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           const featureUsage = data.featureUsage?.features.find(
             (usage) => usage.feature?.id === entitlement.feature?.id,
           );
-          const allocation = featureUsage?.allocation || 0;
-          const usage = featureUsage?.usage || 0;
+          const allocation = featureUsage?.allocation ?? 0;
+          const usage = featureUsage?.usage ?? 0;
           acc.push({
             entitlement,
             allocation,
-            quantity: allocation ?? usage,
+            quantity: allocation,
             usage,
           });
         }
@@ -165,18 +152,30 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     [planPeriod, data.featureUsage?.features],
   );
 
-  const [usageBasedEntitlements, setUsageBasedEntitlements] = useState(() => {
-    return (selectedPlan?.entitlements || []).reduce(
+  const [usageBasedEntitlements, setUsageBasedEntitlements] = useState(() =>
+    (selectedPlan?.entitlements || []).reduce(
       createActiveUsageBasedEntitlementsReducer(),
       [],
-    );
-  });
+    ),
+  );
 
-  const payInAdvanceEntitlements = useMemo(() => {
-    return usageBasedEntitlements.filter(
-      ({ entitlement }) => entitlement.priceBehavior === "pay_in_advance",
-    );
-  }, [usageBasedEntitlements]);
+  const currentPlan = useMemo(
+    () =>
+      availablePlans.find(
+        (plan) =>
+          plan.id === data.company?.plan?.id &&
+          data.company?.plan.planPeriod === planPeriod,
+      ),
+    [data.company?.plan, planPeriod, availablePlans],
+  );
+
+  const payInAdvanceEntitlements = useMemo(
+    () =>
+      usageBasedEntitlements.filter(
+        ({ entitlement }) => entitlement.priceBehavior === "pay_in_advance",
+      ),
+    [usageBasedEntitlements],
+  );
 
   const checkoutStages = useMemo(() => {
     const stages: {
@@ -228,63 +227,88 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
   const isLightBackground = useIsLightBackground();
 
-  const previewCheckout = useCallback(
-    async ({
-      plan,
-      addOns,
-      entitlements,
-      period,
-    }: {
-      plan: CompanyPlanDetailResponseData;
-      addOns: (CompanyPlanDetailResponseData & { isSelected: boolean })[];
-      entitlements: {
-        entitlement: PlanEntitlementResponseData;
-        allocation: number;
-        quantity: number;
-      }[];
-      period?: string;
-    }) => {
-      const periodValue = period || planPeriod;
+  const selectPlan = useCallback(
+    (
+      updatedPlan: CompanyPlanDetailResponseData & { isSelected: boolean },
+      updatedPeriod?: string,
+    ) => {
+      const entitlements = updatedPlan.entitlements.reduce(
+        createActiveUsageBasedEntitlementsReducer(updatedPeriod),
+        [],
+      );
+      setSelectedPlan(updatedPlan);
+      setUsageBasedEntitlements(entitlements);
+    },
+    [createActiveUsageBasedEntitlementsReducer],
+  );
+
+  const toggleAddOn = (id: string) => {
+    setAddOns((prev) =>
+      prev.map((addOn) => ({
+        ...addOn,
+        ...(addOn.id === id && { isSelected: !addOn.isSelected }),
+      })),
+    );
+  };
+
+  const changePlanPeriod = useCallback(
+    (period: string) => {
+      if (selectedPlan) {
+        selectPlan(selectedPlan, period);
+      }
+
+      setPlanPeriod(period);
+    },
+    [selectedPlan, selectPlan, setPlanPeriod],
+  );
+
+  const updateUsageBasedEntitlementQuantity = (
+    id: string,
+    updatedQuantity: number,
+  ) => {
+    setUsageBasedEntitlements((prev) =>
+      prev.map(({ entitlement, allocation, quantity, usage }) =>
+        entitlement.id === id
+          ? {
+              entitlement,
+              allocation,
+              quantity: updatedQuantity,
+              usage,
+            }
+          : { entitlement, allocation, quantity, usage },
+      ),
+    );
+  };
+
+  useEffect(() => {
+    if (!stripe && setupIntent?.publishableKey) {
+      setStripe(loadStripe(setupIntent.publishableKey));
+    }
+  }, [stripe, setupIntent?.publishableKey]);
+
+  useEffect(() => {
+    async function previewCheckout() {
       const planPriceId =
-        periodValue === "month"
-          ? plan?.monthlyPrice?.id
-          : plan?.yearlyPrice?.id;
-      if (!api || !planPriceId) {
+        planPeriod === "month"
+          ? selectedPlan?.monthlyPrice?.id
+          : selectedPlan?.yearlyPrice?.id;
+      if (!api || !selectedPlan || !planPriceId) {
         return;
       }
 
+      setError(undefined);
+      setCharges(undefined);
+      setIsLoading(true);
+
       try {
-        setError(undefined);
-        setCharges(undefined);
-        setIsLoading(true);
-
-        const payInAdvance = entitlements.reduce(
-          (acc: UpdatePayInAdvanceRequestBody[], { entitlement, quantity }) => {
-            const priceId = (
-              periodValue === "month"
-                ? entitlement.meteredMonthlyPrice
-                : entitlement.meteredYearlyPrice
-            )?.priceId;
-
-            if (priceId) {
-              acc.push({
-                priceId,
-                quantity,
-              });
-            }
-
-            return acc;
-          },
-          [],
-        );
         const { data } = await api.previewCheckout({
           changeSubscriptionRequestBody: {
-            newPlanId: plan.id,
+            newPlanId: selectedPlan.id,
             newPriceId: planPriceId,
             addOnIds: addOns.reduce((acc: UpdateAddOnRequestBody[], addOn) => {
               if (addOn.isSelected) {
                 const addOnPriceId = (
-                  periodValue === "month"
+                  planPeriod === "month"
                     ? addOn?.monthlyPrice
                     : addOn?.yearlyPrice
                 )?.id;
@@ -299,7 +323,28 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
               return acc;
             }, []),
-            payInAdvance,
+            payInAdvance: payInAdvanceEntitlements.reduce(
+              (
+                acc: UpdatePayInAdvanceRequestBody[],
+                { entitlement, quantity },
+              ) => {
+                const priceId = (
+                  planPeriod === "month"
+                    ? entitlement.meteredMonthlyPrice
+                    : entitlement.meteredYearlyPrice
+                )?.priceId;
+
+                if (priceId) {
+                  acc.push({
+                    priceId,
+                    quantity,
+                  });
+                }
+
+                return acc;
+              },
+              [],
+            ),
           },
         });
 
@@ -319,141 +364,20 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
         );
       } finally {
         setIsLoading(false);
-
-        if (!period) {
-          checkoutRef.current?.scrollIntoView({
-            behavior: "smooth",
-            block: "nearest",
-          });
-        }
       }
-    },
-    [t, api, planPeriod],
-  );
+    }
 
-  const selectPlan = useCallback(
-    (
-      updatedPlan: CompanyPlanDetailResponseData & { isSelected: boolean },
-      updatedPeriod?: string,
-    ) => {
-      const entitlements = updatedPlan.entitlements.reduce(
-        createActiveUsageBasedEntitlementsReducer(updatedPeriod),
-        [],
-      );
-      const updatedPayInAdvanceEntitlements = entitlements.filter(
-        ({ entitlement }) => entitlement.priceBehavior === "pay_in_advance",
-      );
-      setSelectedPlan(updatedPlan);
-      setUsageBasedEntitlements(entitlements);
-      previewCheckout({
-        plan: updatedPlan,
-        addOns,
-        entitlements: updatedPayInAdvanceEntitlements,
-        period: updatedPeriod,
-      });
-    },
-    [addOns, previewCheckout, createActiveUsageBasedEntitlementsReducer],
-  );
-
-  const toggleAddOn = useCallback(
-    (id: string, updatedPeriod?: string) => {
-      const updatedAddOns = addOns.map((addOn) => ({
-        ...addOn,
-        ...(addOn.id === id && { isSelected: !addOn.isSelected }),
-      }));
-      setAddOns(updatedAddOns);
-
-      if (!selectedPlan) {
-        return;
-      }
-
-      previewCheckout({
-        plan: selectedPlan,
-        addOns: updatedAddOns,
-        entitlements: payInAdvanceEntitlements,
-        period: updatedPeriod || planPeriod,
-      });
-    },
-    [
-      selectedPlan,
-      addOns,
-      payInAdvanceEntitlements,
-      planPeriod,
-      previewCheckout,
-    ],
-  );
-
-  const changePlanPeriod = useCallback(
-    (period: string) => {
-      if (selectedPlan) {
-        selectPlan(selectedPlan, period);
-      }
-
-      setPlanPeriod(period);
-    },
-    [selectedPlan, selectPlan, setPlanPeriod],
-  );
-
-  const updateUsageBasedEntitlementQuantity = useCallback(
-    (id: string, updatedQuantity: number) => {
-      let shouldPreview = true;
-      const entitlements = payInAdvanceEntitlements.map(
-        ({ entitlement, allocation, quantity, usage }) => {
-          if (entitlement.id === id) {
-            if (updatedQuantity < usage) {
-              shouldPreview = false;
-            }
-
-            return {
-              entitlement,
-              allocation,
-              quantity: updatedQuantity,
-              usage,
-            };
-          }
-
-          return { entitlement, allocation, quantity, usage };
-        },
-      );
-
-      setUsageBasedEntitlements((prev) =>
-        prev.map(({ entitlement, allocation, quantity, usage }) =>
-          entitlement.id === id
-            ? {
-                entitlement,
-                allocation,
-                quantity: updatedQuantity,
-                usage,
-              }
-            : { entitlement, allocation, quantity, usage },
-        ),
-      );
-
-      if (!selectedPlan || !shouldPreview) {
-        return;
-      }
-
-      previewCheckout({
-        plan: selectedPlan,
-        addOns,
-        entitlements,
-        period: planPeriod,
-      });
-    },
-    [
-      selectedPlan,
-      addOns,
-      payInAdvanceEntitlements,
-      planPeriod,
-      previewCheckout,
-    ],
-  );
+    previewCheckout();
+  }, [t, api, planPeriod, selectedPlan, addOns, payInAdvanceEntitlements]);
 
   useEffect(() => {
-    if (!stripe && setupIntent?.publishableKey) {
-      setStripe(loadStripe(setupIntent.publishableKey));
+    if (charges) {
+      checkoutRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      });
     }
-  }, [stripe, setupIntent?.publishableKey]);
+  }, [charges]);
 
   useLayoutEffect(() => {
     if (contentRef.current) {
@@ -597,7 +521,6 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
               isLoading={isLoading}
               period={planPeriod}
               plans={availablePlans}
-              currentPlan={currentPlan}
               selectedPlan={selectedPlan}
               selectPlan={selectPlan}
             />
@@ -639,9 +562,9 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           checkoutRef={checkoutRef}
           checkoutStage={checkoutStage}
           currentAddOns={currentAddOns}
-          currentPlan={currentPlan}
           currentUsageBasedEntitlements={currentUsageBasedEntitlements}
           error={error}
+          currentPlan={currentPlan}
           isLoading={isLoading}
           paymentMethodId={paymentMethodId}
           planPeriod={planPeriod}

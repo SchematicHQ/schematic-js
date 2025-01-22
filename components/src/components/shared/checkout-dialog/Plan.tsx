@@ -1,12 +1,10 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 import pluralize from "pluralize";
-import type {
-  CompanyPlanDetailResponseData,
-  CompanyPlanWithBillingSubView,
-} from "../../../api";
+import type { CompanyPlanDetailResponseData } from "../../../api";
 import { TEXT_BASE_SIZE, VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
-import { useIsLightBackground } from "../../../hooks";
+import { useIsLightBackground, type SelectedPlan } from "../../../hooks";
 import { hexToHSL, formatCurrency, formatNumber } from "../../../utils";
 import { cardBoxShadow } from "../../layout";
 import {
@@ -19,13 +17,11 @@ import {
   Tooltip,
   type IconNameTypes,
 } from "../../ui";
-import { useState } from "react";
 
 interface PlanProps {
   isLoading: boolean;
-  plans: (CompanyPlanDetailResponseData & { isSelected: boolean })[];
-  currentPlan?: CompanyPlanWithBillingSubView;
-  selectedPlan?: CompanyPlanDetailResponseData & { isSelected: boolean };
+  plans: SelectedPlan[];
+  selectedPlan?: SelectedPlan;
   period: string;
   selectPlan: (
     plan: CompanyPlanDetailResponseData & { isSelected: boolean },
@@ -36,7 +32,6 @@ interface PlanProps {
 export const Plan = ({
   isLoading,
   plans,
-  currentPlan,
   selectedPlan,
   period,
   selectPlan,
@@ -72,8 +67,6 @@ export const Plan = ({
 
   const cardPadding = theme.card.padding / TEXT_BASE_SIZE;
 
-  const currentPlanIndex = plans.findIndex((plan) => plan.current);
-
   const handleToggleShowAll = (id: string) => {
     setEntitlementCounts((prev) => {
       const count = { ...prev[id] };
@@ -98,10 +91,7 @@ export const Plan = ({
         $gap="1rem"
         $flexGrow="1"
       >
-        {plans.map((plan, index) => {
-          const isActivePlan =
-            plan.current && currentPlan?.planPeriod === period;
-
+        {plans.map((plan) => {
           const count = entitlementCounts[plan.id] as
             | {
                 size: number;
@@ -192,7 +182,7 @@ export const Plan = ({
                   </Text>
                 </Box>
 
-                {isActivePlan && (
+                {plan.current && (
                   <Flex
                     $position="absolute"
                     $right="1rem"
@@ -398,7 +388,7 @@ export const Plan = ({
                       $leading={1}
                       $color={theme.typography.text.color}
                     >
-                      {isActivePlan ? t("Current plan") : t("Selected")}
+                      {plan.current ? t("Current plan") : t("Selected")}
                     </Text>
                   </Flex>
                 ) : (
@@ -409,7 +399,7 @@ export const Plan = ({
                     }}
                     $size="sm"
                     $color="primary"
-                    $variant={index < currentPlanIndex ? "outline" : "filled"}
+                    $variant={plan.current ? "outline" : "filled"}
                   >
                     {!plan.valid ? (
                       <Tooltip
