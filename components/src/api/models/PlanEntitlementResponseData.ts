@@ -124,6 +124,12 @@ export interface PlanEntitlementResponseData {
   ruleId: string;
   /**
    *
+   * @type {string}
+   * @memberof PlanEntitlementResponseData
+   */
+  ruleIdUsageExceeded?: string | null;
+  /**
+   *
    * @type {Date}
    * @memberof PlanEntitlementResponseData
    */
@@ -220,6 +226,10 @@ export function PlanEntitlementResponseDataFromJSONTyped(
     priceBehavior:
       json["price_behavior"] == null ? undefined : json["price_behavior"],
     ruleId: json["rule_id"],
+    ruleIdUsageExceeded:
+      json["rule_id_usage_exceeded"] == null
+        ? undefined
+        : json["rule_id_usage_exceeded"],
     updatedAt: new Date(json["updated_at"]),
     valueBool: json["value_bool"] == null ? undefined : json["value_bool"],
     valueNumeric:
@@ -254,6 +264,7 @@ export function PlanEntitlementResponseDataToJSON(
     plan_id: value["planId"],
     price_behavior: value["priceBehavior"],
     rule_id: value["ruleId"],
+    rule_id_usage_exceeded: value["ruleIdUsageExceeded"],
     updated_at: value["updatedAt"].toISOString(),
     value_bool: value["valueBool"],
     value_numeric: value["valueNumeric"],
