@@ -9,6 +9,7 @@ import { PaymentForm } from "../../shared";
 import { Box, Text } from "../../ui";
 
 interface CheckoutProps {
+  requiresPayment: boolean;
   setPaymentMethodId: (id: string) => void;
   togglePaymentForm: () => void;
   showPaymentForm: boolean;
@@ -17,6 +18,7 @@ interface CheckoutProps {
 }
 
 export const Checkout = ({
+  requiresPayment,
   setPaymentMethodId,
   togglePaymentForm,
   setupIntent,
@@ -28,6 +30,10 @@ export const Checkout = ({
   const theme = useTheme();
 
   const { data } = useEmbed();
+
+  if (!requiresPayment) {
+    return null;
+  }
 
   return (
     <>

@@ -45,6 +45,7 @@ interface SidebarProps {
   isLoading: boolean;
   paymentMethodId?: string;
   planPeriod: string;
+  requiresPayment: boolean;
   selectedPlan?: SelectedPlan;
   setCheckoutStage: (stage: string) => void;
   setError: (msg?: string) => void;
@@ -71,6 +72,7 @@ export const Sidebar = ({
   isLoading,
   paymentMethodId,
   planPeriod,
+  requiresPayment,
   selectedPlan,
   setCheckoutStage,
   setError,
@@ -225,7 +227,8 @@ export const Sidebar = ({
 
   const selectedAddOns = addOns.filter((addOn) => addOn.isSelected);
 
-  const willPlanChange = selectedPlan && !selectedPlan.current;
+  const willPlanChange =
+    typeof selectedPlan !== "undefined" && selectedPlan.current === false;
 
   const canUpdateSubscription =
     mode === "edit" ||
@@ -343,13 +346,6 @@ export const Sidebar = ({
     trialEndsOn.setDate(trialEndsOn.getDate() + selectedPlan.trialDays);
   }
 
-  const currentPlanPrice =
-    currentPlan &&
-    (planPeriod === "month"
-      ? currentPlan.monthlyPrice
-      : currentPlan.yearlyPrice
-    )?.price;
-
   return (
     <Flex
       ref={checkoutRef}
@@ -416,7 +412,7 @@ export const Sidebar = ({
         </Box>
 
         <Flex $flexDirection="column" $gap="0.5rem" $marginBottom="1.5rem">
-          {currentPlan?.current && (
+          {data.company?.plan && (
             <Flex
               $justifyContent="space-between"
               $alignItems="center"
@@ -434,11 +430,11 @@ export const Sidebar = ({
                   $weight={theme.typography.heading4.fontWeight}
                   $color={theme.typography.heading4.color}
                 >
-                  {currentPlan.name}
+                  {data.company.plan.name}
                 </Text>
               </Box>
 
-              {typeof currentPlanPrice === "number" && (
+              {typeof data.company.plan.planPrice === "number" && (
                 <Box $whiteSpace="nowrap">
                   <Text
                     $font={theme.typography.text.fontFamily}
@@ -446,8 +442,13 @@ export const Sidebar = ({
                     $weight={theme.typography.text.fontWeight}
                     $color={theme.typography.text.color}
                   >
-                    {formatCurrency(currentPlanPrice)}
-                    <sub>/{shortenPeriod(planPeriod)}</sub>
+                    {formatCurrency(data.company.plan.planPrice)}
+                    <sub>
+                      /
+                      {shortenPeriod(
+                        data.company.plan.planPeriod || planPeriod,
+                      )}
+                    </sub>
                   </Text>
                 </Box>
               )}
@@ -1043,6 +1044,7 @@ export const Sidebar = ({
           hasAddOns={addOns.length > 0}
           hasPayInAdvanceEntitlements={payInAdvanceEntitlements.length > 0}
           isLoading={isLoading}
+          requiresPayment={requiresPayment}
           setCheckoutStage={setCheckoutStage}
           setSetupIntent={setSetupIntent}
           trialPaymentMethodRequired={data.trialPaymentMethodRequired === true}

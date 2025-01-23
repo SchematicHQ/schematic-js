@@ -14,6 +14,7 @@ type StageButtonProps = {
   hasAddOns: boolean;
   hasPayInAdvanceEntitlements: boolean;
   isLoading: boolean;
+  requiresPayment: boolean;
   setCheckoutStage: (stage: string) => void;
   setSetupIntent: (intent: SetupIntentResponseData | undefined) => void;
   trialPaymentMethodRequired: boolean;
@@ -28,6 +29,7 @@ export const StageButton = ({
   hasAddOns,
   hasPayInAdvanceEntitlements,
   isLoading,
+  requiresPayment,
   setCheckoutStage,
   setSetupIntent,
   trialPaymentMethodRequired,
@@ -184,7 +186,11 @@ export const StageButton = ({
         onClick={checkout}
         isLoading={isLoading}
       >
-        {canTrial ? t("Start trial") : t("Pay now")}
+        {canTrial
+          ? t("Start trial")
+          : requiresPayment
+            ? t("Pay now")
+            : t("Apply changes")}
       </EmbedButton>
     );
   }

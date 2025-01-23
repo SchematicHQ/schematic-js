@@ -393,6 +393,9 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     (stage) => stage.id === checkoutStage,
   );
 
+  const requiresPayment =
+    typeof charges?.dueNow === "number" && charges.dueNow > 0;
+
   return (
     <Modal
       ref={modalRef}
@@ -547,6 +550,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
           {checkoutStage === "checkout" && (
             <Checkout
+              requiresPayment={requiresPayment}
               setupIntent={setupIntent}
               showPaymentForm={showPaymentForm}
               stripe={stripe}
@@ -568,6 +572,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           isLoading={isLoading}
           paymentMethodId={paymentMethodId}
           planPeriod={planPeriod}
+          requiresPayment={requiresPayment}
           selectedPlan={selectedPlan}
           setCheckoutStage={(stage) => setCheckoutStage(stage)}
           setError={(msg) => setError(msg)}
