@@ -180,6 +180,16 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     [usageBasedEntitlements],
   );
 
+  const hasActiveAddOns = addOns.some((addOn) => addOn.isSelected === true);
+  const hasActivePayInAdvanceEntitlements = payInAdvanceEntitlements.some(
+    ({ quantity }) => quantity > 0,
+  );
+  const requiresPayment =
+    (!selectedPlan?.companyCanTrial || !!data.trialPaymentMethodRequired) &&
+    (!selectedPlan?.isFree ||
+      hasActiveAddOns ||
+      hasActivePayInAdvanceEntitlements);
+
   const checkoutStages = useMemo(() => {
     const stages: CheckoutStage[] = [
       {
@@ -206,11 +216,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       });
     }
 
-    if (
-      !selectedPlan?.companyCanTrial ||
-      data.trialPaymentMethodRequired ||
-      !selectedPlan?.isFree
-    ) {
+    if (requiresPayment) {
       stages.push({
         id: "checkout",
         name: t("Checkout"),
@@ -224,8 +230,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     payInAdvanceEntitlements,
     availableAddOns,
     selectedPlan?.companyCanTrial,
-    selectedPlan?.isFree,
-    data.trialPaymentMethodRequired,
+    requiresPayment,
   ]);
 
   const isLightBackground = useIsLightBackground();
@@ -544,7 +549,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
           {checkoutStage === "checkout" && (
             <Checkout
-              requiresPayment={!selectedPlan?.isFree}
+              requiresPayment={requiresPayment}
               showPaymentForm={showPaymentForm}
               setPaymentMethodId={(id) => setPaymentMethodId(id)}
               togglePaymentForm={() => setShowPaymentForm((prev) => !prev)}
@@ -565,7 +570,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           isLoading={isLoading}
           paymentMethodId={paymentMethodId}
           planPeriod={planPeriod}
-          requiresPayment={!selectedPlan?.isFree}
+          requiresPayment={requiresPayment}
           selectedPlan={selectedPlan}
           setCheckoutStage={(stage) => setCheckoutStage(stage)}
           setError={(msg) => setError(msg)}

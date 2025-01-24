@@ -40,7 +40,7 @@ export const StageButton = ({
         onClick={checkout}
         isLoading={isLoading}
       >
-        {t("Apply changes")}
+        {t("Subscribe and close")}
       </EmbedButton>
     );
   };
