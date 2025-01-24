@@ -1,9 +1,6 @@
-import type { SetupIntentResponseData } from "../../../api";
-import { useEmbed } from "../../../hooks";
-import { EmbedButton } from "../../ui";
-import { Flex } from "../../ui";
-import { Icon } from "../../ui";
 import { useTranslation } from "react-i18next";
+import { EmbedButton, Flex, Icon } from "../../ui";
+import { type CheckoutStage } from ".";
 
 type StageButtonProps = {
   canTrial: boolean;
@@ -11,11 +8,12 @@ type StageButtonProps = {
   canUpdateSubscription: boolean;
   checkout: () => Promise<void>;
   checkoutStage: string;
+  checkoutStages: CheckoutStage[];
   hasAddOns: boolean;
   hasPayInAdvanceEntitlements: boolean;
   isLoading: boolean;
+  requiresPayment: boolean;
   setCheckoutStage: (stage: string) => void;
-  setSetupIntent: (intent: SetupIntentResponseData | undefined) => void;
   trialPaymentMethodRequired: boolean;
 };
 
@@ -25,24 +23,26 @@ export const StageButton = ({
   canUpdateSubscription,
   checkout,
   checkoutStage,
+  checkoutStages,
   hasAddOns,
   hasPayInAdvanceEntitlements,
   isLoading,
+  requiresPayment,
   setCheckoutStage,
-  setSetupIntent,
   trialPaymentMethodRequired,
 }: StageButtonProps) => {
   const { t } = useTranslation();
 
-  const { api, data } = useEmbed();
-
-  const getPaymentIntent = async () => {
-    if (api && data.component?.id) {
-      const { data: setupIntent } = await api.getSetupIntent({
-        componentId: data.component.id,
-      });
-      setSetupIntent(setupIntent);
-    }
+  const NoPaymentRequired = () => {
+    return (
+      <EmbedButton
+        disabled={isLoading || !canCheckout}
+        onClick={checkout}
+        isLoading={isLoading}
+      >
+        {t("Subscribe and close")}
+      </EmbedButton>
+    );
   };
 
   if (checkoutStage === "plan") {
@@ -52,7 +52,6 @@ export const StageButton = ({
           <EmbedButton
             disabled={!hasAddOns && !canUpdateSubscription}
             onClick={async () => {
-              getPaymentIntent();
               setCheckoutStage("checkout");
             }}
             isLoading={isLoading}
@@ -74,7 +73,6 @@ export const StageButton = ({
         <EmbedButton
           disabled={!canUpdateSubscription}
           onClick={async () => {
-            getPaymentIntent();
             checkout();
           }}
           isLoading={isLoading}
@@ -85,21 +83,26 @@ export const StageButton = ({
             $alignItems="center"
             $padding="0 1rem"
           >
-            {t("Checkout Trial")}
+            {t("Subscribe and close")}
             <Icon name="arrow-right" />
           </Flex>
         </EmbedButton>
       );
     }
 
+    if (
+      !requiresPayment &&
+      !checkoutStages.some(
+        (stage) => stage.id === "addons" || stage.id === "usage",
+      )
+    ) {
+      return <NoPaymentRequired />;
+    }
+
     return (
       <EmbedButton
         disabled={!canUpdateSubscription}
         onClick={async () => {
-          if (!hasAddOns && !hasPayInAdvanceEntitlements) {
-            getPaymentIntent();
-          }
-
           setCheckoutStage(
             hasPayInAdvanceEntitlements
               ? "usage"
@@ -129,14 +132,14 @@ export const StageButton = ({
   }
 
   if (checkoutStage === "usage") {
+    if (!requiresPayment) {
+      return <NoPaymentRequired />;
+    }
+
     return (
       <EmbedButton
         disabled={!canUpdateSubscription}
         onClick={async () => {
-          if (!hasAddOns) {
-            getPaymentIntent();
-          }
-
           setCheckoutStage(hasAddOns ? "addons" : "checkout");
         }}
         isLoading={isLoading}
@@ -155,11 +158,14 @@ export const StageButton = ({
   }
 
   if (checkoutStage === "addons") {
+    if (!requiresPayment) {
+      return <NoPaymentRequired />;
+    }
+
     return (
       <EmbedButton
         disabled={!canUpdateSubscription}
         onClick={async () => {
-          getPaymentIntent();
           setCheckoutStage("checkout");
         }}
         isLoading={isLoading}
@@ -178,6 +184,10 @@ export const StageButton = ({
   }
 
   if (checkoutStage === "checkout") {
+    if (!requiresPayment) {
+      return <NoPaymentRequired />;
+    }
+
     return (
       <EmbedButton
         disabled={isLoading || !canCheckout}

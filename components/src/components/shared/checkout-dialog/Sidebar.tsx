@@ -5,7 +5,6 @@ import pluralize from "pluralize";
 import type {
   CompanyPlanWithBillingSubView,
   PlanEntitlementResponseData,
-  SetupIntentResponseData,
   UpdateAddOnRequestBody,
   UpdatePayInAdvanceRequestBody,
   UsageBasedEntitlementResponseData,
@@ -22,6 +21,7 @@ import {
   shortenPeriod,
 } from "../../../utils";
 import { Box, Flex, Icon, Text } from "../../ui";
+import { type CheckoutStage } from ".";
 import { StageButton } from "./StageButton";
 
 interface SidebarProps {
@@ -34,6 +34,7 @@ interface SidebarProps {
   };
   checkoutRef?: React.RefObject<HTMLDivElement>;
   checkoutStage: string;
+  checkoutStages: CheckoutStage[];
   currentAddOns: CompanyPlanWithBillingSubView[];
   currentUsageBasedEntitlements: {
     usageData: UsageBasedEntitlementResponseData;
@@ -45,10 +46,10 @@ interface SidebarProps {
   isLoading: boolean;
   paymentMethodId?: string;
   planPeriod: string;
+  requiresPayment: boolean;
   selectedPlan?: SelectedPlan;
   setCheckoutStage: (stage: string) => void;
   setError: (msg?: string) => void;
-  setSetupIntent: (intent: SetupIntentResponseData | undefined) => void;
   showPaymentForm: boolean;
   toggleLoading: () => void;
   usageBasedEntitlements: {
@@ -64,6 +65,7 @@ export const Sidebar = ({
   charges,
   checkoutRef,
   checkoutStage,
+  checkoutStages,
   currentAddOns,
   currentUsageBasedEntitlements,
   error,
@@ -71,10 +73,10 @@ export const Sidebar = ({
   isLoading,
   paymentMethodId,
   planPeriod,
+  requiresPayment,
   selectedPlan,
   setCheckoutStage,
   setError,
-  setSetupIntent,
   showPaymentForm,
   toggleLoading,
   usageBasedEntitlements,
@@ -225,7 +227,8 @@ export const Sidebar = ({
 
   const selectedAddOns = addOns.filter((addOn) => addOn.isSelected);
 
-  const willPlanChange = selectedPlan && !selectedPlan.current;
+  const willPlanChange =
+    typeof selectedPlan !== "undefined" && selectedPlan.current === false;
 
   const canUpdateSubscription =
     mode === "edit" ||
@@ -343,13 +346,6 @@ export const Sidebar = ({
     trialEndsOn.setDate(trialEndsOn.getDate() + selectedPlan.trialDays);
   }
 
-  const currentPlanPrice =
-    currentPlan &&
-    (planPeriod === "month"
-      ? currentPlan.monthlyPrice
-      : currentPlan.yearlyPrice
-    )?.price;
-
   return (
     <Flex
       ref={checkoutRef}
@@ -416,7 +412,7 @@ export const Sidebar = ({
         </Box>
 
         <Flex $flexDirection="column" $gap="0.5rem" $marginBottom="1.5rem">
-          {currentPlan?.current && (
+          {data.company?.plan && (
             <Flex
               $justifyContent="space-between"
               $alignItems="center"
@@ -434,11 +430,11 @@ export const Sidebar = ({
                   $weight={theme.typography.heading4.fontWeight}
                   $color={theme.typography.heading4.color}
                 >
-                  {currentPlan.name}
+                  {data.company.plan.name}
                 </Text>
               </Box>
 
-              {typeof currentPlanPrice === "number" && (
+              {typeof data.company.plan.planPrice === "number" && (
                 <Box $whiteSpace="nowrap">
                   <Text
                     $font={theme.typography.text.fontFamily}
@@ -446,8 +442,13 @@ export const Sidebar = ({
                     $weight={theme.typography.text.fontWeight}
                     $color={theme.typography.text.color}
                   >
-                    {formatCurrency(currentPlanPrice)}
-                    <sub>/{shortenPeriod(planPeriod)}</sub>
+                    {formatCurrency(data.company.plan.planPrice)}
+                    <sub>
+                      /
+                      {shortenPeriod(
+                        data.company.plan.planPeriod || planPeriod,
+                      )}
+                    </sub>
                   </Text>
                 </Box>
               )}
@@ -1040,11 +1041,12 @@ export const Sidebar = ({
           canUpdateSubscription={canUpdateSubscription}
           checkout={checkout}
           checkoutStage={checkoutStage}
+          checkoutStages={checkoutStages}
           hasAddOns={addOns.length > 0}
           hasPayInAdvanceEntitlements={payInAdvanceEntitlements.length > 0}
           isLoading={isLoading}
+          requiresPayment={requiresPayment}
           setCheckoutStage={setCheckoutStage}
-          setSetupIntent={setSetupIntent}
           trialPaymentMethodRequired={data.trialPaymentMethodRequired === true}
         />
 

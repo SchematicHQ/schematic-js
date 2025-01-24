@@ -8,12 +8,10 @@ import {
 } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
-import { loadStripe, type Stripe } from "@stripe/stripe-js";
 import {
   ResponseError,
   type CompanyPlanDetailResponseData,
   type PlanEntitlementResponseData,
-  type SetupIntentResponseData,
   type UpdateAddOnRequestBody,
   type UpdatePayInAdvanceRequestBody,
   type UsageBasedEntitlementResponseData,
@@ -31,6 +29,13 @@ import { Plan } from "./Plan";
 import { AddOns } from "./AddOns";
 import { Usage } from "./Usage";
 import { Checkout } from "./Checkout";
+
+export interface CheckoutStage {
+  id: string;
+  name: string;
+  label?: string;
+  description?: string;
+}
 
 export interface CheckoutDialogProps {
   top?: number;
@@ -65,8 +70,6 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   const [showPaymentForm, setShowPaymentForm] = useState(
     !data.subscription?.paymentMethod,
   );
-  const [stripe, setStripe] = useState<Promise<Stripe | null> | null>(null);
-  const [setupIntent, setSetupIntent] = useState<SetupIntentResponseData>();
 
   const {
     plans: availablePlans,
@@ -177,13 +180,18 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     [usageBasedEntitlements],
   );
 
+  const hasActiveAddOns = addOns.some((addOn) => addOn.isSelected === true);
+  const hasActivePayInAdvanceEntitlements = payInAdvanceEntitlements.some(
+    ({ quantity }) => quantity > 0,
+  );
+  const requiresPayment =
+    (!selectedPlan?.companyCanTrial || !!data.trialPaymentMethodRequired) &&
+    (!selectedPlan?.isFree ||
+      hasActiveAddOns ||
+      hasActivePayInAdvanceEntitlements);
+
   const checkoutStages = useMemo(() => {
-    const stages: {
-      id: string;
-      name: string;
-      label?: string;
-      description?: string;
-    }[] = [
+    const stages: CheckoutStage[] = [
       {
         id: "plan",
         name: t("Plan"),
@@ -208,7 +216,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       });
     }
 
-    if (!selectedPlan?.companyCanTrial || data.trialPaymentMethodRequired) {
+    if (requiresPayment) {
       stages.push({
         id: "checkout",
         name: t("Checkout"),
@@ -222,7 +230,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     payInAdvanceEntitlements,
     availableAddOns,
     selectedPlan?.companyCanTrial,
-    data.trialPaymentMethodRequired,
+    requiresPayment,
   ]);
 
   const isLightBackground = useIsLightBackground();
@@ -279,12 +287,6 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       ),
     );
   };
-
-  useEffect(() => {
-    if (!stripe && setupIntent?.publishableKey) {
-      setStripe(loadStripe(setupIntent.publishableKey));
-    }
-  }, [stripe, setupIntent?.publishableKey]);
 
   useEffect(() => {
     async function previewCheckout() {
@@ -547,9 +549,8 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
           {checkoutStage === "checkout" && (
             <Checkout
-              setupIntent={setupIntent}
+              requiresPayment={requiresPayment}
               showPaymentForm={showPaymentForm}
-              stripe={stripe}
               setPaymentMethodId={(id) => setPaymentMethodId(id)}
               togglePaymentForm={() => setShowPaymentForm((prev) => !prev)}
             />
@@ -561,6 +562,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           charges={charges}
           checkoutRef={checkoutRef}
           checkoutStage={checkoutStage}
+          checkoutStages={checkoutStages}
           currentAddOns={currentAddOns}
           currentUsageBasedEntitlements={currentUsageBasedEntitlements}
           error={error}
@@ -568,10 +570,10 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           isLoading={isLoading}
           paymentMethodId={paymentMethodId}
           planPeriod={planPeriod}
+          requiresPayment={requiresPayment}
           selectedPlan={selectedPlan}
           setCheckoutStage={(stage) => setCheckoutStage(stage)}
           setError={(msg) => setError(msg)}
-          setSetupIntent={(intent) => setSetupIntent(intent)}
           showPaymentForm={showPaymentForm}
           toggleLoading={() => setIsLoading((prev) => !prev)}
           usageBasedEntitlements={usageBasedEntitlements}

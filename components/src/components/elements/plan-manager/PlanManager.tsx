@@ -172,9 +172,13 @@ export const PlanManager = forwardRef<
           >
             {data.trialPaymentMethodRequired
               ? t("After the trial, subscribe")
-              : (defaultPlan ? t("After the trial, cancel", {
-                  defaultPlanName: defaultPlan?.name,
-                }) : t("After the trial, cancel no default", { planName: currentPlan?.name }))}
+              : defaultPlan
+                ? t("After the trial, cancel", {
+                    defaultPlanName: defaultPlan?.name,
+                  })
+                : t("After the trial, cancel no default", {
+                    planName: currentPlan?.name,
+                  })}
           </Text>
         </Box>
       )}
