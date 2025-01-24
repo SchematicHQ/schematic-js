@@ -73,24 +73,13 @@ export const UpcomingBill = forwardRef<
         | "isActive"
         | "percentOff"
       >[]
-    )
-      .concat(
-        // TODO: remove this test data when ready
-        {
-          amountOff: undefined,
-          couponId: "testp20",
-          customerFacingCode: "TESTP20",
-          isActive: true,
-          percentOff: 20,
-        },
-      )
-      .map((discount) => ({
-        amountOff: discount.amountOff,
-        couponId: discount.couponId,
-        customerFacingCode: discount.customerFacingCode,
-        isActive: discount.isActive,
-        percentOff: discount.percentOff,
-      }));
+    ).map((discount) => ({
+      amountOff: discount.amountOff,
+      couponId: discount.couponId,
+      customerFacingCode: discount.customerFacingCode,
+      isActive: discount.isActive,
+      percentOff: discount.percentOff,
+    }));
 
     return {
       discounts,
