@@ -144,10 +144,12 @@ export const IncludedFeatures = forwardRef<
         (entitlement) => entitlement.featureId === id,
       );
 
-      acc.push({
-        featureUsage: mappedFeatureUsage,
-        usageData: mappedUsageData,
-      });
+      if (mappedFeatureUsage) {
+        acc.push({
+          featureUsage: mappedFeatureUsage,
+          usageData: mappedUsageData,
+        });
+      }
 
       return acc;
     },

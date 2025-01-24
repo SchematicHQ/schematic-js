@@ -1,0 +1,10 @@
+generatorName: typescript-fetch
+inputSpec: https://openapi.schematichq.com/latest.yml
+enablePostProcessFile: true
+outputDir: ./src/types/api/
+globalProperties:
+  modelTests: false
+  modelDocs: false
+  skipFormModel: false
+skipValidateSpec: true
+generateAliasAsModel: true

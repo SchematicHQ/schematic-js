@@ -5,6 +5,7 @@ import {
 } from "./context";
 import {
   useSchematicContext,
+  useSchematicEntitlement,
   useSchematicEvents,
   useSchematicFlag,
   useSchematicIsPending,
@@ -15,6 +16,7 @@ import {
 export {
   useSchematic,
   useSchematicContext,
+  useSchematicEntitlement,
   useSchematicEvents,
   useSchematicFlag,
   useSchematicIsPending,
@@ -23,16 +25,15 @@ export {
 
 export type { SchematicHookOpts, SchematicProviderProps, UseSchematicFlagOpts };
 
-export { Schematic } from "@schematichq/schematic-js";
+export { RuleType, Schematic, UsagePeriod } from "@schematichq/schematic-js";
 
 export type {
+  CheckFlagReturn,
   Event,
   EventBody,
   EventBodyIdentify,
   EventBodyTrack,
   EventType,
-  FlagCheckResponseBody,
-  FlagCheckWithKeyResponseBody,
   Keys,
   SchematicContext,
   SchematicOptions,
