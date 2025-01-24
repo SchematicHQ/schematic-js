@@ -5,7 +5,6 @@ import pluralize from "pluralize";
 import type {
   CompanyPlanWithBillingSubView,
   PlanEntitlementResponseData,
-  SetupIntentResponseData,
   UpdateAddOnRequestBody,
   UpdatePayInAdvanceRequestBody,
   UsageBasedEntitlementResponseData,
@@ -22,6 +21,7 @@ import {
   shortenPeriod,
 } from "../../../utils";
 import { Box, Flex, Icon, Text } from "../../ui";
+import { type CheckoutStage } from ".";
 import { StageButton } from "./StageButton";
 
 interface SidebarProps {
@@ -34,6 +34,7 @@ interface SidebarProps {
   };
   checkoutRef?: React.RefObject<HTMLDivElement>;
   checkoutStage: string;
+  checkoutStages: CheckoutStage[];
   currentAddOns: CompanyPlanWithBillingSubView[];
   currentUsageBasedEntitlements: {
     usageData: UsageBasedEntitlementResponseData;
@@ -49,7 +50,6 @@ interface SidebarProps {
   selectedPlan?: SelectedPlan;
   setCheckoutStage: (stage: string) => void;
   setError: (msg?: string) => void;
-  setSetupIntent: (intent: SetupIntentResponseData | undefined) => void;
   showPaymentForm: boolean;
   toggleLoading: () => void;
   usageBasedEntitlements: {
@@ -65,6 +65,7 @@ export const Sidebar = ({
   charges,
   checkoutRef,
   checkoutStage,
+  checkoutStages,
   currentAddOns,
   currentUsageBasedEntitlements,
   error,
@@ -76,7 +77,6 @@ export const Sidebar = ({
   selectedPlan,
   setCheckoutStage,
   setError,
-  setSetupIntent,
   showPaymentForm,
   toggleLoading,
   usageBasedEntitlements,
@@ -1041,12 +1041,12 @@ export const Sidebar = ({
           canUpdateSubscription={canUpdateSubscription}
           checkout={checkout}
           checkoutStage={checkoutStage}
+          checkoutStages={checkoutStages}
           hasAddOns={addOns.length > 0}
           hasPayInAdvanceEntitlements={payInAdvanceEntitlements.length > 0}
           isLoading={isLoading}
           requiresPayment={requiresPayment}
           setCheckoutStage={setCheckoutStage}
-          setSetupIntent={setSetupIntent}
           trialPaymentMethodRequired={data.trialPaymentMethodRequired === true}
         />
 
