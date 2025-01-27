@@ -143,6 +143,18 @@ export const Sidebar = ({
     return formatCurrency(total);
   }, [selectedPlan, addOns, payInAdvanceEntitlements, planPeriod]);
 
+  const { amountOff, dueNow, newCharges, percentOff, periodStart, proration } =
+    useMemo(() => {
+      return {
+        amountOff: charges?.amountOff ?? 0,
+        dueNow: charges?.dueNow ?? 0,
+        newCharges: charges?.newCharges ?? 0,
+        percentOff: charges?.percentOff ?? 0,
+        periodStart: charges?.periodStart,
+        proration: charges?.proration ?? 0,
+      };
+    }, [charges]);
+
   const checkout = useCallback(async () => {
     const priceId = (
       planPeriod === "month"
@@ -901,7 +913,7 @@ export const Sidebar = ({
           </Flex>
         )}
 
-        {typeof charges?.proration === "number" && charges.proration !== 0 && (
+        {proration !== 0 && (
           <>
             <Box $opacity="0.625">
               <Text
@@ -910,7 +922,7 @@ export const Sidebar = ({
                 $weight={theme.typography.text.fontWeight}
                 $color={theme.typography.text.color}
               >
-                {charges.proration > 0
+                {proration > 0
                   ? t("Proration")
                   : !selectedPlan?.companyCanTrial && t("Credits")}
               </Text>
@@ -941,7 +953,7 @@ export const Sidebar = ({
                       $weight={theme.typography.text.fontWeight}
                       $color={theme.typography.text.color}
                     >
-                      {formatCurrency(charges.proration)}
+                      {formatCurrency(proration)}
                     </Text>
                   </Flex>
                 </Flex>
@@ -1015,7 +1027,7 @@ export const Sidebar = ({
           </Flex>
         )}
 
-        {typeof charges?.percentOff === "number" && charges.percentOff > 0 && (
+        {percentOff > 0 && (
           <Flex
             $justifyContent="space-between"
             $alignItems="center"
@@ -1028,7 +1040,7 @@ export const Sidebar = ({
                 $weight={theme.typography.text.fontWeight}
                 $color={theme.typography.text.color}
               >
-                {t("X% off", { percent: charges.percentOff })}
+                {t("X% off", { percent: percentOff })}
               </Text>
             </Box>
 
@@ -1039,16 +1051,13 @@ export const Sidebar = ({
                 $weight={theme.typography.text.fontWeight}
                 $color={theme.typography.text.color}
               >
-                {formatCurrency(
-                  charges.dueNow *
-                    (1 - 1 / (1 - Math.abs(charges.percentOff / 100))),
-                )}
+                {formatCurrency((newCharges / 100) * percentOff)}
               </Text>
             </Box>
           </Flex>
         )}
 
-        {typeof charges?.amountOff === "number" && charges.amountOff > 0 && (
+        {amountOff > 0 && (
           <Flex
             $justifyContent="space-between"
             $alignItems="center"
@@ -1062,7 +1071,7 @@ export const Sidebar = ({
                 $color={theme.typography.text.color}
               >
                 {t("X off", {
-                  amount: formatCurrency(Math.abs(charges.amountOff)),
+                  amount: formatCurrency(Math.abs(amountOff)),
                 })}
               </Text>
             </Box>
@@ -1074,7 +1083,7 @@ export const Sidebar = ({
                 $weight={theme.typography.text.fontWeight}
                 $color={theme.typography.text.color}
               >
-                -{formatCurrency(Math.abs(charges.amountOff))}
+                -{formatCurrency(Math.abs(amountOff))}
               </Text>
             </Box>
           </Flex>
@@ -1135,13 +1144,13 @@ export const Sidebar = ({
                 $weight={theme.typography.text.fontWeight}
                 $color={theme.typography.text.color}
               >
-                {formatCurrency(Math.max(0, charges.dueNow))}
+                {formatCurrency(Math.max(0, dueNow))}
               </Text>
             </Box>
           </Flex>
         )}
 
-        {typeof charges?.dueNow === "number" && charges.dueNow < 0 && (
+        {dueNow < 0 && (
           <Flex $justifyContent="space-between" $gap="1rem">
             <Box $opacity="0.625" $lineHeight={1.15}>
               <Text
@@ -1161,7 +1170,7 @@ export const Sidebar = ({
                 $weight={theme.typography.text.fontWeight}
                 $color={theme.typography.text.color}
               >
-                {formatCurrency(Math.abs(charges.dueNow))}
+                {formatCurrency(Math.abs(dueNow))}
               </Text>
             </Box>
           </Flex>
@@ -1205,7 +1214,7 @@ export const Sidebar = ({
             {subscriptionPrice &&
               // TODO: localize
               `You will be billed ${subscriptionPrice} ${payAsYouGoEntitlements.length > 0 ? "plus usage based costs" : ""} for this subscription
-                every ${planPeriod} ${charges?.periodStart ? `on the ${formatOrdinal(charges.periodStart.getDate())}` : ""} ${planPeriod === "year" && charges?.periodStart ? `of ${getMonthName(charges.periodStart)}` : ""} unless you unsubscribe.`}
+                every ${planPeriod} ${periodStart ? `on the ${formatOrdinal(periodStart.getDate())}` : ""} ${planPeriod === "year" && periodStart ? `of ${getMonthName(periodStart)}` : ""} unless you unsubscribe.`}
           </Text>
         </Box>
       </Flex>
