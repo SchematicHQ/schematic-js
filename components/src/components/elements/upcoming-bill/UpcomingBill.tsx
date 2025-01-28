@@ -105,13 +105,15 @@ export const UpcomingBill = forwardRef<
   }
 
   return (
-    <Element ref={ref} className={className}>
+    <Element
+      as={Flex}
+      ref={ref}
+      className={className}
+      $flexDirection="column"
+      $gap="1rem"
+    >
       {props.header.isVisible && (
-        <Flex
-          $justifyContent="space-between"
-          $alignItems="center"
-          $margin="0 0 1rem"
-        >
+        <Flex $justifyContent="space-between" $alignItems="center">
           <Text
             $font={theme.typography[props.header.fontStyle].fontFamily}
             $size={theme.typography[props.header.fontStyle].fontSize}
@@ -153,9 +155,16 @@ export const UpcomingBill = forwardRef<
         </Box>
       </Flex>
 
-      <Flex $justifyContent="space-between">
+      <Flex $justifyContent="space-between" $alignItems="center">
         <Box>
-          <Text>{t("Discounts")}</Text>
+          <Text
+            $font={theme.typography.text.fontFamily}
+            $size={theme.typography.text.fontSize}
+            $weight={600}
+            $color={theme.typography.text.color}
+          >
+            {t("Discount")}
+          </Text>
         </Box>
         <Box>
           {discounts.map((discount) => (
