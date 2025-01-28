@@ -17,7 +17,16 @@ import { PaymentForm } from "../../shared";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import type { RecursivePartial, ElementProps } from "../../../types";
 import { Element } from "../../layout";
-import { Box, Flex, Modal, ModalHeader, Text } from "../../ui";
+import {
+  Box,
+  Flex,
+  Icon,
+  IconNameTypes,
+  Modal,
+  ModalHeader,
+  Text,
+} from "../../ui";
+import { t } from "i18next";
 
 interface DesignProps {
   header: {
@@ -30,6 +39,50 @@ interface DesignProps {
   };
 }
 
+interface PaymentElementProps {
+  iconName?: IconNameTypes;
+  iconTitle: string;
+  iconStyles: object;
+  label: string | null | undefined;
+  paymentLast4?: string | null | undefined;
+}
+
+const PaymentElement = ({
+  iconName,
+  iconTitle,
+  iconStyles,
+  label,
+  paymentLast4,
+}: PaymentElementProps) => {
+  const theme = useTheme();
+
+  return (
+    <>
+      <Text $font={theme.typography.text.fontFamily} $size={16}>
+        <Flex $flexDirection="row" $alignItems="center">
+          {iconName && (
+            <Box>
+              <Icon name={iconName} title={iconTitle} style={iconStyles} />
+            </Box>
+          )}
+
+          <Flex $alignItems="center">
+            {label && (
+              <Box $lineHeight="1" $marginRight="4px">
+                {t(label)}
+              </Box>
+            )}
+            {paymentLast4 && (
+              <Box $display="inline-block" $fontWeight="bold">
+                {paymentLast4}
+              </Box>
+            )}
+          </Flex>
+        </Flex>
+      </Text>
+    </>
+  );
+};
 const resolveDesignProps = (
   props: RecursivePartial<DesignProps>,
 ): DesignProps => {
@@ -47,14 +100,25 @@ const resolveDesignProps = (
 
 interface PaymentMethodElementProps extends DesignProps {
   size?: "sm" | "md" | "lg";
-  cardLast4?: string | null;
+  paymentMethod?: {
+    accountLast4?: string | null;
+    accountName?: string | null | undefined;
+    bankName?: string | undefined | null;
+    billingEmail?: string | undefined | null;
+    cardBrand?: string | undefined | null;
+    cardExpMonth?: number | undefined | null;
+    cardExpYear?: number | undefined | null;
+    cardLast4?: string | undefined | null;
+    paymentMethodType?: string;
+  };
+
   monthsToExpiration?: number;
   onEdit?: () => void;
 }
 
 const PaymentMethodElement = ({
   size = "md",
-  cardLast4,
+  paymentMethod,
   monthsToExpiration,
   onEdit,
   ...props
@@ -65,7 +129,162 @@ const PaymentMethodElement = ({
 
   const isLightBackground = useIsLightBackground();
 
-  const sizeFactor = size === "lg" ? 2 : size === "md" ? 1 : 0.5;
+  const sizeFactor = size === "lg" ? 1.6 : size === "md" ? 1 : 0.5;
+
+  const accountLast4 = paymentMethod?.accountLast4;
+  const accountName = paymentMethod?.accountName;
+  const bankName = paymentMethod?.bankName;
+  const billingEmail = paymentMethod?.billingEmail;
+  const cardBrand = paymentMethod?.cardBrand;
+  const cardLast4 = paymentMethod?.cardLast4;
+  const paymentMethodType = paymentMethod?.paymentMethodType;
+
+  const isCard = paymentMethodType === "card";
+  const isBank = paymentMethodType === "us_bank_account";
+  const isAmazonPay = paymentMethodType === "amazon_pay";
+  const isApplePay = paymentMethodType === "apple_pay"; // nothing in stripe docs...
+  const isCashApp = paymentMethodType === "cashtag";
+  const isPayPal = paymentMethodType === "paypal";
+  const isLink = paymentMethodType === "link";
+
+  const getIconName = (value: string | undefined) => {
+    switch (value) {
+      case "visa":
+      case "mastercard":
+      case "amex":
+        return value;
+      default:
+        return "credit";
+    }
+  };
+
+  const getIconStyles = (size: "sm" | "md" | "lg") => {
+    const styles = {
+      lg: { fontSize: 28, marginLeft: -2, marginRight: 8 },
+      md: { fontSize: 25, marginLeft: 0, marginRight: 7, marginTop: -1 },
+      sm: { fontSize: 24, marginLeft: 0, marginRight: 4 },
+    };
+    return styles[size] || styles.sm;
+  };
+
+  const renderPaymentMethodElement = () => {
+    switch (true) {
+      case isCard:
+        return (
+          <PaymentElement
+            iconName={getIconName(cardBrand || "")}
+            iconTitle={cardBrand || "Card"}
+            iconStyles={{
+              ...getIconStyles(size),
+              lineHeight: 1,
+              color: theme.typography.text.color,
+            }}
+            label={`Card ending in `}
+            paymentLast4={cardLast4}
+          />
+        );
+      case isBank:
+        return (
+          <PaymentElement
+            iconName="bank"
+            iconTitle={`${billingEmail} | ${bankName}`}
+            iconStyles={{
+              ...getIconStyles(size),
+              marginRight: 4,
+              lineHeight: 1,
+              color: theme.typography.text.color,
+            }}
+            label={bankName || billingEmail}
+            paymentLast4={accountLast4}
+          />
+        );
+      case isAmazonPay:
+        return (
+          <PaymentElement
+            iconName="amazonpay"
+            iconTitle={billingEmail || "AmazonPay account"}
+            iconStyles={{
+              ...getIconStyles(size),
+              marginRight: 4,
+              lineHeight: 1,
+              color: theme.typography.text.color,
+            }}
+            label={billingEmail || "AmazonPay account"}
+          />
+        );
+      case isApplePay:
+        return (
+          <PaymentElement
+            iconName="applepay"
+            iconTitle={accountName || billingEmail || "AppePay account"}
+            iconStyles={{
+              ...getIconStyles(size),
+              marginRight: 4,
+              lineHeight: 1,
+              color: theme.typography.text.color,
+            }}
+            label={billingEmail || "AppePay account"}
+          />
+        );
+      case isCashApp:
+        return (
+          <PaymentElement
+            iconName="cashapp"
+            iconTitle={accountName || billingEmail || "AppePay account"}
+            iconStyles={{
+              ...getIconStyles(size),
+              marginRight: 4,
+              lineHeight: 1,
+              color: theme.typography.text.color,
+            }}
+            label={billingEmail || "AppePay account"}
+          />
+        );
+      case isPayPal:
+        return (
+          <PaymentElement
+            iconName="paypal"
+            iconTitle={accountName || billingEmail || "PayPal account"}
+            iconStyles={{
+              ...getIconStyles(size),
+              marginRight: 4,
+              lineHeight: 1,
+              color: theme.typography.text.color,
+            }}
+            label={billingEmail || "PayPal account"}
+          />
+        );
+      case isLink:
+        return (
+          <PaymentElement
+            iconTitle={billingEmail || "Stripe link"}
+            iconStyles={{
+              ...getIconStyles(size),
+              marginRight: 4,
+              lineHeight: 1,
+              color: theme.typography.text.color,
+            }}
+            label={billingEmail || "Stripe link"}
+          />
+        );
+      default:
+        return (
+          <PaymentElement
+            iconName="link"
+            iconTitle={
+              billingEmail || accountName || bankName || "Payment Method"
+            }
+            iconStyles={{
+              ...getIconStyles(size),
+              marginRight: 4,
+              lineHeight: 1,
+              color: theme.typography.text.color,
+            }}
+            label={billingEmail || accountName || bankName || "Payment Method"}
+          />
+        );
+    }
+  };
 
   return (
     <Flex $flexDirection="column" $gap={`${sizeFactor}rem`}>
@@ -104,14 +323,10 @@ const PaymentMethodElement = ({
             ? "hsla(0, 0%, 0%, 0.0625)"
             : "hsla(0, 0%, 100%, 0.125)"
         }
-        $padding={`${sizeFactor / 2}rem ${sizeFactor}rem`}
+        $padding={`${sizeFactor / 2.2}rem ${sizeFactor}rem`}
         $borderRadius="9999px"
       >
-        <Text $font={theme.typography.text.fontFamily} $size={14}>
-          {cardLast4
-            ? t("Card ending in", { value: cardLast4 })
-            : t("Other existing payment method")}
-        </Text>
+        {renderPaymentMethodElement()}
 
         {props.functions.allowEdit && onEdit && (
           <Text
@@ -161,8 +376,17 @@ export const PaymentMethod = forwardRef<
   const [top, setTop] = useState(0);
 
   const paymentMethod = useMemo(() => {
-    const { paymentMethodType, cardLast4, cardExpMonth, cardExpYear } =
-      data.subscription?.paymentMethod || {};
+    const {
+      accountName,
+      accountLast4,
+      billingEmail,
+      bankName,
+      cardLast4,
+      cardExpMonth,
+      cardExpYear,
+      cardBrand,
+      paymentMethodType,
+    } = data.subscription?.paymentMethod || {};
 
     let monthsToExpiration: number | undefined;
     if (typeof cardExpYear === "number" && typeof cardExpMonth === "number") {
@@ -173,15 +397,22 @@ export const PaymentMethod = forwardRef<
         +new Date(cardExpYear, cardExpMonth - 1) -
           +new Date(currentYear, currentMonth),
       );
+      /* eslint-disable @typescript-eslint/no-unused-vars */
       monthsToExpiration = Math.round(
         timeToExpiration / (1000 * 60 * 60 * 24 * 30),
       );
     }
 
     return {
-      paymentMethodType,
+      accountName,
+      accountLast4,
+      billingEmail,
+      bankName,
+      cardBrand,
       cardLast4,
-      monthsToExpiration,
+      cardExpMonth,
+      cardExpYear,
+      paymentMethodType,
     };
   }, [data.subscription?.paymentMethod]);
 
@@ -258,8 +489,8 @@ export const PaymentMethod = forwardRef<
   return (
     <Element ref={ref} className={className}>
       <PaymentMethodElement
+        paymentMethod={paymentMethod}
         {...(allowEdit && { onEdit: () => setLayout("payment") })}
-        {...paymentMethod}
         {...props}
       />
 
@@ -298,7 +529,6 @@ export const PaymentMethod = forwardRef<
                         appearance: {
                           theme: "stripe",
                           variables: {
-                            // Base
                             fontFamily: '"Public Sans", system-ui, sans-serif',
                             spacingUnit: "0.25rem",
                             borderRadius: "0.5rem",
@@ -306,8 +536,6 @@ export const PaymentMethod = forwardRef<
                             colorBackground: "#FFFFFF",
                             colorPrimary: "#0570DE",
                             colorDanger: "#DB6669",
-
-                            // Layout
                             gridRowSpacing: "1.5rem",
                             gridColumnSpacing: "1.5rem",
                           },
@@ -332,7 +560,7 @@ export const PaymentMethod = forwardRef<
                     <Flex $flexDirection="column" $gap="2rem">
                       <PaymentMethodElement
                         size="lg"
-                        {...paymentMethod}
+                        paymentMethod={paymentMethod}
                         {...props}
                       />
 
