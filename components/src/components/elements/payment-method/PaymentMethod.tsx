@@ -196,23 +196,23 @@ const PaymentMethodElement = ({
       },
       amazon_pay: {
         iconName: "amazonpay",
-        iconTitle: billingEmail || "AmazonPay account",
-        label: billingEmail || "AmazonPay account",
+        iconTitle: accountName || billingEmail || "Amazon Pay account",
+        label: accountName || billingEmail || "Amazon Pay account",
       },
       cashapp: {
         iconName: "cashapp",
         iconTitle: accountName || billingEmail || "CashApp account",
-        label: billingEmail || "CashApp account",
+        label: accountName || billingEmail || "CashApp account",
       },
       paypal: {
         iconName: "paypal",
         iconTitle: accountName || billingEmail || "PayPal account",
-        label: billingEmail || "PayPal account",
+        label: accountName || billingEmail || "PayPal account",
       },
       link: {
         iconName: "link",
-        iconTitle: billingEmail || "Stripe link",
-        label: billingEmail || "Stripe link",
+        iconTitle: billingEmail || accountName || "Link account",
+        label: billingEmail || accountName || "Link account",
       },
     };
 
