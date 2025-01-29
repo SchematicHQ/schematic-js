@@ -11,7 +11,10 @@ import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 import { loadStripe, type Stripe } from "@stripe/stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
-import type { SetupIntentResponseData } from "../../../api";
+import type {
+  PaymentMethodResponseData,
+  SetupIntentResponseData,
+} from "../../../api";
 import { type FontStyle } from "../../../context";
 import { PaymentForm } from "../../shared";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
@@ -60,18 +63,7 @@ interface DesignProps {
 
 interface PaymentMethodElementProps extends DesignProps {
   size?: PaymentElementSizes;
-  paymentMethod?: {
-    accountLast4?: string | null;
-    accountName?: string | null | undefined;
-    bankName?: string | undefined | null;
-    billingEmail?: string | undefined | null;
-    cardBrand?: string | undefined | null;
-    cardExpMonth?: number | undefined | null;
-    cardExpYear?: number | undefined | null;
-    cardLast4?: string | undefined | null;
-    paymentMethodType?: string;
-  };
-
+  paymentMethod: PaymentMethodResponseData;
   monthsToExpiration?: number;
   onEdit?: () => void;
 }
@@ -141,13 +133,16 @@ const PaymentMethodElement = ({
 
   const sizeFactor = size === "lg" ? 1.6 : size === "md" ? 1 : 0.5;
 
-  const accountLast4 = paymentMethod?.accountLast4;
-  const accountName = paymentMethod?.accountName;
-  const bankName = paymentMethod?.bankName;
-  const billingEmail = paymentMethod?.billingEmail;
-  const cardBrand = paymentMethod?.cardBrand;
-  const cardLast4 = paymentMethod?.cardLast4;
-  const paymentMethodType = paymentMethod?.paymentMethodType;
+  const {
+    accountLast4,
+    accountName,
+    bankName,
+    billingName,
+    billingEmail,
+    cardBrand,
+    cardLast4,
+    paymentMethodType,
+  } = paymentMethod;
 
   const cardBrands = new Set(["visa", "mastercard", "amex"]);
   const cardIcon = (icon: IconNameTypes) =>
@@ -168,7 +163,7 @@ const PaymentMethodElement = ({
     label?: string,
     paymentLast4?: string | null | undefined,
   ) => ({
-    iconName,
+    iconName: iconName,
     iconTitle,
     iconStyles: {
       ...getIconStyles(size),
@@ -181,7 +176,7 @@ const PaymentMethodElement = ({
   });
 
   const renderPaymentMethodElement = () => {
-    const paymentConfig: Record<PaymentMethodType, PaymentElementProps> = {
+    const payments: Record<PaymentMethodType, PaymentElementProps> = {
       card: {
         iconName: cardIcon(cardBrand as IconNameTypes),
         iconTitle: cardBrand || "Card",
@@ -196,8 +191,8 @@ const PaymentMethodElement = ({
       },
       amazon_pay: {
         iconName: "amazonpay",
-        iconTitle: accountName || billingEmail || "Amazon Pay account",
-        label: accountName || billingEmail || "Amazon Pay account",
+        iconTitle: billingName || billingName || "Amazon Pay account",
+        label: billingName || billingEmail || "Amazon Pay account",
       },
       cashapp: {
         iconName: "cashapp",
@@ -216,7 +211,7 @@ const PaymentMethodElement = ({
       },
     };
 
-    const { iconName, iconTitle, label, paymentLast4 } = paymentConfig[
+    const { iconName, iconTitle, label, paymentLast4 } = payments[
       paymentMethodType || ""
     ] ?? {
       iconName: "link",
@@ -321,45 +316,27 @@ export const PaymentMethod = forwardRef<
   const [top, setTop] = useState(0);
 
   const paymentMethod = useMemo(() => {
-    const {
-      accountName,
-      accountLast4,
-      billingEmail,
-      bankName,
-      cardLast4,
-      cardExpMonth,
-      cardExpYear,
-      cardBrand,
-      paymentMethodType,
-    } = data.subscription?.paymentMethod || {};
+    return data.subscription?.paymentMethod;
+  }, [data.subscription?.paymentMethod]);
 
-    let monthsToExpiration: number | undefined;
-    if (typeof cardExpYear === "number" && typeof cardExpMonth === "number") {
+  const monthsToExpiration = useMemo(() => {
+    let expiration: number | undefined;
+
+    if (
+      typeof paymentMethod?.cardExpYear === "number" &&
+      typeof paymentMethod?.cardExpMonth === "number"
+    ) {
       const today = new Date();
       const currentYear = today.getFullYear();
       const currentMonth = today.getMonth();
       const timeToExpiration = Math.round(
-        +new Date(cardExpYear, cardExpMonth - 1) -
+        +new Date(paymentMethod.cardExpYear, paymentMethod.cardExpMonth - 1) -
           +new Date(currentYear, currentMonth),
       );
-      /* eslint-disable @typescript-eslint/no-unused-vars */
-      monthsToExpiration = Math.round(
-        timeToExpiration / (1000 * 60 * 60 * 24 * 30),
-      );
+      expiration = Math.round(timeToExpiration / (1000 * 60 * 60 * 24 * 30));
     }
-
-    return {
-      accountName,
-      accountLast4,
-      billingEmail,
-      bankName,
-      cardBrand,
-      cardLast4,
-      cardExpMonth,
-      cardExpYear,
-      paymentMethodType,
-    };
-  }, [data.subscription?.paymentMethod]);
+    return expiration;
+  }, [paymentMethod?.cardExpYear, paymentMethod?.cardExpMonth]);
 
   const createSetupIntent = useCallback(async () => {
     if (!api || !data.component?.id) {
@@ -427,7 +404,7 @@ export const PaymentMethod = forwardRef<
     };
   }, [portal, layout]);
 
-  if (!paymentMethod.paymentMethodType) {
+  if (!paymentMethod?.paymentMethodType) {
     return null;
   }
 
@@ -435,6 +412,7 @@ export const PaymentMethod = forwardRef<
     <Element ref={ref} className={className}>
       <PaymentMethodElement
         paymentMethod={paymentMethod}
+        monthsToExpiration={monthsToExpiration}
         {...(allowEdit && { onEdit: () => setLayout("payment") })}
         {...props}
       />
@@ -506,6 +484,7 @@ export const PaymentMethod = forwardRef<
                       <PaymentMethodElement
                         size="lg"
                         paymentMethod={paymentMethod}
+                        monthsToExpiration={monthsToExpiration}
                         {...props}
                       />
 
