@@ -28,6 +28,25 @@ import {
 } from "../../ui";
 import { t } from "i18next";
 
+type PaymentMethodType =
+  | "card"
+  | "us_bank_account"
+  | "amazon_pay"
+  | "cashapp"
+  | "paypal"
+  | "link"
+  | string;
+
+type PaymentElementSizes = "sm" | "md" | "lg";
+
+interface PaymentElementProps {
+  iconName?: IconNameTypes;
+  iconTitle?: string;
+  iconStyles?: object;
+  label?: string;
+  paymentLast4?: string | undefined | null;
+}
+
 interface DesignProps {
   header: {
     isVisible: boolean;
@@ -39,12 +58,22 @@ interface DesignProps {
   };
 }
 
-interface PaymentElementProps {
-  iconName?: IconNameTypes;
-  iconTitle: string;
-  iconStyles: object;
-  label: string | null | undefined;
-  paymentLast4?: string | null | undefined;
+interface PaymentMethodElementProps extends DesignProps {
+  size?: PaymentElementSizes;
+  paymentMethod?: {
+    accountLast4?: string | null;
+    accountName?: string | null | undefined;
+    bankName?: string | undefined | null;
+    billingEmail?: string | undefined | null;
+    cardBrand?: string | undefined | null;
+    cardExpMonth?: number | undefined | null;
+    cardExpYear?: number | undefined | null;
+    cardLast4?: string | undefined | null;
+    paymentMethodType?: string;
+  };
+
+  monthsToExpiration?: number;
+  onEdit?: () => void;
 }
 
 const PaymentElement = ({
@@ -67,11 +96,9 @@ const PaymentElement = ({
           )}
 
           <Flex $alignItems="center">
-            {label && (
-              <Box $lineHeight="1" $marginRight="4px">
-                {t(label)}
-              </Box>
-            )}
+            <Box $lineHeight="1" $marginRight="4px">
+              {t(label as string)}
+            </Box>
             {paymentLast4 && (
               <Box $display="inline-block" $fontWeight="bold">
                 {paymentLast4}
@@ -83,6 +110,7 @@ const PaymentElement = ({
     </>
   );
 };
+
 const resolveDesignProps = (
   props: RecursivePartial<DesignProps>,
 ): DesignProps => {
@@ -97,24 +125,6 @@ const resolveDesignProps = (
     },
   };
 };
-
-interface PaymentMethodElementProps extends DesignProps {
-  size?: "sm" | "md" | "lg";
-  paymentMethod?: {
-    accountLast4?: string | null;
-    accountName?: string | null | undefined;
-    bankName?: string | undefined | null;
-    billingEmail?: string | undefined | null;
-    cardBrand?: string | undefined | null;
-    cardExpMonth?: number | undefined | null;
-    cardExpYear?: number | undefined | null;
-    cardLast4?: string | undefined | null;
-    paymentMethodType?: string;
-  };
-
-  monthsToExpiration?: number;
-  onEdit?: () => void;
-}
 
 const PaymentMethodElement = ({
   size = "md",
@@ -139,151 +149,86 @@ const PaymentMethodElement = ({
   const cardLast4 = paymentMethod?.cardLast4;
   const paymentMethodType = paymentMethod?.paymentMethodType;
 
-  const isCard = paymentMethodType === "card";
-  const isBank = paymentMethodType === "us_bank_account";
-  const isAmazonPay = paymentMethodType === "amazon_pay";
-  const isApplePay = paymentMethodType === "apple_pay"; // nothing in stripe docs...
-  const isCashApp = paymentMethodType === "cashtag";
-  const isPayPal = paymentMethodType === "paypal";
-  const isLink = paymentMethodType === "link";
+  const cardBrands = new Set(["visa", "mastercard", "amex"]);
+  const cardIcon = (icon: IconNameTypes) =>
+    icon && cardBrands.has(icon) ? icon : "credit";
 
-  const getIconName = (value: string | undefined) => {
-    switch (value) {
-      case "visa":
-      case "mastercard":
-      case "amex":
-        return value;
-      default:
-        return "credit";
-    }
+  const iconStyles = {
+    lg: { fontSize: 28, marginLeft: -2, marginRight: 8 },
+    md: { fontSize: 25, marginLeft: 0, marginRight: 7, marginTop: -1 },
+    sm: { fontSize: 24, marginLeft: 0, marginRight: 4 },
   };
 
-  const getIconStyles = (size: "sm" | "md" | "lg") => {
-    const styles = {
-      lg: { fontSize: 28, marginLeft: -2, marginRight: 8 },
-      md: { fontSize: 25, marginLeft: 0, marginRight: 7, marginTop: -1 },
-      sm: { fontSize: 24, marginLeft: 0, marginRight: 4 },
-    };
-    return styles[size] || styles.sm;
-  };
+  const getIconStyles = (size: PaymentElementSizes) =>
+    iconStyles[size] ?? iconStyles.md;
+
+  const paymentMethodElementProps = (
+    iconName?: IconNameTypes,
+    iconTitle?: string,
+    label?: string,
+    paymentLast4?: string | null | undefined,
+  ) => ({
+    iconName,
+    iconTitle,
+    iconStyles: {
+      ...getIconStyles(size),
+      marginRight: 4,
+      lineHeight: 1,
+      color: theme.typography.text.color,
+    },
+    label,
+    paymentLast4,
+  });
 
   const renderPaymentMethodElement = () => {
-    switch (true) {
-      case isCard:
-        return (
-          <PaymentElement
-            iconName={getIconName(cardBrand || "")}
-            iconTitle={cardBrand || "Card"}
-            iconStyles={{
-              ...getIconStyles(size),
-              lineHeight: 1,
-              color: theme.typography.text.color,
-            }}
-            label={`Card ending in `}
-            paymentLast4={cardLast4}
-          />
-        );
-      case isBank:
-        return (
-          <PaymentElement
-            iconName="bank"
-            iconTitle={`${billingEmail} | ${bankName}`}
-            iconStyles={{
-              ...getIconStyles(size),
-              marginRight: 4,
-              lineHeight: 1,
-              color: theme.typography.text.color,
-            }}
-            label={bankName || billingEmail}
-            paymentLast4={accountLast4}
-          />
-        );
-      case isAmazonPay:
-        return (
-          <PaymentElement
-            iconName="amazonpay"
-            iconTitle={billingEmail || "AmazonPay account"}
-            iconStyles={{
-              ...getIconStyles(size),
-              marginRight: 4,
-              lineHeight: 1,
-              color: theme.typography.text.color,
-            }}
-            label={billingEmail || "AmazonPay account"}
-          />
-        );
-      case isApplePay:
-        return (
-          <PaymentElement
-            iconName="applepay"
-            iconTitle={accountName || billingEmail || "AppePay account"}
-            iconStyles={{
-              ...getIconStyles(size),
-              marginRight: 4,
-              lineHeight: 1,
-              color: theme.typography.text.color,
-            }}
-            label={billingEmail || "AppePay account"}
-          />
-        );
-      case isCashApp:
-        return (
-          <PaymentElement
-            iconName="cashapp"
-            iconTitle={accountName || billingEmail || "AppePay account"}
-            iconStyles={{
-              ...getIconStyles(size),
-              marginRight: 4,
-              lineHeight: 1,
-              color: theme.typography.text.color,
-            }}
-            label={billingEmail || "AppePay account"}
-          />
-        );
-      case isPayPal:
-        return (
-          <PaymentElement
-            iconName="paypal"
-            iconTitle={accountName || billingEmail || "PayPal account"}
-            iconStyles={{
-              ...getIconStyles(size),
-              marginRight: 4,
-              lineHeight: 1,
-              color: theme.typography.text.color,
-            }}
-            label={billingEmail || "PayPal account"}
-          />
-        );
-      case isLink:
-        return (
-          <PaymentElement
-            iconTitle={billingEmail || "Stripe link"}
-            iconStyles={{
-              ...getIconStyles(size),
-              marginRight: 4,
-              lineHeight: 1,
-              color: theme.typography.text.color,
-            }}
-            label={billingEmail || "Stripe link"}
-          />
-        );
-      default:
-        return (
-          <PaymentElement
-            iconName="link"
-            iconTitle={
-              billingEmail || accountName || bankName || "Payment Method"
-            }
-            iconStyles={{
-              ...getIconStyles(size),
-              marginRight: 4,
-              lineHeight: 1,
-              color: theme.typography.text.color,
-            }}
-            label={billingEmail || accountName || bankName || "Payment Method"}
-          />
-        );
-    }
+    const paymentConfig: Record<PaymentMethodType, PaymentElementProps> = {
+      card: {
+        iconName: cardIcon(cardBrand as IconNameTypes),
+        iconTitle: cardBrand || "Card",
+        label: `Card ending in `,
+        paymentLast4: cardLast4,
+      },
+      us_bank_account: {
+        iconName: "bank",
+        iconTitle: `${billingEmail} | ${bankName}`,
+        label: bankName || billingEmail || "Bank account",
+        paymentLast4: accountLast4,
+      },
+      amazon_pay: {
+        iconName: "amazonpay",
+        iconTitle: billingEmail || "AmazonPay account",
+        label: billingEmail || "AmazonPay account",
+      },
+      cashapp: {
+        iconName: "cashapp",
+        iconTitle: accountName || billingEmail || "CashApp account",
+        label: billingEmail || "CashApp account",
+      },
+      paypal: {
+        iconName: "paypal",
+        iconTitle: accountName || billingEmail || "PayPal account",
+        label: billingEmail || "PayPal account",
+      },
+      link: {
+        iconName: "link",
+        iconTitle: billingEmail || "Stripe link",
+        label: billingEmail || "Stripe link",
+      },
+    };
+
+    const { iconName, iconTitle, label, paymentLast4 } = paymentConfig[
+      paymentMethodType || ""
+    ] ?? {
+      iconName: "link",
+      iconTitle: billingEmail || accountName || bankName || "Payment method",
+      label: billingEmail || accountName || bankName || "Payment method",
+    };
+
+    return (
+      <PaymentElement
+        {...paymentMethodElementProps(iconName, iconTitle, label, paymentLast4)}
+      />
+    );
   };
 
   return (
