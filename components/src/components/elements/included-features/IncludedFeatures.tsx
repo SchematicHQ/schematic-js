@@ -216,7 +216,11 @@ export const IncludedFeatures = forwardRef<
         return (
           <Flex
             key={index}
-            ref={(el) => el && elements.current.push(el)}
+            ref={(el) => {
+              if (el) {
+                elements.current.push(el);
+              }
+            }}
             $flexWrap="wrap"
             $justifyContent="space-between"
             $alignItems="center"

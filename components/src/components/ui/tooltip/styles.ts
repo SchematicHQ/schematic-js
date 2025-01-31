@@ -1,6 +1,6 @@
 import styled, { css, keyframes } from "styled-components";
 import { TEXT_BASE_SIZE } from "../../../const";
-import { Box, type BoxProps , type Position } from "../../ui";
+import { Box, type BoxProps, type Position } from "../../ui";
 
 export const Trigger = styled(Box)``;
 

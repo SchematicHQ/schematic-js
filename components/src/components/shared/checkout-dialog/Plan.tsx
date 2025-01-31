@@ -229,7 +229,7 @@ export const Plan = ({
 
                       return 0;
                     })
-                    .reduce((acc: JSX.Element[], entitlement) => {
+                    .reduce((acc: React.ReactElement[], entitlement) => {
                       const hasNumericValue =
                         entitlement.valueType === "numeric" ||
                         entitlement.valueType === "unlimited" ||

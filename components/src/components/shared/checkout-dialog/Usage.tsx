@@ -66,132 +66,138 @@ export const Usage = ({ entitlements, updateQuantity, period }: UsageProps) => {
 
             return 0;
           })
-          .reduce((acc: JSX.Element[], { entitlement, quantity, usage }) => {
-            if (
-              entitlement.priceBehavior === "pay_in_advance" &&
-              entitlement.feature
-            ) {
-              acc.push(
-                <Flex
-                  key={entitlement.id}
-                  $justifyContent="space-between"
-                  $alignItems="center"
-                  $gap="1rem"
-                  $padding={`${cardPadding}rem`}
-                  $backgroundColor={theme.card.background}
-                  $borderRadius={`${theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
-                  {...(theme.card.hasShadow && { $boxShadow: cardBoxShadow })}
-                >
-                  <Flex $flexDirection="column" $gap="0.75rem">
-                    <Box>
-                      <Text
-                        $font={theme.typography.heading2.fontFamily}
-                        $size={theme.typography.heading2.fontSize}
-                        $weight={theme.typography.heading2.fontWeight}
-                        $color={theme.typography.heading2.color}
-                      >
-                        {entitlement.feature.name}
-                      </Text>
-                    </Box>
+          .reduce(
+            (acc: React.ReactElement[], { entitlement, quantity, usage }) => {
+              if (
+                entitlement.priceBehavior === "pay_in_advance" &&
+                entitlement.feature
+              ) {
+                acc.push(
+                  <Flex
+                    key={entitlement.id}
+                    $justifyContent="space-between"
+                    $alignItems="center"
+                    $gap="1rem"
+                    $padding={`${cardPadding}rem`}
+                    $backgroundColor={theme.card.background}
+                    $borderRadius={`${theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
+                    {...(theme.card.hasShadow && { $boxShadow: cardBoxShadow })}
+                  >
+                    <Flex $flexDirection="column" $gap="0.75rem">
+                      <Box>
+                        <Text
+                          $font={theme.typography.heading2.fontFamily}
+                          $size={theme.typography.heading2.fontSize}
+                          $weight={theme.typography.heading2.fontWeight}
+                          $color={theme.typography.heading2.color}
+                        >
+                          {entitlement.feature.name}
+                        </Text>
+                      </Box>
 
-                    {entitlement.feature.description && (
-                      <Box $marginBottom="0.5rem">
+                      {entitlement.feature.description && (
+                        <Box $marginBottom="0.5rem">
+                          <Text
+                            $font={theme.typography.text.fontFamily}
+                            $size={theme.typography.text.fontSize}
+                            $weight={theme.typography.text.fontWeight}
+                            $color={theme.typography.text.color}
+                          >
+                            {entitlement.feature.description}
+                          </Text>
+                        </Box>
+                      )}
+                    </Flex>
+
+                    <Flex $flexDirection="column" $gap="0.5rem">
+                      <Input
+                        type="number"
+                        value={quantity}
+                        min={usage}
+                        autoFocus
+                        onFocus={(event) => event.target.select()}
+                        onChange={(event) => {
+                          event.preventDefault();
+
+                          const value = parseInt(event.target.value);
+                          if (!isNaN(value)) {
+                            updateQuantity(entitlement.id, value);
+                          }
+                        }}
+                      />
+
+                      <Box>
+                        <Text
+                          $font={theme.typography.text.fontFamily}
+                          $size={unitPriceFontSize}
+                          $weight={theme.typography.text.fontWeight}
+                          $color={unitPriceColor}
+                        >
+                          {quantity < usage && (
+                            <span style={{ color: "#DB6669" }}>
+                              {t("Cannot downgrade entitlement")}{" "}
+                            </span>
+                          )}
+                          {t("Currently using", {
+                            quantity: usage,
+                            unit: pluralize(
+                              entitlement.feature.name.toLowerCase(),
+                            ),
+                          })}
+                        </Text>
+                      </Box>
+                    </Flex>
+
+                    <Box>
+                      <Box $whiteSpace="nowrap">
                         <Text
                           $font={theme.typography.text.fontFamily}
                           $size={theme.typography.text.fontSize}
                           $weight={theme.typography.text.fontWeight}
                           $color={theme.typography.text.color}
                         >
-                          {entitlement.feature.description}
+                          {formatCurrency(
+                            ((period === "month"
+                              ? entitlement.meteredMonthlyPrice
+                              : entitlement.meteredYearlyPrice
+                            )?.price || 0) * quantity,
+                          )}
+                          <sub>/{shortenPeriod(period)}</sub>
                         </Text>
                       </Box>
-                    )}
-                  </Flex>
 
-                  <Flex $flexDirection="column" $gap="0.5rem">
-                    <Input
-                      type="number"
-                      value={quantity}
-                      min={usage}
-                      autoFocus
-                      onFocus={(event) => event.target.select()}
-                      onChange={(event) => {
-                        event.preventDefault();
-
-                        const value = parseInt(event.target.value);
-                        if (!isNaN(value)) {
-                          updateQuantity(entitlement.id, value);
-                        }
-                      }}
-                    />
-
-                    <Box>
-                      <Text
-                        $font={theme.typography.text.fontFamily}
-                        $size={unitPriceFontSize}
-                        $weight={theme.typography.text.fontWeight}
-                        $color={unitPriceColor}
-                      >
-                        {quantity < usage && (
-                          <span style={{ color: "#DB6669" }}>
-                            {t("Cannot downgrade entitlement")}{" "}
-                          </span>
-                        )}
-                        {t("Currently using", {
-                          quantity: usage,
-                          unit: pluralize(
-                            entitlement.feature.name.toLowerCase(),
-                          ),
-                        })}
-                      </Text>
+                      <Box $whiteSpace="nowrap">
+                        <Text
+                          $font={theme.typography.text.fontFamily}
+                          $size={unitPriceFontSize}
+                          $weight={theme.typography.text.fontWeight}
+                          $color={unitPriceColor}
+                        >
+                          {formatCurrency(
+                            (period === "month"
+                              ? entitlement.meteredMonthlyPrice
+                              : entitlement.meteredYearlyPrice
+                            )?.price || 0,
+                          )}
+                          <sub>
+                            /
+                            {pluralize(
+                              entitlement.feature.name.toLowerCase(),
+                              1,
+                            )}
+                            /{shortenPeriod(period)}
+                          </sub>
+                        </Text>
+                      </Box>
                     </Box>
-                  </Flex>
+                  </Flex>,
+                );
+              }
 
-                  <Box>
-                    <Box $whiteSpace="nowrap">
-                      <Text
-                        $font={theme.typography.text.fontFamily}
-                        $size={theme.typography.text.fontSize}
-                        $weight={theme.typography.text.fontWeight}
-                        $color={theme.typography.text.color}
-                      >
-                        {formatCurrency(
-                          ((period === "month"
-                            ? entitlement.meteredMonthlyPrice
-                            : entitlement.meteredYearlyPrice
-                          )?.price || 0) * quantity,
-                        )}
-                        <sub>/{shortenPeriod(period)}</sub>
-                      </Text>
-                    </Box>
-
-                    <Box $whiteSpace="nowrap">
-                      <Text
-                        $font={theme.typography.text.fontFamily}
-                        $size={unitPriceFontSize}
-                        $weight={theme.typography.text.fontWeight}
-                        $color={unitPriceColor}
-                      >
-                        {formatCurrency(
-                          (period === "month"
-                            ? entitlement.meteredMonthlyPrice
-                            : entitlement.meteredYearlyPrice
-                          )?.price || 0,
-                        )}
-                        <sub>
-                          /
-                          {pluralize(entitlement.feature.name.toLowerCase(), 1)}
-                          /{shortenPeriod(period)}
-                        </sub>
-                      </Text>
-                    </Box>
-                  </Box>
-                </Flex>,
-              );
-            }
-
-            return acc;
-          }, [])}
+              return acc;
+            },
+            [],
+          )}
       </Flex>
     </>
   );

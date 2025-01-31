@@ -347,7 +347,7 @@ export const PlanManager = forwardRef<
             </Text>
 
             {usageBasedEntitlements.reduce(
-              (acc: JSX.Element[], entitlement) => {
+              (acc: React.ReactElement[], entitlement) => {
                 if (entitlement.feature?.name) {
                   acc.push(
                     <Flex

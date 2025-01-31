@@ -423,7 +423,7 @@ export const PricingTable = forwardRef<
 
                             return 0;
                           })
-                          .reduce((acc: JSX.Element[], entitlement) => {
+                          .reduce((acc: React.ReactElement[], entitlement) => {
                             let price: number | undefined;
                             if (selectedPeriod === "month") {
                               price = entitlement.meteredMonthlyPrice?.price;
