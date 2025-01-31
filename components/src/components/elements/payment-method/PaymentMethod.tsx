@@ -1,4 +1,5 @@
 import {
+  CSSProperties,
   forwardRef,
   useCallback,
   useEffect,
@@ -45,7 +46,7 @@ type PaymentElementSizes = "sm" | "md" | "lg";
 interface PaymentElementProps {
   iconName?: IconNameTypes;
   iconTitle?: string;
-  iconStyles?: object;
+  iconStyles?: CSSProperties;
   label?: string;
   paymentLast4?: string | undefined | null;
 }
