@@ -72,6 +72,7 @@ export class Schematic {
       this.webSocketUrl = options.webSocketUrl;
     }
 
+    /* eslint-disable-next-line @typescript-eslint/strict-boolean-expressions */
     if (typeof window !== "undefined" && window?.addEventListener) {
       window.addEventListener("beforeunload", () => {
         this.flushEventQueue();

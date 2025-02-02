@@ -22,6 +22,15 @@ export default tseslint.config({
       project: "./tsconfig.json",
     },
   },
+  rules: {
+    "@typescript-eslint/strict-boolean-expressions": [
+      "warn",
+      {
+        allowString: false,
+        allowNumber: false,
+      },
+    ],
+  },
   settings: {
     "import/resolver": {
       typescript: {},
