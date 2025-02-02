@@ -28,7 +28,6 @@ export default tseslint.config({
     },
   },
   rules: {
-    "no-unused-vars": "off",
     "react/no-unescaped-entities": "off",
     "@typescript-eslint/no-empty-function": "off",
     "@typescript-eslint/no-unused-vars": [
