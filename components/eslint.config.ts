@@ -44,6 +44,7 @@ export default tseslint.config({
     },
   },
   plugins: {
+    "@typescript-eslint": tseslint.plugin,
     react: reactPlugin,
   },
 });

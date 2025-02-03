@@ -23,7 +23,7 @@
     "build:types": "npx tsc && npx api-extractor run",
     "clean": "rm -rf dist",
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
-    "lint": "eslint src --report-unused-disable-directives --fix",
+    "lint": "npx eslint \"src/**\" --report-unused-disable-directives --fix",
     "test": "jest --config jest.config.js",
     "tsc": "npx tsc"
   },
