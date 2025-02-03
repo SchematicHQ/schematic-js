@@ -14,7 +14,7 @@ export default tseslint.config({
     reactPlugin.configs.flat["jsx-runtime"],
     reactHooks.configs["recommended-latest"],
   ],
-  files: ["src/**/*.{ts,tsx}"],
+  files: ["src/**/*.ts", "src/**/*.tsx"],
   languageOptions: {
     ecmaVersion: "latest",
     sourceType: "module",
