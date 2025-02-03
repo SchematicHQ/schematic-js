@@ -5,6 +5,7 @@ import pluralize from "pluralize";
 import type {
   CompanyPlanWithBillingSubView,
   PlanEntitlementResponseData,
+  PreviewSubscriptionChangeResponseData,
   UpdateAddOnRequestBody,
   UpdatePayInAdvanceRequestBody,
   UsageBasedEntitlementResponseData,
@@ -26,12 +27,7 @@ import { StageButton } from "./StageButton";
 
 interface SidebarProps {
   addOns: SelectedPlan[];
-  charges?: {
-    dueNow: number;
-    newCharges: number;
-    proration: number;
-    periodStart: Date;
-  };
+  charges?: PreviewSubscriptionChangeResponseData;
   checkoutRef?: React.RefObject<HTMLDivElement | null>;
   checkoutStage: string;
   checkoutStages: CheckoutStage[];
@@ -46,12 +42,14 @@ interface SidebarProps {
   isLoading: boolean;
   paymentMethodId?: string;
   planPeriod: string;
+  promoCode?: string;
   requiresPayment: boolean;
   selectedPlan?: SelectedPlan;
   setCheckoutStage: (stage: string) => void;
   setError: (msg?: string) => void;
   showPaymentForm: boolean;
   toggleLoading: () => void;
+  updatePromoCode: (code?: string) => void;
   usageBasedEntitlements: {
     entitlement: PlanEntitlementResponseData;
     allocation: number;
@@ -73,12 +71,14 @@ export const Sidebar = ({
   isLoading,
   paymentMethodId,
   planPeriod,
+  promoCode,
   requiresPayment,
   selectedPlan,
   setCheckoutStage,
   setError,
   showPaymentForm,
   toggleLoading,
+  updatePromoCode,
   usageBasedEntitlements,
 }: SidebarProps) => {
   const { t } = useTranslation();
@@ -143,6 +143,18 @@ export const Sidebar = ({
     return formatCurrency(total);
   }, [selectedPlan, addOns, payInAdvanceEntitlements, planPeriod]);
 
+  const { amountOff, dueNow, newCharges, percentOff, periodStart, proration } =
+    useMemo(() => {
+      return {
+        amountOff: charges?.amountOff ?? 0,
+        dueNow: charges?.dueNow ?? 0,
+        newCharges: charges?.newCharges ?? 0,
+        percentOff: charges?.percentOff ?? 0,
+        periodStart: charges?.periodStart,
+        proration: charges?.proration ?? 0,
+      };
+    }, [charges]);
+
   const checkout = useCallback(async () => {
     const priceId = (
       planPeriod === "month"
@@ -202,6 +214,7 @@ export const Sidebar = ({
             [],
           ),
           ...(paymentMethodId && { paymentMethodId }),
+          ...(promoCode && { promoCode }),
         },
       });
       setLayout("success");
@@ -223,6 +236,7 @@ export const Sidebar = ({
     setLayout,
     toggleLoading,
     payInAdvanceEntitlements,
+    promoCode,
   ]);
 
   const selectedAddOns = addOns.filter((addOn) => addOn.isSelected);
@@ -902,7 +916,7 @@ export const Sidebar = ({
           </Flex>
         )}
 
-        {typeof charges?.proration === "number" && charges.proration !== 0 && (
+        {proration !== 0 && (
           <>
             <Box $opacity="0.625">
               <Text
@@ -911,7 +925,7 @@ export const Sidebar = ({
                 $weight={theme.typography.text.fontWeight}
                 $color={theme.typography.text.color}
               >
-                {charges.proration > 0
+                {proration > 0
                   ? t("Proration")
                   : !selectedPlan?.companyCanTrial && t("Credits")}
               </Text>
@@ -942,7 +956,7 @@ export const Sidebar = ({
                       $weight={theme.typography.text.fontWeight}
                       $color={theme.typography.text.color}
                     >
-                      {formatCurrency(charges.proration)}
+                      {formatCurrency(proration)}
                     </Text>
                   </Flex>
                 </Flex>
@@ -959,8 +973,131 @@ export const Sidebar = ({
         $width="100%"
         $padding="1.5rem"
       >
+        {promoCode && (
+          <Flex
+            $justifyContent="space-between"
+            $alignItems="center"
+            $gap="1rem"
+          >
+            <Box $opacity="0.625">
+              <Text
+                $font={theme.typography.text.fontFamily}
+                $size={theme.typography.text.fontSize}
+                $weight={theme.typography.text.fontWeight}
+                $color={theme.typography.text.color}
+              >
+                {t("Discount")}
+              </Text>
+            </Box>
+
+            <Flex
+              $alignItems="center"
+              $padding="0 0.375rem"
+              $outlineWidth="1px"
+              $outlineStyle="solid"
+              $outlineColor={
+                isLightBackground
+                  ? "hsla(0, 0%, 0%, 0.15)"
+                  : "hsla(0, 0%, 100%, 0.15)"
+              }
+              $borderRadius="0.3125rem"
+            >
+              <Text
+                $font={theme.typography.text.fontFamily}
+                $size={0.75 * theme.typography.text.fontSize}
+                $weight={theme.typography.text.fontWeight}
+                $color={theme.typography.text.color}
+              >
+                {promoCode}
+              </Text>
+
+              <Box
+                $cursor="pointer"
+                onClick={() => {
+                  updatePromoCode(undefined);
+                }}
+              >
+                <Icon
+                  name="close"
+                  style={{
+                    color: isLightBackground
+                      ? "hsl(0, 0%, 0%)"
+                      : "hsl(0, 0%, 100%)",
+                  }}
+                />
+              </Box>
+            </Flex>
+          </Flex>
+        )}
+
+        {percentOff > 0 && (
+          <Flex
+            $justifyContent="space-between"
+            $alignItems="center"
+            $gap="1rem"
+          >
+            <Box $opacity="0.625" $lineHeight={1.15}>
+              <Text
+                $font={theme.typography.text.fontFamily}
+                $size={theme.typography.text.fontSize}
+                $weight={theme.typography.text.fontWeight}
+                $color={theme.typography.text.color}
+              >
+                {t("X% off", { percent: percentOff })}
+              </Text>
+            </Box>
+
+            <Box>
+              <Text
+                $font={theme.typography.text.fontFamily}
+                $size={theme.typography.text.fontSize}
+                $weight={theme.typography.text.fontWeight}
+                $color={theme.typography.text.color}
+              >
+                {formatCurrency((newCharges / 100) * percentOff)}
+              </Text>
+            </Box>
+          </Flex>
+        )}
+
+        {amountOff > 0 && (
+          <Flex
+            $justifyContent="space-between"
+            $alignItems="center"
+            $gap="1rem"
+          >
+            <Box $opacity="0.625" $lineHeight={1.15}>
+              <Text
+                $font={theme.typography.text.fontFamily}
+                $size={theme.typography.text.fontSize}
+                $weight={theme.typography.text.fontWeight}
+                $color={theme.typography.text.color}
+              >
+                {t("X off", {
+                  amount: formatCurrency(Math.abs(amountOff)),
+                })}
+              </Text>
+            </Box>
+
+            <Box>
+              <Text
+                $font={theme.typography.text.fontFamily}
+                $size={theme.typography.text.fontSize}
+                $weight={theme.typography.text.fontWeight}
+                $color={theme.typography.text.color}
+              >
+                -{formatCurrency(Math.abs(amountOff))}
+              </Text>
+            </Box>
+          </Flex>
+        )}
+
         {selectedPlan && subscriptionPrice && (
-          <Flex $justifyContent="space-between" $gap="1rem">
+          <Flex
+            $justifyContent="space-between"
+            $alignItems="center"
+            $gap="1rem"
+          >
             <Box $opacity="0.625">
               <Text
                 $font={theme.typography.text.fontFamily}
@@ -987,7 +1124,11 @@ export const Sidebar = ({
         )}
 
         {charges && (
-          <Flex $justifyContent="space-between" $gap="1rem">
+          <Flex
+            $justifyContent="space-between"
+            $alignItems="center"
+            $gap="1rem"
+          >
             <Box $opacity="0.625">
               <Text
                 $font={theme.typography.text.fontFamily}
@@ -1006,13 +1147,13 @@ export const Sidebar = ({
                 $weight={theme.typography.text.fontWeight}
                 $color={theme.typography.text.color}
               >
-                {formatCurrency(Math.max(0, charges.dueNow))}
+                {formatCurrency(Math.max(0, dueNow))}
               </Text>
             </Box>
           </Flex>
         )}
 
-        {typeof charges?.dueNow === "number" && charges.dueNow < 0 && (
+        {dueNow < 0 && (
           <Flex $justifyContent="space-between" $gap="1rem">
             <Box $opacity="0.625" $lineHeight={1.15}>
               <Text
@@ -1032,7 +1173,7 @@ export const Sidebar = ({
                 $weight={theme.typography.text.fontWeight}
                 $color={theme.typography.text.color}
               >
-                {formatCurrency(Math.abs(charges.dueNow))}
+                {formatCurrency(Math.abs(dueNow))}
               </Text>
             </Box>
           </Flex>
@@ -1076,7 +1217,7 @@ export const Sidebar = ({
             {subscriptionPrice &&
               // TODO: localize
               `You will be billed ${subscriptionPrice} ${payAsYouGoEntitlements.length > 0 ? "plus usage based costs" : ""} for this subscription
-                every ${planPeriod} ${charges?.periodStart ? `on the ${formatOrdinal(charges.periodStart.getDate())}` : ""} ${planPeriod === "year" && charges?.periodStart ? `of ${getMonthName(charges.periodStart)}` : ""} unless you unsubscribe.`}
+                every ${planPeriod} ${periodStart ? `on the ${formatOrdinal(periodStart.getDate())}` : ""} ${planPeriod === "year" && periodStart ? `of ${getMonthName(periodStart)}` : ""} unless you unsubscribe.`}
           </Text>
         </Box>
       </Flex>

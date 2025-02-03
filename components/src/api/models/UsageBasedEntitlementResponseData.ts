@@ -52,6 +52,12 @@ export interface UsageBasedEntitlementResponseData {
   metricPeriodMonthReset?: string | null;
   /**
    *
+   * @type {BillingPriceView}
+   * @memberof UsageBasedEntitlementResponseData
+   */
+  monthlyUsageBasedPrice?: BillingPriceView;
+  /**
+   *
    * @type {string}
    * @memberof UsageBasedEntitlementResponseData
    */
@@ -74,6 +80,12 @@ export interface UsageBasedEntitlementResponseData {
    * @memberof UsageBasedEntitlementResponseData
    */
   valueType: string;
+  /**
+   *
+   * @type {BillingPriceView}
+   * @memberof UsageBasedEntitlementResponseData
+   */
+  yearlyUsageBasedPrice?: BillingPriceView;
 }
 
 /**
@@ -112,12 +124,20 @@ export function UsageBasedEntitlementResponseDataFromJSONTyped(
       json["metric_period_month_reset"] == null
         ? undefined
         : json["metric_period_month_reset"],
+    monthlyUsageBasedPrice:
+      json["monthly_usage_based_price"] == null
+        ? undefined
+        : BillingPriceViewFromJSON(json["monthly_usage_based_price"]),
     priceBehavior:
       json["price_behavior"] == null ? undefined : json["price_behavior"],
     valueBool: json["value_bool"] == null ? undefined : json["value_bool"],
     valueNumeric:
       json["value_numeric"] == null ? undefined : json["value_numeric"],
     valueType: json["value_type"],
+    yearlyUsageBasedPrice:
+      json["yearly_usage_based_price"] == null
+        ? undefined
+        : BillingPriceViewFromJSON(json["yearly_usage_based_price"]),
   };
 }
 
@@ -132,9 +152,15 @@ export function UsageBasedEntitlementResponseDataToJSON(
     metered_price: BillingPriceViewToJSON(value["meteredPrice"]),
     metric_period: value["metricPeriod"],
     metric_period_month_reset: value["metricPeriodMonthReset"],
+    monthly_usage_based_price: BillingPriceViewToJSON(
+      value["monthlyUsageBasedPrice"],
+    ),
     price_behavior: value["priceBehavior"],
     value_bool: value["valueBool"],
     value_numeric: value["valueNumeric"],
     value_type: value["valueType"],
+    yearly_usage_based_price: BillingPriceViewToJSON(
+      value["yearlyUsageBasedPrice"],
+    ),
   };
 }
