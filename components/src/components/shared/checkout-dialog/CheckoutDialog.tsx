@@ -12,6 +12,7 @@ import {
   ResponseError,
   type CompanyPlanDetailResponseData,
   type PlanEntitlementResponseData,
+  type PreviewSubscriptionChangeResponseData,
   type UpdateAddOnRequestBody,
   type UpdatePayInAdvanceRequestBody,
   type UsageBasedEntitlementResponseData,
@@ -58,18 +59,15 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   const [planPeriod, setPlanPeriod] = useState(
     selected.period || data.company?.plan?.planPeriod || "month",
   );
-  const [charges, setCharges] = useState<{
-    dueNow: number;
-    newCharges: number;
-    proration: number;
-    periodStart: Date;
-  }>();
+  const [charges, setCharges] =
+    useState<PreviewSubscriptionChangeResponseData>();
   const [paymentMethodId, setPaymentMethodId] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | undefined>();
   const [showPaymentForm, setShowPaymentForm] = useState(
     !data.subscription?.paymentMethod,
   );
+  const [promoCode, setPromoCode] = useState<string>();
 
   const {
     plans: availablePlans,
@@ -347,6 +345,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
               },
               [],
             ),
+            promoCode,
           },
         });
 
@@ -370,7 +369,19 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     }
 
     previewCheckout();
-  }, [t, api, planPeriod, selectedPlan, addOns, payInAdvanceEntitlements]);
+  }, [
+    t,
+    api,
+    planPeriod,
+    selectedPlan,
+    addOns,
+    payInAdvanceEntitlements,
+    promoCode,
+  ]);
+
+  const updatePromoCode = (code?: string) => {
+    setPromoCode(code);
+  };
 
   useEffect(() => {
     if (charges) {
@@ -553,6 +564,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
               showPaymentForm={showPaymentForm}
               setPaymentMethodId={(id) => setPaymentMethodId(id)}
               togglePaymentForm={() => setShowPaymentForm((prev) => !prev)}
+              updatePromoCode={(code) => updatePromoCode(code)}
             />
           )}
         </Flex>
@@ -570,12 +582,14 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           isLoading={isLoading}
           paymentMethodId={paymentMethodId}
           planPeriod={planPeriod}
+          promoCode={promoCode}
           requiresPayment={requiresPayment}
           selectedPlan={selectedPlan}
           setCheckoutStage={(stage) => setCheckoutStage(stage)}
           setError={(msg) => setError(msg)}
           showPaymentForm={showPaymentForm}
           toggleLoading={() => setIsLoading((prev) => !prev)}
+          updatePromoCode={(code) => updatePromoCode(code)}
           usageBasedEntitlements={usageBasedEntitlements}
         />
       </Flex>

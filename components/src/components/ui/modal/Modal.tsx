@@ -86,12 +86,12 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(
                         ? "480px"
                         : size === "md"
                           ? "688px"
-                          : "1280px",
+                          : "1356px",
                   }),
               $borderRadius: "0.5rem",
             },
             "@media (min-height: 896px)": {
-              $maxHeight: "768px",
+              $maxHeight: "860px",
             },
           }}
         >
