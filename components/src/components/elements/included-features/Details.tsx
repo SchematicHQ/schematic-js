@@ -72,7 +72,7 @@ export const Details = ({
     }
 
     if (!priceBehavior) {
-      t("Unlimited", { item: pluralize(feature.name) });
+      return t("Unlimited", { item: pluralize(feature.name) });
     }
   }, [allocation, feature?.name, price, priceBehavior, t]);
 
