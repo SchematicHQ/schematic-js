@@ -4,7 +4,7 @@
     "declaration": true,
     "declarationMap": false,
     "esModuleInterop": true,
-    "isolatedModules": true,
+    "isolatedModules": false,
     "jsx": "react-jsx",
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "module": "ESNext",
