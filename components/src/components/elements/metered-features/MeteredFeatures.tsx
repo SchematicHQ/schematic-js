@@ -170,7 +170,11 @@ export const MeteredFeatures = forwardRef<
 
               <Flex $flexDirection="column" $gap="2rem" $flexGrow="1">
                 <Flex
-                  ref={(el) => el && elements.current.push(el)}
+                  ref={(el) => {
+                    if (el) {
+                      elements.current.push(el);
+                    }
+                  }}
                   $flexWrap="wrap"
                   $gap="1rem"
                 >

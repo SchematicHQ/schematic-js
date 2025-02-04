@@ -96,7 +96,7 @@ const InvoiceDate = ({ date, fontStyle, url }: InvoiceDateProps) => {
 
   if (url) {
     return (
-      <a href={url} target="_blank">
+      <a href={url} target="_blank" rel="noreferrer">
         {dateText}
       </a>
     );

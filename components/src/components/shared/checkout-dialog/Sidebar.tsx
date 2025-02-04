@@ -28,7 +28,7 @@ import { StageButton } from "./StageButton";
 interface SidebarProps {
   addOns: SelectedPlan[];
   charges?: PreviewSubscriptionChangeResponseData;
-  checkoutRef?: React.RefObject<HTMLDivElement>;
+  checkoutRef?: React.RefObject<HTMLDivElement | null>;
   checkoutStage: string;
   checkoutStages: CheckoutStage[];
   currentAddOns: CompanyPlanWithBillingSubView[];
@@ -538,7 +538,10 @@ export const Sidebar = ({
             </Box>
 
             {removedUsageBasedEntitlements.reduce(
-              (acc: JSX.Element[], { allocation, quantity, entitlement }) => {
+              (
+                acc: React.ReactElement[],
+                { allocation, quantity, entitlement },
+              ) => {
                 if (
                   typeof allocation === "number" &&
                   entitlement.feature?.name
@@ -616,7 +619,7 @@ export const Sidebar = ({
             )}
 
             {changedUsageBasedEntitlements.reduce(
-              (acc: JSX.Element[], { entitlement, previous, next }) => {
+              (acc: React.ReactElement[], { entitlement, previous, next }) => {
                 if (entitlement?.feature?.name) {
                   acc.push(
                     <Box key={entitlement.feature.id}>
@@ -703,7 +706,7 @@ export const Sidebar = ({
             )}
 
             {addedUsageBasedEntitlements.reduce(
-              (acc: JSX.Element[], { entitlement, quantity }) => {
+              (acc: React.ReactElement[], { entitlement, quantity }) => {
                 if (entitlement.feature?.name) {
                   const price = (
                     planPeriod === "month"

@@ -6,7 +6,7 @@ import { Flex } from "../../ui";
 
 interface ModalProps extends React.HTMLAttributes<HTMLElement> {
   children: React.ReactNode;
-  contentRef?: React.RefObject<HTMLDivElement>;
+  contentRef?: React.RefObject<HTMLDivElement | null>;
   size?: "sm" | "md" | "lg" | "auto";
   top?: number;
   onClose?: () => void;

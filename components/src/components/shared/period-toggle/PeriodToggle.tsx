@@ -11,7 +11,7 @@ interface PeriodToggleProps {
   selectedOption: string;
   selectedPlan?: CompanyPlanDetailResponseData & { isSelected: boolean };
   onChange: (period: string) => void;
-  layerRef?: React.RefObject<HTMLDivElement>;
+  layerRef?: React.RefObject<HTMLDivElement | null>;
 }
 
 export const PeriodToggle = ({
