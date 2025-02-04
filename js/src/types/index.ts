@@ -30,6 +30,7 @@ export type EventBodyIdentify = {
 
 export type EventBodyTrack = SchematicContext & {
   event: string;
+  quantity?: number;
   traits?: Traits;
 };
 
