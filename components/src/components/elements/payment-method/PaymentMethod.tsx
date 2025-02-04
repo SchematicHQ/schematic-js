@@ -1,4 +1,5 @@
 import {
+  CSSProperties,
   forwardRef,
   useCallback,
   useEffect,
@@ -11,13 +12,44 @@ import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 import { loadStripe, type Stripe } from "@stripe/stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
-import type { SetupIntentResponseData } from "../../../api";
+import type {
+  PaymentMethodResponseData,
+  SetupIntentResponseData,
+} from "../../../api";
 import { type FontStyle } from "../../../context";
 import { PaymentForm } from "../../shared";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import type { RecursivePartial, ElementProps } from "../../../types";
 import { Element } from "../../layout";
-import { Box, Flex, Modal, ModalHeader, Text } from "../../ui";
+import {
+  Box,
+  Flex,
+  Icon,
+  IconNameTypes,
+  Modal,
+  ModalHeader,
+  Text,
+} from "../../ui";
+import { t } from "i18next";
+
+type PaymentMethodType =
+  | "card"
+  | "us_bank_account"
+  | "amazon_pay"
+  | "cashapp"
+  | "paypal"
+  | "link"
+  | string;
+
+type PaymentElementSizes = "sm" | "md" | "lg";
+
+interface PaymentElementProps {
+  iconName?: IconNameTypes;
+  iconTitle?: string;
+  iconStyles?: CSSProperties;
+  label?: string;
+  paymentLast4?: string | undefined | null;
+}
 
 interface DesignProps {
   header: {
@@ -29,6 +61,48 @@ interface DesignProps {
     showExpiration: boolean;
   };
 }
+
+interface PaymentMethodElementProps extends DesignProps {
+  size?: PaymentElementSizes;
+  paymentMethod: PaymentMethodResponseData;
+  monthsToExpiration?: number;
+  onEdit?: () => void;
+}
+
+const PaymentElement = ({
+  iconName,
+  iconTitle,
+  iconStyles,
+  label,
+  paymentLast4,
+}: PaymentElementProps) => {
+  const theme = useTheme();
+
+  return (
+    <>
+      <Text $font={theme.typography.text.fontFamily} $size={16}>
+        <Flex $flexDirection="row" $alignItems="center">
+          {iconName && (
+            <Box>
+              <Icon name={iconName} title={iconTitle} style={iconStyles} />
+            </Box>
+          )}
+
+          <Flex $alignItems="center">
+            <Box $lineHeight="1" $marginRight="4px">
+              {t(label as string)}
+            </Box>
+            {paymentLast4 && (
+              <Box $display="inline-block" $fontWeight="bold">
+                {paymentLast4}
+              </Box>
+            )}
+          </Flex>
+        </Flex>
+      </Text>
+    </>
+  );
+};
 
 const resolveDesignProps = (
   props: RecursivePartial<DesignProps>,
@@ -45,16 +119,9 @@ const resolveDesignProps = (
   };
 };
 
-interface PaymentMethodElementProps extends DesignProps {
-  size?: "sm" | "md" | "lg";
-  cardLast4?: string | null;
-  monthsToExpiration?: number;
-  onEdit?: () => void;
-}
-
 const PaymentMethodElement = ({
   size = "md",
-  cardLast4,
+  paymentMethod,
   monthsToExpiration,
   onEdit,
   ...props
@@ -65,7 +132,100 @@ const PaymentMethodElement = ({
 
   const isLightBackground = useIsLightBackground();
 
-  const sizeFactor = size === "lg" ? 2 : size === "md" ? 1 : 0.5;
+  const sizeFactor = size === "lg" ? 1.6 : size === "md" ? 1 : 0.5;
+
+  const {
+    accountLast4,
+    accountName,
+    bankName,
+    billingName,
+    billingEmail,
+    cardBrand,
+    cardLast4,
+    paymentMethodType,
+  } = paymentMethod;
+
+  const cardBrands = new Set(["visa", "mastercard", "amex"]);
+  const cardIcon = (icon: IconNameTypes) =>
+    icon && cardBrands.has(icon) ? icon : "credit";
+
+  const iconStyles = {
+    lg: { fontSize: 28, marginLeft: -2, marginRight: 8 },
+    md: { fontSize: 25, marginLeft: 0, marginRight: 7, marginTop: -1 },
+    sm: { fontSize: 24, marginLeft: 0, marginRight: 4 },
+  };
+
+  const getIconStyles = (size: PaymentElementSizes) =>
+    iconStyles[size] ?? iconStyles.md;
+
+  const paymentMethodElementProps = (
+    iconName?: IconNameTypes,
+    iconTitle?: string,
+    label?: string,
+    paymentLast4?: string | null | undefined,
+  ) => ({
+    iconName: iconName,
+    iconTitle,
+    iconStyles: {
+      ...getIconStyles(size),
+      marginRight: 4,
+      lineHeight: 1,
+      color: theme.typography.text.color,
+    },
+    label,
+    paymentLast4,
+  });
+
+  const renderPaymentMethodElement = () => {
+    const payments: Record<PaymentMethodType, PaymentElementProps> = {
+      card: {
+        iconName: cardIcon(cardBrand as IconNameTypes),
+        iconTitle: cardBrand || "Card",
+        label: `Card ending in `,
+        paymentLast4: cardLast4,
+      },
+      us_bank_account: {
+        iconName: "bank",
+        iconTitle: `${billingEmail} | ${bankName}`,
+        label: bankName || billingEmail || "Bank account",
+        paymentLast4: accountLast4,
+      },
+      amazon_pay: {
+        iconName: "amazonpay",
+        iconTitle: billingName || billingName || "Amazon Pay account",
+        label: billingName || billingEmail || "Amazon Pay account",
+      },
+      cashapp: {
+        iconName: "cashapp",
+        iconTitle: accountName || billingEmail || "CashApp account",
+        label: accountName || billingEmail || "CashApp account",
+      },
+      paypal: {
+        iconName: "paypal",
+        iconTitle: accountName || billingEmail || "PayPal account",
+        label: accountName || billingEmail || "PayPal account",
+      },
+      link: {
+        iconName: "link",
+        iconTitle: billingEmail || accountName || "Link account",
+        label: billingEmail || accountName || "Link account",
+      },
+    };
+
+    const { iconName, iconTitle, label, paymentLast4 } = payments[
+      paymentMethodType || ""
+    ] ?? {
+      iconName: "link",
+      iconTitle: billingEmail || accountName || bankName || "Payment method",
+      label: billingEmail || accountName || bankName || "Payment method",
+    };
+
+    return (
+      <PaymentElement
+        {...paymentMethodElementProps(iconName, iconTitle, label, paymentLast4)}
+      />
+    );
+  };
 
   return (
     <Flex $flexDirection="column" $gap={`${sizeFactor}rem`}>
@@ -104,14 +264,10 @@ const PaymentMethodElement = ({
             ? "hsla(0, 0%, 0%, 0.0625)"
             : "hsla(0, 0%, 100%, 0.125)"
         }
-        $padding={`${sizeFactor / 2}rem ${sizeFactor}rem`}
+        $padding={`${sizeFactor / 2.2}rem ${sizeFactor}rem`}
         $borderRadius="9999px"
       >
-        <Text $font={theme.typography.text.fontFamily} $size={14}>
-          {cardLast4
-            ? t("Card ending in", { value: cardLast4 })
-            : t("Other existing payment method")}
-        </Text>
+        {renderPaymentMethodElement()}
 
         {props.functions.allowEdit && onEdit && (
           <Text
@@ -161,29 +317,27 @@ export const PaymentMethod = forwardRef<
   const [top, setTop] = useState(0);
 
   const paymentMethod = useMemo(() => {
-    const { paymentMethodType, cardLast4, cardExpMonth, cardExpYear } =
-      data.subscription?.paymentMethod || {};
+    return data.subscription?.paymentMethod;
+  }, [data.subscription?.paymentMethod]);
 
-    let monthsToExpiration: number | undefined;
-    if (typeof cardExpYear === "number" && typeof cardExpMonth === "number") {
+  const monthsToExpiration = useMemo(() => {
+    let expiration: number | undefined;
+
+    if (
+      typeof paymentMethod?.cardExpYear === "number" &&
+      typeof paymentMethod?.cardExpMonth === "number"
+    ) {
       const today = new Date();
       const currentYear = today.getFullYear();
       const currentMonth = today.getMonth();
       const timeToExpiration = Math.round(
-        +new Date(cardExpYear, cardExpMonth - 1) -
+        +new Date(paymentMethod.cardExpYear, paymentMethod.cardExpMonth - 1) -
           +new Date(currentYear, currentMonth),
       );
-      monthsToExpiration = Math.round(
-        timeToExpiration / (1000 * 60 * 60 * 24 * 30),
-      );
+      expiration = Math.round(timeToExpiration / (1000 * 60 * 60 * 24 * 30));
     }
-
-    return {
-      paymentMethodType,
-      cardLast4,
-      monthsToExpiration,
-    };
-  }, [data.subscription?.paymentMethod]);
+    return expiration;
+  }, [paymentMethod?.cardExpYear, paymentMethod?.cardExpMonth]);
 
   const createSetupIntent = useCallback(async () => {
     if (!api || !data.component?.id) {
@@ -251,15 +405,16 @@ export const PaymentMethod = forwardRef<
     };
   }, [portal, layout]);
 
-  if (!paymentMethod.paymentMethodType) {
+  if (!paymentMethod?.paymentMethodType) {
     return null;
   }
 
   return (
     <Element ref={ref} className={className}>
       <PaymentMethodElement
+        paymentMethod={paymentMethod}
+        monthsToExpiration={monthsToExpiration}
         {...(allowEdit && { onEdit: () => setLayout("payment") })}
-        {...paymentMethod}
         {...props}
       />
 
@@ -298,7 +453,6 @@ export const PaymentMethod = forwardRef<
                         appearance: {
                           theme: "stripe",
                           variables: {
-                            // Base
                             fontFamily: '"Public Sans", system-ui, sans-serif',
                             spacingUnit: "0.25rem",
                             borderRadius: "0.5rem",
@@ -306,8 +460,6 @@ export const PaymentMethod = forwardRef<
                             colorBackground: "#FFFFFF",
                             colorPrimary: "#0570DE",
                             colorDanger: "#DB6669",
-
-                            // Layout
                             gridRowSpacing: "1.5rem",
                             gridColumnSpacing: "1.5rem",
                           },
@@ -332,7 +484,8 @@ export const PaymentMethod = forwardRef<
                     <Flex $flexDirection="column" $gap="2rem">
                       <PaymentMethodElement
                         size="lg"
-                        {...paymentMethod}
+                        paymentMethod={paymentMethod}
+                        monthsToExpiration={monthsToExpiration}
                         {...props}
                       />
 
