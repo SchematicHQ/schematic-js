@@ -32,6 +32,12 @@ export interface EventBodyTrack {
    */
   event: string;
   /**
+   * Optionally specify the quantity of the event
+   * @type {number}
+   * @memberof EventBodyTrack
+   */
+  quantity?: number;
+  /**
    * A map of trait names to trait values
    * @type {object}
    * @memberof EventBodyTrack
@@ -69,6 +75,7 @@ export function EventBodyTrackFromJSONTyped(
   return {
     company: json["company"] == null ? undefined : json["company"],
     event: json["event"],
+    quantity: json["quantity"] == null ? undefined : json["quantity"],
     traits: json["traits"] == null ? undefined : json["traits"],
     user: json["user"] == null ? undefined : json["user"],
   };
@@ -89,6 +96,7 @@ export function EventBodyTrackToJSONTyped(
   return {
     company: value["company"],
     event: value["event"],
+    quantity: value["quantity"],
     traits: value["traits"],
     user: value["user"],
   };
