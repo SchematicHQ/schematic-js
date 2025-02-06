@@ -105,7 +105,12 @@ export const Checkout = ({
             <Text $size={18}>{t("Add payment method")}</Text>
           </Box>
 
-          <PaymentForm onConfirm={(value) => setPaymentMethodId(value)} />
+          <PaymentForm
+            onConfirm={(value) => {
+              setPaymentMethodId(value);
+              togglePaymentForm();
+            }}
+          />
 
           {data.subscription?.paymentMethod && (
             <Box>
