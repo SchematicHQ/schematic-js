@@ -24,6 +24,7 @@ import {
   StoragePersister,
 } from "./types";
 import { contextString } from "./utils";
+import { version } from "./version";
 
 const anonymousIdKey = "schematicId";
 
@@ -50,9 +51,10 @@ export class Schematic {
     this.eventQueue = [];
     this.useWebSocket = options?.useWebSocket ?? false;
 
-    if (options?.additionalHeaders) {
-      this.additionalHeaders = options.additionalHeaders;
-    }
+    this.additionalHeaders = {
+      "X-Schematic-Client-Version": `schematic-js@${version}`,
+      ...(options?.additionalHeaders ?? {}),
+    };
 
     if (options?.storage) {
       this.storage = options.storage;
@@ -381,7 +383,7 @@ export class Schematic {
   // Open a websocket connection
   private wsConnect = (): Promise<WebSocket> => {
     return new Promise((resolve, reject) => {
-      const wsUrl = `${this.webSocketUrl}/flags/bootstrap`;
+      const wsUrl = `${this.webSocketUrl}/flags/bootstrap?apiKey=${this.apiKey}`;
       const webSocket = new WebSocket(wsUrl);
 
       webSocket.onopen = () => {
@@ -447,6 +449,7 @@ export class Schematic {
         socket.send(
           JSON.stringify({
             apiKey: this.apiKey,
+            clientVersion: `schematic-js@${version}`,
             data: context,
           }),
         );

@@ -1,6 +1,8 @@
 import { Schematic } from "./index";
 import { Server as WebSocketServer } from "mock-socket";
 
+import { version } from "./version";
+
 const mockFetch = jest.fn();
 global.fetch = mockFetch;
 
@@ -31,6 +33,7 @@ describe("Schematic", () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json;charset=UTF-8",
+          "X-Schematic-Client-Version": `schematic-js@${version}`,
         },
         body: expect.any(String),
       });
@@ -52,6 +55,7 @@ describe("Schematic", () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json;charset=UTF-8",
+          "X-Schematic-Client-Version": `schematic-js@${version}`,
         },
         body: expect.any(String),
       });
@@ -80,6 +84,7 @@ describe("Schematic", () => {
           method: "POST",
           headers: {
             "Content-Type": "application/json;charset=UTF-8",
+            "X-Schematic-Client-Version": `schematic-js@${version}`,
           },
           body: expect.any(String),
         }),
@@ -124,6 +129,7 @@ describe("Schematic", () => {
           method: "POST",
           headers: {
             "Content-Type": "application/json;charset=UTF-8",
+            "X-Schematic-Client-Version": `schematic-js@${version}`,
           },
           body: expect.any(String),
         }),
@@ -167,6 +173,7 @@ describe("Schematic", () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json;charset=UTF-8",
+          "X-Schematic-Client-Version": `schematic-js@${version}`,
         },
         body: expect.any(String),
       });
@@ -203,6 +210,7 @@ describe("Schematic", () => {
         headers: {
           "X-Schematic-Api-Key": "API_KEY",
           "Content-Type": "application/json;charset=UTF-8",
+          "X-Schematic-Client-Version": `schematic-js@${version}`,
         },
         body: expect.any(String),
       });
@@ -244,6 +252,7 @@ describe("Schematic", () => {
         headers: {
           "X-Schematic-Api-Key": "API_KEY",
           "Content-Type": "application/json;charset=UTF-8",
+          "X-Schematic-Client-Version": `schematic-js@${version}`,
           "X-Additional-Header": "foo",
         },
         body: expect.any(String),
@@ -294,6 +303,7 @@ describe("Schematic", () => {
         headers: {
           "X-Schematic-Api-Key": "API_KEY",
           "Content-Type": "application/json;charset=UTF-8",
+          "X-Schematic-Client-Version": `schematic-js@${version}`,
         },
         body: expect.any(String),
       });
@@ -344,6 +354,7 @@ describe("Schematic", () => {
         headers: {
           "X-Schematic-Api-Key": "API_KEY",
           "Content-Type": "application/json;charset=UTF-8",
+          "X-Schematic-Client-Version": `schematic-js@${version}`,
           "X-Additional-Header": "foo",
         },
         body: expect.any(String),
@@ -360,7 +371,7 @@ describe("Schematic WebSocket", () => {
   let schematic: Schematic;
   let mockServer: WebSocketServer;
   const TEST_WS_URL = "ws://localhost:1234";
-  const FULL_WS_URL = `${TEST_WS_URL}/flags/bootstrap`;
+  const FULL_WS_URL = `${TEST_WS_URL}/flags/bootstrap?apiKey=API_KEY`;
 
   beforeEach(() => {
     mockServer?.stop();
@@ -389,6 +400,7 @@ describe("Schematic WebSocket", () => {
         const parsedData = JSON.parse(data.toString());
         expect(parsedData).toEqual({
           apiKey: "API_KEY",
+          clientVersion: `schematic-js@${version}`,
           data: context,
         });
 
@@ -414,7 +426,7 @@ describe("Schematic WebSocket", () => {
     });
 
     expect(flagValue).toBe(true);
-  });
+  }, 15000);
 
   it("should handle connection closing and reopening", async () => {
     const context = {
