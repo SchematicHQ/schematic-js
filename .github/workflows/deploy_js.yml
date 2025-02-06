@@ -57,6 +57,10 @@ jobs:
         working-directory: ./js
         run: yarn install
 
+      - name: Update version
+        working-directory: ./js
+        run: ./version.sh
+
       - name: Build browser bundle
         working-directory: ./js
         run: yarn build:browser
