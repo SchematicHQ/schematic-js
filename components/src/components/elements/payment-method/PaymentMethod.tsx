@@ -1,5 +1,4 @@
 import {
-  CSSProperties,
   forwardRef,
   useCallback,
   useEffect,
@@ -46,7 +45,7 @@ type PaymentElementSizes = "sm" | "md" | "lg";
 interface PaymentElementProps {
   iconName?: IconNameTypes;
   iconTitle?: string;
-  iconStyles?: CSSProperties;
+  iconStyles?: object;
   label?: string;
   paymentLast4?: string | undefined | null;
 }
@@ -212,12 +211,19 @@ const PaymentMethodElement = ({
       },
     };
 
+    const genericLabel =
+      billingName ||
+      billingEmail ||
+      accountName ||
+      bankName ||
+      "Payment method";
+
     const { iconName, iconTitle, label, paymentLast4 } = payments[
       paymentMethodType || ""
     ] ?? {
-      iconName: "link",
-      iconTitle: billingEmail || accountName || bankName || "Payment method",
-      label: billingEmail || accountName || bankName || "Payment method",
+      iconName: "generic-payment",
+      iconTitle: genericLabel,
+      label: genericLabel,
     };
 
     return (
