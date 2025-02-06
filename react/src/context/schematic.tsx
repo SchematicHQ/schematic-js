@@ -1,6 +1,8 @@
 import * as SchematicJS from "@schematichq/schematic-js";
 import React, { createContext, useEffect, useMemo, useRef } from "react";
 
+import { version } from "../version";
+
 type BaseSchematicProviderProps = Omit<
   SchematicJS.SchematicOptions,
   "client" | "publishableKey"
@@ -39,6 +41,9 @@ export const SchematicProvider: React.FC<SchematicProviderProps> = ({
   const initialOptsRef = useRef({
     publishableKey,
     useWebSocket: clientOpts.useWebSocket ?? true,
+    additionalHeaders: {
+      "X-Schematic-Client-Version": `schematic-react@${version}`,
+    },
     ...clientOpts,
   });
 
