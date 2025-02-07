@@ -84,6 +84,7 @@ export const PaymentForm = ({ onConfirm }: PaymentFormProps) => {
         id="submit"
         disabled={isLoading || !stripe || !elements || isConfirmed}
         isLoading={isLoading}
+        style={{ flexShrink: 0 }}
         $color="primary"
       >
         {isLoading ? t("Loading") : t("Save payment method")}
