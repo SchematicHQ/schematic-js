@@ -5,11 +5,7 @@ import pluralize from "pluralize";
 import { type FeatureUsageResponseData } from "../../../api";
 import { type FontStyle } from "../../../context";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
-import type {
-  RecursivePartial,
-  ElementProps,
-  UsageBasedEntitlement,
-} from "../../../types";
+import type { RecursivePartial, ElementProps } from "../../../types";
 import {
   formatCurrency,
   hexToHSL,
@@ -110,7 +106,12 @@ export const PlanManager = forwardRef<
 
   const usageBasedEntitlements = (featureUsage?.features || []).reduce(
     (
-      acc: UsageBasedEntitlement[],
+      acc: (FeatureUsageResponseData & {
+        price: number;
+        quantity: number;
+        // TODO: remove once api is updated
+        softLimit?: number;
+      })[],
       usage: FeatureUsageResponseData & {
         // TODO: remove once api is updated
         softLimit?: number;

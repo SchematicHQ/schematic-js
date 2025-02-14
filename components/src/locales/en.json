@@ -47,6 +47,7 @@
     "No limit": "No limit",
     "Optionally add features to your subscription": "Optionally add features to your subscription",
     "Other existing payment method": "Other existing payment method",
+    "Overage": "Overage",
     "Over usage limit": "Over usage limit",
     "Pay now": "Pay now",
     "Payment Method": "Payment Method",
@@ -89,6 +90,7 @@
     "per": "per",
     "year": "year",
 
+    "overage fee": "overage fee",
     "used": "used",
 
     "usage": {

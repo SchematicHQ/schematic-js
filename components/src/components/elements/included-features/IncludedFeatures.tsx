@@ -132,7 +132,10 @@ export const IncludedFeatures = forwardRef<
   ).reduce(
     (
       acc: {
-        featureUsage?: FeatureUsageResponseData;
+        featureUsage?: FeatureUsageResponseData & {
+          // TODO: remove once api is updated
+          softLimit?: number;
+        };
         usageData?: UsageBasedEntitlementResponseData;
       }[],
       id,
@@ -145,10 +148,31 @@ export const IncludedFeatures = forwardRef<
       );
 
       if (mappedFeatureUsage) {
-        acc.push({
-          featureUsage: mappedFeatureUsage,
-          usageData: mappedUsageData,
-        });
+        let price: number | undefined;
+        if (data.company?.plan?.planPeriod === "month") {
+          price = mappedFeatureUsage.monthlyUsageBasedPrice?.price;
+        } else if (data.company?.plan?.planPeriod === "year") {
+          price = mappedFeatureUsage.yearlyUsageBasedPrice?.price;
+        }
+
+        if (mappedFeatureUsage.priceBehavior && typeof price === "number") {
+          // TODO: for testing, remove later
+          if (mappedFeatureUsage.feature?.name === "Search") {
+            acc.push({
+              featureUsage: {
+                ...mappedFeatureUsage,
+                priceBehavior: "overage",
+                softLimit: 0,
+              },
+              usageData: mappedUsageData,
+            });
+          } else {
+            acc.push({
+              featureUsage: mappedFeatureUsage,
+              usageData: mappedUsageData,
+            });
+          }
+        }
       }
 
       return acc;

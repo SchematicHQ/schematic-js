@@ -98,18 +98,52 @@ export const MeteredFeatures = forwardRef<
 
   const featureUsage = (
     props.visibleFeatures
-      ? props.visibleFeatures.reduce((acc: FeatureUsageResponseData[], id) => {
-          const mappedFeatureUsage = data.featureUsage?.features.find(
-            (usage) => usage.feature?.id === id,
-          );
+      ? props.visibleFeatures.reduce(
+          (
+            acc: (FeatureUsageResponseData & {
+              // TODO: remove once api is updated
+              softLimit?: number;
+            })[],
+            id,
+          ) => {
+            const mappedFeatureUsage = data.featureUsage?.features.find(
+              (usage) => usage.feature?.id === id,
+            );
 
-          if (mappedFeatureUsage) {
-            acc.push(mappedFeatureUsage);
-          }
+            if (mappedFeatureUsage) {
+              // TODO: for testing, remove later
+              if (mappedFeatureUsage.feature?.name === "Search") {
+                acc.push({
+                  ...mappedFeatureUsage,
+                  priceBehavior: "overage",
+                  softLimit: 1,
+                });
+              } else {
+                acc.push(mappedFeatureUsage);
+              }
+            }
 
-          return acc;
-        }, [])
-      : data.featureUsage?.features || []
+            return acc;
+          },
+          [],
+        )
+      : data.featureUsage?.features.map(
+          (
+            usage: FeatureUsageResponseData & {
+              // TODO: remove once api is updated
+              softLimit?: number;
+            },
+          ) => {
+            // TODO: for testing, remove later
+            return usage.feature?.name === "Search"
+              ? {
+                  ...usage,
+                  priceBehavior: "overage",
+                  softLimit: 1,
+                }
+              : usage;
+          },
+        ) || []
   ).filter(
     (usage) =>
       usage.feature?.featureType === "event" ||
@@ -139,6 +173,7 @@ export const MeteredFeatures = forwardRef<
             allocation,
             feature,
             usage,
+            softLimit,
             priceBehavior,
             metricResetAt,
             monthlyUsageBasedPrice,
@@ -268,6 +303,9 @@ export const MeteredFeatures = forwardRef<
                                     <>
                                       {formatNumber(usage)}{" "}
                                       {pluralize(feature.name, usage)}
+                                      {priceBehavior === "overage" && (
+                                        <> {t("used")}</>
+                                      )}
                                     </>
                                   )}
                           </Text>
@@ -293,7 +331,9 @@ export const MeteredFeatures = forwardRef<
                                   .color
                               }
                             >
-                              {priceBehavior && metricResetAt
+                              {priceBehavior &&
+                              priceBehavior !== "overage" &&
+                              metricResetAt
                                 ? t("Resets", {
                                     date: toPrettyDate(metricResetAt, {
                                       month: "short",
@@ -301,9 +341,12 @@ export const MeteredFeatures = forwardRef<
                                       year: undefined,
                                     }),
                                   })
-                                : typeof allocation === "number"
+                                : typeof allocation === "number" ||
+                                    typeof softLimit === "number"
                                   ? t("Limit of", {
-                                      amount: formatNumber(allocation),
+                                      amount: formatNumber(
+                                        allocation || softLimit || 0,
+                                      ),
                                     })
                                   : t("No limit")}
                             </Text>

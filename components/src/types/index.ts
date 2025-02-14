@@ -1,4 +1,3 @@
-import { type FeatureUsageResponseData } from "../api";
 import * as Craft from "@craftjs/core";
 
 export type RecursivePartial<T> = {
@@ -33,10 +32,3 @@ export interface ElementProps {
   className?: string;
   style?: React.CSSProperties;
 }
-
-export type UsageBasedEntitlement = FeatureUsageResponseData & {
-  price: number;
-  quantity: number;
-  // TODO: remove once api is updated
-  softLimit?: number;
-};
