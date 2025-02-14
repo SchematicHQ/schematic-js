@@ -81,6 +81,7 @@
     "Use existing payment method": "Use existing payment method",
     "X% off": "{{percent}}% off",
     "X off": "{{amount}} off",
+    "X over the limit": "{{amount}} over the limit",
     "Yearly": "Yearly",
 
     "day": "day",

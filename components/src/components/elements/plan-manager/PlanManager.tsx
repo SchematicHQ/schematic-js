@@ -5,7 +5,11 @@ import pluralize from "pluralize";
 import { type FeatureUsageResponseData } from "../../../api";
 import { type FontStyle } from "../../../context";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
-import type { RecursivePartial, ElementProps } from "../../../types";
+import type {
+  RecursivePartial,
+  ElementProps,
+  UsageBasedEntitlement,
+} from "../../../types";
 import {
   formatCurrency,
   hexToHSL,
@@ -106,13 +110,13 @@ export const PlanManager = forwardRef<
 
   const usageBasedEntitlements = (featureUsage?.features || []).reduce(
     (
-      acc: (FeatureUsageResponseData & {
-        price: number;
-        quantity: number;
-      })[],
-      usage,
+      acc: UsageBasedEntitlement[],
+      usage: FeatureUsageResponseData & {
+        // TODO: remove once api is updated
+        softLimit?: number;
+      },
     ) => {
-      const quantity = usage?.allocation ?? 0;
+      const quantity = usage.allocation || usage.softLimit || 0;
 
       let price: number | undefined;
       if (currentPlan?.planPeriod === "month") {
@@ -121,8 +125,18 @@ export const PlanManager = forwardRef<
         price = usage.yearlyUsageBasedPrice?.price;
       }
 
-      if (usage.priceBehavior && typeof price === "number" && quantity > 0) {
-        acc.push({ ...usage, price, quantity });
+      if (usage.priceBehavior && typeof price === "number") {
+        // TODO: for testing, remove later
+        if (usage.feature?.name === "Search") {
+          acc.push({
+            ...usage,
+            price,
+            priceBehavior: "overage",
+            quantity,
+          });
+        } else {
+          acc.push({ ...usage, price, quantity });
+        }
       }
 
       return acc;
@@ -348,6 +362,13 @@ export const PlanManager = forwardRef<
 
             {usageBasedEntitlements.reduce(
               (acc: React.ReactElement[], entitlement) => {
+                const overageAmount =
+                  entitlement.priceBehavior === "overage" &&
+                  (entitlement?.usage ?? 0) - (entitlement?.softLimit ?? 0);
+
+                const amount =
+                  entitlement.quantity || Math.max(overageAmount || 0, 0);
+
                 if (entitlement.feature?.name) {
                   acc.push(
                     <Flex
@@ -369,13 +390,12 @@ export const PlanManager = forwardRef<
                         }
                         $color={theme.typography[props.addOns.fontStyle].color}
                       >
-                        {entitlement.priceBehavior === "pay_in_advance" ? (
+                        {entitlement.priceBehavior === "pay_in_advance" ||
+                        (entitlement.priceBehavior === "overage" &&
+                          amount > 0) ? (
                           <>
-                            {entitlement.quantity}{" "}
-                            {pluralize(
-                              entitlement.feature.name,
-                              entitlement.quantity,
-                            )}
+                            {amount}{" "}
+                            {pluralize(entitlement.feature.name, amount)}
                           </>
                         ) : (
                           entitlement.feature.name
@@ -383,6 +403,45 @@ export const PlanManager = forwardRef<
                       </Text>
 
                       <Flex $alignItems="center" $gap="1rem">
+                        {entitlement.priceBehavior === "overage" &&
+                          currentPlan?.planPeriod && (
+                            <Text
+                              $font={theme.typography.text.fontFamily}
+                              $size={0.875 * theme.typography.text.fontSize}
+                              $weight={theme.typography.text.fontWeight}
+                              $color={
+                                hexToHSL(theme.typography.text.color).l > 50
+                                  ? darken(theme.typography.text.color, 0.46)
+                                  : lighten(theme.typography.text.color, 0.46)
+                              }
+                            >
+                              {typeof overageAmount === "number" &&
+                              overageAmount > 0 ? (
+                                t("X over the limit", {
+                                  amount: overageAmount,
+                                })
+                              ) : (
+                                <>
+                                  {t("Overage fee")}:{" "}
+                                  {formatCurrency(entitlement.price)}
+                                  <sub>
+                                    /
+                                    {pluralize(
+                                      entitlement.feature.name.toLowerCase(),
+                                      1,
+                                    )}
+                                    {entitlement.feature.featureType ===
+                                      "event" && (
+                                      <>
+                                        /{shortenPeriod(currentPlan.planPeriod)}
+                                      </>
+                                    )}
+                                  </sub>
+                                </>
+                              )}
+                            </Text>
+                          )}
+
                         {entitlement.priceBehavior === "pay_in_advance" &&
                           currentPlan?.planPeriod && (
                             <Text
@@ -407,29 +466,29 @@ export const PlanManager = forwardRef<
                             </Text>
                           )}
 
-                        <Text
-                          $font={theme.typography.text.fontFamily}
-                          $size={theme.typography.text.fontSize}
-                          $weight={theme.typography.text.fontWeight}
-                          $color={theme.typography.text.color}
-                        >
-                          {formatCurrency(
-                            entitlement.price *
-                              (entitlement.priceBehavior === "pay_in_advance"
-                                ? entitlement.quantity
-                                : 1),
-                          )}
-                          <sub>
-                            /
-                            {currentPlan?.planPeriod &&
-                            entitlement.priceBehavior === "pay_in_advance"
-                              ? shortenPeriod(currentPlan.planPeriod)
-                              : pluralize(
-                                  entitlement.feature.name.toLowerCase(),
-                                  1,
-                                )}
-                          </sub>
-                        </Text>
+                        {amount > 0 && (
+                          <Text
+                            $font={theme.typography.text.fontFamily}
+                            $size={theme.typography.text.fontSize}
+                            $weight={theme.typography.text.fontWeight}
+                            $color={theme.typography.text.color}
+                          >
+                            {formatCurrency(entitlement.price * amount)}
+                            {(entitlement.priceBehavior === "pay_in_advance" ||
+                              entitlement.priceBehavior !== "overage") && (
+                              <sub>
+                                /
+                                {currentPlan?.planPeriod &&
+                                entitlement.priceBehavior === "pay_in_advance"
+                                  ? shortenPeriod(currentPlan.planPeriod)
+                                  : pluralize(
+                                      entitlement.feature.name.toLowerCase(),
+                                      1,
+                                    )}
+                              </sub>
+                            )}
+                          </Text>
+                        )}
                       </Flex>
                     </Flex>,
                   );

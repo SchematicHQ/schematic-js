@@ -15,7 +15,10 @@ interface DetailsProps extends DesignProps {
   shouldWrapChildren: boolean;
   details: {
     featureUsage?: FeatureUsageResponseData;
-    usageData?: UsageBasedEntitlementResponseData;
+    usageData?: UsageBasedEntitlementResponseData & {
+      // TODO: remove once api is updated
+      softLimit?: number;
+    };
   };
 }
 
@@ -110,6 +113,13 @@ export const Details = ({
           typeof usage === "number"
         ) {
           acc += ` • ${formatCurrency(price * usage)}`;
+        } else if (
+          usageData.priceBehavior === "overage" &&
+          typeof price === "number" &&
+          typeof usage === "number" &&
+          typeof usageData.softLimit === "number"
+        ) {
+          acc += ` • ${formatCurrency(price * (usage - usageData.softLimit))}`;
         }
 
         return acc;
