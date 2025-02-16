@@ -23,6 +23,11 @@ export type EventBodyIdentify = {
     name?: string;
     traits?: Traits;
   };
+  user?: {
+    keys?: Keys;
+    name?: string;
+    traits?: Traits;
+  };
   keys?: Keys;
   name?: string;
   traits?: Traits;

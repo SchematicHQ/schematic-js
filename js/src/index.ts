@@ -233,9 +233,10 @@ export class Schematic {
    */
   identify = (body: EventBodyIdentify): Promise<void> => {
     try {
+      let userKeys = body.user?.keys || body.keys
       this.setContext({
         company: body.company?.keys,
-        user: body.keys,
+        user: userKeys,
       });
     } catch (error) {
       console.error("Error setting context:", error);
