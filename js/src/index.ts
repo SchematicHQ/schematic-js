@@ -319,9 +319,14 @@ export class Schematic {
     eventType: EventType,
     eventBody: EventBody,
   ): Promise<void> => {
+    const adjustedEventBody = {
+      ...eventBody,
+      ...eventBody.user
+    }
+
     const event: Event = {
       api_key: this.apiKey,
-      body: eventBody,
+      body: adjustedEventBody,
       sent_at: new Date().toISOString(),
       tracker_event_id: uuid.v4(),
       tracker_user_id: this.getAnonymousId(),
