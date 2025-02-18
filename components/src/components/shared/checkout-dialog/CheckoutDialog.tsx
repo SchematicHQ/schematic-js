@@ -10,7 +10,6 @@ import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 import {
   ResponseError,
-  type CompanyPlanDetailResponseData,
   type PlanEntitlementResponseData,
   type PreviewSubscriptionChangeResponseData,
   type UpdateAddOnRequestBody,
@@ -21,6 +20,7 @@ import {
   useAvailablePlans,
   useEmbed,
   useIsLightBackground,
+  type SelectedPlan,
 } from "../../../hooks";
 import { PeriodToggle } from "../../shared";
 import { Flex, Modal, ModalHeader, Text } from "../../ui";
@@ -30,6 +30,13 @@ import { Plan } from "./Plan";
 import { AddOns } from "./AddOns";
 import { Usage } from "./Usage";
 import { Checkout } from "./Checkout";
+
+interface UsageBasedEntitlement {
+  entitlement: PlanEntitlementResponseData;
+  allocation: number;
+  quantity: number;
+  usage: number;
+}
 
 export interface CheckoutStage {
   id: string;
@@ -233,66 +240,20 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
   const isLightBackground = useIsLightBackground();
 
-  const selectPlan = useCallback(
-    (
-      updatedPlan: CompanyPlanDetailResponseData & { isSelected: boolean },
-      updatedPeriod?: string,
-    ) => {
-      const entitlements = updatedPlan.entitlements.reduce(
-        createActiveUsageBasedEntitlementsReducer(updatedPeriod),
-        [],
-      );
-      setSelectedPlan(updatedPlan);
-      setUsageBasedEntitlements(entitlements);
-    },
-    [createActiveUsageBasedEntitlementsReducer],
-  );
+  const previewCheckout = useCallback(
+    async (updates: {
+      period?: string;
+      plan?: SelectedPlan;
+      addOns?: SelectedPlan[];
+      payInAdvanceEntitlements?: UsageBasedEntitlement[];
+      promoCode?: string;
+    }) => {
+      const period = updates.period || planPeriod;
+      const plan = updates.plan || selectedPlan;
 
-  const toggleAddOn = (id: string) => {
-    setAddOns((prev) =>
-      prev.map((addOn) => ({
-        ...addOn,
-        ...(addOn.id === id && { isSelected: !addOn.isSelected }),
-      })),
-    );
-  };
-
-  const changePlanPeriod = useCallback(
-    (period: string) => {
-      if (selectedPlan) {
-        selectPlan(selectedPlan, period);
-      }
-
-      setPlanPeriod(period);
-    },
-    [selectedPlan, selectPlan, setPlanPeriod],
-  );
-
-  const updateUsageBasedEntitlementQuantity = (
-    id: string,
-    updatedQuantity: number,
-  ) => {
-    setUsageBasedEntitlements((prev) =>
-      prev.map(({ entitlement, allocation, quantity, usage }) =>
-        entitlement.id === id
-          ? {
-              entitlement,
-              allocation,
-              quantity: updatedQuantity,
-              usage,
-            }
-          : { entitlement, allocation, quantity, usage },
-      ),
-    );
-  };
-
-  useEffect(() => {
-    async function previewCheckout() {
       const planPriceId =
-        planPeriod === "month"
-          ? selectedPlan?.monthlyPrice?.id
-          : selectedPlan?.yearlyPrice?.id;
-      if (!api || !selectedPlan || !planPriceId) {
+        period === "month" ? plan?.monthlyPrice?.id : plan?.yearlyPrice?.id;
+      if (!api || !plan || !planPriceId) {
         return;
       }
 
@@ -303,33 +264,38 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       try {
         const { data } = await api.previewCheckout({
           changeSubscriptionRequestBody: {
-            newPlanId: selectedPlan.id,
+            newPlanId: plan.id,
             newPriceId: planPriceId,
-            addOnIds: addOns.reduce((acc: UpdateAddOnRequestBody[], addOn) => {
-              if (addOn.isSelected) {
-                const addOnPriceId = (
-                  planPeriod === "month"
-                    ? addOn?.monthlyPrice
-                    : addOn?.yearlyPrice
-                )?.id;
+            addOnIds: (updates.addOns || addOns).reduce(
+              (acc: UpdateAddOnRequestBody[], addOn) => {
+                if (addOn.isSelected) {
+                  const addOnPriceId = (
+                    period === "month"
+                      ? addOn?.monthlyPrice
+                      : addOn?.yearlyPrice
+                  )?.id;
 
-                if (addOnPriceId) {
-                  acc.push({
-                    addOnId: addOn.id,
-                    priceId: addOnPriceId,
-                  });
+                  if (addOnPriceId) {
+                    acc.push({
+                      addOnId: addOn.id,
+                      priceId: addOnPriceId,
+                    });
+                  }
                 }
-              }
 
-              return acc;
-            }, []),
-            payInAdvance: payInAdvanceEntitlements.reduce(
+                return acc;
+              },
+              [],
+            ),
+            payInAdvance: (
+              updates.payInAdvanceEntitlements || payInAdvanceEntitlements
+            ).reduce(
               (
                 acc: UpdatePayInAdvanceRequestBody[],
                 { entitlement, quantity },
               ) => {
                 const priceId = (
-                  planPeriod === "month"
+                  period === "month"
                     ? entitlement.meteredMonthlyPrice
                     : entitlement.meteredYearlyPrice
                 )?.priceId;
@@ -345,7 +311,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
               },
               [],
             ),
-            promoCode,
+            promoCode: updates.promoCode || promoCode,
           },
         });
 
@@ -366,21 +332,103 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       } finally {
         setIsLoading(false);
       }
-    }
+    },
+    [
+      t,
+      api,
+      planPeriod,
+      selectedPlan,
+      addOns,
+      payInAdvanceEntitlements,
+      promoCode,
+    ],
+  );
 
-    previewCheckout();
-  }, [
-    t,
-    api,
-    planPeriod,
-    selectedPlan,
-    addOns,
-    payInAdvanceEntitlements,
-    promoCode,
-  ]);
+  const selectPlan = useCallback(
+    (updates: { plan?: SelectedPlan; period?: string }) => {
+      const plan = updates.plan || selectedPlan;
+      if (!plan) {
+        return;
+      }
+
+      const period = updates.period || planPeriod;
+      const entitlements = plan.entitlements.reduce(
+        createActiveUsageBasedEntitlementsReducer(period),
+        [],
+      );
+
+      if (updates.plan) {
+        setSelectedPlan(plan);
+        setUsageBasedEntitlements(entitlements);
+      }
+
+      previewCheckout({
+        period: period,
+        plan: updates.plan,
+        payInAdvanceEntitlements: entitlements.filter(
+          ({ entitlement }) => entitlement.priceBehavior === "pay_in_advance",
+        ),
+      });
+    },
+    [
+      planPeriod,
+      selectedPlan,
+      createActiveUsageBasedEntitlementsReducer,
+      previewCheckout,
+    ],
+  );
+
+  const changePlanPeriod = useCallback(
+    (period: string) => {
+      setPlanPeriod(period);
+      previewCheckout({ period });
+    },
+    [setPlanPeriod, previewCheckout],
+  );
+
+  const toggleAddOn = (id: string) => {
+    setAddOns((prev) => {
+      const updated = prev.map((addOn) => ({
+        ...addOn,
+        ...(addOn.id === id && { isSelected: !addOn.isSelected }),
+      }));
+
+      previewCheckout({ addOns: updated });
+
+      return updated;
+    });
+  };
+
+  const updateUsageBasedEntitlementQuantity = useCallback(
+    (id: string, updatedQuantity: number) => {
+      setUsageBasedEntitlements((prev) => {
+        const updated = prev.map(
+          ({ entitlement, allocation, quantity, usage }) =>
+            entitlement.id === id
+              ? {
+                  entitlement,
+                  allocation,
+                  quantity: updatedQuantity,
+                  usage,
+                }
+              : { entitlement, allocation, quantity, usage },
+        );
+
+        previewCheckout({
+          payInAdvanceEntitlements: updated.filter(
+            ({ entitlement }) => entitlement.priceBehavior === "pay_in_advance",
+          ),
+        });
+
+        return updated;
+      });
+    },
+    [previewCheckout],
+  );
 
   const updatePromoCode = (code?: string) => {
     setPromoCode(code);
+    previewCheckout({ promoCode: code });
   };
 
   useEffect(() => {
