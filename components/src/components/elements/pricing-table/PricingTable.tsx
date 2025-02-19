@@ -329,33 +329,38 @@ export const PricingTable = forwardRef<
                           theme.typography[props.plans.name.fontStyle].color
                         }
                       >
-                        {formatCurrency(
-                          (selectedPeriod === "month"
-                            ? plan.monthlyPrice
-                            : plan.yearlyPrice
-                          )?.price ?? 0,
-                        )}
+                        {plan.custom
+                          ? plan.customPlanConfig?.priceText
+                          : formatCurrency(
+                              (selectedPeriod === "month"
+                                ? plan.monthlyPrice
+                                : plan.yearlyPrice
+                              )?.price ?? 0,
+                            )}
                       </Text>
 
-                      <Text
-                        $font={
-                          theme.typography[props.plans.name.fontStyle]
-                            .fontFamily
-                        }
-                        $size={
-                          (16 / 30) *
-                          theme.typography[props.plans.name.fontStyle].fontSize
-                        }
-                        $weight={
-                          theme.typography[props.plans.name.fontStyle]
-                            .fontWeight
-                        }
-                        $color={
-                          theme.typography[props.plans.name.fontStyle].color
-                        }
-                      >
-                        /{selectedPeriod}
-                      </Text>
+                      {!plan.custom && (
+                        <Text
+                          $font={
+                            theme.typography[props.plans.name.fontStyle]
+                              .fontFamily
+                          }
+                          $size={
+                            (16 / 30) *
+                            theme.typography[props.plans.name.fontStyle]
+                              .fontSize
+                          }
+                          $weight={
+                            theme.typography[props.plans.name.fontStyle]
+                              .fontWeight
+                          }
+                          $color={
+                            theme.typography[props.plans.name.fontStyle].color
+                          }
+                        >
+                          /{selectedPeriod}
+                        </Text>
+                      )}
                     </Box>
 
                     {isActivePlan && (
@@ -586,6 +591,14 @@ export const PricingTable = forwardRef<
                         <EmbedButton
                           disabled={!plan.valid || !canCheckout}
                           onClick={() => {
+                            if (plan.custom) {
+                              window.open(
+                                plan.customPlanConfig?.ctaWebSite,
+                                "_blank",
+                              );
+
+                              return;
+                            }
                             setSelected({
                               period: selectedPeriod,
                               planId: isActivePlan ? null : plan.id,
@@ -605,7 +618,9 @@ export const PricingTable = forwardRef<
                                 $variant: "outline",
                               })}
                         >
-                          {!plan.valid ? (
+                          {plan.custom ? (
+                            plan.customPlanConfig?.ctaText
+                          ) : !plan.valid ? (
                             <Tooltip
                               trigger={t("Over usage limit")}
                               content={t(

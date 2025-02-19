@@ -164,22 +164,26 @@ export const Plan = ({
                     $weight={theme.typography.heading2.fontWeight}
                     $color={theme.typography.heading2.color}
                   >
-                    {formatCurrency(
-                      (period === "month"
-                        ? plan.monthlyPrice
-                        : plan.yearlyPrice
-                      )?.price ?? 0,
-                    )}
+                    {plan.custom
+                      ? plan.customPlanConfig?.priceText
+                      : formatCurrency(
+                          (period === "month"
+                            ? plan.monthlyPrice
+                            : plan.yearlyPrice
+                          )?.price ?? 0,
+                        )}
                   </Text>
 
-                  <Text
-                    $font={theme.typography.heading2.fontFamily}
-                    $size={(16 / 30) * theme.typography.heading2.fontSize}
-                    $weight={theme.typography.heading2.fontWeight}
-                    $color={theme.typography.heading2.color}
-                  >
-                    /{period}
-                  </Text>
+                  {!plan.custom && (
+                    <Text
+                      $font={theme.typography.heading2.fontFamily}
+                      $size={(16 / 30) * theme.typography.heading2.fontSize}
+                      $weight={theme.typography.heading2.fontWeight}
+                      $color={theme.typography.heading2.color}
+                    >
+                      /{period}
+                    </Text>
+                  )}
                 </Box>
 
                 {plan.current && (
@@ -395,13 +399,22 @@ export const Plan = ({
                   <EmbedButton
                     disabled={isLoading || !plan.valid}
                     onClick={() => {
-                      selectPlan(plan);
+                      if (plan.custom) {
+                        window.open(
+                          plan.customPlanConfig!.ctaWebSite,
+                          "_blank",
+                        );
+                      } else {
+                        selectPlan(plan);
+                      }
                     }}
                     $size="sm"
                     $color="primary"
                     $variant={plan.current ? "outline" : "filled"}
                   >
-                    {!plan.valid ? (
+                    {plan.custom ? (
+                      plan.customPlanConfig?.ctaText
+                    ) : !plan.valid ? (
                       <Tooltip
                         trigger={t("Over usage limit")}
                         content={t(
