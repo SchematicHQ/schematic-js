@@ -166,6 +166,8 @@ export const Plan = ({
                   >
                     {plan.custom
                       ? plan.customPlanConfig?.priceText
+                        ? plan.customPlanConfig?.priceText
+                        : t("Custom Plan Price")
                       : formatCurrency(
                           (period === "month"
                             ? plan.monthlyPrice
@@ -398,22 +400,25 @@ export const Plan = ({
                 ) : (
                   <EmbedButton
                     disabled={isLoading || !plan.valid}
-                    onClick={() => {
-                      if (plan.custom) {
-                        window.open(
-                          plan.customPlanConfig!.ctaWebSite,
-                          "_blank",
-                        );
-                      } else {
-                        selectPlan(plan);
-                      }
-                    }}
+                    {...(plan.custom
+                      ? {
+                          as: "a",
+                          href: plan.customPlanConfig?.ctaWebSite ?? "#",
+                          target: "_blank",
+                        }
+                      : {
+                          onClick: () => {
+                            selectPlan(plan);
+                          },
+                        })}
                     $size="sm"
                     $color="primary"
                     $variant={plan.current ? "outline" : "filled"}
                   >
                     {plan.custom ? (
-                      plan.customPlanConfig?.ctaText
+                      (plan.customPlanConfig?.ctaText ??
+                      plan.customPlanConfig?.ctaText ??
+                      t("Custom Plan CTA"))
                     ) : !plan.valid ? (
                       <Tooltip
                         trigger={t("Over usage limit")}

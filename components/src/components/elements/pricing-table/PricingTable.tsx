@@ -331,6 +331,8 @@ export const PricingTable = forwardRef<
                       >
                         {plan.custom
                           ? plan.customPlanConfig?.priceText
+                            ? plan.customPlanConfig?.priceText
+                            : t("Custom Plan Price")
                           : formatCurrency(
                               (selectedPeriod === "month"
                                 ? plan.monthlyPrice
@@ -590,22 +592,22 @@ export const PricingTable = forwardRef<
                         props.downgrade.isVisible) && (
                         <EmbedButton
                           disabled={!plan.valid || !canCheckout}
-                          onClick={() => {
-                            if (plan.custom) {
-                              window.open(
-                                plan.customPlanConfig?.ctaWebSite,
-                                "_blank",
-                              );
-
-                              return;
-                            }
-                            setSelected({
-                              period: selectedPeriod,
-                              planId: isActivePlan ? null : plan.id,
-                              usage: false,
-                            });
-                            setLayout("checkout");
-                          }}
+                          {...(plan.custom
+                            ? {
+                                as: "a",
+                                href: plan.customPlanConfig?.ctaWebSite ?? "#",
+                                target: "_blank",
+                              }
+                            : {
+                                onClick: () => {
+                                  setSelected({
+                                    period: selectedPeriod,
+                                    planId: isActivePlan ? null : plan.id,
+                                    usage: false,
+                                  });
+                                  setLayout("checkout");
+                                },
+                              })}
                           {...(index > currentPlanIndex
                             ? {
                                 $size: props.upgrade.buttonSize,
@@ -619,7 +621,9 @@ export const PricingTable = forwardRef<
                               })}
                         >
                           {plan.custom ? (
-                            plan.customPlanConfig?.ctaText
+                            (plan.customPlanConfig?.ctaText ??
+                            plan.customPlanConfig?.ctaText ??
+                            t("Custom Plan CTA"))
                           ) : !plan.valid ? (
                             <Tooltip
                               trigger={t("Over usage limit")}
