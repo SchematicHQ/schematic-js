@@ -525,6 +525,10 @@ export const Sidebar = ({
                         ? selectedPlan.monthlyPrice
                         : selectedPlan.yearlyPrice
                       )?.price ?? 0,
+                      (planPeriod === "month"
+                        ? selectedPlan.monthlyPrice
+                        : selectedPlan.yearlyPrice
+                      )?.currency,
                     )}
                     <sub>/{shortenPeriod(planPeriod)}</sub>
                   </Text>

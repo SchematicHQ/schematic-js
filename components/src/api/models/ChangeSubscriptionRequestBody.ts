@@ -43,6 +43,12 @@ export interface ChangeSubscriptionRequestBody {
    * @type {string}
    * @memberof ChangeSubscriptionRequestBody
    */
+  couponExternalId?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof ChangeSubscriptionRequestBody
+   */
   newPlanId: string;
   /**
    *
@@ -102,6 +108,10 @@ export function ChangeSubscriptionRequestBodyFromJSONTyped(
     addOnIds: (json["add_on_ids"] as Array<any>).map(
       UpdateAddOnRequestBodyFromJSON,
     ),
+    couponExternalId:
+      json["coupon_external_id"] == null
+        ? undefined
+        : json["coupon_external_id"],
     newPlanId: json["new_plan_id"],
     newPriceId: json["new_price_id"],
     payInAdvance: (json["pay_in_advance"] as Array<any>).map(
@@ -123,6 +133,7 @@ export function ChangeSubscriptionRequestBodyToJSON(
     add_on_ids: (value["addOnIds"] as Array<any>).map(
       UpdateAddOnRequestBodyToJSON,
     ),
+    coupon_external_id: value["couponExternalId"],
     new_plan_id: value["newPlanId"],
     new_price_id: value["newPriceId"],
     pay_in_advance: (value["payInAdvance"] as Array<any>).map(
