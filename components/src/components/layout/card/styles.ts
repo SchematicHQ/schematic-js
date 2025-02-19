@@ -20,6 +20,7 @@ export const StyledCard = styled.div(({ theme }) => {
   return css`
     font-size: ${TEXT_BASE_SIZE}px;
     box-sizing: border-box;
+    position: relative;
 
     *,
     *::before,

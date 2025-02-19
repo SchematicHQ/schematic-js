@@ -48,7 +48,6 @@ interface SidebarProps {
   setCheckoutStage: (stage: string) => void;
   setError: (msg?: string) => void;
   showPaymentForm: boolean;
-  toggleLoading: () => void;
   updatePromoCode: (code?: string) => void;
   usageBasedEntitlements: {
     entitlement: PlanEntitlementResponseData;
@@ -77,7 +76,6 @@ export const Sidebar = ({
   setCheckoutStage,
   setError,
   showPaymentForm,
-  toggleLoading,
   updatePromoCode,
   usageBasedEntitlements,
 }: SidebarProps) => {
@@ -85,7 +83,7 @@ export const Sidebar = ({
 
   const theme = useTheme();
 
-  const { api, data, mode, setLayout } = useEmbed();
+  const { api, data, mode, setLayout, setIsPending, hydrate } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
 
@@ -174,7 +172,8 @@ export const Sidebar = ({
 
     try {
       setError(undefined);
-      toggleLoading();
+      setIsPending(true);
+      setLayout("portal");
 
       await api.checkout({
         changeSubscriptionRequestBody: {
@@ -224,13 +223,14 @@ export const Sidebar = ({
           ...(promoCode && { promoCode }),
         },
       });
-      setLayout("success");
+      await hydrate();
     } catch {
+      setLayout("checkout");
       setError(
         t("Error processing payment. Please try a different payment method."),
       );
     } finally {
-      toggleLoading();
+      setIsPending(false);
     }
   }, [
     t,
@@ -241,7 +241,6 @@ export const Sidebar = ({
     addOns,
     setError,
     setLayout,
-    toggleLoading,
     payInAdvanceEntitlements,
     promoCode,
   ]);

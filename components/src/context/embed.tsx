@@ -197,6 +197,7 @@ export interface EmbedContextProps {
   selected: EmbedSelected;
   error?: Error;
   isPending: boolean;
+  setIsPending: (bool: boolean) => void;
   hydrate: () => Promise<void>;
   setData: (data: ComponentHydrateResponseData) => void;
   updateSettings: (settings: RecursivePartial<EmbedSettings>) => void;
@@ -218,6 +219,7 @@ export const EmbedContext = createContext<EmbedContextProps>({
   selected: {},
   error: undefined,
   isPending: false,
+  setIsPending: () => {},
   hydrate: async () => {},
   setData: () => {},
   updateSettings: () => {},
@@ -252,6 +254,7 @@ export const EmbedProvider = ({
     mode: EmbedMode;
     selected: EmbedSelected;
     isPending: boolean;
+    setIsPending: (bool: boolean) => void;
     error?: Error;
     hydrate: () => Promise<void>;
     setData: (data: ComponentHydrateResponseData) => void;
@@ -272,6 +275,7 @@ export const EmbedProvider = ({
       mode,
       selected: {},
       isPending: false,
+      setIsPending: () => {},
       error: undefined,
       hydrate: async () => {},
       setData: () => {},
@@ -331,6 +335,16 @@ export const EmbedProvider = ({
       setState((prev) => ({
         ...prev,
         data,
+      }));
+    },
+    [setState],
+  );
+
+  const setIsPending = useCallback(
+    (bool: boolean) => {
+      setState((prev) => ({
+        ...prev,
+        isPending: bool,
       }));
     },
     [setState],
@@ -448,6 +462,7 @@ export const EmbedProvider = ({
         selected: state.selected,
         error: state.error,
         isPending: state.isPending,
+        setIsPending,
         hydrate,
         setData,
         updateSettings,
