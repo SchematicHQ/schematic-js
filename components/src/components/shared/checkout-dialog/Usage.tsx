@@ -173,6 +173,10 @@ export const Usage = ({ entitlements, updateQuantity, period }: UsageProps) => {
                               ? entitlement.meteredMonthlyPrice
                               : entitlement.meteredYearlyPrice
                             )?.price || 0) * quantity,
+                            (period === "month"
+                              ? entitlement.meteredMonthlyPrice
+                              : entitlement.meteredYearlyPrice
+                            )?.currency,
                           )}
                           <sub>/{shortenPeriod(period)}</sub>
                         </Text>
@@ -190,6 +194,10 @@ export const Usage = ({ entitlements, updateQuantity, period }: UsageProps) => {
                               ? entitlement.meteredMonthlyPrice
                               : entitlement.meteredYearlyPrice
                             )?.price || 0,
+                            (period === "month"
+                              ? entitlement.meteredMonthlyPrice
+                              : entitlement.meteredYearlyPrice
+                            )?.currency,
                           )}
                           <sub>
                             /

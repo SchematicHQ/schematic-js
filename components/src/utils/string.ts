@@ -10,7 +10,14 @@ export function formatNumber(num: number) {
   return new Intl.NumberFormat("en-US").format(num);
 }
 
-export function formatCurrency(amount: number) {
+export function formatCurrency(
+  amount: number, // default fallback to USD
+  currency?: string,
+) {
+  if (!currency) {
+    currency = "USD";
+  }
+
   try {
     const dollars = amount / 100;
 
@@ -19,6 +26,11 @@ export function formatCurrency(amount: number) {
       if (formatted.endsWith(".0")) {
         formatted = formatted.slice(0, -2);
       }
+
+      if (currency.toUpperCase() !== "USD") {
+        return `${currency.toUpperCase()}${formatted}${symbol}`;
+      }
+
       return `$${formatted}${symbol}`;
     };
 
@@ -29,7 +41,7 @@ export function formatCurrency(amount: number) {
     } else {
       return new Intl.NumberFormat("en-US", {
         style: "currency",
-        currency: "USD",
+        currency: currency.toUpperCase(),
       }).format(dollars);
     }
   } catch (error) {
@@ -37,7 +49,7 @@ export function formatCurrency(amount: number) {
 
     return new Intl.NumberFormat("en-US", {
       style: "currency",
-      currency: "USD",
+      currency: currency.toUpperCase(),
     }).format(amount / 100);
   }
 }

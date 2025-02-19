@@ -334,6 +334,10 @@ export const PricingTable = forwardRef<
                             ? plan.monthlyPrice
                             : plan.yearlyPrice
                           )?.price ?? 0,
+                          (selectedPeriod === "month"
+                            ? plan.monthlyPrice
+                            : plan.yearlyPrice
+                          )?.currency,
                         )}
                       </Text>
 
@@ -425,10 +429,15 @@ export const PricingTable = forwardRef<
                           })
                           .reduce((acc: React.ReactElement[], entitlement) => {
                             let price: number | undefined;
+                            let currency: string | undefined;
                             if (selectedPeriod === "month") {
                               price = entitlement.meteredMonthlyPrice?.price;
+                              currency =
+                                entitlement.meteredMonthlyPrice?.currency;
                             } else if (selectedPeriod === "year") {
                               price = entitlement.meteredYearlyPrice?.price;
+                              currency =
+                                entitlement.meteredYearlyPrice?.currency;
                             }
 
                             if (
@@ -469,7 +478,8 @@ export const PricingTable = forwardRef<
                                     >
                                       {typeof price !== "undefined" ? (
                                         <>
-                                          {formatCurrency(price)} {t("per")}{" "}
+                                          {formatCurrency(price, currency)}{" "}
+                                          {t("per")}{" "}
                                           {pluralize(
                                             entitlement.feature.name,
                                             1,
@@ -751,6 +761,10 @@ export const PricingTable = forwardRef<
                               ? addOn.monthlyPrice
                               : addOn.yearlyPrice
                             )?.price ?? 0,
+                            (selectedPeriod === "month"
+                              ? addOn.monthlyPrice
+                              : addOn.yearlyPrice
+                            )?.currency,
                           )}
                         </Text>
 
