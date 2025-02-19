@@ -47,7 +47,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
   const theme = useTheme();
 
-  const { api, data, selected } = useEmbed();
+  const { api, data, selected, setIsPending, isPending } = useEmbed();
 
   const modalRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -62,7 +62,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   const [charges, setCharges] =
     useState<PreviewSubscriptionChangeResponseData>();
   const [paymentMethodId, setPaymentMethodId] = useState<string | undefined>();
-  const [isLoading, setIsLoading] = useState(false);
+  // const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | undefined>();
   const [showPaymentForm, setShowPaymentForm] = useState(
     !data.subscription?.paymentMethod,
@@ -298,7 +298,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
       setError(undefined);
       setCharges(undefined);
-      setIsLoading(true);
+      setIsPending(true);
 
       try {
         const { data } = await api.previewCheckout({
@@ -364,7 +364,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           t("Error retrieving plan details. Please try again in a moment."),
         );
       } finally {
-        setIsLoading(false);
+        setIsPending(false);
       }
     }
 
@@ -531,7 +531,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
           {checkoutStage === "plan" && (
             <Plan
-              isLoading={isLoading}
+              isLoading={isPending}
               period={planPeriod}
               plans={availablePlans}
               selectedPlan={selectedPlan}
@@ -541,7 +541,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
           {checkoutStage === "usage" && (
             <Usage
-              isLoading={isLoading}
+              isLoading={isPending}
               period={planPeriod}
               selectedPlan={selectedPlan}
               entitlements={usageBasedEntitlements}
@@ -551,7 +551,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
           {checkoutStage === "addons" && (
             <AddOns
-              isLoading={isLoading}
+              isLoading={isPending}
               period={planPeriod}
               addOns={addOns}
               toggle={(id) => toggleAddOn(id)}
@@ -579,7 +579,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           currentUsageBasedEntitlements={currentUsageBasedEntitlements}
           error={error}
           currentPlan={currentPlan}
-          isLoading={isLoading}
+          isLoading={isPending}
           paymentMethodId={paymentMethodId}
           planPeriod={planPeriod}
           promoCode={promoCode}
@@ -588,7 +588,6 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           setCheckoutStage={(stage) => setCheckoutStage(stage)}
           setError={(msg) => setError(msg)}
           showPaymentForm={showPaymentForm}
-          toggleLoading={() => setIsLoading((prev) => !prev)}
           updatePromoCode={(code) => updatePromoCode(code)}
           usageBasedEntitlements={usageBasedEntitlements}
         />
