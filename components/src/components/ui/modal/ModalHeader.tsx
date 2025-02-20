@@ -39,6 +39,7 @@ export const ModalHeader = ({
       $padding="0 1rem"
       $backgroundColor={theme.card.background}
       {...(bordered && {
+        $borderWidth: "0",
         $borderBottomWidth: "1px",
         $borderBottomStyle: "solid",
         $borderBottomColor: isLightBackground
