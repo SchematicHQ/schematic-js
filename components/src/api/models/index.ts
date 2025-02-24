@@ -22,6 +22,8 @@ export * from "./ComponentCapabilities";
 export * from "./ComponentHydrateResponseData";
 export * from "./ComponentResponseData";
 export * from "./CountResponse";
+export * from "./CustomPlanConfig";
+export * from "./CustomPlanViewConfigResponseData";
 export * from "./DeleteResponse";
 export * from "./EntityKeyDefinitionResponseData";
 export * from "./EntityKeyDetailResponseData";
