@@ -12,12 +12,8 @@ export function formatNumber(num: number) {
 
 export function formatCurrency(
   amount: number, // default fallback to USD
-  currency?: string,
+  currency: string = "USD",
 ) {
-  if (!currency) {
-    currency = "USD";
-  }
-
   try {
     const dollars = amount / 100;
 
