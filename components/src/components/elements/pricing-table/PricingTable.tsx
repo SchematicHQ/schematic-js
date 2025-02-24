@@ -225,7 +225,7 @@ export const PricingTable = forwardRef<
             $gridTemplateColumns="repeat(auto-fill, minmax(320px, 1fr))"
             $gap="1rem"
           >
-            {plans.map((plan, index, self) => {
+            {plans.map((plan, index) => {
               const isActivePlan =
                 plan.current &&
                 data.company?.plan?.planPeriod === selectedPeriod;
@@ -388,21 +388,6 @@ export const PricingTable = forwardRef<
                   >
                     {props.plans.showEntitlements && (
                       <Flex $flexDirection="column" $gap="1rem" $flexGrow="1">
-                        {props.plans.showInclusionText && index > 0 && (
-                          <Box $marginBottom="1.5rem">
-                            <Text
-                              $font={theme.typography.text.fontFamily}
-                              $size={theme.typography.text.fontSize}
-                              $weight={theme.typography.text.fontWeight}
-                              $color={theme.typography.text.color}
-                            >
-                              {t("Everything in", {
-                                plan: self[index - 1].name,
-                              })}
-                            </Text>
-                          </Box>
-                        )}
-
                         {plan.entitlements
                           .slice()
                           .sort((a, b) => {

@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 import pluralize from "pluralize";
-import type { CompanyPlanDetailResponseData } from "../../../api";
 import { TEXT_BASE_SIZE, VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
 import { useIsLightBackground, type SelectedPlan } from "../../../hooks";
 import { hexToHSL, formatCurrency, formatNumber } from "../../../utils";
@@ -23,10 +22,7 @@ interface PlanProps {
   plans: SelectedPlan[];
   selectedPlan?: SelectedPlan;
   period: string;
-  selectPlan: (
-    plan: CompanyPlanDetailResponseData & { isSelected: boolean },
-    newPeriod?: string,
-  ) => void;
+  selectPlan: (updates: { plan: SelectedPlan; period?: string }) => void;
 }
 
 export const Plan = ({
@@ -396,7 +392,7 @@ export const Plan = ({
                   <EmbedButton
                     disabled={isLoading || !plan.valid}
                     onClick={() => {
-                      selectPlan(plan);
+                      selectPlan({ plan });
                     }}
                     $size="sm"
                     $color="primary"
