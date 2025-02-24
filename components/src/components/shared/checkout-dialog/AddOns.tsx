@@ -82,6 +82,10 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
                           ? addOn.monthlyPrice
                           : addOn.yearlyPrice
                         )?.price ?? 0,
+                        (period === "month"
+                          ? addOn.monthlyPrice
+                          : addOn.yearlyPrice
+                        )?.currency,
                       )}
                     </Text>
 

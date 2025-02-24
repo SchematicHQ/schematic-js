@@ -190,10 +190,13 @@ export const MeteredFeatures = forwardRef<
           index,
         ) => {
           let price: number | undefined;
+          let currency: string | undefined;
           if (planPeriod === "month") {
             price = monthlyUsageBasedPrice?.price;
+            currency = monthlyUsageBasedPrice?.currency;
           } else if (planPeriod === "year") {
             price = yearlyUsageBasedPrice?.price;
+            currency = yearlyUsageBasedPrice?.currency;
           }
 
           const limit = allocation || softLimit || 0;
@@ -219,7 +222,7 @@ export const MeteredFeatures = forwardRef<
                   >
                     {typeof price === "number" && (
                       <>
-                        {t("Overage fee")}: {formatCurrency(price)}
+                        {t("Overage fee")}: {formatCurrency(price, currency)}
                       </>
                     )}
                     {feature && (
@@ -247,7 +250,11 @@ export const MeteredFeatures = forwardRef<
                         })}{" "}
                         {typeof price === "number" && (
                           <>
-                            · {formatCurrency(price * (usage - softLimit))}
+                            ·{" "}
+                            {formatCurrency(
+                              price * (usage - softLimit),
+                              currency,
+                            )}
                             {feature?.featureType === "event" &&
                               typeof data.company?.plan?.planPeriod ===
                                 "string" &&
@@ -373,7 +380,7 @@ export const MeteredFeatures = forwardRef<
                                 : priceBehavior === "pay_as_you_go"
                                   ? typeof price === "number" &&
                                     typeof usage === "number" &&
-                                    formatCurrency(usage * price)
+                                    formatCurrency(usage * price, currency)
                                   : typeof usage === "number" && (
                                       <>
                                         {formatNumber(usage)}{" "}

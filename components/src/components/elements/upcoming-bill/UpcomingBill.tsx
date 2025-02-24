@@ -93,6 +93,7 @@ export const UpcomingBill = forwardRef<
         ...(data.upcomingInvoice?.dueDate && {
           dueDate: toPrettyDate(new Date(data.upcomingInvoice.dueDate)),
         }),
+        currency: data.upcomingInvoice?.currency,
       },
     };
   }, [data.subscription, data.upcomingInvoice]);
@@ -135,7 +136,10 @@ export const UpcomingBill = forwardRef<
               $color={theme.typography[props.price.fontStyle].color}
               $leading={1}
             >
-              {formatCurrency(upcomingInvoice.amountDue)}
+              {formatCurrency(
+                upcomingInvoice.amountDue,
+                upcomingInvoice.currency,
+              )}
             </Text>
           </Flex>
         )}

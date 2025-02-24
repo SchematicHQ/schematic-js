@@ -65,9 +65,9 @@ function formatInvoices(invoices?: ListInvoicesResponse["data"]) {
         url && (amountDue === 0 || amountPaid > 0),
     )
     .sort((a, b) => (a.dueDate && b.dueDate ? +b.dueDate - +a.dueDate : 1))
-    .map(({ amountDue, dueDate, url }) => ({
+    .map(({ amountDue, dueDate, url, currency }) => ({
       ...(dueDate && { date: toPrettyDate(dueDate) }),
-      amount: formatCurrency(amountDue),
+      amount: formatCurrency(amountDue, currency),
       url,
     }));
 }

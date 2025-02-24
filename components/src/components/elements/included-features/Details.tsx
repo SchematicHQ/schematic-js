@@ -43,6 +43,20 @@ export const Details = ({
 
   const { data } = useEmbed();
 
+  const currency = useMemo(() => {
+    if (data.company?.plan?.planPeriod === "month") {
+      return monthlyUsageBasedPrice?.currency;
+    }
+
+    if (data.company?.plan?.planPeriod === "year") {
+      return yearlyUsageBasedPrice?.currency;
+    }
+  }, [
+    data.company?.plan?.planPeriod,
+    monthlyUsageBasedPrice,
+    yearlyUsageBasedPrice,
+  ]);
+
   const price = useMemo(() => {
     if (data.company?.plan?.planPeriod === "month") {
       return monthlyUsageBasedPrice?.price;
@@ -67,7 +81,7 @@ export const Details = ({
     }
 
     if (priceBehavior === "pay_as_you_go" && typeof price === "number") {
-      return `${formatCurrency(price)} ${t("per")} ${pluralize(feature.name.toLowerCase(), 1)}`;
+      return `${formatCurrency(price, currency)} ${t("per")} ${pluralize(feature.name.toLowerCase(), 1)}`;
     }
 
     if (priceBehavior === "overage" && typeof softLimit === "number") {
@@ -96,7 +110,7 @@ export const Details = ({
         typeof data.company?.plan?.planPeriod === "string" &&
         typeof price === "number"
       ) {
-        acc = `${formatCurrency(price)}/${pluralize(feature.name.toLowerCase(), 1)}/${shortenPeriod(data.company.plan.planPeriod)}`;
+        acc = `${formatCurrency(price, currency)}/${pluralize(feature.name.toLowerCase(), 1)}/${shortenPeriod(data.company.plan.planPeriod)}`;
       } else if (
         (priceBehavior === "pay_as_you_go" || priceBehavior === "overage") &&
         typeof usage === "number"
@@ -110,13 +124,13 @@ export const Details = ({
           typeof price === "number" &&
           typeof allocation === "number"
         ) {
-          acc += ` • ${formatCurrency(price * allocation)}`;
+          acc += ` • ${formatCurrency(price * allocation, currency)}`;
         } else if (
           priceBehavior === "pay_as_you_go" &&
           typeof price === "number" &&
           typeof usage === "number"
         ) {
-          acc += ` • ${formatCurrency(price * usage)}`;
+          acc += ` • ${formatCurrency(price * usage, currency)}`;
         } else if (
           priceBehavior === "overage" &&
           typeof price === "number" &&
