@@ -32,3 +32,5 @@ export interface ElementProps {
   className?: string;
   style?: React.CSSProperties;
 }
+
+export type ComponentStyle = "primary" | "secondary" | "tertiary";
