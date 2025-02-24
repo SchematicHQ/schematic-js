@@ -53,12 +53,6 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   const contentRef = useRef<HTMLDivElement>(null);
   const checkoutRef = useRef<HTMLDivElement>(null);
 
-  const [checkoutStage, setCheckoutStage] = useState(() =>
-    selected.addOnId ? "addons" : selected.usage ? "usage" : "plan",
-  );
-  const [planPeriod, setPlanPeriod] = useState(
-    selected.period || data.company?.plan?.planPeriod || "month",
-  );
   const [charges, setCharges] =
     useState<PreviewSubscriptionChangeResponseData>();
   const [paymentMethodId, setPaymentMethodId] = useState<string | undefined>();
@@ -68,6 +62,9 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     !data.subscription?.paymentMethod,
   );
   const [promoCode, setPromoCode] = useState<string>();
+  const [planPeriod, setPlanPeriod] = useState(
+    selected.period || data.company?.plan?.planPeriod || "month",
+  );
 
   const {
     plans: availablePlans,
@@ -76,7 +73,9 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   } = useAvailablePlans(planPeriod);
 
   const [selectedPlan, setSelectedPlan] = useState(() =>
-    availablePlans.find((plan) => plan.current),
+    availablePlans.find((plan) =>
+      selected.planId ? plan.id === selected.planId : plan.current,
+    ),
   );
 
   const currentAddOns = data.company?.addOns || [];
@@ -177,6 +176,22 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       ),
     [usageBasedEntitlements],
   );
+
+  const [checkoutStage, setCheckoutStage] = useState(() => {
+    if (selected.planId !== currentPlan?.id) {
+      return payInAdvanceEntitlements.length > 0 ? "usage" : "addons";
+    }
+
+    if (selected.addOnId) {
+      return "addons";
+    }
+
+    if (selected.usage) {
+      return "usage";
+    }
+
+    return "plan";
+  });
 
   const hasActiveAddOns = addOns.some((addOn) => addOn.isSelected === true);
   const hasActivePayInAdvanceEntitlements = payInAdvanceEntitlements.some(
