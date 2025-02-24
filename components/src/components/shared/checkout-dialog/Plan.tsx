@@ -122,6 +122,7 @@ export const Plan = ({
                 $flexDirection="column"
                 $gap="0.5rem"
                 $padding={`0 ${cardPadding}rem ${0.75 * cardPadding}rem`}
+                $borderWidth="0"
                 $borderBottomWidth="1px"
                 $borderStyle="solid"
                 $borderColor={
