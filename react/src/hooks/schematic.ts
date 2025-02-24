@@ -69,7 +69,7 @@ export const useSchematicFlag = (
     return typeof value === "undefined" ? fallback : value;
   }, [client, key, fallback]);
 
-  return useSyncExternalStore(subscribe, getSnapshot);
+  return useSyncExternalStore(subscribe, getSnapshot, () => fallback);
 };
 
 export const useSchematicEntitlement = (
@@ -98,7 +98,7 @@ export const useSchematicEntitlement = (
     return check ?? fallbackCheck;
   }, [client, key, fallbackCheck]);
 
-  return useSyncExternalStore(subscribe, getSnapshot);
+  return useSyncExternalStore(subscribe, getSnapshot, () => fallbackCheck);
 };
 
 export const useSchematicIsPending = (opts?: SchematicHookOpts) => {
@@ -111,5 +111,5 @@ export const useSchematicIsPending = (opts?: SchematicHookOpts) => {
 
   const getSnapshot = useCallback(() => client.getIsPending(), [client]);
 
-  return useSyncExternalStore(subscribe, getSnapshot);
+  return useSyncExternalStore(subscribe, getSnapshot, () => true);
 };

@@ -1,4 +1,4 @@
-import { useEffect, useState, Children } from "react";
+import { useEffect, useState } from "react";
 import { useTheme } from "styled-components";
 import { TEXT_BASE_SIZE } from "../../const";
 import { useEmbed } from "../../hooks";
@@ -55,7 +55,7 @@ const Error = ({ message }: { message: string }) => {
 };
 
 export const ComponentTree = () => {
-  const { error, nodes } = useEmbed();
+  const { error, nodes, isPending } = useEmbed();
 
   const [children, setChildren] = useState<React.ReactNode>(<Loading />);
 
@@ -66,11 +66,10 @@ export const ComponentTree = () => {
 
   if (error) {
     console.error(error);
-
     return <Error message={error.message} />;
   }
 
-  if (Children.count(children) === 0) {
+  if (isPending) {
     return <Loading />;
   }
 
