@@ -166,6 +166,10 @@ export const Plan = ({
                         ? plan.monthlyPrice
                         : plan.yearlyPrice
                       )?.price ?? 0,
+                      (period === "month"
+                        ? plan.monthlyPrice
+                        : plan.yearlyPrice
+                      )?.currency,
                     )}
                   </Text>
 
@@ -247,6 +251,11 @@ export const Plan = ({
                           ? entitlement.meteredMonthlyPrice
                           : entitlement.meteredYearlyPrice
                       )?.price;
+                      const currency = (
+                        period === "month"
+                          ? entitlement.meteredMonthlyPrice
+                          : entitlement.meteredYearlyPrice
+                      )?.currency;
 
                       if (
                         entitlement.priceBehavior &&
@@ -291,7 +300,8 @@ export const Plan = ({
                                 >
                                   {typeof price !== "undefined" ? (
                                     <>
-                                      {formatCurrency(price)} {t("per")}{" "}
+                                      {formatCurrency(price, currency)}{" "}
+                                      {t("per")}{" "}
                                       {pluralize(entitlement.feature.name, 1)}
                                       {entitlement.priceBehavior ===
                                         "pay_in_advance" && (
