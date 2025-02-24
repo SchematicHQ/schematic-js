@@ -143,9 +143,13 @@ function isEditorState(obj: unknown): obj is SerializedEditorState {
   );
 }
 
-function getEditorState(json: string) {
-  const obj = JSON.parse(json);
-  return isEditorState(obj) ? obj : undefined;
+function getEditorState(json?: string) {
+  if (json) {
+    const obj = JSON.parse(json);
+    if (isEditorState(obj)) {
+      return obj;
+    }
+  }
 }
 
 function parseEditorState(data: SerializedEditorState) {
@@ -295,7 +299,7 @@ export const EmbedProvider = ({
         const compressed = data.component.ast;
         const json = inflate(Uint8Array.from(Object.values(compressed)), {
           to: "string",
-        });
+        }) as string | undefined; // `inflate` actually returns `string | undefined`
         const ast = getEditorState(json);
         if (ast) {
           merge(settings, ast.ROOT.props.settings);
