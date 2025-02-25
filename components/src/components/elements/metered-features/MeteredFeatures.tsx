@@ -203,7 +203,7 @@ export const MeteredFeatures = forwardRef<
 
           return (
             <Flex key={index} $flexDirection="column-reverse">
-              {priceBehavior === "overage" && (
+              {priceBehavior === "overage" && typeof price === "number" && (
                 <Flex
                   $justifyContent="space-between"
                   $alignItems="center"
@@ -220,20 +220,20 @@ export const MeteredFeatures = forwardRef<
                     $weight={theme.typography.text.fontWeight}
                     $color={theme.typography.text.color}
                   >
-                    {typeof price === "number" && (
-                      <>
-                        {t("Overage fee")}: {formatCurrency(price, currency)}
-                      </>
-                    )}
-                    {feature && (
-                      <sub>
-                        /{pluralize(feature.name.toLowerCase(), 1)}
-                        {feature.featureType === "event" &&
-                          data.company?.plan?.planPeriod && (
-                            <>/{shortenPeriod(data.company.plan.planPeriod)}</>
-                          )}
-                      </sub>
-                    )}
+                    <>
+                      {t("Overage fee")}: {formatCurrency(price, currency)}
+                      {feature && (
+                        <sub>
+                          /{pluralize(feature.name.toLowerCase(), 1)}
+                          {feature.featureType === "event" &&
+                            data.company?.plan?.planPeriod && (
+                              <>
+                                /{shortenPeriod(data.company.plan.planPeriod)}
+                              </>
+                            )}
+                        </sub>
+                      )}
+                    </>
                   </Text>
 
                   {typeof usage === "number" &&
@@ -247,20 +247,12 @@ export const MeteredFeatures = forwardRef<
                       >
                         {t("X over the limit", {
                           amount: usage - softLimit,
-                        })}{" "}
-                        {typeof price === "number" && (
-                          <>
-                            ·{" "}
-                            {formatCurrency(
-                              price * (usage - softLimit),
-                              currency,
-                            )}
-                            {feature?.featureType === "event" &&
-                              typeof data.company?.plan?.planPeriod ===
-                                "string" &&
-                              `/${shortenPeriod(data.company.plan.planPeriod)}`}
-                          </>
-                        )}
+                        })}
+                        {" · "}
+                        {formatCurrency(price * (usage - softLimit), currency)}
+                        {feature?.featureType === "event" &&
+                          typeof data.company?.plan?.planPeriod === "string" &&
+                          `/${shortenPeriod(data.company.plan.planPeriod)}`}
                       </Text>
                     )}
                 </Flex>
@@ -365,7 +357,7 @@ export const MeteredFeatures = forwardRef<
                                 theme.typography[props.usage.fontStyle]
                                   .fontWeight
                               }
-                              $leading={1.25}
+                              $leading={1.35}
                               $color={
                                 theme.typography[props.usage.fontStyle].color
                               }

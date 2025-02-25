@@ -6,11 +6,11 @@ import { PlanEntitlementResponseData } from "../../../api";
 import { TEXT_BASE_SIZE, VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
 import { useIsLightBackground, type SelectedPlan } from "../../../hooks";
 import {
-  hexToHSL,
-  lighten,
   darken,
   formatCurrency,
   formatNumber,
+  hexToHSL,
+  lighten,
   shortenPeriod,
 } from "../../../utils";
 import { cardBoxShadow } from "../../layout";
@@ -329,7 +329,7 @@ export const Plan = ({
                                     $size={theme.typography.text.fontSize}
                                     $weight={theme.typography.text.fontWeight}
                                     $color={theme.typography.text.color}
-                                    $leading={1.25}
+                                    $leading={1.35}
                                   >
                                     {typeof price === "number" &&
                                     (entitlement.priceBehavior ===
@@ -406,7 +406,7 @@ export const Plan = ({
                                                 0.46,
                                               )
                                         }
-                                        $leading={1.25}
+                                        $leading={1.35}
                                       >
                                         {formatCurrency(price)}/
                                         {pluralize(
