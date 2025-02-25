@@ -93,6 +93,7 @@ export const UpcomingBill = forwardRef<
         ...(data.upcomingInvoice?.dueDate && {
           dueDate: toPrettyDate(new Date(data.upcomingInvoice.dueDate)),
         }),
+        currency: data.upcomingInvoice?.currency,
       },
     };
   }, [data.subscription, data.upcomingInvoice]);
@@ -135,7 +136,10 @@ export const UpcomingBill = forwardRef<
               $color={theme.typography[props.price.fontStyle].color}
               $leading={1}
             >
-              {formatCurrency(upcomingInvoice.amountDue)}
+              {formatCurrency(
+                upcomingInvoice.amountDue,
+                upcomingInvoice.currency,
+              )}
             </Text>
           </Flex>
         )}
@@ -155,56 +159,58 @@ export const UpcomingBill = forwardRef<
         </Box>
       </Flex>
 
-      <Flex $justifyContent="space-between" $alignItems="center">
-        <Box>
-          <Text
-            $font={theme.typography.text.fontFamily}
-            $size={theme.typography.text.fontSize}
-            $weight={600}
-            $color={theme.typography.text.color}
-          >
-            {t("Discount")}
-          </Text>
-        </Box>
-        <Box>
-          {discounts.map((discount) => (
-            <Flex key={discount.couponId} $alignItems="center" $gap="0.5rem">
-              <Flex
-                $alignItems="center"
-                $padding="0.1875rem 0.375rem"
-                $borderWidth="1px"
-                $borderStyle="solid"
-                $borderColor={
-                  isLightBackground
-                    ? "hsla(0, 0%, 0%, 0.15)"
-                    : "hsla(0, 0%, 100%, 0.15)"
-                }
-                $borderRadius="0.3125rem"
-              >
-                <Text
-                  $font={theme.typography.text.fontFamily}
-                  $size={0.75 * theme.typography.text.fontSize}
-                  $weight={theme.typography.text.fontWeight}
-                  $color={theme.typography.text.color}
+      {discounts.length > 0 && (
+        <Flex $justifyContent="space-between" $alignItems="center">
+          <Box>
+            <Text
+              $font={theme.typography.text.fontFamily}
+              $size={theme.typography.text.fontSize}
+              $weight={600}
+              $color={theme.typography.text.color}
+            >
+              {t("Discount")}
+            </Text>
+          </Box>
+          <Box>
+            {discounts.map((discount) => (
+              <Flex key={discount.couponId} $alignItems="center" $gap="0.5rem">
+                <Flex
+                  $alignItems="center"
+                  $padding="0.1875rem 0.375rem"
+                  $borderWidth="1px"
+                  $borderStyle="solid"
+                  $borderColor={
+                    isLightBackground
+                      ? "hsla(0, 0%, 0%, 0.15)"
+                      : "hsla(0, 0%, 100%, 0.15)"
+                  }
+                  $borderRadius="0.3125rem"
                 >
-                  {discount.customerFacingCode}
-                </Text>
-              </Flex>
+                  <Text
+                    $font={theme.typography.text.fontFamily}
+                    $size={0.75 * theme.typography.text.fontSize}
+                    $weight={theme.typography.text.fontWeight}
+                    $color={theme.typography.text.color}
+                  >
+                    {discount.customerFacingCode}
+                  </Text>
+                </Flex>
 
-              <Box>
-                <Text
-                  $font={theme.typography.text.fontFamily}
-                  $size={theme.typography.text.fontSize}
-                  $weight={theme.typography.text.fontWeight}
-                  $color={theme.typography.text.color}
-                >
-                  {t("Percent off", { percent: discount.percentOff })}
-                </Text>
-              </Box>
-            </Flex>
-          ))}
-        </Box>
-      </Flex>
+                <Box>
+                  <Text
+                    $font={theme.typography.text.fontFamily}
+                    $size={theme.typography.text.fontSize}
+                    $weight={theme.typography.text.fontWeight}
+                    $color={theme.typography.text.color}
+                  >
+                    {t("Percent off", { percent: discount.percentOff })}
+                  </Text>
+                </Box>
+              </Flex>
+            ))}
+          </Box>
+        </Flex>
+      )}
     </Element>
   );
 });

@@ -147,10 +147,13 @@ export const MeteredFeatures = forwardRef<
           index,
         ) => {
           let price: number | undefined;
+          let currency: string | undefined;
           if (planPeriod === "month") {
             price = monthlyUsageBasedPrice?.price;
+            currency = monthlyUsageBasedPrice?.currency;
           } else if (planPeriod === "year") {
             price = yearlyUsageBasedPrice?.price;
+            currency = yearlyUsageBasedPrice?.currency;
           }
 
           return (
@@ -263,7 +266,7 @@ export const MeteredFeatures = forwardRef<
                               : priceBehavior === "pay_as_you_go"
                                 ? typeof price === "number" &&
                                   typeof usage === "number" &&
-                                  formatCurrency(usage * price)
+                                  formatCurrency(usage * price, currency)
                                 : typeof usage === "number" && (
                                     <>
                                       {formatNumber(usage)}{" "}

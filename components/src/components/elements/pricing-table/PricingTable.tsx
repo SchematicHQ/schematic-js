@@ -225,7 +225,7 @@ export const PricingTable = forwardRef<
             $gridTemplateColumns="repeat(auto-fill, minmax(320px, 1fr))"
             $gap="1rem"
           >
-            {plans.map((plan, index, self) => {
+            {plans.map((plan, index) => {
               const isActivePlan =
                 plan.current &&
                 data.company?.plan?.planPeriod === selectedPeriod;
@@ -258,6 +258,7 @@ export const PricingTable = forwardRef<
                     $flexDirection="column"
                     $gap="0.75rem"
                     $padding={`0 ${cardPadding}rem ${0.75 * cardPadding}rem`}
+                    $borderWidth="0"
                     $borderBottomWidth="1px"
                     $borderStyle="solid"
                     $borderColor={
@@ -334,6 +335,10 @@ export const PricingTable = forwardRef<
                             ? plan.monthlyPrice
                             : plan.yearlyPrice
                           )?.price ?? 0,
+                          (selectedPeriod === "month"
+                            ? plan.monthlyPrice
+                            : plan.yearlyPrice
+                          )?.currency,
                         )}
                       </Text>
 
@@ -387,28 +392,18 @@ export const PricingTable = forwardRef<
                   >
                     {props.plans.showEntitlements && (
                       <Flex $flexDirection="column" $gap="1rem" $flexGrow="1">
-                        {props.plans.showInclusionText && index > 0 && (
-                          <Box $marginBottom="1.5rem">
-                            <Text
-                              $font={theme.typography.text.fontFamily}
-                              $size={theme.typography.text.fontSize}
-                              $weight={theme.typography.text.fontWeight}
-                              $color={theme.typography.text.color}
-                            >
-                              {t("Everything in", {
-                                plan: self[index - 1].name,
-                              })}
-                            </Text>
-                          </Box>
-                        )}
-
                         {plan.entitlements
                           .reduce((acc: React.ReactElement[], entitlement) => {
                             let price: number | undefined;
+                            let currency: string | undefined;
                             if (selectedPeriod === "month") {
                               price = entitlement.meteredMonthlyPrice?.price;
+                              currency =
+                                entitlement.meteredMonthlyPrice?.currency;
                             } else if (selectedPeriod === "year") {
                               price = entitlement.meteredYearlyPrice?.price;
+                              currency =
+                                entitlement.meteredYearlyPrice?.currency;
                             }
 
                             if (
@@ -449,7 +444,8 @@ export const PricingTable = forwardRef<
                                     >
                                       {typeof price !== "undefined" ? (
                                         <>
-                                          {formatCurrency(price)} {t("per")}{" "}
+                                          {formatCurrency(price, currency)}{" "}
+                                          {t("per")}{" "}
                                           {pluralize(
                                             entitlement.feature.name,
                                             1,
@@ -731,6 +727,10 @@ export const PricingTable = forwardRef<
                               ? addOn.monthlyPrice
                               : addOn.yearlyPrice
                             )?.price ?? 0,
+                            (selectedPeriod === "month"
+                              ? addOn.monthlyPrice
+                              : addOn.yearlyPrice
+                            )?.currency,
                           )}
                         </Text>
 

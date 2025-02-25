@@ -109,20 +109,24 @@ export const PlanManager = forwardRef<
       acc: (FeatureUsageResponseData & {
         price: number;
         quantity: number;
+        currencyCode: string;
       })[],
       usage,
     ) => {
       const quantity = usage?.allocation ?? 0;
 
       let price: number | undefined;
+      let currencyCode: string = "USD";
       if (currentPlan?.planPeriod === "month") {
         price = usage.monthlyUsageBasedPrice?.price;
+        currencyCode = usage.monthlyUsageBasedPrice?.currency ?? "USD";
       } else if (currentPlan?.planPeriod === "year") {
         price = usage.yearlyUsageBasedPrice?.price;
+        currencyCode = usage.yearlyUsageBasedPrice?.currency ?? "USD";
       }
 
       if (usage.priceBehavior && typeof price === "number" && quantity > 0) {
-        acc.push({ ...usage, price, quantity });
+        acc.push({ ...usage, price, quantity, currencyCode });
       }
 
       return acc;
@@ -131,6 +135,7 @@ export const PlanManager = forwardRef<
   );
 
   const billingSubscription = data.company?.billingSubscription;
+  const subscriptionCurrency = billingSubscription?.currency ?? "USD";
   const showTrialBox =
     billingSubscription && billingSubscription.status == "trialing";
 
@@ -255,7 +260,10 @@ export const PlanManager = forwardRef<
                       theme.typography[props.header.price.fontStyle].color
                     }
                   >
-                    {formatCurrency(currentPlan.planPrice)}
+                    {formatCurrency(
+                      currentPlan.planPrice,
+                      subscriptionCurrency,
+                    )}
                   </Text>
 
                   <Text
@@ -321,7 +329,7 @@ export const PlanManager = forwardRef<
                     $weight={theme.typography.text.fontWeight}
                     $color={theme.typography.text.color}
                   >
-                    {formatCurrency(addOn.planPrice)}
+                    {formatCurrency(addOn.planPrice, subscriptionCurrency)}
                     <sub>/{shortenPeriod(addOn.planPeriod)}</sub>
                   </Text>
                 )}
@@ -395,7 +403,10 @@ export const PlanManager = forwardRef<
                                   : lighten(theme.typography.text.color, 0.46)
                               }
                             >
-                              {formatCurrency(entitlement.price)}
+                              {formatCurrency(
+                                entitlement.price,
+                                entitlement.currencyCode,
+                              )}
                               <sub>
                                 /
                                 {pluralize(
@@ -418,6 +429,7 @@ export const PlanManager = forwardRef<
                               (entitlement.priceBehavior === "pay_in_advance"
                                 ? entitlement.quantity
                                 : 1),
+                            entitlement.currencyCode,
                           )}
                           <sub>
                             /
