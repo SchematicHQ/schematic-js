@@ -2,9 +2,17 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 import pluralize from "pluralize";
+import { PlanEntitlementResponseData } from "../../../api";
 import { TEXT_BASE_SIZE, VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
 import { useIsLightBackground, type SelectedPlan } from "../../../hooks";
-import { hexToHSL, formatCurrency, formatNumber } from "../../../utils";
+import {
+  hexToHSL,
+  lighten,
+  darken,
+  formatCurrency,
+  formatNumber,
+  shortenPeriod,
+} from "../../../utils";
 import { cardBoxShadow } from "../../layout";
 import {
   Box,
@@ -230,117 +238,198 @@ export const Plan = ({
 
                       return 0;
                     })
-                    .reduce((acc: React.ReactElement[], entitlement) => {
-                      const hasNumericValue =
-                        entitlement.valueType === "numeric" ||
-                        entitlement.valueType === "unlimited" ||
-                        entitlement.valueType === "trait";
+                    .reduce(
+                      (
+                        acc: React.ReactElement[],
+                        entitlement: PlanEntitlementResponseData & {
+                          // TODO: remove once api is updated
+                          softLimit?: number;
+                        },
+                      ) => {
+                        // TODO: for testing, remove later
+                        if (entitlement.feature?.name === "Search") {
+                          entitlement.priceBehavior = "overage";
+                          entitlement.softLimit = 2;
+                          entitlement.valueType = "trait";
+                        }
 
-                      let metricPeriodText;
-                      if (hasNumericValue && entitlement.metricPeriod) {
-                        metricPeriodText = {
-                          billing: t("billing period"),
-                          current_day: t("day"),
-                          current_month: t("month"),
-                          current_year: t("year"),
-                        }[entitlement.metricPeriod];
-                      }
+                        const hasNumericValue =
+                          entitlement.valueType === "numeric" ||
+                          entitlement.valueType === "unlimited" ||
+                          entitlement.valueType === "trait";
 
-                      const price = (
-                        period === "month"
-                          ? entitlement.meteredMonthlyPrice
-                          : entitlement.meteredYearlyPrice
-                      )?.price;
-                      const currency = (
-                        period === "month"
-                          ? entitlement.meteredMonthlyPrice
-                          : entitlement.meteredYearlyPrice
-                      )?.currency;
+                        let metricPeriodText;
+                        if (
+                          hasNumericValue &&
+                          entitlement.metricPeriod &&
+                          entitlement.priceBehavior !== "overage"
+                        ) {
+                          metricPeriodText = {
+                            billing: t("billing period"),
+                            current_day: t("day"),
+                            current_month: t("month"),
+                            current_year: t("year"),
+                          }[entitlement.metricPeriod];
+                        }
 
-                      if (
-                        entitlement.priceBehavior &&
-                        typeof price !== "number"
-                      ) {
-                        return acc;
-                      }
+                        const limit =
+                          entitlement.softLimit || entitlement.valueNumeric;
+                        const price = (
+                          period === "month"
+                            ? entitlement.meteredMonthlyPrice
+                            : entitlement.meteredYearlyPrice
+                        )?.price;
+                        const currency = (
+                          period === "month"
+                            ? entitlement.meteredMonthlyPrice
+                            : entitlement.meteredYearlyPrice
+                        )?.currency;
 
-                      acc.push(
-                        <Flex
-                          key={entitlement.id}
-                          $flexWrap="wrap"
-                          $justifyContent="space-between"
-                          $alignItems="center"
-                          $gap="1rem"
-                        >
-                          <Flex $gap="1rem">
-                            {entitlement.feature?.icon && (
-                              <IconRound
-                                name={
-                                  entitlement.feature.icon as
-                                    | IconNameTypes
-                                    | string
-                                }
-                                size="sm"
-                                colors={[
-                                  theme.primary,
-                                  isLightBackground
-                                    ? "hsla(0, 0%, 0%, 0.0625)"
-                                    : "hsla(0, 0%, 100%, 0.25)",
-                                ]}
-                              />
-                            )}
+                        if (
+                          entitlement.priceBehavior &&
+                          typeof price !== "number"
+                        ) {
+                          return acc;
+                        }
 
-                            {entitlement.feature?.name && (
-                              <Flex $alignItems="center">
-                                <Text
-                                  $font={theme.typography.text.fontFamily}
-                                  $size={theme.typography.text.fontSize}
-                                  $weight={theme.typography.text.fontWeight}
-                                  $color={theme.typography.text.color}
+                        acc.push(
+                          <Flex
+                            key={entitlement.id}
+                            $flexWrap="wrap"
+                            $justifyContent="space-between"
+                            $alignItems="center"
+                            $gap="1rem"
+                          >
+                            <Flex $gap="1rem">
+                              {entitlement.feature?.icon && (
+                                <IconRound
+                                  name={
+                                    entitlement.feature.icon as
+                                      | IconNameTypes
+                                      | string
+                                  }
+                                  size="sm"
+                                  colors={[
+                                    theme.primary,
+                                    isLightBackground
+                                      ? "hsla(0, 0%, 0%, 0.0625)"
+                                      : "hsla(0, 0%, 100%, 0.25)",
+                                  ]}
+                                />
+                              )}
+
+                              {entitlement.feature?.name && (
+                                <Flex
+                                  $flexDirection="column"
+                                  $justifyContent="center"
+                                  $gap="0.5rem"
                                 >
-                                  {typeof price !== "undefined" ? (
-                                    <>
-                                      {formatCurrency(price, currency)}{" "}
-                                      {t("per")}{" "}
-                                      {pluralize(entitlement.feature.name, 1)}
-                                      {entitlement.priceBehavior ===
-                                        "pay_in_advance" && (
-                                        <>
-                                          {" "}
-                                          {t("per")} {period}
-                                        </>
-                                      )}
-                                    </>
-                                  ) : hasNumericValue ? (
-                                    <>
-                                      {entitlement.valueType === "unlimited"
-                                        ? t("Unlimited", {
-                                            item: pluralize(
-                                              entitlement.feature.name,
-                                            ),
-                                          })
-                                        : typeof entitlement.valueNumeric ===
-                                            "number" &&
-                                          `${formatNumber(entitlement.valueNumeric)} ${pluralize(entitlement.feature.name, entitlement.valueNumeric)}`}
-                                      {metricPeriodText && (
-                                        <>
-                                          {" "}
-                                          {t("per")} {metricPeriodText}
-                                        </>
-                                      )}
-                                    </>
-                                  ) : (
-                                    entitlement.feature.name
-                                  )}
-                                </Text>
-                              </Flex>
-                            )}
-                          </Flex>
-                        </Flex>,
-                      );
+                                  <Text
+                                    $font={theme.typography.text.fontFamily}
+                                    $size={theme.typography.text.fontSize}
+                                    $weight={theme.typography.text.fontWeight}
+                                    $color={theme.typography.text.color}
+                                    $leading={1.25}
+                                  >
+                                    {typeof price === "number" &&
+                                    (entitlement.priceBehavior ===
+                                      "pay_in_advance" ||
+                                      entitlement.priceBehavior ===
+                                        "pay_as_you_go") ? (
+                                      <>
+                                        {formatCurrency(price, currency)}{" "}
+                                        {t("per")}{" "}
+                                        {pluralize(entitlement.feature.name, 1)}
+                                        {entitlement.priceBehavior ===
+                                          "pay_in_advance" && (
+                                          <>
+                                            {" "}
+                                            {t("per")} {period}
+                                          </>
+                                        )}
+                                      </>
+                                    ) : hasNumericValue ? (
+                                      <>
+                                        {entitlement.valueType === "unlimited"
+                                          ? t("Unlimited", {
+                                              item: pluralize(
+                                                entitlement.feature.name,
+                                              ),
+                                            })
+                                          : typeof limit === "number" && (
+                                              <>
+                                                {formatNumber(limit)}{" "}
+                                                {pluralize(
+                                                  entitlement.feature.name,
+                                                  limit,
+                                                )}
+                                              </>
+                                            )}
+                                        {metricPeriodText ? (
+                                          <>
+                                            {" "}
+                                            {t("per")} {metricPeriodText}
+                                          </>
+                                        ) : (
+                                          entitlement.priceBehavior ===
+                                            "overage" &&
+                                          entitlement.feature.featureType ===
+                                            "event" && (
+                                            <>/{shortenPeriod(period)}</>
+                                          )
+                                        )}
+                                      </>
+                                    ) : (
+                                      entitlement.feature.name
+                                    )}
+                                  </Text>
 
-                      return acc;
-                    }, [])
+                                  {entitlement.priceBehavior === "overage" &&
+                                    typeof price === "number" && (
+                                      <Text
+                                        $font={theme.typography.text.fontFamily}
+                                        $size={
+                                          0.875 * theme.typography.text.fontSize
+                                        }
+                                        $weight={
+                                          theme.typography.text.fontWeight
+                                        }
+                                        $color={
+                                          hexToHSL(theme.typography.text.color)
+                                            .l > 50
+                                            ? darken(
+                                                theme.typography.text.color,
+                                                0.46,
+                                              )
+                                            : lighten(
+                                                theme.typography.text.color,
+                                                0.46,
+                                              )
+                                        }
+                                        $leading={1.25}
+                                      >
+                                        {formatCurrency(price)}/
+                                        {pluralize(
+                                          entitlement.feature.name.toLowerCase(),
+                                          1,
+                                        )}
+                                        {entitlement.feature.featureType ===
+                                          "event" && (
+                                          <>/{shortenPeriod(period)}</>
+                                        )}{" "}
+                                        {t("overage fee")}
+                                      </Text>
+                                    )}
+                                </Flex>
+                              )}
+                            </Flex>
+                          </Flex>,
+                        );
+
+                        return acc;
+                      },
+                      [],
+                    )
                     .slice(0, count?.limit ?? VISIBLE_ENTITLEMENT_COUNT)}
 
                   {(count?.size || plan.entitlements.length) >

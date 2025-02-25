@@ -95,7 +95,7 @@ export const Details = ({
     if (!priceBehavior) {
       return t("Unlimited", { item: pluralize(feature.name) });
     }
-  }, [feature?.name, priceBehavior, allocation, price, softLimit, t]);
+  }, [feature?.name, priceBehavior, allocation, price, currency, softLimit, t]);
 
   const usageText = useMemo(() => {
     if (!feature?.name) {
@@ -171,6 +171,7 @@ export const Details = ({
     priceBehavior,
     allocation,
     price,
+    currency,
     softLimit,
     t,
     usage,
