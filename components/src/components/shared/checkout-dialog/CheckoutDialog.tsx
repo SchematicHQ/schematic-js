@@ -184,22 +184,6 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     [usageBasedEntitlements],
   );
 
-  const [checkoutStage, setCheckoutStage] = useState(() => {
-    if (selected.planId !== currentPlan?.id) {
-      return payInAdvanceEntitlements.length > 0 ? "usage" : "addons";
-    }
-
-    if (selected.addOnId) {
-      return "addons";
-    }
-
-    if (selected.usage) {
-      return "usage";
-    }
-
-    return "plan";
-  });
-
   const hasActiveAddOns = addOns.some((addOn) => addOn.isSelected === true);
   const hasActivePayInAdvanceEntitlements = payInAdvanceEntitlements.some(
     ({ quantity }) => quantity > 0,
@@ -252,6 +236,27 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     selectedPlan?.companyCanTrial,
     requiresPayment,
   ]);
+
+  const [checkoutStage, setCheckoutStage] = useState(() => {
+    if (selected.addOnId) {
+      return "addons";
+    }
+
+    if (selected.usage) {
+      return "usage";
+    }
+
+    // the user has preselected a different plan before starting the checkout flow
+    if (selected.planId !== currentPlan?.id) {
+      return checkoutStages.some((stage) => stage.id === "usage")
+        ? "usage"
+        : checkoutStages.some((stage) => stage.id === "addons")
+          ? "addons"
+          : "plan";
+    }
+
+    return "plan";
+  });
 
   const isLightBackground = useIsLightBackground();
 
