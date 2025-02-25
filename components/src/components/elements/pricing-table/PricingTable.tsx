@@ -24,6 +24,7 @@ import {
   Tooltip,
   type IconNameTypes,
 } from "../../ui";
+import { ButtonLink } from "./styles";
 
 interface DesignProps {
   showPeriodToggle: boolean;
@@ -593,22 +594,16 @@ export const PricingTable = forwardRef<
                         props.downgrade.isVisible) && (
                         <EmbedButton
                           disabled={!plan.valid || !canCheckout}
-                          {...(plan.custom
-                            ? {
-                                as: "a",
-                                href: plan.customPlanConfig?.ctaWebSite ?? "#",
-                                target: "_blank",
-                              }
-                            : {
-                                onClick: () => {
-                                  setSelected({
-                                    period: selectedPeriod,
-                                    planId: isActivePlan ? null : plan.id,
-                                    usage: false,
-                                  });
-                                  setLayout("checkout");
-                                },
-                              })}
+                          {...(!plan.custom && {
+                            onClick: () => {
+                              setSelected({
+                                period: selectedPeriod,
+                                planId: isActivePlan ? null : plan.id,
+                                usage: false,
+                              });
+                              setLayout("checkout");
+                            },
+                          })}
                           {...(index > currentPlanIndex
                             ? {
                                 $size: props.upgrade.buttonSize,
@@ -622,9 +617,13 @@ export const PricingTable = forwardRef<
                               })}
                         >
                           {plan.custom ? (
-                            (plan.customPlanConfig?.ctaText ??
-                            plan.customPlanConfig?.ctaText ??
-                            t("Custom Plan CTA"))
+                            <ButtonLink
+                              href={plan.customPlanConfig?.ctaWebSite ?? "#"}
+                              target="_blank"
+                            >
+                              {plan.customPlanConfig?.ctaText ??
+                                t("Custom Plan CTA")}
+                            </ButtonLink>
                           ) : !plan.valid ? (
                             <Tooltip
                               trigger={t("Over usage limit")}
