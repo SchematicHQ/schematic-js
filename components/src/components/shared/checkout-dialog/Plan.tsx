@@ -16,6 +16,7 @@ import {
   Tooltip,
   type IconNameTypes,
 } from "../../ui";
+import { ButtonLink } from "../../elements/pricing-table/styles";
 
 interface PlanProps {
   isLoading: boolean;
@@ -423,9 +424,12 @@ export const Plan = ({
                     $variant={plan.current ? "outline" : "filled"}
                   >
                     {plan.custom ? (
-                      (plan.customPlanConfig?.ctaText ??
-                      plan.customPlanConfig?.ctaText ??
-                      t("Custom Plan CTA"))
+                      <ButtonLink
+                        href={plan.customPlanConfig?.ctaWebSite ?? "#"}
+                        target="_blank"
+                      >
+                        {plan.customPlanConfig?.ctaText ?? t("Custom Plan CTA")}
+                      </ButtonLink>
                     ) : !plan.valid ? (
                       <Tooltip
                         trigger={t("Over usage limit")}
