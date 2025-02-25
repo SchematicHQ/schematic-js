@@ -29,16 +29,18 @@ export function useAvailablePlans(activePeriod: string) {
 
   const getActivePlans = useCallback(
     (plans: CompanyPlanDetailResponseData[]) => {
-      const plansWithSelected: SelectedPlan[] = (
+      const customPlanExist = plans.some((plan) => plan.custom);
+      let plansWithSelected =
         mode === "edit"
           ? plans.slice()
           : plans.filter(
               (plan) =>
                 (activePeriod === "month" && plan.monthlyPrice) ||
                 (activePeriod === "year" && plan.yearlyPrice),
-            )
-      )
-        .sort((a, b) => {
+            );
+
+      if (!customPlanExist) {
+        plansWithSelected = plansWithSelected.sort((a, b) => {
           if (activePeriod === "year") {
             return (a.yearlyPrice?.price ?? 0) - (b.yearlyPrice?.price ?? 0);
           }
@@ -48,10 +50,10 @@ export function useAvailablePlans(activePeriod: string) {
           }
 
           return 0;
-        })
-        .map((plan) => ({ ...plan, isSelected: false }));
+        });
+      }
 
-      return plansWithSelected;
+      return plansWithSelected.map((plan) => ({ ...plan, isSelected: false }));
     },
     [activePeriod, mode],
   );
