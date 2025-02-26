@@ -111,7 +111,7 @@ export const PlanManager = forwardRef<
         quantity: number;
         // TODO: remove once api is updated
         softLimit?: number;
-        currencyCode: string;
+        currencyCode?: string;
       })[],
       usage: FeatureUsageResponseData & {
         // TODO: remove once api is updated
@@ -121,13 +121,13 @@ export const PlanManager = forwardRef<
       const quantity = usage.allocation || usage.softLimit || 0;
 
       let price: number | undefined;
-      let currencyCode: string = "USD";
+      let currencyCode: string | undefined;
       if (currentPlan?.planPeriod === "month") {
         price = usage.monthlyUsageBasedPrice?.price;
-        currencyCode = usage.monthlyUsageBasedPrice?.currency ?? "USD";
+        currencyCode = usage.monthlyUsageBasedPrice?.currency;
       } else if (currentPlan?.planPeriod === "year") {
         price = usage.yearlyUsageBasedPrice?.price;
-        currencyCode = usage.yearlyUsageBasedPrice?.currency ?? "USD";
+        currencyCode = usage.yearlyUsageBasedPrice?.currency;
       }
 
       if (usage.priceBehavior && typeof price === "number") {
