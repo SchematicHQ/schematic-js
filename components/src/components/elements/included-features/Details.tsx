@@ -10,7 +10,6 @@ import { useEmbed } from "../../../hooks";
 import { formatCurrency, formatNumber, shortenPeriod } from "../../../utils";
 import { Box, Text } from "../../ui";
 import { type DesignProps } from "./IncludedFeatures";
-import { curry } from "lodash";
 
 interface DetailsProps extends DesignProps {
   shouldWrapChildren: boolean;
