@@ -8,6 +8,7 @@ import {
   EmbedButtonColor,
   EmbedButtonVariant,
 } from "../../ui/button/EmbedButton";
+import { useEmbed } from "../../../hooks";
 
 interface DesignProps {
   button: {
@@ -46,6 +47,8 @@ export const UnsubscribeButton = forwardRef<
   const props = resolveDesignProps(rest);
   const { t } = useTranslation();
 
+  const { setLayout } = useEmbed();
+
   const buttonStyles: Record<
     ComponentStyle,
     { color: EmbedButtonColor; variant: EmbedButtonVariant }
@@ -78,6 +81,9 @@ export const UnsubscribeButton = forwardRef<
         $variant={buttonStyles[props.button.style].variant}
         $alignment={props.button.alignment}
         $fullWidth={props.button.fullWidth}
+        onClick={() => {
+          setLayout("unsubscribe");
+        }}
       >
         {t(props.button.text)}
       </EmbedButton>

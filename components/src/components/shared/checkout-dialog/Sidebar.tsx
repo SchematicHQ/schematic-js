@@ -21,7 +21,7 @@ import {
   getMonthName,
   shortenPeriod,
 } from "../../../utils";
-import { Box, Flex, Icon, Text } from "../../ui";
+import { Box, EmbedButton, Flex, Icon, Text } from "../../ui";
 import { type CheckoutStage } from ".";
 import { StageButton } from "./StageButton";
 
@@ -56,6 +56,7 @@ interface SidebarProps {
     quantity: number;
     usage: number;
   }[];
+  showHeader?: boolean;
 }
 
 export const Sidebar = ({
@@ -80,12 +81,13 @@ export const Sidebar = ({
   toggleLoading,
   updatePromoCode,
   usageBasedEntitlements,
+  showHeader = true,
 }: SidebarProps) => {
   const { t } = useTranslation();
 
   const theme = useTheme();
 
-  const { api, data, mode, setLayout } = useEmbed();
+  const { api, data, mode, layout, setLayout } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
 
@@ -98,20 +100,15 @@ export const Sidebar = ({
   );
 
   const subscriptionPrice = useMemo(() => {
-    if (
-      !selectedPlan ||
-      !selectedPlan.monthlyPrice ||
-      !selectedPlan.yearlyPrice
-    ) {
+    const plan = selectedPlan || currentPlan;
+    if (!plan || !plan.monthlyPrice || !plan.yearlyPrice) {
       return;
     }
 
     let total = 0;
 
     const planPrice = (
-      planPeriod === "month"
-        ? selectedPlan.monthlyPrice
-        : selectedPlan.yearlyPrice
+      planPeriod === "month" ? plan.monthlyPrice : plan.yearlyPrice
     )?.price;
 
     const currency = (
@@ -148,7 +145,7 @@ export const Sidebar = ({
     total += payInAdvanceCost;
 
     return formatCurrency(total, currency);
-  }, [selectedPlan, addOns, payInAdvanceEntitlements, planPeriod]);
+  }, [selectedPlan, currentPlan, planPeriod, addOns, payInAdvanceEntitlements]);
 
   const { amountOff, dueNow, newCharges, percentOff, periodStart, proration } =
     useMemo(() => {
@@ -246,10 +243,26 @@ export const Sidebar = ({
     promoCode,
   ]);
 
+  const unsubscribe = useCallback(async () => {
+    try {
+      setError(undefined);
+      toggleLoading();
+
+      // TODO: Implement
+      // await api.unsubscribe({});
+      console.log("link unsubscribe to api");
+      setError("success");
+    } catch {
+      setError(t("Unsubscribe failed"));
+    } finally {
+      toggleLoading();
+    }
+  }, [setError, t, toggleLoading]);
+
   const selectedAddOns = addOns.filter((addOn) => addOn.isSelected);
 
   const willPlanChange =
-    typeof selectedPlan !== "undefined" && selectedPlan.current === false;
+    typeof selectedPlan !== "undefined" && !selectedPlan.current;
 
   const canUpdateSubscription =
     mode === "edit" ||
@@ -383,31 +396,35 @@ export const Sidebar = ({
         },
       }}
     >
-      <Flex
-        $position="relative"
-        $flexDirection="column"
-        $gap="1rem"
-        $width="100%"
-        $padding="1.5rem"
-        $borderWidth="0"
-        $borderBottomWidth="1px"
-        $borderStyle="solid"
-        $borderColor={
-          isLightBackground ? "hsla(0, 0%, 0%, 0.1)" : "hsla(0, 0%, 100%, 0.2)"
-        }
-      >
-        <Flex $justifyContent="space-between">
-          <Text
-            as="h3"
-            $font={theme.typography.heading3.fontFamily}
-            $size={theme.typography.heading3.fontSize}
-            $weight={theme.typography.heading3.fontWeight}
-            $color={theme.typography.heading3.color}
-          >
-            {t("Subscription")}
-          </Text>
+      {showHeader && (
+        <Flex
+          $position="relative"
+          $flexDirection="column"
+          $gap="1rem"
+          $width="100%"
+          $padding="1.5rem"
+          $borderWidth="0"
+          $borderBottomWidth="1px"
+          $borderStyle="solid"
+          $borderColor={
+            isLightBackground
+              ? "hsla(0, 0%, 0%, 0.1)"
+              : "hsla(0, 0%, 100%, 0.2)"
+          }
+        >
+          <Flex $justifyContent="space-between">
+            <Text
+              as="h3"
+              $font={theme.typography.heading3.fontFamily}
+              $size={theme.typography.heading3.fontSize}
+              $weight={theme.typography.heading3.fontWeight}
+              $color={theme.typography.heading3.color}
+            >
+              {t("Subscription")}
+            </Text>
+          </Flex>
         </Flex>
-      </Flex>
+      )}
 
       <Flex
         $position="relative"
@@ -1175,7 +1192,7 @@ export const Sidebar = ({
           </Flex>
         )}
 
-        {selectedPlan && subscriptionPrice && (
+        {subscriptionPrice && (
           <Flex
             $justifyContent="space-between"
             $alignItems="center"
@@ -1274,20 +1291,35 @@ export const Sidebar = ({
           </Flex>
         )}
 
-        <StageButton
-          canTrial={selectedPlan?.companyCanTrial === true}
-          canCheckout={canCheckout === true}
-          canUpdateSubscription={canUpdateSubscription}
-          checkout={checkout}
-          checkoutStage={checkoutStage}
-          checkoutStages={checkoutStages}
-          hasAddOns={addOns.length > 0}
-          hasPayInAdvanceEntitlements={payInAdvanceEntitlements.length > 0}
-          isLoading={isLoading}
-          requiresPayment={requiresPayment}
-          setCheckoutStage={setCheckoutStage}
-          trialPaymentMethodRequired={data.trialPaymentMethodRequired === true}
-        />
+        {layout === "checkout" && (
+          <StageButton
+            canTrial={selectedPlan?.companyCanTrial === true}
+            canCheckout={canCheckout}
+            canUpdateSubscription={canUpdateSubscription}
+            checkout={checkout}
+            checkoutStage={checkoutStage}
+            checkoutStages={checkoutStages}
+            hasAddOns={addOns.length > 0}
+            hasPayInAdvanceEntitlements={payInAdvanceEntitlements.length > 0}
+            isLoading={isLoading}
+            requiresPayment={requiresPayment}
+            setCheckoutStage={setCheckoutStage}
+            trialPaymentMethodRequired={
+              data.trialPaymentMethodRequired === true
+            }
+          />
+        )}
+
+        {layout === "unsubscribe" && (
+          <EmbedButton
+            onClick={async () => {
+              unsubscribe();
+            }}
+            isLoading={isLoading}
+          >
+            {t("Cancel subscription")}
+          </EmbedButton>
+        )}
 
         {!isLoading && error && (
           <Box>
@@ -1302,19 +1334,21 @@ export const Sidebar = ({
           </Box>
         )}
 
-        <Box $opacity="0.625">
-          <Text
-            $font={theme.typography.text.fontFamily}
-            $size={theme.typography.text.fontSize}
-            $weight={theme.typography.text.fontWeight}
-            $color={theme.typography.text.color}
-          >
-            {subscriptionPrice &&
-              // TODO: localize
-              `You will be billed ${subscriptionPrice} ${payAsYouGoEntitlements.length > 0 ? "plus usage based costs" : ""} for this subscription
+        {layout !== "unsubscribe" && (
+          <Box $opacity="0.625">
+            <Text
+              $font={theme.typography.text.fontFamily}
+              $size={theme.typography.text.fontSize}
+              $weight={theme.typography.text.fontWeight}
+              $color={theme.typography.text.color}
+            >
+              {subscriptionPrice &&
+                // TODO: localize
+                `You will be billed ${subscriptionPrice} ${payAsYouGoEntitlements.length > 0 ? "plus usage based costs" : ""} for this subscription
                 every ${planPeriod} ${periodStart ? `on the ${formatOrdinal(periodStart.getDate())}` : ""} ${planPeriod === "year" && periodStart ? `of ${getMonthName(periodStart)}` : ""} unless you unsubscribe.`}
-          </Text>
-        </Box>
+            </Text>
+          </Box>
+        )}
       </Flex>
     </Flex>
   );

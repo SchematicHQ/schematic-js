@@ -1,7 +1,7 @@
 import { forwardRef, useLayoutEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useEmbed } from "../../../hooks";
-import { CheckoutDialog } from "../../shared";
+import { CheckoutDialog, UnsubscribeDialog } from "../../shared";
 import { Badge } from "../../ui/badge";
 import { RenderLayout } from "../RenderLayout";
 import { StyledViewport } from "./styles";
@@ -19,7 +19,7 @@ export const Viewport = forwardRef<HTMLDivElement | null, ViewportProps>(
     const canCheckout = data.capabilities?.checkout ?? true;
 
     useLayoutEffect(() => {
-      if (layout !== "checkout") {
+      if (layout !== "checkout" && layout !== "unsubscribe") {
         return;
       }
 
@@ -46,6 +46,8 @@ export const Viewport = forwardRef<HTMLDivElement | null, ViewportProps>(
         {canCheckout &&
           layout === "checkout" &&
           createPortal(<CheckoutDialog top={top} />, portal || document.body)}
+        {layout === "unsubscribe" &&
+          createPortal(<UnsubscribeDialog />, portal || document.body)}
       </>
     );
   },
