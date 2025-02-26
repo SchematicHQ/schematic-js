@@ -63,7 +63,6 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   const [charges, setCharges] =
     useState<PreviewSubscriptionChangeResponseData>();
   const [paymentMethodId, setPaymentMethodId] = useState<string | undefined>();
-  // const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | undefined>();
   const [showPaymentForm, setShowPaymentForm] = useState(
     !data.subscription?.paymentMethod,
