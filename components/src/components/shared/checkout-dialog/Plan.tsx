@@ -408,17 +408,15 @@ export const Plan = ({
                 ) : (
                   <EmbedButton
                     disabled={isLoading || !plan.valid}
-                    {...(plan.custom
-                      ? {
-                          as: "a",
-                          href: plan.customPlanConfig?.ctaWebSite ?? "#",
-                          target: "_blank",
+                    {...{
+                      onClick: () => {
+                        if (plan.custom) {
+                          return;
                         }
-                      : {
-                          onClick: () => {
-                            selectPlan({ plan });
-                          },
-                        })}
+
+                        selectPlan({ plan });
+                      },
+                    }}
                     $size="sm"
                     $color="primary"
                     $variant={plan.current ? "outline" : "filled"}
