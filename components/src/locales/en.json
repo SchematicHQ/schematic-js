@@ -35,6 +35,8 @@
     "Error retrieving plan details. Please try again in a moment.": "Error retrieving plan details. Please try again in a moment.",
     "Error updating payment method. Please try again.": "Error updating payment method. Please try again.",
     "Estimated bill.": "Estimated bill.",
+    "Custom Plan Price": "Custom price",
+    "Custom Plan CTA": "Talk to support",
     "Everything in": "Everything in {{plan}}, plus",
     "Expired": "Expired",
     "Expires in x months": "Expires in {{months}} mo",

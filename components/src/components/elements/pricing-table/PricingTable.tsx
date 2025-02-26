@@ -24,6 +24,7 @@ import {
   Tooltip,
   type IconNameTypes,
 } from "../../ui";
+import { ButtonLink } from "./styles";
 
 interface DesignProps {
   showPeriodToggle: boolean;
@@ -330,37 +331,44 @@ export const PricingTable = forwardRef<
                           theme.typography[props.plans.name.fontStyle].color
                         }
                       >
-                        {formatCurrency(
-                          (selectedPeriod === "month"
-                            ? plan.monthlyPrice
-                            : plan.yearlyPrice
-                          )?.price ?? 0,
-                          (selectedPeriod === "month"
-                            ? plan.monthlyPrice
-                            : plan.yearlyPrice
-                          )?.currency,
-                        )}
+                        {plan.custom
+                          ? plan.customPlanConfig?.priceText
+                            ? plan.customPlanConfig?.priceText
+                            : t("Custom Plan Price")
+                          : formatCurrency(
+                              (selectedPeriod === "month"
+                                ? plan.monthlyPrice
+                                : plan.yearlyPrice
+                              )?.price ?? 0,
+                              (selectedPeriod === "month"
+                                ? plan.monthlyPrice
+                                : plan.yearlyPrice
+                              )?.currency,
+                            )}
                       </Text>
 
-                      <Text
-                        $font={
-                          theme.typography[props.plans.name.fontStyle]
-                            .fontFamily
-                        }
-                        $size={
-                          (16 / 30) *
-                          theme.typography[props.plans.name.fontStyle].fontSize
-                        }
-                        $weight={
-                          theme.typography[props.plans.name.fontStyle]
-                            .fontWeight
-                        }
-                        $color={
-                          theme.typography[props.plans.name.fontStyle].color
-                        }
-                      >
-                        /{selectedPeriod}
-                      </Text>
+                      {!plan.custom && (
+                        <Text
+                          $font={
+                            theme.typography[props.plans.name.fontStyle]
+                              .fontFamily
+                          }
+                          $size={
+                            (16 / 30) *
+                            theme.typography[props.plans.name.fontStyle]
+                              .fontSize
+                          }
+                          $weight={
+                            theme.typography[props.plans.name.fontStyle]
+                              .fontWeight
+                          }
+                          $color={
+                            theme.typography[props.plans.name.fontStyle].color
+                          }
+                        >
+                          /{selectedPeriod}
+                        </Text>
+                      )}
                     </Box>
 
                     {isActivePlan && (
@@ -581,14 +589,16 @@ export const PricingTable = forwardRef<
                         props.downgrade.isVisible) && (
                         <EmbedButton
                           disabled={!plan.valid || !canCheckout}
-                          onClick={() => {
-                            setSelected({
-                              period: selectedPeriod,
-                              planId: isActivePlan ? null : plan.id,
-                              usage: false,
-                            });
-                            setLayout("checkout");
-                          }}
+                          {...(!plan.custom && {
+                            onClick: () => {
+                              setSelected({
+                                period: selectedPeriod,
+                                planId: isActivePlan ? null : plan.id,
+                                usage: false,
+                              });
+                              setLayout("checkout");
+                            },
+                          })}
                           {...(index > currentPlanIndex
                             ? {
                                 $size: props.upgrade.buttonSize,
@@ -601,7 +611,15 @@ export const PricingTable = forwardRef<
                                 $variant: "outline",
                               })}
                         >
-                          {!plan.valid ? (
+                          {plan.custom ? (
+                            <ButtonLink
+                              href={plan.customPlanConfig?.ctaWebSite ?? "#"}
+                              target="_blank"
+                            >
+                              {plan.customPlanConfig?.ctaText ??
+                                t("Custom Plan CTA")}
+                            </ButtonLink>
+                          ) : !plan.valid ? (
                             <Tooltip
                               trigger={t("Over usage limit")}
                               content={t(

@@ -109,20 +109,20 @@ export const PlanManager = forwardRef<
       acc: (FeatureUsageResponseData & {
         price: number;
         quantity: number;
-        currencyCode: string;
+        currencyCode: string | undefined;
       })[],
       usage,
     ) => {
       const quantity = usage?.allocation ?? 0;
 
       let price: number | undefined;
-      let currencyCode: string = "USD";
+      let currencyCode: string | undefined;
       if (currentPlan?.planPeriod === "month") {
         price = usage.monthlyUsageBasedPrice?.price;
-        currencyCode = usage.monthlyUsageBasedPrice?.currency ?? "USD";
+        currencyCode = usage.monthlyUsageBasedPrice?.currency;
       } else if (currentPlan?.planPeriod === "year") {
         price = usage.yearlyUsageBasedPrice?.price;
-        currencyCode = usage.yearlyUsageBasedPrice?.currency ?? "USD";
+        currencyCode = usage.yearlyUsageBasedPrice?.currency;
       }
 
       if (usage.priceBehavior && typeof price === "number" && quantity > 0) {

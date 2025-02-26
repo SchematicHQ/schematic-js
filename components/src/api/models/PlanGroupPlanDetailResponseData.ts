@@ -31,6 +31,12 @@ import {
   BillingPriceResponseDataFromJSONTyped,
   BillingPriceResponseDataToJSON,
 } from "./BillingPriceResponseData";
+import type { CustomPlanViewConfigResponseData } from "./CustomPlanViewConfigResponseData";
+import {
+  CustomPlanViewConfigResponseDataFromJSON,
+  CustomPlanViewConfigResponseDataFromJSONTyped,
+  CustomPlanViewConfigResponseDataToJSON,
+} from "./CustomPlanViewConfigResponseData";
 import type { BillingProductDetailResponseData } from "./BillingProductDetailResponseData";
 import {
   BillingProductDetailResponseDataFromJSON,
@@ -70,6 +76,12 @@ export interface PlanGroupPlanDetailResponseData {
   createdAt: Date;
   /**
    *
+   * @type {CustomPlanViewConfigResponseData}
+   * @memberof PlanGroupPlanDetailResponseData
+   */
+  customPlanConfig?: CustomPlanViewConfigResponseData;
+  /**
+   *
    * @type {string}
    * @memberof PlanGroupPlanDetailResponseData
    */
@@ -98,6 +110,12 @@ export interface PlanGroupPlanDetailResponseData {
    * @memberof PlanGroupPlanDetailResponseData
    */
   id: string;
+  /**
+   *
+   * @type {boolean}
+   * @memberof PlanGroupPlanDetailResponseData
+   */
+  isCustom: boolean;
   /**
    *
    * @type {boolean}
@@ -170,6 +188,7 @@ export function instanceOfPlanGroupPlanDetailResponseData(
   if (!("features" in value) || value["features"] === undefined) return false;
   if (!("icon" in value) || value["icon"] === undefined) return false;
   if (!("id" in value) || value["id"] === undefined) return false;
+  if (!("isCustom" in value) || value["isCustom"] === undefined) return false;
   if (!("isDefault" in value) || value["isDefault"] === undefined) return false;
   if (!("isFree" in value) || value["isFree"] === undefined) return false;
   if (!("isTrialable" in value) || value["isTrialable"] === undefined)
@@ -202,6 +221,10 @@ export function PlanGroupPlanDetailResponseDataFromJSONTyped(
         : BillingProductDetailResponseDataFromJSON(json["billing_product"]),
     companyCount: json["company_count"],
     createdAt: new Date(json["created_at"]),
+    customPlanConfig:
+      json["custom_plan_config"] == null
+        ? undefined
+        : CustomPlanViewConfigResponseDataFromJSON(json["custom_plan_config"]),
     description: json["description"],
     entitlements: (json["entitlements"] as Array<any>).map(
       PlanEntitlementResponseDataFromJSON,
@@ -211,6 +234,7 @@ export function PlanGroupPlanDetailResponseDataFromJSONTyped(
     ),
     icon: json["icon"],
     id: json["id"],
+    isCustom: json["is_custom"],
     isDefault: json["is_default"],
     isFree: json["is_free"],
     isTrialable: json["is_trialable"],
@@ -242,6 +266,9 @@ export function PlanGroupPlanDetailResponseDataToJSON(
     ),
     company_count: value["companyCount"],
     created_at: value["createdAt"].toISOString(),
+    custom_plan_config: CustomPlanViewConfigResponseDataToJSON(
+      value["customPlanConfig"],
+    ),
     description: value["description"],
     entitlements: (value["entitlements"] as Array<any>).map(
       PlanEntitlementResponseDataToJSON,
@@ -251,6 +278,7 @@ export function PlanGroupPlanDetailResponseDataToJSON(
     ),
     icon: value["icon"],
     id: value["id"],
+    is_custom: value["isCustom"],
     is_default: value["isDefault"],
     is_free: value["isFree"],
     is_trialable: value["isTrialable"],
