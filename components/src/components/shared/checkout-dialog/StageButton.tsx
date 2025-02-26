@@ -36,7 +36,7 @@ export const StageButton = ({
   const NoPaymentRequired = () => {
     return (
       <EmbedButton
-        disabled={isLoading || !canCheckout}
+        disabled={isLoading || !canUpdateSubscription}
         onClick={checkout}
         isLoading={isLoading}
       >
