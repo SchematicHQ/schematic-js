@@ -456,6 +456,7 @@ export const PlanManager = forwardRef<
 
         {canCheckout && props.callToAction.isVisible && (
           <EmbedButton
+            type="button"
             onClick={() => {
               setSelected({
                 planId: currentPlan?.id,
