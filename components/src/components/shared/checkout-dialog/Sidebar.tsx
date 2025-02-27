@@ -113,8 +113,8 @@ export const Sidebar = ({
 
     const currency = (
       planPeriod === "month"
-        ? selectedPlan.monthlyPrice
-        : selectedPlan.yearlyPrice
+        ? selectedPlan?.monthlyPrice
+        : selectedPlan?.yearlyPrice
     )?.currency;
 
     if (planPrice) {
@@ -125,8 +125,8 @@ export const Sidebar = ({
       (sum, addOn) =>
         sum +
         (addOn.isSelected
-          ? (planPeriod === "month" ? addOn.monthlyPrice : addOn.yearlyPrice)
-              ?.price || 0
+          ? ((planPeriod === "month" ? addOn.monthlyPrice : addOn.yearlyPrice)
+              ?.price ?? 0)
           : 0),
       0,
     );
@@ -139,7 +139,7 @@ export const Sidebar = ({
           ((planPeriod === "month"
             ? entitlement.meteredMonthlyPrice
             : entitlement.meteredYearlyPrice
-          )?.price || 0),
+          )?.price ?? 0),
       0,
     );
     total += payInAdvanceCost;
@@ -244,20 +244,22 @@ export const Sidebar = ({
   ]);
 
   const unsubscribe = useCallback(async () => {
+    if (!api) {
+      return;
+    }
+
     try {
       setError(undefined);
       toggleLoading();
 
-      // TODO: Implement
-      // await api.unsubscribe({});
-      console.log("link unsubscribe to api");
+      await api.checkoutUnsubscribe();
       setError("success");
     } catch {
       setError(t("Unsubscribe failed"));
     } finally {
       toggleLoading();
     }
-  }, [setError, t, toggleLoading]);
+  }, [api, setError, t, toggleLoading]);
 
   const selectedAddOns = addOns.filter((addOn) => addOn.isSelected);
 
