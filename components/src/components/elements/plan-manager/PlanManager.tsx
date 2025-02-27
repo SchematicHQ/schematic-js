@@ -135,7 +135,7 @@ export const PlanManager = forwardRef<
   );
 
   const billingSubscription = data.company?.billingSubscription;
-  const subscriptionCurrency = billingSubscription?.currency ?? "USD";
+  const subscriptionCurrency = billingSubscription?.currency;
   const showTrialBox =
     billingSubscription && billingSubscription.status == "trialing";
 
