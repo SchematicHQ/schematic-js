@@ -8,13 +8,11 @@ export interface ColumnProps extends React.HTMLProps<HTMLDivElement> {
 
 export const Column = forwardRef<HTMLDivElement | null, ColumnProps>(
   ({ children, basis, ...props }, ref) => {
-    const childrenLength = Children.count(children);
-
-    if (childrenLength === 0) {
-      return;
-    }
-
-    return (
+    return Children.count(children) === 0 ? (
+      <StyledColumn ref={ref} {...props}>
+        {children}
+      </StyledColumn>
+    ) : (
       <StyledColumn ref={ref} {...props}>
         <Card>{children}</Card>
       </StyledColumn>

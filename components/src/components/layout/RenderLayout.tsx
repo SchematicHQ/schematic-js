@@ -115,12 +115,9 @@ interface RenderLayoutProps {
 export const RenderLayout = ({ children }: RenderLayoutProps) => {
   const { layout } = useEmbed();
 
-  console.log(children, "@@");
   switch (layout) {
     case "disabled":
       return <Disabled />;
-    // case "success":
-    //   return <Success />;
     default:
       return children;
   }

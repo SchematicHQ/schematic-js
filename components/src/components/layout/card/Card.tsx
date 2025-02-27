@@ -1,9 +1,10 @@
 import { forwardRef } from "react";
-import { cardBoxShadow, StyledCard, Element, FussyChild } from "./styles";
-import { useEmbed } from "../../../hooks";
-import { Flex, Loader } from "../../ui";
 import { useTheme } from "styled-components";
 import { TEXT_BASE_SIZE } from "../../../const";
+import { hexToRGBA } from "../../../utils/color";
+import { useEmbed } from "../../../hooks";
+import { Flex, Loader } from "../../ui";
+import { cardBoxShadow, StyledCard, Element, FussyChild } from "./styles";
 
 export { cardBoxShadow, StyledCard, Element, FussyChild };
 
@@ -21,7 +22,7 @@ export const Card = forwardRef<HTMLDivElement | null, CardProps>(
       <StyledCard ref={ref} className={className}>
         {isPending && (
           <Flex
-            $backgroundColor="rgba(0,0,0,.6)"
+            $backgroundColor={hexToRGBA(theme.card.background, 0.8)}
             $position="absolute"
             $left="0"
             $top="0"
@@ -30,7 +31,7 @@ export const Card = forwardRef<HTMLDivElement | null, CardProps>(
             $alignItems="center"
             $justifyContent="center"
             $backdropFilter="blur(8px)"
-            $zIndex="1"
+            $zIndex="3"
             $borderRadius={`${theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
           >
             <Loader />
