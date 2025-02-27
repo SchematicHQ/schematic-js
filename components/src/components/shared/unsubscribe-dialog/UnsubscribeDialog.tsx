@@ -8,6 +8,7 @@ import type {
   PlanEntitlementResponseData,
   UsageBasedEntitlementResponseData,
 } from "../../../api";
+import { toPrettyDate } from "../../../utils";
 
 export const UnsubscribeDialog = () => {
   const { t } = useTranslation();
@@ -164,7 +165,11 @@ export const UnsubscribeDialog = () => {
               {t(
                 "You will retain access to your plan until the end of the billing period, on",
               )}{" "}
-              {"5/12/25"}
+              {data.upcomingInvoice
+                ? toPrettyDate(new Date(data.upcomingInvoice.dueDate as Date), {
+                    month: "numeric",
+                  })
+                : ""}
             </Text>
           </Flex>
 
