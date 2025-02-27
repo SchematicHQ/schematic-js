@@ -47,7 +47,10 @@ export const UnsubscribeButton = forwardRef<
   const props = resolveDesignProps(rest);
   const { t } = useTranslation();
 
-  const { setLayout } = useEmbed();
+  const { data, setLayout } = useEmbed();
+
+  const disabled =
+    !data.subscription || data.subscription.status === "cancelled";
 
   const buttonStyles: Record<
     ComponentStyle,
@@ -84,6 +87,7 @@ export const UnsubscribeButton = forwardRef<
         onClick={() => {
           setLayout("unsubscribe");
         }}
+        disabled={disabled}
       >
         {t(props.button.text)}
       </EmbedButton>
