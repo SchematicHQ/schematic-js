@@ -22,7 +22,7 @@ import {
   shortenPeriod,
 } from "../../../utils";
 import { Box, EmbedButton, Flex, Icon, Text } from "../../ui";
-import { type CheckoutStage } from ".";
+import { type CheckoutStage } from "../checkout-dialog";
 import { StageButton } from "./StageButton";
 
 interface SidebarProps {
@@ -112,9 +112,7 @@ export const Sidebar = ({
     )?.price;
 
     const currency = (
-      planPeriod === "month"
-        ? selectedPlan?.monthlyPrice
-        : selectedPlan?.yearlyPrice
+      planPeriod === "month" ? plan?.monthlyPrice : plan?.yearlyPrice
     )?.currency;
 
     if (planPrice) {

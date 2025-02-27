@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { EmbedButton, Flex, Icon } from "../../ui";
-import { type CheckoutStage } from ".";
+import { type CheckoutStage } from "../checkout-dialog";
 
 type StageButtonProps = {
   canTrial: boolean;

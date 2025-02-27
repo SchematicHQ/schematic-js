@@ -1,5 +1,5 @@
 import { Box, EmbedButton, Flex, Icon, Modal, Text } from "../../ui";
-import { Sidebar } from "../checkout-dialog/Sidebar";
+import { Sidebar } from "../sidebar";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 import { useEmbed, useIsLightBackground } from "../../../hooks";

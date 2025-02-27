@@ -1,13 +1,15 @@
 import { forwardRef } from "react";
 import { ComponentStyle, ElementProps, RecursivePartial } from "../../../types";
 import { useTranslation } from "react-i18next";
-import { ButtonSizeTypes, EmbedButton, Flex } from "../../ui";
 import { Element } from "../../layout";
 import {
-  EmbedButtonAlignment,
-  EmbedButtonColor,
-  EmbedButtonVariant,
-} from "../../ui/button/EmbedButton";
+  ButtonSizeTypes,
+  EmbedButton,
+  type EmbedButtonAlignment,
+  type EmbedButtonColor,
+  type EmbedButtonVariant,
+  Flex,
+} from "../../ui";
 import { useEmbed } from "../../../hooks";
 
 interface DesignProps {
@@ -89,7 +91,7 @@ export const UnsubscribeButton = forwardRef<
         }}
         disabled={disabled}
       >
-        {t(props.button.text)}
+        {t(props.button.text) ?? t("Unsubscribe")}
       </EmbedButton>
     </Element>
   );

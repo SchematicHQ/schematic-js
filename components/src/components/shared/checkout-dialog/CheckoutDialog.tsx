@@ -25,7 +25,7 @@ import {
 import { PeriodToggle } from "../../shared";
 import { Flex, Modal, ModalHeader, Text } from "../../ui";
 import { Navigation } from "./Navigation";
-import { Sidebar } from "./Sidebar";
+import { Sidebar } from "../sidebar";
 import { Plan } from "./Plan";
 import { AddOns } from "./AddOns";
 import { Usage } from "./Usage";
@@ -184,7 +184,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     [usageBasedEntitlements],
   );
 
-  const hasActiveAddOns = addOns.some((addOn) => addOn.isSelected === true);
+  const hasActiveAddOns = addOns.some((addOn) => addOn.isSelected);
   const hasActivePayInAdvanceEntitlements = payInAdvanceEntitlements.some(
     ({ quantity }) => quantity > 0,
   );
