@@ -98,6 +98,10 @@ export const UnsubscribeDialog = () => {
     [data.activeUsageBasedEntitlements, data.featureUsage?.features],
   );
 
+  const cancelDate = new Date(
+    data.subscription?.cancelAt || data.upcomingInvoice?.dueDate || Date.now(),
+  );
+
   const isLightBackground = useIsLightBackground();
 
   const handleClose = useCallback(() => {
@@ -165,8 +169,8 @@ export const UnsubscribeDialog = () => {
               {t(
                 "You will retain access to your plan until the end of the billing period, on",
               )}{" "}
-              {data.upcomingInvoice
-                ? toPrettyDate(new Date(data.upcomingInvoice.dueDate as Date), {
+              {cancelDate
+                ? toPrettyDate(cancelDate, {
                     month: "numeric",
                   })
                 : ""}

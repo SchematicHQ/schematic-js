@@ -1,6 +1,7 @@
 {
   "translation": {
     "A problem occurred while saving your payment method.": "A problem occurred while saving your payment method.",
+    "Access to plan will end on": "Access to plan will end on {{date}}",
     "Active": "Active",
     "Add payment method": "Add payment method",
     "Add Seats": "Add More",
@@ -76,6 +77,7 @@
     "Start trial": "Start trial",
     "Subscribe and close": "Subscribe and close",
     "Subscription": "Subscription",
+    "Subscription canceled": "Subscription canceled",
     "Trial": "Trial",
     "Trial ends in": "Trial ends in {{days}} days",
     "Trial plan": "Try free for {{days}} days",
