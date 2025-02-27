@@ -1,4 +1,4 @@
-import { forwardRef } from "react";
+import { Children, forwardRef } from "react";
 import { Card } from "../card";
 import { StyledColumn } from "./styles";
 
@@ -10,7 +10,7 @@ export const Column = forwardRef<HTMLDivElement | null, ColumnProps>(
   ({ children, basis, ...props }, ref) => {
     return (
       <StyledColumn ref={ref} {...props}>
-        <Card>{children}</Card>
+        {Children.count(children) > 0 ? <Card>{children}</Card> : children}
       </StyledColumn>
     );
   },

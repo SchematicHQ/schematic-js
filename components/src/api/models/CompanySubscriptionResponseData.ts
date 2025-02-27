@@ -46,6 +46,18 @@ import {
 export interface CompanySubscriptionResponseData {
   /**
    *
+   * @type {Date}
+   * @memberof CompanySubscriptionResponseData
+   */
+  cancelAt?: Date | null;
+  /**
+   *
+   * @type {boolean}
+   * @memberof CompanySubscriptionResponseData
+   */
+  cancelAtPeriodEnd: boolean;
+  /**
+   *
    * @type {string}
    * @memberof CompanySubscriptionResponseData
    */
@@ -124,6 +136,11 @@ export interface CompanySubscriptionResponseData {
 export function instanceOfCompanySubscriptionResponseData(
   value: object,
 ): value is CompanySubscriptionResponseData {
+  if (
+    !("cancelAtPeriodEnd" in value) ||
+    value["cancelAtPeriodEnd"] === undefined
+  )
+    return false;
   if (!("currency" in value) || value["currency"] === undefined) return false;
   if (
     !("customerExternalId" in value) ||
@@ -158,6 +175,9 @@ export function CompanySubscriptionResponseDataFromJSONTyped(
     return json;
   }
   return {
+    cancelAt:
+      json["cancel_at"] == null ? undefined : new Date(json["cancel_at"]),
+    cancelAtPeriodEnd: json["cancel_at_period_end"],
     currency: json["currency"],
     customerExternalId: json["customer_external_id"],
     discounts: (json["discounts"] as Array<any>).map(
@@ -192,6 +212,11 @@ export function CompanySubscriptionResponseDataToJSON(
     return value;
   }
   return {
+    cancel_at:
+      value["cancelAt"] == null
+        ? undefined
+        : (value["cancelAt"] as any).toISOString(),
+    cancel_at_period_end: value["cancelAtPeriodEnd"],
     currency: value["currency"],
     customer_external_id: value["customerExternalId"],
     discounts: (value["discounts"] as Array<any>).map(

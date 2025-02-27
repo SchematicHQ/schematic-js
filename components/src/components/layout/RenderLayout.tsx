@@ -44,7 +44,7 @@ const Disabled = () => {
   );
 };
 
-const Success = () => {
+export const Success = () => {
   const theme = useTheme();
   const { hydrate, data, api, setLayout, isPending } = useEmbed();
 
@@ -118,8 +118,6 @@ export const RenderLayout = ({ children }: RenderLayoutProps) => {
   switch (layout) {
     case "disabled":
       return <Disabled />;
-    case "success":
-      return <Success />;
     default:
       return children;
   }
