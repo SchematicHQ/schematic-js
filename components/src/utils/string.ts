@@ -1,3 +1,5 @@
+export const DEFAULT_CURRENCY = "USD";
+
 export function hyphenToCamel(str: string) {
   return str.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
 }
@@ -12,8 +14,11 @@ export function formatNumber(num: number) {
 
 export function formatCurrency(
   amount: number, // default fallback to USD
-  currency: string = "USD",
+  currency = DEFAULT_CURRENCY,
 ) {
+  // In case currency is === ""
+  const nonEmptyCurrency = currency ? currency.toUpperCase() : DEFAULT_CURRENCY;
+
   try {
     const dollars = amount / 100;
 
@@ -23,8 +28,8 @@ export function formatCurrency(
         formatted = formatted.slice(0, -2);
       }
 
-      if (currency.toUpperCase() !== "USD") {
-        return `${currency.toUpperCase()}${formatted}${symbol}`;
+      if (nonEmptyCurrency !== DEFAULT_CURRENCY) {
+        return `${nonEmptyCurrency}${formatted}${symbol}`;
       }
 
       return `$${formatted}${symbol}`;
@@ -37,7 +42,7 @@ export function formatCurrency(
     } else {
       return new Intl.NumberFormat("en-US", {
         style: "currency",
-        currency: currency.toUpperCase(),
+        currency: nonEmptyCurrency,
       }).format(dollars);
     }
   } catch (error) {
@@ -45,7 +50,7 @@ export function formatCurrency(
 
     return new Intl.NumberFormat("en-US", {
       style: "currency",
-      currency: currency.toUpperCase(),
+      currency: nonEmptyCurrency,
     }).format(amount / 100);
   }
 }
