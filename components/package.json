@@ -30,15 +30,15 @@
     "tsc": "npx tsc"
   },
   "dependencies": {
-    "@stripe/stripe-js": "^5.6.0",
+    "@stripe/stripe-js": "^5.7.0",
     "classnames": "^2.5.1",
     "i18next": "^24.2.2",
     "lodash": "^4.17.21",
     "pako": "^2.1.0",
     "pluralize": "^8.0.0",
-    "react-i18next": "^15.4.0",
+    "react-i18next": "^15.4.1",
     "styled-components": "^6.1.15",
-    "uuid": "^11.0.5"
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@craftjs/core": "^0.2.12",
@@ -67,7 +67,7 @@
     "prettier": "^3.5.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "ts-jest": "^29.2.5",
+    "ts-jest": "^29.2.6",
     "typescript": "^5.7.3"
   },
   "peerDependencies": {
