@@ -124,7 +124,7 @@ export const MeteredFeatures = forwardRef<
                 acc.push({
                   ...mappedFeatureUsage,
                   priceBehavior: "overage",
-                  softLimit: 50,
+                  softLimit: 1,
                 });
               } else {
                 acc.push(mappedFeatureUsage);

@@ -256,7 +256,7 @@ export const Plan = ({
                         // TODO: for testing, remove later
                         if (entitlement.feature?.name === "Search") {
                           entitlement.priceBehavior = "overage";
-                          entitlement.softLimit = 2;
+                          entitlement.softLimit = 1;
                           entitlement.valueType = "trait";
                         }
 

@@ -162,7 +162,7 @@ export const IncludedFeatures = forwardRef<
               featureUsage: {
                 ...mappedFeatureUsage,
                 priceBehavior: "overage",
-                softLimit: 0,
+                softLimit: 1,
               },
               usageData: mappedUsageData,
             });

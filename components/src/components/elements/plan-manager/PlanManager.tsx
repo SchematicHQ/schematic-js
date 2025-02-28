@@ -138,6 +138,7 @@ export const PlanManager = forwardRef<
             ...usage,
             price,
             priceBehavior: "overage",
+            softLimit: 1,
             quantity,
             currencyCode,
           });
@@ -416,7 +417,8 @@ export const PlanManager = forwardRef<
                   (entitlement?.usage ?? 0) - (entitlement?.softLimit ?? 0);
 
                 const amount =
-                  entitlement.quantity || Math.max(overageAmount || 0, 0);
+                  entitlement.quantity ||
+                  Math.max(entitlement?.softLimit || 0, 0);
 
                 if (entitlement.feature?.name) {
                   acc.push(
