@@ -1,6 +1,7 @@
 import { CheckFlagResponseDataFromJSON } from "./api/models/CheckFlagResponseData";
+import { EventBodyFlagCheck } from "./api/models/EventBodyFlagCheck";
 
-export type EventType = "identify" | "track";
+export type EventType = "identify" | "track" | "flag_check";
 
 /** A record of unique key-value pairs used for identifying a company or user */
 export type Keys = Record<string, string>;
@@ -34,7 +35,7 @@ export type EventBodyTrack = SchematicContext & {
   traits?: Traits;
 };
 
-export type EventBody = EventBodyIdentify | EventBodyTrack;
+export type EventBody = EventBodyIdentify | EventBodyTrack | EventBodyFlagCheck;
 
 export type Event = {
   api_key: string;
@@ -116,8 +117,17 @@ export type SchematicOptions = {
   /** Optionally provide a custom API URL */
   apiUrl?: string;
 
+  /** Enable debug mode to log flag check results and events to the console.
+   * Can also be enabled at runtime via URL query parameter "schematic_debug=true" */
+  debug?: boolean;
+
   /** Optionally provide a custom event URL */
   eventUrl?: string;
+
+  /** Enable offline mode to prevent all network requests.
+   * When enabled, events are only logged not sent, and flag checks return fallback values.
+   * Can also be enabled at runtime via URL query parameter "schematic_offline=true" */
+  offline?: boolean;
 
   /** Optionally provide a custom storage persister for client-side storage */
   storage?: StoragePersister;
@@ -191,6 +201,8 @@ export const CheckFlagReturnFromJSON = (
   };
 };
 
+export type { EventBodyFlagCheck } from "./api/models/EventBodyFlagCheck";
+export { EventBodyFlagCheckToJSON } from "./api/models/EventBodyFlagCheck";
 export type { CheckFlagResponseData } from "./api/models/CheckFlagResponseData";
 export { CheckFlagResponseFromJSON } from "./api/models/CheckFlagResponse";
 export { CheckFlagsResponseFromJSON } from "./api/models/CheckFlagsResponse";
