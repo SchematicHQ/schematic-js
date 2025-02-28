@@ -37,7 +37,7 @@ export const StageButton = ({
     return (
       <EmbedButton
         type="button"
-        disabled={isLoading || !canCheckout}
+        disabled={isLoading || !canUpdateSubscription}
         onClick={checkout}
         isLoading={isLoading}
       >
