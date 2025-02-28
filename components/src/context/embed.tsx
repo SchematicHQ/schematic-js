@@ -162,9 +162,9 @@ function parseEditorState(data: SerializedEditorState) {
   Object.entries(data).forEach(([nodeId, node]) => {
     const nodeWithChildren = map[nodeId];
     if (node.parent) {
-      map[node.parent]?.children.push(nodeWithChildren!);
+      map[node.parent]?.children.push(nodeWithChildren);
     } else {
-      arr.push(nodeWithChildren!);
+      arr.push(nodeWithChildren);
     }
   });
 
@@ -175,6 +175,7 @@ export type EmbedLayout =
   | "portal"
   | "checkout"
   | "payment"
+  | "unsubscribe"
   | "success"
   | "disabled";
 
@@ -385,7 +386,8 @@ export const EmbedProvider = ({
   useEffect(() => {
     const element = document.getElementById("schematic-fonts");
     if (element) {
-      return void (styleRef.current = element as HTMLLinkElement);
+      styleRef.current = element as HTMLLinkElement;
+      return;
     }
 
     const style = document.createElement("link");
