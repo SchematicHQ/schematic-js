@@ -407,7 +407,7 @@ export const Plan = ({
                   </Flex>
                 ) : (
                   <EmbedButton
-                    disabled={isLoading || !plan.valid}
+                    disabled={(isLoading || !plan.valid) && !plan.custom}
                     {...{
                       onClick: () => {
                         if (plan.custom) {
