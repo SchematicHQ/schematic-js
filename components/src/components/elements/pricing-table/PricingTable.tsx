@@ -589,7 +589,9 @@ export const PricingTable = forwardRef<
                         props.downgrade.isVisible) && (
                         <EmbedButton
                           type="button"
-                          disabled={!plan.valid || !canCheckout}
+                          disabled={
+                            (!plan.valid || !canCheckout) && !plan.custom
+                          }
                           {...(!plan.custom && {
                             onClick: () => {
                               setSelected({

@@ -2,18 +2,22 @@ import styled, { css } from "styled-components";
 import { TEXT_BASE_SIZE } from "../../../const";
 import { hexToHSL, hslToHex, lighten, darken } from "../../../utils";
 import { Icon } from "../icon/styles";
-import { Button } from "./Button";
+import { Button, ButtonSizeTypes } from "./Button";
+
+export type EmbedButtonColor = "primary" | "secondary" | "danger";
+export type EmbedButtonVariant = "filled" | "outline" | "ghost" | "text";
+export type EmbedButtonAlignment = "start" | "center" | "end";
 
 export const EmbedButton = styled(Button)<{
-  $size?: "sm" | "md" | "lg";
-  $color?: "primary" | "secondary" | "danger";
-  $variant?: "filled" | "outline" | "ghost" | "text";
+  $size?: ButtonSizeTypes;
+  $color?: EmbedButtonColor;
+  $variant?: EmbedButtonVariant;
+  $alignment?: EmbedButtonAlignment;
+  $fullWidth?: boolean;
 }>`
   font-family: "Public Sans", sans-serif;
   font-weight: 500;
   text-align: center;
-  width: 100%;
-  padding: 0;
 
   ${({ disabled, $color = "primary", theme }) => {
     const { l } = hexToHSL(theme[$color]);
@@ -155,5 +159,38 @@ export const EmbedButton = styled(Button)<{
           border-radius: ${10 / TEXT_BASE_SIZE}rem;
         `;
     }
+  }}
+
+  ${({ $alignment = "center" }) => {
+    switch ($alignment) {
+      case "start":
+        return css`
+          justify-content: start;
+        `;
+      case "end":
+        return css`
+          justify-content: end;
+        `;
+      case "center":
+      default:
+        return css`
+          justify-content: center;
+        `;
+    }
+  }}
+
+  ${({ $fullWidth = true }) => {
+    if ($fullWidth) {
+      return css`
+        width: 100%;
+        padding: 0;
+      `;
+    }
+
+    return css`
+      width: fit-content;
+      padding-left: 1rem;
+      padding-right: 1rem;
+    `;
   }}
 `;

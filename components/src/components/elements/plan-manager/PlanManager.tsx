@@ -12,6 +12,7 @@ import {
   lighten,
   darken,
   shortenPeriod,
+  toPrettyDate,
 } from "../../../utils";
 import { Element } from "../../layout";
 import { Box, EmbedButton, Flex, Text } from "../../ui";
@@ -135,9 +136,11 @@ export const PlanManager = forwardRef<
   );
 
   const billingSubscription = data.company?.billingSubscription;
-  const subscriptionCurrency = billingSubscription?.currency ?? "USD";
+  const subscriptionCurrency = billingSubscription?.currency;
   const showTrialBox =
     billingSubscription && billingSubscription.status == "trialing";
+  const showUnsubscribeBox =
+    billingSubscription && billingSubscription.status == "cancelled";
 
   const trialEndDate = billingSubscription?.trialEnd
     ? new Date(billingSubscription.trialEnd * 1000)
@@ -149,7 +152,7 @@ export const PlanManager = forwardRef<
 
   return (
     <>
-      {showTrialBox && (
+      {showTrialBox && !showUnsubscribeBox && (
         <Box
           $backgroundColor={
             isLightBackground
@@ -184,6 +187,42 @@ export const PlanManager = forwardRef<
                 : t("After the trial, cancel no default", {
                     planName: currentPlan?.name,
                   })}
+          </Text>
+        </Box>
+      )}
+      {showUnsubscribeBox && (
+        <Box
+          $backgroundColor={
+            isLightBackground
+              ? "hsla(0, 0%, 0%, 0.04)"
+              : "hsla(0, 0%, 100%, 0.04)"
+          }
+          $textAlign="center"
+          $padding="1rem"
+        >
+          <Text
+            as="h3"
+            $font={theme.typography.heading3.fontFamily}
+            $size={theme.typography.heading3.fontSize}
+            $weight={theme.typography.heading3.fontWeight}
+            $color={theme.typography.heading3.color}
+          >
+            {t("Subscription canceled")}
+          </Text>
+          <Text
+            as="p"
+            $font={theme.typography.text.fontFamily}
+            $size={theme.typography.text.fontSize * 0.8125}
+            $weight={theme.typography.text.fontWeight}
+            $color={theme.typography.text.color}
+          >
+            {billingSubscription.cancelAt
+              ? t("Access to plan will end on", {
+                  date: toPrettyDate(new Date(billingSubscription.cancelAt), {
+                    month: "numeric",
+                  }),
+                })
+              : ""}
           </Text>
         </Box>
       )}
