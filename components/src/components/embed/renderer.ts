@@ -1,6 +1,6 @@
 import { createElement } from "react";
 import type { SerializedNodeWithChildren } from "../../types";
-import { Root, Viewport, Column, Card } from "../../components/layout";
+import { Root, Viewport, Column, Card } from "../layout";
 import {
   PlanManager,
   IncludedFeatures,
@@ -9,7 +9,8 @@ import {
   PaymentMethod,
   Invoices,
   PricingTable,
-} from "../../components/elements";
+  UnsubscribeButton,
+} from "../elements";
 
 const components: Record<string, React.FC | undefined> = {
   Root,
@@ -23,6 +24,7 @@ const components: Record<string, React.FC | undefined> = {
   PaymentMethod,
   Invoices,
   PricingTable,
+  UnsubscribeButton,
 };
 
 interface RenderOptions {
@@ -44,7 +46,7 @@ export function createRenderer(options?: RenderOptions) {
       : components[name];
     if (!components[name]) {
       console.debug(
-        "`schematic-embed`: Encounted an unknown component during render cycle.",
+        "`schematic-embed`: Encountered an unknown component during render cycle.",
         name,
       );
     }
