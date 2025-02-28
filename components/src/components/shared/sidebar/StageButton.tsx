@@ -36,6 +36,7 @@ export const StageButton = ({
   const NoPaymentRequired = () => {
     return (
       <EmbedButton
+        type="button"
         disabled={isLoading || !canCheckout}
         onClick={checkout}
         isLoading={isLoading}
@@ -50,6 +51,7 @@ export const StageButton = ({
       if (trialPaymentMethodRequired) {
         return (
           <EmbedButton
+            type="button"
             disabled={!hasAddOns && !canUpdateSubscription}
             onClick={async () => {
               setCheckoutStage("checkout");
@@ -71,6 +73,7 @@ export const StageButton = ({
 
       return (
         <EmbedButton
+          type="button"
           disabled={!canUpdateSubscription}
           onClick={async () => {
             checkout();
@@ -101,6 +104,7 @@ export const StageButton = ({
 
     return (
       <EmbedButton
+        type="button"
         disabled={!canUpdateSubscription}
         onClick={async () => {
           setCheckoutStage(
@@ -138,6 +142,7 @@ export const StageButton = ({
 
     return (
       <EmbedButton
+        type="button"
         disabled={!canUpdateSubscription}
         onClick={async () => {
           setCheckoutStage(hasAddOns ? "addons" : "checkout");
@@ -164,6 +169,7 @@ export const StageButton = ({
 
     return (
       <EmbedButton
+        type="button"
         disabled={!canUpdateSubscription}
         onClick={async () => {
           setCheckoutStage("checkout");
@@ -190,6 +196,7 @@ export const StageButton = ({
 
     return (
       <EmbedButton
+        type="button"
         disabled={isLoading || !canCheckout}
         onClick={checkout}
         isLoading={isLoading}

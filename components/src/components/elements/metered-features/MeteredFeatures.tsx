@@ -338,6 +338,7 @@ export const MeteredFeatures = forwardRef<
 
                       {priceBehavior === "pay_in_advance" && (
                         <EmbedButton
+                          type="button"
                           onClick={() => {
                             setSelected({ usage: true });
                             setLayout("checkout");
