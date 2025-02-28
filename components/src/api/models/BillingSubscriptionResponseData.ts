@@ -21,6 +21,18 @@ import { mapValues } from "../runtime";
 export interface BillingSubscriptionResponseData {
   /**
    *
+   * @type {number}
+   * @memberof BillingSubscriptionResponseData
+   */
+  cancelAt?: number | null;
+  /**
+   *
+   * @type {boolean}
+   * @memberof BillingSubscriptionResponseData
+   */
+  cancelAtPeriodEnd: boolean;
+  /**
+   *
    * @type {string}
    * @memberof BillingSubscriptionResponseData
    */
@@ -117,6 +129,11 @@ export interface BillingSubscriptionResponseData {
 export function instanceOfBillingSubscriptionResponseData(
   value: object,
 ): value is BillingSubscriptionResponseData {
+  if (
+    !("cancelAtPeriodEnd" in value) ||
+    value["cancelAtPeriodEnd"] === undefined
+  )
+    return false;
   if (!("createdAt" in value) || value["createdAt"] === undefined) return false;
   if (!("currency" in value) || value["currency"] === undefined) return false;
   if (
@@ -154,6 +171,8 @@ export function BillingSubscriptionResponseDataFromJSONTyped(
     return json;
   }
   return {
+    cancelAt: json["cancel_at"] == null ? undefined : json["cancel_at"],
+    cancelAtPeriodEnd: json["cancel_at_period_end"],
     companyId: json["company_id"] == null ? undefined : json["company_id"],
     createdAt: new Date(json["created_at"]),
     currency: json["currency"],
@@ -181,6 +200,8 @@ export function BillingSubscriptionResponseDataToJSON(
     return value;
   }
   return {
+    cancel_at: value["cancelAt"],
+    cancel_at_period_end: value["cancelAtPeriodEnd"],
     company_id: value["companyId"],
     created_at: value["createdAt"].toISOString(),
     currency: value["currency"],
