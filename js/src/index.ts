@@ -13,6 +13,8 @@ import {
   EmptyListenerFn,
   Event,
   EventBody,
+  EventBodyFlagCheck,
+  EventBodyFlagCheckToJSON,
   EventBodyIdentify,
   EventBodyTrack,
   EventType,
@@ -35,6 +37,8 @@ export class Schematic {
   private apiUrl = "https://api.schematichq.com";
   private conn: Promise<WebSocket> | null = null;
   private context: SchematicContext = {};
+  private debugEnabled: boolean = false;
+  private offlineEnabled: boolean = false;
   private eventQueue: Event[];
   private eventUrl = "https://c.schematichq.com";
   private flagCheckListeners: Record<string, Set<FlagCheckListenerFn>> = {};
@@ -50,6 +54,46 @@ export class Schematic {
     this.apiKey = apiKey;
     this.eventQueue = [];
     this.useWebSocket = options?.useWebSocket ?? false;
+    this.debugEnabled = options?.debug ?? false;
+    this.offlineEnabled = options?.offline ?? false;
+
+    // Check for debug mode in URL query parameter
+    if (
+      typeof window !== "undefined" &&
+      typeof window.location !== "undefined"
+    ) {
+      const params = new URLSearchParams(window.location.search);
+
+      // Debug mode
+      const debugParam = params.get("schematic_debug");
+      if (
+        debugParam !== null &&
+        (debugParam === "" || debugParam === "true" || debugParam === "1")
+      ) {
+        this.debugEnabled = true;
+      }
+
+      // Offline mode
+      const offlineParam = params.get("schematic_offline");
+      if (
+        offlineParam !== null &&
+        (offlineParam === "" || offlineParam === "true" || offlineParam === "1")
+      ) {
+        this.offlineEnabled = true;
+        // When offline mode is enabled via URL, also enable debug mode to log events
+        this.debugEnabled = true;
+      }
+    }
+
+    // When offline mode is enabled via options, also enable debug logging if not explicitly disabled
+    if (this.offlineEnabled && options?.debug !== false) {
+      this.debugEnabled = true;
+    }
+
+    // When offline mode is enabled, immediately set isPending to false since we won't be making any network requests
+    if (this.offlineEnabled) {
+      this.setIsPending(false);
+    }
 
     this.additionalHeaders = {
       "X-Schematic-Client-Version": `schematic-js@${version}`,
@@ -80,6 +124,14 @@ export class Schematic {
         this.flushEventQueue();
       });
     }
+
+    if (this.offlineEnabled) {
+      this.debug(
+        "Initialized with offline mode enabled - no network requests will be made",
+      );
+    } else if (this.debugEnabled) {
+      this.debug("Initialized with debug mode enabled");
+    }
   }
 
   /**
@@ -93,6 +145,18 @@ export class Schematic {
     const { fallback = false, key } = options;
     const context = options.context || this.context;
     const contextStr = contextString(context);
+
+    this.debug(`checkFlag: ${key}`, { context, fallback });
+
+    // If in offline mode, return fallback immediately without making any network request
+    if (this.isOffline()) {
+      this.debug(`checkFlag offline result: ${key}`, {
+        value: fallback,
+        offlineMode: true,
+      });
+
+      return fallback;
+    }
 
     if (!this.useWebSocket) {
       const requestUrl = `${this.apiUrl}/flags/${key}/check`;
@@ -112,10 +176,29 @@ export class Schematic {
           return response.json();
         })
         .then((response) => {
-          return CheckFlagResponseFromJSON(response).data.value;
+          const parsedResponse = CheckFlagResponseFromJSON(response);
+          this.debug(`checkFlag result: ${key}`, parsedResponse);
+
+          // Create a flag check result object
+          const result = CheckFlagReturnFromJSON(parsedResponse.data);
+
+          // Submit a flag check event
+          this.submitFlagCheckEvent(key, result, context);
+
+          return result.value;
         })
         .catch((error) => {
           console.error("There was a problem with the fetch operation:", error);
+
+          // Create a minimal result for the error case and submit event
+          const errorResult: CheckFlagReturn = {
+            flag: key,
+            value: fallback,
+            reason: "API request failed",
+            error: error instanceof Error ? error.message : String(error),
+          };
+          this.submitFlagCheckEvent(key, errorResult, context);
+
           return fallback;
         });
     }
@@ -124,11 +207,17 @@ export class Schematic {
       // If we have an active connection, return a cached value if available
       const existingVals = this.checks[contextStr];
       if (
-        this.conn &&
+        this.conn !== null &&
         typeof existingVals !== "undefined" &&
         typeof existingVals[key] !== "undefined"
       ) {
+        this.debug(`checkFlag cached result: ${key}`, existingVals[key]);
         return existingVals[key].value;
+      }
+
+      // If in offline mode, return fallback immediately
+      if (this.isOffline()) {
+        return fallback;
       }
 
       // If we don't have values or connection is closed, we need to fetch them
@@ -144,11 +233,80 @@ export class Schematic {
 
       // After setting context and getting a response, return the value
       const contextVals = this.checks[contextStr] ?? {};
-      return contextVals[key]?.value ?? fallback;
+      const flagCheck = contextVals[key];
+      const result = flagCheck?.value ?? fallback;
+
+      this.debug(
+        `checkFlag WebSocket result: ${key}`,
+        typeof flagCheck !== "undefined"
+          ? flagCheck
+          : { value: fallback, fallbackUsed: true },
+      );
+
+      // If we have flag check results, submit an event
+      if (typeof flagCheck !== "undefined") {
+        this.submitFlagCheckEvent(key, flagCheck, context);
+      }
+
+      return result;
     } catch (error) {
       console.error("Unexpected error in checkFlag:", error);
+
+      // Create a minimal result for the error case and submit event
+      const errorResult: CheckFlagReturn = {
+        flag: key,
+        value: fallback,
+        reason: "Unexpected error in flag check",
+        error: error instanceof Error ? error.message : String(error),
+      };
+      this.submitFlagCheckEvent(key, errorResult, context);
+
       return fallback;
     }
+  }
+
+  /**
+   * Helper function to log debug messages
+   * Only logs if debug mode is enabled
+   */
+  private debug(message: string, ...args: unknown[]): void {
+    if (this.debugEnabled) {
+      console.log(`[Schematic] ${message}`, ...args);
+    }
+  }
+
+  /**
+   * Helper function to check if client is in offline mode
+   */
+  private isOffline(): boolean {
+    return this.offlineEnabled;
+  }
+
+  /**
+   * Submit a flag check event
+   * Records data about a flag check for analytics
+   */
+  private submitFlagCheckEvent(
+    flagKey: string,
+    result: CheckFlagReturn,
+    context: SchematicContext,
+  ): Promise<void> {
+    const eventBody: EventBodyFlagCheck = {
+      flagKey: flagKey,
+      value: result.value,
+      reason: result.reason,
+      flagId: result.flagId,
+      ruleId: result.ruleId,
+      companyId: result.companyId,
+      userId: result.userId,
+      error: result.error,
+      reqCompany: context.company,
+      reqUser: context.user,
+    };
+
+    this.debug(`submitting flag check event:`, eventBody);
+
+    return this.handleEvent("flag_check", EventBodyFlagCheckToJSON(eventBody));
   }
 
   /**
@@ -159,6 +317,16 @@ export class Schematic {
     context: SchematicContext,
     fallback: boolean,
   ): Promise<boolean> {
+    // If in offline mode, immediately return fallback value
+    if (this.isOffline()) {
+      this.debug(`fallbackToRest offline result: ${key}`, {
+        value: fallback,
+        offlineMode: true,
+      });
+
+      return fallback;
+    }
+
     try {
       const requestUrl = `${this.apiUrl}/flags/${key}/check`;
       const response = await fetch(requestUrl, {
@@ -175,10 +343,30 @@ export class Schematic {
         throw new Error("Network response was not ok");
       }
 
-      const data = CheckFlagResponseFromJSON(await response.json());
-      return data?.data?.value ?? false;
+      const responseJson = await response.json();
+      const data = CheckFlagResponseFromJSON(responseJson);
+
+      this.debug(`fallbackToRest result: ${key}`, data);
+
+      // Create a flag check result object
+      const result = CheckFlagReturnFromJSON(data.data);
+
+      // Submit a flag check event
+      this.submitFlagCheckEvent(key, result, context);
+
+      return result.value;
     } catch (error) {
       console.error("REST API call failed, using fallback value:", error);
+
+      // Create a minimal result for the error case and submit event
+      const errorResult: CheckFlagReturn = {
+        flag: key,
+        value: fallback,
+        reason: "API request failed (fallback)",
+        error: error instanceof Error ? error.message : String(error),
+      };
+      this.submitFlagCheckEvent(key, errorResult, context);
+
       return fallback;
     }
   }
@@ -186,11 +374,20 @@ export class Schematic {
   /**
    * Make an API call to fetch all flag values for a given context.
    * Recommended for use in REST mode only.
+   * In offline mode, returns an empty object.
    */
   checkFlags = async (
     context?: SchematicContext,
   ): Promise<Record<string, boolean>> => {
     context = context || this.context;
+
+    this.debug(`checkFlags`, { context });
+
+    // If in offline mode, return empty object without making network request
+    if (this.isOffline()) {
+      this.debug(`checkFlags offline result: returning empty object`);
+      return {};
+    }
 
     const requestUrl = `${this.apiUrl}/flags/check`;
     const requestBody = JSON.stringify(context);
@@ -212,6 +409,9 @@ export class Schematic {
       })
       .then((responseJson) => {
         const resp = CheckFlagsResponseFromJSON(responseJson);
+
+        this.debug(`checkFlags result:`, resp);
+
         return (resp?.data?.flags ?? []).reduce(
           (accum: Record<string, boolean>, flag: CheckFlagResponseData) => {
             accum[flag.flag] = flag.value;
@@ -232,6 +432,8 @@ export class Schematic {
    * send an identify event to the Schematic API which will upsert a user and company.
    */
   identify = (body: EventBodyIdentify): Promise<void> => {
+    this.debug(`identify:`, body);
+
     try {
       this.setContext({
         company: body.company?.keys,
@@ -251,10 +453,18 @@ export class Schematic {
    * 2. Send the context to the server
    * 3. Wait for initial flag values to be returned
    * The promise resolves when initial flag values are received.
+   * In offline mode, this will just set the context locally without connecting.
    */
   setContext = async (context: SchematicContext): Promise<void> => {
-    if (!this.useWebSocket) {
+    // If offline mode, set isPending to false and return
+    if (this.isOffline()) {
       this.context = context;
+      this.setIsPending(false);
+      return Promise.resolve();
+    }
+
+    // If not using WebSocket, just return
+    if (!this.useWebSocket) {
       return Promise.resolve();
     }
 
@@ -279,12 +489,17 @@ export class Schematic {
    */
   track = (body: EventBodyTrack): Promise<void> => {
     const { company, user, event, traits } = body;
-    return this.handleEvent("track", {
+
+    const trackData = {
       company: company ?? this.context.company,
       event,
       traits: traits ?? {},
       user: user ?? this.context.user,
-    });
+    };
+
+    this.debug(`track:`, trackData);
+
+    return this.handleEvent("track", trackData);
   };
 
   /**
@@ -339,14 +554,27 @@ export class Schematic {
     const captureUrl = `${this.eventUrl}/e`;
     const payload = JSON.stringify(event);
 
+    this.debug(`sending event:`, { url: captureUrl, event });
+
+    // If in offline mode, just log the event without sending
+    if (this.isOffline()) {
+      this.debug(`event not sent (offline mode):`, { event });
+      return Promise.resolve();
+    }
+
     try {
-      await fetch(captureUrl, {
+      const response = await fetch(captureUrl, {
         method: "POST",
         headers: {
           ...(this.additionalHeaders ?? {}),
           "Content-Type": "application/json;charset=UTF-8",
         },
         body: payload,
+      });
+
+      this.debug(`event sent:`, {
+        status: response.status,
+        statusText: response.statusText,
       });
     } catch (error) {
       console.error("Error sending Schematic event: ", error);
@@ -366,8 +594,15 @@ export class Schematic {
 
   /**
    * If using websocket mode, close the connection when done.
+   * In offline mode, this is a no-op.
    */
   cleanup = async (): Promise<void> => {
+    // In offline mode, no need to clean up connections since none are made
+    if (this.isOffline()) {
+      this.debug("cleanup: skipped (offline mode)");
+      return Promise.resolve();
+    }
+
     if (this.conn) {
       try {
         const socket = await this.conn;
@@ -382,19 +617,33 @@ export class Schematic {
 
   // Open a websocket connection
   private wsConnect = (): Promise<WebSocket> => {
+    // If in offline mode, don't actually connect
+    if (this.isOffline()) {
+      this.debug("wsConnect: skipped (offline mode)");
+      return Promise.reject(
+        new Error("WebSocket connection skipped in offline mode"),
+      );
+    }
+
     return new Promise((resolve, reject) => {
       const wsUrl = `${this.webSocketUrl}/flags/bootstrap?apiKey=${this.apiKey}`;
+
+      this.debug(`connecting to WebSocket:`, wsUrl);
+
       const webSocket = new WebSocket(wsUrl);
 
       webSocket.onopen = () => {
+        this.debug(`WebSocket connection opened`);
         resolve(webSocket);
       };
 
       webSocket.onerror = (error) => {
+        this.debug(`WebSocket connection error:`, error);
         reject(error);
       };
 
       webSocket.onclose = () => {
+        this.debug(`WebSocket connection closed`);
         this.conn = null;
       };
     });
@@ -406,11 +655,21 @@ export class Schematic {
     socket: WebSocket,
     context: SchematicContext,
   ): Promise<void> => {
+    // If in offline mode, don't send messages
+    if (this.isOffline()) {
+      this.debug("wsSendMessage: skipped (offline mode)");
+      this.setIsPending(false);
+      return Promise.resolve();
+    }
+
     return new Promise((resolve, reject) => {
       // Confirm that the context has changed; if it hasn't, we don't need to do anything
       if (contextString(context) == contextString(this.context)) {
+        this.debug(`WebSocket context unchanged, skipping update`);
         return resolve(this.setIsPending(false));
       }
+
+      this.debug(`WebSocket context updated:`, context);
 
       this.context = context;
 
@@ -419,6 +678,8 @@ export class Schematic {
 
         const messageHandler = (event: MessageEvent) => {
           const message = JSON.parse(event.data);
+
+          this.debug(`WebSocket message received:`, message);
 
           // Initialize flag checks for context
           if (!(contextString(context) in this.checks)) {
@@ -430,6 +691,21 @@ export class Schematic {
           (message.flags ?? []).forEach((flag: any) => {
             const flagCheck = CheckFlagReturnFromJSON(flag);
             this.checks[contextString(context)][flagCheck.flag] = flagCheck;
+
+            this.debug(`WebSocket flag update:`, {
+              flag: flagCheck.flag,
+              value: flagCheck.value,
+              flagCheck,
+            });
+
+            // Log flag check events if there are listeners registered
+            if (
+              this.flagCheckListeners[flag.flag]?.size > 0 ||
+              this.flagValueListeners[flag.flag]?.size > 0
+            ) {
+              this.submitFlagCheckEvent(flagCheck.flag, flagCheck, context);
+            }
+
             this.notifyFlagCheckListeners(flag.flag, flagCheck);
             this.notifyFlagValueListeners(flag.flag, flagCheck.value);
           });
@@ -446,23 +722,32 @@ export class Schematic {
 
         socket.addEventListener("message", messageHandler);
 
-        socket.send(
-          JSON.stringify({
-            apiKey: this.apiKey,
-            clientVersion: `schematic-js@${version}`,
-            data: context,
-          }),
-        );
+        const clientVersion =
+          this.additionalHeaders["X-Schematic-Client-Version"] ??
+          `schematic-js@${version}`;
+
+        const messagePayload = {
+          apiKey: this.apiKey,
+          clientVersion,
+          data: context,
+        };
+
+        this.debug(`WebSocket sending message:`, messagePayload);
+
+        socket.send(JSON.stringify(messagePayload));
       };
 
       if (socket.readyState === WebSocket.OPEN) {
         // If websocket is already open, send message immediately
+        this.debug(`WebSocket already open, sending message`);
         sendMessage();
       } else if (socket.readyState === WebSocket.CONNECTING) {
         // If websocket is connecting, wait for it to open before sending message
+        this.debug(`WebSocket connecting, waiting for open to send message`);
         socket.addEventListener("open", sendMessage);
       } else {
         // If websocket is closed, reject the promise
+        this.debug(`WebSocket is closed, cannot send message`);
         reject("WebSocket is not open or connecting");
       }
     });
@@ -535,11 +820,27 @@ export class Schematic {
     check: CheckFlagReturn,
   ) => {
     const listeners = this.flagCheckListeners?.[flagKey] ?? [];
+
+    if (listeners.size > 0) {
+      this.debug(
+        `Notifying ${listeners.size} flag check listeners for ${flagKey}`,
+        check,
+      );
+    }
+
     listeners.forEach((listener) => notifyFlagCheckListener(listener, check));
   };
 
   private notifyFlagValueListeners = (flagKey: string, value: boolean) => {
     const listeners = this.flagValueListeners?.[flagKey] ?? [];
+
+    if (listeners.size > 0) {
+      this.debug(
+        `Notifying ${listeners.size} flag value listeners for ${flagKey}`,
+        { value },
+      );
+    }
+
     listeners.forEach((listener) => notifyFlagValueListener(listener, value));
   };
 }

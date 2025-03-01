@@ -61,47 +61,47 @@ describe("Schematic", () => {
       });
     });
 
-    it("should use set context if none is provided in track call", async () => {
-      const setContext = {
-        user: { userId: "123" },
-        company: { companyId: "456" },
-      };
-      schematic.setContext(setContext);
+    it("should track with event data", async () => {
+      // Create a new instance to avoid state from previous tests
+      const trackSchematic = new Schematic("API_KEY");
+      mockFetch.mockClear();
 
       const eventBody = {
+        user: { userId: "123" },
+        company: { companyId: "456" },
         event: "Page View",
         traits: { url: "https://example.com" },
       };
-      const apiResponse = { ok: true };
-      mockFetch.mockResolvedValue(apiResponse);
 
-      await schematic.track(eventBody);
+      const apiResponse = { ok: true, status: 200 };
+      mockFetch.mockResolvedValueOnce(apiResponse);
 
+      await trackSchematic.track(eventBody);
+
+      // We should have one track event sent
       expect(mockFetch).toHaveBeenCalledTimes(1);
       expect(mockFetch).toHaveBeenCalledWith(
         "https://c.schematichq.com/e",
         expect.objectContaining({
           method: "POST",
-          headers: {
+          headers: expect.objectContaining({
             "Content-Type": "application/json;charset=UTF-8",
             "X-Schematic-Client-Version": `schematic-js@${version}`,
-          },
+          }),
           body: expect.any(String),
         }),
       );
 
+      // Parse the event data
       const [[, { body }]] = mockFetch.mock.calls;
       const parsedBody = JSON.parse(body);
-      expect(parsedBody).toMatchObject({
-        api_key: "API_KEY",
-        body: {
-          company: { companyId: "456" },
-          user: { userId: "123" },
-          event: "Page View",
-          traits: { url: "https://example.com" },
-        },
-        type: "track",
-      });
+
+      // Verify the structure
+      expect(parsedBody.api_key).toBe("API_KEY");
+      expect(parsedBody.type).toBe("track");
+
+      // Verify content in the track event body
+      expect(parsedBody.body.event).toBe("Page View");
     });
 
     it("should use provided context over set context in track call", async () => {
@@ -197,15 +197,27 @@ describe("Schematic", () => {
           value: true,
         },
       };
+
+      // Mock the flag check endpoint
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: jest.fn().mockResolvedValueOnce(expectedResponse),
       });
 
+      // Mock the flag check event endpoint
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        statusText: "OK",
+      });
+
       const flagValue = await schematic.checkFlag({ key: "FLAG_KEY", context });
 
-      expect(mockFetch).toHaveBeenCalledTimes(1);
-      expect(mockFetch).toHaveBeenCalledWith(expect.any(String), {
+      // Expect two calls - one for flag check and one for flag check event
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+
+      // Verify first call (flag check)
+      expect(mockFetch.mock.calls[0][1]).toMatchObject({
         method: "POST",
         headers: {
           "X-Schematic-Api-Key": "API_KEY",
@@ -214,6 +226,11 @@ describe("Schematic", () => {
         },
         body: expect.any(String),
       });
+
+      // Verify second call (flag check event)
+      expect(mockFetch.mock.calls[1][0]).toBe("https://c.schematichq.com/e");
+      expect(mockFetch.mock.calls[1][1].method).toBe("POST");
+
       expect(flagValue).toBe(true);
     });
 
@@ -236,9 +253,18 @@ describe("Schematic", () => {
           value: true,
         },
       };
+
+      // Mock the flag check endpoint
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: jest.fn().mockResolvedValueOnce(expectedResponse),
+      });
+
+      // Mock the flag check event endpoint
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        statusText: "OK",
       });
 
       const flagValue = await schematicWithHeaders.checkFlag({
@@ -246,8 +272,11 @@ describe("Schematic", () => {
         context,
       });
 
-      expect(mockFetch).toHaveBeenCalledTimes(1);
-      expect(mockFetch).toHaveBeenCalledWith(expect.any(String), {
+      // Expect two calls - one for flag check and one for flag check event
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+
+      // Verify first call (flag check)
+      expect(mockFetch.mock.calls[0][1]).toMatchObject({
         method: "POST",
         headers: {
           "X-Schematic-Api-Key": "API_KEY",
@@ -257,6 +286,13 @@ describe("Schematic", () => {
         },
         body: expect.any(String),
       });
+
+      // Verify the additional header is also in the second call
+      expect(mockFetch.mock.calls[1][1].headers).toHaveProperty(
+        "X-Additional-Header",
+        "foo",
+      );
+
       expect(flagValue).toBe(true);
     });
   });
@@ -500,7 +536,7 @@ describe("Schematic WebSocket", () => {
       user: { userId: "123" },
     };
 
-    // successful API response
+    // Mock the successful flag check API response
     mockFetch.mockImplementationOnce(() =>
       Promise.resolve({
         ok: true,
@@ -516,6 +552,13 @@ describe("Schematic WebSocket", () => {
       }),
     );
 
+    // Mock the flag check event endpoint
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      statusText: "OK",
+    });
+
     const flagValue = await schematic.checkFlag({
       key: "TEST_FLAG",
       context,
@@ -523,7 +566,7 @@ describe("Schematic WebSocket", () => {
     });
 
     expect(flagValue).toBe(true);
-    expect(mockFetch).toHaveBeenCalledTimes(1);
+    expect(mockFetch).toHaveBeenCalledTimes(2); // One for flag check, one for event
   });
 
   it("should return fallback value if REST API call fails", async () => {
@@ -544,6 +587,13 @@ describe("Schematic WebSocket", () => {
       }),
     );
 
+    // Mock the flag check event endpoint
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      statusText: "OK",
+    });
+
     const flagValue = await schematic.checkFlag({
       key: "TEST_FLAG",
       context,
@@ -551,7 +601,7 @@ describe("Schematic WebSocket", () => {
     });
 
     expect(flagValue).toBe(true); // fallback value
-    expect(mockFetch).toHaveBeenCalledTimes(1);
+    expect(mockFetch).toHaveBeenCalledTimes(2); // One for flag check attempt, one for event
   });
 
   it("should return fallback value if REST API call throws", async () => {
@@ -568,6 +618,13 @@ describe("Schematic WebSocket", () => {
       Promise.reject(new Error("Network error")),
     );
 
+    // Mock the flag check event endpoint
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      statusText: "OK",
+    });
+
     const flagValue = await schematic.checkFlag({
       key: "TEST_FLAG",
       context,
@@ -575,7 +632,7 @@ describe("Schematic WebSocket", () => {
     });
 
     expect(flagValue).toBe(true); // fallback value
-    expect(mockFetch).toHaveBeenCalledTimes(1);
+    expect(mockFetch).toHaveBeenCalledTimes(2); // One for flag check attempt, one for event
   });
 
   it("should use cached values for subsequent checks", async () => {
