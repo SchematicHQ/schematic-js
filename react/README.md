@@ -126,6 +126,50 @@ const MyComponent = () => {
 };
 ```
 
+## Troubleshooting
+
+For debugging and development, Schematic supports two special modes:
+
+### Debug Mode
+
+Enables console logging of all Schematic operations:
+
+```typescript
+// Enable at initialization
+import { SchematicProvider } from "@schematichq/schematic-react";
+
+ReactDOM.render(
+    <SchematicProvider publishableKey="your-publishable-key" debug={true}>
+        <App />
+    </SchematicProvider>,
+    document.getElementById("root"),
+);
+
+// Or via URL parameter
+// https://yoursite.com/?schematic_debug=true
+```
+
+### Offline Mode
+
+Prevents network requests and returns fallback values for all flag checks:
+
+```typescript
+// Enable at initialization
+import { SchematicProvider } from "@schematichq/schematic-react";
+
+ReactDOM.render(
+    <SchematicProvider publishableKey="your-publishable-key" offline={true}>
+        <App />
+    </SchematicProvider>,
+    document.getElementById("root"),
+);
+
+// Or via URL parameter
+// https://yoursite.com/?schematic_offline=true
+```
+
+Offline mode automatically enables debug mode to help with troubleshooting.
+
 ## License
 
 MIT
