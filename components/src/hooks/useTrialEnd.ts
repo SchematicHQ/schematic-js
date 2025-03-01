@@ -3,7 +3,7 @@ import { useEmbed } from ".";
 export function useTrialEnd() {
   const { data } = useEmbed();
 
-  const billingSubscription = data.company?.billingSubscription;
+  const billingSubscription = data?.company?.billingSubscription;
   const trialEndDate =
     billingSubscription?.trialEnd &&
     new Date(billingSubscription.trialEnd * 1000);

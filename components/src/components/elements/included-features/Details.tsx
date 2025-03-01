@@ -41,29 +41,29 @@ export const Details = ({
   const { data } = useEmbed();
 
   const currency = useMemo(() => {
-    if (data.company?.plan?.planPeriod === "month") {
+    if (data?.company?.plan?.planPeriod === "month") {
       return monthlyUsageBasedPrice?.currency;
     }
 
-    if (data.company?.plan?.planPeriod === "year") {
+    if (data?.company?.plan?.planPeriod === "year") {
       return yearlyUsageBasedPrice?.currency;
     }
   }, [
-    data.company?.plan?.planPeriod,
+    data?.company?.plan?.planPeriod,
     monthlyUsageBasedPrice,
     yearlyUsageBasedPrice,
   ]);
 
   const price = useMemo(() => {
-    if (data.company?.plan?.planPeriod === "month") {
+    if (data?.company?.plan?.planPeriod === "month") {
       return monthlyUsageBasedPrice?.price;
     }
 
-    if (data.company?.plan?.planPeriod === "year") {
+    if (data?.company?.plan?.planPeriod === "year") {
       return yearlyUsageBasedPrice?.price;
     }
   }, [
-    data.company?.plan?.planPeriod,
+    data?.company?.plan?.planPeriod,
     monthlyUsageBasedPrice,
     yearlyUsageBasedPrice,
   ]);
@@ -100,7 +100,7 @@ export const Details = ({
 
       if (
         priceBehavior === "pay_in_advance" &&
-        typeof data.company?.plan?.planPeriod === "string" &&
+        typeof data?.company?.plan?.planPeriod === "string" &&
         typeof price === "number"
       ) {
         acc = `${formatCurrency(price, currency)}/${pluralize(feature.name.toLowerCase(), 1)}/${shortenPeriod(data.company.plan.planPeriod)}`;
@@ -142,7 +142,7 @@ export const Details = ({
     }
   }, [
     allocation,
-    data.company?.plan?.planPeriod,
+    data?.company?.plan?.planPeriod,
     feature?.name,
     price,
     priceBehavior,

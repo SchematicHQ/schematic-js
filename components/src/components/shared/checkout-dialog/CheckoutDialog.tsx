@@ -66,11 +66,11 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | undefined>();
   const [showPaymentForm, setShowPaymentForm] = useState(
-    !data.subscription?.paymentMethod,
+    !data?.subscription?.paymentMethod,
   );
   const [promoCode, setPromoCode] = useState<string>();
   const [planPeriod, setPlanPeriod] = useState(
-    selected.period || data.company?.plan?.planPeriod || "month",
+    selected?.period || data?.company?.plan?.planPeriod || "month",
   );
 
   const {
@@ -81,49 +81,50 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
   const [selectedPlan, setSelectedPlan] = useState(() =>
     availablePlans.find((plan) =>
-      selected.planId ? plan.id === selected.planId : plan.current,
+      selected?.planId ? plan.id === selected.planId : plan.current,
     ),
   );
 
-  const currentAddOns = data.company?.addOns || [];
+  const currentAddOns = data?.company?.addOns || [];
   const [addOns, setAddOns] = useState(() =>
     availableAddOns.map((addOn) => ({
       ...addOn,
       isSelected:
-        typeof selected.addOnId !== "undefined"
+        typeof selected?.addOnId !== "undefined"
           ? addOn.id === selected.addOnId
           : currentAddOns.some((currentAddOn) => addOn.id === currentAddOn.id),
     })),
   );
 
-  const currentUsageBasedEntitlements =
-    data.activeUsageBasedEntitlements.reduce(
-      (
-        acc: {
-          usageData: UsageBasedEntitlementResponseData;
-          allocation: number;
-          quantity: number;
-          usage: number;
-        }[],
+  const currentUsageBasedEntitlements = (
+    data?.activeUsageBasedEntitlements || []
+  ).reduce(
+    (
+      acc: {
+        usageData: UsageBasedEntitlementResponseData;
+        allocation: number;
+        quantity: number;
+        usage: number;
+      }[],
+      usageData,
+    ) => {
+      const featureUsage = data?.featureUsage?.features.find(
+        (usage) => usage.feature?.id === usageData.featureId,
+      );
+      const allocation = featureUsage?.allocation || 0;
+      const usage = featureUsage?.usage || 0;
+
+      acc.push({
         usageData,
-      ) => {
-        const featureUsage = data.featureUsage?.features.find(
-          (usage) => usage.feature?.id === usageData.featureId,
-        );
-        const allocation = featureUsage?.allocation || 0;
-        const usage = featureUsage?.usage || 0;
+        allocation,
+        quantity: allocation ?? usage,
+        usage,
+      });
 
-        acc.push({
-          usageData,
-          allocation,
-          quantity: allocation ?? usage,
-          usage,
-        });
-
-        return acc;
-      },
-      [],
-    );
+      return acc;
+    },
+    [],
+  );
 
   const createActiveUsageBasedEntitlementsReducer = useCallback(
     (period = planPeriod) =>
@@ -141,7 +142,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           ((period === "month" && entitlement.meteredMonthlyPrice) ||
             (period === "year" && entitlement.meteredYearlyPrice))
         ) {
-          const featureUsage = data.featureUsage?.features.find(
+          const featureUsage = data?.featureUsage?.features.find(
             (usage) => usage.feature?.id === entitlement.feature?.id,
           );
           const allocation = featureUsage?.allocation ?? 0;
@@ -156,7 +157,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
         return acc;
       },
-    [planPeriod, data.featureUsage?.features],
+    [planPeriod, data?.featureUsage?.features],
   );
 
   const [usageBasedEntitlements, setUsageBasedEntitlements] = useState(() =>
@@ -170,10 +171,10 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     () =>
       availablePlans.find(
         (plan) =>
-          plan.id === data.company?.plan?.id &&
-          data.company?.plan.planPeriod === planPeriod,
+          plan.id === data?.company?.plan?.id &&
+          data?.company?.plan.planPeriod === planPeriod,
       ),
-    [data.company?.plan, planPeriod, availablePlans],
+    [data?.company?.plan, planPeriod, availablePlans],
   );
 
   const payInAdvanceEntitlements = useMemo(
@@ -189,7 +190,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     ({ quantity }) => quantity > 0,
   );
   const requiresPayment =
-    (!selectedPlan?.companyCanTrial || !!data.trialPaymentMethodRequired) &&
+    (!selectedPlan?.companyCanTrial || !!data?.trialPaymentMethodRequired) &&
     (!selectedPlan?.isFree ||
       hasActiveAddOns ||
       hasActivePayInAdvanceEntitlements);
@@ -238,16 +239,16 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   ]);
 
   const [checkoutStage, setCheckoutStage] = useState(() => {
-    if (selected.addOnId) {
+    if (selected?.addOnId) {
       return "addons";
     }
 
-    if (selected.usage) {
+    if (selected?.usage) {
       return "usage";
     }
 
     // the user has preselected a different plan before starting the checkout flow
-    if (selected.planId !== currentPlan?.id) {
+    if (selected?.planId !== currentPlan?.id) {
       return checkoutStages.some((stage) => stage.id === "usage")
         ? "usage"
         : checkoutStages.some((stage) => stage.id === "addons")

@@ -60,8 +60,10 @@ export const ComponentTree = () => {
   const [children, setChildren] = useState<React.ReactNode>(<Loading />);
 
   useEffect(() => {
-    const renderer = createRenderer();
-    setChildren(nodes.map(renderer));
+    if (nodes && nodes.length > 0) {
+      const renderer = createRenderer();
+      setChildren(nodes.map(renderer));
+    }
   }, [nodes]);
 
   if (error) {

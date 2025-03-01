@@ -12,23 +12,23 @@ export function useAvailablePlans(activePeriod: string) {
   const getAvailablePeriods = useCallback(() => {
     const periods = [];
     if (
-      data.activePlans.some((plan) => plan.monthlyPrice) ||
-      data.activeAddOns.some((addOn) => addOn.monthlyPrice)
+      data?.activePlans.some((plan) => plan.monthlyPrice) ||
+      data?.activeAddOns.some((addOn) => addOn.monthlyPrice)
     ) {
       periods.push("month");
     }
     if (
-      data.activePlans.some((plan) => plan.yearlyPrice) ||
-      data.activeAddOns.some((addOn) => addOn.yearlyPrice)
+      data?.activePlans.some((plan) => plan.yearlyPrice) ||
+      data?.activeAddOns.some((addOn) => addOn.yearlyPrice)
     ) {
       periods.push("year");
     }
 
     return periods;
-  }, [data.activePlans, data.activeAddOns]);
+  }, [data?.activePlans, data?.activeAddOns]);
 
   const getActivePlans = useCallback(
-    (plans: CompanyPlanDetailResponseData[]) => {
+    (plans: CompanyPlanDetailResponseData[] = []) => {
       const customPlanExist = plans.some((plan) => plan.custom);
       let plansWithSelected =
         mode === "edit"
@@ -60,13 +60,13 @@ export function useAvailablePlans(activePeriod: string) {
 
   return useMemo(() => {
     return {
-      plans: getActivePlans(data.activePlans),
-      addOns: getActivePlans(data.activeAddOns),
+      plans: getActivePlans(data?.activePlans),
+      addOns: getActivePlans(data?.activeAddOns),
       periods: getAvailablePeriods(),
     };
   }, [
-    data.activePlans,
-    data.activeAddOns,
+    data?.activePlans,
+    data?.activeAddOns,
     getAvailablePeriods,
     getActivePlans,
   ]);

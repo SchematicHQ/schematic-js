@@ -37,12 +37,12 @@ export const Checkout = ({
   const [discount, setDiscount] = useState("");
 
   useEffect(() => {
-    if (api && data.component?.id) {
+    if (api && data?.component?.id) {
       api
         .getSetupIntent({ componentId: data.component.id })
         .then((res) => setSetupIntent(res.data));
     }
-  }, [api, data.component?.id]);
+  }, [api, data?.component?.id]);
 
   useEffect(() => {
     if (setupIntent?.publishableKey) {
@@ -112,7 +112,7 @@ export const Checkout = ({
             }}
           />
 
-          {data.subscription?.paymentMethod && (
+          {data?.subscription?.paymentMethod && (
             <Box>
               <Text
                 onClick={togglePaymentForm}

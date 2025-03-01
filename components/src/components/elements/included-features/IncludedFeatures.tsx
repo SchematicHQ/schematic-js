@@ -102,7 +102,7 @@ export const IncludedFeatures = forwardRef<
   }[] = (
     props.visibleFeatures
       ? props.visibleFeatures
-      : data.featureUsage?.features
+      : data?.featureUsage?.features
           .sort((a, b) => {
             if (
               a.feature?.name &&
@@ -137,10 +137,10 @@ export const IncludedFeatures = forwardRef<
       }[],
       id,
     ) => {
-      const mappedFeatureUsage = data.featureUsage?.features.find(
+      const mappedFeatureUsage = data?.featureUsage?.features.find(
         (usage) => usage.feature?.id === id,
       );
-      const mappedUsageData = data.activeUsageBasedEntitlements.find(
+      const mappedUsageData = data?.activeUsageBasedEntitlements.find(
         (entitlement) => entitlement.featureId === id,
       );
 
@@ -173,8 +173,8 @@ export const IncludedFeatures = forwardRef<
   // * If none of the above, don't render the component.
   const shouldShowFeatures =
     entitlements.length > 0 ||
-    data.company?.plan ||
-    (data.company?.addOns ?? []).length > 0 ||
+    data?.company?.plan ||
+    (data?.company?.addOns ?? []).length > 0 ||
     false;
 
   if (!shouldShowFeatures) {

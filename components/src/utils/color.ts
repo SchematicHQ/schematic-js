@@ -3,11 +3,11 @@ export function hexToHSL(color: string) {
   let g = 0;
   let b = 0;
 
-  if (color.length == 4) {
+  if (color.length === 4) {
     r = parseInt("0x" + color[1] + color[1]);
     g = parseInt("0x" + color[2] + color[2]);
     b = parseInt("0x" + color[3] + color[3]);
-  } else if (color.length == 7) {
+  } else if (color.length === 7) {
     r = parseInt("0x" + color[1] + color[2]);
     g = parseInt("0x" + color[3] + color[4]);
     b = parseInt("0x" + color[5] + color[6]);
@@ -25,9 +25,9 @@ export function hexToHSL(color: string) {
   let s = 0;
   let l = 0;
 
-  if (delta == 0) h = 0;
-  else if (cmax == r) h = ((g - b) / delta) % 6;
-  else if (cmax == g) h = (b - r) / delta + 2;
+  if (delta === 0) h = 0;
+  else if (cmax === r) h = ((g - b) / delta) % 6;
+  else if (cmax === g) h = (b - r) / delta + 2;
   else h = (r - g) / delta + 4;
 
   h = Math.round(h * 60);
@@ -35,7 +35,7 @@ export function hexToHSL(color: string) {
   if (h < 0) h += 360;
 
   l = (cmax + cmin) / 2;
-  s = delta == 0 ? 0 : delta / (1 - Math.abs(2 * l - 1));
+  s = delta === 0 ? 0 : delta / (1 - Math.abs(2 * l - 1));
   s = +(s * 100).toFixed(1);
   l = +(l * 100).toFixed(1);
 
@@ -84,9 +84,9 @@ export function hslToHex({ h, s, l }: { h: number; s: number; l: number }) {
   let gs = Math.round((g + m) * 255).toString(16);
   let bs = Math.round((b + m) * 255).toString(16);
 
-  if (rs.length == 1) rs = "0" + rs;
-  if (gs.length == 1) gs = "0" + gs;
-  if (bs.length == 1) bs = "0" + bs;
+  if (rs.length === 1) rs = "0" + rs;
+  if (gs.length === 1) gs = "0" + gs;
+  if (bs.length === 1) bs = "0" + bs;
 
   return "#" + rs + gs + bs;
 }

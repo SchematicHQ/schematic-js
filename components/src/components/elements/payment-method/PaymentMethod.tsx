@@ -317,15 +317,15 @@ export const PaymentMethod = forwardRef<
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | undefined>();
   const [showPaymentForm, setShowPaymentForm] = useState(
-    () => typeof data.subscription?.paymentMethod === "undefined",
+    () => typeof data?.subscription?.paymentMethod === "undefined",
   );
   const [stripe, setStripe] = useState<Promise<Stripe | null> | null>(null);
   const [setupIntent, setSetupIntent] = useState<SetupIntentResponseData>();
   const [top, setTop] = useState(0);
 
   const paymentMethod = useMemo(() => {
-    return data.subscription?.paymentMethod;
-  }, [data.subscription?.paymentMethod]);
+    return data?.subscription?.paymentMethod;
+  }, [data?.subscription?.paymentMethod]);
 
   const monthsToExpiration = useMemo(() => {
     let expiration: number | undefined;
@@ -347,7 +347,7 @@ export const PaymentMethod = forwardRef<
   }, [paymentMethod?.cardExpYear, paymentMethod?.cardExpMonth]);
 
   const createSetupIntent = useCallback(async () => {
-    if (!api || !data.component?.id) {
+    if (!api || !data?.component?.id) {
       return;
     }
 
@@ -365,7 +365,7 @@ export const PaymentMethod = forwardRef<
     } finally {
       setIsLoading(false);
     }
-  }, [t, api, data.component?.id]);
+  }, [t, api, data?.component?.id]);
 
   const updatePaymentMethod = useCallback(
     async (id: string) => {
@@ -380,7 +380,7 @@ export const PaymentMethod = forwardRef<
             paymentMethodId: id,
           },
         });
-        setLayout("success");
+        setLayout("portal");
       } catch {
         setError(t("Error updating payment method. Please try again."));
       } finally {

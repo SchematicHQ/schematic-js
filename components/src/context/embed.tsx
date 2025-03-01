@@ -176,7 +176,6 @@ export type EmbedLayout =
   | "checkout"
   | "payment"
   | "unsubscribe"
-  | "success"
   | "disabled";
 
 export type EmbedSelected = {
@@ -189,41 +188,37 @@ export type EmbedSelected = {
 export type EmbedMode = "edit" | "view";
 
 export interface EmbedContextProps {
-  api: CheckoutexternalApi | null;
-  data: ComponentHydrateResponseData;
-  nodes: SerializedNodeWithChildren[];
+  api: CheckoutexternalApi | undefined;
+  data: ComponentHydrateResponseData | undefined;
+  nodes: SerializedNodeWithChildren[] | undefined;
   settings: EmbedSettings;
   layout: EmbedLayout;
   mode: EmbedMode;
-  selected: EmbedSelected;
-  error?: Error;
+  selected: EmbedSelected | undefined;
   isPending: boolean;
+  error: Error | undefined;
   hydrate: () => Promise<void>;
   setData: (data: ComponentHydrateResponseData) => void;
-  updateSettings: (settings: RecursivePartial<EmbedSettings>) => void;
   setLayout: (layout: EmbedLayout) => void;
   setSelected: (selected: EmbedSelected) => void;
+  updateSettings: (settings: RecursivePartial<EmbedSettings>) => void;
 }
 
 export const EmbedContext = createContext<EmbedContextProps>({
-  api: null,
-  data: {
-    activeAddOns: [],
-    activePlans: [],
-    activeUsageBasedEntitlements: [],
-  },
-  nodes: [],
+  api: undefined,
+  data: undefined,
+  nodes: undefined,
   settings: { ...defaultSettings },
   layout: "portal",
   mode: "view",
-  selected: {},
-  error: undefined,
+  selected: undefined,
   isPending: false,
+  error: undefined,
   hydrate: async () => {},
   setData: () => {},
-  updateSettings: () => {},
   setLayout: () => {},
   setSelected: () => {},
+  updateSettings: () => {},
 });
 
 export interface EmbedProviderProps {
@@ -245,130 +240,114 @@ export const EmbedProvider = ({
   const sessionIdRef = useRef<string>(uuidv4());
 
   const [state, setState] = useState<{
-    api: CheckoutexternalApi | null;
-    data: ComponentHydrateResponseData;
-    nodes: SerializedNodeWithChildren[];
+    api: CheckoutexternalApi | undefined;
+    data: ComponentHydrateResponseData | undefined;
+    nodes: SerializedNodeWithChildren[] | undefined;
     settings: EmbedSettings;
     layout: EmbedLayout;
     mode: EmbedMode;
-    selected: EmbedSelected;
+    selected: EmbedSelected | undefined;
     isPending: boolean;
-    error?: Error;
+    error: Error | undefined;
     hydrate: () => Promise<void>;
     setData: (data: ComponentHydrateResponseData) => void;
-    updateSettings: (settings: RecursivePartial<EmbedSettings>) => void;
     setLayout: (layout: EmbedLayout) => void;
     setSelected: (selected: EmbedSelected) => void;
+    updateSettings: (settings: RecursivePartial<EmbedSettings>) => void;
   }>(() => {
     return {
-      api: null,
-      data: {
-        activeAddOns: [],
-        activePlans: [],
-        activeUsageBasedEntitlements: [],
-      },
-      nodes: [],
+      api: undefined,
+      data: undefined,
+      nodes: undefined,
       settings: { ...defaultSettings },
       layout: "portal",
       mode,
-      selected: {},
+      selected: undefined,
       isPending: false,
       error: undefined,
       hydrate: async () => {},
       setData: () => {},
-      updateSettings: () => {},
       setLayout: () => {},
       setSelected: () => {},
+      updateSettings: () => {},
     };
   });
 
+  const setData = (data: ComponentHydrateResponseData) => {
+    setState((prev) => ({
+      ...prev,
+      data,
+    }));
+  };
+
+  const updateSettings = (settings: RecursivePartial<EmbedSettings>) => {
+    setState((prev) => {
+      const updatedSettings = merge({}, prev.settings, { ...settings });
+      return {
+        ...prev,
+        settings: updatedSettings,
+      };
+    });
+  };
+
+  const setLayout = (layout: EmbedLayout) => {
+    setState((prev) => ({
+      ...prev,
+      layout,
+    }));
+  };
+
+  const setSelected = (selected: RecursivePartial<EmbedSelected>) => {
+    setState((prev) => ({
+      ...prev,
+      selected,
+    }));
+  };
+
   const hydrate = useCallback(async () => {
-    setState((prev) => ({ ...prev, isPending: true, error: undefined }));
+    if (id && state.api) {
+      setState((prev) => ({ ...prev, isPending: true, error: undefined }));
 
-    try {
-      const nodes: SerializedNodeWithChildren[] = [];
-      const settings: EmbedSettings = { ...defaultSettings };
+      try {
+        const nodes: SerializedNodeWithChildren[] = [];
+        const settings: EmbedSettings = { ...defaultSettings };
 
-      if (!id || !state.api) {
-        return;
-      }
+        const response = await state.api.hydrateComponent({
+          componentId: id,
+        });
+        const { data } = response;
 
-      const response = await state.api.hydrateComponent({ componentId: id });
-      const { data } = response;
-
-      if (data.component?.ast) {
-        const compressed = data.component.ast;
-        const json = inflate(Uint8Array.from(Object.values(compressed)), {
-          to: "string",
-        }) as string | undefined; // `inflate` actually returns `string | undefined`
-        const ast = getEditorState(json);
-        if (ast) {
-          merge(settings, ast.ROOT.props.settings);
-          nodes.push(...parseEditorState(ast));
+        if (data.component?.ast) {
+          const compressed = data.component.ast;
+          const json = inflate(Uint8Array.from(Object.values(compressed)), {
+            to: "string",
+          }) as string | undefined; // `inflate` actually returns `string | undefined`
+          const ast = getEditorState(json);
+          if (ast) {
+            merge(settings, ast.ROOT.props.settings);
+            nodes.push(...parseEditorState(ast));
+          }
         }
-      }
 
-      setState((prev) => ({
-        ...prev,
-        data,
-        nodes,
-        settings,
-        isPending: false,
-      }));
-    } catch (error) {
-      setState((prev) => ({
-        ...prev,
-        isPending: false,
-        error:
-          error instanceof Error
-            ? error
-            : new Error("An unknown error occurred."),
-      }));
+        setState((prev) => ({
+          ...prev,
+          data,
+          nodes,
+          settings,
+          isPending: false,
+        }));
+      } catch (error) {
+        setState((prev) => ({
+          ...prev,
+          isPending: false,
+          error:
+            error instanceof Error
+              ? error
+              : new Error("An unknown error occurred."),
+        }));
+      }
     }
   }, [id, state.api]);
-
-  const setData = useCallback(
-    (data: ComponentHydrateResponseData) => {
-      setState((prev) => ({
-        ...prev,
-        data,
-      }));
-    },
-    [setState],
-  );
-
-  const updateSettings = useCallback(
-    (settings: RecursivePartial<EmbedSettings>) => {
-      setState((prev) => {
-        const updatedSettings = merge({}, prev.settings, { ...settings });
-        return {
-          ...prev,
-          settings: updatedSettings,
-        };
-      });
-    },
-    [setState],
-  );
-
-  const setLayout = useCallback(
-    (layout: EmbedLayout) => {
-      setState((prev) => ({
-        ...prev,
-        layout,
-      }));
-    },
-    [setState],
-  );
-
-  const setSelected = useCallback(
-    (selected: RecursivePartial<EmbedSelected>) => {
-      setState((prev) => ({
-        ...prev,
-        selected,
-      }));
-    },
-    [setState],
-  );
 
   useEffect(() => {
     i18n.use(initReactI18next).init({
@@ -381,9 +360,7 @@ export const EmbedProvider = ({
         escapeValue: false,
       },
     });
-  }, []);
 
-  useEffect(() => {
     const element = document.getElementById("schematic-fonts");
     if (element) {
       styleRef.current = element as HTMLLinkElement;
@@ -396,27 +373,6 @@ export const EmbedProvider = ({
     document.head.appendChild(style);
     styleRef.current = style;
   }, []);
-
-  useEffect(() => {
-    if (accessToken) {
-      const { headers = {} } = apiConfig ?? {};
-      headers["X-Schematic-Components-Version"] =
-        process.env.SCHEMATIC_COMPONENTS_VERSION ?? "unknown";
-      headers["X-Schematic-Session-ID"] = sessionIdRef.current;
-
-      const config = new Configuration({
-        ...apiConfig,
-        apiKey: accessToken,
-        headers,
-      });
-      const api = new CheckoutexternalApi(config);
-      setState((prev) => ({ ...prev, api }));
-    }
-  }, [accessToken, apiConfig]);
-
-  useEffect(() => {
-    hydrate();
-  }, [hydrate]);
 
   useEffect(() => {
     const fontSet = new Set<string>([]);
@@ -438,6 +394,29 @@ export const EmbedProvider = ({
     }
   }, [state.settings.theme.typography]);
 
+  useEffect(() => {
+    if (accessToken) {
+      const { headers = {} } = apiConfig ?? {};
+      headers["X-Schematic-Components-Version"] =
+        process.env.SCHEMATIC_COMPONENTS_VERSION ?? "unknown";
+      headers["X-Schematic-Session-ID"] = sessionIdRef.current;
+
+      const api = new CheckoutexternalApi(
+        new Configuration({
+          ...apiConfig,
+          apiKey: accessToken,
+          headers,
+        }),
+      );
+
+      setState((prev) => ({ ...prev, api }));
+    }
+  }, [apiConfig, accessToken]);
+
+  useEffect(() => {
+    hydrate();
+  }, [hydrate]);
+
   return (
     <EmbedContext.Provider
       value={{
@@ -448,13 +427,13 @@ export const EmbedProvider = ({
         layout: state.layout,
         mode: state.mode,
         selected: state.selected,
-        error: state.error,
         isPending: state.isPending,
+        error: state.error,
         hydrate,
         setData,
-        updateSettings,
         setLayout,
         setSelected,
+        updateSettings,
       }}
     >
       <ThemeProvider theme={state.settings.theme}>
