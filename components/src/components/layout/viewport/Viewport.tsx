@@ -16,7 +16,7 @@ export const Viewport = forwardRef<HTMLDivElement | null, ViewportProps>(
 
     const [top, setTop] = useState(0);
 
-    const canCheckout = data.capabilities?.checkout ?? true;
+    const canCheckout = data?.capabilities?.checkout ?? true;
 
     useLayoutEffect(() => {
       if (layout !== "checkout" && layout !== "unsubscribe") {

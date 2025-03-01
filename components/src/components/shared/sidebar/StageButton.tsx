@@ -75,9 +75,7 @@ export const StageButton = ({
         <EmbedButton
           type="button"
           disabled={!canUpdateSubscription}
-          onClick={async () => {
-            checkout();
-          }}
+          onClick={checkout}
           isLoading={isLoading}
         >
           <Flex
