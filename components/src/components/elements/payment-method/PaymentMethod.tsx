@@ -607,20 +607,9 @@ export const PaymentMethod = forwardRef<
                         size="lg"
                         paymentMethod={paymentMethod}
                         monthsToExpiration={monthsToExpiration}
+                        onEdit={createSetupIntent}
                         {...props}
                       />
-
-                      <Box>
-                        <Text
-                          onClick={createSetupIntent}
-                          $font={theme.typography.link.fontFamily}
-                          $size={theme.typography.link.fontSize}
-                          $weight={theme.typography.link.fontWeight}
-                          $color={theme.typography.link.color}
-                        >
-                          {t("Change payment method")}
-                        </Text>
-                      </Box>
 
                       <Box>
                         <Text
