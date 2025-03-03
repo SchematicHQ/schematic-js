@@ -87,7 +87,7 @@ export const Sidebar = ({
 
   const theme = useTheme();
 
-  const { api, data, mode, layout, setLayout } = useEmbed();
+  const { api, data, mode, layout, hydrate, setLayout } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
 
@@ -219,7 +219,8 @@ export const Sidebar = ({
           ...(promoCode && { promoCode }),
         },
       });
-      setLayout("success");
+      await hydrate();
+      setLayout("portal");
     } catch {
       setError(
         t("Error processing payment. Please try a different payment method."),
@@ -228,17 +229,18 @@ export const Sidebar = ({
       toggleLoading();
     }
   }, [
-    t,
+    addOns,
     api,
+    hydrate,
+    payInAdvanceEntitlements,
     paymentMethodId,
     planPeriod,
+    promoCode,
     selectedPlan,
-    addOns,
     setError,
     setLayout,
+    t,
     toggleLoading,
-    payInAdvanceEntitlements,
-    promoCode,
   ]);
 
   const unsubscribe = useCallback(async () => {
@@ -251,7 +253,7 @@ export const Sidebar = ({
       toggleLoading();
 
       await api.checkoutUnsubscribe();
-      setError("success");
+      setError("portal");
     } catch {
       setError(t("Unsubscribe failed"));
     } finally {
@@ -280,7 +282,7 @@ export const Sidebar = ({
 
   const canCheckout =
     canUpdateSubscription &&
-    ((data.subscription?.paymentMethod && !showPaymentForm) ||
+    ((data?.subscription?.paymentMethod && !showPaymentForm) ||
       typeof paymentMethodId === "string");
 
   const changedUsageBasedEntitlements: {
@@ -452,7 +454,7 @@ export const Sidebar = ({
         </Box>
 
         <Flex $flexDirection="column" $gap="0.5rem" $marginBottom="1.5rem">
-          {data.company?.plan && (
+          {data?.company?.plan && (
             <Flex
               $justifyContent="space-between"
               $alignItems="center"
@@ -1305,7 +1307,7 @@ export const Sidebar = ({
             requiresPayment={requiresPayment}
             setCheckoutStage={setCheckoutStage}
             trialPaymentMethodRequired={
-              data.trialPaymentMethodRequired === true
+              data?.trialPaymentMethodRequired === true
             }
           />
         )}

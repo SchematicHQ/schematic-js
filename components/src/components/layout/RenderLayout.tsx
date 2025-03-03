@@ -44,18 +44,18 @@ const Disabled = () => {
   );
 };
 
-const Success = () => {
+export const Success = () => {
   const theme = useTheme();
   const { hydrate, data, api, setLayout, isPending } = useEmbed();
 
   const [isOpen, setIsOpen] = useState(true);
 
   useEffect(() => {
-    if (api && data.component?.id) {
+    if (api && data?.component?.id) {
       hydrate();
       setTimeout(() => setIsOpen(false), 2000);
     }
-  }, [api, data.component?.id, hydrate]);
+  }, [api, data?.component?.id, hydrate]);
 
   useEffect(() => {
     if (!isPending && !isOpen) {
@@ -118,8 +118,6 @@ export const RenderLayout = ({ children }: RenderLayoutProps) => {
   switch (layout) {
     case "disabled":
       return <Disabled />;
-    case "success":
-      return <Success />;
     default:
       return children;
   }

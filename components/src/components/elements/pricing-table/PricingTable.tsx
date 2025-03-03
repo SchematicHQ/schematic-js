@@ -125,7 +125,7 @@ export const PricingTable = forwardRef<
   const trialEndDays = useTrialEnd();
 
   const [selectedPeriod, setSelectedPeriod] = useState(
-    () => data.company?.plan?.planPeriod || "month",
+    () => data?.company?.plan?.planPeriod || "month",
   );
 
   const { plans, addOns, periods } = useAvailablePlans(selectedPeriod);
@@ -155,7 +155,7 @@ export const PricingTable = forwardRef<
     ),
   );
 
-  const canCheckout = data.capabilities?.checkout ?? true;
+  const canCheckout = data?.capabilities?.checkout ?? true;
 
   const cardPadding = theme.card.padding / TEXT_BASE_SIZE;
 
@@ -229,7 +229,7 @@ export const PricingTable = forwardRef<
             {plans.map((plan, index) => {
               const isActivePlan =
                 plan.current &&
-                data.company?.plan?.planPeriod === selectedPeriod;
+                data?.company?.plan?.planPeriod === selectedPeriod;
 
               const count = entitlementCounts[plan.id] as
                 | {
@@ -674,7 +674,7 @@ export const PricingTable = forwardRef<
                 const isActiveAddOn =
                   addOn.current &&
                   selectedPeriod ===
-                    data.company?.addOns.find((a) => a.id === addOn.id)
+                    data?.company?.addOns.find((a) => a.id === addOn.id)
                       ?.planPeriod;
 
                 return (

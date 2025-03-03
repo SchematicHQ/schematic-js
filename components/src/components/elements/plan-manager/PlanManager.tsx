@@ -98,11 +98,11 @@ export const PlanManager = forwardRef<
   // Can change plan if there is a publishable key, a current plan with a billing association, and
   // some active plans
   const { addOns, canCheckout, currentPlan, defaultPlan, featureUsage } = {
-    addOns: data.company?.addOns || [],
-    currentPlan: data.company?.plan,
-    canCheckout: data.capabilities?.checkout ?? true,
-    defaultPlan: data.defaultPlan,
-    featureUsage: data.featureUsage,
+    addOns: data?.company?.addOns || [],
+    currentPlan: data?.company?.plan,
+    canCheckout: data?.capabilities?.checkout ?? true,
+    defaultPlan: data?.defaultPlan,
+    featureUsage: data?.featureUsage,
   };
 
   const usageBasedEntitlements = (featureUsage?.features || []).reduce(
@@ -135,12 +135,12 @@ export const PlanManager = forwardRef<
     [],
   );
 
-  const billingSubscription = data.company?.billingSubscription;
+  const billingSubscription = data?.company?.billingSubscription;
   const subscriptionCurrency = billingSubscription?.currency;
   const showTrialBox =
-    billingSubscription && billingSubscription.status == "trialing";
+    billingSubscription && billingSubscription.status === "trialing";
   const showUnsubscribeBox =
-    billingSubscription && billingSubscription.status == "cancelled";
+    billingSubscription && billingSubscription.status === "cancelled";
 
   const trialEndDate = billingSubscription?.trialEnd
     ? new Date(billingSubscription.trialEnd * 1000)

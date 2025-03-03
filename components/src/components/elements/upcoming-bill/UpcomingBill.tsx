@@ -65,7 +65,7 @@ export const UpcomingBill = forwardRef<
 
   const { upcomingInvoice, discounts } = useMemo(() => {
     const discounts = (
-      (data.subscription?.discounts || []) as Pick<
+      (data?.subscription?.discounts || []) as Pick<
         BillingSubscriptionDiscountView,
         | "amountOff"
         | "couponId"
@@ -84,19 +84,19 @@ export const UpcomingBill = forwardRef<
     return {
       discounts,
       upcomingInvoice: {
-        ...(typeof data.upcomingInvoice?.amountDue === "number" && {
+        ...(typeof data?.upcomingInvoice?.amountDue === "number" && {
           amountDue: data.upcomingInvoice.amountDue,
         }),
-        ...(data.subscription?.interval && {
+        ...(data?.subscription?.interval && {
           interval: data.subscription.interval,
         }),
-        ...(data.upcomingInvoice?.dueDate && {
+        ...(data?.upcomingInvoice?.dueDate && {
           dueDate: toPrettyDate(new Date(data.upcomingInvoice.dueDate)),
         }),
-        currency: data.upcomingInvoice?.currency,
+        currency: data?.upcomingInvoice?.currency,
       },
     };
-  }, [data.subscription, data.upcomingInvoice]);
+  }, [data?.subscription, data?.upcomingInvoice]);
 
   if (
     typeof upcomingInvoice.amountDue !== "number" ||

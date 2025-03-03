@@ -20,24 +20,24 @@ export const UnsubscribeDialog = () => {
   const [error, setError] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(false);
   const planPeriod = useMemo(
-    () => data.company?.plan?.planPeriod ?? "month",
-    [data.company?.plan?.planPeriod],
+    () => data?.company?.plan?.planPeriod ?? "month",
+    [data?.company?.plan?.planPeriod],
   );
 
   const { setLayout } = useEmbed();
 
   const currentPlan = useMemo(
     () => ({
-      ...data.company?.plan,
-      monthlyPrice: { price: data.company?.plan?.planPrice },
-      yearlyPrice: { price: data.company?.plan?.planPrice },
+      ...data?.company?.plan,
+      monthlyPrice: { price: data?.company?.plan?.planPrice },
+      yearlyPrice: { price: data?.company?.plan?.planPrice },
     }),
-    [data.company?.plan],
+    [data?.company?.plan],
   );
 
   const currentAddOns = useMemo(
-    () => data.company?.addOns || [],
-    [data.company?.addOns],
+    () => data?.company?.addOns || [],
+    [data?.company?.addOns],
   );
   const addOns = useMemo(
     () =>
@@ -56,7 +56,7 @@ export const UnsubscribeDialog = () => {
 
   const currentUsageBasedEntitlements = useMemo(
     () =>
-      data.activeUsageBasedEntitlements.reduce(
+      (data?.activeUsageBasedEntitlements || []).reduce(
         (
           acc: {
             entitlement: UsageBasedEntitlementResponseData &
@@ -71,7 +71,7 @@ export const UnsubscribeDialog = () => {
           }[],
           usageData,
         ) => {
-          const featureUsage = data.featureUsage?.features.find(
+          const featureUsage = data?.featureUsage?.features.find(
             (usage) => usage.feature?.id === usageData.featureId,
           );
           const allocation = featureUsage?.allocation ?? 0;
@@ -95,11 +95,13 @@ export const UnsubscribeDialog = () => {
         },
         [],
       ),
-    [data.activeUsageBasedEntitlements, data.featureUsage?.features],
+    [data?.activeUsageBasedEntitlements, data?.featureUsage?.features],
   );
 
   const cancelDate = new Date(
-    data.subscription?.cancelAt || data.upcomingInvoice?.dueDate || Date.now(),
+    data?.subscription?.cancelAt ||
+      data?.upcomingInvoice?.dueDate ||
+      Date.now(),
   );
 
   const isLightBackground = useIsLightBackground();
