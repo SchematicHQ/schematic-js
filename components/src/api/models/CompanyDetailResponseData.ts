@@ -43,6 +43,12 @@ import {
   GenericPreviewObjectFromJSONTyped,
   GenericPreviewObjectToJSON,
 } from "./GenericPreviewObject";
+import type { PaymentMethodResponseData } from "./PaymentMethodResponseData";
+import {
+  PaymentMethodResponseDataFromJSON,
+  PaymentMethodResponseDataFromJSONTyped,
+  PaymentMethodResponseDataToJSON,
+} from "./PaymentMethodResponseData";
 import type { BillingSubscriptionView } from "./BillingSubscriptionView";
 import {
   BillingSubscriptionViewFromJSON,
@@ -130,6 +136,12 @@ export interface CompanyDetailResponseData {
   name: string;
   /**
    *
+   * @type {Array<PaymentMethodResponseData>}
+   * @memberof CompanyDetailResponseData
+   */
+  paymentMethods: Array<PaymentMethodResponseData>;
+  /**
+   *
    * @type {CompanyPlanWithBillingSubView}
    * @memberof CompanyDetailResponseData
    */
@@ -181,6 +193,8 @@ export function instanceOfCompanyDetailResponseData(
   if (!("keys" in value) || value["keys"] === undefined) return false;
   if (!("metrics" in value) || value["metrics"] === undefined) return false;
   if (!("name" in value) || value["name"] === undefined) return false;
+  if (!("paymentMethods" in value) || value["paymentMethods"] === undefined)
+    return false;
   if (!("plans" in value) || value["plans"] === undefined) return false;
   if (!("updatedAt" in value) || value["updatedAt"] === undefined) return false;
   if (!("userCount" in value) || value["userCount"] === undefined) return false;
@@ -225,6 +239,9 @@ export function CompanyDetailResponseDataFromJSONTyped(
       CompanyEventPeriodMetricsResponseDataFromJSON,
     ),
     name: json["name"],
+    paymentMethods: (json["payment_methods"] as Array<any>).map(
+      PaymentMethodResponseDataFromJSON,
+    ),
     plan:
       json["plan"] == null
         ? undefined
@@ -268,6 +285,9 @@ export function CompanyDetailResponseDataToJSON(
       CompanyEventPeriodMetricsResponseDataToJSON,
     ),
     name: value["name"],
+    payment_methods: (value["paymentMethods"] as Array<any>).map(
+      PaymentMethodResponseDataToJSON,
+    ),
     plan: CompanyPlanWithBillingSubViewToJSON(value["plan"]),
     plans: (value["plans"] as Array<any>).map(GenericPreviewObjectToJSON),
     traits: value["traits"],
