@@ -588,7 +588,10 @@ export const PricingTable = forwardRef<
                       (props.upgrade.isVisible ||
                         props.downgrade.isVisible) && (
                         <EmbedButton
-                          disabled={!plan.valid || !canCheckout}
+                          type="button"
+                          disabled={
+                            (!plan.valid || !canCheckout) && !plan.custom
+                          }
                           {...(!plan.custom && {
                             onClick: () => {
                               setSelected({
@@ -909,6 +912,7 @@ export const PricingTable = forwardRef<
 
                       {props.upgrade.isVisible && (
                         <EmbedButton
+                          type="button"
                           disabled={!addOn.valid || !canCheckout}
                           onClick={() => {
                             setSelected({

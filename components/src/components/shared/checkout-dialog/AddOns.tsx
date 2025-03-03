@@ -121,6 +121,7 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
               <Flex $flexDirection="column" $justifyContent="end" $flexGrow="1">
                 {!addOn.isSelected ? (
                   <EmbedButton
+                    type="button"
                     disabled={isLoading || !addOn.valid}
                     onClick={() => toggle(addOn.id)}
                     $size="sm"
@@ -131,6 +132,7 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
                   </EmbedButton>
                 ) : (
                   <EmbedButton
+                    type="button"
                     disabled={isLoading || !addOn.valid}
                     onClick={() => toggle(addOn.id)}
                     $size="sm"
