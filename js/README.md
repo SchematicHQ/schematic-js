@@ -82,6 +82,36 @@ await schematic.checkFlag("some-flag-key");
 schematic.cleanup();
 ```
 
+## Troubleshooting
+
+For debugging and development, Schematic supports two special modes:
+
+### Debug Mode
+
+Enables console logging of all Schematic operations:
+
+```typescript
+// Enable at initialization
+const schematic = new Schematic("your-api-key", { debug: true });
+
+// Or via URL parameter
+// https://yoursite.com/?schematic_debug=true
+```
+
+### Offline Mode
+
+Prevents network requests and returns fallback values for all flag checks:
+
+```typescript
+// Enable at initialization
+const schematic = new Schematic("your-api-key", { offline: true });
+
+// Or via URL parameter
+// https://yoursite.com/?schematic_offline=true
+```
+
+Offline mode automatically enables debug mode to help with troubleshooting.
+
 ## License
 
 MIT

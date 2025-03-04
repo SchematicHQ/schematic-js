@@ -16,6 +16,7 @@ import {
   Tooltip,
   type IconNameTypes,
 } from "../../ui";
+import { ButtonLink } from "../../elements/pricing-table/styles";
 
 interface PlanProps {
   isLoading: boolean;
@@ -161,26 +162,32 @@ export const Plan = ({
                     $weight={theme.typography.heading2.fontWeight}
                     $color={theme.typography.heading2.color}
                   >
-                    {formatCurrency(
-                      (period === "month"
-                        ? plan.monthlyPrice
-                        : plan.yearlyPrice
-                      )?.price ?? 0,
-                      (period === "month"
-                        ? plan.monthlyPrice
-                        : plan.yearlyPrice
-                      )?.currency,
-                    )}
+                    {plan.custom
+                      ? plan.customPlanConfig?.priceText
+                        ? plan.customPlanConfig?.priceText
+                        : t("Custom Plan Price")
+                      : formatCurrency(
+                          (period === "month"
+                            ? plan.monthlyPrice
+                            : plan.yearlyPrice
+                          )?.price ?? 0,
+                          (period === "month"
+                            ? plan.monthlyPrice
+                            : plan.yearlyPrice
+                          )?.currency,
+                        )}
                   </Text>
 
-                  <Text
-                    $font={theme.typography.heading2.fontFamily}
-                    $size={(16 / 30) * theme.typography.heading2.fontSize}
-                    $weight={theme.typography.heading2.fontWeight}
-                    $color={theme.typography.heading2.color}
-                  >
-                    /{period}
-                  </Text>
+                  {!plan.custom && (
+                    <Text
+                      $font={theme.typography.heading2.fontFamily}
+                      $size={(16 / 30) * theme.typography.heading2.fontSize}
+                      $weight={theme.typography.heading2.fontWeight}
+                      $color={theme.typography.heading2.color}
+                    >
+                      /{period}
+                    </Text>
+                  )}
                 </Box>
 
                 {plan.current && (
@@ -380,15 +387,29 @@ export const Plan = ({
                   </Flex>
                 ) : (
                   <EmbedButton
-                    disabled={isLoading || !plan.valid}
-                    onClick={() => {
-                      selectPlan({ plan });
+                    type="button"
+                    disabled={(isLoading || !plan.valid) && !plan.custom}
+                    {...{
+                      onClick: () => {
+                        if (plan.custom) {
+                          return;
+                        }
+
+                        selectPlan({ plan });
+                      },
                     }}
                     $size="sm"
                     $color="primary"
                     $variant={plan.current ? "outline" : "filled"}
                   >
-                    {!plan.valid ? (
+                    {plan.custom ? (
+                      <ButtonLink
+                        href={plan.customPlanConfig?.ctaWebSite ?? "#"}
+                        target="_blank"
+                      >
+                        {plan.customPlanConfig?.ctaText ?? t("Custom Plan CTA")}
+                      </ButtonLink>
+                    ) : !plan.valid ? (
                       <Tooltip
                         trigger={t("Over usage limit")}
                         content={t(
