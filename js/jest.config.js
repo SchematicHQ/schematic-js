@@ -5,6 +5,7 @@ module.exports = {
   transform: {
     "^.+\\.(ts|tsx)?$": "ts-jest",
   },
+  testMatch: ["<rootDir>/src/**/*.spec.ts"],
 };
 
 global.WebSocket = require("mock-socket").WebSocket;
