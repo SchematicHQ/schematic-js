@@ -8,10 +8,7 @@ import {
   useIsLightBackground,
 } from "../../../hooks";
 import { useCallback, useMemo, useState } from "react";
-import type {
-  PlanEntitlementResponseData,
-  UsageBasedEntitlementResponseData,
-} from "../../../api";
+import type { PlanEntitlementResponseData } from "../../../api";
 import { toPrettyDate } from "../../../utils";
 
 export const UnsubscribeDialog = () => {
@@ -32,7 +29,7 @@ export const UnsubscribeDialog = () => {
   const { plans: availablePlans, addOns: availableAddOns } =
     useAvailablePlans(planPeriod);
 
-  const currentPlan = useMemo(
+  const selectedPlan = useMemo(
     () =>
       availablePlans.find(
         (plan) =>
@@ -42,7 +39,7 @@ export const UnsubscribeDialog = () => {
     [data.company?.plan, planPeriod, availablePlans],
   );
 
-  const usageBasedEntitlements = (currentPlan?.entitlements || []).reduce(
+  const usageBasedEntitlements = (selectedPlan?.entitlements || []).reduce(
     (
       acc: {
         entitlement: PlanEntitlementResponseData;
@@ -74,35 +71,6 @@ export const UnsubscribeDialog = () => {
     },
     [],
   );
-
-  const currentUsageBasedEntitlements =
-    data.activeUsageBasedEntitlements.reduce(
-      (
-        acc: {
-          usageData: UsageBasedEntitlementResponseData;
-          allocation: number;
-          quantity: number;
-          usage: number;
-        }[],
-        usageData,
-      ) => {
-        const featureUsage = data.featureUsage?.features.find(
-          (usage) => usage.feature?.id === usageData.featureId,
-        );
-        const allocation = featureUsage?.allocation || 0;
-        const usage = featureUsage?.usage || 0;
-
-        acc.push({
-          usageData,
-          allocation,
-          quantity: allocation ?? usage,
-          usage,
-        });
-
-        return acc;
-      },
-      [],
-    );
 
   const addOns = useMemo(
     () =>
@@ -208,7 +176,7 @@ export const UnsubscribeDialog = () => {
             <EmbedButton
               onClick={() => {
                 setSelected({
-                  planId: currentPlan?.id,
+                  planId: data.company?.plan?.id,
                   addOnId: undefined,
                   usage: false,
                 });
@@ -228,9 +196,6 @@ export const UnsubscribeDialog = () => {
           planPeriod={planPeriod}
           addOns={addOns}
           usageBasedEntitlements={usageBasedEntitlements}
-          currentPlan={currentPlan}
-          currentAddOns={data.company?.addOns || []}
-          currentUsageBasedEntitlements={currentUsageBasedEntitlements}
           error={error}
           isLoading={isLoading}
           showHeader={false}
