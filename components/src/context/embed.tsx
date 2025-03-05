@@ -176,7 +176,6 @@ export type EmbedLayout =
   | "checkout"
   | "payment"
   | "unsubscribe"
-  | "success"
   | "disabled";
 
 export type EmbedSelected = {
@@ -199,10 +198,11 @@ export interface EmbedContextProps {
   error?: Error;
   isPending: boolean;
   hydrate: () => Promise<void>;
+  setIsPending: (bool: boolean) => void;
   setData: (data: ComponentHydrateResponseData) => void;
-  updateSettings: (settings: RecursivePartial<EmbedSettings>) => void;
   setLayout: (layout: EmbedLayout) => void;
   setSelected: (selected: EmbedSelected) => void;
+  updateSettings: (settings: RecursivePartial<EmbedSettings>) => void;
 }
 
 export const EmbedContext = createContext<EmbedContextProps>({
@@ -220,10 +220,11 @@ export const EmbedContext = createContext<EmbedContextProps>({
   error: undefined,
   isPending: false,
   hydrate: async () => {},
+  setIsPending: () => {},
   setData: () => {},
-  updateSettings: () => {},
   setLayout: () => {},
   setSelected: () => {},
+  updateSettings: () => {},
 });
 
 export interface EmbedProviderProps {
@@ -255,10 +256,11 @@ export const EmbedProvider = ({
     isPending: boolean;
     error?: Error;
     hydrate: () => Promise<void>;
+    setIsPending: (bool: boolean) => void;
     setData: (data: ComponentHydrateResponseData) => void;
-    updateSettings: (settings: RecursivePartial<EmbedSettings>) => void;
     setLayout: (layout: EmbedLayout) => void;
     setSelected: (selected: EmbedSelected) => void;
+    updateSettings: (settings: RecursivePartial<EmbedSettings>) => void;
   }>(() => {
     return {
       api: null,
@@ -276,9 +278,10 @@ export const EmbedProvider = ({
       error: undefined,
       hydrate: async () => {},
       setData: () => {},
-      updateSettings: () => {},
+      setIsPending: () => {},
       setLayout: () => {},
       setSelected: () => {},
+      updateSettings: () => {},
     };
   });
 
@@ -327,48 +330,43 @@ export const EmbedProvider = ({
     }
   }, [id, state.api]);
 
-  const setData = useCallback(
-    (data: ComponentHydrateResponseData) => {
-      setState((prev) => ({
-        ...prev,
-        data,
-      }));
-    },
-    [setState],
-  );
+  const setIsPending = (bool: boolean) => {
+    setState((prev) => ({
+      ...prev,
+      isPending: bool,
+    }));
+  };
 
-  const updateSettings = useCallback(
-    (settings: RecursivePartial<EmbedSettings>) => {
-      setState((prev) => {
-        const updatedSettings = merge({}, prev.settings, { ...settings });
-        return {
-          ...prev,
-          settings: updatedSettings,
-        };
-      });
-    },
-    [setState],
-  );
+  const setData = (data: ComponentHydrateResponseData) => {
+    setState((prev) => ({
+      ...prev,
+      data,
+    }));
+  };
 
-  const setLayout = useCallback(
-    (layout: EmbedLayout) => {
-      setState((prev) => ({
-        ...prev,
-        layout,
-      }));
-    },
-    [setState],
-  );
+  const setLayout = (layout: EmbedLayout) => {
+    setState((prev) => ({
+      ...prev,
+      layout,
+    }));
+  };
 
-  const setSelected = useCallback(
-    (selected: RecursivePartial<EmbedSelected>) => {
-      setState((prev) => ({
+  const setSelected = (selected: RecursivePartial<EmbedSelected>) => {
+    setState((prev) => ({
+      ...prev,
+      selected,
+    }));
+  };
+
+  const updateSettings = (settings: RecursivePartial<EmbedSettings>) => {
+    setState((prev) => {
+      const updatedSettings = merge({}, prev.settings, { ...settings });
+      return {
         ...prev,
-        selected,
-      }));
-    },
-    [setState],
-  );
+        settings: updatedSettings,
+      };
+    });
+  };
 
   useEffect(() => {
     i18n.use(initReactI18next).init({
@@ -451,10 +449,11 @@ export const EmbedProvider = ({
         error: state.error,
         isPending: state.isPending,
         hydrate,
+        setIsPending,
         setData,
-        updateSettings,
         setLayout,
         setSelected,
+        updateSettings,
       }}
     >
       <ThemeProvider theme={state.settings.theme}>

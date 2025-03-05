@@ -18,8 +18,9 @@ export const StyledCard = styled.div(({ theme }) => {
   const borderRadius = `${theme.card.borderRadius / TEXT_BASE_SIZE}rem`;
 
   return css`
-    font-size: ${TEXT_BASE_SIZE}px;
+    position: relative;
     box-sizing: border-box;
+    font-size: ${TEXT_BASE_SIZE}px;
 
     *,
     *::before,

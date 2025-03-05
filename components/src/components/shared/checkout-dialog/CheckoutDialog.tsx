@@ -14,7 +14,6 @@ import {
   type PreviewSubscriptionChangeResponseData,
   type UpdateAddOnRequestBody,
   type UpdatePayInAdvanceRequestBody,
-  type UsageBasedEntitlementResponseData,
 } from "../../../api";
 import {
   useAvailablePlans,
@@ -85,45 +84,17 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     ),
   );
 
-  const currentAddOns = data.company?.addOns || [];
   const [addOns, setAddOns] = useState(() =>
     availableAddOns.map((addOn) => ({
       ...addOn,
       isSelected:
         typeof selected.addOnId !== "undefined"
           ? addOn.id === selected.addOnId
-          : currentAddOns.some((currentAddOn) => addOn.id === currentAddOn.id),
+          : (data.company?.addOns || []).some(
+              (currentAddOn) => addOn.id === currentAddOn.id,
+            ),
     })),
   );
-
-  const currentUsageBasedEntitlements =
-    data.activeUsageBasedEntitlements.reduce(
-      (
-        acc: {
-          usageData: UsageBasedEntitlementResponseData;
-          allocation: number;
-          quantity: number;
-          usage: number;
-        }[],
-        usageData,
-      ) => {
-        const featureUsage = data.featureUsage?.features.find(
-          (usage) => usage.feature?.id === usageData.featureId,
-        );
-        const allocation = featureUsage?.allocation || 0;
-        const usage = featureUsage?.usage || 0;
-
-        acc.push({
-          usageData,
-          allocation,
-          quantity: allocation ?? usage,
-          usage,
-        });
-
-        return acc;
-      },
-      [],
-    );
 
   const createActiveUsageBasedEntitlementsReducer = useCallback(
     (period = planPeriod) =>
@@ -164,16 +135,6 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       createActiveUsageBasedEntitlementsReducer(),
       [],
     ),
-  );
-
-  const currentPlan = useMemo(
-    () =>
-      availablePlans.find(
-        (plan) =>
-          plan.id === data.company?.plan?.id &&
-          data.company?.plan.planPeriod === planPeriod,
-      ),
-    [data.company?.plan, planPeriod, availablePlans],
   );
 
   const payInAdvanceEntitlements = useMemo(
@@ -247,7 +208,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     }
 
     // the user has preselected a different plan before starting the checkout flow
-    if (selected.planId !== currentPlan?.id) {
+    if (selected.planId !== data.company?.plan?.id) {
       return checkoutStages.some((stage) => stage.id === "usage")
         ? "usage"
         : checkoutStages.some((stage) => stage.id === "addons")
@@ -638,27 +599,24 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
         </Flex>
 
         <Sidebar
+          planPeriod={planPeriod}
+          selectedPlan={selectedPlan}
           addOns={addOns}
+          usageBasedEntitlements={usageBasedEntitlements}
           charges={charges}
           checkoutRef={checkoutRef}
           checkoutStage={checkoutStage}
           checkoutStages={checkoutStages}
-          currentAddOns={currentAddOns}
-          currentUsageBasedEntitlements={currentUsageBasedEntitlements}
           error={error}
-          currentPlan={currentPlan}
           isLoading={isLoading}
           paymentMethodId={paymentMethodId}
-          planPeriod={planPeriod}
           promoCode={promoCode}
           requiresPayment={requiresPayment}
-          selectedPlan={selectedPlan}
           setCheckoutStage={(stage) => setCheckoutStage(stage)}
           setError={(msg) => setError(msg)}
+          setIsLoading={setIsLoading}
           showPaymentForm={showPaymentForm}
-          toggleLoading={() => setIsLoading((prev) => !prev)}
           updatePromoCode={(code) => updatePromoCode(code)}
-          usageBasedEntitlements={usageBasedEntitlements}
         />
       </Flex>
     </Modal>
