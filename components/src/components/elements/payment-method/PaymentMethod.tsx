@@ -55,8 +55,8 @@ interface PaymentElementProps {
 
 interface PaymentElementListProps {
   paymentMethod: PaymentMethodResponseData;
-  setDefault: () => void;
-  handleDelete: () => void;
+  setDefault: (id: string) => void;
+  handleDelete: (id: string) => void;
 }
 
 interface DesignProps {
@@ -175,7 +175,11 @@ const PaymentListElement = ({
         {expirationDate && t("Expires", { date: expirationDate })}
       </Box>
 
-      <Box onClick={setDefault}>
+      <Box
+        onClick={() => {
+          setDefault(paymentMethod.id);
+        }}
+      >
         <Text
           $font={theme.typography.link.fontFamily}
           $size={theme.typography.link.fontSize}
@@ -186,7 +190,13 @@ const PaymentListElement = ({
         </Text>
       </Box>
 
-      <Box $cursor="pointer" $paddingLeft="1rem" onClick={handleDelete}>
+      <Box
+        $cursor="pointer"
+        $paddingLeft="1rem"
+        onClick={() => {
+          handleDelete(paymentMethod.id);
+        }}
+      >
         <Icon
           name="close"
           style={{
@@ -455,8 +465,6 @@ export const PaymentMethod = forwardRef<
     }
   }, [t, api, data.component?.id]);
 
-  const addNewPaymentMethod = () => {};
-
   const dropDownDifferentPaymentMethods = useCallback(() => {
     setShowDifferentPaymentMethods((state) => !state);
   }, []);
@@ -488,6 +496,30 @@ export const PaymentMethod = forwardRef<
     [t, api, hydrate, setLayout],
   );
 
+  const deletePaymentMethod = useCallback(
+    async (id: string) => {
+      console.log("here", id, api);
+      if (!api || !id) {
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        // Payment method id is used and expected
+        // Some problem with type generation
+        await api.deletePaymentMethod({
+          checkoutId: id,
+        });
+        setLayout("success");
+      } catch {
+        setError(t("Error deleting payment method. Please try again."));
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [api, setLayout, t],
+  );
+
   useEffect(() => {
     if (!stripe && setupIntent?.publishableKey) {
       setStripe(loadStripe(setupIntent.publishableKey));
@@ -513,22 +545,6 @@ export const PaymentMethod = forwardRef<
   if (!paymentMethod?.paymentMethodType) {
     return null;
   }
-
-  // TODO: Return proper data from BE
-  const paymentMethods = [
-    paymentMethod,
-    paymentMethod,
-    paymentMethod,
-    paymentMethod,
-    paymentMethod,
-    paymentMethod,
-    paymentMethod,
-    paymentMethod,
-    paymentMethod,
-    paymentMethod,
-    paymentMethod,
-    paymentMethod,
-  ];
 
   return (
     <Element ref={ref} className={className}>
@@ -640,24 +656,19 @@ export const PaymentMethod = forwardRef<
                           $height="10rem"
                         >
                           <Flex $flexDirection="column" $overflowY="scroll">
-                            {paymentMethods.map((paymentMethod, index) => (
-                              // TODO: Use payment method id as index
-                              <PaymentListElement
-                                key={index}
-                                paymentMethod={paymentMethod}
-                                setDefault={() => {}}
-                                handleDelete={() => {}}
-                              />
-                            ))}
+                            {(data.company?.paymentMethods || []).map(
+                              (paymentMethod) => (
+                                <PaymentListElement
+                                  key={paymentMethod.id}
+                                  paymentMethod={paymentMethod}
+                                  setDefault={updatePaymentMethod}
+                                  handleDelete={deletePaymentMethod}
+                                />
+                              ),
+                            )}
                           </Flex>
 
-                          <EmbedButton
-                            onClick={addNewPaymentMethod}
-                            style={{
-                              paddingTop: "1rem",
-                              paddingBottom: "1rem",
-                            }}
-                          >
+                          <EmbedButton onClick={createSetupIntent} size="lg">
                             {t("Add new payment method")}
                           </EmbedButton>
                         </Flex>
