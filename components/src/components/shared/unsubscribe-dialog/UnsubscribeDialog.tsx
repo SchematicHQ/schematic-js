@@ -2,7 +2,11 @@ import { Box, EmbedButton, Flex, Icon, Modal, Text } from "../../ui";
 import { Sidebar } from "../sidebar";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
-import { useEmbed, useIsLightBackground } from "../../../hooks";
+import {
+  useAvailablePlans,
+  useEmbed,
+  useIsLightBackground,
+} from "../../../hooks";
 import { useCallback, useMemo, useState } from "react";
 import type {
   PlanEntitlementResponseData,
@@ -15,87 +19,100 @@ export const UnsubscribeDialog = () => {
 
   const theme = useTheme();
 
-  const { data, setSelected } = useEmbed();
+  const { data, setLayout, setSelected } = useEmbed();
 
   const [error, setError] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(false);
+
   const planPeriod = useMemo(
     () => data.company?.plan?.planPeriod ?? "month",
     [data.company?.plan?.planPeriod],
   );
 
-  const { setLayout } = useEmbed();
+  const { plans: availablePlans, addOns: availableAddOns } =
+    useAvailablePlans(planPeriod);
 
   const currentPlan = useMemo(
-    () => ({
-      ...data.company?.plan,
-      monthlyPrice: { price: data.company?.plan?.planPrice },
-      yearlyPrice: { price: data.company?.plan?.planPrice },
-    }),
-    [data.company?.plan],
+    () =>
+      availablePlans.find(
+        (plan) =>
+          plan.id === data.company?.plan?.id &&
+          data.company?.plan.planPeriod === planPeriod,
+      ),
+    [data.company?.plan, planPeriod, availablePlans],
   );
 
-  const currentAddOns = useMemo(
-    () => data.company?.addOns || [],
-    [data.company?.addOns],
+  const usageBasedEntitlements = (currentPlan?.entitlements || []).reduce(
+    (
+      acc: {
+        entitlement: PlanEntitlementResponseData;
+        allocation: number;
+        quantity: number;
+        usage: number;
+      }[],
+      entitlement: PlanEntitlementResponseData,
+    ) => {
+      if (
+        entitlement.priceBehavior &&
+        ((planPeriod === "month" && entitlement.meteredMonthlyPrice) ||
+          (planPeriod === "year" && entitlement.meteredYearlyPrice))
+      ) {
+        const featureUsage = data.featureUsage?.features.find(
+          (usage) => usage.feature?.id === entitlement.feature?.id,
+        );
+        const allocation = featureUsage?.allocation ?? 0;
+        const usage = featureUsage?.usage ?? 0;
+        acc.push({
+          entitlement,
+          allocation,
+          quantity: allocation,
+          usage,
+        });
+      }
+
+      return acc;
+    },
+    [],
   );
+
+  const currentUsageBasedEntitlements =
+    data.activeUsageBasedEntitlements.reduce(
+      (
+        acc: {
+          usageData: UsageBasedEntitlementResponseData;
+          allocation: number;
+          quantity: number;
+          usage: number;
+        }[],
+        usageData,
+      ) => {
+        const featureUsage = data.featureUsage?.features.find(
+          (usage) => usage.feature?.id === usageData.featureId,
+        );
+        const allocation = featureUsage?.allocation || 0;
+        const usage = featureUsage?.usage || 0;
+
+        acc.push({
+          usageData,
+          allocation,
+          quantity: allocation ?? usage,
+          usage,
+        });
+
+        return acc;
+      },
+      [],
+    );
+
   const addOns = useMemo(
     () =>
-      currentAddOns.map((addOn) => ({
-        ...addOn,
-        isSelected: true,
-        monthlyPrice: {
-          price: addOn.planPrice,
-        },
-        yearlyPrice: {
-          price: addOn.planPrice,
-        },
+      availableAddOns.map((available) => ({
+        ...available,
+        isSelected:
+          data.company?.addOns.some((current) => available.id === current.id) ??
+          false,
       })),
-    [currentAddOns],
-  );
-
-  const currentUsageBasedEntitlements = useMemo(
-    () =>
-      data.activeUsageBasedEntitlements.reduce(
-        (
-          acc: {
-            entitlement: UsageBasedEntitlementResponseData &
-              Pick<
-                PlanEntitlementResponseData,
-                "feature" | "meteredMonthlyPrice" | "meteredYearlyPrice" | "id"
-              >;
-            usageData: UsageBasedEntitlementResponseData;
-            allocation: number;
-            quantity: number;
-            usage: number;
-          }[],
-          usageData,
-        ) => {
-          const featureUsage = data.featureUsage?.features.find(
-            (usage) => usage.feature?.id === usageData.featureId,
-          );
-          const allocation = featureUsage?.allocation ?? 0;
-          const usage = featureUsage?.usage ?? 0;
-
-          acc.push({
-            entitlement: {
-              ...usageData,
-              id: featureUsage?.entitlementId ?? usageData.featureId,
-              feature: featureUsage?.feature,
-              meteredMonthlyPrice: usageData.meteredPrice,
-              meteredYearlyPrice: usageData.meteredPrice,
-            },
-            usageData,
-            allocation,
-            quantity: allocation ?? usage,
-            usage,
-          });
-
-          return acc;
-        },
-        [],
-      ),
-    [data.activeUsageBasedEntitlements, data.featureUsage?.features],
+    [data.company?.addOns, availableAddOns],
   );
 
   const cancelDate = new Date(
@@ -208,25 +225,19 @@ export const UnsubscribeDialog = () => {
         </Flex>
 
         <Sidebar
-          addOns={addOns as unknown as never}
-          checkoutStage="checkout"
-          checkoutStages={[]}
-          currentAddOns={currentAddOns}
+          planPeriod={planPeriod}
+          addOns={addOns}
+          usageBasedEntitlements={usageBasedEntitlements}
+          currentPlan={currentPlan}
+          currentAddOns={data.company?.addOns || []}
           currentUsageBasedEntitlements={currentUsageBasedEntitlements}
           error={error}
-          currentPlan={currentPlan as unknown as never}
           isLoading={isLoading}
-          planPeriod={planPeriod}
-          requiresPayment={false}
-          setCheckoutStage={() => {}}
-          setError={(msg) => setError(msg)}
-          showPaymentForm={false}
-          toggleLoading={() => setIsLoading((prev) => !prev)}
-          updatePromoCode={() => {}}
-          usageBasedEntitlements={
-            currentUsageBasedEntitlements as unknown as never
-          }
           showHeader={false}
+          showPaymentForm={false}
+          requiresPayment={false}
+          setError={(msg) => setError(msg)}
+          setIsLoading={setIsLoading}
         />
       </Flex>
     </Modal>

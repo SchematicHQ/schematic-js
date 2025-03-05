@@ -88,7 +88,7 @@ export const Details = ({
     if (!priceBehavior) {
       return t("Unlimited", { item: pluralize(feature.name) });
     }
-  }, [allocation, feature?.name, price, priceBehavior, t, currency]);
+  }, [t, allocation, feature?.name, price, priceBehavior, currency]);
 
   const usageText = useMemo(() => {
     if (!feature?.name) {
@@ -141,12 +141,12 @@ export const Details = ({
           });
     }
   }, [
+    t,
     allocation,
     data.company?.plan?.planPeriod,
     feature?.name,
     price,
     priceBehavior,
-    t,
     usage,
     usageData,
     currency,

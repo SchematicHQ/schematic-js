@@ -655,8 +655,8 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           selectedPlan={selectedPlan}
           setCheckoutStage={(stage) => setCheckoutStage(stage)}
           setError={(msg) => setError(msg)}
+          setIsLoading={setIsLoading}
           showPaymentForm={showPaymentForm}
-          toggleLoading={() => setIsLoading((prev) => !prev)}
           updatePromoCode={(code) => updatePromoCode(code)}
           usageBasedEntitlements={usageBasedEntitlements}
         />

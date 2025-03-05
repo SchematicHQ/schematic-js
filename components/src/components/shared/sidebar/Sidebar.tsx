@@ -1,4 +1,9 @@
-import { useCallback, useMemo } from "react";
+import {
+  useCallback,
+  useMemo,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 import pluralize from "pluralize";
@@ -29,8 +34,8 @@ interface SidebarProps {
   addOns: SelectedPlan[];
   charges?: PreviewSubscriptionChangeResponseData;
   checkoutRef?: React.RefObject<HTMLDivElement | null>;
-  checkoutStage: string;
-  checkoutStages: CheckoutStage[];
+  checkoutStage?: string;
+  checkoutStages?: CheckoutStage[];
   currentAddOns: CompanyPlanWithBillingSubView[];
   currentUsageBasedEntitlements: {
     usageData: UsageBasedEntitlementResponseData;
@@ -45,11 +50,11 @@ interface SidebarProps {
   promoCode?: string;
   requiresPayment: boolean;
   selectedPlan?: SelectedPlan;
-  setCheckoutStage: (stage: string) => void;
+  setCheckoutStage?: (stage: string) => void;
   setError: (msg?: string) => void;
+  setIsLoading: Dispatch<SetStateAction<boolean>>;
   showPaymentForm: boolean;
-  toggleLoading: () => void;
-  updatePromoCode: (code?: string) => void;
+  updatePromoCode?: (code?: string) => void;
   usageBasedEntitlements: {
     entitlement: PlanEntitlementResponseData;
     allocation: number;
@@ -77,8 +82,8 @@ export const Sidebar = ({
   selectedPlan,
   setCheckoutStage,
   setError,
+  setIsLoading,
   showPaymentForm,
-  toggleLoading,
   updatePromoCode,
   usageBasedEntitlements,
   showHeader = true,
@@ -87,7 +92,7 @@ export const Sidebar = ({
 
   const theme = useTheme();
 
-  const { api, data, mode, layout, setLayout } = useEmbed();
+  const { api, data, mode, layout, hydrate, setLayout } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
 
@@ -169,7 +174,7 @@ export const Sidebar = ({
 
     try {
       setError(undefined);
-      toggleLoading();
+      setIsLoading(true);
 
       await api.checkout({
         changeSubscriptionRequestBody: {
@@ -219,24 +224,29 @@ export const Sidebar = ({
           ...(promoCode && { promoCode }),
         },
       });
-      setLayout("success");
+
+      setIsLoading(false);
+      setLayout("portal");
+      hydrate();
     } catch {
+      setLayout("checkout");
       setError(
         t("Error processing payment. Please try a different payment method."),
       );
     } finally {
-      toggleLoading();
+      setIsLoading(false);
     }
   }, [
     t,
     api,
+    hydrate,
     paymentMethodId,
     planPeriod,
     selectedPlan,
     addOns,
     setError,
+    setIsLoading,
     setLayout,
-    toggleLoading,
     payInAdvanceEntitlements,
     promoCode,
   ]);
@@ -248,16 +258,19 @@ export const Sidebar = ({
 
     try {
       setError(undefined);
-      toggleLoading();
+      setIsLoading(true);
 
       await api.checkoutUnsubscribe();
-      setError("success");
+
+      setLayout("portal");
+      hydrate();
     } catch {
+      setLayout("unsubscribe");
       setError(t("Unsubscribe failed"));
     } finally {
-      toggleLoading();
+      setIsLoading(false);
     }
-  }, [api, setError, t, toggleLoading]);
+  }, [t, api, hydrate, setError, setIsLoading, setLayout]);
 
   const selectedAddOns = addOns.filter((addOn) => addOn.isSelected);
 
@@ -1095,7 +1108,7 @@ export const Sidebar = ({
               <Box
                 $cursor="pointer"
                 onClick={() => {
-                  updatePromoCode(undefined);
+                  updatePromoCode?.(undefined);
                 }}
               >
                 <Icon
