@@ -10,7 +10,11 @@ import type {
 } from "../../../api";
 import { toPrettyDate } from "../../../utils";
 
-export const UnsubscribeDialog = () => {
+export interface UnsubscribeDialogProps {
+  top?: number;
+}
+
+export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
   const { t } = useTranslation();
 
   const theme = useTheme();
@@ -109,7 +113,7 @@ export const UnsubscribeDialog = () => {
   }, [setLayout]);
 
   return (
-    <Modal id="unsubscribe-dialog" size="auto">
+    <Modal id="unsubscribe-dialog" size="auto" top={top}>
       <Box
         $display="inline-flex"
         $position="absolute"

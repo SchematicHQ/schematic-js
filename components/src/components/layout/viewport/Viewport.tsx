@@ -1,5 +1,6 @@
 import { forwardRef, useLayoutEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import debounce from "lodash/debounce";
 import { useEmbed } from "../../../hooks";
 import { CheckoutDialog, UnsubscribeDialog } from "../../shared";
 import { Badge } from "../../ui/badge";
@@ -19,22 +20,23 @@ export const Viewport = forwardRef<HTMLDivElement | null, ViewportProps>(
     const canCheckout = data.capabilities?.checkout ?? true;
 
     useLayoutEffect(() => {
-      if (layout !== "checkout" && layout !== "unsubscribe") {
-        return;
-      }
-
       const parent = portal || document.body;
-      const value = Math.abs(
-        (parent === document.body ? window.scrollY : parent.scrollTop) ?? 0,
-      );
-      setTop(value);
+      const setModalY = debounce(() => {
+        const value = Math.abs(
+          (parent === document.body ? window.scrollY : parent.scrollTop) ?? 0,
+        );
+        setTop(value);
+      }, 250);
 
-      parent.style.overflow = "hidden";
+      parent.style.overflow =
+        layout !== "checkout" && layout !== "unsubscribe" ? "" : "hidden";
+      window.addEventListener("scroll", setModalY);
 
       return () => {
+        window.removeEventListener("scroll", setModalY);
         parent.style.overflow = "";
       };
-    }, [layout, portal]);
+    }, [portal, layout]);
 
     return (
       <>
@@ -47,7 +49,10 @@ export const Viewport = forwardRef<HTMLDivElement | null, ViewportProps>(
           layout === "checkout" &&
           createPortal(<CheckoutDialog top={top} />, portal || document.body)}
         {layout === "unsubscribe" &&
-          createPortal(<UnsubscribeDialog />, portal || document.body)}
+          createPortal(
+            <UnsubscribeDialog top={top} />,
+            portal || document.body,
+          )}
       </>
     );
   },
