@@ -97,59 +97,24 @@ export const IncludedFeatures = forwardRef<
   const [showCount, setShowCount] = useState(VISIBLE_ENTITLEMENT_COUNT);
 
   const entitlements: {
-    featureUsage?: FeatureUsageResponseData;
+    featureUsage: FeatureUsageResponseData;
     usageData?: UsageBasedEntitlementResponseData;
-  }[] = (
-    props.visibleFeatures
-      ? props.visibleFeatures
-      : data.featureUsage?.features
-          .sort((a, b) => {
-            if (
-              a.feature?.name &&
-              b.feature?.name &&
-              a.feature?.name > b.feature?.name
-            ) {
-              return 1;
-            }
-
-            if (
-              a.feature?.name &&
-              b.feature?.name &&
-              a.feature?.name < b.feature?.name
-            ) {
-              return -1;
-            }
-
-            return 0;
-          })
-          .reduce((acc: string[], usage) => {
-            if (usage.feature?.id) {
-              acc.push(usage.feature.id);
-            }
-
-            return acc;
-          }, []) || []
-  ).reduce(
+  }[] = (data.featureUsage?.features || []).reduce(
     (
       acc: {
-        featureUsage?: FeatureUsageResponseData;
+        featureUsage: FeatureUsageResponseData;
         usageData?: UsageBasedEntitlementResponseData;
       }[],
-      id,
+      usage,
     ) => {
-      const mappedFeatureUsage = data.featureUsage?.features.find(
-        (usage) => usage.feature?.id === id,
-      );
       const mappedUsageData = data.activeUsageBasedEntitlements.find(
-        (entitlement) => entitlement.featureId === id,
+        (entitlement) => entitlement.featureId === usage.feature?.id,
       );
 
-      if (mappedFeatureUsage) {
-        acc.push({
-          featureUsage: mappedFeatureUsage,
-          usageData: mappedUsageData,
-        });
-      }
+      acc.push({
+        featureUsage: usage,
+        usageData: mappedUsageData,
+      });
 
       return acc;
     },
