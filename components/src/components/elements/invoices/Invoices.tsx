@@ -58,17 +58,14 @@ function resolveDesignProps(props: RecursivePartial<DesignProps>): DesignProps {
   };
 }
 
-function formatInvoices(invoices?: InvoiceResponseData[]) {
-  return (invoices || [])
-    .filter(
-      ({ url, amountDue, amountPaid }) =>
-        url && (amountDue === 0 || amountPaid > 0),
-    )
+function formatInvoices(invoices: InvoiceResponseData[] = []) {
+  return invoices
+    .filter(({ amountDue, amountPaid }) => amountDue === 0 || amountPaid > 0)
     .sort((a, b) => (a.dueDate && b.dueDate ? +b.dueDate - +a.dueDate : 1))
     .map(({ amountDue, dueDate, url, currency }) => ({
-      ...(dueDate && { date: toPrettyDate(dueDate) }),
       amount: formatCurrency(amountDue, currency),
-      url,
+      ...(dueDate && { date: toPrettyDate(dueDate) }),
+      ...(url && { url }),
     }));
 }
 
@@ -141,9 +138,9 @@ export const Invoices = forwardRef<
     });
   }, [api]);
 
-  /* if (invoices.length === 0) {
+  if (!invoices.length) {
     return null;
-  } */
+  }
 
   return (
     <Element ref={ref} className={className}>
