@@ -23,6 +23,7 @@ import type { RecursivePartial, ElementProps } from "../../../types";
 import { Element } from "../../layout";
 import {
   Box,
+  EmbedButton,
   Flex,
   Icon,
   IconNameTypes,
@@ -31,6 +32,7 @@ import {
   Text,
 } from "../../ui";
 import { t } from "i18next";
+import { DefaultTheme } from "styled-components/dist/models/ThemeProvider";
 
 type PaymentMethodType =
   | "card"
@@ -48,7 +50,13 @@ interface PaymentElementProps {
   iconTitle?: string;
   iconStyles?: CSSProperties;
   label?: string;
-  paymentLast4?: string | undefined | null;
+  paymentLast4?: string | null;
+}
+
+interface PaymentElementListProps {
+  paymentMethod: PaymentMethodResponseData;
+  setDefault: (id: string) => void;
+  handleDelete: (id: string) => void;
 }
 
 interface DesignProps {
@@ -79,28 +87,127 @@ const PaymentElement = ({
   const theme = useTheme();
 
   return (
-    <>
-      <Text $font={theme.typography.text.fontFamily} $size={16}>
-        <Flex $flexDirection="row" $alignItems="center">
-          {iconName && (
-            <Box>
-              <Icon name={iconName} title={iconTitle} style={iconStyles} />
+    <Text $font={theme.typography.text.fontFamily} $size={16}>
+      <Flex $flexDirection="row" $alignItems="center">
+        {iconName && (
+          <Box>
+            <Icon name={iconName} title={iconTitle} style={iconStyles} />
+          </Box>
+        )}
+
+        <Flex $alignItems="center">
+          <Box $lineHeight="1" $marginRight="4px">
+            {t(label as string)}
+          </Box>
+          {paymentLast4 && (
+            <Box $display="inline-block" $fontWeight="bold">
+              {paymentLast4}
             </Box>
           )}
-
-          <Flex $alignItems="center">
-            <Box $lineHeight="1" $marginRight="4px">
-              {t(label as string)}
-            </Box>
-            {paymentLast4 && (
-              <Box $display="inline-block" $fontWeight="bold">
-                {paymentLast4}
-              </Box>
-            )}
-          </Flex>
         </Flex>
-      </Text>
-    </>
+      </Flex>
+    </Text>
+  );
+};
+
+const PaymentListElement = ({
+  paymentMethod,
+  setDefault,
+  handleDelete,
+}: PaymentElementListProps) => {
+  const theme = useTheme();
+  const isLightBackground = useIsLightBackground();
+
+  const { iconName, iconTitle, label, paymentLast4 } =
+    getPaymentMethodData(paymentMethod);
+  const iconStyles = getIconStyles({ size: "lg", theme });
+
+  const expirationDate = useMemo(() => {
+    const { cardExpMonth, cardExpYear } = paymentMethod;
+    if (!cardExpMonth && !cardExpYear) {
+      return "";
+    }
+
+    if (!cardExpYear) {
+      return "";
+    }
+
+    const formatedYear = cardExpYear.toString().slice(-2);
+
+    if (!cardExpMonth) {
+      return formatedYear;
+    }
+
+    return `${cardExpMonth}/${formatedYear}`;
+  }, [paymentMethod]);
+
+  return (
+    <Flex
+      $flexDirection="row"
+      $alignItems="center"
+      $borderWidth="0"
+      $borderBottomWidth="1px"
+      $borderStyle="solid"
+      $borderColor={
+        isLightBackground
+          ? "hsla(0, 0%, 0%, 0.175)"
+          : "hsla(0, 0%, 100%, 0.175)"
+      }
+    >
+      <Box $paddingLeft="0.5rem" $paddingRight="0.5rem">
+        {iconName && (
+          <Icon name={iconName} title={iconTitle} style={iconStyles} />
+        )}
+      </Box>
+
+      <Box $flexGrow="1">
+        {t(label as string)} {paymentLast4}
+      </Box>
+
+      <Box
+        $flexGrow="1"
+        $color={
+          isLightBackground
+            ? "hsla(0, 0%, 0%, 0.375)"
+            : "hsla(0, 0%, 100%, 0.375)"
+        }
+      >
+        {expirationDate && t("Expires", { date: expirationDate })}
+      </Box>
+
+      <Box
+        onClick={() => {
+          setDefault(paymentMethod.id);
+        }}
+      >
+        <Text
+          $font={theme.typography.link.fontFamily}
+          $size={theme.typography.link.fontSize}
+          $weight={theme.typography.link.fontWeight}
+          $color={theme.typography.link.color}
+        >
+          {t("Set default")}
+        </Text>
+      </Box>
+
+      <Box
+        $cursor="pointer"
+        $paddingLeft="1rem"
+        onClick={() => {
+          handleDelete(paymentMethod.id);
+        }}
+      >
+        <Icon
+          name="close"
+          style={{
+            fontSize: 28,
+            color: isLightBackground
+              ? "hsla(0, 0%, 0%, 0.275)"
+              : "hsla(0, 0%, 100%, 0.275)",
+          }}
+        />
+      </Box>
+    </Flex>
   );
 };
 
@@ -119,6 +226,91 @@ const resolveDesignProps = (
   };
 };
 
+const getPaymentMethodData = ({
+  accountLast4,
+  accountName,
+  bankName,
+  billingName,
+  billingEmail,
+  cardBrand,
+  cardLast4,
+  paymentMethodType,
+}: PaymentMethodResponseData) => {
+  const cardBrands = new Set(["visa", "mastercard", "amex"]);
+  const cardIcon = (icon: IconNameTypes) =>
+    icon && cardBrands.has(icon) ? icon : "credit";
+
+  const genericLabel =
+    billingName || billingEmail || accountName || bankName || "Payment method";
+
+  const payments: Record<PaymentMethodType, PaymentElementProps> = {
+    card: {
+      iconName: cardIcon(cardBrand as IconNameTypes),
+      iconTitle: cardBrand || "Card",
+      label: `Card ending in `,
+      paymentLast4: cardLast4,
+    },
+    us_bank_account: {
+      iconName: "bank",
+      iconTitle: `${billingEmail} | ${bankName}`,
+      label: bankName || billingEmail || "Bank account",
+      paymentLast4: accountLast4,
+    },
+    amazon_pay: {
+      iconName: "amazonpay",
+      iconTitle: billingName || billingName || "Amazon Pay account",
+      label: billingName || billingEmail || "Amazon Pay account",
+    },
+    cashapp: {
+      iconName: "cashapp",
+      iconTitle: accountName || billingEmail || "CashApp account",
+      label: accountName || billingEmail || "CashApp account",
+    },
+    paypal: {
+      iconName: "paypal",
+      iconTitle: accountName || billingEmail || "PayPal account",
+      label: accountName || billingEmail || "PayPal account",
+    },
+    link: {
+      iconName: "link",
+      iconTitle: billingEmail || accountName || "Link account",
+      label: billingEmail || accountName || "Link account",
+    },
+  };
+
+  return (
+    payments[paymentMethodType || ""] ?? {
+      iconName: "generic-payment",
+      iconTitle: genericLabel,
+      label: genericLabel,
+    }
+  );
+};
+
+const getIconStyles = ({
+  size,
+  theme,
+}: {
+  size: PaymentElementSizes;
+  theme: DefaultTheme;
+}) => {
+  const iconStyles = {
+    lg: { fontSize: 28, marginLeft: -2, marginRight: 8 },
+    md: { fontSize: 25, marginLeft: 0, marginRight: 7, marginTop: -1 },
+    sm: { fontSize: 24, marginLeft: 0, marginRight: 4 },
+  };
+
+  const getIconStyles = (size: PaymentElementSizes) =>
+    iconStyles[size] ?? iconStyles.md;
+
+  return {
+    ...getIconStyles(size),
+    marginRight: 4,
+    lineHeight: 1,
+    color: theme.typography.text.color,
+  };
+};
+
 const PaymentMethodElement = ({
   size = "md",
   paymentMethod,
@@ -133,106 +325,6 @@ const PaymentMethodElement = ({
   const isLightBackground = useIsLightBackground();
 
   const sizeFactor = size === "lg" ? 1.6 : size === "md" ? 1 : 0.5;
-
-  const {
-    accountLast4,
-    accountName,
-    bankName,
-    billingName,
-    billingEmail,
-    cardBrand,
-    cardLast4,
-    paymentMethodType,
-  } = paymentMethod;
-
-  const cardBrands = new Set(["visa", "mastercard", "amex"]);
-  const cardIcon = (icon: IconNameTypes) =>
-    icon && cardBrands.has(icon) ? icon : "credit";
-
-  const iconStyles = {
-    lg: { fontSize: 28, marginLeft: -2, marginRight: 8 },
-    md: { fontSize: 25, marginLeft: 0, marginRight: 7, marginTop: -1 },
-    sm: { fontSize: 24, marginLeft: 0, marginRight: 4 },
-  };
-
-  const getIconStyles = (size: PaymentElementSizes) =>
-    iconStyles[size] ?? iconStyles.md;
-
-  const paymentMethodElementProps = (
-    iconName?: IconNameTypes,
-    iconTitle?: string,
-    label?: string,
-    paymentLast4?: string | null | undefined,
-  ) => ({
-    iconName: iconName,
-    iconTitle,
-    iconStyles: {
-      ...getIconStyles(size),
-      marginRight: 4,
-      lineHeight: 1,
-      color: theme.typography.text.color,
-    },
-    label,
-    paymentLast4,
-  });
-
-  const renderPaymentMethodElement = () => {
-    const payments: Record<PaymentMethodType, PaymentElementProps> = {
-      card: {
-        iconName: cardIcon(cardBrand as IconNameTypes),
-        iconTitle: cardBrand || "Card",
-        label: `Card ending in `,
-        paymentLast4: cardLast4,
-      },
-      us_bank_account: {
-        iconName: "bank",
-        iconTitle: `${billingEmail} | ${bankName}`,
-        label: bankName || billingEmail || "Bank account",
-        paymentLast4: accountLast4,
-      },
-      amazon_pay: {
-        iconName: "amazonpay",
-        iconTitle: billingName || billingName || "Amazon Pay account",
-        label: billingName || billingEmail || "Amazon Pay account",
-      },
-      cashapp: {
-        iconName: "cashapp",
-        iconTitle: accountName || billingEmail || "CashApp account",
-        label: accountName || billingEmail || "CashApp account",
-      },
-      paypal: {
-        iconName: "paypal",
-        iconTitle: accountName || billingEmail || "PayPal account",
-        label: accountName || billingEmail || "PayPal account",
-      },
-      link: {
-        iconName: "link",
-        iconTitle: billingEmail || accountName || "Link account",
-        label: billingEmail || accountName || "Link account",
-      },
-    };
-
-    const genericLabel =
-      billingName ||
-      billingEmail ||
-      accountName ||
-      bankName ||
-      "Payment method";
-
-    const { iconName, iconTitle, label, paymentLast4 } = payments[
-      paymentMethodType || ""
-    ] ?? {
-      iconName: "generic-payment",
-      iconTitle: genericLabel,
-      label: genericLabel,
-    };
-
-    return (
-      <PaymentElement
-        {...paymentMethodElementProps(iconName, iconTitle, label, paymentLast4)}
-      />
-    );
-  };
 
   return (
     <Flex $flexDirection="column" $gap={`${sizeFactor}rem`}>
@@ -274,7 +366,10 @@ const PaymentMethodElement = ({
         $padding={`${sizeFactor / 2.2}rem ${sizeFactor}rem`}
         $borderRadius="9999px"
       >
-        {renderPaymentMethodElement()}
+        <PaymentElement
+          {...getPaymentMethodData(paymentMethod)}
+          {...getIconStyles({ size, theme })}
+        />
 
         {props.functions.allowEdit && onEdit && (
           <Text
@@ -322,6 +417,8 @@ export const PaymentMethod = forwardRef<
   const [stripe, setStripe] = useState<Promise<Stripe | null> | null>(null);
   const [setupIntent, setSetupIntent] = useState<SetupIntentResponseData>();
   const [top, setTop] = useState(0);
+  const [showDifferentPaymentMethods, setShowDifferentPaymentMethods] =
+    useState(false);
 
   const paymentMethod = useMemo(() => {
     return data.subscription?.paymentMethod;
@@ -367,6 +464,10 @@ export const PaymentMethod = forwardRef<
     }
   }, [t, api, data.component?.id]);
 
+  const dropDownDifferentPaymentMethods = useCallback(() => {
+    setShowDifferentPaymentMethods((state) => !state);
+  }, []);
+
   const updatePaymentMethod = useCallback(
     async (id: string) => {
       if (!api || !id) {
@@ -392,6 +493,30 @@ export const PaymentMethod = forwardRef<
       }
     },
     [t, api, hydrate, setLayout],
+  );
+
+  const deletePaymentMethod = useCallback(
+    async (id: string) => {
+      console.log("here", id, api);
+      if (!api || !id) {
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        // Payment method id is used and expected
+        // Some problem with type generation
+        await api.deletePaymentMethod({
+          checkoutId: id,
+        });
+        setLayout("success");
+      } catch {
+        setError(t("Error deleting payment method. Please try again."));
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [api, setLayout, t],
   );
 
   useEffect(() => {
@@ -497,20 +622,56 @@ export const PaymentMethod = forwardRef<
                         size="lg"
                         paymentMethod={paymentMethod}
                         monthsToExpiration={monthsToExpiration}
+                        onEdit={createSetupIntent}
                         {...props}
                       />
 
                       <Box>
                         <Text
-                          onClick={createSetupIntent}
+                          onClick={dropDownDifferentPaymentMethods}
                           $font={theme.typography.link.fontFamily}
                           $size={theme.typography.link.fontSize}
                           $weight={theme.typography.link.fontWeight}
                           $color={theme.typography.link.color}
                         >
-                          {t("Change payment method")}
+                          {t("Choose different payment method")}
+                          <Icon
+                            name="chevron-down"
+                            style={{
+                              display: "inline-flex",
+                              marginLeft: "0.5rem",
+                              ...(showDifferentPaymentMethods && {
+                                transform: "rotate(180deg)",
+                              }),
+                            }}
+                          />
                         </Text>
                       </Box>
+
+                      {showDifferentPaymentMethods && (
+                        <Flex
+                          $flexDirection="column"
+                          $overflowY="hidden"
+                          $height="10rem"
+                        >
+                          <Flex $flexDirection="column" $overflowY="scroll">
+                            {(data.company?.paymentMethods || []).map(
+                              (paymentMethod) => (
+                                <PaymentListElement
+                                  key={paymentMethod.id}
+                                  paymentMethod={paymentMethod}
+                                  setDefault={updatePaymentMethod}
+                                  handleDelete={deletePaymentMethod}
+                                />
+                              ),
+                            )}
+                          </Flex>
+
+                          <EmbedButton onClick={createSetupIntent} size="lg">
+                            {t("Add new payment method")}
+                          </EmbedButton>
+                        </Flex>
+                      )}
                     </Flex>
                   )}
 
