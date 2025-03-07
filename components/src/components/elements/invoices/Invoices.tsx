@@ -138,7 +138,7 @@ export const Invoices = forwardRef<
     });
   }, [api]);
 
-  if (!invoices.length) {
+  if (invoices.length === 0) {
     return null;
   }
 
