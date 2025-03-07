@@ -23,8 +23,8 @@ import {
 } from "../../../hooks";
 import { PeriodToggle } from "../../shared";
 import { Flex, Modal, ModalHeader, Text } from "../../ui";
-import { Navigation } from "./Navigation";
 import { Sidebar } from "../sidebar";
+import { Navigation } from "./Navigation";
 import { Plan } from "./Plan";
 import { AddOns } from "./AddOns";
 import { Usage } from "./Usage";
