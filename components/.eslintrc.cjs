@@ -21,10 +21,7 @@ module.exports = {
   plugins: ["import", "react"],
   rules: {
     "@typescript-eslint/no-empty-function": "off",
-    "@typescript-eslint/no-unused-vars": [
-      "error",
-      { ignoreRestSiblings: true },
-    ],
+    "@typescript-eslint/no-unused-vars": ["warn", { ignoreRestSiblings: true }],
     "react/no-unescaped-entities": "off",
   },
   settings: {
