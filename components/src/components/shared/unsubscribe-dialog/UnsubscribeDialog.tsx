@@ -1,22 +1,28 @@
-import { Box, EmbedButton, Flex, Icon, Modal, Text } from "../../ui";
-import { Sidebar } from "../sidebar";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
+import type { PlanEntitlementResponseData } from "../../../api";
 import {
   useAvailablePlans,
   useEmbed,
   useIsLightBackground,
 } from "../../../hooks";
-import { useCallback, useMemo, useState } from "react";
-import type { PlanEntitlementResponseData } from "../../../api";
 import { toPrettyDate } from "../../../utils";
+import { Box, EmbedButton, Flex, Icon, Modal, Text } from "../../ui";
+import { Sidebar } from "../sidebar";
 
-export const UnsubscribeDialog = () => {
+export interface UnsubscribeDialogProps {
+  top?: number;
+}
+
+export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
   const { t } = useTranslation();
 
   const theme = useTheme();
 
   const { data, setLayout, setSelected } = useEmbed();
+
+  const contentRef = useRef<HTMLDivElement>(null);
 
   const [error, setError] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(false);
@@ -94,7 +100,12 @@ export const UnsubscribeDialog = () => {
   }, [setLayout]);
 
   return (
-    <Modal id="unsubscribe-dialog" size="auto">
+    <Modal
+      id="unsubscribe-dialog"
+      size="auto"
+      top={top}
+      contentRef={contentRef}
+    >
       <Box
         $display="inline-flex"
         $position="absolute"
