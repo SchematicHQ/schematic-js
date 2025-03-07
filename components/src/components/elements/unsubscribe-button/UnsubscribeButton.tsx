@@ -52,7 +52,9 @@ export const UnsubscribeButton = forwardRef<
   const { data, setLayout } = useEmbed();
 
   const disabled =
-    !data.subscription || data.subscription.status === "cancelled";
+    !data.subscription ||
+    data.subscription.status === "cancelled" ||
+    data.subscription.cancelAtPeriodEnd;
 
   const buttonStyles: Record<
     ComponentStyle,

@@ -139,8 +139,7 @@ export const PlanManager = forwardRef<
   const subscriptionCurrency = billingSubscription?.currency;
   const showTrialBox =
     billingSubscription && billingSubscription.status == "trialing";
-  const showUnsubscribeBox =
-    billingSubscription && billingSubscription.status == "cancelled";
+  const showUnsubscribeBox = billingSubscription?.cancelAtPeriodEnd;
 
   const trialEndDate = billingSubscription?.trialEnd
     ? new Date(billingSubscription.trialEnd * 1000)
@@ -218,9 +217,12 @@ export const PlanManager = forwardRef<
           >
             {billingSubscription.cancelAt
               ? t("Access to plan will end on", {
-                  date: toPrettyDate(new Date(billingSubscription.cancelAt), {
-                    month: "numeric",
-                  }),
+                  date: toPrettyDate(
+                    new Date(billingSubscription.cancelAt * 1000),
+                    {
+                      month: "numeric",
+                    },
+                  ),
                 })
               : ""}
           </Text>

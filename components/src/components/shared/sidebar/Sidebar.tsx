@@ -1342,12 +1342,7 @@ export const Sidebar = ({
         )}
 
         {layout === "unsubscribe" && (
-          <EmbedButton
-            onClick={async () => {
-              unsubscribe();
-            }}
-            isLoading={isLoading}
-          >
+          <EmbedButton onClick={unsubscribe} isLoading={isLoading}>
             {t("Cancel subscription")}
           </EmbedButton>
         )}
