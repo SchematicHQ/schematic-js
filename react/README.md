@@ -71,6 +71,12 @@ const MyComponent = () => {
 };
 ```
 
+If you want to record large numbers of the same event at once, or perhaps measure usage in terms of a unit like tokens or memory, you can optionally specify a quantity for your event:
+
+```tsx
+track({ event: "query", quantity: 10 });
+```
+
 ### Checking flags
 
 To check a flag, you can use the `useSchematicFlag` hook:
@@ -169,6 +175,7 @@ ReactDOM.render(
 ```
 
 Offline mode automatically enables debug mode to help with troubleshooting.
+
 
 ## License
 
