@@ -1,5 +1,6 @@
 import { forwardRef, useLayoutEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { type ComponentCapabilities } from "../../../api";
 import { useEmbed } from "../../../hooks";
 import { CheckoutDialog, UnsubscribeDialog } from "../../shared";
 import { Badge } from "../../ui/badge";
@@ -38,7 +39,12 @@ export const Viewport = forwardRef<HTMLDivElement | null, ViewportProps>(
       <>
         <StyledViewport ref={ref} {...props}>
           <RenderLayout>{children}</RenderLayout>
-          {settings.badge?.visibility === "visible" && <Badge />}
+          {(
+            data.capabilities as ComponentCapabilities & {
+              badgeVisibility?: boolean;
+            }
+          ).badgeVisibility &&
+            settings.badge?.visibility === "visible" && <Badge />}
         </StyledViewport>
 
         {canCheckout &&

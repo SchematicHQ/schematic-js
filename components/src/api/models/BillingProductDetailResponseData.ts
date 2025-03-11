@@ -88,6 +88,12 @@ export interface BillingProductDetailResponseData {
   quantity: number;
   /**
    *
+   * @type {number}
+   * @memberof BillingProductDetailResponseData
+   */
+  subscriptionCount: number;
+  /**
+   *
    * @type {Date}
    * @memberof BillingProductDetailResponseData
    */
@@ -112,6 +118,11 @@ export function instanceOfBillingProductDetailResponseData(
   if (!("prices" in value) || value["prices"] === undefined) return false;
   if (!("productId" in value) || value["productId"] === undefined) return false;
   if (!("quantity" in value) || value["quantity"] === undefined) return false;
+  if (
+    !("subscriptionCount" in value) ||
+    value["subscriptionCount"] === undefined
+  )
+    return false;
   if (!("updatedAt" in value) || value["updatedAt"] === undefined) return false;
   return true;
 }
@@ -142,6 +153,7 @@ export function BillingProductDetailResponseDataFromJSONTyped(
     ),
     productId: json["product_id"],
     quantity: json["quantity"],
+    subscriptionCount: json["subscription_count"],
     updatedAt: new Date(json["updated_at"]),
   };
 }
@@ -163,6 +175,7 @@ export function BillingProductDetailResponseDataToJSON(
     prices: (value["prices"] as Array<any>).map(BillingPriceResponseDataToJSON),
     product_id: value["productId"],
     quantity: value["quantity"],
+    subscription_count: value["subscriptionCount"],
     updated_at: value["updatedAt"].toISOString(),
   };
 }
