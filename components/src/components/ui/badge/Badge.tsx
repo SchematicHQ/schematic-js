@@ -13,7 +13,7 @@ export const Badge = () => {
   return (
     <Flex
       as="a"
-      href="https://schematichq.com"
+      href="https://schematichq.com?utm_source=schematic_component_badge"
       target="_blank"
       rel="noreferrer"
       $justifyContent={settings.badge?.alignment || "start"}
