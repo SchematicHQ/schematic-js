@@ -155,6 +155,13 @@ export const MeteredFeatures = forwardRef<
           },
           index,
         ) => {
+          const limit = allocation || softLimit || 0;
+          const isOverage =
+            priceBehavior === "overage" &&
+            typeof softLimit === "number" &&
+            typeof usage === "number" &&
+            usage > softLimit;
+
           let price: number | undefined;
           let currency: string | undefined;
           if (planPeriod === "month") {
@@ -164,8 +171,6 @@ export const MeteredFeatures = forwardRef<
             price = yearlyUsageBasedPrice?.price;
             currency = yearlyUsageBasedPrice?.currency;
           }
-
-          const limit = allocation || softLimit || 0;
 
           return (
             <Flex key={index} $flexDirection="column-reverse">
@@ -401,24 +406,13 @@ export const MeteredFeatures = forwardRef<
                       <Flex $gap="2rem">
                         <ProgressBar
                           progress={
-                            (priceBehavior === "overage" &&
-                            typeof softLimit === "number" &&
-                            usage > softLimit
-                              ? softLimit / usage
-                              : usage / limit) * 100
+                            (isOverage ? softLimit / usage : usage / limit) *
+                            100
                           }
                           value={usage}
-                          total={
-                            priceBehavior === "overage" &&
-                            typeof softLimit === "number" &&
-                            usage > softLimit
-                              ? softLimit
-                              : limit
-                          }
+                          total={isOverage ? softLimit : limit}
                           color={
-                            priceBehavior === "overage" &&
-                            typeof softLimit === "number" &&
-                            usage > softLimit
+                            isOverage
                               ? "blue"
                               : progressColorMap[
                                   Math.floor(
