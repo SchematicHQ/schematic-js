@@ -4,7 +4,14 @@ import { useTheme } from "styled-components";
 import pluralize from "pluralize";
 import { TEXT_BASE_SIZE, VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
 import { useIsLightBackground, type SelectedPlan } from "../../../hooks";
-import { hexToHSL, formatCurrency, formatNumber } from "../../../utils";
+import {
+  darken,
+  formatCurrency,
+  formatNumber,
+  hexToHSL,
+  lighten,
+  shortenPeriod,
+} from "../../../utils";
 import { cardBoxShadow } from "../../layout";
 import {
   Box,
@@ -218,13 +225,22 @@ export const Plan = ({
                 <Flex $flexDirection="column" $gap="1rem" $flexGrow="1">
                   {plan.entitlements
                     .reduce((acc: React.ReactElement[], entitlement) => {
+                      if (entitlement.feature?.name === "Search") {
+                        entitlement.priceBehavior = "overage";
+                        entitlement.softLimit = 100;
+                        entitlement.valueType = "trait";
+                      }
                       const hasNumericValue =
                         entitlement.valueType === "numeric" ||
                         entitlement.valueType === "unlimited" ||
                         entitlement.valueType === "trait";
 
                       let metricPeriodText;
-                      if (hasNumericValue && entitlement.metricPeriod) {
+                      if (
+                        hasNumericValue &&
+                        entitlement.metricPeriod &&
+                        entitlement.priceBehavior !== "overage"
+                      ) {
                         metricPeriodText = {
                           billing: t("billing period"),
                           current_day: t("day"),
@@ -233,6 +249,8 @@ export const Plan = ({
                         }[entitlement.metricPeriod];
                       }
 
+                      const limit =
+                        entitlement.softLimit || entitlement.valueNumeric;
                       const price = (
                         period === "month"
                           ? entitlement.meteredMonthlyPrice
@@ -278,14 +296,23 @@ export const Plan = ({
                             )}
 
                             {entitlement.feature?.name && (
-                              <Flex $alignItems="center">
+                              <Flex
+                                $flexDirection="column"
+                                $justifyContent="center"
+                                $gap="0.5rem"
+                              >
                                 <Text
                                   $font={theme.typography.text.fontFamily}
                                   $size={theme.typography.text.fontSize}
                                   $weight={theme.typography.text.fontWeight}
                                   $color={theme.typography.text.color}
+                                  $leading={1.35}
                                 >
-                                  {typeof price !== "undefined" ? (
+                                  {typeof price === "number" &&
+                                  (entitlement.priceBehavior ===
+                                    "pay_in_advance" ||
+                                    entitlement.priceBehavior ===
+                                      "pay_as_you_go") ? (
                                     <>
                                       {formatCurrency(price, currency)}{" "}
                                       {t("per")}{" "}
@@ -306,20 +333,68 @@ export const Plan = ({
                                               entitlement.feature.name,
                                             ),
                                           })
-                                        : typeof entitlement.valueNumeric ===
-                                            "number" &&
-                                          `${formatNumber(entitlement.valueNumeric)} ${pluralize(entitlement.feature.name, entitlement.valueNumeric)}`}
-                                      {metricPeriodText && (
+                                        : typeof limit === "number" && (
+                                            <>
+                                              {formatNumber(limit)}{" "}
+                                              {pluralize(
+                                                entitlement.feature.name,
+                                                limit,
+                                              )}
+                                            </>
+                                          )}
+                                      {metricPeriodText ? (
                                         <>
                                           {" "}
                                           {t("per")} {metricPeriodText}
                                         </>
+                                      ) : (
+                                        entitlement.priceBehavior ===
+                                          "overage" &&
+                                        entitlement.feature.featureType ===
+                                          "event" && (
+                                          <>/{shortenPeriod(period)}</>
+                                        )
                                       )}
                                     </>
                                   ) : (
                                     entitlement.feature.name
                                   )}
                                 </Text>
+
+                                {entitlement.priceBehavior === "overage" &&
+                                  typeof price === "number" && (
+                                    <Text
+                                      $font={theme.typography.text.fontFamily}
+                                      $size={
+                                        0.875 * theme.typography.text.fontSize
+                                      }
+                                      $weight={theme.typography.text.fontWeight}
+                                      $color={
+                                        hexToHSL(theme.typography.text.color)
+                                          .l > 50
+                                          ? darken(
+                                              theme.typography.text.color,
+                                              0.46,
+                                            )
+                                          : lighten(
+                                              theme.typography.text.color,
+                                              0.46,
+                                            )
+                                      }
+                                      $leading={1.35}
+                                    >
+                                      {formatCurrency(price)}/
+                                      {pluralize(
+                                        entitlement.feature.name.toLowerCase(),
+                                        1,
+                                      )}
+                                      {entitlement.feature.featureType ===
+                                        "event" && (
+                                        <>/{shortenPeriod(period)}</>
+                                      )}{" "}
+                                      {t("overage fee")}
+                                    </Text>
+                                  )}
                               </Flex>
                             )}
                           </Flex>
