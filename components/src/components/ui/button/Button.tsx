@@ -36,7 +36,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         disabled={disabled}
         {...props}
       >
-        {isLoading && <Loader $size="sm" $isLoading={isLoading} />}
+        <Loader $size="sm" $isLoading={isLoading} />
         {children}
       </styles.Button>
     );

@@ -310,7 +310,7 @@ export const PaymentMethod = forwardRef<
 
   const theme = useTheme();
 
-  const { api, data, layout, setLayout } = useEmbed();
+  const { api, data, layout, hydrate, setLayout } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
 
@@ -375,19 +375,23 @@ export const PaymentMethod = forwardRef<
 
       try {
         setIsLoading(true);
+
         await api.updatePaymentMethod({
           updatePaymentMethodRequestBody: {
             paymentMethodId: id,
           },
         });
-        setLayout("success");
+
+        setLayout("portal");
+        hydrate();
       } catch {
+        setLayout("payment");
         setError(t("Error updating payment method. Please try again."));
       } finally {
         setIsLoading(false);
       }
     },
-    [t, api, setLayout],
+    [t, api, hydrate, setLayout],
   );
 
   useEffect(() => {

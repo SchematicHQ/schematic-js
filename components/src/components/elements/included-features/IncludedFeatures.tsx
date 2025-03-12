@@ -97,83 +97,24 @@ export const IncludedFeatures = forwardRef<
   const [showCount, setShowCount] = useState(VISIBLE_ENTITLEMENT_COUNT);
 
   const entitlements: {
-    featureUsage?: FeatureUsageResponseData;
+    featureUsage: FeatureUsageResponseData;
     usageData?: UsageBasedEntitlementResponseData;
-  }[] = (
-    props.visibleFeatures
-      ? props.visibleFeatures
-      : data.featureUsage?.features
-          .sort((a, b) => {
-            if (
-              a.feature?.name &&
-              b.feature?.name &&
-              a.feature?.name > b.feature?.name
-            ) {
-              return 1;
-            }
-
-            if (
-              a.feature?.name &&
-              b.feature?.name &&
-              a.feature?.name < b.feature?.name
-            ) {
-              return -1;
-            }
-
-            return 0;
-          })
-          .reduce((acc: string[], usage) => {
-            if (usage.feature?.id) {
-              acc.push(usage.feature.id);
-            }
-
-            return acc;
-          }, []) || []
-  ).reduce(
+  }[] = (data.featureUsage?.features || []).reduce(
     (
       acc: {
-        featureUsage?: FeatureUsageResponseData & {
-          // TODO: remove once api is updated
-          softLimit?: number;
-        };
+        featureUsage: FeatureUsageResponseData;
         usageData?: UsageBasedEntitlementResponseData;
       }[],
-      id,
+      usage,
     ) => {
-      const mappedFeatureUsage = data.featureUsage?.features.find(
-        (usage) => usage.feature?.id === id,
-      );
       const mappedUsageData = data.activeUsageBasedEntitlements.find(
-        (entitlement) => entitlement.featureId === id,
+        (entitlement) => entitlement.featureId === usage.feature?.id,
       );
 
-      if (mappedFeatureUsage) {
-        let price: number | undefined;
-        if (data.company?.plan?.planPeriod === "month") {
-          price = mappedFeatureUsage.monthlyUsageBasedPrice?.price;
-        } else if (data.company?.plan?.planPeriod === "year") {
-          price = mappedFeatureUsage.yearlyUsageBasedPrice?.price;
-        }
-
-        if (mappedFeatureUsage.priceBehavior && typeof price === "number") {
-          // TODO: for testing, remove later
-          if (mappedFeatureUsage.feature?.name === "Search") {
-            acc.push({
-              featureUsage: {
-                ...mappedFeatureUsage,
-                priceBehavior: "overage",
-                softLimit: 1,
-              },
-              usageData: mappedUsageData,
-            });
-          } else {
-            acc.push({
-              featureUsage: mappedFeatureUsage,
-              usageData: mappedUsageData,
-            });
-          }
-        }
-      }
+      acc.push({
+        featureUsage: usage,
+        usageData: mappedUsageData,
+      });
 
       return acc;
     },

@@ -19,17 +19,15 @@ export const Viewport = forwardRef<HTMLDivElement | null, ViewportProps>(
     const canCheckout = data.capabilities?.checkout ?? true;
 
     useLayoutEffect(() => {
-      if (layout !== "checkout" && layout !== "unsubscribe") {
-        return;
-      }
-
       const parent = portal || document.body;
-      const value = Math.abs(
-        (parent === document.body ? window.scrollY : parent.scrollTop) ?? 0,
+      setTop(
+        Math.abs(
+          (parent === document.body ? window.scrollY : parent.scrollTop) ?? 0,
+        ),
       );
-      setTop(value);
 
-      parent.style.overflow = "hidden";
+      parent.style.overflow =
+        layout === "checkout" || layout === "unsubscribe" ? "hidden" : "";
 
       return () => {
         parent.style.overflow = "";
@@ -47,7 +45,10 @@ export const Viewport = forwardRef<HTMLDivElement | null, ViewportProps>(
           layout === "checkout" &&
           createPortal(<CheckoutDialog top={top} />, portal || document.body)}
         {layout === "unsubscribe" &&
-          createPortal(<UnsubscribeDialog />, portal || document.body)}
+          createPortal(
+            <UnsubscribeDialog top={top} />,
+            portal || document.body,
+          )}
       </>
     );
   },

@@ -14,10 +14,7 @@ import { type DesignProps } from "./IncludedFeatures";
 interface DetailsProps extends DesignProps {
   shouldWrapChildren: boolean;
   details: {
-    featureUsage?: FeatureUsageResponseData & {
-      // TODO: remove once api is updated
-      softLimit?: number;
-    };
+    featureUsage?: FeatureUsageResponseData;
     usageData?: UsageBasedEntitlementResponseData;
   };
 }

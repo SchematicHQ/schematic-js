@@ -106,52 +106,18 @@ export const MeteredFeatures = forwardRef<
 
   const featureUsage = (
     props.visibleFeatures
-      ? props.visibleFeatures.reduce(
-          (
-            acc: (FeatureUsageResponseData & {
-              // TODO: remove once api is updated
-              softLimit?: number;
-            })[],
-            id,
-          ) => {
-            const mappedFeatureUsage = data.featureUsage?.features.find(
-              (usage) => usage.feature?.id === id,
-            );
+      ? props.visibleFeatures.reduce((acc: FeatureUsageResponseData[], id) => {
+          const mappedFeatureUsage = data.featureUsage?.features.find(
+            (usage) => usage.feature?.id === id,
+          );
 
-            if (mappedFeatureUsage) {
-              // TODO: for testing, remove later
-              if (mappedFeatureUsage.feature?.name === "Search") {
-                acc.push({
-                  ...mappedFeatureUsage,
-                  priceBehavior: "overage",
-                  softLimit: 1,
-                });
-              } else {
-                acc.push(mappedFeatureUsage);
-              }
-            }
+          if (mappedFeatureUsage) {
+            acc.push(mappedFeatureUsage);
+          }
 
-            return acc;
-          },
-          [],
-        )
-      : data.featureUsage?.features.map(
-          (
-            usage: FeatureUsageResponseData & {
-              // TODO: remove once api is updated
-              softLimit?: number;
-            },
-          ) => {
-            // TODO: for testing, remove later
-            return usage.feature?.name === "Search"
-              ? {
-                  ...usage,
-                  priceBehavior: "overage",
-                  softLimit: 1,
-                }
-              : usage;
-          },
-        ) || []
+          return acc;
+        }, [])
+      : data.featureUsage?.features || []
   ).filter(
     (usage) =>
       usage.feature?.featureType === "event" ||
