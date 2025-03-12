@@ -207,25 +207,23 @@ export const MeteredFeatures = forwardRef<
                     </>
                   </Text>
 
-                  {typeof usage === "number" &&
-                    typeof softLimit === "number" &&
-                    usage > softLimit && (
-                      <Text
-                        $font={theme.typography.text.fontFamily}
-                        $size={theme.typography.text.fontSize}
-                        $weight={theme.typography.text.fontWeight}
-                        $color={theme.typography.text.color}
-                      >
-                        {t("X over the limit", {
-                          amount: usage - softLimit,
-                        })}
-                        {" · "}
-                        {formatCurrency(price * (usage - softLimit), currency)}
-                        {feature?.featureType === "event" &&
-                          typeof data.company?.plan?.planPeriod === "string" &&
-                          `/${shortenPeriod(data.company.plan.planPeriod)}`}
-                      </Text>
-                    )}
+                  {isOverage && (
+                    <Text
+                      $font={theme.typography.text.fontFamily}
+                      $size={theme.typography.text.fontSize}
+                      $weight={theme.typography.text.fontWeight}
+                      $color={theme.typography.text.color}
+                    >
+                      {t("X over the limit", {
+                        amount: usage - softLimit,
+                      })}
+                      {" · "}
+                      {formatCurrency(price * (usage - softLimit), currency)}
+                      {feature?.featureType === "event" &&
+                        typeof data.company?.plan?.planPeriod === "string" &&
+                        `/${shortenPeriod(data.company.plan.planPeriod)}`}
+                    </Text>
+                  )}
                 </Flex>
               )}
 
@@ -421,9 +419,7 @@ export const MeteredFeatures = forwardRef<
                                   )
                                 ]
                           }
-                          {...(priceBehavior === "overage" &&
-                            typeof softLimit === "number" &&
-                            usage > softLimit && { bgColor: "#EF4444" })}
+                          {...(isOverage && { bgColor: "#EF4444" })}
                           $flexGrow="1"
                         />
 
