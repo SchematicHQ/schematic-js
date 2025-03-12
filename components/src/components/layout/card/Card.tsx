@@ -1,4 +1,9 @@
 import { forwardRef } from "react";
+import { useTheme } from "styled-components";
+import { TEXT_BASE_SIZE } from "../../../const";
+import { useEmbed } from "../../../hooks";
+import { hsla } from "../../../utils";
+import { Flex, Loader } from "../../ui";
 import { cardBoxShadow, StyledCard, Element, FussyChild } from "./styles";
 
 export { cardBoxShadow, StyledCard, Element, FussyChild };
@@ -10,16 +15,30 @@ export interface CardProps {
 
 export const Card = forwardRef<HTMLDivElement | null, CardProps>(
   ({ children, className }, ref) => {
-    /* const transientProps = Object.entries(props).reduce((acc: React.CSSProperties, [key, value]) => {
-      if (typeof value !== "undefined") {
-        return { ...acc, [`$${key}`]: value };
-      }
+    const { isPending } = useEmbed();
 
-      return acc;
-    }, {}); */
+    const theme = useTheme();
 
     return (
       <StyledCard ref={ref} className={className}>
+        {isPending && (
+          <Flex
+            $position="absolute"
+            $top={0}
+            $left={0}
+            $zIndex={1}
+            $width="100%"
+            $height="100%"
+            $justifyContent="center"
+            $alignItems="center"
+            $backgroundColor={hsla(theme.card.background, 0.8)}
+            $backdropFilter="blur(8px)"
+            $borderRadius={`${theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
+          >
+            <Loader $color={theme.primary} />
+          </Flex>
+        )}
+
         {children}
       </StyledCard>
     );

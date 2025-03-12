@@ -226,7 +226,7 @@ export const PricingTable = forwardRef<
             $gridTemplateColumns="repeat(auto-fill, minmax(320px, 1fr))"
             $gap="1rem"
           >
-            {plans.map((plan, index) => {
+            {plans.map((plan, index, self) => {
               const isActivePlan =
                 plan.current &&
                 data.company?.plan?.planPeriod === selectedPeriod;
@@ -400,27 +400,22 @@ export const PricingTable = forwardRef<
                   >
                     {props.plans.showEntitlements && (
                       <Flex $flexDirection="column" $gap="1rem" $flexGrow="1">
+                        {props.plans.showInclusionText && index > 0 && (
+                          <Box $marginBottom="1.5rem">
+                            <Text
+                              $font={theme.typography.text.fontFamily}
+                              $size={theme.typography.text.fontSize}
+                              $weight={theme.typography.text.fontWeight}
+                              $color={theme.typography.text.color}
+                            >
+                              {t("Everything in", {
+                                plan: self[index - 1].name,
+                              })}
+                            </Text>
+                          </Box>
+                        )}
+
                         {plan.entitlements
-                          .slice()
-                          .sort((a, b) => {
-                            if (
-                              a.feature?.name &&
-                              b.feature?.name &&
-                              a.feature?.name > b.feature?.name
-                            ) {
-                              return 1;
-                            }
-
-                            if (
-                              a.feature?.name &&
-                              b.feature?.name &&
-                              a.feature?.name < b.feature?.name
-                            ) {
-                              return -1;
-                            }
-
-                            return 0;
-                          })
                           .reduce((acc: React.ReactElement[], entitlement) => {
                             let price: number | undefined;
                             let currency: string | undefined;

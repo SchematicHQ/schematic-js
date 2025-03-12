@@ -1,4 +1,4 @@
-import { forwardRef, useCallback } from "react";
+import { forwardRef, useCallback, useLayoutEffect } from "react";
 import { useTheme } from "styled-components";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import { Container } from "../../layout";
@@ -24,6 +24,10 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(
       setLayout("portal");
       onClose?.();
     }, [setLayout, onClose]);
+
+    useLayoutEffect(() => {
+      contentRef?.current?.focus({ preventScroll: true });
+    }, [contentRef]);
 
     return (
       <Container
@@ -60,6 +64,9 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(
       >
         <Flex
           ref={contentRef}
+          tabIndex={0}
+          role="dialog"
+          aria-modal="true"
           $position="relative"
           $top="50%"
           $left="50%"
@@ -70,8 +77,6 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(
           $height="100vh"
           $backgroundColor={theme.card.background}
           $boxShadow="0px 1px 20px 0px #1018280F, 0px 1px 3px 0px #1018281A;"
-          role="dialog"
-          aria-modal="true"
           $viewport={{
             md: {
               ...(size === "auto"
