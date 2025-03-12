@@ -127,19 +127,7 @@ export const PlanManager = forwardRef<
       }
 
       if (usage.priceBehavior && typeof price === "number") {
-        // TODO: for testing, remove later
-        if (usage.feature?.name === "Search") {
-          acc.push({
-            ...usage,
-            price,
-            priceBehavior: "overage",
-            softLimit: 1,
-            quantity,
-            currencyCode,
-          });
-        } else {
-          acc.push({ ...usage, price, quantity, currencyCode });
-        }
+        acc.push({ ...usage, price, quantity, currencyCode });
       }
 
       return acc;

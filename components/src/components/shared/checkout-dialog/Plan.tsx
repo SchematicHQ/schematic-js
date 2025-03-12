@@ -225,11 +225,6 @@ export const Plan = ({
                 <Flex $flexDirection="column" $gap="1rem" $flexGrow="1">
                   {plan.entitlements
                     .reduce((acc: React.ReactElement[], entitlement) => {
-                      if (entitlement.feature?.name === "Search") {
-                        entitlement.priceBehavior = "overage";
-                        entitlement.softLimit = 100;
-                        entitlement.valueType = "trait";
-                      }
                       const hasNumericValue =
                         entitlement.valueType === "numeric" ||
                         entitlement.valueType === "unlimited" ||
