@@ -17,7 +17,6 @@ export interface ProgressBarProps
   value: number;
   total?: number | string;
   color?: "gray" | "blue" | "yellow" | "orange" | "red";
-  bgColor?: string;
   barWidth?: string | number;
 }
 
@@ -26,7 +25,6 @@ export const ProgressBar = ({
   value,
   total = 0,
   color = "gray",
-  bgColor = "#F2F4F7",
   barWidth = "100%",
   ...props
 }: ProgressBarProps) => {
@@ -55,7 +53,7 @@ export const ProgressBar = ({
           $overflow="hidden"
           $width="100%"
           $height={`${8 / TEXT_BASE_SIZE}rem`}
-          $backgroundColor={bgColor}
+          $backgroundColor="#F2F4F7"
           $borderRadius="9999px"
         >
           <Box

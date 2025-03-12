@@ -11,14 +11,7 @@ import {
   useTrialEnd,
 } from "../../../hooks";
 import type { ElementProps, RecursivePartial } from "../../../types";
-import {
-  darken,
-  formatCurrency,
-  formatNumber,
-  hexToHSL,
-  lighten,
-  shortenPeriod,
-} from "../../../utils";
+import { formatCurrency, formatNumber, hexToHSL } from "../../../utils";
 import { cardBoxShadow, FussyChild } from "../../layout";
 import { PeriodToggle } from "../../shared";
 import {
@@ -424,9 +417,6 @@ export const PricingTable = forwardRef<
 
                         {plan.entitlements
                           .reduce((acc: React.ReactElement[], entitlement) => {
-                            const limit =
-                              entitlement.softLimit || entitlement.valueNumeric;
-
                             let price: number | undefined;
                             let currency: string | undefined;
                             if (selectedPeriod === "month") {
@@ -467,11 +457,7 @@ export const PricingTable = forwardRef<
                                   )}
 
                                 {entitlement.feature?.name && (
-                                  <Flex
-                                    $flexDirection="column"
-                                    $justifyContent="center"
-                                    $gap="0.5rem"
-                                  >
+                                  <Flex $alignItems="center">
                                     <Text
                                       $font={theme.typography.text.fontFamily}
                                       $size={theme.typography.text.fontSize}
@@ -479,11 +465,7 @@ export const PricingTable = forwardRef<
                                       $color={theme.typography.text.color}
                                       $leading={1.35}
                                     >
-                                      {typeof price === "number" &&
-                                      (entitlement.priceBehavior ===
-                                        "pay_in_advance" ||
-                                        entitlement.priceBehavior ===
-                                          "pay_as_you_go") ? (
+                                      {typeof price !== "undefined" ? (
                                         <>
                                           {formatCurrency(price, currency)}{" "}
                                           {t("per")}{" "}
@@ -509,17 +491,11 @@ export const PricingTable = forwardRef<
                                                   entitlement.feature.name,
                                                 ),
                                               })
-                                            : typeof limit === "number" && (
-                                                <>
-                                                  {formatNumber(limit)}{" "}
-                                                  {pluralize(
-                                                    entitlement.feature.name,
-                                                    limit,
-                                                  )}
-                                                </>
-                                              )}
+                                            : typeof entitlement.valueNumeric ===
+                                                "number" &&
+                                              `${formatNumber(entitlement.valueNumeric)} ${pluralize(entitlement.feature.name, entitlement.valueNumeric)}`}
 
-                                          {entitlement.metricPeriod ? (
+                                          {entitlement.metricPeriod && (
                                             <>
                                               {" "}
                                               {t("per")}{" "}
@@ -532,64 +508,12 @@ export const PricingTable = forwardRef<
                                                 }[entitlement.metricPeriod]
                                               }
                                             </>
-                                          ) : (
-                                            entitlement.priceBehavior ===
-                                              "overage" &&
-                                            entitlement.feature.featureType ===
-                                              "event" && (
-                                              <>
-                                                /{shortenPeriod(selectedPeriod)}
-                                              </>
-                                            )
                                           )}
                                         </>
                                       ) : (
                                         entitlement.feature.name
                                       )}
                                     </Text>
-
-                                    {entitlement.priceBehavior === "overage" &&
-                                      typeof price === "number" && (
-                                        <Text
-                                          $font={
-                                            theme.typography.text.fontFamily
-                                          }
-                                          $size={
-                                            0.875 *
-                                            theme.typography.text.fontSize
-                                          }
-                                          $weight={
-                                            theme.typography.text.fontWeight
-                                          }
-                                          $color={
-                                            hexToHSL(
-                                              theme.typography.text.color,
-                                            ).l > 50
-                                              ? darken(
-                                                  theme.typography.text.color,
-                                                  0.46,
-                                                )
-                                              : lighten(
-                                                  theme.typography.text.color,
-                                                  0.46,
-                                                )
-                                          }
-                                          $leading={1.35}
-                                        >
-                                          {formatCurrency(price)}/
-                                          {pluralize(
-                                            entitlement.feature.name.toLowerCase(),
-                                            1,
-                                          )}
-                                          {entitlement.feature.featureType ===
-                                            "event" && (
-                                            <>
-                                              /{shortenPeriod(selectedPeriod)}
-                                            </>
-                                          )}{" "}
-                                          {t("overage fee")}
-                                        </Text>
-                                      )}
                                   </Flex>
                                 )}
                               </Flex>,

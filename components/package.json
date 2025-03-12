@@ -36,9 +36,9 @@
     "lodash": "^4.17.21",
     "pako": "^2.1.0",
     "pluralize": "^8.0.0",
-    "react-i18next": "^15.4.1",
+    "react-i18next": "^15.4.0",
     "styled-components": "^6.1.15",
-    "uuid": "^11.1.0"
+    "uuid": "^11.0.5"
   },
   "devDependencies": {
     "@craftjs/core": "^0.2.12",
@@ -67,7 +67,7 @@
     "prettier": "^3.5.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "ts-jest": "^29.2.6",
+    "ts-jest": "^29.2.5",
     "typescript": "^5.7.3"
   },
   "peerDependencies": {

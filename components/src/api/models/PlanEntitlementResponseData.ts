@@ -130,12 +130,6 @@ export interface PlanEntitlementResponseData {
   ruleIdUsageExceeded?: string | null;
   /**
    *
-   * @type {number}
-   * @memberof PlanEntitlementResponseData
-   */
-  softLimit?: number | null;
-  /**
-   *
    * @type {Date}
    * @memberof PlanEntitlementResponseData
    */
@@ -236,7 +230,6 @@ export function PlanEntitlementResponseDataFromJSONTyped(
       json["rule_id_usage_exceeded"] == null
         ? undefined
         : json["rule_id_usage_exceeded"],
-    softLimit: json["soft_limit"] == null ? undefined : json["soft_limit"],
     updatedAt: new Date(json["updated_at"]),
     valueBool: json["value_bool"] == null ? undefined : json["value_bool"],
     valueNumeric:
@@ -272,7 +265,6 @@ export function PlanEntitlementResponseDataToJSON(
     price_behavior: value["priceBehavior"],
     rule_id: value["ruleId"],
     rule_id_usage_exceeded: value["ruleIdUsageExceeded"],
-    soft_limit: value["softLimit"],
     updated_at: value["updatedAt"].toISOString(),
     value_bool: value["valueBool"],
     value_numeric: value["valueNumeric"],

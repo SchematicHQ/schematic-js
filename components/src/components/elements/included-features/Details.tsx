@@ -28,12 +28,12 @@ export const Details = ({
   const {
     allocation,
     feature,
-    priceBehavior,
     usage,
-    softLimit,
     monthlyUsageBasedPrice,
     yearlyUsageBasedPrice,
   } = featureUsage || {};
+  const { priceBehavior } = usageData || {};
+
   const { t } = useTranslation();
 
   const theme = useTheme();
@@ -81,10 +81,6 @@ export const Details = ({
       return `${formatCurrency(price, currency)} ${t("per")} ${pluralize(feature.name.toLowerCase(), 1)}`;
     }
 
-    if (priceBehavior === "overage" && typeof softLimit === "number") {
-      return `${formatNumber(softLimit)} ${pluralize(feature.name, softLimit)}`;
-    }
-
     if (!priceBehavior && typeof allocation === "number") {
       return `${formatNumber(allocation)} ${pluralize(feature.name, allocation)}`;
     }
@@ -92,7 +88,7 @@ export const Details = ({
     if (!priceBehavior) {
       return t("Unlimited", { item: pluralize(feature.name) });
     }
-  }, [feature?.name, priceBehavior, allocation, price, currency, softLimit, t]);
+  }, [t, allocation, feature?.name, price, priceBehavior, currency]);
 
   const usageText = useMemo(() => {
     if (!feature?.name) {
@@ -109,7 +105,7 @@ export const Details = ({
       ) {
         acc = `${formatCurrency(price, currency)}/${pluralize(feature.name.toLowerCase(), 1)}/${shortenPeriod(data.company.plan.planPeriod)}`;
       } else if (
-        (priceBehavior === "pay_as_you_go" || priceBehavior === "overage") &&
+        priceBehavior === "pay_as_you_go" &&
         typeof usage === "number"
       ) {
         acc = `${usage} ${pluralize(feature.name.toLowerCase(), usage)} ${t("used")}`;
@@ -117,34 +113,17 @@ export const Details = ({
 
       if (acc) {
         if (
-          priceBehavior === "pay_in_advance" &&
+          usageData?.priceBehavior === "pay_in_advance" &&
           typeof price === "number" &&
           typeof allocation === "number"
         ) {
           acc += ` • ${formatCurrency(price * allocation, currency)}`;
         } else if (
-          priceBehavior === "pay_as_you_go" &&
+          usageData?.priceBehavior === "pay_as_you_go" &&
           typeof price === "number" &&
           typeof usage === "number"
         ) {
           acc += ` • ${formatCurrency(price * usage, currency)}`;
-        } else if (
-          priceBehavior === "overage" &&
-          typeof price === "number" &&
-          typeof usage === "number" &&
-          typeof softLimit === "number"
-        ) {
-          const cost = price * (usage - softLimit);
-          const period =
-            feature.featureType === "event" &&
-            typeof data.company?.plan?.planPeriod === "string"
-              ? `/${shortenPeriod(data.company.plan.planPeriod)}`
-              : "";
-
-          acc +=
-            cost > 0
-              ? ` • ${t("Overage")}: ${formatCurrency(cost)}${period}`
-              : ` • ${`${formatCurrency(price)}/${pluralize(feature.name.toLowerCase(), 1)}`} ${t("overage fee")}`;
         }
 
         return acc;
@@ -162,17 +141,15 @@ export const Details = ({
           });
     }
   }, [
+    t,
+    allocation,
     data.company?.plan?.planPeriod,
     feature?.name,
-    feature?.featureType,
-    priceBehavior,
-    allocation,
     price,
-    currency,
-    softLimit,
-    t,
+    priceBehavior,
     usage,
     usageData,
+    currency,
   ]);
 
   if (!text) {
