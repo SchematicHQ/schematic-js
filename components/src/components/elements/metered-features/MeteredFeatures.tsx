@@ -416,17 +416,16 @@ export const MeteredFeatures = forwardRef<
                               : limit
                           }
                           color={
-                            progressColorMap[
-                              Math.floor(
-                                priceBehavior === "overage" &&
-                                  typeof softLimit === "number" &&
-                                  usage > softLimit
-                                  ? (softLimit / usage) *
-                                      (progressColorMap.length - 1)
-                                  : (Math.min(usage, limit) / limit) *
+                            priceBehavior === "overage" &&
+                            typeof softLimit === "number" &&
+                            usage > softLimit
+                              ? "blue"
+                              : progressColorMap[
+                                  Math.floor(
+                                    (Math.min(usage, limit) / limit) *
                                       (progressColorMap.length - 1),
-                              )
-                            ]
+                                  )
+                                ]
                           }
                           {...(priceBehavior === "overage" &&
                             typeof softLimit === "number" &&
