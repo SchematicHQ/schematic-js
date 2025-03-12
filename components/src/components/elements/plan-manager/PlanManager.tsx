@@ -110,14 +110,9 @@ export const PlanManager = forwardRef<
       acc: (FeatureUsageResponseData & {
         price: number;
         quantity: number;
-        // TODO: remove once api is updated
-        softLimit?: number;
         currencyCode?: string;
       })[],
-      usage: FeatureUsageResponseData & {
-        // TODO: remove once api is updated
-        softLimit?: number;
-      },
+      usage: FeatureUsageResponseData,
     ) => {
       const quantity = usage.allocation || usage.softLimit || 0;
 
@@ -132,19 +127,7 @@ export const PlanManager = forwardRef<
       }
 
       if (usage.priceBehavior && typeof price === "number") {
-        // TODO: for testing, remove later
-        if (usage.feature?.name === "Search") {
-          acc.push({
-            ...usage,
-            price,
-            priceBehavior: "overage",
-            softLimit: 1,
-            quantity,
-            currencyCode,
-          });
-        } else {
-          acc.push({ ...usage, price, quantity, currencyCode });
-        }
+        acc.push({ ...usage, price, quantity, currencyCode });
       }
 
       return acc;

@@ -102,10 +102,7 @@ export const IncludedFeatures = forwardRef<
   }[] = (data.featureUsage?.features || []).reduce(
     (
       acc: {
-        featureUsage: FeatureUsageResponseData & {
-          // TODO: remove once api is updated
-          softLimit?: number;
-        };
+        featureUsage: FeatureUsageResponseData;
         usageData?: UsageBasedEntitlementResponseData;
       }[],
       usage,
@@ -114,31 +111,10 @@ export const IncludedFeatures = forwardRef<
         (entitlement) => entitlement.featureId === usage.feature?.id,
       );
 
-      let price: number | undefined;
-      if (data.company?.plan?.planPeriod === "month") {
-        price = usage.monthlyUsageBasedPrice?.price;
-      } else if (data.company?.plan?.planPeriod === "year") {
-        price = usage.yearlyUsageBasedPrice?.price;
-      }
-
-      if (usage.priceBehavior && typeof price === "number") {
-        // TODO: for testing, remove later
-        if (usage.feature?.name === "Search") {
-          acc.push({
-            featureUsage: {
-              ...usage,
-              priceBehavior: "overage",
-              softLimit: 1,
-            },
-            usageData: mappedUsageData,
-          });
-        } else {
-          acc.push({
-            featureUsage: usage,
-            usageData: mappedUsageData,
-          });
-        }
-      }
+      acc.push({
+        featureUsage: usage,
+        usageData: mappedUsageData,
+      });
 
       return acc;
     },
