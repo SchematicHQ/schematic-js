@@ -25,6 +25,7 @@ export * from "./ComponentResponseData";
 export * from "./CountResponse";
 export * from "./CustomPlanConfig";
 export * from "./CustomPlanViewConfigResponseData";
+export * from "./DeletePaymentMethodResponse";
 export * from "./DeleteResponse";
 export * from "./EntityKeyDefinitionResponseData";
 export * from "./EntityKeyDetailResponseData";

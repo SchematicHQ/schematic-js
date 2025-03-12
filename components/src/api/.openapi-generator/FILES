@@ -27,6 +27,7 @@ models/ComponentResponseData.ts
 models/CountResponse.ts
 models/CustomPlanConfig.ts
 models/CustomPlanViewConfigResponseData.ts
+models/DeletePaymentMethodResponse.ts
 models/DeleteResponse.ts
 models/EntityKeyDefinitionResponseData.ts
 models/EntityKeyDetailResponseData.ts

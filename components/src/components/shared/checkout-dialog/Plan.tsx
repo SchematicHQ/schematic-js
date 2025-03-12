@@ -225,26 +225,6 @@ export const Plan = ({
               >
                 <Flex $flexDirection="column" $gap="1rem" $flexGrow="1">
                   {plan.entitlements
-                    .slice()
-                    .sort((a, b) => {
-                      if (
-                        a.feature?.name &&
-                        b.feature?.name &&
-                        a.feature?.name > b.feature?.name
-                      ) {
-                        return 1;
-                      }
-
-                      if (
-                        a.feature?.name &&
-                        b.feature?.name &&
-                        a.feature?.name < b.feature?.name
-                      ) {
-                        return -1;
-                      }
-
-                      return 0;
-                    })
                     .reduce(
                       (
                         acc: React.ReactElement[],
