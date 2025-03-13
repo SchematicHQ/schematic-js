@@ -12,7 +12,7 @@ export interface ViewportProps extends React.HTMLProps<HTMLDivElement> {
 
 export const Viewport = forwardRef<HTMLDivElement | null, ViewportProps>(
   ({ children, portal, ...props }, ref) => {
-    const { data, layout } = useEmbed();
+    const { data, layout, settings } = useEmbed();
 
     const [top, setTop] = useState(0);
 
@@ -34,11 +34,14 @@ export const Viewport = forwardRef<HTMLDivElement | null, ViewportProps>(
       };
     }, [layout, portal]);
 
+    console.debug(data.capabilities, settings.badge);
+
     return (
       <>
         <StyledViewport ref={ref} {...props}>
           <RenderLayout>{children}</RenderLayout>
-          <Badge />
+          {data.capabilities?.badgeVisibility &&
+            settings.badge?.visibility !== "hidden" && <Badge />}
         </StyledViewport>
 
         {canCheckout &&
