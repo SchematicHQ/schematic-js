@@ -82,6 +82,12 @@ export interface BillingSubscriptionView {
   customerExternalId: string;
   /**
    *
+   * @type {string}
+   * @memberof BillingSubscriptionView
+   */
+  defaultPaymentMethodId?: string | null;
+  /**
+   *
    * @type {Array<BillingSubscriptionDiscountView>}
    * @memberof BillingSubscriptionView
    */
@@ -228,6 +234,10 @@ export function BillingSubscriptionViewFromJSONTyped(
     createdAt: new Date(json["created_at"]),
     currency: json["currency"],
     customerExternalId: json["customer_external_id"],
+    defaultPaymentMethodId:
+      json["default_payment_method_id"] == null
+        ? undefined
+        : json["default_payment_method_id"],
     discounts: (json["discounts"] as Array<any>).map(
       BillingSubscriptionDiscountViewFromJSON,
     ),
@@ -271,6 +281,7 @@ export function BillingSubscriptionViewToJSON(
     created_at: value["createdAt"].toISOString(),
     currency: value["currency"],
     customer_external_id: value["customerExternalId"],
+    default_payment_method_id: value["defaultPaymentMethodId"],
     discounts: (value["discounts"] as Array<any>).map(
       BillingSubscriptionDiscountViewToJSON,
     ),

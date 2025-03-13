@@ -96,10 +96,25 @@ export const IncludedFeatures = forwardRef<
 
   const [showCount, setShowCount] = useState(VISIBLE_ENTITLEMENT_COUNT);
 
+  const orderedFeatureUsage = props.visibleFeatures?.reduce(
+    (acc: FeatureUsageResponseData[], id) => {
+      const mappedFeatureUsage = data.featureUsage?.features.find(
+        (usage) => usage.feature?.id === id,
+      );
+
+      if (mappedFeatureUsage) {
+        acc.push(mappedFeatureUsage);
+      }
+
+      return acc;
+    },
+    [],
+  );
+
   const entitlements: {
     featureUsage: FeatureUsageResponseData;
     usageData?: UsageBasedEntitlementResponseData;
-  }[] = (data.featureUsage?.features || []).reduce(
+  }[] = (orderedFeatureUsage || data.featureUsage?.features || []).reduce(
     (
       acc: {
         featureUsage: FeatureUsageResponseData;
