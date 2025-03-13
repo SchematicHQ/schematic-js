@@ -24,6 +24,12 @@ export interface ComponentCapabilities {
    * @type {boolean}
    * @memberof ComponentCapabilities
    */
+  badgeVisibility: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof ComponentCapabilities
+   */
   checkout: boolean;
 }
 
@@ -33,6 +39,8 @@ export interface ComponentCapabilities {
 export function instanceOfComponentCapabilities(
   value: object,
 ): value is ComponentCapabilities {
+  if (!("badgeVisibility" in value) || value["badgeVisibility"] === undefined)
+    return false;
   if (!("checkout" in value) || value["checkout"] === undefined) return false;
   return true;
 }
@@ -51,6 +59,7 @@ export function ComponentCapabilitiesFromJSONTyped(
     return json;
   }
   return {
+    badgeVisibility: json["badge_visibility"],
     checkout: json["checkout"],
   };
 }
@@ -62,6 +71,7 @@ export function ComponentCapabilitiesToJSON(
     return value;
   }
   return {
+    badge_visibility: value["badgeVisibility"],
     checkout: value["checkout"],
   };
 }

@@ -1,6 +1,6 @@
 {
   "name": "@schematichq/schematic-components",
-  "version": "0.4.11",
+  "version": "0.5.0",
   "main": "dist/schematic-components.cjs.js",
   "module": "dist/schematic-components.esm.js",
   "types": "dist/schematic-components.d.ts",
@@ -30,21 +30,21 @@
     "tsc": "npx tsc"
   },
   "dependencies": {
-    "@stripe/stripe-js": "^5.9.2",
+    "@stripe/stripe-js": "^6.0.0",
     "classnames": "^2.5.1",
     "i18next": "^24.2.2",
     "lodash": "^4.17.21",
     "pako": "^2.1.0",
     "pluralize": "^8.0.0",
-    "react-i18next": "^15.4.0",
+    "react-i18next": "^15.4.1",
     "styled-components": "^6.1.15",
-    "uuid": "^11.0.5"
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@craftjs/core": "^0.2.12",
-    "@microsoft/api-extractor": "^7.50.0",
+    "@microsoft/api-extractor": "^7.52.1",
     "@openapitools/openapi-generator-cli": "^2.16.3",
-    "@stripe/react-stripe-js": "^3.3.0",
+    "@stripe/react-stripe-js": "^3.4.0",
     "@types/jest": "^29.5.14",
     "@types/lodash": "^4.17.16",
     "@types/pako": "^2.0.3",
@@ -67,7 +67,7 @@
     "prettier": "^3.5.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "ts-jest": "^29.2.5",
+    "ts-jest": "^29.2.6",
     "typescript": "^5.7.3"
   },
   "peerDependencies": {
