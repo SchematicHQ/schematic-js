@@ -18,6 +18,7 @@ import type {
   ChangeSubscriptionRequestBody,
   CheckoutResponse,
   CheckoutUnsubscribeResponse,
+  DeletePaymentMethodResponse,
   GetSetupIntentResponse,
   HydrateComponentResponse,
   ListInvoicesResponse,
@@ -34,6 +35,8 @@ import {
   CheckoutResponseToJSON,
   CheckoutUnsubscribeResponseFromJSON,
   CheckoutUnsubscribeResponseToJSON,
+  DeletePaymentMethodResponseFromJSON,
+  DeletePaymentMethodResponseToJSON,
   GetSetupIntentResponseFromJSON,
   GetSetupIntentResponseToJSON,
   HydrateComponentResponseFromJSON,
@@ -50,6 +53,10 @@ import {
 
 export interface CheckoutRequest {
   changeSubscriptionRequestBody: ChangeSubscriptionRequestBody;
+}
+
+export interface DeletePaymentMethodRequest {
+  checkoutId: string;
 }
 
 export interface GetSetupIntentRequest {
@@ -170,6 +177,62 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<CheckoutUnsubscribeResponse> {
     const response = await this.checkoutUnsubscribeRaw(initOverrides);
+    return await response.value();
+  }
+
+  /**
+   * Delete payment method
+   */
+  async deletePaymentMethodRaw(
+    requestParameters: DeletePaymentMethodRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<DeletePaymentMethodResponse>> {
+    if (requestParameters["checkoutId"] == null) {
+      throw new runtime.RequiredError(
+        "checkoutId",
+        'Required parameter "checkoutId" was null or undefined when calling deletePaymentMethod().',
+      );
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    if (this.configuration && this.configuration.apiKey) {
+      headerParameters["X-Schematic-Api-Key"] = await this.configuration.apiKey(
+        "X-Schematic-Api-Key",
+      ); // ApiKeyAuth authentication
+    }
+
+    const response = await this.request(
+      {
+        path: `/checkout/paymentmethod/{checkout_id}`.replace(
+          `{${"checkout_id"}}`,
+          encodeURIComponent(String(requestParameters["checkoutId"])),
+        ),
+        method: "DELETE",
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      DeletePaymentMethodResponseFromJSON(jsonValue),
+    );
+  }
+
+  /**
+   * Delete payment method
+   */
+  async deletePaymentMethod(
+    requestParameters: DeletePaymentMethodRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<DeletePaymentMethodResponse> {
+    const response = await this.deletePaymentMethodRaw(
+      requestParameters,
+      initOverrides,
+    );
     return await response.value();
   }
 
