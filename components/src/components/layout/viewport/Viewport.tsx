@@ -34,14 +34,11 @@ export const Viewport = forwardRef<HTMLDivElement | null, ViewportProps>(
       };
     }, [layout, portal]);
 
-    console.debug(data.capabilities, settings.badge);
-
     return (
       <>
         <StyledViewport ref={ref} {...props}>
           <RenderLayout>{children}</RenderLayout>
-          {data.capabilities?.badgeVisibility &&
-            settings.badge?.visibility !== "hidden" && <Badge />}
+          {settings.badge?.visibility !== "hidden" && <Badge />}
         </StyledViewport>
 
         {canCheckout &&
