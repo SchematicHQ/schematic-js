@@ -78,6 +78,18 @@ export interface FeatureResponseData {
    * @type {string}
    * @memberof FeatureResponseData
    */
+  pluralName?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof FeatureResponseData
+   */
+  singularName?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof FeatureResponseData
+   */
   traitId?: string | null;
   /**
    *
@@ -129,6 +141,9 @@ export function FeatureResponseDataFromJSONTyped(
     maintainerId:
       json["maintainer_id"] == null ? undefined : json["maintainer_id"],
     name: json["name"],
+    pluralName: json["plural_name"] == null ? undefined : json["plural_name"],
+    singularName:
+      json["singular_name"] == null ? undefined : json["singular_name"],
     traitId: json["trait_id"] == null ? undefined : json["trait_id"],
     updatedAt: new Date(json["updated_at"]),
   };
@@ -150,6 +165,8 @@ export function FeatureResponseDataToJSON(
     lifecycle_phase: value["lifecyclePhase"],
     maintainer_id: value["maintainerId"],
     name: value["name"],
+    plural_name: value["pluralName"],
+    singular_name: value["singularName"],
     trait_id: value["traitId"],
     updated_at: value["updatedAt"].toISOString(),
   };

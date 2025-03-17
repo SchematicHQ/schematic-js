@@ -87,6 +87,7 @@
     "Unsubscribe": "Unsubscribe",
     "Unsubscribe failed": "Unsubscribe failed",
     "Unused time": "Unused time",
+    "Up to a limit of": "Up to a limit of {{amount}} {{units}}",
     "Usage": "Usage",
     "Usage-based": "Usage-based",
     "Use existing payment method": "Use existing payment method",
