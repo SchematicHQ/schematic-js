@@ -19,14 +19,6 @@ export const StyledCard = styled.div(({ theme }) => {
 
   return css`
     position: relative;
-    box-sizing: border-box;
-    font-size: ${TEXT_BASE_SIZE}px;
-
-    *,
-    *::before,
-    *::after {
-      box-sizing: inherit;
-    }
 
     ${theme.sectionLayout === "merged"
       ? `&:not(:has(${FussyChild}))`

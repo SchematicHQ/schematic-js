@@ -2,7 +2,7 @@ import { forwardRef, useCallback, useLayoutEffect } from "react";
 import { useTheme } from "styled-components";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import { Container } from "../../layout";
-import { Flex } from "../../ui";
+import { Box, Flex } from "../../ui";
 
 interface ModalProps extends React.HTMLAttributes<HTMLElement> {
   children: React.ReactNode;
@@ -30,7 +30,7 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(
     }, [contentRef]);
 
     return (
-      <Container
+      <Box
         ref={ref}
         tabIndex={0}
         onClick={(event) => {
@@ -62,47 +62,49 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(
         $scrollbarWidth="thin"
         $scrollbarGutter="stable both-edges"
       >
-        <Flex
-          ref={contentRef}
-          tabIndex={0}
-          role="dialog"
-          aria-modal="true"
-          $position="relative"
-          $top="50%"
-          $left="50%"
-          $transform="translate(-50%, -50%)"
-          $flexDirection="column"
-          $overflow="auto"
-          $width="100%"
-          $height="100vh"
-          $backgroundColor={theme.card.background}
-          $boxShadow="0px 1px 20px 0px #1018280F, 0px 1px 3px 0px #1018281A;"
-          $viewport={{
-            md: {
-              ...(size === "auto"
-                ? { $width: "fit-content", $height: "fit-content" }
-                : {
-                    $width: "100%",
-                    ...(size === "lg"
-                      ? { $height: "100%" }
-                      : { $height: "fit-content" }),
-                    $maxWidth:
-                      size === "sm"
-                        ? "480px"
-                        : size === "md"
-                          ? "688px"
-                          : "1356px",
-                  }),
-              $borderRadius: "0.5rem",
-            },
-            "@media (min-height: 896px)": {
-              $maxHeight: "860px",
-            },
-          }}
-        >
-          {children}
-        </Flex>
-      </Container>
+        <Container>
+          <Flex
+            ref={contentRef}
+            tabIndex={0}
+            role="dialog"
+            aria-modal="true"
+            $position="relative"
+            $top="50%"
+            $left="50%"
+            $transform="translate(-50%, -50%)"
+            $flexDirection="column"
+            $overflow="auto"
+            $width="100%"
+            $height="100vh"
+            $backgroundColor={theme.card.background}
+            $boxShadow="0px 1px 20px 0px #1018280F, 0px 1px 3px 0px #1018281A;"
+            $viewport={{
+              md: {
+                ...(size === "auto"
+                  ? { $width: "fit-content", $height: "fit-content" }
+                  : {
+                      $width: "100%",
+                      ...(size === "lg"
+                        ? { $height: "100%" }
+                        : { $height: "fit-content" }),
+                      $maxWidth:
+                        size === "sm"
+                          ? "480px"
+                          : size === "md"
+                            ? "688px"
+                            : "1356px",
+                    }),
+                $borderRadius: "0.5rem",
+              },
+              "@media (min-height: 896px)": {
+                $maxHeight: "860px",
+              },
+            }}
+          >
+            {children}
+          </Flex>
+        </Container>
+      </Box>
     );
   },
 );
