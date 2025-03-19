@@ -1,4 +1,4 @@
-import { forwardRef, useRef } from "react";
+import { forwardRef, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 import pluralize from "pluralize";
@@ -23,12 +23,13 @@ import { Element } from "../../layout";
 import {
   progressColorMap,
   Box,
+  EmbedButton,
   Flex,
   IconRound,
   ProgressBar,
   Text,
+  Tooltip,
   type IconNameTypes,
-  EmbedButton,
 } from "../../ui";
 import * as styles from "./styles";
 
@@ -102,27 +103,32 @@ export const MeteredFeatures = forwardRef<
 
   const isLightBackground = useIsLightBackground();
 
-  const { planPeriod } = data.company?.plan || {};
+  const meteredFeatures = useMemo(() => {
+    return (
+      props.visibleFeatures
+        ? props.visibleFeatures.reduce(
+            (acc: FeatureUsageResponseData[], id) => {
+              const mappedFeatureUsage = data.featureUsage?.features.find(
+                (usage) => usage.feature?.id === id,
+              );
 
-  const featureUsage = (
-    props.visibleFeatures
-      ? props.visibleFeatures.reduce((acc: FeatureUsageResponseData[], id) => {
-          const mappedFeatureUsage = data.featureUsage?.features.find(
-            (usage) => usage.feature?.id === id,
-          );
+              if (mappedFeatureUsage) {
+                acc.push(mappedFeatureUsage);
+              }
 
-          if (mappedFeatureUsage) {
-            acc.push(mappedFeatureUsage);
-          }
+              return acc;
+            },
+            [],
+          )
+        : data.featureUsage?.features || []
+    ).filter(
+      (usage) =>
+        usage.feature?.featureType === "event" ||
+        usage.feature?.featureType === "trait",
+    );
+  }, [props.visibleFeatures, data.featureUsage?.features]);
 
-          return acc;
-        }, [])
-      : data.featureUsage?.features || []
-  ).filter(
-    (usage) =>
-      usage.feature?.featureType === "event" ||
-      usage.feature?.featureType === "trait",
-  );
+  const planPeriod = data.company?.plan?.planPeriod;
 
   // Check if we should render this component at all:
   // * If there are any plans or add-ons, render it, even if the list is empty.
@@ -130,7 +136,7 @@ export const MeteredFeatures = forwardRef<
   //  even if the company has no plan or add-ons).
   // * If none of the above, don't render the component.
   const shouldShowFeatures =
-    featureUsage.length > 0 ||
+    meteredFeatures.length > 0 ||
     data.company?.plan ||
     (data.company?.addOns ?? []).length > 0 ||
     false;
@@ -141,39 +147,54 @@ export const MeteredFeatures = forwardRef<
 
   return (
     <styles.Container ref={ref} className={className}>
-      {featureUsage.map(
-        (
-          {
-            allocation,
-            feature,
-            usage,
-            softLimit,
-            priceBehavior,
-            metricResetAt,
-            monthlyUsageBasedPrice,
-            yearlyUsageBasedPrice,
-          },
-          index,
-        ) => {
-          const limit = allocation || softLimit || 0;
+      {meteredFeatures.map(
+        ({
+          entitlementId,
+          feature,
+          priceBehavior,
+          usage,
+          allocation,
+          softLimit,
+          metricResetAt,
+          monthlyUsageBasedPrice,
+          yearlyUsageBasedPrice,
+        }) => {
+          const limit = softLimit ?? allocation ?? 0;
           const isOverage =
             priceBehavior === "overage" &&
             typeof softLimit === "number" &&
             typeof usage === "number" &&
             usage > softLimit;
 
-          let price: number | undefined;
-          let currency: string | undefined;
-          if (planPeriod === "month") {
-            price = monthlyUsageBasedPrice?.price;
-            currency = monthlyUsageBasedPrice?.currency;
-          } else if (planPeriod === "year") {
-            price = yearlyUsageBasedPrice?.price;
-            currency = yearlyUsageBasedPrice?.currency;
-          }
+          const { price, currency } =
+            (planPeriod === "month"
+              ? monthlyUsageBasedPrice
+              : planPeriod === "year" && yearlyUsageBasedPrice) || {};
+
+          const progressBar = props.isVisible &&
+            typeof usage === "number" &&
+            priceBehavior !== "pay_as_you_go" && (
+              <ProgressBar
+                progress={(isOverage ? softLimit / usage : usage / limit) * 100}
+                value={usage}
+                total={isOverage ? softLimit : limit}
+                color={
+                  isOverage
+                    ? "blue"
+                    : progressColorMap[
+                        Math.floor(
+                          (Math.min(usage, limit) / limit) *
+                            (progressColorMap.length - 1),
+                        )
+                      ]
+                }
+                {...(isOverage && { bgColor: "#EF4444" })}
+                $flexGrow={1}
+              />
+            );
 
           return (
-            <Flex key={index} $flexDirection="column-reverse">
+            <Flex key={entitlementId} $flexDirection="column-reverse">
               {priceBehavior === "overage" && typeof price === "number" && (
                 <Flex
                   $justifyContent="space-between"
@@ -190,19 +211,17 @@ export const MeteredFeatures = forwardRef<
                     $size={theme.typography.text.fontSize}
                     $weight={theme.typography.text.fontWeight}
                     $color={theme.typography.text.color}
+                    $leading={1.35}
                   >
                     <>
                       {t("Overage fee")}: {formatCurrency(price, currency)}
                       {feature && (
-                        <sub>
+                        <Box as="sub" $whiteSpace="nowrap">
                           /{pluralize(feature.name.toLowerCase(), 1)}
-                          {feature.featureType === "event" &&
-                            data.company?.plan?.planPeriod && (
-                              <>
-                                /{shortenPeriod(data.company.plan.planPeriod)}
-                              </>
-                            )}
-                        </sub>
+                          {feature.featureType === "trait" && planPeriod && (
+                            <>/{shortenPeriod(planPeriod)}</>
+                          )}
+                        </Box>
                       )}
                     </>
                   </Text>
@@ -213,15 +232,19 @@ export const MeteredFeatures = forwardRef<
                       $size={theme.typography.text.fontSize}
                       $weight={theme.typography.text.fontWeight}
                       $color={theme.typography.text.color}
+                      $leading={1.35}
                     >
                       {t("X over the limit", {
                         amount: usage - softLimit,
                       })}
                       {" · "}
                       {formatCurrency(price * (usage - softLimit), currency)}
-                      {feature?.featureType === "event" &&
-                        typeof data.company?.plan?.planPeriod === "string" &&
-                        `/${shortenPeriod(data.company.plan.planPeriod)}`}
+                      {feature?.featureType === "trait" &&
+                        typeof planPeriod === "string" && (
+                          <Box as="sub" $whiteSpace="nowrap">
+                            /{shortenPeriod(planPeriod)}
+                          </Box>
+                        )}
                     </Text>
                   )}
                 </Flex>
@@ -241,7 +264,7 @@ export const MeteredFeatures = forwardRef<
                   />
                 )}
 
-                <Flex $flexDirection="column" $gap="2rem" $flexGrow="1">
+                <Flex $flexDirection="column" $gap="2rem" $flexGrow={1}>
                   <Flex
                     ref={(el) => {
                       if (el) {
@@ -252,7 +275,7 @@ export const MeteredFeatures = forwardRef<
                     $gap="1rem"
                   >
                     {feature?.name && (
-                      <Flex $flexDirection="column" $gap="0.5rem" $flexGrow="1">
+                      <Flex $flexDirection="column" $gap="0.5rem" $flexGrow={1}>
                         <Text
                           as={Box}
                           $font={
@@ -267,6 +290,7 @@ export const MeteredFeatures = forwardRef<
                           $color={
                             theme.typography[props.header.fontStyle].color
                           }
+                          $leading={1.35}
                         >
                           {priceBehavior === "pay_as_you_go"
                             ? typeof usage === "number" && (
@@ -309,7 +333,7 @@ export const MeteredFeatures = forwardRef<
                       feature?.name && (
                         <Box
                           $flexBasis="min-content"
-                          $flexGrow="1"
+                          $flexGrow={1}
                           $textAlign={shouldWrapChildren ? "left" : "right"}
                         >
                           {props.usage.isVisible && (
@@ -326,10 +350,10 @@ export const MeteredFeatures = forwardRef<
                                 theme.typography[props.usage.fontStyle]
                                   .fontWeight
                               }
-                              $leading={1.35}
                               $color={
                                 theme.typography[props.usage.fontStyle].color
                               }
+                              $leading={1.35}
                             >
                               {priceBehavior === "pay_in_advance"
                                 ? typeof allocation === "number" && (
@@ -374,6 +398,7 @@ export const MeteredFeatures = forwardRef<
                                     theme.typography[props.allocation.fontStyle]
                                       .color
                                   }
+                                  $leading={1.35}
                                 >
                                   {priceBehavior &&
                                   priceBehavior !== "overage" &&
@@ -402,26 +427,29 @@ export const MeteredFeatures = forwardRef<
                     typeof usage === "number" &&
                     priceBehavior !== "pay_as_you_go" && (
                       <Flex $gap="2rem">
-                        <ProgressBar
-                          progress={
-                            (isOverage ? softLimit / usage : usage / limit) *
-                            100
-                          }
-                          value={usage}
-                          total={isOverage ? softLimit : limit}
-                          color={
-                            isOverage
-                              ? "blue"
-                              : progressColorMap[
-                                  Math.floor(
-                                    (Math.min(usage, limit) / limit) *
-                                      (progressColorMap.length - 1),
-                                  )
-                                ]
-                          }
-                          {...(isOverage && { bgColor: "#EF4444" })}
-                          $flexGrow="1"
-                        />
+                        {typeof allocation === "number" ? (
+                          <Tooltip
+                            trigger={progressBar}
+                            content={
+                              <Text
+                                $font={theme.typography.text.fontFamily}
+                                $size={0.875 * theme.typography.text.fontSize}
+                                $weight={theme.typography.text.fontWeight}
+                                $color={theme.typography.text.color}
+                                $leading={1}
+                              >
+                                {t("Up to a limit of", {
+                                  amount: allocation,
+                                  units:
+                                    feature?.name && pluralize(feature.name),
+                                })}
+                              </Text>
+                            }
+                            $flexGrow={1}
+                          />
+                        ) : (
+                          progressBar
+                        )}
 
                         {priceBehavior === "pay_in_advance" && (
                           <EmbedButton
