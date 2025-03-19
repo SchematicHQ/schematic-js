@@ -237,21 +237,16 @@ export const PricingTable = forwardRef<
               const isActivePlan =
                 plan.current &&
                 data.company?.plan?.planPeriod === selectedPeriod;
-
-              const count = entitlementCounts[plan.id] as
-                | {
-                    size: number;
-                    limit: number;
-                  }
-                | undefined;
-              let isExpanded = false;
-              if (count?.limit && count.limit > VISIBLE_ENTITLEMENT_COUNT) {
-                isExpanded = true;
-              }
+              const { price: planPrice, currency: planCurrency } =
+                (selectedPeriod === "month"
+                  ? plan.monthlyPrice
+                  : selectedPeriod === "year" && plan.yearlyPrice) || {};
+              const count = entitlementCounts[plan.id];
+              const isExpanded = count.limit > VISIBLE_ENTITLEMENT_COUNT;
 
               return (
                 <Flex
-                  key={index}
+                  key={plan.id}
                   $position="relative"
                   $flexDirection="column"
                   $padding={`${cardPadding}rem 0`}
@@ -266,7 +261,7 @@ export const PricingTable = forwardRef<
                     $flexDirection="column"
                     $gap="0.75rem"
                     $padding={`0 ${cardPadding}rem ${0.75 * cardPadding}rem`}
-                    $borderWidth="0"
+                    $borderWidth={0}
                     $borderBottomWidth="1px"
                     $borderStyle="solid"
                     $borderColor={
@@ -340,18 +335,9 @@ export const PricingTable = forwardRef<
                       >
                         {plan.custom
                           ? plan.customPlanConfig?.priceText
-                            ? plan.customPlanConfig?.priceText
+                            ? plan.customPlanConfig.priceText
                             : t("Custom Plan Price")
-                          : formatCurrency(
-                              (selectedPeriod === "month"
-                                ? plan.monthlyPrice
-                                : plan.yearlyPrice
-                              )?.price ?? 0,
-                              (selectedPeriod === "month"
-                                ? plan.monthlyPrice
-                                : plan.yearlyPrice
-                              )?.currency,
-                            )}
+                          : formatCurrency(planPrice ?? 0, planCurrency)}
                       </Text>
 
                       {!plan.custom && (
@@ -401,12 +387,12 @@ export const PricingTable = forwardRef<
                   <Flex
                     $flexDirection="column"
                     $justifyContent="end"
-                    $flexGrow="1"
+                    $flexGrow={1}
                     $gap={`${cardPadding}rem`}
                     $padding={`${0.75 * cardPadding}rem ${cardPadding}rem 0`}
                   >
                     {props.plans.showEntitlements && (
-                      <Flex $flexDirection="column" $gap="1rem" $flexGrow="1">
+                      <Flex $flexDirection="column" $gap="1rem" $flexGrow={1}>
                         {props.plans.showInclusionText && index > 0 && (
                           <Box $marginBottom="1.5rem">
                             <Text
@@ -425,23 +411,20 @@ export const PricingTable = forwardRef<
                         {plan.entitlements
                           .reduce((acc: React.ReactElement[], entitlement) => {
                             const limit =
-                              entitlement.softLimit || entitlement.valueNumeric;
+                              entitlement.softLimit ?? entitlement.valueNumeric;
 
-                            let price: number | undefined;
-                            let currency: string | undefined;
-                            if (selectedPeriod === "month") {
-                              price = entitlement.meteredMonthlyPrice?.price;
-                              currency =
-                                entitlement.meteredMonthlyPrice?.currency;
-                            } else if (selectedPeriod === "year") {
-                              price = entitlement.meteredYearlyPrice?.price;
-                              currency =
-                                entitlement.meteredYearlyPrice?.currency;
-                            }
+                            const {
+                              price: entitlementPrice,
+                              currency: entitlementCurrency,
+                            } =
+                              (selectedPeriod === "month"
+                                ? entitlement.meteredMonthlyPrice
+                                : selectedPeriod === "year" &&
+                                  entitlement.meteredYearlyPrice) || {};
 
                             if (
                               entitlement.priceBehavior &&
-                              typeof price !== "number"
+                              typeof entitlementPrice !== "number"
                             ) {
                               return acc;
                             }
@@ -479,13 +462,16 @@ export const PricingTable = forwardRef<
                                       $color={theme.typography.text.color}
                                       $leading={1.35}
                                     >
-                                      {typeof price === "number" &&
+                                      {typeof entitlementPrice === "number" &&
                                       (entitlement.priceBehavior ===
                                         "pay_in_advance" ||
                                         entitlement.priceBehavior ===
                                           "pay_as_you_go") ? (
                                         <>
-                                          {formatCurrency(price, currency)}{" "}
+                                          {formatCurrency(
+                                            entitlementPrice,
+                                            entitlementCurrency,
+                                          )}{" "}
                                           {t("per")}{" "}
                                           {pluralize(
                                             entitlement.feature.name,
@@ -503,7 +489,9 @@ export const PricingTable = forwardRef<
                                         entitlement.valueType === "unlimited" ||
                                         entitlement.valueType === "trait" ? (
                                         <>
-                                          {entitlement.valueType === "unlimited"
+                                          {entitlement.valueType ===
+                                            "unlimited" &&
+                                          !entitlement.priceBehavior
                                             ? t("Unlimited", {
                                                 item: pluralize(
                                                   entitlement.feature.name,
@@ -519,7 +507,9 @@ export const PricingTable = forwardRef<
                                                 </>
                                               )}
 
-                                          {entitlement.metricPeriod ? (
+                                          {entitlement.metricPeriod &&
+                                          entitlement.priceBehavior !==
+                                            "overage" ? (
                                             <>
                                               {" "}
                                               {t("per")}{" "}
@@ -549,7 +539,7 @@ export const PricingTable = forwardRef<
                                     </Text>
 
                                     {entitlement.priceBehavior === "overage" &&
-                                      typeof price === "number" && (
+                                      typeof entitlementPrice === "number" && (
                                         <Text
                                           $font={
                                             theme.typography.text.fontFamily
@@ -576,13 +566,17 @@ export const PricingTable = forwardRef<
                                           }
                                           $leading={1.35}
                                         >
-                                          {formatCurrency(price)}/
+                                          {formatCurrency(
+                                            entitlementPrice,
+                                            entitlementCurrency,
+                                          )}
+                                          /
                                           {pluralize(
                                             entitlement.feature.name.toLowerCase(),
                                             1,
                                           )}
                                           {entitlement.feature.featureType ===
-                                            "event" && (
+                                            "trait" && (
                                             <>
                                               /{shortenPeriod(selectedPeriod)}
                                             </>
@@ -741,16 +735,20 @@ export const PricingTable = forwardRef<
               $gridTemplateColumns="repeat(auto-fill, minmax(320px, 1fr))"
               $gap="1rem"
             >
-              {addOns.map((addOn, index) => {
+              {addOns.map((addOn) => {
                 const isActiveAddOn =
                   addOn.current &&
                   selectedPeriod ===
                     data.company?.addOns.find((a) => a.id === addOn.id)
                       ?.planPeriod;
+                const { price: addOnPrice, currency: addOnCurrency } =
+                  (selectedPeriod === "month"
+                    ? addOn.monthlyPrice
+                    : selectedPeriod === "year" && addOn.yearlyPrice) || {};
 
                 return (
                   <Flex
-                    key={index}
+                    key={addOn.id}
                     $position="relative"
                     $flexDirection="column"
                     $gap="2rem"
@@ -834,16 +832,7 @@ export const PricingTable = forwardRef<
                             theme.typography[props.plans.name.fontStyle].color
                           }
                         >
-                          {formatCurrency(
-                            (selectedPeriod === "month"
-                              ? addOn.monthlyPrice
-                              : addOn.yearlyPrice
-                            )?.price ?? 0,
-                            (selectedPeriod === "month"
-                              ? addOn.monthlyPrice
-                              : addOn.yearlyPrice
-                            )?.currency,
-                          )}
+                          {formatCurrency(addOnPrice ?? 0, addOnCurrency)}
                         </Text>
 
                         <Text
@@ -892,14 +881,14 @@ export const PricingTable = forwardRef<
                       $flexDirection="column"
                       $justifyContent="end"
                       $gap={`${cardPadding}rem`}
-                      $flexGrow="1"
+                      $flexGrow={1}
                     >
                       {props.addOns.showEntitlements && (
                         <Flex
                           $flexDirection="column"
                           $position="relative"
                           $gap="1rem"
-                          $flexGrow="1"
+                          $flexGrow={1}
                         >
                           {addOn.entitlements.map((entitlement) => {
                             return (
@@ -951,8 +940,17 @@ export const PricingTable = forwardRef<
                                                   ),
                                                 })
                                               : typeof entitlement.valueNumeric ===
-                                                  "number" &&
-                                                `${formatNumber(entitlement.valueNumeric)} ${pluralize(entitlement.feature.name, entitlement.valueNumeric)}`}
+                                                  "number" && (
+                                                  <>
+                                                    {formatNumber(
+                                                      entitlement.valueNumeric,
+                                                    )}{" "}
+                                                    {pluralize(
+                                                      entitlement.feature.name,
+                                                      entitlement.valueNumeric,
+                                                    )}
+                                                  </>
+                                                )}
                                             {entitlement.metricPeriod && (
                                               <>
                                                 {" "}

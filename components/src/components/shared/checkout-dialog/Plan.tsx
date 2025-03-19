@@ -93,19 +93,15 @@ export const Plan = ({
         $display="grid"
         $gridTemplateColumns="repeat(auto-fill, minmax(300px, 1fr))"
         $gap="1rem"
-        $flexGrow="1"
+        $flexGrow={1}
       >
         {plans.map((plan) => {
-          const count = entitlementCounts[plan.id] as
-            | {
-                size: number;
-                limit: number;
-              }
-            | undefined;
-          let isExpanded = false;
-          if (count?.limit && count.limit > VISIBLE_ENTITLEMENT_COUNT) {
-            isExpanded = true;
-          }
+          const count = entitlementCounts[plan.id];
+          const isExpanded = count.limit > VISIBLE_ENTITLEMENT_COUNT;
+          const { price: planPrice, currency: planCurrency } =
+            (period === "month"
+              ? plan.monthlyPrice
+              : period === "year" && plan.yearlyPrice) || {};
 
           return (
             <Flex
@@ -171,18 +167,9 @@ export const Plan = ({
                   >
                     {plan.custom
                       ? plan.customPlanConfig?.priceText
-                        ? plan.customPlanConfig?.priceText
+                        ? plan.customPlanConfig.priceText
                         : t("Custom Plan Price")
-                      : formatCurrency(
-                          (period === "month"
-                            ? plan.monthlyPrice
-                            : plan.yearlyPrice
-                          )?.price ?? 0,
-                          (period === "month"
-                            ? plan.monthlyPrice
-                            : plan.yearlyPrice
-                          )?.currency,
-                        )}
+                      : formatCurrency(planPrice ?? 0, planCurrency)}
                   </Text>
 
                   {!plan.custom && (
@@ -218,11 +205,11 @@ export const Plan = ({
               <Flex
                 $flexDirection="column"
                 $justifyContent="end"
-                $flexGrow="1"
+                $flexGrow={1}
                 $gap={`${cardPadding}rem`}
                 $padding={`${0.75 * cardPadding}rem ${cardPadding}rem 0`}
               >
-                <Flex $flexDirection="column" $gap="1rem" $flexGrow="1">
+                <Flex $flexDirection="column" $gap="1rem" $flexGrow={1}>
                   {plan.entitlements
                     .reduce((acc: React.ReactElement[], entitlement) => {
                       const hasNumericValue =
@@ -230,7 +217,7 @@ export const Plan = ({
                         entitlement.valueType === "unlimited" ||
                         entitlement.valueType === "trait";
 
-                      let metricPeriodText;
+                      let metricPeriodText: string | undefined;
                       if (
                         hasNumericValue &&
                         entitlement.metricPeriod &&
@@ -245,21 +232,19 @@ export const Plan = ({
                       }
 
                       const limit =
-                        entitlement.softLimit || entitlement.valueNumeric;
-                      const price = (
-                        period === "month"
+                        entitlement.softLimit ?? entitlement.valueNumeric;
+                      const {
+                        price: entitlementPrice,
+                        currency: entitlementCurrency,
+                      } =
+                        (period === "month"
                           ? entitlement.meteredMonthlyPrice
-                          : entitlement.meteredYearlyPrice
-                      )?.price;
-                      const currency = (
-                        period === "month"
-                          ? entitlement.meteredMonthlyPrice
-                          : entitlement.meteredYearlyPrice
-                      )?.currency;
+                          : period === "year" &&
+                            entitlement.meteredYearlyPrice) || {};
 
                       if (
                         entitlement.priceBehavior &&
-                        typeof price !== "number"
+                        typeof entitlementPrice !== "number"
                       ) {
                         return acc;
                       }
@@ -303,13 +288,16 @@ export const Plan = ({
                                   $color={theme.typography.text.color}
                                   $leading={1.35}
                                 >
-                                  {typeof price === "number" &&
+                                  {typeof entitlementPrice === "number" &&
                                   (entitlement.priceBehavior ===
                                     "pay_in_advance" ||
                                     entitlement.priceBehavior ===
                                       "pay_as_you_go") ? (
                                     <>
-                                      {formatCurrency(price, currency)}{" "}
+                                      {formatCurrency(
+                                        entitlementPrice,
+                                        entitlementCurrency,
+                                      )}{" "}
                                       {t("per")}{" "}
                                       {pluralize(entitlement.feature.name, 1)}
                                       {entitlement.priceBehavior ===
@@ -322,7 +310,8 @@ export const Plan = ({
                                     </>
                                   ) : hasNumericValue ? (
                                     <>
-                                      {entitlement.valueType === "unlimited"
+                                      {entitlement.valueType === "unlimited" &&
+                                      !entitlement.priceBehavior
                                         ? t("Unlimited", {
                                             item: pluralize(
                                               entitlement.feature.name,
@@ -357,7 +346,7 @@ export const Plan = ({
                                 </Text>
 
                                 {entitlement.priceBehavior === "overage" &&
-                                  typeof price === "number" && (
+                                  typeof entitlementPrice === "number" && (
                                     <Text
                                       $font={theme.typography.text.fontFamily}
                                       $size={
@@ -378,13 +367,17 @@ export const Plan = ({
                                       }
                                       $leading={1.35}
                                     >
-                                      {formatCurrency(price)}/
+                                      {formatCurrency(
+                                        entitlementPrice,
+                                        entitlementCurrency,
+                                      )}
+                                      /
                                       {pluralize(
                                         entitlement.feature.name.toLowerCase(),
                                         1,
                                       )}
                                       {entitlement.feature.featureType ===
-                                        "event" && (
+                                        "trait" && (
                                         <>/{shortenPeriod(period)}</>
                                       )}{" "}
                                       {t("overage fee")}
@@ -448,7 +441,7 @@ export const Plan = ({
                     />
 
                     <Text
-                      $size={15}
+                      $size={(15 / 16) * theme.typography.text.fontSize}
                       $leading={1}
                       $color={theme.typography.text.color}
                     >
