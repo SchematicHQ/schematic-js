@@ -42,6 +42,8 @@ schematic.identify({
 
 // Send a track event to record usage
 schematic.track({ event: "query" });
+// OR, Send a track event with a quantity to record multiple units of usage
+schematic.track({ event: "query", quantity: 10 });
 
 // Check a flag
 await schematic.checkFlag("some-flag-key");
