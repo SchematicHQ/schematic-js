@@ -123,6 +123,7 @@ export type EmbedSettings = {
   theme: EmbedThemeSettings;
   badge?: {
     alignment: ComponentProps["$justifyContent"];
+    visibility?: ComponentProps["$visibility"];
   };
 };
 
@@ -130,6 +131,7 @@ export const defaultSettings: EmbedSettings = {
   theme: defaultTheme,
   badge: {
     alignment: "start",
+    visibility: "visible",
   },
 };
 
