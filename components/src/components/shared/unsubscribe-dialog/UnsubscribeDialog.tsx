@@ -210,7 +210,6 @@ export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
           error={error}
           isLoading={isLoading}
           showHeader={false}
-          showPaymentForm={false}
           requiresPayment={false}
           setError={(msg) => setError(msg)}
           setIsLoading={setIsLoading}

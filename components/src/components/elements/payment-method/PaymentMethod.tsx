@@ -72,7 +72,7 @@ interface DesignProps {
 
 interface PaymentMethodElementProps extends DesignProps {
   size?: PaymentElementSizes;
-  paymentMethod: PaymentMethodResponseData;
+  paymentMethod?: PaymentMethodResponseData;
   monthsToExpiration?: number;
   onEdit?: () => void;
 }
@@ -104,6 +104,22 @@ const PaymentElement = ({
               {paymentLast4}
             </Box>
           )}
+        </Flex>
+      </Flex>
+    </Text>
+  );
+};
+
+const EmptyPaymentElement = () => {
+  const theme = useTheme();
+
+  return (
+    <Text $font={theme.typography.text.fontFamily} $size={16}>
+      <Flex $flexDirection="row" $alignItems="center">
+        <Flex $alignItems="center">
+          <Box $lineHeight="1" $marginRight="4px">
+            {t("No payment method selected")}
+          </Box>
         </Flex>
       </Flex>
     </Text>
@@ -175,12 +191,11 @@ const PaymentListElement = ({
         {expirationDate && t("Expires", { date: expirationDate })}
       </Box>
 
-      <Box
-        onClick={() => {
-          setDefault(paymentMethod.id);
-        }}
-      >
+      <Box>
         <Text
+          onClick={() => {
+            setDefault(paymentMethod.externalId);
+          }}
           $font={theme.typography.link.fontFamily}
           $size={theme.typography.link.fontSize}
           $weight={theme.typography.link.fontWeight}
@@ -324,7 +339,13 @@ const PaymentMethodElement = ({
 
   const isLightBackground = useIsLightBackground();
 
-  const sizeFactor = size === "lg" ? 1.6 : size === "md" ? 1 : 0.5;
+  let sizeFactor = 0.5;
+  if (size === "lg") {
+    sizeFactor = 1.6;
+  }
+  if (size === "md") {
+    sizeFactor = 1;
+  }
 
   return (
     <Flex $flexDirection="column" $gap={`${sizeFactor}rem`}>
@@ -367,10 +388,13 @@ const PaymentMethodElement = ({
         $padding={`${sizeFactor / 2.2}rem ${sizeFactor}rem`}
         $borderRadius="9999px"
       >
-        <PaymentElement
-          {...getPaymentMethodData(paymentMethod)}
-          {...getIconStyles({ size, theme })}
-        />
+        {paymentMethod && (
+          <PaymentElement
+            {...getPaymentMethodData(paymentMethod)}
+            {...getIconStyles({ size, theme })}
+          />
+        )}
+        {!paymentMethod && <EmptyPaymentElement />}
 
         {props.functions.allowEdit && onEdit && (
           <Text
@@ -412,9 +436,7 @@ export const PaymentMethod = forwardRef<
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | undefined>();
-  const [showPaymentForm, setShowPaymentForm] = useState(
-    () => typeof data.subscription?.paymentMethod === "undefined",
-  );
+  const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [stripe, setStripe] = useState<Promise<Stripe | null> | null>(null);
   const [setupIntent, setSetupIntent] = useState<SetupIntentResponseData>();
   const [top, setTop] = useState(0);
@@ -451,6 +473,7 @@ export const PaymentMethod = forwardRef<
 
     try {
       setIsLoading(true);
+      // TODO: Remove component id from here and from api
       const { data: setupIntent } = await api.getSetupIntent({
         componentId: data.component.id,
       });
@@ -498,7 +521,6 @@ export const PaymentMethod = forwardRef<
 
   const deletePaymentMethod = useCallback(
     async (id: string) => {
-      console.log("here", id, api);
       if (!api || !id) {
         return;
       }
@@ -510,14 +532,14 @@ export const PaymentMethod = forwardRef<
         await api.deletePaymentMethod({
           checkoutId: id,
         });
-        setLayout("success");
+        await hydrate();
       } catch {
         setError(t("Error deleting payment method. Please try again."));
       } finally {
         setIsLoading(false);
       }
     },
-    [api, setLayout, t],
+    [api, hydrate, t],
   );
 
   useEffect(() => {
@@ -542,10 +564,6 @@ export const PaymentMethod = forwardRef<
     };
   }, [portal, layout]);
 
-  if (!paymentMethod?.paymentMethodType) {
-    return null;
-  }
-
   return (
     <Element ref={ref} className={className}>
       <PaymentMethodElement
@@ -558,7 +576,7 @@ export const PaymentMethod = forwardRef<
       {layout === "payment" &&
         createPortal(
           <Modal size="md" top={top} onClose={() => setShowPaymentForm(false)}>
-            <ModalHeader bordered>
+            <ModalHeader bordered onClose={() => setShowPaymentForm(false)}>
               <Text
                 $font={theme.typography.text.fontFamily}
                 $size={19}
@@ -582,113 +600,116 @@ export const PaymentMethod = forwardRef<
                 }
                 $overflow="auto"
               >
-                <>
-                  {showPaymentForm ? (
-                    <Elements
-                      stripe={stripe}
-                      options={{
-                        appearance: {
-                          theme: "stripe",
-                          variables: {
-                            fontFamily: '"Public Sans", system-ui, sans-serif',
-                            spacingUnit: "0.25rem",
-                            borderRadius: "0.5rem",
-                            colorText: "#30313D",
-                            colorBackground: "#FFFFFF",
-                            colorPrimary: "#0570DE",
-                            colorDanger: "#DB6669",
-                            gridRowSpacing: "1.5rem",
-                            gridColumnSpacing: "1.5rem",
-                          },
-                          rules: {
-                            ".Label": {
-                              fontSize: "1rem",
-                              fontWeight: "400",
-                              marginBottom: "0.75rem",
-                              color: theme.typography.text.color,
-                            },
+                {showPaymentForm ? (
+                  <Elements
+                    stripe={stripe}
+                    options={{
+                      appearance: {
+                        theme: "stripe",
+                        variables: {
+                          fontFamily: '"Public Sans", system-ui, sans-serif',
+                          spacingUnit: "0.25rem",
+                          borderRadius: "0.5rem",
+                          colorText: "#30313D",
+                          colorBackground: "#FFFFFF",
+                          colorPrimary: "#0570DE",
+                          colorDanger: "#DB6669",
+                          gridRowSpacing: "1.5rem",
+                          gridColumnSpacing: "1.5rem",
+                        },
+                        rules: {
+                          ".Label": {
+                            fontSize: "1rem",
+                            fontWeight: "400",
+                            marginBottom: "0.75rem",
+                            color: theme.typography.text.color,
                           },
                         },
-                        clientSecret:
-                          setupIntent?.setupIntentClientSecret as string,
-                      }}
-                    >
-                      <PaymentForm
-                        onConfirm={(value) => updatePaymentMethod(value)}
-                      />
-                    </Elements>
-                  ) : (
-                    <Flex $flexDirection="column" $gap="2rem">
-                      <PaymentMethodElement
-                        size="lg"
-                        paymentMethod={paymentMethod}
-                        monthsToExpiration={monthsToExpiration}
-                        onEdit={createSetupIntent}
-                        {...props}
-                      />
+                      },
+                      clientSecret:
+                        setupIntent?.setupIntentClientSecret as string,
+                    }}
+                  >
+                    <PaymentForm
+                      onConfirm={(paymentMethodId) =>
+                        updatePaymentMethod(paymentMethodId)
+                      }
+                    />
+                  </Elements>
+                ) : (
+                  <Flex $flexDirection="column" $gap="2rem">
+                    <PaymentMethodElement
+                      size="lg"
+                      paymentMethod={paymentMethod}
+                      monthsToExpiration={monthsToExpiration}
+                      {...props}
+                    />
 
-                      <Box>
-                        <Text
-                          onClick={dropDownDifferentPaymentMethods}
-                          $font={theme.typography.link.fontFamily}
-                          $size={theme.typography.link.fontSize}
-                          $weight={theme.typography.link.fontWeight}
-                          $color={theme.typography.link.color}
-                        >
-                          {t("Choose different payment method")}
-                          <Icon
-                            name="chevron-down"
-                            style={{
-                              display: "inline-flex",
-                              marginLeft: "0.5rem",
-                              ...(showDifferentPaymentMethods && {
-                                transform: "rotate(180deg)",
-                              }),
-                            }}
-                          />
-                        </Text>
-                      </Box>
-
-                      {showDifferentPaymentMethods && (
-                        <Flex
-                          $flexDirection="column"
-                          $overflowY="hidden"
-                          $height="10rem"
-                        >
-                          <Flex $flexDirection="column" $overflowY="scroll">
-                            {(data.company?.paymentMethods || []).map(
-                              (paymentMethod) => (
-                                <PaymentListElement
-                                  key={paymentMethod.id}
-                                  paymentMethod={paymentMethod}
-                                  setDefault={updatePaymentMethod}
-                                  handleDelete={deletePaymentMethod}
-                                />
-                              ),
-                            )}
-                          </Flex>
-
-                          <EmbedButton onClick={createSetupIntent} size="lg">
-                            {t("Add new payment method")}
-                          </EmbedButton>
-                        </Flex>
-                      )}
-                    </Flex>
-                  )}
-
-                  {!isLoading && error && (
                     <Box>
                       <Text
-                        $font={theme.typography.text.fontFamily}
-                        $size={theme.typography.text.fontSize}
-                        $weight={500}
-                        $color="#DB6669"
+                        onClick={dropDownDifferentPaymentMethods}
+                        $font={theme.typography.link.fontFamily}
+                        $size={theme.typography.link.fontSize}
+                        $weight={theme.typography.link.fontWeight}
+                        $color={theme.typography.link.color}
                       >
-                        {error}
+                        {t("Choose different payment method")}
+                        <Icon
+                          name="chevron-down"
+                          style={{
+                            display: "inline-flex",
+                            marginLeft: "0.5rem",
+                            ...(showDifferentPaymentMethods && {
+                              transform: "rotate(180deg)",
+                            }),
+                          }}
+                        />
                       </Text>
                     </Box>
-                  )}
-                </>
+
+                    {showDifferentPaymentMethods && (
+                      <Flex
+                        $flexDirection="column"
+                        $overflowY="hidden"
+                        $height="10rem"
+                      >
+                        <Flex $flexDirection="column" $overflowY="scroll">
+                          {(
+                            data.company?.paymentMethods.filter(
+                              (pm) => pm.id !== paymentMethod?.id,
+                            ) || []
+                          ).map((paymentMethod) => (
+                            <PaymentListElement
+                              key={paymentMethod.id}
+                              paymentMethod={paymentMethod}
+                              setDefault={updatePaymentMethod}
+                              handleDelete={deletePaymentMethod}
+                            />
+                          ))}
+                        </Flex>
+                      </Flex>
+                    )}
+
+                    {(!paymentMethod || showDifferentPaymentMethods) && (
+                      <EmbedButton onClick={createSetupIntent} size="lg">
+                        {t("Add new payment method")}
+                      </EmbedButton>
+                    )}
+                  </Flex>
+                )}
+
+                {!isLoading && error && (
+                  <Box>
+                    <Text
+                      $font={theme.typography.text.fontFamily}
+                      $size={theme.typography.text.fontSize}
+                      $weight={500}
+                      $color="#DB6669"
+                    >
+                      {error}
+                    </Text>
+                  </Box>
+                )}
               </Flex>
             </Flex>
           </Modal>,

@@ -64,9 +64,6 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   const [paymentMethodId, setPaymentMethodId] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | undefined>();
-  const [showPaymentForm, setShowPaymentForm] = useState(
-    !data.subscription?.paymentMethod,
-  );
   const [promoCode, setPromoCode] = useState<string>();
   const [planPeriod, setPlanPeriod] = useState(
     selected.period || data.company?.plan?.planPeriod || "month",
@@ -590,9 +587,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           {checkoutStage === "checkout" && (
             <Checkout
               requiresPayment={requiresPayment}
-              showPaymentForm={showPaymentForm}
               setPaymentMethodId={(id) => setPaymentMethodId(id)}
-              togglePaymentForm={() => setShowPaymentForm((prev) => !prev)}
               updatePromoCode={(code) => updatePromoCode(code)}
             />
           )}
@@ -615,7 +610,6 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           setCheckoutStage={(stage) => setCheckoutStage(stage)}
           setError={(msg) => setError(msg)}
           setIsLoading={setIsLoading}
-          showPaymentForm={showPaymentForm}
           updatePromoCode={(code) => updatePromoCode(code)}
         />
       </Flex>
