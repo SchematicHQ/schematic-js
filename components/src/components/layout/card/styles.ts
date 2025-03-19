@@ -19,6 +19,7 @@ export const StyledCard = styled.div(({ theme }) => {
 
   return css`
     position: relative;
+    overflow: hidden;
 
     ${theme.sectionLayout === "merged"
       ? `&:not(:has(${FussyChild}))`

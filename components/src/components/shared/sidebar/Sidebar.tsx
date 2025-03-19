@@ -1013,6 +1013,10 @@ export const Sidebar = ({
                         ? addOn.monthlyPrice
                         : addOn.yearlyPrice
                       )?.price ?? 0,
+                      (planPeriod === "month"
+                        ? addOn.monthlyPrice
+                        : addOn.yearlyPrice
+                      )?.currency,
                     )}
                     <sub>/{shortenPeriod(planPeriod)}</sub>
                   </Text>
