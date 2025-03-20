@@ -1,3 +1,4 @@
+import { useTheme } from "styled-components";
 import { TEXT_BASE_SIZE } from "../../../const";
 import { Box, Flex, Text } from "../../ui";
 import { Container } from "./styles";
@@ -30,6 +31,8 @@ export const ProgressBar = ({
   barWidth = "100%",
   ...props
 }: ProgressBarProps) => {
+  const theme = useTheme();
+
   const barColorMap = {
     gray: "#9CA3AF",
     blue: "#2563EB",
@@ -92,7 +95,12 @@ export const ProgressBar = ({
         </Box> */}
       </Flex>
       {total !== 0 && (
-        <Text $size={14} $weight={500}>
+        <Text
+          $font={theme.typography.text.fontFamily}
+          $size={14}
+          $weight={500}
+          $color={theme.typography.text.color}
+        >
           {value}/{total}
         </Text>
       )}

@@ -191,8 +191,8 @@ export const Details = ({
             $font={theme.typography[props.entitlement.fontStyle].fontFamily}
             $size={theme.typography[props.entitlement.fontStyle].fontSize}
             $weight={theme.typography[props.entitlement.fontStyle].fontWeight}
-            $leading={1}
             $color={theme.typography[props.entitlement.fontStyle].color}
+            $leading={1}
           >
             {text}
           </Text>
@@ -205,8 +205,8 @@ export const Details = ({
             $font={theme.typography[props.usage.fontStyle].fontFamily}
             $size={theme.typography[props.usage.fontStyle].fontSize}
             $weight={theme.typography[props.usage.fontStyle].fontWeight}
-            $leading={1}
             $color={theme.typography[props.usage.fontStyle].color}
+            $leading={1}
           >
             {usageText}
           </Text>

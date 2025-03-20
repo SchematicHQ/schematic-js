@@ -614,8 +614,8 @@ export const PricingTable = forwardRef<
                               $font={theme.typography.link.fontFamily}
                               $size={theme.typography.link.fontSize}
                               $weight={theme.typography.link.fontWeight}
-                              $leading={1}
                               $color={theme.typography.link.color}
+                              $leading={1}
                               style={{ cursor: "pointer" }}
                             >
                               {isExpanded ? t("Hide all") : t("See all")}
@@ -642,9 +642,11 @@ export const PricingTable = forwardRef<
                         />
 
                         <Text
+                          $font={theme.typography.text.fontFamily}
                           $size={15}
-                          $leading={1}
+                          $weight={theme.typography.text.fontWeight}
                           $color={theme.typography.text.color}
+                          $leading={1}
                         >
                           {t("Current plan")}
                         </Text>

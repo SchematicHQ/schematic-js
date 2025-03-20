@@ -414,8 +414,8 @@ export const Plan = ({
                         $font={theme.typography.link.fontFamily}
                         $size={theme.typography.link.fontSize}
                         $weight={theme.typography.link.fontWeight}
-                        $leading={1}
                         $color={theme.typography.link.color}
+                        $leading={1}
                         style={{ cursor: "pointer" }}
                       >
                         {isExpanded ? t("Hide all") : t("See all")}
@@ -441,9 +441,11 @@ export const Plan = ({
                     />
 
                     <Text
+                      $font={theme.typography.text.fontFamily}
                       $size={(15 / 16) * theme.typography.text.fontSize}
-                      $leading={1}
+                      $weight={theme.typography.text.fontWeight}
                       $color={theme.typography.text.color}
+                      $leading={1}
                     >
                       {plan.current ? t("Current plan") : t("Selected")}
                     </Text>
