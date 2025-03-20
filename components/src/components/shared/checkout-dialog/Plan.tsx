@@ -304,10 +304,7 @@ export const Plan = ({
                                           entitlementCurrency,
                                         )}{" "}
                                         {t("per")}{" "}
-                                        {getFeatureName(
-                                          entitlement.feature.name,
-                                          1,
-                                        )}
+                                        {getFeatureName(entitlement.feature, 1)}
                                         {entitlement.priceBehavior ===
                                           "pay_in_advance" && (
                                           <>
@@ -323,14 +320,14 @@ export const Plan = ({
                                         !entitlement.priceBehavior
                                           ? t("Unlimited", {
                                               item: getFeatureName(
-                                                entitlement.feature.name,
+                                                entitlement.feature,
                                               ),
                                             })
                                           : typeof limit === "number" && (
                                               <>
                                                 {formatNumber(limit)}{" "}
                                                 {getFeatureName(
-                                                  entitlement.feature.name,
+                                                  entitlement.feature,
                                                   limit,
                                                 )}
                                               </>
@@ -384,7 +381,7 @@ export const Plan = ({
                                         )}
                                         /
                                         {getFeatureName(
-                                          entitlement.feature.name.toLowerCase(),
+                                          entitlement.feature.name,
                                           1,
                                         )}
                                         {entitlement.feature.featureType ===

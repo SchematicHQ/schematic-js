@@ -482,7 +482,7 @@ export const PricingTable = forwardRef<
                                             )}{" "}
                                             {t("per")}{" "}
                                             {getFeatureName(
-                                              entitlement.feature.name,
+                                              entitlement.feature,
                                               1,
                                             )}
                                             {entitlement.priceBehavior ===
@@ -504,14 +504,14 @@ export const PricingTable = forwardRef<
                                             !entitlement.priceBehavior
                                               ? t("Unlimited", {
                                                   item: getFeatureName(
-                                                    entitlement.feature.name,
+                                                    entitlement.feature,
                                                   ),
                                                 })
                                               : typeof limit === "number" && (
                                                   <>
                                                     {formatNumber(limit)}{" "}
                                                     {getFeatureName(
-                                                      entitlement.feature.name,
+                                                      entitlement.feature,
                                                       limit,
                                                     )}
                                                   </>
@@ -587,7 +587,7 @@ export const PricingTable = forwardRef<
                                             )}
                                             /
                                             {getFeatureName(
-                                              entitlement.feature.name.toLowerCase(),
+                                              entitlement.feature,
                                               1,
                                             )}
                                             {entitlement.feature.featureType ===
@@ -960,7 +960,7 @@ export const PricingTable = forwardRef<
                                               "unlimited"
                                                 ? t("Unlimited", {
                                                     item: getFeatureName(
-                                                      entitlement.feature.name,
+                                                      entitlement.feature,
                                                     ),
                                                   })
                                                 : typeof entitlement.valueNumeric ===
@@ -970,8 +970,7 @@ export const PricingTable = forwardRef<
                                                         entitlement.valueNumeric,
                                                       )}{" "}
                                                       {getFeatureName(
-                                                        entitlement.feature
-                                                          .name,
+                                                        entitlement.feature,
                                                         entitlement.valueNumeric,
                                                       )}
                                                     </>
