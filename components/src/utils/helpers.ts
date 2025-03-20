@@ -11,7 +11,7 @@ interface getFeatureName {
   ): string;
 }
 
-export const getFeatureName: getFeatureName = (feature, count = 1) => {
+export const getFeatureName: getFeatureName = (feature, count = 0) => {
   const shouldBePlural = count === 0 || count > 1;
   const { name, singularName, pluralName } = feature;
 
