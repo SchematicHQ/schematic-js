@@ -12,10 +12,10 @@ import {
   darken,
   shortenPeriod,
   toPrettyDate,
+  getFeatureName,
 } from "../../../utils";
 import { Element } from "../../layout";
 import { Box, EmbedButton, Flex, Text } from "../../ui";
-import { getFeatureName } from "../../../utils/helpers";
 
 interface DesignProps {
   header: {

@@ -17,6 +17,7 @@ import {
   formatNumber,
   shortenPeriod,
   toPrettyDate,
+  getFeatureName,
 } from "../../../utils";
 import { Element } from "../../layout";
 import {
@@ -31,7 +32,6 @@ import {
   type IconNameTypes,
 } from "../../ui";
 import * as styles from "./styles";
-import { getFeatureName } from "../../../utils/helpers";
 
 interface DesignProps {
   isVisible: boolean;

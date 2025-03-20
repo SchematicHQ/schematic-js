@@ -6,10 +6,14 @@ import type {
   UsageBasedEntitlementResponseData,
 } from "../../../api";
 import { useEmbed } from "../../../hooks";
-import { formatCurrency, formatNumber, shortenPeriod } from "../../../utils";
+import {
+  formatCurrency,
+  formatNumber,
+  getFeatureName,
+  shortenPeriod,
+} from "../../../utils";
 import { Box, Text } from "../../ui";
 import { type DesignProps } from "./IncludedFeatures";
-import { getFeatureName } from "../../../utils/helpers";
 
 interface DetailsProps extends DesignProps {
   shouldWrapChildren: boolean;

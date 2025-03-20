@@ -22,13 +22,13 @@ import {
 import {
   formatCurrency,
   formatOrdinal,
+  getFeatureName,
   getMonthName,
   shortenPeriod,
 } from "../../../utils";
 import { Box, EmbedButton, Flex, Icon, Text } from "../../ui";
 import { type CheckoutStage } from "../checkout-dialog";
 import { StageButton } from "./StageButton";
-import { getFeatureName } from "../../../utils/helpers";
 
 interface SidebarProps {
   planPeriod: string;

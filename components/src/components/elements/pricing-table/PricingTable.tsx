@@ -14,6 +14,7 @@ import {
   darken,
   formatCurrency,
   formatNumber,
+  getFeatureName,
   hexToHSL,
   lighten,
   shortenPeriod,
@@ -31,7 +32,6 @@ import {
   type IconNameTypes,
 } from "../../ui";
 import { ButtonLink } from "./styles";
-import { getFeatureName } from "../../../utils/helpers";
 
 interface DesignProps {
   showPeriodToggle: boolean;

@@ -11,10 +11,10 @@ import {
   darken,
   formatCurrency,
   shortenPeriod,
+  getFeatureName,
 } from "../../../utils";
 import { cardBoxShadow } from "../../layout";
 import { Box, Flex, Input, Text } from "../../ui";
-import { getFeatureName } from "../../../utils/helpers";
 
 interface UsageProps {
   isLoading: boolean;

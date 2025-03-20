@@ -7,6 +7,7 @@ import {
   darken,
   formatCurrency,
   formatNumber,
+  getFeatureName,
   hexToHSL,
   lighten,
   shortenPeriod,
@@ -23,7 +24,6 @@ import {
   type IconNameTypes,
 } from "../../ui";
 import { ButtonLink } from "../../elements/pricing-table/styles";
-import { getFeatureName } from "../../../utils/helpers";
 
 interface PlanProps {
   isLoading: boolean;
