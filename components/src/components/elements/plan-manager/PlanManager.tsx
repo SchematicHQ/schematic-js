@@ -1,7 +1,6 @@
 import { forwardRef, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
-import pluralize from "pluralize";
 import { type FeatureUsageResponseData } from "../../../api";
 import { type FontStyle } from "../../../context";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
@@ -16,6 +15,7 @@ import {
 } from "../../../utils";
 import { Element } from "../../layout";
 import { Box, EmbedButton, Flex, Text } from "../../ui";
+import { getFeatureName } from "../../../utils/helpers";
 
 interface DesignProps {
   header: {
@@ -425,7 +425,7 @@ export const PlanManager = forwardRef<
                         (entitlement.priceBehavior === "overage" &&
                           limit > 0) ? (
                           <>
-                            {limit} {pluralize(entitlement.feature.name, limit)}
+                            {limit} {getFeatureName(entitlement.feature, limit)}
                           </>
                         ) : (
                           entitlement.feature.name
@@ -463,11 +463,7 @@ export const PlanManager = forwardRef<
                                   entitlement.currency,
                                 )}
                                 <sub>
-                                  /
-                                  {pluralize(
-                                    entitlement.feature.name.toLowerCase(),
-                                    1,
-                                  )}
+                                  /{getFeatureName(entitlement.feature, 1)}
                                   {entitlement.feature.featureType ===
                                     "trait" && (
                                     <>
@@ -496,12 +492,8 @@ export const PlanManager = forwardRef<
                                 entitlement.currency,
                               )}
                               <sub>
-                                /
-                                {pluralize(
-                                  entitlement.feature.name.toLowerCase(),
-                                  1,
-                                )}
-                                /{shortenPeriod(currentPlan.planPeriod)}
+                                /{getFeatureName(entitlement.feature, 1)}/
+                                {shortenPeriod(currentPlan.planPeriod)}
                               </sub>
                             </Text>
                           )
@@ -525,10 +517,7 @@ export const PlanManager = forwardRef<
                                 {currentPlan?.planPeriod &&
                                 entitlement.priceBehavior === "pay_in_advance"
                                   ? shortenPeriod(currentPlan.planPeriod)
-                                  : pluralize(
-                                      entitlement.feature.name.toLowerCase(),
-                                      1,
-                                    )}
+                                  : getFeatureName(entitlement.feature, 1)}
                               </sub>
                             )}
                           </Text>

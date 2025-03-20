@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
-import pluralize from "pluralize";
 import { TEXT_BASE_SIZE, VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
 import { useIsLightBackground, type SelectedPlan } from "../../../hooks";
 import {
@@ -24,6 +23,7 @@ import {
   type IconNameTypes,
 } from "../../ui";
 import { ButtonLink } from "../../elements/pricing-table/styles";
+import { getFeatureName } from "../../../utils/helpers";
 
 interface PlanProps {
   isLoading: boolean;
@@ -304,7 +304,10 @@ export const Plan = ({
                                           entitlementCurrency,
                                         )}{" "}
                                         {t("per")}{" "}
-                                        {pluralize(entitlement.feature.name, 1)}
+                                        {getFeatureName(
+                                          entitlement.feature.name,
+                                          1,
+                                        )}
                                         {entitlement.priceBehavior ===
                                           "pay_in_advance" && (
                                           <>
@@ -319,14 +322,14 @@ export const Plan = ({
                                           "unlimited" &&
                                         !entitlement.priceBehavior
                                           ? t("Unlimited", {
-                                              item: pluralize(
+                                              item: getFeatureName(
                                                 entitlement.feature.name,
                                               ),
                                             })
                                           : typeof limit === "number" && (
                                               <>
                                                 {formatNumber(limit)}{" "}
-                                                {pluralize(
+                                                {getFeatureName(
                                                   entitlement.feature.name,
                                                   limit,
                                                 )}
@@ -380,7 +383,7 @@ export const Plan = ({
                                           entitlementCurrency,
                                         )}
                                         /
-                                        {pluralize(
+                                        {getFeatureName(
                                           entitlement.feature.name.toLowerCase(),
                                           1,
                                         )}

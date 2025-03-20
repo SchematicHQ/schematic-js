@@ -6,7 +6,6 @@ import {
 } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
-import pluralize from "pluralize";
 import type {
   FeatureUsageResponseData,
   PlanEntitlementResponseData,
@@ -29,6 +28,7 @@ import {
 import { Box, EmbedButton, Flex, Icon, Text } from "../../ui";
 import { type CheckoutStage } from "../checkout-dialog";
 import { StageButton } from "./StageButton";
+import { getFeatureName } from "../../../utils/helpers";
 
 interface SidebarProps {
   planPeriod: string;
@@ -650,7 +650,7 @@ export const Sidebar = ({
                           {usage.priceBehavior === "pay_in_advance" ? (
                             <>
                               {quantity}{" "}
-                              {pluralize(usage.feature.name, quantity)}
+                              {getFeatureName(usage.feature, quantity)}
                             </>
                           ) : (
                             usage.feature.name
@@ -688,13 +688,7 @@ export const Sidebar = ({
                                     : usage.yearlyUsageBasedPrice
                                   )?.currency,
                                 )}
-                                <sub>
-                                  /
-                                  {pluralize(
-                                    usage.feature.name.toLowerCase(),
-                                    1,
-                                  )}
-                                </sub>
+                                <sub>/{getFeatureName(usage.feature, 1)}</sub>
                               </>
                             )}
                         </Text>
@@ -733,7 +727,7 @@ export const Sidebar = ({
                             $color={theme.typography.heading4.color}
                           >
                             {previous.quantity}{" "}
-                            {pluralize(entitlement.feature.name)}
+                            {getFeatureName(entitlement.feature)}
                           </Text>
                         </Box>
 
@@ -773,7 +767,7 @@ export const Sidebar = ({
                             $color={theme.typography.heading4.color}
                           >
                             {next.quantity}{" "}
-                            {pluralize(entitlement.feature.name)}
+                            {getFeatureName(entitlement.feature)}
                           </Text>
                         </Box>
 
@@ -833,7 +827,7 @@ export const Sidebar = ({
                           {entitlement.priceBehavior === "pay_in_advance" ? (
                             <>
                               {quantity}{" "}
-                              {pluralize(entitlement.feature.name, quantity)}
+                              {getFeatureName(entitlement.feature, quantity)}
                             </>
                           ) : (
                             entitlement.feature.name
@@ -872,11 +866,7 @@ export const Sidebar = ({
                                   )?.currency,
                                 )}
                                 <sub>
-                                  /
-                                  {pluralize(
-                                    entitlement.feature.name.toLowerCase(),
-                                    1,
-                                  )}
+                                  /{getFeatureName(entitlement.feature, 1)}
                                 </sub>
                               </>
                             )}

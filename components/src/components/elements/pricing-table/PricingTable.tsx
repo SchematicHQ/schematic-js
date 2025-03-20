@@ -1,7 +1,6 @@
 import { forwardRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
-import pluralize from "pluralize";
 import { TEXT_BASE_SIZE, VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
 import { type FontStyle } from "../../../context";
 import {
@@ -32,6 +31,7 @@ import {
   type IconNameTypes,
 } from "../../ui";
 import { ButtonLink } from "./styles";
+import { getFeatureName } from "../../../utils/helpers";
 
 interface DesignProps {
   showPeriodToggle: boolean;
@@ -481,7 +481,7 @@ export const PricingTable = forwardRef<
                                               entitlementCurrency,
                                             )}{" "}
                                             {t("per")}{" "}
-                                            {pluralize(
+                                            {getFeatureName(
                                               entitlement.feature.name,
                                               1,
                                             )}
@@ -503,14 +503,14 @@ export const PricingTable = forwardRef<
                                               "unlimited" &&
                                             !entitlement.priceBehavior
                                               ? t("Unlimited", {
-                                                  item: pluralize(
+                                                  item: getFeatureName(
                                                     entitlement.feature.name,
                                                   ),
                                                 })
                                               : typeof limit === "number" && (
                                                   <>
                                                     {formatNumber(limit)}{" "}
-                                                    {pluralize(
+                                                    {getFeatureName(
                                                       entitlement.feature.name,
                                                       limit,
                                                     )}
@@ -586,7 +586,7 @@ export const PricingTable = forwardRef<
                                               entitlementCurrency,
                                             )}
                                             /
-                                            {pluralize(
+                                            {getFeatureName(
                                               entitlement.feature.name.toLowerCase(),
                                               1,
                                             )}
@@ -959,7 +959,7 @@ export const PricingTable = forwardRef<
                                               {entitlement.valueType ===
                                               "unlimited"
                                                 ? t("Unlimited", {
-                                                    item: pluralize(
+                                                    item: getFeatureName(
                                                       entitlement.feature.name,
                                                     ),
                                                   })
@@ -969,7 +969,7 @@ export const PricingTable = forwardRef<
                                                       {formatNumber(
                                                         entitlement.valueNumeric,
                                                       )}{" "}
-                                                      {pluralize(
+                                                      {getFeatureName(
                                                         entitlement.feature
                                                           .name,
                                                         entitlement.valueNumeric,

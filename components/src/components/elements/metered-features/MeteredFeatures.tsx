@@ -1,7 +1,6 @@
 import { forwardRef, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
-import pluralize from "pluralize";
 import { type FeatureUsageResponseData } from "../../../api";
 import { TEXT_BASE_SIZE } from "../../../const";
 import { type FontStyle } from "../../../context";
@@ -32,6 +31,7 @@ import {
   type IconNameTypes,
 } from "../../ui";
 import * as styles from "./styles";
+import { getFeatureName } from "../../../utils/helpers";
 
 interface DesignProps {
   isVisible: boolean;
@@ -219,7 +219,7 @@ export const MeteredFeatures = forwardRef<
                       {t("Overage fee")}: {formatCurrency(price, currency)}
                       {feature && (
                         <Box as="sub" $whiteSpace="nowrap">
-                          /{pluralize(feature.name.toLowerCase(), 1)}
+                          /{getFeatureName(feature, 1)}
                           {feature.featureType === "trait" && planPeriod && (
                             <>/{shortenPeriod(planPeriod)}</>
                           )}
@@ -298,7 +298,7 @@ export const MeteredFeatures = forwardRef<
                             ? typeof usage === "number" && (
                                 <>
                                   {formatNumber(usage)}{" "}
-                                  {pluralize(feature.name, usage)}
+                                  {getFeatureName(feature, usage)}
                                 </>
                               )
                             : feature.name}
@@ -361,7 +361,7 @@ export const MeteredFeatures = forwardRef<
                                 ? typeof allocation === "number" && (
                                     <>
                                       {formatNumber(allocation)}{" "}
-                                      {pluralize(feature.name, allocation)}
+                                      {getFeatureName(feature, allocation)}
                                     </>
                                   )
                                 : priceBehavior === "pay_as_you_go"
@@ -371,7 +371,7 @@ export const MeteredFeatures = forwardRef<
                                   : typeof usage === "number" && (
                                       <>
                                         {formatNumber(usage)}{" "}
-                                        {pluralize(feature.name, usage)}
+                                        {getFeatureName(feature, usage)}
                                         {priceBehavior === "overage" && (
                                           <> {t("used")}</>
                                         )}
@@ -443,7 +443,7 @@ export const MeteredFeatures = forwardRef<
                                 {t("Up to a limit of", {
                                   amount: allocation,
                                   units:
-                                    feature?.name && pluralize(feature.name),
+                                    feature?.name && getFeatureName(feature),
                                 })}
                               </Text>
                             }
