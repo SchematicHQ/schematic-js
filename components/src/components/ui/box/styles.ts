@@ -1,7 +1,8 @@
 import styled, { css, type RuleSet } from "styled-components";
 import CSS from "csstype";
-import { camelToHyphen, attr } from "../../../utils";
 import type { ComponentProps, TransientCSSProperties } from "../../../types";
+import { camelToHyphen, attr } from "../../../utils";
+import { TextPropNames } from "..";
 
 export type BoxProps = ComponentProps & {
   $viewport?: {
@@ -16,7 +17,13 @@ export type BoxProps = ComponentProps & {
 
 export const Box = styled.div<BoxProps>((props) => {
   function reducer(acc: RuleSet, [key, value]: [string, string | number]) {
-    if (key.startsWith("$") && key !== "$viewport") {
+    if (
+      key.startsWith("$") &&
+      ![
+        "$viewport",
+        ...Object.values(TextPropNames).filter((prop) => prop !== "$color"),
+      ].includes(key)
+    ) {
       acc.push(
         // keys will always be CSS properties
         attr(camelToHyphen(key.slice(1)) as keyof CSS.PropertiesHyphen, value),

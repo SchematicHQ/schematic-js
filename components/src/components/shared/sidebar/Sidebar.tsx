@@ -618,7 +618,11 @@ export const Sidebar = ({
             </Box>
 
             {removedUsageBasedEntitlements.reduce(
-              (acc: React.ReactElement[], { allocation, quantity, usage }) => {
+              (
+                acc: React.ReactElement[],
+                { allocation, quantity, usage },
+                index,
+              ) => {
                 if (typeof allocation === "number" && usage.feature?.name) {
                   const price = (
                     planPeriod === "month"
@@ -628,7 +632,7 @@ export const Sidebar = ({
 
                   acc.push(
                     <Flex
-                      key={usage.entitlementId}
+                      key={index}
                       $justifyContent="space-between"
                       $alignItems="center"
                       $gap="1rem"
@@ -705,10 +709,14 @@ export const Sidebar = ({
             )}
 
             {changedUsageBasedEntitlements.reduce(
-              (acc: React.ReactElement[], { entitlement, previous, next }) => {
+              (
+                acc: React.ReactElement[],
+                { entitlement, previous, next },
+                index,
+              ) => {
                 if (entitlement?.feature?.name) {
                   acc.push(
-                    <Box key={entitlement.feature.id}>
+                    <Box key={index}>
                       <Flex
                         $justifyContent="space-between"
                         $alignItems="center"
@@ -800,7 +808,7 @@ export const Sidebar = ({
             )}
 
             {addedUsageBasedEntitlements.reduce(
-              (acc: React.ReactElement[], { entitlement, quantity }) => {
+              (acc: React.ReactElement[], { entitlement, quantity }, index) => {
                 if (entitlement.feature?.name) {
                   const price = (
                     planPeriod === "month"
@@ -810,7 +818,7 @@ export const Sidebar = ({
 
                   acc.push(
                     <Flex
-                      key={entitlement.id}
+                      key={index}
                       $justifyContent="space-between"
                       $alignItems="center"
                       $gap="1rem"
@@ -950,9 +958,9 @@ export const Sidebar = ({
               </Text>
             </Box>
 
-            {removedAddOns.map((addOn) => (
+            {removedAddOns.map((addOn, index) => (
               <Flex
-                key={addOn.id}
+                key={index}
                 $justifyContent="space-between"
                 $alignItems="center"
                 $gap="1rem"
@@ -993,9 +1001,9 @@ export const Sidebar = ({
               </Flex>
             ))}
 
-            {selectedAddOns.map((addOn) => (
+            {selectedAddOns.map((addOn, index) => (
               <Flex
-                key={addOn.id}
+                key={index}
                 $justifyContent="space-between"
                 $alignItems="center"
                 $gap="1rem"

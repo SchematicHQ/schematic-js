@@ -289,6 +289,15 @@ export const EmbedProvider = ({
     };
   });
 
+  const debug = useCallback(
+    (message: string, ...args: unknown[]) => {
+      if (options.debug) {
+        console.debug(`[Schematic] ${message}`, ...args);
+      }
+    },
+    [options.debug],
+  );
+
   const hydrate = useCallback(async () => {
     setState((prev) => ({ ...prev, isPending: true, error: undefined }));
 
@@ -372,12 +381,6 @@ export const EmbedProvider = ({
     });
   };
 
-  const debug = (message: string, ...args: unknown[]) => {
-    if (options.debug) {
-      console.debug(`[Schematic] ${message}`, ...args);
-    }
-  };
-
   const initI18n = () => {
     i18n.use(initReactI18next).init({
       resources: {
@@ -422,7 +425,7 @@ export const EmbedProvider = ({
     return () => {
       window.removeEventListener("plan-changed", planChanged);
     };
-  }, []);
+  }, [debug]);
 
   useEffect(() => {
     if (accessToken) {
