@@ -73,7 +73,7 @@ export const Details = ({
   ]);
 
   const text = useMemo(() => {
-    if (!feature?.name) {
+    if (!feature) {
       return;
     }
 
@@ -96,10 +96,10 @@ export const Details = ({
     if (!priceBehavior) {
       return t("Unlimited", { item: getFeatureName(feature) });
     }
-  }, [t, allocation, feature?.name, price, priceBehavior, currency, softLimit]);
+  }, [t, allocation, feature, price, priceBehavior, currency, softLimit]);
 
   const usageText = useMemo(() => {
-    if (!feature?.name) {
+    if (!feature) {
       return;
     }
 
@@ -168,8 +168,7 @@ export const Details = ({
   }, [
     t,
     data.company?.plan?.planPeriod,
-    feature?.name,
-    feature?.featureType,
+    feature,
     priceBehavior,
     allocation,
     price,
