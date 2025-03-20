@@ -1,6 +1,5 @@
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
-import pluralize from "pluralize";
 import type {
   CompanyPlanDetailResponseData,
   PlanEntitlementResponseData,
@@ -12,6 +11,7 @@ import {
   darken,
   formatCurrency,
   shortenPeriod,
+  getFeatureName,
 } from "../../../utils";
 import { cardBoxShadow } from "../../layout";
 import { Box, Flex, Input, Text } from "../../ui";
@@ -132,9 +132,7 @@ export const Usage = ({ entitlements, updateQuantity, period }: UsageProps) => {
                         )}
                         {t("Currently using", {
                           quantity: usage,
-                          unit: pluralize(
-                            entitlement.feature.name.toLowerCase(),
-                          ),
+                          unit: getFeatureName(entitlement.feature),
                         })}
                       </Text>
                     </Box>
@@ -183,9 +181,8 @@ export const Usage = ({ entitlements, updateQuantity, period }: UsageProps) => {
                           )?.currency,
                         )}
                         <sub>
-                          /
-                          {pluralize(entitlement.feature.name.toLowerCase(), 1)}
-                          /{shortenPeriod(period)}
+                          /{getFeatureName(entitlement.feature, 1)}/
+                          {shortenPeriod(period)}
                         </sub>
                       </Text>
                     </Box>

@@ -1,13 +1,17 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
-import pluralize from "pluralize";
 import type {
   FeatureUsageResponseData,
   UsageBasedEntitlementResponseData,
 } from "../../../api";
 import { useEmbed } from "../../../hooks";
-import { formatCurrency, formatNumber, shortenPeriod } from "../../../utils";
+import {
+  formatCurrency,
+  formatNumber,
+  getFeatureName,
+  shortenPeriod,
+} from "../../../utils";
 import { Box, Text } from "../../ui";
 import { type DesignProps } from "./IncludedFeatures";
 
@@ -69,33 +73,33 @@ export const Details = ({
   ]);
 
   const text = useMemo(() => {
-    if (!feature?.name) {
+    if (!feature) {
       return;
     }
 
     if (priceBehavior === "pay_in_advance" && typeof allocation === "number") {
-      return `${formatNumber(allocation)} ${pluralize(feature.name, allocation)}`;
+      return `${formatNumber(allocation)} ${getFeatureName(feature, allocation)}`;
     }
 
     if (priceBehavior === "pay_as_you_go" && typeof price === "number") {
-      return `${formatCurrency(price, currency)} ${t("per")} ${pluralize(feature.name.toLowerCase(), 1)}`;
+      return `${formatCurrency(price, currency)} ${t("per")} ${getFeatureName(feature, 1)}`;
     }
 
     if (priceBehavior === "overage" && typeof softLimit === "number") {
-      return `${formatNumber(softLimit)} ${pluralize(feature.name, softLimit)}`;
+      return `${formatNumber(softLimit)} ${getFeatureName(feature, softLimit)}`;
     }
 
     if (!priceBehavior && typeof allocation === "number") {
-      return `${formatNumber(allocation)} ${pluralize(feature.name, allocation)}`;
+      return `${formatNumber(allocation)} ${getFeatureName(feature, allocation)}`;
     }
 
     if (!priceBehavior) {
-      return t("Unlimited", { item: pluralize(feature.name) });
+      return t("Unlimited", { item: getFeatureName(feature) });
     }
-  }, [t, allocation, feature?.name, price, priceBehavior, currency, softLimit]);
+  }, [t, allocation, feature, price, priceBehavior, currency, softLimit]);
 
   const usageText = useMemo(() => {
-    if (!feature?.name) {
+    if (!feature) {
       return;
     }
 
@@ -107,12 +111,12 @@ export const Details = ({
         typeof data.company?.plan?.planPeriod === "string" &&
         typeof price === "number"
       ) {
-        acc = `${formatCurrency(price, currency)}/${pluralize(feature.name.toLowerCase(), 1)}/${shortenPeriod(data.company.plan.planPeriod)}`;
+        acc = `${formatCurrency(price, currency)}/${getFeatureName(feature, 1)}/${shortenPeriod(data.company.plan.planPeriod)}`;
       } else if (
         (priceBehavior === "pay_as_you_go" || priceBehavior === "overage") &&
         typeof usage === "number"
       ) {
-        acc = `${usage} ${pluralize(feature.name.toLowerCase(), usage)} ${t("used")}`;
+        acc = `${usage} ${getFeatureName(feature, usage)} ${t("used")}`;
       }
 
       if (acc) {
@@ -144,7 +148,7 @@ export const Details = ({
           acc +=
             cost > 0
               ? ` • ${t("Overage")}: ${formatCurrency(cost)}${period}`
-              : ` • ${`${formatCurrency(price)}/${pluralize(feature.name.toLowerCase(), 1)}`} ${t("overage fee")}`;
+              : ` • ${`${formatCurrency(price)}/${getFeatureName(feature, 1)}`} ${t("overage fee")}`;
         }
 
         return acc;
@@ -164,8 +168,7 @@ export const Details = ({
   }, [
     t,
     data.company?.plan?.planPeriod,
-    feature?.name,
-    feature?.featureType,
+    feature,
     priceBehavior,
     allocation,
     price,

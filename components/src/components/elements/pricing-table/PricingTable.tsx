@@ -1,7 +1,6 @@
 import { forwardRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
-import pluralize from "pluralize";
 import { TEXT_BASE_SIZE, VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
 import { type FontStyle } from "../../../context";
 import {
@@ -15,6 +14,7 @@ import {
   darken,
   formatCurrency,
   formatNumber,
+  getFeatureName,
   hexToHSL,
   lighten,
   shortenPeriod,
@@ -481,8 +481,8 @@ export const PricingTable = forwardRef<
                                               entitlementCurrency,
                                             )}{" "}
                                             {t("per")}{" "}
-                                            {pluralize(
-                                              entitlement.feature.name,
+                                            {getFeatureName(
+                                              entitlement.feature,
                                               1,
                                             )}
                                             {entitlement.priceBehavior ===
@@ -503,15 +503,15 @@ export const PricingTable = forwardRef<
                                               "unlimited" &&
                                             !entitlement.priceBehavior
                                               ? t("Unlimited", {
-                                                  item: pluralize(
-                                                    entitlement.feature.name,
+                                                  item: getFeatureName(
+                                                    entitlement.feature,
                                                   ),
                                                 })
                                               : typeof limit === "number" && (
                                                   <>
                                                     {formatNumber(limit)}{" "}
-                                                    {pluralize(
-                                                      entitlement.feature.name,
+                                                    {getFeatureName(
+                                                      entitlement.feature,
                                                       limit,
                                                     )}
                                                   </>
@@ -586,8 +586,8 @@ export const PricingTable = forwardRef<
                                               entitlementCurrency,
                                             )}
                                             /
-                                            {pluralize(
-                                              entitlement.feature.name.toLowerCase(),
+                                            {getFeatureName(
+                                              entitlement.feature,
                                               1,
                                             )}
                                             {entitlement.feature.featureType ===
@@ -959,8 +959,8 @@ export const PricingTable = forwardRef<
                                               {entitlement.valueType ===
                                               "unlimited"
                                                 ? t("Unlimited", {
-                                                    item: pluralize(
-                                                      entitlement.feature.name,
+                                                    item: getFeatureName(
+                                                      entitlement.feature,
                                                     ),
                                                   })
                                                 : typeof entitlement.valueNumeric ===
@@ -969,9 +969,8 @@ export const PricingTable = forwardRef<
                                                       {formatNumber(
                                                         entitlement.valueNumeric,
                                                       )}{" "}
-                                                      {pluralize(
-                                                        entitlement.feature
-                                                          .name,
+                                                      {getFeatureName(
+                                                        entitlement.feature,
                                                         entitlement.valueNumeric,
                                                       )}
                                                     </>
