@@ -187,6 +187,14 @@ export const Sidebar = ({
       };
     }, [charges]);
 
+  const dispatchPlanChangedEvent = <T extends object>(detail: T) => {
+    const event = new CustomEvent("plan-changed", {
+      bubbles: true,
+      detail,
+    });
+    window.dispatchEvent(event);
+  };
+
   const checkout = useCallback(async () => {
     const priceId = (
       planPeriod === "month"
@@ -201,7 +209,7 @@ export const Sidebar = ({
       setError(undefined);
       setIsLoading(true);
 
-      await api.checkout({
+      const response = await api.checkout({
         changeSubscriptionRequestBody: {
           newPlanId: selectedPlan.id,
           newPriceId: priceId,
@@ -249,6 +257,7 @@ export const Sidebar = ({
           ...(promoCode && { promoCode }),
         },
       });
+      dispatchPlanChangedEvent(response.data);
 
       setIsLoading(false);
       setLayout("portal");
@@ -285,7 +294,8 @@ export const Sidebar = ({
       setError(undefined);
       setIsLoading(true);
 
-      await api.checkoutUnsubscribe();
+      const response = await api.checkoutUnsubscribe();
+      dispatchPlanChangedEvent(response.data);
 
       setLayout("portal");
       hydrate();
