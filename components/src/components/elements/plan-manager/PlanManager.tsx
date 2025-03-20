@@ -342,9 +342,9 @@ export const PlanManager = forwardRef<
               </Text>
             )}
 
-            {addOns.map((addOn) => (
+            {addOns.map((addOn, addOnIndex) => (
               <Flex
-                key={addOn.id}
+                key={addOnIndex}
                 $justifyContent="space-between"
                 $alignItems="center"
                 $flexWrap="wrap"
@@ -392,7 +392,7 @@ export const PlanManager = forwardRef<
             </Text>
 
             {usageBasedEntitlements.reduce(
-              (acc: React.ReactElement[], entitlement) => {
+              (acc: React.ReactElement[], entitlement, entitlementIndex) => {
                 const limit =
                   entitlement.softLimit ?? entitlement.allocation ?? 0;
                 const overageAmount =
@@ -403,7 +403,7 @@ export const PlanManager = forwardRef<
                 if (entitlement.feature?.name) {
                   acc.push(
                     <Flex
-                      key={entitlement.feature.id}
+                      key={entitlementIndex}
                       $justifyContent="space-between"
                       $alignItems="center"
                       $flexWrap="wrap"

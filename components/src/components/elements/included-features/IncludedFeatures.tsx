@@ -251,11 +251,11 @@ export const IncludedFeatures = forwardRef<
                       theme.typography[props.entitlementExpiration.fontStyle]
                         .fontWeight
                     }
-                    $leading={1}
                     $color={
                       theme.typography[props.entitlementExpiration.fontStyle]
                         .color
                     }
+                    $leading={1}
                   >
                     Expires{" "}
                     {toPrettyDate(entitlementExpirationDate, {
@@ -293,8 +293,8 @@ export const IncludedFeatures = forwardRef<
             $font={theme.typography.link.fontFamily}
             $size={theme.typography.link.fontSize}
             $weight={theme.typography.link.fontWeight}
-            $leading={1}
             $color={theme.typography.link.color}
+            $leading={1}
             style={{ cursor: "pointer" }}
           >
             {isExpanded ? t("Hide all") : t("See all")}

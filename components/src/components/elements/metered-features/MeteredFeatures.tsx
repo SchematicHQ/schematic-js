@@ -148,17 +148,19 @@ export const MeteredFeatures = forwardRef<
   return (
     <styles.Container ref={ref} className={className}>
       {meteredFeatures.map(
-        ({
-          entitlementId,
-          feature,
-          priceBehavior,
-          usage,
-          allocation,
-          softLimit,
-          metricResetAt,
-          monthlyUsageBasedPrice,
-          yearlyUsageBasedPrice,
-        }) => {
+        (
+          {
+            feature,
+            priceBehavior,
+            usage,
+            allocation,
+            softLimit,
+            metricResetAt,
+            monthlyUsageBasedPrice,
+            yearlyUsageBasedPrice,
+          },
+          index,
+        ) => {
           const limit = softLimit ?? allocation ?? 0;
           const isOverage =
             priceBehavior === "overage" &&
@@ -194,7 +196,7 @@ export const MeteredFeatures = forwardRef<
             );
 
           return (
-            <Flex key={entitlementId} $flexDirection="column-reverse">
+            <Flex key={index} $flexDirection="column-reverse">
               {priceBehavior === "overage" && typeof price === "number" && (
                 <Flex
                   $justifyContent="space-between"

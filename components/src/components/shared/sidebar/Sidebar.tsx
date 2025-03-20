@@ -187,6 +187,14 @@ export const Sidebar = ({
       };
     }, [charges]);
 
+  const dispatchPlanChangedEvent = <T extends object>(detail: T) => {
+    const event = new CustomEvent("plan-changed", {
+      bubbles: true,
+      detail,
+    });
+    window.dispatchEvent(event);
+  };
+
   const checkout = useCallback(async () => {
     const priceId = (
       planPeriod === "month"
@@ -201,7 +209,7 @@ export const Sidebar = ({
       setError(undefined);
       setIsLoading(true);
 
-      await api.checkout({
+      const response = await api.checkout({
         changeSubscriptionRequestBody: {
           newPlanId: selectedPlan.id,
           newPriceId: priceId,
@@ -249,6 +257,7 @@ export const Sidebar = ({
           ...(promoCode && { promoCode }),
         },
       });
+      dispatchPlanChangedEvent(response.data);
 
       setIsLoading(false);
       setLayout("portal");
@@ -285,7 +294,8 @@ export const Sidebar = ({
       setError(undefined);
       setIsLoading(true);
 
-      await api.checkoutUnsubscribe();
+      const response = await api.checkoutUnsubscribe();
+      dispatchPlanChangedEvent(response.data);
 
       setLayout("portal");
       hydrate();
@@ -608,7 +618,11 @@ export const Sidebar = ({
             </Box>
 
             {removedUsageBasedEntitlements.reduce(
-              (acc: React.ReactElement[], { allocation, quantity, usage }) => {
+              (
+                acc: React.ReactElement[],
+                { allocation, quantity, usage },
+                index,
+              ) => {
                 if (typeof allocation === "number" && usage.feature?.name) {
                   const price = (
                     planPeriod === "month"
@@ -618,7 +632,7 @@ export const Sidebar = ({
 
                   acc.push(
                     <Flex
-                      key={usage.entitlementId}
+                      key={index}
                       $justifyContent="space-between"
                       $alignItems="center"
                       $gap="1rem"
@@ -695,10 +709,14 @@ export const Sidebar = ({
             )}
 
             {changedUsageBasedEntitlements.reduce(
-              (acc: React.ReactElement[], { entitlement, previous, next }) => {
+              (
+                acc: React.ReactElement[],
+                { entitlement, previous, next },
+                index,
+              ) => {
                 if (entitlement?.feature?.name) {
                   acc.push(
-                    <Box key={entitlement.feature.id}>
+                    <Box key={index}>
                       <Flex
                         $justifyContent="space-between"
                         $alignItems="center"
@@ -790,7 +808,7 @@ export const Sidebar = ({
             )}
 
             {addedUsageBasedEntitlements.reduce(
-              (acc: React.ReactElement[], { entitlement, quantity }) => {
+              (acc: React.ReactElement[], { entitlement, quantity }, index) => {
                 if (entitlement.feature?.name) {
                   const price = (
                     planPeriod === "month"
@@ -800,7 +818,7 @@ export const Sidebar = ({
 
                   acc.push(
                     <Flex
-                      key={entitlement.id}
+                      key={index}
                       $justifyContent="space-between"
                       $alignItems="center"
                       $gap="1rem"
@@ -940,9 +958,9 @@ export const Sidebar = ({
               </Text>
             </Box>
 
-            {removedAddOns.map((addOn) => (
+            {removedAddOns.map((addOn, index) => (
               <Flex
-                key={addOn.id}
+                key={index}
                 $justifyContent="space-between"
                 $alignItems="center"
                 $gap="1rem"
@@ -983,9 +1001,9 @@ export const Sidebar = ({
               </Flex>
             ))}
 
-            {selectedAddOns.map((addOn) => (
+            {selectedAddOns.map((addOn, index) => (
               <Flex
-                key={addOn.id}
+                key={index}
                 $justifyContent="space-between"
                 $alignItems="center"
                 $gap="1rem"

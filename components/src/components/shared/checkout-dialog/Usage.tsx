@@ -46,14 +46,18 @@ export const Usage = ({ entitlements, updateQuantity, period }: UsageProps) => {
     <>
       <Flex $flexDirection="column" $gap="1rem">
         {entitlements.reduce(
-          (acc: React.ReactElement[], { entitlement, quantity, usage }) => {
+          (
+            acc: React.ReactElement[],
+            { entitlement, quantity, usage },
+            index,
+          ) => {
             if (
               entitlement.priceBehavior === "pay_in_advance" &&
               entitlement.feature
             ) {
               acc.push(
                 <Flex
-                  key={entitlement.id}
+                  key={index}
                   $justifyContent="space-between"
                   $alignItems="center"
                   $gap="1rem"

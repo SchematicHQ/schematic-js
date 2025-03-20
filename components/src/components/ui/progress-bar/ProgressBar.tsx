@@ -1,3 +1,4 @@
+import { useTheme } from "styled-components";
 import { TEXT_BASE_SIZE } from "../../../const";
 import { Box, Flex, Text } from "../../ui";
 import { Container } from "./styles";
@@ -30,6 +31,8 @@ export const ProgressBar = ({
   barWidth = "100%",
   ...props
 }: ProgressBarProps) => {
+  const theme = useTheme();
+
   const barColorMap = {
     gray: "#9CA3AF",
     blue: "#2563EB",
@@ -65,34 +68,14 @@ export const ProgressBar = ({
             $borderRadius="9999px"
           />
         </Flex>
-        {/**
-           * @TODO: transform hover tip to styled components
-           **
-        <Box
-          className="-translate-y-2 -translate-x-[50%] invisible opacity-0 group-hover:opacity-100 group-hover:visible"
-          $position="absolute"
-          $bottom="100%"
-          $left={`${progress}%`}
-        >
-          <Box
-            $padding={`${8 / TEXT_BASE_SIZE}rem ${12 / TEXT_BASE_SIZE}rem`}
-            $backgroundColor="#FFFFFF"
-            $borderRadius={`${8 / TEXT_BASE_SIZE}rem`}
-            $boxShadow="0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)"
-          >
-            <Text $size={12} $weight={500}>
-              {progress}%
-            </Text>
-          </Box>
-          <Box
-            className="translate-x-[-50%] h-0 w-0 border-x-[6px] border-x-transparent border-t-[6px] border-t-white"
-            $position="absolute"
-            $left="50%"
-          ></Box>
-        </Box> */}
       </Flex>
       {total !== 0 && (
-        <Text $size={14} $weight={500}>
+        <Text
+          $font={theme.typography.text.fontFamily}
+          $size={14}
+          $weight={500}
+          $color={theme.typography.text.color}
+        >
           {value}/{total}
         </Text>
       )}
