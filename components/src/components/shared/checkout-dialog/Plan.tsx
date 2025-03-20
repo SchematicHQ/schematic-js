@@ -380,10 +380,7 @@ export const Plan = ({
                                           entitlementCurrency,
                                         )}
                                         /
-                                        {getFeatureName(
-                                          entitlement.feature.name,
-                                          1,
-                                        )}
+                                        {getFeatureName(entitlement.feature, 1)}
                                         {entitlement.feature.featureType ===
                                           "trait" && (
                                           <>/{shortenPeriod(period)}</>
