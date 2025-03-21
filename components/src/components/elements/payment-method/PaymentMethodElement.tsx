@@ -219,6 +219,7 @@ export const PaymentMethodElement = ({
               <Text
                 $font={theme.typography.text.fontFamily}
                 $size={14}
+                $weight={theme.typography.text.fontWeight}
                 $color="#DB6769"
               >
                 {monthsToExpiration > 0
@@ -254,8 +255,8 @@ export const PaymentMethodElement = ({
             $font={theme.typography.link.fontFamily}
             $size={theme.typography.link.fontSize}
             $weight={theme.typography.link.fontWeight}
-            $leading={1}
             $color={theme.typography.link.color}
+            $leading={1}
           >
             {t("Edit")}
           </Text>
@@ -314,6 +315,9 @@ export const PaymentListElement = ({
           ? "hsla(0, 0%, 0%, 0.175)"
           : "hsla(0, 0%, 100%, 0.175)"
       }
+      $padding="0.5rem"
+      $font={theme.typography.text.fontFamily}
+      $color={theme.typography.text.color}
     >
       <Box $paddingLeft="0.5rem" $paddingRight="0.5rem">
         {iconName && (
@@ -322,7 +326,14 @@ export const PaymentListElement = ({
       </Box>
 
       <Box $flexGrow="1">
-        {t(label as string)} {paymentLast4}
+        <Text
+          $font={theme.typography.text.fontFamily}
+          $size={theme.typography.text.fontSize}
+          $weight={theme.typography.text.fontWeight}
+          $color={theme.typography.text.color}
+        >
+          {t(label as string)} {paymentLast4}
+        </Text>
       </Box>
 
       <Box

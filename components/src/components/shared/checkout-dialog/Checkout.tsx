@@ -108,22 +108,20 @@ export const Checkout = ({
             />
           </Box>
 
-              <Box $flexShrink={0} $padding="0.5rem 1rem">
-                <Text
-                  onClick={() => updatePromoCode(discount)}
-                  $font={theme.typography.link.fontFamily}
-                  $size={theme.typography.link.fontSize}
-                  $weight={theme.typography.link.fontWeight}
-                  $color={theme.typography.link.color}
-                  $leading={1}
-                >
-                  {t("Apply discount")}
-                </Text>
-              </Box>
-            </Flex>
-          </Flex>
-        </>
-      )}
+          <Box $flexShrink={0} $padding="0.5rem 1rem">
+            <Text
+              onClick={() => updatePromoCode(discount)}
+              $font={theme.typography.link.fontFamily}
+              $size={theme.typography.link.fontSize}
+              $weight={theme.typography.link.fontWeight}
+              $color={theme.typography.link.color}
+              $leading={1}
+            >
+              {t("Apply discount")}
+            </Text>
+          </Box>
+        </Flex>
+      </Flex>
     </>
   );
 };

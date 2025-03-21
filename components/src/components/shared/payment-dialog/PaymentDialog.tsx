@@ -20,8 +20,8 @@ export const PaymentDialog = ({ top = 0 }: PaymentDialogProps) => {
       <ModalHeader bordered onClose={() => setLayout("portal")}>
         <Text
           $font={theme.typography.text.fontFamily}
-          $size={19}
-          $weight={600}
+          $size={18}
+          $weight={theme.typography.text.fontWeight}
           $color={theme.typography.text.color}
         >
           {t("Edit payment method")}
