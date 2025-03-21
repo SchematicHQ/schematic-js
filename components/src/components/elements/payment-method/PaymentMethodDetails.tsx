@@ -1,4 +1,4 @@
-import { Box, EmbedButton, Flex, Icon, Text } from "../../ui";
+import { Box, EmbedButton, Flex, Icon, Loader, Text } from "../../ui";
 import { Elements } from "@stripe/react-stripe-js";
 import { PaymentForm } from "../../shared";
 import {
@@ -164,6 +164,21 @@ export const PaymentMethodDetails = () => {
 
   return (
     <Flex $position="relative">
+      {isLoading && (
+        <Flex
+          $position="absolute"
+          $width="100%"
+          $height="100%"
+          $justifyContent="center"
+          $alignItems="center"
+          $flexGrow={1}
+          $zIndex={1}
+          $backgroundColor="black"
+          $opacity={0.5}
+        >
+          <Loader $size="2xl" />
+        </Flex>
+      )}
       <Flex
         $flexDirection="column"
         $flexGrow="1"
