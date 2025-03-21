@@ -8,7 +8,10 @@ import {
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { loadStripe, type Stripe } from "@stripe/stripe-js";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
-import type { SetupIntentResponseData } from "../../../api";
+import type {
+  PaymentMethodResponseData,
+  SetupIntentResponseData,
+} from "../../../api";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 import type { FontStyle } from "../../../context";
@@ -37,7 +40,13 @@ const resolveDesignProps = (): DesignProps => {
   };
 };
 
-export const PaymentMethodDetails = () => {
+interface PaymentMethodDetailsProps {
+  setPaymentMethodId?: (id: string) => void;
+}
+
+export const PaymentMethodDetails = ({
+  setPaymentMethodId,
+}: PaymentMethodDetailsProps) => {
   // TODO: I think we do not support edit in overlays at the moment
   const props = resolveDesignProps();
 
@@ -45,7 +54,7 @@ export const PaymentMethodDetails = () => {
 
   const theme = useTheme();
 
-  const { api, data, hydrate, setLayout } = useEmbed();
+  const { api, data, setData } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
 
@@ -56,9 +65,14 @@ export const PaymentMethodDetails = () => {
   const [setupIntent, setSetupIntent] = useState<SetupIntentResponseData>();
   const [showDifferentPaymentMethods, setShowDifferentPaymentMethods] =
     useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<
+    PaymentMethodResponseData | undefined
+  >(undefined);
 
-  const paymentMethod = useMemo(() => {
-    return data.subscription?.paymentMethod;
+  useEffect(() => {
+    if (data.subscription?.paymentMethod) {
+      setPaymentMethod(data.subscription.paymentMethod);
+    }
   }, [data.subscription?.paymentMethod]);
 
   const monthsToExpiration = useMemo(() => {
@@ -121,22 +135,36 @@ export const PaymentMethodDetails = () => {
       try {
         setIsLoading(true);
 
-        await api.updatePaymentMethod({
+        const updatePaymentMethodResponse = await api.updatePaymentMethod({
           updatePaymentMethodRequestBody: {
             paymentMethodId: id,
           },
         });
 
-        setLayout("portal");
-        hydrate();
+        setPaymentMethod(updatePaymentMethodResponse.data);
+
+        // TODO: Refactor
+        // Set data for sidebar
+        if (setPaymentMethodId) {
+          setPaymentMethodId(updatePaymentMethodResponse.data.externalId);
+        }
+
+        if (data.subscription) {
+          setData({
+            ...data,
+            subscription: {
+              ...data.subscription,
+              paymentMethod: updatePaymentMethodResponse.data,
+            },
+          });
+        }
       } catch {
-        setLayout("payment");
         setError(t("Error updating payment method. Please try again."));
       } finally {
         setIsLoading(false);
       }
     },
-    [t, api, hydrate, setLayout],
+    [api, data, setData, setPaymentMethodId, t],
   );
 
   const deletePaymentMethod = useCallback(
@@ -152,14 +180,23 @@ export const PaymentMethodDetails = () => {
         await api.deletePaymentMethod({
           checkoutId: id,
         });
-        await hydrate();
+
+        setData({
+          ...data,
+          company: {
+            ...data.company!,
+            paymentMethods: (data.company?.paymentMethods ?? []).filter(
+              (pm) => pm.id !== id,
+            ),
+          },
+        });
       } catch {
         setError(t("Error deleting payment method. Please try again."));
       } finally {
         setIsLoading(false);
       }
     },
-    [api, hydrate, t],
+    [api, data, setData, t],
   );
 
   return (

@@ -63,7 +63,7 @@ export const Checkout = ({
 
   return (
     <>
-      <PaymentMethodDetails />
+      <PaymentMethodDetails setPaymentMethodId={setPaymentMethodId} />
 
       <Flex $flexDirection="column" $gap="1rem">
         <Text
