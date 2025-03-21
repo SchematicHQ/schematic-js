@@ -49,7 +49,6 @@ export const PaymentForm = ({ onConfirm }: PaymentFormProps) => {
       });
 
       if (onConfirm && typeof setupIntent?.payment_method === "string") {
-        elements.getElement("payment")?.collapse();
         onConfirm(setupIntent.payment_method);
         setIsConfirmed(true);
       } else {

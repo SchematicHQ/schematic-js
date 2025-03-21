@@ -127,8 +127,8 @@ export const PaymentMethodDetails = ({
   }, []);
 
   const updatePaymentMethod = useCallback(
-    async (id: string) => {
-      if (!api || !id) {
+    async (externalId: string) => {
+      if (!api || !externalId) {
         return;
       }
 
@@ -137,7 +137,7 @@ export const PaymentMethodDetails = ({
 
         const updatePaymentMethodResponse = await api.updatePaymentMethod({
           updatePaymentMethodRequestBody: {
-            paymentMethodId: id,
+            paymentMethodId: externalId,
           },
         });
 
@@ -258,9 +258,11 @@ export const PaymentMethodDetails = ({
             }}
           >
             <PaymentForm
-              onConfirm={(paymentMethodId) =>
-                updatePaymentMethod(paymentMethodId)
-              }
+              onConfirm={async (paymentMethodId) => {
+                await updatePaymentMethod(paymentMethodId);
+                setShowPaymentForm(false);
+                setShowDifferentPaymentMethods(false);
+              }}
             />
           </Elements>
         ) : (
