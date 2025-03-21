@@ -11,7 +11,7 @@ import { toPrettyDate } from "../../../utils";
 import { Box, EmbedButton, Flex, Icon, Modal, Text } from "../../ui";
 import { Sidebar } from "../sidebar";
 
-export interface UnsubscribeDialogProps {
+interface UnsubscribeDialogProps {
   top?: number;
 }
 
@@ -210,7 +210,6 @@ export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
           error={error}
           isLoading={isLoading}
           showHeader={false}
-          showPaymentForm={false}
           requiresPayment={false}
           setError={(msg) => setError(msg)}
           setIsLoading={setIsLoading}

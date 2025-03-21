@@ -52,7 +52,6 @@ interface SidebarProps {
   setCheckoutStage?: (stage: string) => void;
   setError: (msg?: string) => void;
   setIsLoading: Dispatch<SetStateAction<boolean>>;
-  showPaymentForm: boolean;
   updatePromoCode?: (code?: string) => void;
   showHeader?: boolean;
 }
@@ -74,7 +73,6 @@ export const Sidebar = ({
   setCheckoutStage,
   setError,
   setIsLoading,
-  showPaymentForm,
   updatePromoCode,
   showHeader = true,
 }: SidebarProps) => {
@@ -328,8 +326,7 @@ export const Sidebar = ({
 
   const canCheckout =
     canUpdateSubscription &&
-    ((data.subscription?.paymentMethod && !showPaymentForm) ||
-      typeof paymentMethodId === "string");
+    (!!data.subscription?.paymentMethod || typeof paymentMethodId === "string");
 
   const changedUsageBasedEntitlements: {
     entitlement: PlanEntitlementResponseData;

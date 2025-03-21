@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { FormEventHandler, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 import {
@@ -28,9 +28,7 @@ export const PaymentForm = ({ onConfirm }: PaymentFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
 
-  const handleSubmit: React.FormEventHandler<HTMLFormElement> = async (
-    event,
-  ) => {
+  const handleSubmit: FormEventHandler<HTMLFormElement> = async (event) => {
     event.preventDefault();
 
     if (!api || !stripe || !elements) {
@@ -51,7 +49,6 @@ export const PaymentForm = ({ onConfirm }: PaymentFormProps) => {
       });
 
       if (onConfirm && typeof setupIntent?.payment_method === "string") {
-        elements.getElement("payment")?.collapse();
         onConfirm(setupIntent.payment_method);
         setIsConfirmed(true);
       } else {
