@@ -1,7 +1,7 @@
 import { forwardRef, useLayoutEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useEmbed } from "../../../hooks";
-import { CheckoutDialog, UnsubscribeDialog } from "../../shared";
+import { CheckoutDialog, PaymentDialog, UnsubscribeDialog } from "../../shared";
 import { Badge } from "../../ui/badge";
 import { RenderLayout } from "../RenderLayout";
 import { StyledViewport } from "./styles";
@@ -27,7 +27,11 @@ export const Viewport = forwardRef<HTMLDivElement | null, ViewportProps>(
       );
 
       parent.style.overflow =
-        layout === "checkout" || layout === "unsubscribe" ? "hidden" : "";
+        layout === "checkout" ||
+        layout === "unsubscribe" ||
+        layout === "payment"
+          ? "hidden"
+          : "";
 
       return () => {
         parent.style.overflow = "";
@@ -50,6 +54,8 @@ export const Viewport = forwardRef<HTMLDivElement | null, ViewportProps>(
             <UnsubscribeDialog top={top} />,
             portal || document.body,
           )}
+        {layout === "payment" &&
+          createPortal(<PaymentDialog top={top} />, portal || document.body)}
       </>
     );
   },

@@ -4,7 +4,7 @@ import { useTheme } from "styled-components";
 import { loadStripe, type Stripe } from "@stripe/stripe-js";
 import type { SetupIntentResponseData } from "../../../api";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
-import { PaymentMethod } from "../../elements";
+import { PaymentMethodDetails } from "../../elements";
 import { Box, Flex, Input, Loader, Text } from "../../ui";
 
 interface CheckoutProps {
@@ -63,7 +63,7 @@ export const Checkout = ({
 
   return (
     <>
-      <PaymentMethod allowEdit={false} />
+      <PaymentMethodDetails />
 
       <Flex $flexDirection="column" $gap="1rem">
         <Text
