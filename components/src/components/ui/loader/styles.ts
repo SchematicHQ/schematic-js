@@ -24,7 +24,7 @@ export const Loader = styled.div<{
   animation: 1.5s linear infinite ${spin};
 
   ${({ $color, theme }) => {
-    const { l } = hexToHSL(theme.card.background);
+    const { l } = hexToHSL(theme?.card?.background);
 
     let color = $color;
     let colorFn;
