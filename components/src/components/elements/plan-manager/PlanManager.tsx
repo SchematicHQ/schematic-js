@@ -5,7 +5,7 @@ import { useTheme } from "styled-components";
 import { type FeatureUsageResponseData } from "../../../api";
 import { type FontStyle } from "../../../context";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
-import type { ElementProps,RecursivePartial } from "../../../types";
+import type { ElementProps, RecursivePartial } from "../../../types";
 import {
   darken,
   formatCurrency,

@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 
 import { TEXT_BASE_SIZE, VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
-import { type SelectedPlan,useIsLightBackground } from "../../../hooks";
+import { type SelectedPlan, useIsLightBackground } from "../../../hooks";
 import {
   darken,
   formatCurrency,

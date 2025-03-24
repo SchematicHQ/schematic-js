@@ -6,7 +6,7 @@ import { type InvoiceResponseData } from "../../../api";
 import { MAX_VISIBLE_INVOICE_COUNT } from "../../../const";
 import { type FontStyle } from "../../../context";
 import { useEmbed } from "../../../hooks";
-import type { ElementProps,RecursivePartial } from "../../../types";
+import type { ElementProps, RecursivePartial } from "../../../types";
 import { formatCurrency, toPrettyDate } from "../../../utils";
 import { Element } from "../../layout";
 import { Flex, Icon, Text } from "../../ui";

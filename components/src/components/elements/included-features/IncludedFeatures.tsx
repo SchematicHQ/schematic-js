@@ -13,10 +13,10 @@ import {
   useIsLightBackground,
   useWrapChildren,
 } from "../../../hooks";
-import type { ElementProps,RecursivePartial } from "../../../types";
+import type { ElementProps, RecursivePartial } from "../../../types";
 import { toPrettyDate } from "../../../utils";
 import { Element } from "../../layout";
-import { Box, Flex, Icon, type IconNameTypes,IconRound, Text } from "../../ui";
+import { Box, Flex, Icon, type IconNameTypes, IconRound, Text } from "../../ui";
 import { Details } from "./Details";
 
 export interface DesignProps {

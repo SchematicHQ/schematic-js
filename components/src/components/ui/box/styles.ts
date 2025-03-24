@@ -2,7 +2,7 @@ import CSS from "csstype";
 import styled, { css, type RuleSet } from "styled-components";
 
 import type { ComponentProps, TransientCSSProperties } from "../../../types";
-import { attr,camelToHyphen } from "../../../utils";
+import { attr, camelToHyphen } from "../../../utils";
 import { TextPropNames } from "..";
 
 export type BoxProps = ComponentProps & {

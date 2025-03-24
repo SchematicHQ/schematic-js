@@ -10,7 +10,7 @@ import {
   useIsLightBackground,
   useWrapChildren,
 } from "../../../hooks";
-import type { ElementProps,RecursivePartial } from "../../../types";
+import type { ElementProps, RecursivePartial } from "../../../types";
 import {
   darken,
   formatCurrency,

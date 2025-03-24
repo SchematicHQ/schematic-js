@@ -11,7 +11,7 @@ import {
   UnsubscribeButton,
   UpcomingBill,
 } from "../elements";
-import { Card,Column, Root, Viewport } from "../layout";
+import { Card, Column, Root, Viewport } from "../layout";
 
 const components: Record<string, React.FC | undefined> = {
   Root,
