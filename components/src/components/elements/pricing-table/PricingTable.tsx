@@ -32,6 +32,7 @@ import {
   type IconNameTypes,
 } from "../../ui";
 import { ButtonLink } from "./styles";
+import { BillingPriceView } from "../../../api";
 
 interface DesignProps {
   showPeriodToggle: boolean;
@@ -419,14 +420,44 @@ export const PricingTable = forwardRef<
                                 entitlement.softLimit ??
                                 entitlement.valueNumeric;
 
-                              const {
-                                price: entitlementPrice,
-                                currency: entitlementCurrency,
-                              } =
-                                (selectedPeriod === "month"
-                                  ? entitlement.meteredMonthlyPrice
-                                  : selectedPeriod === "year" &&
-                                    entitlement.meteredYearlyPrice) || {};
+                              let entitlementPriceObject: BillingPriceView | null =
+                                null;
+                              if (selectedPeriod === "month") {
+                                entitlementPriceObject =
+                                  entitlement.meteredMonthlyPrice!;
+                              } else if (selectedPeriod === "year") {
+                                entitlementPriceObject =
+                                  entitlement.meteredYearlyPrice!;
+                              }
+
+                              let entitlementPrice: undefined | number;
+                              let entitlementCurrency: undefined | string;
+
+                              if (entitlementPriceObject) {
+                                entitlementPrice =
+                                  entitlementPriceObject?.price;
+                                entitlementCurrency =
+                                  entitlementPriceObject?.currency;
+                              }
+
+                              if (
+                                entitlementPriceObject &&
+                                entitlement.priceBehavior === "overage"
+                              ) {
+                                if (
+                                  entitlementPriceObject.priceTier?.length > 1
+                                ) {
+                                  // overage price is the last item in the price tier array
+                                  const overagePrice =
+                                    entitlementPriceObject.priceTier[
+                                      entitlementPriceObject.priceTier.length -
+                                        1
+                                    ];
+                                  entitlementPrice = overagePrice.perUnitPrice!;
+                                  entitlementCurrency =
+                                    entitlementPriceObject.currency;
+                                }
+                              }
 
                               if (
                                 entitlement.priceBehavior &&
