@@ -409,10 +409,38 @@ export const PlanManager = forwardRef<
               (acc: React.ReactElement[], entitlement, entitlementIndex) => {
                 const limit =
                   entitlement.softLimit ?? entitlement.allocation ?? 0;
-                const overageAmount =
+                let overageAmount =
                   entitlement.priceBehavior === "overage" &&
                   (entitlement?.usage ?? 0) - (entitlement?.softLimit ?? 0);
                 const amount = overageAmount || entitlement.allocation || 0;
+
+                // calculate overage amount
+                if (
+                  entitlement.priceBehavior === "overage" &&
+                  data.subscription
+                ) {
+                  const subscription = data.subscription;
+                  const entitlementPrice =
+                    entitlement.monthlyUsageBasedPrice ??
+                    entitlement.yearlyUsageBasedPrice;
+                  if (entitlementPrice) {
+                    const entitlementProduct = subscription.products.find(
+                      (product) => product.id === entitlementPrice.productId,
+                    );
+                    if (entitlementProduct?.priceTier.length) {
+                      const entitlementProductLastTierPrice =
+                        entitlementProduct?.priceTier[
+                          entitlementProduct?.priceTier?.length - 1
+                        ];
+                      overageAmount =
+                        (entitlement?.usage ?? 0) -
+                        (entitlementProductLastTierPrice.upTo ?? 0);
+                      entitlement.price =
+                        entitlementProductLastTierPrice.perUnitPrice ??
+                        entitlement.price;
+                    }
+                  }
+                }
 
                 if (entitlement.feature?.name) {
                   acc.push(
@@ -471,7 +499,7 @@ export const PlanManager = forwardRef<
                               })
                             ) : (
                               <>
-                                {t("Overage fee")}:{" "}
+                                {t("overage fee")}:{" "}
                                 {formatCurrency(
                                   entitlement.price ?? 0,
                                   entitlement.currency,

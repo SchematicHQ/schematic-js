@@ -255,15 +255,29 @@ export const Plan = ({
 
                         const limit =
                           entitlement.softLimit ?? entitlement.valueNumeric;
-                        const {
-                          price: entitlementPrice,
-                          currency: entitlementCurrency,
-                        } =
+
+                        const entitlementPriceObject =
                           getBillingPrice(
                             period === "year"
                               ? entitlement.meteredYearlyPrice
                               : entitlement.meteredMonthlyPrice,
-                          ) || {};
+                          ) || null;
+
+                        let entitlementPrice = entitlementPriceObject?.price;
+                        const entitlementCurrency =
+                          entitlementPriceObject?.currency;
+
+                        if (
+                          entitlement.priceBehavior === "overage" &&
+                          entitlementPriceObject
+                        ) {
+                          const { priceTier } = entitlementPriceObject;
+                          if (priceTier.length) {
+                            const lastTier = priceTier[priceTier.length - 1];
+                            const { perUnitPrice } = lastTier;
+                            entitlementPrice = perUnitPrice;
+                          }
+                        }
 
                         if (
                           entitlement.priceBehavior &&
