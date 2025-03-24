@@ -1,4 +1,4 @@
 generatorName: typescript-fetch
-inputSpec: /Users/vladyslavlen/development/schematichq/schematic-api/docs/checkout.yaml
+inputSpec: https://openapi.schematichq.com/checkoutexternal.yml
 enablePostProcessFile: true
 outputDir: ./src/api/
