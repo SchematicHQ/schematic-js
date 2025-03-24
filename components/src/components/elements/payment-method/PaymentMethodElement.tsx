@@ -57,7 +57,7 @@ const PaymentElement = ({
 
   return (
     <Text $font={theme.typography.text.fontFamily} $size={16}>
-      <Flex $flexDirection="row" $alignItems="center">
+      <Flex $flexDirection="row" $alignItems="center" $gap="0.5rem">
         {iconName && (
           <Box>
             <Icon name={iconName} title={iconTitle} style={iconStyles} />
@@ -309,6 +309,7 @@ export const PaymentListElement = ({
       $flexDirection="row"
       $alignItems="center"
       $borderWidth="0"
+      $gap="0.5rem"
       $borderBottomWidth="1px"
       $borderStyle="solid"
       $borderColor={
@@ -345,7 +346,14 @@ export const PaymentListElement = ({
             : "hsla(0, 0%, 100%, 0.375)"
         }
       >
-        {expirationDate && t("Expires", { date: expirationDate })}
+        <Text
+          $font={theme.typography.text.fontFamily}
+          $size={theme.typography.text.fontSize}
+          $weight={theme.typography.text.fontWeight}
+          $color={theme.typography.text.color}
+        >
+          {expirationDate && t("Expires", { date: expirationDate })}
+        </Text>
       </Box>
 
       <Box>
