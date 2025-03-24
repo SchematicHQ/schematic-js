@@ -80,7 +80,12 @@ const PaymentElement = ({
 
   return (
     <>
-      <Text $font={theme.typography.text.fontFamily} $size={16}>
+      <Text
+        $font={theme.typography.text.fontFamily}
+        $size={16}
+        $weight={theme.typography.text.fontWeight}
+        $color={theme.typography.text.color}
+      >
         <Flex $flexDirection="row" $alignItems="center">
           {iconName && (
             <Box>
@@ -253,6 +258,7 @@ const PaymentMethodElement = ({
               <Text
                 $font={theme.typography.text.fontFamily}
                 $size={14}
+                $weight={theme.typography.text.fontWeight}
                 $color="#DB6769"
               >
                 {monthsToExpiration > 0
@@ -282,8 +288,8 @@ const PaymentMethodElement = ({
             $font={theme.typography.link.fontFamily}
             $size={theme.typography.link.fontSize}
             $weight={theme.typography.link.fontWeight}
-            $leading={1}
             $color={theme.typography.link.color}
+            $leading={1}
           >
             {t("Edit")}
           </Text>

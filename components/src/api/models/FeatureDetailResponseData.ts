@@ -118,6 +118,18 @@ export interface FeatureDetailResponseData {
   plans: Array<PreviewObject>;
   /**
    *
+   * @type {string}
+   * @memberof FeatureDetailResponseData
+   */
+  pluralName?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof FeatureDetailResponseData
+   */
+  singularName?: string | null;
+  /**
+   *
    * @type {EntityTraitDefinitionResponseData}
    * @memberof FeatureDetailResponseData
    */
@@ -188,6 +200,9 @@ export function FeatureDetailResponseDataFromJSONTyped(
       json["maintainer_id"] == null ? undefined : json["maintainer_id"],
     name: json["name"],
     plans: (json["plans"] as Array<any>).map(PreviewObjectFromJSON),
+    pluralName: json["plural_name"] == null ? undefined : json["plural_name"],
+    singularName:
+      json["singular_name"] == null ? undefined : json["singular_name"],
     trait:
       json["trait"] == null
         ? undefined
@@ -216,6 +231,8 @@ export function FeatureDetailResponseDataToJSON(
     maintainer_id: value["maintainerId"],
     name: value["name"],
     plans: (value["plans"] as Array<any>).map(PreviewObjectToJSON),
+    plural_name: value["pluralName"],
+    singular_name: value["singularName"],
     trait: EntityTraitDefinitionResponseDataToJSON(value["trait"]),
     trait_id: value["traitId"],
     updated_at: value["updatedAt"].toISOString(),

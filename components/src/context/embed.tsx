@@ -123,6 +123,7 @@ export type EmbedSettings = {
   theme: EmbedThemeSettings;
   badge?: {
     alignment: ComponentProps["$justifyContent"];
+    visibility?: ComponentProps["$visibility"];
   };
 };
 
@@ -130,6 +131,7 @@ export const defaultSettings: EmbedSettings = {
   theme: defaultTheme,
   badge: {
     alignment: "start",
+    visibility: "visible",
   },
 };
 
@@ -233,6 +235,7 @@ export interface EmbedProviderProps {
   apiConfig?: ConfigurationParameters;
   children?: React.ReactNode;
   mode?: EmbedMode;
+  debug?: boolean;
 }
 
 export const EmbedProvider = ({
@@ -241,6 +244,7 @@ export const EmbedProvider = ({
   apiConfig,
   children,
   mode = "view",
+  ...options
 }: EmbedProviderProps) => {
   const styleRef = useRef<HTMLLinkElement | null>(null);
   const sessionIdRef = useRef<string>(uuidv4());
@@ -284,6 +288,15 @@ export const EmbedProvider = ({
       updateSettings: () => {},
     };
   });
+
+  const debug = useCallback(
+    (message: string, ...args: unknown[]) => {
+      if (options.debug) {
+        console.debug(`[Schematic] ${message}`, ...args);
+      }
+    },
+    [options.debug],
+  );
 
   const hydrate = useCallback(async () => {
     setState((prev) => ({ ...prev, isPending: true, error: undefined }));
@@ -368,7 +381,7 @@ export const EmbedProvider = ({
     });
   };
 
-  useEffect(() => {
+  const initI18n = () => {
     i18n.use(initReactI18next).init({
       resources: {
         en,
@@ -379,9 +392,9 @@ export const EmbedProvider = ({
         escapeValue: false,
       },
     });
-  }, []);
+  };
 
-  useEffect(() => {
+  const initFontStylesheet = () => {
     const element = document.getElementById("schematic-fonts");
     if (element) {
       styleRef.current = element as HTMLLinkElement;
@@ -393,7 +406,26 @@ export const EmbedProvider = ({
     style.rel = "stylesheet";
     document.head.appendChild(style);
     styleRef.current = style;
-  }, []);
+  };
+
+  useEffect(() => {
+    initI18n();
+    initFontStylesheet();
+
+    const planChanged: EventListener = (event) => {
+      if (!(event instanceof CustomEvent)) {
+        return;
+      }
+
+      debug("plan changed", event.detail);
+    };
+
+    window.addEventListener("plan-changed", planChanged);
+
+    return () => {
+      window.removeEventListener("plan-changed", planChanged);
+    };
+  }, [debug]);
 
   useEffect(() => {
     if (accessToken) {

@@ -96,10 +96,25 @@ export const IncludedFeatures = forwardRef<
 
   const [showCount, setShowCount] = useState(VISIBLE_ENTITLEMENT_COUNT);
 
+  const orderedFeatureUsage = props.visibleFeatures?.reduce(
+    (acc: FeatureUsageResponseData[], id) => {
+      const mappedFeatureUsage = data.featureUsage?.features.find(
+        (usage) => usage.feature?.id === id,
+      );
+
+      if (mappedFeatureUsage) {
+        acc.push(mappedFeatureUsage);
+      }
+
+      return acc;
+    },
+    [],
+  );
+
   const entitlements: {
     featureUsage: FeatureUsageResponseData;
     usageData?: UsageBasedEntitlementResponseData;
-  }[] = (data.featureUsage?.features || []).reduce(
+  }[] = (orderedFeatureUsage || data.featureUsage?.features || []).reduce(
     (
       acc: {
         featureUsage: FeatureUsageResponseData;
@@ -236,11 +251,11 @@ export const IncludedFeatures = forwardRef<
                       theme.typography[props.entitlementExpiration.fontStyle]
                         .fontWeight
                     }
-                    $leading={1}
                     $color={
                       theme.typography[props.entitlementExpiration.fontStyle]
                         .color
                     }
+                    $leading={1}
                   >
                     Expires{" "}
                     {toPrettyDate(entitlementExpirationDate, {
@@ -278,8 +293,8 @@ export const IncludedFeatures = forwardRef<
             $font={theme.typography.link.fontFamily}
             $size={theme.typography.link.fontSize}
             $weight={theme.typography.link.fontWeight}
-            $leading={1}
             $color={theme.typography.link.color}
+            $leading={1}
             style={{ cursor: "pointer" }}
           >
             {isExpanded ? t("Hide all") : t("See all")}

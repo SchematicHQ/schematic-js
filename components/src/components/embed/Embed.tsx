@@ -6,9 +6,15 @@ export interface EmbedProps {
   accessToken?: string;
   id?: string;
   apiConfig?: ConfigurationParameters;
+  debug?: boolean;
 }
 
-export const SchematicEmbed = ({ id, accessToken, apiConfig }: EmbedProps) => {
+export const SchematicEmbed = ({
+  id,
+  accessToken,
+  apiConfig,
+  debug,
+}: EmbedProps) => {
   if (accessToken?.length === 0) {
     return <div>Please provide an access token.</div>;
   }
@@ -23,7 +29,12 @@ export const SchematicEmbed = ({ id, accessToken, apiConfig }: EmbedProps) => {
   }
 
   return (
-    <EmbedProvider id={id} accessToken={accessToken} apiConfig={apiConfig}>
+    <EmbedProvider
+      id={id}
+      accessToken={accessToken}
+      apiConfig={apiConfig}
+      debug={debug}
+    >
       <ComponentTree />
     </EmbedProvider>
   );

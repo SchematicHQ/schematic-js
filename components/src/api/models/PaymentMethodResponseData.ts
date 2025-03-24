@@ -117,12 +117,6 @@ export interface PaymentMethodResponseData {
   paymentMethodType: string;
   /**
    *
-   * @type {string}
-   * @memberof PaymentMethodResponseData
-   */
-  subscriptionExternalId?: string | null;
-  /**
-   *
    * @type {Date}
    * @memberof PaymentMethodResponseData
    */
@@ -191,10 +185,6 @@ export function PaymentMethodResponseDataFromJSONTyped(
     externalId: json["external_id"],
     id: json["id"],
     paymentMethodType: json["payment_method_type"],
-    subscriptionExternalId:
-      json["subscription_external_id"] == null
-        ? undefined
-        : json["subscription_external_id"],
     updatedAt: new Date(json["updated_at"]),
   };
 }
@@ -222,7 +212,6 @@ export function PaymentMethodResponseDataToJSON(
     external_id: value["externalId"],
     id: value["id"],
     payment_method_type: value["paymentMethodType"],
-    subscription_external_id: value["subscriptionExternalId"],
     updated_at: value["updatedAt"].toISOString(),
   };
 }

@@ -29,10 +29,10 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
         $gridTemplateColumns="repeat(auto-fill, minmax(300px, 1fr))"
         $gap="1rem"
       >
-        {addOns.map((addOn) => {
+        {addOns.map((addOn, index) => {
           return (
             <Flex
-              key={addOn.id}
+              key={index}
               $position="relative"
               $flexDirection="column"
               $gap="2rem"

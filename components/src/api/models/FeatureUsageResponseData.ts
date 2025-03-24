@@ -117,6 +117,12 @@ export interface FeatureUsageResponseData {
    */
   priceBehavior?: string | null;
   /**
+   * The soft limit for the feature usage. Available only for overage price behavior
+   * @type {number}
+   * @memberof FeatureUsageResponseData
+   */
+  softLimit?: number | null;
+  /**
    * The amount of usage that has been consumed; a null value indicates that usage is not being measured.
    * @type {number}
    * @memberof FeatureUsageResponseData
@@ -199,6 +205,7 @@ export function FeatureUsageResponseDataFromJSONTyped(
       json["plan"] == null ? undefined : PlanResponseDataFromJSON(json["plan"]),
     priceBehavior:
       json["price_behavior"] == null ? undefined : json["price_behavior"],
+    softLimit: json["soft_limit"] == null ? undefined : json["soft_limit"],
     usage: json["usage"] == null ? undefined : json["usage"],
     yearlyUsageBasedPrice:
       json["yearly_usage_based_price"] == null
@@ -235,6 +242,7 @@ export function FeatureUsageResponseDataToJSON(
     period: value["period"],
     plan: PlanResponseDataToJSON(value["plan"]),
     price_behavior: value["priceBehavior"],
+    soft_limit: value["softLimit"],
     usage: value["usage"],
     yearly_usage_based_price: BillingPriceViewToJSON(
       value["yearlyUsageBasedPrice"],

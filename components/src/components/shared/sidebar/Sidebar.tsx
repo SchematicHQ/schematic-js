@@ -6,7 +6,6 @@ import {
 } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
-import pluralize from "pluralize";
 import type {
   FeatureUsageResponseData,
   PlanEntitlementResponseData,
@@ -23,6 +22,7 @@ import {
 import {
   formatCurrency,
   formatOrdinal,
+  getFeatureName,
   getMonthName,
   shortenPeriod,
 } from "../../../utils";
@@ -187,6 +187,14 @@ export const Sidebar = ({
       };
     }, [charges]);
 
+  const dispatchPlanChangedEvent = <T extends object>(detail: T) => {
+    const event = new CustomEvent("plan-changed", {
+      bubbles: true,
+      detail,
+    });
+    window.dispatchEvent(event);
+  };
+
   const checkout = useCallback(async () => {
     const priceId = (
       planPeriod === "month"
@@ -201,7 +209,7 @@ export const Sidebar = ({
       setError(undefined);
       setIsLoading(true);
 
-      await api.checkout({
+      const response = await api.checkout({
         changeSubscriptionRequestBody: {
           newPlanId: selectedPlan.id,
           newPriceId: priceId,
@@ -249,6 +257,7 @@ export const Sidebar = ({
           ...(promoCode && { promoCode }),
         },
       });
+      dispatchPlanChangedEvent(response.data);
 
       setIsLoading(false);
       setLayout("portal");
@@ -285,7 +294,8 @@ export const Sidebar = ({
       setError(undefined);
       setIsLoading(true);
 
-      await api.checkoutUnsubscribe();
+      const response = await api.checkoutUnsubscribe();
+      dispatchPlanChangedEvent(response.data);
 
       setLayout("portal");
       hydrate();
@@ -608,7 +618,11 @@ export const Sidebar = ({
             </Box>
 
             {removedUsageBasedEntitlements.reduce(
-              (acc: React.ReactElement[], { allocation, quantity, usage }) => {
+              (
+                acc: React.ReactElement[],
+                { allocation, quantity, usage },
+                index,
+              ) => {
                 if (typeof allocation === "number" && usage.feature?.name) {
                   const price = (
                     planPeriod === "month"
@@ -618,7 +632,7 @@ export const Sidebar = ({
 
                   acc.push(
                     <Flex
-                      key={usage.entitlementId}
+                      key={index}
                       $justifyContent="space-between"
                       $alignItems="center"
                       $gap="1rem"
@@ -636,7 +650,7 @@ export const Sidebar = ({
                           {usage.priceBehavior === "pay_in_advance" ? (
                             <>
                               {quantity}{" "}
-                              {pluralize(usage.feature.name, quantity)}
+                              {getFeatureName(usage.feature, quantity)}
                             </>
                           ) : (
                             usage.feature.name
@@ -674,13 +688,7 @@ export const Sidebar = ({
                                     : usage.yearlyUsageBasedPrice
                                   )?.currency,
                                 )}
-                                <sub>
-                                  /
-                                  {pluralize(
-                                    usage.feature.name.toLowerCase(),
-                                    1,
-                                  )}
-                                </sub>
+                                <sub>/{getFeatureName(usage.feature, 1)}</sub>
                               </>
                             )}
                         </Text>
@@ -695,10 +703,14 @@ export const Sidebar = ({
             )}
 
             {changedUsageBasedEntitlements.reduce(
-              (acc: React.ReactElement[], { entitlement, previous, next }) => {
+              (
+                acc: React.ReactElement[],
+                { entitlement, previous, next },
+                index,
+              ) => {
                 if (entitlement?.feature?.name) {
                   acc.push(
-                    <Box key={entitlement.feature.id}>
+                    <Box key={index}>
                       <Flex
                         $justifyContent="space-between"
                         $alignItems="center"
@@ -715,7 +727,7 @@ export const Sidebar = ({
                             $color={theme.typography.heading4.color}
                           >
                             {previous.quantity}{" "}
-                            {pluralize(entitlement.feature.name)}
+                            {getFeatureName(entitlement.feature)}
                           </Text>
                         </Box>
 
@@ -755,7 +767,7 @@ export const Sidebar = ({
                             $color={theme.typography.heading4.color}
                           >
                             {next.quantity}{" "}
-                            {pluralize(entitlement.feature.name)}
+                            {getFeatureName(entitlement.feature)}
                           </Text>
                         </Box>
 
@@ -790,7 +802,7 @@ export const Sidebar = ({
             )}
 
             {addedUsageBasedEntitlements.reduce(
-              (acc: React.ReactElement[], { entitlement, quantity }) => {
+              (acc: React.ReactElement[], { entitlement, quantity }, index) => {
                 if (entitlement.feature?.name) {
                   const price = (
                     planPeriod === "month"
@@ -800,7 +812,7 @@ export const Sidebar = ({
 
                   acc.push(
                     <Flex
-                      key={entitlement.id}
+                      key={index}
                       $justifyContent="space-between"
                       $alignItems="center"
                       $gap="1rem"
@@ -815,7 +827,7 @@ export const Sidebar = ({
                           {entitlement.priceBehavior === "pay_in_advance" ? (
                             <>
                               {quantity}{" "}
-                              {pluralize(entitlement.feature.name, quantity)}
+                              {getFeatureName(entitlement.feature, quantity)}
                             </>
                           ) : (
                             entitlement.feature.name
@@ -854,11 +866,7 @@ export const Sidebar = ({
                                   )?.currency,
                                 )}
                                 <sub>
-                                  /
-                                  {pluralize(
-                                    entitlement.feature.name.toLowerCase(),
-                                    1,
-                                  )}
+                                  /{getFeatureName(entitlement.feature, 1)}
                                 </sub>
                               </>
                             )}
@@ -940,9 +948,9 @@ export const Sidebar = ({
               </Text>
             </Box>
 
-            {removedAddOns.map((addOn) => (
+            {removedAddOns.map((addOn, index) => (
               <Flex
-                key={addOn.id}
+                key={index}
                 $justifyContent="space-between"
                 $alignItems="center"
                 $gap="1rem"
@@ -983,9 +991,9 @@ export const Sidebar = ({
               </Flex>
             ))}
 
-            {selectedAddOns.map((addOn) => (
+            {selectedAddOns.map((addOn, index) => (
               <Flex
-                key={addOn.id}
+                key={index}
                 $justifyContent="space-between"
                 $alignItems="center"
                 $gap="1rem"
@@ -1013,6 +1021,10 @@ export const Sidebar = ({
                         ? addOn.monthlyPrice
                         : addOn.yearlyPrice
                       )?.price ?? 0,
+                      (planPeriod === "month"
+                        ? addOn.monthlyPrice
+                        : addOn.yearlyPrice
+                      )?.currency,
                     )}
                     <sub>/{shortenPeriod(planPeriod)}</sub>
                   </Text>

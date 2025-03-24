@@ -1,5 +1,7 @@
-import { useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import debounce from "lodash/debounce";
+import { DEBOUNCE_TIMEOUT } from "../../../const";
 import { type BoxProps } from "../../ui";
 import { Content, Trigger } from "./styles";
 
@@ -24,7 +26,7 @@ export const Tooltip = ({
   const [show, setShow] = useState(false);
   const [coords, setCoords] = useState({ x: 0, y: 0 });
 
-  useLayoutEffect(() => {
+  const updateCoords = useCallback(() => {
     if (ref.current) {
       const { top: offsetTop, left: offsetLeft } =
         document.body.getBoundingClientRect();
@@ -45,7 +47,18 @@ export const Tooltip = ({
         y: Math.round(y - offsetTop),
       });
     }
-  }, [position, trigger]);
+  }, [position]);
+
+  useLayoutEffect(() => {
+    updateCoords();
+
+    const handleResize = debounce(updateCoords, DEBOUNCE_TIMEOUT);
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, [updateCoords]);
 
   return (
     <>

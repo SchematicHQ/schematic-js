@@ -102,7 +102,14 @@ export const Checkout = ({
           }}
         >
           <Box $width="100%" $marginBottom="1.5rem">
-            <Text $size={18}>{t("Add payment method")}</Text>
+            <Text
+              $font={theme.typography.text.fontFamily}
+              $size={18}
+              $weight={theme.typography.text.fontWeight}
+              $color={theme.typography.text.color}
+            >
+              {t("Add payment method")}
+            </Text>
           </Box>
 
           <PaymentForm
@@ -191,8 +198,8 @@ export const Checkout = ({
                   $font={theme.typography.link.fontFamily}
                   $size={theme.typography.link.fontSize}
                   $weight={theme.typography.link.fontWeight}
-                  $leading={1}
                   $color={theme.typography.link.color}
+                  $leading={1}
                 >
                   {t("Apply discount")}
                 </Text>

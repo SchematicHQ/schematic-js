@@ -1,7 +1,6 @@
-import { forwardRef } from "react";
+import { forwardRef, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
-import pluralize from "pluralize";
 import { type FeatureUsageResponseData } from "../../../api";
 import { type FontStyle } from "../../../context";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
@@ -13,6 +12,7 @@ import {
   darken,
   shortenPeriod,
   toPrettyDate,
+  getFeatureName,
 } from "../../../utils";
 import { Element } from "../../layout";
 import { Box, EmbedButton, Flex, Text } from "../../ui";
@@ -109,25 +109,17 @@ export const PlanManager = forwardRef<
     (
       acc: (FeatureUsageResponseData & {
         price: number;
-        quantity: number;
-        currencyCode: string | undefined;
+        currency?: string;
       })[],
-      usage,
+      usage: FeatureUsageResponseData,
     ) => {
-      const quantity = usage?.allocation ?? 0;
+      const { price, currency } =
+        (currentPlan?.planPeriod === "month"
+          ? usage.monthlyUsageBasedPrice
+          : usage.yearlyUsageBasedPrice) || {};
 
-      let price: number | undefined;
-      let currencyCode: string | undefined;
-      if (currentPlan?.planPeriod === "month") {
-        price = usage.monthlyUsageBasedPrice?.price;
-        currencyCode = usage.monthlyUsageBasedPrice?.currency;
-      } else if (currentPlan?.planPeriod === "year") {
-        price = usage.yearlyUsageBasedPrice?.price;
-        currencyCode = usage.yearlyUsageBasedPrice?.currency;
-      }
-
-      if (usage.priceBehavior && typeof price === "number" && quantity > 0) {
-        acc.push({ ...usage, price, quantity, currencyCode });
+      if (usage.priceBehavior && typeof price === "number") {
+        acc.push({ ...usage, price, currency });
       }
 
       return acc;
@@ -136,22 +128,22 @@ export const PlanManager = forwardRef<
   );
 
   const billingSubscription = data.company?.billingSubscription;
-  const subscriptionCurrency = billingSubscription?.currency;
-  const showTrialBox =
-    billingSubscription && billingSubscription.status == "trialing";
-  const showUnsubscribeBox = billingSubscription?.cancelAtPeriodEnd;
+  const trialEndDays = useMemo(() => {
+    const trialEnd = billingSubscription?.trialEnd;
+    const trialEndDate = trialEnd ? new Date(trialEnd * 1000) : new Date();
+    const todayDate = new Date();
+    return Math.floor(
+      (trialEndDate.getTime() - todayDate.getTime()) / (1000 * 60 * 60 * 24),
+    );
+  }, [billingSubscription?.trialEnd]);
 
-  const trialEndDate = billingSubscription?.trialEnd
-    ? new Date(billingSubscription.trialEnd * 1000)
-    : new Date();
-  const todayDate = new Date();
-  const trialEndDays = Math.floor(
-    (trialEndDate.getTime() - todayDate.getTime()) / (1000 * 60 * 60 * 24),
-  );
+  const subscriptionCurrency = billingSubscription?.currency;
+  const isTrialSubscription = billingSubscription?.status === "trialing";
+  const willSubscriptionCancel = billingSubscription?.cancelAtPeriodEnd;
 
   return (
     <>
-      {showTrialBox && !showUnsubscribeBox && (
+      {isTrialSubscription && !willSubscriptionCancel ? (
         <Box
           $backgroundColor={
             isLightBackground
@@ -170,10 +162,11 @@ export const PlanManager = forwardRef<
           >
             {t("Trial ends in", { days: trialEndDays.toString() })}
           </Text>
+
           <Text
             as="p"
             $font={theme.typography.text.fontFamily}
-            $size={theme.typography.text.fontSize * 0.8125}
+            $size={0.8125 * theme.typography.text.fontSize}
             $weight={theme.typography.text.fontWeight}
             $color={theme.typography.text.color}
           >
@@ -188,46 +181,49 @@ export const PlanManager = forwardRef<
                   })}
           </Text>
         </Box>
-      )}
-      {showUnsubscribeBox && (
-        <Box
-          $backgroundColor={
-            isLightBackground
-              ? "hsla(0, 0%, 0%, 0.04)"
-              : "hsla(0, 0%, 100%, 0.04)"
-          }
-          $textAlign="center"
-          $padding="1rem"
-        >
-          <Text
-            as="h3"
-            $font={theme.typography.heading3.fontFamily}
-            $size={theme.typography.heading3.fontSize}
-            $weight={theme.typography.heading3.fontWeight}
-            $color={theme.typography.heading3.color}
+      ) : (
+        willSubscriptionCancel && (
+          <Box
+            $backgroundColor={
+              isLightBackground
+                ? "hsla(0, 0%, 0%, 0.04)"
+                : "hsla(0, 0%, 100%, 0.04)"
+            }
+            $textAlign="center"
+            $padding="1rem"
           >
-            {t("Subscription canceled")}
-          </Text>
-          <Text
-            as="p"
-            $font={theme.typography.text.fontFamily}
-            $size={theme.typography.text.fontSize * 0.8125}
-            $weight={theme.typography.text.fontWeight}
-            $color={theme.typography.text.color}
-          >
-            {billingSubscription.cancelAt
-              ? t("Access to plan will end on", {
-                  date: toPrettyDate(
-                    new Date(billingSubscription.cancelAt * 1000),
-                    {
-                      month: "numeric",
-                    },
-                  ),
-                })
-              : ""}
-          </Text>
-        </Box>
+            <Text
+              as="h3"
+              $font={theme.typography.heading3.fontFamily}
+              $size={theme.typography.heading3.fontSize}
+              $weight={theme.typography.heading3.fontWeight}
+              $color={theme.typography.heading3.color}
+            >
+              {t("Subscription canceled")}
+            </Text>
+
+            <Text
+              as="p"
+              $font={theme.typography.text.fontFamily}
+              $size={0.8125 * theme.typography.text.fontSize}
+              $weight={theme.typography.text.fontWeight}
+              $color={theme.typography.text.color}
+            >
+              {billingSubscription?.cancelAt
+                ? t("Access to plan will end on", {
+                    date: toPrettyDate(
+                      new Date(billingSubscription.cancelAt * 1000),
+                      {
+                        month: "numeric",
+                      },
+                    ),
+                  })
+                : ""}
+            </Text>
+          </Box>
+        )
       )}
+
       <Element
         as={Flex}
         ref={ref}
@@ -346,9 +342,9 @@ export const PlanManager = forwardRef<
               </Text>
             )}
 
-            {addOns.map((addOn) => (
+            {addOns.map((addOn, addOnIndex) => (
               <Flex
-                key={addOn.id}
+                key={addOnIndex}
                 $justifyContent="space-between"
                 $alignItems="center"
                 $flexWrap="wrap"
@@ -396,11 +392,18 @@ export const PlanManager = forwardRef<
             </Text>
 
             {usageBasedEntitlements.reduce(
-              (acc: React.ReactElement[], entitlement) => {
+              (acc: React.ReactElement[], entitlement, entitlementIndex) => {
+                const limit =
+                  entitlement.softLimit ?? entitlement.allocation ?? 0;
+                const overageAmount =
+                  entitlement.priceBehavior === "overage" &&
+                  (entitlement?.usage ?? 0) - (entitlement?.softLimit ?? 0);
+                const amount = overageAmount || entitlement.allocation || 0;
+
                 if (entitlement.feature?.name) {
                   acc.push(
                     <Flex
-                      key={entitlement.feature.id}
+                      key={entitlementIndex}
                       $justifyContent="space-between"
                       $alignItems="center"
                       $flexWrap="wrap"
@@ -418,21 +421,61 @@ export const PlanManager = forwardRef<
                         }
                         $color={theme.typography[props.addOns.fontStyle].color}
                       >
-                        {entitlement.priceBehavior === "pay_in_advance" ? (
+                        {entitlement.priceBehavior === "pay_in_advance" ||
+                        (entitlement.priceBehavior === "overage" &&
+                          limit > 0) ? (
                           <>
-                            {entitlement.quantity}{" "}
-                            {pluralize(
-                              entitlement.feature.name,
-                              entitlement.quantity,
-                            )}
+                            {limit} {getFeatureName(entitlement.feature, limit)}
                           </>
                         ) : (
                           entitlement.feature.name
                         )}
+                        {entitlement.priceBehavior === "overage" &&
+                          entitlement.feature.featureType === "event" &&
+                          currentPlan?.planPeriod && (
+                            <>/{shortenPeriod(currentPlan.planPeriod)}</>
+                          )}
                       </Text>
 
                       <Flex $alignItems="center" $gap="1rem">
-                        {entitlement.priceBehavior === "pay_in_advance" &&
+                        {entitlement.priceBehavior === "overage" &&
+                        currentPlan?.planPeriod ? (
+                          <Text
+                            $font={theme.typography.text.fontFamily}
+                            $size={0.875 * theme.typography.text.fontSize}
+                            $weight={theme.typography.text.fontWeight}
+                            $color={
+                              hexToHSL(theme.typography.text.color).l > 50
+                                ? darken(theme.typography.text.color, 0.46)
+                                : lighten(theme.typography.text.color, 0.46)
+                            }
+                          >
+                            {typeof overageAmount === "number" &&
+                            overageAmount > 0 ? (
+                              t("X over the limit", {
+                                amount: overageAmount,
+                              })
+                            ) : (
+                              <>
+                                {t("Overage fee")}:{" "}
+                                {formatCurrency(
+                                  entitlement.price,
+                                  entitlement.currency,
+                                )}
+                                <sub>
+                                  /{getFeatureName(entitlement.feature, 1)}
+                                  {entitlement.feature.featureType ===
+                                    "trait" && (
+                                    <>
+                                      /{shortenPeriod(currentPlan.planPeriod)}
+                                    </>
+                                  )}
+                                </sub>
+                              </>
+                            )}
+                          </Text>
+                        ) : (
+                          entitlement.priceBehavior === "pay_in_advance" &&
                           currentPlan?.planPeriod && (
                             <Text
                               $font={theme.typography.text.fontFamily}
@@ -446,43 +489,39 @@ export const PlanManager = forwardRef<
                             >
                               {formatCurrency(
                                 entitlement.price,
-                                entitlement.currencyCode,
+                                entitlement.currency,
                               )}
                               <sub>
-                                /
-                                {pluralize(
-                                  entitlement.feature.name.toLowerCase(),
-                                  1,
-                                )}
-                                /{shortenPeriod(currentPlan.planPeriod)}
+                                /{getFeatureName(entitlement.feature, 1)}/
+                                {shortenPeriod(currentPlan.planPeriod)}
                               </sub>
                             </Text>
-                          )}
+                          )
+                        )}
 
-                        <Text
-                          $font={theme.typography.text.fontFamily}
-                          $size={theme.typography.text.fontSize}
-                          $weight={theme.typography.text.fontWeight}
-                          $color={theme.typography.text.color}
-                        >
-                          {formatCurrency(
-                            entitlement.price *
-                              (entitlement.priceBehavior === "pay_in_advance"
-                                ? entitlement.quantity
-                                : 1),
-                            entitlement.currencyCode,
-                          )}
-                          <sub>
-                            /
-                            {currentPlan?.planPeriod &&
-                            entitlement.priceBehavior === "pay_in_advance"
-                              ? shortenPeriod(currentPlan.planPeriod)
-                              : pluralize(
-                                  entitlement.feature.name.toLowerCase(),
-                                  1,
-                                )}
-                          </sub>
-                        </Text>
+                        {amount > 0 && (
+                          <Text
+                            $font={theme.typography.text.fontFamily}
+                            $size={theme.typography.text.fontSize}
+                            $weight={theme.typography.text.fontWeight}
+                            $color={theme.typography.text.color}
+                          >
+                            {formatCurrency(
+                              entitlement.price * amount,
+                              entitlement.currency,
+                            )}
+                            {(entitlement.priceBehavior === "pay_in_advance" ||
+                              entitlement.priceBehavior !== "overage") && (
+                              <sub>
+                                /
+                                {currentPlan?.planPeriod &&
+                                entitlement.priceBehavior === "pay_in_advance"
+                                  ? shortenPeriod(currentPlan.planPeriod)
+                                  : getFeatureName(entitlement.feature, 1)}
+                              </sub>
+                            )}
+                          </Text>
+                        )}
                       </Flex>
                     </Flex>,
                   );

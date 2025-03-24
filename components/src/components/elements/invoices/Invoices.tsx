@@ -60,7 +60,6 @@ function resolveDesignProps(props: RecursivePartial<DesignProps>): DesignProps {
 
 function formatInvoices(invoices: InvoiceResponseData[] = []) {
   return invoices
-    .filter(({ amountDue, amountPaid }) => amountDue === 0 || amountPaid > 0)
     .sort((a, b) => (a.dueDate && b.dueDate ? +b.dueDate - +a.dueDate : 1))
     .map(({ amountDue, dueDate, url, currency }) => ({
       amount: formatCurrency(amountDue, currency),
