@@ -195,6 +195,22 @@ export const MeteredFeatures = forwardRef<
             }
           }
 
+          // Overage price must be derived from the subscription object
+          if (isOverage) {
+            const productId = (yearlyUsageBasedPrice ?? monthlyUsageBasedPrice)!
+              .productId;
+            if (productId) {
+              const products = data?.subscription?.products ?? [];
+              const product = products.find((p) => p.id === productId);
+              if (product) {
+                price = product.price;
+                currency = product.currency;
+              }
+            }
+          }
+
+          console.log(data.subscription, isOverage, price);
+
           const progressBar = props.isVisible &&
             typeof usage === "number" &&
             limit > 0 &&
