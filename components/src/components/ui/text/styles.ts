@@ -1,7 +1,7 @@
 import styled, { css } from "styled-components";
 import { TEXT_BASE_SIZE } from "../../../const";
+import { type FontStyle } from "../../../context";
 import type { ComponentProps } from "../../../types";
-import { attr } from "../../../utils";
 import { Box, type BoxProps } from "..";
 
 export enum TextPropNames {
@@ -16,6 +16,7 @@ export enum TextPropNames {
 export type TextPropNameTypes = `${TextPropNames}`;
 
 export interface TextProps extends BoxProps {
+  display?: FontStyle;
   $align?: ComponentProps["$textAlign"];
   $font?: ComponentProps["$fontFamily"];
   $size?: ComponentProps["$fontSize"];
@@ -24,43 +25,60 @@ export interface TextProps extends BoxProps {
   $leading?: ComponentProps["$lineHeight"];
 }
 
-export const Text = styled(Box).attrs(({ as = "span", onClick }) => ({
-  as,
-  ...(onClick && { tabIndex: 0 }),
-}))<TextProps>`
-  ${({ $font }) =>
-    $font &&
-    css`
-      font-family: ${$font}, sans-serif;
-    `};
-  ${({ $size }) =>
-    typeof $size !== "undefined" &&
-    css`
-      font-size: ${typeof $size === "number"
-        ? `${$size / TEXT_BASE_SIZE}rem`
-        : $size};
-    `};
-  ${({ $weight }) =>
-    typeof $weight !== "undefined" &&
-    css`
-      font-weight: ${$weight};
-      font-variation-settings: "wght" ${$weight};
-    `};
-  ${({ $leading }) => attr("line-height", $leading)};
-  ${({ $align }) => attr("text-align", $align)};
-  color: ${({ $color, theme }) => $color || theme.typography.text.color};
+export const Text = styled(Box)
+  .withConfig({
+    shouldForwardProp: (prop) => prop !== "display",
+  })
+  .attrs(({ as = "span", onClick }) => ({
+    as,
+    ...(onClick && { tabIndex: 0 }),
+  }))<TextProps>(
+  ({
+    display,
+    theme,
+    onClick,
+    $font,
+    $size,
+    $weight,
+    $color,
+    $leading = 1.35,
+    $align,
+  }) => {
+    const settings = display
+      ? theme.typography[display]
+      : theme.typography.text;
+    const fontFamily = $font || settings.fontFamily;
+    const fontSize = $size || settings.fontSize;
+    const fontWeight = $weight || settings.fontWeight;
+    const color = $color || settings.color;
 
-  &:focus-visible {
-    outline: 2px solid ${({ theme }) => theme.primary};
-    outline-offset: 2px;
-  }
+    return css`
+      font-family: ${fontFamily}, sans-serif;
+      font-size: ${typeof fontSize === "number"
+        ? `${fontSize / TEXT_BASE_SIZE}rem`
+        : fontSize};
+      font-weight: ${fontWeight};
+      font-variation-settings: "wght" ${fontWeight};
+      line-height: ${$leading};
+      color: ${color};
 
-  ${({ onClick }) =>
-    onClick &&
-    css`
-      &:hover {
-        cursor: pointer;
-        text-decoration: underline;
+      ${$align &&
+      css`
+        text-align: ${$align};
+      `};
+
+      ${onClick &&
+      css`
+        &:hover {
+          cursor: pointer;
+          text-decoration: underline;
+        }
+      `}
+
+      &:focus-visible {
+        outline: 2px solid ${({ theme }) => theme.primary};
+        outline-offset: 2px;
       }
-    `}
-`;
+    `;
+  },
+);
