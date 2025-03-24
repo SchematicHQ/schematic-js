@@ -1,18 +1,19 @@
 import { forwardRef, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
+
 import { type FeatureUsageResponseData } from "../../../api";
 import { type FontStyle } from "../../../context";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
-import type { RecursivePartial, ElementProps } from "../../../types";
+import type { ElementProps,RecursivePartial } from "../../../types";
 import {
+  darken,
   formatCurrency,
+  getFeatureName,
   hexToHSL,
   lighten,
-  darken,
   shortenPeriod,
   toPrettyDate,
-  getFeatureName,
 } from "../../../utils";
 import { Element } from "../../layout";
 import { Box, EmbedButton, Flex, Text } from "../../ui";

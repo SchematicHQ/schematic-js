@@ -1,12 +1,13 @@
 import { forwardRef } from "react";
 import { useTheme } from "styled-components";
+
 import { TEXT_BASE_SIZE } from "../../../const";
 import { useEmbed } from "../../../hooks";
 import { hsla } from "../../../utils";
 import { Flex, Loader } from "../../ui";
-import { cardBoxShadow, StyledCard, Element, FussyChild } from "./styles";
+import { cardBoxShadow, Element, FussyChild,StyledCard } from "./styles";
 
-export { cardBoxShadow, StyledCard, Element, FussyChild };
+export { cardBoxShadow, Element, FussyChild,StyledCard };
 
 export interface CardProps {
   children?: React.ReactNode;

@@ -1,7 +1,8 @@
+import { loadStripe, type Stripe } from "@stripe/stripe-js";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
-import { loadStripe, type Stripe } from "@stripe/stripe-js";
+
 import type { SetupIntentResponseData } from "../../../api";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import { PaymentMethodDetails } from "../../elements";

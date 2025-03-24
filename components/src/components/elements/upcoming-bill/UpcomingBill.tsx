@@ -1,11 +1,12 @@
 import { forwardRef, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
+
 import { type BillingSubscriptionDiscountView } from "../../../api";
 import { type FontStyle } from "../../../context";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
-import type { RecursivePartial, ElementProps } from "../../../types";
-import { toPrettyDate, formatCurrency } from "../../../utils";
+import type { ElementProps,RecursivePartial } from "../../../types";
+import { formatCurrency,toPrettyDate } from "../../../utils";
 import { Element } from "../../layout";
 import { Box, Flex, Text } from "../../ui";
 

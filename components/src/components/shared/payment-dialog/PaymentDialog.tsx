@@ -1,8 +1,9 @@
-import { Modal, ModalHeader, Text } from "../../ui";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
-import { PaymentMethodDetails } from "../../elements";
+
 import { useEmbed } from "../../../hooks";
+import { PaymentMethodDetails } from "../../elements";
+import { Modal, ModalHeader, Text } from "../../ui";
 
 interface PaymentDialogProps {
   top?: number;

@@ -1,11 +1,11 @@
-import { FormEventHandler, useState } from "react";
+import {
+  PaymentElement,
+  useElements,
+  useStripe,
+} from "@stripe/react-stripe-js";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
-import {
-  useStripe,
-  useElements,
-  PaymentElement,
-} from "@stripe/react-stripe-js";
 
 import { useEmbed } from "../../../hooks";
 import { Box, EmbedButton, Text } from "../../ui";
@@ -28,7 +28,9 @@ export const PaymentForm = ({ onConfirm }: PaymentFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
 
-  const handleSubmit: FormEventHandler<HTMLFormElement> = async (event) => {
+  const handleSubmit: React.FormEventHandler<HTMLFormElement> = async (
+    event,
+  ) => {
     event.preventDefault();
 
     if (!api || !stripe || !elements) {

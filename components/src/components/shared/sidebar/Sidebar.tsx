@@ -1,11 +1,12 @@
 import {
-  useCallback,
-  useMemo,
   type Dispatch,
   type SetStateAction,
+  useCallback,
+  useMemo,
 } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
+
 import type {
   FeatureUsageResponseData,
   PlanEntitlementResponseData,
@@ -15,9 +16,9 @@ import type {
   UsageBasedEntitlementResponseData,
 } from "../../../api";
 import {
+  type SelectedPlan,
   useEmbed,
   useIsLightBackground,
-  type SelectedPlan,
 } from "../../../hooks";
 import {
   formatCurrency,

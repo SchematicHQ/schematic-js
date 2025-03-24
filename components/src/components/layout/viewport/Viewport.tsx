@@ -1,5 +1,6 @@
 import { forwardRef, useLayoutEffect, useState } from "react";
 import { createPortal } from "react-dom";
+
 import { useEmbed } from "../../../hooks";
 import { CheckoutDialog, PaymentDialog, UnsubscribeDialog } from "../../shared";
 import { Badge } from "../../ui/badge";

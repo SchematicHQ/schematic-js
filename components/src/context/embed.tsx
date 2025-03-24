@@ -1,15 +1,16 @@
+import i18n from "i18next";
+import merge from "lodash/merge";
+import { inflate } from "pako";
 import { createContext, useCallback, useEffect, useRef, useState } from "react";
 import { initReactI18next } from "react-i18next";
-import i18n from "i18next";
-import { inflate } from "pako";
 import { ThemeProvider } from "styled-components";
-import merge from "lodash/merge";
 import { v4 as uuidv4 } from "uuid";
+
 import {
   CheckoutexternalApi,
+  type ComponentHydrateResponseData,
   Configuration,
   type ConfigurationParameters,
-  type ComponentHydrateResponseData,
 } from "../api";
 import en from "../locales/en.json";
 import type {

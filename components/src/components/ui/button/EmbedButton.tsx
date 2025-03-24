@@ -1,6 +1,7 @@
 import styled, { css } from "styled-components";
+
 import { TEXT_BASE_SIZE } from "../../../const";
-import { hexToHSL, hslToHex, lighten, darken } from "../../../utils";
+import { darken,hexToHSL, hslToHex, lighten } from "../../../utils";
 import { Icon } from "../icon/styles";
 import { Button, ButtonSizeTypes } from "./Button";
 

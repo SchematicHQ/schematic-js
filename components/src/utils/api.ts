@@ -1,4 +1,5 @@
 import pluralize from "pluralize";
+
 import { FeatureDetailResponseData } from "../api";
 
 export interface getFeatureName {

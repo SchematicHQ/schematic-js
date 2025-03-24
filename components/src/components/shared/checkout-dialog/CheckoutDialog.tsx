@@ -8,27 +8,28 @@ import {
 } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
+
 import {
-  ResponseError,
   type PlanEntitlementResponseData,
   type PreviewSubscriptionChangeResponseData,
+  ResponseError,
   type UpdateAddOnRequestBody,
   type UpdatePayInAdvanceRequestBody,
 } from "../../../api";
 import {
+  type SelectedPlan,
   useAvailablePlans,
   useEmbed,
   useIsLightBackground,
-  type SelectedPlan,
 } from "../../../hooks";
 import { PeriodToggle } from "../../shared";
 import { Flex, Modal, ModalHeader, Text } from "../../ui";
 import { Sidebar } from "../sidebar";
+import { AddOns } from "./AddOns";
+import { Checkout } from "./Checkout";
 import { Navigation } from "./Navigation";
 import { Plan } from "./Plan";
-import { AddOns } from "./AddOns";
 import { Usage } from "./Usage";
-import { Checkout } from "./Checkout";
 
 interface UsageBasedEntitlement {
   entitlement: PlanEntitlementResponseData;
