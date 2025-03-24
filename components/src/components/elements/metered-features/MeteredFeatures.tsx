@@ -175,21 +175,22 @@ export const MeteredFeatures = forwardRef<
                 : monthlyUsageBasedPrice,
             ) || {};
 
+          const productId = (yearlyUsageBasedPrice ?? monthlyUsageBasedPrice)!
+            .productId;
           // Overage price must be derived from the subscription object
-          if (isOverage) {
-            const productId = (yearlyUsageBasedPrice ?? monthlyUsageBasedPrice)!
-              .productId;
+          if (priceBehavior === "overage") {
             if (productId) {
               const products = data?.subscription?.products ?? [];
               const product = products.find((p) => p.id === productId);
-              if (product) {
-                price = product.price;
+              if (product && product.priceTier?.length > 1) {
+                // overage price is the last item in the price tier array
+                const overagePrice =
+                  product.priceTier[product.priceTier.length - 1];
+                price = overagePrice.perUnitPrice!;
                 currency = product.currency;
               }
             }
           }
-
-          console.log(data.subscription, isOverage, price);
 
           const progressBar = props.isVisible &&
             typeof usage === "number" &&
@@ -238,7 +239,7 @@ export const MeteredFeatures = forwardRef<
                     $leading={1.35}
                   >
                     <>
-                      {t("Overage fee")}: {formatCurrency(price, currency)}
+                      {t("overage fee")}: {formatCurrency(price, currency)}
                       {feature && (
                         <Box as="sub" $whiteSpace="nowrap">
                           /{getFeatureName(feature, 1)}
