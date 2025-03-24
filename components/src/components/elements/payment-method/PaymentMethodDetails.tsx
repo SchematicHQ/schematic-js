@@ -1,20 +1,21 @@
-import { Box, EmbedButton, Flex, Icon, Loader, Text } from "../../ui";
 import { Elements } from "@stripe/react-stripe-js";
-import { PaymentForm } from "../../shared";
-import {
-  PaymentListElement,
-  PaymentMethodElement,
-} from "./PaymentMethodElement";
-import { useCallback, useEffect, useMemo, useState } from "react";
 import { loadStripe, type Stripe } from "@stripe/stripe-js";
-import { useEmbed, useIsLightBackground } from "../../../hooks";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useTheme } from "styled-components";
+
 import type {
   PaymentMethodResponseData,
   SetupIntentResponseData,
 } from "../../../api";
-import { useTranslation } from "react-i18next";
-import { useTheme } from "styled-components";
 import type { FontStyle } from "../../../context";
+import { useEmbed, useIsLightBackground } from "../../../hooks";
+import { PaymentForm } from "../../shared";
+import { Box, EmbedButton, Flex, Icon, Loader, Text } from "../../ui";
+import {
+  PaymentListElement,
+  PaymentMethodElement,
+} from "./PaymentMethodElement";
 
 interface DesignProps {
   header: {
@@ -274,27 +275,29 @@ export const PaymentMethodDetails = ({
               {...props}
             />
 
-            <Box>
-              <Text
-                onClick={dropDownDifferentPaymentMethods}
-                $font={theme.typography.link.fontFamily}
-                $size={theme.typography.link.fontSize}
-                $weight={theme.typography.link.fontWeight}
-                $color={theme.typography.link.color}
-              >
-                {t("Choose different payment method")}
-                <Icon
-                  name="chevron-down"
-                  style={{
-                    display: "inline-flex",
-                    marginLeft: "0.5rem",
-                    ...(showDifferentPaymentMethods && {
-                      transform: "rotate(180deg)",
-                    }),
-                  }}
-                />
-              </Text>
-            </Box>
+            {(data.company?.paymentMethods || []).length > 0 && (
+              <Box>
+                <Text
+                  onClick={dropDownDifferentPaymentMethods}
+                  $font={theme.typography.link.fontFamily}
+                  $size={theme.typography.link.fontSize}
+                  $weight={theme.typography.link.fontWeight}
+                  $color={theme.typography.link.color}
+                >
+                  {t("Choose different payment method")}
+                  <Icon
+                    name="chevron-down"
+                    style={{
+                      display: "inline-flex",
+                      marginLeft: "0.5rem",
+                      ...(showDifferentPaymentMethods && {
+                        transform: "rotate(180deg)",
+                      }),
+                    }}
+                  />
+                </Text>
+              </Box>
+            )}
 
             {showDifferentPaymentMethods && (
               <Flex $flexDirection="column" $overflowY="hidden" $height="10rem">
