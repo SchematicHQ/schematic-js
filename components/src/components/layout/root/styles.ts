@@ -1,4 +1,5 @@
 import styled from "styled-components";
+
 import { TEXT_BASE_SIZE } from "../../../const";
 import { Box } from "../../ui";
 

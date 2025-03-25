@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
+
 import { useEmbed } from "../../../hooks";
 import { Flex, Text } from "..";
 
@@ -20,6 +21,7 @@ export const Badge = () => {
       $alignItems="center"
       $gap="0.5rem"
       $gridColumn="1 / -1"
+      $color={theme.typography.text.color}
     >
       <Text
         $font={theme.typography.text.fontFamily}

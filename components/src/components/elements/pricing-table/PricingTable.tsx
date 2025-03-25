@@ -1,6 +1,7 @@
 import { forwardRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
+
 import { TEXT_BASE_SIZE, VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
 import { type FontStyle } from "../../../context";
 import {
@@ -23,13 +24,13 @@ import { cardBoxShadow, FussyChild } from "../../layout";
 import { PeriodToggle } from "../../shared";
 import {
   Box,
-  Flex,
   EmbedButton,
+  Flex,
   Icon,
+  type IconNameTypes,
   IconRound,
   Text,
   Tooltip,
-  type IconNameTypes,
 } from "../../ui";
 import { ButtonLink } from "./styles";
 

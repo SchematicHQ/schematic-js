@@ -1,6 +1,7 @@
 import { forwardRef, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
+
 import type { FeatureUsageResponseData } from "../../../api";
 import { VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
 import { type FontStyle } from "../../../context";
@@ -9,10 +10,10 @@ import {
   useIsLightBackground,
   useWrapChildren,
 } from "../../../hooks";
-import type { RecursivePartial, ElementProps } from "../../../types";
+import type { ElementProps, RecursivePartial } from "../../../types";
 import { toPrettyDate } from "../../../utils";
 import { Element } from "../../layout";
-import { Box, Flex, Icon, IconRound, Text, type IconNameTypes } from "../../ui";
+import { Box, Flex, Icon, type IconNameTypes, IconRound, Text } from "../../ui";
 import { Details } from "./Details";
 
 export interface DesignProps {

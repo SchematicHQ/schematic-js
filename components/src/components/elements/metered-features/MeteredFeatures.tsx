@@ -1,6 +1,7 @@
 import { forwardRef, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
+
 import { type FeatureUsageResponseData } from "../../../api";
 import { TEXT_BASE_SIZE } from "../../../const";
 import { type FontStyle } from "../../../context";
@@ -9,27 +10,27 @@ import {
   useIsLightBackground,
   useWrapChildren,
 } from "../../../hooks";
-import type { RecursivePartial, ElementProps } from "../../../types";
+import type { ElementProps, RecursivePartial } from "../../../types";
 import {
   darken,
-  lighten,
   formatCurrency,
   formatNumber,
+  getFeatureName,
+  lighten,
   shortenPeriod,
   toPrettyDate,
-  getFeatureName,
 } from "../../../utils";
 import { Element } from "../../layout";
 import {
-  progressColorMap,
   Box,
   EmbedButton,
   Flex,
+  type IconNameTypes,
   IconRound,
   ProgressBar,
+  progressColorMap,
   Text,
   Tooltip,
-  type IconNameTypes,
 } from "../../ui";
 import * as styles from "./styles";
 

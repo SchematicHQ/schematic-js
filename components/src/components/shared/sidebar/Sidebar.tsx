@@ -1,11 +1,12 @@
 import {
-  useCallback,
-  useMemo,
   type Dispatch,
   type SetStateAction,
+  useCallback,
+  useMemo,
 } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
+
 import type {
   FeatureUsageResponseData,
   PlanEntitlementResponseData,
@@ -15,9 +16,9 @@ import type {
   UsageBasedEntitlementResponseData,
 } from "../../../api";
 import {
+  type SelectedPlan,
   useEmbed,
   useIsLightBackground,
-  type SelectedPlan,
 } from "../../../hooks";
 import {
   formatCurrency,
@@ -52,7 +53,6 @@ interface SidebarProps {
   setCheckoutStage?: (stage: string) => void;
   setError: (msg?: string) => void;
   setIsLoading: Dispatch<SetStateAction<boolean>>;
-  showPaymentForm: boolean;
   updatePromoCode?: (code?: string) => void;
   showHeader?: boolean;
 }
@@ -74,7 +74,6 @@ export const Sidebar = ({
   setCheckoutStage,
   setError,
   setIsLoading,
-  showPaymentForm,
   updatePromoCode,
   showHeader = true,
 }: SidebarProps) => {
@@ -328,8 +327,7 @@ export const Sidebar = ({
 
   const canCheckout =
     canUpdateSubscription &&
-    ((data.subscription?.paymentMethod && !showPaymentForm) ||
-      typeof paymentMethodId === "string");
+    (!!data.subscription?.paymentMethod || typeof paymentMethodId === "string");
 
   const changedUsageBasedEntitlements: {
     entitlement: PlanEntitlementResponseData;

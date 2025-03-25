@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
+
 import { TEXT_BASE_SIZE, VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
-import { useIsLightBackground, type SelectedPlan } from "../../../hooks";
+import { type SelectedPlan, useIsLightBackground } from "../../../hooks";
 import {
   darken,
   formatCurrency,
@@ -12,18 +13,18 @@ import {
   lighten,
   shortenPeriod,
 } from "../../../utils";
+import { ButtonLink } from "../../elements/pricing-table/styles";
 import { cardBoxShadow } from "../../layout";
 import {
   Box,
   EmbedButton,
   Flex,
   Icon,
+  type IconNameTypes,
   IconRound,
   Text,
   Tooltip,
-  type IconNameTypes,
 } from "../../ui";
-import { ButtonLink } from "../../elements/pricing-table/styles";
 
 interface PlanProps {
   isLoading: boolean;
