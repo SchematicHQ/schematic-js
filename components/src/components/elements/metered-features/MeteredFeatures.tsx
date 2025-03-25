@@ -173,10 +173,10 @@ export const MeteredFeatures = forwardRef<
               ? monthlyUsageBasedPrice
               : planPeriod === "year" && yearlyUsageBasedPrice) || {};
 
-          const productId = (yearlyUsageBasedPrice ?? monthlyUsageBasedPrice)!
-            .productId;
           // Overage price must be derived from the subscription object
           if (priceBehavior === "overage") {
+            const productId = (yearlyUsageBasedPrice ?? monthlyUsageBasedPrice)
+              ?.productId;
             if (productId) {
               const products = data?.subscription?.products ?? [];
               const product = products.find((p) => p.id === productId);
