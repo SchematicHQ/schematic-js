@@ -112,7 +112,7 @@ export const PlanManager = forwardRef<
         price: number;
         currency?: string;
       })[],
-      usage: FeatureUsageResponseData,
+      usage,
     ) => {
       const { price, currency } =
         (currentPlan?.planPeriod === "month"
@@ -141,6 +141,8 @@ export const PlanManager = forwardRef<
   const subscriptionCurrency = billingSubscription?.currency;
   const isTrialSubscription = billingSubscription?.status === "trialing";
   const willSubscriptionCancel = billingSubscription?.cancelAtPeriodEnd;
+  const isUsageBasedPlan =
+    currentPlan?.planPrice === 0 && usageBasedEntitlements.length > 0;
 
   return (
     <>
@@ -298,28 +300,34 @@ export const PlanManager = forwardRef<
                       theme.typography[props.header.price.fontStyle].color
                     }
                   >
-                    {formatCurrency(
-                      currentPlan.planPrice,
-                      subscriptionCurrency,
-                    )}
+                    {isUsageBasedPlan
+                      ? t("Usage-based")
+                      : formatCurrency(
+                          currentPlan.planPrice,
+                          subscriptionCurrency,
+                        )}
                   </Text>
 
-                  <Text
-                    $font={
-                      theme.typography[props.header.price.fontStyle].fontFamily
-                    }
-                    $size={
-                      theme.typography[props.header.price.fontStyle].fontSize
-                    }
-                    $weight={
-                      theme.typography[props.header.price.fontStyle].fontWeight
-                    }
-                    $color={
-                      theme.typography[props.header.price.fontStyle].color
-                    }
-                  >
-                    <sub>/{shortenPeriod(currentPlan.planPeriod)}</sub>
-                  </Text>
+                  {!isUsageBasedPlan && (
+                    <Text
+                      $font={
+                        theme.typography[props.header.price.fontStyle]
+                          .fontFamily
+                      }
+                      $size={
+                        theme.typography[props.header.price.fontStyle].fontSize
+                      }
+                      $weight={
+                        theme.typography[props.header.price.fontStyle]
+                          .fontWeight
+                      }
+                      $color={
+                        theme.typography[props.header.price.fontStyle].color
+                      }
+                    >
+                      <sub>/{shortenPeriod(currentPlan.planPeriod)}</sub>
+                    </Text>
+                  )}
                 </Box>
               )}
           </Flex>
