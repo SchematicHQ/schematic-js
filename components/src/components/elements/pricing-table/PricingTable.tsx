@@ -245,6 +245,12 @@ export const PricingTable = forwardRef<
               const count = entitlementCounts[plan.id];
               const isExpanded = count.limit > VISIBLE_ENTITLEMENT_COUNT;
 
+              const hasUsageBasedEntitlements = plan.entitlements.some(
+                (entitlement) => !!entitlement.priceBehavior,
+              );
+              const isUsageBasedPlan =
+                planPrice === 0 && hasUsageBasedEntitlements;
+
               return (
                 <Flex
                   key={planIndex}
@@ -338,10 +344,12 @@ export const PricingTable = forwardRef<
                           ? plan.customPlanConfig?.priceText
                             ? plan.customPlanConfig.priceText
                             : t("Custom Plan Price")
-                          : formatCurrency(planPrice ?? 0, planCurrency)}
+                          : isUsageBasedPlan
+                            ? t("Usage-based")
+                            : formatCurrency(planPrice ?? 0, planCurrency)}
                       </Text>
 
-                      {!plan.custom && (
+                      {!plan.custom && !isUsageBasedPlan && (
                         <Text
                           $font={
                             theme.typography[props.plans.name.fontStyle]

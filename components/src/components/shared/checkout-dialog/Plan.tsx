@@ -103,6 +103,10 @@ export const Plan = ({
             (period === "month"
               ? plan.monthlyPrice
               : period === "year" && plan.yearlyPrice) || {};
+          const hasUsageBasedEntitlements = plan.entitlements.some(
+            (entitlement) => !!entitlement.priceBehavior,
+          );
+          const isUsageBasedPlan = planPrice === 0 && hasUsageBasedEntitlements;
 
           return (
             <Flex
@@ -170,10 +174,12 @@ export const Plan = ({
                       ? plan.customPlanConfig?.priceText
                         ? plan.customPlanConfig.priceText
                         : t("Custom Plan Price")
-                      : formatCurrency(planPrice ?? 0, planCurrency)}
+                      : isUsageBasedPlan
+                        ? t("Usage-based")
+                        : formatCurrency(planPrice ?? 0, planCurrency)}
                   </Text>
 
-                  {!plan.custom && (
+                  {!plan.custom && !isUsageBasedPlan && (
                     <Text
                       $font={theme.typography.heading2.fontFamily}
                       $size={(16 / 30) * theme.typography.heading2.fontSize}
