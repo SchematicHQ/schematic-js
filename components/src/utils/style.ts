@@ -1,5 +1,6 @@
-import { css } from "styled-components";
 import CSS from "csstype";
+import { css } from "styled-components";
+
 import { TEXT_BASE_SIZE } from "../const";
 
 type Key = keyof CSS.PropertiesHyphen;

@@ -18,7 +18,7 @@ module.exports = {
     ecmaVersion: "latest",
     sourceType: "module",
   },
-  plugins: ["import", "react"],
+  plugins: ["simple-import-sort", "import", "react"],
   rules: {
     "@typescript-eslint/no-empty-function": "off",
     "@typescript-eslint/no-unused-vars": [
@@ -26,6 +26,11 @@ module.exports = {
       { ignoreRestSiblings: true },
     ],
     "react/no-unescaped-entities": "off",
+    "simple-import-sort/imports": "error",
+    "simple-import-sort/exports": "error",
+    "import/first": "error",
+    "import/newline-after-import": "error",
+    "import/no-duplicates": "error",
   },
   settings: {
     react: {
