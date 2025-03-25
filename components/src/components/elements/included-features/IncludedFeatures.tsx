@@ -1,11 +1,8 @@
-import { forwardRef, useRef, useState } from "react";
+import { forwardRef, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 
-import type {
-  FeatureUsageResponseData,
-  UsageBasedEntitlementResponseData,
-} from "../../../api";
+import type { FeatureUsageResponseData } from "../../../api";
 import { VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
 import { type FontStyle } from "../../../context";
 import {
@@ -97,47 +94,26 @@ export const IncludedFeatures = forwardRef<
 
   const [showCount, setShowCount] = useState(VISIBLE_ENTITLEMENT_COUNT);
 
-  const orderedFeatureUsage = props.visibleFeatures?.reduce(
-    (acc: FeatureUsageResponseData[], id) => {
-      const mappedFeatureUsage = data.featureUsage?.features.find(
-        (usage) => usage.feature?.id === id,
-      );
+  const featureUsage = useMemo(() => {
+    const orderedFeatureUsage = props.visibleFeatures?.reduce(
+      (acc: FeatureUsageResponseData[], id) => {
+        const mappedFeatureUsage = data.featureUsage?.features.find(
+          (usage) => usage.feature?.id === id,
+        );
 
-      if (mappedFeatureUsage) {
-        acc.push(mappedFeatureUsage);
-      }
+        if (mappedFeatureUsage) {
+          acc.push(mappedFeatureUsage);
+        }
 
-      return acc;
-    },
-    [],
-  );
+        return acc;
+      },
+      [],
+    );
 
-  const entitlements: {
-    featureUsage: FeatureUsageResponseData;
-    usageData?: UsageBasedEntitlementResponseData;
-  }[] = (orderedFeatureUsage || data.featureUsage?.features || []).reduce(
-    (
-      acc: {
-        featureUsage: FeatureUsageResponseData;
-        usageData?: UsageBasedEntitlementResponseData;
-      }[],
-      usage,
-    ) => {
-      const mappedUsageData = data.activeUsageBasedEntitlements.find(
-        (entitlement) => entitlement.featureId === usage.feature?.id,
-      );
+    return orderedFeatureUsage || data.featureUsage?.features || [];
+  }, [props.visibleFeatures, data.featureUsage?.features]);
 
-      acc.push({
-        featureUsage: usage,
-        usageData: mappedUsageData,
-      });
-
-      return acc;
-    },
-    [],
-  );
-
-  const featureListSize = entitlements.length;
+  const featureListSize = featureUsage.length;
 
   const handleToggleShowAll = () => {
     setShowCount((prev) =>
@@ -153,7 +129,7 @@ export const IncludedFeatures = forwardRef<
   //  even if the company has no plan or add-ons).
   // * If none of the above, don't render the component.
   const shouldShowFeatures =
-    entitlements.length > 0 ||
+    featureUsage.length > 0 ||
     data.company?.plan ||
     (data.company?.addOns ?? []).length > 0 ||
     false;
@@ -186,9 +162,8 @@ export const IncludedFeatures = forwardRef<
         </Box>
       )}
 
-      {entitlements.slice(0, showCount).map((entitlement, index) => {
-        const { entitlementExpirationDate, feature } =
-          entitlement.featureUsage || {};
+      {featureUsage.slice(0, showCount).map((usage, index) => {
+        const feature = usage.feature;
         const shouldShowDetails =
           feature?.name &&
           (feature?.featureType === "event" ||
@@ -238,7 +213,7 @@ export const IncludedFeatures = forwardRef<
               )}
 
               {props.entitlementExpiration.isVisible &&
-                entitlementExpirationDate && (
+                usage.entitlementExpirationDate && (
                   <Text
                     $font={
                       theme.typography[props.entitlementExpiration.fontStyle]
@@ -259,7 +234,7 @@ export const IncludedFeatures = forwardRef<
                     $leading={1}
                   >
                     Expires{" "}
-                    {toPrettyDate(entitlementExpirationDate, {
+                    {toPrettyDate(usage.entitlementExpirationDate, {
                       month: "short",
                     })}
                   </Text>
@@ -268,7 +243,7 @@ export const IncludedFeatures = forwardRef<
 
             {shouldShowDetails && (
               <Details
-                details={entitlement}
+                featureUsage={usage}
                 shouldWrapChildren={shouldWrapChildren}
                 {...props}
               />

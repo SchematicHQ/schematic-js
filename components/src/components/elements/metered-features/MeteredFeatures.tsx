@@ -104,25 +104,23 @@ export const MeteredFeatures = forwardRef<
 
   const isLightBackground = useIsLightBackground();
 
-  const meteredFeatures = useMemo(() => {
-    return (
-      props.visibleFeatures
-        ? props.visibleFeatures.reduce(
-            (acc: FeatureUsageResponseData[], id) => {
-              const mappedFeatureUsage = data.featureUsage?.features.find(
-                (usage) => usage.feature?.id === id,
-              );
+  const featureUsage = useMemo(() => {
+    const orderedFeatureUsage = props.visibleFeatures?.reduce(
+      (acc: FeatureUsageResponseData[], id) => {
+        const mappedFeatureUsage = data.featureUsage?.features.find(
+          (usage) => usage.feature?.id === id,
+        );
 
-              if (mappedFeatureUsage) {
-                acc.push(mappedFeatureUsage);
-              }
+        if (mappedFeatureUsage) {
+          acc.push(mappedFeatureUsage);
+        }
 
-              return acc;
-            },
-            [],
-          )
-        : data.featureUsage?.features || []
-    ).filter(
+        return acc;
+      },
+      [],
+    );
+
+    return (orderedFeatureUsage || data.featureUsage?.features || []).filter(
       (usage) =>
         usage.feature?.featureType === "event" ||
         usage.feature?.featureType === "trait",
@@ -137,7 +135,7 @@ export const MeteredFeatures = forwardRef<
   //  even if the company has no plan or add-ons).
   // * If none of the above, don't render the component.
   const shouldShowFeatures =
-    meteredFeatures.length > 0 ||
+    featureUsage.length > 0 ||
     data.company?.plan ||
     (data.company?.addOns ?? []).length > 0 ||
     false;
@@ -148,7 +146,7 @@ export const MeteredFeatures = forwardRef<
 
   return (
     <styles.Container ref={ref} className={className}>
-      {meteredFeatures.map(
+      {featureUsage.map(
         (
           {
             feature,
@@ -176,6 +174,7 @@ export const MeteredFeatures = forwardRef<
 
           const progressBar = props.isVisible &&
             typeof usage === "number" &&
+            limit > 0 &&
             priceBehavior !== "pay_as_you_go" && (
               <ProgressBar
                 progress={(isOverage ? softLimit / usage : usage / limit) * 100}
