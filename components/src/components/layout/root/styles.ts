@@ -6,7 +6,9 @@ import { Box } from "../../ui";
 export const Container = styled(Box)`
   all: initial;
   box-sizing: border-box;
+  display: block;
   font-size: ${TEXT_BASE_SIZE}px;
+  width: 100%;
 
   *,
   *::before,

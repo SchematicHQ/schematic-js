@@ -174,6 +174,7 @@ export const MeteredFeatures = forwardRef<
 
           const progressBar = props.isVisible &&
             typeof usage === "number" &&
+            limit > 0 &&
             priceBehavior !== "pay_as_you_go" && (
               <ProgressBar
                 progress={(isOverage ? softLimit / usage : usage / limit) * 100}
