@@ -6,6 +6,7 @@ export * from "./BillingPriceView";
 export * from "./BillingProductDetailResponseData";
 export * from "./BillingProductForSubscriptionResponseData";
 export * from "./BillingProductPriceResponseData";
+export * from "./BillingProductPriceTierResponseData";
 export * from "./BillingProductResponseData";
 export * from "./BillingSubscriptionDiscountView";
 export * from "./BillingSubscriptionResponseData";
