@@ -104,7 +104,7 @@ export const MeteredFeatures = forwardRef<
 
   const isLightBackground = useIsLightBackground();
 
-  const detailedFeatureUsage = useMemo(() => {
+  const featureUsage = useMemo(() => {
     const orderedFeatureUsage = props.visibleFeatures?.reduce(
       (acc: FeatureUsageResponseData[], id) => {
         const mappedFeatureUsage = data.featureUsage?.features.find(
@@ -135,7 +135,7 @@ export const MeteredFeatures = forwardRef<
   //  even if the company has no plan or add-ons).
   // * If none of the above, don't render the component.
   const shouldShowFeatures =
-    detailedFeatureUsage.length > 0 ||
+    featureUsage.length > 0 ||
     data.company?.plan ||
     (data.company?.addOns ?? []).length > 0 ||
     false;
@@ -146,7 +146,7 @@ export const MeteredFeatures = forwardRef<
 
   return (
     <styles.Container ref={ref} className={className}>
-      {detailedFeatureUsage.map(
+      {featureUsage.map(
         (
           {
             feature,
