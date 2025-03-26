@@ -9,6 +9,7 @@ export const Container = styled(Box)`
   display: block;
   font-size: ${TEXT_BASE_SIZE}px;
   width: 100%;
+  height: 100%;
 
   *,
   *::before,
