@@ -12,7 +12,7 @@ import { toPrettyDate } from "../../../utils";
 import { Box, EmbedButton, Flex, Icon, Modal, Text } from "../../ui";
 import { Sidebar } from "../sidebar";
 
-interface UnsubscribeDialogProps {
+export interface UnsubscribeDialogProps {
   top?: number;
 }
 
