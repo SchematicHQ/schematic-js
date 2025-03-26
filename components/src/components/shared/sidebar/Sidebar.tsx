@@ -1,9 +1,14 @@
-import { useCallback, useMemo } from "react";
+import {
+  type Dispatch,
+  type SetStateAction,
+  useCallback,
+  useMemo,
+} from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
-import pluralize from "pluralize";
+
 import type {
-  CompanyPlanWithBillingSubView,
+  FeatureUsageResponseData,
   PlanEntitlementResponseData,
   PreviewSubscriptionChangeResponseData,
   UpdateAddOnRequestBody,
@@ -11,13 +16,14 @@ import type {
   UsageBasedEntitlementResponseData,
 } from "../../../api";
 import {
+  type SelectedPlan,
   useEmbed,
   useIsLightBackground,
-  type SelectedPlan,
 } from "../../../hooks";
 import {
   formatCurrency,
   formatOrdinal,
+  getFeatureName,
   getMonthName,
   shortenPeriod,
 } from "../../../utils";
@@ -26,70 +32,91 @@ import { type CheckoutStage } from "../checkout-dialog";
 import { StageButton } from "./StageButton";
 
 interface SidebarProps {
-  addOns: SelectedPlan[];
-  charges?: PreviewSubscriptionChangeResponseData;
-  checkoutRef?: React.RefObject<HTMLDivElement | null>;
-  checkoutStage: string;
-  checkoutStages: CheckoutStage[];
-  currentAddOns: CompanyPlanWithBillingSubView[];
-  currentUsageBasedEntitlements: {
-    usageData: UsageBasedEntitlementResponseData;
-    allocation: number;
-    quantity: number;
-  }[];
-  error?: string;
-  currentPlan?: SelectedPlan;
-  isLoading: boolean;
-  paymentMethodId?: string;
   planPeriod: string;
-  promoCode?: string;
-  requiresPayment: boolean;
   selectedPlan?: SelectedPlan;
-  setCheckoutStage: (stage: string) => void;
-  setError: (msg?: string) => void;
-  showPaymentForm: boolean;
-  toggleLoading: () => void;
-  updatePromoCode: (code?: string) => void;
+  addOns: SelectedPlan[];
   usageBasedEntitlements: {
     entitlement: PlanEntitlementResponseData;
     allocation: number;
     quantity: number;
     usage: number;
   }[];
+  charges?: PreviewSubscriptionChangeResponseData;
+  checkoutRef?: React.RefObject<HTMLDivElement | null>;
+  checkoutStage?: string;
+  checkoutStages?: CheckoutStage[];
+  error?: string;
+  isLoading: boolean;
+  paymentMethodId?: string;
+  promoCode?: string;
+  requiresPayment: boolean;
+  setCheckoutStage?: (stage: string) => void;
+  setError: (msg?: string) => void;
+  setIsLoading: Dispatch<SetStateAction<boolean>>;
+  updatePromoCode?: (code?: string) => void;
   showHeader?: boolean;
 }
 
 export const Sidebar = ({
+  planPeriod,
+  selectedPlan,
   addOns,
+  usageBasedEntitlements,
   charges,
   checkoutRef,
   checkoutStage,
   checkoutStages,
-  currentAddOns,
-  currentUsageBasedEntitlements,
   error,
-  currentPlan,
   isLoading,
   paymentMethodId,
-  planPeriod,
   promoCode,
   requiresPayment,
-  selectedPlan,
   setCheckoutStage,
   setError,
-  showPaymentForm,
-  toggleLoading,
+  setIsLoading,
   updatePromoCode,
-  usageBasedEntitlements,
   showHeader = true,
 }: SidebarProps) => {
   const { t } = useTranslation();
 
   const theme = useTheme();
 
-  const { api, data, mode, layout, setLayout } = useEmbed();
+  const { api, data, mode, layout, hydrate, setLayout } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
+
+  const currentPlan = data.company?.plan;
+
+  const currentAddOns = data.company?.addOns || [];
+
+  const currentUsageBasedEntitlements =
+    data.activeUsageBasedEntitlements.reduce(
+      (
+        acc: {
+          usageData: UsageBasedEntitlementResponseData;
+          allocation: number;
+          quantity: number;
+          usage: number;
+        }[],
+        usageData,
+      ) => {
+        const featureUsage = data.featureUsage?.features.find(
+          (usage) => usage.feature?.id === usageData.featureId,
+        );
+        const allocation = featureUsage?.allocation || 0;
+        const usage = featureUsage?.usage || 0;
+
+        acc.push({
+          usageData,
+          allocation,
+          quantity: allocation ?? usage,
+          usage,
+        });
+
+        return acc;
+      },
+      [],
+    );
 
   const payInAdvanceEntitlements = usageBasedEntitlements.filter(
     ({ entitlement }) => entitlement.priceBehavior === "pay_in_advance",
@@ -100,23 +127,25 @@ export const Sidebar = ({
   );
 
   const subscriptionPrice = useMemo(() => {
-    const plan = selectedPlan || currentPlan;
-    if (!plan || !plan.monthlyPrice || !plan.yearlyPrice) {
-      return;
-    }
-
     let total = 0;
+    let planPrice: number | undefined;
+    let currency: string | undefined;
+    if (selectedPlan) {
+      planPrice =
+        planPeriod === "month"
+          ? selectedPlan.monthlyPrice?.price
+          : selectedPlan.yearlyPrice?.price;
 
-    const planPrice = (
-      planPeriod === "month" ? plan.monthlyPrice : plan.yearlyPrice
-    )?.price;
+      currency =
+        planPeriod === "month"
+          ? selectedPlan.monthlyPrice?.currency
+          : selectedPlan.yearlyPrice?.currency;
 
-    const currency = (
-      planPeriod === "month" ? plan?.monthlyPrice : plan?.yearlyPrice
-    )?.currency;
-
-    if (planPrice) {
-      total += planPrice;
+      if (planPrice) {
+        total += planPrice;
+      }
+    } else if (typeof currentPlan?.planPrice === "number") {
+      planPrice = currentPlan.planPrice;
     }
 
     const addOnCost = addOns.reduce(
@@ -157,6 +186,14 @@ export const Sidebar = ({
       };
     }, [charges]);
 
+  const dispatchPlanChangedEvent = <T extends object>(detail: T) => {
+    const event = new CustomEvent("plan-changed", {
+      bubbles: true,
+      detail,
+    });
+    window.dispatchEvent(event);
+  };
+
   const checkout = useCallback(async () => {
     const priceId = (
       planPeriod === "month"
@@ -169,9 +206,9 @@ export const Sidebar = ({
 
     try {
       setError(undefined);
-      toggleLoading();
+      setIsLoading(true);
 
-      await api.checkout({
+      const response = await api.checkout({
         changeSubscriptionRequestBody: {
           newPlanId: selectedPlan.id,
           newPriceId: priceId,
@@ -219,24 +256,30 @@ export const Sidebar = ({
           ...(promoCode && { promoCode }),
         },
       });
-      setLayout("success");
+      dispatchPlanChangedEvent(response.data);
+
+      setIsLoading(false);
+      setLayout("portal");
+      hydrate();
     } catch {
+      setLayout("checkout");
       setError(
         t("Error processing payment. Please try a different payment method."),
       );
     } finally {
-      toggleLoading();
+      setIsLoading(false);
     }
   }, [
     t,
     api,
+    hydrate,
     paymentMethodId,
     planPeriod,
     selectedPlan,
     addOns,
     setError,
+    setIsLoading,
     setLayout,
-    toggleLoading,
     payInAdvanceEntitlements,
     promoCode,
   ]);
@@ -248,16 +291,20 @@ export const Sidebar = ({
 
     try {
       setError(undefined);
-      toggleLoading();
+      setIsLoading(true);
 
-      await api.checkoutUnsubscribe();
-      setError("success");
+      const response = await api.checkoutUnsubscribe();
+      dispatchPlanChangedEvent(response.data);
+
+      setLayout("portal");
+      hydrate();
     } catch {
+      setLayout("unsubscribe");
       setError(t("Unsubscribe failed"));
     } finally {
-      toggleLoading();
+      setIsLoading(false);
     }
-  }, [api, setError, t, toggleLoading]);
+  }, [t, api, hydrate, setError, setIsLoading, setLayout]);
 
   const selectedAddOns = addOns.filter((addOn) => addOn.isSelected);
 
@@ -280,8 +327,7 @@ export const Sidebar = ({
 
   const canCheckout =
     canUpdateSubscription &&
-    ((data.subscription?.paymentMethod && !showPaymentForm) ||
-      typeof paymentMethodId === "string");
+    (!!data.subscription?.paymentMethod || typeof paymentMethodId === "string");
 
   const changedUsageBasedEntitlements: {
     entitlement: PlanEntitlementResponseData;
@@ -332,7 +378,7 @@ export const Sidebar = ({
   const removedUsageBasedEntitlements = currentUsageBasedEntitlements.reduce(
     (
       acc: {
-        entitlement: PlanEntitlementResponseData;
+        usage: FeatureUsageResponseData;
         allocation: number;
         quantity: number;
       }[],
@@ -343,13 +389,12 @@ export const Sidebar = ({
           ({ entitlement }) =>
             entitlement.featureId !== current.usageData.featureId,
         ) &&
-        currentPlan?.entitlements.find(
-          (entitlement) =>
-            entitlement.featureId === current.usageData.featureId,
+        data.featureUsage?.features.find(
+          (usage) => usage.feature?.id === current.usageData.featureId,
         );
       if (match) {
         acc.push({
-          entitlement: match,
+          usage: match,
           allocation: current.allocation,
           quantity: current.quantity,
         });
@@ -573,21 +618,19 @@ export const Sidebar = ({
             {removedUsageBasedEntitlements.reduce(
               (
                 acc: React.ReactElement[],
-                { allocation, quantity, entitlement },
+                { allocation, quantity, usage },
+                index,
               ) => {
-                if (
-                  typeof allocation === "number" &&
-                  entitlement.feature?.name
-                ) {
+                if (typeof allocation === "number" && usage.feature?.name) {
                   const price = (
                     planPeriod === "month"
-                      ? entitlement.meteredMonthlyPrice
-                      : entitlement.meteredYearlyPrice
+                      ? usage.monthlyUsageBasedPrice
+                      : usage.yearlyUsageBasedPrice
                   )?.price;
 
                   acc.push(
                     <Flex
-                      key={entitlement.id}
+                      key={index}
                       $justifyContent="space-between"
                       $alignItems="center"
                       $gap="1rem"
@@ -602,13 +645,13 @@ export const Sidebar = ({
                           $weight={theme.typography.heading4.fontWeight}
                           $color={theme.typography.heading4.color}
                         >
-                          {entitlement.priceBehavior === "pay_in_advance" ? (
+                          {usage.priceBehavior === "pay_in_advance" ? (
                             <>
                               {quantity}{" "}
-                              {pluralize(entitlement.feature.name, quantity)}
+                              {getFeatureName(usage.feature, quantity)}
                             </>
                           ) : (
-                            entitlement.feature.name
+                            usage.feature.name
                           )}
                         </Text>
                       </Box>
@@ -620,36 +663,30 @@ export const Sidebar = ({
                           $weight={theme.typography.text.fontWeight}
                           $color={theme.typography.text.color}
                         >
-                          {entitlement.priceBehavior === "pay_in_advance" &&
+                          {usage.priceBehavior === "pay_in_advance" &&
                             typeof price === "number" && (
                               <>
                                 {formatCurrency(
                                   price * quantity,
                                   (planPeriod === "month"
-                                    ? entitlement.meteredMonthlyPrice
-                                    : entitlement.meteredYearlyPrice
+                                    ? usage.monthlyUsageBasedPrice
+                                    : usage.yearlyUsageBasedPrice
                                   )?.currency,
                                 )}
                                 <sub>/{shortenPeriod(planPeriod)}</sub>
                               </>
                             )}
-                          {entitlement.priceBehavior === "pay_as_you_go" &&
+                          {usage.priceBehavior === "pay_as_you_go" &&
                             typeof price === "number" && (
                               <>
                                 {formatCurrency(
                                   price,
                                   (planPeriod === "month"
-                                    ? entitlement.meteredMonthlyPrice
-                                    : entitlement.meteredYearlyPrice
+                                    ? usage.monthlyUsageBasedPrice
+                                    : usage.yearlyUsageBasedPrice
                                   )?.currency,
                                 )}
-                                <sub>
-                                  /
-                                  {pluralize(
-                                    entitlement.feature.name.toLowerCase(),
-                                    1,
-                                  )}
-                                </sub>
+                                <sub>/{getFeatureName(usage.feature, 1)}</sub>
                               </>
                             )}
                         </Text>
@@ -664,10 +701,14 @@ export const Sidebar = ({
             )}
 
             {changedUsageBasedEntitlements.reduce(
-              (acc: React.ReactElement[], { entitlement, previous, next }) => {
+              (
+                acc: React.ReactElement[],
+                { entitlement, previous, next },
+                index,
+              ) => {
                 if (entitlement?.feature?.name) {
                   acc.push(
-                    <Box key={entitlement.feature.id}>
+                    <Box key={index}>
                       <Flex
                         $justifyContent="space-between"
                         $alignItems="center"
@@ -684,7 +725,7 @@ export const Sidebar = ({
                             $color={theme.typography.heading4.color}
                           >
                             {previous.quantity}{" "}
-                            {pluralize(entitlement.feature.name)}
+                            {getFeatureName(entitlement.feature)}
                           </Text>
                         </Box>
 
@@ -724,7 +765,7 @@ export const Sidebar = ({
                             $color={theme.typography.heading4.color}
                           >
                             {next.quantity}{" "}
-                            {pluralize(entitlement.feature.name)}
+                            {getFeatureName(entitlement.feature)}
                           </Text>
                         </Box>
 
@@ -759,7 +800,7 @@ export const Sidebar = ({
             )}
 
             {addedUsageBasedEntitlements.reduce(
-              (acc: React.ReactElement[], { entitlement, quantity }) => {
+              (acc: React.ReactElement[], { entitlement, quantity }, index) => {
                 if (entitlement.feature?.name) {
                   const price = (
                     planPeriod === "month"
@@ -769,7 +810,7 @@ export const Sidebar = ({
 
                   acc.push(
                     <Flex
-                      key={entitlement.id}
+                      key={index}
                       $justifyContent="space-between"
                       $alignItems="center"
                       $gap="1rem"
@@ -784,7 +825,7 @@ export const Sidebar = ({
                           {entitlement.priceBehavior === "pay_in_advance" ? (
                             <>
                               {quantity}{" "}
-                              {pluralize(entitlement.feature.name, quantity)}
+                              {getFeatureName(entitlement.feature, quantity)}
                             </>
                           ) : (
                             entitlement.feature.name
@@ -823,11 +864,7 @@ export const Sidebar = ({
                                   )?.currency,
                                 )}
                                 <sub>
-                                  /
-                                  {pluralize(
-                                    entitlement.feature.name.toLowerCase(),
-                                    1,
-                                  )}
+                                  /{getFeatureName(entitlement.feature, 1)}
                                 </sub>
                               </>
                             )}
@@ -909,9 +946,9 @@ export const Sidebar = ({
               </Text>
             </Box>
 
-            {removedAddOns.map((addOn) => (
+            {removedAddOns.map((addOn, index) => (
               <Flex
-                key={addOn.id}
+                key={index}
                 $justifyContent="space-between"
                 $alignItems="center"
                 $gap="1rem"
@@ -952,9 +989,9 @@ export const Sidebar = ({
               </Flex>
             ))}
 
-            {selectedAddOns.map((addOn) => (
+            {selectedAddOns.map((addOn, index) => (
               <Flex
-                key={addOn.id}
+                key={index}
                 $justifyContent="space-between"
                 $alignItems="center"
                 $gap="1rem"
@@ -982,6 +1019,10 @@ export const Sidebar = ({
                         ? addOn.monthlyPrice
                         : addOn.yearlyPrice
                       )?.price ?? 0,
+                      (planPeriod === "month"
+                        ? addOn.monthlyPrice
+                        : addOn.yearlyPrice
+                      )?.currency,
                     )}
                     <sub>/{shortenPeriod(planPeriod)}</sub>
                   </Text>
@@ -1007,7 +1048,7 @@ export const Sidebar = ({
             </Box>
 
             <Flex $flexDirection="column" $gap="0.5rem">
-              {currentPlan?.current && (
+              {currentPlan && (
                 <Flex
                   $justifyContent="space-between"
                   $alignItems="center"
@@ -1095,7 +1136,7 @@ export const Sidebar = ({
               <Box
                 $cursor="pointer"
                 onClick={() => {
-                  updatePromoCode(undefined);
+                  updatePromoCode?.(undefined);
                 }}
               >
                 <Icon
@@ -1311,12 +1352,7 @@ export const Sidebar = ({
         )}
 
         {layout === "unsubscribe" && (
-          <EmbedButton
-            onClick={async () => {
-              unsubscribe();
-            }}
-            isLoading={isLoading}
-          >
+          <EmbedButton onClick={unsubscribe} isLoading={isLoading}>
             {t("Cancel subscription")}
           </EmbedButton>
         )}

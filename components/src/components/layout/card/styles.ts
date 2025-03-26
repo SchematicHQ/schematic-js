@@ -1,4 +1,5 @@
 import styled, { css } from "styled-components";
+
 import { TEXT_BASE_SIZE } from "../../../const";
 import { hexToHSL } from "../../../utils";
 import { Box } from "../../ui";
@@ -18,14 +19,7 @@ export const StyledCard = styled.div(({ theme }) => {
   const borderRadius = `${theme.card.borderRadius / TEXT_BASE_SIZE}rem`;
 
   return css`
-    font-size: ${TEXT_BASE_SIZE}px;
-    box-sizing: border-box;
-
-    *,
-    *::before,
-    *::after {
-      box-sizing: inherit;
-    }
+    position: relative;
 
     ${theme.sectionLayout === "merged"
       ? `&:not(:has(${FussyChild}))`

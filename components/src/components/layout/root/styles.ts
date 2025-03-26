@@ -1,7 +1,21 @@
 import styled from "styled-components";
+
+import { TEXT_BASE_SIZE } from "../../../const";
 import { Box } from "../../ui";
 
 export const Container = styled(Box)`
+  all: initial;
+  box-sizing: border-box;
+  display: block;
+  font-size: ${TEXT_BASE_SIZE}px;
+  width: 100%;
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: inherit;
+  }
+
   sub,
   sup {
     position: static;

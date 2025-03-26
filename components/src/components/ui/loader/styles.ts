@@ -1,5 +1,7 @@
 import styled, { css, keyframes } from "styled-components";
+
 import { TEXT_BASE_SIZE } from "../../../const";
+import { darken, hexToHSL, lighten } from "../../../utils";
 
 const spin = keyframes`
   0% {
@@ -18,11 +20,28 @@ export const Loader = styled.div<{
 }>`
   display: inline-block;
   border-style: solid;
-  border-color: hsla(0, 0%, 50%, 0.125);
-  border-top-color: ${({ theme, $color }) => $color || theme.primary};
   border-radius: 50%;
   transition: all 0.1s;
   animation: 1.5s linear infinite ${spin};
+
+  ${({ $color, theme }) => {
+    const { l } = hexToHSL(theme.card.background);
+
+    let color = $color;
+    let colorFn;
+    if (l > 50) {
+      color = color ?? "#000000";
+      colorFn = lighten;
+    } else {
+      color = color ?? "#FFFFFF";
+      colorFn = darken;
+    }
+
+    return css`
+      border-color: ${color};
+      border-top-color: ${colorFn(color, 42.5)};
+    `;
+  }}
 
   ${({ $size = "md", $isLoading = true }) => {
     let px: number;

@@ -1,15 +1,16 @@
+import i18n from "i18next";
+import merge from "lodash/merge";
+import { inflate } from "pako";
 import { createContext, useCallback, useEffect, useRef, useState } from "react";
 import { initReactI18next } from "react-i18next";
-import i18n from "i18next";
-import { inflate } from "pako";
 import { ThemeProvider } from "styled-components";
-import merge from "lodash/merge";
 import { v4 as uuidv4 } from "uuid";
+
 import {
   CheckoutexternalApi,
+  type ComponentHydrateResponseData,
   Configuration,
   type ConfigurationParameters,
-  type ComponentHydrateResponseData,
 } from "../api";
 import en from "../locales/en.json";
 import type {
@@ -123,6 +124,7 @@ export type EmbedSettings = {
   theme: EmbedThemeSettings;
   badge?: {
     alignment: ComponentProps["$justifyContent"];
+    visibility?: ComponentProps["$visibility"];
   };
 };
 
@@ -130,6 +132,7 @@ export const defaultSettings: EmbedSettings = {
   theme: defaultTheme,
   badge: {
     alignment: "start",
+    visibility: "visible",
   },
 };
 
@@ -176,7 +179,6 @@ export type EmbedLayout =
   | "checkout"
   | "payment"
   | "unsubscribe"
-  | "success"
   | "disabled";
 
 export type EmbedSelected = {
@@ -199,10 +201,11 @@ export interface EmbedContextProps {
   error?: Error;
   isPending: boolean;
   hydrate: () => Promise<void>;
+  setIsPending: (bool: boolean) => void;
   setData: (data: ComponentHydrateResponseData) => void;
-  updateSettings: (settings: RecursivePartial<EmbedSettings>) => void;
   setLayout: (layout: EmbedLayout) => void;
   setSelected: (selected: EmbedSelected) => void;
+  updateSettings: (settings: RecursivePartial<EmbedSettings>) => void;
 }
 
 export const EmbedContext = createContext<EmbedContextProps>({
@@ -220,10 +223,11 @@ export const EmbedContext = createContext<EmbedContextProps>({
   error: undefined,
   isPending: false,
   hydrate: async () => {},
+  setIsPending: () => {},
   setData: () => {},
-  updateSettings: () => {},
   setLayout: () => {},
   setSelected: () => {},
+  updateSettings: () => {},
 });
 
 export interface EmbedProviderProps {
@@ -232,6 +236,7 @@ export interface EmbedProviderProps {
   apiConfig?: ConfigurationParameters;
   children?: React.ReactNode;
   mode?: EmbedMode;
+  debug?: boolean;
 }
 
 export const EmbedProvider = ({
@@ -240,6 +245,7 @@ export const EmbedProvider = ({
   apiConfig,
   children,
   mode = "view",
+  ...options
 }: EmbedProviderProps) => {
   const styleRef = useRef<HTMLLinkElement | null>(null);
   const sessionIdRef = useRef<string>(uuidv4());
@@ -255,10 +261,11 @@ export const EmbedProvider = ({
     isPending: boolean;
     error?: Error;
     hydrate: () => Promise<void>;
+    setIsPending: (bool: boolean) => void;
     setData: (data: ComponentHydrateResponseData) => void;
-    updateSettings: (settings: RecursivePartial<EmbedSettings>) => void;
     setLayout: (layout: EmbedLayout) => void;
     setSelected: (selected: EmbedSelected) => void;
+    updateSettings: (settings: RecursivePartial<EmbedSettings>) => void;
   }>(() => {
     return {
       api: null,
@@ -276,11 +283,21 @@ export const EmbedProvider = ({
       error: undefined,
       hydrate: async () => {},
       setData: () => {},
-      updateSettings: () => {},
+      setIsPending: () => {},
       setLayout: () => {},
       setSelected: () => {},
+      updateSettings: () => {},
     };
   });
+
+  const debug = useCallback(
+    (message: string, ...args: unknown[]) => {
+      if (options.debug) {
+        console.debug(`[Schematic] ${message}`, ...args);
+      }
+    },
+    [options.debug],
+  );
 
   const hydrate = useCallback(async () => {
     setState((prev) => ({ ...prev, isPending: true, error: undefined }));
@@ -327,50 +344,45 @@ export const EmbedProvider = ({
     }
   }, [id, state.api]);
 
-  const setData = useCallback(
-    (data: ComponentHydrateResponseData) => {
-      setState((prev) => ({
+  const setIsPending = (bool: boolean) => {
+    setState((prev) => ({
+      ...prev,
+      isPending: bool,
+    }));
+  };
+
+  const setData = (data: ComponentHydrateResponseData) => {
+    setState((prev) => ({
+      ...prev,
+      data,
+    }));
+  };
+
+  const setLayout = (layout: EmbedLayout) => {
+    setState((prev) => ({
+      ...prev,
+      layout,
+    }));
+  };
+
+  const setSelected = (selected: RecursivePartial<EmbedSelected>) => {
+    setState((prev) => ({
+      ...prev,
+      selected,
+    }));
+  };
+
+  const updateSettings = (settings: RecursivePartial<EmbedSettings>) => {
+    setState((prev) => {
+      const updatedSettings = merge({}, prev.settings, { ...settings });
+      return {
         ...prev,
-        data,
-      }));
-    },
-    [setState],
-  );
+        settings: updatedSettings,
+      };
+    });
+  };
 
-  const updateSettings = useCallback(
-    (settings: RecursivePartial<EmbedSettings>) => {
-      setState((prev) => {
-        const updatedSettings = merge({}, prev.settings, { ...settings });
-        return {
-          ...prev,
-          settings: updatedSettings,
-        };
-      });
-    },
-    [setState],
-  );
-
-  const setLayout = useCallback(
-    (layout: EmbedLayout) => {
-      setState((prev) => ({
-        ...prev,
-        layout,
-      }));
-    },
-    [setState],
-  );
-
-  const setSelected = useCallback(
-    (selected: RecursivePartial<EmbedSelected>) => {
-      setState((prev) => ({
-        ...prev,
-        selected,
-      }));
-    },
-    [setState],
-  );
-
-  useEffect(() => {
+  const initI18n = () => {
     i18n.use(initReactI18next).init({
       resources: {
         en,
@@ -381,9 +393,9 @@ export const EmbedProvider = ({
         escapeValue: false,
       },
     });
-  }, []);
+  };
 
-  useEffect(() => {
+  const initFontStylesheet = () => {
     const element = document.getElementById("schematic-fonts");
     if (element) {
       styleRef.current = element as HTMLLinkElement;
@@ -395,7 +407,26 @@ export const EmbedProvider = ({
     style.rel = "stylesheet";
     document.head.appendChild(style);
     styleRef.current = style;
-  }, []);
+  };
+
+  useEffect(() => {
+    initI18n();
+    initFontStylesheet();
+
+    const planChanged: EventListener = (event) => {
+      if (!(event instanceof CustomEvent)) {
+        return;
+      }
+
+      debug("plan changed", event.detail);
+    };
+
+    window.addEventListener("plan-changed", planChanged);
+
+    return () => {
+      window.removeEventListener("plan-changed", planChanged);
+    };
+  }, [debug]);
 
   useEffect(() => {
     if (accessToken) {
@@ -451,10 +482,11 @@ export const EmbedProvider = ({
         error: state.error,
         isPending: state.isPending,
         hydrate,
+        setIsPending,
         setData,
-        updateSettings,
         setLayout,
         setSelected,
+        updateSettings,
       }}
     >
       <ThemeProvider theme={state.settings.theme}>

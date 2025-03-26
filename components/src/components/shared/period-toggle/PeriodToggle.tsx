@@ -1,6 +1,7 @@
 import { useLayoutEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
+
 import { type CompanyPlanDetailResponseData } from "../../../api";
 import { useIsLightBackground } from "../../../hooks";
 import { adjectify } from "../../../utils";

@@ -1,6 +1,8 @@
 import { forwardRef } from "react";
-import { ComponentStyle, ElementProps, RecursivePartial } from "../../../types";
 import { useTranslation } from "react-i18next";
+
+import { useEmbed } from "../../../hooks";
+import { ComponentStyle, ElementProps, RecursivePartial } from "../../../types";
 import { Element } from "../../layout";
 import {
   ButtonSizeTypes,
@@ -10,7 +12,6 @@ import {
   type EmbedButtonVariant,
   Flex,
 } from "../../ui";
-import { useEmbed } from "../../../hooks";
 
 interface DesignProps {
   button: {
@@ -52,7 +53,9 @@ export const UnsubscribeButton = forwardRef<
   const { data, setLayout } = useEmbed();
 
   const disabled =
-    !data.subscription || data.subscription.status === "cancelled";
+    !data.subscription ||
+    data.subscription.status === "cancelled" ||
+    data.subscription.cancelAtPeriodEnd;
 
   const buttonStyles: Record<
     ComponentStyle,

@@ -8,28 +8,28 @@ import {
 } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
+
 import {
-  ResponseError,
   type PlanEntitlementResponseData,
   type PreviewSubscriptionChangeResponseData,
+  ResponseError,
   type UpdateAddOnRequestBody,
   type UpdatePayInAdvanceRequestBody,
-  type UsageBasedEntitlementResponseData,
 } from "../../../api";
 import {
+  type SelectedPlan,
   useAvailablePlans,
   useEmbed,
   useIsLightBackground,
-  type SelectedPlan,
 } from "../../../hooks";
 import { PeriodToggle } from "../../shared";
 import { Flex, Modal, ModalHeader, Text } from "../../ui";
-import { Navigation } from "./Navigation";
 import { Sidebar } from "../sidebar";
-import { Plan } from "./Plan";
 import { AddOns } from "./AddOns";
-import { Usage } from "./Usage";
 import { Checkout } from "./Checkout";
+import { Navigation } from "./Navigation";
+import { Plan } from "./Plan";
+import { Usage } from "./Usage";
 
 interface UsageBasedEntitlement {
   entitlement: PlanEntitlementResponseData;
@@ -65,9 +65,6 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   const [paymentMethodId, setPaymentMethodId] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | undefined>();
-  const [showPaymentForm, setShowPaymentForm] = useState(
-    !data.subscription?.paymentMethod,
-  );
   const [promoCode, setPromoCode] = useState<string>();
   const [planPeriod, setPlanPeriod] = useState(
     selected.period || data.company?.plan?.planPeriod || "month",
@@ -85,45 +82,17 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     ),
   );
 
-  const currentAddOns = data.company?.addOns || [];
   const [addOns, setAddOns] = useState(() =>
     availableAddOns.map((addOn) => ({
       ...addOn,
       isSelected:
         typeof selected.addOnId !== "undefined"
           ? addOn.id === selected.addOnId
-          : currentAddOns.some((currentAddOn) => addOn.id === currentAddOn.id),
+          : (data.company?.addOns || []).some(
+              (currentAddOn) => addOn.id === currentAddOn.id,
+            ),
     })),
   );
-
-  const currentUsageBasedEntitlements =
-    data.activeUsageBasedEntitlements.reduce(
-      (
-        acc: {
-          usageData: UsageBasedEntitlementResponseData;
-          allocation: number;
-          quantity: number;
-          usage: number;
-        }[],
-        usageData,
-      ) => {
-        const featureUsage = data.featureUsage?.features.find(
-          (usage) => usage.feature?.id === usageData.featureId,
-        );
-        const allocation = featureUsage?.allocation || 0;
-        const usage = featureUsage?.usage || 0;
-
-        acc.push({
-          usageData,
-          allocation,
-          quantity: allocation ?? usage,
-          usage,
-        });
-
-        return acc;
-      },
-      [],
-    );
 
   const createActiveUsageBasedEntitlementsReducer = useCallback(
     (period = planPeriod) =>
@@ -164,16 +133,6 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       createActiveUsageBasedEntitlementsReducer(),
       [],
     ),
-  );
-
-  const currentPlan = useMemo(
-    () =>
-      availablePlans.find(
-        (plan) =>
-          plan.id === data.company?.plan?.id &&
-          data.company?.plan.planPeriod === planPeriod,
-      ),
-    [data.company?.plan, planPeriod, availablePlans],
   );
 
   const payInAdvanceEntitlements = useMemo(
@@ -247,7 +206,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     }
 
     // the user has preselected a different plan before starting the checkout flow
-    if (selected.planId !== currentPlan?.id) {
+    if (selected.planId !== data.company?.plan?.id) {
       return checkoutStages.some((stage) => stage.id === "usage")
         ? "usage"
         : checkoutStages.some((stage) => stage.id === "addons")
@@ -629,36 +588,30 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           {checkoutStage === "checkout" && (
             <Checkout
               requiresPayment={requiresPayment}
-              showPaymentForm={showPaymentForm}
               setPaymentMethodId={(id) => setPaymentMethodId(id)}
-              togglePaymentForm={() => setShowPaymentForm((prev) => !prev)}
               updatePromoCode={(code) => updatePromoCode(code)}
             />
           )}
         </Flex>
 
         <Sidebar
+          planPeriod={planPeriod}
+          selectedPlan={selectedPlan}
           addOns={addOns}
+          usageBasedEntitlements={usageBasedEntitlements}
           charges={charges}
           checkoutRef={checkoutRef}
           checkoutStage={checkoutStage}
           checkoutStages={checkoutStages}
-          currentAddOns={currentAddOns}
-          currentUsageBasedEntitlements={currentUsageBasedEntitlements}
           error={error}
-          currentPlan={currentPlan}
           isLoading={isLoading}
           paymentMethodId={paymentMethodId}
-          planPeriod={planPeriod}
           promoCode={promoCode}
           requiresPayment={requiresPayment}
-          selectedPlan={selectedPlan}
           setCheckoutStage={(stage) => setCheckoutStage(stage)}
           setError={(msg) => setError(msg)}
-          showPaymentForm={showPaymentForm}
-          toggleLoading={() => setIsLoading((prev) => !prev)}
+          setIsLoading={setIsLoading}
           updatePromoCode={(code) => updatePromoCode(code)}
-          usageBasedEntitlements={usageBasedEntitlements}
         />
       </Flex>
     </Modal>

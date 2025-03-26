@@ -1,10 +1,11 @@
+import {
+  PaymentElement,
+  useElements,
+  useStripe,
+} from "@stripe/react-stripe-js";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  useStripe,
-  useElements,
-  PaymentElement,
-} from "@stripe/react-stripe-js";
+import { useTheme } from "styled-components";
 
 import { useEmbed } from "../../../hooks";
 import { Box, EmbedButton, Text } from "../../ui";
@@ -15,6 +16,8 @@ interface PaymentFormProps {
 
 export const PaymentForm = ({ onConfirm }: PaymentFormProps) => {
   const { t } = useTranslation();
+
+  const theme = useTheme();
 
   const stripe = useStripe();
   const elements = useElements();
@@ -48,7 +51,6 @@ export const PaymentForm = ({ onConfirm }: PaymentFormProps) => {
       });
 
       if (onConfirm && typeof setupIntent?.payment_method === "string") {
-        elements.getElement("payment")?.collapse();
         onConfirm(setupIntent.payment_method);
         setIsConfirmed(true);
       } else {
@@ -92,7 +94,13 @@ export const PaymentForm = ({ onConfirm }: PaymentFormProps) => {
 
       {message && (
         <Box $margin="1rem 0">
-          <Text id="payment-message" $size={15} $weight={500} $color="#DB6669">
+          <Text
+            id="payment-message"
+            $font={theme.typography.text.fontFamily}
+            $size={15}
+            $weight={500}
+            $color="#DB6669"
+          >
             {message}
           </Text>
         </Box>

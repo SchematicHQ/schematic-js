@@ -1,14 +1,15 @@
 import { forwardRef, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
-import { type ListInvoicesResponse } from "../../../api";
+
+import { type InvoiceResponseData } from "../../../api";
 import { MAX_VISIBLE_INVOICE_COUNT } from "../../../const";
 import { type FontStyle } from "../../../context";
 import { useEmbed } from "../../../hooks";
-import type { RecursivePartial, ElementProps } from "../../../types";
+import type { ElementProps, RecursivePartial } from "../../../types";
 import { formatCurrency, toPrettyDate } from "../../../utils";
 import { Element } from "../../layout";
-import { Icon, Flex, Text } from "../../ui";
+import { Flex, Icon, Text } from "../../ui";
 
 interface DesignProps {
   header: {
@@ -58,17 +59,13 @@ function resolveDesignProps(props: RecursivePartial<DesignProps>): DesignProps {
   };
 }
 
-function formatInvoices(invoices?: ListInvoicesResponse["data"]) {
-  return (invoices || [])
-    .filter(
-      ({ url, amountDue, amountPaid }) =>
-        url && (amountDue === 0 || amountPaid > 0),
-    )
+function formatInvoices(invoices: InvoiceResponseData[] = []) {
+  return invoices
     .sort((a, b) => (a.dueDate && b.dueDate ? +b.dueDate - +a.dueDate : 1))
     .map(({ amountDue, dueDate, url, currency }) => ({
-      ...(dueDate && { date: toPrettyDate(dueDate) }),
       amount: formatCurrency(amountDue, currency),
-      url,
+      ...(dueDate && { date: toPrettyDate(dueDate) }),
+      ...(url && { url }),
     }));
 }
 
@@ -106,14 +103,14 @@ const InvoiceDate = ({ date, fontStyle, url }: InvoiceDateProps) => {
 };
 
 export type InvoicesProps = DesignProps & {
-  data?: ListInvoicesResponse["data"];
+  data?: InvoiceResponseData[];
 };
 
 export const Invoices = forwardRef<
   HTMLDivElement | null,
   ElementProps &
     RecursivePartial<DesignProps> & {
-      data?: ListInvoicesResponse["data"];
+      data?: InvoiceResponseData[];
     } & React.HTMLAttributes<HTMLDivElement>
 >(({ className, data, ...rest }, ref) => {
   const props = resolveDesignProps(rest);

@@ -5,4 +5,5 @@ export const ButtonLink = styled.a`
   justify-content: center;
   align-items: center;
   flex-grow: 1;
+  height: 100%;
 `;

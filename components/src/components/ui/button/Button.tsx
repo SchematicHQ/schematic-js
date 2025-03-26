@@ -1,4 +1,5 @@
 import { forwardRef } from "react";
+
 import { Loader } from "../../ui";
 import * as styles from "./styles";
 
@@ -36,7 +37,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         disabled={disabled}
         {...props}
       >
-        {isLoading && <Loader $size="sm" $isLoading={isLoading} />}
+        <Loader $size="sm" $isLoading={isLoading} />
         {children}
       </styles.Button>
     );

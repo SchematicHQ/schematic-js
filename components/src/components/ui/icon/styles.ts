@@ -1,4 +1,5 @@
 import styled, { css } from "styled-components";
+
 import { TEXT_BASE_SIZE } from "../../../const";
 
 export const Icon = styled.i`

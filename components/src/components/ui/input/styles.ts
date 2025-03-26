@@ -1,4 +1,5 @@
 import styled, { css } from "styled-components";
+
 import { useIsLightBackground } from "../../../hooks";
 
 export const Input = styled.input<{

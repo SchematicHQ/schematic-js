@@ -1,26 +1,36 @@
-import { forwardRef, useRef } from "react";
+import { forwardRef, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
-import pluralize from "pluralize";
+
 import { type FeatureUsageResponseData } from "../../../api";
+import { TEXT_BASE_SIZE } from "../../../const";
 import { type FontStyle } from "../../../context";
 import {
   useEmbed,
   useIsLightBackground,
   useWrapChildren,
 } from "../../../hooks";
-import type { RecursivePartial, ElementProps } from "../../../types";
-import { formatCurrency, formatNumber, toPrettyDate } from "../../../utils";
+import type { ElementProps, RecursivePartial } from "../../../types";
+import {
+  darken,
+  formatCurrency,
+  formatNumber,
+  getFeatureName,
+  lighten,
+  shortenPeriod,
+  toPrettyDate,
+} from "../../../utils";
 import { Element } from "../../layout";
 import {
-  progressColorMap,
   Box,
+  EmbedButton,
   Flex,
+  type IconNameTypes,
   IconRound,
   ProgressBar,
+  progressColorMap,
   Text,
-  type IconNameTypes,
-  EmbedButton,
+  Tooltip,
 } from "../../ui";
 import * as styles from "./styles";
 
@@ -94,27 +104,30 @@ export const MeteredFeatures = forwardRef<
 
   const isLightBackground = useIsLightBackground();
 
-  const { planPeriod } = data.company?.plan || {};
+  const featureUsage = useMemo(() => {
+    const orderedFeatureUsage = props.visibleFeatures?.reduce(
+      (acc: FeatureUsageResponseData[], id) => {
+        const mappedFeatureUsage = data.featureUsage?.features.find(
+          (usage) => usage.feature?.id === id,
+        );
 
-  const featureUsage = (
-    props.visibleFeatures
-      ? props.visibleFeatures.reduce((acc: FeatureUsageResponseData[], id) => {
-          const mappedFeatureUsage = data.featureUsage?.features.find(
-            (usage) => usage.feature?.id === id,
-          );
+        if (mappedFeatureUsage) {
+          acc.push(mappedFeatureUsage);
+        }
 
-          if (mappedFeatureUsage) {
-            acc.push(mappedFeatureUsage);
-          }
+        return acc;
+      },
+      [],
+    );
 
-          return acc;
-        }, [])
-      : data.featureUsage?.features || []
-  ).filter(
-    (usage) =>
-      usage.feature?.featureType === "event" ||
-      usage.feature?.featureType === "trait",
-  );
+    return (orderedFeatureUsage || data.featureUsage?.features || []).filter(
+      (usage) =>
+        usage.feature?.featureType === "event" ||
+        usage.feature?.featureType === "trait",
+    );
+  }, [props.visibleFeatures, data.featureUsage?.features]);
+
+  const planPeriod = data.company?.plan?.planPeriod;
 
   // Check if we should render this component at all:
   // * If there are any plans or add-ons, render it, even if the list is empty.
@@ -136,225 +149,329 @@ export const MeteredFeatures = forwardRef<
       {featureUsage.map(
         (
           {
-            allocation,
             feature,
-            usage,
             priceBehavior,
+            usage,
+            allocation,
+            softLimit,
             metricResetAt,
             monthlyUsageBasedPrice,
             yearlyUsageBasedPrice,
           },
           index,
         ) => {
-          let price: number | undefined;
-          let currency: string | undefined;
-          if (planPeriod === "month") {
-            price = monthlyUsageBasedPrice?.price;
-            currency = monthlyUsageBasedPrice?.currency;
-          } else if (planPeriod === "year") {
-            price = yearlyUsageBasedPrice?.price;
-            currency = yearlyUsageBasedPrice?.currency;
-          }
+          const limit = softLimit ?? allocation ?? 0;
+          const isOverage =
+            priceBehavior === "overage" &&
+            typeof softLimit === "number" &&
+            typeof usage === "number" &&
+            usage > softLimit;
+
+          const { price, currency } =
+            (planPeriod === "month"
+              ? monthlyUsageBasedPrice
+              : planPeriod === "year" && yearlyUsageBasedPrice) || {};
+
+          const progressBar = props.isVisible &&
+            typeof usage === "number" &&
+            limit > 0 &&
+            priceBehavior !== "pay_as_you_go" && (
+              <ProgressBar
+                progress={(isOverage ? softLimit / usage : usage / limit) * 100}
+                value={usage}
+                total={isOverage ? softLimit : limit}
+                color={
+                  isOverage
+                    ? "blue"
+                    : progressColorMap[
+                        Math.floor(
+                          (Math.min(usage, limit) / limit) *
+                            (progressColorMap.length - 1),
+                        )
+                      ]
+                }
+                {...(isOverage && { bgColor: "#EF4444" })}
+                $flexGrow={1}
+              />
+            );
 
           return (
-            <Element as={Flex} key={index} $gap="1.5rem">
-              {props.icon.isVisible && feature?.icon && (
-                <IconRound
-                  name={feature.icon as IconNameTypes | string}
-                  size="sm"
-                  colors={[
-                    theme.primary,
+            <Flex key={index} $flexDirection="column-reverse">
+              {priceBehavior === "overage" && typeof price === "number" && (
+                <Flex
+                  $justifyContent="space-between"
+                  $alignItems="center"
+                  $padding={`${(0.4375 * theme.card.padding) / TEXT_BASE_SIZE}rem ${theme.card.padding / TEXT_BASE_SIZE}rem`}
+                  $backgroundColor={
                     isLightBackground
-                      ? "hsla(0, 0%, 0%, 0.0625)"
-                      : "hsla(0, 0%, 100%, 0.25)",
-                  ]}
-                />
+                      ? darken(theme.card.background, 0.05)
+                      : lighten(theme.card.background, 0.1)
+                  }
+                >
+                  <Text
+                    $font={theme.typography.text.fontFamily}
+                    $size={theme.typography.text.fontSize}
+                    $weight={theme.typography.text.fontWeight}
+                    $color={theme.typography.text.color}
+                    $leading={1.35}
+                  >
+                    <>
+                      {t("Overage fee")}: {formatCurrency(price, currency)}
+                      {feature && (
+                        <Box as="sub" $whiteSpace="nowrap">
+                          /{getFeatureName(feature, 1)}
+                          {feature.featureType === "trait" && planPeriod && (
+                            <>/{shortenPeriod(planPeriod)}</>
+                          )}
+                        </Box>
+                      )}
+                    </>
+                  </Text>
+
+                  {isOverage && (
+                    <Text
+                      $font={theme.typography.text.fontFamily}
+                      $size={theme.typography.text.fontSize}
+                      $weight={theme.typography.text.fontWeight}
+                      $color={theme.typography.text.color}
+                      $leading={1.35}
+                    >
+                      {t("X over the limit", {
+                        amount: usage - softLimit,
+                      })}
+                      {" · "}
+                      {formatCurrency(price * (usage - softLimit), currency)}
+                      {feature?.featureType === "trait" &&
+                        typeof planPeriod === "string" && (
+                          <Box as="sub" $whiteSpace="nowrap">
+                            /{shortenPeriod(planPeriod)}
+                          </Box>
+                        )}
+                    </Text>
+                  )}
+                </Flex>
               )}
 
-              <Flex $flexDirection="column" $gap="2rem" $flexGrow="1">
-                <Flex
-                  ref={(el) => {
-                    if (el) {
-                      elements.current.push(el);
-                    }
-                  }}
-                  $flexWrap="wrap"
-                  $gap="1rem"
-                >
-                  {feature?.name && (
-                    <Flex $flexDirection="column" $gap="0.5rem" $flexGrow="1">
-                      <Text
-                        as={Box}
-                        $font={
-                          theme.typography[props.header.fontStyle].fontFamily
-                        }
-                        $size={
-                          theme.typography[props.header.fontStyle].fontSize
-                        }
-                        $weight={
-                          theme.typography[props.header.fontStyle].fontWeight
-                        }
-                        $color={theme.typography[props.header.fontStyle].color}
-                      >
-                        {priceBehavior === "pay_as_you_go"
-                          ? typeof usage === "number" && (
-                              <>
-                                {formatNumber(usage)}{" "}
-                                {pluralize(feature.name, usage)}
-                              </>
-                            )
-                          : feature.name}
-                      </Text>
+              <Element as={Flex} $gap="1.5rem">
+                {props.icon.isVisible && feature?.icon && (
+                  <IconRound
+                    name={feature.icon as IconNameTypes | string}
+                    size="sm"
+                    colors={[
+                      theme.primary,
+                      isLightBackground
+                        ? "hsla(0, 0%, 0%, 0.0625)"
+                        : "hsla(0, 0%, 100%, 0.25)",
+                    ]}
+                  />
+                )}
 
-                      {props.description.isVisible && (
+                <Flex $flexDirection="column" $gap="2rem" $flexGrow={1}>
+                  <Flex
+                    ref={(el) => {
+                      if (el) {
+                        elements.current.push(el);
+                      }
+                    }}
+                    $flexWrap="wrap"
+                    $gap="1rem"
+                  >
+                    {feature?.name && (
+                      <Flex $flexDirection="column" $gap="0.5rem" $flexGrow={1}>
                         <Text
                           as={Box}
                           $font={
-                            theme.typography[props.description.fontStyle]
-                              .fontFamily
+                            theme.typography[props.header.fontStyle].fontFamily
                           }
                           $size={
-                            theme.typography[props.description.fontStyle]
-                              .fontSize
+                            theme.typography[props.header.fontStyle].fontSize
                           }
                           $weight={
-                            theme.typography[props.description.fontStyle]
-                              .fontWeight
+                            theme.typography[props.header.fontStyle].fontWeight
                           }
                           $color={
-                            theme.typography[props.description.fontStyle].color
+                            theme.typography[props.header.fontStyle].color
                           }
+                          $leading={1.35}
                         >
-                          {feature.description}
+                          {priceBehavior === "pay_as_you_go"
+                            ? typeof usage === "number" && (
+                                <>
+                                  {formatNumber(usage)}{" "}
+                                  {getFeatureName(feature, usage)}
+                                </>
+                              )
+                            : feature.name}
                         </Text>
-                      )}
-                    </Flex>
-                  )}
 
-                  {(feature?.featureType === "event" ||
-                    feature?.featureType === "trait") &&
-                    feature?.name && (
-                      <Box
-                        $flexBasis="min-content"
-                        $flexGrow="1"
-                        $textAlign={shouldWrapChildren ? "left" : "right"}
-                      >
-                        {props.usage.isVisible && (
+                        {props.description.isVisible && (
                           <Text
                             as={Box}
                             $font={
-                              theme.typography[props.usage.fontStyle].fontFamily
+                              theme.typography[props.description.fontStyle]
+                                .fontFamily
                             }
                             $size={
-                              theme.typography[props.usage.fontStyle].fontSize
+                              theme.typography[props.description.fontStyle]
+                                .fontSize
                             }
                             $weight={
-                              theme.typography[props.usage.fontStyle].fontWeight
+                              theme.typography[props.description.fontStyle]
+                                .fontWeight
                             }
-                            $leading={1.25}
                             $color={
-                              theme.typography[props.usage.fontStyle].color
+                              theme.typography[props.description.fontStyle]
+                                .color
                             }
                           >
-                            {priceBehavior === "pay_in_advance"
-                              ? typeof allocation === "number" && (
-                                  <>
-                                    {formatNumber(allocation)}{" "}
-                                    {pluralize(feature.name, allocation)}
-                                  </>
-                                )
-                              : priceBehavior === "pay_as_you_go"
-                                ? typeof price === "number" &&
-                                  typeof usage === "number" &&
-                                  formatCurrency(usage * price, currency)
-                                : typeof usage === "number" && (
-                                    <>
-                                      {formatNumber(usage)}{" "}
-                                      {pluralize(feature.name, usage)}
-                                    </>
-                                  )}
+                            {feature.description}
                           </Text>
                         )}
+                      </Flex>
+                    )}
 
-                        {props.allocation.isVisible && (
-                          <Box $whiteSpace="nowrap">
+                    {(feature?.featureType === "event" ||
+                      feature?.featureType === "trait") &&
+                      feature?.name && (
+                        <Box
+                          $flexBasis="min-content"
+                          $flexGrow={1}
+                          $textAlign={shouldWrapChildren ? "left" : "right"}
+                        >
+                          {props.usage.isVisible && (
                             <Text
+                              as={Box}
                               $font={
-                                theme.typography[props.allocation.fontStyle]
+                                theme.typography[props.usage.fontStyle]
                                   .fontFamily
                               }
                               $size={
-                                theme.typography[props.allocation.fontStyle]
-                                  .fontSize
+                                theme.typography[props.usage.fontStyle].fontSize
                               }
                               $weight={
-                                theme.typography[props.allocation.fontStyle]
+                                theme.typography[props.usage.fontStyle]
                                   .fontWeight
                               }
                               $color={
-                                theme.typography[props.allocation.fontStyle]
-                                  .color
+                                theme.typography[props.usage.fontStyle].color
                               }
+                              $leading={1.35}
                             >
-                              {priceBehavior && metricResetAt
-                                ? t("Resets", {
-                                    date: toPrettyDate(metricResetAt, {
-                                      month: "short",
-                                      day: "numeric",
-                                      year: undefined,
-                                    }),
-                                  })
-                                : typeof allocation === "number"
-                                  ? t("Limit of", {
-                                      amount: formatNumber(allocation),
-                                    })
-                                  : t("No limit")}
+                              {priceBehavior === "pay_in_advance"
+                                ? typeof allocation === "number" && (
+                                    <>
+                                      {formatNumber(allocation)}{" "}
+                                      {getFeatureName(feature, allocation)}
+                                    </>
+                                  )
+                                : priceBehavior === "pay_as_you_go"
+                                  ? typeof price === "number" &&
+                                    typeof usage === "number" &&
+                                    formatCurrency(usage * price, currency)
+                                  : typeof usage === "number" && (
+                                      <>
+                                        {formatNumber(usage)}{" "}
+                                        {getFeatureName(feature, usage)}
+                                        {priceBehavior === "overage" && (
+                                          <> {t("used")}</>
+                                        )}
+                                      </>
+                                    )}
                             </Text>
-                          </Box>
+                          )}
+
+                          {props.allocation.isVisible &&
+                            priceBehavior !== "overage" && (
+                              <Box $whiteSpace="nowrap">
+                                <Text
+                                  $font={
+                                    theme.typography[props.allocation.fontStyle]
+                                      .fontFamily
+                                  }
+                                  $size={
+                                    theme.typography[props.allocation.fontStyle]
+                                      .fontSize
+                                  }
+                                  $weight={
+                                    theme.typography[props.allocation.fontStyle]
+                                      .fontWeight
+                                  }
+                                  $color={
+                                    theme.typography[props.allocation.fontStyle]
+                                      .color
+                                  }
+                                  $leading={1.35}
+                                >
+                                  {priceBehavior &&
+                                  priceBehavior !== "overage" &&
+                                  metricResetAt
+                                    ? t("Resets", {
+                                        date: toPrettyDate(metricResetAt, {
+                                          month: "short",
+                                          day: "numeric",
+                                          year: undefined,
+                                        }),
+                                      })
+                                    : typeof allocation === "number" ||
+                                        typeof softLimit === "number"
+                                      ? t("Limit of", {
+                                          amount: formatNumber(limit),
+                                        })
+                                      : t("No limit")}
+                                </Text>
+                              </Box>
+                            )}
+                        </Box>
+                      )}
+                  </Flex>
+
+                  {props.isVisible &&
+                    typeof usage === "number" &&
+                    priceBehavior !== "pay_as_you_go" && (
+                      <Flex $gap="2rem">
+                        {typeof allocation === "number" ? (
+                          <Tooltip
+                            trigger={progressBar}
+                            content={
+                              <Text
+                                $font={theme.typography.text.fontFamily}
+                                $size={0.875 * theme.typography.text.fontSize}
+                                $weight={theme.typography.text.fontWeight}
+                                $color={theme.typography.text.color}
+                                $leading={1}
+                              >
+                                {t("Up to a limit of", {
+                                  amount: allocation,
+                                  units:
+                                    feature?.name && getFeatureName(feature),
+                                })}
+                              </Text>
+                            }
+                            $flexGrow={1}
+                          />
+                        ) : (
+                          progressBar
                         )}
-                      </Box>
+
+                        {priceBehavior === "pay_in_advance" && (
+                          <EmbedButton
+                            onClick={() => {
+                              setSelected({ usage: true });
+                              setLayout("checkout");
+                            }}
+                            style={{
+                              width: "fit-content",
+                              padding: "0 1rem 0 0.5rem",
+                            }}
+                          >
+                            {t("Add More")}
+                          </EmbedButton>
+                        )}
+                      </Flex>
                     )}
                 </Flex>
-
-                {props.isVisible &&
-                  typeof usage === "number" &&
-                  typeof allocation === "number" &&
-                  priceBehavior !== "pay_as_you_go" && (
-                    <Flex $gap="2rem">
-                      <ProgressBar
-                        progress={(usage / allocation) * 100}
-                        value={usage}
-                        total={allocation}
-                        color={
-                          progressColorMap[
-                            Math.floor(
-                              (Math.min(usage, allocation) / allocation) *
-                                (progressColorMap.length - 1),
-                            )
-                          ]
-                        }
-                        $flexGrow="1"
-                      />
-
-                      {priceBehavior === "pay_in_advance" && (
-                        <EmbedButton
-                          type="button"
-                          onClick={() => {
-                            setSelected({ usage: true });
-                            setLayout("checkout");
-                          }}
-                          style={{
-                            width: "fit-content",
-                            padding: "0 1rem 0 0.5rem",
-                          }}
-                        >
-                          {t("Add More")}
-                        </EmbedButton>
-                      )}
-                    </Flex>
-                  )}
-              </Flex>
-            </Element>
+              </Element>
+            </Flex>
           );
         },
       )}

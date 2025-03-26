@@ -1,10 +1,8 @@
-import { forwardRef, useRef, useState } from "react";
+import { forwardRef, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
-import type {
-  FeatureUsageResponseData,
-  UsageBasedEntitlementResponseData,
-} from "../../../api";
+
+import type { FeatureUsageResponseData } from "../../../api";
 import { VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
 import { type FontStyle } from "../../../context";
 import {
@@ -12,10 +10,10 @@ import {
   useIsLightBackground,
   useWrapChildren,
 } from "../../../hooks";
-import type { RecursivePartial, ElementProps } from "../../../types";
+import type { ElementProps, RecursivePartial } from "../../../types";
 import { toPrettyDate } from "../../../utils";
 import { Element } from "../../layout";
-import { Box, Flex, Icon, IconRound, Text, type IconNameTypes } from "../../ui";
+import { Box, Flex, Icon, type IconNameTypes, IconRound, Text } from "../../ui";
 import { Details } from "./Details";
 
 export interface DesignProps {
@@ -96,67 +94,26 @@ export const IncludedFeatures = forwardRef<
 
   const [showCount, setShowCount] = useState(VISIBLE_ENTITLEMENT_COUNT);
 
-  const entitlements: {
-    featureUsage?: FeatureUsageResponseData;
-    usageData?: UsageBasedEntitlementResponseData;
-  }[] = (
-    props.visibleFeatures
-      ? props.visibleFeatures
-      : data.featureUsage?.features
-          .sort((a, b) => {
-            if (
-              a.feature?.name &&
-              b.feature?.name &&
-              a.feature?.name > b.feature?.name
-            ) {
-              return 1;
-            }
+  const featureUsage = useMemo(() => {
+    const orderedFeatureUsage = props.visibleFeatures?.reduce(
+      (acc: FeatureUsageResponseData[], id) => {
+        const mappedFeatureUsage = data.featureUsage?.features.find(
+          (usage) => usage.feature?.id === id,
+        );
 
-            if (
-              a.feature?.name &&
-              b.feature?.name &&
-              a.feature?.name < b.feature?.name
-            ) {
-              return -1;
-            }
+        if (mappedFeatureUsage) {
+          acc.push(mappedFeatureUsage);
+        }
 
-            return 0;
-          })
-          .reduce((acc: string[], usage) => {
-            if (usage.feature?.id) {
-              acc.push(usage.feature.id);
-            }
+        return acc;
+      },
+      [],
+    );
 
-            return acc;
-          }, []) || []
-  ).reduce(
-    (
-      acc: {
-        featureUsage?: FeatureUsageResponseData;
-        usageData?: UsageBasedEntitlementResponseData;
-      }[],
-      id,
-    ) => {
-      const mappedFeatureUsage = data.featureUsage?.features.find(
-        (usage) => usage.feature?.id === id,
-      );
-      const mappedUsageData = data.activeUsageBasedEntitlements.find(
-        (entitlement) => entitlement.featureId === id,
-      );
+    return orderedFeatureUsage || data.featureUsage?.features || [];
+  }, [props.visibleFeatures, data.featureUsage?.features]);
 
-      if (mappedFeatureUsage) {
-        acc.push({
-          featureUsage: mappedFeatureUsage,
-          usageData: mappedUsageData,
-        });
-      }
-
-      return acc;
-    },
-    [],
-  );
-
-  const featureListSize = entitlements.length;
+  const featureListSize = featureUsage.length;
 
   const handleToggleShowAll = () => {
     setShowCount((prev) =>
@@ -172,7 +129,7 @@ export const IncludedFeatures = forwardRef<
   //  even if the company has no plan or add-ons).
   // * If none of the above, don't render the component.
   const shouldShowFeatures =
-    entitlements.length > 0 ||
+    featureUsage.length > 0 ||
     data.company?.plan ||
     (data.company?.addOns ?? []).length > 0 ||
     false;
@@ -205,9 +162,8 @@ export const IncludedFeatures = forwardRef<
         </Box>
       )}
 
-      {entitlements.slice(0, showCount).map((entitlement, index) => {
-        const { entitlementExpirationDate, feature } =
-          entitlement.featureUsage || {};
+      {featureUsage.slice(0, showCount).map((usage, index) => {
+        const feature = usage.feature;
         const shouldShowDetails =
           feature?.name &&
           (feature?.featureType === "event" ||
@@ -257,7 +213,7 @@ export const IncludedFeatures = forwardRef<
               )}
 
               {props.entitlementExpiration.isVisible &&
-                entitlementExpirationDate && (
+                usage.entitlementExpirationDate && (
                   <Text
                     $font={
                       theme.typography[props.entitlementExpiration.fontStyle]
@@ -271,14 +227,14 @@ export const IncludedFeatures = forwardRef<
                       theme.typography[props.entitlementExpiration.fontStyle]
                         .fontWeight
                     }
-                    $leading={1}
                     $color={
                       theme.typography[props.entitlementExpiration.fontStyle]
                         .color
                     }
+                    $leading={1}
                   >
                     Expires{" "}
-                    {toPrettyDate(entitlementExpirationDate, {
+                    {toPrettyDate(usage.entitlementExpirationDate, {
                       month: "short",
                     })}
                   </Text>
@@ -287,7 +243,7 @@ export const IncludedFeatures = forwardRef<
 
             {shouldShowDetails && (
               <Details
-                details={entitlement}
+                featureUsage={usage}
                 shouldWrapChildren={shouldWrapChildren}
                 {...props}
               />
@@ -313,8 +269,8 @@ export const IncludedFeatures = forwardRef<
             $font={theme.typography.link.fontFamily}
             $size={theme.typography.link.fontSize}
             $weight={theme.typography.link.fontWeight}
-            $leading={1}
             $color={theme.typography.link.color}
+            $leading={1}
             style={{ cursor: "pointer" }}
           >
             {isExpanded ? t("Hide all") : t("See all")}

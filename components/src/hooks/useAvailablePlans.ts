@@ -1,4 +1,5 @@
 import { useCallback, useMemo } from "react";
+
 import type { CompanyPlanDetailResponseData } from "../api";
 import { useEmbed } from ".";
 
@@ -30,7 +31,7 @@ export function useAvailablePlans(activePeriod: string) {
   const getActivePlans = useCallback(
     (plans: CompanyPlanDetailResponseData[]) => {
       const customPlanExist = plans.some((plan) => plan.custom);
-      let plansWithSelected =
+      const plansWithSelected =
         mode === "edit"
           ? plans.slice()
           : plans.filter(
@@ -40,7 +41,7 @@ export function useAvailablePlans(activePeriod: string) {
             );
 
       if (!customPlanExist) {
-        plansWithSelected = plansWithSelected.sort((a, b) => {
+        plansWithSelected.sort((a, b) => {
           if (activePeriod === "year") {
             return (a.yearlyPrice?.price ?? 0) - (b.yearlyPrice?.price ?? 0);
           }

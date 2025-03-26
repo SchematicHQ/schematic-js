@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+
 import { EmbedButton, Flex, Icon } from "../../ui";
 import { type CheckoutStage } from "../checkout-dialog";
 
@@ -7,13 +8,13 @@ type StageButtonProps = {
   canCheckout: boolean;
   canUpdateSubscription: boolean;
   checkout: () => Promise<void>;
-  checkoutStage: string;
-  checkoutStages: CheckoutStage[];
+  checkoutStage?: string;
+  checkoutStages?: CheckoutStage[];
   hasAddOns: boolean;
   hasPayInAdvanceEntitlements: boolean;
   isLoading: boolean;
   requiresPayment: boolean;
-  setCheckoutStage: (stage: string) => void;
+  setCheckoutStage?: (stage: string) => void;
   trialPaymentMethodRequired: boolean;
 };
 
@@ -54,7 +55,7 @@ export const StageButton = ({
             type="button"
             disabled={!hasAddOns && !canUpdateSubscription}
             onClick={async () => {
-              setCheckoutStage("checkout");
+              setCheckoutStage?.("checkout");
             }}
             isLoading={isLoading}
           >
@@ -95,7 +96,7 @@ export const StageButton = ({
 
     if (
       !requiresPayment &&
-      !checkoutStages.some(
+      !checkoutStages?.some(
         (stage) => stage.id === "addons" || stage.id === "usage",
       )
     ) {
@@ -107,7 +108,7 @@ export const StageButton = ({
         type="button"
         disabled={!canUpdateSubscription}
         onClick={async () => {
-          setCheckoutStage(
+          setCheckoutStage?.(
             hasPayInAdvanceEntitlements
               ? "usage"
               : hasAddOns
@@ -145,7 +146,7 @@ export const StageButton = ({
         type="button"
         disabled={!canUpdateSubscription}
         onClick={async () => {
-          setCheckoutStage(hasAddOns ? "addons" : "checkout");
+          setCheckoutStage?.(hasAddOns ? "addons" : "checkout");
         }}
         isLoading={isLoading}
       >
@@ -172,7 +173,7 @@ export const StageButton = ({
         type="button"
         disabled={!canUpdateSubscription}
         onClick={async () => {
-          setCheckoutStage("checkout");
+          setCheckoutStage?.("checkout");
         }}
         isLoading={isLoading}
       >
