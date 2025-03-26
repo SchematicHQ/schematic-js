@@ -1,10 +1,8 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
-import type {
-  FeatureUsageResponseData,
-  UsageBasedEntitlementResponseData,
-} from "../../../api";
+
+import type { FeatureUsageResponseData } from "../../../api";
 import { useEmbed } from "../../../hooks";
 import {
   formatCurrency,
@@ -17,18 +15,14 @@ import { type DesignProps } from "./IncludedFeatures";
 
 interface DetailsProps extends DesignProps {
   shouldWrapChildren: boolean;
-  details: {
-    featureUsage?: FeatureUsageResponseData;
-    usageData?: UsageBasedEntitlementResponseData;
-  };
+  featureUsage: FeatureUsageResponseData;
 }
 
 export const Details = ({
-  details,
   shouldWrapChildren,
+  featureUsage,
   ...props
 }: DetailsProps) => {
-  const { featureUsage, usageData } = details;
   const {
     allocation,
     feature,
@@ -37,7 +31,7 @@ export const Details = ({
     softLimit,
     monthlyUsageBasedPrice,
     yearlyUsageBasedPrice,
-  } = featureUsage || {};
+  } = featureUsage;
   const { t } = useTranslation();
 
   const theme = useTheme();
@@ -103,56 +97,53 @@ export const Details = ({
       return;
     }
 
-    if (usageData) {
-      let acc: string | undefined;
+    let acc: string | undefined;
+    if (
+      priceBehavior === "pay_in_advance" &&
+      typeof data.company?.plan?.planPeriod === "string" &&
+      typeof price === "number"
+    ) {
+      acc = `${formatCurrency(price, currency)}/${getFeatureName(feature, 1)}/${shortenPeriod(data.company.plan.planPeriod)}`;
+    } else if (
+      (priceBehavior === "pay_as_you_go" || priceBehavior === "overage") &&
+      typeof usage === "number"
+    ) {
+      acc = `${usage} ${getFeatureName(feature, usage)} ${t("used")}`;
+    }
 
+    if (acc) {
       if (
         priceBehavior === "pay_in_advance" &&
-        typeof data.company?.plan?.planPeriod === "string" &&
-        typeof price === "number"
+        typeof price === "number" &&
+        typeof allocation === "number"
       ) {
-        acc = `${formatCurrency(price, currency)}/${getFeatureName(feature, 1)}/${shortenPeriod(data.company.plan.planPeriod)}`;
+        acc += ` • ${formatCurrency(price * allocation, currency)}`;
       } else if (
-        (priceBehavior === "pay_as_you_go" || priceBehavior === "overage") &&
+        priceBehavior === "pay_as_you_go" &&
+        typeof price === "number" &&
         typeof usage === "number"
       ) {
-        acc = `${usage} ${getFeatureName(feature, usage)} ${t("used")}`;
+        acc += ` • ${formatCurrency(price * usage, currency)}`;
+      } else if (
+        priceBehavior === "overage" &&
+        typeof price === "number" &&
+        typeof usage === "number" &&
+        typeof softLimit === "number"
+      ) {
+        const cost = price * (usage - softLimit);
+        const period =
+          feature.featureType === "event" &&
+          typeof data.company?.plan?.planPeriod === "string"
+            ? `/${shortenPeriod(data.company.plan.planPeriod)}`
+            : "";
+
+        acc +=
+          cost > 0
+            ? ` • ${t("Overage")}: ${formatCurrency(cost)}${period}`
+            : ` • ${`${formatCurrency(price)}/${getFeatureName(feature, 1)}`} ${t("overage fee")}`;
       }
 
-      if (acc) {
-        if (
-          priceBehavior === "pay_in_advance" &&
-          typeof price === "number" &&
-          typeof allocation === "number"
-        ) {
-          acc += ` • ${formatCurrency(price * allocation, currency)}`;
-        } else if (
-          priceBehavior === "pay_as_you_go" &&
-          typeof price === "number" &&
-          typeof usage === "number"
-        ) {
-          acc += ` • ${formatCurrency(price * usage, currency)}`;
-        } else if (
-          priceBehavior === "overage" &&
-          typeof price === "number" &&
-          typeof usage === "number" &&
-          typeof softLimit === "number"
-        ) {
-          const cost = price * (usage - softLimit);
-          const period =
-            feature.featureType === "event" &&
-            typeof data.company?.plan?.planPeriod === "string"
-              ? `/${shortenPeriod(data.company.plan.planPeriod)}`
-              : "";
-
-          acc +=
-            cost > 0
-              ? ` • ${t("Overage")}: ${formatCurrency(cost)}${period}`
-              : ` • ${`${formatCurrency(price)}/${getFeatureName(feature, 1)}`} ${t("overage fee")}`;
-        }
-
-        return acc;
-      }
+      return acc;
     }
 
     if (typeof usage === "number") {
@@ -175,7 +166,6 @@ export const Details = ({
     currency,
     softLimit,
     usage,
-    usageData,
   ]);
 
   if (!text) {

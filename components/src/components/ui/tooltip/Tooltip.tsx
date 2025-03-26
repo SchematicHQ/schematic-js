@@ -1,6 +1,7 @@
+import debounce from "lodash/debounce";
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import debounce from "lodash/debounce";
+
 import { DEBOUNCE_TIMEOUT } from "../../../const";
 import { type BoxProps } from "../../ui";
 import { Content, Trigger } from "./styles";

@@ -1,4 +1,5 @@
 import styled, { css } from "styled-components";
+
 import { TEXT_BASE_SIZE } from "../../../const";
 import { hexToHSL } from "../../../utils";
 import { Box } from "../../ui";
@@ -19,7 +20,6 @@ export const StyledCard = styled.div(({ theme }) => {
 
   return css`
     position: relative;
-    overflow: hidden;
 
     ${theme.sectionLayout === "merged"
       ? `&:not(:has(${FussyChild}))`

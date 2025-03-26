@@ -1,6 +1,7 @@
 import { forwardRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
+
 import { TEXT_BASE_SIZE, VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
 import { type FontStyle } from "../../../context";
 import {
@@ -23,13 +24,13 @@ import { cardBoxShadow, FussyChild } from "../../layout";
 import { PeriodToggle } from "../../shared";
 import {
   Box,
-  Flex,
   EmbedButton,
+  Flex,
   Icon,
+  type IconNameTypes,
   IconRound,
   Text,
   Tooltip,
-  type IconNameTypes,
 } from "../../ui";
 import { ButtonLink } from "./styles";
 
@@ -244,6 +245,12 @@ export const PricingTable = forwardRef<
               const count = entitlementCounts[plan.id];
               const isExpanded = count.limit > VISIBLE_ENTITLEMENT_COUNT;
 
+              const hasUsageBasedEntitlements = plan.entitlements.some(
+                (entitlement) => !!entitlement.priceBehavior,
+              );
+              const isUsageBasedPlan =
+                planPrice === 0 && hasUsageBasedEntitlements;
+
               return (
                 <Flex
                   key={planIndex}
@@ -337,10 +344,12 @@ export const PricingTable = forwardRef<
                           ? plan.customPlanConfig?.priceText
                             ? plan.customPlanConfig.priceText
                             : t("Custom Plan Price")
-                          : formatCurrency(planPrice ?? 0, planCurrency)}
+                          : isUsageBasedPlan
+                            ? t("Usage-based")
+                            : formatCurrency(planPrice ?? 0, planCurrency)}
                       </Text>
 
-                      {!plan.custom && (
+                      {!plan.custom && !isUsageBasedPlan && (
                         <Text
                           $font={
                             theme.typography[props.plans.name.fontStyle]

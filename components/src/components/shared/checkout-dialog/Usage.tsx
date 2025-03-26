@@ -1,17 +1,18 @@
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
+
 import type {
   CompanyPlanDetailResponseData,
   PlanEntitlementResponseData,
 } from "../../../api";
 import { TEXT_BASE_SIZE } from "../../../const";
 import {
-  hexToHSL,
-  lighten,
   darken,
   formatCurrency,
-  shortenPeriod,
   getFeatureName,
+  hexToHSL,
+  lighten,
+  shortenPeriod,
 } from "../../../utils";
 import { cardBoxShadow } from "../../layout";
 import { Box, Flex, Input, Text } from "../../ui";

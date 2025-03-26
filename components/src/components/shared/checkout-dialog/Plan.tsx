@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
+
 import { TEXT_BASE_SIZE, VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
-import { useIsLightBackground, type SelectedPlan } from "../../../hooks";
+import { type SelectedPlan, useIsLightBackground } from "../../../hooks";
 import {
   darken,
   formatCurrency,
@@ -12,18 +13,18 @@ import {
   lighten,
   shortenPeriod,
 } from "../../../utils";
+import { ButtonLink } from "../../elements/pricing-table/styles";
 import { cardBoxShadow } from "../../layout";
 import {
   Box,
   EmbedButton,
   Flex,
   Icon,
+  type IconNameTypes,
   IconRound,
   Text,
   Tooltip,
-  type IconNameTypes,
 } from "../../ui";
-import { ButtonLink } from "../../elements/pricing-table/styles";
 
 interface PlanProps {
   isLoading: boolean;
@@ -102,6 +103,10 @@ export const Plan = ({
             (period === "month"
               ? plan.monthlyPrice
               : period === "year" && plan.yearlyPrice) || {};
+          const hasUsageBasedEntitlements = plan.entitlements.some(
+            (entitlement) => !!entitlement.priceBehavior,
+          );
+          const isUsageBasedPlan = planPrice === 0 && hasUsageBasedEntitlements;
 
           return (
             <Flex
@@ -169,10 +174,12 @@ export const Plan = ({
                       ? plan.customPlanConfig?.priceText
                         ? plan.customPlanConfig.priceText
                         : t("Custom Plan Price")
-                      : formatCurrency(planPrice ?? 0, planCurrency)}
+                      : isUsageBasedPlan
+                        ? t("Usage-based")
+                        : formatCurrency(planPrice ?? 0, planCurrency)}
                   </Text>
 
-                  {!plan.custom && (
+                  {!plan.custom && !isUsageBasedPlan && (
                     <Text
                       $font={theme.typography.heading2.fontFamily}
                       $size={(16 / 30) * theme.typography.heading2.fontSize}

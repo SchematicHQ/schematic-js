@@ -1,18 +1,19 @@
 import { forwardRef, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
+
 import { type FeatureUsageResponseData } from "../../../api";
 import { type FontStyle } from "../../../context";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
-import type { RecursivePartial, ElementProps } from "../../../types";
+import type { ElementProps, RecursivePartial } from "../../../types";
 import {
+  darken,
   formatCurrency,
+  getFeatureName,
   hexToHSL,
   lighten,
-  darken,
   shortenPeriod,
   toPrettyDate,
-  getFeatureName,
 } from "../../../utils";
 import { Element } from "../../layout";
 import { Box, EmbedButton, Flex, Text } from "../../ui";
@@ -140,6 +141,8 @@ export const PlanManager = forwardRef<
   const subscriptionCurrency = billingSubscription?.currency;
   const isTrialSubscription = billingSubscription?.status === "trialing";
   const willSubscriptionCancel = billingSubscription?.cancelAtPeriodEnd;
+  const isUsageBasedPlan =
+    currentPlan?.planPrice === 0 && usageBasedEntitlements.length > 0;
 
   return (
     <>
@@ -239,16 +242,48 @@ export const PlanManager = forwardRef<
               typeof currentPlan.planPrice === "number" &&
               currentPlan.planPeriod && (
                 <Box>
-                  <Text display={props.header.price.fontStyle}>
-                    {formatCurrency(
-                      currentPlan.planPrice,
-                      subscriptionCurrency,
-                    )}
+                  <Text
+                    $font={
+                      theme.typography[props.header.price.fontStyle].fontFamily
+                    }
+                    $size={
+                      theme.typography[props.header.price.fontStyle].fontSize
+                    }
+                    $weight={
+                      theme.typography[props.header.price.fontStyle].fontWeight
+                    }
+                    $color={
+                      theme.typography[props.header.price.fontStyle].color
+                    }
+                  >
+                    {isUsageBasedPlan
+                      ? t("Usage-based")
+                      : formatCurrency(
+                          currentPlan.planPrice,
+                          subscriptionCurrency,
+                        )}
                   </Text>
 
-                  <Text display={props.header.price.fontStyle}>
-                    <sub>/{shortenPeriod(currentPlan.planPeriod)}</sub>
-                  </Text>
+                  {!isUsageBasedPlan && (
+                    <Text
+                      $font={
+                        theme.typography[props.header.price.fontStyle]
+                          .fontFamily
+                      }
+                      $size={
+                        theme.typography[props.header.price.fontStyle].fontSize
+                      }
+                      $weight={
+                        theme.typography[props.header.price.fontStyle]
+                          .fontWeight
+                      }
+                      $color={
+                        theme.typography[props.header.price.fontStyle].color
+                      }
+                    >
+                      <sub>/{shortenPeriod(currentPlan.planPeriod)}</sub>
+                    </Text>
+                  )}
                 </Box>
               )}
           </Flex>
