@@ -1,4 +1,4 @@
-import { DEFAULT_CURRENCY } from "../const";
+import { DEFAULT_CURRENCY, MAXIMUM_SIGNIFICANT_DIGITS } from "../const";
 
 export function hyphenToCamel(str: string) {
   return str.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
@@ -32,17 +32,24 @@ export function formatCurrency(amount: number, currency?: string) {
     };
 
     if (dollars >= 1_000_000) {
-      return formatValue(dollars / 1_000_000, "M");
-    } else if (dollars >= 1_000) {
-      return formatValue(dollars / 1_000, "k");
-    } else {
-      return new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: resolvedCurrency,
-        minimumSignificantDigits: 1,
-        maximumSignificantDigits: 4,
-      }).format(dollars);
+      formatValue(dollars / 1_000_000, "M");
     }
+
+    if (dollars >= 1_000) {
+      return formatValue(dollars / 1_000, "k");
+    }
+
+    const hasManySignificantDigits = /[1-9]/.test(
+      (amount % 1.0).toFixed(MAXIMUM_SIGNIFICANT_DIGITS),
+    );
+
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: resolvedCurrency,
+      ...(hasManySignificantDigits && {
+        minimumSignificantDigits: 1,
+      }),
+    }).format(dollars);
   } catch (error) {
     console.error("Error formatting currency", error);
 

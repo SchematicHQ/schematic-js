@@ -2,10 +2,12 @@ import styled, { css } from "styled-components";
 
 import { TEXT_BASE_SIZE } from "../../../const";
 import { hexToHSL } from "../../../utils";
+import { Element, FussyChild } from "../../layout";
 import { Flex } from "../../ui";
 
 export const Container = styled(Flex)`
   flex-direction: column;
+  gap: 1rem;
 
   &:last-child {
     overflow: hidden;
@@ -35,4 +37,16 @@ export const Container = styled(Flex)`
           `;
     }}
   }
+
+  ${({ theme }) => {
+    return (
+      theme.sectionLayout === "separate" &&
+      css`
+        ${Element}:not(:is(${FussyChild})) {
+          border-bottom-left-radius: 0;
+          border-bottom-right-radius: 0;
+        }
+      `
+    );
+  }}
 `;
