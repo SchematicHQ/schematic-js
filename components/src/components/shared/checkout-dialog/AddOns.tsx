@@ -106,15 +106,20 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
                     $position="absolute"
                     $right="1rem"
                     $top="1rem"
-                    $fontSize="0.75rem"
-                    $color={
-                      hexToHSL(theme.primary).l > 50 ? "#000000" : "#FFFFFF"
-                    }
                     $backgroundColor={theme.primary}
                     $borderRadius="9999px"
                     $padding="0.125rem 0.85rem"
                   >
-                    {t("Active")}
+                    <Text
+                      $font={theme.typography.text.fontFamily}
+                      $size={0.75 * theme.typography.text.fontSize}
+                      $weight={theme.typography.text.fontWeight}
+                      $color={
+                        hexToHSL(theme.primary).l > 50 ? "#000000" : "#FFFFFF"
+                      }
+                    >
+                      {t("Active")}
+                    </Text>
                   </Flex>
                 )}
               </Flex>

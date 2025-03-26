@@ -144,6 +144,10 @@ export const PlanManager = forwardRef<
   const isUsageBasedPlan =
     currentPlan?.planPrice === 0 && usageBasedEntitlements.length > 0;
 
+  const headerPriceFontStyle = isUsageBasedPlan
+    ? theme.typography.heading3
+    : theme.typography[props.header.price.fontStyle];
+
   return (
     <>
       {isTrialSubscription && !willSubscriptionCancel ? (
@@ -287,18 +291,10 @@ export const PlanManager = forwardRef<
               currentPlan.planPeriod && (
                 <Box>
                   <Text
-                    $font={
-                      theme.typography[props.header.price.fontStyle].fontFamily
-                    }
-                    $size={
-                      theme.typography[props.header.price.fontStyle].fontSize
-                    }
-                    $weight={
-                      theme.typography[props.header.price.fontStyle].fontWeight
-                    }
-                    $color={
-                      theme.typography[props.header.price.fontStyle].color
-                    }
+                    $font={headerPriceFontStyle.fontFamily}
+                    $size={headerPriceFontStyle.fontSize}
+                    $weight={headerPriceFontStyle.fontWeight}
+                    $color={headerPriceFontStyle.color}
                   >
                     {isUsageBasedPlan
                       ? t("Usage-based")
