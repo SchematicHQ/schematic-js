@@ -45,7 +45,7 @@ export interface CheckoutStage {
   description?: string;
 }
 
-export interface CheckoutDialogProps {
+interface CheckoutDialogProps {
   top?: number;
 }
 
