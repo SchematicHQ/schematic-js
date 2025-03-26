@@ -26,7 +26,6 @@ export const Viewport = forwardRef<HTMLDivElement | null, ViewportProps>(
         const value = Math.abs(
           (parent === document.body ? window.scrollY : parent.scrollTop) ?? 0,
         );
-        console.debug(value);
         setTop(value);
       }, 250);
 
