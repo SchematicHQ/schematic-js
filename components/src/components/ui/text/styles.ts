@@ -6,24 +6,24 @@ import type { ComponentProps } from "../../../types";
 import { Box, type BoxProps } from "..";
 
 export enum TextPropNames {
-  Align = "$align",
   Font = "$font",
   Size = "$size",
   Weight = "$weight",
   Color = "$color",
   Leading = "$leading",
+  Align = "$align",
 }
 
 export type TextPropNameTypes = `${TextPropNames}`;
 
 export interface TextProps extends BoxProps {
   display?: FontStyle;
-  $align?: ComponentProps["$textAlign"];
   $font?: ComponentProps["$fontFamily"];
   $size?: ComponentProps["$fontSize"];
   $weight?: ComponentProps["$fontWeight"];
   $color?: ComponentProps["$color"];
   $leading?: ComponentProps["$lineHeight"];
+  $align?: ComponentProps["$textAlign"];
 }
 
 export const Text = styled(Box)
