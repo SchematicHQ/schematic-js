@@ -1,3 +1,4 @@
+import debounce from "lodash/debounce";
 import { forwardRef, useLayoutEffect, useState } from "react";
 import { createPortal } from "react-dom";
 
@@ -21,11 +22,12 @@ export const Viewport = forwardRef<HTMLDivElement | null, ViewportProps>(
 
     useLayoutEffect(() => {
       const parent = portal || document.body;
-      setTop(
-        Math.abs(
+      const setModalY = debounce(() => {
+        const value = Math.abs(
           (parent === document.body ? window.scrollY : parent.scrollTop) ?? 0,
-        ),
-      );
+        );
+        setTop(value);
+      }, 250);
 
       parent.style.overflow =
         layout === "checkout" ||
@@ -34,10 +36,13 @@ export const Viewport = forwardRef<HTMLDivElement | null, ViewportProps>(
           ? "hidden"
           : "";
 
+      window.addEventListener("scroll", setModalY);
+
       return () => {
+        window.removeEventListener("scroll", setModalY);
         parent.style.overflow = "";
       };
-    }, [layout, portal]);
+    }, [portal, layout]);
 
     return (
       <>
