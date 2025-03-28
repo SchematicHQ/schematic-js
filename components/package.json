@@ -1,13 +1,13 @@
 {
   "name": "@schematichq/schematic-components",
-  "version": "0.6.4",
+  "version": "0.7.0",
   "main": "dist/schematic-components.cjs.js",
   "module": "dist/schematic-components.esm.js",
   "types": "dist/schematic-components.d.ts",
   "files": [
     "dist/schematic-components.cjs.js",
     "dist/schematic-components.esm.js",
-    "dist/style.css"
+    "dist/schematic-components.d.ts"
   ],
   "author": "Schematic <engineering@schematichq.com>",
   "license": "MIT",
@@ -18,8 +18,10 @@
   "scripts": {
     "dev": "yarn dev:esm",
     "dev:esm": "npx esbuild src/index.ts --watch --bundle --loader:.ttf=dataurl --external:react --external:react-dom --external:@stripe/react-stripe-js --format=esm --outfile=dist/schematic-components.esm.js --define:process.env.SCHEMATIC_COMPONENTS_VERSION=$(cat package.json | jq .version)",
-    "build": "yarn tsc && yarn openapi && yarn format && yarn lint && yarn clean && yarn build:cjs && yarn build:esm && yarn build:types",    "build:cjs": "npx esbuild src/index.ts --bundle --loader:.ttf=dataurl --external:react --external:react-dom --external:@stripe/react-stripe-js --format=cjs --outfile=dist/schematic-components.cjs.js --define:process.env.SCHEMATIC_COMPONENTS_VERSION=$(cat package.json | jq .version)",
-    "build:esm": "npx esbuild src/index.ts --bundle --loader:.ttf=dataurl --external:react --external:react-dom --external:@stripe/react-stripe-js --format=esm --outfile=dist/schematic-components.esm.js --define:process.env.SCHEMATIC_COMPONENTS_VERSION=$(cat package.json | jq .version)",    "build:types": "npx tsc && npx api-extractor run",
+    "build": "yarn tsc && yarn openapi && yarn format && yarn lint && yarn clean && yarn build:cjs && yarn build:esm && yarn build:types",
+    "build:cjs": "npx esbuild src/index.ts --bundle --loader:.ttf=dataurl --external:react --external:react-dom --external:@stripe/react-stripe-js --format=cjs --outfile=dist/schematic-components.cjs.js --define:process.env.SCHEMATIC_COMPONENTS_VERSION=$(cat package.json | jq .version)",
+    "build:esm": "npx esbuild src/index.ts --bundle --loader:.ttf=dataurl --external:react --external:react-dom --external:@stripe/react-stripe-js --format=esm --outfile=dist/schematic-components.esm.js --define:process.env.SCHEMATIC_COMPONENTS_VERSION=$(cat package.json | jq .version)",
+    "build:types": "npx tsc && npx api-extractor run",
     "clean": "rm -rf dist",
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --fix",
@@ -40,7 +42,7 @@
   },
   "devDependencies": {
     "@craftjs/core": "^0.2.12",
-    "@microsoft/api-extractor": "^7.52.1",
+    "@microsoft/api-extractor": "^7.52.2",
     "@openapitools/openapi-generator-cli": "^2.18.4",
     "@stripe/react-stripe-js": "^3.5.1",
     "@types/jest": "^29.5.14",
@@ -50,8 +52,8 @@
     "@types/react": "^19.0.12",
     "@types/react-dom": "^19.0.4",
     "@types/uuid": "^10.0.0",
-    "@typescript-eslint/eslint-plugin": "^8.27.0",
-    "@typescript-eslint/parser": "^8.27.0",
+    "@typescript-eslint/eslint-plugin": "^8.28.0",
+    "@typescript-eslint/parser": "^8.28.0",
     "esbuild": "^0.25.1",
     "esbuild-jest": "^0.5.0",
     "eslint": "^8.57.1",
@@ -66,7 +68,7 @@
     "prettier": "^3.5.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "ts-jest": "^29.2.6",
+    "ts-jest": "^29.3.0",
     "typescript": "^5.7.3"
   },
   "peerDependencies": {
