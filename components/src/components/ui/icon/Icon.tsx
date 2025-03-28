@@ -1,12 +1,16 @@
 // New file
 // import "schematic-icons/style.css";
 
-import { Icon as IconComponent, IconProps, iconsList } from "schematic-icons";
+import { Icon as IconComponent, IconNames, IconProps } from "schematic-icons";
 
-export type IconNameTypes = keyof typeof iconsList;
+import * as styles from "./styles";
+
+export type IconNameTypes = IconNames;
 
 export const Icon = ({ name, style, className, ...props }: IconProps) => {
   return (
-    <IconComponent name={name} style={style} className={className} {...props} />
+    <styles.Icon name={name}>
+      <IconComponent name={name} className={className} {...props} />
+    </styles.Icon>
   );
 };
