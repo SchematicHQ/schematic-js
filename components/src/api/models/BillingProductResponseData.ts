@@ -66,6 +66,12 @@ export interface BillingProductResponseData {
    * @type {string}
    * @memberof BillingProductResponseData
    */
+  priceDecimal?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof BillingProductResponseData
+   */
   productId: string;
   /**
    *
@@ -123,6 +129,8 @@ export function BillingProductResponseDataFromJSONTyped(
     externalId: json["external_id"],
     name: json["name"],
     price: json["price"],
+    priceDecimal:
+      json["price_decimal"] == null ? undefined : json["price_decimal"],
     productId: json["product_id"],
     quantity: json["quantity"],
     updatedAt: new Date(json["updated_at"]),
@@ -143,6 +151,7 @@ export function BillingProductResponseDataToJSON(
     external_id: value["externalId"],
     name: value["name"],
     price: value["price"],
+    price_decimal: value["priceDecimal"],
     product_id: value["productId"],
     quantity: value["quantity"],
     updated_at: value["updatedAt"].toISOString(),
