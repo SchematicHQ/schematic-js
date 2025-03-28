@@ -9,6 +9,9 @@
     "dist/schematic-components.esm.js",
     "dist/schematic-components.d.ts"
   ],
+  "exports": {
+    "./style.css": "./dist/schematic-components.cjs.css"
+  },
   "author": "Schematic <engineering@schematichq.com>",
   "license": "MIT",
   "repository": {
