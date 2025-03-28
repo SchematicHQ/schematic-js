@@ -15,6 +15,7 @@ import {
   darken,
   formatCurrency,
   formatNumber,
+  getBillingPrice,
   getFeatureName,
   lighten,
   shortenPeriod,
@@ -168,9 +169,11 @@ export const MeteredFeatures = forwardRef<
             usage > softLimit;
 
           const { price, currency } =
-            (planPeriod === "month"
-              ? monthlyUsageBasedPrice
-              : planPeriod === "year" && yearlyUsageBasedPrice) || {};
+            getBillingPrice(
+              planPeriod === "year"
+                ? yearlyUsageBasedPrice
+                : monthlyUsageBasedPrice,
+            ) || {};
 
           const progressBar = props.isVisible &&
             typeof usage === "number" &&

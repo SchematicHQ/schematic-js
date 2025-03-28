@@ -8,6 +8,7 @@ import {
   darken,
   formatCurrency,
   formatNumber,
+  getBillingPrice,
   getFeatureName,
   hexToHSL,
   lighten,
@@ -100,9 +101,9 @@ export const Plan = ({
           const count = entitlementCounts[plan.id];
           const isExpanded = count.limit > VISIBLE_ENTITLEMENT_COUNT;
           const { price: planPrice, currency: planCurrency } =
-            (period === "month"
-              ? plan.monthlyPrice
-              : period === "year" && plan.yearlyPrice) || {};
+            getBillingPrice(
+              period === "year" ? plan.yearlyPrice : plan.monthlyPrice,
+            ) || {};
           const hasUsageBasedEntitlements = plan.entitlements.some(
             (entitlement) => !!entitlement.priceBehavior,
           );
@@ -258,10 +259,11 @@ export const Plan = ({
                           price: entitlementPrice,
                           currency: entitlementCurrency,
                         } =
-                          (period === "month"
-                            ? entitlement.meteredMonthlyPrice
-                            : period === "year" &&
-                              entitlement.meteredYearlyPrice) || {};
+                          getBillingPrice(
+                            period === "year"
+                              ? entitlement.meteredYearlyPrice
+                              : entitlement.meteredMonthlyPrice,
+                          ) || {};
 
                         if (
                           entitlement.priceBehavior &&

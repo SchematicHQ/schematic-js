@@ -15,6 +15,7 @@ import {
   darken,
   formatCurrency,
   formatNumber,
+  getBillingPrice,
   getFeatureName,
   hexToHSL,
   lighten,
@@ -239,9 +240,11 @@ export const PricingTable = forwardRef<
                 plan.current &&
                 data.company?.plan?.planPeriod === selectedPeriod;
               const { price: planPrice, currency: planCurrency } =
-                (selectedPeriod === "month"
-                  ? plan.monthlyPrice
-                  : selectedPeriod === "year" && plan.yearlyPrice) || {};
+                getBillingPrice(
+                  selectedPeriod === "year"
+                    ? plan.yearlyPrice
+                    : plan.monthlyPrice,
+                ) || {};
               const count = entitlementCounts[plan.id];
               const isExpanded = count.limit > VISIBLE_ENTITLEMENT_COUNT;
 
@@ -433,10 +436,11 @@ export const PricingTable = forwardRef<
                                 price: entitlementPrice,
                                 currency: entitlementCurrency,
                               } =
-                                (selectedPeriod === "month"
-                                  ? entitlement.meteredMonthlyPrice
-                                  : selectedPeriod === "year" &&
-                                    entitlement.meteredYearlyPrice) || {};
+                                getBillingPrice(
+                                  selectedPeriod === "year"
+                                    ? entitlement.meteredYearlyPrice
+                                    : entitlement.meteredMonthlyPrice,
+                                ) || {};
 
                               if (
                                 entitlement.priceBehavior &&
@@ -771,9 +775,11 @@ export const PricingTable = forwardRef<
                     data.company?.addOns.find((a) => a.id === addOn.id)
                       ?.planPeriod;
                 const { price: addOnPrice, currency: addOnCurrency } =
-                  (selectedPeriod === "month"
-                    ? addOn.monthlyPrice
-                    : selectedPeriod === "year" && addOn.yearlyPrice) || {};
+                  getBillingPrice(
+                    selectedPeriod === "year"
+                      ? addOn.yearlyPrice
+                      : addOn.monthlyPrice,
+                  ) || {};
 
                 return (
                   <Flex

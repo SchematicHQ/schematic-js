@@ -9,6 +9,7 @@ import type { ElementProps, RecursivePartial } from "../../../types";
 import {
   darken,
   formatCurrency,
+  getBillingPrice,
   getFeatureName,
   hexToHSL,
   lighten,
@@ -109,17 +110,19 @@ export const PlanManager = forwardRef<
   const usageBasedEntitlements = (featureUsage?.features || []).reduce(
     (
       acc: (FeatureUsageResponseData & {
-        price: number;
+        price?: number;
         currency?: string;
       })[],
       usage,
     ) => {
       const { price, currency } =
-        (currentPlan?.planPeriod === "month"
-          ? usage.monthlyUsageBasedPrice
-          : usage.yearlyUsageBasedPrice) || {};
+        getBillingPrice(
+          currentPlan?.planPeriod === "year"
+            ? usage.yearlyUsageBasedPrice
+            : usage.monthlyUsageBasedPrice,
+        ) || {};
 
-      if (usage.priceBehavior && typeof price === "number") {
+      if (usage.priceBehavior) {
         acc.push({ ...usage, price, currency });
       }
 
@@ -464,7 +467,7 @@ export const PlanManager = forwardRef<
                               <>
                                 {t("Overage fee")}:{" "}
                                 {formatCurrency(
-                                  entitlement.price,
+                                  entitlement.price ?? 0,
                                   entitlement.currency,
                                 )}
                                 <sub>
@@ -493,7 +496,7 @@ export const PlanManager = forwardRef<
                               }
                             >
                               {formatCurrency(
-                                entitlement.price,
+                                entitlement.price ?? 0,
                                 entitlement.currency,
                               )}
                               <sub>
@@ -512,7 +515,7 @@ export const PlanManager = forwardRef<
                             $color={theme.typography.text.color}
                           >
                             {formatCurrency(
-                              entitlement.price * amount,
+                              (entitlement.price ?? 0) * amount,
                               entitlement.currency,
                             )}
                             {(entitlement.priceBehavior === "pay_in_advance" ||

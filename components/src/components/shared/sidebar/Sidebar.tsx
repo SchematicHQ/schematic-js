@@ -23,6 +23,7 @@ import {
 import {
   formatCurrency,
   formatOrdinal,
+  getBillingPrice,
   getFeatureName,
   getMonthName,
   shortenPeriod,
@@ -127,34 +128,34 @@ export const Sidebar = ({
   );
 
   const subscriptionPrice = useMemo(() => {
-    let total = 0;
     let planPrice: number | undefined;
     let currency: string | undefined;
+
     if (selectedPlan) {
-      planPrice =
-        planPeriod === "month"
-          ? selectedPlan.monthlyPrice?.price
-          : selectedPlan.yearlyPrice?.price;
+      const planBillingPrice = getBillingPrice(
+        planPeriod === "year"
+          ? selectedPlan.yearlyPrice
+          : selectedPlan.monthlyPrice,
+      );
 
-      currency =
-        planPeriod === "month"
-          ? selectedPlan.monthlyPrice?.currency
-          : selectedPlan.yearlyPrice?.currency;
-
-      if (planPrice) {
-        total += planPrice;
-      }
+      planPrice = planBillingPrice?.price;
+      currency = planBillingPrice?.currency;
     } else if (typeof currentPlan?.planPrice === "number") {
       planPrice = currentPlan.planPrice;
+    }
+
+    let total = 0;
+
+    if (planPrice) {
+      total += planPrice;
     }
 
     const addOnCost = addOns.reduce(
       (sum, addOn) =>
         sum +
-        (addOn.isSelected
-          ? ((planPeriod === "month" ? addOn.monthlyPrice : addOn.yearlyPrice)
-              ?.price ?? 0)
-          : 0),
+        (getBillingPrice(
+          planPeriod === "year" ? addOn.yearlyPrice : addOn.monthlyPrice,
+        )?.price ?? 0),
       0,
     );
     total += addOnCost;
@@ -163,9 +164,10 @@ export const Sidebar = ({
       (sum, { entitlement, quantity }) =>
         sum +
         quantity *
-          ((planPeriod === "month"
-            ? entitlement.meteredMonthlyPrice
-            : entitlement.meteredYearlyPrice
+          (getBillingPrice(
+            planPeriod === "year"
+              ? entitlement.meteredYearlyPrice
+              : entitlement.meteredMonthlyPrice,
           )?.price ?? 0),
       0,
     );
@@ -196,9 +198,9 @@ export const Sidebar = ({
 
   const checkout = useCallback(async () => {
     const priceId = (
-      planPeriod === "month"
-        ? selectedPlan?.monthlyPrice
-        : selectedPlan?.yearlyPrice
+      planPeriod === "year"
+        ? selectedPlan?.yearlyPrice
+        : selectedPlan?.monthlyPrice
     )?.id;
     if (!api || !selectedPlan || !priceId) {
       return;
@@ -215,9 +217,7 @@ export const Sidebar = ({
           addOnIds: addOns.reduce((acc: UpdateAddOnRequestBody[], addOn) => {
             if (addOn.isSelected && !selectedPlan.companyCanTrial) {
               const addOnPriceId = (
-                planPeriod === "month"
-                  ? addOn?.monthlyPrice
-                  : addOn?.yearlyPrice
+                planPeriod === "year" ? addOn?.yearlyPrice : addOn?.monthlyPrice
               )?.id;
 
               if (addOnPriceId) {
@@ -236,9 +236,9 @@ export const Sidebar = ({
               { entitlement, quantity },
             ) => {
               const priceId = (
-                planPeriod === "month"
-                  ? entitlement.meteredMonthlyPrice
-                  : entitlement.meteredYearlyPrice
+                planPeriod === "year"
+                  ? entitlement.meteredYearlyPrice
+                  : entitlement.meteredMonthlyPrice
               )?.priceId;
 
               if (priceId) {
@@ -425,6 +425,12 @@ export const Sidebar = ({
     trialEndsOn.setDate(trialEndsOn.getDate() + selectedPlan.trialDays);
   }
 
+  const selectedPlanBillingPrice = getBillingPrice(
+    planPeriod === "year"
+      ? selectedPlan?.yearlyPrice
+      : selectedPlan?.monthlyPrice,
+  );
+
   return (
     <Flex
       ref={checkoutRef}
@@ -585,14 +591,8 @@ export const Sidebar = ({
                     $color={theme.typography.text.color}
                   >
                     {formatCurrency(
-                      (planPeriod === "month"
-                        ? selectedPlan.monthlyPrice
-                        : selectedPlan.yearlyPrice
-                      )?.price ?? 0,
-                      (planPeriod === "month"
-                        ? selectedPlan.monthlyPrice
-                        : selectedPlan.yearlyPrice
-                      )?.currency,
+                      selectedPlanBillingPrice?.price ?? 0,
+                      selectedPlanBillingPrice?.currency,
                     )}
                     <sub>/{shortenPeriod(planPeriod)}</sub>
                   </Text>
@@ -622,11 +622,15 @@ export const Sidebar = ({
                 index,
               ) => {
                 if (typeof allocation === "number" && usage.feature?.name) {
-                  const price = (
-                    planPeriod === "month"
-                      ? usage.monthlyUsageBasedPrice
-                      : usage.yearlyUsageBasedPrice
-                  )?.price;
+                  const {
+                    price: entitlementPrice,
+                    currency: entitlementCurrency,
+                  } =
+                    getBillingPrice(
+                      planPeriod === "year"
+                        ? usage.yearlyUsageBasedPrice
+                        : usage.monthlyUsageBasedPrice,
+                    ) || {};
 
                   acc.push(
                     <Flex
@@ -663,32 +667,24 @@ export const Sidebar = ({
                           $weight={theme.typography.text.fontWeight}
                           $color={theme.typography.text.color}
                         >
-                          {usage.priceBehavior === "pay_in_advance" &&
-                            typeof price === "number" && (
-                              <>
-                                {formatCurrency(
-                                  price * quantity,
-                                  (planPeriod === "month"
-                                    ? usage.monthlyUsageBasedPrice
-                                    : usage.yearlyUsageBasedPrice
-                                  )?.currency,
-                                )}
-                                <sub>/{shortenPeriod(planPeriod)}</sub>
-                              </>
-                            )}
-                          {usage.priceBehavior === "pay_as_you_go" &&
-                            typeof price === "number" && (
-                              <>
-                                {formatCurrency(
-                                  price,
-                                  (planPeriod === "month"
-                                    ? usage.monthlyUsageBasedPrice
-                                    : usage.yearlyUsageBasedPrice
-                                  )?.currency,
-                                )}
-                                <sub>/{getFeatureName(usage.feature, 1)}</sub>
-                              </>
-                            )}
+                          {usage.priceBehavior === "pay_in_advance" && (
+                            <>
+                              {formatCurrency(
+                                (entitlementPrice ?? 0) * quantity,
+                                entitlementCurrency,
+                              )}
+                              <sub>/{shortenPeriod(planPeriod)}</sub>
+                            </>
+                          )}
+                          {usage.priceBehavior === "pay_as_you_go" && (
+                            <>
+                              {formatCurrency(
+                                entitlementPrice ?? 0,
+                                entitlementCurrency,
+                              )}
+                              <sub>/{getFeatureName(usage.feature, 1)}</sub>
+                            </>
+                          )}
                         </Text>
                       </Box>
                     </Flex>,
@@ -707,6 +703,16 @@ export const Sidebar = ({
                 index,
               ) => {
                 if (entitlement?.feature?.name) {
+                  const {
+                    price: entitlementPrice,
+                    currency: entitlementCurrency,
+                  } =
+                    getBillingPrice(
+                      planPeriod === "year"
+                        ? entitlement.meteredYearlyPrice
+                        : entitlement.meteredMonthlyPrice,
+                    ) || {};
+
                   acc.push(
                     <Box key={index}>
                       <Flex
@@ -737,14 +743,8 @@ export const Sidebar = ({
                             $color={theme.typography.text.color}
                           >
                             {formatCurrency(
-                              ((planPeriod === "month"
-                                ? entitlement.meteredMonthlyPrice
-                                : entitlement.meteredYearlyPrice
-                              )?.price || 0) * previous.quantity,
-                              (planPeriod === "month"
-                                ? entitlement.meteredMonthlyPrice
-                                : entitlement.meteredYearlyPrice
-                              )?.currency,
+                              (entitlementPrice ?? 0) * previous.quantity,
+                              entitlementCurrency,
                             )}
                             <sub>/{shortenPeriod(planPeriod)}</sub>
                           </Text>
@@ -777,14 +777,8 @@ export const Sidebar = ({
                             $color={theme.typography.text.color}
                           >
                             {formatCurrency(
-                              ((planPeriod === "month"
-                                ? entitlement.meteredMonthlyPrice
-                                : entitlement.meteredYearlyPrice
-                              )?.price || 0) * next.quantity,
-                              (planPeriod === "month"
-                                ? entitlement.meteredMonthlyPrice
-                                : entitlement.meteredYearlyPrice
-                              )?.currency,
+                              (entitlementPrice ?? 0) * next.quantity,
+                              entitlementCurrency,
                             )}
                             <sub>/{shortenPeriod(planPeriod)}</sub>
                           </Text>
@@ -802,11 +796,15 @@ export const Sidebar = ({
             {addedUsageBasedEntitlements.reduce(
               (acc: React.ReactElement[], { entitlement, quantity }, index) => {
                 if (entitlement.feature?.name) {
-                  const price = (
-                    planPeriod === "month"
-                      ? entitlement.meteredMonthlyPrice
-                      : entitlement.meteredYearlyPrice
-                  )?.price;
+                  const {
+                    price: entitlementPrice,
+                    currency: entitlementCurrency,
+                  } =
+                    getBillingPrice(
+                      planPeriod === "year"
+                        ? entitlement.meteredYearlyPrice
+                        : entitlement.meteredMonthlyPrice,
+                    ) || {};
 
                   acc.push(
                     <Flex
@@ -840,34 +838,26 @@ export const Sidebar = ({
                           $weight={theme.typography.text.fontWeight}
                           $color={theme.typography.text.color}
                         >
-                          {entitlement.priceBehavior === "pay_in_advance" &&
-                            typeof price === "number" && (
-                              <>
-                                {formatCurrency(
-                                  price * quantity,
-                                  (planPeriod === "month"
-                                    ? entitlement.meteredMonthlyPrice
-                                    : entitlement.meteredYearlyPrice
-                                  )?.currency,
-                                )}
-                                <sub>/{shortenPeriod(planPeriod)}</sub>
-                              </>
-                            )}
-                          {entitlement.priceBehavior === "pay_as_you_go" &&
-                            typeof price === "number" && (
-                              <>
-                                {formatCurrency(
-                                  price,
-                                  (planPeriod === "month"
-                                    ? entitlement.meteredMonthlyPrice
-                                    : entitlement.meteredYearlyPrice
-                                  )?.currency,
-                                )}
-                                <sub>
-                                  /{getFeatureName(entitlement.feature, 1)}
-                                </sub>
-                              </>
-                            )}
+                          {entitlement.priceBehavior === "pay_in_advance" && (
+                            <>
+                              {formatCurrency(
+                                (entitlementPrice ?? 0) * quantity,
+                                entitlementCurrency,
+                              )}
+                              <sub>/{shortenPeriod(planPeriod)}</sub>
+                            </>
+                          )}
+                          {entitlement.priceBehavior === "pay_as_you_go" && (
+                            <>
+                              {formatCurrency(
+                                entitlementPrice ?? 0,
+                                entitlementCurrency,
+                              )}
+                              <sub>
+                                /{getFeatureName(entitlement.feature, 1)}
+                              </sub>
+                            </>
+                          )}
                         </Text>
                       </Box>
                     </Flex>,
@@ -917,14 +907,8 @@ export const Sidebar = ({
                 >
                   -
                   {formatCurrency(
-                    (planPeriod === "month"
-                      ? selectedPlan.monthlyPrice
-                      : selectedPlan.yearlyPrice
-                    )?.price ?? 0,
-                    (planPeriod === "month"
-                      ? selectedPlan.monthlyPrice
-                      : selectedPlan.yearlyPrice
-                    )?.currency,
+                    selectedPlanBillingPrice?.price ?? 0,
+                    selectedPlanBillingPrice?.currency,
                   )}
                   /<sub>{shortenPeriod(planPeriod)}</sub>
                 </Text>
@@ -946,28 +930,74 @@ export const Sidebar = ({
               </Text>
             </Box>
 
-            {removedAddOns.map((addOn, index) => (
-              <Flex
-                key={index}
-                $justifyContent="space-between"
-                $alignItems="center"
-                $gap="1rem"
-                $opacity="0.625"
-                $textDecoration="line-through"
-                $color={theme.typography.heading4.color}
-              >
-                <Box>
-                  <Text
-                    $font={theme.typography.heading4.fontFamily}
-                    $size={theme.typography.heading4.fontSize}
-                    $weight={theme.typography.heading4.fontWeight}
-                    $color={theme.typography.heading4.color}
-                  >
-                    {addOn.name}
-                  </Text>
-                </Box>
+            {removedAddOns.map((addOn, index) => {
+              return (
+                <Flex
+                  key={index}
+                  $justifyContent="space-between"
+                  $alignItems="center"
+                  $gap="1rem"
+                  $opacity="0.625"
+                  $textDecoration="line-through"
+                  $color={theme.typography.heading4.color}
+                >
+                  <Box>
+                    <Text
+                      $font={theme.typography.heading4.fontFamily}
+                      $size={theme.typography.heading4.fontSize}
+                      $weight={theme.typography.heading4.fontWeight}
+                      $color={theme.typography.heading4.color}
+                    >
+                      {addOn.name}
+                    </Text>
+                  </Box>
 
-                {typeof addOn.planPrice === "number" && addOn.planPeriod && (
+                  {typeof addOn.planPrice === "number" && addOn.planPeriod && (
+                    <Box $whiteSpace="nowrap">
+                      <Text
+                        $font={theme.typography.text.fontFamily}
+                        $size={theme.typography.text.fontSize}
+                        $weight={theme.typography.text.fontWeight}
+                        $color={theme.typography.text.color}
+                      >
+                        {formatCurrency(
+                          addOn.planPrice,
+                          selectedPlanBillingPrice?.currency,
+                        )}
+                        <sub>/{shortenPeriod(addOn.planPeriod)}</sub>
+                      </Text>
+                    </Box>
+                  )}
+                </Flex>
+              );
+            })}
+
+            {selectedAddOns.map((addOn, index) => {
+              const { price: addOnPrice, currency: addOnCurrency } =
+                getBillingPrice(
+                  planPeriod === "year"
+                    ? addOn.yearlyPrice
+                    : addOn.monthlyPrice,
+                ) || {};
+
+              return (
+                <Flex
+                  key={index}
+                  $justifyContent="space-between"
+                  $alignItems="center"
+                  $gap="1rem"
+                >
+                  <Box>
+                    <Text
+                      $font={theme.typography.heading4.fontFamily}
+                      $size={theme.typography.heading4.fontSize}
+                      $weight={theme.typography.heading4.fontWeight}
+                      $color={theme.typography.heading4.color}
+                    >
+                      {addOn.name}
+                    </Text>
+                  </Box>
+
                   <Box $whiteSpace="nowrap">
                     <Text
                       $font={theme.typography.text.fontFamily}
@@ -975,60 +1005,13 @@ export const Sidebar = ({
                       $weight={theme.typography.text.fontWeight}
                       $color={theme.typography.text.color}
                     >
-                      {formatCurrency(
-                        addOn.planPrice,
-                        (planPeriod === "month"
-                          ? selectedPlan?.monthlyPrice
-                          : selectedPlan?.yearlyPrice
-                        )?.currency,
-                      )}
-                      <sub>/{shortenPeriod(addOn.planPeriod)}</sub>
+                      {formatCurrency(addOnPrice ?? 0, addOnCurrency)}
+                      <sub>/{shortenPeriod(planPeriod)}</sub>
                     </Text>
                   </Box>
-                )}
-              </Flex>
-            ))}
-
-            {selectedAddOns.map((addOn, index) => (
-              <Flex
-                key={index}
-                $justifyContent="space-between"
-                $alignItems="center"
-                $gap="1rem"
-              >
-                <Box>
-                  <Text
-                    $font={theme.typography.heading4.fontFamily}
-                    $size={theme.typography.heading4.fontSize}
-                    $weight={theme.typography.heading4.fontWeight}
-                    $color={theme.typography.heading4.color}
-                  >
-                    {addOn.name}
-                  </Text>
-                </Box>
-
-                <Box $whiteSpace="nowrap">
-                  <Text
-                    $font={theme.typography.text.fontFamily}
-                    $size={theme.typography.text.fontSize}
-                    $weight={theme.typography.text.fontWeight}
-                    $color={theme.typography.text.color}
-                  >
-                    {formatCurrency(
-                      (planPeriod === "month"
-                        ? addOn.monthlyPrice
-                        : addOn.yearlyPrice
-                      )?.price ?? 0,
-                      (planPeriod === "month"
-                        ? addOn.monthlyPrice
-                        : addOn.yearlyPrice
-                      )?.currency,
-                    )}
-                    <sub>/{shortenPeriod(planPeriod)}</sub>
-                  </Text>
-                </Box>
-              </Flex>
-            ))}
+                </Flex>
+              );
+            })}
           </Flex>
         )}
 
@@ -1074,10 +1057,7 @@ export const Sidebar = ({
                     >
                       {formatCurrency(
                         proration,
-                        (planPeriod === "month"
-                          ? selectedPlan?.monthlyPrice
-                          : selectedPlan?.yearlyPrice
-                        )?.currency,
+                        selectedPlanBillingPrice?.currency,
                       )}
                     </Text>
                   </Flex>
@@ -1178,10 +1158,7 @@ export const Sidebar = ({
               >
                 {formatCurrency(
                   (newCharges / 100) * percentOff,
-                  (planPeriod === "month"
-                    ? selectedPlan?.monthlyPrice
-                    : selectedPlan?.yearlyPrice
-                  )?.currency,
+                  selectedPlanBillingPrice?.currency,
                 )}
               </Text>
             </Box>
@@ -1204,10 +1181,7 @@ export const Sidebar = ({
                 {t("X off", {
                   amount: formatCurrency(
                     Math.abs(amountOff),
-                    (planPeriod === "month"
-                      ? selectedPlan?.monthlyPrice
-                      : selectedPlan?.yearlyPrice
-                    )?.currency,
+                    selectedPlanBillingPrice?.currency,
                   ),
                 })}
               </Text>
@@ -1223,10 +1197,7 @@ export const Sidebar = ({
                 -
                 {formatCurrency(
                   Math.abs(amountOff),
-                  (planPeriod === "month"
-                    ? selectedPlan?.monthlyPrice
-                    : selectedPlan?.yearlyPrice
-                  )?.currency,
+                  selectedPlanBillingPrice?.currency,
                 )}
               </Text>
             </Box>
@@ -1246,7 +1217,7 @@ export const Sidebar = ({
                 $weight={theme.typography.text.fontWeight}
                 $color={theme.typography.text.color}
               >
-                {planPeriod === "month" ? "Monthly" : "Yearly"} total:
+                {planPeriod === "year" ? "Yearly" : "Monthly"} total:
               </Text>
             </Box>
 
@@ -1290,10 +1261,7 @@ export const Sidebar = ({
               >
                 {formatCurrency(
                   Math.max(0, dueNow),
-                  (planPeriod === "month"
-                    ? selectedPlan?.monthlyPrice
-                    : selectedPlan?.yearlyPrice
-                  )?.currency,
+                  selectedPlanBillingPrice?.currency,
                 )}
               </Text>
             </Box>
@@ -1322,10 +1290,7 @@ export const Sidebar = ({
               >
                 {formatCurrency(
                   Math.abs(dueNow),
-                  (planPeriod === "month"
-                    ? selectedPlan?.monthlyPrice
-                    : selectedPlan?.yearlyPrice
-                  )?.currency,
+                  selectedPlanBillingPrice?.currency,
                 )}
               </Text>
             </Box>

@@ -32,7 +32,7 @@ export function formatCurrency(amount: number, currency?: string) {
     };
 
     if (dollars >= 1_000_000) {
-      formatValue(dollars / 1_000_000, "M");
+      return formatValue(dollars / 1_000_000, "M");
     }
 
     if (dollars >= 1_000) {
