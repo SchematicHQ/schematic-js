@@ -35,7 +35,7 @@ export const Text = styled(Box)
     ...(onClick && { tabIndex: 0 }),
   }))<TextProps>(
   ({
-    display,
+    display = "text",
     theme,
     onClick,
     $font,
@@ -45,9 +45,7 @@ export const Text = styled(Box)
     $leading = 1.35,
     $align,
   }) => {
-    const settings = display
-      ? theme.typography[display]
-      : theme.typography.text;
+    const settings = theme.typography[display];
     const fontFamily = $font || settings.fontFamily;
     const fontSize = $size || settings.fontSize;
     const fontWeight = $weight || settings.fontWeight;
