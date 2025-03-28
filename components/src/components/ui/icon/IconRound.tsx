@@ -1,7 +1,7 @@
 import { IconNames, iconsList } from "schematic-icons";
 
 import { Icon } from "./Icon";
-import { Container } from "./styles";
+import { IconContainer } from "./styles";
 
 export interface IconRoundProps extends React.HTMLAttributes<HTMLElement> {
   name: IconNames | string;
@@ -25,7 +25,7 @@ export const IconRound = ({
     return iconNamesSet.has(value as IconNames);
   };
   return (
-    <Container $size={size} $variant={variant} $colors={colors} {...props}>
+    <IconContainer $size={size} $variant={variant} $colors={colors} {...props}>
       {isIconName(name) ? (
         <Icon name={name} />
       ) : (
@@ -37,6 +37,6 @@ export const IconRound = ({
           {name}
         </span>
       )}
-    </Container>
+    </IconContainer>
   );
 };
