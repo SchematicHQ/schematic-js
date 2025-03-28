@@ -1,5 +1,5 @@
 import debounce from "lodash/debounce";
-import { forwardRef, useLayoutEffect, useState } from "react";
+import { forwardRef, useLayoutEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 
 import { useEmbed } from "../../../hooks";
@@ -18,7 +18,21 @@ export const Viewport = forwardRef<HTMLDivElement | null, ViewportProps>(
 
     const [top, setTop] = useState(0);
 
-    const canCheckout = data.capabilities?.checkout ?? true;
+    const Dialog = useMemo(() => {
+      if ((data.capabilities?.checkout ?? true) && layout === "checkout") {
+        return CheckoutDialog;
+      }
+
+      if (layout === "unsubscribe") {
+        return UnsubscribeDialog;
+      }
+
+      if (layout === "payment") {
+        return PaymentDialog;
+      }
+
+      return null;
+    }, [data.capabilities?.checkout, layout]);
 
     useLayoutEffect(() => {
       const parent = portal || document.body;
@@ -52,16 +66,7 @@ export const Viewport = forwardRef<HTMLDivElement | null, ViewportProps>(
             settings.badge?.visibility !== "hidden") && <Badge />}
         </StyledViewport>
 
-        {canCheckout &&
-          layout === "checkout" &&
-          createPortal(<CheckoutDialog top={top} />, portal || document.body)}
-        {layout === "unsubscribe" &&
-          createPortal(
-            <UnsubscribeDialog top={top} />,
-            portal || document.body,
-          )}
-        {layout === "payment" &&
-          createPortal(<PaymentDialog top={top} />, portal || document.body)}
+        {Dialog && createPortal(<Dialog top={top} />, portal || document.body)}
       </>
     );
   },

@@ -3,6 +3,10 @@ import styled from "styled-components";
 import { Box } from "../../ui";
 
 export const StyledViewport = styled(Box)
+  .withConfig({
+    shouldForwardProp: (prop) =>
+      !["$numberOfColumns", "numberOfColumns"].includes(prop),
+  })
   .attrs(({ theme }) => ({
     $gridTemplateColumns: "repeat(1, minmax(300px, 1fr))",
     $viewport: {
@@ -10,14 +14,9 @@ export const StyledViewport = styled(Box)
         $gridTemplateColumns: `repeat(${theme.numberOfColumns}, minmax(300px, 1fr))`,
       },
     },
-  }))
-  .withConfig({
-    shouldForwardProp: (prop) =>
-      !["$numberOfColumns", "numberOfColumns"].includes(prop),
-  })`
+  }))`
   display: grid;
-
+  gap: 1rem;
   margin-left: auto;
   margin-right: auto;
-  gap: 1rem;
 `;

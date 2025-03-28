@@ -50,6 +50,7 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(
         $left="50%"
         $zIndex="999999"
         $transform="translate(-50%, -50%)"
+        $overflow="hidden"
         $width="100%"
         $height="100%"
         $marginTop={`${top}px`}
@@ -58,7 +59,6 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(
             ? "hsla(0, 0%, 87.5%, 0.9)"
             : "hsla(0, 0%, 12.5%, 0.9)"
         }
-        $overflow="hidden"
         $scrollbarColor={`${isLightBackground ? "hsla(0, 0%, 0%, 0.15)" : "hsla(0, 0%, 100%, 0.15)"} transparent`}
         $scrollbarWidth="thin"
         $scrollbarGutter="stable both-edges"

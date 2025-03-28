@@ -3,12 +3,12 @@ import {
   useElements,
   useStripe,
 } from "@stripe/react-stripe-js";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 
 import { useEmbed } from "../../../hooks";
-import { Box, EmbedButton, Text } from "../../ui";
+import { Box, EmbedButton, Flex, Text } from "../../ui";
 
 interface PaymentFormProps {
   onConfirm?: (paymentMethodId: string) => void;
@@ -28,55 +28,55 @@ export const PaymentForm = ({ onConfirm }: PaymentFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
 
-  const handleSubmit: React.FormEventHandler<HTMLFormElement> = async (
-    event,
-  ) => {
-    event.preventDefault();
+  const handleSubmit: React.FormEventHandler<HTMLFormElement> = useMemo(() => {
+    return async (event) => {
+      event.preventDefault();
 
-    if (!api || !stripe || !elements) {
-      return;
-    }
-
-    setIsLoading(true);
-    setIsConfirmed(false);
-    setMessage(null);
-
-    try {
-      const { setupIntent, error } = await stripe.confirmSetup({
-        elements,
-        confirmParams: {
-          return_url: window.location.href,
-        },
-        redirect: "if_required",
-      });
-
-      if (onConfirm && typeof setupIntent?.payment_method === "string") {
-        onConfirm(setupIntent.payment_method);
-        setIsConfirmed(true);
-      } else {
-        // TODO: handle other payment method types
+      if (!api || !stripe || !elements) {
+        return;
       }
 
-      if (error?.type === "card_error" || error?.type === "validation_error") {
-        setMessage(error.message as string);
+      setIsLoading(true);
+      setIsConfirmed(false);
+      setMessage(null);
+
+      try {
+        const { setupIntent, error } = await stripe.confirmSetup({
+          elements,
+          confirmParams: {
+            return_url: window.location.href,
+          },
+          redirect: "if_required",
+        });
+
+        if (onConfirm && typeof setupIntent?.payment_method === "string") {
+          onConfirm(setupIntent.payment_method);
+          setIsConfirmed(true);
+        } else {
+          // TODO: handle other payment method types
+        }
+
+        if (
+          error?.type === "card_error" ||
+          error?.type === "validation_error"
+        ) {
+          setMessage(error.message as string);
+        }
+      } catch {
+        setMessage(t("A problem occurred while saving your payment method."));
+      } finally {
+        setIsLoading(false);
       }
-    } catch {
-      setMessage(t("A problem occurred while saving your payment method."));
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    };
+  }, [t, stripe, elements, api, onConfirm]);
 
   return (
-    <form
+    <Flex
+      as="form"
       id="payment-form"
       onSubmit={handleSubmit}
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        overflowX: "hidden",
-        overflowY: "auto",
-      }}
+      $flexDirection="column"
+      $overflow="auto"
     >
       <Box $marginBottom="1.5rem">
         <PaymentElement id="payment-element" />
@@ -85,8 +85,8 @@ export const PaymentForm = ({ onConfirm }: PaymentFormProps) => {
       <EmbedButton
         id="submit"
         disabled={isLoading || !stripe || !elements || isConfirmed}
-        isLoading={isLoading}
         style={{ flexShrink: 0 }}
+        isLoading={isLoading}
         $color="primary"
       >
         {isLoading ? t("Loading") : t("Save payment method")}
@@ -105,6 +105,6 @@ export const PaymentForm = ({ onConfirm }: PaymentFormProps) => {
           </Text>
         </Box>
       )}
-    </form>
+    </Flex>
   );
 };

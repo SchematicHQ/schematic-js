@@ -13,13 +13,13 @@ export const Button = styled.button<{
   $variant: ButtonVariantTypes;
 }>`
   appearance: none;
-  font-family: Manrope, Arial, Helvetica, sans-serif;
-  font-weight: 800;
-  line-height: 1;
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 0.5rem;
+  font-family: Manrope, Arial, Helvetica, sans-serif;
+  font-weight: 800;
+  line-height: 1;
   border: 1px solid transparent;
 
   &:hover {

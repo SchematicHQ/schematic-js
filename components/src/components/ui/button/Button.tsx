@@ -9,8 +9,8 @@ export type ButtonVariantTypes = "solid" | "outline" | "ghost" | "link";
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  color?: ButtonStyleTypes;
   size?: ButtonSizeTypes;
+  color?: ButtonStyleTypes;
   variant?: ButtonVariantTypes;
   isLoading?: boolean;
 }
@@ -18,12 +18,12 @@ export interface ButtonProps
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   (
     {
-      color = "white",
-      size = "md",
-      variant = "solid",
-      disabled = false,
-      isLoading = false,
       children,
+      disabled = false,
+      size = "md",
+      color = "white",
+      variant = "solid",
+      isLoading = false,
       ...props
     },
     ref,
@@ -31,10 +31,10 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     return (
       <styles.Button
         ref={ref}
-        $color={color}
-        $size={size}
-        $variant={variant}
         disabled={disabled}
+        $size={size}
+        $color={color}
+        $variant={variant}
         {...props}
       >
         <Loader $size="sm" $isLoading={isLoading} />

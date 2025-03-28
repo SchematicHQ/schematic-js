@@ -20,7 +20,7 @@ export const EmbedButton = styled(Button)<{
   font-weight: 500;
   text-align: center;
 
-  ${({ disabled, $color = "primary", theme }) => {
+  ${({ disabled, theme, $color = "primary" }) => {
     const { l } = hexToHSL(theme[$color]);
 
     let textColor;
@@ -46,7 +46,7 @@ export const EmbedButton = styled(Button)<{
     `;
   }};
 
-  ${({ disabled, $color = "primary", theme, $variant = "filled" }) => {
+  ${({ disabled, theme, $color = "primary", $variant = "filled" }) => {
     const { l } = hexToHSL(theme.card.background);
 
     let color = theme[$color];
@@ -102,7 +102,7 @@ export const EmbedButton = styled(Button)<{
   }
 
   &:not(:disabled):hover {
-    ${({ $color = "primary", theme, $variant = "filled" }) => {
+    ${({ theme, $color = "primary", $variant = "filled" }) => {
       const specified = theme[$color];
       const lightened = lighten(specified, 0.15);
       const color =
