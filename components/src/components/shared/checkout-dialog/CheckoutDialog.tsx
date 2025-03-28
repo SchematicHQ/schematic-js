@@ -231,7 +231,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       const plan = updates.plan || selectedPlan;
 
       const planPriceId =
-        period === "month" ? plan?.monthlyPrice?.id : plan?.yearlyPrice?.id;
+        period === "year" ? plan?.yearlyPrice?.id : plan?.monthlyPrice?.id;
       if (!api || !plan || !planPriceId) {
         return;
       }
@@ -249,9 +249,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
               (acc: UpdateAddOnRequestBody[], addOn) => {
                 if (addOn.isSelected) {
                   const addOnPriceId = (
-                    period === "month"
-                      ? addOn?.monthlyPrice
-                      : addOn?.yearlyPrice
+                    period === "year" ? addOn?.yearlyPrice : addOn?.monthlyPrice
                   )?.id;
 
                   if (addOnPriceId) {
@@ -274,9 +272,9 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
                 { entitlement, quantity },
               ) => {
                 const priceId = (
-                  period === "month"
-                    ? entitlement.meteredMonthlyPrice
-                    : entitlement.meteredYearlyPrice
+                  period === "year"
+                    ? entitlement.meteredYearlyPrice
+                    : entitlement.meteredMonthlyPrice
                 )?.priceId;
 
                 if (priceId) {
