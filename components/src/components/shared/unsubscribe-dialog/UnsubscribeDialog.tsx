@@ -54,7 +54,7 @@ export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
         quantity: number;
         usage: number;
       }[],
-      entitlement: PlanEntitlementResponseData,
+      entitlement,
     ) => {
       if (
         entitlement.priceBehavior &&
