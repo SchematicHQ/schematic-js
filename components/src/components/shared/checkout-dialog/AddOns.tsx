@@ -3,7 +3,7 @@ import { useTheme } from "styled-components";
 
 import type { CompanyPlanDetailResponseData } from "../../../api";
 import { TEXT_BASE_SIZE } from "../../../const";
-import { formatCurrency, hexToHSL } from "../../../utils";
+import { formatCurrency, getBillingPrice, hexToHSL } from "../../../utils";
 import { cardBoxShadow } from "../../layout";
 import { Box, EmbedButton, Flex, Icon, Text } from "../../ui";
 
@@ -31,6 +31,11 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
         $gap="1rem"
       >
         {addOns.map((addOn, index) => {
+          const { price, currency } =
+            getBillingPrice(
+              period === "year" ? addOn.yearlyPrice : addOn.monthlyPrice,
+            ) || {};
+
           return (
             <Flex
               key={index}
@@ -78,16 +83,7 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
                       $weight={theme.typography.heading2.fontWeight}
                       $color={theme.typography.heading2.color}
                     >
-                      {formatCurrency(
-                        (period === "month"
-                          ? addOn.monthlyPrice
-                          : addOn.yearlyPrice
-                        )?.price ?? 0,
-                        (period === "month"
-                          ? addOn.monthlyPrice
-                          : addOn.yearlyPrice
-                        )?.currency,
-                      )}
+                      {formatCurrency(price ?? 0, currency)}
                     </Text>
 
                     <Text
@@ -106,15 +102,20 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
                     $position="absolute"
                     $right="1rem"
                     $top="1rem"
-                    $fontSize="0.75rem"
-                    $color={
-                      hexToHSL(theme.primary).l > 50 ? "#000000" : "#FFFFFF"
-                    }
                     $backgroundColor={theme.primary}
                     $borderRadius="9999px"
                     $padding="0.125rem 0.85rem"
                   >
-                    {t("Active")}
+                    <Text
+                      $font={theme.typography.text.fontFamily}
+                      $size={0.75 * theme.typography.text.fontSize}
+                      $weight={theme.typography.text.fontWeight}
+                      $color={
+                        hexToHSL(theme.primary).l > 50 ? "#000000" : "#FFFFFF"
+                      }
+                    >
+                      {t("Active")}
+                    </Text>
                   </Flex>
                 )}
               </Flex>

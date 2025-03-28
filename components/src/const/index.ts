@@ -7,3 +7,5 @@ export const MAX_VISIBLE_INVOICE_COUNT = 12;
 export const DEBOUNCE_TIMEOUT = 250;
 
 export const DEFAULT_CURRENCY = "USD";
+
+export const MAXIMUM_SIGNIFICANT_DIGITS = 6;

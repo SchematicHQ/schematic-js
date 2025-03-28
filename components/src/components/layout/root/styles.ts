@@ -8,6 +8,7 @@ export const Container = styled(Box)`
   display: block;
   font-size: 1rem;
   width: 100%;
+  height: 100%;
 
   *,
   *::before,

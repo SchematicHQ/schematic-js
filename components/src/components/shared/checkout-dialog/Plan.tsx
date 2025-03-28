@@ -8,6 +8,7 @@ import {
   darken,
   formatCurrency,
   formatNumber,
+  getBillingPrice,
   getFeatureName,
   hexToHSL,
   lighten,
@@ -100,13 +101,17 @@ export const Plan = ({
           const count = entitlementCounts[plan.id];
           const isExpanded = count.limit > VISIBLE_ENTITLEMENT_COUNT;
           const { price: planPrice, currency: planCurrency } =
-            (period === "month"
-              ? plan.monthlyPrice
-              : period === "year" && plan.yearlyPrice) || {};
+            getBillingPrice(
+              period === "year" ? plan.yearlyPrice : plan.monthlyPrice,
+            ) || {};
           const hasUsageBasedEntitlements = plan.entitlements.some(
             (entitlement) => !!entitlement.priceBehavior,
           );
           const isUsageBasedPlan = planPrice === 0 && hasUsageBasedEntitlements;
+          const headerPriceFontStyle =
+            plan.custom || isUsageBasedPlan
+              ? theme.typography.heading3
+              : theme.typography.heading2;
 
           return (
             <Flex
@@ -165,15 +170,15 @@ export const Plan = ({
 
                 <Box>
                   <Text
-                    $font={theme.typography.heading2.fontFamily}
-                    $size={theme.typography.heading2.fontSize}
-                    $weight={theme.typography.heading2.fontWeight}
-                    $color={theme.typography.heading2.color}
+                    $font={headerPriceFontStyle.fontFamily}
+                    $size={headerPriceFontStyle.fontSize}
+                    $weight={headerPriceFontStyle.fontWeight}
+                    $color={headerPriceFontStyle.color}
                   >
                     {plan.custom
                       ? plan.customPlanConfig?.priceText
                         ? plan.customPlanConfig.priceText
-                        : t("Custom Plan Price")
+                        : t("Custom price")
                       : isUsageBasedPlan
                         ? t("Usage-based")
                         : formatCurrency(planPrice ?? 0, planCurrency)}
@@ -196,15 +201,20 @@ export const Plan = ({
                     $position="absolute"
                     $right="1rem"
                     $top="1rem"
-                    $fontSize="0.75rem"
-                    $color={
-                      hexToHSL(theme.primary).l > 50 ? "#000000" : "#FFFFFF"
-                    }
                     $backgroundColor={theme.primary}
                     $borderRadius="9999px"
                     $padding="0.125rem 0.85rem"
                   >
-                    {t("Active")}
+                    <Text
+                      $font={theme.typography.text.fontFamily}
+                      $size={0.75 * theme.typography.text.fontSize}
+                      $weight={theme.typography.text.fontWeight}
+                      $color={
+                        hexToHSL(theme.primary).l > 50 ? "#000000" : "#FFFFFF"
+                      }
+                    >
+                      {t("Active")}
+                    </Text>
                   </Flex>
                 )}
               </Flex>
@@ -249,10 +259,11 @@ export const Plan = ({
                           price: entitlementPrice,
                           currency: entitlementCurrency,
                         } =
-                          (period === "month"
-                            ? entitlement.meteredMonthlyPrice
-                            : period === "year" &&
-                              entitlement.meteredYearlyPrice) || {};
+                          getBillingPrice(
+                            period === "year"
+                              ? entitlement.meteredYearlyPrice
+                              : entitlement.meteredMonthlyPrice,
+                          ) || {};
 
                         if (
                           entitlement.priceBehavior &&
@@ -486,7 +497,7 @@ export const Plan = ({
                         href={plan.customPlanConfig?.ctaWebSite ?? "#"}
                         target="_blank"
                       >
-                        {plan.customPlanConfig?.ctaText ?? t("Custom Plan CTA")}
+                        {plan.customPlanConfig?.ctaText ?? t("Talk to support")}
                       </ButtonLink>
                     ) : !plan.valid ? (
                       <Tooltip

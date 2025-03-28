@@ -1,6 +1,6 @@
 import pluralize from "pluralize";
 
-import { FeatureDetailResponseData } from "../api";
+import type { FeatureDetailResponseData } from "../api";
 
 export const getFeatureName = (
   feature: Pick<
@@ -22,3 +22,18 @@ export const getFeatureName = (
 
   return pluralize(name, count);
 };
+
+export function getBillingPrice<
+  T extends { price: number; priceDecimal?: string | null },
+>(billingPrice?: T): T | undefined {
+  if (!billingPrice) {
+    return;
+  }
+
+  const price =
+    typeof billingPrice.priceDecimal === "string"
+      ? parseFloat(billingPrice.priceDecimal)
+      : billingPrice.price;
+
+  return { ...billingPrice, price };
+}

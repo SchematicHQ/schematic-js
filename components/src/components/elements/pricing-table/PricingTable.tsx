@@ -15,6 +15,7 @@ import {
   darken,
   formatCurrency,
   formatNumber,
+  getBillingPrice,
   getFeatureName,
   hexToHSL,
   lighten,
@@ -239,9 +240,11 @@ export const PricingTable = forwardRef<
                 plan.current &&
                 data.company?.plan?.planPeriod === selectedPeriod;
               const { price: planPrice, currency: planCurrency } =
-                (selectedPeriod === "month"
-                  ? plan.monthlyPrice
-                  : selectedPeriod === "year" && plan.yearlyPrice) || {};
+                getBillingPrice(
+                  selectedPeriod === "year"
+                    ? plan.yearlyPrice
+                    : plan.monthlyPrice,
+                ) || {};
               const count = entitlementCounts[plan.id];
               const isExpanded = count.limit > VISIBLE_ENTITLEMENT_COUNT;
 
@@ -250,6 +253,10 @@ export const PricingTable = forwardRef<
               );
               const isUsageBasedPlan =
                 planPrice === 0 && hasUsageBasedEntitlements;
+              const headerPriceFontStyle =
+                plan.custom || isUsageBasedPlan
+                  ? theme.typography.heading3
+                  : theme.typography[props.plans.name.fontStyle];
 
               return (
                 <Flex
@@ -325,25 +332,15 @@ export const PricingTable = forwardRef<
 
                     <Box>
                       <Text
-                        $font={
-                          theme.typography[props.plans.name.fontStyle]
-                            .fontFamily
-                        }
-                        $size={
-                          theme.typography[props.plans.name.fontStyle].fontSize
-                        }
-                        $weight={
-                          theme.typography[props.plans.name.fontStyle]
-                            .fontWeight
-                        }
-                        $color={
-                          theme.typography[props.plans.name.fontStyle].color
-                        }
+                        $font={headerPriceFontStyle.fontFamily}
+                        $size={headerPriceFontStyle.fontSize}
+                        $weight={headerPriceFontStyle.fontWeight}
+                        $color={headerPriceFontStyle.color}
                       >
                         {plan.custom
                           ? plan.customPlanConfig?.priceText
                             ? plan.customPlanConfig.priceText
-                            : t("Custom Plan Price")
+                            : t("Custom price")
                           : isUsageBasedPlan
                             ? t("Usage-based")
                             : formatCurrency(planPrice ?? 0, planCurrency)}
@@ -378,17 +375,24 @@ export const PricingTable = forwardRef<
                         $position="absolute"
                         $right="1rem"
                         $top="1rem"
-                        $fontSize="0.75rem"
-                        $color={
-                          hexToHSL(theme.primary).l > 50 ? "#000000" : "#FFFFFF"
-                        }
                         $backgroundColor={theme.primary}
                         $borderRadius="9999px"
                         $padding="0.125rem 0.85rem"
                       >
-                        {trialEndDays
-                          ? t("Trial ends in", { days: trialEndDays })
-                          : t("Active")}
+                        <Text
+                          $font={theme.typography.text.fontFamily}
+                          $size={0.75 * theme.typography.text.fontSize}
+                          $weight={theme.typography.text.fontWeight}
+                          $color={
+                            hexToHSL(theme.primary).l > 50
+                              ? "#000000"
+                              : "#FFFFFF"
+                          }
+                        >
+                          {trialEndDays
+                            ? t("Trial ends in", { days: trialEndDays })
+                            : t("Active")}
+                        </Text>
                       </Flex>
                     )}
                   </Flex>
@@ -432,10 +436,11 @@ export const PricingTable = forwardRef<
                                 price: entitlementPrice,
                                 currency: entitlementCurrency,
                               } =
-                                (selectedPeriod === "month"
-                                  ? entitlement.meteredMonthlyPrice
-                                  : selectedPeriod === "year" &&
-                                    entitlement.meteredYearlyPrice) || {};
+                                getBillingPrice(
+                                  selectedPeriod === "year"
+                                    ? entitlement.meteredYearlyPrice
+                                    : entitlement.meteredMonthlyPrice,
+                                ) || {};
 
                               if (
                                 entitlement.priceBehavior &&
@@ -713,7 +718,7 @@ export const PricingTable = forwardRef<
                               target="_blank"
                             >
                               {plan.customPlanConfig?.ctaText ??
-                                t("Custom Plan CTA")}
+                                t("Talk to support")}
                             </ButtonLink>
                           ) : !plan.valid ? (
                             <Tooltip
@@ -770,9 +775,11 @@ export const PricingTable = forwardRef<
                     data.company?.addOns.find((a) => a.id === addOn.id)
                       ?.planPeriod;
                 const { price: addOnPrice, currency: addOnCurrency } =
-                  (selectedPeriod === "month"
-                    ? addOn.monthlyPrice
-                    : selectedPeriod === "year" && addOn.yearlyPrice) || {};
+                  getBillingPrice(
+                    selectedPeriod === "year"
+                      ? addOn.yearlyPrice
+                      : addOn.monthlyPrice,
+                  ) || {};
 
                 return (
                   <Flex
@@ -890,17 +897,22 @@ export const PricingTable = forwardRef<
                           $position="absolute"
                           $right="1rem"
                           $top="1rem"
-                          $fontSize="0.75rem"
-                          $color={
-                            hexToHSL(theme.primary).l > 50
-                              ? "#000000"
-                              : "#FFFFFF"
-                          }
                           $backgroundColor={theme.primary}
                           $borderRadius="9999px"
                           $padding="0.125rem 0.85rem"
                         >
-                          {t("Active")}
+                          <Text
+                            $font={theme.typography.text.fontFamily}
+                            $size={0.75 * theme.typography.text.fontSize}
+                            $weight={theme.typography.text.fontWeight}
+                            $color={
+                              hexToHSL(theme.primary).l > 50
+                                ? "#000000"
+                                : "#FFFFFF"
+                            }
+                          >
+                            {t("Active")}
+                          </Text>
                         </Flex>
                       )}
                     </Flex>

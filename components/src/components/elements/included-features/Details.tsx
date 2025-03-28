@@ -7,6 +7,7 @@ import { useEmbed } from "../../../hooks";
 import {
   formatCurrency,
   formatNumber,
+  getBillingPrice,
   getFeatureName,
   shortenPeriod,
 } from "../../../utils";
@@ -38,28 +39,15 @@ export const Details = ({
 
   const { data } = useEmbed();
 
-  const currency = useMemo(() => {
-    if (data.company?.plan?.planPeriod === "month") {
-      return monthlyUsageBasedPrice?.currency;
-    }
+  const { price, currency } = useMemo(() => {
+    const { price: entitlementPrice, currency: entitlementCurrency } =
+      getBillingPrice(
+        data.company?.plan?.planPeriod === "year"
+          ? yearlyUsageBasedPrice
+          : monthlyUsageBasedPrice,
+      ) || {};
 
-    if (data.company?.plan?.planPeriod === "year") {
-      return yearlyUsageBasedPrice?.currency;
-    }
-  }, [
-    data.company?.plan?.planPeriod,
-    monthlyUsageBasedPrice,
-    yearlyUsageBasedPrice,
-  ]);
-
-  const price = useMemo(() => {
-    if (data.company?.plan?.planPeriod === "month") {
-      return monthlyUsageBasedPrice?.price;
-    }
-
-    if (data.company?.plan?.planPeriod === "year") {
-      return yearlyUsageBasedPrice?.price;
-    }
+    return { price: entitlementPrice, currency: entitlementCurrency };
   }, [
     data.company?.plan?.planPeriod,
     monthlyUsageBasedPrice,

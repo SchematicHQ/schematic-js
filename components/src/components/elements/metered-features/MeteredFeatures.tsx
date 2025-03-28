@@ -15,6 +15,7 @@ import {
   darken,
   formatCurrency,
   formatNumber,
+  getBillingPrice,
   getFeatureName,
   lighten,
   shortenPeriod,
@@ -168,9 +169,11 @@ export const MeteredFeatures = forwardRef<
             usage > softLimit;
 
           const { price, currency } =
-            (planPeriod === "month"
-              ? monthlyUsageBasedPrice
-              : planPeriod === "year" && yearlyUsageBasedPrice) || {};
+            getBillingPrice(
+              planPeriod === "year"
+                ? yearlyUsageBasedPrice
+                : monthlyUsageBasedPrice,
+            ) || {};
 
           const progressBar = props.isVisible &&
             typeof usage === "number" &&
@@ -207,6 +210,10 @@ export const MeteredFeatures = forwardRef<
                       ? darken(theme.card.background, 0.05)
                       : lighten(theme.card.background, 0.1)
                   }
+                  {...(theme.sectionLayout === "separate" && {
+                    $borderBottomLeftRadius: `${theme.card.borderRadius / TEXT_BASE_SIZE}rem`,
+                    $borderBottomRightRadius: `${theme.card.borderRadius / TEXT_BASE_SIZE}rem`,
+                  })}
                 >
                   <Text
                     $font={theme.typography.text.fontFamily}

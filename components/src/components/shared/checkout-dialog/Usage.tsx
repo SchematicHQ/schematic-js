@@ -9,6 +9,7 @@ import { TEXT_BASE_SIZE } from "../../../const";
 import {
   darken,
   formatCurrency,
+  getBillingPrice,
   getFeatureName,
   hexToHSL,
   lighten,
@@ -56,6 +57,13 @@ export const Usage = ({ entitlements, updateQuantity, period }: UsageProps) => {
               entitlement.priceBehavior === "pay_in_advance" &&
               entitlement.feature
             ) {
+              const { price, currency } =
+                getBillingPrice(
+                  period === "year"
+                    ? entitlement.meteredYearlyPrice
+                    : entitlement.meteredMonthlyPrice,
+                ) || {};
+
               acc.push(
                 <Flex
                   key={index}
@@ -150,16 +158,7 @@ export const Usage = ({ entitlements, updateQuantity, period }: UsageProps) => {
                         $weight={theme.typography.text.fontWeight}
                         $color={theme.typography.text.color}
                       >
-                        {formatCurrency(
-                          ((period === "month"
-                            ? entitlement.meteredMonthlyPrice
-                            : entitlement.meteredYearlyPrice
-                          )?.price || 0) * quantity,
-                          (period === "month"
-                            ? entitlement.meteredMonthlyPrice
-                            : entitlement.meteredYearlyPrice
-                          )?.currency,
-                        )}
+                        {formatCurrency((price ?? 0) * quantity, currency)}
                         <sub>/{shortenPeriod(period)}</sub>
                       </Text>
                     </Box>
@@ -171,16 +170,7 @@ export const Usage = ({ entitlements, updateQuantity, period }: UsageProps) => {
                         $weight={theme.typography.text.fontWeight}
                         $color={unitPriceColor}
                       >
-                        {formatCurrency(
-                          (period === "month"
-                            ? entitlement.meteredMonthlyPrice
-                            : entitlement.meteredYearlyPrice
-                          )?.price || 0,
-                          (period === "month"
-                            ? entitlement.meteredMonthlyPrice
-                            : entitlement.meteredYearlyPrice
-                          )?.currency,
-                        )}
+                        {formatCurrency(price ?? 0, currency)}
                         <sub>
                           /{getFeatureName(entitlement.feature, 1)}/
                           {shortenPeriod(period)}
