@@ -2,7 +2,6 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 
-import type { PlanEntitlementResponseData } from "../../../api";
 import {
   useAvailablePlans,
   useEmbed,
@@ -10,6 +9,7 @@ import {
 } from "../../../hooks";
 import { toPrettyDate } from "../../../utils";
 import { Box, EmbedButton, Flex, Icon, Modal, Text } from "../../ui";
+import { createActiveUsageBasedEntitlementsReducer } from "../checkout-dialog";
 import { Sidebar } from "../sidebar";
 
 interface UnsubscribeDialogProps {
@@ -46,36 +46,9 @@ export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
     [data.company?.plan, planPeriod, availablePlans],
   );
 
+  const currentEntitlements = data.featureUsage?.features || [];
   const usageBasedEntitlements = (selectedPlan?.entitlements || []).reduce(
-    (
-      acc: {
-        entitlement: PlanEntitlementResponseData;
-        allocation: number;
-        quantity: number;
-        usage: number;
-      }[],
-      entitlement: PlanEntitlementResponseData,
-    ) => {
-      if (
-        entitlement.priceBehavior &&
-        ((planPeriod === "month" && entitlement.meteredMonthlyPrice) ||
-          (planPeriod === "year" && entitlement.meteredYearlyPrice))
-      ) {
-        const featureUsage = data.featureUsage?.features.find(
-          (usage) => usage.feature?.id === entitlement.feature?.id,
-        );
-        const allocation = featureUsage?.allocation ?? 0;
-        const usage = featureUsage?.usage ?? 0;
-        acc.push({
-          entitlement,
-          allocation,
-          quantity: allocation,
-          usage,
-        });
-      }
-
-      return acc;
-    },
+    createActiveUsageBasedEntitlementsReducer(currentEntitlements, planPeriod),
     [],
   );
 

@@ -1,10 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 
-import type {
-  CompanyPlanDetailResponseData,
-  PlanEntitlementResponseData,
-} from "../../../api";
+import type { CompanyPlanDetailResponseData } from "../../../api";
 import { TEXT_BASE_SIZE } from "../../../const";
 import {
   darken,
@@ -17,17 +14,13 @@ import {
 } from "../../../utils";
 import { cardBoxShadow } from "../../layout";
 import { Box, Flex, Input, Text } from "../../ui";
+import { type UsageBasedEntitlement } from "../sidebar";
 
 interface UsageProps {
   isLoading: boolean;
   period: string;
   selectedPlan?: CompanyPlanDetailResponseData & { isSelected: boolean };
-  entitlements: {
-    entitlement: PlanEntitlementResponseData;
-    allocation: number;
-    quantity: number;
-    usage: number;
-  }[];
+  entitlements: UsageBasedEntitlement[];
   updateQuantity: (id: string, quantity: number) => void;
 }
 
@@ -48,11 +41,7 @@ export const Usage = ({ entitlements, updateQuantity, period }: UsageProps) => {
     <>
       <Flex $flexDirection="column" $gap="1rem">
         {entitlements.reduce(
-          (
-            acc: React.ReactElement[],
-            { entitlement, quantity, usage },
-            index,
-          ) => {
+          (acc: React.ReactElement[], entitlement, index) => {
             if (
               entitlement.priceBehavior === "pay_in_advance" &&
               entitlement.feature
@@ -113,8 +102,8 @@ export const Usage = ({ entitlements, updateQuantity, period }: UsageProps) => {
                     <Input
                       $size="lg"
                       type="number"
-                      value={quantity}
-                      min={usage}
+                      value={entitlement.quantity}
+                      min={entitlement.usage}
                       autoFocus
                       onFocus={(event) => event.target.select()}
                       onChange={(event) => {
@@ -134,13 +123,13 @@ export const Usage = ({ entitlements, updateQuantity, period }: UsageProps) => {
                         $weight={theme.typography.text.fontWeight}
                         $color={unitPriceColor}
                       >
-                        {quantity < usage && (
+                        {entitlement.quantity < entitlement.usage && (
                           <span style={{ color: "#DB6669" }}>
                             {t("Cannot downgrade entitlement")}{" "}
                           </span>
                         )}
                         {t("Currently using", {
-                          quantity: usage,
+                          quantity: entitlement.usage,
                           unit: getFeatureName(entitlement.feature),
                         })}
                       </Text>
@@ -158,7 +147,10 @@ export const Usage = ({ entitlements, updateQuantity, period }: UsageProps) => {
                         $weight={theme.typography.text.fontWeight}
                         $color={theme.typography.text.color}
                       >
-                        {formatCurrency((price ?? 0) * quantity, currency)}
+                        {formatCurrency(
+                          (price ?? 0) * entitlement.quantity,
+                          currency,
+                        )}
                         <sub>/{shortenPeriod(period)}</sub>
                       </Text>
                     </Box>

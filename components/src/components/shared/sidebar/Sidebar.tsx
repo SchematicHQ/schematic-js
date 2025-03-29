@@ -13,7 +13,6 @@ import type {
   PreviewSubscriptionChangeResponseData,
   UpdateAddOnRequestBody,
   UpdatePayInAdvanceRequestBody,
-  UsageBasedEntitlementResponseData,
 } from "../../../api";
 import {
   type SelectedPlan,
@@ -32,16 +31,23 @@ import { Box, EmbedButton, Flex, Icon, Text } from "../../ui";
 import { type CheckoutStage } from "../checkout-dialog";
 import { StageButton } from "./StageButton";
 
+export interface UsageBasedEntitlement extends PlanEntitlementResponseData {
+  allocation: number;
+  usage: number;
+  quantity: number;
+}
+
+export interface CurrentUsageBasedEntitlement extends FeatureUsageResponseData {
+  allocation: number;
+  usage: number;
+  quantity: number;
+}
+
 interface SidebarProps {
   planPeriod: string;
   selectedPlan?: SelectedPlan;
   addOns: SelectedPlan[];
-  usageBasedEntitlements: {
-    entitlement: PlanEntitlementResponseData;
-    allocation: number;
-    quantity: number;
-    usage: number;
-  }[];
+  usageBasedEntitlements: UsageBasedEntitlement[];
   charges?: PreviewSubscriptionChangeResponseData;
   checkoutRef?: React.RefObject<HTMLDivElement | null>;
   checkoutStage?: string;
@@ -90,42 +96,45 @@ export const Sidebar = ({
 
   const currentAddOns = data.company?.addOns || [];
 
-  const currentUsageBasedEntitlements =
-    data.activeUsageBasedEntitlements.reduce(
-      (
-        acc: {
-          usageData: UsageBasedEntitlementResponseData;
-          allocation: number;
-          quantity: number;
-          usage: number;
-        }[],
-        usageData,
-      ) => {
-        const featureUsage = data.featureUsage?.features.find(
-          (usage) => usage.feature?.id === usageData.featureId,
-        );
-        const allocation = featureUsage?.allocation || 0;
-        const usage = featureUsage?.usage || 0;
+  const currentUsageBasedEntitlements = useMemo(() => {
+    return (data.featureUsage?.features || []).reduce(
+      (acc: CurrentUsageBasedEntitlement[], entitlement) => {
+        if (
+          entitlement.priceBehavior &&
+          ((planPeriod === "month" && entitlement.monthlyUsageBasedPrice) ||
+            (planPeriod === "year" && entitlement.yearlyUsageBasedPrice))
+        ) {
+          const allocation = entitlement.allocation || 0;
+          const usage = entitlement.usage || 0;
 
-        acc.push({
-          usageData,
-          allocation,
-          quantity: allocation ?? usage,
-          usage,
-        });
+          acc.push({
+            ...entitlement,
+            allocation,
+            usage,
+            quantity: allocation ?? usage,
+          });
+        }
 
         return acc;
       },
       [],
     );
+  }, [data.featureUsage?.features, planPeriod]);
 
-  const payInAdvanceEntitlements = usageBasedEntitlements.filter(
-    ({ entitlement }) => entitlement.priceBehavior === "pay_in_advance",
-  );
+  const { payAsYouGoEntitlements, payInAdvanceEntitlements } = useMemo(() => {
+    const payAsYouGoEntitlements: UsageBasedEntitlement[] = [];
+    const payInAdvanceEntitlements = usageBasedEntitlements.filter(
+      (entitlement) => {
+        if (entitlement.priceBehavior === "pay_as_you_go") {
+          payAsYouGoEntitlements.push(entitlement);
+        }
 
-  const payAsYouGoEntitlements = usageBasedEntitlements.filter(
-    ({ entitlement }) => entitlement.priceBehavior === "pay_as_you_go",
-  );
+        return entitlement.priceBehavior === "pay_in_advance";
+      },
+    );
+
+    return { payAsYouGoEntitlements, payInAdvanceEntitlements };
+  }, [usageBasedEntitlements]);
 
   const subscriptionPrice = useMemo(() => {
     let planPrice: number | undefined;
@@ -150,20 +159,22 @@ export const Sidebar = ({
       total += planPrice;
     }
 
-    const addOnCost = addOns.reduce(
-      (sum, addOn) =>
-        sum +
-        (getBillingPrice(
-          planPeriod === "year" ? addOn.yearlyPrice : addOn.monthlyPrice,
-        )?.price ?? 0),
-      0,
-    );
+    const addOnCost = addOns.reduce((sum, addOn) => {
+      if (addOn.isSelected) {
+        sum +=
+          getBillingPrice(
+            planPeriod === "year" ? addOn.yearlyPrice : addOn.monthlyPrice,
+          )?.price ?? 0;
+      }
+
+      return sum;
+    }, 0);
     total += addOnCost;
 
     const payInAdvanceCost = payInAdvanceEntitlements.reduce(
-      (sum, { entitlement, quantity }) =>
+      (sum, entitlement) =>
         sum +
-        quantity *
+        entitlement.quantity *
           (getBillingPrice(
             planPeriod === "year"
               ? entitlement.meteredYearlyPrice
@@ -233,12 +244,10 @@ export const Sidebar = ({
           payInAdvance: payInAdvanceEntitlements.reduce(
             (
               acc: UpdatePayInAdvanceRequestBody[],
-              { entitlement, quantity },
+              { meteredMonthlyPrice, meteredYearlyPrice, quantity },
             ) => {
               const priceId = (
-                planPeriod === "year"
-                  ? entitlement.meteredYearlyPrice
-                  : entitlement.meteredMonthlyPrice
+                planPeriod === "year" ? meteredYearlyPrice : meteredMonthlyPrice
               )?.priceId;
 
               if (priceId) {
@@ -329,86 +338,82 @@ export const Sidebar = ({
     canUpdateSubscription &&
     (!!data.subscription?.paymentMethod || typeof paymentMethodId === "string");
 
-  const changedUsageBasedEntitlements: {
-    entitlement: PlanEntitlementResponseData;
-    previous: {
-      allocation: number;
-      quantity: number;
-      usageData: UsageBasedEntitlementResponseData;
-    };
-    next: {
-      allocation: number;
-      quantity: number;
-      usage: number;
-    };
-  }[] = [];
-  const addedUsageBasedEntitlements = usageBasedEntitlements.reduce(
-    (
-      acc: {
-        entitlement: PlanEntitlementResponseData;
-        quantity: number;
-      }[],
-      selected,
-    ) => {
-      const changed = currentUsageBasedEntitlements.find(
-        (current) =>
-          current.usageData.featureId === selected.entitlement.featureId &&
-          current.quantity !== selected.quantity,
-      );
+  const {
+    changedUsageBasedEntitlements,
+    addedUsageBasedEntitlements,
+    removedUsageBasedEntitlements,
+    willUsageBasedEntitlementsChange,
+  } = useMemo(() => {
+    const changedUsageBasedEntitlements: {
+      previous: CurrentUsageBasedEntitlement;
+      next: UsageBasedEntitlement;
+    }[] = [];
+    const addedUsageBasedEntitlements = selectedPlan
+      ? usageBasedEntitlements.reduce(
+          (acc: UsageBasedEntitlement[], selected) => {
+            const changed = currentUsageBasedEntitlements.find(
+              (current) =>
+                current.entitlementId === selected.id &&
+                current.quantity !== selected.quantity,
+            );
 
-      if (changed) {
-        changedUsageBasedEntitlements.push({
-          entitlement: selected.entitlement,
-          previous: changed,
-          next: {
-            allocation: selected.allocation,
-            quantity: selected.quantity,
-            usage: selected.usage,
+            if (changed) {
+              changedUsageBasedEntitlements.push({
+                previous: changed,
+                next: selected,
+              });
+            } else {
+              acc.push(selected);
+            }
+
+            return acc;
           },
-        });
-      } else {
-        acc.push(selected);
-      }
+          [],
+        )
+      : [];
 
-      return acc;
-    },
-    [],
-  );
+    const removedUsageBasedEntitlements = selectedPlan
+      ? currentUsageBasedEntitlements.reduce(
+          (acc: CurrentUsageBasedEntitlement[], current) => {
+            const match =
+              usageBasedEntitlements.every(
+                (entitlement) => entitlement.id !== current.entitlementId,
+              ) &&
+              data.featureUsage?.features.find(
+                (usage) => usage.entitlementId === current.entitlementId,
+              );
+            if (match) {
+              acc.push({
+                ...match,
+                allocation: current.allocation,
+                usage: current.usage,
+                quantity: current.quantity,
+              });
+            }
 
-  const removedUsageBasedEntitlements = currentUsageBasedEntitlements.reduce(
-    (
-      acc: {
-        usage: FeatureUsageResponseData;
-        allocation: number;
-        quantity: number;
-      }[],
-      current,
-    ) => {
-      const match =
-        usageBasedEntitlements.every(
-          ({ entitlement }) =>
-            entitlement.featureId !== current.usageData.featureId,
-        ) &&
-        data.featureUsage?.features.find(
-          (usage) => usage.feature?.id === current.usageData.featureId,
-        );
-      if (match) {
-        acc.push({
-          usage: match,
-          allocation: current.allocation,
-          quantity: current.quantity,
-        });
-      }
+            return acc;
+          },
+          [],
+        )
+      : [];
 
-      return acc;
-    },
-    [],
-  );
+    const willUsageBasedEntitlementsChange =
+      changedUsageBasedEntitlements.length > 0 ||
+      addedUsageBasedEntitlements.length > 0 ||
+      removedUsageBasedEntitlements.length > 0;
 
-  const willUsageBasedEntitlementsChange =
-    changedUsageBasedEntitlements.length > 0 ||
-    addedUsageBasedEntitlements.length > 0 ||
-    removedUsageBasedEntitlements.length > 0;
+    return {
+      changedUsageBasedEntitlements,
+      addedUsageBasedEntitlements,
+      removedUsageBasedEntitlements,
+      willUsageBasedEntitlementsChange,
+    };
+  }, [
+    selectedPlan,
+    data.featureUsage?.features,
+    currentUsageBasedEntitlements,
+    usageBasedEntitlements,
+  ]);
 
   const removedAddOns = currentAddOns.filter(
     (current) => !selectedAddOns.some((selected) => current.id === selected.id),
@@ -616,20 +621,19 @@ export const Sidebar = ({
             </Box>
 
             {removedUsageBasedEntitlements.reduce(
-              (
-                acc: React.ReactElement[],
-                { allocation, quantity, usage },
-                index,
-              ) => {
-                if (typeof allocation === "number" && usage.feature?.name) {
+              (acc: React.ReactElement[], entitlement, index) => {
+                if (
+                  typeof entitlement.allocation === "number" &&
+                  entitlement.feature?.name
+                ) {
                   const {
                     price: entitlementPrice,
                     currency: entitlementCurrency,
                   } =
                     getBillingPrice(
                       planPeriod === "year"
-                        ? usage.yearlyUsageBasedPrice
-                        : usage.monthlyUsageBasedPrice,
+                        ? entitlement.yearlyUsageBasedPrice
+                        : entitlement.monthlyUsageBasedPrice,
                     ) || {};
 
                   acc.push(
@@ -649,13 +653,16 @@ export const Sidebar = ({
                           $weight={theme.typography.heading4.fontWeight}
                           $color={theme.typography.heading4.color}
                         >
-                          {usage.priceBehavior === "pay_in_advance" ? (
+                          {entitlement.priceBehavior === "pay_in_advance" ? (
                             <>
-                              {quantity}{" "}
-                              {getFeatureName(usage.feature, quantity)}
+                              {entitlement.quantity}{" "}
+                              {getFeatureName(
+                                entitlement.feature,
+                                entitlement.quantity,
+                              )}
                             </>
                           ) : (
-                            usage.feature.name
+                            entitlement.feature.name
                           )}
                         </Text>
                       </Box>
@@ -667,22 +674,24 @@ export const Sidebar = ({
                           $weight={theme.typography.text.fontWeight}
                           $color={theme.typography.text.color}
                         >
-                          {usage.priceBehavior === "pay_in_advance" && (
+                          {entitlement.priceBehavior === "pay_in_advance" && (
                             <>
                               {formatCurrency(
-                                (entitlementPrice ?? 0) * quantity,
+                                (entitlementPrice ?? 0) * entitlement.quantity,
                                 entitlementCurrency,
                               )}
                               <sub>/{shortenPeriod(planPeriod)}</sub>
                             </>
                           )}
-                          {usage.priceBehavior === "pay_as_you_go" && (
+                          {entitlement.priceBehavior === "pay_as_you_go" && (
                             <>
                               {formatCurrency(
                                 entitlementPrice ?? 0,
                                 entitlementCurrency,
                               )}
-                              <sub>/{getFeatureName(usage.feature, 1)}</sub>
+                              <sub>
+                                /{getFeatureName(entitlement.feature, 1)}
+                              </sub>
                             </>
                           )}
                         </Text>
@@ -697,20 +706,16 @@ export const Sidebar = ({
             )}
 
             {changedUsageBasedEntitlements.reduce(
-              (
-                acc: React.ReactElement[],
-                { entitlement, previous, next },
-                index,
-              ) => {
-                if (entitlement?.feature?.name) {
+              (acc: React.ReactElement[], { previous, next }, index) => {
+                if (next.feature?.name) {
                   const {
                     price: entitlementPrice,
                     currency: entitlementCurrency,
                   } =
                     getBillingPrice(
                       planPeriod === "year"
-                        ? entitlement.meteredYearlyPrice
-                        : entitlement.meteredMonthlyPrice,
+                        ? next.meteredYearlyPrice
+                        : next.meteredMonthlyPrice,
                     ) || {};
 
                   acc.push(
@@ -730,8 +735,7 @@ export const Sidebar = ({
                             $weight={theme.typography.heading4.fontWeight}
                             $color={theme.typography.heading4.color}
                           >
-                            {previous.quantity}{" "}
-                            {getFeatureName(entitlement.feature)}
+                            {previous.quantity} {getFeatureName(next.feature)}
                           </Text>
                         </Box>
 
@@ -764,8 +768,7 @@ export const Sidebar = ({
                             $weight={theme.typography.heading4.fontWeight}
                             $color={theme.typography.heading4.color}
                           >
-                            {next.quantity}{" "}
-                            {getFeatureName(entitlement.feature)}
+                            {next.quantity} {getFeatureName(next.feature)}
                           </Text>
                         </Box>
 
@@ -794,7 +797,7 @@ export const Sidebar = ({
             )}
 
             {addedUsageBasedEntitlements.reduce(
-              (acc: React.ReactElement[], { entitlement, quantity }, index) => {
+              (acc: React.ReactElement[], entitlement, index) => {
                 if (entitlement.feature?.name) {
                   const {
                     price: entitlementPrice,
@@ -822,8 +825,11 @@ export const Sidebar = ({
                         >
                           {entitlement.priceBehavior === "pay_in_advance" ? (
                             <>
-                              {quantity}{" "}
-                              {getFeatureName(entitlement.feature, quantity)}
+                              {entitlement.quantity}{" "}
+                              {getFeatureName(
+                                entitlement.feature,
+                                entitlement.quantity,
+                              )}
                             </>
                           ) : (
                             entitlement.feature.name
@@ -841,7 +847,7 @@ export const Sidebar = ({
                           {entitlement.priceBehavior === "pay_in_advance" && (
                             <>
                               {formatCurrency(
-                                (entitlementPrice ?? 0) * quantity,
+                                (entitlementPrice ?? 0) * entitlement.quantity,
                                 entitlementCurrency,
                               )}
                               <sub>/{shortenPeriod(planPeriod)}</sub>
