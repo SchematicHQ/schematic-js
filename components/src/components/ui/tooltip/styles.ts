@@ -1,9 +1,9 @@
 import styled, { css, keyframes } from "styled-components";
 
 import { TEXT_BASE_SIZE } from "../../../const";
-import { Box, type BoxProps, type Position } from "../../ui";
+import { type Position } from "../../ui";
 
-export const Trigger = styled(Box)``;
+export const Trigger = styled.div``;
 
 const coords = (position: Position) => {
   let x = 0;
@@ -80,14 +80,14 @@ export const grow = (translate: { x: number; y: number }) => {
   `;
 };
 
-interface ContentProps extends BoxProps {
+interface ContentProps {
   x: number;
   y: number;
   position: Position;
   zIndex: number;
 }
 
-export const Content = styled(Box).withConfig({
+export const Content = styled.div.withConfig({
   shouldForwardProp: (prop) => !["x", "y", "position", "zIndex"].includes(prop),
 })<ContentProps>(({ x, y, position, zIndex }) => {
   const translate = coords(position);

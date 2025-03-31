@@ -90,11 +90,11 @@ export const PeriodToggle = ({
             }}
           >
             <Text
-              $flexShrink={0}
               $font={theme.typography.text.fontFamily}
               $size={15}
               $weight={option === selectedOption ? 600 : 400}
               $color={theme.typography.text.color}
+              style={{ flexShrink: 0 }}
             >
               {t("Billed", { period: adjectify(option) })}
             </Text>

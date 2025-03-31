@@ -1,23 +1,17 @@
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 
-import { Box } from "../../ui";
-
-export const StyledViewport = styled(Box)
-  .attrs(({ theme }) => ({
-    $gridTemplateColumns: "repeat(1, minmax(300px, 1fr))",
-    $viewport: {
-      md: {
-        $gridTemplateColumns: `repeat(${theme.numberOfColumns}, minmax(300px, 1fr))`,
-      },
-    },
-  }))
-  .withConfig({
-    shouldForwardProp: (prop) =>
-      !["$numberOfColumns", "numberOfColumns"].includes(prop),
-  })`
+export const StyledViewport = styled.div.withConfig({
+  shouldForwardProp: (prop) =>
+    !["$numberOfColumns", "numberOfColumns"].includes(prop),
+})`
   display: grid;
-
+  grid-template-columns: repeat(1, minmax(300px, 1fr));
   margin-left: auto;
   margin-right: auto;
   gap: 1rem;
+
+  @media (min-width: 768px) {
+    grid-template-columns: ${({ theme }) =>
+      css`repeat(${theme.numberOfColumns}, minmax(300px, 1fr))`};
+  }
 `;

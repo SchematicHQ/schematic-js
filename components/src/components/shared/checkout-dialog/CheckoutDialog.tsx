@@ -10,6 +10,7 @@ import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 
 import {
+  type FeatureUsageResponseData,
   type PlanEntitlementResponseData,
   type PreviewSubscriptionChangeResponseData,
   ResponseError,
@@ -24,19 +25,37 @@ import {
 } from "../../../hooks";
 import { PeriodToggle } from "../../shared";
 import { Flex, Modal, ModalHeader, Text } from "../../ui";
-import { Sidebar } from "../sidebar";
+import { Sidebar, type UsageBasedEntitlement } from "../sidebar";
 import { AddOns } from "./AddOns";
 import { Checkout } from "./Checkout";
 import { Navigation } from "./Navigation";
 import { Plan } from "./Plan";
 import { Usage } from "./Usage";
 
-interface UsageBasedEntitlement {
-  entitlement: PlanEntitlementResponseData;
-  allocation: number;
-  quantity: number;
-  usage: number;
-}
+export const createActiveUsageBasedEntitlementsReducer =
+  (entitlements: FeatureUsageResponseData[], period: string) =>
+  (acc: UsageBasedEntitlement[], entitlement: PlanEntitlementResponseData) => {
+    if (
+      entitlement.priceBehavior &&
+      ((period === "month" && entitlement.meteredMonthlyPrice) ||
+        (period === "year" && entitlement.meteredYearlyPrice))
+    ) {
+      const featureUsage = entitlements.find(
+        (usage) => usage.feature?.id === entitlement.feature?.id,
+      );
+      const allocation = featureUsage?.allocation || 0;
+      const usage = featureUsage?.usage || 0;
+
+      acc.push({
+        ...entitlement,
+        allocation,
+        usage,
+        quantity: allocation,
+      });
+    }
+
+    return acc;
+  };
 
 export interface CheckoutStage {
   id: string;
@@ -94,43 +113,16 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     })),
   );
 
-  const createActiveUsageBasedEntitlementsReducer = useCallback(
-    (period = planPeriod) =>
-      (
-        acc: {
-          entitlement: PlanEntitlementResponseData;
-          allocation: number;
-          quantity: number;
-          usage: number;
-        }[],
-        entitlement: PlanEntitlementResponseData,
-      ) => {
-        if (
-          entitlement.priceBehavior &&
-          ((period === "month" && entitlement.meteredMonthlyPrice) ||
-            (period === "year" && entitlement.meteredYearlyPrice))
-        ) {
-          const featureUsage = data.featureUsage?.features.find(
-            (usage) => usage.feature?.id === entitlement.feature?.id,
-          );
-          const allocation = featureUsage?.allocation ?? 0;
-          const usage = featureUsage?.usage ?? 0;
-          acc.push({
-            entitlement,
-            allocation,
-            quantity: allocation,
-            usage,
-          });
-        }
-
-        return acc;
-      },
-    [planPeriod, data.featureUsage?.features],
-  );
+  const currentEntitlements = useMemo(() => {
+    return data.featureUsage?.features || [];
+  }, [data.featureUsage?.features]);
 
   const [usageBasedEntitlements, setUsageBasedEntitlements] = useState(() =>
     (selectedPlan?.entitlements || []).reduce(
-      createActiveUsageBasedEntitlementsReducer(),
+      createActiveUsageBasedEntitlementsReducer(
+        currentEntitlements,
+        planPeriod,
+      ),
       [],
     ),
   );
@@ -138,7 +130,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   const payInAdvanceEntitlements = useMemo(
     () =>
       usageBasedEntitlements.filter(
-        ({ entitlement }) => entitlement.priceBehavior === "pay_in_advance",
+        (entitlement) => entitlement.priceBehavior === "pay_in_advance",
       ),
     [usageBasedEntitlements],
   );
@@ -269,12 +261,10 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
             ).reduce(
               (
                 acc: UpdatePayInAdvanceRequestBody[],
-                { entitlement, quantity },
+                { meteredMonthlyPrice, meteredYearlyPrice, quantity },
               ) => {
                 const priceId = (
-                  period === "year"
-                    ? entitlement.meteredYearlyPrice
-                    : entitlement.meteredMonthlyPrice
+                  period === "year" ? meteredYearlyPrice : meteredMonthlyPrice
                 )?.priceId;
 
                 if (priceId) {
@@ -330,7 +320,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
       const period = updates.period || planPeriod;
       const entitlements = plan.entitlements.reduce(
-        createActiveUsageBasedEntitlementsReducer(period),
+        createActiveUsageBasedEntitlementsReducer(currentEntitlements, period),
         [],
       );
 
@@ -343,16 +333,11 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
         period: period,
         plan: updates.plan,
         payInAdvanceEntitlements: entitlements.filter(
-          ({ entitlement }) => entitlement.priceBehavior === "pay_in_advance",
+          ({ priceBehavior }) => priceBehavior === "pay_in_advance",
         ),
       });
     },
-    [
-      planPeriod,
-      selectedPlan,
-      createActiveUsageBasedEntitlementsReducer,
-      previewCheckout,
-    ],
+    [planPeriod, selectedPlan, currentEntitlements, previewCheckout],
   );
 
   const changePlanPeriod = useCallback(
@@ -379,21 +364,18 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   const updateUsageBasedEntitlementQuantity = useCallback(
     (id: string, updatedQuantity: number) => {
       setUsageBasedEntitlements((prev) => {
-        const updated = prev.map(
-          ({ entitlement, allocation, quantity, usage }) =>
-            entitlement.id === id
-              ? {
-                  entitlement,
-                  allocation,
-                  quantity: updatedQuantity,
-                  usage,
-                }
-              : { entitlement, allocation, quantity, usage },
+        const updated = prev.map((entitlement) =>
+          entitlement.id === id
+            ? {
+                ...entitlement,
+                quantity: updatedQuantity,
+              }
+            : entitlement,
         );
 
         previewCheckout({
           payInAdvanceEntitlements: updated.filter(
-            ({ entitlement }) => entitlement.priceBehavior === "pay_in_advance",
+            ({ priceBehavior }) => priceBehavior === "pay_in_advance",
           ),
         });
 
@@ -523,7 +505,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
                     $size={theme.typography.heading3.fontSize}
                     $weight={theme.typography.heading3.fontWeight}
                     $color={theme.typography.heading3.color}
-                    $marginBottom="0.5rem"
+                    style={{ marginBottom: "0.5rem" }}
                   >
                     {activeCheckoutStage.label}
                   </Text>
