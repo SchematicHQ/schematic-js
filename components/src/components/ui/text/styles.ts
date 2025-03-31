@@ -3,7 +3,6 @@ import styled, { css } from "styled-components";
 import { TEXT_BASE_SIZE } from "../../../const";
 import type { ComponentProps } from "../../../types";
 import { attr } from "../../../utils";
-import { Box, type BoxProps } from "..";
 
 export enum TextPropNames {
   Align = "$align",
@@ -16,7 +15,7 @@ export enum TextPropNames {
 
 export type TextPropNameTypes = `${TextPropNames}`;
 
-export interface TextProps extends BoxProps {
+export interface TextProps {
   $align?: ComponentProps["$textAlign"];
   $font?: ComponentProps["$fontFamily"];
   $size?: ComponentProps["$fontSize"];
@@ -25,8 +24,7 @@ export interface TextProps extends BoxProps {
   $leading?: ComponentProps["$lineHeight"];
 }
 
-export const Text = styled(Box).attrs(({ as = "span", onClick }) => ({
-  as,
+export const Text = styled.span.attrs(({ onClick }) => ({
   ...(onClick && { tabIndex: 0 }),
 }))<TextProps>`
   ${({ $font }) =>

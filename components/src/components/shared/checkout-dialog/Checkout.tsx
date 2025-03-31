@@ -57,7 +57,7 @@ export const Checkout = ({
         $flexGrow={1}
         $marginTop="-3.5rem"
       >
-        <Loader $size="3xl" />
+        <Loader $color={theme.primary} $size="3xl" />
       </Flex>
     );
   }

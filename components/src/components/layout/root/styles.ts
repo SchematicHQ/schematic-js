@@ -1,9 +1,8 @@
 import styled from "styled-components";
 
 import { TEXT_BASE_SIZE } from "../../../const";
-import { Box } from "../../ui";
 
-export const Container = styled(Box)`
+export const Container = styled.div`
   all: initial;
   box-sizing: border-box;
   display: block;

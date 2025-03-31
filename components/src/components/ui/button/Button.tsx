@@ -1,4 +1,5 @@
 import { forwardRef } from "react";
+import { useTheme } from "styled-components";
 
 import { Loader } from "../../ui";
 import * as styles from "./styles";
@@ -28,6 +29,8 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     },
     ref,
   ) => {
+    const theme = useTheme();
+
     return (
       <styles.Button
         ref={ref}
@@ -37,7 +40,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         disabled={disabled}
         {...props}
       >
-        <Loader $size="sm" $isLoading={isLoading} />
+        <Loader $color={theme.primary} $size="sm" $isLoading={isLoading} />
         {children}
       </styles.Button>
     );

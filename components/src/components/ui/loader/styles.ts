@@ -39,7 +39,7 @@ export const Loader = styled.div<{
 
     return css`
       border-color: ${color};
-      border-top-color: ${colorFn(color, 42.5)};
+      border-top-color: ${colorFn(color, 0.425)};
     `;
   }}
 

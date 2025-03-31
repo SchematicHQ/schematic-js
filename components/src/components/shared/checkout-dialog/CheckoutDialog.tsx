@@ -529,7 +529,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
                     $size={theme.typography.heading3.fontSize}
                     $weight={theme.typography.heading3.fontWeight}
                     $color={theme.typography.heading3.color}
-                    $marginBottom="0.5rem"
+                    style={{ marginBottom: "0.5rem" }}
                   >
                     {activeCheckoutStage.label}
                   </Text>

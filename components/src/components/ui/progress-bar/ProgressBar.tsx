@@ -43,11 +43,7 @@ export const ProgressBar = ({
   };
 
   return (
-    <Container
-      $alignItems="center"
-      $gap={`${16 / TEXT_BASE_SIZE}rem`}
-      {...props}
-    >
+    <Container {...props}>
       <Flex
         $position="relative"
         $alignItems="center"

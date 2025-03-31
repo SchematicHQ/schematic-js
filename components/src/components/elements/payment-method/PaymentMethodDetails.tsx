@@ -214,9 +214,10 @@ export const PaymentMethodDetails = ({
           $backgroundColor="black"
           $opacity={0.5}
         >
-          <Loader $size="2xl" />
+          <Loader $color={theme.primary} $size="2xl" />
         </Flex>
       )}
+
       <Flex
         $flexDirection="column"
         $flexGrow="1"
