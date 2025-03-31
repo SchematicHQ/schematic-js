@@ -78,12 +78,6 @@ export interface BillingProductForSubscriptionResponseData {
    * @type {string}
    * @memberof BillingProductForSubscriptionResponseData
    */
-  priceDecimal?: string | null;
-  /**
-   *
-   * @type {string}
-   * @memberof BillingProductForSubscriptionResponseData
-   */
   priceExternalId: string;
   /**
    *
@@ -167,8 +161,6 @@ export function BillingProductForSubscriptionResponseDataFromJSONTyped(
     meterId: json["meter_id"] == null ? undefined : json["meter_id"],
     name: json["name"],
     price: json["price"],
-    priceDecimal:
-      json["price_decimal"] == null ? undefined : json["price_decimal"],
     priceExternalId: json["price_external_id"],
     priceId: json["price_id"],
     quantity: json["quantity"],
@@ -194,7 +186,6 @@ export function BillingProductForSubscriptionResponseDataToJSON(
     meter_id: value["meterId"],
     name: value["name"],
     price: value["price"],
-    price_decimal: value["priceDecimal"],
     price_external_id: value["priceExternalId"],
     price_id: value["priceId"],
     quantity: value["quantity"],
