@@ -117,7 +117,6 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     return data.featureUsage?.features || [];
   }, [data.featureUsage?.features]);
 
-  // TODO: read from current entitlements if the current plan is not available to choose
   const [usageBasedEntitlements, setUsageBasedEntitlements] = useState(() =>
     (selectedPlan?.entitlements || []).reduce(
       createActiveUsageBasedEntitlementsReducer(
@@ -127,29 +126,6 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       [],
     ),
   );
-
-  /* return currentEntitlements.reduce(
-    (acc: CurrentUsageBasedEntitlement[], entitlement) => {
-      if (
-        entitlement.priceBehavior &&
-        ((planPeriod === "month" && entitlement.monthlyUsageBasedPrice) ||
-          (planPeriod === "year" && entitlement.yearlyUsageBasedPrice))
-      ) {
-        const allocation = entitlement.allocation || 0;
-        const usage = entitlement.usage || 0;
-
-        acc.push({
-          ...entitlement,
-          allocation,
-          usage,
-          quantity: allocation,
-        });
-      }
-
-      return acc;
-    },
-    [],
-  ); */
 
   const payInAdvanceEntitlements = useMemo(
     () =>
