@@ -8,6 +8,7 @@ export const Container = styled(Box)`
   box-sizing: border-box;
   display: block;
   font-size: ${TEXT_BASE_SIZE}px;
+  line-height: 1.35;
   width: 100%;
   height: 100%;
 

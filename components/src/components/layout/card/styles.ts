@@ -9,6 +9,8 @@ export const Element = styled(Box)``;
 // instruct a parent `Card` to not apply styles
 export const FussyChild = styled(Element)``;
 
+export const Notice = styled(Box)``;
+
 export const cardBoxShadow =
   "0px 1px 20px 0px #1018280F, 0px 1px 3px 0px #1018281A";
 
@@ -43,6 +45,11 @@ export const StyledCard = styled.div(({ theme }) => {
               margin-bottom: 1rem;
             `}
       }
+    }
+
+    ${Notice}:first-child {
+      border-top-left-radius: ${borderRadius};
+      border-top-right-radius: ${borderRadius};
     }
   `;
 });
