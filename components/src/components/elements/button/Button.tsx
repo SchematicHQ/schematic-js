@@ -1,7 +1,6 @@
 import { forwardRef } from "react";
 import { useTranslation } from "react-i18next";
 
-import { useEmbed } from "../../../hooks";
 import { ComponentStyle, ElementProps, RecursivePartial } from "../../../types";
 import { Element } from "../../layout";
 import {
@@ -56,8 +55,6 @@ export const ButtonElement = forwardRef<
 >(({ children, className, ...rest }, ref) => {
   const props = resolveDesignProps(rest);
   const { t } = useTranslation();
-
-  const { data, setLayout } = useEmbed();
 
   const buttonStyles: Record<
     ComponentStyle,
