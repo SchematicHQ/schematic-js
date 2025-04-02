@@ -2,18 +2,19 @@ import { forwardRef } from "react";
 import { useTheme } from "styled-components";
 
 import type { FontStyle } from "../../../context";
-import { type ComponentProps, ElementProps, RecursivePartial } from "../../../types";
-import { Element } from "../../layout";
 import {
-  Flex,
-  Text,
-} from "../../ui";
+  type ComponentProps,
+  ElementProps,
+  RecursivePartial,
+} from "../../../types";
+import { Element } from "../../layout";
+import { Flex, Text } from "../../ui";
 
 interface DesignProps {
   text: {
-    fontStyle: FontStyle,
-    alignment: ComponentProps["$textAlign"]
-    textContent: string,
+    fontStyle: FontStyle;
+    alignment: ComponentProps["$textAlign"];
+    textContent: string;
   };
 }
 
@@ -43,11 +44,7 @@ export const TextElement = forwardRef<
   const theme = useTheme();
 
   return (
-    <Element
-      as={Flex}
-      ref={ref}
-      className={className}
-    >
+    <Element as={Flex} ref={ref} className={className}>
       <Text
         $font={theme.typography[props.text.fontStyle].fontFamily}
         $size={theme.typography[props.text.fontStyle].fontSize}
@@ -55,7 +52,7 @@ export const TextElement = forwardRef<
         $color={theme.typography[props.text.fontStyle].color}
         $align={props.text.alignment}
       >
-            {props.text.textContent}
+        {props.text.textContent}
       </Text>
     </Element>
   );

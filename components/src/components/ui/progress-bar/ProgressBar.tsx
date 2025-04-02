@@ -2,7 +2,6 @@ import { useTheme } from "styled-components";
 
 import { TEXT_BASE_SIZE } from "../../../const";
 import { Box, Flex, Text } from "../../ui";
-import { Container } from "./styles";
 
 export const progressColorMap = [
   "blue",
@@ -20,7 +19,6 @@ export interface ProgressBarProps
   total?: number | string;
   color?: "gray" | "blue" | "yellow" | "orange" | "red";
   bgColor?: string;
-  barWidth?: string | number;
 }
 
 export const ProgressBar = ({
@@ -29,7 +27,6 @@ export const ProgressBar = ({
   total = 0,
   color = "gray",
   bgColor = "#F2F4F7",
-  barWidth = "100%",
   ...props
 }: ProgressBarProps) => {
   const theme = useTheme();
@@ -43,30 +40,28 @@ export const ProgressBar = ({
   };
 
   return (
-    <Container {...props}>
-      <Flex
-        $position="relative"
-        $alignItems="center"
-        $width={`${barWidth}`}
-        $maxWidth="100%"
+    <Flex
+      $position="relative"
+      $alignItems="center"
+      $gap="1rem"
+      $width="100%"
+      {...props}
+    >
+      <Box
+        $overflow="auto"
+        $width="100%"
+        $height={`${8 / TEXT_BASE_SIZE}rem`}
+        $backgroundColor={bgColor}
+        $borderRadius="9999px"
       >
-        <Flex
-          $position="relative"
-          $overflow="hidden"
-          $width="100%"
-          $height={`${8 / TEXT_BASE_SIZE}rem`}
-          $backgroundColor={bgColor}
-          $borderRadius="9999px"
-        >
-          <Box
-            $width={`${Math.min(progress, 100)}%`}
-            $height="100%"
-            $backgroundColor={barColorMap[color]}
-            $borderRadius="9999px"
-          />
-        </Flex>
-      </Flex>
-      {total !== 0 && (
+        <Box
+          $width={`${Math.min(progress, 100)}%`}
+          $height="100%"
+          $backgroundColor={barColorMap[color]}
+        />
+      </Box>
+
+      {total && (
         <Text
           $font={theme.typography.text.fontFamily}
           $size={14}
@@ -76,6 +71,6 @@ export const ProgressBar = ({
           {value}/{total}
         </Text>
       )}
-    </Container>
+    </Flex>
   );
 };

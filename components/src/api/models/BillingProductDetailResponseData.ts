@@ -70,6 +70,12 @@ export interface BillingProductDetailResponseData {
   price: number;
   /**
    *
+   * @type {string}
+   * @memberof BillingProductDetailResponseData
+   */
+  priceDecimal?: string | null;
+  /**
+   *
    * @type {Array<BillingPriceResponseData>}
    * @memberof BillingProductDetailResponseData
    */
@@ -148,6 +154,8 @@ export function BillingProductDetailResponseDataFromJSONTyped(
     externalId: json["external_id"],
     name: json["name"],
     price: json["price"],
+    priceDecimal:
+      json["price_decimal"] == null ? undefined : json["price_decimal"],
     prices: (json["prices"] as Array<any>).map(
       BillingPriceResponseDataFromJSON,
     ),
@@ -172,6 +180,7 @@ export function BillingProductDetailResponseDataToJSON(
     external_id: value["externalId"],
     name: value["name"],
     price: value["price"],
+    price_decimal: value["priceDecimal"],
     prices: (value["prices"] as Array<any>).map(BillingPriceResponseDataToJSON),
     product_id: value["productId"],
     quantity: value["quantity"],
