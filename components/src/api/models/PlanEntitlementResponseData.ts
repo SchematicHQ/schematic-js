@@ -19,6 +19,12 @@ import {
   EntityTraitDefinitionResponseDataFromJSONTyped,
   EntityTraitDefinitionResponseDataToJSON,
 } from "./EntityTraitDefinitionResponseData";
+import type { BillingProductResponseData } from "./BillingProductResponseData";
+import {
+  BillingProductResponseDataFromJSON,
+  BillingProductResponseDataFromJSONTyped,
+  BillingProductResponseDataToJSON,
+} from "./BillingProductResponseData";
 import type { FeatureResponseData } from "./FeatureResponseData";
 import {
   FeatureResponseDataFromJSON,
@@ -142,6 +148,12 @@ export interface PlanEntitlementResponseData {
   updatedAt: Date;
   /**
    *
+   * @type {BillingProductResponseData}
+   * @memberof PlanEntitlementResponseData
+   */
+  usageBasedProduct?: BillingProductResponseData;
+  /**
+   *
    * @type {boolean}
    * @memberof PlanEntitlementResponseData
    */
@@ -238,6 +250,10 @@ export function PlanEntitlementResponseDataFromJSONTyped(
         : json["rule_id_usage_exceeded"],
     softLimit: json["soft_limit"] == null ? undefined : json["soft_limit"],
     updatedAt: new Date(json["updated_at"]),
+    usageBasedProduct:
+      json["usage_based_product"] == null
+        ? undefined
+        : BillingProductResponseDataFromJSON(json["usage_based_product"]),
     valueBool: json["value_bool"] == null ? undefined : json["value_bool"],
     valueNumeric:
       json["value_numeric"] == null ? undefined : json["value_numeric"],
@@ -274,6 +290,9 @@ export function PlanEntitlementResponseDataToJSON(
     rule_id_usage_exceeded: value["ruleIdUsageExceeded"],
     soft_limit: value["softLimit"],
     updated_at: value["updatedAt"].toISOString(),
+    usage_based_product: BillingProductResponseDataToJSON(
+      value["usageBasedProduct"],
+    ),
     value_bool: value["valueBool"],
     value_numeric: value["valueNumeric"],
     value_trait: EntityTraitDefinitionResponseDataToJSON(value["valueTrait"]),

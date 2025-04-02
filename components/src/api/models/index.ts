@@ -1,11 +1,12 @@
 /* tslint:disable */
-/* eslint-disable */
+ 
 export * from "./ApiError";
 export * from "./BillingPriceResponseData";
 export * from "./BillingPriceView";
 export * from "./BillingProductDetailResponseData";
 export * from "./BillingProductForSubscriptionResponseData";
 export * from "./BillingProductPriceResponseData";
+export * from "./BillingProductPriceTierResponseData";
 export * from "./BillingProductResponseData";
 export * from "./BillingSubscriptionDiscountView";
 export * from "./BillingSubscriptionResponseData";
