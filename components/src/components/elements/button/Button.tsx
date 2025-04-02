@@ -1,5 +1,4 @@
 import { forwardRef } from "react";
-import { useTranslation } from "react-i18next";
 
 import { ComponentStyle, ElementProps, RecursivePartial } from "../../../types";
 import { Element } from "../../layout";
@@ -54,7 +53,6 @@ export const ButtonElement = forwardRef<
     }
 >(({ children, className, ...rest }, ref) => {
   const props = resolveDesignProps(rest);
-  const { t } = useTranslation();
 
   const buttonStyles: Record<
     ComponentStyle,
