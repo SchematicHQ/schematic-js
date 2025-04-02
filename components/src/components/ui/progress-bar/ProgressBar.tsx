@@ -48,7 +48,7 @@ export const ProgressBar = ({
       {...props}
     >
       <Box
-        $overflow="auto"
+        $overflow="hidden"
         $width="100%"
         $height={`${8 / TEXT_BASE_SIZE}rem`}
         $backgroundColor={bgColor}
