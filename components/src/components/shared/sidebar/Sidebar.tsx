@@ -10,7 +10,7 @@ import { useTheme } from "styled-components";
 import type {
   FeatureUsageResponseData,
   PlanEntitlementResponseData,
-  PreviewSubscriptionChangeResponseData,
+  PreviewSubscriptionFinanceResponseData,
   UpdateAddOnRequestBody,
   UpdatePayInAdvanceRequestBody,
 } from "../../../api";
@@ -48,7 +48,7 @@ interface SidebarProps {
   selectedPlan?: SelectedPlan;
   addOns: SelectedPlan[];
   usageBasedEntitlements: UsageBasedEntitlement[];
-  charges?: PreviewSubscriptionChangeResponseData;
+  charges?: PreviewSubscriptionFinanceResponseData;
   checkoutRef?: React.RefObject<HTMLDivElement | null>;
   checkoutStage?: string;
   checkoutStages?: CheckoutStage[];

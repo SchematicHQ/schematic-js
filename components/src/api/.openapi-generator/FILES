@@ -57,6 +57,7 @@ models/PreviewCheckoutResponse.ts
 models/PreviewObject.ts
 models/PreviewObjectResponseData.ts
 models/PreviewSubscriptionChangeResponseData.ts
+models/PreviewSubscriptionFinanceResponseData.ts
 models/RuleConditionDetailResponseData.ts
 models/RuleConditionGroupDetailResponseData.ts
 models/RuleConditionGroupResponseData.ts
