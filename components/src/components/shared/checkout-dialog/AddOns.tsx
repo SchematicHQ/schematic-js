@@ -3,7 +3,7 @@ import { useTheme } from "styled-components";
 
 import type { CompanyPlanDetailResponseData } from "../../../api";
 import { TEXT_BASE_SIZE } from "../../../const";
-import { formatCurrency, getBillingPrice, hexToHSL } from "../../../utils";
+import { formatCurrency, getAddOnPrice, getBillingPrice, hexToHSL } from "../../../utils";
 import { cardBoxShadow } from "../../layout";
 import { Box, EmbedButton, Flex, Icon, Text } from "../../ui";
 
@@ -33,7 +33,7 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
         {addOns.map((addOn, index) => {
           const { price, currency } =
             getBillingPrice(
-              period === "year" ? addOn.yearlyPrice : addOn.monthlyPrice,
+              getAddOnPrice(addOn, period),
             ) || {};
 
           return (
@@ -75,7 +75,7 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
                   </Box>
                 )}
 
-                {addOn[periodKey] && (
+                {(addOn[periodKey] || addOn.chargeType == "one-time") && (
                   <Box>
                     <Text
                       $font={theme.typography.heading2.fontFamily}
@@ -92,7 +92,7 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
                       $weight={theme.typography.heading2.fontWeight}
                       $color={theme.typography.heading2.color}
                     >
-                      /{period}
+                      /{addOn.chargeType == "one-time" ? t("One time") : period}
                     </Text>
                   </Box>
                 )}

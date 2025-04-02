@@ -21,6 +21,12 @@ import { mapValues } from "../runtime";
 export interface BillingProductPriceResponseData {
   /**
    *
+   * @type {string}
+   * @memberof BillingProductPriceResponseData
+   */
+  billingScheme: string;
+  /**
+   *
    * @type {Date}
    * @memberof BillingProductPriceResponseData
    */
@@ -66,6 +72,12 @@ export interface BillingProductPriceResponseData {
    * @type {string}
    * @memberof BillingProductPriceResponseData
    */
+  priceDecimal?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof BillingProductPriceResponseData
+   */
   priceExternalId: string;
   /**
    *
@@ -93,6 +105,8 @@ export interface BillingProductPriceResponseData {
 export function instanceOfBillingProductPriceResponseData(
   value: object,
 ): value is BillingProductPriceResponseData {
+  if (!("billingScheme" in value) || value["billingScheme"] === undefined)
+    return false;
   if (!("createdAt" in value) || value["createdAt"] === undefined) return false;
   if (!("currency" in value) || value["currency"] === undefined) return false;
   if (!("id" in value) || value["id"] === undefined) return false;
@@ -125,6 +139,7 @@ export function BillingProductPriceResponseDataFromJSONTyped(
     return json;
   }
   return {
+    billingScheme: json["billing_scheme"],
     createdAt: new Date(json["created_at"]),
     currency: json["currency"],
     id: json["id"],
@@ -132,6 +147,8 @@ export function BillingProductPriceResponseDataFromJSONTyped(
     isActive: json["is_active"],
     meterId: json["meter_id"] == null ? undefined : json["meter_id"],
     price: json["price"],
+    priceDecimal:
+      json["price_decimal"] == null ? undefined : json["price_decimal"],
     priceExternalId: json["price_external_id"],
     productExternalId: json["product_external_id"],
     updatedAt: new Date(json["updated_at"]),
@@ -146,6 +163,7 @@ export function BillingProductPriceResponseDataToJSON(
     return value;
   }
   return {
+    billing_scheme: value["billingScheme"],
     created_at: value["createdAt"].toISOString(),
     currency: value["currency"],
     id: value["id"],
@@ -153,6 +171,7 @@ export function BillingProductPriceResponseDataToJSON(
     is_active: value["isActive"],
     meter_id: value["meterId"],
     price: value["price"],
+    price_decimal: value["priceDecimal"],
     price_external_id: value["priceExternalId"],
     product_external_id: value["productExternalId"],
     updated_at: value["updatedAt"].toISOString(),

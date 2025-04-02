@@ -13,12 +13,25 @@
  */
 
 import { mapValues } from "../runtime";
+import type { BillingProductPriceTierResponseData } from "./BillingProductPriceTierResponseData";
+import {
+  BillingProductPriceTierResponseDataFromJSON,
+  BillingProductPriceTierResponseDataFromJSONTyped,
+  BillingProductPriceTierResponseDataToJSON,
+} from "./BillingProductPriceTierResponseData";
+
 /**
  *
  * @export
  * @interface BillingProductForSubscriptionResponseData
  */
 export interface BillingProductForSubscriptionResponseData {
+  /**
+   *
+   * @type {string}
+   * @memberof BillingProductForSubscriptionResponseData
+   */
+  billingScheme: string;
   /**
    *
    * @type {Date}
@@ -78,6 +91,12 @@ export interface BillingProductForSubscriptionResponseData {
    * @type {string}
    * @memberof BillingProductForSubscriptionResponseData
    */
+  priceDecimal?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof BillingProductForSubscriptionResponseData
+   */
   priceExternalId: string;
   /**
    *
@@ -85,6 +104,12 @@ export interface BillingProductForSubscriptionResponseData {
    * @memberof BillingProductForSubscriptionResponseData
    */
   priceId: string;
+  /**
+   *
+   * @type {Array<BillingProductPriceTierResponseData>}
+   * @memberof BillingProductForSubscriptionResponseData
+   */
+  priceTier: Array<BillingProductPriceTierResponseData>;
   /**
    *
    * @type {number}
@@ -117,6 +142,8 @@ export interface BillingProductForSubscriptionResponseData {
 export function instanceOfBillingProductForSubscriptionResponseData(
   value: object,
 ): value is BillingProductForSubscriptionResponseData {
+  if (!("billingScheme" in value) || value["billingScheme"] === undefined)
+    return false;
   if (!("createdAt" in value) || value["createdAt"] === undefined) return false;
   if (!("currency" in value) || value["currency"] === undefined) return false;
   if (!("environmentId" in value) || value["environmentId"] === undefined)
@@ -130,6 +157,7 @@ export function instanceOfBillingProductForSubscriptionResponseData(
   if (!("priceExternalId" in value) || value["priceExternalId"] === undefined)
     return false;
   if (!("priceId" in value) || value["priceId"] === undefined) return false;
+  if (!("priceTier" in value) || value["priceTier"] === undefined) return false;
   if (!("quantity" in value) || value["quantity"] === undefined) return false;
   if (!("subscriptionId" in value) || value["subscriptionId"] === undefined)
     return false;
@@ -152,6 +180,7 @@ export function BillingProductForSubscriptionResponseDataFromJSONTyped(
     return json;
   }
   return {
+    billingScheme: json["billing_scheme"],
     createdAt: new Date(json["created_at"]),
     currency: json["currency"],
     environmentId: json["environment_id"],
@@ -161,8 +190,13 @@ export function BillingProductForSubscriptionResponseDataFromJSONTyped(
     meterId: json["meter_id"] == null ? undefined : json["meter_id"],
     name: json["name"],
     price: json["price"],
+    priceDecimal:
+      json["price_decimal"] == null ? undefined : json["price_decimal"],
     priceExternalId: json["price_external_id"],
     priceId: json["price_id"],
+    priceTier: (json["price_tier"] as Array<any>).map(
+      BillingProductPriceTierResponseDataFromJSON,
+    ),
     quantity: json["quantity"],
     subscriptionId: json["subscription_id"],
     updatedAt: new Date(json["updated_at"]),
@@ -177,6 +211,7 @@ export function BillingProductForSubscriptionResponseDataToJSON(
     return value;
   }
   return {
+    billing_scheme: value["billingScheme"],
     created_at: value["createdAt"].toISOString(),
     currency: value["currency"],
     environment_id: value["environmentId"],
@@ -186,8 +221,12 @@ export function BillingProductForSubscriptionResponseDataToJSON(
     meter_id: value["meterId"],
     name: value["name"],
     price: value["price"],
+    price_decimal: value["priceDecimal"],
     price_external_id: value["priceExternalId"],
     price_id: value["priceId"],
+    price_tier: (value["priceTier"] as Array<any>).map(
+      BillingProductPriceTierResponseDataToJSON,
+    ),
     quantity: value["quantity"],
     subscription_id: value["subscriptionId"],
     updated_at: value["updatedAt"].toISOString(),
