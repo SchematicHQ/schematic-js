@@ -1,5 +1,4 @@
 import { forwardRef } from "react";
-import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 
 import type { FontStyle } from "../../../context";
@@ -41,7 +40,6 @@ export const TextElement = forwardRef<
     }
 >(({ children, className, ...rest }, ref) => {
   const props = resolveDesignProps(rest);
-  const { t } = useTranslation();
   const theme = useTheme();
 
   return (
@@ -49,8 +47,6 @@ export const TextElement = forwardRef<
       as={Flex}
       ref={ref}
       className={className}
-      $flexDirection="column"
-      $gap="2rem"
     >
       <Text
         $font={theme.typography[props.text.fontStyle].fontFamily}
@@ -59,7 +55,7 @@ export const TextElement = forwardRef<
         $color={theme.typography[props.text.fontStyle].color}
         $align={props.text.alignment}
       >
-            {t(props.text.textContent) ?? t("Text")}
+            {props.text.textContent}
       </Text>
     </Element>
   );
