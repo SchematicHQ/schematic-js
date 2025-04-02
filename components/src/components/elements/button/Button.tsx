@@ -93,7 +93,7 @@ export const ButtonElement = forwardRef<
         $selfAlignment={props.button.selfAlignment}
         $fullWidth={props.button.fullWidth}
       >
-        {t(props.button.text) ?? t("Button")}
+        {props.button.text}
       </EmbedButton>
     </Element>
   );
