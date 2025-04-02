@@ -22,6 +22,7 @@ import {
 import {
   formatCurrency,
   formatOrdinal,
+  getAddOnPrice,
   getBillingPrice,
   getFeatureName,
   getMonthName,
@@ -30,6 +31,7 @@ import {
 import { Box, EmbedButton, Flex, Icon, Text } from "../../ui";
 import { type CheckoutStage } from "../checkout-dialog";
 import { StageButton } from "./StageButton";
+import { get } from "lodash";
 
 export interface UsageBasedEntitlement extends PlanEntitlementResponseData {
   allocation: number;
@@ -228,7 +230,7 @@ export const Sidebar = ({
           addOnIds: addOns.reduce((acc: UpdateAddOnRequestBody[], addOn) => {
             if (addOn.isSelected && !selectedPlan.companyCanTrial) {
               const addOnPriceId = (
-                planPeriod === "year" ? addOn?.yearlyPrice : addOn?.monthlyPrice
+                getAddOnPrice(addOn, planPeriod)
               )?.id;
 
               if (addOnPriceId) {
@@ -981,9 +983,7 @@ export const Sidebar = ({
             {selectedAddOns.map((addOn, index) => {
               const { price: addOnPrice, currency: addOnCurrency } =
                 getBillingPrice(
-                  planPeriod === "year"
-                    ? addOn.yearlyPrice
-                    : addOn.monthlyPrice,
+                  getAddOnPrice(addOn, planPeriod)
                 ) || {};
 
               return (
@@ -1012,7 +1012,8 @@ export const Sidebar = ({
                       $color={theme.typography.text.color}
                     >
                       {formatCurrency(addOnPrice ?? 0, addOnCurrency)}
-                      <sub>/{shortenPeriod(planPeriod)}</sub>
+                      <sub>{addOn.chargeType != "one-time" &&
+                        `/${shortenPeriod(planPeriod)}}`}</sub>
                     </Text>
                   </Box>
                 </Flex>

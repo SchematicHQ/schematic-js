@@ -37,7 +37,8 @@ export function useAvailablePlans(activePeriod: string) {
           : plans.filter(
               (plan) =>
                 (activePeriod === "month" && plan.monthlyPrice) ||
-                (activePeriod === "year" && plan.yearlyPrice),
+                (activePeriod === "year" && plan.yearlyPrice) ||
+                plan.chargeType == "one-time",
             );
 
       if (!customPlanExist) {

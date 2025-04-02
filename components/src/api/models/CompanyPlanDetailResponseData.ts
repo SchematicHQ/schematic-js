@@ -64,6 +64,12 @@ export interface CompanyPlanDetailResponseData {
   billingProduct?: BillingProductDetailResponseData;
   /**
    *
+   * @type {string}
+   * @memberof CompanyPlanDetailResponseData
+   */
+  chargeType: string;
+  /**
+   *
    * @type {boolean}
    * @memberof CompanyPlanDetailResponseData
    */
@@ -166,6 +172,12 @@ export interface CompanyPlanDetailResponseData {
   name: string;
   /**
    *
+   * @type {BillingPriceResponseData}
+   * @memberof CompanyPlanDetailResponseData
+   */
+  oneTimePrice?: BillingPriceResponseData;
+  /**
+   *
    * @type {string}
    * @memberof CompanyPlanDetailResponseData
    */
@@ -202,6 +214,8 @@ export interface CompanyPlanDetailResponseData {
 export function instanceOfCompanyPlanDetailResponseData(
   value: object,
 ): value is CompanyPlanDetailResponseData {
+  if (!("chargeType" in value) || value["chargeType"] === undefined)
+    return false;
   if (!("companyCanTrial" in value) || value["companyCanTrial"] === undefined)
     return false;
   if (!("companyCount" in value) || value["companyCount"] === undefined)
@@ -248,6 +262,7 @@ export function CompanyPlanDetailResponseDataFromJSONTyped(
       json["billing_product"] == null
         ? undefined
         : BillingProductDetailResponseDataFromJSON(json["billing_product"]),
+    chargeType: json["charge_type"],
     companyCanTrial: json["company_can_trial"],
     companyCount: json["company_count"],
     createdAt: new Date(json["created_at"]),
@@ -275,6 +290,10 @@ export function CompanyPlanDetailResponseDataFromJSONTyped(
         ? undefined
         : BillingPriceResponseDataFromJSON(json["monthly_price"]),
     name: json["name"],
+    oneTimePrice:
+      json["one_time_price"] == null
+        ? undefined
+        : BillingPriceResponseDataFromJSON(json["one_time_price"]),
     planType: json["plan_type"],
     trialDays: json["trial_days"] == null ? undefined : json["trial_days"],
     updatedAt: new Date(json["updated_at"]),
@@ -297,6 +316,7 @@ export function CompanyPlanDetailResponseDataToJSON(
     billing_product: BillingProductDetailResponseDataToJSON(
       value["billingProduct"],
     ),
+    charge_type: value["chargeType"],
     company_can_trial: value["companyCanTrial"],
     company_count: value["companyCount"],
     created_at: value["createdAt"].toISOString(),
@@ -318,6 +338,7 @@ export function CompanyPlanDetailResponseDataToJSON(
     is_trialable: value["isTrialable"],
     monthly_price: BillingPriceResponseDataToJSON(value["monthlyPrice"]),
     name: value["name"],
+    one_time_price: BillingPriceResponseDataToJSON(value["oneTimePrice"]),
     plan_type: value["planType"],
     trial_days: value["trialDays"],
     updated_at: value["updatedAt"].toISOString(),
