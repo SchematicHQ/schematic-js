@@ -12,7 +12,7 @@ import { useTheme } from "styled-components";
 import {
   type FeatureUsageResponseData,
   type PlanEntitlementResponseData,
-  type PreviewSubscriptionChangeResponseData,
+  type PreviewSubscriptionFinanceResponseData,
   ResponseError,
   type UpdateAddOnRequestBody,
   type UpdatePayInAdvanceRequestBody,
@@ -80,7 +80,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   const checkoutRef = useRef<HTMLDivElement>(null);
 
   const [charges, setCharges] =
-    useState<PreviewSubscriptionChangeResponseData>();
+    useState<PreviewSubscriptionFinanceResponseData>();
   const [paymentMethodId, setPaymentMethodId] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | undefined>();
@@ -282,7 +282,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           },
         });
 
-        setCharges(data);
+        setCharges(data.finance);
       } catch (error) {
         if (error instanceof ResponseError && error.response.status === 401) {
           const data = await error.response.json();

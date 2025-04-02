@@ -13,6 +13,19 @@
  */
 
 import { mapValues } from "../runtime";
+import type { PreviewSubscriptionFinanceResponseData } from "./PreviewSubscriptionFinanceResponseData";
+import {
+  PreviewSubscriptionFinanceResponseDataFromJSON,
+  PreviewSubscriptionFinanceResponseDataFromJSONTyped,
+  PreviewSubscriptionFinanceResponseDataToJSON,
+} from "./PreviewSubscriptionFinanceResponseData";
+import type { FeatureUsageResponseData } from "./FeatureUsageResponseData";
+import {
+  FeatureUsageResponseDataFromJSON,
+  FeatureUsageResponseDataFromJSONTyped,
+  FeatureUsageResponseDataToJSON,
+} from "./FeatureUsageResponseData";
+
 /**
  * The created resource
  * @export
@@ -31,6 +44,12 @@ export interface PreviewSubscriptionChangeResponseData {
    * @memberof PreviewSubscriptionChangeResponseData
    */
   dueNow: number;
+  /**
+   *
+   * @type {PreviewSubscriptionFinanceResponseData}
+   * @memberof PreviewSubscriptionChangeResponseData
+   */
+  finance?: PreviewSubscriptionFinanceResponseData;
   /**
    *
    * @type {number}
@@ -67,6 +86,12 @@ export interface PreviewSubscriptionChangeResponseData {
    * @memberof PreviewSubscriptionChangeResponseData
    */
   trialEnd?: Date | null;
+  /**
+   *
+   * @type {Array<FeatureUsageResponseData>}
+   * @memberof PreviewSubscriptionChangeResponseData
+   */
+  usageViolations: Array<FeatureUsageResponseData>;
 }
 
 /**
@@ -86,6 +111,8 @@ export function instanceOfPreviewSubscriptionChangeResponseData(
   if (!("promoCodeApplied" in value) || value["promoCodeApplied"] === undefined)
     return false;
   if (!("proration" in value) || value["proration"] === undefined) return false;
+  if (!("usageViolations" in value) || value["usageViolations"] === undefined)
+    return false;
   return true;
 }
 
@@ -105,6 +132,10 @@ export function PreviewSubscriptionChangeResponseDataFromJSONTyped(
   return {
     amountOff: json["amount_off"],
     dueNow: json["due_now"],
+    finance:
+      json["finance"] == null
+        ? undefined
+        : PreviewSubscriptionFinanceResponseDataFromJSON(json["finance"]),
     newCharges: json["new_charges"],
     percentOff: json["percent_off"],
     periodStart: new Date(json["period_start"]),
@@ -112,6 +143,9 @@ export function PreviewSubscriptionChangeResponseDataFromJSONTyped(
     proration: json["proration"],
     trialEnd:
       json["trial_end"] == null ? undefined : new Date(json["trial_end"]),
+    usageViolations: (json["usage_violations"] as Array<any>).map(
+      FeatureUsageResponseDataFromJSON,
+    ),
   };
 }
 
@@ -124,6 +158,7 @@ export function PreviewSubscriptionChangeResponseDataToJSON(
   return {
     amount_off: value["amountOff"],
     due_now: value["dueNow"],
+    finance: PreviewSubscriptionFinanceResponseDataToJSON(value["finance"]),
     new_charges: value["newCharges"],
     percent_off: value["percentOff"],
     period_start: value["periodStart"].toISOString(),
@@ -133,5 +168,8 @@ export function PreviewSubscriptionChangeResponseDataToJSON(
       value["trialEnd"] == null
         ? undefined
         : (value["trialEnd"] as any).toISOString(),
+    usage_violations: (value["usageViolations"] as Array<any>).map(
+      FeatureUsageResponseDataToJSON,
+    ),
   };
 }
