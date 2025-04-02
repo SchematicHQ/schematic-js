@@ -8,17 +8,21 @@ import { Button, ButtonSizeTypes } from "./Button";
 export type EmbedButtonColor = "primary" | "secondary" | "danger";
 export type EmbedButtonVariant = "filled" | "outline" | "ghost" | "text";
 export type EmbedButtonAlignment = "start" | "center" | "end";
+export type EmbedButtonSelfAlignment = "start" | "center" | "end";
 
 export const EmbedButton = styled(Button)<{
   $size?: ButtonSizeTypes;
   $color?: EmbedButtonColor;
   $variant?: EmbedButtonVariant;
   $alignment?: EmbedButtonAlignment;
+  $selfAlignment?: EmbedButtonSelfAlignment;
   $fullWidth?: boolean;
 }>`
   font-family: "Public Sans", sans-serif;
   font-weight: 500;
   text-align: center;
+  display: flex;
+  align-items: center;
 
   ${({ disabled, $color = "primary", theme }) => {
     const { l } = hexToHSL(theme[$color]);
@@ -176,6 +180,24 @@ export const EmbedButton = styled(Button)<{
       default:
         return css`
           justify-content: center;
+        `;
+    }
+  }}
+  
+  ${({ $selfAlignment = "center" }) => {
+    switch ($selfAlignment) {
+      case "start":
+        return css`
+          align-self: start;
+        `;
+      case "end":
+        return css`
+          align-self: end;
+        `;
+      case "center":
+      default:
+        return css`
+          align-self: center;
         `;
     }
   }}
