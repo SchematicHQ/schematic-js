@@ -79,6 +79,12 @@ export interface BillingPriceView {
    * @type {string}
    * @memberof BillingPriceView
    */
+  priceDecimal?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof BillingPriceView
+   */
   priceExternalId: string;
   /**
    *
@@ -175,6 +181,8 @@ export function BillingPriceViewFromJSONTyped(
     isActive: json["is_active"],
     meterId: json["meter_id"] == null ? undefined : json["meter_id"],
     price: json["price"],
+    priceDecimal:
+      json["price_decimal"] == null ? undefined : json["price_decimal"],
     priceExternalId: json["price_external_id"],
     priceId: json["price_id"],
     priceTier: (json["price_tier"] as Array<any>).map(
@@ -201,6 +209,7 @@ export function BillingPriceViewToJSON(value?: BillingPriceView | null): any {
     is_active: value["isActive"],
     meter_id: value["meterId"],
     price: value["price"],
+    price_decimal: value["priceDecimal"],
     price_external_id: value["priceExternalId"],
     price_id: value["priceId"],
     price_tier: (value["priceTier"] as Array<any>).map(

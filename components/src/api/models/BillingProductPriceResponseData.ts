@@ -72,6 +72,12 @@ export interface BillingProductPriceResponseData {
    * @type {string}
    * @memberof BillingProductPriceResponseData
    */
+  priceDecimal?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof BillingProductPriceResponseData
+   */
   priceExternalId: string;
   /**
    *
@@ -141,6 +147,8 @@ export function BillingProductPriceResponseDataFromJSONTyped(
     isActive: json["is_active"],
     meterId: json["meter_id"] == null ? undefined : json["meter_id"],
     price: json["price"],
+    priceDecimal:
+      json["price_decimal"] == null ? undefined : json["price_decimal"],
     priceExternalId: json["price_external_id"],
     productExternalId: json["product_external_id"],
     updatedAt: new Date(json["updated_at"]),
@@ -163,6 +171,7 @@ export function BillingProductPriceResponseDataToJSON(
     is_active: value["isActive"],
     meter_id: value["meterId"],
     price: value["price"],
+    price_decimal: value["priceDecimal"],
     price_external_id: value["priceExternalId"],
     product_external_id: value["productExternalId"],
     updated_at: value["updatedAt"].toISOString(),
