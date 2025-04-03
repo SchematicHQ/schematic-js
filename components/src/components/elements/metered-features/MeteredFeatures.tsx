@@ -186,7 +186,10 @@ export const MeteredFeatures = forwardRef<
                 // overage price is the last item in the price tier array
                 const overagePrice =
                   product.priceTier[product.priceTier.length - 1];
-                price = overagePrice.perUnitPrice!;
+                price = overagePrice.perUnitPriceDecimal
+                  ? Number(overagePrice.perUnitPriceDecimal)
+                  : (overagePrice.perUnitPrice ?? 0);
+
                 currency = product.currency;
               }
             }

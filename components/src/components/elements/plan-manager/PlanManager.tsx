@@ -434,9 +434,12 @@ export const PlanManager = forwardRef<
                         ];
                       overageAmount =
                         (entitlement?.usage ?? 0) -
-                        (entitlementProductLastTierPrice.upTo ?? 0);
+                        (entitlementProduct?.priceTier[0].upTo ?? 0);
                       entitlement.price =
                         entitlementProductLastTierPrice.perUnitPrice ??
+                        Number(
+                          entitlementProductLastTierPrice?.perUnitPriceDecimal,
+                        ) ??
                         entitlement.price;
                     }
                   }
