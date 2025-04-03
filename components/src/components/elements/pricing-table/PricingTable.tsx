@@ -1,15 +1,11 @@
-import { forwardRef, useState } from "react";
+import { forwardRef, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 
+import { type CompanyPlanDetailResponseData } from "../../../api";
 import { TEXT_BASE_SIZE, VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
 import { type FontStyle } from "../../../context";
-import {
-  useAvailablePlans,
-  useEmbed,
-  useIsLightBackground,
-  useTrialEnd,
-} from "../../../hooks";
+import { useIsLightBackground } from "../../../hooks";
 import type { ElementProps, RecursivePartial } from "../../../types";
 import {
   darken,
@@ -33,7 +29,27 @@ import {
   Text,
   Tooltip,
 } from "../../ui";
+import { type AvailablePlans, sampleData } from "./sampleData";
 import { ButtonLink } from "./styles";
+
+const entitlementCountsReducer = (
+  acc: Record<
+    string,
+    | {
+        size: number;
+        limit: number;
+      }
+    | undefined
+  >,
+  plan: CompanyPlanDetailResponseData,
+) => {
+  acc[plan.id] = {
+    size: plan.entitlements.length,
+    limit: VISIBLE_ENTITLEMENT_COUNT,
+  };
+
+  return acc;
+};
 
 interface DesignProps {
   showPeriodToggle: boolean;
@@ -129,62 +145,86 @@ export const PricingTable = forwardRef<
 
   const theme = useTheme();
 
-  const { data, setLayout, setSelected } = useEmbed();
-
-  const trialEndDays = useTrialEnd();
-
-  const [selectedPeriod, setSelectedPeriod] = useState(
-    () => data.company?.plan?.planPeriod || "month",
-  );
-
-  const { plans, addOns, periods } = useAvailablePlans(selectedPeriod);
-
   const isLightBackground = useIsLightBackground();
 
+  const [selectedPeriod, setSelectedPeriod] = useState("month");
+
+  const [data, setData] = useState<AvailablePlans>({ plans: [], addOns: [] });
+
   const [entitlementCounts, setEntitlementCounts] = useState(() =>
-    plans.reduce(
-      (
-        acc: Record<
-          string,
-          {
-            size: number;
-            limit: number;
-          }
-        >,
-        plan,
-      ) => {
-        acc[plan.id] = {
-          size: plan.entitlements.length,
-          limit: VISIBLE_ENTITLEMENT_COUNT,
-        };
-
-        return acc;
-      },
-      {},
-    ),
+    data.plans.reduce(entitlementCountsReducer, {}),
   );
-
-  const canCheckout = data.capabilities?.checkout ?? true;
-
-  const cardPadding = theme.card.padding / TEXT_BASE_SIZE;
-
-  const currentPlanIndex = plans.findIndex((plan) => plan.current);
 
   const handleToggleShowAll = (id: string) => {
     setEntitlementCounts((prev) => {
-      const count = { ...prev[id] };
-      return {
-        ...prev,
-        [id]: {
-          size: count.size,
-          limit:
-            count.limit > VISIBLE_ENTITLEMENT_COUNT
-              ? VISIBLE_ENTITLEMENT_COUNT
-              : count.size,
-        },
-      };
+      const count = prev[id] ? { ...prev[id] } : undefined;
+
+      if (count) {
+        return {
+          ...prev,
+          [id]: {
+            size: count.size,
+            limit:
+              count.limit > VISIBLE_ENTITLEMENT_COUNT
+                ? VISIBLE_ENTITLEMENT_COUNT
+                : count.size,
+          },
+        };
+      }
+
+      return prev;
     });
   };
+
+  useEffect(() => {
+    async function fetchPlans(): Promise<AvailablePlans> {
+      return sampleData;
+    }
+
+    fetchPlans().then((response) => {
+      setData(response);
+      setEntitlementCounts(response.plans.reduce(entitlementCountsReducer, {}));
+    });
+  }, []);
+
+  const periods = useMemo(() => {
+    const acc: string[] = [];
+
+    if (
+      data.plans.some((plan) => plan.monthlyPrice) ||
+      data.addOns.some((addOn) => addOn.monthlyPrice)
+    ) {
+      acc.push("month");
+    }
+
+    if (
+      data.plans.some((plan) => plan.yearlyPrice) ||
+      data.addOns.some((addOn) => addOn.yearlyPrice)
+    ) {
+      acc.push("year");
+    }
+
+    return acc;
+  }, [data.plans, data.addOns]);
+
+  const { plans, addOns } = useMemo(() => {
+    return {
+      plans: data.plans.filter(
+        (plan) =>
+          (selectedPeriod === "month" && plan.monthlyPrice) ||
+          (selectedPeriod === "year" && plan.yearlyPrice),
+      ),
+      addOns: data.addOns.filter(
+        (addOn) =>
+          (selectedPeriod === "month" && addOn.monthlyPrice) ||
+          (selectedPeriod === "year" && addOn.yearlyPrice),
+      ),
+    };
+  }, [data.plans, data.addOns, selectedPeriod]);
+
+  const cardPadding = theme.card.padding / TEXT_BASE_SIZE;
+
+  const currentPlanIndex = data.plans.findIndex((plan) => plan.current);
 
   return (
     <FussyChild
@@ -216,7 +256,7 @@ export const PricingTable = forwardRef<
           >
             {props.header.isVisible &&
               props.plans.isVisible &&
-              plans.length > 0 &&
+              data.plans.length > 0 &&
               t("Plans")}
           </Text>
 
@@ -236,9 +276,6 @@ export const PricingTable = forwardRef<
             $gap="1rem"
           >
             {plans.map((plan, planIndex, self) => {
-              const isActivePlan =
-                plan.current &&
-                data.company?.plan?.planPeriod === selectedPeriod;
               const { price: planPrice, currency: planCurrency } =
                 getBillingPrice(
                   selectedPeriod === "year"
@@ -246,7 +283,8 @@ export const PricingTable = forwardRef<
                     : plan.monthlyPrice,
                 ) || {};
               const count = entitlementCounts[plan.id];
-              const isExpanded = count.limit > VISIBLE_ENTITLEMENT_COUNT;
+              const isExpanded =
+                count && count.limit > VISIBLE_ENTITLEMENT_COUNT;
 
               const hasUsageBasedEntitlements = plan.entitlements.some(
                 (entitlement) => !!entitlement.priceBehavior,
@@ -268,7 +306,7 @@ export const PricingTable = forwardRef<
                   $borderRadius={`${theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
                   $outlineWidth="2px"
                   $outlineStyle="solid"
-                  $outlineColor={isActivePlan ? theme.primary : "transparent"}
+                  $outlineColor="transparent"
                   {...(theme.card.hasShadow && { $boxShadow: cardBoxShadow })}
                 >
                   <Flex
@@ -369,32 +407,6 @@ export const PricingTable = forwardRef<
                         </Text>
                       )}
                     </Box>
-
-                    {isActivePlan && (
-                      <Flex
-                        $position="absolute"
-                        $right="1rem"
-                        $top="1rem"
-                        $backgroundColor={theme.primary}
-                        $borderRadius="9999px"
-                        $padding="0.125rem 0.85rem"
-                      >
-                        <Text
-                          $font={theme.typography.text.fontFamily}
-                          $size={0.75 * theme.typography.text.fontSize}
-                          $weight={theme.typography.text.fontWeight}
-                          $color={
-                            hexToHSL(theme.primary).l > 50
-                              ? "#000000"
-                              : "#FFFFFF"
-                          }
-                        >
-                          {trialEndDays
-                            ? t("Trial ends in", { days: trialEndDays })
-                            : t("Active")}
-                        </Text>
-                      </Flex>
-                    )}
                   </Flex>
 
                   <Flex
@@ -656,84 +668,48 @@ export const PricingTable = forwardRef<
                       </Flex>
                     )}
 
-                    {isActivePlan ? (
-                      <Flex
-                        $justifyContent="center"
-                        $alignItems="center"
-                        $gap="0.25rem"
-                        $padding="0.625rem 0"
+                    {(props.upgrade.isVisible || props.downgrade.isVisible) && (
+                      <EmbedButton
+                        type="button"
+                        disabled={!plan.valid && !plan.custom}
+                        {...(!plan.custom && {
+                          onClick: () => {
+                            // TODO
+                          },
+                        })}
+                        {...(planIndex > currentPlanIndex
+                          ? {
+                              $size: props.upgrade.buttonSize,
+                              $color: props.upgrade.buttonStyle,
+                              $variant: "filled",
+                            }
+                          : {
+                              $size: props.downgrade.buttonSize,
+                              $color: props.downgrade.buttonStyle,
+                              $variant: "outline",
+                            })}
                       >
-                        <Icon
-                          name="check-rounded"
-                          style={{
-                            fontSize: 20,
-                            lineHeight: 1,
-                            color: theme.primary,
-                          }}
-                        />
-
-                        <Text
-                          $font={theme.typography.text.fontFamily}
-                          $size={15}
-                          $weight={theme.typography.text.fontWeight}
-                          $color={theme.typography.text.color}
-                          $leading={1}
-                        >
-                          {t("Current plan")}
-                        </Text>
-                      </Flex>
-                    ) : (
-                      (props.upgrade.isVisible ||
-                        props.downgrade.isVisible) && (
-                        <EmbedButton
-                          type="button"
-                          disabled={
-                            (!plan.valid || !canCheckout) && !plan.custom
-                          }
-                          {...(!plan.custom && {
-                            onClick: () => {
-                              setSelected({
-                                period: selectedPeriod,
-                                planId: isActivePlan ? null : plan.id,
-                                usage: false,
-                              });
-                              setLayout("checkout");
-                            },
-                          })}
-                          {...(planIndex > currentPlanIndex
-                            ? {
-                                $size: props.upgrade.buttonSize,
-                                $color: props.upgrade.buttonStyle,
-                                $variant: "filled",
-                              }
-                            : {
-                                $size: props.downgrade.buttonSize,
-                                $color: props.downgrade.buttonStyle,
-                                $variant: "outline",
-                              })}
-                        >
-                          {plan.custom ? (
-                            <ButtonLink
-                              href={plan.customPlanConfig?.ctaWebSite ?? "#"}
-                              target="_blank"
-                            >
-                              {plan.customPlanConfig?.ctaText ??
-                                t("Talk to support")}
-                            </ButtonLink>
-                          ) : !plan.valid ? (
-                            <Tooltip
-                              trigger={t("Over usage limit")}
-                              content={t(
-                                "Current usage exceeds the limit of this plan.",
-                              )}
-                            />
-                          ) : plan.companyCanTrial ? (
-                            t("Trial plan", { days: plan.trialDays })
-                          ) : (
-                            t("Choose plan")
-                          )}
-                        </EmbedButton>
-                      )
+                        {plan.custom ? (
+                          <ButtonLink
+                            href={plan.customPlanConfig?.ctaWebSite ?? "#"}
+                            target="_blank"
+                          >
+                            {plan.customPlanConfig?.ctaText ??
+                              t("Talk to support")}
+                          </ButtonLink>
+                        ) : !plan.valid ? (
+                          <Tooltip
+                            trigger={t("Over usage limit")}
+                            content={t(
+                              "Current usage exceeds the limit of this plan.",
+                            )}
+                          />
+                        ) : plan.companyCanTrial ? (
+                          t("Trial plan", { days: plan.trialDays })
+                        ) : (
+                          t("Choose plan")
+                        )}
+                      </EmbedButton>
                     )}
                   </Flex>
                 </Flex>
@@ -769,11 +745,6 @@ export const PricingTable = forwardRef<
               $gap="1rem"
             >
               {addOns.map((addOn, addOnIndex) => {
-                const isActiveAddOn =
-                  addOn.current &&
-                  selectedPeriod ===
-                    data.company?.addOns.find((a) => a.id === addOn.id)
-                      ?.planPeriod;
                 const { price: addOnPrice, currency: addOnCurrency } =
                   getBillingPrice(
                     selectedPeriod === "year"
@@ -792,9 +763,7 @@ export const PricingTable = forwardRef<
                     $borderRadius={`${theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
                     $outlineWidth="2px"
                     $outlineStyle="solid"
-                    $outlineColor={
-                      isActiveAddOn ? theme.primary : "transparent"
-                    }
+                    $outlineColor="transparent"
                     {...(theme.card.hasShadow && { $boxShadow: cardBoxShadow })}
                   >
                     <Flex $flexDirection="column" $gap="0.75rem">
@@ -891,30 +860,6 @@ export const PricingTable = forwardRef<
                           /{selectedPeriod}
                         </Text>
                       </Box>
-
-                      {isActiveAddOn && (
-                        <Flex
-                          $position="absolute"
-                          $right="1rem"
-                          $top="1rem"
-                          $backgroundColor={theme.primary}
-                          $borderRadius="9999px"
-                          $padding="0.125rem 0.85rem"
-                        >
-                          <Text
-                            $font={theme.typography.text.fontFamily}
-                            $size={0.75 * theme.typography.text.fontSize}
-                            $weight={theme.typography.text.fontWeight}
-                            $color={
-                              hexToHSL(theme.primary).l > 50
-                                ? "#000000"
-                                : "#FFFFFF"
-                            }
-                          >
-                            {t("Active")}
-                          </Text>
-                        </Flex>
-                      )}
                     </Flex>
 
                     <Flex
@@ -1028,32 +973,17 @@ export const PricingTable = forwardRef<
                       {props.upgrade.isVisible && (
                         <EmbedButton
                           type="button"
-                          disabled={!addOn.valid || !canCheckout}
+                          disabled={!addOn.valid}
                           onClick={() => {
-                            setSelected({
-                              period: selectedPeriod,
-                              addOnId: isActiveAddOn ? null : addOn.id,
-                              usage: false,
-                            });
-                            setLayout("checkout");
+                            // TODO
                           }}
                           $size={props.upgrade.buttonSize}
-                          $color={
-                            isActiveAddOn ? "danger" : props.upgrade.buttonStyle
-                          }
-                          $variant={
-                            isActiveAddOn
-                              ? "ghost"
-                              : addOn.current
-                                ? "outline"
-                                : "filled"
-                          }
+                          $color={props.upgrade.buttonStyle}
+                          $variant={addOn.current ? "outline" : "filled"}
                         >
-                          {isActiveAddOn
-                            ? t("Remove add-on")
-                            : addOn.current
-                              ? t("Change add-on")
-                              : t("Choose add-on")}
+                          {addOn.current
+                            ? t("Change add-on")
+                            : t("Choose add-on")}
                         </EmbedButton>
                       )}
                     </Flex>
