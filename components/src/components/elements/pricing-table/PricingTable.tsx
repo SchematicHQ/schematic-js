@@ -2,6 +2,7 @@ import { forwardRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 
+import { BillingPriceView } from "../../../api";
 import { TEXT_BASE_SIZE, VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
 import { type FontStyle } from "../../../context";
 import {
@@ -34,7 +35,6 @@ import {
   Tooltip,
 } from "../../ui";
 import { ButtonLink } from "./styles";
-import { BillingPriceView } from "../../../api";
 
 interface DesignProps {
   showPeriodToggle: boolean;
@@ -466,7 +466,9 @@ export const PricingTable = forwardRef<
                                       entitlementPriceObject.priceTier.length -
                                         1
                                     ];
-                                  entitlementPrice = overagePrice.perUnitPrice!;
+                                  entitlementPrice =
+                                    overagePrice.perUnitPrice ??
+                                    Number(overagePrice.perUnitPriceDecimal);
                                   entitlementCurrency =
                                     entitlementPriceObject.currency;
                                 }
