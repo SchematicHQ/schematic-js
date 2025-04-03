@@ -51,8 +51,6 @@ export const Tooltip = ({
   }, [position]);
 
   useLayoutEffect(() => {
-    updateCoords();
-
     const handleResize = debounce(updateCoords, DEBOUNCE_TIMEOUT);
     window.addEventListener("resize", handleResize);
 
@@ -60,6 +58,10 @@ export const Tooltip = ({
       window.removeEventListener("resize", handleResize);
     };
   }, [updateCoords]);
+
+  useLayoutEffect(() => {
+    updateCoords();
+  }, [updateCoords, show]);
 
   return (
     <>
