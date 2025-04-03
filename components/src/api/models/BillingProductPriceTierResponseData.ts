@@ -30,7 +30,13 @@ export interface BillingProductPriceTierResponseData {
    * @type {number}
    * @memberof BillingProductPriceTierResponseData
    */
-  perUnitPrice: number;
+  perUnitPrice?: number | null;
+  /**
+   *
+   * @type {string}
+   * @memberof BillingProductPriceTierResponseData
+   */
+  perUnitPriceDecimal?: string | null;
   /**
    *
    * @type {number}
@@ -45,8 +51,6 @@ export interface BillingProductPriceTierResponseData {
 export function instanceOfBillingProductPriceTierResponseData(
   value: object,
 ): value is BillingProductPriceTierResponseData {
-  if (!("perUnitPrice" in value) || value["perUnitPrice"] === undefined)
-    return false;
   return true;
 }
 
@@ -65,7 +69,12 @@ export function BillingProductPriceTierResponseDataFromJSONTyped(
   }
   return {
     flatAmount: json["flat_amount"] == null ? undefined : json["flat_amount"],
-    perUnitPrice: json["per_unit_price"],
+    perUnitPrice:
+      json["per_unit_price"] == null ? undefined : json["per_unit_price"],
+    perUnitPriceDecimal:
+      json["per_unit_price_decimal"] == null
+        ? undefined
+        : json["per_unit_price_decimal"],
     upTo: json["up_to"] == null ? undefined : json["up_to"],
   };
 }
@@ -79,6 +88,7 @@ export function BillingProductPriceTierResponseDataToJSON(
   return {
     flat_amount: value["flatAmount"],
     per_unit_price: value["perUnitPrice"],
+    per_unit_price_decimal: value["perUnitPriceDecimal"],
     up_to: value["upTo"],
   };
 }

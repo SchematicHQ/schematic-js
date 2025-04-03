@@ -13,6 +13,7 @@ export interface EmbedThemeSettings {
   colorMode: "light" | "dark";
   primary: string;
   secondary: string;
+  danger: string;
   card: {
     background: string;
     borderRadius: number;

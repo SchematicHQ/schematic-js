@@ -2,6 +2,7 @@ import { createElement } from "react";
 
 import type { SerializedNodeWithChildren } from "../../types";
 import {
+  ButtonElement,
   IncludedFeatures,
   Invoices,
   MeteredFeatures,
@@ -26,6 +27,7 @@ const components: Record<string, React.FC | undefined> = {
   Invoices,
   PricingTable,
   UnsubscribeButton,
+  ButtonElement,
 };
 
 interface RenderOptions {

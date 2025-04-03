@@ -3,7 +3,9 @@ import styled, { css, keyframes } from "styled-components";
 import { TEXT_BASE_SIZE } from "../../../const";
 import { type Position } from "../../ui";
 
-export const Trigger = styled.div``;
+export const Trigger = styled.div`
+  width: 100%;
+`;
 
 const coords = (position: Position) => {
   let x = 0;
