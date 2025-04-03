@@ -51,8 +51,6 @@ export interface BillingProductPriceTierResponseData {
 export function instanceOfBillingProductPriceTierResponseData(
   value: object,
 ): value is BillingProductPriceTierResponseData {
-  if (!("perUnitPrice" in value) || value["perUnitPrice"] === undefined)
-    return false;
   return true;
 }
 
