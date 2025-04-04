@@ -1,12 +1,12 @@
-import { type CompanyPlanDetailResponseData } from "../../../api";
+import { type CompanyPlanDetailResponseData } from "../api";
 
 export interface AvailablePlans {
-  plans: CompanyPlanDetailResponseData[];
-  addOns: CompanyPlanDetailResponseData[];
+  activePlans: CompanyPlanDetailResponseData[];
+  activeAddOns: CompanyPlanDetailResponseData[];
 }
 
 export const sampleData: AvailablePlans = {
-  addOns: [
+  activeAddOns: [
     {
       audienceType: "plan",
       billingProduct: {
@@ -183,7 +183,7 @@ export const sampleData: AvailablePlans = {
       },
     },
   ],
-  plans: [
+  activePlans: [
     {
       audienceType: "plan",
       billingProduct: {

@@ -13,14 +13,14 @@ export function useAvailablePlans(activePeriod: string) {
   const getAvailablePeriods = useCallback(() => {
     const periods = [];
     if (
-      data.activePlans.some((plan) => plan.monthlyPrice) ||
-      data.activeAddOns.some((addOn) => addOn.monthlyPrice)
+      (data.activePlans || []).some((plan) => plan.monthlyPrice) ||
+      (data.activeAddOns || []).some((addOn) => addOn.monthlyPrice)
     ) {
       periods.push("month");
     }
     if (
-      data.activePlans.some((plan) => plan.yearlyPrice) ||
-      data.activeAddOns.some((addOn) => addOn.yearlyPrice)
+      (data.activePlans || []).some((plan) => plan.yearlyPrice) ||
+      (data.activeAddOns || []).some((addOn) => addOn.yearlyPrice)
     ) {
       periods.push("year");
     }
@@ -41,7 +41,7 @@ export function useAvailablePlans(activePeriod: string) {
             );
 
       if (!customPlanExist) {
-        plansWithSelected.sort((a, b) => {
+        plansWithSelected?.sort((a, b) => {
           if (activePeriod === "year") {
             return (a.yearlyPrice?.price ?? 0) - (b.yearlyPrice?.price ?? 0);
           }
@@ -54,15 +54,15 @@ export function useAvailablePlans(activePeriod: string) {
         });
       }
 
-      return plansWithSelected.map((plan) => ({ ...plan, isSelected: false }));
+      return plansWithSelected?.map((plan) => ({ ...plan, isSelected: false }));
     },
     [activePeriod, mode],
   );
 
   return useMemo(() => {
     return {
-      plans: getActivePlans(data.activePlans),
-      addOns: getActivePlans(data.activeAddOns),
+      plans: getActivePlans(data.activePlans || []),
+      addOns: getActivePlans(data.activeAddOns || []),
       periods: getAvailablePeriods(),
     };
   }, [
