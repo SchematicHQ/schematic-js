@@ -88,6 +88,12 @@ export interface CompanyDetailResponseData {
   createdAt: Date;
   /**
    *
+   * @type {PaymentMethodResponseData}
+   * @memberof CompanyDetailResponseData
+   */
+  defaultPaymentMethod?: PaymentMethodResponseData;
+  /**
+   *
    * @type {Array<EntityTraitDetailResponseData>}
    * @memberof CompanyDetailResponseData
    */
@@ -226,6 +232,10 @@ export function CompanyDetailResponseDataFromJSONTyped(
       BillingSubscriptionViewFromJSON,
     ),
     createdAt: new Date(json["created_at"]),
+    defaultPaymentMethod:
+      json["default_payment_method"] == null
+        ? undefined
+        : PaymentMethodResponseDataFromJSON(json["default_payment_method"]),
     entityTraits: (json["entity_traits"] as Array<any>).map(
       EntityTraitDetailResponseDataFromJSON,
     ),
@@ -270,6 +280,9 @@ export function CompanyDetailResponseDataToJSON(
       BillingSubscriptionViewToJSON,
     ),
     created_at: value["createdAt"].toISOString(),
+    default_payment_method: PaymentMethodResponseDataToJSON(
+      value["defaultPaymentMethod"],
+    ),
     entity_traits: (value["entityTraits"] as Array<any>).map(
       EntityTraitDetailResponseDataToJSON,
     ),
