@@ -1,9 +1,10 @@
 type Rule = [RegExp | string, string];
+type NormalizedRule = [RegExp, string];
 
 // Rule storage - pluralize and singularize need to be run sequentially,
 // while other rules can be optimized using an object for instant lookups.
-const pluralRules: [RegExp, string][] = [];
-const singularRules: [RegExp, string][] = [];
+const pluralRules: NormalizedRule[] = [];
+const singularRules: NormalizedRule[] = [];
 const uncountables: Record<string, boolean> = {};
 const irregularPlurals: Record<string, string> = {};
 const irregularSingles: Record<string, string> = {};
@@ -70,7 +71,7 @@ function replace(word: string, rule: Rule) {
 /**
  * Sanitize a word by passing in the word and sanitization rules.
  */
-function sanitizeWord(token: string, word: string, rules: [RegExp, string][]) {
+function sanitizeWord(token: string, word: string, rules: NormalizedRule[]) {
   // Empty string or doesn't need fixing.
   if (!token.length || token in uncountables) {
     return word;
@@ -96,7 +97,7 @@ function sanitizeWord(token: string, word: string, rules: [RegExp, string][]) {
 function replaceWord(
   replaceMap: Record<string, string>,
   keepMap: Record<string, string>,
-  rules: [RegExp, string][],
+  rules: NormalizedRule[],
 ) {
   return function (word: string) {
     // Get the correct token and case restoration functions.
@@ -123,7 +124,7 @@ function replaceWord(
 function checkWord(
   replaceMap: Record<string, string>,
   keepMap: Record<string, string>,
-  rules: [RegExp, string][],
+  rules: NormalizedRule[],
 ) {
   return function (word: string) {
     const token = word.toLowerCase();
@@ -152,22 +153,16 @@ function pluralize(word: string, count?: number, inclusive?: boolean) {
 
 /**
  * Pluralize a word.
- *
- * @type {Function}
  */
 pluralize.plural = replaceWord(irregularSingles, irregularPlurals, pluralRules);
 
 /**
  * Check if a word is plural.
- *
- * @type {Function}
  */
 pluralize.isPlural = checkWord(irregularSingles, irregularPlurals, pluralRules);
 
 /**
  * Singularize a word.
- *
- * @type {Function}
  */
 pluralize.singular = replaceWord(
   irregularPlurals,
@@ -177,8 +172,6 @@ pluralize.singular = replaceWord(
 
 /**
  * Check if a word is singular.
- *
- * @type {Function}
  */
 pluralize.isSingular = checkWord(
   irregularPlurals,
