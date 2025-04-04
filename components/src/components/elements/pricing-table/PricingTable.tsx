@@ -224,8 +224,6 @@ export const PricingTable = forwardRef<
 
   const cardPadding = theme.card.padding / TEXT_BASE_SIZE;
 
-  const currentPlanIndex = data.plans.findIndex((plan) => plan.current);
-
   return (
     <FussyChild
       ref={ref}
@@ -677,17 +675,9 @@ export const PricingTable = forwardRef<
                           href: "https://app.schematichq.com/sign-up",
                           target: "_blank",
                         })}
-                        {...(planIndex > currentPlanIndex
-                          ? {
-                              $size: props.upgrade.buttonSize,
-                              $color: props.upgrade.buttonStyle,
-                              $variant: "filled",
-                            }
-                          : {
-                              $size: props.downgrade.buttonSize,
-                              $color: props.downgrade.buttonStyle,
-                              $variant: "outline",
-                            })}
+                        $size={props.upgrade.buttonSize}
+                        $color={props.upgrade.buttonStyle}
+                        $variant="filled"
                       >
                         {plan.custom ? (
                           <ButtonLink
