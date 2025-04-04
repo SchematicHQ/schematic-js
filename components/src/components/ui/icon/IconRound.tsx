@@ -1,4 +1,4 @@
-import { IconNames, iconsList } from "schematic-icons";
+import { IconNames, iconsList } from "@schematichq/schematic-icons";
 
 import { Icon } from "./Icon";
 import { IconContainer } from "./styles";
