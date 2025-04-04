@@ -229,9 +229,7 @@ export const Sidebar = ({
           newPriceId: priceId,
           addOnIds: addOns.reduce((acc: UpdateAddOnRequestBody[], addOn) => {
             if (addOn.isSelected && !selectedPlan.companyCanTrial) {
-              const addOnPriceId = (
-                getAddOnPrice(addOn, planPeriod)
-              )?.id;
+              const addOnPriceId = getAddOnPrice(addOn, planPeriod)?.id;
 
               if (addOnPriceId) {
                 acc.push({
@@ -418,7 +416,7 @@ export const Sidebar = ({
   ]);
 
   const removedAddOns = currentAddOns.filter(
-    (current) => !selectedAddOns.some((selected) => current.id === selected.id),
+    (current) => !selectedAddOns.some((selected) => current.id === selected.id) && current.planPeriod !== "one-time",
   );
   const addedAddOns = selectedAddOns.filter(
     (selected) => !currentAddOns.some((current) => selected.id === current.id),
@@ -972,7 +970,8 @@ export const Sidebar = ({
                           addOn.planPrice,
                           selectedPlanBillingPrice?.currency,
                         )}
-                        <sub>/{shortenPeriod(addOn.planPeriod)}</sub>
+                        <sub>{addOn.planPeriod != "one-time" &&
+                          `/${shortenPeriod(planPeriod)}}`}</sub>
                       </Text>
                     </Box>
                   )}
@@ -982,9 +981,7 @@ export const Sidebar = ({
 
             {selectedAddOns.map((addOn, index) => {
               const { price: addOnPrice, currency: addOnCurrency } =
-                getBillingPrice(
-                  getAddOnPrice(addOn, planPeriod)
-                ) || {};
+                getBillingPrice(getAddOnPrice(addOn, planPeriod)) || {};
 
               return (
                 <Flex
@@ -1012,8 +1009,10 @@ export const Sidebar = ({
                       $color={theme.typography.text.color}
                     >
                       {formatCurrency(addOnPrice ?? 0, addOnCurrency)}
-                      <sub>{addOn.chargeType != "one-time" &&
-                        `/${shortenPeriod(planPeriod)}}`}</sub>
+                      <sub>
+                        {addOn.chargeType != "one-time" &&
+                          `/${shortenPeriod(planPeriod)}}`}
+                      </sub>
                     </Text>
                   </Box>
                 </Flex>

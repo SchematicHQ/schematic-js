@@ -3,7 +3,12 @@ import { useTheme } from "styled-components";
 
 import type { CompanyPlanDetailResponseData } from "../../../api";
 import { TEXT_BASE_SIZE } from "../../../const";
-import { formatCurrency, getAddOnPrice, getBillingPrice, hexToHSL } from "../../../utils";
+import {
+  formatCurrency,
+  getAddOnPrice,
+  getBillingPrice,
+  hexToHSL,
+} from "../../../utils";
 import { cardBoxShadow } from "../../layout";
 import { Box, EmbedButton, Flex, Icon, Text } from "../../ui";
 
@@ -23,6 +28,8 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
 
   const cardPadding = theme.card.padding / TEXT_BASE_SIZE;
 
+  console.log("addOns", addOns);
+
   return (
     <>
       <Box
@@ -32,9 +39,7 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
       >
         {addOns.map((addOn, index) => {
           const { price, currency } =
-            getBillingPrice(
-              getAddOnPrice(addOn, period),
-            ) || {};
+            getBillingPrice(getAddOnPrice(addOn, period)) || {};
 
           return (
             <Flex
