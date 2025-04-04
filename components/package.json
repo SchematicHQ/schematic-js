@@ -9,6 +9,14 @@
     "dist/schematic-components.esm.js",
     "dist/schematic-components.d.ts"
   ],
+  "exports": {
+    ".": {
+      "types": "./dist/schematic-components.d.ts",
+      "import": "./dist/schematic-components.esm.js",
+      "require": "./dist/schematic-components.cjs.js"
+    },
+    "./style.css": "./dist/schematic-components.cjs.css"
+  },
   "author": "Schematic <engineering@schematichq.com>",
   "license": "MIT",
   "repository": {
@@ -30,6 +38,7 @@
     "tsc": "npx tsc"
   },
   "dependencies": {
+    "@schematichq/schematic-icons": "^0.2.1",
     "@stripe/stripe-js": "^7.0.0",
     "classnames": "^2.5.1",
     "i18next": "^24.2.3",
