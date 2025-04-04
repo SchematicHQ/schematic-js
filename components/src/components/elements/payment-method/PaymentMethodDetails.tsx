@@ -71,10 +71,10 @@ export const PaymentMethodDetails = ({
   >(undefined);
 
   useEffect(() => {
-    if (data.subscription?.paymentMethod) {
-      setPaymentMethod(data.subscription.paymentMethod);
-    }
-  }, [data.subscription?.paymentMethod]);
+    setPaymentMethod(
+      data.subscription?.paymentMethod || data.company?.defaultPaymentMethod,
+    );
+  }, [data.company?.defaultPaymentMethod, data.subscription?.paymentMethod]);
 
   const monthsToExpiration = useMemo(() => {
     let expiration: number | undefined;
@@ -150,15 +150,37 @@ export const PaymentMethodDetails = ({
           setPaymentMethodId(updatePaymentMethodResponse.data.externalId);
         }
 
-        if (data.subscription) {
-          setData({
-            ...data,
-            subscription: {
-              ...data.subscription,
-              paymentMethod: updatePaymentMethodResponse.data,
-            },
-          });
-        }
+        setData({
+          ...data,
+          // Optimistic update
+          // If there is subscription - we have set payment method to subscription
+          ...(data.subscription
+            ? {
+                subscription: {
+                  ...data.subscription,
+                  paymentMethod: updatePaymentMethodResponse.data,
+                },
+              }
+            : {}),
+          ...(data.company
+            ? {
+                company: {
+                  ...data.company,
+                  paymentMethods: [
+                    updatePaymentMethodResponse.data,
+                    ...(data.company?.paymentMethods || []),
+                  ],
+                  // Optimistic update
+                  // If there is no subscription - we have updated default payment method in company
+                  ...(data.subscription
+                    ? {}
+                    : {
+                        defaultPaymentMethod: updatePaymentMethodResponse.data,
+                      }),
+                },
+              }
+            : {}),
+        });
       } catch {
         setError(t("Error updating payment method. Please try again."));
       } finally {
