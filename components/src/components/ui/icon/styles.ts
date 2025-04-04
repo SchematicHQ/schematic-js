@@ -1,11 +1,11 @@
-import "schematic-icons/style.css";
+import "@schematichq/schematic-icons/style.css";
 
 import {
   Icon as SchematicIcon,
   type IconNames,
   type IconProps,
   iconsList,
-} from "schematic-icons";
+} from "@schematichq/schematic-icons";
 import styled, { css } from "styled-components";
 
 import { TEXT_BASE_SIZE } from "../../../const";
