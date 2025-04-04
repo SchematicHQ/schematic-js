@@ -1,8 +1,9 @@
 import styled, { css } from "styled-components";
 
 import { TEXT_BASE_SIZE } from "../../../const";
+import { Icon as IconComponent } from "./Icon";
 
-export const Icon = styled.i`
+export const Icon = styled(IconComponent)`
   display: flex;
   justify-content: center;
   align-items: center;
