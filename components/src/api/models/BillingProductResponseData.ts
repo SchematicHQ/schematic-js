@@ -51,6 +51,12 @@ export interface BillingProductResponseData {
   externalId: string;
   /**
    *
+   * @type {boolean}
+   * @memberof BillingProductResponseData
+   */
+  isActive: boolean;
+  /**
+   *
    * @type {string}
    * @memberof BillingProductResponseData
    */
@@ -100,6 +106,7 @@ export function instanceOfBillingProductResponseData(
     return false;
   if (!("externalId" in value) || value["externalId"] === undefined)
     return false;
+  if (!("isActive" in value) || value["isActive"] === undefined) return false;
   if (!("name" in value) || value["name"] === undefined) return false;
   if (!("price" in value) || value["price"] === undefined) return false;
   if (!("productId" in value) || value["productId"] === undefined) return false;
@@ -127,6 +134,7 @@ export function BillingProductResponseDataFromJSONTyped(
     currency: json["currency"],
     environmentId: json["environment_id"],
     externalId: json["external_id"],
+    isActive: json["is_active"],
     name: json["name"],
     price: json["price"],
     priceDecimal:
@@ -149,6 +157,7 @@ export function BillingProductResponseDataToJSON(
     currency: value["currency"],
     environment_id: value["environmentId"],
     external_id: value["externalId"],
+    is_active: value["isActive"],
     name: value["name"],
     price: value["price"],
     price_decimal: value["priceDecimal"],
