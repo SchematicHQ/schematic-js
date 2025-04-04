@@ -1,8 +1,8 @@
-import i18n from "i18next";
+import "../locales";
+
 import merge from "lodash/merge";
 import { inflate } from "pako";
 import { createContext, useCallback, useEffect, useRef, useState } from "react";
-import { initReactI18next } from "react-i18next";
 import { ThemeProvider } from "styled-components";
 import { v4 as uuidv4 } from "uuid";
 
@@ -12,7 +12,6 @@ import {
   Configuration,
   type ConfigurationParameters,
 } from "../api";
-import en from "../locales/en.json";
 import type {
   ComponentProps,
   RecursivePartial,
@@ -129,7 +128,7 @@ export type EmbedSettings = {
 };
 
 export const defaultSettings: EmbedSettings = {
-  theme: defaultTheme,
+  theme: { ...defaultTheme },
   badge: {
     alignment: "start",
     visibility: "visible",
@@ -382,19 +381,6 @@ export const EmbedProvider = ({
     });
   };
 
-  const initI18n = () => {
-    i18n.use(initReactI18next).init({
-      resources: {
-        en,
-      },
-      lng: "en",
-      fallbackLng: "en",
-      interpolation: {
-        escapeValue: false,
-      },
-    });
-  };
-
   const initFontStylesheet = () => {
     const element = document.getElementById("schematic-fonts");
     if (element) {
@@ -410,7 +396,6 @@ export const EmbedProvider = ({
   };
 
   useEffect(() => {
-    initI18n();
     initFontStylesheet();
 
     const planChanged: EventListener = (event) => {
