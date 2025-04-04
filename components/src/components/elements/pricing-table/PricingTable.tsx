@@ -673,9 +673,9 @@ export const PricingTable = forwardRef<
                         type="button"
                         disabled={!plan.valid && !plan.custom}
                         {...(!plan.custom && {
-                          onClick: () => {
-                            // TODO
-                          },
+                          as: "a",
+                          href: "https://app.schematichq.com/sign-up",
+                          target: "_blank",
                         })}
                         {...(planIndex > currentPlanIndex
                           ? {
@@ -972,11 +972,11 @@ export const PricingTable = forwardRef<
 
                       {props.upgrade.isVisible && (
                         <EmbedButton
+                          as="a"
+                          href="https://app.schematichq.com/sign-up"
+                          target="_blank"
                           type="button"
                           disabled={!addOn.valid}
-                          onClick={() => {
-                            // TODO
-                          }}
                           $size={props.upgrade.buttonSize}
                           $color={props.upgrade.buttonStyle}
                           $variant={addOn.current ? "outline" : "filled"}
