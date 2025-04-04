@@ -317,27 +317,6 @@ export const Sidebar = ({
 
   const selectedAddOns = addOns.filter((addOn) => addOn.isSelected);
 
-  const willPlanChange =
-    typeof selectedPlan !== "undefined" && !selectedPlan.current;
-
-  const canUpdateSubscription =
-    mode === "edit" ||
-    (api !== null &&
-      (willPlanChange ||
-        // TODO: test add-on comparison for finding "changes"
-        selectedAddOns.length !== currentAddOns.length ||
-        !selectedAddOns.every((addOn) =>
-          currentAddOns.some((currentAddOn) => addOn.id === currentAddOn.id),
-        ) ||
-        payInAdvanceEntitlements.every(
-          ({ quantity, usage }) => quantity >= usage,
-        )) &&
-      !isLoading);
-
-  const canCheckout =
-    canUpdateSubscription &&
-    (!!data.subscription?.paymentMethod || typeof paymentMethodId === "string");
-
   const {
     changedUsageBasedEntitlements,
     addedUsageBasedEntitlements,
@@ -415,6 +394,9 @@ export const Sidebar = ({
     usageBasedEntitlements,
   ]);
 
+  const willPlanChange =
+    typeof selectedPlan !== "undefined" && !selectedPlan.current;
+
   const removedAddOns = currentAddOns.filter(
     (current) => !selectedAddOns.some((selected) => current.id === selected.id),
   );
@@ -422,6 +404,18 @@ export const Sidebar = ({
     (selected) => !currentAddOns.some((current) => selected.id === current.id),
   );
   const willAddOnsChange = removedAddOns.length > 0 || addedAddOns.length > 0;
+
+  const willPayInAdvanceEntitlementsChange =
+    payInAdvanceEntitlements.length > 0 &&
+    payInAdvanceEntitlements.some(({ quantity, usage }) => quantity !== usage);
+
+  const hasUnstagedChanges =
+    willPlanChange || willAddOnsChange || willPayInAdvanceEntitlementsChange;
+
+  const canUpdateSubscription = mode === "edit" || (api !== null && !isLoading);
+  const canCheckout =
+    canUpdateSubscription &&
+    (!!data.subscription?.paymentMethod || typeof paymentMethodId === "string");
 
   const isTrialable = selectedPlan?.companyCanTrial;
   const today = new Date();
@@ -1313,6 +1307,7 @@ export const Sidebar = ({
             checkoutStages={checkoutStages}
             hasAddOns={addOns.length > 0}
             hasPayInAdvanceEntitlements={payInAdvanceEntitlements.length > 0}
+            hasUnstagedChanges={hasUnstagedChanges}
             isLoading={isLoading}
             requiresPayment={requiresPayment}
             setCheckoutStage={setCheckoutStage}

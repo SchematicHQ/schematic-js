@@ -12,6 +12,7 @@ type StageButtonProps = {
   checkoutStages?: CheckoutStage[];
   hasAddOns: boolean;
   hasPayInAdvanceEntitlements: boolean;
+  hasUnstagedChanges: boolean;
   isLoading: boolean;
   requiresPayment: boolean;
   setCheckoutStage?: (stage: string) => void;
@@ -27,6 +28,7 @@ export const StageButton = ({
   checkoutStages,
   hasAddOns,
   hasPayInAdvanceEntitlements,
+  hasUnstagedChanges,
   isLoading,
   requiresPayment,
   setCheckoutStage,
@@ -38,7 +40,7 @@ export const StageButton = ({
     return (
       <EmbedButton
         type="button"
-        disabled={isLoading || !canUpdateSubscription}
+        disabled={isLoading || !hasUnstagedChanges || !canUpdateSubscription}
         onClick={checkout}
         isLoading={isLoading}
       >
@@ -75,7 +77,7 @@ export const StageButton = ({
       return (
         <EmbedButton
           type="button"
-          disabled={!canUpdateSubscription}
+          disabled={!hasUnstagedChanges || !canUpdateSubscription}
           onClick={async () => {
             checkout();
           }}
@@ -198,7 +200,7 @@ export const StageButton = ({
     return (
       <EmbedButton
         type="button"
-        disabled={isLoading || !canCheckout}
+        disabled={isLoading || !hasUnstagedChanges || !canCheckout}
         onClick={checkout}
         isLoading={isLoading}
       >
