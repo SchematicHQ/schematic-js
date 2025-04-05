@@ -27,7 +27,8 @@
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --fix",
     "openapi": "./generate_openapi.sh",
     "test": "jest --config jest.config.js",
-    "tsc": "npx tsc"
+    "tsc": "npx tsc",
+    "test-ct": "playwright test -c playwright-ct.config.ts"
   },
   "dependencies": {
     "@stripe/stripe-js": "^7.0.0",
@@ -44,9 +45,11 @@
     "@craftjs/core": "^0.2.12",
     "@microsoft/api-extractor": "^7.52.2",
     "@openapitools/openapi-generator-cli": "^2.18.4",
+    "@playwright/experimental-ct-react": "^1.51.1",
     "@stripe/react-stripe-js": "^3.5.1",
     "@types/jest": "^29.5.14",
     "@types/lodash": "^4.17.16",
+    "@types/node": "^22.14.0",
     "@types/pako": "^2.0.3",
     "@types/pluralize": "^0.0.33",
     "@types/react": "^19.0.12",
