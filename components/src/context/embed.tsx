@@ -1,8 +1,8 @@
-import i18n from "i18next";
+import "../localization";
+
 import merge from "lodash/merge";
 import { inflate } from "pako";
 import { createContext, useCallback, useEffect, useRef, useState } from "react";
-import { initReactI18next } from "react-i18next";
 import { ThemeProvider } from "styled-components";
 import { v4 as uuidv4 } from "uuid";
 
@@ -12,13 +12,13 @@ import {
   Configuration,
   type ConfigurationParameters,
 } from "../api";
-import en from "../locales/en.json";
 import type {
   ComponentProps,
   RecursivePartial,
   SerializedEditorState,
   SerializedNodeWithChildren,
 } from "../types";
+import { sampleData } from "./sampleData";
 import { GlobalStyle } from "./styles";
 
 export interface TypographySettings {
@@ -129,7 +129,7 @@ export type EmbedSettings = {
 };
 
 export const defaultSettings: EmbedSettings = {
-  theme: defaultTheme,
+  theme: { ...defaultTheme },
   badge: {
     alignment: "start",
     visibility: "visible",
@@ -188,11 +188,11 @@ export type EmbedSelected = {
   usage?: boolean;
 };
 
-export type EmbedMode = "edit" | "view";
+export type EmbedMode = "edit" | "view" | "standalone";
 
 export interface EmbedContextProps {
   api: CheckoutexternalApi | null;
-  data: ComponentHydrateResponseData;
+  data: Partial<ComponentHydrateResponseData>;
   nodes: SerializedNodeWithChildren[];
   settings: EmbedSettings;
   layout: EmbedLayout;
@@ -202,7 +202,7 @@ export interface EmbedContextProps {
   isPending: boolean;
   hydrate: () => Promise<void>;
   setIsPending: (bool: boolean) => void;
-  setData: (data: ComponentHydrateResponseData) => void;
+  setData: (data: Partial<ComponentHydrateResponseData>) => void;
   setLayout: (layout: EmbedLayout) => void;
   setSelected: (selected: EmbedSelected) => void;
   updateSettings: (settings: RecursivePartial<EmbedSettings>) => void;
@@ -210,11 +210,7 @@ export interface EmbedContextProps {
 
 export const EmbedContext = createContext<EmbedContextProps>({
   api: null,
-  data: {
-    activeAddOns: [],
-    activePlans: [],
-    activeUsageBasedEntitlements: [],
-  },
+  data: {},
   nodes: [],
   settings: { ...defaultSettings },
   layout: "portal",
@@ -252,7 +248,7 @@ export const EmbedProvider = ({
 
   const [state, setState] = useState<{
     api: CheckoutexternalApi | null;
-    data: ComponentHydrateResponseData;
+    data: Partial<ComponentHydrateResponseData>;
     nodes: SerializedNodeWithChildren[];
     settings: EmbedSettings;
     layout: EmbedLayout;
@@ -262,18 +258,14 @@ export const EmbedProvider = ({
     error?: Error;
     hydrate: () => Promise<void>;
     setIsPending: (bool: boolean) => void;
-    setData: (data: ComponentHydrateResponseData) => void;
+    setData: (data: Partial<ComponentHydrateResponseData>) => void;
     setLayout: (layout: EmbedLayout) => void;
     setSelected: (selected: EmbedSelected) => void;
     updateSettings: (settings: RecursivePartial<EmbedSettings>) => void;
   }>(() => {
     return {
       api: null,
-      data: {
-        activeAddOns: [],
-        activePlans: [],
-        activeUsageBasedEntitlements: [],
-      },
+      data: {},
       nodes: [],
       settings: { ...defaultSettings },
       layout: "portal",
@@ -298,6 +290,35 @@ export const EmbedProvider = ({
     },
     [options.debug],
   );
+
+  // TODO: rename once the api endpoint is created
+  const init = useCallback(async () => {
+    async function fetchPlans(): Promise<
+      Partial<ComponentHydrateResponseData>
+    > {
+      return sampleData;
+    }
+
+    setState((prev) => ({ ...prev, isPending: true, error: undefined }));
+
+    try {
+      const response = await fetchPlans();
+      setState((prev) => ({
+        ...prev,
+        data: response,
+        isPending: false,
+      }));
+    } catch (error) {
+      setState((prev) => ({
+        ...prev,
+        isPending: false,
+        error:
+          error instanceof Error
+            ? error
+            : new Error("An unknown error occurred."),
+      }));
+    }
+  }, []);
 
   const hydrate = useCallback(async () => {
     setState((prev) => ({ ...prev, isPending: true, error: undefined }));
@@ -351,7 +372,7 @@ export const EmbedProvider = ({
     }));
   };
 
-  const setData = (data: ComponentHydrateResponseData) => {
+  const setData = (data: Partial<ComponentHydrateResponseData>) => {
     setState((prev) => ({
       ...prev,
       data,
@@ -382,19 +403,6 @@ export const EmbedProvider = ({
     });
   };
 
-  const initI18n = () => {
-    i18n.use(initReactI18next).init({
-      resources: {
-        en,
-      },
-      lng: "en",
-      fallbackLng: "en",
-      interpolation: {
-        escapeValue: false,
-      },
-    });
-  };
-
   const initFontStylesheet = () => {
     const element = document.getElementById("schematic-fonts");
     if (element) {
@@ -410,7 +418,6 @@ export const EmbedProvider = ({
   };
 
   useEffect(() => {
-    initI18n();
     initFontStylesheet();
 
     const planChanged: EventListener = (event) => {
@@ -446,8 +453,16 @@ export const EmbedProvider = ({
   }, [accessToken, apiConfig]);
 
   useEffect(() => {
+    init();
+  }, [init]);
+
+  useEffect(() => {
+    if (mode === "standalone") {
+      return;
+    }
+
     hydrate();
-  }, [hydrate]);
+  }, [mode, hydrate]);
 
   useEffect(() => {
     const fontSet = new Set<string>([]);

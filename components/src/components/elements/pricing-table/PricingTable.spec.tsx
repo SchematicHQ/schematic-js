@@ -5,7 +5,7 @@ import { PricingTable } from ".";
 
 test("should work", async ({ mount }) => {
   const component = await mount(
-    <EmbedProvider>
+    <EmbedProvider mode="standalone">
       <PricingTable />
     </EmbedProvider>,
   );

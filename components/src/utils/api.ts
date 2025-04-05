@@ -1,6 +1,5 @@
-import pluralize from "pluralize";
-
 import type { FeatureDetailResponseData } from "../api";
+import pluralize from "./pluralize";
 
 export const getFeatureName = (
   feature: Pick<

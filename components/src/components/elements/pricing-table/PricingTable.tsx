@@ -1,7 +1,8 @@
-import { forwardRef, useState } from "react";
+import { forwardRef, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 
+import { type CompanyPlanDetailResponseData } from "../../../api";
 import { TEXT_BASE_SIZE, VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
 import { type FontStyle } from "../../../context";
 import {
@@ -34,6 +35,25 @@ import {
   Tooltip,
 } from "../../ui";
 import { ButtonLink } from "./styles";
+
+const entitlementCountsReducer = (
+  acc: Record<
+    string,
+    | {
+        size: number;
+        limit: number;
+      }
+    | undefined
+  >,
+  plan: CompanyPlanDetailResponseData,
+) => {
+  acc[plan.id] = {
+    size: plan.entitlements.length,
+    limit: VISIBLE_ENTITLEMENT_COUNT,
+  };
+
+  return acc;
+};
 
 interface DesignProps {
   showPeriodToggle: boolean;
@@ -142,26 +162,7 @@ export const PricingTable = forwardRef<
   const isLightBackground = useIsLightBackground();
 
   const [entitlementCounts, setEntitlementCounts] = useState(() =>
-    plans.reduce(
-      (
-        acc: Record<
-          string,
-          {
-            size: number;
-            limit: number;
-          }
-        >,
-        plan,
-      ) => {
-        acc[plan.id] = {
-          size: plan.entitlements.length,
-          limit: VISIBLE_ENTITLEMENT_COUNT,
-        };
-
-        return acc;
-      },
-      {},
-    ),
+    plans.reduce(entitlementCountsReducer, {}),
   );
 
   const canCheckout = data.capabilities?.checkout ?? true;
@@ -172,19 +173,28 @@ export const PricingTable = forwardRef<
 
   const handleToggleShowAll = (id: string) => {
     setEntitlementCounts((prev) => {
-      const count = { ...prev[id] };
-      return {
-        ...prev,
-        [id]: {
-          size: count.size,
-          limit:
-            count.limit > VISIBLE_ENTITLEMENT_COUNT
-              ? VISIBLE_ENTITLEMENT_COUNT
-              : count.size,
-        },
-      };
+      const count = prev[id] ? { ...prev[id] } : undefined;
+
+      if (count) {
+        return {
+          ...prev,
+          [id]: {
+            size: count.size,
+            limit:
+              count.limit > VISIBLE_ENTITLEMENT_COUNT
+                ? VISIBLE_ENTITLEMENT_COUNT
+                : count.size,
+          },
+        };
+      }
+
+      return prev;
     });
   };
+
+  useEffect(() => {
+    setEntitlementCounts(plans.reduce(entitlementCountsReducer, {}));
+  }, [plans]);
 
   return (
     <FussyChild
@@ -246,7 +256,8 @@ export const PricingTable = forwardRef<
                     : plan.monthlyPrice,
                 ) || {};
               const count = entitlementCounts[plan.id];
-              const isExpanded = count.limit > VISIBLE_ENTITLEMENT_COUNT;
+              const isExpanded =
+                count && count.limit > VISIBLE_ENTITLEMENT_COUNT;
 
               const hasUsageBasedEntitlements = plan.entitlements.some(
                 (entitlement) => !!entitlement.priceBehavior,
