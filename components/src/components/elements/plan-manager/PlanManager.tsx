@@ -16,7 +16,7 @@ import {
   shortenPeriod,
   toPrettyDate,
 } from "../../../utils";
-import { Element } from "../../layout";
+import { Element, Notice } from "../../layout";
 import { Box, EmbedButton, Flex, Text } from "../../ui";
 
 interface DesignProps {
@@ -154,14 +154,17 @@ export const PlanManager = forwardRef<
   return (
     <>
       {isTrialSubscription && !willSubscriptionCancel ? (
-        <Box
+        <Notice
+          as={Flex}
+          $flexDirection="column"
+          $gap="0.5rem"
+          $padding="1.5rem"
+          $textAlign="center"
           $backgroundColor={
             isLightBackground
-              ? "hsla(0, 0%, 0%, 0.04)"
-              : "hsla(0, 0%, 100%, 0.04)"
+              ? darken(theme.card.background, 0.04)
+              : lighten(theme.card.background, 0.04)
           }
-          $textAlign="center"
-          $padding="1rem"
         >
           <Text as="h3" display="heading3">
             {t("Trial ends in", { days: trialEndDays.toString() })}
@@ -178,35 +181,38 @@ export const PlanManager = forwardRef<
                     planName: currentPlan?.name,
                   })}
           </Text>
-        </Box>
+        </Notice>
       ) : (
         willSubscriptionCancel && (
-          <Box
+          <Notice
+            as={Flex}
+            $flexDirection="column"
+            $gap="0.5rem"
+            $padding="1.5rem"
+            $textAlign="center"
             $backgroundColor={
               isLightBackground
-                ? "hsla(0, 0%, 0%, 0.04)"
-                : "hsla(0, 0%, 100%, 0.04)"
+                ? darken(theme.card.background, 0.04)
+                : lighten(theme.card.background, 0.04)
             }
-            $textAlign="center"
-            $padding="1rem"
           >
             <Text as="h3" display="heading3">
               {t("Subscription canceled")}
             </Text>
 
-            <Text as="p" $size={0.8125 * theme.typography.text.fontSize}>
-              {billingSubscription?.cancelAt
-                ? t("Access to plan will end on", {
-                    date: toPrettyDate(
-                      new Date(billingSubscription.cancelAt * 1000),
-                      {
-                        month: "numeric",
-                      },
-                    ),
-                  })
-                : ""}
-            </Text>
-          </Box>
+            {billingSubscription?.cancelAt && (
+              <Text as="p" $size={0.8125 * theme.typography.text.fontSize}>
+                {t("Access to plan will end on", {
+                  date: toPrettyDate(
+                    new Date(billingSubscription.cancelAt * 1000),
+                    {
+                      month: "numeric",
+                    },
+                  ),
+                })}
+              </Text>
+            )}
+          </Notice>
         )
       )}
 

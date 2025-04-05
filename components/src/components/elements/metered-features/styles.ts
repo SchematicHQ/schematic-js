@@ -3,9 +3,9 @@ import styled, { css } from "styled-components";
 import { TEXT_BASE_SIZE } from "../../../const";
 import { hexToHSL } from "../../../utils";
 import { Element, FussyChild } from "../../layout";
-import { Flex } from "../../ui";
 
-export const Container = styled(Flex)`
+export const Container = styled.div`
+  display: flex;
   flex-direction: column;
   gap: 1rem;
 

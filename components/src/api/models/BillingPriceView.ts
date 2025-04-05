@@ -13,12 +13,25 @@
  */
 
 import { mapValues } from "../runtime";
+import type { BillingProductPriceTierResponseData } from "./BillingProductPriceTierResponseData";
+import {
+  BillingProductPriceTierResponseDataFromJSON,
+  BillingProductPriceTierResponseDataFromJSONTyped,
+  BillingProductPriceTierResponseDataToJSON,
+} from "./BillingProductPriceTierResponseData";
+
 /**
  *
  * @export
  * @interface BillingPriceView
  */
 export interface BillingPriceView {
+  /**
+   *
+   * @type {string}
+   * @memberof BillingPriceView
+   */
+  billingScheme: string;
   /**
    *
    * @type {Date}
@@ -81,6 +94,12 @@ export interface BillingPriceView {
   priceId: string;
   /**
    *
+   * @type {Array<BillingProductPriceTierResponseData>}
+   * @memberof BillingPriceView
+   */
+  priceTier: Array<BillingProductPriceTierResponseData>;
+  /**
+   *
    * @type {string}
    * @memberof BillingPriceView
    */
@@ -117,6 +136,8 @@ export interface BillingPriceView {
 export function instanceOfBillingPriceView(
   value: object,
 ): value is BillingPriceView {
+  if (!("billingScheme" in value) || value["billingScheme"] === undefined)
+    return false;
   if (!("createdAt" in value) || value["createdAt"] === undefined) return false;
   if (!("currency" in value) || value["currency"] === undefined) return false;
   if (!("id" in value) || value["id"] === undefined) return false;
@@ -126,6 +147,7 @@ export function instanceOfBillingPriceView(
   if (!("priceExternalId" in value) || value["priceExternalId"] === undefined)
     return false;
   if (!("priceId" in value) || value["priceId"] === undefined) return false;
+  if (!("priceTier" in value) || value["priceTier"] === undefined) return false;
   if (
     !("productExternalId" in value) ||
     value["productExternalId"] === undefined
@@ -151,6 +173,7 @@ export function BillingPriceViewFromJSONTyped(
     return json;
   }
   return {
+    billingScheme: json["billing_scheme"],
     createdAt: new Date(json["created_at"]),
     currency: json["currency"],
     id: json["id"],
@@ -162,6 +185,9 @@ export function BillingPriceViewFromJSONTyped(
       json["price_decimal"] == null ? undefined : json["price_decimal"],
     priceExternalId: json["price_external_id"],
     priceId: json["price_id"],
+    priceTier: (json["price_tier"] as Array<any>).map(
+      BillingProductPriceTierResponseDataFromJSON,
+    ),
     productExternalId: json["product_external_id"],
     productId: json["product_id"],
     productName: json["product_name"],
@@ -175,6 +201,7 @@ export function BillingPriceViewToJSON(value?: BillingPriceView | null): any {
     return value;
   }
   return {
+    billing_scheme: value["billingScheme"],
     created_at: value["createdAt"].toISOString(),
     currency: value["currency"],
     id: value["id"],
@@ -185,6 +212,9 @@ export function BillingPriceViewToJSON(value?: BillingPriceView | null): any {
     price_decimal: value["priceDecimal"],
     price_external_id: value["priceExternalId"],
     price_id: value["priceId"],
+    price_tier: (value["priceTier"] as Array<any>).map(
+      BillingProductPriceTierResponseDataToJSON,
+    ),
     product_external_id: value["productExternalId"],
     product_id: value["productId"],
     product_name: value["productName"],

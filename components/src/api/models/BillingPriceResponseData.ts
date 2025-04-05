@@ -55,6 +55,12 @@ export interface BillingPriceResponseData {
    * @memberof BillingPriceResponseData
    */
   priceDecimal?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof BillingPriceResponseData
+   */
+  scheme: string;
 }
 
 /**
@@ -69,6 +75,7 @@ export function instanceOfBillingPriceResponseData(
   if (!("id" in value) || value["id"] === undefined) return false;
   if (!("interval" in value) || value["interval"] === undefined) return false;
   if (!("price" in value) || value["price"] === undefined) return false;
+  if (!("scheme" in value) || value["scheme"] === undefined) return false;
   return true;
 }
 
@@ -93,6 +100,7 @@ export function BillingPriceResponseDataFromJSONTyped(
     price: json["price"],
     priceDecimal:
       json["price_decimal"] == null ? undefined : json["price_decimal"],
+    scheme: json["scheme"],
   };
 }
 
@@ -109,5 +117,6 @@ export function BillingPriceResponseDataToJSON(
     interval: value["interval"],
     price: value["price"],
     price_decimal: value["priceDecimal"],
+    scheme: value["scheme"],
   };
 }

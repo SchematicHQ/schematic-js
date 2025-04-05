@@ -194,7 +194,6 @@ export const MeteredFeatures = forwardRef<
                       ]
                 }
                 {...(isOverage && { bgColor: "#EF4444" })}
-                $flexGrow={1}
               />
             );
 

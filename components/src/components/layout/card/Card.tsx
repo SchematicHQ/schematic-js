@@ -5,9 +5,15 @@ import { TEXT_BASE_SIZE } from "../../../const";
 import { useEmbed } from "../../../hooks";
 import { hsla } from "../../../utils";
 import { Flex, Loader } from "../../ui";
-import { cardBoxShadow, Element, FussyChild, StyledCard } from "./styles";
+import {
+  cardBoxShadow,
+  Element,
+  FussyChild,
+  Notice,
+  StyledCard,
+} from "./styles";
 
-export { cardBoxShadow, Element, FussyChild, StyledCard };
+export { cardBoxShadow, Element, FussyChild, Notice, StyledCard };
 
 export interface CardProps {
   children?: React.ReactNode;

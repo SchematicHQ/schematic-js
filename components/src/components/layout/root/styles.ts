@@ -1,12 +1,11 @@
 import styled from "styled-components";
 
-import { Box } from "../../ui";
-
-export const Container = styled(Box)`
+export const Container = styled.div`
   all: initial;
   box-sizing: border-box;
   display: block;
   font-size: 1rem;
+  line-height: 1.35;
   width: 100%;
   height: 100%;
 
