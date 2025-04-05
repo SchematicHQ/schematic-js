@@ -1,4 +1,4 @@
-import "../locales";
+import "../localization";
 
 import merge from "lodash/merge";
 import { inflate } from "pako";
