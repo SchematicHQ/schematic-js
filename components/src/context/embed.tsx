@@ -291,6 +291,7 @@ export const EmbedProvider = ({
     [options.debug],
   );
 
+  // TODO: rename once the api endpoint is created
   const init = useCallback(async () => {
     async function fetchPlans(): Promise<
       Partial<ComponentHydrateResponseData>
