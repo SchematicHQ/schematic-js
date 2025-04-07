@@ -1,12 +1,10 @@
 import styled from "styled-components";
 
-import { TEXT_BASE_SIZE } from "../../../const";
-
 export const Container = styled.div`
   all: initial;
   box-sizing: border-box;
   display: block;
-  font-size: ${TEXT_BASE_SIZE}px;
+  font-size: 1rem;
   line-height: 1.35;
   width: 100%;
   height: 100%;
