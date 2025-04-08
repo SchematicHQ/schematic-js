@@ -189,7 +189,6 @@ export const MeteredFeatures = forwardRef<
                 price = overagePrice.perUnitPriceDecimal
                   ? Number(overagePrice.perUnitPriceDecimal)
                   : (overagePrice.perUnitPrice ?? 0);
-
                 currency = product.currency;
               }
             }

@@ -346,11 +346,12 @@ export const PlanManager = forwardRef<
                         (entitlement?.usage ?? 0) -
                         (entitlementProduct?.priceTier[0].upTo ?? 0);
                       entitlement.price =
-                        entitlementProductLastTierPrice.perUnitPrice ??
-                        Number(
-                          entitlementProductLastTierPrice?.perUnitPriceDecimal,
-                        ) ??
-                        entitlement.price;
+                        entitlementProductLastTierPrice?.perUnitPriceDecimal
+                          ? Number(
+                              entitlementProductLastTierPrice?.perUnitPriceDecimal,
+                            )
+                          : (entitlementProductLastTierPrice.perUnitPrice ??
+                            entitlement.price);
                     }
                   }
                 }
