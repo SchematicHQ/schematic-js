@@ -208,8 +208,6 @@ export const MeteredFeatures = forwardRef<
             }
           }
 
-          console.log(data.subscription, isOverage, price);
-
           const progressBar = props.isVisible &&
             typeof usage === "number" &&
             limit > 0 &&
