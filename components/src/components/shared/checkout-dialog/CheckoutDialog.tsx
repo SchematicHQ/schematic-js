@@ -228,11 +228,11 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
         return;
       }
 
-      setError(undefined);
-      setCharges(undefined);
-      setIsLoading(true);
-
       try {
+        setError(undefined);
+        setCharges(undefined);
+        setIsLoading(true);
+
         const { data } = await api.previewCheckout({
           changeSubscriptionRequestBody: {
             newPlanId: plan.id,
@@ -282,7 +282,6 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           },
         });
 
-        setIsLoading(false);
         setCharges(data.finance);
       } catch (error) {
         if (error instanceof ResponseError && error.response.status === 401) {
@@ -294,10 +293,11 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           }
         }
 
-        setIsLoading(false);
         setError(
           t("Error retrieving plan details. Please try again in a moment."),
         );
+      } finally {
+        setIsLoading(false);
       }
     },
     [

@@ -267,15 +267,15 @@ export const Sidebar = ({
       });
       dispatchPlanChangedEvent(response.data);
 
-      setIsLoading(false);
       setLayout("portal");
       hydrate();
     } catch {
-      setIsLoading(false);
       setLayout("checkout");
       setError(
         t("Error processing payment. Please try a different payment method."),
       );
+    } finally {
+      setIsLoading(false);
     }
   }, [
     t,
