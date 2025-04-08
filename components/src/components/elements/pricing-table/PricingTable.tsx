@@ -431,8 +431,9 @@ export const PricingTable = forwardRef<
                                 entitlement.softLimit ??
                                 entitlement.valueNumeric;
 
-                              let entitlementPriceObject: BillingPriceView | null =
-                                null;
+                              let entitlementPriceObject:
+                                | undefined
+                                | BillingPriceView;
                               if (selectedPeriod === "month") {
                                 entitlementPriceObject =
                                   entitlement.meteredMonthlyPrice!;

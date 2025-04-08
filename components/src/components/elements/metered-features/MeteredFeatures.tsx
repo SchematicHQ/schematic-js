@@ -242,7 +242,7 @@ export const MeteredFeatures = forwardRef<
                     $leading={1.35}
                   >
                     <>
-                      {t("overage fee")}: {formatCurrency(price, currency)}
+                      {t("Overage fee")}: {formatCurrency(price, currency)}
                       {feature && (
                         <Box as="sub" $whiteSpace="nowrap">
                           /{getFeatureName(feature, 1)}

@@ -32,7 +32,7 @@ function resolveDesignProps(props: RecursivePartial<DesignProps>): DesignProps {
     header: {
       isVisible: props.header?.isVisible ?? true,
       fontStyle: props.header?.fontStyle ?? "heading4",
-      prefix: props.header?.prefix ?? "Next bill due ######",
+      prefix: props.header?.prefix ?? "Next bill due",
     },
     price: {
       isVisible: props.price?.isVisible ?? true,
