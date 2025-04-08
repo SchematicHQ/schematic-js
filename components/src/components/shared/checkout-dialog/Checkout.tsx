@@ -1,12 +1,10 @@
-import { loadStripe, type Stripe } from "@stripe/stripe-js";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 
-import type { SetupIntentResponseData } from "../../../api";
-import { useEmbed, useIsLightBackground } from "../../../hooks";
+import { useIsLightBackground } from "../../../hooks";
 import { PaymentMethodDetails } from "../../elements";
-import { Box, Flex, Input, Loader, Text } from "../../ui";
+import { Box, Flex, Input, Text } from "../../ui";
 
 interface CheckoutProps {
   requiresPayment: boolean;
@@ -23,43 +21,12 @@ export const Checkout = ({
 
   const theme = useTheme();
 
-  const { api, data } = useEmbed();
-
   const isLightBackground = useIsLightBackground();
 
-  const [stripe, setStripe] = useState<Promise<Stripe | null> | null>(null);
-  const [setupIntent, setSetupIntent] = useState<SetupIntentResponseData>();
   const [discount, setDiscount] = useState("");
-
-  useEffect(() => {
-    if (api && data.component?.id) {
-      api
-        .getSetupIntent({ componentId: data.component.id })
-        .then((res) => setSetupIntent(res.data));
-    }
-  }, [api, data.component?.id]);
-
-  useEffect(() => {
-    if (setupIntent?.publishableKey) {
-      setStripe(loadStripe(setupIntent.publishableKey));
-    }
-  }, [setupIntent?.publishableKey]);
 
   if (!requiresPayment) {
     return null;
-  }
-
-  if (!stripe) {
-    return (
-      <Flex
-        $justifyContent="center"
-        $alignItems="center"
-        $flexGrow={1}
-        $marginTop="-3.5rem"
-      >
-        <Loader $color={theme.primary} $size="3xl" />
-      </Flex>
-    );
   }
 
   return (
