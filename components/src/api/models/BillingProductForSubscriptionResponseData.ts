@@ -85,6 +85,12 @@ export interface BillingProductForSubscriptionResponseData {
    * @type {number}
    * @memberof BillingProductForSubscriptionResponseData
    */
+  packageSize: number;
+  /**
+   *
+   * @type {number}
+   * @memberof BillingProductForSubscriptionResponseData
+   */
   price: number;
   /**
    *
@@ -153,6 +159,8 @@ export function instanceOfBillingProductForSubscriptionResponseData(
   if (!("id" in value) || value["id"] === undefined) return false;
   if (!("interval" in value) || value["interval"] === undefined) return false;
   if (!("name" in value) || value["name"] === undefined) return false;
+  if (!("packageSize" in value) || value["packageSize"] === undefined)
+    return false;
   if (!("price" in value) || value["price"] === undefined) return false;
   if (!("priceExternalId" in value) || value["priceExternalId"] === undefined)
     return false;
@@ -189,6 +197,7 @@ export function BillingProductForSubscriptionResponseDataFromJSONTyped(
     interval: json["interval"],
     meterId: json["meter_id"] == null ? undefined : json["meter_id"],
     name: json["name"],
+    packageSize: json["package_size"],
     price: json["price"],
     priceDecimal:
       json["price_decimal"] == null ? undefined : json["price_decimal"],
@@ -220,6 +229,7 @@ export function BillingProductForSubscriptionResponseDataToJSON(
     interval: value["interval"],
     meter_id: value["meterId"],
     name: value["name"],
+    package_size: value["packageSize"],
     price: value["price"],
     price_decimal: value["priceDecimal"],
     price_external_id: value["priceExternalId"],
