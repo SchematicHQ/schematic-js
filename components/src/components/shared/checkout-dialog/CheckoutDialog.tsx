@@ -282,6 +282,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           },
         });
 
+        setIsLoading(false);
         setCharges(data.finance);
       } catch (error) {
         if (error instanceof ResponseError && error.response.status === 401) {
@@ -293,11 +294,10 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           }
         }
 
+        setIsLoading(false);
         setError(
           t("Error retrieving plan details. Please try again in a moment."),
         );
-      } finally {
-        setIsLoading(false);
       }
     },
     [

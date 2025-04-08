@@ -271,12 +271,11 @@ export const Sidebar = ({
       setLayout("portal");
       hydrate();
     } catch {
+      setIsLoading(false);
       setLayout("checkout");
       setError(
         t("Error processing payment. Please try a different payment method."),
       );
-    } finally {
-      setIsLoading(false);
     }
   }, [
     t,
