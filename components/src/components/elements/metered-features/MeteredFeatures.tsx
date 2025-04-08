@@ -226,7 +226,7 @@ export const MeteredFeatures = forwardRef<
                         )
                       ]
                 }
-                {...(isOverage && { bgColor: "#EF4444" })}
+                {...(isOverage && { bgColor: "#2563EB80" })}
               />
             );
 
