@@ -2,6 +2,7 @@ import { forwardRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 
+import { BillingPriceView } from "../../../api";
 import { TEXT_BASE_SIZE, VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
 import { type FontStyle } from "../../../context";
 import {
@@ -114,8 +115,6 @@ const resolveDesignProps = (
     },
   };
 };
-
-export type PricingTableProps = DesignProps;
 
 export const PricingTable = forwardRef<
   HTMLDivElement | null,
@@ -432,15 +431,47 @@ export const PricingTable = forwardRef<
                                 entitlement.softLimit ??
                                 entitlement.valueNumeric;
 
-                              const {
-                                price: entitlementPrice,
-                                currency: entitlementCurrency,
-                              } =
-                                getBillingPrice(
-                                  selectedPeriod === "year"
-                                    ? entitlement.meteredYearlyPrice
-                                    : entitlement.meteredMonthlyPrice,
-                                ) || {};
+                              let entitlementPriceObject:
+                                | undefined
+                                | BillingPriceView;
+                              if (selectedPeriod === "month") {
+                                entitlementPriceObject =
+                                  entitlement.meteredMonthlyPrice;
+                              } else if (selectedPeriod === "year") {
+                                entitlementPriceObject =
+                                  entitlement.meteredYearlyPrice;
+                              }
+
+                              let entitlementPrice: undefined | number;
+                              let entitlementCurrency: undefined | string;
+
+                              if (entitlementPriceObject) {
+                                entitlementPrice =
+                                  entitlementPriceObject?.price;
+                                entitlementCurrency =
+                                  entitlementPriceObject?.currency;
+                              }
+
+                              if (
+                                entitlementPriceObject &&
+                                entitlement.priceBehavior === "overage"
+                              ) {
+                                if (
+                                  entitlementPriceObject.priceTier?.length > 1
+                                ) {
+                                  // overage price is the last item in the price tier array
+                                  const overagePrice =
+                                    entitlementPriceObject.priceTier[
+                                      entitlementPriceObject.priceTier.length -
+                                        1
+                                    ];
+                                  entitlementPrice =
+                                    overagePrice.perUnitPrice ??
+                                    Number(overagePrice.perUnitPriceDecimal);
+                                  entitlementCurrency =
+                                    entitlementPriceObject.currency;
+                                }
+                              }
 
                               if (
                                 entitlement.priceBehavior &&
