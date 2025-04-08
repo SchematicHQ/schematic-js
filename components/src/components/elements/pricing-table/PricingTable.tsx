@@ -2,7 +2,10 @@ import { forwardRef, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 
-import { type CompanyPlanDetailResponseData } from "../../../api";
+import {
+  type BillingPriceView,
+  type CompanyPlanDetailResponseData,
+} from "../../../api";
 import { TEXT_BASE_SIZE, VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
 import { type FontStyle } from "../../../context";
 import {
@@ -34,7 +37,6 @@ import {
   Text,
   Tooltip,
 } from "../../ui";
-import { ButtonLink } from "./styles";
 
 const entitlementCountsReducer = (
   acc: Record<
@@ -135,8 +137,6 @@ const resolveDesignProps = (
   };
 };
 
-export type PricingTableProps = DesignProps;
-
 export const PricingTable = forwardRef<
   HTMLDivElement | null,
   ElementProps &
@@ -149,7 +149,7 @@ export const PricingTable = forwardRef<
 
   const theme = useTheme();
 
-  const { data, setLayout, setSelected } = useEmbed();
+  const { data } = useEmbed();
 
   const trialEndDays = useTrialEnd();
 
@@ -168,8 +168,6 @@ export const PricingTable = forwardRef<
   const canCheckout = data.capabilities?.checkout ?? true;
 
   const cardPadding = theme.card.padding / TEXT_BASE_SIZE;
-
-  const currentPlanIndex = plans.findIndex((plan) => plan.current);
 
   const handleToggleShowAll = (id: string) => {
     setEntitlementCounts((prev) => {
@@ -443,15 +441,47 @@ export const PricingTable = forwardRef<
                                 entitlement.softLimit ??
                                 entitlement.valueNumeric;
 
-                              const {
-                                price: entitlementPrice,
-                                currency: entitlementCurrency,
-                              } =
-                                getBillingPrice(
-                                  selectedPeriod === "year"
-                                    ? entitlement.meteredYearlyPrice
-                                    : entitlement.meteredMonthlyPrice,
-                                ) || {};
+                              let entitlementPriceObject:
+                                | undefined
+                                | BillingPriceView;
+                              if (selectedPeriod === "month") {
+                                entitlementPriceObject =
+                                  entitlement.meteredMonthlyPrice;
+                              } else if (selectedPeriod === "year") {
+                                entitlementPriceObject =
+                                  entitlement.meteredYearlyPrice;
+                              }
+
+                              let entitlementPrice: undefined | number;
+                              let entitlementCurrency: undefined | string;
+
+                              if (entitlementPriceObject) {
+                                entitlementPrice =
+                                  entitlementPriceObject?.price;
+                                entitlementCurrency =
+                                  entitlementPriceObject?.currency;
+                              }
+
+                              if (
+                                entitlementPriceObject &&
+                                entitlement.priceBehavior === "overage"
+                              ) {
+                                if (
+                                  entitlementPriceObject.priceTier?.length > 1
+                                ) {
+                                  // overage price is the last item in the price tier array
+                                  const overagePrice =
+                                    entitlementPriceObject.priceTier[
+                                      entitlementPriceObject.priceTier.length -
+                                        1
+                                    ];
+                                  entitlementPrice =
+                                    overagePrice.perUnitPrice ??
+                                    Number(overagePrice.perUnitPriceDecimal);
+                                  entitlementCurrency =
+                                    entitlementPriceObject.currency;
+                                }
+                              }
 
                               if (
                                 entitlement.priceBehavior &&
@@ -697,40 +727,22 @@ export const PricingTable = forwardRef<
                       (props.upgrade.isVisible ||
                         props.downgrade.isVisible) && (
                         <EmbedButton
-                          type="button"
-                          disabled={
-                            (!plan.valid || !canCheckout) && !plan.custom
+                          as="a"
+                          href={
+                            plan.customPlanConfig?.ctaWebSite ||
+                            "https://app.schematichq.com/sign-up"
                           }
-                          {...(!plan.custom && {
-                            onClick: () => {
-                              setSelected({
-                                period: selectedPeriod,
-                                planId: isActivePlan ? null : plan.id,
-                                usage: false,
-                              });
-                              setLayout("checkout");
-                            },
-                          })}
-                          {...(planIndex > currentPlanIndex
-                            ? {
-                                $size: props.upgrade.buttonSize,
-                                $color: props.upgrade.buttonStyle,
-                                $variant: "filled",
-                              }
-                            : {
-                                $size: props.downgrade.buttonSize,
-                                $color: props.downgrade.buttonStyle,
-                                $variant: "outline",
-                              })}
+                          target="_blank"
+                          type="button"
+                          $size={props.upgrade.buttonSize}
+                          $color={props.upgrade.buttonStyle}
+                          $variant="filled"
                         >
                           {plan.custom ? (
-                            <ButtonLink
-                              href={plan.customPlanConfig?.ctaWebSite ?? "#"}
-                              target="_blank"
-                            >
+                            <>
                               {plan.customPlanConfig?.ctaText ??
                                 t("Talk to support")}
-                            </ButtonLink>
+                            </>
                           ) : !plan.valid ? (
                             <Tooltip
                               trigger={t("Over usage limit")}
@@ -1038,16 +1050,11 @@ export const PricingTable = forwardRef<
 
                       {props.upgrade.isVisible && (
                         <EmbedButton
+                          as="a"
+                          href="https://app.schematichq.com/sign-up"
+                          target="_blank"
                           type="button"
                           disabled={!addOn.valid || !canCheckout}
-                          onClick={() => {
-                            setSelected({
-                              period: selectedPeriod,
-                              addOnId: isActiveAddOn ? null : addOn.id,
-                              usage: false,
-                            });
-                            setLayout("checkout");
-                          }}
                           $size={props.upgrade.buttonSize}
                           $color={
                             isActiveAddOn ? "danger" : props.upgrade.buttonStyle

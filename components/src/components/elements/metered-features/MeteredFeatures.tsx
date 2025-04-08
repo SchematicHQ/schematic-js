@@ -168,12 +168,45 @@ export const MeteredFeatures = forwardRef<
             typeof usage === "number" &&
             usage > softLimit;
 
-          const { price, currency } =
+          let { price, currency } =
             getBillingPrice(
               planPeriod === "year"
                 ? yearlyUsageBasedPrice
                 : monthlyUsageBasedPrice,
             ) || {};
+
+          // Overage price must be derived from the subscription object
+          if (priceBehavior === "overage") {
+            const productId = (yearlyUsageBasedPrice ?? monthlyUsageBasedPrice)
+              ?.productId;
+            if (productId) {
+              const products = data?.subscription?.products ?? [];
+              const product = products.find((p) => p.id === productId);
+              if (product && product.priceTier?.length > 1) {
+                // overage price is the last item in the price tier array
+                const overagePrice =
+                  product.priceTier[product.priceTier.length - 1];
+                price = overagePrice.perUnitPriceDecimal
+                  ? Number(overagePrice.perUnitPriceDecimal)
+                  : (overagePrice.perUnitPrice ?? 0);
+                currency = product.currency;
+              }
+            }
+          }
+
+          // Overage price must be derived from the subscription object
+          if (isOverage) {
+            const productId = (yearlyUsageBasedPrice ?? monthlyUsageBasedPrice)!
+              .productId;
+            if (productId) {
+              const products = data?.subscription?.products ?? [];
+              const product = products.find((p) => p.id === productId);
+              if (product) {
+                price = product.price;
+                currency = product.currency;
+              }
+            }
+          }
 
           const progressBar = props.isVisible &&
             typeof usage === "number" &&

@@ -148,8 +148,8 @@ export const PlanManager = forwardRef<
     currentPlan?.planPrice === 0 && usageBasedEntitlements.length > 0;
 
   const headerPriceFontStyle = isUsageBasedPlan
-    ? theme.typography.heading3
-    : theme.typography[props.header.price.fontStyle];
+    ? "heading3"
+    : props.header.price.fontStyle;
 
   return (
     <>
@@ -166,23 +166,11 @@ export const PlanManager = forwardRef<
               : lighten(theme.card.background, 0.04)
           }
         >
-          <Text
-            as="h3"
-            $font={theme.typography.heading3.fontFamily}
-            $size={theme.typography.heading3.fontSize}
-            $weight={theme.typography.heading3.fontWeight}
-            $color={theme.typography.heading3.color}
-          >
+          <Text as="h3" display="heading3">
             {t("Trial ends in", { days: trialEndDays.toString() })}
           </Text>
 
-          <Text
-            as="p"
-            $font={theme.typography.text.fontFamily}
-            $size={0.8125 * theme.typography.text.fontSize}
-            $weight={theme.typography.text.fontWeight}
-            $color={theme.typography.text.color}
-          >
+          <Text as="p" $size={0.8125 * theme.typography.text.fontSize}>
             {data.trialPaymentMethodRequired
               ? t("After the trial, subscribe")
               : defaultPlan
@@ -208,24 +196,12 @@ export const PlanManager = forwardRef<
                 : lighten(theme.card.background, 0.04)
             }
           >
-            <Text
-              as="h3"
-              $font={theme.typography.heading3.fontFamily}
-              $size={theme.typography.heading3.fontSize}
-              $weight={theme.typography.heading3.fontWeight}
-              $color={theme.typography.heading3.color}
-            >
+            <Text as="h3" display="heading3">
               {t("Subscription canceled")}
             </Text>
 
             {billingSubscription?.cancelAt && (
-              <Text
-                as="p"
-                $font={theme.typography.text.fontFamily}
-                $size={0.8125 * theme.typography.text.fontSize}
-                $weight={theme.typography.text.fontWeight}
-                $color={theme.typography.text.color}
-              >
+              <Text as="p" $size={0.8125 * theme.typography.text.fontSize}>
                 {t("Access to plan will end on", {
                   date: toPrettyDate(
                     new Date(billingSubscription.cancelAt * 1000),
@@ -255,41 +231,13 @@ export const PlanManager = forwardRef<
             $gap="1rem"
           >
             <Flex $flexDirection="column" $gap="1rem">
-              <Text
-                as={Box}
-                $font={
-                  theme.typography[props.header.title.fontStyle].fontFamily
-                }
-                $size={theme.typography[props.header.title.fontStyle].fontSize}
-                $weight={
-                  theme.typography[props.header.title.fontStyle].fontWeight
-                }
-                $color={theme.typography[props.header.title.fontStyle].color}
-                $leading={1}
-              >
+              <Text display={props.header.title.fontStyle} $leading={1}>
                 {currentPlan.name}
               </Text>
 
               {props.header.description.isVisible &&
                 currentPlan.description && (
-                  <Text
-                    as={Box}
-                    $font={
-                      theme.typography[props.header.description.fontStyle]
-                        .fontFamily
-                    }
-                    $size={
-                      theme.typography[props.header.description.fontStyle]
-                        .fontSize
-                    }
-                    $weight={
-                      theme.typography[props.header.description.fontStyle]
-                        .fontWeight
-                    }
-                    $color={
-                      theme.typography[props.header.description.fontStyle].color
-                    }
-                  >
+                  <Text display={props.header.description.fontStyle}>
                     {currentPlan.description}
                   </Text>
                 )}
@@ -299,12 +247,7 @@ export const PlanManager = forwardRef<
               typeof currentPlan.planPrice === "number" &&
               currentPlan.planPeriod && (
                 <Box>
-                  <Text
-                    $font={headerPriceFontStyle.fontFamily}
-                    $size={headerPriceFontStyle.fontSize}
-                    $weight={headerPriceFontStyle.fontWeight}
-                    $color={headerPriceFontStyle.color}
-                  >
+                  <Text display={headerPriceFontStyle}>
                     {isUsageBasedPlan
                       ? t("Usage-based")
                       : formatCurrency(
@@ -314,22 +257,7 @@ export const PlanManager = forwardRef<
                   </Text>
 
                   {!isUsageBasedPlan && (
-                    <Text
-                      $font={
-                        theme.typography[props.header.price.fontStyle]
-                          .fontFamily
-                      }
-                      $size={
-                        theme.typography[props.header.price.fontStyle].fontSize
-                      }
-                      $weight={
-                        theme.typography[props.header.price.fontStyle]
-                          .fontWeight
-                      }
-                      $color={
-                        theme.typography[props.header.price.fontStyle].color
-                      }
-                    >
+                    <Text display={props.header.price.fontStyle}>
                       <sub>/{shortenPeriod(currentPlan.planPeriod)}</sub>
                     </Text>
                   )}
@@ -342,9 +270,6 @@ export const PlanManager = forwardRef<
           <Flex $flexDirection="column" $gap="1rem">
             {props.addOns.showLabel && (
               <Text
-                $font={theme.typography.text.fontFamily}
-                $size={theme.typography.text.fontSize}
-                $weight={theme.typography.text.fontWeight}
                 $color={
                   isLightBackground
                     ? darken(theme.card.background, 0.46)
@@ -364,22 +289,10 @@ export const PlanManager = forwardRef<
                 $flexWrap="wrap"
                 $gap="1rem"
               >
-                <Text
-                  $font={theme.typography[props.addOns.fontStyle].fontFamily}
-                  $size={theme.typography[props.addOns.fontStyle].fontSize}
-                  $weight={theme.typography[props.addOns.fontStyle].fontWeight}
-                  $color={theme.typography[props.addOns.fontStyle].color}
-                >
-                  {addOn.name}
-                </Text>
+                <Text display={props.addOns.fontStyle}>{addOn.name}</Text>
 
                 {addOn.planPrice && addOn.planPeriod && (
-                  <Text
-                    $font={theme.typography.text.fontFamily}
-                    $size={theme.typography.text.fontSize}
-                    $weight={theme.typography.text.fontWeight}
-                    $color={theme.typography.text.color}
-                  >
+                  <Text>
                     {formatCurrency(addOn.planPrice, subscriptionCurrency)}
                     <sub>/{shortenPeriod(addOn.planPeriod)}</sub>
                   </Text>
@@ -392,9 +305,6 @@ export const PlanManager = forwardRef<
         {usageBasedEntitlements.length > 0 && (
           <Flex $flexDirection="column" $gap="1rem">
             <Text
-              $font={theme.typography.text.fontFamily}
-              $size={theme.typography.text.fontSize}
-              $weight={theme.typography.text.fontWeight}
               $color={
                 isLightBackground
                   ? darken(theme.card.background, 0.46)
@@ -409,10 +319,42 @@ export const PlanManager = forwardRef<
               (acc: React.ReactElement[], entitlement, entitlementIndex) => {
                 const limit =
                   entitlement.softLimit ?? entitlement.allocation ?? 0;
-                const overageAmount =
+                let overageAmount =
                   entitlement.priceBehavior === "overage" &&
                   (entitlement?.usage ?? 0) - (entitlement?.softLimit ?? 0);
                 const amount = overageAmount || entitlement.allocation || 0;
+
+                // calculate overage amount
+                if (
+                  entitlement.priceBehavior === "overage" &&
+                  data.subscription
+                ) {
+                  const subscription = data.subscription;
+                  const entitlementPrice =
+                    entitlement.monthlyUsageBasedPrice ??
+                    entitlement.yearlyUsageBasedPrice;
+                  if (entitlementPrice) {
+                    const entitlementProduct = subscription.products.find(
+                      (product) => product.id === entitlementPrice.productId,
+                    );
+                    if (entitlementProduct?.priceTier.length) {
+                      const entitlementProductLastTierPrice =
+                        entitlementProduct?.priceTier[
+                          entitlementProduct?.priceTier?.length - 1
+                        ];
+                      overageAmount =
+                        (entitlement?.usage ?? 0) -
+                        (entitlementProduct?.priceTier[0].upTo ?? 0);
+                      entitlement.price =
+                        entitlementProductLastTierPrice?.perUnitPriceDecimal
+                          ? Number(
+                              entitlementProductLastTierPrice?.perUnitPriceDecimal,
+                            )
+                          : (entitlementProductLastTierPrice.perUnitPrice ??
+                            entitlement.price);
+                    }
+                  }
+                }
 
                 if (entitlement.feature?.name) {
                   acc.push(
@@ -423,18 +365,7 @@ export const PlanManager = forwardRef<
                       $flexWrap="wrap"
                       $gap="1rem"
                     >
-                      <Text
-                        $font={
-                          theme.typography[props.addOns.fontStyle].fontFamily
-                        }
-                        $size={
-                          theme.typography[props.addOns.fontStyle].fontSize
-                        }
-                        $weight={
-                          theme.typography[props.addOns.fontStyle].fontWeight
-                        }
-                        $color={theme.typography[props.addOns.fontStyle].color}
-                      >
+                      <Text display={props.addOns.fontStyle}>
                         {entitlement.priceBehavior === "pay_in_advance" ||
                         (entitlement.priceBehavior === "overage" &&
                           limit > 0) ? (
@@ -455,9 +386,7 @@ export const PlanManager = forwardRef<
                         {entitlement.priceBehavior === "overage" &&
                         currentPlan?.planPeriod ? (
                           <Text
-                            $font={theme.typography.text.fontFamily}
                             $size={0.875 * theme.typography.text.fontSize}
-                            $weight={theme.typography.text.fontWeight}
                             $color={
                               hexToHSL(theme.typography.text.color).l > 50
                                 ? darken(theme.typography.text.color, 0.46)
@@ -471,7 +400,7 @@ export const PlanManager = forwardRef<
                               })
                             ) : (
                               <>
-                                {t("Overage fee")}:{" "}
+                                {t("overage fee")}:{" "}
                                 {formatCurrency(
                                   entitlement.price ?? 0,
                                   entitlement.currency,
@@ -492,9 +421,7 @@ export const PlanManager = forwardRef<
                           entitlement.priceBehavior === "pay_in_advance" &&
                           currentPlan?.planPeriod && (
                             <Text
-                              $font={theme.typography.text.fontFamily}
                               $size={0.875 * theme.typography.text.fontSize}
-                              $weight={theme.typography.text.fontWeight}
                               $color={
                                 hexToHSL(theme.typography.text.color).l > 50
                                   ? darken(theme.typography.text.color, 0.46)
@@ -514,12 +441,7 @@ export const PlanManager = forwardRef<
                         )}
 
                         {amount > 0 && (
-                          <Text
-                            $font={theme.typography.text.fontFamily}
-                            $size={theme.typography.text.fontSize}
-                            $weight={theme.typography.text.fontWeight}
-                            $color={theme.typography.text.color}
-                          >
+                          <Text>
                             {formatCurrency(
                               (entitlement.price ?? 0) * amount,
                               entitlement.currency,

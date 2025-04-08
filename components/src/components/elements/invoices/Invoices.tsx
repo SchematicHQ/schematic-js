@@ -133,10 +133,14 @@ export const Invoices = forwardRef<
   };
 
   useEffect(() => {
-    api?.listInvoices().then(({ data }) => {
-      setInvoices(formatInvoices(data));
+    api?.listInvoices().then((response) => {
+      setInvoices(formatInvoices(response.data));
     });
   }, [api]);
+
+  useEffect(() => {
+    setInvoices(formatInvoices(data));
+  }, [data]);
 
   if (invoices.length === 0) {
     return null;

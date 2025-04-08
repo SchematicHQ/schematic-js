@@ -14,4 +14,8 @@ export const StyledViewport = styled.div.withConfig({
     grid-template-columns: ${({ theme }) =>
       css`repeat(${theme.numberOfColumns}, minmax(300px, 1fr))`};
   }
+
+  @container (max-width: 768px) {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  }
 `;

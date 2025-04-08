@@ -48,8 +48,10 @@ export const PaymentMethod = forwardRef<
   const { data, setLayout } = useEmbed();
 
   const paymentMethod = useMemo(() => {
-    return data.subscription?.paymentMethod;
-  }, [data.subscription?.paymentMethod]);
+    return (
+      data.subscription?.paymentMethod || data.company?.defaultPaymentMethod
+    );
+  }, [data.company?.defaultPaymentMethod, data.subscription?.paymentMethod]);
 
   const monthsToExpiration = useMemo(() => {
     let expiration: number | undefined;
