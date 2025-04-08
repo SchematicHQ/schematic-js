@@ -436,10 +436,10 @@ export const PricingTable = forwardRef<
                                 | BillingPriceView;
                               if (selectedPeriod === "month") {
                                 entitlementPriceObject =
-                                  entitlement.meteredMonthlyPrice!;
+                                  entitlement.meteredMonthlyPrice;
                               } else if (selectedPeriod === "year") {
                                 entitlementPriceObject =
-                                  entitlement.meteredYearlyPrice!;
+                                  entitlement.meteredYearlyPrice;
                               }
 
                               let entitlementPrice: undefined | number;
