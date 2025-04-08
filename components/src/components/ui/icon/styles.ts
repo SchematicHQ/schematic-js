@@ -12,8 +12,7 @@ import { TEXT_BASE_SIZE } from "../../../const";
 
 export { IconNames as IconNameTypes, IconProps, iconsList };
 
-/* eslint-disable-next-line */
-export const Icon: any = styled(SchematicIcon)<IconProps>`
+export const Icon = styled(SchematicIcon)<IconProps>`
   display: flex;
   justify-content: center;
   align-items: center;
