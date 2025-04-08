@@ -116,6 +116,8 @@ const resolveDesignProps = (
   };
 };
 
+export type PricingTableProps = DesignProps;
+
 export const PricingTable = forwardRef<
   HTMLDivElement | null,
   ElementProps &
@@ -466,8 +468,9 @@ export const PricingTable = forwardRef<
                                         1
                                     ];
                                   entitlementPrice =
-                                    overagePrice.perUnitPrice ??
-                                    Number(overagePrice.perUnitPriceDecimal);
+                                    overagePrice.perUnitPriceDecimal
+                                      ? Number(overagePrice.perUnitPriceDecimal)
+                                      : (overagePrice.perUnitPrice ?? 0);
                                   entitlementCurrency =
                                     entitlementPriceObject.currency;
                                 }
