@@ -37,11 +37,11 @@ export const PaymentForm = ({ onConfirm }: PaymentFormProps) => {
       return;
     }
 
-    try {
-      setIsLoading(true);
-      setIsConfirmed(false);
-      setMessage(null);
+    setIsLoading(true);
+    setIsConfirmed(false);
+    setMessage(null);
 
+    try {
       const { setupIntent, error } = await stripe.confirmSetup({
         elements,
         confirmParams: {

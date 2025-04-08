@@ -228,11 +228,11 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
         return;
       }
 
-      try {
-        setError(undefined);
-        setCharges(undefined);
-        setIsLoading(true);
+      setError(undefined);
+      setCharges(undefined);
+      setIsLoading(true);
 
+      try {
         const { data } = await api.previewCheckout({
           changeSubscriptionRequestBody: {
             newPlanId: plan.id,

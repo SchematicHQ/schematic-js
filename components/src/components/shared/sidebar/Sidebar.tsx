@@ -267,6 +267,7 @@ export const Sidebar = ({
       });
       dispatchPlanChangedEvent(response.data);
 
+      setIsLoading(false);
       setLayout("portal");
       hydrate();
     } catch {
