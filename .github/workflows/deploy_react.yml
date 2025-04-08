@@ -52,6 +52,62 @@ jobs:
       - run: yarn publish --access public
         working-directory: ./react
 
+  update_example_app:
+    name: Update Example App
+    runs-on: ubuntu-latest
+    needs: [publish]
+    steps:
+      - name: Checkout schematic-react
+        uses: actions/checkout@v4
+        with:
+          path: schematic-react
+
+      - name: Get react version
+        id: get_version
+        run: |
+          cd schematic-react/react
+          echo "SCHEMATIC_REACT_VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+
+      - name: Checkout example app
+        uses: actions/checkout@v4
+        with:
+          repository: schematichq/schematic-next-example
+          path: schematic-next-example
+          token: ${{ secrets.DEPENDENT_UPDATE_PAT }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+
+      - name: Update example app dependencies
+        run: |
+          cd schematic-next-example
+          yarn add @schematichq/schematic-react@${{ steps.get_version.outputs.SCHEMATIC_REACT_VERSION }}
+
+      - name: Check for changes
+        id: check_changes
+        run: |
+          cd schematic-next-example
+          git diff --exit-code || echo "HAS_CHANGES=true" >> $GITHUB_OUTPUT
+
+      - name: Create Pull Request
+        if: steps.check_changes.outputs.HAS_CHANGES == 'true'
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.DEPENDENT_UPDATE_PAT }}
+          commit-message: Update @schematichq/schematic-react to ${{ steps.get_version.outputs.SCHEMATIC_REACT_VERSION }}
+          team-reviewers: schematichq/frontend
+          title: Update @schematichq/schematic-react to ${{ steps.get_version.outputs.SCHEMATIC_REACT_VERSION }}
+          body: |
+            This PR updates the @schematichq/schematic-react package to version ${{ steps.get_version.outputs.SCHEMATIC_REACT_VERSION }}.
+
+            This update was automatically created by the schematic-react deployment process.
+          branch: schematic-react-${{ steps.get_version.outputs.SCHEMATIC_REACT_VERSION }}
+          base: main
+          delete-branch: true
+          path: schematic-next-example
+
   notify_slack:
     name: Notify Slack
     runs-on: ubuntu-latest
