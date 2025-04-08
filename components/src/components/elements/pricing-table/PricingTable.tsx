@@ -116,7 +116,7 @@ const resolveDesignProps = (
   };
 };
 
-export type PricingTable = DesignProps;
+export type PricingTableProps = DesignProps;
 
 export const PricingTable = forwardRef<
   HTMLDivElement | null,
