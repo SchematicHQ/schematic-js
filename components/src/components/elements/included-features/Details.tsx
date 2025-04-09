@@ -175,6 +175,8 @@ export const Details = ({
     priceBehavior,
     allocation,
     price,
+    priceDecimal,
+    priceTier,
     currency,
     softLimit,
     usage,

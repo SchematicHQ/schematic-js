@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from "../runtime";
+import type { PreviewSubscriptionUpcomingInvoiceLineItems } from "./PreviewSubscriptionUpcomingInvoiceLineItems";
+import {
+  PreviewSubscriptionUpcomingInvoiceLineItemsFromJSON,
+  PreviewSubscriptionUpcomingInvoiceLineItemsFromJSONTyped,
+  PreviewSubscriptionUpcomingInvoiceLineItemsToJSON,
+} from "./PreviewSubscriptionUpcomingInvoiceLineItems";
+
 /**
  *
  * @export
@@ -67,6 +74,12 @@ export interface PreviewSubscriptionFinanceResponseData {
    * @memberof PreviewSubscriptionFinanceResponseData
    */
   trialEnd?: Date | null;
+  /**
+   *
+   * @type {Array<PreviewSubscriptionUpcomingInvoiceLineItems>}
+   * @memberof PreviewSubscriptionFinanceResponseData
+   */
+  upcomingInvoiceLineItems: Array<PreviewSubscriptionUpcomingInvoiceLineItems>;
 }
 
 /**
@@ -86,6 +99,11 @@ export function instanceOfPreviewSubscriptionFinanceResponseData(
   if (!("promoCodeApplied" in value) || value["promoCodeApplied"] === undefined)
     return false;
   if (!("proration" in value) || value["proration"] === undefined) return false;
+  if (
+    !("upcomingInvoiceLineItems" in value) ||
+    value["upcomingInvoiceLineItems"] === undefined
+  )
+    return false;
   return true;
 }
 
@@ -112,6 +130,9 @@ export function PreviewSubscriptionFinanceResponseDataFromJSONTyped(
     proration: json["proration"],
     trialEnd:
       json["trial_end"] == null ? undefined : new Date(json["trial_end"]),
+    upcomingInvoiceLineItems: (
+      json["upcoming_invoice_line_items"] as Array<any>
+    ).map(PreviewSubscriptionUpcomingInvoiceLineItemsFromJSON),
   };
 }
 
@@ -133,5 +154,8 @@ export function PreviewSubscriptionFinanceResponseDataToJSON(
       value["trialEnd"] == null
         ? undefined
         : (value["trialEnd"] as any).toISOString(),
+    upcoming_invoice_line_items: (
+      value["upcomingInvoiceLineItems"] as Array<any>
+    ).map(PreviewSubscriptionUpcomingInvoiceLineItemsToJSON),
   };
 }
