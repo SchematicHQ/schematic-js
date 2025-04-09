@@ -97,7 +97,6 @@ jobs:
         with:
           token: ${{ secrets.DEPENDENT_UPDATE_PAT }}
           commit-message: Update @schematichq/schematic-components to ${{ steps.get_version.outputs.SCHEMATIC_COMPONENTS_VERSION }}
-          team-reviewers: schematichq/frontend
           title: Update @schematichq/schematic-components to ${{ steps.get_version.outputs.SCHEMATIC_COMPONENTS_VERSION }}
           body: |
             This PR updates the @schematichq/schematic-components package to version ${{ steps.get_version.outputs.SCHEMATIC_COMPONENTS_VERSION }}.
