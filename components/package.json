@@ -15,7 +15,7 @@
       "import": "./dist/schematic-components.esm.js",
       "require": "./dist/schematic-components.cjs.js"
     },
-    "./style.css": "./dist/schematic-components.cjs.css"
+    "./styles.css": "./dist/schematic-components.cjs.css"
   },
   "author": "Schematic <engineering@schematichq.com>",
   "license": "MIT",
@@ -40,7 +40,7 @@
   },
   "dependencies": {
     "@stripe/stripe-js": "^7.3.1",
-    "@schematichq/schematic-icons": "^0.2.1",
+    "@schematichq/schematic-icons": "^0.3.1",
     "classnames": "^2.5.1",
     "i18next": "^25.1.3",
     "lodash": "^4.17.21",

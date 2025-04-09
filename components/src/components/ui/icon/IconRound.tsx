@@ -1,4 +1,4 @@
-import { IconNames, iconsList } from "@schematichq/schematic-icons";
+import { type IconNames, iconsList } from "@schematichq/schematic-icons";
 
 import { Icon } from "./Icon";
 import { IconContainer } from "./styles";
@@ -17,13 +17,10 @@ export const IconRound = ({
   colors = ["white", "#e5e7eb"],
   ...props
 }: IconRoundProps) => {
-  const iconNamesSet = new Set<IconNames>(
-    Object.keys(iconsList) as IconNames[],
-  );
+  const iconNamesSet = new Set(Object.keys(iconsList));
+  const isIconName = (value: string): value is IconNames =>
+    iconNamesSet.has(value);
 
-  const isIconName = (value: string): value is IconNames => {
-    return iconNamesSet.has(value as IconNames);
-  };
   return (
     <IconContainer $size={size} $variant={variant} $colors={colors} {...props}>
       {isIconName(name) ? (
