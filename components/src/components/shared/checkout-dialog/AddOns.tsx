@@ -4,6 +4,7 @@ import { useTheme } from "styled-components";
 import type { CompanyPlanDetailResponseData } from "../../../api";
 import { TEXT_BASE_SIZE } from "../../../const";
 import {
+  ChargeType,
   formatCurrency,
   getAddOnPrice,
   getBillingPrice,
@@ -80,7 +81,8 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
                   </Box>
                 )}
 
-                {(addOn[periodKey] || addOn.chargeType == "one-time") && (
+                {(addOn[periodKey] ||
+                  addOn.chargeType == ChargeType.oneTime) && (
                   <Box>
                     <Text
                       $font={theme.typography.heading2.fontFamily}
@@ -97,7 +99,10 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
                       $weight={theme.typography.heading2.fontWeight}
                       $color={theme.typography.heading2.color}
                     >
-                      /{addOn.chargeType == "one-time" ? t("One time") : period}
+                      /
+                      {addOn.chargeType == ChargeType.oneTime
+                        ? t("One time")
+                        : period}
                     </Text>
                   </Box>
                 )}

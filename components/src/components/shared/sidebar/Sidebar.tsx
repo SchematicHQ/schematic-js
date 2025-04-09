@@ -20,6 +20,7 @@ import {
   useIsLightBackground,
 } from "../../../hooks";
 import {
+  ChargeType,
   formatCurrency,
   formatOrdinal,
   getAddOnPrice,
@@ -416,7 +417,9 @@ export const Sidebar = ({
   ]);
 
   const removedAddOns = currentAddOns.filter(
-    (current) => !selectedAddOns.some((selected) => current.id === selected.id) && current.planPeriod !== "one-time",
+    (current) =>
+      !selectedAddOns.some((selected) => current.id === selected.id) &&
+      current.planPeriod !== "one-time",
   );
   const addedAddOns = selectedAddOns.filter(
     (selected) => !currentAddOns.some((current) => selected.id === current.id),
@@ -970,8 +973,10 @@ export const Sidebar = ({
                           addOn.planPrice,
                           selectedPlanBillingPrice?.currency,
                         )}
-                        <sub>{addOn.planPeriod != "one-time" &&
-                          `/${shortenPeriod(planPeriod)}}`}</sub>
+                        <sub>
+                          {addOn.planPeriod != "one-time" &&
+                            `/${shortenPeriod(planPeriod)}}`}
+                        </sub>
                       </Text>
                     </Box>
                   )}
@@ -1010,7 +1015,7 @@ export const Sidebar = ({
                     >
                       {formatCurrency(addOnPrice ?? 0, addOnCurrency)}
                       <sub>
-                        {addOn.chargeType != "one-time" &&
+                        {addOn.chargeType != ChargeType.oneTime &&
                           `/${shortenPeriod(planPeriod)}}`}
                       </sub>
                     </Text>
