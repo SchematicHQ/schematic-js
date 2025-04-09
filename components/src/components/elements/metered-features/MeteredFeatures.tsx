@@ -222,6 +222,7 @@ export const MeteredFeatures = forwardRef<
                 <Flex
                   $justifyContent="space-between"
                   $alignItems="center"
+                  $gap="1rem"
                   $padding={`${(0.4375 * theme.card.padding) / TEXT_BASE_SIZE}rem ${theme.card.padding / TEXT_BASE_SIZE}rem`}
                   $backgroundColor={
                     isLightBackground
