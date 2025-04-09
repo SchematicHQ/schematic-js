@@ -9,9 +9,9 @@ import {
   PaymentMethod,
   PlanManager,
   PricingTable,
+  TextElement,
   UnsubscribeButton,
-  UpcomingBill,
-} from "../elements";
+  UpcomingBill} from "../elements";
 import { Card, Column, Root, Viewport } from "../layout";
 
 const components: Record<string, React.FC | undefined> = {
@@ -27,7 +27,8 @@ const components: Record<string, React.FC | undefined> = {
   Invoices,
   PricingTable,
   UnsubscribeButton,
-  ButtonElement,
+  Button: ButtonElement,
+  Text: TextElement,
 };
 
 interface RenderOptions {
