@@ -52,12 +52,6 @@ export interface PlanDetailResponseData {
   billingProduct?: BillingProductDetailResponseData;
   /**
    *
-   * @type {string}
-   * @memberof PlanDetailResponseData
-   */
-  chargeType: string;
-  /**
-   *
    * @type {number}
    * @memberof PlanDetailResponseData
    */
@@ -124,12 +118,6 @@ export interface PlanDetailResponseData {
   name: string;
   /**
    *
-   * @type {BillingPriceResponseData}
-   * @memberof PlanDetailResponseData
-   */
-  oneTimePrice?: BillingPriceResponseData;
-  /**
-   *
    * @type {string}
    * @memberof PlanDetailResponseData
    */
@@ -160,8 +148,6 @@ export interface PlanDetailResponseData {
 export function instanceOfPlanDetailResponseData(
   value: object,
 ): value is PlanDetailResponseData {
-  if (!("chargeType" in value) || value["chargeType"] === undefined)
-    return false;
   if (!("companyCount" in value) || value["companyCount"] === undefined)
     return false;
   if (!("createdAt" in value) || value["createdAt"] === undefined) return false;
@@ -200,7 +186,6 @@ export function PlanDetailResponseDataFromJSONTyped(
       json["billing_product"] == null
         ? undefined
         : BillingProductDetailResponseDataFromJSON(json["billing_product"]),
-    chargeType: json["charge_type"],
     companyCount: json["company_count"],
     createdAt: new Date(json["created_at"]),
     description: json["description"],
@@ -217,10 +202,6 @@ export function PlanDetailResponseDataFromJSONTyped(
         ? undefined
         : BillingPriceResponseDataFromJSON(json["monthly_price"]),
     name: json["name"],
-    oneTimePrice:
-      json["one_time_price"] == null
-        ? undefined
-        : BillingPriceResponseDataFromJSON(json["one_time_price"]),
     planType: json["plan_type"],
     trialDays: json["trial_days"] == null ? undefined : json["trial_days"],
     updatedAt: new Date(json["updated_at"]),
@@ -242,7 +223,6 @@ export function PlanDetailResponseDataToJSON(
     billing_product: BillingProductDetailResponseDataToJSON(
       value["billingProduct"],
     ),
-    charge_type: value["chargeType"],
     company_count: value["companyCount"],
     created_at: value["createdAt"].toISOString(),
     description: value["description"],
@@ -256,7 +236,6 @@ export function PlanDetailResponseDataToJSON(
     is_trialable: value["isTrialable"],
     monthly_price: BillingPriceResponseDataToJSON(value["monthlyPrice"]),
     name: value["name"],
-    one_time_price: BillingPriceResponseDataToJSON(value["oneTimePrice"]),
     plan_type: value["planType"],
     trial_days: value["trialDays"],
     updated_at: value["updatedAt"].toISOString(),
