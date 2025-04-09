@@ -48,8 +48,8 @@ export function formatCurrency(amount: number, currency?: string) {
       currency: resolvedCurrency,
       ...(hasManySignificantDigits && {
         minimumSignificantDigits: 1,
+        maximumSignificantDigits: 12,
       }),
-      maximumSignificantDigits: 12,
     }).format(dollars);
   } catch (error) {
     console.error("Error formatting currency", error);

@@ -142,7 +142,7 @@ export const Details = ({
         const cost =
           usage - softLimit < 0 ? 0 : overagePrice * (usage - softLimit);
         const period =
-          feature.featureType === "event" &&
+          feature.featureType === "trait" &&
           typeof data.company?.plan?.planPeriod === "string"
             ? `/${shortenPeriod(data.company.plan.planPeriod)}`
             : "";
