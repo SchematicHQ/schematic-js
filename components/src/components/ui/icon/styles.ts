@@ -1,24 +1,14 @@
-import "@schematichq/schematic-icons/style.css";
-
-import {
-  Icon as SchematicIcon,
-  type IconNames,
-  type IconProps,
-  iconsList,
-} from "@schematichq/schematic-icons";
 import styled, { css } from "styled-components";
 
 import { TEXT_BASE_SIZE } from "../../../const";
 
-export { IconNames as IconNameTypes, IconProps, iconsList };
-
-export const Icon = styled(SchematicIcon)<IconProps>`
+export const Icon = styled.i`
   display: flex;
   justify-content: center;
   align-items: center;
 `;
 
-export const IconContainer = styled.div<{
+export const Container = styled.div<{
   $size: "tn" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl";
   $variant: "outline" | "filled";
   $colors: [string, string];
