@@ -11,7 +11,8 @@ import {
   PricingTable,
   TextElement,
   UnsubscribeButton,
-  UpcomingBill} from "../elements";
+  UpcomingBill,
+} from "../elements";
 import { Card, Column, Root, Viewport } from "../layout";
 
 const components: Record<string, React.FC | undefined> = {
