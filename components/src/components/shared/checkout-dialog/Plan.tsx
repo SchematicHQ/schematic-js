@@ -272,7 +272,7 @@ export const Plan = ({
                           entitlementPriceObject
                         ) {
                           const { priceTier } = entitlementPriceObject;
-                          if (priceTier.length) {
+                          if (priceTier.length > 1) {
                             const lastTier = priceTier[priceTier.length - 1];
                             const { perUnitPrice, perUnitPriceDecimal } =
                               lastTier;

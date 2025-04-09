@@ -49,12 +49,14 @@ export function formatCurrency(amount: number, currency?: string) {
       ...(hasManySignificantDigits && {
         minimumSignificantDigits: 1,
       }),
+      maximumSignificantDigits: 12,
     }).format(dollars);
   } catch (error) {
     console.error("Error formatting currency", error);
 
     return new Intl.NumberFormat("en-US", {
       style: "currency",
+      maximumSignificantDigits: 12,
       currency: resolvedCurrency,
     }).format(amount / 100);
   }
