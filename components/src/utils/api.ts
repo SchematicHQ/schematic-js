@@ -32,7 +32,7 @@ export function getBillingPrice<
 
   const price =
     typeof billingPrice.priceDecimal === "string"
-      ? parseFloat(billingPrice.priceDecimal)
+      ? Number(billingPrice.priceDecimal)
       : billingPrice.price;
 
   return { ...billingPrice, price };
