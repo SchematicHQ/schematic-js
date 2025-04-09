@@ -29,8 +29,6 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
 
   const cardPadding = theme.card.padding / TEXT_BASE_SIZE;
 
-  console.log("addOns", addOns);
-
   return (
     <>
       <Box
