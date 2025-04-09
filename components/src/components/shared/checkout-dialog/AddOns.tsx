@@ -82,7 +82,7 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
                 )}
 
                 {(addOn[periodKey] ||
-                  addOn.chargeType == ChargeType.oneTime) && (
+                  addOn.chargeType === ChargeType.oneTime) && (
                   <Box>
                     <Text
                       $font={theme.typography.heading2.fontFamily}
@@ -100,7 +100,7 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
                       $color={theme.typography.heading2.color}
                     >
                       /
-                      {addOn.chargeType == ChargeType.oneTime
+                      {addOn.chargeType === ChargeType.oneTime
                         ? t("One time")
                         : period}
                     </Text>
