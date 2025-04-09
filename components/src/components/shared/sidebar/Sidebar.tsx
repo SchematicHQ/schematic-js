@@ -32,7 +32,6 @@ import {
 import { Box, EmbedButton, Flex, Icon, Text } from "../../ui";
 import { type CheckoutStage } from "../checkout-dialog";
 import { StageButton } from "./StageButton";
-import { get } from "lodash";
 
 export interface UsageBasedEntitlement extends PlanEntitlementResponseData {
   allocation: number;
