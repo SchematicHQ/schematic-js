@@ -21,18 +21,6 @@ import { mapValues } from "../runtime";
 export interface CompanyPlanWithBillingSubView {
   /**
    *
-   * @type {Date}
-   * @memberof CompanyPlanWithBillingSubView
-   */
-  addedOn?: Date | null;
-  /**
-   *
-   * @type {string}
-   * @memberof CompanyPlanWithBillingSubView
-   */
-  billingProductExternalId?: string | null;
-  /**
-   *
    * @type {string}
    * @memberof CompanyPlanWithBillingSubView
    */
@@ -100,11 +88,6 @@ export function CompanyPlanWithBillingSubViewFromJSONTyped(
     return json;
   }
   return {
-    addedOn: json["added_on"] == null ? undefined : new Date(json["added_on"]),
-    billingProductExternalId:
-      json["billing_product_external_id"] == null
-        ? undefined
-        : json["billing_product_external_id"],
     billingProductId:
       json["billing_product_id"] == null
         ? undefined
@@ -125,11 +108,6 @@ export function CompanyPlanWithBillingSubViewToJSON(
     return value;
   }
   return {
-    added_on:
-      value["addedOn"] == null
-        ? undefined
-        : (value["addedOn"] as any).toISOString(),
-    billing_product_external_id: value["billingProductExternalId"],
     billing_product_id: value["billingProductId"],
     description: value["description"],
     id: value["id"],
