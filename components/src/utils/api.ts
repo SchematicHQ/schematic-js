@@ -3,7 +3,6 @@ import pluralize from "pluralize";
 import type { FeatureDetailResponseData } from "../api";
 import { type SelectedPlan } from "../hooks";
 
-
 export const getFeatureName = (
   feature: Pick<
     FeatureDetailResponseData,
