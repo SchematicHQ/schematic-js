@@ -97,9 +97,11 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
                       $weight={theme.typography.heading2.fontWeight}
                       $color={theme.typography.heading2.color}
                     >
-                      {addOn.chargeType === ChargeType.oneTime
-                        ? t("One time")
-                        : `/${period}`}
+                      {addOn.chargeType === ChargeType.oneTime ? (
+                        <> t("one time") </>
+                        ) : (
+                          `/${period}`
+                        )}
                     </Text>
                   </Box>
                 )}
