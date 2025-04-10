@@ -221,7 +221,7 @@ export const PricingTable = forwardRef<
               t("Plans")}
           </Text>
 
-          {props.showPeriodToggle && (
+          {props.showPeriodToggle && periods.length > 1 && (
             <PeriodToggle
               options={periods}
               selectedOption={selectedPeriod}

@@ -21,7 +21,7 @@ import {
   shortenPeriod,
   toPrettyDate,
 } from "../../../utils";
-import { Element } from "../../layout";
+import { cardBoxShadow, FussyChild } from "../../layout";
 import {
   Box,
   EmbedButton,
@@ -278,7 +278,18 @@ export const MeteredFeatures = forwardRef<
                 </Flex>
               )}
 
-              <Element as={Flex} $gap="1.5rem">
+              <FussyChild
+                as={Flex}
+                $flexDirection="column"
+                $gap="1.5rem"
+                $padding={`${theme.card.padding / TEXT_BASE_SIZE}rem`}
+                $backgroundColor={theme.card.background}
+                {...(theme.card.hasShadow && { $boxShadow: cardBoxShadow })}
+                {...(theme.sectionLayout === "separate" && {
+                  $borderTopLeftRadius: `${theme.card.borderRadius / TEXT_BASE_SIZE}rem`,
+                  $borderTopRightRadius: `${theme.card.borderRadius / TEXT_BASE_SIZE}rem`,
+                })}
+              >
                 {props.icon.isVisible && feature?.icon && (
                   <IconRound
                     name={feature.icon as IconNameTypes | string}
@@ -496,7 +507,7 @@ export const MeteredFeatures = forwardRef<
                       </Flex>
                     )}
                 </Flex>
-              </Element>
+              </FussyChild>
             </Flex>
           );
         },
