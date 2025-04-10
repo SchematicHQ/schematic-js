@@ -1,6 +1,8 @@
 import pluralize from "pluralize";
 
 import type { FeatureDetailResponseData } from "../api";
+import { type SelectedPlan } from "../hooks";
+
 
 export const getFeatureName = (
   feature: Pick<
@@ -37,3 +39,21 @@ export function getBillingPrice<
 
   return { ...billingPrice, price };
 }
+
+export const getAddOnPrice = (addOn: SelectedPlan, period: string) => {
+  if (addOn.chargeType === ChargeType.oneTime) {
+    return addOn.oneTimePrice;
+  }
+
+  if (period === "year") {
+    return addOn.yearlyPrice;
+  }
+
+  return addOn.monthlyPrice;
+};
+
+export const ChargeType = {
+  oneTime: "one_time",
+  recurring: "recurring",
+  free: "free",
+};

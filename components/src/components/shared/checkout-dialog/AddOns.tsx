@@ -3,7 +3,13 @@ import { useTheme } from "styled-components";
 
 import type { CompanyPlanDetailResponseData } from "../../../api";
 import { TEXT_BASE_SIZE } from "../../../const";
-import { formatCurrency, getBillingPrice, hexToHSL } from "../../../utils";
+import {
+  ChargeType,
+  formatCurrency,
+  getAddOnPrice,
+  getBillingPrice,
+  hexToHSL,
+} from "../../../utils";
 import { cardBoxShadow } from "../../layout";
 import { Box, EmbedButton, Flex, Icon, Text } from "../../ui";
 
@@ -32,9 +38,7 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
       >
         {addOns.map((addOn, index) => {
           const { price, currency } =
-            getBillingPrice(
-              period === "year" ? addOn.yearlyPrice : addOn.monthlyPrice,
-            ) || {};
+            getBillingPrice(getAddOnPrice(addOn, period)) || {};
 
           return (
             <Flex
@@ -75,7 +79,8 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
                   </Box>
                 )}
 
-                {addOn[periodKey] && (
+                {(addOn[periodKey] ||
+                  addOn.chargeType === ChargeType.oneTime) && (
                   <Box>
                     <Text
                       $font={theme.typography.heading2.fontFamily}
@@ -92,7 +97,11 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
                       $weight={theme.typography.heading2.fontWeight}
                       $color={theme.typography.heading2.color}
                     >
-                      /{period}
+                      {addOn.chargeType === ChargeType.oneTime ? (
+                        <> t("one time") </>
+                        ) : (
+                          `/${period}`
+                        )}
                     </Text>
                   </Box>
                 )}

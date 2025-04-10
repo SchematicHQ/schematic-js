@@ -31,6 +31,7 @@ import { Checkout } from "./Checkout";
 import { Navigation } from "./Navigation";
 import { Plan } from "./Plan";
 import { Usage } from "./Usage";
+import { getAddOnPrice } from "../../../utils";
 
 export const createActiveUsageBasedEntitlementsReducer =
   (entitlements: FeatureUsageResponseData[], period: string) =>
@@ -240,9 +241,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
             addOnIds: (updates.addOns || addOns).reduce(
               (acc: UpdateAddOnRequestBody[], addOn) => {
                 if (addOn.isSelected) {
-                  const addOnPriceId = (
-                    period === "year" ? addOn?.yearlyPrice : addOn?.monthlyPrice
-                  )?.id;
+                  const addOnPriceId = getAddOnPrice(addOn, period)?.id;
 
                   if (addOnPriceId) {
                     acc.push({

@@ -20,8 +20,10 @@ import {
   useIsLightBackground,
 } from "../../../hooks";
 import {
+  ChargeType,
   formatCurrency,
   formatOrdinal,
+  getAddOnPrice,
   getBillingPrice,
   getFeatureName,
   getMonthName,
@@ -227,9 +229,7 @@ export const Sidebar = ({
           newPriceId: priceId,
           addOnIds: addOns.reduce((acc: UpdateAddOnRequestBody[], addOn) => {
             if (addOn.isSelected && !selectedPlan.companyCanTrial) {
-              const addOnPriceId = (
-                planPeriod === "year" ? addOn?.yearlyPrice : addOn?.monthlyPrice
-              )?.id;
+              const addOnPriceId = getAddOnPrice(addOn, planPeriod)?.id;
 
               if (addOnPriceId) {
                 acc.push({
@@ -398,7 +398,9 @@ export const Sidebar = ({
     typeof selectedPlan !== "undefined" && !selectedPlan.current;
 
   const removedAddOns = currentAddOns.filter(
-    (current) => !selectedAddOns.some((selected) => current.id === selected.id),
+    (current) =>
+      !selectedAddOns.some((selected) => current.id === selected.id) &&
+      current.planPeriod !== "one-time",
   );
   const addedAddOns = selectedAddOns.filter(
     (selected) => !currentAddOns.some((current) => selected.id === current.id),
@@ -964,7 +966,9 @@ export const Sidebar = ({
                           addOn.planPrice,
                           selectedPlanBillingPrice?.currency,
                         )}
-                        <sub>/{shortenPeriod(addOn.planPeriod)}</sub>
+                        {addOn.planPeriod !== "one-time" && (
+                          <sub>`/${shortenPeriod(planPeriod)}`</sub>
+)}
                       </Text>
                     </Box>
                   )}
@@ -974,11 +978,7 @@ export const Sidebar = ({
 
             {selectedAddOns.map((addOn, index) => {
               const { price: addOnPrice, currency: addOnCurrency } =
-                getBillingPrice(
-                  planPeriod === "year"
-                    ? addOn.yearlyPrice
-                    : addOn.monthlyPrice,
-                ) || {};
+                getBillingPrice(getAddOnPrice(addOn, planPeriod)) || {};
 
               return (
                 <Flex
@@ -1006,7 +1006,9 @@ export const Sidebar = ({
                       $color={theme.typography.text.color}
                     >
                       {formatCurrency(addOnPrice ?? 0, addOnCurrency)}
-                      <sub>/{shortenPeriod(planPeriod)}</sub>
+                      {addOn.chargeType !== ChargeType.oneTime && (
+                        <sub>`/${shortenPeriod(planPeriod)}`</sub>
+                      )}
                     </Text>
                   </Box>
                 </Flex>

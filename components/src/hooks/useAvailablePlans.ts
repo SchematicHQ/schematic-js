@@ -2,6 +2,7 @@ import { useCallback, useMemo } from "react";
 
 import type { CompanyPlanDetailResponseData } from "../api";
 import { useEmbed } from ".";
+import { ChargeType } from "../utils";
 
 export interface SelectedPlan extends CompanyPlanDetailResponseData {
   isSelected: boolean;
@@ -37,7 +38,8 @@ export function useAvailablePlans(activePeriod: string) {
           : plans.filter(
               (plan) =>
                 (activePeriod === "month" && plan.monthlyPrice) ||
-                (activePeriod === "year" && plan.yearlyPrice),
+                (activePeriod === "year" && plan.yearlyPrice) ||
+                plan.chargeType === ChargeType.oneTime,
             );
 
       if (!customPlanExist) {
