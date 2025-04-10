@@ -968,7 +968,7 @@ export const Sidebar = ({
                         )}
                         {addOn.planPeriod !== "one-time" && (
                           <sub>`/${shortenPeriod(planPeriod)}`</sub>
-)}
+                        )}
                       </Text>
                     </Box>
                   )}

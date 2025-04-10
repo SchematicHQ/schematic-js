@@ -99,9 +99,9 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
                     >
                       {addOn.chargeType === ChargeType.oneTime ? (
                         <> t("one time") </>
-                        ) : (
-                          `/${period}`
-                        )}
+                      ) : (
+                        `/${period}`
+                      )}
                     </Text>
                   </Box>
                 )}
