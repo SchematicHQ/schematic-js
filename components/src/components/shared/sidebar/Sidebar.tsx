@@ -31,8 +31,8 @@ import {
 } from "../../../utils";
 import { Box, EmbedButton, Flex, Icon, Text } from "../../ui";
 import { type CheckoutStage } from "../checkout-dialog";
-import { StageButton } from "./StageButton";
 import { Proration } from "./Proration";
+import { StageButton } from "./StageButton";
 
 export interface UsageBasedEntitlement extends PlanEntitlementResponseData {
   allocation: number;
