@@ -17,6 +17,7 @@ export type TextPropNameTypes = `${TextPropNames}`;
 
 export interface TextProps {
   display?: FontStyle;
+  $width?: ComponentProps["$width"];
   $font?: ComponentProps["$fontFamily"];
   $size?: ComponentProps["$fontSize"];
   $weight?: ComponentProps["$fontWeight"];
@@ -37,6 +38,7 @@ export const Text = styled.span
     theme,
     onClick,
     $font,
+    $width,
     $size,
     $weight,
     $color,
@@ -62,6 +64,11 @@ export const Text = styled.span
       ${$align &&
       css`
         text-align: ${$align};
+      `};
+        
+      ${$width &&
+      css`
+        width: ${$width};
       `};
 
       ${onClick &&
