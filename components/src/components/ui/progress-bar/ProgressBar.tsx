@@ -40,16 +40,11 @@ export const ProgressBar = ({
   };
 
   return (
-    <Flex
-      $position="relative"
-      $alignItems="center"
-      $gap="1rem"
-      $width="100%"
-      {...props}
-    >
+    <Flex $position="relative" $alignItems="center" $gap="1rem" {...props}>
       <Box
         $overflow="hidden"
         $width="100%"
+        $minWidth="6rem"
         $height={`${8 / TEXT_BASE_SIZE}rem`}
         $backgroundColor={bgColor}
         $borderRadius="9999px"
