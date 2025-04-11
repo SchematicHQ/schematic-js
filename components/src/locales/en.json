@@ -56,8 +56,6 @@
     "one time ": "one time",
     "Optionally add features to your subscription": "Optionally add features to your subscription",
     "Other existing payment method": "Other existing payment method",
-    "Overage": "Overage",
-    "Overage fee": "Overage fee",
     "Over usage limit": "Over usage limit",
     "Pay now": "Pay now",
     "Payment Method": "Payment Method",
@@ -96,9 +94,9 @@
     "Usage": "Usage",
     "Usage-based": "Usage-based",
     "Use existing payment method": "Use existing payment method",
+    "X additional": "{{amount}} additional",
     "X% off": "{{percent}}% off",
     "X off": "{{amount}} off",
-    "X over the limit": "{{amount}} over the limit",
     "Yearly": "Yearly",
     "You will retain access to your plan until the end of the billing period, on": "You will retain access to your plan until the end of the billing period, on",
 
@@ -107,7 +105,7 @@
     "per": "per",
     "year": "year",
 
-    "overage fee": "overage fee",
+    "then": "then",
     "used": "used",
 
     "usage": {

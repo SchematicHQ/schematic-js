@@ -147,6 +147,7 @@ export const Details = ({
             ? `/${shortenPeriod(data.company.plan.planPeriod)}`
             : "";
 
+        // TODO: ask @gio about language here
         acc +=
           cost > 0
             ? ` • ${t("Overage")}: ${formatCurrency(cost)}${period}`
