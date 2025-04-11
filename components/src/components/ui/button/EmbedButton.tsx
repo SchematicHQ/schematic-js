@@ -183,7 +183,7 @@ export const EmbedButton = styled(Button)<{
         `;
     }
   }}
-  
+
   ${({ $selfAlignment = "center" }) => {
     switch ($selfAlignment) {
       case "start":
@@ -211,7 +211,6 @@ export const EmbedButton = styled(Button)<{
     }
 
     return css`
-      width: fit-content;
       padding-left: 1rem;
       padding-right: 1rem;
     `;
