@@ -968,7 +968,7 @@ export const Sidebar = ({
                           selectedPlanBillingPrice?.currency,
                         )}
                         {addOn.planPeriod !== "one-time" && (
-                          <sub>`/${shortenPeriod(planPeriod)}`</sub>
+                          <sub>/{shortenPeriod(planPeriod)}</sub>
                         )}
                       </Text>
                     </Box>
@@ -1008,7 +1008,7 @@ export const Sidebar = ({
                     >
                       {formatCurrency(addOnPrice ?? 0, addOnCurrency)}
                       {addOn.chargeType !== ChargeType.oneTime && (
-                        <sub>`/${shortenPeriod(planPeriod)}`</sub>
+                        <sub>/{shortenPeriod(planPeriod)}</sub>
                       )}
                     </Text>
                   </Box>
