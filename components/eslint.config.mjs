@@ -45,9 +45,7 @@ export default defineConfig([
     },
     settings: {
       "import/resolver": {
-        node: {
-          extensions: [".ts", ".tsx"],
-        },
+        typescript: {},
       },
       react: {
         version: "detect",
