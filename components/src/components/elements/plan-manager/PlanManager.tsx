@@ -4,7 +4,7 @@ import { useTheme } from "styled-components";
 
 import { type FeatureUsageResponseData } from "../../../api";
 import { type FontStyle } from "../../../context";
-import { useEmbed, useIsLightBackground } from "../../../hooks";
+import { useComponent, useIsLightBackground } from "../../../hooks";
 import type { ElementProps, RecursivePartial } from "../../../types";
 import {
   darken,
@@ -17,7 +17,7 @@ import {
   toPrettyDate,
 } from "../../../utils";
 import { Element, Notice } from "../../layout";
-import { Box, EmbedButton, Flex, Text } from "../../ui";
+import { Box, Button, Flex, Text } from "../../ui";
 
 interface DesignProps {
   header: {
@@ -93,7 +93,7 @@ export const PlanManager = forwardRef<
 
   const { t } = useTranslation();
 
-  const { data, setLayout, setSelected } = useEmbed();
+  const { data, setLayout, setSelected } = useComponent();
 
   const isLightBackground = useIsLightBackground();
 
@@ -471,7 +471,7 @@ export const PlanManager = forwardRef<
         )}
 
         {canCheckout && props.callToAction.isVisible && (
-          <EmbedButton
+          <Button
             type="button"
             onClick={() => {
               setSelected({
@@ -485,7 +485,7 @@ export const PlanManager = forwardRef<
             $color={props.callToAction.buttonStyle}
           >
             {t("Change plan")}
-          </EmbedButton>
+          </Button>
         )}
       </Element>
     </>

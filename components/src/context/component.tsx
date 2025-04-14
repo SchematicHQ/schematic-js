@@ -28,7 +28,7 @@ export interface TypographySettings {
   color: string;
 }
 
-export interface EmbedThemeSettings {
+export interface ComponentThemeSettings {
   numberOfColumns: 1 | 2 | 3;
   sectionLayout: "merged" | "separate";
   colorMode: "light" | "dark";
@@ -53,9 +53,9 @@ export interface EmbedThemeSettings {
   };
 }
 
-export type FontStyle = keyof EmbedThemeSettings["typography"];
+export type FontStyle = keyof ComponentThemeSettings["typography"];
 
-export const defaultTheme: EmbedThemeSettings = {
+export const defaultTheme: ComponentThemeSettings = {
   numberOfColumns: 2,
   sectionLayout: "merged",
   colorMode: "light",
@@ -120,15 +120,15 @@ export const defaultTheme: EmbedThemeSettings = {
   },
 };
 
-export type EmbedSettings = {
-  theme: EmbedThemeSettings;
+export type ComponentSettings = {
+  theme: ComponentThemeSettings;
   badge?: {
     alignment: ComponentProps["$justifyContent"];
     visibility?: ComponentProps["$visibility"];
   };
 };
 
-export const defaultSettings: EmbedSettings = {
+export const defaultSettings: ComponentSettings = {
   theme: defaultTheme,
   badge: {
     alignment: "start",
@@ -174,41 +174,41 @@ function parseEditorState(data: SerializedEditorState) {
   return arr;
 }
 
-export type EmbedLayout =
+export type ComponentLayout =
   | "portal"
   | "checkout"
   | "payment"
   | "unsubscribe"
   | "disabled";
 
-export type EmbedSelected = {
+export type ComponentSelected = {
   period?: string;
   planId?: string | null;
   addOnId?: string | null;
   usage?: boolean;
 };
 
-export type EmbedMode = "edit" | "view";
+export type ComponentMode = "edit" | "view";
 
-export interface EmbedContextProps {
+export interface ComponentContextProps {
   api: CheckoutexternalApi | null;
   data: ComponentHydrateResponseData;
   nodes: SerializedNodeWithChildren[];
-  settings: EmbedSettings;
-  layout: EmbedLayout;
-  mode: EmbedMode;
-  selected: EmbedSelected;
+  settings: ComponentSettings;
+  layout: ComponentLayout;
+  mode: ComponentMode;
+  selected: ComponentSelected;
   error?: Error;
   isPending: boolean;
   hydrate: () => Promise<void>;
   setIsPending: (bool: boolean) => void;
   setData: (data: ComponentHydrateResponseData) => void;
-  setLayout: (layout: EmbedLayout) => void;
-  setSelected: (selected: EmbedSelected) => void;
-  updateSettings: (settings: RecursivePartial<EmbedSettings>) => void;
+  setLayout: (layout: ComponentLayout) => void;
+  setSelected: (selected: ComponentSelected) => void;
+  updateSettings: (settings: RecursivePartial<ComponentSettings>) => void;
 }
 
-export const EmbedContext = createContext<EmbedContextProps>({
+export const ComponentContext = createContext<ComponentContextProps>({
   api: null,
   data: {
     activeAddOns: [],
@@ -230,23 +230,23 @@ export const EmbedContext = createContext<EmbedContextProps>({
   updateSettings: () => {},
 });
 
-export interface EmbedProviderProps {
+export interface ComponentProviderProps {
   id?: string;
   accessToken?: string;
   apiConfig?: ConfigurationParameters;
   children?: React.ReactNode;
-  mode?: EmbedMode;
+  mode?: ComponentMode;
   debug?: boolean;
 }
 
-export const EmbedProvider = ({
+export const ComponentProvider = ({
   id,
   accessToken,
   apiConfig,
   children,
   mode = "view",
   ...options
-}: EmbedProviderProps) => {
+}: ComponentProviderProps) => {
   const styleRef = useRef<HTMLLinkElement | null>(null);
   const sessionIdRef = useRef<string>(uuidv4());
 
@@ -254,18 +254,18 @@ export const EmbedProvider = ({
     api: CheckoutexternalApi | null;
     data: ComponentHydrateResponseData;
     nodes: SerializedNodeWithChildren[];
-    settings: EmbedSettings;
-    layout: EmbedLayout;
-    mode: EmbedMode;
-    selected: EmbedSelected;
+    settings: ComponentSettings;
+    layout: ComponentLayout;
+    mode: ComponentMode;
+    selected: ComponentSelected;
     isPending: boolean;
     error?: Error;
     hydrate: () => Promise<void>;
     setIsPending: (bool: boolean) => void;
     setData: (data: ComponentHydrateResponseData) => void;
-    setLayout: (layout: EmbedLayout) => void;
-    setSelected: (selected: EmbedSelected) => void;
-    updateSettings: (settings: RecursivePartial<EmbedSettings>) => void;
+    setLayout: (layout: ComponentLayout) => void;
+    setSelected: (selected: ComponentSelected) => void;
+    updateSettings: (settings: RecursivePartial<ComponentSettings>) => void;
   }>(() => {
     return {
       api: null,
@@ -304,7 +304,7 @@ export const EmbedProvider = ({
 
     try {
       const nodes: SerializedNodeWithChildren[] = [];
-      const settings: EmbedSettings = { ...defaultSettings };
+      const settings: ComponentSettings = { ...defaultSettings };
 
       if (!id || !state.api) {
         return;
@@ -358,21 +358,21 @@ export const EmbedProvider = ({
     }));
   };
 
-  const setLayout = (layout: EmbedLayout) => {
+  const setLayout = (layout: ComponentLayout) => {
     setState((prev) => ({
       ...prev,
       layout,
     }));
   };
 
-  const setSelected = (selected: RecursivePartial<EmbedSelected>) => {
+  const setSelected = (selected: RecursivePartial<ComponentSelected>) => {
     setState((prev) => ({
       ...prev,
       selected,
     }));
   };
 
-  const updateSettings = (settings: RecursivePartial<EmbedSettings>) => {
+  const updateSettings = (settings: RecursivePartial<ComponentSettings>) => {
     setState((prev) => {
       const updatedSettings = merge({}, prev.settings, { ...settings });
       return {
@@ -471,7 +471,7 @@ export const EmbedProvider = ({
   }, [state.settings.theme.typography]);
 
   return (
-    <EmbedContext.Provider
+    <ComponentContext.Provider
       value={{
         api: state.api,
         data: state.data,
@@ -494,6 +494,6 @@ export const EmbedProvider = ({
         <GlobalStyle />
         {children}
       </ThemeProvider>
-    </EmbedContext.Provider>
+    </ComponentContext.Provider>
   );
 };

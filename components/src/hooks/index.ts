@@ -1,5 +1,5 @@
 export * from "./useAvailablePlans";
-export * from "./useEmbed";
+export * from "./useComponent";
 export * from "./useIsLightBackground";
 export * from "./usePrevious";
 export * from "./useTrialEnd";

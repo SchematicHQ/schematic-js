@@ -7,8 +7,8 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 
-import { useEmbed } from "../../../hooks";
-import { Box, EmbedButton, Text } from "../../ui";
+import { useComponent } from "../../../hooks";
+import { Box, Button, Text } from "../../ui";
 
 interface PaymentFormProps {
   onConfirm?: (paymentMethodId: string) => void;
@@ -22,7 +22,7 @@ export const PaymentForm = ({ onConfirm }: PaymentFormProps) => {
   const stripe = useStripe();
   const elements = useElements();
 
-  const { api } = useEmbed();
+  const { api } = useComponent();
 
   const [message, setMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -82,15 +82,15 @@ export const PaymentForm = ({ onConfirm }: PaymentFormProps) => {
         <PaymentElement id="payment-element" />
       </Box>
 
-      <EmbedButton
+      <Button
         id="submit"
         disabled={isLoading || !stripe || !elements || isConfirmed}
-        isLoading={isLoading}
         style={{ flexShrink: 0 }}
         $color="primary"
+        $isLoading={isLoading}
       >
         {isLoading ? t("Loading") : t("Save payment method")}
-      </EmbedButton>
+      </Button>
 
       {message && (
         <Box $margin="1rem 0">

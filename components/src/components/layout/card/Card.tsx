@@ -2,7 +2,7 @@ import { forwardRef } from "react";
 import { useTheme } from "styled-components";
 
 import { TEXT_BASE_SIZE } from "../../../const";
-import { useEmbed } from "../../../hooks";
+import { useComponent } from "../../../hooks";
 import { hsla } from "../../../utils";
 import { Flex, Loader } from "../../ui";
 import {
@@ -22,7 +22,7 @@ export interface CardProps {
 
 export const Card = forwardRef<HTMLDivElement | null, CardProps>(
   ({ children, className }, ref) => {
-    const { isPending } = useEmbed();
+    const { isPending } = useComponent();
 
     const theme = useTheme();
 

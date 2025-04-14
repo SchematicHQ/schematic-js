@@ -1,7 +1,7 @@
 import { forwardRef, useCallback, useLayoutEffect } from "react";
 import { useTheme } from "styled-components";
 
-import { useEmbed, useIsLightBackground } from "../../../hooks";
+import { useComponent, useIsLightBackground } from "../../../hooks";
 import { Container } from "../../layout";
 import { Box, Flex } from "../../ui";
 
@@ -17,7 +17,7 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(
   ({ children, contentRef, size = "auto", top = 0, onClose, ...rest }, ref) => {
     const theme = useTheme();
 
-    const { setLayout } = useEmbed();
+    const { setLayout } = useComponent();
 
     const isLightBackground = useIsLightBackground();
 

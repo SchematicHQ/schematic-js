@@ -3,6 +3,12 @@ import styled, { css, keyframes } from "styled-components";
 import { TEXT_BASE_SIZE } from "../../../const";
 import { darken, hexToHSL, lighten } from "../../../utils";
 
+interface LoaderProps {
+  $size?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl";
+  $color?: string;
+  $isLoading?: boolean;
+}
+
 const spin = keyframes`
   0% {
     transform: rotate(0deg);
@@ -13,18 +19,8 @@ const spin = keyframes`
   }
 `;
 
-export const Loader = styled.div<{
-  $size?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl";
-  $color?: string;
-  $isLoading?: boolean;
-}>`
-  display: inline-block;
-  border-style: solid;
-  border-radius: 50%;
-  transition: all 0.1s;
-  animation: 1.5s linear infinite ${spin};
-
-  ${({ $color, theme }) => {
+export const loaderStyles = ({ $color, $size, $isLoading }: LoaderProps) =>
+  css(({ theme }) => {
     const { l } = hexToHSL(theme.card.background);
 
     let color = $color;
@@ -37,13 +33,6 @@ export const Loader = styled.div<{
       colorFn = darken;
     }
 
-    return css`
-      border-color: ${color};
-      border-top-color: ${colorFn(color, 0.425)};
-    `;
-  }}
-
-  ${({ $size = "md", $isLoading = true }) => {
     let px: number;
     switch ($size) {
       case "xs":
@@ -71,9 +60,20 @@ export const Loader = styled.div<{
     }
 
     return css`
+      content: "";
+      display: inline-block;
       width: ${($isLoading ? px : 0) / TEXT_BASE_SIZE}rem;
       height: ${($isLoading ? px : 0) / TEXT_BASE_SIZE}rem;
       border-width: ${($isLoading ? px : 0) / 16 / TEXT_BASE_SIZE}rem;
+      border-style: solid;
+      border-color: ${color};
+      border-top-color: ${colorFn(color, 0.425)};
+      border-radius: 50%;
+      transition: all 0.1s;
+      animation: 1.5s linear infinite ${spin};
     `;
-  }}
-`;
+  });
+
+export const Loader = styled.div<LoaderProps>((props) => {
+  return loaderStyles(props);
+});

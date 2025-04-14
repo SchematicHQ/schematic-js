@@ -1,20 +1,30 @@
 import styled, { css } from "styled-components";
 
 import { TEXT_BASE_SIZE } from "../../../const";
-import {
-  ButtonSizeTypes,
-  ButtonStyleTypes,
-  ButtonVariantTypes,
-} from "./Button";
+import { darken, hexToHSL, hslToHex, lighten } from "../../../utils";
+import { Icon } from "../icon/styles";
+import { loaderStyles } from "../loader";
 
-export const Button = styled.button<{
-  $color: ButtonStyleTypes;
-  $size: ButtonSizeTypes;
-  $variant: ButtonVariantTypes;
-}>`
+export type ButtonColor = "primary" | "secondary" | "danger";
+export type ButtonSize = "sm" | "md" | "lg";
+export type ButtonVariant = "filled" | "outline" | "ghost" | "text";
+export type ButtonAlignment = "start" | "center" | "end";
+export type ButtonSelfAlignment = "start" | "center" | "end";
+
+export interface ButtonProps {
+  $color?: ButtonColor;
+  $size?: ButtonSize;
+  $variant?: ButtonVariant;
+  $isLoading?: boolean;
+  $alignment?: ButtonAlignment;
+  $selfAlignment?: ButtonSelfAlignment;
+  $fullWidth?: boolean;
+}
+
+export const Button = styled.button<ButtonProps>`
   appearance: none;
-  font-family: Manrope, Arial, Helvetica, sans-serif;
-  font-weight: 800;
+  font-family: "Public Sans", sans-serif;
+  font-weight: 500;
   line-height: 1;
   display: flex;
   justify-content: center;
@@ -26,68 +36,85 @@ export const Button = styled.button<{
     cursor: pointer;
   }
 
-  ${({ $size, $variant }) => {
-    switch ($size) {
-      case "sm":
-        return css`
-          font-size: ${12 / TEXT_BASE_SIZE}rem;
-          ${$variant !== "link" &&
-          css`
-            padding: ${7 / TEXT_BASE_SIZE}rem ${20 / TEXT_BASE_SIZE}rem;
-          `}
-          border-radius: ${4 / TEXT_BASE_SIZE}rem;
-        `;
-      case "md":
-      default:
-        return css`
-          font-size: ${14 / TEXT_BASE_SIZE}rem;
-          ${$variant !== "link" &&
-          css`
-            padding: ${8 / TEXT_BASE_SIZE}rem ${24 / TEXT_BASE_SIZE}rem;
-          `}
-          border-radius: ${8 / TEXT_BASE_SIZE}rem;
-        `;
-      case "lg":
-        return css`
-          font-size: ${16 / TEXT_BASE_SIZE}rem;
-          ${$variant !== "link" &&
-          css`
-            padding: ${9 / TEXT_BASE_SIZE}rem ${28 / TEXT_BASE_SIZE}rem;
-          `}
-          border-radius: ${12 / TEXT_BASE_SIZE}rem;
-        `;
-    }
-  }}
+  &::before {
+    ${({ $color, $size, $isLoading }) =>
+      loaderStyles({ $color, $size, $isLoading: true })}
+  }
 
-  ${({ $color, $variant }) => {
-    let color = "#FFFFFF";
-    let bgColor;
-    switch ($color) {
-      case "blue":
-      default:
-        bgColor = "#194BFB";
-        break;
-      case "red":
-        bgColor = "#EF4444";
-        break;
-      case "white":
-        color = "#000000";
-        bgColor = "#FFFFFF";
-        break;
-      case "black":
-        bgColor = "#000000";
-        break;
+  ${({ disabled, $color = "primary", theme }) => {
+    const { l } = hexToHSL(theme[$color]);
+
+    let textColor;
+    let colorFn;
+    if (l > 50) {
+      textColor = "#000000";
+      colorFn = lighten;
+    } else {
+      textColor = "#FFFFFF";
+      colorFn = darken;
     }
 
-    color = $variant === "ghost" || $variant === "link" ? bgColor : color;
-    bgColor = $variant === "solid" ? bgColor : "transparent";
-    const borderColor =
-      $variant === "solid" || $variant === "outline" ? bgColor : "transparent";
+    if (disabled) {
+      textColor = colorFn(textColor, 42.5);
+    }
 
     return css`
-      color: ${color};
-      background-color: ${bgColor};
-      border-color: ${borderColor};
+      color: ${textColor};
+
+      ${Icon} {
+        color: ${textColor};
+      }
+    `;
+  }};
+
+  ${({ disabled, $color = "primary", theme, $variant = "filled" }) => {
+    const { l } = hexToHSL(theme.card.background);
+
+    let color = theme[$color];
+    if (disabled) {
+      color = hslToHex({ h: 0, s: 0, l });
+      color = l > 50 ? darken(color, 0.075) : lighten(color, 0.15);
+    }
+
+    if ($variant === "outline") {
+      return css`
+        background-color: transparent;
+        border-color: ${color};
+        color: ${color};
+
+        ${Icon} {
+          color: ${color};
+        }
+      `;
+    }
+
+    if ($variant === "ghost") {
+      return css`
+        background-color: transparent;
+        border-color: #cbcbcb;
+        color: ${color};
+
+        ${Icon} {
+          color: ${color};
+        }
+      `;
+    }
+
+    if ($variant === "text") {
+      return css`
+        background-color: transparent;
+        border-color: transparent;
+        color: ${color};
+
+        ${Icon} {
+          color: ${color};
+        }
+      `;
+    }
+
+    return css`
+      background-color: ${color};
+      border-color: ${color};
     `;
   }}
 
@@ -97,4 +124,132 @@ export const Button = styled.button<{
     border-color: #f3f4f6;
     cursor: not-allowed;
   }
+
+  &:disabled:hover {
+    cursor: not-allowed;
+  }
+
+  &:not(:disabled):hover {
+    ${({ $color = "primary", theme, $variant = "filled" }) => {
+      const specified = theme[$color];
+      const lightened = lighten(specified, 0.15);
+      const color =
+        specified === lightened ? darken(specified, 0.15) : lightened;
+
+      const { l } = hexToHSL(theme[$color]);
+      const textColor = l > 50 ? "#000000" : "#FFFFFF";
+
+      if ($variant === "filled") {
+        return css`
+          background-color: ${color};
+          border-color: ${color};
+        `;
+      }
+
+      if ($variant === "outline") {
+        return css`
+          background-color: ${color};
+          border-color: ${color};
+          color: ${textColor};
+
+          ${Icon} {
+            color: ${textColor};
+          }
+        `;
+      }
+
+      if ($variant === "ghost") {
+        return css`
+          border-color: ${darken("#CBCBCB", 0.075)};
+          box-shadow: 0 1px 2px ${lighten("#CBCBCB", 0.125)};
+        `;
+      }
+    }}
+  }
+
+  ${({ $size = "md", $variant }) => {
+    switch ($size) {
+      case "sm":
+        return css`
+          font-size: ${15 / TEXT_BASE_SIZE}rem;
+          height: ${40 / TEXT_BASE_SIZE}rem;
+          ${$variant !== "text" &&
+          css`
+            padding: ${7 / TEXT_BASE_SIZE}rem ${20 / TEXT_BASE_SIZE}rem;
+            border-radius: ${6 / TEXT_BASE_SIZE}rem;
+          `}
+        `;
+      case "md":
+        return css`
+          font-size: ${17 / TEXT_BASE_SIZE}rem;
+          height: ${52 / TEXT_BASE_SIZE}rem;
+          ${$variant !== "text" &&
+          css`
+            padding: ${8 / TEXT_BASE_SIZE}rem ${24 / TEXT_BASE_SIZE}rem;
+            border-radius: ${8 / TEXT_BASE_SIZE}rem;
+          `}
+        `;
+      case "lg":
+        return css`
+          font-size: ${19 / TEXT_BASE_SIZE}rem;
+          ${$variant !== "text" &&
+          css`
+            padding: ${9 / TEXT_BASE_SIZE}rem ${28 / TEXT_BASE_SIZE}rem;
+            border-radius: ${10 / TEXT_BASE_SIZE}rem;
+          `}
+          height: ${64 / TEXT_BASE_SIZE}rem;
+        `;
+    }
+  }}
+
+  ${({ $alignment = "center" }) => {
+    switch ($alignment) {
+      case "start":
+        return css`
+          justify-content: start;
+        `;
+      case "end":
+        return css`
+          justify-content: end;
+        `;
+      case "center":
+      default:
+        return css`
+          justify-content: center;
+        `;
+    }
+  }}
+
+  ${({ $selfAlignment = "center" }) => {
+    switch ($selfAlignment) {
+      case "start":
+        return css`
+          align-self: start;
+        `;
+      case "end":
+        return css`
+          align-self: end;
+        `;
+      case "center":
+      default:
+        return css`
+          align-self: center;
+        `;
+    }
+  }}
+
+  ${({ $fullWidth = true }) => {
+    if ($fullWidth) {
+      return css`
+        width: 100%;
+        padding: 0;
+      `;
+    }
+
+    return css`
+      width: fit-content;
+      padding-left: 1rem;
+      padding-right: 1rem;
+    `;
+  }}
 `;

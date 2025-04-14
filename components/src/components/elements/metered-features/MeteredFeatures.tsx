@@ -6,7 +6,7 @@ import { type FeatureUsageResponseData } from "../../../api";
 import { TEXT_BASE_SIZE } from "../../../const";
 import { type FontStyle } from "../../../context";
 import {
-  useEmbed,
+  useComponent,
   useIsLightBackground,
   useWrapChildren,
 } from "../../../hooks";
@@ -24,7 +24,7 @@ import {
 import { Element } from "../../layout";
 import {
   Box,
-  EmbedButton,
+  Button,
   Flex,
   type IconNameTypes,
   IconRound,
@@ -101,7 +101,7 @@ export const MeteredFeatures = forwardRef<
 
   const theme = useTheme();
 
-  const { data, setLayout, setSelected } = useEmbed();
+  const { data, setLayout, setSelected } = useComponent();
 
   const isLightBackground = useIsLightBackground();
 
@@ -480,7 +480,7 @@ export const MeteredFeatures = forwardRef<
                         )}
 
                         {priceBehavior === "pay_in_advance" && (
-                          <EmbedButton
+                          <Button
                             onClick={() => {
                               setSelected({ usage: true });
                               setLayout("checkout");
@@ -491,7 +491,7 @@ export const MeteredFeatures = forwardRef<
                             }}
                           >
                             {t("Add More")}
-                          </EmbedButton>
+                          </Button>
                         )}
                       </Flex>
                     )}

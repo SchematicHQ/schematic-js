@@ -1,7 +1,7 @@
-import { useEmbed } from ".";
+import { useComponent } from ".";
 
 export function useTrialEnd() {
-  const { data } = useEmbed();
+  const { data } = useComponent();
 
   const billingSubscription = data.company?.billingSubscription;
   const trialEndDate =

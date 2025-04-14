@@ -1,15 +1,15 @@
 import { forwardRef } from "react";
 import { useTranslation } from "react-i18next";
 
-import { useEmbed } from "../../../hooks";
+import { useComponent } from "../../../hooks";
 import { ComponentStyle, ElementProps, RecursivePartial } from "../../../types";
 import { Element } from "../../layout";
 import {
-  ButtonSizeTypes,
-  EmbedButton,
-  type EmbedButtonAlignment,
-  type EmbedButtonColor,
-  type EmbedButtonVariant,
+  Button,
+  type ButtonAlignment,
+  type ButtonColor,
+  ButtonSize,
+  type ButtonVariant,
   Flex,
 } from "../../ui";
 
@@ -17,9 +17,9 @@ interface DesignProps {
   button: {
     text: string;
     style: ComponentStyle;
-    size: ButtonSizeTypes;
+    size: ButtonSize;
     fullWidth: boolean;
-    alignment: EmbedButtonAlignment;
+    alignment: ButtonAlignment;
   };
 }
 
@@ -50,7 +50,7 @@ export const UnsubscribeButton = forwardRef<
   const props = resolveDesignProps(rest);
   const { t } = useTranslation();
 
-  const { data, setLayout } = useEmbed();
+  const { data, setLayout } = useComponent();
 
   const disabled =
     !data.subscription ||
@@ -59,7 +59,7 @@ export const UnsubscribeButton = forwardRef<
 
   const buttonStyles: Record<
     ComponentStyle,
-    { color: EmbedButtonColor; variant: EmbedButtonVariant }
+    { color: ButtonColor; variant: ButtonVariant }
   > = {
     primary: {
       color: "primary",
@@ -83,7 +83,7 @@ export const UnsubscribeButton = forwardRef<
       $flexDirection="column"
       $gap="2rem"
     >
-      <EmbedButton
+      <Button
         $size={props.button.size}
         $color={buttonStyles[props.button.style].color}
         $variant={buttonStyles[props.button.style].variant}
@@ -95,7 +95,7 @@ export const UnsubscribeButton = forwardRef<
         disabled={disabled}
       >
         {t(props.button.text) ?? t("Unsubscribe")}
-      </EmbedButton>
+      </Button>
     </Element>
   );
 });

@@ -5,7 +5,7 @@ import { useTheme } from "styled-components";
 import { type InvoiceResponseData } from "../../../api";
 import { MAX_VISIBLE_INVOICE_COUNT } from "../../../const";
 import { type FontStyle } from "../../../context";
-import { useEmbed } from "../../../hooks";
+import { useComponent } from "../../../hooks";
 import type { ElementProps, RecursivePartial } from "../../../types";
 import { formatCurrency, toPrettyDate } from "../../../utils";
 import { Element } from "../../layout";
@@ -119,7 +119,7 @@ export const Invoices = forwardRef<
 
   const theme = useTheme();
 
-  const { api } = useEmbed();
+  const { api } = useComponent();
 
   const [invoices, setInvoices] = useState(() => formatInvoices(data));
   const [listSize, setListSize] = useState(props.limit.number);

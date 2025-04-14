@@ -1,1 +1,1 @@
-export * from "./embed";
+export * from "./component";

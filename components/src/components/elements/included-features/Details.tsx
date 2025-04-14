@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 
 import type { FeatureUsageResponseData } from "../../../api";
-import { useEmbed } from "../../../hooks";
+import { useComponent } from "../../../hooks";
 import {
   formatCurrency,
   formatNumber,
@@ -37,7 +37,7 @@ export const Details = ({
 
   const theme = useTheme();
 
-  const { data } = useEmbed();
+  const { data } = useComponent();
 
   const { price, priceDecimal, priceTier, currency } = useMemo(() => {
     const {

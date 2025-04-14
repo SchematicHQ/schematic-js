@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 
-import { useEmbed } from "../../../hooks";
+import { useComponent } from "../../../hooks";
 import { PaymentMethodDetails } from "../../elements";
 import { Modal, ModalHeader, Text } from "../../ui";
 
@@ -14,7 +14,7 @@ export const PaymentDialog = ({ top = 0 }: PaymentDialogProps) => {
 
   const theme = useTheme();
 
-  const { setLayout } = useEmbed();
+  const { setLayout } = useComponent();
 
   return (
     <Modal size="md" top={top} onClose={() => setLayout("portal")}>

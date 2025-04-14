@@ -4,11 +4,11 @@ import { useTheme } from "styled-components";
 
 import {
   useAvailablePlans,
-  useEmbed,
+  useComponent,
   useIsLightBackground,
 } from "../../../hooks";
 import { toPrettyDate } from "../../../utils";
-import { Box, EmbedButton, Flex, Icon, Modal, Text } from "../../ui";
+import { Box, Button, Flex, Icon, Modal, Text } from "../../ui";
 import { createActiveUsageBasedEntitlementsReducer } from "../checkout-dialog";
 import { Sidebar } from "../sidebar";
 
@@ -21,7 +21,7 @@ export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
 
   const theme = useTheme();
 
-  const { data, setLayout, setSelected } = useEmbed();
+  const { data, setLayout, setSelected } = useComponent();
 
   const contentRef = useRef<HTMLDivElement>(null);
 
@@ -158,7 +158,7 @@ export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
               {t("Not ready to cancel?")}
             </Text>
 
-            <EmbedButton
+            <Button
               onClick={() => {
                 setSelected({
                   planId: data.company?.plan?.id,
@@ -173,7 +173,7 @@ export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
               $fullWidth={false}
             >
               {t("Manage plan")}
-            </EmbedButton>
+            </Button>
           </Flex>
         </Flex>
 

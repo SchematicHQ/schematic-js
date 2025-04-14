@@ -8,6 +8,16 @@ export type RecursivePartial<T> = {
       : T[P];
 };
 
+export type FastOmit<T extends object, U extends string | number | symbol> = {
+  [K in keyof T as K extends U ? never : K]: T[K];
+};
+
+export type Substitute<A extends object, B extends object> = FastOmit<
+  A,
+  keyof B
+> &
+  B;
+
 export type TransientCSSProperties = {
   [Property in keyof React.CSSProperties as `$${string & Property}`]: React.CSSProperties[Property];
 };

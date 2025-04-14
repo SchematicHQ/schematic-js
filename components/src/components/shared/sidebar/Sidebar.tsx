@@ -16,7 +16,7 @@ import type {
 } from "../../../api";
 import {
   type SelectedPlan,
-  useEmbed,
+  useComponent,
   useIsLightBackground,
 } from "../../../hooks";
 import {
@@ -29,7 +29,7 @@ import {
   getMonthName,
   shortenPeriod,
 } from "../../../utils";
-import { Box, EmbedButton, Flex, Icon, Text } from "../../ui";
+import { Box, Button, Flex, Icon, Text } from "../../ui";
 import { type CheckoutStage } from "../checkout-dialog";
 import { StageButton } from "./StageButton";
 
@@ -90,7 +90,7 @@ export const Sidebar = ({
 
   const theme = useTheme();
 
-  const { api, data, mode, layout, hydrate, setLayout } = useEmbed();
+  const { api, data, mode, layout, hydrate, setLayout } = useComponent();
 
   const isLightBackground = useIsLightBackground();
 
@@ -1320,9 +1320,9 @@ export const Sidebar = ({
         )}
 
         {layout === "unsubscribe" && (
-          <EmbedButton onClick={unsubscribe} isLoading={isLoading}>
+          <Button onClick={unsubscribe} $isLoading={isLoading}>
             {t("Cancel subscription")}
-          </EmbedButton>
+          </Button>
         )}
 
         {!isLoading && error && (

@@ -11,7 +11,7 @@ import {
   hexToHSL,
 } from "../../../utils";
 import { cardBoxShadow } from "../../layout";
-import { Box, EmbedButton, Flex, Icon, Text } from "../../ui";
+import { Box, Button, Flex, Icon, Text } from "../../ui";
 
 interface AddOnsProps {
   addOns: (CompanyPlanDetailResponseData & { isSelected: boolean })[];
@@ -131,7 +131,7 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
 
               <Flex $flexDirection="column" $justifyContent="end" $flexGrow="1">
                 {!addOn.isSelected ? (
-                  <EmbedButton
+                  <Button
                     type="button"
                     disabled={isLoading || !addOn.valid}
                     onClick={() => toggle(addOn.id)}
@@ -140,9 +140,9 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
                     $variant="outline"
                   >
                     {t("Choose add-on")}
-                  </EmbedButton>
+                  </Button>
                 ) : (
-                  <EmbedButton
+                  <Button
                     type="button"
                     disabled={isLoading || !addOn.valid}
                     onClick={() => toggle(addOn.id)}
@@ -164,7 +164,7 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
                         {t("Selected")}
                       </>
                     )}
-                  </EmbedButton>
+                  </Button>
                 )}
               </Flex>
             </Flex>

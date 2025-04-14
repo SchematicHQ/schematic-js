@@ -4,7 +4,7 @@ import { useTheme } from "styled-components";
 
 import { type BillingSubscriptionDiscountView } from "../../../api";
 import { type FontStyle } from "../../../context";
-import { useEmbed, useIsLightBackground } from "../../../hooks";
+import { useComponent, useIsLightBackground } from "../../../hooks";
 import type { ElementProps, RecursivePartial } from "../../../types";
 import { formatCurrency, toPrettyDate } from "../../../utils";
 import { Element } from "../../layout";
@@ -60,7 +60,7 @@ export const UpcomingBill = forwardRef<
 
   const theme = useTheme();
 
-  const { data } = useEmbed();
+  const { data } = useComponent();
 
   const isLightBackground = useIsLightBackground();
 

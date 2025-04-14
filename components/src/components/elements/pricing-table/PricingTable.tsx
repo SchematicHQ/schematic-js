@@ -7,7 +7,7 @@ import { TEXT_BASE_SIZE, VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
 import { type FontStyle } from "../../../context";
 import {
   useAvailablePlans,
-  useEmbed,
+  useComponent,
   useIsLightBackground,
   useTrialEnd,
 } from "../../../hooks";
@@ -26,7 +26,7 @@ import { cardBoxShadow, FussyChild } from "../../layout";
 import { PeriodToggle } from "../../shared";
 import {
   Box,
-  EmbedButton,
+  Button,
   Flex,
   Icon,
   type IconNameTypes,
@@ -130,7 +130,7 @@ export const PricingTable = forwardRef<
 
   const theme = useTheme();
 
-  const { data, setLayout, setSelected } = useEmbed();
+  const { data, setLayout, setSelected } = useComponent();
 
   const trialEndDays = useTrialEnd();
 
@@ -719,7 +719,7 @@ export const PricingTable = forwardRef<
                     ) : (
                       (props.upgrade.isVisible ||
                         props.downgrade.isVisible) && (
-                        <EmbedButton
+                        <Button
                           type="button"
                           disabled={
                             (!plan.valid || !canCheckout) && !plan.custom
@@ -766,7 +766,7 @@ export const PricingTable = forwardRef<
                           ) : (
                             t("Choose plan")
                           )}
-                        </EmbedButton>
+                        </Button>
                       )
                     )}
                   </Flex>
@@ -1060,7 +1060,7 @@ export const PricingTable = forwardRef<
                       )}
 
                       {props.upgrade.isVisible && (
-                        <EmbedButton
+                        <Button
                           type="button"
                           disabled={!addOn.valid || !canCheckout}
                           onClick={() => {
@@ -1088,7 +1088,7 @@ export const PricingTable = forwardRef<
                             : addOn.current
                               ? t("Change add-on")
                               : t("Choose add-on")}
-                        </EmbedButton>
+                        </Button>
                       )}
                     </Flex>
                   </Flex>

@@ -1,6 +1,6 @@
 import { useTheme } from "styled-components";
 
-import { useEmbed } from "../../hooks";
+import { useComponent } from "../../hooks";
 import { Box, Flex, Text } from "../ui";
 import { Card, Element } from ".";
 
@@ -49,7 +49,7 @@ interface RenderLayoutProps {
 }
 
 export const RenderLayout = ({ children }: RenderLayoutProps) => {
-  const { layout } = useEmbed();
+  const { layout } = useComponent();
 
   switch (layout) {
     case "disabled":
