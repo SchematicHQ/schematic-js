@@ -410,7 +410,7 @@ export const Plan = ({
                                         }
                                         $leading={1.35}
                                       >
-                                        {t("then")}
+                                        {t("then")}{" "}
                                         {formatCurrency(
                                           entitlementPrice,
                                           entitlementCurrency,

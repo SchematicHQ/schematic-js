@@ -399,9 +399,8 @@ export const PlanManager = forwardRef<
                                 amount: overageAmount,
                               })
                             ) : (
-                              // TODO: ask @gio about language here
                               <>
-                                {t("overage fee")}:{" "}
+                                {t("Additional")}:{" "}
                                 {formatCurrency(
                                   entitlement.price ?? 0,
                                   entitlement.currency,

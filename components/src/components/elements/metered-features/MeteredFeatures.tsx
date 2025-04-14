@@ -242,7 +242,7 @@ export const MeteredFeatures = forwardRef<
                     $leading={1.35}
                   >
                     <>
-                      {t("Overage fee")}: {formatCurrency(price, currency)}
+                      {t("Additional")}: {formatCurrency(price, currency)}
                       {feature && (
                         <Box as="sub" $whiteSpace="nowrap">
                           /{getFeatureName(feature, 1)}
@@ -262,9 +262,8 @@ export const MeteredFeatures = forwardRef<
                       $color={theme.typography.text.color}
                       $leading={1.35}
                     >
-                      {t("X over the limit", {
-                        amount: usage - softLimit,
-                      })}
+                      {formatNumber(usage - softLimit)}{" "}
+                      {feature && getFeatureName(feature)}
                       {" · "}
                       {formatCurrency(price * (usage - softLimit), currency)}
                       {feature?.featureType === "trait" &&
@@ -406,47 +405,49 @@ export const MeteredFeatures = forwardRef<
                             </Text>
                           )}
 
-                          {props.allocation.isVisible &&
-                            priceBehavior !== "overage" && (
-                              <Box $whiteSpace="nowrap">
-                                <Text
-                                  $font={
-                                    theme.typography[props.allocation.fontStyle]
-                                      .fontFamily
-                                  }
-                                  $size={
-                                    theme.typography[props.allocation.fontStyle]
-                                      .fontSize
-                                  }
-                                  $weight={
-                                    theme.typography[props.allocation.fontStyle]
-                                      .fontWeight
-                                  }
-                                  $color={
-                                    theme.typography[props.allocation.fontStyle]
-                                      .color
-                                  }
-                                  $leading={1.35}
-                                >
-                                  {priceBehavior &&
-                                  priceBehavior !== "overage" &&
-                                  metricResetAt
-                                    ? t("Resets", {
-                                        date: toPrettyDate(metricResetAt, {
-                                          month: "short",
-                                          day: "numeric",
-                                          year: undefined,
-                                        }),
+                          {props.allocation.isVisible && (
+                            <Box $whiteSpace="nowrap">
+                              <Text
+                                $font={
+                                  theme.typography[props.allocation.fontStyle]
+                                    .fontFamily
+                                }
+                                $size={
+                                  theme.typography[props.allocation.fontStyle]
+                                    .fontSize
+                                }
+                                $weight={
+                                  theme.typography[props.allocation.fontStyle]
+                                    .fontWeight
+                                }
+                                $color={
+                                  theme.typography[props.allocation.fontStyle]
+                                    .color
+                                }
+                                $leading={1.35}
+                              >
+                                {priceBehavior &&
+                                priceBehavior !== "overage" &&
+                                metricResetAt
+                                  ? t("Resets", {
+                                      date: toPrettyDate(metricResetAt, {
+                                        month: "short",
+                                        day: "numeric",
+                                        year: undefined,
+                                      }),
+                                    })
+                                  : priceBehavior === "overage"
+                                    ? t("X included", {
+                                        amount: formatNumber(limit),
                                       })
-                                    : typeof allocation === "number" ||
-                                        typeof softLimit === "number"
+                                    : typeof allocation === "number"
                                       ? t("Limit of", {
                                           amount: formatNumber(limit),
                                         })
                                       : t("No limit")}
-                                </Text>
-                              </Box>
-                            )}
+                              </Text>
+                            </Box>
+                          )}
                         </Box>
                       )}
                   </Flex>
@@ -467,7 +468,7 @@ export const MeteredFeatures = forwardRef<
                                 $leading={1}
                               >
                                 {t("Up to a limit of", {
-                                  amount: allocation,
+                                  amount: formatNumber(allocation),
                                   units:
                                     feature?.name && getFeatureName(feature),
                                 })}
