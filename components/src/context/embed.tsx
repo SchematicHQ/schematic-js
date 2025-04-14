@@ -1,5 +1,5 @@
 import i18n from "i18next";
-import merge from "lodash/merge";
+import { merge } from "lodash";
 import { inflate } from "pako";
 import { createContext, useCallback, useEffect, useRef, useState } from "react";
 import { initReactI18next } from "react-i18next";
@@ -383,6 +383,7 @@ export const EmbedProvider = ({
   };
 
   const initI18n = () => {
+    /* eslint-disable-next-line import/no-named-as-default-member */
     i18n.use(initReactI18next).init({
       resources: {
         en,
