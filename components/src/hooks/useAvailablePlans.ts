@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from "react";
 
-import type { CompanyPlanDetailResponseData } from "../api";
+import type { CompanyPlanDetailResponseData } from "../api/checkoutexternal";
 import { ChargeType } from "../utils";
 import { useEmbed } from ".";
 
