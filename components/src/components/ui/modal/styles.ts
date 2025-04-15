@@ -40,7 +40,7 @@ export const Modal = styled(Box).attrs({
     }}
   }
 
-  @media (min-height: 896px) : {
-    $maxHeight: "860px";
+  @media (min-height: 896px) {
+    max-height: 860px;
   }
 `;
