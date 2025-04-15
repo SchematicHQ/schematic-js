@@ -13,7 +13,7 @@ import type {
   PreviewSubscriptionFinanceResponseData,
   UpdateAddOnRequestBody,
   UpdatePayInAdvanceRequestBody,
-} from "../../../api";
+} from "../../../api/checkoutexternal";
 import {
   type SelectedPlan,
   useEmbed,

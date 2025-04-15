@@ -16,7 +16,7 @@ import {
   ResponseError,
   type UpdateAddOnRequestBody,
   type UpdatePayInAdvanceRequestBody,
-} from "../../../api";
+} from "../../../api/checkoutexternal";
 import {
   type SelectedPlan,
   useAvailablePlans,

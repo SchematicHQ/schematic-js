@@ -2,7 +2,7 @@ import { forwardRef, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 
-import { type FeatureUsageResponseData } from "../../../api";
+import { type FeatureUsageResponseData } from "../../../api/checkoutexternal";
 import { type FontStyle } from "../../../context";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import type { ElementProps, RecursivePartial } from "../../../types";
@@ -294,7 +294,11 @@ export const PlanManager = forwardRef<
                 {addOn.planPrice && addOn.planPeriod && (
                   <Text>
                     {formatCurrency(addOn.planPrice, subscriptionCurrency)}
-                    <sub>/{shortenPeriod(addOn.planPeriod)}</sub>
+                    <sub>
+                      {addOn.planPeriod == "one-time"
+                        ? shortenPeriod(addOn.planPeriod)
+                        : `/${shortenPeriod(addOn.planPeriod)}`}
+                    </sub>
                   </Text>
                 )}
               </Flex>

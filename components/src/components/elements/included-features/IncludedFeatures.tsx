@@ -2,7 +2,7 @@ import { forwardRef, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 
-import type { FeatureUsageResponseData } from "../../../api";
+import type { FeatureUsageResponseData } from "../../../api/checkoutexternal";
 import { VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
 import { type FontStyle } from "../../../context";
 import {
