@@ -23,6 +23,7 @@ import {
   useEmbed,
   useIsLightBackground,
 } from "../../../hooks";
+import { getAddOnPrice } from "../../../utils";
 import { PeriodToggle } from "../../shared";
 import { Flex, Modal, ModalHeader, Text } from "../../ui";
 import { Sidebar, type UsageBasedEntitlement } from "../sidebar";
@@ -31,7 +32,6 @@ import { Checkout } from "./Checkout";
 import { Navigation } from "./Navigation";
 import { Plan } from "./Plan";
 import { Usage } from "./Usage";
-import { getAddOnPrice } from "../../../utils";
 
 export const createActiveUsageBasedEntitlementsReducer =
   (entitlements: FeatureUsageResponseData[], period: string) =>

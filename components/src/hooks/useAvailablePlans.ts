@@ -1,8 +1,8 @@
 import { useCallback, useMemo } from "react";
 
 import type { CompanyPlanDetailResponseData } from "../api";
-import { useEmbed } from ".";
 import { ChargeType } from "../utils";
+import { useEmbed } from ".";
 
 export interface SelectedPlan extends CompanyPlanDetailResponseData {
   isSelected: boolean;
