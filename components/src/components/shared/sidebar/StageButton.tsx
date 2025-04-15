@@ -120,12 +120,7 @@ export const StageButton = ({
         }}
         $isLoading={isLoading}
       >
-        <Flex
-          $gap="0.5rem"
-          $justifyContent="center"
-          $alignItems="center"
-          $padding="0 1rem"
-        >
+        <Flex $gap="0.5rem" $justifyContent="center" $alignItems="center">
           {t("Next")}:{" "}
           {hasPayInAdvanceEntitlements
             ? t("Usage")

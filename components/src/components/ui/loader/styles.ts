@@ -69,6 +69,13 @@ export const loaderStyles = ({
       width: ${($isLoading ? px : 0) / TEXT_BASE_SIZE}rem;
       height: ${($isLoading ? px : 0) / TEXT_BASE_SIZE}rem;
       border-width: ${($isLoading ? px : 0) / 16 / TEXT_BASE_SIZE}rem;
+      ${$isLoading
+        ? css`
+            animation: 1.5s linear infinite ${spin};
+          `
+        : css`
+            transform: scale(0);
+          `}
       border-style: solid;
       border-color: ${color};
       border-top-color: ${colorFn(color, 0.425)};

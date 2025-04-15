@@ -45,6 +45,7 @@ export const Button = styled.button<ButtonProps>(
       align-items: center;
       gap: 0.5rem;
       border: 1px solid transparent;
+      transition: all 0.1s;
 
       &:hover {
         cursor: pointer;
@@ -104,7 +105,9 @@ export const Button = styled.button<ButtonProps>(
         if ($variant === "ghost") {
           return css`
             background-color: transparent;
-            border-color: #cbcbcb;
+            border-color: ${l > 50
+              ? darken(theme.card.background, 0.2)
+              : lighten(theme.card.background, 0.2)};
             color: ${color};
 
             ${Icon} {
@@ -118,6 +121,10 @@ export const Button = styled.button<ButtonProps>(
             background-color: transparent;
             border-color: transparent;
             color: ${color};
+
+            &:hover {
+              text-decoration: underline;
+            }
 
             ${Icon} {
               color: ${color};
@@ -172,9 +179,16 @@ export const Button = styled.button<ButtonProps>(
           }
 
           if ($variant === "ghost") {
+            const { l } = hexToHSL(theme.card.background);
+
             return css`
-              border-color: ${darken("#CBCBCB", 0.075)};
-              box-shadow: 0 1px 2px ${lighten("#CBCBCB", 0.125)};
+              border-color: ${l > 50
+                ? darken(theme.card.background, 0.125)
+                : lighten(theme.card.background, 0.125)};
+              box-shadow: 0 1px 2px
+                ${l > 50
+                  ? darken(theme.card.background, 0.075)
+                  : lighten(theme.card.background, 0.075)};
             `;
           }
         }}
@@ -185,9 +199,9 @@ export const Button = styled.button<ButtonProps>(
           case "sm":
             return css`
               font-size: ${15 / TEXT_BASE_SIZE}rem;
-              height: ${40 / TEXT_BASE_SIZE}rem;
               ${$variant !== "text" &&
               css`
+                height: ${40 / TEXT_BASE_SIZE}rem;
                 padding: ${7 / TEXT_BASE_SIZE}rem ${20 / TEXT_BASE_SIZE}rem;
                 border-radius: ${6 / TEXT_BASE_SIZE}rem;
               `}
@@ -195,9 +209,9 @@ export const Button = styled.button<ButtonProps>(
           case "md":
             return css`
               font-size: ${17 / TEXT_BASE_SIZE}rem;
-              height: ${52 / TEXT_BASE_SIZE}rem;
               ${$variant !== "text" &&
               css`
+                height: ${52 / TEXT_BASE_SIZE}rem;
                 padding: ${8 / TEXT_BASE_SIZE}rem ${24 / TEXT_BASE_SIZE}rem;
                 border-radius: ${8 / TEXT_BASE_SIZE}rem;
               `}
@@ -207,10 +221,10 @@ export const Button = styled.button<ButtonProps>(
               font-size: ${19 / TEXT_BASE_SIZE}rem;
               ${$variant !== "text" &&
               css`
+                height: ${64 / TEXT_BASE_SIZE}rem;
                 padding: ${9 / TEXT_BASE_SIZE}rem ${28 / TEXT_BASE_SIZE}rem;
                 border-radius: ${10 / TEXT_BASE_SIZE}rem;
               `}
-              height: ${64 / TEXT_BASE_SIZE}rem;
             `;
         }
       }}
@@ -261,8 +275,6 @@ export const Button = styled.button<ButtonProps>(
 
         return css`
           width: fit-content;
-          padding-left: 1rem;
-          padding-right: 1rem;
         `;
       }}
     `;
