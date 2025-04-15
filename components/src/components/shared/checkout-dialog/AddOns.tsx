@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 
-import type { CompanyPlanDetailResponseData } from "../../../api";
+import type { CompanyPlanDetailResponseData } from "../../../api/checkoutexternal";
 import { TEXT_BASE_SIZE } from "../../../const";
 import {
   ChargeType,

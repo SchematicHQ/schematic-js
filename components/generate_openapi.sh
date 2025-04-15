@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # Default values
-CONFIG="./openapi-config.yaml"
+CONFIG="./src/api/config_checkoutexternal.yml"
+DEFAULT_OUTPUT_DIR="src/api/checkoutexternal"
 INPUT_SPEC=""
 
 # Parse arguments
@@ -23,13 +24,27 @@ do
     esac
 done
 
+# Get output directory (we clean this before regenerating)
+if command -v yq >/dev/null 2>&1; then
+    OUTPUT_DIR=$(yq '.outputDir' "$CONFIG")
+else
+    echo "Warning: yq is not installed. Please install it with 'brew install yq' for better YAML parsing."
+    echo "Falling back to default output directory."
+    OUTPUT_DIR=$DEFAULT_OUTPUT_DIR
+fi
+if [ -z "$OUTPUT_DIR" ]; then
+    echo "Warning: outputDir not found in config file. Using default."
+    OUTPUT_DIR=$DEFAULT_OUTPUT_DIR
+fi
+echo "Using output directory: $OUTPUT_DIR"
+
 # Build the command
 COMMAND="npx openapi-generator-cli generate -c $CONFIG"
 if [ -n "$INPUT_SPEC" ]; then
     COMMAND="$COMMAND --input-spec=$INPUT_SPEC"
 fi
 
-# Execute the command
-rm -rf src/api/
+# Clean and regenerate
+rm -rf $OUTPUT_DIR
 eval $COMMAND
 yarn format

@@ -2,7 +2,7 @@ import { forwardRef, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 
-import { type FeatureUsageResponseData } from "../../../api";
+import { type FeatureUsageResponseData } from "../../../api/checkoutexternal";
 import { TEXT_BASE_SIZE } from "../../../const";
 import { type FontStyle } from "../../../context";
 import {
