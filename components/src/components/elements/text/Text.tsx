@@ -51,6 +51,7 @@ export const TextElement = forwardRef<
         $weight={theme.typography[props.text.fontStyle].fontWeight}
         $color={theme.typography[props.text.fontStyle].color}
         $align={props.text.alignment}
+        $width="100%"
       >
         {props.text.textContent}
       </Text>
