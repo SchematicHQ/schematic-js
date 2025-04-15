@@ -19,11 +19,15 @@ const spin = keyframes`
   }
 `;
 
-export const loaderStyles = ({ $color, $size, $isLoading }: LoaderProps) =>
+export const loaderStyles = ({
+  $color,
+  $size = "md",
+  $isLoading = true,
+}: LoaderProps) =>
   css(({ theme }) => {
     const { l } = hexToHSL(theme.card.background);
 
-    let color = $color;
+    let color = $color ?? theme.primary;
     let colorFn;
     if (l > 50) {
       color = color ?? "#000000";

@@ -21,235 +21,250 @@ export interface ButtonProps {
   $fullWidth?: boolean;
 }
 
-export const Button = styled.button<ButtonProps>`
-  appearance: none;
-  font-family: "Public Sans", sans-serif;
-  font-weight: 500;
-  line-height: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 0.5rem;
-  border: 1px solid transparent;
-
-  &:hover {
-    cursor: pointer;
-  }
-
-  &::before {
-    ${({ $color, $size, $isLoading }) =>
-      loaderStyles({ $color, $size, $isLoading: true })}
-  }
-
-  ${({ disabled, $color = "primary", theme }) => {
-    const { l } = hexToHSL(theme[$color]);
-
-    let textColor;
-    let colorFn;
-    if (l > 50) {
-      textColor = "#000000";
-      colorFn = lighten;
-    } else {
-      textColor = "#FFFFFF";
-      colorFn = darken;
-    }
-
-    if (disabled) {
-      textColor = colorFn(textColor, 42.5);
-    }
+export const Button = styled.button<ButtonProps>(
+  ({
+    $color = "primary",
+    $size = "md",
+    $variant = "filled",
+    $isLoading = false,
+    $alignment = "center",
+    $selfAlignment = "center",
+    $fullWidth = true,
+    disabled,
+    theme,
+  }) => {
+    const themeColor = theme[$color];
 
     return css`
-      color: ${textColor};
+      appearance: none;
+      font-family: "Public Sans", sans-serif;
+      font-weight: 500;
+      line-height: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.5rem;
+      border: 1px solid transparent;
 
-      ${Icon} {
-        color: ${textColor};
-      }
-    `;
-  }};
-
-  ${({ disabled, $color = "primary", theme, $variant = "filled" }) => {
-    const { l } = hexToHSL(theme.card.background);
-
-    let color = theme[$color];
-    if (disabled) {
-      color = hslToHex({ h: 0, s: 0, l });
-      color = l > 50 ? darken(color, 0.075) : lighten(color, 0.15);
-    }
-
-    if ($variant === "outline") {
-      return css`
-        background-color: transparent;
-        border-color: ${color};
-        color: ${color};
-
-        ${Icon} {
-          color: ${color};
-        }
-      `;
-    }
-
-    if ($variant === "ghost") {
-      return css`
-        background-color: transparent;
-        border-color: #cbcbcb;
-        color: ${color};
-
-        ${Icon} {
-          color: ${color};
-        }
-      `;
-    }
-
-    if ($variant === "text") {
-      return css`
-        background-color: transparent;
-        border-color: transparent;
-        color: ${color};
-
-        ${Icon} {
-          color: ${color};
-        }
-      `;
-    }
-
-    return css`
-      background-color: ${color};
-      border-color: ${color};
-    `;
-  }}
-
-  &-disabled {
-    color: #9ca3af80;
-    background-color: #f9fafb;
-    border-color: #f3f4f6;
-    cursor: not-allowed;
-  }
-
-  &:disabled:hover {
-    cursor: not-allowed;
-  }
-
-  &:not(:disabled):hover {
-    ${({ $color = "primary", theme, $variant = "filled" }) => {
-      const specified = theme[$color];
-      const lightened = lighten(specified, 0.15);
-      const color =
-        specified === lightened ? darken(specified, 0.15) : lightened;
-
-      const { l } = hexToHSL(theme[$color]);
-      const textColor = l > 50 ? "#000000" : "#FFFFFF";
-
-      if ($variant === "filled") {
-        return css`
-          background-color: ${color};
-          border-color: ${color};
-        `;
+      &:hover {
+        cursor: pointer;
       }
 
-      if ($variant === "outline") {
+      &::before {
+        ${loaderStyles({ $color: themeColor, $size, $isLoading })}
+      }
+
+      ${() => {
+        const { l } = hexToHSL(themeColor);
+
+        let textColor;
+        let colorFn;
+        if (l > 50) {
+          textColor = "#000000";
+          colorFn = lighten;
+        } else {
+          textColor = "#FFFFFF";
+          colorFn = darken;
+        }
+
+        if (disabled) {
+          textColor = colorFn(textColor, 42.5);
+        }
+
         return css`
-          background-color: ${color};
-          border-color: ${color};
           color: ${textColor};
 
           ${Icon} {
             color: ${textColor};
           }
         `;
+      }};
+
+      ${() => {
+        const { l } = hexToHSL(theme.card.background);
+
+        let color = themeColor;
+        if (disabled) {
+          color = hslToHex({ h: 0, s: 0, l });
+          color = l > 50 ? darken(color, 0.075) : lighten(color, 0.15);
+        }
+
+        if ($variant === "outline") {
+          return css`
+            background-color: transparent;
+            border-color: ${color};
+            color: ${color};
+
+            ${Icon} {
+              color: ${color};
+            }
+          `;
+        }
+
+        if ($variant === "ghost") {
+          return css`
+            background-color: transparent;
+            border-color: #cbcbcb;
+            color: ${color};
+
+            ${Icon} {
+              color: ${color};
+            }
+          `;
+        }
+
+        if ($variant === "text") {
+          return css`
+            background-color: transparent;
+            border-color: transparent;
+            color: ${color};
+
+            ${Icon} {
+              color: ${color};
+            }
+          `;
+        }
+
+        return css`
+          background-color: ${color};
+          border-color: ${color};
+        `;
+      }}
+
+      &-disabled {
+        color: #9ca3af80;
+        background-color: #f9fafb;
+        border-color: #f3f4f6;
+        cursor: not-allowed;
       }
 
-      if ($variant === "ghost") {
-        return css`
-          border-color: ${darken("#CBCBCB", 0.075)};
-          box-shadow: 0 1px 2px ${lighten("#CBCBCB", 0.125)};
-        `;
+      &:disabled:hover {
+        cursor: not-allowed;
       }
-    }}
-  }
 
-  ${({ $size = "md", $variant }) => {
-    switch ($size) {
-      case "sm":
-        return css`
-          font-size: ${15 / TEXT_BASE_SIZE}rem;
-          height: ${40 / TEXT_BASE_SIZE}rem;
-          ${$variant !== "text" &&
-          css`
-            padding: ${7 / TEXT_BASE_SIZE}rem ${20 / TEXT_BASE_SIZE}rem;
-            border-radius: ${6 / TEXT_BASE_SIZE}rem;
-          `}
-        `;
-      case "md":
-        return css`
-          font-size: ${17 / TEXT_BASE_SIZE}rem;
-          height: ${52 / TEXT_BASE_SIZE}rem;
-          ${$variant !== "text" &&
-          css`
-            padding: ${8 / TEXT_BASE_SIZE}rem ${24 / TEXT_BASE_SIZE}rem;
-            border-radius: ${8 / TEXT_BASE_SIZE}rem;
-          `}
-        `;
-      case "lg":
-        return css`
-          font-size: ${19 / TEXT_BASE_SIZE}rem;
-          ${$variant !== "text" &&
-          css`
-            padding: ${9 / TEXT_BASE_SIZE}rem ${28 / TEXT_BASE_SIZE}rem;
-            border-radius: ${10 / TEXT_BASE_SIZE}rem;
-          `}
-          height: ${64 / TEXT_BASE_SIZE}rem;
-        `;
-    }
-  }}
+      &:not(:disabled):hover {
+        ${() => {
+          const specified = themeColor;
+          const lightened = lighten(specified, 0.15);
+          const color =
+            specified === lightened ? darken(specified, 0.15) : lightened;
 
-  ${({ $alignment = "center" }) => {
-    switch ($alignment) {
-      case "start":
-        return css`
-          justify-content: start;
-        `;
-      case "end":
-        return css`
-          justify-content: end;
-        `;
-      case "center":
-      default:
-        return css`
-          justify-content: center;
-        `;
-    }
-  }}
+          const { l } = hexToHSL(themeColor);
+          const textColor = l > 50 ? "#000000" : "#FFFFFF";
 
-  ${({ $selfAlignment = "center" }) => {
-    switch ($selfAlignment) {
-      case "start":
-        return css`
-          align-self: start;
-        `;
-      case "end":
-        return css`
-          align-self: end;
-        `;
-      case "center":
-      default:
-        return css`
-          align-self: center;
-        `;
-    }
-  }}
+          if ($variant === "filled") {
+            return css`
+              background-color: ${color};
+              border-color: ${color};
+            `;
+          }
 
-  ${({ $fullWidth = true }) => {
-    if ($fullWidth) {
-      return css`
-        width: 100%;
-        padding: 0;
-      `;
-    }
+          if ($variant === "outline") {
+            return css`
+              background-color: ${color};
+              border-color: ${color};
+              color: ${textColor};
 
-    return css`
-      width: fit-content;
-      padding-left: 1rem;
-      padding-right: 1rem;
+              ${Icon} {
+                color: ${textColor};
+              }
+            `;
+          }
+
+          if ($variant === "ghost") {
+            return css`
+              border-color: ${darken("#CBCBCB", 0.075)};
+              box-shadow: 0 1px 2px ${lighten("#CBCBCB", 0.125)};
+            `;
+          }
+        }}
+      }
+
+      ${() => {
+        switch ($size) {
+          case "sm":
+            return css`
+              font-size: ${15 / TEXT_BASE_SIZE}rem;
+              height: ${40 / TEXT_BASE_SIZE}rem;
+              ${$variant !== "text" &&
+              css`
+                padding: ${7 / TEXT_BASE_SIZE}rem ${20 / TEXT_BASE_SIZE}rem;
+                border-radius: ${6 / TEXT_BASE_SIZE}rem;
+              `}
+            `;
+          case "md":
+            return css`
+              font-size: ${17 / TEXT_BASE_SIZE}rem;
+              height: ${52 / TEXT_BASE_SIZE}rem;
+              ${$variant !== "text" &&
+              css`
+                padding: ${8 / TEXT_BASE_SIZE}rem ${24 / TEXT_BASE_SIZE}rem;
+                border-radius: ${8 / TEXT_BASE_SIZE}rem;
+              `}
+            `;
+          case "lg":
+            return css`
+              font-size: ${19 / TEXT_BASE_SIZE}rem;
+              ${$variant !== "text" &&
+              css`
+                padding: ${9 / TEXT_BASE_SIZE}rem ${28 / TEXT_BASE_SIZE}rem;
+                border-radius: ${10 / TEXT_BASE_SIZE}rem;
+              `}
+              height: ${64 / TEXT_BASE_SIZE}rem;
+            `;
+        }
+      }}
+
+      ${() => {
+        switch ($alignment) {
+          case "start":
+            return css`
+              justify-content: start;
+            `;
+          case "end":
+            return css`
+              justify-content: end;
+            `;
+          case "center":
+          default:
+            return css`
+              justify-content: center;
+            `;
+        }
+      }}
+
+    ${() => {
+        switch ($selfAlignment) {
+          case "start":
+            return css`
+              align-self: start;
+            `;
+          case "end":
+            return css`
+              align-self: end;
+            `;
+          case "center":
+          default:
+            return css`
+              align-self: center;
+            `;
+        }
+      }}
+
+    ${() => {
+        if ($fullWidth) {
+          return css`
+            width: 100%;
+            padding: 0;
+          `;
+        }
+
+        return css`
+          width: fit-content;
+          padding-left: 1rem;
+          padding-right: 1rem;
+        `;
+      }}
     `;
-  }}
-`;
+  },
+);
