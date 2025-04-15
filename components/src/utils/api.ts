@@ -1,6 +1,6 @@
 import pluralize from "pluralize";
 
-import type { FeatureDetailResponseData } from "../api";
+import type { FeatureDetailResponseData } from "../api/checkoutexternal";
 import { type SelectedPlan } from "../hooks";
 
 export const getFeatureName = (

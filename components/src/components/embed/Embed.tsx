@@ -1,4 +1,4 @@
-import { type ConfigurationParameters } from "../../api";
+import { type ConfigurationParameters } from "../../api/checkoutexternal";
 import { EmbedProvider } from "../../context";
 import { ComponentTree } from "./ComponentTree";
 
