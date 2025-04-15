@@ -32,7 +32,7 @@
   "dependencies": {
     "@stripe/stripe-js": "^7.0.0",
     "classnames": "^2.5.1",
-    "i18next": "^24.2.3",
+    "i18next": "^25.0.0",
     "lodash": "^4.17.21",
     "pako": "^2.1.0",
     "pluralize": "^8.0.0",
