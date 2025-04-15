@@ -11,7 +11,7 @@ import {
   type ComponentHydrateResponseData,
   Configuration,
   type ConfigurationParameters,
-} from "../api";
+} from "../api/checkoutexternal";
 import en from "../locales/en.json";
 import type {
   ComponentProps,
