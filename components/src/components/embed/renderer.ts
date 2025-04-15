@@ -51,7 +51,7 @@ export function createRenderer(options?: RenderOptions) {
       : components[name];
     if (!components[name]) {
       console.debug(
-        "`schematic-component`: Encountered an unknown component during render cycle.",
+        "`schematic-embed`: Encountered an unknown component during render cycle.",
         name,
       );
     }
