@@ -2,7 +2,7 @@ import { MouseEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 
-import type { PreviewSubscriptionFinanceResponseData } from "../../../api";
+import type { PreviewSubscriptionFinanceResponseData } from "../../../api/checkoutexternal";
 import type { SelectedPlan } from "../../../hooks";
 import { formatCurrency } from "../../../utils";
 import { Box, Button, Flex, Icon, Text } from "../../ui";
