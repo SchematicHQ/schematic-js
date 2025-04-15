@@ -1,21 +1,7 @@
-import styled, { css, keyframes } from "styled-components";
+import styled, { css } from "styled-components";
 
 import { Box } from "../../ui";
 import { type ModalSize } from ".";
-
-const fade = keyframes`
-  0% {
-    transform: translate(-50%, -50%) scale(0);
-    opacity: 0;
-    visibility: hidden;
-  }
-
-  100% {
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 1;
-    visibility: visible;
-  }
-`;
 
 interface ModalProps {
   $size?: ModalSize;
@@ -38,8 +24,6 @@ export const Modal = styled(Box).attrs({
   box-shadow:
     0px 1px 20px 0px #1018280f,
     0px 1px 3px 0px #1018281a;
-  animation: ${fade} 0.1s normal forwards ease-in-out;
-  transform-origin: center bottom;
 
   @media (min-width: 768px) {
     ${({ $size }) => {
