@@ -1018,11 +1018,10 @@ export const Sidebar = ({
           </Flex>
         )}
 
-        {proration !== 0 && charges && selectedPlanBillingPrice?.currency ?
-          <Proration
-            charges={charges}
-            currency={selectedPlanBillingPrice.currency}
-            selectedPlan={selectedPlan}/> : null}
+        {proration !== 0 && charges && selectedPlanBillingPrice?.currency && <Proration
+          charges={charges}
+          currency={selectedPlanBillingPrice.currency}
+          selectedPlan={selectedPlan} />}
 
       </Flex>
 

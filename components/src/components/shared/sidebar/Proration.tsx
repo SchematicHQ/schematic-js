@@ -40,37 +40,35 @@ export const Proration = ({ currency, charges, selectedPlan }: ProrationProps) =
         </Text>
       </Box>
       <Flex $flexDirection="column" $gap="0.5rem">
-        {open
-          ? charges?.upcomingInvoiceLineItems.map(
-            ({ amount, description }, index) => {
-              return (
-                <Flex
-                  key={index}
+        {open && charges?.upcomingInvoiceLineItems.map(
+          ({ amount, description }, index) => {
+            return (
+              <Flex
+                key={index}
+                $gap="1rem"
+              >
+                <Text
+                  $font={theme.typography.heading4.fontFamily}
+                  $size={theme.typography.heading4.fontSize}
+                  $weight={theme.typography.heading4.fontWeight}
+                  $color={theme.typography.heading4.color}
                 >
-                  <Text
-                    $font={theme.typography.heading4.fontFamily}
-                    $size={theme.typography.heading4.fontSize}
-                    $weight={theme.typography.heading4.fontWeight}
-                    $color={theme.typography.heading4.color}
-                  >
-                    {description}
-                  </Text>
-                  <Text
-                    $font={theme.typography.text.fontFamily}
-                    $size={theme.typography.text.fontSize}
-                    $weight={theme.typography.text.fontWeight}
-                    $color={theme.typography.text.color}
-                  >
-                    {formatCurrency(
-                      amount,
-                      currency,
-                    )}
-                  </Text>
-                </Flex>
-              );
-            },
-          )
-          : null}
+                  {description}
+                </Text>
+                <Text
+                  $font={theme.typography.text.fontFamily}
+                  $size={theme.typography.text.fontSize}
+                  $weight={theme.typography.text.fontWeight}
+                  $color={theme.typography.text.color}
+                >
+                  {formatCurrency(
+                    amount,
+                    currency,
+                  )}
+                </Text>
+              </Flex>
+            );
+          })}
         <Flex
           $justifyContent="space-between"
           $alignItems="center"
