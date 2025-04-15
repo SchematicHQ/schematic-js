@@ -2,14 +2,14 @@ import { useCallback, useMemo } from "react";
 
 import type { CompanyPlanDetailResponseData } from "../api";
 import { ChargeType } from "../utils";
-import { useComponent } from ".";
+import { useEmbed } from ".";
 
 export interface SelectedPlan extends CompanyPlanDetailResponseData {
   isSelected: boolean;
 }
 
 export function useAvailablePlans(activePeriod: string) {
-  const { data, mode } = useComponent();
+  const { data, mode } = useEmbed();
 
   const getAvailablePeriods = useCallback(() => {
     const periods = [];

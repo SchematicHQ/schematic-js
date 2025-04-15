@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useTheme } from "styled-components";
 
 import { TEXT_BASE_SIZE } from "../../const";
-import { useComponent } from "../../hooks";
+import { useEmbed } from "../../hooks";
 import { Box, Flex, Loader } from "../ui";
 import { createRenderer } from "./renderer";
 
@@ -56,7 +56,7 @@ const Error = ({ message }: { message: string }) => {
 };
 
 export const ComponentTree = () => {
-  const { error, nodes, isPending } = useComponent();
+  const { error, nodes, isPending } = useEmbed();
 
   const [children, setChildren] = useState<React.ReactNode>(<Loading />);
 

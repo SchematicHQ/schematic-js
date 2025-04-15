@@ -1,7 +1,7 @@
 import { forwardRef, useMemo } from "react";
 
 import { type FontStyle } from "../../../context";
-import { useComponent } from "../../../hooks";
+import { useEmbed } from "../../../hooks";
 import type { ElementProps, RecursivePartial } from "../../../types";
 import { Element } from "../../layout";
 import { PaymentMethodElement } from "./PaymentMethodElement";
@@ -45,7 +45,7 @@ export const PaymentMethod = forwardRef<
 >(({ children, className, portal, allowEdit = true, ...rest }, ref) => {
   const props = resolveDesignProps(rest);
 
-  const { data, setLayout } = useComponent();
+  const { data, setLayout } = useEmbed();
 
   const paymentMethod = useMemo(() => {
     return (

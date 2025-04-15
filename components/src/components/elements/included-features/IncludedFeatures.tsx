@@ -6,7 +6,7 @@ import type { FeatureUsageResponseData } from "../../../api";
 import { VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
 import { type FontStyle } from "../../../context";
 import {
-  useComponent,
+  useEmbed,
   useIsLightBackground,
   useWrapChildren,
 } from "../../../hooks";
@@ -85,7 +85,7 @@ export const IncludedFeatures = forwardRef<
 
   const theme = useTheme();
 
-  const { data } = useComponent();
+  const { data } = useEmbed();
 
   const elements = useRef<HTMLElement[]>([]);
   const shouldWrapChildren = useWrapChildren(elements.current);

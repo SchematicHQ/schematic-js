@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import { useTheme } from "styled-components";
 
-import { useComponent, useIsLightBackground } from "../../../hooks";
+import { useEmbed, useIsLightBackground } from "../../../hooks";
 import { Box, Flex, Icon } from "../../ui";
 
 interface ModalHeaderProps {
@@ -17,7 +17,7 @@ export const ModalHeader = ({
 }: ModalHeaderProps) => {
   const theme = useTheme();
 
-  const { setLayout } = useComponent();
+  const { setLayout } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
 

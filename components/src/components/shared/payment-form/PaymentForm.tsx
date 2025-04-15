@@ -7,7 +7,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 
-import { useComponent } from "../../../hooks";
+import { useEmbed } from "../../../hooks";
 import { Box, Button, Text } from "../../ui";
 
 interface PaymentFormProps {
@@ -22,7 +22,7 @@ export const PaymentForm = ({ onConfirm }: PaymentFormProps) => {
   const stripe = useStripe();
   const elements = useElements();
 
-  const { api } = useComponent();
+  const { api } = useEmbed();
 
   const [message, setMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);

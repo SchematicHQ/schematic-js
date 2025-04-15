@@ -4,7 +4,7 @@ import { useTheme } from "styled-components";
 
 import {
   useAvailablePlans,
-  useComponent,
+  useEmbed,
   useIsLightBackground,
 } from "../../../hooks";
 import { toPrettyDate } from "../../../utils";
@@ -21,7 +21,7 @@ export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
 
   const theme = useTheme();
 
-  const { data, setLayout, setSelected } = useComponent();
+  const { data, setLayout, setSelected } = useEmbed();
 
   const contentRef = useRef<HTMLDivElement>(null);
 

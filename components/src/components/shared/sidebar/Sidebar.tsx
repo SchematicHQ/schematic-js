@@ -16,7 +16,7 @@ import type {
 } from "../../../api";
 import {
   type SelectedPlan,
-  useComponent,
+  useEmbed,
   useIsLightBackground,
 } from "../../../hooks";
 import {
@@ -90,7 +90,7 @@ export const Sidebar = ({
 
   const theme = useTheme();
 
-  const { api, data, mode, layout, hydrate, setLayout } = useComponent();
+  const { api, data, mode, layout, hydrate, setLayout } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
 

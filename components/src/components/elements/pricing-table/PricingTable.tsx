@@ -7,7 +7,7 @@ import { TEXT_BASE_SIZE, VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
 import { type FontStyle } from "../../../context";
 import {
   useAvailablePlans,
-  useComponent,
+  useEmbed,
   useIsLightBackground,
   useTrialEnd,
 } from "../../../hooks";
@@ -130,7 +130,7 @@ export const PricingTable = forwardRef<
 
   const theme = useTheme();
 
-  const { data, setLayout, setSelected } = useComponent();
+  const { data, setLayout, setSelected } = useEmbed();
 
   const trialEndDays = useTrialEnd();
 

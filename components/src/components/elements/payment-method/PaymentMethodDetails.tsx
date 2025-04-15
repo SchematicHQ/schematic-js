@@ -9,7 +9,7 @@ import type {
   SetupIntentResponseData,
 } from "../../../api";
 import type { FontStyle } from "../../../context";
-import { useComponent, useIsLightBackground } from "../../../hooks";
+import { useEmbed, useIsLightBackground } from "../../../hooks";
 import { PaymentForm } from "../../shared";
 import { Box, Button, Flex, Icon, Loader, Text } from "../../ui";
 import {
@@ -55,7 +55,7 @@ export const PaymentMethodDetails = ({
 
   const theme = useTheme();
 
-  const { api, data, setData } = useComponent();
+  const { api, data, setData } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
 

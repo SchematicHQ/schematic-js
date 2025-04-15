@@ -1,7 +1,7 @@
 import { forwardRef } from "react";
 import { useTranslation } from "react-i18next";
 
-import { useComponent } from "../../../hooks";
+import { useEmbed } from "../../../hooks";
 import { ComponentStyle, ElementProps, RecursivePartial } from "../../../types";
 import { Element } from "../../layout";
 import {
@@ -50,7 +50,7 @@ export const UnsubscribeButton = forwardRef<
   const props = resolveDesignProps(rest);
   const { t } = useTranslation();
 
-  const { data, setLayout } = useComponent();
+  const { data, setLayout } = useEmbed();
 
   const disabled =
     !data.subscription ||

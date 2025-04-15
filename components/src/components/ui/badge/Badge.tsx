@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 
-import { useComponent } from "../../../hooks";
+import { useEmbed } from "../../../hooks";
 import { Flex, Text } from "..";
 
 export const Badge = () => {
@@ -9,7 +9,7 @@ export const Badge = () => {
 
   const theme = useTheme();
 
-  const { settings } = useComponent();
+  const { settings } = useEmbed();
 
   return (
     <Flex

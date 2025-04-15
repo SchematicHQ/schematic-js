@@ -1,7 +1,7 @@
 import { forwardRef } from "react";
 
 import type { ComponentHydrateResponseData } from "../../../api";
-import { type ComponentSettings } from "../../../context";
+import { type EmbedSettings } from "../../../context";
 import { Container } from "./styles";
 
 export { Container };
@@ -9,7 +9,7 @@ export { Container };
 export interface RootProps
   extends Omit<React.HTMLProps<HTMLDivElement>, "data"> {
   data?: ComponentHydrateResponseData;
-  settings?: ComponentSettings;
+  settings?: EmbedSettings;
 }
 
 export const Root = forwardRef<HTMLDivElement | null, RootProps>(

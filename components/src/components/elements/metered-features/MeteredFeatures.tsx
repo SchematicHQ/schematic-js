@@ -6,7 +6,7 @@ import { type FeatureUsageResponseData } from "../../../api";
 import { TEXT_BASE_SIZE } from "../../../const";
 import { type FontStyle } from "../../../context";
 import {
-  useComponent,
+  useEmbed,
   useIsLightBackground,
   useWrapChildren,
 } from "../../../hooks";
@@ -101,7 +101,7 @@ export const MeteredFeatures = forwardRef<
 
   const theme = useTheme();
 
-  const { data, setLayout, setSelected } = useComponent();
+  const { data, setLayout, setSelected } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
 

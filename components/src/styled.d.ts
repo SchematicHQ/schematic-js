@@ -7,7 +7,7 @@ export interface TypographySettings {
   color: string;
 }
 
-export interface ComponentThemeSettings {
+export interface EmbedThemeSettings {
   numberOfColumns: 1 | 2 | 3;
   sectionLayout: "merged" | "separate";
   colorMode: "light" | "dark";
@@ -32,9 +32,9 @@ export interface ComponentThemeSettings {
   };
 }
 
-export type FontStyle = keyof ComponentThemeSettings["typography"];
+export type FontStyle = keyof EmbedThemeSettings["typography"];
 
 declare module "styled-components" {
   /* eslint-disable-next-line @typescript-eslint/no-empty-object-type */
-  interface DefaultTheme extends ComponentThemeSettings {}
+  interface DefaultTheme extends EmbedThemeSettings {}
 }

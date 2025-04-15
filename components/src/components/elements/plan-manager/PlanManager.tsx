@@ -4,7 +4,7 @@ import { useTheme } from "styled-components";
 
 import { type FeatureUsageResponseData } from "../../../api";
 import { type FontStyle } from "../../../context";
-import { useComponent, useIsLightBackground } from "../../../hooks";
+import { useEmbed, useIsLightBackground } from "../../../hooks";
 import type { ElementProps, RecursivePartial } from "../../../types";
 import {
   darken,
@@ -93,7 +93,7 @@ export const PlanManager = forwardRef<
 
   const { t } = useTranslation();
 
-  const { data, setLayout, setSelected } = useComponent();
+  const { data, setLayout, setSelected } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
 
@@ -294,7 +294,11 @@ export const PlanManager = forwardRef<
                 {addOn.planPrice && addOn.planPeriod && (
                   <Text>
                     {formatCurrency(addOn.planPrice, subscriptionCurrency)}
-                    <sub>/{shortenPeriod(addOn.planPeriod)}</sub>
+                    <sub>
+                      {addOn.planPeriod == "one-time"
+                        ? shortenPeriod(addOn.planPeriod)
+                        : `/${shortenPeriod(addOn.planPeriod)}`}
+                    </sub>
                   </Text>
                 )}
               </Flex>

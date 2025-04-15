@@ -20,7 +20,7 @@ import {
 import {
   type SelectedPlan,
   useAvailablePlans,
-  useComponent,
+  useEmbed,
   useIsLightBackground,
 } from "../../../hooks";
 import { getAddOnPrice } from "../../../utils";
@@ -74,7 +74,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
   const theme = useTheme();
 
-  const { api, data, selected } = useComponent();
+  const { api, data, selected } = useEmbed();
 
   const modalRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);

@@ -2,7 +2,7 @@ import { debounce } from "lodash";
 import { forwardRef, useLayoutEffect, useState } from "react";
 import { createPortal } from "react-dom";
 
-import { useComponent } from "../../../hooks";
+import { useEmbed } from "../../../hooks";
 import { CheckoutDialog, PaymentDialog, UnsubscribeDialog } from "../../shared";
 import { Badge } from "../../ui/badge";
 import { RenderLayout } from "../RenderLayout";
@@ -14,7 +14,7 @@ export interface ViewportProps extends React.HTMLProps<HTMLDivElement> {
 
 export const Viewport = forwardRef<HTMLDivElement | null, ViewportProps>(
   ({ children, portal, ...props }, ref) => {
-    const { data, layout, settings } = useComponent();
+    const { data, layout, settings } = useEmbed();
 
     const [top, setTop] = useState(0);
 
