@@ -98,10 +98,10 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
                       $color={theme.typography.heading2.color}
                     >
                       {addOn.chargeType === ChargeType.oneTime ? (
-                        <> {t('one time')} </>
-                        ) : (
-                          `/${period}`
-                        )}
+                        <> {t("one time")}</>
+                      ) : (
+                        `/${period}`
+                      )}
                     </Text>
                   </Box>
                 )}
