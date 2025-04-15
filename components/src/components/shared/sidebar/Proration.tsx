@@ -79,7 +79,7 @@ export const Proration = ({
             >
               {t("Total")}
             </Text>
-            <Button variant="link" onClick={toggle}>
+            <Button onClick={toggle} $variant="text">
               <Icon name={open ? "chevron-up" : "chevron-down"} />
               <Text
                 $font={theme.typography.link.fontFamily}
