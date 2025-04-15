@@ -2,7 +2,7 @@ import { forwardRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 
-import { BillingPriceView } from "../../../api";
+import { BillingPriceView } from "../../../api/checkoutexternal";
 import { TEXT_BASE_SIZE, VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
 import { type FontStyle } from "../../../context";
 import {

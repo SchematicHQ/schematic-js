@@ -7,7 +7,7 @@ import { useTheme } from "styled-components";
 import type {
   PaymentMethodResponseData,
   SetupIntentResponseData,
-} from "../../../api";
+} from "../../../api/checkoutexternal";
 import type { FontStyle } from "../../../context";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import { PaymentForm } from "../../shared";
