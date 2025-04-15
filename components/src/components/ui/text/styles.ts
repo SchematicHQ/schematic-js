@@ -65,7 +65,7 @@ export const Text = styled.span
       css`
         text-align: ${$align};
       `};
-        
+
       ${$width &&
       css`
         width: ${$width};

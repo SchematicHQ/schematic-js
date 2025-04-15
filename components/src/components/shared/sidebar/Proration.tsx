@@ -13,7 +13,11 @@ type ProrationProps = {
   selectedPlan?: SelectedPlan;
 };
 
-export const Proration = ({ currency, charges, selectedPlan }: ProrationProps) => {
+export const Proration = ({
+  currency,
+  charges,
+  selectedPlan,
+}: ProrationProps) => {
   const { t } = useTranslation();
   const theme = useTheme();
   const [open, setOpen] = useState(false);
@@ -40,40 +44,32 @@ export const Proration = ({ currency, charges, selectedPlan }: ProrationProps) =
         </Text>
       </Box>
       <Flex $flexDirection="column" $gap="0.5rem">
-        {open && charges?.upcomingInvoiceLineItems.map(
-          ({ amount, description }, index) => {
-            return (
-              <Flex
-                key={index}
-                $gap="1rem"
-              >
-                <Text
-                  $font={theme.typography.heading4.fontFamily}
-                  $size={theme.typography.heading4.fontSize}
-                  $weight={theme.typography.heading4.fontWeight}
-                  $color={theme.typography.heading4.color}
-                >
-                  {description}
-                </Text>
-                <Text
-                  $font={theme.typography.text.fontFamily}
-                  $size={theme.typography.text.fontSize}
-                  $weight={theme.typography.text.fontWeight}
-                  $color={theme.typography.text.color}
-                >
-                  {formatCurrency(
-                    amount,
-                    currency,
-                  )}
-                </Text>
-              </Flex>
-            );
-          })}
-        <Flex
-          $justifyContent="space-between"
-          $alignItems="center"
-          $gap="1rem"
-        >
+        {open &&
+          charges?.upcomingInvoiceLineItems.map(
+            ({ amount, description }, index) => {
+              return (
+                <Flex key={index} $gap="1rem">
+                  <Text
+                    $font={theme.typography.heading4.fontFamily}
+                    $size={theme.typography.heading4.fontSize}
+                    $weight={theme.typography.heading4.fontWeight}
+                    $color={theme.typography.heading4.color}
+                  >
+                    {description}
+                  </Text>
+                  <Text
+                    $font={theme.typography.text.fontFamily}
+                    $size={theme.typography.text.fontSize}
+                    $weight={theme.typography.text.fontWeight}
+                    $color={theme.typography.text.color}
+                  >
+                    {formatCurrency(amount, currency)}
+                  </Text>
+                </Flex>
+              );
+            },
+          )}
+        <Flex $justifyContent="space-between" $alignItems="center" $gap="1rem">
           <Flex>
             <Text
               $font={theme.typography.heading4.fontFamily}
@@ -83,10 +79,7 @@ export const Proration = ({ currency, charges, selectedPlan }: ProrationProps) =
             >
               {t("Total")}
             </Text>
-            <Button
-              variant="link"
-              onClick={toggle}
-            >
+            <Button variant="link" onClick={toggle}>
               <Icon name={open ? "chevron-up" : "chevron-down"} />
               <Text
                 $font={theme.typography.link.fontFamily}
@@ -108,10 +101,7 @@ export const Proration = ({ currency, charges, selectedPlan }: ProrationProps) =
               $weight={theme.typography.text.fontWeight}
               $color={theme.typography.text.color}
             >
-              {formatCurrency(
-                charges.proration,
-                currency,
-              )}
+              {formatCurrency(charges.proration, currency)}
             </Text>
           </Flex>
         </Flex>
