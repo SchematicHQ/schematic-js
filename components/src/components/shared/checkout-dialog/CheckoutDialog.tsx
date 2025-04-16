@@ -524,7 +524,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
               </Flex>
             )}
 
-            {checkoutStage === "plan" && (
+            {checkoutStage === "plan" && availablePeriods.length > 1 && (
               <PeriodToggle
                 layerRef={modalRef}
                 options={availablePeriods}

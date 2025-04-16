@@ -44,6 +44,12 @@ export interface CheckFlagResponseData {
    */
   featureUsage?: number | null;
   /**
+   * If an event-based numeric feature entitlement rule was matched, the event used to track its usage
+   * @type {string}
+   * @memberof CheckFlagResponseData
+   */
+  featureUsageEvent?: string | null;
+  /**
    * For event-based feature entitlement rules, the period over which usage is tracked (current_month, current_day, current_week, all_time)
    * @type {string}
    * @memberof CheckFlagResponseData
@@ -133,6 +139,10 @@ export function CheckFlagResponseDataFromJSONTyped(
         : json["feature_allocation"],
     featureUsage:
       json["feature_usage"] == null ? undefined : json["feature_usage"],
+    featureUsageEvent:
+      json["feature_usage_event"] == null
+        ? undefined
+        : json["feature_usage_event"],
     featureUsagePeriod:
       json["feature_usage_period"] == null
         ? undefined
@@ -168,6 +178,7 @@ export function CheckFlagResponseDataToJSONTyped(
     error: value["error"],
     feature_allocation: value["featureAllocation"],
     feature_usage: value["featureUsage"],
+    feature_usage_event: value["featureUsageEvent"],
     feature_usage_period: value["featureUsagePeriod"],
     feature_usage_reset_at:
       value["featureUsageResetAt"] == null
