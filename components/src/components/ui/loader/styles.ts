@@ -64,7 +64,6 @@ export const loaderStyles = ({
     }
 
     return css`
-      content: "";
       display: inline-block;
       width: ${($isLoading ? px : 0) / TEXT_BASE_SIZE}rem;
       height: ${($isLoading ? px : 0) / TEXT_BASE_SIZE}rem;

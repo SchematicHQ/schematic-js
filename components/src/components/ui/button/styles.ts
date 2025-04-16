@@ -52,6 +52,7 @@ export const Button = styled.button<ButtonProps>(
       }
 
       &::before {
+        content: "";
         ${loaderStyles({ $color: themeColor, $size, $isLoading })}
       }
 
