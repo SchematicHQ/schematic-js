@@ -41,7 +41,13 @@ export const ProgressBar = ({
   };
 
   return (
-    <Flex $position="relative" $alignItems="center" $gap="1rem" {...props}>
+    <Flex
+      $position="relative"
+      $alignItems="center"
+      $gap="1rem"
+      $width="100%"
+      {...props}
+    >
       <Box
         $overflow="hidden"
         $width="100%"
