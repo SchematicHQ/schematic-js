@@ -5,6 +5,7 @@ import markdown from "@eslint/markdown";
 import { defineConfig } from "eslint/config";
 import importPlugin from "eslint-plugin-import";
 import pluginReact from "eslint-plugin-react";
+import reactHooks from "eslint-plugin-react-hooks";
 import simpleImportSort from "eslint-plugin-simple-import-sort";
 import globals from "globals";
 import tseslint from "typescript-eslint";
@@ -20,6 +21,7 @@ export default defineConfig([
       importPlugin.flatConfigs.typescript,
       pluginReact.configs.flat.recommended,
       pluginReact.configs.flat["jsx-runtime"],
+      reactHooks.configs["recommended-latest"],
     ],
     languageOptions: {
       parserOptions: {
@@ -44,10 +46,10 @@ export default defineConfig([
       "import/no-named-as-default": "off",
     },
     settings: {
+      "import/extensions": [".ts", ".tsx"],
       "import/resolver": {
-        node: {
-          extensions: [".ts", ".tsx"],
-        },
+        typescript: true,
+        node: true,
       },
       react: {
         version: "detect",

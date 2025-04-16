@@ -8,7 +8,7 @@ import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 
 import { useEmbed } from "../../../hooks";
-import { Box, EmbedButton, Text } from "../../ui";
+import { Box, Button, Text } from "../../ui";
 
 interface PaymentFormProps {
   onConfirm?: (paymentMethodId: string) => void;
@@ -82,15 +82,15 @@ export const PaymentForm = ({ onConfirm }: PaymentFormProps) => {
         <PaymentElement id="payment-element" />
       </Box>
 
-      <EmbedButton
+      <Button
         id="submit"
         disabled={isLoading || !stripe || !elements || isConfirmed}
-        isLoading={isLoading}
         style={{ flexShrink: 0 }}
         $color="primary"
+        $isLoading={isLoading}
       >
         {isLoading ? t("Loading") : t("Save payment method")}
-      </EmbedButton>
+      </Button>
 
       {message && (
         <Box $margin="1rem 0">

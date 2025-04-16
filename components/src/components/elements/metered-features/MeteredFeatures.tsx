@@ -24,7 +24,7 @@ import {
 import { Element } from "../../layout";
 import {
   Box,
-  EmbedButton,
+  Button,
   Flex,
   type IconNameTypes,
   IconRound,
@@ -430,7 +430,7 @@ export const MeteredFeatures = forwardRef<
                         )}
 
                         {priceBehavior === "pay_in_advance" && (
-                          <EmbedButton
+                          <Button
                             onClick={() => {
                               setSelected({ usage: true });
                               setLayout("checkout");
@@ -439,7 +439,7 @@ export const MeteredFeatures = forwardRef<
                             style={{ whiteSpace: "nowrap" }}
                           >
                             {t("Add More")}
-                          </EmbedButton>
+                          </Button>
                         )}
                       </Flex>
                     )}

@@ -18,7 +18,7 @@ import { ButtonLink } from "../../elements/pricing-table/styles";
 import { cardBoxShadow } from "../../layout";
 import {
   Box,
-  EmbedButton,
+  Button,
   Flex,
   Icon,
   type IconNameTypes,
@@ -493,7 +493,7 @@ export const Plan = ({
                     </Text>
                   </Flex>
                 ) : (
-                  <EmbedButton
+                  <Button
                     type="button"
                     disabled={(isLoading || !plan.valid) && !plan.custom}
                     {...{
@@ -528,7 +528,7 @@ export const Plan = ({
                     ) : (
                       t("Choose plan")
                     )}
-                  </EmbedButton>
+                  </Button>
                 )}
               </Flex>
             </Flex>

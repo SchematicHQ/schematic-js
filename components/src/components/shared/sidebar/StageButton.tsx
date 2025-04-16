@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 
-import { EmbedButton, Flex, Icon } from "../../ui";
+import { Button, Flex, Icon } from "../../ui";
 import { type CheckoutStage } from "../checkout-dialog";
 
 type StageButtonProps = {
@@ -38,14 +38,14 @@ export const StageButton = ({
 
   const NoPaymentRequired = () => {
     return (
-      <EmbedButton
+      <Button
         type="button"
         disabled={isLoading || !hasUnstagedChanges || !canUpdateSubscription}
         onClick={checkout}
-        isLoading={isLoading}
+        $isLoading={isLoading}
       >
         {t("Subscribe and close")}
-      </EmbedButton>
+      </Button>
     );
   };
 
@@ -53,13 +53,13 @@ export const StageButton = ({
     if (canTrial) {
       if (trialPaymentMethodRequired) {
         return (
-          <EmbedButton
+          <Button
             type="button"
             disabled={!hasAddOns && !canUpdateSubscription}
             onClick={async () => {
               setCheckoutStage?.("checkout");
             }}
-            isLoading={isLoading}
+            $isLoading={isLoading}
           >
             <Flex
               $gap="0.5rem"
@@ -70,18 +70,18 @@ export const StageButton = ({
               {t("Next")}: {t("Checkout")}
               <Icon name="arrow-right" />
             </Flex>
-          </EmbedButton>
+          </Button>
         );
       }
 
       return (
-        <EmbedButton
+        <Button
           type="button"
           disabled={!hasUnstagedChanges || !canUpdateSubscription}
           onClick={async () => {
             checkout();
           }}
-          isLoading={isLoading}
+          $isLoading={isLoading}
         >
           <Flex
             $gap="0.5rem"
@@ -92,7 +92,7 @@ export const StageButton = ({
             {t("Subscribe and close")}
             <Icon name="arrow-right" />
           </Flex>
-        </EmbedButton>
+        </Button>
       );
     }
 
@@ -106,7 +106,7 @@ export const StageButton = ({
     }
 
     return (
-      <EmbedButton
+      <Button
         type="button"
         disabled={!canUpdateSubscription}
         onClick={async () => {
@@ -118,14 +118,9 @@ export const StageButton = ({
                 : "checkout",
           );
         }}
-        isLoading={isLoading}
+        $isLoading={isLoading}
       >
-        <Flex
-          $gap="0.5rem"
-          $justifyContent="center"
-          $alignItems="center"
-          $padding="0 1rem"
-        >
+        <Flex $gap="0.5rem" $justifyContent="center" $alignItems="center">
           {t("Next")}:{" "}
           {hasPayInAdvanceEntitlements
             ? t("Usage")
@@ -134,7 +129,7 @@ export const StageButton = ({
               : t("Checkout")}
           <Icon name="arrow-right" />
         </Flex>
-      </EmbedButton>
+      </Button>
     );
   }
 
@@ -144,13 +139,13 @@ export const StageButton = ({
     }
 
     return (
-      <EmbedButton
+      <Button
         type="button"
         disabled={!canUpdateSubscription}
         onClick={async () => {
           setCheckoutStage?.(hasAddOns ? "addons" : "checkout");
         }}
-        isLoading={isLoading}
+        $isLoading={isLoading}
       >
         <Flex
           $gap="0.5rem"
@@ -161,7 +156,7 @@ export const StageButton = ({
           {t("Next")}: {hasAddOns ? t("Addons") : t("Checkout")}
           <Icon name="arrow-right" />
         </Flex>
-      </EmbedButton>
+      </Button>
     );
   }
 
@@ -171,13 +166,13 @@ export const StageButton = ({
     }
 
     return (
-      <EmbedButton
+      <Button
         type="button"
         disabled={!canUpdateSubscription}
         onClick={async () => {
           setCheckoutStage?.("checkout");
         }}
-        isLoading={isLoading}
+        $isLoading={isLoading}
       >
         <Flex
           $gap="0.5rem"
@@ -188,7 +183,7 @@ export const StageButton = ({
           {t("Next")}: {t("Checkout")}
           <Icon name="arrow-right" />
         </Flex>
-      </EmbedButton>
+      </Button>
     );
   }
 
@@ -198,14 +193,14 @@ export const StageButton = ({
     }
 
     return (
-      <EmbedButton
+      <Button
         type="button"
         disabled={isLoading || !hasUnstagedChanges || !canCheckout}
         onClick={checkout}
-        isLoading={isLoading}
+        $isLoading={isLoading}
       >
         {canTrial ? t("Start trial") : t("Pay now")}
-      </EmbedButton>
+      </Button>
     );
   }
 };

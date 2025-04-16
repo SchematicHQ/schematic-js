@@ -11,7 +11,7 @@ import type {
 import type { FontStyle } from "../../../context";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import { PaymentForm } from "../../shared";
-import { Box, EmbedButton, Flex, Icon, Loader, Text } from "../../ui";
+import { Box, Button, Flex, Icon, Loader, Text } from "../../ui";
 import {
   PaymentListElement,
   PaymentMethodElement,
@@ -342,9 +342,9 @@ export const PaymentMethodDetails = ({
             )}
 
             {(!paymentMethod || showDifferentPaymentMethods) && (
-              <EmbedButton onClick={createSetupIntent} size="lg">
+              <Button onClick={createSetupIntent} $size="lg">
                 {t("Add new payment method")}
-              </EmbedButton>
+              </Button>
             )}
           </Flex>
         )}

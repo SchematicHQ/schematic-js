@@ -17,7 +17,7 @@ import {
   toPrettyDate,
 } from "../../../utils";
 import { Element, Notice } from "../../layout";
-import { Box, EmbedButton, Flex, Text } from "../../ui";
+import { Box, Button, Flex, Text } from "../../ui";
 
 interface DesignProps {
   header: {
@@ -475,7 +475,7 @@ export const PlanManager = forwardRef<
         )}
 
         {canCheckout && props.callToAction.isVisible && (
-          <EmbedButton
+          <Button
             type="button"
             onClick={() => {
               setSelected({
@@ -489,7 +489,7 @@ export const PlanManager = forwardRef<
             $color={props.callToAction.buttonStyle}
           >
             {t("Change plan")}
-          </EmbedButton>
+          </Button>
         )}
       </Element>
     </>
