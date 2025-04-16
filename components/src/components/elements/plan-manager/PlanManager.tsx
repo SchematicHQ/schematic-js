@@ -399,12 +399,12 @@ export const PlanManager = forwardRef<
                           >
                             {typeof overageAmount === "number" &&
                             overageAmount > 0 ? (
-                              t("X over the limit", {
+                              t("X additional", {
                                 amount: overageAmount,
                               })
                             ) : (
                               <>
-                                {t("overage fee")}:{" "}
+                                {t("Additional")}:{" "}
                                 {formatCurrency(
                                   entitlement.price ?? 0,
                                   entitlement.currency,

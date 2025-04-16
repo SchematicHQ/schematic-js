@@ -1,6 +1,7 @@
 import { useTheme } from "styled-components";
 
 import { TEXT_BASE_SIZE } from "../../../const";
+import { formatNumber } from "../../../utils";
 import { Box, Flex, Text } from "../../ui";
 
 export const progressColorMap = [
@@ -16,7 +17,7 @@ export interface ProgressBarProps
   extends React.ComponentPropsWithoutRef<typeof Flex> {
   progress: number;
   value: number;
-  total?: number | string;
+  total?: number;
   color?: "gray" | "blue" | "yellow" | "orange" | "red";
   bgColor?: string;
 }
@@ -40,7 +41,13 @@ export const ProgressBar = ({
   };
 
   return (
-    <Flex $position="relative" $alignItems="center" $gap="1rem" {...props}>
+    <Flex
+      $position="relative"
+      $alignItems="center"
+      $gap="1rem"
+      $width="100%"
+      {...props}
+    >
       <Box
         $overflow="hidden"
         $width="100%"
@@ -63,7 +70,7 @@ export const ProgressBar = ({
           $weight={500}
           $color={theme.typography.text.color}
         >
-          {value}/{total}
+          {formatNumber(value)}/{formatNumber(total)}
         </Text>
       )}
     </Flex>

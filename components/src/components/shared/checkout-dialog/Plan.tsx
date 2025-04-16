@@ -410,6 +410,7 @@ export const Plan = ({
                                         }
                                         $leading={1.35}
                                       >
+                                        {t("then")}{" "}
                                         {formatCurrency(
                                           entitlementPrice,
                                           entitlementCurrency,
@@ -419,8 +420,7 @@ export const Plan = ({
                                         {entitlement.feature.featureType ===
                                           "trait" && (
                                           <>/{shortenPeriod(period)}</>
-                                        )}{" "}
-                                        {t("overage fee")}
+                                        )}
                                       </Text>
                                     )}
                                 </Flex>

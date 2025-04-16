@@ -147,10 +147,9 @@ export const Details = ({
             ? `/${shortenPeriod(data.company.plan.planPeriod)}`
             : "";
 
-        acc +=
-          cost > 0
-            ? ` • ${t("Overage")}: ${formatCurrency(cost)}${period}`
-            : ` • ${`${formatCurrency(overagePrice)}/${getFeatureName(feature, 1)}`} ${t("overage fee")}`;
+        if (cost > 0) {
+          acc += ` • ${formatCurrency(cost)}${period}`;
+        }
       }
 
       return acc;
