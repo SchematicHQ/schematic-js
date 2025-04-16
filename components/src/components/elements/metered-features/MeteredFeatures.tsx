@@ -217,68 +217,13 @@ export const MeteredFeatures = forwardRef<
             );
 
           return (
-            <Flex key={index} $flexDirection="column-reverse">
-              {priceBehavior === "overage" && typeof price === "number" && (
-                <Flex
-                  $justifyContent="space-between"
-                  $alignItems="center"
-                  $gap="1rem"
-                  $padding={`${(0.4375 * theme.card.padding) / TEXT_BASE_SIZE}rem ${theme.card.padding / TEXT_BASE_SIZE}rem`}
-                  $backgroundColor={
-                    isLightBackground
-                      ? darken(theme.card.background, 0.05)
-                      : lighten(theme.card.background, 0.1)
-                  }
-                  {...(theme.sectionLayout === "separate" && {
-                    $borderBottomLeftRadius: `${theme.card.borderRadius / TEXT_BASE_SIZE}rem`,
-                    $borderBottomRightRadius: `${theme.card.borderRadius / TEXT_BASE_SIZE}rem`,
-                  })}
-                >
-                  <Text
-                    $font={theme.typography.text.fontFamily}
-                    $size={theme.typography.text.fontSize}
-                    $weight={theme.typography.text.fontWeight}
-                    $color={theme.typography.text.color}
-                    $leading={1.35}
-                  >
-                    <>
-                      {t("Overage fee")}: {formatCurrency(price, currency)}
-                      {feature && (
-                        <Box as="sub" $whiteSpace="nowrap">
-                          /{getFeatureName(feature, 1)}
-                          {feature.featureType === "trait" && planPeriod && (
-                            <>/{shortenPeriod(planPeriod)}</>
-                          )}
-                        </Box>
-                      )}
-                    </>
-                  </Text>
-
-                  {isOverage && (
-                    <Text
-                      $font={theme.typography.text.fontFamily}
-                      $size={theme.typography.text.fontSize}
-                      $weight={theme.typography.text.fontWeight}
-                      $color={theme.typography.text.color}
-                      $leading={1.35}
-                    >
-                      {t("X over the limit", {
-                        amount: usage - softLimit,
-                      })}
-                      {" · "}
-                      {formatCurrency(price * (usage - softLimit), currency)}
-                      {feature?.featureType === "trait" &&
-                        typeof planPeriod === "string" && (
-                          <Box as="sub" $whiteSpace="nowrap">
-                            /{shortenPeriod(planPeriod)}
-                          </Box>
-                        )}
-                    </Text>
-                  )}
-                </Flex>
-              )}
-
-              <Element as={Flex} $gap="1.5rem">
+            <Element
+              key={index}
+              as={Flex}
+              $flexDirection="column"
+              $gap="1.5rem"
+            >
+              <Flex $gap="1.5rem">
                 {props.icon.isVisible && feature?.icon && (
                   <IconRound
                     name={feature.icon as IconNameTypes | string}
@@ -382,6 +327,9 @@ export const MeteredFeatures = forwardRef<
                                 theme.typography[props.usage.fontStyle].color
                               }
                               $leading={1.35}
+                              style={{
+                                whiteSpace: "nowrap",
+                              }}
                             >
                               {priceBehavior === "pay_in_advance"
                                 ? typeof allocation === "number" && (
@@ -406,47 +354,49 @@ export const MeteredFeatures = forwardRef<
                             </Text>
                           )}
 
-                          {props.allocation.isVisible &&
-                            priceBehavior !== "overage" && (
-                              <Box $whiteSpace="nowrap">
-                                <Text
-                                  $font={
-                                    theme.typography[props.allocation.fontStyle]
-                                      .fontFamily
-                                  }
-                                  $size={
-                                    theme.typography[props.allocation.fontStyle]
-                                      .fontSize
-                                  }
-                                  $weight={
-                                    theme.typography[props.allocation.fontStyle]
-                                      .fontWeight
-                                  }
-                                  $color={
-                                    theme.typography[props.allocation.fontStyle]
-                                      .color
-                                  }
-                                  $leading={1.35}
-                                >
-                                  {priceBehavior &&
-                                  priceBehavior !== "overage" &&
-                                  metricResetAt
-                                    ? t("Resets", {
-                                        date: toPrettyDate(metricResetAt, {
-                                          month: "short",
-                                          day: "numeric",
-                                          year: undefined,
-                                        }),
+                          {props.allocation.isVisible && (
+                            <Box $whiteSpace="nowrap">
+                              <Text
+                                $font={
+                                  theme.typography[props.allocation.fontStyle]
+                                    .fontFamily
+                                }
+                                $size={
+                                  theme.typography[props.allocation.fontStyle]
+                                    .fontSize
+                                }
+                                $weight={
+                                  theme.typography[props.allocation.fontStyle]
+                                    .fontWeight
+                                }
+                                $color={
+                                  theme.typography[props.allocation.fontStyle]
+                                    .color
+                                }
+                                $leading={1.35}
+                              >
+                                {priceBehavior &&
+                                priceBehavior !== "overage" &&
+                                metricResetAt
+                                  ? t("Resets", {
+                                      date: toPrettyDate(metricResetAt, {
+                                        month: "short",
+                                        day: "numeric",
+                                        year: undefined,
+                                      }),
+                                    })
+                                  : priceBehavior === "overage"
+                                    ? t("X included", {
+                                        amount: formatNumber(limit),
                                       })
-                                    : typeof allocation === "number" ||
-                                        typeof softLimit === "number"
+                                    : typeof allocation === "number"
                                       ? t("Limit of", {
                                           amount: formatNumber(limit),
                                         })
                                       : t("No limit")}
-                                </Text>
-                              </Box>
-                            )}
+                              </Text>
+                            </Box>
+                          )}
                         </Box>
                       )}
                   </Flex>
@@ -454,7 +404,7 @@ export const MeteredFeatures = forwardRef<
                   {props.isVisible &&
                     typeof usage === "number" &&
                     priceBehavior !== "pay_as_you_go" && (
-                      <Flex $gap="2rem">
+                      <Flex $flexWrap="wrap" $justifyContent="end" $gap="2rem">
                         {typeof allocation === "number" ? (
                           <Tooltip
                             trigger={progressBar}
@@ -467,7 +417,7 @@ export const MeteredFeatures = forwardRef<
                                 $leading={1}
                               >
                                 {t("Up to a limit of", {
-                                  amount: allocation,
+                                  amount: formatNumber(allocation),
                                   units:
                                     feature?.name && getFeatureName(feature),
                                 })}
@@ -485,10 +435,8 @@ export const MeteredFeatures = forwardRef<
                               setSelected({ usage: true });
                               setLayout("checkout");
                             }}
-                            style={{
-                              width: "fit-content",
-                              padding: "0 1rem 0 0.5rem",
-                            }}
+                            $fullWidth={false}
+                            style={{ whiteSpace: "nowrap" }}
                           >
                             {t("Add More")}
                           </Button>
@@ -496,8 +444,68 @@ export const MeteredFeatures = forwardRef<
                       </Flex>
                     )}
                 </Flex>
-              </Element>
-            </Flex>
+              </Flex>
+
+              {priceBehavior === "overage" && typeof price === "number" && (
+                <Flex
+                  $justifyContent="space-between"
+                  $alignItems="center"
+                  $gap="1rem"
+                  $margin={`0 -${theme.card.padding / TEXT_BASE_SIZE}rem -${(theme.card.padding * 0.75) / TEXT_BASE_SIZE}rem`}
+                  $padding={`${(0.4375 * theme.card.padding) / TEXT_BASE_SIZE}rem ${theme.card.padding / TEXT_BASE_SIZE}rem`}
+                  $backgroundColor={
+                    isLightBackground
+                      ? darken(theme.card.background, 0.05)
+                      : lighten(theme.card.background, 0.1)
+                  }
+                  {...(theme.sectionLayout === "separate" && {
+                    $borderBottomLeftRadius: `${theme.card.borderRadius / TEXT_BASE_SIZE}rem`,
+                    $borderBottomRightRadius: `${theme.card.borderRadius / TEXT_BASE_SIZE}rem`,
+                  })}
+                >
+                  <Text
+                    $font={theme.typography.text.fontFamily}
+                    $size={theme.typography.text.fontSize}
+                    $weight={theme.typography.text.fontWeight}
+                    $color={theme.typography.text.color}
+                    $leading={1.35}
+                  >
+                    <>
+                      {t("Additional")}: {formatCurrency(price, currency)}
+                      {feature && (
+                        <Box as="sub" $whiteSpace="nowrap">
+                          /{getFeatureName(feature, 1)}
+                          {feature.featureType === "trait" && planPeriod && (
+                            <>/{shortenPeriod(planPeriod)}</>
+                          )}
+                        </Box>
+                      )}
+                    </>
+                  </Text>
+
+                  {isOverage && (
+                    <Text
+                      $font={theme.typography.text.fontFamily}
+                      $size={theme.typography.text.fontSize}
+                      $weight={theme.typography.text.fontWeight}
+                      $color={theme.typography.text.color}
+                      $leading={1.35}
+                    >
+                      {formatNumber(usage - softLimit)}{" "}
+                      {feature && getFeatureName(feature)}
+                      {" · "}
+                      {formatCurrency(price * (usage - softLimit), currency)}
+                      {feature?.featureType === "trait" &&
+                        typeof planPeriod === "string" && (
+                          <Box as="sub" $whiteSpace="nowrap">
+                            /{shortenPeriod(planPeriod)}
+                          </Box>
+                        )}
+                    </Text>
+                  )}
+                </Flex>
+              )}
+            </Element>
           );
         },
       )}
