@@ -483,6 +483,9 @@ export const PricingTable = forwardRef<
                                 return acc;
                               }
 
+                              const entitlementPackageSize =
+                                entitlementPriceObject?.packageSize ?? 1;
+
                               acc.push(
                                 <Flex key={entitlementIndex} $gap="1rem">
                                   {props.plans.showFeatureIcons &&
@@ -529,9 +532,12 @@ export const PricingTable = forwardRef<
                                               entitlementCurrency,
                                             )}{" "}
                                             {t("per")}{" "}
+                                            {entitlementPackageSize > 1 && (
+                                              <>{entitlementPackageSize} </>
+                                            )}
                                             {getFeatureName(
                                               entitlement.feature,
-                                              1,
+                                              entitlementPackageSize,
                                             )}
                                             {entitlement.priceBehavior ===
                                               "pay_in_advance" && (
@@ -634,9 +640,12 @@ export const PricingTable = forwardRef<
                                               entitlementCurrency,
                                             )}
                                             /
+                                            {entitlementPackageSize > 1 && (
+                                              <>{entitlementPackageSize} </>
+                                            )}
                                             {getFeatureName(
                                               entitlement.feature,
-                                              1,
+                                              entitlementPackageSize,
                                             )}
                                             {entitlement.feature.featureType ===
                                               "trait" && (

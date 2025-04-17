@@ -168,12 +168,13 @@ export const MeteredFeatures = forwardRef<
             typeof usage === "number" &&
             usage > softLimit;
 
-          let { price, currency } =
-            getBillingPrice(
-              planPeriod === "year"
-                ? yearlyUsageBasedPrice
-                : monthlyUsageBasedPrice,
-            ) || {};
+          const billingPrice = getBillingPrice(
+            planPeriod === "year"
+              ? yearlyUsageBasedPrice
+              : monthlyUsageBasedPrice,
+          );
+          let { price, currency } = billingPrice || {};
+          const packageSize = billingPrice?.packageSize ?? 1;
 
           // Overage price must be derived from the subscription object
           if (priceBehavior === "overage") {
@@ -474,7 +475,8 @@ export const MeteredFeatures = forwardRef<
                       {t("Additional")}: {formatCurrency(price, currency)}
                       {feature && (
                         <Box as="sub" $whiteSpace="nowrap">
-                          /{getFeatureName(feature, 1)}
+                          /{packageSize > 1 && <>{packageSize} </>}
+                          {getFeatureName(feature, packageSize)}
                           {feature.featureType === "trait" && planPeriod && (
                             <>/{shortenPeriod(planPeriod)}</>
                           )}
