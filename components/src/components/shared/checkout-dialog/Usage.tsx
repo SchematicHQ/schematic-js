@@ -46,12 +46,15 @@ export const Usage = ({ entitlements, updateQuantity, period }: UsageProps) => {
               entitlement.priceBehavior === "pay_in_advance" &&
               entitlement.feature
             ) {
-              const { price, currency } =
-                getBillingPrice(
-                  period === "year"
-                    ? entitlement.meteredYearlyPrice
-                    : entitlement.meteredMonthlyPrice,
-                ) || {};
+              const {
+                price,
+                currency,
+                packageSize = 1,
+              } = getBillingPrice(
+                period === "year"
+                  ? entitlement.meteredYearlyPrice
+                  : entitlement.meteredMonthlyPrice,
+              ) || {};
 
               acc.push(
                 <Flex
@@ -164,7 +167,8 @@ export const Usage = ({ entitlements, updateQuantity, period }: UsageProps) => {
                       >
                         {formatCurrency(price ?? 0, currency)}
                         <sub>
-                          /{getFeatureName(entitlement.feature, 1)}/
+                          /{packageSize > 1 && <>{packageSize} </>}
+                          {getFeatureName(entitlement.feature, packageSize)}/
                           {shortenPeriod(period)}
                         </sub>
                       </Text>

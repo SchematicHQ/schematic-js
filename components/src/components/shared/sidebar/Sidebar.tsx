@@ -626,12 +626,12 @@ export const Sidebar = ({
                   const {
                     price: entitlementPrice,
                     currency: entitlementCurrency,
-                  } =
-                    getBillingPrice(
-                      planPeriod === "year"
-                        ? entitlement.yearlyUsageBasedPrice
-                        : entitlement.monthlyUsageBasedPrice,
-                    ) || {};
+                    packageSize: entitlementPackageSize = 1,
+                  } = getBillingPrice(
+                    planPeriod === "year"
+                      ? entitlement.yearlyUsageBasedPrice
+                      : entitlement.monthlyUsageBasedPrice,
+                  ) || {};
 
                   acc.push(
                     <Flex
@@ -687,7 +687,14 @@ export const Sidebar = ({
                                 entitlementCurrency,
                               )}
                               <sub>
-                                /{getFeatureName(entitlement.feature, 1)}
+                                /
+                                {entitlementPackageSize > 1 && (
+                                  <>{entitlementPackageSize} </>
+                                )}
+                                {getFeatureName(
+                                  entitlement.feature,
+                                  entitlementPackageSize,
+                                )}
                               </sub>
                             </>
                           )}
@@ -799,12 +806,12 @@ export const Sidebar = ({
                   const {
                     price: entitlementPrice,
                     currency: entitlementCurrency,
-                  } =
-                    getBillingPrice(
-                      planPeriod === "year"
-                        ? entitlement.meteredYearlyPrice
-                        : entitlement.meteredMonthlyPrice,
-                    ) || {};
+                    packageSize: entitlementPackageSize = 1,
+                  } = getBillingPrice(
+                    planPeriod === "year"
+                      ? entitlement.meteredYearlyPrice
+                      : entitlement.meteredMonthlyPrice,
+                  ) || {};
 
                   acc.push(
                     <Flex
@@ -857,7 +864,14 @@ export const Sidebar = ({
                                 entitlementCurrency,
                               )}
                               <sub>
-                                /{getFeatureName(entitlement.feature, 1)}
+                                /
+                                {entitlementPackageSize > 1 && (
+                                  <>{entitlementPackageSize} </>
+                                )}
+                                {getFeatureName(
+                                  entitlement.feature,
+                                  entitlementPackageSize,
+                                )}
                               </sub>
                             </>
                           )}
