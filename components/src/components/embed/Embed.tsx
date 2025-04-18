@@ -1,10 +1,10 @@
-import { type ConfigurationParameters } from "../../api";
+import { type ConfigurationParameters } from "../../api/checkoutexternal";
 import { EmbedProvider } from "../../context";
 import { ComponentTree } from "./ComponentTree";
 
 export interface EmbedProps {
-  accessToken?: string;
   id?: string;
+  accessToken?: string;
   apiConfig?: ConfigurationParameters;
   debug?: boolean;
 }

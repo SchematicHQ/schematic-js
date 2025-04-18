@@ -496,4 +496,4 @@ pluralize.addIrregularRule = function (single: string, plural: string): void {
   /sheep$/i,
 ].forEach(pluralize.addUncountableRule);
 
-export default pluralize;
+export { pluralize };

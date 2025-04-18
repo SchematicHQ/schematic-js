@@ -2,7 +2,7 @@ import { forwardRef, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 
-import { type FeatureUsageResponseData } from "../../../api";
+import { type FeatureUsageResponseData } from "../../../api/checkoutexternal";
 import { type FontStyle } from "../../../context";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import type { ElementProps, RecursivePartial } from "../../../types";
@@ -17,7 +17,7 @@ import {
   toPrettyDate,
 } from "../../../utils";
 import { Element, Notice } from "../../layout";
-import { Box, EmbedButton, Flex, Text } from "../../ui";
+import { Box, Button, Flex, Text } from "../../ui";
 
 interface DesignProps {
   header: {
@@ -294,7 +294,11 @@ export const PlanManager = forwardRef<
                 {addOn.planPrice && addOn.planPeriod && (
                   <Text>
                     {formatCurrency(addOn.planPrice, subscriptionCurrency)}
-                    <sub>/{shortenPeriod(addOn.planPeriod)}</sub>
+                    <sub>
+                      {addOn.planPeriod == "one-time"
+                        ? shortenPeriod(addOn.planPeriod)
+                        : `/${shortenPeriod(addOn.planPeriod)}`}
+                    </sub>
                   </Text>
                 )}
               </Flex>
@@ -395,12 +399,12 @@ export const PlanManager = forwardRef<
                           >
                             {typeof overageAmount === "number" &&
                             overageAmount > 0 ? (
-                              t("X over the limit", {
+                              t("X additional", {
                                 amount: overageAmount,
                               })
                             ) : (
                               <>
-                                {t("overage fee")}:{" "}
+                                {t("Additional")}:{" "}
                                 {formatCurrency(
                                   entitlement.price ?? 0,
                                   entitlement.currency,
@@ -471,7 +475,7 @@ export const PlanManager = forwardRef<
         )}
 
         {canCheckout && props.callToAction.isVisible && (
-          <EmbedButton
+          <Button
             type="button"
             onClick={() => {
               setSelected({
@@ -485,7 +489,7 @@ export const PlanManager = forwardRef<
             $color={props.callToAction.buttonStyle}
           >
             {t("Change plan")}
-          </EmbedButton>
+          </Button>
         )}
       </Element>
     </>

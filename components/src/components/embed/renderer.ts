@@ -9,6 +9,7 @@ import {
   PaymentMethod,
   PlanManager,
   PricingTable,
+  TextElement,
   UnsubscribeButton,
   UpcomingBill,
 } from "../elements";
@@ -27,7 +28,8 @@ const components: Record<string, React.FC | undefined> = {
   Invoices,
   PricingTable,
   UnsubscribeButton,
-  ButtonElement,
+  Button: ButtonElement,
+  Text: TextElement,
 };
 
 interface RenderOptions {

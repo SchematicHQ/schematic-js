@@ -6,19 +6,14 @@ import { createContext, useCallback, useEffect, useRef, useState } from "react";
 import { ThemeProvider } from "styled-components";
 import { v4 as uuidv4 } from "uuid";
 
-import {
-  CheckoutexternalApi,
-  type ComponentHydrateResponseData,
-  Configuration,
-  type ConfigurationParameters,
-} from "../api";
+import * as checkoutExternal from "../api/checkoutexternal";
+import * as componentsPublic from "../api/componentspublic";
 import type {
   ComponentProps,
   RecursivePartial,
   SerializedEditorState,
   SerializedNodeWithChildren,
 } from "../types";
-import { sampleData } from "./sampleData";
 import { GlobalStyle } from "./styles";
 
 export interface TypographySettings {
@@ -191,8 +186,9 @@ export type EmbedSelected = {
 export type EmbedMode = "edit" | "view" | "standalone";
 
 export interface EmbedContextProps {
-  api: CheckoutexternalApi | null;
-  data: Partial<ComponentHydrateResponseData>;
+  api: checkoutExternal.CheckoutexternalApi | null;
+  componentsPublicApi: componentsPublic.ComponentspublicApi | null;
+  data: Partial<checkoutExternal.ComponentHydrateResponseData>;
   nodes: SerializedNodeWithChildren[];
   settings: EmbedSettings;
   layout: EmbedLayout;
@@ -202,7 +198,9 @@ export interface EmbedContextProps {
   isPending: boolean;
   hydrate: () => Promise<void>;
   setIsPending: (bool: boolean) => void;
-  setData: (data: Partial<ComponentHydrateResponseData>) => void;
+  setData: (
+    data: Partial<checkoutExternal.ComponentHydrateResponseData>,
+  ) => void;
   setLayout: (layout: EmbedLayout) => void;
   setSelected: (selected: EmbedSelected) => void;
   updateSettings: (settings: RecursivePartial<EmbedSettings>) => void;
@@ -210,6 +208,7 @@ export interface EmbedContextProps {
 
 export const EmbedContext = createContext<EmbedContextProps>({
   api: null,
+  componentsPublicApi: null,
   data: {},
   nodes: [],
   settings: { ...defaultSettings },
@@ -229,7 +228,9 @@ export const EmbedContext = createContext<EmbedContextProps>({
 export interface EmbedProviderProps {
   id?: string;
   accessToken?: string;
-  apiConfig?: ConfigurationParameters;
+  apiConfig?: checkoutExternal.ConfigurationParameters;
+  componentsPublicApiConfig?: componentsPublic.ConfigurationParameters;
+  componentsPublicApiKey?: string;
   children?: React.ReactNode;
   mode?: EmbedMode;
   debug?: boolean;
@@ -239,6 +240,8 @@ export const EmbedProvider = ({
   id,
   accessToken,
   apiConfig,
+  componentsPublicApiConfig,
+  componentsPublicApiKey,
   children,
   mode = "view",
   ...options
@@ -247,8 +250,9 @@ export const EmbedProvider = ({
   const sessionIdRef = useRef<string>(uuidv4());
 
   const [state, setState] = useState<{
-    api: CheckoutexternalApi | null;
-    data: Partial<ComponentHydrateResponseData>;
+    api: checkoutExternal.CheckoutexternalApi | null;
+    componentsPublicApi: componentsPublic.ComponentspublicApi | null;
+    data: Partial<checkoutExternal.ComponentHydrateResponseData>;
     nodes: SerializedNodeWithChildren[];
     settings: EmbedSettings;
     layout: EmbedLayout;
@@ -258,13 +262,16 @@ export const EmbedProvider = ({
     error?: Error;
     hydrate: () => Promise<void>;
     setIsPending: (bool: boolean) => void;
-    setData: (data: Partial<ComponentHydrateResponseData>) => void;
+    setData: (
+      data: Partial<checkoutExternal.ComponentHydrateResponseData>,
+    ) => void;
     setLayout: (layout: EmbedLayout) => void;
     setSelected: (selected: EmbedSelected) => void;
     updateSettings: (settings: RecursivePartial<EmbedSettings>) => void;
   }>(() => {
     return {
       api: null,
+      componentsPublicApi: null,
       data: {},
       nodes: [],
       settings: { ...defaultSettings },
@@ -292,20 +299,38 @@ export const EmbedProvider = ({
   );
 
   // TODO: rename once the api endpoint is created
-  const init = useCallback(async () => {
-    async function fetchPlans(): Promise<
-      Partial<ComponentHydrateResponseData>
-    > {
-      return sampleData;
-    }
-
+  const getPublicData = useCallback(async () => {
     setState((prev) => ({ ...prev, isPending: true, error: undefined }));
 
     try {
-      const response = await fetchPlans();
+      if (!state.componentsPublicApi) {
+        return;
+      }
+
+      const { data } = await state.componentsPublicApi.getPublicPlans();
+
       setState((prev) => ({
         ...prev,
-        data: response,
+        data: {
+          activePlans: data.activePlans.map((plan) => ({
+            ...plan,
+            active: false,
+            companyCanTrial: false,
+            current: false,
+            valid: true,
+          })),
+          activeAddOns: data.activeAddOns.map((addOn) => ({
+            ...addOn,
+            active: false,
+            companyCanTrial: false,
+            current: false,
+            valid: true,
+          })),
+          capabilities: {
+            badgeVisibility: data.capabilities?.badgeVisibility ?? false,
+            checkout: false,
+          },
+        },
         isPending: false,
       }));
     } catch (error) {
@@ -318,7 +343,7 @@ export const EmbedProvider = ({
             : new Error("An unknown error occurred."),
       }));
     }
-  }, []);
+  }, [state.componentsPublicApi]);
 
   const hydrate = useCallback(async () => {
     setState((prev) => ({ ...prev, isPending: true, error: undefined }));
@@ -372,7 +397,9 @@ export const EmbedProvider = ({
     }));
   };
 
-  const setData = (data: Partial<ComponentHydrateResponseData>) => {
+  const setData = (
+    data: Partial<checkoutExternal.ComponentHydrateResponseData>,
+  ) => {
     setState((prev) => ({
       ...prev,
       data,
@@ -442,19 +469,38 @@ export const EmbedProvider = ({
         process.env.SCHEMATIC_COMPONENTS_VERSION ?? "unknown";
       headers["X-Schematic-Session-ID"] = sessionIdRef.current;
 
-      const config = new Configuration({
+      const config = new checkoutExternal.Configuration({
         ...apiConfig,
         apiKey: accessToken,
         headers,
       });
-      const api = new CheckoutexternalApi(config);
+      const api = new checkoutExternal.CheckoutexternalApi(config);
       setState((prev) => ({ ...prev, api }));
     }
   }, [accessToken, apiConfig]);
 
   useEffect(() => {
-    init();
-  }, [init]);
+    if (componentsPublicApiKey) {
+      const { headers = {} } = componentsPublicApiConfig ?? {};
+      headers["X-Schematic-Components-Version"] =
+        process.env.SCHEMATIC_COMPONENTS_VERSION ?? "unknown";
+      headers["X-Schematic-Session-ID"] = sessionIdRef.current;
+
+      const config = new componentsPublic.Configuration({
+        ...componentsPublicApiConfig,
+        apiKey: componentsPublicApiKey,
+        headers,
+      });
+      const componentsPublicApi = new componentsPublic.ComponentspublicApi(
+        config,
+      );
+      setState((prev) => ({ ...prev, componentsPublicApi }));
+    }
+  }, [componentsPublicApiKey, componentsPublicApiConfig]);
+
+  useEffect(() => {
+    getPublicData();
+  }, [getPublicData]);
 
   useEffect(() => {
     if (mode === "standalone") {
@@ -488,6 +534,7 @@ export const EmbedProvider = ({
     <EmbedContext.Provider
       value={{
         api: state.api,
+        componentsPublicApi: state.componentsPublicApi,
         data: state.data,
         nodes: state.nodes,
         settings: state.settings,

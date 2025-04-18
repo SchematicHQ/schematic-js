@@ -3,12 +3,12 @@ import { forwardRef } from "react";
 import { ComponentStyle, ElementProps, RecursivePartial } from "../../../types";
 import { Element } from "../../layout";
 import {
-  ButtonSizeTypes,
-  EmbedButton,
-  type EmbedButtonAlignment,
-  type EmbedButtonColor,
-  type EmbedButtonSelfAlignment,
-  type EmbedButtonVariant,
+  Button,
+  type ButtonAlignment,
+  type ButtonColor,
+  type ButtonSelfAlignment,
+  type ButtonSize,
+  type ButtonVariant,
   Flex,
 } from "../../ui";
 
@@ -18,10 +18,10 @@ interface DesignProps {
     openInNewTab: boolean;
     text: string;
     style: ComponentStyle;
-    size: ButtonSizeTypes;
+    size: ButtonSize;
     fullWidth: boolean;
-    alignment: EmbedButtonAlignment;
-    selfAlignment: EmbedButtonSelfAlignment;
+    alignment: ButtonAlignment;
+    selfAlignment: ButtonSelfAlignment;
   };
 }
 
@@ -56,7 +56,7 @@ export const ButtonElement = forwardRef<
 
   const buttonStyles: Record<
     ComponentStyle,
-    { color: EmbedButtonColor; variant: EmbedButtonVariant }
+    { color: ButtonColor; variant: ButtonVariant }
   > = {
     primary: {
       color: "primary",
@@ -80,7 +80,7 @@ export const ButtonElement = forwardRef<
       $flexDirection="column"
       $gap="2rem"
     >
-      <EmbedButton
+      <Button
         as="a"
         href={props.button.link}
         target={props.button.openInNewTab ? "_blank" : "_self"}
@@ -92,7 +92,7 @@ export const ButtonElement = forwardRef<
         $fullWidth={props.button.fullWidth}
       >
         {props.button.text}
-      </EmbedButton>
+      </Button>
     </Element>
   );
 });

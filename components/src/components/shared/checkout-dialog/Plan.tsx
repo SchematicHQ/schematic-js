@@ -18,7 +18,7 @@ import { ButtonLink } from "../../elements/pricing-table/styles";
 import { cardBoxShadow } from "../../layout";
 import {
   Box,
-  EmbedButton,
+  Button,
   Flex,
   Icon,
   type IconNameTypes,
@@ -272,7 +272,7 @@ export const Plan = ({
                           entitlementPriceObject
                         ) {
                           const { priceTier } = entitlementPriceObject;
-                          if (priceTier.length) {
+                          if (priceTier.length > 1) {
                             const lastTier = priceTier[priceTier.length - 1];
                             const { perUnitPrice, perUnitPriceDecimal } =
                               lastTier;
@@ -410,6 +410,7 @@ export const Plan = ({
                                         }
                                         $leading={1.35}
                                       >
+                                        {t("then")}{" "}
                                         {formatCurrency(
                                           entitlementPrice,
                                           entitlementCurrency,
@@ -419,8 +420,7 @@ export const Plan = ({
                                         {entitlement.feature.featureType ===
                                           "trait" && (
                                           <>/{shortenPeriod(period)}</>
-                                        )}{" "}
-                                        {t("overage fee")}
+                                        )}
                                       </Text>
                                     )}
                                 </Flex>
@@ -493,7 +493,7 @@ export const Plan = ({
                     </Text>
                   </Flex>
                 ) : (
-                  <EmbedButton
+                  <Button
                     type="button"
                     disabled={(isLoading || !plan.valid) && !plan.custom}
                     {...{
@@ -528,7 +528,7 @@ export const Plan = ({
                     ) : (
                       t("Choose plan")
                     )}
-                  </EmbedButton>
+                  </Button>
                 )}
               </Flex>
             </Flex>

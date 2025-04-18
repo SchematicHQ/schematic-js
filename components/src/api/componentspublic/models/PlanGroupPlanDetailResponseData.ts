@@ -31,12 +31,12 @@ import {
   BillingPriceResponseDataFromJSONTyped,
   BillingPriceResponseDataToJSON,
 } from "./BillingPriceResponseData";
-import type { CustomPlanConfig } from "./CustomPlanConfig";
+import type { CustomPlanViewConfigResponseData } from "./CustomPlanViewConfigResponseData";
 import {
-  CustomPlanConfigFromJSON,
-  CustomPlanConfigFromJSONTyped,
-  CustomPlanConfigToJSON,
-} from "./CustomPlanConfig";
+  CustomPlanViewConfigResponseDataFromJSON,
+  CustomPlanViewConfigResponseDataFromJSONTyped,
+  CustomPlanViewConfigResponseDataToJSON,
+} from "./CustomPlanViewConfigResponseData";
 import type { BillingProductDetailResponseData } from "./BillingProductDetailResponseData";
 import {
   BillingProductDetailResponseDataFromJSON,
@@ -47,168 +47,154 @@ import {
 /**
  *
  * @export
- * @interface CompanyPlanDetailResponseData
+ * @interface PlanGroupPlanDetailResponseData
  */
-export interface CompanyPlanDetailResponseData {
+export interface PlanGroupPlanDetailResponseData {
   /**
    *
    * @type {string}
-   * @memberof CompanyPlanDetailResponseData
+   * @memberof PlanGroupPlanDetailResponseData
    */
   audienceType?: string | null;
   /**
    *
    * @type {BillingProductDetailResponseData}
-   * @memberof CompanyPlanDetailResponseData
+   * @memberof PlanGroupPlanDetailResponseData
    */
   billingProduct?: BillingProductDetailResponseData;
   /**
    *
-   * @type {boolean}
-   * @memberof CompanyPlanDetailResponseData
+   * @type {string}
+   * @memberof PlanGroupPlanDetailResponseData
    */
-  companyCanTrial: boolean;
+  chargeType: string;
   /**
    *
    * @type {number}
-   * @memberof CompanyPlanDetailResponseData
+   * @memberof PlanGroupPlanDetailResponseData
    */
   companyCount: number;
   /**
    *
    * @type {Date}
-   * @memberof CompanyPlanDetailResponseData
+   * @memberof PlanGroupPlanDetailResponseData
    */
   createdAt: Date;
   /**
    *
-   * @type {boolean}
-   * @memberof CompanyPlanDetailResponseData
+   * @type {CustomPlanViewConfigResponseData}
+   * @memberof PlanGroupPlanDetailResponseData
    */
-  current: boolean;
-  /**
-   *
-   * @type {boolean}
-   * @memberof CompanyPlanDetailResponseData
-   */
-  custom: boolean;
-  /**
-   *
-   * @type {CustomPlanConfig}
-   * @memberof CompanyPlanDetailResponseData
-   */
-  customPlanConfig?: CustomPlanConfig;
+  customPlanConfig?: CustomPlanViewConfigResponseData;
   /**
    *
    * @type {string}
-   * @memberof CompanyPlanDetailResponseData
+   * @memberof PlanGroupPlanDetailResponseData
    */
   description: string;
   /**
    *
    * @type {Array<PlanEntitlementResponseData>}
-   * @memberof CompanyPlanDetailResponseData
+   * @memberof PlanGroupPlanDetailResponseData
    */
   entitlements: Array<PlanEntitlementResponseData>;
   /**
    *
    * @type {Array<FeatureDetailResponseData>}
-   * @memberof CompanyPlanDetailResponseData
+   * @memberof PlanGroupPlanDetailResponseData
    */
   features: Array<FeatureDetailResponseData>;
   /**
    *
    * @type {string}
-   * @memberof CompanyPlanDetailResponseData
+   * @memberof PlanGroupPlanDetailResponseData
    */
   icon: string;
   /**
    *
    * @type {string}
-   * @memberof CompanyPlanDetailResponseData
+   * @memberof PlanGroupPlanDetailResponseData
    */
   id: string;
   /**
    *
    * @type {boolean}
-   * @memberof CompanyPlanDetailResponseData
+   * @memberof PlanGroupPlanDetailResponseData
    */
   isCustom: boolean;
   /**
    *
    * @type {boolean}
-   * @memberof CompanyPlanDetailResponseData
+   * @memberof PlanGroupPlanDetailResponseData
    */
   isDefault: boolean;
   /**
    *
    * @type {boolean}
-   * @memberof CompanyPlanDetailResponseData
+   * @memberof PlanGroupPlanDetailResponseData
    */
   isFree: boolean;
   /**
    *
    * @type {boolean}
-   * @memberof CompanyPlanDetailResponseData
+   * @memberof PlanGroupPlanDetailResponseData
    */
   isTrialable: boolean;
   /**
    *
    * @type {BillingPriceResponseData}
-   * @memberof CompanyPlanDetailResponseData
+   * @memberof PlanGroupPlanDetailResponseData
    */
   monthlyPrice?: BillingPriceResponseData;
   /**
    *
    * @type {string}
-   * @memberof CompanyPlanDetailResponseData
+   * @memberof PlanGroupPlanDetailResponseData
    */
   name: string;
   /**
    *
+   * @type {BillingPriceResponseData}
+   * @memberof PlanGroupPlanDetailResponseData
+   */
+  oneTimePrice?: BillingPriceResponseData;
+  /**
+   *
    * @type {string}
-   * @memberof CompanyPlanDetailResponseData
+   * @memberof PlanGroupPlanDetailResponseData
    */
   planType: string;
   /**
    *
    * @type {number}
-   * @memberof CompanyPlanDetailResponseData
+   * @memberof PlanGroupPlanDetailResponseData
    */
   trialDays?: number | null;
   /**
    *
    * @type {Date}
-   * @memberof CompanyPlanDetailResponseData
+   * @memberof PlanGroupPlanDetailResponseData
    */
   updatedAt: Date;
   /**
    *
-   * @type {boolean}
-   * @memberof CompanyPlanDetailResponseData
-   */
-  valid: boolean;
-  /**
-   *
    * @type {BillingPriceResponseData}
-   * @memberof CompanyPlanDetailResponseData
+   * @memberof PlanGroupPlanDetailResponseData
    */
   yearlyPrice?: BillingPriceResponseData;
 }
 
 /**
- * Check if a given object implements the CompanyPlanDetailResponseData interface.
+ * Check if a given object implements the PlanGroupPlanDetailResponseData interface.
  */
-export function instanceOfCompanyPlanDetailResponseData(
+export function instanceOfPlanGroupPlanDetailResponseData(
   value: object,
-): value is CompanyPlanDetailResponseData {
-  if (!("companyCanTrial" in value) || value["companyCanTrial"] === undefined)
+): value is PlanGroupPlanDetailResponseData {
+  if (!("chargeType" in value) || value["chargeType"] === undefined)
     return false;
   if (!("companyCount" in value) || value["companyCount"] === undefined)
     return false;
   if (!("createdAt" in value) || value["createdAt"] === undefined) return false;
-  if (!("current" in value) || value["current"] === undefined) return false;
-  if (!("custom" in value) || value["custom"] === undefined) return false;
   if (!("description" in value) || value["description"] === undefined)
     return false;
   if (!("entitlements" in value) || value["entitlements"] === undefined)
@@ -224,20 +210,19 @@ export function instanceOfCompanyPlanDetailResponseData(
   if (!("name" in value) || value["name"] === undefined) return false;
   if (!("planType" in value) || value["planType"] === undefined) return false;
   if (!("updatedAt" in value) || value["updatedAt"] === undefined) return false;
-  if (!("valid" in value) || value["valid"] === undefined) return false;
   return true;
 }
 
-export function CompanyPlanDetailResponseDataFromJSON(
+export function PlanGroupPlanDetailResponseDataFromJSON(
   json: any,
-): CompanyPlanDetailResponseData {
-  return CompanyPlanDetailResponseDataFromJSONTyped(json, false);
+): PlanGroupPlanDetailResponseData {
+  return PlanGroupPlanDetailResponseDataFromJSONTyped(json, false);
 }
 
-export function CompanyPlanDetailResponseDataFromJSONTyped(
+export function PlanGroupPlanDetailResponseDataFromJSONTyped(
   json: any,
   ignoreDiscriminator: boolean,
-): CompanyPlanDetailResponseData {
+): PlanGroupPlanDetailResponseData {
   if (json == null) {
     return json;
   }
@@ -248,15 +233,13 @@ export function CompanyPlanDetailResponseDataFromJSONTyped(
       json["billing_product"] == null
         ? undefined
         : BillingProductDetailResponseDataFromJSON(json["billing_product"]),
-    companyCanTrial: json["company_can_trial"],
+    chargeType: json["charge_type"],
     companyCount: json["company_count"],
     createdAt: new Date(json["created_at"]),
-    current: json["current"],
-    custom: json["custom"],
     customPlanConfig:
       json["custom_plan_config"] == null
         ? undefined
-        : CustomPlanConfigFromJSON(json["custom_plan_config"]),
+        : CustomPlanViewConfigResponseDataFromJSON(json["custom_plan_config"]),
     description: json["description"],
     entitlements: (json["entitlements"] as Array<any>).map(
       PlanEntitlementResponseDataFromJSON,
@@ -275,10 +258,13 @@ export function CompanyPlanDetailResponseDataFromJSONTyped(
         ? undefined
         : BillingPriceResponseDataFromJSON(json["monthly_price"]),
     name: json["name"],
+    oneTimePrice:
+      json["one_time_price"] == null
+        ? undefined
+        : BillingPriceResponseDataFromJSON(json["one_time_price"]),
     planType: json["plan_type"],
     trialDays: json["trial_days"] == null ? undefined : json["trial_days"],
     updatedAt: new Date(json["updated_at"]),
-    valid: json["valid"],
     yearlyPrice:
       json["yearly_price"] == null
         ? undefined
@@ -286,8 +272,8 @@ export function CompanyPlanDetailResponseDataFromJSONTyped(
   };
 }
 
-export function CompanyPlanDetailResponseDataToJSON(
-  value?: CompanyPlanDetailResponseData | null,
+export function PlanGroupPlanDetailResponseDataToJSON(
+  value?: PlanGroupPlanDetailResponseData | null,
 ): any {
   if (value == null) {
     return value;
@@ -297,12 +283,12 @@ export function CompanyPlanDetailResponseDataToJSON(
     billing_product: BillingProductDetailResponseDataToJSON(
       value["billingProduct"],
     ),
-    company_can_trial: value["companyCanTrial"],
+    charge_type: value["chargeType"],
     company_count: value["companyCount"],
     created_at: value["createdAt"].toISOString(),
-    current: value["current"],
-    custom: value["custom"],
-    custom_plan_config: CustomPlanConfigToJSON(value["customPlanConfig"]),
+    custom_plan_config: CustomPlanViewConfigResponseDataToJSON(
+      value["customPlanConfig"],
+    ),
     description: value["description"],
     entitlements: (value["entitlements"] as Array<any>).map(
       PlanEntitlementResponseDataToJSON,
@@ -318,10 +304,10 @@ export function CompanyPlanDetailResponseDataToJSON(
     is_trialable: value["isTrialable"],
     monthly_price: BillingPriceResponseDataToJSON(value["monthlyPrice"]),
     name: value["name"],
+    one_time_price: BillingPriceResponseDataToJSON(value["oneTimePrice"]),
     plan_type: value["planType"],
     trial_days: value["trialDays"],
     updated_at: value["updatedAt"].toISOString(),
-    valid: value["valid"],
     yearly_price: BillingPriceResponseDataToJSON(value["yearlyPrice"]),
   };
 }

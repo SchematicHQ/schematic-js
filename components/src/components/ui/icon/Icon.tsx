@@ -10,5 +10,7 @@ export interface IconProps extends React.HTMLAttributes<HTMLElement> {
 }
 
 export const Icon = ({ name, className, ...props }: IconProps) => {
-  return <styles.Icon className={cx("i", `i-${name}`, className)} {...props} />;
+  return (
+    <styles.Icon className={cx("icon", `icon-${name}`, className)} {...props} />
+  );
 };

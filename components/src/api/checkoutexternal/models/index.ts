@@ -57,6 +57,7 @@ export * from "./PreviewObject";
 export * from "./PreviewObjectResponseData";
 export * from "./PreviewSubscriptionChangeResponseData";
 export * from "./PreviewSubscriptionFinanceResponseData";
+export * from "./PreviewSubscriptionUpcomingInvoiceLineItems";
 export * from "./RuleConditionDetailResponseData";
 export * from "./RuleConditionGroupDetailResponseData";
 export * from "./RuleConditionGroupResponseData";

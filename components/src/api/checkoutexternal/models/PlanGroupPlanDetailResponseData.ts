@@ -19,12 +19,24 @@ import {
   FeatureDetailResponseDataFromJSONTyped,
   FeatureDetailResponseDataToJSON,
 } from "./FeatureDetailResponseData";
+import type { PlanEntitlementResponseData } from "./PlanEntitlementResponseData";
+import {
+  PlanEntitlementResponseDataFromJSON,
+  PlanEntitlementResponseDataFromJSONTyped,
+  PlanEntitlementResponseDataToJSON,
+} from "./PlanEntitlementResponseData";
 import type { BillingPriceResponseData } from "./BillingPriceResponseData";
 import {
   BillingPriceResponseDataFromJSON,
   BillingPriceResponseDataFromJSONTyped,
   BillingPriceResponseDataToJSON,
 } from "./BillingPriceResponseData";
+import type { CustomPlanViewConfigResponseData } from "./CustomPlanViewConfigResponseData";
+import {
+  CustomPlanViewConfigResponseDataFromJSON,
+  CustomPlanViewConfigResponseDataFromJSONTyped,
+  CustomPlanViewConfigResponseDataToJSON,
+} from "./CustomPlanViewConfigResponseData";
 import type { BillingProductDetailResponseData } from "./BillingProductDetailResponseData";
 import {
   BillingProductDetailResponseDataFromJSON,
@@ -35,127 +47,162 @@ import {
 /**
  *
  * @export
- * @interface PlanDetailResponseData
+ * @interface PlanGroupPlanDetailResponseData
  */
-export interface PlanDetailResponseData {
+export interface PlanGroupPlanDetailResponseData {
   /**
    *
    * @type {string}
-   * @memberof PlanDetailResponseData
+   * @memberof PlanGroupPlanDetailResponseData
    */
   audienceType?: string | null;
   /**
    *
    * @type {BillingProductDetailResponseData}
-   * @memberof PlanDetailResponseData
+   * @memberof PlanGroupPlanDetailResponseData
    */
   billingProduct?: BillingProductDetailResponseData;
   /**
    *
+   * @type {string}
+   * @memberof PlanGroupPlanDetailResponseData
+   */
+  chargeType: string;
+  /**
+   *
    * @type {number}
-   * @memberof PlanDetailResponseData
+   * @memberof PlanGroupPlanDetailResponseData
    */
   companyCount: number;
   /**
    *
    * @type {Date}
-   * @memberof PlanDetailResponseData
+   * @memberof PlanGroupPlanDetailResponseData
    */
   createdAt: Date;
   /**
    *
+   * @type {CustomPlanViewConfigResponseData}
+   * @memberof PlanGroupPlanDetailResponseData
+   */
+  customPlanConfig?: CustomPlanViewConfigResponseData;
+  /**
+   *
    * @type {string}
-   * @memberof PlanDetailResponseData
+   * @memberof PlanGroupPlanDetailResponseData
    */
   description: string;
   /**
    *
+   * @type {Array<PlanEntitlementResponseData>}
+   * @memberof PlanGroupPlanDetailResponseData
+   */
+  entitlements: Array<PlanEntitlementResponseData>;
+  /**
+   *
    * @type {Array<FeatureDetailResponseData>}
-   * @memberof PlanDetailResponseData
+   * @memberof PlanGroupPlanDetailResponseData
    */
   features: Array<FeatureDetailResponseData>;
   /**
    *
    * @type {string}
-   * @memberof PlanDetailResponseData
+   * @memberof PlanGroupPlanDetailResponseData
    */
   icon: string;
   /**
    *
    * @type {string}
-   * @memberof PlanDetailResponseData
+   * @memberof PlanGroupPlanDetailResponseData
    */
   id: string;
   /**
    *
    * @type {boolean}
-   * @memberof PlanDetailResponseData
+   * @memberof PlanGroupPlanDetailResponseData
+   */
+  isCustom: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof PlanGroupPlanDetailResponseData
    */
   isDefault: boolean;
   /**
    *
    * @type {boolean}
-   * @memberof PlanDetailResponseData
+   * @memberof PlanGroupPlanDetailResponseData
    */
   isFree: boolean;
   /**
    *
    * @type {boolean}
-   * @memberof PlanDetailResponseData
+   * @memberof PlanGroupPlanDetailResponseData
    */
   isTrialable: boolean;
   /**
    *
    * @type {BillingPriceResponseData}
-   * @memberof PlanDetailResponseData
+   * @memberof PlanGroupPlanDetailResponseData
    */
   monthlyPrice?: BillingPriceResponseData;
   /**
    *
    * @type {string}
-   * @memberof PlanDetailResponseData
+   * @memberof PlanGroupPlanDetailResponseData
    */
   name: string;
   /**
    *
+   * @type {BillingPriceResponseData}
+   * @memberof PlanGroupPlanDetailResponseData
+   */
+  oneTimePrice?: BillingPriceResponseData;
+  /**
+   *
    * @type {string}
-   * @memberof PlanDetailResponseData
+   * @memberof PlanGroupPlanDetailResponseData
    */
   planType: string;
   /**
    *
    * @type {number}
-   * @memberof PlanDetailResponseData
+   * @memberof PlanGroupPlanDetailResponseData
    */
   trialDays?: number | null;
   /**
    *
    * @type {Date}
-   * @memberof PlanDetailResponseData
+   * @memberof PlanGroupPlanDetailResponseData
    */
   updatedAt: Date;
   /**
    *
    * @type {BillingPriceResponseData}
-   * @memberof PlanDetailResponseData
+   * @memberof PlanGroupPlanDetailResponseData
    */
   yearlyPrice?: BillingPriceResponseData;
 }
 
 /**
- * Check if a given object implements the PlanDetailResponseData interface.
+ * Check if a given object implements the PlanGroupPlanDetailResponseData interface.
  */
-export function instanceOfPlanDetailResponseData(
+export function instanceOfPlanGroupPlanDetailResponseData(
   value: object,
-): value is PlanDetailResponseData {
+): value is PlanGroupPlanDetailResponseData {
+  if (!("chargeType" in value) || value["chargeType"] === undefined)
+    return false;
   if (!("companyCount" in value) || value["companyCount"] === undefined)
     return false;
   if (!("createdAt" in value) || value["createdAt"] === undefined) return false;
   if (!("description" in value) || value["description"] === undefined)
     return false;
+  if (!("entitlements" in value) || value["entitlements"] === undefined)
+    return false;
   if (!("features" in value) || value["features"] === undefined) return false;
   if (!("icon" in value) || value["icon"] === undefined) return false;
   if (!("id" in value) || value["id"] === undefined) return false;
+  if (!("isCustom" in value) || value["isCustom"] === undefined) return false;
   if (!("isDefault" in value) || value["isDefault"] === undefined) return false;
   if (!("isFree" in value) || value["isFree"] === undefined) return false;
   if (!("isTrialable" in value) || value["isTrialable"] === undefined)
@@ -166,16 +213,16 @@ export function instanceOfPlanDetailResponseData(
   return true;
 }
 
-export function PlanDetailResponseDataFromJSON(
+export function PlanGroupPlanDetailResponseDataFromJSON(
   json: any,
-): PlanDetailResponseData {
-  return PlanDetailResponseDataFromJSONTyped(json, false);
+): PlanGroupPlanDetailResponseData {
+  return PlanGroupPlanDetailResponseDataFromJSONTyped(json, false);
 }
 
-export function PlanDetailResponseDataFromJSONTyped(
+export function PlanGroupPlanDetailResponseDataFromJSONTyped(
   json: any,
   ignoreDiscriminator: boolean,
-): PlanDetailResponseData {
+): PlanGroupPlanDetailResponseData {
   if (json == null) {
     return json;
   }
@@ -186,14 +233,23 @@ export function PlanDetailResponseDataFromJSONTyped(
       json["billing_product"] == null
         ? undefined
         : BillingProductDetailResponseDataFromJSON(json["billing_product"]),
+    chargeType: json["charge_type"],
     companyCount: json["company_count"],
     createdAt: new Date(json["created_at"]),
+    customPlanConfig:
+      json["custom_plan_config"] == null
+        ? undefined
+        : CustomPlanViewConfigResponseDataFromJSON(json["custom_plan_config"]),
     description: json["description"],
+    entitlements: (json["entitlements"] as Array<any>).map(
+      PlanEntitlementResponseDataFromJSON,
+    ),
     features: (json["features"] as Array<any>).map(
       FeatureDetailResponseDataFromJSON,
     ),
     icon: json["icon"],
     id: json["id"],
+    isCustom: json["is_custom"],
     isDefault: json["is_default"],
     isFree: json["is_free"],
     isTrialable: json["is_trialable"],
@@ -202,6 +258,10 @@ export function PlanDetailResponseDataFromJSONTyped(
         ? undefined
         : BillingPriceResponseDataFromJSON(json["monthly_price"]),
     name: json["name"],
+    oneTimePrice:
+      json["one_time_price"] == null
+        ? undefined
+        : BillingPriceResponseDataFromJSON(json["one_time_price"]),
     planType: json["plan_type"],
     trialDays: json["trial_days"] == null ? undefined : json["trial_days"],
     updatedAt: new Date(json["updated_at"]),
@@ -212,8 +272,8 @@ export function PlanDetailResponseDataFromJSONTyped(
   };
 }
 
-export function PlanDetailResponseDataToJSON(
-  value?: PlanDetailResponseData | null,
+export function PlanGroupPlanDetailResponseDataToJSON(
+  value?: PlanGroupPlanDetailResponseData | null,
 ): any {
   if (value == null) {
     return value;
@@ -223,19 +283,28 @@ export function PlanDetailResponseDataToJSON(
     billing_product: BillingProductDetailResponseDataToJSON(
       value["billingProduct"],
     ),
+    charge_type: value["chargeType"],
     company_count: value["companyCount"],
     created_at: value["createdAt"].toISOString(),
+    custom_plan_config: CustomPlanViewConfigResponseDataToJSON(
+      value["customPlanConfig"],
+    ),
     description: value["description"],
+    entitlements: (value["entitlements"] as Array<any>).map(
+      PlanEntitlementResponseDataToJSON,
+    ),
     features: (value["features"] as Array<any>).map(
       FeatureDetailResponseDataToJSON,
     ),
     icon: value["icon"],
     id: value["id"],
+    is_custom: value["isCustom"],
     is_default: value["isDefault"],
     is_free: value["isFree"],
     is_trialable: value["isTrialable"],
     monthly_price: BillingPriceResponseDataToJSON(value["monthlyPrice"]),
     name: value["name"],
+    one_time_price: BillingPriceResponseDataToJSON(value["oneTimePrice"]),
     plan_type: value["planType"],
     trial_days: value["trialDays"],
     updated_at: value["updatedAt"].toISOString(),

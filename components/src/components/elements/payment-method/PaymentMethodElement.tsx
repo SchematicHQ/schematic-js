@@ -2,9 +2,9 @@ import { t } from "i18next";
 import { CSSProperties, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
-import { DefaultTheme } from "styled-components/dist/models/ThemeProvider";
+import type { DefaultTheme } from "styled-components/dist/models/ThemeProvider";
 
-import type { PaymentMethodResponseData } from "../../../api";
+import type { PaymentMethodResponseData } from "../../../api/checkoutexternal";
 import type { FontStyle } from "../../../context";
 import { useIsLightBackground } from "../../../hooks";
 import { Box, Flex, Icon, IconNameTypes, Text } from "../../ui";

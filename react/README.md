@@ -53,6 +53,8 @@ const MyComponent = () => {
 };
 ```
 
+To learn more about identifying companies with the `keys` map, see [key management in Schematic public docs](https://docs.schematichq.com/developer_resources/key_management).
+
 ### Tracking usage
 
 Once you've set the context with `identify`, you can track events:

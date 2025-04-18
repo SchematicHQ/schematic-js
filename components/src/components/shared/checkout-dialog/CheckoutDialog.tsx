@@ -16,13 +16,14 @@ import {
   ResponseError,
   type UpdateAddOnRequestBody,
   type UpdatePayInAdvanceRequestBody,
-} from "../../../api";
+} from "../../../api/checkoutexternal";
 import {
   type SelectedPlan,
   useAvailablePlans,
   useEmbed,
   useIsLightBackground,
 } from "../../../hooks";
+import { getAddOnPrice } from "../../../utils";
 import { PeriodToggle } from "../../shared";
 import { Flex, Modal, ModalHeader, Text } from "../../ui";
 import { Sidebar, type UsageBasedEntitlement } from "../sidebar";
@@ -240,9 +241,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
             addOnIds: (updates.addOns || addOns).reduce(
               (acc: UpdateAddOnRequestBody[], addOn) => {
                 if (addOn.isSelected) {
-                  const addOnPriceId = (
-                    period === "year" ? addOn?.yearlyPrice : addOn?.monthlyPrice
-                  )?.id;
+                  const addOnPriceId = getAddOnPrice(addOn, period)?.id;
 
                   if (addOnPriceId) {
                     acc.push({
@@ -525,7 +524,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
               </Flex>
             )}
 
-            {checkoutStage === "plan" && (
+            {checkoutStage === "plan" && availablePeriods.length > 1 && (
               <PeriodToggle
                 layerRef={modalRef}
                 options={availablePeriods}

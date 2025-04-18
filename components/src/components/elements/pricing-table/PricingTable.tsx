@@ -2,10 +2,10 @@ import { forwardRef, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 
-import {
-  type BillingPriceView,
-  type CompanyPlanDetailResponseData,
-} from "../../../api";
+import type {
+  BillingPriceView,
+  CompanyPlanDetailResponseData,
+} from "../../../api/checkoutexternal";
 import { TEXT_BASE_SIZE, VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
 import { type FontStyle } from "../../../context";
 import {
@@ -29,7 +29,7 @@ import { cardBoxShadow, FussyChild } from "../../layout";
 import { PeriodToggle } from "../../shared";
 import {
   Box,
-  EmbedButton,
+  Button,
   Flex,
   Icon,
   type IconNameTypes,
@@ -137,6 +137,8 @@ const resolveDesignProps = (
   };
 };
 
+export type PricingTableProps = DesignProps;
+
 export const PricingTable = forwardRef<
   HTMLDivElement | null,
   ElementProps &
@@ -228,7 +230,7 @@ export const PricingTable = forwardRef<
               t("Plans")}
           </Text>
 
-          {props.showPeriodToggle && (
+          {props.showPeriodToggle && periods.length > 1 && (
             <PeriodToggle
               options={periods}
               selectedOption={selectedPeriod}
@@ -476,8 +478,9 @@ export const PricingTable = forwardRef<
                                         1
                                     ];
                                   entitlementPrice =
-                                    overagePrice.perUnitPrice ??
-                                    Number(overagePrice.perUnitPriceDecimal);
+                                    overagePrice.perUnitPriceDecimal
+                                      ? Number(overagePrice.perUnitPriceDecimal)
+                                      : (overagePrice.perUnitPrice ?? 0);
                                   entitlementCurrency =
                                     entitlementPriceObject.currency;
                                 }
@@ -726,14 +729,11 @@ export const PricingTable = forwardRef<
                     ) : (
                       (props.upgrade.isVisible ||
                         props.downgrade.isVisible) && (
-                        <EmbedButton
-                          as="a"
-                          href={
-                            plan.customPlanConfig?.ctaWebSite ||
-                            "https://app.schematichq.com/sign-up"
-                          }
-                          target="_blank"
+                        <Button
                           type="button"
+                          disabled={
+                            (!plan.valid || !canCheckout) && !plan.custom
+                          }
                           $size={props.upgrade.buttonSize}
                           $color={props.upgrade.buttonStyle}
                           $variant="filled"
@@ -755,7 +755,7 @@ export const PricingTable = forwardRef<
                           ) : (
                             t("Choose plan")
                           )}
-                        </EmbedButton>
+                        </Button>
                       )
                     )}
                   </Flex>
@@ -1049,10 +1049,7 @@ export const PricingTable = forwardRef<
                       )}
 
                       {props.upgrade.isVisible && (
-                        <EmbedButton
-                          as="a"
-                          href="https://app.schematichq.com/sign-up"
-                          target="_blank"
+                        <Button
                           type="button"
                           disabled={!addOn.valid || !canCheckout}
                           $size={props.upgrade.buttonSize}
@@ -1072,7 +1069,7 @@ export const PricingTable = forwardRef<
                             : addOn.current
                               ? t("Change add-on")
                               : t("Choose add-on")}
-                        </EmbedButton>
+                        </Button>
                       )}
                     </Flex>
                   </Flex>

@@ -48,6 +48,7 @@ export function formatCurrency(amount: number, currency?: string) {
       currency: resolvedCurrency,
       ...(hasManySignificantDigits && {
         minimumSignificantDigits: 1,
+        maximumSignificantDigits: 12,
       }),
     }).format(dollars);
   } catch (error) {
@@ -55,6 +56,7 @@ export function formatCurrency(amount: number, currency?: string) {
 
     return new Intl.NumberFormat("en-US", {
       style: "currency",
+      maximumSignificantDigits: 12,
       currency: resolvedCurrency,
     }).format(amount / 100);
   }

@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 
-import type { FeatureUsageResponseData } from "../../../api";
+import type { FeatureUsageResponseData } from "../../../api/checkoutexternal";
 import { useEmbed } from "../../../hooks";
 import {
   formatCurrency,
@@ -39,15 +39,24 @@ export const Details = ({
 
   const { data } = useEmbed();
 
-  const { price, currency } = useMemo(() => {
-    const { price: entitlementPrice, currency: entitlementCurrency } =
-      getBillingPrice(
-        data.company?.plan?.planPeriod === "year"
-          ? yearlyUsageBasedPrice
-          : monthlyUsageBasedPrice,
-      ) || {};
+  const { price, priceDecimal, priceTier, currency } = useMemo(() => {
+    const {
+      price: entitlementPrice,
+      priceDecimal: entitlementPriceDecimal,
+      priceTier: entitlementPriceTier,
+      currency: entitlementCurrency,
+    } = getBillingPrice(
+      data.company?.plan?.planPeriod === "year"
+        ? yearlyUsageBasedPrice
+        : monthlyUsageBasedPrice,
+    ) || {};
 
-    return { price: entitlementPrice, currency: entitlementCurrency };
+    return {
+      price: entitlementPrice,
+      priceDecimal: entitlementPriceDecimal,
+      priceTier: entitlementPriceTier,
+      currency: entitlementCurrency,
+    };
   }, [
     data.company?.plan?.planPeriod,
     monthlyUsageBasedPrice,
@@ -118,17 +127,29 @@ export const Details = ({
         typeof usage === "number" &&
         typeof softLimit === "number"
       ) {
-        const cost = price * (usage - softLimit);
+        let overagePrice = price ?? priceDecimal;
+
+        // overage price tier
+        if (priceTier?.length === 2) {
+          const lastTier = priceTier[priceTier.length - 1];
+          if (lastTier.perUnitPriceDecimal) {
+            overagePrice = Number(lastTier.perUnitPriceDecimal);
+          } else {
+            overagePrice = lastTier.perUnitPrice ?? 0;
+          }
+        }
+
+        const cost =
+          usage - softLimit < 0 ? 0 : overagePrice * (usage - softLimit);
         const period =
-          feature.featureType === "event" &&
+          feature.featureType === "trait" &&
           typeof data.company?.plan?.planPeriod === "string"
             ? `/${shortenPeriod(data.company.plan.planPeriod)}`
             : "";
 
-        acc +=
-          cost > 0
-            ? ` • ${t("Overage")}: ${formatCurrency(cost)}${period}`
-            : ` • ${`${formatCurrency(price)}/${getFeatureName(feature, 1)}`} ${t("overage fee")}`;
+        if (cost > 0) {
+          acc += ` • ${formatCurrency(cost)}${period}`;
+        }
       }
 
       return acc;
@@ -151,6 +172,8 @@ export const Details = ({
     priceBehavior,
     allocation,
     price,
+    priceDecimal,
+    priceTier,
     currency,
     softLimit,
     usage,

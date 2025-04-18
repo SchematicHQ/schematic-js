@@ -1,4 +1,4 @@
-import CSS from "csstype";
+import type CSS from "csstype";
 import styled, { css, type RuleSet } from "styled-components";
 
 import type { ComponentProps, TransientCSSProperties } from "../../../types";

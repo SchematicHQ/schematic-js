@@ -1,5 +1,6 @@
-import type { FeatureDetailResponseData } from "../api";
-import pluralize from "./pluralize";
+import type { FeatureDetailResponseData } from "../api/checkoutexternal";
+import { type SelectedPlan } from "../hooks";
+import { pluralize } from "./pluralize";
 
 export const getFeatureName = (
   feature: Pick<
@@ -31,8 +32,26 @@ export function getBillingPrice<
 
   const price =
     typeof billingPrice.priceDecimal === "string"
-      ? parseFloat(billingPrice.priceDecimal)
+      ? Number(billingPrice.priceDecimal)
       : billingPrice.price;
 
   return { ...billingPrice, price };
 }
+
+export const getAddOnPrice = (addOn: SelectedPlan, period: string) => {
+  if (addOn.chargeType === ChargeType.oneTime) {
+    return addOn.oneTimePrice;
+  }
+
+  if (period === "year") {
+    return addOn.yearlyPrice;
+  }
+
+  return addOn.monthlyPrice;
+};
+
+export const ChargeType = {
+  oneTime: "one_time",
+  recurring: "recurring",
+  free: "free",
+};

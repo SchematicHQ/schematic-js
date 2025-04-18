@@ -1,4 +1,4 @@
-import CSS from "csstype";
+import type CSS from "csstype";
 import { css } from "styled-components";
 
 import { TEXT_BASE_SIZE } from "../const";

@@ -13,22 +13,25 @@ import type {
   PreviewSubscriptionFinanceResponseData,
   UpdateAddOnRequestBody,
   UpdatePayInAdvanceRequestBody,
-} from "../../../api";
+} from "../../../api/checkoutexternal";
 import {
   type SelectedPlan,
   useEmbed,
   useIsLightBackground,
 } from "../../../hooks";
 import {
+  ChargeType,
   formatCurrency,
   formatOrdinal,
+  getAddOnPrice,
   getBillingPrice,
   getFeatureName,
   getMonthName,
   shortenPeriod,
 } from "../../../utils";
-import { Box, EmbedButton, Flex, Icon, Text } from "../../ui";
+import { Box, Button, Flex, Icon, Text } from "../../ui";
 import { type CheckoutStage } from "../checkout-dialog";
+import { Proration } from "./Proration";
 import { StageButton } from "./StageButton";
 
 export interface UsageBasedEntitlement extends PlanEntitlementResponseData {
@@ -227,9 +230,7 @@ export const Sidebar = ({
           newPriceId: priceId,
           addOnIds: addOns.reduce((acc: UpdateAddOnRequestBody[], addOn) => {
             if (addOn.isSelected && !selectedPlan.companyCanTrial) {
-              const addOnPriceId = (
-                planPeriod === "year" ? addOn?.yearlyPrice : addOn?.monthlyPrice
-              )?.id;
+              const addOnPriceId = getAddOnPrice(addOn, planPeriod)?.id;
 
               if (addOnPriceId) {
                 acc.push({
@@ -398,7 +399,9 @@ export const Sidebar = ({
     typeof selectedPlan !== "undefined" && !selectedPlan.current;
 
   const removedAddOns = currentAddOns.filter(
-    (current) => !selectedAddOns.some((selected) => current.id === selected.id),
+    (current) =>
+      !selectedAddOns.some((selected) => current.id === selected.id) &&
+      current.planPeriod !== "one-time",
   );
   const addedAddOns = selectedAddOns.filter(
     (selected) => !currentAddOns.some((current) => selected.id === current.id),
@@ -964,7 +967,9 @@ export const Sidebar = ({
                           addOn.planPrice,
                           selectedPlanBillingPrice?.currency,
                         )}
-                        <sub>/{shortenPeriod(addOn.planPeriod)}</sub>
+                        {addOn.planPeriod !== "one-time" && (
+                          <sub>/{shortenPeriod(planPeriod)}</sub>
+                        )}
                       </Text>
                     </Box>
                   )}
@@ -974,11 +979,7 @@ export const Sidebar = ({
 
             {selectedAddOns.map((addOn, index) => {
               const { price: addOnPrice, currency: addOnCurrency } =
-                getBillingPrice(
-                  planPeriod === "year"
-                    ? addOn.yearlyPrice
-                    : addOn.monthlyPrice,
-                ) || {};
+                getBillingPrice(getAddOnPrice(addOn, planPeriod)) || {};
 
               return (
                 <Flex
@@ -1006,7 +1007,9 @@ export const Sidebar = ({
                       $color={theme.typography.text.color}
                     >
                       {formatCurrency(addOnPrice ?? 0, addOnCurrency)}
-                      <sub>/{shortenPeriod(planPeriod)}</sub>
+                      {addOn.chargeType !== ChargeType.oneTime && (
+                        <sub>/{shortenPeriod(planPeriod)}</sub>
+                      )}
                     </Text>
                   </Box>
                 </Flex>
@@ -1015,56 +1018,12 @@ export const Sidebar = ({
           </Flex>
         )}
 
-        {proration !== 0 && (
-          <>
-            <Box $opacity="0.625">
-              <Text
-                $font={theme.typography.text.fontFamily}
-                $size={14}
-                $weight={theme.typography.text.fontWeight}
-                $color={theme.typography.text.color}
-              >
-                {proration > 0
-                  ? t("Proration")
-                  : !selectedPlan?.companyCanTrial && t("Credits")}
-              </Text>
-            </Box>
-
-            <Flex $flexDirection="column" $gap="0.5rem">
-              {currentPlan && (
-                <Flex
-                  $justifyContent="space-between"
-                  $alignItems="center"
-                  $gap="1rem"
-                >
-                  <Flex>
-                    <Text
-                      $font={theme.typography.heading4.fontFamily}
-                      $size={theme.typography.heading4.fontSize}
-                      $weight={theme.typography.heading4.fontWeight}
-                      $color={theme.typography.heading4.color}
-                    >
-                      {t("Unused time")}
-                    </Text>
-                  </Flex>
-
-                  <Flex>
-                    <Text
-                      $font={theme.typography.text.fontFamily}
-                      $size={theme.typography.text.fontSize}
-                      $weight={theme.typography.text.fontWeight}
-                      $color={theme.typography.text.color}
-                    >
-                      {formatCurrency(
-                        proration,
-                        selectedPlanBillingPrice?.currency,
-                      )}
-                    </Text>
-                  </Flex>
-                </Flex>
-              )}
-            </Flex>
-          </>
+        {proration !== 0 && charges && selectedPlanBillingPrice?.currency && (
+          <Proration
+            charges={charges}
+            currency={selectedPlanBillingPrice.currency}
+            selectedPlan={selectedPlan}
+          />
         )}
       </Flex>
 
@@ -1318,9 +1277,9 @@ export const Sidebar = ({
         )}
 
         {layout === "unsubscribe" && (
-          <EmbedButton onClick={unsubscribe} isLoading={isLoading}>
+          <Button onClick={unsubscribe} $isLoading={isLoading}>
             {t("Cancel subscription")}
-          </EmbedButton>
+          </Button>
         )}
 
         {!isLoading && error && (
