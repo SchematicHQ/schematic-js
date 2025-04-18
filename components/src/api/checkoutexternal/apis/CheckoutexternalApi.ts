@@ -21,6 +21,7 @@ import type {
   DeletePaymentMethodResponse,
   GetSetupIntentResponse,
   HydrateComponentResponse,
+  HydrateUpcomingInvoiceResponse,
   ListInvoicesResponse,
   PreviewCheckoutResponse,
   UpdatePaymentMethodRequestBody,
@@ -41,6 +42,8 @@ import {
   GetSetupIntentResponseToJSON,
   HydrateComponentResponseFromJSON,
   HydrateComponentResponseToJSON,
+  HydrateUpcomingInvoiceResponseFromJSON,
+  HydrateUpcomingInvoiceResponseToJSON,
   ListInvoicesResponseFromJSON,
   ListInvoicesResponseToJSON,
   PreviewCheckoutResponseFromJSON,
@@ -64,6 +67,10 @@ export interface GetSetupIntentRequest {
 }
 
 export interface HydrateComponentRequest {
+  componentId: string;
+}
+
+export interface HydrateUpcomingInvoiceRequest {
   componentId: string;
 }
 
@@ -342,6 +349,62 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<HydrateComponentResponse> {
     const response = await this.hydrateComponentRaw(
+      requestParameters,
+      initOverrides,
+    );
+    return await response.value();
+  }
+
+  /**
+   * Hydrate upcoming invoice
+   */
+  async hydrateUpcomingInvoiceRaw(
+    requestParameters: HydrateUpcomingInvoiceRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<HydrateUpcomingInvoiceResponse>> {
+    if (requestParameters["componentId"] == null) {
+      throw new runtime.RequiredError(
+        "componentId",
+        'Required parameter "componentId" was null or undefined when calling hydrateUpcomingInvoice().',
+      );
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    if (this.configuration && this.configuration.apiKey) {
+      headerParameters["X-Schematic-Api-Key"] = await this.configuration.apiKey(
+        "X-Schematic-Api-Key",
+      ); // ApiKeyAuth authentication
+    }
+
+    const response = await this.request(
+      {
+        path: `/components/{component_id}/hydrate/upcoming-invoice`.replace(
+          `{${"component_id"}}`,
+          encodeURIComponent(String(requestParameters["componentId"])),
+        ),
+        method: "GET",
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      HydrateUpcomingInvoiceResponseFromJSON(jsonValue),
+    );
+  }
+
+  /**
+   * Hydrate upcoming invoice
+   */
+  async hydrateUpcomingInvoice(
+    requestParameters: HydrateUpcomingInvoiceRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<HydrateUpcomingInvoiceResponse> {
+    const response = await this.hydrateUpcomingInvoiceRaw(
       requestParameters,
       initOverrides,
     );
