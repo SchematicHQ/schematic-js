@@ -16,7 +16,7 @@ jobs:
         with:
           alert-lookup: true
           compat-lookup: true
-          github-token: "${{ secrets.PAT_TOKEN }}"
+          github-token: "${{ secrets.GITHUB_TOKEN }}"
     
       - name: Run Linear Action for version updates
         uses: SchematicHQ/devops-cli@main
@@ -44,7 +44,7 @@ jobs:
           tags: "dependabot"
         env:
           LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run Linear Action for security updates
         uses: SchematicHQ/devops-cli@main
@@ -76,7 +76,7 @@ jobs:
           tags: "dependabot,security"
         env:
           LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Get PR Title
         id: pr-title
