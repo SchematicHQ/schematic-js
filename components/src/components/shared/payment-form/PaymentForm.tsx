@@ -7,7 +7,6 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 
-import { useEmbed } from "../../../hooks";
 import { Box, Button, Text } from "../../ui";
 
 interface PaymentFormProps {
@@ -22,8 +21,6 @@ export const PaymentForm = ({ onConfirm }: PaymentFormProps) => {
   const stripe = useStripe();
   const elements = useElements();
 
-  const { api } = useEmbed();
-
   const [message, setMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
@@ -33,7 +30,7 @@ export const PaymentForm = ({ onConfirm }: PaymentFormProps) => {
   ) => {
     event.preventDefault();
 
-    if (!api || !stripe || !elements) {
+    if (!stripe || !elements) {
       return;
     }
 

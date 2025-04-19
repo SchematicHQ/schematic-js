@@ -6,8 +6,25 @@ import { createContext, useCallback, useEffect, useRef, useState } from "react";
 import { ThemeProvider } from "styled-components";
 import { v4 as uuidv4 } from "uuid";
 
-import * as checkoutExternal from "../api/checkoutexternal";
-import * as componentsPublic from "../api/componentspublic";
+import {
+  type ChangeSubscriptionRequestBody,
+  CheckoutexternalApi,
+  type CheckoutResponse,
+  type CheckoutUnsubscribeResponse,
+  type ComponentHydrateResponseData,
+  Configuration,
+  type ConfigurationParameters,
+  type DeletePaymentMethodResponse,
+  type GetSetupIntentResponse,
+  type ListInvoicesResponse,
+  type PreviewCheckoutResponse,
+  type UpdatePaymentMethodResponse,
+} from "../api/checkoutexternal";
+import {
+  ComponentspublicApi,
+  Configuration as PublicConfiguration,
+  type PublicPlansResponseData,
+} from "../api/componentspublic";
 import type {
   ComponentProps,
   RecursivePartial,
@@ -169,6 +186,31 @@ function parseEditorState(data: SerializedEditorState) {
   return arr;
 }
 
+function mapPublicDataToHydratedData(
+  data: PublicPlansResponseData,
+): Partial<ComponentHydrateResponseData> {
+  return {
+    activePlans: data.activePlans.map((plan) => ({
+      ...plan,
+      active: false,
+      companyCanTrial: false,
+      current: false,
+      valid: true,
+    })),
+    activeAddOns: data.activeAddOns.map((addOn) => ({
+      ...addOn,
+      active: false,
+      companyCanTrial: false,
+      current: false,
+      valid: true,
+    })),
+    capabilities: {
+      badgeVisibility: data.capabilities?.badgeVisibility ?? false,
+      checkout: false,
+    },
+  };
+}
+
 export type EmbedLayout =
   | "portal"
   | "checkout"
@@ -186,9 +228,7 @@ export type EmbedSelected = {
 export type EmbedMode = "edit" | "view" | "standalone";
 
 export interface EmbedContextProps {
-  api: checkoutExternal.CheckoutexternalApi | null;
-  componentsPublicApi: componentsPublic.ComponentspublicApi | null;
-  data: Partial<checkoutExternal.ComponentHydrateResponseData>;
+  data: Partial<ComponentHydrateResponseData>;
   nodes: SerializedNodeWithChildren[];
   settings: EmbedSettings;
   layout: EmbedLayout;
@@ -196,19 +236,32 @@ export interface EmbedContextProps {
   selected: EmbedSelected;
   error?: Error;
   isPending: boolean;
-  hydrate: () => Promise<void>;
+  // functions
   setIsPending: (bool: boolean) => void;
-  setData: (
-    data: Partial<checkoutExternal.ComponentHydrateResponseData>,
-  ) => void;
+  setData: (data: Partial<ComponentHydrateResponseData>) => void;
   setLayout: (layout: EmbedLayout) => void;
   setSelected: (selected: EmbedSelected) => void;
   updateSettings: (settings: RecursivePartial<EmbedSettings>) => void;
+  // api methods
+  hydrate: () => Promise<void>;
+  getSetupIntent: () => Promise<GetSetupIntentResponse | void>;
+  updatePaymentMethod: (
+    paymentMethodId: string,
+  ) => Promise<UpdatePaymentMethodResponse | void>;
+  deletePaymentMethod: (
+    checkoutId: string,
+  ) => Promise<DeletePaymentMethodResponse | void>;
+  checkout: (
+    changeSubscriptionRequestBody: ChangeSubscriptionRequestBody,
+  ) => Promise<CheckoutResponse | void>;
+  previewCheckout: (
+    changeSubscriptionRequestBody: ChangeSubscriptionRequestBody,
+  ) => Promise<PreviewCheckoutResponse | void>;
+  unsubscribe: () => Promise<CheckoutUnsubscribeResponse | void>;
+  listInvoices: () => Promise<ListInvoicesResponse | void>;
 }
 
 export const EmbedContext = createContext<EmbedContextProps>({
-  api: null,
-  componentsPublicApi: null,
   data: {},
   nodes: [],
   settings: { ...defaultSettings },
@@ -217,42 +270,47 @@ export const EmbedContext = createContext<EmbedContextProps>({
   selected: {},
   error: undefined,
   isPending: false,
-  hydrate: async () => {},
   setIsPending: () => {},
   setData: () => {},
   setLayout: () => {},
   setSelected: () => {},
   updateSettings: () => {},
+  hydrate: async () => {},
+  getSetupIntent: async () => {},
+  updatePaymentMethod: async () => {},
+  deletePaymentMethod: async () => {},
+  checkout: async () => {},
+  previewCheckout: async () => {},
+  unsubscribe: async () => {},
+  listInvoices: async () => {},
 });
 
 export interface EmbedProviderProps {
-  id?: string;
   accessToken?: string;
-  apiConfig?: checkoutExternal.ConfigurationParameters;
-  componentsPublicApiConfig?: componentsPublic.ConfigurationParameters;
-  componentsPublicApiKey?: string;
-  children?: React.ReactNode;
+  apiKey?: string;
+  apiConfig?: ConfigurationParameters;
+  id?: string;
+  settings?: RecursivePartial<EmbedSettings>;
   mode?: EmbedMode;
   debug?: boolean;
+  children?: React.ReactNode;
 }
 
 export const EmbedProvider = ({
-  id,
   accessToken,
+  apiKey,
   apiConfig,
-  componentsPublicApiConfig,
-  componentsPublicApiKey,
+  id,
   children,
-  mode = "view",
   ...options
 }: EmbedProviderProps) => {
   const styleRef = useRef<HTMLLinkElement | null>(null);
   const sessionIdRef = useRef<string>(uuidv4());
 
   const [state, setState] = useState<{
-    api: checkoutExternal.CheckoutexternalApi | null;
-    componentsPublicApi: componentsPublic.ComponentspublicApi | null;
-    data: Partial<checkoutExternal.ComponentHydrateResponseData>;
+    checkoutExternalApi: CheckoutexternalApi | null;
+    componentsPublicApi: ComponentspublicApi | null;
+    data: Partial<ComponentHydrateResponseData>;
     nodes: SerializedNodeWithChildren[];
     settings: EmbedSettings;
     layout: EmbedLayout;
@@ -260,32 +318,56 @@ export const EmbedProvider = ({
     selected: EmbedSelected;
     isPending: boolean;
     error?: Error;
-    hydrate: () => Promise<void>;
+    // functions
     setIsPending: (bool: boolean) => void;
-    setData: (
-      data: Partial<checkoutExternal.ComponentHydrateResponseData>,
-    ) => void;
+    setData: (data: Partial<ComponentHydrateResponseData>) => void;
     setLayout: (layout: EmbedLayout) => void;
     setSelected: (selected: EmbedSelected) => void;
     updateSettings: (settings: RecursivePartial<EmbedSettings>) => void;
+    // api methods
+    hydrate: () => Promise<void>;
+    getSetupIntent: () => Promise<GetSetupIntentResponse | void>;
+    updatePaymentMethod: (
+      paymentMethodId: string,
+    ) => Promise<UpdatePaymentMethodResponse | void>;
+    deletePaymentMethod: (
+      checkoutId: string,
+    ) => Promise<DeletePaymentMethodResponse | void>;
+    checkout: (
+      changeSubscriptionRequestBody: ChangeSubscriptionRequestBody,
+    ) => Promise<CheckoutResponse | void>;
+    previewCheckout: (
+      changeSubscriptionRequestBody: ChangeSubscriptionRequestBody,
+    ) => Promise<PreviewCheckoutResponse | void>;
+    unsubscribe: () => Promise<CheckoutUnsubscribeResponse | void>;
+    listInvoices: () => Promise<ListInvoicesResponse | void>;
   }>(() => {
+    const settings = merge({}, defaultSettings, options.settings);
+
     return {
-      api: null,
+      checkoutExternalApi: null,
       componentsPublicApi: null,
       data: {},
       nodes: [],
-      settings: { ...defaultSettings },
+      settings,
       layout: "portal",
-      mode,
+      mode: options.mode || "view",
       selected: {},
       isPending: false,
       error: undefined,
-      hydrate: async () => {},
       setData: () => {},
       setIsPending: () => {},
       setLayout: () => {},
       setSelected: () => {},
       updateSettings: () => {},
+      hydrate: async () => {},
+      getSetupIntent: async () => {},
+      updatePaymentMethod: async () => {},
+      deletePaymentMethod: async () => {},
+      checkout: async () => {},
+      previewCheckout: async () => {},
+      unsubscribe: async () => {},
+      listInvoices: async () => {},
     };
   });
 
@@ -298,7 +380,6 @@ export const EmbedProvider = ({
     [options.debug],
   );
 
-  // TODO: rename once the api endpoint is created
   const getPublicData = useCallback(async () => {
     setState((prev) => ({ ...prev, isPending: true, error: undefined }));
 
@@ -311,26 +392,7 @@ export const EmbedProvider = ({
 
       setState((prev) => ({
         ...prev,
-        data: {
-          activePlans: data.activePlans.map((plan) => ({
-            ...plan,
-            active: false,
-            companyCanTrial: false,
-            current: false,
-            valid: true,
-          })),
-          activeAddOns: data.activeAddOns.map((addOn) => ({
-            ...addOn,
-            active: false,
-            companyCanTrial: false,
-            current: false,
-            valid: true,
-          })),
-          capabilities: {
-            badgeVisibility: data.capabilities?.badgeVisibility ?? false,
-            checkout: false,
-          },
-        },
+        data: mapPublicDataToHydratedData(data),
         isPending: false,
       }));
     } catch (error) {
@@ -352,11 +414,13 @@ export const EmbedProvider = ({
       const nodes: SerializedNodeWithChildren[] = [];
       const settings: EmbedSettings = { ...defaultSettings };
 
-      if (!id || !state.api) {
+      if (!id || !state.checkoutExternalApi) {
         return;
       }
 
-      const response = await state.api.hydrateComponent({ componentId: id });
+      const response = await state.checkoutExternalApi.hydrateComponent({
+        componentId: id,
+      });
       const { data } = response;
 
       if (data.component?.ast) {
@@ -388,7 +452,86 @@ export const EmbedProvider = ({
             : new Error("An unknown error occurred."),
       }));
     }
-  }, [id, state.api]);
+  }, [id, state.checkoutExternalApi]);
+
+  // shared api methods
+  const getSetupIntent = useCallback(async () => {
+    if (!id || !state.checkoutExternalApi) {
+      return;
+    }
+
+    return state.checkoutExternalApi.getSetupIntent({
+      componentId: id,
+    });
+  }, [id, state.checkoutExternalApi]);
+
+  const updatePaymentMethod = useCallback(
+    async (paymentMethodId: string) => {
+      if (!state.checkoutExternalApi) {
+        return;
+      }
+
+      return state.checkoutExternalApi.updatePaymentMethod({
+        updatePaymentMethodRequestBody: {
+          paymentMethodId,
+        },
+      });
+    },
+    [state.checkoutExternalApi],
+  );
+
+  const deletePaymentMethod = useCallback(
+    async (checkoutId: string) => {
+      if (!state.checkoutExternalApi) {
+        return;
+      }
+
+      return state.checkoutExternalApi.deletePaymentMethod({ checkoutId });
+    },
+    [state.checkoutExternalApi],
+  );
+
+  const checkout = useCallback(
+    async (changeSubscriptionRequestBody: ChangeSubscriptionRequestBody) => {
+      if (!state.checkoutExternalApi) {
+        return;
+      }
+
+      return state.checkoutExternalApi.checkout({
+        changeSubscriptionRequestBody,
+      });
+    },
+    [state.checkoutExternalApi],
+  );
+
+  const previewCheckout = useCallback(
+    async (changeSubscriptionRequestBody: ChangeSubscriptionRequestBody) => {
+      if (!state.checkoutExternalApi) {
+        return;
+      }
+
+      return state.checkoutExternalApi.previewCheckout({
+        changeSubscriptionRequestBody,
+      });
+    },
+    [state.checkoutExternalApi],
+  );
+
+  const unsubscribe = useCallback(async () => {
+    if (!state.checkoutExternalApi) {
+      return;
+    }
+
+    return state.checkoutExternalApi.checkoutUnsubscribe();
+  }, [state.checkoutExternalApi]);
+
+  const listInvoices = useCallback(async () => {
+    if (!state.checkoutExternalApi) {
+      return;
+    }
+
+    return state.checkoutExternalApi.listInvoices();
+  }, [state.checkoutExternalApi]);
 
   const setIsPending = (bool: boolean) => {
     setState((prev) => ({
@@ -397,9 +540,7 @@ export const EmbedProvider = ({
     }));
   };
 
-  const setData = (
-    data: Partial<checkoutExternal.ComponentHydrateResponseData>,
-  ) => {
+  const setData = (data: Partial<ComponentHydrateResponseData>) => {
     setState((prev) => ({
       ...prev,
       data,
@@ -469,46 +610,44 @@ export const EmbedProvider = ({
         process.env.SCHEMATIC_COMPONENTS_VERSION ?? "unknown";
       headers["X-Schematic-Session-ID"] = sessionIdRef.current;
 
-      const config = new checkoutExternal.Configuration({
+      const config = new Configuration({
         ...apiConfig,
         apiKey: accessToken,
         headers,
       });
-      const api = new checkoutExternal.CheckoutexternalApi(config);
-      setState((prev) => ({ ...prev, api }));
+      const checkoutExternalApi = new CheckoutexternalApi(config);
+      setState((prev) => ({ ...prev, checkoutExternalApi }));
     }
   }, [accessToken, apiConfig]);
 
   useEffect(() => {
-    if (componentsPublicApiKey) {
-      const { headers = {} } = componentsPublicApiConfig ?? {};
+    if (apiKey) {
+      const { headers = {} } = apiConfig ?? {};
       headers["X-Schematic-Components-Version"] =
         process.env.SCHEMATIC_COMPONENTS_VERSION ?? "unknown";
       headers["X-Schematic-Session-ID"] = sessionIdRef.current;
 
-      const config = new componentsPublic.Configuration({
-        ...componentsPublicApiConfig,
-        apiKey: componentsPublicApiKey,
+      const config = new PublicConfiguration({
+        ...apiConfig,
+        apiKey,
         headers,
       });
-      const componentsPublicApi = new componentsPublic.ComponentspublicApi(
-        config,
-      );
+      const componentsPublicApi = new ComponentspublicApi(config);
       setState((prev) => ({ ...prev, componentsPublicApi }));
     }
-  }, [componentsPublicApiKey, componentsPublicApiConfig]);
+  }, [apiKey, apiConfig]);
 
   useEffect(() => {
     getPublicData();
   }, [getPublicData]);
 
   useEffect(() => {
-    if (mode === "standalone") {
+    if (options.mode === "standalone") {
       return;
     }
 
     hydrate();
-  }, [mode, hydrate]);
+  }, [options.mode, hydrate]);
 
   useEffect(() => {
     const fontSet = new Set<string>([]);
@@ -533,8 +672,6 @@ export const EmbedProvider = ({
   return (
     <EmbedContext.Provider
       value={{
-        api: state.api,
-        componentsPublicApi: state.componentsPublicApi,
         data: state.data,
         nodes: state.nodes,
         settings: state.settings,
@@ -543,12 +680,21 @@ export const EmbedProvider = ({
         selected: state.selected,
         error: state.error,
         isPending: state.isPending,
-        hydrate,
+        // functions
         setIsPending,
         setData,
         setLayout,
         setSelected,
         updateSettings,
+        // api methods
+        hydrate,
+        getSetupIntent,
+        updatePaymentMethod,
+        deletePaymentMethod,
+        checkout,
+        previewCheckout,
+        unsubscribe,
+        listInvoices,
       }}
     >
       <ThemeProvider theme={state.settings.theme}>

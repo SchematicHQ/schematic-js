@@ -91,7 +91,8 @@ export const Sidebar = ({
 
   const theme = useTheme();
 
-  const { api, data, mode, layout, hydrate, setLayout } = useEmbed();
+  const { data, mode, layout, hydrate, setLayout, checkout, unsubscribe } =
+    useEmbed();
 
   const isLightBackground = useIsLightBackground();
 
@@ -210,13 +211,13 @@ export const Sidebar = ({
     window.dispatchEvent(event);
   };
 
-  const checkout = useCallback(async () => {
+  const handleCheckout = useCallback(async () => {
     const priceId = (
       planPeriod === "year"
         ? selectedPlan?.yearlyPrice
         : selectedPlan?.monthlyPrice
     )?.id;
-    if (!api || !selectedPlan || !priceId) {
+    if (!selectedPlan || !priceId) {
       return;
     }
 
@@ -224,49 +225,50 @@ export const Sidebar = ({
       setError(undefined);
       setIsLoading(true);
 
-      const response = await api.checkout({
-        changeSubscriptionRequestBody: {
-          newPlanId: selectedPlan.id,
-          newPriceId: priceId,
-          addOnIds: addOns.reduce((acc: UpdateAddOnRequestBody[], addOn) => {
-            if (addOn.isSelected && !selectedPlan.companyCanTrial) {
-              const addOnPriceId = getAddOnPrice(addOn, planPeriod)?.id;
+      const response = await checkout({
+        newPlanId: selectedPlan.id,
+        newPriceId: priceId,
+        addOnIds: addOns.reduce((acc: UpdateAddOnRequestBody[], addOn) => {
+          if (addOn.isSelected && !selectedPlan.companyCanTrial) {
+            const addOnPriceId = getAddOnPrice(addOn, planPeriod)?.id;
 
-              if (addOnPriceId) {
-                acc.push({
-                  addOnId: addOn.id,
-                  priceId: addOnPriceId,
-                });
-              }
+            if (addOnPriceId) {
+              acc.push({
+                addOnId: addOn.id,
+                priceId: addOnPriceId,
+              });
+            }
+          }
+
+          return acc;
+        }, []),
+        payInAdvance: payInAdvanceEntitlements.reduce(
+          (
+            acc: UpdatePayInAdvanceRequestBody[],
+            { meteredMonthlyPrice, meteredYearlyPrice, quantity },
+          ) => {
+            const priceId = (
+              planPeriod === "year" ? meteredYearlyPrice : meteredMonthlyPrice
+            )?.priceId;
+
+            if (priceId) {
+              acc.push({
+                priceId,
+                quantity,
+              });
             }
 
             return acc;
-          }, []),
-          payInAdvance: payInAdvanceEntitlements.reduce(
-            (
-              acc: UpdatePayInAdvanceRequestBody[],
-              { meteredMonthlyPrice, meteredYearlyPrice, quantity },
-            ) => {
-              const priceId = (
-                planPeriod === "year" ? meteredYearlyPrice : meteredMonthlyPrice
-              )?.priceId;
-
-              if (priceId) {
-                acc.push({
-                  priceId,
-                  quantity,
-                });
-              }
-
-              return acc;
-            },
-            [],
-          ),
-          ...(paymentMethodId && { paymentMethodId }),
-          ...(promoCode && { promoCode }),
-        },
+          },
+          [],
+        ),
+        ...(paymentMethodId && { paymentMethodId }),
+        ...(promoCode && { promoCode }),
       });
-      dispatchPlanChangedEvent(response.data);
+
+      if (response) {
+        dispatchPlanChangedEvent(response.data);
+      }
 
       setIsLoading(false);
       setLayout("portal");
@@ -281,7 +283,7 @@ export const Sidebar = ({
     }
   }, [
     t,
-    api,
+    checkout,
     hydrate,
     paymentMethodId,
     planPeriod,
@@ -294,17 +296,16 @@ export const Sidebar = ({
     promoCode,
   ]);
 
-  const unsubscribe = useCallback(async () => {
-    if (!api) {
-      return;
-    }
-
+  const handleUnsubscribe = useCallback(async () => {
     try {
       setError(undefined);
       setIsLoading(true);
 
-      const response = await api.checkoutUnsubscribe();
-      dispatchPlanChangedEvent(response.data);
+      const response = await unsubscribe();
+
+      if (response) {
+        dispatchPlanChangedEvent(response.data);
+      }
 
       setLayout("portal");
       hydrate();
@@ -314,7 +315,7 @@ export const Sidebar = ({
     } finally {
       setIsLoading(false);
     }
-  }, [t, api, hydrate, setError, setIsLoading, setLayout]);
+  }, [t, unsubscribe, hydrate, setError, setIsLoading, setLayout]);
 
   const selectedAddOns = addOns.filter((addOn) => addOn.isSelected);
 
@@ -415,7 +416,7 @@ export const Sidebar = ({
   const hasUnstagedChanges =
     willPlanChange || willAddOnsChange || willPayInAdvanceEntitlementsChange;
 
-  const canUpdateSubscription = mode === "edit" || (api !== null && !isLoading);
+  const canUpdateSubscription = mode === "edit" || !isLoading;
   const canCheckout =
     canUpdateSubscription &&
     (!!data.subscription?.paymentMethod || typeof paymentMethodId === "string");
@@ -1261,7 +1262,7 @@ export const Sidebar = ({
             canTrial={selectedPlan?.companyCanTrial === true}
             canCheckout={canCheckout}
             canUpdateSubscription={canUpdateSubscription}
-            checkout={checkout}
+            checkout={handleCheckout}
             checkoutStage={checkoutStage}
             checkoutStages={checkoutStages}
             hasAddOns={addOns.length > 0}
@@ -1277,7 +1278,7 @@ export const Sidebar = ({
         )}
 
         {layout === "unsubscribe" && (
-          <Button onClick={unsubscribe} $isLoading={isLoading}>
+          <Button onClick={handleUnsubscribe} $isLoading={isLoading}>
             {t("Cancel subscription")}
           </Button>
         )}

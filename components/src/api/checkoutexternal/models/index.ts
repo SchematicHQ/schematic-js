@@ -44,6 +44,7 @@ export * from "./FlagResponseData";
 export * from "./GenericPreviewObject";
 export * from "./GetSetupIntentResponse";
 export * from "./HydrateComponentResponse";
+export * from "./HydrateUpcomingInvoiceResponse";
 export * from "./InvoiceResponseData";
 export * from "./ListInvoicesParams";
 export * from "./ListInvoicesResponse";

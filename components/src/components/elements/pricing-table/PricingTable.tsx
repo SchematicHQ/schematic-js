@@ -167,7 +167,7 @@ export const PricingTable = forwardRef<
     plans.reduce(entitlementCountsReducer, {}),
   );
 
-  const canCheckout = data.capabilities?.checkout ?? true;
+  const canCheckout = data.capabilities?.checkout ?? false;
 
   const cardPadding = theme.card.padding / TEXT_BASE_SIZE;
 
@@ -727,13 +727,12 @@ export const PricingTable = forwardRef<
                         </Text>
                       </Flex>
                     ) : (
+                      canCheckout &&
                       (props.upgrade.isVisible ||
                         props.downgrade.isVisible) && (
                         <Button
                           type="button"
-                          disabled={
-                            (!plan.valid || !canCheckout) && !plan.custom
-                          }
+                          disabled={!plan.valid && !plan.custom}
                           $size={props.upgrade.buttonSize}
                           $color={props.upgrade.buttonStyle}
                           $variant="filled"
@@ -1048,10 +1047,10 @@ export const PricingTable = forwardRef<
                         </Flex>
                       )}
 
-                      {props.upgrade.isVisible && (
+                      {canCheckout && props.upgrade.isVisible && (
                         <Button
                           type="button"
-                          disabled={!addOn.valid || !canCheckout}
+                          disabled={!addOn.valid}
                           $size={props.upgrade.buttonSize}
                           $color={
                             isActiveAddOn ? "danger" : props.upgrade.buttonStyle

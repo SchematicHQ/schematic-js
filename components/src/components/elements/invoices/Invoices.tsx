@@ -119,7 +119,7 @@ export const Invoices = forwardRef<
 
   const theme = useTheme();
 
-  const { api } = useEmbed();
+  const { listInvoices } = useEmbed();
 
   const [invoices, setInvoices] = useState(() => formatInvoices(data));
   const [listSize, setListSize] = useState(props.limit.number);
@@ -133,10 +133,12 @@ export const Invoices = forwardRef<
   };
 
   useEffect(() => {
-    api?.listInvoices().then((response) => {
-      setInvoices(formatInvoices(response.data));
+    listInvoices().then((response) => {
+      if (response) {
+        setInvoices(formatInvoices(response.data));
+      }
     });
-  }, [api]);
+  }, [listInvoices]);
 
   useEffect(() => {
     setInvoices(formatInvoices(data));
