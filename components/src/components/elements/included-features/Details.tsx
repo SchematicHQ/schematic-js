@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { Fragment, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 
@@ -39,12 +39,19 @@ export const Details = ({
 
   const { data } = useEmbed();
 
-  const { price, priceDecimal, priceTier, currency } = useMemo(() => {
+  const {
+    price,
+    priceDecimal,
+    priceTier,
+    currency,
+    packageSize = 1,
+  } = useMemo(() => {
     const {
       price: entitlementPrice,
       priceDecimal: entitlementPriceDecimal,
       priceTier: entitlementPriceTier,
       currency: entitlementCurrency,
+      packageSize: entitlementPackageSize,
     } = getBillingPrice(
       data.company?.plan?.planPeriod === "year"
         ? yearlyUsageBasedPrice
@@ -56,6 +63,7 @@ export const Details = ({
       priceDecimal: entitlementPriceDecimal,
       priceTier: entitlementPriceTier,
       currency: entitlementCurrency,
+      packageSize: entitlementPackageSize,
     };
   }, [
     data.company?.plan?.planPeriod,
@@ -69,43 +77,84 @@ export const Details = ({
     }
 
     if (priceBehavior === "pay_in_advance" && typeof allocation === "number") {
-      return `${formatNumber(allocation)} ${getFeatureName(feature, allocation)}`;
+      return (
+        <>
+          {formatNumber(allocation)} {getFeatureName(feature, allocation)}
+        </>
+      );
     }
 
     if (priceBehavior === "pay_as_you_go" && typeof price === "number") {
-      return `${formatCurrency(price, currency)} ${t("per")} ${getFeatureName(feature, 1)}`;
+      return (
+        <>
+          {formatCurrency(price, currency)} {t("per")}{" "}
+          {packageSize > 1 && <>{packageSize} </>}
+          {getFeatureName(feature, packageSize)}
+        </>
+      );
     }
 
     if (priceBehavior === "overage" && typeof softLimit === "number") {
-      return `${formatNumber(softLimit)} ${getFeatureName(feature, softLimit)}`;
+      return (
+        <>
+          {formatNumber(softLimit)} {getFeatureName(feature, softLimit)}
+        </>
+      );
     }
 
     if (!priceBehavior && typeof allocation === "number") {
-      return `${formatNumber(allocation)} ${getFeatureName(feature, allocation)}`;
+      return (
+        <>
+          {formatNumber(allocation)} {getFeatureName(feature, allocation)}
+        </>
+      );
     }
 
     if (!priceBehavior) {
       return t("Unlimited", { item: getFeatureName(feature) });
     }
-  }, [t, allocation, feature, price, priceBehavior, currency, softLimit]);
+  }, [
+    t,
+    allocation,
+    feature,
+    price,
+    priceBehavior,
+    currency,
+    packageSize,
+    softLimit,
+  ]);
 
   const usageText = useMemo(() => {
     if (!feature) {
       return;
     }
 
-    let acc: string | undefined;
+    const acc: React.ReactElement[] = [];
+    let index = 0;
     if (
       priceBehavior === "pay_in_advance" &&
       typeof data.company?.plan?.planPeriod === "string" &&
       typeof price === "number"
     ) {
-      acc = `${formatCurrency(price, currency)}/${getFeatureName(feature, 1)}/${shortenPeriod(data.company.plan.planPeriod)}`;
+      acc.push(
+        <Fragment key={index}>
+          {formatCurrency(price, currency)}/
+          {packageSize > 1 && <>{packageSize} </>}
+          {getFeatureName(feature, packageSize)}/
+          {shortenPeriod(data.company.plan.planPeriod)}
+        </Fragment>,
+      );
+      index += 1;
     } else if (
       (priceBehavior === "pay_as_you_go" || priceBehavior === "overage") &&
       typeof usage === "number"
     ) {
-      acc = `${usage} ${getFeatureName(feature, usage)} ${t("used")}`;
+      acc.push(
+        <Fragment key={index}>
+          {usage} {getFeatureName(feature, usage)} {t("used")}
+        </Fragment>,
+      );
+      index += 1;
     }
 
     if (acc) {
@@ -114,13 +163,25 @@ export const Details = ({
         typeof price === "number" &&
         typeof allocation === "number"
       ) {
-        acc += ` • ${formatCurrency(price * allocation, currency)}`;
+        acc.push(
+          <Fragment key={index}>
+            {" "}
+            • {formatCurrency(price * allocation, currency)}
+          </Fragment>,
+        );
+        index += 1;
       } else if (
         priceBehavior === "pay_as_you_go" &&
         typeof price === "number" &&
         typeof usage === "number"
       ) {
-        acc += ` • ${formatCurrency(price * usage, currency)}`;
+        acc.push(
+          <Fragment key={index}>
+            {" "}
+            • {formatCurrency(price * usage, currency)}
+          </Fragment>,
+        );
+        index += 1;
       } else if (
         priceBehavior === "overage" &&
         typeof price === "number" &&
@@ -148,7 +209,13 @@ export const Details = ({
             : "";
 
         if (cost > 0) {
-          acc += ` • ${formatCurrency(cost)}${period}`;
+          acc.push(
+            <Fragment key={index}>
+              {" "}
+              • {formatCurrency(cost)}${period}
+            </Fragment>,
+          );
+          index += 1;
         }
       }
 
@@ -175,6 +242,7 @@ export const Details = ({
     priceDecimal,
     priceTier,
     currency,
+    packageSize,
     softLimit,
     usage,
   ]);

@@ -327,6 +327,7 @@ export const PlanManager = forwardRef<
                   entitlement.priceBehavior === "overage" &&
                   (entitlement?.usage ?? 0) - (entitlement?.softLimit ?? 0);
                 const amount = overageAmount || entitlement.allocation || 0;
+                let packageSize = 1;
 
                 // calculate overage amount
                 if (
@@ -338,6 +339,8 @@ export const PlanManager = forwardRef<
                     entitlement.monthlyUsageBasedPrice ??
                     entitlement.yearlyUsageBasedPrice;
                   if (entitlementPrice) {
+                    packageSize = entitlementPrice.packageSize;
+
                     const entitlementProduct = subscription.products.find(
                       (product) => product.id === entitlementPrice.productId,
                     );
@@ -410,7 +413,11 @@ export const PlanManager = forwardRef<
                                   entitlement.currency,
                                 )}
                                 <sub>
-                                  /{getFeatureName(entitlement.feature, 1)}
+                                  /{packageSize > 1 && <>{packageSize} </>}
+                                  {getFeatureName(
+                                    entitlement.feature,
+                                    packageSize,
+                                  )}
                                   {entitlement.feature.featureType ===
                                     "trait" && (
                                     <>
@@ -437,8 +444,12 @@ export const PlanManager = forwardRef<
                                 entitlement.currency,
                               )}
                               <sub>
-                                /{getFeatureName(entitlement.feature, 1)}/
-                                {shortenPeriod(currentPlan.planPeriod)}
+                                /{packageSize > 1 && <>{packageSize} </>}
+                                {getFeatureName(
+                                  entitlement.feature,
+                                  packageSize,
+                                )}
+                                /{shortenPeriod(currentPlan.planPeriod)}
                               </sub>
                             </Text>
                           )
@@ -455,9 +466,18 @@ export const PlanManager = forwardRef<
                               <sub>
                                 /
                                 {currentPlan?.planPeriod &&
-                                entitlement.priceBehavior === "pay_in_advance"
-                                  ? shortenPeriod(currentPlan.planPeriod)
-                                  : getFeatureName(entitlement.feature, 1)}
+                                entitlement.priceBehavior ===
+                                  "pay_in_advance" ? (
+                                  shortenPeriod(currentPlan.planPeriod)
+                                ) : (
+                                  <>
+                                    {packageSize > 1 && <>{packageSize} </>}
+                                    {getFeatureName(
+                                      entitlement.feature,
+                                      packageSize,
+                                    )}
+                                  </>
+                                )}
                               </sub>
                             )}
                           </Text>

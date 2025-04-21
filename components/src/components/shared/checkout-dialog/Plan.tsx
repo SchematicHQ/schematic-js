@@ -256,16 +256,17 @@ export const Plan = ({
                         const limit =
                           entitlement.softLimit ?? entitlement.valueNumeric;
 
-                        const entitlementPriceObject =
-                          getBillingPrice(
-                            period === "year"
-                              ? entitlement.meteredYearlyPrice
-                              : entitlement.meteredMonthlyPrice,
-                          ) || null;
+                        const entitlementPriceObject = getBillingPrice(
+                          period === "year"
+                            ? entitlement.meteredYearlyPrice
+                            : entitlement.meteredMonthlyPrice,
+                        );
 
                         let entitlementPrice = entitlementPriceObject?.price;
                         const entitlementCurrency =
                           entitlementPriceObject?.currency;
+                        const entitlementPackageSize =
+                          entitlementPriceObject?.packageSize ?? 1;
 
                         if (
                           entitlement.priceBehavior === "overage" &&
@@ -339,7 +340,13 @@ export const Plan = ({
                                           entitlementCurrency,
                                         )}{" "}
                                         {t("per")}{" "}
-                                        {getFeatureName(entitlement.feature, 1)}
+                                        {entitlementPackageSize > 1 && (
+                                          <>{entitlementPackageSize} </>
+                                        )}
+                                        {getFeatureName(
+                                          entitlement.feature,
+                                          entitlementPackageSize,
+                                        )}
                                         {entitlement.priceBehavior ===
                                           "pay_in_advance" && (
                                           <>
@@ -416,7 +423,13 @@ export const Plan = ({
                                           entitlementCurrency,
                                         )}
                                         /
-                                        {getFeatureName(entitlement.feature, 1)}
+                                        {entitlementPackageSize > 1 && (
+                                          <>{entitlementPackageSize} </>
+                                        )}
+                                        {getFeatureName(
+                                          entitlement.feature,
+                                          entitlementPackageSize,
+                                        )}
                                         {entitlement.feature.featureType ===
                                           "trait" && (
                                           <>/{shortenPeriod(period)}</>
