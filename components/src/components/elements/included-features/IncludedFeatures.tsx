@@ -194,9 +194,7 @@ export const IncludedFeatures = forwardRef<
                   size="sm"
                   colors={[
                     theme.primary,
-                    isLightBackground
-                      ? "hsla(0, 0%, 0%, 0.0625)"
-                      : "hsla(0, 0%, 100%, 0.25)",
+                    `color-mix(in oklch, ${theme.card.background} 87.5%, white)`,
                   ]}
                 />
               )}

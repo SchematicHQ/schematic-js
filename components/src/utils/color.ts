@@ -92,8 +92,17 @@ export function hslToHex({ h, s, l }: { h: number; s: number; l: number }) {
 }
 
 export function adjustLightness(color: string, amount: number) {
-  const { h, s, l } = hexToHSL(color);
-  return hslToHex({ h, s, l: Math.max(Math.min(l + amount * 100, 100), 0) });
+  if (/^[0-9A-F]{6}/.test(color)) {
+    const { h, s, l } = hexToHSL(color);
+    return hslToHex({ h, s, l: Math.max(Math.min(l + amount * 100, 100), 0) });
+  }
+
+  if (color.startsWith("oklch")) {
+    const [, l, c, h] = color.match(/^oklch\((.+) (.+) (.+)\)/) || [];
+    return `oklch(${l + amount} ${c} ${h})`;
+  }
+
+  return color;
 }
 
 export function lighten(color: string, amount: number) {

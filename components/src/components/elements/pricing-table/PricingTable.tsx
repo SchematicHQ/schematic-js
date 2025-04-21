@@ -162,6 +162,7 @@ export const PricingTable = forwardRef<
   const { plans, addOns, periods } = useAvailablePlans(selectedPeriod);
 
   const isLightBackground = useIsLightBackground();
+  console.debug(isLightBackground);
 
   const [entitlementCounts, setEntitlementCounts] = useState(() =>
     plans.reduce(entitlementCountsReducer, {}),
@@ -506,9 +507,7 @@ export const PricingTable = forwardRef<
                                         size="sm"
                                         colors={[
                                           theme.primary,
-                                          isLightBackground
-                                            ? "hsla(0, 0%, 0%, 0.0625)"
-                                            : "hsla(0, 0%, 100%, 0.25)",
+                                          `color-mix(in oklch, ${theme.card.background} 87.5%, ${isLightBackground ? "black" : "white"})`,
                                         ]}
                                       />
                                     )}
