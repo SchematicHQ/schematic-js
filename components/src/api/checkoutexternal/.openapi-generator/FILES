@@ -46,6 +46,7 @@ models/FlagResponseData.ts
 models/GenericPreviewObject.ts
 models/GetSetupIntentResponse.ts
 models/HydrateComponentResponse.ts
+models/HydrateUpcomingInvoiceResponse.ts
 models/InvoiceResponseData.ts
 models/ListInvoicesParams.ts
 models/ListInvoicesResponse.ts
