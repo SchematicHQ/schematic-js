@@ -283,20 +283,22 @@ export const PaymentMethodDetails = ({
               }}
             />
 
-            <Box>
-              <Text
-                onClick={() => {
-                  setShowPaymentForm(false);
-                  setShowDifferentPaymentMethods(false);
-                }}
-                $font={theme.typography.link.fontFamily}
-                $size={theme.typography.link.fontSize}
-                $weight={theme.typography.link.fontWeight}
-                $color={theme.typography.link.color}
-              >
-                {t("Select existing payment method")}
-              </Text>
-            </Box>
+            {paymentMethod && (
+              <Box>
+                <Text
+                  onClick={() => {
+                    setShowPaymentForm(false);
+                    setShowDifferentPaymentMethods(false);
+                  }}
+                  $font={theme.typography.link.fontFamily}
+                  $size={theme.typography.link.fontSize}
+                  $weight={theme.typography.link.fontWeight}
+                  $color={theme.typography.link.color}
+                >
+                  {t("Select existing payment method")}
+                </Text>
+              </Box>
+            )}
           </Elements>
         ) : (
           <Flex $flexDirection="column" $gap="2rem">
