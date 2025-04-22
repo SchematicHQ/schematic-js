@@ -136,15 +136,29 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     [usageBasedEntitlements],
   );
 
+  const payAsYouGoOrOverageEntitlements = useMemo(
+    () =>
+      usageBasedEntitlements.filter(
+        (entitlement) =>
+          entitlement.priceBehavior === "pay_as_you_go" ||
+          entitlement.priceBehavior === "overage",
+      ),
+    [usageBasedEntitlements],
+  );
+
   const hasActiveAddOns = addOns.some((addOn) => addOn.isSelected);
   const hasActivePayInAdvanceEntitlements = payInAdvanceEntitlements.some(
     ({ quantity }) => quantity > 0,
   );
+  const hasPayAsYouGoOrOverageEntitlements =
+    payAsYouGoOrOverageEntitlements.length > 0;
+
   const requiresPayment =
     (!selectedPlan?.companyCanTrial || !!data.trialPaymentMethodRequired) &&
     (!selectedPlan?.isFree ||
       hasActiveAddOns ||
-      hasActivePayInAdvanceEntitlements);
+      hasActivePayInAdvanceEntitlements ||
+      hasPayAsYouGoOrOverageEntitlements);
 
   const checkoutStages = useMemo(() => {
     const stages: CheckoutStage[] = [
