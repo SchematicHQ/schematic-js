@@ -68,13 +68,7 @@ export const PaymentMethodDetails = ({
     useState(false);
   const [paymentMethod, setPaymentMethod] = useState<
     PaymentMethodResponseData | undefined
-  >(undefined);
-
-  useEffect(() => {
-    setPaymentMethod(
-      data.subscription?.paymentMethod || data.company?.defaultPaymentMethod,
-    );
-  }, [data.company?.defaultPaymentMethod, data.subscription?.paymentMethod]);
+  >(data.subscription?.paymentMethod || data.company?.defaultPaymentMethod);
 
   const monthsToExpiration = useMemo(() => {
     let expiration: number | undefined;
@@ -95,12 +89,6 @@ export const PaymentMethodDetails = ({
     return expiration;
   }, [paymentMethod?.cardExpYear, paymentMethod?.cardExpMonth]);
 
-  useEffect(() => {
-    if (!stripe && setupIntent?.publishableKey) {
-      setStripe(loadStripe(setupIntent.publishableKey));
-    }
-  }, [stripe, setupIntent?.publishableKey]);
-
   const createSetupIntent = useCallback(async () => {
     if (!api || !data.component?.id) {
       return;
@@ -109,23 +97,19 @@ export const PaymentMethodDetails = ({
     try {
       setIsLoading(true);
       // TODO: Remove component id from here and from api
-      const { data: setupIntent } = await api.getSetupIntent({
+      const response = await api.getSetupIntent({
         componentId: data.component.id,
       });
-      setSetupIntent(setupIntent);
-      setShowPaymentForm(true);
+      setSetupIntent(response.data);
     } catch {
       setError(
         t("Error initializing payment method change. Please try again."),
       );
     } finally {
+      setShowPaymentForm(true);
       setIsLoading(false);
     }
   }, [t, api, data.component?.id]);
-
-  const dropDownDifferentPaymentMethods = useCallback(() => {
-    setShowDifferentPaymentMethods((state) => !state);
-  }, []);
 
   const updatePaymentMethod = useCallback(
     async (externalId: string) => {
@@ -222,37 +206,47 @@ export const PaymentMethodDetails = ({
     [api, data, setData, t],
   );
 
+  useEffect(() => {
+    if (!stripe && setupIntent?.publishableKey) {
+      setStripe(loadStripe(setupIntent.publishableKey));
+    }
+  }, [stripe, setupIntent?.publishableKey]);
+
+  useEffect(() => {
+    if (!setupIntent && (!paymentMethod || showPaymentForm)) {
+      createSetupIntent();
+    }
+  }, [setupIntent, paymentMethod, showPaymentForm, createSetupIntent]);
+
   return (
     <Flex $position="relative">
-      {isLoading && (
-        <Flex
-          $position="absolute"
-          $width="100%"
-          $height="100%"
-          $justifyContent="center"
-          $alignItems="center"
-          $flexGrow={1}
-          $zIndex={1}
-          $backgroundColor="black"
-          $opacity={0.5}
-        >
-          <Loader $color={theme.primary} $size="2xl" />
-        </Flex>
-      )}
+      <Flex
+        $position="absolute"
+        $zIndex={isLoading ? 1 : 0}
+        $justifyContent="center"
+        $alignItems="center"
+        $width="100%"
+        $height="100%"
+      >
+        <Loader $color={theme.primary} $size="2xl" $isLoading={isLoading} />
+      </Flex>
 
       <Flex
+        $position="relative"
+        $zIndex={isLoading ? 0 : 1}
         $flexDirection="column"
-        $flexGrow="1"
+        $flexGrow={1}
         $gap="1rem"
+        $overflow="auto"
         $padding="2rem 2.5rem 2rem 2.5rem"
+        $visibility={isLoading ? "hidden" : "visible"}
         $backgroundColor={
           isLightBackground
             ? "hsla(0, 0%, 0%, 0.025)"
             : "hsla(0, 0%, 100%, 0.025)"
         }
-        $overflow="auto"
       >
-        {showPaymentForm ? (
+        {setupIntent && showPaymentForm ? (
           <Elements
             stripe={stripe}
             options={{
@@ -288,6 +282,21 @@ export const PaymentMethodDetails = ({
                 setShowDifferentPaymentMethods(false);
               }}
             />
+
+            <Box>
+              <Text
+                onClick={() => {
+                  setShowPaymentForm(false);
+                  setShowDifferentPaymentMethods(false);
+                }}
+                $font={theme.typography.link.fontFamily}
+                $size={theme.typography.link.fontSize}
+                $weight={theme.typography.link.fontWeight}
+                $color={theme.typography.link.color}
+              >
+                {t("Select existing payment method")}
+              </Text>
+            </Box>
           </Elements>
         ) : (
           <Flex $flexDirection="column" $gap="2rem">
@@ -301,7 +310,9 @@ export const PaymentMethodDetails = ({
             {(data.company?.paymentMethods || []).length > 0 && (
               <Box>
                 <Text
-                  onClick={dropDownDifferentPaymentMethods}
+                  onClick={() => {
+                    setShowDifferentPaymentMethods((prev) => !prev);
+                  }}
                   $font={theme.typography.link.fontFamily}
                   $size={theme.typography.link.fontSize}
                   $weight={theme.typography.link.fontWeight}
@@ -323,7 +334,7 @@ export const PaymentMethodDetails = ({
             )}
 
             {showDifferentPaymentMethods && (
-              <Flex $flexDirection="column" $overflowY="hidden" $height="10rem">
+              <Flex $flexDirection="column" $overflowY="hidden">
                 <Flex $flexDirection="column" $overflowY="scroll">
                   {(
                     data.company?.paymentMethods.filter(
@@ -338,13 +349,15 @@ export const PaymentMethodDetails = ({
                     />
                   ))}
                 </Flex>
-              </Flex>
-            )}
 
-            {(!paymentMethod || showDifferentPaymentMethods) && (
-              <Button onClick={createSetupIntent} $size="lg">
-                {t("Add new payment method")}
-              </Button>
+                {(!setupIntent ||
+                  !paymentMethod ||
+                  showDifferentPaymentMethods) && (
+                  <Button onClick={createSetupIntent} $size="lg">
+                    {t("Add new payment method")}
+                  </Button>
+                )}
+              </Flex>
             )}
           </Flex>
         )}

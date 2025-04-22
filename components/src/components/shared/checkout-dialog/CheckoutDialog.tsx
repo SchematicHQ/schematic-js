@@ -82,7 +82,10 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
   const [charges, setCharges] =
     useState<PreviewSubscriptionFinanceResponseData>();
-  const [paymentMethodId, setPaymentMethodId] = useState<string | undefined>();
+  const [paymentMethodId, setPaymentMethodId] = useState<string | undefined>(
+    (data.subscription?.paymentMethod || data.company?.defaultPaymentMethod)
+      ?.externalId,
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | undefined>();
   const [promoCode, setPromoCode] = useState<string>();
