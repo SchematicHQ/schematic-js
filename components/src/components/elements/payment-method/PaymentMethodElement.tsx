@@ -87,7 +87,7 @@ const EmptyPaymentElement = () => {
       <Flex $flexDirection="row" $alignItems="center">
         <Flex $alignItems="center">
           <Box $lineHeight="1" $marginRight="4px">
-            {t("No payment method selected")}
+            {t("No payment method added yet")}
           </Box>
         </Flex>
       </Flex>
