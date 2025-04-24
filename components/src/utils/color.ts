@@ -1,3 +1,5 @@
+import Color from "colorjs.io";
+
 export function hexToHSL(color: string) {
   let r = 0;
   let g = 0;
@@ -91,26 +93,22 @@ export function hslToHex({ h, s, l }: { h: number; s: number; l: number }) {
   return "#" + rs + gs + bs;
 }
 
-export function adjustLightness(color: string, amount: number) {
-  if (/^[0-9A-F]{6}/.test(color)) {
-    const { h, s, l } = hexToHSL(color);
-    return hslToHex({ h, s, l: Math.max(Math.min(l + amount * 100, 100), 0) });
-  }
-
-  if (color.startsWith("oklch")) {
-    const [, l, c, h] = color.match(/^oklch\((.+) (.+) (.+)\)/) || [];
-    return `oklch(${l + amount} ${c} ${h})`;
-  }
-
-  return color;
+export function isLightColor(color: string) {
+  return new Color(color).to("oklch").get("l") > 0.6;
 }
 
-export function lighten(color: string, amount: number) {
-  return adjustLightness(color, amount);
+export function lighten(str: string, amount: number) {
+  const color = new Color(str).to("oklch");
+  const l = color.get("l");
+  color.set("l", l + 0.1 + amount);
+  return color.toString();
 }
 
-export function darken(color: string, amount: number) {
-  return adjustLightness(color, -amount);
+export function darken(str: string, amount: number) {
+  const color = new Color(str).to("oklch");
+  const l = color.get("l");
+  color.set("l", l + 0.1 - amount);
+  return color.toString();
 }
 
 export function hsla(color: string, amount: number) {

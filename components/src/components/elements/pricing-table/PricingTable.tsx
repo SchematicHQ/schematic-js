@@ -16,13 +16,11 @@ import {
 } from "../../../hooks";
 import type { ElementProps, RecursivePartial } from "../../../types";
 import {
-  darken,
   formatCurrency,
   formatNumber,
   getBillingPrice,
   getFeatureName,
-  hexToHSL,
-  lighten,
+  isLightColor,
   shortenPeriod,
 } from "../../../utils";
 import { cardBoxShadow, FussyChild } from "../../layout";
@@ -162,7 +160,6 @@ export const PricingTable = forwardRef<
   const { plans, addOns, periods } = useAvailablePlans(selectedPeriod);
 
   const isLightBackground = useIsLightBackground();
-  console.debug(isLightBackground);
 
   const [entitlementCounts, setEntitlementCounts] = useState(() =>
     plans.reduce(entitlementCountsReducer, {}),
@@ -396,9 +393,7 @@ export const PricingTable = forwardRef<
                           $size={0.75 * theme.typography.text.fontSize}
                           $weight={theme.typography.text.fontWeight}
                           $color={
-                            hexToHSL(theme.primary).l > 50
-                              ? "#000000"
-                              : "#FFFFFF"
+                            isLightColor(theme.primary) ? "#000000" : "#FFFFFF"
                           }
                         >
                           {trialEndDays
@@ -629,19 +624,7 @@ export const PricingTable = forwardRef<
                                             $weight={
                                               theme.typography.text.fontWeight
                                             }
-                                            $color={
-                                              hexToHSL(
-                                                theme.typography.text.color,
-                                              ).l > 50
-                                                ? darken(
-                                                    theme.typography.text.color,
-                                                    0.46,
-                                                  )
-                                                : lighten(
-                                                    theme.typography.text.color,
-                                                    0.46,
-                                                  )
-                                            }
+                                            $color={`color-mix(in oklch, ${theme.typography.text.color}, ${theme.card.background})`}
                                             $leading={1.35}
                                           >
                                             {formatCurrency(
@@ -936,7 +919,7 @@ export const PricingTable = forwardRef<
                             $size={0.75 * theme.typography.text.fontSize}
                             $weight={theme.typography.text.fontWeight}
                             $color={
-                              hexToHSL(theme.primary).l > 50
+                              isLightColor(theme.primary)
                                 ? "#000000"
                                 : "#FFFFFF"
                             }

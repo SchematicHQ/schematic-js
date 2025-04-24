@@ -24,6 +24,7 @@ export const PaymentForm = ({ onConfirm }: PaymentFormProps) => {
   const [message, setMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
+  const [isComplete, setIsComplete] = useState(false);
 
   const handleSubmit: React.FormEventHandler<HTMLFormElement> = async (
     event,
@@ -76,12 +77,19 @@ export const PaymentForm = ({ onConfirm }: PaymentFormProps) => {
       }}
     >
       <Box $marginBottom="1.5rem">
-        <PaymentElement id="payment-element" />
+        <PaymentElement
+          id="payment-element"
+          onChange={(event) => {
+            setIsComplete(event.complete);
+          }}
+        />
       </Box>
 
       <Button
         id="submit"
-        disabled={isLoading || !stripe || !elements || isConfirmed}
+        disabled={
+          isLoading || !stripe || !elements || isConfirmed || !isComplete
+        }
         style={{ flexShrink: 0 }}
         $color="primary"
         $isLoading={isLoading}
