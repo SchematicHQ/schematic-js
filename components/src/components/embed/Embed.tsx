@@ -33,6 +33,7 @@ export const SchematicEmbed = ({
       id={id}
       accessToken={accessToken}
       apiConfig={apiConfig}
+      mode="view"
       debug={debug}
     >
       <ComponentTree />

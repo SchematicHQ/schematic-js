@@ -135,39 +135,35 @@ const resolveDesignProps = (
   };
 };
 
-export type PricingTableProps = DesignProps;
+export type PricingTableProps = RecursivePartial<DesignProps> & {
+  callToAction?: string;
+  onCallToAction?: (plan: CompanyPlanDetailResponseData) => unknown;
+};
 
 export const PricingTable = forwardRef<
   HTMLDivElement | null,
-  ElementProps &
-    RecursivePartial<DesignProps> &
-    React.HTMLAttributes<HTMLDivElement>
->(({ children, className, ...rest }, ref) => {
+  ElementProps & PricingTableProps & React.HTMLAttributes<HTMLDivElement>
+>(({ className, callToAction, onCallToAction, ...rest }, ref) => {
   const props = resolveDesignProps(rest);
 
   const { t } = useTranslation();
 
   const theme = useTheme();
 
-  const { data } = useEmbed();
+  const { data, mode } = useEmbed();
 
-  const trialEndDays = useTrialEnd();
-
-  const [selectedPeriod, setSelectedPeriod] = useState(
-    () => data.company?.plan?.planPeriod || "month",
-  );
+  const planPeriod = data.company?.plan?.planPeriod;
+  const [selectedPeriod, setSelectedPeriod] = useState(planPeriod || "month");
 
   const { plans, addOns, periods } = useAvailablePlans(selectedPeriod);
-
-  const isLightBackground = useIsLightBackground();
 
   const [entitlementCounts, setEntitlementCounts] = useState(() =>
     plans.reduce(entitlementCountsReducer, {}),
   );
 
-  const canCheckout = data.capabilities?.checkout ?? false;
+  const isLightBackground = useIsLightBackground();
 
-  const cardPadding = theme.card.padding / TEXT_BASE_SIZE;
+  const trialEndDays = useTrialEnd();
 
   const handleToggleShowAll = (id: string) => {
     setEntitlementCounts((prev) => {
@@ -193,6 +189,10 @@ export const PricingTable = forwardRef<
   useEffect(() => {
     setEntitlementCounts(plans.reduce(entitlementCountsReducer, {}));
   }, [plans]);
+
+  const cardPadding = theme.card.padding / TEXT_BASE_SIZE;
+  const showCallToAction =
+    mode !== "standalone" || typeof callToAction === "string";
 
   return (
     <FussyChild
@@ -718,15 +718,23 @@ export const PricingTable = forwardRef<
                         </Text>
                       </Flex>
                     ) : (
-                      canCheckout &&
+                      showCallToAction &&
                       (props.upgrade.isVisible ||
                         props.downgrade.isVisible) && (
                         <Button
                           type="button"
                           disabled={!plan.valid && !plan.custom}
+                          onClick={() => {
+                            onCallToAction?.(plan);
+                          }}
                           $size={props.upgrade.buttonSize}
                           $color={props.upgrade.buttonStyle}
                           $variant="filled"
+                          {...(callToAction && {
+                            as: "a",
+                            href: callToAction,
+                            target: "_blank",
+                          })}
                         >
                           {plan.custom ? (
                             <>
@@ -1038,10 +1046,13 @@ export const PricingTable = forwardRef<
                         </Flex>
                       )}
 
-                      {canCheckout && props.upgrade.isVisible && (
+                      {showCallToAction && props.upgrade.isVisible && (
                         <Button
                           type="button"
                           disabled={!addOn.valid}
+                          onClick={() => {
+                            onCallToAction?.(addOn);
+                          }}
                           $size={props.upgrade.buttonSize}
                           $color={
                             isActiveAddOn ? "danger" : props.upgrade.buttonStyle
@@ -1053,6 +1064,12 @@ export const PricingTable = forwardRef<
                                 ? "outline"
                                 : "filled"
                           }
+                          {...(callToAction && {
+                            as: "a",
+                            href: callToAction,
+                            rel: "noreferrer",
+                            target: "_blank",
+                          })}
                         >
                           {isActiveAddOn
                             ? t("Remove add-on")
