@@ -67,6 +67,18 @@ export interface BillingPriceView {
    * @type {string}
    * @memberof BillingPriceView
    */
+  meterEventName?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof BillingPriceView
+   */
+  meterEventPayloadKey?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof BillingPriceView
+   */
   meterId?: string | null;
   /**
    *
@@ -187,6 +199,12 @@ export function BillingPriceViewFromJSONTyped(
     id: json["id"],
     interval: json["interval"],
     isActive: json["is_active"],
+    meterEventName:
+      json["meter_event_name"] == null ? undefined : json["meter_event_name"],
+    meterEventPayloadKey:
+      json["meter_event_payload_key"] == null
+        ? undefined
+        : json["meter_event_payload_key"],
     meterId: json["meter_id"] == null ? undefined : json["meter_id"],
     packageSize: json["package_size"],
     price: json["price"],
@@ -216,6 +234,8 @@ export function BillingPriceViewToJSON(value?: BillingPriceView | null): any {
     id: value["id"],
     interval: value["interval"],
     is_active: value["isActive"],
+    meter_event_name: value["meterEventName"],
+    meter_event_payload_key: value["meterEventPayloadKey"],
     meter_id: value["meterId"],
     package_size: value["packageSize"],
     price: value["price"],
