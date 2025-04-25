@@ -1,13 +1,13 @@
-import Color from "colorjs.io";
 import { useMemo } from "react";
 import { useTheme } from "styled-components";
+
+import { hexToHSL } from "../utils";
 
 export function useIsLightBackground() {
   const theme = useTheme();
 
   const isLightBackground = useMemo(() => {
-    const { luminance } = new Color(theme.card.background);
-    return luminance > 0.5;
+    return hexToHSL(theme.card.background).l > 50;
   }, [theme.card.background]);
 
   return isLightBackground;

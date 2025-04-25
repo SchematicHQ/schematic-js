@@ -20,7 +20,7 @@ import {
   formatNumber,
   getBillingPrice,
   getFeatureName,
-  isLightColor,
+  hexToHSL,
   shortenPeriod,
 } from "../../../utils";
 import { cardBoxShadow, FussyChild } from "../../layout";
@@ -150,7 +150,7 @@ export const PricingTable = forwardRef<
 
   const theme = useTheme();
 
-  const { data, mode } = useEmbed();
+  const { data, mode, setLayout, setSelected } = useEmbed();
 
   const planPeriod = data.company?.plan?.planPeriod;
   const [selectedPeriod, setSelectedPeriod] = useState(planPeriod || "month");
@@ -190,9 +190,14 @@ export const PricingTable = forwardRef<
     setEntitlementCounts(plans.reduce(entitlementCountsReducer, {}));
   }, [plans]);
 
+  const canCheckout = data.capabilities?.checkout ?? true;
+
   const cardPadding = theme.card.padding / TEXT_BASE_SIZE;
+
   const showCallToAction =
     mode !== "standalone" || typeof callToAction === "string";
+
+  const currentPlanIndex = plans.findIndex((plan) => plan.current);
 
   return (
     <FussyChild
@@ -393,7 +398,9 @@ export const PricingTable = forwardRef<
                           $size={0.75 * theme.typography.text.fontSize}
                           $weight={theme.typography.text.fontWeight}
                           $color={
-                            isLightColor(theme.primary) ? "#000000" : "#FFFFFF"
+                            hexToHSL(theme.primary).l > 50
+                              ? "#000000"
+                              : "#FFFFFF"
                           }
                         >
                           {trialEndDays
@@ -723,18 +730,43 @@ export const PricingTable = forwardRef<
                         props.downgrade.isVisible) && (
                         <Button
                           type="button"
-                          disabled={!plan.valid && !plan.custom}
+                          disabled={
+                            (!plan.valid || !canCheckout) && !plan.custom
+                          }
                           onClick={() => {
                             onCallToAction?.(plan);
+
+                            if (mode !== "standalone" && !plan.custom) {
+                              setSelected({
+                                period: selectedPeriod,
+                                planId: isActivePlan ? null : plan.id,
+                                usage: false,
+                              });
+                              setLayout("checkout");
+                            }
                           }}
-                          $size={props.upgrade.buttonSize}
-                          $color={props.upgrade.buttonStyle}
-                          $variant="filled"
+                          {...(planIndex > currentPlanIndex
+                            ? {
+                                $size: props.upgrade.buttonSize,
+                                $color: props.upgrade.buttonStyle,
+                                $variant: "filled",
+                              }
+                            : {
+                                $size: props.downgrade.buttonSize,
+                                $color: props.downgrade.buttonStyle,
+                                $variant: "outline",
+                              })}
                           {...(callToAction && {
                             as: "a",
                             href: callToAction,
                             target: "_blank",
                           })}
+                          {...(plan.custom &&
+                            plan.customPlanConfig?.ctaWebSite && {
+                              as: "a",
+                              href: plan.customPlanConfig.ctaWebSite,
+                              target: "_blank",
+                            })}
                         >
                           {plan.custom ? (
                             <>
@@ -927,7 +959,7 @@ export const PricingTable = forwardRef<
                             $size={0.75 * theme.typography.text.fontSize}
                             $weight={theme.typography.text.fontWeight}
                             $color={
-                              isLightColor(theme.primary)
+                              hexToHSL(theme.primary).l > 50
                                 ? "#000000"
                                 : "#FFFFFF"
                             }
@@ -1049,9 +1081,18 @@ export const PricingTable = forwardRef<
                       {showCallToAction && props.upgrade.isVisible && (
                         <Button
                           type="button"
-                          disabled={!addOn.valid}
+                          disabled={!addOn.valid || !canCheckout}
                           onClick={() => {
                             onCallToAction?.(addOn);
+
+                            if (mode !== "standalone" && !addOn.custom) {
+                              setSelected({
+                                period: selectedPeriod,
+                                addOnId: isActiveAddOn ? null : addOn.id,
+                                usage: false,
+                              });
+                              setLayout("checkout");
+                            }
                           }}
                           $size={props.upgrade.buttonSize}
                           $color={

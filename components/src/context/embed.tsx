@@ -186,6 +186,7 @@ function parseEditorState(data: SerializedEditorState) {
   return arr;
 }
 
+// TODO: find a better way to map types
 function mapPublicDataToHydratedData(
   data: PublicPlansResponseData,
 ): Partial<ComponentHydrateResponseData> {
@@ -206,7 +207,7 @@ function mapPublicDataToHydratedData(
     })),
     capabilities: {
       badgeVisibility: data.capabilities?.badgeVisibility ?? false,
-      checkout: false,
+      checkout: true,
     },
   };
 }
@@ -236,13 +237,11 @@ export interface EmbedContextProps {
   selected: EmbedSelected;
   error?: Error;
   isPending: boolean;
-  // functions
   setIsPending: (bool: boolean) => void;
   setData: (data: Partial<ComponentHydrateResponseData>) => void;
   setLayout: (layout: EmbedLayout) => void;
   setSelected: (selected: EmbedSelected) => void;
   updateSettings: (settings: RecursivePartial<EmbedSettings>) => void;
-  // api methods
   hydrate: () => Promise<void>;
   getSetupIntent: () => Promise<GetSetupIntentResponse | void>;
   updatePaymentMethod: (
@@ -318,13 +317,11 @@ export const EmbedProvider = ({
     selected: EmbedSelected;
     isPending: boolean;
     error?: Error;
-    // functions
     setIsPending: (bool: boolean) => void;
     setData: (data: Partial<ComponentHydrateResponseData>) => void;
     setLayout: (layout: EmbedLayout) => void;
     setSelected: (selected: EmbedSelected) => void;
     updateSettings: (settings: RecursivePartial<EmbedSettings>) => void;
-    // api methods
     hydrate: () => Promise<void>;
     getSetupIntent: () => Promise<GetSetupIntentResponse | void>;
     updatePaymentMethod: (
@@ -680,13 +677,11 @@ export const EmbedProvider = ({
         selected: state.selected,
         error: state.error,
         isPending: state.isPending,
-        // functions
         setIsPending,
         setData,
         setLayout,
         setSelected,
         updateSettings,
-        // api methods
         hydrate,
         getSetupIntent,
         updatePaymentMethod,

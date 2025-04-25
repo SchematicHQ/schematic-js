@@ -1,3 +1,8 @@
+/**
+ * Port of `pluralize` to Typescript with proper typings
+ * {@link https://github.com/plurals/pluralize}
+ */
+
 type Rule = [RegExp | string, string];
 type NormalizedRule = [RegExp, string];
 
