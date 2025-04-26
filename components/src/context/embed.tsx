@@ -242,6 +242,7 @@ export interface EmbedContextProps {
   setLayout: (layout: EmbedLayout) => void;
   setSelected: (selected: EmbedSelected) => void;
   updateSettings: (settings: RecursivePartial<EmbedSettings>) => void;
+  getPublicData: () => Promise<void>;
   hydrate: () => Promise<void>;
   getSetupIntent: () => Promise<GetSetupIntentResponse | void>;
   updatePaymentMethod: (
@@ -274,6 +275,7 @@ export const EmbedContext = createContext<EmbedContextProps>({
   setLayout: () => {},
   setSelected: () => {},
   updateSettings: () => {},
+  getPublicData: async () => {},
   hydrate: async () => {},
   getSetupIntent: async () => {},
   updatePaymentMethod: async () => {},
@@ -322,6 +324,7 @@ export const EmbedProvider = ({
     setLayout: (layout: EmbedLayout) => void;
     setSelected: (selected: EmbedSelected) => void;
     updateSettings: (settings: RecursivePartial<EmbedSettings>) => void;
+    getPublicData: () => Promise<void>;
     hydrate: () => Promise<void>;
     getSetupIntent: () => Promise<GetSetupIntentResponse | void>;
     updatePaymentMethod: (
@@ -357,6 +360,7 @@ export const EmbedProvider = ({
       setLayout: () => {},
       setSelected: () => {},
       updateSettings: () => {},
+      getPublicData: async () => {},
       hydrate: async () => {},
       getSetupIntent: async () => {},
       updatePaymentMethod: async () => {},
@@ -682,6 +686,7 @@ export const EmbedProvider = ({
         setLayout,
         setSelected,
         updateSettings,
+        getPublicData,
         hydrate,
         getSetupIntent,
         updatePaymentMethod,
