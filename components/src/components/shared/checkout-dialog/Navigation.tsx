@@ -2,7 +2,7 @@ import { useTheme } from "styled-components";
 
 import { TEXT_BASE_SIZE } from "../../../const";
 import { useIsLightBackground } from "../../../hooks";
-import { Box, Flex, Icon, IconRound } from "../../ui";
+import { Box, Flex, Icon, IconRound, Text } from "../../ui";
 
 interface NavigationProps {
   name: string;
@@ -71,12 +71,10 @@ export const Navigation = ({
           )}
         </Box>
 
-        <Box
+        <Text
+          as={Box}
           tabIndex={0}
-          $fontSize={`${16 / TEXT_BASE_SIZE}rem`}
-          $fontFamily={theme.typography.text.fontFamily}
-          $fontWeight={index === activeIndex ? 600 : 400}
-          $color={theme.typography.text.color}
+          $weight={index === activeIndex ? 600 : 400}
           {...(!showFullContent && {
             $overflow: "hidden",
             $whiteSpace: "nowrap",
@@ -94,7 +92,7 @@ export const Navigation = ({
           }}
         >
           {index + 1}. {name}
-        </Box>
+        </Text>
       </Flex>
 
       {!isLast && (
