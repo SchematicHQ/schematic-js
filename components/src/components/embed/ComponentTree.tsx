@@ -3,6 +3,7 @@ import { useTheme } from "styled-components";
 
 import { TEXT_BASE_SIZE } from "../../const";
 import { useEmbed } from "../../hooks";
+import type { SerializedNodeWithChildren } from "../../types";
 import { Box, Flex, Loader } from "../ui";
 import { createRenderer } from "./renderer";
 
@@ -55,10 +56,14 @@ const Error = ({ message }: { message: string }) => {
   );
 };
 
-export const ComponentTree = () => {
-  const { error, nodes, isPending } = useEmbed();
+interface ComponentTreeProps {
+  nodes: SerializedNodeWithChildren[];
+}
 
+export const ComponentTree = ({ nodes }: ComponentTreeProps) => {
   const [children, setChildren] = useState<React.ReactNode>(<Loading />);
+
+  const { error, isPending } = useEmbed();
 
   useEffect(() => {
     const renderer = createRenderer();
