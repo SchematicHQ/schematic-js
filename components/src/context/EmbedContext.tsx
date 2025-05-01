@@ -2,15 +2,11 @@ import "../localization";
 
 import { createContext } from "react";
 
-import { type ComponentHydrateResponseData } from "../api/checkoutexternal";
-import { type RecursivePartial } from "../types";
+import { type EmbedState, initialState } from "./embedState";
 
-export interface EmbedContextProps {
-  data?: RecursivePartial<ComponentHydrateResponseData>;
-  error?: Error;
-  getPublicData: () => Promise<void>;
-  hydrateEmbed: (id: string, accessToken: string) => Promise<void>;
-  isPending: boolean;
+export interface EmbedContextProps extends EmbedState {
+  getPublicPlans: () => Promise<void>;
+  hydrate: (id: string, accessToken: string) => Promise<void>;
 }
 
 const stub = () => {
@@ -18,9 +14,9 @@ const stub = () => {
 };
 
 export const initialContext = {
-  getPublicData: stub,
-  hydrateEmbed: stub,
-  isPending: false,
+  ...initialState,
+  getPublicPlans: stub,
+  hydrate: stub,
 };
 
 export const EmbedContext = createContext<EmbedContextProps>(initialContext);

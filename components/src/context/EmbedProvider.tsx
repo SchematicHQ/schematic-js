@@ -1,12 +1,11 @@
 import "../localization";
 
-import { merge } from "lodash";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { debounce, merge } from "lodash";
+import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 
 import {
   CheckoutexternalApi,
-  type ComponentHydrateResponseData,
   Configuration as CheckoutConfiguration,
   type ConfigurationParameters,
 } from "../api/checkoutexternal";
@@ -15,7 +14,8 @@ import {
   Configuration as PublicConfiguration,
 } from "../api/componentspublic";
 import { EmbedContext } from "./EmbedContext";
-import { mapPublicDataToHydratedData } from "./utils";
+import { initialState } from "./embedState";
+import { reducer } from "./reducer";
 
 export interface EmbedProviderProps {
   children: React.ReactNode;
@@ -33,29 +33,12 @@ export const EmbedProvider = ({
   const styleRef = useRef<HTMLElement>(null);
   const sessionIdRef = useRef(uuidv4());
 
-  const [state, setState] = useState<{
-    checkoutExternalApi: CheckoutexternalApi | null;
-    componentsPublicApi: ComponentspublicApi | null;
-    error?: Error;
-    data: Partial<ComponentHydrateResponseData>;
-    setData: (data: Partial<ComponentHydrateResponseData>) => void;
-    isPending: boolean;
-    setIsPending: (bool: boolean) => void;
-    getPublicData: () => Promise<void>;
-    hydrateComponent: (id: string, accessToken: string) => Promise<void>;
-  }>(() => {
-    return {
-      checkoutExternalApi: null,
-      componentsPublicApi: null,
-      error: undefined,
-      data: {},
-      setData: () => {},
-      isPending: false,
-      setIsPending: () => {},
-      getPublicData: async () => {},
-      hydrateComponent: async () => {},
-    };
-  });
+  const [state, dispatch] = useReducer(reducer, initialState);
+
+  const [api, setApi] = useState<{
+    checkoutExternalApi?: CheckoutexternalApi;
+    componentsPublicApi?: ComponentspublicApi;
+  }>({});
 
   const debug = useCallback(
     (message: string, ...args: unknown[]) => {
@@ -66,72 +49,163 @@ export const EmbedProvider = ({
     [options.debug],
   );
 
-  const getPublicData = useCallback(async () => {
-    setState((prev) => ({ ...prev, isPending: true, error: undefined }));
+  const getPublicPlans = useCallback(async () => {
+    const fn = debounce(
+      async () => {
+        dispatch({ type: "DATA_FETCH_STARTED" });
 
-    try {
-      if (!state.componentsPublicApi) {
+        try {
+          if (!api.componentsPublicApi) {
+            return;
+          }
+
+          const { data } = await api.componentsPublicApi.getPublicPlans();
+
+          dispatch({
+            type: "DATA_FETCH_PUBLIC",
+            data,
+          });
+        } catch (error) {
+          dispatch({
+            type: "ERROR",
+            error:
+              error instanceof Error
+                ? error
+                : new Error("An unknown error occurred."),
+          });
+        }
+      },
+      500,
+      { leading: true, trailing: false },
+    );
+
+    return fn();
+  }, [api.componentsPublicApi]);
+
+  const hydrate = useCallback(
+    async (id: string, accessToken: string) => {
+      const fn = debounce(
+        async () => {
+          dispatch({ type: "DATA_FETCH_STARTED" });
+
+          try {
+            if (!api.checkoutExternalApi) {
+              return;
+            }
+
+            const response = await api.checkoutExternalApi.hydrateComponent(
+              {
+                componentId: id,
+              },
+              {
+                headers: {
+                  "X-Schematic-Api-Key": accessToken,
+                },
+              },
+            );
+            const { data } = response;
+
+            dispatch({
+              type: "DATA_FETCH_EMBED",
+              data,
+            });
+          } catch (error) {
+            dispatch({
+              type: "ERROR",
+              error:
+                error instanceof Error
+                  ? error
+                  : new Error("An unknown error occurred."),
+            });
+          }
+        },
+        500,
+        { leading: true, trailing: false },
+      );
+
+      fn();
+    },
+    [api.checkoutExternalApi],
+  );
+
+  // TODO: api methods
+  const getSetupIntent = useCallback(async () => {
+    if (!id || !api.checkoutExternalApi) {
+      return;
+    }
+
+    return state.checkoutExternalApi.getSetupIntent({
+      componentId: id,
+    });
+  }, [id, state.checkoutExternalApi]);
+
+  const updatePaymentMethod = useCallback(
+    async (paymentMethodId: string) => {
+      if (!state.checkoutExternalApi) {
         return;
       }
 
-      const { data } = await state.componentsPublicApi.getPublicPlans();
-
-      setState((prev) => ({
-        ...prev,
-        data: mapPublicDataToHydratedData(data),
-        isPending: false,
-      }));
-    } catch (error) {
-      setState((prev) => ({
-        ...prev,
-        isPending: false,
-        error:
-          error instanceof Error
-            ? error
-            : new Error("An unknown error occurred."),
-      }));
-    }
-  }, [state.componentsPublicApi]);
-
-  const hydrateEmbed = useCallback(
-    async (id: string, accessToken: string) => {
-      setState((prev) => ({ ...prev, isPending: true, error: undefined }));
-
-      try {
-        if (!state.checkoutExternalApi) {
-          return;
-        }
-
-        const response = await state.checkoutExternalApi.hydrateComponent(
-          {
-            componentId: id,
-          },
-          {
-            headers: {
-              "X-Schematic-Api-Key": accessToken,
-            },
-          },
-        );
-        const { data } = response;
-
-        setState((prev) => ({
-          ...prev,
-          data,
-          isPending: false,
-        }));
-      } catch (error) {
-        setState((prev) => ({
-          ...prev,
-          isPending: false,
-          error:
-            error instanceof Error
-              ? error
-              : new Error("An unknown error occurred."),
-        }));
-      }
+      return state.checkoutExternalApi.updatePaymentMethod({
+        updatePaymentMethodRequestBody: {
+          paymentMethodId,
+        },
+      });
     },
     [state.checkoutExternalApi],
   );
+
+  const deletePaymentMethod = useCallback(
+    async (checkoutId: string) => {
+      if (!state.checkoutExternalApi) {
+        return;
+      }
+
+      return state.checkoutExternalApi.deletePaymentMethod({ checkoutId });
+    },
+    [state.checkoutExternalApi],
+  );
+
+  const checkout = useCallback(
+    async (changeSubscriptionRequestBody: ChangeSubscriptionRequestBody) => {
+      if (!state.checkoutExternalApi) {
+        return;
+      }
+
+      return state.checkoutExternalApi.checkout({
+        changeSubscriptionRequestBody,
+      });
+    },
+    [state.checkoutExternalApi],
+  );
+
+  const previewCheckout = useCallback(
+    async (changeSubscriptionRequestBody: ChangeSubscriptionRequestBody) => {
+      if (!state.checkoutExternalApi) {
+        return;
+      }
+
+      return state.checkoutExternalApi.previewCheckout({
+        changeSubscriptionRequestBody,
+      });
+    },
+    [state.checkoutExternalApi],
+  );
+
+  const unsubscribe = useCallback(async () => {
+    if (!state.checkoutExternalApi) {
+      return;
+    }
+
+    return state.checkoutExternalApi.checkoutUnsubscribe();
+  }, [state.checkoutExternalApi]);
+
+  const listInvoices = useCallback(async () => {
+    if (!state.checkoutExternalApi) {
+      return;
+    }
+
+    return state.checkoutExternalApi.listInvoices();
+  }, [state.checkoutExternalApi]);
 
   const initFontStylesheet = () => {
     const element = document.getElementById("schematic-fonts");
@@ -174,7 +248,7 @@ export const EmbedProvider = ({
         "X-Schematic-Session-ID": sessionIdRef.current,
       });
 
-      setState((prev) => ({
+      setApi((prev) => ({
         ...prev,
         checkoutExternalApi: new CheckoutexternalApi(
           new CheckoutConfiguration(configParams),
@@ -191,8 +265,8 @@ export const EmbedProvider = ({
       value={{
         data: state.data,
         error: state.error,
-        getPublicData,
-        hydrateEmbed,
+        getPublicPlans,
+        hydrate,
         isPending: state.isPending,
       }}
     >

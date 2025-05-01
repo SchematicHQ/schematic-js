@@ -224,52 +224,25 @@ export interface EmbedProps {
 }
 
 export const SchematicEmbed = ({ id, accessToken }: EmbedProps) => {
-  const [state, setState] = useState<{
-    nodes: SerializedNodeWithChildren[];
-    settings: EmbedSettings;
-  }>({
-    nodes: [],
-    settings: { ...defaultSettings },
-  });
   const [error, setError] = useState<Error>();
+  const [nodes, setNodes] = useState<SerializedNodeWithChildren[]>([]);
+  const [settings, setSettings] = useState<EmbedSettings>({
+    ...defaultSettings,
+  });
 
-  const { data, hydrateComponent } = useEmbed();
+  const { data, hydrate } = useEmbed();
 
+  // TODO: api methods
   const hydrate = useCallback(async () => {
     if (!id || !accessToken) {
       return;
     }
 
-    await hydrateComponent(id, accessToken);
-  }, [id, accessToken, hydrateComponent]);
-
-  useEffect(() => {
-    try {
-      if (data.component?.ast) {
-        const nodes: SerializedNodeWithChildren[] = [];
-        const settings: EmbedSettings = { ...defaultSettings };
-        const compressed = data.component.ast;
-        const json = inflate(Uint8Array.from(Object.values(compressed)), {
-          to: "string",
-        }) as string | undefined; // `inflate` actually returns `string | undefined`
-        const ast = getEditorState(json);
-        if (ast) {
-          merge(settings, ast.ROOT.props.settings);
-          nodes.push(...parseEditorState(ast));
-          setState(() => ({ nodes, settings }));
-        }
-      }
-    } catch (error) {
-      setError(
-        error instanceof Error
-          ? error
-          : new Error("An unknown error occurred."),
-      );
-    }
-  }, [data.component?.ast]);
+    return hydrate(id, accessToken);
+  }, [id, accessToken, hydrate]);
 
   const getSetupIntent = useCallback(async () => {
-    if (!id || !state.checkoutExternalApi) {
+    if (!id || !api.checkoutExternalApi) {
       return;
     }
 
@@ -346,6 +319,40 @@ export const SchematicEmbed = ({ id, accessToken }: EmbedProps) => {
     return state.checkoutExternalApi.listInvoices();
   }, [state.checkoutExternalApi]);
 
+  useEffect(() => {
+    try {
+      // check for `hydrate` data
+      if (!data || !("component" in data)) {
+        return;
+      }
+
+      if (data.component?.ast) {
+        const parsedNodes: SerializedNodeWithChildren[] = [];
+        const parsedSettings: EmbedSettings = { ...defaultSettings };
+        const compressed = data.component.ast;
+        // `inflate` actually returns `string | undefined`
+        const json: string | undefined = inflate(
+          Uint8Array.from(Object.values(compressed)),
+          { to: "string" },
+        );
+        const ast = getEditorState(json);
+        if (ast) {
+          merge(parsedSettings, ast.ROOT.props.settings);
+          setSettings(parsedSettings);
+
+          parsedNodes.push(...parseEditorState(ast));
+          setNodes(parsedNodes);
+        }
+      }
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error
+          : new Error("An unknown error occurred."),
+      );
+    }
+  }, [data]);
+
   const setLayout = (layout: EmbedLayout) => {
     setState((prev) => ({
       ...prev,
@@ -371,33 +378,12 @@ export const SchematicEmbed = ({ id, accessToken }: EmbedProps) => {
   };
 
   useEffect(() => {
-    if (accessToken) {
-      const { headers = {} } = apiConfig ?? {};
-      headers["X-Schematic-Components-Version"] =
-        process.env.SCHEMATIC_COMPONENTS_VERSION ?? "unknown";
-      headers["X-Schematic-Session-ID"] = sessionIdRef.current;
-
-      const config = new Configuration({
-        ...apiConfig,
-        apiKey: accessToken,
-        headers,
-      });
-      const checkoutExternalApi = new CheckoutexternalApi(config);
-      setState((prev) => ({ ...prev, checkoutExternalApi }));
-    }
-  }, [accessToken, apiConfig]);
-
-  useEffect(() => {
-    if (options.mode === "standalone") {
-      return;
-    }
-
     hydrate();
-  }, [options.mode, hydrate]);
+  }, [hydrate]);
 
   useEffect(() => {
     const fontSet = new Set<string>([]);
-    Object.values(state.settings.theme.typography).forEach(({ fontFamily }) => {
+    Object.values(settings.theme.typography).forEach(({ fontFamily }) => {
       fontSet.add(fontFamily);
     });
 
@@ -413,7 +399,7 @@ export const SchematicEmbed = ({ id, accessToken }: EmbedProps) => {
         styleRef.current.href = src;
       }
     }
-  }, [state.settings.theme.typography]);
+  }, [settings.theme.typography]);
 
   if (accessToken?.length === 0) {
     return <div>Please provide an access token.</div>;
@@ -429,9 +415,9 @@ export const SchematicEmbed = ({ id, accessToken }: EmbedProps) => {
   }
 
   return (
-    <ThemeProvider theme={state.settings.theme}>
+    <ThemeProvider theme={settings.theme}>
       <GlobalStyle />
-      <ComponentTree nodes={state.nodes} />
+      <ComponentTree nodes={nodes} />
     </ThemeProvider>
   );
 };
