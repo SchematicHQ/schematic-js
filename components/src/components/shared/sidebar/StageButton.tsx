@@ -17,6 +17,7 @@ type StageButtonProps = {
   requiresPayment: boolean;
   setCheckoutStage?: (stage: string) => void;
   trialPaymentMethodRequired: boolean;
+  willTrial: boolean;
 };
 
 export const StageButton = ({
@@ -33,6 +34,7 @@ export const StageButton = ({
   requiresPayment,
   setCheckoutStage,
   trialPaymentMethodRequired,
+  willTrial,
 }: StageButtonProps) => {
   const { t } = useTranslation();
 
@@ -74,7 +76,7 @@ export const StageButton = ({
         );
       }
 
-      return (
+      /* return (
         <Button
           type="button"
           disabled={!hasUnstagedChanges || !canUpdateSubscription}
@@ -93,13 +95,13 @@ export const StageButton = ({
             <Icon name="arrow-right" />
           </Flex>
         </Button>
-      );
+      ); */
     }
 
     if (
       !requiresPayment &&
       !checkoutStages?.some(
-        (stage) => stage.id === "addons" || stage.id === "usage",
+        (stage) => stage.id === "usage" || stage.id === "addons",
       )
     ) {
       return <NoPaymentRequired />;
@@ -134,7 +136,10 @@ export const StageButton = ({
   }
 
   if (checkoutStage === "usage") {
-    if (!requiresPayment) {
+    if (
+      !requiresPayment &&
+      !checkoutStages?.some((stage) => stage.id === "addons")
+    ) {
       return <NoPaymentRequired />;
     }
 
@@ -199,7 +204,7 @@ export const StageButton = ({
         onClick={checkout}
         $isLoading={isLoading}
       >
-        {canTrial ? t("Start trial") : t("Pay now")}
+        {willTrial ? t("Start trial") : t("Pay now")}
       </Button>
     );
   }

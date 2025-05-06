@@ -86,13 +86,13 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     (data.subscription?.paymentMethod || data.company?.defaultPaymentMethod)
       ?.externalId,
   );
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | undefined>();
-  const [promoCode, setPromoCode] = useState<string>();
+
   const [planPeriod, setPlanPeriod] = useState(
     selected.period || data.company?.plan?.planPeriod || "month",
   );
-
   const {
     plans: availablePlans,
     addOns: availableAddOns,
@@ -104,6 +104,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       selected.planId ? plan.id === selected.planId : plan.current,
     ),
   );
+  const [willTrial, setWillTrial] = useState(!data.trialPaymentMethodRequired);
 
   const [addOns, setAddOns] = useState(() =>
     availableAddOns.map((addOn) => ({
@@ -116,11 +117,11 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
             ),
     })),
   );
+  const hasActiveAddOns = addOns.some((addOn) => addOn.isSelected);
 
   const currentEntitlements = useMemo(() => {
     return data.featureUsage?.features || [];
   }, [data.featureUsage?.features]);
-
   const [usageBasedEntitlements, setUsageBasedEntitlements] = useState(() =>
     (selectedPlan?.entitlements || []).reduce(
       createActiveUsageBasedEntitlementsReducer(
@@ -138,16 +139,17 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       ),
     [usageBasedEntitlements],
   );
-
-  const hasActiveAddOns = addOns.some((addOn) => addOn.isSelected);
   const hasActivePayInAdvanceEntitlements = payInAdvanceEntitlements.some(
     ({ quantity }) => quantity > 0,
   );
+
+  const [promoCode, setPromoCode] = useState<string>();
+
   const requiresPayment =
-    (!selectedPlan?.companyCanTrial || !!data.trialPaymentMethodRequired) &&
-    (!selectedPlan?.isFree ||
-      hasActiveAddOns ||
-      hasActivePayInAdvanceEntitlements);
+    ((selectedPlan?.companyCanTrial === true && !willTrial) ||
+      (selectedPlan?.companyCanTrial !== true &&
+        selectedPlan?.isFree !== true)) &&
+    (hasActiveAddOns || hasActivePayInAdvanceEntitlements);
 
   const checkoutStages = useMemo(() => {
     const stages: CheckoutStage[] = [
@@ -159,14 +161,18 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       },
     ];
 
-    if (payInAdvanceEntitlements.length) {
+    if (willTrial) {
+      return stages;
+    }
+
+    if (payInAdvanceEntitlements.length > 0) {
       stages.push({
         id: "usage",
         name: t("Quantity"),
       });
     }
 
-    if (availableAddOns.length && !selectedPlan?.companyCanTrial) {
+    if (availableAddOns.length > 0) {
       stages.push({
         id: "addons",
         name: t("Add-ons"),
@@ -186,9 +192,9 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     return stages;
   }, [
     t,
+    willTrial,
     payInAdvanceEntitlements,
     availableAddOns,
-    selectedPlan?.companyCanTrial,
     requiresPayment,
   ]);
 
@@ -314,7 +320,11 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   );
 
   const selectPlan = useCallback(
-    (updates: { plan?: SelectedPlan; period?: string }) => {
+    (updates: {
+      plan?: SelectedPlan;
+      period?: string;
+      shouldTrial?: boolean;
+    }) => {
       const plan = updates.plan || selectedPlan;
       if (!plan) {
         return;
@@ -331,6 +341,9 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
         setUsageBasedEntitlements(entitlements);
       }
 
+      const shouldTrial = updates.shouldTrial ?? false;
+      setWillTrial(shouldTrial && !data.trialPaymentMethodRequired);
+
       previewCheckout({
         period: period,
         plan: updates.plan,
@@ -339,7 +352,13 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
         ),
       });
     },
-    [planPeriod, selectedPlan, currentEntitlements, previewCheckout],
+    [
+      data.trialPaymentMethodRequired,
+      planPeriod,
+      selectedPlan,
+      currentEntitlements,
+      previewCheckout,
+    ],
   );
 
   const changePlanPeriod = useCallback(
@@ -545,6 +564,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
               plans={availablePlans}
               selectedPlan={selectedPlan}
               selectPlan={selectPlan}
+              willTrial={willTrial}
             />
           )}
 
@@ -594,6 +614,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           setError={(msg) => setError(msg)}
           setIsLoading={setIsLoading}
           updatePromoCode={(code) => updatePromoCode(code)}
+          willTrial={willTrial}
         />
       </Flex>
     </Modal>
