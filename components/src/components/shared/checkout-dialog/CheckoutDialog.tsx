@@ -145,11 +145,15 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
   const [promoCode, setPromoCode] = useState<string>();
 
+  const isTrialable =
+    selectedPlan?.isTrialable === true &&
+    selectedPlan?.companyCanTrial === true;
+  const isTrialableAndFree =
+    isTrialable && data.trialPaymentMethodRequired !== true;
+  const planRequiresPayment =
+    !isTrialableAndFree || (!isTrialable && selectedPlan?.isFree !== true);
   const requiresPayment =
-    ((selectedPlan?.companyCanTrial === true && !willTrial) ||
-      (selectedPlan?.companyCanTrial !== true &&
-        selectedPlan?.isFree !== true)) &&
-    (hasActiveAddOns || hasActivePayInAdvanceEntitlements);
+    planRequiresPayment || hasActiveAddOns || hasActivePayInAdvanceEntitlements;
 
   const checkoutStages = useMemo(() => {
     const stages: CheckoutStage[] = [

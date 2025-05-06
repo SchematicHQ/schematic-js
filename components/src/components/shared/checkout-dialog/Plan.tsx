@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 
@@ -32,13 +32,22 @@ import {
 } from "../../ui";
 
 interface SelectedProps {
-  isCurrent: boolean;
+  isCurrent?: boolean;
+  isTrial?: boolean;
 }
 
-const Selected = ({ isCurrent }: SelectedProps) => {
+const Selected = ({ isCurrent = false, isTrial = false }: SelectedProps) => {
   const { t } = useTranslation();
 
   const theme = useTheme();
+
+  const text = useMemo(() => {
+    if (isCurrent) {
+      return isTrial ? t("Trial in progress") : t("Current plan");
+    }
+
+    return isTrial ? t("Trial selected") : t("Plan selected");
+  }, [t, isCurrent, isTrial]);
 
   return (
     <Flex
@@ -63,7 +72,7 @@ const Selected = ({ isCurrent }: SelectedProps) => {
         $color={theme.typography.text.color}
         $leading={1}
       >
-        {isCurrent ? t("Current plan") : t("Selected")}
+        {text}
       </Text>
     </Flex>
   );
@@ -98,7 +107,10 @@ const PlanButtonGroup = ({
     return (
       <Flex $flexDirection="column" $gap="1.5rem">
         {isSelected && willTrial ? (
-          <Selected isCurrent={isCurrent} />
+          <Selected
+            isCurrent={isCurrent}
+            isTrial={plan.companyCanTrial && willTrial}
+          />
         ) : (
           <Button
             type="button"
@@ -128,7 +140,7 @@ const PlanButtonGroup = ({
                 content={t("Current usage exceeds the limit of this plan.")}
               />
             ) : (
-              t("Trial plan", { days: plan.trialDays })
+              t("Start X day trial", { days: plan.trialDays })
             )}
           </Button>
         )}

@@ -52,36 +52,13 @@ export const StageButton = ({
   };
 
   if (checkoutStage === "plan") {
-    if (canTrial) {
-      if (trialPaymentMethodRequired) {
-        return (
-          <Button
-            type="button"
-            disabled={!hasAddOns && !canUpdateSubscription}
-            onClick={async () => {
-              setCheckoutStage?.("checkout");
-            }}
-            $isLoading={isLoading}
-          >
-            <Flex
-              $gap="0.5rem"
-              $justifyContent="center"
-              $alignItems="center"
-              $padding="0 1rem"
-            >
-              {t("Next")}: {t("Checkout")}
-              <Icon name="arrow-right" />
-            </Flex>
-          </Button>
-        );
-      }
-
-      /* return (
+    if (canTrial && trialPaymentMethodRequired) {
+      return (
         <Button
           type="button"
-          disabled={!hasUnstagedChanges || !canUpdateSubscription}
+          disabled={!hasAddOns && !canUpdateSubscription}
           onClick={async () => {
-            checkout();
+            setCheckoutStage?.("checkout");
           }}
           $isLoading={isLoading}
         >
@@ -91,11 +68,11 @@ export const StageButton = ({
             $alignItems="center"
             $padding="0 1rem"
           >
-            {t("Subscribe and close")}
+            {t("Next")}: {t("Checkout")}
             <Icon name="arrow-right" />
           </Flex>
         </Button>
-      ); */
+      );
     }
 
     if (
