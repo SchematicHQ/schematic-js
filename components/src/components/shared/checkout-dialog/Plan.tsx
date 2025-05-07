@@ -106,67 +106,78 @@ const PlanButtonGroup = ({
   if (plan.companyCanTrial) {
     return (
       <Flex $flexDirection="column" $gap="1.5rem">
-        {isSelected && willTrial ? (
-          <Selected
-            isCurrent={isCurrent}
-            isTrial={plan.companyCanTrial && willTrial}
-          />
-        ) : (
-          <Button
-            type="button"
-            disabled={(isLoading || !plan.valid) && !plan.custom}
-            {...(!plan.custom && {
-              onClick: () => {
-                onSelect({
-                  plan,
-                  shouldTrial: true,
-                });
-              },
-            })}
-            $size="sm"
-            $color="primary"
-            $variant="filled"
-          >
-            {plan.custom ? (
-              <ButtonLink
-                href={plan.customPlanConfig?.ctaWebSite ?? "#"}
-                target="_blank"
-              >
-                {plan.customPlanConfig?.ctaText ?? t("Talk to support")}
-              </ButtonLink>
-            ) : !plan.valid ? (
-              <Tooltip
-                trigger={t("Over usage limit")}
-                content={t("Current usage exceeds the limit of this plan.")}
+        {data.subscription?.status !== "trialing" && (
+          <>
+            {isSelected && willTrial ? (
+              <Selected
+                isCurrent={isCurrent}
+                isTrial={plan.companyCanTrial && willTrial}
               />
             ) : (
-              t("Start X day trial", { days: plan.trialDays })
+              <Button
+                type="button"
+                disabled={(isLoading || !plan.valid) && !plan.custom}
+                {...(!plan.custom && {
+                  onClick: () => {
+                    onSelect({
+                      plan,
+                      shouldTrial: true,
+                    });
+                  },
+                })}
+                $size="sm"
+                $color="primary"
+                $variant="filled"
+              >
+                {plan.custom ? (
+                  <ButtonLink
+                    href={plan.customPlanConfig?.ctaWebSite ?? "#"}
+                    target="_blank"
+                  >
+                    {plan.customPlanConfig?.ctaText ?? t("Talk to support")}
+                  </ButtonLink>
+                ) : !plan.valid ? (
+                  <Tooltip
+                    trigger={t("Over usage limit")}
+                    content={t("Current usage exceeds the limit of this plan.")}
+                  />
+                ) : (
+                  t("Start X day trial", { days: plan.trialDays })
+                )}
+              </Button>
             )}
-          </Button>
+          </>
         )}
 
-        {isSelected && !willTrial ? (
-          <Selected isCurrent={isCurrent} />
-        ) : (
-          <Button
-            type="button"
-            disabled={isLoading || !plan.valid}
-            onClick={() => {
-              onSelect({ plan, shouldTrial: false });
-            }}
-            $size="sm"
-            $color="primary"
-            $variant="text"
-          >
-            {!plan.valid ? (
-              <Tooltip
-                trigger={t("Over usage limit")}
-                content={t("Current usage exceeds the limit of this plan.")}
-              />
+        {!plan.custom && (
+          <>
+            {isSelected &&
+            (!willTrial || data.subscription?.status === "trialing") ? (
+              <Selected isCurrent={isCurrent} />
             ) : (
-              t("Choose plan")
+              <Button
+                type="button"
+                disabled={isLoading || !plan.valid}
+                onClick={() => {
+                  onSelect({ plan, shouldTrial: false });
+                }}
+                $size="sm"
+                $color="primary"
+                $variant={
+                  data.subscription?.status === "trialing" ? "filled" : "text"
+                }
+              >
+                {!plan.valid ? (
+                  <Tooltip
+                    trigger={t("Over usage limit")}
+                    content={t("Current usage exceeds the limit of this plan.")}
+                  />
+                ) : (
+                  t("Choose plan")
+                )}
+              </Button>
             )}
-          </Button>
+          </>
         )}
       </Flex>
     );
@@ -230,6 +241,8 @@ export const Plan = ({
   const { t } = useTranslation();
 
   const theme = useTheme();
+
+  const { data } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
 
@@ -398,7 +411,9 @@ export const Plan = ({
                         hexToHSL(theme.primary).l > 50 ? "#000000" : "#FFFFFF"
                       }
                     >
-                      {t("Active")}
+                      {data.subscription?.status === "trialing"
+                        ? t("Trialing")
+                        : t("Active")}
                     </Text>
                   </Flex>
                 )}

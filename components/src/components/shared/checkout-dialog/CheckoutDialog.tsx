@@ -104,7 +104,10 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       selected.planId ? plan.id === selected.planId : plan.current,
     ),
   );
-  const [willTrial, setWillTrial] = useState(!data.trialPaymentMethodRequired);
+  const [willTrial, setWillTrial] = useState(
+    data.subscription?.status !== "trialing" &&
+      !data.trialPaymentMethodRequired,
+  );
 
   const [addOns, setAddOns] = useState(() =>
     availableAddOns.map((addOn) => ({
