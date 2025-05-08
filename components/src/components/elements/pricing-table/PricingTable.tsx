@@ -1,8 +1,11 @@
-import { forwardRef, useState } from "react";
+import { forwardRef, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 
-import { BillingPriceView } from "../../../api/checkoutexternal";
+import type {
+  BillingPriceView,
+  CompanyPlanDetailResponseData,
+} from "../../../api/checkoutexternal";
 import { TEXT_BASE_SIZE, VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
 import { type FontStyle } from "../../../context";
 import {
@@ -13,13 +16,11 @@ import {
 } from "../../../hooks";
 import type { ElementProps, RecursivePartial } from "../../../types";
 import {
-  darken,
   formatCurrency,
   formatNumber,
   getBillingPrice,
   getFeatureName,
   hexToHSL,
-  lighten,
   shortenPeriod,
 } from "../../../utils";
 import { cardBoxShadow, FussyChild } from "../../layout";
@@ -34,7 +35,25 @@ import {
   Text,
   Tooltip,
 } from "../../ui";
-import { ButtonLink } from "./styles";
+
+const entitlementCountsReducer = (
+  acc: Record<
+    string,
+    | {
+        size: number;
+        limit: number;
+      }
+    | undefined
+  >,
+  plan: CompanyPlanDetailResponseData,
+) => {
+  acc[plan.id] = {
+    size: plan.entitlements.length,
+    limit: VISIBLE_ENTITLEMENT_COUNT,
+  };
+
+  return acc;
+};
 
 interface DesignProps {
   showPeriodToggle: boolean;
@@ -116,76 +135,69 @@ const resolveDesignProps = (
   };
 };
 
-export type PricingTableProps = DesignProps;
+export type PricingTableProps = RecursivePartial<DesignProps> & {
+  callToAction?: string;
+  onCallToAction?: (plan: CompanyPlanDetailResponseData) => unknown;
+};
 
 export const PricingTable = forwardRef<
   HTMLDivElement | null,
-  ElementProps &
-    RecursivePartial<DesignProps> &
-    React.HTMLAttributes<HTMLDivElement>
->(({ children, className, ...rest }, ref) => {
+  ElementProps & PricingTableProps & React.HTMLAttributes<HTMLDivElement>
+>(({ className, callToAction, onCallToAction, ...rest }, ref) => {
   const props = resolveDesignProps(rest);
 
   const { t } = useTranslation();
 
   const theme = useTheme();
 
-  const { data, setLayout, setSelected } = useEmbed();
+  const { data, mode, setLayout, setSelected } = useEmbed();
 
-  const trialEndDays = useTrialEnd();
-
-  const [selectedPeriod, setSelectedPeriod] = useState(
-    () => data.company?.plan?.planPeriod || "month",
-  );
+  const planPeriod = data.company?.plan?.planPeriod;
+  const [selectedPeriod, setSelectedPeriod] = useState(planPeriod || "month");
 
   const { plans, addOns, periods } = useAvailablePlans(selectedPeriod);
 
+  const [entitlementCounts, setEntitlementCounts] = useState(() =>
+    plans.reduce(entitlementCountsReducer, {}),
+  );
+
   const isLightBackground = useIsLightBackground();
 
-  const [entitlementCounts, setEntitlementCounts] = useState(() =>
-    plans.reduce(
-      (
-        acc: Record<
-          string,
-          {
-            size: number;
-            limit: number;
-          }
-        >,
-        plan,
-      ) => {
-        acc[plan.id] = {
-          size: plan.entitlements.length,
-          limit: VISIBLE_ENTITLEMENT_COUNT,
-        };
+  const trialEndDays = useTrialEnd();
 
-        return acc;
-      },
-      {},
-    ),
-  );
+  const handleToggleShowAll = (id: string) => {
+    setEntitlementCounts((prev) => {
+      const count = prev[id] ? { ...prev[id] } : undefined;
+
+      if (count) {
+        return {
+          ...prev,
+          [id]: {
+            size: count.size,
+            limit:
+              count.limit > VISIBLE_ENTITLEMENT_COUNT
+                ? VISIBLE_ENTITLEMENT_COUNT
+                : count.size,
+          },
+        };
+      }
+
+      return prev;
+    });
+  };
+
+  useEffect(() => {
+    setEntitlementCounts(plans.reduce(entitlementCountsReducer, {}));
+  }, [plans]);
 
   const canCheckout = data.capabilities?.checkout ?? true;
 
   const cardPadding = theme.card.padding / TEXT_BASE_SIZE;
 
-  const currentPlanIndex = plans.findIndex((plan) => plan.current);
+  const showCallToAction =
+    mode !== "standalone" || typeof callToAction === "string";
 
-  const handleToggleShowAll = (id: string) => {
-    setEntitlementCounts((prev) => {
-      const count = { ...prev[id] };
-      return {
-        ...prev,
-        [id]: {
-          size: count.size,
-          limit:
-            count.limit > VISIBLE_ENTITLEMENT_COUNT
-              ? VISIBLE_ENTITLEMENT_COUNT
-              : count.size,
-        },
-      };
-    });
-  };
+  const currentPlanIndex = plans.findIndex((plan) => plan.current);
 
   return (
     <FussyChild
@@ -247,7 +259,8 @@ export const PricingTable = forwardRef<
                     : plan.monthlyPrice,
                 ) || {};
               const count = entitlementCounts[plan.id];
-              const isExpanded = count.limit > VISIBLE_ENTITLEMENT_COUNT;
+              const isExpanded =
+                count && count.limit > VISIBLE_ENTITLEMENT_COUNT;
 
               const hasUsageBasedEntitlements = plan.entitlements.some(
                 (entitlement) => !!entitlement.priceBehavior,
@@ -499,9 +512,7 @@ export const PricingTable = forwardRef<
                                         size="sm"
                                         colors={[
                                           theme.primary,
-                                          isLightBackground
-                                            ? "hsla(0, 0%, 0%, 0.0625)"
-                                            : "hsla(0, 0%, 100%, 0.25)",
+                                          `color-mix(in oklch, ${theme.card.background} 87.5%, ${isLightBackground ? "black" : "white"})`,
                                         ]}
                                       />
                                     )}
@@ -620,19 +631,7 @@ export const PricingTable = forwardRef<
                                             $weight={
                                               theme.typography.text.fontWeight
                                             }
-                                            $color={
-                                              hexToHSL(
-                                                theme.typography.text.color,
-                                              ).l > 50
-                                                ? darken(
-                                                    theme.typography.text.color,
-                                                    0.46,
-                                                  )
-                                                : lighten(
-                                                    theme.typography.text.color,
-                                                    0.46,
-                                                  )
-                                            }
+                                            $color={`color-mix(in oklch, ${theme.typography.text.color}, ${theme.card.background})`}
                                             $leading={1.35}
                                           >
                                             {formatCurrency(
@@ -726,6 +725,7 @@ export const PricingTable = forwardRef<
                         </Text>
                       </Flex>
                     ) : (
+                      showCallToAction &&
                       (props.upgrade.isVisible ||
                         props.downgrade.isVisible) && (
                         <Button
@@ -733,16 +733,18 @@ export const PricingTable = forwardRef<
                           disabled={
                             (!plan.valid || !canCheckout) && !plan.custom
                           }
-                          {...(!plan.custom && {
-                            onClick: () => {
+                          onClick={() => {
+                            onCallToAction?.(plan);
+
+                            if (mode !== "standalone" && !plan.custom) {
                               setSelected({
                                 period: selectedPeriod,
                                 planId: isActivePlan ? null : plan.id,
                                 usage: false,
                               });
                               setLayout("checkout");
-                            },
-                          })}
+                            }
+                          }}
                           {...(planIndex > currentPlanIndex
                             ? {
                                 $size: props.upgrade.buttonSize,
@@ -754,15 +756,23 @@ export const PricingTable = forwardRef<
                                 $color: props.downgrade.buttonStyle,
                                 $variant: "outline",
                               })}
+                          {...(callToAction && {
+                            as: "a",
+                            href: callToAction,
+                            target: "_blank",
+                          })}
+                          {...(plan.custom &&
+                            plan.customPlanConfig?.ctaWebSite && {
+                              as: "a",
+                              href: plan.customPlanConfig.ctaWebSite,
+                              target: "_blank",
+                            })}
                         >
                           {plan.custom ? (
-                            <ButtonLink
-                              href={plan.customPlanConfig?.ctaWebSite ?? "#"}
-                              target="_blank"
-                            >
+                            <>
                               {plan.customPlanConfig?.ctaText ??
                                 t("Talk to support")}
-                            </ButtonLink>
+                            </>
                           ) : !plan.valid ? (
                             <Tooltip
                               trigger={t("Over usage limit")}
@@ -1068,17 +1078,21 @@ export const PricingTable = forwardRef<
                         </Flex>
                       )}
 
-                      {props.upgrade.isVisible && (
+                      {showCallToAction && props.upgrade.isVisible && (
                         <Button
                           type="button"
                           disabled={!addOn.valid || !canCheckout}
                           onClick={() => {
-                            setSelected({
-                              period: selectedPeriod,
-                              addOnId: isActiveAddOn ? null : addOn.id,
-                              usage: false,
-                            });
-                            setLayout("checkout");
+                            onCallToAction?.(addOn);
+
+                            if (mode !== "standalone" && !addOn.custom) {
+                              setSelected({
+                                period: selectedPeriod,
+                                addOnId: isActiveAddOn ? null : addOn.id,
+                                usage: false,
+                              });
+                              setLayout("checkout");
+                            }
                           }}
                           $size={props.upgrade.buttonSize}
                           $color={
@@ -1091,6 +1105,12 @@ export const PricingTable = forwardRef<
                                 ? "outline"
                                 : "filled"
                           }
+                          {...(callToAction && {
+                            as: "a",
+                            href: callToAction,
+                            rel: "noreferrer",
+                            target: "_blank",
+                          })}
                         >
                           {isActiveAddOn
                             ? t("Remove add-on")

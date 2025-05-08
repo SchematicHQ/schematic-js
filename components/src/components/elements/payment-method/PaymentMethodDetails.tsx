@@ -55,7 +55,13 @@ export const PaymentMethodDetails = ({
 
   const theme = useTheme();
 
-  const { api, data, setData } = useEmbed();
+  const {
+    data,
+    setData,
+    getSetupIntent,
+    updatePaymentMethod,
+    deletePaymentMethod,
+  } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
 
@@ -90,17 +96,13 @@ export const PaymentMethodDetails = ({
   }, [paymentMethod?.cardExpYear, paymentMethod?.cardExpMonth]);
 
   const createSetupIntent = useCallback(async () => {
-    if (!api || !data.component?.id) {
-      return;
-    }
-
     try {
       setIsLoading(true);
       // TODO: Remove component id from here and from api
-      const response = await api.getSetupIntent({
-        componentId: data.component.id,
-      });
-      setSetupIntent(response.data);
+      const response = await getSetupIntent();
+      if (response) {
+        setSetupIntent(response.data);
+      }
     } catch {
       setError(
         t("Error initializing payment method change. Please try again."),
@@ -109,74 +111,71 @@ export const PaymentMethodDetails = ({
       setShowPaymentForm(true);
       setIsLoading(false);
     }
-  }, [t, api, data.component?.id]);
+  }, [t, getSetupIntent]);
 
-  const updatePaymentMethod = useCallback(
+  const handleUpdatePaymentMethod = useCallback(
     async (externalId: string) => {
-      if (!api || !externalId) {
+      if (!externalId) {
         return;
       }
 
       try {
         setIsLoading(true);
 
-        const updatePaymentMethodResponse = await api.updatePaymentMethod({
-          updatePaymentMethodRequestBody: {
-            paymentMethodId: externalId,
-          },
-        });
+        const response = await updatePaymentMethod(externalId);
+        if (response) {
+          setPaymentMethod(response.data);
 
-        setPaymentMethod(updatePaymentMethodResponse.data);
+          // TODO: Refactor
+          // Set data for sidebar
+          if (setPaymentMethodId) {
+            setPaymentMethodId(response.data.externalId);
+          }
 
-        // TODO: Refactor
-        // Set data for sidebar
-        if (setPaymentMethodId) {
-          setPaymentMethodId(updatePaymentMethodResponse.data.externalId);
+          setData({
+            ...data,
+            // Optimistic update
+            // If there is subscription - we have set payment method to subscription
+            ...(data.subscription
+              ? {
+                  subscription: {
+                    ...data.subscription,
+                    paymentMethod: response.data,
+                  },
+                }
+              : {}),
+            ...(data.company
+              ? {
+                  company: {
+                    ...data.company,
+                    paymentMethods: [
+                      response.data,
+                      ...(data.company?.paymentMethods || []),
+                    ],
+                    // Optimistic update
+                    // If there is no subscription - we have updated default payment method in company
+                    ...(data.subscription
+                      ? {}
+                      : {
+                          defaultPaymentMethod: response.data,
+                        }),
+                  },
+                }
+              : {}),
+          });
         }
-
-        setData({
-          ...data,
-          // Optimistic update
-          // If there is subscription - we have set payment method to subscription
-          ...(data.subscription
-            ? {
-                subscription: {
-                  ...data.subscription,
-                  paymentMethod: updatePaymentMethodResponse.data,
-                },
-              }
-            : {}),
-          ...(data.company
-            ? {
-                company: {
-                  ...data.company,
-                  paymentMethods: [
-                    updatePaymentMethodResponse.data,
-                    ...(data.company?.paymentMethods || []),
-                  ],
-                  // Optimistic update
-                  // If there is no subscription - we have updated default payment method in company
-                  ...(data.subscription
-                    ? {}
-                    : {
-                        defaultPaymentMethod: updatePaymentMethodResponse.data,
-                      }),
-                },
-              }
-            : {}),
-        });
       } catch {
         setError(t("Error updating payment method. Please try again."));
       } finally {
         setIsLoading(false);
       }
     },
-    [api, data, setData, setPaymentMethodId, t],
+    [t, data, setData, setPaymentMethodId, updatePaymentMethod],
   );
 
-  const deletePaymentMethod = useCallback(
-    async (id: string) => {
-      if (!api || !id) {
+  const handleDeletePaymentMethod = useCallback(
+    async (checkoutId: string) => {
+      if (!checkoutId) {
         return;
       }
 
@@ -184,16 +183,14 @@ export const PaymentMethodDetails = ({
         setIsLoading(true);
         // Payment method id is used and expected
         // Some problem with type generation
-        await api.deletePaymentMethod({
-          checkoutId: id,
-        });
+        await deletePaymentMethod(checkoutId);
 
         setData({
           ...data,
           company: {
             ...data.company!,
             paymentMethods: (data.company?.paymentMethods ?? []).filter(
-              (pm) => pm.id !== id,
+              (pm) => pm.id !== checkoutId,
             ),
           },
         });
@@ -203,7 +200,7 @@ export const PaymentMethodDetails = ({
         setIsLoading(false);
       }
     },
-    [api, data, setData, t],
+    [t, data, setData, deletePaymentMethod],
   );
 
   useEffect(() => {
@@ -277,7 +274,7 @@ export const PaymentMethodDetails = ({
           >
             <PaymentForm
               onConfirm={async (paymentMethodId) => {
-                await updatePaymentMethod(paymentMethodId);
+                await handleUpdatePaymentMethod(paymentMethodId);
                 setShowPaymentForm(false);
                 setShowDifferentPaymentMethods(false);
               }}
@@ -346,8 +343,8 @@ export const PaymentMethodDetails = ({
                     <PaymentListElement
                       key={paymentMethod.id}
                       paymentMethod={paymentMethod}
-                      setDefault={updatePaymentMethod}
-                      handleDelete={deletePaymentMethod}
+                      setDefault={handleUpdatePaymentMethod}
+                      handleDelete={handleDeletePaymentMethod}
                     />
                   ))}
                 </Flex>

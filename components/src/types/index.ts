@@ -1,5 +1,7 @@
 import * as Craft from "@craftjs/core";
 
+import { type ComponentAction, type ComponentState } from "../components";
+
 export type RecursivePartial<T> = {
   [P in keyof T]?: T[P] extends (infer U)[]
     ? RecursivePartial<U>[]
@@ -31,6 +33,8 @@ export interface ElementProps {
   children?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
+  state?: ComponentState;
+  dispatch?: React.ActionDispatch<[action: ComponentAction]>;
 }
 
 export type ComponentStyle = "primary" | "secondary" | "tertiary";

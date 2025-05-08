@@ -2,7 +2,7 @@ import { debounce } from "lodash";
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
-import { DEBOUNCE_TIMEOUT } from "../../../const";
+import { EVENT_DEBOUNCE_TIMEOUT } from "../../../const";
 import { type BoxProps } from "../../ui";
 import { Content, Trigger } from "./styles";
 
@@ -51,7 +51,7 @@ export const Tooltip = ({
   }, [position]);
 
   useLayoutEffect(() => {
-    const handleResize = debounce(updateCoords, DEBOUNCE_TIMEOUT);
+    const handleResize = debounce(updateCoords, EVENT_DEBOUNCE_TIMEOUT);
     window.addEventListener("resize", handleResize);
 
     return () => {
