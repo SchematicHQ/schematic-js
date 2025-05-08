@@ -3,30 +3,27 @@ import { type PublicPlansResponseData } from "../api/componentspublic";
 import { type EmbedState } from "./embedState";
 
 type Action =
-  | { type: "DATA_FETCH_STARTED" }
+  | { type: "HYDRATE_STARTED" }
   | {
-      type: "DATA_FETCH_PUBLIC";
+      type: "HYDRATE_PUBLIC";
       data?: PublicPlansResponseData;
     }
   | {
-      type: "DATA_FETCH_EMBED";
+      type: "HYDRATE_COMPONENT";
       data?: ComponentHydrateResponseData;
     }
   | { type: "RESET" }
   | { type: "ERROR"; error: Error };
 
-/**
- * Handles how that state changes in the `useAuth0` hook.
- */
 export const reducer = (state: EmbedState, action: Action): EmbedState => {
   switch (action.type) {
-    case "DATA_FETCH_STARTED":
+    case "HYDRATE_STARTED":
       return {
         ...state,
         isPending: true,
       };
-    case "DATA_FETCH_PUBLIC":
-    case "DATA_FETCH_EMBED":
+    case "HYDRATE_PUBLIC":
+    case "HYDRATE_COMPONENT":
       return {
         ...state,
         data: action.data,

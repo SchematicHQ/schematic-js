@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 
 import { type FeatureUsageResponseData } from "../../../api/checkoutexternal";
-import { type FontStyle } from "../../../context";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import type { ElementProps, RecursivePartial } from "../../../types";
 import {
@@ -16,6 +15,7 @@ import {
   shortenPeriod,
   toPrettyDate,
 } from "../../../utils";
+import { type FontStyle } from "../../embed";
 import { Element, Notice } from "../../layout";
 import { Box, Button, Flex, Text } from "../../ui";
 
@@ -86,26 +86,47 @@ export const PlanManager = forwardRef<
     React.HTMLAttributes<HTMLDivElement> & {
       portal?: HTMLElement | null;
     }
->(({ children, className, portal, ...rest }, ref) => {
+>(({ children, className, portal, state, dispatch, ...rest }, ref) => {
   const props = resolveDesignProps(rest);
 
   const theme = useTheme();
 
   const { t } = useTranslation();
 
-  const { data, setLayout, setSelected } = useEmbed();
+  const { data } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
 
   // Can change plan if there is a publishable key, a current plan with a billing association, and
   // some active plans
-  const { addOns, canCheckout, currentPlan, defaultPlan, featureUsage } = {
-    addOns: data.company?.addOns || [],
-    currentPlan: data.company?.plan,
-    canCheckout: data.capabilities?.checkout ?? true,
-    defaultPlan: data.defaultPlan,
-    featureUsage: data.featureUsage,
-  };
+  const {
+    addOns,
+    billingSubscription,
+    canCheckout,
+    currentPlan,
+    defaultPlan,
+    featureUsage,
+    subscription,
+    trialPaymentMethodRequired,
+  } = useMemo(() => {
+    if (data && "company" in data) {
+      return {
+        addOns: data.company?.addOns || [],
+        billingSubscription: data.company?.billingSubscription,
+        currentPlan: data.company?.plan,
+        canCheckout: data.capabilities?.checkout ?? true,
+        defaultPlan: data.defaultPlan,
+        featureUsage: data.featureUsage,
+        subscription: data.subscription,
+        trialPaymentMethodRequired: data.trialPaymentMethodRequired,
+      };
+    }
+
+    return {
+      addOns: [],
+      canCheckout: false,
+    };
+  }, [data]);
 
   const usageBasedEntitlements = (featureUsage?.features || []).reduce(
     (
@@ -131,7 +152,6 @@ export const PlanManager = forwardRef<
     [],
   );
 
-  const billingSubscription = data.company?.billingSubscription;
   const trialEndDays = useMemo(() => {
     const trialEnd = billingSubscription?.trialEnd;
     const trialEndDate = trialEnd ? new Date(trialEnd * 1000) : new Date();
@@ -171,7 +191,7 @@ export const PlanManager = forwardRef<
           </Text>
 
           <Text as="p" $size={0.8125 * theme.typography.text.fontSize}>
-            {data.trialPaymentMethodRequired
+            {trialPaymentMethodRequired
               ? t("After the trial, subscribe")
               : defaultPlan
                 ? t("After the trial, cancel", {
@@ -330,11 +350,7 @@ export const PlanManager = forwardRef<
                 let packageSize = 1;
 
                 // calculate overage amount
-                if (
-                  entitlement.priceBehavior === "overage" &&
-                  data.subscription
-                ) {
-                  const subscription = data.subscription;
+                if (entitlement.priceBehavior === "overage" && subscription) {
                   const entitlementPrice =
                     entitlement.monthlyUsageBasedPrice ??
                     entitlement.yearlyUsageBasedPrice;
@@ -498,12 +514,15 @@ export const PlanManager = forwardRef<
           <Button
             type="button"
             onClick={() => {
-              setSelected({
-                planId: currentPlan?.id,
-                addOnId: undefined,
-                usage: false,
+              dispatch?.({
+                type: "SET_SELECTED",
+                selected: {
+                  planId: currentPlan?.id,
+                  addOnId: undefined,
+                  usage: false,
+                },
               });
-              setLayout("checkout");
+              dispatch?.({ type: "CHANGE_LAYOUT", layout: "checkout" });
             }}
             $size={props.callToAction.buttonSize}
             $color={props.callToAction.buttonStyle}

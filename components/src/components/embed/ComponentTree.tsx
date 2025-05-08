@@ -5,6 +5,8 @@ import { TEXT_BASE_SIZE } from "../../const";
 import { useEmbed } from "../../hooks";
 import type { SerializedNodeWithChildren } from "../../types";
 import { Box, Flex, Loader } from "../ui";
+import { type ComponentState } from "./componentState";
+import { type ComponentAction } from "./reducer";
 import { createRenderer } from "./renderer";
 
 const Loading = () => {
@@ -58,17 +60,23 @@ const Error = ({ message }: { message: string }) => {
 
 interface ComponentTreeProps {
   nodes: SerializedNodeWithChildren[];
+  state: ComponentState;
+  dispatch: React.ActionDispatch<[action: ComponentAction]>;
 }
 
-export const ComponentTree = ({ nodes }: ComponentTreeProps) => {
+export const ComponentTree = ({
+  nodes,
+  state,
+  dispatch,
+}: ComponentTreeProps) => {
   const [children, setChildren] = useState<React.ReactNode>(<Loading />);
 
   const { error, isPending } = useEmbed();
 
   useEffect(() => {
-    const renderer = createRenderer();
+    const renderer = createRenderer({ sharedProps: { state, dispatch } });
     setChildren(nodes.map(renderer));
-  }, [nodes]);
+  }, [state, dispatch, nodes]);
 
   if (error) {
     console.error(error);

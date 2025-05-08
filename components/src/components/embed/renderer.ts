@@ -34,10 +34,11 @@ const components: Record<string, React.FC | undefined> = {
 
 interface RenderOptions {
   useFallback?: boolean;
+  sharedProps?: Record<string, unknown>;
 }
 
 export function createRenderer(options?: RenderOptions) {
-  const { useFallback = false } = options || {};
+  const { useFallback = false, sharedProps = {} } = options || {};
 
   return function renderNode(
     node: SerializedNodeWithChildren,
@@ -68,7 +69,7 @@ export function createRenderer(options?: RenderOptions) {
       {
         key: index,
         className,
-        ...(component !== "div" && { ...resolvedProps }),
+        ...(component !== "div" && { ...sharedProps, ...resolvedProps }),
       },
       resolvedChildren,
     );

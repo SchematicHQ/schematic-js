@@ -5,6 +5,7 @@ import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 
 import {
+  type ChangeSubscriptionRequestBody,
   CheckoutexternalApi,
   Configuration as CheckoutConfiguration,
   type ConfigurationParameters,
@@ -13,6 +14,8 @@ import {
   ComponentspublicApi,
   Configuration as PublicConfiguration,
 } from "../api/componentspublic";
+import { FETCH_DEBOUNCE_TIMEOUT } from "../const";
+import { createDebouncedRequest, debounceOptions } from "../utils";
 import { EmbedContext } from "./EmbedContext";
 import { initialState } from "./embedState";
 import { reducer } from "./reducer";
@@ -30,14 +33,13 @@ export const EmbedProvider = ({
   apiConfig,
   ...options
 }: EmbedProviderProps) => {
-  const styleRef = useRef<HTMLElement>(null);
   const sessionIdRef = useRef(uuidv4());
 
   const [state, dispatch] = useReducer(reducer, initialState);
 
   const [api, setApi] = useState<{
-    checkoutExternalApi?: CheckoutexternalApi;
-    componentsPublicApi?: ComponentspublicApi;
+    public?: ComponentspublicApi;
+    checkout?: CheckoutexternalApi;
   }>({});
 
   const debug = useCallback(
@@ -49,20 +51,20 @@ export const EmbedProvider = ({
     [options.debug],
   );
 
-  const getPublicPlans = useCallback(async () => {
+  const hydratePublic = useCallback(async () => {
     const fn = debounce(
       async () => {
-        dispatch({ type: "DATA_FETCH_STARTED" });
+        dispatch({ type: "HYDRATE_STARTED" });
 
         try {
-          if (!api.componentsPublicApi) {
+          if (!api.public) {
             return;
           }
 
-          const { data } = await api.componentsPublicApi.getPublicPlans();
+          const { data } = await api.public.getPublicPlans();
 
           dispatch({
-            type: "DATA_FETCH_PUBLIC",
+            type: "HYDRATE_PUBLIC",
             data,
           });
         } catch (error) {
@@ -75,25 +77,25 @@ export const EmbedProvider = ({
           });
         }
       },
-      500,
-      { leading: true, trailing: false },
+      FETCH_DEBOUNCE_TIMEOUT,
+      debounceOptions,
     );
 
     return fn();
-  }, [api.componentsPublicApi]);
+  }, [api.public]);
 
-  const hydrate = useCallback(
+  const hydrateComponent = useCallback(
     async (id: string, accessToken: string) => {
       const fn = debounce(
         async () => {
-          dispatch({ type: "DATA_FETCH_STARTED" });
+          dispatch({ type: "HYDRATE_STARTED" });
 
           try {
-            if (!api.checkoutExternalApi) {
+            if (!api.checkout) {
               return;
             }
 
-            const response = await api.checkoutExternalApi.hydrateComponent(
+            const response = await api.checkout.hydrateComponent(
               {
                 componentId: id,
               },
@@ -106,7 +108,7 @@ export const EmbedProvider = ({
             const { data } = response;
 
             dispatch({
-              type: "DATA_FETCH_EMBED",
+              type: "HYDRATE_COMPONENT",
               data,
             });
           } catch (error) {
@@ -119,111 +121,138 @@ export const EmbedProvider = ({
             });
           }
         },
-        500,
-        { leading: true, trailing: false },
+        FETCH_DEBOUNCE_TIMEOUT,
+        debounceOptions,
       );
 
       fn();
     },
-    [api.checkoutExternalApi],
+    [api.checkout],
   );
 
   // TODO: api methods
-  const getSetupIntent = useCallback(async () => {
-    if (!id || !api.checkoutExternalApi) {
-      return;
-    }
+  const getSetupIntent = useCallback(
+    async (componentId: string, accessToken: string) => {
+      const fn = createDebouncedRequest({
+        fn: api.checkout?.getSetupIntent,
+        params: { componentId },
+        token: accessToken,
+      });
 
-    return state.checkoutExternalApi.getSetupIntent({
-      componentId: id,
-    });
-  }, [id, state.checkoutExternalApi]);
+      return fn();
+    },
+    [api.checkout],
+  );
 
   const updatePaymentMethod = useCallback(
-    async (paymentMethodId: string) => {
-      if (!state.checkoutExternalApi) {
-        return;
-      }
-
-      return state.checkoutExternalApi.updatePaymentMethod({
-        updatePaymentMethodRequestBody: {
-          paymentMethodId,
-        },
+    async (paymentMethodId: string, accessToken: string) => {
+      const fn = createDebouncedRequest({
+        fn: api.checkout?.updatePaymentMethod,
+        params: { updatePaymentMethodRequestBody: { paymentMethodId } },
+        token: accessToken,
       });
+
+      return fn();
     },
-    [state.checkoutExternalApi],
+    [api.checkout],
   );
 
   const deletePaymentMethod = useCallback(
-    async (checkoutId: string) => {
-      if (!state.checkoutExternalApi) {
-        return;
-      }
+    async (checkoutId: string, accessToken: string) => {
+      const fn = createDebouncedRequest({
+        fn: api.checkout?.deletePaymentMethod,
+        params: { checkoutId },
+        token: accessToken,
+      });
 
-      return state.checkoutExternalApi.deletePaymentMethod({ checkoutId });
+      return fn();
     },
-    [state.checkoutExternalApi],
+    [api.checkout],
   );
 
   const checkout = useCallback(
-    async (changeSubscriptionRequestBody: ChangeSubscriptionRequestBody) => {
-      if (!state.checkoutExternalApi) {
-        return;
-      }
-
-      return state.checkoutExternalApi.checkout({
-        changeSubscriptionRequestBody,
+    async (
+      changeSubscriptionRequestBody: ChangeSubscriptionRequestBody,
+      accessToken: string,
+    ) => {
+      const fn = createDebouncedRequest({
+        fn: api.checkout?.checkout,
+        params: {
+          changeSubscriptionRequestBody,
+        },
+        token: accessToken,
       });
+
+      return fn();
     },
-    [state.checkoutExternalApi],
+    [api.checkout],
   );
 
   const previewCheckout = useCallback(
-    async (changeSubscriptionRequestBody: ChangeSubscriptionRequestBody) => {
-      if (!state.checkoutExternalApi) {
-        return;
-      }
-
-      return state.checkoutExternalApi.previewCheckout({
-        changeSubscriptionRequestBody,
+    async (
+      changeSubscriptionRequestBody: ChangeSubscriptionRequestBody,
+      accessToken: string,
+    ) => {
+      const fn = createDebouncedRequest({
+        fn: api.checkout?.previewCheckout,
+        params: {
+          changeSubscriptionRequestBody,
+        },
+        token: accessToken,
       });
+
+      return fn();
     },
-    [state.checkoutExternalApi],
+    [api.checkout],
   );
 
-  const unsubscribe = useCallback(async () => {
-    if (!state.checkoutExternalApi) {
-      return;
-    }
+  const unsubscribe = useCallback(
+    async (accessToken: string) => {
+      const fn = createDebouncedRequest({
+        fn: api.checkout?.checkoutUnsubscribe,
+        params: {},
+        token: accessToken,
+      });
 
-    return state.checkoutExternalApi.checkoutUnsubscribe();
-  }, [state.checkoutExternalApi]);
+      return fn();
+    },
+    [api.checkout],
+  );
 
-  const listInvoices = useCallback(async () => {
-    if (!state.checkoutExternalApi) {
-      return;
-    }
+  const listInvoices = useCallback(
+    async (accessToken: string) => {
+      const fn = createDebouncedRequest({
+        fn: api.checkout?.listInvoices,
+        params: {},
+        token: accessToken,
+      });
 
-    return state.checkoutExternalApi.listInvoices();
-  }, [state.checkoutExternalApi]);
-
-  const initFontStylesheet = () => {
-    const element = document.getElementById("schematic-fonts");
-    if (element) {
-      styleRef.current = element;
-      return;
-    }
-
-    const style = document.createElement("link");
-    style.id = "schematic-fonts";
-    style.rel = "stylesheet";
-    document.head.appendChild(style);
-    styleRef.current = style;
-  };
+      return fn();
+    },
+    [api.checkout],
+  );
 
   useEffect(() => {
-    initFontStylesheet();
+    if (apiKey) {
+      const configParams = { ...apiConfig, apiKey };
+      merge(configParams.headers, {
+        "X-Schematic-Components-Version":
+          process.env.SCHEMATIC_COMPONENTS_VERSION || "unknown",
+        "X-Schematic-Session-ID": sessionIdRef.current,
+      });
 
+      const publicConfig = new PublicConfiguration(configParams);
+      const checkoutConfig = new CheckoutConfiguration(configParams);
+
+      setApi((prev) => ({
+        ...prev,
+        public: new ComponentspublicApi(publicConfig),
+        checkout: new CheckoutexternalApi(checkoutConfig),
+      }));
+    }
+  }, [apiKey, apiConfig]);
+
+  useEffect(() => {
     const planChanged: EventListener = (event) => {
       if (!(event instanceof CustomEvent)) {
         return;
@@ -239,35 +268,21 @@ export const EmbedProvider = ({
     };
   }, [debug]);
 
-  useEffect(() => {
-    if (apiKey) {
-      const configParams = { ...apiConfig, apiKey };
-      merge(configParams.headers, {
-        "X-Schematic-Components-Version":
-          process.env.SCHEMATIC_COMPONENTS_VERSION || "unknown",
-        "X-Schematic-Session-ID": sessionIdRef.current,
-      });
-
-      setApi((prev) => ({
-        ...prev,
-        checkoutExternalApi: new CheckoutexternalApi(
-          new CheckoutConfiguration(configParams),
-        ),
-        componentsPublicApi: new ComponentspublicApi(
-          new PublicConfiguration(configParams),
-        ),
-      }));
-    }
-  }, [apiKey, apiConfig]);
-
   return (
     <EmbedContext.Provider
       value={{
+        isPending: state.isPending,
         data: state.data,
         error: state.error,
-        getPublicPlans,
-        hydrate,
-        isPending: state.isPending,
+        hydratePublic,
+        hydrateComponent,
+        getSetupIntent,
+        updatePaymentMethod,
+        deletePaymentMethod,
+        checkout,
+        previewCheckout,
+        unsubscribe,
+        listInvoices,
       }}
     >
       {children}
