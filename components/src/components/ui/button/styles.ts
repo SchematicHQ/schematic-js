@@ -200,32 +200,23 @@ export const Button = styled.button<ButtonProps>(
           case "sm":
             return css`
               font-size: ${15 / TEXT_BASE_SIZE}rem;
-              ${$variant !== "text" &&
-              css`
-                height: ${40 / TEXT_BASE_SIZE}rem;
-                padding: ${7 / TEXT_BASE_SIZE}rem ${20 / TEXT_BASE_SIZE}rem;
-                border-radius: ${6 / TEXT_BASE_SIZE}rem;
-              `}
+              height: ${40 / TEXT_BASE_SIZE}rem;
+              padding: ${7 / TEXT_BASE_SIZE}rem ${20 / TEXT_BASE_SIZE}rem;
+              border-radius: ${6 / TEXT_BASE_SIZE}rem;
             `;
           case "md":
             return css`
               font-size: ${17 / TEXT_BASE_SIZE}rem;
-              ${$variant !== "text" &&
-              css`
-                height: ${52 / TEXT_BASE_SIZE}rem;
-                padding: ${8 / TEXT_BASE_SIZE}rem ${24 / TEXT_BASE_SIZE}rem;
-                border-radius: ${8 / TEXT_BASE_SIZE}rem;
-              `}
+              height: ${52 / TEXT_BASE_SIZE}rem;
+              padding: ${8 / TEXT_BASE_SIZE}rem ${24 / TEXT_BASE_SIZE}rem;
+              border-radius: ${8 / TEXT_BASE_SIZE}rem;
             `;
           case "lg":
             return css`
               font-size: ${19 / TEXT_BASE_SIZE}rem;
-              ${$variant !== "text" &&
-              css`
-                height: ${64 / TEXT_BASE_SIZE}rem;
-                padding: ${9 / TEXT_BASE_SIZE}rem ${28 / TEXT_BASE_SIZE}rem;
-                border-radius: ${10 / TEXT_BASE_SIZE}rem;
-              `}
+              height: ${64 / TEXT_BASE_SIZE}rem;
+              padding: ${9 / TEXT_BASE_SIZE}rem ${28 / TEXT_BASE_SIZE}rem;
+              border-radius: ${10 / TEXT_BASE_SIZE}rem;
             `;
         }
       }}

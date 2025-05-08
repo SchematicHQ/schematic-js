@@ -65,6 +65,7 @@ interface SidebarProps {
   setIsLoading: Dispatch<SetStateAction<boolean>>;
   updatePromoCode?: (code?: string) => void;
   showHeader?: boolean;
+  willTrial?: boolean;
 }
 
 export const Sidebar = ({
@@ -86,6 +87,7 @@ export const Sidebar = ({
   setIsLoading,
   updatePromoCode,
   showHeader = true,
+  willTrial = false,
 }: SidebarProps) => {
   const { t } = useTranslation();
 
@@ -266,11 +268,12 @@ export const Sidebar = ({
           ...(promoCode && { promoCode }),
         },
       });
-      dispatchPlanChangedEvent(response.data);
 
       setIsLoading(false);
       setLayout("portal");
-      hydrate();
+
+      await hydrate();
+      dispatchPlanChangedEvent(response.data);
     } catch {
       setLayout("checkout");
       setError(
@@ -395,6 +398,8 @@ export const Sidebar = ({
     usageBasedEntitlements,
   ]);
 
+  const willPeriodChange = planPeriod !== data.company?.plan?.planPeriod;
+
   const willPlanChange =
     typeof selectedPlan !== "undefined" && !selectedPlan.current;
 
@@ -413,14 +418,17 @@ export const Sidebar = ({
     payInAdvanceEntitlements.some(({ quantity, usage }) => quantity !== usage);
 
   const hasUnstagedChanges =
-    willPlanChange || willAddOnsChange || willPayInAdvanceEntitlementsChange;
+    willPeriodChange ||
+    willPlanChange ||
+    willAddOnsChange ||
+    willPayInAdvanceEntitlementsChange;
 
   const canUpdateSubscription = mode === "edit" || (api !== null && !isLoading);
   const canCheckout =
     canUpdateSubscription &&
     (!!data.subscription?.paymentMethod || typeof paymentMethodId === "string");
 
-  const isTrialable = selectedPlan?.companyCanTrial;
+  const isTrialable = selectedPlan?.companyCanTrial === true;
   const today = new Date();
   const trialEndsOn = new Date(today);
   if (isTrialable && selectedPlan.trialDays) {
@@ -505,7 +513,7 @@ export const Sidebar = ({
         </Box>
 
         <Flex $flexDirection="column" $gap="0.5rem" $marginBottom="1.5rem">
-          {data.company?.plan && (
+          {currentPlan && (
             <Flex
               $justifyContent="space-between"
               $alignItems="center"
@@ -523,11 +531,11 @@ export const Sidebar = ({
                   $weight={theme.typography.heading4.fontWeight}
                   $color={theme.typography.heading4.color}
                 >
-                  {data.company.plan.name}
+                  {currentPlan.name}
                 </Text>
               </Box>
 
-              {typeof data.company.plan.planPrice === "number" && (
+              {typeof currentPlan.planPrice === "number" && (
                 <Box $whiteSpace="nowrap">
                   <Text
                     $font={theme.typography.text.fontFamily}
@@ -536,14 +544,11 @@ export const Sidebar = ({
                     $color={theme.typography.text.color}
                   >
                     {formatCurrency(
-                      data.company.plan.planPrice,
-                      data.company.billingSubscription?.currency,
+                      currentPlan.planPrice,
+                      data.company?.billingSubscription?.currency,
                     )}
                     <sub>
-                      /
-                      {shortenPeriod(
-                        data.company.plan.planPeriod || planPeriod,
-                      )}
+                      /{shortenPeriod(currentPlan.planPeriod || planPeriod)}
                     </sub>
                   </Text>
                 </Box>
@@ -1272,7 +1277,7 @@ export const Sidebar = ({
 
         {layout === "checkout" && (
           <StageButton
-            canTrial={selectedPlan?.companyCanTrial === true}
+            canTrial={isTrialable}
             canCheckout={canCheckout}
             canUpdateSubscription={canUpdateSubscription}
             checkout={checkout}
@@ -1287,6 +1292,7 @@ export const Sidebar = ({
             trialPaymentMethodRequired={
               data.trialPaymentMethodRequired === true
             }
+            willTrial={willTrial}
           />
         )}
 

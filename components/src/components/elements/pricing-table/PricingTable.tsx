@@ -771,7 +771,7 @@ export const PricingTable = forwardRef<
                               )}
                             />
                           ) : plan.companyCanTrial ? (
-                            t("Trial plan", { days: plan.trialDays })
+                            t("Start X day trial", { days: plan.trialDays })
                           ) : (
                             t("Choose plan")
                           )}

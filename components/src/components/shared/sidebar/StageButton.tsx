@@ -17,6 +17,7 @@ type StageButtonProps = {
   requiresPayment: boolean;
   setCheckoutStage?: (stage: string) => void;
   trialPaymentMethodRequired: boolean;
+  willTrial: boolean;
 };
 
 export const StageButton = ({
@@ -33,6 +34,7 @@ export const StageButton = ({
   requiresPayment,
   setCheckoutStage,
   trialPaymentMethodRequired,
+  willTrial,
 }: StageButtonProps) => {
   const { t } = useTranslation();
 
@@ -50,36 +52,13 @@ export const StageButton = ({
   };
 
   if (checkoutStage === "plan") {
-    if (canTrial) {
-      if (trialPaymentMethodRequired) {
-        return (
-          <Button
-            type="button"
-            disabled={!hasAddOns && !canUpdateSubscription}
-            onClick={async () => {
-              setCheckoutStage?.("checkout");
-            }}
-            $isLoading={isLoading}
-          >
-            <Flex
-              $gap="0.5rem"
-              $justifyContent="center"
-              $alignItems="center"
-              $padding="0 1rem"
-            >
-              {t("Next")}: {t("Checkout")}
-              <Icon name="arrow-right" />
-            </Flex>
-          </Button>
-        );
-      }
-
+    if (canTrial && trialPaymentMethodRequired) {
       return (
         <Button
           type="button"
-          disabled={!hasUnstagedChanges || !canUpdateSubscription}
+          disabled={!hasAddOns && !canUpdateSubscription}
           onClick={async () => {
-            checkout();
+            setCheckoutStage?.("checkout");
           }}
           $isLoading={isLoading}
         >
@@ -89,7 +68,7 @@ export const StageButton = ({
             $alignItems="center"
             $padding="0 1rem"
           >
-            {t("Subscribe and close")}
+            {t("Next")}: {t("Checkout")}
             <Icon name="arrow-right" />
           </Flex>
         </Button>
@@ -99,7 +78,7 @@ export const StageButton = ({
     if (
       !requiresPayment &&
       !checkoutStages?.some(
-        (stage) => stage.id === "addons" || stage.id === "usage",
+        (stage) => stage.id === "usage" || stage.id === "addons",
       )
     ) {
       return <NoPaymentRequired />;
@@ -134,7 +113,10 @@ export const StageButton = ({
   }
 
   if (checkoutStage === "usage") {
-    if (!requiresPayment) {
+    if (
+      !requiresPayment &&
+      !checkoutStages?.some((stage) => stage.id === "addons")
+    ) {
       return <NoPaymentRequired />;
     }
 
@@ -199,7 +181,7 @@ export const StageButton = ({
         onClick={checkout}
         $isLoading={isLoading}
       >
-        {canTrial ? t("Start trial") : t("Pay now")}
+        {willTrial ? t("Start trial") : t("Pay now")}
       </Button>
     );
   }
