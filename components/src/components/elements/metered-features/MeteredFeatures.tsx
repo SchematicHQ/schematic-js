@@ -17,6 +17,7 @@ import {
   formatNumber,
   getBillingPrice,
   getFeatureName,
+  isCheckoutData,
   lighten,
   shortenPeriod,
   toPrettyDate,
@@ -101,34 +102,53 @@ export const MeteredFeatures = forwardRef<
 
   const theme = useTheme();
 
-  const { data, setLayout, setSelected } = useEmbed();
+  const { data, setLayout, setCheckoutState } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
 
-  const featureUsage = useMemo(() => {
-    const orderedFeatureUsage = props.visibleFeatures?.reduce(
-      (acc: FeatureUsageResponseData[], id) => {
-        const mappedFeatureUsage = data.featureUsage?.features.find(
-          (usage) => usage.feature?.id === id,
+  const { planPeriod, plan, addOns, featureUsage, subscription } =
+    useMemo(() => {
+      if (isCheckoutData(data)) {
+        const orderedFeatureUsage = props.visibleFeatures?.reduce(
+          (acc: FeatureUsageResponseData[], id) => {
+            const mappedFeatureUsage = data.featureUsage?.features.find(
+              (usage) => usage.feature?.id === id,
+            );
+
+            if (mappedFeatureUsage) {
+              acc.push(mappedFeatureUsage);
+            }
+
+            return acc;
+          },
+          [],
         );
 
-        if (mappedFeatureUsage) {
-          acc.push(mappedFeatureUsage);
-        }
+        return {
+          planPeriod: data.company?.plan?.planPeriod,
+          plan: data.company?.plan,
+          addOns: data.company?.addOns,
+          featureUsage: (
+            orderedFeatureUsage ||
+            data.featureUsage?.features ||
+            []
+          ).filter(
+            (usage) =>
+              usage.feature?.featureType === "event" ||
+              usage.feature?.featureType === "trait",
+          ),
+          subscription: data.subscription,
+        };
+      }
 
-        return acc;
-      },
-      [],
-    );
-
-    return (orderedFeatureUsage || data.featureUsage?.features || []).filter(
-      (usage) =>
-        usage.feature?.featureType === "event" ||
-        usage.feature?.featureType === "trait",
-    );
-  }, [props.visibleFeatures, data.featureUsage?.features]);
-
-  const planPeriod = data.company?.plan?.planPeriod;
+      return {
+        planPeriod: undefined,
+        plan: undefined,
+        addOns: [],
+        featureUsage: [],
+        subscription: undefined,
+      };
+    }, [props.visibleFeatures, data]);
 
   // Check if we should render this component at all:
   // * If there are any plans or add-ons, render it, even if the list is empty.
@@ -136,10 +156,7 @@ export const MeteredFeatures = forwardRef<
   //  even if the company has no plan or add-ons).
   // * If none of the above, don't render the component.
   const shouldShowFeatures =
-    featureUsage.length > 0 ||
-    data.company?.plan ||
-    (data.company?.addOns ?? []).length > 0 ||
-    false;
+    featureUsage.length > 0 || plan || (addOns ?? []).length > 0 || false;
 
   if (!shouldShowFeatures) {
     return null;
@@ -181,7 +198,7 @@ export const MeteredFeatures = forwardRef<
             const productId = (yearlyUsageBasedPrice ?? monthlyUsageBasedPrice)
               ?.productId;
             if (productId) {
-              const products = data?.subscription?.products ?? [];
+              const products = subscription?.products ?? [];
               const product = products.find((p) => p.id === productId);
               if (product && product.priceTier?.length > 1) {
                 // overage price is the last item in the price tier array
@@ -433,7 +450,7 @@ export const MeteredFeatures = forwardRef<
                         {priceBehavior === "pay_in_advance" && (
                           <Button
                             onClick={() => {
-                              setSelected({ usage: true });
+                              setCheckoutState({ usage: true });
                               setLayout("checkout");
                             }}
                             $fullWidth={false}

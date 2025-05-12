@@ -8,7 +8,7 @@ import type {
   PaymentMethodResponseData,
   SetupIntentResponseData,
 } from "../../../api/checkoutexternal";
-import type { FontStyle } from "../../../context";
+import { type FontStyle } from "../../../context";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import { PaymentForm } from "../../shared";
 import { Box, Button, Flex, Icon, Loader, Text } from "../../ui";
@@ -16,6 +16,7 @@ import {
   PaymentListElement,
   PaymentMethodElement,
 } from "./PaymentMethodElement";
+import { isCheckoutData } from "../../../utils";
 
 interface DesignProps {
   header: {
@@ -55,13 +56,24 @@ export const PaymentMethodDetails = ({
 
   const theme = useTheme();
 
-  const {
-    data,
-    setData,
-    getSetupIntent,
-    updatePaymentMethod,
-    deletePaymentMethod,
-  } = useEmbed();
+  const { data, getSetupIntent, updatePaymentMethod, deletePaymentMethod } =
+    useEmbed();
+
+  const { defaultPaymentMethod, paymentMethods, subscription } = useMemo(() => {
+    if (isCheckoutData(data)) {
+      return {
+        defaultPaymentMethod: data.company?.defaultPaymentMethod,
+        paymentMethods: data.company?.paymentMethods || [],
+        subscription: data.subscription,
+      };
+    }
+
+    return {
+      defaultPaymentMethod: undefined,
+      paymentMethods: [],
+      subscription: undefined,
+    };
+  }, [data]);
 
   const isLightBackground = useIsLightBackground();
 
@@ -74,7 +86,7 @@ export const PaymentMethodDetails = ({
     useState(false);
   const [paymentMethod, setPaymentMethod] = useState<
     PaymentMethodResponseData | undefined
-  >(data.subscription?.paymentMethod || data.company?.defaultPaymentMethod);
+  >(subscription?.paymentMethod || defaultPaymentMethod);
 
   const monthsToExpiration = useMemo(() => {
     let expiration: number | undefined;
@@ -131,38 +143,6 @@ export const PaymentMethodDetails = ({
           if (setPaymentMethodId) {
             setPaymentMethodId(response.data.externalId);
           }
-
-          setData({
-            ...data,
-            // Optimistic update
-            // If there is subscription - we have set payment method to subscription
-            ...(data.subscription
-              ? {
-                  subscription: {
-                    ...data.subscription,
-                    paymentMethod: response.data,
-                  },
-                }
-              : {}),
-            ...(data.company
-              ? {
-                  company: {
-                    ...data.company,
-                    paymentMethods: [
-                      response.data,
-                      ...(data.company?.paymentMethods || []),
-                    ],
-                    // Optimistic update
-                    // If there is no subscription - we have updated default payment method in company
-                    ...(data.subscription
-                      ? {}
-                      : {
-                          defaultPaymentMethod: response.data,
-                        }),
-                  },
-                }
-              : {}),
-          });
         }
       } catch {
         setError(t("Error updating payment method. Please try again."));
@@ -170,7 +150,7 @@ export const PaymentMethodDetails = ({
         setIsLoading(false);
       }
     },
-    [t, data, setData, setPaymentMethodId, updatePaymentMethod],
+    [t, setPaymentMethodId, updatePaymentMethod],
   );
 
   const handleDeletePaymentMethod = useCallback(
@@ -183,24 +163,14 @@ export const PaymentMethodDetails = ({
         setIsLoading(true);
         // Payment method id is used and expected
         // Some problem with type generation
-        await deletePaymentMethod(checkoutId);
-
-        setData({
-          ...data,
-          company: {
-            ...data.company!,
-            paymentMethods: (data.company?.paymentMethods ?? []).filter(
-              (pm) => pm.id !== checkoutId,
-            ),
-          },
-        });
+        deletePaymentMethod(checkoutId);
       } catch {
         setError(t("Error deleting payment method. Please try again."));
       } finally {
         setIsLoading(false);
       }
     },
-    [t, data, setData, deletePaymentMethod],
+    [t, deletePaymentMethod],
   );
 
   useEffect(() => {
@@ -306,7 +276,7 @@ export const PaymentMethodDetails = ({
               {...props}
             />
 
-            {(data.company?.paymentMethods || []).length > 0 && (
+            {paymentMethods.length > 0 && (
               <Box>
                 <Text
                   onClick={() => {
@@ -336,7 +306,7 @@ export const PaymentMethodDetails = ({
               <Flex $flexDirection="column" $overflowY="hidden">
                 <Flex $flexDirection="column" $overflowY="scroll">
                   {(
-                    data.company?.paymentMethods.filter(
+                    paymentMethods.filter(
                       (pm) => pm.id !== paymentMethod?.id,
                     ) || []
                   ).map((paymentMethod) => (

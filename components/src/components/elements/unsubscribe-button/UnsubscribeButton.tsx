@@ -1,8 +1,9 @@
-import { forwardRef } from "react";
+import { forwardRef, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useEmbed } from "../../../hooks";
 import { ComponentStyle, ElementProps, RecursivePartial } from "../../../types";
+import { isCheckoutData } from "../../../utils";
 import { Element } from "../../layout";
 import {
   Button,
@@ -52,10 +53,14 @@ export const UnsubscribeButton = forwardRef<
 
   const { data, setLayout } = useEmbed();
 
-  const disabled =
-    !data.subscription ||
-    data.subscription.status === "cancelled" ||
-    data.subscription.cancelAtPeriodEnd;
+  const disabled = useMemo(() => {
+    return (
+      isCheckoutData(data) &&
+      (!data.subscription ||
+        data.subscription.status === "cancelled" ||
+        data.subscription.cancelAtPeriodEnd)
+    );
+  }, [data]);
 
   const buttonStyles: Record<
     ComponentStyle,

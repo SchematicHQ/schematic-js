@@ -1,7 +1,7 @@
 import { forwardRef } from "react";
 import { useTheme } from "styled-components";
 
-import type { FontStyle } from "../../../context";
+import { type FontStyle } from "../../../context";
 import {
   type ComponentProps,
   ElementProps,

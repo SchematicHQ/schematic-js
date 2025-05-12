@@ -1,182 +1,128 @@
-import merge from "lodash/merge";
 import { inflate } from "pako";
-import { useEffect, useReducer, useRef, useState } from "react";
-import { ThemeProvider } from "styled-components";
+import { useEffect, useState } from "react";
+import { useTheme } from "styled-components";
 
+import { TEXT_BASE_SIZE } from "../../const";
 import { useEmbed } from "../../hooks";
-import type {
-  SerializedEditorState,
-  SerializedNodeWithChildren,
-} from "../../types";
-import {
-  defaultSettings,
-  type EmbedSettings,
-  initialState,
-} from "./componentState";
-import { ComponentTree } from "./ComponentTree";
-import { reducer } from "./reducer";
-import { GlobalStyle } from "./styles";
+import type { SerializedNodeWithChildren } from "../../types";
+import { isCheckoutData, isError } from "../../utils";
+import { Box, Flex, Loader } from "../ui";
+import { createRenderer, getEditorState, parseEditorState } from "./renderer";
 
-function isEditorState(obj: unknown): obj is SerializedEditorState {
+const Loading = () => {
+  const theme = useTheme();
+
   return (
-    obj !== null &&
-    typeof obj === "object" &&
-    Object.entries(obj).every(([key, value]) => {
-      return typeof key === "string" && typeof value === "object";
-    })
+    <Flex
+      $width="100%"
+      $height="100%"
+      $alignItems="center"
+      $justifyContent="center"
+      $padding={`${theme.card.padding / TEXT_BASE_SIZE}rem`}
+    >
+      <Loader $color="#194BFB" $size="2xl" />
+    </Flex>
   );
-}
+};
 
-function getEditorState(json?: string) {
-  if (json) {
-    const obj = JSON.parse(json);
-    if (isEditorState(obj)) {
-      return obj;
-    }
-  }
-}
+const Error = ({ message }: { message: string }) => {
+  const theme = useTheme();
 
-function parseEditorState(data: SerializedEditorState) {
-  const initialMap: Record<string, SerializedNodeWithChildren> = {};
-  const map = Object.entries(data).reduce((acc, [nodeId, node]) => {
-    return { ...acc, [nodeId]: { ...node, id: nodeId, children: [] } };
-  }, initialMap);
-
-  const arr: SerializedNodeWithChildren[] = [];
-  Object.entries(data).forEach(([nodeId, node]) => {
-    const nodeWithChildren = map[nodeId];
-    if (node.parent) {
-      map[node.parent]?.children.push(nodeWithChildren);
-    } else {
-      arr.push(nodeWithChildren);
-    }
-  });
-
-  return arr;
-}
+  return (
+    <Flex
+      $flexDirection="column"
+      $padding={`${theme.card.padding / TEXT_BASE_SIZE}rem`}
+      $width="100%"
+      $borderRadius={`${theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
+      $backgroundColor={theme.card.background}
+      $alignItems="center"
+      $justifyContent="center"
+    >
+      <Box
+        $marginBottom={`${8 / TEXT_BASE_SIZE}rem`}
+        $fontSize={`${theme.typography.heading1.fontSize / TEXT_BASE_SIZE}rem`}
+        $fontFamily={theme.typography.heading1.fontFamily}
+        $fontWeight={theme.typography.heading1.fontWeight}
+        $color={theme.typography.heading1.color}
+      >
+        Error
+      </Box>
+      <Box
+        $marginBottom={`${8 / TEXT_BASE_SIZE}rem`}
+        $fontSize={`${theme.typography.text.fontSize / TEXT_BASE_SIZE}rem`}
+        $fontFamily={theme.typography.text.fontFamily}
+        $fontWeight={theme.typography.text.fontWeight}
+        $color={theme.typography.text.color}
+      >
+        {message}
+      </Box>
+    </Flex>
+  );
+};
 
 export interface EmbedProps {
   id?: string;
   accessToken?: string;
-  // TODO: clean-up
-  /* nodes: SerializedNodeWithChildren[];
-  settings: EmbedSettings;
-  updateSettings: (settings: RecursivePartial<EmbedSettings>) => void;
-  layout: EmbedLayout;
-  setLayout: (layout: EmbedLayout) => void;
-  mode: EmbedMode;
-  selected: EmbedSelected;
-  setSelected: (selected: EmbedSelected) => void; */
 }
 
 export const SchematicEmbed = ({ id, accessToken }: EmbedProps) => {
-  const styleRef = useRef<HTMLLinkElement>(null);
+  const renderer = createRenderer();
 
-  const [state, dispatch] = useReducer(reducer, initialState);
+  const [children, setChildren] = useState<React.ReactNode>(<Loading />);
 
-  const [error, setError] = useState<Error>();
-  const [nodes, setNodes] = useState<SerializedNodeWithChildren[]>([]);
-  const [settings, setSettings] = useState({ ...defaultSettings });
-
-  const { data, hydrateComponent } = useEmbed();
-
-  useEffect(() => {
-    const element = document.getElementById(
-      "schematic-fonts",
-    ) as HTMLLinkElement;
-    if (element) {
-      styleRef.current = element;
-      return;
-    }
-
-    const style = document.createElement("link");
-    style.id = "schematic-fonts";
-    style.rel = "stylesheet";
-    document.head.appendChild(style);
-    styleRef.current = style;
-  }, []);
+  const {
+    data,
+    error,
+    isPending,
+    hydrateComponent,
+    setError,
+    setAccessToken,
+    setSettings,
+  } = useEmbed();
 
   useEffect(() => {
-    const fontSet = new Set<string>([]);
-    Object.values(settings.theme.typography).forEach(({ fontFamily }) => {
-      fontSet.add(fontFamily);
-    });
-
-    if (fontSet.size > 0) {
-      const weights = new Array(9).fill(0).map((_, i) => (i + 1) * 100);
-      const src = `https://fonts.googleapis.com/css2?${[...fontSet]
-        .map(
-          (fontFamily) =>
-            `family=${fontFamily}:wght@${weights.join(";")}&display=swap`,
-        )
-        .join("&")}`;
-      if (styleRef.current) {
-        styleRef.current.href = src;
-      }
+    if (accessToken) {
+      setAccessToken(accessToken);
     }
-  }, [styleRef, settings.theme.typography]);
+  }, [accessToken, setAccessToken]);
 
   useEffect(() => {
-    if (id && accessToken) {
-      hydrateComponent(id, accessToken);
+    if (id) {
+      hydrateComponent(id);
     }
-  }, [id, accessToken, hydrateComponent]);
+  }, [id, hydrateComponent]);
 
   useEffect(() => {
     try {
-      // check for `hydrate` data
-      if (!data || !("component" in data)) {
-        return;
-      }
-
-      if (data.component?.ast) {
-        const parsedNodes: SerializedNodeWithChildren[] = [];
-        const parsedSettings: EmbedSettings = { ...defaultSettings };
+      if (isCheckoutData(data) && data.component?.ast) {
+        const nodes: SerializedNodeWithChildren[] = [];
         const compressed = data.component.ast;
-        // `inflate` actually returns `string | undefined`
+        // `inflate` is not guaranteed to return a string
         const json: string | undefined = inflate(
           Uint8Array.from(Object.values(compressed)),
           { to: "string" },
         );
         const ast = getEditorState(json);
         if (ast) {
-          merge(parsedSettings, ast.ROOT.props.settings);
-          setSettings(parsedSettings);
-
-          parsedNodes.push(...parseEditorState(ast));
-          setNodes(parsedNodes);
+          setSettings(ast.ROOT.props.settings);
+          nodes.push(...parseEditorState(ast));
+          setChildren(nodes.map(renderer));
         }
       }
-    } catch (error) {
-      setError(
-        error instanceof Error
-          ? error
-          : new Error("An unknown error occurred."),
-      );
+    } catch (err) {
+      if (isError(err)) {
+        setError(err);
+      }
     }
-  }, [data]);
-
-  if (accessToken?.length === 0) {
-    return <div>Please provide an access token.</div>;
-  }
-
-  if (!accessToken?.startsWith("token_")) {
-    return (
-      <div>
-        Invalid access token; your temporary access token will start with
-        "token_".
-      </div>
-    );
-  }
+  }, [data, renderer, setSettings, setError]);
 
   if (error) {
-    return <div>{error.message}</div>;
+    return <Error message={error.message} />;
   }
 
-  return (
-    <ThemeProvider theme={settings.theme}>
-      <GlobalStyle />
-      <ComponentTree nodes={nodes} state={state} dispatch={dispatch} />
-    </ThemeProvider>
-  );
+  if (isPending) {
+    return <Loading />;
+  }
+
+  return <>{children}</>;
 };

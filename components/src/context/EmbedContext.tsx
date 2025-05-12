@@ -10,37 +10,50 @@ import type {
   PreviewCheckoutResponse,
   UpdatePaymentMethodResponse,
 } from "../api/checkoutexternal";
-import { type EmbedState, initialState } from "./embedState";
+import {
+  initialState,
+  type TypographySettings,
+  type ThemeSettings,
+  type FontStyle,
+  type EmbedSettings,
+  type EmbedLayout,
+  type CheckoutState,
+  type EmbedMode,
+  type EmbedState,
+} from "./embedState";
+
+export {
+  type TypographySettings,
+  type ThemeSettings,
+  type FontStyle,
+  type EmbedLayout,
+  type CheckoutState,
+  type EmbedMode,
+};
 
 export interface EmbedContextProps extends EmbedState {
   hydratePublic: () => Promise<void>;
-  hydrateComponent: (id: string, accessToken: string) => Promise<void>;
-  listInvoices: (
-    accessToken: string,
-  ) => Promise<ListInvoicesResponse | undefined>;
-  getSetupIntent: (
-    componentId: string,
-    accessToken: string,
-  ) => Promise<GetSetupIntentResponse | undefined>;
+  hydrateComponent: (id: string) => Promise<void>;
+  listInvoices: () => Promise<ListInvoicesResponse | undefined>;
+  getSetupIntent: () => Promise<GetSetupIntentResponse | undefined>;
   updatePaymentMethod: (
     paymentMethodId: string,
-    accessToken: string,
   ) => Promise<UpdatePaymentMethodResponse | undefined>;
   deletePaymentMethod: (
     checkoutId: string,
-    accessToken: string,
   ) => Promise<DeletePaymentMethodResponse | undefined>;
   previewCheckout: (
     changeSubscriptionRequestBody: ChangeSubscriptionRequestBody,
-    accessToken: string,
   ) => Promise<PreviewCheckoutResponse | undefined>;
   checkout: (
     changeSubscriptionRequestBody: ChangeSubscriptionRequestBody,
-    accessToken: string,
   ) => Promise<CheckoutResponse | undefined>;
-  unsubscribe: (
-    accessToken: string,
-  ) => Promise<CheckoutUnsubscribeResponse | undefined>;
+  unsubscribe: () => Promise<CheckoutUnsubscribeResponse | undefined>;
+  setAccessToken: (token: string) => void;
+  setError: (error: Error) => void;
+  setSettings: (settings: EmbedSettings, update?: boolean) => void;
+  setLayout: (layout: EmbedLayout) => void;
+  setCheckoutState: (state: CheckoutState) => void;
 }
 
 const stub = () => {
@@ -58,6 +71,11 @@ export const initialContext = {
   previewCheckout: stub,
   checkout: stub,
   unsubscribe: stub,
+  setError: stub,
+  setAccessToken: stub,
+  setSettings: stub,
+  setLayout: stub,
+  setCheckoutState: stub,
 };
 
 export const EmbedContext = createContext<EmbedContextProps>(initialContext);

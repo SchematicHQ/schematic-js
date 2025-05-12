@@ -7,6 +7,7 @@ import { useEmbed } from "../../../hooks";
 import {
   formatCurrency,
   formatNumber,
+  isCheckoutData,
   getBillingPrice,
   getFeatureName,
   shortenPeriod,
@@ -33,11 +34,19 @@ export const Details = ({
     monthlyUsageBasedPrice,
     yearlyUsageBasedPrice,
   } = featureUsage;
+
   const { t } = useTranslation();
 
   const theme = useTheme();
 
   const { data } = useEmbed();
+
+  const planPeriod = useMemo(() => {
+    return isCheckoutData(data) &&
+      typeof data.company?.plan?.planPeriod === "string"
+      ? data.company.plan.planPeriod
+      : undefined;
+  }, [data]);
 
   const {
     price,
@@ -53,9 +62,7 @@ export const Details = ({
       currency: entitlementCurrency,
       packageSize: entitlementPackageSize,
     } = getBillingPrice(
-      data.company?.plan?.planPeriod === "year"
-        ? yearlyUsageBasedPrice
-        : monthlyUsageBasedPrice,
+      planPeriod === "year" ? yearlyUsageBasedPrice : monthlyUsageBasedPrice,
     ) || {};
 
     return {
@@ -65,11 +72,7 @@ export const Details = ({
       currency: entitlementCurrency,
       packageSize: entitlementPackageSize,
     };
-  }, [
-    data.company?.plan?.planPeriod,
-    monthlyUsageBasedPrice,
-    yearlyUsageBasedPrice,
-  ]);
+  }, [planPeriod, monthlyUsageBasedPrice, yearlyUsageBasedPrice]);
 
   const text = useMemo(() => {
     if (!feature) {
@@ -133,15 +136,14 @@ export const Details = ({
     let index = 0;
     if (
       priceBehavior === "pay_in_advance" &&
-      typeof data.company?.plan?.planPeriod === "string" &&
+      typeof planPeriod === "string" &&
       typeof price === "number"
     ) {
       acc.push(
         <Fragment key={index}>
           {formatCurrency(price, currency)}/
           {packageSize > 1 && <>{packageSize} </>}
-          {getFeatureName(feature, packageSize)}/
-          {shortenPeriod(data.company.plan.planPeriod)}
+          {getFeatureName(feature, packageSize)}/{shortenPeriod(planPeriod)}
         </Fragment>,
       );
       index += 1;
@@ -203,9 +205,8 @@ export const Details = ({
         const cost =
           usage - softLimit < 0 ? 0 : overagePrice * (usage - softLimit);
         const period =
-          feature.featureType === "trait" &&
-          typeof data.company?.plan?.planPeriod === "string"
-            ? `/${shortenPeriod(data.company.plan.planPeriod)}`
+          feature.featureType === "trait" && typeof planPeriod === "string"
+            ? `/${shortenPeriod(planPeriod)}`
             : "";
 
         if (cost > 0) {
@@ -234,7 +235,7 @@ export const Details = ({
     }
   }, [
     t,
-    data.company?.plan?.planPeriod,
+    planPeriod,
     feature,
     priceBehavior,
     allocation,

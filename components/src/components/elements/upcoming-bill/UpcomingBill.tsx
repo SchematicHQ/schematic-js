@@ -2,11 +2,10 @@ import { forwardRef, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 
-import { type BillingSubscriptionDiscountView } from "../../../api/checkoutexternal";
 import { type FontStyle } from "../../../context";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import type { ElementProps, RecursivePartial } from "../../../types";
-import { formatCurrency, toPrettyDate } from "../../../utils";
+import { formatCurrency, isCheckoutData, toPrettyDate } from "../../../utils";
 import { Element } from "../../layout";
 import { Box, Flex, Text } from "../../ui";
 
@@ -65,26 +64,18 @@ export const UpcomingBill = forwardRef<
   const isLightBackground = useIsLightBackground();
 
   const { upcomingInvoice, discounts } = useMemo(() => {
-    const discounts = (
-      (data.subscription?.discounts || []) as Pick<
-        BillingSubscriptionDiscountView,
-        | "amountOff"
-        | "couponId"
-        | "customerFacingCode"
-        | "isActive"
-        | "percentOff"
-      >[]
-    ).map((discount) => ({
-      amountOff: discount.amountOff,
-      couponId: discount.couponId,
-      customerFacingCode: discount.customerFacingCode,
-      isActive: discount.isActive,
-      percentOff: discount.percentOff,
-    }));
+    if (isCheckoutData(data)) {
+      const discounts = (data.subscription?.discounts || []).map(
+        (discount) => ({
+          amountOff: discount.amountOff,
+          couponId: discount.couponId,
+          customerFacingCode: discount.customerFacingCode,
+          isActive: discount.isActive,
+          percentOff: discount.percentOff,
+        }),
+      );
 
-    return {
-      discounts,
-      upcomingInvoice: {
+      const upcomingInvoice = {
         ...(typeof data.upcomingInvoice?.amountDue === "number" && {
           amountDue: data.upcomingInvoice.amountDue,
         }),
@@ -95,12 +86,22 @@ export const UpcomingBill = forwardRef<
           dueDate: toPrettyDate(new Date(data.upcomingInvoice.dueDate)),
         }),
         currency: data.upcomingInvoice?.currency,
-      },
+      };
+
+      return {
+        discounts,
+        upcomingInvoice,
+      };
+    }
+
+    return {
+      discounts: [],
+      upcomingInvoice: undefined,
     };
-  }, [data.subscription, data.upcomingInvoice]);
+  }, [data]);
 
   if (
-    typeof upcomingInvoice.amountDue !== "number" ||
+    typeof upcomingInvoice?.amountDue !== "number" ||
     !upcomingInvoice.dueDate
   ) {
     return null;

@@ -3,6 +3,7 @@ import { forwardRef, useMemo } from "react";
 import { type FontStyle } from "../../../context";
 import { useEmbed } from "../../../hooks";
 import type { ElementProps, RecursivePartial } from "../../../types";
+import { isCheckoutData } from "../../../utils";
 import { Element } from "../../layout";
 import { PaymentMethodElement } from "./PaymentMethodElement";
 
@@ -48,10 +49,12 @@ export const PaymentMethod = forwardRef<
   const { data, setLayout } = useEmbed();
 
   const paymentMethod = useMemo(() => {
-    return (
-      data.subscription?.paymentMethod || data.company?.defaultPaymentMethod
-    );
-  }, [data.company?.defaultPaymentMethod, data.subscription?.paymentMethod]);
+    if (isCheckoutData(data)) {
+      return (
+        data.subscription?.paymentMethod || data.company?.defaultPaymentMethod
+      );
+    }
+  }, [data]);
 
   const monthsToExpiration = useMemo(() => {
     let expiration: number | undefined;

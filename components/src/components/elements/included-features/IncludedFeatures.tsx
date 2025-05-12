@@ -11,7 +11,7 @@ import {
   useWrapChildren,
 } from "../../../hooks";
 import type { ElementProps, RecursivePartial } from "../../../types";
-import { toPrettyDate } from "../../../utils";
+import { isCheckoutData, toPrettyDate } from "../../../utils";
 import { Element } from "../../layout";
 import { Box, Flex, Icon, type IconNameTypes, IconRound, Text } from "../../ui";
 import { Details } from "./Details";
@@ -94,24 +94,36 @@ export const IncludedFeatures = forwardRef<
 
   const [showCount, setShowCount] = useState(VISIBLE_ENTITLEMENT_COUNT);
 
-  const featureUsage = useMemo(() => {
-    const orderedFeatureUsage = props.visibleFeatures?.reduce(
-      (acc: FeatureUsageResponseData[], id) => {
-        const mappedFeatureUsage = data.featureUsage?.features.find(
-          (usage) => usage.feature?.id === id,
-        );
+  const { plan, addOns, featureUsage } = useMemo(() => {
+    if (isCheckoutData(data)) {
+      const orderedFeatureUsage = props.visibleFeatures?.reduce(
+        (acc: FeatureUsageResponseData[], id) => {
+          const mappedFeatureUsage = data.featureUsage?.features.find(
+            (usage) => usage.feature?.id === id,
+          );
 
-        if (mappedFeatureUsage) {
-          acc.push(mappedFeatureUsage);
-        }
+          if (mappedFeatureUsage) {
+            acc.push(mappedFeatureUsage);
+          }
 
-        return acc;
-      },
-      [],
-    );
+          return acc;
+        },
+        [],
+      );
 
-    return orderedFeatureUsage || data.featureUsage?.features || [];
-  }, [props.visibleFeatures, data.featureUsage?.features]);
+      return {
+        plan: data.company?.plan,
+        addOns: data.company?.addOns,
+        featureUsage: orderedFeatureUsage || data.featureUsage?.features || [],
+      };
+    }
+
+    return {
+      plan: undefined,
+      addOns: undefined,
+      featureUsage: [],
+    };
+  }, [props.visibleFeatures, data]);
 
   const featureListSize = featureUsage.length;
 
@@ -129,10 +141,7 @@ export const IncludedFeatures = forwardRef<
   //  even if the company has no plan or add-ons).
   // * If none of the above, don't render the component.
   const shouldShowFeatures =
-    featureUsage.length > 0 ||
-    data.company?.plan ||
-    (data.company?.addOns ?? []).length > 0 ||
-    false;
+    featureUsage.length > 0 || plan || (addOns ?? []).length > 0 || false;
 
   if (!shouldShowFeatures) {
     return null;

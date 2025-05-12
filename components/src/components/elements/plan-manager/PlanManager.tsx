@@ -6,16 +6,17 @@ import { type FeatureUsageResponseData } from "../../../api/checkoutexternal";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import type { ElementProps, RecursivePartial } from "../../../types";
 import {
-  darken,
-  formatCurrency,
-  getBillingPrice,
-  getFeatureName,
   hexToHSL,
   lighten,
-  shortenPeriod,
+  darken,
   toPrettyDate,
+  formatCurrency,
+  isCheckoutData,
+  getBillingPrice,
+  getFeatureName,
+  shortenPeriod,
 } from "../../../utils";
-import { type FontStyle } from "../../embed";
+import { type FontStyle } from "../../../context";
 import { Element, Notice } from "../../layout";
 import { Box, Button, Flex, Text } from "../../ui";
 
@@ -109,7 +110,7 @@ export const PlanManager = forwardRef<
     subscription,
     trialPaymentMethodRequired,
   } = useMemo(() => {
-    if (data && "company" in data) {
+    if (isCheckoutData(data)) {
       return {
         addOns: data.company?.addOns || [],
         billingSubscription: data.company?.billingSubscription,

@@ -1,6 +1,10 @@
 import { debounce, type DebounceSettings } from "lodash";
 
-import type { FeatureDetailResponseData } from "../api/checkoutexternal";
+import { type PublicPlansResponseData } from "../api/componentspublic";
+import {
+  type ComponentHydrateResponseData,
+  type FeatureDetailResponseData,
+} from "../api/checkoutexternal";
 import { FETCH_DEBOUNCE_TIMEOUT } from "../const";
 import { type SelectedPlan } from "../hooks";
 import { pluralize } from "./pluralize";
@@ -11,22 +15,31 @@ export const debounceOptions: DebounceSettings = {
 };
 
 interface DebouncedRequestParams<T, P> {
-  fn?: (requestParameters: P, initOverrides?: RequestInit) => Promise<T>;
-  params: P;
-  token: string;
+  fn:
+    | ((requestParameters: P, initOverrides?: RequestInit) => Promise<T>)
+    | ((initOverrides?: RequestInit) => Promise<T>)
+    | undefined;
+  params?: P;
+  initOverrides?: RequestInit;
 }
 
 export function createDebouncedRequest<T, P>({
   fn,
   params,
-  token,
+  initOverrides,
 }: DebouncedRequestParams<T, P>) {
-  const requestOptions = { headers: { "X-Schematic-Api-Key": token } };
   return debounce(
-    () => fn?.(params, requestOptions),
+    // @ts-expect-error: params could potentially be request options type
+    () => (params ? fn?.(params, initOverrides) : fn?.(initOverrides)),
     FETCH_DEBOUNCE_TIMEOUT,
     debounceOptions,
   );
+}
+
+export function isCheckoutData(
+  data?: PublicPlansResponseData | ComponentHydrateResponseData,
+): data is ComponentHydrateResponseData {
+  return typeof data !== "undefined" && "company" in data;
 }
 
 export function getFeatureName(
