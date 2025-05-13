@@ -363,6 +363,7 @@ export const EmbedProvider = ({
           settings: state.settings,
           layout: state.layout,
           mode: state.mode,
+          checkoutState: state.checkoutState,
           hydratePublic,
           hydrateComponent,
           getSetupIntent,
