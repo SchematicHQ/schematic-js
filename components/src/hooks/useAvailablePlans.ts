@@ -15,7 +15,7 @@ export type SelectedPlan = (
 export function useAvailablePlans(activePeriod: string) {
   const { data, mode } = useEmbed();
 
-  const getAvailablePeriods = useCallback(() => {
+  const getAvailablePeriods = useCallback((): string[] => {
     const periods = [];
     if (
       (data?.activePlans || []).some((plan) => plan.monthlyPrice) ||
@@ -34,7 +34,9 @@ export function useAvailablePlans(activePeriod: string) {
   }, [data?.activePlans, data?.activeAddOns]);
 
   const getActivePlans = useCallback(
-    (plans: (PlanViewPublicResponseData | CompanyPlanDetailResponseData)[]) => {
+    (
+      plans: (PlanViewPublicResponseData | CompanyPlanDetailResponseData)[],
+    ): SelectedPlan[] => {
       const customPlanExist = plans.some((plan) => plan.custom);
       const plansWithSelected =
         mode === "edit"

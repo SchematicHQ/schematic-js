@@ -92,9 +92,9 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       }
     },
   );
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | undefined>();
-  const [promoCode, setPromoCode] = useState<string>();
   const [planPeriod, setPlanPeriod] = useState(() => {
     if (checkoutState?.period) {
       return checkoutState.period;
@@ -113,12 +113,41 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     periods: availablePeriods,
   } = useAvailablePlans(planPeriod);
 
+  const {
+    currentPlanId,
+    currentEntitlements,
+    isTrialing,
+    trialPaymentMethodRequired,
+  } = useMemo(() => {
+    if (isCheckoutData(data)) {
+      return {
+        currentPlanId: data.company?.plan?.id,
+        currentEntitlements: data.featureUsage
+          ? data.featureUsage.features
+          : [],
+        isTrialing: data.subscription?.status === "trialing",
+        trialPaymentMethodRequired: data.trialPaymentMethodRequired === true,
+      };
+    }
+
+    return {
+      currentPlanId: undefined,
+      currentEntitlements: [],
+      isTrialing: false,
+      trialPaymentMethodRequired: false,
+    };
+  }, [data]);
+
   const [selectedPlan, setSelectedPlan] = useState(() =>
     availablePlans.find((plan) =>
       checkoutState?.planId
         ? plan.id === checkoutState.planId
         : isHydratedPlan(plan) && plan.current,
     ),
+  );
+
+  const [willTrial, setWillTrial] = useState(
+    !isTrialing && !trialPaymentMethodRequired,
   );
 
   const [addOns, setAddOns] = useState(() => {
@@ -136,25 +165,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
     return [];
   });
-
-  const { currentPlanId, currentEntitlements, trialPaymentMethodRequired } =
-    useMemo(() => {
-      if (isCheckoutData(data)) {
-        return {
-          currentPlanId: data.company?.plan?.id,
-          currentEntitlements: data.featureUsage
-            ? data.featureUsage.features
-            : [],
-          trialPaymentMethodRequired: data.trialPaymentMethodRequired === true,
-        };
-      }
-
-      return {
-        currentPlanId: undefined,
-        currentEntitlements: [],
-        trialPaymentMethodRequired: true,
-      };
-    }, [data]);
+  const hasActiveAddOns = addOns.some((addOn) => addOn.isSelected);
 
   const [usageBasedEntitlements, setUsageBasedEntitlements] = useState(() =>
     (selectedPlan?.entitlements || []).reduce(
@@ -173,17 +184,21 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       ),
     [usageBasedEntitlements],
   );
-
-  const hasActiveAddOns = addOns.some((addOn) => addOn.isSelected);
   const hasActivePayInAdvanceEntitlements = payInAdvanceEntitlements.some(
     ({ quantity }) => quantity > 0,
   );
+
+  const [promoCode, setPromoCode] = useState<string>();
+
+  const isTrialable =
+    isHydratedPlan(selectedPlan) &&
+    selectedPlan.isTrialable &&
+    selectedPlan.companyCanTrial;
+  const isTrialableAndFree = isTrialable && !trialPaymentMethodRequired;
+  const planRequiresPayment =
+    !isTrialableAndFree || (!isTrialable && !selectedPlan.isFree);
   const requiresPayment =
-    ((isHydratedPlan(selectedPlan) && !selectedPlan?.companyCanTrial) ||
-      trialPaymentMethodRequired) &&
-    (!selectedPlan?.isFree ||
-      hasActiveAddOns ||
-      hasActivePayInAdvanceEntitlements);
+    planRequiresPayment || hasActiveAddOns || hasActivePayInAdvanceEntitlements;
 
   const checkoutStages = useMemo(() => {
     const stages: CheckoutStage[] = [
@@ -195,18 +210,18 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       },
     ];
 
-    if (payInAdvanceEntitlements.length) {
+    if (willTrial) {
+      return stages;
+    }
+
+    if (payInAdvanceEntitlements.length > 0) {
       stages.push({
         id: "usage",
         name: t("Quantity"),
       });
     }
 
-    if (
-      availableAddOns.length &&
-      isHydratedPlan(selectedPlan) &&
-      !selectedPlan?.companyCanTrial
-    ) {
+    if (availableAddOns.length) {
       stages.push({
         id: "addons",
         name: t("Add-ons"),
@@ -226,9 +241,9 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     return stages;
   }, [
     t,
+    willTrial,
     payInAdvanceEntitlements,
     availableAddOns,
-    selectedPlan,
     requiresPayment,
   ]);
 
@@ -354,7 +369,11 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   );
 
   const selectPlan = useCallback(
-    (updates: { plan?: SelectedPlan; period?: string }) => {
+    (updates: {
+      plan?: SelectedPlan;
+      period?: string;
+      shouldTrial?: boolean;
+    }) => {
       const plan = updates.plan || selectedPlan;
       if (!plan) {
         return;
@@ -371,6 +390,9 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
         setUsageBasedEntitlements(entitlements);
       }
 
+      const shouldTrial = updates.shouldTrial ?? false;
+      setWillTrial(shouldTrial && !trialPaymentMethodRequired);
+
       handlePreviewCheckout({
         period: period,
         plan: updates.plan,
@@ -379,7 +401,13 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
         ),
       });
     },
-    [planPeriod, selectedPlan, currentEntitlements, handlePreviewCheckout],
+    [
+      planPeriod,
+      selectedPlan,
+      currentEntitlements,
+      trialPaymentMethodRequired,
+      handlePreviewCheckout,
+    ],
   );
 
   const changePlanPeriod = useCallback(
@@ -585,6 +613,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
               plans={availablePlans}
               selectedPlan={selectedPlan}
               selectPlan={selectPlan}
+              willTrial={willTrial}
             />
           )}
 
@@ -634,6 +663,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           setError={(msg) => setError(msg)}
           setIsLoading={setIsLoading}
           updatePromoCode={(code) => updatePromoCode(code)}
+          willTrial={willTrial}
         />
       </Flex>
     </Modal>

@@ -1,9 +1,13 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 
 import { TEXT_BASE_SIZE, VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
-import { type SelectedPlan, useIsLightBackground } from "../../../hooks";
+import {
+  type SelectedPlan,
+  useEmbed,
+  useIsLightBackground,
+} from "../../../hooks";
 import {
   darken,
   formatCurrency,
@@ -14,6 +18,7 @@ import {
   hexToHSL,
   lighten,
   shortenPeriod,
+  isCheckoutData,
 } from "../../../utils";
 import { ButtonLink } from "../../elements/pricing-table/styles";
 import { cardBoxShadow } from "../../layout";
@@ -28,12 +33,214 @@ import {
   Tooltip,
 } from "../../ui";
 
+interface SelectedProps {
+  isCurrent?: boolean;
+  isTrial?: boolean;
+}
+
+const Selected = ({ isCurrent = false, isTrial = false }: SelectedProps) => {
+  const { t } = useTranslation();
+
+  const theme = useTheme();
+
+  const text = useMemo(() => {
+    if (isCurrent) {
+      return isTrial ? t("Trial in progress") : t("Current plan");
+    }
+
+    return isTrial ? t("Trial selected") : t("Plan selected");
+  }, [t, isCurrent, isTrial]);
+
+  return (
+    <Flex
+      $justifyContent="center"
+      $alignItems="center"
+      $gap="0.25rem"
+      $padding="0.625rem 0"
+    >
+      <Icon
+        name="check-rounded"
+        style={{
+          fontSize: 20,
+          lineHeight: 1,
+          color: theme.primary,
+        }}
+      />
+
+      <Text
+        $font={theme.typography.text.fontFamily}
+        $size={(15 / 16) * theme.typography.text.fontSize}
+        $weight={theme.typography.text.fontWeight}
+        $color={theme.typography.text.color}
+        $leading={1}
+      >
+        {text}
+      </Text>
+    </Flex>
+  );
+};
+
+interface PlanButtonGroupProps {
+  plan: SelectedPlan;
+  isLoading: boolean;
+  isSelected: boolean;
+  onSelect: (updates: {
+    plan: SelectedPlan;
+    period?: string;
+    shouldTrial?: boolean;
+  }) => void;
+  willTrial: boolean;
+}
+
+const PlanButtonGroup = ({
+  plan,
+  isLoading,
+  isSelected,
+  onSelect,
+  willTrial,
+}: PlanButtonGroupProps) => {
+  const { t } = useTranslation();
+
+  const { data } = useEmbed();
+
+  const { isCurrentPlan, isValidPlan, isTrialing } = useMemo(() => {
+    if (isCheckoutData(data)) {
+      return {
+        isCurrentPlan: data.company?.plan?.id === plan.id,
+        isValidPlan: isHydratedPlan(plan) && plan.valid,
+        isTrialing: data.subscription?.status === "trialing",
+      };
+    }
+
+    return {
+      isCurrentPlan: false,
+      isValidPlan: true,
+      isTrialing: false,
+    };
+  }, [data, plan]);
+
+  if (isHydratedPlan(plan) && plan.companyCanTrial) {
+    return (
+      <Flex $flexDirection="column" $gap="1.5rem">
+        {!isTrialing && (
+          <>
+            {isSelected && willTrial ? (
+              <Selected
+                isCurrent={isCurrentPlan}
+                isTrial={plan.companyCanTrial && willTrial}
+              />
+            ) : (
+              <Button
+                type="button"
+                disabled={(isLoading || !isValidPlan) && !plan.custom}
+                {...(!plan.custom && {
+                  onClick: () => {
+                    onSelect({
+                      plan,
+                      shouldTrial: true,
+                    });
+                  },
+                })}
+                $size="sm"
+                $color="primary"
+                $variant="filled"
+              >
+                {plan.custom ? (
+                  <ButtonLink
+                    href={plan.customPlanConfig?.ctaWebSite ?? "#"}
+                    target="_blank"
+                  >
+                    {plan.customPlanConfig?.ctaText ?? t("Talk to support")}
+                  </ButtonLink>
+                ) : !isValidPlan ? (
+                  <Tooltip
+                    trigger={t("Over usage limit")}
+                    content={t("Current usage exceeds the limit of this plan.")}
+                  />
+                ) : (
+                  t("Start X day trial", { days: plan.trialDays })
+                )}
+              </Button>
+            )}
+          </>
+        )}
+
+        {!plan.custom && (
+          <>
+            {isSelected && (!willTrial || isTrialing) ? (
+              <Selected isCurrent={isCurrentPlan} />
+            ) : (
+              <Button
+                type="button"
+                disabled={isLoading || !isValidPlan}
+                onClick={() => {
+                  onSelect({ plan, shouldTrial: false });
+                }}
+                $size="sm"
+                $color="primary"
+                $variant={isTrialing ? "filled" : "text"}
+              >
+                {!isValidPlan ? (
+                  <Tooltip
+                    trigger={t("Over usage limit")}
+                    content={t("Current usage exceeds the limit of this plan.")}
+                  />
+                ) : (
+                  t("Choose plan")
+                )}
+              </Button>
+            )}
+          </>
+        )}
+      </Flex>
+    );
+  }
+
+  return isSelected ? (
+    <Selected isCurrent={isCurrentPlan} />
+  ) : (
+    <Button
+      type="button"
+      disabled={(isLoading || !isValidPlan) && !plan.custom}
+      {...(!plan.custom && {
+        onClick: () => {
+          onSelect({ plan });
+        },
+      })}
+      $size="sm"
+      $color="primary"
+      $variant="filled"
+    >
+      {plan.custom ? (
+        <ButtonLink
+          href={plan.customPlanConfig?.ctaWebSite ?? "#"}
+          target="_blank"
+        >
+          {plan.customPlanConfig?.ctaText ?? t("Talk to support")}
+        </ButtonLink>
+      ) : !isValidPlan ? (
+        <Tooltip
+          trigger={t("Over usage limit")}
+          content={t("Current usage exceeds the limit of this plan.")}
+        />
+      ) : (
+        t("Choose plan")
+      )}
+    </Button>
+  );
+};
+
 interface PlanProps {
   isLoading: boolean;
   plans: SelectedPlan[];
   selectedPlan?: SelectedPlan;
   period: string;
-  selectPlan: (updates: { plan: SelectedPlan; period?: string }) => void;
+  selectPlan: (updates: {
+    plan: SelectedPlan;
+    period?: string;
+    shouldTrial?: boolean;
+  }) => void;
+  willTrial: boolean;
 }
 
 export const Plan = ({
@@ -42,10 +249,13 @@ export const Plan = ({
   selectedPlan,
   period,
   selectPlan,
+  willTrial,
 }: PlanProps) => {
   const { t } = useTranslation();
 
   const theme = useTheme();
+
+  const { data } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
 
@@ -72,7 +282,10 @@ export const Plan = ({
     ),
   );
 
-  const cardPadding = theme.card.padding / TEXT_BASE_SIZE;
+  const isTrialing = useMemo(
+    () => isCheckoutData(data) && data.subscription?.status === "trialing",
+    [data],
+  );
 
   const handleToggleShowAll = (id: string) => {
     setEntitlementCounts((prev) => {
@@ -89,6 +302,8 @@ export const Plan = ({
       };
     });
   };
+
+  const cardPadding = theme.card.padding / TEXT_BASE_SIZE;
 
   return (
     <>
@@ -214,7 +429,7 @@ export const Plan = ({
                         hexToHSL(theme.primary).l > 50 ? "#000000" : "#FFFFFF"
                       }
                     >
-                      {t("Active")}
+                      {isTrialing ? t("Trialing") : t("Active")}
                     </Text>
                   </Flex>
                 )}
@@ -480,79 +695,13 @@ export const Plan = ({
                   )}
                 </Flex>
 
-                {plan.id === selectedPlan?.id ? (
-                  <Flex
-                    $justifyContent="center"
-                    $alignItems="center"
-                    $gap="0.25rem"
-                    $padding="0.625rem 0"
-                  >
-                    <Icon
-                      name="check-rounded"
-                      style={{
-                        fontSize: 20,
-                        lineHeight: 1,
-                        color: theme.primary,
-                      }}
-                    />
-
-                    <Text
-                      $font={theme.typography.text.fontFamily}
-                      $size={(15 / 16) * theme.typography.text.fontSize}
-                      $weight={theme.typography.text.fontWeight}
-                      $color={theme.typography.text.color}
-                      $leading={1}
-                    >
-                      {isHydratedPlan(plan) && plan.current
-                        ? t("Current plan")
-                        : t("Selected")}
-                    </Text>
-                  </Flex>
-                ) : (
-                  <Button
-                    type="button"
-                    disabled={
-                      (isLoading || (isHydratedPlan(plan) && !plan.valid)) &&
-                      !plan.custom
-                    }
-                    {...{
-                      onClick: () => {
-                        if (plan.custom) {
-                          return;
-                        }
-
-                        selectPlan({ plan });
-                      },
-                    }}
-                    $size="sm"
-                    $color="primary"
-                    $variant={
-                      isHydratedPlan(plan) && plan.current
-                        ? "outline"
-                        : "filled"
-                    }
-                  >
-                    {plan.custom ? (
-                      <ButtonLink
-                        href={plan.customPlanConfig?.ctaWebSite ?? "#"}
-                        target="_blank"
-                      >
-                        {plan.customPlanConfig?.ctaText ?? t("Talk to support")}
-                      </ButtonLink>
-                    ) : isHydratedPlan(plan) && !plan.valid ? (
-                      <Tooltip
-                        trigger={t("Over usage limit")}
-                        content={t(
-                          "Current usage exceeds the limit of this plan.",
-                        )}
-                      />
-                    ) : isHydratedPlan(plan) && plan.companyCanTrial ? (
-                      t("Trial plan", { days: plan.trialDays })
-                    ) : (
-                      t("Choose plan")
-                    )}
-                  </Button>
-                )}
+                <PlanButtonGroup
+                  plan={plan}
+                  isLoading={isLoading}
+                  isSelected={plan.id === selectedPlan?.id}
+                  onSelect={selectPlan}
+                  willTrial={willTrial}
+                />
               </Flex>
             </Flex>
           );

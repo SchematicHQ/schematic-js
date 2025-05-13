@@ -67,6 +67,7 @@ interface SidebarProps {
   setIsLoading: Dispatch<SetStateAction<boolean>>;
   updatePromoCode?: (code?: string) => void;
   showHeader?: boolean;
+  willTrial?: boolean;
 }
 
 export const Sidebar = ({
@@ -88,6 +89,7 @@ export const Sidebar = ({
   setIsLoading,
   updatePromoCode,
   showHeader = true,
+  willTrial = false,
 }: SidebarProps) => {
   const { t } = useTranslation();
 
@@ -98,6 +100,7 @@ export const Sidebar = ({
   const isLightBackground = useIsLightBackground();
 
   const {
+    currentPlanPeriod,
     currentPlan,
     currentAddOns,
     currentEntitlements,
@@ -110,6 +113,7 @@ export const Sidebar = ({
       const currentEntitlements = data.featureUsage?.features || [];
 
       return {
+        currentPlanPeriod: data.company?.plan?.planPeriod,
         currentPlan: data.company?.plan,
         currentAddOns: data.company?.addOns || [],
         currentEntitlements,
@@ -142,6 +146,7 @@ export const Sidebar = ({
     }
 
     return {
+      currentPlanPeriod: undefined,
       currentPlan: undefined,
       currentAddOns: [],
       currentEntitlements: [],
@@ -407,6 +412,8 @@ export const Sidebar = ({
     usageBasedEntitlements,
   ]);
 
+  const willPeriodChange = planPeriod !== currentPlanPeriod;
+
   const willPlanChange =
     typeof selectedPlan !== "undefined" &&
     isHydratedPlan(selectedPlan) &&
@@ -427,7 +434,10 @@ export const Sidebar = ({
     payInAdvanceEntitlements.some(({ quantity, usage }) => quantity !== usage);
 
   const hasUnstagedChanges =
-    willPlanChange || willAddOnsChange || willPayInAdvanceEntitlementsChange;
+    willPeriodChange ||
+    willPlanChange ||
+    willAddOnsChange ||
+    willPayInAdvanceEntitlementsChange;
 
   const canUpdateSubscription = mode === "edit" || !isLoading;
   const canCheckout =
@@ -435,7 +445,7 @@ export const Sidebar = ({
     (!!paymentMethod || typeof paymentMethodId === "string");
 
   const isTrialable =
-    isHydratedPlan(selectedPlan) && selectedPlan?.companyCanTrial;
+    isHydratedPlan(selectedPlan) && selectedPlan?.companyCanTrial === true;
   const today = new Date();
   const trialEndsOn = new Date(today);
   if (isTrialable && selectedPlan.trialDays) {
@@ -1284,10 +1294,7 @@ export const Sidebar = ({
 
         {layout === "checkout" && (
           <StageButton
-            canTrial={
-              isHydratedPlan(selectedPlan) &&
-              selectedPlan?.companyCanTrial === true
-            }
+            canTrial={isTrialable}
             canCheckout={canCheckout}
             canUpdateSubscription={canUpdateSubscription}
             checkout={handleCheckout}
@@ -1300,6 +1307,7 @@ export const Sidebar = ({
             requiresPayment={requiresPayment}
             setCheckoutStage={setCheckoutStage}
             trialPaymentMethodRequired={trialPaymentMethodRequired}
+            willTrial={willTrial}
           />
         )}
 

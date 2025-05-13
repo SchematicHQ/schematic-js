@@ -121,6 +121,7 @@ export const EmbedProvider = ({
   // api methods
   const getSetupIntent = useCallback(async () => {
     const fn = debounce(
+      // @ts-expect-error: update api method to receive no id param
       () => api.checkout?.getSetupIntent(),
       FETCH_DEBOUNCE_TIMEOUT,
       debounceOptions,
