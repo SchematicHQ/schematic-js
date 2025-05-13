@@ -23,6 +23,8 @@ import {
   ChargeType,
   formatCurrency,
   formatOrdinal,
+  isCheckoutData,
+  isHydratedPlan,
   getAddOnPrice,
   getBillingPrice,
   getFeatureName,
@@ -91,39 +93,64 @@ export const Sidebar = ({
 
   const theme = useTheme();
 
-  const { data, mode, layout, hydrate, setLayout, checkout, unsubscribe } =
-    useEmbed();
+  const { data, mode, layout, setLayout, checkout, unsubscribe } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
 
-  const currentPlan = data.company?.plan;
+  const {
+    currentPlan,
+    currentAddOns,
+    currentEntitlements,
+    currentUsageBasedEntitlements,
+    billingSubscription,
+    paymentMethod,
+    trialPaymentMethodRequired,
+  } = useMemo(() => {
+    if (isCheckoutData(data)) {
+      const currentEntitlements = data.featureUsage?.features || [];
 
-  const currentAddOns = data.company?.addOns || [];
+      return {
+        currentPlan: data.company?.plan,
+        currentAddOns: data.company?.addOns || [],
+        currentEntitlements,
+        currentUsageBasedEntitlements: currentEntitlements.reduce(
+          (acc: CurrentUsageBasedEntitlement[], entitlement) => {
+            if (
+              entitlement.priceBehavior &&
+              ((planPeriod === "month" && entitlement.monthlyUsageBasedPrice) ||
+                (planPeriod === "year" && entitlement.yearlyUsageBasedPrice))
+            ) {
+              const allocation = entitlement.allocation || 0;
+              const usage = entitlement.usage || 0;
 
-  const currentUsageBasedEntitlements = useMemo(() => {
-    return (data.featureUsage?.features || []).reduce(
-      (acc: CurrentUsageBasedEntitlement[], entitlement) => {
-        if (
-          entitlement.priceBehavior &&
-          ((planPeriod === "month" && entitlement.monthlyUsageBasedPrice) ||
-            (planPeriod === "year" && entitlement.yearlyUsageBasedPrice))
-        ) {
-          const allocation = entitlement.allocation || 0;
-          const usage = entitlement.usage || 0;
+              acc.push({
+                ...entitlement,
+                allocation,
+                usage,
+                quantity: allocation ?? usage,
+              });
+            }
 
-          acc.push({
-            ...entitlement,
-            allocation,
-            usage,
-            quantity: allocation ?? usage,
-          });
-        }
+            return acc;
+          },
+          [],
+        ),
+        billingSubscription: data.company?.billingSubscription,
+        paymentMethod: data.subscription?.paymentMethod,
+        trialPaymentMethodRequired: data.trialPaymentMethodRequired === true,
+      };
+    }
 
-        return acc;
-      },
-      [],
-    );
-  }, [data.featureUsage?.features, planPeriod]);
+    return {
+      currentPlan: undefined,
+      currentAddOns: [],
+      currentEntitlements: [],
+      currentUsageBasedEntitlements: [],
+      billingSubscription: undefined,
+      paymentMethod: undefined,
+      trialPaymentMethodRequired: true,
+    };
+  }, [data, planPeriod]);
 
   const { payAsYouGoEntitlements, payInAdvanceEntitlements } = useMemo(() => {
     const payAsYouGoEntitlements: UsageBasedEntitlement[] = [];
@@ -203,14 +230,6 @@ export const Sidebar = ({
       };
     }, [charges]);
 
-  const dispatchPlanChangedEvent = <T extends object>(detail: T) => {
-    const event = new CustomEvent("plan-changed", {
-      bubbles: true,
-      detail,
-    });
-    window.dispatchEvent(event);
-  };
-
   const handleCheckout = useCallback(async () => {
     const priceId = (
       planPeriod === "year"
@@ -225,11 +244,15 @@ export const Sidebar = ({
       setError(undefined);
       setIsLoading(true);
 
-      const response = await checkout({
+      await checkout({
         newPlanId: selectedPlan.id,
         newPriceId: priceId,
         addOnIds: addOns.reduce((acc: UpdateAddOnRequestBody[], addOn) => {
-          if (addOn.isSelected && !selectedPlan.companyCanTrial) {
+          if (
+            addOn.isSelected &&
+            isHydratedPlan(selectedPlan) &&
+            !selectedPlan.companyCanTrial
+          ) {
             const addOnPriceId = getAddOnPrice(addOn, planPeriod)?.id;
 
             if (addOnPriceId) {
@@ -266,25 +289,18 @@ export const Sidebar = ({
         ...(promoCode && { promoCode }),
       });
 
-      if (response) {
-        dispatchPlanChangedEvent(response.data);
-      }
-
       setIsLoading(false);
       setLayout("portal");
-      hydrate();
     } catch {
+      setIsLoading(false);
       setLayout("checkout");
       setError(
         t("Error processing payment. Please try a different payment method."),
       );
-    } finally {
-      setIsLoading(false);
     }
   }, [
     t,
     checkout,
-    hydrate,
     paymentMethodId,
     planPeriod,
     selectedPlan,
@@ -301,21 +317,16 @@ export const Sidebar = ({
       setError(undefined);
       setIsLoading(true);
 
-      const response = await unsubscribe();
+      await unsubscribe();
 
-      if (response) {
-        dispatchPlanChangedEvent(response.data);
-      }
-
+      setIsLoading(false);
       setLayout("portal");
-      hydrate();
     } catch {
+      setIsLoading(false);
       setLayout("unsubscribe");
       setError(t("Unsubscribe failed"));
-    } finally {
-      setIsLoading(false);
     }
-  }, [t, unsubscribe, hydrate, setError, setIsLoading, setLayout]);
+  }, [t, unsubscribe, setError, setIsLoading, setLayout]);
 
   const selectedAddOns = addOns.filter((addOn) => addOn.isSelected);
 
@@ -360,7 +371,7 @@ export const Sidebar = ({
               usageBasedEntitlements.every(
                 (entitlement) => entitlement.id !== current.entitlementId,
               ) &&
-              data.featureUsage?.features.find(
+              currentEntitlements.find(
                 (usage) => usage.entitlementId === current.entitlementId,
               );
             if (match) {
@@ -391,13 +402,15 @@ export const Sidebar = ({
     };
   }, [
     selectedPlan,
-    data.featureUsage?.features,
+    currentEntitlements,
     currentUsageBasedEntitlements,
     usageBasedEntitlements,
   ]);
 
   const willPlanChange =
-    typeof selectedPlan !== "undefined" && !selectedPlan.current;
+    typeof selectedPlan !== "undefined" &&
+    isHydratedPlan(selectedPlan) &&
+    !selectedPlan.current;
 
   const removedAddOns = currentAddOns.filter(
     (current) =>
@@ -419,9 +432,10 @@ export const Sidebar = ({
   const canUpdateSubscription = mode === "edit" || !isLoading;
   const canCheckout =
     canUpdateSubscription &&
-    (!!data.subscription?.paymentMethod || typeof paymentMethodId === "string");
+    (!!paymentMethod || typeof paymentMethodId === "string");
 
-  const isTrialable = selectedPlan?.companyCanTrial;
+  const isTrialable =
+    isHydratedPlan(selectedPlan) && selectedPlan?.companyCanTrial;
   const today = new Date();
   const trialEndsOn = new Date(today);
   if (isTrialable && selectedPlan.trialDays) {
@@ -506,7 +520,7 @@ export const Sidebar = ({
         </Box>
 
         <Flex $flexDirection="column" $gap="0.5rem" $marginBottom="1.5rem">
-          {data.company?.plan && (
+          {currentPlan && (
             <Flex
               $justifyContent="space-between"
               $alignItems="center"
@@ -524,11 +538,11 @@ export const Sidebar = ({
                   $weight={theme.typography.heading4.fontWeight}
                   $color={theme.typography.heading4.color}
                 >
-                  {data.company.plan.name}
+                  {currentPlan.name}
                 </Text>
               </Box>
 
-              {typeof data.company.plan.planPrice === "number" && (
+              {typeof currentPlan.planPrice === "number" && (
                 <Box $whiteSpace="nowrap">
                   <Text
                     $font={theme.typography.text.fontFamily}
@@ -537,14 +551,11 @@ export const Sidebar = ({
                     $color={theme.typography.text.color}
                   >
                     {formatCurrency(
-                      data.company.plan.planPrice,
-                      data.company.billingSubscription?.currency,
+                      currentPlan.planPrice,
+                      billingSubscription?.currency,
                     )}
                     <sub>
-                      /
-                      {shortenPeriod(
-                        data.company.plan.planPeriod || planPeriod,
-                      )}
+                      /{shortenPeriod(currentPlan.planPeriod || planPeriod)}
                     </sub>
                   </Text>
                 </Box>
@@ -1273,7 +1284,10 @@ export const Sidebar = ({
 
         {layout === "checkout" && (
           <StageButton
-            canTrial={selectedPlan?.companyCanTrial === true}
+            canTrial={
+              isHydratedPlan(selectedPlan) &&
+              selectedPlan?.companyCanTrial === true
+            }
             canCheckout={canCheckout}
             canUpdateSubscription={canUpdateSubscription}
             checkout={handleCheckout}
@@ -1285,9 +1299,7 @@ export const Sidebar = ({
             isLoading={isLoading}
             requiresPayment={requiresPayment}
             setCheckoutStage={setCheckoutStage}
-            trialPaymentMethodRequired={
-              data.trialPaymentMethodRequired === true
-            }
+            trialPaymentMethodRequired={trialPaymentMethodRequired}
           />
         )}
 

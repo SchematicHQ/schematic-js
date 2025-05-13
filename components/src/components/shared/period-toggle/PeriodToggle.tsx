@@ -2,15 +2,14 @@ import { useLayoutEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 
-import { type CompanyPlanDetailResponseData } from "../../../api/checkoutexternal";
-import { useIsLightBackground } from "../../../hooks";
+import { useIsLightBackground, type SelectedPlan } from "../../../hooks";
 import { adjectify, getBillingPrice } from "../../../utils";
 import { Flex, Text, Tooltip } from "../../ui";
 
 interface PeriodToggleProps {
   options: string[];
   selectedOption: string;
-  selectedPlan?: CompanyPlanDetailResponseData & { isSelected: boolean };
+  selectedPlan?: SelectedPlan;
   onChange: (period: string) => void;
   layerRef?: React.RefObject<HTMLDivElement | null>;
 }

@@ -66,14 +66,13 @@ export interface EmbedProps {
 }
 
 export const SchematicEmbed = ({ id, accessToken }: EmbedProps) => {
-  const renderer = createRenderer();
-
   const [children, setChildren] = useState<React.ReactNode>(<Loading />);
 
   const {
     data,
     error,
     isPending,
+    stale,
     hydrateComponent,
     setError,
     setAccessToken,
@@ -87,12 +86,14 @@ export const SchematicEmbed = ({ id, accessToken }: EmbedProps) => {
   }, [accessToken, setAccessToken]);
 
   useEffect(() => {
-    if (id) {
+    if (id && stale) {
       hydrateComponent(id);
     }
-  }, [id, hydrateComponent]);
+  }, [id, hydrateComponent, stale]);
 
   useEffect(() => {
+    const renderer = createRenderer();
+
     try {
       if (isCheckoutData(data) && data.component?.ast) {
         const nodes: SerializedNodeWithChildren[] = [];
@@ -104,7 +105,7 @@ export const SchematicEmbed = ({ id, accessToken }: EmbedProps) => {
         );
         const ast = getEditorState(json);
         if (ast) {
-          setSettings(ast.ROOT.props.settings);
+          setSettings({ ...ast.ROOT.props.settings });
           nodes.push(...parseEditorState(ast));
           setChildren(nodes.map(renderer));
         }
@@ -114,10 +115,24 @@ export const SchematicEmbed = ({ id, accessToken }: EmbedProps) => {
         setError(err);
       }
     }
-  }, [data, renderer, setSettings, setError]);
+  }, [data, setSettings, setError]);
 
   if (error) {
     return <Error message={error.message} />;
+  }
+
+  if (accessToken?.length === 0) {
+    return <Error message="Please provide an access token." />;
+  }
+
+  if (!accessToken?.startsWith("token_")) {
+    return (
+      <Error
+        message={
+          'Invalid access token; your temporary access token will start with "token_".'
+        }
+      />
+    );
   }
 
   if (isPending) {

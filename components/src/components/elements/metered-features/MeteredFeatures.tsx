@@ -102,7 +102,7 @@ export const MeteredFeatures = forwardRef<
 
   const theme = useTheme();
 
-  const { data, setLayout, setCheckoutState } = useEmbed();
+  const { data, setCheckoutState } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
 
@@ -451,7 +451,6 @@ export const MeteredFeatures = forwardRef<
                           <Button
                             onClick={() => {
                               setCheckoutState({ usage: true });
-                              setLayout("checkout");
                             }}
                             $fullWidth={false}
                             style={{ whiteSpace: "nowrap" }}

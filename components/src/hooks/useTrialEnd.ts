@@ -1,9 +1,12 @@
+import { isCheckoutData } from "../utils";
 import { useEmbed } from ".";
 
 export function useTrialEnd() {
   const { data } = useEmbed();
 
-  const billingSubscription = data.company?.billingSubscription;
+  const billingSubscription = isCheckoutData(data)
+    ? data.company?.billingSubscription
+    : undefined;
   const trialEndDate =
     billingSubscription?.trialEnd &&
     new Date(billingSubscription.trialEnd * 1000);

@@ -135,6 +135,7 @@ export type EmbedMode = "edit" | "view";
 
 export interface EmbedState {
   isPending: boolean;
+  stale: boolean;
   accessToken?: string;
   data?: PublicPlansResponseData | ComponentHydrateResponseData;
   error?: Error;
@@ -146,6 +147,7 @@ export interface EmbedState {
 
 export const initialState: EmbedState = {
   isPending: false,
+  stale: true,
   settings: { ...defaultSettings },
   layout: "portal",
   mode: "view",

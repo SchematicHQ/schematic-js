@@ -2,9 +2,9 @@ import { MouseEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 
-import type { PreviewSubscriptionFinanceResponseData } from "../../../api/checkoutexternal";
-import type { SelectedPlan } from "../../../hooks";
-import { formatCurrency } from "../../../utils";
+import { type PreviewSubscriptionFinanceResponseData } from "../../../api/checkoutexternal";
+import { type SelectedPlan } from "../../../hooks";
+import { formatCurrency, isHydratedPlan } from "../../../utils";
 import { Box, Button, Flex, Icon, Text } from "../../ui";
 
 type ProrationProps = {
@@ -19,7 +19,9 @@ export const Proration = ({
   selectedPlan,
 }: ProrationProps) => {
   const { t } = useTranslation();
+
   const theme = useTheme();
+
   const [open, setOpen] = useState(false);
 
   const toggle = (e: MouseEvent<HTMLButtonElement>) => {
@@ -40,7 +42,9 @@ export const Proration = ({
         >
           {charges.proration > 0
             ? t("Proration")
-            : !selectedPlan?.companyCanTrial && t("Credits")}
+            : isHydratedPlan(selectedPlan) &&
+              !selectedPlan?.companyCanTrial &&
+              t("Credits")}
         </Text>
       </Box>
       <Flex $flexDirection="column" $gap="0.5rem">

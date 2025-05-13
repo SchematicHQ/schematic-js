@@ -7,7 +7,7 @@ import {
   useEmbed,
   useIsLightBackground,
 } from "../../../hooks";
-import { toPrettyDate } from "../../../utils";
+import { isCheckoutData, toPrettyDate } from "../../../utils";
 import { Box, Button, Flex, Icon, Modal, Text } from "../../ui";
 import { createActiveUsageBasedEntitlementsReducer } from "../checkout-dialog";
 import { Sidebar } from "../sidebar";
@@ -21,32 +21,47 @@ export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
 
   const theme = useTheme();
 
-  const { data, setLayout, setSelected } = useEmbed();
+  const { data, setLayout, setCheckoutState } = useEmbed();
 
   const contentRef = useRef<HTMLDivElement>(null);
 
   const [error, setError] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(false);
 
-  const planPeriod = useMemo(
-    () => data.company?.plan?.planPeriod ?? "month",
-    [data.company?.plan?.planPeriod],
-  );
+  const { planPeriod, currentPlan, currentAddOns, featureUsage, cancelDate } =
+    useMemo(() => {
+      if (isCheckoutData(data)) {
+        return {
+          planPeriod: data.company?.plan?.planPeriod || "month",
+          currentPlan: data.company?.plan,
+          currentAddOns: data.company?.addOns || [],
+          featureUsage: data.featureUsage,
+          cancelDate: new Date(
+            data.subscription?.cancelAt ||
+              data.upcomingInvoice?.dueDate ||
+              Date.now(),
+          ),
+        };
+      }
+
+      return {
+        planPeriod: "month",
+        currentPlan: undefined,
+        currentAddOns: [],
+        featureUsage: undefined,
+        cancelDate: new Date(),
+      };
+    }, [data]);
 
   const { plans: availablePlans, addOns: availableAddOns } =
     useAvailablePlans(planPeriod);
 
   const selectedPlan = useMemo(
-    () =>
-      availablePlans.find(
-        (plan) =>
-          plan.id === data.company?.plan?.id &&
-          data.company?.plan.planPeriod === planPeriod,
-      ),
-    [data.company?.plan, planPeriod, availablePlans],
+    () => availablePlans.find((plan) => plan.id === currentPlan?.id),
+    [currentPlan?.id, availablePlans],
   );
 
-  const currentEntitlements = data.featureUsage?.features || [];
+  const currentEntitlements = featureUsage?.features || [];
   const usageBasedEntitlements = (selectedPlan?.entitlements || []).reduce(
     createActiveUsageBasedEntitlementsReducer(currentEntitlements, planPeriod),
     [],
@@ -57,14 +72,9 @@ export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
       availableAddOns.map((available) => ({
         ...available,
         isSelected:
-          data.company?.addOns.some((current) => available.id === current.id) ??
-          false,
+          currentAddOns.some((current) => available.id === current.id) ?? false,
       })),
-    [data.company?.addOns, availableAddOns],
-  );
-
-  const cancelDate = new Date(
-    data.subscription?.cancelAt || data.upcomingInvoice?.dueDate || Date.now(),
+    [currentAddOns, availableAddOns],
   );
 
   const isLightBackground = useIsLightBackground();
@@ -160,12 +170,11 @@ export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
 
             <Button
               onClick={() => {
-                setSelected({
-                  planId: data.company?.plan?.id,
+                setCheckoutState({
+                  planId: currentPlan?.id,
                   addOnId: undefined,
                   usage: false,
                 });
-                setLayout("checkout");
               }}
               $size="sm"
               $color="secondary"

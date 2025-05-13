@@ -23,7 +23,7 @@ import {
   useEmbed,
   useIsLightBackground,
 } from "../../../hooks";
-import { getAddOnPrice } from "../../../utils";
+import { getAddOnPrice, isCheckoutData, isHydratedPlan } from "../../../utils";
 import { PeriodToggle } from "../../shared";
 import { Flex, Modal, ModalHeader, Text } from "../../ui";
 import { Sidebar, type UsageBasedEntitlement } from "../sidebar";
@@ -74,7 +74,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
   const theme = useTheme();
 
-  const { data, selected, previewCheckout } = useEmbed();
+  const { data, checkoutState, previewCheckout } = useEmbed();
 
   const modalRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -82,16 +82,30 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
   const [charges, setCharges] =
     useState<PreviewSubscriptionFinanceResponseData>();
+
   const [paymentMethodId, setPaymentMethodId] = useState<string | undefined>(
-    (data.subscription?.paymentMethod || data.company?.defaultPaymentMethod)
-      ?.externalId,
+    () => {
+      if (isCheckoutData(data)) {
+        return (
+          data.subscription?.paymentMethod || data.company?.defaultPaymentMethod
+        )?.externalId;
+      }
+    },
   );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | undefined>();
   const [promoCode, setPromoCode] = useState<string>();
-  const [planPeriod, setPlanPeriod] = useState(
-    selected.period || data.company?.plan?.planPeriod || "month",
-  );
+  const [planPeriod, setPlanPeriod] = useState(() => {
+    if (checkoutState?.period) {
+      return checkoutState.period;
+    }
+
+    if (isCheckoutData(data) && data.company?.plan?.planPeriod) {
+      return data.company.plan.planPeriod;
+    }
+
+    return "month";
+  });
 
   const {
     plans: availablePlans,
@@ -101,25 +115,46 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
   const [selectedPlan, setSelectedPlan] = useState(() =>
     availablePlans.find((plan) =>
-      selected.planId ? plan.id === selected.planId : plan.current,
+      checkoutState?.planId
+        ? plan.id === checkoutState.planId
+        : isHydratedPlan(plan) && plan.current,
     ),
   );
 
-  const [addOns, setAddOns] = useState(() =>
-    availableAddOns.map((addOn) => ({
-      ...addOn,
-      isSelected:
-        typeof selected.addOnId !== "undefined"
-          ? addOn.id === selected.addOnId
-          : (data.company?.addOns || []).some(
-              (currentAddOn) => addOn.id === currentAddOn.id,
-            ),
-    })),
-  );
+  const [addOns, setAddOns] = useState(() => {
+    if (isCheckoutData(data)) {
+      return availableAddOns.map((addOn) => ({
+        ...addOn,
+        isSelected:
+          typeof checkoutState?.addOnId !== "undefined"
+            ? addOn.id === checkoutState.addOnId
+            : (data.company?.addOns || []).some(
+                (currentAddOn) => addOn.id === currentAddOn.id,
+              ),
+      }));
+    }
 
-  const currentEntitlements = useMemo(() => {
-    return data.featureUsage?.features || [];
-  }, [data.featureUsage?.features]);
+    return [];
+  });
+
+  const { currentPlanId, currentEntitlements, trialPaymentMethodRequired } =
+    useMemo(() => {
+      if (isCheckoutData(data)) {
+        return {
+          currentPlanId: data.company?.plan?.id,
+          currentEntitlements: data.featureUsage
+            ? data.featureUsage.features
+            : [],
+          trialPaymentMethodRequired: data.trialPaymentMethodRequired === true,
+        };
+      }
+
+      return {
+        currentPlanId: undefined,
+        currentEntitlements: [],
+        trialPaymentMethodRequired: true,
+      };
+    }, [data]);
 
   const [usageBasedEntitlements, setUsageBasedEntitlements] = useState(() =>
     (selectedPlan?.entitlements || []).reduce(
@@ -144,7 +179,8 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     ({ quantity }) => quantity > 0,
   );
   const requiresPayment =
-    (!selectedPlan?.companyCanTrial || !!data.trialPaymentMethodRequired) &&
+    ((isHydratedPlan(selectedPlan) && !selectedPlan?.companyCanTrial) ||
+      trialPaymentMethodRequired) &&
     (!selectedPlan?.isFree ||
       hasActiveAddOns ||
       hasActivePayInAdvanceEntitlements);
@@ -166,7 +202,11 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       });
     }
 
-    if (availableAddOns.length && !selectedPlan?.companyCanTrial) {
+    if (
+      availableAddOns.length &&
+      isHydratedPlan(selectedPlan) &&
+      !selectedPlan?.companyCanTrial
+    ) {
       stages.push({
         id: "addons",
         name: t("Add-ons"),
@@ -188,21 +228,21 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     t,
     payInAdvanceEntitlements,
     availableAddOns,
-    selectedPlan?.companyCanTrial,
+    selectedPlan,
     requiresPayment,
   ]);
 
   const [checkoutStage, setCheckoutStage] = useState(() => {
-    if (selected.addOnId) {
+    if (checkoutState?.addOnId) {
       return "addons";
     }
 
-    if (selected.usage) {
+    if (checkoutState?.usage) {
       return "usage";
     }
 
     // the user has preselected a different plan before starting the checkout flow
-    if (selected.planId !== data.company?.plan?.id) {
+    if (checkoutState?.planId !== currentPlanId) {
       return checkoutStages.some((stage) => stage.id === "usage")
         ? "usage"
         : checkoutStages.some((stage) => stage.id === "addons")
@@ -285,9 +325,9 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
         if (response) {
           setCharges(response.data.finance);
         }
-      } catch (error) {
-        if (error instanceof ResponseError && error.response.status === 401) {
-          const data = await error.response.json();
+      } catch (err) {
+        if (err instanceof ResponseError && err.response.status === 401) {
+          const data = await err.response.json();
           if (data.error === "Access Token Invalid") {
             return setError(
               t("Session expired. Please refresh and try again."),

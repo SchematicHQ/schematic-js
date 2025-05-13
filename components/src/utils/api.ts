@@ -1,8 +1,12 @@
 import { debounce, type DebounceSettings } from "lodash";
 
-import { type PublicPlansResponseData } from "../api/componentspublic";
+import {
+  type PublicPlansResponseData,
+  type PlanViewPublicResponseData,
+} from "../api/componentspublic";
 import {
   type ComponentHydrateResponseData,
+  type CompanyPlanDetailResponseData,
   type FeatureDetailResponseData,
 } from "../api/checkoutexternal";
 import { FETCH_DEBOUNCE_TIMEOUT } from "../const";
@@ -40,6 +44,12 @@ export function isCheckoutData(
   data?: PublicPlansResponseData | ComponentHydrateResponseData,
 ): data is ComponentHydrateResponseData {
   return typeof data !== "undefined" && "company" in data;
+}
+
+export function isHydratedPlan(
+  plan?: PlanViewPublicResponseData | CompanyPlanDetailResponseData,
+): plan is CompanyPlanDetailResponseData {
+  return typeof plan !== "undefined" && "current" in plan;
 }
 
 export function getFeatureName(

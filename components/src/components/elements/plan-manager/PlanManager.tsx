@@ -87,14 +87,14 @@ export const PlanManager = forwardRef<
     React.HTMLAttributes<HTMLDivElement> & {
       portal?: HTMLElement | null;
     }
->(({ children, className, portal, state, dispatch, ...rest }, ref) => {
+>(({ children, className, portal, ...rest }, ref) => {
   const props = resolveDesignProps(rest);
 
   const theme = useTheme();
 
   const { t } = useTranslation();
 
-  const { data } = useEmbed();
+  const { data, setCheckoutState } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
 
@@ -515,15 +515,11 @@ export const PlanManager = forwardRef<
           <Button
             type="button"
             onClick={() => {
-              dispatch?.({
-                type: "SET_SELECTED",
-                selected: {
-                  planId: currentPlan?.id,
-                  addOnId: undefined,
-                  usage: false,
-                },
+              setCheckoutState({
+                planId: currentPlan?.id,
+                addOnId: undefined,
+                usage: false,
               });
-              dispatch?.({ type: "CHANGE_LAYOUT", layout: "checkout" });
             }}
             $size={props.callToAction.buttonSize}
             $color={props.callToAction.buttonStyle}

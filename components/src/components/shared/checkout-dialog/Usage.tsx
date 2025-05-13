@@ -1,8 +1,8 @@
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 
-import type { CompanyPlanDetailResponseData } from "../../../api/checkoutexternal";
 import { TEXT_BASE_SIZE } from "../../../const";
+import { type SelectedPlan } from "../../../hooks";
 import {
   darken,
   formatCurrency,
@@ -19,7 +19,7 @@ import { type UsageBasedEntitlement } from "../sidebar";
 interface UsageProps {
   isLoading: boolean;
   period: string;
-  selectedPlan?: CompanyPlanDetailResponseData & { isSelected: boolean };
+  selectedPlan?: SelectedPlan;
   entitlements: UsageBasedEntitlement[];
   updateQuantity: (id: string, quantity: number) => void;
 }

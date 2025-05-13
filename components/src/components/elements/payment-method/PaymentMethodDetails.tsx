@@ -126,15 +126,11 @@ export const PaymentMethodDetails = ({
   }, [t, getSetupIntent]);
 
   const handleUpdatePaymentMethod = useCallback(
-    async (externalId: string) => {
-      if (!externalId) {
-        return;
-      }
-
+    async (paymentMethodId: string) => {
       try {
         setIsLoading(true);
 
-        const response = await updatePaymentMethod(externalId);
+        const response = await updatePaymentMethod(paymentMethodId);
         if (response) {
           setPaymentMethod(response.data);
 
@@ -154,16 +150,12 @@ export const PaymentMethodDetails = ({
   );
 
   const handleDeletePaymentMethod = useCallback(
-    async (checkoutId: string) => {
-      if (!checkoutId) {
-        return;
-      }
-
+    async (paymentMethodId: string) => {
       try {
         setIsLoading(true);
         // Payment method id is used and expected
         // Some problem with type generation
-        deletePaymentMethod(checkoutId);
+        deletePaymentMethod(paymentMethodId);
       } catch {
         setError(t("Error deleting payment method. Please try again."));
       } finally {

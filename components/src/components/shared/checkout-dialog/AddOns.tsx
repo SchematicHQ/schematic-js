@@ -1,11 +1,12 @@
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 
-import type { CompanyPlanDetailResponseData } from "../../../api/checkoutexternal";
 import { TEXT_BASE_SIZE } from "../../../const";
+import { type SelectedPlan } from "../../../hooks";
 import {
   ChargeType,
   formatCurrency,
+  isHydratedPlan,
   getAddOnPrice,
   getBillingPrice,
   hexToHSL,
@@ -14,7 +15,7 @@ import { cardBoxShadow } from "../../layout";
 import { Box, Button, Flex, Icon, Text } from "../../ui";
 
 interface AddOnsProps {
-  addOns: (CompanyPlanDetailResponseData & { isSelected: boolean })[];
+  addOns: SelectedPlan[];
   toggle: (id: string) => void;
   isLoading: boolean;
   period: string;
@@ -39,6 +40,8 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
         {addOns.map((addOn, index) => {
           const { price, currency } =
             getBillingPrice(getAddOnPrice(addOn, period)) || {};
+          const isAddOnValid = isHydratedPlan(addOn) && addOn.valid;
+          const isAddOnCurrent = isHydratedPlan(addOn) && addOn.current;
 
           return (
             <Flex
@@ -106,7 +109,7 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
                   </Box>
                 )}
 
-                {addOn.current && (
+                {isAddOnCurrent && (
                   <Flex
                     $position="absolute"
                     $right="1rem"
@@ -133,7 +136,7 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
                 {!addOn.isSelected ? (
                   <Button
                     type="button"
-                    disabled={isLoading || !addOn.valid}
+                    disabled={isLoading || !isAddOnValid}
                     onClick={() => toggle(addOn.id)}
                     $size="sm"
                     $color="primary"
@@ -144,13 +147,13 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
                 ) : (
                   <Button
                     type="button"
-                    disabled={isLoading || !addOn.valid}
+                    disabled={isLoading || !isAddOnValid}
                     onClick={() => toggle(addOn.id)}
                     $size="sm"
-                    $color={addOn.current ? "danger" : "primary"}
-                    $variant={addOn.current ? "ghost" : "text"}
+                    $color={isAddOnCurrent ? "danger" : "primary"}
+                    $variant={isAddOnCurrent ? "ghost" : "text"}
                   >
-                    {addOn.current ? (
+                    {isAddOnCurrent ? (
                       t("Remove add-on")
                     ) : (
                       <>

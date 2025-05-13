@@ -2,6 +2,8 @@ import { merge } from "lodash";
 
 import {
   type ComponentHydrateResponseData,
+  type DeleteResponse,
+  type BillingSubscriptionResponseData,
   type PaymentMethodResponseData,
 } from "../api/checkoutexternal";
 import { type PublicPlansResponseData } from "../api/componentspublic";
@@ -16,11 +18,21 @@ import {
 } from "./embedState";
 import { isCheckoutData } from "../utils";
 
+const dispatchPlanChangedEvent = <T extends object>(detail: T) => {
+  const event = new CustomEvent("plan-changed", {
+    bubbles: true,
+    detail,
+  });
+  window.dispatchEvent(event);
+};
+
 type EmbedAction =
   | { type: "SET_ACCESS_TOKEN"; token: string }
   | { type: "HYDRATE_STARTED" }
-  | { type: "HYDRATE_PUBLIC"; data?: PublicPlansResponseData }
-  | { type: "HYDRATE_COMPONENT"; data?: ComponentHydrateResponseData }
+  | { type: "HYDRATE_PUBLIC"; data: PublicPlansResponseData }
+  | { type: "HYDRATE_COMPONENT"; data: ComponentHydrateResponseData }
+  | { type: "CHECKOUT"; data: BillingSubscriptionResponseData }
+  | { type: "UNSUBSCRIBE"; data: DeleteResponse }
   | { type: "UPDATE_PAYMENT_METHOD"; paymentMethod: PaymentMethodResponseData }
   | { type: "DELETE_PAYMENT_METHOD"; paymentMethodId: string }
   | { type: "RESET" }
@@ -57,6 +69,17 @@ export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {
         data: action.data,
         error: undefined,
         isPending: false,
+        stale: false,
+      };
+    }
+
+    case "CHECKOUT":
+    case "UNSUBSCRIBE": {
+      dispatchPlanChangedEvent(action.data);
+
+      return {
+        ...state,
+        stale: true,
       };
     }
 
@@ -93,7 +116,7 @@ export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {
         const data = { ...state.data };
 
         if (data.company) {
-          const paymentMethods = data.company.paymentMethods;
+          const paymentMethods = [...data.company.paymentMethods];
           data.company.paymentMethods = paymentMethods.filter(
             (paymentMethod) => paymentMethod.id !== action.paymentMethodId,
           );
@@ -150,7 +173,8 @@ export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {
     case "SET_CHECKOUT_STATE": {
       return {
         ...state,
-        checkoutState: action.state,
+        layout: "checkout",
+        checkoutState: { ...action.state },
       };
     }
   }

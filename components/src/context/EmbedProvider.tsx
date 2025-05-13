@@ -1,6 +1,6 @@
 import "../localization";
 
-import { merge } from "lodash";
+import { debounce, merge } from "lodash";
 import {
   useCallback,
   useEffect,
@@ -22,7 +22,8 @@ import {
   ComponentspublicApi,
   Configuration as PublicConfiguration,
 } from "../api/componentspublic";
-import { createDebouncedRequest, isError } from "../utils";
+import { FETCH_DEBOUNCE_TIMEOUT } from "../const";
+import { debounceOptions, isError } from "../utils";
 import { EmbedContext } from "./EmbedContext";
 import { reducer } from "./embedReducer";
 import {
@@ -67,13 +68,15 @@ export const EmbedProvider = ({
 
   // hydration
   const hydratePublic = useCallback(async () => {
-    const fn = createDebouncedRequest({ fn: api.public?.getPublicPlans });
-
     dispatch({ type: "HYDRATE_STARTED" });
 
     try {
+      const fn = debounce(
+        () => api.public?.getPublicPlans(),
+        FETCH_DEBOUNCE_TIMEOUT,
+        debounceOptions,
+      );
       const response = await fn();
-
       if (response) {
         dispatch({
           type: "HYDRATE_PUBLIC",
@@ -90,16 +93,15 @@ export const EmbedProvider = ({
 
   const hydrateComponent = useCallback(
     async (id: string) => {
-      const fn = createDebouncedRequest({
-        fn: api.checkout?.hydrateComponent,
-        params: { componentId: id },
-      });
-
       dispatch({ type: "HYDRATE_STARTED" });
 
       try {
+        const fn = debounce(
+          () => api.checkout?.hydrateComponent({ componentId: id }),
+          FETCH_DEBOUNCE_TIMEOUT,
+          debounceOptions,
+        );
         const response = await fn();
-
         if (response) {
           dispatch({
             type: "HYDRATE_COMPONENT",
@@ -118,19 +120,25 @@ export const EmbedProvider = ({
 
   // api methods
   const getSetupIntent = useCallback(async () => {
-    const fn = createDebouncedRequest({
-      fn: api.checkout?.getSetupIntent,
-    });
+    const fn = debounce(
+      () => api.checkout?.getSetupIntent(),
+      FETCH_DEBOUNCE_TIMEOUT,
+      debounceOptions,
+    );
 
     return fn();
   }, [api.checkout]);
 
   const updatePaymentMethod = useCallback(
     async (paymentMethodId: string) => {
-      const fn = createDebouncedRequest({
-        fn: api.checkout?.updatePaymentMethod,
-        params: { updatePaymentMethodRequestBody: { paymentMethodId } },
-      });
+      const fn = debounce(
+        () =>
+          api.checkout?.updatePaymentMethod({
+            updatePaymentMethodRequestBody: { paymentMethodId },
+          }),
+        FETCH_DEBOUNCE_TIMEOUT,
+        debounceOptions,
+      );
 
       const response = await fn();
       if (response) {
@@ -147,10 +155,12 @@ export const EmbedProvider = ({
 
   const deletePaymentMethod = useCallback(
     async (paymentMethodId: string) => {
-      const fn = createDebouncedRequest({
-        fn: api.checkout?.deletePaymentMethod,
-        params: { checkoutId: paymentMethodId },
-      });
+      const fn = debounce(
+        () =>
+          api.checkout?.deletePaymentMethod({ checkoutId: paymentMethodId }),
+        FETCH_DEBOUNCE_TIMEOUT,
+        debounceOptions,
+      );
 
       const response = await fn();
       if (response) {
@@ -167,22 +177,32 @@ export const EmbedProvider = ({
 
   const checkout = useCallback(
     async (changeSubscriptionRequestBody: ChangeSubscriptionRequestBody) => {
-      const fn = createDebouncedRequest({
-        fn: api.checkout?.checkout,
-        params: { changeSubscriptionRequestBody },
-      });
+      const fn = debounce(
+        () => api.checkout?.checkout({ changeSubscriptionRequestBody }),
+        FETCH_DEBOUNCE_TIMEOUT,
+        debounceOptions,
+      );
 
-      return fn();
+      const response = await fn();
+      if (response) {
+        dispatch({
+          type: "CHECKOUT",
+          data: response.data,
+        });
+      }
+
+      return response;
     },
     [api.checkout],
   );
 
   const previewCheckout = useCallback(
     async (changeSubscriptionRequestBody: ChangeSubscriptionRequestBody) => {
-      const fn = createDebouncedRequest({
-        fn: api.checkout?.previewCheckout,
-        params: { changeSubscriptionRequestBody },
-      });
+      const fn = debounce(
+        () => api.checkout?.previewCheckout({ changeSubscriptionRequestBody }),
+        FETCH_DEBOUNCE_TIMEOUT,
+        debounceOptions,
+      );
 
       return fn();
     },
@@ -190,41 +210,56 @@ export const EmbedProvider = ({
   );
 
   const unsubscribe = useCallback(async () => {
-    const fn = createDebouncedRequest({
-      fn: api.checkout?.checkoutUnsubscribe,
-    });
+    const fn = debounce(
+      () => api.checkout?.checkoutUnsubscribe(),
+      FETCH_DEBOUNCE_TIMEOUT,
+      debounceOptions,
+    );
 
-    return fn();
+    const response = await fn();
+    if (response) {
+      dispatch({
+        type: "UNSUBSCRIBE",
+        data: response.data,
+      });
+    }
+
+    return response;
   }, [api.checkout]);
 
   const listInvoices = useCallback(async () => {
-    const fn = createDebouncedRequest({
-      fn: api.checkout?.listInvoices,
-    });
+    const fn = debounce(
+      () => api.checkout?.listInvoices(),
+      FETCH_DEBOUNCE_TIMEOUT,
+      debounceOptions,
+    );
 
     return fn();
   }, [api.checkout]);
 
   // components
-  const setError = (error: Error) => {
+  const setError = useCallback((error: Error) => {
     dispatch({ type: "ERROR", error });
-  };
+  }, []);
 
-  const setAccessToken = (token: string) => {
+  const setAccessToken = useCallback((token: string) => {
     dispatch({ type: "SET_ACCESS_TOKEN", token });
-  };
+  }, []);
 
-  const setSettings = (settings: EmbedSettings, update?: boolean) => {
-    dispatch({ type: "SET_SETTINGS", settings, update });
-  };
+  const setSettings = useCallback(
+    (settings: EmbedSettings, update?: boolean) => {
+      dispatch({ type: "SET_SETTINGS", settings, update });
+    },
+    [],
+  );
 
-  const setLayout = (layout: EmbedLayout) => {
+  const setLayout = useCallback((layout: EmbedLayout) => {
     dispatch({ type: "CHANGE_LAYOUT", layout });
-  };
+  }, []);
 
-  const setCheckoutState = (state: CheckoutState) => {
+  const setCheckoutState = useCallback((state: CheckoutState) => {
     dispatch({ type: "SET_CHECKOUT_STATE", state });
-  };
+  }, []);
 
   useEffect(() => {
     const element = document.getElementById(
@@ -262,24 +297,6 @@ export const EmbedProvider = ({
     }
   }, [styleRef, state.settings.theme.typography]);
 
-  useEffect(() => {
-    if (state.accessToken?.length === 0) {
-      dispatch({
-        type: "ERROR",
-        error: new Error("Please provide an access token."),
-      });
-    }
-
-    if (!state.accessToken?.startsWith("token_")) {
-      dispatch({
-        type: "ERROR",
-        error: new Error(
-          'Invalid access token; your temporary access token will start with "token_".',
-        ),
-      });
-    }
-  }, [state.accessToken]);
-
   const customHeaders = useMemo(
     () => ({
       "X-Schematic-Components-Version":
@@ -293,9 +310,12 @@ export const EmbedProvider = ({
     if (apiKey) {
       const configParams = { ...apiConfig, apiKey };
       merge(configParams.headers, customHeaders);
+      const publicApi = new ComponentspublicApi(
+        new PublicConfiguration(configParams),
+      );
       setApi((prev) => ({
         ...prev,
-        public: new ComponentspublicApi(new PublicConfiguration(configParams)),
+        public: publicApi,
       }));
     }
   }, [apiKey, apiConfig, customHeaders]);
@@ -337,6 +357,7 @@ export const EmbedProvider = ({
       <EmbedContext.Provider
         value={{
           isPending: state.isPending,
+          stale: state.stale,
           data: state.data,
           error: state.error,
           settings: state.settings,

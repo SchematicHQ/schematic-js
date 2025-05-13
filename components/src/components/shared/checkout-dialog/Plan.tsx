@@ -8,6 +8,7 @@ import {
   darken,
   formatCurrency,
   formatNumber,
+  isHydratedPlan,
   getBillingPrice,
   getFeatureName,
   hexToHSL,
@@ -196,7 +197,7 @@ export const Plan = ({
                   )}
                 </Box>
 
-                {plan.current && (
+                {isHydratedPlan(plan) && plan.current && (
                   <Flex
                     $position="absolute"
                     $right="1rem"
@@ -502,13 +503,18 @@ export const Plan = ({
                       $color={theme.typography.text.color}
                       $leading={1}
                     >
-                      {plan.current ? t("Current plan") : t("Selected")}
+                      {isHydratedPlan(plan) && plan.current
+                        ? t("Current plan")
+                        : t("Selected")}
                     </Text>
                   </Flex>
                 ) : (
                   <Button
                     type="button"
-                    disabled={(isLoading || !plan.valid) && !plan.custom}
+                    disabled={
+                      (isLoading || (isHydratedPlan(plan) && !plan.valid)) &&
+                      !plan.custom
+                    }
                     {...{
                       onClick: () => {
                         if (plan.custom) {
@@ -520,7 +526,11 @@ export const Plan = ({
                     }}
                     $size="sm"
                     $color="primary"
-                    $variant={plan.current ? "outline" : "filled"}
+                    $variant={
+                      isHydratedPlan(plan) && plan.current
+                        ? "outline"
+                        : "filled"
+                    }
                   >
                     {plan.custom ? (
                       <ButtonLink
@@ -529,14 +539,14 @@ export const Plan = ({
                       >
                         {plan.customPlanConfig?.ctaText ?? t("Talk to support")}
                       </ButtonLink>
-                    ) : !plan.valid ? (
+                    ) : isHydratedPlan(plan) && !plan.valid ? (
                       <Tooltip
                         trigger={t("Over usage limit")}
                         content={t(
                           "Current usage exceeds the limit of this plan.",
                         )}
                       />
-                    ) : plan.companyCanTrial ? (
+                    ) : isHydratedPlan(plan) && plan.companyCanTrial ? (
                       t("Trial plan", { days: plan.trialDays })
                     ) : (
                       t("Choose plan")

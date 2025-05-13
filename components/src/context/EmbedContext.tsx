@@ -26,9 +26,11 @@ export {
   type TypographySettings,
   type ThemeSettings,
   type FontStyle,
+  type EmbedSettings,
   type EmbedLayout,
   type CheckoutState,
   type EmbedMode,
+  type EmbedState,
 };
 
 export interface EmbedContextProps extends EmbedState {
