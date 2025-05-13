@@ -7,11 +7,11 @@ import { isCheckoutData } from "../../../utils";
 import { Element } from "../../layout";
 import {
   Button,
+  ButtonSize,
+  Flex,
   type ButtonAlignment,
   type ButtonColor,
-  ButtonSize,
   type ButtonVariant,
-  Flex,
 } from "../../ui";
 
 interface DesignProps {

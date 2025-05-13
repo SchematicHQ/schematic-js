@@ -2,6 +2,7 @@ import { forwardRef } from "react";
 
 import type { ComponentHydrateResponseData } from "../../../api/checkoutexternal";
 import { type EmbedSettings } from "../../../context";
+
 import { Container } from "./styles";
 
 export { Container };

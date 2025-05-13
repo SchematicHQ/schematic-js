@@ -13,7 +13,8 @@ import {
 import type { ElementProps, RecursivePartial } from "../../../types";
 import { isCheckoutData, toPrettyDate } from "../../../utils";
 import { Element } from "../../layout";
-import { Box, Flex, Icon, type IconNameTypes, IconRound, Text } from "../../ui";
+import { Box, Flex, Icon, IconRound, Text, type IconNameTypes } from "../../ui";
+
 import { Details } from "./Details";
 
 export interface DesignProps {

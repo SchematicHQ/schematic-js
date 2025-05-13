@@ -1,8 +1,8 @@
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 
-import { useEmbed } from "../../../hooks";
 import { Flex, Text } from "..";
+import { useEmbed } from "../../../hooks";
 
 export const Badge = () => {
   const { t } = useTranslation();

@@ -2,13 +2,13 @@ import { forwardRef, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 
-import { type PlanViewPublicResponseData } from "../../../api/componentspublic";
 import {
   type BillingPriceView,
   type CompanyPlanDetailResponseData,
 } from "../../../api/checkoutexternal";
-import { type FontStyle } from "../../../context";
+import { type PlanViewPublicResponseData } from "../../../api/componentspublic";
 import { TEXT_BASE_SIZE, VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
+import { type FontStyle } from "../../../context";
 import {
   useAvailablePlans,
   useEmbed,
@@ -17,26 +17,26 @@ import {
 } from "../../../hooks";
 import type { ElementProps, RecursivePartial } from "../../../types";
 import {
-  hexToHSL,
   formatCurrency,
   formatNumber,
-  isCheckoutData,
   getBillingPrice,
   getFeatureName,
-  shortenPeriod,
+  hexToHSL,
+  isCheckoutData,
   isHydratedPlan,
+  shortenPeriod,
 } from "../../../utils";
-import { cardBoxShadow, FussyChild } from "../../layout";
+import { FussyChild, cardBoxShadow } from "../../layout";
 import { PeriodToggle } from "../../shared";
 import {
   Box,
   Button,
   Flex,
   Icon,
-  type IconNameTypes,
   IconRound,
   Text,
   Tooltip,
+  type IconNameTypes,
 } from "../../ui";
 
 const entitlementCountsReducer = (

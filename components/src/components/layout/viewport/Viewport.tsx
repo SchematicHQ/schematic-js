@@ -6,6 +6,7 @@ import { useEmbed } from "../../../hooks";
 import { CheckoutDialog, PaymentDialog, UnsubscribeDialog } from "../../shared";
 import { Badge } from "../../ui/badge";
 import { RenderLayout } from "../RenderLayout";
+
 import { StyledViewport } from "./styles";
 
 export interface ViewportProps extends React.HTMLProps<HTMLDivElement> {

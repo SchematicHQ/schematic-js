@@ -13,9 +13,9 @@ import { ThemeProvider } from "styled-components";
 import { v4 as uuidv4 } from "uuid";
 
 import {
-  type ChangeSubscriptionRequestBody,
   CheckoutexternalApi,
   Configuration as CheckoutConfiguration,
+  type ChangeSubscriptionRequestBody,
   type ConfigurationParameters,
 } from "../api/checkoutexternal";
 import {
@@ -24,13 +24,14 @@ import {
 } from "../api/componentspublic";
 import { FETCH_DEBOUNCE_TIMEOUT } from "../const";
 import { debounceOptions, isError } from "../utils";
+
 import { EmbedContext } from "./EmbedContext";
 import { reducer } from "./embedReducer";
 import {
-  type EmbedSettings,
-  type EmbedLayout,
-  type CheckoutState,
   initialState,
+  type CheckoutState,
+  type EmbedLayout,
+  type EmbedSettings,
 } from "./embedState";
 import { GlobalStyle } from "./globalStyle";
 

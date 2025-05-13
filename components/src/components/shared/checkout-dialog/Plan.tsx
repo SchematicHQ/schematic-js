@@ -4,21 +4,21 @@ import { useTheme } from "styled-components";
 
 import { TEXT_BASE_SIZE, VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
 import {
-  type SelectedPlan,
   useEmbed,
   useIsLightBackground,
+  type SelectedPlan,
 } from "../../../hooks";
 import {
   darken,
   formatCurrency,
   formatNumber,
-  isHydratedPlan,
   getBillingPrice,
   getFeatureName,
   hexToHSL,
+  isCheckoutData,
+  isHydratedPlan,
   lighten,
   shortenPeriod,
-  isCheckoutData,
 } from "../../../utils";
 import { ButtonLink } from "../../elements/pricing-table/styles";
 import { cardBoxShadow } from "../../layout";
@@ -27,10 +27,10 @@ import {
   Button,
   Flex,
   Icon,
-  type IconNameTypes,
   IconRound,
   Text,
   Tooltip,
+  type IconNameTypes,
 } from "../../ui";
 
 interface SelectedProps {

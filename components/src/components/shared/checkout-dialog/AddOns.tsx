@@ -6,10 +6,10 @@ import { type SelectedPlan } from "../../../hooks";
 import {
   ChargeType,
   formatCurrency,
-  isHydratedPlan,
   getAddOnPrice,
   getBillingPrice,
   hexToHSL,
+  isHydratedPlan,
 } from "../../../utils";
 import { cardBoxShadow } from "../../layout";
 import { Box, Button, Flex, Icon, Text } from "../../ui";

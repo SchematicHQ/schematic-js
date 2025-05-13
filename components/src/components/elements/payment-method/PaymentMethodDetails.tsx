@@ -10,13 +10,14 @@ import type {
 } from "../../../api/checkoutexternal";
 import { type FontStyle } from "../../../context";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
+import { isCheckoutData } from "../../../utils";
 import { PaymentForm } from "../../shared";
 import { Box, Button, Flex, Icon, Loader, Text } from "../../ui";
+
 import {
   PaymentListElement,
   PaymentMethodElement,
 } from "./PaymentMethodElement";
-import { isCheckoutData } from "../../../utils";
 
 interface DesignProps {
   header: {

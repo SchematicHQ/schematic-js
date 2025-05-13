@@ -3,20 +3,20 @@ import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 
 import { type FeatureUsageResponseData } from "../../../api/checkoutexternal";
+import { type FontStyle } from "../../../context";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import type { ElementProps, RecursivePartial } from "../../../types";
 import {
-  hexToHSL,
-  lighten,
   darken,
-  toPrettyDate,
   formatCurrency,
-  isCheckoutData,
   getBillingPrice,
   getFeatureName,
+  hexToHSL,
+  isCheckoutData,
+  lighten,
   shortenPeriod,
+  toPrettyDate,
 } from "../../../utils";
-import { type FontStyle } from "../../../context";
 import { Element, Notice } from "../../layout";
 import { Box, Button, Flex, Text } from "../../ui";
 

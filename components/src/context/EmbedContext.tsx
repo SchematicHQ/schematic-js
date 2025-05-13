@@ -10,27 +10,28 @@ import type {
   PreviewCheckoutResponse,
   UpdatePaymentMethodResponse,
 } from "../api/checkoutexternal";
+
 import {
   initialState,
-  type TypographySettings,
-  type ThemeSettings,
-  type FontStyle,
-  type EmbedSettings,
-  type EmbedLayout,
   type CheckoutState,
+  type EmbedLayout,
   type EmbedMode,
+  type EmbedSettings,
   type EmbedState,
+  type FontStyle,
+  type ThemeSettings,
+  type TypographySettings,
 } from "./embedState";
 
 export {
-  type TypographySettings,
-  type ThemeSettings,
-  type FontStyle,
-  type EmbedSettings,
-  type EmbedLayout,
   type CheckoutState,
+  type EmbedLayout,
   type EmbedMode,
+  type EmbedSettings,
   type EmbedState,
+  type FontStyle,
+  type ThemeSettings,
+  type TypographySettings,
 };
 
 export interface EmbedContextProps extends EmbedState {

@@ -5,6 +5,7 @@ import { useEmbed } from "../../../hooks";
 import type { ElementProps, RecursivePartial } from "../../../types";
 import { isCheckoutData } from "../../../utils";
 import { Element } from "../../layout";
+
 import { PaymentMethodElement } from "./PaymentMethodElement";
 
 interface DesignProps {

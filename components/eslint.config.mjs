@@ -41,6 +41,20 @@ export default defineConfig([
       "import/newline-after-import": "error",
       "import/no-duplicates": "error",
       "import/no-named-as-default": "off",
+      "import/order": [
+        "error",
+        {
+          "newlines-between": "always",
+          alphabetize: {
+            order: "asc",
+            orderImportKind: "asc",
+          },
+          named: {
+            enabled: true,
+            types: "types-last",
+          },
+        },
+      ],
     },
     settings: {
       "import/extensions": [".ts", ".tsx"],

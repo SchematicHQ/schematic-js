@@ -1,13 +1,15 @@
 import { merge } from "lodash";
 
 import {
+  type BillingSubscriptionResponseData,
   type ComponentHydrateResponseData,
   type DeleteResponse,
-  type BillingSubscriptionResponseData,
   type PaymentMethodResponseData,
 } from "../api/checkoutexternal";
 import { type PublicPlansResponseData } from "../api/componentspublic";
 import { type RecursivePartial } from "../types";
+import { isCheckoutData } from "../utils";
+
 import {
   defaultSettings,
   type CheckoutState,
@@ -16,7 +18,6 @@ import {
   type EmbedSettings,
   type EmbedState,
 } from "./embedState";
-import { isCheckoutData } from "../utils";
 
 const dispatchPlanChangedEvent = <T extends object>(detail: T) => {
   const event = new CustomEvent("plan-changed", {

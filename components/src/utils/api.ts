@@ -1,16 +1,17 @@
 import { debounce, type DebounceSettings } from "lodash";
 
 import {
-  type PublicPlansResponseData,
-  type PlanViewPublicResponseData,
-} from "../api/componentspublic";
-import {
-  type ComponentHydrateResponseData,
   type CompanyPlanDetailResponseData,
+  type ComponentHydrateResponseData,
   type FeatureDetailResponseData,
 } from "../api/checkoutexternal";
+import {
+  type PlanViewPublicResponseData,
+  type PublicPlansResponseData,
+} from "../api/componentspublic";
 import { FETCH_DEBOUNCE_TIMEOUT } from "../const";
 import { type SelectedPlan } from "../hooks";
+
 import { pluralize } from "./pluralize";
 
 export const debounceOptions: DebounceSettings = {

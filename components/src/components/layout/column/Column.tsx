@@ -1,6 +1,7 @@
 import { Children, forwardRef } from "react";
 
 import { Card } from "../card";
+
 import { StyledColumn } from "./styles";
 
 export interface ColumnProps extends React.HTMLProps<HTMLDivElement> {

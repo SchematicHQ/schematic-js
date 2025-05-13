@@ -1,8 +1,8 @@
 import {
-  type Dispatch,
-  type SetStateAction,
   useCallback,
   useMemo,
+  type Dispatch,
+  type SetStateAction,
 } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
@@ -15,24 +15,25 @@ import type {
   UpdatePayInAdvanceRequestBody,
 } from "../../../api/checkoutexternal";
 import {
-  type SelectedPlan,
   useEmbed,
   useIsLightBackground,
+  type SelectedPlan,
 } from "../../../hooks";
 import {
   ChargeType,
   formatCurrency,
   formatOrdinal,
-  isCheckoutData,
-  isHydratedPlan,
   getAddOnPrice,
   getBillingPrice,
   getFeatureName,
   getMonthName,
+  isCheckoutData,
+  isHydratedPlan,
   shortenPeriod,
 } from "../../../utils";
 import { Box, Button, Flex, Icon, Text } from "../../ui";
 import { type CheckoutStage } from "../checkout-dialog";
+
 import { Proration } from "./Proration";
 import { StageButton } from "./StageButton";
 

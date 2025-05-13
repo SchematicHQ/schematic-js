@@ -27,13 +27,14 @@ import {
   Box,
   Button,
   Flex,
-  type IconNameTypes,
   IconRound,
   ProgressBar,
-  progressColorMap,
   Text,
   Tooltip,
+  progressColorMap,
+  type IconNameTypes,
 } from "../../ui";
+
 import * as styles from "./styles";
 
 interface DesignProps {

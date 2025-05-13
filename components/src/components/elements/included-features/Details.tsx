@@ -7,12 +7,13 @@ import { useEmbed } from "../../../hooks";
 import {
   formatCurrency,
   formatNumber,
-  isCheckoutData,
   getBillingPrice,
   getFeatureName,
+  isCheckoutData,
   shortenPeriod,
 } from "../../../utils";
 import { Box, Text } from "../../ui";
+
 import { type DesignProps } from "./IncludedFeatures";
 
 interface DetailsProps extends DesignProps {

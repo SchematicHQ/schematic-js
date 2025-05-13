@@ -3,6 +3,7 @@ import { forwardRef, useCallback, useLayoutEffect } from "react";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import { Container } from "../../layout";
 import { Box } from "../../ui";
+
 import * as styles from "./styles";
 
 export type ModalSize = "sm" | "md" | "lg" | "auto";

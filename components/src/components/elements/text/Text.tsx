@@ -3,9 +3,9 @@ import { useTheme } from "styled-components";
 
 import { type FontStyle } from "../../../context";
 import {
-  type ComponentProps,
   ElementProps,
   RecursivePartial,
+  type ComponentProps,
 } from "../../../types";
 import { Element } from "../../layout";
 import { Flex, Text } from "../../ui";

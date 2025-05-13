@@ -4,6 +4,7 @@ import { createPortal } from "react-dom";
 
 import { EVENT_DEBOUNCE_TIMEOUT } from "../../../const";
 import { type BoxProps } from "../../ui";
+
 import { Content, Trigger } from "./styles";
 
 export type Position = "top" | "right" | "bottom" | "left";

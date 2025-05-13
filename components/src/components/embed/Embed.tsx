@@ -7,6 +7,7 @@ import { useEmbed } from "../../hooks";
 import type { SerializedNodeWithChildren } from "../../types";
 import { isCheckoutData, isError } from "../../utils";
 import { Box, Flex, Loader } from "../ui";
+
 import { createRenderer, getEditorState, parseEditorState } from "./renderer";
 
 const Loading = () => {

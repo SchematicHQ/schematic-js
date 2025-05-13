@@ -10,23 +10,24 @@ import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 
 import {
+  ResponseError,
   type FeatureUsageResponseData,
   type PlanEntitlementResponseData,
   type PreviewSubscriptionFinanceResponseData,
-  ResponseError,
   type UpdateAddOnRequestBody,
   type UpdatePayInAdvanceRequestBody,
 } from "../../../api/checkoutexternal";
 import {
-  type SelectedPlan,
   useAvailablePlans,
   useEmbed,
   useIsLightBackground,
+  type SelectedPlan,
 } from "../../../hooks";
 import { getAddOnPrice, isCheckoutData, isHydratedPlan } from "../../../utils";
 import { PeriodToggle } from "../../shared";
 import { Flex, Modal, ModalHeader, Text } from "../../ui";
 import { Sidebar, type UsageBasedEntitlement } from "../sidebar";
+
 import { AddOns } from "./AddOns";
 import { Checkout } from "./Checkout";
 import { Navigation } from "./Navigation";

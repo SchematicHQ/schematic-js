@@ -4,12 +4,12 @@ import { ComponentStyle, ElementProps, RecursivePartial } from "../../../types";
 import { Element } from "../../layout";
 import {
   Button,
+  Flex,
   type ButtonAlignment,
   type ButtonColor,
   type ButtonSelfAlignment,
   type ButtonSize,
   type ButtonVariant,
-  Flex,
 } from "../../ui";
 
 interface DesignProps {

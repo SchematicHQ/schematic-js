@@ -1,4 +1,5 @@
 import { isCheckoutData } from "../utils";
+
 import { useEmbed } from ".";
 
 export function useTrialEnd() {
