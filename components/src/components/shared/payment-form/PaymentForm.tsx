@@ -5,7 +5,6 @@ import {
 } from "@stripe/react-stripe-js";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useTheme } from "styled-components";
 
 import { Box, Button, Text } from "../../ui";
 
@@ -15,8 +14,6 @@ interface PaymentFormProps {
 
 export const PaymentForm = ({ onConfirm }: PaymentFormProps) => {
   const { t } = useTranslation();
-
-  const theme = useTheme();
 
   const stripe = useStripe();
   const elements = useElements();
@@ -99,13 +96,7 @@ export const PaymentForm = ({ onConfirm }: PaymentFormProps) => {
 
       {message && (
         <Box $margin="1rem 0">
-          <Text
-            id="payment-message"
-            $font={theme.typography.text.fontFamily}
-            $size={15}
-            $weight={500}
-            $color="#DB6669"
-          >
+          <Text id="payment-message" $size={15} $weight={500} $color="#DB6669">
             {message}
           </Text>
         </Box>

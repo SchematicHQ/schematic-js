@@ -32,7 +32,7 @@
   "dependencies": {
     "@stripe/stripe-js": "^7.3.0",
     "classnames": "^2.5.1",
-    "i18next": "^25.1.2",
+    "i18next": "^25.1.3",
     "lodash": "^4.17.21",
     "pako": "^2.1.0",
     "react-i18next": "^15.5.1",
@@ -69,7 +69,7 @@
     "prettier": "^3.5.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "ts-jest": "^29.3.2",
+    "ts-jest": "^29.3.3",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.32.1"
   },

@@ -1,8 +1,7 @@
 import { useTranslation } from "react-i18next";
-import { useTheme } from "styled-components";
 
 import { TEXT_BASE_SIZE } from "../../../const";
-import { type SelectedPlan } from "../../../hooks";
+import { useEmbed, type SelectedPlan } from "../../../hooks";
 import {
   ChargeType,
   formatCurrency,
@@ -24,11 +23,11 @@ interface AddOnsProps {
 export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
   const { t } = useTranslation();
 
-  const theme = useTheme();
+  const { settings } = useEmbed();
 
   const periodKey = period === "year" ? "yearlyPrice" : "monthlyPrice";
 
-  const cardPadding = theme.card.padding / TEXT_BASE_SIZE;
+  const cardPadding = settings.theme.card.padding / TEXT_BASE_SIZE;
 
   return (
     <>
@@ -50,55 +49,40 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
               $flexDirection="column"
               $gap="2rem"
               $padding={`${cardPadding}rem`}
-              $backgroundColor={theme.card.background}
-              $borderRadius={`${theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
+              $backgroundColor={settings.theme.card.background}
+              $borderRadius={`${settings.theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
               $outlineWidth="2px"
               $outlineStyle="solid"
-              $outlineColor={addOn.isSelected ? theme.primary : "transparent"}
-              {...(theme.card.hasShadow && { $boxShadow: cardBoxShadow })}
+              $outlineColor={
+                addOn.isSelected ? settings.theme.primary : "transparent"
+              }
+              {...(settings.theme.card.hasShadow && {
+                $boxShadow: cardBoxShadow,
+              })}
             >
               <Flex $flexDirection="column" $gap="0.75rem">
                 <Box>
-                  <Text
-                    $font={theme.typography.heading3.fontFamily}
-                    $size={theme.typography.heading3.fontSize}
-                    $weight={theme.typography.heading3.fontWeight}
-                    $color={theme.typography.heading3.color}
-                  >
-                    {addOn.name}
-                  </Text>
+                  <Text display="heading3">{addOn.name}</Text>
                 </Box>
 
                 {addOn.description && (
                   <Box $marginBottom="0.5rem">
-                    <Text
-                      $font={theme.typography.text.fontFamily}
-                      $size={theme.typography.text.fontSize}
-                      $weight={theme.typography.text.fontWeight}
-                      $color={theme.typography.text.color}
-                    >
-                      {addOn.description}
-                    </Text>
+                    <Text>{addOn.description}</Text>
                   </Box>
                 )}
 
                 {(addOn[periodKey] ||
                   addOn.chargeType === ChargeType.oneTime) && (
                   <Box>
-                    <Text
-                      $font={theme.typography.heading2.fontFamily}
-                      $size={theme.typography.heading2.fontSize}
-                      $weight={theme.typography.heading2.fontWeight}
-                      $color={theme.typography.heading2.color}
-                    >
+                    <Text display="heading2">
                       {formatCurrency(price ?? 0, currency)}
                     </Text>
 
                     <Text
-                      $font={theme.typography.heading2.fontFamily}
-                      $size={(16 / 30) * theme.typography.heading2.fontSize}
-                      $weight={theme.typography.heading2.fontWeight}
-                      $color={theme.typography.heading2.color}
+                      display="heading2"
+                      $size={
+                        (16 / 30) * settings.theme.typography.heading2.fontSize
+                      }
                     >
                       {addOn.chargeType === ChargeType.oneTime ? (
                         <> {t("one time")}</>
@@ -114,16 +98,16 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
                     $position="absolute"
                     $right="1rem"
                     $top="1rem"
-                    $backgroundColor={theme.primary}
+                    $backgroundColor={settings.theme.primary}
                     $borderRadius="9999px"
                     $padding="0.125rem 0.85rem"
                   >
                     <Text
-                      $font={theme.typography.text.fontFamily}
-                      $size={0.75 * theme.typography.text.fontSize}
-                      $weight={theme.typography.text.fontWeight}
+                      $size={0.75 * settings.theme.typography.text.fontSize}
                       $color={
-                        hexToHSL(theme.primary).l > 50 ? "#000000" : "#FFFFFF"
+                        hexToHSL(settings.theme.primary).l > 50
+                          ? "#000000"
+                          : "#FFFFFF"
                       }
                     >
                       {t("Active")}

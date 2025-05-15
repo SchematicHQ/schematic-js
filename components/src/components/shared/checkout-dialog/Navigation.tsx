@@ -1,7 +1,5 @@
-import { useTheme } from "styled-components";
-
 import { TEXT_BASE_SIZE } from "../../../const";
-import { useIsLightBackground } from "../../../hooks";
+import { useEmbed, useIsLightBackground } from "../../../hooks";
 import { Box, Flex, Icon, IconRound, Text } from "../../ui";
 
 interface NavigationProps {
@@ -19,7 +17,7 @@ export const Navigation = ({
   isLast,
   onClick,
 }: NavigationProps) => {
-  const theme = useTheme();
+  const { settings } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
 
@@ -57,7 +55,7 @@ export const Navigation = ({
             <IconRound
               name="check"
               colors={[
-                theme.card.background,
+                settings.theme.card.background,
                 isLightBackground
                   ? "hsla(0, 0%, 0%, 0.125)"
                   : "hsla(0, 0%, 100%, 0.25)",
@@ -71,8 +69,8 @@ export const Navigation = ({
           )}
         </Box>
 
-        <Text
-          as={Box}
+        <Box
+          as={Text}
           tabIndex={0}
           $weight={index === activeIndex ? 600 : 400}
           {...(!showFullContent && {
@@ -92,7 +90,7 @@ export const Navigation = ({
           }}
         >
           {index + 1}. {name}
-        </Text>
+        </Box>
       </Flex>
 
       {!isLast && (

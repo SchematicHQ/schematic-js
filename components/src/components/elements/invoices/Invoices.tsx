@@ -1,6 +1,5 @@
 import { forwardRef, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useTheme } from "styled-components";
 
 import { type InvoiceResponseData } from "../../../api/checkoutexternal";
 import { MAX_VISIBLE_INVOICE_COUNT } from "../../../const";
@@ -76,16 +75,18 @@ interface InvoiceDateProps {
 }
 
 const InvoiceDate = ({ date, fontStyle, url }: InvoiceDateProps) => {
-  const theme = useTheme();
+  const { settings } = useEmbed();
 
   // pass an empty `onClick` function to get the correct link style
   const dateText = (
     <Text
       {...(url && { onClick: () => {} })}
-      $font={theme.typography[fontStyle].fontFamily}
-      $size={theme.typography[fontStyle].fontSize}
-      $weight={theme.typography[fontStyle].fontWeight}
-      $color={url ? theme.typography.link.color : theme.typography.text.color}
+      display={fontStyle}
+      $color={
+        url
+          ? settings.theme.typography.link.color
+          : settings.theme.typography.text.color
+      }
     >
       {date}
     </Text>
@@ -116,8 +117,6 @@ export const Invoices = forwardRef<
   const props = resolveDesignProps(rest);
 
   const { t } = useTranslation();
-
-  const theme = useTheme();
 
   const { listInvoices } = useEmbed();
 
@@ -153,14 +152,7 @@ export const Invoices = forwardRef<
       <Flex $flexDirection="column" $gap="1rem">
         {props.header.isVisible && (
           <Flex $justifyContent="space-between" $alignItems="center">
-            <Text
-              $font={theme.typography[props.header.fontStyle].fontFamily}
-              $size={theme.typography[props.header.fontStyle].fontSize}
-              $weight={theme.typography[props.header.fontStyle].fontWeight}
-              $color={theme.typography[props.header.fontStyle].color}
-            >
-              {t("Invoices")}
-            </Text>
+            <Text display={props.header.fontStyle}>{t("Invoices")}</Text>
           </Flex>
         )}
 
@@ -177,16 +169,7 @@ export const Invoices = forwardRef<
                 )}
 
                 {props.amount.isVisible && (
-                  <Text
-                    $font={theme.typography[props.amount.fontStyle].fontFamily}
-                    $size={theme.typography[props.amount.fontStyle].fontSize}
-                    $weight={
-                      theme.typography[props.amount.fontStyle].fontWeight
-                    }
-                    $color={theme.typography[props.amount.fontStyle].color}
-                  >
-                    {amount}
-                  </Text>
+                  <Text display={props.amount.fontStyle}>{amount}</Text>
                 )}
               </Flex>
             );
@@ -200,13 +183,7 @@ export const Invoices = forwardRef<
               style={{ color: "#D0D0D0" }}
             />
 
-            <Text
-              onClick={toggleListSize}
-              $font={theme.typography[props.collapse.fontStyle].fontFamily}
-              $size={theme.typography[props.collapse.fontStyle].fontSize}
-              $weight={theme.typography[props.collapse.fontStyle].fontWeight}
-              $color={theme.typography[props.collapse.fontStyle].color}
-            >
+            <Text onClick={toggleListSize} display={props.collapse.fontStyle}>
               {listSize === props.limit.number ? t("See more") : t("See less")}
             </Text>
           </Flex>

@@ -1,5 +1,4 @@
 import { forwardRef } from "react";
-import { useTheme } from "styled-components";
 
 import { TEXT_BASE_SIZE } from "../../../const";
 import { useEmbed } from "../../../hooks";
@@ -23,9 +22,7 @@ export interface CardProps {
 
 export const Card = forwardRef<HTMLDivElement | null, CardProps>(
   ({ children, className }, ref) => {
-    const { isPending } = useEmbed();
-
-    const theme = useTheme();
+    const { settings, isPending } = useEmbed();
 
     return (
       <StyledCard ref={ref} className={className}>
@@ -39,11 +36,11 @@ export const Card = forwardRef<HTMLDivElement | null, CardProps>(
             $height="100%"
             $justifyContent="center"
             $alignItems="center"
-            $backgroundColor={hsla(theme.card.background, 0.8)}
+            $backgroundColor={hsla(settings.theme.card.background, 0.8)}
             $backdropFilter="blur(8px)"
-            $borderRadius={`${theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
+            $borderRadius={`${settings.theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
           >
-            <Loader $color={theme.primary} />
+            <Loader $color={settings.theme.primary} />
           </Flex>
         )}
 

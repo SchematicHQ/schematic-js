@@ -1,10 +1,9 @@
 import { forwardRef, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { useTheme } from "styled-components";
 
 import { type FeatureUsageResponseData } from "../../../api/checkoutexternal";
 import { type FontStyle } from "../../../context";
-import { useEmbed, useIsLightBackground } from "../../../hooks";
+import { useEmbed, useIsLightBackground, useTrialEnd } from "../../../hooks";
 import type { ElementProps, RecursivePartial } from "../../../types";
 import {
   darken,
@@ -90,21 +89,25 @@ export const PlanManager = forwardRef<
 >(({ children, className, portal, ...rest }, ref) => {
   const props = resolveDesignProps(rest);
 
-  const theme = useTheme();
-
   const { t } = useTranslation();
 
-  const { data, setCheckoutState } = useEmbed();
+  const { data, settings, setCheckoutState } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
 
-  // Can change plan if there is a publishable key, a current plan with a billing association, and
-  // some active plans
+  const trialEndDays = useTrialEnd();
+
+  /**
+   * Can change plan if there is:
+   * - a publishable key
+   * - a current plan with a billing association
+   * - any active plans
+   */
   const {
-    addOns,
+    currentPlan,
+    currentAddOns,
     billingSubscription,
     canCheckout,
-    currentPlan,
     defaultPlan,
     featureUsage,
     subscription,
@@ -112,65 +115,72 @@ export const PlanManager = forwardRef<
   } = useMemo(() => {
     if (isCheckoutData(data)) {
       return {
-        addOns: data.company?.addOns || [],
-        billingSubscription: data.company?.billingSubscription,
         currentPlan: data.company?.plan,
+        currentAddOns: data.company?.addOns || [],
+        billingSubscription: data.company?.billingSubscription,
         canCheckout: data.capabilities?.checkout ?? true,
         defaultPlan: data.defaultPlan,
-        featureUsage: data.featureUsage,
+        featureUsage: data.featureUsage?.features || [],
         subscription: data.subscription,
         trialPaymentMethodRequired: data.trialPaymentMethodRequired,
       };
     }
 
     return {
-      addOns: [],
+      currentPlan: undefined,
+      currentAddOns: [],
+      billingSubscription: undefined,
       canCheckout: false,
+      defaultPlan: undefined,
+      featureUsage: [],
+      subscription: undefined,
+      trialPaymentMethodRequired: false,
     };
   }, [data]);
 
-  const usageBasedEntitlements = (featureUsage?.features || []).reduce(
-    (
-      acc: (FeatureUsageResponseData & {
-        price?: number;
-        currency?: string;
-      })[],
-      usage,
-    ) => {
-      const { price, currency } =
-        getBillingPrice(
-          currentPlan?.planPeriod === "year"
-            ? usage.yearlyUsageBasedPrice
-            : usage.monthlyUsageBasedPrice,
-        ) || {};
+  const usageBasedEntitlements = useMemo(
+    () =>
+      featureUsage.reduce(
+        (
+          acc: (FeatureUsageResponseData & {
+            price?: number;
+            currency?: string;
+          })[],
+          usage,
+        ) => {
+          const { price, currency } =
+            getBillingPrice(
+              currentPlan?.planPeriod === "year"
+                ? usage.yearlyUsageBasedPrice
+                : usage.monthlyUsageBasedPrice,
+            ) || {};
 
-      if (usage.priceBehavior) {
-        acc.push({ ...usage, price, currency });
-      }
+          if (usage.priceBehavior) {
+            acc.push({ ...usage, price, currency });
+          }
 
-      return acc;
-    },
-    [],
+          return acc;
+        },
+        [],
+      ),
+    [currentPlan?.planPeriod, featureUsage],
   );
 
-  const trialEndDays = useMemo(() => {
-    const trialEnd = billingSubscription?.trialEnd;
-    const trialEndDate = trialEnd ? new Date(trialEnd * 1000) : new Date();
-    const todayDate = new Date();
-    return Math.floor(
-      (trialEndDate.getTime() - todayDate.getTime()) / (1000 * 60 * 60 * 24),
-    );
-  }, [billingSubscription?.trialEnd]);
+  const { subscriptionCurrency, willSubscriptionCancel, isTrialSubscription } =
+    useMemo(() => {
+      const subscriptionCurrency = billingSubscription?.currency;
+      const isTrialSubscription = billingSubscription?.status === "trialing";
+      const willSubscriptionCancel = billingSubscription?.cancelAtPeriodEnd;
 
-  const subscriptionCurrency = billingSubscription?.currency;
-  const isTrialSubscription = billingSubscription?.status === "trialing";
-  const willSubscriptionCancel = billingSubscription?.cancelAtPeriodEnd;
+      return {
+        subscriptionCurrency,
+        willSubscriptionCancel,
+        isTrialSubscription,
+      };
+    }, [billingSubscription]);
+
   const isUsageBasedPlan =
     currentPlan?.planPrice === 0 && usageBasedEntitlements.length > 0;
-
-  const headerPriceFontStyle = isUsageBasedPlan
-    ? "heading3"
-    : props.header.price.fontStyle;
 
   return (
     <>
@@ -183,15 +193,17 @@ export const PlanManager = forwardRef<
           $textAlign="center"
           $backgroundColor={
             isLightBackground
-              ? darken(theme.card.background, 0.04)
-              : lighten(theme.card.background, 0.04)
+              ? darken(settings.theme.card.background, 0.04)
+              : lighten(settings.theme.card.background, 0.04)
           }
         >
-          <Text as="h3" display="heading3">
-            {t("Trial ends in", { days: trialEndDays.toString() })}
-          </Text>
+          {typeof trialEndDays === "number" && (
+            <Text as="h3" display="heading3">
+              {t("Trial ends in", { days: trialEndDays })}
+            </Text>
+          )}
 
-          <Text as="p" $size={0.8125 * theme.typography.text.fontSize}>
+          <Text as="p" $size={0.8125 * settings.theme.typography.text.fontSize}>
             {trialPaymentMethodRequired
               ? t("After the trial, subscribe")
               : defaultPlan
@@ -213,8 +225,8 @@ export const PlanManager = forwardRef<
             $textAlign="center"
             $backgroundColor={
               isLightBackground
-                ? darken(theme.card.background, 0.04)
-                : lighten(theme.card.background, 0.04)
+                ? darken(settings.theme.card.background, 0.04)
+                : lighten(settings.theme.card.background, 0.04)
             }
           >
             <Text as="h3" display="heading3">
@@ -222,7 +234,10 @@ export const PlanManager = forwardRef<
             </Text>
 
             {billingSubscription?.cancelAt && (
-              <Text as="p" $size={0.8125 * theme.typography.text.fontSize}>
+              <Text
+                as="p"
+                $size={0.8125 * settings.theme.typography.text.fontSize}
+              >
                 {t("Access to plan will end on", {
                   date: toPrettyDate(
                     new Date(billingSubscription.cancelAt * 1000),
@@ -268,7 +283,13 @@ export const PlanManager = forwardRef<
               typeof currentPlan.planPrice === "number" &&
               currentPlan.planPeriod && (
                 <Box>
-                  <Text display={headerPriceFontStyle}>
+                  <Text
+                    display={
+                      isUsageBasedPlan
+                        ? "heading3"
+                        : props.header.price.fontStyle
+                    }
+                  >
                     {isUsageBasedPlan
                       ? t("Usage-based")
                       : formatCurrency(
@@ -287,14 +308,14 @@ export const PlanManager = forwardRef<
           </Flex>
         )}
 
-        {props.addOns.isVisible && addOns.length > 0 && (
+        {props.addOns.isVisible && currentAddOns.length > 0 && (
           <Flex $flexDirection="column" $gap="1rem">
             {props.addOns.showLabel && (
               <Text
                 $color={
                   isLightBackground
-                    ? darken(theme.card.background, 0.46)
-                    : lighten(theme.card.background, 0.46)
+                    ? darken(settings.theme.card.background, 0.46)
+                    : lighten(settings.theme.card.background, 0.46)
                 }
                 $leading={1}
               >
@@ -302,7 +323,7 @@ export const PlanManager = forwardRef<
               </Text>
             )}
 
-            {addOns.map((addOn, addOnIndex) => (
+            {currentAddOns.map((addOn, addOnIndex) => (
               <Flex
                 key={addOnIndex}
                 $justifyContent="space-between"
@@ -332,8 +353,8 @@ export const PlanManager = forwardRef<
             <Text
               $color={
                 isLightBackground
-                  ? darken(theme.card.background, 0.46)
-                  : lighten(theme.card.background, 0.46)
+                  ? darken(settings.theme.card.background, 0.46)
+                  : lighten(settings.theme.card.background, 0.46)
               }
               $leading={1}
             >
@@ -410,11 +431,20 @@ export const PlanManager = forwardRef<
                         {entitlement.priceBehavior === "overage" &&
                         currentPlan?.planPeriod ? (
                           <Text
-                            $size={0.875 * theme.typography.text.fontSize}
+                            $size={
+                              0.875 * settings.theme.typography.text.fontSize
+                            }
                             $color={
-                              hexToHSL(theme.typography.text.color).l > 50
-                                ? darken(theme.typography.text.color, 0.46)
-                                : lighten(theme.typography.text.color, 0.46)
+                              hexToHSL(settings.theme.typography.text.color).l >
+                              50
+                                ? darken(
+                                    settings.theme.typography.text.color,
+                                    0.46,
+                                  )
+                                : lighten(
+                                    settings.theme.typography.text.color,
+                                    0.46,
+                                  )
                             }
                           >
                             {typeof overageAmount === "number" &&
@@ -449,11 +479,20 @@ export const PlanManager = forwardRef<
                           entitlement.priceBehavior === "pay_in_advance" &&
                           currentPlan?.planPeriod && (
                             <Text
-                              $size={0.875 * theme.typography.text.fontSize}
+                              $size={
+                                0.875 * settings.theme.typography.text.fontSize
+                              }
                               $color={
-                                hexToHSL(theme.typography.text.color).l > 50
-                                  ? darken(theme.typography.text.color, 0.46)
-                                  : lighten(theme.typography.text.color, 0.46)
+                                hexToHSL(settings.theme.typography.text.color)
+                                  .l > 50
+                                  ? darken(
+                                      settings.theme.typography.text.color,
+                                      0.46,
+                                    )
+                                  : lighten(
+                                      settings.theme.typography.text.color,
+                                      0.46,
+                                    )
                               }
                             >
                               {formatCurrency(

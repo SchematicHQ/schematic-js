@@ -39,7 +39,7 @@ type EmbedAction =
   | { type: "RESET" }
   | { type: "ERROR"; error: Error }
   | {
-      type: "SET_SETTINGS";
+      type: "UPDATE_SETTINGS";
       settings: RecursivePartial<EmbedSettings>;
       update?: boolean;
     }
@@ -147,7 +147,7 @@ export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {
       };
     }
 
-    case "SET_SETTINGS": {
+    case "UPDATE_SETTINGS": {
       const settings = action.update
         ? merge({ ...defaultSettings }, state.settings, action.settings)
         : merge({ ...defaultSettings }, action.settings);

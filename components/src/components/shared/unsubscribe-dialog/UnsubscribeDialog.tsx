@@ -1,6 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useTheme } from "styled-components";
 
 import {
   useAvailablePlans,
@@ -18,8 +17,6 @@ interface UnsubscribeDialogProps {
 
 export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
   const { t } = useTranslation();
-
-  const theme = useTheme();
 
   const { data, setLayout, setCheckoutState } = useEmbed();
 
@@ -129,23 +126,11 @@ export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
           $padding="2.5rem"
         >
           <Flex $flexDirection="column" $flexWrap="wrap" $gap="0.5rem">
-            <Text
-              as="h2"
-              $font={theme.typography.heading2.fontFamily}
-              $size={theme.typography.heading2.fontSize}
-              $weight={theme.typography.heading2.fontWeight}
-              $color={theme.typography.heading2.color}
-            >
+            <Text as="h2" display="heading2">
               {t("Cancel subscription")}
             </Text>
 
-            <Text
-              as="p"
-              $font={theme.typography.text.fontFamily}
-              $size={theme.typography.text.fontSize}
-              $weight={theme.typography.text.fontWeight}
-              $color={theme.typography.text.color}
-            >
+            <Text as="p">
               {t(
                 "You will retain access to your plan until the end of the billing period, on",
               )}{" "}
@@ -158,15 +143,7 @@ export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
           </Flex>
 
           <Flex $flexDirection="column" $flexWrap="wrap" $gap="0.5rem">
-            <Text
-              as="p"
-              $font={theme.typography.text.fontFamily}
-              $size={theme.typography.text.fontSize}
-              $weight={theme.typography.text.fontWeight}
-              $color={theme.typography.text.color}
-            >
-              {t("Not ready to cancel?")}
-            </Text>
+            <Text as="p">{t("Not ready to cancel?")}</Text>
 
             <Button
               onClick={() => {

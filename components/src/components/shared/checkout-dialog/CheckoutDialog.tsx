@@ -7,7 +7,6 @@ import {
   useState,
 } from "react";
 import { useTranslation } from "react-i18next";
-import { useTheme } from "styled-components";
 
 import {
   ResponseError,
@@ -72,8 +71,6 @@ interface CheckoutDialogProps {
 
 export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   const { t } = useTranslation();
-
-  const theme = useTheme();
 
   const { data, checkoutState, previewCheckout } = useEmbed();
 
@@ -572,10 +569,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
                 {activeCheckoutStage.label && (
                   <Text
                     as="h3"
-                    $font={theme.typography.heading3.fontFamily}
-                    $size={theme.typography.heading3.fontSize}
-                    $weight={theme.typography.heading3.fontWeight}
-                    $color={theme.typography.heading3.color}
+                    display="heading3"
                     style={{ marginBottom: "0.5rem" }}
                   >
                     {activeCheckoutStage.label}
@@ -583,15 +577,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
                 )}
 
                 {activeCheckoutStage.description && (
-                  <Text
-                    as="p"
-                    $font={theme.typography.text.fontFamily}
-                    $size={theme.typography.text.fontSize}
-                    $weight={theme.typography.text.fontWeight}
-                    $color={theme.typography.text.color}
-                  >
-                    {activeCheckoutStage.description}
-                  </Text>
+                  <Text as="p">{activeCheckoutStage.description}</Text>
                 )}
               </Flex>
             )}

@@ -2,7 +2,6 @@ import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe, type Stripe } from "@stripe/stripe-js";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useTheme } from "styled-components";
 
 import type {
   PaymentMethodResponseData,
@@ -55,10 +54,13 @@ export const PaymentMethodDetails = ({
 
   const { t } = useTranslation();
 
-  const theme = useTheme();
-
-  const { data, getSetupIntent, updatePaymentMethod, deletePaymentMethod } =
-    useEmbed();
+  const {
+    data,
+    settings,
+    getSetupIntent,
+    updatePaymentMethod,
+    deletePaymentMethod,
+  } = useEmbed();
 
   const { defaultPaymentMethod, paymentMethods, subscription } = useMemo(() => {
     if (isCheckoutData(data)) {
@@ -188,7 +190,11 @@ export const PaymentMethodDetails = ({
         $width="100%"
         $height="100%"
       >
-        <Loader $color={theme.primary} $size="2xl" $isLoading={isLoading} />
+        <Loader
+          $color={settings.theme.primary}
+          $size="2xl"
+          $isLoading={isLoading}
+        />
       </Flex>
 
       <Flex
@@ -228,7 +234,7 @@ export const PaymentMethodDetails = ({
                     fontSize: "1rem",
                     fontWeight: "400",
                     marginBottom: "0.75rem",
-                    color: theme.typography.text.color,
+                    color: settings.theme.typography.text.color,
                   },
                 },
               },
@@ -250,10 +256,7 @@ export const PaymentMethodDetails = ({
                     setShowPaymentForm(false);
                     setShowDifferentPaymentMethods(false);
                   }}
-                  $font={theme.typography.link.fontFamily}
-                  $size={theme.typography.link.fontSize}
-                  $weight={theme.typography.link.fontWeight}
-                  $color={theme.typography.link.color}
+                  display="link"
                 >
                   {t("Select existing payment method")}
                 </Text>
@@ -275,10 +278,7 @@ export const PaymentMethodDetails = ({
                   onClick={() => {
                     setShowDifferentPaymentMethods((prev) => !prev);
                   }}
-                  $font={theme.typography.link.fontFamily}
-                  $size={theme.typography.link.fontSize}
-                  $weight={theme.typography.link.fontWeight}
-                  $color={theme.typography.link.color}
+                  display="link"
                 >
                   {t("Choose different payment method")}
                   <Icon
@@ -326,12 +326,7 @@ export const PaymentMethodDetails = ({
 
         {!isLoading && error && (
           <Box>
-            <Text
-              $font={theme.typography.text.fontFamily}
-              $size={theme.typography.text.fontSize}
-              $weight={500}
-              $color="#DB6669"
-            >
+            <Text $weight={500} $color="#DB6669">
               {error}
             </Text>
           </Box>

@@ -1,6 +1,5 @@
 import { forwardRef, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useTheme } from "styled-components";
 
 import type { FeatureUsageResponseData } from "../../../api/checkoutexternal";
 import { VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
@@ -84,9 +83,7 @@ export const IncludedFeatures = forwardRef<
 
   const { t } = useTranslation();
 
-  const theme = useTheme();
-
-  const { data } = useEmbed();
+  const { data, settings } = useEmbed();
 
   const elements = useRef<HTMLElement[]>([]);
   const shouldWrapChildren = useWrapChildren(elements.current);
@@ -161,14 +158,7 @@ export const IncludedFeatures = forwardRef<
     >
       {props.header.isVisible && (
         <Box $marginBottom="0.5rem">
-          <Text
-            $font={theme.typography[props.header.fontStyle].fontFamily}
-            $size={theme.typography[props.header.fontStyle].fontSize}
-            $weight={theme.typography[props.header.fontStyle].fontWeight}
-            $color={theme.typography[props.header.fontStyle].color}
-          >
-            {props.header.text}
-          </Text>
+          <Text display={props.header.fontStyle}>{props.header.text}</Text>
         </Box>
       )}
 
@@ -203,7 +193,7 @@ export const IncludedFeatures = forwardRef<
                   name={feature.icon as IconNameTypes | string}
                   size="sm"
                   colors={[
-                    theme.primary,
+                    settings.theme.primary,
                     isLightBackground
                       ? "hsla(0, 0%, 0%, 0.0625)"
                       : "hsla(0, 0%, 100%, 0.25)",
@@ -212,35 +202,13 @@ export const IncludedFeatures = forwardRef<
               )}
 
               {feature?.name && (
-                <Text
-                  $font={theme.typography[props.icons.fontStyle].fontFamily}
-                  $size={theme.typography[props.icons.fontStyle].fontSize}
-                  $weight={theme.typography[props.icons.fontStyle].fontWeight}
-                  $color={theme.typography[props.icons.fontStyle].color}
-                >
-                  {feature.name}
-                </Text>
+                <Text display={props.icons.fontStyle}>{feature.name}</Text>
               )}
 
               {props.entitlementExpiration.isVisible &&
                 usage.entitlementExpirationDate && (
                   <Text
-                    $font={
-                      theme.typography[props.entitlementExpiration.fontStyle]
-                        .fontFamily
-                    }
-                    $size={
-                      theme.typography[props.entitlementExpiration.fontStyle]
-                        .fontSize
-                    }
-                    $weight={
-                      theme.typography[props.entitlementExpiration.fontStyle]
-                        .fontWeight
-                    }
-                    $color={
-                      theme.typography[props.entitlementExpiration.fontStyle]
-                        .color
-                    }
+                    display={props.entitlementExpiration.fontStyle}
                     $leading={1}
                   >
                     Expires{" "}
@@ -276,12 +244,9 @@ export const IncludedFeatures = forwardRef<
 
           <Text
             onClick={handleToggleShowAll}
-            $font={theme.typography.link.fontFamily}
-            $size={theme.typography.link.fontSize}
-            $weight={theme.typography.link.fontWeight}
-            $color={theme.typography.link.color}
-            $leading={1}
             style={{ cursor: "pointer" }}
+            display="link"
+            $leading={1}
           >
             {isExpanded ? t("Hide all") : t("See all")}
           </Text>

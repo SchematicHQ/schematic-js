@@ -1,5 +1,4 @@
 import { useCallback } from "react";
-import { useTheme } from "styled-components";
 
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import { Box, Flex, Icon } from "../../ui";
@@ -15,9 +14,7 @@ export const ModalHeader = ({
   bordered = false,
   onClose,
 }: ModalHeaderProps) => {
-  const theme = useTheme();
-
-  const { setLayout } = useEmbed();
+  const { settings, setLayout } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
 
@@ -38,7 +35,7 @@ export const ModalHeader = ({
       $gap="1rem"
       $height="3.5rem"
       $padding="0 1rem"
-      $backgroundColor={theme.card.background}
+      $backgroundColor={settings.theme.card.background}
       {...(bordered && {
         $borderWidth: "0",
         $borderBottomWidth: "1px",

@@ -5,7 +5,6 @@ import {
   type SetStateAction,
 } from "react";
 import { useTranslation } from "react-i18next";
-import { useTheme } from "styled-components";
 
 import type {
   FeatureUsageResponseData,
@@ -94,9 +93,8 @@ export const Sidebar = ({
 }: SidebarProps) => {
   const { t } = useTranslation();
 
-  const theme = useTheme();
-
-  const { data, mode, layout, setLayout, checkout, unsubscribe } = useEmbed();
+  const { data, settings, mode, layout, setLayout, checkout, unsubscribe } =
+    useEmbed();
 
   const isLightBackground = useIsLightBackground();
 
@@ -466,7 +464,7 @@ export const Sidebar = ({
       $flexDirection="column"
       $flexShrink={0}
       $overflow="auto"
-      $backgroundColor={theme.card.background}
+      $backgroundColor={settings.theme.card.background}
       $borderRadius="0 0 0.5rem"
       $boxShadow="0px 1px 20px 0px #1018280F, 0px 1px 3px 0px #1018281A;"
       $viewport={{
@@ -492,13 +490,7 @@ export const Sidebar = ({
           }
         >
           <Flex $justifyContent="space-between">
-            <Text
-              as="h3"
-              $font={theme.typography.heading3.fontFamily}
-              $size={theme.typography.heading3.fontSize}
-              $weight={theme.typography.heading3.fontWeight}
-              $color={theme.typography.heading3.color}
-            >
+            <Text as="h3" display="heading3">
               {t("Subscription")}
             </Text>
           </Flex>
@@ -520,14 +512,7 @@ export const Sidebar = ({
         }
       >
         <Box $opacity="0.625">
-          <Text
-            $font={theme.typography.text.fontFamily}
-            $size={14}
-            $weight={theme.typography.text.fontWeight}
-            $color={theme.typography.text.color}
-          >
-            {t("Plan")}
-          </Text>
+          <Text $size={14}>{t("Plan")}</Text>
         </Box>
 
         <Flex $flexDirection="column" $gap="0.5rem" $marginBottom="1.5rem">
@@ -539,28 +524,16 @@ export const Sidebar = ({
               {...(willPlanChange && {
                 $opacity: "0.625",
                 $textDecoration: "line-through",
-                $color: theme.typography.heading4.color,
+                $color: settings.theme.typography.heading4.color,
               })}
             >
               <Box>
-                <Text
-                  $font={theme.typography.heading4.fontFamily}
-                  $size={theme.typography.heading4.fontSize}
-                  $weight={theme.typography.heading4.fontWeight}
-                  $color={theme.typography.heading4.color}
-                >
-                  {currentPlan.name}
-                </Text>
+                <Text display="heading4">{currentPlan.name}</Text>
               </Box>
 
               {typeof currentPlan.planPrice === "number" && (
                 <Box $whiteSpace="nowrap">
-                  <Text
-                    $font={theme.typography.text.fontFamily}
-                    $size={theme.typography.text.fontSize}
-                    $weight={theme.typography.text.fontWeight}
-                    $color={theme.typography.text.color}
-                  >
+                  <Text>
                     {formatCurrency(
                       currentPlan.planPrice,
                       billingSubscription?.currency,
@@ -587,7 +560,7 @@ export const Sidebar = ({
                   name="arrow-down"
                   style={{
                     display: "inline-block",
-                    color: theme.typography.text.color,
+                    color: settings.theme.typography.text.color,
                   }}
                 />
               </Box>
@@ -598,23 +571,11 @@ export const Sidebar = ({
                 $gap="1rem"
               >
                 <Flex>
-                  <Text
-                    $font={theme.typography.heading4.fontFamily}
-                    $size={theme.typography.heading4.fontSize}
-                    $weight={theme.typography.heading4.fontWeight}
-                    $color={theme.typography.heading4.color}
-                  >
-                    {selectedPlan.name}
-                  </Text>
+                  <Text display="heading4">{selectedPlan.name}</Text>
                 </Flex>
 
                 <Flex $whiteSpace="nowrap">
-                  <Text
-                    $font={theme.typography.text.fontFamily}
-                    $size={theme.typography.text.fontSize}
-                    $weight={theme.typography.text.fontWeight}
-                    $color={theme.typography.text.color}
-                  >
+                  <Text>
                     {formatCurrency(
                       selectedPlanBillingPrice?.price ?? 0,
                       selectedPlanBillingPrice?.currency,
@@ -630,14 +591,7 @@ export const Sidebar = ({
         {willUsageBasedEntitlementsChange && (
           <Flex $flexDirection="column" $gap="0.5rem" $marginBottom="1.5rem">
             <Box $opacity="0.625">
-              <Text
-                $font={theme.typography.text.fontFamily}
-                $size={14}
-                $weight={theme.typography.text.fontWeight}
-                $color={theme.typography.text.color}
-              >
-                {t("Usage-based")}
-              </Text>
+              <Text $size={14}>{t("Usage-based")}</Text>
             </Box>
 
             {removedUsageBasedEntitlements.reduce(
@@ -664,15 +618,10 @@ export const Sidebar = ({
                       $gap="1rem"
                       $opacity="0.625"
                       $textDecoration="line-through"
-                      $color={theme.typography.heading4.color}
+                      $color={settings.theme.typography.heading4.color}
                     >
                       <Box>
-                        <Text
-                          $font={theme.typography.heading4.fontFamily}
-                          $size={theme.typography.heading4.fontSize}
-                          $weight={theme.typography.heading4.fontWeight}
-                          $color={theme.typography.heading4.color}
-                        >
+                        <Text display="heading4">
                           {entitlement.priceBehavior === "pay_in_advance" ? (
                             <>
                               {entitlement.quantity}{" "}
@@ -688,12 +637,7 @@ export const Sidebar = ({
                       </Box>
 
                       <Box $whiteSpace="nowrap">
-                        <Text
-                          $font={theme.typography.text.fontFamily}
-                          $size={theme.typography.text.fontSize}
-                          $weight={theme.typography.text.fontWeight}
-                          $color={theme.typography.text.color}
-                        >
+                        <Text>
                           {entitlement.priceBehavior === "pay_in_advance" && (
                             <>
                               {formatCurrency(
@@ -753,26 +697,16 @@ export const Sidebar = ({
                         $gap="1rem"
                         $opacity="0.625"
                         $textDecoration="line-through"
-                        $color={theme.typography.heading4.color}
+                        $color={settings.theme.typography.heading4.color}
                       >
                         <Box>
-                          <Text
-                            $font={theme.typography.heading4.fontFamily}
-                            $size={theme.typography.heading4.fontSize}
-                            $weight={theme.typography.heading4.fontWeight}
-                            $color={theme.typography.heading4.color}
-                          >
+                          <Text display="heading4">
                             {previous.quantity} {getFeatureName(next.feature)}
                           </Text>
                         </Box>
 
                         <Box $whiteSpace="nowrap">
-                          <Text
-                            $font={theme.typography.text.fontFamily}
-                            $size={theme.typography.text.fontSize}
-                            $weight={theme.typography.text.fontWeight}
-                            $color={theme.typography.text.color}
-                          >
+                          <Text>
                             {formatCurrency(
                               (entitlementPrice ?? 0) * previous.quantity,
                               entitlementCurrency,
@@ -789,23 +723,13 @@ export const Sidebar = ({
                         $gap="1rem"
                       >
                         <Box>
-                          <Text
-                            $font={theme.typography.heading4.fontFamily}
-                            $size={theme.typography.heading4.fontSize}
-                            $weight={theme.typography.heading4.fontWeight}
-                            $color={theme.typography.heading4.color}
-                          >
+                          <Text display="heading4">
                             {next.quantity} {getFeatureName(next.feature)}
                           </Text>
                         </Box>
 
                         <Box $whiteSpace="nowrap">
-                          <Text
-                            $font={theme.typography.text.fontFamily}
-                            $size={theme.typography.text.fontSize}
-                            $weight={theme.typography.text.fontWeight}
-                            $color={theme.typography.text.color}
-                          >
+                          <Text>
                             {formatCurrency(
                               (entitlementPrice ?? 0) * next.quantity,
                               entitlementCurrency,
@@ -844,12 +768,7 @@ export const Sidebar = ({
                       $gap="1rem"
                     >
                       <Box>
-                        <Text
-                          $font={theme.typography.heading4.fontFamily}
-                          $size={theme.typography.heading4.fontSize}
-                          $weight={theme.typography.heading4.fontWeight}
-                          $color={theme.typography.heading4.color}
-                        >
+                        <Text display="heading4">
                           {entitlement.priceBehavior === "pay_in_advance" ? (
                             <>
                               {entitlement.quantity}{" "}
@@ -865,12 +784,7 @@ export const Sidebar = ({
                       </Box>
 
                       <Box $whiteSpace="nowrap">
-                        <Text
-                          $font={theme.typography.text.fontFamily}
-                          $size={theme.typography.text.fontSize}
-                          $weight={theme.typography.text.fontWeight}
-                          $color={theme.typography.text.color}
-                        >
+                        <Text>
                           {entitlement.priceBehavior === "pay_in_advance" && (
                             <>
                               {formatCurrency(
@@ -914,14 +828,7 @@ export const Sidebar = ({
         {selectedPlan && isTrialable && (
           <Box>
             <Box $opacity="0.625">
-              <Text
-                $font={theme.typography.text.fontFamily}
-                $size={14}
-                $weight={theme.typography.text.fontWeight}
-                $color={theme.typography.text.color}
-              >
-                {t("Trial")}
-              </Text>
+              <Text $size={14}>{t("Trial")}</Text>
             </Box>
             <Flex
               $justifyContent="space-between"
@@ -929,22 +836,12 @@ export const Sidebar = ({
               $gap="1rem"
             >
               <Flex>
-                <Text
-                  $font={theme.typography.heading4.fontFamily}
-                  $size={theme.typography.heading4.fontSize}
-                  $weight={theme.typography.heading4.fontWeight}
-                  $color={theme.typography.heading4.color}
-                >
+                <Text display="heading4">
                   {t("Ends on", { date: trialEndsOn.toLocaleDateString() })}
                 </Text>
               </Flex>
               <Flex>
-                <Text
-                  $font={theme.typography.text.fontFamily}
-                  $size={theme.typography.text.fontSize}
-                  $weight={theme.typography.text.fontWeight}
-                  $color={theme.typography.text.color}
-                >
+                <Text>
                   -
                   {formatCurrency(
                     selectedPlanBillingPrice?.price ?? 0,
@@ -960,14 +857,7 @@ export const Sidebar = ({
         {(willAddOnsChange || selectedAddOns.length > 0) && (
           <Flex $flexDirection="column" $gap="0.5rem" $marginBottom="1.5rem">
             <Box $opacity="0.625">
-              <Text
-                $font={theme.typography.text.fontFamily}
-                $size={14}
-                $weight={theme.typography.text.fontWeight}
-                $color={theme.typography.text.color}
-              >
-                {t("Add-ons")}
-              </Text>
+              <Text $size={14}>{t("Add-ons")}</Text>
             </Box>
 
             {removedAddOns.map((addOn, index) => {
@@ -979,27 +869,15 @@ export const Sidebar = ({
                   $gap="1rem"
                   $opacity="0.625"
                   $textDecoration="line-through"
-                  $color={theme.typography.heading4.color}
+                  $color={settings.theme.typography.heading4.color}
                 >
                   <Box>
-                    <Text
-                      $font={theme.typography.heading4.fontFamily}
-                      $size={theme.typography.heading4.fontSize}
-                      $weight={theme.typography.heading4.fontWeight}
-                      $color={theme.typography.heading4.color}
-                    >
-                      {addOn.name}
-                    </Text>
+                    <Text display="heading4">{addOn.name}</Text>
                   </Box>
 
                   {typeof addOn.planPrice === "number" && addOn.planPeriod && (
                     <Box $whiteSpace="nowrap">
-                      <Text
-                        $font={theme.typography.text.fontFamily}
-                        $size={theme.typography.text.fontSize}
-                        $weight={theme.typography.text.fontWeight}
-                        $color={theme.typography.text.color}
-                      >
+                      <Text>
                         {formatCurrency(
                           addOn.planPrice,
                           selectedPlanBillingPrice?.currency,
@@ -1026,23 +904,11 @@ export const Sidebar = ({
                   $gap="1rem"
                 >
                   <Box>
-                    <Text
-                      $font={theme.typography.heading4.fontFamily}
-                      $size={theme.typography.heading4.fontSize}
-                      $weight={theme.typography.heading4.fontWeight}
-                      $color={theme.typography.heading4.color}
-                    >
-                      {addOn.name}
-                    </Text>
+                    <Text display="heading4">{addOn.name}</Text>
                   </Box>
 
                   <Box $whiteSpace="nowrap">
-                    <Text
-                      $font={theme.typography.text.fontFamily}
-                      $size={theme.typography.text.fontSize}
-                      $weight={theme.typography.text.fontWeight}
-                      $color={theme.typography.text.color}
-                    >
+                    <Text>
                       {formatCurrency(addOnPrice ?? 0, addOnCurrency)}
                       {addOn.chargeType !== ChargeType.oneTime && (
                         <sub>/{shortenPeriod(planPeriod)}</sub>
@@ -1078,14 +944,7 @@ export const Sidebar = ({
             $gap="1rem"
           >
             <Box $opacity="0.625">
-              <Text
-                $font={theme.typography.text.fontFamily}
-                $size={theme.typography.text.fontSize}
-                $weight={theme.typography.text.fontWeight}
-                $color={theme.typography.text.color}
-              >
-                {t("Discount")}
-              </Text>
+              <Text>{t("Discount")}</Text>
             </Box>
 
             <Flex
@@ -1100,12 +959,7 @@ export const Sidebar = ({
               }
               $borderRadius="0.3125rem"
             >
-              <Text
-                $font={theme.typography.text.fontFamily}
-                $size={0.75 * theme.typography.text.fontSize}
-                $weight={theme.typography.text.fontWeight}
-                $color={theme.typography.text.color}
-              >
+              <Text $size={0.75 * settings.theme.typography.text.fontSize}>
                 {promoCode}
               </Text>
 
@@ -1135,23 +989,11 @@ export const Sidebar = ({
             $gap="1rem"
           >
             <Box $opacity="0.625" $lineHeight={1.15}>
-              <Text
-                $font={theme.typography.text.fontFamily}
-                $size={theme.typography.text.fontSize}
-                $weight={theme.typography.text.fontWeight}
-                $color={theme.typography.text.color}
-              >
-                {t("X% off", { percent: percentOff })}
-              </Text>
+              <Text>{t("X% off", { percent: percentOff })}</Text>
             </Box>
 
             <Box>
-              <Text
-                $font={theme.typography.text.fontFamily}
-                $size={theme.typography.text.fontSize}
-                $weight={theme.typography.text.fontWeight}
-                $color={theme.typography.text.color}
-              >
+              <Text>
                 {formatCurrency(
                   (newCharges / 100) * percentOff,
                   selectedPlanBillingPrice?.currency,
@@ -1168,12 +1010,7 @@ export const Sidebar = ({
             $gap="1rem"
           >
             <Box $opacity="0.625" $lineHeight={1.15}>
-              <Text
-                $font={theme.typography.text.fontFamily}
-                $size={theme.typography.text.fontSize}
-                $weight={theme.typography.text.fontWeight}
-                $color={theme.typography.text.color}
-              >
+              <Text>
                 {t("X off", {
                   amount: formatCurrency(
                     Math.abs(amountOff),
@@ -1184,12 +1021,7 @@ export const Sidebar = ({
             </Box>
 
             <Box>
-              <Text
-                $font={theme.typography.text.fontFamily}
-                $size={theme.typography.text.fontSize}
-                $weight={theme.typography.text.fontWeight}
-                $color={theme.typography.text.color}
-              >
+              <Text>
                 -
                 {formatCurrency(
                   Math.abs(amountOff),
@@ -1207,23 +1039,11 @@ export const Sidebar = ({
             $gap="1rem"
           >
             <Box $opacity="0.625">
-              <Text
-                $font={theme.typography.text.fontFamily}
-                $size={theme.typography.text.fontSize}
-                $weight={theme.typography.text.fontWeight}
-                $color={theme.typography.text.color}
-              >
-                {planPeriod === "year" ? "Yearly" : "Monthly"} total:
-              </Text>
+              <Text>{planPeriod === "year" ? "Yearly" : "Monthly"} total:</Text>
             </Box>
 
             <Box $whiteSpace="nowrap">
-              <Text
-                $font={theme.typography.text.fontFamily}
-                $size={theme.typography.text.fontSize}
-                $weight={theme.typography.text.fontWeight}
-                $color={theme.typography.text.color}
-              >
+              <Text>
                 {subscriptionPrice}
                 <sub>/{shortenPeriod(planPeriod)}</sub>
               </Text>
@@ -1238,23 +1058,11 @@ export const Sidebar = ({
             $gap="1rem"
           >
             <Box $opacity="0.625">
-              <Text
-                $font={theme.typography.text.fontFamily}
-                $size={theme.typography.text.fontSize}
-                $weight={theme.typography.text.fontWeight}
-                $color={theme.typography.text.color}
-              >
-                {t("Due today")}:
-              </Text>
+              <Text>{t("Due today")}:</Text>
             </Box>
 
             <Box>
-              <Text
-                $font={theme.typography.text.fontFamily}
-                $size={theme.typography.text.fontSize}
-                $weight={theme.typography.text.fontWeight}
-                $color={theme.typography.text.color}
-              >
+              <Text>
                 {formatCurrency(
                   Math.max(0, dueNow),
                   selectedPlanBillingPrice?.currency,
@@ -1267,23 +1075,11 @@ export const Sidebar = ({
         {dueNow < 0 && (
           <Flex $justifyContent="space-between" $gap="1rem">
             <Box $opacity="0.625" $lineHeight={1.15}>
-              <Text
-                $font={theme.typography.text.fontFamily}
-                $size={theme.typography.text.fontSize}
-                $weight={theme.typography.text.fontWeight}
-                $color={theme.typography.text.color}
-              >
-                {t("Credits to be applied to future invoices")}:
-              </Text>
+              <Text>{t("Credits to be applied to future invoices")}:</Text>
             </Box>
 
             <Box>
-              <Text
-                $font={theme.typography.text.fontFamily}
-                $size={theme.typography.text.fontSize}
-                $weight={theme.typography.text.fontWeight}
-                $color={theme.typography.text.color}
-              >
+              <Text>
                 {formatCurrency(
                   Math.abs(dueNow),
                   selectedPlanBillingPrice?.currency,
@@ -1320,12 +1116,7 @@ export const Sidebar = ({
 
         {!isLoading && error && (
           <Box>
-            <Text
-              $font={theme.typography.text.fontFamily}
-              $size={theme.typography.text.fontSize}
-              $weight={500}
-              $color="#DB6669"
-            >
+            <Text $weight={500} $color="#DB6669">
               {error}
             </Text>
           </Box>
@@ -1333,12 +1124,7 @@ export const Sidebar = ({
 
         {layout !== "unsubscribe" && (
           <Box $opacity="0.625">
-            <Text
-              $font={theme.typography.text.fontFamily}
-              $size={theme.typography.text.fontSize}
-              $weight={theme.typography.text.fontWeight}
-              $color={theme.typography.text.color}
-            >
+            <Text>
               {subscriptionPrice &&
                 // TODO: localize
                 `You will be billed ${subscriptionPrice} ${payAsYouGoEntitlements.length > 0 ? "plus usage based costs" : ""} for this subscription

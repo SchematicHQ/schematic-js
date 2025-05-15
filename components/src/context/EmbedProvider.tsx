@@ -22,8 +22,9 @@ import {
   ComponentspublicApi,
   Configuration as PublicConfiguration,
 } from "../api/componentspublic";
-import { FETCH_DEBOUNCE_TIMEOUT } from "../const";
-import { debounceOptions, isError } from "../utils";
+import { FETCH_DEBOUNCE_TIMEOUT, debounceOptions } from "../const";
+import type { RecursivePartial } from "../types";
+import { isError } from "../utils";
 
 import { EmbedContext } from "./EmbedContext";
 import { reducer } from "./embedReducer";
@@ -39,6 +40,7 @@ export interface EmbedProviderProps {
   children: React.ReactNode;
   apiKey?: string;
   apiConfig?: ConfigurationParameters;
+  settings?: RecursivePartial<EmbedSettings>;
   debug?: boolean;
 }
 
@@ -51,7 +53,12 @@ export const EmbedProvider = ({
   const sessionIdRef = useRef(uuidv4());
   const styleRef = useRef<HTMLLinkElement>(null);
 
-  const [state, dispatch] = useReducer(reducer, initialState);
+  const [state, dispatch] = useReducer(reducer, options, (opts) => {
+    const providedState = { settings: opts.settings };
+    const resolvedState = merge({}, initialState, providedState);
+
+    return resolvedState;
+  });
 
   const [api, setApi] = useState<{
     public?: ComponentspublicApi;
@@ -102,6 +109,7 @@ export const EmbedProvider = ({
           FETCH_DEBOUNCE_TIMEOUT,
           debounceOptions,
         );
+
         const response = await fn();
         if (response) {
           dispatch({
@@ -248,9 +256,14 @@ export const EmbedProvider = ({
     dispatch({ type: "SET_ACCESS_TOKEN", token });
   }, []);
 
-  const setSettings = useCallback(
-    (settings: EmbedSettings, update?: boolean) => {
-      dispatch({ type: "SET_SETTINGS", settings, update });
+  const updateSettings = useCallback(
+    <T extends boolean = true>(
+      settings: T extends false
+        ? EmbedSettings
+        : RecursivePartial<EmbedSettings>,
+      options?: { update?: T },
+    ) => {
+      dispatch({ type: "UPDATE_SETTINGS", settings, update: options?.update });
     },
     [],
   );
@@ -334,6 +347,18 @@ export const EmbedProvider = ({
   }, [state.accessToken, apiConfig, customHeaders]);
 
   useEffect(() => {
+    if (state.error) {
+      debug(state.error.message);
+    }
+  }, [debug, state.error]);
+
+  useEffect(() => {
+    if (options.settings) {
+      updateSettings(options.settings, { update: true });
+    }
+  }, [options.settings]);
+
+  useEffect(() => {
     const planChanged: EventListener = (event) => {
       if (event instanceof CustomEvent) {
         debug("plan changed", event.detail);
@@ -347,43 +372,37 @@ export const EmbedProvider = ({
     };
   }, [debug]);
 
-  useEffect(() => {
-    if (state.error) {
-      debug(state.error.message);
-    }
-  }, [debug, state.error]);
-
   return (
-    <ThemeProvider theme={state.settings.theme}>
-      <GlobalStyle />
-      <EmbedContext.Provider
-        value={{
-          isPending: state.isPending,
-          stale: state.stale,
-          data: state.data,
-          error: state.error,
-          settings: state.settings,
-          layout: state.layout,
-          mode: state.mode,
-          checkoutState: state.checkoutState,
-          hydratePublic,
-          hydrateComponent,
-          getSetupIntent,
-          updatePaymentMethod,
-          deletePaymentMethod,
-          checkout,
-          previewCheckout,
-          unsubscribe,
-          listInvoices,
-          setError,
-          setAccessToken,
-          setSettings,
-          setLayout,
-          setCheckoutState,
-        }}
-      >
+    <EmbedContext.Provider
+      value={{
+        isPending: state.isPending,
+        stale: state.stale,
+        data: state.data,
+        error: state.error,
+        settings: state.settings,
+        layout: state.layout,
+        mode: state.mode,
+        checkoutState: state.checkoutState,
+        hydratePublic,
+        hydrateComponent,
+        getSetupIntent,
+        updatePaymentMethod,
+        deletePaymentMethod,
+        checkout,
+        previewCheckout,
+        unsubscribe,
+        listInvoices,
+        setError,
+        setAccessToken,
+        setLayout,
+        setCheckoutState,
+        updateSettings,
+      }}
+    >
+      <ThemeProvider theme={state.settings.theme}>
+        <GlobalStyle />
         {children}
-      </EmbedContext.Provider>
-    </ThemeProvider>
+      </ThemeProvider>
+    </EmbedContext.Provider>
   );
 };

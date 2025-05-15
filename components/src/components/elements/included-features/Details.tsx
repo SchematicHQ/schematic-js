@@ -1,6 +1,5 @@
 import { Fragment, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { useTheme } from "styled-components";
 
 import type { FeatureUsageResponseData } from "../../../api/checkoutexternal";
 import { useEmbed } from "../../../hooks";
@@ -37,8 +36,6 @@ export const Details = ({
   } = featureUsage;
 
   const { t } = useTranslation();
-
-  const theme = useTheme();
 
   const { data } = useEmbed();
 
@@ -261,13 +258,7 @@ export const Details = ({
     >
       {props.entitlement.isVisible && (
         <Box $whiteSpace="nowrap">
-          <Text
-            $font={theme.typography[props.entitlement.fontStyle].fontFamily}
-            $size={theme.typography[props.entitlement.fontStyle].fontSize}
-            $weight={theme.typography[props.entitlement.fontStyle].fontWeight}
-            $color={theme.typography[props.entitlement.fontStyle].color}
-            $leading={1}
-          >
+          <Text display={props.entitlement.fontStyle} $leading={1}>
             {text}
           </Text>
         </Box>
@@ -275,13 +266,7 @@ export const Details = ({
 
       {props.usage.isVisible && usageText && (
         <Box $whiteSpace="nowrap">
-          <Text
-            $font={theme.typography[props.usage.fontStyle].fontFamily}
-            $size={theme.typography[props.usage.fontStyle].fontSize}
-            $weight={theme.typography[props.usage.fontStyle].fontWeight}
-            $color={theme.typography[props.usage.fontStyle].color}
-            $leading={1}
-          >
+          <Text display={props.usage.fontStyle} $leading={1}>
             {usageText}
           </Text>
         </Box>

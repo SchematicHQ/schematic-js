@@ -1,8 +1,11 @@
 import { useLayoutEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useTheme } from "styled-components";
 
-import { useIsLightBackground, type SelectedPlan } from "../../../hooks";
+import {
+  useEmbed,
+  useIsLightBackground,
+  type SelectedPlan,
+} from "../../../hooks";
 import { adjectify, getBillingPrice } from "../../../utils";
 import { Flex, Text, Tooltip } from "../../ui";
 
@@ -23,7 +26,7 @@ export const PeriodToggle = ({
 }: PeriodToggleProps) => {
   const { t } = useTranslation();
 
-  const theme = useTheme();
+  const { settings } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
 
@@ -53,7 +56,7 @@ export const PeriodToggle = ({
   return (
     <Flex
       $margin={0}
-      $backgroundColor={theme.card.background}
+      $backgroundColor={settings.theme.card.background}
       $borderWidth="1px"
       $borderStyle="solid"
       $borderColor={isLightBackground ? "hsl(0, 0%, 92.5%)" : "hsl(0, 0%, 15%)"}
@@ -89,11 +92,9 @@ export const PeriodToggle = ({
             }}
           >
             <Text
-              $font={theme.typography.text.fontFamily}
+              style={{ flexShrink: 0 }}
               $size={15}
               $weight={option === selectedOption ? 600 : 400}
-              $color={theme.typography.text.color}
-              style={{ flexShrink: 0 }}
             >
               {t("Billed", { period: adjectify(option) })}
             </Text>
@@ -106,13 +107,7 @@ export const PeriodToggle = ({
               key={option}
               trigger={element}
               content={
-                <Text
-                  $font={theme.typography.text.fontFamily}
-                  $size={11}
-                  $weight={theme.typography.text.fontWeight}
-                  $color={theme.typography.text.color}
-                  $leading={1}
-                >
+                <Text $size={11} $leading={1}>
                   {selectedOption === "month"
                     ? t("Save with yearly billing", {
                         percent: savingsPercentage,

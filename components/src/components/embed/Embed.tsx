@@ -1,17 +1,16 @@
 import { inflate } from "pako";
 import { useEffect, useState } from "react";
-import { useTheme } from "styled-components";
 
 import { TEXT_BASE_SIZE } from "../../const";
 import { useEmbed } from "../../hooks";
 import type { SerializedNodeWithChildren } from "../../types";
 import { isCheckoutData, isError } from "../../utils";
-import { Box, Flex, Loader } from "../ui";
+import { Box, Flex, Loader, Text } from "../ui";
 
 import { createRenderer, getEditorState, parseEditorState } from "./renderer";
 
 const Loading = () => {
-  const theme = useTheme();
+  const { settings } = useEmbed();
 
   return (
     <Flex
@@ -19,7 +18,7 @@ const Loading = () => {
       $height="100%"
       $alignItems="center"
       $justifyContent="center"
-      $padding={`${theme.card.padding / TEXT_BASE_SIZE}rem`}
+      $padding={`${settings.theme.card.padding / TEXT_BASE_SIZE}rem`}
     >
       <Loader $color="#194BFB" $size="2xl" />
     </Flex>
@@ -27,34 +26,22 @@ const Loading = () => {
 };
 
 const Error = ({ message }: { message: string }) => {
-  const theme = useTheme();
+  const { settings } = useEmbed();
 
   return (
     <Flex
       $flexDirection="column"
-      $padding={`${theme.card.padding / TEXT_BASE_SIZE}rem`}
+      $padding={`${settings.theme.card.padding / TEXT_BASE_SIZE}rem`}
       $width="100%"
-      $borderRadius={`${theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
-      $backgroundColor={theme.card.background}
+      $borderRadius={`${settings.theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
+      $backgroundColor={settings.theme.card.background}
       $alignItems="center"
       $justifyContent="center"
     >
-      <Box
-        $marginBottom={`${8 / TEXT_BASE_SIZE}rem`}
-        $fontSize={`${theme.typography.heading1.fontSize / TEXT_BASE_SIZE}rem`}
-        $fontFamily={theme.typography.heading1.fontFamily}
-        $fontWeight={theme.typography.heading1.fontWeight}
-        $color={theme.typography.heading1.color}
-      >
+      <Box as={Text} display="heading1" $marginBottom="0.5rem">
         Error
       </Box>
-      <Box
-        $marginBottom={`${8 / TEXT_BASE_SIZE}rem`}
-        $fontSize={`${theme.typography.text.fontSize / TEXT_BASE_SIZE}rem`}
-        $fontFamily={theme.typography.text.fontFamily}
-        $fontWeight={theme.typography.text.fontWeight}
-        $color={theme.typography.text.color}
-      >
+      <Box as={Text} $marginBottom="0.5rem">
         {message}
       </Box>
     </Flex>
@@ -77,7 +64,7 @@ export const SchematicEmbed = ({ id, accessToken }: EmbedProps) => {
     hydrateComponent,
     setError,
     setAccessToken,
-    setSettings,
+    updateSettings,
   } = useEmbed();
 
   useEffect(() => {
@@ -106,7 +93,7 @@ export const SchematicEmbed = ({ id, accessToken }: EmbedProps) => {
         );
         const ast = getEditorState(json);
         if (ast) {
-          setSettings({ ...ast.ROOT.props.settings });
+          updateSettings({ ...ast.ROOT.props.settings });
           nodes.push(...parseEditorState(ast));
           setChildren(nodes.map(renderer));
         }
@@ -116,7 +103,7 @@ export const SchematicEmbed = ({ id, accessToken }: EmbedProps) => {
         setError(err);
       }
     }
-  }, [data, setSettings, setError]);
+  }, [data, setError, updateSettings]);
 
   if (error) {
     return <Error message={error.message} />;

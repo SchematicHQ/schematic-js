@@ -1,5 +1,3 @@
-import { debounce, type DebounceSettings } from "lodash";
-
 import {
   type CompanyPlanDetailResponseData,
   type ComponentHydrateResponseData,
@@ -9,37 +7,9 @@ import {
   type PlanViewPublicResponseData,
   type PublicPlansResponseData,
 } from "../api/componentspublic";
-import { FETCH_DEBOUNCE_TIMEOUT } from "../const";
 import { type SelectedPlan } from "../hooks";
 
 import { pluralize } from "./pluralize";
-
-export const debounceOptions: DebounceSettings = {
-  leading: true,
-  trailing: false,
-};
-
-interface DebouncedRequestParams<T, P> {
-  fn:
-    | ((requestParameters: P, initOverrides?: RequestInit) => Promise<T>)
-    | ((initOverrides?: RequestInit) => Promise<T>)
-    | undefined;
-  params?: P;
-  initOverrides?: RequestInit;
-}
-
-export function createDebouncedRequest<T, P>({
-  fn,
-  params,
-  initOverrides,
-}: DebouncedRequestParams<T, P>) {
-  return debounce(
-    // @ts-expect-error: params could potentially be request options type
-    () => (params ? fn?.(params, initOverrides) : fn?.(initOverrides)),
-    FETCH_DEBOUNCE_TIMEOUT,
-    debounceOptions,
-  );
-}
 
 export function isCheckoutData(
   data?: PublicPlansResponseData | ComponentHydrateResponseData,

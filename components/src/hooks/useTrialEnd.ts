@@ -9,9 +9,9 @@ export function useTrialEnd() {
     ? data.company?.billingSubscription
     : undefined;
   const trialEndDate =
-    billingSubscription?.trialEnd &&
-    new Date(billingSubscription.trialEnd * 1000);
-
+    typeof billingSubscription?.trialEnd === "number"
+      ? new Date(billingSubscription.trialEnd * 1000)
+      : undefined;
   if (trialEndDate) {
     const todayDate = new Date();
     const trialEndDays = Math.floor(

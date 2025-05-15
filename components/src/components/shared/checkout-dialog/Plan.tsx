@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useTheme } from "styled-components";
 
 import { TEXT_BASE_SIZE, VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
 import {
@@ -41,7 +40,7 @@ interface SelectedProps {
 const Selected = ({ isCurrent = false, isTrial = false }: SelectedProps) => {
   const { t } = useTranslation();
 
-  const theme = useTheme();
+  const { settings } = useEmbed();
 
   const text = useMemo(() => {
     if (isCurrent) {
@@ -63,15 +62,12 @@ const Selected = ({ isCurrent = false, isTrial = false }: SelectedProps) => {
         style={{
           fontSize: 20,
           lineHeight: 1,
-          color: theme.primary,
+          color: settings.theme.primary,
         }}
       />
 
       <Text
-        $font={theme.typography.text.fontFamily}
-        $size={(15 / 16) * theme.typography.text.fontSize}
-        $weight={theme.typography.text.fontWeight}
-        $color={theme.typography.text.color}
+        $size={0.9375 * settings.theme.typography.text.fontSize}
         $leading={1}
       >
         {text}
@@ -253,9 +249,7 @@ export const Plan = ({
 }: PlanProps) => {
   const { t } = useTranslation();
 
-  const theme = useTheme();
-
-  const { data } = useEmbed();
+  const { data, settings } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
 
@@ -303,7 +297,7 @@ export const Plan = ({
     });
   };
 
-  const cardPadding = theme.card.padding / TEXT_BASE_SIZE;
+  const cardPadding = settings.theme.card.padding / TEXT_BASE_SIZE;
 
   return (
     <>
@@ -326,8 +320,8 @@ export const Plan = ({
           const isUsageBasedPlan = planPrice === 0 && hasUsageBasedEntitlements;
           const headerPriceFontStyle =
             plan.custom || isUsageBasedPlan
-              ? theme.typography.heading3
-              : theme.typography.heading2;
+              ? settings.theme.typography.heading3
+              : settings.theme.typography.heading2;
 
           return (
             <Flex
@@ -335,14 +329,18 @@ export const Plan = ({
               $position="relative"
               $flexDirection="column"
               $padding={`${0.75 * cardPadding}rem 0`}
-              $backgroundColor={theme.card.background}
-              $borderRadius={`${theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
+              $backgroundColor={settings.theme.card.background}
+              $borderRadius={`${settings.theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
               $outlineWidth="2px"
               $outlineStyle="solid"
               $outlineColor={
-                plan.id === selectedPlan?.id ? theme.primary : "transparent"
+                plan.id === selectedPlan?.id
+                  ? settings.theme.primary
+                  : "transparent"
               }
-              {...(theme.card.hasShadow && { $boxShadow: cardBoxShadow })}
+              {...(settings.theme.card.hasShadow && {
+                $boxShadow: cardBoxShadow,
+              })}
             >
               <Flex
                 $flexDirection="column"
@@ -363,25 +361,11 @@ export const Plan = ({
                 }}
               >
                 <Box>
-                  <Text
-                    $font={theme.typography.heading2.fontFamily}
-                    $size={theme.typography.heading2.fontSize}
-                    $weight={theme.typography.heading2.fontWeight}
-                    $color={theme.typography.heading2.color}
-                  >
-                    {plan.name}
-                  </Text>
+                  <Text display="heading2">{plan.name}</Text>
                 </Box>
 
                 <Box $marginBottom="0.5rem" $lineHeight={1.35}>
-                  <Text
-                    $font={theme.typography.text.fontFamily}
-                    $size={theme.typography.text.fontSize}
-                    $weight={theme.typography.text.fontWeight}
-                    $color={theme.typography.text.color}
-                  >
-                    {plan.description}
-                  </Text>
+                  <Text>{plan.description}</Text>
                 </Box>
 
                 <Box>
@@ -402,10 +386,10 @@ export const Plan = ({
 
                   {!plan.custom && !isUsageBasedPlan && (
                     <Text
-                      $font={theme.typography.heading2.fontFamily}
-                      $size={(16 / 30) * theme.typography.heading2.fontSize}
-                      $weight={theme.typography.heading2.fontWeight}
-                      $color={theme.typography.heading2.color}
+                      display="heading2"
+                      $size={
+                        (16 / 30) * settings.theme.typography.heading2.fontSize
+                      }
                     >
                       /{period}
                     </Text>
@@ -417,16 +401,16 @@ export const Plan = ({
                     $position="absolute"
                     $right="1rem"
                     $top="1rem"
-                    $backgroundColor={theme.primary}
+                    $backgroundColor={settings.theme.primary}
                     $borderRadius="9999px"
                     $padding="0.125rem 0.85rem"
                   >
                     <Text
-                      $font={theme.typography.text.fontFamily}
-                      $size={0.75 * theme.typography.text.fontSize}
-                      $weight={theme.typography.text.fontWeight}
+                      $size={0.75 * settings.theme.typography.text.fontSize}
                       $color={
-                        hexToHSL(theme.primary).l > 50 ? "#000000" : "#FFFFFF"
+                        hexToHSL(settings.theme.primary).l > 50
+                          ? "#000000"
+                          : "#FFFFFF"
                       }
                     >
                       {isTrialing ? t("Trialing") : t("Active")}
@@ -524,7 +508,7 @@ export const Plan = ({
                                   }
                                   size="sm"
                                   colors={[
-                                    theme.primary,
+                                    settings.theme.primary,
                                     isLightBackground
                                       ? "hsla(0, 0%, 0%, 0.0625)"
                                       : "hsla(0, 0%, 100%, 0.25)",
@@ -538,13 +522,7 @@ export const Plan = ({
                                   $justifyContent="center"
                                   $gap="0.5rem"
                                 >
-                                  <Text
-                                    $font={theme.typography.text.fontFamily}
-                                    $size={theme.typography.text.fontSize}
-                                    $weight={theme.typography.text.fontWeight}
-                                    $color={theme.typography.text.color}
-                                    $leading={1.35}
-                                  >
+                                  <Text $leading={1.35}>
                                     {typeof entitlementPrice === "number" &&
                                     (entitlement.priceBehavior ===
                                       "pay_in_advance" ||
@@ -612,22 +590,24 @@ export const Plan = ({
                                   {entitlement.priceBehavior === "overage" &&
                                     typeof entitlementPrice === "number" && (
                                       <Text
-                                        $font={theme.typography.text.fontFamily}
                                         $size={
-                                          0.875 * theme.typography.text.fontSize
-                                        }
-                                        $weight={
-                                          theme.typography.text.fontWeight
+                                          0.875 *
+                                          settings.theme.typography.text
+                                            .fontSize
                                         }
                                         $color={
-                                          hexToHSL(theme.typography.text.color)
-                                            .l > 50
+                                          hexToHSL(
+                                            settings.theme.typography.text
+                                              .color,
+                                          ).l > 50
                                             ? darken(
-                                                theme.typography.text.color,
+                                                settings.theme.typography.text
+                                                  .color,
                                                 0.46,
                                               )
                                             : lighten(
-                                                theme.typography.text.color,
+                                                settings.theme.typography.text
+                                                  .color,
                                                 0.46,
                                               )
                                         }
@@ -682,10 +662,7 @@ export const Plan = ({
                       />
                       <Text
                         onClick={() => handleToggleShowAll(plan.id)}
-                        $font={theme.typography.link.fontFamily}
-                        $size={theme.typography.link.fontSize}
-                        $weight={theme.typography.link.fontWeight}
-                        $color={theme.typography.link.color}
+                        display="link"
                         $leading={1}
                         style={{ cursor: "pointer" }}
                       >

@@ -1,12 +1,11 @@
 import { t } from "i18next";
 import { CSSProperties, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { useTheme } from "styled-components";
 import type { DefaultTheme } from "styled-components/dist/models/ThemeProvider";
 
 import type { PaymentMethodResponseData } from "../../../api/checkoutexternal";
 import { type FontStyle } from "../../../context";
-import { useIsLightBackground } from "../../../hooks";
+import { useEmbed, useIsLightBackground } from "../../../hooks";
 import { Box, Flex, Icon, IconNameTypes, Text } from "../../ui";
 
 type PaymentMethodType =
@@ -53,10 +52,8 @@ const PaymentElement = ({
   label,
   paymentLast4,
 }: PaymentElementProps) => {
-  const theme = useTheme();
-
   return (
-    <Text $font={theme.typography.text.fontFamily} $size={16}>
+    <Text>
       <Flex $flexDirection="row" $alignItems="center" $gap="0.5rem">
         {iconName && (
           <Box>
@@ -80,10 +77,8 @@ const PaymentElement = ({
 };
 
 const EmptyPaymentElement = () => {
-  const theme = useTheme();
-
   return (
-    <Text $font={theme.typography.text.fontFamily} $size={16}>
+    <Text>
       <Flex $flexDirection="row" $alignItems="center">
         <Flex $alignItems="center">
           <Box $lineHeight="1" $marginRight="4px">
@@ -189,7 +184,7 @@ export const PaymentMethodElement = ({
 }: PaymentMethodElementProps) => {
   const { t } = useTranslation();
 
-  const theme = useTheme();
+  const { settings } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
 
@@ -205,24 +200,12 @@ export const PaymentMethodElement = ({
     <Flex $flexDirection="column" $gap={`${sizeFactor}rem`}>
       {props.header.isVisible && (
         <Flex $justifyContent="space-between" $alignItems="center">
-          <Text
-            $font={theme.typography[props.header.fontStyle].fontFamily}
-            $size={theme.typography[props.header.fontStyle].fontSize}
-            $weight={theme.typography[props.header.fontStyle].fontWeight}
-            $color={theme.typography[props.header.fontStyle].color}
-          >
-            {t("Payment Method")}
-          </Text>
+          <Text display={props.header.fontStyle}>{t("Payment Method")}</Text>
 
           {props.functions.showExpiration &&
             typeof monthsToExpiration === "number" &&
             monthsToExpiration < 4 && (
-              <Text
-                $font={theme.typography.text.fontFamily}
-                $size={14}
-                $weight={theme.typography.text.fontWeight}
-                $color="#DB6769"
-              >
+              <Text $size={14} $color="#DB6769">
                 {monthsToExpiration > 0
                   ? t("Expires in x months", { months: monthsToExpiration })
                   : t("Expired")}
@@ -245,20 +228,13 @@ export const PaymentMethodElement = ({
         {paymentMethod && (
           <PaymentElement
             {...getPaymentMethodData(paymentMethod)}
-            {...getIconStyles({ size, theme })}
+            {...getIconStyles({ size, theme: settings.theme })}
           />
         )}
         {!paymentMethod && <EmptyPaymentElement />}
 
         {props.functions.allowEdit && onEdit && (
-          <Text
-            onClick={onEdit}
-            $font={theme.typography.link.fontFamily}
-            $size={theme.typography.link.fontSize}
-            $weight={theme.typography.link.fontWeight}
-            $color={theme.typography.link.color}
-            $leading={1}
-          >
+          <Text onClick={onEdit} display="link" $leading={1}>
             {t("Edit")}
           </Text>
         )}
@@ -278,12 +254,13 @@ export const PaymentListElement = ({
   setDefault,
   handleDelete,
 }: PaymentElementListProps) => {
-  const theme = useTheme();
+  const { settings } = useEmbed();
+
   const isLightBackground = useIsLightBackground();
 
   const { iconName, iconTitle, label, paymentLast4 } =
     getPaymentMethodData(paymentMethod);
-  const iconStyles = getIconStyles({ size: "lg", theme });
+  const iconStyles = getIconStyles({ size: "lg", theme: settings.theme });
 
   const expirationDate = useMemo(() => {
     const { cardExpMonth, cardExpYear } = paymentMethod;
@@ -318,8 +295,6 @@ export const PaymentListElement = ({
           : "hsla(0, 0%, 100%, 0.175)"
       }
       $padding="0.5rem"
-      $font={theme.typography.text.fontFamily}
-      $color={theme.typography.text.color}
     >
       <Box $paddingLeft="0.5rem" $paddingRight="0.5rem">
         {iconName && (
@@ -328,12 +303,7 @@ export const PaymentListElement = ({
       </Box>
 
       <Box $flexGrow="1">
-        <Text
-          $font={theme.typography.text.fontFamily}
-          $size={theme.typography.text.fontSize}
-          $weight={theme.typography.text.fontWeight}
-          $color={theme.typography.text.color}
-        >
+        <Text>
           {t(label as string)} {paymentLast4}
         </Text>
       </Box>
@@ -346,14 +316,7 @@ export const PaymentListElement = ({
             : "hsla(0, 0%, 100%, 0.375)"
         }
       >
-        <Text
-          $font={theme.typography.text.fontFamily}
-          $size={theme.typography.text.fontSize}
-          $weight={theme.typography.text.fontWeight}
-          $color={theme.typography.text.color}
-        >
-          {expirationDate && t("Expires", { date: expirationDate })}
-        </Text>
+        <Text>{expirationDate && t("Expires", { date: expirationDate })}</Text>
       </Box>
 
       <Box>
@@ -361,10 +324,7 @@ export const PaymentListElement = ({
           onClick={() => {
             setDefault(paymentMethod.externalId);
           }}
-          $font={theme.typography.link.fontFamily}
-          $size={theme.typography.link.fontSize}
-          $weight={theme.typography.link.fontWeight}
-          $color={theme.typography.link.color}
+          display="link"
         >
           {t("Set default")}
         </Text>

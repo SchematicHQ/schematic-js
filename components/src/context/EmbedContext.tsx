@@ -10,6 +10,7 @@ import type {
   PreviewCheckoutResponse,
   UpdatePaymentMethodResponse,
 } from "../api/checkoutexternal";
+import type { RecursivePartial } from "../types";
 
 import {
   initialState,
@@ -54,9 +55,12 @@ export interface EmbedContextProps extends EmbedState {
   unsubscribe: () => Promise<CheckoutUnsubscribeResponse | undefined>;
   setAccessToken: (token: string) => void;
   setError: (error: Error) => void;
-  setSettings: (settings: EmbedSettings, update?: boolean) => void;
   setLayout: (layout: EmbedLayout) => void;
   setCheckoutState: (state: CheckoutState) => void;
+  updateSettings: <T extends boolean = true>(
+    settings: T extends false ? EmbedSettings : RecursivePartial<EmbedSettings>,
+    options?: { update?: T },
+  ) => void;
 }
 
 const stub = () => {
@@ -76,9 +80,9 @@ export const initialContext = {
   unsubscribe: stub,
   setError: stub,
   setAccessToken: stub,
-  setSettings: stub,
   setLayout: stub,
   setCheckoutState: stub,
+  updateSettings: stub,
 };
 
 export const EmbedContext = createContext<EmbedContextProps>(initialContext);

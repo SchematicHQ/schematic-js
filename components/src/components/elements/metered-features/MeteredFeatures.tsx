@@ -1,6 +1,5 @@
 import { forwardRef, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { useTheme } from "styled-components";
 
 import { type FeatureUsageResponseData } from "../../../api/checkoutexternal";
 import { TEXT_BASE_SIZE } from "../../../const";
@@ -101,9 +100,7 @@ export const MeteredFeatures = forwardRef<
 
   const { t } = useTranslation();
 
-  const theme = useTheme();
-
-  const { data, setCheckoutState } = useEmbed();
+  const { data, settings, setCheckoutState } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
 
@@ -248,7 +245,7 @@ export const MeteredFeatures = forwardRef<
                     name={feature.icon as IconNameTypes | string}
                     size="sm"
                     colors={[
-                      theme.primary,
+                      settings.theme.primary,
                       isLightBackground
                         ? "hsla(0, 0%, 0%, 0.0625)"
                         : "hsla(0, 0%, 100%, 0.25)",
@@ -268,20 +265,9 @@ export const MeteredFeatures = forwardRef<
                   >
                     {feature?.name && (
                       <Flex $flexDirection="column" $gap="0.5rem" $flexGrow={1}>
-                        <Text
-                          as={Box}
-                          $font={
-                            theme.typography[props.header.fontStyle].fontFamily
-                          }
-                          $size={
-                            theme.typography[props.header.fontStyle].fontSize
-                          }
-                          $weight={
-                            theme.typography[props.header.fontStyle].fontWeight
-                          }
-                          $color={
-                            theme.typography[props.header.fontStyle].color
-                          }
+                        <Box
+                          as={Text}
+                          display={props.header.fontStyle}
                           $leading={1.35}
                         >
                           {priceBehavior === "pay_as_you_go"
@@ -292,30 +278,12 @@ export const MeteredFeatures = forwardRef<
                                 </>
                               )
                             : feature.name}
-                        </Text>
+                        </Box>
 
                         {props.description.isVisible && (
-                          <Text
-                            as={Box}
-                            $font={
-                              theme.typography[props.description.fontStyle]
-                                .fontFamily
-                            }
-                            $size={
-                              theme.typography[props.description.fontStyle]
-                                .fontSize
-                            }
-                            $weight={
-                              theme.typography[props.description.fontStyle]
-                                .fontWeight
-                            }
-                            $color={
-                              theme.typography[props.description.fontStyle]
-                                .color
-                            }
-                          >
+                          <Box as={Text} display={props.description.fontStyle}>
                             {feature.description}
-                          </Text>
+                          </Box>
                         )}
                       </Flex>
                     )}
@@ -329,26 +297,13 @@ export const MeteredFeatures = forwardRef<
                           $textAlign={shouldWrapChildren ? "left" : "right"}
                         >
                           {props.usage.isVisible && (
-                            <Text
-                              as={Box}
-                              $font={
-                                theme.typography[props.usage.fontStyle]
-                                  .fontFamily
-                              }
-                              $size={
-                                theme.typography[props.usage.fontStyle].fontSize
-                              }
-                              $weight={
-                                theme.typography[props.usage.fontStyle]
-                                  .fontWeight
-                              }
-                              $color={
-                                theme.typography[props.usage.fontStyle].color
-                              }
-                              $leading={1.35}
+                            <Box
+                              as={Text}
                               style={{
                                 whiteSpace: "nowrap",
                               }}
+                              display={props.usage.fontStyle}
+                              $leading={1.35}
                             >
                               {priceBehavior === "pay_in_advance"
                                 ? typeof allocation === "number" && (
@@ -370,28 +325,13 @@ export const MeteredFeatures = forwardRef<
                                         )}
                                       </>
                                     )}
-                            </Text>
+                            </Box>
                           )}
 
                           {props.allocation.isVisible && (
                             <Box $whiteSpace="nowrap">
                               <Text
-                                $font={
-                                  theme.typography[props.allocation.fontStyle]
-                                    .fontFamily
-                                }
-                                $size={
-                                  theme.typography[props.allocation.fontStyle]
-                                    .fontSize
-                                }
-                                $weight={
-                                  theme.typography[props.allocation.fontStyle]
-                                    .fontWeight
-                                }
-                                $color={
-                                  theme.typography[props.allocation.fontStyle]
-                                    .color
-                                }
+                                display={props.allocation.fontStyle}
                                 $leading={1.35}
                               >
                                 {priceBehavior &&
@@ -429,10 +369,10 @@ export const MeteredFeatures = forwardRef<
                             trigger={progressBar}
                             content={
                               <Text
-                                $font={theme.typography.text.fontFamily}
-                                $size={0.875 * theme.typography.text.fontSize}
-                                $weight={theme.typography.text.fontWeight}
-                                $color={theme.typography.text.color}
+                                $size={
+                                  0.875 *
+                                  settings.theme.typography.text.fontSize
+                                }
                                 $leading={1}
                               >
                                 {t("Up to a limit of", {
@@ -469,25 +409,19 @@ export const MeteredFeatures = forwardRef<
                   $justifyContent="space-between"
                   $alignItems="center"
                   $gap="1rem"
-                  $margin={`0 -${theme.card.padding / TEXT_BASE_SIZE}rem -${(theme.card.padding * 0.75) / TEXT_BASE_SIZE}rem`}
-                  $padding={`${(0.4375 * theme.card.padding) / TEXT_BASE_SIZE}rem ${theme.card.padding / TEXT_BASE_SIZE}rem`}
+                  $margin={`0 -${settings.theme.card.padding / TEXT_BASE_SIZE}rem -${(settings.theme.card.padding * 0.75) / TEXT_BASE_SIZE}rem`}
+                  $padding={`${(0.4375 * settings.theme.card.padding) / TEXT_BASE_SIZE}rem ${settings.theme.card.padding / TEXT_BASE_SIZE}rem`}
                   $backgroundColor={
                     isLightBackground
-                      ? darken(theme.card.background, 0.05)
-                      : lighten(theme.card.background, 0.1)
+                      ? darken(settings.theme.card.background, 0.05)
+                      : lighten(settings.theme.card.background, 0.1)
                   }
-                  {...(theme.sectionLayout === "separate" && {
-                    $borderBottomLeftRadius: `${theme.card.borderRadius / TEXT_BASE_SIZE}rem`,
-                    $borderBottomRightRadius: `${theme.card.borderRadius / TEXT_BASE_SIZE}rem`,
+                  {...(settings.theme.sectionLayout === "separate" && {
+                    $borderBottomLeftRadius: `${settings.theme.card.borderRadius / TEXT_BASE_SIZE}rem`,
+                    $borderBottomRightRadius: `${settings.theme.card.borderRadius / TEXT_BASE_SIZE}rem`,
                   })}
                 >
-                  <Text
-                    $font={theme.typography.text.fontFamily}
-                    $size={theme.typography.text.fontSize}
-                    $weight={theme.typography.text.fontWeight}
-                    $color={theme.typography.text.color}
-                    $leading={1.35}
-                  >
+                  <Text $leading={1.35}>
                     <>
                       {t("Additional")}: {formatCurrency(price, currency)}
                       {feature && (
@@ -503,13 +437,7 @@ export const MeteredFeatures = forwardRef<
                   </Text>
 
                   {isOverage && (
-                    <Text
-                      $font={theme.typography.text.fontFamily}
-                      $size={theme.typography.text.fontSize}
-                      $weight={theme.typography.text.fontWeight}
-                      $color={theme.typography.text.color}
-                      $leading={1.35}
-                    >
+                    <Text $leading={1.35}>
                       {formatNumber(usage - softLimit)}{" "}
                       {feature && getFeatureName(feature)}
                       {" · "}

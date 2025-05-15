@@ -1,6 +1,5 @@
 import { forwardRef, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { useTheme } from "styled-components";
 
 import { type FontStyle } from "../../../context";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
@@ -57,9 +56,7 @@ export const UpcomingBill = forwardRef<
 
   const { t } = useTranslation();
 
-  const theme = useTheme();
-
-  const { data } = useEmbed();
+  const { data, settings } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
 
@@ -117,12 +114,7 @@ export const UpcomingBill = forwardRef<
     >
       {props.header.isVisible && (
         <Flex $justifyContent="space-between" $alignItems="center">
-          <Text
-            $font={theme.typography[props.header.fontStyle].fontFamily}
-            $size={theme.typography[props.header.fontStyle].fontSize}
-            $weight={theme.typography[props.header.fontStyle].fontWeight}
-            $color={theme.typography[props.header.fontStyle].color}
-          >
+          <Text display={props.header.fontStyle}>
             {props.header.prefix} {upcomingInvoice.dueDate}
           </Text>
         </Flex>
@@ -131,13 +123,7 @@ export const UpcomingBill = forwardRef<
       <Flex $justifyContent="space-between" $alignItems="start" $gap="1rem">
         {props.price.isVisible && (
           <Flex $alignItems="end" $flexGrow="1">
-            <Text
-              $font={theme.typography[props.price.fontStyle].fontFamily}
-              $size={theme.typography[props.price.fontStyle].fontSize}
-              $weight={theme.typography[props.price.fontStyle].fontWeight}
-              $color={theme.typography[props.price.fontStyle].color}
-              $leading={1}
-            >
+            <Text display={props.price.fontStyle} $leading={1}>
               {formatCurrency(
                 upcomingInvoice.amountDue,
                 upcomingInvoice.currency,
@@ -147,15 +133,7 @@ export const UpcomingBill = forwardRef<
         )}
 
         <Box $lineHeight={1.15} $maxWidth="10rem" $textAlign="right">
-          <Text
-            $font={theme.typography[props.contractEndDate.fontStyle].fontFamily}
-            $size={theme.typography[props.contractEndDate.fontStyle].fontSize}
-            $weight={
-              theme.typography[props.contractEndDate.fontStyle].fontWeight
-            }
-            $color={theme.typography[props.contractEndDate.fontStyle].color}
-            $leading={1}
-          >
+          <Text display={props.contractEndDate.fontStyle} $leading={1}>
             {t("Estimated bill.")}
           </Text>
         </Box>
@@ -164,14 +142,7 @@ export const UpcomingBill = forwardRef<
       {discounts.length > 0 && (
         <Flex $justifyContent="space-between" $alignItems="center">
           <Box>
-            <Text
-              $font={theme.typography.text.fontFamily}
-              $size={theme.typography.text.fontSize}
-              $weight={600}
-              $color={theme.typography.text.color}
-            >
-              {t("Discount")}
-            </Text>
+            <Text $weight={600}>{t("Discount")}</Text>
           </Box>
           <Box>
             {discounts.map((discount) => (
@@ -188,23 +159,13 @@ export const UpcomingBill = forwardRef<
                   }
                   $borderRadius="0.3125rem"
                 >
-                  <Text
-                    $font={theme.typography.text.fontFamily}
-                    $size={0.75 * theme.typography.text.fontSize}
-                    $weight={theme.typography.text.fontWeight}
-                    $color={theme.typography.text.color}
-                  >
+                  <Text $size={0.75 * settings.theme.typography.text.fontSize}>
                     {discount.customerFacingCode}
                   </Text>
                 </Flex>
 
                 <Box>
-                  <Text
-                    $font={theme.typography.text.fontFamily}
-                    $size={theme.typography.text.fontSize}
-                    $weight={theme.typography.text.fontWeight}
-                    $color={theme.typography.text.color}
-                  >
+                  <Text>
                     {t("Percent off", { percent: discount.percentOff })}
                   </Text>
                 </Box>
