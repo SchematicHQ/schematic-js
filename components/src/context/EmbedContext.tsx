@@ -39,7 +39,7 @@ export interface EmbedContextProps extends EmbedState {
   hydratePublic: () => Promise<void>;
   hydrateComponent: (id: string) => Promise<void>;
   listInvoices: () => Promise<ListInvoicesResponse | undefined>;
-  getSetupIntent: () => Promise<GetSetupIntentResponse | undefined>;
+  createSetupIntent: () => Promise<GetSetupIntentResponse | undefined>;
   updatePaymentMethod: (
     paymentMethodId: string,
   ) => Promise<UpdatePaymentMethodResponse | undefined>;
@@ -57,9 +57,9 @@ export interface EmbedContextProps extends EmbedState {
   setError: (error: Error) => void;
   setLayout: (layout: EmbedLayout) => void;
   setCheckoutState: (state: CheckoutState) => void;
-  updateSettings: <T extends boolean = true>(
-    settings: T extends false ? EmbedSettings : RecursivePartial<EmbedSettings>,
-    options?: { update?: T },
+  updateSettings: (
+    settings: RecursivePartial<EmbedSettings>,
+    options?: { update?: boolean },
   ) => void;
 }
 
@@ -72,7 +72,7 @@ export const initialContext = {
   hydratePublic: stub,
   hydrateComponent: stub,
   listInvoices: stub,
-  getSetupIntent: stub,
+  createSetupIntent: stub,
   updatePaymentMethod: stub,
   deletePaymentMethod: stub,
   previewCheckout: stub,

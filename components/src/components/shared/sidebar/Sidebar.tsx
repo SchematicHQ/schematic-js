@@ -716,7 +716,6 @@ export const Sidebar = ({
                         </Box>
                       </Flex>
 
-                      {/* TODO */}
                       <Flex
                         $justifyContent="space-between"
                         $alignItems="center"

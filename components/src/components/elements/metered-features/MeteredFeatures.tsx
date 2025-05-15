@@ -265,24 +265,24 @@ export const MeteredFeatures = forwardRef<
                   >
                     {feature?.name && (
                       <Flex $flexDirection="column" $gap="0.5rem" $flexGrow={1}>
-                        <Box
-                          as={Text}
-                          display={props.header.fontStyle}
-                          $leading={1.35}
-                        >
-                          {priceBehavior === "pay_as_you_go"
-                            ? typeof usage === "number" && (
-                                <>
-                                  {formatNumber(usage)}{" "}
-                                  {getFeatureName(feature, usage)}
-                                </>
-                              )
-                            : feature.name}
+                        <Box>
+                          <Text display={props.header.fontStyle}>
+                            {priceBehavior === "pay_as_you_go"
+                              ? typeof usage === "number" && (
+                                  <>
+                                    {formatNumber(usage)}{" "}
+                                    {getFeatureName(feature, usage)}
+                                  </>
+                                )
+                              : feature.name}
+                          </Text>
                         </Box>
 
                         {props.description.isVisible && (
-                          <Box as={Text} display={props.description.fontStyle}>
-                            {feature.description}
+                          <Box>
+                            <Text display={props.description.fontStyle}>
+                              {feature.description}
+                            </Text>
                           </Box>
                         )}
                       </Flex>
@@ -297,34 +297,29 @@ export const MeteredFeatures = forwardRef<
                           $textAlign={shouldWrapChildren ? "left" : "right"}
                         >
                           {props.usage.isVisible && (
-                            <Box
-                              as={Text}
-                              style={{
-                                whiteSpace: "nowrap",
-                              }}
-                              display={props.usage.fontStyle}
-                              $leading={1.35}
-                            >
-                              {priceBehavior === "pay_in_advance"
-                                ? typeof allocation === "number" && (
-                                    <>
-                                      {formatNumber(allocation)}{" "}
-                                      {getFeatureName(feature, allocation)}
-                                    </>
-                                  )
-                                : priceBehavior === "pay_as_you_go"
-                                  ? typeof price === "number" &&
-                                    typeof usage === "number" &&
-                                    formatCurrency(usage * price, currency)
-                                  : typeof usage === "number" && (
+                            <Box $whiteSpace="nowrap">
+                              <Text display={props.usage.fontStyle}>
+                                {priceBehavior === "pay_in_advance"
+                                  ? typeof allocation === "number" && (
                                       <>
-                                        {formatNumber(usage)}{" "}
-                                        {getFeatureName(feature, usage)}
-                                        {priceBehavior === "overage" && (
-                                          <> {t("used")}</>
-                                        )}
+                                        {formatNumber(allocation)}{" "}
+                                        {getFeatureName(feature, allocation)}
                                       </>
-                                    )}
+                                    )
+                                  : priceBehavior === "pay_as_you_go"
+                                    ? typeof price === "number" &&
+                                      typeof usage === "number" &&
+                                      formatCurrency(usage * price, currency)
+                                    : typeof usage === "number" && (
+                                        <>
+                                          {formatNumber(usage)}{" "}
+                                          {getFeatureName(feature, usage)}
+                                          {priceBehavior === "overage" && (
+                                            <> {t("used")}</>
+                                          )}
+                                        </>
+                                      )}
+                              </Text>
                             </Box>
                           )}
 

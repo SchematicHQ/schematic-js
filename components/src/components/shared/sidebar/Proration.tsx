@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { type PreviewSubscriptionFinanceResponseData } from "../../../api/checkoutexternal";
 import { type SelectedPlan } from "../../../hooks";
 import { formatCurrency, isHydratedPlan } from "../../../utils";
-import { Box, Button, Flex, Icon, Text } from "../../ui";
+import { Box, Flex, Icon, Text } from "../../ui";
 
 type ProrationProps = {
   currency: string;
@@ -54,12 +54,12 @@ export const Proration = ({
         <Flex $justifyContent="space-between" $alignItems="center" $gap="1rem">
           <Flex>
             <Text display="heading4">{t("Total")}</Text>
-            <Button onClick={toggle} $variant="text">
+            <Box>
               <Icon name={open ? "chevron-up" : "chevron-down"} />
-              <Text style={{ cursor: "pointer" }} display="link" $leading={1}>
+              <Text onClick={toggle} display="link" $leading={1}>
                 {open ? t("Hide details") : t("Show details")}
               </Text>
-            </Button>
+            </Box>
           </Flex>
 
           <Flex>

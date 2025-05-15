@@ -54,7 +54,7 @@ export const EmbedProvider = ({
   const styleRef = useRef<HTMLLinkElement>(null);
 
   const [state, dispatch] = useReducer(reducer, options, (opts) => {
-    const providedState = { settings: opts.settings };
+    const providedState = { settings: opts.settings || {} };
     const resolvedState = merge({}, initialState, providedState);
 
     return resolvedState;
@@ -128,10 +128,9 @@ export const EmbedProvider = ({
   );
 
   // api methods
-  const getSetupIntent = useCallback(async () => {
+  const createSetupIntent = useCallback(async () => {
     const fn = debounce(
-      // @ts-expect-error: update api method to receive no id param
-      () => api.checkout?.getSetupIntent(),
+      () => api.checkout?.createSetupIntent(),
       FETCH_DEBOUNCE_TIMEOUT,
       debounceOptions,
     );
@@ -257,11 +256,9 @@ export const EmbedProvider = ({
   }, []);
 
   const updateSettings = useCallback(
-    <T extends boolean = true>(
-      settings: T extends false
-        ? EmbedSettings
-        : RecursivePartial<EmbedSettings>,
-      options?: { update?: T },
+    (
+      settings: RecursivePartial<EmbedSettings> = {},
+      options?: { update?: boolean },
     ) => {
       dispatch({ type: "UPDATE_SETTINGS", settings, update: options?.update });
     },
@@ -323,8 +320,10 @@ export const EmbedProvider = ({
 
   useEffect(() => {
     if (apiKey) {
-      const configParams = { ...apiConfig, apiKey };
-      merge(configParams.headers, customHeaders);
+      const configParams = merge({}, apiConfig, {
+        apiKey,
+        headers: customHeaders,
+      });
       const publicApi = new ComponentspublicApi(
         new PublicConfiguration(configParams),
       );
@@ -337,11 +336,15 @@ export const EmbedProvider = ({
 
   useEffect(() => {
     if (state.accessToken) {
-      const config = { ...apiConfig, apiKey: state.accessToken };
-      merge(config.headers, customHeaders);
+      const configParams = merge({}, apiConfig, {
+        apiKey: state.accessToken,
+        headers: customHeaders,
+      });
       setApi((prev) => ({
         ...prev,
-        checkout: new CheckoutexternalApi(new CheckoutConfiguration(config)),
+        checkout: new CheckoutexternalApi(
+          new CheckoutConfiguration(configParams),
+        ),
       }));
     }
   }, [state.accessToken, apiConfig, customHeaders]);
@@ -353,10 +356,9 @@ export const EmbedProvider = ({
   }, [debug, state.error]);
 
   useEffect(() => {
-    if (options.settings) {
-      updateSettings(options.settings, { update: true });
-    }
-  }, [options.settings]);
+    const providedSettings = { ...(options.settings || {}) };
+    updateSettings(providedSettings, { update: false });
+  }, [options.settings, updateSettings]);
 
   useEffect(() => {
     const planChanged: EventListener = (event) => {
@@ -385,7 +387,7 @@ export const EmbedProvider = ({
         checkoutState: state.checkoutState,
         hydratePublic,
         hydrateComponent,
-        getSetupIntent,
+        createSetupIntent,
         updatePaymentMethod,
         deletePaymentMethod,
         checkout,

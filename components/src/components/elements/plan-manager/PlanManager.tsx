@@ -197,7 +197,7 @@ export const PlanManager = forwardRef<
               : lighten(settings.theme.card.background, 0.04)
           }
         >
-          {typeof trialEndDays === "number" && (
+          {trialEndDays && (
             <Text as="h3" display="heading3">
               {t("Trial ends in", { days: trialEndDays })}
             </Text>

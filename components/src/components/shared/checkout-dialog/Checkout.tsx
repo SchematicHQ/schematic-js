@@ -31,8 +31,8 @@ export const Checkout = ({
       <PaymentMethodDetails setPaymentMethodId={setPaymentMethodId} />
 
       <Flex $flexDirection="column" $gap="1rem">
-        <Box as={Text} display="heading4">
-          {t("Discount")}
+        <Box>
+          <Text display="heading4">{t("Discount")}</Text>
         </Box>
 
         <Flex

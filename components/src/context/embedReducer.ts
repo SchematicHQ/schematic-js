@@ -53,6 +53,7 @@ export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {
       return {
         ...state,
         accessToken: action.token,
+        stale: true,
       };
     }
 
@@ -85,51 +86,51 @@ export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {
     }
 
     case "UPDATE_PAYMENT_METHOD": {
-      if (isCheckoutData(state.data)) {
-        const data = { ...state.data };
-
-        if (data.subscription) {
-          data.subscription.paymentMethod = action.paymentMethod;
-        }
-
-        if (data.company) {
-          data.company.paymentMethods = [
-            action.paymentMethod,
-            ...data.company.paymentMethods,
-          ];
-
-          if (!data.subscription) {
-            data.company.defaultPaymentMethod = action.paymentMethod;
-          }
-        }
-
-        return {
-          ...state,
-          data,
-        };
+      if (!isCheckoutData(state.data)) {
+        return state;
       }
 
-      return state;
+      const data = { ...state.data };
+
+      if (data.subscription) {
+        data.subscription.paymentMethod = action.paymentMethod;
+      }
+
+      if (data.company) {
+        data.company.paymentMethods = [
+          action.paymentMethod,
+          ...data.company.paymentMethods,
+        ];
+
+        if (!data.subscription) {
+          data.company.defaultPaymentMethod = action.paymentMethod;
+        }
+      }
+
+      return {
+        ...state,
+        data,
+      };
     }
 
     case "DELETE_PAYMENT_METHOD": {
-      if (isCheckoutData(state.data)) {
-        const data = { ...state.data };
-
-        if (data.company) {
-          const paymentMethods = [...data.company.paymentMethods];
-          data.company.paymentMethods = paymentMethods.filter(
-            (paymentMethod) => paymentMethod.id !== action.paymentMethodId,
-          );
-        }
-
-        return {
-          ...state,
-          data,
-        };
+      if (!isCheckoutData(state.data)) {
+        return state;
       }
 
-      return state;
+      const data = { ...state.data };
+
+      if (data.company) {
+        const paymentMethods = [...data.company.paymentMethods];
+        data.company.paymentMethods = paymentMethods.filter(
+          (paymentMethod) => paymentMethod.id !== action.paymentMethodId,
+        );
+      }
+
+      return {
+        ...state,
+        data,
+      };
     }
 
     case "RESET": {
@@ -149,8 +150,9 @@ export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {
 
     case "UPDATE_SETTINGS": {
       const settings = action.update
-        ? merge({ ...defaultSettings }, state.settings, action.settings)
-        : merge({ ...defaultSettings }, action.settings);
+        ? merge({}, defaultSettings, state.settings, action.settings)
+        : merge({}, defaultSettings, action.settings);
+
       return {
         ...state,
         settings,

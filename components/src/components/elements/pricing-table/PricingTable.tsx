@@ -154,21 +154,24 @@ export const PricingTable = forwardRef<
 
   const { data, settings, hydratePublic, setCheckoutState } = useEmbed();
 
-  const { planPeriod, currentAddOns, canCheckout } = useMemo(() => {
-    if (isCheckoutData(data)) {
-      return {
-        planPeriod: data.company?.plan?.planPeriod || "month",
-        currentAddOns: data.company?.addOns || [],
-        canCheckout: data.capabilities?.checkout ?? true,
-      };
-    }
+  const { planPeriod, currentAddOns, billingSubscription, canCheckout } =
+    useMemo(() => {
+      if (isCheckoutData(data)) {
+        return {
+          planPeriod: data.company?.plan?.planPeriod || "month",
+          currentAddOns: data.company?.addOns || [],
+          billingSubscription: data.company?.billingSubscription,
+          canCheckout: data.capabilities?.checkout ?? true,
+        };
+      }
 
-    return {
-      planPeriod: "month",
-      currentAddOns: [],
-      canCheckout: true,
-    };
-  }, [data]);
+      return {
+        planPeriod: "month",
+        currentAddOns: [],
+        billingSubscription: undefined,
+        canCheckout: true,
+      };
+    }, [data]);
 
   const [selectedPeriod, setSelectedPeriod] = useState(planPeriod);
 
@@ -179,6 +182,16 @@ export const PricingTable = forwardRef<
   );
 
   const isLightBackground = useIsLightBackground();
+
+  const { isTrialSubscription, willSubscriptionCancel } = useMemo(() => {
+    const isTrialSubscription = billingSubscription?.status === "trialing";
+    const willSubscriptionCancel = billingSubscription?.cancelAtPeriodEnd;
+
+    return {
+      isTrialSubscription,
+      willSubscriptionCancel,
+    };
+  }, [billingSubscription]);
 
   const trialEndDays = useTrialEnd();
 
@@ -203,17 +216,19 @@ export const PricingTable = forwardRef<
     });
   };
 
+  const isStandalone = useMemo(() => !isCheckoutData(data), [data]);
+
   useEffect(() => {
-    hydratePublic();
-  }, [hydratePublic]);
+    if (isStandalone) {
+      hydratePublic();
+    }
+  }, [isStandalone, hydratePublic]);
 
   useEffect(() => {
     setEntitlementCounts(plans.reduce(entitlementCountsReducer, {}));
   }, [plans]);
 
-  const isStandalone = !isCheckoutData(data);
-
-  const showCallToAction = isStandalone || typeof callToActionUrl === "string";
+  const showCallToAction = !isStandalone || typeof callToActionUrl === "string";
 
   const currentPlanIndex = plans.findIndex(
     (plan) => isHydratedPlan(plan) && plan.current,
@@ -374,7 +389,9 @@ export const PricingTable = forwardRef<
                               : "#FFFFFF"
                           }
                         >
-                          {trialEndDays
+                          {isTrialSubscription &&
+                          !willSubscriptionCancel &&
+                          trialEndDays
                             ? t("Trial ends in", { days: trialEndDays })
                             : t("Active")}
                         </Text>
@@ -683,7 +700,7 @@ export const PricingTable = forwardRef<
                             onCallToAction?.(plan);
 
                             if (
-                              isStandalone &&
+                              !isStandalone &&
                               isHydratedPlan(plan) &&
                               !plan.custom
                             ) {
@@ -963,7 +980,7 @@ export const PricingTable = forwardRef<
                           onClick={() => {
                             onCallToAction?.(addOn);
 
-                            if (isStandalone && !addOn.custom) {
+                            if (!isStandalone && !addOn.custom) {
                               setCheckoutState({
                                 period: selectedPeriod,
                                 addOnId: isActiveAddOn ? null : addOn.id,

@@ -38,11 +38,12 @@ const Error = ({ message }: { message: string }) => {
       $alignItems="center"
       $justifyContent="center"
     >
-      <Box as={Text} display="heading1" $marginBottom="0.5rem">
-        Error
+      <Box $marginBottom="0.5rem">
+        <Text display="heading1">Error</Text>
       </Box>
-      <Box as={Text} $marginBottom="0.5rem">
-        {message}
+
+      <Box $marginBottom="0.5rem">
+        <Text>{message}</Text>
       </Box>
     </Flex>
   );
@@ -93,7 +94,7 @@ export const SchematicEmbed = ({ id, accessToken }: EmbedProps) => {
         );
         const ast = getEditorState(json);
         if (ast) {
-          updateSettings({ ...ast.ROOT.props.settings });
+          updateSettings({ ...ast.ROOT.props.settings }, { update: false });
           nodes.push(...parseEditorState(ast));
           setChildren(nodes.map(renderer));
         }

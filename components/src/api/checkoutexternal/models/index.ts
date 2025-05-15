@@ -24,6 +24,7 @@ export * from "./ComponentCapabilities";
 export * from "./ComponentHydrateResponseData";
 export * from "./ComponentResponseData";
 export * from "./CountResponse";
+export * from "./CreateSetupIntentResponse";
 export * from "./CustomPlanConfig";
 export * from "./CustomPlanViewConfigResponseData";
 export * from "./DeletePaymentMethodResponse";

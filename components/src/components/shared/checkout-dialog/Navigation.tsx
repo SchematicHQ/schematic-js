@@ -70,9 +70,6 @@ export const Navigation = ({
         </Box>
 
         <Box
-          as={Text}
-          tabIndex={0}
-          $weight={index === activeIndex ? 600 : 400}
           {...(!showFullContent && {
             $overflow: "hidden",
             $whiteSpace: "nowrap",
@@ -81,15 +78,13 @@ export const Navigation = ({
           {...(index !== activeIndex && { $opacity: "0.6375" })}
           {...(index < activeIndex && {
             onClick,
+            tabIndex: 0,
             $cursor: "pointer",
           })}
-          $viewport={{
-            md: {
-              $fontSize: `${19 / TEXT_BASE_SIZE}rem`,
-            },
-          }}
         >
-          {index + 1}. {name}
+          <Text $weight={index === activeIndex ? 600 : 400}>
+            {index + 1}. {name}
+          </Text>
         </Box>
       </Flex>
 

@@ -57,7 +57,7 @@ export const PaymentMethodDetails = ({
   const {
     data,
     settings,
-    getSetupIntent,
+    createSetupIntent,
     updatePaymentMethod,
     deletePaymentMethod,
   } = useEmbed();
@@ -110,11 +110,10 @@ export const PaymentMethodDetails = ({
     return expiration;
   }, [paymentMethod?.cardExpYear, paymentMethod?.cardExpMonth]);
 
-  const createSetupIntent = useCallback(async () => {
+  const initializePaymentMethod = useCallback(async () => {
     try {
       setIsLoading(true);
-      // TODO: Remove component id from here and from api
-      const response = await getSetupIntent();
+      const response = await createSetupIntent();
       if (response) {
         setSetupIntent(response.data);
       }
@@ -126,7 +125,7 @@ export const PaymentMethodDetails = ({
       setShowPaymentForm(true);
       setIsLoading(false);
     }
-  }, [t, getSetupIntent]);
+  }, [t, createSetupIntent]);
 
   const handleUpdatePaymentMethod = useCallback(
     async (paymentMethodId: string) => {
@@ -176,9 +175,9 @@ export const PaymentMethodDetails = ({
 
   useEffect(() => {
     if (!setupIntent && (!paymentMethod || showPaymentForm)) {
-      createSetupIntent();
+      initializePaymentMethod();
     }
-  }, [setupIntent, paymentMethod, showPaymentForm, createSetupIntent]);
+  }, [setupIntent, paymentMethod, showPaymentForm, initializePaymentMethod]);
 
   return (
     <Flex $position="relative">
@@ -315,7 +314,7 @@ export const PaymentMethodDetails = ({
                 {(!setupIntent ||
                   !paymentMethod ||
                   showDifferentPaymentMethods) && (
-                  <Button onClick={createSetupIntent} $size="lg">
+                  <Button onClick={initializePaymentMethod} $size="lg">
                     {t("Add new payment method")}
                   </Button>
                 )}
