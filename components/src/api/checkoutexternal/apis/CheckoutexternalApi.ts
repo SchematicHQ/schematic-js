@@ -18,6 +18,7 @@ import type {
   ChangeSubscriptionRequestBody,
   CheckoutResponse,
   CheckoutUnsubscribeResponse,
+  CreateSetupIntentResponse,
   DeletePaymentMethodResponse,
   GetSetupIntentResponse,
   HydrateComponentResponse,
@@ -36,6 +37,8 @@ import {
   CheckoutResponseToJSON,
   CheckoutUnsubscribeResponseFromJSON,
   CheckoutUnsubscribeResponseToJSON,
+  CreateSetupIntentResponseFromJSON,
+  CreateSetupIntentResponseToJSON,
   DeletePaymentMethodResponseFromJSON,
   DeletePaymentMethodResponseToJSON,
   GetSetupIntentResponseFromJSON,
@@ -184,6 +187,47 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<CheckoutUnsubscribeResponse> {
     const response = await this.checkoutUnsubscribeRaw(initOverrides);
+    return await response.value();
+  }
+
+  /**
+   * Create setup intent
+   */
+  async createSetupIntentRaw(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<CreateSetupIntentResponse>> {
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    if (this.configuration && this.configuration.apiKey) {
+      headerParameters["X-Schematic-Api-Key"] = await this.configuration.apiKey(
+        "X-Schematic-Api-Key",
+      ); // ApiKeyAuth authentication
+    }
+
+    const response = await this.request(
+      {
+        path: `/components/setup-intent`,
+        method: "POST",
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      CreateSetupIntentResponseFromJSON(jsonValue),
+    );
+  }
+
+  /**
+   * Create setup intent
+   */
+  async createSetupIntent(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<CreateSetupIntentResponse> {
+    const response = await this.createSetupIntentRaw(initOverrides);
     return await response.value();
   }
 
