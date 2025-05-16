@@ -42,7 +42,7 @@
   },
   "devDependencies": {
     "@craftjs/core": "^0.2.12",
-    "@eslint/css": "^0.7.0",
+    "@eslint/css": "^0.8.0",
     "@eslint/js": "^9.26.0",
     "@eslint/json": "^0.12.0",
     "@eslint/markdown": "^6.3.0",
