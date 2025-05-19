@@ -24,7 +24,7 @@ import {
 } from "../api/componentspublic";
 import { FETCH_DEBOUNCE_TIMEOUT, debounceOptions } from "../const";
 import type { RecursivePartial } from "../types";
-import { isError } from "../utils";
+import { isError, type DebugEventData } from "../utils";
 
 import { EmbedContext } from "./EmbedContext";
 import { reducer } from "./embedReducer";
@@ -361,16 +361,26 @@ export const EmbedProvider = ({
   }, [options.settings, updateSettings]);
 
   useEffect(() => {
-    const planChanged: EventListener = (event) => {
-      if (event instanceof CustomEvent) {
-        debug("plan changed", event.detail);
+    const debugEventListener: EventListener = function listener(event: Event) {
+      if (!(event instanceof CustomEvent)) {
+        return;
       }
+
+      const debugEvent: CustomEvent<DebugEventData> = event;
+      const { type, data } = debugEvent.detail;
+
+      if (data) {
+        debug(type, data);
+        return;
+      }
+
+      debug(type);
     };
 
-    window.addEventListener("plan-changed", planChanged);
+    addEventListener("sch_debug", debugEventListener);
 
     return () => {
-      window.removeEventListener("plan-changed", planChanged);
+      removeEventListener("sch_debug", debugEventListener);
     };
   }, [debug]);
 

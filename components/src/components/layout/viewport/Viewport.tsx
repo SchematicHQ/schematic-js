@@ -39,10 +39,10 @@ export const Viewport = forwardRef<HTMLDivElement | null, ViewportProps>(
           ? "hidden"
           : "";
 
-      window.addEventListener("scroll", setModalY);
+      addEventListener("scroll", setModalY);
 
       return () => {
-        window.removeEventListener("scroll", setModalY);
+        removeEventListener("scroll", setModalY);
         parent.style.overflow = "";
       };
     }, [portal, layout]);

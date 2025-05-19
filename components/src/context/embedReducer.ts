@@ -8,7 +8,7 @@ import {
 } from "../api/checkoutexternal";
 import { type PublicPlansResponseData } from "../api/componentspublic";
 import { type RecursivePartial } from "../types";
-import { isCheckoutData } from "../utils";
+import { dispatchEmbedEvent, isCheckoutData } from "../utils";
 
 import {
   defaultSettings,
@@ -18,14 +18,6 @@ import {
   type EmbedSettings,
   type EmbedState,
 } from "./embedState";
-
-const dispatchPlanChangedEvent = <T extends object>(detail: T) => {
-  const event = new CustomEvent("plan-changed", {
-    bubbles: true,
-    detail,
-  });
-  window.dispatchEvent(event);
-};
 
 type EmbedAction =
   | { type: "SET_ACCESS_TOKEN"; token: string }
@@ -58,6 +50,8 @@ export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {
     }
 
     case "HYDRATE_STARTED": {
+      dispatchEmbedEvent("hydrate-started");
+
       return {
         ...state,
         isPending: true,
@@ -66,6 +60,8 @@ export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {
 
     case "HYDRATE_PUBLIC":
     case "HYDRATE_COMPONENT": {
+      dispatchEmbedEvent("hydrate-complete", action.data);
+
       return {
         ...state,
         data: action.data,
@@ -77,7 +73,7 @@ export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {
 
     case "CHECKOUT":
     case "UNSUBSCRIBE": {
-      dispatchPlanChangedEvent(action.data);
+      dispatchEmbedEvent("plan-changed", action.data);
 
       return {
         ...state,
@@ -89,6 +85,8 @@ export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {
       if (!isCheckoutData(state.data)) {
         return state;
       }
+
+      dispatchEmbedEvent("payment-method-changed");
 
       const data = { ...state.data };
 
@@ -118,6 +116,8 @@ export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {
         return state;
       }
 
+      dispatchEmbedEvent("payment-method-removed");
+
       const data = { ...state.data };
 
       if (data.company) {
@@ -134,6 +134,8 @@ export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {
     }
 
     case "RESET": {
+      dispatchEmbedEvent("data-reset");
+
       return {
         ...state,
         data: undefined,
@@ -141,6 +143,8 @@ export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {
     }
 
     case "ERROR": {
+      dispatchEmbedEvent("error", action.error);
+
       return {
         ...state,
         isPending: false,
@@ -153,6 +157,8 @@ export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {
         ? merge({}, defaultSettings, state.settings, action.settings)
         : merge({}, defaultSettings, action.settings);
 
+      dispatchEmbedEvent("settings-changed", settings);
+
       return {
         ...state,
         settings,
@@ -160,6 +166,8 @@ export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {
     }
 
     case "CHANGE_LAYOUT": {
+      dispatchEmbedEvent("layout-changed", action.layout);
+
       return {
         ...state,
         layout: action.layout,
@@ -167,6 +175,8 @@ export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {
     }
 
     case "CHANGE_MODE": {
+      dispatchEmbedEvent("mode-changed", action.mode);
+
       return {
         ...state,
         mode: action.mode,
@@ -174,6 +184,8 @@ export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {
     }
 
     case "SET_CHECKOUT_STATE": {
+      dispatchEmbedEvent("checkout-state-changed", action.state);
+
       return {
         ...state,
         layout: "checkout",

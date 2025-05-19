@@ -16,6 +16,7 @@ import {
 } from "../../../hooks";
 import type { ElementProps, RecursivePartial } from "../../../types";
 import {
+  dispatchEmbedEvent,
   formatCurrency,
   formatNumber,
   getBillingPrice,
@@ -137,17 +138,12 @@ const resolveDesignProps = (
   };
 };
 
-export type PricingTableProps = RecursivePartial<DesignProps> & {
-  callToActionUrl?: string;
-  onCallToAction?: (
-    plan: PlanViewPublicResponseData | CompanyPlanDetailResponseData,
-  ) => unknown;
-};
+export type PricingTableProps = RecursivePartial<DesignProps>;
 
 export const PricingTable = forwardRef<
   HTMLDivElement | null,
   ElementProps & PricingTableProps & React.HTMLAttributes<HTMLDivElement>
->(({ className, callToActionUrl, onCallToAction, ...rest }, ref) => {
+>(({ className, ...rest }, ref) => {
   const props = resolveDesignProps(rest);
 
   const { t } = useTranslation();
@@ -227,8 +223,6 @@ export const PricingTable = forwardRef<
   useEffect(() => {
     setEntitlementCounts(plans.reduce(entitlementCountsReducer, {}));
   }, [plans]);
-
-  const showCallToAction = !isStandalone || typeof callToActionUrl === "string";
 
   const currentPlanIndex = plans.findIndex(
     (plan) => isHydratedPlan(plan) && plan.current,
@@ -686,7 +680,6 @@ export const PricingTable = forwardRef<
                         </Text>
                       </Flex>
                     ) : (
-                      showCallToAction &&
                       (props.upgrade.isVisible ||
                         props.downgrade.isVisible) && (
                         <Button
@@ -697,7 +690,7 @@ export const PricingTable = forwardRef<
                             !plan.custom
                           }
                           onClick={() => {
-                            onCallToAction?.(plan);
+                            dispatchEmbedEvent("plan-clicked", plan);
 
                             if (
                               !isStandalone &&
@@ -722,11 +715,6 @@ export const PricingTable = forwardRef<
                                 $color: props.downgrade.buttonStyle,
                                 $variant: "outline",
                               })}
-                          {...(callToActionUrl && {
-                            as: "a",
-                            href: callToActionUrl,
-                            target: "_blank",
-                          })}
                           {...(plan.custom &&
                             plan.customPlanConfig?.ctaWebSite && {
                               as: "a",
@@ -970,7 +958,7 @@ export const PricingTable = forwardRef<
                         </Flex>
                       )}
 
-                      {showCallToAction && props.upgrade.isVisible && (
+                      {props.upgrade.isVisible && (
                         <Button
                           type="button"
                           disabled={
@@ -978,7 +966,7 @@ export const PricingTable = forwardRef<
                             !canCheckout
                           }
                           onClick={() => {
-                            onCallToAction?.(addOn);
+                            dispatchEmbedEvent("addon-clicked", addOn);
 
                             if (!isStandalone && !addOn.custom) {
                               setCheckoutState({
@@ -999,12 +987,6 @@ export const PricingTable = forwardRef<
                                 ? "outline"
                                 : "filled"
                           }
-                          {...(callToActionUrl && {
-                            as: "a",
-                            href: callToActionUrl,
-                            rel: "noreferrer",
-                            target: "_blank",
-                          })}
                         >
                           {isActiveAddOn
                             ? t("Remove add-on")

@@ -53,10 +53,10 @@ export const Tooltip = ({
 
   useLayoutEffect(() => {
     const handleResize = debounce(updateCoords, EVENT_DEBOUNCE_TIMEOUT);
-    window.addEventListener("resize", handleResize);
+    addEventListener("resize", handleResize);
 
     return () => {
-      window.removeEventListener("resize", handleResize);
+      removeEventListener("resize", handleResize);
     };
   }, [updateCoords]);
 
