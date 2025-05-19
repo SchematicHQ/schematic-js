@@ -60,6 +60,7 @@ function resolveDesignProps(props: RecursivePartial<DesignProps>): DesignProps {
 }
 
 function formatInvoices(invoices: InvoiceResponseData[] = []) {
+  return [];
   return invoices
     .sort((a, b) => (a.dueDate && b.dueDate ? +b.dueDate - +a.dueDate : 1))
     .map(({ amountDue, dueDate, url, currency }) => ({
@@ -142,10 +143,6 @@ export const Invoices = forwardRef<
     setInvoices(formatInvoices(data));
   }, [data]);
 
-  if (invoices.length === 0) {
-    return null;
-  }
-
   return (
     <Element ref={ref} className={className}>
       <Flex $flexDirection="column" $gap="1rem">
@@ -162,52 +159,73 @@ export const Invoices = forwardRef<
           </Flex>
         )}
 
-        <Flex $flexDirection="column" $gap="0.5rem">
-          {invoices.slice(0, listSize).map(({ date, amount, url }, index) => {
-            return (
-              <Flex key={index} $justifyContent="space-between">
-                {props.date.isVisible && date && (
-                  <InvoiceDate
-                    date={date}
-                    fontStyle={props.date.fontStyle}
-                    url={url}
+        {invoices.length > 0 ? (
+          <>
+            <Flex $flexDirection="column" $gap="0.5rem">
+              {invoices
+                .slice(0, listSize)
+                .map(({ date, amount, url }, index) => {
+                  return (
+                    <Flex key={index} $justifyContent="space-between">
+                      {props.date.isVisible && date && (
+                        <InvoiceDate
+                          date={date}
+                          fontStyle={props.date.fontStyle}
+                          url={url}
+                        />
+                      )}
+
+                      {props.amount.isVisible && (
+                        <Text
+                          $font={
+                            theme.typography[props.amount.fontStyle].fontFamily
+                          }
+                          $size={
+                            theme.typography[props.amount.fontStyle].fontSize
+                          }
+                          $weight={
+                            theme.typography[props.amount.fontStyle].fontWeight
+                          }
+                          $color={
+                            theme.typography[props.amount.fontStyle].color
+                          }
+                        >
+                          {amount}
+                        </Text>
+                      )}
+                    </Flex>
+                  );
+                })}
+            </Flex>
+
+            {props.collapse.isVisible &&
+              invoices.length > props.limit.number && (
+                <Flex $alignItems="center" $gap="0.5rem">
+                  <Icon
+                    name={`chevron-${listSize === props.limit.number ? "down" : "up"}`}
+                    style={{ color: "#D0D0D0" }}
                   />
-                )}
 
-                {props.amount.isVisible && (
                   <Text
-                    $font={theme.typography[props.amount.fontStyle].fontFamily}
-                    $size={theme.typography[props.amount.fontStyle].fontSize}
-                    $weight={
-                      theme.typography[props.amount.fontStyle].fontWeight
+                    onClick={toggleListSize}
+                    $font={
+                      theme.typography[props.collapse.fontStyle].fontFamily
                     }
-                    $color={theme.typography[props.amount.fontStyle].color}
+                    $size={theme.typography[props.collapse.fontStyle].fontSize}
+                    $weight={
+                      theme.typography[props.collapse.fontStyle].fontWeight
+                    }
+                    $color={theme.typography[props.collapse.fontStyle].color}
                   >
-                    {amount}
+                    {listSize === props.limit.number
+                      ? t("See more")
+                      : t("See less")}
                   </Text>
-                )}
-              </Flex>
-            );
-          })}
-        </Flex>
-
-        {props.collapse.isVisible && invoices.length > props.limit.number && (
-          <Flex $alignItems="center" $gap="0.5rem">
-            <Icon
-              name={`chevron-${listSize === props.limit.number ? "down" : "up"}`}
-              style={{ color: "#D0D0D0" }}
-            />
-
-            <Text
-              onClick={toggleListSize}
-              $font={theme.typography[props.collapse.fontStyle].fontFamily}
-              $size={theme.typography[props.collapse.fontStyle].fontSize}
-              $weight={theme.typography[props.collapse.fontStyle].fontWeight}
-              $color={theme.typography[props.collapse.fontStyle].color}
-            >
-              {listSize === props.limit.number ? t("See more") : t("See less")}
-            </Text>
-          </Flex>
+                </Flex>
+              )}
+          </>
+        ) : (
+          <Text display="heading2">{t("No invoices created yet")}</Text>
         )}
       </Flex>
     </Element>
