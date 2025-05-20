@@ -76,6 +76,12 @@ export interface PlanViewPublicResponseData {
   companyCount: number;
   /**
    *
+   * @type {string}
+   * @memberof PlanViewPublicResponseData
+   */
+  controlledBy: string;
+  /**
+   *
    * @type {Date}
    * @memberof PlanViewPublicResponseData
    */
@@ -200,6 +206,8 @@ export function instanceOfPlanViewPublicResponseData(
     return false;
   if (!("companyCount" in value) || value["companyCount"] === undefined)
     return false;
+  if (!("controlledBy" in value) || value["controlledBy"] === undefined)
+    return false;
   if (!("createdAt" in value) || value["createdAt"] === undefined) return false;
   if (!("custom" in value) || value["custom"] === undefined) return false;
   if (!("description" in value) || value["description"] === undefined)
@@ -242,6 +250,7 @@ export function PlanViewPublicResponseDataFromJSONTyped(
         : BillingProductDetailResponseDataFromJSON(json["billing_product"]),
     chargeType: json["charge_type"],
     companyCount: json["company_count"],
+    controlledBy: json["controlled_by"],
     createdAt: new Date(json["created_at"]),
     custom: json["custom"],
     customPlanConfig:
@@ -293,6 +302,7 @@ export function PlanViewPublicResponseDataToJSON(
     ),
     charge_type: value["chargeType"],
     company_count: value["companyCount"],
+    controlled_by: value["controlledBy"],
     created_at: value["createdAt"].toISOString(),
     custom: value["custom"],
     custom_plan_config: CustomPlanConfigToJSON(value["customPlanConfig"]),
