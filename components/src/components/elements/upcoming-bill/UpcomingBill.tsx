@@ -69,18 +69,15 @@ export const UpcomingBill = forwardRef<
   const [error, setError] = useState<Error>();
   const [upcomingInvoice, setUpcomingInvoice] = useState<InvoiceResponseData>();
 
-  const { discounts } = useMemo(() => {
-    const discounts = (data.subscription?.discounts || []).map((discount) => ({
-      amountOff: discount.amountOff,
+  const discounts = useMemo(() => {
+    return (data.subscription?.discounts || []).map((discount) => ({
       couponId: discount.couponId,
-      customerFacingCode: discount.customerFacingCode,
+      customerFacingCode: discount.customerFacingCode || undefined,
+      currency: discount.currency || undefined,
+      amountOff: discount.amountOff ?? undefined,
+      percentOff: discount.percentOff ?? undefined,
       isActive: discount.isActive,
-      percentOff: discount.percentOff,
     }));
-
-    return {
-      discounts,
-    };
   }, [data.subscription]);
 
   const loadInvoice = useCallback(async () => {
@@ -139,14 +136,12 @@ export const UpcomingBill = forwardRef<
         !isLoading && (
           <Container>
             {upcomingInvoice ? (
-              <>
+              <Flex $flexDirection="column" $gap="1rem">
                 {props.header.isVisible && upcomingInvoice.dueDate && (
-                  <Flex $justifyContent="space-between" $alignItems="center">
-                    <Text display={props.header.fontStyle}>
-                      {props.header.prefix}{" "}
-                      {toPrettyDate(upcomingInvoice.dueDate)}
-                    </Text>
-                  </Flex>
+                  <Text display={props.header.fontStyle}>
+                    {props.header.prefix}{" "}
+                    {toPrettyDate(upcomingInvoice.dueDate)}
+                  </Text>
                 )}
 
                 <Flex
@@ -155,71 +150,109 @@ export const UpcomingBill = forwardRef<
                   $gap="1rem"
                 >
                   {props.price.isVisible && (
-                    <Flex $alignItems="end" $flexGrow="1">
-                      <Text display={props.price.fontStyle} $leading={1}>
-                        {formatCurrency(
-                          upcomingInvoice.amountDue,
-                          upcomingInvoice.currency,
-                        )}
-                      </Text>
-                    </Flex>
+                    <Text display={props.price.fontStyle} $leading={1}>
+                      {formatCurrency(
+                        upcomingInvoice.amountDue,
+                        upcomingInvoice.currency,
+                      )}
+                    </Text>
                   )}
 
-                  <Box $lineHeight={1.15} $maxWidth="10rem" $textAlign="right">
-                    <Text
-                      display={props.contractEndDate.fontStyle}
-                      $leading={1}
-                    >
+                  <Box $maxWidth="10rem" $textAlign="right">
+                    <Text display={props.contractEndDate.fontStyle}>
                       {t("Estimated bill.")}
                     </Text>
                   </Box>
                 </Flex>
-              </>
+
+                <Flex
+                  $justifyContent="space-between"
+                  $alignItems="center"
+                  $gap="1rem"
+                >
+                  <Text $weight={600}>{t("Remaining balance")}</Text>
+
+                  <Text>{formatCurrency(5000, upcomingInvoice.currency)}</Text>
+                </Flex>
+
+                {discounts.length > 0 && (
+                  <Flex
+                    $justifyContent="space-between"
+                    $alignItems="start"
+                    $gap="1rem"
+                  >
+                    <Text $weight={600}>{t("Discount")}</Text>
+
+                    <Flex
+                      $flexDirection="column"
+                      $alignItems="end"
+                      $gap="0.5rem"
+                    >
+                      {discounts.reduce(
+                        (acc: React.ReactElement[], discount) => {
+                          if (
+                            typeof discount.customerFacingCode === "string" &&
+                            (typeof discount.percentOff === "number" ||
+                              typeof discount.amountOff === "number")
+                          ) {
+                            acc.push(
+                              <Flex
+                                key={discount.couponId}
+                                $alignItems="center"
+                                $gap="0.5rem"
+                              >
+                                <Flex
+                                  $alignItems="center"
+                                  $padding="0.1875rem 0.375rem"
+                                  $borderWidth="1px"
+                                  $borderStyle="solid"
+                                  $borderColor={
+                                    isLightBackground
+                                      ? "hsla(0, 0%, 0%, 0.15)"
+                                      : "hsla(0, 0%, 100%, 0.15)"
+                                  }
+                                  $borderRadius="0.3125rem"
+                                >
+                                  <Text
+                                    $size={
+                                      0.75 * theme.typography.text.fontSize
+                                    }
+                                  >
+                                    {discount.customerFacingCode}
+                                  </Text>
+                                </Flex>
+
+                                <Box>
+                                  <Text>
+                                    {typeof discount.percentOff === "number"
+                                      ? t("Percent off", {
+                                          percent: discount.percentOff,
+                                        })
+                                      : t("Amount off", {
+                                          amount: formatCurrency(
+                                            discount.amountOff as number,
+                                            discount?.currency,
+                                          ),
+                                        })}
+                                  </Text>
+                                </Box>
+                              </Flex>,
+                            );
+                          }
+
+                          return acc;
+                        },
+                        [],
+                      )}
+                    </Flex>
+                  </Flex>
+                )}
+              </Flex>
             ) : (
               <Text display="heading2">{t("No upcoming invoice")}</Text>
             )}
           </Container>
         )
-      )}
-
-      {discounts.length > 0 && (
-        <Flex
-          as={Container}
-          $justifyContent="space-between"
-          $alignItems="center"
-        >
-          <Box>
-            <Text $weight={600}>{t("Discount")}</Text>
-          </Box>
-          <Box>
-            {discounts.map((discount) => (
-              <Flex key={discount.couponId} $alignItems="center" $gap="0.5rem">
-                <Flex
-                  $alignItems="center"
-                  $padding="0.1875rem 0.375rem"
-                  $borderWidth="1px"
-                  $borderStyle="solid"
-                  $borderColor={
-                    isLightBackground
-                      ? "hsla(0, 0%, 0%, 0.15)"
-                      : "hsla(0, 0%, 100%, 0.15)"
-                  }
-                  $borderRadius="0.3125rem"
-                >
-                  <Text $size={0.75 * theme.typography.text.fontSize}>
-                    {discount.customerFacingCode}
-                  </Text>
-                </Flex>
-
-                <Box>
-                  <Text>
-                    {t("Percent off", { percent: discount.percentOff })}
-                  </Text>
-                </Box>
-              </Flex>
-            ))}
-          </Box>
-        </Flex>
       )}
     </Element>
   );
