@@ -1,14 +1,14 @@
-import { forwardRef, useMemo } from "react";
+import { forwardRef, useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 
-import { type BillingSubscriptionDiscountView } from "../../../api/checkoutexternal";
+import { type InvoiceResponseData } from "../../../api/checkoutexternal";
 import { type FontStyle } from "../../../context";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import type { ElementProps, RecursivePartial } from "../../../types";
 import { formatCurrency, toPrettyDate } from "../../../utils";
 import { Element } from "../../layout";
-import { Box, Flex, Text } from "../../ui";
+import { Box, Button, Flex, Loader, Text } from "../../ui";
 
 interface DesignProps {
   header: {
@@ -60,21 +60,16 @@ export const UpcomingBill = forwardRef<
 
   const theme = useTheme();
 
-  const { data } = useEmbed();
+  const { api, data } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
 
-  const { upcomingInvoice, discounts } = useMemo(() => {
-    const discounts = (
-      (data.subscription?.discounts || []) as Pick<
-        BillingSubscriptionDiscountView,
-        | "amountOff"
-        | "couponId"
-        | "customerFacingCode"
-        | "isActive"
-        | "percentOff"
-      >[]
-    ).map((discount) => ({
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error>();
+  const [upcomingInvoice, setUpcomingInvoice] = useState<InvoiceResponseData>();
+
+  const { discounts } = useMemo(() => {
+    const discounts = (data.subscription?.discounts || []).map((discount) => ({
       amountOff: discount.amountOff,
       couponId: discount.couponId,
       customerFacingCode: discount.customerFacingCode,
@@ -84,27 +79,33 @@ export const UpcomingBill = forwardRef<
 
     return {
       discounts,
-      upcomingInvoice: {
-        ...(typeof data.upcomingInvoice?.amountDue === "number" && {
-          amountDue: data.upcomingInvoice.amountDue,
-        }),
-        ...(data.subscription?.interval && {
-          interval: data.subscription.interval,
-        }),
-        ...(data.upcomingInvoice?.dueDate && {
-          dueDate: toPrettyDate(new Date(data.upcomingInvoice.dueDate)),
-        }),
-        currency: data.upcomingInvoice?.currency,
-      },
     };
-  }, [data.subscription, data.upcomingInvoice]);
+  }, [data.subscription]);
 
-  if (
-    typeof upcomingInvoice.amountDue !== "number" ||
-    !upcomingInvoice.dueDate
-  ) {
-    return null;
-  }
+  const loadInvoice = useCallback(async () => {
+    if (!api || !data.component?.id) {
+      return;
+    }
+
+    try {
+      setError(undefined);
+      setIsLoading(true);
+      const response = await api.hydrateUpcomingInvoice({
+        componentId: data.component.id,
+      });
+      setUpcomingInvoice(response.data);
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [api, data.component?.id]);
+
+  useEffect(() => {
+    loadInvoice();
+  }, [loadInvoice]);
 
   return (
     <Element
@@ -114,63 +115,64 @@ export const UpcomingBill = forwardRef<
       $flexDirection="column"
       $gap="1rem"
     >
-      {props.header.isVisible && (
-        <Flex $justifyContent="space-between" $alignItems="center">
-          <Text
-            $font={theme.typography[props.header.fontStyle].fontFamily}
-            $size={theme.typography[props.header.fontStyle].fontSize}
-            $weight={theme.typography[props.header.fontStyle].fontWeight}
-            $color={theme.typography[props.header.fontStyle].color}
-          >
-            {props.header.prefix} {upcomingInvoice.dueDate}
+      {error ? (
+        <Flex
+          $flexDirection="column"
+          $justifyContent="center"
+          $alignItems="center"
+          $gap="1rem"
+        >
+          <Text $weight={500} $color="#DB6669">
+            {t("There was a problem retrieving your upcoming invoice.")}
           </Text>
+          <Button
+            onClick={() => loadInvoice()}
+            $size="sm"
+            $variant="ghost"
+            $fullWidth={false}
+          >
+            {t("Try again")}
+          </Button>
+        </Flex>
+      ) : upcomingInvoice ? (
+        <>
+          {props.header.isVisible && upcomingInvoice.dueDate && (
+            <Flex $justifyContent="space-between" $alignItems="center">
+              <Text display={props.header.fontStyle}>
+                {props.header.prefix} {toPrettyDate(upcomingInvoice.dueDate)}
+              </Text>
+            </Flex>
+          )}
+
+          <Flex $justifyContent="space-between" $alignItems="start" $gap="1rem">
+            {props.price.isVisible && (
+              <Flex $alignItems="end" $flexGrow="1">
+                <Text display={props.price.fontStyle} $leading={1}>
+                  {formatCurrency(
+                    upcomingInvoice.amountDue,
+                    upcomingInvoice.currency,
+                  )}
+                </Text>
+              </Flex>
+            )}
+
+            <Box $lineHeight={1.15} $maxWidth="10rem" $textAlign="right">
+              <Text display={props.contractEndDate.fontStyle} $leading={1}>
+                {t("Estimated bill.")}
+              </Text>
+            </Box>
+          </Flex>
+        </>
+      ) : (
+        <Flex $justifyContent="center" $alignItems="center">
+          <Loader $color={theme.primary} $isLoading={isLoading} />
         </Flex>
       )}
-
-      <Flex $justifyContent="space-between" $alignItems="start" $gap="1rem">
-        {props.price.isVisible && (
-          <Flex $alignItems="end" $flexGrow="1">
-            <Text
-              $font={theme.typography[props.price.fontStyle].fontFamily}
-              $size={theme.typography[props.price.fontStyle].fontSize}
-              $weight={theme.typography[props.price.fontStyle].fontWeight}
-              $color={theme.typography[props.price.fontStyle].color}
-              $leading={1}
-            >
-              {formatCurrency(
-                upcomingInvoice.amountDue,
-                upcomingInvoice.currency,
-              )}
-            </Text>
-          </Flex>
-        )}
-
-        <Box $lineHeight={1.15} $maxWidth="10rem" $textAlign="right">
-          <Text
-            $font={theme.typography[props.contractEndDate.fontStyle].fontFamily}
-            $size={theme.typography[props.contractEndDate.fontStyle].fontSize}
-            $weight={
-              theme.typography[props.contractEndDate.fontStyle].fontWeight
-            }
-            $color={theme.typography[props.contractEndDate.fontStyle].color}
-            $leading={1}
-          >
-            {t("Estimated bill.")}
-          </Text>
-        </Box>
-      </Flex>
 
       {discounts.length > 0 && (
         <Flex $justifyContent="space-between" $alignItems="center">
           <Box>
-            <Text
-              $font={theme.typography.text.fontFamily}
-              $size={theme.typography.text.fontSize}
-              $weight={600}
-              $color={theme.typography.text.color}
-            >
-              {t("Discount")}
-            </Text>
+            <Text $weight={600}>{t("Discount")}</Text>
           </Box>
           <Box>
             {discounts.map((discount) => (
@@ -187,23 +189,13 @@ export const UpcomingBill = forwardRef<
                   }
                   $borderRadius="0.3125rem"
                 >
-                  <Text
-                    $font={theme.typography.text.fontFamily}
-                    $size={0.75 * theme.typography.text.fontSize}
-                    $weight={theme.typography.text.fontWeight}
-                    $color={theme.typography.text.color}
-                  >
+                  <Text $size={0.75 * theme.typography.text.fontSize}>
                     {discount.customerFacingCode}
                   </Text>
                 </Flex>
 
                 <Box>
-                  <Text
-                    $font={theme.typography.text.fontFamily}
-                    $size={theme.typography.text.fontSize}
-                    $weight={theme.typography.text.fontWeight}
-                    $color={theme.typography.text.color}
-                  >
+                  <Text>
                     {t("Percent off", { percent: discount.percentOff })}
                   </Text>
                 </Box>
