@@ -8,6 +8,7 @@ export const Container = styled.div`
   line-height: 1.35;
   width: 100%;
   height: 100%;
+  container-type: inline-size;
 
   *,
   *::before,
