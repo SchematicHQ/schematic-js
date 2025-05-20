@@ -2,7 +2,6 @@ import { forwardRef, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 
-import { type BillingSubscriptionDiscountView } from "../../../api/checkoutexternal";
 import { type FontStyle } from "../../../context";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import type { ElementProps, RecursivePartial } from "../../../types";
@@ -64,17 +63,8 @@ export const UpcomingBill = forwardRef<
 
   const isLightBackground = useIsLightBackground();
 
-  const { upcomingInvoice, discounts } = useMemo(() => {
-    const discounts = (
-      (data.subscription?.discounts || []) as Pick<
-        BillingSubscriptionDiscountView,
-        | "amountOff"
-        | "couponId"
-        | "customerFacingCode"
-        | "isActive"
-        | "percentOff"
-      >[]
-    ).map((discount) => ({
+  const { discounts, upcomingInvoice } = useMemo(() => {
+    const discounts = (data.subscription?.discounts || []).map((discount) => ({
       amountOff: discount.amountOff,
       couponId: discount.couponId,
       customerFacingCode: discount.customerFacingCode,

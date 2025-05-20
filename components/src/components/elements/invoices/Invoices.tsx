@@ -60,7 +60,6 @@ function resolveDesignProps(props: RecursivePartial<DesignProps>): DesignProps {
 }
 
 function formatInvoices(invoices: InvoiceResponseData[] = []) {
-  return [];
   return invoices
     .sort((a, b) => (a.dueDate && b.dueDate ? +b.dueDate - +a.dueDate : 1))
     .map(({ amountDue, dueDate, url, currency }) => ({
