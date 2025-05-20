@@ -94,9 +94,9 @@ export const UpcomingBill = forwardRef<
         componentId: data.component.id,
       });
       setUpcomingInvoice(response.data);
-    } catch (err) {
-      if (err instanceof Error) {
-        setError(err);
+    } catch (e) {
+      if (e instanceof Error) {
+        setError(e);
       }
     } finally {
       setIsLoading(false);
