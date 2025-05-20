@@ -9,6 +9,7 @@ import type { ElementProps, RecursivePartial } from "../../../types";
 import { formatCurrency, toPrettyDate } from "../../../utils";
 import { Element } from "../../layout";
 import { Box, Button, Flex, Loader, Text } from "../../ui";
+import { Container } from "./styles";
 
 interface DesignProps {
   header: {
@@ -108,15 +109,14 @@ export const UpcomingBill = forwardRef<
   }, [loadInvoice]);
 
   return (
-    <Element
-      as={Flex}
-      ref={ref}
-      className={className}
-      $flexDirection="column"
-      $gap="1rem"
-    >
+    <Element ref={ref} className={className}>
+      <Flex as={Container} $justifyContent="center" $alignItems="center">
+        <Loader $color={theme.primary} $isLoading={isLoading} />
+      </Flex>
+
       {error ? (
         <Flex
+          as={Container}
           $flexDirection="column"
           $justifyContent="center"
           $alignItems="center"
@@ -125,6 +125,7 @@ export const UpcomingBill = forwardRef<
           <Text $weight={500} $color="#DB6669">
             {t("There was a problem retrieving your upcoming invoice.")}
           </Text>
+
           <Button
             onClick={() => loadInvoice()}
             $size="sm"
@@ -134,43 +135,59 @@ export const UpcomingBill = forwardRef<
             {t("Try again")}
           </Button>
         </Flex>
-      ) : upcomingInvoice ? (
-        <>
-          {props.header.isVisible && upcomingInvoice.dueDate && (
-            <Flex $justifyContent="space-between" $alignItems="center">
-              <Text display={props.header.fontStyle}>
-                {props.header.prefix} {toPrettyDate(upcomingInvoice.dueDate)}
-              </Text>
-            </Flex>
-          )}
-
-          <Flex $justifyContent="space-between" $alignItems="start" $gap="1rem">
-            {props.price.isVisible && (
-              <Flex $alignItems="end" $flexGrow="1">
-                <Text display={props.price.fontStyle} $leading={1}>
-                  {formatCurrency(
-                    upcomingInvoice.amountDue,
-                    upcomingInvoice.currency,
-                  )}
-                </Text>
-              </Flex>
-            )}
-
-            <Box $lineHeight={1.15} $maxWidth="10rem" $textAlign="right">
-              <Text display={props.contractEndDate.fontStyle} $leading={1}>
-                {t("Estimated bill.")}
-              </Text>
-            </Box>
-          </Flex>
-        </>
       ) : (
-        <Flex $justifyContent="center" $alignItems="center">
-          <Loader $color={theme.primary} $isLoading={isLoading} />
-        </Flex>
+        !isLoading && (
+          <Container>
+            {upcomingInvoice ? (
+              <>
+                {props.header.isVisible && upcomingInvoice.dueDate && (
+                  <Flex $justifyContent="space-between" $alignItems="center">
+                    <Text display={props.header.fontStyle}>
+                      {props.header.prefix}{" "}
+                      {toPrettyDate(upcomingInvoice.dueDate)}
+                    </Text>
+                  </Flex>
+                )}
+
+                <Flex
+                  $justifyContent="space-between"
+                  $alignItems="start"
+                  $gap="1rem"
+                >
+                  {props.price.isVisible && (
+                    <Flex $alignItems="end" $flexGrow="1">
+                      <Text display={props.price.fontStyle} $leading={1}>
+                        {formatCurrency(
+                          upcomingInvoice.amountDue,
+                          upcomingInvoice.currency,
+                        )}
+                      </Text>
+                    </Flex>
+                  )}
+
+                  <Box $lineHeight={1.15} $maxWidth="10rem" $textAlign="right">
+                    <Text
+                      display={props.contractEndDate.fontStyle}
+                      $leading={1}
+                    >
+                      {t("Estimated bill.")}
+                    </Text>
+                  </Box>
+                </Flex>
+              </>
+            ) : (
+              <Text display="heading2">{t("No upcoming invoice")}</Text>
+            )}
+          </Container>
+        )
       )}
 
       {discounts.length > 0 && (
-        <Flex $justifyContent="space-between" $alignItems="center">
+        <Flex
+          as={Container}
+          $justifyContent="space-between"
+          $alignItems="center"
+        >
           <Box>
             <Text $weight={600}>{t("Discount")}</Text>
           </Box>
