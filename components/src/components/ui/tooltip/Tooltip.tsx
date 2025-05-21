@@ -19,7 +19,7 @@ export const Tooltip = ({
   trigger,
   content,
   position = "top",
-  zIndex = 1,
+  zIndex = 9999999,
   ...rest
 }: TooltipProps) => {
   const ref = useRef<HTMLDivElement>(null);
