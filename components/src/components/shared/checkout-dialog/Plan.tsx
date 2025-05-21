@@ -104,7 +104,6 @@ const PlanButtonGroup = ({
   const isCurrent = plan.id === data.company?.plan?.id;
 
   if (plan.companyCanTrial && plan.isTrialable) {
-    console.debug(plan.name);
     return (
       <Flex $flexDirection="column" $gap="1.5rem">
         {data.subscription?.status !== "trialing" && (
