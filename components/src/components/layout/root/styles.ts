@@ -9,6 +9,7 @@ export const Container = styled.div`
   width: 100%;
   height: 100%;
   container-type: inline-size;
+  interpolate-size: allow-keywords;
 
   *,
   *::before,
