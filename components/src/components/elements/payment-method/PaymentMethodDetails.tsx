@@ -355,7 +355,7 @@ export const PaymentMethodDetails = ({
                 {(!setupIntent ||
                   !paymentMethod ||
                   showDifferentPaymentMethods) && (
-                  <Button onClick={createSetupIntent} $size="lg">
+                  <Button onClick={createSetupIntent} $size="lg" $fullWidth>
                     {t("Add new payment method")}
                   </Button>
                 )}

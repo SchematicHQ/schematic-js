@@ -428,7 +428,9 @@ export const Sidebar = ({
     canUpdateSubscription &&
     (!!data.subscription?.paymentMethod || typeof paymentMethodId === "string");
 
-  const isTrialable = selectedPlan?.companyCanTrial === true;
+  const isTrialable =
+    selectedPlan?.companyCanTrial === true &&
+    selectedPlan?.isTrialable === true;
   const today = new Date();
   const trialEndsOn = new Date(today);
   if (isTrialable && selectedPlan.trialDays) {
@@ -1297,7 +1299,7 @@ export const Sidebar = ({
         )}
 
         {layout === "unsubscribe" && (
-          <Button onClick={unsubscribe} $isLoading={isLoading}>
+          <Button onClick={unsubscribe} $isLoading={isLoading} $fullWidth>
             {t("Cancel subscription")}
           </Button>
         )}

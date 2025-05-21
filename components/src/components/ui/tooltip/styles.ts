@@ -5,6 +5,7 @@ import { type Position } from "../../ui";
 
 export const Trigger = styled.div`
   width: 100%;
+  flex-grow: 1;
 `;
 
 const coords = (position: Position) => {

@@ -170,7 +170,6 @@ export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
               $size="sm"
               $color="secondary"
               $variant="ghost"
-              $fullWidth={false}
             >
               {t("Manage plan")}
             </Button>

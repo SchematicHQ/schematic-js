@@ -754,6 +754,7 @@ export const PricingTable = forwardRef<
                                 $color: props.downgrade.buttonStyle,
                                 $variant: "outline",
                               })}
+                          $fullWidth
                         >
                           {plan.custom ? (
                             <ButtonLink
@@ -765,12 +766,16 @@ export const PricingTable = forwardRef<
                             </ButtonLink>
                           ) : !plan.valid ? (
                             <Tooltip
-                              trigger={t("Over usage limit")}
-                              content={t(
-                                "Current usage exceeds the limit of this plan.",
-                              )}
+                              trigger={<Text>{t("Over usage limit")}</Text>}
+                              content={
+                                <Text>
+                                  {t(
+                                    "Current usage exceeds the limit of this plan.",
+                                  )}
+                                </Text>
+                              }
                             />
-                          ) : plan.companyCanTrial ? (
+                          ) : plan.companyCanTrial && plan.isTrialable ? (
                             t("Start X day trial", { days: plan.trialDays })
                           ) : (
                             t("Choose plan")
@@ -1091,6 +1096,7 @@ export const PricingTable = forwardRef<
                                 ? "outline"
                                 : "filled"
                           }
+                          $fullWidth
                         >
                           {isActiveAddOn
                             ? t("Remove add-on")
