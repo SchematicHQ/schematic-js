@@ -733,6 +733,7 @@ export const PricingTable = forwardRef<
                               href: plan.customPlanConfig.ctaWebSite,
                               target: "_blank",
                             })}
+                          $fullWidth
                         >
                           {plan.custom ? (
                             <>
@@ -741,12 +742,18 @@ export const PricingTable = forwardRef<
                             </>
                           ) : isHydratedPlan(plan) && !plan.valid ? (
                             <Tooltip
-                              trigger={t("Over usage limit")}
-                              content={t(
-                                "Current usage exceeds the limit of this plan.",
-                              )}
+                              trigger={<Text>{t("Over usage limit")}</Text>}
+                              content={
+                                <Text>
+                                  {t(
+                                    "Current usage exceeds the limit of this plan.",
+                                  )}
+                                </Text>
+                              }
                             />
-                          ) : isHydratedPlan(plan) && plan.companyCanTrial ? (
+                          ) : isHydratedPlan(plan) &&
+                            plan.companyCanTrial &&
+                            plan.isTrialable ? (
                             t("Start X day trial", { days: plan.trialDays })
                           ) : (
                             t("Choose plan")
@@ -1005,6 +1012,7 @@ export const PricingTable = forwardRef<
                             rel: "noreferrer",
                             target: "_blank",
                           })}
+                          $fullWidth
                         >
                           {isActiveAddOn
                             ? t("Remove add-on")

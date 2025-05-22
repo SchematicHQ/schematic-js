@@ -562,6 +562,7 @@ export const PlanManager = forwardRef<
             }}
             $size={props.callToAction.buttonSize}
             $color={props.callToAction.buttonStyle}
+            $fullWidth
           >
             {t("Change plan")}
           </Button>

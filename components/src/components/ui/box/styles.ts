@@ -19,7 +19,7 @@ export const Box = styled.div<BoxProps>((props) => {
   function reducer(acc: RuleSet, [key, value]: [string, string | number]) {
     if (key.startsWith("$") && !["$viewport"].includes(key)) {
       acc.push(
-        // keys will always be CSS properties
+        // keys should always be CSS properties
         attr(camelToHyphen(key.slice(1)) as keyof CSS.PropertiesHyphen, value),
       );
     }
@@ -32,11 +32,11 @@ export const Box = styled.div<BoxProps>((props) => {
   for (const [key, value] of Object.entries(props.$viewport || {})) {
     styles.push(css`
       ${{
-        sm: "@media (min-width: 640px)",
-        md: "@media (min-width: 768px)",
-        lg: "@media (min-width: 1024px)",
-        xl: "@media (min-width: 1280px)",
-        "2xl": "@media (min-width: 1536px)",
+        sm: "@container (min-width: 640px)",
+        md: "@container (min-width: 768px)",
+        lg: "@container (min-width: 1024px)",
+        xl: "@container (min-width: 1280px)",
+        "2xl": "@container (min-width: 1536px)",
       }[key] || key} {
         ${Object.entries(value || {}).reduce(reducer, [])}
       }

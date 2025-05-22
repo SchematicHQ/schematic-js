@@ -359,7 +359,7 @@ export const MeteredFeatures = forwardRef<
                     typeof usage === "number" &&
                     priceBehavior !== "pay_as_you_go" && (
                       <Flex $flexWrap="wrap" $justifyContent="end" $gap="2rem">
-                        {typeof allocation === "number" ? (
+                        {typeof allocation === "number" && progressBar ? (
                           <Tooltip
                             trigger={progressBar}
                             content={
@@ -388,7 +388,6 @@ export const MeteredFeatures = forwardRef<
                             onClick={() => {
                               setCheckoutState({ usage: true });
                             }}
-                            $fullWidth={false}
                             style={{ whiteSpace: "nowrap" }}
                           >
                             {t("Add More")}

@@ -143,10 +143,6 @@ export const Invoices = forwardRef<
     setInvoices(formatInvoices(data));
   }, [data]);
 
-  if (invoices.length === 0) {
-    return null;
-  }
-
   return (
     <Element ref={ref} className={className}>
       <Flex $flexDirection="column" $gap="1rem">
@@ -156,37 +152,51 @@ export const Invoices = forwardRef<
           </Flex>
         )}
 
-        <Flex $flexDirection="column" $gap="0.5rem">
-          {invoices.slice(0, listSize).map(({ date, amount, url }, index) => {
-            return (
-              <Flex key={index} $justifyContent="space-between">
-                {props.date.isVisible && date && (
-                  <InvoiceDate
-                    date={date}
-                    fontStyle={props.date.fontStyle}
-                    url={url}
+        {invoices.length > 0 ? (
+          <>
+            <Flex $flexDirection="column" $gap="0.5rem">
+              {invoices
+                .slice(0, listSize)
+                .map(({ date, amount, url }, index) => {
+                  return (
+                    <Flex key={index} $justifyContent="space-between">
+                      {props.date.isVisible && date && (
+                        <InvoiceDate
+                          date={date}
+                          fontStyle={props.date.fontStyle}
+                          url={url}
+                        />
+                      )}
+
+                      {props.amount.isVisible && (
+                        <Text display={props.amount.fontStyle}>{amount}</Text>
+                      )}
+                    </Flex>
+                  );
+                })}
+            </Flex>
+
+            {props.collapse.isVisible &&
+              invoices.length > props.limit.number && (
+                <Flex $alignItems="center" $gap="0.5rem">
+                  <Icon
+                    name={`chevron-${listSize === props.limit.number ? "down" : "up"}`}
+                    style={{ color: "#D0D0D0" }}
                   />
-                )}
 
-                {props.amount.isVisible && (
-                  <Text display={props.amount.fontStyle}>{amount}</Text>
-                )}
-              </Flex>
-            );
-          })}
-        </Flex>
-
-        {props.collapse.isVisible && invoices.length > props.limit.number && (
-          <Flex $alignItems="center" $gap="0.5rem">
-            <Icon
-              name={`chevron-${listSize === props.limit.number ? "down" : "up"}`}
-              style={{ color: "#D0D0D0" }}
-            />
-
-            <Text onClick={toggleListSize} display={props.collapse.fontStyle}>
-              {listSize === props.limit.number ? t("See more") : t("See less")}
-            </Text>
-          </Flex>
+                  <Text
+                    onClick={toggleListSize}
+                    display={props.collapse.fontStyle}
+                  >
+                    {listSize === props.limit.number
+                      ? t("See more")
+                      : t("See less")}
+                  </Text>
+                </Flex>
+              )}
+          </>
+        ) : (
+          <Text display="heading2">{t("No invoices created yet")}</Text>
         )}
       </Flex>
     </Element>

@@ -125,6 +125,7 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
                     $size="sm"
                     $color="primary"
                     $variant="outline"
+                    $fullWidth
                   >
                     {t("Choose add-on")}
                   </Button>
@@ -136,6 +137,7 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
                     $size="sm"
                     $color={isAddOnCurrent ? "danger" : "primary"}
                     $variant={isAddOnCurrent ? "ghost" : "text"}
+                    $fullWidth
                   >
                     {isAddOnCurrent ? (
                       t("Remove add-on")

@@ -111,30 +111,26 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     periods: availablePeriods,
   } = useAvailablePlans(planPeriod);
 
-  const {
-    currentPlanId,
-    currentEntitlements,
-    isTrialing,
-    trialPaymentMethodRequired,
-  } = useMemo(() => {
-    if (isCheckoutData(data)) {
-      return {
-        currentPlanId: data.company?.plan?.id,
-        currentEntitlements: data.featureUsage
-          ? data.featureUsage.features
-          : [],
-        isTrialing: data.subscription?.status === "trialing",
-        trialPaymentMethodRequired: data.trialPaymentMethodRequired === true,
-      };
-    }
+  const { currentPlanId, currentEntitlements, trialPaymentMethodRequired } =
+    useMemo(() => {
+      if (isCheckoutData(data)) {
+        return {
+          currentPlanId: data.company?.plan?.id,
+          currentEntitlements: data.featureUsage
+            ? data.featureUsage.features
+            : [],
+          isTrialing: data.subscription?.status === "trialing",
+          trialPaymentMethodRequired: data.trialPaymentMethodRequired === true,
+        };
+      }
 
-    return {
-      currentPlanId: undefined,
-      currentEntitlements: [],
-      isTrialing: false,
-      trialPaymentMethodRequired: false,
-    };
-  }, [data]);
+      return {
+        currentPlanId: undefined,
+        currentEntitlements: [],
+        isTrialing: false,
+        trialPaymentMethodRequired: false,
+      };
+    }, [data]);
 
   const [selectedPlan, setSelectedPlan] = useState(() =>
     availablePlans.find((plan) =>
@@ -143,10 +139,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
         : isHydratedPlan(plan) && plan.current,
     ),
   );
-
-  const [willTrial, setWillTrial] = useState(
-    !isTrialing && !trialPaymentMethodRequired,
-  );
+  const [willTrial, setWillTrial] = useState(false);
 
   const [addOns, setAddOns] = useState(() => {
     if (isCheckoutData(data)) {
