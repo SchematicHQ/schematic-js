@@ -5,6 +5,11 @@ on:
     paths:
       - components/**
 
+permissions:
+  contents: read
+  packages: read
+  pull-requests: write
+
 env:
   VERCEL_ORG_ID: "team_5rA0CJ7KWwUQut8p773DLhUz"
   VERCEL_PROJECT_ID: "prj_TcoGTQ7XI2TwKlXAmzW8doT8ptTK"
@@ -16,15 +21,12 @@ jobs:
     steps:
       - name: Checkout Components Repository
         uses: actions/checkout@v4
-        with:
-          path: js
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
           cache: 'yarn'
-          cache-dependency-path: js/components/yarn.lock
 
       - name: Install Vercel CLI
         run: yarn global add vercel
@@ -32,14 +34,14 @@ jobs:
       - name: Build Components Package
         run: |
           echo "🔨 Building components package..."
-          cd js/components
+          cd components
           yarn install
           yarn build
 
       - name: Link components
         run: |
           echo "📦 Linking components..."
-          cd js/components
+          cd components
           yarn link
 
       - name: Clone Demo App
