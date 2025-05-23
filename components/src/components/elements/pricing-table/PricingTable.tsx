@@ -25,7 +25,7 @@ import {
   isHydratedPlan,
   shortenPeriod,
 } from "../../../utils";
-import { FussyChild, cardBoxShadow } from "../../layout";
+import { Container, FussyChild, cardBoxShadow } from "../../layout";
 import { PeriodToggle } from "../../shared";
 import {
   Box,
@@ -240,9 +240,9 @@ export const PricingTable = forwardRef<
     <FussyChild
       ref={ref}
       className={className}
-      as={Flex}
-      $flexDirection="column"
-      $gap="2rem"
+      {...(isStandalone
+        ? { as: Container }
+        : { as: Flex, $flexDirection: "column", $gap: "2rem" })}
     >
       <Box>
         <Flex
