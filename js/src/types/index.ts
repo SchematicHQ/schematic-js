@@ -81,6 +81,8 @@ export type CheckFlagReturn = {
   featureAllocation?: number;
   /** If a numeric feature entitlement rule was matched, the company's usage */
   featureUsage?: number;
+  /** Event representing the feature usage */
+  featureUsageEvent?: string;
   /** For event-based feature entitlement rules, the period over which usage is tracked (current_month, current_day, current_week, all_time) */
   featureUsagePeriod?: UsagePeriod;
   /** For event-based feature entitlement rules, when the usage period will reset */
@@ -161,6 +163,7 @@ export const CheckFlagReturnFromJSON = (
     error,
     featureAllocation,
     featureUsage,
+    featureUsageEvent,
     featureUsagePeriod,
     featureUsageResetAt,
     flag,
@@ -185,6 +188,8 @@ export const CheckFlagReturnFromJSON = (
     featureAllocation:
       featureAllocation == null ? undefined : featureAllocation,
     featureUsage: featureUsage == null ? undefined : featureUsage,
+    featureUsageEvent:
+      featureUsageEvent === null ? undefined : featureUsageEvent,
     featureUsagePeriod:
       featureUsagePeriod == null
         ? undefined
