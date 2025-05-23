@@ -97,11 +97,11 @@ jobs:
               repo: context.repo.repo,
               body: `🚀 **Components Preview Deployed!**
               
-                📍 **Preview URL:** ${deploymentUrl}
-                🔄 **Components Version:** Built from commit \`${context.sha.substring(0, 7)}\`
-                📦 **Demo App:** ${process.env.DEMO_APP_REPO}
+              📍 **Preview URL:** ${deploymentUrl}
+              🔄 **Components Version:** Built from commit \`${context.sha.substring(0, 7)}\`
+              📦 **Demo App:** ${process.env.DEMO_APP_REPO}
 
-                *This preview includes your latest component changes.*`
+              `
             });
 
       - name: Create Deployment Summary
