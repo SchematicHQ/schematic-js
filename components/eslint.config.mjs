@@ -6,14 +6,13 @@ import { defineConfig } from "eslint/config";
 import importPlugin from "eslint-plugin-import";
 import pluginReact from "eslint-plugin-react";
 import reactHooks from "eslint-plugin-react-hooks";
-import simpleImportSort from "eslint-plugin-simple-import-sort";
 import globals from "globals";
 import tseslint from "typescript-eslint";
 
 export default defineConfig([
   {
     files: ["**/*.{js,mjs,cjs,ts,jsx,tsx}"],
-    plugins: { js, pluginReact, "simple-import-sort": simpleImportSort },
+    plugins: { js, pluginReact },
     extends: [
       js.configs.recommended,
       tseslint.configs.recommended,
@@ -38,12 +37,24 @@ export default defineConfig([
         { ignoreRestSiblings: true },
       ],
       "react/no-unescaped-entities": "off",
-      "simple-import-sort/imports": "error",
-      "simple-import-sort/exports": "error",
       "import/first": "error",
       "import/newline-after-import": "error",
       "import/no-duplicates": "error",
       "import/no-named-as-default": "off",
+      "import/order": [
+        "error",
+        {
+          "newlines-between": "always",
+          alphabetize: {
+            order: "asc",
+            orderImportKind: "asc",
+          },
+          named: {
+            enabled: true,
+            types: "types-last",
+          },
+        },
+      ],
     },
     settings: {
       "import/extensions": [".ts", ".tsx"],

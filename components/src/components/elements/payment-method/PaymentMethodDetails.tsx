@@ -2,16 +2,17 @@ import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe, type Stripe } from "@stripe/stripe-js";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useTheme } from "styled-components";
 
 import type {
   PaymentMethodResponseData,
   SetupIntentResponseData,
 } from "../../../api/checkoutexternal";
-import type { FontStyle } from "../../../context";
+import { type FontStyle } from "../../../context";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
+import { isCheckoutData } from "../../../utils";
 import { PaymentForm } from "../../shared";
 import { Box, Button, Flex, Icon, Loader, Text } from "../../ui";
+
 import {
   PaymentListElement,
   PaymentMethodElement,
@@ -53,9 +54,29 @@ export const PaymentMethodDetails = ({
 
   const { t } = useTranslation();
 
-  const theme = useTheme();
+  const {
+    data,
+    settings,
+    createSetupIntent,
+    updatePaymentMethod,
+    deletePaymentMethod,
+  } = useEmbed();
 
-  const { api, data, setData } = useEmbed();
+  const { defaultPaymentMethod, paymentMethods, subscription } = useMemo(() => {
+    if (isCheckoutData(data)) {
+      return {
+        defaultPaymentMethod: data.company?.defaultPaymentMethod,
+        paymentMethods: data.company?.paymentMethods || [],
+        subscription: data.subscription,
+      };
+    }
+
+    return {
+      defaultPaymentMethod: undefined,
+      paymentMethods: [],
+      subscription: undefined,
+    };
+  }, [data]);
 
   const isLightBackground = useIsLightBackground();
 
@@ -68,7 +89,7 @@ export const PaymentMethodDetails = ({
     useState(false);
   const [paymentMethod, setPaymentMethod] = useState<
     PaymentMethodResponseData | undefined
-  >(data.subscription?.paymentMethod || data.company?.defaultPaymentMethod);
+  >(subscription?.paymentMethod || defaultPaymentMethod);
 
   const monthsToExpiration = useMemo(() => {
     let expiration: number | undefined;
@@ -89,18 +110,13 @@ export const PaymentMethodDetails = ({
     return expiration;
   }, [paymentMethod?.cardExpYear, paymentMethod?.cardExpMonth]);
 
-  const createSetupIntent = useCallback(async () => {
-    if (!api || !data.component?.id) {
-      return;
-    }
-
+  const initializePaymentMethod = useCallback(async () => {
     try {
       setIsLoading(true);
-      // TODO: Remove component id from here and from api
-      const response = await api.getSetupIntent({
-        componentId: data.component.id,
-      });
-      setSetupIntent(response.data);
+      const response = await createSetupIntent();
+      if (response) {
+        setSetupIntent(response.data);
+      }
     } catch {
       setError(
         t("Error initializing payment method change. Please try again."),
@@ -109,101 +125,46 @@ export const PaymentMethodDetails = ({
       setShowPaymentForm(true);
       setIsLoading(false);
     }
-  }, [t, api, data.component?.id]);
+  }, [t, createSetupIntent]);
 
-  const updatePaymentMethod = useCallback(
-    async (externalId: string) => {
-      if (!api || !externalId) {
-        return;
-      }
-
+  const handleUpdatePaymentMethod = useCallback(
+    async (paymentMethodId: string) => {
       try {
         setIsLoading(true);
 
-        const updatePaymentMethodResponse = await api.updatePaymentMethod({
-          updatePaymentMethodRequestBody: {
-            paymentMethodId: externalId,
-          },
-        });
+        const response = await updatePaymentMethod(paymentMethodId);
+        if (response) {
+          setPaymentMethod(response.data);
 
-        setPaymentMethod(updatePaymentMethodResponse.data);
-
-        // TODO: Refactor
-        // Set data for sidebar
-        if (setPaymentMethodId) {
-          setPaymentMethodId(updatePaymentMethodResponse.data.externalId);
+          // TODO: Refactor
+          // Set data for sidebar
+          if (setPaymentMethodId) {
+            setPaymentMethodId(response.data.externalId);
+          }
         }
-
-        setData({
-          ...data,
-          // Optimistic update
-          // If there is subscription - we have set payment method to subscription
-          ...(data.subscription
-            ? {
-                subscription: {
-                  ...data.subscription,
-                  paymentMethod: updatePaymentMethodResponse.data,
-                },
-              }
-            : {}),
-          ...(data.company
-            ? {
-                company: {
-                  ...data.company,
-                  paymentMethods: [
-                    updatePaymentMethodResponse.data,
-                    ...(data.company?.paymentMethods || []),
-                  ],
-                  // Optimistic update
-                  // If there is no subscription - we have updated default payment method in company
-                  ...(data.subscription
-                    ? {}
-                    : {
-                        defaultPaymentMethod: updatePaymentMethodResponse.data,
-                      }),
-                },
-              }
-            : {}),
-        });
       } catch {
         setError(t("Error updating payment method. Please try again."));
       } finally {
         setIsLoading(false);
       }
     },
-    [api, data, setData, setPaymentMethodId, t],
+    [t, setPaymentMethodId, updatePaymentMethod],
   );
 
-  const deletePaymentMethod = useCallback(
-    async (id: string) => {
-      if (!api || !id) {
-        return;
-      }
-
+  const handleDeletePaymentMethod = useCallback(
+    async (paymentMethodId: string) => {
       try {
         setIsLoading(true);
         // Payment method id is used and expected
         // Some problem with type generation
-        await api.deletePaymentMethod({
-          checkoutId: id,
-        });
-
-        setData({
-          ...data,
-          company: {
-            ...data.company!,
-            paymentMethods: (data.company?.paymentMethods ?? []).filter(
-              (pm) => pm.id !== id,
-            ),
-          },
-        });
+        deletePaymentMethod(paymentMethodId);
       } catch {
         setError(t("Error deleting payment method. Please try again."));
       } finally {
         setIsLoading(false);
       }
     },
-    [api, data, setData, t],
+    [t, deletePaymentMethod],
   );
 
   useEffect(() => {
@@ -214,9 +175,9 @@ export const PaymentMethodDetails = ({
 
   useEffect(() => {
     if (!setupIntent && (!paymentMethod || showPaymentForm)) {
-      createSetupIntent();
+      initializePaymentMethod();
     }
-  }, [setupIntent, paymentMethod, showPaymentForm, createSetupIntent]);
+  }, [setupIntent, paymentMethod, showPaymentForm, initializePaymentMethod]);
 
   return (
     <Flex $position="relative">
@@ -228,7 +189,11 @@ export const PaymentMethodDetails = ({
         $width="100%"
         $height="100%"
       >
-        <Loader $color={theme.primary} $size="2xl" $isLoading={isLoading} />
+        <Loader
+          $color={settings.theme.primary}
+          $size="2xl"
+          $isLoading={isLoading}
+        />
       </Flex>
 
       <Flex
@@ -268,7 +233,7 @@ export const PaymentMethodDetails = ({
                     fontSize: "1rem",
                     fontWeight: "400",
                     marginBottom: "0.75rem",
-                    color: theme.typography.text.color,
+                    color: settings.theme.typography.text.color,
                   },
                 },
               },
@@ -277,7 +242,7 @@ export const PaymentMethodDetails = ({
           >
             <PaymentForm
               onConfirm={async (paymentMethodId) => {
-                await updatePaymentMethod(paymentMethodId);
+                await handleUpdatePaymentMethod(paymentMethodId);
                 setShowPaymentForm(false);
                 setShowDifferentPaymentMethods(false);
               }}
@@ -290,10 +255,7 @@ export const PaymentMethodDetails = ({
                     setShowPaymentForm(false);
                     setShowDifferentPaymentMethods(false);
                   }}
-                  $font={theme.typography.link.fontFamily}
-                  $size={theme.typography.link.fontSize}
-                  $weight={theme.typography.link.fontWeight}
-                  $color={theme.typography.link.color}
+                  display="link"
                 >
                   {t("Select existing payment method")}
                 </Text>
@@ -309,16 +271,13 @@ export const PaymentMethodDetails = ({
               {...props}
             />
 
-            {(data.company?.paymentMethods || []).length > 0 && (
+            {paymentMethods.length > 0 && (
               <Box>
                 <Text
                   onClick={() => {
                     setShowDifferentPaymentMethods((prev) => !prev);
                   }}
-                  $font={theme.typography.link.fontFamily}
-                  $size={theme.typography.link.fontSize}
-                  $weight={theme.typography.link.fontWeight}
-                  $color={theme.typography.link.color}
+                  display="link"
                 >
                   {t("Choose different payment method")}
                   <Icon
@@ -339,15 +298,15 @@ export const PaymentMethodDetails = ({
               <Flex $flexDirection="column" $overflowY="hidden">
                 <Flex $flexDirection="column" $overflowY="scroll">
                   {(
-                    data.company?.paymentMethods.filter(
+                    paymentMethods.filter(
                       (pm) => pm.id !== paymentMethod?.id,
                     ) || []
                   ).map((paymentMethod) => (
                     <PaymentListElement
                       key={paymentMethod.id}
                       paymentMethod={paymentMethod}
-                      setDefault={updatePaymentMethod}
-                      handleDelete={deletePaymentMethod}
+                      setDefault={handleUpdatePaymentMethod}
+                      handleDelete={handleDeletePaymentMethod}
                     />
                   ))}
                 </Flex>
@@ -355,7 +314,11 @@ export const PaymentMethodDetails = ({
                 {(!setupIntent ||
                   !paymentMethod ||
                   showDifferentPaymentMethods) && (
-                  <Button onClick={createSetupIntent} $size="lg" $fullWidth>
+                  <Button
+                    onClick={initializePaymentMethod}
+                    $size="lg"
+                    $fullWidth
+                  >
                     {t("Add new payment method")}
                   </Button>
                 )}
@@ -366,12 +329,7 @@ export const PaymentMethodDetails = ({
 
         {!isLoading && error && (
           <Box>
-            <Text
-              $font={theme.typography.text.fontFamily}
-              $size={theme.typography.text.fontSize}
-              $weight={500}
-              $color="#DB6669"
-            >
+            <Text $weight={500} $color="#DB6669">
               {error}
             </Text>
           </Box>

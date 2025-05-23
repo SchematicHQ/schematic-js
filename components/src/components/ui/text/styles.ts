@@ -45,11 +45,11 @@ export const Text = styled.span
     $leading = 1.35,
     $align,
   }) => {
-    const settings = theme.typography[display];
-    const fontFamily = $font || settings.fontFamily;
-    const fontSize = $size || settings.fontSize;
-    const fontWeight = $weight || settings.fontWeight;
-    const color = $color || settings.color;
+    const fontStyle = theme.typography[display];
+    const fontFamily = $font || fontStyle.fontFamily;
+    const fontSize = $size || fontStyle.fontSize;
+    const fontWeight = $weight || fontStyle.fontWeight;
+    const color = $color || fontStyle.color;
 
     return css`
       font-family: ${fontFamily}, sans-serif;

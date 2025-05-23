@@ -1,6 +1,7 @@
 import styled, { css } from "styled-components";
 
 import { Box } from "../../ui";
+
 import { type ModalSize } from ".";
 
 interface ModalProps {

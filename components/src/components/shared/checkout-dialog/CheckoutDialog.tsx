@@ -7,26 +7,26 @@ import {
   useState,
 } from "react";
 import { useTranslation } from "react-i18next";
-import { useTheme } from "styled-components";
 
 import {
+  ResponseError,
   type FeatureUsageResponseData,
   type PlanEntitlementResponseData,
   type PreviewSubscriptionFinanceResponseData,
-  ResponseError,
   type UpdateAddOnRequestBody,
   type UpdatePayInAdvanceRequestBody,
 } from "../../../api/checkoutexternal";
 import {
-  type SelectedPlan,
   useAvailablePlans,
   useEmbed,
   useIsLightBackground,
+  type SelectedPlan,
 } from "../../../hooks";
-import { getAddOnPrice } from "../../../utils";
+import { getAddOnPrice, isCheckoutData, isHydratedPlan } from "../../../utils";
 import { PeriodToggle } from "../../shared";
 import { Flex, Modal, ModalHeader, Text } from "../../ui";
 import { Sidebar, type UsageBasedEntitlement } from "../sidebar";
+
 import { AddOns } from "./AddOns";
 import { Checkout } from "./Checkout";
 import { Navigation } from "./Navigation";
@@ -72,9 +72,7 @@ interface CheckoutDialogProps {
 export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   const { t } = useTranslation();
 
-  const theme = useTheme();
-
-  const { api, data, selected } = useEmbed();
+  const { data, checkoutState, previewCheckout } = useEmbed();
 
   const modalRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -82,46 +80,84 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
   const [charges, setCharges] =
     useState<PreviewSubscriptionFinanceResponseData>();
+
   const [paymentMethodId, setPaymentMethodId] = useState<string | undefined>(
-    (data.subscription?.paymentMethod || data.company?.defaultPaymentMethod)
-      ?.externalId,
+    () => {
+      if (isCheckoutData(data)) {
+        return (
+          data.subscription?.paymentMethod || data.company?.defaultPaymentMethod
+        )?.externalId;
+      }
+    },
   );
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | undefined>();
+  const [planPeriod, setPlanPeriod] = useState(() => {
+    if (checkoutState?.period) {
+      return checkoutState.period;
+    }
 
-  const [planPeriod, setPlanPeriod] = useState(
-    selected.period || data.company?.plan?.planPeriod || "month",
-  );
+    if (isCheckoutData(data) && data.company?.plan?.planPeriod) {
+      return data.company.plan.planPeriod;
+    }
+
+    return "month";
+  });
+
   const {
     plans: availablePlans,
     addOns: availableAddOns,
     periods: availablePeriods,
   } = useAvailablePlans(planPeriod);
 
+  const { currentPlanId, currentEntitlements, trialPaymentMethodRequired } =
+    useMemo(() => {
+      if (isCheckoutData(data)) {
+        return {
+          currentPlanId: data.company?.plan?.id,
+          currentEntitlements: data.featureUsage
+            ? data.featureUsage.features
+            : [],
+          isTrialing: data.subscription?.status === "trialing",
+          trialPaymentMethodRequired: data.trialPaymentMethodRequired === true,
+        };
+      }
+
+      return {
+        currentPlanId: undefined,
+        currentEntitlements: [],
+        isTrialing: false,
+        trialPaymentMethodRequired: false,
+      };
+    }, [data]);
+
   const [selectedPlan, setSelectedPlan] = useState(() =>
     availablePlans.find((plan) =>
-      selected.planId ? plan.id === selected.planId : plan.current,
+      checkoutState?.planId
+        ? plan.id === checkoutState.planId
+        : isHydratedPlan(plan) && plan.current,
     ),
   );
   const [willTrial, setWillTrial] = useState(false);
 
-  const [addOns, setAddOns] = useState(() =>
-    availableAddOns.map((addOn) => ({
-      ...addOn,
-      isSelected:
-        typeof selected.addOnId !== "undefined"
-          ? addOn.id === selected.addOnId
-          : (data.company?.addOns || []).some(
-              (currentAddOn) => addOn.id === currentAddOn.id,
-            ),
-    })),
-  );
+  const [addOns, setAddOns] = useState(() => {
+    if (isCheckoutData(data)) {
+      return availableAddOns.map((addOn) => ({
+        ...addOn,
+        isSelected:
+          typeof checkoutState?.addOnId !== "undefined"
+            ? addOn.id === checkoutState.addOnId
+            : (data.company?.addOns || []).some(
+                (currentAddOn) => addOn.id === currentAddOn.id,
+              ),
+      }));
+    }
+
+    return [];
+  });
   const hasActiveAddOns = addOns.some((addOn) => addOn.isSelected);
 
-  const currentEntitlements = useMemo(() => {
-    return data.featureUsage?.features || [];
-  }, [data.featureUsage?.features]);
   const [usageBasedEntitlements, setUsageBasedEntitlements] = useState(() =>
     (selectedPlan?.entitlements || []).reduce(
       createActiveUsageBasedEntitlementsReducer(
@@ -146,12 +182,12 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   const [promoCode, setPromoCode] = useState<string>();
 
   const isTrialable =
-    selectedPlan?.isTrialable === true &&
-    selectedPlan?.companyCanTrial === true;
-  const isTrialableAndFree =
-    isTrialable && data.trialPaymentMethodRequired !== true;
+    isHydratedPlan(selectedPlan) &&
+    selectedPlan.isTrialable &&
+    selectedPlan.companyCanTrial;
+  const isTrialableAndFree = isTrialable && !trialPaymentMethodRequired;
   const planRequiresPayment =
-    !isTrialableAndFree || (!isTrialable && selectedPlan?.isFree !== true);
+    !isTrialableAndFree || (!isTrialable && !selectedPlan.isFree);
   const requiresPayment =
     planRequiresPayment || hasActiveAddOns || hasActivePayInAdvanceEntitlements;
 
@@ -176,7 +212,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       });
     }
 
-    if (availableAddOns.length > 0) {
+    if (availableAddOns.length) {
       stages.push({
         id: "addons",
         name: t("Add-ons"),
@@ -203,16 +239,16 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   ]);
 
   const [checkoutStage, setCheckoutStage] = useState(() => {
-    if (selected.addOnId) {
+    if (checkoutState?.addOnId) {
       return "addons";
     }
 
-    if (selected.usage) {
+    if (checkoutState?.usage) {
       return "usage";
     }
 
     // the user has preselected a different plan before starting the checkout flow
-    if (selected.planId !== data.company?.plan?.id) {
+    if (checkoutState?.planId !== currentPlanId) {
       return checkoutStages.some((stage) => stage.id === "usage")
         ? "usage"
         : checkoutStages.some((stage) => stage.id === "addons")
@@ -225,7 +261,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
   const isLightBackground = useIsLightBackground();
 
-  const previewCheckout = useCallback(
+  const handlePreviewCheckout = useCallback(
     async (updates: {
       period?: string;
       plan?: SelectedPlan;
@@ -238,7 +274,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
       const planPriceId =
         period === "year" ? plan?.yearlyPrice?.id : plan?.monthlyPrice?.id;
-      if (!api || !plan || !planPriceId) {
+      if (!plan || !planPriceId) {
         return;
       }
 
@@ -247,57 +283,57 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       setIsLoading(true);
 
       try {
-        const { data } = await api.previewCheckout({
-          changeSubscriptionRequestBody: {
-            newPlanId: plan.id,
-            newPriceId: planPriceId,
-            addOnIds: (updates.addOns || addOns).reduce(
-              (acc: UpdateAddOnRequestBody[], addOn) => {
-                if (addOn.isSelected) {
-                  const addOnPriceId = getAddOnPrice(addOn, period)?.id;
+        const response = await previewCheckout({
+          newPlanId: plan.id,
+          newPriceId: planPriceId,
+          addOnIds: (updates.addOns || addOns).reduce(
+            (acc: UpdateAddOnRequestBody[], addOn) => {
+              if (addOn.isSelected) {
+                const addOnPriceId = getAddOnPrice(addOn, period)?.id;
 
-                  if (addOnPriceId) {
-                    acc.push({
-                      addOnId: addOn.id,
-                      priceId: addOnPriceId,
-                    });
-                  }
-                }
-
-                return acc;
-              },
-              [],
-            ),
-            payInAdvance: (
-              updates.payInAdvanceEntitlements || payInAdvanceEntitlements
-            ).reduce(
-              (
-                acc: UpdatePayInAdvanceRequestBody[],
-                { meteredMonthlyPrice, meteredYearlyPrice, quantity },
-              ) => {
-                const priceId = (
-                  period === "year" ? meteredYearlyPrice : meteredMonthlyPrice
-                )?.priceId;
-
-                if (priceId) {
+                if (addOnPriceId) {
                   acc.push({
-                    priceId,
-                    quantity,
+                    addOnId: addOn.id,
+                    priceId: addOnPriceId,
                   });
                 }
+              }
 
-                return acc;
-              },
-              [],
-            ),
-            promoCode: updates.promoCode || promoCode,
-          },
+              return acc;
+            },
+            [],
+          ),
+          payInAdvance: (
+            updates.payInAdvanceEntitlements || payInAdvanceEntitlements
+          ).reduce(
+            (
+              acc: UpdatePayInAdvanceRequestBody[],
+              { meteredMonthlyPrice, meteredYearlyPrice, quantity },
+            ) => {
+              const priceId = (
+                period === "year" ? meteredYearlyPrice : meteredMonthlyPrice
+              )?.priceId;
+
+              if (priceId) {
+                acc.push({
+                  priceId,
+                  quantity,
+                });
+              }
+
+              return acc;
+            },
+            [],
+          ),
+          promoCode: updates.promoCode || promoCode,
         });
 
-        setCharges(data.finance);
-      } catch (error) {
-        if (error instanceof ResponseError && error.response.status === 401) {
-          const data = await error.response.json();
+        if (response) {
+          setCharges(response.data.finance);
+        }
+      } catch (err) {
+        if (err instanceof ResponseError && err.response.status === 401) {
+          const data = await err.response.json();
           if (data.error === "Access Token Invalid") {
             return setError(
               t("Session expired. Please refresh and try again."),
@@ -314,7 +350,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     },
     [
       t,
-      api,
+      previewCheckout,
       planPeriod,
       selectedPlan,
       addOns,
@@ -346,9 +382,9 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       }
 
       const shouldTrial = updates.shouldTrial ?? false;
-      setWillTrial(shouldTrial && !data.trialPaymentMethodRequired);
+      setWillTrial(shouldTrial && !trialPaymentMethodRequired);
 
-      previewCheckout({
+      handlePreviewCheckout({
         period: period,
         plan: updates.plan,
         payInAdvanceEntitlements: entitlements.filter(
@@ -357,20 +393,20 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       });
     },
     [
-      data.trialPaymentMethodRequired,
       planPeriod,
       selectedPlan,
       currentEntitlements,
-      previewCheckout,
+      trialPaymentMethodRequired,
+      handlePreviewCheckout,
     ],
   );
 
   const changePlanPeriod = useCallback(
     (period: string) => {
       setPlanPeriod(period);
-      previewCheckout({ period });
+      handlePreviewCheckout({ period });
     },
-    [setPlanPeriod, previewCheckout],
+    [setPlanPeriod, handlePreviewCheckout],
   );
 
   const toggleAddOn = (id: string) => {
@@ -380,7 +416,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
         ...(addOn.id === id && { isSelected: !addOn.isSelected }),
       }));
 
-      previewCheckout({ addOns: updated });
+      handlePreviewCheckout({ addOns: updated });
 
       return updated;
     });
@@ -398,7 +434,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
             : entitlement,
         );
 
-        previewCheckout({
+        handlePreviewCheckout({
           payInAdvanceEntitlements: updated.filter(
             ({ priceBehavior }) => priceBehavior === "pay_in_advance",
           ),
@@ -407,12 +443,12 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
         return updated;
       });
     },
-    [previewCheckout],
+    [handlePreviewCheckout],
   );
 
   const updatePromoCode = (code?: string) => {
     setPromoCode(code);
-    previewCheckout({ promoCode: code });
+    handlePreviewCheckout({ promoCode: code });
   };
 
   useEffect(() => {
@@ -526,10 +562,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
                 {activeCheckoutStage.label && (
                   <Text
                     as="h3"
-                    $font={theme.typography.heading3.fontFamily}
-                    $size={theme.typography.heading3.fontSize}
-                    $weight={theme.typography.heading3.fontWeight}
-                    $color={theme.typography.heading3.color}
+                    display="heading3"
                     style={{ marginBottom: "0.5rem" }}
                   >
                     {activeCheckoutStage.label}
@@ -537,15 +570,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
                 )}
 
                 {activeCheckoutStage.description && (
-                  <Text
-                    as="p"
-                    $font={theme.typography.text.fontFamily}
-                    $size={theme.typography.text.fontSize}
-                    $weight={theme.typography.text.fontWeight}
-                    $color={theme.typography.text.color}
-                  >
-                    {activeCheckoutStage.description}
-                  </Text>
+                  <Text as="p">{activeCheckoutStage.description}</Text>
                 )}
               </Flex>
             )}

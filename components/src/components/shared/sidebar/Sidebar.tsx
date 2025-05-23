@@ -1,11 +1,10 @@
 import {
-  type Dispatch,
-  type SetStateAction,
   useCallback,
   useMemo,
+  type Dispatch,
+  type SetStateAction,
 } from "react";
 import { useTranslation } from "react-i18next";
-import { useTheme } from "styled-components";
 
 import type {
   FeatureUsageResponseData,
@@ -15,9 +14,9 @@ import type {
   UpdatePayInAdvanceRequestBody,
 } from "../../../api/checkoutexternal";
 import {
-  type SelectedPlan,
   useEmbed,
   useIsLightBackground,
+  type SelectedPlan,
 } from "../../../hooks";
 import {
   ChargeType,
@@ -27,10 +26,13 @@ import {
   getBillingPrice,
   getFeatureName,
   getMonthName,
+  isCheckoutData,
+  isHydratedPlan,
   shortenPeriod,
 } from "../../../utils";
 import { Box, Button, Flex, Icon, Text } from "../../ui";
 import { type CheckoutStage } from "../checkout-dialog";
+
 import { Proration } from "./Proration";
 import { StageButton } from "./StageButton";
 
@@ -91,40 +93,68 @@ export const Sidebar = ({
 }: SidebarProps) => {
   const { t } = useTranslation();
 
-  const theme = useTheme();
-
-  const { api, data, mode, layout, hydrate, setLayout } = useEmbed();
+  const { data, settings, mode, layout, setLayout, checkout, unsubscribe } =
+    useEmbed();
 
   const isLightBackground = useIsLightBackground();
 
-  const currentPlan = data.company?.plan;
+  const {
+    currentPlanPeriod,
+    currentPlan,
+    currentAddOns,
+    currentEntitlements,
+    currentUsageBasedEntitlements,
+    billingSubscription,
+    paymentMethod,
+    trialPaymentMethodRequired,
+  } = useMemo(() => {
+    if (isCheckoutData(data)) {
+      const currentEntitlements = data.featureUsage?.features || [];
 
-  const currentAddOns = data.company?.addOns || [];
+      return {
+        currentPlanPeriod: data.company?.plan?.planPeriod,
+        currentPlan: data.company?.plan,
+        currentAddOns: data.company?.addOns || [],
+        currentEntitlements,
+        currentUsageBasedEntitlements: currentEntitlements.reduce(
+          (acc: CurrentUsageBasedEntitlement[], entitlement) => {
+            if (
+              entitlement.priceBehavior &&
+              ((planPeriod === "month" && entitlement.monthlyUsageBasedPrice) ||
+                (planPeriod === "year" && entitlement.yearlyUsageBasedPrice))
+            ) {
+              const allocation = entitlement.allocation || 0;
+              const usage = entitlement.usage || 0;
 
-  const currentUsageBasedEntitlements = useMemo(() => {
-    return (data.featureUsage?.features || []).reduce(
-      (acc: CurrentUsageBasedEntitlement[], entitlement) => {
-        if (
-          entitlement.priceBehavior &&
-          ((planPeriod === "month" && entitlement.monthlyUsageBasedPrice) ||
-            (planPeriod === "year" && entitlement.yearlyUsageBasedPrice))
-        ) {
-          const allocation = entitlement.allocation || 0;
-          const usage = entitlement.usage || 0;
+              acc.push({
+                ...entitlement,
+                allocation,
+                usage,
+                quantity: allocation ?? usage,
+              });
+            }
 
-          acc.push({
-            ...entitlement,
-            allocation,
-            usage,
-            quantity: allocation ?? usage,
-          });
-        }
+            return acc;
+          },
+          [],
+        ),
+        billingSubscription: data.company?.billingSubscription,
+        paymentMethod: data.subscription?.paymentMethod,
+        trialPaymentMethodRequired: data.trialPaymentMethodRequired === true,
+      };
+    }
 
-        return acc;
-      },
-      [],
-    );
-  }, [data.featureUsage?.features, planPeriod]);
+    return {
+      currentPlanPeriod: undefined,
+      currentPlan: undefined,
+      currentAddOns: [],
+      currentEntitlements: [],
+      currentUsageBasedEntitlements: [],
+      billingSubscription: undefined,
+      paymentMethod: undefined,
+      trialPaymentMethodRequired: true,
+    };
+  }, [data, planPeriod]);
 
   const { payAsYouGoEntitlements, payInAdvanceEntitlements } = useMemo(() => {
     const payAsYouGoEntitlements: UsageBasedEntitlement[] = [];
@@ -204,21 +234,13 @@ export const Sidebar = ({
       };
     }, [charges]);
 
-  const dispatchPlanChangedEvent = <T extends object>(detail: T) => {
-    const event = new CustomEvent("plan-changed", {
-      bubbles: true,
-      detail,
-    });
-    window.dispatchEvent(event);
-  };
-
-  const checkout = useCallback(async () => {
+  const handleCheckout = useCallback(async () => {
     const priceId = (
       planPeriod === "year"
         ? selectedPlan?.yearlyPrice
         : selectedPlan?.monthlyPrice
     )?.id;
-    if (!api || !selectedPlan || !priceId) {
+    if (!selectedPlan || !priceId) {
       return;
     }
 
@@ -226,66 +248,63 @@ export const Sidebar = ({
       setError(undefined);
       setIsLoading(true);
 
-      const response = await api.checkout({
-        changeSubscriptionRequestBody: {
-          newPlanId: selectedPlan.id,
-          newPriceId: priceId,
-          addOnIds: addOns.reduce((acc: UpdateAddOnRequestBody[], addOn) => {
-            if (addOn.isSelected && !selectedPlan.companyCanTrial) {
-              const addOnPriceId = getAddOnPrice(addOn, planPeriod)?.id;
+      await checkout({
+        newPlanId: selectedPlan.id,
+        newPriceId: priceId,
+        addOnIds: addOns.reduce((acc: UpdateAddOnRequestBody[], addOn) => {
+          if (
+            addOn.isSelected &&
+            isHydratedPlan(selectedPlan) &&
+            !selectedPlan.companyCanTrial
+          ) {
+            const addOnPriceId = getAddOnPrice(addOn, planPeriod)?.id;
 
-              if (addOnPriceId) {
-                acc.push({
-                  addOnId: addOn.id,
-                  priceId: addOnPriceId,
-                });
-              }
+            if (addOnPriceId) {
+              acc.push({
+                addOnId: addOn.id,
+                priceId: addOnPriceId,
+              });
+            }
+          }
+
+          return acc;
+        }, []),
+        payInAdvance: payInAdvanceEntitlements.reduce(
+          (
+            acc: UpdatePayInAdvanceRequestBody[],
+            { meteredMonthlyPrice, meteredYearlyPrice, quantity },
+          ) => {
+            const priceId = (
+              planPeriod === "year" ? meteredYearlyPrice : meteredMonthlyPrice
+            )?.priceId;
+
+            if (priceId) {
+              acc.push({
+                priceId,
+                quantity,
+              });
             }
 
             return acc;
-          }, []),
-          payInAdvance: payInAdvanceEntitlements.reduce(
-            (
-              acc: UpdatePayInAdvanceRequestBody[],
-              { meteredMonthlyPrice, meteredYearlyPrice, quantity },
-            ) => {
-              const priceId = (
-                planPeriod === "year" ? meteredYearlyPrice : meteredMonthlyPrice
-              )?.priceId;
-
-              if (priceId) {
-                acc.push({
-                  priceId,
-                  quantity,
-                });
-              }
-
-              return acc;
-            },
-            [],
-          ),
-          ...(paymentMethodId && { paymentMethodId }),
-          ...(promoCode && { promoCode }),
-        },
+          },
+          [],
+        ),
+        ...(paymentMethodId && { paymentMethodId }),
+        ...(promoCode && { promoCode }),
       });
 
       setIsLoading(false);
       setLayout("portal");
-
-      await hydrate();
-      dispatchPlanChangedEvent(response.data);
     } catch {
+      setIsLoading(false);
       setLayout("checkout");
       setError(
         t("Error processing payment. Please try a different payment method."),
       );
-    } finally {
-      setIsLoading(false);
     }
   }, [
     t,
-    api,
-    hydrate,
+    checkout,
     paymentMethodId,
     planPeriod,
     selectedPlan,
@@ -297,27 +316,21 @@ export const Sidebar = ({
     promoCode,
   ]);
 
-  const unsubscribe = useCallback(async () => {
-    if (!api) {
-      return;
-    }
-
+  const handleUnsubscribe = useCallback(async () => {
     try {
       setError(undefined);
       setIsLoading(true);
 
-      const response = await api.checkoutUnsubscribe();
-      dispatchPlanChangedEvent(response.data);
+      await unsubscribe();
 
+      setIsLoading(false);
       setLayout("portal");
-      hydrate();
     } catch {
+      setIsLoading(false);
       setLayout("unsubscribe");
       setError(t("Unsubscribe failed"));
-    } finally {
-      setIsLoading(false);
     }
-  }, [t, api, hydrate, setError, setIsLoading, setLayout]);
+  }, [t, unsubscribe, setError, setIsLoading, setLayout]);
 
   const selectedAddOns = addOns.filter((addOn) => addOn.isSelected);
 
@@ -362,7 +375,7 @@ export const Sidebar = ({
               usageBasedEntitlements.every(
                 (entitlement) => entitlement.id !== current.entitlementId,
               ) &&
-              data.featureUsage?.features.find(
+              currentEntitlements.find(
                 (usage) => usage.entitlementId === current.entitlementId,
               );
             if (match) {
@@ -393,15 +406,17 @@ export const Sidebar = ({
     };
   }, [
     selectedPlan,
-    data.featureUsage?.features,
+    currentEntitlements,
     currentUsageBasedEntitlements,
     usageBasedEntitlements,
   ]);
 
-  const willPeriodChange = planPeriod !== data.company?.plan?.planPeriod;
+  const willPeriodChange = planPeriod !== currentPlanPeriod;
 
   const willPlanChange =
-    typeof selectedPlan !== "undefined" && !selectedPlan.current;
+    typeof selectedPlan !== "undefined" &&
+    isHydratedPlan(selectedPlan) &&
+    !selectedPlan.current;
 
   const removedAddOns = currentAddOns.filter(
     (current) =>
@@ -423,12 +438,13 @@ export const Sidebar = ({
     willAddOnsChange ||
     willPayInAdvanceEntitlementsChange;
 
-  const canUpdateSubscription = mode === "edit" || (api !== null && !isLoading);
+  const canUpdateSubscription = mode === "edit" || !isLoading;
   const canCheckout =
     canUpdateSubscription &&
-    (!!data.subscription?.paymentMethod || typeof paymentMethodId === "string");
+    (!!paymentMethod || typeof paymentMethodId === "string");
 
   const isTrialable =
+    isHydratedPlan(selectedPlan) &&
     selectedPlan?.companyCanTrial === true &&
     selectedPlan?.isTrialable === true;
   const today = new Date();
@@ -450,7 +466,7 @@ export const Sidebar = ({
       $flexDirection="column"
       $flexShrink={0}
       $overflow="auto"
-      $backgroundColor={theme.card.background}
+      $backgroundColor={settings.theme.card.background}
       $borderRadius="0 0 0.5rem"
       $boxShadow="0px 1px 20px 0px #1018280F, 0px 1px 3px 0px #1018281A;"
       $viewport={{
@@ -476,13 +492,7 @@ export const Sidebar = ({
           }
         >
           <Flex $justifyContent="space-between">
-            <Text
-              as="h3"
-              $font={theme.typography.heading3.fontFamily}
-              $size={theme.typography.heading3.fontSize}
-              $weight={theme.typography.heading3.fontWeight}
-              $color={theme.typography.heading3.color}
-            >
+            <Text as="h3" display="heading3">
               {t("Subscription")}
             </Text>
           </Flex>
@@ -504,14 +514,7 @@ export const Sidebar = ({
         }
       >
         <Box $opacity="0.625">
-          <Text
-            $font={theme.typography.text.fontFamily}
-            $size={14}
-            $weight={theme.typography.text.fontWeight}
-            $color={theme.typography.text.color}
-          >
-            {t("Plan")}
-          </Text>
+          <Text $size={14}>{t("Plan")}</Text>
         </Box>
 
         <Flex $flexDirection="column" $gap="0.5rem" $marginBottom="1.5rem">
@@ -523,31 +526,19 @@ export const Sidebar = ({
               {...(willPlanChange && {
                 $opacity: "0.625",
                 $textDecoration: "line-through",
-                $color: theme.typography.heading4.color,
+                $color: settings.theme.typography.heading4.color,
               })}
             >
               <Box>
-                <Text
-                  $font={theme.typography.heading4.fontFamily}
-                  $size={theme.typography.heading4.fontSize}
-                  $weight={theme.typography.heading4.fontWeight}
-                  $color={theme.typography.heading4.color}
-                >
-                  {currentPlan.name}
-                </Text>
+                <Text display="heading4">{currentPlan.name}</Text>
               </Box>
 
               {typeof currentPlan.planPrice === "number" && (
                 <Box $whiteSpace="nowrap">
-                  <Text
-                    $font={theme.typography.text.fontFamily}
-                    $size={theme.typography.text.fontSize}
-                    $weight={theme.typography.text.fontWeight}
-                    $color={theme.typography.text.color}
-                  >
+                  <Text>
                     {formatCurrency(
                       currentPlan.planPrice,
-                      data.company?.billingSubscription?.currency,
+                      billingSubscription?.currency,
                     )}
                     <sub>
                       /{shortenPeriod(currentPlan.planPeriod || planPeriod)}
@@ -571,7 +562,7 @@ export const Sidebar = ({
                   name="arrow-down"
                   style={{
                     display: "inline-block",
-                    color: theme.typography.text.color,
+                    color: settings.theme.typography.text.color,
                   }}
                 />
               </Box>
@@ -582,23 +573,11 @@ export const Sidebar = ({
                 $gap="1rem"
               >
                 <Flex>
-                  <Text
-                    $font={theme.typography.heading4.fontFamily}
-                    $size={theme.typography.heading4.fontSize}
-                    $weight={theme.typography.heading4.fontWeight}
-                    $color={theme.typography.heading4.color}
-                  >
-                    {selectedPlan.name}
-                  </Text>
+                  <Text display="heading4">{selectedPlan.name}</Text>
                 </Flex>
 
                 <Flex $whiteSpace="nowrap">
-                  <Text
-                    $font={theme.typography.text.fontFamily}
-                    $size={theme.typography.text.fontSize}
-                    $weight={theme.typography.text.fontWeight}
-                    $color={theme.typography.text.color}
-                  >
+                  <Text>
                     {formatCurrency(
                       selectedPlanBillingPrice?.price ?? 0,
                       selectedPlanBillingPrice?.currency,
@@ -614,14 +593,7 @@ export const Sidebar = ({
         {willUsageBasedEntitlementsChange && (
           <Flex $flexDirection="column" $gap="0.5rem" $marginBottom="1.5rem">
             <Box $opacity="0.625">
-              <Text
-                $font={theme.typography.text.fontFamily}
-                $size={14}
-                $weight={theme.typography.text.fontWeight}
-                $color={theme.typography.text.color}
-              >
-                {t("Usage-based")}
-              </Text>
+              <Text $size={14}>{t("Usage-based")}</Text>
             </Box>
 
             {removedUsageBasedEntitlements.reduce(
@@ -648,15 +620,10 @@ export const Sidebar = ({
                       $gap="1rem"
                       $opacity="0.625"
                       $textDecoration="line-through"
-                      $color={theme.typography.heading4.color}
+                      $color={settings.theme.typography.heading4.color}
                     >
                       <Box>
-                        <Text
-                          $font={theme.typography.heading4.fontFamily}
-                          $size={theme.typography.heading4.fontSize}
-                          $weight={theme.typography.heading4.fontWeight}
-                          $color={theme.typography.heading4.color}
-                        >
+                        <Text display="heading4">
                           {entitlement.priceBehavior === "pay_in_advance" ? (
                             <>
                               {entitlement.quantity}{" "}
@@ -672,12 +639,7 @@ export const Sidebar = ({
                       </Box>
 
                       <Box $whiteSpace="nowrap">
-                        <Text
-                          $font={theme.typography.text.fontFamily}
-                          $size={theme.typography.text.fontSize}
-                          $weight={theme.typography.text.fontWeight}
-                          $color={theme.typography.text.color}
-                        >
+                        <Text>
                           {entitlement.priceBehavior === "pay_in_advance" && (
                             <>
                               {formatCurrency(
@@ -737,26 +699,16 @@ export const Sidebar = ({
                         $gap="1rem"
                         $opacity="0.625"
                         $textDecoration="line-through"
-                        $color={theme.typography.heading4.color}
+                        $color={settings.theme.typography.heading4.color}
                       >
                         <Box>
-                          <Text
-                            $font={theme.typography.heading4.fontFamily}
-                            $size={theme.typography.heading4.fontSize}
-                            $weight={theme.typography.heading4.fontWeight}
-                            $color={theme.typography.heading4.color}
-                          >
+                          <Text display="heading4">
                             {previous.quantity} {getFeatureName(next.feature)}
                           </Text>
                         </Box>
 
                         <Box $whiteSpace="nowrap">
-                          <Text
-                            $font={theme.typography.text.fontFamily}
-                            $size={theme.typography.text.fontSize}
-                            $weight={theme.typography.text.fontWeight}
-                            $color={theme.typography.text.color}
-                          >
+                          <Text>
                             {formatCurrency(
                               (entitlementPrice ?? 0) * previous.quantity,
                               entitlementCurrency,
@@ -766,30 +718,19 @@ export const Sidebar = ({
                         </Box>
                       </Flex>
 
-                      {/* TODO */}
                       <Flex
                         $justifyContent="space-between"
                         $alignItems="center"
                         $gap="1rem"
                       >
                         <Box>
-                          <Text
-                            $font={theme.typography.heading4.fontFamily}
-                            $size={theme.typography.heading4.fontSize}
-                            $weight={theme.typography.heading4.fontWeight}
-                            $color={theme.typography.heading4.color}
-                          >
+                          <Text display="heading4">
                             {next.quantity} {getFeatureName(next.feature)}
                           </Text>
                         </Box>
 
                         <Box $whiteSpace="nowrap">
-                          <Text
-                            $font={theme.typography.text.fontFamily}
-                            $size={theme.typography.text.fontSize}
-                            $weight={theme.typography.text.fontWeight}
-                            $color={theme.typography.text.color}
-                          >
+                          <Text>
                             {formatCurrency(
                               (entitlementPrice ?? 0) * next.quantity,
                               entitlementCurrency,
@@ -828,12 +769,7 @@ export const Sidebar = ({
                       $gap="1rem"
                     >
                       <Box>
-                        <Text
-                          $font={theme.typography.heading4.fontFamily}
-                          $size={theme.typography.heading4.fontSize}
-                          $weight={theme.typography.heading4.fontWeight}
-                          $color={theme.typography.heading4.color}
-                        >
+                        <Text display="heading4">
                           {entitlement.priceBehavior === "pay_in_advance" ? (
                             <>
                               {entitlement.quantity}{" "}
@@ -849,12 +785,7 @@ export const Sidebar = ({
                       </Box>
 
                       <Box $whiteSpace="nowrap">
-                        <Text
-                          $font={theme.typography.text.fontFamily}
-                          $size={theme.typography.text.fontSize}
-                          $weight={theme.typography.text.fontWeight}
-                          $color={theme.typography.text.color}
-                        >
+                        <Text>
                           {entitlement.priceBehavior === "pay_in_advance" && (
                             <>
                               {formatCurrency(
@@ -898,14 +829,7 @@ export const Sidebar = ({
         {selectedPlan && isTrialable && (
           <Box>
             <Box $opacity="0.625">
-              <Text
-                $font={theme.typography.text.fontFamily}
-                $size={14}
-                $weight={theme.typography.text.fontWeight}
-                $color={theme.typography.text.color}
-              >
-                {t("Trial")}
-              </Text>
+              <Text $size={14}>{t("Trial")}</Text>
             </Box>
             <Flex
               $justifyContent="space-between"
@@ -913,22 +837,12 @@ export const Sidebar = ({
               $gap="1rem"
             >
               <Flex>
-                <Text
-                  $font={theme.typography.heading4.fontFamily}
-                  $size={theme.typography.heading4.fontSize}
-                  $weight={theme.typography.heading4.fontWeight}
-                  $color={theme.typography.heading4.color}
-                >
+                <Text display="heading4">
                   {t("Ends on", { date: trialEndsOn.toLocaleDateString() })}
                 </Text>
               </Flex>
               <Flex>
-                <Text
-                  $font={theme.typography.text.fontFamily}
-                  $size={theme.typography.text.fontSize}
-                  $weight={theme.typography.text.fontWeight}
-                  $color={theme.typography.text.color}
-                >
+                <Text>
                   -
                   {formatCurrency(
                     selectedPlanBillingPrice?.price ?? 0,
@@ -944,14 +858,7 @@ export const Sidebar = ({
         {(willAddOnsChange || selectedAddOns.length > 0) && (
           <Flex $flexDirection="column" $gap="0.5rem" $marginBottom="1.5rem">
             <Box $opacity="0.625">
-              <Text
-                $font={theme.typography.text.fontFamily}
-                $size={14}
-                $weight={theme.typography.text.fontWeight}
-                $color={theme.typography.text.color}
-              >
-                {t("Add-ons")}
-              </Text>
+              <Text $size={14}>{t("Add-ons")}</Text>
             </Box>
 
             {removedAddOns.map((addOn, index) => {
@@ -963,27 +870,15 @@ export const Sidebar = ({
                   $gap="1rem"
                   $opacity="0.625"
                   $textDecoration="line-through"
-                  $color={theme.typography.heading4.color}
+                  $color={settings.theme.typography.heading4.color}
                 >
                   <Box>
-                    <Text
-                      $font={theme.typography.heading4.fontFamily}
-                      $size={theme.typography.heading4.fontSize}
-                      $weight={theme.typography.heading4.fontWeight}
-                      $color={theme.typography.heading4.color}
-                    >
-                      {addOn.name}
-                    </Text>
+                    <Text display="heading4">{addOn.name}</Text>
                   </Box>
 
                   {typeof addOn.planPrice === "number" && addOn.planPeriod && (
                     <Box $whiteSpace="nowrap">
-                      <Text
-                        $font={theme.typography.text.fontFamily}
-                        $size={theme.typography.text.fontSize}
-                        $weight={theme.typography.text.fontWeight}
-                        $color={theme.typography.text.color}
-                      >
+                      <Text>
                         {formatCurrency(
                           addOn.planPrice,
                           selectedPlanBillingPrice?.currency,
@@ -1010,23 +905,11 @@ export const Sidebar = ({
                   $gap="1rem"
                 >
                   <Box>
-                    <Text
-                      $font={theme.typography.heading4.fontFamily}
-                      $size={theme.typography.heading4.fontSize}
-                      $weight={theme.typography.heading4.fontWeight}
-                      $color={theme.typography.heading4.color}
-                    >
-                      {addOn.name}
-                    </Text>
+                    <Text display="heading4">{addOn.name}</Text>
                   </Box>
 
                   <Box $whiteSpace="nowrap">
-                    <Text
-                      $font={theme.typography.text.fontFamily}
-                      $size={theme.typography.text.fontSize}
-                      $weight={theme.typography.text.fontWeight}
-                      $color={theme.typography.text.color}
-                    >
+                    <Text>
                       {formatCurrency(addOnPrice ?? 0, addOnCurrency)}
                       {addOn.chargeType !== ChargeType.oneTime && (
                         <sub>/{shortenPeriod(planPeriod)}</sub>
@@ -1062,14 +945,7 @@ export const Sidebar = ({
             $gap="1rem"
           >
             <Box $opacity="0.625">
-              <Text
-                $font={theme.typography.text.fontFamily}
-                $size={theme.typography.text.fontSize}
-                $weight={theme.typography.text.fontWeight}
-                $color={theme.typography.text.color}
-              >
-                {t("Discount")}
-              </Text>
+              <Text>{t("Discount")}</Text>
             </Box>
 
             <Flex
@@ -1084,12 +960,7 @@ export const Sidebar = ({
               }
               $borderRadius="0.3125rem"
             >
-              <Text
-                $font={theme.typography.text.fontFamily}
-                $size={0.75 * theme.typography.text.fontSize}
-                $weight={theme.typography.text.fontWeight}
-                $color={theme.typography.text.color}
-              >
+              <Text $size={0.75 * settings.theme.typography.text.fontSize}>
                 {promoCode}
               </Text>
 
@@ -1119,23 +990,11 @@ export const Sidebar = ({
             $gap="1rem"
           >
             <Box $opacity="0.625" $lineHeight={1.15}>
-              <Text
-                $font={theme.typography.text.fontFamily}
-                $size={theme.typography.text.fontSize}
-                $weight={theme.typography.text.fontWeight}
-                $color={theme.typography.text.color}
-              >
-                {t("X% off", { percent: percentOff })}
-              </Text>
+              <Text>{t("X% off", { percent: percentOff })}</Text>
             </Box>
 
             <Box>
-              <Text
-                $font={theme.typography.text.fontFamily}
-                $size={theme.typography.text.fontSize}
-                $weight={theme.typography.text.fontWeight}
-                $color={theme.typography.text.color}
-              >
+              <Text>
                 {formatCurrency(
                   (newCharges / 100) * percentOff,
                   selectedPlanBillingPrice?.currency,
@@ -1152,12 +1011,7 @@ export const Sidebar = ({
             $gap="1rem"
           >
             <Box $opacity="0.625" $lineHeight={1.15}>
-              <Text
-                $font={theme.typography.text.fontFamily}
-                $size={theme.typography.text.fontSize}
-                $weight={theme.typography.text.fontWeight}
-                $color={theme.typography.text.color}
-              >
+              <Text>
                 {t("X off", {
                   amount: formatCurrency(
                     Math.abs(amountOff),
@@ -1168,12 +1022,7 @@ export const Sidebar = ({
             </Box>
 
             <Box>
-              <Text
-                $font={theme.typography.text.fontFamily}
-                $size={theme.typography.text.fontSize}
-                $weight={theme.typography.text.fontWeight}
-                $color={theme.typography.text.color}
-              >
+              <Text>
                 -
                 {formatCurrency(
                   Math.abs(amountOff),
@@ -1191,23 +1040,11 @@ export const Sidebar = ({
             $gap="1rem"
           >
             <Box $opacity="0.625">
-              <Text
-                $font={theme.typography.text.fontFamily}
-                $size={theme.typography.text.fontSize}
-                $weight={theme.typography.text.fontWeight}
-                $color={theme.typography.text.color}
-              >
-                {planPeriod === "year" ? "Yearly" : "Monthly"} total:
-              </Text>
+              <Text>{planPeriod === "year" ? "Yearly" : "Monthly"} total:</Text>
             </Box>
 
             <Box $whiteSpace="nowrap">
-              <Text
-                $font={theme.typography.text.fontFamily}
-                $size={theme.typography.text.fontSize}
-                $weight={theme.typography.text.fontWeight}
-                $color={theme.typography.text.color}
-              >
+              <Text>
                 {subscriptionPrice}
                 <sub>/{shortenPeriod(planPeriod)}</sub>
               </Text>
@@ -1222,23 +1059,11 @@ export const Sidebar = ({
             $gap="1rem"
           >
             <Box $opacity="0.625">
-              <Text
-                $font={theme.typography.text.fontFamily}
-                $size={theme.typography.text.fontSize}
-                $weight={theme.typography.text.fontWeight}
-                $color={theme.typography.text.color}
-              >
-                {t("Due today")}:
-              </Text>
+              <Text>{t("Due today")}:</Text>
             </Box>
 
             <Box>
-              <Text
-                $font={theme.typography.text.fontFamily}
-                $size={theme.typography.text.fontSize}
-                $weight={theme.typography.text.fontWeight}
-                $color={theme.typography.text.color}
-              >
+              <Text>
                 {formatCurrency(
                   Math.max(0, dueNow),
                   selectedPlanBillingPrice?.currency,
@@ -1251,23 +1076,11 @@ export const Sidebar = ({
         {dueNow < 0 && (
           <Flex $justifyContent="space-between" $gap="1rem">
             <Box $opacity="0.625" $lineHeight={1.15}>
-              <Text
-                $font={theme.typography.text.fontFamily}
-                $size={theme.typography.text.fontSize}
-                $weight={theme.typography.text.fontWeight}
-                $color={theme.typography.text.color}
-              >
-                {t("Credits to be applied to future invoices")}:
-              </Text>
+              <Text>{t("Credits to be applied to future invoices")}:</Text>
             </Box>
 
             <Box>
-              <Text
-                $font={theme.typography.text.fontFamily}
-                $size={theme.typography.text.fontSize}
-                $weight={theme.typography.text.fontWeight}
-                $color={theme.typography.text.color}
-              >
+              <Text>
                 {formatCurrency(
                   Math.abs(dueNow),
                   selectedPlanBillingPrice?.currency,
@@ -1282,7 +1095,7 @@ export const Sidebar = ({
             canTrial={isTrialable}
             canCheckout={canCheckout}
             canUpdateSubscription={canUpdateSubscription}
-            checkout={checkout}
+            checkout={handleCheckout}
             checkoutStage={checkoutStage}
             checkoutStages={checkoutStages}
             hasAddOns={addOns.length > 0}
@@ -1291,27 +1104,20 @@ export const Sidebar = ({
             isLoading={isLoading}
             requiresPayment={requiresPayment}
             setCheckoutStage={setCheckoutStage}
-            trialPaymentMethodRequired={
-              data.trialPaymentMethodRequired === true
-            }
+            trialPaymentMethodRequired={trialPaymentMethodRequired}
             willTrial={willTrial}
           />
         )}
 
         {layout === "unsubscribe" && (
-          <Button onClick={unsubscribe} $isLoading={isLoading} $fullWidth>
+          <Button onClick={handleUnsubscribe} $isLoading={isLoading} $fullWidth>
             {t("Cancel subscription")}
           </Button>
         )}
 
         {!isLoading && error && (
           <Box>
-            <Text
-              $font={theme.typography.text.fontFamily}
-              $size={theme.typography.text.fontSize}
-              $weight={500}
-              $color="#DB6669"
-            >
+            <Text $weight={500} $color="#DB6669">
               {error}
             </Text>
           </Box>
@@ -1319,12 +1125,7 @@ export const Sidebar = ({
 
         {layout !== "unsubscribe" && (
           <Box $opacity="0.625">
-            <Text
-              $font={theme.typography.text.fontFamily}
-              $size={theme.typography.text.fontSize}
-              $weight={theme.typography.text.fontWeight}
-              $color={theme.typography.text.color}
-            >
+            <Text>
               {subscriptionPrice &&
                 // TODO: localize
                 `You will be billed ${subscriptionPrice} ${payAsYouGoEntitlements.length > 0 ? "plus usage based costs" : ""} for this subscription

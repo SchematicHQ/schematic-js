@@ -1,8 +1,11 @@
-import { forwardRef, useState } from "react";
+import { forwardRef, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useTheme } from "styled-components";
 
-import { BillingPriceView } from "../../../api/checkoutexternal";
+import {
+  type BillingPriceView,
+  type CompanyPlanDetailResponseData,
+} from "../../../api/checkoutexternal";
+import { type PlanViewPublicResponseData } from "../../../api/componentspublic";
 import { TEXT_BASE_SIZE, VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
 import { type FontStyle } from "../../../context";
 import {
@@ -13,28 +16,46 @@ import {
 } from "../../../hooks";
 import type { ElementProps, RecursivePartial } from "../../../types";
 import {
-  darken,
   formatCurrency,
   formatNumber,
   getBillingPrice,
   getFeatureName,
   hexToHSL,
-  lighten,
+  isCheckoutData,
+  isHydratedPlan,
   shortenPeriod,
 } from "../../../utils";
-import { cardBoxShadow, FussyChild } from "../../layout";
+import { Container, FussyChild, cardBoxShadow } from "../../layout";
 import { PeriodToggle } from "../../shared";
 import {
   Box,
   Button,
   Flex,
   Icon,
-  type IconNameTypes,
   IconRound,
   Text,
   Tooltip,
+  type IconNameTypes,
 } from "../../ui";
-import { ButtonLink } from "./styles";
+
+const entitlementCountsReducer = (
+  acc: Record<
+    string,
+    | {
+        size: number;
+        limit: number;
+      }
+    | undefined
+  >,
+  plan: PlanViewPublicResponseData | CompanyPlanDetailResponseData,
+) => {
+  acc[plan.id] = {
+    size: plan.entitlements.length,
+    limit: VISIBLE_ENTITLEMENT_COUNT,
+  };
+
+  return acc;
+};
 
 interface DesignProps {
   showPeriodToggle: boolean;
@@ -116,84 +137,112 @@ const resolveDesignProps = (
   };
 };
 
-export type PricingTableProps = DesignProps;
+export type PricingTableProps = RecursivePartial<DesignProps> & {
+  callToActionUrl?: string;
+  onCallToAction?: (
+    plan: PlanViewPublicResponseData | CompanyPlanDetailResponseData,
+  ) => unknown;
+};
 
 export const PricingTable = forwardRef<
   HTMLDivElement | null,
-  ElementProps &
-    RecursivePartial<DesignProps> &
-    React.HTMLAttributes<HTMLDivElement>
->(({ children, className, ...rest }, ref) => {
+  ElementProps & PricingTableProps & React.HTMLAttributes<HTMLDivElement>
+>(({ className, callToActionUrl, onCallToAction, ...rest }, ref) => {
   const props = resolveDesignProps(rest);
 
   const { t } = useTranslation();
 
-  const theme = useTheme();
+  const { data, settings, hydratePublic, setCheckoutState } = useEmbed();
 
-  const { data, setLayout, setSelected } = useEmbed();
+  const { planPeriod, currentAddOns, billingSubscription, canCheckout } =
+    useMemo(() => {
+      if (isCheckoutData(data)) {
+        return {
+          planPeriod: data.company?.plan?.planPeriod || "month",
+          currentAddOns: data.company?.addOns || [],
+          billingSubscription: data.company?.billingSubscription,
+          canCheckout: data.capabilities?.checkout ?? true,
+        };
+      }
 
-  const trialEndDays = useTrialEnd();
+      return {
+        planPeriod: "month",
+        currentAddOns: [],
+        billingSubscription: undefined,
+        canCheckout: true,
+      };
+    }, [data]);
 
-  const [selectedPeriod, setSelectedPeriod] = useState(
-    () => data.company?.plan?.planPeriod || "month",
-  );
+  const [selectedPeriod, setSelectedPeriod] = useState(planPeriod);
 
   const { plans, addOns, periods } = useAvailablePlans(selectedPeriod);
 
-  const isLightBackground = useIsLightBackground();
-
   const [entitlementCounts, setEntitlementCounts] = useState(() =>
-    plans.reduce(
-      (
-        acc: Record<
-          string,
-          {
-            size: number;
-            limit: number;
-          }
-        >,
-        plan,
-      ) => {
-        acc[plan.id] = {
-          size: plan.entitlements.length,
-          limit: VISIBLE_ENTITLEMENT_COUNT,
-        };
-
-        return acc;
-      },
-      {},
-    ),
+    plans.reduce(entitlementCountsReducer, {}),
   );
 
-  const canCheckout = data.capabilities?.checkout ?? true;
+  const isLightBackground = useIsLightBackground();
 
-  const cardPadding = theme.card.padding / TEXT_BASE_SIZE;
+  const { isTrialSubscription, willSubscriptionCancel } = useMemo(() => {
+    const isTrialSubscription = billingSubscription?.status === "trialing";
+    const willSubscriptionCancel = billingSubscription?.cancelAtPeriodEnd;
 
-  const currentPlanIndex = plans.findIndex((plan) => plan.current);
+    return {
+      isTrialSubscription,
+      willSubscriptionCancel,
+    };
+  }, [billingSubscription]);
+
+  const trialEndDays = useTrialEnd();
 
   const handleToggleShowAll = (id: string) => {
     setEntitlementCounts((prev) => {
-      const count = { ...prev[id] };
-      return {
-        ...prev,
-        [id]: {
-          size: count.size,
-          limit:
-            count.limit > VISIBLE_ENTITLEMENT_COUNT
-              ? VISIBLE_ENTITLEMENT_COUNT
-              : count.size,
-        },
-      };
+      const count = prev[id] ? { ...prev[id] } : undefined;
+
+      if (count) {
+        return {
+          ...prev,
+          [id]: {
+            size: count.size,
+            limit:
+              count.limit > VISIBLE_ENTITLEMENT_COUNT
+                ? VISIBLE_ENTITLEMENT_COUNT
+                : count.size,
+          },
+        };
+      }
+
+      return prev;
     });
   };
+
+  const isStandalone = useMemo(() => !isCheckoutData(data), [data]);
+
+  useEffect(() => {
+    if (isStandalone) {
+      hydratePublic();
+    }
+  }, [isStandalone, hydratePublic]);
+
+  useEffect(() => {
+    setEntitlementCounts(plans.reduce(entitlementCountsReducer, {}));
+  }, [plans]);
+
+  const showCallToAction = !isStandalone || typeof callToActionUrl === "string";
+
+  const currentPlanIndex = plans.findIndex(
+    (plan) => isHydratedPlan(plan) && plan.current,
+  );
+
+  const cardPadding = settings.theme.card.padding / TEXT_BASE_SIZE;
 
   return (
     <FussyChild
       ref={ref}
       className={className}
-      as={Flex}
-      $flexDirection="column"
-      $gap="2rem"
+      {...(isStandalone
+        ? { as: Container }
+        : { as: Flex, $flexDirection: "column", $gap: "2rem" })}
     >
       <Box>
         <Flex
@@ -209,12 +258,7 @@ export const PricingTable = forwardRef<
             },
           }}
         >
-          <Text
-            $font={theme.typography[props.header.fontStyle].fontFamily}
-            $size={theme.typography[props.header.fontStyle].fontSize}
-            $weight={theme.typography[props.header.fontStyle].fontWeight}
-            $color={theme.typography[props.header.fontStyle].color}
-          >
+          <Text display={props.header.fontStyle}>
             {props.header.isVisible &&
               props.plans.isVisible &&
               plans.length > 0 &&
@@ -238,8 +282,9 @@ export const PricingTable = forwardRef<
           >
             {plans.map((plan, planIndex, self) => {
               const isActivePlan =
+                isHydratedPlan(plan) &&
                 plan.current &&
-                data.company?.plan?.planPeriod === selectedPeriod;
+                planPeriod === selectedPeriod;
               const { price: planPrice, currency: planCurrency } =
                 getBillingPrice(
                   selectedPeriod === "year"
@@ -247,7 +292,8 @@ export const PricingTable = forwardRef<
                     : plan.monthlyPrice,
                 ) || {};
               const count = entitlementCounts[plan.id];
-              const isExpanded = count.limit > VISIBLE_ENTITLEMENT_COUNT;
+              const isExpanded =
+                count && count.limit > VISIBLE_ENTITLEMENT_COUNT;
 
               const hasUsageBasedEntitlements = plan.entitlements.some(
                 (entitlement) => !!entitlement.priceBehavior,
@@ -256,8 +302,8 @@ export const PricingTable = forwardRef<
                 planPrice === 0 && hasUsageBasedEntitlements;
               const headerPriceFontStyle =
                 plan.custom || isUsageBasedPlan
-                  ? theme.typography.heading3
-                  : theme.typography[props.plans.name.fontStyle];
+                  ? settings.theme.typography.heading3
+                  : settings.theme.typography[props.plans.name.fontStyle];
 
               return (
                 <Flex
@@ -265,12 +311,16 @@ export const PricingTable = forwardRef<
                   $position="relative"
                   $flexDirection="column"
                   $padding={`${cardPadding}rem 0`}
-                  $backgroundColor={theme.card.background}
-                  $borderRadius={`${theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
+                  $backgroundColor={settings.theme.card.background}
+                  $borderRadius={`${settings.theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
                   $outlineWidth="2px"
                   $outlineStyle="solid"
-                  $outlineColor={isActivePlan ? theme.primary : "transparent"}
-                  {...(theme.card.hasShadow && { $boxShadow: cardBoxShadow })}
+                  $outlineColor={
+                    isActivePlan ? settings.theme.primary : "transparent"
+                  }
+                  {...(settings.theme.card.hasShadow && {
+                    $boxShadow: cardBoxShadow,
+                  })}
                 >
                   <Flex
                     $flexDirection="column"
@@ -286,46 +336,14 @@ export const PricingTable = forwardRef<
                     }
                   >
                     <Box>
-                      <Text
-                        $font={
-                          theme.typography[props.plans.name.fontStyle]
-                            .fontFamily
-                        }
-                        $size={
-                          theme.typography[props.plans.name.fontStyle].fontSize
-                        }
-                        $weight={
-                          theme.typography[props.plans.name.fontStyle]
-                            .fontWeight
-                        }
-                        $color={
-                          theme.typography[props.plans.name.fontStyle].color
-                        }
-                      >
+                      <Text display={props.plans.name.fontStyle}>
                         {plan.name}
                       </Text>
                     </Box>
 
                     {props.plans.description.isVisible && (
                       <Box $marginBottom="0.5rem">
-                        <Text
-                          $font={
-                            theme.typography[props.plans.description.fontStyle]
-                              .fontFamily
-                          }
-                          $size={
-                            theme.typography[props.plans.description.fontStyle]
-                              .fontSize
-                          }
-                          $weight={
-                            theme.typography[props.plans.description.fontStyle]
-                              .fontWeight
-                          }
-                          $color={
-                            theme.typography[props.plans.description.fontStyle]
-                              .color
-                          }
-                        >
+                        <Text display={props.plans.description.fontStyle}>
                           {plan.description}
                         </Text>
                       </Box>
@@ -348,24 +366,7 @@ export const PricingTable = forwardRef<
                       </Text>
 
                       {!plan.custom && !isUsageBasedPlan && (
-                        <Text
-                          $font={
-                            theme.typography[props.plans.name.fontStyle]
-                              .fontFamily
-                          }
-                          $size={
-                            (16 / 30) *
-                            theme.typography[props.plans.name.fontStyle]
-                              .fontSize
-                          }
-                          $weight={
-                            theme.typography[props.plans.name.fontStyle]
-                              .fontWeight
-                          }
-                          $color={
-                            theme.typography[props.plans.name.fontStyle].color
-                          }
-                        >
+                        <Text display={props.plans.name.fontStyle}>
                           /{selectedPeriod}
                         </Text>
                       )}
@@ -376,21 +377,21 @@ export const PricingTable = forwardRef<
                         $position="absolute"
                         $right="1rem"
                         $top="1rem"
-                        $backgroundColor={theme.primary}
+                        $backgroundColor={settings.theme.primary}
                         $borderRadius="9999px"
                         $padding="0.125rem 0.85rem"
                       >
                         <Text
-                          $font={theme.typography.text.fontFamily}
-                          $size={0.75 * theme.typography.text.fontSize}
-                          $weight={theme.typography.text.fontWeight}
+                          $size={0.75 * settings.theme.typography.text.fontSize}
                           $color={
-                            hexToHSL(theme.primary).l > 50
+                            hexToHSL(settings.theme.primary).l > 50
                               ? "#000000"
                               : "#FFFFFF"
                           }
                         >
-                          {trialEndDays
+                          {isTrialSubscription &&
+                          !willSubscriptionCancel &&
+                          trialEndDays
                             ? t("Trial ends in", { days: trialEndDays })
                             : t("Active")}
                         </Text>
@@ -409,12 +410,7 @@ export const PricingTable = forwardRef<
                       <Flex $flexDirection="column" $gap="1rem" $flexGrow={1}>
                         {props.plans.showInclusionText && planIndex > 0 && (
                           <Box $marginBottom="1.5rem">
-                            <Text
-                              $font={theme.typography.text.fontFamily}
-                              $size={theme.typography.text.fontSize}
-                              $weight={theme.typography.text.fontWeight}
-                              $color={theme.typography.text.color}
-                            >
+                            <Text>
                               {t("Everything in", {
                                 plan: self[planIndex - 1].name,
                               })}
@@ -498,10 +494,8 @@ export const PricingTable = forwardRef<
                                         }
                                         size="sm"
                                         colors={[
-                                          theme.primary,
-                                          isLightBackground
-                                            ? "hsla(0, 0%, 0%, 0.0625)"
-                                            : "hsla(0, 0%, 100%, 0.25)",
+                                          settings.theme.primary,
+                                          `color-mix(in oklch, ${settings.theme.card.background} 87.5%, ${isLightBackground ? "black" : "white"})`,
                                         ]}
                                       />
                                     )}
@@ -512,15 +506,7 @@ export const PricingTable = forwardRef<
                                       $justifyContent="center"
                                       $gap="0.5rem"
                                     >
-                                      <Text
-                                        $font={theme.typography.text.fontFamily}
-                                        $size={theme.typography.text.fontSize}
-                                        $weight={
-                                          theme.typography.text.fontWeight
-                                        }
-                                        $color={theme.typography.text.color}
-                                        $leading={1.35}
-                                      >
+                                      <Text $leading={1.35}>
                                         {typeof entitlementPrice === "number" &&
                                         (entitlement.priceBehavior ===
                                           "pay_in_advance" ||
@@ -610,29 +596,12 @@ export const PricingTable = forwardRef<
                                         typeof entitlementPrice ===
                                           "number" && (
                                           <Text
-                                            $font={
-                                              theme.typography.text.fontFamily
-                                            }
                                             $size={
                                               0.875 *
-                                              theme.typography.text.fontSize
+                                              settings.theme.typography.text
+                                                .fontSize
                                             }
-                                            $weight={
-                                              theme.typography.text.fontWeight
-                                            }
-                                            $color={
-                                              hexToHSL(
-                                                theme.typography.text.color,
-                                              ).l > 50
-                                                ? darken(
-                                                    theme.typography.text.color,
-                                                    0.46,
-                                                  )
-                                                : lighten(
-                                                    theme.typography.text.color,
-                                                    0.46,
-                                                  )
-                                            }
+                                            $color={`color-mix(in oklch, ${settings.theme.typography.text.color}, ${settings.theme.card.background})`}
                                             $leading={1.35}
                                           >
                                             {formatCurrency(
@@ -685,12 +654,9 @@ export const PricingTable = forwardRef<
                             />
                             <Text
                               onClick={() => handleToggleShowAll(plan.id)}
-                              $font={theme.typography.link.fontFamily}
-                              $size={theme.typography.link.fontSize}
-                              $weight={theme.typography.link.fontWeight}
-                              $color={theme.typography.link.color}
-                              $leading={1}
                               style={{ cursor: "pointer" }}
+                              display="link"
+                              $leading={1}
                             >
                               {isExpanded ? t("Hide all") : t("See all")}
                             </Text>
@@ -711,38 +677,40 @@ export const PricingTable = forwardRef<
                           style={{
                             fontSize: 20,
                             lineHeight: 1,
-                            color: theme.primary,
+                            color: settings.theme.primary,
                           }}
                         />
 
-                        <Text
-                          $font={theme.typography.text.fontFamily}
-                          $size={15}
-                          $weight={theme.typography.text.fontWeight}
-                          $color={theme.typography.text.color}
-                          $leading={1}
-                        >
+                        <Text $size={15} $leading={1}>
                           {t("Current plan")}
                         </Text>
                       </Flex>
                     ) : (
+                      showCallToAction &&
                       (props.upgrade.isVisible ||
                         props.downgrade.isVisible) && (
                         <Button
                           type="button"
                           disabled={
-                            (!plan.valid || !canCheckout) && !plan.custom
+                            ((isHydratedPlan(plan) && !plan.valid) ||
+                              !canCheckout) &&
+                            !plan.custom
                           }
-                          {...(!plan.custom && {
-                            onClick: () => {
-                              setSelected({
+                          onClick={() => {
+                            onCallToAction?.(plan);
+
+                            if (
+                              !isStandalone &&
+                              isHydratedPlan(plan) &&
+                              !plan.custom
+                            ) {
+                              setCheckoutState({
                                 period: selectedPeriod,
                                 planId: isActivePlan ? null : plan.id,
                                 usage: false,
                               });
-                              setLayout("checkout");
-                            },
-                          })}
+                            }
+                          }}
                           {...(planIndex > currentPlanIndex
                             ? {
                                 $size: props.upgrade.buttonSize,
@@ -754,17 +722,25 @@ export const PricingTable = forwardRef<
                                 $color: props.downgrade.buttonStyle,
                                 $variant: "outline",
                               })}
+                          {...(callToActionUrl && {
+                            as: "a",
+                            href: callToActionUrl,
+                            target: "_blank",
+                          })}
+                          {...(plan.custom &&
+                            plan.customPlanConfig?.ctaWebSite && {
+                              as: "a",
+                              href: plan.customPlanConfig.ctaWebSite,
+                              target: "_blank",
+                            })}
                           $fullWidth
                         >
                           {plan.custom ? (
-                            <ButtonLink
-                              href={plan.customPlanConfig?.ctaWebSite ?? "#"}
-                              target="_blank"
-                            >
+                            <>
                               {plan.customPlanConfig?.ctaText ??
                                 t("Talk to support")}
-                            </ButtonLink>
-                          ) : !plan.valid ? (
+                            </>
+                          ) : isHydratedPlan(plan) && !plan.valid ? (
                             <Tooltip
                               trigger={<Text>{t("Over usage limit")}</Text>}
                               content={
@@ -775,7 +751,9 @@ export const PricingTable = forwardRef<
                                 </Text>
                               }
                             />
-                          ) : plan.companyCanTrial && plan.isTrialable ? (
+                          ) : isHydratedPlan(plan) &&
+                            plan.companyCanTrial &&
+                            plan.isTrialable ? (
                             t("Start X day trial", { days: plan.trialDays })
                           ) : (
                             t("Choose plan")
@@ -800,14 +778,7 @@ export const PricingTable = forwardRef<
                 $alignItems="center"
                 $marginBottom="1rem"
               >
-                <Text
-                  $font={theme.typography[props.header.fontStyle].fontFamily}
-                  $size={theme.typography[props.header.fontStyle].fontSize}
-                  $weight={theme.typography[props.header.fontStyle].fontWeight}
-                  $color={theme.typography[props.header.fontStyle].color}
-                >
-                  {t("Add-ons")}
-                </Text>
+                <Text display={props.header.fontStyle}>{t("Add-ons")}</Text>
               </Flex>
             )}
 
@@ -817,11 +788,13 @@ export const PricingTable = forwardRef<
               $gap="1rem"
             >
               {addOns.map((addOn, addOnIndex) => {
+                const isCurrentAddOn = isHydratedPlan(addOn) && addOn.current;
                 const isActiveAddOn =
-                  addOn.current &&
+                  isCurrentAddOn &&
                   selectedPeriod ===
-                    data.company?.addOns.find((a) => a.id === addOn.id)
-                      ?.planPeriod;
+                    currentAddOns.find(
+                      (currentAddOn) => currentAddOn.id === addOn.id,
+                    )?.planPeriod;
                 const { price: addOnPrice, currency: addOnCurrency } =
                   getBillingPrice(
                     selectedPeriod === "year"
@@ -836,104 +809,44 @@ export const PricingTable = forwardRef<
                     $flexDirection="column"
                     $gap="2rem"
                     $padding={`${cardPadding}rem`}
-                    $backgroundColor={theme.card.background}
-                    $borderRadius={`${theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
+                    $backgroundColor={settings.theme.card.background}
+                    $borderRadius={`${settings.theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
                     $outlineWidth="2px"
                     $outlineStyle="solid"
                     $outlineColor={
-                      isActiveAddOn ? theme.primary : "transparent"
+                      isActiveAddOn ? settings.theme.primary : "transparent"
                     }
-                    {...(theme.card.hasShadow && { $boxShadow: cardBoxShadow })}
+                    {...(settings.theme.card.hasShadow && {
+                      $boxShadow: cardBoxShadow,
+                    })}
                   >
                     <Flex $flexDirection="column" $gap="0.75rem">
                       <Box>
-                        <Text
-                          $font={
-                            theme.typography[props.plans.name.fontStyle]
-                              .fontFamily
-                          }
-                          $size={
-                            theme.typography[props.plans.name.fontStyle]
-                              .fontSize
-                          }
-                          $weight={
-                            theme.typography[props.plans.name.fontStyle]
-                              .fontWeight
-                          }
-                          $color={
-                            theme.typography[props.plans.name.fontStyle].color
-                          }
-                        >
+                        <Text display={props.plans.name.fontStyle}>
                           {addOn.name}
                         </Text>
                       </Box>
 
                       {props.addOns.showDescription && (
                         <Box $marginBottom="0.5rem">
-                          <Text
-                            $font={
-                              theme.typography[
-                                props.plans.description.fontStyle
-                              ].fontFamily
-                            }
-                            $size={
-                              theme.typography[
-                                props.plans.description.fontStyle
-                              ].fontSize
-                            }
-                            $weight={
-                              theme.typography[
-                                props.plans.description.fontStyle
-                              ].fontWeight
-                            }
-                            $color={
-                              theme.typography[
-                                props.plans.description.fontStyle
-                              ].color
-                            }
-                          >
+                          <Text display={props.plans.description.fontStyle}>
                             {addOn.description}
                           </Text>
                         </Box>
                       )}
 
                       <Box>
-                        <Text
-                          $font={
-                            theme.typography[props.plans.name.fontStyle]
-                              .fontFamily
-                          }
-                          $size={
-                            theme.typography[props.plans.name.fontStyle]
-                              .fontSize
-                          }
-                          $weight={
-                            theme.typography[props.plans.name.fontStyle]
-                              .fontWeight
-                          }
-                          $color={
-                            theme.typography[props.plans.name.fontStyle].color
-                          }
-                        >
+                        <Text display={props.plans.name.fontStyle}>
                           {formatCurrency(addOnPrice ?? 0, addOnCurrency)}
                         </Text>
 
                         <Text
-                          $font={
-                            theme.typography[props.plans.name.fontStyle]
-                              .fontFamily
-                          }
+                          display={props.plans.name.fontStyle}
                           $size={
                             (16 / 30) *
-                            theme.typography[props.plans.name.fontStyle]
-                              .fontSize
-                          }
-                          $weight={
-                            theme.typography[props.plans.name.fontStyle]
-                              .fontWeight
-                          }
-                          $color={
-                            theme.typography[props.plans.name.fontStyle].color
+                            settings.theme.typography[
+                              props.plans.name.fontStyle
+                            ].fontSize
                           }
                         >
                           /{selectedPeriod}
@@ -945,16 +858,16 @@ export const PricingTable = forwardRef<
                           $position="absolute"
                           $right="1rem"
                           $top="1rem"
-                          $backgroundColor={theme.primary}
+                          $backgroundColor={settings.theme.primary}
                           $borderRadius="9999px"
                           $padding="0.125rem 0.85rem"
                         >
                           <Text
-                            $font={theme.typography.text.fontFamily}
-                            $size={0.75 * theme.typography.text.fontSize}
-                            $weight={theme.typography.text.fontWeight}
+                            $size={
+                              0.75 * settings.theme.typography.text.fontSize
+                            }
                             $color={
-                              hexToHSL(theme.primary).l > 50
+                              hexToHSL(settings.theme.primary).l > 50
                                 ? "#000000"
                                 : "#FFFFFF"
                             }
@@ -999,7 +912,7 @@ export const PricingTable = forwardRef<
                                           }
                                           size="sm"
                                           colors={[
-                                            theme.primary,
+                                            settings.theme.primary,
                                             isLightBackground
                                               ? "hsla(0, 0%, 0%, 0.0625)"
                                               : "hsla(0, 0%, 100%, 0.25)",
@@ -1009,16 +922,7 @@ export const PricingTable = forwardRef<
 
                                     {entitlement.feature?.name && (
                                       <Flex $alignItems="center">
-                                        <Text
-                                          $font={
-                                            theme.typography.text.fontFamily
-                                          }
-                                          $size={theme.typography.text.fontSize}
-                                          $weight={
-                                            theme.typography.text.fontWeight
-                                          }
-                                          $color={theme.typography.text.color}
-                                        >
+                                        <Text>
                                           {entitlement.valueType ===
                                             "numeric" ||
                                           entitlement.valueType ===
@@ -1073,17 +977,23 @@ export const PricingTable = forwardRef<
                         </Flex>
                       )}
 
-                      {props.upgrade.isVisible && (
+                      {showCallToAction && props.upgrade.isVisible && (
                         <Button
                           type="button"
-                          disabled={!addOn.valid || !canCheckout}
+                          disabled={
+                            (isHydratedPlan(addOn) && !addOn.valid) ||
+                            !canCheckout
+                          }
                           onClick={() => {
-                            setSelected({
-                              period: selectedPeriod,
-                              addOnId: isActiveAddOn ? null : addOn.id,
-                              usage: false,
-                            });
-                            setLayout("checkout");
+                            onCallToAction?.(addOn);
+
+                            if (!isStandalone && !addOn.custom) {
+                              setCheckoutState({
+                                period: selectedPeriod,
+                                addOnId: isActiveAddOn ? null : addOn.id,
+                                usage: false,
+                              });
+                            }
                           }}
                           $size={props.upgrade.buttonSize}
                           $color={
@@ -1092,15 +1002,21 @@ export const PricingTable = forwardRef<
                           $variant={
                             isActiveAddOn
                               ? "ghost"
-                              : addOn.current
+                              : isCurrentAddOn
                                 ? "outline"
                                 : "filled"
                           }
+                          {...(callToActionUrl && {
+                            as: "a",
+                            href: callToActionUrl,
+                            rel: "noreferrer",
+                            target: "_blank",
+                          })}
                           $fullWidth
                         >
                           {isActiveAddOn
                             ? t("Remove add-on")
-                            : addOn.current
+                            : isCurrentAddOn
                               ? t("Change add-on")
                               : t("Choose add-on")}
                         </Button>

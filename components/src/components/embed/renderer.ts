@@ -1,6 +1,9 @@
 import { createElement } from "react";
 
-import type { SerializedNodeWithChildren } from "../../types";
+import type {
+  SerializedEditorState,
+  SerializedNodeWithChildren,
+} from "../../types";
 import {
   ButtonElement,
   IncludedFeatures,
@@ -31,6 +34,44 @@ const components: Record<string, React.FC | undefined> = {
   Button: ButtonElement,
   Text: TextElement,
 };
+
+export function isEditorState(obj: unknown): obj is SerializedEditorState {
+  return (
+    obj !== null &&
+    typeof obj === "object" &&
+    Object.entries(obj).every(([key, value]) => {
+      return typeof key === "string" && typeof value === "object";
+    })
+  );
+}
+
+export function getEditorState(json?: string) {
+  if (json) {
+    const obj = JSON.parse(json);
+    if (isEditorState(obj)) {
+      return obj;
+    }
+  }
+}
+
+export function parseEditorState(data: SerializedEditorState) {
+  const initialMap: Record<string, SerializedNodeWithChildren> = {};
+  const map = Object.entries(data).reduce((acc, [nodeId, node]) => {
+    return { ...acc, [nodeId]: { ...node, id: nodeId, children: [] } };
+  }, initialMap);
+
+  const arr: SerializedNodeWithChildren[] = [];
+  Object.entries(data).forEach(([nodeId, node]) => {
+    const nodeWithChildren = map[nodeId];
+    if (node.parent) {
+      map[node.parent]?.children.push(nodeWithChildren);
+    } else {
+      arr.push(nodeWithChildren);
+    }
+  });
+
+  return arr;
+}
 
 interface RenderOptions {
   useFallback?: boolean;

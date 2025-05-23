@@ -1,6 +1,5 @@
 import { forwardRef, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useTheme } from "styled-components";
 
 import { type InvoiceResponseData } from "../../../api/checkoutexternal";
 import { MAX_VISIBLE_INVOICE_COUNT } from "../../../const";
@@ -76,16 +75,18 @@ interface InvoiceDateProps {
 }
 
 const InvoiceDate = ({ date, fontStyle, url }: InvoiceDateProps) => {
-  const theme = useTheme();
+  const { settings } = useEmbed();
 
   // pass an empty `onClick` function to get the correct link style
   const dateText = (
     <Text
       {...(url && { onClick: () => {} })}
-      $font={theme.typography[fontStyle].fontFamily}
-      $size={theme.typography[fontStyle].fontSize}
-      $weight={theme.typography[fontStyle].fontWeight}
-      $color={url ? theme.typography.link.color : theme.typography.text.color}
+      display={fontStyle}
+      $color={
+        url
+          ? settings.theme.typography.link.color
+          : settings.theme.typography.text.color
+      }
     >
       {date}
     </Text>
@@ -117,9 +118,7 @@ export const Invoices = forwardRef<
 
   const { t } = useTranslation();
 
-  const theme = useTheme();
-
-  const { api } = useEmbed();
+  const { listInvoices } = useEmbed();
 
   const [invoices, setInvoices] = useState(() => formatInvoices(data));
   const [listSize, setListSize] = useState(props.limit.number);
@@ -133,10 +132,12 @@ export const Invoices = forwardRef<
   };
 
   useEffect(() => {
-    api?.listInvoices().then((response) => {
-      setInvoices(formatInvoices(response.data));
+    listInvoices().then((response) => {
+      if (response) {
+        setInvoices(formatInvoices(response.data));
+      }
     });
-  }, [api]);
+  }, [listInvoices]);
 
   useEffect(() => {
     setInvoices(formatInvoices(data));
@@ -147,14 +148,7 @@ export const Invoices = forwardRef<
       <Flex $flexDirection="column" $gap="1rem">
         {props.header.isVisible && (
           <Flex $justifyContent="space-between" $alignItems="center">
-            <Text
-              $font={theme.typography[props.header.fontStyle].fontFamily}
-              $size={theme.typography[props.header.fontStyle].fontSize}
-              $weight={theme.typography[props.header.fontStyle].fontWeight}
-              $color={theme.typography[props.header.fontStyle].color}
-            >
-              {t("Invoices")}
-            </Text>
+            <Text display={props.header.fontStyle}>{t("Invoices")}</Text>
           </Flex>
         )}
 
@@ -175,22 +169,7 @@ export const Invoices = forwardRef<
                       )}
 
                       {props.amount.isVisible && (
-                        <Text
-                          $font={
-                            theme.typography[props.amount.fontStyle].fontFamily
-                          }
-                          $size={
-                            theme.typography[props.amount.fontStyle].fontSize
-                          }
-                          $weight={
-                            theme.typography[props.amount.fontStyle].fontWeight
-                          }
-                          $color={
-                            theme.typography[props.amount.fontStyle].color
-                          }
-                        >
-                          {amount}
-                        </Text>
+                        <Text display={props.amount.fontStyle}>{amount}</Text>
                       )}
                     </Flex>
                   );
@@ -207,14 +186,7 @@ export const Invoices = forwardRef<
 
                   <Text
                     onClick={toggleListSize}
-                    $font={
-                      theme.typography[props.collapse.fontStyle].fontFamily
-                    }
-                    $size={theme.typography[props.collapse.fontStyle].fontSize}
-                    $weight={
-                      theme.typography[props.collapse.fontStyle].fontWeight
-                    }
-                    $color={theme.typography[props.collapse.fontStyle].color}
+                    display={props.collapse.fontStyle}
                   >
                     {listSize === props.limit.number
                       ? t("See more")
