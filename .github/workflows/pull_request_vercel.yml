@@ -24,7 +24,7 @@ jobs:
         with:
           node-version: '20.x'
           cache: 'yarn'
-          cache-dependency-path: components/yarn.lock
+          cache-dependency-path: js/components/yarn.lock
 
       - name: Install Vercel CLI
         run: yarn global add vercel
