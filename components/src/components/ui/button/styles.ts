@@ -153,23 +153,23 @@ export const Button = styled.button<ButtonProps>(
 
       &:not(:disabled):hover {
         ${() => {
-          const specified = themeColor;
-          const lightened = lighten(specified, 0.15);
-          const color =
-            specified === lightened ? darken(specified, 0.15) : lightened;
+        const specified = themeColor;
+        const lightened = lighten(specified, 0.15);
+        const color =
+          specified === lightened ? darken(specified, 0.15) : lightened;
 
-          const { l } = hexToHSL(themeColor);
-          const textColor = l > 50 ? "#000000" : "#FFFFFF";
+        const { l } = hexToHSL(themeColor);
+        const textColor = l > 50 ? "#000000" : "#FFFFFF";
 
-          if ($variant === "filled") {
-            return css`
-              background-color: ${color};
+        if ($variant === "filled") {
+          return css`
+              background-color: green;
               border-color: ${color};
             `;
-          }
+        }
 
-          if ($variant === "outline") {
-            return css`
+        if ($variant === "outline") {
+          return css`
               background-color: ${color};
               border-color: ${color};
               color: ${textColor};
@@ -178,22 +178,22 @@ export const Button = styled.button<ButtonProps>(
                 color: ${textColor};
               }
             `;
-          }
+        }
 
-          if ($variant === "ghost") {
-            const { l } = hexToHSL(theme.card.background);
+        if ($variant === "ghost") {
+          const { l } = hexToHSL(theme.card.background);
 
-            return css`
+          return css`
               border-color: ${l > 50
-                ? darken(theme.card.background, 0.125)
-                : lighten(theme.card.background, 0.125)};
+              ? darken(theme.card.background, 0.125)
+              : lighten(theme.card.background, 0.125)};
               box-shadow: 0 1px 2px
                 ${l > 50
-                  ? darken(theme.card.background, 0.075)
-                  : lighten(theme.card.background, 0.075)};
+              ? darken(theme.card.background, 0.075)
+              : lighten(theme.card.background, 0.075)};
             `;
-          }
-        }}
+        }
+      }}
       }
 
       ${() => {
