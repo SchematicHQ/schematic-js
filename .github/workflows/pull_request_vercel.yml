@@ -79,7 +79,7 @@ jobs:
       - name: Deploy to Vercel (Preview)
         if: github.event_name == 'pull_request'
         run: |
-          cd demo-app
+          cd schematic-next-example
           echo "🚀 Deploying Preview to Vercel..."
           DEPLOYMENT_URL=$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }})
           echo "DEPLOYMENT_URL=$DEPLOYMENT_URL" >> $GITHUB_ENV
