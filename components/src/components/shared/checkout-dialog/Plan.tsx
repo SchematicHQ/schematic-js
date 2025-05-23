@@ -115,16 +115,13 @@ const PlanButtonGroup = ({
     };
   }, [data, plan]);
 
-  if (isHydratedPlan(plan) && plan.companyCanTrial) {
+  if (isHydratedPlan(plan) && plan.companyCanTrial && plan.isTrialable) {
     return (
       <Flex $flexDirection="column" $gap="1.5rem">
         {!isTrialing && (
           <>
             {isSelected && willTrial ? (
-              <Selected
-                isCurrent={isCurrentPlan}
-                isTrial={plan.companyCanTrial && willTrial}
-              />
+              <Selected isCurrent={isCurrentPlan} isTrial={willTrial} />
             ) : (
               <Button
                 type="button"
@@ -140,6 +137,7 @@ const PlanButtonGroup = ({
                 $size="sm"
                 $color="primary"
                 $variant="filled"
+                $fullWidth
               >
                 {plan.custom ? (
                   <ButtonLink
@@ -150,8 +148,12 @@ const PlanButtonGroup = ({
                   </ButtonLink>
                 ) : !isValidPlan ? (
                   <Tooltip
-                    trigger={t("Over usage limit")}
-                    content={t("Current usage exceeds the limit of this plan.")}
+                    trigger={<Text>{t("Over usage limit")}</Text>}
+                    content={
+                      <Text>
+                        {t("Current usage exceeds the limit of this plan.")}
+                      </Text>
+                    }
                   />
                 ) : (
                   t("Start X day trial", { days: plan.trialDays })
@@ -175,11 +177,16 @@ const PlanButtonGroup = ({
                 $size="sm"
                 $color="primary"
                 $variant={isTrialing ? "filled" : "text"}
+                $fullWidth
               >
                 {!isValidPlan ? (
                   <Tooltip
-                    trigger={t("Over usage limit")}
-                    content={t("Current usage exceeds the limit of this plan.")}
+                    trigger={<Text>{t("Over usage limit")}</Text>}
+                    content={
+                      <Text>
+                        {t("Current usage exceeds the limit of this plan.")}
+                      </Text>
+                    }
                   />
                 ) : (
                   t("Choose plan")
@@ -206,6 +213,7 @@ const PlanButtonGroup = ({
       $size="sm"
       $color="primary"
       $variant="filled"
+      $fullWidth
     >
       {plan.custom ? (
         <ButtonLink
@@ -216,8 +224,10 @@ const PlanButtonGroup = ({
         </ButtonLink>
       ) : !isValidPlan ? (
         <Tooltip
-          trigger={t("Over usage limit")}
-          content={t("Current usage exceeds the limit of this plan.")}
+          trigger={<Text>{t("Over usage limit")}</Text>}
+          content={
+            <Text>{t("Current usage exceeds the limit of this plan.")}</Text>
+          }
         />
       ) : (
         t("Choose plan")

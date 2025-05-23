@@ -2,6 +2,7 @@ import styled, { css } from "styled-components";
 
 import { TEXT_BASE_SIZE } from "../../../const";
 import { darken, hexToHSL, hslToHex, lighten } from "../../../utils";
+import { Text } from "../../ui";
 import { Icon } from "../icon/styles";
 import { loaderStyles } from "../loader";
 
@@ -29,7 +30,7 @@ export const Button = styled.button<ButtonProps>(
     $isLoading = false,
     $alignment = "center",
     $selfAlignment = "center",
-    $fullWidth = true,
+    $fullWidth = false,
     disabled,
     theme,
   }) => {
@@ -76,7 +77,7 @@ export const Button = styled.button<ButtonProps>(
         return css`
           color: ${textColor};
 
-          ${Icon} {
+          ${Text}, ${Icon} {
             color: ${textColor};
           }
         `;
@@ -97,7 +98,7 @@ export const Button = styled.button<ButtonProps>(
             border-color: ${color};
             color: ${color};
 
-            ${Icon} {
+            ${Text}, ${Icon} {
               color: ${color};
             }
           `;
@@ -111,7 +112,7 @@ export const Button = styled.button<ButtonProps>(
               : lighten(theme.card.background, 0.2)};
             color: ${color};
 
-            ${Icon} {
+            ${Text}, ${Icon} {
               color: ${color};
             }
           `;
@@ -127,7 +128,7 @@ export const Button = styled.button<ButtonProps>(
               text-decoration: underline;
             }
 
-            ${Icon} {
+            ${Text}, ${Icon} {
               color: ${color};
             }
           `;
@@ -173,7 +174,7 @@ export const Button = styled.button<ButtonProps>(
               border-color: ${color};
               color: ${textColor};
 
-              ${Icon} {
+              ${Text}, ${Icon} {
                 color: ${textColor};
               }
             `;

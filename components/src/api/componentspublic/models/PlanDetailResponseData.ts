@@ -64,6 +64,12 @@ export interface PlanDetailResponseData {
   companyCount: number;
   /**
    *
+   * @type {string}
+   * @memberof PlanDetailResponseData
+   */
+  controlledBy: string;
+  /**
+   *
    * @type {Date}
    * @memberof PlanDetailResponseData
    */
@@ -164,6 +170,8 @@ export function instanceOfPlanDetailResponseData(
     return false;
   if (!("companyCount" in value) || value["companyCount"] === undefined)
     return false;
+  if (!("controlledBy" in value) || value["controlledBy"] === undefined)
+    return false;
   if (!("createdAt" in value) || value["createdAt"] === undefined) return false;
   if (!("description" in value) || value["description"] === undefined)
     return false;
@@ -202,6 +210,7 @@ export function PlanDetailResponseDataFromJSONTyped(
         : BillingProductDetailResponseDataFromJSON(json["billing_product"]),
     chargeType: json["charge_type"],
     companyCount: json["company_count"],
+    controlledBy: json["controlled_by"],
     createdAt: new Date(json["created_at"]),
     description: json["description"],
     features: (json["features"] as Array<any>).map(
@@ -244,6 +253,7 @@ export function PlanDetailResponseDataToJSON(
     ),
     charge_type: value["chargeType"],
     company_count: value["companyCount"],
+    controlled_by: value["controlledBy"],
     created_at: value["createdAt"].toISOString(),
     description: value["description"],
     features: (value["features"] as Array<any>).map(

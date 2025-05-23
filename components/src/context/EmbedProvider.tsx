@@ -236,6 +236,22 @@ export const EmbedProvider = ({
     return response;
   }, [api.checkout]);
 
+  const getUpcomingInvoice = useCallback(
+    async (id: string) => {
+      const fn = debounce(
+        () =>
+          api.checkout?.hydrateUpcomingInvoice({
+            componentId: id,
+          }),
+        FETCH_DEBOUNCE_TIMEOUT,
+        debounceOptions,
+      );
+
+      return fn();
+    },
+    [api.checkout],
+  );
+
   const listInvoices = useCallback(async () => {
     const fn = debounce(
       () => api.checkout?.listInvoices(),
@@ -403,6 +419,7 @@ export const EmbedProvider = ({
         checkout,
         previewCheckout,
         unsubscribe,
+        getUpcomingInvoice,
         listInvoices,
         setError,
         setAccessToken,

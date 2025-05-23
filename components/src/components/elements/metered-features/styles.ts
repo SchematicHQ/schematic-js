@@ -7,14 +7,13 @@ export const Container = styled.div`
   flex-direction: column;
 
   &:last-child {
-    overflow: hidden;
-
     ${({ theme }) => {
       const borderRadius = `${theme.card.borderRadius / TEXT_BASE_SIZE}rem`;
 
       return (
         theme.sectionLayout === "merged" &&
         css`
+          overflow: hidden;
           border-bottom-left-radius: ${borderRadius};
           border-bottom-right-radius: ${borderRadius};
         `

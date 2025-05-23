@@ -6,6 +6,7 @@ import type {
   CheckoutUnsubscribeResponse,
   DeletePaymentMethodResponse,
   GetSetupIntentResponse,
+  HydrateUpcomingInvoiceResponse,
   ListInvoicesResponse,
   PreviewCheckoutResponse,
   UpdatePaymentMethodResponse,
@@ -38,6 +39,9 @@ export {
 export interface EmbedContextProps extends EmbedState {
   hydratePublic: () => Promise<void>;
   hydrateComponent: (id: string) => Promise<void>;
+  getUpcomingInvoice: (
+    id: string,
+  ) => Promise<HydrateUpcomingInvoiceResponse | undefined>;
   listInvoices: () => Promise<ListInvoicesResponse | undefined>;
   createSetupIntent: () => Promise<GetSetupIntentResponse | undefined>;
   updatePaymentMethod: (
@@ -71,6 +75,7 @@ export const initialContext = {
   ...initialState,
   hydratePublic: stub,
   hydrateComponent: stub,
+  getUpcomingInvoice: stub,
   listInvoices: stub,
   createSetupIntent: stub,
   updatePaymentMethod: stub,

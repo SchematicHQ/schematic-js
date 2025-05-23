@@ -1,12 +1,15 @@
-import { forwardRef, useMemo } from "react";
+import { forwardRef, useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { type InvoiceResponseData } from "../../../api/checkoutexternal";
 import { type FontStyle } from "../../../context";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import type { ElementProps, RecursivePartial } from "../../../types";
 import { formatCurrency, isCheckoutData, toPrettyDate } from "../../../utils";
 import { Element } from "../../layout";
-import { Box, Flex, Text } from "../../ui";
+import { Box, Button, Flex, Loader, Text } from "../../ui";
+
+import { Container } from "./styles";
 
 interface DesignProps {
   header: {
@@ -56,123 +59,201 @@ export const UpcomingBill = forwardRef<
 
   const { t } = useTranslation();
 
-  const { data, settings } = useEmbed();
+  const { data, settings, getUpcomingInvoice } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
 
-  const { upcomingInvoice, discounts } = useMemo(() => {
-    if (isCheckoutData(data)) {
-      const discounts = (data.subscription?.discounts || []).map(
-        (discount) => ({
-          amountOff: discount.amountOff,
-          couponId: discount.couponId,
-          customerFacingCode: discount.customerFacingCode,
-          isActive: discount.isActive,
-          percentOff: discount.percentOff,
-        }),
-      );
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error>();
+  const [upcomingInvoice, setUpcomingInvoice] = useState<InvoiceResponseData>();
 
-      const upcomingInvoice = {
-        ...(typeof data.upcomingInvoice?.amountDue === "number" && {
-          amountDue: data.upcomingInvoice.amountDue,
-        }),
-        ...(data.subscription?.interval && {
-          interval: data.subscription.interval,
-        }),
-        ...(data.upcomingInvoice?.dueDate && {
-          dueDate: toPrettyDate(new Date(data.upcomingInvoice.dueDate)),
-        }),
-        currency: data.upcomingInvoice?.currency,
-      };
-
-      return {
-        discounts,
-        upcomingInvoice,
-      };
-    }
-
-    return {
-      discounts: [],
-      upcomingInvoice: undefined,
-    };
+  const discounts = useMemo(() => {
+    return ((isCheckoutData(data) && data.subscription?.discounts) || []).map(
+      (discount) => ({
+        couponId: discount.couponId,
+        customerFacingCode: discount.customerFacingCode || undefined,
+        currency: discount.currency || undefined,
+        amountOff: discount.amountOff ?? undefined,
+        percentOff: discount.percentOff ?? undefined,
+        isActive: discount.isActive,
+      }),
+    );
   }, [data]);
 
-  if (
-    typeof upcomingInvoice?.amountDue !== "number" ||
-    !upcomingInvoice.dueDate
-  ) {
-    return null;
-  }
+  const loadInvoice = useCallback(async () => {
+    if (!isCheckoutData(data) || !data.component?.id) {
+      return;
+    }
+
+    try {
+      setError(undefined);
+      setIsLoading(true);
+      const response = await getUpcomingInvoice(data.component.id);
+      if (response) {
+        setUpcomingInvoice(response.data);
+      }
+    } catch (e) {
+      if (e instanceof Error) {
+        setError(e);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [data, getUpcomingInvoice]);
+
+  useEffect(() => {
+    loadInvoice();
+  }, [loadInvoice]);
 
   return (
-    <Element
-      as={Flex}
-      ref={ref}
-      className={className}
-      $flexDirection="column"
-      $gap="1rem"
-    >
-      {props.header.isVisible && (
-        <Flex $justifyContent="space-between" $alignItems="center">
-          <Text display={props.header.fontStyle}>
-            {props.header.prefix} {upcomingInvoice.dueDate}
-          </Text>
-        </Flex>
-      )}
-
-      <Flex $justifyContent="space-between" $alignItems="start" $gap="1rem">
-        {props.price.isVisible && (
-          <Flex $alignItems="end" $flexGrow="1">
-            <Text display={props.price.fontStyle} $leading={1}>
-              {formatCurrency(
-                upcomingInvoice.amountDue,
-                upcomingInvoice.currency,
-              )}
-            </Text>
-          </Flex>
-        )}
-
-        <Box $lineHeight={1.15} $maxWidth="10rem" $textAlign="right">
-          <Text display={props.contractEndDate.fontStyle} $leading={1}>
-            {t("Estimated bill.")}
-          </Text>
-        </Box>
+    <Element ref={ref} className={className}>
+      <Flex as={Container} $justifyContent="center" $alignItems="center">
+        <Loader $color={settings.theme.primary} $isLoading={isLoading} />
       </Flex>
 
-      {discounts.length > 0 && (
-        <Flex $justifyContent="space-between" $alignItems="center">
-          <Box>
-            <Text $weight={600}>{t("Discount")}</Text>
-          </Box>
-          <Box>
-            {discounts.map((discount) => (
-              <Flex key={discount.couponId} $alignItems="center" $gap="0.5rem">
-                <Flex
-                  $alignItems="center"
-                  $padding="0.1875rem 0.375rem"
-                  $borderWidth="1px"
-                  $borderStyle="solid"
-                  $borderColor={
-                    isLightBackground
-                      ? "hsla(0, 0%, 0%, 0.15)"
-                      : "hsla(0, 0%, 100%, 0.15)"
-                  }
-                  $borderRadius="0.3125rem"
-                >
-                  <Text $size={0.75 * settings.theme.typography.text.fontSize}>
-                    {discount.customerFacingCode}
+      {error ? (
+        <Flex
+          as={Container}
+          $flexDirection="column"
+          $justifyContent="center"
+          $alignItems="center"
+          $gap="1rem"
+        >
+          <Text $weight={500} $color="#DB6669">
+            {t("There was a problem retrieving your upcoming invoice.")}
+          </Text>
+
+          <Button
+            onClick={() => loadInvoice()}
+            $size="sm"
+            $variant="ghost"
+            $fullWidth={false}
+          >
+            {t("Try again")}
+          </Button>
+        </Flex>
+      ) : (
+        !isLoading && (
+          <Container>
+            {upcomingInvoice ? (
+              <Flex $flexDirection="column" $gap="1rem">
+                {props.header.isVisible && upcomingInvoice.dueDate && (
+                  <Text display={props.header.fontStyle}>
+                    {props.header.prefix}{" "}
+                    {toPrettyDate(upcomingInvoice.dueDate)}
                   </Text>
+                )}
+
+                <Flex
+                  $justifyContent="space-between"
+                  $alignItems="start"
+                  $gap="1rem"
+                >
+                  {props.price.isVisible && (
+                    <Text display={props.price.fontStyle} $leading={1}>
+                      {formatCurrency(
+                        upcomingInvoice.amountDue,
+                        upcomingInvoice.currency,
+                      )}
+                    </Text>
+                  )}
+
+                  <Box $maxWidth="10rem" $textAlign="right">
+                    <Text display={props.contractEndDate.fontStyle}>
+                      {t("Estimated bill.")}
+                    </Text>
+                  </Box>
                 </Flex>
 
-                <Box>
-                  <Text>
-                    {t("Percent off", { percent: discount.percentOff })}
-                  </Text>
-                </Box>
+                <Flex
+                  $justifyContent="space-between"
+                  $alignItems="center"
+                  $gap="1rem"
+                >
+                  <Text $weight={600}>{t("Remaining balance")}</Text>
+
+                  <Text>{formatCurrency(5000, upcomingInvoice.currency)}</Text>
+                </Flex>
+
+                {discounts.length > 0 && (
+                  <Flex
+                    $justifyContent="space-between"
+                    $alignItems="start"
+                    $gap="1rem"
+                  >
+                    <Text $weight={600}>{t("Discount")}</Text>
+
+                    <Flex
+                      $flexDirection="column"
+                      $alignItems="end"
+                      $gap="0.5rem"
+                    >
+                      {discounts.reduce(
+                        (acc: React.ReactElement[], discount) => {
+                          if (
+                            typeof discount.customerFacingCode === "string" &&
+                            (typeof discount.percentOff === "number" ||
+                              typeof discount.amountOff === "number")
+                          ) {
+                            acc.push(
+                              <Flex
+                                key={discount.couponId}
+                                $alignItems="center"
+                                $gap="0.5rem"
+                              >
+                                <Flex
+                                  $alignItems="center"
+                                  $padding="0.1875rem 0.375rem"
+                                  $borderWidth="1px"
+                                  $borderStyle="solid"
+                                  $borderColor={
+                                    isLightBackground
+                                      ? "hsla(0, 0%, 0%, 0.15)"
+                                      : "hsla(0, 0%, 100%, 0.15)"
+                                  }
+                                  $borderRadius="0.3125rem"
+                                >
+                                  <Text
+                                    $size={
+                                      0.75 *
+                                      settings.theme.typography.text.fontSize
+                                    }
+                                  >
+                                    {discount.customerFacingCode}
+                                  </Text>
+                                </Flex>
+
+                                <Box>
+                                  <Text>
+                                    {typeof discount.percentOff === "number"
+                                      ? t("Percent off", {
+                                          percent: discount.percentOff,
+                                        })
+                                      : t("Amount off", {
+                                          amount: formatCurrency(
+                                            discount.amountOff as number,
+                                            discount?.currency,
+                                          ),
+                                        })}
+                                  </Text>
+                                </Box>
+                              </Flex>,
+                            );
+                          }
+
+                          return acc;
+                        },
+                        [],
+                      )}
+                    </Flex>
+                  </Flex>
+                )}
               </Flex>
-            ))}
-          </Box>
-        </Flex>
+            ) : (
+              <Text display="heading2">{t("No upcoming invoice")}</Text>
+            )}
+          </Container>
+        )
       )}
     </Element>
   );

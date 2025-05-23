@@ -45,6 +45,7 @@ export const StageButton = ({
         disabled={isLoading || !hasUnstagedChanges || !canUpdateSubscription}
         onClick={checkout}
         $isLoading={isLoading}
+        $fullWidth
       >
         {t("Subscribe and close")}
       </Button>
@@ -61,6 +62,7 @@ export const StageButton = ({
             setCheckoutStage?.("checkout");
           }}
           $isLoading={isLoading}
+          $fullWidth
         >
           <Flex
             $gap="0.5rem"
@@ -98,6 +100,7 @@ export const StageButton = ({
           );
         }}
         $isLoading={isLoading}
+        $fullWidth
       >
         <Flex $gap="0.5rem" $justifyContent="center" $alignItems="center">
           {t("Next")}:{" "}
@@ -128,6 +131,7 @@ export const StageButton = ({
           setCheckoutStage?.(hasAddOns ? "addons" : "checkout");
         }}
         $isLoading={isLoading}
+        $fullWidth
       >
         <Flex
           $gap="0.5rem"
@@ -155,6 +159,7 @@ export const StageButton = ({
           setCheckoutStage?.("checkout");
         }}
         $isLoading={isLoading}
+        $fullWidth
       >
         <Flex
           $gap="0.5rem"
@@ -180,6 +185,7 @@ export const StageButton = ({
         disabled={isLoading || !hasUnstagedChanges || !canCheckout}
         onClick={checkout}
         $isLoading={isLoading}
+        $fullWidth
       >
         {willTrial ? t("Start trial") : t("Pay now")}
       </Button>

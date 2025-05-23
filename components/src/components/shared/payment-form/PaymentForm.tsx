@@ -90,6 +90,7 @@ export const PaymentForm = ({ onConfirm }: PaymentFormProps) => {
         style={{ flexShrink: 0 }}
         $color="primary"
         $isLoading={isLoading}
+        $fullWidth
       >
         {isLoading ? t("Loading") : t("Save payment method")}
       </Button>
