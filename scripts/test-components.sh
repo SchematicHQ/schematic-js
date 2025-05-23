@@ -47,6 +47,7 @@ if [ "$choice" == "vercel" ]; then
 
     echo "🔗 Linking demo app to Vercel..."
     vercel link --yes --scope $VERCEL_SCOPE
+    vercel env pull --yes --scope $VERCEL_SCOPE
     vercel pull --yes --scope $VERCEL_SCOPE
 
     echo "🔗 vercel build"

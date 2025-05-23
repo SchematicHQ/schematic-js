@@ -67,6 +67,7 @@ jobs:
         run: |
           cd schematic-next-example
           vercel link --yes --scope $VERCEL_ORG_ID --token=${{ secrets.VERCEL_TOKEN }}
+          vercel env pull --yes --scope $VERCEL_ORG_ID --token=${{ secrets.VERCEL_TOKEN }}
           vercel pull --yes --scope $VERCEL_ORG_ID --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Build Project for Vercel
