@@ -11,8 +11,8 @@ permissions:
   pull-requests: write
 
 env:
-  VERCEL_ORG_ID: "team_5rA0CJ7KWwUQut8p773DLhUz"
-  VERCEL_PROJECT_ID: "prj_TcoGTQ7XI2TwKlXAmzW8doT8ptTK"
+  VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
   DEMO_APP_REPO: 'schematichq/schematic-next-example'
 
 jobs:
