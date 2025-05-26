@@ -1,0 +1,121 @@
+name: Clone Demo App & Deploy to Vercel
+
+on:
+  pull_request:
+    paths:
+      - components/**
+
+permissions:
+  contents: read
+  packages: read
+  pull-requests: write
+
+env:
+  VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+  DEMO_APP_REPO: 'schematichq/schematic-next-example'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Components Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Install Vercel CLI
+        run: yarn global add vercel
+
+      - name: Build Components Package
+        run: |
+          echo "🔨 Building components package..."
+          cd components
+          yarn install
+          yarn build
+
+      - name: Link components
+        run: |
+          echo "📦 Linking components..."
+          cd components
+          yarn link
+
+      - name: Clone Demo App
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.DEMO_APP_REPO }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          path: schematic-next-example
+
+      - name: Setup Demo App & Link Components
+        run: |
+          echo "🏠 Setting up demo app..."
+          cd schematic-next-example
+          
+          echo "🔗 Linking components to demo app..."
+          yarn link "@schematichq/schematic-components"
+
+          echo "📦 Installing demo app dependencies..."
+          yarn install --force
+                    
+          echo "✅ Components package linked successfully!"
+
+      - name: Pull Vercel Environment Information
+        run: |
+          cd schematic-next-example
+          vercel link --yes --scope $VERCEL_ORG_ID --token=${{ secrets.VERCEL_TOKEN }}
+          vercel env pull --yes --scope $VERCEL_ORG_ID --token=${{ secrets.VERCEL_TOKEN }}
+          vercel pull --yes --scope $VERCEL_ORG_ID --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Build Project for Vercel
+        run: |
+          cd schematic-next-example
+          echo "🏗️ Building Next.js app for Vercel..."
+          vercel build --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Deploy to Vercel (Preview)
+        if: github.event_name == 'pull_request'
+        run: |
+          cd schematic-next-example
+          echo "🚀 Deploying Preview to Vercel..."
+          DEPLOYMENT_URL=$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }})
+          echo "DEPLOYMENT_URL=$DEPLOYMENT_URL" >> $GITHUB_ENV
+          echo "Preview URL: $DEPLOYMENT_URL"
+
+      - name: Comment PR with Preview URL
+        if: github.event_name == 'pull_request' && env.DEPLOYMENT_URL
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const deploymentUrl = process.env.DEPLOYMENT_URL;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `🚀 **Components Preview Deployed!**
+              
+              📍 **Preview URL:** ${deploymentUrl}
+              🔄 **Components Version:** Built from commit \`${context.sha.substring(0, 7)}\`
+              📦 **Demo App:** ${process.env.DEMO_APP_REPO}
+
+              `
+            });
+
+      - name: Create Deployment Summary
+        if: always()
+        run: |
+          echo "## 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ **Status:** Deployment completed successfully!" >> $GITHUB_STEP_SUMMARY
+            echo "🔗 **URL:** ${{ env.DEPLOYMENT_URL }}" >> $GITHUB_STEP_SUMMARY
+            echo "📦 **Demo App:** ${{ env.DEMO_APP_REPO }}" >> $GITHUB_STEP_SUMMARY
+            echo "🔄 **Components:** Built from commit \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Status:** Deployment failed!" >> $GITHUB_STEP_SUMMARY
+            echo "📋 Check the workflow logs for details." >> $GITHUB_STEP_SUMMARY
+          fi
