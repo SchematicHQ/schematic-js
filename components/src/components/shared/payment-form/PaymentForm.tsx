@@ -18,7 +18,7 @@ export const PaymentForm = ({ onConfirm }: PaymentFormProps) => {
   const stripe = useStripe();
   const elements = useElements();
 
-  const [message, setMessage] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
@@ -34,7 +34,7 @@ export const PaymentForm = ({ onConfirm }: PaymentFormProps) => {
 
     setIsLoading(true);
     setIsConfirmed(false);
-    setMessage(null);
+    setMessage(undefined);
 
     try {
       const { setupIntent, error } = await stripe.confirmSetup({
@@ -53,7 +53,7 @@ export const PaymentForm = ({ onConfirm }: PaymentFormProps) => {
       }
 
       if (error?.type === "card_error" || error?.type === "validation_error") {
-        setMessage(error.message as string);
+        setMessage(error.message);
       }
     } catch {
       setMessage(t("A problem occurred while saving your payment method."));

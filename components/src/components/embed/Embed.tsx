@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { TEXT_BASE_SIZE } from "../../const";
 import { useEmbed } from "../../hooks";
 import type { SerializedNodeWithChildren } from "../../types";
-import { isCheckoutData, isError } from "../../utils";
+import { ERROR_UNKNOWN, isCheckoutData, isError } from "../../utils";
 import { Box, Flex, Loader, Text } from "../ui";
 
 import { createRenderer, getEditorState, parseEditorState } from "./renderer";
@@ -100,9 +100,7 @@ export const SchematicEmbed = ({ id, accessToken }: EmbedProps) => {
         }
       }
     } catch (err) {
-      if (isError(err)) {
-        setError(err);
-      }
+      setError(isError(err) ? err : ERROR_UNKNOWN);
     }
   }, [data, setError, updateSettings]);
 

@@ -24,7 +24,7 @@ import {
 } from "../api/componentspublic";
 import { FETCH_DEBOUNCE_TIMEOUT, debounceOptions } from "../const";
 import type { RecursivePartial } from "../types";
-import { isError } from "../utils";
+import { ERROR_UNKNOWN, isError } from "../utils";
 
 import { EmbedContext } from "./EmbedContext";
 import { reducer } from "./embedReducer";
@@ -94,7 +94,7 @@ export const EmbedProvider = ({
     } catch (err) {
       dispatch({
         type: "ERROR",
-        error: isError(err) ? err : new Error("An unknown error occurred."),
+        error: isError(err) ? err : ERROR_UNKNOWN,
       });
     }
   }, [api.public]);
@@ -120,7 +120,7 @@ export const EmbedProvider = ({
       } catch (err) {
         dispatch({
           type: "ERROR",
-          error: isError(err) ? err : new Error("An unknown error occurred."),
+          error: isError(err) ? err : ERROR_UNKNOWN,
         });
       }
     },
@@ -207,15 +207,16 @@ export const EmbedProvider = ({
 
   const previewCheckout = useCallback(
     async (changeSubscriptionRequestBody: ChangeSubscriptionRequestBody) => {
-      const fn = debounce(
-        () => api.checkout?.previewCheckout({ changeSubscriptionRequestBody }),
-        FETCH_DEBOUNCE_TIMEOUT,
-        debounceOptions,
-      );
-
-      return fn();
+      if (api.checkout) {
+        return api.checkout.previewCheckout({ changeSubscriptionRequestBody });
+      }
     },
     [api.checkout],
+  );
+
+  const debouncedPreviewCheckout = useMemo(
+    () => debounce(previewCheckout, FETCH_DEBOUNCE_TIMEOUT, debounceOptions),
+    [previewCheckout],
   );
 
   const unsubscribe = useCallback(async () => {
@@ -407,7 +408,7 @@ export const EmbedProvider = ({
         updatePaymentMethod,
         deletePaymentMethod,
         checkout,
-        previewCheckout,
+        previewCheckout: debouncedPreviewCheckout,
         unsubscribe,
         getUpcomingInvoice,
         listInvoices,

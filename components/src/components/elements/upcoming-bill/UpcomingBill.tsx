@@ -5,7 +5,13 @@ import { type InvoiceResponseData } from "../../../api/checkoutexternal";
 import { type FontStyle } from "../../../context";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import type { ElementProps, RecursivePartial } from "../../../types";
-import { formatCurrency, isCheckoutData, toPrettyDate } from "../../../utils";
+import {
+  ERROR_UNKNOWN,
+  formatCurrency,
+  isCheckoutData,
+  isError,
+  toPrettyDate,
+} from "../../../utils";
 import { Element } from "../../layout";
 import { Box, Button, Flex, Loader, Text } from "../../ui";
 
@@ -81,23 +87,19 @@ export const UpcomingBill = forwardRef<
   }, [data]);
 
   const loadInvoice = useCallback(async () => {
-    if (!isCheckoutData(data) || !data.component?.id) {
-      return;
-    }
-
-    try {
-      setError(undefined);
-      setIsLoading(true);
-      const response = await getUpcomingInvoice(data.component.id);
-      if (response) {
-        setUpcomingInvoice(response.data);
+    if (isCheckoutData(data) && data.component?.id && data.subscription) {
+      try {
+        setError(undefined);
+        setIsLoading(true);
+        const response = await getUpcomingInvoice(data.component.id);
+        if (response) {
+          setUpcomingInvoice(response.data);
+        }
+      } catch (err) {
+        setError(isError(err) ? err : ERROR_UNKNOWN);
+      } finally {
+        setIsLoading(false);
       }
-    } catch (e) {
-      if (e instanceof Error) {
-        setError(e);
-      }
-    } finally {
-      setIsLoading(false);
     }
   }, [data, getUpcomingInvoice]);
 

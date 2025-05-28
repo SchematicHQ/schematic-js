@@ -52,7 +52,7 @@ export interface EmbedContextProps extends EmbedState {
   ) => Promise<DeletePaymentMethodResponse | undefined>;
   previewCheckout: (
     changeSubscriptionRequestBody: ChangeSubscriptionRequestBody,
-  ) => Promise<PreviewCheckoutResponse | undefined>;
+  ) => Promise<PreviewCheckoutResponse | undefined> | undefined;
   checkout: (
     changeSubscriptionRequestBody: ChangeSubscriptionRequestBody,
   ) => Promise<CheckoutResponse | undefined>;

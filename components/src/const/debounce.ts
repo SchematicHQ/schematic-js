@@ -7,4 +7,4 @@ export const debounceOptions: DebounceSettings = {
 
 export const EVENT_DEBOUNCE_TIMEOUT = 250;
 
-export const FETCH_DEBOUNCE_TIMEOUT = 500;
+export const FETCH_DEBOUNCE_TIMEOUT = 2000;

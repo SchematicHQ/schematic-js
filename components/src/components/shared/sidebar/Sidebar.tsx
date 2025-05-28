@@ -235,12 +235,17 @@ export const Sidebar = ({
     }, [charges]);
 
   const handleCheckout = useCallback(async () => {
-    const priceId = (
-      planPeriod === "year"
+    const planId =
+      selectedPlan?.id || (isCheckoutData(data) && data.company?.plan?.id);
+    const priceId =
+      (planPeriod === "year"
         ? selectedPlan?.yearlyPrice
         : selectedPlan?.monthlyPrice
-    )?.id;
-    if (!selectedPlan || !priceId) {
+      )?.id ||
+      (isCheckoutData(data) && data.subscription?.products[0].priceId);
+
+    if (!planId || !priceId) {
+      // TODO: set checkout "error" message
       return;
     }
 
@@ -249,7 +254,7 @@ export const Sidebar = ({
       setIsLoading(true);
 
       await checkout({
-        newPlanId: selectedPlan.id,
+        newPlanId: planId,
         newPriceId: priceId,
         addOnIds: addOns.reduce((acc: UpdateAddOnRequestBody[], addOn) => {
           if (
@@ -304,6 +309,7 @@ export const Sidebar = ({
     }
   }, [
     t,
+    data,
     checkout,
     paymentMethodId,
     planPeriod,
@@ -1098,6 +1104,7 @@ export const Sidebar = ({
             checkout={handleCheckout}
             checkoutStage={checkoutStage}
             checkoutStages={checkoutStages}
+            hasPlan={typeof selectedPlan !== "undefined"}
             hasAddOns={addOns.length > 0}
             hasPayInAdvanceEntitlements={payInAdvanceEntitlements.length > 0}
             hasUnstagedChanges={hasUnstagedChanges}
