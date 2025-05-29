@@ -47,10 +47,13 @@ export class Schematic {
   private isPendingListeners: Set<PendingListenerFn> = new Set();
   private storage: StoragePersister | undefined;
   private useWebSocket: boolean = false;
-  private checks: Record<string, Record<string, CheckFlagReturn>> = {};
+  private checks: Record<
+    string,
+    Record<string, CheckFlagReturn | undefined> | undefined
+  > = {};
   private featureUsageEventMap: Record<
     string,
-    Record<string, CheckFlagReturn>
+    Record<string, CheckFlagReturn | undefined> | undefined
   > = {};
   private webSocketUrl = "wss://api.schematichq.com";
 
@@ -541,6 +544,8 @@ export class Schematic {
     );
 
     Object.entries(flagsForEvent).forEach(([flagKey, check]) => {
+      if (check === undefined) return;
+
       // Clone the check to avoid modifying the original
       const updatedCheck: CheckFlagReturn = { ...check };
 
@@ -573,15 +578,15 @@ export class Schematic {
         }
 
         // Update in the feature usage event map
-        this.featureUsageEventMap[eventName][flagKey] = updatedCheck;
+        if (this.featureUsageEventMap[eventName] !== undefined) {
+          this.featureUsageEventMap[eventName][flagKey] = updatedCheck;
+        }
 
         // Update in the context-based checks as well
         const contextStr = contextString(this.context);
         if (
           this.checks[contextStr] !== undefined &&
-          this.checks[contextStr] !== null &&
-          this.checks[contextStr][flagKey] !== undefined &&
-          this.checks[contextStr][flagKey] !== null
+          this.checks[contextStr] !== null
         ) {
           this.checks[contextStr][flagKey] = updatedCheck;
         }
@@ -781,7 +786,11 @@ export class Schematic {
           /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
           (message.flags ?? []).forEach((flag: any) => {
             const flagCheck = CheckFlagReturnFromJSON(flag);
-            this.checks[contextString(context)][flagCheck.flag] = flagCheck;
+            const contextStr = contextString(context);
+            if (this.checks[contextStr] === undefined) {
+              this.checks[contextStr] = {};
+            }
+            this.checks[contextStr][flagCheck.flag] = flagCheck;
 
             this.debug(`WebSocket flag update:`, {
               flag: flagCheck.flag,
@@ -944,7 +953,9 @@ export class Schematic {
       this.featureUsageEventMap[eventName] = {};
     }
 
-    this.featureUsageEventMap[eventName][check.flag] = check;
+    if (this.featureUsageEventMap[eventName] !== undefined) {
+      this.featureUsageEventMap[eventName][check.flag] = check;
+    }
     this.debug(
       `Updated featureUsageEventMap for event: ${eventName}, flag: ${check.flag}`,
       check,
