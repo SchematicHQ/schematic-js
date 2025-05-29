@@ -456,18 +456,14 @@ export class Schematic {
    * In offline mode, this will just set the context locally without connecting.
    */
   setContext = async (context: SchematicContext): Promise<void> => {
-    // If offline mode, set isPending to false and return
-    if (this.isOffline()) {
+    // If offline or not using websocket, just set the context and 
+    if (this.isOffline() || !this.useWebSocket) {
       this.context = context;
       this.setIsPending(false);
       return Promise.resolve();
     }
 
-    // If not using WebSocket, just return
-    if (!this.useWebSocket) {
-      return Promise.resolve();
-    }
-
+    // If using websocket, wsSendMessage will handle setting the context
     try {
       this.setIsPending(true);
 

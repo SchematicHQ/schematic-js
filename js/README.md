@@ -14,7 +14,9 @@ pnpm add @schematichq/schematic-js
 
 ## Usage
 
-You can use Schematic to identify users; after this, your subsequent track events and flag checks will be associated with this user.
+You can use Schematic to identify users; after this, your subsequent track events and flag checks will be associated with this user. 
+
+A number of these examples use `keys` to identify companies and users. Learn more about keys [here](https://docs.schematichq.com/developer_resources/key_management).
 
 ```typescript
 import { Schematic } from "@schematichq/schematic-js";
@@ -46,7 +48,7 @@ schematic.track({ event: "query" });
 schematic.track({ event: "query", quantity: 10 });
 
 // Check a flag
-await schematic.checkFlag("some-flag-key");
+await schematic.checkFlag({ key: "some-flag-key" });
 ```
 
 By default, `checkFlag` will perform a network request to get the flag value for this user. If you'd like to check all flags at once in order to minimize network requests, you can use `checkFlags`:
