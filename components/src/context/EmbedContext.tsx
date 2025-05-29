@@ -6,11 +6,13 @@ import type {
   CheckoutUnsubscribeResponse,
   DeletePaymentMethodResponse,
   GetSetupIntentResponse,
+  HydrateComponentResponse,
   HydrateUpcomingInvoiceResponse,
   ListInvoicesResponse,
   PreviewCheckoutResponse,
   UpdatePaymentMethodResponse,
 } from "../api/checkoutexternal";
+import type { GetPublicPlansResponse } from "../api/componentspublic";
 import type { RecursivePartial } from "../types";
 
 import {
@@ -36,27 +38,32 @@ export {
   type TypographySettings,
 };
 
+// apis are not defined immediately on mount
+type DebouncedApiPromise<R> = Promise<R | undefined> | undefined;
+
 export interface EmbedContextProps extends EmbedState {
-  hydratePublic: () => Promise<void>;
-  hydrateComponent: (id: string) => Promise<void>;
+  hydratePublic: () => DebouncedApiPromise<GetPublicPlansResponse>;
+  hydrateComponent: (
+    id: string,
+  ) => DebouncedApiPromise<HydrateComponentResponse>;
   getUpcomingInvoice: (
     id: string,
-  ) => Promise<HydrateUpcomingInvoiceResponse | undefined>;
-  listInvoices: () => Promise<ListInvoicesResponse | undefined>;
-  createSetupIntent: () => Promise<GetSetupIntentResponse | undefined>;
+  ) => DebouncedApiPromise<HydrateUpcomingInvoiceResponse>;
+  listInvoices: () => DebouncedApiPromise<ListInvoicesResponse>;
+  createSetupIntent: () => DebouncedApiPromise<GetSetupIntentResponse>;
   updatePaymentMethod: (
     paymentMethodId: string,
-  ) => Promise<UpdatePaymentMethodResponse | undefined>;
+  ) => DebouncedApiPromise<UpdatePaymentMethodResponse>;
   deletePaymentMethod: (
     checkoutId: string,
-  ) => Promise<DeletePaymentMethodResponse | undefined>;
+  ) => DebouncedApiPromise<DeletePaymentMethodResponse>;
   previewCheckout: (
     changeSubscriptionRequestBody: ChangeSubscriptionRequestBody,
-  ) => Promise<PreviewCheckoutResponse | undefined> | undefined;
+  ) => DebouncedApiPromise<PreviewCheckoutResponse>;
   checkout: (
     changeSubscriptionRequestBody: ChangeSubscriptionRequestBody,
-  ) => Promise<CheckoutResponse | undefined>;
-  unsubscribe: () => Promise<CheckoutUnsubscribeResponse | undefined>;
+  ) => DebouncedApiPromise<CheckoutResponse>;
+  unsubscribe: () => DebouncedApiPromise<CheckoutUnsubscribeResponse>;
   setAccessToken: (token: string) => void;
   setError: (error: Error) => void;
   setLayout: (layout: EmbedLayout) => void;

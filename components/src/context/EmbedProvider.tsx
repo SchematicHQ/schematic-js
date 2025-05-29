@@ -60,6 +60,15 @@ export const EmbedProvider = ({
     return resolvedState;
   });
 
+  const customHeaders = useMemo(
+    () => ({
+      "X-Schematic-Components-Version":
+        process.env.SCHEMATIC_COMPONENTS_VERSION || "unknown",
+      "X-Schematic-Session-ID": sessionIdRef.current,
+    }),
+    [],
+  );
+
   const [api, setApi] = useState<{
     public?: ComponentspublicApi;
     checkout?: CheckoutexternalApi;
@@ -79,18 +88,16 @@ export const EmbedProvider = ({
     dispatch({ type: "HYDRATE_STARTED" });
 
     try {
-      const fn = debounce(
-        () => api.public?.getPublicPlans(),
-        FETCH_DEBOUNCE_TIMEOUT,
-        debounceOptions,
-      );
-      const response = await fn();
+      const response = await api.public?.getPublicPlans();
+
       if (response) {
         dispatch({
           type: "HYDRATE_PUBLIC",
           data: response.data,
         });
       }
+
+      return response;
     } catch (err) {
       dispatch({
         type: "ERROR",
@@ -99,24 +106,28 @@ export const EmbedProvider = ({
     }
   }, [api.public]);
 
+  const debouncedHydratePublic = useMemo(
+    () => debounce(hydratePublic, FETCH_DEBOUNCE_TIMEOUT, debounceOptions),
+    [hydratePublic],
+  );
+
   const hydrateComponent = useCallback(
     async (id: string) => {
       dispatch({ type: "HYDRATE_STARTED" });
 
       try {
-        const fn = debounce(
-          () => api.checkout?.hydrateComponent({ componentId: id }),
-          FETCH_DEBOUNCE_TIMEOUT,
-          debounceOptions,
-        );
+        const response = await api.checkout?.hydrateComponent({
+          componentId: id,
+        });
 
-        const response = await fn();
         if (response) {
           dispatch({
             type: "HYDRATE_COMPONENT",
             data: response.data,
           });
         }
+
+        return response;
       } catch (err) {
         dispatch({
           type: "ERROR",
@@ -127,29 +138,27 @@ export const EmbedProvider = ({
     [api.checkout],
   );
 
+  const debouncedHydrateComponent = useMemo(
+    () => debounce(hydrateComponent, FETCH_DEBOUNCE_TIMEOUT, debounceOptions),
+    [hydrateComponent],
+  );
+
   // api methods
   const createSetupIntent = useCallback(async () => {
-    const fn = debounce(
-      () => api.checkout?.createSetupIntent(),
-      FETCH_DEBOUNCE_TIMEOUT,
-      debounceOptions,
-    );
-
-    return fn();
+    return api.checkout?.createSetupIntent();
   }, [api.checkout]);
+
+  const debouncedCreateSetupIntent = useMemo(
+    () => debounce(createSetupIntent, FETCH_DEBOUNCE_TIMEOUT, debounceOptions),
+    [createSetupIntent],
+  );
 
   const updatePaymentMethod = useCallback(
     async (paymentMethodId: string) => {
-      const fn = debounce(
-        () =>
-          api.checkout?.updatePaymentMethod({
-            updatePaymentMethodRequestBody: { paymentMethodId },
-          }),
-        FETCH_DEBOUNCE_TIMEOUT,
-        debounceOptions,
-      );
+      const response = await api.checkout?.updatePaymentMethod({
+        updatePaymentMethodRequestBody: { paymentMethodId },
+      });
 
-      const response = await fn();
       if (response) {
         dispatch({
           type: "UPDATE_PAYMENT_METHOD",
@@ -162,16 +171,18 @@ export const EmbedProvider = ({
     [api.checkout],
   );
 
+  const debouncedUpdatePaymentMethod = useMemo(
+    () =>
+      debounce(updatePaymentMethod, FETCH_DEBOUNCE_TIMEOUT, debounceOptions),
+    [updatePaymentMethod],
+  );
+
   const deletePaymentMethod = useCallback(
     async (paymentMethodId: string) => {
-      const fn = debounce(
-        () =>
-          api.checkout?.deletePaymentMethod({ checkoutId: paymentMethodId }),
-        FETCH_DEBOUNCE_TIMEOUT,
-        debounceOptions,
-      );
+      const response = await api.checkout?.deletePaymentMethod({
+        checkoutId: paymentMethodId,
+      });
 
-      const response = await fn();
       if (response) {
         dispatch({
           type: "DELETE_PAYMENT_METHOD",
@@ -184,15 +195,18 @@ export const EmbedProvider = ({
     [api.checkout],
   );
 
+  const debouncedDeletePaymentMethod = useMemo(
+    () =>
+      debounce(deletePaymentMethod, FETCH_DEBOUNCE_TIMEOUT, debounceOptions),
+    [deletePaymentMethod],
+  );
+
   const checkout = useCallback(
     async (changeSubscriptionRequestBody: ChangeSubscriptionRequestBody) => {
-      const fn = debounce(
-        () => api.checkout?.checkout({ changeSubscriptionRequestBody }),
-        FETCH_DEBOUNCE_TIMEOUT,
-        debounceOptions,
-      );
+      const response = await api.checkout?.checkout({
+        changeSubscriptionRequestBody,
+      });
 
-      const response = await fn();
       if (response) {
         dispatch({
           type: "CHECKOUT",
@@ -205,11 +219,14 @@ export const EmbedProvider = ({
     [api.checkout],
   );
 
+  const debouncedCheckout = useMemo(
+    () => debounce(checkout, FETCH_DEBOUNCE_TIMEOUT, debounceOptions),
+    [checkout],
+  );
+
   const previewCheckout = useCallback(
     async (changeSubscriptionRequestBody: ChangeSubscriptionRequestBody) => {
-      if (api.checkout) {
-        return api.checkout.previewCheckout({ changeSubscriptionRequestBody });
-      }
+      return api.checkout?.previewCheckout({ changeSubscriptionRequestBody });
     },
     [api.checkout],
   );
@@ -220,13 +237,8 @@ export const EmbedProvider = ({
   );
 
   const unsubscribe = useCallback(async () => {
-    const fn = debounce(
-      () => api.checkout?.checkoutUnsubscribe(),
-      FETCH_DEBOUNCE_TIMEOUT,
-      debounceOptions,
-    );
+    const response = await api.checkout?.checkoutUnsubscribe();
 
-    const response = await fn();
     if (response) {
       dispatch({
         type: "UNSUBSCRIBE",
@@ -237,31 +249,33 @@ export const EmbedProvider = ({
     return response;
   }, [api.checkout]);
 
+  const debouncedUnsubscribe = useMemo(
+    () => debounce(unsubscribe, FETCH_DEBOUNCE_TIMEOUT, debounceOptions),
+    [unsubscribe],
+  );
+
   const getUpcomingInvoice = useCallback(
     async (id: string) => {
-      const fn = debounce(
-        () =>
-          api.checkout?.hydrateUpcomingInvoice({
-            componentId: id,
-          }),
-        FETCH_DEBOUNCE_TIMEOUT,
-        debounceOptions,
-      );
-
-      return fn();
+      return api.checkout?.hydrateUpcomingInvoice({
+        componentId: id,
+      });
     },
     [api.checkout],
   );
 
-  const listInvoices = useCallback(async () => {
-    const fn = debounce(
-      () => api.checkout?.listInvoices(),
-      FETCH_DEBOUNCE_TIMEOUT,
-      debounceOptions,
-    );
+  const debouncedGetUpcomingInvoice = useMemo(
+    () => debounce(getUpcomingInvoice, FETCH_DEBOUNCE_TIMEOUT, debounceOptions),
+    [getUpcomingInvoice],
+  );
 
-    return fn();
+  const listInvoices = useCallback(async () => {
+    return api.checkout?.listInvoices();
   }, [api.checkout]);
+
+  const debouncedListInvoices = useMemo(
+    () => debounce(listInvoices, FETCH_DEBOUNCE_TIMEOUT, debounceOptions),
+    [listInvoices],
+  );
 
   // components
   const setError = useCallback((error: Error) => {
@@ -326,15 +340,6 @@ export const EmbedProvider = ({
     }
   }, [styleRef, state.settings.theme.typography]);
 
-  const customHeaders = useMemo(
-    () => ({
-      "X-Schematic-Components-Version":
-        process.env.SCHEMATIC_COMPONENTS_VERSION || "unknown",
-      "X-Schematic-Session-ID": sessionIdRef.current,
-    }),
-    [],
-  );
-
   useEffect(() => {
     if (apiKey) {
       const configParams = merge({}, apiConfig, {
@@ -357,6 +362,7 @@ export const EmbedProvider = ({
         apiKey: state.accessToken,
         headers: customHeaders,
       });
+
       setApi((prev) => ({
         ...prev,
         checkout: new CheckoutexternalApi(
@@ -402,16 +408,16 @@ export const EmbedProvider = ({
         layout: state.layout,
         mode: state.mode,
         checkoutState: state.checkoutState,
-        hydratePublic,
-        hydrateComponent,
-        createSetupIntent,
-        updatePaymentMethod,
-        deletePaymentMethod,
-        checkout,
+        hydratePublic: debouncedHydratePublic,
+        hydrateComponent: debouncedHydrateComponent,
+        createSetupIntent: debouncedCreateSetupIntent,
+        updatePaymentMethod: debouncedUpdatePaymentMethod,
+        deletePaymentMethod: debouncedDeletePaymentMethod,
+        checkout: debouncedCheckout,
         previewCheckout: debouncedPreviewCheckout,
-        unsubscribe,
-        getUpcomingInvoice,
-        listInvoices,
+        unsubscribe: debouncedUnsubscribe,
+        getUpcomingInvoice: debouncedGetUpcomingInvoice,
+        listInvoices: debouncedListInvoices,
         setError,
         setAccessToken,
         setLayout,

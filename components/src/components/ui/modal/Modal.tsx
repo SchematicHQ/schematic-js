@@ -2,7 +2,6 @@ import { forwardRef, useCallback, useLayoutEffect } from "react";
 
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import { Container } from "../../layout";
-import { Box } from "../../ui";
 
 import * as styles from "./styles";
 
@@ -23,53 +22,63 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(
     const isLightBackground = useIsLightBackground();
 
     const handleClose = useCallback(() => {
-      setLayout("portal");
-      onClose?.();
-    }, [setLayout, onClose]);
+      if (typeof ref !== "function") {
+        ref?.current?.classList.add("closing");
+      }
+    }, [ref]);
+
+    const handleTransitionEnd: React.TransitionEventHandler<HTMLDivElement> =
+      useCallback(
+        (event) => {
+          if (
+            typeof ref !== "function" &&
+            ref?.current?.classList.contains("closing") &&
+            event.propertyName === "transform"
+          ) {
+            setLayout("portal");
+            onClose?.();
+          }
+        },
+        [ref, setLayout, onClose],
+      );
 
     useLayoutEffect(() => {
       contentRef?.current?.focus({ preventScroll: true });
     }, [contentRef]);
 
     return (
-      <Box
-        ref={ref}
-        tabIndex={0}
-        onClick={(event) => {
-          if (event.target === event.currentTarget) {
-            handleClose();
+      <Container>
+        <styles.Overlay
+          ref={ref}
+          tabIndex={0}
+          onClick={(event) => {
+            if (event.target === event.currentTarget) {
+              handleClose();
+            }
+          }}
+          onKeyDown={(event) => {
+            if (event.key === "Escape") {
+              handleClose();
+            }
+          }}
+          $marginTop={`${top}px`}
+          $backgroundColor={
+            isLightBackground
+              ? "hsla(0, 0%, 87.5%, 0.9)"
+              : "hsla(0, 0%, 12.5%, 0.9)"
           }
-        }}
-        onKeyDown={(event) => {
-          if (event.key === "Escape") {
-            handleClose();
-          }
-        }}
-        {...rest}
-        $position="absolute"
-        $top="50%"
-        $left="50%"
-        $zIndex="999999"
-        $transform="translate(-50%, -50%)"
-        $width="100%"
-        $height="100%"
-        $marginTop={`${top}px`}
-        $backgroundColor={
-          isLightBackground
-            ? "hsla(0, 0%, 87.5%, 0.9)"
-            : "hsla(0, 0%, 12.5%, 0.9)"
-        }
-        $overflow="hidden"
-        $scrollbarColor={`${isLightBackground ? "hsla(0, 0%, 0%, 0.15)" : "hsla(0, 0%, 100%, 0.15)"} transparent`}
-        $scrollbarWidth="thin"
-        $scrollbarGutter="stable both-edges"
-      >
-        <Container>
-          <styles.Modal ref={contentRef} $size={size}>
+          $scrollbarColor={`${isLightBackground ? "hsla(0, 0%, 0%, 0.15)" : "hsla(0, 0%, 100%, 0.15)"} transparent`}
+          {...rest}
+        >
+          <styles.Modal
+            ref={contentRef}
+            onTransitionEnd={handleTransitionEnd}
+            $size={size}
+          >
             {children}
           </styles.Modal>
-        </Container>
-      </Box>
+        </styles.Overlay>
+      </Container>
     );
   },
 );

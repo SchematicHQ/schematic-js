@@ -15,7 +15,7 @@
     "Billed": "Billed {{period}}",
     "billing period": "billing period",
     "Cancel subscription": "Cancel subscription",
-    "Cannot downgrade entitlement": "Cannot downgrade to a lower quantity than current usage.",
+    "Cannot downgrade entitlement": "Cannot downgrade to a quantity lower than current usage.",
     "Card ending in": "💳 Card ending in {{value}}",
     "Change add-on": "Change add-on",
     "Change payment method": "Change payment method",

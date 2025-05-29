@@ -106,19 +106,17 @@ export const Usage = ({ entitlements, updateQuantity, period }: UsageProps) => {
                       }}
                     />
 
-                    <Box>
-                      <Text $size={unitPriceFontSize} $color={unitPriceColor}>
-                        {entitlement.quantity < entitlement.usage && (
-                          <span style={{ color: "#DB6669" }}>
-                            {t("Cannot downgrade entitlement")}{" "}
-                          </span>
-                        )}
-                        {t("Currently using", {
-                          quantity: entitlement.usage,
-                          unit: getFeatureName(entitlement.feature),
-                        })}
-                      </Text>
-                    </Box>
+                    <Text $size={unitPriceFontSize} $color={unitPriceColor}>
+                      {t("Currently using", {
+                        quantity: entitlement.usage,
+                        unit: getFeatureName(entitlement.feature),
+                      })}
+                    </Text>
+
+                    <Text $size={unitPriceFontSize} $color="#DB6669">
+                      {entitlement.quantity < entitlement.usage &&
+                        t("Cannot downgrade entitlement")}
+                    </Text>
                   </Flex>
 
                   <Box

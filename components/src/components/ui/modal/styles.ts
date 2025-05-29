@@ -8,6 +8,31 @@ interface ModalProps {
   $size?: ModalSize;
 }
 
+export const Overlay = styled(Box).attrs({
+  tabIndex: 0,
+})`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 999999;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  scrollbar-width: thin;
+  scrollbar-gutter: stable both-edges;
+  opacity: 1;
+  transition: opacity 0.1s ease-in-out;
+
+  &.closing {
+    opacity: 0;
+  }
+
+  @starting-style {
+    opacity: 0;
+  }
+`;
+
 export const Modal = styled(Box).attrs({
   tabIndex: 0,
   role: "dialog",
@@ -16,7 +41,8 @@ export const Modal = styled(Box).attrs({
   position: relative;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%) scale(1);
+  transform-origin: bottom center;
   flex-direction: column;
   overflow: auto;
   width: 100%;
@@ -25,6 +51,20 @@ export const Modal = styled(Box).attrs({
   box-shadow:
     0px 1px 20px 0px #1018280f,
     0px 1px 3px 0px #1018281a;
+  opacity: 1;
+  transition:
+    transform 0.1s,
+    opacity 0.1s;
+
+  .closing & {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0;
+  }
+
+  @starting-style {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0;
+  }
 
   @media (min-width: 768px) {
     ${({ $size }) => {

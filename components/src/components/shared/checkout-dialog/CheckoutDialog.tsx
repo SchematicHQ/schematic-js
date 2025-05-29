@@ -272,18 +272,20 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
   const handlePreviewCheckout = useCallback(
     async (updates: {
-      period: string;
+      period?: string;
       plan?: SelectedPlan;
-      addOns: SelectedPlan[];
-      payInAdvanceEntitlements: UsageBasedEntitlement[];
+      addOns?: SelectedPlan[];
+      payInAdvanceEntitlements?: UsageBasedEntitlement[];
       promoCode?: string;
     }) => {
+      const period = updates.period || planPeriod;
+      const plan = updates.plan || selectedPlan;
       const planPriceId =
-        updates.period === "year"
-          ? updates.plan?.yearlyPrice?.id
-          : updates.plan?.monthlyPrice?.id;
-      if (!updates.plan || !planPriceId) {
-        throw new Error(t("Selected plan or associated price is missing."));
+        period === "year" ? plan?.yearlyPrice?.id : plan?.monthlyPrice?.id;
+
+      // do not preview if user updates do not result in a valid plan
+      if (!plan || !planPriceId) {
+        return;
       }
 
       setError(undefined);
@@ -292,12 +294,12 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
       try {
         const response = await previewCheckout({
-          newPlanId: updates.plan.id,
+          newPlanId: plan.id,
           newPriceId: planPriceId,
-          addOnIds: updates.addOns.reduce(
+          addOnIds: (updates.addOns || addOns).reduce(
             (acc: UpdateAddOnRequestBody[], addOn) => {
               if (addOn.isSelected) {
-                const addOnPriceId = getAddOnPrice(addOn, updates.period)?.id;
+                const addOnPriceId = getAddOnPrice(addOn, period)?.id;
 
                 if (addOnPriceId) {
                   acc.push({
@@ -311,15 +313,15 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
             },
             [],
           ),
-          payInAdvance: updates.payInAdvanceEntitlements.reduce(
+          payInAdvance: (
+            updates.payInAdvanceEntitlements || payInAdvanceEntitlements
+          ).reduce(
             (
               acc: UpdatePayInAdvanceRequestBody[],
               { meteredMonthlyPrice, meteredYearlyPrice, quantity },
             ) => {
               const priceId = (
-                updates.period === "year"
-                  ? meteredYearlyPrice
-                  : meteredMonthlyPrice
+                period === "year" ? meteredYearlyPrice : meteredMonthlyPrice
               )?.priceId;
 
               if (priceId) {
@@ -333,8 +335,9 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
             },
             [],
           ),
-          promoCode: updates.promoCode,
+          promoCode: updates.promoCode || promoCode,
         });
+
         if (response) {
           setCharges(response.data.finance);
         }
@@ -361,30 +364,32 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
         setIsLoading(false);
       }
     },
-    [t, previewCheckout],
+    [
+      t,
+      previewCheckout,
+      planPeriod,
+      selectedPlan,
+      addOns,
+      payInAdvanceEntitlements,
+      promoCode,
+    ],
   );
 
   const selectPlan = useCallback(
     (updates: {
-      plan?: SelectedPlan;
+      plan: SelectedPlan;
       period?: string;
       shouldTrial?: boolean;
     }) => {
-      const plan = updates.plan || selectedPlan;
-      if (!plan) {
-        return;
-      }
-
+      const plan = updates.plan;
       const period = updates.period || planPeriod;
       const entitlements = plan.entitlements.reduce(
         createActiveUsageBasedEntitlementsReducer(currentEntitlements, period),
         [],
       );
 
-      if (updates.plan) {
-        setSelectedPlan(plan);
-        setUsageBasedEntitlements(entitlements);
-      }
+      setSelectedPlan(plan);
+      setUsageBasedEntitlements(entitlements);
 
       const shouldTrial = updates.shouldTrial ?? false;
       setWillTrial(shouldTrial && !trialPaymentMethodRequired);
@@ -392,19 +397,14 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       handlePreviewCheckout({
         period,
         plan,
-        addOns,
         payInAdvanceEntitlements: entitlements.filter(
           ({ priceBehavior }) => priceBehavior === "pay_in_advance",
         ),
-        promoCode,
       });
     },
     [
       planPeriod,
-      selectedPlan,
-      addOns,
       currentEntitlements,
-      promoCode,
       trialPaymentMethodRequired,
       handlePreviewCheckout,
     ],
@@ -413,22 +413,9 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   const changePlanPeriod = useCallback(
     (period: string) => {
       setPlanPeriod(period);
-      handlePreviewCheckout({
-        period,
-        plan: selectedPlan,
-        addOns,
-        payInAdvanceEntitlements,
-        promoCode,
-      });
+      handlePreviewCheckout({ period });
     },
-    [
-      setPlanPeriod,
-      handlePreviewCheckout,
-      selectedPlan,
-      addOns,
-      payInAdvanceEntitlements,
-      promoCode,
-    ],
+    [setPlanPeriod, handlePreviewCheckout],
   );
 
   const toggleAddOn = useCallback(
@@ -439,24 +426,12 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           ...(addOn.id === id && { isSelected: !addOn.isSelected }),
         }));
 
-        handlePreviewCheckout({
-          period: planPeriod,
-          plan: selectedPlan,
-          addOns: updated,
-          payInAdvanceEntitlements,
-          promoCode,
-        });
+        handlePreviewCheckout({ addOns: updated });
 
         return updated;
       });
     },
-    [
-      handlePreviewCheckout,
-      planPeriod,
-      selectedPlan,
-      payInAdvanceEntitlements,
-      promoCode,
-    ],
+    [handlePreviewCheckout],
   );
 
   const updateUsageBasedEntitlementQuantity = useCallback(
@@ -472,39 +447,23 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
         );
 
         handlePreviewCheckout({
-          period: planPeriod,
-          plan: selectedPlan,
-          addOns,
           payInAdvanceEntitlements: updated.filter(
             ({ priceBehavior }) => priceBehavior === "pay_in_advance",
           ),
-          promoCode,
         });
 
         return updated;
       });
     },
-    [handlePreviewCheckout, planPeriod, selectedPlan, addOns, promoCode],
+    [handlePreviewCheckout],
   );
 
   const updatePromoCode = useCallback(
     (code?: string) => {
       setPromoCode(code);
-      handlePreviewCheckout({
-        period: planPeriod,
-        plan: selectedPlan,
-        addOns,
-        payInAdvanceEntitlements,
-        promoCode: code,
-      });
+      handlePreviewCheckout({ promoCode: code });
     },
-    [
-      handlePreviewCheckout,
-      planPeriod,
-      selectedPlan,
-      addOns,
-      payInAdvanceEntitlements,
-    ],
+    [handlePreviewCheckout],
   );
 
   useEffect(() => {

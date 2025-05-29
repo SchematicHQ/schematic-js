@@ -53,7 +53,7 @@ export const ModalHeader = ({
     >
       {children}
 
-      <Box $cursor="pointer" onClick={handleClose}>
+      <Box onClick={handleClose} $cursor="pointer">
         <Icon
           name="close"
           style={{

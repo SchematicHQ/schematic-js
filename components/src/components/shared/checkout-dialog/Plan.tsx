@@ -263,48 +263,15 @@ export const Plan = ({
 
   const isLightBackground = useIsLightBackground();
 
-  const [entitlementCounts, setEntitlementCounts] = useState(() =>
-    plans.reduce(
-      (
-        acc: Record<
-          string,
-          {
-            size: number;
-            limit: number;
-          }
-        >,
-        plan,
-      ) => {
-        acc[plan.id] = {
-          size: plan.entitlements.length,
-          limit: VISIBLE_ENTITLEMENT_COUNT,
-        };
-
-        return acc;
-      },
-      {},
-    ),
-  );
+  const [seeAll, setSeeAll] = useState(false);
 
   const isTrialing = useMemo(
     () => isCheckoutData(data) && data.subscription?.status === "trialing",
     [data],
   );
 
-  const handleToggleShowAll = (id: string) => {
-    setEntitlementCounts((prev) => {
-      const count = { ...prev[id] };
-      return {
-        ...prev,
-        [id]: {
-          size: count.size,
-          limit:
-            count.limit > VISIBLE_ENTITLEMENT_COUNT
-              ? VISIBLE_ENTITLEMENT_COUNT
-              : count.size,
-        },
-      };
-    });
+  const toggleSeeAll = () => {
+    setSeeAll((prev) => !prev);
   };
 
   const cardPadding = settings.theme.card.padding / TEXT_BASE_SIZE;
@@ -318,8 +285,6 @@ export const Plan = ({
         $flexGrow={1}
       >
         {plans.map((plan, planIndex) => {
-          const count = entitlementCounts[plan.id];
-          const isExpanded = count.limit > VISIBLE_ENTITLEMENT_COUNT;
           const { price: planPrice, currency: planCurrency } =
             getBillingPrice(
               period === "year" ? plan.yearlyPrice : plan.monthlyPrice,
@@ -652,17 +617,16 @@ export const Plan = ({
                       },
                       [],
                     )
-                    .slice(0, count?.limit ?? VISIBLE_ENTITLEMENT_COUNT)}
+                    .slice(0, seeAll ? 9999 : VISIBLE_ENTITLEMENT_COUNT)}
 
-                  {(count?.size || plan.entitlements.length) >
-                    VISIBLE_ENTITLEMENT_COUNT && (
+                  {plan.entitlements.length > VISIBLE_ENTITLEMENT_COUNT && (
                     <Flex
                       $alignItems="center"
                       $justifyContent="start"
                       $marginTop="1rem"
                     >
                       <Icon
-                        name={isExpanded ? "chevron-up" : "chevron-down"}
+                        name={seeAll ? "chevron-up" : "chevron-down"}
                         style={{
                           fontSize: "1.4rem",
                           lineHeight: "1em",
@@ -671,12 +635,12 @@ export const Plan = ({
                         }}
                       />
                       <Text
-                        onClick={() => handleToggleShowAll(plan.id)}
+                        onClick={toggleSeeAll}
                         display="link"
                         $leading={1}
                         style={{ cursor: "pointer" }}
                       >
-                        {isExpanded ? t("Hide all") : t("See all")}
+                        {seeAll ? t("Hide all") : t("See all")}
                       </Text>
                     </Flex>
                   )}

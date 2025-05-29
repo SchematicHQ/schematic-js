@@ -59,7 +59,11 @@ export const PeriodToggle = ({
       $backgroundColor={settings.theme.card.background}
       $borderWidth="1px"
       $borderStyle="solid"
-      $borderColor={isLightBackground ? "hsl(0, 0%, 92.5%)" : "hsl(0, 0%, 15%)"}
+      $borderColor={
+        isLightBackground
+          ? "hsla(0, 0%, 0%, 0.125)"
+          : "hsla(0, 0%, 100%, 0.125)"
+      }
       $borderRadius="2.5rem"
       $cursor="pointer"
       $viewport={{
@@ -81,8 +85,8 @@ export const PeriodToggle = ({
             $padding="0.75rem 1rem"
             {...(option === selectedOption && {
               $backgroundColor: isLightBackground
-                ? "hsl(0, 0%, 92.5%)"
-                : "hsl(0, 0%, 15%)",
+                ? "hsla(0, 0%, 0%, 0.125)"
+                : "hsla(0, 0%, 100%, 0.125)",
             })}
             $borderRadius="2.5rem"
             $viewport={{

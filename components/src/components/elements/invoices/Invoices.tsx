@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useState } from "react";
+import { forwardRef, useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { type InvoiceResponseData } from "../../../api/checkoutexternal";
@@ -123,6 +123,16 @@ export const Invoices = forwardRef<
   const [invoices, setInvoices] = useState(() => formatInvoices(data));
   const [listSize, setListSize] = useState(props.limit.number);
 
+  const getInvoices = useCallback(
+    async function getInvoices() {
+      const response = await listInvoices();
+      if (response) {
+        setInvoices(formatInvoices(response.data));
+      }
+    },
+    [listInvoices],
+  );
+
   const toggleListSize = () => {
     setListSize((prev) =>
       prev !== props.limit.number
@@ -132,12 +142,8 @@ export const Invoices = forwardRef<
   };
 
   useEffect(() => {
-    listInvoices().then((response) => {
-      if (response) {
-        setInvoices(formatInvoices(response.data));
-      }
-    });
-  }, [listInvoices]);
+    getInvoices();
+  }, [getInvoices]);
 
   useEffect(() => {
     setInvoices(formatInvoices(data));
