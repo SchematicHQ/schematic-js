@@ -47,7 +47,14 @@ export class Schematic {
   private isPendingListeners: Set<PendingListenerFn> = new Set();
   private storage: StoragePersister | undefined;
   private useWebSocket: boolean = false;
-  private checks: Record<string, Record<string, CheckFlagReturn>> = {};
+  private checks: Record<
+    string,
+    Record<string, CheckFlagReturn | undefined> | undefined
+  > = {};
+  private featureUsageEventMap: Record<
+    string,
+    Record<string, CheckFlagReturn | undefined> | undefined
+  > = {};
   private webSocketUrl = "wss://api.schematichq.com";
 
   constructor(apiKey: string, options?: SchematicOptions) {
@@ -181,6 +188,11 @@ export class Schematic {
 
           // Create a flag check result object
           const result = CheckFlagReturnFromJSON(parsedResponse.data);
+
+          // Store in feature usage event map if appropriate
+          if (typeof result.featureUsageEvent === "string") {
+            this.updateFeatureUsageEventMap(result);
+          }
 
           // Submit a flag check event
           this.submitFlagCheckEvent(key, result, context);
@@ -351,6 +363,11 @@ export class Schematic {
       // Create a flag check result object
       const result = CheckFlagReturnFromJSON(data.data);
 
+      // Store in feature usage event map if appropriate
+      if (typeof result.featureUsageEvent === "string") {
+        this.updateFeatureUsageEventMap(result);
+      }
+
       // Submit a flag check event
       this.submitFlagCheckEvent(key, result, context);
 
@@ -486,20 +503,99 @@ export class Schematic {
   /**
    * Send a track event
    * Track usage for a company and/or user.
+   * Optimistically updates feature usage flags if tracking a featureUsageEvent.
    */
   track = (body: EventBodyTrack): Promise<void> => {
-    const { company, user, event, traits } = body;
+    const { company, user, event, traits, quantity = 1 } = body;
 
     const trackData = {
       company: company ?? this.context.company,
       event,
       traits: traits ?? {},
       user: user ?? this.context.user,
+      quantity,
     };
 
     this.debug(`track:`, trackData);
 
+    // Check if this event is in our featureUsageEventMap and update any related flags
+    if (event in this.featureUsageEventMap) {
+      this.optimisticallyUpdateFeatureUsage(event, quantity);
+    }
+
     return this.handleEvent("track", trackData);
+  };
+
+  /**
+   * Optimistically update feature usage flags associated with a tracked event
+   * This updates flags in memory with updated usage counts and value/featureUsageExceeded flags
+   * before the network request completes
+   */
+  private optimisticallyUpdateFeatureUsage = (
+    eventName: string,
+    quantity: number = 1,
+  ): void => {
+    const flagsForEvent = this.featureUsageEventMap[eventName];
+    if (flagsForEvent === undefined || flagsForEvent === null) return;
+
+    this.debug(
+      `Optimistically updating feature usage for event: ${eventName}`,
+      { quantity },
+    );
+
+    Object.entries(flagsForEvent).forEach(([flagKey, check]) => {
+      if (check === undefined) return;
+
+      // Clone the check to avoid modifying the original
+      const updatedCheck: CheckFlagReturn = { ...check };
+
+      // Increment usage by the specified quantity
+      if (typeof updatedCheck.featureUsage === "number") {
+        updatedCheck.featureUsage += quantity;
+
+        // Determine if usage now exceeds allocation
+        if (typeof updatedCheck.featureAllocation === "number") {
+          const wasExceeded = updatedCheck.featureUsageExceeded === true;
+          const nowExceeded =
+            updatedCheck.featureUsage >= updatedCheck.featureAllocation;
+
+          // Update flags if the status changed
+          if (nowExceeded !== wasExceeded) {
+            updatedCheck.featureUsageExceeded = nowExceeded;
+            // If we're now exceeding usage, flip the value to false
+            if (nowExceeded) {
+              updatedCheck.value = false;
+            }
+
+            this.debug(`Usage limit status changed for flag: ${flagKey}`, {
+              was: wasExceeded ? "exceeded" : "within limits",
+              now: nowExceeded ? "exceeded" : "within limits",
+              featureUsage: updatedCheck.featureUsage,
+              featureAllocation: updatedCheck.featureAllocation,
+              value: updatedCheck.value,
+            });
+          }
+        }
+
+        // Update in the feature usage event map
+        if (this.featureUsageEventMap[eventName] !== undefined) {
+          this.featureUsageEventMap[eventName][flagKey] = updatedCheck;
+        }
+
+        // Update in the context-based checks as well
+        const contextStr = contextString(this.context);
+        if (
+          this.checks[contextStr] !== undefined &&
+          this.checks[contextStr] !== null
+        ) {
+          this.checks[contextStr][flagKey] = updatedCheck;
+        }
+
+        // Notify listeners about the updated flag
+        this.notifyFlagCheckListeners(flagKey, updatedCheck);
+        this.notifyFlagValueListeners(flagKey, updatedCheck.value);
+      }
+    });
   };
 
   /**
@@ -690,13 +786,22 @@ export class Schematic {
           /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
           (message.flags ?? []).forEach((flag: any) => {
             const flagCheck = CheckFlagReturnFromJSON(flag);
-            this.checks[contextString(context)][flagCheck.flag] = flagCheck;
+            const contextStr = contextString(context);
+            if (this.checks[contextStr] === undefined) {
+              this.checks[contextStr] = {};
+            }
+            this.checks[contextStr][flagCheck.flag] = flagCheck;
 
             this.debug(`WebSocket flag update:`, {
               flag: flagCheck.flag,
               value: flagCheck.value,
               flagCheck,
             });
+
+            // Store in feature usage event map if appropriate
+            if (typeof flagCheck.featureUsageEvent === "string") {
+              this.updateFeatureUsageEventMap(flagCheck);
+            }
 
             // Log flag check events if there are listeners registered
             if (
@@ -828,7 +933,33 @@ export class Schematic {
       );
     }
 
+    // If this flag check has a featureUsageEvent, store it in our map
+    if (typeof check.featureUsageEvent === "string") {
+      this.updateFeatureUsageEventMap(check);
+    }
+
     listeners.forEach((listener) => notifyFlagCheckListener(listener, check));
+  };
+
+  /** Add or update a CheckFlagReturn in the featureUsageEventMap */
+  private updateFeatureUsageEventMap = (check: CheckFlagReturn) => {
+    if (typeof check.featureUsageEvent !== "string") return;
+
+    const eventName = check.featureUsageEvent;
+    if (
+      this.featureUsageEventMap[eventName] === undefined ||
+      this.featureUsageEventMap[eventName] === null
+    ) {
+      this.featureUsageEventMap[eventName] = {};
+    }
+
+    if (this.featureUsageEventMap[eventName] !== undefined) {
+      this.featureUsageEventMap[eventName][check.flag] = check;
+    }
+    this.debug(
+      `Updated featureUsageEventMap for event: ${eventName}, flag: ${check.flag}`,
+      check,
+    );
   };
 
   private notifyFlagValueListeners = (flagKey: string, value: boolean) => {
