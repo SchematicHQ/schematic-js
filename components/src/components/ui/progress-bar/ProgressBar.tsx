@@ -1,5 +1,4 @@
 import { forwardRef } from "react";
-import { useTheme } from "styled-components";
 
 import { TEXT_BASE_SIZE } from "../../../const";
 import { formatNumber } from "../../../utils";
@@ -35,8 +34,6 @@ export const ProgressBar = forwardRef<HTMLDivElement, ProgressBarProps>(
     },
     ref,
   ) => {
-    const theme = useTheme();
-
     const barColorMap = {
       gray: "#9CA3AF",
       blue: "#2563EB",
@@ -70,12 +67,7 @@ export const ProgressBar = forwardRef<HTMLDivElement, ProgressBarProps>(
         </Box>
 
         {total && (
-          <Text
-            $font={theme.typography.text.fontFamily}
-            $size={14}
-            $weight={500}
-            $color={theme.typography.text.color}
-          >
+          <Text $size={14} $weight={500}>
             {formatNumber(value)}/{formatNumber(total)}
           </Text>
         )}

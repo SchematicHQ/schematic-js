@@ -5,9 +5,7 @@ import {
 } from "@stripe/react-stripe-js";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useTheme } from "styled-components";
 
-import { useEmbed } from "../../../hooks";
 import { Box, Button, Text } from "../../ui";
 
 interface PaymentFormProps {
@@ -17,14 +15,10 @@ interface PaymentFormProps {
 export const PaymentForm = ({ onConfirm }: PaymentFormProps) => {
   const { t } = useTranslation();
 
-  const theme = useTheme();
-
   const stripe = useStripe();
   const elements = useElements();
 
-  const { api } = useEmbed();
-
-  const [message, setMessage] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
@@ -34,13 +28,13 @@ export const PaymentForm = ({ onConfirm }: PaymentFormProps) => {
   ) => {
     event.preventDefault();
 
-    if (!api || !stripe || !elements) {
+    if (!stripe || !elements) {
       return;
     }
 
     setIsLoading(true);
     setIsConfirmed(false);
-    setMessage(null);
+    setMessage(undefined);
 
     try {
       const { setupIntent, error } = await stripe.confirmSetup({
@@ -59,7 +53,7 @@ export const PaymentForm = ({ onConfirm }: PaymentFormProps) => {
       }
 
       if (error?.type === "card_error" || error?.type === "validation_error") {
-        setMessage(error.message as string);
+        setMessage(error.message);
       }
     } catch {
       setMessage(t("A problem occurred while saving your payment method."));
@@ -103,13 +97,7 @@ export const PaymentForm = ({ onConfirm }: PaymentFormProps) => {
 
       {message && (
         <Box $margin="1rem 0">
-          <Text
-            id="payment-message"
-            $font={theme.typography.text.fontFamily}
-            $size={15}
-            $weight={500}
-            $color="#DB6669"
-          >
+          <Text id="payment-message" $size={15} $weight={500} $color="#DB6669">
             {message}
           </Text>
         </Box>

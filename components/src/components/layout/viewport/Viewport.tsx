@@ -1,11 +1,12 @@
 import { debounce } from "lodash";
-import { forwardRef, useLayoutEffect, useState } from "react";
+import { forwardRef, useLayoutEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 
 import { useEmbed } from "../../../hooks";
 import { CheckoutDialog, PaymentDialog, UnsubscribeDialog } from "../../shared";
 import { Badge } from "../../ui/badge";
 import { RenderLayout } from "../RenderLayout";
+
 import { StyledViewport } from "./styles";
 
 export interface ViewportProps extends React.HTMLProps<HTMLDivElement> {
@@ -18,7 +19,9 @@ export const Viewport = forwardRef<HTMLDivElement | null, ViewportProps>(
 
     const [top, setTop] = useState(0);
 
-    const canCheckout = data.capabilities?.checkout ?? true;
+    const canCheckout = useMemo(() => {
+      return data?.capabilities?.checkout ?? true;
+    }, [data]);
 
     useLayoutEffect(() => {
       const parent = portal || document.body;
@@ -48,7 +51,7 @@ export const Viewport = forwardRef<HTMLDivElement | null, ViewportProps>(
       <>
         <StyledViewport ref={ref} {...props}>
           <RenderLayout>{children}</RenderLayout>
-          {(!data.capabilities?.badgeVisibility ||
+          {(!data?.capabilities?.badgeVisibility ||
             settings.badge?.visibility !== "hidden") && <Badge />}
         </StyledViewport>
 

@@ -2,8 +2,9 @@ import { debounce } from "lodash";
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
-import { DEBOUNCE_TIMEOUT } from "../../../const";
+import { EVENT_DEBOUNCE_TIMEOUT } from "../../../const";
 import { type BoxProps } from "../../ui";
+
 import { Content, Trigger } from "./styles";
 
 export type Position = "top" | "right" | "bottom" | "left";
@@ -12,14 +13,12 @@ export interface TooltipProps extends BoxProps {
   trigger: React.ReactNode;
   content: React.ReactNode;
   position?: Position;
-  zIndex?: number;
 }
 
 export const Tooltip = ({
   trigger,
   content,
   position = "top",
-  zIndex = 9999999,
   ...rest
 }: TooltipProps) => {
   const ref = useRef<HTMLDivElement>(null);
@@ -51,7 +50,7 @@ export const Tooltip = ({
   }, [position]);
 
   useLayoutEffect(() => {
-    const handleResize = debounce(updateCoords, DEBOUNCE_TIMEOUT);
+    const handleResize = debounce(updateCoords, EVENT_DEBOUNCE_TIMEOUT);
     window.addEventListener("resize", handleResize);
 
     return () => {
@@ -76,7 +75,7 @@ export const Tooltip = ({
 
       {show &&
         createPortal(
-          <Content {...coords} position={position} zIndex={zIndex}>
+          <Content {...coords} position={position}>
             {content}
           </Content>,
           document.body,

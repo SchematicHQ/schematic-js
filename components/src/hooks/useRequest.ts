@@ -1,5 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 
+import { ERROR_UNKNOWN, isError } from "../utils";
+
 type RequestState<TData> = {
   isLoading: boolean;
   error: Error | null;
@@ -24,10 +26,8 @@ export function useRequest<TData>(
       }
 
       setData(response.data);
-    } catch (e) {
-      if (e instanceof Error) {
-        setError(e);
-      }
+    } catch (err) {
+      setError(isError(err) ? err : ERROR_UNKNOWN);
     } finally {
       setIsLoading(false);
     }

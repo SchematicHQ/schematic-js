@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useTheme } from "styled-components";
 
 import { useIsLightBackground } from "../../../hooks";
 import { PaymentMethodDetails } from "../../elements";
@@ -19,8 +18,6 @@ export const Checkout = ({
 }: CheckoutProps) => {
   const { t } = useTranslation();
 
-  const theme = useTheme();
-
   const isLightBackground = useIsLightBackground();
 
   const [discount, setDiscount] = useState("");
@@ -34,15 +31,9 @@ export const Checkout = ({
       <PaymentMethodDetails setPaymentMethodId={setPaymentMethodId} />
 
       <Flex $flexDirection="column" $gap="1rem">
-        <Text
-          as={Box}
-          $font={theme.typography.heading4.fontFamily}
-          $size={theme.typography.heading4.fontSize}
-          $weight={theme.typography.heading4.fontWeight}
-          $color={theme.typography.heading4.color}
-        >
-          {t("Discount")}
-        </Text>
+        <Box>
+          <Text display="heading4">{t("Discount")}</Text>
+        </Box>
 
         <Flex
           $alignItems="center"
@@ -79,10 +70,7 @@ export const Checkout = ({
           <Box $flexShrink={0} $padding="0.5rem 1rem">
             <Text
               onClick={() => updatePromoCode(discount)}
-              $font={theme.typography.link.fontFamily}
-              $size={theme.typography.link.fontSize}
-              $weight={theme.typography.link.fontWeight}
-              $color={theme.typography.link.color}
+              display="link"
               $leading={1}
             >
               {t("Apply discount")}

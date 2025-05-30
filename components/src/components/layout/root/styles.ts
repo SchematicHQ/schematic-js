@@ -6,8 +6,8 @@ export const Container = styled.div`
   display: block;
   font-size: 1rem;
   line-height: 1.35;
-  width: 100%;
-  height: 100%;
+  width: auto;
+  height: auto;
   container-type: inline-size;
   interpolate-size: allow-keywords;
 

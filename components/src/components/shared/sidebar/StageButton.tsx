@@ -10,6 +10,7 @@ type StageButtonProps = {
   checkout: () => Promise<void>;
   checkoutStage?: string;
   checkoutStages?: CheckoutStage[];
+  hasPlan: boolean;
   hasAddOns: boolean;
   hasPayInAdvanceEntitlements: boolean;
   hasUnstagedChanges: boolean;
@@ -27,6 +28,7 @@ export const StageButton = ({
   checkout,
   checkoutStage,
   checkoutStages,
+  hasPlan,
   hasAddOns,
   hasPayInAdvanceEntitlements,
   hasUnstagedChanges,
@@ -42,7 +44,9 @@ export const StageButton = ({
     return (
       <Button
         type="button"
-        disabled={isLoading || !hasUnstagedChanges || !canUpdateSubscription}
+        disabled={
+          isLoading || !hasPlan || !hasUnstagedChanges || !canUpdateSubscription
+        }
         onClick={checkout}
         $isLoading={isLoading}
         $fullWidth
@@ -57,7 +61,7 @@ export const StageButton = ({
       return (
         <Button
           type="button"
-          disabled={!hasAddOns && !canUpdateSubscription}
+          disabled={!hasPlan || !hasAddOns || !canUpdateSubscription}
           onClick={async () => {
             setCheckoutStage?.("checkout");
           }}
@@ -89,7 +93,7 @@ export const StageButton = ({
     return (
       <Button
         type="button"
-        disabled={!canUpdateSubscription}
+        disabled={!hasPlan || !canUpdateSubscription}
         onClick={async () => {
           setCheckoutStage?.(
             hasPayInAdvanceEntitlements
@@ -126,7 +130,7 @@ export const StageButton = ({
     return (
       <Button
         type="button"
-        disabled={!canUpdateSubscription}
+        disabled={!hasPlan || !canUpdateSubscription}
         onClick={async () => {
           setCheckoutStage?.(hasAddOns ? "addons" : "checkout");
         }}
@@ -154,7 +158,7 @@ export const StageButton = ({
     return (
       <Button
         type="button"
-        disabled={!canUpdateSubscription}
+        disabled={!hasPlan || !canUpdateSubscription}
         onClick={async () => {
           setCheckoutStage?.("checkout");
         }}
@@ -182,7 +186,7 @@ export const StageButton = ({
     return (
       <Button
         type="button"
-        disabled={isLoading || !hasUnstagedChanges || !canCheckout}
+        disabled={isLoading || !hasPlan || !hasUnstagedChanges || !canCheckout}
         onClick={checkout}
         $isLoading={isLoading}
         $fullWidth
