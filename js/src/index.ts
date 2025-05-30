@@ -40,6 +40,7 @@ export class Schematic {
   private debugEnabled: boolean = false;
   private offlineEnabled: boolean = false;
   private eventQueue: Event[];
+  private contextDependentEventQueue: Event[];
   private eventUrl = "https://c.schematichq.com";
   private flagCheckListeners: Record<string, Set<FlagCheckListenerFn>> = {};
   private flagValueListeners: Record<string, Set<FlagValueListenerFn>> = {};
@@ -60,6 +61,7 @@ export class Schematic {
   constructor(apiKey: string, options?: SchematicOptions) {
     this.apiKey = apiKey;
     this.eventQueue = [];
+    this.contextDependentEventQueue = [];
     this.useWebSocket = options?.useWebSocket ?? false;
     this.debugEnabled = options?.debug ?? false;
     this.offlineEnabled = options?.offline ?? false;
@@ -129,6 +131,7 @@ export class Schematic {
     if (typeof window !== "undefined" && window?.addEventListener) {
       window.addEventListener("beforeunload", () => {
         this.flushEventQueue();
+        this.flushContextDependentEventQueue();
       });
     }
 
@@ -452,6 +455,7 @@ export class Schematic {
     this.debug(`identify:`, body);
 
     try {
+      // Set context for future events (async, don't wait)
       this.setContext({
         company: body.company?.keys,
         user: body.keys,
@@ -460,6 +464,7 @@ export class Schematic {
       console.error("Error setting context:", error);
     }
 
+    // Send the identify event immediately
     return this.handleEvent("identify", body);
   };
 
@@ -475,6 +480,7 @@ export class Schematic {
   setContext = async (context: SchematicContext): Promise<void> => {
     if (this.isOffline() || !this.useWebSocket) {
       this.context = context;
+      this.flushContextDependentEventQueue();
       this.setIsPending(false);
       return Promise.resolve();
     }
@@ -502,6 +508,30 @@ export class Schematic {
    */
   track = (body: EventBodyTrack): Promise<void> => {
     const { company, user, event, traits, quantity = 1 } = body;
+
+    // Check if we have context (either provided or in this.context)
+    if (!this.hasContext(company, user)) {
+      this.debug(`track: queuing event "${event}" until context is available`);
+
+      // Create the event and add to context-dependent queue
+      const queuedEvent: Event = {
+        api_key: this.apiKey,
+        body: {
+          company,
+          event,
+          traits: traits ?? {},
+          user,
+          quantity,
+        },
+        sent_at: new Date().toISOString(),
+        tracker_event_id: uuid.v4(),
+        tracker_user_id: this.getAnonymousId(),
+        type: "track",
+      };
+
+      this.contextDependentEventQueue.push(queuedEvent);
+      return Promise.resolve();
+    }
 
     const trackData = {
       company: company ?? this.context.company,
@@ -596,6 +626,64 @@ export class Schematic {
   /**
    * Event processing
    */
+
+  private hasContext = (
+    company?: Record<string, string>,
+    user?: Record<string, string>,
+  ): boolean => {
+    // Check if context is provided in the track call itself
+    const hasProvidedContext =
+      (company !== undefined &&
+        company !== null &&
+        Object.keys(company).length > 0) ||
+      (user !== undefined && user !== null && Object.keys(user).length > 0);
+
+    // Check if context is set on the instance (from previous identify or setContext calls)
+    const hasInstanceContext =
+      (this.context.company !== undefined &&
+        this.context.company !== null &&
+        Object.keys(this.context.company).length > 0) ||
+      (this.context.user !== undefined &&
+        this.context.user !== null &&
+        Object.keys(this.context.user).length > 0);
+
+    return hasProvidedContext || hasInstanceContext;
+  };
+
+  private flushContextDependentEventQueue = (): void => {
+    this.debug(
+      `flushing ${this.contextDependentEventQueue.length} context-dependent events`,
+    );
+
+    while (this.contextDependentEventQueue.length > 0) {
+      const event = this.contextDependentEventQueue.shift();
+      if (event) {
+        // Update the event body with current context before sending
+        if (
+          event.type === "track" &&
+          typeof event.body === "object" &&
+          event.body !== null
+        ) {
+          const trackBody = event.body as EventBodyTrack;
+          const updatedBody: EventBodyTrack = {
+            ...trackBody,
+            company: trackBody.company ?? this.context.company,
+            user: trackBody.user ?? this.context.user,
+          };
+
+          const updatedEvent: Event = {
+            ...event,
+            body: updatedBody,
+            sent_at: new Date().toISOString(), // Update timestamp to actual send time
+          };
+
+          this.sendEvent(updatedEvent);
+        } else {
+          this.sendEvent(event);
+        }
+      }
+    }
+  };
 
   private flushEventQueue = (): void => {
     while (this.eventQueue.length > 0) {
@@ -809,6 +897,9 @@ export class Schematic {
             this.notifyFlagCheckListeners(flag.flag, flagCheck);
             this.notifyFlagValueListeners(flag.flag, flagCheck.value);
           });
+
+          // Flush any context-dependent events that were queued
+          this.flushContextDependentEventQueue();
 
           // Update pending state
           this.setIsPending(false);

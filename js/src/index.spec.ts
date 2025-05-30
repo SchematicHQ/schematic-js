@@ -41,15 +41,48 @@ describe("Schematic", () => {
   });
 
   describe("track", () => {
-    it("should handle track event", () => {
+    it("should queue track event when no context is available", () => {
       const eventBody = {
         event: "Page View",
         traits: { url: "https://example.com" },
       };
       const apiResponse = { ok: true };
       mockFetch.mockResolvedValue(apiResponse);
+
+      // Call track without any context set
       schematic.track(eventBody);
 
+      // Event should be queued, not sent immediately
+      expect(mockFetch).toHaveBeenCalledTimes(0);
+
+      // Now set context, which should flush the queued event
+      schematic.setContext({ user: { userId: "123" } });
+
+      // Now the event should be sent
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      expect(mockFetch).toHaveBeenCalledWith(expect.any(String), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json;charset=UTF-8",
+          "X-Schematic-Client-Version": `schematic-js@${version}`,
+        },
+        body: expect.any(String),
+      });
+    });
+
+    it("should immediately send track event when context is provided", () => {
+      const eventBody = {
+        event: "Page View",
+        traits: { url: "https://example.com" },
+        user: { userId: "123" }, // Context provided in the call
+      };
+      const apiResponse = { ok: true };
+      mockFetch.mockResolvedValue(apiResponse);
+
+      // Call track with context provided
+      schematic.track(eventBody);
+
+      // Event should be sent immediately since context was provided
       expect(mockFetch).toHaveBeenCalledTimes(1);
       expect(mockFetch).toHaveBeenCalledWith(expect.any(String), {
         method: "POST",
