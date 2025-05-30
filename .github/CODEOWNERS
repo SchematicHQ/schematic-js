@@ -1,2 +1,3 @@
-* @SchematicHQ/frontend 
-
+components @SchematicHQ/frontend
+js @SchematicHQ/devtools
+react @SchematicHQ/devtools
