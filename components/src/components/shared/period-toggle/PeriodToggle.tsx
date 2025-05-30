@@ -1,4 +1,4 @@
-import { useLayoutEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -14,7 +14,6 @@ interface PeriodToggleProps {
   selectedOption: string;
   selectedPlan?: SelectedPlan;
   onChange: (period: string) => void;
-  layerRef?: React.RefObject<HTMLDivElement | null>;
 }
 
 export const PeriodToggle = ({
@@ -22,15 +21,12 @@ export const PeriodToggle = ({
   selectedOption,
   selectedPlan,
   onChange,
-  layerRef,
 }: PeriodToggleProps) => {
   const { t } = useTranslation();
 
   const { settings } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
-
-  const [tooltipZIndex, setTooltipZIndex] = useState<number>(1);
 
   const savingsPercentage = useMemo(() => {
     if (selectedPlan) {
@@ -43,15 +39,6 @@ export const PeriodToggle = ({
 
     return 0;
   }, [selectedPlan]);
-
-  useLayoutEffect(() => {
-    const element = layerRef?.current;
-    if (element) {
-      const style = getComputedStyle(element);
-      const value = style.getPropertyValue("z-index");
-      setTooltipZIndex(parseInt(value) + 1);
-    }
-  }, [layerRef]);
 
   return (
     <Flex
@@ -121,7 +108,6 @@ export const PeriodToggle = ({
                       })}
                 </Text>
               }
-              zIndex={tooltipZIndex}
               $flexGrow={1}
             />
           );

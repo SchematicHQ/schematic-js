@@ -235,21 +235,18 @@ export const Sidebar = ({
     }, [charges]);
 
   const handleCheckout = useCallback(async () => {
-    const planId =
-      selectedPlan?.id || (isCheckoutData(data) && data.company?.plan?.id);
-    const priceId =
-      (planPeriod === "year"
+    const planId = selectedPlan?.id;
+    const priceId = (
+      planPeriod === "year"
         ? selectedPlan?.yearlyPrice
         : selectedPlan?.monthlyPrice
-      )?.id ||
-      (isCheckoutData(data) && data.subscription?.products[0].priceId);
-
-    if (!planId || !priceId) {
-      // TODO: set checkout "error" message
-      return;
-    }
+    )?.id;
 
     try {
+      if (!planId || !priceId) {
+        throw new Error(t("Selected plan or associated price is missing."));
+      }
+
       setError(undefined);
       setIsLoading(true);
 
@@ -309,7 +306,6 @@ export const Sidebar = ({
     }
   }, [
     t,
-    data,
     checkout,
     paymentMethodId,
     planPeriod,

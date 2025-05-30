@@ -13,14 +13,12 @@ export interface TooltipProps extends BoxProps {
   trigger: React.ReactNode;
   content: React.ReactNode;
   position?: Position;
-  zIndex?: number;
 }
 
 export const Tooltip = ({
   trigger,
   content,
   position = "top",
-  zIndex = 9999999,
   ...rest
 }: TooltipProps) => {
   const ref = useRef<HTMLDivElement>(null);
@@ -77,7 +75,7 @@ export const Tooltip = ({
 
       {show &&
         createPortal(
-          <Content {...coords} position={position} zIndex={zIndex}>
+          <Content {...coords} position={position}>
             {content}
           </Content>,
           document.body,

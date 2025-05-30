@@ -87,12 +87,11 @@ interface ContentProps {
   x: number;
   y: number;
   position: Position;
-  zIndex: number;
 }
 
 export const Content = styled.div.withConfig({
   shouldForwardProp: (prop) => !["x", "y", "position", "zIndex"].includes(prop),
-})<ContentProps>(({ x, y, position, zIndex, theme }) => {
+})<ContentProps>(({ x, y, position, theme }) => {
   const translate = coords(position);
   const arrowTranslate = arrowCoords(position);
   const transformOrigin = origin(position);
@@ -108,7 +107,7 @@ export const Content = styled.div.withConfig({
         ${position === "left" ? 0.75 : position === "right" ? -0.75 : 0}rem
     );
     transform: translate(${translate.x}%, ${translate.y}%);
-    z-index: ${zIndex};
+    z-index: 9999999;
     line-height: 1;
     width: max-content;
     max-width: 100%;

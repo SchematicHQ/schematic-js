@@ -80,7 +80,6 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
   const { data, checkoutState, previewCheckout } = useEmbed();
 
-  const modalRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const checkoutRef = useRef<HTMLDivElement>(null);
 
@@ -392,14 +391,31 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       setUsageBasedEntitlements(entitlements);
 
       const shouldTrial = updates.shouldTrial ?? false;
-      setWillTrial(shouldTrial && !trialPaymentMethodRequired);
+      const updatedWillTrial = shouldTrial && !trialPaymentMethodRequired;
+      setWillTrial(updatedWillTrial);
+
+      if (updatedWillTrial) {
+        setAddOns((prev) =>
+          prev.map((addOn) => ({
+            ...addOn,
+            isSelected: false,
+          })),
+        );
+      }
 
       handlePreviewCheckout({
         period,
         plan,
-        payInAdvanceEntitlements: entitlements.filter(
-          ({ priceBehavior }) => priceBehavior === "pay_in_advance",
-        ),
+        ...(updatedWillTrial
+          ? {
+              addOns: [],
+              payInAdvanceEntitlements: [],
+            }
+          : {
+              payInAdvanceEntitlements: entitlements.filter(
+                ({ priceBehavior }) => priceBehavior === "pay_in_advance",
+              ),
+            }),
       });
     },
     [
@@ -490,13 +506,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   );
 
   return (
-    <Modal
-      ref={modalRef}
-      id="select-plan-dialog"
-      size="lg"
-      top={top}
-      contentRef={contentRef}
-    >
+    <Modal id="select-plan-dialog" size="lg" top={top} contentRef={contentRef}>
       <ModalHeader bordered>
         <Flex
           $flexWrap="wrap"
@@ -592,7 +602,6 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
             {checkoutStage === "plan" && availablePeriods.length > 1 && (
               <PeriodToggle
-                layerRef={modalRef}
                 options={availablePeriods}
                 selectedOption={planPeriod}
                 selectedPlan={selectedPlan}
