@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { TEXT_BASE_SIZE, VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
@@ -9,6 +9,7 @@ import {
 } from "../../../hooks";
 import {
   darken,
+  entitlementCountsReducer,
   formatCurrency,
   formatNumber,
   getBillingPrice,
@@ -19,7 +20,6 @@ import {
   lighten,
   shortenPeriod,
 } from "../../../utils";
-import { ButtonLink } from "../../elements/pricing-table/styles";
 import { cardBoxShadow } from "../../layout";
 import {
   Box,
@@ -126,26 +126,28 @@ const PlanButtonGroup = ({
               <Button
                 type="button"
                 disabled={(isLoading || !isValidPlan) && !plan.custom}
-                {...(!plan.custom && {
-                  onClick: () => {
-                    onSelect({
-                      plan,
-                      shouldTrial: true,
-                    });
-                  },
-                })}
+                {...(plan.custom
+                  ? {
+                      as: "a",
+                      href: plan.customPlanConfig?.ctaWebSite ?? "#",
+                      target: "_blank",
+                      rel: "noreferrer",
+                    }
+                  : {
+                      onClick: () => {
+                        onSelect({
+                          plan,
+                          shouldTrial: true,
+                        });
+                      },
+                    })}
                 $size="sm"
                 $color="primary"
                 $variant="filled"
                 $fullWidth
               >
                 {plan.custom ? (
-                  <ButtonLink
-                    href={plan.customPlanConfig?.ctaWebSite ?? "#"}
-                    target="_blank"
-                  >
-                    {plan.customPlanConfig?.ctaText ?? t("Talk to support")}
-                  </ButtonLink>
+                  (plan.customPlanConfig?.ctaText ?? t("Talk to support"))
                 ) : !isValidPlan ? (
                   <Tooltip
                     trigger={<Text>{t("Over usage limit")}</Text>}
@@ -205,23 +207,25 @@ const PlanButtonGroup = ({
     <Button
       type="button"
       disabled={(isLoading || !isValidPlan) && !plan.custom}
-      {...(!plan.custom && {
-        onClick: () => {
-          onSelect({ plan });
-        },
-      })}
+      {...(plan.custom
+        ? {
+            as: "a",
+            href: plan.customPlanConfig?.ctaWebSite ?? "#",
+            target: "_blank",
+            rel: "noreferrer",
+          }
+        : {
+            onClick: () => {
+              onSelect({ plan });
+            },
+          })}
       $size="sm"
       $color="primary"
       $variant="filled"
       $fullWidth
     >
       {plan.custom ? (
-        <ButtonLink
-          href={plan.customPlanConfig?.ctaWebSite ?? "#"}
-          target="_blank"
-        >
-          {plan.customPlanConfig?.ctaText ?? t("Talk to support")}
-        </ButtonLink>
+        (plan.customPlanConfig?.ctaText ?? t("Talk to support"))
       ) : !isValidPlan ? (
         <Tooltip
           trigger={<Text>{t("Over usage limit")}</Text>}
@@ -263,16 +267,46 @@ export const Plan = ({
 
   const isLightBackground = useIsLightBackground();
 
-  const [seeAll, setSeeAll] = useState(false);
+  const [entitlementCounts, setEntitlementCounts] = useState(() =>
+    plans.reduce(entitlementCountsReducer, {}),
+  );
 
   const isTrialing = useMemo(
     () => isCheckoutData(data) && data.subscription?.status === "trialing",
     [data],
   );
 
-  const toggleSeeAll = () => {
-    setSeeAll((prev) => !prev);
+  const handleToggleShowAll = (id: string) => {
+    setEntitlementCounts((prev) => {
+      const count = prev[id] ? { ...prev[id] } : undefined;
+
+      if (count) {
+        return {
+          ...prev,
+          [id]: {
+            size: count.size,
+            limit:
+              count.limit > VISIBLE_ENTITLEMENT_COUNT
+                ? VISIBLE_ENTITLEMENT_COUNT
+                : count.size,
+          },
+        };
+      }
+
+      return prev;
+    });
   };
+
+  const handleKeyToggle = (event: React.KeyboardEvent, id: string) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      handleToggleShowAll(id);
+    }
+  };
+
+  useEffect(() => {
+    setEntitlementCounts(plans.reduce(entitlementCountsReducer, {}));
+  }, [plans]);
 
   const cardPadding = settings.theme.card.padding / TEXT_BASE_SIZE;
 
@@ -297,6 +331,9 @@ export const Plan = ({
             plan.custom || isUsageBasedPlan
               ? settings.theme.typography.heading3
               : settings.theme.typography.heading2;
+
+          const count = entitlementCounts[plan.id];
+          const isExpanded = count && count.limit > VISIBLE_ENTITLEMENT_COUNT;
 
           return (
             <Flex
@@ -617,16 +654,17 @@ export const Plan = ({
                       },
                       [],
                     )
-                    .slice(0, seeAll ? 9999 : VISIBLE_ENTITLEMENT_COUNT)}
+                    .slice(0, count?.limit ?? VISIBLE_ENTITLEMENT_COUNT)}
 
-                  {plan.entitlements.length > VISIBLE_ENTITLEMENT_COUNT && (
+                  {(count?.size || plan.entitlements.length) >
+                    VISIBLE_ENTITLEMENT_COUNT && (
                     <Flex
                       $alignItems="center"
                       $justifyContent="start"
                       $marginTop="1rem"
                     >
                       <Icon
-                        name={seeAll ? "chevron-up" : "chevron-down"}
+                        name={isExpanded ? "chevron-up" : "chevron-down"}
                         style={{
                           fontSize: "1.4rem",
                           lineHeight: "1em",
@@ -635,12 +673,13 @@ export const Plan = ({
                         }}
                       />
                       <Text
-                        onClick={toggleSeeAll}
+                        onClick={() => handleToggleShowAll(plan.id)}
+                        onKeyDown={(event) => handleKeyToggle(event, plan.id)}
                         display="link"
                         $leading={1}
                         style={{ cursor: "pointer" }}
                       >
-                        {seeAll ? t("Hide all") : t("See all")}
+                        {isExpanded ? t("Hide all") : t("See all")}
                       </Text>
                     </Flex>
                   )}

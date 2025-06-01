@@ -1,3 +1,5 @@
+import { useCallback } from "react";
+
 import { TEXT_BASE_SIZE } from "../../../const";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import { Box, Flex, Icon, IconRound, Text } from "../../ui";
@@ -7,7 +9,7 @@ interface NavigationProps {
   index: number;
   activeIndex: number;
   isLast: boolean;
-  onClick?: () => void;
+  onSelect?: () => void;
 }
 
 export const Navigation = ({
@@ -15,11 +17,21 @@ export const Navigation = ({
   index,
   activeIndex,
   isLast,
-  onClick,
+  onSelect,
 }: NavigationProps) => {
   const { settings } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
+
+  const handleKeySelect: React.KeyboardEventHandler = useCallback(
+    (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        onSelect?.();
+      }
+    },
+    [onSelect],
+  );
 
   const showFullContent = index === activeIndex || index === activeIndex + 1;
 
@@ -77,7 +89,8 @@ export const Navigation = ({
           })}
           {...(index !== activeIndex && { $opacity: "0.6375" })}
           {...(index < activeIndex && {
-            onClick,
+            onClick: onSelect,
+            onKeyDown: handleKeySelect,
             tabIndex: 0,
             $cursor: "pointer",
           })}

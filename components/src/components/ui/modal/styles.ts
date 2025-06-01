@@ -8,9 +8,7 @@ interface ModalProps {
   $size?: ModalSize;
 }
 
-export const Overlay = styled(Box).attrs({
-  tabIndex: 0,
-})`
+export const Overlay = styled(Box)`
   position: absolute;
   top: 50%;
   left: 50%;
@@ -22,9 +20,9 @@ export const Overlay = styled(Box).attrs({
   scrollbar-width: thin;
   scrollbar-gutter: stable both-edges;
   opacity: 1;
-  transition: opacity 0.1s ease-in-out;
+  transition: opacity 0.1s ease-out;
 
-  &.closing {
+  &[data-closing] {
     opacity: 0;
   }
 
@@ -34,7 +32,6 @@ export const Overlay = styled(Box).attrs({
 `;
 
 export const Modal = styled(Box).attrs({
-  tabIndex: 0,
   role: "dialog",
   "aria-modal": true,
 })<ModalProps>`
@@ -53,16 +50,20 @@ export const Modal = styled(Box).attrs({
     0px 1px 3px 0px #1018281a;
   opacity: 1;
   transition:
-    transform 0.1s,
-    opacity 0.1s;
+    transform 0.1s ease-in,
+    opacity 0.1s ease-out;
 
-  .closing & {
-    transform: translate(-50%, -50%) scale(0);
+  &:focus-visible {
+    outline: 2px solid ${({ theme }) => theme.primary};
+  }
+
+  [data-closing] & {
+    transform: translate(-50%, -50%) scale(0.975);
     opacity: 0;
   }
 
   @starting-style {
-    transform: translate(-50%, -50%) scale(0);
+    transform: translate(-50%, -50%) scale(0.975);
     opacity: 0;
   }
 

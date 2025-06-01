@@ -1,3 +1,4 @@
+import cx from "classnames";
 import { Fragment, forwardRef, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -16,6 +17,7 @@ import {
 } from "../../../hooks";
 import type { ElementProps, RecursivePartial } from "../../../types";
 import {
+  entitlementCountsReducer,
   formatCurrency,
   formatNumber,
   getBillingPrice,
@@ -37,25 +39,6 @@ import {
   Tooltip,
   type IconNameTypes,
 } from "../../ui";
-
-const entitlementCountsReducer = (
-  acc: Record<
-    string,
-    | {
-        size: number;
-        limit: number;
-      }
-    | undefined
-  >,
-  plan: PlanViewPublicResponseData | CompanyPlanDetailResponseData,
-) => {
-  acc[plan.id] = {
-    size: plan.entitlements.length,
-    limit: VISIBLE_ENTITLEMENT_COUNT,
-  };
-
-  return acc;
-};
 
 interface DesignProps {
   showPeriodToggle: boolean;
@@ -243,7 +226,7 @@ export const PricingTable = forwardRef<
       <FussyChild
         as={Flex}
         ref={ref}
-        className={className}
+        className={cx("sch-PricingTable", className)}
         $flexDirection="column"
         $gap="2rem"
       >
@@ -261,7 +244,10 @@ export const PricingTable = forwardRef<
               },
             }}
           >
-            <Text display={props.header.fontStyle}>
+            <Text
+              display={props.header.fontStyle}
+              $color={settings.theme.card.background}
+            >
               {props.header.isVisible &&
                 props.plans.isVisible &&
                 plans.length > 0 &&
@@ -272,7 +258,11 @@ export const PricingTable = forwardRef<
               <PeriodToggle
                 options={periods}
                 selectedOption={selectedPeriod}
-                onChange={(period) => setSelectedPeriod(period)}
+                onSelect={(period) => {
+                  if (period !== selectedPeriod) {
+                    setSelectedPeriod(period);
+                  }
+                }}
               />
             )}
           </Flex>
@@ -294,9 +284,6 @@ export const PricingTable = forwardRef<
                       ? plan.yearlyPrice
                       : plan.monthlyPrice,
                   ) || {};
-                const count = entitlementCounts[plan.id];
-                const isExpanded =
-                  count && count.limit > VISIBLE_ENTITLEMENT_COUNT;
 
                 const hasUsageBasedEntitlements = plan.entitlements.some(
                   (entitlement) => !!entitlement.priceBehavior,
@@ -308,10 +295,15 @@ export const PricingTable = forwardRef<
                     ? settings.theme.typography.heading3
                     : settings.theme.typography[props.plans.name.fontStyle];
 
+                const count = entitlementCounts[plan.id];
+                const isExpanded =
+                  count && count.limit > VISIBLE_ENTITLEMENT_COUNT;
+
                 return (
                   <Flex
                     key={planIndex}
-                    className={`sch-plan-${plan.name}`}
+                    className="sch-PricingTable_Plan"
+                    data-plan-id={plan.id}
                     $position="relative"
                     $flexDirection="column"
                     $padding={`${cardPadding}rem 0`}
@@ -672,6 +664,15 @@ export const PricingTable = forwardRef<
                               />
                               <Text
                                 onClick={() => handleToggleShowAll(plan.id)}
+                                onKeyDown={(event) => {
+                                  if (
+                                    event.key === "Enter" ||
+                                    event.key === " "
+                                  ) {
+                                    event.preventDefault();
+                                    handleToggleShowAll(plan.id);
+                                  }
+                                }}
                                 style={{ cursor: "pointer" }}
                                 display="link"
                                 $leading={1}
@@ -714,21 +715,6 @@ export const PricingTable = forwardRef<
                                 !canCheckout) &&
                               !plan.custom
                             }
-                            onClick={() => {
-                              onCallToAction?.(plan);
-
-                              if (
-                                !isStandalone &&
-                                isHydratedPlan(plan) &&
-                                !plan.custom
-                              ) {
-                                setCheckoutState({
-                                  period: selectedPeriod,
-                                  planId: isActivePlan ? null : plan.id,
-                                  usage: false,
-                                });
-                              }
-                            }}
                             {...(planIndex > currentPlanIndex
                               ? {
                                   $size: props.upgrade.buttonSize,
@@ -740,24 +726,43 @@ export const PricingTable = forwardRef<
                                   $color: props.downgrade.buttonStyle,
                                   $variant: "outline",
                                 })}
-                            {...(callToActionUrl && {
-                              as: "a",
-                              href: callToActionUrl,
-                              target: "_blank",
-                            })}
-                            {...(plan.custom &&
-                              plan.customPlanConfig?.ctaWebSite && {
-                                as: "a",
-                                href: plan.customPlanConfig.ctaWebSite,
-                                target: "_blank",
-                              })}
+                            {...(plan.custom
+                              ? {
+                                  as: "a",
+                                  href:
+                                    plan.customPlanConfig?.ctaWebSite ?? "#",
+                                  target: "_blank",
+                                  rel: "noreferrer",
+                                }
+                              : callToActionUrl
+                                ? {
+                                    as: "a",
+                                    href: callToActionUrl,
+                                    target: "_blank",
+                                    rel: "noreferrer",
+                                  }
+                                : {
+                                    onClick: () => {
+                                      onCallToAction?.(plan);
+
+                                      if (
+                                        !isStandalone &&
+                                        isHydratedPlan(plan) &&
+                                        !plan.custom
+                                      ) {
+                                        setCheckoutState({
+                                          period: selectedPeriod,
+                                          planId: isActivePlan ? null : plan.id,
+                                          usage: false,
+                                        });
+                                      }
+                                    },
+                                  })}
                             $fullWidth
                           >
                             {plan.custom ? (
-                              <>
-                                {plan.customPlanConfig?.ctaText ??
-                                  t("Talk to support")}
-                              </>
+                              (plan.customPlanConfig?.ctaText ??
+                              t("Talk to support"))
                             ) : isHydratedPlan(plan) && !plan.valid ? (
                               <Tooltip
                                 trigger={<Text>{t("Over usage limit")}</Text>}
@@ -796,7 +801,12 @@ export const PricingTable = forwardRef<
                   $alignItems="center"
                   $marginBottom="1rem"
                 >
-                  <Text display={props.header.fontStyle}>{t("Add-ons")}</Text>
+                  <Text
+                    display={props.header.fontStyle}
+                    $color={settings.theme.card.background}
+                  >
+                    {t("Add-ons")}
+                  </Text>
                 </Flex>
               )}
 
@@ -1006,17 +1016,6 @@ export const PricingTable = forwardRef<
                               (isHydratedPlan(addOn) && !addOn.valid) ||
                               !canCheckout
                             }
-                            onClick={() => {
-                              onCallToAction?.(addOn);
-
-                              if (!isStandalone && !addOn.custom) {
-                                setCheckoutState({
-                                  period: selectedPeriod,
-                                  addOnId: isActiveAddOn ? null : addOn.id,
-                                  usage: false,
-                                });
-                              }
-                            }}
                             $size={props.upgrade.buttonSize}
                             $color={
                               isActiveAddOn
@@ -1030,12 +1029,28 @@ export const PricingTable = forwardRef<
                                   ? "outline"
                                   : "filled"
                             }
-                            {...(callToActionUrl && {
-                              as: "a",
-                              href: callToActionUrl,
-                              rel: "noreferrer",
-                              target: "_blank",
-                            })}
+                            {...(callToActionUrl
+                              ? {
+                                  as: "a",
+                                  href: callToActionUrl,
+                                  rel: "noreferrer",
+                                  target: "_blank",
+                                }
+                              : {
+                                  onClick: () => {
+                                    onCallToAction?.(addOn);
+
+                                    if (!isStandalone && !addOn.custom) {
+                                      setCheckoutState({
+                                        period: selectedPeriod,
+                                        addOnId: isActiveAddOn
+                                          ? null
+                                          : addOn.id,
+                                        usage: false,
+                                      });
+                                    }
+                                  },
+                                })}
                             $fullWidth
                           >
                             {isActiveAddOn

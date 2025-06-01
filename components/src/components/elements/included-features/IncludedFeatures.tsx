@@ -244,6 +244,12 @@ export const IncludedFeatures = forwardRef<
 
           <Text
             onClick={handleToggleShowAll}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                handleToggleShowAll();
+              }
+            }}
             style={{ cursor: "pointer" }}
             display="link"
             $leading={1}

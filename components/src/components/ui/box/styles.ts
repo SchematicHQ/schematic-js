@@ -27,7 +27,19 @@ export const Box = styled.div<BoxProps>((props) => {
     return acc;
   }
 
-  const styles = Object.entries(props).reduce(reducer, []);
+  const styles = Object.entries(props).reduce(reducer, [
+    css`
+      transition: opacity 0.1s ease-in-out;
+
+      @starting-style {
+        opacity: 0;
+      }
+
+      &:focus-visible {
+        outline: 2px solid ${({ theme }) => theme.primary};
+      }
+    `,
+  ]);
 
   for (const [key, value] of Object.entries(props.$viewport || {})) {
     styles.push(css`

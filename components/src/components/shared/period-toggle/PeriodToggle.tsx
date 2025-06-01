@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -13,14 +13,14 @@ interface PeriodToggleProps {
   options: string[];
   selectedOption: string;
   selectedPlan?: SelectedPlan;
-  onChange: (period: string) => void;
+  onSelect: (period: string) => void;
 }
 
 export const PeriodToggle = ({
   options,
   selectedOption,
   selectedPlan,
-  onChange,
+  onSelect,
 }: PeriodToggleProps) => {
   const { t } = useTranslation();
 
@@ -39,6 +39,16 @@ export const PeriodToggle = ({
 
     return 0;
   }, [selectedPlan]);
+
+  const handleKeySelect = useCallback(
+    (event: React.KeyboardEvent, option: string) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        onSelect(option);
+      }
+    },
+    [onSelect],
+  );
 
   return (
     <Flex
@@ -64,7 +74,8 @@ export const PeriodToggle = ({
           <Flex
             key={option}
             tabIndex={0}
-            onClick={() => onChange(option)}
+            onClick={() => onSelect(option)}
+            onKeyDown={(event) => handleKeySelect(event, option)}
             $justifyContent="center"
             $alignItems="center"
             $flexGrow={1}

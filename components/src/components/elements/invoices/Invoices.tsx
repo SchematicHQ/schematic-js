@@ -68,41 +68,6 @@ function formatInvoices(invoices: InvoiceResponseData[] = []) {
     }));
 }
 
-interface InvoiceDateProps {
-  date: string;
-  fontStyle: FontStyle;
-  url?: string | null;
-}
-
-const InvoiceDate = ({ date, fontStyle, url }: InvoiceDateProps) => {
-  const { settings } = useEmbed();
-
-  // pass an empty `onClick` function to get the correct link style
-  const dateText = (
-    <Text
-      {...(url && { onClick: () => {} })}
-      display={fontStyle}
-      $color={
-        url
-          ? settings.theme.typography.link.color
-          : settings.theme.typography.text.color
-      }
-    >
-      {date}
-    </Text>
-  );
-
-  if (url) {
-    return (
-      <a href={url} target="_blank" rel="noreferrer">
-        {dateText}
-      </a>
-    );
-  }
-
-  return dateText;
-};
-
 export type InvoicesProps = DesignProps & {
   data?: InvoiceResponseData[];
 };
@@ -118,7 +83,7 @@ export const Invoices = forwardRef<
 
   const { t } = useTranslation();
 
-  const { listInvoices } = useEmbed();
+  const { listInvoices, settings } = useEmbed();
 
   const [invoices, setInvoices] = useState(() => formatInvoices(data));
   const [listSize, setListSize] = useState(props.limit.number);
@@ -167,11 +132,22 @@ export const Invoices = forwardRef<
                   return (
                     <Flex key={index} $justifyContent="space-between">
                       {props.date.isVisible && date && (
-                        <InvoiceDate
-                          date={date}
-                          fontStyle={props.date.fontStyle}
-                          url={url}
-                        />
+                        <Text
+                          display={props.date.fontStyle}
+                          {...(url && {
+                            as: "a",
+                            href: url,
+                            target: "_blank",
+                            rel: "noreferrer",
+                          })}
+                          $color={
+                            url
+                              ? settings.theme.typography.link.color
+                              : settings.theme.typography.text.color
+                          }
+                        >
+                          {date}
+                        </Text>
                       )}
 
                       {props.amount.isVisible && (

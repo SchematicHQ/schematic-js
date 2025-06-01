@@ -464,7 +464,6 @@ export const Sidebar = ({
   return (
     <Flex
       ref={checkoutRef}
-      tabIndex={0}
       $flexDirection="column"
       $flexShrink={0}
       $overflow="auto"

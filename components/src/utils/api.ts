@@ -7,6 +7,7 @@ import {
   type PlanViewPublicResponseData,
   type PublicPlansResponseData,
 } from "../api/componentspublic";
+import { VISIBLE_ENTITLEMENT_COUNT } from "../const";
 import { type SelectedPlan } from "../hooks";
 
 import { pluralize } from "./pluralize";
@@ -76,3 +77,22 @@ export const ChargeType = {
   recurring: "recurring",
   free: "free",
 };
+
+export function entitlementCountsReducer(
+  acc: Record<
+    string,
+    | {
+        size: number;
+        limit: number;
+      }
+    | undefined
+  >,
+  plan: PlanViewPublicResponseData | CompanyPlanDetailResponseData,
+) {
+  acc[plan.id] = {
+    size: plan.entitlements.length,
+    limit: VISIBLE_ENTITLEMENT_COUNT,
+  };
+
+  return acc;
+}

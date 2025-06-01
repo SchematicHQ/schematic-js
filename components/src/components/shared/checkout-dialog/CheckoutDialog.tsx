@@ -428,10 +428,12 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
   const changePlanPeriod = useCallback(
     (period: string) => {
-      setPlanPeriod(period);
-      handlePreviewCheckout({ period });
+      if (period !== planPeriod) {
+        setPlanPeriod(period);
+        handlePreviewCheckout({ period });
+      }
     },
-    [setPlanPeriod, handlePreviewCheckout],
+    [planPeriod, setPlanPeriod, handlePreviewCheckout],
   );
 
   const toggleAddOn = useCallback(
@@ -484,21 +486,20 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
   useEffect(() => {
     if (charges) {
-      checkoutRef.current?.scrollIntoView({
-        behavior: "smooth",
-        block: "nearest",
-      });
-    }
-  }, [charges]);
-
-  useLayoutEffect(() => {
-    if (contentRef.current) {
-      contentRef.current.scrollTo({
+      checkoutRef.current?.scrollTo({
         top: 0,
         left: 0,
         behavior: "smooth",
       });
     }
+  }, [charges]);
+
+  useLayoutEffect(() => {
+    contentRef.current?.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: "smooth",
+    });
   }, [checkoutStage]);
 
   const activeCheckoutStage = checkoutStages.find(
@@ -526,7 +527,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
                 (s) => s.id === checkoutStage,
               )}
               isLast={index === stages.length - 1}
-              onClick={() => setCheckoutStage(stage.id)}
+              onSelect={() => setCheckoutStage(stage.id)}
             />
           ))}
         </Flex>
@@ -605,7 +606,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
                 options={availablePeriods}
                 selectedOption={planPeriod}
                 selectedPlan={selectedPlan}
-                onChange={changePlanPeriod}
+                onSelect={changePlanPeriod}
               />
             )}
           </Flex>
