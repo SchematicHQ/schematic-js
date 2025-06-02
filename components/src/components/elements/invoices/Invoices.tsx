@@ -8,6 +8,7 @@ import { useEmbed } from "../../../hooks";
 import type { ElementProps, RecursivePartial } from "../../../types";
 import {
   ERROR_UNKNOWN,
+  createKeyboardExecutionHandler,
   formatCurrency,
   isError,
   toPrettyDate,
@@ -120,13 +121,6 @@ export const Invoices = forwardRef<
     );
   };
 
-  const handleKeyToggleListSize: React.KeyboardEventHandler = (event) => {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      toggleListSize();
-    }
-  };
-
   useEffect(() => {
     getInvoices();
   }, [getInvoices]);
@@ -219,7 +213,9 @@ export const Invoices = forwardRef<
 
                         <Text
                           onClick={toggleListSize}
-                          onKeyDown={handleKeyToggleListSize}
+                          onKeyDown={createKeyboardExecutionHandler(
+                            toggleListSize,
+                          )}
                           display={props.collapse.fontStyle}
                         >
                           {listSize === props.limit.number

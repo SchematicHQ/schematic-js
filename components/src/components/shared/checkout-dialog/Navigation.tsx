@@ -1,7 +1,6 @@
-import { useCallback } from "react";
-
 import { TEXT_BASE_SIZE } from "../../../const";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
+import { createKeyboardExecutionHandler } from "../../../utils";
 import { Box, Flex, Icon, IconRound, Text } from "../../ui";
 
 interface NavigationProps {
@@ -22,16 +21,6 @@ export const Navigation = ({
   const { settings } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
-
-  const handleKeySelect: React.KeyboardEventHandler = useCallback(
-    (event) => {
-      if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
-        onSelect?.();
-      }
-    },
-    [onSelect],
-  );
 
   const showFullContent = index === activeIndex || index === activeIndex + 1;
 
@@ -90,7 +79,7 @@ export const Navigation = ({
           {...(index !== activeIndex && { $opacity: "0.6375" })}
           {...(index < activeIndex && {
             onClick: onSelect,
-            onKeyDown: handleKeySelect,
+            onKeyDown: createKeyboardExecutionHandler(onSelect),
             tabIndex: 0,
             $cursor: "pointer",
           })}

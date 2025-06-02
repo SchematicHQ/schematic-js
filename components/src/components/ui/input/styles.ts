@@ -73,7 +73,7 @@ export const Input = styled.input<{
       `;
     }}
 
-    &-disabled {
+    &:disabled {
       color: #9ca3af80;
       background-color: #f9fafb;
       border-color: #f3f4f6;
@@ -81,8 +81,8 @@ export const Input = styled.input<{
     }
 
     &:focus-visible {
-      outline-offset: 1px;
-      outline-width: 2px;
+      outline: 2px solid ${theme.primary};
+      outline-offset: 2px;
     }
 
     &::placeholder {

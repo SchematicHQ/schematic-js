@@ -10,7 +10,11 @@ import {
   useWrapChildren,
 } from "../../../hooks";
 import type { ElementProps, RecursivePartial } from "../../../types";
-import { isCheckoutData, toPrettyDate } from "../../../utils";
+import {
+  createKeyboardExecutionHandler,
+  isCheckoutData,
+  toPrettyDate,
+} from "../../../utils";
 import { Element } from "../../layout";
 import { Box, Flex, Icon, IconRound, Text, type IconNameTypes } from "../../ui";
 
@@ -133,13 +137,6 @@ export const IncludedFeatures = forwardRef<
     );
   };
 
-  const handleKeyToggleShowAll: React.KeyboardEventHandler = (event) => {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      handleToggleShowAll();
-    }
-  };
-
   // Check if we should render this component at all:
   // * If there are any plans or addons, render it, even if the list is empty.
   // * If there are any features, show it (e.g., there could be features available via company overrides
@@ -251,7 +248,7 @@ export const IncludedFeatures = forwardRef<
 
           <Text
             onClick={handleToggleShowAll}
-            onKeyDown={handleKeyToggleShowAll}
+            onKeyDown={createKeyboardExecutionHandler(handleToggleShowAll)}
             display="link"
           >
             {isExpanded ? t("Hide all") : t("See all")}

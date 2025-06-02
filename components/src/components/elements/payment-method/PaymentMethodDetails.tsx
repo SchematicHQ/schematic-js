@@ -9,7 +9,7 @@ import type {
 } from "../../../api/checkoutexternal";
 import { type FontStyle } from "../../../context";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
-import { isCheckoutData } from "../../../utils";
+import { createKeyboardExecutionHandler, isCheckoutData } from "../../../utils";
 import { PaymentForm } from "../../shared";
 import { Box, Button, Flex, Icon, Loader, Text } from "../../ui";
 
@@ -109,6 +109,15 @@ export const PaymentMethodDetails = ({
     }
     return expiration;
   }, [paymentMethod?.cardExpYear, paymentMethod?.cardExpMonth]);
+
+  const focusExistingPaymentMethods = () => {
+    setShowPaymentForm(false);
+    setShowDifferentPaymentMethods(false);
+  };
+
+  const toggleShowPaymentMethods = () => {
+    setShowDifferentPaymentMethods((prev) => !prev);
+  };
 
   const initializePaymentMethod = useCallback(async () => {
     try {
@@ -253,10 +262,10 @@ export const PaymentMethodDetails = ({
             {paymentMethod && (
               <Box>
                 <Text
-                  onClick={() => {
-                    setShowPaymentForm(false);
-                    setShowDifferentPaymentMethods(false);
-                  }}
+                  onClick={focusExistingPaymentMethods}
+                  onKeyDown={createKeyboardExecutionHandler(
+                    focusExistingPaymentMethods,
+                  )}
                   display="link"
                 >
                   {t("Select existing payment method")}
@@ -276,9 +285,10 @@ export const PaymentMethodDetails = ({
             {paymentMethods.length > 0 && (
               <Box>
                 <Text
-                  onClick={() => {
-                    setShowDifferentPaymentMethods((prev) => !prev);
-                  }}
+                  onClick={toggleShowPaymentMethods}
+                  onKeyDown={createKeyboardExecutionHandler(
+                    toggleShowPaymentMethods,
+                  )}
                   display="link"
                 >
                   {t("Choose different payment method")}

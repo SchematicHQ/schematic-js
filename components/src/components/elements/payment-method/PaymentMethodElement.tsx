@@ -1,11 +1,12 @@
 import { t } from "i18next";
-import { useCallback, useMemo } from "react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import type { DefaultTheme } from "styled-components/dist/models/ThemeProvider";
 
 import type { PaymentMethodResponseData } from "../../../api/checkoutexternal";
 import { type FontStyle } from "../../../context";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
+import { createKeyboardExecutionHandler } from "../../../utils";
 import { Box, Flex, Icon, IconNameTypes, Text } from "../../ui";
 
 type PaymentMethodType =
@@ -196,16 +197,6 @@ export const PaymentMethodElement = ({
     return 0.5;
   }, [size]);
 
-  const handleKeyEdit: React.KeyboardEventHandler = useCallback(
-    (event) => {
-      if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
-        onEdit?.();
-      }
-    },
-    [onEdit],
-  );
-
   return (
     <Flex $flexDirection="column" $gap={`${sizeFactor}rem`}>
       {props.header.isVisible && (
@@ -246,7 +237,7 @@ export const PaymentMethodElement = ({
         {props.functions.allowEdit && onEdit && (
           <Text
             onClick={onEdit}
-            onKeyDown={handleKeyEdit}
+            onKeyDown={createKeyboardExecutionHandler(onEdit)}
             display="link"
             $leading={1}
           >
