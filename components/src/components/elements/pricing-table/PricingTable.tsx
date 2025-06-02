@@ -137,24 +137,45 @@ export const PricingTable = forwardRef<
 
   const { data, settings, hydratePublic, setCheckoutState } = useEmbed();
 
-  const { planPeriod, currentAddOns, billingSubscription, canCheckout } =
-    useMemo(() => {
-      if (isCheckoutData(data)) {
-        return {
-          planPeriod: data.company?.plan?.planPeriod || "month",
-          currentAddOns: data.company?.addOns || [],
-          billingSubscription: data.company?.billingSubscription,
-          canCheckout: data.capabilities?.checkout ?? true,
-        };
-      }
+  const isLightBackground = useIsLightBackground();
+
+  const trialEndDays = useTrialEnd();
+
+  const {
+    planPeriod,
+    currentAddOns,
+    canCheckout,
+    isTrialSubscription,
+    willSubscriptionCancel,
+    isStandalone,
+    showCallToAction,
+  } = useMemo(() => {
+    if (isCheckoutData(data)) {
+      const billingSubscription = data.company?.billingSubscription;
+      const isTrialSubscription = billingSubscription?.status === "trialing";
+      const willSubscriptionCancel = billingSubscription?.cancelAtPeriodEnd;
 
       return {
-        planPeriod: "month",
-        currentAddOns: [],
-        billingSubscription: undefined,
-        canCheckout: true,
+        planPeriod: data.company?.plan?.planPeriod || "month",
+        currentAddOns: data.company?.addOns || [],
+        canCheckout: data.capabilities?.checkout ?? true,
+        isTrialSubscription,
+        willSubscriptionCancel,
+        isStandalone: false,
+        showCallToAction: false,
       };
-    }, [data]);
+    }
+
+    return {
+      planPeriod: "month",
+      currentAddOns: [],
+      canCheckout: true,
+      isTrialSubscription: false,
+      willSubscriptionCancel: false,
+      isStandalone: true,
+      showCallToAction: typeof callToActionUrl === "string",
+    };
+  }, [data, callToActionUrl]);
 
   const [selectedPeriod, setSelectedPeriod] = useState(planPeriod);
 
@@ -163,20 +184,6 @@ export const PricingTable = forwardRef<
   const [entitlementCounts, setEntitlementCounts] = useState(() =>
     plans.reduce(entitlementCountsReducer, {}),
   );
-
-  const isLightBackground = useIsLightBackground();
-
-  const { isTrialSubscription, willSubscriptionCancel } = useMemo(() => {
-    const isTrialSubscription = billingSubscription?.status === "trialing";
-    const willSubscriptionCancel = billingSubscription?.cancelAtPeriodEnd;
-
-    return {
-      isTrialSubscription,
-      willSubscriptionCancel,
-    };
-  }, [billingSubscription]);
-
-  const trialEndDays = useTrialEnd();
 
   const handleToggleShowAll = (id: string) => {
     setEntitlementCounts((prev) => {
@@ -199,8 +206,6 @@ export const PricingTable = forwardRef<
     });
   };
 
-  const isStandalone = useMemo(() => !isCheckoutData(data), [data]);
-
   useEffect(() => {
     if (isStandalone) {
       hydratePublic();
@@ -211,22 +216,20 @@ export const PricingTable = forwardRef<
     setEntitlementCounts(plans.reduce(entitlementCountsReducer, {}));
   }, [plans]);
 
-  const showCallToAction = !isStandalone || typeof callToActionUrl === "string";
-
   const currentPlanIndex = plans.findIndex(
     (plan) => isHydratedPlan(plan) && plan.current,
   );
 
-  const cardPadding = settings.theme.card.padding / TEXT_BASE_SIZE;
-
   const Wrapper = isStandalone ? Container : Fragment;
+
+  const cardPadding = settings.theme.card.padding / TEXT_BASE_SIZE;
 
   return (
     <Wrapper>
       <FussyChild
-        as={Flex}
         ref={ref}
         className={cx("sch-PricingTable", className)}
+        as={Flex}
         $flexDirection="column"
         $gap="2rem"
       >

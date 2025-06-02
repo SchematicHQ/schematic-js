@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 
 import { useEmbed, useIsLightBackground } from "../../../hooks";
-import { Box, Flex, Icon } from "../../ui";
+import { Button, Flex, Icon } from "../../ui";
 
 interface ModalHeaderProps {
   children?: React.ReactNode;
@@ -47,13 +47,18 @@ export const ModalHeader = ({
       $viewport={{
         md: {
           $height: "5rem",
-          $padding: "0 1.5rem 0 3rem",
+          $padding: "0 0.75rem 0 3rem",
         },
       }}
     >
       {children}
 
-      <Box onClick={handleClose} $cursor="pointer">
+      <Button
+        onClick={handleClose}
+        style={{ cursor: "pointer", padding: "0 0.5rem 0 0" }}
+        $color="secondary"
+        $variant="text"
+      >
         <Icon
           name="close"
           style={{
@@ -63,7 +68,7 @@ export const ModalHeader = ({
               : "hsla(0, 0%, 100%, 0.275)",
           }}
         />
-      </Box>
+      </Button>
     </Flex>
   );
 };

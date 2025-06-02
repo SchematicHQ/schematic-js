@@ -1,6 +1,6 @@
+import { useRef } from "react";
 import { useTranslation } from "react-i18next";
 
-import { useEmbed } from "../../../hooks";
 import { PaymentMethodDetails } from "../../elements";
 import { Modal, ModalHeader, Text } from "../../ui";
 
@@ -11,11 +11,11 @@ interface PaymentDialogProps {
 export const PaymentDialog = ({ top = 0 }: PaymentDialogProps) => {
   const { t } = useTranslation();
 
-  const { setLayout } = useEmbed();
+  const contentRef = useRef<HTMLDivElement>(null);
 
   return (
-    <Modal size="md" top={top} onClose={() => setLayout("portal")}>
-      <ModalHeader bordered onClose={() => setLayout("portal")}>
+    <Modal size="md" top={top} contentRef={contentRef}>
+      <ModalHeader bordered>
         <Text $size={18}>{t("Edit payment method")}</Text>
       </ModalHeader>
 

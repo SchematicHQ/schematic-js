@@ -297,13 +297,6 @@ export const Plan = ({
     });
   };
 
-  const handleKeyToggle = (event: React.KeyboardEvent, id: string) => {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      handleToggleShowAll(id);
-    }
-  };
-
   useEffect(() => {
     setEntitlementCounts(plans.reduce(entitlementCountsReducer, {}));
   }, [plans]);
@@ -674,7 +667,12 @@ export const Plan = ({
                       />
                       <Text
                         onClick={() => handleToggleShowAll(plan.id)}
-                        onKeyDown={(event) => handleKeyToggle(event, plan.id)}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter" || event.key === " ") {
+                            event.preventDefault();
+                            handleToggleShowAll(plan.id);
+                          }
+                        }}
                         display="link"
                         $leading={1}
                         style={{ cursor: "pointer" }}

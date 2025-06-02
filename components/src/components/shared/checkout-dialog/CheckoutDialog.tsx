@@ -507,7 +507,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   );
 
   return (
-    <Modal id="select-plan-dialog" size="lg" top={top} contentRef={contentRef}>
+    <Modal size="lg" top={top} contentRef={contentRef}>
       <ModalHeader bordered>
         <Flex
           $flexWrap="wrap"

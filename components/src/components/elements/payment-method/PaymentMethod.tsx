@@ -49,32 +49,39 @@ export const PaymentMethod = forwardRef<
 
   const { data, setLayout } = useEmbed();
 
-  const paymentMethod = useMemo(() => {
+  const { paymentMethod, monthsToExpiration } = useMemo(() => {
     if (isCheckoutData(data)) {
-      return (
-        data.subscription?.paymentMethod || data.company?.defaultPaymentMethod
-      );
+      const paymentMethod =
+        data.subscription?.paymentMethod || data.company?.defaultPaymentMethod;
+
+      let monthsToExpiration: number | undefined;
+      if (
+        typeof paymentMethod?.cardExpYear === "number" &&
+        typeof paymentMethod?.cardExpMonth === "number"
+      ) {
+        const today = new Date();
+        const currentYear = today.getFullYear();
+        const currentMonth = today.getMonth();
+        const timeToExpiration = Math.round(
+          +new Date(paymentMethod.cardExpYear, paymentMethod.cardExpMonth - 1) -
+            +new Date(currentYear, currentMonth),
+        );
+        monthsToExpiration = Math.round(
+          timeToExpiration / (1000 * 60 * 60 * 24 * 30),
+        );
+      }
+
+      return {
+        paymentMethod,
+        monthsToExpiration,
+      };
     }
+
+    return {
+      paymentMethod: undefined,
+      monthsToExpiration: undefined,
+    };
   }, [data]);
-
-  const monthsToExpiration = useMemo(() => {
-    let expiration: number | undefined;
-
-    if (
-      typeof paymentMethod?.cardExpYear === "number" &&
-      typeof paymentMethod?.cardExpMonth === "number"
-    ) {
-      const today = new Date();
-      const currentYear = today.getFullYear();
-      const currentMonth = today.getMonth();
-      const timeToExpiration = Math.round(
-        +new Date(paymentMethod.cardExpYear, paymentMethod.cardExpMonth - 1) -
-          +new Date(currentYear, currentMonth),
-      );
-      expiration = Math.round(timeToExpiration / (1000 * 60 * 60 * 24 * 30));
-    }
-    return expiration;
-  }, [paymentMethod?.cardExpYear, paymentMethod?.cardExpMonth]);
 
   return (
     <Element ref={ref} className={className}>

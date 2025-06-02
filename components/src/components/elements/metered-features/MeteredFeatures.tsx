@@ -125,7 +125,7 @@ export const MeteredFeatures = forwardRef<
         return {
           planPeriod: data.company?.plan?.planPeriod,
           plan: data.company?.plan,
-          addOns: data.company?.addOns,
+          addOns: data.company?.addOns || [],
           featureUsage: (
             orderedFeatureUsage ||
             data.featureUsage?.features ||
@@ -154,7 +154,7 @@ export const MeteredFeatures = forwardRef<
   //  even if the company has no plan or add-ons).
   // * If none of the above, don't render the component.
   const shouldShowFeatures =
-    featureUsage.length > 0 || plan || (addOns ?? []).length > 0 || false;
+    featureUsage.length > 0 || plan || addOns.length > 0 || false;
 
   if (!shouldShowFeatures) {
     return null;

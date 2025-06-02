@@ -106,6 +106,13 @@ export const Invoices = forwardRef<
     );
   };
 
+  const handleKeyToggleListSize: React.KeyboardEventHandler = (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      toggleListSize();
+    }
+  };
+
   useEffect(() => {
     getInvoices();
   }, [getInvoices]);
@@ -168,6 +175,7 @@ export const Invoices = forwardRef<
 
                   <Text
                     onClick={toggleListSize}
+                    onKeyDown={handleKeyToggleListSize}
                     display={props.collapse.fontStyle}
                   >
                     {listSize === props.limit.number

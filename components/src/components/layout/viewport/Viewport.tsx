@@ -19,9 +19,14 @@ export const Viewport = forwardRef<HTMLDivElement | null, ViewportProps>(
 
     const [top, setTop] = useState(0);
 
-    const canCheckout = useMemo(() => {
-      return data?.capabilities?.checkout ?? true;
-    }, [data]);
+    const { canCheckout, isBadgeVisible } = useMemo(() => {
+      return {
+        canCheckout: data?.capabilities?.checkout ?? true,
+        isBadgeVisible:
+          !data?.capabilities?.badgeVisibility ||
+          settings.badge?.visibility !== "hidden",
+      };
+    }, [data, settings]);
 
     useLayoutEffect(() => {
       const parent = portal || document.body;
@@ -51,8 +56,7 @@ export const Viewport = forwardRef<HTMLDivElement | null, ViewportProps>(
       <>
         <StyledViewport ref={ref} {...props}>
           <RenderLayout>{children}</RenderLayout>
-          {(!data?.capabilities?.badgeVisibility ||
-            settings.badge?.visibility !== "hidden") && <Badge />}
+          {isBadgeVisible && <Badge />}
         </StyledViewport>
 
         {canCheckout &&

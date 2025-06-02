@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -18,7 +18,7 @@ interface UnsubscribeDialogProps {
 export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
   const { t } = useTranslation();
 
-  const { data, setLayout, setCheckoutState } = useEmbed();
+  const { data, setCheckoutState } = useEmbed();
 
   const contentRef = useRef<HTMLDivElement>(null);
 
@@ -76,17 +76,8 @@ export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
 
   const isLightBackground = useIsLightBackground();
 
-  const handleClose = useCallback(() => {
-    setLayout("portal");
-  }, [setLayout]);
-
   return (
-    <Modal
-      id="unsubscribe-dialog"
-      size="auto"
-      top={top}
-      contentRef={contentRef}
-    >
+    <Modal size="auto" top={top} contentRef={contentRef}>
       <Box
         $display="inline-flex"
         $position="absolute"
@@ -94,7 +85,6 @@ export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
         $right={0}
         $zIndex={1}
         $cursor="pointer"
-        onClick={handleClose}
       >
         <Icon
           name="close"

@@ -29,12 +29,6 @@ export const Box = styled.div<BoxProps>((props) => {
 
   const styles = Object.entries(props).reduce(reducer, [
     css`
-      transition: opacity 0.1s ease-in-out;
-
-      @starting-style {
-        opacity: 0;
-      }
-
       &:focus-visible {
         outline: 2px solid ${({ theme }) => theme.primary};
       }

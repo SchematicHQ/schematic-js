@@ -52,7 +52,7 @@
     "Limit of": "Limit of {{amount}}",
     "Loading": "Loading",
     "Manage plan": "Manage plan",
-    "Monthly": "Monthly",
+    "Monthly total": "Monthly total",
     "Next": "Next",
     "No invoices created yet": "No invoices created yet",
     "No limit": "No limit",
@@ -115,7 +115,7 @@
     "X included": "{{amount}} included",
     "X off": "{{amount}} off",
     "X% off": "{{percent}}% off",
-    "Yearly": "Yearly",
+    "Yearly total": "Yearly total",
     "You will retain access to your plan until the end of the billing period, on": "You will retain access to your plan until the end of the billing period, on",
 
     "day": "day",

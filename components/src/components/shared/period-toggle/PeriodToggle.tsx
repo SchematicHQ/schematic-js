@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -40,16 +40,6 @@ export const PeriodToggle = ({
     return 0;
   }, [selectedPlan]);
 
-  const handleKeySelect = useCallback(
-    (event: React.KeyboardEvent, option: string) => {
-      if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
-        onSelect(option);
-      }
-    },
-    [onSelect],
-  );
-
   return (
     <Flex
       $margin={0}
@@ -75,7 +65,12 @@ export const PeriodToggle = ({
             key={option}
             tabIndex={0}
             onClick={() => onSelect(option)}
-            onKeyDown={(event) => handleKeySelect(event, option)}
+            onKeyDown={(event: React.KeyboardEvent) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                onSelect(option);
+              }
+            }}
             $justifyContent="center"
             $alignItems="center"
             $flexGrow={1}

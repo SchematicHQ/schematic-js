@@ -39,38 +39,24 @@ export const Details = ({
 
   const { data } = useEmbed();
 
-  const planPeriod = useMemo(() => {
-    return isCheckoutData(data) &&
-      typeof data.company?.plan?.planPeriod === "string"
-      ? data.company.plan.planPeriod
-      : undefined;
-  }, [data]);
-
   const {
+    planPeriod,
     price,
     priceDecimal,
     priceTier,
     currency,
     packageSize = 1,
   } = useMemo(() => {
-    const {
-      price: entitlementPrice,
-      priceDecimal: entitlementPriceDecimal,
-      priceTier: entitlementPriceTier,
-      currency: entitlementCurrency,
-      packageSize: entitlementPackageSize,
-    } = getBillingPrice(
+    const planPeriod =
+      isCheckoutData(data) && typeof data.company?.plan?.planPeriod === "string"
+        ? data.company.plan.planPeriod
+        : undefined;
+    const billingPrice = getBillingPrice(
       planPeriod === "year" ? yearlyUsageBasedPrice : monthlyUsageBasedPrice,
-    ) || {};
+    );
 
-    return {
-      price: entitlementPrice,
-      priceDecimal: entitlementPriceDecimal,
-      priceTier: entitlementPriceTier,
-      currency: entitlementCurrency,
-      packageSize: entitlementPackageSize,
-    };
-  }, [planPeriod, monthlyUsageBasedPrice, yearlyUsageBasedPrice]);
+    return { planPeriod, ...billingPrice };
+  }, [data, monthlyUsageBasedPrice, yearlyUsageBasedPrice]);
 
   const text = useMemo(() => {
     if (!feature) {

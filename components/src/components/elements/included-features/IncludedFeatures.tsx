@@ -111,14 +111,14 @@ export const IncludedFeatures = forwardRef<
 
       return {
         plan: data.company?.plan,
-        addOns: data.company?.addOns,
+        addOns: data.company?.addOns || [],
         featureUsage: orderedFeatureUsage || data.featureUsage?.features || [],
       };
     }
 
     return {
       plan: undefined,
-      addOns: undefined,
+      addOns: [],
       featureUsage: [],
     };
   }, [props.visibleFeatures, data]);
@@ -133,13 +133,20 @@ export const IncludedFeatures = forwardRef<
     );
   };
 
+  const handleKeyToggleShowAll: React.KeyboardEventHandler = (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      handleToggleShowAll();
+    }
+  };
+
   // Check if we should render this component at all:
   // * If there are any plans or addons, render it, even if the list is empty.
   // * If there are any features, show it (e.g., there could be features available via company overrides
   //  even if the company has no plan or add-ons).
   // * If none of the above, don't render the component.
   const shouldShowFeatures =
-    featureUsage.length > 0 || plan || (addOns ?? []).length > 0 || false;
+    featureUsage.length > 0 || plan || addOns.length > 0 || false;
 
   if (!shouldShowFeatures) {
     return null;
@@ -244,15 +251,8 @@ export const IncludedFeatures = forwardRef<
 
           <Text
             onClick={handleToggleShowAll}
-            onKeyDown={(event) => {
-              if (event.key === "Enter" || event.key === " ") {
-                event.preventDefault();
-                handleToggleShowAll();
-              }
-            }}
-            style={{ cursor: "pointer" }}
+            onKeyDown={handleKeyToggleShowAll}
             display="link"
-            $leading={1}
           >
             {isExpanded ? t("Hide all") : t("See all")}
           </Text>

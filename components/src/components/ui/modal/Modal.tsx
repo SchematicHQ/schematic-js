@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useRef } from "react";
+import { useCallback, useLayoutEffect, useRef } from "react";
 
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import { Container } from "../../layout";
@@ -30,39 +30,9 @@ export const Modal = ({
   const ref = useRef<HTMLDivElement | null>(null);
 
   const handleClose = useCallback(() => {
-    if (ref.current) {
-      ref.current.dataset.closing = "true";
-    }
-  }, []);
-
-  const handleTransitionEnd: React.TransitionEventHandler<HTMLDivElement> =
-    useCallback(
-      (event) => {
-        if (
-          ref.current?.dataset.closing &&
-          event.propertyName === "transform"
-        ) {
-          delete ref.current.dataset.closing;
-          setLayout("portal");
-          onClose?.();
-        }
-      },
-      [ref, setLayout, onClose],
-    );
-
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        handleClose();
-      }
-    };
-
-    addEventListener("keydown", onKeyDown);
-
-    return () => {
-      removeEventListener("keydown", onKeyDown);
-    };
-  }, [handleClose]);
+    setLayout("portal");
+    onClose?.();
+  }, [setLayout, onClose]);
 
   useLayoutEffect(() => {
     contentRef?.current?.focus({ preventScroll: true });
@@ -83,7 +53,11 @@ export const Modal = ({
       >
         <styles.Modal
           ref={contentRef}
-          onTransitionEnd={handleTransitionEnd}
+          onKeyDown={(event) => {
+            if (event.key === "Escape") {
+              handleClose();
+            }
+          }}
           $size={size}
         >
           {children}

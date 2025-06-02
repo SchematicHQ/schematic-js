@@ -152,7 +152,7 @@ export const Sidebar = ({
       currentUsageBasedEntitlements: [],
       billingSubscription: undefined,
       paymentMethod: undefined,
-      trialPaymentMethodRequired: true,
+      trialPaymentMethodRequired: false,
     };
   }, [data, planPeriod]);
 
@@ -1041,7 +1041,10 @@ export const Sidebar = ({
             $gap="1rem"
           >
             <Box $opacity="0.625">
-              <Text>{planPeriod === "year" ? "Yearly" : "Monthly"} total:</Text>
+              <Text>
+                {planPeriod === "year" ? t("Yearly total") : t("Monthly total")}
+                :
+              </Text>
             </Box>
 
             <Box $whiteSpace="nowrap">

@@ -1,5 +1,5 @@
 import { t } from "i18next";
-import { CSSProperties, useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import type { DefaultTheme } from "styled-components/dist/models/ThemeProvider";
 
@@ -40,7 +40,7 @@ interface PaymentMethodElementProps extends DesignProps {
 interface PaymentElementProps {
   iconName?: IconNameTypes;
   iconTitle?: string;
-  iconStyles?: CSSProperties;
+  iconStyles?: React.CSSProperties;
   label?: string;
   paymentLast4?: string | null;
 }
@@ -188,13 +188,26 @@ export const PaymentMethodElement = ({
 
   const isLightBackground = useIsLightBackground();
 
-  let sizeFactor = 0.5;
-  if (size === "lg") {
-    sizeFactor = 1.6;
-  }
-  if (size === "md") {
-    sizeFactor = 1;
-  }
+  const sizeFactor = useMemo(() => {
+    if (size === "lg") {
+      return 1.6;
+    }
+    if (size === "md") {
+      return 1;
+    }
+
+    return 0.5;
+  }, [size]);
+
+  const handleKeyEdit: React.KeyboardEventHandler = useCallback(
+    (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        onEdit?.();
+      }
+    },
+    [onEdit],
+  );
 
   return (
     <Flex $flexDirection="column" $gap={`${sizeFactor}rem`}>
@@ -234,7 +247,12 @@ export const PaymentMethodElement = ({
         {!paymentMethod && <EmptyPaymentElement />}
 
         {props.functions.allowEdit && onEdit && (
-          <Text onClick={onEdit} display="link" $leading={1}>
+          <Text
+            onClick={onEdit}
+            onKeyDown={handleKeyEdit}
+            display="link"
+            $leading={1}
+          >
             {t("Edit")}
           </Text>
         )}
