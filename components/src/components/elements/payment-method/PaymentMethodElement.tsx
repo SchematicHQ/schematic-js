@@ -159,16 +159,13 @@ const getIconStyles = ({
   theme: DefaultTheme;
 }) => {
   const iconStyles = {
-    lg: { fontSize: 28, marginLeft: -2, marginRight: 8 },
-    md: { fontSize: 25, marginLeft: 0, marginRight: 7, marginTop: -1 },
     sm: { fontSize: 24, marginLeft: 0, marginRight: 4 },
+    md: { fontSize: 25, marginLeft: 0, marginRight: 7, marginTop: -1 },
+    lg: { fontSize: 28, marginLeft: -2, marginRight: 8 },
   };
 
-  const getIconStyles = (size: PaymentElementSizes) =>
-    iconStyles[size] ?? iconStyles.md;
-
   return {
-    ...getIconStyles(size),
+    ...iconStyles[size],
     marginRight: 4,
     lineHeight: 1,
     color: theme.typography.text.color,
@@ -241,7 +238,7 @@ export const PaymentMethodElement = ({
         {paymentMethod && (
           <PaymentElement
             {...getPaymentMethodData(paymentMethod)}
-            {...getIconStyles({ size, theme: settings.theme })}
+            iconStyles={getIconStyles({ size, theme: settings.theme })}
           />
         )}
         {!paymentMethod && <EmptyPaymentElement />}
