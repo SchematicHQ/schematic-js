@@ -113,7 +113,9 @@ export const PaymentMethodDetails = ({
   const initializePaymentMethod = useCallback(async () => {
     try {
       setIsLoading(true);
+
       const response = await createSetupIntent();
+
       if (response) {
         setSetupIntent(response.data);
       }

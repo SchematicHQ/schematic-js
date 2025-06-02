@@ -13,9 +13,7 @@ import {
   toPrettyDate,
 } from "../../../utils";
 import { Element } from "../../layout";
-import { Box, Button, Flex, Loader, Text } from "../../ui";
-
-import { Container } from "./styles";
+import { Box, Button, Flex, Loader, Text, TransitionBox } from "../../ui";
 
 interface DesignProps {
   header: {
@@ -86,12 +84,14 @@ export const UpcomingBill = forwardRef<
     );
   }, [data]);
 
-  const loadInvoice = useCallback(async () => {
+  const getInvoice = useCallback(async () => {
     if (isCheckoutData(data) && data.component?.id && data.subscription) {
       try {
         setError(undefined);
         setIsLoading(true);
+
         const response = await getUpcomingInvoice(data.component.id);
+
         if (response) {
           setUpcomingInvoice(response.data);
         }
@@ -104,18 +104,18 @@ export const UpcomingBill = forwardRef<
   }, [data, getUpcomingInvoice]);
 
   useEffect(() => {
-    loadInvoice();
-  }, [loadInvoice]);
+    getInvoice();
+  }, [getInvoice]);
 
   return (
     <Element ref={ref} className={className}>
-      <Flex as={Container} $justifyContent="center" $alignItems="center">
+      <Flex as={TransitionBox} $justifyContent="center" $alignItems="center">
         <Loader $color={settings.theme.primary} $isLoading={isLoading} />
       </Flex>
 
       {error ? (
         <Flex
-          as={Container}
+          as={TransitionBox}
           $flexDirection="column"
           $justifyContent="center"
           $alignItems="center"
@@ -126,7 +126,7 @@ export const UpcomingBill = forwardRef<
           </Text>
 
           <Button
-            onClick={() => loadInvoice()}
+            onClick={() => getInvoice()}
             $size="sm"
             $variant="ghost"
             $fullWidth={false}
@@ -136,7 +136,7 @@ export const UpcomingBill = forwardRef<
         </Flex>
       ) : (
         !isLoading && (
-          <Container>
+          <TransitionBox>
             {upcomingInvoice ? (
               <Flex $flexDirection="column" $gap="1rem">
                 {props.header.isVisible && upcomingInvoice.dueDate && (
@@ -254,7 +254,7 @@ export const UpcomingBill = forwardRef<
             ) : (
               <Text display="heading2">{t("No upcoming invoice")}</Text>
             )}
-          </Container>
+          </TransitionBox>
         )
       )}
     </Element>
