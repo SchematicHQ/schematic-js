@@ -87,7 +87,7 @@ export const PaymentMethodDetails = ({
   const [setupIntent, setSetupIntent] = useState<SetupIntentResponseData>();
   const [showDifferentPaymentMethods, setShowDifferentPaymentMethods] =
     useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<
+  const [currentPaymentMethod, setCurrentPaymentMethod] = useState<
     PaymentMethodResponseData | undefined
   >(subscription?.paymentMethod || defaultPaymentMethod);
 
@@ -95,20 +95,22 @@ export const PaymentMethodDetails = ({
     let expiration: number | undefined;
 
     if (
-      typeof paymentMethod?.cardExpYear === "number" &&
-      typeof paymentMethod?.cardExpMonth === "number"
+      typeof currentPaymentMethod?.cardExpYear === "number" &&
+      typeof currentPaymentMethod?.cardExpMonth === "number"
     ) {
       const today = new Date();
       const currentYear = today.getFullYear();
       const currentMonth = today.getMonth();
       const timeToExpiration = Math.round(
-        +new Date(paymentMethod.cardExpYear, paymentMethod.cardExpMonth - 1) -
-          +new Date(currentYear, currentMonth),
+        +new Date(
+          currentPaymentMethod.cardExpYear,
+          currentPaymentMethod.cardExpMonth - 1,
+        ) - +new Date(currentYear, currentMonth),
       );
       expiration = Math.round(timeToExpiration / (1000 * 60 * 60 * 24 * 30));
     }
     return expiration;
-  }, [paymentMethod?.cardExpYear, paymentMethod?.cardExpMonth]);
+  }, [currentPaymentMethod?.cardExpYear, currentPaymentMethod?.cardExpMonth]);
 
   const focusExistingPaymentMethods = () => {
     setShowPaymentForm(false);
@@ -145,7 +147,7 @@ export const PaymentMethodDetails = ({
 
         const response = await updatePaymentMethod(paymentMethodId);
         if (response) {
-          setPaymentMethod(response.data);
+          setCurrentPaymentMethod(response.data);
 
           // TODO: Refactor
           // Set data for sidebar
@@ -185,10 +187,15 @@ export const PaymentMethodDetails = ({
   }, [stripe, setupIntent?.publishableKey]);
 
   useEffect(() => {
-    if (!setupIntent && (!paymentMethod || showPaymentForm)) {
+    if (!setupIntent && (!currentPaymentMethod || showPaymentForm)) {
       initializePaymentMethod();
     }
-  }, [setupIntent, paymentMethod, showPaymentForm, initializePaymentMethod]);
+  }, [
+    setupIntent,
+    currentPaymentMethod,
+    showPaymentForm,
+    initializePaymentMethod,
+  ]);
 
   return (
     <Flex $position="relative">
@@ -259,7 +266,7 @@ export const PaymentMethodDetails = ({
               }}
             />
 
-            {paymentMethod && (
+            {currentPaymentMethod && (
               <Box>
                 <Text
                   onClick={focusExistingPaymentMethods}
@@ -277,7 +284,7 @@ export const PaymentMethodDetails = ({
           <Flex $flexDirection="column" $gap="2rem">
             <PaymentMethodElement
               size="lg"
-              paymentMethod={paymentMethod}
+              paymentMethod={currentPaymentMethod}
               monthsToExpiration={monthsToExpiration}
               {...props}
             />
@@ -311,7 +318,8 @@ export const PaymentMethodDetails = ({
                 <Flex $flexDirection="column" $overflowY="scroll">
                   {(
                     paymentMethods.filter(
-                      (pm) => pm.id !== paymentMethod?.id,
+                      (paymentMethod) =>
+                        paymentMethod.id !== currentPaymentMethod?.id,
                     ) || []
                   ).map((paymentMethod) => (
                     <PaymentListElement
@@ -324,7 +332,7 @@ export const PaymentMethodDetails = ({
                 </Flex>
 
                 {(!setupIntent ||
-                  !paymentMethod ||
+                  !currentPaymentMethod ||
                   showDifferentPaymentMethods) && (
                   <Button
                     onClick={initializePaymentMethod}

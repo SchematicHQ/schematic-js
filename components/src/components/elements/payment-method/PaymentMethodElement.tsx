@@ -1,10 +1,9 @@
 import { t } from "i18next";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import type { DefaultTheme } from "styled-components/dist/models/ThemeProvider";
 
 import type { PaymentMethodResponseData } from "../../../api/checkoutexternal";
-import { type FontStyle } from "../../../context";
+import { type FontStyle, type ThemeSettings } from "../../../context";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import { createKeyboardExecutionHandler } from "../../../utils";
 import { Box, Flex, Icon, IconNameTypes, Text } from "../../ui";
@@ -63,9 +62,12 @@ const PaymentElement = ({
         )}
 
         <Flex $alignItems="center">
-          <Box $lineHeight="1" $marginRight="4px">
-            {t(label as string)}
-          </Box>
+          {label && (
+            <Box $lineHeight={1} $marginRight="0.25rem">
+              {label}
+            </Box>
+          )}
+
           {paymentLast4 && (
             <Box $display="inline-block" $fontWeight="bold">
               {paymentLast4}
@@ -82,7 +84,7 @@ const EmptyPaymentElement = () => {
     <Text>
       <Flex $flexDirection="row" $alignItems="center">
         <Flex $alignItems="center">
-          <Box $lineHeight="1" $marginRight="4px">
+          <Box $lineHeight={1} $marginRight="0.25rem">
             {t("No payment method added yet")}
           </Box>
         </Flex>
@@ -112,7 +114,7 @@ const getPaymentMethodData = ({
     card: {
       iconName: cardIcon(cardBrand as IconNameTypes),
       iconTitle: cardBrand || "Card",
-      label: `Card ending in `,
+      label: "Card ending in",
       paymentLast4: cardLast4,
     },
     us_bank_account: {
@@ -157,7 +159,7 @@ const getIconStyles = ({
   theme,
 }: {
   size: PaymentElementSizes;
-  theme: DefaultTheme;
+  theme: ThemeSettings;
 }) => {
   const iconStyles = {
     sm: { fontSize: 24, marginLeft: 0, marginRight: 4 },
@@ -208,7 +210,7 @@ export const PaymentMethodElement = ({
             monthsToExpiration < 4 && (
               <Text $size={14} $color="#DB6769">
                 {monthsToExpiration > 0
-                  ? t("Expires in x months", { months: monthsToExpiration })
+                  ? t("Expires in X months", { months: monthsToExpiration })
                   : t("Expired")}
               </Text>
             )}
@@ -270,16 +272,11 @@ export const PaymentListElement = ({
 
   const expirationDate = useMemo(() => {
     const { cardExpMonth, cardExpYear } = paymentMethod;
-    if (!cardExpMonth && !cardExpYear) {
-      return "";
-    }
-
-    if (!cardExpYear) {
-      return "";
+    if (!cardExpMonth || !cardExpYear) {
+      return;
     }
 
     const formatedYear = cardExpYear.toString().slice(-2);
-
     if (!cardExpMonth) {
       return formatedYear;
     }
@@ -291,45 +288,50 @@ export const PaymentListElement = ({
     <Flex
       $flexDirection="row"
       $alignItems="center"
-      $borderWidth="0"
       $gap="0.5rem"
-      $borderBottomWidth="1px"
+      $padding="0.5rem"
+      $borderWidth="0 0 1px"
       $borderStyle="solid"
       $borderColor={
         isLightBackground
           ? "hsla(0, 0%, 0%, 0.175)"
           : "hsla(0, 0%, 100%, 0.175)"
       }
-      $padding="0.5rem"
     >
-      <Box $paddingLeft="0.5rem" $paddingRight="0.5rem">
-        {iconName && (
+      {iconName && (
+        <Box $paddingLeft="0.5rem" $paddingRight="0.5rem">
           <Icon name={iconName} title={iconTitle} style={iconStyles} />
-        )}
-      </Box>
+        </Box>
+      )}
 
-      <Box $flexGrow="1">
-        <Text>
-          {t(label as string)} {paymentLast4}
-        </Text>
-      </Box>
+      {(label || paymentLast4) && (
+        <Box $flexGrow={1}>
+          {label && <Text>{label}</Text>}{" "}
+          {paymentLast4 && <Text>{paymentLast4}</Text>}
+        </Box>
+      )}
 
-      <Box
-        $flexGrow="1"
-        $color={
-          isLightBackground
-            ? "hsla(0, 0%, 0%, 0.375)"
-            : "hsla(0, 0%, 100%, 0.375)"
-        }
-      >
-        <Text>{expirationDate && t("Expires", { date: expirationDate })}</Text>
-      </Box>
+      {expirationDate && (
+        <Box
+          $flexGrow={1}
+          $color={
+            isLightBackground
+              ? "hsla(0, 0%, 0%, 0.375)"
+              : "hsla(0, 0%, 100%, 0.375)"
+          }
+        >
+          <Text>{t("Expires", { date: expirationDate })}</Text>
+        </Box>
+      )}
 
       <Box>
         <Text
           onClick={() => {
             setDefault(paymentMethod.externalId);
           }}
+          onKeyDown={createKeyboardExecutionHandler(() =>
+            setDefault(paymentMethod.externalId),
+          )}
           display="link"
         >
           {t("Set default")}
@@ -337,11 +339,14 @@ export const PaymentListElement = ({
       </Box>
 
       <Box
-        $cursor="pointer"
-        $paddingLeft="1rem"
         onClick={() => {
           handleDelete(paymentMethod.id);
         }}
+        onKeyDown={createKeyboardExecutionHandler(() =>
+          handleDelete(paymentMethod.id),
+        )}
+        $cursor="pointer"
+        $paddingLeft="1rem"
       >
         <Icon
           name="close"

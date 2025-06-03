@@ -97,9 +97,12 @@ export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {
       }
 
       if (data.company) {
+        const updatedPaymentMethods = data.company.paymentMethods.filter(
+          (paymentMethod) => paymentMethod.id !== action.paymentMethod.id,
+        );
         data.company.paymentMethods = [
           action.paymentMethod,
-          ...data.company.paymentMethods,
+          ...updatedPaymentMethods,
         ];
 
         if (!data.subscription) {
