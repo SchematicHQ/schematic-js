@@ -284,6 +284,8 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
       // do not preview if user updates do not result in a valid plan
       if (!plan || !planPriceId) {
+        // ensure selected plan is reset if no valid price is found
+        setSelectedPlan(undefined);
         return;
       }
 

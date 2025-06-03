@@ -69,8 +69,8 @@ function formatInvoices(invoices: InvoiceResponseData[] = []) {
     .sort((a, b) => (a.dueDate && b.dueDate ? +b.dueDate - +a.dueDate : 1))
     .map(({ amountDue, dueDate, url, currency }) => ({
       amount: formatCurrency(amountDue, currency),
-      ...(dueDate && { date: toPrettyDate(dueDate) }),
-      ...(url && { url }),
+      date: dueDate ? toPrettyDate(dueDate) : undefined,
+      url: url || undefined,
     }));
 }
 
@@ -174,7 +174,7 @@ export const Invoices = forwardRef<
                       .map(({ date, amount, url }, index) => {
                         return (
                           <Flex key={index} $justifyContent="space-between">
-                            {props.date.isVisible && date && (
+                            {props.date.isVisible && (
                               <Text
                                 display={props.date.fontStyle}
                                 {...(url && {

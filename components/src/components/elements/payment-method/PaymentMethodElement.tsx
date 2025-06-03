@@ -61,19 +61,12 @@ const PaymentElement = ({
           </Box>
         )}
 
-        <Flex $alignItems="center">
-          {label && (
-            <Box $lineHeight={1} $marginRight="0.25rem">
-              {label}
-            </Box>
-          )}
-
-          {paymentLast4 && (
-            <Box $display="inline-block" $fontWeight="bold">
-              {paymentLast4}
-            </Box>
-          )}
-        </Flex>
+        {(label || paymentLast4) && (
+          <Box $flexGrow={1}>
+            {label && <Text>{label}</Text>}{" "}
+            {paymentLast4 && <Text>{paymentLast4}</Text>}
+          </Box>
+        )}
       </Flex>
     </Text>
   );
@@ -84,9 +77,7 @@ const EmptyPaymentElement = () => {
     <Text>
       <Flex $flexDirection="row" $alignItems="center">
         <Flex $alignItems="center">
-          <Box $lineHeight={1} $marginRight="0.25rem">
-            {t("No payment method added yet")}
-          </Box>
+          <Box $lineHeight={1}>{t("No payment method added yet")}</Box>
         </Flex>
       </Flex>
     </Text>
@@ -162,14 +153,13 @@ const getIconStyles = ({
   theme: ThemeSettings;
 }) => {
   const iconStyles = {
-    sm: { fontSize: 24, marginLeft: 0, marginRight: 4 },
-    md: { fontSize: 25, marginLeft: 0, marginRight: 7, marginTop: -1 },
-    lg: { fontSize: 28, marginLeft: -2, marginRight: 8 },
+    sm: { fontSize: 24 },
+    md: { fontSize: 28 },
+    lg: { fontSize: 32 },
   };
 
   return {
     ...iconStyles[size],
-    marginRight: 4,
     lineHeight: 1,
     color: theme.typography.text.color,
   };
@@ -190,7 +180,7 @@ export const PaymentMethodElement = ({
 
   const sizeFactor = useMemo(() => {
     if (size === "lg") {
-      return 1.6;
+      return 1.5;
     }
     if (size === "md") {
       return 1;
@@ -225,7 +215,7 @@ export const PaymentMethodElement = ({
             ? "hsla(0, 0%, 0%, 0.0625)"
             : "hsla(0, 0%, 100%, 0.125)"
         }
-        $padding={`${sizeFactor / 2.2}rem ${sizeFactor}rem`}
+        $padding={`${sizeFactor / 2.25}rem ${sizeFactor}rem`}
         $borderRadius="9999px"
       >
         {paymentMethod && (
@@ -289,7 +279,7 @@ export const PaymentListElement = ({
       $flexDirection="row"
       $alignItems="center"
       $gap="0.5rem"
-      $padding="0.5rem"
+      $padding="0.5rem 0"
       $borderWidth="0 0 1px"
       $borderStyle="solid"
       $borderColor={
@@ -299,7 +289,7 @@ export const PaymentListElement = ({
       }
     >
       {iconName && (
-        <Box $paddingLeft="0.5rem" $paddingRight="0.5rem">
+        <Box>
           <Icon name={iconName} title={iconTitle} style={iconStyles} />
         </Box>
       )}
@@ -339,6 +329,7 @@ export const PaymentListElement = ({
       </Box>
 
       <Box
+        tabIndex={0}
         onClick={() => {
           handleDelete(paymentMethod.id);
         }}
@@ -346,7 +337,6 @@ export const PaymentListElement = ({
           handleDelete(paymentMethod.id),
         )}
         $cursor="pointer"
-        $paddingLeft="1rem"
       >
         <Icon
           name="close"
