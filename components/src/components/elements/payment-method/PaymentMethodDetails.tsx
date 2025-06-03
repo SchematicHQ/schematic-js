@@ -314,8 +314,8 @@ export const PaymentMethodDetails = ({
             )}
 
             {showDifferentPaymentMethods && (
-              <Flex $flexDirection="column" $overflowY="hidden">
-                <Flex $flexDirection="column" $overflowY="scroll">
+              <Flex $flexDirection="column" $gap="2rem" $marginTop="-1rem">
+                <Flex $flexDirection="column" $overflow="auto">
                   {(
                     paymentMethods.filter(
                       (paymentMethod) =>

@@ -167,15 +167,22 @@ export const UpcomingBill = forwardRef<
                   </Box>
                 </Flex>
 
-                <Flex
-                  $justifyContent="space-between"
-                  $alignItems="center"
-                  $gap="1rem"
-                >
-                  <Text $weight={600}>{t("Remaining balance")}</Text>
+                {upcomingInvoice.amountRemaining > 0 && (
+                  <Flex
+                    $justifyContent="space-between"
+                    $alignItems="center"
+                    $gap="1rem"
+                  >
+                    <Text $weight={600}>{t("Remaining balance")}</Text>
 
-                  <Text>{formatCurrency(5000, upcomingInvoice.currency)}</Text>
-                </Flex>
+                    <Text>
+                      {formatCurrency(
+                        upcomingInvoice.amountRemaining,
+                        upcomingInvoice.currency,
+                      )}
+                    </Text>
+                  </Flex>
+                )}
 
                 {discounts.length > 0 && (
                   <Flex
