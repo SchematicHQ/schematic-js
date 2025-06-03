@@ -1,8 +1,7 @@
 import { useTranslation } from "react-i18next";
-import { useTheme } from "styled-components";
 
-import type { CompanyPlanDetailResponseData } from "../../../api/checkoutexternal";
 import { TEXT_BASE_SIZE } from "../../../const";
+import { useEmbed, type SelectedPlan } from "../../../hooks";
 import {
   darken,
   formatCurrency,
@@ -19,23 +18,23 @@ import { type UsageBasedEntitlement } from "../sidebar";
 interface UsageProps {
   isLoading: boolean;
   period: string;
-  selectedPlan?: CompanyPlanDetailResponseData & { isSelected: boolean };
+  selectedPlan?: SelectedPlan;
   entitlements: UsageBasedEntitlement[];
   updateQuantity: (id: string, quantity: number) => void;
 }
 
 export const Usage = ({ entitlements, updateQuantity, period }: UsageProps) => {
-  const theme = useTheme();
+  const { settings } = useEmbed();
 
   const { t } = useTranslation();
 
-  const cardPadding = theme.card.padding / TEXT_BASE_SIZE;
+  const cardPadding = settings.theme.card.padding / TEXT_BASE_SIZE;
 
-  const unitPriceFontSize = 0.875 * theme.typography.text.fontSize;
+  const unitPriceFontSize = 0.875 * settings.theme.typography.text.fontSize;
   const unitPriceColor =
-    hexToHSL(theme.typography.text.color).l > 50
-      ? darken(theme.typography.text.color, 0.46)
-      : lighten(theme.typography.text.color, 0.46);
+    hexToHSL(settings.theme.typography.text.color).l > 50
+      ? darken(settings.theme.typography.text.color, 0.46)
+      : lighten(settings.theme.typography.text.color, 0.46);
 
   return (
     <>
@@ -63,9 +62,11 @@ export const Usage = ({ entitlements, updateQuantity, period }: UsageProps) => {
                   $alignItems="center"
                   $gap="1rem"
                   $padding={`${cardPadding}rem`}
-                  $backgroundColor={theme.card.background}
-                  $borderRadius={`${theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
-                  {...(theme.card.hasShadow && { $boxShadow: cardBoxShadow })}
+                  $backgroundColor={settings.theme.card.background}
+                  $borderRadius={`${settings.theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
+                  {...(settings.theme.card.hasShadow && {
+                    $boxShadow: cardBoxShadow,
+                  })}
                 >
                   <Flex
                     $flexDirection="column"
@@ -73,26 +74,12 @@ export const Usage = ({ entitlements, updateQuantity, period }: UsageProps) => {
                     $flexBasis={`calc(${100 / 3}% - 0.375rem)`}
                   >
                     <Box>
-                      <Text
-                        $font={theme.typography.heading2.fontFamily}
-                        $size={theme.typography.heading2.fontSize}
-                        $weight={theme.typography.heading2.fontWeight}
-                        $color={theme.typography.heading2.color}
-                      >
-                        {entitlement.feature.name}
-                      </Text>
+                      <Text display="heading2">{entitlement.feature.name}</Text>
                     </Box>
 
                     {entitlement.feature.description && (
                       <Box $marginBottom="0.5rem">
-                        <Text
-                          $font={theme.typography.text.fontFamily}
-                          $size={theme.typography.text.fontSize}
-                          $weight={theme.typography.text.fontWeight}
-                          $color={theme.typography.text.color}
-                        >
-                          {entitlement.feature.description}
-                        </Text>
+                        <Text>{entitlement.feature.description}</Text>
                       </Box>
                     )}
                   </Flex>
@@ -119,24 +106,17 @@ export const Usage = ({ entitlements, updateQuantity, period }: UsageProps) => {
                       }}
                     />
 
-                    <Box>
-                      <Text
-                        $font={theme.typography.text.fontFamily}
-                        $size={unitPriceFontSize}
-                        $weight={theme.typography.text.fontWeight}
-                        $color={unitPriceColor}
-                      >
-                        {entitlement.quantity < entitlement.usage && (
-                          <span style={{ color: "#DB6669" }}>
-                            {t("Cannot downgrade entitlement")}{" "}
-                          </span>
-                        )}
-                        {t("Currently using", {
-                          quantity: entitlement.usage,
-                          unit: getFeatureName(entitlement.feature),
-                        })}
-                      </Text>
-                    </Box>
+                    <Text $size={unitPriceFontSize} $color={unitPriceColor}>
+                      {t("Currently using", {
+                        quantity: entitlement.usage,
+                        unit: getFeatureName(entitlement.feature),
+                      })}
+                    </Text>
+
+                    <Text $size={unitPriceFontSize} $color="#DB6669">
+                      {entitlement.quantity < entitlement.usage &&
+                        t("Cannot downgrade entitlement")}
+                    </Text>
                   </Flex>
 
                   <Box
@@ -144,12 +124,7 @@ export const Usage = ({ entitlements, updateQuantity, period }: UsageProps) => {
                     $textAlign="right"
                   >
                     <Box $whiteSpace="nowrap">
-                      <Text
-                        $font={theme.typography.text.fontFamily}
-                        $size={theme.typography.text.fontSize}
-                        $weight={theme.typography.text.fontWeight}
-                        $color={theme.typography.text.color}
-                      >
+                      <Text>
                         {formatCurrency(
                           (price ?? 0) * entitlement.quantity,
                           currency,
@@ -159,12 +134,7 @@ export const Usage = ({ entitlements, updateQuantity, period }: UsageProps) => {
                     </Box>
 
                     <Box $whiteSpace="nowrap">
-                      <Text
-                        $font={theme.typography.text.fontFamily}
-                        $size={unitPriceFontSize}
-                        $weight={theme.typography.text.fontWeight}
-                        $color={unitPriceColor}
-                      >
+                      <Text $size={unitPriceFontSize} $color={unitPriceColor}>
                         {formatCurrency(price ?? 0, currency)}
                         <sub>
                           /{packageSize > 1 && <>{packageSize} </>}

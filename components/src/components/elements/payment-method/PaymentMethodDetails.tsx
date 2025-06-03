@@ -2,16 +2,17 @@ import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe, type Stripe } from "@stripe/stripe-js";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useTheme } from "styled-components";
 
 import type {
   PaymentMethodResponseData,
   SetupIntentResponseData,
 } from "../../../api/checkoutexternal";
-import type { FontStyle } from "../../../context";
+import { type FontStyle } from "../../../context";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
+import { createKeyboardExecutionHandler, isCheckoutData } from "../../../utils";
 import { PaymentForm } from "../../shared";
 import { Box, Button, Flex, Icon, Loader, Text } from "../../ui";
+
 import {
   PaymentListElement,
   PaymentMethodElement,
@@ -53,9 +54,29 @@ export const PaymentMethodDetails = ({
 
   const { t } = useTranslation();
 
-  const theme = useTheme();
+  const {
+    data,
+    settings,
+    createSetupIntent,
+    updatePaymentMethod,
+    deletePaymentMethod,
+  } = useEmbed();
 
-  const { api, data, setData } = useEmbed();
+  const { defaultPaymentMethod, paymentMethods, subscription } = useMemo(() => {
+    if (isCheckoutData(data)) {
+      return {
+        defaultPaymentMethod: data.company?.defaultPaymentMethod,
+        paymentMethods: data.company?.paymentMethods || [],
+        subscription: data.subscription,
+      };
+    }
+
+    return {
+      defaultPaymentMethod: undefined,
+      paymentMethods: [],
+      subscription: undefined,
+    };
+  }, [data]);
 
   const isLightBackground = useIsLightBackground();
 
@@ -66,41 +87,49 @@ export const PaymentMethodDetails = ({
   const [setupIntent, setSetupIntent] = useState<SetupIntentResponseData>();
   const [showDifferentPaymentMethods, setShowDifferentPaymentMethods] =
     useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<
+  const [currentPaymentMethod, setCurrentPaymentMethod] = useState<
     PaymentMethodResponseData | undefined
-  >(data.subscription?.paymentMethod || data.company?.defaultPaymentMethod);
+  >(subscription?.paymentMethod || defaultPaymentMethod);
 
   const monthsToExpiration = useMemo(() => {
     let expiration: number | undefined;
 
     if (
-      typeof paymentMethod?.cardExpYear === "number" &&
-      typeof paymentMethod?.cardExpMonth === "number"
+      typeof currentPaymentMethod?.cardExpYear === "number" &&
+      typeof currentPaymentMethod?.cardExpMonth === "number"
     ) {
       const today = new Date();
       const currentYear = today.getFullYear();
       const currentMonth = today.getMonth();
       const timeToExpiration = Math.round(
-        +new Date(paymentMethod.cardExpYear, paymentMethod.cardExpMonth - 1) -
-          +new Date(currentYear, currentMonth),
+        +new Date(
+          currentPaymentMethod.cardExpYear,
+          currentPaymentMethod.cardExpMonth - 1,
+        ) - +new Date(currentYear, currentMonth),
       );
       expiration = Math.round(timeToExpiration / (1000 * 60 * 60 * 24 * 30));
     }
     return expiration;
-  }, [paymentMethod?.cardExpYear, paymentMethod?.cardExpMonth]);
+  }, [currentPaymentMethod?.cardExpYear, currentPaymentMethod?.cardExpMonth]);
 
-  const createSetupIntent = useCallback(async () => {
-    if (!api || !data.component?.id) {
-      return;
-    }
+  const focusExistingPaymentMethods = () => {
+    setShowPaymentForm(false);
+    setShowDifferentPaymentMethods(false);
+  };
 
+  const toggleShowPaymentMethods = () => {
+    setShowDifferentPaymentMethods((prev) => !prev);
+  };
+
+  const initializePaymentMethod = useCallback(async () => {
     try {
       setIsLoading(true);
-      // TODO: Remove component id from here and from api
-      const response = await api.getSetupIntent({
-        componentId: data.component.id,
-      });
-      setSetupIntent(response.data);
+
+      const response = await createSetupIntent();
+
+      if (response) {
+        setSetupIntent(response.data);
+      }
     } catch {
       setError(
         t("Error initializing payment method change. Please try again."),
@@ -109,101 +138,46 @@ export const PaymentMethodDetails = ({
       setShowPaymentForm(true);
       setIsLoading(false);
     }
-  }, [t, api, data.component?.id]);
+  }, [t, createSetupIntent]);
 
-  const updatePaymentMethod = useCallback(
-    async (externalId: string) => {
-      if (!api || !externalId) {
-        return;
-      }
-
+  const handleUpdatePaymentMethod = useCallback(
+    async (paymentMethodId: string) => {
       try {
         setIsLoading(true);
 
-        const updatePaymentMethodResponse = await api.updatePaymentMethod({
-          updatePaymentMethodRequestBody: {
-            paymentMethodId: externalId,
-          },
-        });
+        const response = await updatePaymentMethod(paymentMethodId);
+        if (response) {
+          setCurrentPaymentMethod(response.data);
 
-        setPaymentMethod(updatePaymentMethodResponse.data);
-
-        // TODO: Refactor
-        // Set data for sidebar
-        if (setPaymentMethodId) {
-          setPaymentMethodId(updatePaymentMethodResponse.data.externalId);
+          // TODO: Refactor
+          // Set data for sidebar
+          if (setPaymentMethodId) {
+            setPaymentMethodId(response.data.externalId);
+          }
         }
-
-        setData({
-          ...data,
-          // Optimistic update
-          // If there is subscription - we have set payment method to subscription
-          ...(data.subscription
-            ? {
-                subscription: {
-                  ...data.subscription,
-                  paymentMethod: updatePaymentMethodResponse.data,
-                },
-              }
-            : {}),
-          ...(data.company
-            ? {
-                company: {
-                  ...data.company,
-                  paymentMethods: [
-                    updatePaymentMethodResponse.data,
-                    ...(data.company?.paymentMethods || []),
-                  ],
-                  // Optimistic update
-                  // If there is no subscription - we have updated default payment method in company
-                  ...(data.subscription
-                    ? {}
-                    : {
-                        defaultPaymentMethod: updatePaymentMethodResponse.data,
-                      }),
-                },
-              }
-            : {}),
-        });
       } catch {
         setError(t("Error updating payment method. Please try again."));
       } finally {
         setIsLoading(false);
       }
     },
-    [api, data, setData, setPaymentMethodId, t],
+    [t, setPaymentMethodId, updatePaymentMethod],
   );
 
-  const deletePaymentMethod = useCallback(
-    async (id: string) => {
-      if (!api || !id) {
-        return;
-      }
-
+  const handleDeletePaymentMethod = useCallback(
+    async (paymentMethodId: string) => {
       try {
         setIsLoading(true);
         // Payment method id is used and expected
         // Some problem with type generation
-        await api.deletePaymentMethod({
-          checkoutId: id,
-        });
-
-        setData({
-          ...data,
-          company: {
-            ...data.company!,
-            paymentMethods: (data.company?.paymentMethods ?? []).filter(
-              (pm) => pm.id !== id,
-            ),
-          },
-        });
+        deletePaymentMethod(paymentMethodId);
       } catch {
         setError(t("Error deleting payment method. Please try again."));
       } finally {
         setIsLoading(false);
       }
     },
-    [api, data, setData, t],
+    [t, deletePaymentMethod],
   );
 
   useEffect(() => {
@@ -213,10 +187,15 @@ export const PaymentMethodDetails = ({
   }, [stripe, setupIntent?.publishableKey]);
 
   useEffect(() => {
-    if (!setupIntent && (!paymentMethod || showPaymentForm)) {
-      createSetupIntent();
+    if (!setupIntent && (!currentPaymentMethod || showPaymentForm)) {
+      initializePaymentMethod();
     }
-  }, [setupIntent, paymentMethod, showPaymentForm, createSetupIntent]);
+  }, [
+    setupIntent,
+    currentPaymentMethod,
+    showPaymentForm,
+    initializePaymentMethod,
+  ]);
 
   return (
     <Flex $position="relative">
@@ -228,7 +207,11 @@ export const PaymentMethodDetails = ({
         $width="100%"
         $height="100%"
       >
-        <Loader $color={theme.primary} $size="2xl" $isLoading={isLoading} />
+        <Loader
+          $color={settings.theme.primary}
+          $size="2xl"
+          $isLoading={isLoading}
+        />
       </Flex>
 
       <Flex
@@ -268,7 +251,7 @@ export const PaymentMethodDetails = ({
                     fontSize: "1rem",
                     fontWeight: "400",
                     marginBottom: "0.75rem",
-                    color: theme.typography.text.color,
+                    color: settings.theme.typography.text.color,
                   },
                 },
               },
@@ -277,23 +260,20 @@ export const PaymentMethodDetails = ({
           >
             <PaymentForm
               onConfirm={async (paymentMethodId) => {
-                await updatePaymentMethod(paymentMethodId);
+                await handleUpdatePaymentMethod(paymentMethodId);
                 setShowPaymentForm(false);
                 setShowDifferentPaymentMethods(false);
               }}
             />
 
-            {paymentMethod && (
+            {currentPaymentMethod && (
               <Box>
                 <Text
-                  onClick={() => {
-                    setShowPaymentForm(false);
-                    setShowDifferentPaymentMethods(false);
-                  }}
-                  $font={theme.typography.link.fontFamily}
-                  $size={theme.typography.link.fontSize}
-                  $weight={theme.typography.link.fontWeight}
-                  $color={theme.typography.link.color}
+                  onClick={focusExistingPaymentMethods}
+                  onKeyDown={createKeyboardExecutionHandler(
+                    focusExistingPaymentMethods,
+                  )}
+                  display="link"
                 >
                   {t("Select existing payment method")}
                 </Text>
@@ -304,21 +284,19 @@ export const PaymentMethodDetails = ({
           <Flex $flexDirection="column" $gap="2rem">
             <PaymentMethodElement
               size="lg"
-              paymentMethod={paymentMethod}
+              paymentMethod={currentPaymentMethod}
               monthsToExpiration={monthsToExpiration}
               {...props}
             />
 
-            {(data.company?.paymentMethods || []).length > 0 && (
+            {paymentMethods.length > 0 && (
               <Box>
                 <Text
-                  onClick={() => {
-                    setShowDifferentPaymentMethods((prev) => !prev);
-                  }}
-                  $font={theme.typography.link.fontFamily}
-                  $size={theme.typography.link.fontSize}
-                  $weight={theme.typography.link.fontWeight}
-                  $color={theme.typography.link.color}
+                  onClick={toggleShowPaymentMethods}
+                  onKeyDown={createKeyboardExecutionHandler(
+                    toggleShowPaymentMethods,
+                  )}
+                  display="link"
                 >
                   {t("Choose different payment method")}
                   <Icon
@@ -339,23 +317,28 @@ export const PaymentMethodDetails = ({
               <Flex $flexDirection="column" $overflowY="hidden">
                 <Flex $flexDirection="column" $overflowY="scroll">
                   {(
-                    data.company?.paymentMethods.filter(
-                      (pm) => pm.id !== paymentMethod?.id,
+                    paymentMethods.filter(
+                      (paymentMethod) =>
+                        paymentMethod.id !== currentPaymentMethod?.id,
                     ) || []
                   ).map((paymentMethod) => (
                     <PaymentListElement
                       key={paymentMethod.id}
                       paymentMethod={paymentMethod}
-                      setDefault={updatePaymentMethod}
-                      handleDelete={deletePaymentMethod}
+                      setDefault={handleUpdatePaymentMethod}
+                      handleDelete={handleDeletePaymentMethod}
                     />
                   ))}
                 </Flex>
 
                 {(!setupIntent ||
-                  !paymentMethod ||
+                  !currentPaymentMethod ||
                   showDifferentPaymentMethods) && (
-                  <Button onClick={createSetupIntent} $size="lg" $fullWidth>
+                  <Button
+                    onClick={initializePaymentMethod}
+                    $size="lg"
+                    $fullWidth
+                  >
                     {t("Add new payment method")}
                   </Button>
                 )}
@@ -366,12 +349,7 @@ export const PaymentMethodDetails = ({
 
         {!isLoading && error && (
           <Box>
-            <Text
-              $font={theme.typography.text.fontFamily}
-              $size={theme.typography.text.fontSize}
-              $weight={500}
-              $color="#DB6669"
-            >
+            <Text $weight={500} $color="#DB6669">
               {error}
             </Text>
           </Box>

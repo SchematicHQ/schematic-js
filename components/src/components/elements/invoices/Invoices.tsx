@@ -1,15 +1,20 @@
-import { forwardRef, useEffect, useState } from "react";
+import { forwardRef, useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useTheme } from "styled-components";
 
 import { type InvoiceResponseData } from "../../../api/checkoutexternal";
 import { MAX_VISIBLE_INVOICE_COUNT } from "../../../const";
 import { type FontStyle } from "../../../context";
 import { useEmbed } from "../../../hooks";
 import type { ElementProps, RecursivePartial } from "../../../types";
-import { formatCurrency, toPrettyDate } from "../../../utils";
+import {
+  ERROR_UNKNOWN,
+  createKeyboardExecutionHandler,
+  formatCurrency,
+  isError,
+  toPrettyDate,
+} from "../../../utils";
 import { Element } from "../../layout";
-import { Flex, Icon, Text } from "../../ui";
+import { Button, Flex, Icon, Loader, Text, TransitionBox } from "../../ui";
 
 interface DesignProps {
   header: {
@@ -69,39 +74,6 @@ function formatInvoices(invoices: InvoiceResponseData[] = []) {
     }));
 }
 
-interface InvoiceDateProps {
-  date: string;
-  fontStyle: FontStyle;
-  url?: string | null;
-}
-
-const InvoiceDate = ({ date, fontStyle, url }: InvoiceDateProps) => {
-  const theme = useTheme();
-
-  // pass an empty `onClick` function to get the correct link style
-  const dateText = (
-    <Text
-      {...(url && { onClick: () => {} })}
-      $font={theme.typography[fontStyle].fontFamily}
-      $size={theme.typography[fontStyle].fontSize}
-      $weight={theme.typography[fontStyle].fontWeight}
-      $color={url ? theme.typography.link.color : theme.typography.text.color}
-    >
-      {date}
-    </Text>
-  );
-
-  if (url) {
-    return (
-      <a href={url} target="_blank" rel="noreferrer">
-        {dateText}
-      </a>
-    );
-  }
-
-  return dateText;
-};
-
 export type InvoicesProps = DesignProps & {
   data?: InvoiceResponseData[];
 };
@@ -117,12 +89,29 @@ export const Invoices = forwardRef<
 
   const { t } = useTranslation();
 
-  const theme = useTheme();
+  const { listInvoices, settings } = useEmbed();
 
-  const { api } = useEmbed();
-
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error>();
   const [invoices, setInvoices] = useState(() => formatInvoices(data));
   const [listSize, setListSize] = useState(props.limit.number);
+
+  const getInvoices = useCallback(async () => {
+    try {
+      setError(undefined);
+      setIsLoading(true);
+
+      const response = await listInvoices();
+
+      if (response) {
+        setInvoices(formatInvoices(response.data));
+      }
+    } catch (err) {
+      setError(isError(err) ? err : ERROR_UNKNOWN);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [listInvoices]);
 
   const toggleListSize = () => {
     setListSize((prev) =>
@@ -133,10 +122,8 @@ export const Invoices = forwardRef<
   };
 
   useEffect(() => {
-    api?.listInvoices().then((response) => {
-      setInvoices(formatInvoices(response.data));
-    });
-  }, [api]);
+    getInvoices();
+  }, [getInvoices]);
 
   useEffect(() => {
     setInvoices(formatInvoices(data));
@@ -144,89 +131,107 @@ export const Invoices = forwardRef<
 
   return (
     <Element ref={ref} className={className}>
-      <Flex $flexDirection="column" $gap="1rem">
-        {props.header.isVisible && (
-          <Flex $justifyContent="space-between" $alignItems="center">
-            <Text
-              $font={theme.typography[props.header.fontStyle].fontFamily}
-              $size={theme.typography[props.header.fontStyle].fontSize}
-              $weight={theme.typography[props.header.fontStyle].fontWeight}
-              $color={theme.typography[props.header.fontStyle].color}
-            >
-              {t("Invoices")}
-            </Text>
-          </Flex>
-        )}
+      <Flex as={TransitionBox} $justifyContent="center" $alignItems="center">
+        <Loader $color={settings.theme.primary} $isLoading={isLoading} />
+      </Flex>
 
-        {invoices.length > 0 ? (
-          <>
-            <Flex $flexDirection="column" $gap="0.5rem">
-              {invoices
-                .slice(0, listSize)
-                .map(({ date, amount, url }, index) => {
-                  return (
-                    <Flex key={index} $justifyContent="space-between">
-                      {props.date.isVisible && date && (
-                        <InvoiceDate
-                          date={date}
-                          fontStyle={props.date.fontStyle}
-                          url={url}
-                        />
-                      )}
+      {error ? (
+        <Flex
+          as={TransitionBox}
+          $flexDirection="column"
+          $justifyContent="center"
+          $alignItems="center"
+          $gap="1rem"
+        >
+          <Text $weight={500} $color="#DB6669">
+            {t("There was a problem retrieving your invoices.")}
+          </Text>
 
-                      {props.amount.isVisible && (
-                        <Text
-                          $font={
-                            theme.typography[props.amount.fontStyle].fontFamily
-                          }
-                          $size={
-                            theme.typography[props.amount.fontStyle].fontSize
-                          }
-                          $weight={
-                            theme.typography[props.amount.fontStyle].fontWeight
-                          }
-                          $color={
-                            theme.typography[props.amount.fontStyle].color
-                          }
-                        >
-                          {amount}
-                        </Text>
-                      )}
-                    </Flex>
-                  );
-                })}
-            </Flex>
-
-            {props.collapse.isVisible &&
-              invoices.length > props.limit.number && (
-                <Flex $alignItems="center" $gap="0.5rem">
-                  <Icon
-                    name={`chevron-${listSize === props.limit.number ? "down" : "up"}`}
-                    style={{ color: "#D0D0D0" }}
-                  />
-
-                  <Text
-                    onClick={toggleListSize}
-                    $font={
-                      theme.typography[props.collapse.fontStyle].fontFamily
-                    }
-                    $size={theme.typography[props.collapse.fontStyle].fontSize}
-                    $weight={
-                      theme.typography[props.collapse.fontStyle].fontWeight
-                    }
-                    $color={theme.typography[props.collapse.fontStyle].color}
-                  >
-                    {listSize === props.limit.number
-                      ? t("See more")
-                      : t("See less")}
-                  </Text>
+          <Button
+            onClick={() => getInvoices()}
+            $size="sm"
+            $variant="ghost"
+            $fullWidth={false}
+          >
+            {t("Try again")}
+          </Button>
+        </Flex>
+      ) : (
+        !isLoading && (
+          <TransitionBox>
+            <Flex $flexDirection="column" $gap="1rem">
+              {props.header.isVisible && (
+                <Flex $justifyContent="space-between" $alignItems="center">
+                  <Text display={props.header.fontStyle}>{t("Invoices")}</Text>
                 </Flex>
               )}
-          </>
-        ) : (
-          <Text display="heading2">{t("No invoices created yet")}</Text>
-        )}
-      </Flex>
+
+              {invoices.length > 0 ? (
+                <>
+                  <Flex $flexDirection="column" $gap="0.5rem">
+                    {invoices
+                      .slice(0, listSize)
+                      .map(({ date, amount, url }, index) => {
+                        return (
+                          <Flex key={index} $justifyContent="space-between">
+                            {props.date.isVisible && date && (
+                              <Text
+                                display={props.date.fontStyle}
+                                {...(url && {
+                                  as: "a",
+                                  href: url,
+                                  target: "_blank",
+                                  rel: "noreferrer",
+                                })}
+                                $color={
+                                  url
+                                    ? settings.theme.typography.link.color
+                                    : settings.theme.typography.text.color
+                                }
+                              >
+                                {date}
+                              </Text>
+                            )}
+
+                            {props.amount.isVisible && (
+                              <Text display={props.amount.fontStyle}>
+                                {amount}
+                              </Text>
+                            )}
+                          </Flex>
+                        );
+                      })}
+                  </Flex>
+
+                  {props.collapse.isVisible &&
+                    invoices.length > props.limit.number && (
+                      <Flex $alignItems="center" $gap="0.5rem">
+                        <Icon
+                          name={`chevron-${listSize === props.limit.number ? "down" : "up"}`}
+                          style={{ color: "#D0D0D0" }}
+                        />
+
+                        <Text
+                          onClick={toggleListSize}
+                          onKeyDown={createKeyboardExecutionHandler(
+                            toggleListSize,
+                          )}
+                          display={props.collapse.fontStyle}
+                        >
+                          {listSize === props.limit.number
+                            ? t("See more")
+                            : t("See less")}
+                        </Text>
+                      </Flex>
+                    )}
+                </>
+              ) : (
+                <Text display="heading2">{t("No invoices created yet")}</Text>
+              )}
+            </Flex>
+          </TransitionBox>
+        )
+      )}
     </Element>
   );
 });

@@ -1,6 +1,5 @@
 import { forwardRef, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { useTheme } from "styled-components";
 
 import { type FeatureUsageResponseData } from "../../../api/checkoutexternal";
 import { TEXT_BASE_SIZE } from "../../../const";
@@ -17,6 +16,7 @@ import {
   formatNumber,
   getBillingPrice,
   getFeatureName,
+  isCheckoutData,
   lighten,
   shortenPeriod,
   toPrettyDate,
@@ -26,13 +26,14 @@ import {
   Box,
   Button,
   Flex,
-  type IconNameTypes,
   IconRound,
   ProgressBar,
-  progressColorMap,
   Text,
   Tooltip,
+  progressColorMap,
+  type IconNameTypes,
 } from "../../ui";
+
 import * as styles from "./styles";
 
 interface DesignProps {
@@ -99,36 +100,53 @@ export const MeteredFeatures = forwardRef<
 
   const { t } = useTranslation();
 
-  const theme = useTheme();
-
-  const { data, setLayout, setSelected } = useEmbed();
+  const { data, settings, setCheckoutState } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
 
-  const featureUsage = useMemo(() => {
-    const orderedFeatureUsage = props.visibleFeatures?.reduce(
-      (acc: FeatureUsageResponseData[], id) => {
-        const mappedFeatureUsage = data.featureUsage?.features.find(
-          (usage) => usage.feature?.id === id,
+  const { planPeriod, plan, addOns, featureUsage, subscription } =
+    useMemo(() => {
+      if (isCheckoutData(data)) {
+        const orderedFeatureUsage = props.visibleFeatures?.reduce(
+          (acc: FeatureUsageResponseData[], id) => {
+            const mappedFeatureUsage = data.featureUsage?.features.find(
+              (usage) => usage.feature?.id === id,
+            );
+
+            if (mappedFeatureUsage) {
+              acc.push(mappedFeatureUsage);
+            }
+
+            return acc;
+          },
+          [],
         );
 
-        if (mappedFeatureUsage) {
-          acc.push(mappedFeatureUsage);
-        }
+        return {
+          planPeriod: data.company?.plan?.planPeriod,
+          plan: data.company?.plan,
+          addOns: data.company?.addOns || [],
+          featureUsage: (
+            orderedFeatureUsage ||
+            data.featureUsage?.features ||
+            []
+          ).filter(
+            (usage) =>
+              usage.feature?.featureType === "event" ||
+              usage.feature?.featureType === "trait",
+          ),
+          subscription: data.subscription,
+        };
+      }
 
-        return acc;
-      },
-      [],
-    );
-
-    return (orderedFeatureUsage || data.featureUsage?.features || []).filter(
-      (usage) =>
-        usage.feature?.featureType === "event" ||
-        usage.feature?.featureType === "trait",
-    );
-  }, [props.visibleFeatures, data.featureUsage?.features]);
-
-  const planPeriod = data.company?.plan?.planPeriod;
+      return {
+        planPeriod: undefined,
+        plan: undefined,
+        addOns: [],
+        featureUsage: [],
+        subscription: undefined,
+      };
+    }, [props.visibleFeatures, data]);
 
   // Check if we should render this component at all:
   // * If there are any plans or add-ons, render it, even if the list is empty.
@@ -136,10 +154,7 @@ export const MeteredFeatures = forwardRef<
   //  even if the company has no plan or add-ons).
   // * If none of the above, don't render the component.
   const shouldShowFeatures =
-    featureUsage.length > 0 ||
-    data.company?.plan ||
-    (data.company?.addOns ?? []).length > 0 ||
-    false;
+    featureUsage.length > 0 || plan || addOns.length > 0 || false;
 
   if (!shouldShowFeatures) {
     return null;
@@ -181,7 +196,7 @@ export const MeteredFeatures = forwardRef<
             const productId = (yearlyUsageBasedPrice ?? monthlyUsageBasedPrice)
               ?.productId;
             if (productId) {
-              const products = data?.subscription?.products ?? [];
+              const products = subscription?.products ?? [];
               const product = products.find((p) => p.id === productId);
               if (product && product.priceTier?.length > 1) {
                 // overage price is the last item in the price tier array
@@ -230,7 +245,7 @@ export const MeteredFeatures = forwardRef<
                     name={feature.icon as IconNameTypes | string}
                     size="sm"
                     colors={[
-                      theme.primary,
+                      settings.theme.primary,
                       isLightBackground
                         ? "hsla(0, 0%, 0%, 0.0625)"
                         : "hsla(0, 0%, 100%, 0.25)",
@@ -250,54 +265,25 @@ export const MeteredFeatures = forwardRef<
                   >
                     {feature?.name && (
                       <Flex $flexDirection="column" $gap="0.5rem" $flexGrow={1}>
-                        <Text
-                          as={Box}
-                          $font={
-                            theme.typography[props.header.fontStyle].fontFamily
-                          }
-                          $size={
-                            theme.typography[props.header.fontStyle].fontSize
-                          }
-                          $weight={
-                            theme.typography[props.header.fontStyle].fontWeight
-                          }
-                          $color={
-                            theme.typography[props.header.fontStyle].color
-                          }
-                          $leading={1.35}
-                        >
-                          {priceBehavior === "pay_as_you_go"
-                            ? typeof usage === "number" && (
-                                <>
-                                  {formatNumber(usage)}{" "}
-                                  {getFeatureName(feature, usage)}
-                                </>
-                              )
-                            : feature.name}
-                        </Text>
+                        <Box>
+                          <Text display={props.header.fontStyle}>
+                            {priceBehavior === "pay_as_you_go"
+                              ? typeof usage === "number" && (
+                                  <>
+                                    {formatNumber(usage)}{" "}
+                                    {getFeatureName(feature, usage)}
+                                  </>
+                                )
+                              : feature.name}
+                          </Text>
+                        </Box>
 
                         {props.description.isVisible && (
-                          <Text
-                            as={Box}
-                            $font={
-                              theme.typography[props.description.fontStyle]
-                                .fontFamily
-                            }
-                            $size={
-                              theme.typography[props.description.fontStyle]
-                                .fontSize
-                            }
-                            $weight={
-                              theme.typography[props.description.fontStyle]
-                                .fontWeight
-                            }
-                            $color={
-                              theme.typography[props.description.fontStyle]
-                                .color
-                            }
-                          >
-                            {feature.description}
-                          </Text>
+                          <Box>
+                            <Text display={props.description.fontStyle}>
+                              {feature.description}
+                            </Text>
+                          </Box>
                         )}
                       </Flex>
                     )}
@@ -311,69 +297,36 @@ export const MeteredFeatures = forwardRef<
                           $textAlign={shouldWrapChildren ? "left" : "right"}
                         >
                           {props.usage.isVisible && (
-                            <Text
-                              as={Box}
-                              $font={
-                                theme.typography[props.usage.fontStyle]
-                                  .fontFamily
-                              }
-                              $size={
-                                theme.typography[props.usage.fontStyle].fontSize
-                              }
-                              $weight={
-                                theme.typography[props.usage.fontStyle]
-                                  .fontWeight
-                              }
-                              $color={
-                                theme.typography[props.usage.fontStyle].color
-                              }
-                              $leading={1.35}
-                              style={{
-                                whiteSpace: "nowrap",
-                              }}
-                            >
-                              {priceBehavior === "pay_in_advance"
-                                ? typeof allocation === "number" && (
-                                    <>
-                                      {formatNumber(allocation)}{" "}
-                                      {getFeatureName(feature, allocation)}
-                                    </>
-                                  )
-                                : priceBehavior === "pay_as_you_go"
-                                  ? typeof price === "number" &&
-                                    typeof usage === "number" &&
-                                    formatCurrency(usage * price, currency)
-                                  : typeof usage === "number" && (
+                            <Box $whiteSpace="nowrap">
+                              <Text display={props.usage.fontStyle}>
+                                {priceBehavior === "pay_in_advance"
+                                  ? typeof allocation === "number" && (
                                       <>
-                                        {formatNumber(usage)}{" "}
-                                        {getFeatureName(feature, usage)}
-                                        {priceBehavior === "overage" && (
-                                          <> {t("used")}</>
-                                        )}
+                                        {formatNumber(allocation)}{" "}
+                                        {getFeatureName(feature, allocation)}
                                       </>
-                                    )}
-                            </Text>
+                                    )
+                                  : priceBehavior === "pay_as_you_go"
+                                    ? typeof price === "number" &&
+                                      typeof usage === "number" &&
+                                      formatCurrency(usage * price, currency)
+                                    : typeof usage === "number" && (
+                                        <>
+                                          {formatNumber(usage)}{" "}
+                                          {getFeatureName(feature, usage)}
+                                          {priceBehavior === "overage" && (
+                                            <> {t("used")}</>
+                                          )}
+                                        </>
+                                      )}
+                              </Text>
+                            </Box>
                           )}
 
                           {props.allocation.isVisible && (
                             <Box $whiteSpace="nowrap">
                               <Text
-                                $font={
-                                  theme.typography[props.allocation.fontStyle]
-                                    .fontFamily
-                                }
-                                $size={
-                                  theme.typography[props.allocation.fontStyle]
-                                    .fontSize
-                                }
-                                $weight={
-                                  theme.typography[props.allocation.fontStyle]
-                                    .fontWeight
-                                }
-                                $color={
-                                  theme.typography[props.allocation.fontStyle]
-                                    .color
-                                }
+                                display={props.allocation.fontStyle}
                                 $leading={1.35}
                               >
                                 {priceBehavior &&
@@ -411,10 +364,10 @@ export const MeteredFeatures = forwardRef<
                             trigger={progressBar}
                             content={
                               <Text
-                                $font={theme.typography.text.fontFamily}
-                                $size={0.875 * theme.typography.text.fontSize}
-                                $weight={theme.typography.text.fontWeight}
-                                $color={theme.typography.text.color}
+                                $size={
+                                  0.875 *
+                                  settings.theme.typography.text.fontSize
+                                }
                                 $leading={1}
                               >
                                 {t("Up to a limit of", {
@@ -433,8 +386,7 @@ export const MeteredFeatures = forwardRef<
                         {priceBehavior === "pay_in_advance" && (
                           <Button
                             onClick={() => {
-                              setSelected({ usage: true });
-                              setLayout("checkout");
+                              setCheckoutState({ usage: true });
                             }}
                             style={{ whiteSpace: "nowrap" }}
                           >
@@ -451,25 +403,19 @@ export const MeteredFeatures = forwardRef<
                   $justifyContent="space-between"
                   $alignItems="center"
                   $gap="1rem"
-                  $margin={`0 -${theme.card.padding / TEXT_BASE_SIZE}rem -${(theme.card.padding * 0.75) / TEXT_BASE_SIZE}rem`}
-                  $padding={`${(0.4375 * theme.card.padding) / TEXT_BASE_SIZE}rem ${theme.card.padding / TEXT_BASE_SIZE}rem`}
+                  $margin={`0 -${settings.theme.card.padding / TEXT_BASE_SIZE}rem -${(settings.theme.card.padding * 0.75) / TEXT_BASE_SIZE}rem`}
+                  $padding={`${(0.4375 * settings.theme.card.padding) / TEXT_BASE_SIZE}rem ${settings.theme.card.padding / TEXT_BASE_SIZE}rem`}
                   $backgroundColor={
                     isLightBackground
-                      ? darken(theme.card.background, 0.05)
-                      : lighten(theme.card.background, 0.1)
+                      ? darken(settings.theme.card.background, 0.05)
+                      : lighten(settings.theme.card.background, 0.1)
                   }
-                  {...(theme.sectionLayout === "separate" && {
-                    $borderBottomLeftRadius: `${theme.card.borderRadius / TEXT_BASE_SIZE}rem`,
-                    $borderBottomRightRadius: `${theme.card.borderRadius / TEXT_BASE_SIZE}rem`,
+                  {...(settings.theme.sectionLayout === "separate" && {
+                    $borderBottomLeftRadius: `${settings.theme.card.borderRadius / TEXT_BASE_SIZE}rem`,
+                    $borderBottomRightRadius: `${settings.theme.card.borderRadius / TEXT_BASE_SIZE}rem`,
                   })}
                 >
-                  <Text
-                    $font={theme.typography.text.fontFamily}
-                    $size={theme.typography.text.fontSize}
-                    $weight={theme.typography.text.fontWeight}
-                    $color={theme.typography.text.color}
-                    $leading={1.35}
-                  >
+                  <Text $leading={1.35}>
                     <>
                       {t("Additional")}: {formatCurrency(price, currency)}
                       {feature && (
@@ -485,13 +431,7 @@ export const MeteredFeatures = forwardRef<
                   </Text>
 
                   {isOverage && (
-                    <Text
-                      $font={theme.typography.text.fontFamily}
-                      $size={theme.typography.text.fontSize}
-                      $weight={theme.typography.text.fontWeight}
-                      $color={theme.typography.text.color}
-                      $leading={1.35}
-                    >
+                    <Text $leading={1.35}>
                       {formatNumber(usage - softLimit)}{" "}
                       {feature && getFeatureName(feature)}
                       {" · "}

@@ -1,15 +1,36 @@
-import pluralize from "pluralize";
-
-import type { FeatureDetailResponseData } from "../api/checkoutexternal";
+import {
+  type CompanyPlanDetailResponseData,
+  type ComponentHydrateResponseData,
+  type FeatureDetailResponseData,
+} from "../api/checkoutexternal";
+import {
+  type PlanViewPublicResponseData,
+  type PublicPlansResponseData,
+} from "../api/componentspublic";
+import { VISIBLE_ENTITLEMENT_COUNT } from "../const";
 import { type SelectedPlan } from "../hooks";
 
-export const getFeatureName = (
+import { pluralize } from "./pluralize";
+
+export function isCheckoutData(
+  data?: PublicPlansResponseData | ComponentHydrateResponseData,
+): data is ComponentHydrateResponseData {
+  return typeof data !== "undefined" && "company" in data;
+}
+
+export function isHydratedPlan(
+  plan?: PlanViewPublicResponseData | CompanyPlanDetailResponseData,
+): plan is CompanyPlanDetailResponseData {
+  return typeof plan !== "undefined" && "current" in plan;
+}
+
+export function getFeatureName(
   feature: Pick<
     FeatureDetailResponseData,
     "name" | "singularName" | "pluralName"
   >,
   count = 0,
-) => {
+) {
   const shouldBePlural = count === 0 || count > 1;
   const { name, singularName, pluralName } = feature;
 
@@ -22,7 +43,7 @@ export const getFeatureName = (
   }
 
   return pluralize(name, count);
-};
+}
 
 export function getBillingPrice<
   T extends { price: number; priceDecimal?: string | null },
@@ -39,7 +60,7 @@ export function getBillingPrice<
   return { ...billingPrice, price };
 }
 
-export const getAddOnPrice = (addOn: SelectedPlan, period: string) => {
+export function getAddOnPrice(addOn: SelectedPlan, period: string) {
   if (addOn.chargeType === ChargeType.oneTime) {
     return addOn.oneTimePrice;
   }
@@ -49,10 +70,29 @@ export const getAddOnPrice = (addOn: SelectedPlan, period: string) => {
   }
 
   return addOn.monthlyPrice;
-};
+}
 
 export const ChargeType = {
   oneTime: "one_time",
   recurring: "recurring",
   free: "free",
 };
+
+export function entitlementCountsReducer(
+  acc: Record<
+    string,
+    | {
+        size: number;
+        limit: number;
+      }
+    | undefined
+  >,
+  plan: PlanViewPublicResponseData | CompanyPlanDetailResponseData,
+) {
+  acc[plan.id] = {
+    size: plan.entitlements.length,
+    limit: VISIBLE_ENTITLEMENT_COUNT,
+  };
+
+  return acc;
+}

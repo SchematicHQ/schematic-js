@@ -1,15 +1,19 @@
 import { forwardRef, useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useTheme } from "styled-components";
 
 import { type InvoiceResponseData } from "../../../api/checkoutexternal";
 import { type FontStyle } from "../../../context";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import type { ElementProps, RecursivePartial } from "../../../types";
-import { formatCurrency, toPrettyDate } from "../../../utils";
+import {
+  ERROR_UNKNOWN,
+  formatCurrency,
+  isCheckoutData,
+  isError,
+  toPrettyDate,
+} from "../../../utils";
 import { Element } from "../../layout";
-import { Box, Button, Flex, Loader, Text } from "../../ui";
-import { Container } from "./styles";
+import { Box, Button, Flex, Loader, Text, TransitionBox } from "../../ui";
 
 interface DesignProps {
   header: {
@@ -59,9 +63,7 @@ export const UpcomingBill = forwardRef<
 
   const { t } = useTranslation();
 
-  const theme = useTheme();
-
-  const { api, data } = useEmbed();
+  const { data, settings, getUpcomingInvoice } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
 
@@ -70,50 +72,50 @@ export const UpcomingBill = forwardRef<
   const [upcomingInvoice, setUpcomingInvoice] = useState<InvoiceResponseData>();
 
   const discounts = useMemo(() => {
-    return (data.subscription?.discounts || []).map((discount) => ({
-      couponId: discount.couponId,
-      customerFacingCode: discount.customerFacingCode || undefined,
-      currency: discount.currency || undefined,
-      amountOff: discount.amountOff ?? undefined,
-      percentOff: discount.percentOff ?? undefined,
-      isActive: discount.isActive,
-    }));
-  }, [data.subscription]);
+    return ((isCheckoutData(data) && data.subscription?.discounts) || []).map(
+      (discount) => ({
+        couponId: discount.couponId,
+        customerFacingCode: discount.customerFacingCode || undefined,
+        currency: discount.currency || undefined,
+        amountOff: discount.amountOff ?? undefined,
+        percentOff: discount.percentOff ?? undefined,
+        isActive: discount.isActive,
+      }),
+    );
+  }, [data]);
 
-  const loadInvoice = useCallback(async () => {
-    if (!api || !data.component?.id) {
-      return;
-    }
+  const getInvoice = useCallback(async () => {
+    if (isCheckoutData(data) && data.component?.id && data.subscription) {
+      try {
+        setError(undefined);
+        setIsLoading(true);
 
-    try {
-      setError(undefined);
-      setIsLoading(true);
-      const response = await api.hydrateUpcomingInvoice({
-        componentId: data.component.id,
-      });
-      setUpcomingInvoice(response.data);
-    } catch (e) {
-      if (e instanceof Error) {
-        setError(e);
+        const response = await getUpcomingInvoice(data.component.id);
+
+        if (response) {
+          setUpcomingInvoice(response.data);
+        }
+      } catch (err) {
+        setError(isError(err) ? err : ERROR_UNKNOWN);
+      } finally {
+        setIsLoading(false);
       }
-    } finally {
-      setIsLoading(false);
     }
-  }, [api, data.component?.id]);
+  }, [data, getUpcomingInvoice]);
 
   useEffect(() => {
-    loadInvoice();
-  }, [loadInvoice]);
+    getInvoice();
+  }, [getInvoice]);
 
   return (
     <Element ref={ref} className={className}>
-      <Flex as={Container} $justifyContent="center" $alignItems="center">
-        <Loader $color={theme.primary} $isLoading={isLoading} />
+      <Flex as={TransitionBox} $justifyContent="center" $alignItems="center">
+        <Loader $color={settings.theme.primary} $isLoading={isLoading} />
       </Flex>
 
       {error ? (
         <Flex
-          as={Container}
+          as={TransitionBox}
           $flexDirection="column"
           $justifyContent="center"
           $alignItems="center"
@@ -124,7 +126,7 @@ export const UpcomingBill = forwardRef<
           </Text>
 
           <Button
-            onClick={() => loadInvoice()}
+            onClick={() => getInvoice()}
             $size="sm"
             $variant="ghost"
             $fullWidth={false}
@@ -134,7 +136,7 @@ export const UpcomingBill = forwardRef<
         </Flex>
       ) : (
         !isLoading && (
-          <Container>
+          <TransitionBox>
             {upcomingInvoice ? (
               <Flex $flexDirection="column" $gap="1rem">
                 {props.header.isVisible && upcomingInvoice.dueDate && (
@@ -215,7 +217,8 @@ export const UpcomingBill = forwardRef<
                                 >
                                   <Text
                                     $size={
-                                      0.75 * theme.typography.text.fontSize
+                                      0.75 *
+                                      settings.theme.typography.text.fontSize
                                     }
                                   >
                                     {discount.customerFacingCode}
@@ -251,7 +254,7 @@ export const UpcomingBill = forwardRef<
             ) : (
               <Text display="heading2">{t("No upcoming invoice")}</Text>
             )}
-          </Container>
+          </TransitionBox>
         )
       )}
     </Element>

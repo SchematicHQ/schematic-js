@@ -1,34 +1,35 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useTheme } from "styled-components";
 
 import { TEXT_BASE_SIZE, VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
 import {
-  type SelectedPlan,
   useEmbed,
   useIsLightBackground,
+  type SelectedPlan,
 } from "../../../hooks";
 import {
   darken,
+  entitlementCountsReducer,
   formatCurrency,
   formatNumber,
   getBillingPrice,
   getFeatureName,
   hexToHSL,
+  isCheckoutData,
+  isHydratedPlan,
   lighten,
   shortenPeriod,
 } from "../../../utils";
-import { ButtonLink } from "../../elements/pricing-table/styles";
 import { cardBoxShadow } from "../../layout";
 import {
   Box,
   Button,
   Flex,
   Icon,
-  type IconNameTypes,
   IconRound,
   Text,
   Tooltip,
+  type IconNameTypes,
 } from "../../ui";
 
 interface SelectedProps {
@@ -39,7 +40,7 @@ interface SelectedProps {
 const Selected = ({ isCurrent = false, isTrial = false }: SelectedProps) => {
   const { t } = useTranslation();
 
-  const theme = useTheme();
+  const { settings } = useEmbed();
 
   const text = useMemo(() => {
     if (isCurrent) {
@@ -61,15 +62,12 @@ const Selected = ({ isCurrent = false, isTrial = false }: SelectedProps) => {
         style={{
           fontSize: 20,
           lineHeight: 1,
-          color: theme.primary,
+          color: settings.theme.primary,
         }}
       />
 
       <Text
-        $font={theme.typography.text.fontFamily}
-        $size={(15 / 16) * theme.typography.text.fontSize}
-        $weight={theme.typography.text.fontWeight}
-        $color={theme.typography.text.color}
+        $size={0.9375 * settings.theme.typography.text.fontSize}
         $leading={1}
       >
         {text}
@@ -101,40 +99,56 @@ const PlanButtonGroup = ({
 
   const { data } = useEmbed();
 
-  const isCurrent = plan.id === data.company?.plan?.id;
+  const { isCurrentPlan, isValidPlan, isTrialing } = useMemo(() => {
+    if (isCheckoutData(data)) {
+      return {
+        isCurrentPlan: data.company?.plan?.id === plan.id,
+        isValidPlan: isHydratedPlan(plan) && plan.valid,
+        isTrialing: data.subscription?.status === "trialing",
+      };
+    }
 
-  if (plan.companyCanTrial && plan.isTrialable) {
+    return {
+      isCurrentPlan: false,
+      isValidPlan: true,
+      isTrialing: false,
+    };
+  }, [data, plan]);
+
+  if (isHydratedPlan(plan) && plan.companyCanTrial && plan.isTrialable) {
     return (
       <Flex $flexDirection="column" $gap="1.5rem">
-        {data.subscription?.status !== "trialing" && (
+        {!isTrialing && (
           <>
             {isSelected && willTrial ? (
-              <Selected isCurrent={isCurrent} isTrial={willTrial} />
+              <Selected isCurrent={isCurrentPlan} isTrial={willTrial} />
             ) : (
               <Button
                 type="button"
-                disabled={(isLoading || !plan.valid) && !plan.custom}
-                {...(!plan.custom && {
-                  onClick: () => {
-                    onSelect({
-                      plan,
-                      shouldTrial: true,
-                    });
-                  },
-                })}
+                disabled={(isLoading || !isValidPlan) && !plan.custom}
+                {...(plan.custom
+                  ? {
+                      as: "a",
+                      href: plan.customPlanConfig?.ctaWebSite ?? "#",
+                      target: "_blank",
+                      rel: "noreferrer",
+                    }
+                  : {
+                      onClick: () => {
+                        onSelect({
+                          plan,
+                          shouldTrial: true,
+                        });
+                      },
+                    })}
                 $size="sm"
                 $color="primary"
                 $variant="filled"
                 $fullWidth
               >
                 {plan.custom ? (
-                  <ButtonLink
-                    href={plan.customPlanConfig?.ctaWebSite ?? "#"}
-                    target="_blank"
-                  >
-                    {plan.customPlanConfig?.ctaText ?? t("Talk to support")}
-                  </ButtonLink>
-                ) : !plan.valid ? (
+                  (plan.customPlanConfig?.ctaText ?? t("Talk to support"))
+                ) : !isValidPlan ? (
                   <Tooltip
                     trigger={<Text>{t("Over usage limit")}</Text>}
                     content={
@@ -153,24 +167,21 @@ const PlanButtonGroup = ({
 
         {!plan.custom && (
           <>
-            {isSelected &&
-            (!willTrial || data.subscription?.status === "trialing") ? (
-              <Selected isCurrent={isCurrent} />
+            {isSelected && (!willTrial || isTrialing) ? (
+              <Selected isCurrent={isCurrentPlan} />
             ) : (
               <Button
                 type="button"
-                disabled={isLoading || !plan.valid}
+                disabled={isLoading || !isValidPlan}
                 onClick={() => {
                   onSelect({ plan, shouldTrial: false });
                 }}
                 $size="sm"
                 $color="primary"
-                $variant={
-                  data.subscription?.status === "trialing" ? "filled" : "text"
-                }
+                $variant={isTrialing ? "filled" : "text"}
                 $fullWidth
               >
-                {!plan.valid ? (
+                {!isValidPlan ? (
                   <Tooltip
                     trigger={<Text>{t("Over usage limit")}</Text>}
                     content={
@@ -191,29 +202,31 @@ const PlanButtonGroup = ({
   }
 
   return isSelected ? (
-    <Selected isCurrent={isCurrent} />
+    <Selected isCurrent={isCurrentPlan} />
   ) : (
     <Button
       type="button"
-      disabled={(isLoading || !plan.valid) && !plan.custom}
-      {...(!plan.custom && {
-        onClick: () => {
-          onSelect({ plan });
-        },
-      })}
+      disabled={(isLoading || !isValidPlan) && !plan.custom}
+      {...(plan.custom
+        ? {
+            as: "a",
+            href: plan.customPlanConfig?.ctaWebSite ?? "#",
+            target: "_blank",
+            rel: "noreferrer",
+          }
+        : {
+            onClick: () => {
+              onSelect({ plan });
+            },
+          })}
       $size="sm"
       $color="primary"
       $variant="filled"
       $fullWidth
     >
       {plan.custom ? (
-        <ButtonLink
-          href={plan.customPlanConfig?.ctaWebSite ?? "#"}
-          target="_blank"
-        >
-          {plan.customPlanConfig?.ctaText ?? t("Talk to support")}
-        </ButtonLink>
-      ) : !plan.valid ? (
+        (plan.customPlanConfig?.ctaText ?? t("Talk to support"))
+      ) : !isValidPlan ? (
         <Tooltip
           trigger={<Text>{t("Over usage limit")}</Text>}
           content={
@@ -250,52 +263,45 @@ export const Plan = ({
 }: PlanProps) => {
   const { t } = useTranslation();
 
-  const theme = useTheme();
-
-  const { data } = useEmbed();
+  const { data, settings } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
 
   const [entitlementCounts, setEntitlementCounts] = useState(() =>
-    plans.reduce(
-      (
-        acc: Record<
-          string,
-          {
-            size: number;
-            limit: number;
-          }
-        >,
-        plan,
-      ) => {
-        acc[plan.id] = {
-          size: plan.entitlements.length,
-          limit: VISIBLE_ENTITLEMENT_COUNT,
-        };
+    plans.reduce(entitlementCountsReducer, {}),
+  );
 
-        return acc;
-      },
-      {},
-    ),
+  const isTrialing = useMemo(
+    () => isCheckoutData(data) && data.subscription?.status === "trialing",
+    [data],
   );
 
   const handleToggleShowAll = (id: string) => {
     setEntitlementCounts((prev) => {
-      const count = { ...prev[id] };
-      return {
-        ...prev,
-        [id]: {
-          size: count.size,
-          limit:
-            count.limit > VISIBLE_ENTITLEMENT_COUNT
-              ? VISIBLE_ENTITLEMENT_COUNT
-              : count.size,
-        },
-      };
+      const count = prev[id] ? { ...prev[id] } : undefined;
+
+      if (count) {
+        return {
+          ...prev,
+          [id]: {
+            size: count.size,
+            limit:
+              count.limit > VISIBLE_ENTITLEMENT_COUNT
+                ? VISIBLE_ENTITLEMENT_COUNT
+                : count.size,
+          },
+        };
+      }
+
+      return prev;
     });
   };
 
-  const cardPadding = theme.card.padding / TEXT_BASE_SIZE;
+  useEffect(() => {
+    setEntitlementCounts(plans.reduce(entitlementCountsReducer, {}));
+  }, [plans]);
+
+  const cardPadding = settings.theme.card.padding / TEXT_BASE_SIZE;
 
   return (
     <>
@@ -306,8 +312,6 @@ export const Plan = ({
         $flexGrow={1}
       >
         {plans.map((plan, planIndex) => {
-          const count = entitlementCounts[plan.id];
-          const isExpanded = count.limit > VISIBLE_ENTITLEMENT_COUNT;
           const { price: planPrice, currency: planCurrency } =
             getBillingPrice(
               period === "year" ? plan.yearlyPrice : plan.monthlyPrice,
@@ -318,8 +322,11 @@ export const Plan = ({
           const isUsageBasedPlan = planPrice === 0 && hasUsageBasedEntitlements;
           const headerPriceFontStyle =
             plan.custom || isUsageBasedPlan
-              ? theme.typography.heading3
-              : theme.typography.heading2;
+              ? settings.theme.typography.heading3
+              : settings.theme.typography.heading2;
+
+          const count = entitlementCounts[plan.id];
+          const isExpanded = count && count.limit > VISIBLE_ENTITLEMENT_COUNT;
 
           return (
             <Flex
@@ -327,14 +334,18 @@ export const Plan = ({
               $position="relative"
               $flexDirection="column"
               $padding={`${0.75 * cardPadding}rem 0`}
-              $backgroundColor={theme.card.background}
-              $borderRadius={`${theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
+              $backgroundColor={settings.theme.card.background}
+              $borderRadius={`${settings.theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
               $outlineWidth="2px"
               $outlineStyle="solid"
               $outlineColor={
-                plan.id === selectedPlan?.id ? theme.primary : "transparent"
+                plan.id === selectedPlan?.id
+                  ? settings.theme.primary
+                  : "transparent"
               }
-              {...(theme.card.hasShadow && { $boxShadow: cardBoxShadow })}
+              {...(settings.theme.card.hasShadow && {
+                $boxShadow: cardBoxShadow,
+              })}
             >
               <Flex
                 $flexDirection="column"
@@ -355,25 +366,11 @@ export const Plan = ({
                 }}
               >
                 <Box>
-                  <Text
-                    $font={theme.typography.heading2.fontFamily}
-                    $size={theme.typography.heading2.fontSize}
-                    $weight={theme.typography.heading2.fontWeight}
-                    $color={theme.typography.heading2.color}
-                  >
-                    {plan.name}
-                  </Text>
+                  <Text display="heading2">{plan.name}</Text>
                 </Box>
 
                 <Box $marginBottom="0.5rem" $lineHeight={1.35}>
-                  <Text
-                    $font={theme.typography.text.fontFamily}
-                    $size={theme.typography.text.fontSize}
-                    $weight={theme.typography.text.fontWeight}
-                    $color={theme.typography.text.color}
-                  >
-                    {plan.description}
-                  </Text>
+                  <Text>{plan.description}</Text>
                 </Box>
 
                 <Box>
@@ -394,36 +391,34 @@ export const Plan = ({
 
                   {!plan.custom && !isUsageBasedPlan && (
                     <Text
-                      $font={theme.typography.heading2.fontFamily}
-                      $size={(16 / 30) * theme.typography.heading2.fontSize}
-                      $weight={theme.typography.heading2.fontWeight}
-                      $color={theme.typography.heading2.color}
+                      display="heading2"
+                      $size={
+                        (16 / 30) * settings.theme.typography.heading2.fontSize
+                      }
                     >
                       /{period}
                     </Text>
                   )}
                 </Box>
 
-                {plan.current && (
+                {isHydratedPlan(plan) && plan.current && (
                   <Flex
                     $position="absolute"
                     $right="1rem"
                     $top="1rem"
-                    $backgroundColor={theme.primary}
+                    $backgroundColor={settings.theme.primary}
                     $borderRadius="9999px"
                     $padding="0.125rem 0.85rem"
                   >
                     <Text
-                      $font={theme.typography.text.fontFamily}
-                      $size={0.75 * theme.typography.text.fontSize}
-                      $weight={theme.typography.text.fontWeight}
+                      $size={0.75 * settings.theme.typography.text.fontSize}
                       $color={
-                        hexToHSL(theme.primary).l > 50 ? "#000000" : "#FFFFFF"
+                        hexToHSL(settings.theme.primary).l > 50
+                          ? "#000000"
+                          : "#FFFFFF"
                       }
                     >
-                      {data.subscription?.status === "trialing"
-                        ? t("Trialing")
-                        : t("Active")}
+                      {isTrialing ? t("Trialing") : t("Active")}
                     </Text>
                   </Flex>
                 )}
@@ -518,7 +513,7 @@ export const Plan = ({
                                   }
                                   size="sm"
                                   colors={[
-                                    theme.primary,
+                                    settings.theme.primary,
                                     isLightBackground
                                       ? "hsla(0, 0%, 0%, 0.0625)"
                                       : "hsla(0, 0%, 100%, 0.25)",
@@ -532,13 +527,7 @@ export const Plan = ({
                                   $justifyContent="center"
                                   $gap="0.5rem"
                                 >
-                                  <Text
-                                    $font={theme.typography.text.fontFamily}
-                                    $size={theme.typography.text.fontSize}
-                                    $weight={theme.typography.text.fontWeight}
-                                    $color={theme.typography.text.color}
-                                    $leading={1.35}
-                                  >
+                                  <Text $leading={1.35}>
                                     {typeof entitlementPrice === "number" &&
                                     (entitlement.priceBehavior ===
                                       "pay_in_advance" ||
@@ -606,22 +595,24 @@ export const Plan = ({
                                   {entitlement.priceBehavior === "overage" &&
                                     typeof entitlementPrice === "number" && (
                                       <Text
-                                        $font={theme.typography.text.fontFamily}
                                         $size={
-                                          0.875 * theme.typography.text.fontSize
-                                        }
-                                        $weight={
-                                          theme.typography.text.fontWeight
+                                          0.875 *
+                                          settings.theme.typography.text
+                                            .fontSize
                                         }
                                         $color={
-                                          hexToHSL(theme.typography.text.color)
-                                            .l > 50
+                                          hexToHSL(
+                                            settings.theme.typography.text
+                                              .color,
+                                          ).l > 50
                                             ? darken(
-                                                theme.typography.text.color,
+                                                settings.theme.typography.text
+                                                  .color,
                                                 0.46,
                                               )
                                             : lighten(
-                                                theme.typography.text.color,
+                                                settings.theme.typography.text
+                                                  .color,
                                                 0.46,
                                               )
                                         }
@@ -676,10 +667,13 @@ export const Plan = ({
                       />
                       <Text
                         onClick={() => handleToggleShowAll(plan.id)}
-                        $font={theme.typography.link.fontFamily}
-                        $size={theme.typography.link.fontSize}
-                        $weight={theme.typography.link.fontWeight}
-                        $color={theme.typography.link.color}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter" || event.key === " ") {
+                            event.preventDefault();
+                            handleToggleShowAll(plan.id);
+                          }
+                        }}
+                        display="link"
                         $leading={1}
                         style={{ cursor: "pointer" }}
                       >

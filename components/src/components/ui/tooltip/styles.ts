@@ -87,12 +87,11 @@ interface ContentProps {
   x: number;
   y: number;
   position: Position;
-  zIndex: number;
 }
 
 export const Content = styled.div.withConfig({
   shouldForwardProp: (prop) => !["x", "y", "position", "zIndex"].includes(prop),
-})<ContentProps>(({ x, y, position, zIndex }) => {
+})<ContentProps>(({ x, y, position, theme }) => {
   const translate = coords(position);
   const arrowTranslate = arrowCoords(position);
   const transformOrigin = origin(position);
@@ -108,16 +107,15 @@ export const Content = styled.div.withConfig({
         ${position === "left" ? 0.75 : position === "right" ? -0.75 : 0}rem
     );
     transform: translate(${translate.x}%, ${translate.y}%);
-    z-index: ${zIndex};
+    z-index: 9999999;
     line-height: 1;
     width: max-content;
     max-width: 100%;
     padding: ${1 / 1.15}rem 1rem;
     text-align: left;
     opacity: 0;
-    background-color: ${({ theme }) => theme.card.background};
-    border-radius: ${({ theme }) =>
-      `${theme.card.borderRadius / TEXT_BASE_SIZE}rem`};
+    background-color: ${theme.card.background};
+    border-radius: ${theme.card.borderRadius / TEXT_BASE_SIZE}rem;
     filter: drop-shadow(0px 1px 20px #1018280f)
       drop-shadow(0px 1px 3px #1018281a);
     transform-origin: ${transformOrigin.x} ${transformOrigin.y};
@@ -151,7 +149,7 @@ export const Content = styled.div.withConfig({
       width: 1rem;
       height: 1rem;
       clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
-      background-color: ${({ theme }) => theme.card.background};
+      background-color: ${theme.card.background};
     }
   `;
 });

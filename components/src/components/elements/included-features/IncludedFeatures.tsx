@@ -1,6 +1,5 @@
 import { forwardRef, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useTheme } from "styled-components";
 
 import type { FeatureUsageResponseData } from "../../../api/checkoutexternal";
 import { VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
@@ -11,9 +10,14 @@ import {
   useWrapChildren,
 } from "../../../hooks";
 import type { ElementProps, RecursivePartial } from "../../../types";
-import { toPrettyDate } from "../../../utils";
+import {
+  createKeyboardExecutionHandler,
+  isCheckoutData,
+  toPrettyDate,
+} from "../../../utils";
 import { Element } from "../../layout";
-import { Box, Flex, Icon, type IconNameTypes, IconRound, Text } from "../../ui";
+import { Box, Flex, Icon, IconRound, Text, type IconNameTypes } from "../../ui";
+
 import { Details } from "./Details";
 
 export interface DesignProps {
@@ -83,9 +87,7 @@ export const IncludedFeatures = forwardRef<
 
   const { t } = useTranslation();
 
-  const theme = useTheme();
-
-  const { data } = useEmbed();
+  const { data, settings } = useEmbed();
 
   const elements = useRef<HTMLElement[]>([]);
   const shouldWrapChildren = useWrapChildren(elements.current);
@@ -94,24 +96,36 @@ export const IncludedFeatures = forwardRef<
 
   const [showCount, setShowCount] = useState(VISIBLE_ENTITLEMENT_COUNT);
 
-  const featureUsage = useMemo(() => {
-    const orderedFeatureUsage = props.visibleFeatures?.reduce(
-      (acc: FeatureUsageResponseData[], id) => {
-        const mappedFeatureUsage = data.featureUsage?.features.find(
-          (usage) => usage.feature?.id === id,
-        );
+  const { plan, addOns, featureUsage } = useMemo(() => {
+    if (isCheckoutData(data)) {
+      const orderedFeatureUsage = props.visibleFeatures?.reduce(
+        (acc: FeatureUsageResponseData[], id) => {
+          const mappedFeatureUsage = data.featureUsage?.features.find(
+            (usage) => usage.feature?.id === id,
+          );
 
-        if (mappedFeatureUsage) {
-          acc.push(mappedFeatureUsage);
-        }
+          if (mappedFeatureUsage) {
+            acc.push(mappedFeatureUsage);
+          }
 
-        return acc;
-      },
-      [],
-    );
+          return acc;
+        },
+        [],
+      );
 
-    return orderedFeatureUsage || data.featureUsage?.features || [];
-  }, [props.visibleFeatures, data.featureUsage?.features]);
+      return {
+        plan: data.company?.plan,
+        addOns: data.company?.addOns || [],
+        featureUsage: orderedFeatureUsage || data.featureUsage?.features || [],
+      };
+    }
+
+    return {
+      plan: undefined,
+      addOns: [],
+      featureUsage: [],
+    };
+  }, [props.visibleFeatures, data]);
 
   const featureListSize = featureUsage.length;
 
@@ -129,10 +143,7 @@ export const IncludedFeatures = forwardRef<
   //  even if the company has no plan or add-ons).
   // * If none of the above, don't render the component.
   const shouldShowFeatures =
-    featureUsage.length > 0 ||
-    data.company?.plan ||
-    (data.company?.addOns ?? []).length > 0 ||
-    false;
+    featureUsage.length > 0 || plan || addOns.length > 0 || false;
 
   if (!shouldShowFeatures) {
     return null;
@@ -151,14 +162,7 @@ export const IncludedFeatures = forwardRef<
     >
       {props.header.isVisible && (
         <Box $marginBottom="0.5rem">
-          <Text
-            $font={theme.typography[props.header.fontStyle].fontFamily}
-            $size={theme.typography[props.header.fontStyle].fontSize}
-            $weight={theme.typography[props.header.fontStyle].fontWeight}
-            $color={theme.typography[props.header.fontStyle].color}
-          >
-            {props.header.text}
-          </Text>
+          <Text display={props.header.fontStyle}>{props.header.text}</Text>
         </Box>
       )}
 
@@ -193,7 +197,7 @@ export const IncludedFeatures = forwardRef<
                   name={feature.icon as IconNameTypes | string}
                   size="sm"
                   colors={[
-                    theme.primary,
+                    settings.theme.primary,
                     isLightBackground
                       ? "hsla(0, 0%, 0%, 0.0625)"
                       : "hsla(0, 0%, 100%, 0.25)",
@@ -202,35 +206,13 @@ export const IncludedFeatures = forwardRef<
               )}
 
               {feature?.name && (
-                <Text
-                  $font={theme.typography[props.icons.fontStyle].fontFamily}
-                  $size={theme.typography[props.icons.fontStyle].fontSize}
-                  $weight={theme.typography[props.icons.fontStyle].fontWeight}
-                  $color={theme.typography[props.icons.fontStyle].color}
-                >
-                  {feature.name}
-                </Text>
+                <Text display={props.icons.fontStyle}>{feature.name}</Text>
               )}
 
               {props.entitlementExpiration.isVisible &&
                 usage.entitlementExpirationDate && (
                   <Text
-                    $font={
-                      theme.typography[props.entitlementExpiration.fontStyle]
-                        .fontFamily
-                    }
-                    $size={
-                      theme.typography[props.entitlementExpiration.fontStyle]
-                        .fontSize
-                    }
-                    $weight={
-                      theme.typography[props.entitlementExpiration.fontStyle]
-                        .fontWeight
-                    }
-                    $color={
-                      theme.typography[props.entitlementExpiration.fontStyle]
-                        .color
-                    }
+                    display={props.entitlementExpiration.fontStyle}
                     $leading={1}
                   >
                     Expires{" "}
@@ -266,12 +248,8 @@ export const IncludedFeatures = forwardRef<
 
           <Text
             onClick={handleToggleShowAll}
-            $font={theme.typography.link.fontFamily}
-            $size={theme.typography.link.fontSize}
-            $weight={theme.typography.link.fontWeight}
-            $color={theme.typography.link.color}
-            $leading={1}
-            style={{ cursor: "pointer" }}
+            onKeyDown={createKeyboardExecutionHandler(handleToggleShowAll)}
+            display="link"
           >
             {isExpanded ? t("Hide all") : t("See all")}
           </Text>

@@ -52,6 +52,11 @@ export const Button = styled.button<ButtonProps>(
         cursor: pointer;
       }
 
+      &:focus-visible {
+        outline: 2px solid ${theme.primary};
+        outline-offset: 2px;
+      }
+
       &::before {
         content: "";
         ${loaderStyles({ $color: themeColor, $size, $isLoading })}
@@ -140,7 +145,7 @@ export const Button = styled.button<ButtonProps>(
         `;
       }}
 
-      &-disabled {
+      &:disabled {
         color: #9ca3af80;
         background-color: #f9fafb;
         border-color: #f3f4f6;

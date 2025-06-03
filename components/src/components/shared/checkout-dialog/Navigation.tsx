@@ -1,7 +1,6 @@
-import { useTheme } from "styled-components";
-
 import { TEXT_BASE_SIZE } from "../../../const";
-import { useIsLightBackground } from "../../../hooks";
+import { useEmbed, useIsLightBackground } from "../../../hooks";
+import { createKeyboardExecutionHandler } from "../../../utils";
 import { Box, Flex, Icon, IconRound, Text } from "../../ui";
 
 interface NavigationProps {
@@ -9,7 +8,7 @@ interface NavigationProps {
   index: number;
   activeIndex: number;
   isLast: boolean;
-  onClick?: () => void;
+  onSelect?: () => void;
 }
 
 export const Navigation = ({
@@ -17,9 +16,9 @@ export const Navigation = ({
   index,
   activeIndex,
   isLast,
-  onClick,
+  onSelect,
 }: NavigationProps) => {
-  const theme = useTheme();
+  const { settings } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
 
@@ -57,7 +56,7 @@ export const Navigation = ({
             <IconRound
               name="check"
               colors={[
-                theme.card.background,
+                settings.theme.card.background,
                 isLightBackground
                   ? "hsla(0, 0%, 0%, 0.125)"
                   : "hsla(0, 0%, 100%, 0.25)",
@@ -71,10 +70,7 @@ export const Navigation = ({
           )}
         </Box>
 
-        <Text
-          as={Box}
-          tabIndex={0}
-          $weight={index === activeIndex ? 600 : 400}
+        <Box
           {...(!showFullContent && {
             $overflow: "hidden",
             $whiteSpace: "nowrap",
@@ -82,17 +78,16 @@ export const Navigation = ({
           })}
           {...(index !== activeIndex && { $opacity: "0.6375" })}
           {...(index < activeIndex && {
-            onClick,
+            onClick: onSelect,
+            onKeyDown: createKeyboardExecutionHandler(onSelect),
+            tabIndex: 0,
             $cursor: "pointer",
           })}
-          $viewport={{
-            md: {
-              $fontSize: `${19 / TEXT_BASE_SIZE}rem`,
-            },
-          }}
         >
-          {index + 1}. {name}
-        </Text>
+          <Text $weight={index === activeIndex ? 600 : 400}>
+            {index + 1}. {name}
+          </Text>
+        </Box>
       </Flex>
 
       {!isLast && (

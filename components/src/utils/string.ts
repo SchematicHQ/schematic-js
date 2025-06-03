@@ -51,8 +51,8 @@ export function formatCurrency(amount: number, currency?: string) {
         maximumSignificantDigits: 12,
       }),
     }).format(dollars);
-  } catch (error) {
-    console.error("Error formatting currency", error);
+  } catch (err) {
+    console.error("Error formatting currency", err);
 
     return new Intl.NumberFormat("en-US", {
       style: "currency",

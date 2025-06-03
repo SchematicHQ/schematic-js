@@ -27,7 +27,13 @@ export const Box = styled.div<BoxProps>((props) => {
     return acc;
   }
 
-  const styles = Object.entries(props).reduce(reducer, []);
+  const styles = Object.entries(props).reduce(reducer, [
+    css`
+      &:focus-visible {
+        outline: 2px solid ${({ theme }) => theme.primary};
+      }
+    `,
+  ]);
 
   for (const [key, value] of Object.entries(props.$viewport || {})) {
     styles.push(css`
@@ -45,3 +51,16 @@ export const Box = styled.div<BoxProps>((props) => {
 
   return styles;
 });
+
+export const TransitionBox = styled(Box)`
+  height: auto;
+  opacity: 1;
+  transition:
+    height 0.1s ease-in,
+    opacity 0.1s ease-out;
+
+  @starting-style {
+    height: 0;
+    opacity: 0;
+  }
+`;

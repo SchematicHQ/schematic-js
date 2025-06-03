@@ -1,11 +1,25 @@
 import styled, { css } from "styled-components";
 
 import { Box } from "../../ui";
+
 import { type ModalSize } from ".";
 
 interface ModalProps {
   $size?: ModalSize;
 }
+
+export const Overlay = styled(Box)`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 999999;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  scrollbar-width: thin;
+  scrollbar-gutter: stable both-edges;
+`;
 
 export const Modal = styled(Box).attrs({
   tabIndex: 0,
@@ -24,6 +38,10 @@ export const Modal = styled(Box).attrs({
   box-shadow:
     0px 1px 20px 0px #1018280f,
     0px 1px 3px 0px #1018281a;
+
+  &:focus-visible {
+    outline: 2px solid ${({ theme }) => theme.primary};
+  }
 
   @media (min-width: 768px) {
     ${({ $size }) => {

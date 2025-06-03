@@ -1,11 +1,10 @@
 import { forwardRef } from "react";
-import { useTheme } from "styled-components";
 
-import type { FontStyle } from "../../../context";
+import { type FontStyle } from "../../../context";
 import {
-  type ComponentProps,
   ElementProps,
   RecursivePartial,
+  type ComponentProps,
 } from "../../../types";
 import { Element } from "../../layout";
 import { Flex, Text } from "../../ui";
@@ -41,15 +40,11 @@ export const TextElement = forwardRef<
     }
 >(({ children, className, ...rest }, ref) => {
   const props = resolveDesignProps(rest);
-  const theme = useTheme();
 
   return (
     <Element as={Flex} ref={ref} className={className}>
       <Text
-        $font={theme.typography[props.text.fontStyle].fontFamily}
-        $size={theme.typography[props.text.fontStyle].fontSize}
-        $weight={theme.typography[props.text.fontStyle].fontWeight}
-        $color={theme.typography[props.text.fontStyle].color}
+        display={props.text.fontStyle}
         $align={props.text.alignment}
         $width="100%"
       >
