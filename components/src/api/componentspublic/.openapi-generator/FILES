@@ -3,6 +3,7 @@ apis/ComponentspublicApi.ts
 apis/index.ts
 index.ts
 models/ApiError.ts
+models/BillingCreditResponseData.ts
 models/BillingPriceResponseData.ts
 models/BillingPriceView.ts
 models/BillingProductDetailResponseData.ts
