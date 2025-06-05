@@ -19,6 +19,12 @@ import {
   EntityTraitDefinitionResponseDataFromJSONTyped,
   EntityTraitDefinitionResponseDataToJSON,
 } from "./EntityTraitDefinitionResponseData";
+import type { BillingCreditResponseData } from "./BillingCreditResponseData";
+import {
+  BillingCreditResponseDataFromJSON,
+  BillingCreditResponseDataFromJSONTyped,
+  BillingCreditResponseDataToJSON,
+} from "./BillingCreditResponseData";
 import type { BillingProductResponseData } from "./BillingProductResponseData";
 import {
   BillingProductResponseDataFromJSON,
@@ -160,6 +166,12 @@ export interface PlanEntitlementResponseData {
   valueBool?: boolean | null;
   /**
    *
+   * @type {BillingCreditResponseData}
+   * @memberof PlanEntitlementResponseData
+   */
+  valueCredit?: BillingCreditResponseData;
+  /**
+   *
    * @type {number}
    * @memberof PlanEntitlementResponseData
    */
@@ -255,6 +267,10 @@ export function PlanEntitlementResponseDataFromJSONTyped(
         ? undefined
         : BillingProductResponseDataFromJSON(json["usage_based_product"]),
     valueBool: json["value_bool"] == null ? undefined : json["value_bool"],
+    valueCredit:
+      json["value_credit"] == null
+        ? undefined
+        : BillingCreditResponseDataFromJSON(json["value_credit"]),
     valueNumeric:
       json["value_numeric"] == null ? undefined : json["value_numeric"],
     valueTrait:
@@ -294,6 +310,7 @@ export function PlanEntitlementResponseDataToJSON(
       value["usageBasedProduct"],
     ),
     value_bool: value["valueBool"],
+    value_credit: BillingCreditResponseDataToJSON(value["valueCredit"]),
     value_numeric: value["valueNumeric"],
     value_trait: EntityTraitDefinitionResponseDataToJSON(value["valueTrait"]),
     value_trait_id: value["valueTraitId"],
