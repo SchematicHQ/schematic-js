@@ -577,16 +577,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
             }}
           >
             {activeCheckoutStage && (
-              <Flex
-                $flexDirection="column"
-                $alignItems="center"
-                $gap="0.25rem"
-                $viewport={{
-                  md: {
-                    $alignItems: "start",
-                  },
-                }}
-              >
+              <Flex $flexDirection="column" $gap="0.25rem">
                 {activeCheckoutStage.label && (
                   <Text
                     as="h3"

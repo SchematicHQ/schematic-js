@@ -55,6 +55,7 @@ export const Proration = ({
           <Flex>
             <Text display="heading4">{t("Total")}</Text>
             <Button
+              type="button"
               onClick={toggle}
               style={{ height: "auto", padding: 0 }}
               $variant="text"

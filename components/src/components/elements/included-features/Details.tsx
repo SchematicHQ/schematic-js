@@ -197,7 +197,8 @@ export const Details = ({
           acc.push(
             <Fragment key={index}>
               {" "}
-              • {formatCurrency(cost)}${period}
+              • {formatCurrency(cost)}
+              {period}
             </Fragment>,
           );
           index += 1;

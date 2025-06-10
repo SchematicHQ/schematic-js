@@ -74,7 +74,7 @@ export interface EmbedContextProps extends EmbedState {
   ) => void;
 }
 
-const stub = () => {
+export const stub = () => {
   throw new Error("You forgot to wrap your code with <EmbedProvider>.");
 };
 

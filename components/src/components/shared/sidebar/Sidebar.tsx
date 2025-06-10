@@ -1115,7 +1115,12 @@ export const Sidebar = ({
         )}
 
         {layout === "unsubscribe" && (
-          <Button onClick={handleUnsubscribe} $isLoading={isLoading} $fullWidth>
+          <Button
+            type="button"
+            onClick={handleUnsubscribe}
+            $isLoading={isLoading}
+            $fullWidth
+          >
             {t("Cancel subscription")}
           </Button>
         )}

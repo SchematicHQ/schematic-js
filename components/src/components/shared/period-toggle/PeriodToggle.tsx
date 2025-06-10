@@ -73,7 +73,7 @@ export const PeriodToggle = ({
             }}
             $justifyContent="center"
             $alignItems="center"
-            $flexGrow={1}
+            $flexBasis="50%"
             $whiteSpace="nowrap"
             $padding="0.75rem 1rem"
             {...(option === selectedOption && {
@@ -82,11 +82,6 @@ export const PeriodToggle = ({
                 : "hsla(0, 0%, 100%, 0.125)",
             })}
             $borderRadius="2.5rem"
-            $viewport={{
-              md: {
-                $padding: "0.375rem 1rem",
-              },
-            }}
           >
             <Text
               style={{ flexShrink: 0 }}
@@ -114,7 +109,7 @@ export const PeriodToggle = ({
                       })}
                 </Text>
               }
-              $flexGrow={1}
+              $flexBasis="50%"
             />
           );
         }

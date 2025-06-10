@@ -366,9 +366,10 @@ export const PlanManager = forwardRef<
                 const limit =
                   entitlement.softLimit ?? entitlement.allocation ?? 0;
                 let overageAmount =
-                  entitlement.priceBehavior === "overage" &&
-                  (entitlement?.usage ?? 0) - (entitlement?.softLimit ?? 0);
-                const amount = overageAmount || entitlement.allocation || 0;
+                  entitlement.priceBehavior === "overage"
+                    ? (entitlement?.usage ?? 0) - (entitlement?.softLimit ?? 0)
+                    : undefined;
+                const amount = overageAmount ?? entitlement.allocation ?? 0;
                 let packageSize = 1;
 
                 // calculate overage amount

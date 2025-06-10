@@ -148,6 +148,7 @@ export const Invoices = forwardRef<
           </Text>
 
           <Button
+            type="button"
             onClick={() => getInvoices()}
             $size="sm"
             $variant="ghost"

@@ -126,6 +126,7 @@ export const UpcomingBill = forwardRef<
           </Text>
 
           <Button
+            type="button"
             onClick={() => getInvoice()}
             $size="sm"
             $variant="ghost"

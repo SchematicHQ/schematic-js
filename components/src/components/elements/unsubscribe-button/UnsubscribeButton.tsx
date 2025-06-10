@@ -89,15 +89,16 @@ export const UnsubscribeButton = forwardRef<
       $gap="2rem"
     >
       <Button
+        type="button"
+        disabled={disabled}
+        onClick={() => {
+          setLayout("unsubscribe");
+        }}
         $size={props.button.size}
         $color={buttonStyles[props.button.style].color}
         $variant={buttonStyles[props.button.style].variant}
         $alignment={props.button.alignment}
         $fullWidth={props.button.fullWidth}
-        onClick={() => {
-          setLayout("unsubscribe");
-        }}
-        disabled={disabled}
       >
         {t(props.button.text) ?? t("Unsubscribe")}
       </Button>

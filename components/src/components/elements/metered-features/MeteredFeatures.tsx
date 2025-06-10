@@ -385,6 +385,7 @@ export const MeteredFeatures = forwardRef<
 
                         {priceBehavior === "pay_in_advance" && (
                           <Button
+                            type="button"
                             onClick={() => {
                               setCheckoutState({ usage: true });
                             }}
