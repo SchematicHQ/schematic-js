@@ -1,7 +1,9 @@
 import {
+  type BillingPriceView,
   type CompanyPlanDetailResponseData,
   type ComponentHydrateResponseData,
   type FeatureDetailResponseData,
+  type FeatureUsageResponseData,
 } from "../api/checkoutexternal";
 import {
   type PlanViewPublicResponseData,
@@ -70,6 +72,52 @@ export function getAddOnPrice(addOn: SelectedPlan, period: string) {
   }
 
   return addOn.monthlyPrice;
+}
+
+export function getUsageCost({
+  billingPrice,
+  usage,
+}: Pick<FeatureUsageResponseData, "usage"> & {
+  billingPrice?: BillingPriceView;
+}) {
+  if (!billingPrice || !usage) {
+    return;
+  }
+
+  const { priceTier } = billingPrice;
+  const isTiered = priceTier.every(
+    (tier) =>
+      typeof tier.perUnitPriceDecimal === "string" ||
+      typeof tier.perUnitPrice === "number",
+  );
+
+  if (!isTiered) {
+    return (usage ?? 0) * billingPrice.price;
+  }
+
+  let remainingUsage = usage ?? 0;
+
+  const cost = priceTier.reduce((acc, tier) => {
+    const upTo = tier.upTo ?? 0;
+    const unitPrice = tier.perUnitPriceDecimal
+      ? Number(tier.perUnitPriceDecimal)
+      : tier.perUnitPrice
+        ? tier.perUnitPrice
+        : 0;
+
+    let amount = remainingUsage;
+    if (remainingUsage > upTo) {
+      amount = remainingUsage - upTo;
+    }
+
+    remainingUsage -= amount;
+
+    const tierPrice = amount * unitPrice;
+
+    return acc + tierPrice;
+  }, 0);
+
+  return cost;
 }
 
 export const ChargeType = {

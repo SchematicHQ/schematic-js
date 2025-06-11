@@ -190,9 +190,9 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     isHydratedPlan(selectedPlan) &&
     selectedPlan.isTrialable &&
     selectedPlan.companyCanTrial;
-  const isTrialableAndFree = isTrialable && !trialPaymentMethodRequired;
   const planRequiresPayment =
-    !isTrialableAndFree || (!isTrialable && !selectedPlan.isFree);
+    (isTrialable && trialPaymentMethodRequired) ||
+    (!selectedPlan?.isFree && !isTrialable);
   const requiresPayment =
     planRequiresPayment || hasActiveAddOns || hasActivePayInAdvanceEntitlements;
 

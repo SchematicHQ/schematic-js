@@ -318,6 +318,25 @@ export const EmbedProvider = ({
     style.rel = "stylesheet";
     document.head.appendChild(style);
     styleRef.current = style;
+
+    const darkModeQuery = matchMedia("(prefers-color-scheme: dark)");
+    const colorMode = darkModeQuery.matches ? "dark" : "light";
+    dispatch({
+      type: "UPDATE_SETTINGS",
+      settings: {
+        theme: {
+          colorMode,
+        },
+      },
+    });
+
+    darkModeQuery.addEventListener("change", (event) => {
+      const newColorMode = event.matches ? "dark" : "light";
+      dispatch({
+        type: "UPDATE_SETTINGS",
+        settings: { theme: { colorMode: newColorMode } },
+      });
+    });
   }, []);
 
   useEffect(() => {

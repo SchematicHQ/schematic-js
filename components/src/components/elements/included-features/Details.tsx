@@ -8,6 +8,7 @@ import {
   formatNumber,
   getBillingPrice,
   getFeatureName,
+  getUsageCost,
   isCheckoutData,
   shortenPeriod,
 } from "../../../utils";
@@ -39,14 +40,7 @@ export const Details = ({
 
   const { data } = useEmbed();
 
-  const {
-    planPeriod,
-    price,
-    priceDecimal,
-    priceTier,
-    currency,
-    packageSize = 1,
-  } = useMemo(() => {
+  const { planPeriod, billingPrice } = useMemo(() => {
     const planPeriod =
       isCheckoutData(data) && typeof data.company?.plan?.planPeriod === "string"
         ? data.company.plan.planPeriod
@@ -55,13 +49,15 @@ export const Details = ({
       planPeriod === "year" ? yearlyUsageBasedPrice : monthlyUsageBasedPrice,
     );
 
-    return { planPeriod, ...billingPrice };
+    return { planPeriod, billingPrice };
   }, [data, monthlyUsageBasedPrice, yearlyUsageBasedPrice]);
 
   const text = useMemo(() => {
     if (!feature) {
       return;
     }
+
+    const { price, currency, packageSize = 1 } = billingPrice || {};
 
     if (priceBehavior === "pay_in_advance" && typeof allocation === "number") {
       return (
@@ -100,24 +96,19 @@ export const Details = ({
     if (!priceBehavior) {
       return t("Unlimited", { item: getFeatureName(feature) });
     }
-  }, [
-    t,
-    allocation,
-    feature,
-    price,
-    priceBehavior,
-    currency,
-    packageSize,
-    softLimit,
-  ]);
+  }, [t, allocation, feature, priceBehavior, softLimit, billingPrice]);
 
   const usageText = useMemo(() => {
     if (!feature) {
       return;
     }
 
+    const { price, currency, packageSize = 1 } = billingPrice || {};
+
     const acc: React.ReactElement[] = [];
+
     let index = 0;
+
     if (
       priceBehavior === "pay_in_advance" &&
       typeof planPeriod === "string" &&
@@ -168,32 +159,14 @@ export const Details = ({
           </Fragment>,
         );
         index += 1;
-      } else if (
-        priceBehavior === "overage" &&
-        typeof price === "number" &&
-        typeof usage === "number" &&
-        typeof softLimit === "number"
-      ) {
-        let overagePrice = price ?? priceDecimal;
-
-        // overage price tier
-        if (priceTier?.length === 2) {
-          const lastTier = priceTier[priceTier.length - 1];
-          if (lastTier.perUnitPriceDecimal) {
-            overagePrice = Number(lastTier.perUnitPriceDecimal);
-          } else {
-            overagePrice = lastTier.perUnitPrice ?? 0;
-          }
-        }
-
-        const cost =
-          usage - softLimit < 0 ? 0 : overagePrice * (usage - softLimit);
+      } else if (priceBehavior === "overage") {
+        const cost = getUsageCost({ usage, billingPrice });
         const period =
           feature.featureType === "trait" && typeof planPeriod === "string"
             ? `/${shortenPeriod(planPeriod)}`
             : "";
 
-        if (cost > 0) {
+        if (cost) {
           acc.push(
             <Fragment key={index}>
               {" "}
@@ -218,20 +191,7 @@ export const Details = ({
             amount: formatNumber(usage),
           });
     }
-  }, [
-    t,
-    planPeriod,
-    feature,
-    priceBehavior,
-    allocation,
-    price,
-    priceDecimal,
-    priceTier,
-    currency,
-    packageSize,
-    softLimit,
-    usage,
-  ]);
+  }, [t, planPeriod, feature, priceBehavior, allocation, usage, billingPrice]);
 
   if (!text) {
     return null;
