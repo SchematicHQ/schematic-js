@@ -70,6 +70,7 @@ export * from "./RuleResponseData";
 export * from "./SetupIntentResponseData";
 export * from "./StripeEmbedInfo";
 export * from "./UpdateAddOnRequestBody";
+export * from "./UpdateCreditBundleRequestBody";
 export * from "./UpdatePayInAdvanceRequestBody";
 export * from "./UpdatePaymentMethodRequestBody";
 export * from "./UpdatePaymentMethodResponse";
