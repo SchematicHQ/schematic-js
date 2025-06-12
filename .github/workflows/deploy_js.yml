@@ -98,6 +98,16 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20.x
+      - name: Check if RC release
+        id: check_rc
+        run: |
+          if [[ "${{ github.ref_name }}" == *"-rc."* ]]; then
+            echo "IS_RC=true" >> $GITHUB_OUTPUT
+            echo "NPM_TAG=next" >> $GITHUB_OUTPUT
+          else
+            echo "IS_RC=false" >> $GITHUB_OUTPUT
+            echo "NPM_TAG=latest" >> $GITHUB_OUTPUT
+          fi
       - name: Yarn install
         working-directory: ./js
         run: yarn install
@@ -109,7 +119,8 @@ jobs:
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         working-directory: ./js
-      - run: yarn publish --access public
+      - name: Publish to NPM
+        run: yarn publish --access public --tag ${{ steps.check_rc.outputs.NPM_TAG }}
         working-directory: ./js
 
   notify_slack:
