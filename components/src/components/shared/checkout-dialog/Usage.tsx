@@ -93,7 +93,7 @@ export const Usage = ({ entitlements, updateQuantity, period }: UsageProps) => {
                       $size="lg"
                       type="number"
                       value={entitlement.quantity}
-                      min={entitlement.usage}
+                      min={1}
                       autoFocus
                       onFocus={(event) => event.target.select()}
                       onChange={(event) => {

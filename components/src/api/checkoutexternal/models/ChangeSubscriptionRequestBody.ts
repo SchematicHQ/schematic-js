@@ -19,6 +19,12 @@ import {
   UpdatePayInAdvanceRequestBodyFromJSONTyped,
   UpdatePayInAdvanceRequestBodyToJSON,
 } from "./UpdatePayInAdvanceRequestBody";
+import type { UpdateCreditBundleRequestBody } from "./UpdateCreditBundleRequestBody";
+import {
+  UpdateCreditBundleRequestBodyFromJSON,
+  UpdateCreditBundleRequestBodyFromJSONTyped,
+  UpdateCreditBundleRequestBodyToJSON,
+} from "./UpdateCreditBundleRequestBody";
 import type { UpdateAddOnRequestBody } from "./UpdateAddOnRequestBody";
 import {
   UpdateAddOnRequestBodyFromJSON,
@@ -44,6 +50,12 @@ export interface ChangeSubscriptionRequestBody {
    * @memberof ChangeSubscriptionRequestBody
    */
   couponExternalId?: string | null;
+  /**
+   *
+   * @type {Array<UpdateCreditBundleRequestBody>}
+   * @memberof ChangeSubscriptionRequestBody
+   */
+  creditBundles: Array<UpdateCreditBundleRequestBody>;
   /**
    *
    * @type {string}
@@ -83,6 +95,8 @@ export function instanceOfChangeSubscriptionRequestBody(
   value: object,
 ): value is ChangeSubscriptionRequestBody {
   if (!("addOnIds" in value) || value["addOnIds"] === undefined) return false;
+  if (!("creditBundles" in value) || value["creditBundles"] === undefined)
+    return false;
   if (!("newPlanId" in value) || value["newPlanId"] === undefined) return false;
   if (!("newPriceId" in value) || value["newPriceId"] === undefined)
     return false;
@@ -112,6 +126,9 @@ export function ChangeSubscriptionRequestBodyFromJSONTyped(
       json["coupon_external_id"] == null
         ? undefined
         : json["coupon_external_id"],
+    creditBundles: (json["credit_bundles"] as Array<any>).map(
+      UpdateCreditBundleRequestBodyFromJSON,
+    ),
     newPlanId: json["new_plan_id"],
     newPriceId: json["new_price_id"],
     payInAdvance: (json["pay_in_advance"] as Array<any>).map(
@@ -134,6 +151,9 @@ export function ChangeSubscriptionRequestBodyToJSON(
       UpdateAddOnRequestBodyToJSON,
     ),
     coupon_external_id: value["couponExternalId"],
+    credit_bundles: (value["creditBundles"] as Array<any>).map(
+      UpdateCreditBundleRequestBodyToJSON,
+    ),
     new_plan_id: value["newPlanId"],
     new_price_id: value["newPriceId"],
     pay_in_advance: (value["payInAdvance"] as Array<any>).map(

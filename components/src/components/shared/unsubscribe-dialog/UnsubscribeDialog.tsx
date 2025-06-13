@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -7,7 +7,7 @@ import {
   useIsLightBackground,
 } from "../../../hooks";
 import { isCheckoutData, toPrettyDate } from "../../../utils";
-import { Box, Button, Flex, Icon, Modal, Text } from "../../ui";
+import { Button, Flex, Icon, Modal, Text } from "../../ui";
 import { createActiveUsageBasedEntitlementsReducer } from "../checkout-dialog";
 import { Sidebar } from "../sidebar";
 
@@ -18,7 +18,7 @@ interface UnsubscribeDialogProps {
 export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
   const { t } = useTranslation();
 
-  const { data, setCheckoutState } = useEmbed();
+  const { data, setCheckoutState, setLayout } = useEmbed();
 
   const contentRef = useRef<HTMLDivElement>(null);
 
@@ -76,15 +76,27 @@ export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
 
   const isLightBackground = useIsLightBackground();
 
+  const handleClose = useCallback(() => {
+    setLayout("portal");
+  }, [setLayout]);
+
   return (
     <Modal size="auto" top={top} contentRef={contentRef}>
-      <Box
-        $display="inline-flex"
-        $position="absolute"
-        $top={0}
-        $right={0}
-        $zIndex={1}
-        $cursor="pointer"
+      <Button
+        type="button"
+        onClick={handleClose}
+        style={{
+          position: "absolute",
+          top: 0,
+          right: 0,
+          zIndex: 1,
+          display: "inline-flex",
+          padding: "0.5rem 0.5rem 0 0",
+          textDecoration: "none",
+          cursor: "pointer",
+        }}
+        $color="secondary"
+        $variant="text"
       >
         <Icon
           name="close"
@@ -95,12 +107,13 @@ export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
               : "hsla(0, 0%, 100%, 0.275)",
           }}
         />
-      </Box>
+      </Button>
 
       <Flex
         $position="relative"
         $flexDirection="column"
-        $height="auto"
+        $minHeight="320px"
+        $paddingTop="1.5rem"
         $viewport={{
           md: {
             $flexDirection: "row",
@@ -111,9 +124,9 @@ export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
         <Flex
           $flexDirection="column"
           $flexWrap="wrap"
-          $justifyContent="space-around"
-          $gap="5rem"
-          $padding="2.5rem"
+          $justifyContent="center"
+          $gap="2rem"
+          $padding="1rem 2.5rem 2.5rem"
         >
           <Flex $flexDirection="column" $flexWrap="wrap" $gap="0.5rem">
             <Text as="h2" display="heading2">
@@ -136,6 +149,7 @@ export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
             <Text as="p">{t("Not ready to cancel?")}</Text>
 
             <Button
+              type="button"
               onClick={() => {
                 setCheckoutState({
                   planId: currentPlan?.id,

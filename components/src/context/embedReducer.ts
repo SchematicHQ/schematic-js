@@ -14,7 +14,6 @@ import {
   defaultSettings,
   type CheckoutState,
   type EmbedLayout,
-  type EmbedMode,
   type EmbedSettings,
   type EmbedState,
 } from "./embedState";
@@ -32,19 +31,23 @@ type EmbedAction =
   | { type: "HYDRATE_STARTED" }
   | { type: "HYDRATE_PUBLIC"; data: PublicPlansResponseData }
   | { type: "HYDRATE_COMPONENT"; data: ComponentHydrateResponseData }
+  | {
+      type: "HYDRATE_EXTERNAL";
+      data: PublicPlansResponseData | ComponentHydrateResponseData;
+    }
   | { type: "CHECKOUT"; data: BillingSubscriptionResponseData }
   | { type: "UNSUBSCRIBE"; data: DeleteResponse }
   | { type: "UPDATE_PAYMENT_METHOD"; paymentMethod: PaymentMethodResponseData }
   | { type: "DELETE_PAYMENT_METHOD"; paymentMethodId: string }
   | { type: "RESET" }
   | { type: "ERROR"; error: Error }
+  | { type: "SET_DATA"; data: ComponentHydrateResponseData }
   | {
       type: "UPDATE_SETTINGS";
       settings: RecursivePartial<EmbedSettings>;
       update?: boolean;
     }
   | { type: "CHANGE_LAYOUT"; layout: EmbedLayout }
-  | { type: "CHANGE_MODE"; mode: EmbedMode }
   | { type: "SET_CHECKOUT_STATE"; state: CheckoutState };
 
 export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {
@@ -65,7 +68,8 @@ export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {
     }
 
     case "HYDRATE_PUBLIC":
-    case "HYDRATE_COMPONENT": {
+    case "HYDRATE_COMPONENT":
+    case "HYDRATE_EXTERNAL": {
       return {
         ...state,
         data: action.data,
@@ -151,6 +155,13 @@ export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {
       };
     }
 
+    case "SET_DATA": {
+      return {
+        ...state,
+        data: action.data,
+      };
+    }
+
     case "UPDATE_SETTINGS": {
       const settings = action.update
         ? merge({}, defaultSettings, state.settings, action.settings)
@@ -166,13 +177,6 @@ export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {
       return {
         ...state,
         layout: action.layout,
-      };
-    }
-
-    case "CHANGE_MODE": {
-      return {
-        ...state,
-        mode: action.mode,
       };
     }
 
