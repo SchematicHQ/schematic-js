@@ -72,6 +72,7 @@ models/RuleResponseData.ts
 models/SetupIntentResponseData.ts
 models/StripeEmbedInfo.ts
 models/UpdateAddOnRequestBody.ts
+models/UpdateCreditBundleRequestBody.ts
 models/UpdatePayInAdvanceRequestBody.ts
 models/UpdatePaymentMethodRequestBody.ts
 models/UpdatePaymentMethodResponse.ts
