@@ -9,7 +9,6 @@ import {
   formatCurrency,
   getBillingPrice,
   getFeatureName,
-  getUsageCost,
   hexToHSL,
   isCheckoutData,
   lighten,
@@ -365,30 +364,39 @@ export const PlanManager = forwardRef<
               (acc: React.ReactElement[], entitlement, entitlementIndex) => {
                 const limit =
                   entitlement.softLimit ?? entitlement.allocation ?? 0;
+
                 const billingPrice = getBillingPrice(
                   currentPlan?.planPeriod === "year"
                     ? entitlement.yearlyUsageBasedPrice
                     : entitlement.monthlyUsageBasedPrice,
                 );
-                const cost = getUsageCost({
-                  usage: entitlement.usage,
-                  billingPrice,
-                });
-                const packageSize = billingPrice?.packageSize ?? 1;
+                const { packageSize = 1 } = billingPrice || {};
 
-                let overageAmount =
+                const overageAmount =
                   entitlement.priceBehavior === "overage"
-                    ? (entitlement?.usage ?? 0) - (entitlement?.softLimit ?? 0)
+                    ? Math.max(
+                        0,
+                        (entitlement?.usage ?? 0) -
+                          (entitlement?.softLimit ?? 0),
+                      )
                     : undefined;
 
-                // calculate overage amount
+                let price = billingPrice?.price;
                 if (
                   entitlement.priceBehavior === "overage" &&
                   billingPrice?.priceTier.length
                 ) {
-                  overageAmount =
-                    (entitlement?.usage ?? 0) -
-                    (billingPrice.priceTier[0].upTo ?? 0);
+                  const overagePriceTier =
+                    billingPrice.priceTier[billingPrice.priceTier.length - 1];
+                  if (
+                    typeof overagePriceTier.perUnitPriceDecimal === "string"
+                  ) {
+                    price = Number(overagePriceTier.perUnitPriceDecimal);
+                  } else if (
+                    typeof overagePriceTier.perUnitPrice === "number"
+                  ) {
+                    price = overagePriceTier.perUnitPrice;
+                  }
                 }
 
                 let amount = 0;
@@ -452,16 +460,15 @@ export const PlanManager = forwardRef<
                                   )
                             }
                           >
-                            {typeof overageAmount === "number" &&
-                            overageAmount > 0 ? (
+                            {amount > 0 ? (
                               t("X additional", {
-                                amount: overageAmount,
+                                amount: amount,
                               })
                             ) : (
                               <>
                                 {t("Additional")}:{" "}
                                 {formatCurrency(
-                                  cost ?? 0,
+                                  price ?? 0,
                                   billingPrice?.currency,
                                 )}
                                 <sub>
@@ -500,7 +507,7 @@ export const PlanManager = forwardRef<
                               }
                             >
                               {formatCurrency(
-                                cost ?? 0,
+                                price ?? 0,
                                 billingPrice?.currency,
                               )}
                               <sub>
@@ -521,7 +528,7 @@ export const PlanManager = forwardRef<
                         {amount > 0 && (
                           <Text>
                             {formatCurrency(
-                              (cost ?? 0) * amount,
+                              (price ?? 0) * amount,
                               billingPrice?.currency,
                             )}
                             {entitlement.priceBehavior !== "overage" &&

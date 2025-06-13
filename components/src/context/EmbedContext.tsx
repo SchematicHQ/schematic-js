@@ -4,48 +4,36 @@ import type {
   ChangeSubscriptionRequestBody,
   CheckoutResponse,
   CheckoutUnsubscribeResponse,
+  ComponentHydrateResponseData,
   DeletePaymentMethodResponse,
   GetSetupIntentResponse,
-  HydrateComponentResponse,
   HydrateUpcomingInvoiceResponse,
   ListInvoicesResponse,
   PreviewCheckoutResponse,
   UpdatePaymentMethodResponse,
 } from "../api/checkoutexternal";
-import type { GetPublicPlansResponse } from "../api/componentspublic";
+import type { PublicPlansResponseData } from "../api/componentspublic";
 import type { RecursivePartial } from "../types";
 
 import {
   initialState,
   type CheckoutState,
   type EmbedLayout,
-  type EmbedMode,
   type EmbedSettings,
   type EmbedState,
-  type FontStyle,
-  type ThemeSettings,
-  type TypographySettings,
 } from "./embedState";
-
-export {
-  type CheckoutState,
-  type EmbedLayout,
-  type EmbedMode,
-  type EmbedSettings,
-  type EmbedState,
-  type FontStyle,
-  type ThemeSettings,
-  type TypographySettings,
-};
 
 // apis are not defined immediately on mount
 type DebouncedApiPromise<R> = Promise<R | undefined> | undefined;
 
 export interface EmbedContextProps extends EmbedState {
-  hydratePublic: () => DebouncedApiPromise<GetPublicPlansResponse>;
+  hydratePublic: () => DebouncedApiPromise<PublicPlansResponseData>;
   hydrateComponent: (
     id: string,
-  ) => DebouncedApiPromise<HydrateComponentResponse>;
+  ) => DebouncedApiPromise<ComponentHydrateResponseData>;
+  hydrateExternal: (
+    fn: () => Promise<ComponentHydrateResponseData>,
+  ) => DebouncedApiPromise<ComponentHydrateResponseData>;
   getUpcomingInvoice: (
     id: string,
   ) => DebouncedApiPromise<HydrateUpcomingInvoiceResponse>;
@@ -68,6 +56,7 @@ export interface EmbedContextProps extends EmbedState {
   setError: (error: Error) => void;
   setLayout: (layout: EmbedLayout) => void;
   setCheckoutState: (state: CheckoutState) => void;
+  setData: (data: ComponentHydrateResponseData) => void;
   updateSettings: (
     settings: RecursivePartial<EmbedSettings>,
     options?: { update?: boolean },
@@ -82,6 +71,7 @@ export const initialContext = {
   ...initialState,
   hydratePublic: stub,
   hydrateComponent: stub,
+  hydrateExternal: stub,
   getUpcomingInvoice: stub,
   listInvoices: stub,
   createSetupIntent: stub,
@@ -94,6 +84,7 @@ export const initialContext = {
   setAccessToken: stub,
   setLayout: stub,
   setCheckoutState: stub,
+  setData: stub,
   updateSettings: stub,
 };
 

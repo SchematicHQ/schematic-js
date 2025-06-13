@@ -60,12 +60,12 @@ interface SidebarProps {
   error?: string;
   isLoading: boolean;
   paymentMethodId?: string;
-  promoCode?: string;
+  promoCode?: string | null;
   requiresPayment: boolean;
   setCheckoutStage?: (stage: string) => void;
   setError: (msg?: string) => void;
   setIsLoading: Dispatch<SetStateAction<boolean>>;
-  updatePromoCode?: (code?: string) => void;
+  updatePromoCode?: (code: string | null) => void;
   showHeader?: boolean;
   willTrial?: boolean;
 }
@@ -93,7 +93,7 @@ export const Sidebar = ({
 }: SidebarProps) => {
   const { t } = useTranslation();
 
-  const { data, settings, mode, layout, setLayout, checkout, unsubscribe } =
+  const { data, settings, layout, setLayout, checkout, unsubscribe } =
     useEmbed();
 
   const isLightBackground = useIsLightBackground();
@@ -156,7 +156,7 @@ export const Sidebar = ({
     };
   }, [data, planPeriod]);
 
-  const { payAsYouGoEntitlements, payInAdvanceEntitlements } = useMemo(() => {
+  const { payInAdvanceEntitlements } = useMemo(() => {
     const payAsYouGoEntitlements: UsageBasedEntitlement[] = [];
     const payInAdvanceEntitlements = usageBasedEntitlements.filter(
       (entitlement) => {
@@ -291,6 +291,7 @@ export const Sidebar = ({
           },
           [],
         ),
+        creditBundles: [],
         ...(paymentMethodId && { paymentMethodId }),
         ...(promoCode && { promoCode }),
       });
@@ -336,18 +337,13 @@ export const Sidebar = ({
 
   const selectedAddOns = addOns.filter((addOn) => addOn.isSelected);
 
-  const {
-    changedUsageBasedEntitlements,
-    addedUsageBasedEntitlements,
-    removedUsageBasedEntitlements,
-    willUsageBasedEntitlementsChange,
-  } = useMemo(() => {
+  const updatedPayInAdvanceEntitlements = useMemo(() => {
     const changedUsageBasedEntitlements: {
       previous: CurrentUsageBasedEntitlement;
       next: UsageBasedEntitlement;
     }[] = [];
     const addedUsageBasedEntitlements = selectedPlan
-      ? usageBasedEntitlements.reduce(
+      ? payInAdvanceEntitlements.reduce(
           (acc: UsageBasedEntitlement[], selected) => {
             const changed = currentUsageBasedEntitlements.find(
               (current) =>
@@ -374,7 +370,7 @@ export const Sidebar = ({
       ? currentUsageBasedEntitlements.reduce(
           (acc: CurrentUsageBasedEntitlement[], current) => {
             const match =
-              usageBasedEntitlements.every(
+              payInAdvanceEntitlements.every(
                 (entitlement) => entitlement.id !== current.entitlementId,
               ) &&
               currentEntitlements.find(
@@ -401,16 +397,16 @@ export const Sidebar = ({
       removedUsageBasedEntitlements.length > 0;
 
     return {
-      changedUsageBasedEntitlements,
-      addedUsageBasedEntitlements,
-      removedUsageBasedEntitlements,
-      willUsageBasedEntitlementsChange,
+      changed: changedUsageBasedEntitlements,
+      added: addedUsageBasedEntitlements,
+      removed: removedUsageBasedEntitlements,
+      willChange: willUsageBasedEntitlementsChange,
     };
   }, [
     selectedPlan,
     currentEntitlements,
     currentUsageBasedEntitlements,
-    usageBasedEntitlements,
+    payInAdvanceEntitlements,
   ]);
 
   const willPeriodChange = planPeriod !== currentPlanPeriod;
@@ -440,7 +436,7 @@ export const Sidebar = ({
     willAddOnsChange ||
     willPayInAdvanceEntitlementsChange;
 
-  const canUpdateSubscription = mode === "edit" || !isLoading;
+  const canUpdateSubscription = settings.mode === "edit" || !isLoading;
   const canCheckout =
     canUpdateSubscription &&
     (!!paymentMethod || typeof paymentMethodId === "string");
@@ -591,13 +587,13 @@ export const Sidebar = ({
           )}
         </Flex>
 
-        {willUsageBasedEntitlementsChange && (
+        {updatedPayInAdvanceEntitlements.willChange && (
           <Flex $flexDirection="column" $gap="0.5rem" $marginBottom="1.5rem">
             <Box $opacity="0.625">
               <Text $size={14}>{t("Usage-based")}</Text>
             </Box>
 
-            {removedUsageBasedEntitlements.reduce(
+            {updatedPayInAdvanceEntitlements.removed.reduce(
               (acc: React.ReactElement[], entitlement, index) => {
                 if (
                   typeof entitlement.allocation === "number" &&
@@ -679,7 +675,7 @@ export const Sidebar = ({
               [],
             )}
 
-            {changedUsageBasedEntitlements.reduce(
+            {updatedPayInAdvanceEntitlements.changed.reduce(
               (acc: React.ReactElement[], { previous, next }, index) => {
                 if (next.feature?.name) {
                   const {
@@ -749,7 +745,7 @@ export const Sidebar = ({
               [],
             )}
 
-            {addedUsageBasedEntitlements.reduce(
+            {updatedPayInAdvanceEntitlements.added.reduce(
               (acc: React.ReactElement[], entitlement, index) => {
                 if (entitlement.feature?.name) {
                   const {
@@ -968,7 +964,7 @@ export const Sidebar = ({
               <Box
                 $cursor="pointer"
                 onClick={() => {
-                  updatePromoCode?.(undefined);
+                  updatePromoCode?.(null);
                 }}
               >
                 <Icon
@@ -1138,7 +1134,7 @@ export const Sidebar = ({
             <Text>
               {subscriptionPrice &&
                 // TODO: localize
-                `You will be billed ${subscriptionPrice} ${payAsYouGoEntitlements.length > 0 ? "plus usage based costs" : ""} for this subscription
+                `You will be billed ${subscriptionPrice} ${usageBasedEntitlements.length > 0 ? "plus usage based costs" : ""} for this subscription
                 every ${planPeriod} ${periodStart ? `on the ${formatOrdinal(periodStart.getDate())}` : ""} ${planPeriod === "year" && periodStart ? `of ${getMonthName(periodStart)}` : ""} unless you unsubscribe.`}
             </Text>
           </Box>

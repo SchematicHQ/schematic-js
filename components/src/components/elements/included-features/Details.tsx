@@ -8,7 +8,6 @@ import {
   formatNumber,
   getBillingPrice,
   getFeatureName,
-  getUsageCost,
   isCheckoutData,
   shortenPeriod,
 } from "../../../utils";
@@ -160,17 +159,29 @@ export const Details = ({
         );
         index += 1;
       } else if (priceBehavior === "overage") {
-        const cost = getUsageCost({ usage, billingPrice });
+        const overageAmount = Math.max(0, (usage ?? 0) - (softLimit ?? 0));
+
+        let price = billingPrice?.price;
+        if (billingPrice?.priceTier.length) {
+          const overagePriceTier =
+            billingPrice.priceTier[billingPrice.priceTier.length - 1];
+          if (typeof overagePriceTier.perUnitPriceDecimal === "string") {
+            price = Number(overagePriceTier.perUnitPriceDecimal);
+          } else if (typeof overagePriceTier.perUnitPrice === "number") {
+            price = overagePriceTier.perUnitPrice;
+          }
+        }
+
         const period =
           feature.featureType === "trait" && typeof planPeriod === "string"
             ? `/${shortenPeriod(planPeriod)}`
             : "";
 
-        if (cost) {
+        if (price && overageAmount > 0) {
           acc.push(
             <Fragment key={index}>
               {" "}
-              • {formatCurrency(cost)}
+              • {formatCurrency(price * overageAmount, currency)}
               {period}
             </Fragment>,
           );
@@ -191,7 +202,16 @@ export const Details = ({
             amount: formatNumber(usage),
           });
     }
-  }, [t, planPeriod, feature, priceBehavior, allocation, usage, billingPrice]);
+  }, [
+    t,
+    planPeriod,
+    feature,
+    priceBehavior,
+    allocation,
+    usage,
+    softLimit,
+    billingPrice,
+  ]);
 
   if (!text) {
     return null;

@@ -50,7 +50,7 @@ export const createActiveUsageBasedEntitlementsReducer =
       const featureUsage = entitlements.find(
         (usage) => usage.feature?.id === entitlement.feature?.id,
       );
-      const allocation = featureUsage?.allocation || 0;
+      const allocation = featureUsage?.allocation || 1;
       const usage = featureUsage?.usage || 0;
 
       acc.push({
@@ -184,7 +184,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     ({ quantity }) => quantity > 0,
   );
 
-  const [promoCode, setPromoCode] = useState<string>();
+  const [promoCode, setPromoCode] = useState<string | null>(null);
 
   const isTrialable =
     isHydratedPlan(selectedPlan) &&
@@ -275,12 +275,16 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       plan?: SelectedPlan;
       addOns?: SelectedPlan[];
       payInAdvanceEntitlements?: UsageBasedEntitlement[];
-      promoCode?: string;
+      promoCode?: string | null;
     }) => {
       const period = updates.period || planPeriod;
       const plan = updates.plan || selectedPlan;
       const planPriceId =
         period === "year" ? plan?.yearlyPrice?.id : plan?.monthlyPrice?.id;
+      const code =
+        typeof updates.promoCode !== "undefined"
+          ? updates.promoCode
+          : promoCode;
 
       // do not preview if user updates do not result in a valid plan
       if (!plan || !planPriceId) {
@@ -336,11 +340,17 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
             },
             [],
           ),
-          promoCode: updates.promoCode || promoCode,
+          creditBundles: [],
+          ...(code && { promoCode: code }),
         });
 
         if (response) {
           setCharges(response.data.finance);
+        }
+
+        // TODO: allow promo code to be removed end-to-end
+        if (typeof updates.promoCode !== "undefined") {
+          setPromoCode(code);
         }
       } catch (err) {
         if (err instanceof ResponseError) {
@@ -385,7 +395,22 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       const plan = updates.plan;
       const period = updates.period || planPeriod;
       const entitlements = plan.entitlements.reduce(
-        createActiveUsageBasedEntitlementsReducer(currentEntitlements, period),
+        (acc: UsageBasedEntitlement[], entitlement) => {
+          if (
+            entitlement.priceBehavior &&
+            ((period === "month" && entitlement.meteredMonthlyPrice) ||
+              (period === "year" && entitlement.meteredYearlyPrice))
+          ) {
+            acc.push({
+              ...entitlement,
+              allocation: entitlement.valueNumeric || 0,
+              usage: 0,
+              quantity: 1,
+            });
+          }
+
+          return acc;
+        },
         [],
       );
 
@@ -420,12 +445,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
             }),
       });
     },
-    [
-      planPeriod,
-      currentEntitlements,
-      trialPaymentMethodRequired,
-      handlePreviewCheckout,
-    ],
+    [planPeriod, trialPaymentMethodRequired, handlePreviewCheckout],
   );
 
   const changePlanPeriod = useCallback(
@@ -479,8 +499,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   );
 
   const updatePromoCode = useCallback(
-    (code?: string) => {
-      setPromoCode(code);
+    async (code: string | null) => {
       handlePreviewCheckout({ promoCode: code });
     },
     [handlePreviewCheckout],
@@ -638,7 +657,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
             <Checkout
               requiresPayment={requiresPayment}
               setPaymentMethodId={(id) => setPaymentMethodId(id)}
-              updatePromoCode={(code) => updatePromoCode(code)}
+              updatePromoCode={updatePromoCode}
             />
           )}
         </Flex>
@@ -660,7 +679,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           setCheckoutStage={(stage) => setCheckoutStage(stage)}
           setError={(msg) => setError(msg)}
           setIsLoading={setIsLoading}
-          updatePromoCode={(code) => updatePromoCode(code)}
+          updatePromoCode={updatePromoCode}
           willTrial={willTrial}
         />
       </Flex>

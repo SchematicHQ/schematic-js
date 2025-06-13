@@ -58,6 +58,12 @@ export interface PreviewSubscriptionChangeResponseData {
   newCharges: number;
   /**
    *
+   * @type {boolean}
+   * @memberof PreviewSubscriptionChangeResponseData
+   */
+  paymentMethodRequired: boolean;
+  /**
+   *
    * @type {number}
    * @memberof PreviewSubscriptionChangeResponseData
    */
@@ -104,6 +110,11 @@ export function instanceOfPreviewSubscriptionChangeResponseData(
   if (!("dueNow" in value) || value["dueNow"] === undefined) return false;
   if (!("newCharges" in value) || value["newCharges"] === undefined)
     return false;
+  if (
+    !("paymentMethodRequired" in value) ||
+    value["paymentMethodRequired"] === undefined
+  )
+    return false;
   if (!("percentOff" in value) || value["percentOff"] === undefined)
     return false;
   if (!("periodStart" in value) || value["periodStart"] === undefined)
@@ -137,6 +148,7 @@ export function PreviewSubscriptionChangeResponseDataFromJSONTyped(
         ? undefined
         : PreviewSubscriptionFinanceResponseDataFromJSON(json["finance"]),
     newCharges: json["new_charges"],
+    paymentMethodRequired: json["payment_method_required"],
     percentOff: json["percent_off"],
     periodStart: new Date(json["period_start"]),
     promoCodeApplied: json["promo_code_applied"],
@@ -160,6 +172,7 @@ export function PreviewSubscriptionChangeResponseDataToJSON(
     due_now: value["dueNow"],
     finance: PreviewSubscriptionFinanceResponseDataToJSON(value["finance"]),
     new_charges: value["newCharges"],
+    payment_method_required: value["paymentMethodRequired"],
     percent_off: value["percentOff"],
     period_start: value["periodStart"].toISOString(),
     promo_code_applied: value["promoCodeApplied"],
