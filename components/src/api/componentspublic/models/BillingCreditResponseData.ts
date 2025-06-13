@@ -13,13 +13,6 @@
  */
 
 import { mapValues } from "../runtime";
-import type { FeatureResponseData } from "./FeatureResponseData";
-import {
-  FeatureResponseDataFromJSON,
-  FeatureResponseDataFromJSONTyped,
-  FeatureResponseDataToJSON,
-} from "./FeatureResponseData";
-
 /**
  *
  * @export
@@ -28,16 +21,46 @@ import {
 export interface BillingCreditResponseData {
   /**
    *
+   * @type {string}
+   * @memberof BillingCreditResponseData
+   */
+  burnStrategy: string;
+  /**
+   *
    * @type {Date}
    * @memberof BillingCreditResponseData
    */
   createdAt: Date;
   /**
    *
-   * @type {Array<FeatureResponseData>}
+   * @type {string}
    * @memberof BillingCreditResponseData
    */
-  features: Array<FeatureResponseData>;
+  defaultExpiryUnit: string;
+  /**
+   *
+   * @type {number}
+   * @memberof BillingCreditResponseData
+   */
+  defaultExpiryUnitCount?: number | null;
+  /**
+   *
+   * @type {string}
+   * @memberof BillingCreditResponseData
+   */
+  defaultRolloverPolicy: string;
+  /**
+   *
+   * @type {string}
+   * @memberof BillingCreditResponseData
+   */
+  description: string;
+  /**
+   *
+   * @type {string}
+   * @memberof BillingCreditResponseData
+   */
+  icon?: string | null;
   /**
    *
    * @type {string}
@@ -52,6 +75,12 @@ export interface BillingCreditResponseData {
   name: string;
   /**
    *
+   * @type {string}
+   * @memberof BillingCreditResponseData
+   */
+  pluralName?: string | null;
+  /**
+   *
    * @type {number}
    * @memberof BillingCreditResponseData
    */
@@ -61,7 +90,7 @@ export interface BillingCreditResponseData {
    * @type {string}
    * @memberof BillingCreditResponseData
    */
-  pricePerUnitDecimal?: string | null;
+  singularName?: string | null;
   /**
    *
    * @type {Date}
@@ -76,8 +105,21 @@ export interface BillingCreditResponseData {
 export function instanceOfBillingCreditResponseData(
   value: object,
 ): value is BillingCreditResponseData {
+  if (!("burnStrategy" in value) || value["burnStrategy"] === undefined)
+    return false;
   if (!("createdAt" in value) || value["createdAt"] === undefined) return false;
-  if (!("features" in value) || value["features"] === undefined) return false;
+  if (
+    !("defaultExpiryUnit" in value) ||
+    value["defaultExpiryUnit"] === undefined
+  )
+    return false;
+  if (
+    !("defaultRolloverPolicy" in value) ||
+    value["defaultRolloverPolicy"] === undefined
+  )
+    return false;
+  if (!("description" in value) || value["description"] === undefined)
+    return false;
   if (!("id" in value) || value["id"] === undefined) return false;
   if (!("name" in value) || value["name"] === undefined) return false;
   if (!("pricePerUnit" in value) || value["pricePerUnit"] === undefined)
@@ -100,15 +142,22 @@ export function BillingCreditResponseDataFromJSONTyped(
     return json;
   }
   return {
+    burnStrategy: json["burn_strategy"],
     createdAt: new Date(json["created_at"]),
-    features: (json["features"] as Array<any>).map(FeatureResponseDataFromJSON),
+    defaultExpiryUnit: json["default_expiry_unit"],
+    defaultExpiryUnitCount:
+      json["default_expiry_unit_count"] == null
+        ? undefined
+        : json["default_expiry_unit_count"],
+    defaultRolloverPolicy: json["default_rollover_policy"],
+    description: json["description"],
+    icon: json["icon"] == null ? undefined : json["icon"],
     id: json["id"],
     name: json["name"],
+    pluralName: json["plural_name"] == null ? undefined : json["plural_name"],
     pricePerUnit: json["price_per_unit"],
-    pricePerUnitDecimal:
-      json["price_per_unit_decimal"] == null
-        ? undefined
-        : json["price_per_unit_decimal"],
+    singularName:
+      json["singular_name"] == null ? undefined : json["singular_name"],
     updatedAt: new Date(json["updated_at"]),
   };
 }
@@ -120,12 +169,18 @@ export function BillingCreditResponseDataToJSON(
     return value;
   }
   return {
+    burn_strategy: value["burnStrategy"],
     created_at: value["createdAt"].toISOString(),
-    features: (value["features"] as Array<any>).map(FeatureResponseDataToJSON),
+    default_expiry_unit: value["defaultExpiryUnit"],
+    default_expiry_unit_count: value["defaultExpiryUnitCount"],
+    default_rollover_policy: value["defaultRolloverPolicy"],
+    description: value["description"],
+    icon: value["icon"],
     id: value["id"],
     name: value["name"],
+    plural_name: value["pluralName"],
     price_per_unit: value["pricePerUnit"],
-    price_per_unit_decimal: value["pricePerUnitDecimal"],
+    singular_name: value["singularName"],
     updated_at: value["updatedAt"].toISOString(),
   };
 }
