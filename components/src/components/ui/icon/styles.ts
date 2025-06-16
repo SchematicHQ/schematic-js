@@ -1,10 +1,10 @@
-import "@schematichq/schematic-icons/style.css";
+// import "@schematichq/schematic-icons/style.css";
 
 import {
   Icon as SchematicIcon,
+  iconsList,
   type IconNames,
   type IconProps,
-  iconsList,
 } from "@schematichq/schematic-icons";
 import styled, { css } from "styled-components";
 

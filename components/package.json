@@ -9,14 +9,6 @@
     "dist/schematic-components.esm.js",
     "dist/schematic-components.d.ts"
   ],
-  "exports": {
-    ".": {
-      "types": "./dist/schematic-components.d.ts",
-      "import": "./dist/schematic-components.esm.js",
-      "require": "./dist/schematic-components.cjs.js"
-    },
-    "./styles.css": "./dist/schematic-components.cjs.css"
-  },
   "author": "Schematic <engineering@schematichq.com>",
   "license": "MIT",
   "repository": {
