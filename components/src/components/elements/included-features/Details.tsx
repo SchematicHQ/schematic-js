@@ -46,10 +46,11 @@ export const Details = ({
         : undefined;
     const billingPrice = getBillingPrice(
       planPeriod === "year" ? yearlyUsageBasedPrice : monthlyUsageBasedPrice,
+      priceBehavior,
     );
 
     return { planPeriod, billingPrice };
-  }, [data, monthlyUsageBasedPrice, yearlyUsageBasedPrice]);
+  }, [data, monthlyUsageBasedPrice, yearlyUsageBasedPrice, priceBehavior]);
 
   const text = useMemo(() => {
     if (!feature) {
@@ -160,18 +161,6 @@ export const Details = ({
         index += 1;
       } else if (priceBehavior === "overage") {
         const overageAmount = Math.max(0, (usage ?? 0) - (softLimit ?? 0));
-
-        let price = billingPrice?.price;
-        if (billingPrice?.priceTier.length) {
-          const overagePriceTier =
-            billingPrice.priceTier[billingPrice.priceTier.length - 1];
-          if (typeof overagePriceTier.perUnitPriceDecimal === "string") {
-            price = Number(overagePriceTier.perUnitPriceDecimal);
-          } else if (typeof overagePriceTier.perUnitPrice === "number") {
-            price = overagePriceTier.perUnitPrice;
-          }
-        }
-
         const period =
           feature.featureType === "trait" && typeof planPeriod === "string"
             ? `/${shortenPeriod(planPeriod)}`

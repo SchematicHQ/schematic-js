@@ -53,6 +53,7 @@ export const Usage = ({ entitlements, updateQuantity, period }: UsageProps) => {
                 period === "year"
                   ? entitlement.meteredYearlyPrice
                   : entitlement.meteredMonthlyPrice,
+                entitlement.priceBehavior,
               ) || {};
 
               acc.push(

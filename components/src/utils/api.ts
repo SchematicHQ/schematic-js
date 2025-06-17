@@ -1,4 +1,6 @@
 import {
+  type BillingPriceResponseData,
+  type BillingPriceView,
   type CompanyPlanDetailResponseData,
   type ComponentHydrateResponseData,
   type FeatureDetailResponseData,
@@ -51,19 +53,34 @@ export function getFeatureName(
   return pluralize(name, count);
 }
 
-export function getBillingPrice<
-  T extends { price: number; priceDecimal?: string | null },
->(billingPrice?: T): T | undefined {
-  if (!billingPrice) {
-    return;
+export function getBillingPrice(
+  billingPrice?: BillingPriceResponseData | BillingPriceView,
+  priceBehavior?: string | null,
+) {
+  if (billingPrice) {
+    if (priceBehavior === "overage" && "priceTier" in billingPrice) {
+      const { priceTier } = billingPrice || {};
+      const [, overagePriceTier] = priceTier || [];
+
+      let price: number;
+      if (typeof overagePriceTier.perUnitPriceDecimal === "string") {
+        price = Number(overagePriceTier.perUnitPriceDecimal);
+      } else if (typeof overagePriceTier.perUnitPrice === "number") {
+        price = overagePriceTier.perUnitPrice;
+      } else {
+        price = billingPrice.price;
+      }
+
+      return { ...billingPrice, price };
+    }
+
+    const price =
+      typeof billingPrice.priceDecimal === "string"
+        ? Number(billingPrice.priceDecimal)
+        : billingPrice.price;
+
+    return { ...billingPrice, price, packageSize: 1 };
   }
-
-  const price =
-    typeof billingPrice.priceDecimal === "string"
-      ? Number(billingPrice.priceDecimal)
-      : billingPrice.price;
-
-  return { ...billingPrice, price };
 }
 
 export function getAddOnPrice(addOn: SelectedPlan, period: string) {

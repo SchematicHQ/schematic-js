@@ -48,6 +48,7 @@
     "Hide all": "Hide all",
     "Hide details": "Hide details",
     "Invalid access token; your temporary access token will start with `token_`.": "Invalid access token; your temporary access token will start with `token_`.",
+    "Invalid discount code.": "Invalid discount code.",
     "Invoices": "Invoices",
     "Limit of": "Limit of {{amount}}",
     "Loading": "Loading",

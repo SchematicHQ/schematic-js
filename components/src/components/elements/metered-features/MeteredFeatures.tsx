@@ -104,49 +104,47 @@ export const MeteredFeatures = forwardRef<
 
   const isLightBackground = useIsLightBackground();
 
-  const { planPeriod, plan, addOns, featureUsage, subscription } =
-    useMemo(() => {
-      if (isCheckoutData(data)) {
-        const orderedFeatureUsage = props.visibleFeatures?.reduce(
-          (acc: FeatureUsageResponseData[], id) => {
-            const mappedFeatureUsage = data.featureUsage?.features.find(
-              (usage) => usage.feature?.id === id,
-            );
+  const { planPeriod, plan, addOns, featureUsage } = useMemo(() => {
+    if (isCheckoutData(data)) {
+      const orderedFeatureUsage = props.visibleFeatures?.reduce(
+        (acc: FeatureUsageResponseData[], id) => {
+          const mappedFeatureUsage = data.featureUsage?.features.find(
+            (usage) => usage.feature?.id === id,
+          );
 
-            if (mappedFeatureUsage) {
-              acc.push(mappedFeatureUsage);
-            }
+          if (mappedFeatureUsage) {
+            acc.push(mappedFeatureUsage);
+          }
 
-            return acc;
-          },
-          [],
-        );
-
-        return {
-          planPeriod: data.company?.plan?.planPeriod,
-          plan: data.company?.plan,
-          addOns: data.company?.addOns || [],
-          featureUsage: (
-            orderedFeatureUsage ||
-            data.featureUsage?.features ||
-            []
-          ).filter(
-            (usage) =>
-              usage.feature?.featureType === "event" ||
-              usage.feature?.featureType === "trait",
-          ),
-          subscription: data.subscription,
-        };
-      }
+          return acc;
+        },
+        [],
+      );
 
       return {
-        planPeriod: undefined,
-        plan: undefined,
-        addOns: [],
-        featureUsage: [],
-        subscription: undefined,
+        planPeriod: data.company?.plan?.planPeriod,
+        plan: data.company?.plan,
+        addOns: data.company?.addOns || [],
+        featureUsage: (
+          orderedFeatureUsage ||
+          data.featureUsage?.features ||
+          []
+        ).filter(
+          (usage) =>
+            usage.feature?.featureType === "event" ||
+            usage.feature?.featureType === "trait",
+        ),
       };
-    }, [props.visibleFeatures, data]);
+    }
+
+    return {
+      planPeriod: undefined,
+      plan: undefined,
+      addOns: [],
+      featureUsage: [],
+      subscription: undefined,
+    };
+  }, [props.visibleFeatures, data]);
 
   // Check if we should render this component at all:
   // * If there are any plans or add-ons, render it, even if the list is empty.
@@ -183,32 +181,16 @@ export const MeteredFeatures = forwardRef<
             typeof usage === "number" &&
             usage > softLimit;
 
-          const billingPrice = getBillingPrice(
+          const {
+            price,
+            currency,
+            packageSize = 1,
+          } = getBillingPrice(
             planPeriod === "year"
               ? yearlyUsageBasedPrice
               : monthlyUsageBasedPrice,
-          );
-          let { price, currency } = billingPrice || {};
-          const packageSize = billingPrice?.packageSize ?? 1;
-
-          // Overage price must be derived from the subscription object
-          if (priceBehavior === "overage") {
-            const productId = (yearlyUsageBasedPrice ?? monthlyUsageBasedPrice)
-              ?.productId;
-            if (productId) {
-              const products = subscription?.products ?? [];
-              const product = products.find((p) => p.id === productId);
-              if (product && product.priceTier?.length > 1) {
-                // overage price is the last item in the price tier array
-                const overagePrice =
-                  product.priceTier[product.priceTier.length - 1];
-                price = overagePrice.perUnitPriceDecimal
-                  ? Number(overagePrice.perUnitPriceDecimal)
-                  : (overagePrice.perUnitPrice ?? 0);
-                currency = product.currency;
-              }
-            }
-          }
+            priceBehavior,
+          ) || {};
 
           const progressBar = props.isVisible &&
             typeof usage === "number" &&

@@ -355,11 +355,20 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       } catch (err) {
         if (err instanceof ResponseError) {
           const data = await err.response.json();
+
           if (
             err.response.status === 401 &&
             data.error === "Access Token Invalid"
           ) {
             setError(t("Session expired. Please refresh and try again."));
+            return;
+          }
+
+          if (
+            err.response.status === 400 &&
+            data.error === "Invalid promo code"
+          ) {
+            setError(t("Invalid discount code."));
             return;
           }
 

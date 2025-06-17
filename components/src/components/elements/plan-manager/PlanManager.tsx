@@ -134,34 +134,9 @@ export const PlanManager = forwardRef<
     };
   }, [data]);
 
-  /* const usageBasedEntitlements = useMemo(
-    () =>
-      featureUsage.reduce(
-        (
-          acc: (FeatureUsageResponseData & {
-            billingPrice?: BillingPriceView;
-          })[],
-          usage,
-        ) => {
-          const billingPrice = getBillingPrice(
-            currentPlan?.planPeriod === "year"
-              ? usage.yearlyUsageBasedPrice
-              : usage.monthlyUsageBasedPrice,
-          );
-
-          if (usage.priceBehavior) {
-            acc.push({ ...usage, billingPrice });
-          }
-
-          return acc;
-        },
-        [],
-      ),
-    [currentPlan?.planPeriod, featureUsage],
-  ); */
-
   const usageBasedEntitlements = useMemo(
-    () => featureUsage.filter((usage) => !!usage.priceBehavior),
+    () =>
+      featureUsage.filter((usage) => typeof usage.priceBehavior === "string"),
     [featureUsage],
   );
 
@@ -365,12 +340,16 @@ export const PlanManager = forwardRef<
                 const limit =
                   entitlement.softLimit ?? entitlement.allocation ?? 0;
 
-                const billingPrice = getBillingPrice(
+                const {
+                  price,
+                  currency,
+                  packageSize = 1,
+                } = getBillingPrice(
                   currentPlan?.planPeriod === "year"
                     ? entitlement.yearlyUsageBasedPrice
                     : entitlement.monthlyUsageBasedPrice,
-                );
-                const { packageSize = 1 } = billingPrice || {};
+                  entitlement.priceBehavior,
+                ) || {};
 
                 const overageAmount =
                   entitlement.priceBehavior === "overage"
@@ -380,24 +359,6 @@ export const PlanManager = forwardRef<
                           (entitlement?.softLimit ?? 0),
                       )
                     : undefined;
-
-                let price = billingPrice?.price;
-                if (
-                  entitlement.priceBehavior === "overage" &&
-                  billingPrice?.priceTier.length
-                ) {
-                  const overagePriceTier =
-                    billingPrice.priceTier[billingPrice.priceTier.length - 1];
-                  if (
-                    typeof overagePriceTier.perUnitPriceDecimal === "string"
-                  ) {
-                    price = Number(overagePriceTier.perUnitPriceDecimal);
-                  } else if (
-                    typeof overagePriceTier.perUnitPrice === "number"
-                  ) {
-                    price = overagePriceTier.perUnitPrice;
-                  }
-                }
 
                 let amount = 0;
                 if (entitlement.priceBehavior === "overage" && overageAmount) {
@@ -467,10 +428,7 @@ export const PlanManager = forwardRef<
                             ) : (
                               <>
                                 {t("Additional")}:{" "}
-                                {formatCurrency(
-                                  price ?? 0,
-                                  billingPrice?.currency,
-                                )}
+                                {formatCurrency(price ?? 0, currency)}
                                 <sub>
                                   /{packageSize > 1 && <>{packageSize} </>}
                                   {getFeatureName(
@@ -506,10 +464,7 @@ export const PlanManager = forwardRef<
                                     )
                               }
                             >
-                              {formatCurrency(
-                                price ?? 0,
-                                billingPrice?.currency,
-                              )}
+                              {formatCurrency(price ?? 0, currency)}
                               <sub>
                                 /{packageSize > 1 && <>{packageSize} </>}
                                 {getFeatureName(
@@ -527,10 +482,7 @@ export const PlanManager = forwardRef<
 
                         {amount > 0 && (
                           <Text>
-                            {formatCurrency(
-                              (price ?? 0) * amount,
-                              billingPrice?.currency,
-                            )}
+                            {formatCurrency((price ?? 0) * amount, currency)}
                             {entitlement.priceBehavior !== "overage" &&
                               entitlement.feature.featureType === "trait" && (
                                 <sub>

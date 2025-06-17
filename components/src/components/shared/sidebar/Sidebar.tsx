@@ -7,6 +7,7 @@ import {
 import { useTranslation } from "react-i18next";
 
 import type {
+  BillingPriceView,
   FeatureUsageResponseData,
   PlanEntitlementResponseData,
   PreviewSubscriptionFinanceResponseData,
@@ -47,6 +48,85 @@ export interface CurrentUsageBasedEntitlement extends FeatureUsageResponseData {
   usage: number;
   quantity: number;
 }
+
+const EntitlementRow = ({
+  feature,
+  priceBehavior,
+  quantity,
+  softLimit,
+  planPeriod,
+  ...rest
+}: (UsageBasedEntitlement | CurrentUsageBasedEntitlement) & {
+  planPeriod: string;
+}) => {
+  const { t } = useTranslation();
+
+  if (feature) {
+    // normalize usage-based price
+    let monthlyPrice: BillingPriceView | undefined;
+    let yearlyPrice: BillingPriceView | undefined;
+    if ("valueType" in rest) {
+      // detect current type
+      monthlyPrice = rest.meteredMonthlyPrice;
+      yearlyPrice = rest.meteredYearlyPrice;
+    } else {
+      monthlyPrice = rest.monthlyUsageBasedPrice;
+      yearlyPrice = rest.yearlyUsageBasedPrice;
+    }
+
+    const {
+      price,
+      currency,
+      packageSize = 1,
+    } = getBillingPrice(
+      planPeriod === "year" ? yearlyPrice : monthlyPrice,
+      priceBehavior,
+    ) || {};
+
+    return (
+      <>
+        <Box>
+          <Text display="heading4">
+            {priceBehavior === "pay_in_advance" ? (
+              <>
+                {quantity} {getFeatureName(feature, quantity)}
+              </>
+            ) : priceBehavior === "overage" && typeof softLimit === "number" ? (
+              <>
+                {softLimit} {getFeatureName(feature, softLimit)}
+              </>
+            ) : (
+              feature.name
+            )}
+          </Text>
+        </Box>
+
+        <Box $whiteSpace="nowrap">
+          <Text>
+            {priceBehavior === "pay_in_advance" ? (
+              <>
+                {formatCurrency((price ?? 0) * quantity, currency)}
+                <sub>/{shortenPeriod(planPeriod)}</sub>
+              </>
+            ) : (
+              (priceBehavior === "pay_as_you_go" ||
+                priceBehavior === "overage") && (
+                <>
+                  {priceBehavior === "overage" && <>{t("then")} </>}
+                  {formatCurrency(price ?? 0, currency)}
+                  <sub>
+                    /{packageSize > 1 && <>{packageSize} </>}
+                    {getFeatureName(feature, packageSize)}
+                  </sub>
+                </>
+              )
+            )}
+          </Text>
+        </Box>
+      </>
+    );
+  }
+};
 
 interface SidebarProps {
   planPeriod: string;
@@ -214,6 +294,7 @@ export const Sidebar = ({
             planPeriod === "year"
               ? entitlement.meteredYearlyPrice
               : entitlement.meteredMonthlyPrice,
+            entitlement.priceBehavior,
           )?.price ?? 0),
       0,
     );
@@ -337,13 +418,13 @@ export const Sidebar = ({
 
   const selectedAddOns = addOns.filter((addOn) => addOn.isSelected);
 
-  const updatedPayInAdvanceEntitlements = useMemo(() => {
+  const updatedUsageBasedEntitlements = useMemo(() => {
     const changedUsageBasedEntitlements: {
       previous: CurrentUsageBasedEntitlement;
       next: UsageBasedEntitlement;
     }[] = [];
     const addedUsageBasedEntitlements = selectedPlan
-      ? payInAdvanceEntitlements.reduce(
+      ? usageBasedEntitlements.reduce(
           (acc: UsageBasedEntitlement[], selected) => {
             const changed = currentUsageBasedEntitlements.find(
               (current) =>
@@ -370,7 +451,7 @@ export const Sidebar = ({
       ? currentUsageBasedEntitlements.reduce(
           (acc: CurrentUsageBasedEntitlement[], current) => {
             const match =
-              payInAdvanceEntitlements.every(
+              usageBasedEntitlements.every(
                 (entitlement) => entitlement.id !== current.entitlementId,
               ) &&
               currentEntitlements.find(
@@ -406,15 +487,12 @@ export const Sidebar = ({
     selectedPlan,
     currentEntitlements,
     currentUsageBasedEntitlements,
-    payInAdvanceEntitlements,
+    usageBasedEntitlements,
   ]);
 
   const willPeriodChange = planPeriod !== currentPlanPeriod;
 
-  const willPlanChange =
-    typeof selectedPlan !== "undefined" &&
-    isHydratedPlan(selectedPlan) &&
-    !selectedPlan.current;
+  const willPlanChange = isHydratedPlan(selectedPlan) && !selectedPlan.current;
 
   const removedAddOns = currentAddOns.filter(
     (current) =>
@@ -587,28 +665,15 @@ export const Sidebar = ({
           )}
         </Flex>
 
-        {updatedPayInAdvanceEntitlements.willChange && (
+        {updatedUsageBasedEntitlements.willChange && (
           <Flex $flexDirection="column" $gap="0.5rem" $marginBottom="1.5rem">
             <Box $opacity="0.625">
               <Text $size={14}>{t("Usage-based")}</Text>
             </Box>
 
-            {updatedPayInAdvanceEntitlements.removed.reduce(
+            {updatedUsageBasedEntitlements.removed.reduce(
               (acc: React.ReactElement[], entitlement, index) => {
-                if (
-                  typeof entitlement.allocation === "number" &&
-                  entitlement.feature?.name
-                ) {
-                  const {
-                    price: entitlementPrice,
-                    currency: entitlementCurrency,
-                    packageSize: entitlementPackageSize = 1,
-                  } = getBillingPrice(
-                    planPeriod === "year"
-                      ? entitlement.yearlyUsageBasedPrice
-                      : entitlement.monthlyUsageBasedPrice,
-                  ) || {};
-
+                if (entitlement.feature?.name) {
                   acc.push(
                     <Flex
                       key={index}
@@ -619,53 +684,10 @@ export const Sidebar = ({
                       $textDecoration="line-through"
                       $color={settings.theme.typography.heading4.color}
                     >
-                      <Box>
-                        <Text display="heading4">
-                          {entitlement.priceBehavior === "pay_in_advance" ? (
-                            <>
-                              {entitlement.quantity}{" "}
-                              {getFeatureName(
-                                entitlement.feature,
-                                entitlement.quantity,
-                              )}
-                            </>
-                          ) : (
-                            entitlement.feature.name
-                          )}
-                        </Text>
-                      </Box>
-
-                      <Box $whiteSpace="nowrap">
-                        <Text>
-                          {entitlement.priceBehavior === "pay_in_advance" && (
-                            <>
-                              {formatCurrency(
-                                (entitlementPrice ?? 0) * entitlement.quantity,
-                                entitlementCurrency,
-                              )}
-                              <sub>/{shortenPeriod(planPeriod)}</sub>
-                            </>
-                          )}
-                          {entitlement.priceBehavior === "pay_as_you_go" && (
-                            <>
-                              {formatCurrency(
-                                entitlementPrice ?? 0,
-                                entitlementCurrency,
-                              )}
-                              <sub>
-                                /
-                                {entitlementPackageSize > 1 && (
-                                  <>{entitlementPackageSize} </>
-                                )}
-                                {getFeatureName(
-                                  entitlement.feature,
-                                  entitlementPackageSize,
-                                )}
-                              </sub>
-                            </>
-                          )}
-                        </Text>
-                      </Box>
+                      <EntitlementRow
+                        {...entitlement}
+                        planPeriod={planPeriod}
+                      />
                     </Flex>,
                   );
                 }
@@ -675,19 +697,9 @@ export const Sidebar = ({
               [],
             )}
 
-            {updatedPayInAdvanceEntitlements.changed.reduce(
+            {updatedUsageBasedEntitlements.changed.reduce(
               (acc: React.ReactElement[], { previous, next }, index) => {
                 if (next.feature?.name) {
-                  const {
-                    price: entitlementPrice,
-                    currency: entitlementCurrency,
-                  } =
-                    getBillingPrice(
-                      planPeriod === "year"
-                        ? next.meteredYearlyPrice
-                        : next.meteredMonthlyPrice,
-                    ) || {};
-
                   acc.push(
                     <Box key={index}>
                       <Flex
@@ -698,21 +710,7 @@ export const Sidebar = ({
                         $textDecoration="line-through"
                         $color={settings.theme.typography.heading4.color}
                       >
-                        <Box>
-                          <Text display="heading4">
-                            {previous.quantity} {getFeatureName(next.feature)}
-                          </Text>
-                        </Box>
-
-                        <Box $whiteSpace="nowrap">
-                          <Text>
-                            {formatCurrency(
-                              (entitlementPrice ?? 0) * previous.quantity,
-                              entitlementCurrency,
-                            )}
-                            <sub>/{shortenPeriod(planPeriod)}</sub>
-                          </Text>
-                        </Box>
+                        <EntitlementRow {...previous} planPeriod={planPeriod} />
                       </Flex>
 
                       <Flex
@@ -720,21 +718,7 @@ export const Sidebar = ({
                         $alignItems="center"
                         $gap="1rem"
                       >
-                        <Box>
-                          <Text display="heading4">
-                            {next.quantity} {getFeatureName(next.feature)}
-                          </Text>
-                        </Box>
-
-                        <Box $whiteSpace="nowrap">
-                          <Text>
-                            {formatCurrency(
-                              (entitlementPrice ?? 0) * next.quantity,
-                              entitlementCurrency,
-                            )}
-                            <sub>/{shortenPeriod(planPeriod)}</sub>
-                          </Text>
-                        </Box>
+                        <EntitlementRow {...next} planPeriod={planPeriod} />
                       </Flex>
                     </Box>,
                   );
@@ -745,19 +729,9 @@ export const Sidebar = ({
               [],
             )}
 
-            {updatedPayInAdvanceEntitlements.added.reduce(
+            {updatedUsageBasedEntitlements.added.reduce(
               (acc: React.ReactElement[], entitlement, index) => {
                 if (entitlement.feature?.name) {
-                  const {
-                    price: entitlementPrice,
-                    currency: entitlementCurrency,
-                    packageSize: entitlementPackageSize = 1,
-                  } = getBillingPrice(
-                    planPeriod === "year"
-                      ? entitlement.meteredYearlyPrice
-                      : entitlement.meteredMonthlyPrice,
-                  ) || {};
-
                   acc.push(
                     <Flex
                       key={index}
@@ -765,53 +739,10 @@ export const Sidebar = ({
                       $alignItems="center"
                       $gap="1rem"
                     >
-                      <Box>
-                        <Text display="heading4">
-                          {entitlement.priceBehavior === "pay_in_advance" ? (
-                            <>
-                              {entitlement.quantity}{" "}
-                              {getFeatureName(
-                                entitlement.feature,
-                                entitlement.quantity,
-                              )}
-                            </>
-                          ) : (
-                            entitlement.feature.name
-                          )}
-                        </Text>
-                      </Box>
-
-                      <Box $whiteSpace="nowrap">
-                        <Text>
-                          {entitlement.priceBehavior === "pay_in_advance" && (
-                            <>
-                              {formatCurrency(
-                                (entitlementPrice ?? 0) * entitlement.quantity,
-                                entitlementCurrency,
-                              )}
-                              <sub>/{shortenPeriod(planPeriod)}</sub>
-                            </>
-                          )}
-                          {entitlement.priceBehavior === "pay_as_you_go" && (
-                            <>
-                              {formatCurrency(
-                                entitlementPrice ?? 0,
-                                entitlementCurrency,
-                              )}
-                              <sub>
-                                /
-                                {entitlementPackageSize > 1 && (
-                                  <>{entitlementPackageSize} </>
-                                )}
-                                {getFeatureName(
-                                  entitlement.feature,
-                                  entitlementPackageSize,
-                                )}
-                              </sub>
-                            </>
-                          )}
-                        </Text>
-                      </Box>
+                      <EntitlementRow
+                        {...entitlement}
+                        planPeriod={planPeriod}
+                      />
                     </Flex>,
                   );
                 }
