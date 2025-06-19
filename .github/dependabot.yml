@@ -17,8 +17,6 @@ updates:
       - "Dependabot"
     assignees:
       - "bpapillon"
-    reviewers:
-      - "bpapillon"
   - package-ecosystem: "github-actions"
     directory: "/"
     ignore:
@@ -29,6 +27,4 @@ updates:
       - "github-actions"
       - "Dependabot"
     assignees:
-      - "bpapillon"
-    reviewers:
-      - "bpapillon"
+      - "mhmdio"
