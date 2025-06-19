@@ -6,7 +6,7 @@ import {
   useIsLightBackground,
   type SelectedPlan,
 } from "../../../hooks";
-import { adjectify, getBillingPrice } from "../../../utils";
+import { adjectify, getPlanPrice } from "../../../utils";
 import { Flex, Text, Tooltip } from "../../ui";
 
 interface PeriodToggleProps {
@@ -30,8 +30,8 @@ export const PeriodToggle = ({
 
   const savingsPercentage = useMemo(() => {
     if (selectedPlan) {
-      const monthlyBillingPrice = getBillingPrice(selectedPlan?.monthlyPrice);
-      const yearlyBillingPrice = getBillingPrice(selectedPlan?.yearlyPrice);
+      const monthlyBillingPrice = getPlanPrice(selectedPlan, "month");
+      const yearlyBillingPrice = getPlanPrice(selectedPlan, "year");
       const monthly = (monthlyBillingPrice?.price ?? 0) * 12;
       const yearly = yearlyBillingPrice?.price ?? 0;
       return Math.round(((monthly - yearly) / monthly) * 10000) / 100;

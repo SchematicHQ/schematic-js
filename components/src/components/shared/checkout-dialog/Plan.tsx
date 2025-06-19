@@ -12,8 +12,9 @@ import {
   entitlementCountsReducer,
   formatCurrency,
   formatNumber,
-  getBillingPrice,
+  getEntitlementPrice,
   getFeatureName,
+  getPlanPrice,
   hexToHSL,
   isCheckoutData,
   isHydratedPlan,
@@ -313,9 +314,7 @@ export const Plan = ({
       >
         {plans.map((plan, planIndex) => {
           const { price: planPrice, currency: planCurrency } =
-            getBillingPrice(
-              period === "year" ? plan.yearlyPrice : plan.monthlyPrice,
-            ) || {};
+            getPlanPrice(plan, period) || {};
           const hasUsageBasedEntitlements = plan.entitlements.some(
             (entitlement) => !!entitlement.priceBehavior,
           );
@@ -465,12 +464,7 @@ export const Plan = ({
                           price: entitlementPrice,
                           currency: entitlementCurrency,
                           packageSize: entitlementPackageSize = 1,
-                        } = getBillingPrice(
-                          period === "year"
-                            ? entitlement.meteredYearlyPrice
-                            : entitlement.meteredMonthlyPrice,
-                          entitlement.priceBehavior,
-                        ) || {};
+                        } = getEntitlementPrice(entitlement, period) || {};
 
                         if (
                           entitlement.priceBehavior &&

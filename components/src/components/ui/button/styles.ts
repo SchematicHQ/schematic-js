@@ -83,7 +83,7 @@ export const Button = styled.button<ButtonProps>(
 
         let color = l > 50 ? "#000000" : "#FFFFFF";
         if (disabled) {
-          color = l > 50 ? lighten(color, 42.5) : darken(color, 42.5);
+          color = l > 50 ? lighten(color, 0.625) : darken(color, 0.375);
         }
 
         return css`
@@ -163,10 +163,8 @@ export const Button = styled.button<ButtonProps>(
       }
 
       &:disabled {
-        color: #9ca3af80;
-        background-color: #f9fafb;
-        border-color: #f3f4f6;
         cursor: not-allowed;
+        filter: grayscale(1);
       }
 
       &:not(:disabled):hover {

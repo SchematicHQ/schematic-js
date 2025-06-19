@@ -7,7 +7,7 @@ import type { ElementProps, RecursivePartial } from "../../../types";
 import {
   darken,
   formatCurrency,
-  getBillingPrice,
+  getEntitlementPrice,
   getFeatureName,
   hexToHSL,
   isCheckoutData,
@@ -340,16 +340,11 @@ export const PlanManager = forwardRef<
                 const limit =
                   entitlement.softLimit ?? entitlement.allocation ?? 0;
 
-                const {
-                  price,
-                  currency,
-                  packageSize = 1,
-                } = getBillingPrice(
-                  currentPlan?.planPeriod === "year"
-                    ? entitlement.yearlyUsageBasedPrice
-                    : entitlement.monthlyUsageBasedPrice,
-                  entitlement.priceBehavior,
-                ) || {};
+                const billingPrice = getEntitlementPrice(
+                  entitlement,
+                  currentPlan?.planPeriod || "month",
+                );
+                const { price, currency, packageSize = 1 } = billingPrice || {};
 
                 const overageAmount =
                   entitlement.priceBehavior === "overage"

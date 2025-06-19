@@ -7,7 +7,6 @@ import {
 import { useTranslation } from "react-i18next";
 
 import type {
-  BillingPriceView,
   FeatureUsageResponseData,
   PlanEntitlementResponseData,
   PreviewSubscriptionFinanceResponseData,
@@ -24,9 +23,10 @@ import {
   formatCurrency,
   formatOrdinal,
   getAddOnPrice,
-  getBillingPrice,
+  getEntitlementPrice,
   getFeatureName,
   getMonthName,
+  getPlanPrice,
   isCheckoutData,
   isHydratedPlan,
   shortenPeriod,
@@ -49,39 +49,22 @@ export interface CurrentUsageBasedEntitlement extends FeatureUsageResponseData {
   quantity: number;
 }
 
-const EntitlementRow = ({
-  feature,
-  priceBehavior,
-  quantity,
-  softLimit,
-  planPeriod,
-  ...rest
-}: (UsageBasedEntitlement | CurrentUsageBasedEntitlement) & {
-  planPeriod: string;
-}) => {
+const EntitlementRow = (
+  entitlement: (UsageBasedEntitlement | CurrentUsageBasedEntitlement) & {
+    planPeriod: string;
+  },
+) => {
   const { t } = useTranslation();
 
-  if (feature) {
-    // normalize usage-based price
-    let monthlyPrice: BillingPriceView | undefined;
-    let yearlyPrice: BillingPriceView | undefined;
-    if ("valueType" in rest) {
-      // detect current type
-      monthlyPrice = rest.meteredMonthlyPrice;
-      yearlyPrice = rest.meteredYearlyPrice;
-    } else {
-      monthlyPrice = rest.monthlyUsageBasedPrice;
-      yearlyPrice = rest.yearlyUsageBasedPrice;
-    }
+  const { feature, priceBehavior, quantity, softLimit, planPeriod } =
+    entitlement;
 
+  if (feature) {
     const {
       price,
       currency,
       packageSize = 1,
-    } = getBillingPrice(
-      planPeriod === "year" ? yearlyPrice : monthlyPrice,
-      priceBehavior,
-    ) || {};
+    } = getEntitlementPrice(entitlement, planPeriod) || {};
 
     return (
       <>
@@ -256,11 +239,7 @@ export const Sidebar = ({
     let currency: string | undefined;
 
     if (selectedPlan) {
-      const planBillingPrice = getBillingPrice(
-        planPeriod === "year"
-          ? selectedPlan.yearlyPrice
-          : selectedPlan.monthlyPrice,
-      );
+      const planBillingPrice = getPlanPrice(selectedPlan, planPeriod);
 
       planPrice = planBillingPrice?.price;
       currency = planBillingPrice?.currency;
@@ -276,10 +255,7 @@ export const Sidebar = ({
 
     const addOnCost = addOns.reduce((sum, addOn) => {
       if (addOn.isSelected) {
-        sum +=
-          getBillingPrice(
-            planPeriod === "year" ? addOn.yearlyPrice : addOn.monthlyPrice,
-          )?.price ?? 0;
+        sum += getAddOnPrice(addOn, planPeriod)?.price ?? 0;
       }
 
       return sum;
@@ -290,12 +266,7 @@ export const Sidebar = ({
       (sum, entitlement) =>
         sum +
         entitlement.quantity *
-          (getBillingPrice(
-            planPeriod === "year"
-              ? entitlement.meteredYearlyPrice
-              : entitlement.meteredMonthlyPrice,
-            entitlement.priceBehavior,
-          )?.price ?? 0),
+          (getEntitlementPrice(entitlement, planPeriod)?.price ?? 0),
       0,
     );
     total += payInAdvanceCost;
@@ -529,11 +500,8 @@ export const Sidebar = ({
     trialEndsOn.setDate(trialEndsOn.getDate() + selectedPlan.trialDays);
   }
 
-  const selectedPlanBillingPrice = getBillingPrice(
-    planPeriod === "year"
-      ? selectedPlan?.yearlyPrice
-      : selectedPlan?.monthlyPrice,
-  );
+  const { price: selectedPlanPrice, currency: selectedPlanCurrency } =
+    selectedPlan ? getPlanPrice(selectedPlan, planPeriod) || {} : {};
 
   return (
     <Flex
@@ -654,8 +622,8 @@ export const Sidebar = ({
                 <Flex $whiteSpace="nowrap">
                   <Text>
                     {formatCurrency(
-                      selectedPlanBillingPrice?.price ?? 0,
-                      selectedPlanBillingPrice?.currency,
+                      selectedPlanPrice ?? 0,
+                      selectedPlanCurrency,
                     )}
                     <sub>/{shortenPeriod(planPeriod)}</sub>
                   </Text>
@@ -772,10 +740,7 @@ export const Sidebar = ({
               <Flex>
                 <Text>
                   -
-                  {formatCurrency(
-                    selectedPlanBillingPrice?.price ?? 0,
-                    selectedPlanBillingPrice?.currency,
-                  )}
+                  {formatCurrency(selectedPlanPrice ?? 0, selectedPlanCurrency)}
                   /<sub>{shortenPeriod(planPeriod)}</sub>
                 </Text>
               </Flex>
@@ -807,10 +772,7 @@ export const Sidebar = ({
                   {typeof addOn.planPrice === "number" && addOn.planPeriod && (
                     <Box $whiteSpace="nowrap">
                       <Text>
-                        {formatCurrency(
-                          addOn.planPrice,
-                          selectedPlanBillingPrice?.currency,
-                        )}
+                        {formatCurrency(addOn.planPrice, selectedPlanCurrency)}
                         {addOn.planPeriod !== "one-time" && (
                           <sub>/{shortenPeriod(planPeriod)}</sub>
                         )}
@@ -823,7 +785,7 @@ export const Sidebar = ({
 
             {selectedAddOns.map((addOn, index) => {
               const { price: addOnPrice, currency: addOnCurrency } =
-                getBillingPrice(getAddOnPrice(addOn, planPeriod)) || {};
+                getAddOnPrice(addOn, planPeriod) || {};
 
               return (
                 <Flex
@@ -850,10 +812,10 @@ export const Sidebar = ({
           </Flex>
         )}
 
-        {proration !== 0 && charges && selectedPlanBillingPrice?.currency && (
+        {proration !== 0 && charges && selectedPlanCurrency && (
           <Proration
             charges={charges}
-            currency={selectedPlanBillingPrice.currency}
+            currency={selectedPlanCurrency}
             selectedPlan={selectedPlan}
           />
         )}
@@ -925,7 +887,7 @@ export const Sidebar = ({
               <Text>
                 {formatCurrency(
                   (newCharges / 100) * percentOff,
-                  selectedPlanBillingPrice?.currency,
+                  selectedPlanCurrency,
                 )}
               </Text>
             </Box>
@@ -943,7 +905,7 @@ export const Sidebar = ({
                 {t("X off", {
                   amount: formatCurrency(
                     Math.abs(amountOff),
-                    selectedPlanBillingPrice?.currency,
+                    selectedPlanCurrency,
                   ),
                 })}
               </Text>
@@ -951,11 +913,7 @@ export const Sidebar = ({
 
             <Box>
               <Text>
-                -
-                {formatCurrency(
-                  Math.abs(amountOff),
-                  selectedPlanBillingPrice?.currency,
-                )}
+                -{formatCurrency(Math.abs(amountOff), selectedPlanCurrency)}
               </Text>
             </Box>
           </Flex>
@@ -995,10 +953,7 @@ export const Sidebar = ({
 
             <Box>
               <Text>
-                {formatCurrency(
-                  Math.max(0, dueNow),
-                  selectedPlanBillingPrice?.currency,
-                )}
+                {formatCurrency(Math.max(0, dueNow), selectedPlanCurrency)}
               </Text>
             </Box>
           </Flex>
@@ -1012,10 +967,7 @@ export const Sidebar = ({
 
             <Box>
               <Text>
-                {formatCurrency(
-                  Math.abs(dueNow),
-                  selectedPlanBillingPrice?.currency,
-                )}
+                {formatCurrency(Math.abs(dueNow), selectedPlanCurrency)}
               </Text>
             </Box>
           </Flex>

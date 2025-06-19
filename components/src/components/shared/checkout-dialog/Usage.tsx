@@ -5,7 +5,7 @@ import { useEmbed, type SelectedPlan } from "../../../hooks";
 import {
   darken,
   formatCurrency,
-  getBillingPrice,
+  getEntitlementPrice,
   getFeatureName,
   hexToHSL,
   lighten,
@@ -49,12 +49,7 @@ export const Usage = ({ entitlements, updateQuantity, period }: UsageProps) => {
                 price,
                 currency,
                 packageSize = 1,
-              } = getBillingPrice(
-                period === "year"
-                  ? entitlement.meteredYearlyPrice
-                  : entitlement.meteredMonthlyPrice,
-                entitlement.priceBehavior,
-              ) || {};
+              } = getEntitlementPrice(entitlement, period) || {};
 
               acc.push(
                 <Flex

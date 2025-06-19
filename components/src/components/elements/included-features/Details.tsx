@@ -6,7 +6,7 @@ import { useEmbed } from "../../../hooks";
 import {
   formatCurrency,
   formatNumber,
-  getBillingPrice,
+  getEntitlementPrice,
   getFeatureName,
   isCheckoutData,
   shortenPeriod,
@@ -25,15 +25,7 @@ export const Details = ({
   featureUsage,
   ...props
 }: DetailsProps) => {
-  const {
-    allocation,
-    feature,
-    priceBehavior,
-    usage,
-    softLimit,
-    monthlyUsageBasedPrice,
-    yearlyUsageBasedPrice,
-  } = featureUsage;
+  const { allocation, feature, priceBehavior, usage, softLimit } = featureUsage;
 
   const { t } = useTranslation();
 
@@ -44,13 +36,10 @@ export const Details = ({
       isCheckoutData(data) && typeof data.company?.plan?.planPeriod === "string"
         ? data.company.plan.planPeriod
         : undefined;
-    const billingPrice = getBillingPrice(
-      planPeriod === "year" ? yearlyUsageBasedPrice : monthlyUsageBasedPrice,
-      priceBehavior,
-    );
+    const billingPrice = getEntitlementPrice(featureUsage, planPeriod);
 
     return { planPeriod, billingPrice };
-  }, [data, monthlyUsageBasedPrice, yearlyUsageBasedPrice, priceBehavior]);
+  }, [data, featureUsage]);
 
   const text = useMemo(() => {
     if (!feature) {
