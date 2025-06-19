@@ -129,6 +129,10 @@ export const Invoices = forwardRef<
     setInvoices(formatInvoices(data));
   }, [data]);
 
+  if (invoices.length === 0) {
+    return null;
+  }
+
   return (
     <Element ref={ref} className={className}>
       <Flex as={TransitionBox} $justifyContent="center" $alignItems="center">

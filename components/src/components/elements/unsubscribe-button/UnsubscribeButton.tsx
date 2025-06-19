@@ -14,6 +14,24 @@ import {
   type ButtonVariant,
 } from "../../ui";
 
+const buttonStyles: Record<
+  ComponentStyle,
+  { color: ButtonColor; variant: ButtonVariant }
+> = {
+  primary: {
+    color: "primary",
+    variant: "filled",
+  },
+  secondary: {
+    color: "primary",
+    variant: "outline",
+  },
+  tertiary: {
+    color: "primary",
+    variant: "text",
+  },
+};
+
 interface DesignProps {
   button: {
     text: string;
@@ -53,32 +71,18 @@ export const UnsubscribeButton = forwardRef<
 
   const { data, setLayout } = useEmbed();
 
-  const disabled = useMemo(() => {
+  const hasActiveSubscription = useMemo(() => {
     return (
       isCheckoutData(data) &&
-      (!data.subscription ||
-        data.subscription.status === "cancelled" ||
-        data.subscription.cancelAtPeriodEnd)
+      data.subscription &&
+      data.subscription.status !== "cancelled" &&
+      !data.subscription.cancelAt
     );
   }, [data]);
 
-  const buttonStyles: Record<
-    ComponentStyle,
-    { color: ButtonColor; variant: ButtonVariant }
-  > = {
-    primary: {
-      color: "primary",
-      variant: "filled",
-    },
-    secondary: {
-      color: "primary",
-      variant: "outline",
-    },
-    tertiary: {
-      color: "primary",
-      variant: "text",
-    },
-  };
+  if (!hasActiveSubscription) {
+    return null;
+  }
 
   return (
     <Element
@@ -90,7 +94,6 @@ export const UnsubscribeButton = forwardRef<
     >
       <Button
         type="button"
-        disabled={disabled}
         onClick={() => {
           setLayout("unsubscribe");
         }}

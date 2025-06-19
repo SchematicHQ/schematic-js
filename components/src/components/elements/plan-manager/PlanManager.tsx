@@ -144,7 +144,7 @@ export const PlanManager = forwardRef<
     useMemo(() => {
       const subscriptionCurrency = billingSubscription?.currency;
       const isTrialSubscription = billingSubscription?.status === "trialing";
-      const willSubscriptionCancel = billingSubscription?.cancelAtPeriodEnd;
+      const willSubscriptionCancel = billingSubscription?.cancelAt;
 
       return {
         subscriptionCurrency,

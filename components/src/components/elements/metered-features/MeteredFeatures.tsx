@@ -104,7 +104,7 @@ export const MeteredFeatures = forwardRef<
 
   const isLightBackground = useIsLightBackground();
 
-  const { planPeriod, plan, addOns, featureUsage } = useMemo(() => {
+  const { planPeriod, featureUsage } = useMemo(() => {
     if (isCheckoutData(data)) {
       const orderedFeatureUsage = props.visibleFeatures?.reduce(
         (acc: FeatureUsageResponseData[], id) => {
@@ -146,13 +146,7 @@ export const MeteredFeatures = forwardRef<
     };
   }, [props.visibleFeatures, data]);
 
-  // Check if we should render this component at all:
-  // * If there are any plans or add-ons, render it, even if the list is empty.
-  // * If there are any features, show it (e.g., there could be features available via company overrides
-  //  even if the company has no plan or add-ons).
-  // * If none of the above, don't render the component.
-  const shouldShowFeatures =
-    featureUsage.length > 0 || plan || addOns.length > 0 || false;
+  const shouldShowFeatures = featureUsage.length > 0 || false;
 
   if (!shouldShowFeatures) {
     return null;

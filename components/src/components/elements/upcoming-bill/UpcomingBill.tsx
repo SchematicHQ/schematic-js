@@ -85,7 +85,12 @@ export const UpcomingBill = forwardRef<
   }, [data]);
 
   const getInvoice = useCallback(async () => {
-    if (isCheckoutData(data) && data.component?.id && data.subscription) {
+    if (
+      isCheckoutData(data) &&
+      data.component?.id &&
+      data.subscription &&
+      !data.subscription.cancelAt
+    ) {
       try {
         setError(undefined);
         setIsLoading(true);
@@ -106,6 +111,14 @@ export const UpcomingBill = forwardRef<
   useEffect(() => {
     getInvoice();
   }, [getInvoice]);
+
+  if (
+    !isCheckoutData(data) ||
+    !data.subscription ||
+    data.subscription.cancelAt
+  ) {
+    return null;
+  }
 
   return (
     <Element ref={ref} className={className}>

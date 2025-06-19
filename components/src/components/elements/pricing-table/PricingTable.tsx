@@ -152,7 +152,7 @@ export const PricingTable = forwardRef<
     if (isCheckoutData(data)) {
       const billingSubscription = data.company?.billingSubscription;
       const isTrialSubscription = billingSubscription?.status === "trialing";
-      const willSubscriptionCancel = billingSubscription?.cancelAtPeriodEnd;
+      const willSubscriptionCancel = billingSubscription?.cancelAt;
 
       return {
         planPeriod: data.company?.plan?.planPeriod || "month",

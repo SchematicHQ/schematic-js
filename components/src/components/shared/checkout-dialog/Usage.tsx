@@ -14,6 +14,7 @@ import {
 import { cardBoxShadow } from "../../layout";
 import { Box, Flex, Input, Text } from "../../ui";
 import { type UsageBasedEntitlement } from "../sidebar";
+import { useMemo } from "react";
 
 interface UsageProps {
   isLoading: boolean;
@@ -41,10 +42,7 @@ export const Usage = ({ entitlements, updateQuantity, period }: UsageProps) => {
       <Flex $flexDirection="column" $gap="1rem">
         {entitlements.reduce(
           (acc: React.ReactElement[], entitlement, index) => {
-            if (
-              entitlement.priceBehavior === "pay_in_advance" &&
-              entitlement.feature
-            ) {
+            if (entitlement.feature) {
               const {
                 price,
                 currency,
@@ -91,7 +89,9 @@ export const Usage = ({ entitlements, updateQuantity, period }: UsageProps) => {
                       value={entitlement.quantity}
                       min={1}
                       autoFocus
-                      onFocus={(event) => event.target.select()}
+                      onFocus={(event) => {
+                        event.target.select();
+                      }}
                       onChange={(event) => {
                         event.preventDefault();
 

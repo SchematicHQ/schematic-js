@@ -364,12 +364,15 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
             return;
           }
 
-          if (
-            err.response.status === 400 &&
-            data.error === "Invalid promo code"
-          ) {
-            setError(t("Invalid discount code."));
-            return;
+          if (err.response.status === 400) {
+            switch (data.error) {
+              case "Invalid promo code":
+                setError(t("Invalid discount code."));
+                return;
+              case "Quantity is required":
+                setError(t("Pay-in-advance features require a quantity."));
+                return;
+            }
           }
 
           setError(
@@ -414,7 +417,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
               ...entitlement,
               allocation: entitlement.valueNumeric || 0,
               usage: 0,
-              quantity: 1,
+              quantity: 0,
             });
           }
 
@@ -648,7 +651,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
               isLoading={isLoading}
               period={planPeriod}
               selectedPlan={selectedPlan}
-              entitlements={usageBasedEntitlements}
+              entitlements={payInAdvanceEntitlements}
               updateQuantity={updateUsageBasedEntitlementQuantity}
             />
           )}
