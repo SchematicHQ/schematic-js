@@ -14,7 +14,6 @@ import {
 import { cardBoxShadow } from "../../layout";
 import { Box, Flex, Input, Text } from "../../ui";
 import { type UsageBasedEntitlement } from "../sidebar";
-import { useMemo } from "react";
 
 interface UsageProps {
   isLoading: boolean;
