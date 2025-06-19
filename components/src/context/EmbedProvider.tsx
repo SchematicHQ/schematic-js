@@ -1,6 +1,7 @@
 import "../localization";
 
-import { IconProvider } from "@schematichq/schematic-icons";
+// import { IconProvider } from "@schematichq/schematic-icons";
+import { IconStyles } from "@schematichq/schematic-icons";
 import { debounce, merge } from "lodash";
 import {
   useCallback,
@@ -426,12 +427,10 @@ export const EmbedProvider = ({
         updateSettings,
       }}
     >
-      <IconProvider>
-        <ThemeProvider theme={state.settings.theme}>
-          {/* <GlobalStyle /> */}
-          {children}
-        </ThemeProvider>
-      </IconProvider>
+      <ThemeProvider theme={state.settings.theme}>
+        <IconStyles />
+        {children}
+      </ThemeProvider>
     </EmbedContext.Provider>
   );
 };
