@@ -291,6 +291,7 @@ export const Sidebar = ({
           },
           [],
         ),
+        creditBundles: [],
         ...(paymentMethodId && { paymentMethodId }),
         ...(promoCode && { promoCode }),
       });
