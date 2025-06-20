@@ -299,7 +299,6 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
       try {
         const response = await previewCheckout({
-          creditBundles: [],
           newPlanId: plan.id,
           newPriceId: planPriceId,
           addOnIds: (updates.addOns || addOns).reduce(

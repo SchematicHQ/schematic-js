@@ -303,7 +303,6 @@ export const Sidebar = ({
       setIsLoading(true);
 
       await checkout({
-        creditBundles: [],
         newPlanId: planId,
         newPriceId: priceId,
         addOnIds: addOns.reduce((acc: UpdateAddOnRequestBody[], addOn) => {
