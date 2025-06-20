@@ -12,8 +12,9 @@ import {
   entitlementCountsReducer,
   formatCurrency,
   formatNumber,
-  getBillingPrice,
+  getEntitlementPrice,
   getFeatureName,
+  getPlanPrice,
   hexToHSL,
   isCheckoutData,
   isHydratedPlan,
@@ -313,9 +314,7 @@ export const Plan = ({
       >
         {plans.map((plan, planIndex) => {
           const { price: planPrice, currency: planCurrency } =
-            getBillingPrice(
-              period === "year" ? plan.yearlyPrice : plan.monthlyPrice,
-            ) || {};
+            getPlanPrice(plan, period) || {};
           const hasUsageBasedEntitlements = plan.entitlements.some(
             (entitlement) => !!entitlement.priceBehavior,
           );
@@ -461,32 +460,11 @@ export const Plan = ({
                         const limit =
                           entitlement.softLimit ?? entitlement.valueNumeric;
 
-                        const entitlementPriceObject = getBillingPrice(
-                          period === "year"
-                            ? entitlement.meteredYearlyPrice
-                            : entitlement.meteredMonthlyPrice,
-                        );
-
-                        let entitlementPrice = entitlementPriceObject?.price;
-                        const entitlementCurrency =
-                          entitlementPriceObject?.currency;
-                        const entitlementPackageSize =
-                          entitlementPriceObject?.packageSize ?? 1;
-
-                        if (
-                          entitlement.priceBehavior === "overage" &&
-                          entitlementPriceObject
-                        ) {
-                          const { priceTier } = entitlementPriceObject;
-                          if (priceTier.length > 1) {
-                            const lastTier = priceTier[priceTier.length - 1];
-                            const { perUnitPrice, perUnitPriceDecimal } =
-                              lastTier;
-                            entitlementPrice = perUnitPriceDecimal
-                              ? Number(perUnitPriceDecimal)
-                              : (perUnitPrice ?? 0);
-                          }
-                        }
+                        const {
+                          price: entitlementPrice,
+                          currency: entitlementCurrency,
+                          packageSize: entitlementPackageSize = 1,
+                        } = getEntitlementPrice(entitlement, period) || {};
 
                         if (
                           entitlement.priceBehavior &&

@@ -218,13 +218,14 @@ export const PaymentMethodElement = ({
         $padding={`${sizeFactor / 2.25}rem ${sizeFactor}rem`}
         $borderRadius="9999px"
       >
-        {paymentMethod && (
+        {paymentMethod ? (
           <PaymentElement
             {...getPaymentMethodData(paymentMethod)}
             iconStyles={getIconStyles({ size, theme: settings.theme })}
           />
+        ) : (
+          <EmptyPaymentElement />
         )}
-        {!paymentMethod && <EmptyPaymentElement />}
 
         {props.functions.allowEdit && onEdit && (
           <Text
@@ -233,7 +234,7 @@ export const PaymentMethodElement = ({
             display="link"
             $leading={1}
           >
-            {t("Edit")}
+            {paymentMethod ? t("Edit") : t("Add")}
           </Text>
         )}
       </Flex>

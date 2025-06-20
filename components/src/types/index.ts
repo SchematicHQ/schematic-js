@@ -1,5 +1,14 @@
 import * as Craft from "@craftjs/core";
 
+import {
+  type BillingPriceResponseData,
+  type BillingPriceView,
+  type CompanyPlanDetailResponseData,
+  type FeatureUsageResponseData,
+  type PlanEntitlementResponseData,
+} from "../api/checkoutexternal";
+import { type PlanViewPublicResponseData } from "../api/componentspublic";
+
 export type RecursivePartial<T> = {
   [P in keyof T]?: T[P] extends (infer U)[]
     ? RecursivePartial<U>[]
@@ -34,3 +43,11 @@ export interface ElementProps {
 }
 
 export type ComponentStyle = "primary" | "secondary" | "tertiary";
+
+export type BillingPrice = BillingPriceView | BillingPriceResponseData;
+
+export type Plan = CompanyPlanDetailResponseData | PlanViewPublicResponseData;
+
+export type Entitlement =
+  | PlanEntitlementResponseData
+  | FeatureUsageResponseData;

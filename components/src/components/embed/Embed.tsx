@@ -1,7 +1,9 @@
 import { inflate } from "pako";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
+import { ThemeContext } from "styled-components";
 
 import { TEXT_BASE_SIZE } from "../../const";
+import { stub } from "../../context";
 import { useEmbed } from "../../hooks";
 import type { SerializedNodeWithChildren } from "../../types";
 import { ERROR_UNKNOWN, isCheckoutData, isError } from "../../utils";
@@ -57,6 +59,8 @@ export interface EmbedProps {
 export const SchematicEmbed = ({ id, accessToken }: EmbedProps) => {
   const [children, setChildren] = useState<React.ReactNode>(<Loading />);
 
+  const theme = useContext(ThemeContext);
+
   const {
     data,
     error,
@@ -103,6 +107,13 @@ export const SchematicEmbed = ({ id, accessToken }: EmbedProps) => {
       setError(isError(err) ? err : ERROR_UNKNOWN);
     }
   }, [data, setError, updateSettings]);
+
+  // `EmbedProvider` provides a `ThemeContext`, therefore we need ensure that one exists.
+  // If there is no `EmbedContext` available, we must check for the missing theme.
+  // This will throw a missing provider error.
+  if (!theme) {
+    return stub();
+  }
 
   if (error) {
     return <Error message={error.message} />;

@@ -1,7 +1,7 @@
 import { TEXT_BASE_SIZE } from "../../../const";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import { createKeyboardExecutionHandler } from "../../../utils";
-import { Box, Flex, Icon, IconRound, Text } from "../../ui";
+import { Box, Flex, Icon, IconRound } from "../../ui";
 
 interface NavigationProps {
   name: string;
@@ -22,15 +22,9 @@ export const Navigation = ({
 
   const isLightBackground = useIsLightBackground();
 
-  const showFullContent = index === activeIndex || index === activeIndex + 1;
-
   return (
     <>
-      <Flex
-        $gap="0.5rem"
-        $alignItems="center"
-        {...(!showFullContent && { $flexGrow: 1, $minWidth: 0 })}
-      >
+      <Flex $gap="0.5rem" $alignItems="center">
         <Box
           $display="none"
           $viewport={{
@@ -71,11 +65,11 @@ export const Navigation = ({
         </Box>
 
         <Box
-          {...(!showFullContent && {
-            $overflow: "hidden",
-            $whiteSpace: "nowrap",
-            $textOverflow: "ellipsis",
-          })}
+          $whiteSpace="nowrap"
+          $fontFamily={`${settings.theme.typography.text.fontFamily}, sans-serif`}
+          $fontSize={`${settings.theme.typography.text.fontSize / TEXT_BASE_SIZE}rem`}
+          $fontWeight={index === activeIndex ? 600 : 400}
+          $color={settings.theme.typography.text.color}
           {...(index !== activeIndex && { $opacity: "0.6375" })}
           {...(index < activeIndex && {
             onClick: onSelect,
@@ -84,9 +78,7 @@ export const Navigation = ({
             $cursor: "pointer",
           })}
         >
-          <Text $weight={index === activeIndex ? 600 : 400}>
-            {index + 1}. {name}
-          </Text>
+          {index + 1}. {name}
         </Box>
       </Flex>
 

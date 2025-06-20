@@ -335,6 +335,7 @@ export const PaymentMethodDetails = ({
                   !currentPaymentMethod ||
                   showDifferentPaymentMethods) && (
                   <Button
+                    type="button"
                     onClick={initializePaymentMethod}
                     $size="lg"
                     $fullWidth

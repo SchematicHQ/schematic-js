@@ -6,7 +6,6 @@ import {
   ChargeType,
   formatCurrency,
   getAddOnPrice,
-  getBillingPrice,
   hexToHSL,
   isHydratedPlan,
 } from "../../../utils";
@@ -37,8 +36,7 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
         $gap="1rem"
       >
         {addOns.map((addOn, index) => {
-          const { price, currency } =
-            getBillingPrice(getAddOnPrice(addOn, period)) || {};
+          const { price, currency } = getAddOnPrice(addOn, period) || {};
           const isAddOnValid = isHydratedPlan(addOn) && addOn.valid;
           const isAddOnCurrent = isHydratedPlan(addOn) && addOn.current;
 

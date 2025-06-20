@@ -16,192 +16,43 @@ export interface ButtonProps {
   $color?: ButtonColor;
   $size?: ButtonSize;
   $variant?: ButtonVariant;
+  $fullWidth?: boolean;
   $isLoading?: boolean;
   $alignment?: ButtonAlignment;
   $selfAlignment?: ButtonSelfAlignment;
-  $fullWidth?: boolean;
 }
 
 export const Button = styled.button<ButtonProps>(
   ({
+    theme,
+    disabled = false,
     $color = "primary",
     $size = "md",
     $variant = "filled",
+    $fullWidth = false,
     $isLoading = false,
     $alignment = "center",
-    $selfAlignment = "center",
-    $fullWidth = false,
-    disabled,
-    theme,
+    $selfAlignment,
   }) => {
-    const themeColor = theme[$color];
-
     return css`
       appearance: none;
       font-family: "Public Sans", sans-serif;
       font-weight: 500;
       line-height: 1;
       display: flex;
-      justify-content: center;
+      justify-content: ${$alignment};
       align-items: center;
+      ${() =>
+        $selfAlignment &&
+        css`
+          align-self: ${$selfAlignment};
+        `}
       gap: 0.5rem;
+      width: ${$fullWidth ? "100%" : "fit-content"};
       border: 1px solid transparent;
-      transition: all 0.1s;
+      transition: 0.1s;
 
-      &:hover {
-        cursor: pointer;
-      }
-
-      &:focus-visible {
-        outline: 2px solid ${theme.primary};
-        outline-offset: 2px;
-      }
-
-      &::before {
-        content: "";
-        ${loaderStyles({ $color: themeColor, $size, $isLoading })}
-      }
-
-      ${() => {
-        const { l } = hexToHSL(themeColor);
-
-        let textColor;
-        let colorFn;
-        if (l > 50) {
-          textColor = "#000000";
-          colorFn = lighten;
-        } else {
-          textColor = "#FFFFFF";
-          colorFn = darken;
-        }
-
-        if (disabled) {
-          textColor = colorFn(textColor, 42.5);
-        }
-
-        return css`
-          color: ${textColor};
-
-          ${Text}, ${Icon} {
-            color: ${textColor};
-          }
-        `;
-      }};
-
-      ${() => {
-        const { l } = hexToHSL(theme.card.background);
-
-        let color = themeColor;
-        if (disabled) {
-          color = hslToHex({ h: 0, s: 0, l });
-          color = l > 50 ? darken(color, 0.075) : lighten(color, 0.15);
-        }
-
-        if ($variant === "outline") {
-          return css`
-            background-color: transparent;
-            border-color: ${color};
-            color: ${color};
-
-            ${Text}, ${Icon} {
-              color: ${color};
-            }
-          `;
-        }
-
-        if ($variant === "ghost") {
-          return css`
-            background-color: transparent;
-            border-color: ${l > 50
-              ? darken(theme.card.background, 0.2)
-              : lighten(theme.card.background, 0.2)};
-            color: ${color};
-
-            ${Text}, ${Icon} {
-              color: ${color};
-            }
-          `;
-        }
-
-        if ($variant === "text") {
-          return css`
-            background-color: transparent;
-            border-color: transparent;
-            color: ${color};
-
-            &:hover {
-              text-decoration: underline;
-            }
-
-            ${Text}, ${Icon} {
-              color: ${color};
-            }
-          `;
-        }
-
-        return css`
-          background-color: ${color};
-          border-color: ${color};
-        `;
-      }}
-
-      &:disabled {
-        color: #9ca3af80;
-        background-color: #f9fafb;
-        border-color: #f3f4f6;
-        cursor: not-allowed;
-      }
-
-      &:disabled:hover {
-        cursor: not-allowed;
-      }
-
-      &:not(:disabled):hover {
-        ${() => {
-          const specified = themeColor;
-          const lightened = lighten(specified, 0.15);
-          const color =
-            specified === lightened ? darken(specified, 0.15) : lightened;
-
-          const { l } = hexToHSL(themeColor);
-          const textColor = l > 50 ? "#000000" : "#FFFFFF";
-
-          if ($variant === "filled") {
-            return css`
-              background-color: ${color};
-              border-color: ${color};
-            `;
-          }
-
-          if ($variant === "outline") {
-            return css`
-              background-color: ${color};
-              border-color: ${color};
-              color: ${textColor};
-
-              ${Text}, ${Icon} {
-                color: ${textColor};
-              }
-            `;
-          }
-
-          if ($variant === "ghost") {
-            const { l } = hexToHSL(theme.card.background);
-
-            return css`
-              border-color: ${l > 50
-                ? darken(theme.card.background, 0.125)
-                : lighten(theme.card.background, 0.125)};
-              box-shadow: 0 1px 2px
-                ${l > 50
-                  ? darken(theme.card.background, 0.075)
-                  : lighten(theme.card.background, 0.075)};
-            `;
-          }
-        }}
-      }
-
-      ${() => {
+      ${function sizeStyles() {
         switch ($size) {
           case "sm":
             return css`
@@ -227,54 +78,145 @@ export const Button = styled.button<ButtonProps>(
         }
       }}
 
-      ${() => {
-        switch ($alignment) {
-          case "start":
-            return css`
-              justify-content: start;
-            `;
-          case "end":
-            return css`
-              justify-content: end;
-            `;
-          case "center":
-          default:
-            return css`
-              justify-content: center;
-            `;
+      ${function colorStyles() {
+        const { l } = hexToHSL(theme[$color]);
+
+        let color = l > 50 ? "#000000" : "#FFFFFF";
+        if (disabled) {
+          color = l > 50 ? lighten(color, 0.625) : darken(color, 0.375);
         }
+
+        return css`
+          color: ${color};
+
+          ${Text}, ${Icon} {
+            color: ${color};
+          }
+        `;
       }}
 
-    ${() => {
-        switch ($selfAlignment) {
-          case "start":
-            return css`
-              align-self: start;
-            `;
-          case "end":
-            return css`
-              align-self: end;
-            `;
-          case "center":
-          default:
-            return css`
-              align-self: center;
-            `;
-        }
-      }}
+      ${function variantStyles() {
+        const { l } = hexToHSL(theme.card.background);
 
-    ${() => {
-        if ($fullWidth) {
+        let color = theme[$color];
+        if (disabled) {
+          color = hslToHex({ h: 0, s: 0, l });
+          color = l > 50 ? darken(color, 0.075) : lighten(color, 0.15);
+        }
+
+        if ($variant === "outline") {
           return css`
-            width: 100%;
-            padding: 0;
+            color: ${color};
+            background-color: transparent;
+            border-color: ${color};
+
+            ${Text}, ${Icon} {
+              color: ${color};
+            }
+          `;
+        }
+
+        if ($variant === "ghost") {
+          return css`
+            color: ${color};
+            background-color: transparent;
+            border-color: ${l > 50
+              ? darken(theme.card.background, 0.2)
+              : lighten(theme.card.background, 0.2)};
+
+            ${Text}, ${Icon} {
+              color: ${color};
+            }
+          `;
+        }
+
+        if ($variant === "text") {
+          return css`
+            color: ${color};
+            background-color: transparent;
+            border-color: transparent;
+
+            ${Text}, ${Icon} {
+              color: ${color};
+            }
           `;
         }
 
         return css`
-          width: fit-content;
+          background-color: ${color};
+          border-color: ${color};
         `;
       }}
+
+      &:hover {
+        cursor: pointer;
+      }
+
+      &:focus-visible {
+        outline: 2px solid ${theme.primary};
+        outline-offset: 2px;
+      }
+
+      &::before {
+        content: "";
+        ${loaderStyles({ $color: theme[$color], $size, $isLoading })}
+      }
+
+      &:disabled {
+        cursor: not-allowed;
+        filter: grayscale(1);
+      }
+
+      &:not(:disabled):hover {
+        ${function hoverStyles() {
+          const { l } = hexToHSL(theme[$color]);
+          const color = l > 50 ? "#000000" : "#FFFFFF";
+
+          const specified = theme[$color];
+          const lightened = lighten(specified, 0.15);
+          const bgColor =
+            specified === lightened ? darken(specified, 0.15) : lightened;
+
+          if ($variant === "filled") {
+            return css`
+              background-color: ${bgColor};
+              border-color: ${bgColor};
+            `;
+          }
+
+          if ($variant === "outline") {
+            return css`
+              color: ${color};
+              background-color: ${bgColor};
+              border-color: ${bgColor};
+
+              ${Text}, ${Icon} {
+                color: ${color};
+              }
+            `;
+          }
+
+          if ($variant === "ghost") {
+            const { l } = hexToHSL(theme.card.background);
+
+            return css`
+              border-color: ${l > 50
+                ? darken(theme.card.background, 0.125)
+                : lighten(theme.card.background, 0.125)};
+              box-shadow: 0 1px 2px
+                ${l > 50
+                  ? darken(theme.card.background, 0.075)
+                  : lighten(theme.card.background, 0.075)};
+            `;
+          }
+
+          if ($variant === "text") {
+            return css`
+              text-decoration: underline;
+            `;
+          }
+        }}
+      }
     `;
   },
 );

@@ -1,4 +1,6 @@
 import {
+  type BillingPriceResponseData,
+  type BillingPriceView,
   type CompanyPlanDetailResponseData,
   type ComponentHydrateResponseData,
   type FeatureDetailResponseData,
@@ -8,18 +10,24 @@ import {
   type PublicPlansResponseData,
 } from "../api/componentspublic";
 import { VISIBLE_ENTITLEMENT_COUNT } from "../const";
-import { type SelectedPlan } from "../hooks";
+import type { BillingPrice, Entitlement, Plan } from "../types";
 
 import { pluralize } from "./pluralize";
 
+export function isHydrateData(
+  data?: unknown,
+): data is PublicPlansResponseData | ComponentHydrateResponseData {
+  return typeof data === "object" && data !== null && "activePlans" in data;
+}
+
 export function isCheckoutData(
-  data?: PublicPlansResponseData | ComponentHydrateResponseData,
+  data?: unknown,
 ): data is ComponentHydrateResponseData {
-  return typeof data !== "undefined" && "company" in data;
+  return typeof data === "object" && data !== null && "company" in data;
 }
 
 export function isHydratedPlan(
-  plan?: PlanViewPublicResponseData | CompanyPlanDetailResponseData,
+  plan?: Plan,
 ): plan is CompanyPlanDetailResponseData {
   return typeof plan !== "undefined" && "current" in plan;
 }
@@ -45,38 +53,85 @@ export function getFeatureName(
   return pluralize(name, count);
 }
 
-export function getBillingPrice<
-  T extends { price: number; priceDecimal?: string | null },
->(billingPrice?: T): T | undefined {
-  if (!billingPrice) {
-    return;
-  }
-
-  const price =
-    typeof billingPrice.priceDecimal === "string"
-      ? Number(billingPrice.priceDecimal)
-      : billingPrice.price;
-
-  return { ...billingPrice, price };
-}
-
-export function getAddOnPrice(addOn: SelectedPlan, period: string) {
-  if (addOn.chargeType === ChargeType.oneTime) {
-    return addOn.oneTimePrice;
-  }
-
-  if (period === "year") {
-    return addOn.yearlyPrice;
-  }
-
-  return addOn.monthlyPrice;
-}
-
 export const ChargeType = {
   oneTime: "one_time",
   recurring: "recurring",
   free: "free",
 };
+
+function getPriceValue(billingPrice: BillingPrice): number {
+  const price =
+    typeof billingPrice.priceDecimal === "string"
+      ? Number(billingPrice.priceDecimal)
+      : billingPrice.price;
+
+  return price;
+}
+
+export function getPlanPrice(
+  plan: Plan,
+  period = "month",
+): BillingPriceResponseData | undefined {
+  const billingPrice = period === "year" ? plan.yearlyPrice : plan.monthlyPrice;
+
+  if (billingPrice) {
+    return { ...billingPrice, price: getPriceValue(billingPrice) };
+  }
+}
+
+export function getAddOnPrice(
+  addOn: Plan,
+  period = "month",
+): BillingPriceResponseData | undefined {
+  const billingPrice =
+    addOn.chargeType === ChargeType.oneTime
+      ? addOn.oneTimePrice
+      : period === "year"
+        ? addOn.yearlyPrice
+        : addOn.monthlyPrice;
+
+  if (billingPrice) {
+    return { ...billingPrice, price: getPriceValue(billingPrice) };
+  }
+}
+
+export function getEntitlementPrice(
+  entitlement: Entitlement,
+  period = "month",
+): BillingPriceView | undefined {
+  let source: BillingPriceView | undefined;
+  if ("valueType" in entitlement) {
+    // entitlement
+    source =
+      period === "year"
+        ? entitlement.meteredYearlyPrice
+        : entitlement.meteredMonthlyPrice;
+  } else if ("entitlementType" in entitlement) {
+    // feature usage
+    source =
+      period === "year"
+        ? entitlement.yearlyUsageBasedPrice
+        : entitlement.monthlyUsageBasedPrice;
+  }
+
+  if (source) {
+    const billingPrice = { ...source };
+
+    if (entitlement.priceBehavior === "overage") {
+      const [, overagePriceTier] = billingPrice.priceTier;
+
+      if (typeof overagePriceTier.perUnitPrice === "number") {
+        billingPrice.price = overagePriceTier.perUnitPrice;
+      }
+
+      if (typeof overagePriceTier.perUnitPriceDecimal === "string") {
+        billingPrice.priceDecimal = overagePriceTier.perUnitPriceDecimal;
+      }
+    }
+
+    return { ...billingPrice, price: getPriceValue(billingPrice) };
+  }
+}
 
 export function entitlementCountsReducer(
   acc: Record<

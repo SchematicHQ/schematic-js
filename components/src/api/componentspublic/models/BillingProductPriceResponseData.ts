@@ -93,6 +93,12 @@ export interface BillingProductPriceResponseData {
   productExternalId: string;
   /**
    *
+   * @type {string}
+   * @memberof BillingProductPriceResponseData
+   */
+  tiersMode?: string | null;
+  /**
+   *
    * @type {Date}
    * @memberof BillingProductPriceResponseData
    */
@@ -160,6 +166,7 @@ export function BillingProductPriceResponseDataFromJSONTyped(
       json["price_decimal"] == null ? undefined : json["price_decimal"],
     priceExternalId: json["price_external_id"],
     productExternalId: json["product_external_id"],
+    tiersMode: json["tiers_mode"] == null ? undefined : json["tiers_mode"],
     updatedAt: new Date(json["updated_at"]),
     usageType: json["usage_type"],
   };
@@ -184,6 +191,7 @@ export function BillingProductPriceResponseDataToJSON(
     price_decimal: value["priceDecimal"],
     price_external_id: value["priceExternalId"],
     product_external_id: value["productExternalId"],
+    tiers_mode: value["tiersMode"],
     updated_at: value["updatedAt"].toISOString(),
     usage_type: value["usageType"],
   };

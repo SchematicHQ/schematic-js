@@ -6,7 +6,7 @@ import {
   useIsLightBackground,
   type SelectedPlan,
 } from "../../../hooks";
-import { adjectify, getBillingPrice } from "../../../utils";
+import { adjectify, getPlanPrice } from "../../../utils";
 import { Flex, Text, Tooltip } from "../../ui";
 
 interface PeriodToggleProps {
@@ -30,8 +30,8 @@ export const PeriodToggle = ({
 
   const savingsPercentage = useMemo(() => {
     if (selectedPlan) {
-      const monthlyBillingPrice = getBillingPrice(selectedPlan?.monthlyPrice);
-      const yearlyBillingPrice = getBillingPrice(selectedPlan?.yearlyPrice);
+      const monthlyBillingPrice = getPlanPrice(selectedPlan, "month");
+      const yearlyBillingPrice = getPlanPrice(selectedPlan, "year");
       const monthly = (monthlyBillingPrice?.price ?? 0) * 12;
       const yearly = yearlyBillingPrice?.price ?? 0;
       return Math.round(((monthly - yearly) / monthly) * 10000) / 100;
@@ -73,7 +73,7 @@ export const PeriodToggle = ({
             }}
             $justifyContent="center"
             $alignItems="center"
-            $flexGrow={1}
+            $flexBasis="50%"
             $whiteSpace="nowrap"
             $padding="0.75rem 1rem"
             {...(option === selectedOption && {
@@ -82,11 +82,6 @@ export const PeriodToggle = ({
                 : "hsla(0, 0%, 100%, 0.125)",
             })}
             $borderRadius="2.5rem"
-            $viewport={{
-              md: {
-                $padding: "0.375rem 1rem",
-              },
-            }}
           >
             <Text
               style={{ flexShrink: 0 }}
@@ -114,7 +109,7 @@ export const PeriodToggle = ({
                       })}
                 </Text>
               }
-              $flexGrow={1}
+              $flexBasis="50%"
             />
           );
         }

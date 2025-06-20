@@ -23,9 +23,10 @@ import {
   formatCurrency,
   formatOrdinal,
   getAddOnPrice,
-  getBillingPrice,
+  getEntitlementPrice,
   getFeatureName,
   getMonthName,
+  getPlanPrice,
   isCheckoutData,
   isHydratedPlan,
   shortenPeriod,
@@ -48,6 +49,68 @@ export interface CurrentUsageBasedEntitlement extends FeatureUsageResponseData {
   quantity: number;
 }
 
+const EntitlementRow = (
+  entitlement: (UsageBasedEntitlement | CurrentUsageBasedEntitlement) & {
+    planPeriod: string;
+  },
+) => {
+  const { t } = useTranslation();
+
+  const { feature, priceBehavior, quantity, softLimit, planPeriod } =
+    entitlement;
+
+  if (feature) {
+    const {
+      price,
+      currency,
+      packageSize = 1,
+    } = getEntitlementPrice(entitlement, planPeriod) || {};
+
+    return (
+      <>
+        <Box>
+          <Text display="heading4">
+            {priceBehavior === "pay_in_advance" ? (
+              <>
+                {quantity} {getFeatureName(feature, quantity)}
+              </>
+            ) : priceBehavior === "overage" && typeof softLimit === "number" ? (
+              <>
+                {softLimit} {getFeatureName(feature, softLimit)}
+              </>
+            ) : (
+              feature.name
+            )}
+          </Text>
+        </Box>
+
+        <Box $whiteSpace="nowrap">
+          <Text>
+            {priceBehavior === "pay_in_advance" ? (
+              <>
+                {formatCurrency((price ?? 0) * quantity, currency)}
+                <sub>/{shortenPeriod(planPeriod)}</sub>
+              </>
+            ) : (
+              (priceBehavior === "pay_as_you_go" ||
+                priceBehavior === "overage") && (
+                <>
+                  {priceBehavior === "overage" && <>{t("then")} </>}
+                  {formatCurrency(price ?? 0, currency)}
+                  <sub>
+                    /{packageSize > 1 && <>{packageSize} </>}
+                    {getFeatureName(feature, packageSize)}
+                  </sub>
+                </>
+              )
+            )}
+          </Text>
+        </Box>
+      </>
+    );
+  }
+};
+
 interface SidebarProps {
   planPeriod: string;
   selectedPlan?: SelectedPlan;
@@ -60,12 +123,12 @@ interface SidebarProps {
   error?: string;
   isLoading: boolean;
   paymentMethodId?: string;
-  promoCode?: string;
+  promoCode?: string | null;
   requiresPayment: boolean;
   setCheckoutStage?: (stage: string) => void;
   setError: (msg?: string) => void;
   setIsLoading: Dispatch<SetStateAction<boolean>>;
-  updatePromoCode?: (code?: string) => void;
+  updatePromoCode?: (code: string | null) => void;
   showHeader?: boolean;
   willTrial?: boolean;
 }
@@ -93,7 +156,7 @@ export const Sidebar = ({
 }: SidebarProps) => {
   const { t } = useTranslation();
 
-  const { data, settings, mode, layout, setLayout, checkout, unsubscribe } =
+  const { data, settings, layout, setLayout, checkout, unsubscribe } =
     useEmbed();
 
   const isLightBackground = useIsLightBackground();
@@ -156,7 +219,7 @@ export const Sidebar = ({
     };
   }, [data, planPeriod]);
 
-  const { payAsYouGoEntitlements, payInAdvanceEntitlements } = useMemo(() => {
+  const { payInAdvanceEntitlements } = useMemo(() => {
     const payAsYouGoEntitlements: UsageBasedEntitlement[] = [];
     const payInAdvanceEntitlements = usageBasedEntitlements.filter(
       (entitlement) => {
@@ -176,11 +239,7 @@ export const Sidebar = ({
     let currency: string | undefined;
 
     if (selectedPlan) {
-      const planBillingPrice = getBillingPrice(
-        planPeriod === "year"
-          ? selectedPlan.yearlyPrice
-          : selectedPlan.monthlyPrice,
-      );
+      const planBillingPrice = getPlanPrice(selectedPlan, planPeriod);
 
       planPrice = planBillingPrice?.price;
       currency = planBillingPrice?.currency;
@@ -196,10 +255,7 @@ export const Sidebar = ({
 
     const addOnCost = addOns.reduce((sum, addOn) => {
       if (addOn.isSelected) {
-        sum +=
-          getBillingPrice(
-            planPeriod === "year" ? addOn.yearlyPrice : addOn.monthlyPrice,
-          )?.price ?? 0;
+        sum += getAddOnPrice(addOn, planPeriod)?.price ?? 0;
       }
 
       return sum;
@@ -210,11 +266,7 @@ export const Sidebar = ({
       (sum, entitlement) =>
         sum +
         entitlement.quantity *
-          (getBillingPrice(
-            planPeriod === "year"
-              ? entitlement.meteredYearlyPrice
-              : entitlement.meteredMonthlyPrice,
-          )?.price ?? 0),
+          (getEntitlementPrice(entitlement, planPeriod)?.price ?? 0),
       0,
     );
     total += payInAdvanceCost;
@@ -251,7 +303,6 @@ export const Sidebar = ({
       setIsLoading(true);
 
       await checkout({
-        creditBundles: [],
         newPlanId: planId,
         newPriceId: priceId,
         addOnIds: addOns.reduce((acc: UpdateAddOnRequestBody[], addOn) => {
@@ -292,6 +343,7 @@ export const Sidebar = ({
           },
           [],
         ),
+        creditBundles: [],
         ...(paymentMethodId && { paymentMethodId }),
         ...(promoCode && { promoCode }),
       });
@@ -337,12 +389,7 @@ export const Sidebar = ({
 
   const selectedAddOns = addOns.filter((addOn) => addOn.isSelected);
 
-  const {
-    changedUsageBasedEntitlements,
-    addedUsageBasedEntitlements,
-    removedUsageBasedEntitlements,
-    willUsageBasedEntitlementsChange,
-  } = useMemo(() => {
+  const updatedUsageBasedEntitlements = useMemo(() => {
     const changedUsageBasedEntitlements: {
       previous: CurrentUsageBasedEntitlement;
       next: UsageBasedEntitlement;
@@ -402,10 +449,10 @@ export const Sidebar = ({
       removedUsageBasedEntitlements.length > 0;
 
     return {
-      changedUsageBasedEntitlements,
-      addedUsageBasedEntitlements,
-      removedUsageBasedEntitlements,
-      willUsageBasedEntitlementsChange,
+      changed: changedUsageBasedEntitlements,
+      added: addedUsageBasedEntitlements,
+      removed: removedUsageBasedEntitlements,
+      willChange: willUsageBasedEntitlementsChange,
     };
   }, [
     selectedPlan,
@@ -416,10 +463,7 @@ export const Sidebar = ({
 
   const willPeriodChange = planPeriod !== currentPlanPeriod;
 
-  const willPlanChange =
-    typeof selectedPlan !== "undefined" &&
-    isHydratedPlan(selectedPlan) &&
-    !selectedPlan.current;
+  const willPlanChange = isHydratedPlan(selectedPlan) && !selectedPlan.current;
 
   const removedAddOns = currentAddOns.filter(
     (current) =>
@@ -441,7 +485,7 @@ export const Sidebar = ({
     willAddOnsChange ||
     willPayInAdvanceEntitlementsChange;
 
-  const canUpdateSubscription = mode === "edit" || !isLoading;
+  const canUpdateSubscription = settings.mode === "edit" || !isLoading;
   const canCheckout =
     canUpdateSubscription &&
     (!!paymentMethod || typeof paymentMethodId === "string");
@@ -456,11 +500,8 @@ export const Sidebar = ({
     trialEndsOn.setDate(trialEndsOn.getDate() + selectedPlan.trialDays);
   }
 
-  const selectedPlanBillingPrice = getBillingPrice(
-    planPeriod === "year"
-      ? selectedPlan?.yearlyPrice
-      : selectedPlan?.monthlyPrice,
-  );
+  const { price: selectedPlanPrice, currency: selectedPlanCurrency } =
+    selectedPlan ? getPlanPrice(selectedPlan, planPeriod) || {} : {};
 
   return (
     <Flex
@@ -581,8 +622,8 @@ export const Sidebar = ({
                 <Flex $whiteSpace="nowrap">
                   <Text>
                     {formatCurrency(
-                      selectedPlanBillingPrice?.price ?? 0,
-                      selectedPlanBillingPrice?.currency,
+                      selectedPlanPrice ?? 0,
+                      selectedPlanCurrency,
                     )}
                     <sub>/{shortenPeriod(planPeriod)}</sub>
                   </Text>
@@ -592,28 +633,15 @@ export const Sidebar = ({
           )}
         </Flex>
 
-        {willUsageBasedEntitlementsChange && (
+        {updatedUsageBasedEntitlements.willChange && (
           <Flex $flexDirection="column" $gap="0.5rem" $marginBottom="1.5rem">
             <Box $opacity="0.625">
               <Text $size={14}>{t("Usage-based")}</Text>
             </Box>
 
-            {removedUsageBasedEntitlements.reduce(
+            {updatedUsageBasedEntitlements.removed.reduce(
               (acc: React.ReactElement[], entitlement, index) => {
-                if (
-                  typeof entitlement.allocation === "number" &&
-                  entitlement.feature?.name
-                ) {
-                  const {
-                    price: entitlementPrice,
-                    currency: entitlementCurrency,
-                    packageSize: entitlementPackageSize = 1,
-                  } = getBillingPrice(
-                    planPeriod === "year"
-                      ? entitlement.yearlyUsageBasedPrice
-                      : entitlement.monthlyUsageBasedPrice,
-                  ) || {};
-
+                if (entitlement.feature?.name) {
                   acc.push(
                     <Flex
                       key={index}
@@ -624,53 +652,10 @@ export const Sidebar = ({
                       $textDecoration="line-through"
                       $color={settings.theme.typography.heading4.color}
                     >
-                      <Box>
-                        <Text display="heading4">
-                          {entitlement.priceBehavior === "pay_in_advance" ? (
-                            <>
-                              {entitlement.quantity}{" "}
-                              {getFeatureName(
-                                entitlement.feature,
-                                entitlement.quantity,
-                              )}
-                            </>
-                          ) : (
-                            entitlement.feature.name
-                          )}
-                        </Text>
-                      </Box>
-
-                      <Box $whiteSpace="nowrap">
-                        <Text>
-                          {entitlement.priceBehavior === "pay_in_advance" && (
-                            <>
-                              {formatCurrency(
-                                (entitlementPrice ?? 0) * entitlement.quantity,
-                                entitlementCurrency,
-                              )}
-                              <sub>/{shortenPeriod(planPeriod)}</sub>
-                            </>
-                          )}
-                          {entitlement.priceBehavior === "pay_as_you_go" && (
-                            <>
-                              {formatCurrency(
-                                entitlementPrice ?? 0,
-                                entitlementCurrency,
-                              )}
-                              <sub>
-                                /
-                                {entitlementPackageSize > 1 && (
-                                  <>{entitlementPackageSize} </>
-                                )}
-                                {getFeatureName(
-                                  entitlement.feature,
-                                  entitlementPackageSize,
-                                )}
-                              </sub>
-                            </>
-                          )}
-                        </Text>
-                      </Box>
+                      <EntitlementRow
+                        {...entitlement}
+                        planPeriod={planPeriod}
+                      />
                     </Flex>,
                   );
                 }
@@ -680,19 +665,9 @@ export const Sidebar = ({
               [],
             )}
 
-            {changedUsageBasedEntitlements.reduce(
+            {updatedUsageBasedEntitlements.changed.reduce(
               (acc: React.ReactElement[], { previous, next }, index) => {
                 if (next.feature?.name) {
-                  const {
-                    price: entitlementPrice,
-                    currency: entitlementCurrency,
-                  } =
-                    getBillingPrice(
-                      planPeriod === "year"
-                        ? next.meteredYearlyPrice
-                        : next.meteredMonthlyPrice,
-                    ) || {};
-
                   acc.push(
                     <Box key={index}>
                       <Flex
@@ -703,21 +678,7 @@ export const Sidebar = ({
                         $textDecoration="line-through"
                         $color={settings.theme.typography.heading4.color}
                       >
-                        <Box>
-                          <Text display="heading4">
-                            {previous.quantity} {getFeatureName(next.feature)}
-                          </Text>
-                        </Box>
-
-                        <Box $whiteSpace="nowrap">
-                          <Text>
-                            {formatCurrency(
-                              (entitlementPrice ?? 0) * previous.quantity,
-                              entitlementCurrency,
-                            )}
-                            <sub>/{shortenPeriod(planPeriod)}</sub>
-                          </Text>
-                        </Box>
+                        <EntitlementRow {...previous} planPeriod={planPeriod} />
                       </Flex>
 
                       <Flex
@@ -725,21 +686,7 @@ export const Sidebar = ({
                         $alignItems="center"
                         $gap="1rem"
                       >
-                        <Box>
-                          <Text display="heading4">
-                            {next.quantity} {getFeatureName(next.feature)}
-                          </Text>
-                        </Box>
-
-                        <Box $whiteSpace="nowrap">
-                          <Text>
-                            {formatCurrency(
-                              (entitlementPrice ?? 0) * next.quantity,
-                              entitlementCurrency,
-                            )}
-                            <sub>/{shortenPeriod(planPeriod)}</sub>
-                          </Text>
-                        </Box>
+                        <EntitlementRow {...next} planPeriod={planPeriod} />
                       </Flex>
                     </Box>,
                   );
@@ -750,19 +697,9 @@ export const Sidebar = ({
               [],
             )}
 
-            {addedUsageBasedEntitlements.reduce(
+            {updatedUsageBasedEntitlements.added.reduce(
               (acc: React.ReactElement[], entitlement, index) => {
                 if (entitlement.feature?.name) {
-                  const {
-                    price: entitlementPrice,
-                    currency: entitlementCurrency,
-                    packageSize: entitlementPackageSize = 1,
-                  } = getBillingPrice(
-                    planPeriod === "year"
-                      ? entitlement.meteredYearlyPrice
-                      : entitlement.meteredMonthlyPrice,
-                  ) || {};
-
                   acc.push(
                     <Flex
                       key={index}
@@ -770,53 +707,10 @@ export const Sidebar = ({
                       $alignItems="center"
                       $gap="1rem"
                     >
-                      <Box>
-                        <Text display="heading4">
-                          {entitlement.priceBehavior === "pay_in_advance" ? (
-                            <>
-                              {entitlement.quantity}{" "}
-                              {getFeatureName(
-                                entitlement.feature,
-                                entitlement.quantity,
-                              )}
-                            </>
-                          ) : (
-                            entitlement.feature.name
-                          )}
-                        </Text>
-                      </Box>
-
-                      <Box $whiteSpace="nowrap">
-                        <Text>
-                          {entitlement.priceBehavior === "pay_in_advance" && (
-                            <>
-                              {formatCurrency(
-                                (entitlementPrice ?? 0) * entitlement.quantity,
-                                entitlementCurrency,
-                              )}
-                              <sub>/{shortenPeriod(planPeriod)}</sub>
-                            </>
-                          )}
-                          {entitlement.priceBehavior === "pay_as_you_go" && (
-                            <>
-                              {formatCurrency(
-                                entitlementPrice ?? 0,
-                                entitlementCurrency,
-                              )}
-                              <sub>
-                                /
-                                {entitlementPackageSize > 1 && (
-                                  <>{entitlementPackageSize} </>
-                                )}
-                                {getFeatureName(
-                                  entitlement.feature,
-                                  entitlementPackageSize,
-                                )}
-                              </sub>
-                            </>
-                          )}
-                        </Text>
-                      </Box>
+                      <EntitlementRow
+                        {...entitlement}
+                        planPeriod={planPeriod}
+                      />
                     </Flex>,
                   );
                 }
@@ -846,10 +740,7 @@ export const Sidebar = ({
               <Flex>
                 <Text>
                   -
-                  {formatCurrency(
-                    selectedPlanBillingPrice?.price ?? 0,
-                    selectedPlanBillingPrice?.currency,
-                  )}
+                  {formatCurrency(selectedPlanPrice ?? 0, selectedPlanCurrency)}
                   /<sub>{shortenPeriod(planPeriod)}</sub>
                 </Text>
               </Flex>
@@ -881,10 +772,7 @@ export const Sidebar = ({
                   {typeof addOn.planPrice === "number" && addOn.planPeriod && (
                     <Box $whiteSpace="nowrap">
                       <Text>
-                        {formatCurrency(
-                          addOn.planPrice,
-                          selectedPlanBillingPrice?.currency,
-                        )}
+                        {formatCurrency(addOn.planPrice, selectedPlanCurrency)}
                         {addOn.planPeriod !== "one-time" && (
                           <sub>/{shortenPeriod(planPeriod)}</sub>
                         )}
@@ -897,7 +785,7 @@ export const Sidebar = ({
 
             {selectedAddOns.map((addOn, index) => {
               const { price: addOnPrice, currency: addOnCurrency } =
-                getBillingPrice(getAddOnPrice(addOn, planPeriod)) || {};
+                getAddOnPrice(addOn, planPeriod) || {};
 
               return (
                 <Flex
@@ -924,10 +812,10 @@ export const Sidebar = ({
           </Flex>
         )}
 
-        {proration !== 0 && charges && selectedPlanBillingPrice?.currency && (
+        {proration !== 0 && charges && selectedPlanCurrency && (
           <Proration
             charges={charges}
-            currency={selectedPlanBillingPrice.currency}
+            currency={selectedPlanCurrency}
             selectedPlan={selectedPlan}
           />
         )}
@@ -969,7 +857,7 @@ export const Sidebar = ({
               <Box
                 $cursor="pointer"
                 onClick={() => {
-                  updatePromoCode?.(undefined);
+                  updatePromoCode?.(null);
                 }}
               >
                 <Icon
@@ -999,7 +887,7 @@ export const Sidebar = ({
               <Text>
                 {formatCurrency(
                   (newCharges / 100) * percentOff,
-                  selectedPlanBillingPrice?.currency,
+                  selectedPlanCurrency,
                 )}
               </Text>
             </Box>
@@ -1017,7 +905,7 @@ export const Sidebar = ({
                 {t("X off", {
                   amount: formatCurrency(
                     Math.abs(amountOff),
-                    selectedPlanBillingPrice?.currency,
+                    selectedPlanCurrency,
                   ),
                 })}
               </Text>
@@ -1025,11 +913,7 @@ export const Sidebar = ({
 
             <Box>
               <Text>
-                -
-                {formatCurrency(
-                  Math.abs(amountOff),
-                  selectedPlanBillingPrice?.currency,
-                )}
+                -{formatCurrency(Math.abs(amountOff), selectedPlanCurrency)}
               </Text>
             </Box>
           </Flex>
@@ -1069,10 +953,7 @@ export const Sidebar = ({
 
             <Box>
               <Text>
-                {formatCurrency(
-                  Math.max(0, dueNow),
-                  selectedPlanBillingPrice?.currency,
-                )}
+                {formatCurrency(Math.max(0, dueNow), selectedPlanCurrency)}
               </Text>
             </Box>
           </Flex>
@@ -1086,10 +967,7 @@ export const Sidebar = ({
 
             <Box>
               <Text>
-                {formatCurrency(
-                  Math.abs(dueNow),
-                  selectedPlanBillingPrice?.currency,
-                )}
+                {formatCurrency(Math.abs(dueNow), selectedPlanCurrency)}
               </Text>
             </Box>
           </Flex>
@@ -1116,7 +994,12 @@ export const Sidebar = ({
         )}
 
         {layout === "unsubscribe" && (
-          <Button onClick={handleUnsubscribe} $isLoading={isLoading} $fullWidth>
+          <Button
+            type="button"
+            onClick={handleUnsubscribe}
+            $isLoading={isLoading}
+            $fullWidth
+          >
             {t("Cancel subscription")}
           </Button>
         )}
@@ -1134,7 +1017,7 @@ export const Sidebar = ({
             <Text>
               {subscriptionPrice &&
                 // TODO: localize
-                `You will be billed ${subscriptionPrice} ${payAsYouGoEntitlements.length > 0 ? "plus usage based costs" : ""} for this subscription
+                `You will be billed ${subscriptionPrice} ${usageBasedEntitlements.length > 0 ? "plus usage based costs" : ""} for this subscription
                 every ${planPeriod} ${periodStart ? `on the ${formatOrdinal(periodStart.getDate())}` : ""} ${planPeriod === "year" && periodStart ? `of ${getMonthName(periodStart)}` : ""} unless you unsubscribe.`}
             </Text>
           </Box>

@@ -16,6 +16,7 @@ import {
   CheckoutexternalApi,
   Configuration as CheckoutConfiguration,
   type ChangeSubscriptionRequestBody,
+  type ComponentHydrateResponseData,
   type ConfigurationParameters,
 } from "../api/checkoutexternal";
 import {
@@ -97,7 +98,7 @@ export const EmbedProvider = ({
         });
       }
 
-      return response;
+      return response?.data;
     } catch (err) {
       dispatch({
         type: "ERROR",
@@ -127,7 +128,7 @@ export const EmbedProvider = ({
           });
         }
 
-        return response;
+        return response?.data;
       } catch (err) {
         dispatch({
           type: "ERROR",
@@ -141,6 +142,33 @@ export const EmbedProvider = ({
   const debouncedHydrateComponent = useMemo(
     () => debounce(hydrateComponent, FETCH_DEBOUNCE_TIMEOUT, debounceOptions),
     [hydrateComponent],
+  );
+
+  const hydrateExternal = useCallback(async function (
+    fn: () => Promise<ComponentHydrateResponseData>,
+  ) {
+    dispatch({ type: "HYDRATE_STARTED" });
+
+    try {
+      const response = await fn();
+
+      dispatch({
+        type: "HYDRATE_EXTERNAL",
+        data: response,
+      });
+
+      return response;
+    } catch (err) {
+      dispatch({
+        type: "ERROR",
+        error: isError(err) ? err : ERROR_UNKNOWN,
+      });
+    }
+  }, []);
+
+  const debouncedHydrateExternal = useMemo(
+    () => debounce(hydrateExternal, FETCH_DEBOUNCE_TIMEOUT, debounceOptions),
+    [hydrateExternal],
   );
 
   // api methods
@@ -286,6 +314,10 @@ export const EmbedProvider = ({
     dispatch({ type: "SET_ACCESS_TOKEN", token });
   }, []);
 
+  const setData = useCallback((data: ComponentHydrateResponseData) => {
+    dispatch({ type: "SET_DATA", data });
+  }, []);
+
   const updateSettings = useCallback(
     (
       settings: RecursivePartial<EmbedSettings> = {},
@@ -318,6 +350,25 @@ export const EmbedProvider = ({
     style.rel = "stylesheet";
     document.head.appendChild(style);
     styleRef.current = style;
+
+    const darkModeQuery = matchMedia("(prefers-color-scheme: dark)");
+    const colorMode = darkModeQuery.matches ? "dark" : "light";
+    dispatch({
+      type: "UPDATE_SETTINGS",
+      settings: {
+        theme: {
+          colorMode,
+        },
+      },
+    });
+
+    darkModeQuery.addEventListener("change", (event) => {
+      const newColorMode = event.matches ? "dark" : "light";
+      dispatch({
+        type: "UPDATE_SETTINGS",
+        settings: { theme: { colorMode: newColorMode } },
+      });
+    });
   }, []);
 
   useEffect(() => {
@@ -406,10 +457,10 @@ export const EmbedProvider = ({
         error: state.error,
         settings: state.settings,
         layout: state.layout,
-        mode: state.mode,
         checkoutState: state.checkoutState,
         hydratePublic: debouncedHydratePublic,
         hydrateComponent: debouncedHydrateComponent,
+        hydrateExternal: debouncedHydrateExternal,
         createSetupIntent: debouncedCreateSetupIntent,
         updatePaymentMethod: debouncedUpdatePaymentMethod,
         deletePaymentMethod: debouncedDeletePaymentMethod,
@@ -422,6 +473,7 @@ export const EmbedProvider = ({
         setAccessToken,
         setLayout,
         setCheckoutState,
+        setData,
         updateSettings,
       }}
     >
