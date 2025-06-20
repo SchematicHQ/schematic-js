@@ -445,11 +445,7 @@ export const Plan = ({
                           entitlement.valueType === "trait";
 
                         let metricPeriodText: string | undefined;
-                        if (
-                          hasNumericValue &&
-                          entitlement.metricPeriod &&
-                          entitlement.priceBehavior !== "overage"
-                        ) {
+                        if (hasNumericValue && entitlement.metricPeriod) {
                           metricPeriodText = {
                             billing: t("billing period"),
                             current_day: t("day"),
@@ -573,18 +569,12 @@ export const Plan = ({
                                                 )}
                                               </>
                                             )}
-                                        {metricPeriodText ? (
+
+                                        {metricPeriodText && (
                                           <>
                                             {" "}
                                             {t("per")} {metricPeriodText}
                                           </>
-                                        ) : (
-                                          entitlement.priceBehavior ===
-                                            "overage" &&
-                                          entitlement.feature.featureType ===
-                                            "event" && (
-                                            <>/{shortenPeriod(period)}</>
-                                          )
                                         )}
                                       </>
                                     ) : (

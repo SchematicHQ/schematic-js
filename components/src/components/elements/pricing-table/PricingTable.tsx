@@ -562,9 +562,7 @@ export const PricingTable = forwardRef<
                                                     </>
                                                   )}
 
-                                              {entitlement.metricPeriod &&
-                                              entitlement.priceBehavior !==
-                                                "overage" ? (
+                                              {entitlement.metricPeriod && (
                                                 <>
                                                   {" "}
                                                   {t("per")}{" "}
@@ -577,18 +575,6 @@ export const PricingTable = forwardRef<
                                                     }[entitlement.metricPeriod]
                                                   }
                                                 </>
-                                              ) : (
-                                                entitlement.priceBehavior ===
-                                                  "overage" &&
-                                                entitlement.feature
-                                                  .featureType === "event" && (
-                                                  <>
-                                                    /
-                                                    {shortenPeriod(
-                                                      selectedPeriod,
-                                                    )}
-                                                  </>
-                                                )
                                               )}
                                             </>
                                           ) : (
