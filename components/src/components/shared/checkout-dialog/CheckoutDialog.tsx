@@ -370,7 +370,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
                 setError(t("Invalid discount code."));
                 return;
               case "Quantity is required":
-                setError(t("Pay-in-advance features require a quantity."));
+                setError(t("Quantity is required."));
                 return;
             }
           }
@@ -417,7 +417,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
               ...entitlement,
               allocation: entitlement.valueNumeric || 0,
               usage: 0,
-              quantity: 0,
+              quantity: entitlement.priceBehavior === "pay_in_advance" ? 1 : 0,
             });
           }
 

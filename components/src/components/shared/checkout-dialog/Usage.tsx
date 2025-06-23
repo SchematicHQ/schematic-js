@@ -95,7 +95,7 @@ export const Usage = ({ entitlements, updateQuantity, period }: UsageProps) => {
                         event.preventDefault();
 
                         const value = parseInt(event.target.value);
-                        if (!isNaN(value)) {
+                        if (!isNaN(value) && value > 0) {
                           updateQuantity(entitlement.id, value);
                         }
                       }}
@@ -108,10 +108,11 @@ export const Usage = ({ entitlements, updateQuantity, period }: UsageProps) => {
                       })}
                     </Text>
 
-                    <Text $size={unitPriceFontSize} $color="#DB6669">
-                      {entitlement.quantity < entitlement.usage &&
-                        t("Cannot downgrade entitlement")}
-                    </Text>
+                    {entitlement.quantity < entitlement.usage && (
+                      <Text $size={unitPriceFontSize} $color="#DB6669">
+                        {t("Cannot downgrade entitlement")}
+                      </Text>
+                    )}
                   </Flex>
 
                   <Box
