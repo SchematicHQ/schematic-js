@@ -421,7 +421,7 @@ export const PlanManager = forwardRef<
                           entitlement.feature.name
                         )}
                         {entitlement.priceBehavior === "overage" &&
-                          entitlement.feature.featureType === "event" &&
+                          entitlement.feature.featureType === "trait" &&
                           currentPlan?.planPeriod && (
                             <>/{shortenPeriod(currentPlan.planPeriod)}</>
                           )}
