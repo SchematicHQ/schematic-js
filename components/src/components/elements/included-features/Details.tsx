@@ -27,6 +27,7 @@ export const Details = ({
 }: DetailsProps) => {
   const {
     allocation,
+    allocationType,
     feature,
     priceBehavior,
     usage,
@@ -97,12 +98,13 @@ export const Details = ({
       );
     }
 
-    if (!priceBehavior) {
+    if (!priceBehavior && allocationType === "unlimited") {
       return t("Unlimited", { item: getFeatureName(feature) });
     }
   }, [
     t,
     allocation,
+    allocationType,
     feature,
     price,
     priceBehavior,
@@ -197,7 +199,8 @@ export const Details = ({
           acc.push(
             <Fragment key={index}>
               {" "}
-              • {formatCurrency(cost)}${period}
+              • {formatCurrency(cost)}
+              {period}
             </Fragment>,
           );
           index += 1;

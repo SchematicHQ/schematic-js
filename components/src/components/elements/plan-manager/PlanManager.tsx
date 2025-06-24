@@ -371,6 +371,17 @@ export const PlanManager = forwardRef<
                 const amount = overageAmount || entitlement.allocation || 0;
                 let packageSize = 1;
 
+                let metricPeriod: string | undefined;
+                if (entitlement.period) {
+                  metricPeriod = {
+                    billing: t("billing period"),
+                    current_day: t("day"),
+                    current_month: t("month"),
+                    current_year: t("year"),
+                  }[entitlement.period];
+                }
+                console.debug(entitlement.feature?.name, metricPeriod);
+
                 // calculate overage amount
                 if (entitlement.priceBehavior === "overage" && subscription) {
                   const entitlementPrice =
@@ -420,10 +431,12 @@ export const PlanManager = forwardRef<
                         ) : (
                           entitlement.feature.name
                         )}
-                        {entitlement.priceBehavior === "overage" &&
-                          entitlement.feature.featureType === "trait" &&
-                          currentPlan?.planPeriod && (
-                            <>/{shortenPeriod(currentPlan.planPeriod)}</>
+                        {entitlement.feature.featureType === "event" &&
+                          metricPeriod && (
+                            <>
+                              {" "}
+                              {t("per")} {metricPeriod}
+                            </>
                           )}
                       </Text>
 
@@ -517,25 +530,13 @@ export const PlanManager = forwardRef<
                               (entitlement.price ?? 0) * amount,
                               entitlement.currency,
                             )}
-                            {(entitlement.priceBehavior === "pay_in_advance" ||
-                              entitlement.priceBehavior !== "overage") && (
-                              <sub>
-                                /
-                                {currentPlan?.planPeriod &&
-                                entitlement.priceBehavior ===
-                                  "pay_in_advance" ? (
-                                  shortenPeriod(currentPlan.planPeriod)
-                                ) : (
-                                  <>
-                                    {packageSize > 1 && <>{packageSize} </>}
-                                    {getFeatureName(
-                                      entitlement.feature,
-                                      packageSize,
-                                    )}
-                                  </>
-                                )}
-                              </sub>
-                            )}
+
+                            {entitlement.priceBehavior !== "overage" &&
+                              currentPlan?.planPeriod && (
+                                <sub>
+                                  /{shortenPeriod(currentPlan.planPeriod)}
+                                </sub>
+                              )}
                           </Text>
                         )}
                       </Flex>

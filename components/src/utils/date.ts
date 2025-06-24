@@ -29,6 +29,8 @@ export function getMonthName(
 
 export function shortenPeriod(period: string) {
   switch (period) {
+    case "day":
+      return "day";
     case "month":
       return "mo";
     case "year":
