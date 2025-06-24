@@ -14,6 +14,12 @@ import type { BillingPrice, Entitlement, Plan } from "../types";
 
 import { pluralize } from "./pluralize";
 
+export const ChargeType = {
+  oneTime: "one_time",
+  recurring: "recurring",
+  free: "free",
+};
+
 export function isHydrateData(
   data?: unknown,
 ): data is PublicPlansResponseData | ComponentHydrateResponseData {
@@ -52,12 +58,6 @@ export function getFeatureName(
 
   return pluralize(name, count);
 }
-
-export const ChargeType = {
-  oneTime: "one_time",
-  recurring: "recurring",
-  free: "free",
-};
 
 function getPriceValue(billingPrice: BillingPrice): number {
   const price =
@@ -150,4 +150,28 @@ export function entitlementCountsReducer(
   };
 
   return acc;
+}
+
+const PeriodName: Record<string, string | undefined> = {
+  billing: "billing period",
+  current_day: "day",
+  current_month: "month",
+  current_year: "year",
+};
+
+export function getMetricPeriodName(entitlement: Entitlement) {
+  if (entitlement.feature?.featureType !== "event") {
+    return;
+  }
+
+  let period: string | null | undefined;
+  if ("metricPeriod" in entitlement) {
+    period = entitlement.metricPeriod;
+  } else if ("period" in entitlement) {
+    period = entitlement.period;
+  }
+
+  const name = period ? PeriodName[period] : undefined;
+
+  return name;
 }

@@ -25,6 +25,7 @@ import {
   getAddOnPrice,
   getEntitlementPrice,
   getFeatureName,
+  getMetricPeriodName,
   getMonthName,
   getPlanPrice,
   isCheckoutData,
@@ -100,6 +101,9 @@ const EntitlementRow = (
                   <sub>
                     /{packageSize > 1 && <>{packageSize} </>}
                     {getFeatureName(feature, packageSize)}
+                    {feature.featureType === "trait" && (
+                      <>/{shortenPeriod(planPeriod)}</>
+                    )}
                   </sub>
                 </>
               )

@@ -14,6 +14,7 @@ import {
   formatNumber,
   getEntitlementPrice,
   getFeatureName,
+  getMetricPeriodName,
   getPlanPrice,
   hexToHSL,
   isCheckoutData,
@@ -443,20 +444,6 @@ export const Plan = ({
                           entitlement.valueType === "unlimited" ||
                           entitlement.valueType === "trait";
 
-                        let metricPeriodText: string | undefined;
-                        if (
-                          hasNumericValue &&
-                          entitlement.metricPeriod &&
-                          entitlement.priceBehavior !== "overage"
-                        ) {
-                          metricPeriodText = {
-                            billing: t("billing period"),
-                            current_day: t("day"),
-                            current_month: t("month"),
-                            current_year: t("year"),
-                          }[entitlement.metricPeriod];
-                        }
-
                         const limit =
                           entitlement.softLimit ?? entitlement.valueNumeric;
 
@@ -465,6 +452,9 @@ export const Plan = ({
                           currency: entitlementCurrency,
                           packageSize: entitlementPackageSize = 1,
                         } = getEntitlementPrice(entitlement, period) || {};
+
+                        const metricPeriodName =
+                          getMetricPeriodName(entitlement);
 
                         if (
                           entitlement.priceBehavior &&
@@ -551,18 +541,12 @@ export const Plan = ({
                                                 )}
                                               </>
                                             )}
-                                        {metricPeriodText ? (
+
+                                        {metricPeriodName && (
                                           <>
                                             {" "}
-                                            {t("per")} {metricPeriodText}
+                                            {t("per")} {t(metricPeriodName)}
                                           </>
-                                        ) : (
-                                          entitlement.priceBehavior ===
-                                            "overage" &&
-                                          entitlement.feature.featureType ===
-                                            "event" && (
-                                            <>/{shortenPeriod(period)}</>
-                                          )
                                         )}
                                       </>
                                     ) : (

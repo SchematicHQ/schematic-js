@@ -14,7 +14,6 @@
     "Amount off": "{{amount}} off",
     "An unknown error occurred.": "An unknown error occurred.",
     "Billed": "Billed {{period}}",
-    "billing period": "billing period",
     "Cancel subscription": "Cancel subscription",
     "Cannot downgrade entitlement": "Cannot downgrade to a quantity lower than current usage.",
     "Card ending in": "💳 Card ending in {{value}}",
@@ -124,10 +123,11 @@
 
     "day": "day",
     "month": "month",
-    "per": "per",
     "year": "year",
-
+    "billing period": "billing period",
     "one time": "one time",
+
+    "per": "per",
     "then": "then",
     "used": "used",
 

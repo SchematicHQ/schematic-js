@@ -9,6 +9,7 @@ import {
   formatCurrency,
   getEntitlementPrice,
   getFeatureName,
+  getMetricPeriodName,
   hexToHSL,
   isCheckoutData,
   lighten,
@@ -389,11 +390,6 @@ export const PlanManager = forwardRef<
                         ) : (
                           entitlement.feature.name
                         )}
-                        {entitlement.priceBehavior === "overage" &&
-                          entitlement.feature.featureType === "event" &&
-                          currentPlan?.planPeriod && (
-                            <>/{shortenPeriod(currentPlan.planPeriod)}</>
-                          )}
                       </Text>
 
                       <Flex $alignItems="center" $gap="1rem">
@@ -479,22 +475,9 @@ export const PlanManager = forwardRef<
                           <Text>
                             {formatCurrency((price ?? 0) * amount, currency)}
                             {entitlement.priceBehavior !== "overage" &&
-                              entitlement.feature.featureType === "trait" && (
+                              currentPlan?.planPeriod && (
                                 <sub>
-                                  /
-                                  {currentPlan?.planPeriod &&
-                                  entitlement.priceBehavior ===
-                                    "pay_in_advance" ? (
-                                    shortenPeriod(currentPlan.planPeriod)
-                                  ) : (
-                                    <>
-                                      {packageSize > 1 && <>{packageSize} </>}
-                                      {getFeatureName(
-                                        entitlement.feature,
-                                        packageSize,
-                                      )}
-                                    </>
-                                  )}
+                                  /{shortenPeriod(currentPlan.planPeriod)}
                                 </sub>
                               )}
                           </Text>

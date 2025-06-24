@@ -20,6 +20,7 @@ import {
   getAddOnPrice,
   getEntitlementPrice,
   getFeatureName,
+  getMetricPeriodName,
   getPlanPrice,
   hexToHSL,
   isCheckoutData,
@@ -421,10 +422,6 @@ export const PricingTable = forwardRef<
                                 entitlement,
                                 entitlementIndex,
                               ) => {
-                                const limit =
-                                  entitlement.softLimit ??
-                                  entitlement.valueNumeric;
-
                                 const {
                                   price: entitlementPrice,
                                   currency: entitlementCurrency,
@@ -440,6 +437,13 @@ export const PricingTable = forwardRef<
                                 ) {
                                   return acc;
                                 }
+
+                                const limit =
+                                  entitlement.softLimit ??
+                                  entitlement.valueNumeric;
+
+                                const metricPeriodName =
+                                  getMetricPeriodName(entitlement);
 
                                 acc.push(
                                   <Flex key={entitlementIndex} $gap="1rem">
@@ -518,33 +522,12 @@ export const PricingTable = forwardRef<
                                                     </>
                                                   )}
 
-                                              {entitlement.metricPeriod &&
-                                              entitlement.priceBehavior !==
-                                                "overage" ? (
+                                              {metricPeriodName && (
                                                 <>
                                                   {" "}
                                                   {t("per")}{" "}
-                                                  {
-                                                    {
-                                                      billing: "billing period",
-                                                      current_day: "day",
-                                                      current_month: "month",
-                                                      current_year: "year",
-                                                    }[entitlement.metricPeriod]
-                                                  }
+                                                  {t(metricPeriodName)}
                                                 </>
-                                              ) : (
-                                                entitlement.priceBehavior ===
-                                                  "overage" &&
-                                                entitlement.feature
-                                                  .featureType === "event" && (
-                                                  <>
-                                                    /
-                                                    {shortenPeriod(
-                                                      selectedPeriod,
-                                                    )}
-                                                  </>
-                                                )
                                               )}
                                             </>
                                           ) : (
@@ -876,6 +859,9 @@ export const PricingTable = forwardRef<
                           >
                             {addOn.entitlements.map(
                               (entitlement, entitlementIndex) => {
+                                const metricPeriodName =
+                                  getMetricPeriodName(entitlement);
+
                                 return (
                                   <Flex
                                     key={entitlementIndex}
@@ -932,21 +918,12 @@ export const PricingTable = forwardRef<
                                                         )}
                                                       </>
                                                     )}
-                                                {entitlement.metricPeriod && (
+
+                                                {metricPeriodName && (
                                                   <>
                                                     {" "}
                                                     {t("per")}{" "}
-                                                    {
-                                                      {
-                                                        billing:
-                                                          "billing period",
-                                                        current_day: "day",
-                                                        current_month: "month",
-                                                        current_year: "year",
-                                                      }[
-                                                        entitlement.metricPeriod
-                                                      ]
-                                                    }
+                                                    {t(metricPeriodName)}
                                                   </>
                                                 )}
                                               </>

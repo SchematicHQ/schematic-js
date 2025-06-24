@@ -25,7 +25,14 @@ export const Details = ({
   featureUsage,
   ...props
 }: DetailsProps) => {
-  const { allocation, feature, priceBehavior, usage, softLimit } = featureUsage;
+  const {
+    allocation,
+    allocationType,
+    feature,
+    priceBehavior,
+    usage,
+    softLimit,
+  } = featureUsage;
 
   const { t } = useTranslation();
 
@@ -82,10 +89,18 @@ export const Details = ({
       );
     }
 
-    if (!priceBehavior) {
+    if (!priceBehavior && allocationType === "unlimited") {
       return t("Unlimited", { item: getFeatureName(feature) });
     }
-  }, [t, allocation, feature, priceBehavior, softLimit, billingPrice]);
+  }, [
+    t,
+    allocation,
+    allocationType,
+    feature,
+    priceBehavior,
+    softLimit,
+    billingPrice,
+  ]);
 
   const usageText = useMemo(() => {
     if (!feature) {
