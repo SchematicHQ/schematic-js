@@ -9,7 +9,6 @@ import {
   formatCurrency,
   getEntitlementPrice,
   getFeatureName,
-  getMetricPeriodName,
   hexToHSL,
   isCheckoutData,
   lighten,

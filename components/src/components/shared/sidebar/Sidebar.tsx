@@ -25,7 +25,6 @@ import {
   getAddOnPrice,
   getEntitlementPrice,
   getFeatureName,
-  getMetricPeriodName,
   getMonthName,
   getPlanPrice,
   isCheckoutData,
