@@ -6,25 +6,26 @@ import {
 } from "react";
 import { useTranslation } from "react-i18next";
 
-import type {
-  FeatureUsageResponseData,
-  PlanEntitlementResponseData,
-  PreviewSubscriptionFinanceResponseData,
-  UpdateAddOnRequestBody,
-  UpdatePayInAdvanceRequestBody,
+import {
+  type PreviewSubscriptionFinanceResponseData,
+  type UpdateAddOnRequestBody,
+  type UpdatePayInAdvanceRequestBody,
 } from "../../../api/checkoutexternal";
 import {
   useEmbed,
   useIsLightBackground,
   type SelectedPlan,
 } from "../../../hooks";
+import type {
+  CurrentUsageBasedEntitlement,
+  UsageBasedEntitlement,
+} from "../../../types";
 import {
   ChargeType,
   formatCurrency,
   formatOrdinal,
   getAddOnPrice,
   getEntitlementPrice,
-  getFeatureName,
   getMonthName,
   getPlanPrice,
   isCheckoutData,
@@ -34,85 +35,9 @@ import {
 import { Box, Button, Flex, Icon, Text } from "../../ui";
 import { type CheckoutStage } from "../checkout-dialog";
 
+import { EntitlementRow } from "./EntitlementRow";
 import { Proration } from "./Proration";
 import { StageButton } from "./StageButton";
-
-export interface UsageBasedEntitlement extends PlanEntitlementResponseData {
-  allocation: number;
-  usage: number;
-  quantity: number;
-}
-
-export interface CurrentUsageBasedEntitlement extends FeatureUsageResponseData {
-  allocation: number;
-  usage: number;
-  quantity: number;
-}
-
-const EntitlementRow = (
-  entitlement: (UsageBasedEntitlement | CurrentUsageBasedEntitlement) & {
-    planPeriod: string;
-  },
-) => {
-  const { t } = useTranslation();
-
-  const { feature, priceBehavior, quantity, softLimit, planPeriod } =
-    entitlement;
-
-  if (feature) {
-    const {
-      price,
-      currency,
-      packageSize = 1,
-    } = getEntitlementPrice(entitlement, planPeriod) || {};
-
-    return (
-      <>
-        <Box>
-          <Text display="heading4">
-            {priceBehavior === "pay_in_advance" ? (
-              <>
-                {quantity} {getFeatureName(feature, quantity)}
-              </>
-            ) : priceBehavior === "overage" && typeof softLimit === "number" ? (
-              <>
-                {softLimit} {getFeatureName(feature, softLimit)}
-              </>
-            ) : (
-              feature.name
-            )}
-          </Text>
-        </Box>
-
-        <Box $whiteSpace="nowrap">
-          <Text>
-            {priceBehavior === "pay_in_advance" ? (
-              <>
-                {formatCurrency((price ?? 0) * quantity, currency)}
-                <sub>/{shortenPeriod(planPeriod)}</sub>
-              </>
-            ) : (
-              (priceBehavior === "pay_as_you_go" ||
-                priceBehavior === "overage") && (
-                <>
-                  {priceBehavior === "overage" && <>{t("then")} </>}
-                  {formatCurrency(price ?? 0, currency)}
-                  <sub>
-                    /{packageSize > 1 && <>{packageSize} </>}
-                    {getFeatureName(feature, packageSize)}
-                    {feature.featureType === "trait" && (
-                      <>/{shortenPeriod(planPeriod)}</>
-                    )}
-                  </sub>
-                </>
-              )
-            )}
-          </Text>
-        </Box>
-      </>
-    );
-  }
-};
 
 interface SidebarProps {
   planPeriod: string;

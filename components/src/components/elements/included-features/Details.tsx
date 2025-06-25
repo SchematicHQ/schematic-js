@@ -1,7 +1,7 @@
 import { Fragment, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
-import type { FeatureUsageResponseData } from "../../../api/checkoutexternal";
+import { type FeatureUsageResponseData } from "../../../api/checkoutexternal";
 import { useEmbed } from "../../../hooks";
 import {
   formatCurrency,

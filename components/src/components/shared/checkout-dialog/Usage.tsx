@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 
 import { TEXT_BASE_SIZE } from "../../../const";
 import { useEmbed, type SelectedPlan } from "../../../hooks";
+import type { UsageBasedEntitlement } from "../../../types";
 import {
   darken,
   formatCurrency,
@@ -13,7 +14,6 @@ import {
 } from "../../../utils";
 import { cardBoxShadow } from "../../layout";
 import { Box, Flex, Input, Text } from "../../ui";
-import { type UsageBasedEntitlement } from "../sidebar";
 
 interface UsageProps {
   isLoading: boolean;

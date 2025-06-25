@@ -22,6 +22,7 @@ import {
   useIsLightBackground,
   type SelectedPlan,
 } from "../../../hooks";
+import type { UsageBasedEntitlement } from "../../../types";
 import {
   ERROR_UNKNOWN,
   getAddOnPrice,
@@ -31,7 +32,7 @@ import {
 } from "../../../utils";
 import { PeriodToggle } from "../../shared";
 import { Flex, Modal, ModalHeader, Text } from "../../ui";
-import { Sidebar, type UsageBasedEntitlement } from "../sidebar";
+import { Sidebar } from "../sidebar";
 
 import { AddOns } from "./AddOns";
 import { Checkout } from "./Checkout";

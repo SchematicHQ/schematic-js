@@ -2,7 +2,7 @@ import { t } from "i18next";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
-import type { PaymentMethodResponseData } from "../../../api/checkoutexternal";
+import { type PaymentMethodResponseData } from "../../../api/checkoutexternal";
 import { type FontStyle, type ThemeSettings } from "../../../context";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import { createKeyboardExecutionHandler } from "../../../utils";
