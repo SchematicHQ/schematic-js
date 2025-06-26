@@ -9,8 +9,9 @@ on:
 jobs:
   lint:
     name: Lint
-    runs-on: ubuntu-latest
+    runs-on: runs-on=${{ github.run_id }}/runner=4cpu-linux-x64/extras=s3-cache
     steps:
+      - uses: runs-on/action@v2
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
@@ -24,12 +25,13 @@ jobs:
 
   publish:
     name: NPM Publish
-    runs-on: ubuntu-latest
+    runs-on: runs-on=${{ github.run_id }}/runner=4cpu-linux-x64/extras=s3-cache
     permissions:
       packages: write
       contents: read
     needs: [lint]
     steps:
+      - uses: runs-on/action@v2
       - uses: actions/checkout@v4
       - name: Set Node.js 20.x
         uses: actions/setup-node@v4
@@ -54,9 +56,10 @@ jobs:
 
   update_example_app:
     name: Update Example App
-    runs-on: ubuntu-latest
+    runs-on: runs-on=${{ github.run_id }}/runner=4cpu-linux-x64/extras=s3-cache
     needs: [publish]
     steps:
+      - uses: runs-on/action@v2
       - name: Checkout schematic-react
         uses: actions/checkout@v4
         with:
@@ -109,7 +112,7 @@ jobs:
 
   notify_slack:
     name: Notify Slack
-    runs-on: ubuntu-latest
+    runs-on: runs-on=${{ github.run_id }}/runner=1cpu-linux-arm64
     needs: [publish]
     steps:
       - uses: rtCamp/action-slack-notify@v2
