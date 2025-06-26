@@ -1,5 +1,5 @@
 /* tslint:disable */
- 
+
 export * from "./ApiError";
 export * from "./BillingCreditResponseData";
 export * from "./BillingPriceResponseData";
@@ -8,6 +8,7 @@ export * from "./BillingProductDetailResponseData";
 export * from "./BillingProductPriceResponseData";
 export * from "./BillingProductPriceTierResponseData";
 export * from "./BillingProductResponseData";
+export * from "./CompatiblePlans";
 export * from "./ComponentCapabilities";
 export * from "./CountResponse";
 export * from "./CustomPlanConfig";
