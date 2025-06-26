@@ -68,9 +68,12 @@ export function useAvailablePlans(activePeriod: string) {
     [activePeriod, settings.mode],
   );
 
+  // TODO: filter addOns based on plan compatibilities
+
   return useMemo(() => {
     return {
       plans: getActivePlans(data?.activePlans || []),
+      // new function for add ons?
       addOns: getActivePlans(data?.activeAddOns || []),
       periods: getAvailablePeriods(),
     };

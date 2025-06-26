@@ -80,6 +80,7 @@ export const SchematicEmbed = ({ id, accessToken }: EmbedProps) => {
 
   useEffect(() => {
     if (id && stale) {
+      // updates data prop (indirectly)
       hydrateComponent(id);
     }
   }, [id, hydrateComponent, stale]);
