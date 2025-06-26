@@ -82,6 +82,12 @@ export interface CompanyPlanDetailResponseData {
   companyCount: number;
   /**
    *
+   * @type {Array<string>}
+   * @memberof CompanyPlanDetailResponseData
+   */
+  compatiblePlanIds: Array<string>;
+  /**
+   *
    * @type {string}
    * @memberof CompanyPlanDetailResponseData
    */
@@ -226,6 +232,11 @@ export function instanceOfCompanyPlanDetailResponseData(
     return false;
   if (!("companyCount" in value) || value["companyCount"] === undefined)
     return false;
+  if (
+    !("compatiblePlanIds" in value) ||
+    value["compatiblePlanIds"] === undefined
+  )
+    return false;
   if (!("controlledBy" in value) || value["controlledBy"] === undefined)
     return false;
   if (!("createdAt" in value) || value["createdAt"] === undefined) return false;
@@ -273,6 +284,7 @@ export function CompanyPlanDetailResponseDataFromJSONTyped(
     chargeType: json["charge_type"],
     companyCanTrial: json["company_can_trial"],
     companyCount: json["company_count"],
+    compatiblePlanIds: json["compatible_plan_ids"],
     controlledBy: json["controlled_by"],
     createdAt: new Date(json["created_at"]),
     current: json["current"],
@@ -328,6 +340,7 @@ export function CompanyPlanDetailResponseDataToJSON(
     charge_type: value["chargeType"],
     company_can_trial: value["companyCanTrial"],
     company_count: value["companyCount"],
+    compatible_plan_ids: value["compatiblePlanIds"],
     controlled_by: value["controlledBy"],
     created_at: value["createdAt"].toISOString(),
     current: value["current"],

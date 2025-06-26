@@ -27,6 +27,7 @@ import {
 type DebouncedApiPromise<R> = Promise<R | undefined> | undefined;
 
 export interface EmbedContextProps extends EmbedState {
+  // TODO: add to public and private
   hydratePublic: () => DebouncedApiPromise<PublicPlansResponseData>;
   hydrateComponent: (
     id: string,
