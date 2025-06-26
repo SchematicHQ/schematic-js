@@ -1,4 +1,5 @@
 name: dependabot-metadata
+description: "Dependabot Metadata and Linear Integration"
 
 on:
   pull_request:
@@ -6,11 +7,16 @@ on:
 jobs:
   dependabot:
     name: Dependabot Metadata
-    runs-on: ubuntu-latest
+    runs-on: runs-on=${{ github.run_id }}/runner=1cpu-linux-arm64
     timeout-minutes: 5
-    permissions: write-all
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      security-events: write
     if: github.event.pull_request.user.login == 'dependabot[bot]'
     steps:
+
       - name: Checkout
         uses: actions/checkout@v4
         
