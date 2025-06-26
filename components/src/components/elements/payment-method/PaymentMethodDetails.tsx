@@ -3,9 +3,9 @@ import { loadStripe, type Stripe } from "@stripe/stripe-js";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import type {
-  PaymentMethodResponseData,
-  SetupIntentResponseData,
+import {
+  type PaymentMethodResponseData,
+  type SetupIntentResponseData,
 } from "../../../api/checkoutexternal";
 import { type FontStyle } from "../../../context";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
@@ -335,6 +335,7 @@ export const PaymentMethodDetails = ({
                   !currentPaymentMethod ||
                   showDifferentPaymentMethods) && (
                   <Button
+                    type="button"
                     onClick={initializePaymentMethod}
                     $size="lg"
                     $fullWidth

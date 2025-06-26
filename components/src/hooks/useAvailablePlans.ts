@@ -14,7 +14,7 @@ export type SelectedPlan = (
 };
 
 export function useAvailablePlans(activePeriod: string) {
-  const { data, mode } = useEmbed();
+  const { data, settings } = useEmbed();
 
   const getAvailablePeriods = useCallback((): string[] => {
     const periods = [];
@@ -40,7 +40,7 @@ export function useAvailablePlans(activePeriod: string) {
     ): SelectedPlan[] => {
       const customPlanExist = plans.some((plan) => plan.custom);
       const plansWithSelected =
-        mode === "edit"
+        settings.mode === "edit"
           ? plans.slice()
           : plans.filter(
               (plan) =>
@@ -65,7 +65,7 @@ export function useAvailablePlans(activePeriod: string) {
 
       return plansWithSelected?.map((plan) => ({ ...plan, isSelected: false }));
     },
-    [activePeriod, mode],
+    [activePeriod, settings.mode],
   );
 
   return useMemo(() => {

@@ -45,7 +45,7 @@ export const Proration = ({
             ({ amount, description }, index) => {
               return (
                 <Flex key={index} $gap="1rem">
-                  <Text display="heading4">{description}</Text>
+                  <Text>{description}</Text>
                   <Text>{formatCurrency(amount, currency)}</Text>
                 </Flex>
               );
@@ -55,6 +55,7 @@ export const Proration = ({
           <Flex>
             <Text display="heading4">{t("Total")}</Text>
             <Button
+              type="button"
               onClick={toggle}
               style={{ height: "auto", padding: 0 }}
               $variant="text"

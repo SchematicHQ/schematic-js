@@ -1,12 +1,12 @@
 import { Fragment, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
-import type { FeatureUsageResponseData } from "../../../api/checkoutexternal";
+import { type FeatureUsageResponseData } from "../../../api/checkoutexternal";
 import { useEmbed } from "../../../hooks";
 import {
   formatCurrency,
   formatNumber,
-  getBillingPrice,
+  getEntitlementPrice,
   getFeatureName,
   isCheckoutData,
   shortenPeriod,
@@ -27,41 +27,33 @@ export const Details = ({
 }: DetailsProps) => {
   const {
     allocation,
+    allocationType,
     feature,
     priceBehavior,
     usage,
     softLimit,
-    monthlyUsageBasedPrice,
-    yearlyUsageBasedPrice,
   } = featureUsage;
 
   const { t } = useTranslation();
 
   const { data } = useEmbed();
 
-  const {
-    planPeriod,
-    price,
-    priceDecimal,
-    priceTier,
-    currency,
-    packageSize = 1,
-  } = useMemo(() => {
+  const { planPeriod, billingPrice } = useMemo(() => {
     const planPeriod =
       isCheckoutData(data) && typeof data.company?.plan?.planPeriod === "string"
         ? data.company.plan.planPeriod
         : undefined;
-    const billingPrice = getBillingPrice(
-      planPeriod === "year" ? yearlyUsageBasedPrice : monthlyUsageBasedPrice,
-    );
+    const billingPrice = getEntitlementPrice(featureUsage, planPeriod);
 
-    return { planPeriod, ...billingPrice };
-  }, [data, monthlyUsageBasedPrice, yearlyUsageBasedPrice]);
+    return { planPeriod, billingPrice };
+  }, [data, featureUsage]);
 
   const text = useMemo(() => {
     if (!feature) {
       return;
     }
+
+    const { price, currency, packageSize = 1 } = billingPrice || {};
 
     if (priceBehavior === "pay_in_advance" && typeof allocation === "number") {
       return (
@@ -97,18 +89,17 @@ export const Details = ({
       );
     }
 
-    if (!priceBehavior) {
+    if (!priceBehavior && allocationType === "unlimited") {
       return t("Unlimited", { item: getFeatureName(feature) });
     }
   }, [
     t,
     allocation,
+    allocationType,
     feature,
-    price,
     priceBehavior,
-    currency,
-    packageSize,
     softLimit,
+    billingPrice,
   ]);
 
   const usageText = useMemo(() => {
@@ -116,8 +107,12 @@ export const Details = ({
       return;
     }
 
+    const { price, currency, packageSize = 1 } = billingPrice || {};
+
     const acc: React.ReactElement[] = [];
+
     let index = 0;
+
     if (
       priceBehavior === "pay_in_advance" &&
       typeof planPeriod === "string" &&
@@ -168,36 +163,19 @@ export const Details = ({
           </Fragment>,
         );
         index += 1;
-      } else if (
-        priceBehavior === "overage" &&
-        typeof price === "number" &&
-        typeof usage === "number" &&
-        typeof softLimit === "number"
-      ) {
-        let overagePrice = price ?? priceDecimal;
-
-        // overage price tier
-        if (priceTier?.length === 2) {
-          const lastTier = priceTier[priceTier.length - 1];
-          if (lastTier.perUnitPriceDecimal) {
-            overagePrice = Number(lastTier.perUnitPriceDecimal);
-          } else {
-            overagePrice = lastTier.perUnitPrice ?? 0;
-          }
-        }
-
-        const cost =
-          usage - softLimit < 0 ? 0 : overagePrice * (usage - softLimit);
+      } else if (priceBehavior === "overage") {
+        const overageAmount = Math.max(0, (usage ?? 0) - (softLimit ?? 0));
         const period =
           feature.featureType === "trait" && typeof planPeriod === "string"
             ? `/${shortenPeriod(planPeriod)}`
             : "";
 
-        if (cost > 0) {
+        if (price && overageAmount > 0) {
           acc.push(
             <Fragment key={index}>
               {" "}
-              • {formatCurrency(cost)}${period}
+              • {formatCurrency(price * overageAmount, currency)}
+              {period}
             </Fragment>,
           );
           index += 1;
@@ -223,13 +201,9 @@ export const Details = ({
     feature,
     priceBehavior,
     allocation,
-    price,
-    priceDecimal,
-    priceTier,
-    currency,
-    packageSize,
-    softLimit,
     usage,
+    softLimit,
+    billingPrice,
   ]);
 
   if (!text) {

@@ -1,14 +1,13 @@
 import { forwardRef, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
-import { type FeatureUsageResponseData } from "../../../api/checkoutexternal";
 import { type FontStyle } from "../../../context";
 import { useEmbed, useIsLightBackground, useTrialEnd } from "../../../hooks";
 import type { ElementProps, RecursivePartial } from "../../../types";
 import {
   darken,
   formatCurrency,
-  getBillingPrice,
+  getEntitlementPrice,
   getFeatureName,
   hexToHSL,
   isCheckoutData,
@@ -110,7 +109,6 @@ export const PlanManager = forwardRef<
     canCheckout,
     defaultPlan,
     featureUsage,
-    subscription,
     trialPaymentMethodRequired,
   } = useMemo(() => {
     if (isCheckoutData(data)) {
@@ -121,7 +119,6 @@ export const PlanManager = forwardRef<
         canCheckout: data.capabilities?.checkout ?? true,
         defaultPlan: data.defaultPlan,
         featureUsage: data.featureUsage?.features || [],
-        subscription: data.subscription,
         trialPaymentMethodRequired: data.trialPaymentMethodRequired,
       };
     }
@@ -133,44 +130,21 @@ export const PlanManager = forwardRef<
       canCheckout: false,
       defaultPlan: undefined,
       featureUsage: [],
-      subscription: undefined,
       trialPaymentMethodRequired: false,
     };
   }, [data]);
 
   const usageBasedEntitlements = useMemo(
     () =>
-      featureUsage.reduce(
-        (
-          acc: (FeatureUsageResponseData & {
-            price?: number;
-            currency?: string;
-          })[],
-          usage,
-        ) => {
-          const { price, currency } =
-            getBillingPrice(
-              currentPlan?.planPeriod === "year"
-                ? usage.yearlyUsageBasedPrice
-                : usage.monthlyUsageBasedPrice,
-            ) || {};
-
-          if (usage.priceBehavior) {
-            acc.push({ ...usage, price, currency });
-          }
-
-          return acc;
-        },
-        [],
-      ),
-    [currentPlan?.planPeriod, featureUsage],
+      featureUsage.filter((usage) => typeof usage.priceBehavior === "string"),
+    [featureUsage],
   );
 
   const { subscriptionCurrency, willSubscriptionCancel, isTrialSubscription } =
     useMemo(() => {
       const subscriptionCurrency = billingSubscription?.currency;
       const isTrialSubscription = billingSubscription?.status === "trialing";
-      const willSubscriptionCancel = billingSubscription?.cancelAtPeriodEnd;
+      const willSubscriptionCancel = billingSubscription?.cancelAt;
 
       return {
         subscriptionCurrency,
@@ -365,40 +339,35 @@ export const PlanManager = forwardRef<
               (acc: React.ReactElement[], entitlement, entitlementIndex) => {
                 const limit =
                   entitlement.softLimit ?? entitlement.allocation ?? 0;
-                let overageAmount =
-                  entitlement.priceBehavior === "overage" &&
-                  (entitlement?.usage ?? 0) - (entitlement?.softLimit ?? 0);
-                const amount = overageAmount || entitlement.allocation || 0;
-                let packageSize = 1;
 
-                // calculate overage amount
-                if (entitlement.priceBehavior === "overage" && subscription) {
-                  const entitlementPrice =
-                    entitlement.monthlyUsageBasedPrice ??
-                    entitlement.yearlyUsageBasedPrice;
-                  if (entitlementPrice) {
-                    packageSize = entitlementPrice.packageSize;
+                const billingPrice = getEntitlementPrice(
+                  entitlement,
+                  currentPlan?.planPeriod || "month",
+                );
+                const { price, currency, packageSize = 1 } = billingPrice || {};
 
-                    const entitlementProduct = subscription.products.find(
-                      (product) => product.id === entitlementPrice.productId,
-                    );
-                    if (entitlementProduct?.priceTier.length) {
-                      const entitlementProductLastTierPrice =
-                        entitlementProduct?.priceTier[
-                          entitlementProduct?.priceTier?.length - 1
-                        ];
-                      overageAmount =
+                const overageAmount =
+                  entitlement.priceBehavior === "overage"
+                    ? Math.max(
+                        0,
                         (entitlement?.usage ?? 0) -
-                        (entitlementProduct?.priceTier[0].upTo ?? 0);
-                      entitlement.price =
-                        entitlementProductLastTierPrice?.perUnitPriceDecimal
-                          ? Number(
-                              entitlementProductLastTierPrice?.perUnitPriceDecimal,
-                            )
-                          : (entitlementProductLastTierPrice.perUnitPrice ??
-                            entitlement.price);
-                    }
-                  }
+                          (entitlement?.softLimit ?? 0),
+                      )
+                    : undefined;
+
+                let amount = 0;
+                if (entitlement.priceBehavior === "overage" && overageAmount) {
+                  amount = overageAmount;
+                } else if (
+                  entitlement.priceBehavior === "pay_as_you_go" &&
+                  entitlement.usage
+                ) {
+                  amount = entitlement.usage;
+                } else if (
+                  entitlement.priceBehavior === "pay_in_advance" &&
+                  entitlement.allocation
+                ) {
+                  amount = entitlement.allocation;
                 }
 
                 if (entitlement.feature?.name) {
@@ -420,11 +389,6 @@ export const PlanManager = forwardRef<
                         ) : (
                           entitlement.feature.name
                         )}
-                        {entitlement.priceBehavior === "overage" &&
-                          entitlement.feature.featureType === "event" &&
-                          currentPlan?.planPeriod && (
-                            <>/{shortenPeriod(currentPlan.planPeriod)}</>
-                          )}
                       </Text>
 
                       <Flex $alignItems="center" $gap="1rem">
@@ -447,18 +411,14 @@ export const PlanManager = forwardRef<
                                   )
                             }
                           >
-                            {typeof overageAmount === "number" &&
-                            overageAmount > 0 ? (
+                            {amount > 0 ? (
                               t("X additional", {
-                                amount: overageAmount,
+                                amount: amount,
                               })
                             ) : (
                               <>
                                 {t("Additional")}:{" "}
-                                {formatCurrency(
-                                  entitlement.price ?? 0,
-                                  entitlement.currency,
-                                )}
+                                {formatCurrency(price ?? 0, currency)}
                                 <sub>
                                   /{packageSize > 1 && <>{packageSize} </>}
                                   {getFeatureName(
@@ -476,7 +436,6 @@ export const PlanManager = forwardRef<
                             )}
                           </Text>
                         ) : (
-                          entitlement.priceBehavior === "pay_in_advance" &&
                           currentPlan?.planPeriod && (
                             <Text
                               $size={
@@ -495,17 +454,17 @@ export const PlanManager = forwardRef<
                                     )
                               }
                             >
-                              {formatCurrency(
-                                entitlement.price ?? 0,
-                                entitlement.currency,
-                              )}
+                              {formatCurrency(price ?? 0, currency)}
                               <sub>
                                 /{packageSize > 1 && <>{packageSize} </>}
                                 {getFeatureName(
                                   entitlement.feature,
                                   packageSize,
                                 )}
-                                /{shortenPeriod(currentPlan.planPeriod)}
+                                {entitlement.feature.featureType ===
+                                  "trait" && (
+                                  <>/{shortenPeriod(currentPlan.planPeriod)}</>
+                                )}
                               </sub>
                             </Text>
                           )
@@ -513,29 +472,13 @@ export const PlanManager = forwardRef<
 
                         {amount > 0 && (
                           <Text>
-                            {formatCurrency(
-                              (entitlement.price ?? 0) * amount,
-                              entitlement.currency,
-                            )}
-                            {(entitlement.priceBehavior === "pay_in_advance" ||
-                              entitlement.priceBehavior !== "overage") && (
-                              <sub>
-                                /
-                                {currentPlan?.planPeriod &&
-                                entitlement.priceBehavior ===
-                                  "pay_in_advance" ? (
-                                  shortenPeriod(currentPlan.planPeriod)
-                                ) : (
-                                  <>
-                                    {packageSize > 1 && <>{packageSize} </>}
-                                    {getFeatureName(
-                                      entitlement.feature,
-                                      packageSize,
-                                    )}
-                                  </>
-                                )}
-                              </sub>
-                            )}
+                            {formatCurrency((price ?? 0) * amount, currency)}
+                            {entitlement.priceBehavior !== "overage" &&
+                              currentPlan?.planPeriod && (
+                                <sub>
+                                  /{shortenPeriod(currentPlan.planPeriod)}
+                                </sub>
+                              )}
                           </Text>
                         )}
                       </Flex>

@@ -20,6 +20,12 @@ export const Input = styled.input<{
     border-style: solid;
     border-radius: 5px;
 
+    &::-webkit-inner-spin-button,
+    &::-webkit-outer-spin-button {
+      margin: 0.25rem;
+      padding: 0 0.25rem;
+    }
+
     ${() => {
       switch ($size) {
         case "sm": {
