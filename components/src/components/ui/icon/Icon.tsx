@@ -1,16 +1,12 @@
-import cx from "classnames";
+// New file
+// import "schematic-icons/style.css";
 
-import icons from "./icons.js";
+import { IconNames, IconProps } from "@schematichq/schematic-icons";
+
 import * as styles from "./styles";
 
-export type IconNameTypes = keyof typeof icons;
+export type IconNameTypes = IconNames;
 
-export interface IconProps extends React.HTMLAttributes<HTMLElement> {
-  name: IconNameTypes;
-}
-
-export const Icon = ({ name, className, ...props }: IconProps) => {
-  return (
-    <styles.Icon className={cx("icon", `icon-${name}`, className)} {...props} />
-  );
+export const Icon = ({ name, style, className, ...props }: IconProps) => {
+  return <styles.Icon name={name} className={className} {...props} />;
 };
