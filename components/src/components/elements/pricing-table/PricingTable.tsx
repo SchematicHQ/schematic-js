@@ -12,7 +12,7 @@ import {
   useIsLightBackground,
   useTrialEnd,
 } from "../../../hooks";
-import type { ElementProps, RecursivePartial } from "../../../types";
+import type { DeepPartial, ElementProps } from "../../../types";
 import {
   entitlementCountsReducer,
   formatCurrency,
@@ -78,9 +78,7 @@ interface DesignProps {
   };
 }
 
-const resolveDesignProps = (
-  props: RecursivePartial<DesignProps>,
-): DesignProps => {
+const resolveDesignProps = (props: DeepPartial<DesignProps>): DesignProps => {
   return {
     showPeriodToggle: props.showPeriodToggle ?? true,
     showDiscount: props.showDiscount ?? true,
@@ -120,16 +118,21 @@ const resolveDesignProps = (
   };
 };
 
-export type PricingTableProps = RecursivePartial<DesignProps> & {
+type PricingTableOptions = {
   callToActionUrl?: string;
   onCallToAction?: (
     plan: PlanViewPublicResponseData | CompanyPlanDetailResponseData,
   ) => unknown;
 };
 
+export type PricingTableProps = DesignProps & PricingTableOptions;
+
 export const PricingTable = forwardRef<
   HTMLDivElement | null,
-  ElementProps & PricingTableProps & React.HTMLAttributes<HTMLDivElement>
+  ElementProps &
+    DeepPartial<DesignProps> &
+    PricingTableOptions &
+    React.HTMLAttributes<HTMLDivElement>
 >(({ className, callToActionUrl, onCallToAction, ...rest }, ref) => {
   const props = resolveDesignProps(rest);
 

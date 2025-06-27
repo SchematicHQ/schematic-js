@@ -9,7 +9,7 @@ import {
   useIsLightBackground,
   useWrapChildren,
 } from "../../../hooks";
-import type { ElementProps, RecursivePartial } from "../../../types";
+import type { DeepPartial, ElementProps } from "../../../types";
 import {
   darken,
   formatCurrency,
@@ -59,7 +59,7 @@ interface DesignProps {
   visibleFeatures?: string[];
 }
 
-function resolveDesignProps(props: RecursivePartial<DesignProps>): DesignProps {
+function resolveDesignProps(props: DeepPartial<DesignProps>): DesignProps {
   return {
     isVisible: props.isVisible ?? true,
     header: {
@@ -80,7 +80,7 @@ function resolveDesignProps(props: RecursivePartial<DesignProps>): DesignProps {
       isVisible: props.usage?.isVisible ?? true,
       fontStyle: props.usage?.fontStyle ?? "heading5",
     },
-    // there is a typescript bug with `RecursivePartial` so we must cast to `string[] | undefined`
+    // there is a typescript bug with `DeepPartial` so we must cast to `string[] | undefined`
     visibleFeatures: props.visibleFeatures as string[] | undefined,
   };
 }
@@ -89,9 +89,7 @@ export type MeteredFeaturesProps = DesignProps;
 
 export const MeteredFeatures = forwardRef<
   HTMLDivElement | null,
-  ElementProps &
-    RecursivePartial<DesignProps> &
-    React.HTMLAttributes<HTMLDivElement>
+  ElementProps & DeepPartial<DesignProps> & React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...rest }, ref) => {
   const props = resolveDesignProps(rest);
 

@@ -24,7 +24,7 @@ import {
   Configuration as PublicConfiguration,
 } from "../api/componentspublic";
 import { FETCH_DEBOUNCE_TIMEOUT, debounceOptions } from "../const";
-import type { RecursivePartial } from "../types";
+import type { DeepPartial } from "../types";
 import { ERROR_UNKNOWN, isError } from "../utils";
 
 import { EmbedContext } from "./EmbedContext";
@@ -41,7 +41,7 @@ export interface EmbedProviderProps {
   children: React.ReactNode;
   apiKey?: string;
   apiConfig?: ConfigurationParameters;
-  settings?: RecursivePartial<EmbedSettings>;
+  settings?: DeepPartial<EmbedSettings>;
   debug?: boolean;
 }
 
@@ -320,7 +320,7 @@ export const EmbedProvider = ({
 
   const updateSettings = useCallback(
     (
-      settings: RecursivePartial<EmbedSettings> = {},
+      settings: DeepPartial<EmbedSettings> = {},
       options?: { update?: boolean },
     ) => {
       dispatch({ type: "UPDATE_SETTINGS", settings, update: options?.update });

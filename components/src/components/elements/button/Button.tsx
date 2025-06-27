@@ -1,6 +1,6 @@
 import { forwardRef } from "react";
 
-import { ComponentStyle, ElementProps, RecursivePartial } from "../../../types";
+import { ComponentStyle, DeepPartial, ElementProps } from "../../../types";
 import { Element } from "../../layout";
 import {
   Button,
@@ -25,9 +25,7 @@ interface DesignProps {
   };
 }
 
-const resolveDesignProps = (
-  props: RecursivePartial<DesignProps>,
-): DesignProps => {
+const resolveDesignProps = (props: DeepPartial<DesignProps>): DesignProps => {
   return {
     button: {
       link: props.button?.link ?? "",
@@ -47,7 +45,7 @@ export type ButtonElementProps = DesignProps;
 export const ButtonElement = forwardRef<
   HTMLDivElement | null,
   ElementProps &
-    RecursivePartial<DesignProps> &
+    DeepPartial<DesignProps> &
     React.HTMLAttributes<HTMLDivElement> & {
       portal?: HTMLElement | null;
     }

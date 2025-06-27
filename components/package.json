@@ -1,6 +1,6 @@
 {
   "name": "@schematichq/schematic-components",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "dist/schematic-components.cjs.js",
   "module": "dist/schematic-components.esm.js",
   "types": "dist/schematic-components.d.ts",
@@ -67,7 +67,7 @@
     "jest-environment-jsdom": "^30.0.2",
     "jest-esbuild": "^0.3.0",
     "jest-fetch-mock": "^3.0.3",
-    "prettier": "^3.6.1",
+    "prettier": "^3.6.2",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "ts-jest": "^29.4.0",

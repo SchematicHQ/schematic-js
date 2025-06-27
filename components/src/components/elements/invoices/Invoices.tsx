@@ -5,7 +5,7 @@ import { type InvoiceResponseData } from "../../../api/checkoutexternal";
 import { MAX_VISIBLE_INVOICE_COUNT } from "../../../const";
 import { type FontStyle } from "../../../context";
 import { useEmbed } from "../../../hooks";
-import type { ElementProps, RecursivePartial } from "../../../types";
+import type { DeepPartial, ElementProps } from "../../../types";
 import {
   ERROR_UNKNOWN,
   createKeyboardExecutionHandler,
@@ -39,7 +39,7 @@ interface DesignProps {
   };
 }
 
-function resolveDesignProps(props: RecursivePartial<DesignProps>): DesignProps {
+function resolveDesignProps(props: DeepPartial<DesignProps>): DesignProps {
   return {
     header: {
       isVisible: props.header?.isVisible ?? true,
@@ -81,7 +81,7 @@ export type InvoicesProps = DesignProps & {
 export const Invoices = forwardRef<
   HTMLDivElement | null,
   ElementProps &
-    RecursivePartial<DesignProps> & {
+    DeepPartial<DesignProps> & {
       data?: InvoiceResponseData[];
     } & React.HTMLAttributes<HTMLDivElement>
 >(({ className, data, ...rest }, ref) => {

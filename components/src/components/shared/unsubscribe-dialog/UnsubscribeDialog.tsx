@@ -7,7 +7,7 @@ import {
   useIsLightBackground,
 } from "../../../hooks";
 import { isCheckoutData, toPrettyDate } from "../../../utils";
-import { Button, Flex, Icon, Modal, Text } from "../../ui";
+import { Button, Flex, Icon, Modal, ModalHeader, Text } from "../../ui";
 import { createActiveUsageBasedEntitlementsReducer } from "../checkout-dialog";
 import { Sidebar } from "../sidebar";
 
@@ -82,42 +82,14 @@ export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
 
   return (
     <Modal size="auto" top={top} contentRef={contentRef}>
-      <Button
-        type="button"
-        onClick={handleClose}
-        style={{
-          position: "absolute",
-          top: 0,
-          right: 0,
-          zIndex: 1,
-          display: "inline-flex",
-          padding: "0.5rem 0.5rem 0 0",
-          textDecoration: "none",
-          cursor: "pointer",
-        }}
-        $color="secondary"
-        $variant="text"
-      >
-        <Icon
-          name="close"
-          style={{
-            fontSize: 36,
-            color: isLightBackground
-              ? "hsla(0, 0%, 0%, 0.275)"
-              : "hsla(0, 0%, 100%, 0.275)",
-          }}
-        />
-      </Button>
+      <ModalHeader />
 
       <Flex
         $position="relative"
         $flexDirection="column"
-        $minHeight="320px"
-        $paddingTop="1.5rem"
         $viewport={{
           md: {
             $flexDirection: "row",
-            $height: "calc(100% - 5rem)",
           },
         }}
       >
@@ -126,7 +98,8 @@ export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
           $flexWrap="wrap"
           $justifyContent="center"
           $gap="2rem"
-          $padding="1rem 2.5rem 2.5rem"
+          $marginTop="-2.5rem"
+          $padding="0 2.5rem 2.5rem"
         >
           <Flex $flexDirection="column" $flexWrap="wrap" $gap="0.5rem">
             <Text as="h2" display="heading2">

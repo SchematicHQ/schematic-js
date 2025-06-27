@@ -7,7 +7,7 @@ import {
   type PaymentMethodResponseData,
 } from "../api/checkoutexternal";
 import { type PublicPlansResponseData } from "../api/componentspublic";
-import { type RecursivePartial } from "../types";
+import { type DeepPartial } from "../types";
 import { isCheckoutData } from "../utils";
 
 import {
@@ -44,7 +44,7 @@ type EmbedAction =
   | { type: "SET_DATA"; data: ComponentHydrateResponseData }
   | {
       type: "UPDATE_SETTINGS";
-      settings: RecursivePartial<EmbedSettings>;
+      settings: DeepPartial<EmbedSettings>;
       update?: boolean;
     }
   | { type: "CHANGE_LAYOUT"; layout: EmbedLayout }
