@@ -17,8 +17,9 @@ env:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: runs-on=${{ github.run_id }}/runner=4cpu-linux-x64/extras=s3-cache
     steps:
+      - uses: runs-on/action@v2
       - name: Checkout Components Repository
         uses: actions/checkout@v4
 
@@ -77,6 +78,7 @@ jobs:
           vercel build --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Deploy to Vercel (Preview)
+        id: vercel
         if: github.event_name == 'pull_request'
         run: |
           cd schematic-next-example

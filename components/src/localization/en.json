@@ -3,6 +3,7 @@
     "A problem occurred while saving your payment method.": "A problem occurred while saving your payment method.",
     "Access to plan will end on": "Access to plan will end on {{date}}",
     "Active": "Active",
+    "Add": "Add",
     "Add new payment method": "Add new payment method",
     "Add Seats": "Add More",
     "Add-ons": "Add-ons",
@@ -13,7 +14,6 @@
     "Amount off": "{{amount}} off",
     "An unknown error occurred.": "An unknown error occurred.",
     "Billed": "Billed {{period}}",
-    "billing period": "billing period",
     "Cancel subscription": "Cancel subscription",
     "Cannot downgrade entitlement": "Cannot downgrade to a quantity lower than current usage.",
     "Card ending in": "💳 Card ending in {{value}}",
@@ -48,6 +48,7 @@
     "Hide all": "Hide all",
     "Hide details": "Hide details",
     "Invalid access token; your temporary access token will start with `token_`.": "Invalid access token; your temporary access token will start with `token_`.",
+    "Invalid discount code.": "Invalid discount code.",
     "Invoices": "Invoices",
     "Limit of": "Limit of {{amount}}",
     "Loading": "Loading",
@@ -64,6 +65,7 @@
     "Optionally add features to your subscription": "Optionally add features to your subscription",
     "Other existing payment method": "Other existing payment method",
     "Over usage limit": "Over usage limit",
+    "Pay-in-advance features require a quantity.": "Pay-in-advance features require a quantity.",
     "Pay now": "Pay now",
     "Payment Method": "Payment Method",
     "Percent off": "{{percent}}% off",
@@ -121,10 +123,11 @@
 
     "day": "day",
     "month": "month",
-    "per": "per",
     "year": "year",
-
+    "billing period": "billing period",
     "one time": "one time",
+
+    "per": "per",
     "then": "then",
     "used": "used",
 

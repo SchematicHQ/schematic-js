@@ -1,0 +1,39 @@
+name: claude-code
+description: "Claude code AI Assistant Reviewer"
+
+on:
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+
+jobs:
+  claude:
+    name: claude
+    runs-on: runs-on=${{ github.run_id }}/runner=1cpu-linux-arm64
+    if: contains(github.event.comment.body, '@claude')
+    permissions:
+      id-token: write
+      contents: write
+      pull-requests: write
+      issues: write
+      security-events: write
+      packages: write
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+            role-to-assume: ${{ vars.DEV_AWS_ROLE_ARN }}
+            aws-region: ${{ vars.DEV_AWS_REGION }}
+
+      - name: Claude Code Action
+        uses: SchematicHQ/actions/claude@main
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          use_bedrock: "true"
+          aws_account_id: ${{ vars.DEV_AWS_ACCOUNT_ID }}
+          aws_region: ${{ vars.DEV_AWS_REGION }}

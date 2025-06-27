@@ -2,10 +2,11 @@ import { useTranslation } from "react-i18next";
 
 import { TEXT_BASE_SIZE } from "../../../const";
 import { useEmbed, type SelectedPlan } from "../../../hooks";
+import type { UsageBasedEntitlement } from "../../../types";
 import {
   darken,
   formatCurrency,
-  getBillingPrice,
+  getEntitlementPrice,
   getFeatureName,
   hexToHSL,
   lighten,
@@ -13,7 +14,6 @@ import {
 } from "../../../utils";
 import { cardBoxShadow } from "../../layout";
 import { Box, Flex, Input, Text } from "../../ui";
-import { type UsageBasedEntitlement } from "../sidebar";
 
 interface UsageProps {
   isLoading: boolean;
@@ -41,19 +41,12 @@ export const Usage = ({ entitlements, updateQuantity, period }: UsageProps) => {
       <Flex $flexDirection="column" $gap="1rem">
         {entitlements.reduce(
           (acc: React.ReactElement[], entitlement, index) => {
-            if (
-              entitlement.priceBehavior === "pay_in_advance" &&
-              entitlement.feature
-            ) {
+            if (entitlement.feature) {
               const {
                 price,
                 currency,
                 packageSize = 1,
-              } = getBillingPrice(
-                period === "year"
-                  ? entitlement.meteredYearlyPrice
-                  : entitlement.meteredMonthlyPrice,
-              ) || {};
+              } = getEntitlementPrice(entitlement, period) || {};
 
               acc.push(
                 <Flex
@@ -93,14 +86,16 @@ export const Usage = ({ entitlements, updateQuantity, period }: UsageProps) => {
                       $size="lg"
                       type="number"
                       value={entitlement.quantity}
-                      min={entitlement.usage}
+                      min={1}
                       autoFocus
-                      onFocus={(event) => event.target.select()}
+                      onFocus={(event) => {
+                        event.target.select();
+                      }}
                       onChange={(event) => {
                         event.preventDefault();
 
                         const value = parseInt(event.target.value);
-                        if (!isNaN(value)) {
+                        if (!isNaN(value) && value > 0) {
                           updateQuantity(entitlement.id, value);
                         }
                       }}
@@ -113,10 +108,11 @@ export const Usage = ({ entitlements, updateQuantity, period }: UsageProps) => {
                       })}
                     </Text>
 
-                    <Text $size={unitPriceFontSize} $color="#DB6669">
-                      {entitlement.quantity < entitlement.usage &&
-                        t("Cannot downgrade entitlement")}
-                    </Text>
+                    {entitlement.quantity < entitlement.usage && (
+                      <Text $size={unitPriceFontSize} $color="#DB6669">
+                        {t("Cannot downgrade entitlement")}
+                      </Text>
+                    )}
                   </Flex>
 
                   <Box

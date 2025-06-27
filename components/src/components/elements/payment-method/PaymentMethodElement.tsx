@@ -2,7 +2,7 @@ import { t } from "i18next";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
-import type { PaymentMethodResponseData } from "../../../api/checkoutexternal";
+import { type PaymentMethodResponseData } from "../../../api/checkoutexternal";
 import { type FontStyle, type ThemeSettings } from "../../../context";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import { createKeyboardExecutionHandler } from "../../../utils";
@@ -218,13 +218,14 @@ export const PaymentMethodElement = ({
         $padding={`${sizeFactor / 2.25}rem ${sizeFactor}rem`}
         $borderRadius="9999px"
       >
-        {paymentMethod && (
+        {paymentMethod ? (
           <PaymentElement
             {...getPaymentMethodData(paymentMethod)}
             iconStyles={getIconStyles({ size, theme: settings.theme })}
           />
+        ) : (
+          <EmptyPaymentElement />
         )}
-        {!paymentMethod && <EmptyPaymentElement />}
 
         {props.functions.allowEdit && onEdit && (
           <Text
@@ -233,7 +234,7 @@ export const PaymentMethodElement = ({
             display="link"
             $leading={1}
           >
-            {t("Edit")}
+            {paymentMethod ? t("Edit") : t("Add")}
           </Text>
         )}
       </Flex>

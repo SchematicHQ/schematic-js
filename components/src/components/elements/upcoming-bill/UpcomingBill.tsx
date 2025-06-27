@@ -85,7 +85,12 @@ export const UpcomingBill = forwardRef<
   }, [data]);
 
   const getInvoice = useCallback(async () => {
-    if (isCheckoutData(data) && data.component?.id && data.subscription) {
+    if (
+      isCheckoutData(data) &&
+      data.component?.id &&
+      data.subscription &&
+      !data.subscription.cancelAt
+    ) {
       try {
         setError(undefined);
         setIsLoading(true);
@@ -107,6 +112,14 @@ export const UpcomingBill = forwardRef<
     getInvoice();
   }, [getInvoice]);
 
+  if (
+    !isCheckoutData(data) ||
+    !data.subscription ||
+    data.subscription.cancelAt
+  ) {
+    return null;
+  }
+
   return (
     <Element ref={ref} className={className}>
       <Flex as={TransitionBox} $justifyContent="center" $alignItems="center">
@@ -126,6 +139,7 @@ export const UpcomingBill = forwardRef<
           </Text>
 
           <Button
+            type="button"
             onClick={() => getInvoice()}
             $size="sm"
             $variant="ghost"
@@ -200,9 +214,8 @@ export const UpcomingBill = forwardRef<
                       {discounts.reduce(
                         (acc: React.ReactElement[], discount) => {
                           if (
-                            typeof discount.customerFacingCode === "string" &&
-                            (typeof discount.percentOff === "number" ||
-                              typeof discount.amountOff === "number")
+                            typeof discount.percentOff === "number" ||
+                            typeof discount.amountOff === "number"
                           ) {
                             acc.push(
                               <Flex
@@ -210,27 +223,30 @@ export const UpcomingBill = forwardRef<
                                 $alignItems="center"
                                 $gap="0.5rem"
                               >
-                                <Flex
-                                  $alignItems="center"
-                                  $padding="0.1875rem 0.375rem"
-                                  $borderWidth="1px"
-                                  $borderStyle="solid"
-                                  $borderColor={
-                                    isLightBackground
-                                      ? "hsla(0, 0%, 0%, 0.15)"
-                                      : "hsla(0, 0%, 100%, 0.15)"
-                                  }
-                                  $borderRadius="0.3125rem"
-                                >
-                                  <Text
-                                    $size={
-                                      0.75 *
-                                      settings.theme.typography.text.fontSize
+                                {discount.customerFacingCode && (
+                                  <Flex
+                                    $alignItems="center"
+                                    $padding="0.1875rem 0.375rem"
+                                    $borderWidth="1px"
+                                    $borderStyle="solid"
+                                    $borderColor={
+                                      isLightBackground
+                                        ? "hsla(0, 0%, 0%, 0.15)"
+                                        : "hsla(0, 0%, 100%, 0.15)"
                                     }
+                                    $borderRadius="0.3125rem"
                                   >
-                                    {discount.customerFacingCode}
-                                  </Text>
-                                </Flex>
+                                    <Text
+                                      $size={
+                                        0.75 *
+                                        settings.theme.typography.text.fontSize
+                                      }
+                                      style={{ textTransform: "uppercase" }}
+                                    >
+                                      {discount.customerFacingCode}
+                                    </Text>
+                                  </Flex>
+                                )}
 
                                 <Box>
                                   <Text>

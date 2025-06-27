@@ -136,6 +136,12 @@ export interface BillingPriceView {
   productName: string;
   /**
    *
+   * @type {string}
+   * @memberof BillingPriceView
+   */
+  tiersMode?: string | null;
+  /**
+   *
    * @type {Date}
    * @memberof BillingPriceView
    */
@@ -218,6 +224,7 @@ export function BillingPriceViewFromJSONTyped(
     productExternalId: json["product_external_id"],
     productId: json["product_id"],
     productName: json["product_name"],
+    tiersMode: json["tiers_mode"] == null ? undefined : json["tiers_mode"],
     updatedAt: new Date(json["updated_at"]),
     usageType: json["usage_type"],
   };
@@ -248,6 +255,7 @@ export function BillingPriceViewToJSON(value?: BillingPriceView | null): any {
     product_external_id: value["productExternalId"],
     product_id: value["productId"],
     product_name: value["productName"],
+    tiers_mode: value["tiersMode"],
     updated_at: value["updatedAt"].toISOString(),
     usage_type: value["usageType"],
   };

@@ -1,7 +1,7 @@
 import { forwardRef, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import type { FeatureUsageResponseData } from "../../../api/checkoutexternal";
+import { type FeatureUsageResponseData } from "../../../api/checkoutexternal";
 import { VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
 import { type FontStyle } from "../../../context";
 import {

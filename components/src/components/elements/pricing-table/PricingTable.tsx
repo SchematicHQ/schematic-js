@@ -2,10 +2,7 @@ import cx from "classnames";
 import { Fragment, forwardRef, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import {
-  type BillingPriceView,
-  type CompanyPlanDetailResponseData,
-} from "../../../api/checkoutexternal";
+import { type CompanyPlanDetailResponseData } from "../../../api/checkoutexternal";
 import { type PlanViewPublicResponseData } from "../../../api/componentspublic";
 import { TEXT_BASE_SIZE, VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
 import { type FontStyle } from "../../../context";
@@ -20,8 +17,11 @@ import {
   entitlementCountsReducer,
   formatCurrency,
   formatNumber,
-  getBillingPrice,
+  getAddOnPrice,
+  getEntitlementPrice,
   getFeatureName,
+  getMetricPeriodName,
+  getPlanPrice,
   hexToHSL,
   isCheckoutData,
   isHydratedPlan,
@@ -153,7 +153,7 @@ export const PricingTable = forwardRef<
     if (isCheckoutData(data)) {
       const billingSubscription = data.company?.billingSubscription;
       const isTrialSubscription = billingSubscription?.status === "trialing";
-      const willSubscriptionCancel = billingSubscription?.cancelAtPeriodEnd;
+      const willSubscriptionCancel = billingSubscription?.cancelAt;
 
       return {
         planPeriod: data.company?.plan?.planPeriod || "month",
@@ -282,11 +282,7 @@ export const PricingTable = forwardRef<
                   plan.current &&
                   planPeriod === selectedPeriod;
                 const { price: planPrice, currency: planCurrency } =
-                  getBillingPrice(
-                    selectedPeriod === "year"
-                      ? plan.yearlyPrice
-                      : plan.monthlyPrice,
-                  ) || {};
+                  getPlanPrice(plan, selectedPeriod) || {};
 
                 const hasUsageBasedEntitlements = plan.entitlements.some(
                   (entitlement) => !!entitlement.priceBehavior,
@@ -426,54 +422,14 @@ export const PricingTable = forwardRef<
                                 entitlement,
                                 entitlementIndex,
                               ) => {
-                                const limit =
-                                  entitlement.softLimit ??
-                                  entitlement.valueNumeric;
-
-                                let entitlementPriceObject:
-                                  | undefined
-                                  | BillingPriceView;
-                                if (selectedPeriod === "month") {
-                                  entitlementPriceObject =
-                                    entitlement.meteredMonthlyPrice;
-                                } else if (selectedPeriod === "year") {
-                                  entitlementPriceObject =
-                                    entitlement.meteredYearlyPrice;
-                                }
-
-                                let entitlementPrice: undefined | number;
-                                let entitlementCurrency: undefined | string;
-
-                                if (entitlementPriceObject) {
-                                  entitlementPrice =
-                                    entitlementPriceObject?.price;
-                                  entitlementCurrency =
-                                    entitlementPriceObject?.currency;
-                                }
-
-                                if (
-                                  entitlementPriceObject &&
-                                  entitlement.priceBehavior === "overage"
-                                ) {
-                                  if (
-                                    entitlementPriceObject.priceTier?.length > 1
-                                  ) {
-                                    // overage price is the last item in the price tier array
-                                    const overagePrice =
-                                      entitlementPriceObject.priceTier[
-                                        entitlementPriceObject.priceTier
-                                          .length - 1
-                                      ];
-                                    entitlementPrice =
-                                      overagePrice.perUnitPriceDecimal
-                                        ? Number(
-                                            overagePrice.perUnitPriceDecimal,
-                                          )
-                                        : (overagePrice.perUnitPrice ?? 0);
-                                    entitlementCurrency =
-                                      entitlementPriceObject.currency;
-                                  }
-                                }
+                                const {
+                                  price: entitlementPrice,
+                                  currency: entitlementCurrency,
+                                  packageSize: entitlementPackageSize = 1,
+                                } = getEntitlementPrice(
+                                  entitlement,
+                                  selectedPeriod,
+                                ) || {};
 
                                 if (
                                   entitlement.priceBehavior &&
@@ -482,8 +438,12 @@ export const PricingTable = forwardRef<
                                   return acc;
                                 }
 
-                                const entitlementPackageSize =
-                                  entitlementPriceObject?.packageSize ?? 1;
+                                const limit =
+                                  entitlement.softLimit ??
+                                  entitlement.valueNumeric;
+
+                                const metricPeriodName =
+                                  getMetricPeriodName(entitlement);
 
                                 acc.push(
                                   <Flex key={entitlementIndex} $gap="1rem">
@@ -562,33 +522,12 @@ export const PricingTable = forwardRef<
                                                     </>
                                                   )}
 
-                                              {entitlement.metricPeriod &&
-                                              entitlement.priceBehavior !==
-                                                "overage" ? (
+                                              {metricPeriodName && (
                                                 <>
                                                   {" "}
                                                   {t("per")}{" "}
-                                                  {
-                                                    {
-                                                      billing: "billing period",
-                                                      current_day: "day",
-                                                      current_month: "month",
-                                                      current_year: "year",
-                                                    }[entitlement.metricPeriod]
-                                                  }
+                                                  {t(metricPeriodName)}
                                                 </>
-                                              ) : (
-                                                entitlement.priceBehavior ===
-                                                  "overage" &&
-                                                entitlement.feature
-                                                  .featureType === "event" && (
-                                                  <>
-                                                    /
-                                                    {shortenPeriod(
-                                                      selectedPeriod,
-                                                    )}
-                                                  </>
-                                                )
                                               )}
                                             </>
                                           ) : (
@@ -609,6 +548,7 @@ export const PricingTable = forwardRef<
                                               $color={`color-mix(in oklch, ${settings.theme.typography.text.color}, ${settings.theme.card.background})`}
                                               $leading={1.35}
                                             >
+                                              {t("then")}{" "}
                                               {formatCurrency(
                                                 entitlementPrice,
                                                 entitlementCurrency,
@@ -629,8 +569,7 @@ export const PricingTable = forwardRef<
                                                     selectedPeriod,
                                                   )}
                                                 </>
-                                              )}{" "}
-                                              {t("overage fee")}
+                                              )}
                                             </Text>
                                           )}
                                       </Flex>
@@ -827,11 +766,7 @@ export const PricingTable = forwardRef<
                         (currentAddOn) => currentAddOn.id === addOn.id,
                       )?.planPeriod;
                   const { price: addOnPrice, currency: addOnCurrency } =
-                    getBillingPrice(
-                      selectedPeriod === "year"
-                        ? addOn.yearlyPrice
-                        : addOn.monthlyPrice,
-                    ) || {};
+                    getAddOnPrice(addOn, selectedPeriod) || {};
 
                   return (
                     <Flex
@@ -924,6 +859,9 @@ export const PricingTable = forwardRef<
                           >
                             {addOn.entitlements.map(
                               (entitlement, entitlementIndex) => {
+                                const metricPeriodName =
+                                  getMetricPeriodName(entitlement);
+
                                 return (
                                   <Flex
                                     key={entitlementIndex}
@@ -980,21 +918,12 @@ export const PricingTable = forwardRef<
                                                         )}
                                                       </>
                                                     )}
-                                                {entitlement.metricPeriod && (
+
+                                                {metricPeriodName && (
                                                   <>
                                                     {" "}
                                                     {t("per")}{" "}
-                                                    {
-                                                      {
-                                                        billing:
-                                                          "billing period",
-                                                        current_day: "day",
-                                                        current_month: "month",
-                                                        current_year: "year",
-                                                      }[
-                                                        entitlement.metricPeriod
-                                                      ]
-                                                    }
+                                                    {t(metricPeriodName)}
                                                   </>
                                                 )}
                                               </>

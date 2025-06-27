@@ -17,18 +17,12 @@ updates:
       - "Dependabot"
     assignees:
       - "bpapillon"
-    reviewers:
-      - "bpapillon"
   - package-ecosystem: "github-actions"
     directory: "/"
-    ignore:
-      - dependency-name: "SchematicHQ/devops-cli"
     schedule:
       interval: "daily"
     labels:
       - "github-actions"
       - "Dependabot"
     assignees:
-      - "bpapillon"
-    reviewers:
-      - "bpapillon"
+      - "mhmdio"

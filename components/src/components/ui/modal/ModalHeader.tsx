@@ -33,8 +33,7 @@ export const ModalHeader = ({
       $alignItems="center"
       $flexShrink={0}
       $gap="1rem"
-      $height="3.5rem"
-      $padding="0 1rem"
+      $padding="0.5rem 0.5rem 0.5rem 1.5rem"
       $backgroundColor={settings.theme.card.background}
       {...(bordered && {
         $borderWidth: "0",
@@ -46,16 +45,20 @@ export const ModalHeader = ({
       })}
       $viewport={{
         md: {
-          $height: "5rem",
-          $padding: "0 0.75rem 0 3rem",
+          $padding: "1rem 0.75rem 1rem 3rem",
         },
       }}
     >
       {children}
 
       <Button
+        type="button"
         onClick={handleClose}
-        style={{ cursor: "pointer", padding: "0 0.5rem 0 0" }}
+        style={{
+          cursor: "pointer",
+          padding: "0 0.5rem 0 0",
+          textDecoration: "none",
+        }}
         $color="secondary"
         $variant="text"
       >

@@ -102,6 +102,7 @@ export const defaultTheme: ThemeSettings = {
 };
 
 export type EmbedSettings = {
+  mode: EmbedMode;
   theme: ThemeSettings;
   badge?: {
     alignment: ComponentProps["$justifyContent"];
@@ -110,6 +111,7 @@ export type EmbedSettings = {
 };
 
 export const defaultSettings: EmbedSettings = {
+  mode: "view",
   theme: { ...defaultTheme },
   badge: {
     alignment: "start",
@@ -141,7 +143,6 @@ export interface EmbedState {
   error?: Error;
   settings: EmbedSettings;
   layout: EmbedLayout;
-  mode: EmbedMode;
   checkoutState?: CheckoutState;
 }
 
@@ -150,5 +151,4 @@ export const initialState: EmbedState = {
   stale: true,
   settings: { ...defaultSettings },
   layout: "portal",
-  mode: "view",
 };
