@@ -10,6 +10,7 @@ models/BillingProductDetailResponseData.ts
 models/BillingProductPriceResponseData.ts
 models/BillingProductPriceTierResponseData.ts
 models/BillingProductResponseData.ts
+models/CompatiblePlans.ts
 models/ComponentCapabilities.ts
 models/CountResponse.ts
 models/CustomPlanConfig.ts
