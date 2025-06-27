@@ -31,7 +31,7 @@ import {
   IconRound,
   Text,
   Tooltip,
-  type IconNameTypes,
+  type IconNames,
 } from "../../ui";
 
 interface SelectedProps {
@@ -476,7 +476,7 @@ export const Plan = ({
                                 <IconRound
                                   name={
                                     entitlement.feature.icon as
-                                      | IconNameTypes
+                                      | IconNames
                                       | string
                                   }
                                   size="sm"

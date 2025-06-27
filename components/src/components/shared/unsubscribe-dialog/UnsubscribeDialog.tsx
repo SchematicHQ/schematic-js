@@ -1,13 +1,9 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import {
-  useAvailablePlans,
-  useEmbed,
-  useIsLightBackground,
-} from "../../../hooks";
+import { useAvailablePlans, useEmbed } from "../../../hooks";
 import { isCheckoutData, toPrettyDate } from "../../../utils";
-import { Button, Flex, Icon, Modal, ModalHeader, Text } from "../../ui";
+import { Button, Flex, Modal, ModalHeader, Text } from "../../ui";
 import { createActiveUsageBasedEntitlementsReducer } from "../checkout-dialog";
 import { Sidebar } from "../sidebar";
 
@@ -18,7 +14,7 @@ interface UnsubscribeDialogProps {
 export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
   const { t } = useTranslation();
 
-  const { data, setCheckoutState, setLayout } = useEmbed();
+  const { data, setCheckoutState } = useEmbed();
 
   const contentRef = useRef<HTMLDivElement>(null);
 
@@ -73,12 +69,6 @@ export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
       })),
     [currentAddOns, availableAddOns],
   );
-
-  const isLightBackground = useIsLightBackground();
-
-  const handleClose = useCallback(() => {
-    setLayout("portal");
-  }, [setLayout]);
 
   return (
     <Modal size="auto" top={top} contentRef={contentRef}>

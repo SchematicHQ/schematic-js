@@ -16,7 +16,7 @@ import {
   toPrettyDate,
 } from "../../../utils";
 import { Element } from "../../layout";
-import { Box, Flex, Icon, IconRound, Text, type IconNameTypes } from "../../ui";
+import { Box, Flex, Icon, IconRound, Text, type IconNames } from "../../ui";
 
 import { Details } from "./Details";
 
@@ -192,7 +192,7 @@ export const IncludedFeatures = forwardRef<
             >
               {props.icons.isVisible && feature?.icon && (
                 <IconRound
-                  name={feature.icon as IconNameTypes | string}
+                  name={feature.icon as IconNames | string}
                   size="sm"
                   colors={[
                     settings.theme.primary,

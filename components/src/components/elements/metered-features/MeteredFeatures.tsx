@@ -31,7 +31,7 @@ import {
   Text,
   Tooltip,
   progressColorMap,
-  type IconNameTypes,
+  type IconNames,
 } from "../../ui";
 
 import * as styles from "./styles";
@@ -201,7 +201,7 @@ export const MeteredFeatures = forwardRef<
             <Flex $gap="1.5rem">
               {props.icon.isVisible && feature?.icon && (
                 <IconRound
-                  name={feature.icon as IconNameTypes | string}
+                  name={feature.icon as IconNames | string}
                   size="sm"
                   colors={[
                     settings.theme.primary,

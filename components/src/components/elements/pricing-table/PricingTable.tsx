@@ -37,7 +37,7 @@ import {
   IconRound,
   Text,
   Tooltip,
-  type IconNameTypes,
+  type IconNames,
 } from "../../ui";
 
 interface DesignProps {
@@ -455,7 +455,7 @@ export const PricingTable = forwardRef<
                                         <IconRound
                                           name={
                                             entitlement.feature.icon as
-                                              | IconNameTypes
+                                              | IconNames
                                               | string
                                           }
                                           size="sm"
@@ -879,7 +879,7 @@ export const PricingTable = forwardRef<
                                           <IconRound
                                             name={
                                               entitlement.feature.icon as
-                                                | IconNameTypes
+                                                | IconNames
                                                 | string
                                             }
                                             size="sm"

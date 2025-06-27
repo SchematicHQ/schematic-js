@@ -1,5 +1,6 @@
 import "../localization";
 
+import { IconStyles } from "@schematichq/schematic-icons";
 import { debounce, merge } from "lodash";
 import {
   useCallback,
@@ -35,7 +36,6 @@ import {
   type EmbedLayout,
   type EmbedSettings,
 } from "./embedState";
-import { GlobalStyle } from "./globalStyle";
 
 export interface EmbedProviderProps {
   children: React.ReactNode;
@@ -478,7 +478,7 @@ export const EmbedProvider = ({
       }}
     >
       <ThemeProvider theme={state.settings.theme}>
-        <GlobalStyle />
+        <IconStyles />
         {children}
       </ThemeProvider>
     </EmbedContext.Provider>

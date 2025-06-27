@@ -6,7 +6,7 @@ import { type PaymentMethodResponseData } from "../../../api/checkoutexternal";
 import { type FontStyle, type ThemeSettings } from "../../../context";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import { createKeyboardExecutionHandler } from "../../../utils";
-import { Box, Flex, Icon, IconNameTypes, Text } from "../../ui";
+import { Box, Flex, Icon, Text, type IconNames } from "../../ui";
 
 type PaymentMethodType =
   | "card"
@@ -38,7 +38,7 @@ interface PaymentMethodElementProps extends DesignProps {
 }
 
 interface PaymentElementProps {
-  iconName?: IconNameTypes;
+  iconName?: IconNames | string;
   iconTitle?: string;
   iconStyles?: React.CSSProperties;
   label?: string;
@@ -95,7 +95,7 @@ const getPaymentMethodData = ({
   paymentMethodType,
 }: PaymentMethodResponseData) => {
   const cardBrands = new Set(["visa", "mastercard", "amex"]);
-  const cardIcon = (icon: IconNameTypes) =>
+  const cardIcon = (icon: IconNames | string) =>
     icon && cardBrands.has(icon) ? icon : "credit";
 
   const genericLabel =
@@ -103,7 +103,7 @@ const getPaymentMethodData = ({
 
   const payments: Record<PaymentMethodType, PaymentElementProps> = {
     card: {
-      iconName: cardIcon(cardBrand as IconNameTypes),
+      iconName: cardIcon(cardBrand as IconNames | string),
       iconTitle: cardBrand || "Card",
       label: "Card ending in",
       paymentLast4: cardLast4,
