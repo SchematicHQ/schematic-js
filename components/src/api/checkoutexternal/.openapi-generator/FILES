@@ -23,6 +23,7 @@ models/CompanyPlanDetailResponseData.ts
 models/CompanyPlanWithBillingSubView.ts
 models/CompanyResponseData.ts
 models/CompanySubscriptionResponseData.ts
+models/CompatiblePlans.ts
 models/ComponentCapabilities.ts
 models/ComponentHydrateResponseData.ts
 models/ComponentResponseData.ts
