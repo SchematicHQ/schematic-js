@@ -86,6 +86,12 @@ export interface ChangeSubscriptionRequestBody {
    * @memberof ChangeSubscriptionRequestBody
    */
   promoCode?: string | null;
+  /**
+   *
+   * @type {boolean}
+   * @memberof ChangeSubscriptionRequestBody
+   */
+  skipTrial: boolean;
 }
 
 /**
@@ -102,6 +108,7 @@ export function instanceOfChangeSubscriptionRequestBody(
     return false;
   if (!("payInAdvance" in value) || value["payInAdvance"] === undefined)
     return false;
+  if (!("skipTrial" in value) || value["skipTrial"] === undefined) return false;
   return true;
 }
 
@@ -137,6 +144,7 @@ export function ChangeSubscriptionRequestBodyFromJSONTyped(
     paymentMethodId:
       json["payment_method_id"] == null ? undefined : json["payment_method_id"],
     promoCode: json["promo_code"] == null ? undefined : json["promo_code"],
+    skipTrial: json["skip_trial"],
   };
 }
 
@@ -161,5 +169,6 @@ export function ChangeSubscriptionRequestBodyToJSON(
     ),
     payment_method_id: value["paymentMethodId"],
     promo_code: value["promoCode"],
+    skip_trial: value["skipTrial"],
   };
 }
