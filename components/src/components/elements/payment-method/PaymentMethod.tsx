@@ -2,7 +2,7 @@ import { forwardRef, useMemo } from "react";
 
 import { type FontStyle } from "../../../context";
 import { useEmbed } from "../../../hooks";
-import type { ElementProps, RecursivePartial } from "../../../types";
+import type { DeepPartial, ElementProps } from "../../../types";
 import { isCheckoutData } from "../../../utils";
 import { Element } from "../../layout";
 
@@ -19,9 +19,7 @@ interface DesignProps {
   };
 }
 
-const resolveDesignProps = (
-  props: RecursivePartial<DesignProps>,
-): DesignProps => {
+const resolveDesignProps = (props: DeepPartial<DesignProps>): DesignProps => {
   return {
     header: {
       isVisible: props.header?.isVisible ?? true,
@@ -39,7 +37,7 @@ export type PaymentMethodProps = DesignProps;
 export const PaymentMethod = forwardRef<
   HTMLDivElement | null,
   ElementProps &
-    RecursivePartial<DesignProps> &
+    DeepPartial<DesignProps> &
     React.HTMLAttributes<HTMLDivElement> & {
       portal?: HTMLElement | null;
       allowEdit?: boolean;

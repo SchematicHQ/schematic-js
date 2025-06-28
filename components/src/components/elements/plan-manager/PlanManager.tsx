@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 
 import { type FontStyle } from "../../../context";
 import { useEmbed, useIsLightBackground, useTrialEnd } from "../../../hooks";
-import type { ElementProps, RecursivePartial } from "../../../types";
+import type { DeepPartial, ElementProps } from "../../../types";
 import {
   darken,
   formatCurrency,
@@ -45,9 +45,7 @@ interface DesignProps {
   };
 }
 
-const resolveDesignProps = (
-  props: RecursivePartial<DesignProps>,
-): DesignProps => {
+const resolveDesignProps = (props: DeepPartial<DesignProps>): DesignProps => {
   return {
     header: {
       isVisible: props.header?.isVisible ?? true,
@@ -81,7 +79,7 @@ export type PlanManagerProps = DesignProps;
 export const PlanManager = forwardRef<
   HTMLDivElement | null,
   ElementProps &
-    RecursivePartial<DesignProps> &
+    DeepPartial<DesignProps> &
     React.HTMLAttributes<HTMLDivElement> & {
       portal?: HTMLElement | null;
     }

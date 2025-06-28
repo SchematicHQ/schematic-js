@@ -1,7 +1,7 @@
 import { TEXT_BASE_SIZE } from "../../../const";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import { createKeyboardExecutionHandler } from "../../../utils";
-import { Box, Flex, Icon, IconRound } from "../../ui";
+import { Box, Flex, Icon } from "../../ui";
 
 interface NavigationProps {
   name: string;
@@ -47,19 +47,20 @@ export const Navigation = ({
               $borderRadius="9999px"
             />
           ) : (
-            <IconRound
+            <Icon
               name="check"
-              colors={[
-                settings.theme.card.background,
+              size="tn"
+              color={settings.theme.card.background}
+              background={
                 isLightBackground
                   ? "hsla(0, 0%, 0%, 0.125)"
-                  : "hsla(0, 0%, 100%, 0.25)",
-              ]}
+                  : "hsla(0, 0%, 100%, 0.25)"
+              }
               style={{
-                fontSize: `${16 / TEXT_BASE_SIZE}rem`,
                 width: `${20 / TEXT_BASE_SIZE}rem`,
                 height: `${20 / TEXT_BASE_SIZE}rem`,
               }}
+              rounded
             />
           )}
         </Box>

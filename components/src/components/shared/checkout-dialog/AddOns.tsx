@@ -141,13 +141,7 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
                       t("Remove add-on")
                     ) : (
                       <>
-                        <Icon
-                          name="check-rounded"
-                          style={{
-                            fontSize: 20,
-                            lineHeight: 1,
-                          }}
-                        />
+                        <Icon name="check-rounded" size="sm" />
                         {t("Selected")}
                       </>
                     )}

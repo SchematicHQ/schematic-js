@@ -1,5 +1,6 @@
 import "../localization";
 
+import { IconStyles } from "@schematichq/schematic-icons";
 import { debounce, merge } from "lodash";
 import {
   useCallback,
@@ -24,7 +25,7 @@ import {
   Configuration as PublicConfiguration,
 } from "../api/componentspublic";
 import { FETCH_DEBOUNCE_TIMEOUT, debounceOptions } from "../const";
-import type { RecursivePartial } from "../types";
+import type { DeepPartial } from "../types";
 import { ERROR_UNKNOWN, isError } from "../utils";
 
 import { EmbedContext } from "./EmbedContext";
@@ -35,13 +36,12 @@ import {
   type EmbedLayout,
   type EmbedSettings,
 } from "./embedState";
-import { GlobalStyle } from "./globalStyle";
 
 export interface EmbedProviderProps {
   children: React.ReactNode;
   apiKey?: string;
   apiConfig?: ConfigurationParameters;
-  settings?: RecursivePartial<EmbedSettings>;
+  settings?: DeepPartial<EmbedSettings>;
   debug?: boolean;
 }
 
@@ -320,7 +320,7 @@ export const EmbedProvider = ({
 
   const updateSettings = useCallback(
     (
-      settings: RecursivePartial<EmbedSettings> = {},
+      settings: DeepPartial<EmbedSettings> = {},
       options?: { update?: boolean },
     ) => {
       dispatch({ type: "UPDATE_SETTINGS", settings, update: options?.update });
@@ -478,7 +478,7 @@ export const EmbedProvider = ({
       }}
     >
       <ThemeProvider theme={state.settings.theme}>
-        <GlobalStyle />
+        <IconStyles />
         {children}
       </ThemeProvider>
     </EmbedContext.Provider>

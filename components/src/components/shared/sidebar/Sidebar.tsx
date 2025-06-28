@@ -272,6 +272,7 @@ export const Sidebar = ({
           [],
         ),
         creditBundles: [],
+        skipTrial: !willTrial,
         ...(paymentMethodId && { paymentMethodId }),
         ...(promoCode && { promoCode }),
       });
@@ -296,6 +297,7 @@ export const Sidebar = ({
     setIsLoading,
     setLayout,
     payInAdvanceEntitlements,
+    willTrial,
     promoCode,
   ]);
 
@@ -531,9 +533,9 @@ export const Sidebar = ({
               >
                 <Icon
                   name="arrow-down"
+                  color={settings.theme.typography.text.color}
                   style={{
-                    display: "inline-block",
-                    color: settings.theme.typography.text.color,
+                    display: "inline-flex",
                   }}
                 />
               </Box>
@@ -790,11 +792,10 @@ export const Sidebar = ({
               >
                 <Icon
                   name="close"
-                  style={{
-                    color: isLightBackground
-                      ? "hsl(0, 0%, 0%)"
-                      : "hsl(0, 0%, 100%)",
-                  }}
+                  size="tn"
+                  color={
+                    isLightBackground ? "hsl(0, 0%, 0%)" : "hsl(0, 0%, 100%)"
+                  }
                 />
               </Box>
             </Flex>

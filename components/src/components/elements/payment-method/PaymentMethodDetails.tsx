@@ -283,14 +283,13 @@ export const PaymentMethodDetails = ({
         ) : (
           <Flex $flexDirection="column" $gap="2rem">
             <PaymentMethodElement
-              size="lg"
               paymentMethod={currentPaymentMethod}
               monthsToExpiration={monthsToExpiration}
               {...props}
             />
 
             {paymentMethods.length > 0 && (
-              <Box>
+              <Flex $alignItems="center" $gap="0.5rem">
                 <Text
                   onClick={toggleShowPaymentMethods}
                   onKeyDown={createKeyboardExecutionHandler(
@@ -299,18 +298,14 @@ export const PaymentMethodDetails = ({
                   display="link"
                 >
                   {t("Choose different payment method")}
-                  <Icon
-                    name="chevron-down"
-                    style={{
-                      display: "inline-flex",
-                      marginLeft: "0.5rem",
-                      ...(showDifferentPaymentMethods && {
-                        transform: "rotate(180deg)",
-                      }),
-                    }}
-                  />
                 </Text>
-              </Box>
+
+                <Icon
+                  name={
+                    showDifferentPaymentMethods ? "chevron-up" : "chevron-down"
+                  }
+                />
+              </Flex>
             )}
 
             {showDifferentPaymentMethods && (

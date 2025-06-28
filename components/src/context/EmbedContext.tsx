@@ -13,7 +13,7 @@ import {
   type UpdatePaymentMethodResponse,
 } from "../api/checkoutexternal";
 import type { PublicPlansResponseData } from "../api/componentspublic";
-import type { RecursivePartial } from "../types";
+import type { DeepPartial } from "../types";
 
 import {
   initialState,
@@ -58,7 +58,7 @@ export interface EmbedContextProps extends EmbedState {
   setCheckoutState: (state: CheckoutState) => void;
   setData: (data: ComponentHydrateResponseData) => void;
   updateSettings: (
-    settings: RecursivePartial<EmbedSettings>,
+    settings: DeepPartial<EmbedSettings>,
     options?: { update?: boolean },
   ) => void;
 }
