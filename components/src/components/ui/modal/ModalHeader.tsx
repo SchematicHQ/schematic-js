@@ -1,7 +1,8 @@
 import { useCallback } from "react";
 
 import { useEmbed, useIsLightBackground } from "../../../hooks";
-import { Button, Flex, Icon } from "../../ui";
+import { createKeyboardExecutionHandler } from "../../../utils";
+import { Flex, Icon } from "../../ui";
 
 interface ModalHeaderProps {
   children?: React.ReactNode;
@@ -51,27 +52,26 @@ export const ModalHeader = ({
     >
       {children}
 
-      <Button
-        type="button"
+      <Flex
+        tabIndex={0}
         onClick={handleClose}
-        style={{
-          cursor: "pointer",
-          padding: "0 0.5rem 0 0",
-          textDecoration: "none",
-        }}
-        $color="secondary"
-        $variant="text"
+        onKeyDown={createKeyboardExecutionHandler(handleClose)}
+        $justifyContent="center"
+        $alignItems="center"
+        $cursor="pointer"
+        $width="2.75rem"
+        $height="2.75rem"
       >
         <Icon
           name="close"
-          style={{
-            fontSize: 36,
-            color: isLightBackground
+          size="xl"
+          color={
+            isLightBackground
               ? "hsla(0, 0%, 0%, 0.275)"
-              : "hsla(0, 0%, 100%, 0.275)",
-          }}
+              : "hsla(0, 0%, 100%, 0.275)"
+          }
         />
-      </Button>
+      </Flex>
     </Flex>
   );
 };

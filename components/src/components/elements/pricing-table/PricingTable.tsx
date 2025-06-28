@@ -29,16 +29,7 @@ import {
 } from "../../../utils";
 import { Container, FussyChild, cardBoxShadow } from "../../layout";
 import { PeriodToggle } from "../../shared";
-import {
-  Box,
-  Button,
-  Flex,
-  Icon,
-  IconRound,
-  Text,
-  Tooltip,
-  type IconNames,
-} from "../../ui";
+import { Box, Button, Flex, Icon, Text, Tooltip } from "../../ui";
 
 interface DesignProps {
   showPeriodToggle: boolean;
@@ -452,17 +443,11 @@ export const PricingTable = forwardRef<
                                   <Flex key={entitlementIndex} $gap="1rem">
                                     {props.plans.showFeatureIcons &&
                                       entitlement.feature?.icon && (
-                                        <IconRound
-                                          name={
-                                            entitlement.feature.icon as
-                                              | IconNames
-                                              | string
-                                          }
-                                          size="sm"
-                                          colors={[
-                                            settings.theme.primary,
-                                            `color-mix(in oklch, ${settings.theme.card.background} 87.5%, ${isLightBackground ? "black" : "white"})`,
-                                          ]}
+                                        <Icon
+                                          name={entitlement.feature.icon}
+                                          color={settings.theme.primary}
+                                          background={`color-mix(in oklch, ${settings.theme.card.background} 87.5%, ${isLightBackground ? "black" : "white"})`}
+                                          rounded
                                         />
                                       )}
 
@@ -592,20 +577,16 @@ export const PricingTable = forwardRef<
                           {(count?.size || plan.entitlements.length) >
                             VISIBLE_ENTITLEMENT_COUNT && (
                             <Flex
-                              $alignItems="center"
                               $justifyContent="start"
+                              $alignItems="center"
+                              $gap="0.5rem"
                               $marginTop="1rem"
                             >
                               <Icon
                                 name={
                                   isExpanded ? "chevron-up" : "chevron-down"
                                 }
-                                style={{
-                                  fontSize: "1.4rem",
-                                  lineHeight: "1em",
-                                  marginRight: ".25rem",
-                                  color: "#D0D0D0",
-                                }}
+                                color="#D0D0D0"
                               />
                               <Text
                                 onClick={() => handleToggleShowAll(plan.id)}
@@ -638,11 +619,8 @@ export const PricingTable = forwardRef<
                         >
                           <Icon
                             name="check-rounded"
-                            style={{
-                              fontSize: 20,
-                              lineHeight: 1,
-                              color: settings.theme.primary,
-                            }}
+                            size="sm"
+                            color={settings.theme.primary}
                           />
 
                           <Text $size={15} $leading={1}>
@@ -876,19 +854,15 @@ export const PricingTable = forwardRef<
                                     <Flex $gap="1rem">
                                       {props.addOns.showFeatureIcons &&
                                         entitlement.feature?.icon && (
-                                          <IconRound
-                                            name={
-                                              entitlement.feature.icon as
-                                                | IconNames
-                                                | string
-                                            }
-                                            size="sm"
-                                            colors={[
-                                              settings.theme.primary,
+                                          <Icon
+                                            name={entitlement.feature.icon}
+                                            color={settings.theme.primary}
+                                            background={
                                               isLightBackground
                                                 ? "hsla(0, 0%, 0%, 0.0625)"
-                                                : "hsla(0, 0%, 100%, 0.25)",
-                                            ]}
+                                                : "hsla(0, 0%, 100%, 0.25)"
+                                            }
+                                            rounded
                                           />
                                         )}
 

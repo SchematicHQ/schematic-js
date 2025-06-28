@@ -3,8 +3,8 @@ import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import { type PaymentMethodResponseData } from "../../../api/checkoutexternal";
-import { type FontStyle, type ThemeSettings } from "../../../context";
-import { useEmbed, useIsLightBackground } from "../../../hooks";
+import { type FontStyle } from "../../../context";
+import { useIsLightBackground } from "../../../hooks";
 import { createKeyboardExecutionHandler } from "../../../utils";
 import { Box, Flex, Icon, Text, type IconNames } from "../../ui";
 
@@ -40,7 +40,6 @@ interface PaymentMethodElementProps extends DesignProps {
 interface PaymentElementProps {
   iconName?: IconNames | string;
   iconTitle?: string;
-  iconStyles?: React.CSSProperties;
   label?: string;
   paymentLast4?: string | null;
 }
@@ -48,18 +47,13 @@ interface PaymentElementProps {
 const PaymentElement = ({
   iconName,
   iconTitle,
-  iconStyles,
   label,
   paymentLast4,
 }: PaymentElementProps) => {
   return (
     <Text>
       <Flex $flexDirection="row" $alignItems="center" $gap="0.5rem">
-        {iconName && (
-          <Box>
-            <Icon name={iconName} title={iconTitle} style={iconStyles} />
-          </Box>
-        )}
+        {iconName && <Icon name={iconName} title={iconTitle} />}
 
         {(label || paymentLast4) && (
           <Box $flexGrow={1}>
@@ -95,7 +89,7 @@ const getPaymentMethodData = ({
   paymentMethodType,
 }: PaymentMethodResponseData) => {
   const cardBrands = new Set(["visa", "mastercard", "amex"]);
-  const cardIcon = (icon: IconNames | string) =>
+  const cardIcon = (icon?: IconNames | string | null) =>
     icon && cardBrands.has(icon) ? icon : "credit";
 
   const genericLabel =
@@ -103,7 +97,7 @@ const getPaymentMethodData = ({
 
   const payments: Record<PaymentMethodType, PaymentElementProps> = {
     card: {
-      iconName: cardIcon(cardBrand as IconNames | string),
+      iconName: cardIcon(cardBrand),
       iconTitle: cardBrand || "Card",
       label: "Card ending in",
       paymentLast4: cardLast4,
@@ -145,26 +139,6 @@ const getPaymentMethodData = ({
   );
 };
 
-const getIconStyles = ({
-  size,
-  theme,
-}: {
-  size: PaymentElementSizes;
-  theme: ThemeSettings;
-}) => {
-  const iconStyles = {
-    sm: { fontSize: 24 },
-    md: { fontSize: 28 },
-    lg: { fontSize: 32 },
-  };
-
-  return {
-    ...iconStyles[size],
-    lineHeight: 1,
-    color: theme.typography.text.color,
-  };
-};
-
 export const PaymentMethodElement = ({
   size = "md",
   paymentMethod,
@@ -174,20 +148,9 @@ export const PaymentMethodElement = ({
 }: PaymentMethodElementProps) => {
   const { t } = useTranslation();
 
-  const { settings } = useEmbed();
-
   const isLightBackground = useIsLightBackground();
 
-  const sizeFactor = useMemo(() => {
-    if (size === "lg") {
-      return 1.5;
-    }
-    if (size === "md") {
-      return 1;
-    }
-
-    return 0.5;
-  }, [size]);
+  const sizeFactor = size === "lg" ? 1.5 : size === "md" ? 1 : 0.5;
 
   return (
     <Flex $flexDirection="column" $gap={`${sizeFactor}rem`}>
@@ -219,10 +182,7 @@ export const PaymentMethodElement = ({
         $borderRadius="9999px"
       >
         {paymentMethod ? (
-          <PaymentElement
-            {...getPaymentMethodData(paymentMethod)}
-            iconStyles={getIconStyles({ size, theme: settings.theme })}
-          />
+          <PaymentElement {...getPaymentMethodData(paymentMethod)} />
         ) : (
           <EmptyPaymentElement />
         )}
@@ -253,13 +213,10 @@ export const PaymentListElement = ({
   setDefault,
   handleDelete,
 }: PaymentElementListProps) => {
-  const { settings } = useEmbed();
-
   const isLightBackground = useIsLightBackground();
 
   const { iconName, iconTitle, label, paymentLast4 } =
     getPaymentMethodData(paymentMethod);
-  const iconStyles = getIconStyles({ size: "lg", theme: settings.theme });
 
   const expirationDate = useMemo(() => {
     const { cardExpMonth, cardExpYear } = paymentMethod;
@@ -280,6 +237,7 @@ export const PaymentListElement = ({
       $flexDirection="row"
       $alignItems="center"
       $gap="0.5rem"
+      $marginRight="2px" // prevents the focus ring of the removal icon from being cut off
       $padding="0.5rem 0"
       $borderWidth="0 0 1px"
       $borderStyle="solid"
@@ -289,11 +247,7 @@ export const PaymentListElement = ({
           : "hsla(0, 0%, 100%, 0.175)"
       }
     >
-      {iconName && (
-        <Box>
-          <Icon name={iconName} title={iconTitle} style={iconStyles} />
-        </Box>
-      )}
+      {iconName && <Icon name={iconName} title={iconTitle} />}
 
       {(label || paymentLast4) && (
         <Box $flexGrow={1}>
@@ -329,7 +283,7 @@ export const PaymentListElement = ({
         </Text>
       </Box>
 
-      <Box
+      <Icon
         tabIndex={0}
         onClick={() => {
           handleDelete(paymentMethod.id);
@@ -337,18 +291,15 @@ export const PaymentListElement = ({
         onKeyDown={createKeyboardExecutionHandler(() =>
           handleDelete(paymentMethod.id),
         )}
-        $cursor="pointer"
-      >
-        <Icon
-          name="close"
-          style={{
-            fontSize: 28,
-            color: isLightBackground
-              ? "hsla(0, 0%, 0%, 0.275)"
-              : "hsla(0, 0%, 100%, 0.275)",
-          }}
-        />
-      </Box>
+        style={{ cursor: "pointer" }}
+        name="close"
+        size="lg"
+        color={
+          isLightBackground
+            ? "hsla(0, 0%, 0%, 0.275)"
+            : "hsla(0, 0%, 100%, 0.275)"
+        }
+      />
     </Flex>
   );
 };

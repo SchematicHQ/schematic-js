@@ -16,7 +16,7 @@ import {
   toPrettyDate,
 } from "../../../utils";
 import { Element } from "../../layout";
-import { Box, Flex, Icon, IconRound, Text, type IconNames } from "../../ui";
+import { Box, Flex, Icon, Text } from "../../ui";
 
 import { Details } from "./Details";
 
@@ -191,15 +191,15 @@ export const IncludedFeatures = forwardRef<
               $gap="1rem"
             >
               {props.icons.isVisible && feature?.icon && (
-                <IconRound
-                  name={feature.icon as IconNames | string}
-                  size="sm"
-                  colors={[
-                    settings.theme.primary,
+                <Icon
+                  name={feature.icon}
+                  color={settings.theme.primary}
+                  background={
                     isLightBackground
                       ? "hsla(0, 0%, 0%, 0.0625)"
-                      : "hsla(0, 0%, 100%, 0.25)",
-                  ]}
+                      : "hsla(0, 0%, 100%, 0.25)"
+                  }
+                  rounded
                 />
               )}
 
@@ -236,12 +236,7 @@ export const IncludedFeatures = forwardRef<
         <Flex $alignItems="center" $justifyContent="start" $marginTop="1rem">
           <Icon
             name={isExpanded ? "chevron-up" : "chevron-down"}
-            style={{
-              fontSize: "1.4rem",
-              lineHeight: "1em",
-              marginRight: ".25rem",
-              color: "#D0D0D0",
-            }}
+            color="#D0D0D0"
           />
 
           <Text

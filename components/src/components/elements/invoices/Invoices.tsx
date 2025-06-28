@@ -213,7 +213,7 @@ export const Invoices = forwardRef<
                       <Flex $alignItems="center" $gap="0.5rem">
                         <Icon
                           name={`chevron-${listSize === props.limit.number ? "down" : "up"}`}
-                          style={{ color: "#D0D0D0" }}
+                          color="#D0D0D0"
                         />
 
                         <Text

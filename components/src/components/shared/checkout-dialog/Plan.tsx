@@ -23,16 +23,7 @@ import {
   shortenPeriod,
 } from "../../../utils";
 import { cardBoxShadow } from "../../layout";
-import {
-  Box,
-  Button,
-  Flex,
-  Icon,
-  IconRound,
-  Text,
-  Tooltip,
-  type IconNames,
-} from "../../ui";
+import { Box, Button, Flex, Icon, Text, Tooltip } from "../../ui";
 
 interface SelectedProps {
   isCurrent?: boolean;
@@ -59,14 +50,7 @@ const Selected = ({ isCurrent = false, isTrial = false }: SelectedProps) => {
       $gap="0.25rem"
       $padding="0.625rem 0"
     >
-      <Icon
-        name="check-rounded"
-        style={{
-          fontSize: 20,
-          lineHeight: 1,
-          color: settings.theme.primary,
-        }}
-      />
+      <Icon name="check-rounded" color={settings.theme.primary} />
 
       <Text
         $size={0.9375 * settings.theme.typography.text.fontSize}
@@ -473,19 +457,15 @@ export const Plan = ({
                           >
                             <Flex $gap="1rem">
                               {entitlement.feature?.icon && (
-                                <IconRound
-                                  name={
-                                    entitlement.feature.icon as
-                                      | IconNames
-                                      | string
-                                  }
-                                  size="sm"
-                                  colors={[
-                                    settings.theme.primary,
+                                <Icon
+                                  name={entitlement.feature.icon}
+                                  color={settings.theme.primary}
+                                  background={
                                     isLightBackground
                                       ? "hsla(0, 0%, 0%, 0.0625)"
-                                      : "hsla(0, 0%, 100%, 0.25)",
-                                  ]}
+                                      : "hsla(0, 0%, 100%, 0.25)"
+                                  }
+                                  rounded
                                 />
                               )}
 
@@ -616,16 +596,12 @@ export const Plan = ({
                     <Flex
                       $alignItems="center"
                       $justifyContent="start"
+                      $gap="0.5rem"
                       $marginTop="1rem"
                     >
                       <Icon
                         name={isExpanded ? "chevron-up" : "chevron-down"}
-                        style={{
-                          fontSize: "1.4rem",
-                          lineHeight: "1em",
-                          marginRight: ".25rem",
-                          color: "#D0D0D0",
-                        }}
+                        color="#D0D0D0"
                       />
                       <Text
                         onClick={() => handleToggleShowAll(plan.id)}

@@ -26,12 +26,11 @@ import {
   Box,
   Button,
   Flex,
-  IconRound,
+  Icon,
   ProgressBar,
   Text,
   Tooltip,
   progressColorMap,
-  type IconNames,
 } from "../../ui";
 
 import * as styles from "./styles";
@@ -200,15 +199,15 @@ export const MeteredFeatures = forwardRef<
           <Element key={index} as={Flex} $flexDirection="column" $gap="1.5rem">
             <Flex $gap="1.5rem">
               {props.icon.isVisible && feature?.icon && (
-                <IconRound
-                  name={feature.icon as IconNames | string}
-                  size="sm"
-                  colors={[
-                    settings.theme.primary,
+                <Icon
+                  name={feature.icon}
+                  color={settings.theme.primary}
+                  background={
                     isLightBackground
                       ? "hsla(0, 0%, 0%, 0.0625)"
-                      : "hsla(0, 0%, 100%, 0.25)",
-                  ]}
+                      : "hsla(0, 0%, 100%, 0.25)"
+                  }
+                  rounded
                 />
               )}
 
