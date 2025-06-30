@@ -1,7 +1,11 @@
-export type RecursivePartial<T> = {
-  [P in keyof T]?: T[P] extends (infer U)[]
-    ? RecursivePartial<U>[]
-    : T[P] extends object | undefined
-      ? RecursivePartial<T[P]>
-      : T[P];
+export type DeepPartial<T> = {
+  [K in keyof T]?: T[K] extends (infer U)[]
+    ? DeepPartial<U>[]
+    : T[K] extends object | undefined
+      ? DeepPartial<T[K]>
+      : T[K];
+};
+
+export type DeepRequired<T> = {
+  [K in keyof T]: Required<DeepRequired<T[K]>>;
 };

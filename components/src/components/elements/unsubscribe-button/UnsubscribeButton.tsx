@@ -2,7 +2,7 @@ import { forwardRef, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useEmbed } from "../../../hooks";
-import { ComponentStyle, ElementProps, RecursivePartial } from "../../../types";
+import { ComponentStyle, DeepPartial, ElementProps } from "../../../types";
 import { isCheckoutData } from "../../../utils";
 import { Element } from "../../layout";
 import {
@@ -42,9 +42,7 @@ interface DesignProps {
   };
 }
 
-const resolveDesignProps = (
-  props: RecursivePartial<DesignProps>,
-): DesignProps => {
+const resolveDesignProps = (props: DeepPartial<DesignProps>): DesignProps => {
   return {
     button: {
       text: props.button?.text ?? "Unsubscribe",
@@ -61,7 +59,7 @@ export type UnsubscribeButtonProps = DesignProps;
 export const UnsubscribeButton = forwardRef<
   HTMLDivElement | null,
   ElementProps &
-    RecursivePartial<DesignProps> &
+    DeepPartial<DesignProps> &
     React.HTMLAttributes<HTMLDivElement> & {
       portal?: HTMLElement | null;
     }

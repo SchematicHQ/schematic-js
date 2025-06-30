@@ -1,11 +1,7 @@
 import { forwardRef } from "react";
 
 import { type FontStyle } from "../../../context";
-import {
-  ElementProps,
-  RecursivePartial,
-  type ComponentProps,
-} from "../../../types";
+import { DeepPartial, ElementProps, type ComponentProps } from "../../../types";
 import { Element } from "../../layout";
 import { Flex, Text } from "../../ui";
 
@@ -17,9 +13,7 @@ interface DesignProps {
   };
 }
 
-const resolveDesignProps = (
-  props: RecursivePartial<DesignProps>,
-): DesignProps => {
+const resolveDesignProps = (props: DeepPartial<DesignProps>): DesignProps => {
   return {
     text: {
       fontStyle: props.text?.fontStyle ?? "text",
@@ -34,7 +28,7 @@ export type TextElementProps = DesignProps;
 export const TextElement = forwardRef<
   HTMLDivElement | null,
   ElementProps &
-    RecursivePartial<DesignProps> &
+    DeepPartial<DesignProps> &
     React.HTMLAttributes<HTMLDivElement> & {
       portal?: HTMLElement | null;
     }

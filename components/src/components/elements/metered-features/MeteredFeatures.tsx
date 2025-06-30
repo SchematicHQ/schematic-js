@@ -9,7 +9,7 @@ import {
   useIsLightBackground,
   useWrapChildren,
 } from "../../../hooks";
-import type { ElementProps, RecursivePartial } from "../../../types";
+import type { DeepPartial, ElementProps } from "../../../types";
 import {
   darken,
   formatCurrency,
@@ -26,12 +26,11 @@ import {
   Box,
   Button,
   Flex,
-  IconRound,
+  Icon,
   ProgressBar,
   Text,
   Tooltip,
   progressColorMap,
-  type IconNameTypes,
 } from "../../ui";
 
 import * as styles from "./styles";
@@ -59,7 +58,7 @@ interface DesignProps {
   visibleFeatures?: string[];
 }
 
-function resolveDesignProps(props: RecursivePartial<DesignProps>): DesignProps {
+function resolveDesignProps(props: DeepPartial<DesignProps>): DesignProps {
   return {
     isVisible: props.isVisible ?? true,
     header: {
@@ -80,7 +79,7 @@ function resolveDesignProps(props: RecursivePartial<DesignProps>): DesignProps {
       isVisible: props.usage?.isVisible ?? true,
       fontStyle: props.usage?.fontStyle ?? "heading5",
     },
-    // there is a typescript bug with `RecursivePartial` so we must cast to `string[] | undefined`
+    // there is a typescript bug with `DeepPartial` so we must cast to `string[] | undefined`
     visibleFeatures: props.visibleFeatures as string[] | undefined,
   };
 }
@@ -89,9 +88,7 @@ export type MeteredFeaturesProps = DesignProps;
 
 export const MeteredFeatures = forwardRef<
   HTMLDivElement | null,
-  ElementProps &
-    RecursivePartial<DesignProps> &
-    React.HTMLAttributes<HTMLDivElement>
+  ElementProps & DeepPartial<DesignProps> & React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...rest }, ref) => {
   const props = resolveDesignProps(rest);
 
@@ -202,15 +199,15 @@ export const MeteredFeatures = forwardRef<
           <Element key={index} as={Flex} $flexDirection="column" $gap="1.5rem">
             <Flex $gap="1.5rem">
               {props.icon.isVisible && feature?.icon && (
-                <IconRound
-                  name={feature.icon as IconNameTypes | string}
-                  size="sm"
-                  colors={[
-                    settings.theme.primary,
+                <Icon
+                  name={feature.icon}
+                  color={settings.theme.primary}
+                  background={
                     isLightBackground
                       ? "hsla(0, 0%, 0%, 0.0625)"
-                      : "hsla(0, 0%, 100%, 0.25)",
-                  ]}
+                      : "hsla(0, 0%, 100%, 0.25)"
+                  }
+                  rounded
                 />
               )}
 

@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { type InvoiceResponseData } from "../../../api/checkoutexternal";
 import { type FontStyle } from "../../../context";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
-import type { ElementProps, RecursivePartial } from "../../../types";
+import type { DeepPartial, ElementProps } from "../../../types";
 import {
   ERROR_UNKNOWN,
   formatCurrency,
@@ -32,7 +32,7 @@ interface DesignProps {
   };
 }
 
-function resolveDesignProps(props: RecursivePartial<DesignProps>): DesignProps {
+function resolveDesignProps(props: DeepPartial<DesignProps>): DesignProps {
   return {
     header: {
       isVisible: props.header?.isVisible ?? true,
@@ -55,9 +55,7 @@ export type UpcomingBillProps = DesignProps;
 
 export const UpcomingBill = forwardRef<
   HTMLDivElement | null,
-  ElementProps &
-    RecursivePartial<DesignProps> &
-    React.HTMLAttributes<HTMLDivElement>
+  ElementProps & DeepPartial<DesignProps> & React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...rest }, ref) => {
   const props = resolveDesignProps(rest);
 
@@ -180,23 +178,6 @@ export const UpcomingBill = forwardRef<
                     </Text>
                   </Box>
                 </Flex>
-
-                {upcomingInvoice.amountRemaining > 0 && (
-                  <Flex
-                    $justifyContent="space-between"
-                    $alignItems="center"
-                    $gap="1rem"
-                  >
-                    <Text $weight={600}>{t("Remaining balance")}</Text>
-
-                    <Text>
-                      {formatCurrency(
-                        upcomingInvoice.amountRemaining,
-                        upcomingInvoice.currency,
-                      )}
-                    </Text>
-                  </Flex>
-                )}
 
                 {discounts.length > 0 && (
                   <Flex

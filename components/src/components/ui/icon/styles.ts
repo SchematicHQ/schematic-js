@@ -1,26 +1,49 @@
+import { Icon as SchematicIcon } from "@schematichq/schematic-icons";
 import styled, { css } from "styled-components";
 
 import { TEXT_BASE_SIZE } from "../../../const";
 
-export const Icon = styled.i`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-`;
+import { type IconProps } from "./Icon";
 
-export const Container = styled.div<{
-  $size: "tn" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl";
-  $variant: "outline" | "filled";
-  $colors: [string, string];
-}>`
+export interface StyledIconProps {
+  name?: IconProps["name"];
+  $variant: IconProps["variant"];
+  $size: IconProps["size"];
+  $color: IconProps["color"];
+  $background: IconProps["background"];
+  $rounded: IconProps["rounded"];
+}
+
+export const Icon = styled(SchematicIcon).attrs(({ name, title, onClick }) => ({
+  title: title || name,
+  ...(onClick && { tabIndex: 0 }),
+}))<StyledIconProps>`
   display: flex;
   justify-content: center;
   align-items: center;
   flex-shrink: 0;
-  border-radius: 9999px;
 
-  ${({ $size }) => {
-    const base = 24;
+  ${({ onClick }) =>
+    onClick &&
+    css`
+      &:hover {
+        cursor: pointer;
+      }
+    `}
+
+  &:focus-visible {
+    outline: 2px solid ${({ theme }) => theme.primary};
+    outline-offset: 2px;
+  }
+
+  ${({ $rounded }) =>
+    $rounded &&
+    css`
+      border-radius: 9999px;
+    `}
+
+  ${({ $size, $rounded }) => {
+    const base = TEXT_BASE_SIZE;
     let scale = 1.0;
 
     switch ($size) {
@@ -50,26 +73,24 @@ export const Container = styled.div<{
 
     return css`
       font-size: ${(base * scale) / TEXT_BASE_SIZE}rem;
-      line-height: 1;
-      width: ${((base + 8) * scale) / TEXT_BASE_SIZE}rem;
-      height: ${((base + 8) * scale) / TEXT_BASE_SIZE}rem;
+
+      ${$rounded &&
+      css`
+        width: ${(base * (11 / 6) * scale) / TEXT_BASE_SIZE}rem;
+        height: ${(base * (11 / 6) * scale) / TEXT_BASE_SIZE}rem;
+      `}
     `;
   }}
 
-  ${({ $variant, $colors }) =>
-    $variant === "outline"
+  ${({ $variant, $color, $background }) => {
+    return $variant === "outline"
       ? css`
+          color: ${$color};
           background-color: transparent;
-
-          ${Icon} {
-            color: ${$colors[0]};
-          }
         `
       : css`
-          background-color: ${$colors[1]};
-
-          ${Icon} {
-            color: ${$colors[0]};
-          }
-        `}
+          color: ${$color};
+          background-color: ${$background};
+        `;
+  }}
 `;
