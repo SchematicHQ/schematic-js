@@ -272,6 +272,7 @@ export const Sidebar = ({
           [],
         ),
         creditBundles: [],
+        skipTrial: false,
         ...(paymentMethodId && { paymentMethodId }),
         ...(promoCode && { promoCode }),
       });
