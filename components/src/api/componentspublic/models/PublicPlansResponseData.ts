@@ -13,6 +13,12 @@
  */
 
 import { mapValues } from "../runtime";
+import type { CompatiblePlans } from "./CompatiblePlans";
+import {
+  CompatiblePlansFromJSON,
+  CompatiblePlansFromJSONTyped,
+  CompatiblePlansToJSON,
+} from "./CompatiblePlans";
 import type { ComponentCapabilities } from "./ComponentCapabilities";
 import {
   ComponentCapabilitiesFromJSON,
@@ -46,6 +52,12 @@ export interface PublicPlansResponseData {
   activePlans: Array<PlanViewPublicResponseData>;
   /**
    *
+   * @type {Array<CompatiblePlans>}
+   * @memberof PublicPlansResponseData
+   */
+  addOnCompatibilities: Array<CompatiblePlans>;
+  /**
+   *
    * @type {ComponentCapabilities}
    * @memberof PublicPlansResponseData
    */
@@ -61,6 +73,11 @@ export function instanceOfPublicPlansResponseData(
   if (!("activeAddOns" in value) || value["activeAddOns"] === undefined)
     return false;
   if (!("activePlans" in value) || value["activePlans"] === undefined)
+    return false;
+  if (
+    !("addOnCompatibilities" in value) ||
+    value["addOnCompatibilities"] === undefined
+  )
     return false;
   return true;
 }
@@ -85,6 +102,9 @@ export function PublicPlansResponseDataFromJSONTyped(
     activePlans: (json["active_plans"] as Array<any>).map(
       PlanViewPublicResponseDataFromJSON,
     ),
+    addOnCompatibilities: (json["add_on_compatibilities"] as Array<any>).map(
+      CompatiblePlansFromJSON,
+    ),
     capabilities:
       json["capabilities"] == null
         ? undefined
@@ -104,6 +124,9 @@ export function PublicPlansResponseDataToJSON(
     ),
     active_plans: (value["activePlans"] as Array<any>).map(
       PlanViewPublicResponseDataToJSON,
+    ),
+    add_on_compatibilities: (value["addOnCompatibilities"] as Array<any>).map(
+      CompatiblePlansToJSON,
     ),
     capabilities: ComponentCapabilitiesToJSON(value["capabilities"]),
   };

@@ -31,6 +31,12 @@ import {
   UsageBasedEntitlementResponseDataFromJSONTyped,
   UsageBasedEntitlementResponseDataToJSON,
 } from "./UsageBasedEntitlementResponseData";
+import type { CompatiblePlans } from "./CompatiblePlans";
+import {
+  CompatiblePlansFromJSON,
+  CompatiblePlansFromJSONTyped,
+  CompatiblePlansToJSON,
+} from "./CompatiblePlans";
 import type { ComponentCapabilities } from "./ComponentCapabilities";
 import {
   ComponentCapabilitiesFromJSON,
@@ -98,6 +104,12 @@ export interface ComponentHydrateResponseData {
    * @memberof ComponentHydrateResponseData
    */
   activeUsageBasedEntitlements: Array<UsageBasedEntitlementResponseData>;
+  /**
+   *
+   * @type {Array<CompatiblePlans>}
+   * @memberof ComponentHydrateResponseData
+   */
+  addOnCompatibilities: Array<CompatiblePlans>;
   /**
    *
    * @type {ComponentCapabilities}
@@ -169,6 +181,11 @@ export function instanceOfComponentHydrateResponseData(
     value["activeUsageBasedEntitlements"] === undefined
   )
     return false;
+  if (
+    !("addOnCompatibilities" in value) ||
+    value["addOnCompatibilities"] === undefined
+  )
+    return false;
   return true;
 }
 
@@ -195,6 +212,9 @@ export function ComponentHydrateResponseDataFromJSONTyped(
     activeUsageBasedEntitlements: (
       json["active_usage_based_entitlements"] as Array<any>
     ).map(UsageBasedEntitlementResponseDataFromJSON),
+    addOnCompatibilities: (json["add_on_compatibilities"] as Array<any>).map(
+      CompatiblePlansFromJSON,
+    ),
     capabilities:
       json["capabilities"] == null
         ? undefined
@@ -250,6 +270,9 @@ export function ComponentHydrateResponseDataToJSON(
     active_usage_based_entitlements: (
       value["activeUsageBasedEntitlements"] as Array<any>
     ).map(UsageBasedEntitlementResponseDataToJSON),
+    add_on_compatibilities: (value["addOnCompatibilities"] as Array<any>).map(
+      CompatiblePlansToJSON,
+    ),
     capabilities: ComponentCapabilitiesToJSON(value["capabilities"]),
     company: CompanyDetailResponseDataToJSON(value["company"]),
     component: ComponentResponseDataToJSON(value["component"]),

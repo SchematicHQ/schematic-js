@@ -342,6 +342,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
             [],
           ),
           creditBundles: [],
+          skipTrial: false,
           ...(code && { promoCode: code }),
         });
 
