@@ -46,7 +46,7 @@
     "husky": "^9.1.7",
     "jest": "^30.0.0",
     "jest-environment-jsdom": "^30.0.0",
-    "jest-esbuild": "^0.3.0",
+    "jest-esbuild": "^0.4.0",
     "jest-fetch-mock": "^3.0.3",
     "prettier": "^3.4.2",
     "react": "^19.1.0",
