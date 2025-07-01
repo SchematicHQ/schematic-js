@@ -2,6 +2,7 @@ import { Fragment, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import { type FeatureUsageResponseData } from "../../../api/checkoutexternal";
+import { type FontStyle } from "../../../context";
 import { useEmbed } from "../../../hooks";
 import {
   formatCurrency,
@@ -13,9 +14,15 @@ import {
 } from "../../../utils";
 import { Box, Text } from "../../ui";
 
-import { type DesignProps } from "./IncludedFeatures";
-
-interface DetailsProps extends DesignProps {
+interface DetailsProps {
+  entitlement: {
+    isVisible: boolean;
+    fontStyle: FontStyle;
+  };
+  usage: {
+    isVisible: boolean;
+    fontStyle: FontStyle;
+  };
   shouldWrapChildren: boolean;
   featureUsage: FeatureUsageResponseData;
 }

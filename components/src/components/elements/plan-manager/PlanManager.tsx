@@ -7,9 +7,6 @@ import type { DeepPartial, ElementProps } from "../../../types";
 import {
   darken,
   formatCurrency,
-  getEntitlementPrice,
-  getFeatureName,
-  hexToHSL,
   isCheckoutData,
   lighten,
   shortenPeriod,
@@ -17,6 +14,8 @@ import {
 } from "../../../utils";
 import { Element, Notice } from "../../layout";
 import { Box, Button, Flex, Text } from "../../ui";
+
+import { UsageBasedEntitlement } from "./UsageBasedEntitlement";
 
 interface DesignProps {
   header: {
@@ -320,174 +319,31 @@ export const PlanManager = forwardRef<
           </Flex>
         )}
 
-        {usageBasedEntitlements.length > 0 && (
+        {props.addOns.isVisible && usageBasedEntitlements.length > 0 && (
           <Flex $flexDirection="column" $gap="1rem">
-            <Text
-              $color={
-                isLightBackground
-                  ? darken(settings.theme.card.background, 0.46)
-                  : lighten(settings.theme.card.background, 0.46)
-              }
-              $leading={1}
-            >
-              {t("Usage-based")}
-            </Text>
-
-            {usageBasedEntitlements.reduce(
-              (acc: React.ReactElement[], entitlement, entitlementIndex) => {
-                const limit =
-                  entitlement.softLimit ?? entitlement.allocation ?? 0;
-
-                const billingPrice = getEntitlementPrice(
-                  entitlement,
-                  currentPlan?.planPeriod || "month",
-                );
-                const { price, currency, packageSize = 1 } = billingPrice || {};
-
-                const overageAmount =
-                  entitlement.priceBehavior === "overage"
-                    ? Math.max(
-                        0,
-                        (entitlement?.usage ?? 0) -
-                          (entitlement?.softLimit ?? 0),
-                      )
-                    : undefined;
-
-                let amount = 0;
-                if (entitlement.priceBehavior === "overage" && overageAmount) {
-                  amount = overageAmount;
-                } else if (
-                  entitlement.priceBehavior === "pay_as_you_go" &&
-                  entitlement.usage
-                ) {
-                  amount = entitlement.usage;
-                } else if (
-                  entitlement.priceBehavior === "pay_in_advance" &&
-                  entitlement.allocation
-                ) {
-                  amount = entitlement.allocation;
+            {props.addOns.showLabel && (
+              <Text
+                $color={
+                  isLightBackground
+                    ? darken(settings.theme.card.background, 0.46)
+                    : lighten(settings.theme.card.background, 0.46)
                 }
-
-                if (entitlement.feature?.name) {
-                  acc.push(
-                    <Flex
-                      key={entitlementIndex}
-                      $justifyContent="space-between"
-                      $alignItems="center"
-                      $flexWrap="wrap"
-                      $gap="1rem"
-                    >
-                      <Text display={props.addOns.fontStyle}>
-                        {entitlement.priceBehavior === "pay_in_advance" ||
-                        (entitlement.priceBehavior === "overage" &&
-                          limit > 0) ? (
-                          <>
-                            {limit} {getFeatureName(entitlement.feature, limit)}
-                          </>
-                        ) : (
-                          entitlement.feature.name
-                        )}
-                      </Text>
-
-                      <Flex $alignItems="center" $gap="1rem">
-                        {entitlement.priceBehavior === "overage" &&
-                        currentPlan?.planPeriod ? (
-                          <Text
-                            $size={
-                              0.875 * settings.theme.typography.text.fontSize
-                            }
-                            $color={
-                              hexToHSL(settings.theme.typography.text.color).l >
-                              50
-                                ? darken(
-                                    settings.theme.typography.text.color,
-                                    0.46,
-                                  )
-                                : lighten(
-                                    settings.theme.typography.text.color,
-                                    0.46,
-                                  )
-                            }
-                          >
-                            {amount > 0 ? (
-                              t("X additional", {
-                                amount: amount,
-                              })
-                            ) : (
-                              <>
-                                {t("Additional")}:{" "}
-                                {formatCurrency(price ?? 0, currency)}
-                                <sub>
-                                  /{packageSize > 1 && <>{packageSize} </>}
-                                  {getFeatureName(
-                                    entitlement.feature,
-                                    packageSize,
-                                  )}
-                                  {entitlement.feature.featureType ===
-                                    "trait" && (
-                                    <>
-                                      /{shortenPeriod(currentPlan.planPeriod)}
-                                    </>
-                                  )}
-                                </sub>
-                              </>
-                            )}
-                          </Text>
-                        ) : (
-                          currentPlan?.planPeriod && (
-                            <Text
-                              $size={
-                                0.875 * settings.theme.typography.text.fontSize
-                              }
-                              $color={
-                                hexToHSL(settings.theme.typography.text.color)
-                                  .l > 50
-                                  ? darken(
-                                      settings.theme.typography.text.color,
-                                      0.46,
-                                    )
-                                  : lighten(
-                                      settings.theme.typography.text.color,
-                                      0.46,
-                                    )
-                              }
-                            >
-                              {formatCurrency(price ?? 0, currency)}
-                              <sub>
-                                /{packageSize > 1 && <>{packageSize} </>}
-                                {getFeatureName(
-                                  entitlement.feature,
-                                  packageSize,
-                                )}
-                                {entitlement.feature.featureType ===
-                                  "trait" && (
-                                  <>/{shortenPeriod(currentPlan.planPeriod)}</>
-                                )}
-                              </sub>
-                            </Text>
-                          )
-                        )}
-
-                        {amount > 0 && (
-                          <Text>
-                            {formatCurrency((price ?? 0) * amount, currency)}
-                            {entitlement.priceBehavior !== "overage" &&
-                              currentPlan?.planPeriod && (
-                                <sub>
-                                  /{shortenPeriod(currentPlan.planPeriod)}
-                                </sub>
-                              )}
-                          </Text>
-                        )}
-                      </Flex>
-                    </Flex>,
-                  );
-                }
-
-                return acc;
-              },
-              [],
+                $leading={1}
+              >
+                {t("Usage-based")}
+              </Text>
             )}
+
+            {usageBasedEntitlements.map((entitlement, entitlementIndex) => {
+              return (
+                <UsageBasedEntitlement
+                  key={entitlementIndex}
+                  fontStyle={props.addOns.fontStyle}
+                  entitlement={entitlement}
+                  period={currentPlan?.planPeriod || "month"}
+                />
+              );
+            })}
           </Flex>
         )}
 
