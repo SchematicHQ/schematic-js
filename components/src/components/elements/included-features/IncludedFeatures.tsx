@@ -20,7 +20,7 @@ import { Box, Flex, Icon, Text } from "../../ui";
 
 import { Details } from "./Details";
 
-export interface DesignProps {
+interface DesignProps {
   header: {
     isVisible: boolean;
     fontStyle: FontStyle;
@@ -223,9 +223,10 @@ export const IncludedFeatures = forwardRef<
 
             {shouldShowDetails && (
               <Details
+                entitlement={props.entitlement}
+                usage={props.usage}
                 featureUsage={usage}
                 shouldWrapChildren={shouldWrapChildren}
-                {...props}
               />
             )}
           </Flex>
