@@ -147,26 +147,13 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   );
   const [willTrial, setWillTrial] = useState(false);
 
-  const [selectedPlanCompatibility, setSelectedPlanCompatibility] = useState(
-    () => {
-      if (!data?.addOnCompatibilities || !selectedPlan?.id) {
-        return null;
-      }
-      return data.addOnCompatibilities.find(
-        (compat) => compat.sourcePlanId === selectedPlan.id,
-      );
-    },
-  );
-
-  useEffect(() => {
+  const selectedPlanCompatibility = useMemo(() => {
     if (!data?.addOnCompatibilities || !selectedPlan?.id) {
-      setSelectedPlanCompatibility(null);
-      return;
+      return null;
     }
-    const compatibility = data.addOnCompatibilities.find(
+    return data.addOnCompatibilities.find(
       (compat) => compat.sourcePlanId === selectedPlan.id,
     );
-    setSelectedPlanCompatibility(compatibility);
   }, [data?.addOnCompatibilities, selectedPlan?.id]);
 
   const [addOns, setAddOns] = useState(() => {
