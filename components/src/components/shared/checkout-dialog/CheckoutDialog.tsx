@@ -174,9 +174,9 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   const hasActiveAddOns = addOns.some((addOn) => addOn.isSelected);
 
   useEffect(() => {
-    if (isCheckoutData(data)) {
-      setAddOns((prevAddOns) => {
-        return addOns.filter((availAddOn) => {
+    setAddOns((prevAddOns) => {
+      return prevAddOns
+        .filter((availAddOn) => {
           // No filtering if selectedPlanCompatibility is missing or empty
           if (
             !selectedPlanCompatibility ||
@@ -186,17 +186,19 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           }
           // Filter availableAddOns: the selected plan's compatibilities must include
           // an availableAddOns ID. If we filtered away everything, return an empty list.
-          return selectedPlanCompatibility?.compatiblePlanIds.includes(availAddOn.id);
-        }).map((addOn) => {
+          return selectedPlanCompatibility?.compatiblePlanIds.includes(
+            availAddOn.id,
+          );
+        })
+        .map((addOn) => {
           const prevAddOn = prevAddOns.find((prev) => prev.id === addOn.id);
           return {
             ...addOn,
             isSelected: prevAddOn?.isSelected ?? false,
           };
         });
-      });
-    }
-  }, [addOns, selectedPlanCompatibility, selectedPlan?.id, data]);
+    });
+  }, [selectedPlanCompatibility, selectedPlan?.id]);
 
   const [usageBasedEntitlements, setUsageBasedEntitlements] = useState(() =>
     (selectedPlan?.entitlements || []).reduce(
