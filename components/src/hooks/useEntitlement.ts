@@ -11,6 +11,7 @@ export interface EntitlementProps extends FeatureUsageResponseData {
   limit?: number;
   amount?: number;
   cost?: number;
+  upTo?: number;
 }
 
 export function useEntitlement(
@@ -64,6 +65,25 @@ export function useEntitlement(
     // total cost based on current usage or allocation
     const cost = getEntitlementCost(entitlement, period);
 
-    return { ...entitlement, billingPrice, limit, amount, cost };
+    // current price tier based on usage
+    const tiers = billingPrice?.priceTier || [];
+
+    let upTo: number | undefined;
+    if (entitlement.priceBehavior === "tier" && entitlement.usage) {
+      for (let i = 0, start = 0; i < tiers.length; i++) {
+        const tier = tiers[i];
+        const end = tier.upTo ?? Infinity;
+
+        upTo = end;
+
+        if (entitlement.usage > start && entitlement.usage <= end) {
+          break;
+        }
+
+        start += end;
+      }
+    }
+
+    return { ...entitlement, billingPrice, limit, amount, cost, upTo };
   }, [entitlement, period]);
 }
