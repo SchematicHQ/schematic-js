@@ -18,7 +18,7 @@ import {
 import { Element } from "../../layout";
 import { Box, Flex, Icon, Text } from "../../ui";
 
-import { Details } from "./Details";
+import { FeatureDetails } from "./FeatureDetails";
 
 interface DesignProps {
   header: {
@@ -222,7 +222,7 @@ export const IncludedFeatures = forwardRef<
             </Flex>
 
             {shouldShowDetails && (
-              <Details
+              <FeatureDetails
                 entitlement={props.entitlement}
                 usage={props.usage}
                 featureUsage={usage}

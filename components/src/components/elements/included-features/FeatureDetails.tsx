@@ -15,7 +15,7 @@ import {
 import { PricingTiersTooltip } from "../../shared";
 import { Box, Flex, Text } from "../../ui";
 
-interface DetailsProps {
+interface FeatureDetailsProps {
   entitlement: {
     isVisible: boolean;
     fontStyle: FontStyle;
@@ -28,11 +28,11 @@ interface DetailsProps {
   featureUsage: FeatureUsageResponseData;
 }
 
-export const Details = ({
+export const FeatureDetails = ({
   shouldWrapChildren,
   featureUsage,
   ...props
-}: DetailsProps) => {
+}: FeatureDetailsProps) => {
   const {
     allocation,
     allocationType,
