@@ -1,6 +1,6 @@
 {
   "name": "@schematichq/schematic-components",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "main": "dist/schematic-components.cjs.js",
   "module": "dist/schematic-components.esm.js",
   "types": "dist/schematic-components.d.ts",
@@ -31,7 +31,7 @@
     "test:demo": "../scripts/test-components.sh"
   },
   "dependencies": {
-    "@schematichq/schematic-icons": "^0.5.1",
+    "@schematichq/schematic-icons": "^0.5.2",
     "@stripe/stripe-js": "^7.4.0",
     "classnames": "^2.5.1",
     "i18next": "^25.1.3",
