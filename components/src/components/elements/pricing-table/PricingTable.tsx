@@ -156,7 +156,7 @@ export const PricingTable = forwardRef<
         isTrialSubscription,
         willSubscriptionCancel,
         isStandalone: false,
-        showCallToAction: false,
+        showCallToAction: true,
       };
     }
 
