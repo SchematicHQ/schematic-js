@@ -13,6 +13,19 @@
  */
 
 import { mapValues } from "../runtime";
+import type { BillingProductResponseData } from "./BillingProductResponseData";
+import {
+  BillingProductResponseDataFromJSON,
+  BillingProductResponseDataFromJSONTyped,
+  BillingProductResponseDataToJSON,
+} from "./BillingProductResponseData";
+import type { BillingPriceResponseData } from "./BillingPriceResponseData";
+import {
+  BillingPriceResponseDataFromJSON,
+  BillingPriceResponseDataFromJSONTyped,
+  BillingPriceResponseDataToJSON,
+} from "./BillingPriceResponseData";
+
 /**
  *
  * @export
@@ -69,6 +82,12 @@ export interface BillingCreditResponseData {
   id: string;
   /**
    *
+   * @type {BillingPriceResponseData}
+   * @memberof BillingCreditResponseData
+   */
+  monthlyPrice?: BillingPriceResponseData;
+  /**
+   *
    * @type {string}
    * @memberof BillingCreditResponseData
    */
@@ -81,10 +100,10 @@ export interface BillingCreditResponseData {
   pluralName?: string | null;
   /**
    *
-   * @type {number}
+   * @type {BillingProductResponseData}
    * @memberof BillingCreditResponseData
    */
-  pricePerUnit: number;
+  product?: BillingProductResponseData;
   /**
    *
    * @type {string}
@@ -97,6 +116,12 @@ export interface BillingCreditResponseData {
    * @memberof BillingCreditResponseData
    */
   updatedAt: Date;
+  /**
+   *
+   * @type {BillingPriceResponseData}
+   * @memberof BillingCreditResponseData
+   */
+  yearlyPrice?: BillingPriceResponseData;
 }
 
 /**
@@ -122,8 +147,6 @@ export function instanceOfBillingCreditResponseData(
     return false;
   if (!("id" in value) || value["id"] === undefined) return false;
   if (!("name" in value) || value["name"] === undefined) return false;
-  if (!("pricePerUnit" in value) || value["pricePerUnit"] === undefined)
-    return false;
   if (!("updatedAt" in value) || value["updatedAt"] === undefined) return false;
   return true;
 }
@@ -153,12 +176,23 @@ export function BillingCreditResponseDataFromJSONTyped(
     description: json["description"],
     icon: json["icon"] == null ? undefined : json["icon"],
     id: json["id"],
+    monthlyPrice:
+      json["monthly_price"] == null
+        ? undefined
+        : BillingPriceResponseDataFromJSON(json["monthly_price"]),
     name: json["name"],
     pluralName: json["plural_name"] == null ? undefined : json["plural_name"],
-    pricePerUnit: json["price_per_unit"],
+    product:
+      json["product"] == null
+        ? undefined
+        : BillingProductResponseDataFromJSON(json["product"]),
     singularName:
       json["singular_name"] == null ? undefined : json["singular_name"],
     updatedAt: new Date(json["updated_at"]),
+    yearlyPrice:
+      json["yearly_price"] == null
+        ? undefined
+        : BillingPriceResponseDataFromJSON(json["yearly_price"]),
   };
 }
 
@@ -177,10 +211,12 @@ export function BillingCreditResponseDataToJSON(
     description: value["description"],
     icon: value["icon"],
     id: value["id"],
+    monthly_price: BillingPriceResponseDataToJSON(value["monthlyPrice"]),
     name: value["name"],
     plural_name: value["pluralName"],
-    price_per_unit: value["pricePerUnit"],
+    product: BillingProductResponseDataToJSON(value["product"]),
     singular_name: value["singularName"],
     updated_at: value["updatedAt"].toISOString(),
+    yearly_price: BillingPriceResponseDataToJSON(value["yearlyPrice"]),
   };
 }

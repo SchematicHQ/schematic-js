@@ -15,7 +15,8 @@ import {
 import { Element, Notice } from "../../layout";
 import { Box, Button, Flex, Text } from "../../ui";
 
-import { UsageBasedEntitlement } from "./UsageBasedEntitlement";
+import { AddOn } from "./AddOn";
+import { UsageDetails } from "./UsageDetails";
 
 interface DesignProps {
   header: {
@@ -295,26 +296,12 @@ export const PlanManager = forwardRef<
             )}
 
             {currentAddOns.map((addOn, addOnIndex) => (
-              <Flex
+              <AddOn
                 key={addOnIndex}
-                $justifyContent="space-between"
-                $alignItems="center"
-                $flexWrap="wrap"
-                $gap="1rem"
-              >
-                <Text display={props.addOns.fontStyle}>{addOn.name}</Text>
-
-                {addOn.planPrice && addOn.planPeriod && (
-                  <Text>
-                    {formatCurrency(addOn.planPrice, subscriptionCurrency)}
-                    <sub>
-                      {addOn.planPeriod == "one-time"
-                        ? shortenPeriod(addOn.planPeriod)
-                        : `/${shortenPeriod(addOn.planPeriod)}`}
-                    </sub>
-                  </Text>
-                )}
-              </Flex>
+                addOn={addOn}
+                currency={subscriptionCurrency}
+                fontStyle={props.addOns.fontStyle}
+              />
             ))}
           </Flex>
         )}
@@ -336,11 +323,11 @@ export const PlanManager = forwardRef<
 
             {usageBasedEntitlements.map((entitlement, entitlementIndex) => {
               return (
-                <UsageBasedEntitlement
+                <UsageDetails
                   key={entitlementIndex}
-                  fontStyle={props.addOns.fontStyle}
                   entitlement={entitlement}
                   period={currentPlan?.planPeriod || "month"}
+                  fontStyle={props.addOns.fontStyle}
                 />
               );
             })}

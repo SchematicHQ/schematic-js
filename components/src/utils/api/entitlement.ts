@@ -1,4 +1,7 @@
-import { type FeatureUsageResponseData } from "../../api/checkoutexternal";
+import {
+  type BillingProductPriceTierResponseData,
+  type FeatureUsageResponseData,
+} from "../../api/checkoutexternal";
 import type { Entitlement } from "../../types";
 import { getEntitlementCost } from "../../utils";
 
@@ -26,7 +29,7 @@ export function getMetricPeriodName(entitlement: Entitlement) {
   return name;
 }
 
-export function getUsageBasedEntitlement(
+export function getUsageDetails(
   entitlement: FeatureUsageResponseData,
   period?: string,
 ) {
@@ -42,10 +45,13 @@ export function getUsageBasedEntitlement(
   let limit: number | undefined;
   if (
     entitlement.priceBehavior === "pay_in_advance" &&
-    entitlement.allocation
+    typeof entitlement.allocation === "number"
   ) {
     limit = entitlement.allocation;
-  } else if (entitlement.priceBehavior === "overage" && entitlement.softLimit) {
+  } else if (
+    entitlement.priceBehavior === "overage" &&
+    typeof entitlement.softLimit === "number"
+  ) {
     limit = entitlement.softLimit;
   }
 
@@ -53,19 +59,19 @@ export function getUsageBasedEntitlement(
   let amount: number | undefined;
   if (
     entitlement.priceBehavior === "pay_in_advance" &&
-    entitlement.allocation
+    typeof entitlement.allocation === "number"
   ) {
     amount = entitlement.allocation;
   } else if (
     (entitlement.priceBehavior === "pay_as_you_go" ||
       entitlement.priceBehavior === "tier") &&
-    entitlement.usage
+    typeof entitlement.usage === "number"
   ) {
     amount = entitlement.usage;
   } else if (
     entitlement.priceBehavior === "overage" &&
-    entitlement.usage &&
-    entitlement.softLimit
+    typeof entitlement.usage === "number" &&
+    typeof entitlement.softLimit === "number"
   ) {
     amount = Math.max(0, entitlement.usage - entitlement.softLimit);
   }
@@ -73,24 +79,48 @@ export function getUsageBasedEntitlement(
   // total cost based on current usage or allocation
   const cost = getEntitlementCost(entitlement, period);
 
-  // current price tier based on usage
   const tiers = billingPrice?.priceTier || [];
 
-  let upTo: number | undefined;
-  if (entitlement.priceBehavior === "tier" && entitlement.usage) {
-    for (let i = 0, start = 0; i < tiers.length; i++) {
-      const tier = tiers[i];
-      const end = tier.upTo ?? Infinity;
+  // current price tier based on usage
+  let currentTier:
+    | (Omit<BillingProductPriceTierResponseData, "upTo"> & {
+        from?: number;
+        to?: number;
+      })
+    | undefined;
+  if (
+    entitlement.priceBehavior === "overage" &&
+    typeof entitlement.softLimit === "number"
+  ) {
+    const overageTier = tiers.length === 2 ? tiers.at(-1) : undefined;
+    if (overageTier) {
+      const { upTo, ...rest } = overageTier || {};
+      currentTier = {
+        ...rest,
+        from: entitlement.softLimit + 1,
+        to: upTo ?? Infinity,
+      };
+    }
+  } else if (
+    entitlement.priceBehavior === "tier" &&
+    typeof amount === "number"
+  ) {
+    for (let i = 0, from = 0; i < tiers.length; i++) {
+      const { upTo, ...rest } = tiers[i];
+      const end = upTo ?? Infinity;
 
-      upTo = end;
-
-      if (entitlement.usage > start && entitlement.usage <= end) {
+      if (amount >= from && amount <= end) {
+        currentTier = {
+          ...rest,
+          from,
+          to: end,
+        };
         break;
       }
 
-      start += end;
+      from += end;
     }
   }
 
-  return { ...entitlement, billingPrice, limit, amount, cost, upTo };
+  return { ...entitlement, billingPrice, limit, amount, cost, currentTier };
 }

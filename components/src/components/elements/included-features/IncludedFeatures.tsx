@@ -18,7 +18,7 @@ import {
 import { Element } from "../../layout";
 import { Box, Flex, Icon, Text } from "../../ui";
 
-import { FeatureDetails } from "./FeatureDetails";
+import { UsageDetails } from "./UsageDetails";
 
 interface DesignProps {
   header: {
@@ -164,12 +164,11 @@ export const IncludedFeatures = forwardRef<
         </Box>
       )}
 
-      {featureUsage.slice(0, showCount).map((usage, index) => {
-        const feature = usage.feature;
+      {featureUsage.slice(0, showCount).map((entitlement, index) => {
         const shouldShowDetails =
-          feature?.name &&
-          (feature?.featureType === "event" ||
-            feature?.featureType === "trait");
+          entitlement.feature?.name &&
+          (entitlement.feature?.featureType === "event" ||
+            entitlement.feature?.featureType === "trait");
 
         return (
           <Flex
@@ -190,9 +189,9 @@ export const IncludedFeatures = forwardRef<
               $flexBasis="min-content"
               $gap="1rem"
             >
-              {props.icons.isVisible && feature?.icon && (
+              {props.icons.isVisible && entitlement.feature?.icon && (
                 <Icon
-                  name={feature.icon}
+                  name={entitlement.feature.icon}
                   color={settings.theme.primary}
                   background={
                     isLightBackground
@@ -203,18 +202,20 @@ export const IncludedFeatures = forwardRef<
                 />
               )}
 
-              {feature?.name && (
-                <Text display={props.icons.fontStyle}>{feature.name}</Text>
+              {entitlement.feature?.name && (
+                <Text display={props.icons.fontStyle}>
+                  {entitlement.feature.name}
+                </Text>
               )}
 
               {props.entitlementExpiration.isVisible &&
-                usage.entitlementExpirationDate && (
+                entitlement.entitlementExpirationDate && (
                   <Text
                     display={props.entitlementExpiration.fontStyle}
                     $leading={1}
                   >
                     Expires{" "}
-                    {toPrettyDate(usage.entitlementExpirationDate, {
+                    {toPrettyDate(entitlement.entitlementExpirationDate, {
                       month: "short",
                     })}
                   </Text>
@@ -222,10 +223,10 @@ export const IncludedFeatures = forwardRef<
             </Flex>
 
             {shouldShowDetails && (
-              <FeatureDetails
+              <UsageDetails
                 entitlement={props.entitlement}
                 usage={props.usage}
-                featureUsage={usage}
+                featureUsage={entitlement}
                 shouldWrapChildren={shouldWrapChildren}
               />
             )}
