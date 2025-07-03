@@ -1,0 +1,154 @@
+import { Fragment, useMemo } from "react";
+import { useTranslation } from "react-i18next";
+
+import { type FeatureUsageResponseData } from "../../../api/checkoutexternal";
+import { type FontStyle } from "../../../context";
+import { useEmbed } from "../../../hooks";
+import {
+  darken,
+  formatCurrency,
+  getFeatureName,
+  getUsageDetails,
+  hexToHSL,
+  lighten,
+  shortenPeriod,
+} from "../../../utils";
+import { PricingTiersTooltip } from "../../shared";
+import { Flex, Text } from "../../ui";
+
+export interface UsageDetailsProps {
+  entitlement: FeatureUsageResponseData;
+  period?: string;
+  fontStyle?: FontStyle;
+}
+
+export const UsageDetails = ({
+  entitlement,
+  period = "month",
+  fontStyle,
+}: UsageDetailsProps) => {
+  const { t } = useTranslation();
+
+  const { settings } = useEmbed();
+
+  const { billingPrice, limit, amount, cost, currentTier } = useMemo(
+    () => getUsageDetails(entitlement, period),
+    [entitlement, period],
+  );
+
+  const description = useMemo(() => {
+    const acc: React.ReactNode[] = [];
+
+    let index = 0;
+
+    if (entitlement.priceBehavior === "overage") {
+      acc.push(
+        amount ? (
+          <Fragment key={index}>
+            {t("X additional", {
+              amount: amount,
+            })}
+          </Fragment>
+        ) : (
+          <Fragment key={index}>{t("Additional")}: </Fragment>
+        ),
+      );
+
+      index += 1;
+    }
+
+    const price =
+      entitlement.priceBehavior === "overage" &&
+      typeof currentTier?.perUnitPrice === "number"
+        ? currentTier.perUnitPrice
+        : entitlement.priceBehavior !== "tier" &&
+            typeof billingPrice?.price === "number"
+          ? billingPrice.price
+          : undefined;
+    const packageSize = billingPrice?.packageSize ?? 1;
+
+    if (entitlement.feature && typeof price === "number") {
+      acc.push(
+        <Fragment key={index}>
+          {formatCurrency(price, billingPrice?.currency)}
+          <sub>
+            /{packageSize > 1 && <>{packageSize} </>}
+            {getFeatureName(entitlement.feature, packageSize)}
+            {entitlement.feature.featureType === "trait" && (
+              <>/{shortenPeriod(period)}</>
+            )}
+          </sub>
+        </Fragment>,
+      );
+
+      index += 1;
+    }
+
+    return acc;
+  }, [
+    t,
+    period,
+    entitlement.feature,
+    entitlement.priceBehavior,
+    billingPrice,
+    amount,
+    currentTier,
+  ]);
+
+  // this should never be the case since there should always be an associated feature,
+  // but we need to satisfy all possible cases
+  if (!entitlement.feature?.name) {
+    return null;
+  }
+
+  const quantity = limit || amount;
+
+  return (
+    <Flex
+      $justifyContent="space-between"
+      $alignItems="center"
+      $flexWrap="wrap"
+      $gap="1rem"
+    >
+      <Text display={fontStyle}>
+        {typeof quantity === "number" ? (
+          <>
+            {quantity} {getFeatureName(entitlement.feature, quantity)}
+          </>
+        ) : (
+          getFeatureName(entitlement.feature)
+        )}
+      </Text>
+
+      <Flex $alignItems="center" $gap="0.5rem">
+        {description.length > 0 && (
+          <Text
+            $size={0.875 * settings.theme.typography.text.fontSize}
+            $color={
+              hexToHSL(settings.theme.typography.text.color).l > 50
+                ? darken(settings.theme.typography.text.color, 0.46)
+                : lighten(settings.theme.typography.text.color, 0.46)
+            }
+          >
+            {description}
+          </Text>
+        )}
+
+        {entitlement.priceBehavior === "tier" && (
+          <PricingTiersTooltip
+            featureName={entitlement.feature.name}
+            priceTiers={billingPrice?.priceTier}
+            currency={billingPrice?.currency}
+          />
+        )}
+
+        {typeof cost === "number" && (
+          <Text>
+            {formatCurrency(cost, billingPrice?.currency)}
+            <sub>/{shortenPeriod(period)}</sub>
+          </Text>
+        )}
+      </Flex>
+    </Flex>
+  );
+};
