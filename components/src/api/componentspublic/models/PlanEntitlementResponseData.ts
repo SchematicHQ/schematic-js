@@ -58,6 +58,12 @@ import {
 export interface PlanEntitlementResponseData {
   /**
    *
+   * @type {number}
+   * @memberof PlanEntitlementResponseData
+   */
+  consumptionRate?: number | null;
+  /**
+   *
    * @type {Date}
    * @memberof PlanEntitlementResponseData
    */
@@ -228,6 +234,8 @@ export function PlanEntitlementResponseDataFromJSONTyped(
     return json;
   }
   return {
+    consumptionRate:
+      json["consumption_rate"] == null ? undefined : json["consumption_rate"],
     createdAt: new Date(json["created_at"]),
     environmentId: json["environment_id"],
     feature:
@@ -290,6 +298,7 @@ export function PlanEntitlementResponseDataToJSON(
     return value;
   }
   return {
+    consumption_rate: value["consumptionRate"],
     created_at: value["createdAt"].toISOString(),
     environment_id: value["environmentId"],
     feature: FeatureResponseDataToJSON(value["feature"]),
