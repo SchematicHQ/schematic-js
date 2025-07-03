@@ -147,6 +147,15 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   );
   const [willTrial, setWillTrial] = useState(false);
 
+  const selectedPlanCompatibility = useMemo(() => {
+    if (!data?.addOnCompatibilities || !selectedPlan?.id) {
+      return null;
+    }
+    return data.addOnCompatibilities.find(
+      (compat) => compat.sourcePlanId === selectedPlan.id,
+    );
+  }, [data?.addOnCompatibilities, selectedPlan?.id]);
+
   const [addOns, setAddOns] = useState(() => {
     if (isCheckoutData(data)) {
       return availableAddOns.map((addOn) => ({
@@ -163,6 +172,33 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     return [];
   });
   const hasActiveAddOns = addOns.some((addOn) => addOn.isSelected);
+
+  useEffect(() => {
+    setAddOns((prevAddOns) => {
+      return prevAddOns
+        .filter((availAddOn) => {
+          // No filtering if selectedPlanCompatibility is missing or empty
+          if (
+            !selectedPlanCompatibility ||
+            !selectedPlanCompatibility.compatiblePlanIds?.length
+          ) {
+            return true;
+          }
+          // Filter availableAddOns: the selected plan's compatibilities must include
+          // an availableAddOns ID. If we filtered away everything, return an empty list.
+          return selectedPlanCompatibility?.compatiblePlanIds.includes(
+            availAddOn.id,
+          );
+        })
+        .map((addOn) => {
+          const prevAddOn = prevAddOns.find((prev) => prev.id === addOn.id);
+          return {
+            ...addOn,
+            isSelected: prevAddOn?.isSelected ?? false,
+          };
+        });
+    });
+  }, [selectedPlanCompatibility, selectedPlan?.id]);
 
   const [usageBasedEntitlements, setUsageBasedEntitlements] = useState(() =>
     (selectedPlan?.entitlements || []).reduce(
@@ -220,7 +256,8 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       });
     }
 
-    if (availableAddOns.length > 0) {
+    // addOns could be filtered by compatibility rules
+    if (addOns.length > 0) {
       stages.push({
         id: "addons",
         name: t("Add-ons"),
@@ -241,7 +278,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   }, [
     t,
     availablePlans,
-    availableAddOns,
+    addOns,
     payInAdvanceEntitlements,
     willTrial,
     requiresPayment,
