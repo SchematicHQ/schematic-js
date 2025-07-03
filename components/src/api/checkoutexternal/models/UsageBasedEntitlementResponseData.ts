@@ -28,6 +28,12 @@ import {
 export interface UsageBasedEntitlementResponseData {
   /**
    *
+   * @type {number}
+   * @memberof UsageBasedEntitlementResponseData
+   */
+  consumptionRate?: number | null;
+  /**
+   *
    * @type {string}
    * @memberof UsageBasedEntitlementResponseData
    */
@@ -113,6 +119,8 @@ export function UsageBasedEntitlementResponseDataFromJSONTyped(
     return json;
   }
   return {
+    consumptionRate:
+      json["consumption_rate"] == null ? undefined : json["consumption_rate"],
     featureId: json["feature_id"],
     meteredPrice:
       json["metered_price"] == null
@@ -148,6 +156,7 @@ export function UsageBasedEntitlementResponseDataToJSON(
     return value;
   }
   return {
+    consumption_rate: value["consumptionRate"],
     feature_id: value["featureId"],
     metered_price: BillingPriceViewToJSON(value["meteredPrice"]),
     metric_period: value["metricPeriod"],
