@@ -224,10 +224,9 @@ export const IncludedFeatures = forwardRef<
 
             {shouldShowDetails && (
               <UsageDetails
-                entitlement={props.entitlement}
-                usage={props.usage}
-                featureUsage={entitlement}
+                entitlement={entitlement}
                 shouldWrapChildren={shouldWrapChildren}
+                layout={props}
               />
             )}
           </Flex>

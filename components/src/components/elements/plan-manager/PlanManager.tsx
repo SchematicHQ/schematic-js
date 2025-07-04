@@ -300,7 +300,7 @@ export const PlanManager = forwardRef<
                 key={addOnIndex}
                 addOn={addOn}
                 currency={subscriptionCurrency}
-                fontStyle={props.addOns.fontStyle}
+                layout={props}
               />
             ))}
           </Flex>
@@ -327,7 +327,7 @@ export const PlanManager = forwardRef<
                   key={entitlementIndex}
                   entitlement={entitlement}
                   period={currentPlan?.planPeriod || "month"}
-                  fontStyle={props.addOns.fontStyle}
+                  layout={props}
                 />
               );
             })}

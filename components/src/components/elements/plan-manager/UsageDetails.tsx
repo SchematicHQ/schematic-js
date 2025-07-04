@@ -18,14 +18,20 @@ import { Flex, Text } from "../../ui";
 
 export interface UsageDetailsProps {
   entitlement: FeatureUsageResponseData;
-  period?: string;
-  fontStyle?: FontStyle;
+  period: string;
+  layout: {
+    addOns: {
+      isVisible: boolean;
+      fontStyle: FontStyle;
+      showLabel: boolean;
+    };
+  };
 }
 
 export const UsageDetails = ({
   entitlement,
-  period = "month",
-  fontStyle,
+  period,
+  layout,
 }: UsageDetailsProps) => {
   const { t } = useTranslation();
 
@@ -111,7 +117,7 @@ export const UsageDetails = ({
       $flexWrap="wrap"
       $gap="1rem"
     >
-      <Text display={fontStyle}>
+      <Text display={layout.addOns.fontStyle}>
         {typeof quantity === "number" && quantity > 0 ? (
           <>
             {quantity} {getFeatureName(entitlement.feature, quantity)}

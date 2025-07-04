@@ -6,10 +6,16 @@ import { Flex, Text } from "../../ui";
 interface AddOnProps {
   addOn: CompanyPlanWithBillingSubView;
   currency?: string;
-  fontStyle?: FontStyle;
+  layout: {
+    addOns: {
+      isVisible: boolean;
+      fontStyle: FontStyle;
+      showLabel: boolean;
+    };
+  };
 }
 
-export const AddOn = ({ addOn, currency, fontStyle }: AddOnProps) => {
+export const AddOn = ({ addOn, currency, layout }: AddOnProps) => {
   return (
     <Flex
       $justifyContent="space-between"
@@ -17,7 +23,7 @@ export const AddOn = ({ addOn, currency, fontStyle }: AddOnProps) => {
       $flexWrap="wrap"
       $gap="1rem"
     >
-      <Text display={fontStyle}>{addOn.name}</Text>
+      <Text display={layout.addOns.fontStyle}>{addOn.name}</Text>
 
       {addOn.planPrice && addOn.planPeriod && (
         <Text>

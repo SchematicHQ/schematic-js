@@ -16,22 +16,24 @@ import { PricingTiersTooltip } from "../../shared";
 import { Box, Flex, Text } from "../../ui";
 
 interface UsageDetailsProps {
-  entitlement: {
-    isVisible: boolean;
-    fontStyle: FontStyle;
-  };
-  usage: {
-    isVisible: boolean;
-    fontStyle: FontStyle;
-  };
+  entitlement: FeatureUsageResponseData;
   shouldWrapChildren: boolean;
-  featureUsage: FeatureUsageResponseData;
+  layout: {
+    entitlement: {
+      isVisible: boolean;
+      fontStyle: FontStyle;
+    };
+    usage: {
+      isVisible: boolean;
+      fontStyle: FontStyle;
+    };
+  };
 }
 
 export const UsageDetails = ({
+  entitlement,
   shouldWrapChildren,
-  featureUsage,
-  ...props
+  layout,
 }: UsageDetailsProps) => {
   const {
     allocation,
@@ -40,24 +42,22 @@ export const UsageDetails = ({
     priceBehavior,
     usage,
     softLimit,
-  } = featureUsage;
+  } = entitlement;
 
   const { t } = useTranslation();
 
   const { data } = useEmbed();
 
-  const { planPeriod } = useMemo(() => {
-    const planPeriod =
-      isCheckoutData(data) && typeof data.company?.plan?.planPeriod === "string"
-        ? data.company.plan.planPeriod
-        : undefined;
-
-    return { planPeriod };
+  const period = useMemo(() => {
+    return isCheckoutData(data) &&
+      typeof data.company?.plan?.planPeriod === "string"
+      ? data.company.plan.planPeriod
+      : undefined;
   }, [data]);
 
-  const { billingPrice, currentTier, cost } = getUsageDetails(
-    featureUsage,
-    planPeriod,
+  const { billingPrice, currentTier, cost } = useMemo(
+    () => getUsageDetails(entitlement, period),
+    [entitlement, period],
   );
 
   const text = useMemo(() => {
@@ -137,14 +137,14 @@ export const UsageDetails = ({
 
     if (
       priceBehavior === "pay_in_advance" &&
-      typeof planPeriod === "string" &&
+      typeof period === "string" &&
       typeof price === "number"
     ) {
       acc.push(
         <Fragment key={index}>
           {formatCurrency(price, currency)}/
           {packageSize > 1 && <>{packageSize} </>}
-          {getFeatureName(feature, packageSize)}/{shortenPeriod(planPeriod)}
+          {getFeatureName(feature, packageSize)}/{shortenPeriod(period)}
         </Fragment>,
       );
       index += 1;
@@ -169,10 +169,8 @@ export const UsageDetails = ({
         );
         index += 1;
 
-        if (feature.featureType === "trait" && typeof planPeriod === "string") {
-          acc.push(
-            <Fragment key={index}>/{shortenPeriod(planPeriod)}</Fragment>,
-          );
+        if (feature.featureType === "trait" && typeof period === "string") {
+          acc.push(<Fragment key={index}>/{shortenPeriod(period)}</Fragment>);
           index += 1;
         }
       }
@@ -192,7 +190,7 @@ export const UsageDetails = ({
     }
   }, [
     t,
-    planPeriod,
+    period,
     feature,
     priceBehavior,
     allocation,
@@ -213,15 +211,15 @@ export const UsageDetails = ({
       $flexGrow="1"
       $textAlign={shouldWrapChildren ? "left" : "right"}
     >
-      {props.entitlement.isVisible && (
+      {layout.entitlement.isVisible && (
         <Box $whiteSpace="nowrap">
-          <Text display={props.entitlement.fontStyle} $leading={1}>
+          <Text display={layout.entitlement.fontStyle} $leading={1}>
             {text}
           </Text>
         </Box>
       )}
 
-      {props.usage.isVisible && usageText && (
+      {layout.usage.isVisible && usageText && (
         <Flex $justifyContent="end" $alignItems="center" $whiteSpace="nowrap">
           {priceBehavior === "tier" && (
             <PricingTiersTooltip
@@ -231,7 +229,7 @@ export const UsageDetails = ({
             />
           )}
 
-          <Text display={props.usage.fontStyle} $leading={1}>
+          <Text display={layout.usage.fontStyle} $leading={1}>
             {usageText}
           </Text>
         </Flex>
