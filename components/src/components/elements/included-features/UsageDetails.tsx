@@ -2,29 +2,39 @@ import { Fragment, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import { type FeatureUsageResponseData } from "../../../api/checkoutexternal";
+import { type FontStyle } from "../../../context";
 import { useEmbed } from "../../../hooks";
 import {
   formatCurrency,
   formatNumber,
-  getEntitlementPrice,
   getFeatureName,
+  getUsageDetails,
   isCheckoutData,
   shortenPeriod,
 } from "../../../utils";
-import { Box, Text } from "../../ui";
+import { PricingTiersTooltip } from "../../shared";
+import { Box, Flex, Text } from "../../ui";
 
-import { type DesignProps } from "./IncludedFeatures";
-
-interface DetailsProps extends DesignProps {
+interface UsageDetailsProps {
+  entitlement: FeatureUsageResponseData;
   shouldWrapChildren: boolean;
-  featureUsage: FeatureUsageResponseData;
+  layout: {
+    entitlement: {
+      isVisible: boolean;
+      fontStyle: FontStyle;
+    };
+    usage: {
+      isVisible: boolean;
+      fontStyle: FontStyle;
+    };
+  };
 }
 
-export const Details = ({
+export const UsageDetails = ({
+  entitlement,
   shouldWrapChildren,
-  featureUsage,
-  ...props
-}: DetailsProps) => {
+  layout,
+}: UsageDetailsProps) => {
   const {
     allocation,
     allocationType,
@@ -32,21 +42,23 @@ export const Details = ({
     priceBehavior,
     usage,
     softLimit,
-  } = featureUsage;
+  } = entitlement;
 
   const { t } = useTranslation();
 
   const { data } = useEmbed();
 
-  const { planPeriod, billingPrice } = useMemo(() => {
-    const planPeriod =
-      isCheckoutData(data) && typeof data.company?.plan?.planPeriod === "string"
-        ? data.company.plan.planPeriod
-        : undefined;
-    const billingPrice = getEntitlementPrice(featureUsage, planPeriod);
+  const period = useMemo(() => {
+    return isCheckoutData(data) &&
+      typeof data.company?.plan?.planPeriod === "string"
+      ? data.company.plan.planPeriod
+      : undefined;
+  }, [data]);
 
-    return { planPeriod, billingPrice };
-  }, [data, featureUsage]);
+  const { billingPrice, currentTier, cost } = useMemo(
+    () => getUsageDetails(entitlement, period),
+    [entitlement, period],
+  );
 
   const text = useMemo(() => {
     if (!feature) {
@@ -81,6 +93,15 @@ export const Details = ({
       );
     }
 
+    if (priceBehavior === "tier") {
+      return (
+        <>
+          {currentTier?.to && <>{formatNumber(currentTier.to)} </>}
+          {getFeatureName(feature, currentTier?.to)}
+        </>
+      );
+    }
+
     if (!priceBehavior && typeof allocation === "number") {
       return (
         <>
@@ -100,6 +121,7 @@ export const Details = ({
     priceBehavior,
     softLimit,
     billingPrice,
+    currentTier?.to,
   ]);
 
   const usageText = useMemo(() => {
@@ -109,25 +131,27 @@ export const Details = ({
 
     const { price, currency, packageSize = 1 } = billingPrice || {};
 
-    const acc: React.ReactElement[] = [];
+    const acc: React.ReactNode[] = [];
 
     let index = 0;
 
     if (
       priceBehavior === "pay_in_advance" &&
-      typeof planPeriod === "string" &&
+      typeof period === "string" &&
       typeof price === "number"
     ) {
       acc.push(
         <Fragment key={index}>
           {formatCurrency(price, currency)}/
           {packageSize > 1 && <>{packageSize} </>}
-          {getFeatureName(feature, packageSize)}/{shortenPeriod(planPeriod)}
+          {getFeatureName(feature, packageSize)}/{shortenPeriod(period)}
         </Fragment>,
       );
       index += 1;
     } else if (
-      (priceBehavior === "pay_as_you_go" || priceBehavior === "overage") &&
+      (priceBehavior === "pay_as_you_go" ||
+        priceBehavior === "overage" ||
+        priceBehavior === "tier") &&
       typeof usage === "number"
     ) {
       acc.push(
@@ -139,45 +163,14 @@ export const Details = ({
     }
 
     if (acc) {
-      if (
-        priceBehavior === "pay_in_advance" &&
-        typeof price === "number" &&
-        typeof allocation === "number"
-      ) {
+      if (typeof cost === "number" && cost > 0) {
         acc.push(
-          <Fragment key={index}>
-            {" "}
-            • {formatCurrency(price * allocation, currency)}
-          </Fragment>,
+          <Fragment key={index}> • {formatCurrency(cost, currency)}</Fragment>,
         );
         index += 1;
-      } else if (
-        priceBehavior === "pay_as_you_go" &&
-        typeof price === "number" &&
-        typeof usage === "number"
-      ) {
-        acc.push(
-          <Fragment key={index}>
-            {" "}
-            • {formatCurrency(price * usage, currency)}
-          </Fragment>,
-        );
-        index += 1;
-      } else if (priceBehavior === "overage") {
-        const overageAmount = Math.max(0, (usage ?? 0) - (softLimit ?? 0));
-        const period =
-          feature.featureType === "trait" && typeof planPeriod === "string"
-            ? `/${shortenPeriod(planPeriod)}`
-            : "";
 
-        if (price && overageAmount > 0) {
-          acc.push(
-            <Fragment key={index}>
-              {" "}
-              • {formatCurrency(price * overageAmount, currency)}
-              {period}
-            </Fragment>,
-          );
+        if (feature.featureType === "trait" && typeof period === "string") {
+          acc.push(<Fragment key={index}>/{shortenPeriod(period)}</Fragment>);
           index += 1;
         }
       }
@@ -197,16 +190,18 @@ export const Details = ({
     }
   }, [
     t,
-    planPeriod,
+    period,
     feature,
     priceBehavior,
     allocation,
     usage,
-    softLimit,
     billingPrice,
+    cost,
   ]);
 
-  if (!text) {
+  // this should never be the case since there should always be an associated feature,
+  // but we need to satisfy all possible cases
+  if (!text || !feature?.name) {
     return null;
   }
 
@@ -216,20 +211,28 @@ export const Details = ({
       $flexGrow="1"
       $textAlign={shouldWrapChildren ? "left" : "right"}
     >
-      {props.entitlement.isVisible && (
+      {layout.entitlement.isVisible && (
         <Box $whiteSpace="nowrap">
-          <Text display={props.entitlement.fontStyle} $leading={1}>
+          <Text display={layout.entitlement.fontStyle} $leading={1}>
             {text}
           </Text>
         </Box>
       )}
 
-      {props.usage.isVisible && usageText && (
-        <Box $whiteSpace="nowrap">
-          <Text display={props.usage.fontStyle} $leading={1}>
+      {layout.usage.isVisible && usageText && (
+        <Flex $justifyContent="end" $alignItems="center" $whiteSpace="nowrap">
+          {priceBehavior === "tier" && (
+            <PricingTiersTooltip
+              featureName={feature.name}
+              priceTiers={billingPrice?.priceTier}
+              currency={billingPrice?.currency}
+            />
+          )}
+
+          <Text display={layout.usage.fontStyle} $leading={1}>
             {usageText}
           </Text>
-        </Box>
+        </Flex>
       )}
     </Box>
   );
