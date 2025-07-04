@@ -100,16 +100,22 @@ export function getEntitlementCost(
 
     if (
       entitlement.priceBehavior === "pay_in_advance" &&
-      entitlement.allocation
+      typeof entitlement.allocation === "number"
     ) {
       return entitlement.allocation * billingPrice.price;
     }
 
-    if (entitlement.priceBehavior === "pay_as_you_go" && entitlement.usage) {
+    if (
+      entitlement.priceBehavior === "pay_as_you_go" &&
+      typeof entitlement.usage === "number"
+    ) {
       return entitlement.usage * billingPrice.price;
     }
 
-    if (entitlement.priceBehavior === "overage" && entitlement.usage) {
+    if (
+      entitlement.priceBehavior === "overage" &&
+      typeof entitlement.usage === "number"
+    ) {
       const overagePriceTier = billingPrice.priceTier.at(-1);
       if (!overagePriceTier) {
         return;
@@ -117,18 +123,25 @@ export function getEntitlementCost(
 
       let cost = 0;
 
-      if (overagePriceTier.flatAmount) {
+      if (typeof overagePriceTier.flatAmount === "number") {
         cost += overagePriceTier.flatAmount;
       }
 
-      if (overagePriceTier.perUnitPrice) {
-        cost += entitlement.usage * overagePriceTier.perUnitPrice;
+      if (typeof overagePriceTier.perUnitPrice === "number") {
+        const amount = Math.max(
+          0,
+          entitlement.usage - (entitlement.softLimit ?? 0),
+        );
+        cost += amount * overagePriceTier.perUnitPrice;
       }
 
       return cost;
     }
 
-    if (entitlement.priceBehavior === "tier" && entitlement.usage) {
+    if (
+      entitlement.priceBehavior === "tier" &&
+      typeof entitlement.usage === "number"
+    ) {
       let cost = 0;
       let usage = entitlement.usage;
 

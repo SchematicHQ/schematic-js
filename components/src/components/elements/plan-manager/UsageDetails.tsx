@@ -65,9 +65,10 @@ export const UsageDetails = ({
             typeof billingPrice?.price === "number"
           ? billingPrice.price
           : undefined;
-    const packageSize = billingPrice?.packageSize ?? 1;
 
-    if (entitlement.feature && typeof price === "number") {
+    if (entitlement.feature && typeof price === "number" && !amount) {
+      const packageSize = billingPrice?.packageSize ?? 1;
+
       acc.push(
         <Fragment key={index}>
           {formatCurrency(price, billingPrice?.currency)}
@@ -111,7 +112,7 @@ export const UsageDetails = ({
       $gap="1rem"
     >
       <Text display={fontStyle}>
-        {typeof quantity === "number" ? (
+        {typeof quantity === "number" && quantity > 0 ? (
           <>
             {quantity} {getFeatureName(entitlement.feature, quantity)}
           </>
@@ -142,7 +143,7 @@ export const UsageDetails = ({
           />
         )}
 
-        {typeof cost === "number" && (
+        {typeof cost === "number" && cost > 0 && (
           <Text>
             {formatCurrency(cost, billingPrice?.currency)}
             <sub>/{shortenPeriod(period)}</sub>

@@ -93,7 +93,7 @@ export const UsageDetails = ({
       );
     }
 
-    if (priceBehavior === "tier" && typeof usage === "number") {
+    if (priceBehavior === "tier") {
       return (
         <>
           {currentTier?.to && <>{formatNumber(currentTier.to)} </>}
@@ -119,7 +119,6 @@ export const UsageDetails = ({
     allocationType,
     feature,
     priceBehavior,
-    usage,
     softLimit,
     billingPrice,
     currentTier?.to,
@@ -164,16 +163,18 @@ export const UsageDetails = ({
     }
 
     if (acc) {
-      if (typeof cost === "number") {
+      if (typeof cost === "number" && cost > 0) {
         acc.push(
           <Fragment key={index}> • {formatCurrency(cost, currency)}</Fragment>,
         );
         index += 1;
-      }
 
-      if (feature.featureType === "trait" && typeof planPeriod === "string") {
-        acc.push(<Fragment key={index}>/{shortenPeriod(planPeriod)}</Fragment>);
-        index += 1;
+        if (feature.featureType === "trait" && typeof planPeriod === "string") {
+          acc.push(
+            <Fragment key={index}>/{shortenPeriod(planPeriod)}</Fragment>,
+          );
+          index += 1;
+        }
       }
 
       return acc;
