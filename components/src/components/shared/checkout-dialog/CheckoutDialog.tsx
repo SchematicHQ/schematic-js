@@ -170,7 +170,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       // For all add-ons, only include the ones that
       // 1. have an empty array for compatiblePlanIds
       // 2. have a non-empty array that includes the selectedPlan.id
-      return prevAddOns
+      return availableAddOns
         .filter((availAddOn) => {
 
           const ourCompats = data?.addOnCompatibilities.find( (compat) => compat.sourcePlanId === availAddOn.id)
@@ -198,7 +198,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           };
         });
     });
-  }, [data?.addOnCompatibilities, selectedPlan?.id]);
+  }, [availableAddOns, data?.addOnCompatibilities, selectedPlan]);
 
   const [usageBasedEntitlements, setUsageBasedEntitlements] = useState(() =>
     (selectedPlan?.entitlements || []).reduce(
