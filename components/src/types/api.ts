@@ -1,6 +1,7 @@
 import {
   type BillingPriceResponseData,
   type BillingPriceView,
+  type BillingProductPriceTierResponseData,
   type CompanyPlanDetailResponseData,
   type FeatureUsageResponseData,
   type PlanEntitlementResponseData,
@@ -26,3 +27,8 @@ export interface CurrentUsageBasedEntitlement extends FeatureUsageResponseData {
   usage: number;
   quantity: number;
 }
+
+export type PriceTier = Omit<BillingProductPriceTierResponseData, "upTo"> & {
+  from?: number;
+  to?: number;
+};

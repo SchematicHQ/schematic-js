@@ -52,7 +52,7 @@ export const PricingTiersTooltip = ({
                   $padding="0.5rem"
                 >
                   <dt>
-                    {start}–{tier.upTo}
+                    {start + 1}–{tier.upTo}
                   </dt>
 
                   <dd>

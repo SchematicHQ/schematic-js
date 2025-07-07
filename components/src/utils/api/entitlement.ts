@@ -1,8 +1,5 @@
-import {
-  type BillingProductPriceTierResponseData,
-  type FeatureUsageResponseData,
-} from "../../api/checkoutexternal";
-import type { Entitlement } from "../../types";
+import { type FeatureUsageResponseData } from "../../api/checkoutexternal";
+import type { Entitlement, PriceTier } from "../../types";
 import { getEntitlementCost } from "../../utils";
 
 const PeriodName: Record<string, string | undefined> = {
@@ -82,12 +79,7 @@ export function getUsageDetails(
   const tiers = billingPrice?.priceTier || [];
 
   // current price tier based on usage
-  let currentTier:
-    | (Omit<BillingProductPriceTierResponseData, "upTo"> & {
-        from?: number;
-        to?: number;
-      })
-    | undefined;
+  let currentTier: PriceTier | undefined;
   if (
     entitlement.priceBehavior === "overage" &&
     typeof entitlement.softLimit === "number"
@@ -112,7 +104,7 @@ export function getUsageDetails(
       if (amount >= from && amount <= end) {
         currentTier = {
           ...rest,
-          from,
+          from: from + 1,
           to: end,
         };
         break;

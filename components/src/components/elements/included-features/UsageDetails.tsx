@@ -55,7 +55,7 @@ export const UsageDetails = ({
       : undefined;
   }, [data]);
 
-  const { billingPrice, currentTier, cost } = useMemo(
+  const { billingPrice, cost, currentTier } = useMemo(
     () => getUsageDetails(entitlement, period),
     [entitlement, period],
   );

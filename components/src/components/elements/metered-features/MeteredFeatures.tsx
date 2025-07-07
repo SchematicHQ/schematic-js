@@ -2,7 +2,6 @@ import { forwardRef, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
 import { type FeatureUsageResponseData } from "../../../api/checkoutexternal";
-import { TEXT_BASE_SIZE } from "../../../const";
 import { type FontStyle } from "../../../context";
 import {
   useEmbed,
@@ -11,28 +10,17 @@ import {
 } from "../../../hooks";
 import type { DeepPartial, ElementProps } from "../../../types";
 import {
-  darken,
-  formatCurrency,
   formatNumber,
-  getEntitlementPrice,
   getFeatureName,
+  getUsageDetails,
   isCheckoutData,
-  lighten,
-  shortenPeriod,
   toPrettyDate,
 } from "../../../utils";
 import { Element } from "../../layout";
-import {
-  Box,
-  Button,
-  Flex,
-  Icon,
-  ProgressBar,
-  Text,
-  Tooltip,
-  progressColorMap,
-} from "../../ui";
+import { Box, Button, Flex, Icon, Text } from "../../ui";
 
+import { Meter } from "./Meter";
+import { PriceDetails } from "./PriceDetails";
 import * as styles from "./styles";
 
 interface DesignProps {
@@ -101,8 +89,12 @@ export const MeteredFeatures = forwardRef<
 
   const isLightBackground = useIsLightBackground();
 
-  const { planPeriod, featureUsage } = useMemo(() => {
+  const { meteredFeatures, period } = useMemo(() => {
     if (isCheckoutData(data)) {
+      const period =
+        typeof data.company?.plan?.planPeriod === "string"
+          ? data.company?.plan?.planPeriod
+          : undefined;
       const orderedFeatureUsage = props.visibleFeatures?.reduce(
         (acc: FeatureUsageResponseData[], id) => {
           const mappedFeatureUsage = data.featureUsage?.features.find(
@@ -119,86 +111,47 @@ export const MeteredFeatures = forwardRef<
       );
 
       return {
-        planPeriod: data.company?.plan?.planPeriod,
-        plan: data.company?.plan,
-        addOns: data.company?.addOns || [],
-        featureUsage: (
+        meteredFeatures: (
           orderedFeatureUsage ||
           data.featureUsage?.features ||
           []
         ).filter(
-          (usage) =>
-            usage.feature?.featureType === "event" ||
-            usage.feature?.featureType === "trait",
+          ({ feature }) =>
+            feature?.featureType === "event" ||
+            feature?.featureType === "trait",
         ),
+        period,
       };
     }
 
     return {
-      planPeriod: undefined,
-      plan: undefined,
-      addOns: [],
-      featureUsage: [],
-      subscription: undefined,
+      meteredFeatures: [],
+      period: undefined,
     };
   }, [props.visibleFeatures, data]);
 
-  const shouldShowFeatures = featureUsage.length > 0 || false;
-
+  const shouldShowFeatures = meteredFeatures.length > 0;
   if (!shouldShowFeatures) {
     return null;
   }
 
   return (
     <styles.Container ref={ref} className={className}>
-      {featureUsage.map((entitlement, index) => {
-        const {
-          feature,
-          priceBehavior,
-          usage,
-          allocation,
-          softLimit,
-          metricResetAt,
-        } = entitlement;
-        const limit = softLimit ?? allocation ?? 0;
-        const isOverage =
-          priceBehavior === "overage" &&
-          typeof softLimit === "number" &&
-          typeof usage === "number" &&
-          usage > softLimit;
+      {meteredFeatures.reduce((acc: React.ReactNode[], entitlement, index) => {
+        if (!entitlement.feature) {
+          return acc;
+        }
 
-        const {
-          price,
-          currency,
-          packageSize = 1,
-        } = getEntitlementPrice(entitlement, planPeriod || "month") || {};
+        const { feature, priceBehavior, usage, metricResetAt } = entitlement;
+        const { billingPrice, limit, amount, currentTier } = getUsageDetails(
+          entitlement,
+          period,
+        );
 
-        const progressBar = props.isVisible &&
-          typeof usage === "number" &&
-          limit > 0 &&
-          priceBehavior !== "pay_as_you_go" && (
-            <ProgressBar
-              progress={(isOverage ? softLimit / usage : usage / limit) * 100}
-              value={usage}
-              total={isOverage ? softLimit : limit}
-              color={
-                isOverage
-                  ? "blue"
-                  : progressColorMap[
-                      Math.floor(
-                        (Math.min(usage, limit) / limit) *
-                          (progressColorMap.length - 1),
-                      )
-                    ]
-              }
-              {...(isOverage && { bgColor: "#2563EB80" })}
-            />
-          );
-
-        return (
+        acc.push(
           <Element key={index} as={Flex} $flexDirection="column" $gap="1.5rem">
             <Flex $gap="1.5rem">
-              {props.icon.isVisible && feature?.icon && (
+              {props.icon.isVisible && (
                 <Icon
                   name={feature.icon}
                   color={settings.theme.primary}
@@ -221,191 +174,117 @@ export const MeteredFeatures = forwardRef<
                   $flexWrap="wrap"
                   $gap="1rem"
                 >
-                  {feature?.name && (
-                    <Flex $flexDirection="column" $gap="0.5rem" $flexGrow={1}>
+                  <Flex $flexDirection="column" $gap="0.5rem" $flexGrow={1}>
+                    <Box>
+                      <Text display={props.header.fontStyle}>
+                        {feature.name}
+                      </Text>
+                    </Box>
+
+                    {props.description.isVisible && (
                       <Box>
-                        <Text display={props.header.fontStyle}>
-                          {priceBehavior === "pay_as_you_go"
-                            ? typeof usage === "number" && (
-                                <>
-                                  {formatNumber(usage)}{" "}
-                                  {getFeatureName(feature, usage)}
-                                </>
-                              )
-                            : feature.name}
+                        <Text display={props.description.fontStyle}>
+                          {feature.description}
                         </Text>
                       </Box>
+                    )}
+                  </Flex>
 
-                      {props.description.isVisible && (
-                        <Box>
-                          <Text display={props.description.fontStyle}>
-                            {feature.description}
-                          </Text>
-                        </Box>
-                      )}
-                    </Flex>
-                  )}
-
-                  {(feature?.featureType === "event" ||
-                    feature?.featureType === "trait") &&
-                    feature?.name && (
-                      <Box
-                        $flexBasis="min-content"
-                        $flexGrow={1}
-                        $textAlign={shouldWrapChildren ? "left" : "right"}
-                      >
-                        {props.usage.isVisible && (
-                          <Box $whiteSpace="nowrap">
-                            <Text display={props.usage.fontStyle}>
-                              {priceBehavior === "pay_in_advance"
-                                ? typeof allocation === "number" && (
-                                    <>
-                                      {formatNumber(allocation)}{" "}
-                                      {getFeatureName(feature, allocation)}
-                                    </>
-                                  )
-                                : priceBehavior === "pay_as_you_go"
-                                  ? typeof price === "number" &&
-                                    typeof usage === "number" &&
-                                    formatCurrency(usage * price, currency)
-                                  : typeof usage === "number" && (
-                                      <>
-                                        {formatNumber(usage)}{" "}
-                                        {getFeatureName(feature, usage)}
-                                        {priceBehavior === "overage" && (
-                                          <> {t("used")}</>
-                                        )}
-                                      </>
-                                    )}
-                            </Text>
-                          </Box>
-                        )}
-
-                        {props.allocation.isVisible && (
-                          <Box $whiteSpace="nowrap">
-                            <Text
-                              display={props.allocation.fontStyle}
-                              $leading={1.35}
-                            >
-                              {priceBehavior &&
-                              priceBehavior !== "overage" &&
-                              metricResetAt
-                                ? t("Resets", {
-                                    date: toPrettyDate(metricResetAt, {
-                                      month: "short",
-                                      day: "numeric",
-                                      year: undefined,
-                                    }),
-                                  })
-                                : priceBehavior === "overage"
-                                  ? t("X included", {
-                                      amount: formatNumber(limit),
-                                    })
-                                  : typeof allocation === "number"
-                                    ? t("Limit of", {
-                                        amount: formatNumber(limit),
-                                      })
-                                    : t("No limit")}
-                            </Text>
-                          </Box>
-                        )}
+                  <Box
+                    $flexBasis="min-content"
+                    $flexGrow={1}
+                    $textAlign={shouldWrapChildren ? "left" : "right"}
+                  >
+                    {props.usage.isVisible && (
+                      <Box $whiteSpace="nowrap">
+                        <Text display={props.usage.fontStyle}>
+                          {priceBehavior === "pay_in_advance" ? (
+                            <>
+                              {typeof limit === "number" && (
+                                <>{formatNumber(limit)} </>
+                              )}
+                              {getFeatureName(feature, limit)}
+                            </>
+                          ) : (
+                            typeof usage === "number" && (
+                              <>
+                                {formatNumber(usage)}{" "}
+                                {getFeatureName(feature, usage)} {t("used")}
+                              </>
+                            )
+                          )}
+                        </Text>
                       </Box>
                     )}
+
+                    {
+                      // TODO: finish
+                      props.allocation.isVisible && (
+                        <Box $whiteSpace="nowrap">
+                          <Text display={props.allocation.fontStyle}>
+                            {priceBehavior === "tier" ? (
+                              <>{/* TODO: implement */}</>
+                            ) : priceBehavior === "overage" &&
+                              typeof limit === "number" ? (
+                              t("X included", {
+                                amount: formatNumber(limit),
+                              })
+                            ) : typeof limit === "number" ? (
+                              t("Limit of", {
+                                amount: formatNumber(limit),
+                              })
+                            ) : (
+                              t("No limit")
+                            )}
+                            {" • "}
+                            {metricResetAt &&
+                              t("Resets", {
+                                date: toPrettyDate(metricResetAt, {
+                                  month: "short",
+                                  day: "numeric",
+                                  year: undefined,
+                                }),
+                              })}
+                          </Text>
+                        </Box>
+                      )
+                    }
+                  </Box>
                 </Flex>
 
-                {props.isVisible &&
-                  typeof usage === "number" &&
-                  priceBehavior !== "pay_as_you_go" && (
-                    <Flex $flexWrap="wrap" $justifyContent="end" $gap="2rem">
-                      {typeof allocation === "number" && progressBar ? (
-                        <Tooltip
-                          trigger={progressBar}
-                          content={
-                            <Text
-                              $size={
-                                0.875 * settings.theme.typography.text.fontSize
-                              }
-                              $leading={1}
-                            >
-                              {t("Up to a limit of", {
-                                amount: formatNumber(allocation),
-                                units: feature?.name && getFeatureName(feature),
-                              })}
-                            </Text>
-                          }
-                          $flexGrow={1}
-                        />
-                      ) : (
-                        progressBar
-                      )}
+                {props.isVisible && priceBehavior !== "pay_as_you_go" && (
+                  <Meter entitlement={entitlement} period={period} />
+                )}
 
-                      {priceBehavior === "pay_in_advance" && (
-                        <Button
-                          type="button"
-                          onClick={() => {
-                            setCheckoutState({ usage: true });
-                          }}
-                          style={{ whiteSpace: "nowrap" }}
-                        >
-                          {t("Add More")}
-                        </Button>
-                      )}
-                    </Flex>
-                  )}
+                {priceBehavior === "pay_in_advance" && (
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      setCheckoutState({ usage: true });
+                    }}
+                    style={{ whiteSpace: "nowrap" }}
+                  >
+                    {t("Add More")}
+                  </Button>
+                )}
               </Flex>
             </Flex>
 
-            {priceBehavior === "overage" && typeof price === "number" && (
-              <Flex
-                $justifyContent="space-between"
-                $alignItems="center"
-                $gap="1rem"
-                $margin={`0 -${settings.theme.card.padding / TEXT_BASE_SIZE}rem -${(settings.theme.card.padding * 0.75) / TEXT_BASE_SIZE}rem`}
-                $padding={`${(0.4375 * settings.theme.card.padding) / TEXT_BASE_SIZE}rem ${settings.theme.card.padding / TEXT_BASE_SIZE}rem`}
-                $backgroundColor={
-                  isLightBackground
-                    ? darken(settings.theme.card.background, 0.05)
-                    : lighten(settings.theme.card.background, 0.1)
-                }
-                {...(settings.theme.sectionLayout === "separate" && {
-                  $borderBottomLeftRadius: `${settings.theme.card.borderRadius / TEXT_BASE_SIZE}rem`,
-                  $borderBottomRightRadius: `${settings.theme.card.borderRadius / TEXT_BASE_SIZE}rem`,
-                })}
-              >
-                <Text $leading={1.35}>
-                  <>
-                    {t("Additional")}: {formatCurrency(price, currency)}
-                    {feature && (
-                      <Box as="sub" $whiteSpace="nowrap">
-                        /{packageSize > 1 && <>{packageSize} </>}
-                        {getFeatureName(feature, packageSize)}
-                        {feature.featureType === "trait" && planPeriod && (
-                          <>/{shortenPeriod(planPeriod)}</>
-                        )}
-                      </Box>
-                    )}
-                  </>
-                </Text>
-
-                {isOverage && (
-                  <Text $leading={1.35}>
-                    {formatNumber(usage - softLimit)}{" "}
-                    {feature && getFeatureName(feature)}
-                    {" · "}
-                    {formatCurrency(price * (usage - softLimit), currency)}
-                    {feature?.featureType === "trait" &&
-                      typeof planPeriod === "string" && (
-                        <Box as="sub" $whiteSpace="nowrap">
-                          /{shortenPeriod(planPeriod)}
-                        </Box>
-                      )}
-                  </Text>
-                )}
-              </Flex>
+            {(priceBehavior === "overage" || priceBehavior === "tier") && (
+              <PriceDetails
+                period={period}
+                feature={feature}
+                priceBehavior={priceBehavior}
+                amount={amount}
+                billingPrice={billingPrice}
+                currentTier={currentTier}
+              />
             )}
-          </Element>
+          </Element>,
         );
-      })}
+
+        return acc;
+      }, [])}
     </styles.Container>
   );
 });

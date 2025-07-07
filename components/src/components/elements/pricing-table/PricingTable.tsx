@@ -457,7 +457,7 @@ export const PricingTable = forwardRef<
                                         $justifyContent="center"
                                         $gap="0.5rem"
                                       >
-                                        <Text $leading={1.35}>
+                                        <Text>
                                           {typeof entitlementPrice ===
                                             "number" &&
                                           (entitlement.priceBehavior ===
@@ -534,7 +534,6 @@ export const PricingTable = forwardRef<
                                                   .fontSize
                                               }
                                               $color={`color-mix(in oklch, ${settings.theme.typography.text.color}, ${settings.theme.card.background})`}
-                                              $leading={1.35}
                                             >
                                               {t("then")}{" "}
                                               {formatCurrency(

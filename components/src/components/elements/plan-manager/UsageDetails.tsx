@@ -37,7 +37,13 @@ export const UsageDetails = ({
 
   const { settings } = useEmbed();
 
-  const { billingPrice, limit, amount, cost, currentTier } = useMemo(
+  const {
+    billingPrice,
+    limit,
+    amount = 0,
+    cost,
+    currentTier,
+  } = useMemo(
     () => getUsageDetails(entitlement, period),
     [entitlement, period],
   );
@@ -49,7 +55,7 @@ export const UsageDetails = ({
 
     if (entitlement.priceBehavior === "overage") {
       acc.push(
-        amount ? (
+        amount > 0 ? (
           <Fragment key={index}>
             {t("X additional", {
               amount: amount,
@@ -64,7 +70,6 @@ export const UsageDetails = ({
     }
 
     const price =
-      entitlement.priceBehavior === "overage" &&
       typeof currentTier?.perUnitPrice === "number"
         ? currentTier.perUnitPrice
         : entitlement.priceBehavior !== "tier" &&
@@ -72,7 +77,7 @@ export const UsageDetails = ({
           ? billingPrice.price
           : undefined;
 
-    if (entitlement.feature && typeof price === "number" && !amount) {
+    if (entitlement.feature && typeof price === "number") {
       const packageSize = billingPrice?.packageSize ?? 1;
 
       acc.push(

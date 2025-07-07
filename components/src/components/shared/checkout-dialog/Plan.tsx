@@ -20,6 +20,7 @@ import {
   isCheckoutData,
   isHydratedPlan,
   lighten,
+  pluralize,
   shortenPeriod,
 } from "../../../utils";
 import { cardBoxShadow } from "../../layout";
@@ -433,9 +434,14 @@ export const Plan = ({
 
                         const {
                           price: entitlementPrice,
+                          priceTier: entitlementPriceTiers,
                           currency: entitlementCurrency,
                           packageSize: entitlementPackageSize = 1,
                         } = getEntitlementPrice(entitlement, period) || {};
+                        const firstPriceTier =
+                          entitlement.priceBehavior === "tier"
+                            ? entitlementPriceTiers?.at(0)
+                            : undefined;
 
                         const metricPeriodName =
                           getMetricPeriodName(entitlement);
@@ -475,7 +481,7 @@ export const Plan = ({
                                   $justifyContent="center"
                                   $gap="0.5rem"
                                 >
-                                  <Text $leading={1.35}>
+                                  <Text>
                                     {typeof entitlementPrice === "number" &&
                                     (entitlement.priceBehavior ===
                                       "pay_in_advance" ||
@@ -506,21 +512,87 @@ export const Plan = ({
                                       <>
                                         {entitlement.valueType ===
                                           "unlimited" &&
-                                        !entitlement.priceBehavior
-                                          ? t("Unlimited", {
-                                              item: getFeatureName(
+                                        !entitlement.priceBehavior ? (
+                                          t("Unlimited", {
+                                            item: getFeatureName(
+                                              entitlement.feature,
+                                            ),
+                                          })
+                                        ) : entitlement.priceBehavior ===
+                                          "tier" ? (
+                                          <>
+                                            {typeof firstPriceTier?.flatAmount ===
+                                              "number" &&
+                                            typeof firstPriceTier?.perUnitPrice ===
+                                              "number"
+                                              ? t(
+                                                  "Starting at perUnitPrice+flatAmount",
+                                                  {
+                                                    perUnitPrice:
+                                                      formatCurrency(
+                                                        firstPriceTier.perUnitPrice,
+                                                        entitlementCurrency,
+                                                      ),
+                                                    featureName: pluralize(
+                                                      entitlement.feature.name,
+                                                      1,
+                                                    ),
+                                                    flatAmount: formatCurrency(
+                                                      firstPriceTier.flatAmount,
+                                                      entitlementCurrency,
+                                                    ),
+                                                    period:
+                                                      shortenPeriod(period),
+                                                  },
+                                                )
+                                              : typeof firstPriceTier?.perUnitPrice ===
+                                                  "number"
+                                                ? t(
+                                                    "Starting at perUnitPrice",
+                                                    {
+                                                      perUnitPrice:
+                                                        formatCurrency(
+                                                          firstPriceTier.perUnitPrice,
+                                                          entitlementCurrency,
+                                                        ),
+                                                      featureName: pluralize(
+                                                        entitlement.feature
+                                                          .name,
+                                                        1,
+                                                      ),
+                                                    },
+                                                  )
+                                                : typeof firstPriceTier?.flatAmount ===
+                                                    "number"
+                                                  ? t(
+                                                      "Starting at flatAmount",
+                                                      {
+                                                        perUnitPrice:
+                                                          formatCurrency(
+                                                            firstPriceTier.flatAmount,
+                                                            entitlementCurrency,
+                                                          ),
+                                                        featureName: pluralize(
+                                                          entitlement.feature
+                                                            .name,
+                                                        ),
+                                                        period:
+                                                          shortenPeriod(period),
+                                                      },
+                                                    )
+                                                  : undefined}
+                                          </>
+                                        ) : (
+                                          typeof limit === "number" && (
+                                            <>
+                                              {formatNumber(limit)}{" "}
+                                              {getFeatureName(
                                                 entitlement.feature,
-                                              ),
-                                            })
-                                          : typeof limit === "number" && (
-                                              <>
-                                                {formatNumber(limit)}{" "}
-                                                {getFeatureName(
-                                                  entitlement.feature,
-                                                  limit,
-                                                )}
-                                              </>
-                                            )}
+                                                limit,
+                                              )}
+                                            </>
+                                          )
+                                        )}
 
                                         {metricPeriodName && (
                                           <>
@@ -558,7 +630,6 @@ export const Plan = ({
                                                 0.46,
                                               )
                                         }
-                                        $leading={1.35}
                                       >
                                         {t("then")}{" "}
                                         {formatCurrency(
