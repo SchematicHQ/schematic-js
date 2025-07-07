@@ -146,6 +146,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     ),
   );
   const [willTrial, setWillTrial] = useState(false);
+  console.log(`selected plan: ${selectedPlan}`);
 
   const selectedPlanCompatibility = useMemo(() => {
     if (!data?.addOnCompatibilities || !selectedPlan?.id) {
