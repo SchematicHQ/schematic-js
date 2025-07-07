@@ -165,6 +165,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   });
   const hasActiveAddOns = addOns.some((addOn) => addOn.isSelected);
 
+  console.log(`has active addOns: ${hasActiveAddOns}`);
   useEffect(() => {
     setAddOns((prevAddOns) => {
 
@@ -182,10 +183,13 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           ) {
             return true;
           }
-          // Filter availableAddOns: the selected add on's compatibilities must include
+
+          // Do not filter if there is no selected plan
+          if (!selectedPlan) return true;
+          // Filter availableAddOns: the selected add-on's compatibilities must include
           // the selected plan's ID. If we filtered away everything, return an empty list.
           return ourCompats?.compatiblePlanIds.includes(
-            selectedPlan?.id || "",
+            selectedPlan?.id,
           );
         })
         .map((addOn) => {
