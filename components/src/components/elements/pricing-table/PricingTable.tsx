@@ -14,6 +14,7 @@ import {
 } from "../../../hooks";
 import type { DeepPartial, ElementProps } from "../../../types";
 import {
+  darken,
   entitlementCountsReducer,
   formatCurrency,
   formatNumber,
@@ -25,10 +26,12 @@ import {
   hexToHSL,
   isCheckoutData,
   isHydratedPlan,
+  lighten,
+  pluralize,
   shortenPeriod,
 } from "../../../utils";
 import { Container, FussyChild, cardBoxShadow } from "../../layout";
-import { PeriodToggle } from "../../shared";
+import { PeriodToggle, PricingTiersTooltip } from "../../shared";
 import { Box, Button, Flex, Icon, Text, Tooltip } from "../../ui";
 
 interface DesignProps {
@@ -352,13 +355,10 @@ export const PricingTable = forwardRef<
                             : isUsageBasedPlan
                               ? t("Usage-based")
                               : formatCurrency(planPrice ?? 0, planCurrency)}
+                          {!plan.custom && !isUsageBasedPlan && (
+                            <sub>/{selectedPeriod}</sub>
+                          )}
                         </Text>
-
-                        {!plan.custom && !isUsageBasedPlan && (
-                          <Text display={props.plans.name.fontStyle}>
-                            /{selectedPeriod}
-                          </Text>
-                        )}
                       </Box>
 
                       {isActivePlan && (
@@ -418,12 +418,17 @@ export const PricingTable = forwardRef<
                               ) => {
                                 const {
                                   price: entitlementPrice,
+                                  priceTier: entitlementPriceTiers,
                                   currency: entitlementCurrency,
                                   packageSize: entitlementPackageSize = 1,
                                 } = getEntitlementPrice(
                                   entitlement,
                                   selectedPeriod,
                                 ) || {};
+                                const firstPriceTier =
+                                  entitlement.priceBehavior === "tier"
+                                    ? entitlementPriceTiers?.at(0)
+                                    : undefined;
 
                                 if (
                                   entitlement.priceBehavior &&
@@ -494,21 +499,95 @@ export const PricingTable = forwardRef<
                                             <>
                                               {entitlement.valueType ===
                                                 "unlimited" &&
-                                              !entitlement.priceBehavior
-                                                ? t("Unlimited", {
-                                                    item: getFeatureName(
+                                              !entitlement.priceBehavior ? (
+                                                t("Unlimited", {
+                                                  item: getFeatureName(
+                                                    entitlement.feature,
+                                                  ),
+                                                })
+                                              ) : entitlement.priceBehavior ===
+                                                "tier" ? (
+                                                <>
+                                                  {typeof firstPriceTier?.flatAmount ===
+                                                    "number" &&
+                                                  typeof firstPriceTier?.perUnitPrice ===
+                                                    "number"
+                                                    ? t(
+                                                        "Starting at perUnitPrice+flatAmount",
+                                                        {
+                                                          perUnitPrice:
+                                                            formatCurrency(
+                                                              firstPriceTier.perUnitPrice,
+                                                              entitlementCurrency,
+                                                            ),
+                                                          featureName:
+                                                            pluralize(
+                                                              entitlement
+                                                                .feature.name,
+                                                              1,
+                                                            ),
+                                                          flatAmount:
+                                                            formatCurrency(
+                                                              firstPriceTier.flatAmount,
+                                                              entitlementCurrency,
+                                                            ),
+                                                          period:
+                                                            shortenPeriod(
+                                                              selectedPeriod,
+                                                            ),
+                                                        },
+                                                      )
+                                                    : typeof firstPriceTier?.perUnitPrice ===
+                                                        "number"
+                                                      ? t(
+                                                          "Starting at perUnitPrice",
+                                                          {
+                                                            perUnitPrice:
+                                                              formatCurrency(
+                                                                firstPriceTier.perUnitPrice,
+                                                                entitlementCurrency,
+                                                              ),
+                                                            featureName:
+                                                              pluralize(
+                                                                entitlement
+                                                                  .feature.name,
+                                                                1,
+                                                              ),
+                                                          },
+                                                        )
+                                                      : typeof firstPriceTier?.flatAmount ===
+                                                          "number" &&
+                                                        t(
+                                                          "Starting at flatAmount",
+                                                          {
+                                                            perUnitPrice:
+                                                              formatCurrency(
+                                                                firstPriceTier.flatAmount,
+                                                                entitlementCurrency,
+                                                              ),
+                                                            featureName:
+                                                              pluralize(
+                                                                entitlement
+                                                                  .feature.name,
+                                                              ),
+                                                            period:
+                                                              shortenPeriod(
+                                                                selectedPeriod,
+                                                              ),
+                                                          },
+                                                        )}
+                                                </>
+                                              ) : (
+                                                typeof limit === "number" && (
+                                                  <>
+                                                    {formatNumber(limit)}{" "}
+                                                    {getFeatureName(
                                                       entitlement.feature,
-                                                    ),
-                                                  })
-                                                : typeof limit === "number" && (
-                                                    <>
-                                                      {formatNumber(limit)}{" "}
-                                                      {getFeatureName(
-                                                        entitlement.feature,
-                                                        limit,
-                                                      )}
-                                                    </>
-                                                  )}
+                                                      limit,
+                                                    )}
+                                                  </>
+                                                )
+                                              )}
 
                                               {metricPeriodName && (
                                                 <>
@@ -525,40 +604,78 @@ export const PricingTable = forwardRef<
 
                                         {entitlement.priceBehavior ===
                                           "overage" &&
-                                          typeof entitlementPrice ===
-                                            "number" && (
-                                            <Text
-                                              $size={
-                                                0.875 *
-                                                settings.theme.typography.text
-                                                  .fontSize
-                                              }
-                                              $color={`color-mix(in oklch, ${settings.theme.typography.text.color}, ${settings.theme.card.background})`}
-                                            >
-                                              {t("then")}{" "}
-                                              {formatCurrency(
-                                                entitlementPrice,
-                                                entitlementCurrency,
-                                              )}
-                                              /
-                                              {entitlementPackageSize > 1 && (
-                                                <>{entitlementPackageSize} </>
-                                              )}
-                                              {getFeatureName(
-                                                entitlement.feature,
-                                                entitlementPackageSize,
-                                              )}
-                                              {entitlement.feature
-                                                .featureType === "trait" && (
-                                                <>
-                                                  /
-                                                  {shortenPeriod(
-                                                    selectedPeriod,
-                                                  )}
-                                                </>
-                                              )}
-                                            </Text>
-                                          )}
+                                        typeof entitlementPrice === "number" ? (
+                                          <Text
+                                            $size={
+                                              0.875 *
+                                              settings.theme.typography.text
+                                                .fontSize
+                                            }
+                                            $color={`color-mix(in oklch, ${settings.theme.typography.text.color}, ${settings.theme.card.background})`}
+                                          >
+                                            {t("then")}{" "}
+                                            {formatCurrency(
+                                              entitlementPrice,
+                                              entitlementCurrency,
+                                            )}
+                                            /
+                                            {entitlementPackageSize > 1 && (
+                                              <>{entitlementPackageSize} </>
+                                            )}
+                                            {getFeatureName(
+                                              entitlement.feature,
+                                              entitlementPackageSize,
+                                            )}
+                                            {entitlement.feature.featureType ===
+                                              "trait" && (
+                                              <>
+                                                /{shortenPeriod(selectedPeriod)}
+                                              </>
+                                            )}
+                                          </Text>
+                                        ) : (
+                                          entitlement.priceBehavior ===
+                                            "tier" && (
+                                            <Flex $alignItems="center">
+                                              <PricingTiersTooltip
+                                                featureName={
+                                                  entitlement.feature.name
+                                                }
+                                                priceTiers={
+                                                  entitlementPriceTiers
+                                                }
+                                                currency={entitlementCurrency}
+                                              />
+                                              <Text
+                                                $size={
+                                                  0.875 *
+                                                  settings.theme.typography.text
+                                                    .fontSize
+                                                }
+                                                $color={
+                                                  hexToHSL(
+                                                    settings.theme.typography
+                                                      .text.color,
+                                                  ).l > 50
+                                                    ? darken(
+                                                        settings.theme
+                                                          .typography.text
+                                                          .color,
+                                                        0.46,
+                                                      )
+                                                    : lighten(
+                                                        settings.theme
+                                                          .typography.text
+                                                          .color,
+                                                        0.46,
+                                                      )
+                                                }
+                                              >
+                                                {t("Tier-based")}
+                                              </Text>
+                                            </Flex>
+                                          )
+                                        )}
                                       </Flex>
                                     )}
                                   </Flex>,
@@ -784,18 +901,7 @@ export const PricingTable = forwardRef<
                         <Box>
                           <Text display={props.plans.name.fontStyle}>
                             {formatCurrency(addOnPrice ?? 0, addOnCurrency)}
-                          </Text>
-
-                          <Text
-                            display={props.plans.name.fontStyle}
-                            $size={
-                              (16 / 30) *
-                              settings.theme.typography[
-                                props.plans.name.fontStyle
-                              ].fontSize
-                            }
-                          >
-                            /{selectedPeriod}
+                            <sub>/{selectedPeriod}</sub>
                           </Text>
                         </Box>
 

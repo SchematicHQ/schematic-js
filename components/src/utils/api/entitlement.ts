@@ -1,4 +1,7 @@
-import { type FeatureUsageResponseData } from "../../api/checkoutexternal";
+import {
+  BillingPriceView,
+  type FeatureUsageResponseData,
+} from "../../api/checkoutexternal";
 import type { Entitlement, PriceTier } from "../../types";
 import { getEntitlementCost } from "../../utils";
 
@@ -26,10 +29,18 @@ export function getMetricPeriodName(entitlement: Entitlement) {
   return name;
 }
 
+export interface TUsageDetails extends FeatureUsageResponseData {
+  billingPrice?: BillingPriceView;
+  limit?: number;
+  amount?: number;
+  cost?: number;
+  currentTier?: PriceTier;
+}
+
 export function getUsageDetails(
   entitlement: FeatureUsageResponseData,
   period?: string,
-) {
+): TUsageDetails {
   // billing price associated with the current period
   const billingPrice =
     period === "year"

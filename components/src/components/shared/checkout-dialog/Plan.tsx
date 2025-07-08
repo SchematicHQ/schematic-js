@@ -25,6 +25,7 @@ import {
 } from "../../../utils";
 import { cardBoxShadow } from "../../layout";
 import { Box, Button, Flex, Icon, Text, Tooltip } from "../../ui";
+import { PricingTiersTooltip } from "../pricing-tiers-tooltip";
 
 interface SelectedProps {
   isCurrent?: boolean;
@@ -563,24 +564,19 @@ export const Plan = ({
                                                     },
                                                   )
                                                 : typeof firstPriceTier?.flatAmount ===
-                                                    "number"
-                                                  ? t(
-                                                      "Starting at flatAmount",
-                                                      {
-                                                        perUnitPrice:
-                                                          formatCurrency(
-                                                            firstPriceTier.flatAmount,
-                                                            entitlementCurrency,
-                                                          ),
-                                                        featureName: pluralize(
-                                                          entitlement.feature
-                                                            .name,
-                                                        ),
-                                                        period:
-                                                          shortenPeriod(period),
-                                                      },
-                                                    )
-                                                  : undefined}
+                                                    "number" &&
+                                                  t("Starting at flatAmount", {
+                                                    perUnitPrice:
+                                                      formatCurrency(
+                                                        firstPriceTier.flatAmount,
+                                                        entitlementCurrency,
+                                                      ),
+                                                    featureName: pluralize(
+                                                      entitlement.feature.name,
+                                                    ),
+                                                    period:
+                                                      shortenPeriod(period),
+                                                  })}
                                           </>
                                         ) : (
                                           typeof limit === "number" && (
@@ -607,49 +603,82 @@ export const Plan = ({
                                   </Text>
 
                                   {entitlement.priceBehavior === "overage" &&
-                                    typeof entitlementPrice === "number" && (
-                                      <Text
-                                        $size={
-                                          0.875 *
-                                          settings.theme.typography.text
-                                            .fontSize
-                                        }
-                                        $color={
-                                          hexToHSL(
+                                  typeof entitlementPrice === "number" ? (
+                                    <Text
+                                      $size={
+                                        0.875 *
+                                        settings.theme.typography.text.fontSize
+                                      }
+                                      $color={
+                                        hexToHSL(
+                                          settings.theme.typography.text.color,
+                                        ).l > 50
+                                          ? darken(
+                                              settings.theme.typography.text
+                                                .color,
+                                              0.46,
+                                            )
+                                          : lighten(
+                                              settings.theme.typography.text
+                                                .color,
+                                              0.46,
+                                            )
+                                      }
+                                    >
+                                      {t("then")}{" "}
+                                      {formatCurrency(
+                                        entitlementPrice,
+                                        entitlementCurrency,
+                                      )}
+                                      /
+                                      {entitlementPackageSize > 1 && (
+                                        <>{entitlementPackageSize} </>
+                                      )}
+                                      {getFeatureName(
+                                        entitlement.feature,
+                                        entitlementPackageSize,
+                                      )}
+                                      {entitlement.feature.featureType ===
+                                        "trait" && (
+                                        <>/{shortenPeriod(period)}</>
+                                      )}
+                                    </Text>
+                                  ) : (
+                                    entitlement.priceBehavior === "tier" && (
+                                      <Flex $alignItems="center">
+                                        <PricingTiersTooltip
+                                          featureName={entitlement.feature.name}
+                                          priceTiers={entitlementPriceTiers}
+                                          currency={entitlementCurrency}
+                                        />
+                                        <Text
+                                          $size={
+                                            0.875 *
                                             settings.theme.typography.text
-                                              .color,
-                                          ).l > 50
-                                            ? darken(
-                                                settings.theme.typography.text
-                                                  .color,
-                                                0.46,
-                                              )
-                                            : lighten(
-                                                settings.theme.typography.text
-                                                  .color,
-                                                0.46,
-                                              )
-                                        }
-                                      >
-                                        {t("then")}{" "}
-                                        {formatCurrency(
-                                          entitlementPrice,
-                                          entitlementCurrency,
-                                        )}
-                                        /
-                                        {entitlementPackageSize > 1 && (
-                                          <>{entitlementPackageSize} </>
-                                        )}
-                                        {getFeatureName(
-                                          entitlement.feature,
-                                          entitlementPackageSize,
-                                        )}
-                                        {entitlement.feature.featureType ===
-                                          "trait" && (
-                                          <>/{shortenPeriod(period)}</>
-                                        )}
-                                      </Text>
-                                    )}
+                                              .fontSize
+                                          }
+                                          $color={
+                                            hexToHSL(
+                                              settings.theme.typography.text
+                                                .color,
+                                            ).l > 50
+                                              ? darken(
+                                                  settings.theme.typography.text
+                                                    .color,
+                                                  0.46,
+                                                )
+                                              : lighten(
+                                                  settings.theme.typography.text
+                                                    .color,
+                                                  0.46,
+                                                )
+                                          }
+                                        >
+                                          {t("Tier-based")}
+                                        </Text>
+                                      </Flex>
+                                    )
+                                  )}
                                 </Flex>
                               )}
                             </Flex>

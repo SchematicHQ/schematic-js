@@ -14,7 +14,9 @@ import {
   getFeatureName,
   getUsageDetails,
   isCheckoutData,
+  pluralize,
   toPrettyDate,
+  type TUsageDetails,
 } from "../../../utils";
 import { Element } from "../../layout";
 import { Box, Button, Flex, Icon, Text } from "../../ui";
@@ -22,6 +24,58 @@ import { Box, Button, Flex, Icon, Text } from "../../ui";
 import { Meter } from "./Meter";
 import { PriceDetails } from "./PriceDetails";
 import * as styles from "./styles";
+
+interface LimitProps {
+  entitlement: FeatureUsageResponseData;
+  usageDetails: TUsageDetails;
+  fontStyle?: FontStyle;
+}
+
+const Limit = ({ entitlement, usageDetails, fontStyle }: LimitProps) => {
+  const { t } = useTranslation();
+
+  const { feature, priceBehavior, metricResetAt } = entitlement;
+  const { limit, currentTier } = usageDetails;
+
+  const acc: React.ReactNode[] = [];
+
+  acc.push(
+    priceBehavior === "tier" &&
+      typeof currentTier?.to === "number" &&
+      typeof feature?.name === "string"
+      ? t("Limit of X in this tier", {
+          amount: currentTier.to,
+          feature: pluralize(feature.name),
+        })
+      : priceBehavior === "overage" && typeof limit === "number"
+        ? t("X included", {
+            amount: formatNumber(limit),
+          })
+        : typeof limit === "number"
+          ? t("Limit of", {
+              amount: formatNumber(limit),
+            })
+          : t("No limit"),
+  );
+
+  if (metricResetAt) {
+    acc.push(
+      t("Resets", {
+        date: toPrettyDate(metricResetAt, {
+          month: "short",
+          day: "numeric",
+          year: undefined,
+        }),
+      }),
+    );
+  }
+
+  return (
+    <Box $whiteSpace="nowrap">
+      <Text display={fontStyle}>{acc.join(" • ")}</Text>
+    </Box>
+  );
+};
 
 interface DesignProps {
   isVisible: boolean;
@@ -142,11 +196,9 @@ export const MeteredFeatures = forwardRef<
           return acc;
         }
 
-        const { feature, priceBehavior, usage, metricResetAt } = entitlement;
-        const { billingPrice, limit, amount, currentTier } = getUsageDetails(
-          entitlement,
-          period,
-        );
+        const { feature, priceBehavior, usage } = entitlement;
+        const usageDetails = getUsageDetails(entitlement, period);
+        const { billingPrice, limit, amount, currentTier } = usageDetails;
 
         acc.push(
           <Element key={index} as={Flex} $flexDirection="column" $gap="1.5rem">
@@ -217,38 +269,13 @@ export const MeteredFeatures = forwardRef<
                       </Box>
                     )}
 
-                    {
-                      // TODO: finish
-                      props.allocation.isVisible && (
-                        <Box $whiteSpace="nowrap">
-                          <Text display={props.allocation.fontStyle}>
-                            {priceBehavior === "tier" ? (
-                              <>{/* TODO: implement */}</>
-                            ) : priceBehavior === "overage" &&
-                              typeof limit === "number" ? (
-                              t("X included", {
-                                amount: formatNumber(limit),
-                              })
-                            ) : typeof limit === "number" ? (
-                              t("Limit of", {
-                                amount: formatNumber(limit),
-                              })
-                            ) : (
-                              t("No limit")
-                            )}
-                            {" • "}
-                            {metricResetAt &&
-                              t("Resets", {
-                                date: toPrettyDate(metricResetAt, {
-                                  month: "short",
-                                  day: "numeric",
-                                  year: undefined,
-                                }),
-                              })}
-                          </Text>
-                        </Box>
-                      )
-                    }
+                    {props.allocation.isVisible && (
+                      <Limit
+                        entitlement={entitlement}
+                        usageDetails={usageDetails}
+                        fontStyle={props.allocation.fontStyle}
+                      />
+                    )}
                   </Box>
                 </Flex>
 

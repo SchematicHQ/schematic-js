@@ -42,7 +42,6 @@ export const UsageDetails = ({
     limit,
     amount = 0,
     cost,
-    currentTier,
   } = useMemo(
     () => getUsageDetails(entitlement, period),
     [entitlement, period],
@@ -70,12 +69,10 @@ export const UsageDetails = ({
     }
 
     const price =
-      typeof currentTier?.perUnitPrice === "number"
-        ? currentTier.perUnitPrice
-        : entitlement.priceBehavior !== "tier" &&
-            typeof billingPrice?.price === "number"
-          ? billingPrice.price
-          : undefined;
+      entitlement.priceBehavior !== "tier" &&
+      typeof billingPrice?.price === "number"
+        ? billingPrice.price
+        : undefined;
 
     if (entitlement.feature && typeof price === "number") {
       const packageSize = billingPrice?.packageSize ?? 1;
@@ -104,7 +101,6 @@ export const UsageDetails = ({
     entitlement.priceBehavior,
     billingPrice,
     amount,
-    currentTier,
   ]);
 
   // this should never be the case since there should always be an associated feature,
@@ -120,7 +116,7 @@ export const UsageDetails = ({
       $justifyContent="space-between"
       $alignItems="center"
       $flexWrap="wrap"
-      $gap="1rem"
+      $gap="0.5rem"
     >
       <Text display={layout.addOns.fontStyle}>
         {typeof quantity === "number" && quantity > 0 ? (
@@ -132,7 +128,7 @@ export const UsageDetails = ({
         )}
       </Text>
 
-      <Flex $alignItems="center" $gap="0.5rem">
+      <Flex $alignItems="center">
         {description.length > 0 && (
           <Text
             $size={0.875 * settings.theme.typography.text.fontSize}

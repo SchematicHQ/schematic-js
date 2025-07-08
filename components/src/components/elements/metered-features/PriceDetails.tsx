@@ -42,17 +42,12 @@ export const PriceDetails = ({
 
   const isLightBackground = useIsLightBackground();
 
-  const { currency, packageSize, priceTiers } = useMemo(() => {
-    const {
-      currency,
-      packageSize = 1,
-      priceTier: priceTiers,
-    } = billingPrice || {};
-
+  const { currency, packageSize, priceTiers, tiersMode } = useMemo(() => {
     return {
-      currency,
-      packageSize,
-      priceTiers,
+      currency: billingPrice?.currency,
+      packageSize: billingPrice?.packageSize ?? 1,
+      priceTiers: billingPrice?.priceTier,
+      tiersMode: billingPrice?.tiersMode || undefined,
     };
   }, [billingPrice]);
 
@@ -93,16 +88,20 @@ export const PriceDetails = ({
           </Box>
         </Text>
       ) : (
-        <Flex $alignItems="center">
-          <Text>
-            {t("Tiered")}: {currentTier.from ?? 0} - {currentTier.to}
-          </Text>
-          <PricingTiersTooltip
-            featureName={feature.name}
-            priceTiers={priceTiers}
-            currency={currency}
-          />
-        </Flex>
+        priceBehavior === "tier" && (
+          <Flex $alignItems="center">
+            <Text>
+              {t("Tiered")}: {currentTier.from ?? 0} - {currentTier.to}{" "}
+            </Text>
+            <PricingTiersTooltip
+              featureName={feature.name}
+              currency={currency}
+              priceTiers={priceTiers}
+              tiersMode={tiersMode}
+              showMode
+            />
+          </Flex>
+        )
       )}
 
       {typeof amount === "number" && (
@@ -120,7 +119,7 @@ export const PriceDetails = ({
                 )}
             </Text>
           ) : (
-            <Box>{/* TODO: price breakdown */}</Box>
+            priceBehavior === "tier" && <Box>{/* TODO: price breakdown */}</Box>
           )}
         </>
       )}

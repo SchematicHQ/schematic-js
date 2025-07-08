@@ -387,7 +387,6 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           setCharges(response.data.finance);
         }
 
-        // TODO: allow promo code to be removed end-to-end
         if (typeof updates.promoCode !== "undefined") {
           setPromoCode(code);
         }

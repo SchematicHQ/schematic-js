@@ -145,21 +145,38 @@ export function getEntitlementCost(
       let cost = 0;
       let usage = entitlement.usage;
 
-      for (let i = 0; i < billingPrice.priceTier.length; i++) {
-        const tier = billingPrice.priceTier[i];
+      if (billingPrice.tiersMode === "volume") {
+        let from = 0;
+        const currentTier = billingPrice.priceTier.find((tier) => {
+          const end = tier.upTo ?? Infinity;
+          const isCurrentTier = usage >= from && usage <= end;
+          from += end;
 
-        if (typeof tier.upTo === "number" && usage > 0) {
-          const amount = usage > tier.upTo ? tier.upTo : usage;
+          return isCurrentTier;
+        });
 
-          if (typeof tier.flatAmount === "number") {
-            cost += tier.flatAmount;
+        if (typeof currentTier?.perUnitPrice !== "number") {
+          console.warn(
+            "Unable to find a matching tier-based price to determine cost.",
+          );
+          return;
+        }
+
+        cost +=
+          usage * currentTier.perUnitPrice + (currentTier.flatAmount ?? 0);
+      } else {
+        // default to graduated tiers mode
+        for (let i = 0; i < billingPrice.priceTier.length; i++) {
+          const tier = billingPrice.priceTier[i];
+
+          if (typeof tier.upTo === "number" && usage > 0) {
+            const amount = usage > tier.upTo ? tier.upTo : usage;
+
+            cost += tier.flatAmount ?? 0;
+            cost += amount * (tier.perUnitPrice ?? 0);
+
+            usage -= amount;
           }
-
-          if (typeof tier.perUnitPrice === "number") {
-            cost += amount * tier.perUnitPrice;
-          }
-
-          usage -= amount;
         }
       }
 
