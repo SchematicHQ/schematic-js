@@ -7,6 +7,7 @@ import { useEmbed } from "../../../hooks";
 import {
   darken,
   formatCurrency,
+  getEntitlementPrice,
   getFeatureName,
   getUsageDetails,
   hexToHSL,
@@ -68,13 +69,13 @@ export const UsageDetails = ({
       index += 1;
     }
 
-    const price =
-      entitlement.priceBehavior !== "tier" &&
-      typeof billingPrice?.price === "number"
-        ? billingPrice.price
-        : undefined;
+    const { price } = getEntitlementPrice(entitlement, period) || {};
 
-    if (entitlement.feature && typeof price === "number") {
+    if (
+      entitlement.priceBehavior !== "tier" &&
+      entitlement.feature &&
+      typeof price === "number"
+    ) {
       const packageSize = billingPrice?.packageSize ?? 1;
 
       acc.push(
@@ -94,14 +95,7 @@ export const UsageDetails = ({
     }
 
     return acc;
-  }, [
-    t,
-    period,
-    entitlement.feature,
-    entitlement.priceBehavior,
-    billingPrice,
-    amount,
-  ]);
+  }, [t, period, entitlement, billingPrice, amount]);
 
   // this should never be the case since there should always be an associated feature,
   // but we need to satisfy all possible cases
@@ -128,7 +122,7 @@ export const UsageDetails = ({
         )}
       </Text>
 
-      <Flex $alignItems="center">
+      <Flex $alignItems="center" $gap="0.5rem">
         {description.length > 0 && (
           <Text
             $size={0.875 * settings.theme.typography.text.fontSize}
@@ -142,19 +136,20 @@ export const UsageDetails = ({
           </Text>
         )}
 
-        {entitlement.priceBehavior === "tier" && (
-          <PricingTiersTooltip
-            featureName={entitlement.feature.name}
-            priceTiers={billingPrice?.priceTier}
-            currency={billingPrice?.currency}
-          />
-        )}
-
         {typeof cost === "number" && cost > 0 && (
-          <Text>
-            {formatCurrency(cost, billingPrice?.currency)}
-            <sub>/{shortenPeriod(period)}</sub>
-          </Text>
+          <Flex $alignItems="center">
+            {entitlement.priceBehavior === "tier" && (
+              <PricingTiersTooltip
+                featureName={entitlement.feature.name}
+                priceTiers={billingPrice?.priceTier}
+                currency={billingPrice?.currency}
+              />
+            )}
+            <Text>
+              {formatCurrency(cost, billingPrice?.currency)}
+              <sub>/{shortenPeriod(period)}</sub>
+            </Text>
+          </Flex>
         )}
       </Flex>
     </Flex>

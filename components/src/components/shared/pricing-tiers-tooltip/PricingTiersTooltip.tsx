@@ -35,6 +35,7 @@ export const PricingTiersTooltip = ({
           title="tiered pricing"
           name="info-rounded"
           color={`hsla(0, 0%, ${isLightBackground ? 0 : 100}%, 0.5)`}
+          style={{ marginLeft: `-${1 / 3}rem` }}
         />
       }
       content={

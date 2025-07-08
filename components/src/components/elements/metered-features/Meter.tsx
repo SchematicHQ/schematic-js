@@ -18,31 +18,30 @@ export const Meter = ({ entitlement, period }: MeterProps) => {
 
   const { feature, priceBehavior, usage, allocation } = entitlement;
 
-  const { currentTier } = useMemo(
-    () => getUsageDetails(entitlement, period),
-    [entitlement, period],
-  );
+  const limit = useMemo(() => {
+    const usageDetails = getUsageDetails(entitlement, period);
+    const limit = usageDetails.limit ?? usageDetails.currentTier?.to;
+
+    return limit;
+  }, [entitlement, period]);
 
   // check conditions required for showing the meter
-  if (typeof usage !== "number" || !currentTier?.to) {
+  if (typeof usage !== "number" || typeof limit !== "number") {
     return null;
   }
 
   const meter = (
     <ProgressBar
-      progress={
-        (Math.min(usage, currentTier.to) / Math.max(usage, currentTier.to)) *
-        100
-      }
+      progress={(Math.min(usage, limit) / Math.max(usage, limit)) * 100}
       value={usage}
-      total={currentTier.to}
+      total={limit}
       {...(priceBehavior === "overage"
         ? { color: "blue", bgColor: "#2563EB80" }
         : {
             color:
               progressColorMap[
                 Math.floor(
-                  (Math.min(usage, currentTier.to) / currentTier.to) *
+                  (Math.min(usage, limit) / limit) *
                     (progressColorMap.length - 1),
                 )
               ],

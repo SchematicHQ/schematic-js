@@ -89,9 +89,9 @@ export const PriceDetails = ({
         </Text>
       ) : (
         priceBehavior === "tier" && (
-          <Flex $alignItems="center">
+          <Flex $alignItems="center" $gap="0.5rem">
             <Text>
-              {t("Tiered")}: {currentTier.from ?? 0} - {currentTier.to}{" "}
+              {t("Tiered")}: {currentTier.from ?? 0} - {currentTier.to}
             </Text>
             <PricingTiersTooltip
               featureName={feature.name}
