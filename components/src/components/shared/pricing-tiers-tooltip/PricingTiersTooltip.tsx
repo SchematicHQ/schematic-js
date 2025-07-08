@@ -41,7 +41,7 @@ export const PricingTiersTooltip = ({
         <>
           <dl>
             {priceTiers?.reduce((acc: React.ReactNode[], tier, index, arr) => {
-              const start = arr.at(index - 1)?.upTo ?? 0;
+              const start = arr[index - 1]?.upTo ?? 0;
               const prices: React.ReactNode[] = [];
 
               if (tier.flatAmount) {

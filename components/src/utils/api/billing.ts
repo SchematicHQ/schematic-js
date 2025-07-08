@@ -116,7 +116,8 @@ export function getEntitlementCost(
       entitlement.priceBehavior === "overage" &&
       typeof entitlement.usage === "number"
     ) {
-      const overagePriceTier = billingPrice.priceTier.at(-1);
+      const overagePriceTier =
+        billingPrice.priceTier[billingPrice.priceTier.length - 1];
       if (!overagePriceTier) {
         return;
       }

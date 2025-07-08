@@ -95,7 +95,8 @@ export function getUsageDetails(
     entitlement.priceBehavior === "overage" &&
     typeof entitlement.softLimit === "number"
   ) {
-    const overageTier = tiers.length === 2 ? tiers.at(-1) : undefined;
+    const overageTier =
+      tiers.length === 2 ? tiers[tiers.length - 1] : undefined;
     if (overageTier) {
       const { upTo, ...rest } = overageTier || {};
       currentTier = {

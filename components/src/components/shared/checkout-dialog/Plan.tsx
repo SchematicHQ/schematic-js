@@ -441,7 +441,7 @@ export const Plan = ({
                         } = getEntitlementPrice(entitlement, period) || {};
                         const firstPriceTier =
                           entitlement.priceBehavior === "tier"
-                            ? entitlementPriceTiers?.at(0)
+                            ? entitlementPriceTiers?.[0]
                             : undefined;
 
                         const metricPeriodName =
