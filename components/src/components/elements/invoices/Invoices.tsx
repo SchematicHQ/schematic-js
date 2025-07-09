@@ -64,8 +64,8 @@ function resolveDesignProps(props: DeepPartial<DesignProps>): DesignProps {
   };
 }
 
-function formatInvoices(invoices: InvoiceResponseData[] = []) {
-  return invoices
+function formatInvoices(invoices?: InvoiceResponseData[]) {
+  return (invoices || [])
     .sort((a, b) => (a.dueDate && b.dueDate ? +b.dueDate - +a.dueDate : 1))
     .map(({ amountDue, dueDate, url, currency }) => ({
       amount: formatCurrency(amountDue, currency),

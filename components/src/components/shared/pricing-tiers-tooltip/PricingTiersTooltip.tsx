@@ -76,23 +76,30 @@ export const PricingTiersTooltip = ({
                     $padding="0.5rem"
                   >
                     <dt>
-                      {tier.from}
-                      {tier.to === Infinity ? "+" : `–${tier.to}`}
+                      <Text>
+                        {tier.from}
+                        {tier.to === Infinity ? "+" : `–${tier.to}`}
+                      </Text>
                     </dt>
 
                     <dd>
-                      {perUnitPrice ? (
-                        <>
-                          {formatCurrency(perUnitPrice, currency)}/
-                          {pluralize(featureName, 1)}
-                          {tier.flatAmount && (
-                            <> + {formatCurrency(tier.flatAmount, currency)}</>
-                          )}
-                        </>
-                      ) : (
-                        tier.flatAmount &&
-                        formatCurrency(tier.flatAmount, currency)
-                      )}
+                      <Text>
+                        {perUnitPrice ? (
+                          <>
+                            {formatCurrency(perUnitPrice, currency)}/
+                            {pluralize(featureName, 1)}
+                            {tier.flatAmount && (
+                              <>
+                                {" "}
+                                + {formatCurrency(tier.flatAmount, currency)}
+                              </>
+                            )}
+                          </>
+                        ) : (
+                          tier.flatAmount &&
+                          formatCurrency(tier.flatAmount, currency)
+                        )}
+                      </Text>
                     </dd>
                   </Flex>,
                 );
