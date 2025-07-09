@@ -3,7 +3,7 @@ import {
   type BillingPriceView,
   type FeatureUsageResponseData,
 } from "../../api/checkoutexternal";
-import type { BillingPrice, Entitlement, Plan, PriceTier } from "../../types";
+import type { BillingPrice, Entitlement, Plan } from "../../types";
 
 export const ChargeType = {
   oneTime: "one_time",

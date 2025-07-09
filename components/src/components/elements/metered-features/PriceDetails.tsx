@@ -1,4 +1,3 @@
-import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import { type FeatureUsageResponseData } from "../../../api/checkoutexternal";
@@ -88,8 +87,9 @@ export const PriceDetails = ({
         priceBehavior === "tier" && (
           <Flex $alignItems="center" $gap="0.5rem">
             <Text>
-              {t("Tiered")}: {currentTier.from || 1}
-              {currentTier?.to === Infinity ? "+" : `–${currentTier.to}`}
+              {t("Tiered")}: {currentTier?.from || 1}
+              {typeof currentTier?.to === "number" &&
+                (currentTier.to === Infinity ? "+" : `–${currentTier.to}`)}
             </Text>
             <PricingTiersTooltip
               featureName={feature.name}
