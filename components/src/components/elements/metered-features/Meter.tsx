@@ -12,8 +12,6 @@ export const Meter = ({ entitlement, usageDetails }: MeterProps) => {
   const { priceBehavior, usage } = entitlement;
   const limit = usageDetails.limit ?? usageDetails.currentTier?.to;
 
-  console.debug(usage, limit);
-
   // check conditions required for showing the meter
   if (typeof usage !== "number" || !limit || limit === Infinity) {
     return null;

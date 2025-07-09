@@ -27,11 +27,14 @@ import {
   isCheckoutData,
   isHydratedPlan,
   lighten,
-  pluralize,
   shortenPeriod,
 } from "../../../utils";
 import { Container, FussyChild, cardBoxShadow } from "../../layout";
-import { PeriodToggle, PricingTiersTooltip } from "../../shared";
+import {
+  PeriodToggle,
+  PricingTiersTooltip,
+  TieredPricingDetails,
+} from "../../shared";
 import { Box, Button, Flex, Icon, Text, Tooltip } from "../../ui";
 
 interface DesignProps {
@@ -425,15 +428,6 @@ export const PricingTable = forwardRef<
                                   entitlement,
                                   selectedPeriod,
                                 ) || {};
-                                const firstPriceTier =
-                                  entitlement.priceBehavior === "tier"
-                                    ? entitlementPriceTiers?.[0]
-                                    : undefined;
-                                const firstPriceTierPerUnitPrice =
-                                  typeof firstPriceTier?.perUnitPriceDecimal ===
-                                  "string"
-                                    ? Number(firstPriceTier.perUnitPriceDecimal)
-                                    : firstPriceTier?.perUnitPrice;
 
                                 if (
                                   entitlement.priceBehavior &&
@@ -512,76 +506,10 @@ export const PricingTable = forwardRef<
                                                 })
                                               ) : entitlement.priceBehavior ===
                                                 "tier" ? (
-                                                <>
-                                                  {typeof firstPriceTier?.flatAmount ===
-                                                    "number" &&
-                                                  typeof firstPriceTierPerUnitPrice ===
-                                                    "number"
-                                                    ? t(
-                                                        "Starting at perUnitPrice+flatAmount",
-                                                        {
-                                                          perUnitPrice:
-                                                            formatCurrency(
-                                                              firstPriceTierPerUnitPrice,
-                                                              entitlementCurrency,
-                                                            ),
-                                                          featureName:
-                                                            pluralize(
-                                                              entitlement
-                                                                .feature.name,
-                                                              1,
-                                                            ),
-                                                          flatAmount:
-                                                            formatCurrency(
-                                                              firstPriceTier.flatAmount,
-                                                              entitlementCurrency,
-                                                            ),
-                                                          period:
-                                                            shortenPeriod(
-                                                              selectedPeriod,
-                                                            ),
-                                                        },
-                                                      )
-                                                    : typeof firstPriceTierPerUnitPrice ===
-                                                        "number"
-                                                      ? t(
-                                                          "Starting at perUnitPrice",
-                                                          {
-                                                            perUnitPrice:
-                                                              formatCurrency(
-                                                                firstPriceTierPerUnitPrice,
-                                                                entitlementCurrency,
-                                                              ),
-                                                            featureName:
-                                                              pluralize(
-                                                                entitlement
-                                                                  .feature.name,
-                                                                1,
-                                                              ),
-                                                          },
-                                                        )
-                                                      : typeof firstPriceTier?.flatAmount ===
-                                                          "number" &&
-                                                        t(
-                                                          "Starting at flatAmount",
-                                                          {
-                                                            perUnitPrice:
-                                                              formatCurrency(
-                                                                firstPriceTier.flatAmount,
-                                                                entitlementCurrency,
-                                                              ),
-                                                            featureName:
-                                                              pluralize(
-                                                                entitlement
-                                                                  .feature.name,
-                                                              ),
-                                                            period:
-                                                              shortenPeriod(
-                                                                selectedPeriod,
-                                                              ),
-                                                          },
-                                                        )}
-                                                </>
+                                                <TieredPricingDetails
+                                                  entitlement={entitlement}
+                                                  period={selectedPeriod}
+                                                />
                                               ) : (
                                                 typeof limit === "number" && (
                                                   <>
