@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 
+import { PriceBehavior } from "../../../const";
 import {
   type CurrentUsageBasedEntitlement,
   type UsageBasedEntitlement,
@@ -33,11 +34,12 @@ export const EntitlementRow = (
       <>
         <Box>
           <Text display="heading4">
-            {priceBehavior === "pay_in_advance" ? (
+            {priceBehavior === PriceBehavior.PayInAdvance ? (
               <>
                 {quantity} {getFeatureName(feature, quantity)}
               </>
-            ) : priceBehavior === "overage" && typeof softLimit === "number" ? (
+            ) : priceBehavior === PriceBehavior.Overage &&
+              typeof softLimit === "number" ? (
               <>
                 {softLimit} {getFeatureName(feature, softLimit)}
               </>
@@ -49,16 +51,16 @@ export const EntitlementRow = (
 
         <Box $whiteSpace="nowrap">
           <Text>
-            {priceBehavior === "pay_in_advance" ? (
+            {priceBehavior === PriceBehavior.PayInAdvance ? (
               <>
                 {formatCurrency((price ?? 0) * quantity, currency)}
                 <sub>/{shortenPeriod(planPeriod)}</sub>
               </>
             ) : (
-              (priceBehavior === "pay_as_you_go" ||
-                priceBehavior === "overage") && (
+              (priceBehavior === PriceBehavior.PayAsYouGo ||
+                priceBehavior === PriceBehavior.Overage) && (
                 <>
-                  {priceBehavior === "overage" && <>{t("then")} </>}
+                  {priceBehavior === PriceBehavior.Overage && <>{t("then")} </>}
                   {formatCurrency(price ?? 0, currency)}
                   <sub>
                     /{packageSize > 1 && <>{packageSize} </>}

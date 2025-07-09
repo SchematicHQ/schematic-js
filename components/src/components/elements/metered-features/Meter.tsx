@@ -1,4 +1,5 @@
 import { type FeatureUsageResponseData } from "../../../api/checkoutexternal";
+import { PriceBehavior } from "../../../const";
 import { type TUsageDetails } from "../../../utils";
 import { ProgressBar, progressColorMap } from "../../ui";
 
@@ -22,7 +23,8 @@ export const Meter = ({ entitlement, usageDetails }: MeterProps) => {
       progress={(Math.min(usage, limit) / Math.max(usage, limit)) * 100}
       value={usage}
       total={limit}
-      {...(priceBehavior === "overage" || priceBehavior === "tier"
+      {...(priceBehavior === PriceBehavior.Overage ||
+      priceBehavior === PriceBehavior.Tiered
         ? { color: "blue", bgColor: "#2563EB80" }
         : {
             color:

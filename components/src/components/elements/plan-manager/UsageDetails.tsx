@@ -2,6 +2,7 @@ import { Fragment, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import { type FeatureUsageResponseData } from "../../../api/checkoutexternal";
+import { PriceBehavior } from "../../../const";
 import { type FontStyle } from "../../../context";
 import { useEmbed } from "../../../hooks";
 import {
@@ -53,7 +54,7 @@ export const UsageDetails = ({
 
     let index = 0;
 
-    if (entitlement.priceBehavior === "overage") {
+    if (entitlement.priceBehavior === PriceBehavior.Overage) {
       acc.push(
         amount > 0 ? (
           <Fragment key={index}>
@@ -72,7 +73,7 @@ export const UsageDetails = ({
     const { price } = getEntitlementPrice(entitlement, period) || {};
 
     if (
-      entitlement.priceBehavior !== "tier" &&
+      entitlement.priceBehavior !== PriceBehavior.Tiered &&
       entitlement.feature &&
       typeof price === "number"
     ) {
@@ -138,7 +139,7 @@ export const UsageDetails = ({
 
         {typeof cost === "number" && cost > 0 && (
           <Flex $alignItems="center">
-            {entitlement.priceBehavior === "tier" && (
+            {entitlement.priceBehavior === PriceBehavior.Tiered && (
               <PricingTiersTooltip
                 featureName={entitlement.feature.name}
                 priceTiers={billingPrice?.priceTier}

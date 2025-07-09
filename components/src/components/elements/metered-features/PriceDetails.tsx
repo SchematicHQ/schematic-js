@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 
 import { type FeatureUsageResponseData } from "../../../api/checkoutexternal";
-import { TEXT_BASE_SIZE } from "../../../const";
+import { PriceBehavior, TEXT_BASE_SIZE } from "../../../const";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import {
   darken,
@@ -72,7 +72,7 @@ export const PriceDetails = ({
         $borderBottomRightRadius: `${settings.theme.card.borderRadius / TEXT_BASE_SIZE}rem`,
       })}
     >
-      {priceBehavior === "overage" ? (
+      {priceBehavior === PriceBehavior.Overage ? (
         <Text>
           {t("Additional")}: {formatCurrency(currentTierPerUnitPrice, currency)}
           <Box as="sub" $whiteSpace="nowrap">
@@ -84,7 +84,7 @@ export const PriceDetails = ({
           </Box>
         </Text>
       ) : (
-        priceBehavior === "tier" && (
+        priceBehavior === PriceBehavior.Tiered && (
           <Flex $alignItems="center" $gap="0.5rem">
             <Text>
               {t("Tiered")}: {currentTier?.from || 1}
@@ -104,7 +104,7 @@ export const PriceDetails = ({
 
       {typeof amount === "number" && (
         <>
-          {priceBehavior === "overage" ? (
+          {priceBehavior === PriceBehavior.Overage ? (
             <Text>
               {formatNumber(amount)} {getFeatureName(feature)}
               {" · "}
@@ -117,7 +117,7 @@ export const PriceDetails = ({
                 )}
             </Text>
           ) : (
-            priceBehavior === "tier" &&
+            priceBehavior === PriceBehavior.Tiered &&
             typeof cost === "number" && (
               <Text>
                 {formatCurrency(cost, currency)}

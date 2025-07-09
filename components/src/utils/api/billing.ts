@@ -3,6 +3,7 @@ import {
   type BillingPriceView,
   type FeatureUsageResponseData,
 } from "../../api/checkoutexternal";
+import { PriceBehavior } from "../../const";
 import type { BillingPrice, Entitlement, Plan } from "../../types";
 
 export const ChargeType = {
@@ -69,7 +70,7 @@ export function getEntitlementPrice(
   if (source) {
     const billingPrice = { ...source };
 
-    if (entitlement.priceBehavior === "overage") {
+    if (entitlement.priceBehavior === PriceBehavior.Overage) {
       const overagePriceTier =
         billingPrice.priceTier[billingPrice.priceTier.length - 1];
 
@@ -99,17 +100,23 @@ export function getEntitlementCost(
     const billingPrice: BillingPriceView = { ...source };
 
     if (
-      entitlement.priceBehavior === "pay_in_advance" &&
+      entitlement.priceBehavior === PriceBehavior.PayInAdvance &&
       entitlement.allocation
     ) {
       return entitlement.allocation * billingPrice.price;
     }
 
-    if (entitlement.priceBehavior === "pay_as_you_go" && entitlement.usage) {
+    if (
+      entitlement.priceBehavior === PriceBehavior.PayAsYouGo &&
+      entitlement.usage
+    ) {
       return entitlement.usage * billingPrice.price;
     }
 
-    if (entitlement.priceBehavior === "overage" && entitlement.usage) {
+    if (
+      entitlement.priceBehavior === PriceBehavior.Overage &&
+      entitlement.usage
+    ) {
       const overagePriceTier =
         billingPrice.priceTier[billingPrice.priceTier.length - 1];
       if (!overagePriceTier) {
@@ -133,7 +140,10 @@ export function getEntitlementCost(
       return cost;
     }
 
-    if (entitlement.priceBehavior === "tier" && entitlement.usage) {
+    if (
+      entitlement.priceBehavior === PriceBehavior.Tiered &&
+      entitlement.usage
+    ) {
       let cost = 0;
       let usage = entitlement.usage;
 

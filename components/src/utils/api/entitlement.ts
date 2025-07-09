@@ -2,6 +2,7 @@ import {
   BillingPriceView,
   type FeatureUsageResponseData,
 } from "../../api/checkoutexternal";
+import { PriceBehavior } from "../../const";
 import type { Entitlement, PriceTier } from "../../types";
 import { getEntitlementCost } from "../../utils";
 
@@ -52,12 +53,12 @@ export function getUsageDetails(
   // if there is any sort of limit
   let limit: number | undefined;
   if (
-    entitlement.priceBehavior === "pay_in_advance" &&
+    entitlement.priceBehavior === PriceBehavior.PayInAdvance &&
     typeof entitlement.allocation === "number"
   ) {
     limit = entitlement.allocation;
   } else if (
-    entitlement.priceBehavior === "overage" &&
+    entitlement.priceBehavior === PriceBehavior.Overage &&
     typeof entitlement.softLimit === "number"
   ) {
     limit = entitlement.softLimit;
@@ -66,18 +67,18 @@ export function getUsageDetails(
   // amount related to cost
   let amount: number | undefined;
   if (
-    entitlement.priceBehavior === "pay_in_advance" &&
+    entitlement.priceBehavior === PriceBehavior.PayInAdvance &&
     typeof entitlement.allocation === "number"
   ) {
     amount = entitlement.allocation;
   } else if (
-    (entitlement.priceBehavior === "pay_as_you_go" ||
-      entitlement.priceBehavior === "tier") &&
+    (entitlement.priceBehavior === PriceBehavior.PayAsYouGo ||
+      entitlement.priceBehavior === PriceBehavior.Tiered) &&
     typeof entitlement.usage === "number"
   ) {
     amount = entitlement.usage;
   } else if (
-    entitlement.priceBehavior === "overage" &&
+    entitlement.priceBehavior === PriceBehavior.Overage &&
     typeof entitlement.usage === "number" &&
     typeof entitlement.softLimit === "number"
   ) {
@@ -92,7 +93,7 @@ export function getUsageDetails(
   // current price tier based on usage
   let currentTier: PriceTier | undefined;
   if (
-    entitlement.priceBehavior === "overage" &&
+    entitlement.priceBehavior === PriceBehavior.Overage &&
     typeof entitlement.softLimit === "number"
   ) {
     const overageTier =
@@ -106,7 +107,7 @@ export function getUsageDetails(
       };
     }
   } else if (
-    entitlement.priceBehavior === "tier" &&
+    entitlement.priceBehavior === PriceBehavior.Tiered &&
     typeof amount === "number"
   ) {
     for (let i = 0, start = 0; i < tiers.length; i++) {

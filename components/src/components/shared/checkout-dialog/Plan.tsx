@@ -1,7 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { TEXT_BASE_SIZE, VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
+import {
+  PriceBehavior,
+  TEXT_BASE_SIZE,
+  VISIBLE_ENTITLEMENT_COUNT,
+} from "../../../const";
 import {
   useEmbed,
   useIsLightBackground,
@@ -480,9 +484,9 @@ export const Plan = ({
                                   <Text>
                                     {typeof entitlementPrice === "number" &&
                                     (entitlement.priceBehavior ===
-                                      "pay_in_advance" ||
+                                      PriceBehavior.PayInAdvance ||
                                       entitlement.priceBehavior ===
-                                        "pay_as_you_go") ? (
+                                        PriceBehavior.PayAsYouGo) ? (
                                       <>
                                         {formatCurrency(
                                           entitlementPrice,
@@ -497,7 +501,7 @@ export const Plan = ({
                                           entitlementPackageSize,
                                         )}
                                         {entitlement.priceBehavior ===
-                                          "pay_in_advance" && (
+                                          PriceBehavior.PayInAdvance && (
                                           <>
                                             {" "}
                                             {t("per")} {period}
@@ -515,7 +519,7 @@ export const Plan = ({
                                             ),
                                           })
                                         ) : entitlement.priceBehavior ===
-                                          "tier" ? (
+                                          PriceBehavior.Tiered ? (
                                           <TieredPricingDetails
                                             entitlement={entitlement}
                                             period={period}
@@ -544,7 +548,8 @@ export const Plan = ({
                                     )}
                                   </Text>
 
-                                  {entitlement.priceBehavior === "overage" &&
+                                  {entitlement.priceBehavior ===
+                                    PriceBehavior.Overage &&
                                   typeof entitlementPrice === "number" ? (
                                     <Text
                                       $size={
@@ -586,7 +591,8 @@ export const Plan = ({
                                       )}
                                     </Text>
                                   ) : (
-                                    entitlement.priceBehavior === "tier" && (
+                                    entitlement.priceBehavior ===
+                                      PriceBehavior.Tiered && (
                                       <Flex $alignItems="center">
                                         <PricingTiersTooltip
                                           featureName={entitlement.feature.name}

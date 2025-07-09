@@ -2,6 +2,7 @@ import { Fragment, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import { type FeatureUsageResponseData } from "../../../api/checkoutexternal";
+import { PriceBehavior } from "../../../const";
 import { type FontStyle } from "../../../context";
 import { useEmbed } from "../../../hooks";
 import {
@@ -67,7 +68,10 @@ export const UsageDetails = ({
 
     const { price, currency, packageSize = 1 } = billingPrice || {};
 
-    if (priceBehavior === "pay_in_advance" && typeof allocation === "number") {
+    if (
+      priceBehavior === PriceBehavior.PayInAdvance &&
+      typeof allocation === "number"
+    ) {
       return (
         <>
           {formatNumber(allocation)} {getFeatureName(feature, allocation)}
@@ -75,7 +79,10 @@ export const UsageDetails = ({
       );
     }
 
-    if (priceBehavior === "pay_as_you_go" && typeof price === "number") {
+    if (
+      priceBehavior === PriceBehavior.PayAsYouGo &&
+      typeof price === "number"
+    ) {
       return (
         <>
           {formatCurrency(price, currency)} {t("per")}{" "}
@@ -85,7 +92,10 @@ export const UsageDetails = ({
       );
     }
 
-    if (priceBehavior === "overage" && typeof softLimit === "number") {
+    if (
+      priceBehavior === PriceBehavior.Overage &&
+      typeof softLimit === "number"
+    ) {
       return (
         <>
           {formatNumber(softLimit)} {getFeatureName(feature, softLimit)}
@@ -93,7 +103,7 @@ export const UsageDetails = ({
       );
     }
 
-    if (priceBehavior === "tier") {
+    if (priceBehavior === PriceBehavior.Tiered) {
       return (
         <>
           {typeof currentTier?.to === "number" &&
@@ -143,7 +153,7 @@ export const UsageDetails = ({
     let index = 0;
 
     if (
-      priceBehavior === "pay_in_advance" &&
+      priceBehavior === PriceBehavior.PayInAdvance &&
       typeof period === "string" &&
       typeof price === "number"
     ) {
@@ -156,9 +166,9 @@ export const UsageDetails = ({
       );
       index += 1;
     } else if (
-      (priceBehavior === "pay_as_you_go" ||
-        priceBehavior === "overage" ||
-        priceBehavior === "tier") &&
+      (priceBehavior === PriceBehavior.PayAsYouGo ||
+        priceBehavior === PriceBehavior.Overage ||
+        priceBehavior === PriceBehavior.Tiered) &&
       typeof usage === "number"
     ) {
       acc.push(
@@ -228,7 +238,7 @@ export const UsageDetails = ({
 
       {layout.usage.isVisible && usageText && (
         <Flex $justifyContent="end" $alignItems="center" $whiteSpace="nowrap">
-          {priceBehavior === "tier" && (
+          {priceBehavior === PriceBehavior.Tiered && (
             <PricingTiersTooltip
               featureName={feature.name}
               priceTiers={billingPrice?.priceTier}

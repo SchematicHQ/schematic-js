@@ -2,6 +2,7 @@ import { forwardRef, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
 import { type FeatureUsageResponseData } from "../../../api/checkoutexternal";
+import { PriceBehavior } from "../../../const";
 import { type FontStyle } from "../../../context";
 import {
   useEmbed,
@@ -41,7 +42,7 @@ const Limit = ({ entitlement, usageDetails, fontStyle }: LimitProps) => {
   const acc: React.ReactNode[] = [];
 
   acc.push(
-    priceBehavior === "tier" &&
+    priceBehavior === PriceBehavior.Tiered &&
       typeof currentTier?.to === "number" &&
       typeof feature?.name === "string"
       ? currentTier?.to === Infinity
@@ -52,13 +53,15 @@ const Limit = ({ entitlement, usageDetails, fontStyle }: LimitProps) => {
             amount: currentTier.to,
             feature: pluralize(feature.name),
           })
-      : priceBehavior === "overage" && typeof limit === "number"
+      : priceBehavior === PriceBehavior.Overage && typeof limit === "number"
         ? t("X included", {
             amount: formatNumber(limit),
           })
-        : priceBehavior === "pay_in_advance" && typeof usage === "number"
+        : priceBehavior === PriceBehavior.PayInAdvance &&
+            typeof usage === "number"
           ? `${formatNumber(usage)} ${t("used")}`
-          : priceBehavior === "pay_as_you_go" && typeof cost === "number"
+          : priceBehavior === PriceBehavior.PayAsYouGo &&
+              typeof cost === "number"
             ? formatCurrency(cost, billingPrice?.currency)
             : typeof limit === "number"
               ? t("Limit of", {
@@ -259,7 +262,7 @@ export const MeteredFeatures = forwardRef<
                     {props.usage.isVisible && (
                       <Box $whiteSpace="nowrap">
                         <Text display={props.usage.fontStyle}>
-                          {priceBehavior === "pay_in_advance" ? (
+                          {priceBehavior === PriceBehavior.PayInAdvance ? (
                             <>
                               {typeof limit === "number" && (
                                 <>{formatNumber(limit)} </>
@@ -288,14 +291,15 @@ export const MeteredFeatures = forwardRef<
                   </Box>
                 </Flex>
 
-                {props.isVisible && priceBehavior !== "pay_as_you_go" && (
-                  <Meter
-                    entitlement={entitlement}
-                    usageDetails={usageDetails}
-                  />
-                )}
+                {props.isVisible &&
+                  priceBehavior !== PriceBehavior.PayAsYouGo && (
+                    <Meter
+                      entitlement={entitlement}
+                      usageDetails={usageDetails}
+                    />
+                  )}
 
-                {priceBehavior === "pay_in_advance" && (
+                {priceBehavior === PriceBehavior.PayInAdvance && (
                   <Button
                     type="button"
                     onClick={() => {
@@ -309,7 +313,8 @@ export const MeteredFeatures = forwardRef<
               </Flex>
             </Flex>
 
-            {(priceBehavior === "overage" || priceBehavior === "tier") && (
+            {(priceBehavior === PriceBehavior.Overage ||
+              priceBehavior === PriceBehavior.Tiered) && (
               <PriceDetails
                 entitlement={entitlement}
                 usageDetails={usageDetails}
