@@ -147,15 +147,6 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   );
   const [willTrial, setWillTrial] = useState(false);
 
-  const selectedPlanCompatibility = useMemo(() => {
-    if (!data?.addOnCompatibilities || !selectedPlan?.id) {
-      return null;
-    }
-    return data.addOnCompatibilities.find(
-      (compat) => compat.sourcePlanId === selectedPlan.id,
-    );
-  }, [data?.addOnCompatibilities, selectedPlan?.id]);
-
   const [addOns, setAddOns] = useState(() => {
     if (isCheckoutData(data)) {
       return availableAddOns.map((addOn) => ({
@@ -175,19 +166,28 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
   useEffect(() => {
     setAddOns((prevAddOns) => {
-      return prevAddOns
+
+      // For all add-ons, only include the ones that
+      // 1. have an empty array for compatiblePlanIds
+      // 2. have a non-empty array that includes the selectedPlan.id
+      return availableAddOns
         .filter((availAddOn) => {
-          // No filtering if selectedPlanCompatibility is missing or empty
+
+          const ourCompats = data?.addOnCompatibilities.find( (compat) => compat.sourcePlanId === availAddOn.id)
+          // if there's no compat, include it
           if (
-            !selectedPlanCompatibility ||
-            !selectedPlanCompatibility.compatiblePlanIds?.length
+            !ourCompats ||
+            !ourCompats.compatiblePlanIds?.length
           ) {
             return true;
           }
-          // Filter availableAddOns: the selected plan's compatibilities must include
-          // an availableAddOns ID. If we filtered away everything, return an empty list.
-          return selectedPlanCompatibility?.compatiblePlanIds.includes(
-            availAddOn.id,
+
+          // Do not filter if there is no selected plan
+          if (!selectedPlan) return true;
+          // Filter availableAddOns: the selected add-on's compatibilities must include
+          // the selected plan's ID. If we filtered away everything, return an empty list.
+          return ourCompats?.compatiblePlanIds.includes(
+            selectedPlan?.id,
           );
         })
         .map((addOn) => {
@@ -198,7 +198,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           };
         });
     });
-  }, [selectedPlanCompatibility, selectedPlan?.id]);
+  }, [availableAddOns, data?.addOnCompatibilities, selectedPlan]);
 
   const [usageBasedEntitlements, setUsageBasedEntitlements] = useState(() =>
     (selectedPlan?.entitlements || []).reduce(
