@@ -166,19 +166,16 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
   useEffect(() => {
     setAddOns((prevAddOns) => {
-
       // For all add-ons, only include the ones that
       // 1. have an empty array for compatiblePlanIds
       // 2. have a non-empty array that includes the selectedPlan.id
       return availableAddOns
         .filter((availAddOn) => {
-
-          const ourCompats = data?.addOnCompatibilities.find( (compat) => compat.sourcePlanId === availAddOn.id)
+          const ourCompats = data?.addOnCompatibilities.find(
+            (compat) => compat.sourcePlanId === availAddOn.id,
+          );
           // if there's no compat, include it
-          if (
-            !ourCompats ||
-            !ourCompats.compatiblePlanIds?.length
-          ) {
+          if (!ourCompats || !ourCompats.compatiblePlanIds?.length) {
             return true;
           }
 
@@ -186,9 +183,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           if (!selectedPlan) return true;
           // Filter availableAddOns: the selected add-on's compatibilities must include
           // the selected plan's ID. If we filtered away everything, return an empty list.
-          return ourCompats?.compatiblePlanIds.includes(
-            selectedPlan?.id,
-          );
+          return ourCompats?.compatiblePlanIds.includes(selectedPlan?.id);
         })
         .map((addOn) => {
           const prevAddOn = prevAddOns.find((prev) => prev.id === addOn.id);

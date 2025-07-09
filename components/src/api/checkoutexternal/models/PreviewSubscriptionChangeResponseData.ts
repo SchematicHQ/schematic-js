@@ -36,12 +36,14 @@ export interface PreviewSubscriptionChangeResponseData {
    *
    * @type {number}
    * @memberof PreviewSubscriptionChangeResponseData
+   * @deprecated
    */
   amountOff: number;
   /**
    *
    * @type {number}
    * @memberof PreviewSubscriptionChangeResponseData
+   * @deprecated
    */
   dueNow: number;
   /**
@@ -54,6 +56,7 @@ export interface PreviewSubscriptionChangeResponseData {
    *
    * @type {number}
    * @memberof PreviewSubscriptionChangeResponseData
+   * @deprecated
    */
   newCharges: number;
   /**
@@ -66,30 +69,35 @@ export interface PreviewSubscriptionChangeResponseData {
    *
    * @type {number}
    * @memberof PreviewSubscriptionChangeResponseData
+   * @deprecated
    */
   percentOff: number;
   /**
    *
    * @type {Date}
    * @memberof PreviewSubscriptionChangeResponseData
+   * @deprecated
    */
   periodStart: Date;
   /**
    *
    * @type {boolean}
    * @memberof PreviewSubscriptionChangeResponseData
+   * @deprecated
    */
   promoCodeApplied: boolean;
   /**
    *
    * @type {number}
    * @memberof PreviewSubscriptionChangeResponseData
+   * @deprecated
    */
   proration: number;
   /**
    *
    * @type {Date}
    * @memberof PreviewSubscriptionChangeResponseData
+   * @deprecated
    */
   trialEnd?: Date | null;
   /**
