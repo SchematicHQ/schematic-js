@@ -26,8 +26,9 @@
     "format": "prettier --write src/*.ts",
     "lint": "eslint src --report-unused-disable-directives --fix",
     "openapi": "rm -rf src/types/api/ && npx openapi-generator-cli generate -c openapi-config.yaml --global-property models=\"EventBody:EventBodyFlagCheck:EventBodyIdentify:EventBodyIdentifyCompany:EventBodyTrack:CheckFlagResponse:CheckFlagResponseData:CheckFlagsResponse:CheckFlagsResponseData\",supportingFiles=runtime.ts && prettier --write \"src/types/api/**/*.{ts,tsx}\"",
+    "prepare": "husky",
     "test": "jest --config jest.config.js",
-    "prepare": "husky"
+    "tsc": "npx tsc"
   },
   "dependencies": {
     "cross-fetch": "^4.1.0",
