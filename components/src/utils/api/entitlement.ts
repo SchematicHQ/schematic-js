@@ -29,7 +29,7 @@ export function getMetricPeriodName(entitlement: Entitlement) {
   return name;
 }
 
-export interface TUsageDetails extends FeatureUsageResponseData {
+export interface TUsageDetails {
   billingPrice?: BillingPriceView;
   limit?: number;
   amount?: number;
@@ -109,22 +109,22 @@ export function getUsageDetails(
     entitlement.priceBehavior === "tier" &&
     typeof amount === "number"
   ) {
-    for (let i = 0, from = 0; i < tiers.length; i++) {
+    for (let i = 0, start = 0; i < tiers.length; i++) {
       const { upTo, ...rest } = tiers[i];
       const end = upTo ?? Infinity;
 
-      if (amount >= from && amount <= end) {
+      if (amount >= start && amount <= end) {
         currentTier = {
           ...rest,
-          from: from + 1,
+          from: start,
           to: end,
         };
         break;
       }
 
-      from += end;
+      start = end + 1;
     }
   }
 
-  return { ...entitlement, billingPrice, limit, amount, cost, currentTier };
+  return { billingPrice, limit, amount, cost, currentTier };
 }

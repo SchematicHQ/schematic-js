@@ -429,6 +429,11 @@ export const PricingTable = forwardRef<
                                   entitlement.priceBehavior === "tier"
                                     ? entitlementPriceTiers?.[0]
                                     : undefined;
+                                const firstPriceTierPerUnitPrice =
+                                  typeof firstPriceTier?.perUnitPriceDecimal ===
+                                  "string"
+                                    ? Number(firstPriceTier.perUnitPriceDecimal)
+                                    : firstPriceTier?.perUnitPrice;
 
                                 if (
                                   entitlement.priceBehavior &&
@@ -510,14 +515,14 @@ export const PricingTable = forwardRef<
                                                 <>
                                                   {typeof firstPriceTier?.flatAmount ===
                                                     "number" &&
-                                                  typeof firstPriceTier?.perUnitPrice ===
+                                                  typeof firstPriceTierPerUnitPrice ===
                                                     "number"
                                                     ? t(
                                                         "Starting at perUnitPrice+flatAmount",
                                                         {
                                                           perUnitPrice:
                                                             formatCurrency(
-                                                              firstPriceTier.perUnitPrice,
+                                                              firstPriceTierPerUnitPrice,
                                                               entitlementCurrency,
                                                             ),
                                                           featureName:
@@ -537,14 +542,14 @@ export const PricingTable = forwardRef<
                                                             ),
                                                         },
                                                       )
-                                                    : typeof firstPriceTier?.perUnitPrice ===
+                                                    : typeof firstPriceTierPerUnitPrice ===
                                                         "number"
                                                       ? t(
                                                           "Starting at perUnitPrice",
                                                           {
                                                             perUnitPrice:
                                                               formatCurrency(
-                                                                firstPriceTier.perUnitPrice,
+                                                                firstPriceTierPerUnitPrice,
                                                                 entitlementCurrency,
                                                               ),
                                                             featureName:

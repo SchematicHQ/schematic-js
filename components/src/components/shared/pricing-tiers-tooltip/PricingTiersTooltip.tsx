@@ -1,9 +1,10 @@
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import { type BillingProductPriceTierResponseData } from "../../../api/checkoutexternal";
-import { useIsLightBackground } from "../../../hooks";
+import { useEmbed, useIsLightBackground } from "../../../hooks";
 import { formatCurrency, pluralize } from "../../../utils";
-import { Flex, Icon, Text, Tooltip } from "../../ui";
+import { Box, Flex, Icon, Text, Tooltip } from "../../ui";
 
 interface PricingTiersTooltipProps {
   featureName: string;
@@ -22,7 +23,26 @@ export const PricingTiersTooltip = ({
 }: PricingTiersTooltipProps) => {
   const { t } = useTranslation();
 
+  const { settings } = useEmbed();
+
   const isLightBackground = useIsLightBackground();
+
+  const tiers = useMemo(() => {
+    let start = 1;
+    return priceTiers.map((tier) => {
+      const { upTo, ...rest } = tier;
+      const end = upTo ?? Infinity;
+      const mapped = {
+        ...rest,
+        from: start,
+        to: end,
+      };
+
+      start = end + 1;
+
+      return mapped;
+    });
+  }, [priceTiers]);
 
   if (!priceTiers.length) {
     return null;
@@ -39,21 +59,15 @@ export const PricingTiersTooltip = ({
         />
       }
       content={
-        <>
+        <Flex $flexDirection="column" $gap="1rem">
           <dl>
-            {priceTiers?.reduce((acc: React.ReactNode[], tier, index, arr) => {
-              const start = arr[index - 1]?.upTo ?? 0;
-              const prices: React.ReactNode[] = [];
+            {tiers.reduce((acc: React.ReactNode[], tier, index) => {
+              const perUnitPrice =
+                typeof tier.perUnitPriceDecimal === "string"
+                  ? Number(tier.perUnitPriceDecimal)
+                  : tier.perUnitPrice;
 
-              if (tier.flatAmount) {
-                prices.push(formatCurrency(tier.flatAmount, currency));
-              }
-
-              if (tier.perUnitPrice) {
-                prices.push(formatCurrency(tier.perUnitPrice, currency));
-              }
-
-              if (prices.length > 0) {
+              if (perUnitPrice || tier.flatAmount) {
                 acc.push(
                   <Flex
                     key={index}
@@ -62,11 +76,23 @@ export const PricingTiersTooltip = ({
                     $padding="0.5rem"
                   >
                     <dt>
-                      {start + 1}–{tier.upTo}
+                      {tier.from}
+                      {tier.to === Infinity ? "+" : `–${tier.to}`}
                     </dt>
 
                     <dd>
-                      {prices.join(" + ")}/{pluralize(featureName, 1)}
+                      {perUnitPrice ? (
+                        <>
+                          {formatCurrency(perUnitPrice, currency)}/
+                          {pluralize(featureName, 1)}
+                          {tier.flatAmount && (
+                            <> + {formatCurrency(tier.flatAmount, currency)}</>
+                          )}
+                        </>
+                      ) : (
+                        tier.flatAmount &&
+                        formatCurrency(tier.flatAmount, currency)
+                      )}
                     </dd>
                   </Flex>,
                 );
@@ -76,14 +102,25 @@ export const PricingTiersTooltip = ({
             }, [])}
           </dl>
           {showMode && (
-            <Text>
-              ℹ️{" "}
-              {tiersMode === "volume"
-                ? t("Price by unit based on final tier reached.")
-                : t("Tiers apply progressively as quantity increases.")}
-            </Text>
+            <>
+              <hr
+                style={{
+                  border: "none",
+                  borderBottom: `1px solid ${settings.theme.typography.text.color}`,
+                  opacity: 0.25,
+                }}
+              />
+              <Box>
+                <Text>
+                  ℹ️{" "}
+                  {tiersMode === "volume"
+                    ? t("Price by unit based on final tier reached.")
+                    : t("Tiers apply progressively as quantity increases.")}
+                </Text>
+              </Box>
+            </>
           )}
-        </>
+        </Flex>
       }
       $flexGrow="0 !important"
       $width="auto !important"

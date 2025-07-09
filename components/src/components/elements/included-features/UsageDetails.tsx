@@ -96,8 +96,15 @@ export const UsageDetails = ({
     if (priceBehavior === "tier") {
       return (
         <>
-          {currentTier?.to && <>{formatNumber(currentTier.to)} </>}
-          {getFeatureName(feature, currentTier?.to)}
+          {typeof currentTier?.to === "number" &&
+            (currentTier?.to === Infinity ? (
+              t("Unlimited in this tier", { feature: getFeatureName(feature) })
+            ) : (
+              <>
+                {formatNumber(currentTier.to)}{" "}
+                {getFeatureName(feature, currentTier?.to)}
+              </>
+            ))}
         </>
       );
     }

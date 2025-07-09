@@ -10,6 +10,7 @@ import {
 } from "../../../hooks";
 import type { DeepPartial, ElementProps } from "../../../types";
 import {
+  formatCurrency,
   formatNumber,
   getFeatureName,
   getUsageDetails,
@@ -34,8 +35,8 @@ interface LimitProps {
 const Limit = ({ entitlement, usageDetails, fontStyle }: LimitProps) => {
   const { t } = useTranslation();
 
-  const { feature, priceBehavior, metricResetAt } = entitlement;
-  const { limit, currentTier } = usageDetails;
+  const { feature, priceBehavior, usage, metricResetAt } = entitlement;
+  const { billingPrice, limit, cost, currentTier } = usageDetails;
 
   const acc: React.ReactNode[] = [];
 
@@ -43,19 +44,27 @@ const Limit = ({ entitlement, usageDetails, fontStyle }: LimitProps) => {
     priceBehavior === "tier" &&
       typeof currentTier?.to === "number" &&
       typeof feature?.name === "string"
-      ? t("Limit of X in this tier", {
-          amount: currentTier.to,
-          feature: pluralize(feature.name),
-        })
+      ? currentTier?.to === Infinity
+        ? t("Unlimited in this tier", {
+            feature: pluralize(feature.name),
+          })
+        : t("Limit of X in this tier", {
+            amount: currentTier.to,
+            feature: pluralize(feature.name),
+          })
       : priceBehavior === "overage" && typeof limit === "number"
         ? t("X included", {
             amount: formatNumber(limit),
           })
-        : typeof limit === "number"
-          ? t("Limit of", {
-              amount: formatNumber(limit),
-            })
-          : t("No limit"),
+        : priceBehavior === "pay_in_advance" && typeof usage === "number"
+          ? `${formatNumber(usage)} ${t("used")}`
+          : priceBehavior === "pay_as_you_go" && typeof cost === "number"
+            ? formatCurrency(cost, billingPrice?.currency)
+            : typeof limit === "number"
+              ? t("Limit of", {
+                  amount: formatNumber(limit),
+                })
+              : t("No limit"),
   );
 
   if (metricResetAt) {
@@ -198,7 +207,7 @@ export const MeteredFeatures = forwardRef<
 
         const { feature, priceBehavior, usage } = entitlement;
         const usageDetails = getUsageDetails(entitlement, period);
-        const { billingPrice, limit, amount, currentTier } = usageDetails;
+        const { limit } = usageDetails;
 
         acc.push(
           <Element key={index} as={Flex} $flexDirection="column" $gap="1.5rem">
@@ -280,7 +289,10 @@ export const MeteredFeatures = forwardRef<
                 </Flex>
 
                 {props.isVisible && priceBehavior !== "pay_as_you_go" && (
-                  <Meter entitlement={entitlement} period={period} />
+                  <Meter
+                    entitlement={entitlement}
+                    usageDetails={usageDetails}
+                  />
                 )}
 
                 {priceBehavior === "pay_in_advance" && (
@@ -299,12 +311,9 @@ export const MeteredFeatures = forwardRef<
 
             {(priceBehavior === "overage" || priceBehavior === "tier") && (
               <PriceDetails
+                entitlement={entitlement}
+                usageDetails={usageDetails}
                 period={period}
-                feature={feature}
-                priceBehavior={priceBehavior}
-                amount={amount}
-                billingPrice={billingPrice}
-                currentTier={currentTier}
               />
             )}
           </Element>,

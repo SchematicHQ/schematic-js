@@ -111,7 +111,7 @@ export const Content = styled.div.withConfig({
     line-height: 1;
     width: max-content;
     max-width: 100%;
-    padding: ${1 / 1.15}rem 1rem;
+    padding: 1rem;
     text-align: left;
     opacity: 0;
     background-color: ${theme.card.background};

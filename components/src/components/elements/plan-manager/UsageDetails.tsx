@@ -147,7 +147,9 @@ export const UsageDetails = ({
             )}
             <Text>
               {formatCurrency(cost, billingPrice?.currency)}
-              <sub>/{shortenPeriod(period)}</sub>
+              {entitlement.feature.featureType === "trait" && (
+                <sub>/{shortenPeriod(period)}</sub>
+              )}
             </Text>
           </Flex>
         )}

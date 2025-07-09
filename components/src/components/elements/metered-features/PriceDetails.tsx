@@ -1,13 +1,9 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
-import {
-  type BillingPriceView,
-  type FeatureDetailResponseData,
-} from "../../../api/checkoutexternal";
+import { type FeatureUsageResponseData } from "../../../api/checkoutexternal";
 import { TEXT_BASE_SIZE } from "../../../const";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
-import type { PriceTier } from "../../../types";
 import {
   darken,
   formatCurrency,
@@ -15,26 +11,21 @@ import {
   getFeatureName,
   lighten,
   shortenPeriod,
+  type TUsageDetails,
 } from "../../../utils";
 import { PricingTiersTooltip } from "../../shared";
 import { Box, Flex, Text } from "../../ui";
 
 interface PriceDetailsProps {
+  entitlement: FeatureUsageResponseData;
+  usageDetails: TUsageDetails;
   period?: string;
-  feature: FeatureDetailResponseData;
-  priceBehavior: "overage" | "tier";
-  amount?: number;
-  billingPrice?: BillingPriceView;
-  currentTier?: PriceTier;
 }
 
 export const PriceDetails = ({
+  entitlement,
+  usageDetails,
   period,
-  feature,
-  priceBehavior,
-  amount,
-  billingPrice,
-  currentTier,
 }: PriceDetailsProps) => {
   const { t } = useTranslation();
 
@@ -42,19 +33,26 @@ export const PriceDetails = ({
 
   const isLightBackground = useIsLightBackground();
 
-  const { currency, packageSize, priceTiers, tiersMode } = useMemo(() => {
-    return {
-      currency: billingPrice?.currency,
-      packageSize: billingPrice?.packageSize ?? 1,
-      priceTiers: billingPrice?.priceTier,
-      tiersMode: billingPrice?.tiersMode || undefined,
-    };
-  }, [billingPrice]);
+  const { feature, priceBehavior } = entitlement;
+  const { amount, cost, billingPrice, currentTier } = usageDetails;
+  const {
+    currency,
+    packageSize,
+    priceTiers,
+    tiersMode,
+    currentTierPerUnitPrice,
+  } = {
+    currency: billingPrice?.currency,
+    packageSize: billingPrice?.packageSize ?? 1,
+    priceTiers: billingPrice?.priceTier,
+    tiersMode: billingPrice?.tiersMode || undefined,
+    currentTierPerUnitPrice:
+      typeof currentTier?.perUnitPriceDecimal === "string"
+        ? Number(currentTier?.perUnitPriceDecimal)
+        : currentTier?.perUnitPrice,
+  };
 
-  if (
-    typeof feature === "undefined" ||
-    typeof currentTier?.perUnitPrice !== "number"
-  ) {
+  if (typeof feature === "undefined" || !currentTierPerUnitPrice) {
     return null;
   }
 
@@ -77,8 +75,7 @@ export const PriceDetails = ({
     >
       {priceBehavior === "overage" ? (
         <Text>
-          {t("Additional")}:{" "}
-          {formatCurrency(currentTier.perUnitPrice, currency)}
+          {t("Additional")}: {formatCurrency(currentTierPerUnitPrice, currency)}
           <Box as="sub" $whiteSpace="nowrap">
             /{packageSize > 1 && <>{packageSize} </>}
             {getFeatureName(feature, packageSize)}
@@ -91,7 +88,8 @@ export const PriceDetails = ({
         priceBehavior === "tier" && (
           <Flex $alignItems="center" $gap="0.5rem">
             <Text>
-              {t("Tiered")}: {currentTier.from ?? 0} - {currentTier.to}
+              {t("Tiered")}: {currentTier.from || 1}
+              {currentTier?.to === Infinity ? "+" : `–${currentTier.to}`}
             </Text>
             <PricingTiersTooltip
               featureName={feature.name}
@@ -110,7 +108,7 @@ export const PriceDetails = ({
             <Text>
               {formatNumber(amount)} {getFeatureName(feature)}
               {" · "}
-              {formatCurrency(currentTier.perUnitPrice * amount, currency)}
+              {formatCurrency(currentTierPerUnitPrice * amount, currency)}
               {feature.featureType === "trait" &&
                 typeof period === "string" && (
                   <Box as="sub" $whiteSpace="nowrap">
@@ -119,7 +117,18 @@ export const PriceDetails = ({
                 )}
             </Text>
           ) : (
-            priceBehavior === "tier" && <Box>{/* TODO: price breakdown */}</Box>
+            priceBehavior === "tier" &&
+            typeof cost === "number" && (
+              <Text>
+                {formatCurrency(cost, currency)}
+                {feature.featureType === "trait" &&
+                  typeof period === "string" && (
+                    <Box as="sub" $whiteSpace="nowrap">
+                      /{shortenPeriod(period)}
+                    </Box>
+                  )}
+              </Text>
+            )
           )}
         </>
       )}

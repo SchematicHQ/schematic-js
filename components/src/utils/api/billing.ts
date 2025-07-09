@@ -3,7 +3,7 @@ import {
   type BillingPriceView,
   type FeatureUsageResponseData,
 } from "../../api/checkoutexternal";
-import type { BillingPrice, Entitlement, Plan } from "../../types";
+import type { BillingPrice, Entitlement, Plan, PriceTier } from "../../types";
 
 export const ChargeType = {
   oneTime: "one_time",
@@ -100,22 +100,16 @@ export function getEntitlementCost(
 
     if (
       entitlement.priceBehavior === "pay_in_advance" &&
-      typeof entitlement.allocation === "number"
+      entitlement.allocation
     ) {
       return entitlement.allocation * billingPrice.price;
     }
 
-    if (
-      entitlement.priceBehavior === "pay_as_you_go" &&
-      typeof entitlement.usage === "number"
-    ) {
+    if (entitlement.priceBehavior === "pay_as_you_go" && entitlement.usage) {
       return entitlement.usage * billingPrice.price;
     }
 
-    if (
-      entitlement.priceBehavior === "overage" &&
-      typeof entitlement.usage === "number"
-    ) {
+    if (entitlement.priceBehavior === "overage" && entitlement.usage) {
       const overagePriceTier =
         billingPrice.priceTier[billingPrice.priceTier.length - 1];
       if (!overagePriceTier) {
@@ -124,11 +118,11 @@ export function getEntitlementCost(
 
       let cost = 0;
 
-      if (typeof overagePriceTier.flatAmount === "number") {
+      if (overagePriceTier.flatAmount) {
         cost += overagePriceTier.flatAmount;
       }
 
-      if (typeof overagePriceTier.perUnitPrice === "number") {
+      if (overagePriceTier.perUnitPrice) {
         const amount = Math.max(
           0,
           entitlement.usage - (entitlement.softLimit ?? 0),
@@ -139,24 +133,21 @@ export function getEntitlementCost(
       return cost;
     }
 
-    if (
-      entitlement.priceBehavior === "tier" &&
-      typeof entitlement.usage === "number"
-    ) {
+    if (entitlement.priceBehavior === "tier" && entitlement.usage) {
       let cost = 0;
       let usage = entitlement.usage;
 
       if (billingPrice.tiersMode === "volume") {
-        let from = 0;
+        let start = 0;
         const currentTier = billingPrice.priceTier.find((tier) => {
           const end = tier.upTo ?? Infinity;
-          const isCurrentTier = usage >= from && usage <= end;
-          from += end;
+          const isCurrentTier = usage >= start && usage <= end;
+          start = end + 1;
 
           return isCurrentTier;
         });
 
-        if (typeof currentTier?.perUnitPrice !== "number") {
+        if (!currentTier?.perUnitPrice) {
           console.warn(
             "Unable to find a matching tier-based price to determine cost.",
           );
