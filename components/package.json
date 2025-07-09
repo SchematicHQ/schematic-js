@@ -34,7 +34,7 @@
     "@schematichq/schematic-icons": "^0.5.2",
     "@stripe/stripe-js": "^7.4.0",
     "classnames": "^2.5.1",
-    "i18next": "^25.3.1",
+    "i18next": "^25.3.2",
     "lodash": "^4.17.21",
     "pako": "^2.1.0",
     "react-i18next": "^15.6.0",
