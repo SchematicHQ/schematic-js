@@ -1,17 +1,22 @@
 import { useTranslation } from "react-i18next";
 
 import { PriceBehavior } from "../../../const";
+import { useEmbed } from "../../../hooks";
 import {
   type CurrentUsageBasedEntitlement,
   type UsageBasedEntitlement,
 } from "../../../types";
 import {
+  darken,
   formatCurrency,
   getEntitlementPrice,
   getFeatureName,
+  hexToHSL,
+  lighten,
   shortenPeriod,
 } from "../../../utils";
-import { Box, Text } from "../../ui";
+import { PricingTiersTooltip } from "../../shared";
+import { Box, Flex, Text } from "../../ui";
 
 export const EntitlementRow = (
   entitlement: (UsageBasedEntitlement | CurrentUsageBasedEntitlement) & {
@@ -19,6 +24,8 @@ export const EntitlementRow = (
   },
 ) => {
   const { t } = useTranslation();
+
+  const { settings } = useEmbed();
 
   const { feature, priceBehavior, quantity, softLimit, planPeriod } =
     entitlement;
@@ -28,6 +35,7 @@ export const EntitlementRow = (
       price,
       currency,
       packageSize = 1,
+      priceTier: priceTiers,
     } = getEntitlementPrice(entitlement, planPeriod) || {};
 
     return (
@@ -50,29 +58,47 @@ export const EntitlementRow = (
         </Box>
 
         <Box $whiteSpace="nowrap">
-          <Text>
-            {priceBehavior === PriceBehavior.PayInAdvance ? (
-              <>
-                {formatCurrency((price ?? 0) * quantity, currency)}
-                <sub>/{shortenPeriod(planPeriod)}</sub>
-              </>
-            ) : (
-              (priceBehavior === PriceBehavior.PayAsYouGo ||
-                priceBehavior === PriceBehavior.Overage) && (
-                <>
-                  {priceBehavior === PriceBehavior.Overage && <>{t("then")} </>}
-                  {formatCurrency(price ?? 0, currency)}
-                  <sub>
-                    /{packageSize > 1 && <>{packageSize} </>}
-                    {getFeatureName(feature, packageSize)}
-                    {feature.featureType === "trait" && (
-                      <>/{shortenPeriod(planPeriod)}</>
-                    )}
-                  </sub>
-                </>
-              )
-            )}
-          </Text>
+          {priceBehavior === PriceBehavior.PayInAdvance ? (
+            <Text>
+              {formatCurrency((price ?? 0) * quantity, currency)}
+              <sub>/{shortenPeriod(planPeriod)}</sub>
+            </Text>
+          ) : priceBehavior === PriceBehavior.PayAsYouGo ||
+            priceBehavior === PriceBehavior.Overage ? (
+            <Text>
+              {priceBehavior === PriceBehavior.Overage && <>{t("then")} </>}
+              {formatCurrency(price ?? 0, currency)}
+              <sub>
+                /{packageSize > 1 && <>{packageSize} </>}
+                {getFeatureName(feature, packageSize)}
+                {feature.featureType === "trait" && (
+                  <>/{shortenPeriod(planPeriod)}</>
+                )}
+              </sub>
+            </Text>
+          ) : (
+            priceBehavior === PriceBehavior.Tiered && (
+              <Flex $alignItems="center">
+                <PricingTiersTooltip
+                  feature={feature}
+                  period={planPeriod}
+                  currency={currency}
+                  priceTiers={priceTiers}
+                />
+
+                <Text
+                  $size={0.875 * settings.theme.typography.text.fontSize}
+                  $color={
+                    hexToHSL(settings.theme.typography.text.color).l > 50
+                      ? darken(settings.theme.typography.text.color, 0.46)
+                      : lighten(settings.theme.typography.text.color, 0.46)
+                  }
+                >
+                  {t("Tier-based")}
+                </Text>
+              </Flex>
+            )
+          )}
         </Box>
       </>
     );

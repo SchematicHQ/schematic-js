@@ -107,14 +107,14 @@ export const UsageDetails = ({
       return (
         <>
           {typeof currentTier?.to === "number" &&
-            (currentTier?.to === Infinity ? (
-              t("Unlimited in this tier", { feature: getFeatureName(feature) })
-            ) : (
-              <>
-                {formatNumber(currentTier.to)}{" "}
-                {getFeatureName(feature, currentTier?.to)}
-              </>
-            ))}
+            (currentTier?.to === Infinity
+              ? t("Unlimited in this tier", {
+                  feature: getFeatureName(feature),
+                })
+              : t("X units in this tier", {
+                  amount: formatNumber(currentTier.to),
+                  feature: getFeatureName(feature, currentTier?.to),
+                }))}
         </>
       );
     }
@@ -240,9 +240,10 @@ export const UsageDetails = ({
         <Flex $justifyContent="end" $alignItems="center" $whiteSpace="nowrap">
           {priceBehavior === PriceBehavior.Tiered && (
             <PricingTiersTooltip
-              featureName={feature.name}
-              priceTiers={billingPrice?.priceTier}
+              feature={feature}
+              period={period}
               currency={billingPrice?.currency}
+              priceTiers={billingPrice?.priceTier}
             />
           )}
 

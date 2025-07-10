@@ -3,23 +3,25 @@ import { useTranslation } from "react-i18next";
 
 import { type BillingProductPriceTierResponseData } from "../../../api/checkoutexternal";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
-import { formatCurrency, pluralize } from "../../../utils";
+import type { Feature } from "../../../types";
 import { Box, Flex, Icon, Text, Tooltip } from "../../ui";
 
+import { PriceText } from "./PriceText";
+
 interface PricingTiersTooltipProps {
-  featureName: string;
+  feature: Feature;
+  period?: string;
   currency?: string;
   priceTiers?: BillingProductPriceTierResponseData[];
   tiersMode?: string;
-  showMode?: boolean;
 }
 
 export const PricingTiersTooltip = ({
-  featureName,
-  priceTiers = [],
+  feature,
+  period,
   currency,
+  priceTiers = [],
   tiersMode,
-  showMode = false,
 }: PricingTiersTooltipProps) => {
   const { t } = useTranslation();
 
@@ -61,54 +63,47 @@ export const PricingTiersTooltip = ({
       content={
         <Flex $flexDirection="column" $gap="1rem">
           <dl>
-            {tiers.reduce((acc: React.ReactNode[], tier, index) => {
+            {tiers.map((tier, index) => {
+              const flatAmount =
+                typeof tier.flatAmount === "number"
+                  ? tier.flatAmount
+                  : undefined;
+
               const perUnitPrice =
                 typeof tier.perUnitPriceDecimal === "string"
                   ? Number(tier.perUnitPriceDecimal)
-                  : tier.perUnitPrice;
+                  : typeof tier.perUnitPrice === "number"
+                    ? tier.perUnitPrice
+                    : undefined;
 
-              if (perUnitPrice || tier.flatAmount) {
-                acc.push(
-                  <Flex
-                    key={index}
-                    $justifyContent="space-between"
-                    $gap="1rem"
-                    $padding="0.5rem"
-                  >
-                    <dt>
-                      <Text>
-                        {tier.from}
-                        {tier.to === Infinity ? "+" : `–${tier.to}`}
-                      </Text>
-                    </dt>
+              return (
+                <Flex
+                  key={index}
+                  $justifyContent="space-between"
+                  $gap="1rem"
+                  $padding="0.5rem"
+                >
+                  <dt>
+                    <Text>
+                      {tier.from}
+                      {tier.to === Infinity ? "+" : `–${tier.to}`}
+                    </Text>
+                  </dt>
 
-                    <dd>
-                      <Text>
-                        {perUnitPrice ? (
-                          <>
-                            {formatCurrency(perUnitPrice, currency)}/
-                            {pluralize(featureName, 1)}
-                            {tier.flatAmount && (
-                              <>
-                                {" "}
-                                + {formatCurrency(tier.flatAmount, currency)}
-                              </>
-                            )}
-                          </>
-                        ) : (
-                          tier.flatAmount &&
-                          formatCurrency(tier.flatAmount, currency)
-                        )}
-                      </Text>
-                    </dd>
-                  </Flex>,
-                );
-              }
-
-              return acc;
-            }, [])}
+                  <dd>
+                    <PriceText
+                      period={period}
+                      feature={feature}
+                      flatAmount={flatAmount}
+                      perUnitPrice={perUnitPrice}
+                      currency={currency}
+                    />
+                  </dd>
+                </Flex>
+              );
+            })}
           </dl>
-          {showMode && (
+          {tiersMode && (
             <>
               <hr
                 style={{

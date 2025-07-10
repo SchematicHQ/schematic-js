@@ -575,13 +575,12 @@ export const PricingTable = forwardRef<
                                             PriceBehavior.Tiered && (
                                             <Flex $alignItems="center">
                                               <PricingTiersTooltip
-                                                featureName={
-                                                  entitlement.feature.name
-                                                }
+                                                feature={entitlement.feature}
+                                                period={selectedPeriod}
+                                                currency={entitlementCurrency}
                                                 priceTiers={
                                                   entitlementPriceTiers
                                                 }
-                                                currency={entitlementCurrency}
                                               />
                                               <Text
                                                 $size={

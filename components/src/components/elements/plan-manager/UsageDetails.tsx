@@ -137,15 +137,17 @@ export const UsageDetails = ({
           </Text>
         )}
 
-        {typeof cost === "number" && cost > 0 && (
+        {typeof cost === "number" && (
           <Flex $alignItems="center">
             {entitlement.priceBehavior === PriceBehavior.Tiered && (
               <PricingTiersTooltip
-                featureName={entitlement.feature.name}
-                priceTiers={billingPrice?.priceTier}
+                feature={entitlement.feature}
+                period={period}
                 currency={billingPrice?.currency}
+                priceTiers={billingPrice?.priceTier}
               />
             )}
+
             <Text>
               {formatCurrency(cost, billingPrice?.currency)}
               {entitlement.feature.featureType === "trait" && (

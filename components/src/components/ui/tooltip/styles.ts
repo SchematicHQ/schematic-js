@@ -121,6 +121,20 @@ export const Content = styled.div.withConfig({
     transform-origin: ${transformOrigin.x} ${transformOrigin.y};
     animation: 0.2s ease-in-out 0.1s both ${grow(translate)};
 
+    sub,
+    sup {
+      position: static;
+      line-height: 1;
+    }
+
+    sub {
+      vertical-align: baseline;
+    }
+
+    sup {
+      vertical-align: top;
+    }
+
     &::after {
       position: absolute;
       z-index: 0;

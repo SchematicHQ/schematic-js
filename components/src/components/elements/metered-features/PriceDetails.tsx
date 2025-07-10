@@ -51,7 +51,10 @@ export const PriceDetails = ({
         : currentTier?.perUnitPrice,
   };
 
-  if (typeof feature === "undefined" || !currentTierPerUnitPrice) {
+  if (
+    typeof feature === "undefined" ||
+    typeof currentTierPerUnitPrice !== "number"
+  ) {
     return null;
   }
 
@@ -87,16 +90,16 @@ export const PriceDetails = ({
         priceBehavior === PriceBehavior.Tiered && (
           <Flex $alignItems="center" $gap="0.5rem">
             <Text>
-              {t("Tiered")}: {currentTier?.from || 1}
+              {t("Tier")}: {currentTier?.from || 1}
               {typeof currentTier?.to === "number" &&
                 (currentTier.to === Infinity ? "+" : `–${currentTier.to}`)}
             </Text>
             <PricingTiersTooltip
-              featureName={feature.name}
+              period={period}
+              feature={feature}
               currency={currency}
               priceTiers={priceTiers}
               tiersMode={tiersMode}
-              showMode
             />
           </Flex>
         )

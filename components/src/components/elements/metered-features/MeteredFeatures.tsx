@@ -16,7 +16,6 @@ import {
   getFeatureName,
   getUsageDetails,
   isCheckoutData,
-  pluralize,
   toPrettyDate,
   type TUsageDetails,
 } from "../../../utils";
@@ -47,11 +46,11 @@ const Limit = ({ entitlement, usageDetails, fontStyle }: LimitProps) => {
       typeof feature?.name === "string"
       ? currentTier?.to === Infinity
         ? t("Unlimited in this tier", {
-            feature: pluralize(feature.name),
+            feature: getFeatureName(feature),
           })
-        : t("Limit of X in this tier", {
+        : t("X units in this tier", {
             amount: currentTier.to,
-            feature: pluralize(feature.name),
+            feature: getFeatureName(feature),
           })
       : priceBehavior === PriceBehavior.Overage && typeof limit === "number"
         ? t("X included", {

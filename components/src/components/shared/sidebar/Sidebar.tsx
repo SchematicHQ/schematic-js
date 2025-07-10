@@ -577,7 +577,7 @@ export const Sidebar = ({
                     <Flex
                       key={index}
                       $justifyContent="space-between"
-                      $alignItems="center"
+                      $alignItems="baseline"
                       $gap="1rem"
                       $opacity="0.625"
                       $textDecoration="line-through"
@@ -603,7 +603,7 @@ export const Sidebar = ({
                     <Box key={index}>
                       <Flex
                         $justifyContent="space-between"
-                        $alignItems="center"
+                        $alignItems="baseline"
                         $gap="1rem"
                         $opacity="0.625"
                         $textDecoration="line-through"
@@ -614,7 +614,7 @@ export const Sidebar = ({
 
                       <Flex
                         $justifyContent="space-between"
-                        $alignItems="center"
+                        $alignItems="baseline"
                         $gap="1rem"
                       >
                         <EntitlementRow {...next} planPeriod={planPeriod} />
@@ -635,7 +635,7 @@ export const Sidebar = ({
                     <Flex
                       key={index}
                       $justifyContent="space-between"
-                      $alignItems="center"
+                      $alignItems="baseline"
                       $gap="1rem"
                     >
                       <EntitlementRow

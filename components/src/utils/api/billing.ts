@@ -142,7 +142,7 @@ export function getEntitlementCost(
 
     if (
       entitlement.priceBehavior === PriceBehavior.Tiered &&
-      entitlement.usage
+      typeof entitlement.usage === "number" // a price needs to be displayed next to the tiered tooltip
     ) {
       let cost = 0;
       let usage = entitlement.usage;
@@ -157,25 +157,22 @@ export function getEntitlementCost(
           return isCurrentTier;
         });
 
-        if (!currentTier?.perUnitPrice) {
-          console.warn(
-            "Unable to find a matching tier-based price to determine cost.",
-          );
-          return;
-        }
+        const flatAmount = currentTier?.flatAmount ?? 0;
+        const perUnitPrice = currentTier?.perUnitPrice ?? 0;
 
-        cost +=
-          usage * currentTier.perUnitPrice + (currentTier.flatAmount ?? 0);
+        cost += usage * perUnitPrice + (flatAmount ?? 0);
       } else {
         // default to graduated tiers mode
         for (let i = 0; i < billingPrice.priceTier.length; i++) {
           const tier = billingPrice.priceTier[i];
+          const flatAmount = tier.flatAmount ?? 0;
+          const perUnitPrice = tier.perUnitPrice ?? 0;
 
           if (typeof tier.upTo === "number" && usage > 0) {
             const amount = usage > tier.upTo ? tier.upTo : usage;
 
-            cost += tier.flatAmount ?? 0;
-            cost += amount * (tier.perUnitPrice ?? 0);
+            cost += flatAmount;
+            cost += amount * perUnitPrice;
 
             usage -= amount;
           }

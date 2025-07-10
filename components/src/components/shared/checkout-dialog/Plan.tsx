@@ -595,9 +595,10 @@ export const Plan = ({
                                       PriceBehavior.Tiered && (
                                       <Flex $alignItems="center">
                                         <PricingTiersTooltip
-                                          featureName={entitlement.feature.name}
-                                          priceTiers={entitlementPriceTiers}
+                                          feature={entitlement.feature}
+                                          period={period}
                                           currency={entitlementCurrency}
+                                          priceTiers={entitlementPriceTiers}
                                         />
                                         <Text
                                           $size={
