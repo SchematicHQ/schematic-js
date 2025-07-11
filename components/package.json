@@ -43,10 +43,10 @@
   },
   "devDependencies": {
     "@craftjs/core": "^0.2.12",
-    "@eslint/css": "^0.9.0",
+    "@eslint/css": "^0.10.0",
     "@eslint/js": "^9.30.1",
-    "@eslint/json": "^0.12.0",
-    "@eslint/markdown": "^6.5.0",
+    "@eslint/json": "^0.13.0",
+    "@eslint/markdown": "^7.0.0",
     "@microsoft/api-extractor": "^7.52.8",
     "@openapitools/openapi-generator-cli": "^2.21.0",
     "@stripe/react-stripe-js": "^3.7.0",
