@@ -5,7 +5,7 @@ import { type PlanEntitlementResponseData } from "../../../api/checkoutexternal"
 import {
   formatCurrency,
   getEntitlementPrice,
-  pluralize,
+  getFeatureName,
   shortenPeriod,
 } from "../../../utils";
 
@@ -45,23 +45,23 @@ export const TieredPricingDetails = ({
   if (flatAmount === 0 && perUnitPrice === 0) {
     return t("Up to X units for free", {
       X: upTo,
-      units: pluralize(entitlement.feature.name, upTo),
+      units: getFeatureName(entitlement.feature, upTo),
     });
   }
 
   if (flatAmount === 0 && perUnitPrice > 0) {
     return t("Up to X units at $Y/unit", {
       X: upTo,
-      units: pluralize(entitlement.feature.name),
+      units: getFeatureName(entitlement.feature, upTo),
       Y: formatCurrency(perUnitPrice, currency),
-      unit: pluralize(entitlement.feature.name, 1),
+      unit: getFeatureName(entitlement.feature, 1),
     });
   }
 
   if (flatAmount > 0 && perUnitPrice === 0) {
     return t("Up to X units for $Y/period", {
       X: upTo,
-      units: pluralize(entitlement.feature.name),
+      units: getFeatureName(entitlement.feature, upTo),
       Y: formatCurrency(flatAmount, currency),
       period,
     });
@@ -69,10 +69,11 @@ export const TieredPricingDetails = ({
 
   if (flatAmount > 0 && perUnitPrice > 0) {
     return t("Up to X units at $Y/unit + $Z/period", {
-      amount: upTo,
-      perUnitPrice: formatCurrency(perUnitPrice, currency),
-      featureName: pluralize(entitlement.feature.name, 1),
-      flatAmount: formatCurrency(flatAmount, currency),
+      X: upTo,
+      units: getFeatureName(entitlement.feature, upTo),
+      Y: formatCurrency(perUnitPrice, currency),
+      unit: getFeatureName(entitlement.feature, 1),
+      Z: formatCurrency(flatAmount, currency),
       period: shortenPeriod(period),
     });
   }
