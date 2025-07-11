@@ -109,7 +109,7 @@ export const PriceDetails = ({
         <>
           {priceBehavior === PriceBehavior.Overage ? (
             <Text>
-              {formatNumber(amount)} {getFeatureName(feature)}
+              {formatNumber(amount)} {getFeatureName(feature, amount)}
               {" · "}
               {formatCurrency(currentTierPerUnitPrice * amount, currency)}
               {feature.featureType === "trait" &&

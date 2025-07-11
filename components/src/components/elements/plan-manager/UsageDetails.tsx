@@ -43,7 +43,7 @@ export const UsageDetails = ({
     billingPrice,
     limit,
     amount = 0,
-    cost,
+    cost = 0,
   } = useMemo(
     () => getUsageDetails(entitlement, period),
     [entitlement, period],
@@ -75,7 +75,8 @@ export const UsageDetails = ({
     if (
       entitlement.priceBehavior !== PriceBehavior.Tiered &&
       entitlement.feature &&
-      typeof price === "number"
+      typeof price === "number" &&
+      !amount
     ) {
       const packageSize = billingPrice?.packageSize ?? 1;
 
@@ -137,7 +138,7 @@ export const UsageDetails = ({
           </Text>
         )}
 
-        {typeof cost === "number" && (
+        {(cost > 0 || entitlement.priceBehavior === PriceBehavior.Tiered) && (
           <Flex $alignItems="center">
             {entitlement.priceBehavior === PriceBehavior.Tiered && (
               <PricingTiersTooltip
