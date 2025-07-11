@@ -157,10 +157,12 @@ export function getEntitlementCost(
           return isCurrentTier;
         });
 
-        const flatAmount = currentTier?.flatAmount ?? 0;
-        const perUnitPrice = currentTier?.perUnitPrice ?? 0;
+        if (usage > 0) {
+          const flatAmount = currentTier?.flatAmount ?? 0;
+          const perUnitPrice = currentTier?.perUnitPrice ?? 0;
 
-        cost += usage * perUnitPrice + (flatAmount ?? 0);
+          cost += usage * perUnitPrice + (flatAmount ?? 0);
+        }
       } else {
         // default to graduated tiers mode
         for (let i = 0; i < billingPrice.priceTier.length; i++) {
