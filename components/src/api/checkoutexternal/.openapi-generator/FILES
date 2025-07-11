@@ -3,6 +3,7 @@ apis/CheckoutexternalApi.ts
 apis/index.ts
 index.ts
 models/ApiError.ts
+models/BillingCreditBundleView.ts
 models/BillingCreditResponseData.ts
 models/BillingPriceResponseData.ts
 models/BillingPriceView.ts
