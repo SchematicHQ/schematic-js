@@ -1,6 +1,7 @@
 /* tslint:disable */
  
 export * from "./ApiError";
+export * from "./BillingCreditBundleView";
 export * from "./BillingCreditResponseData";
 export * from "./BillingPriceResponseData";
 export * from "./BillingPriceView";

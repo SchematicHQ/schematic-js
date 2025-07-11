@@ -111,7 +111,7 @@ export const UsageDetails = ({
               ? t("Unlimited in this tier", {
                   feature: getFeatureName(feature),
                 })
-              : t("X units in this tier", {
+              : t("Up to X units in this tier", {
                   amount: formatNumber(currentTier.to),
                   feature: getFeatureName(feature, currentTier?.to),
                 }))}

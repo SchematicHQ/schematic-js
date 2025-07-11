@@ -48,7 +48,7 @@ const Limit = ({ entitlement, usageDetails, fontStyle }: LimitProps) => {
         ? t("Unlimited in this tier", {
             feature: getFeatureName(feature),
           })
-        : t("X units in this tier", {
+        : t("Up to X units in this tier", {
             amount: currentTier.to,
             feature: getFeatureName(feature),
           })
