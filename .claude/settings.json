@@ -2,17 +2,20 @@
   "permissions": {
     "allow": [
       "Bash(awk:*)",
+      "Bash(cat:*)",
       "Bash(find:*)",
       "Bash(grep:*)",
       "Bash(linear:*)",
       "Bash(rg:*)",
-      "Bash(yarn)",
       "Bash(yarn build)",
       "Bash(yarn format)",
       "Bash(yarn lint)",
       "Bash(yarn openapi)",
-      "Bash(yarn test)"
+      "Bash(yarn test)",
+      "Bash(yarn tsc)",
+      "Bash(yarn)"
     ],
     "deny": []
   }
 }
+
