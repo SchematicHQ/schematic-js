@@ -56,6 +56,7 @@ export function formatCurrency(amount: number, currency?: string) {
 
     return new Intl.NumberFormat("en-US", {
       style: "currency",
+      minimumFractionDigits: 2,
       maximumSignificantDigits: 12,
       currency: resolvedCurrency,
     }).format(amount / 100);

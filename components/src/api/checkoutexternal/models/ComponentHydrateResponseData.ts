@@ -43,6 +43,12 @@ import {
   ComponentCapabilitiesFromJSONTyped,
   ComponentCapabilitiesToJSON,
 } from "./ComponentCapabilities";
+import type { BillingCreditBundleView } from "./BillingCreditBundleView";
+import {
+  BillingCreditBundleViewFromJSON,
+  BillingCreditBundleViewFromJSONTyped,
+  BillingCreditBundleViewToJSON,
+} from "./BillingCreditBundleView";
 import type { ComponentResponseData } from "./ComponentResponseData";
 import {
   ComponentResponseDataFromJSON,
@@ -130,6 +136,12 @@ export interface ComponentHydrateResponseData {
   component?: ComponentResponseData;
   /**
    *
+   * @type {Array<BillingCreditBundleView>}
+   * @memberof ComponentHydrateResponseData
+   */
+  creditBundles: Array<BillingCreditBundleView>;
+  /**
+   *
    * @type {PlanDetailResponseData}
    * @memberof ComponentHydrateResponseData
    */
@@ -186,6 +198,8 @@ export function instanceOfComponentHydrateResponseData(
     value["addOnCompatibilities"] === undefined
   )
     return false;
+  if (!("creditBundles" in value) || value["creditBundles"] === undefined)
+    return false;
   return true;
 }
 
@@ -227,6 +241,9 @@ export function ComponentHydrateResponseDataFromJSONTyped(
       json["component"] == null
         ? undefined
         : ComponentResponseDataFromJSON(json["component"]),
+    creditBundles: (json["credit_bundles"] as Array<any>).map(
+      BillingCreditBundleViewFromJSON,
+    ),
     defaultPlan:
       json["default_plan"] == null
         ? undefined
@@ -276,6 +293,9 @@ export function ComponentHydrateResponseDataToJSON(
     capabilities: ComponentCapabilitiesToJSON(value["capabilities"]),
     company: CompanyDetailResponseDataToJSON(value["company"]),
     component: ComponentResponseDataToJSON(value["component"]),
+    credit_bundles: (value["creditBundles"] as Array<any>).map(
+      BillingCreditBundleViewToJSON,
+    ),
     default_plan: PlanDetailResponseDataToJSON(value["defaultPlan"]),
     feature_usage: FeatureUsageDetailResponseDataToJSON(value["featureUsage"]),
     stripe_embed: StripeEmbedInfoToJSON(value["stripeEmbed"]),

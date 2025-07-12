@@ -1,7 +1,10 @@
 import {
   type BillingPriceResponseData,
   type BillingPriceView,
+  type BillingProductPriceTierResponseData,
   type CompanyPlanDetailResponseData,
+  type FeatureDetailResponseData,
+  type FeatureResponseData,
   type FeatureUsageResponseData,
   type PlanEntitlementResponseData,
 } from "../api/checkoutexternal";
@@ -10,6 +13,8 @@ import { type PlanViewPublicResponseData } from "../api/componentspublic";
 export type BillingPrice = BillingPriceView | BillingPriceResponseData;
 
 export type Plan = CompanyPlanDetailResponseData | PlanViewPublicResponseData;
+
+export type Feature = FeatureDetailResponseData | FeatureResponseData;
 
 export type Entitlement =
   | PlanEntitlementResponseData
@@ -26,3 +31,8 @@ export interface CurrentUsageBasedEntitlement extends FeatureUsageResponseData {
   usage: number;
   quantity: number;
 }
+
+export type PriceTier = Omit<BillingProductPriceTierResponseData, "upTo"> & {
+  from?: number;
+  to?: number;
+};

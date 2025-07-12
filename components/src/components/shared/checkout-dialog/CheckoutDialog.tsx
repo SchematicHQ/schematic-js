@@ -16,6 +16,7 @@ import {
   type UpdateAddOnRequestBody,
   type UpdatePayInAdvanceRequestBody,
 } from "../../../api/checkoutexternal";
+import { PriceBehavior } from "../../../const";
 import {
   useAvailablePlans,
   useEmbed,
@@ -208,7 +209,8 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   const payInAdvanceEntitlements = useMemo(
     () =>
       usageBasedEntitlements.filter(
-        (entitlement) => entitlement.priceBehavior === "pay_in_advance",
+        (entitlement) =>
+          entitlement.priceBehavior === PriceBehavior.PayInAdvance,
       ),
     [usageBasedEntitlements],
   );
@@ -382,7 +384,6 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           setCharges(response.data.finance);
         }
 
-        // TODO: allow promo code to be removed end-to-end
         if (typeof updates.promoCode !== "undefined") {
           setPromoCode(code);
         }
@@ -452,7 +453,10 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
               ...entitlement,
               allocation: entitlement.valueNumeric || 0,
               usage: 0,
-              quantity: entitlement.priceBehavior === "pay_in_advance" ? 1 : 0,
+              quantity:
+                entitlement.priceBehavior === PriceBehavior.PayInAdvance
+                  ? 1
+                  : 0,
             });
           }
 
@@ -487,7 +491,8 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
             }
           : {
               payInAdvanceEntitlements: entitlements.filter(
-                ({ priceBehavior }) => priceBehavior === "pay_in_advance",
+                ({ priceBehavior }) =>
+                  priceBehavior === PriceBehavior.PayInAdvance,
               ),
             }),
       });
@@ -535,7 +540,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
         handlePreviewCheckout({
           payInAdvanceEntitlements: updated.filter(
-            ({ priceBehavior }) => priceBehavior === "pay_in_advance",
+            ({ priceBehavior }) => priceBehavior === PriceBehavior.PayInAdvance,
           ),
         });
 

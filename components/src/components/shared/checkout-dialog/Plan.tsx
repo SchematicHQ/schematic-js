@@ -1,7 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { TEXT_BASE_SIZE, VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
+import {
+  PriceBehavior,
+  TEXT_BASE_SIZE,
+  VISIBLE_ENTITLEMENT_COUNT,
+} from "../../../const";
 import {
   useEmbed,
   useIsLightBackground,
@@ -23,6 +27,7 @@ import {
   shortenPeriod,
 } from "../../../utils";
 import { cardBoxShadow } from "../../layout";
+import { PricingTiersTooltip, TieredPricingDetails } from "../../shared";
 import { Box, Button, Flex, Icon, Text, Tooltip } from "../../ui";
 
 interface SelectedProps {
@@ -433,6 +438,7 @@ export const Plan = ({
 
                         const {
                           price: entitlementPrice,
+                          priceTier: entitlementPriceTiers,
                           currency: entitlementCurrency,
                           packageSize: entitlementPackageSize = 1,
                         } = getEntitlementPrice(entitlement, period) || {};
@@ -475,12 +481,12 @@ export const Plan = ({
                                   $justifyContent="center"
                                   $gap="0.5rem"
                                 >
-                                  <Text $leading={1.35}>
+                                  <Text>
                                     {typeof entitlementPrice === "number" &&
                                     (entitlement.priceBehavior ===
-                                      "pay_in_advance" ||
+                                      PriceBehavior.PayInAdvance ||
                                       entitlement.priceBehavior ===
-                                        "pay_as_you_go") ? (
+                                        PriceBehavior.PayAsYouGo) ? (
                                       <>
                                         {formatCurrency(
                                           entitlementPrice,
@@ -495,13 +501,19 @@ export const Plan = ({
                                           entitlementPackageSize,
                                         )}
                                         {entitlement.priceBehavior ===
-                                          "pay_in_advance" && (
+                                          PriceBehavior.PayInAdvance && (
                                           <>
                                             {" "}
                                             {t("per")} {period}
                                           </>
                                         )}
                                       </>
+                                    ) : entitlement.priceBehavior ===
+                                      PriceBehavior.Tiered ? (
+                                      <TieredPricingDetails
+                                        entitlement={entitlement}
+                                        period={period}
+                                      />
                                     ) : hasNumericValue ? (
                                       <>
                                         {entitlement.valueType ===
@@ -534,51 +546,86 @@ export const Plan = ({
                                     )}
                                   </Text>
 
-                                  {entitlement.priceBehavior === "overage" &&
-                                    typeof entitlementPrice === "number" && (
-                                      <Text
-                                        $size={
-                                          0.875 *
-                                          settings.theme.typography.text
-                                            .fontSize
-                                        }
-                                        $color={
-                                          hexToHSL(
+                                  {entitlement.priceBehavior ===
+                                    PriceBehavior.Overage &&
+                                  typeof entitlementPrice === "number" ? (
+                                    <Text
+                                      $size={
+                                        0.875 *
+                                        settings.theme.typography.text.fontSize
+                                      }
+                                      $color={
+                                        hexToHSL(
+                                          settings.theme.typography.text.color,
+                                        ).l > 50
+                                          ? darken(
+                                              settings.theme.typography.text
+                                                .color,
+                                              0.46,
+                                            )
+                                          : lighten(
+                                              settings.theme.typography.text
+                                                .color,
+                                              0.46,
+                                            )
+                                      }
+                                    >
+                                      {t("then")}{" "}
+                                      {formatCurrency(
+                                        entitlementPrice,
+                                        entitlementCurrency,
+                                      )}
+                                      /
+                                      {entitlementPackageSize > 1 && (
+                                        <>{entitlementPackageSize} </>
+                                      )}
+                                      {getFeatureName(
+                                        entitlement.feature,
+                                        entitlementPackageSize,
+                                      )}
+                                      {entitlement.feature.featureType ===
+                                        "trait" && (
+                                        <>/{shortenPeriod(period)}</>
+                                      )}
+                                    </Text>
+                                  ) : (
+                                    entitlement.priceBehavior ===
+                                      PriceBehavior.Tiered && (
+                                      <Flex $alignItems="center">
+                                        <PricingTiersTooltip
+                                          feature={entitlement.feature}
+                                          period={period}
+                                          currency={entitlementCurrency}
+                                          priceTiers={entitlementPriceTiers}
+                                        />
+                                        <Text
+                                          $size={
+                                            0.875 *
                                             settings.theme.typography.text
-                                              .color,
-                                          ).l > 50
-                                            ? darken(
-                                                settings.theme.typography.text
-                                                  .color,
-                                                0.46,
-                                              )
-                                            : lighten(
-                                                settings.theme.typography.text
-                                                  .color,
-                                                0.46,
-                                              )
-                                        }
-                                        $leading={1.35}
-                                      >
-                                        {t("then")}{" "}
-                                        {formatCurrency(
-                                          entitlementPrice,
-                                          entitlementCurrency,
-                                        )}
-                                        /
-                                        {entitlementPackageSize > 1 && (
-                                          <>{entitlementPackageSize} </>
-                                        )}
-                                        {getFeatureName(
-                                          entitlement.feature,
-                                          entitlementPackageSize,
-                                        )}
-                                        {entitlement.feature.featureType ===
-                                          "trait" && (
-                                          <>/{shortenPeriod(period)}</>
-                                        )}
-                                      </Text>
-                                    )}
+                                              .fontSize
+                                          }
+                                          $color={
+                                            hexToHSL(
+                                              settings.theme.typography.text
+                                                .color,
+                                            ).l > 50
+                                              ? darken(
+                                                  settings.theme.typography.text
+                                                    .color,
+                                                  0.46,
+                                                )
+                                              : lighten(
+                                                  settings.theme.typography.text
+                                                    .color,
+                                                  0.46,
+                                                )
+                                          }
+                                        >
+                                          {t("Tier-based")}
+                                        </Text>
+                                      </Flex>
+                                    )
+                                  )}
                                 </Flex>
                               )}
                             </Flex>
