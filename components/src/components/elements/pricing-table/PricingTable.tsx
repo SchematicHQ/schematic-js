@@ -493,6 +493,12 @@ export const PricingTable = forwardRef<
                                                 </>
                                               )}
                                             </>
+                                          ) : entitlement.priceBehavior ===
+                                            PriceBehavior.Tiered ? (
+                                            <TieredPricingDetails
+                                              entitlement={entitlement}
+                                              period={selectedPeriod}
+                                            />
                                           ) : entitlement.valueType ===
                                               "numeric" ||
                                             entitlement.valueType ===
@@ -502,29 +508,21 @@ export const PricingTable = forwardRef<
                                             <>
                                               {entitlement.valueType ===
                                                 "unlimited" &&
-                                              !entitlement.priceBehavior ? (
-                                                t("Unlimited", {
-                                                  item: getFeatureName(
-                                                    entitlement.feature,
-                                                  ),
-                                                })
-                                              ) : entitlement.priceBehavior ===
-                                                PriceBehavior.Tiered ? (
-                                                <TieredPricingDetails
-                                                  entitlement={entitlement}
-                                                  period={selectedPeriod}
-                                                />
-                                              ) : (
-                                                typeof limit === "number" && (
-                                                  <>
-                                                    {formatNumber(limit)}{" "}
-                                                    {getFeatureName(
+                                              !entitlement.priceBehavior
+                                                ? t("Unlimited", {
+                                                    item: getFeatureName(
                                                       entitlement.feature,
-                                                      limit,
-                                                    )}
-                                                  </>
-                                                )
-                                              )}
+                                                    ),
+                                                  })
+                                                : typeof limit === "number" && (
+                                                    <>
+                                                      {formatNumber(limit)}{" "}
+                                                      {getFeatureName(
+                                                        entitlement.feature,
+                                                        limit,
+                                                      )}
+                                                    </>
+                                                  )}
 
                                               {metricPeriodName && (
                                                 <>

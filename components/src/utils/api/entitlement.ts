@@ -30,7 +30,7 @@ export function getMetricPeriodName(entitlement: Entitlement) {
   return name;
 }
 
-export interface TUsageDetails {
+export interface UsageDetails {
   billingPrice?: BillingPriceView;
   limit?: number;
   amount?: number;
@@ -41,7 +41,7 @@ export interface TUsageDetails {
 export function getUsageDetails(
   entitlement: FeatureUsageResponseData,
   period?: string,
-): TUsageDetails {
+): UsageDetails {
   // billing price associated with the current period
   const billingPrice =
     period === "year"

@@ -508,33 +508,31 @@ export const Plan = ({
                                           </>
                                         )}
                                       </>
+                                    ) : entitlement.priceBehavior ===
+                                      PriceBehavior.Tiered ? (
+                                      <TieredPricingDetails
+                                        entitlement={entitlement}
+                                        period={period}
+                                      />
                                     ) : hasNumericValue ? (
                                       <>
                                         {entitlement.valueType ===
                                           "unlimited" &&
-                                        !entitlement.priceBehavior ? (
-                                          t("Unlimited", {
-                                            item: getFeatureName(
-                                              entitlement.feature,
-                                            ),
-                                          })
-                                        ) : entitlement.priceBehavior ===
-                                          PriceBehavior.Tiered ? (
-                                          <TieredPricingDetails
-                                            entitlement={entitlement}
-                                            period={period}
-                                          />
-                                        ) : (
-                                          typeof limit === "number" && (
-                                            <>
-                                              {formatNumber(limit)}{" "}
-                                              {getFeatureName(
+                                        !entitlement.priceBehavior
+                                          ? t("Unlimited", {
+                                              item: getFeatureName(
                                                 entitlement.feature,
-                                                limit,
-                                              )}
-                                            </>
-                                          )
-                                        )}
+                                              ),
+                                            })
+                                          : typeof limit === "number" && (
+                                              <>
+                                                {formatNumber(limit)}{" "}
+                                                {getFeatureName(
+                                                  entitlement.feature,
+                                                  limit,
+                                                )}
+                                              </>
+                                            )}
 
                                         {metricPeriodName && (
                                           <>
