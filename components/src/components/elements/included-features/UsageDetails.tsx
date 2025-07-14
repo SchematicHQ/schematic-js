@@ -2,7 +2,7 @@ import { Fragment, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import { type FeatureUsageResponseData } from "../../../api/checkoutexternal";
-import { PriceBehavior } from "../../../const";
+import { FeatureType, PriceBehavior } from "../../../const";
 import { type FontStyle } from "../../../context";
 import { useEmbed } from "../../../hooks";
 import {
@@ -186,7 +186,10 @@ export const UsageDetails = ({
         );
         index += 1;
 
-        if (feature.featureType === "trait" && typeof period === "string") {
+        if (
+          feature.featureType === FeatureType.Trait &&
+          typeof period === "string"
+        ) {
           acc.push(<Fragment key={index}>/{shortenPeriod(period)}</Fragment>);
           index += 1;
         }

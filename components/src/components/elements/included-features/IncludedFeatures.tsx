@@ -2,7 +2,7 @@ import { forwardRef, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { type FeatureUsageResponseData } from "../../../api/checkoutexternal";
-import { VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
+import { FeatureType, VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
 import { type FontStyle } from "../../../context";
 import {
   useEmbed,
@@ -167,8 +167,8 @@ export const IncludedFeatures = forwardRef<
       {featureUsage.slice(0, showCount).map((entitlement, index) => {
         const shouldShowDetails =
           entitlement.feature?.name &&
-          (entitlement.feature?.featureType === "event" ||
-            entitlement.feature?.featureType === "trait");
+          (entitlement.feature?.featureType === FeatureType.Event ||
+            entitlement.feature?.featureType === FeatureType.Trait);
 
         return (
           <Flex

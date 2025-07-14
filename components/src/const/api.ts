@@ -4,3 +4,16 @@ export enum PriceBehavior {
   Overage = "overage",
   Tiered = "tier",
 }
+
+export enum EntitlementValueType {
+  Boolean = "boolean",
+  Numeric = "numeric",
+  Unlimited = "unlimited",
+  Trait = "trait",
+}
+
+export enum FeatureType {
+  Boolean = "boolean",
+  Event = "event",
+  Trait = "trait",
+}

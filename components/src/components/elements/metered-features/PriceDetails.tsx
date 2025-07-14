@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 
 import { type FeatureUsageResponseData } from "../../../api/checkoutexternal";
-import { PriceBehavior, TEXT_BASE_SIZE } from "../../../const";
+import { FeatureType, PriceBehavior, TEXT_BASE_SIZE } from "../../../const";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import {
   darken,
@@ -81,7 +81,7 @@ export const PriceDetails = ({
           <Box as="sub" $whiteSpace="nowrap">
             /{packageSize > 1 && <>{packageSize} </>}
             {getFeatureName(feature, packageSize)}
-            {feature.featureType === "trait" && period && (
+            {feature.featureType === FeatureType.Trait && period && (
               <>/{shortenPeriod(period)}</>
             )}
           </Box>
@@ -112,7 +112,7 @@ export const PriceDetails = ({
               {formatNumber(amount)} {getFeatureName(feature, amount)}
               {" · "}
               {formatCurrency(currentTierPerUnitPrice * amount, currency)}
-              {feature.featureType === "trait" &&
+              {feature.featureType === FeatureType.Trait &&
                 typeof period === "string" && (
                   <Box as="sub" $whiteSpace="nowrap">
                     /{shortenPeriod(period)}
@@ -124,7 +124,7 @@ export const PriceDetails = ({
             typeof cost === "number" && (
               <Text>
                 {formatCurrency(cost, currency)}
-                {feature.featureType === "trait" &&
+                {feature.featureType === FeatureType.Trait &&
                   typeof period === "string" && (
                     <Box as="sub" $whiteSpace="nowrap">
                       /{shortenPeriod(period)}

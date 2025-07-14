@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
+  EntitlementValueType,
+  FeatureType,
   PriceBehavior,
   TEXT_BASE_SIZE,
   VISIBLE_ENTITLEMENT_COUNT,
@@ -429,9 +431,11 @@ export const Plan = ({
                         entitlementIndex,
                       ) => {
                         const hasNumericValue =
-                          entitlement.valueType === "numeric" ||
-                          entitlement.valueType === "unlimited" ||
-                          entitlement.valueType === "trait";
+                          entitlement.valueType ===
+                            EntitlementValueType.Numeric ||
+                          entitlement.valueType ===
+                            EntitlementValueType.Unlimited ||
+                          entitlement.valueType === EntitlementValueType.Trait;
 
                         const limit =
                           entitlement.softLimit ?? entitlement.valueNumeric;
@@ -517,7 +521,7 @@ export const Plan = ({
                                     ) : hasNumericValue ? (
                                       <>
                                         {entitlement.valueType ===
-                                          "unlimited" &&
+                                          EntitlementValueType.Unlimited &&
                                         !entitlement.priceBehavior
                                           ? t("Unlimited", {
                                               item: getFeatureName(
@@ -584,7 +588,7 @@ export const Plan = ({
                                         entitlementPackageSize,
                                       )}
                                       {entitlement.feature.featureType ===
-                                        "trait" && (
+                                        FeatureType.Trait && (
                                         <>/{shortenPeriod(period)}</>
                                       )}
                                     </Text>

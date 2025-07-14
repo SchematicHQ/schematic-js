@@ -1,7 +1,11 @@
 import { useTranslation } from "react-i18next";
 
 import { type PlanEntitlementResponseData } from "../../../api/checkoutexternal";
-import { PriceBehavior } from "../../../const";
+import {
+  EntitlementValueType,
+  FeatureType,
+  PriceBehavior,
+} from "../../../const";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import {
   darken,
@@ -92,11 +96,11 @@ export const Entitlement = ({
                 entitlement={entitlement}
                 period={selectedPeriod}
               />
-            ) : entitlement.valueType === "numeric" ||
-              entitlement.valueType === "unlimited" ||
-              entitlement.valueType === "trait" ? (
+            ) : entitlement.valueType === EntitlementValueType.Numeric ||
+              entitlement.valueType === EntitlementValueType.Unlimited ||
+              entitlement.valueType === EntitlementValueType.Trait ? (
               <>
-                {entitlement.valueType === "unlimited" &&
+                {entitlement.valueType === EntitlementValueType.Unlimited &&
                 !entitlement.priceBehavior
                   ? t("Unlimited", {
                       item: getFeatureName(entitlement.feature),
@@ -130,7 +134,7 @@ export const Entitlement = ({
               {formatCurrency(entitlementPrice, entitlementCurrency)}/
               {entitlementPackageSize > 1 && <>{entitlementPackageSize} </>}
               {getFeatureName(entitlement.feature, entitlementPackageSize)}
-              {entitlement.feature.featureType === "trait" && (
+              {entitlement.feature.featureType === FeatureType.Trait && (
                 <>/{shortenPeriod(selectedPeriod)}</>
               )}
             </Text>

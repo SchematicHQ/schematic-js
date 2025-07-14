@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 
-import { PriceBehavior } from "../../../const";
+import { FeatureType, PriceBehavior } from "../../../const";
 import { useEmbed } from "../../../hooks";
 import {
   type CurrentUsageBasedEntitlement,
@@ -71,7 +71,7 @@ export const EntitlementRow = (
               <sub>
                 /{packageSize > 1 && <>{packageSize} </>}
                 {getFeatureName(feature, packageSize)}
-                {feature.featureType === "trait" && (
+                {feature.featureType === FeatureType.Trait && (
                   <>/{shortenPeriod(planPeriod)}</>
                 )}
               </sub>

@@ -101,21 +101,24 @@ export function getEntitlementCost(
 
     if (
       entitlement.priceBehavior === PriceBehavior.PayInAdvance &&
-      entitlement.allocation
+      typeof entitlement.allocation === "number" &&
+      entitlement.allocation > 0
     ) {
       return entitlement.allocation * billingPrice.price;
     }
 
     if (
       entitlement.priceBehavior === PriceBehavior.PayAsYouGo &&
-      entitlement.usage
+      typeof entitlement.usage === "number" &&
+      entitlement.usage > 0
     ) {
       return entitlement.usage * billingPrice.price;
     }
 
     if (
       entitlement.priceBehavior === PriceBehavior.Overage &&
-      entitlement.usage
+      typeof entitlement.usage === "number" &&
+      entitlement.usage > 0
     ) {
       const overagePriceTier =
         billingPrice.priceTier[billingPrice.priceTier.length - 1];

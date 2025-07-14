@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
-import { TEXT_BASE_SIZE } from "../../../const";
+import { EntitlementValueType, TEXT_BASE_SIZE } from "../../../const";
 import {
   useEmbed,
   useIsLightBackground,
@@ -170,11 +170,15 @@ export const AddOn = ({ addOn, sharedProps, selectedPeriod }: AddOnProps) => {
                     {entitlement.feature?.name && (
                       <Flex $alignItems="center">
                         <Text>
-                          {entitlement.valueType === "numeric" ||
-                          entitlement.valueType === "unlimited" ||
-                          entitlement.valueType === "trait" ? (
+                          {entitlement.valueType ===
+                            EntitlementValueType.Numeric ||
+                          entitlement.valueType ===
+                            EntitlementValueType.Unlimited ||
+                          entitlement.valueType ===
+                            EntitlementValueType.Trait ? (
                             <>
-                              {entitlement.valueType === "unlimited"
+                              {entitlement.valueType ===
+                              EntitlementValueType.Unlimited
                                 ? t("Unlimited", {
                                     item: getFeatureName(entitlement.feature),
                                   })

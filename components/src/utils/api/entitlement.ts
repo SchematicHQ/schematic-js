@@ -2,7 +2,7 @@ import {
   BillingPriceView,
   type FeatureUsageResponseData,
 } from "../../api/checkoutexternal";
-import { PriceBehavior } from "../../const";
+import { FeatureType, PriceBehavior } from "../../const";
 import type { Entitlement, PriceTier } from "../../types";
 import { getEntitlementCost } from "../../utils";
 
@@ -14,7 +14,7 @@ const PeriodName: Record<string, string | undefined> = {
 };
 
 export function getMetricPeriodName(entitlement: Entitlement) {
-  if (entitlement.feature?.featureType !== "event") {
+  if (entitlement.feature?.featureType !== FeatureType.Event) {
     return;
   }
 

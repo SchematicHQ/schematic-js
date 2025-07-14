@@ -2,7 +2,7 @@ import { forwardRef, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
 import { type FeatureUsageResponseData } from "../../../api/checkoutexternal";
-import { PriceBehavior } from "../../../const";
+import { FeatureType, PriceBehavior } from "../../../const";
 import { type FontStyle } from "../../../context";
 import {
   useEmbed,
@@ -182,8 +182,8 @@ export const MeteredFeatures = forwardRef<
           []
         ).filter(
           ({ feature }) =>
-            feature?.featureType === "event" ||
-            feature?.featureType === "trait",
+            feature?.featureType === FeatureType.Event ||
+            feature?.featureType === FeatureType.Trait,
         ),
         period,
       };

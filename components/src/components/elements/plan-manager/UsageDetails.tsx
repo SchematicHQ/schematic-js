@@ -2,7 +2,7 @@ import { Fragment, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import { type FeatureUsageResponseData } from "../../../api/checkoutexternal";
-import { PriceBehavior } from "../../../const";
+import { FeatureType, PriceBehavior } from "../../../const";
 import { type FontStyle } from "../../../context";
 import { useEmbed } from "../../../hooks";
 import {
@@ -86,7 +86,7 @@ export const UsageDetails = ({
           <sub>
             /{packageSize > 1 && <>{packageSize} </>}
             {getFeatureName(entitlement.feature, packageSize)}
-            {entitlement.feature.featureType === "trait" && (
+            {entitlement.feature.featureType === FeatureType.Trait && (
               <>/{shortenPeriod(period)}</>
             )}
           </sub>
@@ -151,7 +151,7 @@ export const UsageDetails = ({
 
             <Text>
               {formatCurrency(cost, billingPrice?.currency)}
-              {entitlement.feature.featureType === "trait" && (
+              {entitlement.feature.featureType === FeatureType.Trait && (
                 <sub>/{shortenPeriod(period)}</sub>
               )}
             </Text>
