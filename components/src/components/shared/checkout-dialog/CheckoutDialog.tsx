@@ -115,6 +115,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   const {
     plans: availablePlans,
     addOns: availableAddOns,
+    credits: availableCredits,
     periods: availablePeriods,
   } = useAvailablePlans(planPeriod);
 
@@ -164,6 +165,20 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     return [];
   });
   const hasActiveAddOns = addOns.some((addOn) => addOn.isSelected);
+
+  const [credits, setCredits] = useState(() => {
+    if (isCheckoutData(data)) {
+      return availableCredits.map((credit) => ({
+        ...credit,
+        isSelected: (data.company?.creditBundles || []).some(
+          (currentCredit) => credit.id === currentCredit.id,
+        ),
+      }));
+    }
+
+    return [];
+  });
+  const hasActiveCredits = credits.some((credit) => credit.isSelected);
 
   useEffect(() => {
     setAddOns((prevAddOns) => {
@@ -260,6 +275,15 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
         name: t("Add-ons"),
         label: t("Select add-ons"),
         description: t("Optionally add features to your subscription"),
+      });
+    }
+
+    if (credits.length > 0) {
+      stages.push({
+        id: "credits",
+        name: t("Credits"),
+        label: t("Select credits"),
+        description: t("Optionally add credit bundles to your subscription"),
       });
     }
 

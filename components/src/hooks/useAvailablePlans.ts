@@ -72,11 +72,13 @@ export function useAvailablePlans(activePeriod: string) {
     return {
       plans: getActivePlans(data?.activePlans || []),
       addOns: getActivePlans(data?.activeAddOns || []),
+      credits: data?.creditBundles || [],
       periods: getAvailablePeriods(),
     };
   }, [
     data?.activePlans,
     data?.activeAddOns,
+    data?.creditBundles,
     getAvailablePeriods,
     getActivePlans,
   ]);
