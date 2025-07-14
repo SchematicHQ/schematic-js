@@ -17,7 +17,7 @@ import {
   getUsageDetails,
   isCheckoutData,
   toPrettyDate,
-  type TUsageDetails,
+  type UsageDetails,
 } from "../../../utils";
 import { Element } from "../../layout";
 import { Box, Button, Flex, Icon, Text } from "../../ui";
@@ -28,7 +28,7 @@ import * as styles from "./styles";
 
 interface LimitProps {
   entitlement: FeatureUsageResponseData;
-  usageDetails: TUsageDetails;
+  usageDetails: UsageDetails;
   fontStyle?: FontStyle;
 }
 

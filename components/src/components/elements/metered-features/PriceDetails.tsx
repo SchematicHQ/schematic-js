@@ -10,14 +10,14 @@ import {
   getFeatureName,
   lighten,
   shortenPeriod,
-  type TUsageDetails,
+  type UsageDetails,
 } from "../../../utils";
 import { PricingTiersTooltip } from "../../shared";
 import { Box, Flex, Text } from "../../ui";
 
 interface PriceDetailsProps {
   entitlement: FeatureUsageResponseData;
-  usageDetails: TUsageDetails;
+  usageDetails: UsageDetails;
   period?: string;
 }
 

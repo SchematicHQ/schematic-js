@@ -1,11 +1,11 @@
 import { type FeatureUsageResponseData } from "../../../api/checkoutexternal";
 import { PriceBehavior } from "../../../const";
-import { type TUsageDetails } from "../../../utils";
+import { type UsageDetails } from "../../../utils";
 import { ProgressBar, progressColorMap } from "../../ui";
 
 interface MeterProps {
   entitlement: FeatureUsageResponseData;
-  usageDetails: TUsageDetails;
+  usageDetails: UsageDetails;
   period?: string;
 }
 
