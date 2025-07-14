@@ -1,4 +1,3 @@
-import cx from "classnames";
 import { Fragment, forwardRef, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -189,7 +188,7 @@ export const PricingTable = forwardRef<
     <Wrapper>
       <FussyChild
         ref={ref}
-        className={cx("sch-PricingTable", className)}
+        className={`sch-PricingTable ${className}`}
         as={Flex}
         $flexDirection="column"
         $gap="2rem"

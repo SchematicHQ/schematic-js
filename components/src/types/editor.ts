@@ -1,9 +1,16 @@
-import * as Craft from "@craftjs/core";
-
-export type SerializedNode = Omit<Craft.SerializedNode, "parent"> & {
+export interface SerializedNode {
+  type:
+    | string
+    | {
+        resolvedName: string;
+      };
   id: string;
   parent?: string | null;
-};
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  props: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  custom?: any;
+}
 
 export type SerializedNodeWithChildren = SerializedNode & {
   children: SerializedNodeWithChildren[];
