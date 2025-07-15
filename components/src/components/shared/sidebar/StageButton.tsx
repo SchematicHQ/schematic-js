@@ -61,7 +61,7 @@ export const StageButton = ({
       return (
         <Button
           type="button"
-          disabled={!hasPlan || !hasAddOns || !canUpdateSubscription}
+          disabled={!hasPlan || !canUpdateSubscription}
           onClick={async () => {
             setCheckoutStage?.("checkout");
           }}

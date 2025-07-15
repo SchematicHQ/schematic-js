@@ -252,7 +252,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     }
 
     // addOns could be filtered by compatibility rules
-    if (addOns.length > 0) {
+    if (addOns.length > 0 && !isTrialable) {
       stages.push({
         id: "addons",
         name: t("Add-ons"),
