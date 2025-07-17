@@ -82,12 +82,6 @@ export interface BillingCreditResponseData {
   id: string;
   /**
    *
-   * @type {BillingPriceResponseData}
-   * @memberof BillingCreditResponseData
-   */
-  monthlyPrice?: BillingPriceResponseData;
-  /**
-   *
    * @type {string}
    * @memberof BillingCreditResponseData
    */
@@ -98,6 +92,12 @@ export interface BillingCreditResponseData {
    * @memberof BillingCreditResponseData
    */
   pluralName?: string | null;
+  /**
+   *
+   * @type {BillingPriceResponseData}
+   * @memberof BillingCreditResponseData
+   */
+  price?: BillingPriceResponseData;
   /**
    *
    * @type {BillingProductResponseData}
@@ -116,12 +116,6 @@ export interface BillingCreditResponseData {
    * @memberof BillingCreditResponseData
    */
   updatedAt: Date;
-  /**
-   *
-   * @type {BillingPriceResponseData}
-   * @memberof BillingCreditResponseData
-   */
-  yearlyPrice?: BillingPriceResponseData;
 }
 
 /**
@@ -176,12 +170,12 @@ export function BillingCreditResponseDataFromJSONTyped(
     description: json["description"],
     icon: json["icon"] == null ? undefined : json["icon"],
     id: json["id"],
-    monthlyPrice:
-      json["monthly_price"] == null
-        ? undefined
-        : BillingPriceResponseDataFromJSON(json["monthly_price"]),
     name: json["name"],
     pluralName: json["plural_name"] == null ? undefined : json["plural_name"],
+    price:
+      json["price"] == null
+        ? undefined
+        : BillingPriceResponseDataFromJSON(json["price"]),
     product:
       json["product"] == null
         ? undefined
@@ -189,10 +183,6 @@ export function BillingCreditResponseDataFromJSONTyped(
     singularName:
       json["singular_name"] == null ? undefined : json["singular_name"],
     updatedAt: new Date(json["updated_at"]),
-    yearlyPrice:
-      json["yearly_price"] == null
-        ? undefined
-        : BillingPriceResponseDataFromJSON(json["yearly_price"]),
   };
 }
 
@@ -211,12 +201,11 @@ export function BillingCreditResponseDataToJSON(
     description: value["description"],
     icon: value["icon"],
     id: value["id"],
-    monthly_price: BillingPriceResponseDataToJSON(value["monthlyPrice"]),
     name: value["name"],
     plural_name: value["pluralName"],
+    price: BillingPriceResponseDataToJSON(value["price"]),
     product: BillingProductResponseDataToJSON(value["product"]),
     singular_name: value["singularName"],
     updated_at: value["updatedAt"].toISOString(),
-    yearly_price: BillingPriceResponseDataToJSON(value["yearlyPrice"]),
   };
 }
