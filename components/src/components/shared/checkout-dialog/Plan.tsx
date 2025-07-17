@@ -71,7 +71,7 @@ interface PlanButtonGroupProps {
     period?: string;
     shouldTrial?: boolean;
   }) => void;
-  willTrial: boolean;
+  shouldTrial: boolean;
 }
 
 const PlanButtonGroup = ({
@@ -79,7 +79,7 @@ const PlanButtonGroup = ({
   isLoading,
   isSelected,
   onSelect,
-  willTrial,
+  shouldTrial,
 }: PlanButtonGroupProps) => {
   const { t } = useTranslation();
 
@@ -106,8 +106,8 @@ const PlanButtonGroup = ({
       <Flex $flexDirection="column" $gap="1.5rem">
         {!isTrialing && (
           <>
-            {isSelected && willTrial ? (
-              <Selected isCurrent={isCurrentPlan} isTrial={willTrial} />
+            {isSelected && shouldTrial ? (
+              <Selected isCurrent={isCurrentPlan} isTrial={shouldTrial} />
             ) : (
               <Button
                 type="button"
@@ -153,7 +153,7 @@ const PlanButtonGroup = ({
 
         {!plan.custom && (
           <>
-            {isSelected && (!willTrial || isTrialing) ? (
+            {isSelected && (!shouldTrial || isTrialing) ? (
               <Selected isCurrent={isCurrentPlan} />
             ) : (
               <Button
@@ -236,7 +236,7 @@ interface PlanProps {
     period?: string;
     shouldTrial?: boolean;
   }) => void;
-  willTrial: boolean;
+  shouldTrial: boolean;
 }
 
 export const Plan = ({
@@ -245,7 +245,7 @@ export const Plan = ({
   selectedPlan,
   period,
   selectPlan,
-  willTrial,
+  shouldTrial,
 }: PlanProps) => {
   const { t } = useTranslation();
 
@@ -626,7 +626,7 @@ export const Plan = ({
                   isLoading={isLoading}
                   isSelected={plan.id === selectedPlan?.id}
                   onSelect={selectPlan}
-                  willTrial={willTrial}
+                  shouldTrial={shouldTrial}
                 />
               </Flex>
             </Flex>

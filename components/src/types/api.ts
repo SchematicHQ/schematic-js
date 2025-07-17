@@ -2,10 +2,18 @@ import {
   type BillingPriceResponseData,
   type BillingPriceView,
   type CompanyPlanDetailResponseData,
+  type ComponentHydrateResponseData,
   type FeatureUsageResponseData,
   type PlanEntitlementResponseData,
 } from "../api/checkoutexternal";
-import { type PlanViewPublicResponseData } from "../api/componentspublic";
+import {
+  type PlanViewPublicResponseData,
+  type PublicPlansResponseData,
+} from "../api/componentspublic";
+
+export type HydrateData =
+  | PublicPlansResponseData
+  | ComponentHydrateResponseData;
 
 export type BillingPrice = BillingPriceView | BillingPriceResponseData;
 

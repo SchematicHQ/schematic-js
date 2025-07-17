@@ -6,13 +6,13 @@ import { PaymentMethodDetails } from "../../elements";
 import { Box, Flex, Input, Text } from "../../ui";
 
 interface CheckoutProps {
-  requiresPayment: boolean;
+  isPaymentMethodRequired: boolean;
   setPaymentMethodId: (id: string) => void;
   updatePromoCode: (code: string) => void;
 }
 
 export const Checkout = ({
-  requiresPayment,
+  isPaymentMethodRequired,
   setPaymentMethodId,
   updatePromoCode,
 }: CheckoutProps) => {
@@ -22,7 +22,7 @@ export const Checkout = ({
 
   const [discount, setDiscount] = useState("");
 
-  if (!requiresPayment) {
+  if (!isPaymentMethodRequired) {
     return null;
   }
 

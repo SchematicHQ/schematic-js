@@ -19,6 +19,18 @@ import {
   FeatureDetailResponseDataFromJSONTyped,
   FeatureDetailResponseDataToJSON,
 } from "./FeatureDetailResponseData";
+import type { CompanyOverrideResponseData } from "./CompanyOverrideResponseData";
+import {
+  CompanyOverrideResponseDataFromJSON,
+  CompanyOverrideResponseDataFromJSONTyped,
+  CompanyOverrideResponseDataToJSON,
+} from "./CompanyOverrideResponseData";
+import type { PlanEntitlementResponseData } from "./PlanEntitlementResponseData";
+import {
+  PlanEntitlementResponseDataFromJSON,
+  PlanEntitlementResponseDataFromJSONTyped,
+  PlanEntitlementResponseDataToJSON,
+} from "./PlanEntitlementResponseData";
 import type { BillingPriceView } from "./BillingPriceView";
 import {
   BillingPriceViewFromJSON,
@@ -56,6 +68,12 @@ export interface FeatureUsageResponseData {
    * @memberof FeatureUsageResponseData
    */
   allocationType: FeatureUsageResponseDataAllocationTypeEnum;
+  /**
+   *
+   * @type {CompanyOverrideResponseData}
+   * @memberof FeatureUsageResponseData
+   */
+  companyOverride?: CompanyOverrideResponseData;
   /**
    *
    * @type {Date}
@@ -110,6 +128,12 @@ export interface FeatureUsageResponseData {
    * @memberof FeatureUsageResponseData
    */
   plan?: PlanResponseData;
+  /**
+   *
+   * @type {PlanEntitlementResponseData}
+   * @memberof FeatureUsageResponseData
+   */
+  planEntitlement?: PlanEntitlementResponseData;
   /**
    *
    * @type {string}
@@ -181,6 +205,10 @@ export function FeatureUsageResponseDataFromJSONTyped(
     access: json["access"],
     allocation: json["allocation"] == null ? undefined : json["allocation"],
     allocationType: json["allocation_type"],
+    companyOverride:
+      json["company_override"] == null
+        ? undefined
+        : CompanyOverrideResponseDataFromJSON(json["company_override"]),
     entitlementExpirationDate:
       json["entitlement_expiration_date"] == null
         ? undefined
@@ -203,6 +231,10 @@ export function FeatureUsageResponseDataFromJSONTyped(
     period: json["period"] == null ? undefined : json["period"],
     plan:
       json["plan"] == null ? undefined : PlanResponseDataFromJSON(json["plan"]),
+    planEntitlement:
+      json["plan_entitlement"] == null
+        ? undefined
+        : PlanEntitlementResponseDataFromJSON(json["plan_entitlement"]),
     priceBehavior:
       json["price_behavior"] == null ? undefined : json["price_behavior"],
     softLimit: json["soft_limit"] == null ? undefined : json["soft_limit"],
@@ -224,6 +256,9 @@ export function FeatureUsageResponseDataToJSON(
     access: value["access"],
     allocation: value["allocation"],
     allocation_type: value["allocationType"],
+    company_override: CompanyOverrideResponseDataToJSON(
+      value["companyOverride"],
+    ),
     entitlement_expiration_date:
       value["entitlementExpirationDate"] == null
         ? undefined
@@ -241,6 +276,9 @@ export function FeatureUsageResponseDataToJSON(
     ),
     period: value["period"],
     plan: PlanResponseDataToJSON(value["plan"]),
+    plan_entitlement: PlanEntitlementResponseDataToJSON(
+      value["planEntitlement"],
+    ),
     price_behavior: value["priceBehavior"],
     soft_limit: value["softLimit"],
     usage: value["usage"],
