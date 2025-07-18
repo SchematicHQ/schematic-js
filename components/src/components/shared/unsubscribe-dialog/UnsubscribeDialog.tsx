@@ -135,8 +135,8 @@ export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
           usageBasedEntitlements={usageBasedEntitlements}
           error={error}
           isLoading={isLoading}
+          isPaymentMethodRequired={false}
           showHeader={false}
-          requiresPayment={false}
           setError={(msg) => setError(msg)}
           setIsLoading={setIsLoading}
         />

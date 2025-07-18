@@ -7,7 +7,7 @@ import {
   type PaymentMethodResponseData,
 } from "../api/checkoutexternal";
 import { type PublicPlansResponseData } from "../api/componentspublic";
-import { type DeepPartial } from "../types";
+import type { DeepPartial, HydrateData } from "../types";
 import { isCheckoutData } from "../utils";
 
 import {
@@ -33,7 +33,7 @@ type EmbedAction =
   | { type: "HYDRATE_COMPONENT"; data: ComponentHydrateResponseData }
   | {
       type: "HYDRATE_EXTERNAL";
-      data: PublicPlansResponseData | ComponentHydrateResponseData;
+      data: HydrateData;
     }
   | { type: "CHECKOUT"; data: BillingSubscriptionResponseData }
   | { type: "UNSUBSCRIBE"; data: DeleteResponse }

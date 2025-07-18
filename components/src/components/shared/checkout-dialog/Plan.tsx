@@ -8,7 +8,6 @@ import {
   type SelectedPlan,
 } from "../../../hooks";
 import {
-  darken,
   entitlementCountsReducer,
   formatCurrency,
   formatNumber,
@@ -19,7 +18,6 @@ import {
   hexToHSL,
   isCheckoutData,
   isHydratedPlan,
-  lighten,
   shortenPeriod,
 } from "../../../utils";
 import { cardBoxShadow } from "../../layout";
@@ -71,7 +69,7 @@ interface PlanButtonGroupProps {
     period?: string;
     shouldTrial?: boolean;
   }) => void;
-  willTrial: boolean;
+  shouldTrial: boolean;
 }
 
 const PlanButtonGroup = ({
@@ -79,7 +77,7 @@ const PlanButtonGroup = ({
   isLoading,
   isSelected,
   onSelect,
-  willTrial,
+  shouldTrial,
 }: PlanButtonGroupProps) => {
   const { t } = useTranslation();
 
@@ -106,8 +104,8 @@ const PlanButtonGroup = ({
       <Flex $flexDirection="column" $gap="1.5rem">
         {!isTrialing && (
           <>
-            {isSelected && willTrial ? (
-              <Selected isCurrent={isCurrentPlan} isTrial={willTrial} />
+            {isSelected && shouldTrial ? (
+              <Selected isCurrent={isCurrentPlan} isTrial={shouldTrial} />
             ) : (
               <Button
                 type="button"
@@ -153,7 +151,7 @@ const PlanButtonGroup = ({
 
         {!plan.custom && (
           <>
-            {isSelected && (!willTrial || isTrialing) ? (
+            {isSelected && (!shouldTrial || isTrialing) ? (
               <Selected isCurrent={isCurrentPlan} />
             ) : (
               <Button
@@ -236,7 +234,7 @@ interface PlanProps {
     period?: string;
     shouldTrial?: boolean;
   }) => void;
-  willTrial: boolean;
+  shouldTrial: boolean;
 }
 
 export const Plan = ({
@@ -245,7 +243,7 @@ export const Plan = ({
   selectedPlan,
   period,
   selectPlan,
-  willTrial,
+  shouldTrial,
 }: PlanProps) => {
   const { t } = useTranslation();
 
@@ -537,26 +535,14 @@ export const Plan = ({
                                   {entitlement.priceBehavior === "overage" &&
                                     typeof entitlementPrice === "number" && (
                                       <Text
+                                        style={{ opacity: 0.54 }}
                                         $size={
                                           0.875 *
                                           settings.theme.typography.text
                                             .fontSize
                                         }
                                         $color={
-                                          hexToHSL(
-                                            settings.theme.typography.text
-                                              .color,
-                                          ).l > 50
-                                            ? darken(
-                                                settings.theme.typography.text
-                                                  .color,
-                                                0.46,
-                                              )
-                                            : lighten(
-                                                settings.theme.typography.text
-                                                  .color,
-                                                0.46,
-                                              )
+                                          settings.theme.typography.text.color
                                         }
                                         $leading={1.35}
                                       >
@@ -626,7 +612,7 @@ export const Plan = ({
                   isLoading={isLoading}
                   isSelected={plan.id === selectedPlan?.id}
                   onSelect={selectPlan}
-                  willTrial={willTrial}
+                  shouldTrial={shouldTrial}
                 />
               </Flex>
             </Flex>

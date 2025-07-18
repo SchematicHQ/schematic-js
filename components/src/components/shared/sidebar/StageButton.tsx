@@ -4,49 +4,49 @@ import { Button, Flex, Icon } from "../../ui";
 import { type CheckoutStage } from "../checkout-dialog";
 
 type StageButtonProps = {
-  canTrial: boolean;
-  canCheckout: boolean;
-  canUpdateSubscription: boolean;
   checkout: () => Promise<void>;
   checkoutStage?: string;
   checkoutStages?: CheckoutStage[];
-  hasPlan: boolean;
   hasAddOns: boolean;
   hasPayInAdvanceEntitlements: boolean;
-  hasUnstagedChanges: boolean;
+  hasPaymentMethod: boolean;
+  hasPlan: boolean;
+  inEditMode: boolean;
   isLoading: boolean;
-  requiresPayment: boolean;
+  isPaymentMethodRequired: boolean;
+  isSelectedPlanTrialable: boolean;
   setCheckoutStage?: (stage: string) => void;
   trialPaymentMethodRequired: boolean;
-  willTrial: boolean;
+  shouldTrial: boolean;
+  willTrialWithoutPaymentMethod: boolean;
 };
 
 export const StageButton = ({
-  canTrial,
-  canCheckout,
-  canUpdateSubscription,
   checkout,
   checkoutStage,
   checkoutStages,
-  hasPlan,
   hasAddOns,
   hasPayInAdvanceEntitlements,
-  hasUnstagedChanges,
+  hasPaymentMethod,
+  hasPlan,
+  inEditMode,
   isLoading,
-  requiresPayment,
+  isPaymentMethodRequired,
+  isSelectedPlanTrialable,
   setCheckoutStage,
   trialPaymentMethodRequired,
-  willTrial,
+  shouldTrial,
+  willTrialWithoutPaymentMethod,
 }: StageButtonProps) => {
   const { t } = useTranslation();
+
+  const isDisabled = isLoading || !hasPlan || inEditMode;
 
   const NoPaymentRequired = () => {
     return (
       <Button
         type="button"
-        disabled={
-          isLoading || !hasPlan || !hasUnstagedChanges || !canUpdateSubscription
-        }
+        disabled={isDisabled}
         onClick={checkout}
         $isLoading={isLoading}
         $fullWidth
@@ -57,11 +57,11 @@ export const StageButton = ({
   };
 
   if (checkoutStage === "plan") {
-    if (canTrial && trialPaymentMethodRequired) {
+    if (isSelectedPlanTrialable && trialPaymentMethodRequired && shouldTrial) {
       return (
         <Button
           type="button"
-          disabled={!hasPlan || !hasAddOns || !canUpdateSubscription}
+          disabled={isDisabled}
           onClick={async () => {
             setCheckoutStage?.("checkout");
           }}
@@ -82,7 +82,7 @@ export const StageButton = ({
     }
 
     if (
-      !requiresPayment &&
+      !isPaymentMethodRequired &&
       !checkoutStages?.some(
         (stage) => stage.id === "usage" || stage.id === "addons",
       )
@@ -93,7 +93,7 @@ export const StageButton = ({
     return (
       <Button
         type="button"
-        disabled={!hasPlan || !canUpdateSubscription}
+        disabled={isDisabled}
         onClick={async () => {
           setCheckoutStage?.(
             hasPayInAdvanceEntitlements
@@ -121,7 +121,7 @@ export const StageButton = ({
 
   if (checkoutStage === "usage") {
     if (
-      !requiresPayment &&
+      !isPaymentMethodRequired &&
       !checkoutStages?.some((stage) => stage.id === "addons")
     ) {
       return <NoPaymentRequired />;
@@ -130,7 +130,7 @@ export const StageButton = ({
     return (
       <Button
         type="button"
-        disabled={!hasPlan || !canUpdateSubscription}
+        disabled={isDisabled}
         onClick={async () => {
           setCheckoutStage?.(hasAddOns ? "addons" : "checkout");
         }}
@@ -151,14 +151,14 @@ export const StageButton = ({
   }
 
   if (checkoutStage === "addons") {
-    if (!requiresPayment) {
+    if (!isPaymentMethodRequired) {
       return <NoPaymentRequired />;
     }
 
     return (
       <Button
         type="button"
-        disabled={!hasPlan || !canUpdateSubscription}
+        disabled={isDisabled}
         onClick={async () => {
           setCheckoutStage?.("checkout");
         }}
@@ -179,19 +179,19 @@ export const StageButton = ({
   }
 
   if (checkoutStage === "checkout") {
-    if (!requiresPayment) {
+    if (!isPaymentMethodRequired) {
       return <NoPaymentRequired />;
     }
 
     return (
       <Button
         type="button"
-        disabled={isLoading || !hasPlan || !hasUnstagedChanges || !canCheckout}
+        disabled={isDisabled || !hasPaymentMethod}
         onClick={checkout}
         $isLoading={isLoading}
         $fullWidth
       >
-        {willTrial ? t("Start trial") : t("Pay now")}
+        {willTrialWithoutPaymentMethod ? t("Start trial") : t("Pay now")}
       </Button>
     );
   }
