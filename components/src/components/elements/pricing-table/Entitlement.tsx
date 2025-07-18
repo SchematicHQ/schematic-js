@@ -8,14 +8,11 @@ import {
 } from "../../../const";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import {
-  darken,
   formatCurrency,
   formatNumber,
   getEntitlementPrice,
   getFeatureName,
   getMetricPeriodName,
-  hexToHSL,
-  lighten,
   shortenPeriod,
 } from "../../../utils";
 import { PricingTiersTooltip, TieredPricingDetails } from "../../shared";
@@ -148,12 +145,9 @@ export const Entitlement = ({
                   priceTiers={entitlementPriceTiers}
                 />
                 <Text
+                  style={{ opacity: 0.54 }}
                   $size={0.875 * settings.theme.typography.text.fontSize}
-                  $color={
-                    hexToHSL(settings.theme.typography.text.color).l > 50
-                      ? darken(settings.theme.typography.text.color, 0.46)
-                      : lighten(settings.theme.typography.text.color, 0.46)
-                  }
+                  $color={settings.theme.typography.text.color}
                 >
                   {t("Tier-based")}
                 </Text>

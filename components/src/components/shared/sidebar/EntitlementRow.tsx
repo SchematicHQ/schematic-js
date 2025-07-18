@@ -7,12 +7,9 @@ import {
   type UsageBasedEntitlement,
 } from "../../../types";
 import {
-  darken,
   formatCurrency,
   getEntitlementPrice,
   getFeatureName,
-  hexToHSL,
-  lighten,
   shortenPeriod,
 } from "../../../utils";
 import { PricingTiersTooltip } from "../../shared";
@@ -87,12 +84,9 @@ export const EntitlementRow = (
                 />
 
                 <Text
+                  style={{ opacity: 0.54 }}
                   $size={0.875 * settings.theme.typography.text.fontSize}
-                  $color={
-                    hexToHSL(settings.theme.typography.text.color).l > 50
-                      ? darken(settings.theme.typography.text.color, 0.46)
-                      : lighten(settings.theme.typography.text.color, 0.46)
-                  }
+                  $color={settings.theme.typography.text.color}
                 >
                   {t("Tier-based")}
                 </Text>

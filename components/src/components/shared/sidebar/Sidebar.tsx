@@ -51,15 +51,16 @@ interface SidebarProps {
   checkoutStages?: CheckoutStage[];
   error?: string;
   isLoading: boolean;
+  isPaymentMethodRequired: boolean;
   paymentMethodId?: string;
   promoCode?: string | null;
-  requiresPayment: boolean;
   setCheckoutStage?: (stage: string) => void;
   setError: (msg?: string) => void;
   setIsLoading: Dispatch<SetStateAction<boolean>>;
   updatePromoCode?: (code: string | null) => void;
   showHeader?: boolean;
-  willTrial?: boolean;
+  shouldTrial?: boolean;
+  willTrialWithoutPaymentMethod?: boolean;
 }
 
 export const Sidebar = ({
@@ -73,15 +74,16 @@ export const Sidebar = ({
   checkoutStages,
   error,
   isLoading,
+  isPaymentMethodRequired,
   paymentMethodId,
   promoCode,
-  requiresPayment,
   setCheckoutStage,
   setError,
   setIsLoading,
   updatePromoCode,
   showHeader = true,
-  willTrial = false,
+  shouldTrial = false,
+  willTrialWithoutPaymentMethod = false,
 }: SidebarProps) => {
   const { t } = useTranslation();
 
@@ -91,7 +93,6 @@ export const Sidebar = ({
   const isLightBackground = useIsLightBackground();
 
   const {
-    currentPlanPeriod,
     currentPlan,
     currentAddOns,
     currentEntitlements,
@@ -104,7 +105,6 @@ export const Sidebar = ({
       const currentEntitlements = data.featureUsage?.features || [];
 
       return {
-        currentPlanPeriod: data.company?.plan?.planPeriod,
         currentPlan: data.company?.plan,
         currentAddOns: data.company?.addOns || [],
         currentEntitlements,
@@ -137,7 +137,6 @@ export const Sidebar = ({
     }
 
     return {
-      currentPlanPeriod: undefined,
       currentPlan: undefined,
       currentAddOns: [],
       currentEntitlements: [],
@@ -273,7 +272,7 @@ export const Sidebar = ({
           [],
         ),
         creditBundles: [],
-        skipTrial: !willTrial,
+        skipTrial: !willTrialWithoutPaymentMethod,
         ...(paymentMethodId && { paymentMethodId }),
         ...(promoCode && { promoCode }),
       });
@@ -298,7 +297,7 @@ export const Sidebar = ({
     setIsLoading,
     setLayout,
     payInAdvanceEntitlements,
-    willTrial,
+    willTrialWithoutPaymentMethod,
     promoCode,
   ]);
 
@@ -392,8 +391,6 @@ export const Sidebar = ({
     usageBasedEntitlements,
   ]);
 
-  const willPeriodChange = planPeriod !== currentPlanPeriod;
-
   const willPlanChange = isHydratedPlan(selectedPlan) && !selectedPlan.current;
 
   const removedAddOns = currentAddOns.filter(
@@ -406,28 +403,17 @@ export const Sidebar = ({
   );
   const willAddOnsChange = removedAddOns.length > 0 || addedAddOns.length > 0;
 
-  const willPayInAdvanceEntitlementsChange =
-    payInAdvanceEntitlements.length > 0 &&
-    payInAdvanceEntitlements.some(({ quantity, usage }) => quantity !== usage);
+  const inEditMode = settings.mode === "edit";
+  const hasPaymentMethod =
+    typeof paymentMethod !== "undefined" || typeof paymentMethodId === "string";
 
-  const hasUnstagedChanges =
-    willPeriodChange ||
-    willPlanChange ||
-    willAddOnsChange ||
-    willPayInAdvanceEntitlementsChange;
-
-  const canUpdateSubscription = settings.mode === "edit" || !isLoading;
-  const canCheckout =
-    canUpdateSubscription &&
-    (!!paymentMethod || typeof paymentMethodId === "string");
-
-  const isTrialable =
+  const isSelectedPlanTrialable =
     isHydratedPlan(selectedPlan) &&
     selectedPlan?.companyCanTrial === true &&
     selectedPlan?.isTrialable === true;
   const today = new Date();
   const trialEndsOn = new Date(today);
-  if (isTrialable && selectedPlan.trialDays) {
+  if (isSelectedPlanTrialable && selectedPlan.trialDays) {
     trialEndsOn.setDate(trialEndsOn.getDate() + selectedPlan.trialDays);
   }
 
@@ -653,7 +639,7 @@ export const Sidebar = ({
           </Flex>
         )}
 
-        {selectedPlan && isTrialable && (
+        {selectedPlan && isSelectedPlanTrialable && shouldTrial && (
           <Box>
             <Box $opacity="0.625">
               <Text $size={14}>{t("Trial")}</Text>
@@ -905,21 +891,21 @@ export const Sidebar = ({
 
         {layout === "checkout" && (
           <StageButton
-            canTrial={isTrialable}
-            canCheckout={canCheckout}
-            canUpdateSubscription={canUpdateSubscription}
             checkout={handleCheckout}
             checkoutStage={checkoutStage}
             checkoutStages={checkoutStages}
-            hasPlan={typeof selectedPlan !== "undefined"}
             hasAddOns={addOns.length > 0}
             hasPayInAdvanceEntitlements={payInAdvanceEntitlements.length > 0}
-            hasUnstagedChanges={hasUnstagedChanges}
+            hasPaymentMethod={hasPaymentMethod}
+            hasPlan={typeof selectedPlan !== "undefined"}
+            inEditMode={inEditMode}
             isLoading={isLoading}
-            requiresPayment={requiresPayment}
+            isPaymentMethodRequired={isPaymentMethodRequired}
+            isSelectedPlanTrialable={isSelectedPlanTrialable}
             setCheckoutStage={setCheckoutStage}
             trialPaymentMethodRequired={trialPaymentMethodRequired}
-            willTrial={willTrial}
+            shouldTrial={shouldTrial}
+            willTrialWithoutPaymentMethod={willTrialWithoutPaymentMethod}
           />
         )}
 

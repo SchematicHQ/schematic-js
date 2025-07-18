@@ -6,13 +6,10 @@ import { FeatureType, PriceBehavior } from "../../../const";
 import { type FontStyle } from "../../../context";
 import { useEmbed } from "../../../hooks";
 import {
-  darken,
   formatCurrency,
   getEntitlementPrice,
   getFeatureName,
   getUsageDetails,
-  hexToHSL,
-  lighten,
   shortenPeriod,
 } from "../../../utils";
 import { PricingTiersTooltip } from "../../shared";
@@ -127,12 +124,9 @@ export const UsageDetails = ({
       <Flex $alignItems="center" $gap="0.5rem">
         {description.length > 0 && (
           <Text
+            style={{ opacity: 0.54 }}
             $size={0.875 * settings.theme.typography.text.fontSize}
-            $color={
-              hexToHSL(settings.theme.typography.text.color).l > 50
-                ? darken(settings.theme.typography.text.color, 0.46)
-                : lighten(settings.theme.typography.text.color, 0.46)
-            }
+            $color={settings.theme.typography.text.color}
           >
             {description}
           </Text>

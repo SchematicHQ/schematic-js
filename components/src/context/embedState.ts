@@ -1,6 +1,4 @@
-import { type ComponentHydrateResponseData } from "../api/checkoutexternal";
-import { type PublicPlansResponseData } from "../api/componentspublic";
-import type { ComponentProps } from "../types";
+import type { ComponentProps, HydrateData } from "../types";
 
 export interface TypographySettings {
   fontFamily: string;
@@ -139,7 +137,7 @@ export interface EmbedState {
   isPending: boolean;
   stale: boolean;
   accessToken?: string;
-  data?: PublicPlansResponseData | ComponentHydrateResponseData;
+  data?: HydrateData;
   error?: Error;
   settings: EmbedSettings;
   layout: EmbedLayout;

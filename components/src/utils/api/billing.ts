@@ -147,8 +147,9 @@ export function getEntitlementCost(
       entitlement.priceBehavior === PriceBehavior.Tiered &&
       typeof entitlement.usage === "number" // a price needs to be displayed next to the tiered tooltip
     ) {
+      const usage = entitlement.usage;
+
       let cost = 0;
-      let usage = entitlement.usage;
 
       if (billingPrice.tiersMode === "volume") {
         let start = 0;
@@ -168,18 +169,22 @@ export function getEntitlementCost(
         }
       } else {
         // default to graduated tiers mode
+
+        let acc = 0;
+
         for (let i = 0; i < billingPrice.priceTier.length; i++) {
           const tier = billingPrice.priceTier[i];
+          const upTo = tier.upTo ?? Infinity;
           const flatAmount = tier.flatAmount ?? 0;
           const perUnitPrice = tier.perUnitPrice ?? 0;
 
-          if (typeof tier.upTo === "number" && usage > 0) {
-            const amount = usage > tier.upTo ? tier.upTo : usage;
+          if (acc < usage) {
+            const tierAmount = Math.min(upTo, usage) - acc;
 
             cost += flatAmount;
-            cost += amount * perUnitPrice;
+            cost += tierAmount * perUnitPrice;
 
-            usage -= amount;
+            acc += tierAmount;
           }
         }
       }

@@ -18,27 +18,6 @@ export function formatCurrency(amount: number, currency?: string) {
   try {
     const dollars = amount / 100;
 
-    const formatValue = (value: number, symbol: string): string => {
-      let formatted = value.toFixed(1);
-      if (formatted.endsWith(".0")) {
-        formatted = formatted.slice(0, -2);
-      }
-
-      if (resolvedCurrency !== DEFAULT_CURRENCY) {
-        return `${resolvedCurrency}${formatted}${symbol}`;
-      }
-
-      return `$${formatted}${symbol}`;
-    };
-
-    if (dollars >= 1_000_000) {
-      return formatValue(dollars / 1_000_000, "M");
-    }
-
-    if (dollars >= 1_000) {
-      return formatValue(dollars / 1_000, "k");
-    }
-
     const hasManySignificantDigits = /[1-9]/.test(
       (amount % 1.0).toFixed(MAXIMUM_SIGNIFICANT_DIGITS),
     );

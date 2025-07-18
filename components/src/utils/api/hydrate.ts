@@ -1,9 +1,7 @@
 import { type ComponentHydrateResponseData } from "../../api/checkoutexternal";
-import { type PublicPlansResponseData } from "../../api/componentspublic";
+import type { HydrateData } from "../../types";
 
-export function isHydrateData(
-  data?: unknown,
-): data is PublicPlansResponseData | ComponentHydrateResponseData {
+export function isHydrateData(data?: unknown): data is HydrateData {
   return typeof data === "object" && data !== null && "activePlans" in data;
 }
 

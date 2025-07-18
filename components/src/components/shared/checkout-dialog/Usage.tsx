@@ -4,12 +4,9 @@ import { TEXT_BASE_SIZE } from "../../../const";
 import { useEmbed, type SelectedPlan } from "../../../hooks";
 import type { UsageBasedEntitlement } from "../../../types";
 import {
-  darken,
   formatCurrency,
   getEntitlementPrice,
   getFeatureName,
-  hexToHSL,
-  lighten,
   shortenPeriod,
 } from "../../../utils";
 import { cardBoxShadow } from "../../layout";
@@ -31,10 +28,6 @@ export const Usage = ({ entitlements, updateQuantity, period }: UsageProps) => {
   const cardPadding = settings.theme.card.padding / TEXT_BASE_SIZE;
 
   const unitPriceFontSize = 0.875 * settings.theme.typography.text.fontSize;
-  const unitPriceColor =
-    hexToHSL(settings.theme.typography.text.color).l > 50
-      ? darken(settings.theme.typography.text.color, 0.46)
-      : lighten(settings.theme.typography.text.color, 0.46);
 
   return (
     <>
@@ -101,7 +94,11 @@ export const Usage = ({ entitlements, updateQuantity, period }: UsageProps) => {
                       }}
                     />
 
-                    <Text $size={unitPriceFontSize} $color={unitPriceColor}>
+                    <Text
+                      style={{ opacity: 0.54 }}
+                      $size={unitPriceFontSize}
+                      $color={settings.theme.typography.text.color}
+                    >
                       {t("Currently using", {
                         quantity: entitlement.usage,
                         unit: getFeatureName(entitlement.feature),
@@ -130,7 +127,11 @@ export const Usage = ({ entitlements, updateQuantity, period }: UsageProps) => {
                     </Box>
 
                     <Box $whiteSpace="nowrap">
-                      <Text $size={unitPriceFontSize} $color={unitPriceColor}>
+                      <Text
+                        style={{ opacity: 0.54 }}
+                        $size={unitPriceFontSize}
+                        $color={settings.theme.typography.text.color}
+                      >
                         {formatCurrency(price ?? 0, currency)}
                         <sub>
                           /{packageSize > 1 && <>{packageSize} </>}
