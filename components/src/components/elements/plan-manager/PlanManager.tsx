@@ -9,7 +9,6 @@ import {
   formatCurrency,
   getEntitlementPrice,
   getFeatureName,
-  hexToHSL,
   isCheckoutData,
   lighten,
   shortenPeriod,
@@ -395,21 +394,11 @@ export const PlanManager = forwardRef<
                         {entitlement.priceBehavior === "overage" &&
                         currentPlan?.planPeriod ? (
                           <Text
+                            style={{ opacity: 0.54 }}
                             $size={
                               0.875 * settings.theme.typography.text.fontSize
                             }
-                            $color={
-                              hexToHSL(settings.theme.typography.text.color).l >
-                              50
-                                ? darken(
-                                    settings.theme.typography.text.color,
-                                    0.46,
-                                  )
-                                : lighten(
-                                    settings.theme.typography.text.color,
-                                    0.46,
-                                  )
-                            }
+                            $color={settings.theme.typography.text.color}
                           >
                             {amount > 0 ? (
                               t("X additional", {
@@ -438,21 +427,11 @@ export const PlanManager = forwardRef<
                         ) : (
                           currentPlan?.planPeriod && (
                             <Text
+                              style={{ opacity: 0.54 }}
                               $size={
                                 0.875 * settings.theme.typography.text.fontSize
                               }
-                              $color={
-                                hexToHSL(settings.theme.typography.text.color)
-                                  .l > 50
-                                  ? darken(
-                                      settings.theme.typography.text.color,
-                                      0.46,
-                                    )
-                                  : lighten(
-                                      settings.theme.typography.text.color,
-                                      0.46,
-                                    )
-                              }
+                              $color={settings.theme.typography.text.color}
                             >
                               {formatCurrency(price ?? 0, currency)}
                               <sub>

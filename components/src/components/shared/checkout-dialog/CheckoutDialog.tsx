@@ -189,7 +189,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
   const [isPaymentMethodRequired, setIsPaymentMethodRequired] = useState(false);
 
-  const willTrialFree = useMemo(
+  const willTrialWithoutPaymentMethod = useMemo(
     () => shouldTrial && !trialPaymentMethodRequired,
     [shouldTrial, trialPaymentMethodRequired],
   );
@@ -211,7 +211,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       });
     }
 
-    if (willTrialFree) {
+    if (willTrialWithoutPaymentMethod) {
       return stages;
     }
 
@@ -247,7 +247,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     addOns,
     payInAdvanceEntitlements,
     shouldTrial,
-    willTrialFree,
+    willTrialWithoutPaymentMethod,
     isSelectedPlanTrialable,
     isPaymentMethodRequired,
   ]);
@@ -441,7 +441,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       const updatedShouldTrial = updates.shouldTrial ?? shouldTrial;
       setShouldTrial(updatedShouldTrial);
 
-      if (willTrialFree) {
+      if (willTrialWithoutPaymentMethod) {
         setAddOns((prev) =>
           prev.map((addOn) => ({
             ...addOn,
@@ -454,7 +454,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
         period,
         plan,
         shouldTrial: updatedShouldTrial,
-        ...(willTrialFree
+        ...(willTrialWithoutPaymentMethod
           ? {
               addOns: [],
               payInAdvanceEntitlements: [],
@@ -466,7 +466,12 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
             }),
       });
     },
-    [planPeriod, shouldTrial, willTrialFree, handlePreviewCheckout],
+    [
+      planPeriod,
+      shouldTrial,
+      willTrialWithoutPaymentMethod,
+      handlePreviewCheckout,
+    ],
   );
 
   const changePlanPeriod = useCallback(
@@ -742,7 +747,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           setIsLoading={setIsLoading}
           updatePromoCode={updatePromoCode}
           shouldTrial={shouldTrial}
-          willTrialFree={willTrialFree}
+          willTrialWithoutPaymentMethod={willTrialWithoutPaymentMethod}
         />
       </Flex>
     </Modal>

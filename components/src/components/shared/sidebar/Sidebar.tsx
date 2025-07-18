@@ -59,7 +59,7 @@ interface SidebarProps {
   updatePromoCode?: (code: string | null) => void;
   showHeader?: boolean;
   shouldTrial?: boolean;
-  willTrialFree?: boolean;
+  willTrialWithoutPaymentMethod?: boolean;
 }
 
 export const Sidebar = ({
@@ -82,7 +82,7 @@ export const Sidebar = ({
   updatePromoCode,
   showHeader = true,
   shouldTrial = false,
-  willTrialFree = false,
+  willTrialWithoutPaymentMethod = false,
 }: SidebarProps) => {
   const { t } = useTranslation();
 
@@ -271,7 +271,7 @@ export const Sidebar = ({
           [],
         ),
         creditBundles: [],
-        skipTrial: !willTrialFree,
+        skipTrial: !willTrialWithoutPaymentMethod,
         ...(paymentMethodId && { paymentMethodId }),
         ...(promoCode && { promoCode }),
       });
@@ -296,7 +296,7 @@ export const Sidebar = ({
     setIsLoading,
     setLayout,
     payInAdvanceEntitlements,
-    willTrialFree,
+    willTrialWithoutPaymentMethod,
     promoCode,
   ]);
 
@@ -638,7 +638,7 @@ export const Sidebar = ({
           </Flex>
         )}
 
-        {selectedPlan && isSelectedPlanTrialable && (
+        {selectedPlan && isSelectedPlanTrialable && shouldTrial && (
           <Box>
             <Box $opacity="0.625">
               <Text $size={14}>{t("Trial")}</Text>
@@ -904,7 +904,7 @@ export const Sidebar = ({
             setCheckoutStage={setCheckoutStage}
             trialPaymentMethodRequired={trialPaymentMethodRequired}
             shouldTrial={shouldTrial}
-            willTrialFree={willTrialFree}
+            willTrialWithoutPaymentMethod={willTrialWithoutPaymentMethod}
           />
         )}
 

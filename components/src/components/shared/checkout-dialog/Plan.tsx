@@ -8,7 +8,6 @@ import {
   type SelectedPlan,
 } from "../../../hooks";
 import {
-  darken,
   entitlementCountsReducer,
   formatCurrency,
   formatNumber,
@@ -19,7 +18,6 @@ import {
   hexToHSL,
   isCheckoutData,
   isHydratedPlan,
-  lighten,
   shortenPeriod,
 } from "../../../utils";
 import { cardBoxShadow } from "../../layout";
@@ -537,26 +535,14 @@ export const Plan = ({
                                   {entitlement.priceBehavior === "overage" &&
                                     typeof entitlementPrice === "number" && (
                                       <Text
+                                        style={{ opacity: 0.54 }}
                                         $size={
                                           0.875 *
                                           settings.theme.typography.text
                                             .fontSize
                                         }
                                         $color={
-                                          hexToHSL(
-                                            settings.theme.typography.text
-                                              .color,
-                                          ).l > 50
-                                            ? darken(
-                                                settings.theme.typography.text
-                                                  .color,
-                                                0.46,
-                                              )
-                                            : lighten(
-                                                settings.theme.typography.text
-                                                  .color,
-                                                0.46,
-                                              )
+                                          settings.theme.typography.text.color
                                         }
                                         $leading={1.35}
                                       >

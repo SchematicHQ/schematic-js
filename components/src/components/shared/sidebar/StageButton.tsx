@@ -18,7 +18,7 @@ type StageButtonProps = {
   setCheckoutStage?: (stage: string) => void;
   trialPaymentMethodRequired: boolean;
   shouldTrial: boolean;
-  willTrialFree: boolean;
+  willTrialWithoutPaymentMethod: boolean;
 };
 
 export const StageButton = ({
@@ -36,7 +36,7 @@ export const StageButton = ({
   setCheckoutStage,
   trialPaymentMethodRequired,
   shouldTrial,
-  willTrialFree,
+  willTrialWithoutPaymentMethod,
 }: StageButtonProps) => {
   const { t } = useTranslation();
 
@@ -191,7 +191,7 @@ export const StageButton = ({
         $isLoading={isLoading}
         $fullWidth
       >
-        {willTrialFree ? t("Start trial") : t("Pay now")}
+        {willTrialWithoutPaymentMethod ? t("Start trial") : t("Pay now")}
       </Button>
     );
   }
