@@ -1,7 +1,8 @@
 import "../localization";
 
 import { IconStyles } from "@schematichq/schematic-icons";
-import { debounce, merge } from "lodash";
+import debounce from "lodash/debounce";
+import merge from "lodash/merge";
 import {
   useCallback,
   useEffect,

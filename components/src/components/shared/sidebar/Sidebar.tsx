@@ -11,6 +11,7 @@ import {
   type UpdateAddOnRequestBody,
   type UpdatePayInAdvanceRequestBody,
 } from "../../../api/checkoutexternal";
+import { PriceBehavior } from "../../../const";
 import {
   useEmbed,
   useIsLightBackground,
@@ -150,11 +151,11 @@ export const Sidebar = ({
     const payAsYouGoEntitlements: UsageBasedEntitlement[] = [];
     const payInAdvanceEntitlements = usageBasedEntitlements.filter(
       (entitlement) => {
-        if (entitlement.priceBehavior === "pay_as_you_go") {
+        if (entitlement.priceBehavior === PriceBehavior.PayAsYouGo) {
           payAsYouGoEntitlements.push(entitlement);
         }
 
-        return entitlement.priceBehavior === "pay_in_advance";
+        return entitlement.priceBehavior === PriceBehavior.PayInAdvance;
       },
     );
 
@@ -562,7 +563,7 @@ export const Sidebar = ({
                     <Flex
                       key={index}
                       $justifyContent="space-between"
-                      $alignItems="center"
+                      $alignItems="baseline"
                       $gap="1rem"
                       $opacity="0.625"
                       $textDecoration="line-through"
@@ -588,7 +589,7 @@ export const Sidebar = ({
                     <Box key={index}>
                       <Flex
                         $justifyContent="space-between"
-                        $alignItems="center"
+                        $alignItems="baseline"
                         $gap="1rem"
                         $opacity="0.625"
                         $textDecoration="line-through"
@@ -599,7 +600,7 @@ export const Sidebar = ({
 
                       <Flex
                         $justifyContent="space-between"
-                        $alignItems="center"
+                        $alignItems="baseline"
                         $gap="1rem"
                       >
                         <EntitlementRow {...next} planPeriod={planPeriod} />
@@ -620,7 +621,7 @@ export const Sidebar = ({
                     <Flex
                       key={index}
                       $justifyContent="space-between"
-                      $alignItems="center"
+                      $alignItems="baseline"
                       $gap="1rem"
                     >
                       <EntitlementRow

@@ -1,5 +1,7 @@
 import { useTranslation } from "react-i18next";
 
+import { FeatureType, PriceBehavior } from "../../../const";
+import { useEmbed } from "../../../hooks";
 import {
   type CurrentUsageBasedEntitlement,
   type UsageBasedEntitlement,
@@ -10,7 +12,8 @@ import {
   getFeatureName,
   shortenPeriod,
 } from "../../../utils";
-import { Box, Text } from "../../ui";
+import { PricingTiersTooltip } from "../../shared";
+import { Box, Flex, Text } from "../../ui";
 
 export const EntitlementRow = (
   entitlement: (UsageBasedEntitlement | CurrentUsageBasedEntitlement) & {
@@ -18,6 +21,8 @@ export const EntitlementRow = (
   },
 ) => {
   const { t } = useTranslation();
+
+  const { settings } = useEmbed();
 
   const { feature, priceBehavior, quantity, softLimit, planPeriod } =
     entitlement;
@@ -27,17 +32,19 @@ export const EntitlementRow = (
       price,
       currency,
       packageSize = 1,
+      priceTier: priceTiers,
     } = getEntitlementPrice(entitlement, planPeriod) || {};
 
     return (
       <>
         <Box>
           <Text display="heading4">
-            {priceBehavior === "pay_in_advance" ? (
+            {priceBehavior === PriceBehavior.PayInAdvance ? (
               <>
                 {quantity} {getFeatureName(feature, quantity)}
               </>
-            ) : priceBehavior === "overage" && typeof softLimit === "number" ? (
+            ) : priceBehavior === PriceBehavior.Overage &&
+              typeof softLimit === "number" ? (
               <>
                 {softLimit} {getFeatureName(feature, softLimit)}
               </>
@@ -48,29 +55,44 @@ export const EntitlementRow = (
         </Box>
 
         <Box $whiteSpace="nowrap">
-          <Text>
-            {priceBehavior === "pay_in_advance" ? (
-              <>
-                {formatCurrency((price ?? 0) * quantity, currency)}
-                <sub>/{shortenPeriod(planPeriod)}</sub>
-              </>
-            ) : (
-              (priceBehavior === "pay_as_you_go" ||
-                priceBehavior === "overage") && (
-                <>
-                  {priceBehavior === "overage" && <>{t("then")} </>}
-                  {formatCurrency(price ?? 0, currency)}
-                  <sub>
-                    /{packageSize > 1 && <>{packageSize} </>}
-                    {getFeatureName(feature, packageSize)}
-                    {feature.featureType === "trait" && (
-                      <>/{shortenPeriod(planPeriod)}</>
-                    )}
-                  </sub>
-                </>
-              )
-            )}
-          </Text>
+          {priceBehavior === PriceBehavior.PayInAdvance ? (
+            <Text>
+              {formatCurrency((price ?? 0) * quantity, currency)}
+              <sub>/{shortenPeriod(planPeriod)}</sub>
+            </Text>
+          ) : priceBehavior === PriceBehavior.PayAsYouGo ||
+            priceBehavior === PriceBehavior.Overage ? (
+            <Text>
+              {priceBehavior === PriceBehavior.Overage && <>{t("then")} </>}
+              {formatCurrency(price ?? 0, currency)}
+              <sub>
+                /{packageSize > 1 && <>{packageSize} </>}
+                {getFeatureName(feature, packageSize)}
+                {feature.featureType === FeatureType.Trait && (
+                  <>/{shortenPeriod(planPeriod)}</>
+                )}
+              </sub>
+            </Text>
+          ) : (
+            priceBehavior === PriceBehavior.Tiered && (
+              <Flex $alignItems="center">
+                <PricingTiersTooltip
+                  feature={feature}
+                  period={planPeriod}
+                  currency={currency}
+                  priceTiers={priceTiers}
+                />
+
+                <Text
+                  style={{ opacity: 0.54 }}
+                  $size={0.875 * settings.theme.typography.text.fontSize}
+                  $color={settings.theme.typography.text.color}
+                >
+                  {t("Tier-based")}
+                </Text>
+              </Flex>
+            )
+          )}
         </Box>
       </>
     );

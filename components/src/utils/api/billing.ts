@@ -1,7 +1,9 @@
 import {
   type BillingPriceResponseData,
   type BillingPriceView,
+  type FeatureUsageResponseData,
 } from "../../api/checkoutexternal";
+import { PriceBehavior } from "../../const";
 import type { BillingPrice, Entitlement, Plan } from "../../types";
 
 export const ChargeType = {
@@ -10,7 +12,7 @@ export const ChargeType = {
   free: "free",
 };
 
-function getPriceValue(billingPrice: BillingPrice): number {
+export function getPriceValue(billingPrice: BillingPrice): number {
   const price =
     typeof billingPrice.priceDecimal === "string"
       ? Number(billingPrice.priceDecimal)
@@ -68,8 +70,9 @@ export function getEntitlementPrice(
   if (source) {
     const billingPrice = { ...source };
 
-    if (entitlement.priceBehavior === "overage") {
-      const [, overagePriceTier] = billingPrice.priceTier;
+    if (entitlement.priceBehavior === PriceBehavior.Overage) {
+      const overagePriceTier =
+        billingPrice.priceTier[billingPrice.priceTier.length - 1];
 
       if (typeof overagePriceTier.perUnitPrice === "number") {
         billingPrice.price = overagePriceTier.perUnitPrice;
@@ -81,5 +84,112 @@ export function getEntitlementPrice(
     }
 
     return { ...billingPrice, price: getPriceValue(billingPrice) };
+  }
+}
+
+export function getEntitlementCost(
+  entitlement: FeatureUsageResponseData,
+  period: string | null = "month",
+): number | undefined {
+  const source =
+    period === "year"
+      ? entitlement.yearlyUsageBasedPrice
+      : entitlement.monthlyUsageBasedPrice;
+
+  if (source) {
+    const billingPrice: BillingPriceView = { ...source };
+
+    if (
+      entitlement.priceBehavior === PriceBehavior.PayInAdvance &&
+      typeof entitlement.allocation === "number" &&
+      entitlement.allocation > 0
+    ) {
+      return entitlement.allocation * billingPrice.price;
+    }
+
+    if (
+      entitlement.priceBehavior === PriceBehavior.PayAsYouGo &&
+      typeof entitlement.usage === "number" &&
+      entitlement.usage > 0
+    ) {
+      return entitlement.usage * billingPrice.price;
+    }
+
+    if (
+      entitlement.priceBehavior === PriceBehavior.Overage &&
+      typeof entitlement.usage === "number" &&
+      entitlement.usage > 0
+    ) {
+      const overagePriceTier =
+        billingPrice.priceTier[billingPrice.priceTier.length - 1];
+      if (!overagePriceTier) {
+        return;
+      }
+
+      let cost = 0;
+
+      if (overagePriceTier.flatAmount) {
+        cost += overagePriceTier.flatAmount;
+      }
+
+      if (overagePriceTier.perUnitPrice) {
+        const amount = Math.max(
+          0,
+          entitlement.usage - (entitlement.softLimit ?? 0),
+        );
+        cost += amount * overagePriceTier.perUnitPrice;
+      }
+
+      return cost;
+    }
+
+    if (
+      entitlement.priceBehavior === PriceBehavior.Tiered &&
+      typeof entitlement.usage === "number" // a price needs to be displayed next to the tiered tooltip
+    ) {
+      const usage = entitlement.usage;
+
+      let cost = 0;
+
+      if (billingPrice.tiersMode === "volume") {
+        let start = 0;
+        const currentTier = billingPrice.priceTier.find((tier) => {
+          const end = tier.upTo ?? Infinity;
+          const isCurrentTier = usage >= start && usage <= end;
+          start = end + 1;
+
+          return isCurrentTier;
+        });
+
+        if (usage > 0) {
+          const flatAmount = currentTier?.flatAmount ?? 0;
+          const perUnitPrice = currentTier?.perUnitPrice ?? 0;
+
+          cost += usage * perUnitPrice + (flatAmount ?? 0);
+        }
+      } else {
+        // default to graduated tiers mode
+
+        let acc = 0;
+
+        for (let i = 0; i < billingPrice.priceTier.length; i++) {
+          const tier = billingPrice.priceTier[i];
+          const upTo = tier.upTo ?? Infinity;
+          const flatAmount = tier.flatAmount ?? 0;
+          const perUnitPrice = tier.perUnitPrice ?? 0;
+
+          if (acc < usage) {
+            const tierAmount = Math.min(upTo, usage) - acc;
+
+            cost += flatAmount;
+            cost += tierAmount * perUnitPrice;
+
+            acc += tierAmount;
+          }
+        }
+      }
+
+      return cost;
+    }
   }
 }

@@ -1,7 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { TEXT_BASE_SIZE, VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
+import {
+  EntitlementValueType,
+  FeatureType,
+  PriceBehavior,
+  TEXT_BASE_SIZE,
+  VISIBLE_ENTITLEMENT_COUNT,
+} from "../../../const";
 import {
   useEmbed,
   useIsLightBackground,
@@ -21,6 +27,7 @@ import {
   shortenPeriod,
 } from "../../../utils";
 import { cardBoxShadow } from "../../layout";
+import { PricingTiersTooltip, TieredPricingDetails } from "../../shared";
 import { Box, Button, Flex, Icon, Text, Tooltip } from "../../ui";
 
 interface SelectedProps {
@@ -422,15 +429,18 @@ export const Plan = ({
                         entitlementIndex,
                       ) => {
                         const hasNumericValue =
-                          entitlement.valueType === "numeric" ||
-                          entitlement.valueType === "unlimited" ||
-                          entitlement.valueType === "trait";
+                          entitlement.valueType ===
+                            EntitlementValueType.Numeric ||
+                          entitlement.valueType ===
+                            EntitlementValueType.Unlimited ||
+                          entitlement.valueType === EntitlementValueType.Trait;
 
                         const limit =
                           entitlement.softLimit ?? entitlement.valueNumeric;
 
                         const {
                           price: entitlementPrice,
+                          priceTier: entitlementPriceTiers,
                           currency: entitlementCurrency,
                           packageSize: entitlementPackageSize = 1,
                         } = getEntitlementPrice(entitlement, period) || {};
@@ -473,12 +483,12 @@ export const Plan = ({
                                   $justifyContent="center"
                                   $gap="0.5rem"
                                 >
-                                  <Text $leading={1.35}>
+                                  <Text>
                                     {typeof entitlementPrice === "number" &&
                                     (entitlement.priceBehavior ===
-                                      "pay_in_advance" ||
+                                      PriceBehavior.PayInAdvance ||
                                       entitlement.priceBehavior ===
-                                        "pay_as_you_go") ? (
+                                        PriceBehavior.PayAsYouGo) ? (
                                       <>
                                         {formatCurrency(
                                           entitlementPrice,
@@ -493,17 +503,23 @@ export const Plan = ({
                                           entitlementPackageSize,
                                         )}
                                         {entitlement.priceBehavior ===
-                                          "pay_in_advance" && (
+                                          PriceBehavior.PayInAdvance && (
                                           <>
                                             {" "}
                                             {t("per")} {period}
                                           </>
                                         )}
                                       </>
+                                    ) : entitlement.priceBehavior ===
+                                      PriceBehavior.Tiered ? (
+                                      <TieredPricingDetails
+                                        entitlement={entitlement}
+                                        period={period}
+                                      />
                                     ) : hasNumericValue ? (
                                       <>
                                         {entitlement.valueType ===
-                                          "unlimited" &&
+                                          EntitlementValueType.Unlimited &&
                                         !entitlement.priceBehavior
                                           ? t("Unlimited", {
                                               item: getFeatureName(
@@ -532,39 +548,63 @@ export const Plan = ({
                                     )}
                                   </Text>
 
-                                  {entitlement.priceBehavior === "overage" &&
-                                    typeof entitlementPrice === "number" && (
-                                      <Text
-                                        style={{ opacity: 0.54 }}
-                                        $size={
-                                          0.875 *
-                                          settings.theme.typography.text
-                                            .fontSize
-                                        }
-                                        $color={
-                                          settings.theme.typography.text.color
-                                        }
-                                        $leading={1.35}
-                                      >
-                                        {t("then")}{" "}
-                                        {formatCurrency(
-                                          entitlementPrice,
-                                          entitlementCurrency,
-                                        )}
-                                        /
-                                        {entitlementPackageSize > 1 && (
-                                          <>{entitlementPackageSize} </>
-                                        )}
-                                        {getFeatureName(
-                                          entitlement.feature,
-                                          entitlementPackageSize,
-                                        )}
-                                        {entitlement.feature.featureType ===
-                                          "trait" && (
-                                          <>/{shortenPeriod(period)}</>
-                                        )}
-                                      </Text>
-                                    )}
+                                  {entitlement.priceBehavior ===
+                                    PriceBehavior.Overage &&
+                                  typeof entitlementPrice === "number" ? (
+                                    <Text
+                                      style={{ opacity: 0.54 }}
+                                      $size={
+                                        0.875 *
+                                        settings.theme.typography.text.fontSize
+                                      }
+                                      $color={
+                                        settings.theme.typography.text.color
+                                      }
+                                    >
+                                      {t("then")}{" "}
+                                      {formatCurrency(
+                                        entitlementPrice,
+                                        entitlementCurrency,
+                                      )}
+                                      /
+                                      {entitlementPackageSize > 1 && (
+                                        <>{entitlementPackageSize} </>
+                                      )}
+                                      {getFeatureName(
+                                        entitlement.feature,
+                                        entitlementPackageSize,
+                                      )}
+                                      {entitlement.feature.featureType ===
+                                        FeatureType.Trait && (
+                                        <>/{shortenPeriod(period)}</>
+                                      )}
+                                    </Text>
+                                  ) : (
+                                    entitlement.priceBehavior ===
+                                      PriceBehavior.Tiered && (
+                                      <Flex $alignItems="center">
+                                        <PricingTiersTooltip
+                                          feature={entitlement.feature}
+                                          period={period}
+                                          currency={entitlementCurrency}
+                                          priceTiers={entitlementPriceTiers}
+                                        />
+                                        <Text
+                                          style={{ opacity: 0.54 }}
+                                          $size={
+                                            0.875 *
+                                            settings.theme.typography.text
+                                              .fontSize
+                                          }
+                                          $color={
+                                            settings.theme.typography.text.color
+                                          }
+                                        >
+                                          {t("Tier-based")}
+                                        </Text>
+                                      </Flex>
+                                    )
+                                  )}
                                 </Flex>
                               )}
                             </Flex>

@@ -111,7 +111,7 @@ export const Content = styled.div.withConfig({
     line-height: 1;
     width: max-content;
     max-width: 100%;
-    padding: ${1 / 1.15}rem 1rem;
+    padding: 1rem;
     text-align: left;
     opacity: 0;
     background-color: ${theme.card.background};
@@ -120,6 +120,20 @@ export const Content = styled.div.withConfig({
       drop-shadow(0px 1px 3px #1018281a);
     transform-origin: ${transformOrigin.x} ${transformOrigin.y};
     animation: 0.2s ease-in-out 0.1s both ${grow(translate)};
+
+    sub,
+    sup {
+      position: static;
+      line-height: 1;
+    }
+
+    sub {
+      vertical-align: baseline;
+    }
+
+    sup {
+      vertical-align: top;
+    }
 
     &::after {
       position: absolute;

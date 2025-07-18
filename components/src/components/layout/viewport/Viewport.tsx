@@ -1,4 +1,4 @@
-import { debounce } from "lodash";
+import debounce from "lodash/debounce";
 import { forwardRef, useLayoutEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 
