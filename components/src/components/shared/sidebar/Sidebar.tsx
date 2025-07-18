@@ -92,7 +92,6 @@ export const Sidebar = ({
   const isLightBackground = useIsLightBackground();
 
   const {
-    // currentPlanPeriod,
     currentPlan,
     currentAddOns,
     currentEntitlements,
@@ -105,7 +104,6 @@ export const Sidebar = ({
       const currentEntitlements = data.featureUsage?.features || [];
 
       return {
-        // currentPlanPeriod: data.company?.plan?.planPeriod,
         currentPlan: data.company?.plan,
         currentAddOns: data.company?.addOns || [],
         currentEntitlements,
@@ -138,7 +136,6 @@ export const Sidebar = ({
     }
 
     return {
-      // currentPlanPeriod: undefined,
       currentPlan: undefined,
       currentAddOns: [],
       currentEntitlements: [],
@@ -393,8 +390,6 @@ export const Sidebar = ({
     usageBasedEntitlements,
   ]);
 
-  // const willPeriodChange = planPeriod !== currentPlanPeriod;
-
   const willPlanChange = isHydratedPlan(selectedPlan) && !selectedPlan.current;
 
   const removedAddOns = currentAddOns.filter(
@@ -406,10 +401,6 @@ export const Sidebar = ({
     (selected) => !currentAddOns.some((current) => selected.id === current.id),
   );
   const willAddOnsChange = removedAddOns.length > 0 || addedAddOns.length > 0;
-
-  /* const willPayInAdvanceEntitlementsChange =
-    payInAdvanceEntitlements.length > 0 &&
-    payInAdvanceEntitlements.some(({ quantity, usage }) => quantity !== usage); */
 
   const inEditMode = settings.mode === "edit";
   const hasPaymentMethod =

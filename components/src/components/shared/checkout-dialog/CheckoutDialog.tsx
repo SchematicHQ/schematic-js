@@ -167,8 +167,6 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     return [];
   });
 
-  // const hasActiveAddOns = addOns.some((addOn) => addOn.isSelected);
-
   const [usageBasedEntitlements, setUsageBasedEntitlements] = useState(() =>
     (selectedPlan?.entitlements || []).reduce(
       createActiveUsageBasedEntitlementsReducer(
@@ -186,9 +184,6 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       ),
     [usageBasedEntitlements],
   );
-  /* const hasActivePayInAdvanceEntitlements = payInAdvanceEntitlements.some(
-    ({ quantity }) => quantity > 0,
-  ); */
 
   const [promoCode, setPromoCode] = useState<string | null>(null);
 
@@ -295,7 +290,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
         typeof updates.promoCode !== "undefined"
           ? updates.promoCode
           : promoCode;
-      const trial = updates.shouldTrial ?? shouldTrial;
+      const skipTrial = !(updates.shouldTrial ?? shouldTrial);
 
       // do not preview if user updates do not result in a valid plan
       if (!plan || !planPriceId) {
@@ -352,7 +347,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
             [],
           ),
           creditBundles: [],
-          skipTrial: !trial,
+          skipTrial,
           ...(code && { promoCode: code }),
         });
 
