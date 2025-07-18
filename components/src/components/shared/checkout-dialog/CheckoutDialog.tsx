@@ -237,11 +237,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       });
     }
 
-    console.debug("isPaymentMethodRequired", isPaymentMethodRequired);
-    console.debug("willTrialFree", willTrialFree);
-    console.debug("shouldTrial", shouldTrial);
-
-    if (isPaymentMethodRequired && !willTrialFree) {
+    if (isPaymentMethodRequired) {
       stages.push({
         id: "checkout",
         name: t("Checkout"),
@@ -286,6 +282,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     async (updates: {
       period?: string;
       plan?: SelectedPlan;
+      shouldTrial?: boolean;
       addOns?: SelectedPlan[];
       payInAdvanceEntitlements?: UsageBasedEntitlement[];
       promoCode?: string | null;
@@ -298,6 +295,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
         typeof updates.promoCode !== "undefined"
           ? updates.promoCode
           : promoCode;
+      const trial = updates.shouldTrial ?? shouldTrial;
 
       // do not preview if user updates do not result in a valid plan
       if (!plan || !planPriceId) {
@@ -354,7 +352,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
             [],
           ),
           creditBundles: [],
-          skipTrial: updates.isPaymentMethodRequired && !willTrialFree,
+          skipTrial: !trial,
           ...(code && { promoCode: code }),
         });
 
@@ -409,7 +407,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       selectedPlan,
       payInAdvanceEntitlements,
       addOns,
-      willTrialFree,
+      shouldTrial,
       promoCode,
     ],
   );
@@ -445,7 +443,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       setSelectedPlan(plan);
       setUsageBasedEntitlements(entitlements);
 
-      const updatedShouldTrial = updates.shouldTrial ?? false;
+      const updatedShouldTrial = updates.shouldTrial ?? shouldTrial;
       setShouldTrial(updatedShouldTrial);
 
       if (willTrialFree) {
@@ -460,6 +458,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       handlePreviewCheckout({
         period,
         plan,
+        shouldTrial: updatedShouldTrial,
         ...(willTrialFree
           ? {
               addOns: [],
@@ -472,7 +471,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
             }),
       });
     },
-    [planPeriod, isPaymentMethodRequired, willTrialFree, handlePreviewCheckout],
+    [planPeriod, shouldTrial, willTrialFree, handlePreviewCheckout],
   );
 
   const changePlanPeriod = useCallback(
@@ -722,9 +721,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
           {checkoutStage === "checkout" && (
             <Checkout
-              isPaymentMethodRequired={
-                isPaymentMethodRequired && !willTrialFree
-              }
+              isPaymentMethodRequired={isPaymentMethodRequired}
               setPaymentMethodId={(id) => setPaymentMethodId(id)}
               updatePromoCode={updatePromoCode}
             />
@@ -742,7 +739,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           checkoutStages={checkoutStages}
           error={error}
           isLoading={isLoading}
-          isPaymentMethodRequired={isPaymentMethodRequired && !willTrialFree}
+          isPaymentMethodRequired={isPaymentMethodRequired}
           paymentMethodId={paymentMethodId}
           promoCode={promoCode}
           setCheckoutStage={(stage) => setCheckoutStage(stage)}
