@@ -116,6 +116,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   const {
     plans: availablePlans,
     addOns: availableAddOns,
+    credits: availableCredits,
     periods: availablePeriods,
   } = useAvailablePlans(planPeriod);
 
@@ -168,6 +169,22 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     return [];
   });
 
+  // TODO
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [credits, setCredits] = useState(() => {
+    if (isCheckoutData(data)) {
+      return availableCredits.map((credit) => ({
+        ...credit,
+        isSelected: false,
+        /* isSelected: (data.company?.creditBundles || []).some(
+          (currentCredit) => credit.id === currentCredit.id,
+        ), */
+      }));
+    }
+
+    return [];
+  });
+
   const [usageBasedEntitlements, setUsageBasedEntitlements] = useState(() =>
     (selectedPlan?.entitlements || []).reduce(
       createActiveUsageBasedEntitlementsReducer(
@@ -204,7 +221,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   const checkoutStages = useMemo(() => {
     const stages: CheckoutStage[] = [];
 
-    if (availablePlans) {
+    if (availablePlans.length > 0) {
       stages.push({
         id: "plan",
         name: t("Plan"),
@@ -234,6 +251,15 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       });
     }
 
+    if (credits.length > 0) {
+      stages.push({
+        id: "credits",
+        name: t("Credits"),
+        label: t("Select credits"),
+        description: t("Optionally add credit bundles to your subscription"),
+      });
+    }
+
     if (isPaymentMethodRequired) {
       stages.push({
         id: "checkout",
@@ -245,12 +271,13 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     return stages;
   }, [
     t,
-    availablePlans,
-    addOns,
-    payInAdvanceEntitlements,
-    shouldTrial,
+    availablePlans.length,
     willTrialWithoutPaymentMethod,
+    payInAdvanceEntitlements.length,
+    addOns.length,
     isSelectedPlanTrialable,
+    shouldTrial,
+    credits.length,
     isPaymentMethodRequired,
   ]);
 

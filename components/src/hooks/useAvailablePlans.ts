@@ -1,6 +1,9 @@
 import { useCallback, useMemo } from "react";
 
-import { type CompanyPlanDetailResponseData } from "../api/checkoutexternal";
+import {
+  type CompanyPlanDetailResponseData,
+  type ComponentHydrateResponseData,
+} from "../api/checkoutexternal";
 import { type PlanViewPublicResponseData } from "../api/componentspublic";
 import { ChargeType } from "../utils";
 
@@ -72,12 +75,9 @@ export function useAvailablePlans(activePeriod: string) {
     return {
       plans: getActivePlans(data?.activePlans || []),
       addOns: getActivePlans(data?.activeAddOns || []),
+      credits:
+        (data as ComponentHydrateResponseData | undefined)?.creditBundles || [],
       periods: getAvailablePeriods(),
     };
-  }, [
-    data?.activePlans,
-    data?.activeAddOns,
-    getAvailablePeriods,
-    getActivePlans,
-  ]);
+  }, [data, getAvailablePeriods, getActivePlans]);
 }

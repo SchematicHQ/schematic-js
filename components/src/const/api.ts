@@ -3,6 +3,7 @@ export enum PriceBehavior {
   PayAsYouGo = "pay_as_you_go",
   Overage = "overage",
   Tiered = "tier",
+  Credit = "credit_burndown",
 }
 
 export enum EntitlementValueType {
