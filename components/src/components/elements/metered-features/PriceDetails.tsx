@@ -51,10 +51,7 @@ export const PriceDetails = ({
         : currentTier?.perUnitPrice,
   };
 
-  if (
-    typeof feature === "undefined" ||
-    typeof currentTierPerUnitPrice !== "number"
-  ) {
+  if (!feature || typeof currentTierPerUnitPrice !== "number") {
     return null;
   }
 

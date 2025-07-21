@@ -6,6 +6,11 @@ export enum PriceBehavior {
   Credit = "credit_burndown",
 }
 
+export enum TiersMode {
+  Volume = "volume",
+  Graduated = "graduated",
+}
+
 export enum EntitlementValueType {
   Boolean = "boolean",
   Numeric = "numeric",

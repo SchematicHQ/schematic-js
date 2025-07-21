@@ -174,42 +174,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
   const [credits, setCredits] = useState(() => {
     if (isCheckoutData(data)) {
-      const today = new Date();
-
-      const testBundles: BillingCreditBundleView[] = [
-        {
-          bundleType: "fixed",
-          createdAt: today,
-          creditId: "credit-1",
-          expiryType: "no_expiry",
-          expiryUnit: "days",
-          expiryUnitCount: 30,
-          id: "bundle-1",
-          name: "Test Credit",
-          price: {
-            billingScheme: "per_unit",
-            createdAt: today,
-            currency: "usd",
-            id: "price-1",
-            interval: "month",
-            isActive: true,
-            meterId: null,
-            packageSize: 1,
-            price: 1200,
-            priceDecimal: null,
-            priceExternalId: "external-price-1",
-            productExternalId: "external-product-1",
-            tiersMode: null,
-            updatedAt: today,
-            usageType: "licensed",
-          },
-          quantity: 5,
-          status: "active",
-          updatedAt: today,
-        },
-      ];
-
-      return [...availableCredits, ...testBundles].map((credit) => ({
+      return availableCredits.map((credit) => ({
         ...credit,
         isSelected: false,
         /* isSelected: (data.company?.creditBundles || []).some(

@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import { type BillingProductPriceTierResponseData } from "../../../api/checkoutexternal";
+import { TiersMode } from "../../../const";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import type { Feature } from "../../../types";
 import { Box, Flex, Icon, Text, Tooltip } from "../../ui";
@@ -103,7 +104,9 @@ export const PricingTiersTooltip = ({
               );
             })}
           </dl>
-          {tiersMode && (
+
+          {(tiersMode === TiersMode.Volume ||
+            tiersMode === TiersMode.Graduated) && (
             <>
               <hr
                 style={{
@@ -115,7 +118,7 @@ export const PricingTiersTooltip = ({
               <Box>
                 <Text>
                   ℹ️{" "}
-                  {tiersMode === "volume"
+                  {tiersMode === TiersMode.Volume
                     ? t("Price by unit based on final tier reached.")
                     : t("Tiers apply progressively as quantity increases.")}
                 </Text>

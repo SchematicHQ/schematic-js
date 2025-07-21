@@ -25,7 +25,7 @@ export const AddOn = ({ addOn, currency, layout }: AddOnProps) => {
     >
       <Text display={layout.addOns.fontStyle}>{addOn.name}</Text>
 
-      {addOn.planPrice && addOn.planPeriod && (
+      {typeof addOn.planPrice === "number" && addOn.planPeriod && (
         <Text>
           {formatCurrency(addOn.planPrice, currency)}
           <sub>
