@@ -237,7 +237,7 @@ export const UpcomingBill = forwardRef<
                                         })
                                       : t("Amount off", {
                                           amount: formatCurrency(
-                                            discount.amountOff as number,
+                                            discount.amountOff as number, // we already checked for `number` type
                                             discount?.currency,
                                           ),
                                         })}

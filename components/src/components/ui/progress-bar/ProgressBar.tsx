@@ -66,7 +66,7 @@ export const ProgressBar = forwardRef<HTMLDivElement, ProgressBarProps>(
           />
         </Box>
 
-        {total && (
+        {total > 0 && (
           <Text $size={14} $weight={500}>
             {formatNumber(value)}/{formatNumber(total)}
           </Text>

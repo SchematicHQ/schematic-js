@@ -100,11 +100,9 @@ export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
               {t(
                 "You will retain access to your plan until the end of the billing period, on",
               )}{" "}
-              {cancelDate
-                ? toPrettyDate(cancelDate, {
-                    month: "numeric",
-                  })
-                : ""}
+              {toPrettyDate(cancelDate, {
+                month: "numeric",
+              })}
             </Text>
           </Flex>
 
