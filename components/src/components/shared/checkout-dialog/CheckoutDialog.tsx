@@ -10,6 +10,8 @@ import { useTranslation } from "react-i18next";
 
 import {
   ResponseError,
+  UpdateCreditBundleRequestBody,
+  type BillingCreditBundleView,
   type FeatureUsageResponseData,
   type PlanEntitlementResponseData,
   type PreviewSubscriptionFinanceResponseData,
@@ -37,6 +39,7 @@ import { Sidebar } from "../sidebar";
 
 import { AddOns } from "./AddOns";
 import { Checkout } from "./Checkout";
+import { Credits } from "./Credits";
 import { Navigation } from "./Navigation";
 import { Plan } from "./Plan";
 import { Usage } from "./Usage";
@@ -169,11 +172,44 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     return [];
   });
 
-  // TODO
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [credits, setCredits] = useState(() => {
     if (isCheckoutData(data)) {
-      return availableCredits.map((credit) => ({
+      const today = new Date();
+
+      const testBundles: BillingCreditBundleView[] = [
+        {
+          bundleType: "fixed",
+          createdAt: today,
+          creditId: "credit-1",
+          expiryType: "no_expiry",
+          expiryUnit: "days",
+          expiryUnitCount: 30,
+          id: "bundle-1",
+          name: "Test Credit",
+          price: {
+            billingScheme: "per_unit",
+            createdAt: today,
+            currency: "usd",
+            id: "price-1",
+            interval: "month",
+            isActive: true,
+            meterId: null,
+            packageSize: 1,
+            price: 1200,
+            priceDecimal: null,
+            priceExternalId: "external-price-1",
+            productExternalId: "external-product-1",
+            tiersMode: null,
+            updatedAt: today,
+            usageType: "licensed",
+          },
+          quantity: 5,
+          status: "active",
+          updatedAt: today,
+        },
+      ];
+
+      return [...availableCredits, ...testBundles].map((credit) => ({
         ...credit,
         isSelected: false,
         /* isSelected: (data.company?.creditBundles || []).some(
@@ -184,6 +220,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
     return [];
   });
+  console.debug(credits.length);
 
   const [usageBasedEntitlements, setUsageBasedEntitlements] = useState(() =>
     (selectedPlan?.entitlements || []).reduce(
@@ -271,15 +308,16 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     return stages;
   }, [
     t,
-    availablePlans.length,
+    availablePlans,
     willTrialWithoutPaymentMethod,
-    payInAdvanceEntitlements.length,
-    addOns.length,
+    payInAdvanceEntitlements,
+    addOns,
     isSelectedPlanTrialable,
     shouldTrial,
-    credits.length,
+    credits,
     isPaymentMethodRequired,
   ]);
+  console.debug(checkoutStages);
 
   const [checkoutStage, setCheckoutStage] = useState(() => {
     if (checkoutState?.addOnId) {
@@ -309,6 +347,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       shouldTrial?: boolean;
       addOns?: SelectedPlan[];
       payInAdvanceEntitlements?: UsageBasedEntitlement[];
+      credits?: BillingCreditBundleView[];
       promoCode?: string | null;
     }) => {
       const period = updates.period || planPeriod;
@@ -375,7 +414,19 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
             },
             [],
           ),
-          creditBundles: [],
+          creditBundles: (updates.credits || credits).reduce(
+            (acc: UpdateCreditBundleRequestBody[], { id, quantity }) => {
+              if (typeof quantity === "number") {
+                acc.push({
+                  bundleId: id,
+                  quantity,
+                });
+              }
+
+              return acc;
+            },
+            [],
+          ),
           skipTrial,
           ...(code && { promoCode: code }),
         });
@@ -430,6 +481,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       selectedPlan,
       payInAdvanceEntitlements,
       addOns,
+      credits,
       shouldTrial,
       promoCode,
     ],
@@ -549,6 +601,26 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
             ({ priceBehavior }) => priceBehavior === PriceBehavior.PayInAdvance,
           ),
         });
+
+        return updated;
+      });
+    },
+    [handlePreviewCheckout],
+  );
+
+  const updateCreditQuantity = useCallback(
+    (id: string, updatedQuantity: number) => {
+      setCredits((prev) => {
+        const updated = prev.map((bundle) =>
+          bundle.id === id
+            ? {
+                ...bundle,
+                quantity: updatedQuantity,
+              }
+            : bundle,
+        );
+
+        handlePreviewCheckout({ credits: updated });
 
         return updated;
       });
@@ -751,6 +823,15 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
             />
           )}
 
+          {checkoutStage === "credits" && (
+            <Credits
+              isLoading={isLoading}
+              period={planPeriod}
+              credits={credits}
+              updateQuantity={updateCreditQuantity}
+            />
+          )}
+
           {checkoutStage === "checkout" && (
             <Checkout
               isPaymentMethodRequired={isPaymentMethodRequired}
@@ -765,6 +846,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           selectedPlan={selectedPlan}
           addOns={addOns}
           usageBasedEntitlements={usageBasedEntitlements}
+          credits={credits}
           charges={charges}
           checkoutRef={checkoutRef}
           checkoutStage={checkoutStage}

@@ -7,6 +7,7 @@ import {
 import { useTranslation } from "react-i18next";
 
 import {
+  type BillingCreditBundleView,
   type PreviewSubscriptionFinanceResponseData,
   type UpdateAddOnRequestBody,
   type UpdatePayInAdvanceRequestBody,
@@ -44,6 +45,7 @@ interface SidebarProps {
   planPeriod: string;
   selectedPlan?: SelectedPlan;
   addOns: SelectedPlan[];
+  credits?: BillingCreditBundleView[];
   usageBasedEntitlements: UsageBasedEntitlement[];
   charges?: PreviewSubscriptionFinanceResponseData;
   checkoutRef?: React.RefObject<HTMLDivElement | null>;
@@ -67,6 +69,7 @@ export const Sidebar = ({
   planPeriod,
   selectedPlan,
   addOns,
+  credits = [],
   usageBasedEntitlements,
   charges,
   checkoutRef,
@@ -896,6 +899,7 @@ export const Sidebar = ({
             checkoutStages={checkoutStages}
             hasAddOns={addOns.length > 0}
             hasPayInAdvanceEntitlements={payInAdvanceEntitlements.length > 0}
+            hasCredits={credits.length > 0}
             hasPaymentMethod={hasPaymentMethod}
             hasPlan={typeof selectedPlan !== "undefined"}
             inEditMode={inEditMode}
