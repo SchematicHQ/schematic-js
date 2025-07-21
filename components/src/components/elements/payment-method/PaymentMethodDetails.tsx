@@ -326,9 +326,7 @@ export const PaymentMethodDetails = ({
                   ))}
                 </Flex>
 
-                {(!setupIntent ||
-                  !currentPaymentMethod ||
-                  showDifferentPaymentMethods) && (
+                {(!setupIntent || !currentPaymentMethod) && (
                   <Button
                     type="button"
                     onClick={initializePaymentMethod}

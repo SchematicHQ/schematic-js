@@ -73,7 +73,8 @@ export const Plan = ({
     if (isCheckoutData(data)) {
       const billingSubscription = data.company?.billingSubscription;
       const isTrialSubscription = billingSubscription?.status === "trialing";
-      const willSubscriptionCancel = billingSubscription?.cancelAt;
+      const willSubscriptionCancel =
+        typeof billingSubscription?.cancelAt === "number";
 
       return {
         currentPeriod: data.company?.plan?.planPeriod || "month",
@@ -192,7 +193,9 @@ export const Plan = ({
                 hexToHSL(settings.theme.primary).l > 50 ? "#000000" : "#FFFFFF"
               }
             >
-              {isTrialSubscription && !willSubscriptionCancel && trialEndDays
+              {isTrialSubscription &&
+              !willSubscriptionCancel &&
+              typeof trialEndDays === "number"
                 ? t("Trial ends in", { days: trialEndDays })
                 : t("Active")}
             </Text>

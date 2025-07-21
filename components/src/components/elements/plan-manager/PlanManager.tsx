@@ -171,7 +171,7 @@ export const PlanManager = forwardRef<
               : lighten(settings.theme.card.background, 0.04)
           }
         >
-          {trialEndDays && (
+          {typeof trialEndDays === "number" && (
             <Text as="h3" display="heading3">
               {t("Trial ends in", { days: trialEndDays })}
             </Text>
@@ -207,7 +207,7 @@ export const PlanManager = forwardRef<
               {t("Subscription canceled")}
             </Text>
 
-            {billingSubscription?.cancelAt && (
+            {typeof billingSubscription?.cancelAt === "number" && (
               <Text
                 as="p"
                 $size={0.8125 * settings.theme.typography.text.fontSize}

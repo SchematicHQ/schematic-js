@@ -5,6 +5,11 @@ export enum PriceBehavior {
   Tiered = "tier",
 }
 
+export enum TiersMode {
+  Volume = "volume",
+  Graduated = "graduated",
+}
+
 export enum EntitlementValueType {
   Boolean = "boolean",
   Numeric = "numeric",
