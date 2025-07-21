@@ -92,7 +92,7 @@ export const PlanManager = forwardRef<
 
   const isLightBackground = useIsLightBackground();
 
-  const trialEndDays = useTrialEnd();
+  const trialEnd = useTrialEnd();
 
   /**
    * Can change plan if there is:
@@ -171,9 +171,9 @@ export const PlanManager = forwardRef<
               : lighten(settings.theme.card.background, 0.04)
           }
         >
-          {typeof trialEndDays === "number" && (
+          {typeof trialEnd.formatted !== "undefined" && (
             <Text as="h3" display="heading3">
-              {t("Trial ends in", { days: trialEndDays })}
+              {trialEnd.formatted}
             </Text>
           )}
 

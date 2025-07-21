@@ -60,7 +60,7 @@ export const Plan = ({
 
   const isLightBackground = useIsLightBackground();
 
-  const trialEndDays = useTrialEnd();
+  const trialEnd = useTrialEnd();
 
   const {
     currentPeriod,
@@ -195,8 +195,8 @@ export const Plan = ({
             >
               {isTrialSubscription &&
               !willSubscriptionCancel &&
-              typeof trialEndDays === "number"
-                ? t("Trial ends in", { days: trialEndDays })
+              typeof trialEnd !== "undefined"
+                ? trialEnd.formatted
                 : t("Active")}
             </Text>
           </Flex>

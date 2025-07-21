@@ -103,7 +103,7 @@
     "There was a problem retrieving your invoices.": "There was a problem retrieving your invoices.",
     "Tiers apply progressively as quantity increases.": "Tiers apply progressively as quantity increases.",
     "Total": "Total",
-    "Trial ends in": "Trial ends in {{days}} days",
+    "Trial ends in": "Trial ends in {{amount}} {{units}}",
     "Trial in progress": "Trial in progress",
     "Trial selected": "Trial selected",
     "Trial": "Trial",
