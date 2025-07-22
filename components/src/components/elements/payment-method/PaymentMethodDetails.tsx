@@ -1,5 +1,9 @@
 import { Elements } from "@stripe/react-stripe-js";
-import { loadStripe, type Stripe } from "@stripe/stripe-js";
+import {
+  loadStripe,
+  type Stripe,
+  type StripeConstructorOptions,
+} from "@stripe/stripe-js";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -181,10 +185,18 @@ export const PaymentMethodDetails = ({
   );
 
   useEffect(() => {
-    if (!stripe && setupIntent?.publishableKey) {
-      setStripe(loadStripe(setupIntent.publishableKey));
+    if (!stripe && setupIntent) {
+      const publishableKey =
+        setupIntent.publishableKey || setupIntent.schematicPublishableKey;
+      const stripeOptions: StripeConstructorOptions = {};
+
+      if (setupIntent.accountId) {
+        stripeOptions.stripeAccount = setupIntent.accountId;
+      }
+
+      setStripe(loadStripe(publishableKey, stripeOptions));
     }
-  }, [stripe, setupIntent?.publishableKey]);
+  }, [stripe, setupIntent]);
 
   useEffect(() => {
     if (!setupIntent && (!currentPaymentMethod || showPaymentForm)) {
