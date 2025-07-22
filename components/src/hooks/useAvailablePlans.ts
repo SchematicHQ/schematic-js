@@ -5,16 +5,10 @@ import {
   type ComponentHydrateResponseData,
 } from "../api/checkoutexternal";
 import { type PlanViewPublicResponseData } from "../api/componentspublic";
+import type { SelectedPlan } from "../types";
 import { ChargeType } from "../utils";
 
 import { useEmbed } from ".";
-
-export type SelectedPlan = (
-  | PlanViewPublicResponseData
-  | CompanyPlanDetailResponseData
-) & {
-  isSelected: boolean;
-};
 
 export function useAvailablePlans(activePeriod: string) {
   const { data, settings } = useEmbed();
@@ -75,7 +69,7 @@ export function useAvailablePlans(activePeriod: string) {
     return {
       plans: getActivePlans(data?.activePlans || []),
       addOns: getActivePlans(data?.activeAddOns || []),
-      credits:
+      creditBundles:
         (data as ComponentHydrateResponseData | undefined)?.creditBundles || [],
       periods: getAvailablePeriods(),
     };

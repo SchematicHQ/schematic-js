@@ -31,6 +31,7 @@ models/ComponentHydrateResponseData.ts
 models/ComponentResponseData.ts
 models/CountResponse.ts
 models/CreateSetupIntentResponse.ts
+models/CreditCompanyGrantView.ts
 models/CustomPlanConfig.ts
 models/CustomPlanViewConfigResponseData.ts
 models/DeletePaymentMethodResponse.ts

@@ -2,7 +2,7 @@ import { MouseEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { type PreviewSubscriptionFinanceResponseData } from "../../../api/checkoutexternal";
-import { type SelectedPlan } from "../../../hooks";
+import type { SelectedPlan } from "../../../types";
 import { formatCurrency, isHydratedPlan } from "../../../utils";
 import { Box, Button, Flex, Icon, Text } from "../../ui";
 

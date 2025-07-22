@@ -11,7 +11,6 @@ import { useTranslation } from "react-i18next";
 import {
   ResponseError,
   UpdateCreditBundleRequestBody,
-  type BillingCreditBundleView,
   type FeatureUsageResponseData,
   type PlanEntitlementResponseData,
   type PreviewSubscriptionFinanceResponseData,
@@ -23,9 +22,12 @@ import {
   useAvailablePlans,
   useEmbed,
   useIsLightBackground,
-  type SelectedPlan,
 } from "../../../hooks";
-import type { UsageBasedEntitlement } from "../../../types";
+import type {
+  CreditBundle,
+  SelectedPlan,
+  UsageBasedEntitlement,
+} from "../../../types";
 import {
   ERROR_UNKNOWN,
   getAddOnPrice,
@@ -119,7 +121,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   const {
     plans: availablePlans,
     addOns: availableAddOns,
-    credits: availableCredits,
+    creditBundles: availableCreditBundles,
     periods: availablePeriods,
   } = useAvailablePlans(planPeriod);
 
@@ -172,20 +174,16 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     return [];
   });
 
-  const [credits, setCredits] = useState(() => {
+  const [creditBundles, setCreditBundles] = useState<CreditBundle[]>(() => {
     if (isCheckoutData(data)) {
-      return availableCredits.map((credit) => ({
-        ...credit,
-        isSelected: false,
-        /* isSelected: (data.company?.creditBundles || []).some(
-          (currentCredit) => credit.id === currentCredit.id,
-        ), */
+      return availableCreditBundles.map((bundle) => ({
+        ...bundle,
+        count: 0,
       }));
     }
 
     return [];
   });
-  console.debug(credits.length);
 
   const [usageBasedEntitlements, setUsageBasedEntitlements] = useState(() =>
     (selectedPlan?.entitlements || []).reduce(
@@ -253,7 +251,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       });
     }
 
-    if (credits.length > 0) {
+    if (creditBundles.length > 0) {
       stages.push({
         id: "credits",
         name: t("Credits"),
@@ -279,10 +277,9 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     addOns,
     isSelectedPlanTrialable,
     shouldTrial,
-    credits,
+    creditBundles,
     isPaymentMethodRequired,
   ]);
-  console.debug(checkoutStages);
 
   const [checkoutStage, setCheckoutStage] = useState(() => {
     if (checkoutState?.addOnId) {
@@ -312,7 +309,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       shouldTrial?: boolean;
       addOns?: SelectedPlan[];
       payInAdvanceEntitlements?: UsageBasedEntitlement[];
-      credits?: BillingCreditBundleView[];
+      creditBundles?: CreditBundle[];
       promoCode?: string | null;
     }) => {
       const period = updates.period || planPeriod;
@@ -379,12 +376,12 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
             },
             [],
           ),
-          creditBundles: (updates.credits || credits).reduce(
-            (acc: UpdateCreditBundleRequestBody[], { id, quantity }) => {
-              if (typeof quantity === "number") {
+          creditBundles: (updates.creditBundles || creditBundles).reduce(
+            (acc: UpdateCreditBundleRequestBody[], { id, count }) => {
+              if (count > 0) {
                 acc.push({
                   bundleId: id,
-                  quantity,
+                  quantity: count,
                 });
               }
 
@@ -446,7 +443,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       selectedPlan,
       payInAdvanceEntitlements,
       addOns,
-      credits,
+      creditBundles,
       shouldTrial,
       promoCode,
     ],
@@ -573,19 +570,19 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     [handlePreviewCheckout],
   );
 
-  const updateCreditQuantity = useCallback(
-    (id: string, updatedQuantity: number) => {
-      setCredits((prev) => {
+  const updateCreditBundleCount = useCallback(
+    (id: string, updatedCount: number) => {
+      setCreditBundles((prev) => {
         const updated = prev.map((bundle) =>
           bundle.id === id
             ? {
                 ...bundle,
-                quantity: updatedQuantity,
+                count: updatedCount,
               }
             : bundle,
         );
 
-        handlePreviewCheckout({ credits: updated });
+        handlePreviewCheckout({ creditBundles: updated });
 
         return updated;
       });
@@ -791,9 +788,8 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           {checkoutStage === "credits" && (
             <Credits
               isLoading={isLoading}
-              period={planPeriod}
-              credits={credits}
-              updateQuantity={updateCreditQuantity}
+              bundles={creditBundles}
+              updateCount={updateCreditBundleCount}
             />
           )}
 
@@ -811,7 +807,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           selectedPlan={selectedPlan}
           addOns={addOns}
           usageBasedEntitlements={usageBasedEntitlements}
-          credits={credits}
+          creditBundles={creditBundles}
           charges={charges}
           checkoutRef={checkoutRef}
           checkoutStage={checkoutStage}

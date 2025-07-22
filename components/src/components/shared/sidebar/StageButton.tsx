@@ -9,7 +9,7 @@ type StageButtonProps = {
   checkoutStages?: CheckoutStage[];
   hasAddOns: boolean;
   hasPayInAdvanceEntitlements: boolean;
-  hasCredits: boolean;
+  hasCreditBundles: boolean;
   hasPaymentMethod: boolean;
   hasPlan: boolean;
   inEditMode: boolean;
@@ -28,7 +28,7 @@ export const StageButton = ({
   checkoutStages,
   hasAddOns,
   hasPayInAdvanceEntitlements,
-  hasCredits,
+  hasCreditBundles,
   hasPaymentMethod,
   hasPlan,
   inEditMode,
@@ -105,7 +105,7 @@ export const StageButton = ({
               ? "usage"
               : hasAddOns
                 ? "addons"
-                : hasCredits
+                : hasCreditBundles
                   ? "credits"
                   : "checkout",
           );
@@ -119,7 +119,7 @@ export const StageButton = ({
             ? t("Usage")
             : hasAddOns
               ? t("Addons")
-              : hasCredits
+              : hasCreditBundles
                 ? t("Credits")
                 : t("Checkout")}
           <Icon name="arrow-right" />
@@ -144,7 +144,7 @@ export const StageButton = ({
         disabled={isDisabled}
         onClick={async () => {
           setCheckoutStage?.(
-            hasAddOns ? "addons" : hasCredits ? "credits" : "checkout",
+            hasAddOns ? "addons" : hasCreditBundles ? "credits" : "checkout",
           );
         }}
         $isLoading={isLoading}
@@ -157,7 +157,11 @@ export const StageButton = ({
           $padding="0 1rem"
         >
           {t("Next")}:{" "}
-          {hasAddOns ? t("Addons") : hasCredits ? t("Credits") : t("Checkout")}
+          {hasAddOns
+            ? t("Addons")
+            : hasCreditBundles
+              ? t("Credits")
+              : t("Checkout")}
           <Icon name="arrow-right" />
         </Flex>
       </Button>
@@ -177,7 +181,7 @@ export const StageButton = ({
         type="button"
         disabled={isDisabled}
         onClick={async () => {
-          setCheckoutStage?.(hasCredits ? "credits" : "checkout");
+          setCheckoutStage?.(hasCreditBundles ? "credits" : "checkout");
         }}
         $isLoading={isLoading}
         $fullWidth
@@ -188,7 +192,7 @@ export const StageButton = ({
           $alignItems="center"
           $padding="0 1rem"
         >
-          {t("Next")}: {hasCredits ? t("Credits") : t("Checkout")}
+          {t("Next")}: {hasCreditBundles ? t("Credits") : t("Checkout")}
           <Icon name="arrow-right" />
         </Flex>
       </Button>

@@ -2,12 +2,8 @@ import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import { TEXT_BASE_SIZE, VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
-import {
-  useEmbed,
-  useIsLightBackground,
-  useTrialEnd,
-  type SelectedPlan,
-} from "../../../hooks";
+import { useEmbed, useIsLightBackground, useTrialEnd } from "../../../hooks";
+import type { SelectedPlan } from "../../../types";
 import {
   formatCurrency,
   getPlanPrice,

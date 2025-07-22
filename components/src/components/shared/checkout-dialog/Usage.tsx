@@ -1,8 +1,8 @@
 import { useTranslation } from "react-i18next";
 
 import { TEXT_BASE_SIZE } from "../../../const";
-import { useEmbed, type SelectedPlan } from "../../../hooks";
-import type { UsageBasedEntitlement } from "../../../types";
+import { useEmbed } from "../../../hooks";
+import type { SelectedPlan, UsageBasedEntitlement } from "../../../types";
 import {
   formatCurrency,
   getEntitlementPrice,

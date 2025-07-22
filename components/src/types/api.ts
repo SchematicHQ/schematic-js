@@ -1,4 +1,5 @@
 import {
+  type BillingCreditBundleView,
   type BillingPriceResponseData,
   type BillingPriceView,
   type BillingProductPriceTierResponseData,
@@ -21,6 +22,9 @@ export type HydrateData =
 export type BillingPrice = BillingPriceView | BillingPriceResponseData;
 
 export type Plan = CompanyPlanDetailResponseData | PlanViewPublicResponseData;
+export type SelectedPlan = Plan & { isSelected: boolean };
+
+export type CreditBundle = BillingCreditBundleView & { count: number };
 
 export type Feature = FeatureDetailResponseData | FeatureResponseData;
 
