@@ -182,7 +182,16 @@ export const PaymentMethodDetails = ({
 
   useEffect(() => {
     if (!stripe && setupIntent?.publishableKey) {
-      setStripe(loadStripe(setupIntent.publishableKey));
+      let publishableKey = setupIntent.publishableKey;
+      let stripeOptions;
+      if (setupIntent.accountId && setupIntent.schematicPublishableKey) {
+        stripeOptions = {
+          stripeAccount: setupIntent.accountId,
+        };
+        publishableKey = setupIntent.schematicPublishableKey;
+      }
+
+      setStripe(loadStripe(publishableKey, stripeOptions));
     }
   }, [stripe, setupIntent?.publishableKey]);
 
