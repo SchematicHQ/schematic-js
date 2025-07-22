@@ -19,6 +19,30 @@ import {
   PlanDetailResponseDataFromJSONTyped,
   PlanDetailResponseDataToJSON,
 } from "./PlanDetailResponseData";
+import type { BillingCreditBundleView } from "./BillingCreditBundleView";
+import {
+  BillingCreditBundleViewFromJSON,
+  BillingCreditBundleViewFromJSONTyped,
+  BillingCreditBundleViewToJSON,
+} from "./BillingCreditBundleView";
+import type { StripeEmbedInfo } from "./StripeEmbedInfo";
+import {
+  StripeEmbedInfoFromJSON,
+  StripeEmbedInfoFromJSONTyped,
+  StripeEmbedInfoToJSON,
+} from "./StripeEmbedInfo";
+import type { InvoiceResponseData } from "./InvoiceResponseData";
+import {
+  InvoiceResponseDataFromJSON,
+  InvoiceResponseDataFromJSONTyped,
+  InvoiceResponseDataToJSON,
+} from "./InvoiceResponseData";
+import type { CreditCompanyGrantView } from "./CreditCompanyGrantView";
+import {
+  CreditCompanyGrantViewFromJSON,
+  CreditCompanyGrantViewFromJSONTyped,
+  CreditCompanyGrantViewToJSON,
+} from "./CreditCompanyGrantView";
 import type { CompanyPlanDetailResponseData } from "./CompanyPlanDetailResponseData";
 import {
   CompanyPlanDetailResponseDataFromJSON,
@@ -43,12 +67,6 @@ import {
   ComponentCapabilitiesFromJSONTyped,
   ComponentCapabilitiesToJSON,
 } from "./ComponentCapabilities";
-import type { BillingCreditBundleView } from "./BillingCreditBundleView";
-import {
-  BillingCreditBundleViewFromJSON,
-  BillingCreditBundleViewFromJSONTyped,
-  BillingCreditBundleViewToJSON,
-} from "./BillingCreditBundleView";
 import type { ComponentResponseData } from "./ComponentResponseData";
 import {
   ComponentResponseDataFromJSON,
@@ -61,24 +79,12 @@ import {
   FeatureUsageDetailResponseDataFromJSONTyped,
   FeatureUsageDetailResponseDataToJSON,
 } from "./FeatureUsageDetailResponseData";
-import type { StripeEmbedInfo } from "./StripeEmbedInfo";
-import {
-  StripeEmbedInfoFromJSON,
-  StripeEmbedInfoFromJSONTyped,
-  StripeEmbedInfoToJSON,
-} from "./StripeEmbedInfo";
 import type { CompanyDetailResponseData } from "./CompanyDetailResponseData";
 import {
   CompanyDetailResponseDataFromJSON,
   CompanyDetailResponseDataFromJSONTyped,
   CompanyDetailResponseDataToJSON,
 } from "./CompanyDetailResponseData";
-import type { InvoiceResponseData } from "./InvoiceResponseData";
-import {
-  InvoiceResponseDataFromJSON,
-  InvoiceResponseDataFromJSONTyped,
-  InvoiceResponseDataToJSON,
-} from "./InvoiceResponseData";
 import type { CompanySubscriptionResponseData } from "./CompanySubscriptionResponseData";
 import {
   CompanySubscriptionResponseDataFromJSON,
@@ -142,6 +148,12 @@ export interface ComponentHydrateResponseData {
   creditBundles: Array<BillingCreditBundleView>;
   /**
    *
+   * @type {Array<CreditCompanyGrantView>}
+   * @memberof ComponentHydrateResponseData
+   */
+  creditGrants: Array<CreditCompanyGrantView>;
+  /**
+   *
    * @type {PlanDetailResponseData}
    * @memberof ComponentHydrateResponseData
    */
@@ -200,6 +212,8 @@ export function instanceOfComponentHydrateResponseData(
     return false;
   if (!("creditBundles" in value) || value["creditBundles"] === undefined)
     return false;
+  if (!("creditGrants" in value) || value["creditGrants"] === undefined)
+    return false;
   return true;
 }
 
@@ -243,6 +257,9 @@ export function ComponentHydrateResponseDataFromJSONTyped(
         : ComponentResponseDataFromJSON(json["component"]),
     creditBundles: (json["credit_bundles"] as Array<any>).map(
       BillingCreditBundleViewFromJSON,
+    ),
+    creditGrants: (json["credit_grants"] as Array<any>).map(
+      CreditCompanyGrantViewFromJSON,
     ),
     defaultPlan:
       json["default_plan"] == null
@@ -295,6 +312,9 @@ export function ComponentHydrateResponseDataToJSON(
     component: ComponentResponseDataToJSON(value["component"]),
     credit_bundles: (value["creditBundles"] as Array<any>).map(
       BillingCreditBundleViewToJSON,
+    ),
+    credit_grants: (value["creditGrants"] as Array<any>).map(
+      CreditCompanyGrantViewToJSON,
     ),
     default_plan: PlanDetailResponseDataToJSON(value["defaultPlan"]),
     feature_usage: FeatureUsageDetailResponseDataToJSON(value["featureUsage"]),

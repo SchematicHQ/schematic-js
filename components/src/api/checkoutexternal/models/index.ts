@@ -1,5 +1,5 @@
 /* tslint:disable */
- 
+/* eslint-disable */
 export * from "./ApiError";
 export * from "./BillingCreditBundleView";
 export * from "./BillingCreditResponseData";
@@ -29,6 +29,7 @@ export * from "./ComponentHydrateResponseData";
 export * from "./ComponentResponseData";
 export * from "./CountResponse";
 export * from "./CreateSetupIntentResponse";
+export * from "./CreditCompanyGrantView";
 export * from "./CustomPlanConfig";
 export * from "./CustomPlanViewConfigResponseData";
 export * from "./DeletePaymentMethodResponse";
