@@ -24,7 +24,19 @@ export interface SetupIntentResponseData {
    * @type {string}
    * @memberof SetupIntentResponseData
    */
-  publishableKey: string;
+  accountId?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof SetupIntentResponseData
+   */
+  publishableKey?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof SetupIntentResponseData
+   */
+  schematicPublishableKey: string;
   /**
    *
    * @type {string}
@@ -39,7 +51,10 @@ export interface SetupIntentResponseData {
 export function instanceOfSetupIntentResponseData(
   value: object,
 ): value is SetupIntentResponseData {
-  if (!("publishableKey" in value) || value["publishableKey"] === undefined)
+  if (
+    !("schematicPublishableKey" in value) ||
+    value["schematicPublishableKey"] === undefined
+  )
     return false;
   return true;
 }
@@ -58,7 +73,10 @@ export function SetupIntentResponseDataFromJSONTyped(
     return json;
   }
   return {
-    publishableKey: json["publishable_key"],
+    accountId: json["account_id"] == null ? undefined : json["account_id"],
+    publishableKey:
+      json["publishable_key"] == null ? undefined : json["publishable_key"],
+    schematicPublishableKey: json["schematic_publishable_key"],
     setupIntentClientSecret:
       json["setup_intent_client_secret"] == null
         ? undefined
@@ -73,7 +91,9 @@ export function SetupIntentResponseDataToJSON(
     return value;
   }
   return {
+    account_id: value["accountId"],
     publishable_key: value["publishableKey"],
+    schematic_publishable_key: value["schematicPublishableKey"],
     setup_intent_client_secret: value["setupIntentClientSecret"],
   };
 }
