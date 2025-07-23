@@ -775,14 +775,16 @@ export const Sidebar = ({
                 $gap="1rem"
               >
                 <Box>
-                  <Text display="heading4">{bundle.name}</Text>
+                  <Text display="heading4">
+                    {bundle.count}x {bundle.name}
+                  </Text>
                 </Box>
 
                 <Box $whiteSpace="nowrap">
                   <Text>
-                    {formatCurrency(price, bundle.price?.currency)}
-                    {addOn.chargeType !== ChargeType.oneTime && (
-                      <sub>/{shortenPeriod(planPeriod)}</sub>
+                    {formatCurrency(
+                      price * bundle.count,
+                      bundle.price?.currency,
                     )}
                   </Text>
                 </Box>
