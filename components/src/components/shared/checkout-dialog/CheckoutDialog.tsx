@@ -31,6 +31,7 @@ import type {
 import {
   ERROR_UNKNOWN,
   getAddOnPrice,
+  getCredits,
   isCheckoutData,
   isError,
   isHydratedPlan,
@@ -121,28 +122,33 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   const {
     plans: availablePlans,
     addOns: availableAddOns,
-    creditBundles: availableCreditBundles,
     periods: availablePeriods,
   } = useAvailablePlans(planPeriod);
 
-  const { currentPlanId, currentEntitlements, trialPaymentMethodRequired } =
-    useMemo(() => {
-      if (isCheckoutData(data)) {
-        return {
-          currentPlanId: data.company?.plan?.id,
-          currentEntitlements: data.featureUsage
-            ? data.featureUsage.features
-            : [],
-          trialPaymentMethodRequired: data.trialPaymentMethodRequired === true,
-        };
-      }
-
+  const {
+    currentPlanId,
+    currentEntitlements,
+    trialPaymentMethodRequired,
+    credits,
+  } = useMemo(() => {
+    if (isCheckoutData(data)) {
       return {
-        currentPlanId: undefined,
-        currentEntitlements: [],
-        trialPaymentMethodRequired: false,
+        currentPlanId: data.company?.plan?.id,
+        currentEntitlements: data.featureUsage
+          ? data.featureUsage.features
+          : [],
+        trialPaymentMethodRequired: data.trialPaymentMethodRequired === true,
+        credits: getCredits(data.creditGrants),
       };
-    }, [data]);
+    }
+
+    return {
+      currentPlanId: undefined,
+      currentEntitlements: [],
+      trialPaymentMethodRequired: false,
+      credits: [],
+    };
+  }, [data]);
 
   const [selectedPlan, setSelectedPlan] = useState<SelectedPlan | undefined>(
     () => {
@@ -176,7 +182,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
   const [creditBundles, setCreditBundles] = useState<CreditBundle[]>(() => {
     if (isCheckoutData(data)) {
-      return availableCreditBundles.map((bundle) => ({
+      return data.creditBundles.map((bundle) => ({
         ...bundle,
         count: 0,
       }));
@@ -808,6 +814,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           addOns={addOns}
           usageBasedEntitlements={usageBasedEntitlements}
           creditBundles={creditBundles}
+          credits={credits}
           charges={charges}
           checkoutRef={checkoutRef}
           checkoutStage={checkoutStage}
