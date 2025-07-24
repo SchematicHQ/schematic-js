@@ -43,7 +43,25 @@ export interface BillingCreditBundleView {
    * @type {string}
    * @memberof BillingCreditBundleView
    */
+  creditDescription?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof BillingCreditBundleView
+   */
+  creditIcon?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof BillingCreditBundleView
+   */
   creditId: string;
+  /**
+   *
+   * @type {string}
+   * @memberof BillingCreditBundleView
+   */
+  creditName: string;
   /**
    *
    * @type {string}
@@ -76,6 +94,12 @@ export interface BillingCreditBundleView {
   name: string;
   /**
    *
+   * @type {string}
+   * @memberof BillingCreditBundleView
+   */
+  pluralName?: string | null;
+  /**
+   *
    * @type {BillingProductPriceResponseData}
    * @memberof BillingCreditBundleView
    */
@@ -91,7 +115,19 @@ export interface BillingCreditBundleView {
    * @type {string}
    * @memberof BillingCreditBundleView
    */
+  singularName?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof BillingCreditBundleView
+   */
   status: string;
+  /**
+   *
+   * @type {BillingProductPriceResponseData}
+   * @memberof BillingCreditBundleView
+   */
+  unitPrice?: BillingProductPriceResponseData;
   /**
    *
    * @type {Date}
@@ -110,6 +146,8 @@ export function instanceOfBillingCreditBundleView(
     return false;
   if (!("createdAt" in value) || value["createdAt"] === undefined) return false;
   if (!("creditId" in value) || value["creditId"] === undefined) return false;
+  if (!("creditName" in value) || value["creditName"] === undefined)
+    return false;
   if (!("expiryType" in value) || value["expiryType"] === undefined)
     return false;
   if (!("expiryUnit" in value) || value["expiryUnit"] === undefined)
@@ -137,19 +175,32 @@ export function BillingCreditBundleViewFromJSONTyped(
   return {
     bundleType: json["bundle_type"],
     createdAt: new Date(json["created_at"]),
+    creditDescription:
+      json["credit_description"] == null
+        ? undefined
+        : json["credit_description"],
+    creditIcon: json["credit_icon"] == null ? undefined : json["credit_icon"],
     creditId: json["credit_id"],
+    creditName: json["credit_name"],
     expiryType: json["expiry_type"],
     expiryUnit: json["expiry_unit"],
     expiryUnitCount:
       json["expiry_unit_count"] == null ? undefined : json["expiry_unit_count"],
     id: json["id"],
     name: json["name"],
+    pluralName: json["plural_name"] == null ? undefined : json["plural_name"],
     price:
       json["price"] == null
         ? undefined
         : BillingProductPriceResponseDataFromJSON(json["price"]),
     quantity: json["quantity"] == null ? undefined : json["quantity"],
+    singularName:
+      json["singular_name"] == null ? undefined : json["singular_name"],
     status: json["status"],
+    unitPrice:
+      json["unit_price"] == null
+        ? undefined
+        : BillingProductPriceResponseDataFromJSON(json["unit_price"]),
     updatedAt: new Date(json["updated_at"]),
   };
 }
@@ -163,15 +214,21 @@ export function BillingCreditBundleViewToJSON(
   return {
     bundle_type: value["bundleType"],
     created_at: value["createdAt"].toISOString(),
+    credit_description: value["creditDescription"],
+    credit_icon: value["creditIcon"],
     credit_id: value["creditId"],
+    credit_name: value["creditName"],
     expiry_type: value["expiryType"],
     expiry_unit: value["expiryUnit"],
     expiry_unit_count: value["expiryUnitCount"],
     id: value["id"],
     name: value["name"],
+    plural_name: value["pluralName"],
     price: BillingProductPriceResponseDataToJSON(value["price"]),
     quantity: value["quantity"],
+    singular_name: value["singularName"],
     status: value["status"],
+    unit_price: BillingProductPriceResponseDataToJSON(value["unitPrice"]),
     updated_at: value["updatedAt"].toISOString(),
   };
 }
