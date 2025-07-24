@@ -7,6 +7,8 @@ import type { DeepPartial, ElementProps } from "../../../types";
 import {
   darken,
   formatCurrency,
+  getCredits,
+  getFeatureName,
   isCheckoutData,
   lighten,
   shortenPeriod,
@@ -103,6 +105,7 @@ export const PlanManager = forwardRef<
   const {
     currentPlan,
     currentAddOns,
+    creditGrants,
     billingSubscription,
     canCheckout,
     defaultPlan,
@@ -113,6 +116,7 @@ export const PlanManager = forwardRef<
       return {
         currentPlan: data.company?.plan,
         currentAddOns: data.company?.addOns || [],
+        creditGrants: data.creditGrants,
         billingSubscription: data.company?.billingSubscription,
         canCheckout: data.capabilities?.checkout ?? true,
         defaultPlan: data.defaultPlan,
@@ -124,6 +128,7 @@ export const PlanManager = forwardRef<
     return {
       currentPlan: undefined,
       currentAddOns: [],
+      creditGrants: [],
       billingSubscription: undefined,
       canCheckout: false,
       defaultPlan: undefined,
@@ -137,6 +142,10 @@ export const PlanManager = forwardRef<
       featureUsage.filter((usage) => typeof usage.priceBehavior === "string"),
     [featureUsage],
   );
+
+  const credits = useMemo(() => {
+    return getCredits(creditGrants);
+  }, [creditGrants]);
 
   const { subscriptionCurrency, willSubscriptionCancel, isTrialSubscription } =
     useMemo(() => {
@@ -283,7 +292,7 @@ export const PlanManager = forwardRef<
         )}
 
         {props.addOns.isVisible && currentAddOns.length > 0 && (
-          <Flex $flexDirection="column" $gap="1rem">
+          <Flex $flexDirection="column" $gap="0.5rem">
             {props.addOns.showLabel && (
               <Text
                 $color={
@@ -297,19 +306,21 @@ export const PlanManager = forwardRef<
               </Text>
             )}
 
-            {currentAddOns.map((addOn, addOnIndex) => (
-              <AddOn
-                key={addOnIndex}
-                addOn={addOn}
-                currency={subscriptionCurrency}
-                layout={props}
-              />
-            ))}
+            <Flex $flexDirection="column" $gap="1rem">
+              {currentAddOns.map((addOn, addOnIndex) => (
+                <AddOn
+                  key={addOnIndex}
+                  addOn={addOn}
+                  currency={subscriptionCurrency}
+                  layout={props}
+                />
+              ))}
+            </Flex>
           </Flex>
         )}
 
         {props.addOns.isVisible && usageBasedEntitlements.length > 0 && (
-          <Flex $flexDirection="column" $gap="1rem">
+          <Flex $flexDirection="column" $gap="0.5rem">
             {props.addOns.showLabel && (
               <Text
                 $color={
@@ -323,16 +334,45 @@ export const PlanManager = forwardRef<
               </Text>
             )}
 
-            {usageBasedEntitlements.map((entitlement, entitlementIndex) => {
-              return (
-                <UsageDetails
-                  key={entitlementIndex}
-                  entitlement={entitlement}
-                  period={currentPlan?.planPeriod || "month"}
-                  layout={props}
-                />
-              );
-            })}
+            <Flex $flexDirection="column" $gap="1rem">
+              {usageBasedEntitlements.map((entitlement, entitlementIndex) => {
+                return (
+                  <UsageDetails
+                    key={entitlementIndex}
+                    entitlement={entitlement}
+                    period={currentPlan?.planPeriod || "month"}
+                    layout={props}
+                  />
+                );
+              })}
+
+              {credits.map((credit, creditIndex) => {
+                return (
+                  <Flex
+                    key={creditIndex}
+                    $justifyContent="space-between"
+                    $alignItems="center"
+                    $flexWrap="wrap"
+                    $gap="0.5rem"
+                  >
+                    <Text display={props.addOns.fontStyle}>
+                      {credit.quantity.value}{" "}
+                      {getFeatureName(credit, credit.quantity.value)}
+                    </Text>
+
+                    {credit.quantity.used > 0 && (
+                      <Text
+                        style={{ opacity: 0.54 }}
+                        $size={0.875 * settings.theme.typography.text.fontSize}
+                        $color={settings.theme.typography.text.color}
+                      >
+                        {credit.quantity.used} {t("used")}
+                      </Text>
+                    )}
+                  </Flex>
+                );
+              })}
+            </Flex>
           </Flex>
         )}
 

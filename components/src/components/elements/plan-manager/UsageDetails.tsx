@@ -93,6 +93,31 @@ export const UsageDetails = ({
       index += 1;
     }
 
+    if (
+      entitlement.priceBehavior === PriceBehavior.Credit &&
+      entitlement.planEntitlement?.consumptionRate &&
+      entitlement.planEntitlement?.valueCredit
+    ) {
+      const creditAmount = entitlement.planEntitlement.consumptionRate * amount;
+      acc.push(
+        creditAmount > 0 ? (
+          <Fragment key={index}>
+            {creditAmount}{" "}
+            {getFeatureName(entitlement.planEntitlement.valueCredit)}{" "}
+            {t("used")}
+          </Fragment>
+        ) : (
+          <Fragment key={index}>
+            {entitlement.planEntitlement.consumptionRate}{" "}
+            {getFeatureName(entitlement.planEntitlement.valueCredit)} {t("per")}{" "}
+            {t("use")}
+          </Fragment>
+        ),
+      );
+
+      index += 1;
+    }
+
     return acc;
   }, [t, period, entitlement, billingPrice, amount]);
 

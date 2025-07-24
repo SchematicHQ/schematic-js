@@ -40,7 +40,7 @@
     "Error processing payment. Please try a different payment method.": "Error processing payment. Please try a different payment method.",
     "Error retrieving plan details. Please try again in a moment.": "Error retrieving plan details. Please try again in a moment.",
     "Error updating payment method. Please try again.": "Error updating payment method. Please try again.",
-    "Estimated bill.": "Estimated bill.",
+    "Estimated bill": "Estimated bill",
     "Everything in": "Everything in {{plan}}, plus",
     "Expired": "Expired",
     "Expires in X months": "Expires in {{months}} mo",
@@ -137,6 +137,7 @@
 
     "per": "per",
     "then": "then",
+    "use": "use",
     "used": "used",
 
     "usage": {

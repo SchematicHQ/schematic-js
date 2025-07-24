@@ -5,6 +5,7 @@ import {
   type BillingProductPriceTierResponseData,
   type CompanyPlanDetailResponseData,
   type ComponentHydrateResponseData,
+  type CreditCompanyGrantView,
   type FeatureDetailResponseData,
   type FeatureResponseData,
   type FeatureUsageResponseData,
@@ -27,10 +28,14 @@ export type SelectedPlan = Plan & { isSelected: boolean };
 export interface Credit {
   id: string;
   name: string;
+  description: string;
+  icon?: string;
   quantity: {
+    value: number;
     remaining: number;
     used: number;
   };
+  grants: CreditCompanyGrantView[];
 }
 
 export type CreditBundle = BillingCreditBundleView & { count: number };
