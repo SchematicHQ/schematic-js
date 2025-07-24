@@ -24,6 +24,15 @@ export type BillingPrice = BillingPriceView | BillingPriceResponseData;
 export type Plan = CompanyPlanDetailResponseData | PlanViewPublicResponseData;
 export type SelectedPlan = Plan & { isSelected: boolean };
 
+export interface Credit {
+  id: string;
+  name: string;
+  quantity: {
+    remaining: number;
+    used: number;
+  };
+}
+
 export type CreditBundle = BillingCreditBundleView & { count: number };
 
 export type Feature = FeatureDetailResponseData | FeatureResponseData;

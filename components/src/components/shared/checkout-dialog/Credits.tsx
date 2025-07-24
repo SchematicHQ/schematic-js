@@ -1,7 +1,7 @@
 import { TEXT_BASE_SIZE } from "../../../const";
 import { useEmbed } from "../../../hooks";
 import type { CreditBundle } from "../../../types";
-import { formatCurrency } from "../../../utils";
+import { formatCurrency, getFeatureName } from "../../../utils";
 import { cardBoxShadow } from "../../layout";
 import { Box, Flex, Input, Text } from "../../ui";
 
@@ -23,11 +23,12 @@ export const Credits = ({ bundles, updateCount }: CreditsProps) => {
       $gap="1rem"
     >
       {bundles.map((bundle, index) => {
+        const billingPrice = bundle.price;
         const price =
-          typeof bundle.price?.priceDecimal === "string"
-            ? parseFloat(bundle.price.priceDecimal)
-            : typeof bundle.price?.price === "number"
-              ? bundle.price.price
+          typeof billingPrice?.priceDecimal === "string"
+            ? Number(billingPrice.priceDecimal)
+            : typeof billingPrice?.price === "number"
+              ? billingPrice.price
               : undefined;
 
         return (
@@ -45,7 +46,14 @@ export const Credits = ({ bundles, updateCount }: CreditsProps) => {
           >
             <Flex $flexDirection="column" $gap="0.75rem">
               <Box>
-                <Text display="heading3">{bundle.name}</Text>
+                <Box>
+                  <Text display="heading3">{bundle.name}</Text>
+                </Box>
+                <Box>
+                  <Text display="heading6">
+                    {bundle.quantity ?? 0} {getFeatureName(bundle)}
+                  </Text>
+                </Box>
               </Box>
 
               {typeof price === "number" && (
@@ -60,7 +68,7 @@ export const Credits = ({ bundles, updateCount }: CreditsProps) => {
                 $size="lg"
                 type="number"
                 value={bundle.count}
-                min={1}
+                min={0}
                 autoFocus
                 onFocus={(event) => {
                   event.target.select();
@@ -69,7 +77,7 @@ export const Credits = ({ bundles, updateCount }: CreditsProps) => {
                   event.preventDefault();
 
                   const value = parseInt(event.target.value);
-                  if (!isNaN(value) && value > 0) {
+                  if (!isNaN(value)) {
                     updateCount(bundle.id, value);
                   }
                 }}

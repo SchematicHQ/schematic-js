@@ -15,6 +15,7 @@ import {
 import { PriceBehavior } from "../../../const";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import type {
+  Credit,
   CreditBundle,
   CurrentUsageBasedEntitlement,
   SelectedPlan,
@@ -27,6 +28,7 @@ import {
   formatOrdinal,
   getAddOnPrice,
   getEntitlementPrice,
+  getFeatureName,
   getMonthName,
   getPlanPrice,
   isCheckoutData,
@@ -45,14 +47,7 @@ interface SidebarProps {
   selectedPlan?: SelectedPlan;
   addOns: SelectedPlan[];
   creditBundles?: CreditBundle[];
-  credits?: {
-    id: string;
-    name: string;
-    quantity: {
-      remaining: number;
-      used: number;
-    };
-  }[];
+  credits?: Credit[];
   usageBasedEntitlements: UsageBasedEntitlement[];
   charges?: PreviewSubscriptionFinanceResponseData;
   checkoutRef?: React.RefObject<HTMLDivElement | null>;
@@ -768,60 +763,85 @@ export const Sidebar = ({
           </Flex>
         )}
 
-        {addedCreditBundles.reduce((acc: React.ReactNode[], bundle, index) => {
-          const price =
-            typeof bundle.price?.priceDecimal === "string"
-              ? Number(bundle.price.priceDecimal)
-              : typeof bundle.price?.price === "number"
-                ? bundle.price.price
-                : undefined;
+        {addedCreditBundles.length > 0 && (
+          <Flex $flexDirection="column" $gap="0.5rem" $marginBottom="1.5rem">
+            <Box $opacity="0.625">
+              <Text $size={14}>{t("Credits")}</Text>
+            </Box>
 
-          if (price)
-            acc.push(
-              <Flex
-                key={index}
-                $justifyContent="space-between"
-                $alignItems="center"
-                $gap="1rem"
-              >
-                <Box>
-                  <Text display="heading4">
-                    {bundle.count}x {bundle.name}
-                  </Text>
-                </Box>
+            {addedCreditBundles.reduce(
+              (acc: React.ReactNode[], bundle, index) => {
+                const price =
+                  typeof bundle.price?.priceDecimal === "string"
+                    ? Number(bundle.price.priceDecimal)
+                    : typeof bundle.price?.price === "number"
+                      ? bundle.price.price
+                      : undefined;
 
-                <Box $whiteSpace="nowrap">
-                  <Text>
-                    {formatCurrency(
-                      price * bundle.count,
-                      bundle.price?.currency,
-                    )}
-                  </Text>
-                </Box>
-              </Flex>,
-            );
+                const amount = (bundle.quantity ?? 0) * bundle.count;
 
-          return acc;
-        }, [])}
+                if (price)
+                  acc.push(
+                    <Flex
+                      key={index}
+                      $justifyContent="space-between"
+                      $alignItems="center"
+                      $gap="1rem"
+                    >
+                      <Box>
+                        <Box>
+                          <Text display="heading4">
+                            {bundle.name} ({bundle.count})
+                          </Text>
+                        </Box>
 
-        {credits.map(({ id, name, quantity }) => {
-          return (
-            <Flex
-              key={id}
-              $justifyContent="space-between"
-              $alignItems="center"
-              $gap="1rem"
-            >
-              <Box>
-                <Text display="heading4">{name}</Text>
-              </Box>
+                        <Box>
+                          <Text>
+                            {amount} {getFeatureName(bundle, amount)}
+                          </Text>
+                        </Box>
+                      </Box>
 
-              <Box $whiteSpace="nowrap">
-                <Text>{formatNumber(quantity.remaining - quantity.used)}</Text>
-              </Box>
-            </Flex>
-          );
-        })}
+                      {bundle.count > 0 && (
+                        <Box $whiteSpace="nowrap">
+                          <Text>
+                            {formatCurrency(
+                              price * bundle.count,
+                              bundle.price?.currency,
+                            )}
+                          </Text>
+                        </Box>
+                      )}
+                    </Flex>,
+                  );
+
+                return acc;
+              },
+              [],
+            )}
+
+            {/* credits.map(({ id, name, quantity }) => {
+              return (
+                <Flex
+                  key={id}
+                  $justifyContent="space-between"
+                  $alignItems="center"
+                  $gap="1rem"
+                >
+                  <Box>
+                    <Text display="heading4">{name}</Text>
+                  </Box>
+
+                  <Box $whiteSpace="nowrap">
+                    <Text>
+                      {formatNumber(quantity.remaining - quantity.used)}
+                    </Text>
+                  </Box>
+                </Flex>
+              );
+            }) */}
+          </Flex>
+        )}
 
         {proration !== 0 && charges && selectedPlanCurrency && (
           <Proration
