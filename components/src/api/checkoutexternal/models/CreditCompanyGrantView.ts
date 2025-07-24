@@ -61,6 +61,18 @@ export interface CreditCompanyGrantView {
    * @type {string}
    * @memberof CreditCompanyGrantView
    */
+  creditDescription: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CreditCompanyGrantView
+   */
+  creditIcon?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof CreditCompanyGrantView
+   */
   creditName: string;
   /**
    *
@@ -94,6 +106,12 @@ export interface CreditCompanyGrantView {
   planName?: string | null;
   /**
    *
+   * @type {string}
+   * @memberof CreditCompanyGrantView
+   */
+  pluralName?: string | null;
+  /**
+   *
    * @type {BillingProductPriceResponseData}
    * @memberof CreditCompanyGrantView
    */
@@ -116,6 +134,12 @@ export interface CreditCompanyGrantView {
    * @memberof CreditCompanyGrantView
    */
   quantityUsed: number;
+  /**
+   *
+   * @type {string}
+   * @memberof CreditCompanyGrantView
+   */
+  singularName?: string | null;
   /**
    *
    * @type {string}
@@ -160,6 +184,11 @@ export function instanceOfCreditCompanyGrantView(
   if (!("companyName" in value) || value["companyName"] === undefined)
     return false;
   if (!("createdAt" in value) || value["createdAt"] === undefined) return false;
+  if (
+    !("creditDescription" in value) ||
+    value["creditDescription"] === undefined
+  )
+    return false;
   if (!("creditName" in value) || value["creditName"] === undefined)
     return false;
   if (!("grantReason" in value) || value["grantReason"] === undefined)
@@ -201,6 +230,8 @@ export function CreditCompanyGrantViewFromJSONTyped(
     companyId: json["company_id"],
     companyName: json["company_name"],
     createdAt: new Date(json["created_at"]),
+    creditDescription: json["credit_description"],
+    creditIcon: json["credit_icon"] == null ? undefined : json["credit_icon"],
     creditName: json["credit_name"],
     expiresAt:
       json["expires_at"] == null ? undefined : new Date(json["expires_at"]),
@@ -208,6 +239,7 @@ export function CreditCompanyGrantViewFromJSONTyped(
     id: json["id"],
     planId: json["plan_id"] == null ? undefined : json["plan_id"],
     planName: json["plan_name"] == null ? undefined : json["plan_name"],
+    pluralName: json["plural_name"] == null ? undefined : json["plural_name"],
     price:
       json["price"] == null
         ? undefined
@@ -215,6 +247,8 @@ export function CreditCompanyGrantViewFromJSONTyped(
     quantity: json["quantity"],
     quantityRemaining: json["quantity_remaining"],
     quantityUsed: json["quantity_used"],
+    singularName:
+      json["singular_name"] == null ? undefined : json["singular_name"],
     sourceLabel: json["source_label"],
     updatedAt: new Date(json["updated_at"]),
     validFrom:
@@ -240,6 +274,8 @@ export function CreditCompanyGrantViewToJSON(
     company_id: value["companyId"],
     company_name: value["companyName"],
     created_at: value["createdAt"].toISOString(),
+    credit_description: value["creditDescription"],
+    credit_icon: value["creditIcon"],
     credit_name: value["creditName"],
     expires_at:
       value["expiresAt"] == null
@@ -249,10 +285,12 @@ export function CreditCompanyGrantViewToJSON(
     id: value["id"],
     plan_id: value["planId"],
     plan_name: value["planName"],
+    plural_name: value["pluralName"],
     price: BillingProductPriceResponseDataToJSON(value["price"]),
     quantity: value["quantity"],
     quantity_remaining: value["quantityRemaining"],
     quantity_used: value["quantityUsed"],
+    singular_name: value["singularName"],
     source_label: value["sourceLabel"],
     updated_at: value["updatedAt"].toISOString(),
     valid_from:
