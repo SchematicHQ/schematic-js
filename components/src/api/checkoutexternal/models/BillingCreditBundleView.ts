@@ -31,6 +31,12 @@ export interface BillingCreditBundleView {
    * @type {string}
    * @memberof BillingCreditBundleView
    */
+  billingInvoiceId?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof BillingCreditBundleView
+   */
   bundleType: string;
   /**
    *
@@ -173,6 +179,10 @@ export function BillingCreditBundleViewFromJSONTyped(
     return json;
   }
   return {
+    billingInvoiceId:
+      json["billing_invoice_id"] == null
+        ? undefined
+        : json["billing_invoice_id"],
     bundleType: json["bundle_type"],
     createdAt: new Date(json["created_at"]),
     creditDescription:
@@ -212,6 +222,7 @@ export function BillingCreditBundleViewToJSON(
     return value;
   }
   return {
+    billing_invoice_id: value["billingInvoiceId"],
     bundle_type: value["bundleType"],
     created_at: value["createdAt"].toISOString(),
     credit_description: value["creditDescription"],
