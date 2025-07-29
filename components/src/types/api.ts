@@ -26,11 +26,20 @@ export type Plan = CompanyPlanDetailResponseData | PlanViewPublicResponseData;
 export type SelectedPlan = Plan & { isSelected: boolean };
 
 export interface Credit {
-  id: string;
-  name: string;
-  description: string;
-  icon?: string;
-  quantity: {
+  id: CreditCompanyGrantView["billingCreditId"];
+  name: CreditCompanyGrantView["creditName"];
+  singularName: CreditCompanyGrantView["singularName"];
+  pluralName: CreditCompanyGrantView["pluralName"];
+  description: CreditCompanyGrantView["creditDescription"];
+  icon: CreditCompanyGrantView["creditIcon"];
+  grantReason: CreditCompanyGrantView["grantReason"];
+  quantity: CreditCompanyGrantView["quantity"];
+  companyId: CreditCompanyGrantView["companyId"];
+  companyName: CreditCompanyGrantView["companyName"];
+  planId: CreditCompanyGrantView["planId"];
+  planName: CreditCompanyGrantView["planName"];
+  bundleId: CreditCompanyGrantView["billingCreditBundleId"];
+  total: {
     value: number;
     remaining: number;
     used: number;

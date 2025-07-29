@@ -1,6 +1,7 @@
 import { forwardRef, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
+import { CreditGrantReason } from "../../../const";
 import { type FontStyle } from "../../../context";
 import { useEmbed, useIsLightBackground, useTrialEnd } from "../../../hooks";
 import type { DeepPartial, ElementProps } from "../../../types";
@@ -8,7 +9,7 @@ import {
   darken,
   formatCurrency,
   getCreditName,
-  getCredits,
+  groupCreditGrants,
   isCheckoutData,
   lighten,
   shortenPeriod,
@@ -117,9 +118,9 @@ export const PlanManager = forwardRef<
       return {
         currentPlan: data.company?.plan,
         currentAddOns: data.company?.addOns || [],
-        credits: getCredits(data.creditGrants),
         creditBundles: data.creditBundles,
         creditGrants: data.creditGrants,
+        creditGroups: groupCreditGrants(data.creditGrants),
         billingSubscription: data.company?.billingSubscription,
         canCheckout: data.capabilities?.checkout ?? true,
         defaultPlan: data.defaultPlan,
@@ -131,9 +132,9 @@ export const PlanManager = forwardRef<
     return {
       currentPlan: undefined,
       currentAddOns: [],
-      credits: [],
       creditBundles: [],
       creditGrants: [],
+      creditGroups: [],
       billingSubscription: undefined,
       canCheckout: false,
       defaultPlan: undefined,
@@ -355,7 +356,7 @@ export const PlanManager = forwardRef<
           </Flex>
         )}
 
-        {props.addOns.isVisible && usageBasedEntitlements.length > 0 && (
+        {props.addOns.isVisible && creditGrants.length > 0 && (
           <Flex $flexDirection="column" $gap="0.5rem">
             {props.addOns.showLabel && (
               <Text
@@ -371,53 +372,64 @@ export const PlanManager = forwardRef<
             )}
 
             <Flex $flexDirection="column" $gap="1rem">
-              {creditGrants.map((grant, creditIndex) => {
-                const bundle = grant.billingCreditBundleId
-                  ? creditBundles.find(
-                      (bundle) => bundle.id === grant.billingCreditBundleId,
-                    )
-                  : undefined;
+              {creditGrants.reduce(
+                (acc: React.ReactNode[], grant, grantIndex) => {
+                  const bundle =
+                    grant.grantReason === CreditGrantReason.Purchased &&
+                    grant?.billingCreditBundleId
+                      ? creditBundles.find(
+                          (b) => b.id === grant.billingCreditBundleId,
+                        )
+                      : undefined;
 
-                return (
-                  <Flex
-                    key={creditIndex}
-                    $justifyContent="space-between"
-                    $alignItems="center"
-                    $flexWrap="wrap"
-                    $gap="0.5rem"
-                  >
-                    {grant.planId ? (
-                      <Text display={props.addOns.fontStyle}>
-                        {grant.quantity} {getCreditName(grant, grant.quantity)}{" "}
-                        {subscriptionInterval && (
-                          <>
-                            {t("per")} {t(subscriptionInterval)}
-                          </>
-                        )}
-                      </Text>
-                    ) : bundle ? (
-                      <Text display={props.addOns.fontStyle}>
-                        {bundle.name} ({grant.quantity}{" "}
-                        {getCreditName(grant, grant.quantity)})
-                      </Text>
-                    ) : (
-                      <Text display={props.addOns.fontStyle}>
-                        {grant.quantity} {getCreditName(grant, grant.quantity)}
-                      </Text>
-                    )}
+                  acc.push(
+                    <Flex
+                      key={grantIndex}
+                      $justifyContent="space-between"
+                      $alignItems="center"
+                      $flexWrap="wrap"
+                      $gap="0.5rem"
+                    >
+                      {grant.grantReason === CreditGrantReason.Plan ? (
+                        <Text display={props.addOns.fontStyle}>
+                          {grant.quantity}{" "}
+                          {getCreditName(grant, grant.quantity)}{" "}
+                          {subscriptionInterval && (
+                            <>
+                              {t("per")} {t(subscriptionInterval)}
+                            </>
+                          )}
+                        </Text>
+                      ) : bundle ? (
+                        <Text display={props.addOns.fontStyle}>
+                          {bundle.name} ({grant.quantity}{" "}
+                          {getCreditName(grant, grant.quantity)})
+                        </Text>
+                      ) : (
+                        <Text display={props.addOns.fontStyle}>
+                          {grant.quantity}{" "}
+                          {getCreditName(grant, grant.quantity)}
+                        </Text>
+                      )}
 
-                    {grant.quantityUsed > 0 && (
-                      <Text
-                        style={{ opacity: 0.54 }}
-                        $size={0.875 * settings.theme.typography.text.fontSize}
-                        $color={settings.theme.typography.text.color}
-                      >
-                        {grant.quantityUsed} {t("used")}
-                      </Text>
-                    )}
-                  </Flex>
-                );
-              })}
+                      {grant.quantityUsed > 0 && (
+                        <Text
+                          style={{ opacity: 0.54 }}
+                          $size={
+                            0.875 * settings.theme.typography.text.fontSize
+                          }
+                          $color={settings.theme.typography.text.color}
+                        >
+                          {grant.quantityUsed} {t("used")}
+                        </Text>
+                      )}
+                    </Flex>,
+                  );
+
+                  return acc;
+                },
+                [],
+              )}
             </Flex>
           </Flex>
         )}

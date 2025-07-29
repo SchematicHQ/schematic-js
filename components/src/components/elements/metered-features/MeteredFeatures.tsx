@@ -2,7 +2,12 @@ import { forwardRef, useCallback, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { type FeatureUsageResponseData } from "../../../api/checkoutexternal";
-import { FeatureType, PriceBehavior, TEXT_BASE_SIZE } from "../../../const";
+import {
+  CreditGrantReason,
+  FeatureType,
+  PriceBehavior,
+  TEXT_BASE_SIZE,
+} from "../../../const";
 import { type FontStyle } from "../../../context";
 import {
   useEmbed,
@@ -14,9 +19,9 @@ import {
   formatCurrency,
   formatNumber,
   getCreditName,
-  getCredits,
   getFeatureName,
   getUsageDetails,
+  groupCreditGrants,
   isCheckoutData,
   modifyDate,
   toPrettyDate,
@@ -166,7 +171,7 @@ export const MeteredFeatures = forwardRef<
 
   const isLightBackground = useIsLightBackground();
 
-  const { period, meteredFeatures, credits } = useMemo(() => {
+  const { period, meteredFeatures, creditGroups } = useMemo(() => {
     if (isCheckoutData(data)) {
       const period =
         typeof data.company?.plan?.planPeriod === "string"
@@ -200,19 +205,19 @@ export const MeteredFeatures = forwardRef<
             (feature?.featureType === FeatureType.Event ||
               feature?.featureType === FeatureType.Trait),
         ),
-        credits: getCredits(data.creditGrants),
+        creditGroups: groupCreditGrants(data.creditGrants),
       };
     }
 
     return {
       period: undefined,
       meteredFeatures: [],
-      credits: [],
+      creditGroups: [],
     };
   }, [props.visibleFeatures, data]);
 
   const [creditVisibility, setCreditVisibility] = useState(
-    credits.map(({ id }) => ({ id, isExpanded: false })),
+    creditGroups.map(({ id }) => ({ id, isExpanded: false })),
   );
 
   const toggleBalanceDetails = useCallback((id: string) => {
@@ -354,13 +359,13 @@ export const MeteredFeatures = forwardRef<
         return acc;
       }, [])}
 
-      {credits.map((credit, index) => {
+      {creditGroups.map((credit, index) => {
         const isExpanded =
           creditVisibility.find(({ id }) => credit.id === id)?.isExpanded ??
           false;
 
         return (
-          <Element key={index} as={Flex} $flexDirection="column" $gap="1.5rem">
+          <Element key={index} as={Flex} $flexDirection="column" $gap="1rem">
             <Flex $gap="1.5rem">
               {props.icon.isVisible && (
                 <Icon
@@ -397,15 +402,13 @@ export const MeteredFeatures = forwardRef<
 
                 <Flex $gap="1rem">
                   <ProgressBar
-                    progress={
-                      (credit.quantity.used / credit.quantity.value) * 100
-                    }
-                    value={credit.quantity.used}
-                    total={credit.quantity.value}
+                    progress={(credit.total.used / credit.total.value) * 100}
+                    value={credit.total.used}
+                    total={credit.total.value}
                     color={
                       progressColorMap[
                         Math.floor(
-                          (credit.quantity.used / credit.quantity.value) *
+                          (credit.total.used / credit.total.value) *
                             (progressColorMap.length - 1),
                         )
                       ]
@@ -445,13 +448,13 @@ export const MeteredFeatures = forwardRef<
 
                   return (
                     <Box key={grant.id} $display="table-row">
-                      {grant.planId ? (
+                      {grant.grantReason === CreditGrantReason.Plan ? (
                         <>
                           <Box $display="table-cell" $padding={padding}>
                             <Text>
                               {t("X items included in plan", {
                                 amount: grant.quantity,
-                                items: getCreditName(grant, grant.quantity),
+                                item: getCreditName(grant, grant.quantity),
                               })}
                             </Text>
                           </Box>
@@ -482,15 +485,32 @@ export const MeteredFeatures = forwardRef<
                         <>
                           <Box $display="table-cell" $padding={padding}>
                             <Text>
-                              {t("X item bundle", {
-                                amount: grant.quantity,
-                                item: getCreditName(grant, 1),
-                                createdAt: toPrettyDate(grant.createdAt, {
-                                  day: "2-digit",
-                                  month: "2-digit",
-                                  year: "2-digit",
-                                }),
-                              })}
+                              {grant.grantReason ===
+                              CreditGrantReason.Purchased ? (
+                                <>
+                                  {t("X item bundle", {
+                                    amount: grant.quantity,
+                                    item: getCreditName(grant, 1),
+                                    createdAt: toPrettyDate(grant.createdAt, {
+                                      day: "2-digit",
+                                      month: "2-digit",
+                                      year: "2-digit",
+                                    }),
+                                  })}
+                                </>
+                              ) : (
+                                <>
+                                  {t("X item grant", {
+                                    amount: grant.quantity,
+                                    item: getCreditName(grant, grant.quantity),
+                                    createdAt: toPrettyDate(grant.createdAt, {
+                                      day: "2-digit",
+                                      month: "2-digit",
+                                      year: "2-digit",
+                                    }),
+                                  })}
+                                </>
+                              )}
                             </Text>
                           </Box>
 

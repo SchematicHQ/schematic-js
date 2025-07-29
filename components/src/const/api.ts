@@ -23,3 +23,9 @@ export enum FeatureType {
   Event = "event",
   Trait = "trait",
 }
+
+export enum CreditGrantReason {
+  Free = "free",
+  Plan = "plan",
+  Purchased = "purchased",
+}
