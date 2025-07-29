@@ -31,7 +31,6 @@ import type {
 import {
   ERROR_UNKNOWN,
   getAddOnPrice,
-  getCredits,
   isCheckoutData,
   isError,
   isHydratedPlan,
@@ -125,30 +124,24 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     periods: availablePeriods,
   } = useAvailablePlans(planPeriod);
 
-  const {
-    currentPlanId,
-    currentEntitlements,
-    trialPaymentMethodRequired,
-    credits,
-  } = useMemo(() => {
-    if (isCheckoutData(data)) {
-      return {
-        currentPlanId: data.company?.plan?.id,
-        currentEntitlements: data.featureUsage
-          ? data.featureUsage.features
-          : [],
-        trialPaymentMethodRequired: data.trialPaymentMethodRequired === true,
-        credits: getCredits(data.creditGrants),
-      };
-    }
+  const { currentPlanId, currentEntitlements, trialPaymentMethodRequired } =
+    useMemo(() => {
+      if (isCheckoutData(data)) {
+        return {
+          currentPlanId: data.company?.plan?.id,
+          currentEntitlements: data.featureUsage
+            ? data.featureUsage.features
+            : [],
+          trialPaymentMethodRequired: data.trialPaymentMethodRequired === true,
+        };
+      }
 
-    return {
-      currentPlanId: undefined,
-      currentEntitlements: [],
-      trialPaymentMethodRequired: false,
-      credits: [],
-    };
-  }, [data]);
+      return {
+        currentPlanId: undefined,
+        currentEntitlements: [],
+        trialPaymentMethodRequired: false,
+      };
+    }, [data]);
 
   const [selectedPlan, setSelectedPlan] = useState<SelectedPlan | undefined>(
     () => {
@@ -304,13 +297,19 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       return "usage";
     }
 
+    if (checkoutState?.credits) {
+      return "credits";
+    }
+
     // the user has preselected a different plan before starting the checkout flow
     if (checkoutState?.planId !== currentPlanId) {
       return checkoutStages.some((stage) => stage.id === "usage")
         ? "usage"
         : checkoutStages.some((stage) => stage.id === "addons")
           ? "addons"
-          : "plan";
+          : checkoutStages.some((stage) => stage.id === "credits")
+            ? "credits"
+            : "plan";
     }
 
     return "plan";
@@ -822,7 +821,6 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           addOns={addOns}
           usageBasedEntitlements={usageBasedEntitlements}
           creditBundles={creditBundles}
-          credits={credits}
           charges={charges}
           checkoutRef={checkoutRef}
           checkoutStage={checkoutStage}

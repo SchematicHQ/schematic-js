@@ -1,8 +1,8 @@
-import { forwardRef, useMemo, useRef } from "react";
+import { forwardRef, useCallback, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { type FeatureUsageResponseData } from "../../../api/checkoutexternal";
-import { FeatureType, PriceBehavior } from "../../../const";
+import { FeatureType, PriceBehavior, TEXT_BASE_SIZE } from "../../../const";
 import { type FontStyle } from "../../../context";
 import {
   useEmbed,
@@ -13,14 +13,26 @@ import type { DeepPartial, ElementProps } from "../../../types";
 import {
   formatCurrency,
   formatNumber,
+  getCreditName,
+  getCredits,
   getFeatureName,
   getUsageDetails,
   isCheckoutData,
+  modifyDate,
   toPrettyDate,
   type UsageDetails,
 } from "../../../utils";
 import { Element } from "../../layout";
-import { Box, Button, Flex, Icon, Text } from "../../ui";
+import {
+  Box,
+  Button,
+  Flex,
+  Icon,
+  ProgressBar,
+  Text,
+  TransitionBox,
+  progressColorMap,
+} from "../../ui";
 
 import { Meter } from "./Meter";
 import { PriceDetails } from "./PriceDetails";
@@ -154,7 +166,7 @@ export const MeteredFeatures = forwardRef<
 
   const isLightBackground = useIsLightBackground();
 
-  const { meteredFeatures, period } = useMemo(() => {
+  const { period, meteredFeatures, credits } = useMemo(() => {
     if (isCheckoutData(data)) {
       const period =
         typeof data.company?.plan?.planPeriod === "string"
@@ -176,24 +188,40 @@ export const MeteredFeatures = forwardRef<
       );
 
       return {
+        period,
         meteredFeatures: (
           orderedFeatureUsage ||
           data.featureUsage?.features ||
           []
         ).filter(
-          ({ feature }) =>
-            feature?.featureType === FeatureType.Event ||
-            feature?.featureType === FeatureType.Trait,
+          ({ priceBehavior, feature }) =>
+            // credit-based entitlements behave differently and should not be shown as a metered feature
+            priceBehavior !== PriceBehavior.Credit &&
+            (feature?.featureType === FeatureType.Event ||
+              feature?.featureType === FeatureType.Trait),
         ),
-        period,
+        credits: getCredits(data.creditGrants),
       };
     }
 
     return {
-      meteredFeatures: [],
       period: undefined,
+      meteredFeatures: [],
+      credits: [],
     };
   }, [props.visibleFeatures, data]);
+
+  const [creditVisibility, setCreditVisibility] = useState(
+    credits.map(({ id }) => ({ id, isExpanded: false })),
+  );
+
+  const toggleBalanceDetails = useCallback((id: string) => {
+    setCreditVisibility((prev) =>
+      prev.map((item) =>
+        item.id === id ? { ...item, isExpanded: !item.isExpanded } : item,
+      ),
+    );
+  }, []);
 
   const shouldShowFeatures = meteredFeatures.length > 0;
   if (!shouldShowFeatures) {
@@ -325,6 +353,199 @@ export const MeteredFeatures = forwardRef<
 
         return acc;
       }, [])}
+
+      {credits.map((credit, index) => {
+        const isExpanded =
+          creditVisibility.find(({ id }) => credit.id === id)?.isExpanded ??
+          false;
+
+        return (
+          <Element key={index} as={Flex} $flexDirection="column" $gap="1.5rem">
+            <Flex $gap="1.5rem">
+              {props.icon.isVisible && (
+                <Icon
+                  // if `icon` is `undefined` this will render as a blank circle
+                  name={credit.icon as string}
+                  color={settings.theme.primary}
+                  background={
+                    isLightBackground
+                      ? "hsla(0, 0%, 0%, 0.0625)"
+                      : "hsla(0, 0%, 100%, 0.25)"
+                  }
+                  rounded
+                />
+              )}
+
+              <Flex $flexDirection="column" $gap="2rem" $flexGrow={1}>
+                <Flex $flexWrap="wrap" $gap="1rem">
+                  <Flex $flexDirection="column" $gap="0.5rem" $flexGrow={1}>
+                    <Box>
+                      <Text display={props.header.fontStyle}>
+                        {credit.name}
+                      </Text>
+                    </Box>
+
+                    {props.description.isVisible && (
+                      <Box>
+                        <Text display={props.description.fontStyle}>
+                          {credit.description}
+                        </Text>
+                      </Box>
+                    )}
+                  </Flex>
+                </Flex>
+
+                <Flex $gap="1rem">
+                  <ProgressBar
+                    progress={
+                      (credit.quantity.used / credit.quantity.value) * 100
+                    }
+                    value={credit.quantity.used}
+                    total={credit.quantity.value}
+                    color={
+                      progressColorMap[
+                        Math.floor(
+                          (credit.quantity.used / credit.quantity.value) *
+                            (progressColorMap.length - 1),
+                        )
+                      ]
+                    }
+                  />
+
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      setCheckoutState({ credits: true });
+                    }}
+                    style={{ whiteSpace: "nowrap" }}
+                    $size="sm"
+                  >
+                    {t("Buy More")}
+                  </Button>
+                </Flex>
+              </Flex>
+            </Flex>
+
+            <Box
+              $width={`calc(100% + ${(2 * settings.theme.card.padding) / TEXT_BASE_SIZE}rem)`}
+              $margin={`0 0 0 -${settings.theme.card.padding / TEXT_BASE_SIZE}rem`}
+            >
+              <TransitionBox
+                $backgroundColor={
+                  isLightBackground
+                    ? "hsla(0, 0%, 0%, 0.0375)"
+                    : "hsla(0, 0%, 100%, 0.075)"
+                }
+                $isExpanded={isExpanded}
+              >
+                {credit.grants.map((grant, index) => {
+                  const padX = settings.theme.card.padding / TEXT_BASE_SIZE;
+                  const padding =
+                    index > 0 ? `0 ${padX}rem 1rem` : `1rem ${padX}rem`;
+
+                  return (
+                    <Box key={grant.id} $display="table-row">
+                      {grant.planId ? (
+                        <>
+                          <Box $display="table-cell" $padding={padding}>
+                            <Text>
+                              {t("X items included in plan", {
+                                amount: grant.quantity,
+                                items: getCreditName(grant, grant.quantity),
+                              })}
+                            </Text>
+                          </Box>
+
+                          {grant.expiresAt && (
+                            <Box
+                              $display="table-cell"
+                              $padding={padding}
+                              $textAlign="right"
+                              $whiteSpace="nowrap"
+                            >
+                              <Text>
+                                {t("Resets", {
+                                  date: toPrettyDate(
+                                    modifyDate(grant.expiresAt, 1),
+                                    {
+                                      day: "2-digit",
+                                      month: "2-digit",
+                                      year: "2-digit",
+                                    },
+                                  ),
+                                })}
+                              </Text>
+                            </Box>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          <Box $display="table-cell" $padding={padding}>
+                            <Text>
+                              {t("X item bundle", {
+                                amount: grant.quantity,
+                                item: getCreditName(grant, 1),
+                                createdAt: toPrettyDate(grant.createdAt, {
+                                  day: "2-digit",
+                                  month: "2-digit",
+                                  year: "2-digit",
+                                }),
+                              })}
+                            </Text>
+                          </Box>
+
+                          <Box
+                            $display="table-cell"
+                            $padding={padding}
+                            $textAlign="right"
+                            $whiteSpace="nowrap"
+                          >
+                            <Text>
+                              {t("Expires", {
+                                date: toPrettyDate(
+                                  modifyDate(grant.expiresAt || new Date(), 1),
+                                  {
+                                    day: "2-digit",
+                                    month: "2-digit",
+                                    year: "2-digit",
+                                  },
+                                ),
+                              })}
+                            </Text>
+                          </Box>
+                        </>
+                      )}
+                    </Box>
+                  );
+                })}
+              </TransitionBox>
+            </Box>
+
+            <Flex $gap="0.25rem">
+              <Icon
+                name="chevron-down"
+                color={
+                  isLightBackground
+                    ? "hsla(0, 0%, 0%, 0.8)"
+                    : "hsla(0, 0%, 100%, 0.4)"
+                }
+                style={{
+                  marginLeft: `-${1 / 3}rem`,
+                  ...(isExpanded && { transform: "rotate(180deg)" }),
+                }}
+              />
+              <Text
+                onClick={() => toggleBalanceDetails(credit.id)}
+                display="link"
+              >
+                {isExpanded
+                  ? t("Hide balance details")
+                  : t("See balance details")}
+              </Text>
+            </Flex>
+          </Element>
+        );
+      })}
     </styles.Container>
   );
 });

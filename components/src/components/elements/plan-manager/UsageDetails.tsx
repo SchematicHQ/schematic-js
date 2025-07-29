@@ -103,14 +103,20 @@ export const UsageDetails = ({
         creditAmount > 0 ? (
           <Fragment key={index}>
             {creditAmount}{" "}
-            {getFeatureName(entitlement.planEntitlement.valueCredit)}{" "}
+            {getFeatureName(
+              entitlement.planEntitlement.valueCredit,
+              creditAmount,
+            )}{" "}
             {t("used")}
           </Fragment>
         ) : (
           <Fragment key={index}>
             {entitlement.planEntitlement.consumptionRate}{" "}
-            {getFeatureName(entitlement.planEntitlement.valueCredit)} {t("per")}{" "}
-            {t("use")}
+            {getFeatureName(
+              entitlement.planEntitlement.valueCredit,
+              entitlement.planEntitlement.consumptionRate,
+            )}{" "}
+            {t("per")} {t("use")}
           </Fragment>
         ),
       );
@@ -139,10 +145,10 @@ export const UsageDetails = ({
       <Text display={layout.addOns.fontStyle}>
         {typeof quantity === "number" && quantity > 0 ? (
           <>
-            {quantity} {getFeatureName(entitlement.feature, quantity)}
+            {quantity} {entitlement.feature.name}
           </>
         ) : (
-          getFeatureName(entitlement.feature)
+          entitlement.feature.name
         )}
       </Text>
 

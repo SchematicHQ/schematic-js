@@ -7,8 +7,8 @@ import type { DeepPartial, ElementProps } from "../../../types";
 import {
   darken,
   formatCurrency,
+  getCreditName,
   getCredits,
-  getFeatureName,
   isCheckoutData,
   lighten,
   shortenPeriod,
@@ -105,6 +105,7 @@ export const PlanManager = forwardRef<
   const {
     currentPlan,
     currentAddOns,
+    creditBundles,
     creditGrants,
     billingSubscription,
     canCheckout,
@@ -116,6 +117,8 @@ export const PlanManager = forwardRef<
       return {
         currentPlan: data.company?.plan,
         currentAddOns: data.company?.addOns || [],
+        credits: getCredits(data.creditGrants),
+        creditBundles: data.creditBundles,
         creditGrants: data.creditGrants,
         billingSubscription: data.company?.billingSubscription,
         canCheckout: data.capabilities?.checkout ?? true,
@@ -128,6 +131,8 @@ export const PlanManager = forwardRef<
     return {
       currentPlan: undefined,
       currentAddOns: [],
+      credits: [],
+      creditBundles: [],
       creditGrants: [],
       billingSubscription: undefined,
       canCheckout: false,
@@ -143,24 +148,26 @@ export const PlanManager = forwardRef<
     [featureUsage],
   );
 
-  const credits = useMemo(() => {
-    return getCredits(creditGrants);
-  }, [creditGrants]);
+  const {
+    subscriptionInterval,
+    subscriptionCurrency,
+    willSubscriptionCancel,
+    isTrialSubscription,
+  } = useMemo(() => {
+    const subscriptionInterval = billingSubscription?.interval;
+    const subscriptionCurrency = billingSubscription?.currency;
+    const isTrialSubscription = billingSubscription?.status === "trialing";
+    const willSubscriptionCancel =
+      typeof billingSubscription?.cancelAt === "number" &&
+      billingSubscription?.cancelAtPeriodEnd === true;
 
-  const { subscriptionCurrency, willSubscriptionCancel, isTrialSubscription } =
-    useMemo(() => {
-      const subscriptionCurrency = billingSubscription?.currency;
-      const isTrialSubscription = billingSubscription?.status === "trialing";
-      const willSubscriptionCancel =
-        typeof billingSubscription?.cancelAt === "number" &&
-        billingSubscription?.cancelAtPeriodEnd === true;
-
-      return {
-        subscriptionCurrency,
-        willSubscriptionCancel,
-        isTrialSubscription,
-      };
-    }, [billingSubscription]);
+    return {
+      subscriptionInterval,
+      subscriptionCurrency,
+      isTrialSubscription,
+      willSubscriptionCancel,
+    };
+  }, [billingSubscription]);
 
   const isUsageBasedPlan =
     currentPlan?.planPrice === 0 && usageBasedEntitlements.length > 0;
@@ -246,7 +253,6 @@ export const PlanManager = forwardRef<
           <Flex
             $justifyContent="space-between"
             $alignItems="center"
-            $flexWrap="wrap"
             $gap="1rem"
           >
             <Flex $flexDirection="column" $gap="1rem">
@@ -345,8 +351,33 @@ export const PlanManager = forwardRef<
                   />
                 );
               })}
+            </Flex>
+          </Flex>
+        )}
 
-              {credits.map((credit, creditIndex) => {
+        {props.addOns.isVisible && usageBasedEntitlements.length > 0 && (
+          <Flex $flexDirection="column" $gap="0.5rem">
+            {props.addOns.showLabel && (
+              <Text
+                $color={
+                  isLightBackground
+                    ? darken(settings.theme.card.background, 0.46)
+                    : lighten(settings.theme.card.background, 0.46)
+                }
+                $leading={1}
+              >
+                {t("Credits")}
+              </Text>
+            )}
+
+            <Flex $flexDirection="column" $gap="1rem">
+              {creditGrants.map((grant, creditIndex) => {
+                const bundle = grant.billingCreditBundleId
+                  ? creditBundles.find(
+                      (bundle) => bundle.id === grant.billingCreditBundleId,
+                    )
+                  : undefined;
+
                 return (
                   <Flex
                     key={creditIndex}
@@ -355,18 +386,33 @@ export const PlanManager = forwardRef<
                     $flexWrap="wrap"
                     $gap="0.5rem"
                   >
-                    <Text display={props.addOns.fontStyle}>
-                      {credit.quantity.value}{" "}
-                      {getFeatureName(credit, credit.quantity.value)}
-                    </Text>
+                    {grant.planId ? (
+                      <Text display={props.addOns.fontStyle}>
+                        {grant.quantity} {getCreditName(grant, grant.quantity)}{" "}
+                        {subscriptionInterval && (
+                          <>
+                            {t("per")} {t(subscriptionInterval)}
+                          </>
+                        )}
+                      </Text>
+                    ) : bundle ? (
+                      <Text display={props.addOns.fontStyle}>
+                        {bundle.name} ({grant.quantity}{" "}
+                        {getCreditName(grant, grant.quantity)})
+                      </Text>
+                    ) : (
+                      <Text display={props.addOns.fontStyle}>
+                        {grant.quantity} {getCreditName(grant, grant.quantity)}
+                      </Text>
+                    )}
 
-                    {credit.quantity.used > 0 && (
+                    {grant.quantityUsed > 0 && (
                       <Text
                         style={{ opacity: 0.54 }}
                         $size={0.875 * settings.theme.typography.text.fontSize}
                         $color={settings.theme.typography.text.color}
                       >
-                        {credit.quantity.used} {t("used")}
+                        {grant.quantityUsed} {t("used")}
                       </Text>
                     )}
                   </Flex>

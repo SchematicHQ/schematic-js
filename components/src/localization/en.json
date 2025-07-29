@@ -46,6 +46,7 @@
     "Expires in X months": "Expires in {{months}} mo",
     "Expires": "Expires {{date}}",
     "Hide all": "Hide all",
+    "Hide balance details": "Hide balance details",
     "Hide details": "Hide details",
     "Invalid access token; your temporary access token will start with `token_`.": "Invalid access token; your temporary access token will start with `token_`.",
     "Invalid discount code.": "Invalid discount code.",
@@ -82,6 +83,7 @@
     "Save with yearly billing": "Save up to {{percent}}% with yearly billing",
     "Saving with yearly billing": "You are saving {{percent}}% with yearly billing",
     "See all": "See all",
+    "See balance details": "See balance details",
     "See less": "See less",
     "See more": "See more",
     "Select add-ons": "Select add-ons",
@@ -124,6 +126,8 @@
     "Use existing payment method": "Use existing payment method",
     "X additional": "{{amount}} additional",
     "X included": "{{amount}} included",
+    "X item bundle": "{{amount}} {{item}} bundle purchased {{createdAt}}",
+    "X items included in plan": "{{amount}} {{items}} included in plan",
     "X off": "{{amount}} off",
     "X% off": "{{percent}}% off",
     "Yearly total": "Yearly total",
@@ -140,6 +144,7 @@
     "use": "use",
     "used": "used",
 
+    "purchased": "purchased {{date}}",
     "usage": {
       "limited": "{{amount}} of {{allocation}} used",
       "unlimited": "{{amount}} used"

@@ -1,5 +1,6 @@
 import { type CreditCompanyGrantView } from "../../api/checkoutexternal";
 import type { Credit } from "../../types";
+import { pluralize } from "../pluralize";
 
 export function getCredits(creditGrants: CreditCompanyGrantView[]) {
   const today = new Date();
@@ -36,4 +37,25 @@ export function getCredits(creditGrants: CreditCompanyGrantView[]) {
   );
 
   return Object.values(map);
+}
+
+export function getCreditName(
+  credit: Pick<
+    CreditCompanyGrantView,
+    "creditName" | "singularName" | "pluralName"
+  >,
+  count = 0,
+) {
+  const shouldBePlural = count === 0 || count > 1;
+  const { creditName: name, singularName, pluralName } = credit;
+
+  if (pluralName && shouldBePlural) {
+    return pluralName;
+  }
+
+  if (singularName) {
+    return shouldBePlural ? pluralize(singularName, count) : singularName;
+  }
+
+  return pluralize(name, count);
 }

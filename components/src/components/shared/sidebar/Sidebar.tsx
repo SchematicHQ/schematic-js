@@ -15,7 +15,6 @@ import {
 import { PriceBehavior } from "../../../const";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import type {
-  Credit,
   CreditBundle,
   CurrentUsageBasedEntitlement,
   SelectedPlan,
@@ -24,7 +23,6 @@ import type {
 import {
   ChargeType,
   formatCurrency,
-  formatNumber,
   formatOrdinal,
   getAddOnPrice,
   getEntitlementPrice,
@@ -47,7 +45,6 @@ interface SidebarProps {
   selectedPlan?: SelectedPlan;
   addOns: SelectedPlan[];
   creditBundles?: CreditBundle[];
-  credits?: Credit[];
   usageBasedEntitlements: UsageBasedEntitlement[];
   charges?: PreviewSubscriptionFinanceResponseData;
   checkoutRef?: React.RefObject<HTMLDivElement | null>;
@@ -72,7 +69,6 @@ export const Sidebar = ({
   selectedPlan,
   addOns,
   creditBundles = [],
-  credits = [],
   usageBasedEntitlements,
   charges,
   checkoutRef,
@@ -819,27 +815,6 @@ export const Sidebar = ({
               },
               [],
             )}
-
-            {/* credits.map(({ id, name, quantity }) => {
-              return (
-                <Flex
-                  key={id}
-                  $justifyContent="space-between"
-                  $alignItems="center"
-                  $gap="1rem"
-                >
-                  <Box>
-                    <Text display="heading4">{name}</Text>
-                  </Box>
-
-                  <Box $whiteSpace="nowrap">
-                    <Text>
-                      {formatNumber(quantity.remaining - quantity.used)}
-                    </Text>
-                  </Box>
-                </Flex>
-              );
-            }) */}
           </Flex>
         )}
 

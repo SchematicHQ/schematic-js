@@ -12,8 +12,6 @@ import {
 import type { DeepPartial, ElementProps } from "../../../types";
 import {
   createKeyboardExecutionHandler,
-  getCredits,
-  getFeatureName,
   isCheckoutData,
   toPrettyDate,
 } from "../../../utils";
@@ -96,7 +94,7 @@ export const IncludedFeatures = forwardRef<
 
   const [showCount, setShowCount] = useState(VISIBLE_ENTITLEMENT_COUNT);
 
-  const { plan, addOns, featureUsage, creditGrants } = useMemo(() => {
+  const { plan, addOns, featureUsage } = useMemo(() => {
     if (isCheckoutData(data)) {
       const orderedFeatureUsage = props.visibleFeatures?.reduce(
         (acc: FeatureUsageResponseData[], id) => {
@@ -117,7 +115,6 @@ export const IncludedFeatures = forwardRef<
         plan: data.company?.plan,
         addOns: data.company?.addOns || [],
         featureUsage: orderedFeatureUsage || data.featureUsage?.features || [],
-        creditGrants: data.creditGrants,
       };
     }
 
@@ -125,13 +122,8 @@ export const IncludedFeatures = forwardRef<
       plan: undefined,
       addOns: [],
       featureUsage: [],
-      creditGrants: [],
     };
   }, [props.visibleFeatures, data]);
-
-  const credits = useMemo(() => {
-    return getCredits(creditGrants);
-  }, [creditGrants]);
 
   const featureListSize = featureUsage.length;
 
@@ -237,73 +229,6 @@ export const IncludedFeatures = forwardRef<
                 layout={props}
               />
             )}
-          </Flex>
-        );
-      })}
-
-      {credits.map((credit, creditIndex) => {
-        return (
-          <Flex
-            key={creditIndex}
-            ref={(el) => {
-              if (el) {
-                elements.current.push(el);
-              }
-            }}
-            $flexWrap="wrap"
-            $justifyContent="space-between"
-            $alignItems="center"
-            $gap="1rem"
-          >
-            <Flex
-              $alignItems="center"
-              $flexGrow="1"
-              $flexBasis="min-content"
-              $gap="1rem"
-            >
-              {props.icons.isVisible && credit.icon && (
-                <Icon
-                  name={credit.icon}
-                  color={settings.theme.primary}
-                  background={
-                    isLightBackground
-                      ? "hsla(0, 0%, 0%, 0.0625)"
-                      : "hsla(0, 0%, 100%, 0.25)"
-                  }
-                  rounded
-                />
-              )}
-
-              {credit.name && (
-                <Text display={props.icons.fontStyle}>{credit.name}</Text>
-              )}
-            </Flex>
-
-            <Box
-              $flexBasis="min-content"
-              $flexGrow="1"
-              $textAlign={shouldWrapChildren ? "left" : "right"}
-            >
-              {props.entitlement.isVisible && (
-                <Box $whiteSpace="nowrap">
-                  <Text display={props.entitlement.fontStyle} $leading={1}>
-                    {t("X included", { amount: credit.quantity.value })}
-                  </Text>
-                </Box>
-              )}
-
-              {props.usage.isVisible && (
-                <Flex
-                  $justifyContent="end"
-                  $alignItems="center"
-                  $whiteSpace="nowrap"
-                >
-                  <Text display={props.usage.fontStyle} $leading={1}>
-                    {credit.quantity.used} {t("used")}
-                  </Text>
-                </Flex>
-              )}
-            </Box>
           </Flex>
         );
       })}

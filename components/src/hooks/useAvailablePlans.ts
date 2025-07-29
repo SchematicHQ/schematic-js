@@ -32,8 +32,7 @@ export function useAvailablePlans(activePeriod: string) {
     (
       plans: (PlanViewPublicResponseData | CompanyPlanDetailResponseData)[],
     ): SelectedPlan[] => {
-      const customPlanExist = plans.some((plan) => plan.custom);
-      const plansWithSelected =
+      const activePlans =
         settings.mode === "edit"
           ? plans.slice()
           : plans.filter(
@@ -43,21 +42,7 @@ export function useAvailablePlans(activePeriod: string) {
                 plan.chargeType === ChargeType.oneTime,
             );
 
-      if (!customPlanExist) {
-        plansWithSelected?.sort((a, b) => {
-          if (activePeriod === "year") {
-            return (a.yearlyPrice?.price ?? 0) - (b.yearlyPrice?.price ?? 0);
-          }
-
-          if (activePeriod === "month") {
-            return (a.monthlyPrice?.price ?? 0) - (b.monthlyPrice?.price ?? 0);
-          }
-
-          return 0;
-        });
-      }
-
-      return plansWithSelected?.map((plan) => ({ ...plan, isSelected: false }));
+      return activePlans.map((plan) => ({ ...plan, isSelected: false }));
     },
     [activePeriod, settings.mode],
   );
