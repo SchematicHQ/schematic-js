@@ -186,8 +186,6 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   const checkoutStages = useMemo(() => {
     const stages: CheckoutStage[] = [];
 
-    console.log("we pushin' stages rn");
-
     if (availablePlans) {
       stages.push({
         id: "plan",
@@ -259,7 +257,6 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       return "addons";
     }
 
-    // TODO do we need this?
     if (checkoutState?.addOnUsage) {
       return "addonsUsage";
     }
@@ -274,7 +271,9 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
         ? "usage"
         : checkoutStages.some((stage) => stage.id === "addons")
           ? "addons"
-          : "plan";
+          : checkoutStages.some((stage) => stage.id === "addonsUsage")
+            ? "addonsUsage"
+            : "plan";
     }
 
     return "plan";
