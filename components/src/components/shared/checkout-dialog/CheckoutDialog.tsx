@@ -283,7 +283,6 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       return "addons";
     }
 
-    // TODO do we need this?
     if (checkoutState?.addOnUsage) {
       return "addonsUsage";
     }
@@ -297,13 +296,14 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     }
 
     // the user has preselected a different plan before starting the checkout flow
+    // TODO: add credits back in `checkoutStages.some((stage) => stage.id === "credits")`
     if (checkoutState?.planId !== currentPlanId) {
       return checkoutStages.some((stage) => stage.id === "usage")
         ? "usage"
         : checkoutStages.some((stage) => stage.id === "addons")
           ? "addons"
-          : checkoutStages.some((stage) => stage.id === "credits")
-            ? "credits"
+          : checkoutStages.some((stage) => stage.id === "addonsUsage")
+            ? "addonsUsage"
             : "plan";
     }
 
