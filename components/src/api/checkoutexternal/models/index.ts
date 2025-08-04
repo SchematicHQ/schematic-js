@@ -55,6 +55,7 @@ export * from "./InvoiceResponseData";
 export * from "./ListInvoicesParams";
 export * from "./ListInvoicesResponse";
 export * from "./PaymentMethodResponseData";
+export * from "./PlanCreditGrantView";
 export * from "./PlanDetailResponseData";
 export * from "./PlanEntitlementResponseData";
 export * from "./PlanGroupPlanDetailResponseData";

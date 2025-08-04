@@ -8,7 +8,7 @@ import type { DeepPartial, ElementProps } from "../../../types";
 import {
   darken,
   formatCurrency,
-  getCreditName,
+  getFeatureName,
   groupCreditGrants,
   isCheckoutData,
   lighten,
@@ -107,7 +107,7 @@ export const PlanManager = forwardRef<
     currentPlan,
     currentAddOns,
     creditBundles,
-    creditGrants,
+    creditGroups,
     billingSubscription,
     canCheckout,
     defaultPlan,
@@ -115,17 +115,26 @@ export const PlanManager = forwardRef<
     trialPaymentMethodRequired,
   } = useMemo(() => {
     if (isCheckoutData(data)) {
+      const {
+        company,
+        creditBundles,
+        creditGrants,
+        capabilities,
+        defaultPlan,
+        featureUsage,
+        trialPaymentMethodRequired,
+      } = data;
+
       return {
-        currentPlan: data.company?.plan,
-        currentAddOns: data.company?.addOns || [],
-        creditBundles: data.creditBundles,
-        creditGrants: data.creditGrants,
-        creditGroups: groupCreditGrants(data.creditGrants),
-        billingSubscription: data.company?.billingSubscription,
-        canCheckout: data.capabilities?.checkout ?? true,
-        defaultPlan: data.defaultPlan,
-        featureUsage: data.featureUsage?.features || [],
-        trialPaymentMethodRequired: data.trialPaymentMethodRequired,
+        currentPlan: company?.plan,
+        currentAddOns: company?.addOns || [],
+        creditBundles: creditBundles,
+        creditGroups: groupCreditGrants(creditGrants, { groupBy: "bundle" }),
+        billingSubscription: company?.billingSubscription,
+        canCheckout: capabilities?.checkout ?? true,
+        defaultPlan: defaultPlan,
+        featureUsage: featureUsage?.features || [],
+        trialPaymentMethodRequired: trialPaymentMethodRequired,
       };
     }
 
@@ -133,7 +142,6 @@ export const PlanManager = forwardRef<
       currentPlan: undefined,
       currentAddOns: [],
       creditBundles: [],
-      creditGrants: [],
       creditGroups: [],
       billingSubscription: undefined,
       canCheckout: false,
@@ -356,7 +364,7 @@ export const PlanManager = forwardRef<
           </Flex>
         )}
 
-        {props.addOns.isVisible && creditGrants.length > 0 && (
+        {props.addOns.isVisible && creditGroups.length > 0 && (
           <Flex $flexDirection="column" $gap="0.5rem">
             {props.addOns.showLabel && (
               <Text
@@ -372,28 +380,26 @@ export const PlanManager = forwardRef<
             )}
 
             <Flex $flexDirection="column" $gap="1rem">
-              {creditGrants.reduce(
-                (acc: React.ReactNode[], grant, grantIndex) => {
+              {creditGroups.reduce(
+                (acc: React.ReactNode[], group, groupIndex) => {
                   const bundle =
-                    grant.grantReason === CreditGrantReason.Purchased &&
-                    grant?.billingCreditBundleId
-                      ? creditBundles.find(
-                          (b) => b.id === grant.billingCreditBundleId,
-                        )
+                    group.grantReason === CreditGrantReason.Purchased &&
+                    group?.bundleId
+                      ? creditBundles.find((b) => b.id === group.bundleId)
                       : undefined;
 
                   acc.push(
                     <Flex
-                      key={grantIndex}
+                      key={groupIndex}
                       $justifyContent="space-between"
                       $alignItems="center"
                       $flexWrap="wrap"
                       $gap="0.5rem"
                     >
-                      {grant.grantReason === CreditGrantReason.Plan ? (
+                      {group.grantReason === CreditGrantReason.Plan ? (
                         <Text display={props.addOns.fontStyle}>
-                          {grant.quantity}{" "}
-                          {getCreditName(grant, grant.quantity)}{" "}
+                          {group.quantity}{" "}
+                          {getFeatureName(group, group.quantity)}{" "}
                           {subscriptionInterval && (
                             <>
                               {t("per")} {t(subscriptionInterval)}
@@ -402,17 +408,22 @@ export const PlanManager = forwardRef<
                         </Text>
                       ) : bundle ? (
                         <Text display={props.addOns.fontStyle}>
-                          {bundle.name} ({grant.quantity}{" "}
-                          {getCreditName(grant, grant.quantity)})
+                          {group.grants.length > 1 && (
+                            <Text style={{ opacity: 0.5 }}>
+                              ({group.grants.length}){" "}
+                            </Text>
+                          )}
+                          {bundle.name} ({group.quantity}{" "}
+                          {getFeatureName(group, group.quantity)})
                         </Text>
                       ) : (
                         <Text display={props.addOns.fontStyle}>
-                          {grant.quantity}{" "}
-                          {getCreditName(grant, grant.quantity)}
+                          {group.quantity}{" "}
+                          {getFeatureName(group, group.quantity)}
                         </Text>
                       )}
 
-                      {grant.quantityUsed > 0 && (
+                      {group.total.used > 0 && (
                         <Text
                           style={{ opacity: 0.54 }}
                           $size={
@@ -420,7 +431,7 @@ export const PlanManager = forwardRef<
                           }
                           $color={settings.theme.typography.text.color}
                         >
-                          {grant.quantityUsed} {t("used")}
+                          {group.total.used} {t("used")}
                         </Text>
                       )}
                     </Flex>,

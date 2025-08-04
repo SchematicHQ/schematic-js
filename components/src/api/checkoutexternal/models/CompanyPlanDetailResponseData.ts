@@ -19,6 +19,12 @@ import {
   FeatureDetailResponseDataFromJSONTyped,
   FeatureDetailResponseDataToJSON,
 } from "./FeatureDetailResponseData";
+import type { PlanCreditGrantView } from "./PlanCreditGrantView";
+import {
+  PlanCreditGrantViewFromJSON,
+  PlanCreditGrantViewFromJSONTyped,
+  PlanCreditGrantViewToJSON,
+} from "./PlanCreditGrantView";
 import type { PlanEntitlementResponseData } from "./PlanEntitlementResponseData";
 import {
   PlanEntitlementResponseDataFromJSON,
@@ -148,6 +154,12 @@ export interface CompanyPlanDetailResponseData {
   id: string;
   /**
    *
+   * @type {Array<PlanCreditGrantView>}
+   * @memberof CompanyPlanDetailResponseData
+   */
+  includedCreditGrants: Array<PlanCreditGrantView>;
+  /**
+   *
    * @type {boolean}
    * @memberof CompanyPlanDetailResponseData
    */
@@ -249,6 +261,11 @@ export function instanceOfCompanyPlanDetailResponseData(
   if (!("features" in value) || value["features"] === undefined) return false;
   if (!("icon" in value) || value["icon"] === undefined) return false;
   if (!("id" in value) || value["id"] === undefined) return false;
+  if (
+    !("includedCreditGrants" in value) ||
+    value["includedCreditGrants"] === undefined
+  )
+    return false;
   if (!("isCustom" in value) || value["isCustom"] === undefined) return false;
   if (!("isDefault" in value) || value["isDefault"] === undefined) return false;
   if (!("isFree" in value) || value["isFree"] === undefined) return false;
@@ -302,6 +319,9 @@ export function CompanyPlanDetailResponseDataFromJSONTyped(
     ),
     icon: json["icon"],
     id: json["id"],
+    includedCreditGrants: (json["included_credit_grants"] as Array<any>).map(
+      PlanCreditGrantViewFromJSON,
+    ),
     isCustom: json["is_custom"],
     isDefault: json["is_default"],
     isFree: json["is_free"],
@@ -355,6 +375,9 @@ export function CompanyPlanDetailResponseDataToJSON(
     ),
     icon: value["icon"],
     id: value["id"],
+    included_credit_grants: (value["includedCreditGrants"] as Array<any>).map(
+      PlanCreditGrantViewToJSON,
+    ),
     is_custom: value["isCustom"],
     is_default: value["isDefault"],
     is_free: value["isFree"],

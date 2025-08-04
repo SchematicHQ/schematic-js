@@ -1,9 +1,60 @@
-import { type CreditCompanyGrantView } from "../../api/checkoutexternal";
+import {
+  type CreditCompanyGrantView,
+  type PlanCreditGrantView,
+} from "../../api/checkoutexternal";
+import { CreditResetCadence } from "../../const";
 import type { Credit } from "../../types";
-import { pluralize } from "../pluralize";
+
+function getResetCadencePeriod(cadence: string) {
+  switch (cadence) {
+    case CreditResetCadence.Year:
+      return "year";
+    case CreditResetCadence.Month:
+      return "month";
+    case CreditResetCadence.Week:
+      return "week";
+    case CreditResetCadence.Day:
+      return "day";
+  }
+}
+
+export function groupPlanCreditGrants(creditGrants: PlanCreditGrantView[]) {
+  const map = creditGrants.reduce(
+    (
+      acc: {
+        [key: string]: Omit<
+          Credit,
+          "companyId" | "companyName" | "bundleId" | "total" | "grants"
+        > & { period?: string };
+      },
+      grant,
+    ) => {
+      const key = grant.creditId;
+
+      acc[key] = {
+        id: grant.creditId,
+        name: grant.creditName,
+        singularName: grant.singularName,
+        pluralName: grant.pluralName,
+        description: grant.creditDescription,
+        icon: grant.creditIcon,
+        grantReason: "plan",
+        quantity: grant.creditAmount,
+        planId: grant.planId,
+        planName: grant.planName,
+        period: getResetCadencePeriod(grant.resetCadence),
+      };
+
+      return acc;
+    },
+    {},
+  );
+
+  return Object.values(map);
+}
 
 interface GroupCreditGrantOptions {
-  groupBy?: "credit" | "plan" | "bundle";
+  groupBy?: "credit" | "bundle";
 }
 
 export function groupCreditGrants(
@@ -23,11 +74,11 @@ export function groupCreditGrants(
 
       if (!isExpired && !isZeroedOut) {
         const key =
-          options?.groupBy === "bundle" && grant.billingCreditBundleId
-            ? grant.billingCreditBundleId
-            : options?.groupBy === "plan" && grant.planId
-              ? grant.planId
-              : grant.billingCreditId;
+          options?.groupBy === "bundle"
+            ? grant.billingCreditBundleId || grant.id
+            : options?.groupBy === "credit"
+              ? grant.billingCreditId
+              : grant.id;
         const current = acc[key];
 
         acc[key] = {
@@ -48,10 +99,10 @@ export function groupCreditGrants(
           bundleId: grant.billingCreditBundleId,
           // custom attributes
           total: {
-            value: (current?.total.value ?? 0) + grant.quantity,
+            value: (current?.total?.value ?? 0) + grant.quantity,
             remaining:
-              (current?.total.remaining ?? 0) + grant.quantityRemaining,
-            used: (current?.total.used ?? 0) + grant.quantityUsed,
+              (current?.total?.remaining ?? 0) + grant.quantityRemaining,
+            used: (current?.total?.used ?? 0) + grant.quantityUsed,
           },
           grants: [...(current?.grants ?? []), grant],
         };
@@ -63,49 +114,4 @@ export function groupCreditGrants(
   );
 
   return Object.values(map);
-}
-
-/* export function groupCreditGrants(creditGrants: CreditCompanyGrantView[]) {
-  const credits = getCredits(creditGrants);
-
-  const map = credits.reduce(
-    (
-      acc: {
-        [key: string]: CreditCompanyGrantView & { count: number };
-      },
-      credit,
-    ) => {
-      credit.grants.forEach((grant) => {
-        const key = grant.billingCreditBundleId || grant.id;
-        const current = acc[key];
-        acc[key] = { ...grant, count: (current?.count ?? 0) + 1 };
-      });
-
-      return acc;
-    },
-    {},
-  );
-
-  return Object.values(map).sort((a, b) => a.count - b.count);
-} */
-
-export function getCreditName(
-  credit: Pick<
-    CreditCompanyGrantView,
-    "creditName" | "singularName" | "pluralName"
-  >,
-  count = 0,
-) {
-  const shouldBePlural = count === 0 || count > 1;
-  const { creditName: name, singularName, pluralName } = credit;
-
-  if (pluralName && shouldBePlural) {
-    return pluralName;
-  }
-
-  if (singularName) {
-    return shouldBePlural ? pluralize(singularName, count) : singularName;
-  }
-
-  return pluralize(name, count);
 }

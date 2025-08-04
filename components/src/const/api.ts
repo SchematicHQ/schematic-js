@@ -24,6 +24,13 @@ export enum FeatureType {
   Trait = "trait",
 }
 
+export enum CreditResetCadence {
+  Month = "monthly",
+  Year = "yearly",
+  Day = "daily",
+  Week = "weekly",
+}
+
 export enum CreditGrantReason {
   Free = "free",
   Plan = "plan",

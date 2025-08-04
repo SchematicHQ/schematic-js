@@ -18,6 +18,7 @@ import {
   getFeatureName,
   getMetricPeriodName,
   getPlanPrice,
+  groupPlanCreditGrants,
   hexToHSL,
   isCheckoutData,
   isHydratedPlan,
@@ -301,6 +302,9 @@ export const Plan = ({
       {plans.map((plan, planIndex) => {
         const { price: planPrice, currency: planCurrency } =
           getPlanPrice(plan, period) || {};
+        const credits = isHydratedPlan(plan)
+          ? groupPlanCreditGrants(plan.includedCreditGrants)
+          : [];
         const hasUsageBasedEntitlements = plan.entitlements.some(
           (entitlement) => !!entitlement.priceBehavior,
         );
@@ -386,7 +390,58 @@ export const Plan = ({
                 )}
               </Box>
 
-              {/* TODO: add included credits if available */}
+              {credits.length > 0 && (
+                <Flex
+                  $flexDirection="column"
+                  $gap="1rem"
+                  $flexGrow={1}
+                  $marginTop="0.5rem"
+                >
+                  {credits.map((credit, creditIndex) => {
+                    return (
+                      <Flex
+                        key={creditIndex}
+                        $flexWrap="wrap"
+                        $justifyContent="space-between"
+                        $alignItems="center"
+                        $gap="1rem"
+                      >
+                        <Flex $gap="1rem">
+                          {credit.icon && (
+                            <Icon
+                              name={credit.icon}
+                              color={settings.theme.primary}
+                              background={
+                                isLightBackground
+                                  ? "hsla(0, 0%, 0%, 0.0625)"
+                                  : "hsla(0, 0%, 100%, 0.25)"
+                              }
+                              rounded
+                            />
+                          )}
+
+                          <Flex
+                            $flexDirection="column"
+                            $justifyContent="center"
+                            $gap="0.5rem"
+                          >
+                            <Text>
+                              {credit.quantity}{" "}
+                              {getFeatureName(credit, credit.quantity)}
+                              {credit.period && (
+                                <>
+                                  {" "}
+                                  {t("per")} {credit.period}
+                                </>
+                              )}
+                            </Text>
+                          </Flex>
+                        </Flex>
+                      </Flex>
+                    );
+                  })}
+                </Flex>
+              )}
 
               {isHydratedPlan(plan) && plan.current && (
                 <Flex
@@ -418,67 +473,154 @@ export const Plan = ({
               $gap={`${cardPadding}rem`}
               $padding={`${0.75 * cardPadding}rem ${cardPadding}rem 0`}
             >
-              <Flex $flexDirection="column" $gap="1rem" $flexGrow={1}>
-                {plan.entitlements
-                  .map((entitlement, entitlementIndex) => {
-                    const hasNumericValue =
-                      entitlement.valueType === EntitlementValueType.Numeric ||
-                      entitlement.valueType ===
-                        EntitlementValueType.Unlimited ||
-                      entitlement.valueType === EntitlementValueType.Trait;
+              {plan.entitlements.length > 0 && (
+                <Flex $flexDirection="column" $gap="1rem" $flexGrow={1}>
+                  {plan.entitlements
+                    .map((entitlement, entitlementIndex) => {
+                      const hasNumericValue =
+                        entitlement.valueType ===
+                          EntitlementValueType.Numeric ||
+                        entitlement.valueType ===
+                          EntitlementValueType.Unlimited ||
+                        entitlement.valueType === EntitlementValueType.Trait;
 
-                    const limit =
-                      entitlement.softLimit ?? entitlement.valueNumeric;
+                      const limit =
+                        entitlement.softLimit ?? entitlement.valueNumeric;
 
-                    const {
-                      price: entitlementPrice,
-                      priceTier: entitlementPriceTiers,
-                      currency: entitlementCurrency,
-                      packageSize: entitlementPackageSize = 1,
-                    } = getEntitlementPrice(entitlement, period) || {};
+                      const {
+                        price: entitlementPrice,
+                        priceTier: entitlementPriceTiers,
+                        currency: entitlementCurrency,
+                        packageSize: entitlementPackageSize = 1,
+                      } = getEntitlementPrice(entitlement, period) || {};
 
-                    const metricPeriodName = getMetricPeriodName(entitlement);
+                      const metricPeriodName = getMetricPeriodName(entitlement);
 
-                    return (
-                      <Flex
-                        key={entitlementIndex}
-                        $flexWrap="wrap"
-                        $justifyContent="space-between"
-                        $alignItems="center"
-                        $gap="1rem"
-                      >
-                        <Flex $gap="1rem">
-                          {entitlement.feature?.icon && (
-                            <Icon
-                              name={entitlement.feature.icon}
-                              color={settings.theme.primary}
-                              background={
-                                isLightBackground
-                                  ? "hsla(0, 0%, 0%, 0.0625)"
-                                  : "hsla(0, 0%, 100%, 0.25)"
-                              }
-                              rounded
-                            />
-                          )}
+                      return (
+                        <Flex
+                          key={entitlementIndex}
+                          $flexWrap="wrap"
+                          $justifyContent="space-between"
+                          $alignItems="center"
+                          $gap="1rem"
+                        >
+                          <Flex $gap="1rem">
+                            {entitlement.feature?.icon && (
+                              <Icon
+                                name={entitlement.feature.icon}
+                                color={settings.theme.primary}
+                                background={
+                                  isLightBackground
+                                    ? "hsla(0, 0%, 0%, 0.0625)"
+                                    : "hsla(0, 0%, 100%, 0.25)"
+                                }
+                                rounded
+                              />
+                            )}
 
-                          {entitlement.feature?.name && (
-                            <Flex
-                              $flexDirection="column"
-                              $justifyContent="center"
-                              $gap="0.5rem"
-                            >
-                              <Text>
-                                {typeof entitlementPrice === "number" &&
-                                (entitlement.priceBehavior ===
-                                  PriceBehavior.PayInAdvance ||
-                                  entitlement.priceBehavior ===
-                                    PriceBehavior.PayAsYouGo) ? (
-                                  <>
+                            {entitlement.feature?.name && (
+                              <Flex
+                                $flexDirection="column"
+                                $justifyContent="center"
+                                $gap="0.5rem"
+                              >
+                                <Text>
+                                  {typeof entitlementPrice === "number" &&
+                                  (entitlement.priceBehavior ===
+                                    PriceBehavior.PayInAdvance ||
+                                    entitlement.priceBehavior ===
+                                      PriceBehavior.PayAsYouGo) ? (
+                                    <>
+                                      {formatCurrency(
+                                        entitlementPrice,
+                                        entitlementCurrency,
+                                      )}{" "}
+                                      {t("per")}{" "}
+                                      {entitlementPackageSize > 1 && (
+                                        <>{entitlementPackageSize} </>
+                                      )}
+                                      {getFeatureName(
+                                        entitlement.feature,
+                                        entitlementPackageSize,
+                                      )}
+                                      {entitlement.priceBehavior ===
+                                        PriceBehavior.PayInAdvance && (
+                                        <>
+                                          {" "}
+                                          {t("per")} {period}
+                                        </>
+                                      )}
+                                    </>
+                                  ) : entitlement.priceBehavior ===
+                                    PriceBehavior.Tiered ? (
+                                    <TieredPricingDetails
+                                      entitlement={entitlement}
+                                      period={period}
+                                    />
+                                  ) : entitlement.priceBehavior ===
+                                      PriceBehavior.Credit &&
+                                    entitlement.valueCredit ? (
+                                    <>
+                                      {entitlement.consumptionRate}{" "}
+                                      {getFeatureName(
+                                        entitlement.valueCredit,
+                                        entitlement.consumptionRate ||
+                                          undefined,
+                                      )}{" "}
+                                      {t("per")}{" "}
+                                      {getFeatureName(entitlement.feature, 1)}
+                                    </>
+                                  ) : hasNumericValue ? (
+                                    <>
+                                      {entitlement.valueType ===
+                                        EntitlementValueType.Unlimited &&
+                                      !entitlement.priceBehavior
+                                        ? t("Unlimited", {
+                                            item: getFeatureName(
+                                              entitlement.feature,
+                                            ),
+                                          })
+                                        : typeof limit === "number" && (
+                                            <>
+                                              {formatNumber(limit)}{" "}
+                                              {getFeatureName(
+                                                entitlement.feature,
+                                                limit,
+                                              )}
+                                            </>
+                                          )}
+
+                                      {metricPeriodName && (
+                                        <>
+                                          {" "}
+                                          {t("per")} {t(metricPeriodName)}
+                                        </>
+                                      )}
+                                    </>
+                                  ) : (
+                                    entitlement.feature.name
+                                  )}
+                                </Text>
+
+                                {entitlement.priceBehavior ===
+                                  PriceBehavior.Overage &&
+                                typeof entitlementPrice === "number" ? (
+                                  <Text
+                                    style={{ opacity: 0.54 }}
+                                    $size={
+                                      0.875 *
+                                      settings.theme.typography.text.fontSize
+                                    }
+                                    $color={
+                                      settings.theme.typography.text.color
+                                    }
+                                  >
+                                    {t("then")}{" "}
                                     {formatCurrency(
                                       entitlementPrice,
                                       entitlementCurrency,
-                                    )}{" "}
-                                    {t("per")}{" "}
+                                    )}
+                                    /
                                     {entitlementPackageSize > 1 && (
                                       <>{entitlementPackageSize} </>
                                     )}
@@ -486,155 +628,75 @@ export const Plan = ({
                                       entitlement.feature,
                                       entitlementPackageSize,
                                     )}
-                                    {entitlement.priceBehavior ===
-                                      PriceBehavior.PayInAdvance && (
-                                      <>
-                                        {" "}
-                                        {t("per")} {period}
-                                      </>
+                                    {entitlement.feature.featureType ===
+                                      FeatureType.Trait && (
+                                      <>/{shortenPeriod(period)}</>
                                     )}
-                                  </>
-                                ) : entitlement.priceBehavior ===
-                                  PriceBehavior.Tiered ? (
-                                  <TieredPricingDetails
-                                    entitlement={entitlement}
-                                    period={period}
-                                  />
-                                ) : entitlement.priceBehavior ===
-                                    PriceBehavior.Credit &&
-                                  entitlement.valueCredit ? (
-                                  <>
-                                    {entitlement.consumptionRate}{" "}
-                                    {getFeatureName(
-                                      entitlement.valueCredit,
-                                      entitlement.consumptionRate || undefined,
-                                    )}{" "}
-                                    {t("per")}{" "}
-                                    {getFeatureName(entitlement.feature, 1)}
-                                  </>
-                                ) : hasNumericValue ? (
-                                  <>
-                                    {entitlement.valueType ===
-                                      EntitlementValueType.Unlimited &&
-                                    !entitlement.priceBehavior
-                                      ? t("Unlimited", {
-                                          item: getFeatureName(
-                                            entitlement.feature,
-                                          ),
-                                        })
-                                      : typeof limit === "number" && (
-                                          <>
-                                            {formatNumber(limit)}{" "}
-                                            {getFeatureName(
-                                              entitlement.feature,
-                                              limit,
-                                            )}
-                                          </>
-                                        )}
-
-                                    {metricPeriodName && (
-                                      <>
-                                        {" "}
-                                        {t("per")} {t(metricPeriodName)}
-                                      </>
-                                    )}
-                                  </>
+                                  </Text>
                                 ) : (
-                                  entitlement.feature.name
+                                  entitlement.priceBehavior ===
+                                    PriceBehavior.Tiered && (
+                                    <Flex $alignItems="center">
+                                      <PricingTiersTooltip
+                                        feature={entitlement.feature}
+                                        period={period}
+                                        currency={entitlementCurrency}
+                                        priceTiers={entitlementPriceTiers}
+                                      />
+                                      <Text
+                                        style={{ opacity: 0.54 }}
+                                        $size={
+                                          0.875 *
+                                          settings.theme.typography.text
+                                            .fontSize
+                                        }
+                                        $color={
+                                          settings.theme.typography.text.color
+                                        }
+                                      >
+                                        {t("Tier-based")}
+                                      </Text>
+                                    </Flex>
+                                  )
                                 )}
-                              </Text>
-
-                              {entitlement.priceBehavior ===
-                                PriceBehavior.Overage &&
-                              typeof entitlementPrice === "number" ? (
-                                <Text
-                                  style={{ opacity: 0.54 }}
-                                  $size={
-                                    0.875 *
-                                    settings.theme.typography.text.fontSize
-                                  }
-                                  $color={settings.theme.typography.text.color}
-                                >
-                                  {t("then")}{" "}
-                                  {formatCurrency(
-                                    entitlementPrice,
-                                    entitlementCurrency,
-                                  )}
-                                  /
-                                  {entitlementPackageSize > 1 && (
-                                    <>{entitlementPackageSize} </>
-                                  )}
-                                  {getFeatureName(
-                                    entitlement.feature,
-                                    entitlementPackageSize,
-                                  )}
-                                  {entitlement.feature.featureType ===
-                                    FeatureType.Trait && (
-                                    <>/{shortenPeriod(period)}</>
-                                  )}
-                                </Text>
-                              ) : (
-                                entitlement.priceBehavior ===
-                                  PriceBehavior.Tiered && (
-                                  <Flex $alignItems="center">
-                                    <PricingTiersTooltip
-                                      feature={entitlement.feature}
-                                      period={period}
-                                      currency={entitlementCurrency}
-                                      priceTiers={entitlementPriceTiers}
-                                    />
-                                    <Text
-                                      style={{ opacity: 0.54 }}
-                                      $size={
-                                        0.875 *
-                                        settings.theme.typography.text.fontSize
-                                      }
-                                      $color={
-                                        settings.theme.typography.text.color
-                                      }
-                                    >
-                                      {t("Tier-based")}
-                                    </Text>
-                                  </Flex>
-                                )
-                              )}
-                            </Flex>
-                          )}
+                              </Flex>
+                            )}
+                          </Flex>
                         </Flex>
-                      </Flex>
-                    );
-                  })
-                  .slice(0, count?.limit ?? VISIBLE_ENTITLEMENT_COUNT)}
+                      );
+                    })
+                    .slice(0, count?.limit ?? VISIBLE_ENTITLEMENT_COUNT)}
 
-                {(count?.size || plan.entitlements.length) >
-                  VISIBLE_ENTITLEMENT_COUNT && (
-                  <Flex
-                    $alignItems="center"
-                    $justifyContent="start"
-                    $gap="0.5rem"
-                    $marginTop="1rem"
-                  >
-                    <Icon
-                      name={isExpanded ? "chevron-up" : "chevron-down"}
-                      color="#D0D0D0"
-                    />
-                    <Text
-                      onClick={() => handleToggleShowAll(plan.id)}
-                      onKeyDown={(event) => {
-                        if (event.key === "Enter" || event.key === " ") {
-                          event.preventDefault();
-                          handleToggleShowAll(plan.id);
-                        }
-                      }}
-                      display="link"
-                      $leading={1}
-                      style={{ cursor: "pointer" }}
+                  {(count?.size || plan.entitlements.length) >
+                    VISIBLE_ENTITLEMENT_COUNT && (
+                    <Flex
+                      $alignItems="center"
+                      $justifyContent="start"
+                      $gap="0.5rem"
+                      $marginTop="1rem"
                     >
-                      {isExpanded ? t("Hide all") : t("See all")}
-                    </Text>
-                  </Flex>
-                )}
-              </Flex>
+                      <Icon
+                        name={isExpanded ? "chevron-up" : "chevron-down"}
+                        color="#D0D0D0"
+                      />
+                      <Text
+                        onClick={() => handleToggleShowAll(plan.id)}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter" || event.key === " ") {
+                            event.preventDefault();
+                            handleToggleShowAll(plan.id);
+                          }
+                        }}
+                        display="link"
+                        $leading={1}
+                        style={{ cursor: "pointer" }}
+                      >
+                        {isExpanded ? t("Hide all") : t("See all")}
+                      </Text>
+                    </Flex>
+                  )}
+                </Flex>
+              )}
 
               <PlanButtonGroup
                 plan={plan}

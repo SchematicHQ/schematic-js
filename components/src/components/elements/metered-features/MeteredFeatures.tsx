@@ -18,7 +18,6 @@ import type { DeepPartial, ElementProps } from "../../../types";
 import {
   formatCurrency,
   formatNumber,
-  getCreditName,
   getFeatureName,
   getUsageDetails,
   groupCreditGrants,
@@ -205,7 +204,9 @@ export const MeteredFeatures = forwardRef<
             (feature?.featureType === FeatureType.Event ||
               feature?.featureType === FeatureType.Trait),
         ),
-        creditGroups: groupCreditGrants(data.creditGrants),
+        creditGroups: groupCreditGrants(data.creditGrants, {
+          groupBy: "credit",
+        }),
       };
     }
 
@@ -454,7 +455,7 @@ export const MeteredFeatures = forwardRef<
                             <Text>
                               {t("X items included in plan", {
                                 amount: grant.quantity,
-                                item: getCreditName(grant, grant.quantity),
+                                item: getFeatureName(credit, grant.quantity),
                               })}
                             </Text>
                           </Box>
@@ -490,7 +491,7 @@ export const MeteredFeatures = forwardRef<
                                 <>
                                   {t("X item bundle", {
                                     amount: grant.quantity,
-                                    item: getCreditName(grant, 1),
+                                    item: getFeatureName(credit, 1),
                                     createdAt: toPrettyDate(grant.createdAt, {
                                       day: "2-digit",
                                       month: "2-digit",
@@ -502,7 +503,10 @@ export const MeteredFeatures = forwardRef<
                                 <>
                                   {t("X item grant", {
                                     amount: grant.quantity,
-                                    item: getCreditName(grant, grant.quantity),
+                                    item: getFeatureName(
+                                      credit,
+                                      grant.quantity,
+                                    ),
                                     createdAt: toPrettyDate(grant.createdAt, {
                                       day: "2-digit",
                                       month: "2-digit",
