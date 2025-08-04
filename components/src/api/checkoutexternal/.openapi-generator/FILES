@@ -57,6 +57,7 @@ models/InvoiceResponseData.ts
 models/ListInvoicesParams.ts
 models/ListInvoicesResponse.ts
 models/PaymentMethodResponseData.ts
+models/PlanCreditGrantView.ts
 models/PlanDetailResponseData.ts
 models/PlanEntitlementResponseData.ts
 models/PlanGroupPlanDetailResponseData.ts
