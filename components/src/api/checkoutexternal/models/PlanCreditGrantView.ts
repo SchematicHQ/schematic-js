@@ -36,7 +36,25 @@ export interface PlanCreditGrantView {
    * @type {string}
    * @memberof PlanCreditGrantView
    */
+  creditDescription: string;
+  /**
+   *
+   * @type {string}
+   * @memberof PlanCreditGrantView
+   */
+  creditIcon?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof PlanCreditGrantView
+   */
   creditId: string;
+  /**
+   *
+   * @type {string}
+   * @memberof PlanCreditGrantView
+   */
+  creditName: string;
   /**
    *
    * @type {string}
@@ -60,6 +78,12 @@ export interface PlanCreditGrantView {
    * @type {string}
    * @memberof PlanCreditGrantView
    */
+  pluralName?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof PlanCreditGrantView
+   */
   resetCadence: string;
   /**
    *
@@ -67,6 +91,12 @@ export interface PlanCreditGrantView {
    * @memberof PlanCreditGrantView
    */
   resetStart: string;
+  /**
+   *
+   * @type {string}
+   * @memberof PlanCreditGrantView
+   */
+  singularName?: string | null;
   /**
    *
    * @type {Date}
@@ -84,7 +114,14 @@ export function instanceOfPlanCreditGrantView(
   if (!("createdAt" in value) || value["createdAt"] === undefined) return false;
   if (!("creditAmount" in value) || value["creditAmount"] === undefined)
     return false;
+  if (
+    !("creditDescription" in value) ||
+    value["creditDescription"] === undefined
+  )
+    return false;
   if (!("creditId" in value) || value["creditId"] === undefined) return false;
+  if (!("creditName" in value) || value["creditName"] === undefined)
+    return false;
   if (!("id" in value) || value["id"] === undefined) return false;
   if (!("planId" in value) || value["planId"] === undefined) return false;
   if (!("planName" in value) || value["planName"] === undefined) return false;
@@ -110,12 +147,18 @@ export function PlanCreditGrantViewFromJSONTyped(
   return {
     createdAt: new Date(json["created_at"]),
     creditAmount: json["credit_amount"],
+    creditDescription: json["credit_description"],
+    creditIcon: json["credit_icon"] == null ? undefined : json["credit_icon"],
     creditId: json["credit_id"],
+    creditName: json["credit_name"],
     id: json["id"],
     planId: json["plan_id"],
     planName: json["plan_name"],
+    pluralName: json["plural_name"] == null ? undefined : json["plural_name"],
     resetCadence: json["reset_cadence"],
     resetStart: json["reset_start"],
+    singularName:
+      json["singular_name"] == null ? undefined : json["singular_name"],
     updatedAt: new Date(json["updated_at"]),
   };
 }
@@ -129,12 +172,17 @@ export function PlanCreditGrantViewToJSON(
   return {
     created_at: value["createdAt"].toISOString(),
     credit_amount: value["creditAmount"],
+    credit_description: value["creditDescription"],
+    credit_icon: value["creditIcon"],
     credit_id: value["creditId"],
+    credit_name: value["creditName"],
     id: value["id"],
     plan_id: value["planId"],
     plan_name: value["planName"],
+    plural_name: value["pluralName"],
     reset_cadence: value["resetCadence"],
     reset_start: value["resetStart"],
+    singular_name: value["singularName"],
     updated_at: value["updatedAt"].toISOString(),
   };
 }
