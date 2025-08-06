@@ -152,8 +152,10 @@ export const StageButton = ({
 
   if (checkoutStage === "addons") {
     // Check if there's an addonsUsage stage next
-    const hasAddonsUsageStage = checkoutStages?.some(stage => stage.id === "addonsUsage");
-    
+    const hasAddonsUsageStage = checkoutStages?.some(
+      (stage) => stage.id === "addonsUsage",
+    );
+
     if (!isPaymentMethodRequired && !hasAddonsUsageStage) {
       return <NoPaymentRequired />;
     }
@@ -174,7 +176,8 @@ export const StageButton = ({
           $alignItems="center"
           $padding="0 1rem"
         >
-          {t("Next")}: {hasAddonsUsageStage ? t("Add-ons Quantity") : t("Checkout")}
+          {t("Next")}:{" "}
+          {hasAddonsUsageStage ? t("Add-ons Quantity") : t("Checkout")}
           <Icon name="arrow-right" />
         </Flex>
       </Button>

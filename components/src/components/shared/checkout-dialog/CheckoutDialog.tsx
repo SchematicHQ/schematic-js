@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -10,9 +17,20 @@ import {
   type UpdatePayInAdvanceRequestBody,
 } from "../../../api/checkoutexternal";
 import { PriceBehavior } from "../../../const";
-import { useAvailablePlans, useEmbed, useIsLightBackground, type SelectedPlan } from "../../../hooks";
+import {
+  useAvailablePlans,
+  useEmbed,
+  useIsLightBackground,
+  type SelectedPlan,
+} from "../../../hooks";
 import type { UsageBasedEntitlement } from "../../../types";
-import { ERROR_UNKNOWN, getAddOnPrice, isCheckoutData, isError, isHydratedPlan } from "../../../utils";
+import {
+  ERROR_UNKNOWN,
+  getAddOnPrice,
+  isCheckoutData,
+  isError,
+  isHydratedPlan,
+} from "../../../utils";
 import { PeriodToggle } from "../../shared";
 import { Flex, Modal, ModalHeader, Text } from "../../ui";
 import { Sidebar } from "../sidebar";
@@ -158,7 +176,8 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     ),
   );
 
-  const [addOnUsageBasedEntitlements, setAddOnUsageBasedEntitlements] = useState<UsageBasedEntitlement[]>([]);
+  const [addOnUsageBasedEntitlements, setAddOnUsageBasedEntitlements] =
+    useState<UsageBasedEntitlement[]>([]);
 
   const payInAdvanceEntitlements = useMemo(
     () =>
@@ -218,18 +237,21 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
     // True if: 1) the addOn is selected, and 2) it contains pay-in-advance entitlements
     const hasUsageBasedAddOnSelected = addOns.some((addOn) => {
-      return addOn.isSelected && addOn.entitlements.some((entitlement) => {
-        return entitlement.priceBehavior === PriceBehavior.PayInAdvance;
-      })
-    })
-    
+      return (
+        addOn.isSelected &&
+        addOn.entitlements.some((entitlement) => {
+          return entitlement.priceBehavior === PriceBehavior.PayInAdvance;
+        })
+      );
+    });
+
     if (hasUsageBasedAddOnSelected) {
       stages.push({
         id: "addonsUsage",
         name: t("Add-ons Quantity"),
         label: t("Select quantities for add-ons"),
         description: t("Quantity to pay for in advance"),
-      })
+      });
     }
 
     if (isPaymentMethodRequired) {
@@ -267,10 +289,16 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
     // the user has preselected a different plan before starting the checkout flow
     if (checkoutState?.planId !== currentPlanId) {
-      const hasUsageStage = checkoutStages.some((stage) => stage.id === "usage");
-      const hasAddonsStage = checkoutStages.some((stage) => stage.id === "addons");
-      const hasAddonsUsageStage = checkoutStages.some((stage) => stage.id === "addonsUsage");
-      
+      const hasUsageStage = checkoutStages.some(
+        (stage) => stage.id === "usage",
+      );
+      const hasAddonsStage = checkoutStages.some(
+        (stage) => stage.id === "addons",
+      );
+      const hasAddonsUsageStage = checkoutStages.some(
+        (stage) => stage.id === "addonsUsage",
+      );
+
       if (hasUsageStage) return "usage";
       if (hasAddonsStage) return "addons";
       if (hasAddonsUsageStage) return "addonsUsage";
@@ -334,7 +362,9 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           ),
           payInAdvance: [
             // Plan pay-in-advance entitlements
-            ...(updates.payInAdvanceEntitlements || payInAdvanceEntitlements).reduce(
+            ...(
+              updates.payInAdvanceEntitlements || payInAdvanceEntitlements
+            ).reduce(
               (
                 acc: UpdatePayInAdvanceRequestBody[],
                 { meteredMonthlyPrice, meteredYearlyPrice, quantity },
@@ -355,7 +385,10 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
               [],
             ),
             // Add-on pay-in-advance entitlements
-            ...(updates.addOnPayInAdvanceEntitlements || addOnUsageBasedEntitlements).reduce(
+            ...(
+              updates.addOnPayInAdvanceEntitlements ||
+              addOnUsageBasedEntitlements
+            ).reduce(
               (
                 acc: UpdatePayInAdvanceRequestBody[],
                 { meteredMonthlyPrice, meteredYearlyPrice, quantity },
@@ -531,15 +564,18 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           .filter((addOn) => addOn.isSelected)
           .flatMap((addOn) =>
             addOn.entitlements
-              .filter((entitlement) => entitlement.priceBehavior === PriceBehavior.PayInAdvance)
+              .filter(
+                (entitlement) =>
+                  entitlement.priceBehavior === PriceBehavior.PayInAdvance,
+              )
               .map((entitlement) => ({
                 ...entitlement,
                 allocation: entitlement.valueNumeric || 0,
                 usage: 0,
                 quantity: 1, // Default quantity
-              }))
+              })),
           );
-        
+
         setAddOnUsageBasedEntitlements(updatedAddOnEntitlements);
 
         handlePreviewCheckout({ addOns: updated });
