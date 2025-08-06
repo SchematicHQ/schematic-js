@@ -10,7 +10,7 @@ import {
   type UpdateAddOnRequestBody,
   type UpdatePayInAdvanceRequestBody,
 } from "../../../api/checkoutexternal";
-import { EntitlementValueType, PriceBehavior } from "../../../const";
+import { PriceBehavior } from "../../../const";
 import { useAvailablePlans, useEmbed, useIsLightBackground, type SelectedPlan } from "../../../hooks";
 import type { UsageBasedEntitlement } from "../../../types";
 import { ERROR_UNKNOWN, getAddOnPrice, isCheckoutData, isError, isHydratedPlan } from "../../../utils";
