@@ -460,13 +460,13 @@ export const MeteredFeatures = forwardRef<
                             </Text>
                           </Box>
 
-                          {grant.expiresAt && (
-                            <Box
-                              $display="table-cell"
-                              $padding={padding}
-                              $textAlign="right"
-                              $whiteSpace="nowrap"
-                            >
+                          <Box
+                            $display="table-cell"
+                            $padding={padding}
+                            $textAlign="right"
+                            $whiteSpace="nowrap"
+                          >
+                            {grant.expiresAt && (
                               <Text>
                                 {t("Resets", {
                                   date: toPrettyDate(
@@ -479,8 +479,8 @@ export const MeteredFeatures = forwardRef<
                                   ),
                                 })}
                               </Text>
-                            </Box>
-                          )}
+                            )}
+                          </Box>
                         </>
                       ) : (
                         <>
@@ -524,18 +524,20 @@ export const MeteredFeatures = forwardRef<
                             $textAlign="right"
                             $whiteSpace="nowrap"
                           >
-                            <Text>
-                              {t("Expires", {
-                                date: toPrettyDate(
-                                  modifyDate(grant.expiresAt || new Date(), 1),
-                                  {
-                                    day: "2-digit",
-                                    month: "2-digit",
-                                    year: "2-digit",
-                                  },
-                                ),
-                              })}
-                            </Text>
+                            {grant.expiresAt && (
+                              <Text>
+                                {t("Expires", {
+                                  date: toPrettyDate(
+                                    modifyDate(grant.expiresAt, 1),
+                                    {
+                                      day: "2-digit",
+                                      month: "2-digit",
+                                      year: "2-digit",
+                                    },
+                                  ),
+                                })}
+                              </Text>
+                            )}
                           </Box>
                         </>
                       )}
