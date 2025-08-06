@@ -175,18 +175,10 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
   const [creditBundles, setCreditBundles] = useState<CreditBundle[]>(() => {
     if (isCheckoutData(data)) {
-      return data.creditBundles
-        .sort((a, b) => {
-          if (a.creditName === b.creditName) {
-            return (a.quantity ?? 0) - (b.quantity ?? 0);
-          }
-
-          return a.creditName.localeCompare(b.creditName);
-        })
-        .map((bundle) => ({
-          ...bundle,
-          count: 0,
-        }));
+      return data.creditBundles.map((bundle) => ({
+        ...bundle,
+        count: 0,
+      }));
     }
 
     return [];
