@@ -167,45 +167,59 @@ export const AddOn = ({ addOn, sharedProps, selectedPeriod }: AddOnProps) => {
                         />
                       )}
 
-                    {entitlement.feature?.name && (
-                      <Flex $alignItems="center">
-                        <Text>
-                          {entitlement.valueType ===
-                            EntitlementValueType.Numeric ||
-                          entitlement.valueType ===
-                            EntitlementValueType.Unlimited ||
-                          entitlement.valueType ===
-                            EntitlementValueType.Trait ? (
-                            <>
-                              {entitlement.valueType ===
-                              EntitlementValueType.Unlimited
-                                ? t("Unlimited", {
-                                    item: getFeatureName(entitlement.feature),
-                                  })
-                                : typeof entitlement.valueNumeric ===
-                                    "number" && (
-                                    <>
-                                      {formatNumber(entitlement.valueNumeric)}{" "}
-                                      {getFeatureName(
-                                        entitlement.feature,
-                                        entitlement.valueNumeric,
-                                      )}
-                                    </>
-                                  )}
+                    <Flex $flexDirection="column" $gap="0.5rem">
+                      {entitlement.feature?.name && (
+                        <Flex $alignItems="center" $flexGrow={1}>
+                          <Text>
+                            {entitlement.valueType ===
+                              EntitlementValueType.Numeric ||
+                            entitlement.valueType ===
+                              EntitlementValueType.Unlimited ||
+                            entitlement.valueType ===
+                              EntitlementValueType.Trait ? (
+                              <>
+                                {entitlement.valueType ===
+                                EntitlementValueType.Unlimited
+                                  ? t("Unlimited", {
+                                      item: getFeatureName(entitlement.feature),
+                                    })
+                                  : typeof entitlement.valueNumeric ===
+                                      "number" && (
+                                      <>
+                                        {formatNumber(entitlement.valueNumeric)}{" "}
+                                        {getFeatureName(
+                                          entitlement.feature,
+                                          entitlement.valueNumeric,
+                                        )}
+                                      </>
+                                    )}
 
-                              {metricPeriodName && (
-                                <>
-                                  {" "}
-                                  {t("per")} {t(metricPeriodName)}
-                                </>
-                              )}
-                            </>
-                          ) : (
-                            entitlement.feature.name
-                          )}
-                        </Text>
-                      </Flex>
-                    )}
+                                {metricPeriodName && (
+                                  <>
+                                    {" "}
+                                    {t("per")} {t(metricPeriodName)}
+                                  </>
+                                )}
+                              </>
+                            ) : (
+                              entitlement.feature.name
+                            )}
+                          </Text>
+                        </Flex>
+                      )}
+
+                      {layout.plans.showFeatureDescriptions &&
+                        entitlement.feature?.description && (
+                          <Text
+                            $size={
+                              0.875 * settings.theme.typography.text.fontSize
+                            }
+                            $color={`color-mix(in oklch, ${settings.theme.typography.text.color}, ${settings.theme.card.background})`}
+                          >
+                            {entitlement.feature.description}
+                          </Text>
+                        )}
+                    </Flex>
                   </Flex>
                 </Flex>
               );
