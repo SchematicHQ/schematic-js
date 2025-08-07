@@ -6,7 +6,6 @@ import {
   formatCurrency,
   getEntitlementPrice,
   getFeatureName,
-  shortenPeriod,
 } from "../../../utils";
 
 export interface TieredPricingDetailsProps {
@@ -74,7 +73,7 @@ export const TieredPricingDetails = ({
       Y: formatCurrency(perUnitPrice, currency),
       unit: getFeatureName(entitlement.feature, 1),
       Z: formatCurrency(flatAmount, currency),
-      period: shortenPeriod(period),
+      period,
     });
   }
 };
