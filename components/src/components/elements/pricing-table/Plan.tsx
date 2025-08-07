@@ -338,7 +338,11 @@ export const Plan = ({
                 (plan.customPlanConfig?.ctaText ?? t("Talk to support"))
               ) : isHydratedPlan(plan) && !plan.valid ? (
                 <Tooltip
-                  trigger={<Text>{t("Over usage limit")}</Text>}
+                  trigger={
+                    <Text as={Box} $align="center">
+                      {t("Over usage limit")}
+                    </Text>
+                  }
                   content={
                     <Text>
                       {t("Current usage exceeds the limit of this plan.")}
