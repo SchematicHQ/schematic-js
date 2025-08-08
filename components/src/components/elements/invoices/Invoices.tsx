@@ -73,10 +73,10 @@ function formatInvoices(
   options?: FormatInvoiceOptions,
 ) {
   const { hideUpcoming = true } = options || {};
-  const today = new Date();
+  const now = new Date();
 
   return (invoices || [])
-    .filter(({ dueDate }) => !hideUpcoming || (dueDate && +dueDate < +today))
+    .filter(({ dueDate }) => !hideUpcoming || (dueDate && +dueDate <= +now))
     .sort((a, b) => (a.dueDate && b.dueDate ? +b.dueDate - +a.dueDate : 1))
     .map(({ amountDue, dueDate, url, currency }) => ({
       amount: formatCurrency(amountDue, currency),
