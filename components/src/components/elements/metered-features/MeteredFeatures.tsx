@@ -443,9 +443,9 @@ export const MeteredFeatures = forwardRef<
                 $isExpanded={isExpanded}
               >
                 {credit.grants.map((grant, index) => {
-                  const padX = settings.theme.card.padding / TEXT_BASE_SIZE;
+                  const paddingX = settings.theme.card.padding / TEXT_BASE_SIZE;
                   const padding =
-                    index > 0 ? `0 ${padX}rem 1rem` : `1rem ${padX}rem`;
+                    index > 0 ? `0 ${paddingX}rem 1rem` : `1rem ${paddingX}rem`;
 
                   return (
                     <Box key={grant.id} $display="table-row">
