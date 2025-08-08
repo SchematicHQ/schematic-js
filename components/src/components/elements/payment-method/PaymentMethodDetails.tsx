@@ -102,9 +102,9 @@ export const PaymentMethodDetails = ({
       typeof currentPaymentMethod?.cardExpYear === "number" &&
       typeof currentPaymentMethod?.cardExpMonth === "number"
     ) {
-      const today = new Date();
-      const currentYear = today.getFullYear();
-      const currentMonth = today.getMonth();
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth();
       const timeToExpiration = Math.round(
         +new Date(
           currentPaymentMethod.cardExpYear,

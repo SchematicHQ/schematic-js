@@ -29,8 +29,8 @@ export function useTrialEnd() {
     let formatted: string | undefined;
 
     if (end) {
-      const today = new Date();
-      const difference = end.getTime() - today.getTime();
+      const now = new Date();
+      const difference = end.getTime() - now.getTime();
 
       let amount: number | undefined;
       let unit: string | undefined;
