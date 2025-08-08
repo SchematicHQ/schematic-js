@@ -93,6 +93,37 @@ export const UsageDetails = ({
       index += 1;
     }
 
+    if (
+      entitlement.priceBehavior === PriceBehavior.Credit &&
+      entitlement.planEntitlement?.consumptionRate &&
+      entitlement.planEntitlement?.valueCredit
+    ) {
+      const creditAmount = entitlement.planEntitlement.consumptionRate * amount;
+      acc.push(
+        creditAmount > 0 ? (
+          <Fragment key={index}>
+            {creditAmount}{" "}
+            {getFeatureName(
+              entitlement.planEntitlement.valueCredit,
+              creditAmount,
+            )}{" "}
+            {t("used")}
+          </Fragment>
+        ) : (
+          <Fragment key={index}>
+            {entitlement.planEntitlement.consumptionRate}{" "}
+            {getFeatureName(
+              entitlement.planEntitlement.valueCredit,
+              entitlement.planEntitlement.consumptionRate,
+            )}{" "}
+            {t("per")} {t("use")}
+          </Fragment>
+        ),
+      );
+
+      index += 1;
+    }
+
     return acc;
   }, [t, period, entitlement, billingPrice, amount]);
 
@@ -114,10 +145,10 @@ export const UsageDetails = ({
       <Text display={layout.addOns.fontStyle}>
         {typeof quantity === "number" && quantity > 0 ? (
           <>
-            {quantity} {getFeatureName(entitlement.feature, quantity)}
+            {quantity} {entitlement.feature.name}
           </>
         ) : (
-          getFeatureName(entitlement.feature)
+          entitlement.feature.name
         )}
       </Text>
 

@@ -2,16 +2,10 @@ import { useCallback, useMemo } from "react";
 
 import { type CompanyPlanDetailResponseData } from "../api/checkoutexternal";
 import { type PlanViewPublicResponseData } from "../api/componentspublic";
+import type { SelectedPlan } from "../types";
 import { ChargeType } from "../utils";
 
 import { useEmbed } from ".";
-
-export type SelectedPlan = (
-  | PlanViewPublicResponseData
-  | CompanyPlanDetailResponseData
-) & {
-  isSelected: boolean;
-};
 
 export function useAvailablePlans(activePeriod: string) {
   const { data, settings } = useEmbed();
@@ -38,8 +32,7 @@ export function useAvailablePlans(activePeriod: string) {
     (
       plans: (PlanViewPublicResponseData | CompanyPlanDetailResponseData)[],
     ): SelectedPlan[] => {
-      const customPlanExist = plans.some((plan) => plan.custom);
-      const plansWithSelected =
+      const activePlans =
         settings.mode === "edit"
           ? plans.slice()
           : plans.filter(
@@ -49,21 +42,7 @@ export function useAvailablePlans(activePeriod: string) {
                 plan.chargeType === ChargeType.oneTime,
             );
 
-      if (!customPlanExist) {
-        plansWithSelected?.sort((a, b) => {
-          if (activePeriod === "year") {
-            return (a.yearlyPrice?.price ?? 0) - (b.yearlyPrice?.price ?? 0);
-          }
-
-          if (activePeriod === "month") {
-            return (a.monthlyPrice?.price ?? 0) - (b.monthlyPrice?.price ?? 0);
-          }
-
-          return 0;
-        });
-      }
-
-      return plansWithSelected?.map((plan) => ({ ...plan, isSelected: false }));
+      return activePlans.map((plan) => ({ ...plan, isSelected: false }));
     },
     [activePeriod, settings.mode],
   );
@@ -74,10 +53,5 @@ export function useAvailablePlans(activePeriod: string) {
       addOns: getActivePlans(data?.activeAddOns || []),
       periods: getAvailablePeriods(),
     };
-  }, [
-    data?.activePlans,
-    data?.activeAddOns,
-    getAvailablePeriods,
-    getActivePlans,
-  ]);
+  }, [data, getAvailablePeriods, getActivePlans]);
 }

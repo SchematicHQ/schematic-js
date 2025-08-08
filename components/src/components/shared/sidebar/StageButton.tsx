@@ -9,6 +9,7 @@ type StageButtonProps = {
   checkoutStages?: CheckoutStage[];
   hasAddOns: boolean;
   hasPayInAdvanceEntitlements: boolean;
+  hasCreditBundles: boolean;
   hasPaymentMethod: boolean;
   hasPlan: boolean;
   inEditMode: boolean;
@@ -27,6 +28,7 @@ export const StageButton = ({
   checkoutStages,
   hasAddOns,
   hasPayInAdvanceEntitlements,
+  hasCreditBundles,
   hasPaymentMethod,
   hasPlan,
   inEditMode,
@@ -84,7 +86,10 @@ export const StageButton = ({
     if (
       !isPaymentMethodRequired &&
       !checkoutStages?.some(
-        (stage) => stage.id === "usage" || stage.id === "addons",
+        (stage) =>
+          stage.id === "usage" ||
+          stage.id === "addons" ||
+          stage.id === "credits",
       )
     ) {
       return <NoPaymentRequired />;
@@ -100,7 +105,9 @@ export const StageButton = ({
               ? "usage"
               : hasAddOns
                 ? "addons"
-                : "checkout",
+                : hasCreditBundles
+                  ? "credits"
+                  : "checkout",
           );
         }}
         $isLoading={isLoading}
@@ -112,7 +119,9 @@ export const StageButton = ({
             ? t("Usage")
             : hasAddOns
               ? t("Addons")
-              : t("Checkout")}
+              : hasCreditBundles
+                ? t("Credits")
+                : t("Checkout")}
           <Icon name="arrow-right" />
         </Flex>
       </Button>
@@ -122,7 +131,9 @@ export const StageButton = ({
   if (checkoutStage === "usage") {
     if (
       !isPaymentMethodRequired &&
-      !checkoutStages?.some((stage) => stage.id === "addons")
+      !checkoutStages?.some(
+        (stage) => stage.id === "addons" || stage.id === "credits",
+      )
     ) {
       return <NoPaymentRequired />;
     }
@@ -132,7 +143,9 @@ export const StageButton = ({
         type="button"
         disabled={isDisabled}
         onClick={async () => {
-          setCheckoutStage?.(hasAddOns ? "addons" : "checkout");
+          setCheckoutStage?.(
+            hasAddOns ? "addons" : hasCreditBundles ? "credits" : "checkout",
+          );
         }}
         $isLoading={isLoading}
         $fullWidth
@@ -143,7 +156,12 @@ export const StageButton = ({
           $alignItems="center"
           $padding="0 1rem"
         >
-          {t("Next")}: {hasAddOns ? t("Addons") : t("Checkout")}
+          {t("Next")}:{" "}
+          {hasAddOns
+            ? t("Addons")
+            : hasCreditBundles
+              ? t("Credits")
+              : t("Checkout")}
           <Icon name="arrow-right" />
         </Flex>
       </Button>
@@ -151,6 +169,37 @@ export const StageButton = ({
   }
 
   if (checkoutStage === "addons") {
+    if (
+      !isPaymentMethodRequired &&
+      !checkoutStages?.some((stage) => stage.id === "credits")
+    ) {
+      return <NoPaymentRequired />;
+    }
+
+    return (
+      <Button
+        type="button"
+        disabled={isDisabled}
+        onClick={async () => {
+          setCheckoutStage?.(hasCreditBundles ? "credits" : "checkout");
+        }}
+        $isLoading={isLoading}
+        $fullWidth
+      >
+        <Flex
+          $gap="0.5rem"
+          $justifyContent="center"
+          $alignItems="center"
+          $padding="0 1rem"
+        >
+          {t("Next")}: {hasCreditBundles ? t("Credits") : t("Checkout")}
+          <Icon name="arrow-right" />
+        </Flex>
+      </Button>
+    );
+  }
+
+  if (checkoutStage === "credits") {
     if (!isPaymentMethodRequired) {
       return <NoPaymentRequired />;
     }

@@ -2,8 +2,8 @@ import { MouseEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { type PreviewSubscriptionFinanceResponseData } from "../../../api/checkoutexternal";
-import { type SelectedPlan } from "../../../hooks";
-import { formatCurrency, isHydratedPlan } from "../../../utils";
+import type { SelectedPlan } from "../../../types";
+import { formatCurrency } from "../../../utils";
 import { Box, Button, Flex, Icon, Text } from "../../ui";
 
 type ProrationProps = {
@@ -12,11 +12,7 @@ type ProrationProps = {
   selectedPlan?: SelectedPlan;
 };
 
-export const Proration = ({
-  currency,
-  charges,
-  selectedPlan,
-}: ProrationProps) => {
+export const Proration = ({ currency, charges }: ProrationProps) => {
   const { t } = useTranslation();
 
   const [open, setOpen] = useState(false);
@@ -31,13 +27,7 @@ export const Proration = ({
   return (
     <>
       <Box $opacity="0.625">
-        <Text $size={14}>
-          {charges.proration > 0
-            ? t("Proration")
-            : isHydratedPlan(selectedPlan) &&
-              !selectedPlan?.companyCanTrial &&
-              t("Credits")}
-        </Text>
+        <Text $size={14}>{t("Proration")}</Text>
       </Box>
       <Flex $flexDirection="column" $gap="0.5rem">
         {open &&

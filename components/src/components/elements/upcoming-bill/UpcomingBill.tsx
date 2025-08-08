@@ -174,7 +174,7 @@ export const UpcomingBill = forwardRef<
 
                   <Box $maxWidth="10rem" $textAlign="right">
                     <Text display={props.contractEndDate.fontStyle}>
-                      {t("Estimated bill.")}
+                      {t("Estimated bill")}
                     </Text>
                   </Box>
                 </Flex>

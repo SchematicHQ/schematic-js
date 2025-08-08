@@ -52,8 +52,21 @@ export const Box = styled.div<BoxProps>((props) => {
   return styles;
 });
 
-export const TransitionBox = styled(Box)`
-  height: auto;
+interface TransitionBoxProps {
+  $isExpanded?: boolean;
+}
+
+export const TransitionBox = styled(Box)<TransitionBoxProps>`
+  ${({ $isExpanded = true }) => {
+    return $isExpanded
+      ? css`
+          height: auto;
+        `
+      : css`
+          height: 0;
+          overflow: hidden;
+        `;
+  }}
   opacity: 1;
   transition:
     height 0.1s ease-in,
