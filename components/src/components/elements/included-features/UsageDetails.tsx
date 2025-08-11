@@ -12,6 +12,7 @@ import {
   getUsageDetails,
   isCheckoutData,
   shortenPeriod,
+  toPrettyDate,
 } from "../../../utils";
 import { PricingTiersTooltip } from "../../shared";
 import { Box, Flex, Text } from "../../ui";
@@ -43,6 +44,7 @@ export const UsageDetails = ({
     priceBehavior,
     usage,
     softLimit,
+    metricResetAt,
   } = entitlement;
 
   const { t } = useTranslation();
@@ -164,6 +166,7 @@ export const UsageDetails = ({
           {getFeatureName(feature, packageSize)}/{shortenPeriod(period)}
         </Fragment>,
       );
+
       index += 1;
     } else if (
       (priceBehavior === PriceBehavior.PayAsYouGo ||
@@ -176,25 +179,48 @@ export const UsageDetails = ({
           {usage} {getFeatureName(feature, usage)} {t("used")}
         </Fragment>,
       );
+
       index += 1;
     }
 
-    if (acc) {
-      if (typeof cost === "number" && cost > 0) {
-        acc.push(
-          <Fragment key={index}> • {formatCurrency(cost, currency)}</Fragment>,
-        );
+    if (typeof cost === "number" && cost > 0) {
+      acc.push(
+        <Fragment key={index}>
+          {acc.length > 0 && <> • </>}
+          {formatCurrency(cost, currency)}
+        </Fragment>,
+      );
+
+      index += 1;
+
+      if (
+        feature.featureType === FeatureType.Trait &&
+        typeof period === "string"
+      ) {
+        acc.push(<Fragment key={index}>/{shortenPeriod(period)}</Fragment>);
+
         index += 1;
-
-        if (
-          feature.featureType === FeatureType.Trait &&
-          typeof period === "string"
-        ) {
-          acc.push(<Fragment key={index}>/{shortenPeriod(period)}</Fragment>);
-          index += 1;
-        }
       }
+    }
 
+    if (metricResetAt) {
+      acc.push(
+        <Fragment key={index}>
+          {acc.length > 0 && <> • </>}
+          {t("Resets", {
+            date: toPrettyDate(metricResetAt, {
+              month: "numeric",
+              day: "numeric",
+              year: undefined,
+            }),
+          })}
+        </Fragment>,
+      );
+
+      index += 1;
+    }
+
+    if (acc.length > 0) {
       return acc;
     }
 
@@ -215,6 +241,7 @@ export const UsageDetails = ({
     priceBehavior,
     allocation,
     usage,
+    metricResetAt,
     billingPrice,
     cost,
   ]);
