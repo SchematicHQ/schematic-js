@@ -52,7 +52,7 @@ export const Plan = ({
   entitlementCounts,
   handleToggleShowAll,
 }: PlanProps) => {
-  const { layout, callToActionUrl, onCallToAction } = sharedProps;
+  const { layout } = sharedProps;
 
   const { t } = useTranslation();
 
@@ -92,9 +92,30 @@ export const Plan = ({
       isTrialSubscription: false,
       willSubscriptionCancel: false,
       isStandalone: true,
-      showCallToAction: typeof callToActionUrl === "string",
+      showCallToAction:
+        typeof sharedProps.callToActionUrl === "string" ||
+        typeof sharedProps.onCallToAction === "function",
     };
-  }, [data, callToActionUrl]);
+  }, [data, sharedProps.callToActionUrl, sharedProps.onCallToAction]);
+
+  const callToActionTarget = useMemo(() => {
+    if (sharedProps.callToActionTarget) {
+      return sharedProps.callToActionTarget;
+    }
+
+    if (sharedProps.callToActionUrl) {
+      try {
+        const ctaUrlOrigin = new URL(sharedProps.callToActionUrl).origin;
+        if (ctaUrlOrigin === window.location.hostname) {
+          return "_self";
+        }
+      } catch {
+        // fallback to the default value if the provided target value is not a full URL
+      }
+    }
+
+    return "_blank";
+  }, [sharedProps.callToActionUrl, sharedProps.callToActionTarget]);
 
   const cardPadding = settings.theme.card.padding / TEXT_BASE_SIZE;
 
@@ -227,7 +248,7 @@ export const Plan = ({
                 <Entitlement
                   key={idx}
                   entitlement={entitlement}
-                  sharedProps={{ layout, callToActionUrl, onCallToAction }}
+                  sharedProps={{ layout }}
                   selectedPeriod={selectedPeriod}
                 />
               ))
@@ -308,16 +329,16 @@ export const Plan = ({
                     target: "_blank",
                     rel: "noreferrer",
                   }
-                : callToActionUrl
+                : sharedProps.callToActionUrl
                   ? {
                       as: "a",
-                      href: callToActionUrl,
-                      target: "_blank",
+                      href: sharedProps.callToActionUrl,
+                      target: callToActionTarget,
                       rel: "noreferrer",
                     }
                   : {
                       onClick: () => {
-                        onCallToAction?.(plan);
+                        sharedProps.onCallToAction?.(plan);
 
                         if (
                           !isStandalone &&
