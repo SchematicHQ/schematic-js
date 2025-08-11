@@ -33,12 +33,14 @@ interface DesignProps {
     };
     showInclusionText: boolean;
     showFeatureIcons: boolean;
+    showFeatureDescriptions: boolean;
     showEntitlements: boolean;
   };
   addOns: {
     isVisible: boolean;
     showDescription: boolean;
     showFeatureIcons: boolean;
+    showFeatureDescriptions: boolean;
     showEntitlements: boolean;
   };
   upgrade: {
@@ -72,12 +74,14 @@ const resolveDesignProps = (props: DeepPartial<DesignProps>): DesignProps => {
       },
       showInclusionText: props.plans?.showInclusionText ?? true,
       showFeatureIcons: props.plans?.showFeatureIcons ?? true,
+      showFeatureDescriptions: props.plans?.showFeatureDescriptions ?? true,
       showEntitlements: props.plans?.showEntitlements ?? true,
     },
     addOns: {
       isVisible: props.addOns?.isVisible ?? true,
       showDescription: props.addOns?.showDescription ?? true,
       showFeatureIcons: props.addOns?.showFeatureIcons ?? true,
+      showFeatureDescriptions: props.plans?.showFeatureDescriptions ?? true,
       showEntitlements: props.addOns?.showEntitlements ?? true,
     },
     upgrade: {
