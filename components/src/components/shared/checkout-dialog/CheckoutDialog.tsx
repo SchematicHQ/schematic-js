@@ -264,8 +264,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
         name: t("Add-ons Quantity"),
         label: t("Select quantities for add-ons"),
         description: t("Quantity to pay for in advance"),
-      })
-
+      });
     }
 
     if (creditBundles.length > 0) {
@@ -276,8 +275,6 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
         description: t("Optionally add credit bundles to your subscription"),
       });
     }
-
-
 
     if (isPaymentMethodRequired) {
       stages.push({
@@ -412,10 +409,10 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
                   });
                 }
 
-              return acc;
-            },
-            [],
-          ),
+                return acc;
+              },
+              [],
+            ),
             // Add-on pay-in-advance entitlements
             ...(
               updates.addOnPayInAdvanceEntitlements ||
@@ -891,7 +888,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
               toggle={(id) => toggleAddOn(id)}
             />
           )}
-          
+
           {checkoutStage === "addonsUsage" && (
             <Usage
               isLoading={isLoading}
