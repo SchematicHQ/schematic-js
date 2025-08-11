@@ -9,16 +9,15 @@ import { useTranslation } from "react-i18next";
 import {
   type PreviewSubscriptionFinanceResponseData,
   type UpdateAddOnRequestBody,
+  type UpdateCreditBundleRequestBody,
   type UpdatePayInAdvanceRequestBody,
 } from "../../../api/checkoutexternal";
 import { PriceBehavior } from "../../../const";
-import {
-  useEmbed,
-  useIsLightBackground,
-  type SelectedPlan,
-} from "../../../hooks";
+import { useEmbed, useIsLightBackground } from "../../../hooks";
 import type {
+  CreditBundle,
   CurrentUsageBasedEntitlement,
+  SelectedPlan,
   UsageBasedEntitlement,
 } from "../../../types";
 import {
@@ -27,6 +26,7 @@ import {
   formatOrdinal,
   getAddOnPrice,
   getEntitlementPrice,
+  getFeatureName,
   getMonthName,
   getPlanPrice,
   isCheckoutData,
@@ -44,6 +44,7 @@ interface SidebarProps {
   planPeriod: string;
   selectedPlan?: SelectedPlan;
   addOns: SelectedPlan[];
+  creditBundles?: CreditBundle[];
   usageBasedEntitlements: UsageBasedEntitlement[];
   charges?: PreviewSubscriptionFinanceResponseData;
   checkoutRef?: React.RefObject<HTMLDivElement | null>;
@@ -67,6 +68,7 @@ export const Sidebar = ({
   planPeriod,
   selectedPlan,
   addOns,
+  creditBundles = [],
   usageBasedEntitlements,
   charges,
   checkoutRef,
@@ -214,111 +216,6 @@ export const Sidebar = ({
       };
     }, [charges]);
 
-  const handleCheckout = useCallback(async () => {
-    const planId = selectedPlan?.id;
-    const priceId = (
-      planPeriod === "year"
-        ? selectedPlan?.yearlyPrice
-        : selectedPlan?.monthlyPrice
-    )?.id;
-
-    try {
-      if (!planId || !priceId) {
-        throw new Error(t("Selected plan or associated price is missing."));
-      }
-
-      setError(undefined);
-      setIsLoading(true);
-
-      await checkout({
-        newPlanId: planId,
-        newPriceId: priceId,
-        addOnIds: addOns.reduce((acc: UpdateAddOnRequestBody[], addOn) => {
-          if (
-            addOn.isSelected &&
-            isHydratedPlan(selectedPlan) &&
-            !selectedPlan.companyCanTrial
-          ) {
-            const addOnPriceId = getAddOnPrice(addOn, planPeriod)?.id;
-
-            if (addOnPriceId) {
-              acc.push({
-                addOnId: addOn.id,
-                priceId: addOnPriceId,
-              });
-            }
-          }
-
-          return acc;
-        }, []),
-        payInAdvance: payInAdvanceEntitlements.reduce(
-          (
-            acc: UpdatePayInAdvanceRequestBody[],
-            { meteredMonthlyPrice, meteredYearlyPrice, quantity },
-          ) => {
-            const priceId = (
-              planPeriod === "year" ? meteredYearlyPrice : meteredMonthlyPrice
-            )?.priceId;
-
-            if (priceId) {
-              acc.push({
-                priceId,
-                quantity,
-              });
-            }
-
-            return acc;
-          },
-          [],
-        ),
-        creditBundles: [],
-        skipTrial: !willTrialWithoutPaymentMethod,
-        ...(paymentMethodId && { paymentMethodId }),
-        ...(promoCode && { promoCode }),
-      });
-
-      setIsLoading(false);
-      setLayout("portal");
-    } catch {
-      setIsLoading(false);
-      setLayout("checkout");
-      setError(
-        t("Error processing payment. Please try a different payment method."),
-      );
-    }
-  }, [
-    t,
-    checkout,
-    paymentMethodId,
-    planPeriod,
-    selectedPlan,
-    addOns,
-    setError,
-    setIsLoading,
-    setLayout,
-    payInAdvanceEntitlements,
-    willTrialWithoutPaymentMethod,
-    promoCode,
-  ]);
-
-  const handleUnsubscribe = useCallback(async () => {
-    try {
-      setError(undefined);
-      setIsLoading(true);
-
-      await unsubscribe();
-
-      setIsLoading(false);
-      setLayout("portal");
-    } catch {
-      setIsLoading(false);
-      setLayout("unsubscribe");
-      setError(t("Unsubscribe failed"));
-    }
-  }, [t, unsubscribe, setError, setIsLoading, setLayout]);
-
-  const selectedAddOns = addOns.filter((addOn) => addOn.isSelected);
-
   const updatedUsageBasedEntitlements = useMemo(() => {
     const changedUsageBasedEntitlements: {
       previous: CurrentUsageBasedEntitlement;
@@ -391,21 +288,154 @@ export const Sidebar = ({
     usageBasedEntitlements,
   ]);
 
+  const selectedAddOns = useMemo(
+    () => addOns.filter((addOn) => addOn.isSelected),
+    [addOns],
+  );
+
+  const addedCreditBundles = useMemo(
+    () => creditBundles.filter((bundle) => bundle.count > 0),
+    [creditBundles],
+  );
+
+  const handleCheckout = useCallback(async () => {
+    const planId = selectedPlan?.id;
+    const priceId = (
+      planPeriod === "year"
+        ? selectedPlan?.yearlyPrice
+        : selectedPlan?.monthlyPrice
+    )?.id;
+
+    try {
+      if (!planId || !priceId) {
+        throw new Error(t("Selected plan or associated price is missing."));
+      }
+
+      setError(undefined);
+      setIsLoading(true);
+
+      await checkout({
+        newPlanId: planId,
+        newPriceId: priceId,
+        addOnIds: addOns.reduce((acc: UpdateAddOnRequestBody[], addOn) => {
+          if (
+            addOn.isSelected &&
+            isHydratedPlan(selectedPlan) &&
+            !selectedPlan.companyCanTrial
+          ) {
+            const addOnPriceId = getAddOnPrice(addOn, planPeriod)?.id;
+
+            if (addOnPriceId) {
+              acc.push({
+                addOnId: addOn.id,
+                priceId: addOnPriceId,
+              });
+            }
+          }
+
+          return acc;
+        }, []),
+        payInAdvance: payInAdvanceEntitlements.reduce(
+          (
+            acc: UpdatePayInAdvanceRequestBody[],
+            { meteredMonthlyPrice, meteredYearlyPrice, quantity },
+          ) => {
+            const priceId = (
+              planPeriod === "year" ? meteredYearlyPrice : meteredMonthlyPrice
+            )?.priceId;
+
+            if (priceId) {
+              acc.push({
+                priceId,
+                quantity,
+              });
+            }
+
+            return acc;
+          },
+          [],
+        ),
+        creditBundles: creditBundles.reduce(
+          (acc: UpdateCreditBundleRequestBody[], { id, count }) => {
+            if (count > 0) {
+              acc.push({
+                bundleId: id,
+                quantity: count,
+              });
+            }
+
+            return acc;
+          },
+          [],
+        ),
+        skipTrial: !willTrialWithoutPaymentMethod,
+        ...(paymentMethodId && { paymentMethodId }),
+        ...(promoCode && { promoCode }),
+      });
+
+      setIsLoading(false);
+      setLayout("portal");
+    } catch {
+      setIsLoading(false);
+      setLayout("checkout");
+      setError(
+        t("Error processing payment. Please try a different payment method."),
+      );
+    }
+  }, [
+    t,
+    checkout,
+    paymentMethodId,
+    planPeriod,
+    selectedPlan,
+    addOns,
+    creditBundles,
+    setError,
+    setIsLoading,
+    setLayout,
+    payInAdvanceEntitlements,
+    willTrialWithoutPaymentMethod,
+    promoCode,
+  ]);
+
+  const handleUnsubscribe = useCallback(async () => {
+    try {
+      setError(undefined);
+      setIsLoading(true);
+
+      await unsubscribe();
+
+      setIsLoading(false);
+      setLayout("portal");
+    } catch {
+      setIsLoading(false);
+      setLayout("unsubscribe");
+      setError(t("Unsubscribe failed"));
+    }
+  }, [t, unsubscribe, setError, setIsLoading, setLayout]);
+
   const willPlanChange = isHydratedPlan(selectedPlan) && !selectedPlan.current;
 
-  const removedAddOns = currentAddOns.filter(
-    (current) =>
-      !selectedAddOns.some((selected) => current.id === selected.id) &&
-      current.planPeriod !== "one-time",
-  );
-  const addedAddOns = selectedAddOns.filter(
-    (selected) => !currentAddOns.some((current) => selected.id === current.id),
-  );
-  const willAddOnsChange = removedAddOns.length > 0 || addedAddOns.length > 0;
+  const { removedAddOns, willAddOnsChange } = useMemo(() => {
+    const addedAddOns = selectedAddOns.filter(
+      (selected) =>
+        !currentAddOns.some((current) => selected.id === current.id),
+    );
 
-  const inEditMode = settings.mode === "edit";
-  const hasPaymentMethod =
-    typeof paymentMethod !== "undefined" || typeof paymentMethodId === "string";
+    const removedAddOns = currentAddOns.filter(
+      (current) =>
+        !selectedAddOns.some((selected) => current.id === selected.id) &&
+        current.planPeriod !== "one-time",
+    );
+
+    const willAddOnsChange = removedAddOns.length > 0 || addedAddOns.length > 0;
+
+    return {
+      addedAddOns,
+      removedAddOns,
+      willAddOnsChange,
+    };
+  }, [currentAddOns, selectedAddOns]);
 
   const isSelectedPlanTrialable =
     isHydratedPlan(selectedPlan) &&
@@ -729,6 +759,65 @@ export const Sidebar = ({
           </Flex>
         )}
 
+        {addedCreditBundles.length > 0 && (
+          <Flex $flexDirection="column" $gap="0.5rem" $marginBottom="1.5rem">
+            <Box $opacity="0.625">
+              <Text $size={14}>{t("Credits")}</Text>
+            </Box>
+
+            {addedCreditBundles.reduce(
+              (acc: React.ReactNode[], bundle, index) => {
+                const price =
+                  typeof bundle.price?.priceDecimal === "string"
+                    ? Number(bundle.price.priceDecimal)
+                    : typeof bundle.price?.price === "number"
+                      ? bundle.price.price
+                      : undefined;
+
+                const amount = (bundle.quantity ?? 0) * bundle.count;
+
+                if (price)
+                  acc.push(
+                    <Flex
+                      key={index}
+                      $justifyContent="space-between"
+                      $alignItems="center"
+                      $gap="1rem"
+                    >
+                      <Box>
+                        <Box>
+                          <Text display="heading4">
+                            {bundle.name} ({bundle.count})
+                          </Text>
+                        </Box>
+
+                        <Box>
+                          <Text>
+                            {amount} {getFeatureName(bundle, amount)}
+                          </Text>
+                        </Box>
+                      </Box>
+
+                      {bundle.count > 0 && (
+                        <Box $whiteSpace="nowrap">
+                          <Text>
+                            {formatCurrency(
+                              price * bundle.count,
+                              bundle.price?.currency,
+                            )}
+                          </Text>
+                        </Box>
+                      )}
+                    </Flex>,
+                  );
+
+                return acc;
+              },
+              [],
+            )}
+          </Flex>
+        )}
+
         {proration !== 0 && charges && selectedPlanCurrency && (
           <Proration
             charges={charges}
@@ -896,9 +985,13 @@ export const Sidebar = ({
             checkoutStages={checkoutStages}
             hasAddOns={addOns.length > 0}
             hasPayInAdvanceEntitlements={payInAdvanceEntitlements.length > 0}
-            hasPaymentMethod={hasPaymentMethod}
+            hasCreditBundles={creditBundles.length > 0}
+            hasPaymentMethod={
+              typeof paymentMethod !== "undefined" ||
+              typeof paymentMethodId === "string"
+            }
             hasPlan={typeof selectedPlan !== "undefined"}
-            inEditMode={inEditMode}
+            inEditMode={settings.mode === "edit"}
             isLoading={isLoading}
             isPaymentMethodRequired={isPaymentMethodRequired}
             isSelectedPlanTrialable={isSelectedPlanTrialable}

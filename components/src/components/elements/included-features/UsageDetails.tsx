@@ -41,6 +41,7 @@ export const UsageDetails = ({
     allocation,
     allocationType,
     feature,
+    planEntitlement,
     priceBehavior,
     usage,
     softLimit,
@@ -121,6 +122,23 @@ export const UsageDetails = ({
       );
     }
 
+    if (
+      priceBehavior === PriceBehavior.Credit &&
+      planEntitlement?.valueCredit &&
+      typeof planEntitlement?.consumptionRate === "number"
+    ) {
+      return (
+        <>
+          {planEntitlement.consumptionRate}{" "}
+          {getFeatureName(
+            planEntitlement.valueCredit,
+            planEntitlement.consumptionRate,
+          )}{" "}
+          {t("per")} {t("use")}
+        </>
+      );
+    }
+
     if (!priceBehavior && typeof allocation === "number") {
       return (
         <>
@@ -137,6 +155,7 @@ export const UsageDetails = ({
     allocation,
     allocationType,
     feature,
+    planEntitlement,
     priceBehavior,
     softLimit,
     billingPrice,
@@ -171,7 +190,8 @@ export const UsageDetails = ({
     } else if (
       (priceBehavior === PriceBehavior.PayAsYouGo ||
         priceBehavior === PriceBehavior.Overage ||
-        priceBehavior === PriceBehavior.Tiered) &&
+        priceBehavior === PriceBehavior.Tiered ||
+        priceBehavior === PriceBehavior.Credit) &&
       typeof usage === "number"
     ) {
       acc.push(

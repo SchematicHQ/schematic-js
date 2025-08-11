@@ -2,15 +2,13 @@ import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import { TEXT_BASE_SIZE, VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
-import {
-  useEmbed,
-  useIsLightBackground,
-  useTrialEnd,
-  type SelectedPlan,
-} from "../../../hooks";
+import { useEmbed, useIsLightBackground, useTrialEnd } from "../../../hooks";
+import type { SelectedPlan } from "../../../types";
 import {
   formatCurrency,
+  getFeatureName,
   getPlanPrice,
+  groupPlanCreditGrants,
   hexToHSL,
   isCheckoutData,
   isHydratedPlan,
@@ -127,6 +125,9 @@ export const Plan = ({
     isHydratedPlan(plan) && plan.current && currentPeriod === selectedPeriod;
   const { price: planPrice, currency: planCurrency } =
     getPlanPrice(plan, selectedPeriod) || {};
+  const credits = isHydratedPlan(plan)
+    ? groupPlanCreditGrants(plan.includedCreditGrants)
+    : [];
 
   const hasUsageBasedEntitlements = plan.entitlements.some(
     (entitlement) => !!entitlement.priceBehavior,
@@ -198,6 +199,49 @@ export const Plan = ({
             {!plan.custom && !isUsageBasedPlan && <sub>/{selectedPeriod}</sub>}
           </Text>
         </Box>
+
+        {credits.length > 0 && (
+          <Flex
+            $flexDirection="column"
+            $gap="1rem"
+            $flexGrow={1}
+            $marginTop="0.5rem"
+          >
+            {credits.map((credit, idx) => {
+              return (
+                <Flex key={idx} $gap="1rem">
+                  {layout.plans.showFeatureIcons && credit.icon && (
+                    <Icon
+                      name={credit.icon}
+                      color={settings.theme.primary}
+                      background={`color-mix(in oklch, ${settings.theme.card.background} 87.5%, ${isLightBackground ? "black" : "white"})`}
+                      rounded
+                    />
+                  )}
+
+                  {credit.name && (
+                    <Flex
+                      $flexDirection="column"
+                      $justifyContent="center"
+                      $gap="0.5rem"
+                    >
+                      <Text>
+                        {credit.quantity}{" "}
+                        {getFeatureName(credit, credit.quantity)}
+                        {credit.period && (
+                          <>
+                            {" "}
+                            {t("per")} {credit.period}
+                          </>
+                        )}
+                      </Text>
+                    </Flex>
+                  )}
+                </Flex>
+              );
+            })}
+          </Flex>
+        )}
 
         {isActivePlan && (
           <Flex

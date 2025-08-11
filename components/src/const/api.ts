@@ -3,6 +3,7 @@ export enum PriceBehavior {
   PayAsYouGo = "pay_as_you_go",
   Overage = "overage",
   Tiered = "tier",
+  Credit = "credit_burndown",
 }
 
 export enum TiersMode {
@@ -21,4 +22,17 @@ export enum FeatureType {
   Boolean = "boolean",
   Event = "event",
   Trait = "trait",
+}
+
+export enum CreditResetCadence {
+  Month = "monthly",
+  Year = "yearly",
+  Day = "daily",
+  Week = "weekly",
+}
+
+export enum CreditGrantReason {
+  Free = "free",
+  Plan = "plan",
+  Purchased = "purchased",
 }
