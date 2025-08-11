@@ -141,7 +141,11 @@ const PlanButtonGroup = ({
                   (plan.customPlanConfig?.ctaText ?? t("Talk to support"))
                 ) : !isValidPlan ? (
                   <Tooltip
-                    trigger={<Text>{t("Over usage limit")}</Text>}
+                    trigger={
+                      <Text as={Box} $align="center">
+                        {t("Over usage limit")}
+                      </Text>
+                    }
                     content={
                       <Text>
                         {t("Current usage exceeds the limit of this plan.")}
@@ -174,7 +178,11 @@ const PlanButtonGroup = ({
               >
                 {!isValidPlan ? (
                   <Tooltip
-                    trigger={<Text>{t("Over usage limit")}</Text>}
+                    trigger={
+                      <Text as={Box} $align="center">
+                        {t("Over usage limit")}
+                      </Text>
+                    }
                     content={
                       <Text>
                         {t("Current usage exceeds the limit of this plan.")}
@@ -219,7 +227,11 @@ const PlanButtonGroup = ({
         (plan.customPlanConfig?.ctaText ?? t("Talk to support"))
       ) : !isValidPlan ? (
         <Tooltip
-          trigger={<Text>{t("Over usage limit")}</Text>}
+          trigger={
+            <Text as={Box} $align="center">
+              {t("Over usage limit")}
+            </Text>
+          }
           content={
             <Text>{t("Current usage exceeds the limit of this plan.")}</Text>
           }
