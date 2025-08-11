@@ -51,7 +51,8 @@ interface LimitProps {
 const Limit = ({ entitlement, usageDetails, fontStyle }: LimitProps) => {
   const { t } = useTranslation();
 
-  const { feature, priceBehavior, usage, metricResetAt } = entitlement;
+  const { feature, priceBehavior, allocation, usage, metricResetAt } =
+    entitlement;
   const { billingPrice, limit, cost, currentTier } = usageDetails;
 
   const acc: React.ReactNode[] = [];
@@ -78,9 +79,9 @@ const Limit = ({ entitlement, usageDetails, fontStyle }: LimitProps) => {
           : priceBehavior === PriceBehavior.PayAsYouGo &&
               typeof cost === "number"
             ? formatCurrency(cost, billingPrice?.currency)
-            : typeof limit === "number"
+            : typeof allocation === "number"
               ? t("Limit of", {
-                  amount: formatNumber(limit),
+                  amount: formatNumber(allocation),
                 })
               : t("No limit"),
   );
@@ -89,7 +90,7 @@ const Limit = ({ entitlement, usageDetails, fontStyle }: LimitProps) => {
     acc.push(
       t("Resets", {
         date: toPrettyDate(metricResetAt, {
-          month: "short",
+          month: "numeric",
           day: "numeric",
           year: undefined,
         }),

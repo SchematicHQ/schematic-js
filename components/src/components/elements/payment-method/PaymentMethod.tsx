@@ -57,9 +57,9 @@ export const PaymentMethod = forwardRef<
         typeof paymentMethod?.cardExpYear === "number" &&
         typeof paymentMethod?.cardExpMonth === "number"
       ) {
-        const today = new Date();
-        const currentYear = today.getFullYear();
-        const currentMonth = today.getMonth();
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth();
         const timeToExpiration = Math.round(
           +new Date(paymentMethod.cardExpYear, paymentMethod.cardExpMonth - 1) -
             +new Date(currentYear, currentMonth),

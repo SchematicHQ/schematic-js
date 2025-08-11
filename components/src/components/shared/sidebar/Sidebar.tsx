@@ -441,8 +441,8 @@ export const Sidebar = ({
     isHydratedPlan(selectedPlan) &&
     selectedPlan?.companyCanTrial === true &&
     selectedPlan?.isTrialable === true;
-  const today = new Date();
-  const trialEndsOn = new Date(today);
+  const now = new Date();
+  const trialEndsOn = new Date(now);
   if (isSelectedPlanTrialable && selectedPlan.trialDays) {
     trialEndsOn.setDate(trialEndsOn.getDate() + selectedPlan.trialDays);
   }

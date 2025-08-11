@@ -64,8 +64,19 @@ function resolveDesignProps(props: DeepPartial<DesignProps>): DesignProps {
   };
 }
 
-function formatInvoices(invoices?: InvoiceResponseData[]) {
+interface FormatInvoiceOptions {
+  hideUpcoming?: boolean;
+}
+
+function formatInvoices(
+  invoices?: InvoiceResponseData[],
+  options?: FormatInvoiceOptions,
+) {
+  const { hideUpcoming = true } = options || {};
+  const now = new Date();
+
   return (invoices || [])
+    .filter(({ dueDate }) => !hideUpcoming || (dueDate && +dueDate <= +now))
     .sort((a, b) => (a.dueDate && b.dueDate ? +b.dueDate - +a.dueDate : 1))
     .map(({ amountDue, dueDate, url, currency }) => ({
       amount: formatCurrency(amountDue, currency),

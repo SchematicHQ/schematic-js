@@ -34,7 +34,7 @@
   "dependencies": {
     "@schematichq/schematic-icons": "^0.5.2",
     "@stripe/stripe-js": "^7.8.0",
-    "i18next": "^25.3.2",
+    "i18next": "^25.3.4",
     "lodash": "^4.17.21",
     "pako": "^2.1.0",
     "react-i18next": "^15.6.1",
@@ -42,7 +42,7 @@
     "uuid": "^11.1.0"
   },
   "devDependencies": {
-    "@eslint/js": "^9.32.0",
+    "@eslint/js": "^9.33.0",
     "@eslint/json": "^0.13.0",
     "@eslint/markdown": "^7.1.0",
     "@microsoft/api-extractor": "^7.52.10",
@@ -54,7 +54,7 @@
     "@types/react": "^19.1.9",
     "@types/react-dom": "^19.1.7",
     "esbuild": "^0.25.8",
-    "eslint": "^9.32.0",
+    "eslint": "^9.33.0",
     "eslint-import-resolver-typescript": "^4.4.4",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-react": "^7.37.5",
