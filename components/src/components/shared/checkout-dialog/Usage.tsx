@@ -77,7 +77,7 @@ export const Usage = ({ entitlements, updateQuantity, period }: UsageProps) => {
                   $size="lg"
                   type="number"
                   value={entitlement.quantity}
-                  min={1}
+                  min={0}
                   autoFocus
                   onFocus={(event) => {
                     event.target.select();
@@ -86,7 +86,7 @@ export const Usage = ({ entitlements, updateQuantity, period }: UsageProps) => {
                     event.preventDefault();
 
                     const value = parseInt(event.target.value);
-                    if (!isNaN(value) && value > 0) {
+                    if (!isNaN(value)) {
                       updateQuantity(entitlement.id, value);
                     }
                   }}
