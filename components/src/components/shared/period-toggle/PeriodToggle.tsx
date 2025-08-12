@@ -1,11 +1,8 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
-import {
-  useEmbed,
-  useIsLightBackground,
-  type SelectedPlan,
-} from "../../../hooks";
+import { useEmbed, useIsLightBackground } from "../../../hooks";
+import type { SelectedPlan } from "../../../types";
 import { adjectify, getPlanPrice } from "../../../utils";
 import { Flex, Text, Tooltip } from "../../ui";
 

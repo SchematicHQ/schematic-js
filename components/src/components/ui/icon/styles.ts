@@ -22,6 +22,7 @@ export const Icon = styled(SchematicIcon).attrs(({ name, title, onClick }) => ({
   justify-content: center;
   align-items: center;
   flex-shrink: 0;
+  transition: 0.1s;
 
   ${({ onClick }) =>
     onClick &&

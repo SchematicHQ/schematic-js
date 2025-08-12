@@ -89,7 +89,11 @@ export const PriceDetails = ({
             <Text>
               {t("Tier")}: {currentTier?.from || 1}
               {typeof currentTier?.to === "number" &&
-                (currentTier.to === Infinity ? "+" : `–${currentTier.to}`)}
+                (currentTier?.from || 1) !== currentTier?.to && (
+                  <>
+                    {currentTier.to === Infinity ? "+" : `–${currentTier.to}`}
+                  </>
+                )}
             </Text>
             <PricingTiersTooltip
               period={period}

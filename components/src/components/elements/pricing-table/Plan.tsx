@@ -2,15 +2,13 @@ import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import { TEXT_BASE_SIZE, VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
-import {
-  useEmbed,
-  useIsLightBackground,
-  useTrialEnd,
-  type SelectedPlan,
-} from "../../../hooks";
+import { useEmbed, useIsLightBackground, useTrialEnd } from "../../../hooks";
+import type { SelectedPlan } from "../../../types";
 import {
   formatCurrency,
+  getFeatureName,
   getPlanPrice,
+  groupPlanCreditGrants,
   hexToHSL,
   isCheckoutData,
   isHydratedPlan,
@@ -52,7 +50,7 @@ export const Plan = ({
   entitlementCounts,
   handleToggleShowAll,
 }: PlanProps) => {
-  const { layout, callToActionUrl, onCallToAction } = sharedProps;
+  const { layout } = sharedProps;
 
   const { t } = useTranslation();
 
@@ -92,9 +90,30 @@ export const Plan = ({
       isTrialSubscription: false,
       willSubscriptionCancel: false,
       isStandalone: true,
-      showCallToAction: typeof callToActionUrl === "string",
+      showCallToAction:
+        typeof sharedProps.callToActionUrl === "string" ||
+        typeof sharedProps.onCallToAction === "function",
     };
-  }, [data, callToActionUrl]);
+  }, [data, sharedProps.callToActionUrl, sharedProps.onCallToAction]);
+
+  const callToActionTarget = useMemo(() => {
+    if (sharedProps.callToActionTarget) {
+      return sharedProps.callToActionTarget;
+    }
+
+    if (sharedProps.callToActionUrl) {
+      try {
+        const ctaUrlOrigin = new URL(sharedProps.callToActionUrl).origin;
+        if (ctaUrlOrigin === window.location.hostname) {
+          return "_self";
+        }
+      } catch {
+        // fallback to the default value if the provided target value is not a full URL
+      }
+    }
+
+    return "_blank";
+  }, [sharedProps.callToActionUrl, sharedProps.callToActionTarget]);
 
   const cardPadding = settings.theme.card.padding / TEXT_BASE_SIZE;
 
@@ -106,6 +125,9 @@ export const Plan = ({
     isHydratedPlan(plan) && plan.current && currentPeriod === selectedPeriod;
   const { price: planPrice, currency: planCurrency } =
     getPlanPrice(plan, selectedPeriod) || {};
+  const credits = isHydratedPlan(plan)
+    ? groupPlanCreditGrants(plan.includedCreditGrants)
+    : [];
 
   const hasUsageBasedEntitlements = plan.entitlements.some(
     (entitlement) => !!entitlement.priceBehavior,
@@ -178,6 +200,49 @@ export const Plan = ({
           </Text>
         </Box>
 
+        {credits.length > 0 && (
+          <Flex
+            $flexDirection="column"
+            $gap="1rem"
+            $flexGrow={1}
+            $marginTop="0.5rem"
+          >
+            {credits.map((credit, idx) => {
+              return (
+                <Flex key={idx} $gap="1rem">
+                  {layout.plans.showFeatureIcons && credit.icon && (
+                    <Icon
+                      name={credit.icon}
+                      color={settings.theme.primary}
+                      background={`color-mix(in oklch, ${settings.theme.card.background} 87.5%, ${isLightBackground ? "black" : "white"})`}
+                      rounded
+                    />
+                  )}
+
+                  {credit.name && (
+                    <Flex
+                      $flexDirection="column"
+                      $justifyContent="center"
+                      $gap="0.5rem"
+                    >
+                      <Text>
+                        {credit.quantity}{" "}
+                        {getFeatureName(credit, credit.quantity)}
+                        {credit.period && (
+                          <>
+                            {" "}
+                            {t("per")} {credit.period}
+                          </>
+                        )}
+                      </Text>
+                    </Flex>
+                  )}
+                </Flex>
+              );
+            })}
+          </Flex>
+        )}
+
         {isActivePlan && (
           <Flex
             $position="absolute"
@@ -227,7 +292,7 @@ export const Plan = ({
                 <Entitlement
                   key={idx}
                   entitlement={entitlement}
-                  sharedProps={{ layout, callToActionUrl, onCallToAction }}
+                  sharedProps={{ layout }}
                   selectedPeriod={selectedPeriod}
                 />
               ))
@@ -308,16 +373,16 @@ export const Plan = ({
                     target: "_blank",
                     rel: "noreferrer",
                   }
-                : callToActionUrl
+                : sharedProps.callToActionUrl
                   ? {
                       as: "a",
-                      href: callToActionUrl,
-                      target: "_blank",
+                      href: sharedProps.callToActionUrl,
+                      target: callToActionTarget,
                       rel: "noreferrer",
                     }
                   : {
                       onClick: () => {
-                        onCallToAction?.(plan);
+                        sharedProps.onCallToAction?.(plan);
 
                         if (
                           !isStandalone &&
@@ -338,7 +403,11 @@ export const Plan = ({
                 (plan.customPlanConfig?.ctaText ?? t("Talk to support"))
               ) : isHydratedPlan(plan) && !plan.valid ? (
                 <Tooltip
-                  trigger={<Text>{t("Over usage limit")}</Text>}
+                  trigger={
+                    <Text as={Box} $align="center">
+                      {t("Over usage limit")}
+                    </Text>
+                  }
                   content={
                     <Text>
                       {t("Current usage exceeds the limit of this plan.")}

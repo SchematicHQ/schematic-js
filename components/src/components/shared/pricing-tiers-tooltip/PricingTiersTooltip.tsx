@@ -81,13 +81,16 @@ export const PricingTiersTooltip = ({
                 <Flex
                   key={index}
                   $justifyContent="space-between"
+                  $alignItems="center"
                   $gap="1rem"
                   $padding="0.5rem"
                 >
                   <dt>
                     <Text>
                       {tier.from}
-                      {tier.to === Infinity ? "+" : `–${tier.to}`}
+                      {tier.from !== tier.to && (
+                        <>{tier.to === Infinity ? "+" : `–${tier.to}`}</>
+                      )}
                     </Text>
                   </dt>
 
