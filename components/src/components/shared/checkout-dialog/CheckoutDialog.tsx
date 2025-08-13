@@ -190,7 +190,27 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   );
 
   const [addOnUsageBasedEntitlements, setAddOnUsageBasedEntitlements] =
-    useState<UsageBasedEntitlement[]>([]);
+    useState<UsageBasedEntitlement[]>(() => {
+      if (!isCheckoutData(data)) return [];
+
+      const currentAddOns = data.company?.addOns || [];
+
+      return currentAddOns.flatMap((currentAddOn) => {
+        const availableAddOn = availableAddOns.find(
+          (available) => available.id === currentAddOn.id,
+        );
+
+        if (!availableAddOn) return [];
+
+        return availableAddOn.entitlements.reduce(
+          createActiveUsageBasedEntitlementsReducer(
+            currentEntitlements,
+            planPeriod,
+          ),
+          [],
+        );
+      });
+    });
 
   const payInAdvanceEntitlements = useMemo(
     () =>
