@@ -1,4 +1,3 @@
-.openapi-generator-ignore
 apis/CheckoutexternalApi.ts
 apis/index.ts
 index.ts

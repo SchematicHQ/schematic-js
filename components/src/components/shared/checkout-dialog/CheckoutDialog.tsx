@@ -22,9 +22,12 @@ import {
   useAvailablePlans,
   useEmbed,
   useIsLightBackground,
-  type SelectedPlan,
 } from "../../../hooks";
-import type { UsageBasedEntitlement } from "../../../types";
+import type {
+  CreditBundle,
+  SelectedPlan,
+  UsageBasedEntitlement,
+} from "../../../types";
 import {
   ERROR_UNKNOWN,
   getAddOnPrice,
