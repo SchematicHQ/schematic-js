@@ -185,8 +185,13 @@ export const StageButton = ({
         type="button"
         disabled={isDisabled}
         onClick={async () => {
-          // TODO setCheckoutStage?.(hasCreditBundles ? "credits" : "checkout");
-          setCheckoutStage?.(hasAddonsUsageStage ? "addonsUsage" : "checkout");
+          setCheckoutStage?.(
+            hasAddonsUsageStage
+              ? "addonsUsage"
+              : hasCreditsStage
+                ? "credits"
+                : "checkout",
+          );
         }}
         $isLoading={isLoading}
         $fullWidth
@@ -198,8 +203,11 @@ export const StageButton = ({
           $padding="0 1rem"
         >
           {t("Next")}:{" "}
-          {hasAddonsUsageStage ? t("Add-ons Quantity") : t("Checkout")}
-          {/*t("Next")}: {hasCreditBundles ? t("Credits") : t("Checkout") */}
+          {hasAddonsUsageStage
+            ? t("Add-ons Quantity")
+            : hasCreditsStage
+              ? t("Credits")
+              : t("Checkout")}
           <Icon name="arrow-right" />
         </Flex>
       </Button>
@@ -207,7 +215,37 @@ export const StageButton = ({
   }
 
   if (checkoutStage === "addonsUsage") {
-    // TODO: if (checkoutStage === "credits") {
+    if (
+      !isPaymentMethodRequired &&
+      !checkoutStages?.some((stage) => stage.id === "credits")
+    ) {
+      return <NoPaymentRequired />;
+    }
+
+    return (
+      <Button
+        type="button"
+        disabled={isDisabled}
+        onClick={async () => {
+          setCheckoutStage?.(hasCreditBundles ? "credits" : "checkout");
+        }}
+        $isLoading={isLoading}
+        $fullWidth
+      >
+        <Flex
+          $gap="0.5rem"
+          $justifyContent="center"
+          $alignItems="center"
+          $padding="0 1rem"
+        >
+          {t("Next")}: {hasCreditBundles ? t("Credits") : t("Checkout")}
+          <Icon name="arrow-right" />
+        </Flex>
+      </Button>
+    );
+  }
+
+  if (checkoutStage === "credits") {
     if (!isPaymentMethodRequired) {
       return <NoPaymentRequired />;
     }
