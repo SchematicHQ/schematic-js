@@ -129,6 +129,7 @@ export type CheckoutState = {
   planId?: string | null;
   addOnId?: string | null;
   usage?: boolean;
+  addOnUsage?: boolean;
   credits?: boolean;
 };
 
