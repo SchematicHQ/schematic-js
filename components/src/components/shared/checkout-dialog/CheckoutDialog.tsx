@@ -271,7 +271,6 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       });
     }
 
-    // True if: 1) the addOn is selected, and 2) it contains pay-in-advance entitlements
     const hasUsageBasedAddOnSelected = addOns.some((addOn) => {
       return (
         addOn.isSelected &&
@@ -338,7 +337,6 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     }
 
     // the user has preselected a different plan before starting the checkout flow
-    // TODO: add credits back in `checkoutStages.some((stage) => stage.id === "credits")`
     if (checkoutState?.planId !== currentPlanId) {
       const hasUsageStage = checkoutStages.some(
         (stage) => stage.id === "usage",
@@ -413,7 +411,6 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
             [],
           ),
           payInAdvance: [
-            // Plan pay-in-advance entitlements
             ...(
               updates.payInAdvanceEntitlements || payInAdvanceEntitlements
             ).reduce(
@@ -436,7 +433,6 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
               },
               [],
             ),
-            // Add-on pay-in-advance entitlements
             ...(
               updates.addOnPayInAdvanceEntitlements ||
               addOnUsageBasedEntitlements
@@ -624,7 +620,6 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           ...(addOn.id === id && { isSelected: !addOn.isSelected }),
         }));
 
-        // Update add-on usage-based entitlements
         const updatedAddOnEntitlements = updated
           .filter((addOn) => addOn.isSelected)
           .flatMap((addOn) =>
@@ -637,7 +632,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
                 ...entitlement,
                 allocation: entitlement.valueNumeric || 0,
                 usage: 0,
-                quantity: 1, // Default quantity
+                quantity: 1,
               })),
           );
 

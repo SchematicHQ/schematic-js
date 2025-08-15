@@ -1,3 +1,4 @@
+.openapi-generator-ignore
 apis/ComponentspublicApi.ts
 apis/index.ts
 index.ts
