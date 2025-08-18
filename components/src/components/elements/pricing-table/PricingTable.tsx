@@ -131,7 +131,7 @@ export const PricingTable = forwardRef<
 
     const { data, settings, hydratePublic } = useEmbed();
 
-    const { currentPeriod, isStandalone } = useMemo(() => {
+    const { currentPeriod, showPeriodToggle, isStandalone } = useMemo(() => {
       if (isCheckoutData(data)) {
         const billingSubscription = data.company?.billingSubscription;
         const isTrialSubscription = billingSubscription?.status === "trialing";
@@ -141,6 +141,7 @@ export const PricingTable = forwardRef<
           currentPeriod: data.company?.plan?.planPeriod || "month",
           currentAddOns: data.company?.addOns || [],
           canCheckout: data.capabilities?.checkout ?? true,
+          showPeriodToggle: data.showPeriodToggle ?? true,
           isTrialSubscription,
           willSubscriptionCancel,
           isStandalone: false,
@@ -151,6 +152,7 @@ export const PricingTable = forwardRef<
         currentPeriod: "month",
         currentAddOns: [],
         canCheckout: true,
+        showPeriodToggle: true,
         isTrialSubscription: false,
         willSubscriptionCancel: false,
         isStandalone: true,
@@ -159,7 +161,9 @@ export const PricingTable = forwardRef<
 
     const [selectedPeriod, setSelectedPeriod] = useState(currentPeriod);
 
-    const { plans, addOns, periods } = useAvailablePlans(selectedPeriod);
+    const { plans, addOns, periods } = useAvailablePlans(selectedPeriod, {
+      useSelectedPeriod: props.showPeriodToggle ?? showPeriodToggle,
+    });
 
     const [entitlementCounts, setEntitlementCounts] = useState(() =>
       plans.reduce(entitlementCountsReducer, {}),
@@ -231,17 +235,18 @@ export const PricingTable = forwardRef<
                   t("Plans")}
               </Text>
 
-              {props.showPeriodToggle && periods.length > 1 && (
-                <PeriodToggle
-                  options={periods}
-                  selectedOption={selectedPeriod}
-                  onSelect={(period) => {
-                    if (period !== selectedPeriod) {
-                      setSelectedPeriod(period);
-                    }
-                  }}
-                />
-              )}
+              {(props.showPeriodToggle ?? showPeriodToggle) &&
+                periods.length > 1 && (
+                  <PeriodToggle
+                    options={periods}
+                    selectedOption={selectedPeriod}
+                    onSelect={(period) => {
+                      if (period !== selectedPeriod) {
+                        setSelectedPeriod(period);
+                      }
+                    }}
+                  />
+                )}
             </Flex>
 
             {props.plans.isVisible && plans.length > 0 && (

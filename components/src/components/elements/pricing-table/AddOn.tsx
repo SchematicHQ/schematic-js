@@ -60,14 +60,19 @@ export const AddOn = ({ addOn, sharedProps, selectedPeriod }: AddOnProps) => {
 
   const cardPadding = settings.theme.card.padding / TEXT_BASE_SIZE;
 
+  const addOnPeriod = layout.showPeriodToggle
+    ? selectedPeriod
+    : addOn.yearlyPrice && !addOn.monthlyPrice
+      ? "year"
+      : "month";
   const isCurrentAddOn = isHydratedPlan(addOn) && addOn.current;
   const isActiveAddOn =
     isCurrentAddOn &&
-    selectedPeriod ===
+    addOnPeriod ===
       currentAddOns.find((currentAddOn) => currentAddOn.id === addOn.id)
         ?.planPeriod;
   const { price: addOnPrice, currency: addOnCurrency } =
-    getAddOnPrice(addOn, selectedPeriod) || {};
+    getAddOnPrice(addOn, addOnPeriod) || {};
 
   return (
     <Flex
@@ -100,7 +105,7 @@ export const AddOn = ({ addOn, sharedProps, selectedPeriod }: AddOnProps) => {
         <Box>
           <Text display={layout.plans.name.fontStyle}>
             {formatCurrency(addOnPrice ?? 0, addOnCurrency)}
-            <sub>/{selectedPeriod}</sub>
+            <sub>/{addOnPeriod}</sub>
           </Text>
         </Box>
 
@@ -246,7 +251,7 @@ export const AddOn = ({ addOn, sharedProps, selectedPeriod }: AddOnProps) => {
 
                     if (!isStandalone && !addOn.custom) {
                       setCheckoutState({
-                        period: selectedPeriod,
+                        period: addOnPeriod,
                         addOnId: isActiveAddOn ? null : addOn.id,
                         usage: false,
                       });

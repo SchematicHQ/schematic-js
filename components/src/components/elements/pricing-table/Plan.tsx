@@ -121,10 +121,15 @@ export const Plan = ({
     (plan) => isHydratedPlan(plan) && plan.current,
   );
 
+  const planPeriod = layout.showPeriodToggle
+    ? selectedPeriod
+    : plan.yearlyPrice && !plan.monthlyPrice
+      ? "year"
+      : "month";
   const isActivePlan =
-    isHydratedPlan(plan) && plan.current && currentPeriod === selectedPeriod;
+    isHydratedPlan(plan) && plan.current && currentPeriod === planPeriod;
   const { price: planPrice, currency: planCurrency } =
-    getPlanPrice(plan, selectedPeriod) || {};
+    getPlanPrice(plan, planPeriod) || {};
   const credits = isHydratedPlan(plan)
     ? groupPlanCreditGrants(plan.includedCreditGrants)
     : [];
@@ -196,7 +201,7 @@ export const Plan = ({
               : isUsageBasedPlan
                 ? t("Usage-based")
                 : formatCurrency(planPrice ?? 0, planCurrency)}
-            {!plan.custom && !isUsageBasedPlan && <sub>/{selectedPeriod}</sub>}
+            {!plan.custom && !isUsageBasedPlan && <sub>/{planPeriod}</sub>}
           </Text>
         </Box>
 
@@ -293,7 +298,7 @@ export const Plan = ({
                   key={idx}
                   entitlement={entitlement}
                   sharedProps={{ layout }}
-                  selectedPeriod={selectedPeriod}
+                  selectedPeriod={planPeriod}
                 />
               ))
               .slice(0, count?.limit ?? VISIBLE_ENTITLEMENT_COUNT)}
@@ -390,7 +395,7 @@ export const Plan = ({
                           !plan.custom
                         ) {
                           setCheckoutState({
-                            period: selectedPeriod,
+                            period: planPeriod,
                             planId: isActivePlan ? null : plan.id,
                             usage: false,
                           });
