@@ -252,6 +252,7 @@ interface PlanProps {
     shouldTrial?: boolean;
   }) => void;
   shouldTrial: boolean;
+  showPeriodToggle: boolean;
 }
 
 export const Plan = ({
@@ -261,6 +262,7 @@ export const Plan = ({
   period,
   selectPlan,
   shouldTrial,
+  showPeriodToggle,
 }: PlanProps) => {
   const { t } = useTranslation();
 
@@ -312,8 +314,13 @@ export const Plan = ({
       $flexGrow={1}
     >
       {plans.map((plan, planIndex) => {
+        const planPeriod = showPeriodToggle
+          ? period
+          : plan.yearlyPrice && !plan.monthlyPrice
+            ? "year"
+            : "month";
         const { price: planPrice, currency: planCurrency } =
-          getPlanPrice(plan, period) || {};
+          getPlanPrice(plan, planPeriod) || {};
         const credits = isHydratedPlan(plan)
           ? groupPlanCreditGrants(plan.includedCreditGrants)
           : [];
@@ -397,7 +404,7 @@ export const Plan = ({
                       (16 / 30) * settings.theme.typography.heading2.fontSize
                     }
                   >
-                    /{period}
+                    /{planPeriod}
                   </Text>
                 )}
               </Box>
@@ -504,7 +511,7 @@ export const Plan = ({
                         priceTier: entitlementPriceTiers,
                         currency: entitlementCurrency,
                         packageSize: entitlementPackageSize = 1,
-                      } = getEntitlementPrice(entitlement, period) || {};
+                      } = getEntitlementPrice(entitlement, planPeriod) || {};
 
                       const metricPeriodName = getMetricPeriodName(entitlement);
 
@@ -559,7 +566,7 @@ export const Plan = ({
                                         PriceBehavior.PayInAdvance && (
                                         <>
                                           {" "}
-                                          {t("per")} {period}
+                                          {t("per")} {planPeriod}
                                         </>
                                       )}
                                     </>
@@ -567,7 +574,7 @@ export const Plan = ({
                                     PriceBehavior.Tiered ? (
                                     <TieredPricingDetails
                                       entitlement={entitlement}
-                                      period={period}
+                                      period={planPeriod}
                                     />
                                   ) : entitlement.priceBehavior ===
                                       PriceBehavior.Credit &&
@@ -642,7 +649,7 @@ export const Plan = ({
                                     )}
                                     {entitlement.feature.featureType ===
                                       FeatureType.Trait && (
-                                      <>/{shortenPeriod(period)}</>
+                                      <>/{shortenPeriod(planPeriod)}</>
                                     )}
                                   </Text>
                                 ) : (
@@ -651,7 +658,7 @@ export const Plan = ({
                                     <Flex $alignItems="center">
                                       <PricingTiersTooltip
                                         feature={entitlement.feature}
-                                        period={period}
+                                        period={planPeriod}
                                         currency={entitlementCurrency}
                                         priceTiers={entitlementPriceTiers}
                                       />
