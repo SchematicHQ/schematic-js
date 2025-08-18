@@ -18,6 +18,7 @@ models/BillingSubscriptionView.ts
 models/ChangeSubscriptionRequestBody.ts
 models/CheckoutResponse.ts
 models/CheckoutUnsubscribeResponse.ts
+models/CompanyCustomerBalance.ts
 models/CompanyDetailResponseData.ts
 models/CompanyEventPeriodMetricsResponseData.ts
 models/CompanyOverrideResponseData.ts
@@ -32,6 +33,7 @@ models/ComponentResponseData.ts
 models/CountResponse.ts
 models/CreateSetupIntentResponse.ts
 models/CreditCompanyGrantView.ts
+models/CurrencyBalance.ts
 models/CustomPlanConfig.ts
 models/CustomPlanViewConfigResponseData.ts
 models/DeletePaymentMethodResponse.ts
@@ -47,6 +49,7 @@ models/FeatureDetailResponseData.ts
 models/FeatureResponseData.ts
 models/FeatureUsageDetailResponseData.ts
 models/FeatureUsageResponseData.ts
+models/FetchCustomerBalanceResponse.ts
 models/FlagDetailResponseData.ts
 models/FlagResponseData.ts
 models/GenericPreviewObject.ts
