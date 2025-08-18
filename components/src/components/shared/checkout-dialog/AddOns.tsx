@@ -57,9 +57,9 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
             overageInfo = {
               softLimit: overageEntitlement.softLimit,
               perUnitPrice:
-                overageTier.perUnitPrice ||
-                Number(overageTier.perUnitPriceDecimal) ||
-                0,
+                overageTier.perUnitPriceDecimal
+                  ? Number(overageTier.perUnitPriceDecimal)
+                  : overageTier.perUnitPrice || 0,
               currency: priceData.currency || currency,
               featureName: overageEntitlement.feature?.name,
             };
