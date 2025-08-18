@@ -10,14 +10,14 @@ import { useTranslation } from "react-i18next";
 
 import { type CompanyPlanDetailResponseData } from "../../../api/checkoutexternal";
 import { type PlanViewPublicResponseData } from "../../../api/componentspublic";
-import { VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
+import { TEXT_BASE_SIZE, VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
 import { type FontStyle } from "../../../context";
 import { useAvailablePlans, useEmbed } from "../../../hooks";
 import type { DeepPartial, ElementProps } from "../../../types";
 import { entitlementCountsReducer, isCheckoutData } from "../../../utils";
 import { Container, FussyChild } from "../../layout";
 import { PeriodToggle } from "../../shared";
-import { Box, Flex, Text } from "../../ui";
+import { Box, Flex, Loader, Text } from "../../ui";
 
 import { AddOn } from "./AddOn";
 import { Plan } from "./Plan";
@@ -129,7 +129,7 @@ export const PricingTable = forwardRef<
 
     const { t } = useTranslation();
 
-    const { data, settings, hydratePublic } = useEmbed();
+    const { data, settings, isPending, hydratePublic } = useEmbed();
 
     const { currentPeriod, showPeriodToggle, isStandalone } = useMemo(() => {
       if (isCheckoutData(data)) {
@@ -199,6 +199,20 @@ export const PricingTable = forwardRef<
     useEffect(() => {
       setEntitlementCounts(plans.reduce(entitlementCountsReducer, {}));
     }, [plans]);
+
+    if (isStandalone && isPending) {
+      return (
+        <Flex
+          $width="100%"
+          $height="100%"
+          $alignItems="center"
+          $justifyContent="center"
+          $padding={`${settings.theme.card.padding / TEXT_BASE_SIZE}rem`}
+        >
+          <Loader $size="2xl" />
+        </Flex>
+      );
+    }
 
     const Wrapper = isStandalone ? Container : Fragment;
 
