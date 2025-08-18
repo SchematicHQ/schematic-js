@@ -169,6 +169,52 @@ export const StageButton = ({
   }
 
   if (checkoutStage === "addons") {
+    // Check if there's an addonsUsage stage next
+    const hasAddonsUsageStage = checkoutStages?.some(
+      (stage) => stage.id === "addonsUsage",
+    );
+    const hasCreditsStage = checkoutStages?.some(
+      (stage) => stage.id === "credits",
+    );
+    if (!isPaymentMethodRequired && !hasAddonsUsageStage && !hasCreditsStage) {
+      return <NoPaymentRequired />;
+    }
+
+    return (
+      <Button
+        type="button"
+        disabled={isDisabled}
+        onClick={async () => {
+          setCheckoutStage?.(
+            hasAddonsUsageStage
+              ? "addonsUsage"
+              : hasCreditsStage
+                ? "credits"
+                : "checkout",
+          );
+        }}
+        $isLoading={isLoading}
+        $fullWidth
+      >
+        <Flex
+          $gap="0.5rem"
+          $justifyContent="center"
+          $alignItems="center"
+          $padding="0 1rem"
+        >
+          {t("Next")}:{" "}
+          {hasAddonsUsageStage
+            ? t("Add-ons Quantity")
+            : hasCreditsStage
+              ? t("Credits")
+              : t("Checkout")}
+          <Icon name="arrow-right" />
+        </Flex>
+      </Button>
+    );
+  }
+
+  if (checkoutStage === "addonsUsage") {
     if (
       !isPaymentMethodRequired &&
       !checkoutStages?.some((stage) => stage.id === "credits")

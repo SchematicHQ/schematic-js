@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 
-import { TEXT_BASE_SIZE } from "../../../const";
+import { PriceBehavior, TEXT_BASE_SIZE } from "../../../const";
 import { useEmbed } from "../../../hooks";
 import type { SelectedPlan } from "../../../types";
 import {
@@ -40,6 +40,32 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
         const isAddOnValid = isHydratedPlan(addOn) && addOn.valid;
         const isAddOnCurrent = isHydratedPlan(addOn) && addOn.current;
 
+        const overageEntitlement = addOn.entitlements?.find(
+          (entitlement) => entitlement.priceBehavior === PriceBehavior.Overage,
+        );
+
+        let overageInfo = null;
+        if (overageEntitlement) {
+          const priceData =
+            period === "year"
+              ? overageEntitlement.meteredYearlyPrice
+              : overageEntitlement.meteredMonthlyPrice;
+
+          if (priceData?.priceTier && priceData.priceTier.length >= 2) {
+            const overageTier =
+              priceData.priceTier[priceData.priceTier.length - 1];
+            overageInfo = {
+              softLimit: overageEntitlement.softLimit,
+              perUnitPrice:
+                overageTier.perUnitPriceDecimal
+                  ? Number(overageTier.perUnitPriceDecimal)
+                  : overageTier.perUnitPrice || 0,
+              currency: priceData.currency || currency,
+              featureName: overageEntitlement.feature?.name,
+            };
+          }
+        }
+
         return (
           <Flex
             key={index}
@@ -71,24 +97,40 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
 
               {(addOn[periodKey] ||
                 addOn.chargeType === ChargeType.oneTime) && (
-                <Box>
-                  <Text display="heading2">
-                    {formatCurrency(price ?? 0, currency)}
-                  </Text>
+                <Flex $flexDirection="column" $gap="0.25rem">
+                  <Box>
+                    <Text display="heading2">
+                      {formatCurrency(price ?? 0, currency)}
+                    </Text>
 
-                  <Text
-                    display="heading2"
-                    $size={
-                      (16 / 30) * settings.theme.typography.heading2.fontSize
-                    }
-                  >
-                    {addOn.chargeType === ChargeType.oneTime ? (
-                      <> {t("one time")}</>
-                    ) : (
-                      `/${period}`
-                    )}
-                  </Text>
-                </Box>
+                    <Text
+                      display="heading2"
+                      $size={
+                        (16 / 30) * settings.theme.typography.heading2.fontSize
+                      }
+                    >
+                      {addOn.chargeType === ChargeType.oneTime ? (
+                        <> {t("one time")}</>
+                      ) : (
+                        `/${period}`
+                      )}
+                    </Text>
+                  </Box>
+
+                  {overageInfo && overageInfo.softLimit && (
+                    <Box>
+                      <Text $size={0.875} style={{ opacity: 0.8 }}>
+                        {overageInfo.softLimit}{" "}
+                        {overageInfo.featureName || "units"} included, then{" "}
+                        {formatCurrency(
+                          overageInfo.perUnitPrice,
+                          overageInfo.currency,
+                        )}
+                        /{overageInfo.featureName?.toLowerCase() || "unit"}
+                      </Text>
+                    </Box>
+                  )}
+                </Flex>
               )}
 
               {isAddOnCurrent && (
