@@ -1,7 +1,8 @@
 import { useTranslation } from "react-i18next";
 
-import { TEXT_BASE_SIZE } from "../../../const";
-import { useEmbed, type SelectedPlan } from "../../../hooks";
+import { PriceBehavior, TEXT_BASE_SIZE } from "../../../const";
+import { useEmbed } from "../../../hooks";
+import type { SelectedPlan } from "../../../types";
 import {
   ChargeType,
   formatCurrency,
@@ -29,48 +30,73 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
   const cardPadding = settings.theme.card.padding / TEXT_BASE_SIZE;
 
   return (
-    <>
-      <Box
-        $display="grid"
-        $gridTemplateColumns="repeat(auto-fill, minmax(300px, 1fr))"
-        $gap="1rem"
-      >
-        {addOns.map((addOn, index) => {
-          const { price, currency } = getAddOnPrice(addOn, period) || {};
-          const isAddOnValid = isHydratedPlan(addOn) && addOn.valid;
-          const isAddOnCurrent = isHydratedPlan(addOn) && addOn.current;
+    <Box
+      $display="grid"
+      $gridTemplateColumns="repeat(auto-fill, minmax(300px, 1fr))"
+      $gap="1rem"
+    >
+      {addOns.map((addOn, index) => {
+        const { price, currency } = getAddOnPrice(addOn, period) || {};
+        const isAddOnValid = isHydratedPlan(addOn) && addOn.valid;
+        const isAddOnCurrent = isHydratedPlan(addOn) && addOn.current;
 
-          return (
-            <Flex
-              key={index}
-              $position="relative"
-              $flexDirection="column"
-              $gap="2rem"
-              $padding={`${cardPadding}rem`}
-              $backgroundColor={settings.theme.card.background}
-              $borderRadius={`${settings.theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
-              $outlineWidth="2px"
-              $outlineStyle="solid"
-              $outlineColor={
-                addOn.isSelected ? settings.theme.primary : "transparent"
-              }
-              {...(settings.theme.card.hasShadow && {
-                $boxShadow: cardBoxShadow,
-              })}
-            >
-              <Flex $flexDirection="column" $gap="0.75rem">
-                <Box>
-                  <Text display="heading3">{addOn.name}</Text>
+        const overageEntitlement = addOn.entitlements?.find(
+          (entitlement) => entitlement.priceBehavior === PriceBehavior.Overage,
+        );
+
+        let overageInfo = null;
+        if (overageEntitlement) {
+          const priceData =
+            period === "year"
+              ? overageEntitlement.meteredYearlyPrice
+              : overageEntitlement.meteredMonthlyPrice;
+
+          if (priceData?.priceTier && priceData.priceTier.length >= 2) {
+            const overageTier =
+              priceData.priceTier[priceData.priceTier.length - 1];
+            overageInfo = {
+              softLimit: overageEntitlement.softLimit,
+              perUnitPrice: overageTier.perUnitPriceDecimal
+                ? Number(overageTier.perUnitPriceDecimal)
+                : overageTier.perUnitPrice || 0,
+              currency: priceData.currency || currency,
+              featureName: overageEntitlement.feature?.name,
+            };
+          }
+        }
+
+        return (
+          <Flex
+            key={index}
+            $position="relative"
+            $flexDirection="column"
+            $gap="2rem"
+            $padding={`${cardPadding}rem`}
+            $backgroundColor={settings.theme.card.background}
+            $borderRadius={`${settings.theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
+            $outlineWidth="2px"
+            $outlineStyle="solid"
+            $outlineColor={
+              addOn.isSelected ? settings.theme.primary : "transparent"
+            }
+            {...(settings.theme.card.hasShadow && {
+              $boxShadow: cardBoxShadow,
+            })}
+          >
+            <Flex $flexDirection="column" $gap="0.75rem">
+              <Box>
+                <Text display="heading3">{addOn.name}</Text>
+              </Box>
+
+              {addOn.description && (
+                <Box $marginBottom="0.5rem">
+                  <Text>{addOn.description}</Text>
                 </Box>
+              )}
 
-                {addOn.description && (
-                  <Box $marginBottom="0.5rem">
-                    <Text>{addOn.description}</Text>
-                  </Box>
-                )}
-
-                {(addOn[periodKey] ||
-                  addOn.chargeType === ChargeType.oneTime) && (
+              {(addOn[periodKey] ||
+                addOn.chargeType === ChargeType.oneTime) && (
+                <Flex $flexDirection="column" $gap="0.25rem">
                   <Box>
                     <Text display="heading2">
                       {formatCurrency(price ?? 0, currency)}
@@ -89,69 +115,83 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
                       )}
                     </Text>
                   </Box>
-                )}
 
-                {isAddOnCurrent && (
-                  <Flex
-                    $position="absolute"
-                    $right="1rem"
-                    $top="1rem"
-                    $backgroundColor={settings.theme.primary}
-                    $borderRadius="9999px"
-                    $padding="0.125rem 0.85rem"
-                  >
-                    <Text
-                      $size={0.75 * settings.theme.typography.text.fontSize}
-                      $color={
-                        hexToHSL(settings.theme.primary).l > 50
-                          ? "#000000"
-                          : "#FFFFFF"
-                      }
-                    >
-                      {t("Active")}
-                    </Text>
-                  </Flex>
-                )}
-              </Flex>
+                  {overageInfo && overageInfo.softLimit && (
+                    <Box>
+                      <Text $size={0.875} style={{ opacity: 0.8 }}>
+                        {overageInfo.softLimit}{" "}
+                        {overageInfo.featureName || "units"} included, then{" "}
+                        {formatCurrency(
+                          overageInfo.perUnitPrice,
+                          overageInfo.currency,
+                        )}
+                        /{overageInfo.featureName?.toLowerCase() || "unit"}
+                      </Text>
+                    </Box>
+                  )}
+                </Flex>
+              )}
 
-              <Flex $flexDirection="column" $justifyContent="end" $flexGrow="1">
-                {!addOn.isSelected ? (
-                  <Button
-                    type="button"
-                    disabled={isLoading || !isAddOnValid}
-                    onClick={() => toggle(addOn.id)}
-                    $size="sm"
-                    $color="primary"
-                    $variant="outline"
-                    $fullWidth
+              {isAddOnCurrent && (
+                <Flex
+                  $position="absolute"
+                  $right="1rem"
+                  $top="1rem"
+                  $backgroundColor={settings.theme.primary}
+                  $borderRadius="9999px"
+                  $padding="0.125rem 0.85rem"
+                >
+                  <Text
+                    $size={0.75 * settings.theme.typography.text.fontSize}
+                    $color={
+                      hexToHSL(settings.theme.primary).l > 50
+                        ? "#000000"
+                        : "#FFFFFF"
+                    }
                   >
-                    {t("Choose add-on")}
-                  </Button>
-                ) : (
-                  <Button
-                    type="button"
-                    disabled={isLoading || !isAddOnValid}
-                    onClick={() => toggle(addOn.id)}
-                    $size="sm"
-                    $color={isAddOnCurrent ? "danger" : "primary"}
-                    $variant={isAddOnCurrent ? "ghost" : "text"}
-                    $fullWidth
-                  >
-                    {isAddOnCurrent ? (
-                      t("Remove add-on")
-                    ) : (
-                      <>
-                        <Icon name="check-rounded" size="sm" />
-                        {t("Selected")}
-                      </>
-                    )}
-                  </Button>
-                )}
-              </Flex>
+                    {t("Active")}
+                  </Text>
+                </Flex>
+              )}
             </Flex>
-          );
-        })}
-      </Box>
-    </>
+
+            <Flex $flexDirection="column" $justifyContent="end" $flexGrow="1">
+              {!addOn.isSelected ? (
+                <Button
+                  type="button"
+                  disabled={isLoading || !isAddOnValid}
+                  onClick={() => toggle(addOn.id)}
+                  $size="sm"
+                  $color="primary"
+                  $variant="outline"
+                  $fullWidth
+                >
+                  {t("Choose add-on")}
+                </Button>
+              ) : (
+                <Button
+                  type="button"
+                  disabled={isLoading || !isAddOnValid}
+                  onClick={() => toggle(addOn.id)}
+                  $size="sm"
+                  $color={isAddOnCurrent ? "danger" : "primary"}
+                  $variant={isAddOnCurrent ? "ghost" : "text"}
+                  $fullWidth
+                >
+                  {isAddOnCurrent ? (
+                    t("Remove add-on")
+                  ) : (
+                    <>
+                      <Icon name="check-rounded" size="sm" />
+                      {t("Selected")}
+                    </>
+                  )}
+                </Button>
+              )}
+            </Flex>
+          </Flex>
+        );
+      })}
+    </Box>
   );
 };

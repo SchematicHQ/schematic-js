@@ -1,12 +1,15 @@
 import { forwardRef, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
+import { CreditGrantReason } from "../../../const";
 import { type FontStyle } from "../../../context";
 import { useEmbed, useIsLightBackground, useTrialEnd } from "../../../hooks";
 import type { DeepPartial, ElementProps } from "../../../types";
 import {
   darken,
   formatCurrency,
+  getFeatureName,
+  groupCreditGrants,
   isCheckoutData,
   lighten,
   shortenPeriod,
@@ -103,6 +106,8 @@ export const PlanManager = forwardRef<
   const {
     currentPlan,
     currentAddOns,
+    creditBundles,
+    creditGroups,
     billingSubscription,
     canCheckout,
     defaultPlan,
@@ -110,20 +115,34 @@ export const PlanManager = forwardRef<
     trialPaymentMethodRequired,
   } = useMemo(() => {
     if (isCheckoutData(data)) {
+      const {
+        company,
+        creditBundles,
+        creditGrants,
+        capabilities,
+        defaultPlan,
+        featureUsage,
+        trialPaymentMethodRequired,
+      } = data;
+
       return {
-        currentPlan: data.company?.plan,
-        currentAddOns: data.company?.addOns || [],
-        billingSubscription: data.company?.billingSubscription,
-        canCheckout: data.capabilities?.checkout ?? true,
-        defaultPlan: data.defaultPlan,
-        featureUsage: data.featureUsage?.features || [],
-        trialPaymentMethodRequired: data.trialPaymentMethodRequired,
+        currentPlan: company?.plan,
+        currentAddOns: company?.addOns || [],
+        creditBundles: creditBundles,
+        creditGroups: groupCreditGrants(creditGrants, { groupBy: "bundle" }),
+        billingSubscription: company?.billingSubscription,
+        canCheckout: capabilities?.checkout ?? true,
+        defaultPlan: defaultPlan,
+        featureUsage: featureUsage?.features || [],
+        trialPaymentMethodRequired: trialPaymentMethodRequired,
       };
     }
 
     return {
       currentPlan: undefined,
       currentAddOns: [],
+      creditBundles: [],
+      creditGroups: [],
       billingSubscription: undefined,
       canCheckout: false,
       defaultPlan: undefined,
@@ -138,20 +157,26 @@ export const PlanManager = forwardRef<
     [featureUsage],
   );
 
-  const { subscriptionCurrency, willSubscriptionCancel, isTrialSubscription } =
-    useMemo(() => {
-      const subscriptionCurrency = billingSubscription?.currency;
-      const isTrialSubscription = billingSubscription?.status === "trialing";
-      const willSubscriptionCancel =
-        typeof billingSubscription?.cancelAt === "number" &&
-        billingSubscription?.cancelAtPeriodEnd === true;
+  const {
+    subscriptionInterval,
+    subscriptionCurrency,
+    willSubscriptionCancel,
+    isTrialSubscription,
+  } = useMemo(() => {
+    const subscriptionInterval = billingSubscription?.interval;
+    const subscriptionCurrency = billingSubscription?.currency;
+    const isTrialSubscription = billingSubscription?.status === "trialing";
+    const willSubscriptionCancel =
+      typeof billingSubscription?.cancelAt === "number" &&
+      billingSubscription?.cancelAtPeriodEnd === true;
 
-      return {
-        subscriptionCurrency,
-        willSubscriptionCancel,
-        isTrialSubscription,
-      };
-    }, [billingSubscription]);
+    return {
+      subscriptionInterval,
+      subscriptionCurrency,
+      isTrialSubscription,
+      willSubscriptionCancel,
+    };
+  }, [billingSubscription]);
 
   const isUsageBasedPlan =
     currentPlan?.planPrice === 0 && usageBasedEntitlements.length > 0;
@@ -237,7 +262,6 @@ export const PlanManager = forwardRef<
           <Flex
             $justifyContent="space-between"
             $alignItems="center"
-            $flexWrap="wrap"
             $gap="1rem"
           >
             <Flex $flexDirection="column" $gap="1rem">
@@ -283,7 +307,7 @@ export const PlanManager = forwardRef<
         )}
 
         {props.addOns.isVisible && currentAddOns.length > 0 && (
-          <Flex $flexDirection="column" $gap="1rem">
+          <Flex $flexDirection="column" $gap="0.5rem">
             {props.addOns.showLabel && (
               <Text
                 $color={
@@ -297,19 +321,21 @@ export const PlanManager = forwardRef<
               </Text>
             )}
 
-            {currentAddOns.map((addOn, addOnIndex) => (
-              <AddOn
-                key={addOnIndex}
-                addOn={addOn}
-                currency={subscriptionCurrency}
-                layout={props}
-              />
-            ))}
+            <Flex $flexDirection="column" $gap="1rem">
+              {currentAddOns.map((addOn, addOnIndex) => (
+                <AddOn
+                  key={addOnIndex}
+                  addOn={addOn}
+                  currency={subscriptionCurrency}
+                  layout={props}
+                />
+              ))}
+            </Flex>
           </Flex>
         )}
 
         {props.addOns.isVisible && usageBasedEntitlements.length > 0 && (
-          <Flex $flexDirection="column" $gap="1rem">
+          <Flex $flexDirection="column" $gap="0.5rem">
             {props.addOns.showLabel && (
               <Text
                 $color={
@@ -323,16 +349,99 @@ export const PlanManager = forwardRef<
               </Text>
             )}
 
-            {usageBasedEntitlements.map((entitlement, entitlementIndex) => {
-              return (
-                <UsageDetails
-                  key={entitlementIndex}
-                  entitlement={entitlement}
-                  period={currentPlan?.planPeriod || "month"}
-                  layout={props}
-                />
-              );
-            })}
+            <Flex $flexDirection="column" $gap="1rem">
+              {usageBasedEntitlements.map((entitlement, entitlementIndex) => {
+                return (
+                  <UsageDetails
+                    key={entitlementIndex}
+                    entitlement={entitlement}
+                    period={currentPlan?.planPeriod || "month"}
+                    layout={props}
+                  />
+                );
+              })}
+            </Flex>
+          </Flex>
+        )}
+
+        {props.addOns.isVisible && creditGroups.length > 0 && (
+          <Flex $flexDirection="column" $gap="0.5rem">
+            {props.addOns.showLabel && (
+              <Text
+                $color={
+                  isLightBackground
+                    ? darken(settings.theme.card.background, 0.46)
+                    : lighten(settings.theme.card.background, 0.46)
+                }
+                $leading={1}
+              >
+                {t("Credits")}
+              </Text>
+            )}
+
+            <Flex $flexDirection="column" $gap="1rem">
+              {creditGroups.reduce(
+                (acc: React.ReactNode[], group, groupIndex) => {
+                  const bundle =
+                    group.grantReason === CreditGrantReason.Purchased &&
+                    group?.bundleId
+                      ? creditBundles.find((b) => b.id === group.bundleId)
+                      : undefined;
+
+                  acc.push(
+                    <Flex
+                      key={groupIndex}
+                      $justifyContent="space-between"
+                      $alignItems="center"
+                      $flexWrap="wrap"
+                      $gap="0.5rem"
+                    >
+                      {group.grantReason === CreditGrantReason.Plan ? (
+                        <Text display={props.addOns.fontStyle}>
+                          {group.quantity}{" "}
+                          {getFeatureName(group, group.quantity)}{" "}
+                          {subscriptionInterval && (
+                            <>
+                              {t("per")} {t(subscriptionInterval)}
+                            </>
+                          )}
+                        </Text>
+                      ) : bundle ? (
+                        <Text display={props.addOns.fontStyle}>
+                          {group.grants.length > 1 && (
+                            <Text style={{ opacity: 0.5 }}>
+                              ({group.grants.length}){" "}
+                            </Text>
+                          )}
+                          {bundle.name} ({group.quantity}{" "}
+                          {getFeatureName(group, group.quantity)})
+                        </Text>
+                      ) : (
+                        <Text display={props.addOns.fontStyle}>
+                          {group.quantity}{" "}
+                          {getFeatureName(group, group.quantity)}
+                        </Text>
+                      )}
+
+                      {group.total.used > 0 && (
+                        <Text
+                          style={{ opacity: 0.54 }}
+                          $size={
+                            0.875 * settings.theme.typography.text.fontSize
+                          }
+                          $color={settings.theme.typography.text.color}
+                        >
+                          {group.total.used} {t("used")}
+                        </Text>
+                      )}
+                    </Flex>,
+                  );
+
+                  return acc;
+                },
+                [],
+              )}
+            </Flex>
           </Flex>
         )}
 

@@ -10,6 +10,7 @@ import { useTranslation } from "react-i18next";
 
 import {
   ResponseError,
+  UpdateCreditBundleRequestBody,
   type FeatureUsageResponseData,
   type PlanEntitlementResponseData,
   type PreviewSubscriptionFinanceResponseData,
@@ -21,9 +22,12 @@ import {
   useAvailablePlans,
   useEmbed,
   useIsLightBackground,
-  type SelectedPlan,
 } from "../../../hooks";
-import type { UsageBasedEntitlement } from "../../../types";
+import type {
+  CreditBundle,
+  SelectedPlan,
+  UsageBasedEntitlement,
+} from "../../../types";
 import {
   ERROR_UNKNOWN,
   getAddOnPrice,
@@ -37,6 +41,7 @@ import { Sidebar } from "../sidebar";
 
 import { AddOns } from "./AddOns";
 import { Checkout } from "./Checkout";
+import { Credits } from "./Credits";
 import { Navigation } from "./Navigation";
 import { Plan } from "./Plan";
 import { Usage } from "./Usage";
@@ -140,13 +145,11 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
   const [selectedPlan, setSelectedPlan] = useState<SelectedPlan | undefined>(
     () => {
-      const currentSelectedPlan = availablePlans.find((plan) =>
+      return availablePlans.find((plan) =>
         checkoutState?.planId
           ? plan.id === checkoutState.planId
           : isHydratedPlan(plan) && plan.current,
       );
-
-      return currentSelectedPlan;
     },
   );
 
@@ -168,6 +171,17 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     return [];
   });
 
+  const [creditBundles, setCreditBundles] = useState<CreditBundle[]>(() => {
+    if (isCheckoutData(data)) {
+      return data.creditBundles.map((bundle) => ({
+        ...bundle,
+        count: 0,
+      }));
+    }
+
+    return [];
+  });
+
   const [usageBasedEntitlements, setUsageBasedEntitlements] = useState(() =>
     (selectedPlan?.entitlements || []).reduce(
       createActiveUsageBasedEntitlementsReducer(
@@ -177,6 +191,29 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       [],
     ),
   );
+
+  const [addOnUsageBasedEntitlements, setAddOnUsageBasedEntitlements] =
+    useState<UsageBasedEntitlement[]>(() => {
+      if (!isCheckoutData(data)) return [];
+
+      const currentAddOns = data.company?.addOns || [];
+
+      return currentAddOns.flatMap((currentAddOn) => {
+        const availableAddOn = availableAddOns.find(
+          (available) => available.id === currentAddOn.id,
+        );
+
+        if (!availableAddOn) return [];
+
+        return availableAddOn.entitlements.reduce(
+          createActiveUsageBasedEntitlementsReducer(
+            currentEntitlements,
+            planPeriod,
+          ),
+          [],
+        );
+      });
+    });
 
   const payInAdvanceEntitlements = useMemo(
     () =>
@@ -204,7 +241,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   const checkoutStages = useMemo(() => {
     const stages: CheckoutStage[] = [];
 
-    if (availablePlans) {
+    if (availablePlans.length > 0) {
       stages.push({
         id: "plan",
         name: t("Plan"),
@@ -234,6 +271,33 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       });
     }
 
+    const hasUsageBasedAddOnSelected = addOns.some((addOn) => {
+      return (
+        addOn.isSelected &&
+        addOn.entitlements.some((entitlement) => {
+          return entitlement.priceBehavior === PriceBehavior.PayInAdvance;
+        })
+      );
+    });
+
+    if (hasUsageBasedAddOnSelected) {
+      stages.push({
+        id: "addonsUsage",
+        name: t("Add-ons Quantity"),
+        label: t("Select quantities for add-ons"),
+        description: t("Quantity to pay for in advance"),
+      });
+    }
+
+    if (creditBundles.length > 0) {
+      stages.push({
+        id: "credits",
+        name: t("Credits"),
+        label: t("Select credits"),
+        description: t("Optionally add credit bundles to your subscription"),
+      });
+    }
+
     if (isPaymentMethodRequired) {
       stages.push({
         id: "checkout",
@@ -246,11 +310,12 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   }, [
     t,
     availablePlans,
-    addOns,
-    payInAdvanceEntitlements,
-    shouldTrial,
     willTrialWithoutPaymentMethod,
+    payInAdvanceEntitlements,
+    addOns,
     isSelectedPlanTrialable,
+    shouldTrial,
+    creditBundles,
     isPaymentMethodRequired,
   ]);
 
@@ -259,17 +324,34 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       return "addons";
     }
 
+    if (checkoutState?.addOnUsage) {
+      return "addonsUsage";
+    }
+
     if (checkoutState?.usage) {
       return "usage";
     }
 
+    if (checkoutState?.credits) {
+      return "credits";
+    }
+
     // the user has preselected a different plan before starting the checkout flow
     if (checkoutState?.planId !== currentPlanId) {
-      return checkoutStages.some((stage) => stage.id === "usage")
-        ? "usage"
-        : checkoutStages.some((stage) => stage.id === "addons")
-          ? "addons"
-          : "plan";
+      const hasUsageStage = checkoutStages.some(
+        (stage) => stage.id === "usage",
+      );
+      const hasAddonsStage = checkoutStages.some(
+        (stage) => stage.id === "addons",
+      );
+      const hasAddonsUsageStage = checkoutStages.some(
+        (stage) => stage.id === "addonsUsage",
+      );
+
+      if (hasUsageStage) return "usage";
+      if (hasAddonsStage) return "addons";
+      if (hasAddonsUsageStage) return "addonsUsage";
+      return "plan";
     }
 
     return "plan";
@@ -282,6 +364,8 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       shouldTrial?: boolean;
       addOns?: SelectedPlan[];
       payInAdvanceEntitlements?: UsageBasedEntitlement[];
+      addOnPayInAdvanceEntitlements?: UsageBasedEntitlement[];
+      creditBundles?: CreditBundle[];
       promoCode?: string | null;
     }) => {
       const period = updates.period || planPeriod;
@@ -326,21 +410,59 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
             },
             [],
           ),
-          payInAdvance: (
-            updates.payInAdvanceEntitlements || payInAdvanceEntitlements
-          ).reduce(
-            (
-              acc: UpdatePayInAdvanceRequestBody[],
-              { meteredMonthlyPrice, meteredYearlyPrice, quantity },
-            ) => {
-              const priceId = (
-                period === "year" ? meteredYearlyPrice : meteredMonthlyPrice
-              )?.priceId;
+          payInAdvance: [
+            ...(
+              updates.payInAdvanceEntitlements || payInAdvanceEntitlements
+            ).reduce(
+              (
+                acc: UpdatePayInAdvanceRequestBody[],
+                { meteredMonthlyPrice, meteredYearlyPrice, quantity },
+              ) => {
+                const priceId = (
+                  period === "year" ? meteredYearlyPrice : meteredMonthlyPrice
+                )?.priceId;
 
-              if (priceId) {
+                if (priceId) {
+                  acc.push({
+                    priceId,
+                    quantity,
+                  });
+                }
+
+                return acc;
+              },
+              [],
+            ),
+            ...(
+              updates.addOnPayInAdvanceEntitlements ||
+              addOnUsageBasedEntitlements
+            ).reduce(
+              (
+                acc: UpdatePayInAdvanceRequestBody[],
+                { meteredMonthlyPrice, meteredYearlyPrice, quantity },
+              ) => {
+                const priceId = (
+                  period === "year" ? meteredYearlyPrice : meteredMonthlyPrice
+                )?.priceId;
+
+                if (priceId) {
+                  acc.push({
+                    priceId,
+                    quantity,
+                  });
+                }
+
+                return acc;
+              },
+              [],
+            ),
+          ],
+          creditBundles: (updates.creditBundles || creditBundles).reduce(
+            (acc: UpdateCreditBundleRequestBody[], { id, count }) => {
+              if (count > 0) {
                 acc.push({
-                  priceId,
-                  quantity,
+                  bundleId: id,
+                  quantity: count,
                 });
               }
 
@@ -348,7 +470,6 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
             },
             [],
           ),
-          creditBundles: [],
           skipTrial,
           ...(code && { promoCode: code }),
         });
@@ -402,7 +523,9 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       planPeriod,
       selectedPlan,
       payInAdvanceEntitlements,
+      addOnUsageBasedEntitlements,
       addOns,
+      creditBundles,
       shouldTrial,
       promoCode,
     ],
@@ -497,6 +620,24 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           ...(addOn.id === id && { isSelected: !addOn.isSelected }),
         }));
 
+        const updatedAddOnEntitlements = updated
+          .filter((addOn) => addOn.isSelected)
+          .flatMap((addOn) =>
+            addOn.entitlements
+              .filter(
+                (entitlement) =>
+                  entitlement.priceBehavior === PriceBehavior.PayInAdvance,
+              )
+              .map((entitlement) => ({
+                ...entitlement,
+                allocation: entitlement.valueNumeric || 0,
+                usage: 0,
+                quantity: 1,
+              })),
+          );
+
+        setAddOnUsageBasedEntitlements(updatedAddOnEntitlements);
+
         handlePreviewCheckout({ addOns: updated });
 
         return updated;
@@ -521,6 +662,48 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           payInAdvanceEntitlements: updated.filter(
             ({ priceBehavior }) => priceBehavior === PriceBehavior.PayInAdvance,
           ),
+        });
+
+        return updated;
+      });
+    },
+    [handlePreviewCheckout],
+  );
+
+  const updateCreditBundleCount = useCallback(
+    (id: string, updatedCount: number) => {
+      setCreditBundles((prev) => {
+        const updated = prev.map((bundle) =>
+          bundle.id === id
+            ? {
+                ...bundle,
+                count: updatedCount,
+              }
+            : bundle,
+        );
+
+        handlePreviewCheckout({ creditBundles: updated });
+
+        return updated;
+      });
+    },
+    [handlePreviewCheckout],
+  );
+
+  const updateAddOnEntitlementQuantity = useCallback(
+    (id: string, updatedQuantity: number) => {
+      setAddOnUsageBasedEntitlements((prev) => {
+        const updated = prev.map((entitlement) =>
+          entitlement.id === id
+            ? {
+                ...entitlement,
+                quantity: updatedQuantity,
+              }
+            : entitlement,
+        );
+
+        handlePreviewCheckout({
+          addOnPayInAdvanceEntitlements: updated,
         });
 
         return updated;
@@ -724,6 +907,24 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
             />
           )}
 
+          {checkoutStage === "addonsUsage" && (
+            <Usage
+              isLoading={isLoading}
+              period={planPeriod}
+              selectedPlan={selectedPlan}
+              entitlements={addOnUsageBasedEntitlements}
+              updateQuantity={updateAddOnEntitlementQuantity}
+            />
+          )}
+
+          {checkoutStage === "credits" && (
+            <Credits
+              isLoading={isLoading}
+              bundles={creditBundles}
+              updateCount={updateCreditBundleCount}
+            />
+          )}
+
           {checkoutStage === "checkout" && (
             <Checkout
               isPaymentMethodRequired={isPaymentMethodRequired}
@@ -738,6 +939,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           selectedPlan={selectedPlan}
           addOns={addOns}
           usageBasedEntitlements={usageBasedEntitlements}
+          creditBundles={creditBundles}
           charges={charges}
           checkoutRef={checkoutRef}
           checkoutStage={checkoutStage}
