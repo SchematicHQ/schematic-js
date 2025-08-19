@@ -24,7 +24,7 @@ export interface EventSummaryResponseData {
    * @type {number}
    * @memberof EventSummaryResponseData
    */
-  companyCount?: number | null;
+  companyCount: number;
   /**
    *
    * @type {string}
@@ -54,7 +54,7 @@ export interface EventSummaryResponseData {
    * @type {number}
    * @memberof EventSummaryResponseData
    */
-  userCount?: number | null;
+  userCount: number;
 }
 
 /**
@@ -63,12 +63,15 @@ export interface EventSummaryResponseData {
 export function instanceOfEventSummaryResponseData(
   value: object,
 ): value is EventSummaryResponseData {
+  if (!("companyCount" in value) || value["companyCount"] === undefined)
+    return false;
   if (!("environmentId" in value) || value["environmentId"] === undefined)
     return false;
   if (!("eventCount" in value) || value["eventCount"] === undefined)
     return false;
   if (!("eventSubtype" in value) || value["eventSubtype"] === undefined)
     return false;
+  if (!("userCount" in value) || value["userCount"] === undefined) return false;
   return true;
 }
 
@@ -86,14 +89,13 @@ export function EventSummaryResponseDataFromJSONTyped(
     return json;
   }
   return {
-    companyCount:
-      json["company_count"] == null ? undefined : json["company_count"],
+    companyCount: json["company_count"],
     environmentId: json["environment_id"],
     eventCount: json["event_count"],
     eventSubtype: json["event_subtype"],
     lastSeenAt:
       json["last_seen_at"] == null ? undefined : new Date(json["last_seen_at"]),
-    userCount: json["user_count"] == null ? undefined : json["user_count"],
+    userCount: json["user_count"],
   };
 }
 

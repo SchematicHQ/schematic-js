@@ -145,13 +145,11 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
   const [selectedPlan, setSelectedPlan] = useState<SelectedPlan | undefined>(
     () => {
-      const currentSelectedPlan = availablePlans.find((plan) =>
+      return availablePlans.find((plan) =>
         checkoutState?.planId
           ? plan.id === checkoutState.planId
           : isHydratedPlan(plan) && plan.current,
       );
-
-      return currentSelectedPlan;
     },
   );
 
@@ -193,6 +191,29 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       [],
     ),
   );
+
+  const [addOnUsageBasedEntitlements, setAddOnUsageBasedEntitlements] =
+    useState<UsageBasedEntitlement[]>(() => {
+      if (!isCheckoutData(data)) return [];
+
+      const currentAddOns = data.company?.addOns || [];
+
+      return currentAddOns.flatMap((currentAddOn) => {
+        const availableAddOn = availableAddOns.find(
+          (available) => available.id === currentAddOn.id,
+        );
+
+        if (!availableAddOn) return [];
+
+        return availableAddOn.entitlements.reduce(
+          createActiveUsageBasedEntitlementsReducer(
+            currentEntitlements,
+            planPeriod,
+          ),
+          [],
+        );
+      });
+    });
 
   const payInAdvanceEntitlements = useMemo(
     () =>
@@ -250,6 +271,24 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       });
     }
 
+    const hasUsageBasedAddOnSelected = addOns.some((addOn) => {
+      return (
+        addOn.isSelected &&
+        addOn.entitlements.some((entitlement) => {
+          return entitlement.priceBehavior === PriceBehavior.PayInAdvance;
+        })
+      );
+    });
+
+    if (hasUsageBasedAddOnSelected) {
+      stages.push({
+        id: "addonsUsage",
+        name: t("Add-ons Quantity"),
+        label: t("Select quantities for add-ons"),
+        description: t("Quantity to pay for in advance"),
+      });
+    }
+
     if (creditBundles.length > 0) {
       stages.push({
         id: "credits",
@@ -285,6 +324,10 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       return "addons";
     }
 
+    if (checkoutState?.addOnUsage) {
+      return "addonsUsage";
+    }
+
     if (checkoutState?.usage) {
       return "usage";
     }
@@ -295,13 +338,20 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
     // the user has preselected a different plan before starting the checkout flow
     if (checkoutState?.planId !== currentPlanId) {
-      return checkoutStages.some((stage) => stage.id === "usage")
-        ? "usage"
-        : checkoutStages.some((stage) => stage.id === "addons")
-          ? "addons"
-          : checkoutStages.some((stage) => stage.id === "credits")
-            ? "credits"
-            : "plan";
+      const hasUsageStage = checkoutStages.some(
+        (stage) => stage.id === "usage",
+      );
+      const hasAddonsStage = checkoutStages.some(
+        (stage) => stage.id === "addons",
+      );
+      const hasAddonsUsageStage = checkoutStages.some(
+        (stage) => stage.id === "addonsUsage",
+      );
+
+      if (hasUsageStage) return "usage";
+      if (hasAddonsStage) return "addons";
+      if (hasAddonsUsageStage) return "addonsUsage";
+      return "plan";
     }
 
     return "plan";
@@ -314,6 +364,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       shouldTrial?: boolean;
       addOns?: SelectedPlan[];
       payInAdvanceEntitlements?: UsageBasedEntitlement[];
+      addOnPayInAdvanceEntitlements?: UsageBasedEntitlement[];
       creditBundles?: CreditBundle[];
       promoCode?: string | null;
     }) => {
@@ -359,28 +410,53 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
             },
             [],
           ),
-          payInAdvance: (
-            updates.payInAdvanceEntitlements || payInAdvanceEntitlements
-          ).reduce(
-            (
-              acc: UpdatePayInAdvanceRequestBody[],
-              { meteredMonthlyPrice, meteredYearlyPrice, quantity },
-            ) => {
-              const priceId = (
-                period === "year" ? meteredYearlyPrice : meteredMonthlyPrice
-              )?.priceId;
+          payInAdvance: [
+            ...(
+              updates.payInAdvanceEntitlements || payInAdvanceEntitlements
+            ).reduce(
+              (
+                acc: UpdatePayInAdvanceRequestBody[],
+                { meteredMonthlyPrice, meteredYearlyPrice, quantity },
+              ) => {
+                const priceId = (
+                  period === "year" ? meteredYearlyPrice : meteredMonthlyPrice
+                )?.priceId;
 
-              if (priceId) {
-                acc.push({
-                  priceId,
-                  quantity,
-                });
-              }
+                if (priceId) {
+                  acc.push({
+                    priceId,
+                    quantity,
+                  });
+                }
 
-              return acc;
-            },
-            [],
-          ),
+                return acc;
+              },
+              [],
+            ),
+            ...(
+              updates.addOnPayInAdvanceEntitlements ||
+              addOnUsageBasedEntitlements
+            ).reduce(
+              (
+                acc: UpdatePayInAdvanceRequestBody[],
+                { meteredMonthlyPrice, meteredYearlyPrice, quantity },
+              ) => {
+                const priceId = (
+                  period === "year" ? meteredYearlyPrice : meteredMonthlyPrice
+                )?.priceId;
+
+                if (priceId) {
+                  acc.push({
+                    priceId,
+                    quantity,
+                  });
+                }
+
+                return acc;
+              },
+              [],
+            ),
+          ],
           creditBundles: (updates.creditBundles || creditBundles).reduce(
             (acc: UpdateCreditBundleRequestBody[], { id, count }) => {
               if (count > 0) {
@@ -447,6 +523,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       planPeriod,
       selectedPlan,
       payInAdvanceEntitlements,
+      addOnUsageBasedEntitlements,
       addOns,
       creditBundles,
       shouldTrial,
@@ -543,6 +620,24 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           ...(addOn.id === id && { isSelected: !addOn.isSelected }),
         }));
 
+        const updatedAddOnEntitlements = updated
+          .filter((addOn) => addOn.isSelected)
+          .flatMap((addOn) =>
+            addOn.entitlements
+              .filter(
+                (entitlement) =>
+                  entitlement.priceBehavior === PriceBehavior.PayInAdvance,
+              )
+              .map((entitlement) => ({
+                ...entitlement,
+                allocation: entitlement.valueNumeric || 0,
+                usage: 0,
+                quantity: 1,
+              })),
+          );
+
+        setAddOnUsageBasedEntitlements(updatedAddOnEntitlements);
+
         handlePreviewCheckout({ addOns: updated });
 
         return updated;
@@ -588,6 +683,28 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
         );
 
         handlePreviewCheckout({ creditBundles: updated });
+
+        return updated;
+      });
+    },
+    [handlePreviewCheckout],
+  );
+
+  const updateAddOnEntitlementQuantity = useCallback(
+    (id: string, updatedQuantity: number) => {
+      setAddOnUsageBasedEntitlements((prev) => {
+        const updated = prev.map((entitlement) =>
+          entitlement.id === id
+            ? {
+                ...entitlement,
+                quantity: updatedQuantity,
+              }
+            : entitlement,
+        );
+
+        handlePreviewCheckout({
+          addOnPayInAdvanceEntitlements: updated,
+        });
 
         return updated;
       });
@@ -787,6 +904,16 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
               period={planPeriod}
               addOns={addOns}
               toggle={(id) => toggleAddOn(id)}
+            />
+          )}
+
+          {checkoutStage === "addonsUsage" && (
+            <Usage
+              isLoading={isLoading}
+              period={planPeriod}
+              selectedPlan={selectedPlan}
+              entitlements={addOnUsageBasedEntitlements}
+              updateQuantity={updateAddOnEntitlementQuantity}
             />
           )}
 
