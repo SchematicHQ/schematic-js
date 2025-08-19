@@ -166,6 +166,12 @@ export interface ComponentHydrateResponseData {
   featureUsage?: FeatureUsageDetailResponseData;
   /**
    *
+   * @type {boolean}
+   * @memberof ComponentHydrateResponseData
+   */
+  showPeriodToggle: boolean;
+  /**
+   *
    * @type {StripeEmbedInfo}
    * @memberof ComponentHydrateResponseData
    */
@@ -213,6 +219,8 @@ export function instanceOfComponentHydrateResponseData(
   if (!("creditBundles" in value) || value["creditBundles"] === undefined)
     return false;
   if (!("creditGrants" in value) || value["creditGrants"] === undefined)
+    return false;
+  if (!("showPeriodToggle" in value) || value["showPeriodToggle"] === undefined)
     return false;
   return true;
 }
@@ -269,6 +277,7 @@ export function ComponentHydrateResponseDataFromJSONTyped(
       json["feature_usage"] == null
         ? undefined
         : FeatureUsageDetailResponseDataFromJSON(json["feature_usage"]),
+    showPeriodToggle: json["show_period_toggle"],
     stripeEmbed:
       json["stripe_embed"] == null
         ? undefined
@@ -318,6 +327,7 @@ export function ComponentHydrateResponseDataToJSON(
     ),
     default_plan: PlanDetailResponseDataToJSON(value["defaultPlan"]),
     feature_usage: FeatureUsageDetailResponseDataToJSON(value["featureUsage"]),
+    show_period_toggle: value["showPeriodToggle"],
     stripe_embed: StripeEmbedInfoToJSON(value["stripeEmbed"]),
     subscription: CompanySubscriptionResponseDataToJSON(value["subscription"]),
     trial_payment_method_required: value["trialPaymentMethodRequired"],
