@@ -20,8 +20,10 @@ import type {
   CheckoutUnsubscribeResponse,
   CreateSetupIntentResponse,
   DeletePaymentMethodResponse,
+  FetchCustomerBalanceResponse,
   GetSetupIntentResponse,
   HydrateComponentResponse,
+  HydrateResponse,
   HydrateUpcomingInvoiceResponse,
   ListInvoicesResponse,
   PreviewCheckoutResponse,
@@ -41,10 +43,14 @@ import {
   CreateSetupIntentResponseToJSON,
   DeletePaymentMethodResponseFromJSON,
   DeletePaymentMethodResponseToJSON,
+  FetchCustomerBalanceResponseFromJSON,
+  FetchCustomerBalanceResponseToJSON,
   GetSetupIntentResponseFromJSON,
   GetSetupIntentResponseToJSON,
   HydrateComponentResponseFromJSON,
   HydrateComponentResponseToJSON,
+  HydrateResponseFromJSON,
+  HydrateResponseToJSON,
   HydrateUpcomingInvoiceResponseFromJSON,
   HydrateUpcomingInvoiceResponseToJSON,
   ListInvoicesResponseFromJSON,
@@ -288,6 +294,47 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
   }
 
   /**
+   * Fetch customer balance
+   */
+  async fetchCustomerBalanceRaw(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<FetchCustomerBalanceResponse>> {
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    if (this.configuration && this.configuration.apiKey) {
+      headerParameters["X-Schematic-Api-Key"] = await this.configuration.apiKey(
+        "X-Schematic-Api-Key",
+      ); // ApiKeyAuth authentication
+    }
+
+    const response = await this.request(
+      {
+        path: `/checkout/balance`,
+        method: "GET",
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      FetchCustomerBalanceResponseFromJSON(jsonValue),
+    );
+  }
+
+  /**
+   * Fetch customer balance
+   */
+  async fetchCustomerBalance(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<FetchCustomerBalanceResponse> {
+    const response = await this.fetchCustomerBalanceRaw(initOverrides);
+    return await response.value();
+  }
+
+  /**
    * Get setup intent
    */
   async getSetupIntentRaw(
@@ -340,6 +387,47 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
       requestParameters,
       initOverrides,
     );
+    return await response.value();
+  }
+
+  /**
+   * Hydrate
+   */
+  async hydrateRaw(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<HydrateResponse>> {
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    if (this.configuration && this.configuration.apiKey) {
+      headerParameters["X-Schematic-Api-Key"] = await this.configuration.apiKey(
+        "X-Schematic-Api-Key",
+      ); // ApiKeyAuth authentication
+    }
+
+    const response = await this.request(
+      {
+        path: `/components/hydrate`,
+        method: "GET",
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      HydrateResponseFromJSON(jsonValue),
+    );
+  }
+
+  /**
+   * Hydrate
+   */
+  async hydrate(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<HydrateResponse> {
+    const response = await this.hydrateRaw(initOverrides);
     return await response.value();
   }
 
