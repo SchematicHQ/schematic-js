@@ -938,6 +938,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           planPeriod={planPeriod}
           selectedPlan={selectedPlan}
           addOns={addOns}
+          addOnUsageBasedEntitlements={addOnUsageBasedEntitlements}
           usageBasedEntitlements={usageBasedEntitlements}
           creditBundles={creditBundles}
           charges={charges}

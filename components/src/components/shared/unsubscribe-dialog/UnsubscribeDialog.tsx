@@ -54,21 +54,44 @@ export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
     [currentPlan?.id, availablePlans],
   );
 
-  const currentEntitlements = featureUsage?.features || [];
-  const usageBasedEntitlements = (selectedPlan?.entitlements || []).reduce(
-    createActiveUsageBasedEntitlementsReducer(currentEntitlements, planPeriod),
-    [],
-  );
+  const { currentEntitlements, usageBasedEntitlements } = useMemo(() => {
+    const currentEntitlements = featureUsage?.features || [];
+    return {
+      currentEntitlements,
+      usageBasedEntitlements: (selectedPlan?.entitlements || []).reduce(
+        createActiveUsageBasedEntitlementsReducer(
+          currentEntitlements,
+          planPeriod,
+        ),
+        [],
+      ),
+    };
+  }, [planPeriod, featureUsage?.features, selectedPlan?.entitlements]);
 
-  const addOns = useMemo(
-    () =>
-      availableAddOns.map((available) => ({
+  const { addOns, addOnUsageBasedEntitlements } = useMemo(() => {
+    return {
+      addOns: availableAddOns.map((available) => ({
         ...available,
         isSelected:
           currentAddOns.some((current) => available.id === current.id) ?? false,
       })),
-    [currentAddOns, availableAddOns],
-  );
+      addOnUsageBasedEntitlements: currentAddOns.flatMap((currentAddOn) => {
+        const availableAddOn = availableAddOns.find(
+          (available) => available.id === currentAddOn.id,
+        );
+
+        if (!availableAddOn) return [];
+
+        return availableAddOn.entitlements.reduce(
+          createActiveUsageBasedEntitlementsReducer(
+            currentEntitlements,
+            planPeriod,
+          ),
+          [],
+        );
+      }),
+    };
+  }, [planPeriod, currentAddOns, currentEntitlements, availableAddOns]);
 
   return (
     <Modal size="auto" top={top} contentRef={contentRef}>
@@ -130,6 +153,7 @@ export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
         <Sidebar
           planPeriod={planPeriod}
           addOns={addOns}
+          addOnUsageBasedEntitlements={addOnUsageBasedEntitlements}
           usageBasedEntitlements={usageBasedEntitlements}
           error={error}
           isLoading={isLoading}

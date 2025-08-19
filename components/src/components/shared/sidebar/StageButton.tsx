@@ -8,6 +8,7 @@ type StageButtonProps = {
   checkoutStage?: string;
   checkoutStages?: CheckoutStage[];
   hasAddOns: boolean;
+  hasAddOnsUsage: boolean;
   hasPayInAdvanceEntitlements: boolean;
   hasCreditBundles: boolean;
   hasPaymentMethod: boolean;
@@ -27,6 +28,7 @@ export const StageButton = ({
   checkoutStage,
   checkoutStages,
   hasAddOns,
+  hasAddOnsUsage,
   hasPayInAdvanceEntitlements,
   hasCreditBundles,
   hasPaymentMethod,
@@ -89,6 +91,7 @@ export const StageButton = ({
         (stage) =>
           stage.id === "usage" ||
           stage.id === "addons" ||
+          stage.id === "addonsUsage" ||
           stage.id === "credits",
       )
     ) {
@@ -132,7 +135,10 @@ export const StageButton = ({
     if (
       !isPaymentMethodRequired &&
       !checkoutStages?.some(
-        (stage) => stage.id === "addons" || stage.id === "credits",
+        (stage) =>
+          stage.id === "addons" ||
+          stage.id === "addonsUsage" ||
+          stage.id === "credits",
       )
     ) {
       return <NoPaymentRequired />;
@@ -169,14 +175,12 @@ export const StageButton = ({
   }
 
   if (checkoutStage === "addons") {
-    // Check if there's an addonsUsage stage next
-    const hasAddonsUsageStage = checkoutStages?.some(
-      (stage) => stage.id === "addonsUsage",
-    );
-    const hasCreditsStage = checkoutStages?.some(
-      (stage) => stage.id === "credits",
-    );
-    if (!isPaymentMethodRequired && !hasAddonsUsageStage && !hasCreditsStage) {
+    if (
+      !isPaymentMethodRequired &&
+      !checkoutStages?.some(
+        (stage) => stage.id === "addonsUsage" || stage.id === "credits",
+      )
+    ) {
       return <NoPaymentRequired />;
     }
 
@@ -186,9 +190,9 @@ export const StageButton = ({
         disabled={isDisabled}
         onClick={async () => {
           setCheckoutStage?.(
-            hasAddonsUsageStage
+            hasAddOnsUsage
               ? "addonsUsage"
-              : hasCreditsStage
+              : hasCreditBundles
                 ? "credits"
                 : "checkout",
           );
@@ -203,9 +207,9 @@ export const StageButton = ({
           $padding="0 1rem"
         >
           {t("Next")}:{" "}
-          {hasAddonsUsageStage
+          {hasAddOnsUsage
             ? t("Add-ons Quantity")
-            : hasCreditsStage
+            : hasCreditBundles
               ? t("Credits")
               : t("Checkout")}
           <Icon name="arrow-right" />

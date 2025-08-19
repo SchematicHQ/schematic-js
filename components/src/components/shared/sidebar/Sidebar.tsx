@@ -44,6 +44,7 @@ interface SidebarProps {
   planPeriod: string;
   selectedPlan?: SelectedPlan;
   addOns: SelectedPlan[];
+  addOnUsageBasedEntitlements: UsageBasedEntitlement[];
   creditBundles?: CreditBundle[];
   usageBasedEntitlements: UsageBasedEntitlement[];
   charges?: PreviewSubscriptionFinanceResponseData;
@@ -68,6 +69,7 @@ export const Sidebar = ({
   planPeriod,
   selectedPlan,
   addOns,
+  addOnUsageBasedEntitlements,
   creditBundles = [],
   usageBasedEntitlements,
   charges,
@@ -985,6 +987,7 @@ export const Sidebar = ({
             checkoutStages={checkoutStages}
             hasAddOns={addOns.length > 0}
             hasPayInAdvanceEntitlements={payInAdvanceEntitlements.length > 0}
+            hasAddOnsUsage={addOnUsageBasedEntitlements.length > 0}
             hasCreditBundles={creditBundles.length > 0}
             hasPaymentMethod={
               typeof paymentMethod !== "undefined" ||
