@@ -57,7 +57,7 @@ export const createActiveUsageBasedEntitlementsReducer =
       const featureUsage = entitlements.find(
         (usage) => usage.feature?.id === entitlement.feature?.id,
       );
-      const allocation = featureUsage?.allocation || 1;
+      const allocation = featureUsage?.allocation || 0;
       const usage = featureUsage?.usage || 0;
 
       acc.push({
@@ -550,10 +550,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
               ...entitlement,
               allocation: entitlement.valueNumeric || 0,
               usage: 0,
-              quantity:
-                entitlement.priceBehavior === PriceBehavior.PayInAdvance
-                  ? 1
-                  : 0,
+              quantity: 0,
             });
           }
 
