@@ -113,6 +113,33 @@ export const EmbedProvider = ({
     [hydratePublic],
   );
 
+  const hydrate = useCallback(async () => {
+    dispatch({ type: "HYDRATE_STARTED" });
+
+    try {
+      const response = await api.checkout?.hydrate();
+
+      if (response) {
+        dispatch({
+          type: "HYDRATE",
+          data: response.data,
+        });
+      }
+
+      return response?.data;
+    } catch (err) {
+      dispatch({
+        type: "ERROR",
+        error: isError(err) ? err : ERROR_UNKNOWN,
+      });
+    }
+  }, [api.checkout]);
+
+  const debouncedHydrate = useMemo(
+    () => debounce(hydrate, FETCH_DEBOUNCE_TIMEOUT, debounceOptions),
+    [hydrate],
+  );
+
   const hydrateComponent = useCallback(
     async (id: string) => {
       dispatch({ type: "HYDRATE_STARTED" });
@@ -460,6 +487,7 @@ export const EmbedProvider = ({
         layout: state.layout,
         checkoutState: state.checkoutState,
         hydratePublic: debouncedHydratePublic,
+        hydrate: debouncedHydrate,
         hydrateComponent: debouncedHydrateComponent,
         hydrateExternal: debouncedHydrateExternal,
         createSetupIntent: debouncedCreateSetupIntent,
