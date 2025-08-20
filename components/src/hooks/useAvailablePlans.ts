@@ -7,7 +7,14 @@ import { ChargeType } from "../utils";
 
 import { useEmbed } from ".";
 
-export function useAvailablePlans(activePeriod: string) {
+interface AvailablePlanOptions {
+  useSelectedPeriod?: boolean;
+}
+
+export function useAvailablePlans(
+  activePeriod: string,
+  options: AvailablePlanOptions = { useSelectedPeriod: true },
+) {
   const { data, settings } = useEmbed();
 
   const getAvailablePeriods = useCallback((): string[] => {
@@ -35,16 +42,25 @@ export function useAvailablePlans(activePeriod: string) {
       const activePlans =
         settings.mode === "edit"
           ? plans.slice()
-          : plans.filter(
-              (plan) =>
-                (activePeriod === "month" && plan.monthlyPrice) ||
-                (activePeriod === "year" && plan.yearlyPrice) ||
-                plan.chargeType === ChargeType.oneTime,
-            );
+          : plans.filter((plan) => {
+              if (options.useSelectedPeriod) {
+                return (
+                  (activePeriod === "month" && plan.monthlyPrice) ||
+                  (activePeriod === "year" && plan.yearlyPrice) ||
+                  plan.chargeType === ChargeType.oneTime
+                );
+              }
+
+              return (
+                plan.monthlyPrice ||
+                plan.yearlyPrice ||
+                plan.chargeType === ChargeType.oneTime
+              );
+            });
 
       return activePlans.map((plan) => ({ ...plan, isSelected: false }));
     },
-    [activePeriod, settings.mode],
+    [activePeriod, options.useSelectedPeriod, settings.mode],
   );
 
   return useMemo(() => {

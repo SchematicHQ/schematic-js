@@ -21,11 +21,22 @@ export function getPriceValue(billingPrice: BillingPrice): number {
   return price;
 }
 
+interface PlanPriceOptions {
+  useSelectedPeriod?: boolean;
+}
+
 export function getPlanPrice(
   plan: Plan,
   period = "month",
+  options: PlanPriceOptions = { useSelectedPeriod: true },
 ): BillingPriceResponseData | undefined {
-  const billingPrice = period === "year" ? plan.yearlyPrice : plan.monthlyPrice;
+  const billingPrice = options.useSelectedPeriod
+    ? period === "year"
+      ? plan.yearlyPrice
+      : plan.monthlyPrice
+    : plan.yearlyPrice && !plan.monthlyPrice
+      ? plan.yearlyPrice
+      : plan.monthlyPrice;
 
   if (billingPrice) {
     return { ...billingPrice, price: getPriceValue(billingPrice) };
