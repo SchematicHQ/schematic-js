@@ -23,6 +23,7 @@ models/FeatureResponseData.ts
 models/FlagDetailResponseData.ts
 models/FlagResponseData.ts
 models/GetPublicPlansResponse.ts
+models/PlanCreditGrantView.ts
 models/PlanDetailResponseData.ts
 models/PlanEntitlementResponseData.ts
 models/PlanGroupPlanDetailResponseData.ts
