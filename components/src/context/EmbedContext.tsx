@@ -28,6 +28,7 @@ type DebouncedApiPromise<R> = Promise<R | undefined> | undefined;
 
 export interface EmbedContextProps extends EmbedState {
   hydratePublic: () => DebouncedApiPromise<PublicPlansResponseData>;
+  hydrate: () => DebouncedApiPromise<ComponentHydrateResponseData>;
   hydrateComponent: (
     id: string,
   ) => DebouncedApiPromise<ComponentHydrateResponseData>;
@@ -70,6 +71,7 @@ export const stub = () => {
 export const initialContext = {
   ...initialState,
   hydratePublic: stub,
+  hydrate: stub,
   hydrateComponent: stub,
   hydrateExternal: stub,
   getUpcomingInvoice: stub,

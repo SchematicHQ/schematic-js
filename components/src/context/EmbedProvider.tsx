@@ -86,6 +86,12 @@ export const EmbedProvider = ({
   );
 
   // hydration
+
+  /**
+   * Retrieves company-specific data that does not require a user context
+   * Used for standalone components where an access token is not required
+   * Requires an api key to be passed to the embed provider
+   */
   const hydratePublic = useCallback(async () => {
     dispatch({ type: "HYDRATE_STARTED" });
 
@@ -113,6 +119,44 @@ export const EmbedProvider = ({
     [hydratePublic],
   );
 
+  /**
+   * Retrieves company-specific data with user context
+   * Used for standalone components when more control is needed
+   * (e.g. triggering a checkout flow from a custom element)
+   * Requires an access token to be managed externally
+   */
+  const hydrate = useCallback(async () => {
+    dispatch({ type: "HYDRATE_STARTED" });
+
+    try {
+      const response = await api.checkout?.hydrate();
+
+      if (response) {
+        dispatch({
+          type: "HYDRATE",
+          data: response.data,
+        });
+      }
+
+      return response?.data;
+    } catch (err) {
+      dispatch({
+        type: "ERROR",
+        error: isError(err) ? err : ERROR_UNKNOWN,
+      });
+    }
+  }, [api.checkout]);
+
+  const debouncedHydrate = useMemo(
+    () => debounce(hydrate, FETCH_DEBOUNCE_TIMEOUT, debounceOptions),
+    [hydrate],
+  );
+
+  /**
+   * Retrieves company-specific data with user context
+   * Used when basic configuration can be managed from the components builder
+   * Requires an access token to be managed externally
+   */
   const hydrateComponent = useCallback(
     async (id: string) => {
       dispatch({ type: "HYDRATE_STARTED" });
@@ -145,6 +189,10 @@ export const EmbedProvider = ({
     [hydrateComponent],
   );
 
+  /**
+   * Used for managing custom or preview data
+   * Accepts a function that returns data in `hydrate` format
+   */
   const hydrateExternal = useCallback(async function (
     fn: () => Promise<ComponentHydrateResponseData>,
   ) {
@@ -460,6 +508,7 @@ export const EmbedProvider = ({
         layout: state.layout,
         checkoutState: state.checkoutState,
         hydratePublic: debouncedHydratePublic,
+        hydrate: debouncedHydrate,
         hydrateComponent: debouncedHydrateComponent,
         hydrateExternal: debouncedHydrateExternal,
         createSetupIntent: debouncedCreateSetupIntent,

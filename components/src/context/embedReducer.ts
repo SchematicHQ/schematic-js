@@ -30,6 +30,7 @@ type EmbedAction =
   | { type: "SET_ACCESS_TOKEN"; token: string }
   | { type: "HYDRATE_STARTED" }
   | { type: "HYDRATE_PUBLIC"; data: PublicPlansResponseData }
+  | { type: "HYDRATE"; data: ComponentHydrateResponseData }
   | { type: "HYDRATE_COMPONENT"; data: ComponentHydrateResponseData }
   | {
       type: "HYDRATE_EXTERNAL";
@@ -68,6 +69,7 @@ export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {
     }
 
     case "HYDRATE_PUBLIC":
+    case "HYDRATE":
     case "HYDRATE_COMPONENT":
     case "HYDRATE_EXTERNAL": {
       return {
