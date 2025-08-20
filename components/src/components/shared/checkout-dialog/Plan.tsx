@@ -314,9 +314,7 @@ export const Plan = ({
       {plans.map((plan, planIndex) => {
         const { price: planPrice, currency: planCurrency } =
           getPlanPrice(plan, period) || {};
-        const credits = isHydratedPlan(plan)
-          ? groupPlanCreditGrants(plan.includedCreditGrants)
-          : [];
+        const credits = groupPlanCreditGrants(plan.includedCreditGrants);
         const hasUsageBasedEntitlements = plan.entitlements.some(
           (entitlement) => !!entitlement.priceBehavior,
         );

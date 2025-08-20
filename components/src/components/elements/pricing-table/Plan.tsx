@@ -125,9 +125,7 @@ export const Plan = ({
     isHydratedPlan(plan) && plan.current && currentPeriod === selectedPeriod;
   const { price: planPrice, currency: planCurrency } =
     getPlanPrice(plan, selectedPeriod) || {};
-  const credits = isHydratedPlan(plan)
-    ? groupPlanCreditGrants(plan.includedCreditGrants)
-    : [];
+  const credits = groupPlanCreditGrants(plan.includedCreditGrants);
 
   const hasUsageBasedEntitlements = plan.entitlements.some(
     (entitlement) => !!entitlement.priceBehavior,
