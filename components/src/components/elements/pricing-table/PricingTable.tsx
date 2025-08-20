@@ -10,7 +10,11 @@ import { useTranslation } from "react-i18next";
 
 import { type CompanyPlanDetailResponseData } from "../../../api/checkoutexternal";
 import { type PlanViewPublicResponseData } from "../../../api/componentspublic";
-import { TEXT_BASE_SIZE, VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
+import {
+  PriceInterval,
+  TEXT_BASE_SIZE,
+  VISIBLE_ENTITLEMENT_COUNT,
+} from "../../../const";
 import { type FontStyle } from "../../../context";
 import { useAvailablePlans, useEmbed } from "../../../hooks";
 import type { DeepPartial, ElementProps } from "../../../types";
@@ -272,8 +276,8 @@ export const PricingTable = forwardRef<
                   const planPeriod = showPeriodToggle
                     ? selectedPeriod
                     : plan.yearlyPrice && !plan.monthlyPrice
-                      ? "year"
-                      : "month";
+                      ? PriceInterval.Year
+                      : PriceInterval.Month;
 
                   return (
                     <Plan
@@ -324,8 +328,8 @@ export const PricingTable = forwardRef<
                     const addOnPeriod = showPeriodToggle
                       ? selectedPeriod
                       : addOn.yearlyPrice && !addOn.monthlyPrice
-                        ? "year"
-                        : "month";
+                        ? PriceInterval.Year
+                        : PriceInterval.Month;
 
                     return (
                       <AddOn

@@ -5,6 +5,7 @@ import {
   EntitlementValueType,
   FeatureType,
   PriceBehavior,
+  PriceInterval,
   TEXT_BASE_SIZE,
   VISIBLE_ENTITLEMENT_COUNT,
 } from "../../../const";
@@ -317,8 +318,8 @@ export const Plan = ({
         const planPeriod = showPeriodToggle
           ? period
           : plan.yearlyPrice && !plan.monthlyPrice
-            ? "year"
-            : "month";
+            ? PriceInterval.Year
+            : PriceInterval.Month;
         const { price: planPrice, currency: planCurrency } =
           getPlanPrice(plan, planPeriod) || {};
         const credits = isHydratedPlan(plan)
