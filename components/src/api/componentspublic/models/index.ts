@@ -21,6 +21,7 @@ export * from "./FeatureResponseData";
 export * from "./FlagDetailResponseData";
 export * from "./FlagResponseData";
 export * from "./GetPublicPlansResponse";
+export * from "./PlanCreditGrantView";
 export * from "./PlanDetailResponseData";
 export * from "./PlanEntitlementResponseData";
 export * from "./PlanGroupPlanDetailResponseData";
