@@ -108,22 +108,6 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | undefined>();
 
-  const currentPeriod = useMemo(
-    () =>
-      checkoutState?.period ||
-      (isCheckoutData(data) && data.company?.plan?.planPeriod) ||
-      "month",
-    [data, checkoutState?.period],
-  );
-
-  const [planPeriod, setPlanPeriod] = useState(currentPeriod);
-
-  const {
-    plans: availablePlans,
-    addOns: availableAddOns,
-    periods: availablePeriods,
-  } = useAvailablePlans(planPeriod);
-
   const {
     currentPlanId,
     currentEntitlements,
@@ -148,6 +132,24 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       trialPaymentMethodRequired: false,
     };
   }, [data]);
+
+  const currentPeriod = useMemo(
+    () =>
+      checkoutState?.period ||
+      (isCheckoutData(data) && data.company?.plan?.planPeriod) ||
+      "month",
+    [data, checkoutState?.period],
+  );
+
+  const [planPeriod, setPlanPeriod] = useState(currentPeriod);
+
+  const {
+    plans: availablePlans,
+    addOns: availableAddOns,
+    periods: availablePeriods,
+  } = useAvailablePlans(planPeriod, {
+    useSelectedPeriod: showPeriodToggle,
+  });
 
   const [selectedPlan, setSelectedPlan] = useState<SelectedPlan | undefined>(
     () => {

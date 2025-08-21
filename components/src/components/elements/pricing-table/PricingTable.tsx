@@ -136,6 +136,8 @@ export const PricingTable = forwardRef<
     const { data, settings, isPending, hydratePublic } = useEmbed();
 
     const { currentPeriod, showPeriodToggle, isStandalone } = useMemo(() => {
+      const showPeriodToggle = data.showPeriodToggle ?? props.showPeriodToggle;
+
       if (isCheckoutData(data)) {
         const billingSubscription = data.company?.billingSubscription;
         const isTrialSubscription = billingSubscription?.status === "trialing";
@@ -145,7 +147,7 @@ export const PricingTable = forwardRef<
           currentPeriod: data.company?.plan?.planPeriod || "month",
           currentAddOns: data.company?.addOns || [],
           canCheckout: data.capabilities?.checkout ?? true,
-          showPeriodToggle: data.showPeriodToggle ?? props.showPeriodToggle,
+          showPeriodToggle,
           isTrialSubscription,
           willSubscriptionCancel,
           isStandalone: false,
@@ -156,7 +158,7 @@ export const PricingTable = forwardRef<
         currentPeriod: "month",
         currentAddOns: [],
         canCheckout: true,
-        showPeriodToggle: props.showPeriodToggle,
+        showPeriodToggle,
         isTrialSubscription: false,
         willSubscriptionCancel: false,
         isStandalone: true,
