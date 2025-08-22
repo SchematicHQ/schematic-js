@@ -88,6 +88,12 @@ export interface BillingCreditBundleView {
   expiryUnitCount?: number | null;
   /**
    *
+   * @type {boolean}
+   * @memberof BillingCreditBundleView
+   */
+  hasGrants: boolean;
+  /**
+   *
    * @type {string}
    * @memberof BillingCreditBundleView
    */
@@ -158,6 +164,7 @@ export function instanceOfBillingCreditBundleView(
     return false;
   if (!("expiryUnit" in value) || value["expiryUnit"] === undefined)
     return false;
+  if (!("hasGrants" in value) || value["hasGrants"] === undefined) return false;
   if (!("id" in value) || value["id"] === undefined) return false;
   if (!("name" in value) || value["name"] === undefined) return false;
   if (!("status" in value) || value["status"] === undefined) return false;
@@ -196,6 +203,7 @@ export function BillingCreditBundleViewFromJSONTyped(
     expiryUnit: json["expiry_unit"],
     expiryUnitCount:
       json["expiry_unit_count"] == null ? undefined : json["expiry_unit_count"],
+    hasGrants: json["has_grants"],
     id: json["id"],
     name: json["name"],
     pluralName: json["plural_name"] == null ? undefined : json["plural_name"],
@@ -232,6 +240,7 @@ export function BillingCreditBundleViewToJSON(
     expiry_type: value["expiryType"],
     expiry_unit: value["expiryUnit"],
     expiry_unit_count: value["expiryUnitCount"],
+    has_grants: value["hasGrants"],
     id: value["id"],
     name: value["name"],
     plural_name: value["pluralName"],
