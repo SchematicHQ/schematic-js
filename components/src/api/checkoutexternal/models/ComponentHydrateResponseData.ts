@@ -19,12 +19,6 @@ import {
   PlanDetailResponseDataFromJSONTyped,
   PlanDetailResponseDataToJSON,
 } from "./PlanDetailResponseData";
-import type { ComponentCheckoutSettings } from "./ComponentCheckoutSettings";
-import {
-  ComponentCheckoutSettingsFromJSON,
-  ComponentCheckoutSettingsFromJSONTyped,
-  ComponentCheckoutSettingsToJSON,
-} from "./ComponentCheckoutSettings";
 import type { BillingCreditBundleView } from "./BillingCreditBundleView";
 import {
   BillingCreditBundleViewFromJSON,
@@ -136,12 +130,6 @@ export interface ComponentHydrateResponseData {
   capabilities?: ComponentCapabilities;
   /**
    *
-   * @type {ComponentCheckoutSettings}
-   * @memberof ComponentHydrateResponseData
-   */
-  checkoutSettings: ComponentCheckoutSettings;
-  /**
-   *
    * @type {CompanyDetailResponseData}
    * @memberof ComponentHydrateResponseData
    */
@@ -228,8 +216,6 @@ export function instanceOfComponentHydrateResponseData(
     value["addOnCompatibilities"] === undefined
   )
     return false;
-  if (!("checkoutSettings" in value) || value["checkoutSettings"] === undefined)
-    return false;
   if (!("creditBundles" in value) || value["creditBundles"] === undefined)
     return false;
   if (!("creditGrants" in value) || value["creditGrants"] === undefined)
@@ -269,9 +255,6 @@ export function ComponentHydrateResponseDataFromJSONTyped(
       json["capabilities"] == null
         ? undefined
         : ComponentCapabilitiesFromJSON(json["capabilities"]),
-    checkoutSettings: ComponentCheckoutSettingsFromJSON(
-      json["checkout_settings"],
-    ),
     company:
       json["company"] == null
         ? undefined
@@ -334,9 +317,6 @@ export function ComponentHydrateResponseDataToJSON(
       CompatiblePlansToJSON,
     ),
     capabilities: ComponentCapabilitiesToJSON(value["capabilities"]),
-    checkout_settings: ComponentCheckoutSettingsToJSON(
-      value["checkoutSettings"],
-    ),
     company: CompanyDetailResponseDataToJSON(value["company"]),
     component: ComponentResponseDataToJSON(value["component"]),
     credit_bundles: (value["creditBundles"] as Array<any>).map(

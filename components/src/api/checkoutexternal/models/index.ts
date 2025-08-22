@@ -26,7 +26,6 @@ export * from "./CompanyResponseData";
 export * from "./CompanySubscriptionResponseData";
 export * from "./CompatiblePlans";
 export * from "./ComponentCapabilities";
-export * from "./ComponentCheckoutSettings";
 export * from "./ComponentHydrateResponseData";
 export * from "./ComponentResponseData";
 export * from "./CountResponse";

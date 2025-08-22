@@ -28,7 +28,6 @@ models/CompanyResponseData.ts
 models/CompanySubscriptionResponseData.ts
 models/CompatiblePlans.ts
 models/ComponentCapabilities.ts
-models/ComponentCheckoutSettings.ts
 models/ComponentHydrateResponseData.ts
 models/ComponentResponseData.ts
 models/CountResponse.ts
