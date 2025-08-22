@@ -17,7 +17,7 @@ import {
   type UpdateAddOnRequestBody,
   type UpdatePayInAdvanceRequestBody,
 } from "../../../api/checkoutexternal";
-import { PriceBehavior } from "../../../const";
+import { PriceBehavior, TEXT_BASE_SIZE } from "../../../const";
 import {
   useAvailablePlans,
   useEmbed,
@@ -36,7 +36,7 @@ import {
   isHydratedPlan,
 } from "../../../utils";
 import { PeriodToggle } from "../../shared";
-import { Flex, Modal, ModalHeader, Text } from "../../ui";
+import { Flex, Loader, Modal, ModalHeader, Text } from "../../ui";
 import { Sidebar } from "../sidebar";
 
 import { AddOns } from "./AddOns";
@@ -85,7 +85,8 @@ interface CheckoutDialogProps {
 export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   const { t } = useTranslation();
 
-  const { data, checkoutState, previewCheckout } = useEmbed();
+  const { data, settings, isPending, checkoutState, previewCheckout } =
+    useEmbed();
 
   const isLightBackground = useIsLightBackground();
 
@@ -343,21 +344,19 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     }
 
     // the user has preselected a different plan before starting the checkout flow
-    if (checkoutState?.planId !== currentPlanId) {
-      const hasUsageStage = checkoutStages.some(
-        (stage) => stage.id === "usage",
-      );
-      const hasAddonsStage = checkoutStages.some(
-        (stage) => stage.id === "addons",
-      );
-      const hasAddonsUsageStage = checkoutStages.some(
-        (stage) => stage.id === "addonsUsage",
-      );
-
-      if (hasUsageStage) return "usage";
-      if (hasAddonsStage) return "addons";
-      if (hasAddonsUsageStage) return "addonsUsage";
-      return "plan";
+    if (
+      typeof checkoutState?.planId !== "undefined" &&
+      checkoutState.planId !== currentPlanId
+    ) {
+      return checkoutStages.some((stage) => stage.id === "usage")
+        ? "usage"
+        : checkoutStages.some((stage) => stage.id === "addons")
+          ? "addons"
+          : checkoutStages.some((stage) => stage.id === "addonsUsage")
+            ? "addonsUsage"
+            : checkoutStages.some((stage) => stage.id === "credits")
+              ? "credits"
+              : "plan";
     }
 
     return "plan";
@@ -885,7 +884,17 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
               )}
           </Flex>
 
-          {checkoutStage === "plan" && (
+          {isPending ? (
+            <Flex
+              $width="100%"
+              $height="100%"
+              $alignItems="center"
+              $justifyContent="center"
+              $padding={`${settings.theme.card.padding / TEXT_BASE_SIZE}rem`}
+            >
+              <Loader $size="2xl" />
+            </Flex>
+          ) : checkoutStage === "plan" ? (
             <Plan
               isLoading={isLoading}
               period={planPeriod}
@@ -895,9 +904,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
               shouldTrial={shouldTrial}
               showPeriodToggle={showPeriodToggle}
             />
-          )}
-
-          {checkoutStage === "usage" && (
+          ) : checkoutStage === "usage" ? (
             <Usage
               isLoading={isLoading}
               period={planPeriod}
@@ -905,18 +912,14 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
               entitlements={payInAdvanceEntitlements}
               updateQuantity={updateUsageBasedEntitlementQuantity}
             />
-          )}
-
-          {checkoutStage === "addons" && (
+          ) : checkoutStage === "addons" ? (
             <AddOns
               isLoading={isLoading}
               period={planPeriod}
               addOns={addOns}
               toggle={(id) => toggleAddOn(id)}
             />
-          )}
-
-          {checkoutStage === "addonsUsage" && (
+          ) : checkoutStage === "addonsUsage" ? (
             <Usage
               isLoading={isLoading}
               period={planPeriod}
@@ -924,22 +927,20 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
               entitlements={addOnUsageBasedEntitlements}
               updateQuantity={updateAddOnEntitlementQuantity}
             />
-          )}
-
-          {checkoutStage === "credits" && (
+          ) : checkoutStage === "credits" ? (
             <Credits
               isLoading={isLoading}
               bundles={creditBundles}
               updateCount={updateCreditBundleCount}
             />
-          )}
-
-          {checkoutStage === "checkout" && (
-            <Checkout
-              isPaymentMethodRequired={isPaymentMethodRequired}
-              setPaymentMethodId={(id) => setPaymentMethodId(id)}
-              updatePromoCode={updatePromoCode}
-            />
+          ) : (
+            checkoutStage === "checkout" && (
+              <Checkout
+                isPaymentMethodRequired={isPaymentMethodRequired}
+                setPaymentMethodId={(id) => setPaymentMethodId(id)}
+                updatePromoCode={updatePromoCode}
+              />
+            )
           )}
         </Flex>
 

@@ -204,7 +204,7 @@ export const PricingTable = forwardRef<
       setEntitlementCounts(plans.reduce(entitlementCountsReducer, {}));
     }, [plans]);
 
-    if (isStandalone && isPending) {
+    if (isPending) {
       return (
         <Flex
           $width="100%"
