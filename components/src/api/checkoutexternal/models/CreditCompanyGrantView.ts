@@ -85,6 +85,24 @@ export interface CreditCompanyGrantView {
    * @type {string}
    * @memberof CreditCompanyGrantView
    */
+  expiryType?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof CreditCompanyGrantView
+   */
+  expiryUnit?: string | null;
+  /**
+   *
+   * @type {number}
+   * @memberof CreditCompanyGrantView
+   */
+  expiryUnitCount?: number | null;
+  /**
+   *
+   * @type {string}
+   * @memberof CreditCompanyGrantView
+   */
   grantReason: string;
   /**
    *
@@ -235,6 +253,10 @@ export function CreditCompanyGrantViewFromJSONTyped(
     creditName: json["credit_name"],
     expiresAt:
       json["expires_at"] == null ? undefined : new Date(json["expires_at"]),
+    expiryType: json["expiry_type"] == null ? undefined : json["expiry_type"],
+    expiryUnit: json["expiry_unit"] == null ? undefined : json["expiry_unit"],
+    expiryUnitCount:
+      json["expiry_unit_count"] == null ? undefined : json["expiry_unit_count"],
     grantReason: json["grant_reason"],
     id: json["id"],
     planId: json["plan_id"] == null ? undefined : json["plan_id"],
@@ -281,6 +303,9 @@ export function CreditCompanyGrantViewToJSON(
       value["expiresAt"] == null
         ? undefined
         : (value["expiresAt"] as any).toISOString(),
+    expiry_type: value["expiryType"],
+    expiry_unit: value["expiryUnit"],
+    expiry_unit_count: value["expiryUnitCount"],
     grant_reason: value["grantReason"],
     id: value["id"],
     plan_id: value["planId"],

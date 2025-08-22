@@ -10,7 +10,11 @@ import { useTranslation } from "react-i18next";
 
 import { type CompanyPlanDetailResponseData } from "../../../api/checkoutexternal";
 import { type PlanViewPublicResponseData } from "../../../api/componentspublic";
-import { TEXT_BASE_SIZE, VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
+import {
+  PriceInterval,
+  TEXT_BASE_SIZE,
+  VISIBLE_ENTITLEMENT_COUNT,
+} from "../../../const";
 import { type FontStyle } from "../../../context";
 import { useAvailablePlans, useEmbed } from "../../../hooks";
 import type { DeepPartial, ElementProps } from "../../../types";
@@ -131,7 +135,7 @@ export const PricingTable = forwardRef<
 
     const { data, settings, isPending, hydratePublic } = useEmbed();
 
-    const { currentPeriod, isStandalone } = useMemo(() => {
+    const { currentPeriod, showPeriodToggle, isStandalone } = useMemo(() => {
       if (isCheckoutData(data)) {
         const billingSubscription = data.company?.billingSubscription;
         const isTrialSubscription = billingSubscription?.status === "trialing";
@@ -141,6 +145,7 @@ export const PricingTable = forwardRef<
           currentPeriod: data.company?.plan?.planPeriod || "month",
           currentAddOns: data.company?.addOns || [],
           canCheckout: data.capabilities?.checkout ?? true,
+          showPeriodToggle: data.showPeriodToggle ?? props.showPeriodToggle,
           isTrialSubscription,
           willSubscriptionCancel,
           isStandalone: false,
@@ -151,15 +156,18 @@ export const PricingTable = forwardRef<
         currentPeriod: "month",
         currentAddOns: [],
         canCheckout: true,
+        showPeriodToggle: props.showPeriodToggle,
         isTrialSubscription: false,
         willSubscriptionCancel: false,
         isStandalone: true,
       };
-    }, [data]);
+    }, [props.showPeriodToggle, data]);
 
     const [selectedPeriod, setSelectedPeriod] = useState(currentPeriod);
 
-    const { plans, addOns, periods } = useAvailablePlans(selectedPeriod);
+    const { plans, addOns, periods } = useAvailablePlans(selectedPeriod, {
+      useSelectedPeriod: showPeriodToggle,
+    });
 
     const [entitlementCounts, setEntitlementCounts] = useState(() =>
       plans.reduce(entitlementCountsReducer, {}),
@@ -245,7 +253,7 @@ export const PricingTable = forwardRef<
                   t("Plans")}
               </Text>
 
-              {props.showPeriodToggle && periods.length > 1 && (
+              {showPeriodToggle && periods.length > 1 && (
                 <PeriodToggle
                   options={periods}
                   selectedOption={selectedPeriod}
@@ -264,23 +272,31 @@ export const PricingTable = forwardRef<
                 $gridTemplateColumns="repeat(auto-fill, minmax(320px, 1fr))"
                 $gap="1rem"
               >
-                {plans.map((plan, index, self) => (
-                  <Plan
-                    key={index}
-                    plan={plan}
-                    index={index}
-                    sharedProps={{
-                      layout: props,
-                      callToActionUrl,
-                      callToActionTarget,
-                      onCallToAction,
-                    }}
-                    plans={self}
-                    selectedPeriod={selectedPeriod}
-                    entitlementCounts={entitlementCounts}
-                    handleToggleShowAll={handleToggleShowAll}
-                  />
-                ))}
+                {plans.map((plan, index, self) => {
+                  const planPeriod = showPeriodToggle
+                    ? selectedPeriod
+                    : plan.yearlyPrice && !plan.monthlyPrice
+                      ? PriceInterval.Year
+                      : PriceInterval.Month;
+
+                  return (
+                    <Plan
+                      key={index}
+                      plan={plan}
+                      index={index}
+                      sharedProps={{
+                        layout: props,
+                        callToActionUrl,
+                        callToActionTarget,
+                        onCallToAction,
+                      }}
+                      plans={self}
+                      selectedPeriod={planPeriod}
+                      entitlementCounts={entitlementCounts}
+                      handleToggleShowAll={handleToggleShowAll}
+                    />
+                  );
+                })}
               </Box>
             )}
           </Box>
@@ -308,19 +324,27 @@ export const PricingTable = forwardRef<
                   $gridTemplateColumns="repeat(auto-fill, minmax(320px, 1fr))"
                   $gap="1rem"
                 >
-                  {addOns.map((addOn, index) => (
-                    <AddOn
-                      key={index}
-                      addOn={addOn}
-                      sharedProps={{
-                        layout: props,
-                        callToActionUrl,
-                        callToActionTarget,
-                        onCallToAction,
-                      }}
-                      selectedPeriod={selectedPeriod}
-                    />
-                  ))}
+                  {addOns.map((addOn, index) => {
+                    const addOnPeriod = showPeriodToggle
+                      ? selectedPeriod
+                      : addOn.yearlyPrice && !addOn.monthlyPrice
+                        ? PriceInterval.Year
+                        : PriceInterval.Month;
+
+                    return (
+                      <AddOn
+                        key={index}
+                        addOn={addOn}
+                        sharedProps={{
+                          layout: props,
+                          callToActionUrl,
+                          callToActionTarget,
+                          onCallToAction,
+                        }}
+                        selectedPeriod={addOnPeriod}
+                      />
+                    );
+                  })}
                 </Box>
               </>
             )}
