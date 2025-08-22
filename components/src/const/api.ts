@@ -1,3 +1,10 @@
+export enum PriceInterval {
+  OneTime = "one-time",
+  Day = "day",
+  Month = "month",
+  Year = "year",
+}
+
 export enum PriceBehavior {
   PayInAdvance = "pay_in_advance",
   PayAsYouGo = "pay_as_you_go",

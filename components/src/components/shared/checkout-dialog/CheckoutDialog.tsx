@@ -124,24 +124,30 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     periods: availablePeriods,
   } = useAvailablePlans(planPeriod);
 
-  const { currentPlanId, currentEntitlements, trialPaymentMethodRequired } =
-    useMemo(() => {
-      if (isCheckoutData(data)) {
-        return {
-          currentPlanId: data.company?.plan?.id,
-          currentEntitlements: data.featureUsage
-            ? data.featureUsage.features
-            : [],
-          trialPaymentMethodRequired: data.trialPaymentMethodRequired === true,
-        };
-      }
-
+  const {
+    currentPlanId,
+    currentEntitlements,
+    showPeriodToggle,
+    trialPaymentMethodRequired,
+  } = useMemo(() => {
+    if (isCheckoutData(data)) {
       return {
-        currentPlanId: undefined,
-        currentEntitlements: [],
-        trialPaymentMethodRequired: false,
+        currentPlanId: data.company?.plan?.id,
+        currentEntitlements: data.featureUsage
+          ? data.featureUsage.features
+          : [],
+        showPeriodToggle: data.showPeriodToggle,
+        trialPaymentMethodRequired: data.trialPaymentMethodRequired === true,
       };
-    }, [data]);
+    }
+
+    return {
+      currentPlanId: undefined,
+      currentEntitlements: [],
+      showPeriodToggle: true,
+      trialPaymentMethodRequired: false,
+    };
+  }, [data]);
 
   const [selectedPlan, setSelectedPlan] = useState<SelectedPlan | undefined>(
     () => {
@@ -864,14 +870,16 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
               </Flex>
             )}
 
-            {checkoutStage === "plan" && availablePeriods.length > 1 && (
-              <PeriodToggle
-                options={availablePeriods}
-                selectedOption={planPeriod}
-                selectedPlan={selectedPlan}
-                onSelect={changePlanPeriod}
-              />
-            )}
+            {checkoutStage === "plan" &&
+              showPeriodToggle &&
+              availablePeriods.length > 1 && (
+                <PeriodToggle
+                  options={availablePeriods}
+                  selectedOption={planPeriod}
+                  selectedPlan={selectedPlan}
+                  onSelect={changePlanPeriod}
+                />
+              )}
           </Flex>
 
           {checkoutStage === "plan" && (
@@ -882,6 +890,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
               selectedPlan={selectedPlan}
               selectPlan={selectPlan}
               shouldTrial={shouldTrial}
+              showPeriodToggle={showPeriodToggle}
             />
           )}
 
