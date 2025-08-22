@@ -31,6 +31,12 @@ export interface UsageBasedEntitlementResponseData {
    * @type {number}
    * @memberof UsageBasedEntitlementResponseData
    */
+  billingThreshold?: number | null;
+  /**
+   *
+   * @type {number}
+   * @memberof UsageBasedEntitlementResponseData
+   */
   consumptionRate?: number | null;
   /**
    *
@@ -119,6 +125,8 @@ export function UsageBasedEntitlementResponseDataFromJSONTyped(
     return json;
   }
   return {
+    billingThreshold:
+      json["billing_threshold"] == null ? undefined : json["billing_threshold"],
     consumptionRate:
       json["consumption_rate"] == null ? undefined : json["consumption_rate"],
     featureId: json["feature_id"],
@@ -156,6 +164,7 @@ export function UsageBasedEntitlementResponseDataToJSON(
     return value;
   }
   return {
+    billing_threshold: value["billingThreshold"],
     consumption_rate: value["consumptionRate"],
     feature_id: value["featureId"],
     metered_price: BillingPriceViewToJSON(value["meteredPrice"]),
