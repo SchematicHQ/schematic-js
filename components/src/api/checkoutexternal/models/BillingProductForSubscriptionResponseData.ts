@@ -34,6 +34,12 @@ export interface BillingProductForSubscriptionResponseData {
   billingScheme: string;
   /**
    *
+   * @type {number}
+   * @memberof BillingProductForSubscriptionResponseData
+   */
+  billingThreshold?: number | null;
+  /**
+   *
    * @type {Date}
    * @memberof BillingProductForSubscriptionResponseData
    */
@@ -130,6 +136,12 @@ export interface BillingProductForSubscriptionResponseData {
   subscriptionId: string;
   /**
    *
+   * @type {string}
+   * @memberof BillingProductForSubscriptionResponseData
+   */
+  subscriptionItemExternalId?: string | null;
+  /**
+   *
    * @type {Date}
    * @memberof BillingProductForSubscriptionResponseData
    */
@@ -189,6 +201,8 @@ export function BillingProductForSubscriptionResponseDataFromJSONTyped(
   }
   return {
     billingScheme: json["billing_scheme"],
+    billingThreshold:
+      json["billing_threshold"] == null ? undefined : json["billing_threshold"],
     createdAt: new Date(json["created_at"]),
     currency: json["currency"],
     environmentId: json["environment_id"],
@@ -208,6 +222,10 @@ export function BillingProductForSubscriptionResponseDataFromJSONTyped(
     ),
     quantity: json["quantity"],
     subscriptionId: json["subscription_id"],
+    subscriptionItemExternalId:
+      json["subscription_item_external_id"] == null
+        ? undefined
+        : json["subscription_item_external_id"],
     updatedAt: new Date(json["updated_at"]),
     usageType: json["usage_type"],
   };
@@ -221,6 +239,7 @@ export function BillingProductForSubscriptionResponseDataToJSON(
   }
   return {
     billing_scheme: value["billingScheme"],
+    billing_threshold: value["billingThreshold"],
     created_at: value["createdAt"].toISOString(),
     currency: value["currency"],
     environment_id: value["environmentId"],
@@ -239,6 +258,7 @@ export function BillingProductForSubscriptionResponseDataToJSON(
     ),
     quantity: value["quantity"],
     subscription_id: value["subscriptionId"],
+    subscription_item_external_id: value["subscriptionItemExternalId"],
     updated_at: value["updatedAt"].toISOString(),
     usage_type: value["usageType"],
   };

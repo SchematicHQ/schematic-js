@@ -61,6 +61,12 @@ export interface PlanEntitlementResponseData {
    * @type {number}
    * @memberof PlanEntitlementResponseData
    */
+  billingThreshold?: number | null;
+  /**
+   *
+   * @type {number}
+   * @memberof PlanEntitlementResponseData
+   */
   consumptionRate?: number | null;
   /**
    *
@@ -234,6 +240,8 @@ export function PlanEntitlementResponseDataFromJSONTyped(
     return json;
   }
   return {
+    billingThreshold:
+      json["billing_threshold"] == null ? undefined : json["billing_threshold"],
     consumptionRate:
       json["consumption_rate"] == null ? undefined : json["consumption_rate"],
     createdAt: new Date(json["created_at"]),
@@ -298,6 +306,7 @@ export function PlanEntitlementResponseDataToJSON(
     return value;
   }
   return {
+    billing_threshold: value["billingThreshold"],
     consumption_rate: value["consumptionRate"],
     created_at: value["createdAt"].toISOString(),
     environment_id: value["environmentId"],
