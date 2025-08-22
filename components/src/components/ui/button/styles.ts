@@ -47,7 +47,6 @@ export const Button = styled.button<ButtonProps>(
         css`
           align-self: ${$selfAlignment};
         `}
-      gap: 0.5rem;
       width: ${$fullWidth ? "100%" : "fit-content"};
       border: 1px solid transparent;
       transition: 0.1s;
@@ -160,6 +159,10 @@ export const Button = styled.button<ButtonProps>(
       &::before {
         content: "";
         ${loaderStyles({ $color: theme[$color], $size, $isLoading })}
+        ${$isLoading &&
+        css`
+          margin-right: 0.5rem;
+        `}
       }
 
       &:disabled {
