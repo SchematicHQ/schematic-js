@@ -136,7 +136,7 @@ export const PricingTable = forwardRef<
     const { data, settings, isPending, hydratePublic } = useEmbed();
 
     const { currentPeriod, showPeriodToggle, isStandalone } = useMemo(() => {
-      const showPeriodToggle = data.showPeriodToggle ?? props.showPeriodToggle;
+      const showPeriodToggle = data?.showPeriodToggle ?? props.showPeriodToggle;
 
       if (isCheckoutData(data)) {
         const billingSubscription = data.company?.billingSubscription;
