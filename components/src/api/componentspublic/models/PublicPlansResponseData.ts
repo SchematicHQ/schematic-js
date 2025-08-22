@@ -62,6 +62,12 @@ export interface PublicPlansResponseData {
    * @memberof PublicPlansResponseData
    */
   capabilities?: ComponentCapabilities;
+  /**
+   *
+   * @type {boolean}
+   * @memberof PublicPlansResponseData
+   */
+  showPeriodToggle: boolean;
 }
 
 /**
@@ -78,6 +84,8 @@ export function instanceOfPublicPlansResponseData(
     !("addOnCompatibilities" in value) ||
     value["addOnCompatibilities"] === undefined
   )
+    return false;
+  if (!("showPeriodToggle" in value) || value["showPeriodToggle"] === undefined)
     return false;
   return true;
 }
@@ -109,6 +117,7 @@ export function PublicPlansResponseDataFromJSONTyped(
       json["capabilities"] == null
         ? undefined
         : ComponentCapabilitiesFromJSON(json["capabilities"]),
+    showPeriodToggle: json["show_period_toggle"],
   };
 }
 
@@ -129,5 +138,6 @@ export function PublicPlansResponseDataToJSON(
       CompatiblePlansToJSON,
     ),
     capabilities: ComponentCapabilitiesToJSON(value["capabilities"]),
+    show_period_toggle: value["showPeriodToggle"],
   };
 }
