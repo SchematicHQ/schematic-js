@@ -308,7 +308,6 @@ export const Sidebar = ({
         : selectedPlan?.monthlyPrice
     )?.id;
 
-
     try {
       if (!planId || !priceId) {
         throw new Error(t("Selected plan or associated price is missing."));
@@ -365,7 +364,6 @@ export const Sidebar = ({
         );
 
       const allPayInAdvance = [...planPayInAdvance, ...addOnPayInAdvance];
-
 
       await checkout({
         newPlanId: planId,
