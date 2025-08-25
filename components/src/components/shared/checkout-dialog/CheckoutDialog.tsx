@@ -512,8 +512,15 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
             }
           }
 
+
+          // Show the actual error message if available, otherwise use generic message
+          const errorMessage = data.error || 
+            `HTTP ${err.response.status}: ${err.response.statusText}`;
+          
           setError(
-            t("Error retrieving plan details. Please try again in a moment."),
+            errorMessage.includes("retrieving plan details") 
+              ? t("Error retrieving plan details. Please try again in a moment.")
+              : `${t("Error retrieving plan details")}: ${errorMessage}`
           );
           return;
         }
@@ -640,9 +647,13 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
               })),
           );
 
+
         setAddOnUsageBasedEntitlements(updatedAddOnEntitlements);
 
-        handlePreviewCheckout({ addOns: updated });
+        handlePreviewCheckout({ 
+          addOns: updated,
+          addOnPayInAdvanceEntitlements: updatedAddOnEntitlements
+        });
 
         return updated;
       });
@@ -705,6 +716,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
               }
             : entitlement,
         );
+
 
         handlePreviewCheckout({
           addOnPayInAdvanceEntitlements: updated,
@@ -948,6 +960,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           selectedPlan={selectedPlan}
           addOns={addOns}
           usageBasedEntitlements={usageBasedEntitlements}
+          addOnUsageBasedEntitlements={addOnUsageBasedEntitlements}
           creditBundles={creditBundles}
           charges={charges}
           checkoutRef={checkoutRef}
