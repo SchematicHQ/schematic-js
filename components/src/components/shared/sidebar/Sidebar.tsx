@@ -46,6 +46,7 @@ interface SidebarProps {
   addOns: SelectedPlan[];
   creditBundles?: CreditBundle[];
   usageBasedEntitlements: UsageBasedEntitlement[];
+  addOnUsageBasedEntitlements?: UsageBasedEntitlement[];
   charges?: PreviewSubscriptionFinanceResponseData;
   checkoutRef?: React.RefObject<HTMLDivElement | null>;
   checkoutStage?: string;
@@ -70,6 +71,7 @@ export const Sidebar = ({
   addOns,
   creditBundles = [],
   usageBasedEntitlements,
+  addOnUsageBasedEntitlements = [],
   charges,
   checkoutRef,
   checkoutStage,
@@ -314,6 +316,55 @@ export const Sidebar = ({
       setError(undefined);
       setIsLoading(true);
 
+      const planPayInAdvance = payInAdvanceEntitlements.reduce(
+        (
+          acc: UpdatePayInAdvanceRequestBody[],
+          { meteredMonthlyPrice, meteredYearlyPrice, quantity },
+        ) => {
+          const priceId = (
+            planPeriod === "year" ? meteredYearlyPrice : meteredMonthlyPrice
+          )?.priceId;
+
+          if (priceId) {
+            acc.push({
+              priceId,
+              quantity,
+            });
+          }
+
+          return acc;
+        },
+        [],
+      );
+
+      const addOnPayInAdvance = addOnUsageBasedEntitlements
+        .filter(
+          (entitlement) =>
+            entitlement.priceBehavior === PriceBehavior.PayInAdvance,
+        )
+        .reduce(
+          (
+            acc: UpdatePayInAdvanceRequestBody[],
+            { meteredMonthlyPrice, meteredYearlyPrice, quantity },
+          ) => {
+            const priceId = (
+              planPeriod === "year" ? meteredYearlyPrice : meteredMonthlyPrice
+            )?.priceId;
+
+            if (priceId) {
+              acc.push({
+                priceId,
+                quantity,
+              });
+            }
+
+            return acc;
+          },
+          [],
+        );
+
+      const allPayInAdvance = [...planPayInAdvance, ...addOnPayInAdvance];
+
       await checkout({
         newPlanId: planId,
         newPriceId: priceId,
@@ -335,26 +386,7 @@ export const Sidebar = ({
 
           return acc;
         }, []),
-        payInAdvance: payInAdvanceEntitlements.reduce(
-          (
-            acc: UpdatePayInAdvanceRequestBody[],
-            { meteredMonthlyPrice, meteredYearlyPrice, quantity },
-          ) => {
-            const priceId = (
-              planPeriod === "year" ? meteredYearlyPrice : meteredMonthlyPrice
-            )?.priceId;
-
-            if (priceId) {
-              acc.push({
-                priceId,
-                quantity,
-              });
-            }
-
-            return acc;
-          },
-          [],
-        ),
+        payInAdvance: allPayInAdvance,
         creditBundles: creditBundles.reduce(
           (acc: UpdateCreditBundleRequestBody[], { id, count }) => {
             if (count > 0) {
@@ -394,6 +426,7 @@ export const Sidebar = ({
     setIsLoading,
     setLayout,
     payInAdvanceEntitlements,
+    addOnUsageBasedEntitlements,
     willTrialWithoutPaymentMethod,
     promoCode,
   ]);

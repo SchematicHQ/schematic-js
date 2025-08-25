@@ -642,7 +642,10 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
         setAddOnUsageBasedEntitlements(updatedAddOnEntitlements);
 
-        handlePreviewCheckout({ addOns: updated });
+        handlePreviewCheckout({
+          addOns: updated,
+          addOnPayInAdvanceEntitlements: updatedAddOnEntitlements,
+        });
 
         return updated;
       });
@@ -948,6 +951,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           selectedPlan={selectedPlan}
           addOns={addOns}
           usageBasedEntitlements={usageBasedEntitlements}
+          addOnUsageBasedEntitlements={addOnUsageBasedEntitlements}
           creditBundles={creditBundles}
           charges={charges}
           checkoutRef={checkoutRef}
