@@ -233,6 +233,15 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     [usageBasedEntitlements],
   );
 
+  const addOnPayInAdvanceEntitlements = useMemo(
+    () =>
+      addOnUsageBasedEntitlements.filter(
+        (entitlement) =>
+          entitlement.priceBehavior === PriceBehavior.PayInAdvance,
+      ),
+    [addOnUsageBasedEntitlements],
+  );
+
   const [promoCode, setPromoCode] = useState<string | null>(null);
 
   const [isPaymentMethodRequired, setIsPaymentMethodRequired] = useState(false);
@@ -926,10 +935,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
               isLoading={isLoading}
               period={planPeriod}
               selectedPlan={selectedPlan}
-              entitlements={addOnUsageBasedEntitlements.filter(
-                (entitlement) =>
-                  entitlement.priceBehavior === PriceBehavior.PayInAdvance,
-              )}
+              entitlements={addOnPayInAdvanceEntitlements}
               updateQuantity={updateAddOnEntitlementQuantity}
             />
           ) : checkoutStage === "credits" ? (
