@@ -926,7 +926,10 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
               isLoading={isLoading}
               period={planPeriod}
               selectedPlan={selectedPlan}
-              entitlements={addOnUsageBasedEntitlements}
+              entitlements={addOnUsageBasedEntitlements.filter(
+                (entitlement) =>
+                  entitlement.priceBehavior === PriceBehavior.PayInAdvance,
+              )}
               updateQuantity={updateAddOnEntitlementQuantity}
             />
           ) : checkoutStage === "credits" ? (
