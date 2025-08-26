@@ -345,6 +345,15 @@ export const EmbedProvider = ({
     [getUpcomingInvoice],
   );
 
+  const getCustomerBalance = useCallback(async () => {
+    return api.checkout?.fetchCustomerBalance();
+  }, [api.checkout]);
+
+  const debouncedGetCustomerBalance = useMemo(
+    () => debounce(getCustomerBalance, FETCH_DEBOUNCE_TIMEOUT, debounceOptions),
+    [getCustomerBalance],
+  );
+
   const listInvoices = useCallback(async () => {
     return api.checkout?.listInvoices();
   }, [api.checkout]);
@@ -518,6 +527,7 @@ export const EmbedProvider = ({
         previewCheckout: debouncedPreviewCheckout,
         unsubscribe: debouncedUnsubscribe,
         getUpcomingInvoice: debouncedGetUpcomingInvoice,
+        getCustomerBalance: debouncedGetCustomerBalance,
         listInvoices: debouncedListInvoices,
         setError,
         setAccessToken,

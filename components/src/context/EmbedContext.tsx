@@ -6,6 +6,7 @@ import {
   type CheckoutUnsubscribeResponse,
   type ComponentHydrateResponseData,
   type DeletePaymentMethodResponse,
+  type FetchCustomerBalanceResponse,
   type GetSetupIntentResponse,
   type HydrateUpcomingInvoiceResponse,
   type ListInvoicesResponse,
@@ -38,6 +39,7 @@ export interface EmbedContextProps extends EmbedState {
   getUpcomingInvoice: (
     id: string,
   ) => DebouncedApiPromise<HydrateUpcomingInvoiceResponse>;
+  getCustomerBalance: () => DebouncedApiPromise<FetchCustomerBalanceResponse>;
   listInvoices: () => DebouncedApiPromise<ListInvoicesResponse>;
   createSetupIntent: () => DebouncedApiPromise<GetSetupIntentResponse>;
   updatePaymentMethod: (
@@ -75,6 +77,7 @@ export const initialContext = {
   hydrateComponent: stub,
   hydrateExternal: stub,
   getUpcomingInvoice: stub,
+  getCustomerBalance: stub,
   listInvoices: stub,
   createSetupIntent: stub,
   updatePaymentMethod: stub,
