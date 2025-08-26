@@ -111,12 +111,7 @@ export const UpcomingBill = forwardRef<
   }, [data, getUpcomingInvoice]);
 
   const getBalances = useCallback(async () => {
-    if (
-      isCheckoutData(data) &&
-      data.component?.id &&
-      data.subscription &&
-      !data.subscription.cancelAt
-    ) {
+    if (isCheckoutData(data)) {
       try {
         setError(undefined);
         setIsLoading(true);
