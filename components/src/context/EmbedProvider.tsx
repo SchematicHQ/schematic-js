@@ -345,6 +345,15 @@ export const EmbedProvider = ({
     [getUpcomingInvoice],
   );
 
+  const getCustomerBalance = useCallback(async () => {
+    return api.checkout?.fetchCustomerBalance();
+  }, [api.checkout]);
+
+  const debouncedGetCustomerBalance = useMemo(
+    () => debounce(getCustomerBalance, FETCH_DEBOUNCE_TIMEOUT, debounceOptions),
+    [getCustomerBalance],
+  );
+
   const listInvoices = useCallback(async () => {
     return api.checkout?.listInvoices();
   }, [api.checkout]);
@@ -355,9 +364,13 @@ export const EmbedProvider = ({
   );
 
   // components
-  const setError = useCallback((error: Error) => {
-    dispatch({ type: "ERROR", error });
-  }, []);
+  const setError = useCallback(
+    (error: Error) => {
+      debug(error.message);
+      dispatch({ type: "ERROR", error });
+    },
+    [debug],
+  );
 
   const setAccessToken = useCallback((token: string) => {
     dispatch({ type: "SET_ACCESS_TOKEN", token });
@@ -391,14 +404,13 @@ export const EmbedProvider = ({
     ) as HTMLLinkElement;
     if (element) {
       styleRef.current = element;
-      return;
+    } else {
+      const style = document.createElement("link");
+      style.id = "schematic-fonts";
+      style.rel = "stylesheet";
+      document.head.appendChild(style);
+      styleRef.current = style;
     }
-
-    const style = document.createElement("link");
-    style.id = "schematic-fonts";
-    style.rel = "stylesheet";
-    document.head.appendChild(style);
-    styleRef.current = style;
 
     const darkModeQuery = matchMedia("(prefers-color-scheme: dark)");
     const colorMode = darkModeQuery.matches ? "dark" : "light";
@@ -411,13 +423,19 @@ export const EmbedProvider = ({
       },
     });
 
-    darkModeQuery.addEventListener("change", (event) => {
+    function darkModeQueryHandler(event: MediaQueryListEvent) {
       const newColorMode = event.matches ? "dark" : "light";
       dispatch({
         type: "UPDATE_SETTINGS",
         settings: { theme: { colorMode: newColorMode } },
       });
-    });
+    }
+
+    darkModeQuery.addEventListener("change", darkModeQueryHandler);
+
+    return () => {
+      darkModeQuery.removeEventListener("change", darkModeQueryHandler);
+    };
   }, []);
 
   useEffect(() => {
@@ -473,27 +491,21 @@ export const EmbedProvider = ({
   }, [state.accessToken, apiConfig, customHeaders]);
 
   useEffect(() => {
-    if (state.error) {
-      debug(state.error.message);
-    }
-  }, [debug, state.error]);
-
-  useEffect(() => {
     const providedSettings = { ...(options.settings || {}) };
     updateSettings(providedSettings, { update: false });
   }, [options.settings, updateSettings]);
 
   useEffect(() => {
-    const planChanged: EventListener = (event) => {
+    function planChangedHandler(event: Event) {
       if (event instanceof CustomEvent) {
         debug("plan changed", event.detail);
       }
-    };
+    }
 
-    window.addEventListener("plan-changed", planChanged);
+    window.addEventListener("plan-changed", planChangedHandler);
 
     return () => {
-      window.removeEventListener("plan-changed", planChanged);
+      window.removeEventListener("plan-changed", planChangedHandler);
     };
   }, [debug]);
 
@@ -518,6 +530,7 @@ export const EmbedProvider = ({
         previewCheckout: debouncedPreviewCheckout,
         unsubscribe: debouncedUnsubscribe,
         getUpcomingInvoice: debouncedGetUpcomingInvoice,
+        getCustomerBalance: debouncedGetCustomerBalance,
         listInvoices: debouncedListInvoices,
         setError,
         setAccessToken,
@@ -525,6 +538,7 @@ export const EmbedProvider = ({
         setCheckoutState,
         setData,
         updateSettings,
+        debug,
       }}
     >
       <ThemeProvider theme={state.settings.theme}>

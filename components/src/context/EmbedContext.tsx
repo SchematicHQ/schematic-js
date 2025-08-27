@@ -6,6 +6,7 @@ import {
   type CheckoutUnsubscribeResponse,
   type ComponentHydrateResponseData,
   type DeletePaymentMethodResponse,
+  type FetchCustomerBalanceResponse,
   type GetSetupIntentResponse,
   type HydrateUpcomingInvoiceResponse,
   type ListInvoicesResponse,
@@ -38,6 +39,7 @@ export interface EmbedContextProps extends EmbedState {
   getUpcomingInvoice: (
     id: string,
   ) => DebouncedApiPromise<HydrateUpcomingInvoiceResponse>;
+  getCustomerBalance: () => DebouncedApiPromise<FetchCustomerBalanceResponse>;
   listInvoices: () => DebouncedApiPromise<ListInvoicesResponse>;
   createSetupIntent: () => DebouncedApiPromise<GetSetupIntentResponse>;
   updatePaymentMethod: (
@@ -62,6 +64,7 @@ export interface EmbedContextProps extends EmbedState {
     settings: DeepPartial<EmbedSettings>,
     options?: { update?: boolean },
   ) => void;
+  debug: (message: string, ...args: unknown[]) => void;
 }
 
 export const stub = () => {
@@ -75,6 +78,7 @@ export const initialContext = {
   hydrateComponent: stub,
   hydrateExternal: stub,
   getUpcomingInvoice: stub,
+  getCustomerBalance: stub,
   listInvoices: stub,
   createSetupIntent: stub,
   updatePaymentMethod: stub,
@@ -88,6 +92,7 @@ export const initialContext = {
   setCheckoutState: stub,
   setData: stub,
   updateSettings: stub,
+  debug: stub,
 };
 
 export const EmbedContext = createContext<EmbedContextProps>(initialContext);

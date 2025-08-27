@@ -1,7 +1,10 @@
 import { forwardRef, useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { type InvoiceResponseData } from "../../../api/checkoutexternal";
+import {
+  type CurrencyBalance,
+  type InvoiceResponseData,
+} from "../../../api/checkoutexternal";
 import { type FontStyle } from "../../../context";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import type { DeepPartial, ElementProps } from "../../../types";
@@ -61,13 +64,15 @@ export const UpcomingBill = forwardRef<
 
   const { t } = useTranslation();
 
-  const { data, settings, getUpcomingInvoice } = useEmbed();
+  const { data, settings, debug, getUpcomingInvoice, getCustomerBalance } =
+    useEmbed();
 
   const isLightBackground = useIsLightBackground();
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error>();
   const [upcomingInvoice, setUpcomingInvoice] = useState<InvoiceResponseData>();
+  const [balances, setBalances] = useState<CurrencyBalance[]>([]);
 
   const discounts = useMemo(() => {
     return ((isCheckoutData(data) && data.subscription?.discounts) || []).map(
@@ -106,9 +111,25 @@ export const UpcomingBill = forwardRef<
     }
   }, [data, getUpcomingInvoice]);
 
+  const getBalances = useCallback(async () => {
+    try {
+      const response = await getCustomerBalance();
+
+      if (response) {
+        setBalances(response.data.balances);
+      }
+    } catch (err) {
+      debug("Failed to fetch customer balance.", err);
+    }
+  }, [debug, getCustomerBalance]);
+
   useEffect(() => {
     getInvoice();
   }, [getInvoice]);
+
+  useEffect(() => {
+    getBalances();
+  }, [getBalances]);
 
   if (
     !isCheckoutData(data) ||
@@ -178,6 +199,25 @@ export const UpcomingBill = forwardRef<
                     </Text>
                   </Box>
                 </Flex>
+
+                {balances.length > 0 && (
+                  <Flex
+                    as={TransitionBox}
+                    $justifyContent="space-between"
+                    $alignItems="start"
+                    $gap="1rem"
+                  >
+                    <Text $weight={600}>{t("Remaining balance")}</Text>
+
+                    <Flex $flexDirection="column" $gap="0.5rem">
+                      {balances.map((item, idx) => (
+                        <Text key={idx}>
+                          {formatCurrency(item.balance, item.currency)}
+                        </Text>
+                      ))}
+                    </Flex>
+                  </Flex>
+                )}
 
                 {discounts.length > 0 && (
                   <Flex
