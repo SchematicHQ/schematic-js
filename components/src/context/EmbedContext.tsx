@@ -64,6 +64,7 @@ export interface EmbedContextProps extends EmbedState {
     settings: DeepPartial<EmbedSettings>,
     options?: { update?: boolean },
   ) => void;
+  debug: (message: string, ...args: unknown[]) => void;
 }
 
 export const stub = () => {
@@ -91,6 +92,7 @@ export const initialContext = {
   setCheckoutState: stub,
   setData: stub,
   updateSettings: stub,
+  debug: stub,
 };
 
 export const EmbedContext = createContext<EmbedContextProps>(initialContext);

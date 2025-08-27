@@ -64,7 +64,8 @@ export const UpcomingBill = forwardRef<
 
   const { t } = useTranslation();
 
-  const { data, settings, getUpcomingInvoice, getCustomerBalance } = useEmbed();
+  const { data, settings, debug, getUpcomingInvoice, getCustomerBalance } =
+    useEmbed();
 
   const isLightBackground = useIsLightBackground();
 
@@ -111,23 +112,16 @@ export const UpcomingBill = forwardRef<
   }, [data, getUpcomingInvoice]);
 
   const getBalances = useCallback(async () => {
-    if (isCheckoutData(data)) {
-      try {
-        setError(undefined);
-        setIsLoading(true);
+    try {
+      const response = await getCustomerBalance();
 
-        const response = await getCustomerBalance();
-
-        if (response) {
-          setBalances(response.data.balances);
-        }
-      } catch (err) {
-        setError(isError(err) ? err : ERROR_UNKNOWN);
-      } finally {
-        setIsLoading(false);
+      if (response) {
+        setBalances(response.data.balances);
       }
+    } catch (err) {
+      debug("Failed to fetch customer balance.", err);
     }
-  }, [data, getCustomerBalance]);
+  }, [debug, getCustomerBalance]);
 
   useEffect(() => {
     getInvoice();
@@ -208,6 +202,7 @@ export const UpcomingBill = forwardRef<
 
                 {balances.length > 0 && (
                   <Flex
+                    as={TransitionBox}
                     $justifyContent="space-between"
                     $alignItems="start"
                     $gap="1rem"
