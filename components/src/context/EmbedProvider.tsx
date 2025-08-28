@@ -312,7 +312,9 @@ export const EmbedProvider = ({
   const debouncedPreviewCheckout = useMemo(
     () =>
       debounce(previewCheckout, FETCH_DEBOUNCE_TIMEOUT, {
+        // invoke immediately for minimal latency
         leading: true,
+        // but also ensure latest data is fetched
         trailing: true,
       }),
     [previewCheckout],
