@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 
 import { useEmbed } from "../../../hooks";
 import { ComponentStyle, DeepPartial, ElementProps } from "../../../types";
-import { isCheckoutData } from "../../../utils";
 import { Element } from "../../layout";
 import {
   Button,
@@ -71,12 +70,10 @@ export const UnsubscribeButton = forwardRef<
 
   const hasActiveSubscription = useMemo(() => {
     return (
-      isCheckoutData(data) &&
-      data.subscription &&
-      data.subscription.status !== "cancelled" &&
-      !data.subscription.cancelAt
+      data?.subscription?.status !== "cancelled" &&
+      !data?.subscription?.cancelAt
     );
-  }, [data]);
+  }, [data?.subscription?.status, data?.subscription?.cancelAt]);
 
   if (!hasActiveSubscription) {
     return null;

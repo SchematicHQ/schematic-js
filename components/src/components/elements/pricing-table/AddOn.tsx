@@ -11,8 +11,6 @@ import {
   getFeatureName,
   getMetricPeriodName,
   hexToHSL,
-  isCheckoutData,
-  isHydratedPlan,
 } from "../../../utils";
 import { cardBoxShadow } from "../../layout";
 import { Box, Button, Flex, Icon, Text } from "../../ui";
@@ -35,32 +33,33 @@ export const AddOn = ({ addOn, sharedProps, selectedPeriod }: AddOnProps) => {
 
   const { t } = useTranslation();
 
-  const { data, settings, setCheckoutState } = useEmbed();
+  const { data, settings, accessToken, setCheckoutState } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
 
   const { currentAddOns, canCheckout, isStandalone, showCallToAction } =
     useMemo(() => {
-      if (isCheckoutData(data)) {
-        return {
-          currentAddOns: data.company?.addOns || [],
-          canCheckout: data.capabilities?.checkout ?? true,
-          isStandalone: false,
-          showCallToAction: true,
-        };
-      }
-
+      const isStandalone = typeof accessToken === "undefined";
       return {
-        currentAddOns: [],
-        canCheckout: true,
-        isStandalone: true,
-        showCallToAction: typeof layout.callToActionUrl === "string",
+        currentAddOns: data?.company?.addOns || [],
+        canCheckout: data?.capabilities?.checkout ?? true,
+        isStandalone,
+        showCallToAction:
+          !isStandalone ||
+          typeof sharedProps.callToActionUrl === "string" ||
+          typeof sharedProps.onCallToAction === "function",
       };
-    }, [data, layout.callToActionUrl]);
+    }, [
+      sharedProps.callToActionUrl,
+      sharedProps.onCallToAction,
+      data?.company?.addOns,
+      data?.capabilities?.checkout,
+      accessToken,
+    ]);
 
   const cardPadding = settings.theme.card.padding / TEXT_BASE_SIZE;
 
-  const isCurrentAddOn = isHydratedPlan(addOn) && addOn.current;
+  const isCurrentAddOn = addOn.current;
   const isActiveAddOn =
     isCurrentAddOn &&
     selectedPeriod ===
@@ -227,22 +226,22 @@ export const AddOn = ({ addOn, sharedProps, selectedPeriod }: AddOnProps) => {
         {showCallToAction && layout.upgrade.isVisible && (
           <Button
             type="button"
-            disabled={(isHydratedPlan(addOn) && !addOn.valid) || !canCheckout}
+            disabled={!addOn.valid || (!isStandalone && !canCheckout)}
             $size={layout.upgrade.buttonSize}
             $color={isActiveAddOn ? "danger" : layout.upgrade.buttonStyle}
             $variant={
               isActiveAddOn ? "ghost" : isCurrentAddOn ? "outline" : "filled"
             }
-            {...(layout.callToActionUrl
+            {...(sharedProps.callToActionUrl
               ? {
                   as: "a",
-                  href: layout.callToActionUrl,
+                  href: sharedProps.callToActionUrl,
                   rel: "noreferrer",
                   target: "_blank",
                 }
               : {
                   onClick: () => {
-                    layout.onCallToAction?.(addOn);
+                    sharedProps.onCallToAction?.(addOn);
 
                     if (!isStandalone && !addOn.custom) {
                       setCheckoutState({

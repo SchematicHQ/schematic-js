@@ -11,7 +11,6 @@ import type { DeepPartial, ElementProps } from "../../../types";
 import {
   ERROR_UNKNOWN,
   formatCurrency,
-  isCheckoutData,
   isError,
   toPrettyDate,
 } from "../../../utils";
@@ -75,25 +74,18 @@ export const UpcomingBill = forwardRef<
   const [balances, setBalances] = useState<CurrencyBalance[]>([]);
 
   const discounts = useMemo(() => {
-    return ((isCheckoutData(data) && data.subscription?.discounts) || []).map(
-      (discount) => ({
-        couponId: discount.couponId,
-        customerFacingCode: discount.customerFacingCode || undefined,
-        currency: discount.currency || undefined,
-        amountOff: discount.amountOff ?? undefined,
-        percentOff: discount.percentOff ?? undefined,
-        isActive: discount.isActive,
-      }),
-    );
+    return (data?.subscription?.discounts || []).map((discount) => ({
+      couponId: discount.couponId,
+      customerFacingCode: discount.customerFacingCode || undefined,
+      currency: discount.currency || undefined,
+      amountOff: discount.amountOff ?? undefined,
+      percentOff: discount.percentOff ?? undefined,
+      isActive: discount.isActive,
+    }));
   }, [data]);
 
   const getInvoice = useCallback(async () => {
-    if (
-      isCheckoutData(data) &&
-      data.component?.id &&
-      data.subscription &&
-      !data.subscription.cancelAt
-    ) {
+    if (data?.component?.id && !data?.subscription?.cancelAt) {
       try {
         setError(undefined);
         setIsLoading(true);
@@ -131,11 +123,7 @@ export const UpcomingBill = forwardRef<
     getBalances();
   }, [getBalances]);
 
-  if (
-    !isCheckoutData(data) ||
-    !data.subscription ||
-    data.subscription.cancelAt
-  ) {
+  if (!data?.subscription || data?.subscription.cancelAt) {
     return null;
   }
 
