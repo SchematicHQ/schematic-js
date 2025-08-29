@@ -1,4 +1,5 @@
 import {
+  AddressElement,
   PaymentElement,
   useElements,
   useStripe,
@@ -6,7 +7,9 @@ import {
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { Box, Button, Text } from "../../ui";
+import { Box, Button, Flex, Text } from "../../ui";
+import { useEmbed } from "../../../hooks";
+import { isCheckoutData } from "../../../utils";
 
 interface PaymentFormProps {
   onConfirm?: (paymentMethodId: string) => void;
@@ -18,6 +21,9 @@ export const PaymentForm = ({ onConfirm }: PaymentFormProps) => {
   const stripe = useStripe();
   const elements = useElements();
 
+  const { data } = useEmbed();
+
+  const [email, setEmail] = useState("");
   const [message, setMessage] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
@@ -40,7 +46,16 @@ export const PaymentForm = ({ onConfirm }: PaymentFormProps) => {
       const { setupIntent, error } = await stripe.confirmSetup({
         elements,
         confirmParams: {
+          payment_method_data: {
+            billing_details: {
+              // address,
+              email,
+              // name,
+              // phone,
+            },
+          },
           return_url: window.location.href,
+          // receipt_email: email, // TODO: Stripe does not collect email
         },
         redirect: "if_required",
       });
@@ -63,15 +78,13 @@ export const PaymentForm = ({ onConfirm }: PaymentFormProps) => {
   };
 
   return (
-    <form
+    <Flex
+      as="form"
       id="payment-form"
       onSubmit={handleSubmit}
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        overflowX: "hidden",
-        overflowY: "auto",
-      }}
+      $flexDirection="column"
+      $overflowX="hidden"
+      $overflowY="auto"
     >
       <Box $marginBottom="1.5rem">
         <PaymentElement
@@ -81,6 +94,45 @@ export const PaymentForm = ({ onConfirm }: PaymentFormProps) => {
           }}
         />
       </Box>
+
+      {isCheckoutData(data) && data.checkoutSettings.collectEmail && (
+        <input
+          id="email"
+          type="text"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="Enter email address"
+        />
+      )}
+
+      {isCheckoutData(data) && data.checkoutSettings.collectAddress && (
+        <Box $marginBottom="1rem">
+          <AddressElement
+            options={{
+              mode: "billing",
+              autocomplete: {
+                mode: "automatic",
+              },
+              fields: {
+                phone: data.checkoutSettings.collectPhone ? "always" : "never",
+              },
+              validation: {
+                phone: {
+                  required: "auto",
+                },
+              },
+            }}
+            id="address-element"
+            onChange={(event) => {
+              setIsComplete(event.complete);
+              if (event.complete) {
+                const address = event.value.address;
+                console.debug(address);
+              }
+            }}
+          />
+        </Box>
+      )}
 
       <Button
         id="submit"
@@ -102,6 +154,6 @@ export const PaymentForm = ({ onConfirm }: PaymentFormProps) => {
           </Text>
         </Box>
       )}
-    </form>
+    </Flex>
   );
 };
