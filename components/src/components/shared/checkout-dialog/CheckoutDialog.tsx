@@ -576,8 +576,11 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
         [],
       );
 
-      setSelectedPlan(plan);
-      setUsageBasedEntitlements(entitlements);
+      // only update if the plan is changing
+      if (plan.id !== selectedPlan?.id) {
+        setSelectedPlan(plan);
+        setUsageBasedEntitlements(entitlements);
+      }
 
       const updatedShouldTrial = updates.shouldTrial ?? shouldTrial;
       setShouldTrial(updatedShouldTrial);
@@ -609,6 +612,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       });
     },
     [
+      selectedPlan?.id,
       planPeriod,
       shouldTrial,
       willTrialWithoutPaymentMethod,
