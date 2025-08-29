@@ -200,7 +200,6 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       [],
     ),
   );
-  console.debug(usageBasedEntitlements);
 
   const [addOnUsageBasedEntitlements, setAddOnUsageBasedEntitlements] =
     useState<UsageBasedEntitlement[]>(() => {
@@ -613,6 +612,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       });
     },
     [
+      selectedPlan?.id,
       planPeriod,
       shouldTrial,
       willTrialWithoutPaymentMethod,
