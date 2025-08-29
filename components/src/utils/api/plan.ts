@@ -1,13 +1,6 @@
 import { type CompanyPlanDetailResponseData } from "../../api/checkoutexternal";
 import { type PlanViewPublicResponseData } from "../../api/componentspublic";
 import { VISIBLE_ENTITLEMENT_COUNT } from "../../const";
-import type { Plan } from "../../types";
-
-export function isHydratedPlan(
-  plan?: Plan,
-): plan is CompanyPlanDetailResponseData {
-  return typeof plan !== "undefined" && "current" in plan;
-}
 
 export function entitlementCountsReducer(
   acc: Record<

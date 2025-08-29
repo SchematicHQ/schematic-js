@@ -11,18 +11,17 @@ import {
   type FeatureUsageResponseData,
   type PlanEntitlementResponseData,
 } from "../api/checkoutexternal";
-import {
-  type PlanViewPublicResponseData,
-  type PublicPlansResponseData,
-} from "../api/componentspublic";
+import { type PublicPlansResponseData } from "../api/componentspublic";
 
 export type HydrateData =
   | PublicPlansResponseData
   | ComponentHydrateResponseData;
 
+export type HydrateDataWithContext = ComponentHydrateResponseData;
+
 export type BillingPrice = BillingPriceView | BillingPriceResponseData;
 
-export type Plan = CompanyPlanDetailResponseData | PlanViewPublicResponseData;
+export type Plan = CompanyPlanDetailResponseData;
 export type SelectedPlan = Plan & { isSelected: boolean };
 
 export interface Credit {

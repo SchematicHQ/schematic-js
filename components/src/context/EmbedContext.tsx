@@ -4,7 +4,6 @@ import {
   type ChangeSubscriptionRequestBody,
   type CheckoutResponse,
   type CheckoutUnsubscribeResponse,
-  type ComponentHydrateResponseData,
   type DeletePaymentMethodResponse,
   type FetchCustomerBalanceResponse,
   type GetSetupIntentResponse,
@@ -14,7 +13,11 @@ import {
   type UpdatePaymentMethodResponse,
 } from "../api/checkoutexternal";
 import type { PublicPlansResponseData } from "../api/componentspublic";
-import type { DeepPartial } from "../types";
+import type {
+  DeepPartial,
+  HydrateData,
+  HydrateDataWithContext,
+} from "../types";
 
 import {
   initialState,
@@ -29,13 +32,11 @@ type DebouncedApiPromise<R> = Promise<R | undefined> | undefined;
 
 export interface EmbedContextProps extends EmbedState {
   hydratePublic: () => DebouncedApiPromise<PublicPlansResponseData>;
-  hydrate: () => DebouncedApiPromise<ComponentHydrateResponseData>;
-  hydrateComponent: (
-    id: string,
-  ) => DebouncedApiPromise<ComponentHydrateResponseData>;
+  hydrate: () => DebouncedApiPromise<HydrateDataWithContext>;
+  hydrateComponent: (id: string) => DebouncedApiPromise<HydrateDataWithContext>;
   hydrateExternal: (
-    fn: () => Promise<ComponentHydrateResponseData>,
-  ) => DebouncedApiPromise<ComponentHydrateResponseData>;
+    fn: () => Promise<HydrateData>,
+  ) => DebouncedApiPromise<HydrateData>;
   getUpcomingInvoice: (
     id: string,
   ) => DebouncedApiPromise<HydrateUpcomingInvoiceResponse>;
@@ -59,7 +60,7 @@ export interface EmbedContextProps extends EmbedState {
   setError: (error: Error) => void;
   setLayout: (layout: EmbedLayout) => void;
   setCheckoutState: (state: CheckoutState) => void;
-  setData: (data: ComponentHydrateResponseData) => void;
+  setData: (data: HydrateDataWithContext) => void;
   updateSettings: (
     settings: DeepPartial<EmbedSettings>,
     options?: { update?: boolean },

@@ -3,7 +3,6 @@ import { forwardRef, useMemo } from "react";
 import { type FontStyle } from "../../../context";
 import { useEmbed } from "../../../hooks";
 import type { DeepPartial, ElementProps } from "../../../types";
-import { isCheckoutData } from "../../../utils";
 import { Element } from "../../layout";
 
 import { PaymentMethodElement } from "./PaymentMethodElement";
@@ -48,38 +47,31 @@ export const PaymentMethod = forwardRef<
   const { data, setLayout } = useEmbed();
 
   const { paymentMethod, monthsToExpiration } = useMemo(() => {
-    if (isCheckoutData(data)) {
-      const paymentMethod =
-        data.subscription?.paymentMethod || data.company?.defaultPaymentMethod;
+    const paymentMethod =
+      data?.subscription?.paymentMethod || data?.company?.defaultPaymentMethod;
 
-      let monthsToExpiration: number | undefined;
-      if (
-        typeof paymentMethod?.cardExpYear === "number" &&
-        typeof paymentMethod?.cardExpMonth === "number"
-      ) {
-        const now = new Date();
-        const currentYear = now.getFullYear();
-        const currentMonth = now.getMonth();
-        const timeToExpiration = Math.round(
-          +new Date(paymentMethod.cardExpYear, paymentMethod.cardExpMonth - 1) -
-            +new Date(currentYear, currentMonth),
-        );
-        monthsToExpiration = Math.round(
-          timeToExpiration / (1000 * 60 * 60 * 24 * 30),
-        );
-      }
-
-      return {
-        paymentMethod,
-        monthsToExpiration,
-      };
+    let monthsToExpiration: number | undefined;
+    if (
+      typeof paymentMethod?.cardExpYear === "number" &&
+      typeof paymentMethod?.cardExpMonth === "number"
+    ) {
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth();
+      const timeToExpiration = Math.round(
+        +new Date(paymentMethod.cardExpYear, paymentMethod.cardExpMonth - 1) -
+          +new Date(currentYear, currentMonth),
+      );
+      monthsToExpiration = Math.round(
+        timeToExpiration / (1000 * 60 * 60 * 24 * 30),
+      );
     }
 
     return {
-      paymentMethod: undefined,
-      monthsToExpiration: undefined,
+      paymentMethod,
+      monthsToExpiration,
     };
-  }, [data]);
+  }, [data?.company?.defaultPaymentMethod, data?.subscription?.paymentMethod]);
 
   return (
     <Element ref={ref} className={className}>

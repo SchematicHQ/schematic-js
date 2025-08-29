@@ -10,7 +10,6 @@ import {
   formatCurrency,
   getFeatureName,
   groupCreditGrants,
-  isCheckoutData,
   lighten,
   shortenPeriod,
   toPrettyDate,
@@ -114,42 +113,30 @@ export const PlanManager = forwardRef<
     featureUsage,
     trialPaymentMethodRequired,
   } = useMemo(() => {
-    if (isCheckoutData(data)) {
-      const {
-        company,
-        creditBundles,
-        creditGrants,
-        capabilities,
-        defaultPlan,
-        featureUsage,
-        trialPaymentMethodRequired,
-      } = data;
-
-      return {
-        currentPlan: company?.plan,
-        currentAddOns: company?.addOns || [],
-        creditBundles: creditBundles,
-        creditGroups: groupCreditGrants(creditGrants, { groupBy: "bundle" }),
-        billingSubscription: company?.billingSubscription,
-        canCheckout: capabilities?.checkout ?? true,
-        defaultPlan: defaultPlan,
-        featureUsage: featureUsage?.features || [],
-        trialPaymentMethodRequired: trialPaymentMethodRequired,
-      };
-    }
-
     return {
-      currentPlan: undefined,
-      currentAddOns: [],
-      creditBundles: [],
-      creditGroups: [],
-      billingSubscription: undefined,
-      canCheckout: false,
-      defaultPlan: undefined,
-      featureUsage: [],
-      trialPaymentMethodRequired: false,
+      currentPlan: data?.company?.plan,
+      currentAddOns: data?.company?.addOns || [],
+      creditBundles: data?.creditBundles || [],
+      creditGroups: groupCreditGrants(data?.creditGrants || [], {
+        groupBy: "bundle",
+      }),
+      billingSubscription: data?.company?.billingSubscription,
+      canCheckout: data?.capabilities?.checkout ?? true,
+      defaultPlan: data?.defaultPlan,
+      featureUsage: data?.featureUsage?.features || [],
+      trialPaymentMethodRequired: data?.trialPaymentMethodRequired,
     };
-  }, [data]);
+  }, [
+    data?.capabilities?.checkout,
+    data?.company?.addOns,
+    data?.company?.billingSubscription,
+    data?.company?.plan,
+    data?.creditBundles,
+    data?.creditGrants,
+    data?.defaultPlan,
+    data?.featureUsage?.features,
+    data?.trialPaymentMethodRequired,
+  ]);
 
   const usageBasedEntitlements = useMemo(
     () =>
