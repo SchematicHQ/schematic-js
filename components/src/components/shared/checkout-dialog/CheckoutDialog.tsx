@@ -532,11 +532,12 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
             ((period === "month" && entitlement.meteredMonthlyPrice) ||
               (period === "year" && entitlement.meteredYearlyPrice))
           ) {
+            const allocation = entitlement.valueNumeric || 0;
             acc.push({
               ...entitlement,
-              allocation: entitlement.valueNumeric || 0,
+              allocation,
               usage: 0,
-              quantity: 0,
+              quantity: allocation,
             });
           }
 
