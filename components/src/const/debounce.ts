@@ -1,6 +1,6 @@
 import { type DebounceSettings } from "lodash";
 
-export const debounceOptions: DebounceSettings = {
+export const DEBOUNCE_SETTINGS: DebounceSettings = {
   leading: true,
   trailing: false,
 };
