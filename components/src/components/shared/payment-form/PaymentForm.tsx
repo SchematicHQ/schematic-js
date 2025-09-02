@@ -7,9 +7,11 @@ import {
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { Box, Button, Flex, Text } from "../../ui";
 import { useEmbed } from "../../../hooks";
 import { isCheckoutData } from "../../../utils";
+import { Box, Button, Flex, Text } from "../../ui";
+
+import { Input, Label } from "./styles";
 
 interface PaymentFormProps {
   onConfirm?: (paymentMethodId: string) => void;
@@ -27,7 +29,10 @@ export const PaymentForm = ({ onConfirm }: PaymentFormProps) => {
   const [message, setMessage] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
-  const [isComplete, setIsComplete] = useState(false);
+  const [isPaymentComplete, setIsPaymentComplete] = useState(false);
+  const [isAddressComplete, setIsAddressComplete] = useState(
+    () => !isCheckoutData(data) || !data.checkoutSettings.collectAddress,
+  );
 
   const handleSubmit: React.FormEventHandler<HTMLFormElement> = async (
     event,
@@ -48,14 +53,10 @@ export const PaymentForm = ({ onConfirm }: PaymentFormProps) => {
         confirmParams: {
           payment_method_data: {
             billing_details: {
-              // address,
               email,
-              // name,
-              // phone,
             },
           },
           return_url: window.location.href,
-          // receipt_email: email, // TODO: Stripe does not collect email
         },
         redirect: "if_required",
       });
@@ -90,54 +91,55 @@ export const PaymentForm = ({ onConfirm }: PaymentFormProps) => {
         <PaymentElement
           id="payment-element"
           onChange={(event) => {
-            setIsComplete(event.complete);
+            setIsPaymentComplete(event.complete);
           }}
         />
       </Box>
 
-      {isCheckoutData(data) && data.checkoutSettings.collectEmail && (
-        <input
-          id="email"
-          type="text"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="Enter email address"
-        />
-      )}
-
-      {isCheckoutData(data) && data.checkoutSettings.collectAddress && (
-        <Box $marginBottom="1rem">
-          <AddressElement
-            options={{
-              mode: "billing",
-              autocomplete: {
-                mode: "automatic",
-              },
-              fields: {
-                phone: data.checkoutSettings.collectPhone ? "always" : "never",
-              },
-              validation: {
-                phone: {
-                  required: "auto",
-                },
-              },
-            }}
-            id="address-element"
-            onChange={(event) => {
-              setIsComplete(event.complete);
-              if (event.complete) {
-                const address = event.value.address;
-                console.debug(address);
-              }
-            }}
+      {stripe && isCheckoutData(data) && data.checkoutSettings.collectEmail && (
+        <Box data-field="name" $marginBottom="1.5rem" $verticalAlign="top">
+          <Label htmlFor="email">Email</Label>
+          <Input
+            id="email"
+            type="text"
+            value={email}
+            autoComplete="email"
+            placeholder="Enter email address"
+            onChange={(e) => setEmail(e.target.value)}
           />
         </Box>
       )}
 
+      {isCheckoutData(data) &&
+        (data.checkoutSettings.collectAddress ||
+          data.checkoutSettings.collectPhone) && (
+          <Box $marginBottom="3.5rem">
+            <AddressElement
+              options={{
+                mode: "billing",
+                fields: {
+                  phone: data.checkoutSettings.collectPhone
+                    ? "always"
+                    : "never",
+                },
+              }}
+              id="address-element"
+              onChange={(event) => {
+                setIsAddressComplete(event.complete);
+              }}
+            />
+          </Box>
+        )}
+
       <Button
         id="submit"
         disabled={
-          isLoading || !stripe || !elements || isConfirmed || !isComplete
+          isLoading ||
+          !stripe ||
+          !elements ||
+          isConfirmed ||
+          !isPaymentComplete ||
+          !isAddressComplete
         }
         style={{ flexShrink: 0 }}
         $color="primary"
