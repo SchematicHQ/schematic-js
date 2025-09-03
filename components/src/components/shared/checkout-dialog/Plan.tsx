@@ -654,13 +654,7 @@ export const Plan = ({
                                 ) : (
                                   entitlement.priceBehavior ===
                                     PriceBehavior.Tiered && (
-                                    <Flex $alignItems="center">
-                                      <PricingTiersTooltip
-                                        feature={entitlement.feature}
-                                        period={planPeriod}
-                                        currency={entitlementCurrency}
-                                        priceTiers={entitlementPriceTiers}
-                                      />
+                                    <Flex $alignItems="end">
                                       <Text
                                         style={{ opacity: 0.54 }}
                                         $size={
@@ -674,6 +668,13 @@ export const Plan = ({
                                       >
                                         {t("Tier-based")}
                                       </Text>
+
+                                      <PricingTiersTooltip
+                                        feature={entitlement.feature}
+                                        period={planPeriod}
+                                        currency={entitlementCurrency}
+                                        priceTiers={entitlementPriceTiers}
+                                      />
                                     </Flex>
                                   )
                                 )}

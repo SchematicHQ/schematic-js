@@ -16,7 +16,7 @@ import {
   shortenPeriod,
 } from "../../../utils";
 import { PricingTiersTooltip, TieredPricingDetails } from "../../shared";
-import { Flex, Icon, Text } from "../../ui";
+import { Flex, Icon, Text, Tooltip } from "../../ui";
 
 import {
   type PricingTableOptions,
@@ -122,39 +122,60 @@ export const Entitlement = ({
               )}
             </Text>
 
-            {entitlement.priceBehavior === PriceBehavior.Overage &&
-            typeof entitlementPrice === "number" ? (
-              <Text
-                $size={0.875 * settings.theme.typography.text.fontSize}
-                $color={`color-mix(in oklch, ${settings.theme.typography.text.color}, ${settings.theme.card.background})`}
-              >
-                {t("then")}{" "}
-                {formatCurrency(entitlementPrice, entitlementCurrency)}/
-                {entitlementPackageSize > 1 && <>{entitlementPackageSize} </>}
-                {getFeatureName(entitlement.feature, entitlementPackageSize)}
-                {entitlement.feature.featureType === FeatureType.Trait && (
-                  <>/{shortenPeriod(selectedPeriod)}</>
-                )}
-              </Text>
-            ) : (
-              entitlement.priceBehavior === PriceBehavior.Tiered && (
-                <Flex $alignItems="center">
-                  <PricingTiersTooltip
-                    feature={entitlement.feature}
-                    period={selectedPeriod}
-                    currency={entitlementCurrency}
-                    priceTiers={entitlementPriceTiers}
-                  />
-                  <Text
-                    style={{ opacity: 0.54 }}
-                    $size={0.875 * settings.theme.typography.text.fontSize}
-                    $color={settings.theme.typography.text.color}
-                  >
-                    {t("Tier-based")}
-                  </Text>
-                </Flex>
-              )
-            )}
+            <Flex $alignItems="end">
+              {entitlement.priceBehavior === PriceBehavior.Overage &&
+              typeof entitlementPrice === "number" ? (
+                <Text
+                  $size={0.875 * settings.theme.typography.text.fontSize}
+                  $color={`color-mix(in oklch, ${settings.theme.typography.text.color}, ${settings.theme.card.background})`}
+                >
+                  {t("then")}{" "}
+                  {formatCurrency(entitlementPrice, entitlementCurrency)}/
+                  {entitlementPackageSize > 1 && <>{entitlementPackageSize} </>}
+                  {getFeatureName(entitlement.feature, entitlementPackageSize)}
+                  {entitlement.feature.featureType === FeatureType.Trait && (
+                    <>/{shortenPeriod(selectedPeriod)}</>
+                  )}
+                </Text>
+              ) : (
+                entitlement.priceBehavior === PriceBehavior.Tiered && (
+                  <Flex $alignItems="end">
+                    <Text
+                      style={{ opacity: 0.54 }}
+                      $size={0.875 * settings.theme.typography.text.fontSize}
+                      $color={settings.theme.typography.text.color}
+                    >
+                      {t("Tier-based")}
+                    </Text>
+
+                    <PricingTiersTooltip
+                      feature={entitlement.feature}
+                      period={selectedPeriod}
+                      currency={entitlementCurrency}
+                      priceTiers={entitlementPriceTiers}
+                    />
+                  </Flex>
+                )
+              )}
+
+              {entitlement.billingThreshold && (
+                <Tooltip
+                  content={
+                    <Text>
+                      An invoice is created when charges reach $20; the rest is
+                      billed monthly.
+                    </Text>
+                  }
+                  trigger={
+                    <Icon
+                      title="billing threshold"
+                      name="info-rounded"
+                      color={settings.theme.primary}
+                    />
+                  }
+                />
+              )}
+            </Flex>
           </Flex>
 
           {layout.plans.showFeatureDescriptions &&

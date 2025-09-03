@@ -75,14 +75,7 @@ export const EntitlementRow = (
             </Text>
           ) : (
             priceBehavior === PriceBehavior.Tiered && (
-              <Flex $alignItems="center">
-                <PricingTiersTooltip
-                  feature={feature}
-                  period={planPeriod}
-                  currency={currency}
-                  priceTiers={priceTiers}
-                />
-
+              <Flex $alignItems="end">
                 <Text
                   style={{ opacity: 0.54 }}
                   $size={0.875 * settings.theme.typography.text.fontSize}
@@ -90,6 +83,13 @@ export const EntitlementRow = (
                 >
                   {t("Tier-based")}
                 </Text>
+
+                <PricingTiersTooltip
+                  feature={feature}
+                  period={planPeriod}
+                  currency={currency}
+                  priceTiers={priceTiers}
+                />
               </Flex>
             )
           )}
