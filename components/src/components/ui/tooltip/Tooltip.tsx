@@ -13,12 +13,14 @@ export interface TooltipProps extends BoxProps {
   trigger: React.ReactNode;
   content: React.ReactNode;
   position?: Position;
+  fullWidth?: boolean;
 }
 
 export const Tooltip = ({
   trigger,
   content,
   position = "top",
+  fullWidth = false,
   ...rest
 }: TooltipProps) => {
   const ref = useRef<HTMLDivElement>(null);
@@ -68,6 +70,7 @@ export const Tooltip = ({
         ref={ref}
         onPointerEnter={() => setShow(true)}
         onPointerLeave={() => setShow(false)}
+        $fullWidth={fullWidth}
         {...rest}
       >
         {trigger}

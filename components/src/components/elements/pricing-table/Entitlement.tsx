@@ -15,7 +15,11 @@ import {
   getMetricPeriodName,
   shortenPeriod,
 } from "../../../utils";
-import { PricingTiersTooltip, TieredPricingDetails } from "../../shared";
+import {
+  BillingThresholdTooltip,
+  PricingTiersTooltip,
+  TieredPricingDetails,
+} from "../../shared";
 import { Flex, Icon, Text } from "../../ui";
 
 import {
@@ -122,39 +126,48 @@ export const Entitlement = ({
               )}
             </Text>
 
-            {entitlement.priceBehavior === PriceBehavior.Overage &&
-            typeof entitlementPrice === "number" ? (
-              <Text
-                $size={0.875 * settings.theme.typography.text.fontSize}
-                $color={`color-mix(in oklch, ${settings.theme.typography.text.color}, ${settings.theme.card.background})`}
-              >
-                {t("then")}{" "}
-                {formatCurrency(entitlementPrice, entitlementCurrency)}/
-                {entitlementPackageSize > 1 && <>{entitlementPackageSize} </>}
-                {getFeatureName(entitlement.feature, entitlementPackageSize)}
-                {entitlement.feature.featureType === FeatureType.Trait && (
-                  <>/{shortenPeriod(selectedPeriod)}</>
-                )}
-              </Text>
-            ) : (
-              entitlement.priceBehavior === PriceBehavior.Tiered && (
-                <Flex $alignItems="center">
-                  <PricingTiersTooltip
-                    feature={entitlement.feature}
-                    period={selectedPeriod}
-                    currency={entitlementCurrency}
-                    priceTiers={entitlementPriceTiers}
-                  />
-                  <Text
-                    style={{ opacity: 0.54 }}
-                    $size={0.875 * settings.theme.typography.text.fontSize}
-                    $color={settings.theme.typography.text.color}
-                  >
-                    {t("Tier-based")}
-                  </Text>
-                </Flex>
-              )
-            )}
+            <Flex $alignItems="end">
+              {entitlement.priceBehavior === PriceBehavior.Overage &&
+              typeof entitlementPrice === "number" ? (
+                <Text
+                  $size={0.875 * settings.theme.typography.text.fontSize}
+                  $color={`color-mix(in oklch, ${settings.theme.typography.text.color}, ${settings.theme.card.background})`}
+                >
+                  {t("then")}{" "}
+                  {formatCurrency(entitlementPrice, entitlementCurrency)}/
+                  {entitlementPackageSize > 1 && <>{entitlementPackageSize} </>}
+                  {getFeatureName(entitlement.feature, entitlementPackageSize)}
+                  {entitlement.feature.featureType === FeatureType.Trait && (
+                    <>/{shortenPeriod(selectedPeriod)}</>
+                  )}
+                </Text>
+              ) : (
+                entitlement.priceBehavior === PriceBehavior.Tiered && (
+                  <Flex $alignItems="end">
+                    <Text
+                      style={{ opacity: 0.54 }}
+                      $size={0.875 * settings.theme.typography.text.fontSize}
+                      $color={settings.theme.typography.text.color}
+                    >
+                      {t("Tier-based")}
+                    </Text>
+
+                    <PricingTiersTooltip
+                      feature={entitlement.feature}
+                      period={selectedPeriod}
+                      currency={entitlementCurrency}
+                      priceTiers={entitlementPriceTiers}
+                    />
+                  </Flex>
+                )
+              )}
+
+              {entitlement.billingThreshold && (
+                <BillingThresholdTooltip
+                  billingThreshold={entitlement.billingThreshold}
+                />
+              )}
+            </Flex>
           </Flex>
 
           {layout.plans.showFeatureDescriptions &&

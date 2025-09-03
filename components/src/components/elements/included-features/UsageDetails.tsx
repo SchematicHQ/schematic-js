@@ -283,7 +283,11 @@ export const UsageDetails = ({
       )}
 
       {layout.usage.isVisible && usageText && (
-        <Flex $justifyContent="end" $alignItems="center" $whiteSpace="nowrap">
+        <Flex $justifyContent="end" $alignItems="end" $whiteSpace="nowrap">
+          <Text display={layout.usage.fontStyle} $leading={1}>
+            {usageText}
+          </Text>
+
           {priceBehavior === PriceBehavior.Tiered && (
             <PricingTiersTooltip
               feature={feature}
@@ -292,10 +296,6 @@ export const UsageDetails = ({
               priceTiers={billingPrice?.priceTier}
             />
           )}
-
-          <Text display={layout.usage.fontStyle} $leading={1}>
-            {usageText}
-          </Text>
         </Flex>
       )}
     </Box>
