@@ -15,8 +15,12 @@ import {
   getMetricPeriodName,
   shortenPeriod,
 } from "../../../utils";
-import { PricingTiersTooltip, TieredPricingDetails } from "../../shared";
-import { Flex, Icon, Text, Tooltip } from "../../ui";
+import {
+  BillingThresholdTooltip,
+  PricingTiersTooltip,
+  TieredPricingDetails,
+} from "../../shared";
+import { Flex, Icon, Text } from "../../ui";
 
 import {
   type PricingTableOptions,
@@ -159,20 +163,8 @@ export const Entitlement = ({
               )}
 
               {entitlement.billingThreshold && (
-                <Tooltip
-                  content={
-                    <Text>
-                      An invoice is created when charges reach $20; the rest is
-                      billed monthly.
-                    </Text>
-                  }
-                  trigger={
-                    <Icon
-                      title="billing threshold"
-                      name="info-rounded"
-                      color={settings.theme.primary}
-                    />
-                  }
+                <BillingThresholdTooltip
+                  billingThreshold={entitlement.billingThreshold}
                 />
               )}
             </Flex>

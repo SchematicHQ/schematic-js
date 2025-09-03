@@ -85,7 +85,9 @@ export const PricingTiersTooltip = ({
                   $padding="0.5rem"
                 >
                   <dt>
-                    <Text>
+                    <Text
+                      $size={0.875 * settings.theme.typography.text.fontSize}
+                    >
                       {tier.from}
                       {tier.from !== tier.to && (
                         <>{tier.to === Infinity ? "+" : `–${tier.to}`}</>
@@ -118,7 +120,7 @@ export const PricingTiersTooltip = ({
                 }}
               />
               <Box>
-                <Text>
+                <Text $size={0.875 * settings.theme.typography.text.fontSize}>
                   ℹ️{" "}
                   {tiersMode === TiersMode.Volume
                     ? t("Price by unit based on final tier reached.")

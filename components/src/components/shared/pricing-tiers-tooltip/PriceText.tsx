@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 
+import { useEmbed } from "../../../hooks";
 import type { Feature } from "../../../types";
 import { formatCurrency, getFeatureName, shortenPeriod } from "../../../utils";
 import { Text } from "../../ui";
@@ -19,6 +20,8 @@ export const PriceText = ({
   flatAmount = 0,
   perUnitPrice = 0,
 }: PriceTextProps) => {
+  const { settings } = useEmbed();
+
   const text = useMemo(() => {
     if (!flatAmount && perUnitPrice) {
       return (
@@ -49,5 +52,9 @@ export const PriceText = ({
     );
   }, [feature, period, currency, flatAmount, perUnitPrice]);
 
-  return <Text $leading={1}>{text}</Text>;
+  return (
+    <Text $size={0.875 * settings.theme.typography.text.fontSize} $leading={1}>
+      {text}
+    </Text>
+  );
 };
