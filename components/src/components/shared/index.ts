@@ -1,3 +1,4 @@
+export * from "./billing-threshold-tooltip";
 export * from "./checkout-dialog";
 export * from "./payment-dialog";
 export * from "./payment-form";

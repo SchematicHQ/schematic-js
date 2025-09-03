@@ -164,7 +164,14 @@ export const UsageDetails = ({
         )}
 
         {(cost > 0 || entitlement.priceBehavior === PriceBehavior.Tiered) && (
-          <Flex $alignItems="center">
+          <Flex $alignItems="end">
+            <Text>
+              {formatCurrency(cost, billingPrice?.currency)}
+              {entitlement.feature.featureType === FeatureType.Trait && (
+                <sub>/{shortenPeriod(period)}</sub>
+              )}
+            </Text>
+
             {entitlement.priceBehavior === PriceBehavior.Tiered && (
               <PricingTiersTooltip
                 feature={entitlement.feature}
@@ -173,13 +180,6 @@ export const UsageDetails = ({
                 priceTiers={billingPrice?.priceTier}
               />
             )}
-
-            <Text>
-              {formatCurrency(cost, billingPrice?.currency)}
-              {entitlement.feature.featureType === FeatureType.Trait && (
-                <sub>/{shortenPeriod(period)}</sub>
-              )}
-            </Text>
           </Flex>
         )}
       </Flex>

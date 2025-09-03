@@ -26,7 +26,11 @@ import {
   shortenPeriod,
 } from "../../../utils";
 import { cardBoxShadow } from "../../layout";
-import { PricingTiersTooltip, TieredPricingDetails } from "../../shared";
+import {
+  BillingThresholdTooltip,
+  PricingTiersTooltip,
+  TieredPricingDetails,
+} from "../../shared";
 import { Box, Button, Flex, Icon, Text, Tooltip } from "../../ui";
 
 interface SelectedProps {
@@ -620,63 +624,74 @@ export const Plan = ({
                                   )}
                                 </Text>
 
-                                {entitlement.priceBehavior ===
-                                  PriceBehavior.Overage &&
-                                typeof entitlementPrice === "number" ? (
-                                  <Text
-                                    style={{ opacity: 0.54 }}
-                                    $size={
-                                      0.875 *
-                                      settings.theme.typography.text.fontSize
-                                    }
-                                    $color={
-                                      settings.theme.typography.text.color
-                                    }
-                                  >
-                                    {t("then")}{" "}
-                                    {formatCurrency(
-                                      entitlementPrice,
-                                      entitlementCurrency,
-                                    )}
-                                    /
-                                    {entitlementPackageSize > 1 && (
-                                      <>{entitlementPackageSize} </>
-                                    )}
-                                    {getFeatureName(
-                                      entitlement.feature,
-                                      entitlementPackageSize,
-                                    )}
-                                    {entitlement.feature.featureType ===
-                                      FeatureType.Trait && (
-                                      <>/{shortenPeriod(planPeriod)}</>
-                                    )}
-                                  </Text>
-                                ) : (
-                                  entitlement.priceBehavior ===
-                                    PriceBehavior.Tiered && (
-                                    <Flex $alignItems="center">
-                                      <PricingTiersTooltip
-                                        feature={entitlement.feature}
-                                        period={planPeriod}
-                                        currency={entitlementCurrency}
-                                        priceTiers={entitlementPriceTiers}
-                                      />
-                                      <Text
-                                        style={{ opacity: 0.54 }}
-                                        $size={
-                                          0.875 *
-                                          settings.theme.typography.text
-                                            .fontSize
-                                        }
-                                        $color={
-                                          settings.theme.typography.text.color
-                                        }
-                                      >
-                                        {t("Tier-based")}
-                                      </Text>
-                                    </Flex>
-                                  )
-                                )}
+                                <Flex $alignItems="end">
+                                  {entitlement.priceBehavior ===
+                                    PriceBehavior.Overage &&
+                                  typeof entitlementPrice === "number" ? (
+                                    <Text
+                                      style={{ opacity: 0.54 }}
+                                      $size={
+                                        0.875 *
+                                        settings.theme.typography.text.fontSize
+                                      }
+                                      $color={
+                                        settings.theme.typography.text.color
+                                      }
+                                    >
+                                      {t("then")}{" "}
+                                      {formatCurrency(
+                                        entitlementPrice,
+                                        entitlementCurrency,
+                                      )}
+                                      /
+                                      {entitlementPackageSize > 1 && (
+                                        <>{entitlementPackageSize} </>
+                                      )}
+                                      {getFeatureName(
+                                        entitlement.feature,
+                                        entitlementPackageSize,
+                                      )}
+                                      {entitlement.feature.featureType ===
+                                        FeatureType.Trait && (
+                                        <>/{shortenPeriod(planPeriod)}</>
+                                      )}
+                                    </Text>
+                                  ) : (
+                                    entitlement.priceBehavior ===
+                                      PriceBehavior.Tiered && (
+                                      <Flex $alignItems="end">
+                                        <Text
+                                          style={{ opacity: 0.54 }}
+                                          $size={
+                                            0.875 *
+                                            settings.theme.typography.text
+                                              .fontSize
+                                          }
+                                          $color={
+                                            settings.theme.typography.text.color
+                                          }
+                                        >
+                                          {t("Tier-based")}
+                                        </Text>
+
+                                        <PricingTiersTooltip
+                                          feature={entitlement.feature}
+                                          period={planPeriod}
+                                          currency={entitlementCurrency}
+                                          priceTiers={entitlementPriceTiers}
+                                        />
+                                      </Flex>
+                                    )
+                                  )}
+
+                                  {entitlement.billingThreshold && (
+                                    <BillingThresholdTooltip
+                                      billingThreshold={
+                                        entitlement.billingThreshold
+                                      }
+                                    />
+                                  )}
+                                </Flex>
                               </Flex>
                             )}
                           </Flex>

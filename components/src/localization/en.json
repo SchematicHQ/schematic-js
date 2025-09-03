@@ -13,6 +13,7 @@
     "After the trial, cancel": "After the trial, you will be downgraded to the {{defaultPlanName}} plan and your subscription will be cancelled.",
     "After the trial, subscribe": "After the trial, subscription starts and you will be billed.",
     "Amount off": "{{amount}} off",
+    "An invoice is created when charges reach $X; the rest is billed monthly.": "An invoice is created when charges reach {{amount}}; the rest is billed monthly.",
     "An unknown error occurred.": "An unknown error occurred.",
     "Billed": "Billed {{period}}",
     "Cancel subscription": "Cancel subscription",

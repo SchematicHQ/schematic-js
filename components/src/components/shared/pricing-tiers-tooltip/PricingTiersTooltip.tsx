@@ -58,7 +58,6 @@ export const PricingTiersTooltip = ({
           title="tiered pricing"
           name="info-rounded"
           color={`hsla(0, 0%, ${isLightBackground ? 0 : 100}%, 0.5)`}
-          style={{ marginLeft: `-${1 / 3}rem` }}
         />
       }
       content={
@@ -86,7 +85,9 @@ export const PricingTiersTooltip = ({
                   $padding="0.5rem"
                 >
                   <dt>
-                    <Text>
+                    <Text
+                      $size={0.875 * settings.theme.typography.text.fontSize}
+                    >
                       {tier.from}
                       {tier.from !== tier.to && (
                         <>{tier.to === Infinity ? "+" : `–${tier.to}`}</>
@@ -119,7 +120,7 @@ export const PricingTiersTooltip = ({
                 }}
               />
               <Box>
-                <Text>
+                <Text $size={0.875 * settings.theme.typography.text.fontSize}>
                   ℹ️{" "}
                   {tiersMode === TiersMode.Volume
                     ? t("Price by unit based on final tier reached.")
@@ -130,8 +131,6 @@ export const PricingTiersTooltip = ({
           )}
         </Flex>
       }
-      $flexGrow="0 !important"
-      $width="auto !important"
     />
   );
 };
