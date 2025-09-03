@@ -32,7 +32,6 @@ export * from "./ComponentResponseData";
 export * from "./CountResponse";
 export * from "./CreateSetupIntentResponse";
 export * from "./CreditCompanyGrantView";
-export * from "./CreditGrantDetail";
 export * from "./CurrencyBalance";
 export * from "./CustomPlanConfig";
 export * from "./CustomPlanViewConfigResponseData";
