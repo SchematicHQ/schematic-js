@@ -31,6 +31,12 @@ import {
   PlanEntitlementResponseDataFromJSONTyped,
   PlanEntitlementResponseDataToJSON,
 } from "./PlanEntitlementResponseData";
+import type { CreditGrantDetail } from "./CreditGrantDetail";
+import {
+  CreditGrantDetailFromJSON,
+  CreditGrantDetailFromJSONTyped,
+  CreditGrantDetailToJSON,
+} from "./CreditGrantDetail";
 import type { BillingPriceView } from "./BillingPriceView";
 import {
   BillingPriceViewFromJSON,
@@ -76,6 +82,48 @@ export interface FeatureUsageResponseData {
   companyOverride?: CompanyOverrideResponseData;
   /**
    *
+   * @type {{ [key: string]: number; }}
+   * @memberof FeatureUsageResponseData
+   */
+  creditGrantCounts?: { [key: string]: number };
+  /**
+   *
+   * @type {Array<CreditGrantDetail>}
+   * @memberof FeatureUsageResponseData
+   */
+  creditGrantDetails?: Array<CreditGrantDetail>;
+  /**
+   * Reason for the credit grant
+   * @type {string}
+   * @memberof FeatureUsageResponseData
+   */
+  creditGrantReason?: FeatureUsageResponseDataCreditGrantReasonEnum | null;
+  /**
+   *
+   * @type {number}
+   * @memberof FeatureUsageResponseData
+   */
+  creditRemaining?: number | null;
+  /**
+   *
+   * @type {number}
+   * @memberof FeatureUsageResponseData
+   */
+  creditTotal?: number | null;
+  /**
+   * Icon identifier for the credit type
+   * @type {string}
+   * @memberof FeatureUsageResponseData
+   */
+  creditTypeIcon?: string | null;
+  /**
+   *
+   * @type {number}
+   * @memberof FeatureUsageResponseData
+   */
+  creditUsed?: number | null;
+  /**
+   *
    * @type {Date}
    * @memberof FeatureUsageResponseData
    */
@@ -86,6 +134,12 @@ export interface FeatureUsageResponseData {
    * @memberof FeatureUsageResponseData
    */
   entitlementId: string;
+  /**
+   * Source of the entitlement (plan or company_override)
+   * @type {string}
+   * @memberof FeatureUsageResponseData
+   */
+  entitlementSource?: string | null;
   /**
    *
    * @type {string}
@@ -165,12 +219,25 @@ export interface FeatureUsageResponseData {
  */
 export const FeatureUsageResponseDataAllocationTypeEnum = {
   Boolean: "boolean",
+  Credit: "credit",
   Numeric: "numeric",
   Trait: "trait",
   Unlimited: "unlimited",
+  Unknown: "unknown",
 } as const;
 export type FeatureUsageResponseDataAllocationTypeEnum =
   (typeof FeatureUsageResponseDataAllocationTypeEnum)[keyof typeof FeatureUsageResponseDataAllocationTypeEnum];
+
+/**
+ * @export
+ */
+export const FeatureUsageResponseDataCreditGrantReasonEnum = {
+  Free: "free",
+  Plan: "plan",
+  Purchased: "purchased",
+} as const;
+export type FeatureUsageResponseDataCreditGrantReasonEnum =
+  (typeof FeatureUsageResponseDataCreditGrantReasonEnum)[keyof typeof FeatureUsageResponseDataCreditGrantReasonEnum];
 
 /**
  * Check if a given object implements the FeatureUsageResponseData interface.
@@ -209,11 +276,36 @@ export function FeatureUsageResponseDataFromJSONTyped(
       json["company_override"] == null
         ? undefined
         : CompanyOverrideResponseDataFromJSON(json["company_override"]),
+    creditGrantCounts:
+      json["credit_grant_counts"] == null
+        ? undefined
+        : json["credit_grant_counts"],
+    creditGrantDetails:
+      json["credit_grant_details"] == null
+        ? undefined
+        : (json["credit_grant_details"] as Array<any>).map(
+            CreditGrantDetailFromJSON,
+          ),
+    creditGrantReason:
+      json["credit_grant_reason"] == null
+        ? undefined
+        : json["credit_grant_reason"],
+    creditRemaining:
+      json["credit_remaining"] == null ? undefined : json["credit_remaining"],
+    creditTotal:
+      json["credit_total"] == null ? undefined : json["credit_total"],
+    creditTypeIcon:
+      json["credit_type_icon"] == null ? undefined : json["credit_type_icon"],
+    creditUsed: json["credit_used"] == null ? undefined : json["credit_used"],
     entitlementExpirationDate:
       json["entitlement_expiration_date"] == null
         ? undefined
         : new Date(json["entitlement_expiration_date"]),
     entitlementId: json["entitlement_id"],
+    entitlementSource:
+      json["entitlement_source"] == null
+        ? undefined
+        : json["entitlement_source"],
     entitlementType: json["entitlement_type"],
     feature:
       json["feature"] == null
@@ -259,11 +351,24 @@ export function FeatureUsageResponseDataToJSON(
     company_override: CompanyOverrideResponseDataToJSON(
       value["companyOverride"],
     ),
+    credit_grant_counts: value["creditGrantCounts"],
+    credit_grant_details:
+      value["creditGrantDetails"] == null
+        ? undefined
+        : (value["creditGrantDetails"] as Array<any>).map(
+            CreditGrantDetailToJSON,
+          ),
+    credit_grant_reason: value["creditGrantReason"],
+    credit_remaining: value["creditRemaining"],
+    credit_total: value["creditTotal"],
+    credit_type_icon: value["creditTypeIcon"],
+    credit_used: value["creditUsed"],
     entitlement_expiration_date:
       value["entitlementExpirationDate"] == null
         ? undefined
         : (value["entitlementExpirationDate"] as any).toISOString(),
     entitlement_id: value["entitlementId"],
+    entitlement_source: value["entitlementSource"],
     entitlement_type: value["entitlementType"],
     feature: FeatureDetailResponseDataToJSON(value["feature"]),
     metric_reset_at:
