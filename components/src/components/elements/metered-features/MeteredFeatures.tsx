@@ -21,7 +21,6 @@ import {
   getFeatureName,
   getUsageDetails,
   groupCreditGrants,
-  isCheckoutData,
   modifyDate,
   toPrettyDate,
   type UsageDetails,
@@ -172,51 +171,45 @@ export const MeteredFeatures = forwardRef<
   const isLightBackground = useIsLightBackground();
 
   const { period, meteredFeatures, creditGroups } = useMemo(() => {
-    if (isCheckoutData(data)) {
-      const period =
-        typeof data.company?.plan?.planPeriod === "string"
-          ? data.company?.plan?.planPeriod
-          : undefined;
-      const orderedFeatureUsage = props.visibleFeatures?.reduce(
-        (acc: FeatureUsageResponseData[], id) => {
-          const mappedFeatureUsage = data.featureUsage?.features.find(
-            (usage) => usage.feature?.id === id,
-          );
+    const period = data?.company?.plan?.planPeriod || undefined;
+    const orderedFeatureUsage = props.visibleFeatures?.reduce(
+      (acc: FeatureUsageResponseData[], id) => {
+        const mappedFeatureUsage = data?.featureUsage?.features.find(
+          (usage) => usage.feature?.id === id,
+        );
 
-          if (mappedFeatureUsage) {
-            acc.push(mappedFeatureUsage);
-          }
+        if (mappedFeatureUsage) {
+          acc.push(mappedFeatureUsage);
+        }
 
-          return acc;
-        },
-        [],
-      );
-
-      return {
-        period,
-        meteredFeatures: (
-          orderedFeatureUsage ||
-          data.featureUsage?.features ||
-          []
-        ).filter(
-          ({ priceBehavior, feature }) =>
-            // credit-based entitlements behave differently and should not be shown as a metered feature
-            priceBehavior !== PriceBehavior.Credit &&
-            (feature?.featureType === FeatureType.Event ||
-              feature?.featureType === FeatureType.Trait),
-        ),
-        creditGroups: groupCreditGrants(data.creditGrants, {
-          groupBy: "credit",
-        }),
-      };
-    }
+        return acc;
+      },
+      [],
+    );
 
     return {
-      period: undefined,
-      meteredFeatures: [],
-      creditGroups: [],
+      period,
+      meteredFeatures: (
+        orderedFeatureUsage ||
+        data?.featureUsage?.features ||
+        []
+      ).filter(
+        ({ priceBehavior, feature }) =>
+          // credit-based entitlements behave differently and should not be shown as a metered feature
+          priceBehavior !== PriceBehavior.Credit &&
+          (feature?.featureType === FeatureType.Event ||
+            feature?.featureType === FeatureType.Trait),
+      ),
+      creditGroups: groupCreditGrants(data?.creditGrants || [], {
+        groupBy: "credit",
+      }),
     };
-  }, [props.visibleFeatures, data]);
+  }, [
+    props.visibleFeatures,
+    data?.company?.plan?.planPeriod,
+    data?.featureUsage?.features,
+    data?.creditGrants,
+  ]);
 
   const [creditVisibility, setCreditVisibility] = useState(
     creditGroups.map(({ id }) => ({ id, isExpanded: false })),

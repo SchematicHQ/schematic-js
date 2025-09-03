@@ -13,7 +13,7 @@ import {
 } from "../../../api/checkoutexternal";
 import { type FontStyle } from "../../../context";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
-import { createKeyboardExecutionHandler, isCheckoutData } from "../../../utils";
+import { createKeyboardExecutionHandler } from "../../../utils";
 import { PaymentForm } from "../../shared";
 import { Box, Button, Flex, Icon, Loader, Text } from "../../ui";
 
@@ -67,20 +67,16 @@ export const PaymentMethodDetails = ({
   } = useEmbed();
 
   const { defaultPaymentMethod, paymentMethods, subscription } = useMemo(() => {
-    if (isCheckoutData(data)) {
-      return {
-        defaultPaymentMethod: data.company?.defaultPaymentMethod,
-        paymentMethods: data.company?.paymentMethods || [],
-        subscription: data.subscription,
-      };
-    }
-
     return {
-      defaultPaymentMethod: undefined,
-      paymentMethods: [],
-      subscription: undefined,
+      defaultPaymentMethod: data?.company?.defaultPaymentMethod,
+      paymentMethods: data?.company?.paymentMethods || [],
+      subscription: data?.subscription,
     };
-  }, [data]);
+  }, [
+    data?.company?.defaultPaymentMethod,
+    data?.company?.paymentMethods,
+    data?.subscription,
+  ]);
 
   const isLightBackground = useIsLightBackground();
 

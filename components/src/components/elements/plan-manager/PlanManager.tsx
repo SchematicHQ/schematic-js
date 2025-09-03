@@ -10,7 +10,6 @@ import {
   formatCurrency,
   getFeatureName,
   groupCreditGrants,
-  isCheckoutData,
   lighten,
   shortenPeriod,
   toPrettyDate,
@@ -114,18 +113,11 @@ export const PlanManager = forwardRef<
     featureUsage,
     trialPaymentMethodRequired,
   } = useMemo(() => {
-    if (isCheckoutData(data)) {
-      const {
-        company,
-        creditBundles,
-        creditGrants,
-        capabilities,
-        defaultPlan,
-        featureUsage,
-        trialPaymentMethodRequired,
-      } = data;
-
-      const creditGroups = groupCreditGrants(creditGrants, {
+    return {
+      currentPlan: data?.company?.plan,
+      currentAddOns: data?.company?.addOns || [],
+      creditBundles: data?.creditBundles || [],
+      creditGroups: groupCreditGrants(data?.creditGrants || [], {
         groupBy: "bundle",
       }).reduce(
         (
@@ -146,33 +138,24 @@ export const PlanManager = forwardRef<
           return acc;
         },
         { plan: [], bundles: [], promotional: [] },
-      );
-
-      return {
-        currentPlan: company?.plan,
-        currentAddOns: company?.addOns || [],
-        creditBundles: creditBundles,
-        creditGroups,
-        billingSubscription: company?.billingSubscription,
-        canCheckout: capabilities?.checkout ?? true,
-        defaultPlan: defaultPlan,
-        featureUsage: featureUsage?.features || [],
-        trialPaymentMethodRequired: trialPaymentMethodRequired,
-      };
-    }
-
-    return {
-      currentPlan: undefined,
-      currentAddOns: [],
-      creditBundles: [],
-      creditGroups: { plan: [], bundles: [], promotional: [] },
-      billingSubscription: undefined,
-      canCheckout: false,
-      defaultPlan: undefined,
-      featureUsage: [],
-      trialPaymentMethodRequired: false,
+      ),
+      billingSubscription: data?.company?.billingSubscription,
+      canCheckout: data?.capabilities?.checkout ?? true,
+      defaultPlan: data?.defaultPlan,
+      featureUsage: data?.featureUsage?.features || [],
+      trialPaymentMethodRequired: data?.trialPaymentMethodRequired,
     };
-  }, [data]);
+  }, [
+    data?.capabilities?.checkout,
+    data?.company?.addOns,
+    data?.company?.billingSubscription,
+    data?.company?.plan,
+    data?.creditBundles,
+    data?.creditGrants,
+    data?.defaultPlan,
+    data?.featureUsage?.features,
+    data?.trialPaymentMethodRequired,
+  ]);
 
   const usageBasedEntitlements = useMemo(
     () =>

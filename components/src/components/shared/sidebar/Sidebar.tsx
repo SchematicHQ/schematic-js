@@ -29,8 +29,6 @@ import {
   getFeatureName,
   getMonthName,
   getPlanPrice,
-  isCheckoutData,
-  isHydratedPlan,
   shortenPeriod,
 } from "../../../utils";
 import { Box, Button, Flex, Icon, Text } from "../../ui";
@@ -105,51 +103,47 @@ export const Sidebar = ({
     paymentMethod,
     trialPaymentMethodRequired,
   } = useMemo(() => {
-    if (isCheckoutData(data)) {
-      const currentEntitlements = data.featureUsage?.features || [];
-
-      return {
-        currentPlan: data.company?.plan,
-        currentAddOns: data.company?.addOns || [],
-        currentEntitlements,
-        currentUsageBasedEntitlements: currentEntitlements.reduce(
-          (acc: CurrentUsageBasedEntitlement[], entitlement) => {
-            if (
-              entitlement.priceBehavior &&
-              ((planPeriod === "month" && entitlement.monthlyUsageBasedPrice) ||
-                (planPeriod === "year" && entitlement.yearlyUsageBasedPrice))
-            ) {
-              const allocation = entitlement.allocation || 0;
-              const usage = entitlement.usage || 0;
-
-              acc.push({
-                ...entitlement,
-                allocation,
-                usage,
-                quantity: allocation ?? usage,
-              });
-            }
-
-            return acc;
-          },
-          [],
-        ),
-        billingSubscription: data.company?.billingSubscription,
-        paymentMethod: data.subscription?.paymentMethod,
-        trialPaymentMethodRequired: data.trialPaymentMethodRequired === true,
-      };
-    }
+    const currentEntitlements = data?.featureUsage?.features || [];
 
     return {
-      currentPlan: undefined,
-      currentAddOns: [],
-      currentEntitlements: [],
-      currentUsageBasedEntitlements: [],
-      billingSubscription: undefined,
-      paymentMethod: undefined,
-      trialPaymentMethodRequired: false,
+      currentPlan: data?.company?.plan,
+      currentAddOns: data?.company?.addOns || [],
+      currentEntitlements,
+      currentUsageBasedEntitlements: currentEntitlements.reduce(
+        (acc: CurrentUsageBasedEntitlement[], entitlement) => {
+          if (
+            entitlement.priceBehavior &&
+            ((planPeriod === "month" && entitlement.monthlyUsageBasedPrice) ||
+              (planPeriod === "year" && entitlement.yearlyUsageBasedPrice))
+          ) {
+            const allocation = entitlement.allocation || 0;
+            const usage = entitlement.usage || 0;
+
+            acc.push({
+              ...entitlement,
+              allocation,
+              usage,
+              quantity: allocation ?? usage,
+            });
+          }
+
+          return acc;
+        },
+        [],
+      ),
+      billingSubscription: data?.company?.billingSubscription,
+      paymentMethod: data?.subscription?.paymentMethod,
+      trialPaymentMethodRequired: data?.trialPaymentMethodRequired === true,
     };
-  }, [data, planPeriod]);
+  }, [
+    planPeriod,
+    data?.company?.addOns,
+    data?.company?.billingSubscription,
+    data?.company?.plan,
+    data?.featureUsage?.features,
+    data?.subscription?.paymentMethod,
+    data?.trialPaymentMethodRequired,
+  ]);
 
   const { payInAdvanceEntitlements } = useMemo(() => {
     const payAsYouGoEntitlements: UsageBasedEntitlement[] = [];
@@ -369,11 +363,7 @@ export const Sidebar = ({
         newPlanId: planId,
         newPriceId: priceId,
         addOnIds: addOns.reduce((acc: UpdateAddOnRequestBody[], addOn) => {
-          if (
-            addOn.isSelected &&
-            isHydratedPlan(selectedPlan) &&
-            !selectedPlan.companyCanTrial
-          ) {
+          if (addOn.isSelected && !selectedPlan.companyCanTrial) {
             const addOnPriceId = getAddOnPrice(addOn, planPeriod)?.id;
 
             if (addOnPriceId) {
@@ -447,7 +437,7 @@ export const Sidebar = ({
     }
   }, [t, unsubscribe, setError, setIsLoading, setLayout]);
 
-  const willPlanChange = isHydratedPlan(selectedPlan) && !selectedPlan.current;
+  const willPlanChange = !selectedPlan?.current;
 
   const { removedAddOns, willAddOnsChange } = useMemo(() => {
     const addedAddOns = selectedAddOns.filter(
@@ -471,13 +461,11 @@ export const Sidebar = ({
   }, [currentAddOns, selectedAddOns]);
 
   const isSelectedPlanTrialable =
-    isHydratedPlan(selectedPlan) &&
-    selectedPlan?.companyCanTrial === true &&
-    selectedPlan?.isTrialable === true;
+    selectedPlan?.companyCanTrial === true && selectedPlan.isTrialable === true;
   const now = new Date();
   const trialEndsOn = new Date(now);
-  if (isSelectedPlanTrialable && selectedPlan.trialDays) {
-    trialEndsOn.setDate(trialEndsOn.getDate() + selectedPlan.trialDays);
+  if (isSelectedPlanTrialable && selectedPlan?.trialDays) {
+    trialEndsOn.setDate(trialEndsOn.getDate() + selectedPlan?.trialDays);
   }
 
   const { price: selectedPlanPrice, currency: selectedPlanCurrency } =
@@ -596,7 +584,7 @@ export const Sidebar = ({
                 $gap="1rem"
               >
                 <Flex>
-                  <Text display="heading4">{selectedPlan.name}</Text>
+                  <Text display="heading4">{selectedPlan?.name}</Text>
                 </Flex>
 
                 <Flex $whiteSpace="nowrap">

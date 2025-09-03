@@ -21,8 +21,6 @@ import {
   getPlanPrice,
   groupPlanCreditGrants,
   hexToHSL,
-  isCheckoutData,
-  isHydratedPlan,
   shortenPeriod,
 } from "../../../utils";
 import { cardBoxShadow } from "../../layout";
@@ -94,22 +92,19 @@ const PlanButtonGroup = ({
   const { data } = useEmbed();
 
   const { isCurrentPlan, isValidPlan, isTrialing } = useMemo(() => {
-    if (isCheckoutData(data)) {
-      return {
-        isCurrentPlan: data.company?.plan?.id === plan.id,
-        isValidPlan: isHydratedPlan(plan) && plan.valid,
-        isTrialing: data.subscription?.status === "trialing",
-      };
-    }
-
     return {
-      isCurrentPlan: false,
-      isValidPlan: true,
-      isTrialing: false,
+      isCurrentPlan: data?.company?.plan?.id === plan.id,
+      isValidPlan: plan.valid,
+      isTrialing: data?.subscription?.status === "trialing",
     };
-  }, [data, plan]);
+  }, [
+    plan.id,
+    plan.valid,
+    data?.company?.plan?.id,
+    data?.subscription?.status,
+  ]);
 
-  if (isHydratedPlan(plan) && plan.companyCanTrial && plan.isTrialable) {
+  if (plan.companyCanTrial && plan.isTrialable) {
     return (
       <Flex $flexDirection="column" $gap="1.5rem">
         {!isTrialing && (
@@ -280,8 +275,8 @@ export const Plan = ({
   );
 
   const isTrialing = useMemo(
-    () => isCheckoutData(data) && data.subscription?.status === "trialing",
-    [data],
+    () => data?.subscription?.status === "trialing",
+    [data?.subscription?.status],
   );
 
   const handleToggleShowAll = (id: string) => {
@@ -465,7 +460,7 @@ export const Plan = ({
                 </Flex>
               )}
 
-              {isHydratedPlan(plan) && plan.current && (
+              {plan.current && (
                 <Flex
                   $position="absolute"
                   $right="1rem"
