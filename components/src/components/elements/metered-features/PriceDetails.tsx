@@ -85,7 +85,7 @@ export const PriceDetails = ({
         </Text>
       ) : (
         priceBehavior === PriceBehavior.Tiered && (
-          <Flex $alignItems="end" $gap="0.5rem">
+          <Flex $alignItems="end">
             <Text>
               {t("Tier")}: {currentTier?.from || 1}
               {typeof currentTier?.to === "number" &&
