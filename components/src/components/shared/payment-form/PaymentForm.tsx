@@ -8,6 +8,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useEmbed } from "../../../hooks";
+import { isCheckoutData } from "../../../utils";
 import { Box, Button, Flex, Text } from "../../ui";
 
 import { Input, Label } from "./styles";
@@ -30,7 +31,7 @@ export const PaymentForm = ({ onConfirm }: PaymentFormProps) => {
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [isPaymentComplete, setIsPaymentComplete] = useState(false);
   const [isAddressComplete, setIsAddressComplete] = useState(
-    () => !data?.checkoutSettings.collectAddress,
+    () => !isCheckoutData(data) || !data.checkoutSettings.collectAddress,
   );
 
   const handleSubmit: React.FormEventHandler<HTMLFormElement> = async (
@@ -95,7 +96,7 @@ export const PaymentForm = ({ onConfirm }: PaymentFormProps) => {
         />
       </Box>
 
-      {stripe && data?.checkoutSettings.collectEmail && (
+      {stripe && isCheckoutData(data) && data.checkoutSettings.collectEmail && (
         <Box data-field="name" $marginBottom="1.5rem" $verticalAlign="top">
           <Label htmlFor="email">Email</Label>
           <Input
@@ -109,23 +110,26 @@ export const PaymentForm = ({ onConfirm }: PaymentFormProps) => {
         </Box>
       )}
 
-      {(data?.checkoutSettings.collectAddress ||
-        data?.checkoutSettings.collectPhone) && (
-        <Box $marginBottom="3.5rem">
-          <AddressElement
-            options={{
-              mode: "billing",
-              fields: {
-                phone: data.checkoutSettings.collectPhone ? "always" : "never",
-              },
-            }}
-            id="address-element"
-            onChange={(event) => {
-              setIsAddressComplete(event.complete);
-            }}
-          />
-        </Box>
-      )}
+      {isCheckoutData(data) &&
+        (data.checkoutSettings.collectAddress ||
+          data.checkoutSettings.collectPhone) && (
+          <Box $marginBottom="3.5rem">
+            <AddressElement
+              options={{
+                mode: "billing",
+                fields: {
+                  phone: data.checkoutSettings.collectPhone
+                    ? "always"
+                    : "never",
+                },
+              }}
+              id="address-element"
+              onChange={(event) => {
+                setIsAddressComplete(event.complete);
+              }}
+            />
+          </Box>
+        )}
 
       <Button
         id="submit"

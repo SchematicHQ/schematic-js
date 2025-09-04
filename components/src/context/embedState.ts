@@ -1,4 +1,4 @@
-import type { ComponentProps, HydrateDataWithContext } from "../types";
+import type { ComponentProps, HydrateData } from "../types";
 
 export interface TypographySettings {
   fontFamily: string;
@@ -139,7 +139,7 @@ export interface EmbedState {
   isPending: boolean;
   stale: boolean;
   accessToken?: string;
-  data?: HydrateDataWithContext;
+  data?: HydrateData;
   error?: Error;
   settings: EmbedSettings;
   layout: EmbedLayout;

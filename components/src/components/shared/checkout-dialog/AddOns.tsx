@@ -8,6 +8,7 @@ import {
   formatCurrency,
   getAddOnPrice,
   hexToHSL,
+  isHydratedPlan,
 } from "../../../utils";
 import { cardBoxShadow } from "../../layout";
 import { Box, Button, Flex, Icon, Text } from "../../ui";
@@ -36,6 +37,8 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
     >
       {addOns.map((addOn, index) => {
         const { price, currency } = getAddOnPrice(addOn, period) || {};
+        const isAddOnValid = isHydratedPlan(addOn) && addOn.valid;
+        const isAddOnCurrent = isHydratedPlan(addOn) && addOn.current;
 
         const overageEntitlement = addOn.entitlements?.find(
           (entitlement) => entitlement.priceBehavior === PriceBehavior.Overage,
@@ -129,7 +132,7 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
                 </Flex>
               )}
 
-              {addOn.current && (
+              {isAddOnCurrent && (
                 <Flex
                   $position="absolute"
                   $right="1rem"
@@ -156,7 +159,7 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
               {!addOn.isSelected ? (
                 <Button
                   type="button"
-                  disabled={isLoading || !addOn.valid}
+                  disabled={isLoading || !isAddOnValid}
                   onClick={() => toggle(addOn.id)}
                   $size="sm"
                   $color="primary"
@@ -168,14 +171,14 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
               ) : (
                 <Button
                   type="button"
-                  disabled={isLoading || !addOn.valid}
+                  disabled={isLoading || !isAddOnValid}
                   onClick={() => toggle(addOn.id)}
                   $size="sm"
-                  $color={addOn.current ? "danger" : "primary"}
-                  $variant={addOn.current ? "ghost" : "text"}
+                  $color={isAddOnCurrent ? "danger" : "primary"}
+                  $variant={isAddOnCurrent ? "ghost" : "text"}
                   $fullWidth
                 >
-                  {addOn.current ? (
+                  {isAddOnCurrent ? (
                     t("Remove add-on")
                   ) : (
                     <>

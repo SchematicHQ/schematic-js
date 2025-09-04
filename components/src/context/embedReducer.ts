@@ -2,15 +2,13 @@ import merge from "lodash/merge";
 
 import {
   type BillingSubscriptionResponseData,
+  type ComponentHydrateResponseData,
   type DeleteResponse,
   type PaymentMethodResponseData,
 } from "../api/checkoutexternal";
 import { type PublicPlansResponseData } from "../api/componentspublic";
-import type {
-  DeepPartial,
-  HydrateData,
-  HydrateDataWithContext,
-} from "../types";
+import type { DeepPartial, HydrateData } from "../types";
+import { isCheckoutData } from "../utils";
 
 import {
   defaultSettings,
@@ -32,8 +30,8 @@ type EmbedAction =
   | { type: "SET_ACCESS_TOKEN"; token: string }
   | { type: "HYDRATE_STARTED" }
   | { type: "HYDRATE_PUBLIC"; data: PublicPlansResponseData }
-  | { type: "HYDRATE"; data: HydrateDataWithContext }
-  | { type: "HYDRATE_COMPONENT"; data: HydrateDataWithContext }
+  | { type: "HYDRATE"; data: ComponentHydrateResponseData }
+  | { type: "HYDRATE_COMPONENT"; data: ComponentHydrateResponseData }
   | {
       type: "HYDRATE_EXTERNAL";
       data: HydrateData;
@@ -44,10 +42,7 @@ type EmbedAction =
   | { type: "DELETE_PAYMENT_METHOD"; paymentMethodId: string }
   | { type: "RESET" }
   | { type: "ERROR"; error: Error }
-  | {
-      type: "SET_DATA";
-      data: HydrateDataWithContext;
-    }
+  | { type: "SET_DATA"; data: ComponentHydrateResponseData }
   | {
       type: "UPDATE_SETTINGS";
       settings: DeepPartial<EmbedSettings>;
@@ -55,31 +50,6 @@ type EmbedAction =
     }
   | { type: "CHANGE_LAYOUT"; layout: EmbedLayout }
   | { type: "SET_CHECKOUT_STATE"; state: CheckoutState };
-
-function normalize(data?: HydrateData): HydrateDataWithContext {
-  return merge({}, data, {
-    activePlans: data?.activePlans.map((plan) => ({
-      companyCanTrial: false,
-      current: false,
-      valid: true,
-      ...plan,
-    })),
-    activeAddOns: data?.activePlans.map((plan) => ({
-      companyCanTrial: false,
-      current: false,
-      valid: true,
-      ...plan,
-    })),
-    activeUsageBasedEntitlements: [],
-    checkoutSettings: {
-      collectAddress: false,
-      collectEmail: false,
-      collectPhone: false,
-    },
-    creditBundles: [],
-    creditGrants: [],
-  });
-}
 
 export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {
   switch (action.type) {
@@ -104,7 +74,7 @@ export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {
     case "HYDRATE_EXTERNAL": {
       return {
         ...state,
-        data: normalize(action.data),
+        data: action.data,
         error: undefined,
         isPending: false,
         stale: false,
@@ -122,45 +92,53 @@ export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {
     }
 
     case "UPDATE_PAYMENT_METHOD": {
-      const updated = normalize(state.data);
-
-      if (updated.subscription) {
-        updated.subscription.paymentMethod = action.paymentMethod;
+      if (!isCheckoutData(state.data)) {
+        return state;
       }
 
-      if (updated.company) {
-        const updatedPaymentMethods = updated.company.paymentMethods.filter(
+      const data = { ...state.data };
+
+      if (data.subscription) {
+        data.subscription.paymentMethod = action.paymentMethod;
+      }
+
+      if (data.company) {
+        const updatedPaymentMethods = data.company.paymentMethods.filter(
           (paymentMethod) => paymentMethod.id !== action.paymentMethod.id,
         );
-        updated.company.paymentMethods = [
+        data.company.paymentMethods = [
           action.paymentMethod,
           ...updatedPaymentMethods,
         ];
 
-        if (!updated.subscription) {
-          updated.company.defaultPaymentMethod = action.paymentMethod;
+        if (!data.subscription) {
+          data.company.defaultPaymentMethod = action.paymentMethod;
         }
       }
 
       return {
         ...state,
-        data: updated,
+        data,
       };
     }
 
     case "DELETE_PAYMENT_METHOD": {
-      const updated = normalize(state.data);
+      if (!isCheckoutData(state.data)) {
+        return state;
+      }
 
-      if (updated.company) {
-        const paymentMethods = [...updated.company.paymentMethods];
-        updated.company.paymentMethods = paymentMethods.filter(
+      const data = { ...state.data };
+
+      if (data.company) {
+        const paymentMethods = [...data.company.paymentMethods];
+        data.company.paymentMethods = paymentMethods.filter(
           (paymentMethod) => paymentMethod.id !== action.paymentMethodId,
         );
       }
 
       return {
         ...state,
-        data: updated,
+        data,
       };
     }
 
