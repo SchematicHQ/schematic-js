@@ -47,7 +47,7 @@
     "@eslint/markdown": "^7.2.0",
     "@microsoft/api-extractor": "^7.52.11",
     "@openapitools/openapi-generator-cli": "^2.23.1",
-    "@stripe/react-stripe-js": "^3.9.2",
+    "@stripe/react-stripe-js": "^4.0.0",
     "@types/jest": "^30.0.0",
     "@types/lodash": "^4.17.20",
     "@types/pako": "^2.0.4",
