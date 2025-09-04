@@ -82,7 +82,7 @@ export const EmbedProvider = ({
   const debug = useCallback(
     (message: string, ...args: unknown[]) => {
       if (options.debug) {
-        console.debug(`[Schematic] ${message}`, ...args);
+        console.debug(`[Schematic] %s`, message, ...args);
       }
     },
     [options.debug],
