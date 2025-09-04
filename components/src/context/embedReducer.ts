@@ -64,7 +64,7 @@ function normalize(data?: HydrateData): HydrateDataWithContext {
       valid: true,
       ...plan,
     })),
-    activeAddOns: data?.activePlans.map((plan) => ({
+    activeAddOns: data?.activeAddOns.map((plan) => ({
       companyCanTrial: false,
       current: false,
       valid: true,
