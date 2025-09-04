@@ -18,7 +18,7 @@ import {
 import { type FontStyle } from "../../../context";
 import { useAvailablePlans, useEmbed } from "../../../hooks";
 import type { DeepPartial, ElementProps } from "../../../types";
-import { entitlementCountsReducer } from "../../../utils";
+import { entitlementCountsReducer, isCheckoutData } from "../../../utils";
 import { Container, FussyChild } from "../../layout";
 import { PeriodToggle } from "../../shared";
 import { Box, Flex, Loader, Text } from "../../ui";
@@ -133,21 +133,37 @@ export const PricingTable = forwardRef<
 
     const { t } = useTranslation();
 
-    const { data, settings, accessToken, isPending, hydratePublic } =
-      useEmbed();
+    const { data, settings, isPending, hydratePublic } = useEmbed();
 
     const { currentPeriod, showPeriodToggle, isStandalone } = useMemo(() => {
+      const showPeriodToggle = data?.showPeriodToggle ?? props.showPeriodToggle;
+
+      if (isCheckoutData(data)) {
+        const billingSubscription = data.company?.billingSubscription;
+        const isTrialSubscription = billingSubscription?.status === "trialing";
+        const willSubscriptionCancel = billingSubscription?.cancelAt;
+
+        return {
+          currentPeriod: data.company?.plan?.planPeriod || "month",
+          currentAddOns: data.company?.addOns || [],
+          canCheckout: data.capabilities?.checkout ?? true,
+          showPeriodToggle,
+          isTrialSubscription,
+          willSubscriptionCancel,
+          isStandalone: false,
+        };
+      }
+
       return {
-        currentPeriod: data?.company?.plan?.planPeriod || "month",
-        showPeriodToggle: data?.showPeriodToggle ?? props.showPeriodToggle,
-        isStandalone: typeof accessToken === "undefined",
+        currentPeriod: "month",
+        currentAddOns: [],
+        canCheckout: true,
+        showPeriodToggle,
+        isTrialSubscription: false,
+        willSubscriptionCancel: false,
+        isStandalone: true,
       };
-    }, [
-      props.showPeriodToggle,
-      data?.company?.plan?.planPeriod,
-      data?.showPeriodToggle,
-      accessToken,
-    ]);
+    }, [props.showPeriodToggle, data]);
 
     const [selectedPeriod, setSelectedPeriod] = useState(currentPeriod);
 

@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useAvailablePlans, useEmbed } from "../../../hooks";
-import { toPrettyDate } from "../../../utils";
+import { isCheckoutData, toPrettyDate } from "../../../utils";
 import { Button, Flex, Modal, ModalHeader, Text } from "../../ui";
 import { createActiveUsageBasedEntitlementsReducer } from "../checkout-dialog";
 import { Sidebar } from "../sidebar";
@@ -23,16 +23,26 @@ export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
 
   const { planPeriod, currentPlan, currentAddOns, featureUsage, cancelDate } =
     useMemo(() => {
+      if (isCheckoutData(data)) {
+        return {
+          planPeriod: data.company?.plan?.planPeriod || "month",
+          currentPlan: data.company?.plan,
+          currentAddOns: data.company?.addOns || [],
+          featureUsage: data.featureUsage,
+          cancelDate: new Date(
+            data.subscription?.cancelAt ||
+              data.upcomingInvoice?.dueDate ||
+              Date.now(),
+          ),
+        };
+      }
+
       return {
-        planPeriod: data?.company?.plan?.planPeriod || "month",
-        currentPlan: data?.company?.plan,
-        currentAddOns: data?.company?.addOns || [],
-        featureUsage: data?.featureUsage,
-        cancelDate: new Date(
-          data?.subscription?.cancelAt ||
-            data?.upcomingInvoice?.dueDate ||
-            Date.now(),
-        ),
+        planPeriod: "month",
+        currentPlan: undefined,
+        currentAddOns: [],
+        featureUsage: undefined,
+        cancelDate: new Date(),
       };
     }, [data]);
 

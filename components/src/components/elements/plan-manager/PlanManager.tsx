@@ -10,6 +10,7 @@ import {
   formatCurrency,
   getFeatureName,
   groupCreditGrants,
+  isCheckoutData,
   lighten,
   shortenPeriod,
   toPrettyDate,
@@ -113,11 +114,18 @@ export const PlanManager = forwardRef<
     featureUsage,
     trialPaymentMethodRequired,
   } = useMemo(() => {
-    return {
-      currentPlan: data?.company?.plan,
-      currentAddOns: data?.company?.addOns || [],
-      creditBundles: data?.creditBundles || [],
-      creditGroups: groupCreditGrants(data?.creditGrants || [], {
+    if (isCheckoutData(data)) {
+      const {
+        company,
+        creditBundles,
+        creditGrants,
+        capabilities,
+        defaultPlan,
+        featureUsage,
+        trialPaymentMethodRequired,
+      } = data;
+
+      const creditGroups = groupCreditGrants(creditGrants, {
         groupBy: "bundle",
       }).reduce(
         (
@@ -138,24 +146,33 @@ export const PlanManager = forwardRef<
           return acc;
         },
         { plan: [], bundles: [], promotional: [] },
-      ),
-      billingSubscription: data?.company?.billingSubscription,
-      canCheckout: data?.capabilities?.checkout ?? true,
-      defaultPlan: data?.defaultPlan,
-      featureUsage: data?.featureUsage?.features || [],
-      trialPaymentMethodRequired: data?.trialPaymentMethodRequired,
+      );
+
+      return {
+        currentPlan: company?.plan,
+        currentAddOns: company?.addOns || [],
+        creditBundles: creditBundles,
+        creditGroups,
+        billingSubscription: company?.billingSubscription,
+        canCheckout: capabilities?.checkout ?? true,
+        defaultPlan: defaultPlan,
+        featureUsage: featureUsage?.features || [],
+        trialPaymentMethodRequired: trialPaymentMethodRequired,
+      };
+    }
+
+    return {
+      currentPlan: undefined,
+      currentAddOns: [],
+      creditBundles: [],
+      creditGroups: { plan: [], bundles: [], promotional: [] },
+      billingSubscription: undefined,
+      canCheckout: false,
+      defaultPlan: undefined,
+      featureUsage: [],
+      trialPaymentMethodRequired: false,
     };
-  }, [
-    data?.capabilities?.checkout,
-    data?.company?.addOns,
-    data?.company?.billingSubscription,
-    data?.company?.plan,
-    data?.creditBundles,
-    data?.creditGrants,
-    data?.defaultPlan,
-    data?.featureUsage?.features,
-    data?.trialPaymentMethodRequired,
-  ]);
+  }, [data]);
 
   const usageBasedEntitlements = useMemo(
     () =>

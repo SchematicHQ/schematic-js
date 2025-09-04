@@ -28,7 +28,13 @@ import type {
   SelectedPlan,
   UsageBasedEntitlement,
 } from "../../../types";
-import { ERROR_UNKNOWN, getAddOnPrice, isError } from "../../../utils";
+import {
+  ERROR_UNKNOWN,
+  getAddOnPrice,
+  isCheckoutData,
+  isError,
+  isHydratedPlan,
+} from "../../../utils";
 import { PeriodToggle } from "../../shared";
 import { Flex, Loader, Modal, ModalHeader, Text } from "../../ui";
 import { Sidebar } from "../sidebar";
@@ -92,10 +98,11 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
   const [paymentMethodId, setPaymentMethodId] = useState<string | undefined>(
     () => {
-      return (
-        data?.subscription?.paymentMethod?.externalId ||
-        data?.company?.defaultPaymentMethod?.externalId
-      );
+      if (isCheckoutData(data)) {
+        return (
+          data.subscription?.paymentMethod || data.company?.defaultPaymentMethod
+        )?.externalId;
+      }
     },
   );
 
@@ -108,22 +115,31 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     showPeriodToggle,
     trialPaymentMethodRequired,
   } = useMemo(() => {
+    if (isCheckoutData(data)) {
+      return {
+        currentPlanId: data.company?.plan?.id,
+        currentEntitlements: data.featureUsage
+          ? data.featureUsage.features
+          : [],
+        showPeriodToggle: data.showPeriodToggle,
+        trialPaymentMethodRequired: data.trialPaymentMethodRequired === true,
+      };
+    }
+
     return {
-      currentPlanId: data?.company?.plan?.id,
-      currentEntitlements: data?.featureUsage?.features || [],
-      showPeriodToggle: data?.showPeriodToggle ?? true,
-      trialPaymentMethodRequired: data?.trialPaymentMethodRequired === true,
+      currentPlanId: undefined,
+      currentEntitlements: [],
+      showPeriodToggle: true,
+      trialPaymentMethodRequired: false,
     };
-  }, [
-    data?.company?.plan?.id,
-    data?.featureUsage?.features,
-    data?.showPeriodToggle,
-    data?.trialPaymentMethodRequired,
-  ]);
+  }, [data]);
 
   const currentPeriod = useMemo(
-    () => checkoutState?.period || data?.company?.plan?.planPeriod || "month",
-    [data?.company?.plan?.planPeriod, checkoutState?.period],
+    () =>
+      checkoutState?.period ||
+      (isCheckoutData(data) && data.company?.plan?.planPeriod) ||
+      "month",
+    [data, checkoutState?.period],
   );
 
   const [planPeriod, setPlanPeriod] = useState(currentPeriod);
@@ -139,7 +155,9 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   const [selectedPlan, setSelectedPlan] = useState<SelectedPlan | undefined>(
     () => {
       return availablePlans.find((plan) =>
-        checkoutState?.planId ? plan.id === checkoutState.planId : plan.current,
+        checkoutState?.planId
+          ? plan.id === checkoutState.planId
+          : isHydratedPlan(plan) && plan.current,
       );
     },
   );
@@ -147,22 +165,30 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   const [shouldTrial, setShouldTrial] = useState(false);
 
   const [addOns, setAddOns] = useState(() => {
-    return availableAddOns.map((addOn) => ({
-      ...addOn,
-      isSelected:
-        typeof checkoutState?.addOnId !== "undefined"
-          ? addOn.id === checkoutState.addOnId
-          : (data?.company?.addOns || []).some(
-              (currentAddOn) => addOn.id === currentAddOn.id,
-            ),
-    }));
+    if (isCheckoutData(data)) {
+      return availableAddOns.map((addOn) => ({
+        ...addOn,
+        isSelected:
+          typeof checkoutState?.addOnId !== "undefined"
+            ? addOn.id === checkoutState.addOnId
+            : (data.company?.addOns || []).some(
+                (currentAddOn) => addOn.id === currentAddOn.id,
+              ),
+      }));
+    }
+
+    return [];
   });
 
   const [creditBundles, setCreditBundles] = useState<CreditBundle[]>(() => {
-    return (data?.creditBundles || []).map((bundle) => ({
-      ...bundle,
-      count: 0,
-    }));
+    if (isCheckoutData(data)) {
+      return data.creditBundles.map((bundle) => ({
+        ...bundle,
+        count: 0,
+      }));
+    }
+
+    return [];
   });
 
   const [usageBasedEntitlements, setUsageBasedEntitlements] = useState(() =>
@@ -177,7 +203,9 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
   const [addOnUsageBasedEntitlements, setAddOnUsageBasedEntitlements] =
     useState<UsageBasedEntitlement[]>(() => {
-      const currentAddOns = data?.company?.addOns || [];
+      if (!isCheckoutData(data)) return [];
+
+      const currentAddOns = data.company?.addOns || [];
 
       return currentAddOns.flatMap((currentAddOn) => {
         const availableAddOn = availableAddOns.find(
@@ -224,7 +252,9 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   );
 
   const isSelectedPlanTrialable =
-    selectedPlan?.isTrialable && selectedPlan.companyCanTrial;
+    isHydratedPlan(selectedPlan) &&
+    selectedPlan.isTrialable &&
+    selectedPlan.companyCanTrial;
 
   const checkoutStages = useMemo(() => {
     const stages: CheckoutStage[] = [];
