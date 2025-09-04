@@ -326,10 +326,7 @@ export const Plan = ({
           (entitlement) => !!entitlement.priceBehavior,
         );
         const isUsageBasedPlan = planPrice === 0 && hasUsageBasedEntitlements;
-        const headerPriceFontStyle =
-          plan.custom || isUsageBasedPlan
-            ? settings.theme.typography.heading3
-            : settings.theme.typography.heading2;
+        const headerPriceFontStyle = settings.theme.typography.heading2;
 
         const count = entitlementCounts[plan.id];
         const isExpanded = count && count.limit > VISIBLE_ENTITLEMENT_COUNT;

@@ -125,9 +125,7 @@ export const Plan = ({
   );
   const isUsageBasedPlan = planPrice === 0 && hasUsageBasedEntitlements;
   const headerPriceFontStyle =
-    plan.custom || isUsageBasedPlan
-      ? settings.theme.typography.heading3
-      : settings.theme.typography[layout.plans.name.fontStyle];
+    settings.theme.typography[layout.plans.name.fontStyle];
 
   const count = entitlementCounts[plan.id];
   const isExpanded = count && count.limit > VISIBLE_ENTITLEMENT_COUNT;
