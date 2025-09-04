@@ -10,6 +10,7 @@ import {
   formatNumber,
   getFeatureName,
   getUsageDetails,
+  isCheckoutData,
   shortenPeriod,
   toPrettyDate,
 } from "../../../utils";
@@ -52,8 +53,11 @@ export const UsageDetails = ({
   const { data } = useEmbed();
 
   const period = useMemo(() => {
-    return data?.company?.plan?.planPeriod || undefined;
-  }, [data?.company?.plan?.planPeriod]);
+    return isCheckoutData(data) &&
+      typeof data.company?.plan?.planPeriod === "string"
+      ? data.company.plan.planPeriod
+      : undefined;
+  }, [data]);
 
   const { billingPrice, cost, currentTier } = useMemo(
     () => getUsageDetails(entitlement, period),

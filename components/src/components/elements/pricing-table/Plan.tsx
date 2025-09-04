@@ -10,6 +10,8 @@ import {
   getPlanPrice,
   groupPlanCreditGrants,
   hexToHSL,
+  isCheckoutData,
+  isHydratedPlan,
 } from "../../../utils";
 import { cardBoxShadow } from "../../layout";
 import { Box, Button, Flex, Icon, Text, Tooltip } from "../../ui";
@@ -52,7 +54,7 @@ export const Plan = ({
 
   const { t } = useTranslation();
 
-  const { data, settings, accessToken, setCheckoutState } = useEmbed();
+  const { data, settings, setCheckoutState } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
 
@@ -63,34 +65,36 @@ export const Plan = ({
     canCheckout,
     isTrialSubscription,
     willSubscriptionCancel,
-    showCallToAction,
     isStandalone,
+    showCallToAction,
   } = useMemo(() => {
-    const billingSubscription = data?.company?.billingSubscription;
-    const isTrialSubscription = billingSubscription?.status === "trialing";
-    const willSubscriptionCancel =
-      typeof billingSubscription?.cancelAt === "number";
-    const isStandalone = typeof accessToken === "undefined";
+    if (isCheckoutData(data)) {
+      const billingSubscription = data.company?.billingSubscription;
+      const isTrialSubscription = billingSubscription?.status === "trialing";
+      const willSubscriptionCancel =
+        typeof billingSubscription?.cancelAt === "number";
+
+      return {
+        currentPeriod: data.company?.plan?.planPeriod || "month",
+        canCheckout: data.capabilities?.checkout ?? true,
+        isTrialSubscription,
+        willSubscriptionCancel,
+        isStandalone: false,
+        showCallToAction: true,
+      };
+    }
 
     return {
-      currentPeriod: data?.company?.plan?.planPeriod || "month",
-      canCheckout: data?.capabilities?.checkout ?? true,
-      isTrialSubscription,
-      willSubscriptionCancel,
+      currentPeriod: "month",
+      canCheckout: true,
+      isTrialSubscription: false,
+      willSubscriptionCancel: false,
+      isStandalone: true,
       showCallToAction:
-        !isStandalone ||
         typeof sharedProps.callToActionUrl === "string" ||
         typeof sharedProps.onCallToAction === "function",
-      isStandalone,
     };
-  }, [
-    sharedProps.callToActionUrl,
-    sharedProps.onCallToAction,
-    data?.company?.billingSubscription,
-    data?.company?.plan?.planPeriod,
-    data?.capabilities?.checkout,
-    accessToken,
-  ]);
+  }, [data, sharedProps.callToActionUrl, sharedProps.onCallToAction]);
 
   const callToActionTarget = useMemo(() => {
     if (sharedProps.callToActionTarget) {
@@ -113,9 +117,12 @@ export const Plan = ({
 
   const cardPadding = settings.theme.card.padding / TEXT_BASE_SIZE;
 
-  const currentPlanIndex = plans.findIndex((plan) => plan.current);
+  const currentPlanIndex = plans.findIndex(
+    (plan) => isHydratedPlan(plan) && plan.current,
+  );
 
-  const isActivePlan = plan.current && currentPeriod === selectedPeriod;
+  const isActivePlan =
+    isHydratedPlan(plan) && plan.current && currentPeriod === selectedPeriod;
   const { price: planPrice, currency: planCurrency } =
     getPlanPrice(plan, selectedPeriod) || {};
   const credits = groupPlanCreditGrants(plan.includedCreditGrants);
@@ -125,9 +132,7 @@ export const Plan = ({
   );
   const isUsageBasedPlan = planPrice === 0 && hasUsageBasedEntitlements;
   const headerPriceFontStyle =
-    plan.custom || isUsageBasedPlan
-      ? settings.theme.typography.heading3
-      : settings.theme.typography[layout.plans.name.fontStyle];
+    settings.theme.typography[layout.plans.name.fontStyle];
 
   const count = entitlementCounts[plan.id];
   const isExpanded = count && count.limit > VISIBLE_ENTITLEMENT_COUNT;
@@ -343,7 +348,8 @@ export const Plan = ({
             <Button
               type="button"
               disabled={
-                (!plan.valid && !plan.custom) || (!isStandalone && !canCheckout)
+                ((isHydratedPlan(plan) && !plan.valid) || !canCheckout) &&
+                !plan.custom
               }
               {...(index > currentPlanIndex
                 ? {
@@ -374,7 +380,11 @@ export const Plan = ({
                       onClick: () => {
                         sharedProps.onCallToAction?.(plan);
 
-                        if (!isStandalone && !plan.custom) {
+                        if (
+                          !isStandalone &&
+                          isHydratedPlan(plan) &&
+                          !plan.custom
+                        ) {
                           setCheckoutState({
                             period: selectedPeriod,
                             planId: isActivePlan ? null : plan.id,
@@ -387,7 +397,7 @@ export const Plan = ({
             >
               {plan.custom ? (
                 (plan.customPlanConfig?.ctaText ?? t("Talk to support"))
-              ) : !plan.valid ? (
+              ) : isHydratedPlan(plan) && !plan.valid ? (
                 <Tooltip
                   trigger={
                     <Text as={Box} $align="center">
@@ -400,7 +410,9 @@ export const Plan = ({
                     </Text>
                   }
                 />
-              ) : plan.companyCanTrial && plan.isTrialable ? (
+              ) : isHydratedPlan(plan) &&
+                plan.companyCanTrial &&
+                plan.isTrialable ? (
                 t("Start X day trial", { days: plan.trialDays })
               ) : (
                 t("Choose plan")

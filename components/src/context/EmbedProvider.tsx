@@ -18,6 +18,7 @@ import {
   CheckoutexternalApi,
   Configuration as CheckoutConfiguration,
   type ChangeSubscriptionRequestBody,
+  type ComponentHydrateResponseData,
   type ConfigurationParameters,
 } from "../api/checkoutexternal";
 import {
@@ -25,11 +26,7 @@ import {
   Configuration as PublicConfiguration,
 } from "../api/componentspublic";
 import { DEBOUNCE_SETTINGS, FETCH_DEBOUNCE_TIMEOUT } from "../const";
-import type {
-  DeepPartial,
-  HydrateData,
-  HydrateDataWithContext,
-} from "../types";
+import type { DeepPartial } from "../types";
 import { ERROR_UNKNOWN, isError } from "../utils";
 
 import { EmbedContext } from "./EmbedContext";
@@ -197,7 +194,7 @@ export const EmbedProvider = ({
    * Accepts a function that returns data in `hydrate` format
    */
   const hydrateExternal = useCallback(async function (
-    fn: () => Promise<HydrateData>,
+    fn: () => Promise<ComponentHydrateResponseData>,
   ) {
     dispatch({ type: "HYDRATE_STARTED" });
 
@@ -388,7 +385,7 @@ export const EmbedProvider = ({
     dispatch({ type: "SET_ACCESS_TOKEN", token });
   }, []);
 
-  const setData = useCallback((data: HydrateDataWithContext) => {
+  const setData = useCallback((data: ComponentHydrateResponseData) => {
     dispatch({ type: "SET_DATA", data });
   }, []);
 
@@ -524,7 +521,6 @@ export const EmbedProvider = ({
   return (
     <EmbedContext.Provider
       value={{
-        accessToken: state.accessToken,
         isPending: state.isPending,
         stale: state.stale,
         data: state.data,

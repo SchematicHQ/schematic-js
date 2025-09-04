@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from "react";
 
 import { type CompanyPlanDetailResponseData } from "../api/checkoutexternal";
+import { type PlanViewPublicResponseData } from "../api/componentspublic";
 import type { SelectedPlan } from "../types";
 import { ChargeType } from "../utils";
 
@@ -35,7 +36,9 @@ export function useAvailablePlans(
   }, [data?.activePlans, data?.activeAddOns]);
 
   const getActivePlans = useCallback(
-    (plans: CompanyPlanDetailResponseData[]): SelectedPlan[] => {
+    (
+      plans: (PlanViewPublicResponseData | CompanyPlanDetailResponseData)[],
+    ): SelectedPlan[] => {
       const activePlans =
         settings.mode === "edit"
           ? plans.slice()
