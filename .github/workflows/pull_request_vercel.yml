@@ -89,7 +89,7 @@ jobs:
 
       - name: Comment PR with Preview URL
         if: github.event_name == 'pull_request' && env.DEPLOYMENT_URL
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const deploymentUrl = process.env.DEPLOYMENT_URL;
