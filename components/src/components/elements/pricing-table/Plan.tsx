@@ -67,6 +67,7 @@ export const Plan = ({
     willSubscriptionCancel,
     isStandalone,
     showCallToAction,
+    showZeroPriceAsFree,
   } = useMemo(() => {
     if (isCheckoutData(data)) {
       const billingSubscription = data.company?.billingSubscription;
@@ -81,6 +82,7 @@ export const Plan = ({
         willSubscriptionCancel,
         isStandalone: false,
         showCallToAction: true,
+        showZeroPriceAsFree: data.showZeroPriceAsFree,
       };
     }
 
@@ -93,6 +95,7 @@ export const Plan = ({
       showCallToAction:
         typeof sharedProps.callToActionUrl === "string" ||
         typeof sharedProps.onCallToAction === "function",
+      showZeroPriceAsFree: false,
     };
   }, [data, sharedProps.callToActionUrl, sharedProps.onCallToAction]);
 
@@ -130,7 +133,8 @@ export const Plan = ({
   const hasUsageBasedEntitlements = plan.entitlements.some(
     (entitlement) => !!entitlement.priceBehavior,
   );
-  const isUsageBasedPlan = planPrice === 0 && hasUsageBasedEntitlements;
+  const isFreePlan = planPrice === 0;
+  const isUsageBasedPlan = isFreePlan && hasUsageBasedEntitlements;
   const headerPriceFontStyle =
     settings.theme.typography[layout.plans.name.fontStyle];
 
@@ -191,8 +195,10 @@ export const Plan = ({
                 : t("Custom price")
               : isUsageBasedPlan
                 ? t("Usage-based")
-                : formatCurrency(planPrice ?? 0, planCurrency)}
-            {!plan.custom && !isUsageBasedPlan && <sub>/{selectedPeriod}</sub>}
+                : isFreePlan && showZeroPriceAsFree
+                  ? t("Free")
+                  : formatCurrency(planPrice ?? 0, planCurrency)}
+            {!plan.custom && !isFreePlan && <sub>/{selectedPeriod}</sub>}
           </Text>
         </Box>
 

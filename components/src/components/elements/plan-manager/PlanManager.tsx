@@ -112,6 +112,7 @@ export const PlanManager = forwardRef<
     canCheckout,
     defaultPlan,
     featureUsage,
+    showZeroPriceAsFree,
     trialPaymentMethodRequired,
   } = useMemo(() => {
     if (isCheckoutData(data)) {
@@ -122,6 +123,7 @@ export const PlanManager = forwardRef<
         capabilities,
         defaultPlan,
         featureUsage,
+        showZeroPriceAsFree,
         trialPaymentMethodRequired,
       } = data;
 
@@ -151,12 +153,13 @@ export const PlanManager = forwardRef<
       return {
         currentPlan: company?.plan,
         currentAddOns: company?.addOns || [],
-        creditBundles: creditBundles,
+        creditBundles,
         creditGroups,
         billingSubscription: company?.billingSubscription,
         canCheckout: capabilities?.checkout ?? true,
-        defaultPlan: defaultPlan,
+        defaultPlan,
         featureUsage: featureUsage?.features || [],
+        showZeroPriceAsFree,
         trialPaymentMethodRequired: trialPaymentMethodRequired,
       };
     }
@@ -170,6 +173,7 @@ export const PlanManager = forwardRef<
       canCheckout: false,
       defaultPlan: undefined,
       featureUsage: [],
+      showZeroPriceAsFree: false,
       trialPaymentMethodRequired: false,
     };
   }, [data]);
@@ -201,8 +205,8 @@ export const PlanManager = forwardRef<
     };
   }, [billingSubscription]);
 
-  const isUsageBasedPlan =
-    currentPlan?.planPrice === 0 && usageBasedEntitlements.length > 0;
+  const isFreePlan = currentPlan?.planPrice === 0;
+  const isUsageBasedPlan = isFreePlan && usageBasedEntitlements.length > 0;
 
   return (
     <>
@@ -313,13 +317,15 @@ export const PlanManager = forwardRef<
                   >
                     {isUsageBasedPlan
                       ? t("Usage-based")
-                      : formatCurrency(
-                          currentPlan.planPrice,
-                          subscriptionCurrency,
-                        )}
+                      : isFreePlan && showZeroPriceAsFree
+                        ? t("Free")
+                        : formatCurrency(
+                            currentPlan.planPrice,
+                            subscriptionCurrency,
+                          )}
                   </Text>
 
-                  {!isUsageBasedPlan && (
+                  {!isFreePlan && (
                     <Text display={props.header.price.fontStyle}>
                       <sub>/{shortenPeriod(currentPlan.planPeriod)}</sub>
                     </Text>
