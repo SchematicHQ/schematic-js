@@ -400,7 +400,9 @@ export const Sidebar = ({
           },
           [],
         ),
-        skipTrial: !willTrialWithoutPaymentMethod,
+        skipTrial:
+          !shouldTrial ||
+          (selectedPlan.isTrialable && !trialPaymentMethodRequired),
         ...(paymentMethodId && { paymentMethodId }),
         ...(promoCode && { promoCode }),
       });
