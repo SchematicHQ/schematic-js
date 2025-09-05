@@ -230,7 +230,8 @@ export const MeteredFeatures = forwardRef<
     );
   }, []);
 
-  const shouldShowFeatures = meteredFeatures.length > 0;
+  const shouldShowFeatures =
+    meteredFeatures.length > 0 || creditGroups.length > 0;
   if (!shouldShowFeatures) {
     return null;
   }
