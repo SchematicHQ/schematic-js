@@ -68,6 +68,12 @@ export interface PublicPlansResponseData {
    * @memberof PublicPlansResponseData
    */
   showPeriodToggle: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof PublicPlansResponseData
+   */
+  showZeroPriceAsFree: boolean;
 }
 
 /**
@@ -86,6 +92,11 @@ export function instanceOfPublicPlansResponseData(
   )
     return false;
   if (!("showPeriodToggle" in value) || value["showPeriodToggle"] === undefined)
+    return false;
+  if (
+    !("showZeroPriceAsFree" in value) ||
+    value["showZeroPriceAsFree"] === undefined
+  )
     return false;
   return true;
 }
@@ -118,6 +129,7 @@ export function PublicPlansResponseDataFromJSONTyped(
         ? undefined
         : ComponentCapabilitiesFromJSON(json["capabilities"]),
     showPeriodToggle: json["show_period_toggle"],
+    showZeroPriceAsFree: json["show_zero_price_as_free"],
   };
 }
 
@@ -139,5 +151,6 @@ export function PublicPlansResponseDataToJSON(
     ),
     capabilities: ComponentCapabilitiesToJSON(value["capabilities"]),
     show_period_toggle: value["showPeriodToggle"],
+    show_zero_price_as_free: value["showZeroPriceAsFree"],
   };
 }

@@ -184,6 +184,12 @@ export interface ComponentHydrateResponseData {
   showPeriodToggle: boolean;
   /**
    *
+   * @type {boolean}
+   * @memberof ComponentHydrateResponseData
+   */
+  showZeroPriceAsFree: boolean;
+  /**
+   *
    * @type {StripeEmbedInfo}
    * @memberof ComponentHydrateResponseData
    */
@@ -235,6 +241,11 @@ export function instanceOfComponentHydrateResponseData(
   if (!("creditGrants" in value) || value["creditGrants"] === undefined)
     return false;
   if (!("showPeriodToggle" in value) || value["showPeriodToggle"] === undefined)
+    return false;
+  if (
+    !("showZeroPriceAsFree" in value) ||
+    value["showZeroPriceAsFree"] === undefined
+  )
     return false;
   return true;
 }
@@ -295,6 +306,7 @@ export function ComponentHydrateResponseDataFromJSONTyped(
         ? undefined
         : FeatureUsageDetailResponseDataFromJSON(json["feature_usage"]),
     showPeriodToggle: json["show_period_toggle"],
+    showZeroPriceAsFree: json["show_zero_price_as_free"],
     stripeEmbed:
       json["stripe_embed"] == null
         ? undefined
@@ -348,6 +360,7 @@ export function ComponentHydrateResponseDataToJSON(
     default_plan: PlanDetailResponseDataToJSON(value["defaultPlan"]),
     feature_usage: FeatureUsageDetailResponseDataToJSON(value["featureUsage"]),
     show_period_toggle: value["showPeriodToggle"],
+    show_zero_price_as_free: value["showZeroPriceAsFree"],
     stripe_embed: StripeEmbedInfoToJSON(value["stripeEmbed"]),
     subscription: CompanySubscriptionResponseDataToJSON(value["subscription"]),
     trial_payment_method_required: value["trialPaymentMethodRequired"],
