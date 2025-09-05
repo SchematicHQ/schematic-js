@@ -300,6 +300,11 @@ export const Sidebar = ({
     [creditBundles],
   );
 
+  const discountApplied = useMemo(
+    () => promoCode && (amountOff > 0 || percentOff > 0),
+    [promoCode, amountOff, percentOff],
+  );
+
   const handleCheckout = useCallback(async () => {
     const planId = selectedPlan?.id;
     const priceId = (
@@ -867,7 +872,7 @@ export const Sidebar = ({
         $width="100%"
         $padding="1.5rem"
       >
-        {promoCode && (
+        {discountApplied && (
           <Flex
             $justifyContent="space-between"
             $alignItems="center"
