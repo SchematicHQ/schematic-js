@@ -279,10 +279,19 @@ export const Plan = ({
     plans.reduce(entitlementCountsReducer, {}),
   );
 
-  const isTrialing = useMemo(
-    () => isCheckoutData(data) && data.subscription?.status === "trialing",
-    [data],
-  );
+  const { isTrialing, showZeroPriceAsFree } = useMemo(() => {
+    if (isCheckoutData(data)) {
+      return {
+        isTrialing: data.subscription?.status === "trialing",
+        showZeroPriceAsFree: data.showZeroPriceAsFree,
+      };
+    }
+
+    return {
+      isTrialing: false,
+      showZeroPriceAsFree: false,
+    };
+  }, [data]);
 
   const handleToggleShowAll = (id: string) => {
     setEntitlementCounts((prev) => {
@@ -330,7 +339,8 @@ export const Plan = ({
         const hasUsageBasedEntitlements = plan.entitlements.some(
           (entitlement) => !!entitlement.priceBehavior,
         );
-        const isUsageBasedPlan = planPrice === 0 && hasUsageBasedEntitlements;
+        const isFreePlan = planPrice === 0;
+        const isUsageBasedPlan = isFreePlan && hasUsageBasedEntitlements;
         const headerPriceFontStyle = settings.theme.typography.heading2;
 
         const count = entitlementCounts[plan.id];
@@ -394,10 +404,12 @@ export const Plan = ({
                       : t("Custom price")
                     : isUsageBasedPlan
                       ? t("Usage-based")
-                      : formatCurrency(planPrice ?? 0, planCurrency)}
+                      : isFreePlan && showZeroPriceAsFree
+                        ? t("Free")
+                        : formatCurrency(planPrice ?? 0, planCurrency)}
                 </Text>
 
-                {!plan.custom && !isUsageBasedPlan && (
+                {!plan.custom && !isFreePlan && (
                   <Text
                     display="heading2"
                     $size={
