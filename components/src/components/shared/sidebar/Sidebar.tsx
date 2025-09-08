@@ -405,7 +405,7 @@ export const Sidebar = ({
           },
           [],
         ),
-        skipTrial: !willTrialWithoutPaymentMethod,
+        skipTrial: !shouldTrial,
         ...(paymentMethodId && { paymentMethodId }),
         ...(promoCode && { promoCode }),
       });
@@ -432,7 +432,7 @@ export const Sidebar = ({
     setLayout,
     payInAdvanceEntitlements,
     addOnUsageBasedEntitlements,
-    willTrialWithoutPaymentMethod,
+    shouldTrial,
     promoCode,
   ]);
 
