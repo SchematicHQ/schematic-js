@@ -13,6 +13,12 @@
  */
 
 import { mapValues } from "../runtime";
+import type { BillingPlanCreditGrantResponseData } from "./BillingPlanCreditGrantResponseData";
+import {
+  BillingPlanCreditGrantResponseDataFromJSON,
+  BillingPlanCreditGrantResponseDataFromJSONTyped,
+  BillingPlanCreditGrantResponseDataToJSON,
+} from "./BillingPlanCreditGrantResponseData";
 import type { FeatureDetailResponseData } from "./FeatureDetailResponseData";
 import {
   FeatureDetailResponseDataFromJSON,
@@ -98,6 +104,12 @@ export interface PlanDetailResponseData {
    * @memberof PlanDetailResponseData
    */
   id: string;
+  /**
+   *
+   * @type {Array<BillingPlanCreditGrantResponseData>}
+   * @memberof PlanDetailResponseData
+   */
+  includedCreditGrants?: Array<BillingPlanCreditGrantResponseData>;
   /**
    *
    * @type {boolean}
@@ -218,6 +230,12 @@ export function PlanDetailResponseDataFromJSONTyped(
     ),
     icon: json["icon"],
     id: json["id"],
+    includedCreditGrants:
+      json["included_credit_grants"] == null
+        ? undefined
+        : (json["included_credit_grants"] as Array<any>).map(
+            BillingPlanCreditGrantResponseDataFromJSON,
+          ),
     isDefault: json["is_default"],
     isFree: json["is_free"],
     isTrialable: json["is_trialable"],
@@ -261,6 +279,12 @@ export function PlanDetailResponseDataToJSON(
     ),
     icon: value["icon"],
     id: value["id"],
+    included_credit_grants:
+      value["includedCreditGrants"] == null
+        ? undefined
+        : (value["includedCreditGrants"] as Array<any>).map(
+            BillingPlanCreditGrantResponseDataToJSON,
+          ),
     is_default: value["isDefault"],
     is_free: value["isFree"],
     is_trialable: value["isTrialable"],
