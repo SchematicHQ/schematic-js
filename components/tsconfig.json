@@ -17,7 +17,10 @@
     "skipLibCheck": true,
     "strict": true,
     "target": "ES2020",
-    "useDefineForClassFields": true
+    "useDefineForClassFields": true,
+    "paths": {
+      "test": ["./src/test"]
+    }
   },
   "include": ["src"]
 }

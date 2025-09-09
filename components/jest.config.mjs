@@ -5,5 +5,10 @@ export default {
   transform: {
     "^.+\\.(ts|tsx)?$": "ts-jest",
   },
-  testMatch: ["<rootDir>/src/**/*.test.ts"],
+  transformIgnorePatterns: [
+    "<rootDir>/node_modules/(?!(@schematichq/schematic-icons|uuid))",
+  ],
+  testMatch: ["<rootDir>/src/**/*.test.(ts|tsx)"],
+  moduleDirectories: ["node_modules", "test"],
+  setupFilesAfterEnv: ["<rootDir>/src/test/setup.ts"],
 };

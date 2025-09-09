@@ -126,7 +126,13 @@ export const PricingTable = forwardRef<
     React.HTMLAttributes<HTMLDivElement>
 >(
   (
-    { className, callToActionUrl, callToActionTarget, onCallToAction, ...rest },
+    {
+      className = "",
+      callToActionUrl,
+      callToActionTarget,
+      onCallToAction,
+      ...rest
+    },
     ref,
   ) => {
     const props = resolveDesignProps(rest);
