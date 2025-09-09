@@ -5,10 +5,9 @@ type Key = keyof CSS.PropertiesHyphen;
 type Value = string | number;
 
 export function attr(key: Key, value?: Value) {
-  return (
-    typeof value !== "undefined" &&
-    css`
+  if (typeof value !== "undefined") {
+    return css`
       ${key}: ${value};
-    `
-  );
+    `;
+  }
 }
