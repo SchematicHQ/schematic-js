@@ -98,7 +98,7 @@ export const PaymentForm = ({ onConfirm }: PaymentFormProps) => {
 
       {stripe && isCheckoutData(data) && data.checkoutSettings.collectEmail && (
         <Box data-field="name" $marginBottom="1.5rem" $verticalAlign="top">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email" className="color-black">Email</Label>
           <Input
             id="email"
             type="text"
