@@ -99,7 +99,7 @@ import {
 } from "./CompanySubscriptionResponseData";
 
 /**
- * The returned resource
+ *
  * @export
  * @interface ComponentHydrateResponseData
  */

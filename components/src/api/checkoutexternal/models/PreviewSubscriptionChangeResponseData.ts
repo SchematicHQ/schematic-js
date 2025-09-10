@@ -27,7 +27,7 @@ import {
 } from "./FeatureUsageResponseData";
 
 /**
- * The created resource
+ *
  * @export
  * @interface PreviewSubscriptionChangeResponseData
  */

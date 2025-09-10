@@ -33,7 +33,7 @@ import {
 } from "./PlanViewPublicResponseData";
 
 /**
- * The returned resource
+ *
  * @export
  * @interface PublicPlansResponseData
  */

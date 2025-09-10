@@ -21,7 +21,7 @@ import {
 } from "./CurrencyBalance";
 
 /**
- * The returned resource
+ *
  * @export
  * @interface CompanyCustomerBalance
  */
