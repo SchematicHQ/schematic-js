@@ -99,7 +99,9 @@ export const AddOn = ({ addOn, sharedProps, selectedPeriod }: AddOnProps) => {
 
         <Box>
           <Text display={layout.plans.name.fontStyle}>
-            {formatCurrency(addOnPrice ?? 0, addOnCurrency)}
+            {formatCurrency(addOnPrice ?? 0, addOnCurrency, {
+              trailingZeroDisplay: "stripIfInteger",
+            })}
             <sub>/{selectedPeriod}</sub>
           </Text>
         </Box>

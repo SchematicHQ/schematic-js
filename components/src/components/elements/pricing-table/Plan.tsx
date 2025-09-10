@@ -197,7 +197,9 @@ export const Plan = ({
                 ? t("Usage-based")
                 : isFreePlan && showZeroPriceAsFree
                   ? t("Free")
-                  : formatCurrency(planPrice ?? 0, planCurrency)}
+                  : formatCurrency(planPrice ?? 0, planCurrency, {
+                      trailingZeroDisplay: "stripIfInteger",
+                    })}
             {!plan.custom && !isFreePlan && <sub>/{selectedPeriod}</sub>}
           </Text>
         </Box>

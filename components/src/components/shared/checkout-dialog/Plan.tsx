@@ -406,7 +406,9 @@ export const Plan = ({
                       ? t("Usage-based")
                       : isFreePlan && showZeroPriceAsFree
                         ? t("Free")
-                        : formatCurrency(planPrice ?? 0, planCurrency)}
+                        : formatCurrency(planPrice ?? 0, planCurrency, {
+                            trailingZeroDisplay: "stripIfInteger",
+                          })}
                 </Text>
 
                 {!plan.custom && !isFreePlan && (

@@ -245,10 +245,7 @@ export const PricingTable = forwardRef<
                 },
               }}
             >
-              <Text
-                display={props.header.fontStyle}
-                $color={settings.theme.card.background}
-              >
+              <Text display={props.header.fontStyle}>
                 {props.header.isVisible &&
                   props.plans.isVisible &&
                   plans.length > 0 &&
@@ -312,12 +309,7 @@ export const PricingTable = forwardRef<
                     $alignItems="center"
                     $marginBottom="1rem"
                   >
-                    <Text
-                      display={props.header.fontStyle}
-                      $color={settings.theme.card.background}
-                    >
-                      {t("Add-ons")}
-                    </Text>
+                    <Text display={props.header.fontStyle}>{t("Add-ons")}</Text>
                   </Flex>
                 )}
 
