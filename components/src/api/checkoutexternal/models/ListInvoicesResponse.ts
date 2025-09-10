@@ -33,7 +33,7 @@ import {
  */
 export interface ListInvoicesResponse {
   /**
-   * The returned resources
+   *
    * @type {Array<InvoiceResponseData>}
    * @memberof ListInvoicesResponse
    */
