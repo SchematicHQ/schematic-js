@@ -3,7 +3,7 @@ import { useContext, useEffect, useState } from "react";
 import { ThemeContext } from "styled-components";
 
 import { TEXT_BASE_SIZE } from "../../const";
-import { stub } from "../../context";
+import { EmbedSettings, stub } from "../../context";
 import { useEmbed } from "../../hooks";
 import type { SerializedNodeWithChildren } from "../../types";
 import { ERROR_UNKNOWN, isCheckoutData, isError } from "../../utils";
@@ -99,7 +99,11 @@ export const SchematicEmbed = ({ id, accessToken }: EmbedProps) => {
         );
         const ast = getEditorState(json);
         if (ast) {
-          updateSettings({ ...ast.ROOT.props.settings }, { update: false });
+          const settings = ast.ROOT.props.settings as EmbedSettings;
+          // do not apply the `colorMode` setting from the builder since the provider handles it
+          const { colorMode, ...theme } = settings.theme;
+          const updated = { mode: settings.mode, theme, badge: settings.badge };
+          updateSettings(updated, { update: true });
           nodes.push(...parseEditorState(ast));
           setChildren(nodes.map(renderer));
         }
