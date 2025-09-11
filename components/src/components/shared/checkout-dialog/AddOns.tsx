@@ -99,9 +99,7 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
                 <Flex $flexDirection="column" $gap="0.25rem">
                   <Box>
                     <Text display="heading2">
-                      {formatCurrency(price ?? 0, currency, {
-                        trailingZeroDisplay: "stripIfInteger",
-                      })}
+                      {formatCurrency(price ?? 0, currency)}
                     </Text>
 
                     <Text

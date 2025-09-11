@@ -12,11 +12,7 @@ export function formatNumber(num: number) {
   return new Intl.NumberFormat("en-US").format(num);
 }
 
-export function formatCurrency(
-  amount: number,
-  currency?: string,
-  options?: Intl.NumberFormatOptions,
-) {
+export function formatCurrency(amount: number, currency?: string) {
   const resolvedCurrency = (currency || DEFAULT_CURRENCY).toUpperCase();
 
   try {
@@ -31,9 +27,8 @@ export function formatCurrency(
       currency: resolvedCurrency,
       ...(hasManySignificantDigits && {
         minimumSignificantDigits: 1,
-        maximumSignificantDigits: 21,
+        maximumSignificantDigits: 12,
       }),
-      ...options,
     }).format(dollars);
   } catch (err) {
     console.error("Error formatting currency", err);
@@ -41,9 +36,8 @@ export function formatCurrency(
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       minimumFractionDigits: 2,
-      maximumSignificantDigits: 21,
+      maximumSignificantDigits: 12,
       currency: resolvedCurrency,
-      ...options,
     }).format(amount / 100);
   }
 }
