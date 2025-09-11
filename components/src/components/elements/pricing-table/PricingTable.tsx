@@ -85,14 +85,14 @@ const resolveDesignProps = (props: DeepPartial<DesignProps>): DesignProps => {
       },
       showInclusionText: props.plans?.showInclusionText ?? true,
       showFeatureIcons: props.plans?.showFeatureIcons ?? true,
-      showFeatureDescriptions: props.plans?.showFeatureDescriptions ?? true,
+      showFeatureDescriptions: props.plans?.showFeatureDescriptions ?? false,
       showEntitlements: props.plans?.showEntitlements ?? true,
     },
     addOns: {
       isVisible: props.addOns?.isVisible ?? true,
       showDescription: props.addOns?.showDescription ?? true,
       showFeatureIcons: props.addOns?.showFeatureIcons ?? true,
-      showFeatureDescriptions: props.plans?.showFeatureDescriptions ?? true,
+      showFeatureDescriptions: props.plans?.showFeatureDescriptions ?? false,
       showEntitlements: props.addOns?.showEntitlements ?? true,
     },
     upgrade: {

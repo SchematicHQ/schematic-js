@@ -81,6 +81,12 @@ export interface FeatureUsageResponseData {
    */
   companyOverride?: CompanyOverrideResponseData;
   /**
+   * The rate at which credits are consumed per unit of usage
+   * @type {number}
+   * @memberof FeatureUsageResponseData
+   */
+  creditConsumptionRate?: number | null;
+  /**
    *
    * @type {{ [key: string]: number; }}
    * @memberof FeatureUsageResponseData
@@ -274,6 +280,10 @@ export function FeatureUsageResponseDataFromJSONTyped(
       json["company_override"] == null
         ? undefined
         : CompanyOverrideResponseDataFromJSON(json["company_override"]),
+    creditConsumptionRate:
+      json["credit_consumption_rate"] == null
+        ? undefined
+        : json["credit_consumption_rate"],
     creditGrantCounts:
       json["credit_grant_counts"] == null
         ? undefined
@@ -349,6 +359,7 @@ export function FeatureUsageResponseDataToJSON(
     company_override: CompanyOverrideResponseDataToJSON(
       value["companyOverride"],
     ),
+    credit_consumption_rate: value["creditConsumptionRate"],
     credit_grant_counts: value["creditGrantCounts"],
     credit_grant_details:
       value["creditGrantDetails"] == null

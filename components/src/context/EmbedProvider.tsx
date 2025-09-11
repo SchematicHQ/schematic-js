@@ -425,11 +425,8 @@ export const EmbedProvider = ({
     const colorMode = darkModeQuery.matches ? "dark" : "light";
     dispatch({
       type: "UPDATE_SETTINGS",
-      settings: {
-        theme: {
-          colorMode,
-        },
-      },
+      settings: { theme: { colorMode } },
+      update: true,
     });
 
     function darkModeQueryHandler(event: MediaQueryListEvent) {
@@ -437,6 +434,7 @@ export const EmbedProvider = ({
       dispatch({
         type: "UPDATE_SETTINGS",
         settings: { theme: { colorMode: newColorMode } },
+        update: true,
       });
     }
 
@@ -500,8 +498,9 @@ export const EmbedProvider = ({
   }, [state.accessToken, apiConfig, customHeaders]);
 
   useEffect(() => {
-    const providedSettings = { ...(options.settings || {}) };
-    updateSettings(providedSettings, { update: false });
+    if (options.settings) {
+      updateSettings(options.settings, { update: true });
+    }
   }, [options.settings, updateSettings]);
 
   useEffect(() => {
