@@ -49,6 +49,12 @@ import {
   BillingProductDetailResponseDataFromJSONTyped,
   BillingProductDetailResponseDataToJSON,
 } from "./BillingProductDetailResponseData";
+import type { FeatureUsageResponseData } from "./FeatureUsageResponseData";
+import {
+  FeatureUsageResponseDataFromJSON,
+  FeatureUsageResponseDataFromJSONTyped,
+  FeatureUsageResponseDataToJSON,
+} from "./FeatureUsageResponseData";
 
 /**
  *
@@ -220,6 +226,12 @@ export interface CompanyPlanDetailResponseData {
   updatedAt: Date;
   /**
    *
+   * @type {Array<FeatureUsageResponseData>}
+   * @memberof CompanyPlanDetailResponseData
+   */
+  usageViolations: Array<FeatureUsageResponseData>;
+  /**
+   *
    * @type {boolean}
    * @memberof CompanyPlanDetailResponseData
    */
@@ -274,6 +286,8 @@ export function instanceOfCompanyPlanDetailResponseData(
   if (!("name" in value) || value["name"] === undefined) return false;
   if (!("planType" in value) || value["planType"] === undefined) return false;
   if (!("updatedAt" in value) || value["updatedAt"] === undefined) return false;
+  if (!("usageViolations" in value) || value["usageViolations"] === undefined)
+    return false;
   if (!("valid" in value) || value["valid"] === undefined) return false;
   return true;
 }
@@ -338,6 +352,9 @@ export function CompanyPlanDetailResponseDataFromJSONTyped(
     planType: json["plan_type"],
     trialDays: json["trial_days"] == null ? undefined : json["trial_days"],
     updatedAt: new Date(json["updated_at"]),
+    usageViolations: (json["usage_violations"] as Array<any>).map(
+      FeatureUsageResponseDataFromJSON,
+    ),
     valid: json["valid"],
     yearlyPrice:
       json["yearly_price"] == null
@@ -388,6 +405,9 @@ export function CompanyPlanDetailResponseDataToJSON(
     plan_type: value["planType"],
     trial_days: value["trialDays"],
     updated_at: value["updatedAt"].toISOString(),
+    usage_violations: (value["usageViolations"] as Array<any>).map(
+      FeatureUsageResponseDataToJSON,
+    ),
     valid: value["valid"],
     yearly_price: BillingPriceResponseDataToJSON(value["yearlyPrice"]),
   };

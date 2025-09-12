@@ -70,6 +70,18 @@ export interface PreviewSubscriptionFinanceResponseData {
   proration: number;
   /**
    *
+   * @type {number}
+   * @memberof PreviewSubscriptionFinanceResponseData
+   */
+  taxAmount?: number | null;
+  /**
+   *
+   * @type {string}
+   * @memberof PreviewSubscriptionFinanceResponseData
+   */
+  taxDisplayName?: string | null;
+  /**
+   *
    * @type {Date}
    * @memberof PreviewSubscriptionFinanceResponseData
    */
@@ -128,6 +140,9 @@ export function PreviewSubscriptionFinanceResponseDataFromJSONTyped(
     periodStart: new Date(json["period_start"]),
     promoCodeApplied: json["promo_code_applied"],
     proration: json["proration"],
+    taxAmount: json["tax_amount"] == null ? undefined : json["tax_amount"],
+    taxDisplayName:
+      json["tax_display_name"] == null ? undefined : json["tax_display_name"],
     trialEnd:
       json["trial_end"] == null ? undefined : new Date(json["trial_end"]),
     upcomingInvoiceLineItems: (
@@ -150,6 +165,8 @@ export function PreviewSubscriptionFinanceResponseDataToJSON(
     period_start: value["periodStart"].toISOString(),
     promo_code_applied: value["promoCodeApplied"],
     proration: value["proration"],
+    tax_amount: value["taxAmount"],
+    tax_display_name: value["taxDisplayName"],
     trial_end:
       value["trialEnd"] == null
         ? undefined
