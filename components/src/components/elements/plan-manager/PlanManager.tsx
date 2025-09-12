@@ -110,7 +110,7 @@ export const PlanManager = forwardRef<
     creditGroups,
     billingSubscription,
     canCheckout,
-    defaultPlan,
+    postTrialPlan,
     featureUsage,
     showZeroPriceAsFree,
     trialPaymentMethodRequired,
@@ -121,7 +121,7 @@ export const PlanManager = forwardRef<
         creditBundles,
         creditGrants,
         capabilities,
-        defaultPlan,
+        postTrialPlan,
         featureUsage,
         showZeroPriceAsFree,
         trialPaymentMethodRequired,
@@ -157,7 +157,7 @@ export const PlanManager = forwardRef<
         creditGroups,
         billingSubscription: company?.billingSubscription,
         canCheckout: capabilities?.checkout ?? true,
-        defaultPlan,
+        postTrialPlan,
         featureUsage: featureUsage?.features || [],
         showZeroPriceAsFree,
         trialPaymentMethodRequired: trialPaymentMethodRequired,
@@ -171,7 +171,7 @@ export const PlanManager = forwardRef<
       creditGroups: { plan: [], bundles: [], promotional: [] },
       billingSubscription: undefined,
       canCheckout: false,
-      defaultPlan: undefined,
+      postTrialPlan: undefined,
       featureUsage: [],
       showZeroPriceAsFree: false,
       trialPaymentMethodRequired: false,
@@ -232,9 +232,9 @@ export const PlanManager = forwardRef<
           <Text as="p" $size={0.8125 * settings.theme.typography.text.fontSize}>
             {trialPaymentMethodRequired
               ? t("After the trial, subscribe")
-              : defaultPlan
+              : postTrialPlan
                 ? t("After the trial, cancel", {
-                    defaultPlanName: defaultPlan?.name,
+                    postTrialPlanName: postTrialPlan?.name,
                   })
                 : t("After the trial, cancel no default", {
                     planName: currentPlan?.name,

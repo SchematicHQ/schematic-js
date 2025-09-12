@@ -10,7 +10,7 @@
     "Add-ons Quantity": "Add-ons Quantity",
     "Additional": "Additional",
     "After the trial, cancel no default": "After the trial, you will be lose access to {{planName}} plan and your subscription will be cancelled.",
-    "After the trial, cancel": "After the trial, you will be downgraded to the {{defaultPlanName}} plan and your subscription will be cancelled.",
+    "After the trial, cancel": "After the trial, you will be downgraded to the {{postTrialPlanName}} plan and your subscription will be cancelled.",
     "After the trial, subscribe": "After the trial, subscription starts and you will be billed.",
     "Amount off": "{{amount}} off",
     "An invoice is created when charges reach $X; the rest is billed monthly.": "An invoice is created when charges reach {{amount}}; the rest is billed monthly.",
