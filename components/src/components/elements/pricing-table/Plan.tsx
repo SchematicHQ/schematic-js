@@ -407,7 +407,7 @@ export const Plan = ({
                 <Tooltip
                   trigger={
                     <Text as={Box} $align="center">
-                      {t("Over usage limit")}
+                      {t("Over plan limit.")}
                     </Text>
                   }
                   content={
