@@ -30,6 +30,7 @@ import {
   BillingThresholdTooltip,
   PricingTiersTooltip,
   TieredPricingDetails,
+  UsageViolationText,
 } from "../../shared";
 import { Box, Button, Flex, Icon, Text } from "../../ui";
 
@@ -91,7 +92,7 @@ const PlanButtonGroup = ({
 }: PlanButtonGroupProps) => {
   const { t } = useTranslation();
 
-  const { data, settings } = useEmbed();
+  const { data } = useEmbed();
 
   const { isCurrentPlan, isValidPlan, isTrialing } = useMemo(() => {
     if (isCheckoutData(data)) {
@@ -152,25 +153,8 @@ const PlanButtonGroup = ({
                   )}
                 </Button>
 
-                {!isValidPlan && isHydratedPlan(plan) && (
-                  <Text
-                    $size={0.875 * settings.theme.typography.text.fontSize}
-                    $leading={1.35}
-                    style={{ opacity: 0.625 }}
-                  >
-                    {t("Cannot change to this plan.", {
-                      reason: plan.usageViolations.reduce(
-                        (acc: string[], violation) => {
-                          if (violation.feature) {
-                            acc.push(violation.feature.name);
-                          }
-
-                          return acc;
-                        },
-                        [],
-                      ),
-                    })}
-                  </Text>
+                {isHydratedPlan(plan) && !plan.valid && (
+                  <UsageViolationText violations={plan.usageViolations} />
                 )}
               </Flex>
             )}
@@ -205,25 +189,8 @@ const PlanButtonGroup = ({
                   )}
                 </Button>
 
-                {!isValidPlan && isHydratedPlan(plan) && (
-                  <Text
-                    $size={0.875 * settings.theme.typography.text.fontSize}
-                    $leading={1.35}
-                    style={{ opacity: 0.625 }}
-                  >
-                    {t("Cannot change to this plan.", {
-                      reason: plan.usageViolations.reduce(
-                        (acc: string[], violation) => {
-                          if (violation.feature) {
-                            acc.push(violation.feature.name);
-                          }
-
-                          return acc;
-                        },
-                        [],
-                      ),
-                    })}
-                  </Text>
+                {isHydratedPlan(plan) && !plan.valid && (
+                  <UsageViolationText violations={plan.usageViolations} />
                 )}
               </Flex>
             )}
@@ -268,22 +235,8 @@ const PlanButtonGroup = ({
         )}
       </Button>
 
-      {!isValidPlan && isHydratedPlan(plan) && (
-        <Text
-          $size={0.875 * settings.theme.typography.text.fontSize}
-          $leading={1.35}
-          style={{ opacity: 0.625 }}
-        >
-          {t("Cannot change to this plan.", {
-            reason: plan.usageViolations.reduce((acc: string[], violation) => {
-              if (violation.feature) {
-                acc.push(violation.feature.name);
-              }
-
-              return acc;
-            }, []),
-          })}
-        </Text>
+      {isHydratedPlan(plan) && !plan.valid && (
+        <UsageViolationText violations={plan.usageViolations} />
       )}
     </Flex>
   );
