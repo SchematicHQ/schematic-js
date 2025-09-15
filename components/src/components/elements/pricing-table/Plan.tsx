@@ -15,7 +15,7 @@ import {
 } from "../../../utils";
 import { cardBoxShadow } from "../../layout";
 import { UsageViolationText } from "../../shared";
-import { Box, Button, Flex, Icon, Text, Tooltip } from "../../ui";
+import { Box, Button, Flex, Icon, Text } from "../../ui";
 
 import { Entitlement } from "./Entitlement";
 import {
