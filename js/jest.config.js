@@ -5,6 +5,7 @@ module.exports = {
   transform: {
     "^.+\\.(ts|tsx)?$": "ts-jest",
   },
+  transformIgnorePatterns: ["<rootDir/node_modules/uuid"],
   testMatch: ["<rootDir>/src/**/*.spec.ts"],
 };
 
