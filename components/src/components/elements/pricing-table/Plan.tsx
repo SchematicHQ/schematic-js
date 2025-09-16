@@ -60,15 +60,26 @@ export const Plan = ({
 
   const trialEnd = useTrialEnd();
 
+  const showCallToAction = useMemo(() => {
+    return (
+      typeof sharedProps.callToActionUrl === "string" ||
+      typeof sharedProps.onCallToAction === "function"
+    );
+  }, [sharedProps.callToActionUrl, sharedProps.onCallToAction]);
+
   const {
     currentPeriod,
     canCheckout,
     isTrialSubscription,
     willSubscriptionCancel,
     isStandalone,
-    showCallToAction,
+    showCredits,
     showZeroPriceAsFree,
   } = useMemo(() => {
+    // @ts-expect-error: not implemented yet
+    const showCredits = data?.showCredits ?? true;
+    const showZeroPriceAsFree = data?.showZeroPriceAsFree ?? false;
+
     if (isCheckoutData(data)) {
       const billingSubscription = data.company?.billingSubscription;
       const isTrialSubscription = billingSubscription?.status === "trialing";
@@ -81,8 +92,8 @@ export const Plan = ({
         isTrialSubscription,
         willSubscriptionCancel,
         isStandalone: false,
-        showCallToAction: true,
-        showZeroPriceAsFree: data.showZeroPriceAsFree,
+        showCredits,
+        showZeroPriceAsFree,
       };
     }
 
@@ -92,12 +103,10 @@ export const Plan = ({
       isTrialSubscription: false,
       willSubscriptionCancel: false,
       isStandalone: true,
-      showCallToAction:
-        typeof sharedProps.callToActionUrl === "string" ||
-        typeof sharedProps.onCallToAction === "function",
-      showZeroPriceAsFree: false,
+      showCredits,
+      showZeroPriceAsFree,
     };
-  }, [data, sharedProps.callToActionUrl, sharedProps.onCallToAction]);
+  }, [data]);
 
   const callToActionTarget = useMemo(() => {
     if (sharedProps.callToActionTarget) {
@@ -202,7 +211,7 @@ export const Plan = ({
           </Text>
         </Box>
 
-        {credits.length > 0 && (
+        {showCredits && credits.length > 0 && (
           <Flex
             $flexDirection="column"
             $gap="1rem"

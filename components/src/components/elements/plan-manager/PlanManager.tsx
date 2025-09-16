@@ -112,9 +112,14 @@ export const PlanManager = forwardRef<
     canCheckout,
     postTrialPlan,
     featureUsage,
+    showCredits,
     showZeroPriceAsFree,
     trialPaymentMethodRequired,
   } = useMemo(() => {
+    // @ts-expect-error: not implemented yet
+    const showCredits = data?.showCredits ?? true;
+    const showZeroPriceAsFree = data?.showZeroPriceAsFree ?? false;
+
     if (isCheckoutData(data)) {
       const {
         company,
@@ -123,7 +128,6 @@ export const PlanManager = forwardRef<
         capabilities,
         postTrialPlan,
         featureUsage,
-        showZeroPriceAsFree,
         trialPaymentMethodRequired,
       } = data;
 
@@ -159,8 +163,9 @@ export const PlanManager = forwardRef<
         canCheckout: capabilities?.checkout ?? true,
         postTrialPlan,
         featureUsage: featureUsage?.features || [],
-        showZeroPriceAsFree,
         trialPaymentMethodRequired: trialPaymentMethodRequired,
+        showCredits,
+        showZeroPriceAsFree,
       };
     }
 
@@ -173,8 +178,9 @@ export const PlanManager = forwardRef<
       canCheckout: false,
       postTrialPlan: undefined,
       featureUsage: [],
-      showZeroPriceAsFree: false,
       trialPaymentMethodRequired: false,
+      showCredits,
+      showZeroPriceAsFree,
     };
   }, [data]);
 
@@ -393,55 +399,59 @@ export const PlanManager = forwardRef<
           </Flex>
         )}
 
-        {props.addOns.isVisible && creditGroups.plan.length > 0 && (
-          <Flex $flexDirection="column" $gap="0.5rem">
-            {props.addOns.showLabel && (
-              <Text
-                $color={
-                  isLightBackground
-                    ? darken(settings.theme.card.background, 0.46)
-                    : lighten(settings.theme.card.background, 0.46)
-                }
-                $leading={1}
-              >
-                {t("Credits in plan")}
-              </Text>
-            )}
+        {props.addOns.isVisible &&
+          showCredits &&
+          creditGroups.plan.length > 0 && (
+            <Flex $flexDirection="column" $gap="0.5rem">
+              {props.addOns.showLabel && (
+                <Text
+                  $color={
+                    isLightBackground
+                      ? darken(settings.theme.card.background, 0.46)
+                      : lighten(settings.theme.card.background, 0.46)
+                  }
+                  $leading={1}
+                >
+                  {t("Credits in plan")}
+                </Text>
+              )}
 
-            <Flex $flexDirection="column" $gap="1rem">
-              {creditGroups.plan.map((group, groupIndex) => {
-                return (
-                  <Flex
-                    key={groupIndex}
-                    $justifyContent="space-between"
-                    $alignItems="center"
-                    $flexWrap="wrap"
-                    $gap="0.5rem"
-                  >
-                    <Text display={props.addOns.fontStyle}>
-                      {group.quantity} {getFeatureName(group, group.quantity)}{" "}
-                      {subscriptionInterval && (
-                        <>
-                          {t("per")} {t(subscriptionInterval)}
-                        </>
-                      )}
-                    </Text>
-
-                    {group.total.used > 0 && (
-                      <Text
-                        style={{ opacity: 0.54 }}
-                        $size={0.875 * settings.theme.typography.text.fontSize}
-                        $color={settings.theme.typography.text.color}
-                      >
-                        {group.total.used} {t("used")}
+              <Flex $flexDirection="column" $gap="1rem">
+                {creditGroups.plan.map((group, groupIndex) => {
+                  return (
+                    <Flex
+                      key={groupIndex}
+                      $justifyContent="space-between"
+                      $alignItems="center"
+                      $flexWrap="wrap"
+                      $gap="0.5rem"
+                    >
+                      <Text display={props.addOns.fontStyle}>
+                        {group.quantity} {getFeatureName(group, group.quantity)}{" "}
+                        {subscriptionInterval && (
+                          <>
+                            {t("per")} {t(subscriptionInterval)}
+                          </>
+                        )}
                       </Text>
-                    )}
-                  </Flex>
-                );
-              })}
+
+                      {group.total.used > 0 && (
+                        <Text
+                          style={{ opacity: 0.54 }}
+                          $size={
+                            0.875 * settings.theme.typography.text.fontSize
+                          }
+                          $color={settings.theme.typography.text.color}
+                        >
+                          {group.total.used} {t("used")}
+                        </Text>
+                      )}
+                    </Flex>
+                  );
+                })}
+              </Flex>
             </Flex>
-          </Flex>
-        )}
+          )}
 
         {props.addOns.isVisible && creditGroups.bundles.length > 0 && (
           <Flex $flexDirection="column" $gap="0.5rem">
