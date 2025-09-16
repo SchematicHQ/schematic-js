@@ -116,7 +116,6 @@ export const PlanManager = forwardRef<
     showZeroPriceAsFree,
     trialPaymentMethodRequired,
   } = useMemo(() => {
-    // @ts-expect-error: not implemented yet
     const showCredits = data?.showCredits ?? true;
     const showZeroPriceAsFree = data?.showZeroPriceAsFree ?? false;
 

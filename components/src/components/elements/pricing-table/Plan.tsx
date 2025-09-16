@@ -76,7 +76,6 @@ export const Plan = ({
     showCredits,
     showZeroPriceAsFree,
   } = useMemo(() => {
-    // @ts-expect-error: not implemented yet
     const showCredits = data?.showCredits ?? true;
     const showZeroPriceAsFree = data?.showZeroPriceAsFree ?? false;
 
