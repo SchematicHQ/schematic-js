@@ -67,12 +67,6 @@ export interface PublicPlansResponseData {
    * @type {boolean}
    * @memberof PublicPlansResponseData
    */
-  showCredits: boolean;
-  /**
-   *
-   * @type {boolean}
-   * @memberof PublicPlansResponseData
-   */
   showPeriodToggle: boolean;
   /**
    *
@@ -96,8 +90,6 @@ export function instanceOfPublicPlansResponseData(
     !("addOnCompatibilities" in value) ||
     value["addOnCompatibilities"] === undefined
   )
-    return false;
-  if (!("showCredits" in value) || value["showCredits"] === undefined)
     return false;
   if (!("showPeriodToggle" in value) || value["showPeriodToggle"] === undefined)
     return false;
@@ -136,7 +128,6 @@ export function PublicPlansResponseDataFromJSONTyped(
       json["capabilities"] == null
         ? undefined
         : ComponentCapabilitiesFromJSON(json["capabilities"]),
-    showCredits: json["show_credits"],
     showPeriodToggle: json["show_period_toggle"],
     showZeroPriceAsFree: json["show_zero_price_as_free"],
   };
@@ -159,7 +150,6 @@ export function PublicPlansResponseDataToJSON(
       CompatiblePlansToJSON,
     ),
     capabilities: ComponentCapabilitiesToJSON(value["capabilities"]),
-    show_credits: value["showCredits"],
     show_period_toggle: value["showPeriodToggle"],
     show_zero_price_as_free: value["showZeroPriceAsFree"],
   };
