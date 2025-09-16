@@ -9,10 +9,16 @@ import { useTranslation } from "react-i18next";
 
 import {
   type PaymentMethodResponseData,
+  type PreviewSubscriptionFinanceResponseData,
   type SetupIntentResponseData,
 } from "../../../api/checkoutexternal";
 import { type FontStyle } from "../../../context";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
+import type {
+  CreditBundle,
+  SelectedPlan,
+  UsageBasedEntitlement,
+} from "../../../types";
 import { createKeyboardExecutionHandler, isCheckoutData } from "../../../utils";
 import { PaymentForm } from "../../shared";
 import { Box, Button, Flex, Icon, Loader, Text } from "../../ui";
@@ -48,10 +54,14 @@ const resolveDesignProps = (): DesignProps => {
 
 interface PaymentMethodDetailsProps {
   setPaymentMethodId?: (id: string) => void;
+  financeData?: PreviewSubscriptionFinanceResponseData | null;
+  onPaymentMethodSaved?: () => void;
 }
 
 export const PaymentMethodDetails = ({
   setPaymentMethodId,
+  financeData,
+  onPaymentMethodSaved,
 }: PaymentMethodDetailsProps) => {
   // TODO: I think we do not support edit in overlays at the moment
   const props = resolveDesignProps();
@@ -89,6 +99,7 @@ export const PaymentMethodDetails = ({
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [stripe, setStripe] = useState<Promise<Stripe | null> | null>(null);
   const [setupIntent, setSetupIntent] = useState<SetupIntentResponseData>();
+  const [stripeInitialized, setStripeInitialized] = useState(false);
   const [showDifferentPaymentMethods, setShowDifferentPaymentMethods] =
     useState(false);
   const [currentPaymentMethod, setCurrentPaymentMethod] = useState<
@@ -158,6 +169,11 @@ export const PaymentMethodDetails = ({
           if (setPaymentMethodId) {
             setPaymentMethodId(response.data.externalId);
           }
+
+          // Trigger preview checkout to recalculate taxes with new billing info
+          if (onPaymentMethodSaved) {
+            onPaymentMethodSaved();
+          }
         }
       } catch {
         setError(t("Error updating payment method. Please try again."));
@@ -165,7 +181,7 @@ export const PaymentMethodDetails = ({
         setIsLoading(false);
       }
     },
-    [t, setPaymentMethodId, updatePaymentMethod],
+    [t, setPaymentMethodId, updatePaymentMethod, onPaymentMethodSaved],
   );
 
   const handleDeletePaymentMethod = useCallback(
@@ -185,7 +201,9 @@ export const PaymentMethodDetails = ({
   );
 
   useEffect(() => {
-    if (!stripe && setupIntent) {
+    if (!stripe && setupIntent && !stripeInitialized) {
+      setStripeInitialized(true);
+
       let publishableKey =
         setupIntent.publishableKey || setupIntent.schematicPublishableKey;
 
@@ -196,9 +214,10 @@ export const PaymentMethodDetails = ({
         stripeOptions.stripeAccount = setupIntent.accountId;
       }
 
-      setStripe(loadStripe(publishableKey, stripeOptions));
+      const stripePromise = loadStripe(publishableKey, stripeOptions);
+      setStripe(stripePromise);
     }
-  }, [stripe, setupIntent]);
+  }, [stripe, setupIntent, stripeInitialized]);
 
   useEffect(() => {
     if (!setupIntent && (!currentPaymentMethod || showPaymentForm)) {
@@ -243,7 +262,7 @@ export const PaymentMethodDetails = ({
             : "hsla(0, 0%, 100%, 0.025)"
         }
       >
-        {setupIntent && showPaymentForm ? (
+        {setupIntent && showPaymentForm && stripe ? (
           <Elements
             stripe={stripe}
             options={{
@@ -273,6 +292,7 @@ export const PaymentMethodDetails = ({
             }}
           >
             <PaymentForm
+              financeData={financeData}
               onConfirm={async (paymentMethodId) => {
                 await handleUpdatePaymentMethod(paymentMethodId);
                 setShowPaymentForm(false);
