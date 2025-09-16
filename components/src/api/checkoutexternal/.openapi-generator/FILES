@@ -22,6 +22,7 @@ models/CheckoutUnsubscribeResponse.ts
 models/CompanyCustomerBalance.ts
 models/CompanyDetailResponseData.ts
 models/CompanyEventPeriodMetricsResponseData.ts
+models/CompanyOverrideNoteResponseData.ts
 models/CompanyOverrideResponseData.ts
 models/CompanyPlanDetailResponseData.ts
 models/CompanyPlanWithBillingSubView.ts

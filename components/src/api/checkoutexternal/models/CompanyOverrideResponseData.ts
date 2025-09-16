@@ -25,6 +25,12 @@ import {
   FeatureResponseDataFromJSONTyped,
   FeatureResponseDataToJSON,
 } from "./FeatureResponseData";
+import type { CompanyOverrideNoteResponseData } from "./CompanyOverrideNoteResponseData";
+import {
+  CompanyOverrideNoteResponseDataFromJSON,
+  CompanyOverrideNoteResponseDataFromJSONTyped,
+  CompanyOverrideNoteResponseDataToJSON,
+} from "./CompanyOverrideNoteResponseData";
 import type { CompanyDetailResponseData } from "./CompanyDetailResponseData";
 import {
   CompanyDetailResponseDataFromJSON,
@@ -106,6 +112,12 @@ export interface CompanyOverrideResponseData {
   metricPeriodMonthReset?: string | null;
   /**
    *
+   * @type {Array<CompanyOverrideNoteResponseData>}
+   * @memberof CompanyOverrideResponseData
+   */
+  notes: Array<CompanyOverrideNoteResponseData>;
+  /**
+   *
    * @type {string}
    * @memberof CompanyOverrideResponseData
    */
@@ -166,6 +178,7 @@ export function instanceOfCompanyOverrideResponseData(
     return false;
   if (!("featureId" in value) || value["featureId"] === undefined) return false;
   if (!("id" in value) || value["id"] === undefined) return false;
+  if (!("notes" in value) || value["notes"] === undefined) return false;
   if (!("updatedAt" in value) || value["updatedAt"] === undefined) return false;
   if (!("valueType" in value) || value["valueType"] === undefined) return false;
   return true;
@@ -210,6 +223,9 @@ export function CompanyOverrideResponseDataFromJSONTyped(
       json["metric_period_month_reset"] == null
         ? undefined
         : json["metric_period_month_reset"],
+    notes: (json["notes"] as Array<any>).map(
+      CompanyOverrideNoteResponseDataFromJSON,
+    ),
     ruleId: json["rule_id"] == null ? undefined : json["rule_id"],
     ruleIdUsageExceeded:
       json["rule_id_usage_exceeded"] == null
@@ -250,6 +266,9 @@ export function CompanyOverrideResponseDataToJSON(
     id: value["id"],
     metric_period: value["metricPeriod"],
     metric_period_month_reset: value["metricPeriodMonthReset"],
+    notes: (value["notes"] as Array<any>).map(
+      CompanyOverrideNoteResponseDataToJSON,
+    ),
     rule_id: value["ruleId"],
     rule_id_usage_exceeded: value["ruleIdUsageExceeded"],
     updated_at: value["updatedAt"].toISOString(),

@@ -20,6 +20,7 @@ export * from "./CheckoutUnsubscribeResponse";
 export * from "./CompanyCustomerBalance";
 export * from "./CompanyDetailResponseData";
 export * from "./CompanyEventPeriodMetricsResponseData";
+export * from "./CompanyOverrideNoteResponseData";
 export * from "./CompanyOverrideResponseData";
 export * from "./CompanyPlanDetailResponseData";
 export * from "./CompanyPlanWithBillingSubView";
