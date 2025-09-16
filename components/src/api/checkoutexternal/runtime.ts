@@ -42,7 +42,7 @@ export class Configuration {
 
   get basePath(): string {
     return this.configuration.basePath != null
-      ? this.configuration.basePath
+      ? this.configuration.basePath.replace(/\/+$/, "")
       : BASE_PATH;
   }
 
