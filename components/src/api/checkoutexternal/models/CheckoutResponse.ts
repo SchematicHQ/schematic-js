@@ -13,12 +13,12 @@
  */
 
 import { mapValues } from "../runtime";
-import type { BillingSubscriptionResponseData } from "./BillingSubscriptionResponseData";
+import type { CheckoutResponseData } from "./CheckoutResponseData";
 import {
-  BillingSubscriptionResponseDataFromJSON,
-  BillingSubscriptionResponseDataFromJSONTyped,
-  BillingSubscriptionResponseDataToJSON,
-} from "./BillingSubscriptionResponseData";
+  CheckoutResponseDataFromJSON,
+  CheckoutResponseDataFromJSONTyped,
+  CheckoutResponseDataToJSON,
+} from "./CheckoutResponseData";
 
 /**
  *
@@ -28,10 +28,10 @@ import {
 export interface CheckoutResponse {
   /**
    *
-   * @type {BillingSubscriptionResponseData}
+   * @type {CheckoutResponseData}
    * @memberof CheckoutResponse
    */
-  data: BillingSubscriptionResponseData;
+  data: CheckoutResponseData;
   /**
    * Input parameters
    * @type {object}
@@ -63,7 +63,7 @@ export function CheckoutResponseFromJSONTyped(
     return json;
   }
   return {
-    data: BillingSubscriptionResponseDataFromJSON(json["data"]),
+    data: CheckoutResponseDataFromJSON(json["data"]),
     params: json["params"],
   };
 }
@@ -73,7 +73,7 @@ export function CheckoutResponseToJSON(value?: CheckoutResponse | null): any {
     return value;
   }
   return {
-    data: BillingSubscriptionResponseDataToJSON(value["data"]),
+    data: CheckoutResponseDataToJSON(value["data"]),
     params: value["params"],
   };
 }
