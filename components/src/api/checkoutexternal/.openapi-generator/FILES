@@ -34,8 +34,6 @@ models/ComponentCapabilities.ts
 models/ComponentCheckoutSettings.ts
 models/ComponentHydrateResponseData.ts
 models/ComponentResponseData.ts
-models/Confirm3DSRequestBody.ts
-models/Confirm3DSResponse.ts
 models/CountResponse.ts
 models/CreateSetupIntentResponse.ts
 models/CreditCompanyGrantView.ts
