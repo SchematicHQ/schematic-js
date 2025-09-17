@@ -16,6 +16,7 @@ export * from "./BillingSubscriptionResponseData";
 export * from "./BillingSubscriptionView";
 export * from "./ChangeSubscriptionRequestBody";
 export * from "./CheckoutResponse";
+export * from "./CheckoutResponseData";
 export * from "./CheckoutUnsubscribeResponse";
 export * from "./CompanyCustomerBalance";
 export * from "./CompanyDetailResponseData";
