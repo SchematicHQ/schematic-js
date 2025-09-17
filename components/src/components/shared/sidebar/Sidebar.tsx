@@ -47,7 +47,7 @@ interface SidebarProps {
   creditBundles?: CreditBundle[];
   usageBasedEntitlements: UsageBasedEntitlement[];
   addOnUsageBasedEntitlements?: UsageBasedEntitlement[];
-  charges?: PreviewSubscriptionFinanceResponseData;
+  financePreview?: PreviewSubscriptionFinanceResponseData;
   checkoutRef?: React.RefObject<HTMLDivElement | null>;
   checkoutStage?: string;
   checkoutStages?: CheckoutStage[];
@@ -72,7 +72,7 @@ export const Sidebar = ({
   creditBundles = [],
   usageBasedEntitlements,
   addOnUsageBasedEntitlements = [],
-  charges,
+  financePreview,
   checkoutRef,
   checkoutStage,
   checkoutStages,
@@ -217,16 +217,16 @@ export const Sidebar = ({
     taxDescription,
   } = useMemo(() => {
     return {
-      amountOff: charges?.amountOff ?? 0,
-      dueNow: charges?.dueNow ?? 0,
-      newCharges: charges?.newCharges ?? 0,
-      percentOff: charges?.percentOff ?? 0,
-      periodStart: charges?.periodStart,
-      proration: charges?.proration ?? 0,
-      taxAmount: charges?.taxAmount ?? 0,
-      taxDescription: charges?.taxDisplayName,
+      amountOff: financePreview?.amountOff ?? 0,
+      dueNow: financePreview?.dueNow ?? 0,
+      newCharges: financePreview?.newCharges ?? 0,
+      percentOff: financePreview?.percentOff ?? 0,
+      periodStart: financePreview?.periodStart,
+      proration: financePreview?.proration ?? 0,
+      taxAmount: financePreview?.taxAmount ?? 0,
+      taxDescription: financePreview?.taxDisplayName,
     };
-  }, [charges]);
+  }, [financePreview]);
 
   const updatedUsageBasedEntitlements = useMemo(() => {
     const changedUsageBasedEntitlements: {
@@ -866,9 +866,9 @@ export const Sidebar = ({
           </Flex>
         )}
 
-        {proration !== 0 && charges && selectedPlanCurrency && (
+        {proration !== 0 && financePreview && selectedPlanCurrency && (
           <Proration
-            charges={charges}
+            financePreview={financePreview}
             currency={selectedPlanCurrency}
             selectedPlan={selectedPlan}
           />
@@ -1002,7 +1002,9 @@ export const Sidebar = ({
           >
             <Box $opacity="0.625">
               <Text>
-                {t("Tax")} ({taxDescription}):
+                {t("Tax (description):", {
+                  description: taxDescription,
+                })}
               </Text>
             </Box>
 
@@ -1012,7 +1014,7 @@ export const Sidebar = ({
           </Flex>
         )}
 
-        {charges && (
+        {financePreview && (
           <Flex
             $justifyContent="space-between"
             $alignItems="center"

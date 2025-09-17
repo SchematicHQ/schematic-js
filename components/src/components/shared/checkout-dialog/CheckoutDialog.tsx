@@ -93,7 +93,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   const contentRef = useRef<HTMLDivElement>(null);
   const checkoutRef = useRef<HTMLDivElement>(null);
 
-  const [charges, setCharges] =
+  const [financePreview, setFinancePreview] =
     useState<PreviewSubscriptionFinanceResponseData>();
 
   const [paymentMethodId, setPaymentMethodId] = useState<string | undefined>(
@@ -279,7 +279,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       });
     }
 
-    // addOns could be filtered by compatibility rules
+    // add-ons could be filtered by compatibility rules
     if (addOns.length > 0 && (!isSelectedPlanTrialable || !shouldTrial)) {
       stages.push({
         id: "addons",
@@ -374,7 +374,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   });
 
   const handlePreviewCheckout = useCallback(
-    async (updates: {
+    async (updates?: {
       period?: string;
       plan?: SelectedPlan;
       shouldTrial?: boolean;
@@ -384,15 +384,15 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       creditBundles?: CreditBundle[];
       promoCode?: string | null;
     }) => {
-      const period = updates.period || planPeriod;
-      const plan = updates.plan || selectedPlan;
+      const period = updates?.period || planPeriod;
+      const plan = updates?.plan || selectedPlan;
       const planPriceId =
         period === "year" ? plan?.yearlyPrice?.id : plan?.monthlyPrice?.id;
       const code =
-        typeof updates.promoCode !== "undefined"
+        typeof updates?.promoCode !== "undefined"
           ? updates.promoCode
           : promoCode;
-      const skipTrial = !(updates.shouldTrial ?? shouldTrial);
+      const skipTrial = !(updates?.shouldTrial ?? shouldTrial);
 
       // do not preview if user updates do not result in a valid plan
       if (!plan || !planPriceId) {
@@ -402,14 +402,14 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       }
 
       setError(undefined);
-      setCharges(undefined);
+      setFinancePreview(undefined);
       setIsLoading(true);
 
       try {
         const response = await previewCheckout({
           newPlanId: plan.id,
           newPriceId: planPriceId,
-          addOnIds: (updates.addOns || addOns).reduce(
+          addOnIds: (updates?.addOns || addOns).reduce(
             (acc: UpdateAddOnRequestBody[], addOn) => {
               if (addOn.isSelected) {
                 const addOnPriceId = getAddOnPrice(addOn, period)?.id;
@@ -428,7 +428,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           ),
           payInAdvance: [
             ...(
-              updates.payInAdvanceEntitlements || payInAdvanceEntitlements
+              updates?.payInAdvanceEntitlements || payInAdvanceEntitlements
             ).reduce(
               (
                 acc: UpdatePayInAdvanceRequestBody[],
@@ -450,7 +450,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
               [],
             ),
             ...(
-              updates.addOnPayInAdvanceEntitlements ||
+              updates?.addOnPayInAdvanceEntitlements ||
               addOnUsageBasedEntitlements
             ).reduce(
               (
@@ -473,7 +473,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
               [],
             ),
           ],
-          creditBundles: (updates.creditBundles || creditBundles).reduce(
+          creditBundles: (updates?.creditBundles || creditBundles).reduce(
             (acc: UpdateCreditBundleRequestBody[], { id, count }) => {
               if (count > 0) {
                 acc.push({
@@ -491,11 +491,11 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
         });
 
         if (response) {
-          setCharges(response.data.finance);
+          setFinancePreview(response.data.finance);
           setIsPaymentMethodRequired(response.data.paymentMethodRequired);
         }
 
-        if (typeof updates.promoCode !== "undefined") {
+        if (typeof updates?.promoCode !== "undefined") {
           setPromoCode(code);
         }
       } catch (err) {
@@ -740,8 +740,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     [handlePreviewCheckout],
   );
 
-  // this is needed to run the `selectPlan` logic on initial load
-  // if the user is already on an available plan
+  // this is needed to run the `selectPlan` logic on initial load if the user is already on an available plan
   useEffect(() => {
     if (selectedPlan) {
       selectPlan({ plan: selectedPlan, period: currentPeriod });
@@ -781,14 +780,14 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   }, [availableAddOns, data?.addOnCompatibilities, selectedPlan]);
 
   useEffect(() => {
-    if (charges) {
+    if (financePreview) {
       checkoutRef.current?.scrollTo({
         top: 0,
         left: 0,
         behavior: "smooth",
       });
     }
-  }, [charges]);
+  }, [financePreview]);
 
   useLayoutEffect(() => {
     contentRef.current?.scrollTo({
@@ -955,7 +954,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
                 isPaymentMethodRequired={isPaymentMethodRequired}
                 setPaymentMethodId={(id) => setPaymentMethodId(id)}
                 updatePromoCode={updatePromoCode}
-                financeData={charges}
+                financeData={financePreview}
                 onPaymentMethodSaved={handlePreviewCheckout}
               />
             )
@@ -969,7 +968,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           usageBasedEntitlements={usageBasedEntitlements}
           addOnUsageBasedEntitlements={addOnUsageBasedEntitlements}
           creditBundles={creditBundles}
-          charges={charges}
+          financePreview={financePreview}
           checkoutRef={checkoutRef}
           checkoutStage={checkoutStage}
           checkoutStages={checkoutStages}

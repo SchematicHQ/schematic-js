@@ -54,8 +54,8 @@ const resolveDesignProps = (): DesignProps => {
 
 interface PaymentMethodDetailsProps {
   setPaymentMethodId?: (id: string) => void;
-  financeData?: PreviewSubscriptionFinanceResponseData | null;
-  onPaymentMethodSaved?: (updates: {
+  financeData?: PreviewSubscriptionFinanceResponseData;
+  onPaymentMethodSaved?: (updates?: {
     period?: string;
     plan?: SelectedPlan;
     shouldTrial?: boolean;
@@ -108,7 +108,6 @@ export const PaymentMethodDetails = ({
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [stripe, setStripe] = useState<Promise<Stripe | null> | null>(null);
   const [setupIntent, setSetupIntent] = useState<SetupIntentResponseData>();
-  const [stripeInitialized, setStripeInitialized] = useState(false);
   const [showDifferentPaymentMethods, setShowDifferentPaymentMethods] =
     useState(false);
   const [currentPaymentMethod, setCurrentPaymentMethod] = useState<
@@ -172,17 +171,8 @@ export const PaymentMethodDetails = ({
         const response = await updatePaymentMethod(paymentMethodId);
         if (response) {
           setCurrentPaymentMethod(response.data);
-
-          // TODO: Refactor
-          // Set data for sidebar
-          if (setPaymentMethodId) {
-            setPaymentMethodId(response.data.externalId);
-          }
-
-          // Trigger preview checkout to recalculate taxes with new billing info
-          if (onPaymentMethodSaved) {
-            onPaymentMethodSaved({});
-          }
+          setPaymentMethodId?.(response.data.externalId);
+          onPaymentMethodSaved?.();
         }
       } catch {
         setError(t("Error updating payment method. Please try again."));
@@ -197,8 +187,6 @@ export const PaymentMethodDetails = ({
     async (paymentMethodId: string) => {
       try {
         setIsLoading(true);
-        // Payment method id is used and expected
-        // Some problem with type generation
         deletePaymentMethod(paymentMethodId);
       } catch {
         setError(t("Error deleting payment method. Please try again."));
@@ -210,9 +198,7 @@ export const PaymentMethodDetails = ({
   );
 
   useEffect(() => {
-    if (!stripe && setupIntent && !stripeInitialized) {
-      setStripeInitialized(true);
-
+    if (!stripe && setupIntent) {
       let publishableKey =
         setupIntent.publishableKey || setupIntent.schematicPublishableKey;
 
@@ -226,7 +212,7 @@ export const PaymentMethodDetails = ({
       const stripePromise = loadStripe(publishableKey, stripeOptions);
       setStripe(stripePromise);
     }
-  }, [stripe, setupIntent, stripeInitialized]);
+  }, [stripe, setupIntent]);
 
   useEffect(() => {
     if (!setupIntent && (!currentPaymentMethod || showPaymentForm)) {

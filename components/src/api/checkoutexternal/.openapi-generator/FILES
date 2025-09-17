@@ -18,6 +18,7 @@ models/BillingSubscriptionResponseData.ts
 models/BillingSubscriptionView.ts
 models/ChangeSubscriptionRequestBody.ts
 models/CheckoutResponse.ts
+models/CheckoutResponseData.ts
 models/CheckoutUnsubscribeResponse.ts
 models/CompanyCustomerBalance.ts
 models/CompanyDetailResponseData.ts

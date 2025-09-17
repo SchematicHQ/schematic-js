@@ -8,11 +8,11 @@ import { Box, Button, Flex, Icon, Text } from "../../ui";
 
 type ProrationProps = {
   currency: string;
-  charges: PreviewSubscriptionFinanceResponseData;
+  financePreview: PreviewSubscriptionFinanceResponseData;
   selectedPlan?: SelectedPlan;
 };
 
-export const Proration = ({ currency, charges }: ProrationProps) => {
+export const Proration = ({ currency, financePreview }: ProrationProps) => {
   const { t } = useTranslation();
 
   const [open, setOpen] = useState(false);
@@ -31,7 +31,7 @@ export const Proration = ({ currency, charges }: ProrationProps) => {
       </Box>
       <Flex $flexDirection="column" $gap="0.5rem">
         {open &&
-          charges?.upcomingInvoiceLineItems.map(
+          financePreview?.upcomingInvoiceLineItems.map(
             ({ amount, description }, index) => {
               return (
                 <Flex key={index} $gap="1rem">
@@ -56,7 +56,7 @@ export const Proration = ({ currency, charges }: ProrationProps) => {
           </Flex>
 
           <Flex>
-            <Text>{formatCurrency(charges.proration, currency)}</Text>
+            <Text>{formatCurrency(financePreview.proration, currency)}</Text>
           </Flex>
         </Flex>
       </Flex>

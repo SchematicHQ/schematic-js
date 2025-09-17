@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import type { PreviewSubscriptionFinanceResponseData } from "../../../api/checkoutexternal";
+import { type PreviewSubscriptionFinanceResponseData } from "../../../api/checkoutexternal";
 import { useIsLightBackground } from "../../../hooks";
 import type {
   CreditBundle,
@@ -15,8 +15,8 @@ interface CheckoutProps {
   isPaymentMethodRequired: boolean;
   setPaymentMethodId: (id: string) => void;
   updatePromoCode: (code: string) => void;
-  financeData?: PreviewSubscriptionFinanceResponseData | null;
-  onPaymentMethodSaved?: (updates: {
+  financeData?: PreviewSubscriptionFinanceResponseData;
+  onPaymentMethodSaved?: (updates?: {
     period?: string;
     plan?: SelectedPlan;
     shouldTrial?: boolean;
