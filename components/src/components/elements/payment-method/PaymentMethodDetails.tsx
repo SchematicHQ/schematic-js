@@ -55,7 +55,16 @@ const resolveDesignProps = (): DesignProps => {
 interface PaymentMethodDetailsProps {
   setPaymentMethodId?: (id: string) => void;
   financeData?: PreviewSubscriptionFinanceResponseData | null;
-  onPaymentMethodSaved?: () => void;
+  onPaymentMethodSaved?: (updates: {
+    period?: string;
+    plan?: SelectedPlan;
+    shouldTrial?: boolean;
+    addOns?: SelectedPlan[];
+    payInAdvanceEntitlements?: UsageBasedEntitlement[];
+    addOnPayInAdvanceEntitlements?: UsageBasedEntitlement[];
+    creditBundles?: CreditBundle[];
+    promoCode?: string | null;
+  }) => void;
 }
 
 export const PaymentMethodDetails = ({
@@ -172,7 +181,7 @@ export const PaymentMethodDetails = ({
 
           // Trigger preview checkout to recalculate taxes with new billing info
           if (onPaymentMethodSaved) {
-            onPaymentMethodSaved();
+            onPaymentMethodSaved({});
           }
         }
       } catch {

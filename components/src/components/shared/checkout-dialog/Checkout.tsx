@@ -16,7 +16,16 @@ interface CheckoutProps {
   setPaymentMethodId: (id: string) => void;
   updatePromoCode: (code: string) => void;
   financeData?: PreviewSubscriptionFinanceResponseData | null;
-  onPaymentMethodSaved?: () => void;
+  onPaymentMethodSaved?: (updates: {
+    period?: string;
+    plan?: SelectedPlan;
+    shouldTrial?: boolean;
+    addOns?: SelectedPlan[];
+    payInAdvanceEntitlements?: UsageBasedEntitlement[];
+    addOnPayInAdvanceEntitlements?: UsageBasedEntitlement[];
+    creditBundles?: CreditBundle[];
+    promoCode?: string | null;
+  }) => void;
 }
 
 export const Checkout = ({
