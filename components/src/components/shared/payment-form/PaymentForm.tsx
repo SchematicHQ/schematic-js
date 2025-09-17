@@ -16,10 +16,13 @@ import { Input, Label } from "./styles";
 
 interface PaymentFormProps {
   onConfirm?: (paymentMethodId: string) => void;
-  financeData?: PreviewSubscriptionFinanceResponseData;
+  financePreview?: PreviewSubscriptionFinanceResponseData;
 }
 
-export const PaymentForm = ({ onConfirm, financeData }: PaymentFormProps) => {
+export const PaymentForm = ({
+  onConfirm,
+  financePreview,
+}: PaymentFormProps) => {
   const { t } = useTranslation();
 
   const stripe = useStripe();
@@ -36,10 +39,10 @@ export const PaymentForm = ({ onConfirm, financeData }: PaymentFormProps) => {
   const shouldCollectAddress = useMemo(() => {
     return (
       (isCheckoutData(data) && data?.checkoutSettings.collectAddress) ??
-      financeData?.taxRequireBillingDetails ??
+      financePreview?.taxRequireBillingDetails ??
       false
     );
-  }, [data, financeData?.taxRequireBillingDetails]);
+  }, [data, financePreview?.taxRequireBillingDetails]);
   const [isAddressComplete, setIsAddressComplete] =
     useState(!shouldCollectAddress);
 

@@ -15,7 +15,7 @@ interface CheckoutProps {
   isPaymentMethodRequired: boolean;
   setPaymentMethodId: (id: string) => void;
   updatePromoCode: (code: string) => void;
-  financeData?: PreviewSubscriptionFinanceResponseData;
+  financePreview?: PreviewSubscriptionFinanceResponseData;
   onPaymentMethodSaved?: (updates?: {
     period?: string;
     plan?: SelectedPlan;
@@ -32,7 +32,7 @@ export const Checkout = ({
   isPaymentMethodRequired,
   setPaymentMethodId,
   updatePromoCode,
-  financeData,
+  financePreview,
   onPaymentMethodSaved,
 }: CheckoutProps) => {
   const { t } = useTranslation();
@@ -49,7 +49,7 @@ export const Checkout = ({
     <>
       <PaymentMethodDetails
         setPaymentMethodId={setPaymentMethodId}
-        financeData={financeData}
+        financePreview={financePreview}
         onPaymentMethodSaved={onPaymentMethodSaved}
       />
 

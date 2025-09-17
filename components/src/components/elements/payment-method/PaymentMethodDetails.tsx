@@ -54,7 +54,7 @@ const resolveDesignProps = (): DesignProps => {
 
 interface PaymentMethodDetailsProps {
   setPaymentMethodId?: (id: string) => void;
-  financeData?: PreviewSubscriptionFinanceResponseData;
+  financePreview?: PreviewSubscriptionFinanceResponseData;
   onPaymentMethodSaved?: (updates?: {
     period?: string;
     plan?: SelectedPlan;
@@ -69,7 +69,7 @@ interface PaymentMethodDetailsProps {
 
 export const PaymentMethodDetails = ({
   setPaymentMethodId,
-  financeData,
+  financePreview,
   onPaymentMethodSaved,
 }: PaymentMethodDetailsProps) => {
   // TODO: I think we do not support edit in overlays at the moment
@@ -287,7 +287,7 @@ export const PaymentMethodDetails = ({
             }}
           >
             <PaymentForm
-              financeData={financeData}
+              financePreview={financePreview}
               onConfirm={async (paymentMethodId) => {
                 await handleUpdatePaymentMethod(paymentMethodId);
                 setShowPaymentForm(false);
