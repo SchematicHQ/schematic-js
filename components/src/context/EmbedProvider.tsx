@@ -20,6 +20,7 @@ import {
   type ChangeSubscriptionRequestBody,
   type ComponentHydrateResponseData,
   type ConfigurationParameters,
+  CheckoutResponseData,
 } from "../api/checkoutexternal";
 import {
   ComponentspublicApi,
@@ -83,6 +84,16 @@ export const EmbedProvider = ({
       }
     },
     [options.debug],
+  );
+
+  const finishCheckout = useCallback(
+    (checkoutData: CheckoutResponseData) => {
+      dispatch({
+        type: "CHECKOUT",
+        data: checkoutData,
+      });
+    },
+    [dispatch],
   );
 
   // hydration
@@ -285,7 +296,7 @@ export const EmbedProvider = ({
         changeSubscriptionRequestBody,
       });
 
-      if (response) {
+      if (response && !response.data.confirmPaymentIntentClientSecret) {
         dispatch({
           type: "CHECKOUT",
           data: response.data,
@@ -540,6 +551,7 @@ export const EmbedProvider = ({
         getUpcomingInvoice: debouncedGetUpcomingInvoice,
         getCustomerBalance: debouncedGetCustomerBalance,
         listInvoices: debouncedListInvoices,
+        finishCheckout,
         setError,
         setAccessToken,
         setLayout,

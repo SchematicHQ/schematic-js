@@ -187,12 +187,6 @@ export interface ComponentHydrateResponseData {
    * @type {boolean}
    * @memberof ComponentHydrateResponseData
    */
-  showCredits: boolean;
-  /**
-   *
-   * @type {boolean}
-   * @memberof ComponentHydrateResponseData
-   */
   showPeriodToggle: boolean;
   /**
    *
@@ -251,8 +245,6 @@ export function instanceOfComponentHydrateResponseData(
   if (!("creditBundles" in value) || value["creditBundles"] === undefined)
     return false;
   if (!("creditGrants" in value) || value["creditGrants"] === undefined)
-    return false;
-  if (!("showCredits" in value) || value["showCredits"] === undefined)
     return false;
   if (!("showPeriodToggle" in value) || value["showPeriodToggle"] === undefined)
     return false;
@@ -323,7 +315,6 @@ export function ComponentHydrateResponseDataFromJSONTyped(
       json["post_trial_plan"] == null
         ? undefined
         : PlanDetailResponseDataFromJSON(json["post_trial_plan"]),
-    showCredits: json["show_credits"],
     showPeriodToggle: json["show_period_toggle"],
     showZeroPriceAsFree: json["show_zero_price_as_free"],
     stripeEmbed:
@@ -379,7 +370,6 @@ export function ComponentHydrateResponseDataToJSON(
     default_plan: PlanDetailResponseDataToJSON(value["defaultPlan"]),
     feature_usage: FeatureUsageDetailResponseDataToJSON(value["featureUsage"]),
     post_trial_plan: PlanDetailResponseDataToJSON(value["postTrialPlan"]),
-    show_credits: value["showCredits"],
     show_period_toggle: value["showPeriodToggle"],
     show_zero_price_as_free: value["showZeroPriceAsFree"],
     stripe_embed: StripeEmbedInfoToJSON(value["stripeEmbed"]),

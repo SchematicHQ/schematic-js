@@ -46,12 +46,19 @@ const resolveDesignProps = (): DesignProps => {
   };
 };
 
+interface ConfirmPaymentIntentProps {
+  clientSecret: string;
+  callback: (confirmed: boolean) => void;
+}
+
 interface PaymentMethodDetailsProps {
   setPaymentMethodId?: (id: string) => void;
+  confirmPaymentIntentProps?: ConfirmPaymentIntentProps | null | undefined;
 }
 
 export const PaymentMethodDetails = ({
   setPaymentMethodId,
+  confirmPaymentIntentProps,
 }: PaymentMethodDetailsProps) => {
   // TODO: I think we do not support edit in overlays at the moment
   const props = resolveDesignProps();
@@ -167,6 +174,26 @@ export const PaymentMethodDetails = ({
     },
     [t, setPaymentMethodId, updatePaymentMethod],
   );
+
+  useEffect(() => {
+    if (confirmPaymentIntentProps && stripe) {
+      const confirm = async () => {
+        try {
+          await (
+            await stripe
+          )?.confirmCardPayment(confirmPaymentIntentProps.clientSecret);
+          if (confirmPaymentIntentProps.callback) {
+            confirmPaymentIntentProps.callback(true);
+          }
+        } catch {
+          if (confirmPaymentIntentProps.callback) {
+            confirmPaymentIntentProps.callback(false);
+          }
+        }
+      };
+      confirm();
+    }
+  }, [stripe, confirmPaymentIntentProps]);
 
   const handleDeletePaymentMethod = useCallback(
     async (paymentMethodId: string) => {

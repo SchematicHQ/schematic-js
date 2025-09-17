@@ -18,6 +18,8 @@ import type {
   ChangeSubscriptionRequestBody,
   CheckoutResponse,
   CheckoutUnsubscribeResponse,
+  Confirm3DSRequestBody,
+  Confirm3DSResponse,
   CreateSetupIntentResponse,
   DeletePaymentMethodResponse,
   FetchCustomerBalanceResponse,
@@ -39,6 +41,10 @@ import {
   CheckoutResponseToJSON,
   CheckoutUnsubscribeResponseFromJSON,
   CheckoutUnsubscribeResponseToJSON,
+  Confirm3DSRequestBodyFromJSON,
+  Confirm3DSRequestBodyToJSON,
+  Confirm3DSResponseFromJSON,
+  Confirm3DSResponseToJSON,
   CreateSetupIntentResponseFromJSON,
   CreateSetupIntentResponseToJSON,
   DeletePaymentMethodResponseFromJSON,
@@ -65,6 +71,10 @@ import {
 
 export interface CheckoutRequest {
   changeSubscriptionRequestBody: ChangeSubscriptionRequestBody;
+}
+
+export interface Confirm3DSRequest {
+  confirm3DSRequestBody: Confirm3DSRequestBody;
 }
 
 export interface DeletePaymentMethodRequest {
@@ -193,6 +203,61 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<CheckoutUnsubscribeResponse> {
     const response = await this.checkoutUnsubscribeRaw(initOverrides);
+    return await response.value();
+  }
+
+  /**
+   * Confirm3 d s
+   */
+  async confirm3DSRaw(
+    requestParameters: Confirm3DSRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<Confirm3DSResponse>> {
+    if (requestParameters["confirm3DSRequestBody"] == null) {
+      throw new runtime.RequiredError(
+        "confirm3DSRequestBody",
+        'Required parameter "confirm3DSRequestBody" was null or undefined when calling confirm3DS().',
+      );
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    headerParameters["Content-Type"] = "application/json";
+
+    if (this.configuration && this.configuration.apiKey) {
+      headerParameters["X-Schematic-Api-Key"] = await this.configuration.apiKey(
+        "X-Schematic-Api-Key",
+      ); // ApiKeyAuth authentication
+    }
+
+    const response = await this.request(
+      {
+        path: `/checkout/confirm-3ds`,
+        method: "POST",
+        headers: headerParameters,
+        query: queryParameters,
+        body: Confirm3DSRequestBodyToJSON(
+          requestParameters["confirm3DSRequestBody"],
+        ),
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      Confirm3DSResponseFromJSON(jsonValue),
+    );
+  }
+
+  /**
+   * Confirm3 d s
+   */
+  async confirm3DS(
+    requestParameters: Confirm3DSRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<Confirm3DSResponse> {
+    const response = await this.confirm3DSRaw(requestParameters, initOverrides);
     return await response.value();
   }
 

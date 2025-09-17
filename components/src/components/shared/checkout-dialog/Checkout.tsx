@@ -5,16 +5,23 @@ import { useIsLightBackground } from "../../../hooks";
 import { PaymentMethodDetails } from "../../elements";
 import { Box, Flex, Input, Text } from "../../ui";
 
+interface ConfirmPaymentIntentProps {
+  clientSecret: string;
+  callback: (confirmed: boolean) => void;
+}
+
 interface CheckoutProps {
   isPaymentMethodRequired: boolean;
   setPaymentMethodId: (id: string) => void;
   updatePromoCode: (code: string) => void;
+  confirmPaymentIntentProps?: ConfirmPaymentIntentProps | null | undefined;
 }
 
 export const Checkout = ({
   isPaymentMethodRequired,
   setPaymentMethodId,
   updatePromoCode,
+  confirmPaymentIntentProps,
 }: CheckoutProps) => {
   const { t } = useTranslation();
 
@@ -28,7 +35,10 @@ export const Checkout = ({
 
   return (
     <>
-      <PaymentMethodDetails setPaymentMethodId={setPaymentMethodId} />
+      <PaymentMethodDetails
+        confirmPaymentIntentProps={confirmPaymentIntentProps}
+        setPaymentMethodId={setPaymentMethodId}
+      />
 
       <Flex $flexDirection="column" $gap="1rem">
         <Box>

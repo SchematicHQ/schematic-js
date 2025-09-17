@@ -1,6 +1,7 @@
 import { createContext } from "react";
 
 import {
+  CheckoutResponseData,
   type ChangeSubscriptionRequestBody,
   type CheckoutResponse,
   type CheckoutUnsubscribeResponse,
@@ -54,6 +55,7 @@ export interface EmbedContextProps extends EmbedState {
   checkout: (
     changeSubscriptionRequestBody: ChangeSubscriptionRequestBody,
   ) => DebouncedApiPromise<CheckoutResponse>;
+  finishCheckout: (changeSubscriptionRequestBody: CheckoutResponseData) => void;
   unsubscribe: () => DebouncedApiPromise<CheckoutUnsubscribeResponse>;
   setAccessToken: (token: string) => void;
   setError: (error: Error) => void;
@@ -93,6 +95,7 @@ export const initialContext = {
   setData: stub,
   updateSettings: stub,
   debug: stub,
+  finishCheckout: stub,
 };
 
 export const EmbedContext = createContext<EmbedContextProps>(initialContext);
