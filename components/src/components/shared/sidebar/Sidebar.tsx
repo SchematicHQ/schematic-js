@@ -43,9 +43,9 @@ import { StageButton } from "./StageButton";
 interface SidebarProps {
   planPeriod: string;
   selectedPlan?: SelectedPlan;
-  addOns: SelectedPlan[];
+  addOns?: SelectedPlan[];
   creditBundles?: CreditBundle[];
-  usageBasedEntitlements: UsageBasedEntitlement[];
+  usageBasedEntitlements?: UsageBasedEntitlement[];
   addOnUsageBasedEntitlements?: UsageBasedEntitlement[];
   charges?: PreviewSubscriptionFinanceResponseData;
   checkoutRef?: React.RefObject<HTMLDivElement | null>;
@@ -53,7 +53,7 @@ interface SidebarProps {
   checkoutStages?: CheckoutStage[];
   error?: string;
   isLoading: boolean;
-  isPaymentMethodRequired: boolean;
+  isPaymentMethodRequired?: boolean;
   paymentMethodId?: string;
   promoCode?: string | null;
   setCheckoutStage?: (stage: string) => void;
@@ -63,7 +63,7 @@ interface SidebarProps {
   showHeader?: boolean;
   shouldTrial?: boolean;
   willTrialWithoutPaymentMethod?: boolean;
-  setConfirmPaymentIntent: (params: {
+  setConfirmPaymentIntent?: (params: {
     clientSecret: string;
     callback: (confirmed: boolean) => void;
   }) => void;
@@ -72,9 +72,9 @@ interface SidebarProps {
 export const Sidebar = ({
   planPeriod,
   selectedPlan,
-  addOns,
+  addOns = [],
   creditBundles = [],
-  usageBasedEntitlements,
+  usageBasedEntitlements = [],
   addOnUsageBasedEntitlements = [],
   charges,
   checkoutRef,
@@ -104,6 +104,7 @@ export const Sidebar = ({
     checkout,
     finishCheckout,
     unsubscribe,
+    debug,
   } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
@@ -382,7 +383,7 @@ export const Sidebar = ({
 
       const allPayInAdvance = [...planPayInAdvance, ...addOnPayInAdvance];
 
-      const checkoutResponseFromBackend = await checkout({
+      const response = await checkout({
         newPlanId: planId,
         newPriceId: priceId,
         addOnIds: addOns.reduce((acc: UpdateAddOnRequestBody[], addOn) => {
@@ -422,17 +423,17 @@ export const Sidebar = ({
         ...(promoCode && { promoCode }),
       });
 
-      if (checkoutResponseFromBackend?.data.confirmPaymentIntentClientSecret) {
-        setConfirmPaymentIntent({
-          clientSecret:
-            checkoutResponseFromBackend?.data.confirmPaymentIntentClientSecret,
-          callback: (confirmed: boolean) => {
+      if (response?.data.confirmPaymentIntentClientSecret) {
+        setConfirmPaymentIntent?.({
+          clientSecret: response.data.confirmPaymentIntentClientSecret,
+          callback: (confirmed?: boolean) => {
             if (typeof confirmed === "undefined") {
               return;
             }
 
-            console.log("Payment intent has confirmed. Result: ", confirmed);
+            debug("Payment intent has confirmed. Result: ", confirmed);
             setIsLoading(false);
+
             if (!confirmed) {
               setError(
                 t(
@@ -441,7 +442,7 @@ export const Sidebar = ({
               );
               setLayout("checkout");
             } else {
-              finishCheckout(checkoutResponseFromBackend?.data);
+              finishCheckout(response?.data);
               setLayout("portal");
             }
           },
@@ -459,7 +460,9 @@ export const Sidebar = ({
     }
   }, [
     t,
+    debug,
     checkout,
+    finishCheckout,
     setConfirmPaymentIntent,
     paymentMethodId,
     planPeriod,
@@ -1070,7 +1073,7 @@ export const Sidebar = ({
             hasPlan={typeof selectedPlan !== "undefined"}
             inEditMode={settings.mode === "edit"}
             isLoading={isLoading}
-            isPaymentMethodRequired={isPaymentMethodRequired}
+            isPaymentMethodRequired={isPaymentMethodRequired === true}
             isSelectedPlanTrialable={isSelectedPlanTrialable}
             setCheckoutStage={setCheckoutStage}
             trialPaymentMethodRequired={trialPaymentMethodRequired}

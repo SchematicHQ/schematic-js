@@ -13,6 +13,7 @@ import {
 } from "../../../api/checkoutexternal";
 import { type FontStyle } from "../../../context";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
+import type { ConfirmPaymentIntentArgs } from "../../../types";
 import { createKeyboardExecutionHandler, isCheckoutData } from "../../../utils";
 import { PaymentForm } from "../../shared";
 import { Box, Button, Flex, Icon, Loader, Text } from "../../ui";
@@ -46,19 +47,14 @@ const resolveDesignProps = (): DesignProps => {
   };
 };
 
-interface ConfirmPaymentIntentProps {
-  clientSecret: string;
-  callback: (confirmed: boolean) => void;
-}
-
 interface PaymentMethodDetailsProps {
   setPaymentMethodId?: (id: string) => void;
-  confirmPaymentIntentProps?: ConfirmPaymentIntentProps | null | undefined;
+  confirmPaymentIntent?: ConfirmPaymentIntentArgs;
 }
 
 export const PaymentMethodDetails = ({
   setPaymentMethodId,
-  confirmPaymentIntentProps,
+  confirmPaymentIntent,
 }: PaymentMethodDetailsProps) => {
   // TODO: I think we do not support edit in overlays at the moment
   const props = resolveDesignProps();
@@ -176,24 +172,20 @@ export const PaymentMethodDetails = ({
   );
 
   useEffect(() => {
-    if (confirmPaymentIntentProps && stripe) {
-      const confirm = async () => {
+    async function confirm() {
+      if (confirmPaymentIntent && stripe) {
         try {
-          await (
-            await stripe
-          )?.confirmCardPayment(confirmPaymentIntentProps.clientSecret);
-          if (confirmPaymentIntentProps.callback) {
-            confirmPaymentIntentProps.callback(true);
-          }
+          const stripeInstance = await stripe;
+          stripeInstance?.confirmCardPayment(confirmPaymentIntent.clientSecret);
+          confirmPaymentIntent.callback(true);
         } catch {
-          if (confirmPaymentIntentProps.callback) {
-            confirmPaymentIntentProps.callback(false);
-          }
+          confirmPaymentIntent.callback(false);
         }
-      };
-      confirm();
+      }
     }
-  }, [stripe, confirmPaymentIntentProps]);
+
+    confirm();
+  }, [stripe, confirmPaymentIntent]);
 
   const handleDeletePaymentMethod = useCallback(
     async (paymentMethodId: string) => {

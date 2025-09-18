@@ -24,6 +24,7 @@ import {
   useIsLightBackground,
 } from "../../../hooks";
 import type {
+  ConfirmPaymentIntentArgs,
   CreditBundle,
   SelectedPlan,
   UsageBasedEntitlement,
@@ -82,11 +83,6 @@ interface CheckoutDialogProps {
   top?: number;
 }
 
-interface ConfirmPaymentIntentProps {
-  clientSecret: string;
-  callback: (confirmed: boolean) => void;
-}
-
 export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   const { t } = useTranslation();
 
@@ -98,9 +94,8 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   const contentRef = useRef<HTMLDivElement>(null);
   const checkoutRef = useRef<HTMLDivElement>(null);
 
-  const [confirmPaymentIntentProps, setConfirmPaymentIntentProps] = useState<
-    ConfirmPaymentIntentProps | undefined | null
-  >(undefined);
+  const [confirmPaymentIntent, setConfirmPaymentIntent] =
+    useState<ConfirmPaymentIntentArgs>();
 
   const [charges, setCharges] =
     useState<PreviewSubscriptionFinanceResponseData>();
@@ -964,7 +959,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
                 isPaymentMethodRequired={isPaymentMethodRequired}
                 setPaymentMethodId={(id) => setPaymentMethodId(id)}
                 updatePromoCode={updatePromoCode}
-                confirmPaymentIntentProps={confirmPaymentIntentProps}
+                confirmPaymentIntent={confirmPaymentIntent}
               />
             )
           )}
@@ -991,7 +986,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           setIsLoading={setIsLoading}
           updatePromoCode={updatePromoCode}
           shouldTrial={shouldTrial}
-          setConfirmPaymentIntent={setConfirmPaymentIntentProps}
+          setConfirmPaymentIntent={setConfirmPaymentIntent}
           willTrialWithoutPaymentMethod={willTrialWithoutPaymentMethod}
         />
       </Flex>

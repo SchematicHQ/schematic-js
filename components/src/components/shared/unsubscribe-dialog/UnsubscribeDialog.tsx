@@ -1,10 +1,9 @@
 import { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { useAvailablePlans, useEmbed } from "../../../hooks";
+import { useEmbed } from "../../../hooks";
 import { isCheckoutData, toPrettyDate } from "../../../utils";
 import { Button, Flex, Modal, ModalHeader, Text } from "../../ui";
-import { createActiveUsageBasedEntitlementsReducer } from "../checkout-dialog";
 import { Sidebar } from "../sidebar";
 
 interface UnsubscribeDialogProps {
@@ -21,54 +20,29 @@ export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
   const [error, setError] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(false);
 
-  const { planPeriod, currentPlan, currentAddOns, featureUsage, cancelDate } =
-    useMemo(() => {
-      if (isCheckoutData(data)) {
-        return {
-          planPeriod: data.company?.plan?.planPeriod || "month",
-          currentPlan: data.company?.plan,
-          currentAddOns: data.company?.addOns || [],
-          featureUsage: data.featureUsage,
-          cancelDate: new Date(
-            data.subscription?.cancelAt ||
-              data.upcomingInvoice?.dueDate ||
-              Date.now(),
-          ),
-        };
-      }
-
+  const { planPeriod, currentPlan, cancelDate } = useMemo(() => {
+    if (isCheckoutData(data)) {
       return {
-        planPeriod: "month",
-        currentPlan: undefined,
-        currentAddOns: [],
-        featureUsage: undefined,
-        cancelDate: new Date(),
+        planPeriod: data.company?.plan?.planPeriod || "month",
+        currentPlan: data.company?.plan,
+        currentAddOns: data.company?.addOns || [],
+        featureUsage: data.featureUsage,
+        cancelDate: new Date(
+          data.subscription?.cancelAt ||
+            data.upcomingInvoice?.dueDate ||
+            Date.now(),
+        ),
       };
-    }, [data]);
+    }
 
-  const { plans: availablePlans, addOns: availableAddOns } =
-    useAvailablePlans(planPeriod);
-
-  const selectedPlan = useMemo(
-    () => availablePlans.find((plan) => plan.id === currentPlan?.id),
-    [currentPlan?.id, availablePlans],
-  );
-
-  const currentEntitlements = featureUsage?.features || [];
-  const usageBasedEntitlements = (selectedPlan?.entitlements || []).reduce(
-    createActiveUsageBasedEntitlementsReducer(currentEntitlements, planPeriod),
-    [],
-  );
-
-  const addOns = useMemo(
-    () =>
-      availableAddOns.map((available) => ({
-        ...available,
-        isSelected:
-          currentAddOns.some((current) => available.id === current.id) ?? false,
-      })),
-    [currentAddOns, availableAddOns],
-  );
+    return {
+      planPeriod: "month",
+      currentPlan: undefined,
+      currentAddOns: [],
+      featureUsage: undefined,
+      cancelDate: new Date(),
+    };
+  }, [data]);
 
   return (
     <Modal size="auto" top={top} contentRef={contentRef}>
@@ -128,16 +102,12 @@ export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
         </Flex>
 
         <Sidebar
+          showHeader={false}
           planPeriod={planPeriod}
-          addOns={addOns}
-          usageBasedEntitlements={usageBasedEntitlements}
           error={error}
           isLoading={isLoading}
-          isPaymentMethodRequired={false}
-          showHeader={false}
           setError={(msg) => setError(msg)}
           setIsLoading={setIsLoading}
-          setConfirmPaymentIntent={() => {}}
         />
       </Flex>
     </Modal>

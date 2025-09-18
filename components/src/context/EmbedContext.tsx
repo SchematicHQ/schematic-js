@@ -55,7 +55,7 @@ export interface EmbedContextProps extends EmbedState {
   checkout: (
     changeSubscriptionRequestBody: ChangeSubscriptionRequestBody,
   ) => DebouncedApiPromise<CheckoutResponse>;
-  finishCheckout: (changeSubscriptionRequestBody: CheckoutResponseData) => void;
+  finishCheckout: (checkoutData: CheckoutResponseData) => void;
   unsubscribe: () => DebouncedApiPromise<CheckoutUnsubscribeResponse>;
   setAccessToken: (token: string) => void;
   setError: (error: Error) => void;
@@ -87,6 +87,7 @@ export const initialContext = {
   deletePaymentMethod: stub,
   previewCheckout: stub,
   checkout: stub,
+  finishCheckout: stub,
   unsubscribe: stub,
   setError: stub,
   setAccessToken: stub,
@@ -95,7 +96,6 @@ export const initialContext = {
   setData: stub,
   updateSettings: stub,
   debug: stub,
-  finishCheckout: stub,
 };
 
 export const EmbedContext = createContext<EmbedContextProps>(initialContext);

@@ -18,9 +18,9 @@ import {
   CheckoutexternalApi,
   Configuration as CheckoutConfiguration,
   type ChangeSubscriptionRequestBody,
+  type CheckoutResponseData,
   type ComponentHydrateResponseData,
   type ConfigurationParameters,
-  CheckoutResponseData,
 } from "../api/checkoutexternal";
 import {
   ComponentspublicApi,
@@ -84,16 +84,6 @@ export const EmbedProvider = ({
       }
     },
     [options.debug],
-  );
-
-  const finishCheckout = useCallback(
-    (checkoutData: CheckoutResponseData) => {
-      dispatch({
-        type: "CHECKOUT",
-        data: checkoutData,
-      });
-    },
-    [dispatch],
   );
 
   // hydration
@@ -290,6 +280,24 @@ export const EmbedProvider = ({
     [deletePaymentMethod],
   );
 
+  const previewCheckout = useCallback(
+    async (changeSubscriptionRequestBody: ChangeSubscriptionRequestBody) => {
+      return api.checkout?.previewCheckout({ changeSubscriptionRequestBody });
+    },
+    [api.checkout],
+  );
+
+  const debouncedPreviewCheckout = useMemo(
+    () =>
+      debounce(previewCheckout, FETCH_DEBOUNCE_TIMEOUT, {
+        // invoke immediately for minimal latency
+        leading: true,
+        // but also ensure latest data is fetched
+        trailing: true,
+      }),
+    [previewCheckout],
+  );
+
   const checkout = useCallback(
     async (changeSubscriptionRequestBody: ChangeSubscriptionRequestBody) => {
       const response = await api.checkout?.checkout({
@@ -311,24 +319,6 @@ export const EmbedProvider = ({
   const debouncedCheckout = useMemo(
     () => debounce(checkout, FETCH_DEBOUNCE_TIMEOUT, DEBOUNCE_SETTINGS),
     [checkout],
-  );
-
-  const previewCheckout = useCallback(
-    async (changeSubscriptionRequestBody: ChangeSubscriptionRequestBody) => {
-      return api.checkout?.previewCheckout({ changeSubscriptionRequestBody });
-    },
-    [api.checkout],
-  );
-
-  const debouncedPreviewCheckout = useMemo(
-    () =>
-      debounce(previewCheckout, FETCH_DEBOUNCE_TIMEOUT, {
-        // invoke immediately for minimal latency
-        leading: true,
-        // but also ensure latest data is fetched
-        trailing: true,
-      }),
-    [previewCheckout],
   );
 
   const unsubscribe = useCallback(async () => {
@@ -416,6 +406,13 @@ export const EmbedProvider = ({
 
   const setCheckoutState = useCallback((state: CheckoutState) => {
     dispatch({ type: "SET_CHECKOUT_STATE", state });
+  }, []);
+
+  const finishCheckout = useCallback((checkoutData: CheckoutResponseData) => {
+    dispatch({
+      type: "CHECKOUT",
+      data: checkoutData,
+    });
   }, []);
 
   useEffect(() => {
@@ -545,13 +542,13 @@ export const EmbedProvider = ({
         createSetupIntent: debouncedCreateSetupIntent,
         updatePaymentMethod: debouncedUpdatePaymentMethod,
         deletePaymentMethod: debouncedDeletePaymentMethod,
-        checkout: debouncedCheckout,
         previewCheckout: debouncedPreviewCheckout,
+        checkout: debouncedCheckout,
+        finishCheckout,
         unsubscribe: debouncedUnsubscribe,
         getUpcomingInvoice: debouncedGetUpcomingInvoice,
         getCustomerBalance: debouncedGetCustomerBalance,
         listInvoices: debouncedListInvoices,
-        finishCheckout,
         setError,
         setAccessToken,
         setLayout,

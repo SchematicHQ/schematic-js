@@ -71,3 +71,8 @@ export type PriceTier = Omit<BillingProductPriceTierResponseData, "upTo"> & {
   from?: number;
   to?: number;
 };
+
+export interface ConfirmPaymentIntentArgs {
+  clientSecret: string;
+  callback: (confirmed: boolean) => void;
+}
