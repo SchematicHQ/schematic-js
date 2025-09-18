@@ -60,6 +60,24 @@ export interface PlanCreditGrantView {
    * @type {string}
    * @memberof PlanCreditGrantView
    */
+  expiryType?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof PlanCreditGrantView
+   */
+  expiryUnit?: string | null;
+  /**
+   *
+   * @type {number}
+   * @memberof PlanCreditGrantView
+   */
+  expiryUnitCount?: number | null;
+  /**
+   *
+   * @type {string}
+   * @memberof PlanCreditGrantView
+   */
   id: string;
   /**
    *
@@ -91,6 +109,12 @@ export interface PlanCreditGrantView {
    * @memberof PlanCreditGrantView
    */
   resetStart: string;
+  /**
+   *
+   * @type {string}
+   * @memberof PlanCreditGrantView
+   */
+  resetType: string;
   /**
    *
    * @type {string}
@@ -129,6 +153,7 @@ export function instanceOfPlanCreditGrantView(
     return false;
   if (!("resetStart" in value) || value["resetStart"] === undefined)
     return false;
+  if (!("resetType" in value) || value["resetType"] === undefined) return false;
   if (!("updatedAt" in value) || value["updatedAt"] === undefined) return false;
   return true;
 }
@@ -151,12 +176,17 @@ export function PlanCreditGrantViewFromJSONTyped(
     creditIcon: json["credit_icon"] == null ? undefined : json["credit_icon"],
     creditId: json["credit_id"],
     creditName: json["credit_name"],
+    expiryType: json["expiry_type"] == null ? undefined : json["expiry_type"],
+    expiryUnit: json["expiry_unit"] == null ? undefined : json["expiry_unit"],
+    expiryUnitCount:
+      json["expiry_unit_count"] == null ? undefined : json["expiry_unit_count"],
     id: json["id"],
     planId: json["plan_id"],
     planName: json["plan_name"],
     pluralName: json["plural_name"] == null ? undefined : json["plural_name"],
     resetCadence: json["reset_cadence"],
     resetStart: json["reset_start"],
+    resetType: json["reset_type"],
     singularName:
       json["singular_name"] == null ? undefined : json["singular_name"],
     updatedAt: new Date(json["updated_at"]),
@@ -176,12 +206,16 @@ export function PlanCreditGrantViewToJSON(
     credit_icon: value["creditIcon"],
     credit_id: value["creditId"],
     credit_name: value["creditName"],
+    expiry_type: value["expiryType"],
+    expiry_unit: value["expiryUnit"],
+    expiry_unit_count: value["expiryUnitCount"],
     id: value["id"],
     plan_id: value["planId"],
     plan_name: value["planName"],
     plural_name: value["pluralName"],
     reset_cadence: value["resetCadence"],
     reset_start: value["resetStart"],
+    reset_type: value["resetType"],
     singular_name: value["singularName"],
     updated_at: value["updatedAt"].toISOString(),
   };
