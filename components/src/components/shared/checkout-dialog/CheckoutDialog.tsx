@@ -965,6 +965,8 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
                 setPaymentMethodId={(id) => setPaymentMethodId(id)}
                 updatePromoCode={updatePromoCode}
                 confirmPaymentIntentProps={confirmPaymentIntentProps}
+                financeData={charges}
+                onPaymentMethodSaved={handlePreviewCheckout}
               />
             )
           )}

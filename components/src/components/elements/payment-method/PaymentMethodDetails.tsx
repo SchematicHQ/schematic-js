@@ -9,6 +9,7 @@ import { useTranslation } from "react-i18next";
 
 import {
   type PaymentMethodResponseData,
+  type PreviewSubscriptionFinanceResponseData,
   type SetupIntentResponseData,
 } from "../../../api/checkoutexternal";
 import { type FontStyle } from "../../../context";
@@ -17,6 +18,11 @@ import {
   useIsLightBackground,
   usePaymentConfirmation,
 } from "../../../hooks";
+import type {
+  CreditBundle,
+  SelectedPlan,
+  UsageBasedEntitlement,
+} from "../../../types";
 import { createKeyboardExecutionHandler, isCheckoutData } from "../../../utils";
 import { PaymentForm } from "../../shared";
 import { Box, Button, Flex, Icon, Loader, Text } from "../../ui";
@@ -58,11 +64,24 @@ interface ConfirmPaymentIntentProps {
 interface PaymentMethodDetailsProps {
   setPaymentMethodId?: (id: string) => void;
   confirmPaymentIntentProps?: ConfirmPaymentIntentProps | null | undefined;
+  financeData?: PreviewSubscriptionFinanceResponseData | null;
+  onPaymentMethodSaved?: (updates: {
+    period?: string;
+    plan?: SelectedPlan;
+    shouldTrial?: boolean;
+    addOns?: SelectedPlan[];
+    payInAdvanceEntitlements?: UsageBasedEntitlement[];
+    addOnPayInAdvanceEntitlements?: UsageBasedEntitlement[];
+    creditBundles?: CreditBundle[];
+    promoCode?: string | null;
+  }) => void;
 }
 
 export const PaymentMethodDetails = ({
   setPaymentMethodId,
   confirmPaymentIntentProps,
+  financeData,
+  onPaymentMethodSaved,
 }: PaymentMethodDetailsProps) => {
   // TODO: I think we do not support edit in overlays at the moment
   const props = resolveDesignProps();
@@ -182,6 +201,11 @@ export const PaymentMethodDetails = ({
           if (setPaymentMethodId) {
             setPaymentMethodId(response.data.externalId);
           }
+
+          // Trigger preview checkout to recalculate taxes with new billing info
+          if (onPaymentMethodSaved) {
+            onPaymentMethodSaved({});
+          }
         }
       } catch {
         setError(t("Error updating payment method. Please try again."));
@@ -189,7 +213,7 @@ export const PaymentMethodDetails = ({
         setIsLoading(false);
       }
     },
-    [t, setPaymentMethodId, updatePaymentMethod],
+    [t, setPaymentMethodId, updatePaymentMethod, onPaymentMethodSaved],
   );
 
   const handleDeletePaymentMethod = useCallback(
@@ -220,7 +244,8 @@ export const PaymentMethodDetails = ({
         stripeOptions.stripeAccount = setupIntent.accountId;
       }
 
-      setStripe(loadStripe(publishableKey, stripeOptions));
+      const stripePromise = loadStripe(publishableKey, stripeOptions);
+      setStripe(stripePromise);
     }
   }, [stripe, setupIntent]);
 
@@ -267,7 +292,7 @@ export const PaymentMethodDetails = ({
             : "hsla(0, 0%, 100%, 0.025)"
         }
       >
-        {setupIntent && showPaymentForm ? (
+        {setupIntent && showPaymentForm && stripe ? (
           <Elements
             stripe={stripe}
             options={{
@@ -297,6 +322,7 @@ export const PaymentMethodDetails = ({
             }}
           >
             <PaymentForm
+              financeData={financeData}
               onConfirm={async (paymentMethodId) => {
                 await handleUpdatePaymentMethod(paymentMethodId);
                 setShowPaymentForm(false);

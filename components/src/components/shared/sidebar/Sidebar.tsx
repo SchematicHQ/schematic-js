@@ -218,17 +218,27 @@ export const Sidebar = ({
     return formatCurrency(total, currency);
   }, [selectedPlan, currentPlan, planPeriod, addOns, payInAdvanceEntitlements]);
 
-  const { amountOff, dueNow, newCharges, percentOff, periodStart, proration } =
-    useMemo(() => {
-      return {
-        amountOff: charges?.amountOff ?? 0,
-        dueNow: charges?.dueNow ?? 0,
-        newCharges: charges?.newCharges ?? 0,
-        percentOff: charges?.percentOff ?? 0,
-        periodStart: charges?.periodStart,
-        proration: charges?.proration ?? 0,
-      };
-    }, [charges]);
+  const {
+    amountOff,
+    dueNow,
+    newCharges,
+    percentOff,
+    periodStart,
+    proration,
+    taxAmount,
+    taxDescription,
+  } = useMemo(() => {
+    return {
+      amountOff: charges?.amountOff ?? 0,
+      dueNow: charges?.dueNow ?? 0,
+      newCharges: charges?.newCharges ?? 0,
+      percentOff: charges?.percentOff ?? 0,
+      periodStart: charges?.periodStart,
+      proration: charges?.proration ?? 0,
+      taxAmount: charges?.taxAmount ?? 0,
+      taxDescription: charges?.taxDisplayName,
+    };
+  }, [charges]);
 
   const updatedUsageBasedEntitlements = useMemo(() => {
     const changedUsageBasedEntitlements: {
@@ -1020,6 +1030,26 @@ export const Sidebar = ({
                 {subscriptionPrice}
                 <sub>/{shortenPeriod(planPeriod)}</sub>
               </Text>
+            </Box>
+          </Flex>
+        )}
+
+        {taxAmount > 0 && (
+          <Flex
+            $justifyContent="space-between"
+            $alignItems="center"
+            $gap="1rem"
+          >
+            <Box $opacity="0.625">
+              <Text>
+                {t("Tax (description):", {
+                  description: taxDescription,
+                })}
+              </Text>
+            </Box>
+
+            <Box>
+              <Text>{formatCurrency(taxAmount, selectedPlanCurrency)}</Text>
             </Box>
           </Flex>
         )}
