@@ -6,4 +6,3 @@ export * from "./event";
 export * from "./pluralize";
 export * from "./string";
 export * from "./style";
-export * from "./tax";

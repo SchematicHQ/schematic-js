@@ -1002,7 +1002,9 @@ export const Sidebar = ({
           >
             <Box $opacity="0.625">
               <Text>
-                {t("Tax")} ({taxDescription}):
+                {t("Tax (description):", {
+                  description: taxDescription,
+                })}
               </Text>
             </Box>
 

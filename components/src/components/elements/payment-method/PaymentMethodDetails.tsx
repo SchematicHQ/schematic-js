@@ -108,7 +108,6 @@ export const PaymentMethodDetails = ({
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [stripe, setStripe] = useState<Promise<Stripe | null> | null>(null);
   const [setupIntent, setSetupIntent] = useState<SetupIntentResponseData>();
-  const [stripeInitialized, setStripeInitialized] = useState(false);
   const [showDifferentPaymentMethods, setShowDifferentPaymentMethods] =
     useState(false);
   const [currentPaymentMethod, setCurrentPaymentMethod] = useState<
@@ -210,9 +209,7 @@ export const PaymentMethodDetails = ({
   );
 
   useEffect(() => {
-    if (!stripe && setupIntent && !stripeInitialized) {
-      setStripeInitialized(true);
-
+    if (!stripe && setupIntent) {
       let publishableKey =
         setupIntent.publishableKey || setupIntent.schematicPublishableKey;
 
@@ -226,7 +223,7 @@ export const PaymentMethodDetails = ({
       const stripePromise = loadStripe(publishableKey, stripeOptions);
       setStripe(stripePromise);
     }
-  }, [stripe, setupIntent, stripeInitialized]);
+  }, [stripe, setupIntent]);
 
   useEffect(() => {
     if (!setupIntent && (!currentPaymentMethod || showPaymentForm)) {

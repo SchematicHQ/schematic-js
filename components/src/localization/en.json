@@ -110,6 +110,7 @@
     "Subscription canceled": "Subscription canceled",
     "Subscription": "Subscription",
     "Talk to support": "Talk to support",
+    "Tax (description):": "Tax ({{description}}):",
     "There was a problem retrieving your upcoming invoice.": "There was a problem retrieving your upcoming invoice.",
     "There was a problem retrieving your invoices.": "There was a problem retrieving your invoices.",
     "Tiers apply progressively as quantity increases.": "Tiers apply progressively as quantity increases.",
