@@ -20,7 +20,7 @@ import {
   type ChangeSubscriptionRequestBody,
   type ComponentHydrateResponseData,
   type ConfigurationParameters,
-  CheckoutResponseData,
+  type CheckoutResponseData,
 } from "../api/checkoutexternal";
 import {
   ComponentspublicApi,

@@ -12,7 +12,11 @@ import {
   type SetupIntentResponseData,
 } from "../../../api/checkoutexternal";
 import { type FontStyle } from "../../../context";
-import { useEmbed, useIsLightBackground } from "../../../hooks";
+import {
+  useEmbed,
+  useIsLightBackground,
+  usePaymentConfirmation,
+} from "../../../hooks";
 import { createKeyboardExecutionHandler, isCheckoutData } from "../../../utils";
 import { PaymentForm } from "../../shared";
 import { Box, Button, Flex, Icon, Loader, Text } from "../../ui";
@@ -102,6 +106,19 @@ export const PaymentMethodDetails = ({
     PaymentMethodResponseData | undefined
   >(subscription?.paymentMethod || defaultPaymentMethod);
 
+  const { isConfirming: isConfirmingPayment } = usePaymentConfirmation({
+    stripe,
+    clientSecret: confirmPaymentIntentProps?.clientSecret,
+    onSuccess: () => {
+      confirmPaymentIntentProps?.callback(true);
+    },
+    onError: (error) => {
+      console.error("Payment confirmation error:", error);
+      confirmPaymentIntentProps?.callback(false);
+    },
+    autoConfirm: true,
+  });
+
   const monthsToExpiration = useMemo(() => {
     let expiration: number | undefined;
 
@@ -175,26 +192,6 @@ export const PaymentMethodDetails = ({
     [t, setPaymentMethodId, updatePaymentMethod],
   );
 
-  useEffect(() => {
-    if (confirmPaymentIntentProps && stripe) {
-      const confirm = async () => {
-        try {
-          await (
-            await stripe
-          )?.confirmCardPayment(confirmPaymentIntentProps.clientSecret);
-          if (confirmPaymentIntentProps.callback) {
-            confirmPaymentIntentProps.callback(true);
-          }
-        } catch {
-          if (confirmPaymentIntentProps.callback) {
-            confirmPaymentIntentProps.callback(false);
-          }
-        }
-      };
-      confirm();
-    }
-  }, [stripe, confirmPaymentIntentProps]);
-
   const handleDeletePaymentMethod = useCallback(
     async (paymentMethodId: string) => {
       try {
@@ -242,7 +239,7 @@ export const PaymentMethodDetails = ({
     <Flex $position="relative">
       <Flex
         $position="absolute"
-        $zIndex={isLoading ? 1 : 0}
+        $zIndex={isLoading || isConfirmingPayment ? 1 : 0}
         $justifyContent="center"
         $alignItems="center"
         $width="100%"
@@ -251,19 +248,19 @@ export const PaymentMethodDetails = ({
         <Loader
           $color={settings.theme.primary}
           $size="2xl"
-          $isLoading={isLoading}
+          $isLoading={isLoading || isConfirmingPayment}
         />
       </Flex>
 
       <Flex
         $position="relative"
-        $zIndex={isLoading ? 0 : 1}
+        $zIndex={isLoading || isConfirmingPayment ? 0 : 1}
         $flexDirection="column"
         $flexGrow={1}
         $gap="1rem"
         $overflow="auto"
         $padding="2rem 2.5rem 2rem 2.5rem"
-        $visibility={isLoading ? "hidden" : "visible"}
+        $visibility={isLoading || isConfirmingPayment ? "hidden" : "visible"}
         $backgroundColor={
           isLightBackground
             ? "hsla(0, 0%, 0%, 0.025)"
