@@ -9,10 +9,20 @@ import { useTranslation } from "react-i18next";
 
 import {
   type PaymentMethodResponseData,
+  type PreviewSubscriptionFinanceResponseData,
   type SetupIntentResponseData,
 } from "../../../api/checkoutexternal";
 import { type FontStyle } from "../../../context";
-import { useEmbed, useIsLightBackground } from "../../../hooks";
+import {
+  useEmbed,
+  useIsLightBackground,
+  usePaymentConfirmation,
+} from "../../../hooks";
+import type {
+  CreditBundle,
+  SelectedPlan,
+  UsageBasedEntitlement,
+} from "../../../types";
 import { createKeyboardExecutionHandler, isCheckoutData } from "../../../utils";
 import { PaymentForm } from "../../shared";
 import { Box, Button, Flex, Icon, Loader, Text } from "../../ui";
@@ -46,12 +56,32 @@ const resolveDesignProps = (): DesignProps => {
   };
 };
 
+interface ConfirmPaymentIntentProps {
+  clientSecret: string;
+  callback: (confirmed: boolean) => void;
+}
+
 interface PaymentMethodDetailsProps {
   setPaymentMethodId?: (id: string) => void;
+  confirmPaymentIntentProps?: ConfirmPaymentIntentProps | null | undefined;
+  financeData?: PreviewSubscriptionFinanceResponseData | null;
+  onPaymentMethodSaved?: (updates: {
+    period?: string;
+    plan?: SelectedPlan;
+    shouldTrial?: boolean;
+    addOns?: SelectedPlan[];
+    payInAdvanceEntitlements?: UsageBasedEntitlement[];
+    addOnPayInAdvanceEntitlements?: UsageBasedEntitlement[];
+    creditBundles?: CreditBundle[];
+    promoCode?: string | null;
+  }) => void;
 }
 
 export const PaymentMethodDetails = ({
   setPaymentMethodId,
+  confirmPaymentIntentProps,
+  financeData,
+  onPaymentMethodSaved,
 }: PaymentMethodDetailsProps) => {
   // TODO: I think we do not support edit in overlays at the moment
   const props = resolveDesignProps();
@@ -94,6 +124,19 @@ export const PaymentMethodDetails = ({
   const [currentPaymentMethod, setCurrentPaymentMethod] = useState<
     PaymentMethodResponseData | undefined
   >(subscription?.paymentMethod || defaultPaymentMethod);
+
+  const { isConfirming: isConfirmingPayment } = usePaymentConfirmation({
+    stripe,
+    clientSecret: confirmPaymentIntentProps?.clientSecret,
+    onSuccess: () => {
+      confirmPaymentIntentProps?.callback(true);
+    },
+    onError: (error) => {
+      console.error("Payment confirmation error:", error);
+      confirmPaymentIntentProps?.callback(false);
+    },
+    autoConfirm: true,
+  });
 
   const monthsToExpiration = useMemo(() => {
     let expiration: number | undefined;
@@ -158,6 +201,11 @@ export const PaymentMethodDetails = ({
           if (setPaymentMethodId) {
             setPaymentMethodId(response.data.externalId);
           }
+
+          // Trigger preview checkout to recalculate taxes with new billing info
+          if (onPaymentMethodSaved) {
+            onPaymentMethodSaved({});
+          }
         }
       } catch {
         setError(t("Error updating payment method. Please try again."));
@@ -165,7 +213,7 @@ export const PaymentMethodDetails = ({
         setIsLoading(false);
       }
     },
-    [t, setPaymentMethodId, updatePaymentMethod],
+    [t, setPaymentMethodId, updatePaymentMethod, onPaymentMethodSaved],
   );
 
   const handleDeletePaymentMethod = useCallback(
@@ -196,7 +244,8 @@ export const PaymentMethodDetails = ({
         stripeOptions.stripeAccount = setupIntent.accountId;
       }
 
-      setStripe(loadStripe(publishableKey, stripeOptions));
+      const stripePromise = loadStripe(publishableKey, stripeOptions);
+      setStripe(stripePromise);
     }
   }, [stripe, setupIntent]);
 
@@ -215,7 +264,7 @@ export const PaymentMethodDetails = ({
     <Flex $position="relative">
       <Flex
         $position="absolute"
-        $zIndex={isLoading ? 1 : 0}
+        $zIndex={isLoading || isConfirmingPayment ? 1 : 0}
         $justifyContent="center"
         $alignItems="center"
         $width="100%"
@@ -224,26 +273,26 @@ export const PaymentMethodDetails = ({
         <Loader
           $color={settings.theme.primary}
           $size="2xl"
-          $isLoading={isLoading}
+          $isLoading={isLoading || isConfirmingPayment}
         />
       </Flex>
 
       <Flex
         $position="relative"
-        $zIndex={isLoading ? 0 : 1}
+        $zIndex={isLoading || isConfirmingPayment ? 0 : 1}
         $flexDirection="column"
         $flexGrow={1}
         $gap="1rem"
         $overflow="auto"
         $padding="2rem 2.5rem 2rem 2.5rem"
-        $visibility={isLoading ? "hidden" : "visible"}
+        $visibility={isLoading || isConfirmingPayment ? "hidden" : "visible"}
         $backgroundColor={
           isLightBackground
             ? "hsla(0, 0%, 0%, 0.025)"
             : "hsla(0, 0%, 100%, 0.025)"
         }
       >
-        {setupIntent && showPaymentForm ? (
+        {setupIntent && showPaymentForm && stripe ? (
           <Elements
             stripe={stripe}
             options={{
@@ -273,6 +322,7 @@ export const PaymentMethodDetails = ({
             }}
           >
             <PaymentForm
+              financeData={financeData}
               onConfirm={async (paymentMethodId) => {
                 await handleUpdatePaymentMethod(paymentMethodId);
                 setShowPaymentForm(false);

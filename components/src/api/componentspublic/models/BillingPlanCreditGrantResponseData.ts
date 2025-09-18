@@ -60,6 +60,24 @@ export interface BillingPlanCreditGrantResponseData {
    * @type {string}
    * @memberof BillingPlanCreditGrantResponseData
    */
+  expiryType?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof BillingPlanCreditGrantResponseData
+   */
+  expiryUnit?: string | null;
+  /**
+   *
+   * @type {number}
+   * @memberof BillingPlanCreditGrantResponseData
+   */
+  expiryUnitCount?: number | null;
+  /**
+   *
+   * @type {string}
+   * @memberof BillingPlanCreditGrantResponseData
+   */
   id: string;
   /**
    *
@@ -85,6 +103,12 @@ export interface BillingPlanCreditGrantResponseData {
    * @memberof BillingPlanCreditGrantResponseData
    */
   resetStart: string;
+  /**
+   *
+   * @type {string}
+   * @memberof BillingPlanCreditGrantResponseData
+   */
+  resetType?: string | null;
   /**
    *
    * @type {Date}
@@ -142,11 +166,16 @@ export function BillingPlanCreditGrantResponseDataFromJSONTyped(
       json["credit_singular_name"] == null
         ? undefined
         : json["credit_singular_name"],
+    expiryType: json["expiry_type"] == null ? undefined : json["expiry_type"],
+    expiryUnit: json["expiry_unit"] == null ? undefined : json["expiry_unit"],
+    expiryUnitCount:
+      json["expiry_unit_count"] == null ? undefined : json["expiry_unit_count"],
     id: json["id"],
     planId: json["plan_id"],
     planName: json["plan_name"],
     resetCadence: json["reset_cadence"],
     resetStart: json["reset_start"],
+    resetType: json["reset_type"] == null ? undefined : json["reset_type"],
     updatedAt: new Date(json["updated_at"]),
   };
 }
@@ -164,11 +193,15 @@ export function BillingPlanCreditGrantResponseDataToJSON(
     credit_name: value["creditName"],
     credit_plural_name: value["creditPluralName"],
     credit_singular_name: value["creditSingularName"],
+    expiry_type: value["expiryType"],
+    expiry_unit: value["expiryUnit"],
+    expiry_unit_count: value["expiryUnitCount"],
     id: value["id"],
     plan_id: value["planId"],
     plan_name: value["planName"],
     reset_cadence: value["resetCadence"],
     reset_start: value["resetStart"],
+    reset_type: value["resetType"],
     updated_at: value["updatedAt"].toISOString(),
   };
 }
