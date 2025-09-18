@@ -955,6 +955,8 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
                 isPaymentMethodRequired={isPaymentMethodRequired}
                 setPaymentMethodId={(id) => setPaymentMethodId(id)}
                 updatePromoCode={updatePromoCode}
+                financeData={charges}
+                onPaymentMethodSaved={handlePreviewCheckout}
               />
             )
           )}

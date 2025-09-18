@@ -1,7 +1,13 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import type { PreviewSubscriptionFinanceResponseData } from "../../../api/checkoutexternal";
 import { useIsLightBackground } from "../../../hooks";
+import type {
+  CreditBundle,
+  SelectedPlan,
+  UsageBasedEntitlement,
+} from "../../../types";
 import { PaymentMethodDetails } from "../../elements";
 import { Box, Flex, Input, Text } from "../../ui";
 
@@ -9,12 +15,25 @@ interface CheckoutProps {
   isPaymentMethodRequired: boolean;
   setPaymentMethodId: (id: string) => void;
   updatePromoCode: (code: string) => void;
+  financeData?: PreviewSubscriptionFinanceResponseData | null;
+  onPaymentMethodSaved?: (updates: {
+    period?: string;
+    plan?: SelectedPlan;
+    shouldTrial?: boolean;
+    addOns?: SelectedPlan[];
+    payInAdvanceEntitlements?: UsageBasedEntitlement[];
+    addOnPayInAdvanceEntitlements?: UsageBasedEntitlement[];
+    creditBundles?: CreditBundle[];
+    promoCode?: string | null;
+  }) => void;
 }
 
 export const Checkout = ({
   isPaymentMethodRequired,
   setPaymentMethodId,
   updatePromoCode,
+  financeData,
+  onPaymentMethodSaved,
 }: CheckoutProps) => {
   const { t } = useTranslation();
 
@@ -28,7 +47,11 @@ export const Checkout = ({
 
   return (
     <>
-      <PaymentMethodDetails setPaymentMethodId={setPaymentMethodId} />
+      <PaymentMethodDetails
+        setPaymentMethodId={setPaymentMethodId}
+        financeData={financeData}
+        onPaymentMethodSaved={onPaymentMethodSaved}
+      />
 
       <Flex $flexDirection="column" $gap="1rem">
         <Box>
