@@ -473,6 +473,7 @@ export const Sidebar = ({
     addOnUsageBasedEntitlements,
     shouldTrial,
     promoCode,
+    finishCheckout,
   ]);
 
   const handleUnsubscribe = useCallback(async () => {
