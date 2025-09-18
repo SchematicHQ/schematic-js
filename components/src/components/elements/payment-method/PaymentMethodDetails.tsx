@@ -13,7 +13,11 @@ import {
   type SetupIntentResponseData,
 } from "../../../api/checkoutexternal";
 import { type FontStyle } from "../../../context";
-import { useEmbed, useIsLightBackground } from "../../../hooks";
+import {
+  useEmbed,
+  useIsLightBackground,
+  usePaymentConfirmation,
+} from "../../../hooks";
 import type {
   CreditBundle,
   SelectedPlan,
@@ -52,8 +56,14 @@ const resolveDesignProps = (): DesignProps => {
   };
 };
 
+interface ConfirmPaymentIntentProps {
+  clientSecret: string;
+  callback: (confirmed: boolean) => void;
+}
+
 interface PaymentMethodDetailsProps {
   setPaymentMethodId?: (id: string) => void;
+  confirmPaymentIntentProps?: ConfirmPaymentIntentProps | null | undefined;
   financeData?: PreviewSubscriptionFinanceResponseData | null;
   onPaymentMethodSaved?: (updates: {
     period?: string;
@@ -69,6 +79,7 @@ interface PaymentMethodDetailsProps {
 
 export const PaymentMethodDetails = ({
   setPaymentMethodId,
+  confirmPaymentIntentProps,
   financeData,
   onPaymentMethodSaved,
 }: PaymentMethodDetailsProps) => {
@@ -113,6 +124,19 @@ export const PaymentMethodDetails = ({
   const [currentPaymentMethod, setCurrentPaymentMethod] = useState<
     PaymentMethodResponseData | undefined
   >(subscription?.paymentMethod || defaultPaymentMethod);
+
+  const { isConfirming: isConfirmingPayment } = usePaymentConfirmation({
+    stripe,
+    clientSecret: confirmPaymentIntentProps?.clientSecret,
+    onSuccess: () => {
+      confirmPaymentIntentProps?.callback(true);
+    },
+    onError: (error) => {
+      console.error("Payment confirmation error:", error);
+      confirmPaymentIntentProps?.callback(false);
+    },
+    autoConfirm: true,
+  });
 
   const monthsToExpiration = useMemo(() => {
     let expiration: number | undefined;
@@ -240,7 +264,7 @@ export const PaymentMethodDetails = ({
     <Flex $position="relative">
       <Flex
         $position="absolute"
-        $zIndex={isLoading ? 1 : 0}
+        $zIndex={isLoading || isConfirmingPayment ? 1 : 0}
         $justifyContent="center"
         $alignItems="center"
         $width="100%"
@@ -249,19 +273,19 @@ export const PaymentMethodDetails = ({
         <Loader
           $color={settings.theme.primary}
           $size="2xl"
-          $isLoading={isLoading}
+          $isLoading={isLoading || isConfirmingPayment}
         />
       </Flex>
 
       <Flex
         $position="relative"
-        $zIndex={isLoading ? 0 : 1}
+        $zIndex={isLoading || isConfirmingPayment ? 0 : 1}
         $flexDirection="column"
         $flexGrow={1}
         $gap="1rem"
         $overflow="auto"
         $padding="2rem 2.5rem 2rem 2.5rem"
-        $visibility={isLoading ? "hidden" : "visible"}
+        $visibility={isLoading || isConfirmingPayment ? "hidden" : "visible"}
         $backgroundColor={
           isLightBackground
             ? "hsla(0, 0%, 0%, 0.025)"

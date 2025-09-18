@@ -11,10 +11,16 @@ import type {
 import { PaymentMethodDetails } from "../../elements";
 import { Box, Flex, Input, Text } from "../../ui";
 
+interface ConfirmPaymentIntentProps {
+  clientSecret: string;
+  callback: (confirmed: boolean) => void;
+}
+
 interface CheckoutProps {
   isPaymentMethodRequired: boolean;
   setPaymentMethodId: (id: string) => void;
   updatePromoCode: (code: string) => void;
+  confirmPaymentIntentProps?: ConfirmPaymentIntentProps | null | undefined;
   financeData?: PreviewSubscriptionFinanceResponseData | null;
   onPaymentMethodSaved?: (updates: {
     period?: string;
@@ -32,6 +38,7 @@ export const Checkout = ({
   isPaymentMethodRequired,
   setPaymentMethodId,
   updatePromoCode,
+  confirmPaymentIntentProps,
   financeData,
   onPaymentMethodSaved,
 }: CheckoutProps) => {
@@ -48,6 +55,7 @@ export const Checkout = ({
   return (
     <>
       <PaymentMethodDetails
+        confirmPaymentIntentProps={confirmPaymentIntentProps}
         setPaymentMethodId={setPaymentMethodId}
         financeData={financeData}
         onPaymentMethodSaved={onPaymentMethodSaved}
