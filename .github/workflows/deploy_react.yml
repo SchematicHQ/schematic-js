@@ -13,7 +13,7 @@ jobs:
     steps:
       - uses: runs-on/action@v2
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 20.x
       - name: Yarn install
@@ -34,7 +34,7 @@ jobs:
       - uses: runs-on/action@v2
       - uses: actions/checkout@v4
       - name: Set Node.js 20.x
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 20.x
       - name: Yarn install
@@ -79,7 +79,7 @@ jobs:
           token: ${{ secrets.DEPENDENT_UPDATE_PAT }}
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 20.x
 
