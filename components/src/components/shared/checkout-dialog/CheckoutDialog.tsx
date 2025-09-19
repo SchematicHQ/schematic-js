@@ -124,13 +124,15 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     showPeriodToggle,
     trialPaymentMethodRequired,
   } = useMemo(() => {
+    const showPeriodToggle = data?.showPeriodToggle ?? true;
+
     if (isCheckoutData(data)) {
       return {
         currentPlanId: data.company?.plan?.id,
         currentEntitlements: data.featureUsage
           ? data.featureUsage.features
           : [],
-        showPeriodToggle: data.showPeriodToggle,
+        showPeriodToggle,
         trialPaymentMethodRequired: data.trialPaymentMethodRequired === true,
       };
     }
@@ -138,7 +140,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     return {
       currentPlanId: undefined,
       currentEntitlements: [],
-      showPeriodToggle: true,
+      showPeriodToggle,
       trialPaymentMethodRequired: false,
     };
   }, [data]);
@@ -927,7 +929,6 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
               selectedPlan={selectedPlan}
               selectPlan={selectPlan}
               shouldTrial={shouldTrial}
-              showPeriodToggle={showPeriodToggle}
             />
           ) : checkoutStage === "usage" ? (
             <Usage

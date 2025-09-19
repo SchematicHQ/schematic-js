@@ -253,7 +253,6 @@ interface PlanProps {
     shouldTrial?: boolean;
   }) => void;
   shouldTrial: boolean;
-  showPeriodToggle: boolean;
 }
 
 export const Plan = ({
@@ -263,7 +262,6 @@ export const Plan = ({
   period,
   selectPlan,
   shouldTrial,
-  showPeriodToggle,
 }: PlanProps) => {
   const { t } = useTranslation();
 
@@ -275,17 +273,22 @@ export const Plan = ({
     plans.reduce(entitlementCountsReducer, {}),
   );
 
-  const { isTrialing, showZeroPriceAsFree } = useMemo(() => {
+  const { isTrialing, showPeriodToggle, showZeroPriceAsFree } = useMemo(() => {
+    const showPeriodToggle = data?.showPeriodToggle ?? true;
+    const showZeroPriceAsFree = data?.showZeroPriceAsFree ?? false;
+
     if (isCheckoutData(data)) {
       return {
         isTrialing: data.subscription?.status === "trialing",
-        showZeroPriceAsFree: data.showZeroPriceAsFree,
+        showPeriodToggle,
+        showZeroPriceAsFree,
       };
     }
 
     return {
       isTrialing: false,
-      showZeroPriceAsFree: false,
+      showPeriodToggle,
+      showZeroPriceAsFree,
     };
   }, [data]);
 

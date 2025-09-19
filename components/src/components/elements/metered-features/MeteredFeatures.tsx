@@ -172,6 +172,8 @@ export const MeteredFeatures = forwardRef<
   const isLightBackground = useIsLightBackground();
 
   const { period, meteredFeatures, creditGroups } = useMemo(() => {
+    const showCredits = data?.showCredits ?? true;
+
     if (isCheckoutData(data)) {
       const period =
         typeof data.company?.plan?.planPeriod === "string"
@@ -200,8 +202,7 @@ export const MeteredFeatures = forwardRef<
           []
         ).filter(
           ({ priceBehavior, feature }) =>
-            // credit-based entitlements behave differently and should not be shown as a metered feature
-            priceBehavior !== PriceBehavior.Credit &&
+            (priceBehavior !== PriceBehavior.Credit || showCredits) &&
             (feature?.featureType === FeatureType.Event ||
               feature?.featureType === FeatureType.Trait),
         ),
