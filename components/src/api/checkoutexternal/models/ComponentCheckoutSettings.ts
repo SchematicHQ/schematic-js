@@ -37,6 +37,12 @@ export interface ComponentCheckoutSettings {
    * @memberof ComponentCheckoutSettings
    */
   collectPhone: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof ComponentCheckoutSettings
+   */
+  taxCollectionEnabled: boolean;
 }
 
 /**
@@ -50,6 +56,11 @@ export function instanceOfComponentCheckoutSettings(
   if (!("collectEmail" in value) || value["collectEmail"] === undefined)
     return false;
   if (!("collectPhone" in value) || value["collectPhone"] === undefined)
+    return false;
+  if (
+    !("taxCollectionEnabled" in value) ||
+    value["taxCollectionEnabled"] === undefined
+  )
     return false;
   return true;
 }
@@ -71,6 +82,7 @@ export function ComponentCheckoutSettingsFromJSONTyped(
     collectAddress: json["collect_address"],
     collectEmail: json["collect_email"],
     collectPhone: json["collect_phone"],
+    taxCollectionEnabled: json["tax_collection_enabled"],
   };
 }
 
@@ -84,5 +96,6 @@ export function ComponentCheckoutSettingsToJSON(
     collect_address: value["collectAddress"],
     collect_email: value["collectEmail"],
     collect_phone: value["collectPhone"],
+    tax_collection_enabled: value["taxCollectionEnabled"],
   };
 }

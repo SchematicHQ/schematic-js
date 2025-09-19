@@ -63,6 +63,10 @@ interface SidebarProps {
   showHeader?: boolean;
   shouldTrial?: boolean;
   willTrialWithoutPaymentMethod?: boolean;
+  setConfirmPaymentIntent: (params: {
+    clientSecret: string;
+    callback: (confirmed: boolean) => void;
+  }) => void;
 }
 
 export const Sidebar = ({
@@ -88,11 +92,19 @@ export const Sidebar = ({
   showHeader = true,
   shouldTrial = false,
   willTrialWithoutPaymentMethod = false,
+  setConfirmPaymentIntent,
 }: SidebarProps) => {
   const { t } = useTranslation();
 
-  const { data, settings, layout, setLayout, checkout, unsubscribe } =
-    useEmbed();
+  const {
+    data,
+    settings,
+    layout,
+    setLayout,
+    checkout,
+    finishCheckout,
+    unsubscribe,
+  } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
 
@@ -206,17 +218,27 @@ export const Sidebar = ({
     return formatCurrency(total, currency);
   }, [selectedPlan, currentPlan, planPeriod, addOns, payInAdvanceEntitlements]);
 
-  const { amountOff, dueNow, newCharges, percentOff, periodStart, proration } =
-    useMemo(() => {
-      return {
-        amountOff: charges?.amountOff ?? 0,
-        dueNow: charges?.dueNow ?? 0,
-        newCharges: charges?.newCharges ?? 0,
-        percentOff: charges?.percentOff ?? 0,
-        periodStart: charges?.periodStart,
-        proration: charges?.proration ?? 0,
-      };
-    }, [charges]);
+  const {
+    amountOff,
+    dueNow,
+    newCharges,
+    percentOff,
+    periodStart,
+    proration,
+    taxAmount,
+    taxDescription,
+  } = useMemo(() => {
+    return {
+      amountOff: charges?.amountOff ?? 0,
+      dueNow: charges?.dueNow ?? 0,
+      newCharges: charges?.newCharges ?? 0,
+      percentOff: charges?.percentOff ?? 0,
+      periodStart: charges?.periodStart,
+      proration: charges?.proration ?? 0,
+      taxAmount: charges?.taxAmount ?? 0,
+      taxDescription: charges?.taxDisplayName,
+    };
+  }, [charges]);
 
   const updatedUsageBasedEntitlements = useMemo(() => {
     const changedUsageBasedEntitlements: {
@@ -370,7 +392,7 @@ export const Sidebar = ({
 
       const allPayInAdvance = [...planPayInAdvance, ...addOnPayInAdvance];
 
-      await checkout({
+      const checkoutResponseFromBackend = await checkout({
         newPlanId: planId,
         newPriceId: priceId,
         addOnIds: addOns.reduce((acc: UpdateAddOnRequestBody[], addOn) => {
@@ -410,8 +432,34 @@ export const Sidebar = ({
         ...(promoCode && { promoCode }),
       });
 
-      setIsLoading(false);
-      setLayout("portal");
+      if (checkoutResponseFromBackend?.data.confirmPaymentIntentClientSecret) {
+        setConfirmPaymentIntent({
+          clientSecret:
+            checkoutResponseFromBackend?.data.confirmPaymentIntentClientSecret,
+          callback: (confirmed: boolean) => {
+            if (typeof confirmed === "undefined") {
+              return;
+            }
+
+            console.log("Payment intent has confirmed. Result: ", confirmed);
+            setIsLoading(false);
+            if (!confirmed) {
+              setError(
+                t(
+                  "Error processing payment. Please try a different payment method.",
+                ),
+              );
+              setLayout("checkout");
+            } else {
+              finishCheckout(checkoutResponseFromBackend?.data);
+              setLayout("portal");
+            }
+          },
+        });
+      } else {
+        setIsLoading(false);
+        setLayout("portal");
+      }
     } catch {
       setIsLoading(false);
       setLayout("checkout");
@@ -422,6 +470,7 @@ export const Sidebar = ({
   }, [
     t,
     checkout,
+    setConfirmPaymentIntent,
     paymentMethodId,
     planPeriod,
     selectedPlan,
@@ -434,6 +483,7 @@ export const Sidebar = ({
     addOnUsageBasedEntitlements,
     shouldTrial,
     promoCode,
+    finishCheckout,
   ]);
 
   const handleUnsubscribe = useCallback(async () => {
@@ -980,6 +1030,26 @@ export const Sidebar = ({
                 {subscriptionPrice}
                 <sub>/{shortenPeriod(planPeriod)}</sub>
               </Text>
+            </Box>
+          </Flex>
+        )}
+
+        {taxAmount > 0 && (
+          <Flex
+            $justifyContent="space-between"
+            $alignItems="center"
+            $gap="1rem"
+          >
+            <Box $opacity="0.625">
+              <Text>
+                {t("Tax (description):", {
+                  description: taxDescription,
+                })}
+              </Text>
+            </Box>
+
+            <Box>
+              <Text>{formatCurrency(taxAmount, selectedPlanCurrency)}</Text>
             </Box>
           </Flex>
         )}

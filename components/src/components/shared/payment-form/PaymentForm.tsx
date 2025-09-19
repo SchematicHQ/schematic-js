@@ -7,17 +7,19 @@ import {
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import type { PreviewSubscriptionFinanceResponseData } from "../../../api/checkoutexternal";
 import { useEmbed } from "../../../hooks";
-import { isCheckoutData } from "../../../utils";
+import { isCheckoutData, shouldCollectBillingAddress } from "../../../utils";
 import { Box, Button, Flex, Text } from "../../ui";
 
 import { Input, Label } from "./styles";
 
 interface PaymentFormProps {
   onConfirm?: (paymentMethodId: string) => void;
+  financeData?: PreviewSubscriptionFinanceResponseData | null;
 }
 
-export const PaymentForm = ({ onConfirm }: PaymentFormProps) => {
+export const PaymentForm = ({ onConfirm, financeData }: PaymentFormProps) => {
   const { t } = useTranslation();
 
   const stripe = useStripe();
@@ -30,9 +32,19 @@ export const PaymentForm = ({ onConfirm }: PaymentFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [isPaymentComplete, setIsPaymentComplete] = useState(false);
-  const [isAddressComplete, setIsAddressComplete] = useState(
-    () => !isCheckoutData(data) || !data.checkoutSettings.collectAddress,
-  );
+  const [isAddressComplete, setIsAddressComplete] = useState(() => {
+    if (!isCheckoutData(data)) {
+      return true;
+    }
+
+    // Check if billing address collection is needed (either configured or required for tax)
+    const shouldCollectAddress = shouldCollectBillingAddress(
+      data.checkoutSettings.collectAddress,
+      financeData,
+    );
+
+    return !shouldCollectAddress;
+  });
 
   const handleSubmit: React.FormEventHandler<HTMLFormElement> = async (
     event,
@@ -111,7 +123,10 @@ export const PaymentForm = ({ onConfirm }: PaymentFormProps) => {
       )}
 
       {isCheckoutData(data) &&
-        (data.checkoutSettings.collectAddress ||
+        (shouldCollectBillingAddress(
+          data.checkoutSettings.collectAddress,
+          financeData,
+        ) ||
           data.checkoutSettings.collectPhone) && (
           <Box $marginBottom="3.5rem">
             <AddressElement
