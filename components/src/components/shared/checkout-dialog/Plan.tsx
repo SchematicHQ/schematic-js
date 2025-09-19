@@ -30,8 +30,9 @@ import {
   BillingThresholdTooltip,
   PricingTiersTooltip,
   TieredPricingDetails,
+  UsageViolationText,
 } from "../../shared";
-import { Box, Button, Flex, Icon, Text, Tooltip } from "../../ui";
+import { Box, Button, Flex, Icon, Text } from "../../ui";
 
 interface SelectedProps {
   isCurrent?: boolean;
@@ -117,48 +118,45 @@ const PlanButtonGroup = ({
             {isSelected && shouldTrial ? (
               <Selected isCurrent={isCurrentPlan} isTrial={shouldTrial} />
             ) : (
-              <Button
-                type="button"
-                disabled={(isLoading || !isValidPlan) && !plan.custom}
-                {...(plan.custom
-                  ? {
-                      as: "a",
-                      href: plan.customPlanConfig?.ctaWebSite ?? "#",
-                      target: "_blank",
-                      rel: "noreferrer",
-                    }
-                  : {
-                      onClick: () => {
-                        onSelect({
-                          plan,
-                          shouldTrial: true,
-                        });
-                      },
-                    })}
-                $size="sm"
-                $color="primary"
-                $variant="filled"
-                $fullWidth
-              >
-                {plan.custom ? (
-                  (plan.customPlanConfig?.ctaText ?? t("Talk to support"))
-                ) : !isValidPlan ? (
-                  <Tooltip
-                    trigger={
-                      <Text as={Box} $align="center">
-                        {t("Over usage limit")}
-                      </Text>
-                    }
-                    content={
-                      <Text>
-                        {t("Current usage exceeds the limit of this plan.")}
-                      </Text>
-                    }
-                  />
-                ) : (
-                  t("Start X day trial", { days: plan.trialDays })
+              <Flex $flexDirection="column" $gap="0.5rem">
+                <Button
+                  type="button"
+                  disabled={(isLoading || !isValidPlan) && !plan.custom}
+                  {...(plan.custom
+                    ? {
+                        as: "a",
+                        href: plan.customPlanConfig?.ctaWebSite ?? "#",
+                        target: "_blank",
+                        rel: "noreferrer",
+                      }
+                    : {
+                        onClick: () => {
+                          onSelect({
+                            plan,
+                            shouldTrial: true,
+                          });
+                        },
+                      })}
+                  $size="sm"
+                  $color="primary"
+                  $variant="filled"
+                  $fullWidth
+                >
+                  {plan.custom ? (
+                    (plan.customPlanConfig?.ctaText ?? t("Talk to support"))
+                  ) : !isValidPlan ? (
+                    <Text as={Box} $align="center">
+                      {t("Over plan limit")}
+                    </Text>
+                  ) : (
+                    t("Start X day trial", { days: plan.trialDays })
+                  )}
+                </Button>
+
+                {isHydratedPlan(plan) && !plan.valid && (
+                  <UsageViolationText violations={plan.usageViolations} />
                 )}
-              </Button>
+              </Flex>
             )}
           </>
         )}
@@ -168,34 +166,33 @@ const PlanButtonGroup = ({
             {isSelected && (!shouldTrial || isTrialing) ? (
               <Selected isCurrent={isCurrentPlan} />
             ) : (
-              <Button
-                type="button"
-                disabled={isLoading || !isValidPlan}
-                onClick={() => {
-                  onSelect({ plan, shouldTrial: false });
-                }}
-                $size="sm"
-                $color="primary"
-                $variant={isTrialing ? "filled" : "text"}
-                $fullWidth
-              >
-                {!isValidPlan ? (
-                  <Tooltip
-                    trigger={
+              <Flex $flexDirection="column" $gap="0.5rem">
+                <Button
+                  type="button"
+                  disabled={isLoading || !isValidPlan}
+                  onClick={() => {
+                    onSelect({ plan, shouldTrial: false });
+                  }}
+                  $size="sm"
+                  $color="primary"
+                  $variant={isTrialing ? "filled" : "text"}
+                  $fullWidth
+                >
+                  {!isValidPlan ? (
+                    <Box $textAlign="center">
                       <Text as={Box} $align="center">
-                        {t("Over usage limit")}
+                        {t("Over plan limit")}
                       </Text>
-                    }
-                    content={
-                      <Text>
-                        {t("Current usage exceeds the limit of this plan.")}
-                      </Text>
-                    }
-                  />
-                ) : (
-                  t("Choose plan")
+                    </Box>
+                  ) : (
+                    t("Choose plan")
+                  )}
+                </Button>
+
+                {isHydratedPlan(plan) && !plan.valid && (
+                  <UsageViolationText violations={plan.usageViolations} />
                 )}
-              </Button>
+              </Flex>
             )}
           </>
         )}
@@ -206,43 +203,42 @@ const PlanButtonGroup = ({
   return isSelected ? (
     <Selected isCurrent={isCurrentPlan} />
   ) : (
-    <Button
-      type="button"
-      disabled={(isLoading || !isValidPlan) && !plan.custom}
-      {...(plan.custom
-        ? {
-            as: "a",
-            href: plan.customPlanConfig?.ctaWebSite ?? "#",
-            target: "_blank",
-            rel: "noreferrer",
-          }
-        : {
-            onClick: () => {
-              onSelect({ plan });
-            },
-          })}
-      $size="sm"
-      $color="primary"
-      $variant="filled"
-      $fullWidth
-    >
-      {plan.custom ? (
-        (plan.customPlanConfig?.ctaText ?? t("Talk to support"))
-      ) : !isValidPlan ? (
-        <Tooltip
-          trigger={
-            <Text as={Box} $align="center">
-              {t("Over usage limit")}
-            </Text>
-          }
-          content={
-            <Text>{t("Current usage exceeds the limit of this plan.")}</Text>
-          }
-        />
-      ) : (
-        t("Choose plan")
+    <Flex $flexDirection="column" $gap="0.5rem">
+      <Button
+        type="button"
+        disabled={(isLoading || !isValidPlan) && !plan.custom}
+        {...(plan.custom
+          ? {
+              as: "a",
+              href: plan.customPlanConfig?.ctaWebSite ?? "#",
+              target: "_blank",
+              rel: "noreferrer",
+            }
+          : {
+              onClick: () => {
+                onSelect({ plan });
+              },
+            })}
+        $size="sm"
+        $color="primary"
+        $variant="filled"
+        $fullWidth
+      >
+        {plan.custom ? (
+          (plan.customPlanConfig?.ctaText ?? t("Talk to support"))
+        ) : !isValidPlan ? (
+          <Text as={Box} $align="center">
+            {t("Over plan limit")}
+          </Text>
+        ) : (
+          t("Choose plan")
+        )}
+      </Button>
+
+      {isHydratedPlan(plan) && !plan.valid && (
+        <UsageViolationText violations={plan.usageViolations} />
       )}
-    </Button>
+    </Flex>
   );
 };
 
