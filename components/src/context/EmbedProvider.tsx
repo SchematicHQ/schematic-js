@@ -26,7 +26,11 @@ import {
   ComponentspublicApi,
   Configuration as PublicConfiguration,
 } from "../api/componentspublic";
-import { DEBOUNCE_SETTINGS, FETCH_DEBOUNCE_TIMEOUT } from "../const";
+import {
+  FETCH_DEBOUNCE_TIMEOUT,
+  LEADING_DEBOUNCE_SETTINGS,
+  TRAILING_DEBOUNCE_SETTINGS,
+} from "../const";
 import type { DeepPartial } from "../types";
 import { ERROR_UNKNOWN, isError } from "../utils";
 
@@ -126,7 +130,12 @@ export const EmbedProvider = ({
   }, [api.public]);
 
   const debouncedHydratePublic = useMemo(
-    () => debounce(hydratePublic, FETCH_DEBOUNCE_TIMEOUT, DEBOUNCE_SETTINGS),
+    () =>
+      debounce(
+        hydratePublic,
+        FETCH_DEBOUNCE_TIMEOUT,
+        LEADING_DEBOUNCE_SETTINGS,
+      ),
     [hydratePublic],
   );
 
@@ -159,7 +168,7 @@ export const EmbedProvider = ({
   }, [api.checkout]);
 
   const debouncedHydrate = useMemo(
-    () => debounce(hydrate, FETCH_DEBOUNCE_TIMEOUT, DEBOUNCE_SETTINGS),
+    () => debounce(hydrate, FETCH_DEBOUNCE_TIMEOUT, LEADING_DEBOUNCE_SETTINGS),
     [hydrate],
   );
 
@@ -196,7 +205,12 @@ export const EmbedProvider = ({
   );
 
   const debouncedHydrateComponent = useMemo(
-    () => debounce(hydrateComponent, FETCH_DEBOUNCE_TIMEOUT, DEBOUNCE_SETTINGS),
+    () =>
+      debounce(
+        hydrateComponent,
+        FETCH_DEBOUNCE_TIMEOUT,
+        LEADING_DEBOUNCE_SETTINGS,
+      ),
     [hydrateComponent],
   );
 
@@ -227,7 +241,12 @@ export const EmbedProvider = ({
   }, []);
 
   const debouncedHydrateExternal = useMemo(
-    () => debounce(hydrateExternal, FETCH_DEBOUNCE_TIMEOUT, DEBOUNCE_SETTINGS),
+    () =>
+      debounce(
+        hydrateExternal,
+        FETCH_DEBOUNCE_TIMEOUT,
+        LEADING_DEBOUNCE_SETTINGS,
+      ),
     [hydrateExternal],
   );
 
@@ -238,7 +257,11 @@ export const EmbedProvider = ({
 
   const debouncedCreateSetupIntent = useMemo(
     () =>
-      debounce(createSetupIntent, FETCH_DEBOUNCE_TIMEOUT, DEBOUNCE_SETTINGS),
+      debounce(
+        createSetupIntent,
+        FETCH_DEBOUNCE_TIMEOUT,
+        LEADING_DEBOUNCE_SETTINGS,
+      ),
     [createSetupIntent],
   );
 
@@ -262,7 +285,11 @@ export const EmbedProvider = ({
 
   const debouncedUpdatePaymentMethod = useMemo(
     () =>
-      debounce(updatePaymentMethod, FETCH_DEBOUNCE_TIMEOUT, DEBOUNCE_SETTINGS),
+      debounce(
+        updatePaymentMethod,
+        FETCH_DEBOUNCE_TIMEOUT,
+        TRAILING_DEBOUNCE_SETTINGS,
+      ),
     [updatePaymentMethod],
   );
 
@@ -286,7 +313,11 @@ export const EmbedProvider = ({
 
   const debouncedDeletePaymentMethod = useMemo(
     () =>
-      debounce(deletePaymentMethod, FETCH_DEBOUNCE_TIMEOUT, DEBOUNCE_SETTINGS),
+      debounce(
+        deletePaymentMethod,
+        FETCH_DEBOUNCE_TIMEOUT,
+        LEADING_DEBOUNCE_SETTINGS,
+      ),
     [deletePaymentMethod],
   );
 
@@ -309,7 +340,8 @@ export const EmbedProvider = ({
   );
 
   const debouncedCheckout = useMemo(
-    () => debounce(checkout, FETCH_DEBOUNCE_TIMEOUT, DEBOUNCE_SETTINGS),
+    () =>
+      debounce(checkout, FETCH_DEBOUNCE_TIMEOUT, TRAILING_DEBOUNCE_SETTINGS),
     [checkout],
   );
 
@@ -322,12 +354,11 @@ export const EmbedProvider = ({
 
   const debouncedPreviewCheckout = useMemo(
     () =>
-      debounce(previewCheckout, FETCH_DEBOUNCE_TIMEOUT, {
-        // invoke immediately for minimal latency
-        leading: true,
-        // but also ensure latest data is fetched
-        trailing: true,
-      }),
+      debounce(
+        previewCheckout,
+        FETCH_DEBOUNCE_TIMEOUT,
+        TRAILING_DEBOUNCE_SETTINGS,
+      ),
     [previewCheckout],
   );
 
@@ -345,7 +376,8 @@ export const EmbedProvider = ({
   }, [api.checkout]);
 
   const debouncedUnsubscribe = useMemo(
-    () => debounce(unsubscribe, FETCH_DEBOUNCE_TIMEOUT, DEBOUNCE_SETTINGS),
+    () =>
+      debounce(unsubscribe, FETCH_DEBOUNCE_TIMEOUT, LEADING_DEBOUNCE_SETTINGS),
     [unsubscribe],
   );
 
@@ -360,7 +392,11 @@ export const EmbedProvider = ({
 
   const debouncedGetUpcomingInvoice = useMemo(
     () =>
-      debounce(getUpcomingInvoice, FETCH_DEBOUNCE_TIMEOUT, DEBOUNCE_SETTINGS),
+      debounce(
+        getUpcomingInvoice,
+        FETCH_DEBOUNCE_TIMEOUT,
+        LEADING_DEBOUNCE_SETTINGS,
+      ),
     [getUpcomingInvoice],
   );
 
@@ -370,7 +406,11 @@ export const EmbedProvider = ({
 
   const debouncedGetCustomerBalance = useMemo(
     () =>
-      debounce(getCustomerBalance, FETCH_DEBOUNCE_TIMEOUT, DEBOUNCE_SETTINGS),
+      debounce(
+        getCustomerBalance,
+        FETCH_DEBOUNCE_TIMEOUT,
+        LEADING_DEBOUNCE_SETTINGS,
+      ),
     [getCustomerBalance],
   );
 
@@ -379,7 +419,8 @@ export const EmbedProvider = ({
   }, [api.checkout]);
 
   const debouncedListInvoices = useMemo(
-    () => debounce(listInvoices, FETCH_DEBOUNCE_TIMEOUT, DEBOUNCE_SETTINGS),
+    () =>
+      debounce(listInvoices, FETCH_DEBOUNCE_TIMEOUT, LEADING_DEBOUNCE_SETTINGS),
     [listInvoices],
   );
 
