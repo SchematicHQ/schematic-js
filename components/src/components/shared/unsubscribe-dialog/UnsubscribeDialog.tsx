@@ -137,6 +137,7 @@ export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
           showHeader={false}
           setError={(msg) => setError(msg)}
           setIsLoading={setIsLoading}
+          setConfirmPaymentIntent={() => {}}
         />
       </Flex>
     </Modal>

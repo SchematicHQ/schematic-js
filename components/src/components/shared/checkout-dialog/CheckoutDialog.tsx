@@ -82,6 +82,11 @@ interface CheckoutDialogProps {
   top?: number;
 }
 
+interface ConfirmPaymentIntentProps {
+  clientSecret: string;
+  callback: (confirmed: boolean) => void;
+}
+
 export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   const { t } = useTranslation();
 
@@ -92,6 +97,10 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
   const contentRef = useRef<HTMLDivElement>(null);
   const checkoutRef = useRef<HTMLDivElement>(null);
+
+  const [confirmPaymentIntentProps, setConfirmPaymentIntentProps] = useState<
+    ConfirmPaymentIntentProps | undefined | null
+  >(undefined);
 
   const [charges, setCharges] =
     useState<PreviewSubscriptionFinanceResponseData>();
@@ -956,6 +965,9 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
                 isPaymentMethodRequired={isPaymentMethodRequired}
                 setPaymentMethodId={(id) => setPaymentMethodId(id)}
                 updatePromoCode={updatePromoCode}
+                confirmPaymentIntentProps={confirmPaymentIntentProps}
+                financeData={charges}
+                onPaymentMethodSaved={handlePreviewCheckout}
               />
             )
           )}
@@ -982,6 +994,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           setIsLoading={setIsLoading}
           updatePromoCode={updatePromoCode}
           shouldTrial={shouldTrial}
+          setConfirmPaymentIntent={setConfirmPaymentIntentProps}
           willTrialWithoutPaymentMethod={willTrialWithoutPaymentMethod}
         />
       </Flex>
