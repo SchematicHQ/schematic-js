@@ -137,7 +137,10 @@ export const UsageDetails = ({
     return null;
   }
 
-  const quantity = limit || amount;
+  const quantity =
+    entitlement.priceBehavior !== PriceBehavior.Credit
+      ? limit || amount
+      : undefined;
 
   return (
     <Flex

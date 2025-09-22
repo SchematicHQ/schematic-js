@@ -64,9 +64,10 @@ export function getUsageDetails(
     limit = entitlement.softLimit;
   } else if (
     entitlement.priceBehavior === PriceBehavior.Credit &&
-    typeof entitlement.creditTotal === "number"
+    typeof entitlement.creditTotal === "number" &&
+    typeof entitlement.creditConsumptionRate === "number"
   ) {
-    limit = entitlement.creditTotal;
+    limit = entitlement.creditTotal / entitlement.creditConsumptionRate;
   }
 
   // amount related to cost
@@ -90,9 +91,10 @@ export function getUsageDetails(
     amount = Math.max(0, entitlement.usage - entitlement.softLimit);
   } else if (
     entitlement.priceBehavior === PriceBehavior.Credit &&
-    typeof entitlement.creditUsed === "number"
+    typeof entitlement.creditUsed === "number" &&
+    typeof entitlement.creditConsumptionRate === "number"
   ) {
-    amount = entitlement.creditUsed;
+    amount = entitlement.creditUsed / entitlement.creditConsumptionRate;
   }
 
   // total cost based on current usage or allocation
