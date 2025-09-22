@@ -52,11 +52,20 @@ export const UsageDetails = ({
 
   const { data } = useEmbed();
 
-  const period = useMemo(() => {
-    return isCheckoutData(data) &&
-      typeof data.company?.plan?.planPeriod === "string"
-      ? data.company.plan.planPeriod
-      : undefined;
+  const { period, showCredits } = useMemo(() => {
+    const showCredits = data?.showCredits ?? true;
+
+    if (isCheckoutData(data)) {
+      return {
+        period: data.company?.plan?.planPeriod || undefined,
+        showCredits,
+      };
+    }
+
+    return {
+      period: undefined,
+      showCredits,
+    };
   }, [data]);
 
   const { billingPrice, cost, currentTier } = useMemo(
@@ -123,6 +132,7 @@ export const UsageDetails = ({
     }
 
     if (
+      showCredits &&
       priceBehavior === PriceBehavior.Credit &&
       planEntitlement?.valueCredit &&
       typeof planEntitlement?.consumptionRate === "number"
@@ -160,6 +170,7 @@ export const UsageDetails = ({
     softLimit,
     billingPrice,
     currentTier?.to,
+    showCredits,
   ]);
 
   const usageText = useMemo(() => {
@@ -268,7 +279,7 @@ export const UsageDetails = ({
 
   // this should never be the case since there should always be an associated feature,
   // but we need to satisfy all possible cases
-  if (!text || !feature?.name) {
+  if ((!text && !usageText) || !feature) {
     return null;
   }
 

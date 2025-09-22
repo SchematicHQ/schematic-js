@@ -62,6 +62,11 @@ export function getUsageDetails(
     typeof entitlement.softLimit === "number"
   ) {
     limit = entitlement.softLimit;
+  } else if (
+    entitlement.priceBehavior === PriceBehavior.Credit &&
+    typeof entitlement.creditTotal === "number"
+  ) {
+    limit = entitlement.creditTotal;
   }
 
   // amount related to cost

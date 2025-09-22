@@ -288,7 +288,7 @@ export const EmbedProvider = ({
       debounce(
         updatePaymentMethod,
         FETCH_DEBOUNCE_TIMEOUT,
-        TRAILING_DEBOUNCE_SETTINGS,
+        LEADING_DEBOUNCE_SETTINGS,
       ),
     [updatePaymentMethod],
   );
@@ -340,8 +340,7 @@ export const EmbedProvider = ({
   );
 
   const debouncedCheckout = useMemo(
-    () =>
-      debounce(checkout, FETCH_DEBOUNCE_TIMEOUT, TRAILING_DEBOUNCE_SETTINGS),
+    () => debounce(checkout, FETCH_DEBOUNCE_TIMEOUT, LEADING_DEBOUNCE_SETTINGS),
     [checkout],
   );
 
