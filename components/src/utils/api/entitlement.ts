@@ -88,6 +88,11 @@ export function getUsageDetails(
     typeof entitlement.softLimit === "number"
   ) {
     amount = Math.max(0, entitlement.usage - entitlement.softLimit);
+  } else if (
+    entitlement.priceBehavior === PriceBehavior.Credit &&
+    typeof entitlement.creditUsed === "number"
+  ) {
+    amount = entitlement.creditUsed;
   }
 
   // total cost based on current usage or allocation

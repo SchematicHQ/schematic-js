@@ -18,6 +18,7 @@ import { Flex, Text } from "../../ui";
 export interface UsageDetailsProps {
   entitlement: FeatureUsageResponseData;
   period: string;
+  showCredits: boolean;
   layout: {
     addOns: {
       isVisible: boolean;
@@ -30,6 +31,7 @@ export interface UsageDetailsProps {
 export const UsageDetails = ({
   entitlement,
   period,
+  showCredits,
   layout,
 }: UsageDetailsProps) => {
   const { t } = useTranslation();
@@ -94,6 +96,7 @@ export const UsageDetails = ({
     }
 
     if (
+      showCredits &&
       entitlement.priceBehavior === PriceBehavior.Credit &&
       entitlement.planEntitlement?.consumptionRate &&
       entitlement.planEntitlement?.valueCredit
@@ -125,11 +128,12 @@ export const UsageDetails = ({
     }
 
     return acc;
-  }, [t, period, entitlement, billingPrice, amount]);
+  }, [t, period, showCredits, entitlement, billingPrice, amount]);
 
-  // this should never be the case since there should always be an associated feature,
-  // but we need to satisfy all possible cases
-  if (!entitlement.feature?.name) {
+  if (
+    (entitlement.priceBehavior === PriceBehavior.Credit && !showCredits) ||
+    !entitlement.feature?.name
+  ) {
     return null;
   }
 
