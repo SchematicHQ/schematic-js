@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -33,6 +33,7 @@ import {
   UsageViolationText,
 } from "../../shared";
 import { Box, Button, Flex, Icon, Text } from "../../ui";
+import { FlexWithAlignEnd } from "./styles";
 
 interface SelectedProps {
   isCurrent?: boolean;
@@ -534,6 +535,9 @@ export const Plan = ({
                       } = getEntitlementPrice(entitlement, planPeriod) || {};
 
                       const metricPeriodName = getMetricPeriodName(entitlement);
+                      const UsageDetailsContainer = entitlement.billingThreshold
+                        ? FlexWithAlignEnd
+                        : Fragment;
 
                       return (
                         <Flex
@@ -596,7 +600,8 @@ export const Plan = ({
                                       entitlement={entitlement}
                                       period={planPeriod}
                                     />
-                                  ) : entitlement.priceBehavior ===
+                                  ) : showCredits &&
+                                    entitlement.priceBehavior ===
                                       PriceBehavior.Credit &&
                                     entitlement.valueCredit ? (
                                     <>
@@ -641,7 +646,7 @@ export const Plan = ({
                                   )}
                                 </Text>
 
-                                <Flex $alignItems="end">
+                                <UsageDetailsContainer>
                                   {entitlement.priceBehavior ===
                                     PriceBehavior.Overage &&
                                   typeof entitlementPrice === "number" ? (
@@ -708,7 +713,7 @@ export const Plan = ({
                                       }
                                     />
                                   )}
-                                </Flex>
+                                </UsageDetailsContainer>
                               </Flex>
                             )}
                           </Flex>

@@ -55,10 +55,6 @@ export const Entitlement = ({
     packageSize: entitlementPackageSize = 1,
   } = getEntitlementPrice(entitlement, selectedPeriod) || {};
 
-  if (entitlement.priceBehavior && typeof entitlementPrice !== "number") {
-    return null;
-  }
-
   const limit = entitlement.softLimit ?? entitlement.valueNumeric;
 
   const metricPeriodName = getMetricPeriodName(entitlement);
