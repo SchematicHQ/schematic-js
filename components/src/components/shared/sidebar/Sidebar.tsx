@@ -39,6 +39,7 @@ import { type CheckoutStage } from "../checkout-dialog";
 import { EntitlementRow } from "./EntitlementRow";
 import { Proration } from "./Proration";
 import { StageButton } from "./StageButton";
+import { extractCurrentUsageBasedEntitlements } from "./helpers";
 
 interface SidebarProps {
   planPeriod: string;
@@ -124,27 +125,9 @@ export const Sidebar = ({
         currentPlan: data.company?.plan,
         currentAddOns: data.company?.addOns || [],
         currentEntitlements,
-        currentUsageBasedEntitlements: currentEntitlements.reduce(
-          (acc: CurrentUsageBasedEntitlement[], entitlement) => {
-            if (
-              entitlement.priceBehavior &&
-              ((planPeriod === "month" && entitlement.monthlyUsageBasedPrice) ||
-                (planPeriod === "year" && entitlement.yearlyUsageBasedPrice))
-            ) {
-              const allocation = entitlement.allocation || 0;
-              const usage = entitlement.usage || 0;
-
-              acc.push({
-                ...entitlement,
-                allocation,
-                usage,
-                quantity: allocation ?? usage,
-              });
-            }
-
-            return acc;
-          },
-          [],
+        currentUsageBasedEntitlements: extractCurrentUsageBasedEntitlements(
+          data.featureUsage?.features,
+          planPeriod,
         ),
         billingSubscription: data.company?.billingSubscription,
         paymentMethod: data.subscription?.paymentMethod,
