@@ -1,6 +1,7 @@
 import "../localization";
 
 import { IconStyles } from "@schematichq/schematic-icons";
+import debounce from "lodash/debounce";
 import merge from "lodash/merge";
 import {
   useCallback,
@@ -17,14 +18,19 @@ import {
   CheckoutexternalApi,
   Configuration as CheckoutConfiguration,
   type ChangeSubscriptionRequestBody,
-  type CheckoutResponseData,
   type ComponentHydrateResponseData,
   type ConfigurationParameters,
+  type CheckoutResponseData,
 } from "../api/checkoutexternal";
 import {
   ComponentspublicApi,
   Configuration as PublicConfiguration,
 } from "../api/componentspublic";
+import {
+  FETCH_DEBOUNCE_TIMEOUT,
+  LEADING_DEBOUNCE_SETTINGS,
+  TRAILING_DEBOUNCE_SETTINGS,
+} from "../const";
 import type { DeepPartial } from "../types";
 import { ERROR_UNKNOWN, isError } from "../utils";
 
@@ -123,6 +129,16 @@ export const EmbedProvider = ({
     }
   }, [api.public]);
 
+  const debouncedHydratePublic = useMemo(
+    () =>
+      debounce(
+        hydratePublic,
+        FETCH_DEBOUNCE_TIMEOUT,
+        LEADING_DEBOUNCE_SETTINGS,
+      ),
+    [hydratePublic],
+  );
+
   /**
    * Retrieves company-specific data with user context
    * Used for standalone components when more control is needed
@@ -150,6 +166,11 @@ export const EmbedProvider = ({
       });
     }
   }, [api.checkout]);
+
+  const debouncedHydrate = useMemo(
+    () => debounce(hydrate, FETCH_DEBOUNCE_TIMEOUT, LEADING_DEBOUNCE_SETTINGS),
+    [hydrate],
+  );
 
   /**
    * Retrieves company-specific data with user context
@@ -183,6 +204,16 @@ export const EmbedProvider = ({
     [api.checkout],
   );
 
+  const debouncedHydrateComponent = useMemo(
+    () =>
+      debounce(
+        hydrateComponent,
+        FETCH_DEBOUNCE_TIMEOUT,
+        LEADING_DEBOUNCE_SETTINGS,
+      ),
+    [hydrateComponent],
+  );
+
   /**
    * Used for managing custom or preview data
    * Accepts a function that returns data in `hydrate` format
@@ -209,10 +240,30 @@ export const EmbedProvider = ({
     }
   }, []);
 
+  const debouncedHydrateExternal = useMemo(
+    () =>
+      debounce(
+        hydrateExternal,
+        FETCH_DEBOUNCE_TIMEOUT,
+        LEADING_DEBOUNCE_SETTINGS,
+      ),
+    [hydrateExternal],
+  );
+
   // api methods
   const createSetupIntent = useCallback(async () => {
     return api.checkout?.createSetupIntent();
   }, [api.checkout]);
+
+  const debouncedCreateSetupIntent = useMemo(
+    () =>
+      debounce(
+        createSetupIntent,
+        FETCH_DEBOUNCE_TIMEOUT,
+        LEADING_DEBOUNCE_SETTINGS,
+      ),
+    [createSetupIntent],
+  );
 
   const updatePaymentMethod = useCallback(
     async (paymentMethodId: string) => {
@@ -230,6 +281,16 @@ export const EmbedProvider = ({
       return response;
     },
     [api.checkout],
+  );
+
+  const debouncedUpdatePaymentMethod = useMemo(
+    () =>
+      debounce(
+        updatePaymentMethod,
+        FETCH_DEBOUNCE_TIMEOUT,
+        LEADING_DEBOUNCE_SETTINGS,
+      ),
+    [updatePaymentMethod],
   );
 
   const deletePaymentMethod = useCallback(
@@ -250,6 +311,16 @@ export const EmbedProvider = ({
     [api.checkout],
   );
 
+  const debouncedDeletePaymentMethod = useMemo(
+    () =>
+      debounce(
+        deletePaymentMethod,
+        FETCH_DEBOUNCE_TIMEOUT,
+        LEADING_DEBOUNCE_SETTINGS,
+      ),
+    [deletePaymentMethod],
+  );
+
   const checkout = useCallback(
     async (changeSubscriptionRequestBody: ChangeSubscriptionRequestBody) => {
       const response = await api.checkout?.checkout({
@@ -268,11 +339,26 @@ export const EmbedProvider = ({
     [api.checkout],
   );
 
+  const debouncedCheckout = useMemo(
+    () => debounce(checkout, FETCH_DEBOUNCE_TIMEOUT, LEADING_DEBOUNCE_SETTINGS),
+    [checkout],
+  );
+
   const previewCheckout = useCallback(
     async (changeSubscriptionRequestBody: ChangeSubscriptionRequestBody) => {
       return api.checkout?.previewCheckout({ changeSubscriptionRequestBody });
     },
     [api.checkout],
+  );
+
+  const debouncedPreviewCheckout = useMemo(
+    () =>
+      debounce(
+        previewCheckout,
+        FETCH_DEBOUNCE_TIMEOUT,
+        TRAILING_DEBOUNCE_SETTINGS,
+      ),
+    [previewCheckout],
   );
 
   const unsubscribe = useCallback(async () => {
@@ -288,6 +374,12 @@ export const EmbedProvider = ({
     return response;
   }, [api.checkout]);
 
+  const debouncedUnsubscribe = useMemo(
+    () =>
+      debounce(unsubscribe, FETCH_DEBOUNCE_TIMEOUT, LEADING_DEBOUNCE_SETTINGS),
+    [unsubscribe],
+  );
+
   const getUpcomingInvoice = useCallback(
     async (id: string) => {
       return api.checkout?.hydrateUpcomingInvoice({
@@ -297,13 +389,39 @@ export const EmbedProvider = ({
     [api.checkout],
   );
 
+  const debouncedGetUpcomingInvoice = useMemo(
+    () =>
+      debounce(
+        getUpcomingInvoice,
+        FETCH_DEBOUNCE_TIMEOUT,
+        LEADING_DEBOUNCE_SETTINGS,
+      ),
+    [getUpcomingInvoice],
+  );
+
   const getCustomerBalance = useCallback(async () => {
     return api.checkout?.fetchCustomerBalance();
   }, [api.checkout]);
 
+  const debouncedGetCustomerBalance = useMemo(
+    () =>
+      debounce(
+        getCustomerBalance,
+        FETCH_DEBOUNCE_TIMEOUT,
+        LEADING_DEBOUNCE_SETTINGS,
+      ),
+    [getCustomerBalance],
+  );
+
   const listInvoices = useCallback(async () => {
     return api.checkout?.listInvoices();
   }, [api.checkout]);
+
+  const debouncedListInvoices = useMemo(
+    () =>
+      debounce(listInvoices, FETCH_DEBOUNCE_TIMEOUT, LEADING_DEBOUNCE_SETTINGS),
+    [listInvoices],
+  );
 
   // components
   const setError = useCallback(
@@ -460,19 +578,19 @@ export const EmbedProvider = ({
         settings: state.settings,
         layout: state.layout,
         checkoutState: state.checkoutState,
-        hydratePublic,
-        hydrate,
-        hydrateComponent,
-        hydrateExternal,
-        createSetupIntent,
-        updatePaymentMethod,
-        deletePaymentMethod,
-        checkout,
-        previewCheckout,
-        unsubscribe,
-        getUpcomingInvoice,
-        getCustomerBalance,
-        listInvoices,
+        hydratePublic: debouncedHydratePublic,
+        hydrate: debouncedHydrate,
+        hydrateComponent: debouncedHydrateComponent,
+        hydrateExternal: debouncedHydrateExternal,
+        createSetupIntent: debouncedCreateSetupIntent,
+        updatePaymentMethod: debouncedUpdatePaymentMethod,
+        deletePaymentMethod: debouncedDeletePaymentMethod,
+        checkout: debouncedCheckout,
+        previewCheckout: debouncedPreviewCheckout,
+        unsubscribe: debouncedUnsubscribe,
+        getUpcomingInvoice: debouncedGetUpcomingInvoice,
+        getCustomerBalance: debouncedGetCustomerBalance,
+        listInvoices: debouncedListInvoices,
         finishCheckout,
         setError,
         setAccessToken,
