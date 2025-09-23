@@ -94,19 +94,24 @@ const PlanButtonGroup = ({
 
   const { data } = useEmbed();
 
-  const { isCurrentPlan, isValidPlan, isTrialing } = useMemo(() => {
+  const isTrialing = useMemo(() => {
+    return (
+      (isCheckoutData(data) && data.subscription?.status === "trialing") ||
+      false
+    );
+  }, [data]);
+
+  const { isCurrentPlan, isValidPlan } = useMemo(() => {
     if (isCheckoutData(data)) {
       return {
         isCurrentPlan: data.company?.plan?.id === plan.id,
         isValidPlan: isHydratedPlan(plan) && plan.valid,
-        isTrialing: data.subscription?.status === "trialing",
       };
     }
 
     return {
       isCurrentPlan: false,
       isValidPlan: true,
-      isTrialing: false,
     };
   }, [data, plan]);
 
@@ -273,24 +278,28 @@ export const Plan = ({
     plans.reduce(entitlementCountsReducer, {}),
   );
 
-  const { isTrialing, showPeriodToggle, showZeroPriceAsFree } = useMemo(() => {
-    const showPeriodToggle = data?.showPeriodToggle ?? true;
-    const showZeroPriceAsFree = data?.showZeroPriceAsFree ?? false;
+  const { isTrialing, showCredits, showPeriodToggle, showZeroPriceAsFree } =
+    useMemo(() => {
+      const showCredits = data?.showCredits ?? true;
+      const showPeriodToggle = data?.showPeriodToggle ?? true;
+      const showZeroPriceAsFree = data?.showZeroPriceAsFree ?? false;
 
-    if (isCheckoutData(data)) {
+      if (isCheckoutData(data)) {
+        return {
+          isTrialing: data.subscription?.status === "trialing",
+          showCredits,
+          showPeriodToggle,
+          showZeroPriceAsFree,
+        };
+      }
+
       return {
-        isTrialing: data.subscription?.status === "trialing",
+        isTrialing: false,
+        showCredits,
         showPeriodToggle,
         showZeroPriceAsFree,
       };
-    }
-
-    return {
-      isTrialing: false,
-      showPeriodToggle,
-      showZeroPriceAsFree,
-    };
-  }, [data]);
+    }, [data]);
 
   const handleToggleShowAll = (id: string) => {
     setEntitlementCounts((prev) => {
@@ -420,7 +429,7 @@ export const Plan = ({
                 )}
               </Box>
 
-              {credits.length > 0 && (
+              {showCredits && credits.length > 0 && (
                 <Flex
                   $flexDirection="column"
                   $gap="1rem"

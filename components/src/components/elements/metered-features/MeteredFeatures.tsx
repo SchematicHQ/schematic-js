@@ -206,10 +206,9 @@ export const MeteredFeatures = forwardRef<
           data.featureUsage?.features ||
           []
         ).filter(
-          ({ priceBehavior, feature }) =>
-            (priceBehavior !== PriceBehavior.Credit || showCredits) &&
-            (feature?.featureType === FeatureType.Event ||
-              feature?.featureType === FeatureType.Trait),
+          ({ feature }) =>
+            feature?.featureType === FeatureType.Event ||
+            feature?.featureType === FeatureType.Trait,
         ),
         creditGroups: groupCreditGrants(data.creditGrants, {
           groupBy: "credit",
