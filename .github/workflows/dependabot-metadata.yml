@@ -18,12 +18,13 @@ jobs:
     steps:
 
       - name: Checkout
-        uses: actions/checkout@v4
-        
-      - name: Dependabot Metadata
-        uses: SchematicHQ/actions/dependabot@main
-        id: dependabot
-        with:
-          LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        uses: actions/checkout@v5.0.0
+
+      # This is not working from Public repos.
+      # - name: Dependabot Metadata
+      #   uses: SchematicHQ/actions/dependabot@main
+      #   id: dependabot
+      #   with:
+      #     LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #     GH_TOKEN: ${{ secrets.GH_TOKEN }}

@@ -15,9 +15,9 @@ jobs:
     name: Lint
     runs-on: runs-on=${{ github.run_id }}/runner=4cpu-linux-x64/extras=s3-cache
     steps:
-      - uses: runs-on/action@v2
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: runs-on/action@v2.0.3
+      - uses: actions/checkout@v5.0.0
+      - uses: actions/setup-node@v5.0.0
         with:
           node-version: 20.x
       - name: Yarn install
@@ -31,9 +31,9 @@ jobs:
     name: Test
     runs-on: runs-on=${{ github.run_id }}/runner=4cpu-linux-x64/extras=s3-cache
     steps:
-      - uses: runs-on/action@v2
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: runs-on/action@v2.0.3
+      - uses: actions/checkout@v5.0.0
+      - uses: actions/setup-node@v5.0.0
         with:
           node-version: 20.x
       - name: Yarn install
@@ -48,11 +48,11 @@ jobs:
     runs-on: runs-on=${{ github.run_id }}/runner=4cpu-linux-x64/extras=s3-cache
     needs: ["test", "lint"]
     steps:
-      - uses: runs-on/action@v2
-      - uses: actions/checkout@v4
+      - uses: runs-on/action@v2.0.3
+      - uses: actions/checkout@v5.0.0
 
       - name: Set Node.js 20.x
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5.0.0
         with:
           node-version: 20.x
 
@@ -69,7 +69,7 @@ jobs:
         run: yarn build:browser
 
       - name: 🚀auth-oidc-aws-prod
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v5.0.0
         with:
           role-to-assume: ${{ vars.PROD_AWS_ROLE_ARN }}
           aws-region: ${{ vars.PROD_AWS_REGION }}
@@ -96,10 +96,10 @@ jobs:
       contents: read
     needs: ["test", "lint"]
     steps:
-      - uses: runs-on/action@v2
-      - uses: actions/checkout@v4
+      - uses: runs-on/action@v2.0.3
+      - uses: actions/checkout@v5.0.0
       - name: Set Node.js 20.x
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5.0.0
         with:
           node-version: 20.x
       - name: Yarn install
@@ -121,7 +121,7 @@ jobs:
     runs-on: runs-on=${{ github.run_id }}/runner=1cpu-linux-arm64
     needs: [deploy, publish]
     steps:
-      - uses: rtCamp/action-slack-notify@v2
+      - uses: rtCamp/action-slack-notify@v2.3.3
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_TITLE: Updated schematic-js
