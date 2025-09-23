@@ -351,16 +351,6 @@ export const EmbedProvider = ({
     [api.checkout],
   );
 
-  const debouncedPreviewCheckout = useMemo(
-    () =>
-      debounce(
-        previewCheckout,
-        FETCH_DEBOUNCE_TIMEOUT,
-        TRAILING_DEBOUNCE_SETTINGS,
-      ),
-    [previewCheckout],
-  );
-
   const unsubscribe = useCallback(async () => {
     const response = await api.checkout?.checkoutUnsubscribe();
 
@@ -586,7 +576,7 @@ export const EmbedProvider = ({
         updatePaymentMethod: debouncedUpdatePaymentMethod,
         deletePaymentMethod: debouncedDeletePaymentMethod,
         checkout: debouncedCheckout,
-        previewCheckout: debouncedPreviewCheckout,
+        previewCheckout,
         unsubscribe: debouncedUnsubscribe,
         getUpcomingInvoice: debouncedGetUpcomingInvoice,
         getCustomerBalance: debouncedGetCustomerBalance,
