@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 
-import { PriceBehavior, TEXT_BASE_SIZE } from "../../../const";
+import { TEXT_BASE_SIZE } from "../../../const";
 import { useEmbed } from "../../../hooks";
 import type { SelectedPlan } from "../../../types";
 import {
@@ -12,6 +12,8 @@ import {
 } from "../../../utils";
 import { cardBoxShadow } from "../../layout";
 import { Box, Button, Flex, Icon, Text } from "../../ui";
+
+import { extractOverageInfo, findOverageEntitlement } from "./helpers";
 
 interface AddOnsProps {
   addOns: SelectedPlan[];
@@ -40,30 +42,12 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
         const isAddOnValid = isHydratedPlan(addOn) && addOn.valid;
         const isAddOnCurrent = isHydratedPlan(addOn) && addOn.current;
 
-        const overageEntitlement = addOn.entitlements?.find(
-          (entitlement) => entitlement.priceBehavior === PriceBehavior.Overage,
+        const overageEntitlement = findOverageEntitlement(addOn.entitlements);
+        const overageInfo = extractOverageInfo(
+          overageEntitlement,
+          period,
+          currency,
         );
-
-        let overageInfo = null;
-        if (overageEntitlement) {
-          const priceData =
-            period === "year"
-              ? overageEntitlement.meteredYearlyPrice
-              : overageEntitlement.meteredMonthlyPrice;
-
-          if (priceData?.priceTier && priceData.priceTier.length >= 2) {
-            const overageTier =
-              priceData.priceTier[priceData.priceTier.length - 1];
-            overageInfo = {
-              softLimit: overageEntitlement.softLimit,
-              perUnitPrice: overageTier.perUnitPriceDecimal
-                ? Number(overageTier.perUnitPriceDecimal)
-                : overageTier.perUnitPrice || 0,
-              currency: priceData.currency || currency,
-              featureName: overageEntitlement.feature?.name,
-            };
-          }
-        }
 
         return (
           <Flex
