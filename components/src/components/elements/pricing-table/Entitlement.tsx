@@ -32,17 +32,19 @@ import {
 interface EntitlementProps {
   entitlement: PlanEntitlementResponseData;
   credits?: Credit[];
+  selectedPeriod: string;
+  showCredits: boolean;
   sharedProps: PricingTableOptions & {
     layout: PricingTableProps;
   };
-  selectedPeriod: string;
 }
 
 export const Entitlement = ({
   entitlement,
   credits = [],
-  sharedProps,
   selectedPeriod,
+  showCredits,
+  sharedProps,
 }: EntitlementProps) => {
   const { layout } = sharedProps;
 
@@ -102,6 +104,17 @@ export const Entitlement = ({
                   entitlement={entitlement}
                   period={selectedPeriod}
                 />
+              ) : showCredits &&
+                entitlement.priceBehavior === PriceBehavior.Credit &&
+                entitlement.valueCredit ? (
+                <>
+                  {entitlement.consumptionRate}{" "}
+                  {getFeatureName(
+                    entitlement.valueCredit,
+                    entitlement.consumptionRate || undefined,
+                  )}{" "}
+                  {t("per")} {getFeatureName(entitlement.feature, 1)}
+                </>
               ) : entitlement.priceBehavior === PriceBehavior.Credit &&
                 creditBasedEntitlementLimit ? (
                 <>

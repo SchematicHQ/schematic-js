@@ -304,8 +304,9 @@ export const Plan = ({
                   key={idx}
                   entitlement={entitlement}
                   credits={credits}
-                  sharedProps={{ layout }}
                   selectedPeriod={selectedPeriod}
+                  showCredits={showCredits}
+                  sharedProps={{ layout }}
                 />
               ))
               .slice(0, count?.limit ?? VISIBLE_ENTITLEMENT_COUNT)}
