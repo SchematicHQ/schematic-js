@@ -1,9 +1,10 @@
 import {
   BillingPriceView,
   type FeatureUsageResponseData,
+  type PlanEntitlementResponseData,
 } from "../../api/checkoutexternal";
 import { FeatureType, PriceBehavior } from "../../const";
-import type { Entitlement, PriceTier } from "../../types";
+import type { Credit, Entitlement, PriceTier } from "../../types";
 import { getEntitlementCost } from "../../utils";
 
 const PeriodName: Record<string, string | undefined> = {
@@ -140,4 +141,20 @@ export function getUsageDetails(
   }
 
   return { billingPrice, limit, amount, cost, currentTier };
+}
+
+export function getCreditBasedEntitlementLimit(
+  entitlement: PlanEntitlementResponseData,
+  credits: Credit[],
+) {
+  const matchedCredit = credits.find(
+    (credit) => credit.id === entitlement.valueCredit?.id,
+  );
+
+  if (matchedCredit && entitlement.consumptionRate) {
+    return {
+      limit: Math.floor(matchedCredit.quantity / entitlement.consumptionRate),
+      period: matchedCredit.period,
+    };
+  }
 }

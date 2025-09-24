@@ -126,6 +126,8 @@
     "Unsubscribe failed": "Unsubscribe failed",
     "Unsubscribe": "Unsubscribe",
     "Unused time": "Unused time",
+    "Up to X units": "Up to {{amount}} {{units}}",
+    "Up to X units per period": "Up to {{amount}} {{units}} per {{period}}",
     "Up to a limit of": "Up to a limit of {{amount}} {{units}}",
     "Up to X units at $Y/unit": "Up to {{X}} {{units}} at {{Y}} per {{unit}}",
     "Up to X units at $Y/unit + $Z/period": "Up to {{X}} {{units}} at {{Y}} per {{unit}} plus {{Z}} per {{period}}",

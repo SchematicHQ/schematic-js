@@ -7,9 +7,11 @@ import {
   PriceBehavior,
 } from "../../../const";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
+import type { Credit } from "../../../types";
 import {
   formatCurrency,
   formatNumber,
+  getCreditBasedEntitlementLimit,
   getEntitlementPrice,
   getFeatureName,
   getMetricPeriodName,
@@ -29,6 +31,7 @@ import {
 
 interface EntitlementProps {
   entitlement: PlanEntitlementResponseData;
+  credits?: Credit[];
   sharedProps: PricingTableOptions & {
     layout: PricingTableProps;
   };
@@ -37,6 +40,7 @@ interface EntitlementProps {
 
 export const Entitlement = ({
   entitlement,
+  credits = [],
   sharedProps,
   selectedPeriod,
 }: EntitlementProps) => {
@@ -58,6 +62,10 @@ export const Entitlement = ({
   const limit = entitlement.softLimit ?? entitlement.valueNumeric;
 
   const metricPeriodName = getMetricPeriodName(entitlement);
+  const creditBasedEntitlementLimit = getCreditBasedEntitlementLimit(
+    entitlement,
+    credits,
+  );
 
   return (
     <Flex $gap="1rem">
@@ -94,6 +102,26 @@ export const Entitlement = ({
                   entitlement={entitlement}
                   period={selectedPeriod}
                 />
+              ) : entitlement.priceBehavior === PriceBehavior.Credit &&
+                creditBasedEntitlementLimit ? (
+                <>
+                  {creditBasedEntitlementLimit?.period
+                    ? t("Up to X units per period", {
+                        amount: creditBasedEntitlementLimit.limit,
+                        units: getFeatureName(
+                          entitlement.feature,
+                          creditBasedEntitlementLimit.limit,
+                        ),
+                        period: creditBasedEntitlementLimit.period,
+                      })
+                    : t("Up to X units", {
+                        amount: creditBasedEntitlementLimit.limit,
+                        units: getFeatureName(
+                          entitlement.feature,
+                          creditBasedEntitlementLimit.limit,
+                        ),
+                      })}
+                </>
               ) : entitlement.valueType === EntitlementValueType.Numeric ||
                 entitlement.valueType === EntitlementValueType.Unlimited ||
                 entitlement.valueType === EntitlementValueType.Trait ? (

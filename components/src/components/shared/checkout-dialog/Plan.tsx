@@ -15,6 +15,7 @@ import {
   entitlementCountsReducer,
   formatCurrency,
   formatNumber,
+  getCreditBasedEntitlementLimit,
   getEntitlementPrice,
   getFeatureName,
   getMetricPeriodName,
@@ -33,6 +34,7 @@ import {
   UsageViolationText,
 } from "../../shared";
 import { Box, Button, Flex, Icon, Text } from "../../ui";
+
 import { FlexWithAlignEnd } from "./styles";
 
 interface SelectedProps {
@@ -526,6 +528,8 @@ export const Plan = ({
 
                       const limit =
                         entitlement.softLimit ?? entitlement.valueNumeric;
+                      const creditBasedEntitlementLimit =
+                        getCreditBasedEntitlementLimit(entitlement, credits);
 
                       const {
                         price: entitlementPrice,
@@ -613,6 +617,30 @@ export const Plan = ({
                                       )}{" "}
                                       {t("per")}{" "}
                                       {getFeatureName(entitlement.feature, 1)}
+                                    </>
+                                  ) : entitlement.priceBehavior ===
+                                      PriceBehavior.Credit &&
+                                    creditBasedEntitlementLimit ? (
+                                    <>
+                                      {creditBasedEntitlementLimit?.period
+                                        ? t("Up to X units per period", {
+                                            amount:
+                                              creditBasedEntitlementLimit.limit,
+                                            units: getFeatureName(
+                                              entitlement.feature,
+                                              creditBasedEntitlementLimit.limit,
+                                            ),
+                                            period:
+                                              creditBasedEntitlementLimit.period,
+                                          })
+                                        : t("Up to X units", {
+                                            amount:
+                                              creditBasedEntitlementLimit.limit,
+                                            units: getFeatureName(
+                                              entitlement.feature,
+                                              creditBasedEntitlementLimit.limit,
+                                            ),
+                                          })}
                                     </>
                                   ) : hasNumericValue ? (
                                     <>

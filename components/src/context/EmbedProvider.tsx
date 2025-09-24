@@ -18,19 +18,15 @@ import {
   CheckoutexternalApi,
   Configuration as CheckoutConfiguration,
   type ChangeSubscriptionRequestBody,
+  type CheckoutResponseData,
   type ComponentHydrateResponseData,
   type ConfigurationParameters,
-  type CheckoutResponseData,
 } from "../api/checkoutexternal";
 import {
   ComponentspublicApi,
   Configuration as PublicConfiguration,
 } from "../api/componentspublic";
-import {
-  FETCH_DEBOUNCE_TIMEOUT,
-  LEADING_DEBOUNCE_SETTINGS,
-  TRAILING_DEBOUNCE_SETTINGS,
-} from "../const";
+import { FETCH_DEBOUNCE_TIMEOUT, LEADING_DEBOUNCE_SETTINGS } from "../const";
 import type { DeepPartial } from "../types";
 import { ERROR_UNKNOWN, isError } from "../utils";
 

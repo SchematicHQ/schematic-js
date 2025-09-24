@@ -4,7 +4,11 @@ import { useTranslation } from "react-i18next";
 import { CreditGrantReason } from "../../../const";
 import { type FontStyle } from "../../../context";
 import { useEmbed, useIsLightBackground, useTrialEnd } from "../../../hooks";
-import type { Credit, DeepPartial, ElementProps } from "../../../types";
+import type {
+  CreditWithCompanyContext,
+  DeepPartial,
+  ElementProps,
+} from "../../../types";
 import {
   darken,
   formatCurrency,
@@ -134,7 +138,11 @@ export const PlanManager = forwardRef<
         groupBy: "bundle",
       }).reduce(
         (
-          acc: { plan: Credit[]; bundles: Credit[]; promotional: Credit[] },
+          acc: {
+            plan: CreditWithCompanyContext[];
+            bundles: CreditWithCompanyContext[];
+            promotional: CreditWithCompanyContext[];
+          },
           grant,
         ) => {
           switch (grant.grantReason) {

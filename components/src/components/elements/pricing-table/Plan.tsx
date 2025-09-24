@@ -303,6 +303,7 @@ export const Plan = ({
                 <Entitlement
                   key={idx}
                   entitlement={entitlement}
+                  credits={credits}
                   sharedProps={{ layout }}
                   selectedPeriod={selectedPeriod}
                 />
