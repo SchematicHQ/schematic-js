@@ -32,7 +32,7 @@ describe("calculateCurrentUsageBasedEntitlements", () => {
           price: 100,
           priceId: "price1",
           currency: "USD",
-        } as unknown as BillingPriceView,
+        } as BillingPriceView,
       },
     ];
 
@@ -54,7 +54,7 @@ describe("calculateCurrentUsageBasedEntitlements", () => {
           price: 100,
           priceId: "price1",
           currency: "USD",
-        } as unknown as BillingPriceView,
+        } as BillingPriceView,
       },
     ];
 
@@ -82,7 +82,7 @@ describe("calculateCurrentUsageBasedEntitlements", () => {
           price: 1000,
           priceId: "price2",
           currency: "USD",
-        } as unknown as BillingPriceView,
+        } as BillingPriceView,
       },
     ];
 
@@ -110,7 +110,7 @@ describe("calculateCurrentUsageBasedEntitlements", () => {
           price: 1000,
           priceId: "price1",
           currency: "USD",
-        } as unknown as BillingPriceView,
+        } as BillingPriceView,
       },
     ];
 
@@ -132,7 +132,7 @@ describe("calculateCurrentUsageBasedEntitlements", () => {
           price: 100,
           priceId: "price1",
           currency: "USD",
-        } as unknown as BillingPriceView,
+        } as BillingPriceView,
       },
     ];
 
@@ -159,7 +159,7 @@ describe("calculateCurrentUsageBasedEntitlements", () => {
           price: 100,
           priceId: "price1",
           currency: "USD",
-        } as unknown as BillingPriceView,
+        } as BillingPriceView,
       },
     ];
 
@@ -181,7 +181,7 @@ describe("calculateCurrentUsageBasedEntitlements", () => {
           price: 100,
           priceId: "price1",
           currency: "USD",
-        } as unknown as BillingPriceView,
+        } as BillingPriceView,
       },
     ];
 
@@ -203,7 +203,7 @@ describe("calculateCurrentUsageBasedEntitlements", () => {
           price: 100,
           priceId: "price1",
           currency: "USD",
-        } as unknown as BillingPriceView,
+        } as BillingPriceView,
       },
       {
         access: false,
@@ -227,7 +227,7 @@ describe("calculateCurrentUsageBasedEntitlements", () => {
           price: 2000,
           priceId: "price3",
           currency: "USD",
-        } as unknown as BillingPriceView,
+        } as BillingPriceView,
       },
     ];
 
@@ -254,11 +254,11 @@ describe("calculateCurrentUsageBasedEntitlements", () => {
           price: 100,
           priceId: "price1",
           currency: "USD",
-        } as unknown as BillingPriceView,
+        } as BillingPriceView,
         feature: {
           id: "feat1",
           name: "Feature 1",
-        } as unknown as FeatureDetailResponseData,
+        } as FeatureDetailResponseData,
         period: "month",
       },
     ];
