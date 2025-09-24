@@ -92,11 +92,7 @@ interface AddOnCardProps {
   children: React.ReactNode;
 }
 
-const AddOnCard = ({
-  isSelected,
-  settings,
-  children,
-}: AddOnCardProps) => {
+const AddOnCard = ({ isSelected, settings, children }: AddOnCardProps) => {
   return (
     <Flex
       $position="relative"
@@ -183,7 +179,10 @@ interface AddOnNameDescriptionProps {
   description?: string;
 }
 
-const AddOnNameDescription = ({ name, description }: AddOnNameDescriptionProps) => {
+const AddOnNameDescription = ({
+  name,
+  description,
+}: AddOnNameDescriptionProps) => {
   return (
     <>
       <Box>
@@ -217,11 +216,7 @@ const AddOnActiveBadge = ({ settings }: AddOnActiveBadgeProps) => {
     >
       <Text
         $size={0.75 * settings.theme.typography.text.fontSize}
-        $color={
-          hexToHSL(settings.theme.primary).l > 50
-            ? "#000000"
-            : "#FFFFFF"
-        }
+        $color={hexToHSL(settings.theme.primary).l > 50 ? "#000000" : "#FFFFFF"}
       >
         {t("Active")}
       </Text>
