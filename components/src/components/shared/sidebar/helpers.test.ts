@@ -1,4 +1,10 @@
-import type { FeatureUsageResponseData } from "../../../api/checkoutexternal";
+import type {
+  BillingPriceView,
+  FeatureDetailResponseData,
+  FeatureUsageResponseData,
+} from "../../../api/checkoutexternal";
+import { FeatureUsageResponseDataAllocationTypeEnum } from "../../../api/checkoutexternal";
+
 import { extractCurrentUsageBasedEntitlements } from "./helpers";
 
 describe("calculateCurrentUsageBasedEntitlements", () => {
@@ -16,7 +22,7 @@ describe("calculateCurrentUsageBasedEntitlements", () => {
     const features: Array<FeatureUsageResponseData> = [
       {
         access: true,
-        allocationType: "numeric" as any,
+        allocationType: FeatureUsageResponseDataAllocationTypeEnum.Numeric,
         entitlementId: "ent1",
         entitlementType: "boolean",
         allocation: 10,
@@ -26,7 +32,7 @@ describe("calculateCurrentUsageBasedEntitlements", () => {
           price: 100,
           priceId: "price1",
           currency: "USD",
-        } as any,
+        } as unknown as BillingPriceView,
       },
     ];
 
@@ -38,7 +44,7 @@ describe("calculateCurrentUsageBasedEntitlements", () => {
     const features: Array<FeatureUsageResponseData> = [
       {
         access: true,
-        allocationType: "numeric" as any,
+        allocationType: FeatureUsageResponseDataAllocationTypeEnum.Numeric,
         entitlementId: "ent1",
         entitlementType: "boolean",
         allocation: 10,
@@ -48,7 +54,7 @@ describe("calculateCurrentUsageBasedEntitlements", () => {
           price: 100,
           priceId: "price1",
           currency: "USD",
-        } as any,
+        } as unknown as BillingPriceView,
       },
     ];
 
@@ -66,7 +72,7 @@ describe("calculateCurrentUsageBasedEntitlements", () => {
     const features: Array<FeatureUsageResponseData> = [
       {
         access: true,
-        allocationType: "numeric" as any,
+        allocationType: FeatureUsageResponseDataAllocationTypeEnum.Numeric,
         entitlementId: "ent1",
         entitlementType: "boolean",
         allocation: 15,
@@ -76,7 +82,7 @@ describe("calculateCurrentUsageBasedEntitlements", () => {
           price: 1000,
           priceId: "price2",
           currency: "USD",
-        } as any,
+        } as unknown as BillingPriceView,
       },
     ];
 
@@ -94,7 +100,7 @@ describe("calculateCurrentUsageBasedEntitlements", () => {
     const features: Array<FeatureUsageResponseData> = [
       {
         access: true,
-        allocationType: "numeric" as any,
+        allocationType: FeatureUsageResponseDataAllocationTypeEnum.Numeric,
         entitlementId: "ent1",
         entitlementType: "boolean",
         allocation: 10,
@@ -104,7 +110,7 @@ describe("calculateCurrentUsageBasedEntitlements", () => {
           price: 1000,
           priceId: "price1",
           currency: "USD",
-        } as any,
+        } as unknown as BillingPriceView,
       },
     ];
 
@@ -116,7 +122,7 @@ describe("calculateCurrentUsageBasedEntitlements", () => {
     const features: Array<FeatureUsageResponseData> = [
       {
         access: true,
-        allocationType: "numeric" as any,
+        allocationType: FeatureUsageResponseDataAllocationTypeEnum.Numeric,
         entitlementId: "ent1",
         entitlementType: "boolean",
         allocation: null,
@@ -126,7 +132,7 @@ describe("calculateCurrentUsageBasedEntitlements", () => {
           price: 100,
           priceId: "price1",
           currency: "USD",
-        } as any,
+        } as unknown as BillingPriceView,
       },
     ];
 
@@ -143,7 +149,7 @@ describe("calculateCurrentUsageBasedEntitlements", () => {
     const features: Array<FeatureUsageResponseData> = [
       {
         access: true,
-        allocationType: "numeric" as any,
+        allocationType: FeatureUsageResponseDataAllocationTypeEnum.Numeric,
         entitlementId: "ent1",
         entitlementType: "boolean",
         allocation: 20,
@@ -153,7 +159,7 @@ describe("calculateCurrentUsageBasedEntitlements", () => {
           price: 100,
           priceId: "price1",
           currency: "USD",
-        } as any,
+        } as unknown as BillingPriceView,
       },
     ];
 
@@ -165,7 +171,7 @@ describe("calculateCurrentUsageBasedEntitlements", () => {
     const features: Array<FeatureUsageResponseData> = [
       {
         access: true,
-        allocationType: "numeric" as any,
+        allocationType: FeatureUsageResponseDataAllocationTypeEnum.Numeric,
         entitlementId: "ent1",
         entitlementType: "boolean",
         allocation: 0,
@@ -175,7 +181,7 @@ describe("calculateCurrentUsageBasedEntitlements", () => {
           price: 100,
           priceId: "price1",
           currency: "USD",
-        } as any,
+        } as unknown as BillingPriceView,
       },
     ];
 
@@ -187,7 +193,7 @@ describe("calculateCurrentUsageBasedEntitlements", () => {
     const features: Array<FeatureUsageResponseData> = [
       {
         access: true,
-        allocationType: "numeric" as any,
+        allocationType: FeatureUsageResponseDataAllocationTypeEnum.Numeric,
         entitlementId: "ent1",
         entitlementType: "boolean",
         allocation: 10,
@@ -197,11 +203,11 @@ describe("calculateCurrentUsageBasedEntitlements", () => {
           price: 100,
           priceId: "price1",
           currency: "USD",
-        } as any,
+        } as unknown as BillingPriceView,
       },
       {
         access: false,
-        allocationType: "numeric" as any,
+        allocationType: FeatureUsageResponseDataAllocationTypeEnum.Numeric,
         entitlementId: "ent2",
         entitlementType: "boolean",
         allocation: null,
@@ -211,7 +217,7 @@ describe("calculateCurrentUsageBasedEntitlements", () => {
       },
       {
         access: true,
-        allocationType: "numeric" as any,
+        allocationType: FeatureUsageResponseDataAllocationTypeEnum.Numeric,
         entitlementId: "ent3",
         entitlementType: "boolean",
         allocation: 20,
@@ -221,7 +227,7 @@ describe("calculateCurrentUsageBasedEntitlements", () => {
           price: 2000,
           priceId: "price3",
           currency: "USD",
-        } as any,
+        } as unknown as BillingPriceView,
       },
     ];
 
@@ -238,7 +244,7 @@ describe("calculateCurrentUsageBasedEntitlements", () => {
     const features: Array<FeatureUsageResponseData> = [
       {
         access: true,
-        allocationType: "numeric" as any,
+        allocationType: FeatureUsageResponseDataAllocationTypeEnum.Numeric,
         entitlementId: "ent1",
         entitlementType: "boolean",
         allocation: 10,
@@ -248,11 +254,11 @@ describe("calculateCurrentUsageBasedEntitlements", () => {
           price: 100,
           priceId: "price1",
           currency: "USD",
-        } as any,
+        } as unknown as BillingPriceView,
         feature: {
           id: "feat1",
           name: "Feature 1",
-        } as any,
+        } as unknown as FeatureDetailResponseData,
         period: "month",
       },
     ];
