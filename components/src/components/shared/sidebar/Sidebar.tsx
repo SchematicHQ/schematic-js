@@ -22,6 +22,7 @@ import type {
 } from "../../../types";
 import {
   ChargeType,
+  extractCurrentUsageBasedEntitlements,
   formatCurrency,
   formatOrdinal,
   getAddOnPrice,
@@ -39,7 +40,6 @@ import { type CheckoutStage } from "../checkout-dialog";
 import { EntitlementRow } from "./EntitlementRow";
 import { Proration } from "./Proration";
 import { StageButton } from "./StageButton";
-import { extractCurrentUsageBasedEntitlements } from "./helpers";
 
 interface SidebarProps {
   planPeriod: string;

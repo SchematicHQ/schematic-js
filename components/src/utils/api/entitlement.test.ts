@@ -2,10 +2,10 @@ import type {
   BillingPriceView,
   FeatureDetailResponseData,
   FeatureUsageResponseData,
-} from "../../../api/checkoutexternal";
-import { FeatureUsageResponseDataAllocationTypeEnum } from "../../../api/checkoutexternal";
+} from "../../api/checkoutexternal";
+import { FeatureUsageResponseDataAllocationTypeEnum } from "../../api/checkoutexternal";
 
-import { extractCurrentUsageBasedEntitlements } from "./helpers";
+import { extractCurrentUsageBasedEntitlements } from "../index";
 
 describe("calculateCurrentUsageBasedEntitlements", () => {
   it("should return an empty array when features is undefined", () => {
