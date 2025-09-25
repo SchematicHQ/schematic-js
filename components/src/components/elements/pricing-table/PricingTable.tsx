@@ -158,15 +158,17 @@ export const PricingTable = forwardRef<
   }, [rest.callToActionUrl, rest.callToActionTarget]);
 
   const { currentPeriod, showPeriodToggle, isStandalone } = useMemo(() => {
+    const isStandalone = typeof data?.component === "undefined";
+
     return {
       currentPeriod: data?.company?.plan?.planPeriod || "month",
       currentAddOns: data?.company?.addOns || [],
-      canCheckout: data?.capabilities?.checkout ?? true,
+      canCheckout: isStandalone ?? data?.capabilities?.checkout ?? true,
       showPeriodToggle: data?.showPeriodToggle ?? props.showPeriodToggle,
       isTrialSubscription:
         data?.company?.billingSubscription?.status === "trialing",
       willSubscriptionCancel: data?.company?.billingSubscription?.cancelAt,
-      isStandalone: typeof data?.component === "undefined",
+      isStandalone,
     };
   }, [
     props.showPeriodToggle,

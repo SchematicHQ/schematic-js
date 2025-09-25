@@ -39,10 +39,12 @@ export const AddOn = ({ addOn, sharedProps, selectedPeriod }: AddOnProps) => {
   const isLightBackground = useIsLightBackground();
 
   const { currentAddOns, canCheckout, isStandalone } = useMemo(() => {
+    const isStandalone = typeof data?.component === "undefined";
+
     return {
       currentAddOns: data?.company?.addOns || [],
-      canCheckout: data?.capabilities?.checkout ?? true,
-      isStandalone: typeof data?.component === "undefined",
+      canCheckout: isStandalone ?? data?.capabilities?.checkout ?? true,
+      isStandalone,
     };
   }, [data?.capabilities?.checkout, data?.company?.addOns, data?.component]);
 

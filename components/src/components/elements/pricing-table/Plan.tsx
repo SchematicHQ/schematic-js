@@ -69,14 +69,16 @@ export const Plan = ({
     showCredits,
     showZeroPriceAsFree,
   } = useMemo(() => {
+    const isStandalone = typeof data?.component === "undefined";
+
     return {
       currentPeriod: data?.company?.plan?.planPeriod || "month",
-      canCheckout: data?.capabilities?.checkout ?? true,
+      canCheckout: isStandalone ?? data?.capabilities?.checkout ?? true,
       isTrialSubscription:
         data?.company?.billingSubscription?.status === "trialing",
       willSubscriptionCancel:
         typeof data?.company?.billingSubscription?.cancelAt === "number",
-      isStandalone: typeof data?.component === "undefined",
+      isStandalone,
       showCredits: data?.showCredits ?? true,
       showZeroPriceAsFree: data?.showZeroPriceAsFree ?? false,
     };
