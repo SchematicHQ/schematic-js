@@ -22,6 +22,7 @@ import type {
 } from "../../../types";
 import {
   ChargeType,
+  extractCurrentUsageBasedEntitlements,
   formatCurrency,
   formatOrdinal,
   getAddOnPrice,
@@ -121,27 +122,9 @@ export const Sidebar = ({
       currentPlan: data?.company?.plan,
       currentAddOns: data?.company?.addOns || [],
       currentEntitlements,
-      currentUsageBasedEntitlements: currentEntitlements.reduce(
-        (acc: CurrentUsageBasedEntitlement[], entitlement) => {
-          if (
-            entitlement.priceBehavior &&
-            ((planPeriod === "month" && entitlement.monthlyUsageBasedPrice) ||
-              (planPeriod === "year" && entitlement.yearlyUsageBasedPrice))
-          ) {
-            const allocation = entitlement.allocation || 0;
-            const usage = entitlement.usage || 0;
-
-            acc.push({
-              ...entitlement,
-              allocation,
-              usage,
-              quantity: allocation ?? usage,
-            });
-          }
-
-          return acc;
-        },
-        [],
+      currentUsageBasedEntitlements: extractCurrentUsageBasedEntitlements(
+        currentEntitlements,
+        planPeriod,
       ),
       billingSubscription: data?.company?.billingSubscription,
       paymentMethod: data?.subscription?.paymentMethod,
