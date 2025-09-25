@@ -11,7 +11,6 @@ import type { DeepPartial, ElementProps } from "../../../types";
 import {
   ERROR_UNKNOWN,
   formatCurrency,
-  isCheckoutData,
   isError,
   toPrettyDate,
 } from "../../../utils";
@@ -75,23 +74,20 @@ export const UpcomingBill = forwardRef<
   const [balances, setBalances] = useState<CurrencyBalance[]>([]);
 
   const discounts = useMemo(() => {
-    return ((isCheckoutData(data) && data.subscription?.discounts) || []).map(
-      (discount) => ({
-        couponId: discount.couponId,
-        customerFacingCode: discount.customerFacingCode || undefined,
-        currency: discount.currency || undefined,
-        amountOff: discount.amountOff ?? undefined,
-        percentOff: discount.percentOff ?? undefined,
-        isActive: discount.isActive,
-      }),
-    );
-  }, [data]);
+    return (data?.subscription?.discounts || []).map((discount) => ({
+      couponId: discount.couponId,
+      customerFacingCode: discount.customerFacingCode || undefined,
+      currency: discount.currency || undefined,
+      amountOff: discount.amountOff ?? undefined,
+      percentOff: discount.percentOff ?? undefined,
+      isActive: discount.isActive,
+    }));
+  }, [data?.subscription?.discounts]);
 
   const getInvoice = useCallback(async () => {
     if (
-      isCheckoutData(data) &&
-      data.component?.id &&
-      data.subscription &&
+      data?.component?.id &&
+      data?.subscription &&
       !data.subscription.cancelAt
     ) {
       try {
@@ -109,7 +105,7 @@ export const UpcomingBill = forwardRef<
         setIsLoading(false);
       }
     }
-  }, [data, getUpcomingInvoice]);
+  }, [data?.component?.id, data?.subscription, getUpcomingInvoice]);
 
   const getBalances = useCallback(async () => {
     try {
@@ -131,11 +127,7 @@ export const UpcomingBill = forwardRef<
     getBalances();
   }, [getBalances]);
 
-  if (
-    !isCheckoutData(data) ||
-    !data.subscription ||
-    data.subscription.cancelAt
-  ) {
+  if (!data?.subscription || data.subscription.cancelAt) {
     return null;
   }
 

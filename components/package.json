@@ -1,6 +1,6 @@
 {
   "name": "@schematichq/schematic-components",
-  "version": "1.8.0",
+  "version": "2.0.0",
   "main": "dist/schematic-components.cjs.js",
   "module": "dist/schematic-components.esm.js",
   "types": "dist/schematic-components.d.ts",
@@ -42,9 +42,9 @@
     "uuid": "^13.0.0"
   },
   "devDependencies": {
-    "@eslint/js": "^9.35.0",
+    "@eslint/js": "^9.36.0",
     "@eslint/json": "^0.13.2",
-    "@eslint/markdown": "^7.2.0",
+    "@eslint/markdown": "^7.3.0",
     "@microsoft/api-extractor": "^7.52.13",
     "@openapitools/openapi-generator-cli": "^2.23.4",
     "@stripe/react-stripe-js": "^4.0.2",
@@ -54,7 +54,7 @@
     "@types/react": "^19.1.13",
     "@types/react-dom": "^19.1.9",
     "esbuild": "^0.25.10",
-    "eslint": "^9.35.0",
+    "eslint": "^9.36.0",
     "eslint-import-resolver-typescript": "^4.4.4",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-react": "^7.37.5",
@@ -67,9 +67,9 @@
     "prettier": "^3.6.2",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
-    "ts-jest": "^29.4.3",
+    "ts-jest": "^29.4.4",
     "typescript": "^5.9.2",
-    "typescript-eslint": "^8.44.0"
+    "typescript-eslint": "^8.44.1"
   },
   "peerDependencies": {
     "@stripe/react-stripe-js": ">=3",
