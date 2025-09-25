@@ -18,19 +18,15 @@ import {
   CheckoutexternalApi,
   Configuration as CheckoutConfiguration,
   type ChangeSubscriptionRequestBody,
+  type CheckoutResponseData,
   type ComponentHydrateResponseData,
   type ConfigurationParameters,
-  type CheckoutResponseData,
 } from "../api/checkoutexternal";
 import {
   ComponentspublicApi,
   Configuration as PublicConfiguration,
 } from "../api/componentspublic";
-import {
-  FETCH_DEBOUNCE_TIMEOUT,
-  LEADING_DEBOUNCE_SETTINGS,
-  TRAILING_DEBOUNCE_SETTINGS,
-} from "../const";
+import { FETCH_DEBOUNCE_TIMEOUT, LEADING_DEBOUNCE_SETTINGS } from "../const";
 import type { DeepPartial } from "../types";
 import { ERROR_UNKNOWN, isError } from "../utils";
 
@@ -288,7 +284,7 @@ export const EmbedProvider = ({
       debounce(
         updatePaymentMethod,
         FETCH_DEBOUNCE_TIMEOUT,
-        TRAILING_DEBOUNCE_SETTINGS,
+        LEADING_DEBOUNCE_SETTINGS,
       ),
     [updatePaymentMethod],
   );
@@ -340,8 +336,7 @@ export const EmbedProvider = ({
   );
 
   const debouncedCheckout = useMemo(
-    () =>
-      debounce(checkout, FETCH_DEBOUNCE_TIMEOUT, TRAILING_DEBOUNCE_SETTINGS),
+    () => debounce(checkout, FETCH_DEBOUNCE_TIMEOUT, LEADING_DEBOUNCE_SETTINGS),
     [checkout],
   );
 
@@ -350,16 +345,6 @@ export const EmbedProvider = ({
       return api.checkout?.previewCheckout({ changeSubscriptionRequestBody });
     },
     [api.checkout],
-  );
-
-  const debouncedPreviewCheckout = useMemo(
-    () =>
-      debounce(
-        previewCheckout,
-        FETCH_DEBOUNCE_TIMEOUT,
-        TRAILING_DEBOUNCE_SETTINGS,
-      ),
-    [previewCheckout],
   );
 
   const unsubscribe = useCallback(async () => {
@@ -587,7 +572,7 @@ export const EmbedProvider = ({
         updatePaymentMethod: debouncedUpdatePaymentMethod,
         deletePaymentMethod: debouncedDeletePaymentMethod,
         checkout: debouncedCheckout,
-        previewCheckout: debouncedPreviewCheckout,
+        previewCheckout,
         unsubscribe: debouncedUnsubscribe,
         getUpcomingInvoice: debouncedGetUpcomingInvoice,
         getCustomerBalance: debouncedGetCustomerBalance,

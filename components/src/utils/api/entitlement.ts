@@ -1,9 +1,10 @@
 import {
   BillingPriceView,
   type FeatureUsageResponseData,
+  type PlanEntitlementResponseData,
 } from "../../api/checkoutexternal";
 import { FeatureType, PriceBehavior } from "../../const";
-import type { Entitlement, PriceTier } from "../../types";
+import type { Credit, Entitlement, PriceTier } from "../../types";
 import { getEntitlementCost } from "../../utils";
 
 const PeriodName: Record<string, string | undefined> = {
@@ -62,6 +63,12 @@ export function getUsageDetails(
     typeof entitlement.softLimit === "number"
   ) {
     limit = entitlement.softLimit;
+  } else if (
+    entitlement.priceBehavior === PriceBehavior.Credit &&
+    typeof entitlement.creditTotal === "number" &&
+    typeof entitlement.creditConsumptionRate === "number"
+  ) {
+    limit = entitlement.creditTotal / entitlement.creditConsumptionRate;
   }
 
   // amount related to cost
@@ -83,6 +90,12 @@ export function getUsageDetails(
     typeof entitlement.softLimit === "number"
   ) {
     amount = Math.max(0, entitlement.usage - entitlement.softLimit);
+  } else if (
+    entitlement.priceBehavior === PriceBehavior.Credit &&
+    typeof entitlement.creditUsed === "number" &&
+    typeof entitlement.creditConsumptionRate === "number"
+  ) {
+    amount = entitlement.creditUsed / entitlement.creditConsumptionRate;
   }
 
   // total cost based on current usage or allocation
@@ -128,4 +141,20 @@ export function getUsageDetails(
   }
 
   return { billingPrice, limit, amount, cost, currentTier };
+}
+
+export function getCreditBasedEntitlementLimit(
+  entitlement: PlanEntitlementResponseData,
+  credits: Credit[],
+) {
+  const matchedCredit = credits.find(
+    (credit) => credit.id === entitlement.valueCredit?.id,
+  );
+
+  if (matchedCredit && entitlement.consumptionRate) {
+    return {
+      limit: Math.floor(matchedCredit.quantity / entitlement.consumptionRate),
+      period: matchedCredit.period,
+    };
+  }
 }
