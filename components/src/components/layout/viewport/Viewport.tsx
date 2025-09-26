@@ -26,7 +26,11 @@ export const Viewport = forwardRef<HTMLDivElement | null, ViewportProps>(
           !data?.capabilities?.badgeVisibility ||
           settings.badge?.visibility !== "hidden",
       };
-    }, [data, settings]);
+    }, [
+      data?.capabilities?.badgeVisibility,
+      data?.capabilities?.checkout,
+      settings.badge?.visibility,
+    ]);
 
     useLayoutEffect(() => {
       const parent = portal || document.body;

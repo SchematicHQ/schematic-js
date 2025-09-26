@@ -10,8 +10,6 @@ import {
   getPlanPrice,
   groupPlanCreditGrants,
   hexToHSL,
-  isCheckoutData,
-  isHydratedPlan,
 } from "../../../utils";
 import { cardBoxShadow } from "../../layout";
 import { UsageViolationText } from "../../shared";
@@ -28,6 +26,7 @@ interface PlanProps {
   index: number;
   sharedProps: PricingTableOptions & {
     layout: PricingTableProps;
+    showCallToAction: boolean;
   };
   plans: SelectedPlan[];
   selectedPeriod: string;
@@ -61,13 +60,6 @@ export const Plan = ({
 
   const trialEnd = useTrialEnd();
 
-  const showCallToAction = useMemo(() => {
-    return (
-      typeof sharedProps.callToActionUrl === "string" ||
-      typeof sharedProps.onCallToAction === "function"
-    );
-  }, [sharedProps.callToActionUrl, sharedProps.onCallToAction]);
-
   const {
     currentPeriod,
     canCheckout,
@@ -77,64 +69,34 @@ export const Plan = ({
     showCredits,
     showZeroPriceAsFree,
   } = useMemo(() => {
-    const showCredits = data?.showCredits ?? true;
-    const showZeroPriceAsFree = data?.showZeroPriceAsFree ?? false;
-
-    if (isCheckoutData(data)) {
-      const billingSubscription = data.company?.billingSubscription;
-      const isTrialSubscription = billingSubscription?.status === "trialing";
-      const willSubscriptionCancel =
-        typeof billingSubscription?.cancelAt === "number";
-
-      return {
-        currentPeriod: data.company?.plan?.planPeriod || "month",
-        canCheckout: data.capabilities?.checkout ?? true,
-        isTrialSubscription,
-        willSubscriptionCancel,
-        isStandalone: false,
-        showCredits,
-        showZeroPriceAsFree,
-      };
-    }
+    const isStandalone = typeof data?.component === "undefined";
 
     return {
-      currentPeriod: "month",
-      canCheckout: true,
-      isTrialSubscription: false,
-      willSubscriptionCancel: false,
-      isStandalone: true,
-      showCredits,
-      showZeroPriceAsFree,
+      currentPeriod: data?.company?.plan?.planPeriod || "month",
+      canCheckout: isStandalone ?? data?.capabilities?.checkout ?? true,
+      isTrialSubscription:
+        data?.company?.billingSubscription?.status === "trialing",
+      willSubscriptionCancel:
+        typeof data?.company?.billingSubscription?.cancelAt === "number",
+      isStandalone,
+      showCredits: data?.showCredits ?? true,
+      showZeroPriceAsFree: data?.showZeroPriceAsFree ?? false,
     };
-  }, [data]);
-
-  const callToActionTarget = useMemo(() => {
-    if (sharedProps.callToActionTarget) {
-      return sharedProps.callToActionTarget;
-    }
-
-    if (sharedProps.callToActionUrl) {
-      try {
-        const ctaUrlOrigin = new URL(sharedProps.callToActionUrl).origin;
-        if (ctaUrlOrigin === window.location.hostname) {
-          return "_self";
-        }
-      } catch {
-        // fallback to the default value if the provided target value is not a full URL
-      }
-    }
-
-    return "_blank";
-  }, [sharedProps.callToActionUrl, sharedProps.callToActionTarget]);
+  }, [
+    data?.capabilities?.checkout,
+    data?.company?.billingSubscription?.cancelAt,
+    data?.company?.billingSubscription?.status,
+    data?.company?.plan?.planPeriod,
+    data?.component,
+    data?.showCredits,
+    data?.showZeroPriceAsFree,
+  ]);
 
   const cardPadding = settings.theme.card.padding / TEXT_BASE_SIZE;
 
-  const currentPlanIndex = plans.findIndex(
-    (plan) => isHydratedPlan(plan) && plan.current,
-  );
+  const currentPlanIndex = plans.findIndex((plan) => plan.current);
 
-  const isActivePlan =
-    isHydratedPlan(plan) && plan.current && currentPeriod === selectedPeriod;
+  const isActivePlan = plan.current && currentPeriod === selectedPeriod;
   const { price: planPrice, currency: planCurrency } =
     getPlanPrice(plan, selectedPeriod) || {};
   const credits = groupPlanCreditGrants(plan.includedCreditGrants);
@@ -360,15 +322,12 @@ export const Plan = ({
             </Text>
           </Flex>
         ) : (
-          showCallToAction &&
+          sharedProps.showCallToAction &&
           (layout.upgrade.isVisible || layout.downgrade.isVisible) && (
             <Flex $flexDirection="column" $gap="0.5rem">
               <Button
                 type="button"
-                disabled={
-                  ((isHydratedPlan(plan) && !plan.valid) || !canCheckout) &&
-                  !plan.custom
-                }
+                disabled={(!plan.valid || !canCheckout) && !plan.custom}
                 {...(index > currentPlanIndex
                   ? {
                       $size: layout.upgrade.buttonSize,
@@ -391,18 +350,14 @@ export const Plan = ({
                     ? {
                         as: "a",
                         href: sharedProps.callToActionUrl,
-                        target: callToActionTarget,
+                        target: sharedProps.callToActionTarget,
                         rel: "noreferrer",
                       }
                     : {
                         onClick: () => {
                           sharedProps.onCallToAction?.(plan);
 
-                          if (
-                            !isStandalone &&
-                            isHydratedPlan(plan) &&
-                            !plan.custom
-                          ) {
+                          if (!isStandalone && !plan.custom) {
                             setCheckoutState({
                               period: selectedPeriod,
                               planId: isActivePlan ? null : plan.id,
@@ -415,20 +370,18 @@ export const Plan = ({
               >
                 {plan.custom ? (
                   (plan.customPlanConfig?.ctaText ?? t("Talk to support"))
-                ) : isHydratedPlan(plan) && !plan.valid ? (
+                ) : !plan.valid ? (
                   <Text as={Box} $align="center">
                     {t("Over plan limit")}
                   </Text>
-                ) : isHydratedPlan(plan) &&
-                  plan.companyCanTrial &&
-                  plan.isTrialable ? (
+                ) : plan.companyCanTrial && plan.isTrialable ? (
                   t("Start X day trial", { days: plan.trialDays })
                 ) : (
                   t("Choose plan")
                 )}
               </Button>
 
-              {isHydratedPlan(plan) && !plan.valid && (
+              {!plan.valid && (
                 <UsageViolationText violations={plan.usageViolations} />
               )}
             </Flex>

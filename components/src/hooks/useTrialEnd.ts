@@ -7,7 +7,7 @@ import {
   MINUTES_IN_MS,
   SECONDS_IN_MS,
 } from "../const";
-import { isCheckoutData, pluralize } from "../utils";
+import { pluralize } from "../utils";
 
 import { useEmbed } from ".";
 
@@ -17,10 +17,7 @@ export function useTrialEnd() {
   const { data } = useEmbed();
 
   const { endDate, formatted } = useMemo(() => {
-    const billingSubscription = isCheckoutData(data)
-      ? data.company?.billingSubscription
-      : undefined;
-
+    const billingSubscription = data?.company?.billingSubscription;
     const end =
       typeof billingSubscription?.trialEnd === "number"
         ? new Date(billingSubscription.trialEnd * 1000)
@@ -56,7 +53,7 @@ export function useTrialEnd() {
     }
 
     return { endDate: end, formatted };
-  }, [t, data]);
+  }, [t, data?.company?.billingSubscription]);
 
   return { endDate, formatted };
 }

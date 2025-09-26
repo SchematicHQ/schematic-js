@@ -11,8 +11,6 @@ import {
   getFeatureName,
   getMetricPeriodName,
   hexToHSL,
-  isCheckoutData,
-  isHydratedPlan,
 } from "../../../utils";
 import { cardBoxShadow } from "../../layout";
 import { Box, Button, Flex, Icon, Text } from "../../ui";
@@ -26,6 +24,7 @@ interface AddOnProps {
   addOn: SelectedPlan;
   sharedProps: PricingTableOptions & {
     layout: PricingTableProps;
+    showCallToAction: boolean;
   };
   selectedPeriod: string;
 }
@@ -39,30 +38,20 @@ export const AddOn = ({ addOn, sharedProps, selectedPeriod }: AddOnProps) => {
 
   const isLightBackground = useIsLightBackground();
 
-  const { currentAddOns, canCheckout, isStandalone, showCallToAction } =
-    useMemo(() => {
-      if (isCheckoutData(data)) {
-        return {
-          currentAddOns: data.company?.addOns || [],
-          canCheckout: data.capabilities?.checkout ?? true,
-          isStandalone: false,
-          showCallToAction: true,
-        };
-      }
+  const { currentAddOns, canCheckout, isStandalone } = useMemo(() => {
+    const isStandalone = typeof data?.component === "undefined";
 
-      return {
-        currentAddOns: [],
-        canCheckout: true,
-        isStandalone: true,
-        showCallToAction: typeof layout.callToActionUrl === "string",
-      };
-    }, [data, layout.callToActionUrl]);
+    return {
+      currentAddOns: data?.company?.addOns || [],
+      canCheckout: isStandalone ?? data?.capabilities?.checkout ?? true,
+      isStandalone,
+    };
+  }, [data?.capabilities?.checkout, data?.company?.addOns, data?.component]);
 
   const cardPadding = settings.theme.card.padding / TEXT_BASE_SIZE;
 
-  const isCurrentAddOn = isHydratedPlan(addOn) && addOn.current;
   const isActiveAddOn =
-    isCurrentAddOn &&
+    addOn.current &&
     selectedPeriod ===
       currentAddOns.find((currentAddOn) => currentAddOn.id === addOn.id)
         ?.planPeriod;
@@ -224,44 +213,45 @@ export const AddOn = ({ addOn, sharedProps, selectedPeriod }: AddOnProps) => {
           </Flex>
         )}
 
-        {showCallToAction && layout.upgrade.isVisible && (
-          <Button
-            type="button"
-            disabled={(isHydratedPlan(addOn) && !addOn.valid) || !canCheckout}
-            $size={layout.upgrade.buttonSize}
-            $color={isActiveAddOn ? "danger" : layout.upgrade.buttonStyle}
-            $variant={
-              isActiveAddOn ? "ghost" : isCurrentAddOn ? "outline" : "filled"
-            }
-            {...(layout.callToActionUrl
-              ? {
-                  as: "a",
-                  href: layout.callToActionUrl,
-                  rel: "noreferrer",
-                  target: "_blank",
-                }
-              : {
-                  onClick: () => {
-                    layout.onCallToAction?.(addOn);
+        {sharedProps.showCallToAction &&
+          (layout.upgrade.isVisible || layout.downgrade.isVisible) && (
+            <Button
+              type="button"
+              disabled={!addOn.valid || !canCheckout}
+              $size={layout.upgrade.buttonSize}
+              $color={isActiveAddOn ? "danger" : layout.upgrade.buttonStyle}
+              $variant={
+                isActiveAddOn ? "ghost" : addOn.current ? "outline" : "filled"
+              }
+              {...(sharedProps.callToActionUrl
+                ? {
+                    as: "a",
+                    href: sharedProps.callToActionUrl,
+                    rel: "noreferrer",
+                    target: "_blank",
+                  }
+                : {
+                    onClick: () => {
+                      sharedProps.onCallToAction?.(addOn);
 
-                    if (!isStandalone && !addOn.custom) {
-                      setCheckoutState({
-                        period: selectedPeriod,
-                        addOnId: isActiveAddOn ? null : addOn.id,
-                        usage: false,
-                      });
-                    }
-                  },
-                })}
-            $fullWidth
-          >
-            {isActiveAddOn
-              ? t("Remove add-on")
-              : isCurrentAddOn
-                ? t("Change add-on")
-                : t("Choose add-on")}
-          </Button>
-        )}
+                      if (!isStandalone && !addOn.custom) {
+                        setCheckoutState({
+                          period: selectedPeriod,
+                          addOnId: isActiveAddOn ? null : addOn.id,
+                          usage: false,
+                        });
+                      }
+                    },
+                  })}
+              $fullWidth
+            >
+              {isActiveAddOn
+                ? t("Remove add-on")
+                : addOn.current
+                  ? t("Change add-on")
+                  : t("Choose add-on")}
+            </Button>
+          )}
       </Flex>
     </Flex>
   );
