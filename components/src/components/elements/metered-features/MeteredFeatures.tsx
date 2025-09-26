@@ -79,11 +79,16 @@ const Limit = ({ entitlement, usageDetails, fontStyle }: LimitProps) => {
           : priceBehavior === PriceBehavior.PayAsYouGo &&
               typeof cost === "number"
             ? formatCurrency(cost, billingPrice?.currency)
-            : typeof allocation === "number"
+            : priceBehavior === PriceBehavior.Credit &&
+                typeof limit === "number"
               ? t("Limit of", {
-                  amount: formatNumber(allocation),
+                  amount: formatNumber(limit),
                 })
-              : t("No limit"),
+              : typeof allocation === "number"
+                ? t("Limit of", {
+                    amount: formatNumber(allocation),
+                  })
+                : t("No limit"),
   );
 
   if (metricResetAt) {
@@ -171,7 +176,9 @@ export const MeteredFeatures = forwardRef<
 
   const isLightBackground = useIsLightBackground();
 
-  const { period, meteredFeatures, creditGroups } = useMemo(() => {
+  const { period, meteredFeatures, creditGroups, showCredits } = useMemo(() => {
+    const showCredits = data?.showCredits ?? true;
+
     if (isCheckoutData(data)) {
       const period =
         typeof data.company?.plan?.planPeriod === "string"
@@ -199,15 +206,14 @@ export const MeteredFeatures = forwardRef<
           data.featureUsage?.features ||
           []
         ).filter(
-          ({ priceBehavior, feature }) =>
-            // credit-based entitlements behave differently and should not be shown as a metered feature
-            priceBehavior !== PriceBehavior.Credit &&
-            (feature?.featureType === FeatureType.Event ||
-              feature?.featureType === FeatureType.Trait),
+          ({ feature }) =>
+            feature?.featureType === FeatureType.Event ||
+            feature?.featureType === FeatureType.Trait,
         ),
         creditGroups: groupCreditGrants(data.creditGrants, {
           groupBy: "credit",
         }),
+        showCredits,
       };
     }
 
@@ -215,6 +221,7 @@ export const MeteredFeatures = forwardRef<
       period: undefined,
       meteredFeatures: [],
       creditGroups: [],
+      showCredits,
     };
   }, [props.visibleFeatures, data]);
 
@@ -362,218 +369,222 @@ export const MeteredFeatures = forwardRef<
         return acc;
       }, [])}
 
-      {creditGroups.map((credit, index) => {
-        const isExpanded =
-          creditVisibility.find(({ id }) => credit.id === id)?.isExpanded ??
-          false;
+      {showCredits &&
+        creditGroups.map((credit, index) => {
+          const isExpanded =
+            creditVisibility.find(({ id }) => credit.id === id)?.isExpanded ??
+            false;
 
-        return (
-          <Element key={index} as={Flex} $flexDirection="column" $gap="1rem">
-            <Flex $gap="1.5rem">
-              {props.icon.isVisible && (
-                <Icon
-                  // if `icon` is `undefined` this will render as a blank circle
-                  name={credit.icon as string}
-                  color={settings.theme.primary}
-                  background={
-                    isLightBackground
-                      ? "hsla(0, 0%, 0%, 0.0625)"
-                      : "hsla(0, 0%, 100%, 0.25)"
-                  }
-                  rounded
-                />
-              )}
+          return (
+            <Element key={index} as={Flex} $flexDirection="column" $gap="1rem">
+              <Flex $gap="1.5rem">
+                {props.icon.isVisible && (
+                  <Icon
+                    // if `icon` is `undefined` this will render as a blank circle
+                    name={credit.icon as string}
+                    color={settings.theme.primary}
+                    background={
+                      isLightBackground
+                        ? "hsla(0, 0%, 0%, 0.0625)"
+                        : "hsla(0, 0%, 100%, 0.25)"
+                    }
+                    rounded
+                  />
+                )}
 
-              <Flex $flexDirection="column" $gap="2rem" $flexGrow={1}>
-                <Flex $flexWrap="wrap" $gap="1rem">
-                  <Flex $flexDirection="column" $gap="0.5rem" $flexGrow={1}>
-                    <Box>
-                      <Text display={props.header.fontStyle}>
-                        {credit.name}
-                      </Text>
-                    </Box>
-
-                    {props.description.isVisible && (
+                <Flex $flexDirection="column" $gap="2rem" $flexGrow={1}>
+                  <Flex $flexWrap="wrap" $gap="1rem">
+                    <Flex $flexDirection="column" $gap="0.5rem" $flexGrow={1}>
                       <Box>
-                        <Text display={props.description.fontStyle}>
-                          {credit.description}
+                        <Text display={props.header.fontStyle}>
+                          {credit.name}
                         </Text>
                       </Box>
-                    )}
+
+                      {props.description.isVisible && (
+                        <Box>
+                          <Text display={props.description.fontStyle}>
+                            {credit.description}
+                          </Text>
+                        </Box>
+                      )}
+                    </Flex>
+                  </Flex>
+
+                  <Flex $gap="1rem">
+                    <ProgressBar
+                      progress={(credit.total.used / credit.total.value) * 100}
+                      value={credit.total.used}
+                      total={credit.total.value}
+                      color={
+                        progressColorMap[
+                          Math.floor(
+                            (credit.total.used / credit.total.value) *
+                              (progressColorMap.length - 1),
+                          )
+                        ]
+                      }
+                    />
+
+                    <Button
+                      type="button"
+                      onClick={() => {
+                        setCheckoutState({ credits: true });
+                      }}
+                      style={{ whiteSpace: "nowrap" }}
+                      $size="sm"
+                    >
+                      {t("Buy More")}
+                    </Button>
                   </Flex>
                 </Flex>
-
-                <Flex $gap="1rem">
-                  <ProgressBar
-                    progress={(credit.total.used / credit.total.value) * 100}
-                    value={credit.total.used}
-                    total={credit.total.value}
-                    color={
-                      progressColorMap[
-                        Math.floor(
-                          (credit.total.used / credit.total.value) *
-                            (progressColorMap.length - 1),
-                        )
-                      ]
-                    }
-                  />
-
-                  <Button
-                    type="button"
-                    onClick={() => {
-                      setCheckoutState({ credits: true });
-                    }}
-                    style={{ whiteSpace: "nowrap" }}
-                    $size="sm"
-                  >
-                    {t("Buy More")}
-                  </Button>
-                </Flex>
               </Flex>
-            </Flex>
 
-            <Box
-              $width={`calc(100% + ${(2 * settings.theme.card.padding) / TEXT_BASE_SIZE}rem)`}
-              $margin={`0 0 0 -${settings.theme.card.padding / TEXT_BASE_SIZE}rem`}
-            >
-              <TransitionBox
-                $backgroundColor={
-                  isLightBackground
-                    ? "hsla(0, 0%, 0%, 0.0375)"
-                    : "hsla(0, 0%, 100%, 0.075)"
-                }
-                $isExpanded={isExpanded}
+              <Box
+                $width={`calc(100% + ${(2 * settings.theme.card.padding) / TEXT_BASE_SIZE}rem)`}
+                $margin={`0 0 0 -${settings.theme.card.padding / TEXT_BASE_SIZE}rem`}
               >
-                {credit.grants.map((grant, index) => {
-                  const paddingX = settings.theme.card.padding / TEXT_BASE_SIZE;
-                  const padding =
-                    index > 0 ? `0 ${paddingX}rem 1rem` : `1rem ${paddingX}rem`;
+                <TransitionBox
+                  $backgroundColor={
+                    isLightBackground
+                      ? "hsla(0, 0%, 0%, 0.0375)"
+                      : "hsla(0, 0%, 100%, 0.075)"
+                  }
+                  $isExpanded={isExpanded}
+                >
+                  {credit.grants.map((grant, index) => {
+                    const paddingX =
+                      settings.theme.card.padding / TEXT_BASE_SIZE;
+                    const padding =
+                      index > 0
+                        ? `0 ${paddingX}rem 1rem`
+                        : `1rem ${paddingX}rem`;
 
-                  return (
-                    <Box key={grant.id} $display="table-row">
-                      {grant.grantReason === CreditGrantReason.Plan ? (
-                        <>
-                          <Box $display="table-cell" $padding={padding}>
-                            <Text>
-                              {t("X items included in plan", {
-                                amount: grant.quantity,
-                                item: getFeatureName(credit, grant.quantity),
-                              })}
-                            </Text>
-                          </Box>
-
-                          <Box
-                            $display="table-cell"
-                            $padding={padding}
-                            $textAlign="right"
-                            $whiteSpace="nowrap"
-                          >
-                            {grant.expiresAt && (
+                    return (
+                      <Box key={grant.id} $display="table-row">
+                        {grant.grantReason === CreditGrantReason.Plan ? (
+                          <>
+                            <Box $display="table-cell" $padding={padding}>
                               <Text>
-                                {t("Resets", {
-                                  date: toPrettyDate(
-                                    modifyDate(grant.expiresAt, 1),
-                                    {
-                                      day: "2-digit",
-                                      month: "2-digit",
-                                      year: "2-digit",
-                                    },
-                                  ),
+                                {t("X items included in plan", {
+                                  amount: grant.quantity,
+                                  item: getFeatureName(credit, grant.quantity),
                                 })}
                               </Text>
-                            )}
-                          </Box>
-                        </>
-                      ) : (
-                        <>
-                          <Box $display="table-cell" $padding={padding}>
-                            <Text>
-                              {grant.grantReason ===
-                              CreditGrantReason.Purchased ? (
-                                <>
-                                  {t("X item bundle", {
-                                    amount: grant.quantity,
-                                    item: getFeatureName(credit, 1),
-                                    createdAt: toPrettyDate(grant.createdAt, {
-                                      day: "2-digit",
-                                      month: "2-digit",
-                                      year: "2-digit",
-                                    }),
-                                  })}
-                                </>
-                              ) : (
-                                <>
-                                  {t("X item grant", {
-                                    amount: grant.quantity,
-                                    item: getFeatureName(
-                                      credit,
-                                      grant.quantity,
+                            </Box>
+
+                            <Box
+                              $display="table-cell"
+                              $padding={padding}
+                              $textAlign="right"
+                              $whiteSpace="nowrap"
+                            >
+                              {grant.expiresAt && (
+                                <Text>
+                                  {t("Resets", {
+                                    date: toPrettyDate(
+                                      modifyDate(grant.expiresAt, 1),
+                                      {
+                                        day: "2-digit",
+                                        month: "2-digit",
+                                        year: "2-digit",
+                                      },
                                     ),
-                                    createdAt: toPrettyDate(grant.createdAt, {
-                                      day: "2-digit",
-                                      month: "2-digit",
-                                      year: "2-digit",
-                                    }),
                                   })}
-                                </>
+                                </Text>
                               )}
-                            </Text>
-                          </Box>
-
-                          <Box
-                            $display="table-cell"
-                            $padding={padding}
-                            $textAlign="right"
-                            $whiteSpace="nowrap"
-                          >
-                            {grant.expiresAt && (
+                            </Box>
+                          </>
+                        ) : (
+                          <>
+                            <Box $display="table-cell" $padding={padding}>
                               <Text>
-                                {t("Expires", {
-                                  date: toPrettyDate(
-                                    modifyDate(grant.expiresAt, 1),
-                                    {
-                                      day: "2-digit",
-                                      month: "2-digit",
-                                      year: "2-digit",
-                                    },
-                                  ),
-                                })}
+                                {grant.grantReason ===
+                                CreditGrantReason.Purchased ? (
+                                  <>
+                                    {t("X item bundle", {
+                                      amount: grant.quantity,
+                                      item: getFeatureName(credit, 1),
+                                      createdAt: toPrettyDate(grant.createdAt, {
+                                        day: "2-digit",
+                                        month: "2-digit",
+                                        year: "2-digit",
+                                      }),
+                                    })}
+                                  </>
+                                ) : (
+                                  <>
+                                    {t("X item grant", {
+                                      amount: grant.quantity,
+                                      item: getFeatureName(
+                                        credit,
+                                        grant.quantity,
+                                      ),
+                                      createdAt: toPrettyDate(grant.createdAt, {
+                                        day: "2-digit",
+                                        month: "2-digit",
+                                        year: "2-digit",
+                                      }),
+                                    })}
+                                  </>
+                                )}
                               </Text>
-                            )}
-                          </Box>
-                        </>
-                      )}
-                    </Box>
-                  );
-                })}
-              </TransitionBox>
-            </Box>
+                            </Box>
 
-            <Flex $gap="0.25rem">
-              <Icon
-                name="chevron-down"
-                color={
-                  isLightBackground
-                    ? "hsla(0, 0%, 0%, 0.8)"
-                    : "hsla(0, 0%, 100%, 0.4)"
-                }
-                style={{
-                  marginLeft: `-${1 / 3}rem`,
-                  ...(isExpanded && { transform: "rotate(180deg)" }),
-                }}
-              />
-              <Text
-                onClick={() => toggleBalanceDetails(credit.id)}
-                display="link"
-              >
-                {isExpanded
-                  ? t("Hide balance details")
-                  : t("See balance details")}
-              </Text>
-            </Flex>
-          </Element>
-        );
-      })}
+                            <Box
+                              $display="table-cell"
+                              $padding={padding}
+                              $textAlign="right"
+                              $whiteSpace="nowrap"
+                            >
+                              {grant.expiresAt && (
+                                <Text>
+                                  {t("Expires", {
+                                    date: toPrettyDate(
+                                      modifyDate(grant.expiresAt, 1),
+                                      {
+                                        day: "2-digit",
+                                        month: "2-digit",
+                                        year: "2-digit",
+                                      },
+                                    ),
+                                  })}
+                                </Text>
+                              )}
+                            </Box>
+                          </>
+                        )}
+                      </Box>
+                    );
+                  })}
+                </TransitionBox>
+              </Box>
+
+              <Flex $gap="0.25rem">
+                <Icon
+                  name="chevron-down"
+                  color={
+                    isLightBackground
+                      ? "hsla(0, 0%, 0%, 0.8)"
+                      : "hsla(0, 0%, 100%, 0.4)"
+                  }
+                  style={{
+                    marginLeft: `-${1 / 3}rem`,
+                    ...(isExpanded && { transform: "rotate(180deg)" }),
+                  }}
+                />
+                <Text
+                  onClick={() => toggleBalanceDetails(credit.id)}
+                  display="link"
+                >
+                  {isExpanded
+                    ? t("Hide balance details")
+                    : t("See balance details")}
+                </Text>
+              </Flex>
+            </Element>
+          );
+        })}
     </styles.Container>
   );
 });

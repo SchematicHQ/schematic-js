@@ -13,6 +13,12 @@
  */
 
 import { mapValues } from "../runtime";
+import type { BillingPlanCreditGrantResponseData } from "./BillingPlanCreditGrantResponseData";
+import {
+  BillingPlanCreditGrantResponseDataFromJSON,
+  BillingPlanCreditGrantResponseDataFromJSONTyped,
+  BillingPlanCreditGrantResponseDataToJSON,
+} from "./BillingPlanCreditGrantResponseData";
 import type { FeatureDetailResponseData } from "./FeatureDetailResponseData";
 import {
   FeatureDetailResponseDataFromJSON,
@@ -128,6 +134,12 @@ export interface PlanGroupPlanDetailResponseData {
    * @memberof PlanGroupPlanDetailResponseData
    */
   id: string;
+  /**
+   *
+   * @type {Array<BillingPlanCreditGrantResponseData>}
+   * @memberof PlanGroupPlanDetailResponseData
+   */
+  includedCreditGrants?: Array<BillingPlanCreditGrantResponseData>;
   /**
    *
    * @type {boolean}
@@ -270,6 +282,12 @@ export function PlanGroupPlanDetailResponseDataFromJSONTyped(
     ),
     icon: json["icon"],
     id: json["id"],
+    includedCreditGrants:
+      json["included_credit_grants"] == null
+        ? undefined
+        : (json["included_credit_grants"] as Array<any>).map(
+            BillingPlanCreditGrantResponseDataFromJSON,
+          ),
     isCustom: json["is_custom"],
     isDefault: json["is_default"],
     isFree: json["is_free"],
@@ -321,6 +339,12 @@ export function PlanGroupPlanDetailResponseDataToJSON(
     ),
     icon: value["icon"],
     id: value["id"],
+    included_credit_grants:
+      value["includedCreditGrants"] == null
+        ? undefined
+        : (value["includedCreditGrants"] as Array<any>).map(
+            BillingPlanCreditGrantResponseDataToJSON,
+          ),
     is_custom: value["isCustom"],
     is_default: value["isDefault"],
     is_free: value["isFree"],

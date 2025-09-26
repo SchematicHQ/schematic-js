@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -15,6 +15,7 @@ import {
   entitlementCountsReducer,
   formatCurrency,
   formatNumber,
+  getCreditBasedEntitlementLimit,
   getEntitlementPrice,
   getFeatureName,
   getMetricPeriodName,
@@ -30,8 +31,11 @@ import {
   BillingThresholdTooltip,
   PricingTiersTooltip,
   TieredPricingDetails,
+  UsageViolationText,
 } from "../../shared";
-import { Box, Button, Flex, Icon, Text, Tooltip } from "../../ui";
+import { Box, Button, Flex, Icon, Text } from "../../ui";
+
+import { FlexWithAlignEnd } from "./styles";
 
 interface SelectedProps {
   isCurrent?: boolean;
@@ -93,19 +97,24 @@ const PlanButtonGroup = ({
 
   const { data } = useEmbed();
 
-  const { isCurrentPlan, isValidPlan, isTrialing } = useMemo(() => {
+  const isTrialing = useMemo(() => {
+    return (
+      (isCheckoutData(data) && data.subscription?.status === "trialing") ||
+      false
+    );
+  }, [data]);
+
+  const { isCurrentPlan, isValidPlan } = useMemo(() => {
     if (isCheckoutData(data)) {
       return {
         isCurrentPlan: data.company?.plan?.id === plan.id,
         isValidPlan: isHydratedPlan(plan) && plan.valid,
-        isTrialing: data.subscription?.status === "trialing",
       };
     }
 
     return {
       isCurrentPlan: false,
       isValidPlan: true,
-      isTrialing: false,
     };
   }, [data, plan]);
 
@@ -117,48 +126,45 @@ const PlanButtonGroup = ({
             {isSelected && shouldTrial ? (
               <Selected isCurrent={isCurrentPlan} isTrial={shouldTrial} />
             ) : (
-              <Button
-                type="button"
-                disabled={(isLoading || !isValidPlan) && !plan.custom}
-                {...(plan.custom
-                  ? {
-                      as: "a",
-                      href: plan.customPlanConfig?.ctaWebSite ?? "#",
-                      target: "_blank",
-                      rel: "noreferrer",
-                    }
-                  : {
-                      onClick: () => {
-                        onSelect({
-                          plan,
-                          shouldTrial: true,
-                        });
-                      },
-                    })}
-                $size="sm"
-                $color="primary"
-                $variant="filled"
-                $fullWidth
-              >
-                {plan.custom ? (
-                  (plan.customPlanConfig?.ctaText ?? t("Talk to support"))
-                ) : !isValidPlan ? (
-                  <Tooltip
-                    trigger={
-                      <Text as={Box} $align="center">
-                        {t("Over usage limit")}
-                      </Text>
-                    }
-                    content={
-                      <Text>
-                        {t("Current usage exceeds the limit of this plan.")}
-                      </Text>
-                    }
-                  />
-                ) : (
-                  t("Start X day trial", { days: plan.trialDays })
+              <Flex $flexDirection="column" $gap="0.5rem">
+                <Button
+                  type="button"
+                  disabled={(isLoading || !isValidPlan) && !plan.custom}
+                  {...(plan.custom
+                    ? {
+                        as: "a",
+                        href: plan.customPlanConfig?.ctaWebSite ?? "#",
+                        target: "_blank",
+                        rel: "noreferrer",
+                      }
+                    : {
+                        onClick: () => {
+                          onSelect({
+                            plan,
+                            shouldTrial: true,
+                          });
+                        },
+                      })}
+                  $size="sm"
+                  $color="primary"
+                  $variant="filled"
+                  $fullWidth
+                >
+                  {plan.custom ? (
+                    (plan.customPlanConfig?.ctaText ?? t("Talk to support"))
+                  ) : !isValidPlan ? (
+                    <Text as={Box} $align="center">
+                      {t("Over plan limit")}
+                    </Text>
+                  ) : (
+                    t("Start X day trial", { days: plan.trialDays })
+                  )}
+                </Button>
+
+                {isHydratedPlan(plan) && !plan.valid && (
+                  <UsageViolationText violations={plan.usageViolations} />
                 )}
-              </Button>
+              </Flex>
             )}
           </>
         )}
@@ -168,34 +174,33 @@ const PlanButtonGroup = ({
             {isSelected && (!shouldTrial || isTrialing) ? (
               <Selected isCurrent={isCurrentPlan} />
             ) : (
-              <Button
-                type="button"
-                disabled={isLoading || !isValidPlan}
-                onClick={() => {
-                  onSelect({ plan, shouldTrial: false });
-                }}
-                $size="sm"
-                $color="primary"
-                $variant={isTrialing ? "filled" : "text"}
-                $fullWidth
-              >
-                {!isValidPlan ? (
-                  <Tooltip
-                    trigger={
+              <Flex $flexDirection="column" $gap="0.5rem">
+                <Button
+                  type="button"
+                  disabled={isLoading || !isValidPlan}
+                  onClick={() => {
+                    onSelect({ plan, shouldTrial: false });
+                  }}
+                  $size="sm"
+                  $color="primary"
+                  $variant={isTrialing ? "filled" : "text"}
+                  $fullWidth
+                >
+                  {!isValidPlan ? (
+                    <Box $textAlign="center">
                       <Text as={Box} $align="center">
-                        {t("Over usage limit")}
+                        {t("Over plan limit")}
                       </Text>
-                    }
-                    content={
-                      <Text>
-                        {t("Current usage exceeds the limit of this plan.")}
-                      </Text>
-                    }
-                  />
-                ) : (
-                  t("Choose plan")
+                    </Box>
+                  ) : (
+                    t("Choose plan")
+                  )}
+                </Button>
+
+                {isHydratedPlan(plan) && !plan.valid && (
+                  <UsageViolationText violations={plan.usageViolations} />
                 )}
-              </Button>
+              </Flex>
             )}
           </>
         )}
@@ -206,43 +211,42 @@ const PlanButtonGroup = ({
   return isSelected ? (
     <Selected isCurrent={isCurrentPlan} />
   ) : (
-    <Button
-      type="button"
-      disabled={(isLoading || !isValidPlan) && !plan.custom}
-      {...(plan.custom
-        ? {
-            as: "a",
-            href: plan.customPlanConfig?.ctaWebSite ?? "#",
-            target: "_blank",
-            rel: "noreferrer",
-          }
-        : {
-            onClick: () => {
-              onSelect({ plan });
-            },
-          })}
-      $size="sm"
-      $color="primary"
-      $variant="filled"
-      $fullWidth
-    >
-      {plan.custom ? (
-        (plan.customPlanConfig?.ctaText ?? t("Talk to support"))
-      ) : !isValidPlan ? (
-        <Tooltip
-          trigger={
-            <Text as={Box} $align="center">
-              {t("Over usage limit")}
-            </Text>
-          }
-          content={
-            <Text>{t("Current usage exceeds the limit of this plan.")}</Text>
-          }
-        />
-      ) : (
-        t("Choose plan")
+    <Flex $flexDirection="column" $gap="0.5rem">
+      <Button
+        type="button"
+        disabled={(isLoading || !isValidPlan) && !plan.custom}
+        {...(plan.custom
+          ? {
+              as: "a",
+              href: plan.customPlanConfig?.ctaWebSite ?? "#",
+              target: "_blank",
+              rel: "noreferrer",
+            }
+          : {
+              onClick: () => {
+                onSelect({ plan });
+              },
+            })}
+        $size="sm"
+        $color="primary"
+        $variant="filled"
+        $fullWidth
+      >
+        {plan.custom ? (
+          (plan.customPlanConfig?.ctaText ?? t("Talk to support"))
+        ) : !isValidPlan ? (
+          <Text as={Box} $align="center">
+            {t("Over plan limit")}
+          </Text>
+        ) : (
+          t("Choose plan")
+        )}
+      </Button>
+
+      {isHydratedPlan(plan) && !plan.valid && (
+        <UsageViolationText violations={plan.usageViolations} />
       )}
-    </Button>
+    </Flex>
   );
 };
 
@@ -257,7 +261,6 @@ interface PlanProps {
     shouldTrial?: boolean;
   }) => void;
   shouldTrial: boolean;
-  showPeriodToggle: boolean;
 }
 
 export const Plan = ({
@@ -267,7 +270,6 @@ export const Plan = ({
   period,
   selectPlan,
   shouldTrial,
-  showPeriodToggle,
 }: PlanProps) => {
   const { t } = useTranslation();
 
@@ -279,19 +281,28 @@ export const Plan = ({
     plans.reduce(entitlementCountsReducer, {}),
   );
 
-  const { isTrialing, showZeroPriceAsFree } = useMemo(() => {
-    if (isCheckoutData(data)) {
-      return {
-        isTrialing: data.subscription?.status === "trialing",
-        showZeroPriceAsFree: data.showZeroPriceAsFree,
-      };
-    }
+  const { isTrialing, showCredits, showPeriodToggle, showZeroPriceAsFree } =
+    useMemo(() => {
+      const showCredits = data?.showCredits ?? true;
+      const showPeriodToggle = data?.showPeriodToggle ?? true;
+      const showZeroPriceAsFree = data?.showZeroPriceAsFree ?? false;
 
-    return {
-      isTrialing: false,
-      showZeroPriceAsFree: false,
-    };
-  }, [data]);
+      if (isCheckoutData(data)) {
+        return {
+          isTrialing: data.subscription?.status === "trialing",
+          showCredits,
+          showPeriodToggle,
+          showZeroPriceAsFree,
+        };
+      }
+
+      return {
+        isTrialing: false,
+        showCredits,
+        showPeriodToggle,
+        showZeroPriceAsFree,
+      };
+    }, [data]);
 
   const handleToggleShowAll = (id: string) => {
     setEntitlementCounts((prev) => {
@@ -421,7 +432,7 @@ export const Plan = ({
                 )}
               </Box>
 
-              {credits.length > 0 && (
+              {showCredits && credits.length > 0 && (
                 <Flex
                   $flexDirection="column"
                   $gap="1rem"
@@ -517,6 +528,8 @@ export const Plan = ({
 
                       const limit =
                         entitlement.softLimit ?? entitlement.valueNumeric;
+                      const creditBasedEntitlementLimit =
+                        getCreditBasedEntitlementLimit(entitlement, credits);
 
                       const {
                         price: entitlementPrice,
@@ -526,6 +539,9 @@ export const Plan = ({
                       } = getEntitlementPrice(entitlement, planPeriod) || {};
 
                       const metricPeriodName = getMetricPeriodName(entitlement);
+                      const UsageDetailsContainer = entitlement.billingThreshold
+                        ? FlexWithAlignEnd
+                        : Fragment;
 
                       return (
                         <Flex
@@ -588,7 +604,8 @@ export const Plan = ({
                                       entitlement={entitlement}
                                       period={planPeriod}
                                     />
-                                  ) : entitlement.priceBehavior ===
+                                  ) : showCredits &&
+                                    entitlement.priceBehavior ===
                                       PriceBehavior.Credit &&
                                     entitlement.valueCredit ? (
                                     <>
@@ -600,6 +617,30 @@ export const Plan = ({
                                       )}{" "}
                                       {t("per")}{" "}
                                       {getFeatureName(entitlement.feature, 1)}
+                                    </>
+                                  ) : entitlement.priceBehavior ===
+                                      PriceBehavior.Credit &&
+                                    creditBasedEntitlementLimit ? (
+                                    <>
+                                      {creditBasedEntitlementLimit?.period
+                                        ? t("Up to X units per period", {
+                                            amount:
+                                              creditBasedEntitlementLimit.limit,
+                                            units: getFeatureName(
+                                              entitlement.feature,
+                                              creditBasedEntitlementLimit.limit,
+                                            ),
+                                            period:
+                                              creditBasedEntitlementLimit.period,
+                                          })
+                                        : t("Up to X units", {
+                                            amount:
+                                              creditBasedEntitlementLimit.limit,
+                                            units: getFeatureName(
+                                              entitlement.feature,
+                                              creditBasedEntitlementLimit.limit,
+                                            ),
+                                          })}
                                     </>
                                   ) : hasNumericValue ? (
                                     <>
@@ -633,7 +674,7 @@ export const Plan = ({
                                   )}
                                 </Text>
 
-                                <Flex $alignItems="end">
+                                <UsageDetailsContainer>
                                   {entitlement.priceBehavior ===
                                     PriceBehavior.Overage &&
                                   typeof entitlementPrice === "number" ? (
@@ -700,7 +741,7 @@ export const Plan = ({
                                       }
                                     />
                                   )}
-                                </Flex>
+                                </UsageDetailsContainer>
                               </Flex>
                             )}
                           </Flex>

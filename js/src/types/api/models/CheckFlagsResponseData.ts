@@ -22,7 +22,7 @@ import {
 } from "./CheckFlagResponseData";
 
 /**
- * The created resource
+ *
  * @export
  * @interface CheckFlagsResponseData
  */

@@ -5,6 +5,7 @@ index.ts
 models/ApiError.ts
 models/BillingCreditBundleView.ts
 models/BillingCreditResponseData.ts
+models/BillingPlanCreditGrantResponseData.ts
 models/BillingPriceResponseData.ts
 models/BillingPriceView.ts
 models/BillingProductDetailResponseData.ts
@@ -17,10 +18,12 @@ models/BillingSubscriptionResponseData.ts
 models/BillingSubscriptionView.ts
 models/ChangeSubscriptionRequestBody.ts
 models/CheckoutResponse.ts
+models/CheckoutResponseData.ts
 models/CheckoutUnsubscribeResponse.ts
 models/CompanyCustomerBalance.ts
 models/CompanyDetailResponseData.ts
 models/CompanyEventPeriodMetricsResponseData.ts
+models/CompanyOverrideNoteResponseData.ts
 models/CompanyOverrideResponseData.ts
 models/CompanyPlanDetailResponseData.ts
 models/CompanyPlanWithBillingSubView.ts

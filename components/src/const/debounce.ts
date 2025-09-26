@@ -1,8 +1,15 @@
 import { type DebounceSettings } from "lodash";
 
-export const DEBOUNCE_SETTINGS: DebounceSettings = {
+// use leading when we prefer a faster response
+export const LEADING_DEBOUNCE_SETTINGS: DebounceSettings = {
   leading: true,
   trailing: false,
+};
+
+// use trailing when we prefer more up-to-date data
+export const TRAILING_DEBOUNCE_SETTINGS: DebounceSettings = {
+  leading: false,
+  trailing: true,
 };
 
 export const EVENT_DEBOUNCE_TIMEOUT = 200;

@@ -85,14 +85,14 @@ const resolveDesignProps = (props: DeepPartial<DesignProps>): DesignProps => {
       },
       showInclusionText: props.plans?.showInclusionText ?? true,
       showFeatureIcons: props.plans?.showFeatureIcons ?? true,
-      showFeatureDescriptions: props.plans?.showFeatureDescriptions ?? true,
+      showFeatureDescriptions: props.plans?.showFeatureDescriptions ?? false,
       showEntitlements: props.plans?.showEntitlements ?? true,
     },
     addOns: {
       isVisible: props.addOns?.isVisible ?? true,
       showDescription: props.addOns?.showDescription ?? true,
       showFeatureIcons: props.addOns?.showFeatureIcons ?? true,
-      showFeatureDescriptions: props.plans?.showFeatureDescriptions ?? true,
+      showFeatureDescriptions: props.plans?.showFeatureDescriptions ?? false,
       showEntitlements: props.addOns?.showEntitlements ?? true,
     },
     upgrade: {
@@ -251,10 +251,7 @@ export const PricingTable = forwardRef<
                 },
               }}
             >
-              <Text
-                display={props.header.fontStyle}
-                $color={settings.theme.card.background}
-              >
+              <Text display={props.header.fontStyle}>
                 {props.header.isVisible &&
                   props.plans.isVisible &&
                   plans.length > 0 &&
@@ -318,12 +315,7 @@ export const PricingTable = forwardRef<
                     $alignItems="center"
                     $marginBottom="1rem"
                   >
-                    <Text
-                      display={props.header.fontStyle}
-                      $color={settings.theme.card.background}
-                    >
-                      {t("Add-ons")}
-                    </Text>
+                    <Text display={props.header.fontStyle}>{t("Add-ons")}</Text>
                   </Flex>
                 )}
 

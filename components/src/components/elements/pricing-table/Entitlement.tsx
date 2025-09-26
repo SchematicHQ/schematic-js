@@ -7,9 +7,11 @@ import {
   PriceBehavior,
 } from "../../../const";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
+import type { Credit } from "../../../types";
 import {
   formatCurrency,
   formatNumber,
+  getCreditBasedEntitlementLimit,
   getEntitlementPrice,
   getFeatureName,
   getMetricPeriodName,
@@ -29,16 +31,20 @@ import {
 
 interface EntitlementProps {
   entitlement: PlanEntitlementResponseData;
+  credits?: Credit[];
+  selectedPeriod: string;
+  showCredits: boolean;
   sharedProps: PricingTableOptions & {
     layout: PricingTableProps;
   };
-  selectedPeriod: string;
 }
 
 export const Entitlement = ({
   entitlement,
-  sharedProps,
+  credits = [],
   selectedPeriod,
+  showCredits,
+  sharedProps,
 }: EntitlementProps) => {
   const { layout } = sharedProps;
 
@@ -55,13 +61,13 @@ export const Entitlement = ({
     packageSize: entitlementPackageSize = 1,
   } = getEntitlementPrice(entitlement, selectedPeriod) || {};
 
-  if (entitlement.priceBehavior && typeof entitlementPrice !== "number") {
-    return null;
-  }
-
   const limit = entitlement.softLimit ?? entitlement.valueNumeric;
 
   const metricPeriodName = getMetricPeriodName(entitlement);
+  const creditBasedEntitlementLimit = getCreditBasedEntitlementLimit(
+    entitlement,
+    credits,
+  );
 
   return (
     <Flex $gap="1rem">
@@ -98,6 +104,37 @@ export const Entitlement = ({
                   entitlement={entitlement}
                   period={selectedPeriod}
                 />
+              ) : showCredits &&
+                entitlement.priceBehavior === PriceBehavior.Credit &&
+                entitlement.valueCredit ? (
+                <>
+                  {entitlement.consumptionRate}{" "}
+                  {getFeatureName(
+                    entitlement.valueCredit,
+                    entitlement.consumptionRate || undefined,
+                  )}{" "}
+                  {t("per")} {getFeatureName(entitlement.feature, 1)}
+                </>
+              ) : entitlement.priceBehavior === PriceBehavior.Credit &&
+                creditBasedEntitlementLimit ? (
+                <>
+                  {creditBasedEntitlementLimit?.period
+                    ? t("Up to X units per period", {
+                        amount: creditBasedEntitlementLimit.limit,
+                        units: getFeatureName(
+                          entitlement.feature,
+                          creditBasedEntitlementLimit.limit,
+                        ),
+                        period: creditBasedEntitlementLimit.period,
+                      })
+                    : t("Up to X units", {
+                        amount: creditBasedEntitlementLimit.limit,
+                        units: getFeatureName(
+                          entitlement.feature,
+                          creditBasedEntitlementLimit.limit,
+                        ),
+                      })}
+                </>
               ) : entitlement.valueType === EntitlementValueType.Numeric ||
                 entitlement.valueType === EntitlementValueType.Unlimited ||
                 entitlement.valueType === EntitlementValueType.Trait ? (

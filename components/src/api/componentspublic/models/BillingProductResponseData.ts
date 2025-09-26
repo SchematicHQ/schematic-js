@@ -32,11 +32,12 @@ export interface BillingProductResponseData {
    */
   createdAt: Date;
   /**
-   *
+   * Deprecated; currencies are associated with prices, not products
    * @type {string}
    * @memberof BillingProductResponseData
+   * @deprecated
    */
-  currency: string;
+  currency?: string | null;
   /**
    *
    * @type {string}
@@ -101,7 +102,6 @@ export function instanceOfBillingProductResponseData(
 ): value is BillingProductResponseData {
   if (!("accountId" in value) || value["accountId"] === undefined) return false;
   if (!("createdAt" in value) || value["createdAt"] === undefined) return false;
-  if (!("currency" in value) || value["currency"] === undefined) return false;
   if (!("environmentId" in value) || value["environmentId"] === undefined)
     return false;
   if (!("externalId" in value) || value["externalId"] === undefined)
@@ -131,7 +131,7 @@ export function BillingProductResponseDataFromJSONTyped(
   return {
     accountId: json["account_id"],
     createdAt: new Date(json["created_at"]),
-    currency: json["currency"],
+    currency: json["currency"] == null ? undefined : json["currency"],
     environmentId: json["environment_id"],
     externalId: json["external_id"],
     isActive: json["is_active"],

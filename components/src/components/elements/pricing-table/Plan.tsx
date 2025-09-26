@@ -14,7 +14,8 @@ import {
   isHydratedPlan,
 } from "../../../utils";
 import { cardBoxShadow } from "../../layout";
-import { Box, Button, Flex, Icon, Text, Tooltip } from "../../ui";
+import { UsageViolationText } from "../../shared";
+import { Box, Button, Flex, Icon, Text } from "../../ui";
 
 import { Entitlement } from "./Entitlement";
 import {
@@ -60,15 +61,25 @@ export const Plan = ({
 
   const trialEnd = useTrialEnd();
 
+  const showCallToAction = useMemo(() => {
+    return (
+      typeof sharedProps.callToActionUrl === "string" ||
+      typeof sharedProps.onCallToAction === "function"
+    );
+  }, [sharedProps.callToActionUrl, sharedProps.onCallToAction]);
+
   const {
     currentPeriod,
     canCheckout,
     isTrialSubscription,
     willSubscriptionCancel,
     isStandalone,
-    showCallToAction,
+    showCredits,
     showZeroPriceAsFree,
   } = useMemo(() => {
+    const showCredits = data?.showCredits ?? true;
+    const showZeroPriceAsFree = data?.showZeroPriceAsFree ?? false;
+
     if (isCheckoutData(data)) {
       const billingSubscription = data.company?.billingSubscription;
       const isTrialSubscription = billingSubscription?.status === "trialing";
@@ -81,8 +92,8 @@ export const Plan = ({
         isTrialSubscription,
         willSubscriptionCancel,
         isStandalone: false,
-        showCallToAction: true,
-        showZeroPriceAsFree: data.showZeroPriceAsFree,
+        showCredits,
+        showZeroPriceAsFree,
       };
     }
 
@@ -92,12 +103,10 @@ export const Plan = ({
       isTrialSubscription: false,
       willSubscriptionCancel: false,
       isStandalone: true,
-      showCallToAction:
-        typeof sharedProps.callToActionUrl === "string" ||
-        typeof sharedProps.onCallToAction === "function",
-      showZeroPriceAsFree: false,
+      showCredits,
+      showZeroPriceAsFree,
     };
-  }, [data, sharedProps.callToActionUrl, sharedProps.onCallToAction]);
+  }, [data]);
 
   const callToActionTarget = useMemo(() => {
     if (sharedProps.callToActionTarget) {
@@ -202,7 +211,7 @@ export const Plan = ({
           </Text>
         </Box>
 
-        {credits.length > 0 && (
+        {showCredits && credits.length > 0 && (
           <Flex
             $flexDirection="column"
             $gap="1rem"
@@ -294,8 +303,10 @@ export const Plan = ({
                 <Entitlement
                   key={idx}
                   entitlement={entitlement}
-                  sharedProps={{ layout }}
+                  credits={credits}
                   selectedPeriod={selectedPeriod}
+                  showCredits={showCredits}
+                  sharedProps={{ layout }}
                 />
               ))
               .slice(0, count?.limit ?? VISIBLE_ENTITLEMENT_COUNT)}
@@ -351,79 +362,76 @@ export const Plan = ({
         ) : (
           showCallToAction &&
           (layout.upgrade.isVisible || layout.downgrade.isVisible) && (
-            <Button
-              type="button"
-              disabled={
-                ((isHydratedPlan(plan) && !plan.valid) || !canCheckout) &&
-                !plan.custom
-              }
-              {...(index > currentPlanIndex
-                ? {
-                    $size: layout.upgrade.buttonSize,
-                    $color: layout.upgrade.buttonStyle,
-                    $variant: "filled",
-                  }
-                : {
-                    $size: layout.downgrade.buttonSize,
-                    $color: layout.downgrade.buttonStyle,
-                    $variant: "outline",
-                  })}
-              {...(plan.custom
-                ? {
-                    as: "a",
-                    href: plan.customPlanConfig?.ctaWebSite ?? "#",
-                    target: "_blank",
-                    rel: "noreferrer",
-                  }
-                : sharedProps.callToActionUrl
+            <Flex $flexDirection="column" $gap="0.5rem">
+              <Button
+                type="button"
+                disabled={
+                  ((isHydratedPlan(plan) && !plan.valid) || !canCheckout) &&
+                  !plan.custom
+                }
+                {...(index > currentPlanIndex
                   ? {
-                      as: "a",
-                      href: sharedProps.callToActionUrl,
-                      target: callToActionTarget,
-                      rel: "noreferrer",
+                      $size: layout.upgrade.buttonSize,
+                      $color: layout.upgrade.buttonStyle,
+                      $variant: "filled",
                     }
                   : {
-                      onClick: () => {
-                        sharedProps.onCallToAction?.(plan);
-
-                        if (
-                          !isStandalone &&
-                          isHydratedPlan(plan) &&
-                          !plan.custom
-                        ) {
-                          setCheckoutState({
-                            period: selectedPeriod,
-                            planId: isActivePlan ? null : plan.id,
-                            usage: false,
-                          });
-                        }
-                      },
+                      $size: layout.downgrade.buttonSize,
+                      $color: layout.downgrade.buttonStyle,
+                      $variant: "outline",
                     })}
-              $fullWidth
-            >
-              {plan.custom ? (
-                (plan.customPlanConfig?.ctaText ?? t("Talk to support"))
-              ) : isHydratedPlan(plan) && !plan.valid ? (
-                <Tooltip
-                  trigger={
-                    <Text as={Box} $align="center">
-                      {t("Over usage limit")}
-                    </Text>
-                  }
-                  content={
-                    <Text>
-                      {t("Current usage exceeds the limit of this plan.")}
-                    </Text>
-                  }
-                />
-              ) : isHydratedPlan(plan) &&
-                plan.companyCanTrial &&
-                plan.isTrialable ? (
-                t("Start X day trial", { days: plan.trialDays })
-              ) : (
-                t("Choose plan")
+                {...(plan.custom
+                  ? {
+                      as: "a",
+                      href: plan.customPlanConfig?.ctaWebSite ?? "#",
+                      target: "_blank",
+                      rel: "noreferrer",
+                    }
+                  : sharedProps.callToActionUrl
+                    ? {
+                        as: "a",
+                        href: sharedProps.callToActionUrl,
+                        target: callToActionTarget,
+                        rel: "noreferrer",
+                      }
+                    : {
+                        onClick: () => {
+                          sharedProps.onCallToAction?.(plan);
+
+                          if (
+                            !isStandalone &&
+                            isHydratedPlan(plan) &&
+                            !plan.custom
+                          ) {
+                            setCheckoutState({
+                              period: selectedPeriod,
+                              planId: isActivePlan ? null : plan.id,
+                              usage: false,
+                            });
+                          }
+                        },
+                      })}
+                $fullWidth
+              >
+                {plan.custom ? (
+                  (plan.customPlanConfig?.ctaText ?? t("Talk to support"))
+                ) : isHydratedPlan(plan) && !plan.valid ? (
+                  <Text as={Box} $align="center">
+                    {t("Over plan limit")}
+                  </Text>
+                ) : isHydratedPlan(plan) &&
+                  plan.companyCanTrial &&
+                  plan.isTrialable ? (
+                  t("Start X day trial", { days: plan.trialDays })
+                ) : (
+                  t("Choose plan")
+                )}
+              </Button>
+
+              {isHydratedPlan(plan) && !plan.valid && (
+                <UsageViolationText violations={plan.usageViolations} />
               )}
-            </Button>
+            </Flex>
           )
         )}
       </Flex>

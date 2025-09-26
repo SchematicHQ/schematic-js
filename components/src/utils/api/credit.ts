@@ -3,7 +3,7 @@ import {
   type PlanCreditGrantView,
 } from "../../api/checkoutexternal";
 import { CreditResetCadence } from "../../const";
-import type { Credit } from "../../types";
+import type { Credit, CreditWithCompanyContext } from "../../types";
 
 function getResetCadencePeriod(cadence: string) {
   switch (cadence) {
@@ -22,10 +22,7 @@ export function groupPlanCreditGrants(creditGrants: PlanCreditGrantView[]) {
   const map = creditGrants.reduce(
     (
       acc: {
-        [key: string]: Omit<
-          Credit,
-          "companyId" | "companyName" | "bundleId" | "total" | "grants"
-        > & { period?: string };
+        [key: string]: Credit;
       },
       grant,
     ) => {
@@ -65,7 +62,7 @@ export function groupCreditGrants(
   const map = creditGrants.reduce(
     (
       acc: {
-        [key: string]: Credit;
+        [key: string]: CreditWithCompanyContext;
       },
       grant,
     ) => {

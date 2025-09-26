@@ -9,7 +9,7 @@ export const Label = styled.label`
   transition:
     transform 0.5s cubic-bezier(0.19, 1, 0.22, 1),
     opacity 0.5s cubic-bezier(0.19, 1, 0.22, 1);
-  color: #cdd6f4;
+  color: ${({ theme }) => (theme.colorMode === "dark" ? "#cdd6f4" : "#000000")};
   touch-action: manipulation;
 `;
 

@@ -14,7 +14,7 @@
 
 import { mapValues } from "../runtime";
 /**
- * The created resource
+ *
  * @export
  * @interface PaymentMethodResponseData
  */

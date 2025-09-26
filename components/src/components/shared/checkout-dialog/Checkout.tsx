@@ -1,20 +1,46 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import type { PreviewSubscriptionFinanceResponseData } from "../../../api/checkoutexternal";
 import { useIsLightBackground } from "../../../hooks";
+import type {
+  CreditBundle,
+  SelectedPlan,
+  UsageBasedEntitlement,
+} from "../../../types";
 import { PaymentMethodDetails } from "../../elements";
 import { Box, Flex, Input, Text } from "../../ui";
+
+interface ConfirmPaymentIntentProps {
+  clientSecret: string;
+  callback: (confirmed: boolean) => void;
+}
 
 interface CheckoutProps {
   isPaymentMethodRequired: boolean;
   setPaymentMethodId: (id: string) => void;
   updatePromoCode: (code: string) => void;
+  confirmPaymentIntentProps?: ConfirmPaymentIntentProps | null | undefined;
+  financeData?: PreviewSubscriptionFinanceResponseData | null;
+  onPaymentMethodSaved?: (updates: {
+    period?: string;
+    plan?: SelectedPlan;
+    shouldTrial?: boolean;
+    addOns?: SelectedPlan[];
+    payInAdvanceEntitlements?: UsageBasedEntitlement[];
+    addOnPayInAdvanceEntitlements?: UsageBasedEntitlement[];
+    creditBundles?: CreditBundle[];
+    promoCode?: string | null;
+  }) => void;
 }
 
 export const Checkout = ({
   isPaymentMethodRequired,
   setPaymentMethodId,
   updatePromoCode,
+  confirmPaymentIntentProps,
+  financeData,
+  onPaymentMethodSaved,
 }: CheckoutProps) => {
   const { t } = useTranslation();
 
@@ -28,7 +54,12 @@ export const Checkout = ({
 
   return (
     <>
-      <PaymentMethodDetails setPaymentMethodId={setPaymentMethodId} />
+      <PaymentMethodDetails
+        confirmPaymentIntentProps={confirmPaymentIntentProps}
+        setPaymentMethodId={setPaymentMethodId}
+        financeData={financeData}
+        onPaymentMethodSaved={onPaymentMethodSaved}
+      />
 
       <Flex $flexDirection="column" $gap="1rem">
         <Box>

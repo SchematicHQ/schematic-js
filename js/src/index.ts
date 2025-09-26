@@ -1,4 +1,4 @@
-import * as uuid from "uuid";
+import { v4 as uuidv4 } from "uuid";
 
 import "cross-fetch/polyfill";
 import {
@@ -524,7 +524,7 @@ export class Schematic {
           quantity,
         },
         sent_at: new Date().toISOString(),
-        tracker_event_id: uuid.v4(),
+        tracker_event_id: uuidv4(),
         tracker_user_id: this.getAnonymousId(),
         type: "track",
       };
@@ -696,7 +696,7 @@ export class Schematic {
 
   private getAnonymousId = (): string => {
     if (!this.storage) {
-      return uuid.v4();
+      return uuidv4();
     }
 
     const storedAnonymousId = this.storage.getItem(anonymousIdKey);
@@ -704,7 +704,7 @@ export class Schematic {
       return storedAnonymousId;
     }
 
-    const generatedAnonymousId = uuid.v4();
+    const generatedAnonymousId = uuidv4();
     this.storage.setItem(anonymousIdKey, generatedAnonymousId);
     return generatedAnonymousId;
   };
@@ -717,7 +717,7 @@ export class Schematic {
       api_key: this.apiKey,
       body: eventBody,
       sent_at: new Date().toISOString(),
-      tracker_event_id: uuid.v4(),
+      tracker_event_id: uuidv4(),
       tracker_user_id: this.getAnonymousId(),
       type: eventType,
     };

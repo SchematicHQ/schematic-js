@@ -70,6 +70,24 @@ export interface PreviewSubscriptionFinanceResponseData {
   proration: number;
   /**
    *
+   * @type {number}
+   * @memberof PreviewSubscriptionFinanceResponseData
+   */
+  taxAmount?: number | null;
+  /**
+   *
+   * @type {string}
+   * @memberof PreviewSubscriptionFinanceResponseData
+   */
+  taxDisplayName?: string | null;
+  /**
+   *
+   * @type {boolean}
+   * @memberof PreviewSubscriptionFinanceResponseData
+   */
+  taxRequireBillingDetails: boolean;
+  /**
+   *
    * @type {Date}
    * @memberof PreviewSubscriptionFinanceResponseData
    */
@@ -100,6 +118,11 @@ export function instanceOfPreviewSubscriptionFinanceResponseData(
     return false;
   if (!("proration" in value) || value["proration"] === undefined) return false;
   if (
+    !("taxRequireBillingDetails" in value) ||
+    value["taxRequireBillingDetails"] === undefined
+  )
+    return false;
+  if (
     !("upcomingInvoiceLineItems" in value) ||
     value["upcomingInvoiceLineItems"] === undefined
   )
@@ -128,6 +151,10 @@ export function PreviewSubscriptionFinanceResponseDataFromJSONTyped(
     periodStart: new Date(json["period_start"]),
     promoCodeApplied: json["promo_code_applied"],
     proration: json["proration"],
+    taxAmount: json["tax_amount"] == null ? undefined : json["tax_amount"],
+    taxDisplayName:
+      json["tax_display_name"] == null ? undefined : json["tax_display_name"],
+    taxRequireBillingDetails: json["tax_require_billing_details"],
     trialEnd:
       json["trial_end"] == null ? undefined : new Date(json["trial_end"]),
     upcomingInvoiceLineItems: (
@@ -150,6 +177,9 @@ export function PreviewSubscriptionFinanceResponseDataToJSON(
     period_start: value["periodStart"].toISOString(),
     promo_code_applied: value["promoCodeApplied"],
     proration: value["proration"],
+    tax_amount: value["taxAmount"],
+    tax_display_name: value["taxDisplayName"],
+    tax_require_billing_details: value["taxRequireBillingDetails"],
     trial_end:
       value["trialEnd"] == null
         ? undefined

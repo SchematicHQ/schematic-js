@@ -25,7 +25,7 @@ export type BillingPrice = BillingPriceView | BillingPriceResponseData;
 export type Plan = CompanyPlanDetailResponseData | PlanViewPublicResponseData;
 export type SelectedPlan = Plan & { isSelected: boolean };
 
-export interface Credit {
+export interface CreditWithCompanyContext {
   id: CreditCompanyGrantView["billingCreditId"];
   name: CreditCompanyGrantView["creditName"];
   singularName: CreditCompanyGrantView["singularName"];
@@ -46,6 +46,11 @@ export interface Credit {
   };
   grants: CreditCompanyGrantView[];
 }
+
+export type Credit = Omit<
+  CreditWithCompanyContext,
+  "companyId" | "companyName" | "bundleId" | "total" | "grants"
+> & { period?: string };
 
 export type CreditBundle = BillingCreditBundleView & { count: number };
 

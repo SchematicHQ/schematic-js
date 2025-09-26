@@ -6,3 +6,4 @@ export * from "./period-toggle";
 export * from "./pricing-tiers-tooltip";
 export * from "./tiered-pricing-details";
 export * from "./unsubscribe-dialog";
+export * from "./usage-violation-text";

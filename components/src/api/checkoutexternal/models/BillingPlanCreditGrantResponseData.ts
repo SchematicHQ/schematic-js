@@ -16,132 +16,115 @@ import { mapValues } from "../runtime";
 /**
  *
  * @export
- * @interface PlanCreditGrantView
+ * @interface BillingPlanCreditGrantResponseData
  */
-export interface PlanCreditGrantView {
+export interface BillingPlanCreditGrantResponseData {
   /**
    *
    * @type {Date}
-   * @memberof PlanCreditGrantView
+   * @memberof BillingPlanCreditGrantResponseData
    */
   createdAt: Date;
   /**
    *
    * @type {number}
-   * @memberof PlanCreditGrantView
+   * @memberof BillingPlanCreditGrantResponseData
    */
   creditAmount: number;
   /**
    *
    * @type {string}
-   * @memberof PlanCreditGrantView
-   */
-  creditDescription: string;
-  /**
-   *
-   * @type {string}
-   * @memberof PlanCreditGrantView
-   */
-  creditIcon?: string | null;
-  /**
-   *
-   * @type {string}
-   * @memberof PlanCreditGrantView
+   * @memberof BillingPlanCreditGrantResponseData
    */
   creditId: string;
   /**
    *
    * @type {string}
-   * @memberof PlanCreditGrantView
+   * @memberof BillingPlanCreditGrantResponseData
    */
   creditName: string;
   /**
    *
    * @type {string}
-   * @memberof PlanCreditGrantView
+   * @memberof BillingPlanCreditGrantResponseData
+   */
+  creditPluralName?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof BillingPlanCreditGrantResponseData
+   */
+  creditSingularName?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof BillingPlanCreditGrantResponseData
    */
   expiryType?: string | null;
   /**
    *
    * @type {string}
-   * @memberof PlanCreditGrantView
+   * @memberof BillingPlanCreditGrantResponseData
    */
   expiryUnit?: string | null;
   /**
    *
    * @type {number}
-   * @memberof PlanCreditGrantView
+   * @memberof BillingPlanCreditGrantResponseData
    */
   expiryUnitCount?: number | null;
   /**
    *
    * @type {string}
-   * @memberof PlanCreditGrantView
+   * @memberof BillingPlanCreditGrantResponseData
    */
   id: string;
   /**
    *
    * @type {string}
-   * @memberof PlanCreditGrantView
+   * @memberof BillingPlanCreditGrantResponseData
    */
   planId: string;
   /**
    *
    * @type {string}
-   * @memberof PlanCreditGrantView
+   * @memberof BillingPlanCreditGrantResponseData
    */
   planName: string;
   /**
    *
    * @type {string}
-   * @memberof PlanCreditGrantView
-   */
-  pluralName?: string | null;
-  /**
-   *
-   * @type {string}
-   * @memberof PlanCreditGrantView
+   * @memberof BillingPlanCreditGrantResponseData
    */
   resetCadence: string;
   /**
    *
    * @type {string}
-   * @memberof PlanCreditGrantView
+   * @memberof BillingPlanCreditGrantResponseData
    */
   resetStart: string;
   /**
    *
    * @type {string}
-   * @memberof PlanCreditGrantView
+   * @memberof BillingPlanCreditGrantResponseData
    */
-  resetType: string;
-  /**
-   *
-   * @type {string}
-   * @memberof PlanCreditGrantView
-   */
-  singularName?: string | null;
+  resetType?: string | null;
   /**
    *
    * @type {Date}
-   * @memberof PlanCreditGrantView
+   * @memberof BillingPlanCreditGrantResponseData
    */
   updatedAt: Date;
 }
 
 /**
- * Check if a given object implements the PlanCreditGrantView interface.
+ * Check if a given object implements the BillingPlanCreditGrantResponseData interface.
  */
-export function instanceOfPlanCreditGrantView(
+export function instanceOfBillingPlanCreditGrantResponseData(
   value: object,
-): value is PlanCreditGrantView {
+): value is BillingPlanCreditGrantResponseData {
   if (!("createdAt" in value) || value["createdAt"] === undefined) return false;
   if (!("creditAmount" in value) || value["creditAmount"] === undefined)
-    return false;
-  if (
-    !("creditDescription" in value) ||
-    value["creditDescription"] === undefined
-  )
     return false;
   if (!("creditId" in value) || value["creditId"] === undefined) return false;
   if (!("creditName" in value) || value["creditName"] === undefined)
@@ -153,29 +136,36 @@ export function instanceOfPlanCreditGrantView(
     return false;
   if (!("resetStart" in value) || value["resetStart"] === undefined)
     return false;
-  if (!("resetType" in value) || value["resetType"] === undefined) return false;
   if (!("updatedAt" in value) || value["updatedAt"] === undefined) return false;
   return true;
 }
 
-export function PlanCreditGrantViewFromJSON(json: any): PlanCreditGrantView {
-  return PlanCreditGrantViewFromJSONTyped(json, false);
+export function BillingPlanCreditGrantResponseDataFromJSON(
+  json: any,
+): BillingPlanCreditGrantResponseData {
+  return BillingPlanCreditGrantResponseDataFromJSONTyped(json, false);
 }
 
-export function PlanCreditGrantViewFromJSONTyped(
+export function BillingPlanCreditGrantResponseDataFromJSONTyped(
   json: any,
   ignoreDiscriminator: boolean,
-): PlanCreditGrantView {
+): BillingPlanCreditGrantResponseData {
   if (json == null) {
     return json;
   }
   return {
     createdAt: new Date(json["created_at"]),
     creditAmount: json["credit_amount"],
-    creditDescription: json["credit_description"],
-    creditIcon: json["credit_icon"] == null ? undefined : json["credit_icon"],
     creditId: json["credit_id"],
     creditName: json["credit_name"],
+    creditPluralName:
+      json["credit_plural_name"] == null
+        ? undefined
+        : json["credit_plural_name"],
+    creditSingularName:
+      json["credit_singular_name"] == null
+        ? undefined
+        : json["credit_singular_name"],
     expiryType: json["expiry_type"] == null ? undefined : json["expiry_type"],
     expiryUnit: json["expiry_unit"] == null ? undefined : json["expiry_unit"],
     expiryUnitCount:
@@ -183,18 +173,15 @@ export function PlanCreditGrantViewFromJSONTyped(
     id: json["id"],
     planId: json["plan_id"],
     planName: json["plan_name"],
-    pluralName: json["plural_name"] == null ? undefined : json["plural_name"],
     resetCadence: json["reset_cadence"],
     resetStart: json["reset_start"],
-    resetType: json["reset_type"],
-    singularName:
-      json["singular_name"] == null ? undefined : json["singular_name"],
+    resetType: json["reset_type"] == null ? undefined : json["reset_type"],
     updatedAt: new Date(json["updated_at"]),
   };
 }
 
-export function PlanCreditGrantViewToJSON(
-  value?: PlanCreditGrantView | null,
+export function BillingPlanCreditGrantResponseDataToJSON(
+  value?: BillingPlanCreditGrantResponseData | null,
 ): any {
   if (value == null) {
     return value;
@@ -202,21 +189,19 @@ export function PlanCreditGrantViewToJSON(
   return {
     created_at: value["createdAt"].toISOString(),
     credit_amount: value["creditAmount"],
-    credit_description: value["creditDescription"],
-    credit_icon: value["creditIcon"],
     credit_id: value["creditId"],
     credit_name: value["creditName"],
+    credit_plural_name: value["creditPluralName"],
+    credit_singular_name: value["creditSingularName"],
     expiry_type: value["expiryType"],
     expiry_unit: value["expiryUnit"],
     expiry_unit_count: value["expiryUnitCount"],
     id: value["id"],
     plan_id: value["planId"],
     plan_name: value["planName"],
-    plural_name: value["pluralName"],
     reset_cadence: value["resetCadence"],
     reset_start: value["resetStart"],
     reset_type: value["resetType"],
-    singular_name: value["singularName"],
     updated_at: value["updatedAt"].toISOString(),
   };
 }

@@ -22,18 +22,19 @@ jobs:
     steps:
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5.0.0
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-            role-to-assume: ${{ vars.DEV_AWS_ROLE_ARN }}
-            aws-region: ${{ vars.DEV_AWS_REGION }}
+      # This is not working from Public repos.
+      # - name: Configure AWS Credentials
+      #   uses: aws-actions/configure-aws-credentials@v5.0.0
+      #   with:
+      #       role-to-assume: ${{ vars.DEV_AWS_ROLE_ARN }}
+      #       aws-region: ${{ vars.DEV_AWS_REGION }}
 
-      - name: Claude Code Action
-        uses: SchematicHQ/actions/claude@main
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          use_bedrock: "true"
-          aws_account_id: ${{ vars.DEV_AWS_ACCOUNT_ID }}
-          aws_region: ${{ vars.DEV_AWS_REGION }}
+      # - name: Claude Code Action
+      #   uses: SchematicHQ/actions/claude@main
+      #   with:
+      #     github_token: ${{ secrets.GITHUB_TOKEN }}
+      #     use_bedrock: "true"
+      #     aws_account_id: ${{ vars.DEV_AWS_ACCOUNT_ID }}
+      #     aws_region: ${{ vars.DEV_AWS_REGION }}

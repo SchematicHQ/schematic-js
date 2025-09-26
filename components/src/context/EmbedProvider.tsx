@@ -18,6 +18,7 @@ import {
   CheckoutexternalApi,
   Configuration as CheckoutConfiguration,
   type ChangeSubscriptionRequestBody,
+  type CheckoutResponseData,
   type ComponentHydrateResponseData,
   type ConfigurationParameters,
 } from "../api/checkoutexternal";
@@ -25,7 +26,7 @@ import {
   ComponentspublicApi,
   Configuration as PublicConfiguration,
 } from "../api/componentspublic";
-import { DEBOUNCE_SETTINGS, FETCH_DEBOUNCE_TIMEOUT } from "../const";
+import { FETCH_DEBOUNCE_TIMEOUT, LEADING_DEBOUNCE_SETTINGS } from "../const";
 import type { DeepPartial } from "../types";
 import { ERROR_UNKNOWN, isError } from "../utils";
 
@@ -85,6 +86,16 @@ export const EmbedProvider = ({
     [options.debug],
   );
 
+  const finishCheckout = useCallback(
+    (checkoutData: CheckoutResponseData) => {
+      dispatch({
+        type: "CHECKOUT",
+        data: checkoutData,
+      });
+    },
+    [dispatch],
+  );
+
   // hydration
 
   /**
@@ -115,7 +126,12 @@ export const EmbedProvider = ({
   }, [api.public]);
 
   const debouncedHydratePublic = useMemo(
-    () => debounce(hydratePublic, FETCH_DEBOUNCE_TIMEOUT, DEBOUNCE_SETTINGS),
+    () =>
+      debounce(
+        hydratePublic,
+        FETCH_DEBOUNCE_TIMEOUT,
+        LEADING_DEBOUNCE_SETTINGS,
+      ),
     [hydratePublic],
   );
 
@@ -148,7 +164,7 @@ export const EmbedProvider = ({
   }, [api.checkout]);
 
   const debouncedHydrate = useMemo(
-    () => debounce(hydrate, FETCH_DEBOUNCE_TIMEOUT, DEBOUNCE_SETTINGS),
+    () => debounce(hydrate, FETCH_DEBOUNCE_TIMEOUT, LEADING_DEBOUNCE_SETTINGS),
     [hydrate],
   );
 
@@ -185,7 +201,12 @@ export const EmbedProvider = ({
   );
 
   const debouncedHydrateComponent = useMemo(
-    () => debounce(hydrateComponent, FETCH_DEBOUNCE_TIMEOUT, DEBOUNCE_SETTINGS),
+    () =>
+      debounce(
+        hydrateComponent,
+        FETCH_DEBOUNCE_TIMEOUT,
+        LEADING_DEBOUNCE_SETTINGS,
+      ),
     [hydrateComponent],
   );
 
@@ -216,7 +237,12 @@ export const EmbedProvider = ({
   }, []);
 
   const debouncedHydrateExternal = useMemo(
-    () => debounce(hydrateExternal, FETCH_DEBOUNCE_TIMEOUT, DEBOUNCE_SETTINGS),
+    () =>
+      debounce(
+        hydrateExternal,
+        FETCH_DEBOUNCE_TIMEOUT,
+        LEADING_DEBOUNCE_SETTINGS,
+      ),
     [hydrateExternal],
   );
 
@@ -227,7 +253,11 @@ export const EmbedProvider = ({
 
   const debouncedCreateSetupIntent = useMemo(
     () =>
-      debounce(createSetupIntent, FETCH_DEBOUNCE_TIMEOUT, DEBOUNCE_SETTINGS),
+      debounce(
+        createSetupIntent,
+        FETCH_DEBOUNCE_TIMEOUT,
+        LEADING_DEBOUNCE_SETTINGS,
+      ),
     [createSetupIntent],
   );
 
@@ -251,7 +281,11 @@ export const EmbedProvider = ({
 
   const debouncedUpdatePaymentMethod = useMemo(
     () =>
-      debounce(updatePaymentMethod, FETCH_DEBOUNCE_TIMEOUT, DEBOUNCE_SETTINGS),
+      debounce(
+        updatePaymentMethod,
+        FETCH_DEBOUNCE_TIMEOUT,
+        LEADING_DEBOUNCE_SETTINGS,
+      ),
     [updatePaymentMethod],
   );
 
@@ -275,7 +309,11 @@ export const EmbedProvider = ({
 
   const debouncedDeletePaymentMethod = useMemo(
     () =>
-      debounce(deletePaymentMethod, FETCH_DEBOUNCE_TIMEOUT, DEBOUNCE_SETTINGS),
+      debounce(
+        deletePaymentMethod,
+        FETCH_DEBOUNCE_TIMEOUT,
+        LEADING_DEBOUNCE_SETTINGS,
+      ),
     [deletePaymentMethod],
   );
 
@@ -285,7 +323,7 @@ export const EmbedProvider = ({
         changeSubscriptionRequestBody,
       });
 
-      if (response) {
+      if (response && !response.data.confirmPaymentIntentClientSecret) {
         dispatch({
           type: "CHECKOUT",
           data: response.data,
@@ -298,7 +336,7 @@ export const EmbedProvider = ({
   );
 
   const debouncedCheckout = useMemo(
-    () => debounce(checkout, FETCH_DEBOUNCE_TIMEOUT, DEBOUNCE_SETTINGS),
+    () => debounce(checkout, FETCH_DEBOUNCE_TIMEOUT, LEADING_DEBOUNCE_SETTINGS),
     [checkout],
   );
 
@@ -307,17 +345,6 @@ export const EmbedProvider = ({
       return api.checkout?.previewCheckout({ changeSubscriptionRequestBody });
     },
     [api.checkout],
-  );
-
-  const debouncedPreviewCheckout = useMemo(
-    () =>
-      debounce(previewCheckout, FETCH_DEBOUNCE_TIMEOUT, {
-        // invoke immediately for minimal latency
-        leading: true,
-        // but also ensure latest data is fetched
-        trailing: true,
-      }),
-    [previewCheckout],
   );
 
   const unsubscribe = useCallback(async () => {
@@ -334,7 +361,8 @@ export const EmbedProvider = ({
   }, [api.checkout]);
 
   const debouncedUnsubscribe = useMemo(
-    () => debounce(unsubscribe, FETCH_DEBOUNCE_TIMEOUT, DEBOUNCE_SETTINGS),
+    () =>
+      debounce(unsubscribe, FETCH_DEBOUNCE_TIMEOUT, LEADING_DEBOUNCE_SETTINGS),
     [unsubscribe],
   );
 
@@ -349,7 +377,11 @@ export const EmbedProvider = ({
 
   const debouncedGetUpcomingInvoice = useMemo(
     () =>
-      debounce(getUpcomingInvoice, FETCH_DEBOUNCE_TIMEOUT, DEBOUNCE_SETTINGS),
+      debounce(
+        getUpcomingInvoice,
+        FETCH_DEBOUNCE_TIMEOUT,
+        LEADING_DEBOUNCE_SETTINGS,
+      ),
     [getUpcomingInvoice],
   );
 
@@ -359,7 +391,11 @@ export const EmbedProvider = ({
 
   const debouncedGetCustomerBalance = useMemo(
     () =>
-      debounce(getCustomerBalance, FETCH_DEBOUNCE_TIMEOUT, DEBOUNCE_SETTINGS),
+      debounce(
+        getCustomerBalance,
+        FETCH_DEBOUNCE_TIMEOUT,
+        LEADING_DEBOUNCE_SETTINGS,
+      ),
     [getCustomerBalance],
   );
 
@@ -368,7 +404,8 @@ export const EmbedProvider = ({
   }, [api.checkout]);
 
   const debouncedListInvoices = useMemo(
-    () => debounce(listInvoices, FETCH_DEBOUNCE_TIMEOUT, DEBOUNCE_SETTINGS),
+    () =>
+      debounce(listInvoices, FETCH_DEBOUNCE_TIMEOUT, LEADING_DEBOUNCE_SETTINGS),
     [listInvoices],
   );
 
@@ -425,11 +462,8 @@ export const EmbedProvider = ({
     const colorMode = darkModeQuery.matches ? "dark" : "light";
     dispatch({
       type: "UPDATE_SETTINGS",
-      settings: {
-        theme: {
-          colorMode,
-        },
-      },
+      settings: { theme: { colorMode } },
+      update: true,
     });
 
     function darkModeQueryHandler(event: MediaQueryListEvent) {
@@ -437,6 +471,7 @@ export const EmbedProvider = ({
       dispatch({
         type: "UPDATE_SETTINGS",
         settings: { theme: { colorMode: newColorMode } },
+        update: true,
       });
     }
 
@@ -500,8 +535,9 @@ export const EmbedProvider = ({
   }, [state.accessToken, apiConfig, customHeaders]);
 
   useEffect(() => {
-    const providedSettings = { ...(options.settings || {}) };
-    updateSettings(providedSettings, { update: false });
+    if (options.settings) {
+      updateSettings(options.settings, { update: true });
+    }
   }, [options.settings, updateSettings]);
 
   useEffect(() => {
@@ -536,11 +572,12 @@ export const EmbedProvider = ({
         updatePaymentMethod: debouncedUpdatePaymentMethod,
         deletePaymentMethod: debouncedDeletePaymentMethod,
         checkout: debouncedCheckout,
-        previewCheckout: debouncedPreviewCheckout,
+        previewCheckout,
         unsubscribe: debouncedUnsubscribe,
         getUpcomingInvoice: debouncedGetUpcomingInvoice,
         getCustomerBalance: debouncedGetCustomerBalance,
         listInvoices: debouncedListInvoices,
+        finishCheckout,
         setError,
         setAccessToken,
         setLayout,
