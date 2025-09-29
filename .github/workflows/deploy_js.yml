@@ -19,7 +19,7 @@ jobs:
       - uses: actions/checkout@v5.0.0
       - uses: actions/setup-node@v5.0.0
         with:
-          node-version: 20.x
+          node-version: 24.x
       - name: Yarn install
         working-directory: ./js
         run: yarn install
@@ -35,13 +35,16 @@ jobs:
       - uses: actions/checkout@v5.0.0
       - uses: actions/setup-node@v5.0.0
         with:
-          node-version: 20.x
+          node-version: 24.x
       - name: Yarn install
         working-directory: ./js
         run: yarn install
       - name: Test
         working-directory: ./js
         run: yarn test
+      - name: Test (React Native)
+        working-directory: ./js
+        run: yarn test:reactnative
 
   deploy:
     name: Browser Deploy
@@ -51,10 +54,10 @@ jobs:
       - uses: runs-on/action@v2.0.3
       - uses: actions/checkout@v5.0.0
 
-      - name: Set Node.js 20.x
+      - name: Set Node.js 24.x
         uses: actions/setup-node@v5.0.0
         with:
-          node-version: 20.x
+          node-version: 24.x
 
       - name: Yarn install
         working-directory: ./js
@@ -98,10 +101,10 @@ jobs:
     steps:
       - uses: runs-on/action@v2.0.3
       - uses: actions/checkout@v5.0.0
-      - name: Set Node.js 20.x
+      - name: Set Node.js 24.x
         uses: actions/setup-node@v5.0.0
         with:
-          node-version: 20.x
+          node-version: 24.x
       - name: Yarn install
         working-directory: ./js
         run: yarn install
