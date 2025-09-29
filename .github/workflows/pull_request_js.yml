@@ -53,3 +53,6 @@ jobs:
       - name: Test
         working-directory: ./js
         run: yarn test
+      - name: Test (React Native)
+        working-directory: ./js
+        run: yarn test:reactnative

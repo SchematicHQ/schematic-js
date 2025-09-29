@@ -722,7 +722,7 @@ export class Schematic {
       type: eventType,
     };
 
-    if (document?.hidden) {
+    if (typeof document !== "undefined" && document?.hidden) {
       return this.storeEvent(event);
     } else {
       return this.sendEvent(event);
