@@ -26,7 +26,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v5.0.0
         with:
-          node-version: '20.x'
+          node-version: '24.x'
 
       - name: Install Vercel CLI
         run: yarn global add vercel
@@ -55,13 +55,13 @@ jobs:
         run: |
           echo "🏠 Setting up demo app..."
           cd schematic-next-example
-          
+
           echo "🔗 Linking components to demo app..."
           yarn link "@schematichq/schematic-components"
 
           echo "📦 Installing demo app dependencies..."
           yarn install --force
-                    
+
           echo "✅ Components package linked successfully!"
 
       - name: Pull Vercel Environment Information
@@ -98,7 +98,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               body: `🚀 **Components Preview Deployed!**
-              
+
               📍 **Preview URL:** ${deploymentUrl}
               🔄 **Components Version:** Built from commit \`${context.sha.substring(0, 7)}\`
               📦 **Demo App:** ${process.env.DEMO_APP_REPO}
@@ -111,7 +111,7 @@ jobs:
         run: |
           echo "## 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           if [ "${{ job.status }}" == "success" ]; then
             echo "✅ **Status:** Deployment completed successfully!" >> $GITHUB_STEP_SUMMARY
             echo "🔗 **URL:** ${{ env.DEPLOYMENT_URL }}" >> $GITHUB_STEP_SUMMARY
