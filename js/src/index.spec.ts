@@ -185,13 +185,15 @@ describe("Schematic", () => {
 
   describe("initialize", () => {
     beforeAll(() => {
-      Object.defineProperty(window, "onbeforeunload", {
-        value: null,
-        writable: true,
-      });
+      if (typeof window !== "undefined") {
+        Object.defineProperty(window, "onbeforeunload", {
+          value: null,
+          writable: true,
+        });
+      }
     });
 
-    it("should flush event queue on beforeunload event", () => {
+    (typeof window === "undefined" ? it.skip : it)("should flush event queue on beforeunload event", () => {
       const eventBody = {
         event: "Page View",
         traits: { url: "https://example.com" },
