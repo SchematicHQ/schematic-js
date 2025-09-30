@@ -231,7 +231,7 @@ export const PricingTable = forwardRef<
         $justifyContent="center"
         $padding={`${settings.theme.card.padding / TEXT_BASE_SIZE}rem`}
       >
-        <Loader $size="2xl" />
+        <Loader aria-label="loading" $size="2xl" />
       </Flex>
     );
   }
@@ -244,6 +244,7 @@ export const PricingTable = forwardRef<
         ref={ref}
         className={`sch-PricingTable ${className}`}
         as={Flex}
+        data-testid="pricing-table"
         $flexDirection="column"
         $gap="2rem"
       >
@@ -283,6 +284,7 @@ export const PricingTable = forwardRef<
 
           {props.plans.isVisible && plans.length > 0 && (
             <Box
+              data-testid="plans"
               $display="grid"
               $gridTemplateColumns="repeat(auto-fill, minmax(320px, 1fr))"
               $gap="1rem"

@@ -2,7 +2,7 @@ import { jest } from "@jest/globals";
 
 import "jest-styled-components";
 
-import { server } from "./src/mocks/node";
+import { server } from "./src/test/mocks/node";
 
 beforeAll(() => {
   server.listen();

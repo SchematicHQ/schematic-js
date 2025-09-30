@@ -2,7 +2,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "test": ["./src/test"]
+      "~/*": ["./src/*"]
     },
     "allowJs": true,
     "declaration": true,
