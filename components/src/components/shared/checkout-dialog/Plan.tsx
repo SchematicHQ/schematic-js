@@ -22,8 +22,6 @@ import {
   getPlanPrice,
   groupPlanCreditGrants,
   hexToHSL,
-  isCheckoutData,
-  isHydratedPlan,
   shortenPeriod,
 } from "../../../utils";
 import { cardBoxShadow } from "../../layout";
@@ -98,27 +96,17 @@ const PlanButtonGroup = ({
   const { data } = useEmbed();
 
   const isTrialing = useMemo(() => {
-    return (
-      (isCheckoutData(data) && data.subscription?.status === "trialing") ||
-      false
-    );
+    return data?.subscription?.status === "trialing" || false;
   }, [data]);
 
   const { isCurrentPlan, isValidPlan } = useMemo(() => {
-    if (isCheckoutData(data)) {
-      return {
-        isCurrentPlan: data.company?.plan?.id === plan.id,
-        isValidPlan: isHydratedPlan(plan) && plan.valid,
-      };
-    }
-
     return {
-      isCurrentPlan: false,
-      isValidPlan: true,
+      isCurrentPlan: data?.company?.plan?.id === plan.id,
+      isValidPlan: plan.valid,
     };
-  }, [data, plan]);
+  }, [plan.id, plan.valid, data?.company?.plan?.id]);
 
-  if (isHydratedPlan(plan) && plan.companyCanTrial && plan.isTrialable) {
+  if (plan.companyCanTrial && plan.isTrialable) {
     return (
       <Flex $flexDirection="column" $gap="1.5rem">
         {!isTrialing && (
@@ -161,7 +149,7 @@ const PlanButtonGroup = ({
                   )}
                 </Button>
 
-                {isHydratedPlan(plan) && !plan.valid && (
+                {!plan.valid && (
                   <UsageViolationText violations={plan.usageViolations} />
                 )}
               </Flex>
@@ -197,7 +185,7 @@ const PlanButtonGroup = ({
                   )}
                 </Button>
 
-                {isHydratedPlan(plan) && !plan.valid && (
+                {!plan.valid && (
                   <UsageViolationText violations={plan.usageViolations} />
                 )}
               </Flex>
@@ -243,9 +231,7 @@ const PlanButtonGroup = ({
         )}
       </Button>
 
-      {isHydratedPlan(plan) && !plan.valid && (
-        <UsageViolationText violations={plan.usageViolations} />
-      )}
+      {!plan.valid && <UsageViolationText violations={plan.usageViolations} />}
     </Flex>
   );
 };
@@ -283,26 +269,18 @@ export const Plan = ({
 
   const { isTrialing, showCredits, showPeriodToggle, showZeroPriceAsFree } =
     useMemo(() => {
-      const showCredits = data?.showCredits ?? true;
-      const showPeriodToggle = data?.showPeriodToggle ?? true;
-      const showZeroPriceAsFree = data?.showZeroPriceAsFree ?? false;
-
-      if (isCheckoutData(data)) {
-        return {
-          isTrialing: data.subscription?.status === "trialing",
-          showCredits,
-          showPeriodToggle,
-          showZeroPriceAsFree,
-        };
-      }
-
       return {
-        isTrialing: false,
-        showCredits,
-        showPeriodToggle,
-        showZeroPriceAsFree,
+        isTrialing: data?.subscription?.status === "trialing",
+        showCredits: data?.showCredits ?? true,
+        showPeriodToggle: data?.showPeriodToggle ?? true,
+        showZeroPriceAsFree: data?.showZeroPriceAsFree ?? false,
       };
-    }, [data]);
+    }, [
+      data?.showCredits,
+      data?.showPeriodToggle,
+      data?.showZeroPriceAsFree,
+      data?.subscription?.status,
+    ]);
 
   const handleToggleShowAll = (id: string) => {
     setEntitlementCounts((prev) => {
@@ -485,7 +463,7 @@ export const Plan = ({
                 </Flex>
               )}
 
-              {isHydratedPlan(plan) && plan.current && (
+              {plan.current && (
                 <Flex
                   $position="absolute"
                   $right="1rem"
