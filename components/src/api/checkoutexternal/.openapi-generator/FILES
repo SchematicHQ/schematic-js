@@ -34,6 +34,8 @@ models/ComponentCapabilities.ts
 models/ComponentCheckoutSettings.ts
 models/ComponentHydrateResponseData.ts
 models/ComponentResponseData.ts
+models/Condition.ts
+models/ConditionGroup.ts
 models/CountResponse.ts
 models/CreateSetupIntentResponse.ts
 models/CreditCompanyGrantView.ts
@@ -77,6 +79,7 @@ models/PreviewObjectResponseData.ts
 models/PreviewSubscriptionChangeResponseData.ts
 models/PreviewSubscriptionFinanceResponseData.ts
 models/PreviewSubscriptionUpcomingInvoiceLineItems.ts
+models/Rule.ts
 models/RuleConditionDetailResponseData.ts
 models/RuleConditionGroupDetailResponseData.ts
 models/RuleConditionGroupResponseData.ts
@@ -85,6 +88,7 @@ models/RuleDetailResponseData.ts
 models/RuleResponseData.ts
 models/SetupIntentResponseData.ts
 models/StripeEmbedInfo.ts
+models/TraitDefinition.ts
 models/UpdateAddOnRequestBody.ts
 models/UpdateCreditBundleRequestBody.ts
 models/UpdatePayInAdvanceRequestBody.ts
