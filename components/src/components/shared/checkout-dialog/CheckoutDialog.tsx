@@ -51,8 +51,9 @@ export const createActiveUsageBasedEntitlementsReducer =
       const featureUsage = entitlements.find(
         (usage) => usage.feature?.id === entitlement.feature?.id,
       );
-      const allocation = featureUsage?.allocation || 0;
-      const usage = featureUsage?.usage || 0;
+      const allocation =
+        featureUsage?.allocation ?? entitlement.valueNumeric ?? 0;
+      const usage = featureUsage?.usage ?? 0;
 
       acc.push({
         ...entitlement,
@@ -532,31 +533,15 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     }) => {
       const plan = updates.plan;
       const period = updates.period || planPeriod;
-      const entitlements = plan.entitlements.reduce(
-        (acc: UsageBasedEntitlement[], entitlement) => {
-          if (
-            entitlement.priceBehavior &&
-            ((period === "month" && entitlement.meteredMonthlyPrice) ||
-              (period === "year" && entitlement.meteredYearlyPrice))
-          ) {
-            const allocation = entitlement.valueNumeric || 0;
-            acc.push({
-              ...entitlement,
-              allocation,
-              usage: 0,
-              quantity: allocation,
-            });
-          }
-
-          return acc;
-        },
+      const updatedUsageBasedEntitlements = plan.entitlements.reduce(
+        createActiveUsageBasedEntitlementsReducer(currentEntitlements, period),
         [],
       );
 
       // only update if the plan is changing
       if (plan.id !== selectedPlan?.id) {
         setSelectedPlan(plan);
-        setUsageBasedEntitlements(entitlements);
+        setUsageBasedEntitlements(updatedUsageBasedEntitlements);
       }
 
       const updatedShouldTrial = updates.shouldTrial ?? shouldTrial;
@@ -581,7 +566,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
               payInAdvanceEntitlements: [],
             }
           : {
-              payInAdvanceEntitlements: entitlements.filter(
+              payInAdvanceEntitlements: updatedUsageBasedEntitlements.filter(
                 ({ priceBehavior }) =>
                   priceBehavior === PriceBehavior.PayInAdvance,
               ),
@@ -591,6 +576,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     [
       selectedPlan?.id,
       planPeriod,
+      currentEntitlements,
       shouldTrial,
       willTrialWithoutPaymentMethod,
       handlePreviewCheckout,

@@ -9,7 +9,11 @@ const Provided = ({ children }: { children: React.ReactNode }) => {
 const customRender = (
   ui: React.ReactElement,
   options?: Omit<RenderOptions, "wrapper">,
-) => render(ui, { wrapper: Provided, ...options });
+) =>
+  render(ui, {
+    wrapper: Provided,
+    ...options,
+  });
 
 export * from "@testing-library/react";
 export { customRender as render };

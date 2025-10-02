@@ -22,6 +22,10 @@ beforeAll(() => {
   });
 });
 
+beforeEach(() => {
+  jest.clearAllMocks();
+});
+
 afterEach(() => {
   server.resetHandlers();
 });

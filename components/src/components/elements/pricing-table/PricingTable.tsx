@@ -164,14 +164,14 @@ export const PricingTable = forwardRef<
       currentPeriod: data?.company?.plan?.planPeriod || "month",
       currentAddOns: data?.company?.addOns || [],
       canCheckout: isStandalone ?? data?.capabilities?.checkout ?? true,
-      showPeriodToggle: data?.showPeriodToggle ?? props.showPeriodToggle,
+      showPeriodToggle: rest.showPeriodToggle ?? data?.showPeriodToggle ?? true,
       isTrialSubscription:
         data?.company?.billingSubscription?.status === "trialing",
       willSubscriptionCancel: data?.company?.billingSubscription?.cancelAt,
       isStandalone,
     };
   }, [
-    props.showPeriodToggle,
+    rest.showPeriodToggle,
     data?.capabilities?.checkout,
     data?.company?.addOns,
     data?.company?.billingSubscription?.cancelAt,

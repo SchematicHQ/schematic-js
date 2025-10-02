@@ -40,7 +40,7 @@ export default {
   transformIgnorePatterns: [
     "/node_modules/(?!(@schematichq/schematic-icons)/)",
   ],
-  setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
+  setupFilesAfterEnv: ["<rootDir>/jest.env.setup.ts"],
   testMatch: ["<rootDir>/src/**/*.test.(ts|tsx)"],
   extensionsToTreatAsEsm: [".ts", ".tsx"],
 } satisfies Config;

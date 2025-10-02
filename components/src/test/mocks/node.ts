@@ -1,5 +1,5 @@
 import { setupServer } from "msw/node";
 
-import { plansHandlers } from "./handlers/plans";
+import { handlers } from "./handlers";
 
-export const server = setupServer(...plansHandlers);
+export const server = setupServer(...handlers);
