@@ -37,6 +37,8 @@ import {
   EntityTraitDetailResponseDataFromJSONTyped,
   EntityTraitDetailResponseDataToJSON,
 } from "./EntityTraitDetailResponseData";
+import type { Rule } from "./Rule";
+import { RuleFromJSON, RuleFromJSONTyped, RuleToJSON } from "./Rule";
 import type { GenericPreviewObject } from "./GenericPreviewObject";
 import {
   GenericPreviewObjectFromJSON,
@@ -165,6 +167,12 @@ export interface CompanyDetailResponseData {
    */
   plans: Array<GenericPreviewObject>;
   /**
+   *
+   * @type {Array<Rule>}
+   * @memberof CompanyDetailResponseData
+   */
+  rules: Array<Rule>;
+  /**
    * A map of trait names to trait values
    * @type {object}
    * @memberof CompanyDetailResponseData
@@ -208,6 +216,7 @@ export function instanceOfCompanyDetailResponseData(
   if (!("paymentMethods" in value) || value["paymentMethods"] === undefined)
     return false;
   if (!("plans" in value) || value["plans"] === undefined) return false;
+  if (!("rules" in value) || value["rules"] === undefined) return false;
   if (!("updatedAt" in value) || value["updatedAt"] === undefined) return false;
   if (!("userCount" in value) || value["userCount"] === undefined) return false;
   return true;
@@ -267,6 +276,7 @@ export function CompanyDetailResponseDataFromJSONTyped(
         ? undefined
         : CompanyPlanWithBillingSubViewFromJSON(json["plan"]),
     plans: (json["plans"] as Array<any>).map(GenericPreviewObjectFromJSON),
+    rules: (json["rules"] as Array<any>).map(RuleFromJSON),
     traits: json["traits"] == null ? undefined : json["traits"],
     updatedAt: new Date(json["updated_at"]),
     userCount: json["user_count"],
@@ -314,6 +324,7 @@ export function CompanyDetailResponseDataToJSON(
     ),
     plan: CompanyPlanWithBillingSubViewToJSON(value["plan"]),
     plans: (value["plans"] as Array<any>).map(GenericPreviewObjectToJSON),
+    rules: (value["rules"] as Array<any>).map(RuleToJSON),
     traits: value["traits"],
     updated_at: value["updatedAt"].toISOString(),
     user_count: value["userCount"],
