@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import type { SelectedPlan } from "../../../types";
 import { adjectify, getPlanPrice } from "../../../utils";
-import { Flex, Text, Tooltip } from "../../ui";
+import { Button, Flex, Text, Tooltip } from "../../ui";
 
 interface PeriodToggleProps {
   options: string[];
@@ -39,6 +39,7 @@ export const PeriodToggle = ({
 
   return (
     <Flex
+      data-testid="period-toggle"
       $margin={0}
       $backgroundColor={settings.theme.card.background}
       $borderWidth="1px"
@@ -58,9 +59,11 @@ export const PeriodToggle = ({
     >
       {options.map((option) => {
         const element = (
-          <Flex
+          <Button
+            data-testid="period-toggle-button"
+            $size="sm"
+            $variant="text"
             key={option}
-            tabIndex={0}
             onClick={() => onSelect(option)}
             onKeyDown={(event: React.KeyboardEvent) => {
               if (event.key === "Enter" || event.key === " ") {
@@ -68,26 +71,29 @@ export const PeriodToggle = ({
                 onSelect(option);
               }
             }}
-            $justifyContent="center"
-            $alignItems="center"
-            $flexBasis="50%"
-            $whiteSpace="nowrap"
-            $padding="0.75rem 1rem"
-            {...(option === selectedOption && {
-              $backgroundColor: isLightBackground
-                ? "hsla(0, 0%, 0%, 0.125)"
-                : "hsla(0, 0%, 100%, 0.125)",
-            })}
-            $borderRadius="2.5rem"
+            style={{
+              flexBasis: "50%",
+              textDecoration: "none",
+              whiteSpace: "nowrap",
+              borderRadius: "2.5rem",
+              ...(option === selectedOption && {
+                backgroundColor: isLightBackground
+                  ? "hsla(0, 0%, 0%, 0.125)"
+                  : "hsla(0, 0%, 100%, 0.125)",
+              }),
+            }}
           >
             <Text
-              style={{ flexShrink: 0 }}
+              style={{
+                flexShrink: 0,
+                color: settings.theme.typography.text.color,
+              }}
               $size={15}
               $weight={option === selectedOption ? 600 : 400}
             >
               {t("Billed", { period: adjectify(option) })}
             </Text>
-          </Flex>
+          </Button>
         );
 
         if (option === "year" && savingsPercentage > 0) {

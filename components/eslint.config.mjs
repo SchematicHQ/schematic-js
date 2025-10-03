@@ -3,6 +3,7 @@ import json from "@eslint/json";
 import markdown from "@eslint/markdown";
 import { defineConfig } from "eslint/config";
 import importPlugin from "eslint-plugin-import";
+import jest from "eslint-plugin-jest";
 import pluginReact from "eslint-plugin-react";
 import reactHooks from "eslint-plugin-react-hooks";
 import globals from "globals";
@@ -52,6 +53,13 @@ export default defineConfig([
             enabled: true,
             types: "types-last",
           },
+          pathGroups: [
+            {
+              pattern: "~/**",
+              group: "external",
+              position: "after",
+            },
+          ],
         },
       ],
     },
@@ -65,6 +73,10 @@ export default defineConfig([
         version: "detect",
       },
     },
+  },
+  {
+    files: ["**/*.test.{ts,tsx}"],
+    extends: [jest.configs["flat/recommended"], jest.configs["flat/style"]],
   },
   {
     files: ["**/*.json"],
