@@ -133,10 +133,11 @@ export const PricingTable = forwardRef<
 
   const showCallToAction = useMemo(() => {
     return (
+      typeof data?.component !== "undefined" ||
       typeof rest.callToActionUrl === "string" ||
       typeof rest.onCallToAction === "function"
     );
-  }, [rest.callToActionUrl, rest.onCallToAction]);
+  }, [rest.callToActionUrl, rest.onCallToAction, data?.component]);
 
   const callToActionTarget = useMemo(() => {
     if (rest.callToActionTarget) {

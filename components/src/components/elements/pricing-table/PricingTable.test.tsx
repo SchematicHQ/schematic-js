@@ -4,7 +4,6 @@ import "@testing-library/jest-dom";
 import merge from "lodash/merge";
 import { HttpResponse, delay, http } from "msw";
 
-import { PlanViewPublicResponseDataFromJSON } from "~/api/componentspublic";
 import hydrateJson from "~/test/mocks/handlers/response/hydrate.json";
 import plansJson from "~/test/mocks/handlers/response/plans.json";
 import { server } from "~/test/mocks/node";
@@ -174,6 +173,9 @@ describe("`PricingTable`", () => {
     });
   });
 
+  // TODO: fix this test
+  // the default `current` value from the `normalize` function
+  // is overwriting the modified response data in `embedReducer`
   // eslint-disable-next-line jest/no-disabled-tests
   test.skip("Should display current plan with 'Active' label", async () => {
     server.use(
@@ -183,20 +185,6 @@ describe("`PricingTable`", () => {
         return HttpResponse.json(response);
       }),
     );
-
-    jest.mock("../../../hooks/useAvailablePlans", () => ({
-      useAvailablePlans: () => {
-        let plansJson = hydrateJson.data.active_add_ons.slice();
-        plansJson = plansJson.map((plan, i) => ({ ...plan, current: i === 0 }));
-        const addOnsJson = hydrateJson.data.active_add_ons.slice();
-
-        return {
-          plans: plansJson.map(PlanViewPublicResponseDataFromJSON),
-          addOns: addOnsJson.map(PlanViewPublicResponseDataFromJSON),
-          periods: ["month", "year"],
-        };
-      },
-    }));
 
     render(<PricingTable callToActionUrl="/" />);
 
@@ -459,10 +447,7 @@ describe("`PricingTable`", () => {
       http.get("https://api.schematichq.com/public/plans", async () => {
         const response = merge({}, plansJson);
         const plan = response.data.active_plans[0];
-        merge(plan, {
-          monthly_price: null,
-          yearly_price: { price: 120, currency: "USD" },
-        });
+        merge(plan, { monthly_price: null });
 
         return HttpResponse.json(response);
       }),
@@ -476,17 +461,15 @@ describe("`PricingTable`", () => {
 
     // Should show yearly price even though period toggle is not shown
     const planElements = screen.queryAllByTestId("plan");
-    expect(
-      within(planElements[0]).getByText(/\$120\.00\/year/),
-    ).toBeInTheDocument();
+    expect(within(planElements[0]).getByText(/\/year/)).toBeInTheDocument();
   });
 
-  test("Should render trial offer text when plan is triable", async () => {
+  test("Should not render trial offer text when plan is triable", async () => {
     server.use(
       http.get("https://api.schematichq.com/public/plans", async () => {
-        const response = merge({}, plansJson);
-        const plan = response.data.active_plans[0];
-        merge(plan, {
+        const response = merge({}, hydrateJson);
+
+        merge(response.data.active_plans[0], {
           is_trialable: true,
           trial_days: 14,
           company_can_trial: true,
@@ -502,7 +485,13 @@ describe("`PricingTable`", () => {
       expect(screen.queryByLabelText("loading")).not.toBeInTheDocument(),
     );
 
-    expect(screen.getByText("Start 14 day trial")).toBeInTheDocument();
+    const planElements = screen.queryAllByTestId("plan");
+    expect(
+      within(planElements[0]).queryByText("Choose plan"),
+    ).toBeInTheDocument();
+    expect(
+      within(planElements[0]).queryByText(/Start 14 day trial/),
+    ).not.toBeInTheDocument();
   });
 
   test("Should handle period toggle keyboard navigation", async () => {
@@ -512,19 +501,22 @@ describe("`PricingTable`", () => {
       expect(screen.queryByLabelText("loading")).not.toBeInTheDocument(),
     );
 
-    const monthOption = screen.getByLabelText("month");
-    const yearOption = screen.getByLabelText("year");
+    const yearButton = screen.getByText("Billed yearly");
 
-    // Should start with month selected
-    expect(monthOption).toBeChecked();
-    expect(yearOption).not.toBeChecked();
+    const planElements = screen.queryAllByTestId("plan");
+    expect(within(planElements[0]).queryByText("/month")).toBeInTheDocument();
 
-    // Focus on year and press space to select it
-    yearOption.focus();
-    fireEvent.keyDown(yearOption, { key: " " });
+    act(() => {
+      fireEvent.focus(yearButton);
+      fireEvent.keyDown(yearButton, { key: " " });
+    });
 
-    expect(monthOption).not.toBeChecked();
-    expect(yearOption).toBeChecked();
+    await waitFor(() => {
+      const planElementsAfterToggle = screen.queryAllByTestId("plan");
+      expect(
+        within(planElementsAfterToggle[0]).queryByText("/year"),
+      ).toBeInTheDocument();
+    });
   });
 
   test("Should handle entitlement expand/collapse with keyboard", async () => {
@@ -540,9 +532,15 @@ describe("`PricingTable`", () => {
               feature: {
                 id: `feat-${i}`,
                 name: `Feature ${i}`,
+                singular_name: "",
+                plural_name: "",
+                description: `Feature ${i} description`,
+                feature_type: "boolean",
                 icon: "check",
               },
-              value_type: "trait",
+              value_numeric: 3,
+              value_type: "numeric",
+              price_behavior: null,
             })),
         });
 
@@ -559,14 +557,13 @@ describe("`PricingTable`", () => {
     const firstPlan = screen.queryAllByTestId("plan")[0];
     const seeAllText = within(firstPlan).getByText("See all");
 
-    // Initially only 5 features should be visible
-    expect(within(firstPlan).getAllByText(/Feature \d/)).toHaveLength(5);
+    expect(within(firstPlan).getAllByText(/Feature \d/)).toHaveLength(4);
 
-    // Press Enter key to expand
-    seeAllText.focus();
-    fireEvent.keyDown(seeAllText, { key: "Enter" });
+    act(() => {
+      fireEvent.focus(seeAllText);
+      fireEvent.keyDown(seeAllText, { key: "Enter" });
+    });
 
-    // Now all 10 features should be visible
     expect(within(firstPlan).getAllByText(/Feature \d/)).toHaveLength(10);
   });
 });

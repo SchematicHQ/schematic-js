@@ -43,7 +43,7 @@ export const AddOn = ({ addOn, sharedProps, selectedPeriod }: AddOnProps) => {
 
     return {
       currentAddOns: data?.company?.addOns || [],
-      canCheckout: isStandalone ?? data?.capabilities?.checkout ?? true,
+      canCheckout: isStandalone || (data?.capabilities?.checkout ?? true),
       isStandalone,
     };
   }, [data?.capabilities?.checkout, data?.company?.addOns, data?.component]);

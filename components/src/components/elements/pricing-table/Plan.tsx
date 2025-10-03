@@ -73,7 +73,7 @@ export const Plan = ({
 
     return {
       currentPeriod: data?.company?.plan?.planPeriod || "month",
-      canCheckout: isStandalone ?? data?.capabilities?.checkout ?? true,
+      canCheckout: isStandalone || (data?.capabilities?.checkout ?? true),
       isTrialSubscription:
         data?.company?.billingSubscription?.status === "trialing",
       willSubscriptionCancel:
@@ -376,8 +376,6 @@ export const Plan = ({
                   <Text as={Box} $align="center">
                     {t("Over plan limit")}
                   </Text>
-                ) : plan.companyCanTrial && plan.isTrialable ? (
-                  t("Start X day trial", { days: plan.trialDays })
                 ) : (
                   t("Choose plan")
                 )}
