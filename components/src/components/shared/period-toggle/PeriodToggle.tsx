@@ -39,7 +39,7 @@ export const PeriodToggle = ({
 
   return (
     <Flex
-      data-testid="period-toggle"
+      data-testid="sch-period-toggle"
       $margin={0}
       $backgroundColor={settings.theme.card.background}
       $borderWidth="1px"
@@ -60,7 +60,7 @@ export const PeriodToggle = ({
       {options.map((option) => {
         const element = (
           <Button
-            data-testid="period-toggle-button"
+            data-testid="sch-period-toggle-button"
             $size="sm"
             $variant="text"
             key={option}

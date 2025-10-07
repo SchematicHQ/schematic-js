@@ -142,5 +142,9 @@ export const SchematicEmbed = ({ id, accessToken }: EmbedProps) => {
     return <Loading />;
   }
 
-  return <>{children}</>;
+  return (
+    <Box className="sch-Embed" data-testid="sch-embed">
+      {children}
+    </Box>
+  );
 };

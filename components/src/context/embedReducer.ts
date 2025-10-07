@@ -36,7 +36,7 @@ type EmbedAction =
   | { type: "HYDRATE_COMPONENT"; data: HydrateDataWithCompanyContext }
   | {
       type: "HYDRATE_EXTERNAL";
-      data: HydrateData;
+      data: HydrateDataWithCompanyContext;
     }
   | { type: "CHECKOUT"; data: BillingSubscriptionResponseData }
   | { type: "UNSUBSCRIBE"; data: DeleteResponse }
@@ -98,13 +98,22 @@ export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {
       };
     }
 
-    case "HYDRATE_PUBLIC":
+    case "HYDRATE_PUBLIC": {
+      return {
+        ...state,
+        data: normalize(action.data),
+        error: undefined,
+        isPending: false,
+        stale: false,
+      };
+    }
+
     case "HYDRATE":
     case "HYDRATE_COMPONENT":
     case "HYDRATE_EXTERNAL": {
       return {
         ...state,
-        data: normalize(action.data),
+        data: action.data,
         error: undefined,
         isPending: false,
         stale: false,

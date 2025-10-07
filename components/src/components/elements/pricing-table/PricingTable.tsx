@@ -245,7 +245,7 @@ export const PricingTable = forwardRef<
         ref={ref}
         className={`sch-PricingTable ${className}`}
         as={Flex}
-        data-testid="pricing-table"
+        data-testid="sch-pricing-table"
         $flexDirection="column"
         $gap="2rem"
       >
@@ -285,7 +285,7 @@ export const PricingTable = forwardRef<
 
           {props.plans.isVisible && plans.length > 0 && (
             <Box
-              data-testid="plans"
+              data-testid="sch-plans"
               $display="grid"
               $gridTemplateColumns="repeat(auto-fill, minmax(320px, 1fr))"
               $gap="1rem"

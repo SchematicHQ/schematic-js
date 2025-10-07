@@ -115,7 +115,7 @@ export const Plan = ({
   return (
     <Flex
       className="sch-PricingTable_Plan"
-      data-testid="plan"
+      data-testid="sch-plan"
       data-plan-id={plan.id}
       $position="relative"
       $flexDirection="column"
@@ -156,6 +156,7 @@ export const Plan = ({
 
         <Box>
           <Text
+            data-testid="sch-plan-price"
             $font={headerPriceFontStyle.fontFamily}
             $size={headerPriceFontStyle.fontSize}
             $weight={headerPriceFontStyle.fontWeight}
@@ -219,6 +220,7 @@ export const Plan = ({
 
         {isActivePlan && (
           <Flex
+            data-testid="sch-plan-active"
             $position="absolute"
             $right="1rem"
             $top="1rem"
@@ -329,7 +331,7 @@ export const Plan = ({
               <Button
                 type="button"
                 disabled={(!plan.valid || !canCheckout) && !plan.custom}
-                data-testid="plan-cta-button"
+                data-testid="sch-plan-cta-button"
                 {...(index > currentPlanIndex
                   ? {
                       $size: layout.upgrade.buttonSize,
