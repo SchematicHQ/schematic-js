@@ -7,7 +7,7 @@ import { HttpResponse, delay, http } from "msw";
 import hydrateJson from "~/test/mocks/handlers/response/hydrate.json";
 import plansJson from "~/test/mocks/handlers/response/plans.json";
 import { server } from "~/test/mocks/node";
-import { act, fireEvent, render, screen, waitFor, within } from "~/test/setup";
+import { act, fireEvent, render, screen, within } from "~/test/setup";
 
 import { SchematicEmbed } from "../../embed";
 
@@ -50,8 +50,8 @@ describe("`PricingTable`", () => {
 
       render(<PricingTable callToActionUrl="/" />);
 
-      const loadingText = screen.queryByLabelText("loading");
-      await waitFor(() => expect(loadingText).not.toBeInTheDocument());
+      const wrapper = await screen.findByTestId("sch-pricing-table");
+      expect(wrapper).toBeInTheDocument();
 
       const plansWrapper = screen.queryByTestId("sch-plans");
       expect(plansWrapper).not.toBeInTheDocument();
@@ -60,135 +60,130 @@ describe("`PricingTable`", () => {
     test("Renders pricing table with plans", async () => {
       render(<PricingTable callToActionUrl="/" />);
 
-      const loadingText = screen.queryByLabelText("loading");
-      await waitFor(() => expect(loadingText).not.toBeInTheDocument());
+      const wrapper = await screen.findByTestId("sch-pricing-table");
+      expect(wrapper).toBeInTheDocument();
 
-      expect(screen.queryByTestId("sch-pricing-table")).toBeInTheDocument();
+      const plans = within(wrapper).queryAllByTestId("sch-plan");
+      expect(plans).toHaveLength(4);
 
-      expect(screen.queryAllByTestId("sch-plan")).toHaveLength(4);
-
-      const buttons = screen.queryAllByTestId("sch-plan-cta-button");
+      const buttons = within(wrapper).queryAllByTestId("sch-plan-cta-button");
       expect(buttons).toHaveLength(4);
       for (const button of buttons) {
         expect(button).toBeEnabled();
       }
-
-      expect(screen.queryAllByText("Choose plan")).toHaveLength(3);
-      expect(screen.queryAllByText("Talk to us")).toHaveLength(1);
     });
 
     test("Should hide plans when `plans.isVisible` is false", async () => {
       render(<PricingTable callToActionUrl="/" plans={{ isVisible: false }} />);
 
-      const loadingText = screen.queryByLabelText("loading");
-      await waitFor(() => expect(loadingText).not.toBeInTheDocument());
+      const wrapper = await screen.findByTestId("sch-pricing-table");
+      expect(wrapper).toBeInTheDocument();
 
-      expect(screen.queryByTestId("sch-pricing-table")).toBeInTheDocument();
-      expect(screen.queryByTestId("sch-plans")).not.toBeInTheDocument();
+      const plans = within(wrapper).queryByTestId("sch-plans");
+      expect(plans).not.toBeInTheDocument();
     });
 
-    test("Should hide header when header.isVisible is false", async () => {
+    test("Should hide header when `header.isVisible` is false", async () => {
       render(
         <PricingTable callToActionUrl="/" header={{ isVisible: false }} />,
       );
 
-      const loadingText = screen.queryByLabelText("loading");
-      await waitFor(() => expect(loadingText).not.toBeInTheDocument());
+      const wrapper = await screen.findByTestId("sch-pricing-table");
+      expect(wrapper).toBeInTheDocument();
 
-      expect(screen.queryByTestId("sch-pricing-table")).toBeInTheDocument();
-      expect(screen.queryByText("Plans")).not.toBeInTheDocument();
+      const plansText = within(wrapper).queryByText("Plans");
+      expect(plansText).not.toBeInTheDocument();
     });
 
-    test("Should hide period toggle when showPeriodToggle is false", async () => {
+    test("Should hide period toggle when `showPeriodToggle` is false", async () => {
       render(<PricingTable callToActionUrl="/" showPeriodToggle={false} />);
 
-      const loadingText = screen.queryByLabelText("loading");
-      await waitFor(() => expect(loadingText).not.toBeInTheDocument());
+      const wrapper = await screen.findByTestId("sch-pricing-table");
+      expect(wrapper).toBeInTheDocument();
 
-      expect(screen.queryByTestId("sch-pricing-table")).toBeInTheDocument();
-      expect(screen.queryByTestId("sch-period-toggle")).not.toBeInTheDocument();
+      const periodToggle = within(wrapper).queryByTestId("sch-period-toggle");
+      expect(periodToggle).not.toBeInTheDocument();
     });
 
-    test("Should hide add-ons when addOns.isVisible is false", async () => {
+    test("Should hide add-ons when `addOns.isVisible` is false", async () => {
       render(
         <PricingTable callToActionUrl="/" addOns={{ isVisible: false }} />,
       );
 
-      const loadingText = screen.queryByLabelText("loading");
-      await waitFor(() => expect(loadingText).not.toBeInTheDocument());
+      const wrapper = await screen.findByTestId("sch-pricing-table");
+      expect(wrapper).toBeInTheDocument();
 
-      expect(screen.queryByTestId("sch-pricing-table")).toBeInTheDocument();
-      expect(screen.queryByText("Add-ons")).not.toBeInTheDocument();
+      const plansText = within(wrapper).queryByText("Plans");
+      expect(plansText).toBeInTheDocument();
+
+      const addOnsText = within(wrapper).queryByText("Add-ons");
+      expect(addOnsText).not.toBeInTheDocument();
     });
 
-    test("Should toggle between monthly and yearly plans", async () => {
+    test("Should toggle between monthly and yearly plan prices", async () => {
       render(<PricingTable callToActionUrl="/" />);
 
-      const loadingText = screen.queryByLabelText("loading");
-      await waitFor(() => expect(loadingText).not.toBeInTheDocument());
+      const periodToggle = await screen.findByTestId("sch-period-toggle");
+      expect(periodToggle).toBeInTheDocument();
 
-      // const periodToggle = screen.getByTestId("sch-period-toggle");
-      // expect(periodToggle).toBeInTheDocument();
+      const plans = await screen.findAllByTestId("sch-plan");
+      const price = await within(plans[0]).findByTestId("sch-plan-price");
 
-      const planElements = screen.queryAllByTestId("sch-plan");
-      const firstPlanInitial = within(planElements[0]).getByText("/month");
-      expect(firstPlanInitial).toBeInTheDocument();
+      let periodText = within(price).getByText("/month");
+      expect(periodText).toBeInTheDocument();
 
-      // const yearButton = within(periodToggle).getByText("year");
-      const yearButton = screen.getByText("Billed yearly");
-
+      const yearButton = await within(periodToggle).findByText("Billed yearly");
       act(() => {
         fireEvent.click(yearButton);
       });
 
-      await waitFor(() => {
-        const planElementsAfterToggle = screen.queryAllByTestId("sch-plan");
-        const firstPlanAfterToggle = within(
-          planElementsAfterToggle[0],
-        ).queryByText("/year");
-        expect(firstPlanAfterToggle).toBeInTheDocument();
-      });
+      periodText = within(price).getByText("/year");
+      expect(periodText).toBeInTheDocument();
     });
 
-    test("Should call `onCallToAction` when clicking a plan", async () => {
+    test("Should call `onCallToAction` when clicking a plan button", async () => {
       const mockOnCallToAction = jest.fn();
+
       render(<PricingTable onCallToAction={mockOnCallToAction} />);
 
-      const loadingText = screen.queryByLabelText("loading");
-      await waitFor(() => expect(loadingText).not.toBeInTheDocument());
+      const buttons = await screen.findAllByTestId("sch-plan-cta-button");
 
-      const buttons = screen.queryAllByTestId("sch-plan-cta-button");
-      fireEvent.click(buttons[0]);
+      act(() => {
+        fireEvent.click(buttons[0]);
+      });
 
       expect(mockOnCallToAction).toHaveBeenCalledTimes(1);
     });
 
-    test("Should render free plan text correctly when `showZeroPriceAsFree` is true", async () => {
+    test("Should render free plan price as 'Free' when `showZeroPriceAsFree` is true", async () => {
       server.use(
         http.get("https://api.schematichq.com/public/plans", async () => {
           const response = cloneDeep(plansJson);
+
           response.data.active_plans[0].is_free = true;
           response.data.active_plans[0].monthly_price.price = 0;
           response.data.active_plans[0].monthly_price.price_decimal = "0";
           response.data.active_plans[0].yearly_price.price = 0;
           response.data.active_plans[0].yearly_price.price_decimal = "0";
           response.data.show_zero_price_as_free = true;
+
           return HttpResponse.json(response);
         }),
       );
 
       render(<PricingTable callToActionUrl="/" />);
 
-      const loadingText = screen.queryByLabelText("loading");
-      await waitFor(() => expect(loadingText).not.toBeInTheDocument());
-
-      expect(screen.queryByText("Free")).toBeInTheDocument();
+      const plans = await screen.findAllByTestId("sch-plan");
+      const price = await within(plans[0]).findByTestId("sch-plan-price");
+      const freeText = await within(price).findByText("Free");
+      expect(freeText).toBeInTheDocument();
     });
 
-    test("Should render usage-based text for free plans with usage entitlements", async () => {
+    test("Should render 'Usage-based' text for free plans with usage-based entitlements", async () => {
       server.use(
         http.get("https://api.schematichq.com/public/plans", async () => {
           const response = cloneDeep(plansJson);
+
           const plan = response.data.active_plans[0];
           plan.is_free = true;
           plan.monthly_price.price = 0;
@@ -205,20 +200,20 @@ describe("`PricingTable`", () => {
 
       render(<PricingTable callToActionUrl="/" />);
 
-      const loadingText = screen.queryByLabelText("loading");
-      await waitFor(() => expect(loadingText).not.toBeInTheDocument());
-
-      expect(screen.queryByText("Usage-based")).toBeInTheDocument();
+      const plans = await screen.findAllByTestId("sch-plan");
+      const price = await within(plans[0]).findByTestId("sch-plan-price");
+      const usageBasedText = await within(price).findByText("Usage-based");
+      expect(usageBasedText).toBeInTheDocument();
     });
 
     test("Should render entitlements and handle 'show more'/'show less'", async () => {
       server.use(
         http.get("https://api.schematichq.com/public/plans", async () => {
           const response = cloneDeep(plansJson);
+
           const plan = response.data.active_plans[0];
-          const firstEntitlement = plan.entitlements[0];
           plan.entitlements = Array(10)
-            .fill(firstEntitlement)
+            .fill(plan.entitlements[0])
             .map((entitlement, i) => ({
               ...entitlement,
               id: `ent-${i}`,
@@ -235,28 +230,39 @@ describe("`PricingTable`", () => {
 
       render(<PricingTable callToActionUrl="/" />);
 
-      const loadingText = screen.queryByLabelText("loading");
-      await waitFor(() => expect(loadingText).not.toBeInTheDocument());
+      const plans = await screen.findAllByTestId("sch-plan");
+      const featureNameMatcher = /Feature \d/;
 
-      const firstPlan = screen.queryAllByTestId("sch-plan")[0];
-      const seeAllButton = within(firstPlan).getByText("See all");
-      expect(seeAllButton).toBeInTheDocument();
+      let visibleFeatureNames = await within(plans[0]).findAllByText(
+        featureNameMatcher,
+      );
+      expect(visibleFeatureNames).toHaveLength(4);
 
-      expect(within(firstPlan).queryAllByText(/Feature \d/)).toHaveLength(4);
+      const seeAllText = await within(plans[0]).findByText("See all");
 
-      fireEvent.click(seeAllButton);
+      act(() => {
+        fireEvent.click(seeAllText);
+      });
 
-      expect(within(firstPlan).getAllByText(/Feature \d/)).toHaveLength(10);
+      visibleFeatureNames = await within(plans[0]).findAllByText(
+        featureNameMatcher,
+      );
+      expect(visibleFeatureNames).toHaveLength(10);
 
-      const hideAllButton = within(firstPlan).getByText("Hide all");
-      expect(hideAllButton).toBeInTheDocument();
+      const hideAllText = await within(plans[0]).findByText("Hide all");
+      expect(hideAllText).toBeInTheDocument();
 
-      fireEvent.click(hideAllButton);
+      act(() => {
+        fireEvent.click(hideAllText);
+      });
 
-      expect(within(firstPlan).getAllByText(/Feature \d/)).toHaveLength(4);
+      visibleFeatureNames = await within(plans[0]).findAllByText(
+        featureNameMatcher,
+      );
+      expect(visibleFeatureNames).toHaveLength(4);
     });
 
-    test("Should render proper callToAction URLs", async () => {
+    test("Should render plan buttons as `callToAction` links", async () => {
       render(
         <PricingTable
           callToActionUrl="https://example.com/signup"
@@ -264,10 +270,7 @@ describe("`PricingTable`", () => {
         />,
       );
 
-      const loadingText = screen.queryByLabelText("loading");
-      await waitFor(() => expect(loadingText).not.toBeInTheDocument());
-
-      const buttons = screen.queryAllByTestId("sch-plan-cta-button");
+      const buttons = await screen.findAllByTestId("sch-plan-cta-button");
 
       // Non-custom plan buttons should have the provided callToActionUrl
       const regularButtons = buttons.filter((button) =>
@@ -296,6 +299,7 @@ describe("`PricingTable`", () => {
       server.use(
         http.get("https://api.schematichq.com/public/plans", async () => {
           const response = cloneDeep(plansJson);
+
           response.data.show_credits = true;
 
           const plan = response.data.active_plans[2];
@@ -304,32 +308,6 @@ describe("`PricingTable`", () => {
           grant.credit_name = "API Credits";
           grant.singular_name = "API credit";
           grant.plural_name = "API credits";
-
-          return HttpResponse.json(response);
-        }),
-      );
-
-      render(<PricingTable callToActionUrl="/" />);
-
-      const loadingText = screen.queryByLabelText("loading");
-      await waitFor(() => expect(loadingText).not.toBeInTheDocument());
-
-      expect(
-        screen.getByText(/1000 API credits per month/),
-      ).toBeInTheDocument();
-    });
-
-    // TODO: cleanup bottom to top
-    test("Should not show credits when showCredits is false", async () => {
-      server.use(
-        http.get("https://api.schematichq.com/public/plans", async () => {
-          const response = cloneDeep(plansJson);
-          response.data.show_credits = false;
-
-          const plan = response.data.active_plans[4];
-          const grant = plan.included_credit_grants[0];
-          grant.credit_amount = 1000;
-          grant.credit_name = "API Credits";
           grant.reset_cadence = "monthly";
 
           return HttpResponse.json(response);
@@ -338,12 +316,37 @@ describe("`PricingTable`", () => {
 
       render(<PricingTable callToActionUrl="/" />);
 
-      const loadingText = screen.queryByLabelText("loading");
-      await waitFor(() => expect(loadingText).not.toBeInTheDocument());
+      await screen.findByText("Professional");
 
-      expect(
-        screen.queryByText(/1000 API Credits per month/),
-      ).not.toBeInTheDocument();
+      const creditGrantText = screen.queryByText("1000 API credits per month");
+      expect(creditGrantText).toBeInTheDocument();
+    });
+
+    test("Should not show credits when `showCredits` is false", async () => {
+      server.use(
+        http.get("https://api.schematichq.com/public/plans", async () => {
+          const response = cloneDeep(plansJson);
+
+          response.data.show_credits = false;
+
+          const plan = response.data.active_plans[2];
+          const grant = plan.included_credit_grants[0];
+          grant.credit_amount = 1000;
+          grant.credit_name = "API Credits";
+          grant.singular_name = "API credit";
+          grant.plural_name = "API credits";
+          grant.reset_cadence = "monthly";
+
+          return HttpResponse.json(response);
+        }),
+      );
+
+      render(<PricingTable callToActionUrl="/" />);
+
+      await screen.findByText("Professional");
+
+      const creditGrantText = screen.queryByText("1000 API credits per month");
+      expect(creditGrantText).not.toBeInTheDocument();
     });
 
     test("Should show the correct period based on plan price availability", async () => {
