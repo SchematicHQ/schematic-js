@@ -129,6 +129,18 @@ export interface FeatureUsageResponseData {
    */
   creditUsed?: number | null;
   /**
+   * Effective limit for usage calculations. For overage pricing, this is the soft limit where overage charges begin. For tiered pricing, this is the first tier boundary. For other pricing models, this is the base allocation. Used to calculate usage percentages and determine access thresholds.
+   * @type {number}
+   * @memberof FeatureUsageResponseData
+   */
+  effectiveLimit?: number | null;
+  /**
+   * Per-unit price for current usage scenario
+   * @type {number}
+   * @memberof FeatureUsageResponseData
+   */
+  effectivePrice?: number | null;
+  /**
    *
    * @type {Date}
    * @memberof FeatureUsageResponseData
@@ -159,6 +171,18 @@ export interface FeatureUsageResponseData {
    */
   feature?: FeatureDetailResponseData;
   /**
+   * Whether a valid allocation exists
+   * @type {boolean}
+   * @memberof FeatureUsageResponseData
+   */
+  hasValidAllocation?: boolean | null;
+  /**
+   * Whether this is an unlimited allocation
+   * @type {boolean}
+   * @memberof FeatureUsageResponseData
+   */
+  isUnlimited?: boolean | null;
+  /**
    * The time at which the metric will reset.
    * @type {Date}
    * @memberof FeatureUsageResponseData
@@ -176,6 +200,18 @@ export interface FeatureUsageResponseData {
    * @memberof FeatureUsageResponseData
    */
   monthlyUsageBasedPrice?: BillingPriceView;
+  /**
+   * Amount of usage exceeding soft limit (overage pricing only)
+   * @type {number}
+   * @memberof FeatureUsageResponseData
+   */
+  overuse?: number | null;
+  /**
+   * Percentage of allocation consumed (0-100+)
+   * @type {number}
+   * @memberof FeatureUsageResponseData
+   */
+  percentUsed?: number | null;
   /**
    * The period over which usage is measured.
    * @type {string}
@@ -305,6 +341,10 @@ export function FeatureUsageResponseDataFromJSONTyped(
     creditTypeIcon:
       json["credit_type_icon"] == null ? undefined : json["credit_type_icon"],
     creditUsed: json["credit_used"] == null ? undefined : json["credit_used"],
+    effectiveLimit:
+      json["effective_limit"] == null ? undefined : json["effective_limit"],
+    effectivePrice:
+      json["effective_price"] == null ? undefined : json["effective_price"],
     entitlementExpirationDate:
       json["entitlement_expiration_date"] == null
         ? undefined
@@ -319,6 +359,12 @@ export function FeatureUsageResponseDataFromJSONTyped(
       json["feature"] == null
         ? undefined
         : FeatureDetailResponseDataFromJSON(json["feature"]),
+    hasValidAllocation:
+      json["has_valid_allocation"] == null
+        ? undefined
+        : json["has_valid_allocation"],
+    isUnlimited:
+      json["is_unlimited"] == null ? undefined : json["is_unlimited"],
     metricResetAt:
       json["metric_reset_at"] == null
         ? undefined
@@ -328,6 +374,9 @@ export function FeatureUsageResponseDataFromJSONTyped(
       json["monthly_usage_based_price"] == null
         ? undefined
         : BillingPriceViewFromJSON(json["monthly_usage_based_price"]),
+    overuse: json["overuse"] == null ? undefined : json["overuse"],
+    percentUsed:
+      json["percent_used"] == null ? undefined : json["percent_used"],
     period: json["period"] == null ? undefined : json["period"],
     plan:
       json["plan"] == null ? undefined : PlanResponseDataFromJSON(json["plan"]),
@@ -372,6 +421,8 @@ export function FeatureUsageResponseDataToJSON(
     credit_total: value["creditTotal"],
     credit_type_icon: value["creditTypeIcon"],
     credit_used: value["creditUsed"],
+    effective_limit: value["effectiveLimit"],
+    effective_price: value["effectivePrice"],
     entitlement_expiration_date:
       value["entitlementExpirationDate"] == null
         ? undefined
@@ -380,6 +431,8 @@ export function FeatureUsageResponseDataToJSON(
     entitlement_source: value["entitlementSource"],
     entitlement_type: value["entitlementType"],
     feature: FeatureDetailResponseDataToJSON(value["feature"]),
+    has_valid_allocation: value["hasValidAllocation"],
+    is_unlimited: value["isUnlimited"],
     metric_reset_at:
       value["metricResetAt"] == null
         ? undefined
@@ -388,6 +441,8 @@ export function FeatureUsageResponseDataToJSON(
     monthly_usage_based_price: BillingPriceViewToJSON(
       value["monthlyUsageBasedPrice"],
     ),
+    overuse: value["overuse"],
+    percent_used: value["percentUsed"],
     period: value["period"],
     plan: PlanResponseDataToJSON(value["plan"]),
     plan_entitlement: PlanEntitlementResponseDataToJSON(
