@@ -37,8 +37,8 @@ describe("`PricingTable`", () => {
 
       render(<PricingTable callToActionUrl="/" />, {});
 
-      const loadingText = screen.queryByLabelText("loading");
-      expect(loadingText).toBeInTheDocument();
+      const loading = screen.queryByLabelText("loading");
+      expect(loading).toBeInTheDocument();
     });
 
     test("Renders empty when no plans are available", async () => {
@@ -147,6 +147,7 @@ describe("`PricingTable`", () => {
       render(<PricingTable onCallToAction={mockOnCallToAction} />);
 
       const buttons = await screen.findAllByTestId("sch-plan-cta-button");
+      expect(buttons[0]).toHaveAttribute("href", "/checkout");
 
       act(() => {
         fireEvent.click(buttons[0]);
@@ -378,7 +379,7 @@ describe("`PricingTable`", () => {
       firstPlanPriceText = await within(plans[0]).findByTestId(
         "sch-plan-price",
       );
-      expect(firstPlanPriceText.textContent).toBe("$50.00/year");
+      expect(firstPlanPriceText).toHaveTextContent("$50.00/year");
     });
 
     test("Should not render trial offer text when plan is triable", async () => {

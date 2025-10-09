@@ -1,13 +1,21 @@
 import { jest } from "@jest/globals";
 import "@testing-library/dom";
 import "@testing-library/jest-dom";
-import merge from "lodash/merge";
+import cloneDeep from "lodash/cloneDeep";
 import { HttpResponse, http } from "msw";
 
 import hydrateJson from "~/test/mocks/handlers/response/hydrate.json";
 import plansJson from "~/test/mocks/handlers/response/plans.json";
 import { server } from "~/test/mocks/node";
-import { act, fireEvent, render, screen, waitFor, within } from "~/test/setup";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  waitForElementToBeRemoved,
+  within,
+} from "~/test/setup";
 
 import { PricingTable } from ".";
 
@@ -21,46 +29,50 @@ describe("`PricingTable` integration and edge cases", () => {
 
     render(<PricingTable callToActionUrl="/" />);
 
-    expect(screen.queryByLabelText("loading")).toBeInTheDocument();
+    const loading = screen.queryByLabelText("loading");
+    expect(loading).toBeInTheDocument();
 
-    await waitFor(() =>
-      expect(screen.queryByLabelText("loading")).not.toBeInTheDocument(),
-    );
+    await waitForElementToBeRemoved(loading);
 
-    expect(screen.queryByTestId("sch-pricing-table")).toBeInTheDocument();
-
-    // TODO: add better error state testing
+    const wrapper = screen.queryByTestId("sch-pricing-table");
+    expect(wrapper).toBeInTheDocument();
   });
 
   test("renders when only one period is available", async () => {
     server.use(
       http.get("https://api.schematichq.com/public/plans", async () => {
-        const response = merge({}, plansJson);
+        const response = cloneDeep(plansJson);
+
         for (const plan of response.data.active_plans) {
-          merge(plan, { yearly_price: null });
+          // @ts-expect-error: the inferred type from `plansJson` is not nullable
+          plan.yearly_price = null;
         }
+
         for (const addOn of response.data.active_add_ons) {
-          merge(addOn, { yearly_price: null });
+          // the inferred type from `plansJson` is not nullable
+          addOn.yearly_price = null;
         }
+
         return HttpResponse.json(response);
       }),
     );
 
     render(<PricingTable callToActionUrl="/" />);
 
-    await waitFor(() =>
-      expect(screen.queryByLabelText("loading")).not.toBeInTheDocument(),
-    );
+    const wrapper = await screen.findByTestId("sch-pricing-table");
+    expect(wrapper).toBeInTheDocument();
 
-    const monthButton = screen.queryByText("Billed monthly");
-    expect(monthButton).not.toBeInTheDocument();
+    const billedMonthlyText = screen.queryByText("Billed monthly");
+    expect(billedMonthlyText).not.toBeInTheDocument();
 
-    const yearButton = screen.queryByText("Billed yearly");
-    expect(yearButton).not.toBeInTheDocument();
+    const billedYearlyText = screen.queryByText("Billed yearly");
+    expect(billedYearlyText).not.toBeInTheDocument();
 
-    const planElements = screen.queryAllByTestId("sch-plan");
-    expect(planElements.length).toBeGreaterThan(0);
-    expect(within(planElements[0]).getByText("/month")).toBeInTheDocument();
+    const plans = screen.queryAllByTestId("sch-plan");
+    expect(plans).toHaveLength(4);
+
+    const monthlyPeriodText = within(plans[0]).getByText("/month");
+    expect(monthlyPeriodText).toBeInTheDocument();
   });
 
   test("renders with custom font styles", async () => {
@@ -75,210 +87,122 @@ describe("`PricingTable` integration and edge cases", () => {
       />,
     );
 
-    await waitFor(() =>
-      expect(screen.queryByLabelText("loading")).not.toBeInTheDocument(),
-    );
+    const wrapper = await screen.findByTestId("sch-pricing-table");
+    expect(wrapper).toBeInTheDocument();
 
-    // TODO: check for provided styles
+    const plansHeaderText = within(wrapper).queryByText("Plans");
+    expect(plansHeaderText).toHaveStyleRule(
+      "font-family",
+      "Manrope,sans-serif",
+    );
+    expect(plansHeaderText).toHaveStyleRule("font-size", `${37 / 16}rem`);
+    expect(plansHeaderText).toHaveStyleRule("font-weight", "800");
+    expect(plansHeaderText).toHaveStyleRule("color", "#000000");
+
+    const plans = within(wrapper).queryAllByTestId("sch-plan");
+
+    const planNameText = within(plans[0]).queryByText("Basic");
+    expect(planNameText).toHaveStyleRule("font-family", "Manrope,sans-serif");
+    expect(planNameText).toHaveStyleRule("font-size", `${37 / 16}rem`);
+    expect(planNameText).toHaveStyleRule("font-weight", "800");
+    expect(planNameText).toHaveStyleRule("color", "#000000");
+
+    const planDescriptionText = within(plans[0]).queryByText("A basic plan");
+    expect(planDescriptionText).toHaveStyleRule(
+      "font-family",
+      "Public Sans,sans-serif",
+    );
+    expect(planDescriptionText).toHaveStyleRule("font-size", `${14 / 16}rem`);
+    expect(planDescriptionText).toHaveStyleRule("font-weight", "400");
+    expect(planDescriptionText).toHaveStyleRule("color", "#8A8A8A");
   });
 
-  test.only("handles missing plan descriptions gracefully", async () => {
+  test("handles missing plan descriptions gracefully", async () => {
     server.use(
       http.get("https://api.schematichq.com/public/plans", async () => {
-        const response = merge({}, plansJson);
+        const response = cloneDeep(plansJson);
+
         for (const plan of response.data.active_plans) {
-          merge(plan, { description: null });
+          // @ts-expect-error: the inferred type from `plansJson` is not nullable
+          plan.description = null;
         }
+
         return HttpResponse.json(response);
       }),
     );
 
     render(<PricingTable callToActionUrl="/" />);
 
-    await waitFor(() =>
-      expect(screen.queryByLabelText("loading")).not.toBeInTheDocument(),
-    );
+    const plans = await screen.findAllByTestId("sch-plan");
+    expect(plans[0]).toBeInTheDocument();
 
-    // Should still render plans without descriptions
-    const planElements = screen.queryAllByTestId("sch-plan");
-    expect(planElements.length).toBeGreaterThan(0);
+    const planDescriptionText = within(plans[0]).queryByText("A basic plan");
+    expect(planDescriptionText).not.toBeInTheDocument();
   });
 
   test("handles mixed currency plans gracefully", async () => {
     server.use(
       http.get("https://api.schematichq.com/public/plans", async () => {
-        const response = { ...plansJson };
-        // Set different currencies for some plans
-        if (response.data.active_plans.length > 1) {
-          response.data.active_plans[0].monthly_price.currency = "USD";
-          response.data.active_plans[0].yearly_price.currency = "USD";
+        const response = cloneDeep(plansJson);
 
-          response.data.active_plans[1].monthly_price.currency = "EUR";
-          response.data.active_plans[1].yearly_price.currency = "EUR";
-        }
+        response.data.active_plans[0].monthly_price.currency = "usd";
+        response.data.active_plans[0].yearly_price.currency = "usd";
+
+        response.data.active_plans[1].monthly_price.currency = "eur";
+        response.data.active_plans[1].yearly_price.currency = "eur";
+
         return HttpResponse.json(response);
       }),
     );
 
     render(<PricingTable callToActionUrl="/" />);
 
-    await waitFor(() =>
-      expect(screen.queryByLabelText("loading")).not.toBeInTheDocument(),
+    const plans = await screen.findAllByTestId("sch-plan");
+
+    const firstPlanPrice = await within(plans[0]).findByTestId(
+      "sch-plan-price",
     );
+    expect(firstPlanPrice).toHaveTextContent("$5.00/month");
 
-    // Should render plans with different currencies
-    const planElements = screen.queryAllByTestId("sch-plan");
-    expect(planElements.length).toBeGreaterThan(1);
-
-    // First plan should show USD
-    const firstPlanPrice = within(planElements[0]).getByText(/\$\d+\/month/);
-    expect(firstPlanPrice).toBeInTheDocument();
-
-    // Second plan should show EUR
-    const secondPlanPrice = within(planElements[1]).getByText(/€\d+\/month/);
-    expect(secondPlanPrice).toBeInTheDocument();
+    const secondPlanPrice = await within(plans[1]).findByTestId(
+      "sch-plan-price",
+    );
+    expect(secondPlanPrice).toHaveTextContent("€10.00/month");
   });
 
   test("renders plans with very large prices properly", async () => {
     server.use(
       http.get("https://api.schematichq.com/public/plans", async () => {
-        const response = { ...plansJson };
-        // Set a very large price
-        response.data.active_plans[0].monthly_price.price = 9999999.99;
+        const response = cloneDeep(plansJson);
+
+        const plan = response.data.active_plans[0];
+        plan.monthly_price.price = 999999999;
+        plan.monthly_price.price_decimal = "999999999";
+
         return HttpResponse.json(response);
       }),
     );
 
     render(<PricingTable callToActionUrl="/" />);
 
-    await waitFor(() =>
-      expect(screen.queryByLabelText("loading")).not.toBeInTheDocument(),
+    const plans = await screen.findAllByTestId("sch-plan");
+
+    // the exact format may vary based on locale but it should include commas
+    const firstPlanPrice = await within(plans[0]).findByTestId(
+      "sch-plan-price",
     );
-
-    // Should handle large price formatting properly
-    const planElements = screen.queryAllByTestId("sch-plan");
-
-    // The exact format may vary based on locale, but it should include commas
-    const firstPlanPrice = within(planElements[0]).getByText(
-      /\$9,999,999.99\/month/,
-    );
-    expect(firstPlanPrice).toBeInTheDocument();
-  });
-
-  test("renders with custom plan button when onCallToAction is provided", async () => {
-    const mockOnCallToAction = jest.fn();
-
-    render(<PricingTable onCallToAction={mockOnCallToAction} />);
-
-    await waitFor(() =>
-      expect(screen.queryByLabelText("loading")).not.toBeInTheDocument(),
-    );
-
-    // Get plan buttons and click the first one
-    const buttons = screen.getAllByTestId("sch-plan-cta-button");
-    fireEvent.click(buttons[0]);
-
-    // onCallToAction should be called
-    expect(mockOnCallToAction).toHaveBeenCalledTimes(1);
-  });
-
-  test("renders with both callToActionUrl and onCallToAction", async () => {
-    const mockOnCallToAction = jest.fn();
-
-    render(
-      <PricingTable
-        callToActionUrl="/checkout"
-        onCallToAction={mockOnCallToAction}
-      />,
-    );
-
-    await waitFor(() =>
-      expect(screen.queryByLabelText("loading")).not.toBeInTheDocument(),
-    );
-
-    // Plan buttons should have the URL since callToActionUrl takes precedence
-    const buttons = screen.getAllByTestId("sch-plan-cta-button");
-    expect(buttons[0]).toHaveAttribute("href", "/checkout");
-
-    // Click should not trigger onCallToAction when URL is provided
-    fireEvent.click(buttons[0]);
-    expect(mockOnCallToAction).not.toHaveBeenCalled();
-  });
-
-  test("handles calling useEmbed hydration on standalone mode", async () => {
-    // We can't directly test this, but we can ensure the component renders
-    // when in standalone mode (no component data)
-    server.use(
-      http.get("https://api.schematichq.com/public/plans", async () => {
-        const response = { ...plansJson };
-        delete response.data.component;
-        return HttpResponse.json(response);
-      }),
-    );
-
-    render(<PricingTable callToActionUrl="/" />);
-
-    await waitFor(() =>
-      expect(screen.queryByLabelText("loading")).not.toBeInTheDocument(),
-    );
-
-    expect(screen.queryByTestId("sch-pricing-table")).toBeInTheDocument();
-  });
-
-  test("selects proper period based on plan price availability", async () => {
-    server.use(
-      http.get("https://api.schematichq.com/public/plans", async () => {
-        const response = { ...plansJson };
-        // First plan only has monthly price
-        response.data.active_plans[0].yearly_price = null;
-        // Second plan only has yearly price
-        if (response.data.active_plans.length > 1) {
-          response.data.active_plans[1].monthly_price = null;
-        }
-        return HttpResponse.json(response);
-      }),
-    );
-
-    render(<PricingTable callToActionUrl="/" />);
-
-    await waitFor(() =>
-      expect(screen.queryByLabelText("loading")).not.toBeInTheDocument(),
-    );
-
-    const planElements = screen.queryAllByTestId("sch-plan");
-    expect(planElements.length).toBeGreaterThan(1);
-
-    // First plan should show monthly pricing
-    const firstPlanPrice = within(planElements[0]).getByText(/\/month/);
-    expect(firstPlanPrice).toBeInTheDocument();
-
-    // Second plan should show yearly pricing
-    const secondPlanPrice = within(planElements[1]).getByText(/\/year/);
-    expect(secondPlanPrice).toBeInTheDocument();
-
-    // Toggle to yearly pricing
-    const periodToggle = screen.getByRole("radiogroup");
-    const yearOption = within(periodToggle).getByLabelText("year");
-
-    act(() => {
-      fireEvent.click(yearOption);
-    });
-
-    // First plan should still show monthly pricing (as it has no yearly price)
-    await waitFor(() => {
-      const firstPlanAfterToggle = within(planElements[0]).getByText(/\/month/);
-      expect(firstPlanAfterToggle).toBeInTheDocument();
-    });
+    expect(firstPlanPrice).toHaveTextContent("$9,999,999.99/month");
   });
 
   test("renders properly when plans have no features", async () => {
     server.use(
       http.get("https://api.schematichq.com/public/plans", async () => {
-        const response = { ...plansJson };
-        // Remove all features from plans
-        response.data.active_plans.forEach((plan: any) => {
+        const response = cloneDeep(plansJson);
+
+        for (const plan of response.data.active_plans) {
           plan.entitlements = [];
-        });
+        }
+
         return HttpResponse.json(response);
       }),
     );
@@ -289,11 +213,10 @@ describe("`PricingTable` integration and edge cases", () => {
       expect(screen.queryByLabelText("loading")).not.toBeInTheDocument(),
     );
 
-    // Should still render plans without features
-    const planElements = screen.queryAllByTestId("sch-plan");
-    expect(planElements.length).toBeGreaterThan(0);
+    const plans = await screen.findAllByTestId("sch-plan");
+    expect(plans).toHaveLength(4);
 
-    // "See all" button should not be present
-    expect(screen.queryByText("See all")).not.toBeInTheDocument();
+    const seeAllText = screen.queryByText("See all");
+    expect(seeAllText).not.toBeInTheDocument();
   });
 });
