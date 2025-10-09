@@ -1,4 +1,4 @@
-import styled, { css } from "styled-components";
+import { css, styled } from "styled-components";
 
 import { TEXT_BASE_SIZE } from "../../../const";
 import { darken, hexToHSL, hslToHex, lighten } from "../../../utils";

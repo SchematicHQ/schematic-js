@@ -1,5 +1,9 @@
 {
   "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "~/*": ["./src/*"]
+    },
     "allowJs": true,
     "declaration": true,
     "declarationMap": false,
@@ -19,5 +23,5 @@
     "target": "ES2020",
     "useDefineForClassFields": true
   },
-  "include": ["src"]
+  "include": ["**/*.ts", "**/*.tsx"]
 }

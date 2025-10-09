@@ -6,7 +6,7 @@ import { TEXT_BASE_SIZE } from "../../const";
 import { EmbedSettings, stub } from "../../context";
 import { useEmbed } from "../../hooks";
 import type { SerializedNodeWithChildren } from "../../types";
-import { ERROR_UNKNOWN, isCheckoutData, isError } from "../../utils";
+import { ERROR_UNKNOWN, isError } from "../../utils";
 import { Box, Flex, Loader, Text } from "../ui";
 
 import { createRenderer, getEditorState, parseEditorState } from "./renderer";
@@ -89,7 +89,7 @@ export const SchematicEmbed = ({ id, accessToken }: EmbedProps) => {
     const renderer = createRenderer();
 
     try {
-      if (isCheckoutData(data) && data.component?.ast) {
+      if (data?.component?.ast) {
         const nodes: SerializedNodeWithChildren[] = [];
         const compressed = data.component.ast;
         // `inflate` is not guaranteed to return a string
@@ -111,7 +111,7 @@ export const SchematicEmbed = ({ id, accessToken }: EmbedProps) => {
     } catch (err) {
       setError(isError(err) ? err : ERROR_UNKNOWN);
     }
-  }, [data, setError, updateSettings]);
+  }, [data?.component?.ast, setError, updateSettings]);
 
   // `EmbedProvider` provides a `ThemeContext`, therefore we need ensure that one exists.
   // If there is no `EmbedContext` available, we must check for the missing theme.
@@ -142,5 +142,9 @@ export const SchematicEmbed = ({ id, accessToken }: EmbedProps) => {
     return <Loading />;
   }
 
-  return <>{children}</>;
+  return (
+    <Box className="sch-Embed" data-testid="sch-embed">
+      {children}
+    </Box>
+  );
 };

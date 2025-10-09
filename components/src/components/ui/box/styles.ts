@@ -1,5 +1,5 @@
 import type CSS from "csstype";
-import styled, { css, type RuleSet } from "styled-components";
+import { css, styled, type RuleSet } from "styled-components";
 
 import type { ComponentProps, TransientCSSProperties } from "../../../types";
 import { attr, camelToHyphen } from "../../../utils";
@@ -15,7 +15,7 @@ export type BoxProps = ComponentProps & {
   };
 };
 
-export const Box = styled.div<BoxProps>((props) => {
+export const Box = styled("div")<BoxProps>((props) => {
   function reducer(acc: RuleSet, [key, value]: [string, string | number]) {
     if (key.startsWith("$") && !["$viewport"].includes(key)) {
       acc.push(
