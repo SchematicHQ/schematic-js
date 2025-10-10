@@ -10,11 +10,7 @@ import {
   useWrapChildren,
 } from "../../../hooks";
 import type { DeepPartial, ElementProps } from "../../../types";
-import {
-  createKeyboardExecutionHandler,
-  isCheckoutData,
-  toPrettyDate,
-} from "../../../utils";
+import { createKeyboardExecutionHandler, toPrettyDate } from "../../../utils";
 import { Element } from "../../layout";
 import { Box, Flex, Icon, Text } from "../../ui";
 
@@ -95,35 +91,32 @@ export const IncludedFeatures = forwardRef<
   const [showCount, setShowCount] = useState(VISIBLE_ENTITLEMENT_COUNT);
 
   const { plan, addOns, featureUsage } = useMemo(() => {
-    if (isCheckoutData(data)) {
-      const orderedFeatureUsage = props.visibleFeatures?.reduce(
-        (acc: FeatureUsageResponseData[], id) => {
-          const mappedFeatureUsage = data.featureUsage?.features.find(
-            (usage) => usage.feature?.id === id,
-          );
+    const orderedFeatureUsage = props.visibleFeatures?.reduce(
+      (acc: FeatureUsageResponseData[], id) => {
+        const mappedFeatureUsage = data?.featureUsage?.features.find(
+          (usage) => usage.feature?.id === id,
+        );
 
-          if (mappedFeatureUsage) {
-            acc.push(mappedFeatureUsage);
-          }
+        if (mappedFeatureUsage) {
+          acc.push(mappedFeatureUsage);
+        }
 
-          return acc;
-        },
-        [],
-      );
-
-      return {
-        plan: data.company?.plan,
-        addOns: data.company?.addOns || [],
-        featureUsage: orderedFeatureUsage || data.featureUsage?.features || [],
-      };
-    }
+        return acc;
+      },
+      [],
+    );
 
     return {
-      plan: undefined,
-      addOns: [],
-      featureUsage: [],
+      plan: data?.company?.plan,
+      addOns: data?.company?.addOns || [],
+      featureUsage: orderedFeatureUsage || data?.featureUsage?.features || [],
     };
-  }, [props.visibleFeatures, data]);
+  }, [
+    props.visibleFeatures,
+    data?.company?.plan,
+    data?.company?.addOns,
+    data?.featureUsage?.features,
+  ]);
 
   const featureListSize = featureUsage.length;
 
