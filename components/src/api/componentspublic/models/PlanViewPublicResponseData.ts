@@ -156,6 +156,7 @@ export interface PlanViewPublicResponseData {
    *
    * @type {boolean}
    * @memberof PlanViewPublicResponseData
+   * @deprecated
    */
   isDefault: boolean;
   /**

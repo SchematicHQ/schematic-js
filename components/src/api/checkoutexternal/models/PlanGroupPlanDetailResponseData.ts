@@ -150,6 +150,7 @@ export interface PlanGroupPlanDetailResponseData {
    *
    * @type {boolean}
    * @memberof PlanGroupPlanDetailResponseData
+   * @deprecated
    */
   isDefault: boolean;
   /**

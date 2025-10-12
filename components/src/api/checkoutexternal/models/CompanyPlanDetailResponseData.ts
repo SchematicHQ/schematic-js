@@ -174,6 +174,7 @@ export interface CompanyPlanDetailResponseData {
    *
    * @type {boolean}
    * @memberof CompanyPlanDetailResponseData
+   * @deprecated
    */
   isDefault: boolean;
   /**
