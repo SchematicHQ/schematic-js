@@ -7,6 +7,8 @@ import {
   ChargeType,
   formatCurrency,
   getAddOnPrice,
+  getEntitlementPrice,
+  getFeatureName,
   hexToHSL,
   isHydratedPlan,
 } from "../../../utils";
@@ -40,30 +42,48 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
         const isAddOnValid = isHydratedPlan(addOn) && addOn.valid;
         const isAddOnCurrent = isHydratedPlan(addOn) && addOn.current;
 
-        const overageEntitlement = addOn.entitlements?.find(
-          (entitlement) => entitlement.priceBehavior === PriceBehavior.Overage,
-        );
+        // Collect all usage-based and unlimited entitlements for display
+        const displayableEntitlements =
+          addOn.entitlements
+            ?.filter(
+              (entitlement) =>
+                entitlement.valueType === "unlimited" ||
+                (entitlement.priceBehavior &&
+                  [
+                    PriceBehavior.PayAsYouGo as string,
+                    PriceBehavior.PayInAdvance as string,
+                    PriceBehavior.Overage as string,
+                    PriceBehavior.Tiered as string,
+                  ].includes(entitlement.priceBehavior)),
+            )
+            .map((entitlement) => {
+              // Only treat as unlimited if valueType is "unlimited" AND no priceBehavior
+              // If priceBehavior exists, it has usage-based pricing that should be displayed
+              if (
+                entitlement.valueType === "unlimited" &&
+                !entitlement.priceBehavior
+              ) {
+                return {
+                  isUnlimited: true,
+                  featureName: entitlement.feature?.name,
+                  feature: entitlement.feature,
+                };
+              }
 
-        let overageInfo = null;
-        if (overageEntitlement) {
-          const priceData =
-            period === "year"
-              ? overageEntitlement.meteredYearlyPrice
-              : overageEntitlement.meteredMonthlyPrice;
+              const priceData = getEntitlementPrice(entitlement, period);
 
-          if (priceData?.priceTier && priceData.priceTier.length >= 2) {
-            const overageTier =
-              priceData.priceTier[priceData.priceTier.length - 1];
-            overageInfo = {
-              softLimit: overageEntitlement.softLimit,
-              perUnitPrice: overageTier.perUnitPriceDecimal
-                ? Number(overageTier.perUnitPriceDecimal)
-                : overageTier.perUnitPrice || 0,
-              currency: priceData.currency || currency,
-              featureName: overageEntitlement.feature?.name,
-            };
-          }
-        }
+              return {
+                isUnlimited: false,
+                priceBehavior: entitlement.priceBehavior,
+                softLimit: entitlement.softLimit,
+                price: priceData?.price ?? 0,
+                currency: priceData?.currency || currency,
+                featureName: entitlement.feature?.name,
+                feature: entitlement.feature,
+                packageSize: priceData?.packageSize ?? 1,
+                isTiered: entitlement.priceBehavior === PriceBehavior.Tiered,
+              };
+            }) || [];
 
         return (
           <Flex
@@ -116,17 +136,122 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
                     </Text>
                   </Box>
 
-                  {overageInfo && overageInfo.softLimit && (
+                  {displayableEntitlements.length > 0 && (
                     <Box>
-                      <Text $size={0.875} style={{ opacity: 0.8 }}>
-                        {overageInfo.softLimit}{" "}
-                        {overageInfo.featureName || "units"} included, then{" "}
-                        {formatCurrency(
-                          overageInfo.perUnitPrice,
-                          overageInfo.currency,
-                        )}
-                        /{overageInfo.featureName?.toLowerCase() || "unit"}
-                      </Text>
+                      {displayableEntitlements.map((entitlement, idx) => {
+                        if (entitlement.isUnlimited) {
+                          return (
+                            <div
+                              key={idx}
+                              style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                                marginTop: idx > 0 ? "0.25rem" : undefined,
+                                fontSize: "14px",
+                                color: "#666",
+                                opacity: 0.8,
+                                fontFamily: "sans-serif",
+                              }}
+                            >
+                              <span>
+                                {entitlement.feature?.pluralName ||
+                                  entitlement.feature?.name ||
+                                  entitlement.featureName}
+                              </span>
+                              <span>Unlimited</span>
+                            </div>
+                          );
+                        }
+
+                        // Metered entitlement - TypeScript doesn't know isUnlimited is false here
+                        const meteredEntitlement =
+                          entitlement as typeof entitlement & {
+                            isUnlimited: false;
+                            priceBehavior?: string;
+                            softLimit?: number;
+                            price: number;
+                            currency: string;
+                            packageSize: number;
+                            isTiered: boolean;
+                          };
+
+                        return (
+                          <div
+                            key={idx}
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                              marginTop: idx > 0 ? "0.25rem" : undefined,
+                              fontSize: "14px",
+                              color: "#666",
+                              opacity: 0.8,
+                              fontFamily: "sans-serif",
+                            }}
+                          >
+                            {meteredEntitlement.priceBehavior ===
+                              PriceBehavior.Overage &&
+                            meteredEntitlement.softLimit ? (
+                              <>
+                                <span>
+                                  {meteredEntitlement.softLimit}{" "}
+                                  {meteredEntitlement.feature?.pluralName ||
+                                    meteredEntitlement.feature?.name ||
+                                    meteredEntitlement.featureName ||
+                                    "units"}
+                                </span>
+                                <span>
+                                  Additional:{" "}
+                                  {formatCurrency(
+                                    meteredEntitlement.price,
+                                    meteredEntitlement.currency,
+                                  )}
+                                  /
+                                  {meteredEntitlement.feature
+                                    ? getFeatureName(
+                                        meteredEntitlement.feature,
+                                        meteredEntitlement.packageSize,
+                                      )
+                                    : meteredEntitlement.featureName || "unit"}
+                                </span>
+                              </>
+                            ) : meteredEntitlement.priceBehavior ===
+                                PriceBehavior.PayAsYouGo ||
+                              meteredEntitlement.priceBehavior ===
+                                PriceBehavior.PayInAdvance ? (
+                              <>
+                                <span>
+                                  {meteredEntitlement.feature?.pluralName ||
+                                    meteredEntitlement.feature?.name ||
+                                    meteredEntitlement.featureName}
+                                </span>
+                                <span>
+                                  {formatCurrency(
+                                    meteredEntitlement.price,
+                                    meteredEntitlement.currency,
+                                  )}
+                                  /
+                                  {meteredEntitlement.packageSize > 1 && (
+                                    <>{meteredEntitlement.packageSize} </>
+                                  )}
+                                  {meteredEntitlement.feature
+                                    ? getFeatureName(
+                                        meteredEntitlement.feature,
+                                        meteredEntitlement.packageSize,
+                                      )
+                                    : meteredEntitlement.featureName || "unit"}
+                                </span>
+                              </>
+                            ) : meteredEntitlement.isTiered ? (
+                              <>
+                                <span>{meteredEntitlement.featureName}</span>
+                                <span>Tier-based pricing</span>
+                              </>
+                            ) : null}
+                          </div>
+                        );
+                      })}
                     </Box>
                   )}
                 </Flex>
