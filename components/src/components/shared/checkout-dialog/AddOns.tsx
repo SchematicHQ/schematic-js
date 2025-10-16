@@ -96,6 +96,17 @@ function renderMeteredEntitlementPricing({
   return null;
 }
 
+/**
+ * Determines if an add-on should display "Usage-based" instead of the price.
+ * Returns true when the price is effectively $0 and there are metered (non-unlimited) entitlements.
+ */
+function shouldShowUsageBased(
+  price: number,
+  displayableEntitlements: Array<{ isUnlimited: boolean }>,
+): boolean {
+  return price < 0.01 && displayableEntitlements.some((ent) => !ent.isUnlimited);
+}
+
 export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
   const { t } = useTranslation();
 
@@ -206,22 +217,28 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
               {(addOn[periodKey] ||
                 addOn.chargeType === ChargeType.oneTime) && (
                 <Box>
-                  <Text display="heading2">
-                    {formatCurrency(price ?? 0, currency)}
-                  </Text>
+                  {shouldShowUsageBased(price ?? 0, displayableEntitlements) ? (
+                    <Text display="heading2">{t("Usage-based")}</Text>
+                  ) : (
+                    <>
+                      <Text display="heading2">
+                        {formatCurrency(price ?? 0, currency)}
+                      </Text>
 
-                  <Text
-                    display="heading2"
-                    $size={
-                      (16 / 30) * settings.theme.typography.heading2.fontSize
-                    }
-                  >
-                    {addOn.chargeType === ChargeType.oneTime ? (
-                      <> {t("one time")}</>
-                    ) : (
-                      `/${period}`
-                    )}
-                  </Text>
+                      <Text
+                        display="heading2"
+                        $size={
+                          (16 / 30) * settings.theme.typography.heading2.fontSize
+                        }
+                      >
+                        {addOn.chargeType === ChargeType.oneTime ? (
+                          <> {t("one time")}</>
+                        ) : (
+                          `/${period}`
+                        )}
+                      </Text>
+                    </>
+                  )}
                 </Box>
               )}
 
