@@ -12,15 +12,15 @@ jobs:
     steps:
       - uses: runs-on/action@v2.0.3
       - uses: actions/checkout@v5.0.0
-      - uses: actions/setup-node@v5.0.0
+      - uses: oven-sh/setup-bun@v2
         with:
-          node-version: 24.x
-      - name: Yarn install
+          bun-version: latest
+      - name: Bun install
         working-directory: ./react
-        run: yarn install
+        run: bun install
       - name: Build
         working-directory: ./react
-        run: yarn build
+        run: bun runbuild
 
   lint:
     name: Lint
@@ -28,15 +28,15 @@ jobs:
     steps:
       - uses: runs-on/action@v2.0.3
       - uses: actions/checkout@v5.0.0
-      - uses: actions/setup-node@v5.0.0
+      - uses: oven-sh/setup-bun@v2
         with:
-          node-version: 24.x
-      - name: Yarn install
+          bun-version: latest
+      - name: Bun install
         working-directory: ./react
-        run: yarn install
+        run: bun install
       - name: Lint
         working-directory: ./react
-        run: yarn lint
+        run: bun runlint
 
   test:
     name: Test
@@ -44,15 +44,15 @@ jobs:
     steps:
       - uses: runs-on/action@v2.0.3
       - uses: actions/checkout@v5.0.0
-      - uses: actions/setup-node@v5.0.0
+      - uses: oven-sh/setup-bun@v2
         with:
-          node-version: 24.x
-      - name: Yarn install
+          bun-version: latest
+      - name: Bun install
         working-directory: ./react
-        run: yarn install
+        run: bun install
       - name: Test
         working-directory: ./react
-        run: yarn test
+        run: bun runtest
       - name: Test (React Native)
         working-directory: ./react
-        run: yarn test:reactnative
+        run: bun runtest:reactnative

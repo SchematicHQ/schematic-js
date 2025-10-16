@@ -18,38 +18,38 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```bash
 # Watch mode for development
-yarn dev
+bun run dev
 
 # Full build process
-yarn build
+bun run build
 
 # Individual build steps
-yarn build:cjs     # Build CommonJS bundle
-yarn build:esm     # Build ESM bundle 
-yarn build:types   # Build TypeScript types
+bun run build:cjs     # Build CommonJS bundle
+bun run build:esm     # Build ESM bundle
+bun run build:types   # Build TypeScript types
 ```
 
 ### Code Quality Commands
 
 ```bash
 # Run TypeScript compiler
-yarn tsc
+bun run tsc
 
 # Format code with Prettier
-yarn format
+bun run format
 
 # Run ESLint with auto-fix
-yarn lint
+bun run lint
 
 # Run tests
-yarn test
+bun test
 ```
 
 ### Other Commands
 
 ```bash
 # Clean build artifacts
-yarn clean
+bun run clean
 ```
 
 ## Architecture
@@ -72,7 +72,7 @@ The library is built on a React context pattern:
 - Maintain React best practices, especially regarding hooks dependencies and memoization
 - Ensure backward compatibility for public API
 - Follow existing patterns when adding new hooks or features
-- Make sure to run `yarn build` before committing changes to verify the build works
+- Make sure to run `bun run build` before committing changes to verify the build works
 
 ## Dependencies
 

@@ -12,15 +12,15 @@ jobs:
     steps:
       - uses: runs-on/action@v2.0.3
       - uses: actions/checkout@v5.0.0
-      - uses: actions/setup-node@v5.0.0
+      - uses: oven-sh/setup-bun@v2
         with:
-          node-version: 24.x
-      - name: Yarn install
+          bun-version: latest
+      - name: Bun install
         working-directory: ./components
-        run: yarn install
+        run: bun install
       - name: Build
         working-directory: ./components
-        run: yarn build
+        run: bun runbuild
 
   lint:
     name: Lint
@@ -28,15 +28,15 @@ jobs:
     steps:
       - uses: runs-on/action@v2.0.3
       - uses: actions/checkout@v5.0.0
-      - uses: actions/setup-node@v5.0.0
+      - uses: oven-sh/setup-bun@v2
         with:
-          node-version: 24.x
-      - name: Yarn install
+          bun-version: latest
+      - name: Bun install
         working-directory: ./components
-        run: yarn install
+        run: bun install
       - name: Lint
         working-directory: ./components
-        run: yarn lint
+        run: bun runlint
 
   test:
     name: Test
@@ -44,13 +44,13 @@ jobs:
     steps:
       - uses: runs-on/action@v2
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: oven-sh/setup-bun@v2
         with:
-          node-version: 24.x
+          bun-version: latest
       - name: Yarn install
         working-directory: ./components
-        run: yarn install
+        run: bun runinstall
       - name: Test
         working-directory: ./components
-        run: yarn test
+        run: bun runtest
 

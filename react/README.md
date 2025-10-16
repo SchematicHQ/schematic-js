@@ -5,9 +5,9 @@
 ## Install
 
 ```bash
-npm install @schematichq/schematic-react
+bun add @schematichq/schematic-react
 # or
-yarn add @schematichq/schematic-react
+npm install @schematichq/schematic-react
 # or
 pnpm add @schematichq/schematic-react
 ```

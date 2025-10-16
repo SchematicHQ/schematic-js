@@ -17,44 +17,37 @@
     "url": "git+ssh://git@github.com/SchematicHQ/schematic-js.git"
   },
   "scripts": {
-    "build": "./version.sh && npx tsc && yarn clean && yarn build:browser && yarn build:cjs && yarn build:esm && yarn build:types",
-    "build:browser": "npx esbuild src/browser.ts --bundle --minify --outfile=dist/schematic.browser.js --platform=browser",
-    "build:cjs": "npx esbuild src/index.ts --bundle --format=cjs --outfile=dist/schematic.cjs.js",
-    "build:esm": "npx esbuild src/index.ts --bundle --format=esm --outfile=dist/schematic.esm.js",
-    "build:types": "npx tsc && npx api-extractor run",
+    "build": "./version.sh && bunx tsc && bun run clean && bun run build:browser && bun run build:cjs && bun run build:esm && bun run build:types",
+    "build:browser": "bunx esbuild src/browser.ts --bundle --minify --outfile=dist/schematic.browser.js --platform=browser",
+    "build:cjs": "bunx esbuild src/index.ts --bundle --format=cjs --outfile=dist/schematic.cjs.js",
+    "build:esm": "bunx esbuild src/index.ts --bundle --format=esm --outfile=dist/schematic.esm.js",
+    "build:types": "bunx tsc && bunx api-extractor run",
     "clean": "rm -rf dist",
     "format": "prettier --write src/*.ts",
     "lint": "eslint src --report-unused-disable-directives --fix",
-    "openapi": "rm -rf src/types/api/ && npx openapi-generator-cli generate -c openapi-config.yaml --global-property models=\"EventBody:EventBodyFlagCheck:EventBodyIdentify:EventBodyIdentifyCompany:EventBodyTrack:CheckFlagResponse:CheckFlagResponseData:CheckFlagsResponse:CheckFlagsResponseData\",supportingFiles=runtime.ts && prettier --write \"src/types/api/**/*.{ts,tsx}\"",
+    "openapi": "rm -rf src/types/api/ && bunx openapi-generator-cli generate -c openapi-config.yaml --global-property models=\"EventBody:EventBodyFlagCheck:EventBodyIdentify:EventBodyIdentifyCompany:EventBodyTrack:CheckFlagResponse:CheckFlagResponseData:CheckFlagsResponse:CheckFlagsResponseData\",supportingFiles=runtime.ts && prettier --write \"src/types/api/**/*.{ts,tsx}\"",
     "prepare": "husky",
-    "test": "jest --config jest.config.js",
-    "test:reactnative": "jest --config jest.config.reactnative.js",
-    "tsc": "npx tsc"
+    "test": "bun test",
+    "test:reactnative": "bun test --preload ./test-setup.reactnative.ts",
+    "tsc": "bunx tsc"
   },
   "dependencies": {
     "cross-fetch": "^4.1.0",
     "uuid": "^13.0.0"
   },
   "devDependencies": {
-    "@eslint/js": "^9.24.0",
-    "@microsoft/api-extractor": "^7.52.2",
-    "@openapitools/openapi-generator-cli": "^2.23.4",
-    "@types/jest": "^30.0.0",
-    "@types/uuid": "^11.0.0",
-    "esbuild": "^0.25.10",
-    "esbuild-jest": "^0.5.0",
-    "eslint": "^9.24.0",
-    "globals": "^16.0.0",
-    "husky": "^9.1.7",
-    "jest": "^30.0.0",
-    "jest-environment-jsdom": "^30.0.0",
-    "jest-esbuild": "^0.4.0",
-    "jest-fetch-mock": "^3.0.3",
+    "@eslint/js": "catalog:",
+    "@microsoft/api-extractor": "catalog:",
+    "@openapitools/openapi-generator-cli": "catalog:",
+    "@types/bun": "latest",
+    "@types/uuid": "catalog:",
+    "esbuild": "catalog:",
+    "eslint": "catalog:",
+    "globals": "catalog:",
+    "husky": "catalog:",
     "mock-socket": "^9.3.1",
-    "prettier": "^3.6.2",
-    "ts-jest": "^29.4.3",
-    "typescript": "^5.9.2",
-    "typescript-eslint": "^8.44.0"
-  },
-  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
+    "prettier": "catalog:",
+    "typescript": "catalog:",
+    "typescript-eslint": "catalog:"
+  }
 }
