@@ -19,7 +19,7 @@ jobs:
       - uses: actions/checkout@v5.0.0
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: .bun-version
+          bun-version-file: ".bun-version"
       - name: Bun install
         working-directory: ./js
         run: bun install
@@ -35,7 +35,7 @@ jobs:
       - uses: actions/checkout@v5.0.0
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: .bun-version
+          bun-version-file: ".bun-version"
       - name: Bun install
         working-directory: ./js
         run: bun install
@@ -59,7 +59,7 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: .bun-version
+          bun-version-file: ".bun-version"
 
       - name: Yarn install
         working-directory: ./js
@@ -108,7 +108,7 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: .bun-version
+          bun-version-file: ".bun-version"
       - name: Yarn install
         working-directory: ./js
         run: bun install
