@@ -20,8 +20,8 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version-file: ".bun-version"
-      - name: Bun install
-        working-directory: ./js
+      # Install from root to ensure Bun workspace resolution links all packages
+      - name: Install dependencies
         run: bun install
       - name: Lint
         working-directory: ./js
@@ -36,8 +36,8 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version-file: ".bun-version"
-      - name: Bun install
-        working-directory: ./js
+      # Install from root to ensure Bun workspace resolution links all packages
+      - name: Install dependencies
         run: bun install
       - name: Test
         working-directory: ./js
@@ -61,8 +61,8 @@ jobs:
         with:
           bun-version-file: ".bun-version"
 
-      - name: Yarn install
-        working-directory: ./js
+      # Install from root to ensure Bun workspace resolution links all packages
+      - name: Install dependencies
         run: bun install
 
       - name: Update version
@@ -109,8 +109,8 @@ jobs:
         uses: oven-sh/setup-bun@v2
         with:
           bun-version-file: ".bun-version"
-      - name: Yarn install
-        working-directory: ./js
+      # Install from root to ensure Bun workspace resolution links all packages
+      - name: Install dependencies
         run: bun install
       - name: Build
         working-directory: ./js
