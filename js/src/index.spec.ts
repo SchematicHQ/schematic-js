@@ -5,7 +5,7 @@ import { Server as WebSocketServer } from "mock-socket";
 import { version } from "./version";
 
 const mockFetch = mock(() => {});
-global.fetch = mockFetch as any;
+global.fetch = mockFetch as typeof global.fetch;
 
 describe("Schematic", () => {
   let schematic: Schematic;

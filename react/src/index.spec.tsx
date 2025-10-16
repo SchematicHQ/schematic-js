@@ -4,7 +4,7 @@ import { Schematic } from "@schematichq/schematic-js";
 import { SchematicProvider, useSchematicFlag } from "./index";
 
 const mockFetch = mock(() => {});
-global.fetch = mockFetch as any;
+global.fetch = mockFetch as typeof global.fetch;
 
 // Check if we're in a DOM environment
 const isDOMEnvironment = typeof document !== "undefined";

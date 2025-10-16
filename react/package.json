@@ -20,7 +20,7 @@
     "build": "./version.sh && bunx tsc && bun run format && bun run lint && bun run clean && bun run build:cjs && bun run build:esm && bun run build:types",
     "build:cjs": "bunx esbuild src/index.ts --bundle --external:react --format=cjs --outfile=dist/schematic-react.cjs.js",
     "build:esm": "bunx esbuild src/index.ts --bundle --external:react --format=esm --outfile=dist/schematic-react.esm.js",
-    "build:types": "bunx tsc && bunx api-extractor run",
+    "build:types": "bunx tsc && bunx --bun api-extractor run",
     "clean": "rm -rf dist",
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --fix",
