@@ -39,7 +39,7 @@ fi
 echo "Using output directory: $OUTPUT_DIR"
 
 # Build the command
-COMMAND="npx openapi-generator-cli generate -c $CONFIG"
+COMMAND="bunx openapi-generator-cli generate -c $CONFIG"
 if [ -n "$INPUT_SPEC" ]; then
     COMMAND="$COMMAND --input-spec=$INPUT_SPEC"
 fi
@@ -47,4 +47,4 @@ fi
 # Clean and regenerate
 rm -rf $OUTPUT_DIR
 eval $COMMAND
-yarn format
+bun run format
