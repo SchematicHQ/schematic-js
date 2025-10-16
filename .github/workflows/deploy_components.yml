@@ -16,8 +16,8 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version-file: ".bun-version"
-      - name: Bun install
-        working-directory: ./components
+      # Install from root to ensure Bun workspace resolution links all packages
+      - name: Install dependencies
         run: bun install
       - name: Lint
         working-directory: ./components
@@ -39,8 +39,8 @@ jobs:
         uses: oven-sh/setup-bun@v2
         with:
           bun-version-file: ".bun-version"
-      - name: Bun install
-        working-directory: ./components
+      # Install from root to ensure Bun workspace resolution links all packages
+      - name: Install dependencies
         run: bun install
       - name: Build
         working-directory: ./components
