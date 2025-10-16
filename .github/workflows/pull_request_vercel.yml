@@ -23,26 +23,29 @@ jobs:
       - name: Checkout Components Repository
         uses: actions/checkout@v5.0.0
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v5.0.0
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
         with:
-          node-version: '24.x'
+          bun-version-file: ".bun-version"
 
       - name: Install Vercel CLI
-        run: yarn global add vercel
+        run: bun install -g vercel
+
+      # Install from root to ensure Bun workspace resolution links all packages
+      - name: Install dependencies
+        run: bun install
 
       - name: Build Components Package
         run: |
           echo "🔨 Building components package..."
           cd components
-          yarn install
-          yarn build
+          bun run build
 
       - name: Link components
         run: |
           echo "📦 Linking components..."
           cd components
-          yarn link
+          bun link
 
       - name: Clone Demo App
         uses: actions/checkout@v5.0.0
@@ -57,10 +60,10 @@ jobs:
           cd schematic-next-example
 
           echo "🔗 Linking components to demo app..."
-          yarn link "@schematichq/schematic-components"
+          bun link "@schematichq/schematic-components"
 
           echo "📦 Installing demo app dependencies..."
-          yarn install --force
+          bun install --force
 
           echo "✅ Components package linked successfully!"
 
