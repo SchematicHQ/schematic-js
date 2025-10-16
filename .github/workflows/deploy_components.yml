@@ -13,18 +13,20 @@ jobs:
     steps:
       - uses: runs-on/action@v2.0.3
       - uses: actions/checkout@v5.0.0
-      - uses: actions/setup-node@v5.0.0
+      - uses: oven-sh/setup-bun@v2
         with:
-          node-version: 24.x
-      - name: Yarn install
+          bun-version: latest
+      - name: Bun install
         working-directory: ./components
-        run: yarn install
+        run: bun install
       - name: Lint
         working-directory: ./components
-        run: yarn lint
+        run: bun runlint
 
   publish:
     name: NPM Publish
+    # TEMPORARILY DISABLED: Re-enable after Bun migration is tested and stable
+    if: false
     runs-on: runs-on=${{ github.run_id }}/runner=4cpu-linux-x64/extras=s3-cache
     permissions:
       packages: write
@@ -33,16 +35,16 @@ jobs:
     steps:
       - uses: runs-on/action@v2.0.3
       - uses: actions/checkout@v5.0.0
-      - name: Set Node.js 24.x
-        uses: actions/setup-node@v5.0.0
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
         with:
-          node-version: 24.x
-      - name: Yarn install
+          bun-version: latest
+      - name: Bun install
         working-directory: ./components
-        run: yarn install
+        run: bun install
       - name: Build
         working-directory: ./components
-        run: yarn build
+        run: bun run build
       - name: Set up .npmrc
         run: touch .npmrc && echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > .npmrc
         env:
@@ -51,11 +53,13 @@ jobs:
       - name: Test .npmrc
         run: cat .npmrc
         working-directory: ./components
-      - run: yarn publish --access public
+      - run: bun publish --access public
         working-directory: ./components
 
   update_example_app:
     name: Update Example App
+    # TEMPORARILY DISABLED: Re-enable after Bun migration is tested and stable
+    if: false
     runs-on: runs-on=${{ github.run_id }}/runner=4cpu-linux-x64/extras=s3-cache
     needs: [publish]
     steps:
@@ -86,7 +90,7 @@ jobs:
       - name: Update example app dependencies
         run: |
           cd schematic-next-example
-          yarn add @schematichq/schematic-components@${{ steps.get_version.outputs.SCHEMATIC_COMPONENTS_VERSION }}
+          bun add @schematichq/schematic-components@${{ steps.get_version.outputs.SCHEMATIC_COMPONENTS_VERSION }}
 
       - name: Check for changes
         id: check_changes
@@ -112,6 +116,8 @@ jobs:
 
   notify_slack:
     name: Notify Slack
+    # TEMPORARILY DISABLED: Re-enable after Bun migration is tested and stable
+    if: false
     runs-on: runs-on=${{ github.run_id }}/runner=1cpu-linux-arm64
     needs: [publish]
     steps:

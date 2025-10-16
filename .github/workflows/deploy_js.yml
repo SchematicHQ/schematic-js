@@ -17,15 +17,15 @@ jobs:
     steps:
       - uses: runs-on/action@v2.0.3
       - uses: actions/checkout@v5.0.0
-      - uses: actions/setup-node@v5.0.0
+      - uses: oven-sh/setup-bun@v2
         with:
-          node-version: 24.x
-      - name: Yarn install
+          bun-version: latest
+      - name: Bun install
         working-directory: ./js
-        run: yarn install
+        run: bun install
       - name: Lint
         working-directory: ./js
-        run: yarn lint
+        run: bun runlint
 
   test:
     name: Test
@@ -33,35 +33,37 @@ jobs:
     steps:
       - uses: runs-on/action@v2.0.3
       - uses: actions/checkout@v5.0.0
-      - uses: actions/setup-node@v5.0.0
+      - uses: oven-sh/setup-bun@v2
         with:
-          node-version: 24.x
-      - name: Yarn install
+          bun-version: latest
+      - name: Bun install
         working-directory: ./js
-        run: yarn install
+        run: bun install
       - name: Test
         working-directory: ./js
-        run: yarn test
+        run: bun runtest
       - name: Test (React Native)
         working-directory: ./js
-        run: yarn test:reactnative
+        run: bun runtest:reactnative
 
   deploy:
     name: Browser Deploy
+    # TEMPORARILY DISABLED: Re-enable after Bun migration is tested and stable
+    if: false
     runs-on: runs-on=${{ github.run_id }}/runner=4cpu-linux-x64/extras=s3-cache
     needs: ["test", "lint"]
     steps:
       - uses: runs-on/action@v2.0.3
       - uses: actions/checkout@v5.0.0
 
-      - name: Set Node.js 24.x
-        uses: actions/setup-node@v5.0.0
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
         with:
-          node-version: 24.x
+          bun-version: latest
 
       - name: Yarn install
         working-directory: ./js
-        run: yarn install
+        run: bun runinstall
 
       - name: Update version
         working-directory: ./js
@@ -69,7 +71,7 @@ jobs:
 
       - name: Build browser bundle
         working-directory: ./js
-        run: yarn build:browser
+        run: bun runbuild:browser
 
       - name: 🚀auth-oidc-aws-prod
         uses: aws-actions/configure-aws-credentials@v5.0.0
@@ -93,6 +95,8 @@ jobs:
 
   publish:
     name: NPM Publish
+    # TEMPORARILY DISABLED: Re-enable after Bun migration is tested and stable
+    if: false
     runs-on: runs-on=${{ github.run_id }}/runner=4cpu-linux-x64/extras=s3-cache
     permissions:
       packages: write
@@ -101,26 +105,28 @@ jobs:
     steps:
       - uses: runs-on/action@v2.0.3
       - uses: actions/checkout@v5.0.0
-      - name: Set Node.js 24.x
-        uses: actions/setup-node@v5.0.0
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
         with:
-          node-version: 24.x
+          bun-version: latest
       - name: Yarn install
         working-directory: ./js
-        run: yarn install
+        run: bun runinstall
       - name: Build
         working-directory: ./js
-        run: yarn build
+        run: bun runbuild
       - name: Set up .npmrc
         run: touch .npmrc && echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > .npmrc
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         working-directory: ./js
-      - run: yarn publish --access public
+      - run: bun publish --access public
         working-directory: ./js
 
   notify_slack:
     name: Notify Slack
+    # TEMPORARILY DISABLED: Re-enable after Bun migration is tested and stable
+    if: false
     runs-on: runs-on=${{ github.run_id }}/runner=1cpu-linux-arm64
     needs: [deploy, publish]
     steps:

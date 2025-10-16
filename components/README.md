@@ -5,9 +5,9 @@
 ## Install
 
 ```bash
-npm install @schematichq/schematic-components
+bun add @schematichq/schematic-components
 # or
-yarn add @schematichq/schematic-components
+npm install @schematichq/schematic-components
 # or
 pnpm add @schematichq/schematic-components
 ```
