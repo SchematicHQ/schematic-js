@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 
+import type { FeatureResponseData } from "../../../api/checkoutexternal";
 import { PriceBehavior, TEXT_BASE_SIZE } from "../../../const";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import type { SelectedPlan } from "../../../types";
@@ -29,7 +30,7 @@ interface MeteredEntitlementPricingProps {
   price: number;
   currency: string;
   packageSize: number;
-  feature?: { name?: string | null; pluralName?: string | null };
+  feature?: FeatureResponseData;
   featureName?: string | null;
   isTiered: boolean;
 }
@@ -52,7 +53,13 @@ function renderMeteredEntitlementPricing({
         {formatCurrency(price, currency)}
         /
         {feature
-          ? getFeatureName(feature as any, packageSize)
+          ? getFeatureName(
+              feature as Pick<
+                FeatureResponseData,
+                "name" | "pluralName" | "singularName"
+              >,
+              packageSize,
+            )
           : featureName || "unit"}
       </>
     );
@@ -68,7 +75,15 @@ function renderMeteredEntitlementPricing({
         {formatCurrency(price, currency)}
         /
         {packageSize > 1 && <>{packageSize} </>}
-        {feature ? getFeatureName(feature as any, packageSize) : featureName || "unit"}
+        {feature
+          ? getFeatureName(
+              feature as Pick<
+                FeatureResponseData,
+                "name" | "pluralName" | "singularName"
+              >,
+              packageSize,
+            )
+          : featureName || "unit"}
       </>
     );
   }

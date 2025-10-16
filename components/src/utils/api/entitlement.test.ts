@@ -4,7 +4,6 @@ import type {
   FeatureUsageResponseData,
 } from "../../api/checkoutexternal";
 import { FeatureUsageResponseDataAllocationTypeEnum } from "../../api/checkoutexternal";
-
 import {
   extractCurrentUsageBasedEntitlements,
   getEntitlementFeatureName,
