@@ -6,14 +6,17 @@ This monorepo is managed with [Bun](https://bun.sh) using workspaces and depende
 
 ## Getting Started
 
-```bash
-# Install Bun (if not already installed)
-curl -fsSL https://bun.sh/install | bash
+[Install Bun](https://bun.com/)
 
-# Install all dependencies across all packages
+Install all dependencies across all packages
+
+```
 bun install
+```
 
-# Run commands across all packages
+Run commands across all packages
+
+```
 bun run --filter '*' build
 bun run --filter '*' test
 bun run --filter '*' lint
@@ -37,24 +40,21 @@ bun run --filter '*' lint
   Utility scripts for local development and testing.
   - `test-components.sh`: Build and link components locally or with Vercel for testing in the demo app
 
-## Bun Workspace Features
-
-This monorepo leverages Bun's powerful workspace features:
-
 ### Workspaces
-All packages are defined in the root `package.json` using Bun's workspace configuration. Dependencies are automatically hoisted and de-duplicated for optimal performance.
 
-### Dependency Catalogs
-Shared dependencies (TypeScript, ESLint, Prettier, etc.) are defined once in the root `package.json` using [dependency catalogs](https://bun.sh/docs/install/catalogs). Individual packages reference these using the `catalog:` protocol, ensuring version consistency across the monorepo.
+This monorepo leverages Bun workspace features:
 
-### Fast Performance
-Bun provides significantly faster installation and execution compared to traditional package managers:
-- ~28x faster than `npm install`
-- ~12x faster than `yarn install`
-- Native TypeScript support without transpilation
-- Built-in test runner (no Jest configuration needed)
+All packages are defined in the root `package.json` using Bun's workspace configuration.
+Dependencies are automatically hoisted and de-duplicated.
 
 Learn more about [Bun workspaces](https://bun.sh/docs/install/workspaces).
+
+### Dependency Catalogs
+
+Shared dependencies (TypeScript, ESLint, Prettier, etc.) are defined once in the
+root `package.json` using [dependency catalogs](https://bun.sh/docs/install/catalogs).
+Individual packages reference these using the `catalog:` protocol, ensuring version
+consistency across the monorepo.
 
 ## Development
 
@@ -81,3 +81,4 @@ MIT
 ## Support
 
 Need help? Please open a GitHub issue or reach out to [support@schematichq.com](mailto:support@schematichq.com).
+
