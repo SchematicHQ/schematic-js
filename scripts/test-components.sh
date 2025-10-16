@@ -14,27 +14,27 @@ fi
 # build components
 echo "🔨 Building components..."
 cd ../components || exit 1
-yarn install
-yarn build
+bun install
+bun run build
 
 echo "📦 Linking components..."
-yarn link
+bun link
 
 echo "🏠 Navigating to demo app..."
 cd ../../schematic-next-example || exit 1
 
 echo "🔗 Linking components to demo app..."
-yarn link "@schematichq/schematic-components"
+bun link "@schematichq/schematic-components"
 
 echo "🏗️ Installing dependencies..."
-yarn install --force
+bun install --force
 
 if [ "$choice" == "local" ]; then
     echo "🏗️ Building demo app..."
-    yarn build
+    bun run build
 
     echo "🚀 Starting dev server..."
-    yarn dev
+    bun run dev
 fi
 
 if [ "$choice" == "vercel" ]; then
