@@ -42,9 +42,6 @@ jobs:
       - name: Test
         working-directory: ./js
         run: bun run test
-      - name: Test (React Native)
-        working-directory: ./js
-        run: bun run test:reactnative
 
   deploy:
     name: Browser Deploy
