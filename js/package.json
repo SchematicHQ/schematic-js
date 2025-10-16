@@ -21,7 +21,7 @@
     "build:browser": "bunx esbuild src/browser.ts --bundle --minify --outfile=dist/schematic.browser.js --platform=browser",
     "build:cjs": "bunx esbuild src/index.ts --bundle --format=cjs --outfile=dist/schematic.cjs.js",
     "build:esm": "bunx esbuild src/index.ts --bundle --format=esm --outfile=dist/schematic.esm.js",
-    "build:types": "bunx tsc && bunx api-extractor run",
+    "build:types": "bunx tsc && bunx --bun api-extractor run",
     "clean": "rm -rf dist",
     "format": "prettier --write src/*.ts",
     "lint": "eslint src --report-unused-disable-directives --fix",
