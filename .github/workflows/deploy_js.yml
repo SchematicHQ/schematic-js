@@ -19,13 +19,13 @@ jobs:
       - uses: actions/checkout@v5.0.0
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
+          bun-version: .bun-version
       - name: Bun install
         working-directory: ./js
         run: bun install
       - name: Lint
         working-directory: ./js
-        run: bun runlint
+        run: bun run lint
 
   test:
     name: Test
@@ -35,16 +35,16 @@ jobs:
       - uses: actions/checkout@v5.0.0
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
+          bun-version: .bun-version
       - name: Bun install
         working-directory: ./js
         run: bun install
       - name: Test
         working-directory: ./js
-        run: bun runtest
+        run: bun run test
       - name: Test (React Native)
         working-directory: ./js
-        run: bun runtest:reactnative
+        run: bun run test:reactnative
 
   deploy:
     name: Browser Deploy
@@ -59,11 +59,11 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
+          bun-version: .bun-version
 
       - name: Yarn install
         working-directory: ./js
-        run: bun runinstall
+        run: bun install
 
       - name: Update version
         working-directory: ./js
@@ -71,7 +71,7 @@ jobs:
 
       - name: Build browser bundle
         working-directory: ./js
-        run: bun runbuild:browser
+        run: bun run build:browser
 
       - name: 🚀auth-oidc-aws-prod
         uses: aws-actions/configure-aws-credentials@v5.0.0
@@ -108,13 +108,13 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
+          bun-version: .bun-version
       - name: Yarn install
         working-directory: ./js
-        run: bun runinstall
+        run: bun install
       - name: Build
         working-directory: ./js
-        run: bun runbuild
+        run: bun run build
       - name: Set up .npmrc
         run: touch .npmrc && echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > .npmrc
         env:

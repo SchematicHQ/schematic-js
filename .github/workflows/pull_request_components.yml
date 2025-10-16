@@ -14,13 +14,13 @@ jobs:
       - uses: actions/checkout@v5.0.0
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
+          bun-version: .bun-version
       - name: Bun install
         working-directory: ./components
         run: bun install
       - name: Build
         working-directory: ./components
-        run: bun runbuild
+        run: bun run build
 
   lint:
     name: Lint
@@ -30,13 +30,13 @@ jobs:
       - uses: actions/checkout@v5.0.0
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
+          bun-version: .bun-version
       - name: Bun install
         working-directory: ./components
         run: bun install
       - name: Lint
         working-directory: ./components
-        run: bun runlint
+        run: bun run lint
 
   test:
     name: Test
@@ -46,11 +46,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
+          bun-version: .bun-version
       - name: Yarn install
         working-directory: ./components
-        run: bun runinstall
+        run: bun install
       - name: Test
         working-directory: ./components
-        run: bun runtest
+        run: bun run test
 
