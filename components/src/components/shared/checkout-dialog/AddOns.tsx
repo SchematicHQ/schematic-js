@@ -23,6 +23,64 @@ interface AddOnsProps {
   period: string;
 }
 
+interface MeteredEntitlementPricingProps {
+  priceBehavior?: string;
+  softLimit?: number;
+  price: number;
+  currency: string;
+  packageSize: number;
+  feature?: { name?: string | null; pluralName?: string | null };
+  featureName?: string | null;
+  isTiered: boolean;
+}
+
+function renderMeteredEntitlementPricing({
+  priceBehavior,
+  softLimit,
+  price,
+  currency,
+  packageSize,
+  feature,
+  featureName,
+  isTiered,
+}: MeteredEntitlementPricingProps): React.ReactNode {
+  // Overage pricing
+  if (priceBehavior === PriceBehavior.Overage && softLimit) {
+    return (
+      <>
+        Additional:{" "}
+        {formatCurrency(price, currency)}
+        /
+        {feature
+          ? getFeatureName(feature as any, packageSize)
+          : featureName || "unit"}
+      </>
+    );
+  }
+
+  // Pay-as-you-go or Pay-in-advance pricing
+  if (
+    priceBehavior === PriceBehavior.PayAsYouGo ||
+    priceBehavior === PriceBehavior.PayInAdvance
+  ) {
+    return (
+      <>
+        {formatCurrency(price, currency)}
+        /
+        {packageSize > 1 && <>{packageSize} </>}
+        {feature ? getFeatureName(feature as any, packageSize) : featureName || "unit"}
+      </>
+    );
+  }
+
+  // Tiered pricing
+  if (isTiered) {
+    return <>Tier-based pricing</>;
+  }
+
+  return null;
+}
+
 export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
   const { t } = useTranslation();
 
@@ -284,46 +342,7 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
                           }
                           $color={settings.theme.typography.text.color}
                         >
-                          {meteredEntitlement.priceBehavior ===
-                            PriceBehavior.Overage &&
-                          meteredEntitlement.softLimit ? (
-                            <>
-                              Additional:{" "}
-                              {formatCurrency(
-                                meteredEntitlement.price,
-                                meteredEntitlement.currency,
-                              )}
-                              /
-                              {meteredEntitlement.feature
-                                ? getFeatureName(
-                                    meteredEntitlement.feature,
-                                    meteredEntitlement.packageSize,
-                                  )
-                                : meteredEntitlement.featureName || "unit"}
-                            </>
-                          ) : meteredEntitlement.priceBehavior ===
-                              PriceBehavior.PayAsYouGo ||
-                            meteredEntitlement.priceBehavior ===
-                              PriceBehavior.PayInAdvance ? (
-                            <>
-                              {formatCurrency(
-                                meteredEntitlement.price,
-                                meteredEntitlement.currency,
-                              )}
-                              /
-                              {meteredEntitlement.packageSize > 1 && (
-                                <>{meteredEntitlement.packageSize} </>
-                              )}
-                              {meteredEntitlement.feature
-                                ? getFeatureName(
-                                    meteredEntitlement.feature,
-                                    meteredEntitlement.packageSize,
-                                  )
-                                : meteredEntitlement.featureName || "unit"}
-                            </>
-                          ) : meteredEntitlement.isTiered ? (
-                            <>Tier-based pricing</>
-                          ) : null}
+                          {renderMeteredEntitlementPricing(meteredEntitlement)}
                         </Text>
                       </Flex>
                     );
