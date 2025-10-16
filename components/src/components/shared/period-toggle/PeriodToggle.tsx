@@ -96,7 +96,7 @@ export const PeriodToggle = ({
           </Button>
         );
 
-        if (option === "year" && savingsPercentage > 0) {
+        if (option === "year") {
           return (
             <Tooltip
               key={option}

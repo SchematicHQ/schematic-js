@@ -21,7 +21,7 @@ import {
   type PricingTableProps,
 } from "./PricingTable";
 
-interface PlanProps {
+export interface PlanProps {
   plan: SelectedPlan;
   index: number;
   sharedProps: PricingTableOptions & {

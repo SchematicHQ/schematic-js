@@ -272,7 +272,7 @@
           "environment_id": "env_66p5iXPxRJU",
           "name": "plan Basic - Development",
           "price": 0,
-          "price_decimal": null,
+          "price_decimal": "0",
           "currency": "USD",
           "quantity": 0,
           "is_active": true,
@@ -489,7 +489,7 @@
           "scheme": "per_unit",
           "interval": "year"
         },
-        "is_free": false,
+        "is_free": true,
         "is_custom": false,
         "entitlements": [
           {
@@ -1951,7 +1951,7 @@
           "interval": "month"
         },
         "one_time_price": null,
-        "trial_days": 30,
+        "trial_days": null,
         "yearly_price": {
           "id": "bilpp_MHJqRmG2TfG",
           "external_price_id": "price_1SDSA1LCXzCTAHretGyKUj9O",
@@ -2149,7 +2149,7 @@
     },
     "show_period_toggle": true,
     "show_credits": true,
-    "show_zero_price_as_free": false
+    "show_zero_price_as_free": true
   },
   "params": {}
 }

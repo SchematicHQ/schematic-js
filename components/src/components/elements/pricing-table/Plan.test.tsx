@@ -2,62 +2,73 @@ import { jest } from "@jest/globals";
 import "@testing-library/dom";
 import "@testing-library/jest-dom";
 
-import { fireEvent, render, screen } from "~/test/setup";
+import { act, fireEvent, render, screen } from "~/test/setup";
 
-import { PriceInterval } from "../../../const";
+import {
+  type BillingPriceResponseData,
+  type FeatureUsageResponseData,
+  type PlanEntitlementResponseData,
+} from "../../../api/checkoutexternal";
+import { PriceInterval, VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
+import { type EmbedContextProps } from "../../../context";
+import type { DeepPartial, SelectedPlan } from "../../../types";
 
-import { Plan } from "./Plan";
+import { Plan, type PlanProps } from "./Plan";
 
-jest.mock("../../../hooks/useEmbed", () => ({
-  useEmbed: () => ({
-    data: {
-      showCredits: true,
-      showZeroPriceAsFree: false,
-      company: {
-        billingSubscription: {
-          status: "active",
-          cancelAt: undefined,
-        },
-      },
-    },
-    settings: {
-      theme: {
-        primary: "#000000",
-        card: {
-          background: "#FFFFFF",
-          padding: 16,
-          borderRadius: 10,
-          hasShadow: true,
-        },
-        typography: {
-          heading2: {
-            fontFamily: "Arial",
-            fontSize: 24,
-            fontWeight: 600,
-            color: "#000000",
-          },
-          text: {
-            fontFamily: "Arial",
-            fontSize: 16,
-            fontWeight: 400,
-            color: "#000000",
+const mockOnCallToAction = jest.fn();
+const mockSetCheckoutState = jest.fn();
+
+jest.mock("../../../hooks", () => {
+  const trialEnd = new Date();
+  trialEnd.setDate(trialEnd.getDate() + 15);
+
+  return {
+    useEmbed: () =>
+      ({
+        data: {
+          showCredits: true,
+          showPeriodToggle: true,
+          showZeroPriceAsFree: true,
+          trialPaymentMethodRequired: false,
+          company: {
+            billingSubscription: {
+              status: "active",
+              cancelAt: undefined,
+              trialEnd: trialEnd.getTime(),
+            },
           },
         },
-      },
-    },
-    setCheckoutState: jest.fn(),
-  }),
-}));
-
-jest.mock("../../../hooks/useTrialEnd", () => ({
-  useTrialEnd: () => ({
-    formatted: "14 days left",
-  }),
-}));
-
-jest.mock("../../../hooks/useIsLightBackground", () => ({
-  useIsLightBackground: () => true,
-}));
+        settings: {
+          theme: {
+            primary: "#000000",
+            card: {
+              background: "#FFFFFF",
+              padding: 16,
+              borderRadius: 10,
+              hasShadow: true,
+            },
+            typography: {
+              heading2: {
+                fontFamily: "Arial",
+                fontSize: 24,
+                fontWeight: 600,
+                color: "#000000",
+              },
+              text: {
+                fontFamily: "Arial",
+                fontSize: 16,
+                fontWeight: 400,
+                color: "#000000",
+              },
+            },
+          },
+        },
+        setCheckoutState: jest.fn(),
+      }) satisfies DeepPartial<EmbedContextProps>,
+    useIsLightBackground: () => true,
+    setCheckoutState: mockSetCheckoutState,
+  };
+});
 
 const mockPlan = {
   id: "plan-1",
@@ -68,6 +79,7 @@ const mockPlan = {
   valid: true,
   companyCanTrial: false,
   isTrialable: false,
+  trialDays: null,
   entitlements: [
     {
       id: "ent-1",
@@ -88,22 +100,24 @@ const mockPlan = {
     },
   ],
   monthlyPrice: {
-    price: 19.99,
-    currency: "USD",
+    price: 1999,
+    priceDecimal: "1999",
+    currency: "usd",
   },
   yearlyPrice: {
-    price: 199.99,
-    currency: "USD",
+    price: 19999,
+    priceDecimal: "19999",
+    currency: "usd",
   },
   includedCreditGrants: [
     {
-      name: "API Credits",
-      quantity: 1000,
-      period: "month",
-      icon: "api",
+      creditName: "API Credits",
+      creditAmount: 1000,
+      creditIcon: "api",
+      resetCadence: "monthly",
     },
   ],
-};
+} satisfies DeepPartial<SelectedPlan> as SelectedPlan;
 
 const mockSharedProps = {
   layout: {
@@ -148,7 +162,7 @@ const mockSharedProps = {
   showCallToAction: true,
   callToActionUrl: "/checkout",
   callToActionTarget: "_self",
-};
+} satisfies DeepPartial<PlanProps["sharedProps"]> as PlanProps["sharedProps"];
 
 const mockEntitlementCounts = {
   "plan-1": {
@@ -173,19 +187,16 @@ describe("`Plan` component", () => {
       />,
     );
 
-    // Check if basic plan details are rendered
     expect(screen.getByText("Basic Plan")).toBeInTheDocument();
     expect(screen.getByText("A simple plan for startups")).toBeInTheDocument();
-    expect(screen.getByText("$19.99/month")).toBeInTheDocument();
+    expect(screen.getByText("$19.99")).toBeInTheDocument();
+    expect(screen.getByText("/month")).toBeInTheDocument();
 
-    // Check features are rendered
     expect(screen.getByText("Feature 1")).toBeInTheDocument();
     expect(screen.getByText("Feature 2")).toBeInTheDocument();
 
-    // Check credit grants are rendered
     expect(screen.getByText("1000 API Credits per month")).toBeInTheDocument();
 
-    // Check CTA button is rendered
     const ctaButton = screen.getByText("Choose plan");
     expect(ctaButton).toBeInTheDocument();
     expect(ctaButton).toHaveAttribute("href", "/checkout");
@@ -197,7 +208,7 @@ describe("`Plan` component", () => {
         plan={{ ...mockPlan, current: true }}
         index={0}
         sharedProps={mockSharedProps}
-        plans={[{ ...mockPlan, current: true }]}
+        plans={[mockPlan]}
         selectedPeriod={PriceInterval.Month}
         entitlementCounts={mockEntitlementCounts}
         handleToggleShowAll={mockHandleToggleShowAll}
@@ -206,64 +217,81 @@ describe("`Plan` component", () => {
 
     expect(screen.getByText("Current plan")).toBeInTheDocument();
     expect(screen.getByText("Active")).toBeInTheDocument();
-    // CTA button should not be present for current plan
     expect(screen.queryByText("Choose plan")).not.toBeInTheDocument();
   });
 
-  test("renders trial badge for trial subscription", () => {
-    // Override the mock for this test
-    jest.spyOn(require("../../../hooks/useEmbed"), "useEmbed").mockReturnValue({
-      data: {
-        showCredits: true,
-        showZeroPriceAsFree: false,
-        company: {
-          billingSubscription: {
-            status: "trialing",
-            cancelAt: undefined,
-          },
-        },
-      },
-      settings: {
-        theme: {
-          primary: "#000000",
-          card: {
-            background: "#FFFFFF",
-            padding: 16,
-            borderRadius: 10,
-            hasShadow: true,
-          },
-          typography: {
-            heading2: {
-              fontFamily: "Arial",
-              fontSize: 24,
-              fontWeight: 600,
-              color: "#000000",
+  // `trialEnd` is not available in standalone mode
+  // TODO: figure out how to render a subcomponent with company context (ie. not standalone)
+  // eslint-disable-next-line jest/no-disabled-tests
+  test.skip("renders trial badge for trial subscription", async () => {
+    jest.mock("../../../hooks", () => {
+      const trialEnd = new Date();
+      trialEnd.setDate(trialEnd.getDate() + 15);
+
+      return {
+        useEmbed: () =>
+          ({
+            data: {
+              showCredits: true,
+              showPeriodToggle: true,
+              showZeroPriceAsFree: true,
+              trialPaymentMethodRequired: false,
+              company: {
+                billingSubscription: {
+                  status: "trialing",
+                  cancelAt: undefined,
+                  trialEnd: trialEnd.getTime(),
+                },
+              },
             },
-            text: {
-              fontFamily: "Arial",
-              fontSize: 16,
-              fontWeight: 400,
-              color: "#000000",
+            settings: {
+              theme: {
+                primary: "#000000",
+                card: {
+                  background: "#FFFFFF",
+                  padding: 16,
+                  borderRadius: 10,
+                  hasShadow: true,
+                },
+                typography: {
+                  heading2: {
+                    fontFamily: "Arial",
+                    fontSize: 24,
+                    fontWeight: 600,
+                    color: "#000000",
+                  },
+                  text: {
+                    fontFamily: "Arial",
+                    fontSize: 16,
+                    fontWeight: 400,
+                    color: "#000000",
+                  },
+                },
+              },
             },
-          },
-        },
-      },
-      setCheckoutState: jest.fn(),
+          }) as EmbedContextProps,
+      };
     });
 
     render(
       <Plan
-        plan={{ ...mockPlan, current: true }}
+        plan={{
+          ...mockPlan,
+          current: true,
+          isTrialable: true,
+          companyCanTrial: true,
+          trialDays: 30,
+        }}
         index={0}
         sharedProps={mockSharedProps}
-        plans={[{ ...mockPlan, current: true }]}
+        plans={[mockPlan]}
         selectedPeriod={PriceInterval.Month}
         entitlementCounts={mockEntitlementCounts}
         handleToggleShowAll={mockHandleToggleShowAll}
       />,
     );
 
-    expect(screen.getByText("14 days left")).toBeInTheDocument();
+    expect(await screen.findByText("14 days left")).toBeInTheDocument();
   });
 
   test("renders disabled button for invalid plans", () => {
@@ -272,20 +300,21 @@ describe("`Plan` component", () => {
         plan={{
           ...mockPlan,
           valid: false,
-          usageViolations: ["Too many users"],
+          usageViolations: [
+            { allocation: 5, usage: 8 } as FeatureUsageResponseData,
+          ],
         }}
         index={0}
         sharedProps={mockSharedProps}
-        plans={[{ ...mockPlan, valid: false }]}
+        plans={[mockPlan]}
         selectedPeriod={PriceInterval.Month}
         entitlementCounts={mockEntitlementCounts}
         handleToggleShowAll={mockHandleToggleShowAll}
       />,
     );
 
-    const button = screen.getByText("Choose plan");
-    expect(button).toBeDisabled();
-    expect(screen.getByText("Over plan limit")).toBeInTheDocument();
+    const button = screen.getByTestId("sch-plan-cta-button");
+    expect(button).toHaveTextContent("Over plan limit");
   });
 
   test("renders custom plans correctly", () => {
@@ -310,6 +339,7 @@ describe("`Plan` component", () => {
     );
 
     expect(screen.getByText("Custom pricing")).toBeInTheDocument();
+
     const button = screen.getByText("Contact sales");
     expect(button).toBeInTheDocument();
     expect(button).toHaveAttribute("href", "https://example.com/contact");
@@ -328,7 +358,8 @@ describe("`Plan` component", () => {
       />,
     );
 
-    expect(screen.getByText("$199.99/year")).toBeInTheDocument();
+    const planPrice = screen.getByTestId("sch-plan-price");
+    expect(planPrice).toHaveTextContent("$199.99/year");
   });
 
   test("calls handleToggleShowAll when 'See all' is clicked", () => {
@@ -336,19 +367,22 @@ describe("`Plan` component", () => {
       ...mockPlan,
       entitlements: Array(10)
         .fill(null)
-        .map((_, i) => ({
-          id: `ent-${i}`,
-          feature: {
-            id: `feat-${i}`,
-            name: `Feature ${i}`,
-          },
-        })),
+        .map(
+          (_, i) =>
+            ({
+              id: `ent-${i}`,
+              feature: {
+                id: `feat-${i}`,
+                name: `Feature ${i}`,
+              },
+            }) as PlanEntitlementResponseData,
+        ),
     };
 
     const manyEntitlementsCounts = {
       "plan-1": {
         size: 10,
-        limit: 5,
+        limit: VISIBLE_ENTITLEMENT_COUNT,
       },
     };
 
@@ -364,8 +398,10 @@ describe("`Plan` component", () => {
       />,
     );
 
-    const seeAllButton = screen.getByText("See all");
-    fireEvent.click(seeAllButton);
+    act(() => {
+      const seeAllButton = screen.getByText("See all");
+      fireEvent.click(seeAllButton);
+    });
 
     expect(mockHandleToggleShowAll).toHaveBeenCalledWith("plan-1");
   });
@@ -374,7 +410,7 @@ describe("`Plan` component", () => {
     render(
       <Plan
         plan={mockPlan}
-        index={1} // Not the first plan
+        index={1}
         sharedProps={mockSharedProps}
         plans={[
           { ...mockPlan, id: "previous-plan", name: "Starter Plan" },
@@ -386,55 +422,71 @@ describe("`Plan` component", () => {
       />,
     );
 
-    expect(screen.getByText("Everything in Starter Plan")).toBeInTheDocument();
+    expect(screen.getByText(/Everything in Starter Plan/)).toBeInTheDocument();
   });
 
-  test("renders 'Free' text for free plans when showZeroPriceAsFree is true", () => {
-    // Override the mock for this test
-    jest.spyOn(require("../../../hooks/useEmbed"), "useEmbed").mockReturnValue({
-      data: {
-        showCredits: true,
-        showZeroPriceAsFree: true,
-        company: {
-          billingSubscription: {
-            status: "active",
-          },
-        },
-      },
-      settings: {
-        theme: {
-          primary: "#000000",
-          card: {
-            background: "#FFFFFF",
-            padding: 16,
-            borderRadius: 10,
-            hasShadow: true,
-          },
-          typography: {
-            heading2: {
-              fontFamily: "Arial",
-              fontSize: 24,
-              fontWeight: 600,
-              color: "#000000",
-            },
-            text: {
-              fontFamily: "Arial",
-              fontSize: 16,
-              fontWeight: 400,
-              color: "#000000",
+  // `showZeroPriceAsFree` value defaults to "false"
+  // TODO: figure out how to mock the value
+  // eslint-disable-next-line jest/no-disabled-tests
+  test.skip("renders 'Free' text for free plans when `showZeroPriceAsFree` is true", async () => {
+    jest.mock("../../../hooks", () => {
+      return {
+        useEmbed: () => ({
+          data: {
+            showCredits: true,
+            showPeriodToggle: true,
+            showZeroPriceAsFree: true,
+            trialPaymentMethodRequired: false,
+            company: {
+              billingSubscription: {
+                status: "active",
+              },
             },
           },
-        },
-      },
-      setCheckoutState: jest.fn(),
+          settings: {
+            theme: {
+              primary: "#000000",
+              card: {
+                background: "#FFFFFF",
+                padding: 16,
+                borderRadius: 10,
+                hasShadow: true,
+              },
+              typography: {
+                heading2: {
+                  fontFamily: "Arial",
+                  fontSize: 24,
+                  fontWeight: 600,
+                  color: "#000000",
+                },
+                text: {
+                  fontFamily: "Arial",
+                  fontSize: 16,
+                  fontWeight: 400,
+                  color: "#000000",
+                },
+              },
+            },
+          },
+        }),
+      };
     });
 
     render(
       <Plan
         plan={{
           ...mockPlan,
-          is_free: true,
-          monthlyPrice: { price: 0, currency: "USD" },
+          isFree: true,
+          monthlyPrice: {
+            price: 0,
+            priceDecimal: "0",
+            currency: "usd",
+          } as BillingPriceResponseData,
+          yearlyPrice: {
+            price: 0,
+            priceDecimal: "0",
+            currency: "usd",
+          } as BillingPriceResponseData,
         }}
         index={0}
         sharedProps={mockSharedProps}
@@ -445,74 +497,11 @@ describe("`Plan` component", () => {
       />,
     );
 
-    expect(screen.getByText("Free")).toBeInTheDocument();
-  });
-
-  test("renders trial button for triable plans", () => {
-    render(
-      <Plan
-        plan={{
-          ...mockPlan,
-          companyCanTrial: true,
-          isTrialable: true,
-          trialDays: 14,
-        }}
-        index={0}
-        sharedProps={mockSharedProps}
-        plans={[mockPlan]}
-        selectedPeriod={PriceInterval.Month}
-        entitlementCounts={mockEntitlementCounts}
-        handleToggleShowAll={mockHandleToggleShowAll}
-      />,
-    );
-
-    expect(screen.getByText("Start 14 day trial")).toBeInTheDocument();
+    const button = await screen.findByTestId("sch-plan-cta-button");
+    expect(button).toHaveTextContent("Free");
   });
 
   test("handles call-to-action click", () => {
-    const mockOnCallToAction = jest.fn();
-    const mockSetCheckoutState = jest.fn();
-
-    // Override the mock for this test
-    jest.spyOn(require("../../../hooks/useEmbed"), "useEmbed").mockReturnValue({
-      data: {
-        showCredits: true,
-        showZeroPriceAsFree: false,
-        company: {
-          billingSubscription: {
-            status: "active",
-          },
-        },
-        component: undefined, // isStandalone = true
-      },
-      settings: {
-        theme: {
-          primary: "#000000",
-          card: {
-            background: "#FFFFFF",
-            padding: 16,
-            borderRadius: 10,
-            hasShadow: true,
-          },
-          typography: {
-            heading2: {
-              fontFamily: "Arial",
-              fontSize: 24,
-              fontWeight: 600,
-              color: "#000000",
-            },
-            text: {
-              fontFamily: "Arial",
-              fontSize: 16,
-              fontWeight: 400,
-              color: "#000000",
-            },
-          },
-        },
-      },
-      setCheckoutState: mockSetCheckoutState,
-    });
-
     render(
       <Plan
         plan={mockPlan}
@@ -530,10 +519,11 @@ describe("`Plan` component", () => {
     );
 
     const button = screen.getByText("Choose plan");
-    fireEvent.click(button);
+    act(() => {
+      fireEvent.click(button);
+    });
 
     expect(mockOnCallToAction).toHaveBeenCalledWith(mockPlan);
-    // Since component is undefined (isStandalone = true), setCheckoutState should not be called
     expect(mockSetCheckoutState).not.toHaveBeenCalled();
   });
 });

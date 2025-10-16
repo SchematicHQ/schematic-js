@@ -68,6 +68,8 @@ export const Tooltip = ({
     <>
       <Trigger
         ref={ref}
+        onFocus={() => setShow(true)}
+        onBlur={() => setShow(false)}
         onPointerEnter={() => setShow(true)}
         onPointerLeave={() => setShow(false)}
         $fullWidth={fullWidth}

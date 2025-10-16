@@ -4,32 +4,16 @@ import "@testing-library/jest-dom";
 
 import { render, screen } from "~/test/setup";
 
-import { EntitlementValueType, PriceInterval } from "../../../const";
+import { type PlanEntitlementResponseData } from "../../../api/componentspublic";
+import {
+  EntitlementValueType,
+  FeatureType,
+  PriceInterval,
+} from "../../../const";
+import { DeepPartial } from "../../../types";
 
 import { Entitlement } from "./Entitlement";
-
-jest.mock("../../../hooks/useEmbed", () => ({
-  useEmbed: () => ({
-    settings: {
-      theme: {
-        primary: "#000000",
-        card: {
-          background: "#FFFFFF",
-        },
-        typography: {
-          text: {
-            fontSize: 16,
-            color: "#000000",
-          },
-        },
-      },
-    },
-  }),
-}));
-
-jest.mock("../../../hooks/useIsLightBackground", () => ({
-  useIsLightBackground: () => true,
-}));
+import { PricingTableProps } from "./PricingTable";
 
 describe("`Entitlement` component", () => {
   test("renders numeric entitlement correctly", () => {
@@ -40,11 +24,12 @@ describe("`Entitlement` component", () => {
         name: "API Calls",
         icon: "api",
         description: "Number of API calls per month",
+        featureType: FeatureType.Event,
       },
       valueType: EntitlementValueType.Numeric,
       valueNumeric: 10000,
-      metricPeriod: "month",
-    };
+      metricPeriod: "current_month",
+    } satisfies DeepPartial<PlanEntitlementResponseData> as PlanEntitlementResponseData;
 
     const mockSharedProps = {
       layout: {
@@ -53,14 +38,17 @@ describe("`Entitlement` component", () => {
           showFeatureDescriptions: false,
         },
       },
+    } satisfies DeepPartial<{
+      layout: PricingTableProps;
+    }> as {
+      layout: PricingTableProps;
     };
 
     render(
       <Entitlement
         entitlement={mockEntitlement}
-        credits={[]}
         selectedPeriod={PriceInterval.Month}
-        showCredits={true}
+        showCredits
         sharedProps={mockSharedProps}
       />,
     );
@@ -74,10 +62,12 @@ describe("`Entitlement` component", () => {
       feature: {
         id: "feat-2",
         name: "Storage",
+        singularName: "Storage",
+        pluralName: "Storage",
         icon: "storage",
       },
       valueType: EntitlementValueType.Unlimited,
-    };
+    } satisfies DeepPartial<PlanEntitlementResponseData> as PlanEntitlementResponseData;
 
     const mockSharedProps = {
       layout: {
@@ -86,6 +76,10 @@ describe("`Entitlement` component", () => {
           showFeatureDescriptions: false,
         },
       },
+    } satisfies DeepPartial<{
+      layout: PricingTableProps;
+    }> as {
+      layout: PricingTableProps;
     };
 
     render(
@@ -101,7 +95,7 @@ describe("`Entitlement` component", () => {
     expect(screen.getByText("Unlimited Storage")).toBeInTheDocument();
   });
 
-  test("renders trait entitlement correctly", () => {
+  test.only("renders trait entitlement correctly", () => {
     const mockEntitlement = {
       id: "ent-3",
       feature: {

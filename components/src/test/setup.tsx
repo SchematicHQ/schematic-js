@@ -3,7 +3,7 @@ import { render, type RenderOptions } from "@testing-library/react";
 import { EmbedProvider } from "..";
 
 const Provided = ({ children }: { children: React.ReactNode }) => {
-  return <EmbedProvider apiKey="api_ZbhBKyz4rvC">{children}</EmbedProvider>;
+  return <EmbedProvider apiKey="api_0">{children}</EmbedProvider>;
 };
 
 const customRender = (

@@ -2,47 +2,11 @@ import { jest } from "@jest/globals";
 import "@testing-library/dom";
 import "@testing-library/jest-dom";
 
-import { fireEvent, render, screen } from "~/test/setup";
+import { act, fireEvent, render, screen } from "~/test/setup";
 
 import { SelectedPlan } from "../../../types";
 
 import { PeriodToggle } from "./PeriodToggle";
-
-jest.mock("../../../hooks/useEmbed", () => ({
-  useEmbed: () => ({
-    settings: {
-      theme: {
-        card: {
-          background: "#FFFFFF",
-        },
-      },
-    },
-  }),
-}));
-
-jest.mock("../../../hooks/useIsLightBackground", () => ({
-  useIsLightBackground: () => true,
-}));
-
-jest.mock("react-i18next", () => ({
-  useTranslation: () => ({
-    t: (key: string, options?: Record<string, unknown>) => {
-      if (key === "Billed") {
-        return `Billed ${options?.period}`;
-      }
-
-      if (key === "Save with yearly billing") {
-        return `Save ${options?.percent}% with yearly billing`;
-      }
-
-      if (key === "Saving with yearly billing") {
-        return `Saving ${options?.percent}% with yearly billing`;
-      }
-
-      return key;
-    },
-  }),
-}));
 
 describe("`PeriodToggle` component", () => {
   const mockOptions = ["month", "year"];
@@ -83,7 +47,9 @@ describe("`PeriodToggle` component", () => {
     );
 
     const yearlyOption = screen.getByText("Billed yearly");
-    fireEvent.click(yearlyOption);
+    act(() => {
+      fireEvent.click(yearlyOption);
+    });
 
     expect(mockOnSelect).toHaveBeenCalledWith("year");
   });
@@ -98,8 +64,10 @@ describe("`PeriodToggle` component", () => {
     );
 
     const yearlyOption = screen.getByText("Billed yearly");
-    yearlyOption.focus();
-    fireEvent.keyDown(yearlyOption, { key: "Enter" });
+    act(() => {
+      fireEvent.focus(yearlyOption);
+      fireEvent.keyDown(yearlyOption, { key: "Enter" });
+    });
 
     expect(mockOnSelect).toHaveBeenCalledWith("year");
   });
@@ -113,18 +81,20 @@ describe("`PeriodToggle` component", () => {
       />,
     );
 
-    // Focus and press Space on yearly option
     const yearlyOption = screen.getByText("Billed yearly");
-    yearlyOption.focus();
-    fireEvent.keyDown(yearlyOption, { key: " " });
+
+    act(() => {
+      fireEvent.focus(yearlyOption);
+      fireEvent.keyDown(yearlyOption, { key: " " });
+    });
 
     expect(mockOnSelect).toHaveBeenCalledWith("year");
   });
 
   test("displays savings tooltip when a plan is provided", () => {
     const mockPlan = {
-      monthlyPrice: { price: 10, currency: "USD" },
-      yearlyPrice: { price: 100, currency: "USD" },
+      monthlyPrice: { price: 1000, priceDecimal: "1000", currency: "usd" },
+      yearlyPrice: { price: 10000, priceDecimal: "10000", currency: "usd" },
     };
 
     render(
@@ -136,11 +106,17 @@ describe("`PeriodToggle` component", () => {
       />,
     );
 
-    // In a real implementation, we would check for the tooltip, but since
-    // it's using a custom Tooltip component, we'd need to mock that or use
-    // more complex testing strategies. For this basic test, we're just
-    // checking that the toggle renders with the plan data.
-    expect(screen.getByText("Billed yearly")).toBeInTheDocument();
+    const yearlyOption = screen.getByText("Billed yearly");
+    expect(yearlyOption).toBeInTheDocument();
+
+    act(() => {
+      fireEvent.focus(yearlyOption);
+      fireEvent.pointerEnter(yearlyOption);
+    });
+
+    expect(
+      screen.getByText("Save up to 16.67% with yearly billing"),
+    ).toBeInTheDocument();
   });
 
   test("renders with custom options", () => {
