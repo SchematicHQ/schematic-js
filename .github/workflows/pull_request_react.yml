@@ -38,6 +38,10 @@ jobs:
       # Install from root to ensure Bun workspace resolution links all packages
       - name: Install dependencies
         run: bun install
+      # Build js package first since react depends on @schematichq/schematic-js
+      - name: Build js package (dependency)
+        working-directory: ./js
+        run: bun run build
       - name: Lint
         working-directory: ./react
         run: bun run lint
