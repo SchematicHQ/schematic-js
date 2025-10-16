@@ -5,7 +5,10 @@ import type {
 } from "../../api/checkoutexternal";
 import { FeatureUsageResponseDataAllocationTypeEnum } from "../../api/checkoutexternal";
 
-import { extractCurrentUsageBasedEntitlements } from "../index";
+import {
+  extractCurrentUsageBasedEntitlements,
+  getEntitlementFeatureName,
+} from "../index";
 
 describe("calculateCurrentUsageBasedEntitlements", () => {
   it("should return an empty array when features is undefined", () => {
@@ -279,5 +282,107 @@ describe("calculateCurrentUsageBasedEntitlements", () => {
       },
       period: "month",
     });
+  });
+});
+
+describe("getEntitlementFeatureName", () => {
+  it("should return feature.pluralName when available", () => {
+    const entitlement = {
+      feature: {
+        pluralName: "Users",
+        name: "User",
+      },
+      featureName: "FallbackName",
+    };
+
+    const result = getEntitlementFeatureName(entitlement);
+    expect(result).toBe("Users");
+  });
+
+  it("should return feature.name when pluralName is not available", () => {
+    const entitlement = {
+      feature: {
+        name: "User",
+      },
+      featureName: "FallbackName",
+    };
+
+    const result = getEntitlementFeatureName(entitlement);
+    expect(result).toBe("User");
+  });
+
+  it("should return featureName when feature properties are not available", () => {
+    const entitlement = {
+      feature: {},
+      featureName: "FallbackName",
+    };
+
+    const result = getEntitlementFeatureName(entitlement);
+    expect(result).toBe("FallbackName");
+  });
+
+  it("should return defaultValue when no feature information is available", () => {
+    const entitlement = {
+      feature: {},
+    };
+
+    const result = getEntitlementFeatureName(entitlement, "units");
+    expect(result).toBe("units");
+  });
+
+  it("should return empty string when no information and no default value", () => {
+    const entitlement = {
+      feature: {},
+    };
+
+    const result = getEntitlementFeatureName(entitlement);
+    expect(result).toBe("");
+  });
+
+  it("should handle null values in feature properties", () => {
+    const entitlement = {
+      feature: {
+        pluralName: null,
+        name: null,
+      },
+      featureName: null,
+    };
+
+    const result = getEntitlementFeatureName(entitlement, "default");
+    expect(result).toBe("default");
+  });
+
+  it("should handle undefined feature object", () => {
+    const entitlement = {
+      featureName: "MyFeature",
+    };
+
+    const result = getEntitlementFeatureName(entitlement);
+    expect(result).toBe("MyFeature");
+  });
+
+  it("should prioritize pluralName over name and featureName", () => {
+    const entitlement = {
+      feature: {
+        pluralName: "Seats",
+        name: "Seat",
+      },
+      featureName: "LicenseSeats",
+    };
+
+    const result = getEntitlementFeatureName(entitlement);
+    expect(result).toBe("Seats");
+  });
+
+  it("should prioritize name over featureName when pluralName is missing", () => {
+    const entitlement = {
+      feature: {
+        name: "Seat",
+      },
+      featureName: "LicenseSeats",
+    };
+
+    const result = getEntitlementFeatureName(entitlement);
+    expect(result).toBe("Seat");
   });
 });
