@@ -49,9 +49,7 @@ function renderMeteredEntitlementPricing({
   if (priceBehavior === PriceBehavior.Overage && softLimit) {
     return (
       <>
-        Additional:{" "}
-        {formatCurrency(price, currency)}
-        /
+        Additional: {formatCurrency(price, currency)}/
         {feature
           ? getFeatureName(
               feature as Pick<
@@ -72,8 +70,7 @@ function renderMeteredEntitlementPricing({
   ) {
     return (
       <>
-        {formatCurrency(price, currency)}
-        /
+        {formatCurrency(price, currency)}/
         {packageSize > 1 && <>{packageSize} </>}
         {feature
           ? getFeatureName(
@@ -104,7 +101,9 @@ function shouldShowUsageBased(
   price: number,
   displayableEntitlements: Array<{ isUnlimited: boolean }>,
 ): boolean {
-  return price < 0.01 && displayableEntitlements.some((ent) => !ent.isUnlimited);
+  return (
+    price < 0.01 && displayableEntitlements.some((ent) => !ent.isUnlimited)
+  );
 }
 
 export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
@@ -228,7 +227,8 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
                       <Text
                         display="heading2"
                         $size={
-                          (16 / 30) * settings.theme.typography.heading2.fontSize
+                          (16 / 30) *
+                          settings.theme.typography.heading2.fontSize
                         }
                       >
                         {addOn.chargeType === ChargeType.oneTime ? (
