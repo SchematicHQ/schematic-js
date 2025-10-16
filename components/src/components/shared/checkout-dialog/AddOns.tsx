@@ -7,6 +7,7 @@ import {
   ChargeType,
   formatCurrency,
   getAddOnPrice,
+  getEntitlementFeatureName,
   getEntitlementPrice,
   getFeatureName,
   hexToHSL,
@@ -271,15 +272,8 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
                               {meteredEntitlement.priceBehavior ===
                                 PriceBehavior.Overage &&
                               meteredEntitlement.softLimit
-                                ? `${meteredEntitlement.softLimit} ${
-                                    meteredEntitlement.feature?.pluralName ||
-                                    meteredEntitlement.feature?.name ||
-                                    meteredEntitlement.featureName ||
-                                    "units"
-                                  }`
-                                : meteredEntitlement.feature?.pluralName ||
-                                  meteredEntitlement.feature?.name ||
-                                  meteredEntitlement.featureName}
+                                ? `${meteredEntitlement.softLimit} ${getEntitlementFeatureName(meteredEntitlement, "units")}`
+                                : getEntitlementFeatureName(meteredEntitlement)}
                             </Text>
                           </Flex>
                         </Flex>
