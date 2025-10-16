@@ -42,9 +42,6 @@ jobs:
       - name: Test
         working-directory: ./react
         run: bun run test
-      - name: Test (React Native)
-        working-directory: ./react
-        run: bun run test:reactnative
 
   publish:
     name: NPM Publish

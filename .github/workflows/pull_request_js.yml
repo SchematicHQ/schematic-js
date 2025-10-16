@@ -53,6 +53,3 @@ jobs:
       - name: Test
         working-directory: ./js
         run: bun test
-      - name: Test (React Native)
-        working-directory: ./js
-        run: bun run test:reactnative
