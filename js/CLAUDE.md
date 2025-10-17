@@ -4,12 +4,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Commands
 
-- Build: `yarn build`
-- Lint: `yarn lint`
-- Format: `yarn format`
-- Test all: `yarn test`
-- Test single file: `jest src/path/to/file.spec.ts`
-- Test specific test: `jest -t "test description pattern"`
+- Build: `bun run build`
+- Lint: `bun run lint`
+- Format: `bun run format`
+- Test all: `bun test`
+- Test single file: `bun test src/path/to/file.spec.ts`
+- Test specific test: `bun test -t "test description pattern"`
 
 ## Code Style
 

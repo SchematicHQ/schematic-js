@@ -31,6 +31,6 @@ export default defineConfig([
     },
   },
   {
-    ignores: ["src/**/*.test.ts", "src/frontend/generated/*", "dist/*"],
+    ignores: ["src/**/*.test.ts", "src/**/*.spec.ts", "src/frontend/generated/*", "dist/*"],
   },
 ]);
