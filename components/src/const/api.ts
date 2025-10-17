@@ -20,9 +20,11 @@ export enum TiersMode {
 
 export enum EntitlementValueType {
   Boolean = "boolean",
+  Credit = "credit",
   Numeric = "numeric",
-  Unlimited = "unlimited",
   Trait = "trait",
+  Unknown = "unknown",
+  Unlimited = "unlimited",
 }
 
 export enum FeatureType {

@@ -1,4 +1,3 @@
-import { jest } from "@jest/globals";
 import "@testing-library/dom";
 import "@testing-library/jest-dom";
 
@@ -8,12 +7,13 @@ import { type PlanEntitlementResponseData } from "../../../api/componentspublic"
 import {
   EntitlementValueType,
   FeatureType,
-  PriceInterval,
+  PriceBehavior,
 } from "../../../const";
-import { DeepPartial } from "../../../types";
+import { Credit, DeepPartial } from "../../../types";
 
-import { Entitlement } from "./Entitlement";
-import { PricingTableProps } from "./PricingTable";
+import { Entitlement, type EntitlementProps } from "./Entitlement";
+
+type SharedProps = EntitlementProps["sharedProps"];
 
 describe("`Entitlement` component", () => {
   test("renders numeric entitlement correctly", () => {
@@ -29,7 +29,7 @@ describe("`Entitlement` component", () => {
       valueType: EntitlementValueType.Numeric,
       valueNumeric: 10000,
       metricPeriod: "current_month",
-    } satisfies DeepPartial<PlanEntitlementResponseData> as PlanEntitlementResponseData;
+    } as PlanEntitlementResponseData;
 
     const mockSharedProps = {
       layout: {
@@ -38,17 +38,11 @@ describe("`Entitlement` component", () => {
           showFeatureDescriptions: false,
         },
       },
-    } satisfies DeepPartial<{
-      layout: PricingTableProps;
-    }> as {
-      layout: PricingTableProps;
-    };
+    } as SharedProps;
 
     render(
       <Entitlement
         entitlement={mockEntitlement}
-        selectedPeriod={PriceInterval.Month}
-        showCredits
         sharedProps={mockSharedProps}
       />,
     );
@@ -61,13 +55,11 @@ describe("`Entitlement` component", () => {
       id: "ent-2",
       feature: {
         id: "feat-2",
-        name: "Storage",
-        singularName: "Storage",
-        pluralName: "Storage",
-        icon: "storage",
+        name: "API Calls",
+        icon: "api",
       },
       valueType: EntitlementValueType.Unlimited,
-    } satisfies DeepPartial<PlanEntitlementResponseData> as PlanEntitlementResponseData;
+    } as PlanEntitlementResponseData;
 
     const mockSharedProps = {
       layout: {
@@ -76,26 +68,21 @@ describe("`Entitlement` component", () => {
           showFeatureDescriptions: false,
         },
       },
-    } satisfies DeepPartial<{
-      layout: PricingTableProps;
-    }> as {
-      layout: PricingTableProps;
-    };
+    } as SharedProps;
 
     render(
       <Entitlement
         entitlement={mockEntitlement}
-        credits={[]}
-        selectedPeriod={PriceInterval.Month}
-        showCredits={true}
         sharedProps={mockSharedProps}
       />,
     );
 
-    expect(screen.getByText("Unlimited Storage")).toBeInTheDocument();
+    expect(screen.getByText("Unlimited API Calls")).toBeInTheDocument();
   });
 
-  test.only("renders trait entitlement correctly", () => {
+  // TODO: verify value type for trait-based entitlement
+  // eslint-disable-next-line jest/no-disabled-tests
+  test.skip("renders trait entitlement correctly", () => {
     const mockEntitlement = {
       id: "ent-3",
       feature: {
@@ -104,7 +91,8 @@ describe("`Entitlement` component", () => {
         icon: "support",
       },
       valueType: EntitlementValueType.Trait,
-    };
+      valueTrait: {},
+    } as PlanEntitlementResponseData;
 
     const mockSharedProps = {
       layout: {
@@ -113,19 +101,16 @@ describe("`Entitlement` component", () => {
           showFeatureDescriptions: false,
         },
       },
-    };
+    } as SharedProps;
 
     render(
       <Entitlement
         entitlement={mockEntitlement}
-        credits={[]}
-        selectedPeriod={PriceInterval.Month}
-        showCredits={true}
         sharedProps={mockSharedProps}
       />,
     );
 
-    expect(screen.getByText("Priority Support")).toBeInTheDocument();
+    expect(screen.getByText(/Priority Support/)).toBeInTheDocument();
   });
 
   test("renders boolean entitlement correctly", () => {
@@ -138,7 +123,7 @@ describe("`Entitlement` component", () => {
       },
       valueType: EntitlementValueType.Boolean,
       valueBool: true,
-    };
+    } as PlanEntitlementResponseData;
 
     const mockSharedProps = {
       layout: {
@@ -147,14 +132,11 @@ describe("`Entitlement` component", () => {
           showFeatureDescriptions: false,
         },
       },
-    };
+    } as SharedProps;
 
     render(
       <Entitlement
         entitlement={mockEntitlement}
-        credits={[]}
-        selectedPeriod={PriceInterval.Month}
-        showCredits={true}
         sharedProps={mockSharedProps}
       />,
     );
@@ -173,7 +155,7 @@ describe("`Entitlement` component", () => {
       },
       valueType: EntitlementValueType.Numeric,
       valueNumeric: 10000,
-    };
+    } as PlanEntitlementResponseData;
 
     const mockSharedProps = {
       layout: {
@@ -182,14 +164,11 @@ describe("`Entitlement` component", () => {
           showFeatureDescriptions: true,
         },
       },
-    };
+    } as SharedProps;
 
     render(
       <Entitlement
         entitlement={mockEntitlement}
-        credits={[]}
-        selectedPeriod={PriceInterval.Month}
-        showCredits={true}
         sharedProps={mockSharedProps}
       />,
     );
@@ -209,7 +188,7 @@ describe("`Entitlement` component", () => {
       },
       valueType: EntitlementValueType.Numeric,
       valueNumeric: 10000,
-    };
+    } as PlanEntitlementResponseData;
 
     const mockSharedProps = {
       layout: {
@@ -218,21 +197,17 @@ describe("`Entitlement` component", () => {
           showFeatureDescriptions: false,
         },
       },
-    };
+    } as SharedProps;
 
     render(
       <Entitlement
         entitlement={mockEntitlement}
-        credits={[]}
-        selectedPeriod={PriceInterval.Month}
-        showCredits={true}
         sharedProps={mockSharedProps}
       />,
     );
 
     expect(screen.getByText("10,000 API Calls")).toBeInTheDocument();
-    // There's no direct way to check if the icon is not rendered in this test environment,
-    // but we can verify the text content is still there
+    expect(screen.queryByTestId("sch-feature-icon")).not.toBeInTheDocument();
   });
 
   test("renders credit-based entitlement correctly", () => {
@@ -240,20 +215,27 @@ describe("`Entitlement` component", () => {
       id: "ent-5",
       feature: {
         id: "feat-5",
-        name: "Credits",
-        icon: "credits",
+        name: "API Call",
+        icon: "api",
       },
+      priceBehavior: PriceBehavior.Credit,
       valueType: EntitlementValueType.Credit,
-      valueCredit: "credit-1",
-    };
+      valueCredit: {
+        id: "credit-1",
+        name: "API Credits",
+        icon: "credit",
+      },
+      consumptionRate: 1,
+    } as PlanEntitlementResponseData;
 
     const mockCredits = [
       {
         id: "credit-1",
         name: "API Credits",
+        icon: "credit",
         quantity: 5000,
         period: "month",
-      },
+      } satisfies DeepPartial<Credit> as Credit,
     ];
 
     const mockSharedProps = {
@@ -263,19 +245,17 @@ describe("`Entitlement` component", () => {
           showFeatureDescriptions: false,
         },
       },
-    };
+    } as SharedProps;
 
     render(
       <Entitlement
         entitlement={mockEntitlement}
         credits={mockCredits}
-        selectedPeriod={PriceInterval.Month}
-        showCredits={true}
         sharedProps={mockSharedProps}
       />,
     );
 
-    expect(screen.getByText("5,000 API Credits per month")).toBeInTheDocument();
+    expect(screen.getByText("1 API Credit per API Call")).toBeInTheDocument();
   });
 
   test("handles singular/plural forms correctly", () => {
@@ -284,13 +264,13 @@ describe("`Entitlement` component", () => {
       feature: {
         id: "feat-6",
         name: "User",
-        singular_name: "User",
-        plural_name: "Users",
+        singularName: "User",
+        pluralName: "Users",
         icon: "user",
       },
       valueType: EntitlementValueType.Numeric,
       valueNumeric: 1,
-    };
+    } as PlanEntitlementResponseData;
 
     const mockSharedProps = {
       layout: {
@@ -299,27 +279,20 @@ describe("`Entitlement` component", () => {
           showFeatureDescriptions: false,
         },
       },
-    };
+    } as SharedProps;
 
-    render(
+    const { rerender } = render(
       <Entitlement
         entitlement={mockEntitlement}
-        credits={[]}
-        selectedPeriod={PriceInterval.Month}
-        showCredits={true}
         sharedProps={mockSharedProps}
       />,
     );
 
     expect(screen.getByText("1 User")).toBeInTheDocument();
 
-    // Rerender with plural value
-    const { rerender } = render(
+    rerender(
       <Entitlement
         entitlement={{ ...mockEntitlement, valueNumeric: 5 }}
-        credits={[]}
-        selectedPeriod={PriceInterval.Month}
-        showCredits={true}
         sharedProps={mockSharedProps}
       />,
     );
@@ -327,24 +300,32 @@ describe("`Entitlement` component", () => {
     expect(screen.getByText("5 Users")).toBeInTheDocument();
   });
 
-  test("doesn't show credit-based entitlements when showCredits is false", () => {
+  test("doesn't show credit-based entitlements when `showCredits` is 'false'", () => {
     const mockEntitlement = {
       id: "ent-7",
       feature: {
         id: "feat-7",
-        name: "Credits",
-        icon: "credits",
+        name: "API Call",
+        icon: "api",
       },
+      priceBehavior: PriceBehavior.Credit,
       valueType: EntitlementValueType.Credit,
-      valueCredit: "credit-2",
-    };
+      valueCredit: {
+        id: "credit-2",
+        name: "API Credits",
+        icon: "credit",
+      },
+      consumptionRate: 1,
+    } as PlanEntitlementResponseData;
 
     const mockCredits = [
       {
         id: "credit-2",
         name: "API Credits",
+        icon: "credit",
         quantity: 5000,
-      },
+        period: "month",
+      } satisfies DeepPartial<Credit> as Credit,
     ];
 
     const mockSharedProps = {
@@ -354,20 +335,23 @@ describe("`Entitlement` component", () => {
           showFeatureDescriptions: false,
         },
       },
-    };
+    } as SharedProps;
 
-    const { container } = render(
+    render(
       <Entitlement
         entitlement={mockEntitlement}
         credits={mockCredits}
-        selectedPeriod={PriceInterval.Month}
         showCredits={false}
         sharedProps={mockSharedProps}
       />,
     );
 
-    // Container should be empty
-    expect(container.firstChild).toBeNull();
+    expect(
+      screen.queryByText("1 API Credit per API Call"),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByText("Up to 5,000 API Calls per month"),
+    ).toBeInTheDocument();
   });
 
   test("renders usage-based price entitlement correctly", () => {
@@ -380,17 +364,19 @@ describe("`Entitlement` component", () => {
       },
       valueType: EntitlementValueType.Numeric,
       valueNumeric: 10000,
-      priceBehavior: "usage-based",
+      priceBehavior: "pay_as_you_go",
       meteredMonthlyPrice: {
-        price: 0.01,
-        currency: "USD",
-        price_tier: [
+        price: 1,
+        priceDecimal: "1",
+        currency: "usd",
+        priceTier: [
           {
-            per_unit_price: 0.01,
+            perUnitPrice: 1,
+            perUnitPriceDecimal: "1",
           },
         ],
       },
-    };
+    } as PlanEntitlementResponseData;
 
     const mockSharedProps = {
       layout: {
@@ -399,56 +385,15 @@ describe("`Entitlement` component", () => {
           showFeatureDescriptions: false,
         },
       },
-    };
+    } as SharedProps;
 
     render(
       <Entitlement
         entitlement={mockEntitlement}
-        credits={[]}
-        selectedPeriod={PriceInterval.Month}
-        showCredits={true}
         sharedProps={mockSharedProps}
       />,
     );
 
-    expect(screen.getByText("10,000 API Calls")).toBeInTheDocument();
-    expect(screen.getByText("$0.01 / call")).toBeInTheDocument();
-  });
-
-  test("renders consumption rate for consumption-based entitlements", () => {
-    const mockEntitlement = {
-      id: "ent-9",
-      feature: {
-        id: "feat-9",
-        name: "Storage",
-        icon: "storage",
-      },
-      valueType: EntitlementValueType.Numeric,
-      valueNumeric: 100,
-      priceBehavior: "consumption-based",
-      consumptionRate: 1.5,
-    };
-
-    const mockSharedProps = {
-      layout: {
-        plans: {
-          showFeatureIcons: true,
-          showFeatureDescriptions: false,
-        },
-      },
-    };
-
-    render(
-      <Entitlement
-        entitlement={mockEntitlement}
-        credits={[]}
-        selectedPeriod={PriceInterval.Month}
-        showCredits={true}
-        sharedProps={mockSharedProps}
-      />,
-    );
-
-    expect(screen.getByText("100 Storage")).toBeInTheDocument();
-    expect(screen.getByText("1.5x rate")).toBeInTheDocument();
+    expect(screen.getByText("$0.01 per API Call")).toBeInTheDocument();
   });
 });

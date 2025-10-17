@@ -5,6 +5,7 @@ import {
   EntitlementValueType,
   FeatureType,
   PriceBehavior,
+  PriceInterval,
 } from "../../../const";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import type { Credit } from "../../../types";
@@ -29,22 +30,22 @@ import {
   type PricingTableProps,
 } from "./PricingTable";
 
-interface EntitlementProps {
+export interface EntitlementProps {
   entitlement: PlanEntitlementResponseData;
-  credits?: Credit[];
-  selectedPeriod: string;
-  showCredits: boolean;
   sharedProps: PricingTableOptions & {
     layout: PricingTableProps;
   };
+  selectedPeriod?: string;
+  credits?: Credit[];
+  showCredits?: boolean;
 }
 
 export const Entitlement = ({
   entitlement,
-  credits = [],
-  selectedPeriod,
-  showCredits,
   sharedProps,
+  selectedPeriod = PriceInterval.Month,
+  credits = [],
+  showCredits = true,
 }: EntitlementProps) => {
   const { layout } = sharedProps;
 
@@ -73,6 +74,7 @@ export const Entitlement = ({
     <Flex $gap="1rem">
       {layout.plans.showFeatureIcons && entitlement.feature?.icon && (
         <Icon
+          data-testid="sch-feature-icon"
           name={entitlement.feature.icon}
           color={settings.theme.primary}
           background={`color-mix(in oklch, ${settings.theme.card.background} 87.5%, ${isLightBackground ? "black" : "white"})`}
@@ -90,7 +92,9 @@ export const Entitlement = ({
                 <>
                   {formatCurrency(entitlementPrice, entitlementCurrency)}{" "}
                   {t("per")}{" "}
-                  {entitlementPackageSize > 1 && <>{entitlementPackageSize} </>}
+                  {entitlementPackageSize > 1 && (
+                    <>{formatNumber(entitlementPackageSize)} </>
+                  )}
                   {getFeatureName(entitlement.feature, entitlementPackageSize)}
                   {entitlement.priceBehavior === PriceBehavior.PayInAdvance && (
                     <>
@@ -106,12 +110,13 @@ export const Entitlement = ({
                 />
               ) : showCredits &&
                 entitlement.priceBehavior === PriceBehavior.Credit &&
-                entitlement.valueCredit ? (
+                entitlement.valueCredit &&
+                entitlement.consumptionRate ? (
                 <>
-                  {entitlement.consumptionRate}{" "}
+                  {formatNumber(entitlement.consumptionRate)}{" "}
                   {getFeatureName(
                     entitlement.valueCredit,
-                    entitlement.consumptionRate || undefined,
+                    entitlement.consumptionRate,
                   )}{" "}
                   {t("per")} {getFeatureName(entitlement.feature, 1)}
                 </>
@@ -120,7 +125,7 @@ export const Entitlement = ({
                 <>
                   {creditBasedEntitlementLimit?.period
                     ? t("Up to X units per period", {
-                        amount: creditBasedEntitlementLimit.limit,
+                        amount: formatNumber(creditBasedEntitlementLimit.limit),
                         units: getFeatureName(
                           entitlement.feature,
                           creditBasedEntitlementLimit.limit,
@@ -128,7 +133,7 @@ export const Entitlement = ({
                         period: creditBasedEntitlementLimit.period,
                       })
                     : t("Up to X units", {
-                        amount: creditBasedEntitlementLimit.limit,
+                        amount: formatNumber(creditBasedEntitlementLimit.limit),
                         units: getFeatureName(
                           entitlement.feature,
                           creditBasedEntitlementLimit.limit,
@@ -172,7 +177,9 @@ export const Entitlement = ({
                 >
                   {t("then")}{" "}
                   {formatCurrency(entitlementPrice, entitlementCurrency)}/
-                  {entitlementPackageSize > 1 && <>{entitlementPackageSize} </>}
+                  {entitlementPackageSize > 1 && (
+                    <>{formatNumber(entitlementPackageSize)} </>
+                  )}
                   {getFeatureName(entitlement.feature, entitlementPackageSize)}
                   {entitlement.feature.featureType === FeatureType.Trait && (
                     <>/{shortenPeriod(selectedPeriod)}</>
