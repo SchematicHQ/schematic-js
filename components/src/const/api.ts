@@ -33,6 +33,20 @@ export enum FeatureType {
   Trait = "trait",
 }
 
+export enum EntityType {
+  User = "user",
+  Company = "company",
+}
+
+export enum TraitType {
+  Boolean = "boolean",
+  Currency = "currency",
+  Date = "date",
+  Number = "number",
+  String = "string",
+  Url = "url",
+}
+
 export enum CreditResetCadence {
   Month = "monthly",
   Year = "yearly",

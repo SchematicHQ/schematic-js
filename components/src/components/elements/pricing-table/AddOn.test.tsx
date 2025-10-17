@@ -4,53 +4,18 @@ import "@testing-library/jest-dom";
 
 import { fireEvent, render, screen } from "~/test/setup";
 
-import { PriceInterval } from "../../../const";
+import {
+  EntitlementValueType,
+  EntityType,
+  PriceInterval,
+  TraitType,
+} from "../../../const";
+import { type EmbedContextProps } from "../../../context";
+import type { DeepPartial, SelectedPlan } from "../../../types";
 
-import { AddOn } from "./AddOn";
+import { AddOn, type AddOnProps } from "./AddOn";
 
-jest.mock("../../../hooks/useEmbed", () => ({
-  useEmbed: () => ({
-    data: {
-      company: {
-        addOns: [],
-      },
-      capabilities: {
-        checkout: true,
-      },
-      component: undefined,
-    },
-    settings: {
-      theme: {
-        primary: "#000000",
-        card: {
-          background: "#FFFFFF",
-          padding: 16,
-          borderRadius: 10,
-          hasShadow: true,
-        },
-        typography: {
-          heading2: {
-            fontFamily: "Arial",
-            fontSize: 24,
-            fontWeight: 600,
-            color: "#000000",
-          },
-          text: {
-            fontFamily: "Arial",
-            fontSize: 16,
-            fontWeight: 400,
-            color: "#000000",
-          },
-        },
-      },
-    },
-    setCheckoutState: jest.fn(),
-  }),
-}));
-
-jest.mock("../../../hooks/useIsLightBackground", () => ({
-  useIsLightBackground: () => true,
-}));
+type SharedProps = AddOnProps["sharedProps"];
 
 const mockAddOn = {
   id: "addon-1",
@@ -68,29 +33,36 @@ const mockAddOn = {
         icon: "api",
         description: "Additional API calls per month",
       },
-      valueType: "numeric",
+      valueType: EntitlementValueType.Numeric,
       valueNumeric: 10000,
-      feature_name: "API Calls",
     },
     {
       id: "ent-2",
       feature: {
         id: "feat-2",
         name: "Priority Support",
+        singularName: "Priority Support",
+        pluralName: "Priority Support",
         icon: "headset",
       },
-      valueType: "trait",
+      valueType: EntitlementValueType.Trait,
+      valueTrait: {
+        id: "trait-1",
+        displayName: "Number of Locations",
+        entityType: EntityType.Company,
+        traitType: TraitType.Number,
+      },
     },
   ],
   monthlyPrice: {
-    price: 9.99,
+    price: 999,
     currency: "USD",
   },
   yearlyPrice: {
-    price: 99.99,
+    price: 9999,
     currency: "USD",
   },
-};
+} satisfies DeepPartial<SelectedPlan> as SelectedPlan;
 
 const mockSharedProps = {
   layout: {
@@ -135,7 +107,7 @@ const mockSharedProps = {
   showCallToAction: true,
   callToActionUrl: "/checkout",
   callToActionTarget: "_self",
-};
+} satisfies DeepPartial<SharedProps> as SharedProps;
 
 describe("`AddOn` component", () => {
   test("renders add-on correctly", () => {
@@ -147,67 +119,65 @@ describe("`AddOn` component", () => {
       />,
     );
 
-    // Check if add-on details are rendered
     expect(screen.getByText("API Boost")).toBeInTheDocument();
     expect(
       screen.getByText("Increase your API call limits"),
     ).toBeInTheDocument();
-    expect(screen.getByText("$9.99/month")).toBeInTheDocument();
+    expect(screen.getByTestId("sch-addon-price")).toHaveTextContent(
+      "$9.99/month",
+    );
 
-    // Check features are rendered
-    expect(screen.getByText("10000 Extra API Calls")).toBeInTheDocument();
+    expect(screen.getByText("10,000 Extra API Calls")).toBeInTheDocument();
     expect(screen.getByText("Priority Support")).toBeInTheDocument();
 
-    // Check CTA button is rendered
     const ctaButton = screen.getByText("Choose add-on");
     expect(ctaButton).toBeInTheDocument();
     expect(ctaButton).toHaveAttribute("href", "/checkout");
   });
 
-  test("renders active add-on correctly", () => {
-    // Override the mock for this test
-    jest.spyOn(require("../../../hooks/useEmbed"), "useEmbed").mockReturnValue({
-      data: {
-        company: {
-          addOns: [
-            {
-              id: "addon-1",
-              planPeriod: "month",
+  test.only("renders active add-on correctly", async () => {
+    jest.mock("../../../hooks", () => ({
+      useEmbed: () =>
+        ({
+          data: {
+            company: {
+              addOns: [
+                {
+                  id: "addon-1",
+                  name: "API Boost",
+                  planPeriod: "month",
+                },
+              ],
             },
-          ],
-        },
-        capabilities: {
-          checkout: true,
-        },
-        component: undefined,
-      },
-      settings: {
-        theme: {
-          primary: "#000000",
-          card: {
-            background: "#FFFFFF",
-            padding: 16,
-            borderRadius: 10,
-            hasShadow: true,
+            capabilities: {
+              checkout: true,
+              badgeVisibility: false,
+            },
+            component: undefined,
           },
-          typography: {
-            heading2: {
-              fontFamily: "Arial",
-              fontSize: 24,
-              fontWeight: 600,
-              color: "#000000",
+        }) satisfies DeepPartial<EmbedContextProps> as EmbedContextProps,
+    }));
+    jest.mock("../../../hooks/useEmbed", () => ({
+      useEmbed: () =>
+        ({
+          data: {
+            company: {
+              addOns: [
+                {
+                  id: "addon-1",
+                  name: "API Boost",
+                  planPeriod: "month",
+                },
+              ],
             },
-            text: {
-              fontFamily: "Arial",
-              fontSize: 16,
-              fontWeight: 400,
-              color: "#000000",
+            capabilities: {
+              checkout: true,
+              badgeVisibility: false,
             },
+            component: undefined,
           },
-        },
-      },
-      setCheckoutState: jest.fn(),
-    });
+        }) satisfies DeepPartial<EmbedContextProps> as EmbedContextProps,
+    }));
 
     render(
       <AddOn
@@ -218,7 +188,6 @@ describe("`AddOn` component", () => {
     );
 
     expect(screen.getByText("Active")).toBeInTheDocument();
-    // CTA button for active add-on should say "Remove add-on"
     expect(screen.getByText("Remove add-on")).toBeInTheDocument();
   });
 

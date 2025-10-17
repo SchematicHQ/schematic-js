@@ -9,7 +9,7 @@ import {
   FeatureType,
   PriceBehavior,
 } from "../../../const";
-import { Credit, DeepPartial } from "../../../types";
+import type { Credit, DeepPartial } from "../../../types";
 
 import { Entitlement, type EntitlementProps } from "./Entitlement";
 

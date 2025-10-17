@@ -4,7 +4,7 @@ import "@testing-library/jest-dom";
 
 import { act, fireEvent, render, screen } from "~/test/setup";
 
-import { SelectedPlan } from "../../../types";
+import type { SelectedPlan } from "../../../types";
 
 import { PeriodToggle } from "./PeriodToggle";
 

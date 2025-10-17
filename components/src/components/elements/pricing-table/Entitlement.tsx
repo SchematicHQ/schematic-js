@@ -62,7 +62,7 @@ export const Entitlement = ({
     packageSize: entitlementPackageSize = 1,
   } = getEntitlementPrice(entitlement, selectedPeriod) || {};
 
-  const limit = entitlement.softLimit ?? entitlement.valueNumeric;
+  const limit = entitlement.softLimit ?? entitlement.valueNumeric ?? undefined;
 
   const metricPeriodName = getMetricPeriodName(entitlement);
   const creditBasedEntitlementLimit = getCreditBasedEntitlementLimit(
@@ -145,16 +145,16 @@ export const Entitlement = ({
                 entitlement.valueType === EntitlementValueType.Trait ? (
                 <>
                   {entitlement.valueType === EntitlementValueType.Unlimited &&
-                  !entitlement.priceBehavior
-                    ? t("Unlimited", {
-                        item: getFeatureName(entitlement.feature),
-                      })
-                    : typeof limit === "number" && (
-                        <>
-                          {formatNumber(limit)}{" "}
-                          {getFeatureName(entitlement.feature, limit)}
-                        </>
-                      )}
+                  !entitlement.priceBehavior ? (
+                    t("Unlimited", {
+                      item: getFeatureName(entitlement.feature),
+                    })
+                  ) : (
+                    <>
+                      {typeof limit === "number" && <>{formatNumber(limit)} </>}
+                      {getFeatureName(entitlement.feature, limit)}
+                    </>
+                  )}
 
                   {metricPeriodName && (
                     <>

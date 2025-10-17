@@ -20,7 +20,7 @@ import {
   type PricingTableProps,
 } from "./PricingTable";
 
-interface AddOnProps {
+export interface AddOnProps {
   addOn: SelectedPlan;
   sharedProps: PricingTableOptions & {
     layout: PricingTableProps;
@@ -35,7 +35,7 @@ export const AddOn = ({ addOn, sharedProps, selectedPeriod }: AddOnProps) => {
   const { t } = useTranslation();
 
   const { data, settings, setCheckoutState } = useEmbed();
-
+  console.debug(data);
   const isLightBackground = useIsLightBackground();
 
   const { currentAddOns, canCheckout, isStandalone } = useMemo(() => {
@@ -60,6 +60,9 @@ export const AddOn = ({ addOn, sharedProps, selectedPeriod }: AddOnProps) => {
 
   return (
     <Flex
+      className="sch-PricingTable_AddOn"
+      data-testid="sch-addon"
+      data-addon-id={addOn.id}
       $position="relative"
       $flexDirection="column"
       $gap="2rem"
@@ -87,7 +90,10 @@ export const AddOn = ({ addOn, sharedProps, selectedPeriod }: AddOnProps) => {
         )}
 
         <Box>
-          <Text display={layout.plans.name.fontStyle}>
+          <Text
+            data-testid="sch-addon-price"
+            display={layout.plans.name.fontStyle}
+          >
             {formatCurrency(addOnPrice ?? 0, addOnCurrency)}
             <sub>/{selectedPeriod}</sub>
           </Text>
@@ -95,6 +101,7 @@ export const AddOn = ({ addOn, sharedProps, selectedPeriod }: AddOnProps) => {
 
         {isActiveAddOn && (
           <Flex
+            data-testid="sch-addon-active"
             $position="absolute"
             $right="1rem"
             $top="1rem"
@@ -165,20 +172,26 @@ export const AddOn = ({ addOn, sharedProps, selectedPeriod }: AddOnProps) => {
                               EntitlementValueType.Trait ? (
                               <>
                                 {entitlement.valueType ===
-                                EntitlementValueType.Unlimited
-                                  ? t("Unlimited", {
-                                      item: getFeatureName(entitlement.feature),
-                                    })
-                                  : typeof entitlement.valueNumeric ===
+                                EntitlementValueType.Unlimited ? (
+                                  t("Unlimited", {
+                                    item: getFeatureName(entitlement.feature),
+                                  })
+                                ) : (
+                                  <>
+                                    {typeof entitlement.valueNumeric ===
                                       "number" && (
                                       <>
-                                        {formatNumber(entitlement.valueNumeric)}{" "}
-                                        {getFeatureName(
-                                          entitlement.feature,
+                                        {formatNumber(
                                           entitlement.valueNumeric,
-                                        )}
+                                        )}{" "}
                                       </>
                                     )}
+                                    {getFeatureName(
+                                      entitlement.feature,
+                                      entitlement.valueNumeric ?? undefined,
+                                    )}
+                                  </>
+                                )}
 
                                 {metricPeriodName && (
                                   <>
@@ -218,6 +231,7 @@ export const AddOn = ({ addOn, sharedProps, selectedPeriod }: AddOnProps) => {
             <Button
               type="button"
               disabled={!addOn.valid || !canCheckout}
+              data-testid="sch-addon-cta-button"
               $size={layout.upgrade.buttonSize}
               $color={isActiveAddOn ? "danger" : layout.upgrade.buttonStyle}
               $variant={
