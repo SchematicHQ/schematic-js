@@ -20,15 +20,31 @@ export enum TiersMode {
 
 export enum EntitlementValueType {
   Boolean = "boolean",
+  Credit = "credit",
   Numeric = "numeric",
-  Unlimited = "unlimited",
   Trait = "trait",
+  Unknown = "unknown",
+  Unlimited = "unlimited",
 }
 
 export enum FeatureType {
   Boolean = "boolean",
   Event = "event",
   Trait = "trait",
+}
+
+export enum EntityType {
+  User = "user",
+  Company = "company",
+}
+
+export enum TraitType {
+  Boolean = "boolean",
+  Currency = "currency",
+  Date = "date",
+  Number = "number",
+  String = "string",
+  Url = "url",
 }
 
 export enum CreditResetCadence {

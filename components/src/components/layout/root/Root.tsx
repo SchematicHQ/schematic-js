@@ -1,7 +1,7 @@
 import { forwardRef } from "react";
 
-import { type ComponentHydrateResponseData } from "../../../api/checkoutexternal";
 import { type EmbedSettings } from "../../../context";
+import type { HydrateDataWithCompanyContext } from "../../../types";
 
 import { Container } from "./styles";
 
@@ -9,7 +9,7 @@ export { Container };
 
 export interface RootProps
   extends Omit<React.HTMLProps<HTMLDivElement>, "data"> {
-  data?: ComponentHydrateResponseData;
+  data?: HydrateDataWithCompanyContext;
   settings?: EmbedSettings;
 }
 
