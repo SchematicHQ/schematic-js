@@ -37,5 +37,6 @@ export type {
   Keys,
   SchematicContext,
   SchematicOptions,
+  StoragePersister,
   Traits,
 } from "@schematichq/schematic-js";

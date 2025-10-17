@@ -134,6 +134,8 @@ const MyComponent = () => {
 };
 ```
 
+*Note: `useSchematicIsPending` is checking if entitlement data has been loaded, typically via `identify`. It should, therefore, be used to wrap flag and entitlement checks, but never the initial call to `identify`.*
+
 ## Troubleshooting
 
 For debugging and development, Schematic supports two special modes:

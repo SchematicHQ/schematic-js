@@ -114,6 +114,7 @@ export interface PlanDetailResponseData {
    *
    * @type {boolean}
    * @memberof PlanDetailResponseData
+   * @deprecated
    */
   isDefault: boolean;
   /**
