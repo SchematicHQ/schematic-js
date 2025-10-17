@@ -187,3 +187,23 @@ export function extractCurrentUsageBasedEntitlements(
     return acc;
   }, []);
 }
+
+/**
+ * Extracts the feature name from an entitlement object with a fallback chain.
+ * Priority: feature.pluralName -> feature.name -> featureName -> defaultValue
+ */
+export function getEntitlementFeatureName(
+  entitlement: {
+    feature?: { pluralName?: string | null; name?: string | null };
+    featureName?: string | null;
+  },
+  defaultValue?: string,
+): string {
+  return (
+    entitlement.feature?.pluralName ||
+    entitlement.feature?.name ||
+    entitlement.featureName ||
+    defaultValue ||
+    ""
+  );
+}
