@@ -10,6 +10,9 @@ import tseslint from "typescript-eslint";
 
 export default defineConfig([
   {
+    ignores: ["src/**/*.test.ts", "src/**/*.test.tsx", "src/**/*.spec.ts", "src/**/*.spec.tsx", "dist/*", "src/api/generated/*"],
+  },
+  {
     files: ["**/*.{js,mjs,cjs,ts,jsx,tsx}"],
     plugins: { js, pluginReact },
     extends: [

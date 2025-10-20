@@ -5,9 +5,9 @@
 ## Install
 
 ```bash
-npm install @schematichq/schematic-js
+bun add @schematichq/schematic-js
 # or
-yarn add @schematichq/schematic-js
+npm install @schematichq/schematic-js
 # or
 pnpm add @schematichq/schematic-js
 ```
