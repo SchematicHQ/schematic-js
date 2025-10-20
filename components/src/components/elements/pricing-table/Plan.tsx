@@ -187,6 +187,7 @@ export const Plan = ({
                 <Flex key={idx} $gap="1rem">
                   {layout.plans.showFeatureIcons && credit.icon && (
                     <Icon
+                      data-testid="sch-feature-icon"
                       name={credit.icon}
                       color={settings.theme.primary}
                       background={`color-mix(in oklch, ${settings.theme.card.background} 87.5%, ${isLightBackground ? "black" : "white"})`}

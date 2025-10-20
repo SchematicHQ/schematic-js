@@ -336,6 +336,7 @@ export const AddOn = ({ addOn, sharedProps, selectedPeriod }: AddOnProps) => {
                     <Flex $gap="1rem">
                       {meteredEntitlement.feature?.icon && (
                         <Icon
+                          data-testid="sch-feature-icon"
                           name={meteredEntitlement.feature.icon}
                           color={settings.theme.primary}
                           background={
@@ -373,43 +374,45 @@ export const AddOn = ({ addOn, sharedProps, selectedPeriod }: AddOnProps) => {
 
         {sharedProps.showCallToAction &&
           (layout.upgrade.isVisible || layout.downgrade.isVisible) && (
-            <Button
-              type="button"
-              disabled={!addOn.valid || !canCheckout}
-              data-testid="sch-addon-cta-button"
-              $size={layout.upgrade.buttonSize}
-              $color={isActiveAddOn ? "danger" : layout.upgrade.buttonStyle}
-              $variant={
-                isActiveAddOn ? "ghost" : addOn.current ? "outline" : "filled"
-              }
-              {...(sharedProps.callToActionUrl
-                ? {
-                    as: "a",
-                    href: sharedProps.callToActionUrl,
-                    rel: "noreferrer",
-                    target: "_blank",
-                  }
-                : {
-                    onClick: () => {
-                      sharedProps.onCallToAction?.(addOn);
+            <Flex $flexDirection="column" $gap="0.5rem">
+              <Button
+                type="button"
+                disabled={!addOn.valid || !canCheckout}
+                data-testid="sch-addon-cta-button"
+                $size={layout.upgrade.buttonSize}
+                $color={isActiveAddOn ? "danger" : layout.upgrade.buttonStyle}
+                $variant={
+                  isActiveAddOn ? "ghost" : addOn.current ? "outline" : "filled"
+                }
+                {...(sharedProps.callToActionUrl
+                  ? {
+                      as: "a",
+                      href: sharedProps.callToActionUrl,
+                      rel: "noreferrer",
+                      target: "_blank",
+                    }
+                  : {
+                      onClick: () => {
+                        sharedProps.onCallToAction?.(addOn);
 
-                      if (!isStandalone && !addOn.custom) {
-                        setCheckoutState({
-                          period: selectedPeriod,
-                          addOnId: isActiveAddOn ? null : addOn.id,
-                          usage: false,
-                        });
-                      }
-                    },
-                  })}
-              $fullWidth
-            >
-              {isActiveAddOn
-                ? t("Remove add-on")
-                : addOn.current
-                  ? t("Change add-on")
-                  : t("Choose add-on")}
-            </Button>
+                        if (!isStandalone && !addOn.custom) {
+                          setCheckoutState({
+                            period: selectedPeriod,
+                            addOnId: isActiveAddOn ? null : addOn.id,
+                            usage: false,
+                          });
+                        }
+                      },
+                    })}
+                $fullWidth
+              >
+                {isActiveAddOn
+                  ? t("Remove add-on")
+                  : addOn.current
+                    ? t("Change add-on")
+                    : t("Choose add-on")}
+              </Button>
+            </Flex>
           )}
       </Flex>
     </Flex>

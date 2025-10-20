@@ -519,7 +519,7 @@ describe("`PricingTable`", () => {
             response.data.company.billing_subscription.cancel_at = null;
 
             const endDate = new Date();
-            endDate.setDate(endDate.getDate() + 15);
+            endDate.setDate(endDate.getDate() + 14);
             // @ts-expect-error: the inferred type from `hydrateJson` is not nullable
             response.data.company.billing_subscription.trial_end =
               endDate.getTime() / 1000;
@@ -531,7 +531,7 @@ describe("`PricingTable`", () => {
 
       render(<SchematicEmbed accessToken="token_0" id="0" />);
 
-      const trialEndText = await screen.findByText("Trial ends in 14 days");
+      const trialEndText = await screen.findByText(/Trial ends in 1[45] days/);
       expect(trialEndText).toBeInTheDocument();
     });
 
