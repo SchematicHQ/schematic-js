@@ -24,16 +24,15 @@ export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
   const { planPeriod, currentPlan, currentAddOns, featureUsage, cancelDate } =
     useMemo(() => {
       if (isCheckoutData(data)) {
+        const cancelDate =
+          data.subscription?.cancelAt || data.upcomingInvoice?.dueDate;
+
         return {
           planPeriod: data.company?.plan?.planPeriod || "month",
           currentPlan: data.company?.plan,
           currentAddOns: data.company?.addOns || [],
           featureUsage: data.featureUsage,
-          cancelDate: new Date(
-            data.subscription?.cancelAt ||
-              data.upcomingInvoice?.dueDate ||
-              Date.now(),
-          ),
+          cancelDate: cancelDate ? new Date(cancelDate) : new Date(),
         };
       }
 

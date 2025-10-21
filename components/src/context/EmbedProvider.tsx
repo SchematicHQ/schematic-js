@@ -39,6 +39,12 @@ import {
   type EmbedSettings,
 } from "./embedState";
 
+const getCustomHeaders = (sessionId: string) => ({
+  "X-Schematic-Components-Version":
+    process.env.SCHEMATIC_COMPONENTS_VERSION || "unknown",
+  "X-Schematic-Session-ID": sessionId,
+});
+
 export interface EmbedProviderProps {
   children: React.ReactNode;
   apiKey?: string;
@@ -62,15 +68,6 @@ export const EmbedProvider = ({
 
     return resolvedState;
   });
-
-  const customHeaders = useMemo(
-    () => ({
-      "X-Schematic-Components-Version":
-        process.env.SCHEMATIC_COMPONENTS_VERSION || "unknown",
-      "X-Schematic-Session-ID": sessionIdRef.current,
-    }),
-    [],
-  );
 
   const [api, setApi] = useState<{
     public?: ComponentspublicApi;
@@ -506,7 +503,7 @@ export const EmbedProvider = ({
     if (apiKey) {
       const configParams = merge({}, apiConfig, {
         apiKey,
-        headers: customHeaders,
+        headers: getCustomHeaders(sessionIdRef.current),
       });
       const publicApi = new ComponentspublicApi(
         new PublicConfiguration(configParams),
@@ -516,13 +513,13 @@ export const EmbedProvider = ({
         public: publicApi,
       }));
     }
-  }, [apiKey, apiConfig, customHeaders]);
+  }, [apiKey, apiConfig]);
 
   useEffect(() => {
     if (state.accessToken) {
       const configParams = merge({}, apiConfig, {
         apiKey: state.accessToken,
-        headers: customHeaders,
+        headers: getCustomHeaders(sessionIdRef.current),
       });
 
       setApi((prev) => ({
@@ -532,7 +529,7 @@ export const EmbedProvider = ({
         ),
       }));
     }
-  }, [state.accessToken, apiConfig, customHeaders]);
+  }, [state.accessToken, apiConfig]);
 
   useEffect(() => {
     if (options.settings) {
