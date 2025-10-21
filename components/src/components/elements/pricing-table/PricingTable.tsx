@@ -18,7 +18,7 @@ import {
 import { type FontStyle } from "../../../context";
 import { useAvailablePlans, useEmbed } from "../../../hooks";
 import type { DeepPartial, ElementProps } from "../../../types";
-import { entitlementCountsReducer, isCheckoutData } from "../../../utils";
+import { entitlementCountsReducer } from "../../../utils";
 import { Container, FussyChild } from "../../layout";
 import { PeriodToggle } from "../../shared";
 import { Box, Flex, Loader, Text } from "../../ui";
@@ -116,7 +116,7 @@ export type PricingTableOptions = {
   ) => unknown;
 };
 
-export type PricingTableProps = DesignProps & PricingTableOptions;
+export type PricingTableProps = DesignProps;
 
 export const PricingTable = forwardRef<
   HTMLDivElement | null,
@@ -124,229 +124,249 @@ export const PricingTable = forwardRef<
     DeepPartial<DesignProps> &
     PricingTableOptions &
     React.HTMLAttributes<HTMLDivElement>
->(
-  (
-    { className, callToActionUrl, callToActionTarget, onCallToAction, ...rest },
-    ref,
-  ) => {
-    const props = resolveDesignProps(rest);
+>(({ className, ...rest }, ref) => {
+  const props = resolveDesignProps(rest);
 
-    const { t } = useTranslation();
+  const { t } = useTranslation();
 
-    const { data, settings, isPending, hydratePublic } = useEmbed();
+  const { data, settings, isPending, hydratePublic } = useEmbed();
 
-    const { currentPeriod, showPeriodToggle, isStandalone } = useMemo(() => {
-      const showPeriodToggle = data?.showPeriodToggle ?? props.showPeriodToggle;
+  const showCallToAction = useMemo(() => {
+    return (
+      typeof data?.component !== "undefined" ||
+      typeof rest.callToActionUrl === "string" ||
+      typeof rest.onCallToAction === "function"
+    );
+  }, [rest.callToActionUrl, rest.onCallToAction, data?.component]);
 
-      if (isCheckoutData(data)) {
-        const billingSubscription = data.company?.billingSubscription;
-        const isTrialSubscription = billingSubscription?.status === "trialing";
-        const willSubscriptionCancel = billingSubscription?.cancelAt;
+  const callToActionTarget = useMemo(() => {
+    if (rest.callToActionTarget) {
+      return rest.callToActionTarget;
+    }
 
+    if (rest.callToActionUrl) {
+      try {
+        const ctaUrlOrigin = new URL(rest.callToActionUrl).origin;
+        if (ctaUrlOrigin === window.location.hostname) {
+          return "_self";
+        }
+      } catch {
+        // fallback to the default value if the provided target value is not a full URL
+      }
+    }
+
+    return "_blank";
+  }, [rest.callToActionUrl, rest.callToActionTarget]);
+
+  const { currentPeriod, showPeriodToggle, isStandalone } = useMemo(() => {
+    const isStandalone = typeof data?.component === "undefined";
+
+    return {
+      currentPeriod: data?.company?.plan?.planPeriod || "month",
+      currentAddOns: data?.company?.addOns || [],
+      canCheckout: isStandalone ?? data?.capabilities?.checkout ?? true,
+      showPeriodToggle: rest.showPeriodToggle ?? data?.showPeriodToggle ?? true,
+      isTrialSubscription:
+        data?.company?.billingSubscription?.status === "trialing",
+      willSubscriptionCancel: data?.company?.billingSubscription?.cancelAt,
+      isStandalone,
+    };
+  }, [
+    rest.showPeriodToggle,
+    data?.capabilities?.checkout,
+    data?.company?.addOns,
+    data?.company?.billingSubscription?.cancelAt,
+    data?.company?.billingSubscription?.status,
+    data?.company?.plan?.planPeriod,
+    data?.component,
+    data?.showPeriodToggle,
+  ]);
+
+  const [selectedPeriod, setSelectedPeriod] = useState(currentPeriod);
+
+  const { plans, addOns, periods } = useAvailablePlans(selectedPeriod, {
+    useSelectedPeriod: showPeriodToggle,
+  });
+
+  const [entitlementCounts, setEntitlementCounts] = useState(() =>
+    plans.reduce(entitlementCountsReducer, {}),
+  );
+
+  const handleToggleShowAll = (id: string) => {
+    setEntitlementCounts((prev) => {
+      const count = prev[id] ? { ...prev[id] } : undefined;
+
+      if (count) {
         return {
-          currentPeriod: data.company?.plan?.planPeriod || "month",
-          currentAddOns: data.company?.addOns || [],
-          canCheckout: data.capabilities?.checkout ?? true,
-          showPeriodToggle,
-          isTrialSubscription,
-          willSubscriptionCancel,
-          isStandalone: false,
+          ...prev,
+          [id]: {
+            size: count.size,
+            limit:
+              count.limit > VISIBLE_ENTITLEMENT_COUNT
+                ? VISIBLE_ENTITLEMENT_COUNT
+                : count.size,
+          },
         };
       }
 
-      return {
-        currentPeriod: "month",
-        currentAddOns: [],
-        canCheckout: true,
-        showPeriodToggle,
-        isTrialSubscription: false,
-        willSubscriptionCancel: false,
-        isStandalone: true,
-      };
-    }, [props.showPeriodToggle, data]);
-
-    const [selectedPeriod, setSelectedPeriod] = useState(currentPeriod);
-
-    const { plans, addOns, periods } = useAvailablePlans(selectedPeriod, {
-      useSelectedPeriod: showPeriodToggle,
+      return prev;
     });
+  };
 
-    const [entitlementCounts, setEntitlementCounts] = useState(() =>
-      plans.reduce(entitlementCountsReducer, {}),
-    );
-
-    const handleToggleShowAll = (id: string) => {
-      setEntitlementCounts((prev) => {
-        const count = prev[id] ? { ...prev[id] } : undefined;
-
-        if (count) {
-          return {
-            ...prev,
-            [id]: {
-              size: count.size,
-              limit:
-                count.limit > VISIBLE_ENTITLEMENT_COUNT
-                  ? VISIBLE_ENTITLEMENT_COUNT
-                  : count.size,
-            },
-          };
-        }
-
-        return prev;
-      });
-    };
-
-    useEffect(() => {
-      if (isStandalone) {
-        hydratePublic();
-      }
-    }, [isStandalone, hydratePublic]);
-
-    useEffect(() => {
-      setEntitlementCounts(plans.reduce(entitlementCountsReducer, {}));
-    }, [plans]);
-
-    if (isPending) {
-      return (
-        <Flex
-          $width="100%"
-          $height="100%"
-          $alignItems="center"
-          $justifyContent="center"
-          $padding={`${settings.theme.card.padding / TEXT_BASE_SIZE}rem`}
-        >
-          <Loader $size="2xl" />
-        </Flex>
-      );
+  useEffect(() => {
+    if (isStandalone) {
+      hydratePublic();
     }
+  }, [isStandalone, hydratePublic]);
 
-    const Wrapper = isStandalone ? Container : Fragment;
+  useEffect(() => {
+    setEntitlementCounts(plans.reduce(entitlementCountsReducer, {}));
+  }, [plans]);
 
+  if (isPending) {
     return (
-      <Wrapper>
-        <FussyChild
-          ref={ref}
-          className={`sch-PricingTable ${className}`}
-          as={Flex}
-          $flexDirection="column"
-          $gap="2rem"
-        >
-          <Box>
-            <Flex
-              $flexDirection="column"
-              $justifyContent="center"
-              $alignItems="center"
+      <Flex
+        $width="100%"
+        $height="100%"
+        $alignItems="center"
+        $justifyContent="center"
+        $padding={`${settings.theme.card.padding / TEXT_BASE_SIZE}rem`}
+      >
+        <Loader aria-label="loading" $size="2xl" />
+      </Flex>
+    );
+  }
+
+  const Wrapper = isStandalone ? Container : Fragment;
+
+  return (
+    <Wrapper>
+      <FussyChild
+        ref={ref}
+        className={`sch-PricingTable ${className}`}
+        as={Flex}
+        data-testid="sch-pricing-table"
+        $flexDirection="column"
+        $gap="2rem"
+      >
+        <Box>
+          <Flex
+            $flexDirection="column"
+            $justifyContent="center"
+            $alignItems="center"
+            $gap="1rem"
+            $marginBottom="1rem"
+            $viewport={{
+              md: {
+                $flexDirection: "row",
+                $justifyContent: "space-between",
+              },
+            }}
+          >
+            <Text display={props.header.fontStyle}>
+              {props.header.isVisible &&
+                props.plans.isVisible &&
+                plans.length > 0 &&
+                t("Plans")}
+            </Text>
+
+            {showPeriodToggle && periods.length > 1 && (
+              <PeriodToggle
+                options={periods}
+                selectedOption={selectedPeriod}
+                onSelect={(period) => {
+                  if (period !== selectedPeriod) {
+                    setSelectedPeriod(period);
+                  }
+                }}
+              />
+            )}
+          </Flex>
+
+          {props.plans.isVisible && plans.length > 0 && (
+            <Box
+              data-testid="sch-plans"
+              $display="grid"
+              $gridTemplateColumns="repeat(auto-fill, minmax(320px, 1fr))"
               $gap="1rem"
-              $marginBottom="1rem"
-              $viewport={{
-                md: {
-                  $flexDirection: "row",
-                  $justifyContent: "space-between",
-                },
-              }}
             >
-              <Text display={props.header.fontStyle}>
-                {props.header.isVisible &&
-                  props.plans.isVisible &&
-                  plans.length > 0 &&
-                  t("Plans")}
-              </Text>
+              {plans.map((plan, index, self) => {
+                const planPeriod = showPeriodToggle
+                  ? selectedPeriod
+                  : plan.yearlyPrice && !plan.monthlyPrice
+                    ? PriceInterval.Year
+                    : PriceInterval.Month;
 
-              {showPeriodToggle && periods.length > 1 && (
-                <PeriodToggle
-                  options={periods}
-                  selectedOption={selectedPeriod}
-                  onSelect={(period) => {
-                    if (period !== selectedPeriod) {
-                      setSelectedPeriod(period);
-                    }
-                  }}
-                />
+                return (
+                  <Plan
+                    key={index}
+                    plan={plan}
+                    index={index}
+                    sharedProps={{
+                      layout: props,
+                      showCallToAction,
+                      callToActionUrl: rest.callToActionUrl,
+                      callToActionTarget,
+                      onCallToAction: rest.onCallToAction,
+                    }}
+                    plans={self}
+                    selectedPeriod={planPeriod}
+                    entitlementCounts={entitlementCounts}
+                    handleToggleShowAll={handleToggleShowAll}
+                  />
+                );
+              })}
+            </Box>
+          )}
+        </Box>
+
+        <Box>
+          {props.addOns.isVisible && addOns.length > 0 && (
+            <>
+              {props.header.isVisible && (
+                <Flex
+                  $justifyContent="space-between"
+                  $alignItems="center"
+                  $marginBottom="1rem"
+                >
+                  <Text display={props.header.fontStyle}>{t("Add-ons")}</Text>
+                </Flex>
               )}
-            </Flex>
 
-            {props.plans.isVisible && plans.length > 0 && (
               <Box
                 $display="grid"
                 $gridTemplateColumns="repeat(auto-fill, minmax(320px, 1fr))"
                 $gap="1rem"
               >
-                {plans.map((plan, index, self) => {
-                  const planPeriod = showPeriodToggle
+                {addOns.map((addOn, index) => {
+                  const addOnPeriod = showPeriodToggle
                     ? selectedPeriod
-                    : plan.yearlyPrice && !plan.monthlyPrice
+                    : addOn.yearlyPrice && !addOn.monthlyPrice
                       ? PriceInterval.Year
                       : PriceInterval.Month;
 
                   return (
-                    <Plan
+                    <AddOn
                       key={index}
-                      plan={plan}
-                      index={index}
+                      addOn={addOn}
                       sharedProps={{
                         layout: props,
-                        callToActionUrl,
+                        showCallToAction,
+                        callToActionUrl: rest.callToActionUrl,
                         callToActionTarget,
-                        onCallToAction,
+                        onCallToAction: rest.onCallToAction,
                       }}
-                      plans={self}
-                      selectedPeriod={planPeriod}
-                      entitlementCounts={entitlementCounts}
-                      handleToggleShowAll={handleToggleShowAll}
+                      selectedPeriod={addOnPeriod}
                     />
                   );
                 })}
               </Box>
-            )}
-          </Box>
-
-          <Box>
-            {props.addOns.isVisible && addOns.length > 0 && (
-              <>
-                {props.header.isVisible && (
-                  <Flex
-                    $justifyContent="space-between"
-                    $alignItems="center"
-                    $marginBottom="1rem"
-                  >
-                    <Text display={props.header.fontStyle}>{t("Add-ons")}</Text>
-                  </Flex>
-                )}
-
-                <Box
-                  $display="grid"
-                  $gridTemplateColumns="repeat(auto-fill, minmax(320px, 1fr))"
-                  $gap="1rem"
-                >
-                  {addOns.map((addOn, index) => {
-                    const addOnPeriod = showPeriodToggle
-                      ? selectedPeriod
-                      : addOn.yearlyPrice && !addOn.monthlyPrice
-                        ? PriceInterval.Year
-                        : PriceInterval.Month;
-
-                    return (
-                      <AddOn
-                        key={index}
-                        addOn={addOn}
-                        sharedProps={{
-                          layout: props,
-                          callToActionUrl,
-                          callToActionTarget,
-                          onCallToAction,
-                        }}
-                        selectedPeriod={addOnPeriod}
-                      />
-                    );
-                  })}
-                </Box>
-              </>
-            )}
-          </Box>
-        </FussyChild>
-      </Wrapper>
-    );
-  },
-);
+            </>
+          )}
+        </Box>
+      </FussyChild>
+    </Wrapper>
+  );
+});
 
 PricingTable.displayName = "PricingTable";

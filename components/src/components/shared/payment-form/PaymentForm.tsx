@@ -9,7 +9,7 @@ import { useTranslation } from "react-i18next";
 
 import type { PreviewSubscriptionFinanceResponseData } from "../../../api/checkoutexternal";
 import { useEmbed } from "../../../hooks";
-import { isCheckoutData, shouldCollectBillingAddress } from "../../../utils";
+import { shouldCollectBillingAddress } from "../../../utils";
 import { Box, Button, Flex, Text } from "../../ui";
 
 import { Input, Label } from "./styles";
@@ -33,13 +33,9 @@ export const PaymentForm = ({ onConfirm, financeData }: PaymentFormProps) => {
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [isPaymentComplete, setIsPaymentComplete] = useState(false);
   const [isAddressComplete, setIsAddressComplete] = useState(() => {
-    if (!isCheckoutData(data)) {
-      return true;
-    }
-
     // Check if billing address collection is needed (either configured or required for tax)
     const shouldCollectAddress = shouldCollectBillingAddress(
-      data.checkoutSettings.collectAddress,
+      data?.checkoutSettings.collectAddress ?? false,
       financeData,
     );
 
@@ -108,7 +104,7 @@ export const PaymentForm = ({ onConfirm, financeData }: PaymentFormProps) => {
         />
       </Box>
 
-      {stripe && isCheckoutData(data) && data.checkoutSettings.collectEmail && (
+      {stripe && data?.checkoutSettings.collectEmail && (
         <Box data-field="name" $marginBottom="1.5rem" $verticalAlign="top">
           <Label htmlFor="email">Email</Label>
           <Input
@@ -122,29 +118,26 @@ export const PaymentForm = ({ onConfirm, financeData }: PaymentFormProps) => {
         </Box>
       )}
 
-      {isCheckoutData(data) &&
-        (shouldCollectBillingAddress(
-          data.checkoutSettings.collectAddress,
-          financeData,
-        ) ||
-          data.checkoutSettings.collectPhone) && (
-          <Box $marginBottom="3.5rem">
-            <AddressElement
-              options={{
-                mode: "billing",
-                fields: {
-                  phone: data.checkoutSettings.collectPhone
-                    ? "always"
-                    : "never",
-                },
-              }}
-              id="address-element"
-              onChange={(event) => {
-                setIsAddressComplete(event.complete);
-              }}
-            />
-          </Box>
-        )}
+      {(shouldCollectBillingAddress(
+        data?.checkoutSettings.collectAddress ?? false,
+        financeData,
+      ) ||
+        data?.checkoutSettings.collectPhone) && (
+        <Box $marginBottom="3.5rem">
+          <AddressElement
+            options={{
+              mode: "billing",
+              fields: {
+                phone: data?.checkoutSettings.collectPhone ? "always" : "never",
+              },
+            }}
+            id="address-element"
+            onChange={(event) => {
+              setIsAddressComplete(event.complete);
+            }}
+          />
+        </Box>
+      )}
 
       <Button
         id="submit"
