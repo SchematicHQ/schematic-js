@@ -21,7 +21,6 @@ import {
   getFeatureName,
   getUsageDetails,
   groupCreditGrants,
-  isCheckoutData,
   modifyDate,
   toPrettyDate,
   type UsageDetails,
@@ -177,53 +176,48 @@ export const MeteredFeatures = forwardRef<
   const isLightBackground = useIsLightBackground();
 
   const { period, meteredFeatures, creditGroups, showCredits } = useMemo(() => {
-    const showCredits = data?.showCredits ?? true;
+    const period =
+      typeof data?.company?.plan?.planPeriod === "string"
+        ? data.company?.plan?.planPeriod
+        : undefined;
+    const orderedFeatureUsage = props.visibleFeatures?.reduce(
+      (acc: FeatureUsageResponseData[], id) => {
+        const mappedFeatureUsage = data?.featureUsage?.features.find(
+          (usage) => usage.feature?.id === id,
+        );
 
-    if (isCheckoutData(data)) {
-      const period =
-        typeof data.company?.plan?.planPeriod === "string"
-          ? data.company?.plan?.planPeriod
-          : undefined;
-      const orderedFeatureUsage = props.visibleFeatures?.reduce(
-        (acc: FeatureUsageResponseData[], id) => {
-          const mappedFeatureUsage = data.featureUsage?.features.find(
-            (usage) => usage.feature?.id === id,
-          );
+        if (mappedFeatureUsage) {
+          acc.push(mappedFeatureUsage);
+        }
 
-          if (mappedFeatureUsage) {
-            acc.push(mappedFeatureUsage);
-          }
-
-          return acc;
-        },
-        [],
-      );
-
-      return {
-        period,
-        meteredFeatures: (
-          orderedFeatureUsage ||
-          data.featureUsage?.features ||
-          []
-        ).filter(
-          ({ feature }) =>
-            feature?.featureType === FeatureType.Event ||
-            feature?.featureType === FeatureType.Trait,
-        ),
-        creditGroups: groupCreditGrants(data.creditGrants, {
-          groupBy: "credit",
-        }),
-        showCredits,
-      };
-    }
+        return acc;
+      },
+      [],
+    );
 
     return {
-      period: undefined,
-      meteredFeatures: [],
-      creditGroups: [],
-      showCredits,
+      period,
+      meteredFeatures: (
+        orderedFeatureUsage ||
+        data?.featureUsage?.features ||
+        []
+      ).filter(
+        ({ feature }) =>
+          feature?.featureType === FeatureType.Event ||
+          feature?.featureType === FeatureType.Trait,
+      ),
+      creditGroups: groupCreditGrants(data?.creditGrants || [], {
+        groupBy: "credit",
+      }),
+      showCredits: data?.showCredits ?? true,
     };
-  }, [props.visibleFeatures, data]);
+  }, [
+    props.visibleFeatures,
+    data?.company?.plan?.planPeriod,
+    data?.creditGrants,
+    data?.featureUsage?.features,
+    data?.showCredits,
+  ]);
 
   const [creditVisibility, setCreditVisibility] = useState(
     creditGroups.map(({ id }) => ({ id, isExpanded: false })),

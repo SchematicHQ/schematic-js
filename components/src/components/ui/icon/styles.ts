@@ -1,5 +1,5 @@
 import { Icon as SchematicIcon } from "@schematichq/schematic-icons";
-import styled, { css } from "styled-components";
+import { css, styled } from "styled-components";
 
 import { TEXT_BASE_SIZE } from "../../../const";
 

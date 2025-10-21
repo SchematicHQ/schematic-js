@@ -12,8 +12,6 @@ import {
   getEntitlementPrice,
   getFeatureName,
   hexToHSL,
-  isCheckoutData,
-  isHydratedPlan,
 } from "../../../utils";
 import { cardBoxShadow } from "../../layout";
 import { Box, Button, Flex, Icon, Text } from "../../ui";
@@ -23,10 +21,11 @@ import {
   type PricingTableProps,
 } from "./PricingTable";
 
-interface AddOnProps {
+export interface AddOnProps {
   addOn: SelectedPlan;
   sharedProps: PricingTableOptions & {
     layout: PricingTableProps;
+    showCallToAction: boolean;
   };
   selectedPeriod: string;
 }
@@ -52,7 +51,6 @@ function renderMeteredEntitlementPricing({
   featureName,
   isTiered,
 }: MeteredEntitlementPricingProps): React.ReactNode {
-  // Overage pricing
   if (priceBehavior === PriceBehavior.Overage && softLimit) {
     return (
       <>
@@ -70,7 +68,6 @@ function renderMeteredEntitlementPricing({
     );
   }
 
-  // Pay-as-you-go or Pay-in-advance pricing
   if (
     priceBehavior === PriceBehavior.PayAsYouGo ||
     priceBehavior === PriceBehavior.PayInAdvance
@@ -92,7 +89,6 @@ function renderMeteredEntitlementPricing({
     );
   }
 
-  // Tiered pricing
   if (isTiered) {
     return <>Tier-based pricing</>;
   }
@@ -122,37 +118,26 @@ export const AddOn = ({ addOn, sharedProps, selectedPeriod }: AddOnProps) => {
 
   const isLightBackground = useIsLightBackground();
 
-  const { currentAddOns, canCheckout, isStandalone, showCallToAction } =
-    useMemo(() => {
-      if (isCheckoutData(data)) {
-        return {
-          currentAddOns: data.company?.addOns || [],
-          canCheckout: data.capabilities?.checkout ?? true,
-          isStandalone: false,
-          showCallToAction: true,
-        };
-      }
+  const { currentAddOns, canCheckout, isStandalone } = useMemo(() => {
+    const isStandalone = typeof data?.component === "undefined";
 
-      return {
-        currentAddOns: [],
-        canCheckout: true,
-        isStandalone: true,
-        showCallToAction: typeof layout.callToActionUrl === "string",
-      };
-    }, [data, layout.callToActionUrl]);
+    return {
+      currentAddOns: data?.company?.addOns || [],
+      canCheckout: isStandalone || (data?.capabilities?.checkout ?? true),
+      isStandalone,
+    };
+  }, [data?.capabilities?.checkout, data?.company?.addOns, data?.component]);
 
   const cardPadding = settings.theme.card.padding / TEXT_BASE_SIZE;
 
-  const isCurrentAddOn = isHydratedPlan(addOn) && addOn.current;
   const isActiveAddOn =
-    isCurrentAddOn &&
+    addOn.current &&
     selectedPeriod ===
       currentAddOns.find((currentAddOn) => currentAddOn.id === addOn.id)
         ?.planPeriod;
   const { price: addOnPrice, currency: addOnCurrency } =
     getAddOnPrice(addOn, selectedPeriod) || {};
 
-  // Collect all usage-based and unlimited entitlements for display
   const displayableEntitlements =
     addOn.entitlements
       ?.filter(
@@ -160,15 +145,13 @@ export const AddOn = ({ addOn, sharedProps, selectedPeriod }: AddOnProps) => {
           entitlement.valueType === "unlimited" ||
           (entitlement.priceBehavior &&
             [
-              PriceBehavior.PayAsYouGo as string,
-              PriceBehavior.PayInAdvance as string,
-              PriceBehavior.Overage as string,
-              PriceBehavior.Tiered as string,
-            ].includes(entitlement.priceBehavior)),
+              PriceBehavior.PayAsYouGo,
+              PriceBehavior.PayInAdvance,
+              PriceBehavior.Overage,
+              PriceBehavior.Tiered,
+            ].includes(entitlement.priceBehavior as PriceBehavior)),
       )
       .map((entitlement) => {
-        // Only treat as unlimited if valueType is "unlimited" AND no priceBehavior
-        // If priceBehavior exists, it has usage-based pricing that should be displayed
         if (
           entitlement.valueType === "unlimited" &&
           !entitlement.priceBehavior
@@ -184,12 +167,12 @@ export const AddOn = ({ addOn, sharedProps, selectedPeriod }: AddOnProps) => {
 
         return {
           isUnlimited: false,
+          featureName: entitlement.feature?.name,
+          feature: entitlement.feature,
           priceBehavior: entitlement.priceBehavior,
           softLimit: entitlement.softLimit,
           price: priceData?.price ?? 0,
           currency: priceData?.currency || addOnCurrency,
-          featureName: entitlement.feature?.name,
-          feature: entitlement.feature,
           packageSize: priceData?.packageSize ?? 1,
           isTiered: entitlement.priceBehavior === PriceBehavior.Tiered,
         };
@@ -197,6 +180,9 @@ export const AddOn = ({ addOn, sharedProps, selectedPeriod }: AddOnProps) => {
 
   return (
     <Flex
+      className="sch-PricingTable_AddOn"
+      data-testid="sch-addon"
+      data-addon-id={addOn.id}
       $position="relative"
       $flexDirection="column"
       $padding={`${0.75 * cardPadding}rem 0`}
@@ -235,20 +221,24 @@ export const AddOn = ({ addOn, sharedProps, selectedPeriod }: AddOnProps) => {
         )}
 
         <Box>
-          {shouldShowUsageBased(addOnPrice ?? 0, displayableEntitlements) ? (
-            <Text display={layout.plans.name.fontStyle}>
-              {t("Usage-based")}
-            </Text>
-          ) : (
-            <Text display={layout.plans.name.fontStyle}>
-              {formatCurrency(addOnPrice ?? 0, addOnCurrency)}
-              <sub>/{selectedPeriod}</sub>
-            </Text>
-          )}
+          <Text
+            data-testid="sch-addon-price"
+            display={layout.plans.name.fontStyle}
+          >
+            {shouldShowUsageBased(addOnPrice ?? 0, displayableEntitlements) ? (
+              t("Usage-based")
+            ) : (
+              <>
+                {formatCurrency(addOnPrice ?? 0, addOnCurrency)}
+                <sub>/{selectedPeriod}</sub>
+              </>
+            )}
+          </Text>
         </Box>
 
         {isActiveAddOn && (
           <Flex
+            data-testid="sch-addon-active"
             $position="absolute"
             $right="1rem"
             $top="1rem"
@@ -275,10 +265,66 @@ export const AddOn = ({ addOn, sharedProps, selectedPeriod }: AddOnProps) => {
         $flexGrow={1}
         $padding={`${0.75 * cardPadding}rem ${cardPadding}rem 0`}
       >
-        {displayableEntitlements.length > 0 && (
-          <Flex $flexDirection="column" $gap="1rem" $flexGrow={1}>
-            {displayableEntitlements.map((entitlement, idx) => {
-              if (entitlement.isUnlimited) {
+        {layout.addOns.showEntitlements &&
+          displayableEntitlements.length > 0 && (
+            <Flex $flexDirection="column" $gap="1rem" $flexGrow={1}>
+              {displayableEntitlements.map((entitlement, idx) => {
+                if (entitlement.isUnlimited) {
+                  return (
+                    <Flex
+                      key={idx}
+                      $flexWrap="wrap"
+                      $justifyContent="space-between"
+                      $alignItems="center"
+                      $gap="1rem"
+                    >
+                      <Flex $gap="1rem">
+                        {layout.addOns.showFeatureIcons &&
+                          entitlement.feature?.icon && (
+                            <Icon
+                              name={entitlement.feature.icon}
+                              color={settings.theme.primary}
+                              background={
+                                isLightBackground
+                                  ? "hsla(0, 0%, 0%, 0.0625)"
+                                  : "hsla(0, 0%, 100%, 0.25)"
+                              }
+                              rounded
+                            />
+                          )}
+
+                        {entitlement.feature && (
+                          <Flex
+                            $flexDirection="column"
+                            $justifyContent="center"
+                          >
+                            <Text>{getFeatureName(entitlement.feature)}</Text>
+                          </Flex>
+                        )}
+                      </Flex>
+
+                      <Text
+                        style={{ opacity: 0.54 }}
+                        $size={0.875 * settings.theme.typography.text.fontSize}
+                        $color={settings.theme.typography.text.color}
+                      >
+                        Unlimited
+                      </Text>
+                    </Flex>
+                  );
+                }
+
+                // Metered entitlement - TypeScript doesn't know isUnlimited is false here
+                const meteredEntitlement = entitlement as typeof entitlement & {
+                  isUnlimited: false;
+                  priceBehavior?: string;
+                  softLimit?: number;
+                  price: number;
+                  currency: string;
+                  packageSize: number;
+                  isTiered: boolean;
+                };
+
                 return (
                   <Flex
                     key={idx}
@@ -288,9 +334,10 @@ export const AddOn = ({ addOn, sharedProps, selectedPeriod }: AddOnProps) => {
                     $gap="1rem"
                   >
                     <Flex $gap="1rem">
-                      {entitlement.feature?.icon && (
+                      {meteredEntitlement.feature?.icon && (
                         <Icon
-                          name={entitlement.feature.icon}
+                          data-testid="sch-feature-icon"
+                          name={meteredEntitlement.feature.icon}
                           color={settings.theme.primary}
                           background={
                             isLightBackground
@@ -300,117 +347,73 @@ export const AddOn = ({ addOn, sharedProps, selectedPeriod }: AddOnProps) => {
                           rounded
                         />
                       )}
+
                       <Flex $flexDirection="column" $justifyContent="center">
                         <Text>
-                          {entitlement.feature?.pluralName ||
-                            entitlement.feature?.name ||
-                            entitlement.featureName}
+                          {meteredEntitlement.priceBehavior ===
+                            PriceBehavior.Overage &&
+                          meteredEntitlement.softLimit
+                            ? `${meteredEntitlement.softLimit} ${getEntitlementFeatureName(meteredEntitlement, "units")}`
+                            : getEntitlementFeatureName(meteredEntitlement)}
                         </Text>
                       </Flex>
                     </Flex>
+
                     <Text
                       style={{ opacity: 0.54 }}
                       $size={0.875 * settings.theme.typography.text.fontSize}
                       $color={settings.theme.typography.text.color}
                     >
-                      Unlimited
+                      {renderMeteredEntitlementPricing(meteredEntitlement)}
                     </Text>
                   </Flex>
                 );
-              }
+              })}
+            </Flex>
+          )}
 
-              // Metered entitlement - TypeScript doesn't know isUnlimited is false here
-              const meteredEntitlement = entitlement as typeof entitlement & {
-                isUnlimited: false;
-                priceBehavior?: string;
-                softLimit?: number;
-                price: number;
-                currency: string;
-                packageSize: number;
-                isTiered: boolean;
-              };
-
-              return (
-                <Flex
-                  key={idx}
-                  $flexWrap="wrap"
-                  $justifyContent="space-between"
-                  $alignItems="center"
-                  $gap="1rem"
-                >
-                  <Flex $gap="1rem">
-                    {meteredEntitlement.feature?.icon && (
-                      <Icon
-                        name={meteredEntitlement.feature.icon}
-                        color={settings.theme.primary}
-                        background={
-                          isLightBackground
-                            ? "hsla(0, 0%, 0%, 0.0625)"
-                            : "hsla(0, 0%, 100%, 0.25)"
-                        }
-                        rounded
-                      />
-                    )}
-                    <Flex $flexDirection="column" $justifyContent="center">
-                      <Text>
-                        {meteredEntitlement.priceBehavior ===
-                          PriceBehavior.Overage && meteredEntitlement.softLimit
-                          ? `${meteredEntitlement.softLimit} ${getEntitlementFeatureName(meteredEntitlement, "units")}`
-                          : getEntitlementFeatureName(meteredEntitlement)}
-                      </Text>
-                    </Flex>
-                  </Flex>
-                  <Text
-                    style={{ opacity: 0.54 }}
-                    $size={0.875 * settings.theme.typography.text.fontSize}
-                    $color={settings.theme.typography.text.color}
-                  >
-                    {renderMeteredEntitlementPricing(meteredEntitlement)}
-                  </Text>
-                </Flex>
-              );
-            })}
-          </Flex>
-        )}
-
-        {showCallToAction && layout.upgrade.isVisible && (
-          <Button
-            type="button"
-            disabled={(isHydratedPlan(addOn) && !addOn.valid) || !canCheckout}
-            $size={layout.upgrade.buttonSize}
-            $color={isActiveAddOn ? "danger" : layout.upgrade.buttonStyle}
-            $variant={
-              isActiveAddOn ? "ghost" : isCurrentAddOn ? "outline" : "filled"
-            }
-            {...(layout.callToActionUrl
-              ? {
-                  as: "a",
-                  href: layout.callToActionUrl,
-                  rel: "noreferrer",
-                  target: "_blank",
+        {sharedProps.showCallToAction &&
+          (layout.upgrade.isVisible || layout.downgrade.isVisible) && (
+            <Flex $flexDirection="column" $gap="0.5rem">
+              <Button
+                type="button"
+                disabled={!addOn.valid || !canCheckout}
+                data-testid="sch-addon-cta-button"
+                $size={layout.upgrade.buttonSize}
+                $color={isActiveAddOn ? "danger" : layout.upgrade.buttonStyle}
+                $variant={
+                  isActiveAddOn ? "ghost" : addOn.current ? "outline" : "filled"
                 }
-              : {
-                  onClick: () => {
-                    layout.onCallToAction?.(addOn);
-
-                    if (!isStandalone && !addOn.custom) {
-                      setCheckoutState({
-                        period: selectedPeriod,
-                        addOnId: isActiveAddOn ? null : addOn.id,
-                        usage: false,
-                      });
+                {...(sharedProps.callToActionUrl
+                  ? {
+                      as: "a",
+                      href: sharedProps.callToActionUrl,
+                      rel: "noreferrer",
+                      target: "_blank",
                     }
-                  },
-                })}
-            $fullWidth
-          >
-            {isActiveAddOn
-              ? t("Remove add-on")
-              : isCurrentAddOn
-                ? t("Change add-on")
-                : t("Choose add-on")}
-          </Button>
-        )}
+                  : {
+                      onClick: () => {
+                        sharedProps.onCallToAction?.(addOn);
+
+                        if (!isStandalone && !addOn.custom) {
+                          setCheckoutState({
+                            period: selectedPeriod,
+                            addOnId: isActiveAddOn ? null : addOn.id,
+                            usage: false,
+                          });
+                        }
+                      },
+                    })}
+                $fullWidth
+              >
+                {isActiveAddOn
+                  ? t("Remove add-on")
+                  : addOn.current
+                    ? t("Change add-on")
+                    : t("Choose add-on")}
+              </Button>
+            </Flex>
+          )}
       </Flex>
     </Flex>
   );
