@@ -335,7 +335,6 @@ describe("`AddOn` component", () => {
     expect(mockOnCallToAction).toHaveBeenCalledWith(mockAddOn);
   });
 
-  // TODO: check with Coleman if this is accurate
   test("does not render limited entitlements without a price behavior", () => {
     render(
       <AddOn
