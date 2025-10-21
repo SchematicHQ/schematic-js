@@ -2,8 +2,6 @@ import { jest } from "@jest/globals";
 import "@testing-library/dom";
 import "@testing-library/jest-dom";
 
-import { act, fireEvent, render, screen } from "~/test/setup";
-
 import {
   type BillingPriceResponseData,
   type FeatureUsageResponseData,
@@ -11,6 +9,7 @@ import {
 } from "../../../api/checkoutexternal";
 import { PriceInterval, VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
 import { type EmbedContextProps } from "../../../context";
+import { act, fireEvent, render, screen } from "../../../test/setup";
 import type { DeepPartial, SelectedPlan } from "../../../types";
 
 import { Plan, type PlanProps } from "./Plan";

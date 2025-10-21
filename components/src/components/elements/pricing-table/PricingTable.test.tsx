@@ -4,9 +4,9 @@ import "@testing-library/jest-dom";
 import cloneDeep from "lodash/cloneDeep";
 import { HttpResponse, delay, http } from "msw";
 
-import hydrateJson from "~/test/mocks/handlers/response/hydrate.json";
-import plansJson from "~/test/mocks/handlers/response/plans.json";
-import { server } from "~/test/mocks/node";
+import hydrateJson from "../../../test/mocks/handlers/response/hydrate.json";
+import plansJson from "../../../test/mocks/handlers/response/plans.json";
+import { server } from "../../../test/mocks/node";
 import {
   act,
   fireEvent,
@@ -14,8 +14,7 @@ import {
   screen,
   waitForElementToBeRemoved,
   within,
-} from "~/test/setup";
-
+} from "../../../test/setup";
 import { SchematicEmbed } from "../../embed";
 
 import { PricingTable } from ".";
@@ -638,30 +637,26 @@ describe("`PricingTable`", () => {
       expect(wrapper).toBeInTheDocument();
 
       const plansHeaderText = within(wrapper).queryByText("Plans");
-      expect(plansHeaderText).toHaveStyleRule(
-        "font-family",
-        "Manrope,sans-serif",
-      );
-      expect(plansHeaderText).toHaveStyleRule("font-size", `${37 / 16}rem`);
-      expect(plansHeaderText).toHaveStyleRule("font-weight", "800");
-      expect(plansHeaderText).toHaveStyleRule("color", "#000000");
+      expect(plansHeaderText).toHaveStyle("font-family: Manrope, sans-serif");
+      expect(plansHeaderText).toHaveStyle(`font-size: ${37 / 16}rem`);
+      expect(plansHeaderText).toHaveStyle("font-weight: 800");
+      expect(plansHeaderText).toHaveStyle("color: #000000");
 
       const plans = within(wrapper).queryAllByTestId("sch-plan");
 
       const planNameText = within(plans[0]).queryByText("Basic");
-      expect(planNameText).toHaveStyleRule("font-family", "Manrope,sans-serif");
-      expect(planNameText).toHaveStyleRule("font-size", `${37 / 16}rem`);
-      expect(planNameText).toHaveStyleRule("font-weight", "800");
-      expect(planNameText).toHaveStyleRule("color", "#000000");
+      expect(planNameText).toHaveStyle("font-family: Manrope, sans-serif");
+      expect(planNameText).toHaveStyle(`font-size: ${37 / 16}rem`);
+      expect(planNameText).toHaveStyle("font-weight: 800");
+      expect(planNameText).toHaveStyle("color: #000000");
 
       const planDescriptionText = within(plans[0]).queryByText("A basic plan");
-      expect(planDescriptionText).toHaveStyleRule(
-        "font-family",
-        "Public Sans,sans-serif",
+      expect(planDescriptionText).toHaveStyle(
+        "font-family: Public Sans, sans-serif",
       );
-      expect(planDescriptionText).toHaveStyleRule("font-size", `${14 / 16}rem`);
-      expect(planDescriptionText).toHaveStyleRule("font-weight", "400");
-      expect(planDescriptionText).toHaveStyleRule("color", "#8A8A8A");
+      expect(planDescriptionText).toHaveStyle(`font-size: ${14 / 16}rem`);
+      expect(planDescriptionText).toHaveStyle("font-weight: 400");
+      expect(planDescriptionText).toHaveStyle("color: #8A8A8A");
     });
 
     test("handles missing plan descriptions gracefully", async () => {

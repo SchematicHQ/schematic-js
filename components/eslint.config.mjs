@@ -53,13 +53,6 @@ export default defineConfig([
             enabled: true,
             types: "types-last",
           },
-          pathGroups: [
-            {
-              pattern: "~/**",
-              group: "external",
-              position: "after",
-            },
-          ],
         },
       ],
     },

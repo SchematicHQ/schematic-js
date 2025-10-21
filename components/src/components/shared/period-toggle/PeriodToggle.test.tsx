@@ -2,8 +2,7 @@ import { jest } from "@jest/globals";
 import "@testing-library/dom";
 import "@testing-library/jest-dom";
 
-import { act, fireEvent, render, screen } from "~/test/setup";
-
+import { act, fireEvent, render, screen } from "../../../test/setup";
 import type { SelectedPlan } from "../../../types";
 
 import { PeriodToggle } from "./PeriodToggle";

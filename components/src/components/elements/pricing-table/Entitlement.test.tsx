@@ -1,14 +1,13 @@
 import "@testing-library/dom";
 import "@testing-library/jest-dom";
 
-import { render, screen } from "~/test/setup";
-
 import { type PlanEntitlementResponseData } from "../../../api/componentspublic";
 import {
   EntitlementValueType,
   FeatureType,
   PriceBehavior,
 } from "../../../const";
+import { render, screen } from "../../../test/setup";
 import type { Credit, DeepPartial } from "../../../types";
 
 import { Entitlement, type EntitlementProps } from "./Entitlement";

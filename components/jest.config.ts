@@ -7,10 +7,6 @@ export default {
       "@swc/jest",
       {
         jsc: {
-          baseUrl: ".",
-          paths: {
-            "~/*": ["./src/*"],
-          },
           parser: {
             syntax: "typescript",
             tsx: true,
