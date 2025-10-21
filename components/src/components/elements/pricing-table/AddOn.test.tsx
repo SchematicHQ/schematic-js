@@ -10,7 +10,6 @@ import {
   EntitlementValueType,
   EntityType,
   FeatureType,
-  PriceBehavior,
   PriceInterval,
   TraitType,
 } from "../../../const";
