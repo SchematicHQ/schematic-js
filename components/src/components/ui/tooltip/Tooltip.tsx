@@ -9,6 +9,31 @@ import { Content, Trigger } from "./styles";
 
 export type Position = "top" | "right" | "bottom" | "left";
 
+type GetCoordsOptions = {
+  position: Position;
+};
+
+const getCoords = (element: HTMLElement, { position }: GetCoordsOptions) => {
+  const { top: offsetTop, left: offsetLeft } =
+    document.body.getBoundingClientRect();
+  const rect = element.getBoundingClientRect();
+
+  let x = position === "left" ? rect.left : rect.right;
+  if (position === "top" || position === "bottom") {
+    x -= rect.width / 2;
+  }
+
+  let y = position === "top" ? rect.top : rect.bottom;
+  if (position === "left" || position === "right") {
+    y -= rect.height / 2;
+  }
+
+  return {
+    x: Math.round(x - offsetLeft),
+    y: Math.round(y - offsetTop),
+  };
+};
+
 export interface TooltipProps extends BoxProps {
   trigger: React.ReactNode;
   content: React.ReactNode;
@@ -30,24 +55,7 @@ export const Tooltip = ({
 
   const updateCoords = useCallback(() => {
     if (ref.current) {
-      const { top: offsetTop, left: offsetLeft } =
-        document.body.getBoundingClientRect();
-      const rect = ref.current.getBoundingClientRect();
-
-      let x = position === "left" ? rect.left : rect.right;
-      if (position === "top" || position === "bottom") {
-        x -= rect.width / 2;
-      }
-
-      let y = position === "top" ? rect.top : rect.bottom;
-      if (position === "left" || position === "right") {
-        y -= rect.height / 2;
-      }
-
-      setCoords({
-        x: Math.round(x - offsetLeft),
-        y: Math.round(y - offsetTop),
-      });
+      setCoords(getCoords(ref.current, { position }));
     }
   }, [position]);
 
@@ -55,14 +63,12 @@ export const Tooltip = ({
     const handleResize = debounce(updateCoords, EVENT_DEBOUNCE_TIMEOUT);
     window.addEventListener("resize", handleResize);
 
+    updateCoords();
+
     return () => {
       window.removeEventListener("resize", handleResize);
     };
   }, [updateCoords]);
-
-  useLayoutEffect(() => {
-    updateCoords();
-  }, [updateCoords, show]);
 
   return (
     <>

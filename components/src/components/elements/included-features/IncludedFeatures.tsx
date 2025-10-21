@@ -168,7 +168,7 @@ export const IncludedFeatures = forwardRef<
             key={index}
             ref={(el) => {
               if (el) {
-                elements.current.push(el);
+                elementsRef.current.push(el);
               }
             }}
             $flexWrap="wrap"

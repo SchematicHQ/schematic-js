@@ -268,7 +268,7 @@ export const MeteredFeatures = forwardRef<
                 <Flex
                   ref={(el) => {
                     if (el) {
-                      elements.current.push(el);
+                      elementsRef.current.push(el);
                     }
                   }}
                   $flexWrap="wrap"

@@ -14,6 +14,8 @@ const NoPaymentRequired = ({
   isLoading,
   onClick,
 }: NoPaymentRequiredProps) => {
+  const { t } = useTranslation();
+
   return (
     <Button
       type="button"
