@@ -3,6 +3,30 @@ import { useTranslation } from "react-i18next";
 import { Button, Flex, Icon } from "../../ui";
 import { type CheckoutStage } from "../checkout-dialog";
 
+type NoPaymentRequiredProps = {
+  isDisabled: boolean;
+  isLoading: boolean;
+  onClick: () => Promise<void>;
+};
+
+const NoPaymentRequired = ({
+  isDisabled,
+  isLoading,
+  onClick,
+}: NoPaymentRequiredProps) => {
+  return (
+    <Button
+      type="button"
+      disabled={isDisabled}
+      onClick={onClick}
+      $isLoading={isLoading}
+      $fullWidth
+    >
+      {t("Subscribe and close")}
+    </Button>
+  );
+};
+
 type StageButtonProps = {
   checkout: () => Promise<void>;
   checkoutStage?: string;
@@ -44,20 +68,6 @@ export const StageButton = ({
 
   const isDisabled = isLoading || !hasPlan || inEditMode;
 
-  const NoPaymentRequired = () => {
-    return (
-      <Button
-        type="button"
-        disabled={isDisabled}
-        onClick={checkout}
-        $isLoading={isLoading}
-        $fullWidth
-      >
-        {t("Subscribe and close")}
-      </Button>
-    );
-  };
-
   if (checkoutStage === "plan") {
     if (isSelectedPlanTrialable && trialPaymentMethodRequired && shouldTrial) {
       return (
@@ -92,7 +102,13 @@ export const StageButton = ({
           stage.id === "credits",
       )
     ) {
-      return <NoPaymentRequired />;
+      return (
+        <NoPaymentRequired
+          isDisabled={isDisabled}
+          isLoading={isLoading}
+          onClick={checkout}
+        />
+      );
     }
 
     return (
@@ -135,7 +151,13 @@ export const StageButton = ({
         (stage) => stage.id === "addons" || stage.id === "credits",
       )
     ) {
-      return <NoPaymentRequired />;
+      return (
+        <NoPaymentRequired
+          isDisabled={isDisabled}
+          isLoading={isLoading}
+          onClick={checkout}
+        />
+      );
     }
 
     return (
@@ -177,7 +199,13 @@ export const StageButton = ({
       (stage) => stage.id === "credits",
     );
     if (!isPaymentMethodRequired && !hasAddonsUsageStage && !hasCreditsStage) {
-      return <NoPaymentRequired />;
+      return (
+        <NoPaymentRequired
+          isDisabled={isDisabled}
+          isLoading={isLoading}
+          onClick={checkout}
+        />
+      );
     }
 
     return (
@@ -219,7 +247,13 @@ export const StageButton = ({
       !isPaymentMethodRequired &&
       !checkoutStages?.some((stage) => stage.id === "credits")
     ) {
-      return <NoPaymentRequired />;
+      return (
+        <NoPaymentRequired
+          isDisabled={isDisabled}
+          isLoading={isLoading}
+          onClick={checkout}
+        />
+      );
     }
 
     return (
@@ -247,7 +281,13 @@ export const StageButton = ({
 
   if (checkoutStage === "credits") {
     if (!isPaymentMethodRequired) {
-      return <NoPaymentRequired />;
+      return (
+        <NoPaymentRequired
+          isDisabled={isDisabled}
+          isLoading={isLoading}
+          onClick={checkout}
+        />
+      );
     }
 
     return (
@@ -275,7 +315,13 @@ export const StageButton = ({
 
   if (checkoutStage === "checkout") {
     if (!isPaymentMethodRequired) {
-      return <NoPaymentRequired />;
+      return (
+        <NoPaymentRequired
+          isDisabled={isDisabled}
+          isLoading={isLoading}
+          onClick={checkout}
+        />
+      );
     }
 
     return (

@@ -169,7 +169,7 @@ export const UsageDetails = ({
     priceBehavior,
     softLimit,
     billingPrice,
-    currentTier?.to,
+    currentTier,
     showCredits,
   ]);
 

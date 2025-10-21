@@ -167,8 +167,8 @@ export const MeteredFeatures = forwardRef<
 >(({ className, ...rest }, ref) => {
   const props = resolveDesignProps(rest);
 
-  const elements = useRef<HTMLElement[]>([]);
-  const shouldWrapChildren = useWrapChildren(elements.current);
+  const elementsRef = useRef<HTMLElement[]>([]);
+  const shouldWrapChildren = useWrapChildren(elementsRef);
 
   const { t } = useTranslation();
 
