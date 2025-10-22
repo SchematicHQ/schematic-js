@@ -175,11 +175,7 @@ export const MeteredFeatures = forwardRef<
 
   const isLightBackground = useIsLightBackground();
 
-  const { period, meteredFeatures, creditGroups, showCredits } = useMemo(() => {
-    const period =
-      typeof data?.company?.plan?.planPeriod === "string"
-        ? data.company?.plan?.planPeriod
-        : undefined;
+  const meteredFeatures = useMemo(() => {
     const orderedFeatureUsage = props.visibleFeatures?.reduce(
       (acc: FeatureUsageResponseData[], id) => {
         const mappedFeatureUsage = data?.featureUsage?.features.find(
@@ -195,30 +191,16 @@ export const MeteredFeatures = forwardRef<
       [],
     );
 
-    return {
-      period,
-      meteredFeatures: (
-        orderedFeatureUsage ||
-        data?.featureUsage?.features ||
-        []
-      ).filter(
-        ({ feature }) =>
-          feature?.featureType === FeatureType.Event ||
-          feature?.featureType === FeatureType.Trait,
-      ),
-      creditGroups: groupCreditGrants(data?.creditGrants || [], {
-        groupBy: "credit",
-      }),
-      showCredits: data?.showCredits ?? true,
-    };
-  }, [
-    props.visibleFeatures,
-    data?.company?.plan?.planPeriod,
-    data?.creditGrants,
-    data?.featureUsage?.features,
-    data?.showCredits,
-  ]);
+    return (orderedFeatureUsage || data?.featureUsage?.features || []).filter(
+      ({ feature }) =>
+        feature?.featureType === FeatureType.Event ||
+        feature?.featureType === FeatureType.Trait,
+    );
+  }, [props.visibleFeatures, data?.featureUsage?.features]);
 
+  const creditGroups = groupCreditGrants(data?.creditGrants || [], {
+    groupBy: "credit",
+  });
   const [creditVisibility, setCreditVisibility] = useState(
     creditGroups.map(({ id }) => ({ id, isExpanded: false })),
   );
@@ -236,6 +218,14 @@ export const MeteredFeatures = forwardRef<
   if (!shouldShowFeatures) {
     return null;
   }
+
+  const period =
+    typeof data?.company?.plan?.planPeriod === "string"
+      ? data.company?.plan?.planPeriod
+      : undefined;
+
+  const canCheckout = data?.capabilities?.checkout ?? false;
+  const showCredits = data?.showCredits ?? true;
 
   return (
     <styles.Container ref={ref} className={className}>
@@ -335,17 +325,18 @@ export const MeteredFeatures = forwardRef<
                     />
                   )}
 
-                {priceBehavior === PriceBehavior.PayInAdvance && (
-                  <Button
-                    type="button"
-                    onClick={() => {
-                      setCheckoutState({ usage: true });
-                    }}
-                    style={{ whiteSpace: "nowrap" }}
-                  >
-                    {t("Add More")}
-                  </Button>
-                )}
+                {canCheckout &&
+                  priceBehavior === PriceBehavior.PayInAdvance && (
+                    <Button
+                      type="button"
+                      onClick={() => {
+                        setCheckoutState({ usage: true });
+                      }}
+                      style={{ whiteSpace: "nowrap" }}
+                    >
+                      {t("Add More")}
+                    </Button>
+                  )}
               </Flex>
             </Flex>
 
@@ -420,16 +411,18 @@ export const MeteredFeatures = forwardRef<
                       }
                     />
 
-                    <Button
-                      type="button"
-                      onClick={() => {
-                        setCheckoutState({ credits: true });
-                      }}
-                      style={{ whiteSpace: "nowrap" }}
-                      $size="sm"
-                    >
-                      {t("Buy More")}
-                    </Button>
+                    {canCheckout && (
+                      <Button
+                        type="button"
+                        onClick={() => {
+                          setCheckoutState({ credits: true });
+                        }}
+                        style={{ whiteSpace: "nowrap" }}
+                        $size="sm"
+                      >
+                        {t("Buy More")}
+                      </Button>
+                    )}
                   </Flex>
                 </Flex>
               </Flex>
