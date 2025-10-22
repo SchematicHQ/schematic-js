@@ -1,9 +1,7 @@
 import { useLayoutEffect, useState } from "react";
 
-export function useWrapChildren(elements: HTMLElement[]) {
-  const [shouldWrap, setShouldWrap] = useState<boolean[]>(() =>
-    new Array(elements.length).fill(false),
-  );
+export function useWrapChildren(ref: React.RefObject<HTMLElement[]>) {
+  const [shouldWrap, setShouldWrap] = useState<boolean[]>([]);
 
   useLayoutEffect(() => {
     const rowShouldWrap = (parent: Element) =>
@@ -14,7 +12,7 @@ export function useWrapChildren(elements: HTMLElement[]) {
           el.offsetLeft <= el.previousElementSibling.offsetLeft,
       );
 
-    elements.forEach((el, idx) => {
+    ref.current.forEach((el, idx) => {
       new ResizeObserver((entries) => {
         setShouldWrap((prev) => {
           const next = [...prev];
@@ -29,7 +27,7 @@ export function useWrapChildren(elements: HTMLElement[]) {
         return next;
       });
     });
-  }, [elements]);
+  }, [ref]);
 
   return shouldWrap.some((wrap) => wrap);
 }

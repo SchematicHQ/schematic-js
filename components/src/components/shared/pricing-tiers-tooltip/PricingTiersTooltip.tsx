@@ -30,21 +30,37 @@ export const PricingTiersTooltip = ({
 
   const isLightBackground = useIsLightBackground();
 
-  const tiers = useMemo(() => {
-    let start = 1;
-    return priceTiers.map((tier) => {
-      const { upTo, ...rest } = tier;
-      const end = upTo ?? Infinity;
-      const mapped = {
-        ...rest,
-        from: start,
-        to: end,
-      };
+  const { tiers } = useMemo(() => {
+    return priceTiers.reduce(
+      (
+        acc: {
+          start: number;
+          tiers: {
+            flatAmount?: number;
+            perUnitPrice?: number;
+            perUnitPriceDecimal?: string;
+            from: number;
+            to: number;
+          }[];
+        },
+        tier,
+      ) => {
+        const end = tier.upTo ?? Infinity;
 
-      start = end + 1;
+        acc.tiers.push({
+          flatAmount: tier.flatAmount ?? undefined,
+          perUnitPrice: tier.perUnitPrice ?? undefined,
+          perUnitPriceDecimal: tier.perUnitPriceDecimal ?? undefined,
+          from: acc.start,
+          to: end,
+        });
 
-      return mapped;
-    });
+        acc.start = end + 1;
+
+        return acc;
+      },
+      { start: 1, tiers: [] },
+    );
   }, [priceTiers]);
 
   if (!priceTiers.length) {

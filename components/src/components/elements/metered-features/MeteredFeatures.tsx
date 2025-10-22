@@ -166,8 +166,8 @@ export const MeteredFeatures = forwardRef<
 >(({ className, ...rest }, ref) => {
   const props = resolveDesignProps(rest);
 
-  const elements = useRef<HTMLElement[]>([]);
-  const shouldWrapChildren = useWrapChildren(elements.current);
+  const elementsRef = useRef<HTMLElement[]>([]);
+  const shouldWrapChildren = useWrapChildren(elementsRef);
 
   const { t } = useTranslation();
 
@@ -268,7 +268,7 @@ export const MeteredFeatures = forwardRef<
                 <Flex
                   ref={(el) => {
                     if (el) {
-                      elements.current.push(el);
+                      elementsRef.current.push(el);
                     }
                   }}
                   $flexWrap="wrap"

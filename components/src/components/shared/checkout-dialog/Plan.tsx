@@ -304,6 +304,8 @@ export const Plan = ({
   };
 
   useEffect(() => {
+    // TODO: refactor entitlement counts
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setEntitlementCounts(plans.reduce(entitlementCountsReducer, {}));
   }, [plans]);
 

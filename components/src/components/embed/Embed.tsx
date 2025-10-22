@@ -11,6 +11,8 @@ import { Box, Flex, Loader, Text } from "../ui";
 
 import { createRenderer, getEditorState, parseEditorState } from "./renderer";
 
+const renderer = createRenderer();
+
 const Loading = () => {
   const { settings } = useEmbed();
 
@@ -86,8 +88,6 @@ export const SchematicEmbed = ({ id, accessToken }: EmbedProps) => {
   }, [id, hydrateComponent, stale]);
 
   useEffect(() => {
-    const renderer = createRenderer();
-
     try {
       if (data?.component?.ast) {
         const nodes: SerializedNodeWithChildren[] = [];
@@ -105,6 +105,8 @@ export const SchematicEmbed = ({ id, accessToken }: EmbedProps) => {
           const updated = { mode: settings.mode, theme, badge: settings.badge };
           updateSettings(updated, { update: true });
           nodes.push(...parseEditorState(ast));
+          // TODO: refactor `children`
+          // eslint-disable-next-line react-hooks/set-state-in-effect
           setChildren(nodes.map(renderer));
         }
       }

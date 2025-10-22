@@ -1,5 +1,5 @@
 import debounce from "lodash/debounce";
-import { forwardRef, useLayoutEffect, useMemo, useState } from "react";
+import { forwardRef, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 import { useEmbed } from "../../../hooks";
@@ -15,6 +15,8 @@ export interface ViewportProps extends React.HTMLProps<HTMLDivElement> {
 
 export const Viewport = forwardRef<HTMLDivElement | null, ViewportProps>(
   ({ children, portal, ...props }, ref) => {
+    const portalRef = useRef<HTMLElement>(portal || document.body);
+
     const { data, layout, settings } = useEmbed();
 
     const [top, setTop] = useState(0);
@@ -33,15 +35,15 @@ export const Viewport = forwardRef<HTMLDivElement | null, ViewportProps>(
     ]);
 
     useLayoutEffect(() => {
-      const parent = portal || document.body;
+      const portal = portalRef.current;
       const setModalY = debounce(() => {
         const value = Math.abs(
-          (parent === document.body ? window.scrollY : parent.scrollTop) ?? 0,
+          (portal === document.body ? window.scrollY : portal.scrollTop) ?? 0,
         );
         setTop(value);
       }, 250);
 
-      parent.style.overflow =
+      portal.style.overflow =
         layout === "checkout" ||
         layout === "unsubscribe" ||
         layout === "payment"
@@ -52,9 +54,9 @@ export const Viewport = forwardRef<HTMLDivElement | null, ViewportProps>(
 
       return () => {
         window.removeEventListener("scroll", setModalY);
-        parent.style.overflow = "";
+        portal.style.overflow = "";
       };
-    }, [portal, layout]);
+    }, [layout]);
 
     return (
       <>

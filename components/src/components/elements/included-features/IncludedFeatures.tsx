@@ -83,8 +83,8 @@ export const IncludedFeatures = forwardRef<
 
   const { data, settings } = useEmbed();
 
-  const elements = useRef<HTMLElement[]>([]);
-  const shouldWrapChildren = useWrapChildren(elements.current);
+  const elementsRef = useRef<HTMLElement[]>([]);
+  const shouldWrapChildren = useWrapChildren(elementsRef);
 
   const isLightBackground = useIsLightBackground();
 
@@ -168,7 +168,7 @@ export const IncludedFeatures = forwardRef<
             key={index}
             ref={(el) => {
               if (el) {
-                elements.current.push(el);
+                elementsRef.current.push(el);
               }
             }}
             $flexWrap="wrap"
