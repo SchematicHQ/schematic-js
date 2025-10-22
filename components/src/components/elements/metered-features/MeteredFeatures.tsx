@@ -349,7 +349,7 @@ export const MeteredFeatures = forwardRef<
                     }}
                     style={{ whiteSpace: "nowrap" }}
                   >
-                    {t("Add Seats")}
+                    {t("Add More")}
                   </Button>
                 )}
               </Flex>
