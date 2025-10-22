@@ -1,7 +1,7 @@
 import { CheckFlagResponseDataFromJSON } from "./api/models/CheckFlagResponseData";
 import { EventBodyFlagCheck } from "./api/models/EventBodyFlagCheck";
 
-export type EventType = "identify" | "track" | "flag_check";
+export type EventType = "identify" | "track" | "flag_check" | "plan_change";
 
 /** A record of unique key-value pairs used for identifying a company or user */
 export type Keys = Record<string, string>;
@@ -103,6 +103,8 @@ export type CheckFlagReturn = {
   value: boolean;
 };
 
+export type PlanReturn = {};
+
 /** Optional type for implementing custom client-side storage */
 export type StoragePersister = {
   /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
@@ -153,6 +155,9 @@ export type FlagCheckListenerFn = CheckFlagReturnListenerFn | EmptyListenerFn;
 export type FlagValueListenerFn = BooleanListenerFn | EmptyListenerFn;
 export type PendingListenerFn = BooleanListenerFn | EmptyListenerFn;
 export type CheckFlagReturnListenerFn = (value: CheckFlagReturn) => void;
+
+export type PlanListenerFn = PlanReturnListenerFn | EmptyListenerFn;
+export type PlanReturnListenerFn = (value: PlanReturn) => void;
 
 export const CheckFlagReturnFromJSON = (
   /* eslint-disable-next-line @typescript-eslint/no-explicit-any */

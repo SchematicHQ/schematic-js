@@ -88,7 +88,7 @@ export const SchematicProvider: React.FC<SchematicProviderProps> = ({
 export const useSchematic = () => {
   const context = React.useContext(SchematicContext);
   if (context === null) {
-    throw new Error("useSchematic must be used within a SchematicProvider");
+    throw new Error("`useSchematic` must be used within a `SchematicProvider`");
   }
   return context;
 };

@@ -20,6 +20,9 @@ import {
   EventType,
   FlagCheckListenerFn,
   FlagValueListenerFn,
+  PlanListenerFn,
+  PlanReturn,
+  PlanReturnListenerFn,
   PendingListenerFn,
   SchematicContext,
   SchematicOptions,
@@ -993,8 +996,34 @@ export class Schematic {
     };
   };
 
+  // plan state
+  getPlan = (id: string) => {
+    const contextStr = contextString(this.context);
+    const checks = this.checks[contextStr] ?? {};
+    return checks[id];
+  };
+
+  // planValues state
+  getPlanValue = (id: string) => {
+    const check = this.getPlan(id);
+    return check?.value;
+  };
+
+  /** Register an event listener that will be notified with the full plan response for a given id whenever this value changes */
+  addFlagCheckListener = (id: string, listener: PlanListenerFn) => {
+    if (!(id in this.planListeners)) {
+      this.flagCheckListeners[flagKey] = new Set();
+    }
+
+    this.flagCheckListeners[flagKey].add(listener);
+
+    return () => {
+      this.flagCheckListeners[flagKey].delete(listener);
+    };
+  };
+
   /** Register an event listener that will be notified with the full flag check response for a given flag whenever this value changes */
-  addFlagCheckListener = (flagKey: string, listener: FlagCheckListenerFn) => {
+  addPlanListener = (flagKey: string, listener: PlanListenerFn) => {
     if (!(flagKey in this.flagCheckListeners)) {
       this.flagCheckListeners[flagKey] = new Set();
     }
