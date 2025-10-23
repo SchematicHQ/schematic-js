@@ -715,6 +715,14 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   }, []);
 
   useEffect(() => {
+    const plan = availablePlans.find((plan) =>
+      checkoutState?.planId ? plan.id === checkoutState.planId : plan.current,
+    );
+
+    setSelectedPlan(plan);
+  }, [availablePlans, checkoutState?.planId]);
+
+  useEffect(() => {
     setAddOns((prevAddOns) => {
       return availableAddOns
         .filter((availAddOn) => {
