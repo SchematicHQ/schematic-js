@@ -15,10 +15,9 @@ import {
   entitlementCountsReducer,
   formatCurrency,
   formatNumber,
-  getCreditBasedEntitlementLimit,
+  getEntitlementDescriptionData,
   getEntitlementPrice,
   getFeatureName,
-  getMetricPeriodName,
   getPlanPrice,
   groupPlanCreditGrants,
   hexToHSL,
@@ -499,26 +498,13 @@ export const Plan = ({
                 <Flex $flexDirection="column" $gap="1rem" $flexGrow={1}>
                   {plan.entitlements
                     .map((entitlement, entitlementIndex) => {
-                      const hasNumericValue =
-                        entitlement.valueType ===
-                          EntitlementValueType.Numeric ||
-                        entitlement.valueType ===
-                          EntitlementValueType.Unlimited ||
-                        entitlement.valueType === EntitlementValueType.Trait;
+                      const data = getEntitlementDescriptionData(
+                        entitlement,
+                        planPeriod,
+                        credits,
+                        getEntitlementPrice,
+                      );
 
-                      const limit =
-                        entitlement.softLimit ?? entitlement.valueNumeric;
-                      const creditBasedEntitlementLimit =
-                        getCreditBasedEntitlementLimit(entitlement, credits);
-
-                      const {
-                        price: entitlementPrice,
-                        priceTier: entitlementPriceTiers,
-                        currency: entitlementCurrency,
-                        packageSize: entitlementPackageSize = 1,
-                      } = getEntitlementPrice(entitlement, planPeriod) || {};
-
-                      const metricPeriodName = getMetricPeriodName(entitlement);
                       const UsageDetailsContainer = entitlement.billingThreshold
                         ? FlexWithAlignEnd
                         : Fragment;
@@ -552,23 +538,23 @@ export const Plan = ({
                                 $gap="0.5rem"
                               >
                                 <Text>
-                                  {typeof entitlementPrice === "number" &&
+                                  {typeof data.entitlementPrice === "number" &&
                                   (entitlement.priceBehavior ===
                                     PriceBehavior.PayInAdvance ||
                                     entitlement.priceBehavior ===
                                       PriceBehavior.PayAsYouGo) ? (
                                     <>
                                       {formatCurrency(
-                                        entitlementPrice,
-                                        entitlementCurrency,
+                                        data.entitlementPrice,
+                                        data.entitlementCurrency,
                                       )}{" "}
                                       {t("per")}{" "}
-                                      {entitlementPackageSize > 1 && (
-                                        <>{entitlementPackageSize} </>
+                                      {data.entitlementPackageSize > 1 && (
+                                        <>{data.entitlementPackageSize} </>
                                       )}
                                       {getFeatureName(
                                         entitlement.feature,
-                                        entitlementPackageSize,
+                                        data.entitlementPackageSize,
                                       )}
                                       {entitlement.priceBehavior ===
                                         PriceBehavior.PayInAdvance && (
@@ -600,29 +586,34 @@ export const Plan = ({
                                     </>
                                   ) : entitlement.priceBehavior ===
                                       PriceBehavior.Credit &&
-                                    creditBasedEntitlementLimit ? (
+                                    data.creditBasedEntitlementLimit ? (
                                     <>
-                                      {creditBasedEntitlementLimit?.period
+                                      {data.creditBasedEntitlementLimit?.period
                                         ? t("Up to X units per period", {
                                             amount:
-                                              creditBasedEntitlementLimit.limit,
+                                              data.creditBasedEntitlementLimit
+                                                .limit,
                                             units: getFeatureName(
                                               entitlement.feature,
-                                              creditBasedEntitlementLimit.limit,
+                                              data.creditBasedEntitlementLimit
+                                                .limit,
                                             ),
                                             period:
-                                              creditBasedEntitlementLimit.period,
+                                              data.creditBasedEntitlementLimit
+                                                .period,
                                           })
                                         : t("Up to X units", {
                                             amount:
-                                              creditBasedEntitlementLimit.limit,
+                                              data.creditBasedEntitlementLimit
+                                                .limit,
                                             units: getFeatureName(
                                               entitlement.feature,
-                                              creditBasedEntitlementLimit.limit,
+                                              data.creditBasedEntitlementLimit
+                                                .limit,
                                             ),
                                           })}
                                     </>
-                                  ) : hasNumericValue ? (
+                                  ) : data.hasNumericValue ? (
                                     <>
                                       {entitlement.valueType ===
                                         EntitlementValueType.Unlimited &&
@@ -632,20 +623,20 @@ export const Plan = ({
                                               entitlement.feature,
                                             ),
                                           })
-                                        : typeof limit === "number" && (
+                                        : typeof data.limit === "number" && (
                                             <>
-                                              {formatNumber(limit)}{" "}
+                                              {formatNumber(data.limit)}{" "}
                                               {getFeatureName(
                                                 entitlement.feature,
-                                                limit,
+                                                data.limit,
                                               )}
                                             </>
                                           )}
 
-                                      {metricPeriodName && (
+                                      {data.metricPeriodName && (
                                         <>
                                           {" "}
-                                          {t("per")} {t(metricPeriodName)}
+                                          {t("per")} {t(data.metricPeriodName)}
                                         </>
                                       )}
                                     </>
@@ -657,7 +648,7 @@ export const Plan = ({
                                 <UsageDetailsContainer>
                                   {entitlement.priceBehavior ===
                                     PriceBehavior.Overage &&
-                                  typeof entitlementPrice === "number" ? (
+                                  typeof data.entitlementPrice === "number" ? (
                                     <Text
                                       style={{ opacity: 0.54 }}
                                       $size={
@@ -670,16 +661,16 @@ export const Plan = ({
                                     >
                                       {t("then")}{" "}
                                       {formatCurrency(
-                                        entitlementPrice,
-                                        entitlementCurrency,
+                                        data.entitlementPrice,
+                                        data.entitlementCurrency,
                                       )}
                                       /
-                                      {entitlementPackageSize > 1 && (
-                                        <>{entitlementPackageSize} </>
+                                      {data.entitlementPackageSize > 1 && (
+                                        <>{data.entitlementPackageSize} </>
                                       )}
                                       {getFeatureName(
                                         entitlement.feature,
-                                        entitlementPackageSize,
+                                        data.entitlementPackageSize,
                                       )}
                                       {entitlement.feature.featureType ===
                                         FeatureType.Trait && (
@@ -707,8 +698,10 @@ export const Plan = ({
                                         <PricingTiersTooltip
                                           feature={entitlement.feature}
                                           period={planPeriod}
-                                          currency={entitlementCurrency}
-                                          priceTiers={entitlementPriceTiers}
+                                          currency={data.entitlementCurrency}
+                                          priceTiers={
+                                            data.entitlementPriceTiers
+                                          }
                                         />
                                       </Flex>
                                     )

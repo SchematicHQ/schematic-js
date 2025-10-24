@@ -3,11 +3,12 @@ import {
   type FeatureUsageResponseData,
   type PlanEntitlementResponseData,
 } from "../../api/checkoutexternal";
-import { FeatureType, PriceBehavior } from "../../const";
+import { EntitlementValueType, FeatureType, PriceBehavior } from "../../const";
 import type {
   Credit,
   CurrentUsageBasedEntitlement,
   Entitlement,
+  Feature,
   PriceTier,
 } from "../../types";
 import { getEntitlementCost } from "../../utils";
@@ -192,6 +193,7 @@ export function extractCurrentUsageBasedEntitlements(
  * Extracts the feature name from an entitlement object with a fallback chain.
  * Priority: feature.pluralName -> feature.name -> featureName -> defaultValue
  */
+
 export function getEntitlementFeatureName(
   entitlement: {
     feature?: { pluralName?: string | null; name?: string | null };
@@ -206,4 +208,115 @@ export function getEntitlementFeatureName(
     defaultValue ||
     ""
   );
+}
+
+export interface EntitlementDescriptionData {
+  // Calculated values
+  hasNumericValue: boolean;
+  limit: number | null | undefined;
+  creditBasedEntitlementLimit?: { limit: number; period?: string };
+  entitlementPrice?: number;
+  entitlementPriceTiers?: PriceTier[];
+  entitlementCurrency?: string;
+  entitlementPackageSize: number;
+  metricPeriodName?: string;
+
+  // Component props
+  tieredPricingDetailsProps?: {
+    entitlement: PlanEntitlementResponseData;
+    period: string;
+  };
+
+  pricingTiersTooltipProps?: {
+    feature: Feature | undefined;
+    period: string;
+    currency: string | undefined;
+    priceTiers: PriceTier[] | undefined;
+  };
+
+  billingThresholdTooltipProps?: {
+    billingThreshold: number;
+  };
+}
+
+/**
+ * Calculates entitlement description data for rendering.
+ *
+ * Extracts and computes all the necessary data for displaying plan entitlements,
+ * including pricing, limits, credits, and tooltips.
+ */
+
+export function getEntitlementDescriptionData(
+  entitlement: PlanEntitlementResponseData,
+  planPeriod: string,
+  credits: Credit[],
+  getEntitlementPriceFn: (
+    entitlement: PlanEntitlementResponseData,
+    period: string,
+  ) =>
+    | {
+        price?: number;
+        priceTier?: PriceTier[];
+        currency?: string;
+        packageSize?: number;
+      }
+    | undefined,
+): EntitlementDescriptionData {
+  const hasNumericValue =
+    entitlement.valueType === EntitlementValueType.Numeric ||
+    entitlement.valueType === EntitlementValueType.Unlimited ||
+    entitlement.valueType === EntitlementValueType.Trait;
+
+  const limit = entitlement.softLimit ?? entitlement.valueNumeric;
+  const creditBasedEntitlementLimit = getCreditBasedEntitlementLimit(
+    entitlement,
+    credits,
+  );
+
+  const {
+    price: entitlementPrice,
+    priceTier: entitlementPriceTiers,
+    currency: entitlementCurrency,
+    packageSize: entitlementPackageSize = 1,
+  } = getEntitlementPriceFn(entitlement, planPeriod) || {};
+
+  const metricPeriodName = getMetricPeriodName(entitlement);
+
+  const tieredPricingDetailsProps =
+    entitlement.priceBehavior === PriceBehavior.Tiered
+      ? {
+          entitlement,
+          period: planPeriod,
+        }
+      : undefined;
+
+  const pricingTiersTooltipProps =
+    entitlement.priceBehavior === PriceBehavior.Tiered
+      ? {
+          feature: entitlement.feature,
+          period: planPeriod,
+          currency: entitlementCurrency,
+          priceTiers: entitlementPriceTiers,
+        }
+      : undefined;
+
+  const billingThresholdTooltipProps = entitlement.billingThreshold
+    ? {
+        billingThreshold: entitlement.billingThreshold,
+      }
+    : undefined;
+
+  return {
+    hasNumericValue,
+    limit,
+    creditBasedEntitlementLimit,
+    entitlementPrice,
+    entitlementPriceTiers,
+    entitlementCurrency,
+    entitlementPackageSize,
+    metricPeriodName,
+    tieredPricingDetailsProps,
+    pricingTiersTooltipProps,
+    billingThresholdTooltipProps,
+  };
 }
