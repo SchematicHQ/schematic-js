@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: runs-on/action@v2.0.3
       - uses: actions/checkout@v5.0.0
-      - uses: actions/setup-node@v5.0.0
+      - uses: actions/setup-node@v6
         with:
           node-version: 24.x
       - name: Yarn install
@@ -28,7 +28,7 @@ jobs:
     steps:
       - uses: runs-on/action@v2.0.3
       - uses: actions/checkout@v5.0.0
-      - uses: actions/setup-node@v5.0.0
+      - uses: actions/setup-node@v6
         with:
           node-version: 24.x
       - name: Yarn install
@@ -44,7 +44,7 @@ jobs:
     steps:
       - uses: runs-on/action@v2
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: 24.x
       - name: Yarn install
