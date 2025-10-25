@@ -66,6 +66,7 @@ export interface CompanyPlanDetailResponseData {
    *
    * @type {string}
    * @memberof CompanyPlanDetailResponseData
+   * @deprecated
    */
   audienceType?: string | null;
   /**

@@ -60,6 +60,7 @@ export interface PlanViewPublicResponseData {
    *
    * @type {string}
    * @memberof PlanViewPublicResponseData
+   * @deprecated
    */
   audienceType?: string | null;
   /**

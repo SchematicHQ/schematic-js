@@ -61,12 +61,6 @@ export interface RuleConditionGroupDetailResponseData {
    * @type {string}
    * @memberof RuleConditionGroupDetailResponseData
    */
-  planId?: string | null;
-  /**
-   *
-   * @type {string}
-   * @memberof RuleConditionGroupDetailResponseData
-   */
   ruleId: string;
   /**
    *
@@ -114,7 +108,6 @@ export function RuleConditionGroupDetailResponseDataFromJSONTyped(
     environmentId: json["environment_id"],
     flagId: json["flag_id"] == null ? undefined : json["flag_id"],
     id: json["id"],
-    planId: json["plan_id"] == null ? undefined : json["plan_id"],
     ruleId: json["rule_id"],
     updatedAt: new Date(json["updated_at"]),
   };
@@ -134,7 +127,6 @@ export function RuleConditionGroupDetailResponseDataToJSON(
     environment_id: value["environmentId"],
     flag_id: value["flagId"],
     id: value["id"],
-    plan_id: value["planId"],
     rule_id: value["ruleId"],
     updated_at: value["updatedAt"].toISOString(),
   };
