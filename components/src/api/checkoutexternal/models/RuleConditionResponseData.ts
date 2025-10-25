@@ -93,12 +93,6 @@ export interface RuleConditionResponseData {
   operator: string;
   /**
    *
-   * @type {string}
-   * @memberof RuleConditionResponseData
-   */
-  planId?: string | null;
-  /**
-   *
    * @type {Array<string>}
    * @memberof RuleConditionResponseData
    */
@@ -195,7 +189,6 @@ export function RuleConditionResponseDataFromJSONTyped(
     metricValue:
       json["metric_value"] == null ? undefined : json["metric_value"],
     operator: json["operator"],
-    planId: json["plan_id"] == null ? undefined : json["plan_id"],
     resourceIds: json["resource_ids"],
     ruleId: json["rule_id"],
     traitEntityType:
@@ -225,7 +218,6 @@ export function RuleConditionResponseDataToJSON(
     metric_period_month_reset: value["metricPeriodMonthReset"],
     metric_value: value["metricValue"],
     operator: value["operator"],
-    plan_id: value["planId"],
     resource_ids: value["resourceIds"],
     rule_id: value["ruleId"],
     trait_entity_type: value["traitEntityType"],
