@@ -1,0 +1,22 @@
+node_modules/
+dist/
+*.log
+.DS_Store
+coverage/
+.nyc_output/
+.yarn/
+yarn-error.log
+
+# Generated files
+src/version.ts
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Test output
+junit.xml
+
