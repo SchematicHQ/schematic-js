@@ -74,8 +74,8 @@ The library is built on Vue's provide/inject pattern:
 
 - All composables return Vue refs or computed values for automatic reactivity
 - Uses `ref()` for mutable state and `computed()` for derived state
-- Subscriptions to the Schematic client are set up with listeners
-- Listeners are automatically cleaned up using `onUnmounted()`
+- Subscriptions to the Schematic client are set up with listeners in `onMounted()`
+- Listeners are automatically cleaned up using `onScopeDispose()`
 
 ### Provide/Inject
 
@@ -85,9 +85,17 @@ The library is built on Vue's provide/inject pattern:
 
 ### Lifecycle Management
 
-- Uses `onUnmounted()` to clean up event listeners
+- Uses `onScopeDispose()` to clean up event listeners (works in more contexts than `onUnmounted`)
+- Uses `onMounted()` to defer subscriptions to client-side only (SSR-safe)
 - Client cleanup (closing WebSocket) should be handled at the app level
 - Each composable manages its own listener subscriptions
+
+### SSR Support
+
+All composables are SSR-safe:
+- Initial values are retrieved synchronously (available for server-side rendering)
+- Listener subscriptions are deferred to `onMounted()` (client-side only)
+- This prevents `window`/browser API access errors during SSR
 
 ## Development Guidelines
 

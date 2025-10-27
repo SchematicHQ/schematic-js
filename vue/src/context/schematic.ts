@@ -1,5 +1,5 @@
 import * as SchematicJS from "@schematichq/schematic-js";
-import { App, InjectionKey, inject, onUnmounted } from "vue";
+import { App, InjectionKey, inject, onScopeDispose } from "vue";
 import { version } from "../version";
 
 type BaseSchematicPluginOptions = Omit<
@@ -92,14 +92,14 @@ export const useSchematic = () => {
 };
 
 /**
- * Hook to ensure cleanup happens when component unmounts
+ * Hook to ensure cleanup happens when scope is disposed
  * Only cleans up if the client was not provided externally
  */
 export const useSchematicCleanup = (
   client: SchematicJS.Schematic,
   isProvidedClient: boolean = false,
 ) => {
-  onUnmounted(() => {
+  onScopeDispose(() => {
     // Only cleanup if we created the client ourselves
     if (!isProvidedClient) {
       client.cleanup().catch((error) => {

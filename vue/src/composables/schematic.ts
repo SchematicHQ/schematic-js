@@ -1,5 +1,5 @@
 import * as SchematicJS from "@schematichq/schematic-js";
-import { computed, onUnmounted, ref, Ref } from "vue";
+import { computed, onMounted, onScopeDispose, ref, Ref } from "vue";
 import { useSchematic } from "../context";
 
 export interface SchematicComposableOpts {
@@ -14,16 +14,13 @@ export type UseSchematicFlagOpts = SchematicComposableOpts & {
  * Get the Schematic client instance
  * Can optionally override with a custom client
  */
-export const useSchematicClient = (opts?: SchematicComposableOpts) => {
+export const useSchematicClient = (
+  opts?: SchematicComposableOpts,
+): SchematicJS.Schematic => {
   const schematic = useSchematic();
   const { client } = opts ?? {};
 
-  return computed(() => {
-    if (client) {
-      return client;
-    }
-    return schematic.client;
-  });
+  return client ?? schematic.client;
 };
 
 /**
@@ -44,7 +41,7 @@ export const useSchematicContext = (opts?: SchematicComposableOpts) => {
 
   return {
     setContext: (context: SchematicJS.SchematicContext) =>
-      client.value.setContext(context),
+      client.setContext(context),
   };
 };
 
@@ -73,10 +70,10 @@ export const useSchematicContext = (opts?: SchematicComposableOpts) => {
 export const useSchematicEvents = (opts?: SchematicComposableOpts) => {
   const client = useSchematicClient(opts);
 
-  const track = (body: SchematicJS.EventBodyTrack) => client.value.track(body);
+  const track = (body: SchematicJS.EventBodyTrack) => client.track(body);
 
   const identify = (body: SchematicJS.EventBodyIdentify) =>
-    client.value.identify(body);
+    client.identify(body);
 
   return {
     track,
@@ -107,16 +104,22 @@ export const useSchematicFlag = (
   const client = useSchematicClient(opts);
   const fallback = opts?.fallback ?? false;
 
-  const flagValue = ref<boolean>(client.value.getFlagValue(key) ?? fallback);
+  // Get initial value synchronously (works for SSR)
+  const flagValue = ref<boolean>(client.getFlagValue(key) ?? fallback);
 
-  // Subscribe to flag value changes
-  const unsubscribe = client.value.addFlagValueListener(key, (value) => {
-    flagValue.value = value;
+  // Defer subscription to client-side only (avoids SSR issues)
+  let unsubscribe: (() => void) | null = null;
+
+  onMounted(() => {
+    // Subscribe to flag value changes
+    unsubscribe = client.addFlagValueListener(key, (value) => {
+      flagValue.value = value;
+    });
   });
 
-  // Cleanup listener on unmount
-  onUnmounted(() => {
-    unsubscribe();
+  // Cleanup listener when scope is disposed
+  onScopeDispose(() => {
+    unsubscribe?.();
   });
 
   return flagValue;
@@ -158,18 +161,24 @@ export const useSchematicEntitlement = (
     value: fallback,
   };
 
+  // Get initial value synchronously (works for SSR)
   const flagCheck = ref<SchematicJS.CheckFlagReturn>(
-    client.value.getFlagCheck(key) ?? fallbackCheck,
+    client.getFlagCheck(key) ?? fallbackCheck,
   );
 
-  // Subscribe to flag check changes
-  const unsubscribe = client.value.addFlagCheckListener(key, (check) => {
-    flagCheck.value = check;
+  // Defer subscription to client-side only (avoids SSR issues)
+  let unsubscribe: (() => void) | null = null;
+
+  onMounted(() => {
+    // Subscribe to flag check changes
+    unsubscribe = client.addFlagCheckListener(key, (check) => {
+      flagCheck.value = check;
+    });
   });
 
-  // Cleanup listener on unmount
-  onUnmounted(() => {
-    unsubscribe();
+  // Cleanup listener when scope is disposed
+  onScopeDispose(() => {
+    unsubscribe?.();
   });
 
   // Return reactive computed values for easier access
@@ -212,16 +221,22 @@ export const useSchematicIsPending = (
 ): Ref<boolean> => {
   const client = useSchematicClient(opts);
 
-  const isPending = ref<boolean>(client.value.getIsPending());
+  // Get initial value synchronously (works for SSR)
+  const isPending = ref<boolean>(client.getIsPending());
 
-  // Subscribe to isPending changes
-  const unsubscribe = client.value.addIsPendingListener((value) => {
-    isPending.value = value;
+  // Defer subscription to client-side only (avoids SSR issues)
+  let unsubscribe: (() => void) | null = null;
+
+  onMounted(() => {
+    // Subscribe to isPending changes
+    unsubscribe = client.addIsPendingListener((value) => {
+      isPending.value = value;
+    });
   });
 
-  // Cleanup listener on unmount
-  onUnmounted(() => {
-    unsubscribe();
+  // Cleanup listener when scope is disposed
+  onScopeDispose(() => {
+    unsubscribe?.();
   });
 
   return isPending;

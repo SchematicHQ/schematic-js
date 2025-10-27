@@ -244,6 +244,24 @@ const isFeatureEnabled = useSchematicFlag("my-flag-key", {
 });
 ```
 
+## Server-Side Rendering (SSR)
+
+All composables are SSR-compatible and work seamlessly with Nuxt and other Vue SSR frameworks:
+
+- Initial flag/entitlement values are retrieved synchronously for server-side rendering
+- Real-time subscriptions are deferred to client-side hydration
+- No special configuration needed - it just works!
+
+```vue
+<!-- Works in Nuxt/SSR -->
+<script setup lang="ts">
+import { useSchematicFlag } from "@schematichq/schematic-vue";
+
+// Initial value available on server, updates subscribed on client
+const isFeatureEnabled = useSchematicFlag("my-feature");
+</script>
+```
+
 ## License
 
 MIT
