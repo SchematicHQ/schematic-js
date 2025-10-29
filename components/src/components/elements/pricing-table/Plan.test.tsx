@@ -11,13 +11,15 @@ import type { DeepPartial, SelectedPlan } from "../../../types";
 
 import { Plan, type PlanProps } from "./Plan";
 
-const { mockOnCallToAction, mockSetCheckoutState, trialEnd } = vi.hoisted(() => {
-  const mockOnCallToAction = vi.fn();
-  const mockSetCheckoutState = vi.fn();
-  const trialEnd = new Date();
-  trialEnd.setDate(trialEnd.getDate() + 15);
-  return { mockOnCallToAction, mockSetCheckoutState, trialEnd };
-});
+const { mockOnCallToAction, mockSetCheckoutState, trialEnd } = vi.hoisted(
+  () => {
+    const mockOnCallToAction = vi.fn();
+    const mockSetCheckoutState = vi.fn();
+    const trialEnd = new Date();
+    trialEnd.setDate(trialEnd.getDate() + 15);
+    return { mockOnCallToAction, mockSetCheckoutState, trialEnd };
+  },
+);
 
 vi.mock("../../../hooks", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../../../hooks")>();
@@ -68,8 +70,6 @@ vi.mock("../../../hooks", async (importOriginal) => {
     useTrialEnd: () => trialEnd,
   };
 });
-
-import { type EmbedContextProps } from "../../../context";
 
 const mockPlan = {
   id: "plan-1",
