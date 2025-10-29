@@ -6,21 +6,24 @@ import {
   type PlanEntitlementResponseData,
 } from "../../../api/checkoutexternal";
 import { PriceInterval, VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
-import { type EmbedContextProps } from "../../../context";
 import { act, fireEvent, render, screen } from "../../../test/setup";
 import type { DeepPartial, SelectedPlan } from "../../../types";
 
 import { Plan, type PlanProps } from "./Plan";
 
-const mockOnCallToAction = vi.fn();
-const mockSetCheckoutState = vi.fn();
+const { mockOnCallToAction, mockSetCheckoutState, trialEnd } = vi.hoisted(() => {
+  const mockOnCallToAction = vi.fn();
+  const mockSetCheckoutState = vi.fn();
+  const trialEnd = new Date();
+  trialEnd.setDate(trialEnd.getDate() + 15);
+  return { mockOnCallToAction, mockSetCheckoutState, trialEnd };
+});
 
-const trialEnd = new Date();
-trialEnd.setDate(trialEnd.getDate() + 15);
-
-vi.mock("../../../hooks", () => ({
-  useEmbed: () =>
-    ({
+vi.mock("../../../hooks", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../../../hooks")>();
+  return {
+    ...actual,
+    useEmbed: () => ({
       data: {
         showCredits: true,
         showPeriodToggle: true,
@@ -60,10 +63,13 @@ vi.mock("../../../hooks", () => ({
         },
       },
       setCheckoutState: mockSetCheckoutState,
-    }) satisfies DeepPartial<EmbedContextProps>,
-  useIsLightBackground: () => true,
-  useTrialEnd: () => trialEnd,
-}));
+    }),
+    useIsLightBackground: () => true,
+    useTrialEnd: () => trialEnd,
+  };
+});
+
+import { type EmbedContextProps } from "../../../context";
 
 const mockPlan = {
   id: "plan-1",
@@ -217,56 +223,8 @@ describe("`Plan` component", () => {
 
   // `trialEnd` is not available in standalone mode
   // TODO: figure out how to render a subcomponent with company context (ie. not standalone)
+  // NOTE: Cannot use vi.mock() inside test cases - mocks are hoisted and would override the main mock
   test.skip("renders trial badge for trial subscription", async () => {
-    vi.mock("../../../hooks", () => {
-      const trialEnd = new Date();
-      trialEnd.setDate(trialEnd.getDate() + 15);
-
-      return {
-        useEmbed: () =>
-          ({
-            data: {
-              showCredits: true,
-              showPeriodToggle: true,
-              showZeroPriceAsFree: true,
-              trialPaymentMethodRequired: false,
-              company: {
-                billingSubscription: {
-                  status: "trialing",
-                  cancelAt: undefined,
-                  trialEnd: trialEnd.getTime(),
-                },
-              },
-            },
-            settings: {
-              theme: {
-                primary: "#000000",
-                card: {
-                  background: "#FFFFFF",
-                  padding: 16,
-                  borderRadius: 10,
-                  hasShadow: true,
-                },
-                typography: {
-                  heading2: {
-                    fontFamily: "Arial",
-                    fontSize: 24,
-                    fontWeight: 600,
-                    color: "#000000",
-                  },
-                  text: {
-                    fontFamily: "Arial",
-                    fontSize: 16,
-                    fontWeight: 400,
-                    color: "#000000",
-                  },
-                },
-              },
-            },
-          }) as EmbedContextProps,
-      };
-    });
-
     render(
       <Plan
         plan={{
@@ -421,50 +379,8 @@ describe("`Plan` component", () => {
 
   // `showZeroPriceAsFree` value defaults to "false"
   // TODO: figure out how to mock the value
+  // NOTE: Cannot use vi.mock() inside test cases - mocks are hoisted and would override the main mock
   test.skip("renders 'Free' text for free plans when `showZeroPriceAsFree` is true", async () => {
-    vi.mock("../../../hooks", () => {
-      return {
-        useEmbed: () => ({
-          data: {
-            showCredits: true,
-            showPeriodToggle: true,
-            showZeroPriceAsFree: true,
-            trialPaymentMethodRequired: false,
-            company: {
-              billingSubscription: {
-                status: "active",
-              },
-            },
-          },
-          settings: {
-            theme: {
-              primary: "#000000",
-              card: {
-                background: "#FFFFFF",
-                padding: 16,
-                borderRadius: 10,
-                hasShadow: true,
-              },
-              typography: {
-                heading2: {
-                  fontFamily: "Arial",
-                  fontSize: 24,
-                  fontWeight: 600,
-                  color: "#000000",
-                },
-                text: {
-                  fontFamily: "Arial",
-                  fontSize: 16,
-                  fontWeight: 400,
-                  color: "#000000",
-                },
-              },
-            },
-          },
-        }),
-      };
-    });
-
     render(
       <Plan
         plan={{
