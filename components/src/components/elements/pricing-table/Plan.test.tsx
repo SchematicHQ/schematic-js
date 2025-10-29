@@ -1,4 +1,4 @@
-import { jest } from "@jest/globals";
+import { vi } from "vitest";
 import "@testing-library/dom";
 import "@testing-library/jest-dom";
 
@@ -14,10 +14,10 @@ import type { DeepPartial, SelectedPlan } from "../../../types";
 
 import { Plan, type PlanProps } from "./Plan";
 
-const mockOnCallToAction = jest.fn();
-const mockSetCheckoutState = jest.fn();
+const mockOnCallToAction = vi.fn();
+const mockSetCheckoutState = vi.fn();
 
-jest.mock("../../../hooks", () => {
+vi.mock("../../../hooks", () => {
   const trialEnd = new Date();
   trialEnd.setDate(trialEnd.getDate() + 15);
 
@@ -62,7 +62,7 @@ jest.mock("../../../hooks", () => {
             },
           },
         },
-        setCheckoutState: jest.fn(),
+        setCheckoutState: vi.fn(),
       }) satisfies DeepPartial<EmbedContextProps>,
     useIsLightBackground: () => true,
     setCheckoutState: mockSetCheckoutState,
@@ -170,7 +170,7 @@ const mockEntitlementCounts = {
   },
 };
 
-const mockHandleToggleShowAll = jest.fn();
+const mockHandleToggleShowAll = vi.fn();
 
 describe("`Plan` component", () => {
   test("renders plan correctly", () => {
@@ -223,7 +223,7 @@ describe("`Plan` component", () => {
   // TODO: figure out how to render a subcomponent with company context (ie. not standalone)
   // eslint-disable-next-line jest/no-disabled-tests
   test.skip("renders trial badge for trial subscription", async () => {
-    jest.mock("../../../hooks", () => {
+    vi.mock("../../../hooks", () => {
       const trialEnd = new Date();
       trialEnd.setDate(trialEnd.getDate() + 15);
 
@@ -428,7 +428,7 @@ describe("`Plan` component", () => {
   // TODO: figure out how to mock the value
   // eslint-disable-next-line jest/no-disabled-tests
   test.skip("renders 'Free' text for free plans when `showZeroPriceAsFree` is true", async () => {
-    jest.mock("../../../hooks", () => {
+    vi.mock("../../../hooks", () => {
       return {
         useEmbed: () => ({
           data: {

@@ -1,10 +1,11 @@
+import { vi } from "vitest";
 import { Schematic } from "./index";
 import { Server as WebSocketServer } from "mock-socket";
 
 import { version } from "./version";
 
-const mockFetch = jest.fn();
-global.fetch = mockFetch;
+const mockFetch = vi.fn();
+global.fetch = mockFetch as any;
 
 describe("Schematic", () => {
   let schematic: Schematic;
@@ -236,7 +237,7 @@ describe("Schematic", () => {
       // Mock the flag check endpoint
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: jest.fn().mockResolvedValueOnce(expectedResponse),
+        json: vi.fn().mockResolvedValueOnce(expectedResponse),
       });
 
       // Mock the flag check event endpoint
@@ -292,7 +293,7 @@ describe("Schematic", () => {
       // Mock the flag check endpoint
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: jest.fn().mockResolvedValueOnce(expectedResponse),
+        json: vi.fn().mockResolvedValueOnce(expectedResponse),
       });
 
       // Mock the flag check event endpoint
@@ -363,7 +364,7 @@ describe("Schematic", () => {
       };
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: jest.fn().mockResolvedValueOnce(expectedResponse),
+        json: vi.fn().mockResolvedValueOnce(expectedResponse),
       });
 
       const flagValues = await schematic.checkFlags(context);
@@ -416,7 +417,7 @@ describe("Schematic", () => {
       };
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: jest.fn().mockResolvedValueOnce(expectedResponse),
+        json: vi.fn().mockResolvedValueOnce(expectedResponse),
       });
       const flagValues = await schematicWithHeaders.checkFlags(context);
       expect(mockFetch).toHaveBeenCalledTimes(1);
