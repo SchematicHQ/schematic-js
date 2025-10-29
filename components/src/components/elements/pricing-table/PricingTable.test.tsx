@@ -1,4 +1,4 @@
-import { jest } from "@jest/globals";
+import { vi } from "vitest";
 import "@testing-library/dom";
 import "@testing-library/jest-dom";
 import cloneDeep from "lodash/cloneDeep";
@@ -136,7 +136,7 @@ describe("`PricingTable`", () => {
     });
 
     test("Should call `onCallToAction` when clicking a plan button", async () => {
-      const mockOnCallToAction = jest.fn();
+      const mockOnCallToAction = vi.fn();
 
       render(<PricingTable onCallToAction={mockOnCallToAction} />);
 

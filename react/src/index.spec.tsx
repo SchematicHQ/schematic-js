@@ -1,9 +1,10 @@
+import { vi } from "vitest";
 import { render } from "@testing-library/react";
 import { Schematic } from "@schematichq/schematic-js";
 import { SchematicProvider, useSchematicFlag } from "./index";
 
-const mockFetch = jest.fn();
-global.fetch = mockFetch;
+const mockFetch = vi.fn();
+global.fetch = mockFetch as any;
 
 // Check if we're in a DOM environment
 const isDOMEnvironment = typeof document !== "undefined";

@@ -1,4 +1,4 @@
-import { jest } from "@jest/globals";
+import { vi } from "vitest";
 import "@testing-library/dom";
 import "@testing-library/jest-dom";
 import cloneDeep from "lodash/cloneDeep";
@@ -141,7 +141,7 @@ describe("`AddOn` component", () => {
   // TODO: figure out how to mock the value
   // eslint-disable-next-line jest/no-disabled-tests
   test.skip("renders active add-on correctly", async () => {
-    jest.mock("../../../hooks", () => ({
+    vi.mock("../../../hooks", () => ({
       useEmbed: () =>
         ({
           data: {
@@ -250,9 +250,9 @@ describe("`AddOn` component", () => {
   });
 
   test("calls `setCheckoutState` when clicking active add-on button", () => {
-    const mockSetCheckoutState = jest.fn();
+    const mockSetCheckoutState = vi.fn();
 
-    jest.mock("../../../hooks", () => ({
+    vi.mock("../../../hooks", () => ({
       useEmbed: () => ({
         data: {
           company: {
@@ -271,7 +271,7 @@ describe("`AddOn` component", () => {
       }),
     }));
 
-    const mockOnCallToAction = jest.fn();
+    const mockOnCallToAction = vi.fn();
 
     render(
       <AddOn
@@ -297,9 +297,9 @@ describe("`AddOn` component", () => {
   });
 
   test("calls `setCheckoutState` when clicking non-active add-on button", () => {
-    const mockSetCheckoutState = jest.fn();
+    const mockSetCheckoutState = vi.fn();
 
-    jest.mock("../../../hooks", () => ({
+    vi.mock("../../../hooks", () => ({
       useEmbed: () => ({
         data: {
           company: {
@@ -313,7 +313,7 @@ describe("`AddOn` component", () => {
       }),
     }));
 
-    const mockOnCallToAction = jest.fn();
+    const mockOnCallToAction = vi.fn();
 
     render(
       <AddOn
