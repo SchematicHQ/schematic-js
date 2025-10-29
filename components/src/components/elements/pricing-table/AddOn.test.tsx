@@ -169,9 +169,7 @@ describe("`AddOn` component", () => {
 
   // `data` cannot be redefined
   // TODO: figure out how to mock the value
-  // eslint-disable-next-line jest/no-disabled-tests
   test.skip("renders active add-on correctly", async () => {
-
     render(
       <AddOn
         addOn={{ ...mockAddOn, current: true }}

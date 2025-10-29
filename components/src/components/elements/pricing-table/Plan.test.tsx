@@ -220,7 +220,6 @@ describe("`Plan` component", () => {
 
   // `trialEnd` is not available in standalone mode
   // TODO: figure out how to render a subcomponent with company context (ie. not standalone)
-  // eslint-disable-next-line jest/no-disabled-tests
   test.skip("renders trial badge for trial subscription", async () => {
     vi.mock("../../../hooks", () => {
       const trialEnd = new Date();
@@ -425,7 +424,6 @@ describe("`Plan` component", () => {
 
   // `showZeroPriceAsFree` value defaults to "false"
   // TODO: figure out how to mock the value
-  // eslint-disable-next-line jest/no-disabled-tests
   test.skip("renders 'Free' text for free plans when `showZeroPriceAsFree` is true", async () => {
     vi.mock("../../../hooks", () => {
       return {
