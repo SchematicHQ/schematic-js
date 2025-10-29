@@ -1,29 +1,14 @@
 import { vi } from "vitest";
-import "@testing-library/dom";
-import "@testing-library/jest-dom";
-
-import {
-  type BillingPriceResponseData,
-  type FeatureUsageResponseData,
-  type PlanEntitlementResponseData,
-} from "../../../api/checkoutexternal";
-import { PriceInterval, VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
-import { type EmbedContextProps } from "../../../context";
-import { act, fireEvent, render, screen } from "../../../test/setup";
-import type { DeepPartial, SelectedPlan } from "../../../types";
-
-import { Plan, type PlanProps } from "./Plan";
 
 const mockOnCallToAction = vi.fn();
 const mockSetCheckoutState = vi.fn();
 
-vi.mock("../../../hooks", () => {
-  const trialEnd = new Date();
-  trialEnd.setDate(trialEnd.getDate() + 15);
+const trialEnd = new Date();
+trialEnd.setDate(trialEnd.getDate() + 15);
 
-  return {
-    useEmbed: () =>
-      ({
+vi.mock("../../../hooks", () => ({
+  useEmbed: () =>
+    ({
         data: {
           showCredits: true,
           showPeriodToggle: true,
@@ -62,12 +47,26 @@ vi.mock("../../../hooks", () => {
             },
           },
         },
-        setCheckoutState: vi.fn(),
+        setCheckoutState: mockSetCheckoutState,
       }) satisfies DeepPartial<EmbedContextProps>,
-    useIsLightBackground: () => true,
-    setCheckoutState: mockSetCheckoutState,
-  };
-});
+  useIsLightBackground: () => true,
+  useTrialEnd: () => trialEnd,
+}));
+
+import "@testing-library/dom";
+import "@testing-library/jest-dom";
+
+import {
+  type BillingPriceResponseData,
+  type FeatureUsageResponseData,
+  type PlanEntitlementResponseData,
+} from "../../../api/checkoutexternal";
+import { PriceInterval, VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
+import { type EmbedContextProps } from "../../../context";
+import { act, fireEvent, render, screen } from "../../../test/setup";
+import type { DeepPartial, SelectedPlan } from "../../../types";
+
+import { Plan, type PlanProps } from "./Plan";
 
 const mockPlan = {
   id: "plan-1",
