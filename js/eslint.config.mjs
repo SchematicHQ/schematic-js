@@ -3,9 +3,12 @@ import { defineConfig } from "eslint/config";
 import globals from "globals";
 import tseslint from "typescript-eslint";
 
+// We define separate linter configurations for tests vs. production code,
+// because we have separate typescript configs.
 export default defineConfig([
   {
     files: ["**/*.{js,mjs,cjs,ts}"],
+    ignores: ["**/*.spec.ts", "**/*.test.ts"],
     plugins: { js },
     extends: [
       js.configs.recommended,
@@ -31,6 +34,23 @@ export default defineConfig([
     },
   },
   {
-    ignores: ["src/**/*.test.ts", "src/frontend/generated/*", "dist/*"],
+    files: ["**/*.spec.ts", "**/*.test.ts"],
+    plugins: { js },
+    extends: [
+      js.configs.recommended,
+      tseslint.configs.recommended,
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ["./tsconfig.test.json"],
+      },
+      globals: {
+        ...globals.browser,
+        ...globals.node,
+      },
+    },
+  },
+  {
+    ignores: ["src/frontend/generated/*", "dist/*"],
   },
 ]);
