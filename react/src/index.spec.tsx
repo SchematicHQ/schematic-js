@@ -4,7 +4,7 @@ import { Schematic } from "@schematichq/schematic-js";
 import { SchematicProvider, useSchematicFlag } from "./index";
 
 const mockFetch = vi.fn();
-global.fetch = mockFetch as typeof fetch;
+globalThis.fetch = mockFetch as typeof fetch;
 
 // Check if we're in a DOM environment
 const isDOMEnvironment = typeof document !== "undefined";

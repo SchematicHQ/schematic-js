@@ -1,7 +1,7 @@
-import { vi } from "vitest";
 import "@testing-library/dom";
 import "@testing-library/jest-dom";
 import cloneDeep from "lodash/cloneDeep";
+import { vi } from "vitest";
 
 import { PlanEntitlementResponseData } from "../../../api/checkoutexternal";
 import {
@@ -11,7 +11,6 @@ import {
   PriceInterval,
   TraitType,
 } from "../../../const";
-import { type EmbedContextProps } from "../../../context";
 import { act, fireEvent, render, screen } from "../../../test/setup";
 import type { DeepPartial, SelectedPlan } from "../../../types";
 

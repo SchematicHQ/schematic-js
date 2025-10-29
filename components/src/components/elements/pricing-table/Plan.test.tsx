@@ -1,58 +1,5 @@
 import { vi } from "vitest";
 
-const mockOnCallToAction = vi.fn();
-const mockSetCheckoutState = vi.fn();
-
-const trialEnd = new Date();
-trialEnd.setDate(trialEnd.getDate() + 15);
-
-vi.mock("../../../hooks", () => ({
-  useEmbed: () =>
-    ({
-        data: {
-          showCredits: true,
-          showPeriodToggle: true,
-          showZeroPriceAsFree: true,
-          trialPaymentMethodRequired: false,
-          company: {
-            billingSubscription: {
-              status: "active",
-              cancelAt: undefined,
-              trialEnd: trialEnd.getTime(),
-            },
-          },
-        },
-        settings: {
-          theme: {
-            primary: "#000000",
-            card: {
-              background: "#FFFFFF",
-              padding: 16,
-              borderRadius: 10,
-              hasShadow: true,
-            },
-            typography: {
-              heading2: {
-                fontFamily: "Arial",
-                fontSize: 24,
-                fontWeight: 600,
-                color: "#000000",
-              },
-              text: {
-                fontFamily: "Arial",
-                fontSize: 16,
-                fontWeight: 400,
-                color: "#000000",
-              },
-            },
-          },
-        },
-        setCheckoutState: mockSetCheckoutState,
-      }) satisfies DeepPartial<EmbedContextProps>,
-  useIsLightBackground: () => true,
-  useTrialEnd: () => trialEnd,
-}));
-
 import "@testing-library/dom";
 import "@testing-library/jest-dom";
 
@@ -67,6 +14,59 @@ import { act, fireEvent, render, screen } from "../../../test/setup";
 import type { DeepPartial, SelectedPlan } from "../../../types";
 
 import { Plan, type PlanProps } from "./Plan";
+
+const mockOnCallToAction = vi.fn();
+const mockSetCheckoutState = vi.fn();
+
+const trialEnd = new Date();
+trialEnd.setDate(trialEnd.getDate() + 15);
+
+vi.mock("../../../hooks", () => ({
+  useEmbed: () =>
+    ({
+      data: {
+        showCredits: true,
+        showPeriodToggle: true,
+        showZeroPriceAsFree: true,
+        trialPaymentMethodRequired: false,
+        company: {
+          billingSubscription: {
+            status: "active",
+            cancelAt: undefined,
+            trialEnd: trialEnd.getTime(),
+          },
+        },
+      },
+      settings: {
+        theme: {
+          primary: "#000000",
+          card: {
+            background: "#FFFFFF",
+            padding: 16,
+            borderRadius: 10,
+            hasShadow: true,
+          },
+          typography: {
+            heading2: {
+              fontFamily: "Arial",
+              fontSize: 24,
+              fontWeight: 600,
+              color: "#000000",
+            },
+            text: {
+              fontFamily: "Arial",
+              fontSize: 16,
+              fontWeight: 400,
+              color: "#000000",
+            },
+          },
+        },
+      },
+      setCheckoutState: mockSetCheckoutState,
+    }) satisfies DeepPartial<EmbedContextProps>,
+  useIsLightBackground: () => true,
+  useTrialEnd: () => trialEnd,
+}));
 
 const mockPlan = {
   id: "plan-1",

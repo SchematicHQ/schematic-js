@@ -5,7 +5,7 @@ import { Server as WebSocketServer } from "mock-socket";
 import { version } from "./version";
 
 const mockFetch = vi.fn();
-global.fetch = mockFetch as any;
+globalThis.fetch = mockFetch as typeof fetch;
 
 describe("Schematic", () => {
   let schematic: Schematic;
