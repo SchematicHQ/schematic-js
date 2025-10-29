@@ -1,6 +1,4 @@
 import { vi } from "vitest";
-import "@testing-library/dom";
-import "@testing-library/jest-dom";
 
 import { act, fireEvent, render, screen } from "../../../test/setup";
 import type { SelectedPlan } from "../../../types";

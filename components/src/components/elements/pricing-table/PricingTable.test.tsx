@@ -1,5 +1,3 @@
-import "@testing-library/dom";
-import "@testing-library/jest-dom";
 import cloneDeep from "lodash/cloneDeep";
 import { HttpResponse, delay, http } from "msw";
 import { vi } from "vitest";
