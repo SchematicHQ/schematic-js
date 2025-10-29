@@ -21,7 +21,7 @@ export const Overlay = styled(Box)`
   scrollbar-gutter: stable both-edges;
 `;
 
-export const Modal = styled(Box).attrs({
+export const Modal = styled.div.attrs({
   tabIndex: 0,
   role: "dialog",
   "aria-modal": true,
@@ -31,9 +31,10 @@ export const Modal = styled(Box).attrs({
   left: 50%;
   transform: translate(-50%, -50%);
   flex-direction: column;
-  overflow: auto;
   width: 100%;
-  height: 100vh;
+  height: fit-content;
+  max-height: 100vh;
+  overflow: auto;
   background-color: ${({ theme }) => theme.card.background};
   box-shadow:
     0px 1px 20px 0px #1018280f,
@@ -47,12 +48,12 @@ export const Modal = styled(Box).attrs({
     ${({ $size }) => {
       return css`
         width: ${$size === "auto" ? "fit-content" : "100%"};
-        height: ${$size === "lg" ? "100%" : "fit-content"};
         max-width: ${$size === "sm"
           ? "480px"
           : $size === "md"
             ? "688px"
             : "1356px"};
+        height: ${$size === "lg" ? "100%" : "fit-content"};
         border-radius: 0.5rem;
       `;
     }}

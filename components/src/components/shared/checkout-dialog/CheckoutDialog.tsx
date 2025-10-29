@@ -30,7 +30,7 @@ import type {
 } from "../../../types";
 import { ERROR_UNKNOWN, getAddOnPrice, isError } from "../../../utils";
 import { PeriodToggle } from "../../shared";
-import { Flex, Loader, Modal, ModalHeader, Text } from "../../ui";
+import { Flex, Loader, Modal, ModalContent, ModalHeader, Text } from "../../ui";
 import { Sidebar } from "../sidebar";
 
 import { AddOns } from "./AddOns";
@@ -90,8 +90,10 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
   const isLightBackground = useIsLightBackground();
 
+  const modalRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
-  const checkoutRef = useRef<HTMLDivElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const sidebarRef = useRef<HTMLDivElement>(null);
 
   const [confirmPaymentIntentProps, setConfirmPaymentIntentProps] = useState<
     ConfirmPaymentIntentProps | undefined | null
@@ -753,7 +755,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
   useEffect(() => {
     if (charges) {
-      checkoutRef.current?.scrollTo({
+      sidebarRef.current?.scrollTo({
         top: 0,
         left: 0,
         behavior: "smooth",
@@ -762,7 +764,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   }, [charges]);
 
   useLayoutEffect(() => {
-    contentRef.current?.scrollTo({
+    stageRef.current?.scrollTo({
       top: 0,
       left: 0,
       behavior: "smooth",
@@ -774,7 +776,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   );
 
   return (
-    <Modal size="lg" top={top} contentRef={contentRef}>
+    <Modal ref={modalRef} size="lg" top={top}>
       <ModalHeader bordered>
         <Flex
           $flexWrap="wrap"
@@ -800,20 +802,11 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
         </Flex>
       </ModalHeader>
 
-      <Flex
-        $position="relative"
-        $flexDirection="column"
-        $height="auto"
-        $viewport={{
-          md: {
-            $flexDirection: "row",
-            $height: "calc(100% - 5rem)",
-          },
-        }}
-      >
+      <ModalContent ref={contentRef}>
         <Flex
+          ref={stageRef}
           $flexDirection="column"
-          $flexGrow="1"
+          $flexGrow={1}
           $gap="1.5rem"
           $padding="1.5rem"
           $backgroundColor={
@@ -934,6 +927,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
         </Flex>
 
         <Sidebar
+          ref={sidebarRef}
           planPeriod={planPeriod}
           selectedPlan={selectedPlan}
           addOns={addOns}
@@ -941,7 +935,6 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           addOnUsageBasedEntitlements={addOnUsageBasedEntitlements}
           creditBundles={creditBundles}
           charges={charges}
-          checkoutRef={checkoutRef}
           checkoutStage={checkoutStage}
           checkoutStages={checkoutStages}
           error={error}
@@ -957,7 +950,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           setConfirmPaymentIntent={setConfirmPaymentIntentProps}
           willTrialWithoutPaymentMethod={willTrialWithoutPaymentMethod}
         />
-      </Flex>
+      </ModalContent>
     </Modal>
   );
 };
