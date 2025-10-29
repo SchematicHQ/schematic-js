@@ -1,6 +1,3 @@
-import "@testing-library/dom";
-import "@testing-library/jest-dom";
-
 import { type PlanEntitlementResponseData } from "../../../api/componentspublic";
 import {
   EntitlementValueType,
