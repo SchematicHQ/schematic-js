@@ -276,7 +276,7 @@ export const UsageDetails = ({
   return (
     <Box
       $flexBasis="min-content"
-      $flexGrow="1"
+      $flexGrow={1}
       $textAlign={shouldWrapChildren ? "left" : "right"}
     >
       {layout.entitlement.isVisible && (

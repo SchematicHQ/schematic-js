@@ -178,7 +178,7 @@ export const IncludedFeatures = forwardRef<
           >
             <Flex
               $alignItems="center"
-              $flexGrow="1"
+              $flexGrow={1}
               $flexBasis="min-content"
               $gap="1rem"
             >
