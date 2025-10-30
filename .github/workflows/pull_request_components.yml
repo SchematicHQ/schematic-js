@@ -43,7 +43,9 @@ jobs:
     runs-on: runs-on=${{ github.run_id }}/runner=4cpu-linux-x64/extras=s3-cache
     strategy:
       matrix:
-        node-version: [24.11.0, 25.1.0]
+        # Note: Node v25 not supported - MSW + jsdom + Vitest incompatibility
+        # See: https://github.com/mswjs/msw/issues (localStorage.getItem is not a function)
+        node-version: [24.11.0]
     steps:
       - uses: runs-on/action@v2
       - uses: actions/checkout@v4
