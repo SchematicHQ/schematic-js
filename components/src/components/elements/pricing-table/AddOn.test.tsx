@@ -1,7 +1,5 @@
-import { jest } from "@jest/globals";
-import "@testing-library/dom";
-import "@testing-library/jest-dom";
 import cloneDeep from "lodash/cloneDeep";
+import { vi } from "vitest";
 
 import { PlanEntitlementResponseData } from "../../../api/checkoutexternal";
 import {
@@ -11,11 +9,40 @@ import {
   PriceInterval,
   TraitType,
 } from "../../../const";
-import { type EmbedContextProps } from "../../../context";
 import { act, fireEvent, render, screen } from "../../../test/setup";
 import type { DeepPartial, SelectedPlan } from "../../../types";
 
 import { AddOn, type AddOnProps } from "./AddOn";
+
+const mockSetCheckoutState = vi.fn();
+
+vi.mock("../../../hooks", () => ({
+  useEmbed: () => ({
+    data: {
+      company: {
+        addOns: [],
+      },
+      capabilities: {
+        checkout: true,
+      },
+    },
+    settings: {
+      theme: {
+        card: {
+          padding: 16,
+        },
+        typography: {
+          text: {
+            fontSize: 16,
+            color: "#000000",
+          },
+        },
+      },
+    },
+    setCheckoutState: mockSetCheckoutState,
+  }),
+  useIsLightBackground: () => true,
+}));
 
 type SharedProps = AddOnProps["sharedProps"];
 
@@ -139,30 +166,7 @@ describe("`AddOn` component", () => {
 
   // `data` cannot be redefined
   // TODO: figure out how to mock the value
-  // eslint-disable-next-line jest/no-disabled-tests
   test.skip("renders active add-on correctly", async () => {
-    jest.mock("../../../hooks", () => ({
-      useEmbed: () =>
-        ({
-          data: {
-            company: {
-              addOns: [
-                {
-                  id: "addon-1",
-                  name: "API Boost",
-                  planPeriod: "month",
-                },
-              ],
-            },
-            capabilities: {
-              checkout: true,
-              badgeVisibility: false,
-            },
-            component: undefined,
-          },
-        }) satisfies DeepPartial<EmbedContextProps> as EmbedContextProps,
-    }));
-
     render(
       <AddOn
         addOn={{ ...mockAddOn, current: true }}
@@ -250,28 +254,7 @@ describe("`AddOn` component", () => {
   });
 
   test("calls `setCheckoutState` when clicking active add-on button", () => {
-    const mockSetCheckoutState = jest.fn();
-
-    jest.mock("../../../hooks", () => ({
-      useEmbed: () => ({
-        data: {
-          company: {
-            addOns: [
-              {
-                id: "addon-1",
-                planPeriod: "month",
-              },
-            ],
-          },
-          capabilities: {
-            checkout: true,
-          },
-        },
-        setCheckoutState: mockSetCheckoutState,
-      }),
-    }));
-
-    const mockOnCallToAction = jest.fn();
+    const mockOnCallToAction = vi.fn();
 
     render(
       <AddOn
@@ -297,23 +280,7 @@ describe("`AddOn` component", () => {
   });
 
   test("calls `setCheckoutState` when clicking non-active add-on button", () => {
-    const mockSetCheckoutState = jest.fn();
-
-    jest.mock("../../../hooks", () => ({
-      useEmbed: () => ({
-        data: {
-          company: {
-            addOns: [],
-          },
-          capabilities: {
-            checkout: true,
-          },
-        },
-        setCheckoutState: mockSetCheckoutState,
-      }),
-    }));
-
-    const mockOnCallToAction = jest.fn();
+    const mockOnCallToAction = vi.fn();
 
     render(
       <AddOn

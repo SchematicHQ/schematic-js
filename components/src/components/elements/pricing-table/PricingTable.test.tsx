@@ -1,8 +1,6 @@
-import { jest } from "@jest/globals";
-import "@testing-library/dom";
-import "@testing-library/jest-dom";
 import cloneDeep from "lodash/cloneDeep";
 import { HttpResponse, delay, http } from "msw";
+import { vi } from "vitest";
 
 import hydrateJson from "../../../test/mocks/handlers/response/hydrate.json";
 import plansJson from "../../../test/mocks/handlers/response/plans.json";
@@ -136,7 +134,7 @@ describe("`PricingTable`", () => {
     });
 
     test("Should call `onCallToAction` when clicking a plan button", async () => {
-      const mockOnCallToAction = jest.fn();
+      const mockOnCallToAction = vi.fn();
 
       render(<PricingTable onCallToAction={mockOnCallToAction} />);
 

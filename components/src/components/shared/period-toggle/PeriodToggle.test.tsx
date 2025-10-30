@@ -1,6 +1,4 @@
-import { jest } from "@jest/globals";
-import "@testing-library/dom";
-import "@testing-library/jest-dom";
+import { vi } from "vitest";
 
 import { act, fireEvent, render, screen } from "../../../test/setup";
 import type { SelectedPlan } from "../../../types";
@@ -9,7 +7,7 @@ import { PeriodToggle } from "./PeriodToggle";
 
 describe("`PeriodToggle` component", () => {
   const mockOptions = ["month", "year"];
-  const mockOnSelect = jest.fn();
+  const mockOnSelect = vi.fn();
 
   test("renders toggle with options", () => {
     render(

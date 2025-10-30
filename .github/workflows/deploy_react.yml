@@ -48,7 +48,7 @@ jobs:
     permissions:
       packages: write
       contents: read
-    needs: [lint]
+    needs: [test, lint]
     steps:
       - uses: runs-on/action@v2.0.3
       - uses: actions/checkout@v5.0.0
