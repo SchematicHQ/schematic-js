@@ -1,6 +1,21 @@
 import "@testing-library/jest-dom/vitest";
 import { vi } from "vitest";
 
+// Mock localStorage for Node v25 compatibility BEFORE importing MSW
+const mockStorage: Storage = {
+  length: 0,
+  clear: vi.fn(),
+  getItem: vi.fn((key: string) => null),
+  setItem: vi.fn(),
+  removeItem: vi.fn(),
+  key: vi.fn((index: number) => null),
+};
+
+Object.defineProperty(globalThis, "localStorage", {
+  value: mockStorage,
+  writable: true,
+});
+
 import { server } from "./src/test/mocks/node";
 
 beforeAll(() => {
