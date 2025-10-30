@@ -55,9 +55,5 @@ jobs:
         run: yarn install
       - name: Test
         working-directory: ./components
-        env:
-          # Node v25 requires --no-webstorage flag to disable native Web Storage API
-          # which conflicts with jsdom's localStorage implementation
-          NODE_OPTIONS: ${{ matrix.node-version == '25.1.0' && '--no-webstorage' || '' }}
         run: yarn test
 

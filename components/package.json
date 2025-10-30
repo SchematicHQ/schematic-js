@@ -29,7 +29,6 @@
     "openapi": "./generate_openapi.sh -c ./src/api/config_checkoutexternal.yml && ./generate_openapi.sh -c ./src/api/config_componentspublic.yml",
     "test": "./test.sh",
     "test:watch": "vitest",
-    "test:node25": "NODE_OPTIONS='--no-webstorage' vitest run",
     "tsc": "npx tsc",
     "test:demo": "../scripts/test-components.sh"
   },
