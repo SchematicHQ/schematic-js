@@ -43,9 +43,7 @@ jobs:
     runs-on: runs-on=${{ github.run_id }}/runner=4cpu-linux-x64/extras=s3-cache
     strategy:
       matrix:
-        # Note: Node v25 not supported - MSW + jsdom + Vitest incompatibility
-        # See: https://github.com/mswjs/msw/issues (localStorage.getItem is not a function)
-        node-version: [24.11.0]
+        node-version: [24.11.0, 25.1.0]
     steps:
       - uses: runs-on/action@v2
       - uses: actions/checkout@v4
@@ -57,5 +55,9 @@ jobs:
         run: yarn install
       - name: Test
         working-directory: ./components
+        env:
+          # Node v25 requires --no-webstorage flag to disable native Web Storage API
+          # which conflicts with jsdom's localStorage implementation
+          NODE_OPTIONS: ${{ matrix.node-version == '25.1.0' && '--no-webstorage' || '' }}
         run: yarn test
 
