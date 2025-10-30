@@ -27,6 +27,8 @@
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --fix",
     "openapi": "./generate_openapi.sh -c ./src/api/config_checkoutexternal.yml && ./generate_openapi.sh -c ./src/api/config_componentspublic.yml",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "tsc": "npx tsc",
     "test:demo": "../scripts/test-components.sh"
   },
