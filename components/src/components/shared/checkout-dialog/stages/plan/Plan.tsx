@@ -9,9 +9,9 @@ import {
   PriceInterval,
   TEXT_BASE_SIZE,
   VISIBLE_ENTITLEMENT_COUNT,
-} from "../../../const";
-import { useEmbed, useIsLightBackground } from "../../../hooks";
-import type { SelectedPlan } from "../../../types";
+} from "../../../../../const";
+import { useEmbed, useIsLightBackground } from "../../../../../hooks";
+import type { SelectedPlan } from "../../../../../types";
 import {
   entitlementCountsReducer,
   formatCurrency,
@@ -24,220 +24,17 @@ import {
   groupPlanCreditGrants,
   hexToHSL,
   shortenPeriod,
-} from "../../../utils";
-import { cardBoxShadow } from "../../layout";
+} from "../../../../../utils";
+import { cardBoxShadow } from "../../../../layout";
 import {
   BillingThresholdTooltip,
   PricingTiersTooltip,
   TieredPricingDetails,
-  UsageViolationText,
-} from "../../shared";
-import { Box, Button, Flex, Icon, Text } from "../../ui";
+} from "../../../../shared";
+import { Box, Flex, Icon, Text } from "../../../../ui";
+import { FlexWithAlignEnd } from "../../styles";
 
-import { FlexWithAlignEnd } from "./styles";
-
-interface SelectedProps {
-  isCurrent?: boolean;
-  isTrial?: boolean;
-}
-
-const Selected = ({ isCurrent = false, isTrial = false }: SelectedProps) => {
-  const { t } = useTranslation();
-
-  const { settings } = useEmbed();
-
-  const text = useMemo(() => {
-    if (isCurrent) {
-      return isTrial ? t("Trial in progress") : t("Current plan");
-    }
-
-    return isTrial ? t("Trial selected") : t("Plan selected");
-  }, [t, isCurrent, isTrial]);
-
-  return (
-    <Flex
-      $justifyContent="center"
-      $alignItems="center"
-      $gap="0.25rem"
-      $padding="0.625rem 0"
-    >
-      <Icon name="check-rounded" color={settings.theme.primary} />
-
-      <Text
-        $size={0.9375 * settings.theme.typography.text.fontSize}
-        $leading={1}
-      >
-        {text}
-      </Text>
-    </Flex>
-  );
-};
-
-interface PlanButtonGroupProps {
-  plan: SelectedPlan;
-  isLoading: boolean;
-  isSelected: boolean;
-  onSelect: (updates: {
-    plan: SelectedPlan;
-    period?: string;
-    shouldTrial?: boolean;
-  }) => void;
-  shouldTrial: boolean;
-  subscriptionAction?: ChangeSubscriptionAction;
-}
-
-const PlanButtonGroup = ({
-  plan,
-  isLoading,
-  isSelected,
-  onSelect,
-  shouldTrial,
-  subscriptionAction,
-}: PlanButtonGroupProps) => {
-  const { t } = useTranslation();
-
-  const { data } = useEmbed();
-
-  const isTrialing = useMemo(() => {
-    return data?.subscription?.status === "trialing" || false;
-  }, [data]);
-
-  const { isCurrentPlan, isValidPlan } = useMemo(() => {
-    return {
-      isCurrentPlan: data?.company?.plan?.id === plan.id,
-      isValidPlan: plan.valid,
-    };
-  }, [plan.id, plan.valid, data?.company?.plan?.id]);
-
-  if (plan.companyCanTrial && plan.isTrialable) {
-    return (
-      <Flex $flexDirection="column" $gap="1.5rem">
-        {!isTrialing && (
-          <>
-            {isSelected && shouldTrial ? (
-              <Selected isCurrent={isCurrentPlan} isTrial={shouldTrial} />
-            ) : (
-              <Flex $flexDirection="column" $gap="0.5rem">
-                <Button
-                  type="button"
-                  disabled={(isLoading || !isValidPlan) && !plan.custom}
-                  {...(plan.custom
-                    ? {
-                        as: "a",
-                        href: plan.customPlanConfig?.ctaWebSite ?? "#",
-                        target: "_blank",
-                        rel: "noreferrer",
-                      }
-                    : {
-                        onClick: () => {
-                          onSelect({
-                            plan,
-                            shouldTrial: true,
-                          });
-                        },
-                      })}
-                  $size="sm"
-                  $color="primary"
-                  $variant="filled"
-                  $fullWidth
-                >
-                  {plan.custom ? (
-                    (plan.customPlanConfig?.ctaText ?? t("Talk to support"))
-                  ) : !isValidPlan ? (
-                    <Text as={Box} $align="center">
-                      {t("Over plan limit")}
-                    </Text>
-                  ) : (
-                    t("Start X day trial", { days: plan.trialDays })
-                  )}
-                </Button>
-
-                {!plan.valid && (
-                  <UsageViolationText violations={plan.usageViolations} />
-                )}
-              </Flex>
-            )}
-          </>
-        )}
-
-        {!plan.custom && (
-          <>
-            {isSelected && (!shouldTrial || isTrialing) ? (
-              <Selected isCurrent={isCurrentPlan} />
-            ) : (
-              <Flex $flexDirection="column" $gap="0.5rem">
-                <Button
-                  type="button"
-                  disabled={isLoading || !isValidPlan}
-                  onClick={() => {
-                    onSelect({ plan, shouldTrial: false });
-                  }}
-                  $size="sm"
-                  $color="primary"
-                  $variant={isTrialing ? "filled" : "text"}
-                  $fullWidth
-                >
-                  {!isValidPlan ? (
-                    <Box $textAlign="center">
-                      <Text as={Box} $align="center">
-                        {t("Over plan limit")}
-                      </Text>
-                    </Box>
-                  ) : (
-                    t("Choose plan")
-                  )}
-                </Button>
-
-                {!plan.valid && (
-                  <UsageViolationText violations={plan.usageViolations} />
-                )}
-              </Flex>
-            )}
-          </>
-        )}
-      </Flex>
-    );
-  }
-
-  return isSelected ? (
-    <Selected isCurrent={isCurrentPlan} />
-  ) : (
-    <Flex $flexDirection="column" $gap="0.5rem">
-      <Button
-        type="button"
-        disabled={(isLoading || !isValidPlan) && !plan.custom}
-        {...(plan.custom
-          ? {
-              as: "a",
-              href: plan.customPlanConfig?.ctaWebSite ?? "#",
-              target: "_blank",
-              rel: "noreferrer",
-            }
-          : {
-              onClick: () => {
-                onSelect({ plan });
-              },
-            })}
-        $size="sm"
-        $color="primary"
-        $variant="filled"
-        $fullWidth
-      >
-        {plan.custom ? (
-          (plan.customPlanConfig?.ctaText ?? t("Talk to support"))
-        ) : !isValidPlan ? (
-          <Text as={Box} $align="center">
-            {t("Over plan limit")}
-          </Text>
-        ) : (
-          t("Choose plan")
-        )}
-      </Button>
-
-      {!plan.valid && <UsageViolationText violations={plan.usageViolations} />}
-    </Flex>
-  );
-};
+import { PlanButtonGroup } from "./PlanButtonGroup";
 
 interface PlanProps {
   isLoading: boolean;

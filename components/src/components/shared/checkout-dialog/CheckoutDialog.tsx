@@ -33,16 +33,11 @@ import type {
   UsageBasedEntitlement,
 } from "../../../types";
 import { ERROR_UNKNOWN, getAddOnPrice, isError } from "../../../utils";
-import { PeriodToggle } from "../../shared";
+import { PeriodToggle, Sidebar } from "../../shared";
 import { Flex, Loader, Modal, ModalContent, ModalHeader, Text } from "../../ui";
-import { Sidebar } from "../sidebar";
 
-import { AddOns } from "./AddOns";
-import { Checkout } from "./Checkout";
-import { Credits } from "./Credits";
 import { Navigation } from "./Navigation";
-import { Plan } from "./Plan";
-import { Usage } from "./Usage";
+import { AddOns, Checkout, Credits, Plan, Usage } from "./stages";
 
 export const createActiveUsageBasedEntitlementsReducer =
   (entitlements: FeatureUsageResponseData[], period: string) =>
@@ -478,6 +473,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
         });
 
         if (response) {
+          // @ts-expect-error: not implemented yet
           setSubscriptionAction(response.data.changeSubscriptionAction);
           setCharges(response.data.finance);
           setIsPaymentMethodRequired(response.data.paymentMethodRequired);

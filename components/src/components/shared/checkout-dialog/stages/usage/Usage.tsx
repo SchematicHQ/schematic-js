@@ -1,16 +1,16 @@
 import { useTranslation } from "react-i18next";
 
-import { TEXT_BASE_SIZE } from "../../../const";
-import { useEmbed } from "../../../hooks";
-import type { SelectedPlan, UsageBasedEntitlement } from "../../../types";
+import { TEXT_BASE_SIZE } from "../../../../../const";
+import { useEmbed } from "../../../../../hooks";
+import type { SelectedPlan, UsageBasedEntitlement } from "../../../../../types";
 import {
   formatCurrency,
   getEntitlementPrice,
   getFeatureName,
   shortenPeriod,
-} from "../../../utils";
-import { cardBoxShadow } from "../../layout";
-import { Box, Flex, Input, Text } from "../../ui";
+} from "../../../../../utils";
+import { cardBoxShadow } from "../../../../layout";
+import { Box, Flex, Input, Text } from "../../../../ui";
 
 interface UsageProps {
   isLoading: boolean;
