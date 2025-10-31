@@ -17,7 +17,11 @@ import {
   type UpdateAddOnRequestBody,
   type UpdatePayInAdvanceRequestBody,
 } from "../../../api/checkoutexternal";
-import { PriceBehavior, TEXT_BASE_SIZE } from "../../../const";
+import {
+  ChangeSubscriptionAction,
+  PriceBehavior,
+  TEXT_BASE_SIZE,
+} from "../../../const";
 import {
   useAvailablePlans,
   useEmbed,
@@ -225,6 +229,9 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   );
 
   const [promoCode, setPromoCode] = useState<string | null>(null);
+
+  const [subscriptionAction, setSubscriptionAction] =
+    useState<ChangeSubscriptionAction>();
 
   const [isPaymentMethodRequired, setIsPaymentMethodRequired] = useState(false);
 
@@ -471,6 +478,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
         });
 
         if (response) {
+          setSubscriptionAction(response.data.changeSubscriptionAction);
           setCharges(response.data.finance);
           setIsPaymentMethodRequired(response.data.paymentMethodRequired);
         }
@@ -882,6 +890,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
               selectedPlan={selectedPlan}
               selectPlan={selectPlan}
               shouldTrial={shouldTrial}
+              subscriptionAction={subscriptionAction}
             />
           ) : checkoutStage === "usage" ? (
             <Usage

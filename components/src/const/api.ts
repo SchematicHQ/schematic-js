@@ -1,3 +1,12 @@
+export enum ChangeSubscriptionAction {
+  Downgrade = "downgrade",
+  Invalid = "invalid",
+  Subscribe = "subscribe",
+  Unsubscribe = "unsubscribe",
+  Upgrade = "upgrade",
+  UpgradeTrial = "upgrade_trial",
+}
+
 export enum PriceInterval {
   OneTime = "one-time",
   Day = "day",

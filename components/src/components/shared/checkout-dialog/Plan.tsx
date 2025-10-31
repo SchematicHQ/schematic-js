@@ -2,6 +2,7 @@ import { Fragment, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
+  ChangeSubscriptionAction,
   EntitlementValueType,
   FeatureType,
   PriceBehavior,
@@ -82,6 +83,7 @@ interface PlanButtonGroupProps {
     shouldTrial?: boolean;
   }) => void;
   shouldTrial: boolean;
+  subscriptionAction?: ChangeSubscriptionAction;
 }
 
 const PlanButtonGroup = ({
@@ -90,6 +92,7 @@ const PlanButtonGroup = ({
   isSelected,
   onSelect,
   shouldTrial,
+  subscriptionAction,
 }: PlanButtonGroupProps) => {
   const { t } = useTranslation();
 
@@ -247,6 +250,7 @@ interface PlanProps {
     shouldTrial?: boolean;
   }) => void;
   shouldTrial: boolean;
+  subscriptionAction?: ChangeSubscriptionAction;
 }
 
 export const Plan = ({
@@ -256,6 +260,7 @@ export const Plan = ({
   period,
   selectPlan,
   shouldTrial,
+  subscriptionAction,
 }: PlanProps) => {
   const { t } = useTranslation();
 
@@ -767,6 +772,7 @@ export const Plan = ({
                 isSelected={plan.id === selectedPlan?.id}
                 onSelect={selectPlan}
                 shouldTrial={shouldTrial}
+                subscriptionAction={subscriptionAction}
               />
             </Flex>
           </Flex>
