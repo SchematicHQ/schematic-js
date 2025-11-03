@@ -1,9 +1,9 @@
-import { TEXT_BASE_SIZE } from "../../../../../const";
-import { useEmbed } from "../../../../../hooks";
-import type { CreditBundle } from "../../../../../types";
-import { formatCurrency, getFeatureName } from "../../../../../utils";
-import { cardBoxShadow } from "../../../../layout";
-import { Box, Flex, Input, Text } from "../../../../ui";
+import { TEXT_BASE_SIZE } from "../../../const";
+import { useEmbed } from "../../../hooks";
+import type { CreditBundle } from "../../../types";
+import { formatCurrency, getFeatureName } from "../../../utils";
+import { cardBoxShadow } from "../../layout";
+import { Box, Flex, Input, Text } from "../../ui";
 
 interface CreditsProps {
   isLoading: boolean;

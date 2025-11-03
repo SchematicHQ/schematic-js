@@ -37,7 +37,8 @@ import { PeriodToggle, Sidebar } from "../../shared";
 import { Flex, Loader, Modal, ModalContent, ModalHeader, Text } from "../../ui";
 
 import { Navigation } from "./Navigation";
-import { AddOns, Checkout, Credits, Plan, Usage } from "./stages";
+
+import { AddOns, Checkout, Credits, Plan, Usage } from ".";
 
 export const createActiveUsageBasedEntitlementsReducer =
   (entitlements: FeatureUsageResponseData[], period: string) =>

@@ -1,9 +1,9 @@
 import { useTranslation } from "react-i18next";
 
-import type { FeatureResponseData } from "../../../../../api/checkoutexternal";
-import { PriceBehavior, TEXT_BASE_SIZE } from "../../../../../const";
-import { useEmbed, useIsLightBackground } from "../../../../../hooks";
-import type { SelectedPlan } from "../../../../../types";
+import type { FeatureResponseData } from "../../../api/checkoutexternal";
+import { PriceBehavior, TEXT_BASE_SIZE } from "../../../const";
+import { useEmbed, useIsLightBackground } from "../../../hooks";
+import type { SelectedPlan } from "../../../types";
 import {
   ChargeType,
   formatCurrency,
@@ -12,9 +12,9 @@ import {
   getEntitlementPrice,
   getFeatureName,
   hexToHSL,
-} from "../../../../../utils";
-import { cardBoxShadow } from "../../../../layout";
-import { Box, Button, Flex, Icon, Text } from "../../../../ui";
+} from "../../../utils";
+import { cardBoxShadow } from "../../layout";
+import { Box, Button, Flex, Icon, Text } from "../../ui";
 
 interface AddOnsProps {
   addOns: SelectedPlan[];

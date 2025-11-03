@@ -1,15 +1,15 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import type { PreviewSubscriptionFinanceResponseData } from "../../../../../api/checkoutexternal";
-import { useIsLightBackground } from "../../../../../hooks";
+import type { PreviewSubscriptionFinanceResponseData } from "../../../api/checkoutexternal";
+import { useIsLightBackground } from "../../../hooks";
 import type {
   CreditBundle,
   SelectedPlan,
   UsageBasedEntitlement,
-} from "../../../../../types";
-import { PaymentMethodDetails } from "../../../../elements";
-import { Box, Flex, Input, Text } from "../../../../ui";
+} from "../../../types";
+import { PaymentMethodDetails } from "../../elements";
+import { Box, Flex, Input, Text } from "../../ui";
 
 interface ConfirmPaymentIntentProps {
   clientSecret: string;
