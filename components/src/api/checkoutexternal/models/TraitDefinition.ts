@@ -24,13 +24,13 @@ export interface TraitDefinition {
    * @type {string}
    * @memberof TraitDefinition
    */
-  comparableType: string;
+  comparableType: TraitDefinitionComparableTypeEnum;
   /**
    *
    * @type {string}
    * @memberof TraitDefinition
    */
-  entityType: string;
+  entityType: TraitDefinitionEntityTypeEnum;
   /**
    *
    * @type {string}
@@ -38,6 +38,28 @@ export interface TraitDefinition {
    */
   id: string;
 }
+
+/**
+ * @export
+ */
+export const TraitDefinitionComparableTypeEnum = {
+  Bool: "bool",
+  Date: "date",
+  Int: "int",
+  String: "string",
+} as const;
+export type TraitDefinitionComparableTypeEnum =
+  (typeof TraitDefinitionComparableTypeEnum)[keyof typeof TraitDefinitionComparableTypeEnum];
+
+/**
+ * @export
+ */
+export const TraitDefinitionEntityTypeEnum = {
+  User: "user",
+  Company: "company",
+} as const;
+export type TraitDefinitionEntityTypeEnum =
+  (typeof TraitDefinitionEntityTypeEnum)[keyof typeof TraitDefinitionEntityTypeEnum];
 
 /**
  * Check if a given object implements the TraitDefinition interface.
