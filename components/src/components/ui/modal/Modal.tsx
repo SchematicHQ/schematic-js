@@ -13,7 +13,7 @@ import * as styles from "./styles";
 
 export type ModalSize = "sm" | "md" | "lg" | "auto";
 
-interface ModalProps extends React.HTMLAttributes<HTMLElement> {
+export interface ModalProps extends React.HTMLAttributes<HTMLElement> {
   children: React.ReactNode;
   size?: ModalSize;
   top?: number;
