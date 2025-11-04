@@ -85,7 +85,7 @@ export interface Rule {
    * @type {string}
    * @memberof Rule
    */
-  ruleType: string;
+  ruleType: RuleRuleTypeEnum;
   /**
    *
    * @type {boolean}
@@ -93,6 +93,21 @@ export interface Rule {
    */
   value: boolean;
 }
+
+/**
+ * @export
+ */
+export const RuleRuleTypeEnum = {
+  Default: "default",
+  GlobalOverride: "global_override",
+  CompanyOverride: "company_override",
+  CompanyOverrideUsageExceeded: "company_override_usage_exceeded",
+  PlanEntitlement: "plan_entitlement",
+  PlanEntitlementUsageExceeded: "plan_entitlement_usage_exceeded",
+  Standard: "standard",
+} as const;
+export type RuleRuleTypeEnum =
+  (typeof RuleRuleTypeEnum)[keyof typeof RuleRuleTypeEnum];
 
 /**
  * Check if a given object implements the Rule interface.
