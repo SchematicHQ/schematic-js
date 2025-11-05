@@ -926,10 +926,10 @@
     "@microsoft/tsdoc-config" "~0.17.1"
     "@rushstack/node-core-library" "5.18.0"
 
-"@microsoft/api-extractor@^7.53.3":
-  version "7.53.3"
-  resolved "https://registry.yarnpkg.com/@microsoft/api-extractor/-/api-extractor-7.53.3.tgz#d0461e716e998b9b60bf4db2a09e7370625d29cb"
-  integrity sha512-p2HmQaMSVqMBj3bH3643f8xApKAqrF1jNpPsMCTQOYCYgfwLnvzsve8c+bgBWzCOBBgLK54PB6ZLIWMGLg8CZA==
+"@microsoft/api-extractor@^7.54.0":
+  version "7.54.0"
+  resolved "https://registry.yarnpkg.com/@microsoft/api-extractor/-/api-extractor-7.54.0.tgz#3c89976070b4c8f9de1b188b7135a38d4242fffc"
+  integrity sha512-t0SEcbVUPy4yAVykPafTNWktBg728X6p9t8qCuGDsYr1/lz2VQFihYDP2CnBFSArP5vwJPcvxktoKVSqH326cA==
   dependencies:
     "@microsoft/api-extractor-model" "7.31.3"
     "@microsoft/tsdoc" "~0.15.1"
@@ -938,6 +938,7 @@
     "@rushstack/rig-package" "0.6.0"
     "@rushstack/terminal" "0.19.3"
     "@rushstack/ts-command-line" "5.1.3"
+    diff "~8.0.2"
     lodash "~4.17.15"
     minimatch "10.0.3"
     resolve "~1.22.1"
@@ -2282,6 +2283,11 @@ detect-newline@^3.1.0:
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/detect-newline/-/detect-newline-3.1.0.tgz#576f5dfc63ae1a192ff192d8ad3af6308991b651"
   integrity sha512-TLz+x/vEXm/Y7P7wn1EJFNLxYpUD4TgMosxY6fAVJUnJMbupHBOncxyWUG9OpTaH9EBD7uFI5LfEgmMOc54DsA==
+
+diff@~8.0.2:
+  version "8.0.2"
+  resolved "https://registry.yarnpkg.com/diff/-/diff-8.0.2.tgz#712156a6dd288e66ebb986864e190c2fc9eddfae"
+  integrity sha512-sSuxWU5j5SR9QQji/o2qMvqRNYRDOcBTgsJ/DeCf4iSN4gW+gNMXM7wFIP+fdXZxoNiAnHUTGjCr+TSWXdRDKg==
 
 doctrine@^2.1.0:
   version "2.1.0"
