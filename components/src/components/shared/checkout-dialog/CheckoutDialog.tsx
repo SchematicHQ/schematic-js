@@ -882,12 +882,12 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           ) : checkoutStage === "plan" ? (
             <Plan
               isLoading={isLoading}
+              currentPeriod={currentPeriod}
               period={planPeriod}
               plans={availablePlans}
               selectedPlan={selectedPlan}
               selectPlan={selectPlan}
               shouldTrial={shouldTrial}
-              subscriptionAction={subscriptionAction}
             />
           ) : checkoutStage === "usage" ? (
             <Usage

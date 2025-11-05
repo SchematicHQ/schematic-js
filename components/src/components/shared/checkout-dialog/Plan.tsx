@@ -85,25 +85,16 @@ interface SharedPlanProps {
   shouldTrial?: boolean;
 }
 
-interface PlanButtonProps extends SharedPlanProps {
-  isCurrentPlan: boolean;
-  isValidPlan: boolean;
-}
-
-interface TrialPlanProps extends PlanButtonProps {
-  isTrialing: boolean;
-}
-
 const TrialPlan = ({
   plan,
-  isCurrentPlan,
-  isValidPlan,
   isLoading,
   isSelected,
   isTrialing,
   onSelect,
   shouldTrial,
-}: TrialPlanProps) => {
+}: SharedPlanProps & {
+  isTrialing: boolean;
+}) => {
   const { t } = useTranslation();
 
   return (
@@ -111,12 +102,12 @@ const TrialPlan = ({
       {!isTrialing && (
         <>
           {isSelected && shouldTrial ? (
-            <Selected isCurrent={isCurrentPlan} isTrial={shouldTrial} />
+            <Selected isCurrent={plan.current} isTrial={shouldTrial} />
           ) : (
             <Flex $flexDirection="column" $gap="0.5rem">
               <Button
                 type="button"
-                disabled={(isLoading || !isValidPlan) && !plan.custom}
+                disabled={(isLoading || !plan.valid) && !plan.custom}
                 {...(plan.custom
                   ? {
                       as: "a",
@@ -139,7 +130,7 @@ const TrialPlan = ({
               >
                 {plan.custom ? (
                   (plan.customPlanConfig?.ctaText ?? t("Talk to support"))
-                ) : !isValidPlan ? (
+                ) : !plan.valid ? (
                   <Text as={Box} $align="center">
                     {t("Over plan limit")}
                   </Text>
@@ -159,12 +150,12 @@ const TrialPlan = ({
       {!plan.custom && (
         <>
           {isSelected && (!shouldTrial || isTrialing) ? (
-            <Selected isCurrent={isCurrentPlan} />
+            <Selected isCurrent={plan.current} />
           ) : (
             <Flex $flexDirection="column" $gap="0.5rem">
               <Button
                 type="button"
-                disabled={isLoading || !isValidPlan}
+                disabled={isLoading || !plan.valid}
                 onClick={() => {
                   onSelect({ plan, shouldTrial: false });
                 }}
@@ -173,7 +164,7 @@ const TrialPlan = ({
                 $variant={isTrialing ? "filled" : "text"}
                 $fullWidth
               >
-                {!isValidPlan ? (
+                {!plan.valid ? (
                   <Box $textAlign="center">
                     <Text as={Box} $align="center">
                       {t("Over plan limit")}
@@ -195,25 +186,21 @@ const TrialPlan = ({
   );
 };
 
-type ChoosePlanProps = PlanButtonProps;
-
 export const ChoosePlan = ({
   plan,
-  isCurrentPlan,
-  isValidPlan,
   isLoading,
   isSelected,
   onSelect,
-}: ChoosePlanProps) => {
+}: SharedPlanProps) => {
   const { t } = useTranslation();
 
   return isSelected ? (
-    <Selected isCurrent={isCurrentPlan} />
+    <Selected isCurrent={plan.current} />
   ) : (
     <Flex $flexDirection="column" $gap="0.5rem">
       <Button
         type="button"
-        disabled={(isLoading || !isValidPlan) && !plan.custom}
+        disabled={(isLoading || !plan.valid) && !plan.custom}
         {...(plan.custom
           ? {
               as: "a",
@@ -233,7 +220,7 @@ export const ChoosePlan = ({
       >
         {plan.custom ? (
           (plan.customPlanConfig?.ctaText ?? t("Talk to support"))
-        ) : !isValidPlan ? (
+        ) : !plan.valid ? (
           <Text as={Box} $align="center">
             {t("Over plan limit")}
           </Text>
@@ -247,37 +234,22 @@ export const ChoosePlan = ({
   );
 };
 
-interface PlanButtonGroupProps {
-  plan: SelectedPlan;
-  isLoading: boolean;
-  isSelected: boolean;
-  onSelect: (updates: {
-    plan: SelectedPlan;
-    period?: string;
-    shouldTrial?: boolean;
-  }) => void;
-  shouldTrial?: boolean;
-  subscriptionAction?: ChangeSubscriptionAction;
-}
-
 const PlanButtonGroup = ({
   plan,
   isLoading,
+  isSelectable,
   isSelected,
+  isTrialing,
   onSelect,
   shouldTrial,
-}: PlanButtonGroupProps) => {
-  const { data } = useEmbed();
-
-  const isTrialing = data?.subscription?.status === "trialing" || false;
-  const isCurrentPlan = data?.company?.plan?.id === plan.id;
-  const isValidPlan = plan.valid;
-
+}: SharedPlanProps & {
+  isSelectable: boolean;
+  isTrialing: boolean;
+}) => {
   return plan.companyCanTrial && plan.isTrialable ? (
     <TrialPlan
       plan={plan}
-      isCurrentPlan={isCurrentPlan}
-      isValidPlan={isValidPlan}
+      isDisabled={!isSelectable}
       isLoading={isLoading}
       isSelected={isSelected}
       isTrialing={isTrialing}
@@ -287,8 +259,7 @@ const PlanButtonGroup = ({
   ) : (
     <ChoosePlan
       plan={plan}
-      isCurrentPlan={isCurrentPlan}
-      isValidPlan={isValidPlan}
+      isDisabled={!isSelectable}
       isLoading={isLoading}
       isSelected={isSelected}
       onSelect={onSelect}
@@ -300,6 +271,7 @@ interface PlanProps {
   isLoading: boolean;
   plans: SelectedPlan[];
   selectedPlan?: SelectedPlan;
+  currentPeriod: string;
   period: string;
   selectPlan: (updates: {
     plan: SelectedPlan;
@@ -307,17 +279,16 @@ interface PlanProps {
     shouldTrial?: boolean;
   }) => void;
   shouldTrial: boolean;
-  subscriptionAction?: ChangeSubscriptionAction;
 }
 
 export const Plan = ({
   isLoading,
   plans,
   selectedPlan,
+  currentPeriod,
   period,
   selectPlan,
   shouldTrial,
-  subscriptionAction,
 }: PlanProps) => {
   const { t } = useTranslation();
 
@@ -329,20 +300,27 @@ export const Plan = ({
     plans.reduce(entitlementCountsReducer, {}),
   );
 
-  const { isTrialing, showCredits, showPeriodToggle, showZeroPriceAsFree } =
-    useMemo(() => {
-      return {
-        isTrialing: data?.subscription?.status === "trialing",
-        showCredits: data?.showCredits ?? true,
-        showPeriodToggle: data?.showPeriodToggle ?? true,
-        showZeroPriceAsFree: data?.showZeroPriceAsFree ?? false,
-      };
-    }, [
-      data?.showCredits,
-      data?.showPeriodToggle,
-      data?.showZeroPriceAsFree,
-      data?.subscription?.status,
-    ]);
+  const {
+    isTrialing,
+    preventDowngrades,
+    showCredits,
+    showPeriodToggle,
+    showZeroPriceAsFree,
+  } = useMemo(() => {
+    return {
+      isTrialing: data?.subscription?.status === "trialing",
+      // @ts-expect-error: not implemented yet
+      preventDowngrades: data?.downgradeSettings.preventDowngrades === true,
+      showCredits: data?.showCredits ?? true,
+      showPeriodToggle: data?.showPeriodToggle ?? true,
+      showZeroPriceAsFree: data?.showZeroPriceAsFree ?? false,
+    };
+  }, [
+    data?.showCredits,
+    data?.showPeriodToggle,
+    data?.showZeroPriceAsFree,
+    data?.subscription?.status,
+  ]);
 
   const handleToggleShowAll = (id: string) => {
     setEntitlementCounts((prev) => {
@@ -398,6 +376,10 @@ export const Plan = ({
 
         const count = entitlementCounts[plan.id];
         const isExpanded = count && count.limit > VISIBLE_ENTITLEMENT_COUNT;
+        const isDowngrade = false; // TODO
+        const isSelectable =
+          (!isLoading && plan.valid && (!preventDowngrades || isDowngrade)) ||
+          plan.custom;
 
         return (
           <Flex
@@ -826,10 +808,11 @@ export const Plan = ({
               <PlanButtonGroup
                 plan={plan}
                 isLoading={isLoading}
+                isSelectable={isSelectable}
                 isSelected={plan.id === selectedPlan?.id}
+                isTrialing={isTrialing}
                 onSelect={selectPlan}
                 shouldTrial={shouldTrial}
-                subscriptionAction={subscriptionAction}
               />
             </Flex>
           </Flex>
