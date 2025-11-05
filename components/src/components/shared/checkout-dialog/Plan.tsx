@@ -41,10 +41,7 @@ interface SelectedProps {
   isTrial?: boolean;
 }
 
-export const Selected = ({
-  isCurrent = false,
-  isTrial = false,
-}: SelectedProps) => {
+const Selected = ({ isCurrent = false, isTrial = false }: SelectedProps) => {
   const { t } = useTranslation();
 
   const { settings } = useEmbed();
@@ -76,18 +73,24 @@ export const Selected = ({
   );
 };
 
-interface TrialPlanProps {
+interface SharedPlanProps {
   plan: SelectedPlan;
   isLoading: boolean;
   isSelected: boolean;
-  isCurrentPlan: boolean;
-  isValidPlan: boolean;
   onSelect: (updates: {
     plan: SelectedPlan;
     period?: string;
     shouldTrial?: boolean;
   }) => void;
   shouldTrial?: boolean;
+}
+
+interface PlanButtonProps extends SharedPlanProps {
+  isCurrentPlan: boolean;
+  isValidPlan: boolean;
+}
+
+interface TrialPlanProps extends PlanButtonProps {
   isTrialing: boolean;
 }
 
@@ -191,20 +194,6 @@ const TrialPlan = ({
     </Flex>
   );
 };
-
-interface PlanButtonProps {
-  plan: SelectedPlan;
-  isLoading: boolean;
-  isSelected: boolean;
-  isCurrentPlan: boolean;
-  isValidPlan: boolean;
-  onSelect: (updates: {
-    plan: SelectedPlan;
-    period?: string;
-    shouldTrial?: boolean;
-  }) => void;
-  shouldTrial?: boolean;
-}
 
 type ChoosePlanProps = PlanButtonProps;
 
