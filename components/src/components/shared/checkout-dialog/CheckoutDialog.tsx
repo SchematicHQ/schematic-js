@@ -739,10 +739,8 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
   useEffect(() => {
     if (checkoutState?.addOnId) {
-      const checkoutStateAddOn = availableAddOns.find((addOn) =>
-        checkoutState?.addOnId
-          ? addOn.id === checkoutState.addOnId
-          : addOn.current,
+      const checkoutStateAddOn = availableAddOns.find(
+        (addOn) => addOn.id === checkoutState.addOnId,
       );
 
       setAddOns((prev) =>
