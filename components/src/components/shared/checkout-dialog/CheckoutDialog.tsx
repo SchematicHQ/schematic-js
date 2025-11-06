@@ -318,7 +318,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   ]);
 
   // Track if we've already performed the initial skip in bypass mode
-  const hasSkippedInitialPlan = useRef(false);
+  const [hasSkippedInitialPlan, setHasSkippedInitialPlan] = useState(false);
 
   const [checkoutStage, setCheckoutStage] = useState(() => {
     if (checkoutState?.addOnId) {
@@ -366,16 +366,16 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     if (
       checkoutState?.bypassPlanSelection &&
       checkoutStage === "plan" &&
-      !hasSkippedInitialPlan.current
+      !hasSkippedInitialPlan
     ) {
       // Find first non-plan stage (usage/addons/checkout)
       const nextStage = checkoutStages.find((stage) => stage.id !== "plan");
       if (nextStage) {
-        hasSkippedInitialPlan.current = true;
+        setHasSkippedInitialPlan(true);
         setCheckoutStage(nextStage.id);
       }
     }
-  }, [checkoutStages, checkoutState?.bypassPlanSelection, checkoutStage]);
+  }, [checkoutStages, checkoutState?.bypassPlanSelection, checkoutStage, hasSkippedInitialPlan]);
 
   const handlePreviewCheckout = useCallback(
     async (updates: {
@@ -836,7 +836,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   const shouldShowBypassOverlay =
     checkoutState?.bypassPlanSelection &&
     checkoutStage === "plan" &&
-    !hasSkippedInitialPlan.current;
+    !hasSkippedInitialPlan;
 
   return (
     <Modal ref={modalRef} size="lg" top={top}>
