@@ -239,7 +239,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   const checkoutStages = useMemo(() => {
     const stages: CheckoutStage[] = [];
 
-    if (availablePlans.length > 0 && !checkoutState?.bypassPlanSelection) {
+    if (availablePlans.length > 0) {
       stages.push({
         id: "plan",
         name: t("Plan"),
@@ -308,7 +308,6 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   }, [
     t,
     availablePlans,
-    checkoutState?.bypassPlanSelection,
     willTrialWithoutPaymentMethod,
     payInAdvanceEntitlements,
     addOns,
@@ -319,18 +318,22 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   ]);
 
   const [checkoutStage, setCheckoutStage] = useState(() => {
+    // Start at addons if pre-selecting an addon
     if (checkoutState?.addOnId) {
       return "addons";
     }
 
+    // Start at addon usage selection
     if (checkoutState?.addOnUsage) {
       return "addonsUsage";
     }
 
+    // Start at usage selection
     if (checkoutState?.usage) {
       return "usage";
     }
 
+    // Start at credits selection
     if (checkoutState?.credits) {
       return "credits";
     }
@@ -355,8 +358,21 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
                 : checkoutStages[0]?.id || "plan";
     }
 
+    // Default: start at plan selection
     return "plan";
   });
+
+  // Skip past plan stage when using bypass mode (initializeWithPlan)
+  useEffect(() => {
+    // Only run if we're bypassing plan selection
+    if (checkoutState?.bypassPlanSelection && checkoutStage === "plan") {
+      // Find first non-plan stage (usage/addons/checkout)
+      const nextStage = checkoutStages.find((stage) => stage.id !== "plan");
+      if (nextStage) {
+        setCheckoutStage(nextStage.id);
+      }
+    }
+  }, [checkoutStages, checkoutState?.bypassPlanSelection, checkoutStage]);
 
   const handlePreviewCheckout = useCallback(
     async (updates: {
@@ -825,18 +841,22 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
             },
           }}
         >
-          {checkoutStages.map((stage, index, stages) => (
-            <Navigation
-              key={stage.id}
-              name={stage.name}
-              index={index}
-              activeIndex={checkoutStages.findIndex(
-                (s) => s.id === checkoutStage,
-              )}
-              isLast={index === stages.length - 1}
-              onSelect={() => setCheckoutStage(stage.id)}
-            />
-          ))}
+          {checkoutStages.map((stage, index, stages) => {
+            const isBypassed = checkoutState?.bypassPlanSelection && stage.id === "plan";
+            return (
+              <Navigation
+                key={stage.id}
+                name={stage.name}
+                index={index}
+                activeIndex={checkoutStages.findIndex(
+                  (s) => s.id === checkoutStage,
+                )}
+                isLast={index === stages.length - 1}
+                isBypassed={isBypassed}
+                onSelect={isBypassed ? undefined : () => setCheckoutStage(stage.id)}
+              />
+            );
+          })}
         </Flex>
       </ModalHeader>
 
