@@ -94,7 +94,7 @@ export const PlanManager = forwardRef<
 
   const { t } = useTranslation();
 
-  const { data, settings, setCheckoutState } = useEmbed();
+  const { data, settings, setLayout } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
 
@@ -551,11 +551,7 @@ export const PlanManager = forwardRef<
           <Button
             type="button"
             onClick={() => {
-              setCheckoutState({
-                planId: currentPlan?.id,
-                addOnId: undefined,
-                usage: false,
-              });
+              setLayout("checkout");
             }}
             $size={props.callToAction.buttonSize}
             $color={props.callToAction.buttonStyle}

@@ -534,13 +534,23 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       shouldTrial?: boolean;
     }) => {
       const plan = updates.plan;
-      const period = updates.period || planPeriod;
+
+      let period = updates.period || planPeriod;
+      if (!showPeriodToggle) {
+        period = plan?.monthlyPrice ? "month" : "year";
+      }
+
       const updatedUsageBasedEntitlements = plan.entitlements.reduce(
         createActiveUsageBasedEntitlementsReducer(currentEntitlements, period),
         [],
       );
 
-      // only update if the plan is changing
+      if (period !== planPeriod) {
+        setPlanPeriod(period);
+        setUsageBasedEntitlements(updatedUsageBasedEntitlements);
+      }
+
+      // only update selected plan if the plan is changing
       if (plan.id !== selectedPlan?.id) {
         setSelectedPlan(plan);
         setUsageBasedEntitlements(updatedUsageBasedEntitlements);
@@ -578,6 +588,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     [
       selectedPlan?.id,
       planPeriod,
+      showPeriodToggle,
       currentEntitlements,
       shouldTrial,
       willTrialWithoutPaymentMethod,
@@ -717,12 +728,33 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   }, []);
 
   useEffect(() => {
-    const plan = availablePlans.find((plan) =>
-      checkoutState?.planId ? plan.id === checkoutState.planId : plan.current,
-    );
+    if (checkoutState?.planId) {
+      const plan = availablePlans.find(
+        (plan) => plan.id === checkoutState.planId,
+      );
 
-    setSelectedPlan(plan);
+      setSelectedPlan(plan);
+    }
   }, [availablePlans, checkoutState?.planId]);
+
+  useEffect(() => {
+    if (checkoutState?.addOnId) {
+      const checkoutStateAddOn = availableAddOns.find((addOn) =>
+        checkoutState?.addOnId
+          ? addOn.id === checkoutState.addOnId
+          : addOn.current,
+      );
+
+      setAddOns((prev) =>
+        prev.map((addOn) => ({
+          ...addOn,
+          ...(addOn.id === checkoutStateAddOn?.id && {
+            isSelected: !addOn.isSelected,
+          }),
+        })),
+      );
+    }
+  }, [availableAddOns, checkoutState?.addOnId]);
 
   useEffect(() => {
     setAddOns((prevAddOns) => {
