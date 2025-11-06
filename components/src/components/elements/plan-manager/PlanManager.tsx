@@ -205,7 +205,10 @@ export const PlanManager = forwardRef<
   }, [billingSubscription]);
 
   const { isFreePlan, isUsageBasedPlan } = useMemo(() => {
-    const isFreePlan = currentPlan?.planPrice === 0;
+    const isFreePlan =
+      currentPlan && "planPrice" in currentPlan
+        ? (currentPlan as { planPrice?: number | null }).planPrice === 0
+        : false;
     const isUsageBasedPlan = isFreePlan && usageBasedEntitlements.length > 0;
     return { isFreePlan, isUsageBasedPlan };
   }, [currentPlan, usageBasedEntitlements]);
@@ -307,8 +310,12 @@ export const PlanManager = forwardRef<
             </Flex>
 
             {props.header.price.isVisible &&
-              typeof currentPlan.planPrice === "number" &&
-              currentPlan.planPeriod && (
+              currentPlan &&
+              "planPrice" in currentPlan &&
+              typeof (currentPlan as { planPrice?: number | null })
+                .planPrice === "number" &&
+              "planPeriod" in currentPlan &&
+              (currentPlan as { planPeriod?: string | null }).planPeriod && (
                 <Box>
                   <Text
                     display={
@@ -322,14 +329,21 @@ export const PlanManager = forwardRef<
                       : isFreePlan && showZeroPriceAsFree
                         ? t("Free")
                         : formatCurrency(
-                            currentPlan.planPrice,
+                            (currentPlan as { planPrice?: number | null })
+                              .planPrice!,
                             subscriptionCurrency,
                           )}
                   </Text>
 
                   {!isFreePlan && (
                     <Text display={props.header.price.fontStyle}>
-                      <sub>/{shortenPeriod(currentPlan.planPeriod)}</sub>
+                      <sub>
+                        /
+                        {shortenPeriod(
+                          (currentPlan as { planPeriod?: string | null })
+                            .planPeriod!,
+                        )}
+                      </sub>
                     </Text>
                   )}
                 </Box>
@@ -386,7 +400,12 @@ export const PlanManager = forwardRef<
                   <UsageDetails
                     key={entitlementIndex}
                     entitlement={entitlement}
-                    period={currentPlan?.planPeriod || "month"}
+                    period={
+                      currentPlan && "planPeriod" in currentPlan
+                        ? (currentPlan as { planPeriod?: string | null })
+                            .planPeriod || "month"
+                        : "month"
+                    }
                     showCredits={showCredits}
                     layout={props}
                   />
@@ -415,9 +434,23 @@ export const PlanManager = forwardRef<
 
               <Flex $flexDirection="column" $gap="1rem">
                 {creditGroups.plan.map((group, groupIndex) => {
-                  const planCreditGrant = currentPlan?.includedCreditGrants?.find(
-                    (grant) => grant.creditId === group.id,
-                  );
+                  const planCreditGrant =
+                    currentPlan && "includedCreditGrants" in currentPlan
+                      ? (
+                          currentPlan as {
+                            includedCreditGrants?: Array<{
+                              creditId: string;
+                              billingCreditAutoTopupEnabled?: boolean;
+                              billingCreditAutoTopupThresholdPercent?:
+                                | number
+                                | null;
+                              billingCreditAutoTopupAmount?: number | null;
+                            }>;
+                          }
+                        ).includedCreditGrants?.find(
+                          (grant) => grant.creditId === group.id,
+                        )
+                      : undefined;
                   const hasAutoTopup =
                     planCreditGrant?.billingCreditAutoTopupEnabled;
 
@@ -476,7 +509,9 @@ export const PlanManager = forwardRef<
                           {planCreditGrant.billingCreditAutoTopupAmount && (
                             <>
                               {" "}
-                              (+{planCreditGrant.billingCreditAutoTopupAmount}{" "}
+                              (+{
+                                planCreditGrant.billingCreditAutoTopupAmount
+                              }{" "}
                               {getFeatureName(
                                 group,
                                 planCreditGrant.billingCreditAutoTopupAmount,

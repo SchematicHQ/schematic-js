@@ -467,7 +467,8 @@ export const Plan = ({
                             {hasAutoTopup && (
                               <Text
                                 $size={
-                                  0.8125 * settings.theme.typography.text.fontSize
+                                  0.8125 *
+                                  settings.theme.typography.text.fontSize
                                 }
                                 style={{ opacity: 0.7 }}
                               >
@@ -480,7 +481,10 @@ export const Plan = ({
                                 {planCreditGrant.billingCreditAutoTopupAmount && (
                                   <>
                                     {" "}
-                                    (+{planCreditGrant.billingCreditAutoTopupAmount}{" "}
+                                    (+
+                                    {
+                                      planCreditGrant.billingCreditAutoTopupAmount
+                                    }{" "}
                                     {getFeatureName(
                                       credit,
                                       planCreditGrant.billingCreditAutoTopupAmount,
