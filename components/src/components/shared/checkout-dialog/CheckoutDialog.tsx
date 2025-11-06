@@ -747,7 +747,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
         prev.map((addOn) => ({
           ...addOn,
           ...(addOn.id === checkoutStateAddOn?.id && {
-            isSelected: !addOn.isSelected,
+            isSelected: true,
           }),
         })),
       );
