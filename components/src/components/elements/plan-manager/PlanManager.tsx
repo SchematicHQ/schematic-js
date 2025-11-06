@@ -119,8 +119,13 @@ export const PlanManager = forwardRef<
     showZeroPriceAsFree,
     trialPaymentMethodRequired,
   } = useMemo(() => {
+    // Find the full plan details from activePlans which includes includedCreditGrants
+    const fullPlanDetails = data?.activePlans?.find(
+      (plan) => plan.id === data?.company?.plan?.id && plan.current === true,
+    );
+
     return {
-      currentPlan: data?.company?.plan,
+      currentPlan: fullPlanDetails || data?.company?.plan,
       currentAddOns: data?.company?.addOns || [],
       creditBundles: data?.creditBundles || [],
       creditGroups: groupCreditGrants(data?.creditGrants || [], {
@@ -158,6 +163,7 @@ export const PlanManager = forwardRef<
       showZeroPriceAsFree: data?.showZeroPriceAsFree ?? false,
     };
   }, [
+    data?.activePlans,
     data?.capabilities?.checkout,
     data?.company?.addOns,
     data?.company?.billingSubscription,
@@ -198,8 +204,11 @@ export const PlanManager = forwardRef<
     };
   }, [billingSubscription]);
 
-  const isFreePlan = currentPlan?.planPrice === 0;
-  const isUsageBasedPlan = isFreePlan && usageBasedEntitlements.length > 0;
+  const { isFreePlan, isUsageBasedPlan } = useMemo(() => {
+    const isFreePlan = currentPlan?.planPrice === 0;
+    const isUsageBasedPlan = isFreePlan && usageBasedEntitlements.length > 0;
+    return { isFreePlan, isUsageBasedPlan };
+  }, [currentPlan, usageBasedEntitlements]);
 
   return (
     <>
@@ -406,32 +415,75 @@ export const PlanManager = forwardRef<
 
               <Flex $flexDirection="column" $gap="1rem">
                 {creditGroups.plan.map((group, groupIndex) => {
+                  const planCreditGrant = currentPlan?.includedCreditGrants?.find(
+                    (grant) => grant.creditId === group.id,
+                  );
+                  const hasAutoTopup =
+                    planCreditGrant?.billingCreditAutoTopupEnabled;
+
                   return (
                     <Flex
                       key={groupIndex}
-                      $justifyContent="space-between"
-                      $alignItems="center"
-                      $flexWrap="wrap"
-                      $gap="0.5rem"
+                      $flexDirection="column"
+                      $gap="0.25rem"
                     >
-                      <Text display={props.addOns.fontStyle}>
-                        {group.quantity} {getFeatureName(group, group.quantity)}{" "}
-                        {subscriptionInterval && (
-                          <>
-                            {t("per")} {t(subscriptionInterval)}
-                          </>
-                        )}
-                      </Text>
+                      <Flex
+                        $justifyContent="space-between"
+                        $alignItems="center"
+                        $flexWrap="wrap"
+                        $gap="0.5rem"
+                      >
+                        <Text display={props.addOns.fontStyle}>
+                          {group.quantity}{" "}
+                          {getFeatureName(group, group.quantity)}{" "}
+                          {subscriptionInterval && (
+                            <>
+                              {t("per")} {t(subscriptionInterval)}
+                            </>
+                          )}
+                        </Text>
 
-                      {group.total.used > 0 && (
+                        {group.total.used > 0 && (
+                          <Text
+                            style={{ opacity: 0.54 }}
+                            $size={
+                              0.875 * settings.theme.typography.text.fontSize
+                            }
+                            $color={settings.theme.typography.text.color}
+                          >
+                            {group.total.used} {t("used")}
+                          </Text>
+                        )}
+                      </Flex>
+
+                      {hasAutoTopup && (
                         <Text
-                          style={{ opacity: 0.54 }}
                           $size={
-                            0.875 * settings.theme.typography.text.fontSize
+                            0.8125 * settings.theme.typography.text.fontSize
                           }
-                          $color={settings.theme.typography.text.color}
+                          $color={
+                            isLightBackground
+                              ? darken(settings.theme.card.background, 0.38)
+                              : lighten(settings.theme.card.background, 0.38)
+                          }
                         >
-                          {group.total.used} {t("used")}
+                          Auto-topup enabled
+                          {planCreditGrant.billingCreditAutoTopupThresholdPercent !==
+                            null &&
+                            planCreditGrant.billingCreditAutoTopupThresholdPercent !==
+                              undefined &&
+                            ` at ${planCreditGrant.billingCreditAutoTopupThresholdPercent}%`}
+                          {planCreditGrant.billingCreditAutoTopupAmount && (
+                            <>
+                              {" "}
+                              (+{planCreditGrant.billingCreditAutoTopupAmount}{" "}
+                              {getFeatureName(
+                                group,
+                                planCreditGrant.billingCreditAutoTopupAmount,
+                              )}
+                              )
+                            </>
+                          )}
                         </Text>
                       )}
                     </Flex>

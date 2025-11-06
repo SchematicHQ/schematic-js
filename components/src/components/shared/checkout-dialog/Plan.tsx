@@ -420,6 +420,12 @@ export const Plan = ({
                   $marginTop="0.5rem"
                 >
                   {credits.map((credit, creditIndex) => {
+                    const planCreditGrant = plan.includedCreditGrants?.find(
+                      (grant) => grant.creditId === credit.id,
+                    );
+                    const hasAutoTopup =
+                      planCreditGrant?.billingCreditAutoTopupEnabled;
+
                     return (
                       <Flex
                         key={creditIndex}
@@ -457,6 +463,33 @@ export const Plan = ({
                                 </>
                               )}
                             </Text>
+
+                            {hasAutoTopup && (
+                              <Text
+                                $size={
+                                  0.8125 * settings.theme.typography.text.fontSize
+                                }
+                                style={{ opacity: 0.7 }}
+                              >
+                                {t("Auto-topup enabled")}
+                                {planCreditGrant.billingCreditAutoTopupThresholdPercent !==
+                                  null &&
+                                  planCreditGrant.billingCreditAutoTopupThresholdPercent !==
+                                    undefined &&
+                                  ` ${t("at")} ${planCreditGrant.billingCreditAutoTopupThresholdPercent}%`}
+                                {planCreditGrant.billingCreditAutoTopupAmount && (
+                                  <>
+                                    {" "}
+                                    (+{planCreditGrant.billingCreditAutoTopupAmount}{" "}
+                                    {getFeatureName(
+                                      credit,
+                                      planCreditGrant.billingCreditAutoTopupAmount,
+                                    )}
+                                    )
+                                  </>
+                                )}
+                              </Text>
+                            )}
                           </Flex>
                         </Flex>
                       </Flex>
