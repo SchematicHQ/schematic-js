@@ -21,6 +21,12 @@ import { mapValues } from "../runtime";
 export interface BillingSubscriptionResponseData {
   /**
    *
+   * @type {string}
+   * @memberof BillingSubscriptionResponseData
+   */
+  applicationId?: string | null;
+  /**
+   *
    * @type {number}
    * @memberof BillingSubscriptionResponseData
    */
@@ -177,6 +183,8 @@ export function BillingSubscriptionResponseDataFromJSONTyped(
     return json;
   }
   return {
+    applicationId:
+      json["application_id"] == null ? undefined : json["application_id"],
     cancelAt: json["cancel_at"] == null ? undefined : json["cancel_at"],
     cancelAtPeriodEnd: json["cancel_at_period_end"],
     companyId: json["company_id"] == null ? undefined : json["company_id"],
@@ -210,6 +218,7 @@ export function BillingSubscriptionResponseDataToJSON(
     return value;
   }
   return {
+    application_id: value["applicationId"],
     cancel_at: value["cancelAt"],
     cancel_at_period_end: value["cancelAtPeriodEnd"],
     company_id: value["companyId"],
