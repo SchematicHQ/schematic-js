@@ -141,6 +141,7 @@
     "Use existing payment method": "Use existing payment method",
     "X additional": "{{amount}} additional",
     "X included": "{{amount}} included",
+    "X item auto-topup": "{{amount}} {{item}} auto-topup purchased {{createdAt}}",
     "X item bundle": "{{amount}} {{item}} bundle purchased {{createdAt}}",
     "X item grant": "{{amount}} promotional {{item}} granted {{createdAt}}",
     "X items included in plan": "{{amount}} {{item}} included in plan",
