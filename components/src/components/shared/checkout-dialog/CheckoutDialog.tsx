@@ -17,7 +17,7 @@ import {
   type UpdateAddOnRequestBody,
   type UpdatePayInAdvanceRequestBody,
 } from "../../../api/checkoutexternal";
-import { PriceBehavior, TEXT_BASE_SIZE } from "../../../const";
+import { PriceBehavior, PriceInterval, TEXT_BASE_SIZE } from "../../../const";
 import {
   useAvailablePlans,
   useEmbed,
@@ -534,16 +534,29 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       shouldTrial?: boolean;
     }) => {
       const plan = updates.plan;
-      const period = updates.period || planPeriod;
+
+      const period = showPeriodToggle
+        ? updates.period || planPeriod
+        : plan.yearlyPrice && !plan.monthlyPrice
+          ? PriceInterval.Year
+          : PriceInterval.Month;
+
       const updatedUsageBasedEntitlements = plan.entitlements.reduce(
         createActiveUsageBasedEntitlementsReducer(currentEntitlements, period),
         [],
       );
 
-      // only update if the plan is changing
+      if (period !== planPeriod || plan.id !== selectedPlan?.id) {
+        setUsageBasedEntitlements(updatedUsageBasedEntitlements);
+      }
+
+      if (period !== planPeriod) {
+        setPlanPeriod(period);
+      }
+
+      // only update selected plan if the plan is changing
       if (plan.id !== selectedPlan?.id) {
         setSelectedPlan(plan);
-        setUsageBasedEntitlements(updatedUsageBasedEntitlements);
       }
 
       const updatedShouldTrial = updates.shouldTrial ?? shouldTrial;
@@ -578,6 +591,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     [
       selectedPlan?.id,
       planPeriod,
+      showPeriodToggle,
       currentEntitlements,
       shouldTrial,
       willTrialWithoutPaymentMethod,
@@ -717,12 +731,31 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   }, []);
 
   useEffect(() => {
-    const plan = availablePlans.find((plan) =>
-      checkoutState?.planId ? plan.id === checkoutState.planId : plan.current,
-    );
+    if (checkoutState?.planId) {
+      const plan = availablePlans.find(
+        (plan) => plan.id === checkoutState.planId,
+      );
 
-    setSelectedPlan(plan);
+      setSelectedPlan(plan);
+    }
   }, [availablePlans, checkoutState?.planId]);
+
+  useEffect(() => {
+    if (checkoutState?.addOnId) {
+      const checkoutStateAddOn = availableAddOns.find(
+        (addOn) => addOn.id === checkoutState.addOnId,
+      );
+
+      setAddOns((prev) =>
+        prev.map((addOn) => ({
+          ...addOn,
+          ...(addOn.id === checkoutStateAddOn?.id && {
+            isSelected: true,
+          }),
+        })),
+      );
+    }
+  }, [availableAddOns, checkoutState?.addOnId]);
 
   useEffect(() => {
     setAddOns((prevAddOns) => {
