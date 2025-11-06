@@ -872,8 +872,18 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
             $height="100%"
             $justifyContent="center"
             $alignItems="center"
-            $backgroundColor={hsla(settings.theme.card.background, 0.8)}
+            $backgroundColor={
+              isLightBackground
+                ? "hsla(0, 0%, 100%, 0.9)"
+                : "hsla(0, 0%, 0%, 0.9)"
+            }
             $backdropFilter="blur(8px)"
+            $padding="1rem"
+            $viewport={{
+              md: {
+                $padding: "1.5rem",
+              },
+            }}
           >
             <Loader $color={settings.theme.primary} $size="2xl" />
           </Flex>
