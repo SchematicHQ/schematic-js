@@ -17,7 +17,7 @@ import {
   type UpdateAddOnRequestBody,
   type UpdatePayInAdvanceRequestBody,
 } from "../../../api/checkoutexternal";
-import { PriceBehavior, TEXT_BASE_SIZE } from "../../../const";
+import { PriceBehavior, PriceInterval, TEXT_BASE_SIZE } from "../../../const";
 import {
   useAvailablePlans,
   useEmbed,
@@ -535,25 +535,28 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     }) => {
       const plan = updates.plan;
 
-      let period = updates.period || planPeriod;
-      if (!showPeriodToggle) {
-        period = plan?.monthlyPrice ? "month" : "year";
-      }
+      const period = showPeriodToggle
+        ? updates.period || planPeriod
+        : plan.yearlyPrice && !plan.monthlyPrice
+          ? PriceInterval.Year
+          : PriceInterval.Month;
 
       const updatedUsageBasedEntitlements = plan.entitlements.reduce(
         createActiveUsageBasedEntitlementsReducer(currentEntitlements, period),
         [],
       );
 
+      if (period !== planPeriod || plan.id !== selectedPlan?.id) {
+        setUsageBasedEntitlements(updatedUsageBasedEntitlements);
+      }
+
       if (period !== planPeriod) {
         setPlanPeriod(period);
-        setUsageBasedEntitlements(updatedUsageBasedEntitlements);
       }
 
       // only update selected plan if the plan is changing
       if (plan.id !== selectedPlan?.id) {
         setSelectedPlan(plan);
-        setUsageBasedEntitlements(updatedUsageBasedEntitlements);
       }
 
       const updatedShouldTrial = updates.shouldTrial ?? shouldTrial;
