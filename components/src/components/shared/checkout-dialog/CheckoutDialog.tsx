@@ -321,22 +321,18 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   const hasSkippedInitialPlan = useRef(false);
 
   const [checkoutStage, setCheckoutStage] = useState(() => {
-    // Start at addons if pre-selecting an addon
     if (checkoutState?.addOnId) {
       return "addons";
     }
 
-    // Start at addon usage selection
     if (checkoutState?.addOnUsage) {
       return "addonsUsage";
     }
 
-    // Start at usage selection
     if (checkoutState?.usage) {
       return "usage";
     }
 
-    // Start at credits selection
     if (checkoutState?.credits) {
       return "credits";
     }
@@ -361,7 +357,6 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
                 : checkoutStages[0]?.id || "plan";
     }
 
-    // Default: start at plan selection
     return "plan";
   });
 
@@ -871,7 +866,6 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       </ModalHeader>
 
       <ModalContent ref={contentRef}>
-        {/* Loading overlay while bypass mode resolves initial stage */}
         {shouldShowBypassOverlay && (
           <Flex
             $position="absolute"
