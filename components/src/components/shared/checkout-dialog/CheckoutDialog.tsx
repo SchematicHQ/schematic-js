@@ -239,7 +239,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   const checkoutStages = useMemo(() => {
     const stages: CheckoutStage[] = [];
 
-    if (availablePlans.length > 0) {
+    if (availablePlans.length > 0 && !checkoutState?.bypassPlanSelection) {
       stages.push({
         id: "plan",
         name: t("Plan"),
@@ -308,6 +308,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   }, [
     t,
     availablePlans,
+    checkoutState?.bypassPlanSelection,
     willTrialWithoutPaymentMethod,
     payInAdvanceEntitlements,
     addOns,
@@ -335,9 +336,11 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     }
 
     // the user has preselected a different plan before starting the checkout flow
+    // or is using bypass mode
     if (
-      typeof checkoutState?.planId !== "undefined" &&
-      checkoutState.planId !== currentPlanId
+      (typeof checkoutState?.planId !== "undefined" &&
+        checkoutState.planId !== currentPlanId) ||
+      checkoutState?.bypassPlanSelection
     ) {
       return checkoutStages.some((stage) => stage.id === "usage")
         ? "usage"
@@ -347,7 +350,9 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
             ? "addonsUsage"
             : checkoutStages.some((stage) => stage.id === "credits")
               ? "credits"
-              : "plan";
+              : checkoutStages.some((stage) => stage.id === "checkout")
+                ? "checkout"
+                : checkoutStages[0]?.id || "plan";
     }
 
     return "plan";
