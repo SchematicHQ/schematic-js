@@ -21,6 +21,12 @@ import { mapValues } from "../runtime";
 export interface CheckoutResponseData {
   /**
    *
+   * @type {string}
+   * @memberof CheckoutResponseData
+   */
+  applicationId?: string | null;
+  /**
+   *
    * @type {number}
    * @memberof CheckoutResponseData
    */
@@ -187,6 +193,8 @@ export function CheckoutResponseDataFromJSONTyped(
     return json;
   }
   return {
+    applicationId:
+      json["application_id"] == null ? undefined : json["application_id"],
     cancelAt: json["cancel_at"] == null ? undefined : json["cancel_at"],
     cancelAtPeriodEnd: json["cancel_at_period_end"],
     companyId: json["company_id"] == null ? undefined : json["company_id"],
@@ -228,6 +236,7 @@ export function CheckoutResponseDataToJSON(
     return value;
   }
   return {
+    application_id: value["applicationId"],
     cancel_at: value["cancelAt"],
     cancel_at_period_end: value["cancelAtPeriodEnd"],
     company_id: value["companyId"],
