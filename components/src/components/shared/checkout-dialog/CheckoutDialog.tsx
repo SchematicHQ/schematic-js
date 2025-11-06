@@ -28,7 +28,7 @@ import type {
   SelectedPlan,
   UsageBasedEntitlement,
 } from "../../../types";
-import { ERROR_UNKNOWN, getAddOnPrice, isError } from "../../../utils";
+import { ERROR_UNKNOWN, getAddOnPrice, hsla, isError } from "../../../utils";
 import { PeriodToggle } from "../../shared";
 import { Flex, Loader, Modal, ModalContent, ModalHeader, Text } from "../../ui";
 import { Sidebar } from "../sidebar";
@@ -829,6 +829,10 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     (stage) => stage.id === checkoutStage,
   );
 
+  // Show loading overlay while bypass mode resolves initial stage
+  const shouldShowBypassOverlay =
+    checkoutState?.bypassPlanSelection && checkoutStage === "plan";
+
   return (
     <Modal ref={modalRef} size="lg" top={top}>
       <ModalHeader bordered>
@@ -841,26 +845,39 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
             },
           }}
         >
-          {checkoutStages.map((stage, index, stages) => {
-            const isBypassed = checkoutState?.bypassPlanSelection && stage.id === "plan";
-            return (
-              <Navigation
-                key={stage.id}
-                name={stage.name}
-                index={index}
-                activeIndex={checkoutStages.findIndex(
-                  (s) => s.id === checkoutStage,
-                )}
-                isLast={index === stages.length - 1}
-                isBypassed={isBypassed}
-                onSelect={isBypassed ? undefined : () => setCheckoutStage(stage.id)}
-              />
-            );
-          })}
+          {checkoutStages.map((stage, index, stages) => (
+            <Navigation
+              key={stage.id}
+              name={stage.name}
+              index={index}
+              activeIndex={checkoutStages.findIndex(
+                (s) => s.id === checkoutStage,
+              )}
+              isLast={index === stages.length - 1}
+              onSelect={() => setCheckoutStage(stage.id)}
+            />
+          ))}
         </Flex>
       </ModalHeader>
 
       <ModalContent ref={contentRef}>
+        {/* Loading overlay while bypass mode resolves initial stage */}
+        {shouldShowBypassOverlay && (
+          <Flex
+            $position="absolute"
+            $top={0}
+            $left={0}
+            $zIndex={3}
+            $width="100%"
+            $height="100%"
+            $justifyContent="center"
+            $alignItems="center"
+            $backgroundColor={hsla(settings.theme.card.background, 0.8)}
+            $backdropFilter="blur(8px)"
+          >
+            <Loader $color={settings.theme.primary} $size="2xl" />
+          </Flex>
+        )}
         <Flex
           ref={stageRef}
           $flexDirection="column"

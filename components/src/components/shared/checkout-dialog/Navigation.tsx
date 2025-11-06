@@ -8,7 +8,6 @@ interface NavigationProps {
   index: number;
   activeIndex: number;
   isLast: boolean;
-  isBypassed?: boolean;
   onSelect?: () => void;
 }
 
@@ -17,7 +16,6 @@ export const Navigation = ({
   index,
   activeIndex,
   isLast,
-  isBypassed,
   onSelect,
 }: NavigationProps) => {
   const { settings } = useEmbed();
@@ -35,21 +33,7 @@ export const Navigation = ({
             },
           }}
         >
-          {isBypassed ? (
-            <Box
-              $width={`${20 / TEXT_BASE_SIZE}rem`}
-              $height={`${20 / TEXT_BASE_SIZE}rem`}
-              $borderWidth="2px"
-              $borderStyle="solid"
-              $borderColor={
-                isLightBackground
-                  ? "hsla(0, 0%, 0%, 0.05)"
-                  : "hsla(0, 0%, 100%, 0.1)"
-              }
-              $borderRadius="9999px"
-              $opacity="0.5"
-            />
-          ) : index >= activeIndex ? (
+          {index >= activeIndex ? (
             <Box
               $width={`${20 / TEXT_BASE_SIZE}rem`}
               $height={`${20 / TEXT_BASE_SIZE}rem`}
@@ -87,8 +71,8 @@ export const Navigation = ({
           $fontSize={`${settings.theme.typography.text.fontSize / TEXT_BASE_SIZE}rem`}
           $fontWeight={index === activeIndex ? 600 : 400}
           $color={settings.theme.typography.text.color}
-          {...(index !== activeIndex && { $opacity: isBypassed ? "0.35" : "0.6375" })}
-          {...(index < activeIndex && !isBypassed && {
+          {...(index !== activeIndex && { $opacity: "0.6375" })}
+          {...(index < activeIndex && {
             onClick: onSelect,
             onKeyDown: createKeyboardExecutionHandler(onSelect),
             tabIndex: 0,
