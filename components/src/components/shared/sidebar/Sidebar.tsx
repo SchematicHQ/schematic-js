@@ -533,8 +533,11 @@ export const Sidebar = forwardRef<HTMLDivElement | null, SidebarProps>(
         ([entry]) => setCheckoutButtonInView(entry.isIntersecting),
         { threshold: 0 },
       );
-      if (buttonRef.current)
+
+      if (buttonRef.current) {
         observer.observe(buttonRef.current);
+      }
+
       return () => observer.disconnect();
     }, []);
 
@@ -1137,25 +1140,25 @@ export const Sidebar = forwardRef<HTMLDivElement | null, SidebarProps>(
                     style={{
                       position: "fixed",
                       bottom: "-1px",
-                      left: "0",
+                      left: "0px",
                       zIndex: 9999999,
                       width: "100%",
                       overflow: "hidden",
-                      backgroundColor: "white",
+                      backgroundColor: settings.theme.card.background,
+                      borderTopWidth: "1px",
+                      borderTopStyle: "solid",
                       borderTopColor: isLightBackground
                         ? "hsla(0, 0%, 0%, 0.1)"
                         : "hsla(0, 0%, 100%, 0.2)",
-                      borderTopWidth: "1px",
-                      borderTopStyle: "solid",
                     }}
                   >
                     <div
                       style={{
-                        backgroundColor: "white",
-                        padding: "1rem 1.5rem",
                         display: "flex",
                         justifyContent: "center",
                         alignItems: "center",
+                        padding: "1rem 1.5rem",
+                        backgroundColor: settings.theme.card.background,
                       }}
                     >
                       <StageButtonComponent />

@@ -375,7 +375,12 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
         setCheckoutStage(nextStage.id);
       }
     }
-  }, [checkoutStages, checkoutState?.bypassPlanSelection, checkoutStage, hasSkippedInitialPlan]);
+  }, [
+    checkoutStages,
+    checkoutState?.bypassPlanSelection,
+    checkoutStage,
+    hasSkippedInitialPlan,
+  ]);
 
   const handlePreviewCheckout = useCallback(
     async (updates: {
@@ -847,7 +852,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           $left={0}
           $zIndex={3}
           $width="100%"
-          $height="100vh"
+          $height="100dvh"
           $justifyContent="center"
           $alignItems="center"
           $backgroundColor={
