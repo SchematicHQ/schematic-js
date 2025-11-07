@@ -525,23 +525,16 @@ export const Sidebar = forwardRef<HTMLDivElement | null, SidebarProps>(
     const { price: selectedPlanPrice, currency: selectedPlanCurrency } =
       selectedPlan ? getPlanPrice(selectedPlan, planPeriod) || {} : {};
 
-    const checkOutButtonRef = useRef<HTMLDivElement>(null);
+    const buttonRef = useRef<HTMLDivElement>(null);
     const [checkoutButtonInView, setCheckoutButtonInView] = useState(false);
 
     useEffect(() => {
       const observer = new IntersectionObserver(
-        ([entry]) => {
-          setCheckoutButtonInView(entry.isIntersecting);
-          console.log(
-            entry.isIntersecting
-              ? "Button in viewport"
-              : "Button out of viewport",
-          );
-        },
+        ([entry]) => setCheckoutButtonInView(entry.isIntersecting),
         { threshold: 0 },
       );
-      if (checkOutButtonRef.current)
-        observer.observe(checkOutButtonRef.current);
+      if (buttonRef.current)
+        observer.observe(buttonRef.current);
       return () => observer.disconnect();
     }, []);
 
@@ -1136,7 +1129,7 @@ export const Sidebar = forwardRef<HTMLDivElement | null, SidebarProps>(
           )}
 
           {layout === "checkout" && (
-            <div ref={checkOutButtonRef}>
+            <div ref={buttonRef}>
               {checkoutButtonInView && <StageButtonComponent />}
               {!checkoutButtonInView &&
                 createPortal(
