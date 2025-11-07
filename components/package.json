@@ -1,6 +1,6 @@
 {
   "name": "@schematichq/schematic-components",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "main": "dist/schematic-components.cjs.js",
   "module": "dist/schematic-components.esm.js",
   "types": "dist/schematic-components.d.ts",
@@ -34,7 +34,7 @@
   "dependencies": {
     "@schematichq/schematic-icons": "^0.5.2",
     "@stripe/stripe-js": "^8.3.0",
-    "i18next": "^25.6.0",
+    "i18next": "^25.6.1",
     "lodash": "^4.17.21",
     "pako": "^2.1.0",
     "react-i18next": "16.1.6",
@@ -72,7 +72,7 @@
     "jest-environment-jsdom": "^30.2.0",
     "jest-fixed-jsdom": "^0.0.10",
     "jest-styled-components": "^7.2.0",
-    "msw": "^2.11.6",
+    "msw": "2.11.6",
     "prettier": "^3.6.2",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",

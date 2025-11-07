@@ -533,8 +533,11 @@ export const Sidebar = forwardRef<HTMLDivElement | null, SidebarProps>(
         ([entry]) => setCheckoutButtonInView(entry.isIntersecting),
         { threshold: 0 },
       );
-      if (buttonRef.current)
+
+      if (buttonRef.current) {
         observer.observe(buttonRef.current);
+      }
+
       return () => observer.disconnect();
     }, []);
 
