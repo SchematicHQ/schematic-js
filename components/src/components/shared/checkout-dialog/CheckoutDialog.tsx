@@ -840,6 +840,33 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
   return (
     <Modal ref={modalRef} size="lg" top={top}>
+      {shouldShowBypassOverlay && (
+        <Flex
+          $position="absolute"
+          $top={0}
+          $left={0}
+          $zIndex={3}
+          $width="100%"
+          $height="100vh"
+          $justifyContent="center"
+          $alignItems="center"
+          $backgroundColor={
+            isLightBackground
+              ? "hsla(0, 0%, 100%, 0.9)"
+              : "hsla(0, 0%, 0%, 0.9)"
+          }
+          $backdropFilter="blur(8px)"
+          $padding="1rem"
+          $viewport={{
+            md: {
+              $padding: "1.5rem",
+            },
+          }}
+        >
+          <Loader $color={settings.theme.primary} $size="2xl" />
+        </Flex>
+      )}
+
       <ModalHeader bordered>
         <Flex
           $flexWrap="wrap"
@@ -866,32 +893,6 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       </ModalHeader>
 
       <ModalContent ref={contentRef}>
-        {shouldShowBypassOverlay && (
-          <Flex
-            $position="absolute"
-            $top={0}
-            $left={0}
-            $zIndex={3}
-            $width="100%"
-            $height="100%"
-            $justifyContent="center"
-            $alignItems="center"
-            $backgroundColor={
-              isLightBackground
-                ? "hsla(0, 0%, 100%, 0.9)"
-                : "hsla(0, 0%, 0%, 0.9)"
-            }
-            $backdropFilter="blur(8px)"
-            $padding="1rem"
-            $viewport={{
-              md: {
-                $padding: "1.5rem",
-              },
-            }}
-          >
-            <Loader $color={settings.theme.primary} $size="2xl" />
-          </Flex>
-        )}
         <Flex
           ref={stageRef}
           $flexDirection="column"
