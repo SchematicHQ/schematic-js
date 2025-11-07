@@ -33,8 +33,6 @@ export const PeriodToggle = ({
       const yearly = yearlyBillingPrice?.price ?? 0;
       return Math.round(((monthly - yearly) / monthly) * 10000) / 100;
     }
-
-    return 0;
   }, [selectedPlan]);
 
   return (
@@ -95,7 +93,7 @@ export const PeriodToggle = ({
           </Button>
         );
 
-        if (option === "year") {
+        if (option === "year" && typeof savingsPercentage === "number") {
           return (
             <Tooltip
               key={option}
