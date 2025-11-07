@@ -19,7 +19,7 @@ export const ModalContent = forwardRef<
         md: {
           $flexDirection: "row",
           $height: "calc(100% - 5rem + 3px)",
-          $maxHeight: "calc(100vh - 5rem + 3px)",
+          $maxHeight: "calc(100dvh - 5rem + 3px)",
         },
       }}
     >

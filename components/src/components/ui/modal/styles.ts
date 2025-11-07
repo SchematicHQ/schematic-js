@@ -16,7 +16,7 @@ export const Overlay = styled(Box)`
   left: 0;
   z-index: 999999;
   width: 100%;
-  height: 100vh;
+  height: 100dvh;
   overflow: hidden;
   scrollbar-width: thin;
   scrollbar-gutter: stable both-edges;
@@ -34,7 +34,7 @@ export const Modal = styled.div.attrs({
   flex-direction: column;
   width: 100%;
   height: fit-content;
-  max-height: 100vh;
+  max-height: 100dvh;
   overflow: auto;
   background-color: ${({ theme }) => theme.card.background};
   box-shadow:
