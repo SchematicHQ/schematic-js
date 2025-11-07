@@ -440,6 +440,10 @@ export const EmbedProvider = ({
     dispatch({ type: "SET_CHECKOUT_STATE", state });
   }, []);
 
+  const initializeWithPlan = useCallback((planId: string) => {
+    dispatch({ type: "SET_PLANID_BYPASS", planId });
+  }, []);
+
   useEffect(() => {
     const element = document.getElementById(
       "schematic-fonts",
@@ -578,6 +582,7 @@ export const EmbedProvider = ({
         setAccessToken,
         setLayout,
         setCheckoutState,
+        initializeWithPlan,
         setData,
         updateSettings,
         debug,
