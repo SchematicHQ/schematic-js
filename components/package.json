@@ -17,11 +17,11 @@
   },
   "scripts": {
     "dev": "yarn dev:esm",
-    "dev:cjs": "npx esbuild src/index.ts --watch --bundle --external:react --external:react-dom --external:@stripe/react-stripe-js --format=cjs --outfile=dist/schematic-components.cjs.js --define:process.env.SCHEMATIC_COMPONENTS_VERSION=$(cat package.json | jq .version)",
-    "dev:esm": "npx esbuild src/index.ts --watch --bundle --external:react --external:react-dom --external:@stripe/react-stripe-js --format=esm --outfile=dist/schematic-components.esm.js --define:process.env.SCHEMATIC_COMPONENTS_VERSION=$(cat package.json | jq .version)",
+    "dev:cjs": "npx esbuild src/index.ts --watch --bundle --external:react --external:react-dom --external:@stripe/react-stripe-js --external:i18next --external:react-i18next --format=cjs --outfile=dist/schematic-components.cjs.js --define:process.env.SCHEMATIC_COMPONENTS_VERSION=$(cat package.json | jq .version)",
+    "dev:esm": "npx esbuild src/index.ts --watch --bundle --external:react --external:react-dom --external:@stripe/react-stripe-js --external:i18next --external:react-i18next --format=esm --outfile=dist/schematic-components.esm.js --define:process.env.SCHEMATIC_COMPONENTS_VERSION=$(cat package.json | jq .version)",
     "build": "yarn tsc && yarn openapi && yarn format && yarn lint && yarn clean && yarn build:cjs && yarn build:esm && yarn build:types",
-    "build:cjs": "npx esbuild src/index.ts --bundle --external:react --external:react-dom --external:@stripe/react-stripe-js --format=cjs --outfile=dist/schematic-components.cjs.js --define:process.env.SCHEMATIC_COMPONENTS_VERSION=$(cat package.json | jq .version)",
-    "build:esm": "npx esbuild src/index.ts --bundle --external:react --external:react-dom --external:@stripe/react-stripe-js --format=esm --outfile=dist/schematic-components.esm.js --define:process.env.SCHEMATIC_COMPONENTS_VERSION=$(cat package.json | jq .version)",
+    "build:cjs": "npx esbuild src/index.ts --bundle --external:react --external:react-dom --external:@stripe/react-stripe-js --external:i18next --external:react-i18next --format=cjs --outfile=dist/schematic-components.cjs.js --define:process.env.SCHEMATIC_COMPONENTS_VERSION=$(cat package.json | jq .version)",
+    "build:esm": "npx esbuild src/index.ts --bundle --external:react --external:react-dom --external:@stripe/react-stripe-js --external:i18next --external:react-i18next --format=esm --outfile=dist/schematic-components.esm.js --define:process.env.SCHEMATIC_COMPONENTS_VERSION=$(cat package.json | jq .version)",
     "build:types": "npx tsc && npx api-extractor run",
     "clean": "rm -rf dist",
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
@@ -34,10 +34,8 @@
   "dependencies": {
     "@schematichq/schematic-icons": "^0.5.2",
     "@stripe/stripe-js": "^8.3.0",
-    "i18next": "^25.6.1",
     "lodash": "^4.17.21",
     "pako": "^2.1.0",
-    "react-i18next": "16.1.6",
     "styled-components": "^6.1.19",
     "uuid": "^13.0.0"
   },
@@ -49,6 +47,8 @@
     "@microsoft/api-extractor": "^7.54.0",
     "@openapitools/openapi-generator-cli": "^2.25.0",
     "@stripe/react-stripe-js": "^5.3.0",
+    "i18next": "^25.6.1",
+    "react-i18next": "16.1.6",
     "@swc/core": "^1.15.0",
     "@swc/jest": "^0.2.39",
     "@swc/plugin-styled-components": "^11.0.0",
@@ -81,8 +81,10 @@
   },
   "peerDependencies": {
     "@stripe/react-stripe-js": ">=3",
+    "i18next": ">=23",
     "react": ">=18",
-    "react-dom": ">=18"
+    "react-dom": ">=18",
+    "react-i18next": ">=14"
   },
   "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e",
   "msw": {
