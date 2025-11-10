@@ -72,8 +72,9 @@ export const useSchematicEvents = (opts?: SchematicComposableOpts) => {
 
   const track = (body: SchematicJS.EventBodyTrack) => client.track(body);
 
-  const identify = (body: SchematicJS.EventBodyIdentify) =>
+  const identify = (body: SchematicJS.EventBodyIdentify) => {
     client.identify(body);
+  };
 
   return {
     track,
