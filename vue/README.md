@@ -279,4 +279,3 @@ MIT
 ## Support
 
 Need help? Please open a GitHub issue or reach out to [support@schematichq.com](mailto:support@schematichq.com) and we'll be happy to assist.
-
