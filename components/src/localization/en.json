@@ -15,6 +15,7 @@
     "Amount off": "{{amount}} off",
     "at": "at",
     "Auto-topup enabled": "Auto-topup enabled",
+    "Auto-topup enabled at X%": "Auto-topup enabled at {{threshold}}%",
     "An invoice is created when charges reach $X; the rest is billed monthly.": "An invoice is created when charges reach {{amount}}; the rest is billed monthly.",
     "An unknown error occurred.": "An unknown error occurred.",
     "Billed": "Billed {{period}}",

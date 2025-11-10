@@ -472,12 +472,13 @@ export const Plan = ({
                                 }
                                 style={{ opacity: 0.7 }}
                               >
-                                {t("Auto-topup enabled")}
-                                {planCreditGrant.billingCreditAutoTopupThresholdPercent !==
-                                  null &&
-                                  planCreditGrant.billingCreditAutoTopupThresholdPercent !==
-                                    undefined &&
-                                  ` ${t("at")} ${planCreditGrant.billingCreditAutoTopupThresholdPercent}%`}
+                                {typeof planCreditGrant.billingCreditAutoTopupThresholdPercent ===
+                                "number"
+                                  ? t("Auto-topup enabled at X%", {
+                                      threshold:
+                                        planCreditGrant.billingCreditAutoTopupThresholdPercent,
+                                    })
+                                  : t("Auto-topup enabled")}
                                 {planCreditGrant.billingCreditAutoTopupAmount && (
                                   <>
                                     {" "}

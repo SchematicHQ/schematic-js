@@ -207,7 +207,7 @@ export const PlanManager = forwardRef<
   const { isFreePlan, isUsageBasedPlan } = useMemo(() => {
     const isFreePlan =
       currentPlan && "planPrice" in currentPlan
-        ? (currentPlan as { planPrice?: number | null }).planPrice === 0
+        ? currentPlan.planPrice === 0
         : false;
     const isUsageBasedPlan = isFreePlan && usageBasedEntitlements.length > 0;
     return { isFreePlan, isUsageBasedPlan };
@@ -312,10 +312,9 @@ export const PlanManager = forwardRef<
             {props.header.price.isVisible &&
               currentPlan &&
               "planPrice" in currentPlan &&
-              typeof (currentPlan as { planPrice?: number | null })
-                .planPrice === "number" &&
+              typeof currentPlan.planPrice === "number" &&
               "planPeriod" in currentPlan &&
-              (currentPlan as { planPeriod?: string | null }).planPeriod && (
+              currentPlan.planPeriod && (
                 <Box>
                   <Text
                     display={
@@ -329,21 +328,14 @@ export const PlanManager = forwardRef<
                       : isFreePlan && showZeroPriceAsFree
                         ? t("Free")
                         : formatCurrency(
-                            (currentPlan as { planPrice?: number | null })
-                              .planPrice!,
+                            currentPlan.planPrice,
                             subscriptionCurrency,
                           )}
                   </Text>
 
                   {!isFreePlan && (
                     <Text display={props.header.price.fontStyle}>
-                      <sub>
-                        /
-                        {shortenPeriod(
-                          (currentPlan as { planPeriod?: string | null })
-                            .planPeriod!,
-                        )}
-                      </sub>
+                      <sub>/{shortenPeriod(currentPlan.planPeriod)}</sub>
                     </Text>
                   )}
                 </Box>
@@ -402,8 +394,7 @@ export const PlanManager = forwardRef<
                     entitlement={entitlement}
                     period={
                       currentPlan && "planPeriod" in currentPlan
-                        ? (currentPlan as { planPeriod?: string | null })
-                            .planPeriod || "month"
+                        ? currentPlan.planPeriod || "month"
                         : "month"
                     }
                     showCredits={showCredits}
@@ -436,18 +427,7 @@ export const PlanManager = forwardRef<
                 {creditGroups.plan.map((group, groupIndex) => {
                   const planCreditGrant =
                     currentPlan && "includedCreditGrants" in currentPlan
-                      ? (
-                          currentPlan as {
-                            includedCreditGrants?: Array<{
-                              creditId: string;
-                              billingCreditAutoTopupEnabled?: boolean;
-                              billingCreditAutoTopupThresholdPercent?:
-                                | number
-                                | null;
-                              billingCreditAutoTopupAmount?: number | null;
-                            }>;
-                          }
-                        ).includedCreditGrants?.find(
+                      ? currentPlan.includedCreditGrants?.find(
                           (grant) => grant.creditId === group.id,
                         )
                       : undefined;
@@ -500,12 +480,13 @@ export const PlanManager = forwardRef<
                               : lighten(settings.theme.card.background, 0.38)
                           }
                         >
-                          Auto-topup enabled
-                          {planCreditGrant.billingCreditAutoTopupThresholdPercent !==
-                            null &&
-                            planCreditGrant.billingCreditAutoTopupThresholdPercent !==
-                              undefined &&
-                            ` at ${planCreditGrant.billingCreditAutoTopupThresholdPercent}%`}
+                          {typeof planCreditGrant.billingCreditAutoTopupThresholdPercent ===
+                          "number"
+                            ? t("Auto-topup enabled at X%", {
+                                threshold:
+                                  planCreditGrant.billingCreditAutoTopupThresholdPercent,
+                              })
+                            : t("Auto-topup enabled")}
                           {planCreditGrant.billingCreditAutoTopupAmount && (
                             <>
                               {" "}
