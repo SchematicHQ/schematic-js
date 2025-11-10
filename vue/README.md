@@ -252,6 +252,16 @@ All composables are SSR-compatible and work seamlessly with Nuxt and other Vue S
 - Real-time subscriptions are deferred to client-side hydration
 - No special configuration needed - it just works!
 
+```typescript
+// plugins/schematic.ts
+import { SchematicPlugin } from '@schematichq/schematic-vue'
+
+export default defineNuxtPlugin((nuxtApp) => {
+  const config = useRuntimeConfig()
+  nuxtApp.vueApp.use(SchematicPlugin, { publishableKey: config.public.schematicPublishableKey })
+})
+```
+
 ```vue
 <!-- Works in Nuxt/SSR -->
 <script setup lang="ts">
