@@ -410,15 +410,14 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     return "plan";
   });
 
-  // Skip past plan stage when using bypass mode (initializeWithPlan)
+  // Skip past bypassed stages when using bypass mode (initializeWithPlan)
   useEffect(() => {
-    // Only run if we're bypassing plan selection AND haven't skipped yet
+    // Skip plan stage if bypassing plan selection
     if (
       checkoutState?.bypassPlanSelection &&
       checkoutStage === "plan" &&
       !hasSkippedInitialPlan
     ) {
-      // Find the next stage after "plan"
       const currentIndex = checkoutStages.findIndex((s) => s.id === "plan");
       const nextStage = checkoutStages[currentIndex + 1];
       if (nextStage) {
@@ -426,22 +425,13 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
         setCheckoutStage(nextStage.id);
       }
     }
-  }, [
-    checkoutStages,
-    checkoutState?.bypassPlanSelection,
-    checkoutStage,
-    hasSkippedInitialPlan,
-  ]);
 
-  // Skip past add-ons stage when using bypass mode with addOnIds
-  useEffect(() => {
-    // Only run if we're bypassing add-on selection AND haven't skipped yet
+    // Skip add-ons stage if bypassing add-on selection
     if (
       checkoutState?.bypassAddOnSelection &&
       checkoutStage === "addons" &&
       !hasSkippedInitialAddOns
     ) {
-      // Find the next stage after "addons"
       const currentIndex = checkoutStages.findIndex((s) => s.id === "addons");
       const nextStage = checkoutStages[currentIndex + 1];
       if (nextStage) {
@@ -451,8 +441,10 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     }
   }, [
     checkoutStages,
+    checkoutState?.bypassPlanSelection,
     checkoutState?.bypassAddOnSelection,
     checkoutStage,
+    hasSkippedInitialPlan,
     hasSkippedInitialAddOns,
   ]);
 
@@ -829,14 +821,14 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
   // this is needed to run the `selectPlan` logic on initial load
   // if the user is already on an available plan
+  const hasInitializedPlan = useRef(false);
+
   useEffect(() => {
-    if (selectedPlan) {
+    if (!hasInitializedPlan.current && selectedPlan) {
+      hasInitializedPlan.current = true;
       selectPlan({ plan: selectedPlan, period: currentPeriod });
     }
-
-    // adding dependencies will cause an endless loop since `selectPlan` updates the value of `selectedPlan`
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [selectedPlan, currentPeriod, selectPlan]);
 
   useEffect(() => {
     if (checkoutState?.planId) {
@@ -844,29 +836,18 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
         (plan) => plan.id === checkoutState.planId,
       );
 
-      if (plan) {
-        // Call selectPlan to trigger handlePreviewCheckout and load plan details
+      // Only call selectPlan if the plan actually changed to avoid redundant API calls
+      if (plan && plan.id !== selectedPlan?.id) {
         selectPlan({ plan, period: currentPeriod });
       }
     }
-  }, [availablePlans, checkoutState?.planId, currentPeriod, selectPlan]);
-
-  useEffect(() => {
-    if (checkoutState?.addOnId) {
-      const checkoutStateAddOn = availableAddOns.find(
-        (addOn) => addOn.id === checkoutState.addOnId,
-      );
-
-      setAddOns((prev) =>
-        prev.map((addOn) => ({
-          ...addOn,
-          ...(addOn.id === checkoutStateAddOn?.id && {
-            isSelected: true,
-          }),
-        })),
-      );
-    }
-  }, [availableAddOns, checkoutState?.addOnId]);
+  }, [
+    availablePlans,
+    checkoutState?.planId,
+    currentPeriod,
+    selectPlan,
+    selectedPlan?.id,
+  ]);
 
   useEffect(() => {
     setAddOns((prevAddOns) => {
