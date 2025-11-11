@@ -127,90 +127,127 @@ export type EmbedLayout =
 /**
  * Explicit configuration for skipping checkout stages.
  *
- * When not provided:
- * - Stages are shown with pre-selected values (for review)
- * - Use explicit configuration to control skipping behavior
- *
- * With explicit configuration, you have full control:
+ * This configuration is independent of pre-selection (planId/addOnIds).
+ * You have full control to:
  * - Skip stages without pre-selecting values
  * - Pre-select values without skipping stages
- * - Any combination that suits your flow
+ * - Pre-select AND skip stages
+ * - Any combination that suits your checkout flow
  *
  * @example
- * // Skip both stages
+ * // Skip both stages (go directly to checkout/payment)
  * { planStage: true, addOnStage: true }
  *
  * @example
- * // Skip only plan stage
+ * // Skip only plan stage (show add-ons)
  * { planStage: true, addOnStage: false }
+ *
+ * @example
+ * // Show plan stage, skip add-ons stage
+ * { planStage: false, addOnStage: true }
+ *
+ * @example
+ * // Show both stages (same as not providing skipped config)
+ * { planStage: false, addOnStage: false }
  */
 export interface CheckoutStageSkipConfig {
   /**
    * Skip the plan selection stage.
    * - true: Skip directly to next stage
-   * - false: Show plan stage (can pre-select with planId)
-   * - undefined: Default to false (show stage)
+   * - false: Show plan stage (user can review/change selection)
+   * - undefined: Defaults to false (show stage)
    */
   planStage?: boolean;
 
   /**
    * Skip the add-on selection stage.
    * - true: Skip directly to next stage
-   * - false: Show addon stage (can pre-select with addOnIds)
-   * - undefined: Default to false (show stage)
+   * - false: Show add-on stage (user can review/change selection)
+   * - undefined: Defaults to false (show stage)
    */
   addOnStage?: boolean;
 }
 
 /**
- * Configuration for bypassing checkout stages with pre-selected values.
+ * Configuration for controlling checkout stage flow and pre-selection.
+ *
+ * ## Three Behavior Modes
+ *
+ * ### 1. Pre-Selection Mode (object without `skipped`)
+ * When you provide planId/addOnIds without explicit skip config, stages are
+ * shown with values pre-selected for user review.
  *
  * @example
- * // Pre-select plan and show for review (default behavior)
+ * // Pre-select plan, show plan stage for review
  * initializeWithPlan({ planId: 'plan_xyz' })
  *
  * @example
- * // Pre-select plan and add-ons, show for review
+ * // Pre-select plan and add-ons, show both stages for review
  * initializeWithPlan({
  *   planId: 'plan_xyz',
- *   addOnIds: ['addon_1']
+ *   addOnIds: ['addon_1', 'addon_2']
+ * })
+ *
+ * ### 2. Explicit Skip Mode (object with `skipped`)
+ * With explicit skip configuration, you control exactly which stages to skip.
+ * You can skip stages without pre-selecting, or pre-select and skip together.
+ *
+ * @example
+ * // Skip plan stage without pre-selecting (user chooses plan)
+ * initializeWithPlan({
+ *   skipped: { planStage: true }
  * })
  *
  * @example
- * // Skip both stages (go directly to checkout)
+ * // Pre-select plan AND skip plan stage (go directly to add-ons)
  * initializeWithPlan({
  *   planId: 'plan_xyz',
+ *   skipped: { planStage: true }
+ * })
+ *
+ * @example
+ * // Pre-select plan but show it, skip add-ons stage
+ * initializeWithPlan({
+ *   planId: 'plan_xyz',
+ *   skipped: { planStage: false, addOnStage: true }
+ * })
+ *
+ * @example
+ * // Skip both stages, go straight to checkout
+ * initializeWithPlan({
+ *   planId: 'plan_xyz',
+ *   addOnIds: ['addon_1'],
  *   skipped: { planStage: true, addOnStage: true }
  * })
  *
- * @example
- * // Skip only plan stage, show add-ons
- * initializeWithPlan({
- *   planId: 'plan_xyz',
- *   skipped: { planStage: true }
- * })
+ * ### 3. Legacy String Format
+ * Backwards compatible mode: pre-selects plan and skips plan stage.
  *
  * @example
- * // Skip stages without pre-selecting (start at addons stage)
- * initializeWithPlan({
- *   skipped: { planStage: true }
- * })
- *
- * @example
- * // Legacy string format (backwards compatible - skips plan stage)
  * initializeWithPlan('plan_xyz')
+ * // Equivalent to: { planId: 'plan_xyz', skipped: { planStage: true } }
  */
 export interface BypassConfig {
-  /** Pre-selected plan ID (optional when using explicit skip config) */
+  /**
+   * Plan ID to pre-select.
+   * Optional - you can skip stages without pre-selecting a plan.
+   */
   planId?: string;
-  /** Pre-selected add-on IDs (optional) */
+  /**
+   * Add-on IDs to pre-select.
+   * Optional - you can skip stages without pre-selecting add-ons.
+   */
   addOnIds?: string[];
   /**
    * Explicit skip configuration for stages.
-   * If not provided, stages are shown with pre-selected values.
+   * - If not provided: stages are shown with pre-selected values (review mode)
+   * - If provided: you control exactly which stages to skip
    */
   skipped?: CheckoutStageSkipConfig;
-  /** Hide skipped stages from breadcrumb navigation (default: false) */
+  /**
+   * Hide skipped stages from breadcrumb navigation.
+   * Default: false (skipped stages still appear in breadcrumbs)
+   */
   hideSkipped?: boolean;
 }
 

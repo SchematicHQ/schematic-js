@@ -224,29 +224,33 @@ export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {
     }
 
     case "SET_PLANID_BYPASS": {
-      // Track if input was a string (legacy format)
       const isStringFormat = typeof action.config === "string";
 
-      // Handle both string (planId) and BypassConfig object
+      // Normalize string format to object format
       const config = isStringFormat
         ? { planId: action.config, hideSkipped: false }
         : action.config;
 
-      // Determine bypass flags based on configuration format
+      // Three behavior modes for stage skipping:
+      // 1. Pre-Selection Mode (object without skipped): Show stages with pre-selected values
+      // 2. Explicit Skip Mode (object with skipped): Precise control over which stages to skip
+      // 3. Legacy String Mode: Pre-select plan and skip plan stage (backwards compatible)
       let bypassPlanSelection: boolean;
       let bypassAddOnSelection: boolean;
 
       if (config.skipped !== undefined) {
-        // Explicit mode: Use skipped configuration
+        // Mode 2: Explicit skip configuration provided
+        // Use exactly what was specified (defaults to false if undefined)
         bypassPlanSelection = config.skipped.planStage ?? false;
         bypassAddOnSelection = config.skipped.addOnStage ?? false;
       } else if (isStringFormat) {
-        // Legacy string format: skip plan stage for backwards compatibility
+        // Mode 3: Legacy string format
+        // Maintains backwards compatibility by skipping plan stage
         bypassPlanSelection = true;
         bypassAddOnSelection = false;
       } else {
-        // Object format without explicit skipped: don't skip by default
-        // Just pre-select values, show stages for review
+        // Mode 1: Pre-selection without explicit skip config
+        // Show all stages with pre-selected values for user review
         bypassPlanSelection = false;
         bypassAddOnSelection = false;
       }
