@@ -115,19 +115,16 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   const [error, setError] = useState<string | undefined>();
 
   const {
-    currentPlanId,
     currentEntitlements,
     showPeriodToggle,
     trialPaymentMethodRequired,
   } = useMemo(() => {
     return {
-      currentPlanId: data?.company?.plan?.id,
       currentEntitlements: data?.featureUsage ? data.featureUsage.features : [],
       showPeriodToggle: data?.showPeriodToggle ?? true,
       trialPaymentMethodRequired: data?.trialPaymentMethodRequired === true,
     };
   }, [
-    data?.company?.plan?.id,
     data?.featureUsage,
     data?.showPeriodToggle,
     data?.trialPaymentMethodRequired,
