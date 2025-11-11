@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from "../runtime";
+import type { PlanCreditGrantView } from "./PlanCreditGrantView";
+import {
+  PlanCreditGrantViewFromJSON,
+  PlanCreditGrantViewFromJSONTyped,
+  PlanCreditGrantViewToJSON,
+} from "./PlanCreditGrantView";
+
 /**
  *
  * @export
@@ -57,6 +64,12 @@ export interface CompanyPlanWithBillingSubView {
   imageUrl?: string | null;
   /**
    *
+   * @type {Array<PlanCreditGrantView>}
+   * @memberof CompanyPlanWithBillingSubView
+   */
+  includedCreditGrants: Array<PlanCreditGrantView>;
+  /**
+   *
    * @type {string}
    * @memberof CompanyPlanWithBillingSubView
    */
@@ -82,6 +95,11 @@ export function instanceOfCompanyPlanWithBillingSubView(
   value: object,
 ): value is CompanyPlanWithBillingSubView {
   if (!("id" in value) || value["id"] === undefined) return false;
+  if (
+    !("includedCreditGrants" in value) ||
+    value["includedCreditGrants"] === undefined
+  )
+    return false;
   if (!("name" in value) || value["name"] === undefined) return false;
   return true;
 }
@@ -112,6 +130,9 @@ export function CompanyPlanWithBillingSubViewFromJSONTyped(
     description: json["description"] == null ? undefined : json["description"],
     id: json["id"],
     imageUrl: json["image_url"] == null ? undefined : json["image_url"],
+    includedCreditGrants: (json["included_credit_grants"] as Array<any>).map(
+      PlanCreditGrantViewFromJSON,
+    ),
     name: json["name"],
     planPeriod: json["plan_period"] == null ? undefined : json["plan_period"],
     planPrice: json["plan_price"] == null ? undefined : json["plan_price"],
@@ -134,6 +155,9 @@ export function CompanyPlanWithBillingSubViewToJSON(
     description: value["description"],
     id: value["id"],
     image_url: value["imageUrl"],
+    included_credit_grants: (value["includedCreditGrants"] as Array<any>).map(
+      PlanCreditGrantViewToJSON,
+    ),
     name: value["name"],
     plan_period: value["planPeriod"],
     plan_price: value["planPrice"],

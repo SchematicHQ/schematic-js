@@ -17,7 +17,7 @@ import {
   type UpdateAddOnRequestBody,
   type UpdatePayInAdvanceRequestBody,
 } from "../../../api/checkoutexternal";
-import { PriceBehavior, TEXT_BASE_SIZE } from "../../../const";
+import { PriceBehavior, PriceInterval, TEXT_BASE_SIZE } from "../../../const";
 import {
   useAvailablePlans,
   useEmbed,
@@ -30,7 +30,7 @@ import type {
 } from "../../../types";
 import { ERROR_UNKNOWN, getAddOnPrice, isError } from "../../../utils";
 import { PeriodToggle } from "../../shared";
-import { Flex, Loader, Modal, ModalHeader, Text } from "../../ui";
+import { Flex, Loader, Modal, ModalContent, ModalHeader, Text } from "../../ui";
 import { Sidebar } from "../sidebar";
 
 import { AddOns } from "./AddOns";
@@ -90,8 +90,10 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
   const isLightBackground = useIsLightBackground();
 
+  const modalRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
-  const checkoutRef = useRef<HTMLDivElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const sidebarRef = useRef<HTMLDivElement>(null);
 
   const [confirmPaymentIntentProps, setConfirmPaymentIntentProps] = useState<
     ConfirmPaymentIntentProps | undefined | null
@@ -315,6 +317,9 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     isPaymentMethodRequired,
   ]);
 
+  // Track if we've already performed the initial skip in bypass mode
+  const [hasSkippedInitialPlan, setHasSkippedInitialPlan] = useState(false);
+
   const [checkoutStage, setCheckoutStage] = useState(() => {
     if (checkoutState?.addOnId) {
       return "addons";
@@ -333,9 +338,11 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     }
 
     // the user has preselected a different plan before starting the checkout flow
+    // or is using bypass mode
     if (
-      typeof checkoutState?.planId !== "undefined" &&
-      checkoutState.planId !== currentPlanId
+      (typeof checkoutState?.planId !== "undefined" &&
+        checkoutState.planId !== currentPlanId) ||
+      checkoutState?.bypassPlanSelection
     ) {
       return checkoutStages.some((stage) => stage.id === "usage")
         ? "usage"
@@ -345,11 +352,35 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
             ? "addonsUsage"
             : checkoutStages.some((stage) => stage.id === "credits")
               ? "credits"
-              : "plan";
+              : checkoutStages.some((stage) => stage.id === "checkout")
+                ? "checkout"
+                : checkoutStages[0]?.id || "plan";
     }
 
     return "plan";
   });
+
+  // Skip past plan stage when using bypass mode (initializeWithPlan)
+  useEffect(() => {
+    // Only run if we're bypassing plan selection AND haven't skipped yet
+    if (
+      checkoutState?.bypassPlanSelection &&
+      checkoutStage === "plan" &&
+      !hasSkippedInitialPlan
+    ) {
+      // Find first non-plan stage (usage/addons/checkout)
+      const nextStage = checkoutStages.find((stage) => stage.id !== "plan");
+      if (nextStage) {
+        setHasSkippedInitialPlan(true);
+        setCheckoutStage(nextStage.id);
+      }
+    }
+  }, [
+    checkoutStages,
+    checkoutState?.bypassPlanSelection,
+    checkoutStage,
+    hasSkippedInitialPlan,
+  ]);
 
   const handlePreviewCheckout = useCallback(
     async (updates: {
@@ -532,16 +563,29 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       shouldTrial?: boolean;
     }) => {
       const plan = updates.plan;
-      const period = updates.period || planPeriod;
+
+      const period = showPeriodToggle
+        ? updates.period || planPeriod
+        : plan.yearlyPrice && !plan.monthlyPrice
+          ? PriceInterval.Year
+          : PriceInterval.Month;
+
       const updatedUsageBasedEntitlements = plan.entitlements.reduce(
         createActiveUsageBasedEntitlementsReducer(currentEntitlements, period),
         [],
       );
 
-      // only update if the plan is changing
+      if (period !== planPeriod || plan.id !== selectedPlan?.id) {
+        setUsageBasedEntitlements(updatedUsageBasedEntitlements);
+      }
+
+      if (period !== planPeriod) {
+        setPlanPeriod(period);
+      }
+
+      // only update selected plan if the plan is changing
       if (plan.id !== selectedPlan?.id) {
         setSelectedPlan(plan);
-        setUsageBasedEntitlements(updatedUsageBasedEntitlements);
       }
 
       const updatedShouldTrial = updates.shouldTrial ?? shouldTrial;
@@ -576,6 +620,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     [
       selectedPlan?.id,
       planPeriod,
+      showPeriodToggle,
       currentEntitlements,
       shouldTrial,
       willTrialWithoutPaymentMethod,
@@ -715,12 +760,31 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   }, []);
 
   useEffect(() => {
-    const plan = availablePlans.find((plan) =>
-      checkoutState?.planId ? plan.id === checkoutState.planId : plan.current,
-    );
+    if (checkoutState?.planId) {
+      const plan = availablePlans.find(
+        (plan) => plan.id === checkoutState.planId,
+      );
 
-    setSelectedPlan(plan);
+      setSelectedPlan(plan);
+    }
   }, [availablePlans, checkoutState?.planId]);
+
+  useEffect(() => {
+    if (checkoutState?.addOnId) {
+      const checkoutStateAddOn = availableAddOns.find(
+        (addOn) => addOn.id === checkoutState.addOnId,
+      );
+
+      setAddOns((prev) =>
+        prev.map((addOn) => ({
+          ...addOn,
+          ...(addOn.id === checkoutStateAddOn?.id && {
+            isSelected: true,
+          }),
+        })),
+      );
+    }
+  }, [availableAddOns, checkoutState?.addOnId]);
 
   useEffect(() => {
     setAddOns((prevAddOns) => {
@@ -753,7 +817,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
   useEffect(() => {
     if (charges) {
-      checkoutRef.current?.scrollTo({
+      sidebarRef.current?.scrollTo({
         top: 0,
         left: 0,
         behavior: "smooth",
@@ -762,7 +826,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   }, [charges]);
 
   useLayoutEffect(() => {
-    contentRef.current?.scrollTo({
+    stageRef.current?.scrollTo({
       top: 0,
       left: 0,
       behavior: "smooth",
@@ -773,8 +837,41 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     (stage) => stage.id === checkoutStage,
   );
 
+  // Show loading overlay while bypass mode resolves initial stage
+  const shouldShowBypassOverlay =
+    checkoutState?.bypassPlanSelection &&
+    checkoutStage === "plan" &&
+    !hasSkippedInitialPlan;
+
   return (
-    <Modal size="lg" top={top} contentRef={contentRef}>
+    <Modal ref={modalRef} size="lg" top={top}>
+      {shouldShowBypassOverlay && (
+        <Flex
+          $position="absolute"
+          $top={0}
+          $left={0}
+          $zIndex={3}
+          $width="100%"
+          $height="100dvh"
+          $justifyContent="center"
+          $alignItems="center"
+          $backgroundColor={
+            isLightBackground
+              ? "hsla(0, 0%, 100%, 0.9)"
+              : "hsla(0, 0%, 0%, 0.9)"
+          }
+          $backdropFilter="blur(8px)"
+          $padding="1rem"
+          $viewport={{
+            md: {
+              $padding: "1.5rem",
+            },
+          }}
+        >
+          <Loader $color={settings.theme.primary} $size="2xl" />
+        </Flex>
+      )}
+
       <ModalHeader bordered>
         <Flex
           $flexWrap="wrap"
@@ -800,20 +897,11 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
         </Flex>
       </ModalHeader>
 
-      <Flex
-        $position="relative"
-        $flexDirection="column"
-        $height="auto"
-        $viewport={{
-          md: {
-            $flexDirection: "row",
-            $height: "calc(100% - 5rem)",
-          },
-        }}
-      >
+      <ModalContent ref={contentRef}>
         <Flex
+          ref={stageRef}
           $flexDirection="column"
-          $flexGrow="1"
+          $flexGrow={1}
           $gap="1.5rem"
           $padding="1.5rem"
           $backgroundColor={
@@ -934,6 +1022,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
         </Flex>
 
         <Sidebar
+          ref={sidebarRef}
           planPeriod={planPeriod}
           selectedPlan={selectedPlan}
           addOns={addOns}
@@ -941,7 +1030,6 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           addOnUsageBasedEntitlements={addOnUsageBasedEntitlements}
           creditBundles={creditBundles}
           charges={charges}
-          checkoutRef={checkoutRef}
           checkoutStage={checkoutStage}
           checkoutStages={checkoutStages}
           error={error}
@@ -957,7 +1045,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           setConfirmPaymentIntent={setConfirmPaymentIntentProps}
           willTrialWithoutPaymentMethod={willTrialWithoutPaymentMethod}
         />
-      </Flex>
+      </ModalContent>
     </Modal>
   );
 };

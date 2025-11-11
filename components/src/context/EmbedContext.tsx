@@ -60,6 +60,7 @@ export interface EmbedContextProps extends EmbedState {
   setError: (error: Error) => void;
   setLayout: (layout: EmbedLayout) => void;
   setCheckoutState: (state: CheckoutState) => void;
+  initializeWithPlan: (planId: string) => void;
   setData: (data: HydrateDataWithCompanyContext) => void;
   updateSettings: (
     settings: DeepPartial<EmbedSettings>,
@@ -91,6 +92,7 @@ export const initialContext = {
   setAccessToken: stub,
   setLayout: stub,
   setCheckoutState: stub,
+  initializeWithPlan: stub,
   setData: stub,
   updateSettings: stub,
   debug: stub,

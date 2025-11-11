@@ -58,4 +58,5 @@ export enum CreditGrantReason {
   Free = "free",
   Plan = "plan",
   Purchased = "purchased",
+  AutoTopup = "billing_credit_auto_topup",
 }

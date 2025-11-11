@@ -131,6 +131,7 @@ export type CheckoutState = {
   usage?: boolean;
   addOnUsage?: boolean;
   credits?: boolean;
+  bypassPlanSelection?: boolean;
 };
 
 export type EmbedMode = "edit" | "view";

@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 
 import { useAvailablePlans, useEmbed } from "../../../hooks";
 import { toPrettyDate } from "../../../utils";
-import { Button, Flex, Modal, ModalHeader, Text } from "../../ui";
+import { Button, Flex, Modal, ModalContent, ModalHeader, Text } from "../../ui";
 import { createActiveUsageBasedEntitlementsReducer } from "../checkout-dialog";
 import { Sidebar } from "../sidebar";
 
@@ -16,7 +16,7 @@ export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
 
   const { data, setCheckoutState } = useEmbed();
 
-  const contentRef = useRef<HTMLDivElement>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
 
   const [error, setError] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(false);
@@ -66,25 +66,16 @@ export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
   );
 
   return (
-    <Modal size="auto" top={top} contentRef={contentRef}>
+    <Modal ref={modalRef} size="auto" top={top}>
       <ModalHeader />
 
-      <Flex
-        $position="relative"
-        $flexDirection="column"
-        $viewport={{
-          md: {
-            $flexDirection: "row",
-          },
-        }}
-      >
+      <ModalContent>
         <Flex
           $flexDirection="column"
-          $flexWrap="wrap"
-          $justifyContent="center"
+          $flexGrow={1}
           $gap="2rem"
-          $marginTop="-2.5rem"
           $padding="0 2.5rem 2.5rem"
+          $overflow="auto"
         >
           <Flex $flexDirection="column" $flexWrap="wrap" $gap="0.5rem">
             <Text as="h2" display="heading2">
@@ -134,7 +125,7 @@ export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
           setIsLoading={setIsLoading}
           setConfirmPaymentIntent={() => {}}
         />
-      </Flex>
+      </ModalContent>
     </Modal>
   );
 };

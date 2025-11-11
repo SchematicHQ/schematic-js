@@ -51,7 +51,8 @@ type EmbedAction =
       update?: boolean;
     }
   | { type: "CHANGE_LAYOUT"; layout: EmbedLayout }
-  | { type: "SET_CHECKOUT_STATE"; state: CheckoutState };
+  | { type: "SET_CHECKOUT_STATE"; state: CheckoutState }
+  | { type: "SET_PLANID_BYPASS"; planId: string };
 
 function normalize(data?: HydrateData): HydrateDataWithCompanyContext {
   return merge({}, data, {
@@ -218,6 +219,17 @@ export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {
         ...state,
         layout: "checkout",
         checkoutState: { ...action.state },
+      };
+    }
+
+    case "SET_PLANID_BYPASS": {
+      return {
+        ...state,
+        layout: "checkout",
+        checkoutState: {
+          planId: action.planId,
+          bypassPlanSelection: true,
+        },
       };
     }
   }

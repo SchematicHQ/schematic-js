@@ -2443,7 +2443,8 @@
         "billing_product_external_id": null,
         "billing_product_id": "bilp_bBtSkBhLp2j",
         "plan_price": 500,
-        "plan_period": "month"
+        "plan_period": "month",
+        "included_credit_grants": []
       },
       "plans": [
         {

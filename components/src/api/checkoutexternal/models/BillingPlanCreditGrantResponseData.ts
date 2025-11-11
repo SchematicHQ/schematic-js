@@ -21,6 +21,48 @@ import { mapValues } from "../runtime";
 export interface BillingPlanCreditGrantResponseData {
   /**
    *
+   * @type {number}
+   * @memberof BillingPlanCreditGrantResponseData
+   */
+  autoTopupAmount?: number | null;
+  /**
+   *
+   * @type {string}
+   * @memberof BillingPlanCreditGrantResponseData
+   */
+  autoTopupAmountType?: string | null;
+  /**
+   *
+   * @type {boolean}
+   * @memberof BillingPlanCreditGrantResponseData
+   */
+  autoTopupEnabled: boolean;
+  /**
+   *
+   * @type {string}
+   * @memberof BillingPlanCreditGrantResponseData
+   */
+  autoTopupExpiryType?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof BillingPlanCreditGrantResponseData
+   */
+  autoTopupExpiryUnit?: string | null;
+  /**
+   *
+   * @type {number}
+   * @memberof BillingPlanCreditGrantResponseData
+   */
+  autoTopupExpiryUnitCount?: number | null;
+  /**
+   *
+   * @type {number}
+   * @memberof BillingPlanCreditGrantResponseData
+   */
+  autoTopupThresholdPercent?: number | null;
+  /**
+   *
    * @type {Date}
    * @memberof BillingPlanCreditGrantResponseData
    */
@@ -123,6 +165,8 @@ export interface BillingPlanCreditGrantResponseData {
 export function instanceOfBillingPlanCreditGrantResponseData(
   value: object,
 ): value is BillingPlanCreditGrantResponseData {
+  if (!("autoTopupEnabled" in value) || value["autoTopupEnabled"] === undefined)
+    return false;
   if (!("createdAt" in value) || value["createdAt"] === undefined) return false;
   if (!("creditAmount" in value) || value["creditAmount"] === undefined)
     return false;
@@ -154,6 +198,29 @@ export function BillingPlanCreditGrantResponseDataFromJSONTyped(
     return json;
   }
   return {
+    autoTopupAmount:
+      json["auto_topup_amount"] == null ? undefined : json["auto_topup_amount"],
+    autoTopupAmountType:
+      json["auto_topup_amount_type"] == null
+        ? undefined
+        : json["auto_topup_amount_type"],
+    autoTopupEnabled: json["auto_topup_enabled"],
+    autoTopupExpiryType:
+      json["auto_topup_expiry_type"] == null
+        ? undefined
+        : json["auto_topup_expiry_type"],
+    autoTopupExpiryUnit:
+      json["auto_topup_expiry_unit"] == null
+        ? undefined
+        : json["auto_topup_expiry_unit"],
+    autoTopupExpiryUnitCount:
+      json["auto_topup_expiry_unit_count"] == null
+        ? undefined
+        : json["auto_topup_expiry_unit_count"],
+    autoTopupThresholdPercent:
+      json["auto_topup_threshold_percent"] == null
+        ? undefined
+        : json["auto_topup_threshold_percent"],
     createdAt: new Date(json["created_at"]),
     creditAmount: json["credit_amount"],
     creditId: json["credit_id"],
@@ -187,6 +254,13 @@ export function BillingPlanCreditGrantResponseDataToJSON(
     return value;
   }
   return {
+    auto_topup_amount: value["autoTopupAmount"],
+    auto_topup_amount_type: value["autoTopupAmountType"],
+    auto_topup_enabled: value["autoTopupEnabled"],
+    auto_topup_expiry_type: value["autoTopupExpiryType"],
+    auto_topup_expiry_unit: value["autoTopupExpiryUnit"],
+    auto_topup_expiry_unit_count: value["autoTopupExpiryUnitCount"],
+    auto_topup_threshold_percent: value["autoTopupThresholdPercent"],
     created_at: value["createdAt"].toISOString(),
     credit_amount: value["creditAmount"],
     credit_id: value["creditId"],

@@ -43,7 +43,7 @@ export interface Condition {
    * @type {string}
    * @memberof Condition
    */
-  conditionType: string;
+  conditionType: ConditionConditionTypeEnum;
   /**
    *
    * @type {number}
@@ -79,13 +79,13 @@ export interface Condition {
    * @type {string}
    * @memberof Condition
    */
-  metricPeriod?: string | null;
+  metricPeriod?: ConditionMetricPeriodEnum | null;
   /**
    *
    * @type {string}
    * @memberof Condition
    */
-  metricPeriodMonthReset?: string | null;
+  metricPeriodMonthReset?: ConditionMetricPeriodMonthResetEnum | null;
   /**
    *
    * @type {number}
@@ -97,7 +97,7 @@ export interface Condition {
    * @type {string}
    * @memberof Condition
    */
-  operator: string;
+  operator: ConditionOperatorEnum;
   /**
    *
    * @type {Array<string>}
@@ -117,6 +117,61 @@ export interface Condition {
    */
   traitValue: string;
 }
+
+/**
+ * @export
+ */
+export const ConditionConditionTypeEnum = {
+  BasePlan: "base_plan",
+  BillingProduct: "billing_product",
+  Company: "company",
+  Credit: "credit",
+  CrmProduct: "crm_product",
+  Metric: "metric",
+  Plan: "plan",
+  Trait: "trait",
+  User: "user",
+} as const;
+export type ConditionConditionTypeEnum =
+  (typeof ConditionConditionTypeEnum)[keyof typeof ConditionConditionTypeEnum];
+
+/**
+ * @export
+ */
+export const ConditionMetricPeriodEnum = {
+  AllTime: "all_time",
+  CurrentDay: "current_day",
+  CurrentMonth: "current_month",
+  CurrentWeek: "current_week",
+} as const;
+export type ConditionMetricPeriodEnum =
+  (typeof ConditionMetricPeriodEnum)[keyof typeof ConditionMetricPeriodEnum];
+
+/**
+ * @export
+ */
+export const ConditionMetricPeriodMonthResetEnum = {
+  FirstOfMonth: "first_of_month",
+  BillingCycle: "billing_cycle",
+} as const;
+export type ConditionMetricPeriodMonthResetEnum =
+  (typeof ConditionMetricPeriodMonthResetEnum)[keyof typeof ConditionMetricPeriodMonthResetEnum];
+
+/**
+ * @export
+ */
+export const ConditionOperatorEnum = {
+  Eq: "eq",
+  Ne: "ne",
+  Gt: "gt",
+  Lt: "lt",
+  Gte: "gte",
+  Lte: "lte",
+  IsEmpty: "is_empty",
+  NotEmpty: "not_empty",
+} as const;
+export type ConditionOperatorEnum =
+  (typeof ConditionOperatorEnum)[keyof typeof ConditionOperatorEnum];
 
 /**
  * Check if a given object implements the Condition interface.
