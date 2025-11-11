@@ -224,34 +224,38 @@ export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {
     }
 
     case "SET_PLANID_BYPASS": {
+      // Track if input was a string (legacy format)
+      const isStringFormat = typeof action.config === "string";
+
       // Handle both string (planId) and BypassConfig object
-      const config = typeof action.config === "string"
+      const config = isStringFormat
         ? { planId: action.config, hideSkipped: false }
         : action.config;
 
-      // Determine bypass flags based on explicit or implicit configuration
+      // Determine bypass flags based on configuration format
       let bypassPlanSelection: boolean;
       let bypassAddOnSelection: boolean;
 
       if (config.skipped !== undefined) {
         // Explicit mode: Use skipped configuration
-        // Default planStage to true if not specified (maintain backwards compatible default)
-        // Default addOnStage to false if not specified
-        bypassPlanSelection = config.skipped.planStage ?? true;
+        bypassPlanSelection = config.skipped.planStage ?? false;
         bypassAddOnSelection = config.skipped.addOnStage ?? false;
-      } else {
-        // Implicit mode (backwards compatibility): Derive from presence of IDs
-        // Always skip plan when using initializeWithPlan
+      } else if (isStringFormat) {
+        // Legacy string format: skip plan stage for backwards compatibility
         bypassPlanSelection = true;
-        // Only skip addon if addOnIds are provided
-        bypassAddOnSelection = Boolean(config.addOnIds && config.addOnIds.length > 0);
+        bypassAddOnSelection = false;
+      } else {
+        // Object format without explicit skipped: don't skip by default
+        // Just pre-select values, show stages for review
+        bypassPlanSelection = false;
+        bypassAddOnSelection = false;
       }
 
       return {
         ...state,
         layout: "checkout",
         checkoutState: {
-          planId: config.planId,
+          ...(config.planId && { planId: config.planId }),
           bypassPlanSelection,
           bypassAddOnSelection,
           ...(config.addOnIds && { addOnIds: config.addOnIds }),

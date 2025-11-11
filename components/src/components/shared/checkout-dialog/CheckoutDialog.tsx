@@ -387,13 +387,9 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       return "credits";
     }
 
-    // the user has preselected a different plan before starting the checkout flow
-    // or is using bypass mode
-    if (
-      (typeof checkoutState?.planId !== "undefined" &&
-        checkoutState.planId !== currentPlanId) ||
-      checkoutState?.bypassPlanSelection
-    ) {
+    // Skip plan stage only when explicitly configured via bypassPlanSelection
+    // Pre-selecting a plan (via planId) without bypass shows the plan stage
+    if (checkoutState?.bypassPlanSelection) {
       return checkoutStages.some((stage) => stage.id === "usage")
         ? "usage"
         : checkoutStages.some((stage) => stage.id === "addons")
