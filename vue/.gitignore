@@ -7,9 +7,6 @@ coverage/
 .yarn/
 yarn-error.log
 
-# Generated files
-src/version.ts
-
 # IDE
 .vscode/
 .idea/
