@@ -1,6 +1,6 @@
 {
   "name": "@schematichq/schematic-vue",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "main": "dist/schematic-vue.cjs.js",
   "module": "dist/schematic-vue.esm.js",
   "types": "dist/schematic-vue.d.ts",
