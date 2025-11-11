@@ -192,21 +192,62 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
   const [addOnUsageBasedEntitlements, setAddOnUsageBasedEntitlements] =
     useState<UsageBasedEntitlement[]>(() => {
-      return (data?.company?.addOns || []).flatMap((currentAddOn) => {
+      // Get entitlements from currently active add-ons
+      const currentAddOnEntitlements = (data?.company?.addOns || []).flatMap(
+        (currentAddOn) => {
+          const availableAddOn = availableAddOns.find(
+            (available) => available.id === currentAddOn.id,
+          );
+
+          if (!availableAddOn) return [];
+
+          return availableAddOn.entitlements.reduce(
+            createActiveUsageBasedEntitlementsReducer(
+              currentEntitlements,
+              planPeriod,
+            ),
+            [],
+          );
+        },
+      );
+
+      // Also get entitlements from pre-selected add-ons in bypass mode
+      const bypassAddOnEntitlements = (
+        checkoutState?.addOnIds || []
+      ).flatMap((addOnId) => {
         const availableAddOn = availableAddOns.find(
-          (available) => available.id === currentAddOn.id,
+          (available) => available.id === addOnId,
         );
 
         if (!availableAddOn) return [];
 
-        return availableAddOn.entitlements.reduce(
-          createActiveUsageBasedEntitlementsReducer(
-            currentEntitlements,
-            planPeriod,
-          ),
-          [],
-        );
+        // Calculate pay-in-advance entitlements (same logic as toggleAddOn)
+        return availableAddOn.entitlements
+          .filter(
+            (entitlement) =>
+              entitlement.priceBehavior === PriceBehavior.PayInAdvance,
+          )
+          .map((entitlement) => ({
+            ...entitlement,
+            allocation: entitlement.valueNumeric || 0,
+            usage: 0,
+            quantity: 1,
+          }));
       });
+
+      // Combine both sources, avoiding duplicates by featureId
+      const allEntitlements = [...currentAddOnEntitlements];
+
+      for (const bypassEnt of bypassAddOnEntitlements) {
+        const exists = currentAddOnEntitlements.some(
+          (current) => current.featureId === bypassEnt.featureId,
+        );
+        if (!exists) {
+          allEntitlements.push(bypassEnt);
+        }
+      }
+
+      return allEntitlements;
     });
 
   const payInAdvanceEntitlements = useMemo(
@@ -323,6 +364,11 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   // Track if we've already performed the initial skip in bypass mode
   const [hasSkippedInitialPlan, setHasSkippedInitialPlan] = useState(false);
   const [hasSkippedInitialAddOns, setHasSkippedInitialAddOns] = useState(false);
+
+  // Track if we're in the initial bypass loading phase
+  const [isBypassLoading, setIsBypassLoading] = useState(() =>
+    checkoutState?.bypassPlanSelection || checkoutState?.bypassAddOnSelection
+  );
 
   const [checkoutStage, setCheckoutStage] = useState(() => {
     if (checkoutState?.addOnId) {
@@ -568,6 +614,10 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
         setError(msg);
       } finally {
         setIsLoading(false);
+        // Turn off bypass loading after first API call completes
+        if (isBypassLoading) {
+          setIsBypassLoading(false);
+        }
       }
     },
     [
@@ -581,6 +631,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       creditBundles,
       shouldTrial,
       promoCode,
+      isBypassLoading,
     ],
   );
 
@@ -793,9 +844,12 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
         (plan) => plan.id === checkoutState.planId,
       );
 
-      setSelectedPlan(plan);
+      if (plan) {
+        // Call selectPlan to trigger handlePreviewCheckout and load plan details
+        selectPlan({ plan, period: currentPeriod });
+      }
     }
-  }, [availablePlans, checkoutState?.planId]);
+  }, [availablePlans, checkoutState?.planId, currentPeriod, selectPlan]);
 
   useEffect(() => {
     if (checkoutState?.addOnId) {
@@ -885,6 +939,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
   // Show loading overlay while bypass mode resolves initial stage
   const shouldShowBypassOverlay =
+    isBypassLoading ||
     (checkoutState?.bypassPlanSelection &&
       checkoutStage === "plan" &&
       !hasSkippedInitialPlan) ||
