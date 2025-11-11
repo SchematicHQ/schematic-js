@@ -27,13 +27,19 @@
         "logLevel": "warning"
       }
     },
-    "extractorMessageReporting": {
-      "default": {
-        "logLevel": "warning"
-      }
-    },
     "tsdocMessageReporting": {
       "default": {
+        "logLevel": "none"
+      }
+    },
+    "extractorMessageReporting": {
+      "ae-forgotten-export": {
+        "logLevel": "none"
+      },
+      "ae-missing-getter": {
+        "logLevel": "none"
+      },
+      "ae-missing-release-tag": {
         "logLevel": "none"
       }
     }
