@@ -23,13 +23,29 @@ jobs:
         working-directory: ./components
         run: yarn lint
 
+  test:
+    name: Test
+    runs-on: runs-on=${{ github.run_id }}/runner=4cpu-linux-x64/extras=s3-cache
+    steps:
+      - uses: runs-on/action@v2.0.3
+      - uses: actions/checkout@v5.0.0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.x
+      - name: Yarn install
+        working-directory: ./components
+        run: yarn install
+      - name: Test
+        working-directory: ./components
+        run: yarn test
+
   publish:
     name: NPM Publish
     runs-on: runs-on=${{ github.run_id }}/runner=4cpu-linux-x64/extras=s3-cache
     permissions:
       packages: write
       contents: read
-    needs: [lint]
+    needs: [test, lint]
     steps:
       - uses: runs-on/action@v2.0.3
       - uses: actions/checkout@v5.0.0
