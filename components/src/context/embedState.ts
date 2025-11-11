@@ -124,6 +124,12 @@ export type EmbedLayout =
   | "unsubscribe"
   | "disabled";
 
+export interface BypassConfig {
+  planId: string;
+  addOnIds?: string[];
+  hideSkipped?: boolean;
+}
+
 export type CheckoutState = {
   period?: string;
   planId?: string | null;
@@ -132,6 +138,9 @@ export type CheckoutState = {
   addOnUsage?: boolean;
   credits?: boolean;
   bypassPlanSelection?: boolean;
+  bypassAddOnSelection?: boolean;
+  addOnIds?: string[];
+  hideSkippedStages?: boolean;
 };
 
 export type EmbedMode = "edit" | "view";

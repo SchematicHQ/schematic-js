@@ -162,11 +162,14 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     return availableAddOns.map((addOn) => ({
       ...addOn,
       isSelected:
-        typeof checkoutState?.addOnId !== "undefined"
+        // Check if bypassed with specific add-on IDs
+        checkoutState?.addOnIds?.includes(addOn.id) ||
+        // Check if single add-on ID provided
+        (typeof checkoutState?.addOnId !== "undefined"
           ? addOn.id === checkoutState.addOnId
           : (data?.company?.addOns || []).some(
               (currentAddOn) => addOn.id === currentAddOn.id,
-            ),
+            )),
     }));
   });
 
@@ -319,6 +322,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
   // Track if we've already performed the initial skip in bypass mode
   const [hasSkippedInitialPlan, setHasSkippedInitialPlan] = useState(false);
+  const [hasSkippedInitialAddOns, setHasSkippedInitialAddOns] = useState(false);
 
   const [checkoutStage, setCheckoutStage] = useState(() => {
     if (checkoutState?.addOnId) {
@@ -368,8 +372,9 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       checkoutStage === "plan" &&
       !hasSkippedInitialPlan
     ) {
-      // Find first non-plan stage (usage/addons/checkout)
-      const nextStage = checkoutStages.find((stage) => stage.id !== "plan");
+      // Find the next stage after "plan"
+      const currentIndex = checkoutStages.findIndex((s) => s.id === "plan");
+      const nextStage = checkoutStages[currentIndex + 1];
       if (nextStage) {
         setHasSkippedInitialPlan(true);
         setCheckoutStage(nextStage.id);
@@ -380,6 +385,29 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     checkoutState?.bypassPlanSelection,
     checkoutStage,
     hasSkippedInitialPlan,
+  ]);
+
+  // Skip past add-ons stage when using bypass mode with addOnIds
+  useEffect(() => {
+    // Only run if we're bypassing add-on selection AND haven't skipped yet
+    if (
+      checkoutState?.bypassAddOnSelection &&
+      checkoutStage === "addons" &&
+      !hasSkippedInitialAddOns
+    ) {
+      // Find the next stage after "addons"
+      const currentIndex = checkoutStages.findIndex((s) => s.id === "addons");
+      const nextStage = checkoutStages[currentIndex + 1];
+      if (nextStage) {
+        setHasSkippedInitialAddOns(true);
+        setCheckoutStage(nextStage.id);
+      }
+    }
+  }, [
+    checkoutStages,
+    checkoutState?.bypassAddOnSelection,
+    checkoutStage,
+    hasSkippedInitialAddOns,
   ]);
 
   const handlePreviewCheckout = useCallback(
@@ -837,11 +865,32 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     (stage) => stage.id === checkoutStage,
   );
 
+  // Filter stages for breadcrumb display based on hideSkippedStages
+  const visibleStages = useMemo(() => {
+    if (!checkoutState?.hideSkippedStages) {
+      return checkoutStages;
+    }
+
+    // Hide stages that were bypassed
+    return checkoutStages.filter((stage) => {
+      if (stage.id === "plan" && checkoutState.bypassPlanSelection) {
+        return false;
+      }
+      if (stage.id === "addons" && checkoutState.bypassAddOnSelection) {
+        return false;
+      }
+      return true;
+    });
+  }, [checkoutStages, checkoutState]);
+
   // Show loading overlay while bypass mode resolves initial stage
   const shouldShowBypassOverlay =
-    checkoutState?.bypassPlanSelection &&
-    checkoutStage === "plan" &&
-    !hasSkippedInitialPlan;
+    (checkoutState?.bypassPlanSelection &&
+      checkoutStage === "plan" &&
+      !hasSkippedInitialPlan) ||
+    (checkoutState?.bypassAddOnSelection &&
+      checkoutStage === "addons" &&
+      !hasSkippedInitialAddOns);
 
   return (
     <Modal ref={modalRef} size="lg" top={top}>
@@ -882,12 +931,12 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
             },
           }}
         >
-          {checkoutStages.map((stage, index, stages) => (
+          {visibleStages.map((stage, index, stages) => (
             <Navigation
               key={stage.id}
               name={stage.name}
               index={index}
-              activeIndex={checkoutStages.findIndex(
+              activeIndex={visibleStages.findIndex(
                 (s) => s.id === checkoutStage,
               )}
               isLast={index === stages.length - 1}

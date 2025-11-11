@@ -14,6 +14,7 @@ import type {
 
 import {
   defaultSettings,
+  type BypassConfig,
   type CheckoutState,
   type EmbedLayout,
   type EmbedSettings,
@@ -52,7 +53,7 @@ type EmbedAction =
     }
   | { type: "CHANGE_LAYOUT"; layout: EmbedLayout }
   | { type: "SET_CHECKOUT_STATE"; state: CheckoutState }
-  | { type: "SET_PLANID_BYPASS"; planId: string };
+  | { type: "SET_PLANID_BYPASS"; config: string | BypassConfig };
 
 function normalize(data?: HydrateData): HydrateDataWithCompanyContext {
   return merge({}, data, {
@@ -223,12 +224,22 @@ export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {
     }
 
     case "SET_PLANID_BYPASS": {
+      // Handle both string (planId) and BypassConfig object
+      const config = typeof action.config === "string"
+        ? { planId: action.config, hideSkipped: false }
+        : action.config;
+
       return {
         ...state,
         layout: "checkout",
         checkoutState: {
-          planId: action.planId,
+          planId: config.planId,
           bypassPlanSelection: true,
+          ...(config.addOnIds && config.addOnIds.length > 0 && {
+            addOnIds: config.addOnIds,
+            bypassAddOnSelection: true,
+          }),
+          hideSkippedStages: config.hideSkipped ?? false,
         },
       };
     }
