@@ -229,16 +229,32 @@ export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {
         ? { planId: action.config, hideSkipped: false }
         : action.config;
 
+      // Determine bypass flags based on explicit or implicit configuration
+      let bypassPlanSelection: boolean;
+      let bypassAddOnSelection: boolean;
+
+      if (config.skipped !== undefined) {
+        // Explicit mode: Use skipped configuration
+        // Default planStage to true if not specified (maintain backwards compatible default)
+        // Default addOnStage to false if not specified
+        bypassPlanSelection = config.skipped.planStage ?? true;
+        bypassAddOnSelection = config.skipped.addOnStage ?? false;
+      } else {
+        // Implicit mode (backwards compatibility): Derive from presence of IDs
+        // Always skip plan when using initializeWithPlan
+        bypassPlanSelection = true;
+        // Only skip addon if addOnIds are provided
+        bypassAddOnSelection = Boolean(config.addOnIds && config.addOnIds.length > 0);
+      }
+
       return {
         ...state,
         layout: "checkout",
         checkoutState: {
           planId: config.planId,
-          bypassPlanSelection: true,
-          ...(config.addOnIds && config.addOnIds.length > 0 && {
-            addOnIds: config.addOnIds,
-            bypassAddOnSelection: true,
-          }),
+          bypassPlanSelection,
+          bypassAddOnSelection,
+          ...(config.addOnIds && { addOnIds: config.addOnIds }),
           hideSkippedStages: config.hideSkipped ?? false,
         },
       };

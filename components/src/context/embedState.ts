@@ -124,9 +124,76 @@ export type EmbedLayout =
   | "unsubscribe"
   | "disabled";
 
+/**
+ * Explicit configuration for skipping checkout stages.
+ *
+ * When not provided, the system falls back to implicit behavior:
+ * - Plan stage is skipped when planId is provided
+ * - Add-on stage is skipped when addOnIds is provided
+ *
+ * With explicit configuration, you have full control:
+ * - Skip stages without pre-selecting values
+ * - Pre-select values without skipping stages
+ *
+ * @example
+ * // Skip both stages
+ * { planStage: true, addOnStage: true }
+ *
+ * @example
+ * // Pre-select plan but show it for review
+ * { planStage: false }
+ */
+export interface CheckoutStageSkipConfig {
+  /**
+   * Skip the plan selection stage.
+   * - true: Skip directly to next stage
+   * - false: Show plan stage (can pre-select with planId)
+   * - undefined: Use implicit behavior (skip if using initializeWithPlan)
+   */
+  planStage?: boolean;
+
+  /**
+   * Skip the add-on selection stage.
+   * - true: Skip directly to next stage
+   * - false: Show addon stage (can pre-select with addOnIds)
+   * - undefined: Use implicit behavior (skip if addOnIds provided)
+   */
+  addOnStage?: boolean;
+}
+
+/**
+ * Configuration for bypassing checkout stages with pre-selected values.
+ *
+ * @example
+ * // Implicit mode (backwards compatible)
+ * initializeWithPlan({ planId: 'plan_xyz' })
+ *
+ * @example
+ * // Explicit mode - skip both stages
+ * initializeWithPlan({
+ *   planId: 'plan_xyz',
+ *   skipped: { planStage: true, addOnStage: true }
+ * })
+ *
+ * @example
+ * // Pre-select but show for review
+ * initializeWithPlan({
+ *   planId: 'plan_xyz',
+ *   addOnIds: ['addon_1'],
+ *   skipped: { planStage: false, addOnStage: false }
+ * })
+ */
 export interface BypassConfig {
+  /** Pre-selected plan ID (required) */
   planId: string;
+  /** Pre-selected add-on IDs (optional) */
   addOnIds?: string[];
+  /**
+   * Explicit skip configuration for stages.
+   * If not provided, falls back to implicit behavior.
+   */
+  skipped?: CheckoutStageSkipConfig;
+  /** Hide skipped stages from breadcrumb navigation (default: false) */
   hideSkipped?: boolean;
 }
 
