@@ -227,9 +227,9 @@ export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {
       const isStringFormat = typeof action.config === "string";
 
       // Normalize string format to object format
-      const config = isStringFormat
-        ? { planId: action.config, hideSkipped: false }
-        : action.config;
+      const config: BypassConfig = isStringFormat
+        ? { planId: action.config as string, hideSkipped: false }
+        : (action.config as BypassConfig);
 
       // Three behavior modes for stage skipping:
       // 1. Pre-Selection Mode (object without skipped): Show stages with pre-selected values
