@@ -1,6 +1,3 @@
-import "@testing-library/dom";
-import "@testing-library/jest-dom";
-
 import { type PlanEntitlementResponseData } from "../../../api/componentspublic";
 import {
   EntitlementValueType,
@@ -80,7 +77,6 @@ describe("`Entitlement` component", () => {
   });
 
   // TODO: verify value type for trait-based entitlement
-  // eslint-disable-next-line jest/no-disabled-tests
   test.skip("renders trait entitlement correctly", () => {
     const mockEntitlement = {
       id: "ent-3",
