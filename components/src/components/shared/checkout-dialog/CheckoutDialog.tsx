@@ -114,21 +114,20 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | undefined>();
 
-  const {
-    currentEntitlements,
-    showPeriodToggle,
-    trialPaymentMethodRequired,
-  } = useMemo(() => {
-    return {
-      currentEntitlements: data?.featureUsage ? data.featureUsage.features : [],
-      showPeriodToggle: data?.showPeriodToggle ?? true,
-      trialPaymentMethodRequired: data?.trialPaymentMethodRequired === true,
-    };
-  }, [
-    data?.featureUsage,
-    data?.showPeriodToggle,
-    data?.trialPaymentMethodRequired,
-  ]);
+  const { currentEntitlements, showPeriodToggle, trialPaymentMethodRequired } =
+    useMemo(() => {
+      return {
+        currentEntitlements: data?.featureUsage
+          ? data.featureUsage.features
+          : [],
+        showPeriodToggle: data?.showPeriodToggle ?? true,
+        trialPaymentMethodRequired: data?.trialPaymentMethodRequired === true,
+      };
+    }, [
+      data?.featureUsage,
+      data?.showPeriodToggle,
+      data?.trialPaymentMethodRequired,
+    ]);
 
   const currentPeriod = useMemo(
     () => checkoutState?.period || data?.company?.plan?.planPeriod || "month",
@@ -209,28 +208,28 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       );
 
       // Also get entitlements from pre-selected add-ons in bypass mode
-      const bypassAddOnEntitlements = (
-        checkoutState?.addOnIds || []
-      ).flatMap((addOnId) => {
-        const availableAddOn = availableAddOns.find(
-          (available) => available.id === addOnId,
-        );
+      const bypassAddOnEntitlements = (checkoutState?.addOnIds || []).flatMap(
+        (addOnId) => {
+          const availableAddOn = availableAddOns.find(
+            (available) => available.id === addOnId,
+          );
 
-        if (!availableAddOn) return [];
+          if (!availableAddOn) return [];
 
-        // Calculate pay-in-advance entitlements (same logic as toggleAddOn)
-        return availableAddOn.entitlements
-          .filter(
-            (entitlement) =>
-              entitlement.priceBehavior === PriceBehavior.PayInAdvance,
-          )
-          .map((entitlement) => ({
-            ...entitlement,
-            allocation: entitlement.valueNumeric || 0,
-            usage: 0,
-            quantity: 1,
-          }));
-      });
+          // Calculate pay-in-advance entitlements (same logic as toggleAddOn)
+          return availableAddOn.entitlements
+            .filter(
+              (entitlement) =>
+                entitlement.priceBehavior === PriceBehavior.PayInAdvance,
+            )
+            .map((entitlement) => ({
+              ...entitlement,
+              allocation: entitlement.valueNumeric || 0,
+              usage: 0,
+              quantity: 1,
+            }));
+        },
+      );
 
       // Combine both sources, avoiding duplicates by featureId
       const allEntitlements = [...currentAddOnEntitlements];
@@ -363,8 +362,9 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   const [hasSkippedInitialAddOns, setHasSkippedInitialAddOns] = useState(false);
 
   // Track if we're in the initial bypass loading phase
-  const [isBypassLoading, setIsBypassLoading] = useState(() =>
-    checkoutState?.bypassPlanSelection || checkoutState?.bypassAddOnSelection
+  const [isBypassLoading, setIsBypassLoading] = useState(
+    () =>
+      checkoutState?.bypassPlanSelection || checkoutState?.bypassAddOnSelection,
   );
 
   const [checkoutStage, setCheckoutStage] = useState(() => {
