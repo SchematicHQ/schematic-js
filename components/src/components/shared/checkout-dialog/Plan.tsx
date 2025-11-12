@@ -267,20 +267,21 @@ export const Plan = ({
     plans.reduce(entitlementCountsReducer, {}),
   );
 
-  const { isTrialing, showCredits, showPeriodToggle, showZeroPriceAsFree } =
-    useMemo(() => {
-      return {
-        isTrialing: data?.subscription?.status === "trialing",
-        showCredits: data?.showCredits ?? true,
-        showPeriodToggle: data?.showPeriodToggle ?? true,
-        showZeroPriceAsFree: data?.showZeroPriceAsFree ?? false,
-      };
-    }, [
-      data?.showCredits,
-      data?.showPeriodToggle,
-      data?.showZeroPriceAsFree,
-      data?.subscription?.status,
-    ]);
+  const {
+    isTrialing,
+    showAsMonthlyPrices,
+    showCredits,
+    showPeriodToggle,
+    showZeroPriceAsFree,
+  } = useMemo(() => {
+    return {
+      isTrialing: data?.subscription?.status === "trialing",
+      showAsMonthlyPrices: data?.displaySettings.showAsMonthlyPrices ?? false,
+      showCredits: data?.displaySettings.showCredits ?? true,
+      showPeriodToggle: data?.displaySettings.showPeriodToggle ?? true,
+      showZeroPriceAsFree: data?.displaySettings.showZeroPriceAsFree ?? false,
+    };
+  }, [data?.subscription?.status, data?.displaySettings]);
 
   const handleToggleShowAll = (id: string) => {
     setEntitlementCounts((prev) => {
@@ -397,7 +398,10 @@ export const Plan = ({
                       ? t("Usage-based")
                       : isFreePlan && showZeroPriceAsFree
                         ? t("Free")
-                        : formatCurrency(planPrice ?? 0, planCurrency)}
+                        : showAsMonthlyPrices &&
+                            planPeriod === PriceInterval.Year
+                          ? formatCurrency((planPrice ?? 0) / 12, planCurrency)
+                          : formatCurrency(planPrice ?? 0, planCurrency)}
                 </Text>
 
                 {!plan.custom && !isFreePlan && (

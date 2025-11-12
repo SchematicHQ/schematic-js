@@ -123,13 +123,13 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     return {
       currentPlanId: data?.company?.plan?.id,
       currentEntitlements: data?.featureUsage ? data.featureUsage.features : [],
-      showPeriodToggle: data?.showPeriodToggle ?? true,
+      showPeriodToggle: data?.displaySettings.showPeriodToggle ?? true,
       trialPaymentMethodRequired: data?.trialPaymentMethodRequired === true,
     };
   }, [
     data?.company?.plan?.id,
     data?.featureUsage,
-    data?.showPeriodToggle,
+    data?.displaySettings.showPeriodToggle,
     data?.trialPaymentMethodRequired,
   ]);
 
