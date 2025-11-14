@@ -2,7 +2,7 @@ import { Fragment, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
-  ChangeSubscriptionAction,
+  CompanyPlanInvalidReason,
   EntitlementValueType,
   FeatureType,
   PriceBehavior,
@@ -302,20 +302,27 @@ export const Plan = ({
 
   const {
     isTrialing,
-    preventDowngrades,
+    preventSelfServiceDowngrade,
+    preventSelfServiceDowngradeButtonText,
+    preventSelfServiceDowngradeURL,
     showCredits,
     showPeriodToggle,
     showZeroPriceAsFree,
   } = useMemo(() => {
     return {
       isTrialing: data?.subscription?.status === "trialing",
-      // @ts-expect-error: not implemented yet
-      preventDowngrades: data?.downgradeSettings.preventDowngrades === true,
+      preventSelfServiceDowngrade: data?.preventSelfServiceDowngrade === true,
+      preventSelfServiceDowngradeButtonText:
+        data?.preventSelfServiceDowngradeButtonText,
+      preventSelfServiceDowngradeURL: data?.preventSelfServiceDowngradeURL,
       showCredits: data?.showCredits ?? true,
       showPeriodToggle: data?.showPeriodToggle ?? true,
       showZeroPriceAsFree: data?.showZeroPriceAsFree ?? false,
     };
   }, [
+    data?.preventSelfServiceDowngrade,
+    data?.preventSelfServiceDowngradeButtonText,
+    data?.preventSelfServiceDowngradeURL,
     data?.showCredits,
     data?.showPeriodToggle,
     data?.showZeroPriceAsFree,
@@ -376,9 +383,12 @@ export const Plan = ({
 
         const count = entitlementCounts[plan.id];
         const isExpanded = count && count.limit > VISIBLE_ENTITLEMENT_COUNT;
-        const isDowngrade = false; // TODO
+        const isDowngradeNotPermitted =
+          plan.invalidReason === CompanyPlanInvalidReason.DowngradeNotPermitted;
         const isSelectable =
-          (!isLoading && plan.valid && (!preventDowngrades || isDowngrade)) ||
+          (!isLoading &&
+            plan.valid &&
+            (!preventSelfServiceDowngrade || isDowngradeNotPermitted)) ||
           plan.custom;
 
         return (

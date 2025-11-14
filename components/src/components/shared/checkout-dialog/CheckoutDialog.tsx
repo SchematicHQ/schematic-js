@@ -17,12 +17,7 @@ import {
   type UpdateAddOnRequestBody,
   type UpdatePayInAdvanceRequestBody,
 } from "../../../api/checkoutexternal";
-import {
-  ChangeSubscriptionAction,
-  PriceBehavior,
-  PriceInterval,
-  TEXT_BASE_SIZE,
-} from "../../../const";
+import { PriceBehavior, PriceInterval, TEXT_BASE_SIZE } from "../../../const";
 import {
   useAvailablePlans,
   useEmbed,
@@ -266,9 +261,6 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   );
 
   const [promoCode, setPromoCode] = useState<string | null>(null);
-
-  const [subscriptionAction, setSubscriptionAction] =
-    useState<ChangeSubscriptionAction>();
 
   const [isPaymentMethodRequired, setIsPaymentMethodRequired] = useState(false);
 
@@ -563,8 +555,8 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
         });
 
         if (response) {
-          // @ts-expect-error: not implemented yet
-          setSubscriptionAction(response.data.changeSubscriptionAction);
+          // TODO: handle invalid reason errors
+
           setCharges(response.data.finance);
           setIsPaymentMethodRequired(response.data.paymentMethodRequired);
         }

@@ -1,10 +1,7 @@
-export enum ChangeSubscriptionAction {
-  Downgrade = "downgrade",
-  Invalid = "invalid",
-  Subscribe = "subscribe",
-  Unsubscribe = "unsubscribe",
-  Upgrade = "upgrade",
-  UpgradeTrial = "upgrade_trial",
+export enum CompanyPlanInvalidReason {
+  None = "",
+  FeatureUsageExceeded = "feature_usage_exceeded",
+  DowngradeNotPermitted = "downgrade_not_permitted",
 }
 
 export enum PriceInterval {

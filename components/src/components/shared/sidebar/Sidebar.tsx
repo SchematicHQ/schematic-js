@@ -100,6 +100,8 @@ export const Sidebar = forwardRef<HTMLDivElement | null, SidebarProps>(
     },
     ref,
   ) => {
+    // TODO: "self-service downgrade not permitted"
+
     const { t } = useTranslation();
 
     const {
