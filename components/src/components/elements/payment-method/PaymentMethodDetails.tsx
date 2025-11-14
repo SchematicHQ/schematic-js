@@ -257,7 +257,7 @@ export const PaymentMethodDetails = ({
   ]);
 
   return (
-    <>
+    <Flex $position="relative" $flexDirection="column" $gap="1.5rem">
       <Flex
         $position="absolute"
         $zIndex={isLoading || isConfirmingPayment ? 1 : 0}
@@ -408,6 +408,6 @@ export const PaymentMethodDetails = ({
           </Box>
         )}
       </Flex>
-    </>
+    </Flex>
   );
 };
