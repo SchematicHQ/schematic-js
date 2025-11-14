@@ -499,6 +499,22 @@ export const MeteredFeatures = forwardRef<
                                       }),
                                     })}
                                   </>
+                                ) : grant.grantReason ===
+                                  CreditGrantReason.AutoTopup ? (
+                                  <>
+                                    {t("X item auto-topup", {
+                                      amount: grant.quantity,
+                                      item: getFeatureName(
+                                        credit,
+                                        grant.quantity,
+                                      ),
+                                      createdAt: toPrettyDate(grant.createdAt, {
+                                        day: "2-digit",
+                                        month: "2-digit",
+                                        year: "2-digit",
+                                      }),
+                                    })}
+                                  </>
                                 ) : (
                                   <>
                                     {t("X item grant", {

@@ -33,6 +33,7 @@ import { EmbedContext } from "./EmbedContext";
 import { reducer } from "./embedReducer";
 import {
   initialState,
+  type BypassConfig,
   type CheckoutState,
   type EmbedLayout,
   type EmbedSettings,
@@ -440,6 +441,10 @@ export const EmbedProvider = ({
     dispatch({ type: "SET_CHECKOUT_STATE", state });
   }, []);
 
+  const initializeWithPlan = useCallback((config: string | BypassConfig) => {
+    dispatch({ type: "SET_PLANID_BYPASS", config });
+  }, []);
+
   useEffect(() => {
     const element = document.getElementById(
       "schematic-fonts",
@@ -578,6 +583,7 @@ export const EmbedProvider = ({
         setAccessToken,
         setLayout,
         setCheckoutState,
+        initializeWithPlan,
         setData,
         updateSettings,
         debug,

@@ -1,10 +1,11 @@
+import { vi } from "vitest";
 import { Schematic } from "./index";
 import { Server as WebSocketServer } from "mock-socket";
 
 import { version } from "./version";
 
-const mockFetch = jest.fn();
-global.fetch = mockFetch;
+const mockFetch = vi.fn();
+globalThis.fetch = mockFetch as typeof fetch;
 
 describe("Schematic", () => {
   let schematic: Schematic;
@@ -193,26 +194,29 @@ describe("Schematic", () => {
       }
     });
 
-    (typeof window === "undefined" ? it.skip : it)("should flush event queue on beforeunload event", () => {
-      const eventBody = {
-        event: "Page View",
-        traits: { url: "https://example.com" },
-      };
-      const apiResponse = { ok: true };
-      mockFetch.mockResolvedValue(apiResponse);
-      schematic.track(eventBody);
-      window.dispatchEvent(new Event("beforeunload"));
+    (typeof window === "undefined" ? it.skip : it)(
+      "should flush event queue on beforeunload event",
+      () => {
+        const eventBody = {
+          event: "Page View",
+          traits: { url: "https://example.com" },
+        };
+        const apiResponse = { ok: true };
+        mockFetch.mockResolvedValue(apiResponse);
+        schematic.track(eventBody);
+        window.dispatchEvent(new Event("beforeunload"));
 
-      expect(mockFetch).toHaveBeenCalledTimes(1);
-      expect(mockFetch).toHaveBeenCalledWith(expect.any(String), {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json;charset=UTF-8",
-          "X-Schematic-Client-Version": `schematic-js@${version}`,
-        },
-        body: expect.any(String),
-      });
-    });
+        expect(mockFetch).toHaveBeenCalledTimes(1);
+        expect(mockFetch).toHaveBeenCalledWith(expect.any(String), {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json;charset=UTF-8",
+            "X-Schematic-Client-Version": `schematic-js@${version}`,
+          },
+          body: expect.any(String),
+        });
+      },
+    );
   });
 
   describe("checkFlag", () => {
@@ -236,7 +240,7 @@ describe("Schematic", () => {
       // Mock the flag check endpoint
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: jest.fn().mockResolvedValueOnce(expectedResponse),
+        json: vi.fn().mockResolvedValueOnce(expectedResponse),
       });
 
       // Mock the flag check event endpoint
@@ -292,7 +296,7 @@ describe("Schematic", () => {
       // Mock the flag check endpoint
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: jest.fn().mockResolvedValueOnce(expectedResponse),
+        json: vi.fn().mockResolvedValueOnce(expectedResponse),
       });
 
       // Mock the flag check event endpoint
@@ -363,7 +367,7 @@ describe("Schematic", () => {
       };
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: jest.fn().mockResolvedValueOnce(expectedResponse),
+        json: vi.fn().mockResolvedValueOnce(expectedResponse),
       });
 
       const flagValues = await schematic.checkFlags(context);
@@ -416,7 +420,7 @@ describe("Schematic", () => {
       };
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: jest.fn().mockResolvedValueOnce(expectedResponse),
+        json: vi.fn().mockResolvedValueOnce(expectedResponse),
       });
       const flagValues = await schematicWithHeaders.checkFlags(context);
       expect(mockFetch).toHaveBeenCalledTimes(1);

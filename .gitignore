@@ -3,3 +3,5 @@
 **/yarn-error.log
 
 .idea
+.claude/settings.local.json
+/yarn.lock

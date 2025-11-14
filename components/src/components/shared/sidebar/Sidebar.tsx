@@ -1,10 +1,14 @@
 import {
   forwardRef,
   useCallback,
+  useEffect,
   useMemo,
+  useRef,
+  useState,
   type Dispatch,
   type SetStateAction,
 } from "react";
+import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -520,6 +524,49 @@ export const Sidebar = forwardRef<HTMLDivElement | null, SidebarProps>(
 
     const { price: selectedPlanPrice, currency: selectedPlanCurrency } =
       selectedPlan ? getPlanPrice(selectedPlan, planPeriod) || {} : {};
+
+    const buttonRef = useRef<HTMLDivElement>(null);
+    const [checkoutButtonInView, setCheckoutButtonInView] = useState(false);
+
+    useEffect(() => {
+      const observer = new IntersectionObserver(
+        ([entry]) => setCheckoutButtonInView(entry.isIntersecting),
+        { threshold: 0 },
+      );
+
+      if (buttonRef.current) {
+        observer.observe(buttonRef.current);
+      }
+
+      return () => observer.disconnect();
+    }, []);
+
+    const StageButtonComponent = () => {
+      return (
+        <StageButton
+          checkout={handleCheckout}
+          checkoutStage={checkoutStage}
+          checkoutStages={checkoutStages}
+          hasAddOns={addOns.length > 0}
+          hasPayInAdvanceEntitlements={payInAdvanceEntitlements.length > 0}
+          hasCreditBundles={creditBundles.length > 0}
+          hasPaymentMethod={
+            typeof paymentMethod !== "undefined" ||
+            typeof paymentMethodId === "string"
+          }
+          hasPlan={typeof selectedPlan !== "undefined"}
+          inEditMode={settings.mode === "edit"}
+          isLoading={isLoading}
+          isPaymentMethodRequired={isPaymentMethodRequired}
+          isSelectedPlanTrialable={isSelectedPlanTrialable}
+          isSticky={!checkoutButtonInView}
+          setCheckoutStage={setCheckoutStage}
+          trialPaymentMethodRequired={trialPaymentMethodRequired}
+          shouldTrial={shouldTrial}
+          willTrialWithoutPaymentMethod={willTrialWithoutPaymentMethod}
+        />
+      );
+    };
 
     return (
       <Flex
@@ -1085,27 +1132,41 @@ export const Sidebar = forwardRef<HTMLDivElement | null, SidebarProps>(
           )}
 
           {layout === "checkout" && (
-            <StageButton
-              checkout={handleCheckout}
-              checkoutStage={checkoutStage}
-              checkoutStages={checkoutStages}
-              hasAddOns={addOns.length > 0}
-              hasPayInAdvanceEntitlements={payInAdvanceEntitlements.length > 0}
-              hasCreditBundles={creditBundles.length > 0}
-              hasPaymentMethod={
-                typeof paymentMethod !== "undefined" ||
-                typeof paymentMethodId === "string"
-              }
-              hasPlan={typeof selectedPlan !== "undefined"}
-              inEditMode={settings.mode === "edit"}
-              isLoading={isLoading}
-              isPaymentMethodRequired={isPaymentMethodRequired}
-              isSelectedPlanTrialable={isSelectedPlanTrialable}
-              setCheckoutStage={setCheckoutStage}
-              trialPaymentMethodRequired={trialPaymentMethodRequired}
-              shouldTrial={shouldTrial}
-              willTrialWithoutPaymentMethod={willTrialWithoutPaymentMethod}
-            />
+            <div ref={buttonRef}>
+              {checkoutButtonInView && <StageButtonComponent />}
+              {!checkoutButtonInView &&
+                createPortal(
+                  <div
+                    style={{
+                      position: "fixed",
+                      bottom: "-1px",
+                      left: "0px",
+                      zIndex: 9999999,
+                      width: "100%",
+                      overflow: "hidden",
+                      backgroundColor: settings.theme.card.background,
+                      borderTopWidth: "1px",
+                      borderTopStyle: "solid",
+                      borderTopColor: isLightBackground
+                        ? "hsla(0, 0%, 0%, 0.1)"
+                        : "hsla(0, 0%, 100%, 0.2)",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        padding: "1rem 1.5rem",
+                        backgroundColor: settings.theme.card.background,
+                      }}
+                    >
+                      <StageButtonComponent />
+                    </div>
+                  </div>,
+                  document.body,
+                )}
+            </div>
           )}
 
           {layout === "unsubscribe" && (

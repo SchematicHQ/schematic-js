@@ -4,7 +4,6 @@ import {
   forwardRef,
   useCallback,
   useEffect,
-  useMemo,
   useState,
 } from "react";
 import { useTranslation } from "react-i18next";
@@ -154,28 +153,9 @@ export const PricingTable = forwardRef<
     [],
   );
 
-  const { currentPeriod, isStandalone } = useMemo(() => {
-    const isStandalone = typeof data?.component === "undefined";
-
-    return {
-      currentPeriod: data?.company?.plan?.planPeriod || "month",
-      currentAddOns: data?.company?.addOns || [],
-      canCheckout: isStandalone ?? data?.capabilities?.checkout ?? true,
-      isTrialSubscription:
-        data?.company?.billingSubscription?.status === "trialing",
-      willSubscriptionCancel: data?.company?.billingSubscription?.cancelAt,
-      isStandalone,
-    };
-  }, [
-    data?.capabilities?.checkout,
-    data?.company?.addOns,
-    data?.company?.billingSubscription?.cancelAt,
-    data?.company?.billingSubscription?.status,
-    data?.company?.plan?.planPeriod,
-    data?.component,
-  ]);
-
-  const [selectedPeriod, setSelectedPeriod] = useState(currentPeriod);
+  const [selectedPeriod, setSelectedPeriod] = useState(
+    () => data?.company?.plan?.planPeriod || "month",
+  );
 
   const showPeriodToggle =
     rest.showPeriodToggle ?? data?.showPeriodToggle ?? true;
@@ -209,10 +189,10 @@ export const PricingTable = forwardRef<
   };
 
   useEffect(() => {
-    if (isStandalone) {
+    if (typeof data?.component === "undefined") {
       hydratePublic();
     }
-  }, [isStandalone, hydratePublic]);
+  }, [data?.component, hydratePublic]);
 
   useEffect(() => {
     // TODO: refactor entitlement counts
@@ -234,6 +214,8 @@ export const PricingTable = forwardRef<
     );
   }
 
+  const currentPlan = plans.find((plan) => plan.id === data?.company?.plan?.id);
+
   const showCallToAction =
     typeof data?.component !== "undefined" ||
     typeof rest.callToActionUrl === "string" ||
@@ -244,7 +226,7 @@ export const PricingTable = forwardRef<
     rest.callToActionTarget,
   );
 
-  const Wrapper = isStandalone ? Container : Fragment;
+  const Wrapper = typeof data?.component === "undefined" ? Container : Fragment;
 
   return (
     <Wrapper>
@@ -281,6 +263,7 @@ export const PricingTable = forwardRef<
               <PeriodToggle
                 options={periods}
                 selectedOption={selectedPeriod}
+                selectedPlan={currentPlan}
                 onSelect={(period) => {
                   if (period !== selectedPeriod) {
                     setSelectedPeriod(period);

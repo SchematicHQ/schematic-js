@@ -1,3 +1,4 @@
+import { RefObject } from "react";
 import { useTranslation } from "react-i18next";
 
 import { Button, Flex, Icon } from "../../ui";
@@ -6,12 +7,14 @@ import { type CheckoutStage } from "../checkout-dialog";
 type NoPaymentRequiredProps = {
   isDisabled: boolean;
   isLoading: boolean;
+  isSticky: boolean;
   onClick: () => Promise<void>;
 };
 
 const NoPaymentRequired = ({
   isDisabled,
   isLoading,
+  isSticky,
   onClick,
 }: NoPaymentRequiredProps) => {
   const { t } = useTranslation();
@@ -22,6 +25,7 @@ const NoPaymentRequired = ({
       disabled={isDisabled}
       onClick={onClick}
       $isLoading={isLoading}
+      $size={isSticky ? "sm" : "md"}
       $fullWidth
     >
       {t("Subscribe and close")}
@@ -40,6 +44,8 @@ type StageButtonProps = {
   hasPlan: boolean;
   inEditMode: boolean;
   isLoading: boolean;
+  isSticky: boolean;
+  checkoutButtonRef?: RefObject<HTMLDivElement>;
   isPaymentMethodRequired: boolean;
   isSelectedPlanTrialable: boolean;
   setCheckoutStage?: (stage: string) => void;
@@ -59,6 +65,7 @@ export const StageButton = ({
   hasPlan,
   inEditMode,
   isLoading,
+  isSticky,
   isPaymentMethodRequired,
   isSelectedPlanTrialable,
   setCheckoutStage,
@@ -109,6 +116,7 @@ export const StageButton = ({
           isDisabled={isDisabled}
           isLoading={isLoading}
           onClick={checkout}
+          isSticky={isSticky}
         />
       );
     }
@@ -130,6 +138,7 @@ export const StageButton = ({
         }}
         $isLoading={isLoading}
         $fullWidth
+        $size={isSticky ? "sm" : "md"}
       >
         <Flex $gap="0.5rem" $justifyContent="center" $alignItems="center">
           {t("Next")}:{" "}
@@ -158,6 +167,7 @@ export const StageButton = ({
           isDisabled={isDisabled}
           isLoading={isLoading}
           onClick={checkout}
+          isSticky={isSticky}
         />
       );
     }
@@ -173,6 +183,7 @@ export const StageButton = ({
         }}
         $isLoading={isLoading}
         $fullWidth
+        $size={isSticky ? "sm" : "md"}
       >
         <Flex
           $gap="0.5rem"
@@ -206,6 +217,7 @@ export const StageButton = ({
           isDisabled={isDisabled}
           isLoading={isLoading}
           onClick={checkout}
+          isSticky={isSticky}
         />
       );
     }
@@ -254,6 +266,7 @@ export const StageButton = ({
           isDisabled={isDisabled}
           isLoading={isLoading}
           onClick={checkout}
+          isSticky={isSticky}
         />
       );
     }
@@ -267,6 +280,7 @@ export const StageButton = ({
         }}
         $isLoading={isLoading}
         $fullWidth
+        $size={isSticky ? "sm" : "md"}
       >
         <Flex
           $gap="0.5rem"
@@ -288,6 +302,7 @@ export const StageButton = ({
           isDisabled={isDisabled}
           isLoading={isLoading}
           onClick={checkout}
+          isSticky={isSticky}
         />
       );
     }
@@ -322,6 +337,7 @@ export const StageButton = ({
           isDisabled={isDisabled}
           isLoading={isLoading}
           onClick={checkout}
+          isSticky={isSticky}
         />
       );
     }
