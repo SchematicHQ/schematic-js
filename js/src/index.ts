@@ -57,6 +57,14 @@ export class Schematic {
     Record<string, CheckFlagReturn | undefined> | undefined
   > = {};
   private webSocketUrl = "wss://api.schematichq.com";
+  private webSocketConnectionTimeout = 10000;
+  private webSocketReconnect = true;
+  private webSocketMaxReconnectAttempts = 7;
+  private webSocketInitialRetryDelay = 1000;
+  private webSocketMaxRetryDelay = 30000;
+  private wsReconnectAttempts = 0;
+  private wsReconnectTimer: ReturnType<typeof setTimeout> | null = null;
+  private wsIntentionalDisconnect = false;
 
   constructor(apiKey: string, options?: SchematicOptions) {
     this.apiKey = apiKey;
@@ -127,12 +135,46 @@ export class Schematic {
       this.webSocketUrl = options.webSocketUrl;
     }
 
+    if (options?.webSocketConnectionTimeout !== undefined) {
+      this.webSocketConnectionTimeout = options.webSocketConnectionTimeout;
+    }
+
+    if (options?.webSocketReconnect !== undefined) {
+      this.webSocketReconnect = options.webSocketReconnect;
+    }
+
+    if (options?.webSocketMaxReconnectAttempts !== undefined) {
+      this.webSocketMaxReconnectAttempts =
+        options.webSocketMaxReconnectAttempts;
+    }
+
+    if (options?.webSocketInitialRetryDelay !== undefined) {
+      this.webSocketInitialRetryDelay = options.webSocketInitialRetryDelay;
+    }
+
+    if (options?.webSocketMaxRetryDelay !== undefined) {
+      this.webSocketMaxRetryDelay = options.webSocketMaxRetryDelay;
+    }
+
     /* eslint-disable-next-line @typescript-eslint/strict-boolean-expressions */
     if (typeof window !== "undefined" && window?.addEventListener) {
       window.addEventListener("beforeunload", () => {
         this.flushEventQueue();
         this.flushContextDependentEventQueue();
       });
+
+      // Listen for browser online/offline events to handle network changes
+      if (this.useWebSocket) {
+        window.addEventListener("offline", () => {
+          this.debug("Browser went offline, closing WebSocket connection");
+          this.handleNetworkOffline();
+        });
+
+        window.addEventListener("online", () => {
+          this.debug("Browser came online, attempting to reconnect WebSocket");
+          this.handleNetworkOnline();
+        });
+      }
     }
 
     if (this.offlineEnabled) {
@@ -490,6 +532,15 @@ export class Schematic {
       this.setIsPending(true);
 
       if (!this.conn) {
+        // Cancel any pending reconnection and connect immediately
+        if (this.wsReconnectTimer !== null) {
+          this.debug(
+            `Cancelling scheduled reconnection, connecting immediately`,
+          );
+          clearTimeout(this.wsReconnectTimer);
+          this.wsReconnectTimer = null;
+        }
+
         this.conn = this.wsConnect();
       }
 
@@ -782,6 +833,15 @@ export class Schematic {
       return Promise.resolve();
     }
 
+    // Mark this as an intentional disconnect to prevent reconnection
+    this.wsIntentionalDisconnect = true;
+
+    // Clear any pending reconnection timers
+    if (this.wsReconnectTimer !== null) {
+      clearTimeout(this.wsReconnectTimer);
+      this.wsReconnectTimer = null;
+    }
+
     if (this.conn) {
       try {
         const socket = await this.conn;
@@ -792,6 +852,135 @@ export class Schematic {
         this.conn = null;
       }
     }
+  };
+
+  /**
+   * Calculate the delay for the next reconnection attempt using exponential backoff with jitter.
+   * This helps prevent dogpiling when the server recovers from an outage.
+   */
+  private calculateReconnectDelay = (): number => {
+    // Calculate exponential backoff: initialDelay * 2^attempt
+    const exponentialDelay =
+      this.webSocketInitialRetryDelay * Math.pow(2, this.wsReconnectAttempts);
+
+    // Cap at maximum delay
+    const cappedDelay = Math.min(exponentialDelay, this.webSocketMaxRetryDelay);
+
+    // Add jitter: random value between 0 and 50% of the delay
+    // This spreads out reconnection attempts to avoid thundering herd
+    const jitter = Math.random() * cappedDelay * 0.5;
+
+    const totalDelay = cappedDelay + jitter;
+
+    this.debug(
+      `Reconnect delay calculated: ${totalDelay.toFixed(0)}ms (attempt ${this.wsReconnectAttempts + 1}/${this.webSocketMaxReconnectAttempts})`,
+    );
+
+    return totalDelay;
+  };
+
+  /**
+   * Handle browser going offline
+   */
+  private handleNetworkOffline = async (): Promise<void> => {
+    // Don't mark as intentional disconnect - we want to reconnect when online
+    if (this.conn !== null) {
+      try {
+        const socket = await this.conn;
+        // Close the zombie connection
+        socket.close();
+      } catch (error) {
+        // Connection might already be dead, that's ok
+        this.debug("Error closing connection on offline:", error);
+      }
+      this.conn = null;
+    }
+
+    // Clear any pending reconnection timers
+    if (this.wsReconnectTimer !== null) {
+      clearTimeout(this.wsReconnectTimer);
+      this.wsReconnectTimer = null;
+    }
+  };
+
+  /**
+   * Handle browser coming back online
+   */
+  private handleNetworkOnline = (): void => {
+    // Only reconnect if we have a context set (meaning we were previously connected)
+    if (this.context.company === undefined && this.context.user === undefined) {
+      this.debug("No context set, skipping reconnection");
+      return;
+    }
+
+    // Reset reconnection attempts for fresh start
+    this.wsReconnectAttempts = 0;
+
+    // Cancel any pending reconnection timer
+    if (this.wsReconnectTimer !== null) {
+      clearTimeout(this.wsReconnectTimer);
+      this.wsReconnectTimer = null;
+    }
+
+    // Attempt immediate reconnection
+    this.debug("Network online, reconnecting immediately");
+    this.attemptReconnect();
+  };
+
+  /**
+   * Attempt to reconnect the WebSocket connection with exponential backoff.
+   * Called automatically when the connection closes unexpectedly.
+   */
+  private attemptReconnect = (): void => {
+    // Check if we've exceeded max reconnection attempts
+    if (this.wsReconnectAttempts >= this.webSocketMaxReconnectAttempts) {
+      this.debug(
+        `Maximum reconnection attempts (${this.webSocketMaxReconnectAttempts}) reached, giving up`,
+      );
+      return;
+    }
+
+    // Clear any existing reconnection timer
+    if (this.wsReconnectTimer !== null) {
+      clearTimeout(this.wsReconnectTimer);
+    }
+
+    // Calculate delay with exponential backoff and jitter
+    const delay = this.calculateReconnectDelay();
+
+    this.debug(
+      `Scheduling reconnection attempt ${this.wsReconnectAttempts + 1}/${this.webSocketMaxReconnectAttempts} in ${delay.toFixed(0)}ms`,
+    );
+
+    // Schedule the reconnection
+    this.wsReconnectTimer = setTimeout(async () => {
+      this.wsReconnectTimer = null;
+      this.wsReconnectAttempts++;
+
+      this.debug(
+        `Attempting to reconnect (attempt ${this.wsReconnectAttempts}/${this.webSocketMaxReconnectAttempts})`,
+      );
+
+      try {
+        // Create new connection
+        this.conn = this.wsConnect();
+        const socket = await this.conn;
+
+        // If we have a context, re-send it to get flag updates
+        if (
+          this.context.company !== undefined ||
+          this.context.user !== undefined
+        ) {
+          this.debug(`Reconnected, re-sending context`);
+          await this.wsSendMessage(socket, this.context);
+        }
+
+        this.debug(`Reconnection successful`);
+      } catch (error) {
+        this.debug(`Reconnection attempt failed:`, error);
+        // The wsConnect onclose handler will trigger another attemptReconnect
+      }
+    }, delay);
   };
 
   // Open a websocket connection
@@ -810,20 +999,57 @@ export class Schematic {
       this.debug(`connecting to WebSocket:`, wsUrl);
 
       const webSocket = new WebSocket(wsUrl);
+      let timeoutId: ReturnType<typeof setTimeout> | null = null;
+      let isResolved = false;
+
+      // Set up connection timeout
+      timeoutId = setTimeout(() => {
+        if (!isResolved) {
+          this.debug(
+            `WebSocket connection timeout after ${this.webSocketConnectionTimeout}ms`,
+          );
+          webSocket.close();
+          reject(new Error("WebSocket connection timeout"));
+        }
+      }, this.webSocketConnectionTimeout);
 
       webSocket.onopen = () => {
+        isResolved = true;
+        if (timeoutId !== null) {
+          clearTimeout(timeoutId);
+        }
+
+        // Reset reconnection attempts on successful connection
+        this.wsReconnectAttempts = 0;
+        this.wsIntentionalDisconnect = false;
+
         this.debug(`WebSocket connection opened`);
         resolve(webSocket);
       };
 
       webSocket.onerror = (error) => {
+        isResolved = true;
+        if (timeoutId !== null) {
+          clearTimeout(timeoutId);
+        }
+
         this.debug(`WebSocket connection error:`, error);
         reject(error);
       };
 
       webSocket.onclose = () => {
+        isResolved = true;
+        if (timeoutId !== null) {
+          clearTimeout(timeoutId);
+        }
+
         this.debug(`WebSocket connection closed`);
         this.conn = null;
+
+        // Attempt to reconnect if not intentionally disconnected
+        if (!this.wsIntentionalDisconnect && this.webSocketReconnect) {
+          this.attemptReconnect();
+        }
       };
     });
   };

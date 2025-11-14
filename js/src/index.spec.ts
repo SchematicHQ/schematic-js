@@ -194,26 +194,29 @@ describe("Schematic", () => {
       }
     });
 
-    (typeof window === "undefined" ? it.skip : it)("should flush event queue on beforeunload event", () => {
-      const eventBody = {
-        event: "Page View",
-        traits: { url: "https://example.com" },
-      };
-      const apiResponse = { ok: true };
-      mockFetch.mockResolvedValue(apiResponse);
-      schematic.track(eventBody);
-      window.dispatchEvent(new Event("beforeunload"));
+    (typeof window === "undefined" ? it.skip : it)(
+      "should flush event queue on beforeunload event",
+      () => {
+        const eventBody = {
+          event: "Page View",
+          traits: { url: "https://example.com" },
+        };
+        const apiResponse = { ok: true };
+        mockFetch.mockResolvedValue(apiResponse);
+        schematic.track(eventBody);
+        window.dispatchEvent(new Event("beforeunload"));
 
-      expect(mockFetch).toHaveBeenCalledTimes(1);
-      expect(mockFetch).toHaveBeenCalledWith(expect.any(String), {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json;charset=UTF-8",
-          "X-Schematic-Client-Version": `schematic-js@${version}`,
-        },
-        body: expect.any(String),
-      });
-    });
+        expect(mockFetch).toHaveBeenCalledTimes(1);
+        expect(mockFetch).toHaveBeenCalledWith(expect.any(String), {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json;charset=UTF-8",
+            "X-Schematic-Client-Version": `schematic-js@${version}`,
+          },
+          body: expect.any(String),
+        });
+      },
+    );
   });
 
   describe("checkFlag", () => {

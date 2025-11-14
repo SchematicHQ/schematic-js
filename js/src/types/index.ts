@@ -139,6 +139,21 @@ export type SchematicOptions = {
 
   /** Optionally provide a custom WebSocket URL */
   webSocketUrl?: string;
+
+  /** WebSocket connection timeout in milliseconds (default: 10000) */
+  webSocketConnectionTimeout?: number;
+
+  /** Enable automatic reconnection on WebSocket disconnect (default: true) */
+  webSocketReconnect?: boolean;
+
+  /** Maximum number of reconnection attempts (default: 7, set to Infinity for unlimited) */
+  webSocketMaxReconnectAttempts?: number;
+
+  /** Initial retry delay in milliseconds for exponential backoff (default: 1000) */
+  webSocketInitialRetryDelay?: number;
+
+  /** Maximum retry delay in milliseconds for exponential backoff (default: 30000) */
+  webSocketMaxRetryDelay?: number;
 };
 
 export type CheckOptions = {
