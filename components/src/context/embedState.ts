@@ -135,20 +135,20 @@ export type EmbedLayout =
  * - Any combination that suits your checkout flow
  *
  * @example
- * // Skip both stages (go directly to checkout/payment)
- * { planStage: true, addOnStage: true }
+ * // Skip all stages (go directly to checkout/payment)
+ * { planStage: true, addOnStage: true, creditsStage: true }
  *
  * @example
- * // Skip only plan stage (show add-ons)
- * { planStage: true, addOnStage: false }
+ * // Skip only plan stage (show add-ons and credits)
+ * { planStage: true, addOnStage: false, creditsStage: false }
  *
  * @example
- * // Show plan stage, skip add-ons stage
- * { planStage: false, addOnStage: true }
+ * // Show plan stage, skip add-ons and credits
+ * { planStage: false, addOnStage: true, creditsStage: true }
  *
  * @example
- * // Show both stages (same as not providing skipped config)
- * { planStage: false, addOnStage: false }
+ * // Show all stages (same as not providing skipped config)
+ * { planStage: false, addOnStage: false, creditsStage: false }
  */
 export interface CheckoutStageSkipConfig {
   /**
@@ -166,6 +166,14 @@ export interface CheckoutStageSkipConfig {
    * - undefined: Defaults to false (show stage)
    */
   addOnStage?: boolean;
+
+  /**
+   * Skip the credits stage.
+   * - true: Skip directly to next stage
+   * - false: Show credits stage (user can select credit bundles)
+   * - undefined: Defaults to false (show stage)
+   */
+  creditsStage?: boolean;
 }
 
 /**
@@ -260,6 +268,7 @@ export type CheckoutState = {
   credits?: boolean;
   bypassPlanSelection?: boolean;
   bypassAddOnSelection?: boolean;
+  bypassCreditsSelection?: boolean;
   addOnIds?: string[];
   hideSkippedStages?: boolean;
 };

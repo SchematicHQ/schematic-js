@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import { reducer } from "./embedReducer";
-import { initialState } from "./embedState";
 import type { BypassConfig } from "./embedState";
+import { initialState } from "./embedState";
 
 describe("embedReducer - SET_PLANID_BYPASS", () => {
   describe("Legacy String Mode", () => {
@@ -17,6 +17,7 @@ describe("embedReducer - SET_PLANID_BYPASS", () => {
         planId: "plan_xyz123",
         bypassPlanSelection: true,
         bypassAddOnSelection: false,
+        bypassCreditsSelection: false,
         hideSkippedStages: false,
       });
     });
@@ -38,6 +39,7 @@ describe("embedReducer - SET_PLANID_BYPASS", () => {
         planId: "plan_abc",
         bypassPlanSelection: false,
         bypassAddOnSelection: false,
+        bypassCreditsSelection: false,
         hideSkippedStages: false,
       });
     });
@@ -58,6 +60,7 @@ describe("embedReducer - SET_PLANID_BYPASS", () => {
         addOnIds: ["addon_1", "addon_2"],
         bypassPlanSelection: false,
         bypassAddOnSelection: false,
+        bypassCreditsSelection: false,
         hideSkippedStages: false,
       });
     });
@@ -125,6 +128,52 @@ describe("embedReducer - SET_PLANID_BYPASS", () => {
         bypassAddOnSelection: true,
       });
     });
+
+    it("should skip only credits stage", () => {
+      const config: BypassConfig = {
+        planId: "plan_xyz",
+        skipped: {
+          planStage: false,
+          addOnStage: false,
+          creditsStage: true,
+        },
+      };
+
+      const result = reducer(initialState, {
+        type: "SET_PLANID_BYPASS",
+        config,
+      });
+
+      expect(result.checkoutState).toMatchObject({
+        planId: "plan_xyz",
+        bypassPlanSelection: false,
+        bypassAddOnSelection: false,
+        bypassCreditsSelection: true,
+      });
+    });
+
+    it("should skip all three stages", () => {
+      const config: BypassConfig = {
+        planId: "plan_xyz",
+        skipped: {
+          planStage: true,
+          addOnStage: true,
+          creditsStage: true,
+        },
+      };
+
+      const result = reducer(initialState, {
+        type: "SET_PLANID_BYPASS",
+        config,
+      });
+
+      expect(result.checkoutState).toMatchObject({
+        planId: "plan_xyz",
+        bypassPlanSelection: true,
+        bypassAddOnSelection: true,
+        bypassCreditsSelection: true,
+      });
+    });
   });
 
   describe("Optional planId", () => {
@@ -141,6 +190,7 @@ describe("embedReducer - SET_PLANID_BYPASS", () => {
       expect(result.checkoutState).toEqual({
         bypassPlanSelection: true,
         bypassAddOnSelection: false,
+        bypassCreditsSelection: false,
         hideSkippedStages: false,
       });
       expect(result.checkoutState?.planId).toBeUndefined();

@@ -360,11 +360,14 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   // Track if we've already performed the initial skip in bypass mode
   const [hasSkippedInitialPlan, setHasSkippedInitialPlan] = useState(false);
   const [hasSkippedInitialAddOns, setHasSkippedInitialAddOns] = useState(false);
+  const [hasSkippedInitialCredits, setHasSkippedInitialCredits] = useState(false);
 
   // Track if we're in the initial bypass loading phase
   const [isBypassLoading, setIsBypassLoading] = useState(
     () =>
-      checkoutState?.bypassPlanSelection || checkoutState?.bypassAddOnSelection,
+      checkoutState?.bypassPlanSelection ||
+      checkoutState?.bypassAddOnSelection ||
+      checkoutState?.bypassCreditsSelection,
   );
 
   const [checkoutStage, setCheckoutStage] = useState(() => {
@@ -432,13 +435,29 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
         setCheckoutStage(nextStage.id);
       }
     }
+
+    // Skip credits stage if bypassing credits selection
+    if (
+      checkoutState?.bypassCreditsSelection &&
+      checkoutStage === "credits" &&
+      !hasSkippedInitialCredits
+    ) {
+      const currentIndex = checkoutStages.findIndex((s) => s.id === "credits");
+      const nextStage = checkoutStages[currentIndex + 1];
+      if (nextStage) {
+        setHasSkippedInitialCredits(true);
+        setCheckoutStage(nextStage.id);
+      }
+    }
   }, [
     checkoutStages,
     checkoutState?.bypassPlanSelection,
     checkoutState?.bypassAddOnSelection,
+    checkoutState?.bypassCreditsSelection,
     checkoutStage,
     hasSkippedInitialPlan,
     hasSkippedInitialAddOns,
+    hasSkippedInitialCredits,
   ]);
 
   const handlePreviewCheckout = useCallback(
@@ -907,6 +926,9 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       if (stage.id === "addons" && checkoutState.bypassAddOnSelection) {
         return false;
       }
+      if (stage.id === "credits" && checkoutState.bypassCreditsSelection) {
+        return false;
+      }
       return true;
     });
   }, [checkoutStages, checkoutState]);
@@ -919,7 +941,10 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       !hasSkippedInitialPlan) ||
     (checkoutState?.bypassAddOnSelection &&
       checkoutStage === "addons" &&
-      !hasSkippedInitialAddOns);
+      !hasSkippedInitialAddOns) ||
+    (checkoutState?.bypassCreditsSelection &&
+      checkoutStage === "credits" &&
+      !hasSkippedInitialCredits);
 
   return (
     <Modal ref={modalRef} size="lg" top={top}>

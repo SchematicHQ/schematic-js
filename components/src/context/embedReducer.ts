@@ -237,22 +237,26 @@ export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {
       // 3. Legacy String Mode: Pre-select plan and skip plan stage (backwards compatible)
       let bypassPlanSelection: boolean;
       let bypassAddOnSelection: boolean;
+      let bypassCreditsSelection: boolean;
 
       if (config.skipped !== undefined) {
         // Mode 2: Explicit skip configuration provided
         // Use exactly what was specified (defaults to false if undefined)
         bypassPlanSelection = config.skipped.planStage ?? false;
         bypassAddOnSelection = config.skipped.addOnStage ?? false;
+        bypassCreditsSelection = config.skipped.creditsStage ?? false;
       } else if (isStringFormat) {
         // Mode 3: Legacy string format
         // Maintains backwards compatibility by skipping plan stage
         bypassPlanSelection = true;
         bypassAddOnSelection = false;
+        bypassCreditsSelection = false;
       } else {
         // Mode 1: Pre-selection without explicit skip config
         // Show all stages with pre-selected values for user review
         bypassPlanSelection = false;
         bypassAddOnSelection = false;
+        bypassCreditsSelection = false;
       }
 
       return {
@@ -262,6 +266,7 @@ export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {
           ...(config.planId && { planId: config.planId }),
           bypassPlanSelection,
           bypassAddOnSelection,
+          bypassCreditsSelection,
           ...(config.addOnIds && { addOnIds: config.addOnIds }),
           hideSkippedStages: config.hideSkipped ?? false,
         },
