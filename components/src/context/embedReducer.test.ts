@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import { reducer } from "./embedReducer";
-import { initialState } from "./embedState";
 import type { BypassConfig } from "./embedState";
+import { initialState } from "./embedState";
 
 describe("embedReducer - SET_PLANID_BYPASS", () => {
   describe("Legacy String Mode", () => {
