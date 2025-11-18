@@ -187,6 +187,24 @@ export interface ComponentHydrateResponseData {
    * @type {boolean}
    * @memberof ComponentHydrateResponseData
    */
+  preventSelfServiceDowngrade: boolean;
+  /**
+   *
+   * @type {string}
+   * @memberof ComponentHydrateResponseData
+   */
+  preventSelfServiceDowngradeButtonText?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof ComponentHydrateResponseData
+   */
+  preventSelfServiceDowngradeUrl?: string | null;
+  /**
+   *
+   * @type {boolean}
+   * @memberof ComponentHydrateResponseData
+   */
   showCredits: boolean;
   /**
    *
@@ -251,6 +269,11 @@ export function instanceOfComponentHydrateResponseData(
   if (!("creditBundles" in value) || value["creditBundles"] === undefined)
     return false;
   if (!("creditGrants" in value) || value["creditGrants"] === undefined)
+    return false;
+  if (
+    !("preventSelfServiceDowngrade" in value) ||
+    value["preventSelfServiceDowngrade"] === undefined
+  )
     return false;
   if (!("showCredits" in value) || value["showCredits"] === undefined)
     return false;
@@ -323,6 +346,15 @@ export function ComponentHydrateResponseDataFromJSONTyped(
       json["post_trial_plan"] == null
         ? undefined
         : PlanDetailResponseDataFromJSON(json["post_trial_plan"]),
+    preventSelfServiceDowngrade: json["prevent_self_service_downgrade"],
+    preventSelfServiceDowngradeButtonText:
+      json["prevent_self_service_downgrade_button_text"] == null
+        ? undefined
+        : json["prevent_self_service_downgrade_button_text"],
+    preventSelfServiceDowngradeUrl:
+      json["prevent_self_service_downgrade_url"] == null
+        ? undefined
+        : json["prevent_self_service_downgrade_url"],
     showCredits: json["show_credits"],
     showPeriodToggle: json["show_period_toggle"],
     showZeroPriceAsFree: json["show_zero_price_as_free"],
@@ -379,6 +411,10 @@ export function ComponentHydrateResponseDataToJSON(
     default_plan: PlanDetailResponseDataToJSON(value["defaultPlan"]),
     feature_usage: FeatureUsageDetailResponseDataToJSON(value["featureUsage"]),
     post_trial_plan: PlanDetailResponseDataToJSON(value["postTrialPlan"]),
+    prevent_self_service_downgrade: value["preventSelfServiceDowngrade"],
+    prevent_self_service_downgrade_button_text:
+      value["preventSelfServiceDowngradeButtonText"],
+    prevent_self_service_downgrade_url: value["preventSelfServiceDowngradeUrl"],
     show_credits: value["showCredits"],
     show_period_toggle: value["showPeriodToggle"],
     show_zero_price_as_free: value["showZeroPriceAsFree"],
