@@ -65,6 +65,11 @@ export class Schematic {
   private wsReconnectAttempts = 0;
   private wsReconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private wsIntentionalDisconnect = false;
+  private maxEventQueueSize = 100; // Prevent memory issues with very long network outages
+  private maxEventRetries = 5; // Maximum retry attempts for failed events
+  private eventRetryInitialDelay = 1000; // Initial retry delay in ms
+  private eventRetryMaxDelay = 30000; // Maximum retry delay in ms
+  private retryTimer: ReturnType<typeof setInterval> | null = null;
 
   constructor(apiKey: string, options?: SchematicOptions) {
     this.apiKey = apiKey;
@@ -154,6 +159,22 @@ export class Schematic {
 
     if (options?.webSocketMaxRetryDelay !== undefined) {
       this.webSocketMaxRetryDelay = options.webSocketMaxRetryDelay;
+    }
+
+    if (options?.maxEventQueueSize !== undefined) {
+      this.maxEventQueueSize = options.maxEventQueueSize;
+    }
+
+    if (options?.maxEventRetries !== undefined) {
+      this.maxEventRetries = options.maxEventRetries;
+    }
+
+    if (options?.eventRetryInitialDelay !== undefined) {
+      this.eventRetryInitialDelay = options.eventRetryInitialDelay;
+    }
+
+    if (options?.eventRetryMaxDelay !== undefined) {
+      this.eventRetryMaxDelay = options.eventRetryMaxDelay;
     }
 
     /* eslint-disable-next-line @typescript-eslint/strict-boolean-expressions */
@@ -736,11 +757,70 @@ export class Schematic {
     }
   };
 
-  private flushEventQueue = (): void => {
-    while (this.eventQueue.length > 0) {
-      const event = this.eventQueue.shift();
-      if (event) {
-        this.sendEvent(event);
+  private startRetryTimer = (): void => {
+    if (this.retryTimer !== null) {
+      return; // Timer already running
+    }
+
+    // Check for ready events every 5 seconds
+    this.retryTimer = setInterval(() => {
+      this.flushEventQueue().catch((error) => {
+        this.debug("Error in retry timer flush:", error);
+      });
+
+      // Stop timer if queue is empty
+      if (this.eventQueue.length === 0) {
+        this.stopRetryTimer();
+      }
+    }, 5000);
+
+    this.debug("Started retry timer");
+  };
+
+  private stopRetryTimer = (): void => {
+    if (this.retryTimer !== null) {
+      clearInterval(this.retryTimer);
+      this.retryTimer = null;
+      this.debug("Stopped retry timer");
+    }
+  };
+
+  private flushEventQueue = async (): Promise<void> => {
+    if (this.eventQueue.length === 0) {
+      return;
+    }
+
+    const now = Date.now();
+    const readyEvents: Event[] = [];
+    const notReadyEvents: Event[] = [];
+
+    // Separate events that are ready for retry from those still in backoff
+    for (const event of this.eventQueue) {
+      if (event.next_retry_at === undefined || event.next_retry_at <= now) {
+        readyEvents.push(event);
+      } else {
+        notReadyEvents.push(event);
+      }
+    }
+
+    if (readyEvents.length === 0) {
+      this.debug(`No events ready for retry yet (${notReadyEvents.length} still in backoff)`);
+      return;
+    }
+
+    this.debug(`Flushing event queue: ${readyEvents.length} ready, ${notReadyEvents.length} waiting`);
+
+    // Keep events that aren't ready for retry yet
+    this.eventQueue = notReadyEvents;
+
+    // Process ready events one by one to avoid overwhelming the server
+    for (const event of readyEvents) {
+      try {
+        await this.sendEvent(event);
+        this.debug(`Queued event sent successfully:`, event.type);
+      } catch (error) {
+        this.debug(`Failed to send queued event:`, error);
+        // sendEvent already re-adds failed events to queue with updated retry info
       }
     }
   };
@@ -802,12 +882,49 @@ export class Schematic {
         body: payload,
       });
 
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
       this.debug(`event sent:`, {
         status: response.status,
         statusText: response.statusText,
       });
     } catch (error) {
-      console.error("Error sending Schematic event: ", error);
+      const retryCount = (event.retry_count ?? 0) + 1;
+
+      if (retryCount <= this.maxEventRetries) {
+        this.debug(`Event failed to send (attempt ${retryCount}/${this.maxEventRetries}), queueing for retry:`, error);
+
+        // Calculate exponential backoff delay
+        const baseDelay = this.eventRetryInitialDelay * Math.pow(2, retryCount - 1);
+        const jitterDelay = Math.min(baseDelay, this.eventRetryMaxDelay);
+        const nextRetryAt = Date.now() + jitterDelay;
+
+        // Update event with retry metadata
+        const retryEvent = {
+          ...event,
+          retry_count: retryCount,
+          next_retry_at: nextRetryAt,
+        };
+
+        // Add event back to queue for retry, but limit queue size
+        if (this.eventQueue.length < this.maxEventQueueSize) {
+          this.eventQueue.push(retryEvent);
+          this.debug(`Event queued for retry in ${jitterDelay}ms (${this.eventQueue.length}/${this.maxEventQueueSize})`);
+        } else {
+          this.debug(`Event queue full (${this.maxEventQueueSize}), dropping oldest event`);
+          // Remove oldest event and add new one (FIFO with size limit)
+          this.eventQueue.shift();
+          this.eventQueue.push(retryEvent);
+        }
+
+        // Start retry timer to periodically check for ready events
+        this.startRetryTimer();
+      } else {
+        this.debug(`Event failed permanently after ${this.maxEventRetries} attempts, dropping:`, error);
+        // Event is permanently failed, don't retry
+      }
     }
 
     return Promise.resolve();
@@ -841,6 +958,9 @@ export class Schematic {
       clearTimeout(this.wsReconnectTimer);
       this.wsReconnectTimer = null;
     }
+
+    // Stop retry timer
+    this.stopRetryTimer();
 
     if (this.conn) {
       try {
@@ -907,11 +1027,9 @@ export class Schematic {
    * Handle browser coming back online
    */
   private handleNetworkOnline = (): void => {
-    // Only reconnect if we have a context set (meaning we were previously connected)
-    if (this.context.company === undefined && this.context.user === undefined) {
-      this.debug("No context set, skipping reconnection");
-      return;
-    }
+    // Always attempt reconnection when network comes back online.
+    // The application layer will re-establish context as needed.
+    this.debug("Network online, attempting reconnection and flushing queued events");
 
     // Reset reconnection attempts for fresh start
     this.wsReconnectAttempts = 0;
@@ -922,8 +1040,12 @@ export class Schematic {
       this.wsReconnectTimer = null;
     }
 
+    // Flush any queued events that failed to send while offline
+    this.flushEventQueue().catch((error) => {
+      this.debug("Error flushing event queue on network online:", error);
+    });
+
     // Attempt immediate reconnection
-    this.debug("Network online, reconnecting immediately");
     this.attemptReconnect();
   };
 
@@ -966,14 +1088,29 @@ export class Schematic {
         this.conn = this.wsConnect();
         const socket = await this.conn;
 
-        // If we have a context, re-send it to get flag updates
+        // Check if we have a context to re-send
+        this.debug(`Reconnection context check:`, {
+          hasCompany: this.context.company !== undefined,
+          hasUser: this.context.user !== undefined,
+          context: this.context
+        });
+
         if (
           this.context.company !== undefined ||
           this.context.user !== undefined
         ) {
-          this.debug(`Reconnected, re-sending context`);
-          await this.wsSendMessage(socket, this.context);
+          this.debug(`Reconnected, force re-sending context`);
+          // After reconnection, always send context even if it appears "unchanged"
+          // because the server has lost all state and needs the initial context
+          await this.wsSendContextAfterReconnection(socket, this.context);
+        } else {
+          this.debug(`No context to re-send after reconnection - websocket ready for new context`);
         }
+
+        // After successful websocket reconnection, flush any queued events
+        this.flushEventQueue().catch((error) => {
+          this.debug("Error flushing event queue after websocket reconnection:", error);
+        });
 
         this.debug(`Reconnection successful`);
       } catch (error) {
@@ -1051,6 +1188,90 @@ export class Schematic {
           this.attemptReconnect();
         }
       };
+    });
+  };
+
+  // Send a message on the websocket after reconnection, forcing the send even if context appears unchanged
+  // because the server has lost all state and needs the initial context
+  private wsSendContextAfterReconnection = (
+    socket: WebSocket,
+    context: SchematicContext,
+  ): Promise<void> => {
+    // If in offline mode, don't send messages
+    if (this.isOffline()) {
+      this.debug("wsSendContextAfterReconnection: skipped (offline mode)");
+      this.setIsPending(false);
+      return Promise.resolve();
+    }
+
+    return new Promise((resolve) => {
+      // Force update context and send message regardless of whether it appears "unchanged"
+      this.debug(`WebSocket force sending context after reconnection:`, context);
+      this.context = context;
+
+      const sendMessage = () => {
+        let resolved = false;
+
+        const messageHandler = (event: MessageEvent) => {
+          const message = JSON.parse(event.data);
+
+          this.debug(`WebSocket message received after reconnection:`, message);
+
+          // Initialize flag checks for context
+          if (!(contextString(context) in this.checks)) {
+            this.checks[contextString(context)] = {};
+          }
+
+          // Message may contain only a subset of flags; merge with existing context
+          /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+          (message.flags ?? []).forEach((flag: any) => {
+            const flagCheck = CheckFlagReturnFromJSON(flag);
+            const contextStr = contextString(context);
+            if (this.checks[contextStr] === undefined) {
+              this.checks[contextStr] = {};
+            }
+            this.checks[contextStr][flagCheck.flag] = flagCheck;
+          });
+
+          // Set this.useWebSocket = true to signal that we have a working connection
+          this.useWebSocket = true;
+
+          socket.removeEventListener("message", messageHandler);
+
+          if (!resolved) {
+            resolved = true;
+            resolve(this.setIsPending(false));
+          }
+        };
+
+        socket.addEventListener("message", messageHandler);
+
+        const clientVersion =
+          this.additionalHeaders["X-Schematic-Client-Version"] ??
+          `schematic-js@${version}`;
+
+        const messagePayload = {
+          apiKey: this.apiKey,
+          clientVersion,
+          data: context,
+        };
+
+        this.debug(`WebSocket sending forced message after reconnection:`, messagePayload);
+
+        socket.send(JSON.stringify(messagePayload));
+      };
+
+      if (socket.readyState === WebSocket.OPEN) {
+        // If websocket is already open, send message immediately
+        this.debug(`WebSocket already open, sending forced message after reconnection`);
+        sendMessage();
+      } else {
+        // If websocket is connecting, wait for it to open
+        socket.addEventListener("open", () => {
+          this.debug(`WebSocket opened, sending forced message after reconnection`);
+          sendMessage();
+        });
+      }
     });
   };
 
