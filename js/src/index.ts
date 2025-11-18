@@ -70,6 +70,8 @@ export class Schematic {
   private eventRetryInitialDelay = 1000; // Initial retry delay in ms
   private eventRetryMaxDelay = 30000; // Maximum retry delay in ms
   private retryTimer: ReturnType<typeof setInterval> | null = null;
+  private flagDefaults: Record<string, boolean> = {};
+  private flagReturnDefaults: Record<string, CheckFlagReturn> = {};
 
   constructor(apiKey: string, options?: SchematicOptions) {
     this.apiKey = apiKey;
@@ -177,6 +179,14 @@ export class Schematic {
       this.eventRetryMaxDelay = options.eventRetryMaxDelay;
     }
 
+    if (options?.flagDefaults !== undefined) {
+      this.flagDefaults = options.flagDefaults;
+    }
+
+    if (options?.flagReturnDefaults !== undefined) {
+      this.flagReturnDefaults = options.flagReturnDefaults;
+    }
+
     /* eslint-disable-next-line @typescript-eslint/strict-boolean-expressions */
     if (typeof window !== "undefined" && window?.addEventListener) {
       window.addEventListener("beforeunload", () => {
@@ -208,6 +218,81 @@ export class Schematic {
   }
 
   /**
+   * Resolve fallback value according to priority order:
+   * 1. Callsite fallback value (if provided)
+   * 2. Initialization fallback value (flagDefaults)
+   * 3. Default to false
+   */
+  private resolveFallbackValue(key: string, callsiteFallback?: boolean): boolean {
+    // Priority 1: Callsite fallback value
+    if (callsiteFallback !== undefined) {
+      return callsiteFallback;
+    }
+
+    // Priority 2: Initialization fallback value from flagDefaults
+    if (key in this.flagDefaults) {
+      return this.flagDefaults[key];
+    }
+
+    // Priority 3: Default to false
+    return false;
+  }
+
+  /**
+   * Resolve complete CheckFlagReturn object according to priority order:
+   * 1. Use callsite fallback for boolean value, construct CheckFlagReturn
+   * 2. Use flagReturnDefaults if available for this flag
+   * 3. Use flagDefaults if available for this flag, construct CheckFlagReturn
+   * 4. Default CheckFlagReturn with value: false
+   */
+  private resolveFallbackCheckFlagReturn(
+    key: string,
+    callsiteFallback?: boolean,
+    reason: string = "Fallback value used",
+    error?: string,
+  ): CheckFlagReturn {
+    // Priority 1: If callsite fallback is provided, use it and construct CheckFlagReturn
+    if (callsiteFallback !== undefined) {
+      return {
+        flag: key,
+        value: callsiteFallback,
+        reason: reason,
+        error: error,
+      };
+    }
+
+    // Priority 2: If flagReturnDefaults has an entry for this flag, use it
+    if (key in this.flagReturnDefaults) {
+      const defaultReturn = this.flagReturnDefaults[key];
+      // Create a copy to avoid modifying the original default
+      return {
+        ...defaultReturn,
+        flag: key, // Ensure flag matches the requested key
+        reason: error !== undefined ? reason : defaultReturn.reason,
+        error: error,
+      };
+    }
+
+    // Priority 3: If flagDefaults has an entry for this flag, construct CheckFlagReturn
+    if (key in this.flagDefaults) {
+      return {
+        flag: key,
+        value: this.flagDefaults[key],
+        reason: reason,
+        error: error,
+      };
+    }
+
+    // Priority 4: Default CheckFlagReturn with value: false
+    return {
+      flag: key,
+      value: false,
+      reason: reason,
+      error: error,
+    };
+  }
+
+  /**
    * Get value for a single flag.
    * In WebSocket mode, returns cached values if connection is active, otherwise establishes
    * new connection and then returns the requestedvalue. Falls back to REST API if WebSocket
@@ -215,7 +300,7 @@ export class Schematic {
    * In REST mode, makes an API call for each check.
    */
   async checkFlag(options: CheckOptions): Promise<boolean> {
-    const { fallback = false, key } = options;
+    const { fallback, key } = options;
     const context = options.context || this.context;
     const contextStr = contextString(context);
 
@@ -223,12 +308,18 @@ export class Schematic {
 
     // If in offline mode, return fallback immediately without making any network request
     if (this.isOffline()) {
+      // In offline mode, use the full fallback resolution including flagReturnDefaults
+      const resolvedFallbackResult = this.resolveFallbackCheckFlagReturn(
+        key,
+        fallback,
+        "Offline mode - using initialization defaults",
+      );
       this.debug(`checkFlag offline result: ${key}`, {
-        value: fallback,
+        value: resolvedFallbackResult.value,
         offlineMode: true,
       });
 
-      return fallback;
+      return resolvedFallbackResult.value;
     }
 
     if (!this.useWebSocket) {
@@ -268,16 +359,16 @@ export class Schematic {
         .catch((error) => {
           console.error("There was a problem with the fetch operation:", error);
 
-          // Create a minimal result for the error case and submit event
-          const errorResult: CheckFlagReturn = {
-            flag: key,
-            value: fallback,
-            reason: "API request failed",
-            error: error instanceof Error ? error.message : String(error),
-          };
+          // Create a result for the error case using fallback priority and submit event
+          const errorResult = this.resolveFallbackCheckFlagReturn(
+            key,
+            fallback,
+            "API request failed",
+            error instanceof Error ? error.message : String(error),
+          );
           this.submitFlagCheckEvent(key, errorResult, context);
 
-          return fallback;
+          return errorResult.value;
         });
     }
 
@@ -295,7 +386,7 @@ export class Schematic {
 
       // If in offline mode, return fallback immediately
       if (this.isOffline()) {
-        return fallback;
+        return this.resolveFallbackValue(key, fallback);
       }
 
       // If we don't have values or connection is closed, we need to fetch them
@@ -312,13 +403,13 @@ export class Schematic {
       // After setting context and getting a response, return the value
       const contextVals = this.checks[contextStr] ?? {};
       const flagCheck = contextVals[key];
-      const result = flagCheck?.value ?? fallback;
+      const result = flagCheck?.value ?? this.resolveFallbackValue(key, fallback);
 
       this.debug(
         `checkFlag WebSocket result: ${key}`,
         typeof flagCheck !== "undefined"
           ? flagCheck
-          : { value: fallback, fallbackUsed: true },
+          : { value: result, fallbackUsed: true },
       );
 
       // If we have flag check results, submit an event
@@ -330,16 +421,16 @@ export class Schematic {
     } catch (error) {
       console.error("Unexpected error in checkFlag:", error);
 
-      // Create a minimal result for the error case and submit event
-      const errorResult: CheckFlagReturn = {
-        flag: key,
-        value: fallback,
-        reason: "Unexpected error in flag check",
-        error: error instanceof Error ? error.message : String(error),
-      };
+      // Create a result for the error case using fallback priority and submit event
+      const errorResult = this.resolveFallbackCheckFlagReturn(
+        key,
+        fallback,
+        "Unexpected error in flag check",
+        error instanceof Error ? error.message : String(error),
+      );
       this.submitFlagCheckEvent(key, errorResult, context);
 
-      return fallback;
+      return errorResult.value;
     }
   }
 
@@ -393,16 +484,17 @@ export class Schematic {
   private async fallbackToRest(
     key: string,
     context: SchematicContext,
-    fallback: boolean,
+    fallback?: boolean,
   ): Promise<boolean> {
     // If in offline mode, immediately return fallback value
     if (this.isOffline()) {
+      const resolvedFallback = this.resolveFallbackValue(key, fallback);
       this.debug(`fallbackToRest offline result: ${key}`, {
-        value: fallback,
+        value: resolvedFallback,
         offlineMode: true,
       });
 
-      return fallback;
+      return resolvedFallback;
     }
 
     try {
@@ -441,16 +533,16 @@ export class Schematic {
     } catch (error) {
       console.error("REST API call failed, using fallback value:", error);
 
-      // Create a minimal result for the error case and submit event
-      const errorResult: CheckFlagReturn = {
-        flag: key,
-        value: fallback,
-        reason: "API request failed (fallback)",
-        error: error instanceof Error ? error.message : String(error),
-      };
+      // Create a result for the error case using fallback priority and submit event
+      const errorResult = this.resolveFallbackCheckFlagReturn(
+        key,
+        fallback,
+        "API request failed (fallback)",
+        error instanceof Error ? error.message : String(error),
+      );
       this.submitFlagCheckEvent(key, errorResult, context);
 
-      return fallback;
+      return errorResult.value;
     }
   }
 
