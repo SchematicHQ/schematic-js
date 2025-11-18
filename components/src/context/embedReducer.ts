@@ -80,6 +80,7 @@ function normalize(data?: HydrateData): HydrateDataWithCompanyContext {
     },
     creditBundles: [],
     creditGrants: [],
+    preventSelfServiceDowngrade: false,
   });
 }
 
