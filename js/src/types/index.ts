@@ -170,11 +170,11 @@ export type SchematicOptions = {
   /** Maximum retry delay in milliseconds for failed events (default: 30000) */
   eventRetryMaxDelay?: number;
 
-  /** Default boolean values to use for flags when Schematic API cannot be reached and no callsite fallback is provided */
-  flagDefaults?: Record<string, boolean>;
+  /** Default boolean values for flags when Schematic API cannot be reached and no callsite fallback is provided */
+  flagValueDefaults?: Record<string, boolean>;
 
-  /** Default CheckFlagReturn objects to use for flags when Schematic API cannot be reached and no callsite fallback is provided */
-  flagReturnDefaults?: Record<string, CheckFlagReturn>;
+  /** Default CheckFlagReturn objects for flags when Schematic API cannot be reached and no callsite fallback is provided */
+  flagCheckDefaults?: Record<string, CheckFlagReturn>;
 };
 
 export type CheckOptions = {

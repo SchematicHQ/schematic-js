@@ -70,8 +70,8 @@ export class Schematic {
   private eventRetryInitialDelay = 1000; // Initial retry delay in ms
   private eventRetryMaxDelay = 30000; // Maximum retry delay in ms
   private retryTimer: ReturnType<typeof setInterval> | null = null;
-  private flagDefaults: Record<string, boolean> = {};
-  private flagReturnDefaults: Record<string, CheckFlagReturn> = {};
+  private flagValueDefaults: Record<string, boolean> = {};
+  private flagCheckDefaults: Record<string, CheckFlagReturn> = {};
 
   constructor(apiKey: string, options?: SchematicOptions) {
     this.apiKey = apiKey;
@@ -179,12 +179,12 @@ export class Schematic {
       this.eventRetryMaxDelay = options.eventRetryMaxDelay;
     }
 
-    if (options?.flagDefaults !== undefined) {
-      this.flagDefaults = options.flagDefaults;
+    if (options?.flagValueDefaults !== undefined) {
+      this.flagValueDefaults = options.flagValueDefaults;
     }
 
-    if (options?.flagReturnDefaults !== undefined) {
-      this.flagReturnDefaults = options.flagReturnDefaults;
+    if (options?.flagCheckDefaults !== undefined) {
+      this.flagCheckDefaults = options.flagCheckDefaults;
     }
 
     /* eslint-disable-next-line @typescript-eslint/strict-boolean-expressions */
@@ -220,7 +220,7 @@ export class Schematic {
   /**
    * Resolve fallback value according to priority order:
    * 1. Callsite fallback value (if provided)
-   * 2. Initialization fallback value (flagDefaults)
+   * 2. Initialization fallback value (flagValueDefaults)
    * 3. Default to false
    */
   private resolveFallbackValue(key: string, callsiteFallback?: boolean): boolean {
@@ -229,9 +229,9 @@ export class Schematic {
       return callsiteFallback;
     }
 
-    // Priority 2: Initialization fallback value from flagDefaults
-    if (key in this.flagDefaults) {
-      return this.flagDefaults[key];
+    // Priority 2: Initialization fallback value from flagValueDefaults
+    if (key in this.flagValueDefaults) {
+      return this.flagValueDefaults[key];
     }
 
     // Priority 3: Default to false
@@ -241,8 +241,8 @@ export class Schematic {
   /**
    * Resolve complete CheckFlagReturn object according to priority order:
    * 1. Use callsite fallback for boolean value, construct CheckFlagReturn
-   * 2. Use flagReturnDefaults if available for this flag
-   * 3. Use flagDefaults if available for this flag, construct CheckFlagReturn
+   * 2. Use flagCheckDefaults if available for this flag
+   * 3. Use flagValueDefaults if available for this flag, construct CheckFlagReturn
    * 4. Default CheckFlagReturn with value: false
    */
   private resolveFallbackCheckFlagReturn(
@@ -261,9 +261,9 @@ export class Schematic {
       };
     }
 
-    // Priority 2: If flagReturnDefaults has an entry for this flag, use it
-    if (key in this.flagReturnDefaults) {
-      const defaultReturn = this.flagReturnDefaults[key];
+    // Priority 2: If flagCheckDefaults has an entry for this flag, use it
+    if (key in this.flagCheckDefaults) {
+      const defaultReturn = this.flagCheckDefaults[key];
       // Create a copy to avoid modifying the original default
       return {
         ...defaultReturn,
@@ -273,11 +273,11 @@ export class Schematic {
       };
     }
 
-    // Priority 3: If flagDefaults has an entry for this flag, construct CheckFlagReturn
-    if (key in this.flagDefaults) {
+    // Priority 3: If flagValueDefaults has an entry for this flag, construct CheckFlagReturn
+    if (key in this.flagValueDefaults) {
       return {
         flag: key,
-        value: this.flagDefaults[key],
+        value: this.flagValueDefaults[key],
         reason: reason,
         error: error,
       };
@@ -308,7 +308,7 @@ export class Schematic {
 
     // If in offline mode, return fallback immediately without making any network request
     if (this.isOffline()) {
-      // In offline mode, use the full fallback resolution including flagReturnDefaults
+      // In offline mode, use the full fallback resolution including flagCheckDefaults
       const resolvedFallbackResult = this.resolveFallbackCheckFlagReturn(
         key,
         fallback,
