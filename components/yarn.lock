@@ -1098,10 +1098,10 @@
   resolved "https://registry.yarnpkg.com/@standard-schema/spec/-/spec-1.0.0.tgz#f193b73dc316c4170f2e82a881da0f550d551b9c"
   integrity sha512-m2bOd0f2RT9k8QJx1JN85cZYyH1RqFBdlwtkSlf4tBDYLCiiZnv1fIIwacK6cqwXavOydf0NPToMQgpKq+dVlA==
 
-"@stripe/react-stripe-js@^5.3.0":
-  version "5.3.0"
-  resolved "https://registry.yarnpkg.com/@stripe/react-stripe-js/-/react-stripe-js-5.3.0.tgz#f4ad675a386672e55aefc0fb6dca6310e85b08aa"
-  integrity sha512-q9Wl6JKg9JUU9zRcQyx4rkKauiM4Il+/ohJemQkLa4SsFEvcXVzX9X89cRLiaAEiNOaJ/2EQML+aWNSHc0EXBw==
+"@stripe/react-stripe-js@^5.4.0":
+  version "5.4.0"
+  resolved "https://registry.yarnpkg.com/@stripe/react-stripe-js/-/react-stripe-js-5.4.0.tgz#eff1aad5224779f93ccbc838abcbe6c581af4aa6"
+  integrity sha512-3zaL1GVgxc9uWTXK22MKgulVGWH9KkSBKQvPLksMjtfXNyA2BW14aW6dB3Lxn00y/E8fo3GrNgngTF73d5qviw==
   dependencies:
     prop-types "^15.7.2"
 
