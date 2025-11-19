@@ -844,10 +844,10 @@
     argparse "~1.0.9"
     string-argv "~0.3.1"
 
-"@schematichq/schematic-js@^1.2.8":
-  version "1.2.8"
-  resolved "https://registry.yarnpkg.com/@schematichq/schematic-js/-/schematic-js-1.2.8.tgz#5297092fc6571305bb50075bdd95aae6c14b867e"
-  integrity sha512-c1+QRmA2bPOx1g5FuN2SqcvPwQOxYSYIi1QmyL2vwWCUOJxd9uIiWczMcrKf1CIoFKeZog602/VzSCNHVIosqQ==
+"@schematichq/schematic-js@^1.2.9":
+  version "1.2.9"
+  resolved "https://registry.yarnpkg.com/@schematichq/schematic-js/-/schematic-js-1.2.9.tgz#8a1db2811d58ba04f26c1ed120cf51305930e5ad"
+  integrity sha512-j1thekXKc9SBILJEyq3hSgjEU+fCnR2rFarKLbTSzK0EE9vmpxwriCP1ZlkggNUlG+K9xqQnWiJ7cEzLT4pBqQ==
   dependencies:
     cross-fetch "^4.1.0"
     uuid "^13.0.0"
