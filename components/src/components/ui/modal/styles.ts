@@ -23,8 +23,8 @@ export const Overlay = styled(Box)`
 `;
 
 export const Modal = styled.div.attrs({
-  tabIndex: 0,
-  role: "dialog",
+  "tabIndex": 0,
+  "role": "dialog",
   "aria-modal": true,
 })<ModalProps>`
   position: relative;
