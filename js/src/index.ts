@@ -65,6 +65,8 @@ export class Schematic {
   private wsReconnectAttempts = 0;
   private wsReconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private wsIntentionalDisconnect = false;
+  private currentWebSocket: WebSocket | null = null;
+  private isConnecting = false;
   private maxEventQueueSize = 100; // Prevent memory issues with very long network outages
   private maxEventRetries = 5; // Maximum retry attempts for failed events
   private eventRetryInitialDelay = 1000; // Initial retry delay in ms
@@ -223,7 +225,10 @@ export class Schematic {
    * 2. Initialization fallback value (flagValueDefaults)
    * 3. Default to false
    */
-  private resolveFallbackValue(key: string, callsiteFallback?: boolean): boolean {
+  private resolveFallbackValue(
+    key: string,
+    callsiteFallback?: boolean,
+  ): boolean {
     // Priority 1: Callsite fallback value
     if (callsiteFallback !== undefined) {
       return callsiteFallback;
@@ -403,7 +408,8 @@ export class Schematic {
       // After setting context and getting a response, return the value
       const contextVals = this.checks[contextStr] ?? {};
       const flagCheck = contextVals[key];
-      const result = flagCheck?.value ?? this.resolveFallbackValue(key, fallback);
+      const result =
+        flagCheck?.value ?? this.resolveFallbackValue(key, fallback);
 
       this.debug(
         `checkFlag WebSocket result: ${key}`,
@@ -438,10 +444,77 @@ export class Schematic {
    * Helper function to log debug messages
    * Only logs if debug mode is enabled
    */
-  private debug(message: string, ...args: unknown[]): void {
+  debug(message: string, ...args: unknown[]): void {
     if (this.debugEnabled) {
       console.log(`[Schematic] ${message}`, ...args);
     }
+  }
+
+  /**
+   * Create a persistent message handler for websocket flag updates
+   */
+  private createPersistentMessageHandler(
+    context: SchematicContext,
+  ): (event: MessageEvent) => void {
+    return (event: MessageEvent) => {
+      const message = JSON.parse(event.data);
+
+      this.debug(`WebSocket persistent message received:`, message);
+
+      // Initialize flag checks for context
+      if (!(contextString(context) in this.checks)) {
+        this.checks[contextString(context)] = {};
+      }
+
+      // Message may contain only a subset of flags; merge with existing context
+      /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+      (message.flags ?? []).forEach((flag: any) => {
+        const flagCheck = CheckFlagReturnFromJSON(flag);
+        const contextStr = contextString(context);
+        if (this.checks[contextStr] === undefined) {
+          this.checks[contextStr] = {};
+        }
+        this.checks[contextStr][flagCheck.flag] = flagCheck;
+
+        this.debug(`WebSocket flag update:`, {
+          flag: flagCheck.flag,
+          value: flagCheck.value,
+          flagCheck,
+        });
+
+        // Store in feature usage event map if appropriate
+        if (typeof flagCheck.featureUsageEvent === "string") {
+          this.updateFeatureUsageEventMap(flagCheck);
+        }
+
+        // Log flag check events if there are listeners registered
+        if (
+          (this.flagCheckListeners[flag.flag]?.size ?? 0) > 0 ||
+          (this.flagValueListeners[flag.flag]?.size ?? 0) > 0
+        ) {
+          this.submitFlagCheckEvent(flagCheck.flag, flagCheck, context);
+        }
+
+        this.debug(`About to notify listeners for flag ${flag.flag}`, {
+          flag: flag.flag,
+          value: flagCheck.value,
+        });
+
+        this.notifyFlagCheckListeners(flag.flag, flagCheck);
+        this.notifyFlagValueListeners(flag.flag, flagCheck.value);
+
+        this.debug(`Finished notifying listeners for flag ${flag.flag}`, {
+          flag: flag.flag,
+          value: flagCheck.value,
+        });
+      });
+
+      // Flush any context-dependent events that were queued
+      this.flushContextDependentEventQueue();
+
+      // Update pending state
+      this.setIsPending(false);
+    };
   }
 
   /**
@@ -645,6 +718,22 @@ export class Schematic {
       this.setIsPending(true);
 
       if (!this.conn) {
+        // Prevent multiple concurrent connections
+        if (this.isConnecting) {
+          this.debug(
+            `Connection already in progress, waiting for it to complete`,
+          );
+          // Wait for the current connection attempt to complete
+          while (this.isConnecting && this.conn === null) {
+            await new Promise((resolve) => setTimeout(resolve, 10));
+          }
+          if (this.conn !== null) {
+            const socket = await this.conn;
+            await this.wsSendMessage(socket, context);
+            return;
+          }
+        }
+
         // Cancel any pending reconnection and connect immediately
         if (this.wsReconnectTimer !== null) {
           this.debug(
@@ -654,7 +743,17 @@ export class Schematic {
           this.wsReconnectTimer = null;
         }
 
-        this.conn = this.wsConnect();
+        this.isConnecting = true;
+        try {
+          this.conn = this.wsConnect();
+          const socket = await this.conn;
+          this.isConnecting = false;
+          await this.wsSendMessage(socket, context);
+          return;
+        } catch (error) {
+          this.isConnecting = false;
+          throw error;
+        }
       }
 
       const socket = await this.conn;
@@ -896,11 +995,15 @@ export class Schematic {
     }
 
     if (readyEvents.length === 0) {
-      this.debug(`No events ready for retry yet (${notReadyEvents.length} still in backoff)`);
+      this.debug(
+        `No events ready for retry yet (${notReadyEvents.length} still in backoff)`,
+      );
       return;
     }
 
-    this.debug(`Flushing event queue: ${readyEvents.length} ready, ${notReadyEvents.length} waiting`);
+    this.debug(
+      `Flushing event queue: ${readyEvents.length} ready, ${notReadyEvents.length} waiting`,
+    );
 
     // Keep events that aren't ready for retry yet
     this.eventQueue = notReadyEvents;
@@ -986,10 +1089,14 @@ export class Schematic {
       const retryCount = (event.retry_count ?? 0) + 1;
 
       if (retryCount <= this.maxEventRetries) {
-        this.debug(`Event failed to send (attempt ${retryCount}/${this.maxEventRetries}), queueing for retry:`, error);
+        this.debug(
+          `Event failed to send (attempt ${retryCount}/${this.maxEventRetries}), queueing for retry:`,
+          error,
+        );
 
         // Calculate exponential backoff delay
-        const baseDelay = this.eventRetryInitialDelay * Math.pow(2, retryCount - 1);
+        const baseDelay =
+          this.eventRetryInitialDelay * Math.pow(2, retryCount - 1);
         const jitterDelay = Math.min(baseDelay, this.eventRetryMaxDelay);
         const nextRetryAt = Date.now() + jitterDelay;
 
@@ -1003,9 +1110,13 @@ export class Schematic {
         // Add event back to queue for retry, but limit queue size
         if (this.eventQueue.length < this.maxEventQueueSize) {
           this.eventQueue.push(retryEvent);
-          this.debug(`Event queued for retry in ${jitterDelay}ms (${this.eventQueue.length}/${this.maxEventQueueSize})`);
+          this.debug(
+            `Event queued for retry in ${jitterDelay}ms (${this.eventQueue.length}/${this.maxEventQueueSize})`,
+          );
         } else {
-          this.debug(`Event queue full (${this.maxEventQueueSize}), dropping oldest event`);
+          this.debug(
+            `Event queue full (${this.maxEventQueueSize}), dropping oldest event`,
+          );
           // Remove oldest event and add new one (FIFO with size limit)
           this.eventQueue.shift();
           this.eventQueue.push(retryEvent);
@@ -1014,7 +1125,10 @@ export class Schematic {
         // Start retry timer to periodically check for ready events
         this.startRetryTimer();
       } else {
-        this.debug(`Event failed permanently after ${this.maxEventRetries} attempts, dropping:`, error);
+        this.debug(
+          `Event failed permanently after ${this.maxEventRetries} attempts, dropping:`,
+          error,
+        );
         // Event is permanently failed, don't retry
       }
     }
@@ -1057,11 +1171,20 @@ export class Schematic {
     if (this.conn) {
       try {
         const socket = await this.conn;
+
+        // Mark this websocket as no longer current if it's the one being cleaned up
+        if (this.currentWebSocket === socket) {
+          this.debug(`Cleaning up current websocket tracking`);
+          this.currentWebSocket = null;
+        }
+
         socket.close();
       } catch (error) {
         console.error("Error during cleanup:", error);
       } finally {
         this.conn = null;
+        this.currentWebSocket = null;
+        this.isConnecting = false;
       }
     }
   };
@@ -1100,7 +1223,12 @@ export class Schematic {
       try {
         const socket = await this.conn;
         // Close the zombie connection
-        socket.close();
+        if (
+          socket.readyState === WebSocket.OPEN ||
+          socket.readyState === WebSocket.CONNECTING
+        ) {
+          socket.close();
+        }
       } catch (error) {
         // Connection might already be dead, that's ok
         this.debug("Error closing connection on offline:", error);
@@ -1121,7 +1249,9 @@ export class Schematic {
   private handleNetworkOnline = (): void => {
     // Always attempt reconnection when network comes back online.
     // The application layer will re-establish context as needed.
-    this.debug("Network online, attempting reconnection and flushing queued events");
+    this.debug(
+      "Network online, attempting reconnection and flushing queued events",
+    );
 
     // Reset reconnection attempts for fresh start
     this.wsReconnectAttempts = 0;
@@ -1154,9 +1284,12 @@ export class Schematic {
       return;
     }
 
-    // Clear any existing reconnection timer
+    // Prevent multiple concurrent reconnection attempts
     if (this.wsReconnectTimer !== null) {
-      clearTimeout(this.wsReconnectTimer);
+      this.debug(
+        `Reconnection attempt already scheduled, ignoring duplicate request`,
+      );
+      return;
     }
 
     // Calculate delay with exponential backoff and jitter
@@ -1176,35 +1309,80 @@ export class Schematic {
       );
 
       try {
-        // Create new connection
-        this.conn = this.wsConnect();
-        const socket = await this.conn;
+        // Ensure any existing connection is fully cleaned up before creating new one
+        if (this.conn !== null) {
+          this.debug(`Cleaning up existing connection before reconnection`);
+          try {
+            const existingSocket = await this.conn;
 
-        // Check if we have a context to re-send
-        this.debug(`Reconnection context check:`, {
-          hasCompany: this.context.company !== undefined,
-          hasUser: this.context.user !== undefined,
-          context: this.context
-        });
+            // Mark the existing socket as no longer current
+            if (this.currentWebSocket === existingSocket) {
+              this.debug(`Existing websocket is current, will be replaced`);
+              this.currentWebSocket = null;
+            }
 
-        if (
-          this.context.company !== undefined ||
-          this.context.user !== undefined
-        ) {
-          this.debug(`Reconnected, force re-sending context`);
-          // After reconnection, always send context even if it appears "unchanged"
-          // because the server has lost all state and needs the initial context
-          await this.wsSendContextAfterReconnection(socket, this.context);
-        } else {
-          this.debug(`No context to re-send after reconnection - websocket ready for new context`);
+            if (
+              existingSocket.readyState === WebSocket.OPEN ||
+              existingSocket.readyState === WebSocket.CONNECTING
+            ) {
+              existingSocket.close();
+            }
+          } catch (error) {
+            this.debug(`Error cleaning up existing connection:`, error);
+          }
+          this.conn = null;
+          this.currentWebSocket = null;
+          this.isConnecting = false;
         }
 
-        // After successful websocket reconnection, flush any queued events
-        this.flushEventQueue().catch((error) => {
-          this.debug("Error flushing event queue after websocket reconnection:", error);
-        });
+        // Create new connection
+        this.isConnecting = true;
+        try {
+          this.conn = this.wsConnect();
+          const socket = await this.conn;
+          this.isConnecting = false;
 
-        this.debug(`Reconnection successful`);
+          // Check if we have a context to re-send
+          this.debug(`Reconnection context check:`, {
+            hasCompany: this.context.company !== undefined,
+            hasUser: this.context.user !== undefined,
+            context: this.context,
+          });
+
+          if (
+            this.context.company !== undefined ||
+            this.context.user !== undefined
+          ) {
+            this.debug(`Reconnected, force re-sending context`);
+            // After reconnection, always send context even if it appears "unchanged"
+            // because the server has lost all state and needs the initial context
+            await this.wsSendMessage(socket, this.context, true);
+          } else {
+            this.debug(
+              `No context to re-send after reconnection - websocket ready for new context`,
+            );
+
+            // Even if we don't have context to send, we should still track this websocket
+            // so that future setContext calls use the correct connection
+            this.debug(
+              `Setting up tracking for reconnected websocket (no context to send)`,
+            );
+            this.currentWebSocket = socket;
+          }
+
+          // After successful websocket reconnection, flush any queued events
+          this.flushEventQueue().catch((error) => {
+            this.debug(
+              "Error flushing event queue after websocket reconnection:",
+              error,
+            );
+          });
+
+          this.debug(`Reconnection successful`);
+        } catch (error) {
+          this.isConnecting = false;
+          throw error;
+        }
       } catch (error) {
         this.debug(`Reconnection attempt failed:`, error);
         // The wsConnect onclose handler will trigger another attemptReconnect
@@ -1228,6 +1406,9 @@ export class Schematic {
       this.debug(`connecting to WebSocket:`, wsUrl);
 
       const webSocket = new WebSocket(wsUrl);
+      const connectionId = Math.random().toString(36).substring(7);
+      this.debug(`Creating WebSocket connection ${connectionId} to ${wsUrl}`);
+
       let timeoutId: ReturnType<typeof setTimeout> | null = null;
       let isResolved = false;
 
@@ -1252,7 +1433,7 @@ export class Schematic {
         this.wsReconnectAttempts = 0;
         this.wsIntentionalDisconnect = false;
 
-        this.debug(`WebSocket connection opened`);
+        this.debug(`WebSocket connection ${connectionId} opened successfully`);
         resolve(webSocket);
       };
 
@@ -1262,7 +1443,7 @@ export class Schematic {
           clearTimeout(timeoutId);
         }
 
-        this.debug(`WebSocket connection error:`, error);
+        this.debug(`WebSocket connection ${connectionId} error:`, error);
         reject(error);
       };
 
@@ -1272,8 +1453,14 @@ export class Schematic {
           clearTimeout(timeoutId);
         }
 
-        this.debug(`WebSocket connection closed`);
+        this.debug(`WebSocket connection ${connectionId} closed`);
         this.conn = null;
+
+        // Clean up tracking references when this specific socket closes
+        if (this.currentWebSocket === webSocket) {
+          this.currentWebSocket = null;
+          this.isConnecting = false;
+        }
 
         // Attempt to reconnect if not intentionally disconnected
         if (!this.wsIntentionalDisconnect && this.webSocketReconnect) {
@@ -1283,95 +1470,12 @@ export class Schematic {
     });
   };
 
-  // Send a message on the websocket after reconnection, forcing the send even if context appears unchanged
-  // because the server has lost all state and needs the initial context
-  private wsSendContextAfterReconnection = (
-    socket: WebSocket,
-    context: SchematicContext,
-  ): Promise<void> => {
-    // If in offline mode, don't send messages
-    if (this.isOffline()) {
-      this.debug("wsSendContextAfterReconnection: skipped (offline mode)");
-      this.setIsPending(false);
-      return Promise.resolve();
-    }
-
-    return new Promise((resolve) => {
-      // Force update context and send message regardless of whether it appears "unchanged"
-      this.debug(`WebSocket force sending context after reconnection:`, context);
-      this.context = context;
-
-      const sendMessage = () => {
-        let resolved = false;
-
-        const messageHandler = (event: MessageEvent) => {
-          const message = JSON.parse(event.data);
-
-          this.debug(`WebSocket message received after reconnection:`, message);
-
-          // Initialize flag checks for context
-          if (!(contextString(context) in this.checks)) {
-            this.checks[contextString(context)] = {};
-          }
-
-          // Message may contain only a subset of flags; merge with existing context
-          /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-          (message.flags ?? []).forEach((flag: any) => {
-            const flagCheck = CheckFlagReturnFromJSON(flag);
-            const contextStr = contextString(context);
-            if (this.checks[contextStr] === undefined) {
-              this.checks[contextStr] = {};
-            }
-            this.checks[contextStr][flagCheck.flag] = flagCheck;
-          });
-
-          // Set this.useWebSocket = true to signal that we have a working connection
-          this.useWebSocket = true;
-
-          socket.removeEventListener("message", messageHandler);
-
-          if (!resolved) {
-            resolved = true;
-            resolve(this.setIsPending(false));
-          }
-        };
-
-        socket.addEventListener("message", messageHandler);
-
-        const clientVersion =
-          this.additionalHeaders["X-Schematic-Client-Version"] ??
-          `schematic-js@${version}`;
-
-        const messagePayload = {
-          apiKey: this.apiKey,
-          clientVersion,
-          data: context,
-        };
-
-        this.debug(`WebSocket sending forced message after reconnection:`, messagePayload);
-
-        socket.send(JSON.stringify(messagePayload));
-      };
-
-      if (socket.readyState === WebSocket.OPEN) {
-        // If websocket is already open, send message immediately
-        this.debug(`WebSocket already open, sending forced message after reconnection`);
-        sendMessage();
-      } else {
-        // If websocket is connecting, wait for it to open
-        socket.addEventListener("open", () => {
-          this.debug(`WebSocket opened, sending forced message after reconnection`);
-          sendMessage();
-        });
-      }
-    });
-  };
-
   // Send a message on the websocket indicating interest in a particular evaluation context
   // and wait for the initial set of flag values to be returned
   private wsSendMessage = (
     socket: WebSocket,
     context: SchematicContext,
+    forceContextSend = false,
   ): Promise<void> => {
     // If in offline mode, don't send messages
     if (this.isOffline()) {
@@ -1382,66 +1486,34 @@ export class Schematic {
 
     return new Promise((resolve, reject) => {
       // Confirm that the context has changed; if it hasn't, we don't need to do anything
-      if (contextString(context) == contextString(this.context)) {
+      // Unless forceContextSend is true (used during reconnection)
+      if (
+        !forceContextSend &&
+        contextString(context) == contextString(this.context)
+      ) {
         this.debug(`WebSocket context unchanged, skipping update`);
         return resolve(this.setIsPending(false));
       }
 
-      this.debug(`WebSocket context updated:`, context);
+      this.debug(
+        forceContextSend
+          ? `WebSocket force sending context (reconnection):`
+          : `WebSocket context updated:`,
+        context,
+      );
 
       this.context = context;
 
       const sendMessage = () => {
         let resolved = false;
 
+        // Create persistent message handler using extracted method
+        const persistentMessageHandler =
+          this.createPersistentMessageHandler(context);
+
+        // Wrap with resolve logic for initial message
         const messageHandler = (event: MessageEvent) => {
-          const message = JSON.parse(event.data);
-
-          this.debug(`WebSocket message received:`, message);
-
-          // Initialize flag checks for context
-          if (!(contextString(context) in this.checks)) {
-            this.checks[contextString(context)] = {};
-          }
-
-          // Message may contain only a subset of flags; merge with existing context
-          /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-          (message.flags ?? []).forEach((flag: any) => {
-            const flagCheck = CheckFlagReturnFromJSON(flag);
-            const contextStr = contextString(context);
-            if (this.checks[contextStr] === undefined) {
-              this.checks[contextStr] = {};
-            }
-            this.checks[contextStr][flagCheck.flag] = flagCheck;
-
-            this.debug(`WebSocket flag update:`, {
-              flag: flagCheck.flag,
-              value: flagCheck.value,
-              flagCheck,
-            });
-
-            // Store in feature usage event map if appropriate
-            if (typeof flagCheck.featureUsageEvent === "string") {
-              this.updateFeatureUsageEventMap(flagCheck);
-            }
-
-            // Log flag check events if there are listeners registered
-            if (
-              this.flagCheckListeners[flag.flag]?.size > 0 ||
-              this.flagValueListeners[flag.flag]?.size > 0
-            ) {
-              this.submitFlagCheckEvent(flagCheck.flag, flagCheck, context);
-            }
-
-            this.notifyFlagCheckListeners(flag.flag, flagCheck);
-            this.notifyFlagValueListeners(flag.flag, flagCheck.value);
-          });
-
-          // Flush any context-dependent events that were queued
-          this.flushContextDependentEventQueue();
-
-          // Update pending state
-          this.setIsPending(false);
+          persistentMessageHandler(event);
 
           // If this is the first message received on the websocket, we need to resolve the promise
           if (!resolved) {
@@ -1451,6 +1523,9 @@ export class Schematic {
         };
 
         socket.addEventListener("message", messageHandler);
+
+        // Track the current websocket for cleanup and ensuring React listeners use the right connection
+        this.currentWebSocket = socket;
 
         const clientVersion =
           this.additionalHeaders["X-Schematic-Client-Version"] ??
@@ -1516,6 +1591,7 @@ export class Schematic {
   // flagValues state
   getFlagValue = (flagKey: string) => {
     const check = this.getFlagCheck(flagKey);
+
     return check?.value;
   };
 
@@ -1597,7 +1673,17 @@ export class Schematic {
       );
     }
 
-    listeners.forEach((listener) => notifyFlagValueListener(listener, value));
+    listeners.forEach((listener, index) => {
+      this.debug(`Calling listener ${index} for flag ${flagKey}`, {
+        flagKey,
+        value,
+      });
+      notifyFlagValueListener(listener, value);
+      this.debug(`Listener ${index} for flag ${flagKey} completed`, {
+        flagKey,
+        value,
+      });
+    });
   };
 }
 
