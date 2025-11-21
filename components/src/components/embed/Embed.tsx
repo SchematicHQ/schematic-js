@@ -24,7 +24,7 @@ const Loading = () => {
       $justifyContent="center"
       $padding={`${settings.theme.card.padding / TEXT_BASE_SIZE}rem`}
     >
-      <Loader $color="#194BFB" $size="2xl" />
+      <Loader $color={settings.theme.primary} $size="2xl" />
     </Flex>
   );
 };
