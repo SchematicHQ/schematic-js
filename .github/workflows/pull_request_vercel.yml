@@ -21,7 +21,7 @@ jobs:
     steps:
       - uses: runs-on/action@v2.0.3
       - name: Checkout Components Repository
-        uses: actions/checkout@v5.0.0
+        uses: actions/checkout@v6
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -45,7 +45,7 @@ jobs:
           yarn link
 
       - name: Clone Demo App
-        uses: actions/checkout@v5.0.0
+        uses: actions/checkout@v6
         with:
           repository: ${{ env.DEMO_APP_REPO }}
           token: ${{ secrets.GITHUB_TOKEN }}

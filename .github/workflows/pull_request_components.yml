@@ -11,7 +11,7 @@ jobs:
     runs-on: runs-on=${{ github.run_id }}/runner=4cpu-linux-x64/extras=s3-cache
     steps:
       - uses: runs-on/action@v2.0.3
-      - uses: actions/checkout@v5.0.0
+      - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
           node-version: 24.x
@@ -27,7 +27,7 @@ jobs:
     runs-on: runs-on=${{ github.run_id }}/runner=4cpu-linux-x64/extras=s3-cache
     steps:
       - uses: runs-on/action@v2.0.3
-      - uses: actions/checkout@v5.0.0
+      - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
           node-version: 24.x
@@ -46,7 +46,7 @@ jobs:
         node-version: [24.11.0, 25.1.0]
     steps:
       - uses: runs-on/action@v2
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
