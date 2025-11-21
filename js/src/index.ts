@@ -39,6 +39,7 @@ export class Schematic {
   private context: SchematicContext = {};
   private debugEnabled: boolean = false;
   private offlineEnabled: boolean = false;
+  private offlineFlagChecksEnabled: boolean = false;
   private eventQueue: Event[];
   private contextDependentEventQueue: Event[];
   private eventUrl = "https://c.schematichq.com";
@@ -80,6 +81,7 @@ export class Schematic {
     this.useWebSocket = options?.useWebSocket ?? false;
     this.debugEnabled = options?.debug ?? false;
     this.offlineEnabled = options?.offline ?? false;
+    this.offlineFlagChecksEnabled = options?.offlineFlagChecks ?? false;
 
     // Check for debug mode in URL query parameter
     if (
@@ -212,6 +214,10 @@ export class Schematic {
       this.debug(
         "Initialized with offline mode enabled - no network requests will be made",
       );
+    } else if (this.offlineFlagChecksEnabled) {
+      this.debug(
+        "Initialized with offline flag checks enabled - flag checks will use defaults, events will still be sent",
+      );
     } else if (this.debugEnabled) {
       this.debug("Initialized with debug mode enabled");
     }
@@ -306,17 +312,21 @@ export class Schematic {
 
     this.debug(`checkFlag: ${key}`, { context, fallback });
 
-    // If in offline mode, return fallback immediately without making any network request
-    if (this.isOffline()) {
-      // In offline mode, use the full fallback resolution including flagCheckDefaults
+    // If flag checks are offline, return fallback immediately without making any network request
+    if (this.areFlagChecksOffline()) {
+      // Use the full fallback resolution including flagCheckDefaults
+      const reasonText = this.offlineEnabled
+        ? "Offline mode - using initialization defaults"
+        : "Flag checks disabled - using initialization defaults";
       const resolvedFallbackResult = this.resolveFallbackCheckFlagReturn(
         key,
         fallback,
-        "Offline mode - using initialization defaults",
+        reasonText,
       );
       this.debug(`checkFlag offline result: ${key}`, {
         value: resolvedFallbackResult.value,
-        offlineMode: true,
+        offlineMode: this.offlineEnabled,
+        offlineFlagChecks: this.offlineFlagChecksEnabled,
       });
 
       return resolvedFallbackResult.value;
@@ -384,8 +394,8 @@ export class Schematic {
         return existingVals[key].value;
       }
 
-      // If in offline mode, return fallback immediately
-      if (this.isOffline()) {
+      // If flag checks are offline, return fallback immediately
+      if (this.areFlagChecksOffline()) {
         return this.resolveFallbackValue(key, fallback);
       }
 
@@ -452,6 +462,14 @@ export class Schematic {
   }
 
   /**
+   * Helper function to check if flag checks should be offline
+   * (either full offline mode or just flag checks disabled)
+   */
+  private areFlagChecksOffline(): boolean {
+    return this.offlineEnabled || this.offlineFlagChecksEnabled;
+  }
+
+  /**
    * Submit a flag check event
    * Records data about a flag check for analytics
    */
@@ -486,12 +504,13 @@ export class Schematic {
     context: SchematicContext,
     fallback?: boolean,
   ): Promise<boolean> {
-    // If in offline mode, immediately return fallback value
-    if (this.isOffline()) {
+    // If flag checks are offline, immediately return fallback value
+    if (this.areFlagChecksOffline()) {
       const resolvedFallback = this.resolveFallbackValue(key, fallback);
       this.debug(`fallbackToRest offline result: ${key}`, {
         value: resolvedFallback,
-        offlineMode: true,
+        offlineMode: this.offlineEnabled,
+        offlineFlagChecks: this.offlineFlagChecksEnabled,
       });
 
       return resolvedFallback;
@@ -558,9 +577,12 @@ export class Schematic {
 
     this.debug(`checkFlags`, { context });
 
-    // If in offline mode, return empty object without making network request
-    if (this.isOffline()) {
-      this.debug(`checkFlags offline result: returning empty object`);
+    // If flag checks are offline, return empty object without making network request
+    if (this.areFlagChecksOffline()) {
+      this.debug(`checkFlags offline result: returning empty object`, {
+        offlineMode: this.offlineEnabled,
+        offlineFlagChecks: this.offlineFlagChecksEnabled,
+      });
       return {};
     }
 
@@ -633,7 +655,7 @@ export class Schematic {
    * In offline mode, this will just set the context locally without connecting.
    */
   setContext = async (context: SchematicContext): Promise<void> => {
-    if (this.isOffline() || !this.useWebSocket) {
+    if (this.areFlagChecksOffline() || !this.useWebSocket) {
       this.context = context;
       this.flushContextDependentEventQueue();
       this.setIsPending(false);
@@ -1036,9 +1058,12 @@ export class Schematic {
    * In offline mode, this is a no-op.
    */
   cleanup = async (): Promise<void> => {
-    // In offline mode, no need to clean up connections since none are made
-    if (this.isOffline()) {
-      this.debug("cleanup: skipped (offline mode)");
+    // If flag checks are offline, no need to clean up connections since none are made
+    if (this.areFlagChecksOffline()) {
+      const reason = this.offlineEnabled
+        ? "offline mode"
+        : "offline flag checks enabled";
+      this.debug(`cleanup: skipped (${reason})`);
       return Promise.resolve();
     }
 
@@ -1214,11 +1239,14 @@ export class Schematic {
 
   // Open a websocket connection
   private wsConnect = (): Promise<WebSocket> => {
-    // If in offline mode, don't actually connect
-    if (this.isOffline()) {
-      this.debug("wsConnect: skipped (offline mode)");
+    // If flag checks are offline, don't actually connect
+    if (this.areFlagChecksOffline()) {
+      const reason = this.offlineEnabled
+        ? "offline mode"
+        : "offline flag checks enabled";
+      this.debug(`wsConnect: skipped (${reason})`);
       return Promise.reject(
-        new Error("WebSocket connection skipped in offline mode"),
+        new Error(`WebSocket connection skipped in ${reason}`),
       );
     }
 
@@ -1289,9 +1317,12 @@ export class Schematic {
     socket: WebSocket,
     context: SchematicContext,
   ): Promise<void> => {
-    // If in offline mode, don't send messages
-    if (this.isOffline()) {
-      this.debug("wsSendContextAfterReconnection: skipped (offline mode)");
+    // If flag checks are offline, don't send messages
+    if (this.areFlagChecksOffline()) {
+      const reason = this.offlineEnabled
+        ? "offline mode"
+        : "offline flag checks enabled";
+      this.debug(`wsSendContextAfterReconnection: skipped (${reason})`);
       this.setIsPending(false);
       return Promise.resolve();
     }
@@ -1373,9 +1404,12 @@ export class Schematic {
     socket: WebSocket,
     context: SchematicContext,
   ): Promise<void> => {
-    // If in offline mode, don't send messages
-    if (this.isOffline()) {
-      this.debug("wsSendMessage: skipped (offline mode)");
+    // If flag checks are offline, don't send messages
+    if (this.areFlagChecksOffline()) {
+      const reason = this.offlineEnabled
+        ? "offline mode"
+        : "offline flag checks enabled";
+      this.debug(`wsSendMessage: skipped (${reason})`);
       this.setIsPending(false);
       return Promise.resolve();
     }

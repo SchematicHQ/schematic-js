@@ -1417,4 +1417,511 @@ describe("WebSocket Fallback Behavior", () => {
       await schematic.cleanup();
     });
   });
+
+  describe("offlineFlagChecks", () => {
+    describe("Initialization", () => {
+      it("should initialize with offlineFlagChecks enabled", () => {
+        const schematic = new Schematic("API_KEY", {
+          offlineFlagChecks: true,
+        });
+
+        expect(schematic).toBeDefined();
+      });
+
+      it("should work with flagValueDefaults when offlineFlagChecks is enabled", () => {
+        const schematic = new Schematic("API_KEY", {
+          offlineFlagChecks: true,
+          flagValueDefaults: {
+            'test-flag': true,
+          },
+        });
+
+        expect(schematic).toBeDefined();
+      });
+
+      it("should work with flagCheckDefaults when offlineFlagChecks is enabled", () => {
+        const schematic = new Schematic("API_KEY", {
+          offlineFlagChecks: true,
+          flagCheckDefaults: {
+            'complex-flag': {
+              flag: 'complex-flag',
+              value: false,
+              reason: 'Default from flagCheckDefaults',
+            },
+          },
+        });
+
+        expect(schematic).toBeDefined();
+      });
+    });
+
+    describe("Flag Checking Behavior", () => {
+      it("should return flagValueDefaults immediately without network calls", async () => {
+        const schematic = new Schematic("API_KEY", {
+          offlineFlagChecks: true,
+          flagValueDefaults: {
+            'premium-feature': true,
+            'beta-feature': false,
+          },
+        });
+
+        const premiumResult = await schematic.checkFlag({ key: 'premium-feature' });
+        const betaResult = await schematic.checkFlag({ key: 'beta-feature' });
+        const unknownResult = await schematic.checkFlag({ key: 'unknown-feature' });
+
+        expect(premiumResult).toBe(true);
+        expect(betaResult).toBe(false);
+        expect(unknownResult).toBe(false); // Default fallback
+        expect(mockFetch).not.toHaveBeenCalled(); // No network calls
+      });
+
+      it("should return flagCheckDefaults immediately without network calls", async () => {
+        const schematic = new Schematic("API_KEY", {
+          offlineFlagChecks: true,
+          flagCheckDefaults: {
+            'complex-flag': {
+              flag: 'complex-flag',
+              value: true,
+              reason: 'From flagCheckDefaults',
+              companyId: 'test-company',
+            },
+          },
+        });
+
+        const result = await schematic.checkFlag({ key: 'complex-flag' });
+
+        expect(result).toBe(true);
+        expect(mockFetch).not.toHaveBeenCalled(); // No network calls
+      });
+
+      it("should prioritize callsite fallback over flagValueDefaults", async () => {
+        const schematic = new Schematic("API_KEY", {
+          offlineFlagChecks: true,
+          flagValueDefaults: {
+            'priority-test': false,
+          },
+        });
+
+        const result = await schematic.checkFlag({
+          key: 'priority-test',
+          fallback: true
+        });
+
+        expect(result).toBe(true); // Callsite fallback wins
+        expect(mockFetch).not.toHaveBeenCalled();
+      });
+
+      it("should prioritize flagCheckDefaults over flagValueDefaults", async () => {
+        const schematic = new Schematic("API_KEY", {
+          offlineFlagChecks: true,
+          flagValueDefaults: {
+            'priority-test': true,
+          },
+          flagCheckDefaults: {
+            'priority-test': {
+              flag: 'priority-test',
+              value: false,
+              reason: 'flagCheckDefaults wins',
+            },
+          },
+        });
+
+        const result = await schematic.checkFlag({ key: 'priority-test' });
+
+        expect(result).toBe(false); // flagCheckDefaults wins over flagValueDefaults
+        expect(mockFetch).not.toHaveBeenCalled();
+      });
+    });
+
+    describe("checkFlags method", () => {
+      it("should return empty object without network calls when offlineFlagChecks is enabled", async () => {
+        const schematic = new Schematic("API_KEY", {
+          offlineFlagChecks: true,
+        });
+
+        const result = await schematic.checkFlags();
+
+        expect(result).toEqual({});
+        expect(mockFetch).not.toHaveBeenCalled(); // No network calls
+      });
+    });
+
+    describe("Event Submission", () => {
+      beforeEach(() => {
+        mockFetch.mockResolvedValue({ ok: true, status: 200 });
+      });
+
+      it("should send events normally when offlineFlagChecks is enabled", async () => {
+        const schematic = new Schematic("API_KEY", {
+          offlineFlagChecks: true,
+        });
+
+        await schematic.identify({
+          keys: { userId: "test-user" },
+          traits: { plan: "premium" },
+        });
+
+        expect(mockFetch).toHaveBeenCalledTimes(1);
+        expect(mockFetch).toHaveBeenCalledWith(
+          expect.stringContaining("/e"), // Event URL
+          expect.objectContaining({
+            method: "POST",
+            headers: expect.objectContaining({
+              "Content-Type": "application/json;charset=UTF-8",
+            }),
+          })
+        );
+      });
+
+      it("should send track events normally when offlineFlagChecks is enabled", async () => {
+        const schematic = new Schematic("API_KEY", {
+          offlineFlagChecks: true,
+        });
+
+        await schematic.track({
+          user: { userId: "test-user" },
+          event: "feature_used",
+          traits: { feature: "premium-feature" },
+        });
+
+        expect(mockFetch).toHaveBeenCalledTimes(1);
+        expect(mockFetch).toHaveBeenCalledWith(
+          expect.stringContaining("/e"), // Event URL
+          expect.objectContaining({
+            method: "POST",
+          })
+        );
+      });
+    });
+
+    describe("WebSocket Behavior", () => {
+      it("should not establish WebSocket connection when offlineFlagChecks is enabled", async () => {
+        const schematic = new Schematic("API_KEY", {
+          offlineFlagChecks: true,
+          useWebSocket: true,
+          webSocketUrl: "ws://localhost:1234",
+        });
+
+        await schematic.setContext({
+          user: { userId: "test-user" },
+        });
+
+        // Should not attempt WebSocket connection
+        expect(schematic.getIsPending()).toBe(false);
+      });
+
+      it("should not send WebSocket messages when offlineFlagChecks is enabled", async () => {
+        const schematic = new Schematic("API_KEY", {
+          offlineFlagChecks: true,
+          useWebSocket: true,
+          flagValueDefaults: {
+            'ws-test': true,
+          },
+        });
+
+        // Set context explicitly to test WebSocket avoidance
+        await schematic.setContext({ user: { userId: "test-user" } });
+
+        const result = await schematic.checkFlag({
+          key: 'ws-test',
+        });
+
+        expect(result).toBe(true); // Uses flagValueDefaults
+        expect(schematic.getIsPending()).toBe(false);
+      });
+    });
+
+    describe("Comparison with Full Offline Mode", () => {
+      beforeEach(() => {
+        mockFetch.mockResolvedValue({ ok: true, status: 200 });
+      });
+
+      it("should behave differently from full offline mode for events", async () => {
+        const offlineFlagChecksSchematic = new Schematic("API_KEY", {
+          offlineFlagChecks: true,
+        });
+
+        const fullOfflineSchematic = new Schematic("API_KEY", {
+          offline: true,
+        });
+
+        // Both should handle flags the same way
+        const flagResult1 = await offlineFlagChecksSchematic.checkFlag({ key: 'test-flag' });
+        const flagResult2 = await fullOfflineSchematic.checkFlag({ key: 'test-flag' });
+
+        expect(flagResult1).toBe(flagResult2); // Both return false by default
+
+        // But events should behave differently
+        await offlineFlagChecksSchematic.identify({ keys: { userId: "test1" } });
+        await fullOfflineSchematic.identify({ keys: { userId: "test2" } });
+
+        // offlineFlagChecks should send events, offline should not
+        expect(mockFetch).toHaveBeenCalledTimes(1); // Only offlineFlagChecks sent event
+      });
+
+      it("should return same flag values but handle events differently", async () => {
+        const flagDefaults = {
+          'premium': true,
+          'beta': false,
+        };
+
+        const offlineFlagChecksSchematic = new Schematic("API_KEY", {
+          offlineFlagChecks: true,
+          flagValueDefaults: flagDefaults,
+        });
+
+        const fullOfflineSchematic = new Schematic("API_KEY", {
+          offline: true,
+          flagValueDefaults: flagDefaults,
+        });
+
+        // Flag values should be identical
+        const premium1 = await offlineFlagChecksSchematic.checkFlag({ key: 'premium' });
+        const premium2 = await fullOfflineSchematic.checkFlag({ key: 'premium' });
+
+        const beta1 = await offlineFlagChecksSchematic.checkFlag({ key: 'beta' });
+        const beta2 = await fullOfflineSchematic.checkFlag({ key: 'beta' });
+
+        expect(premium1).toBe(premium2); // true
+        expect(beta1).toBe(beta2); // false
+
+        // Event behavior should differ
+        mockFetch.mockClear();
+
+        await offlineFlagChecksSchematic.track({
+          user: { userId: "test1" },
+          event: "test_event1",
+        });
+
+        await fullOfflineSchematic.track({
+          user: { userId: "test2" },
+          event: "test_event2",
+        });
+
+        // Only offlineFlagChecks should send the event
+        expect(mockFetch).toHaveBeenCalledTimes(1);
+      });
+    });
+  });
+
+  describe("Mode Interactions", () => {
+    beforeEach(() => {
+      mockFetch.mockResolvedValue({ ok: true, status: 200 });
+    });
+
+    describe("offline + useWebSocket", () => {
+      it("should prioritize offline mode over WebSocket for flag checks", async () => {
+        const schematic = new Schematic("API_KEY", {
+          offline: true,
+          useWebSocket: true, // This should be ignored due to offline mode
+          flagValueDefaults: {
+            'test-flag': true,
+          },
+        });
+
+        const result = await schematic.checkFlag({ key: 'test-flag' });
+
+        expect(result).toBe(true); // Uses flagValueDefaults
+        expect(mockFetch).not.toHaveBeenCalled(); // No network calls at all
+        expect(schematic.getIsPending()).toBe(false); // Should not be pending
+      });
+
+      it("should prioritize offline mode over WebSocket for events", async () => {
+        const schematic = new Schematic("API_KEY", {
+          offline: true,
+          useWebSocket: true,
+        });
+
+        await schematic.identify({ keys: { userId: "test-user" } });
+
+        // Should not send event due to offline mode
+        expect(mockFetch).not.toHaveBeenCalled();
+      });
+
+      it("should prioritize offline mode for setContext", async () => {
+        const schematic = new Schematic("API_KEY", {
+          offline: true,
+          useWebSocket: true,
+        });
+
+        await schematic.setContext({ user: { userId: "test-user" } });
+
+        // Should not attempt WebSocket connection
+        expect(schematic.getIsPending()).toBe(false);
+      });
+    });
+
+    describe("offlineFlagChecks + useWebSocket", () => {
+      it("should disable WebSocket for flag checks but allow events", async () => {
+        const schematic = new Schematic("API_KEY", {
+          offlineFlagChecks: true,
+          useWebSocket: true, // Should be ignored for flags but events should still work
+          flagValueDefaults: {
+            'test-flag': false,
+          },
+        });
+
+        // Flag check should use defaults without WebSocket
+        const flagResult = await schematic.checkFlag({ key: 'test-flag' });
+        expect(flagResult).toBe(false);
+        // Note: isPending might be true temporarily due to WebSocket initialization attempt
+        // but the flag check itself uses defaults immediately
+
+        // Events should still work normally
+        await schematic.track({
+          user: { userId: "test-user" },
+          event: "test_event",
+        });
+
+        expect(mockFetch).toHaveBeenCalledTimes(1); // Only the event call
+        expect(mockFetch).toHaveBeenCalledWith(
+          expect.stringContaining("/e"), // Event URL
+          expect.objectContaining({ method: "POST" })
+        );
+      });
+
+      it("should not establish WebSocket connection when offlineFlagChecks is enabled", async () => {
+        const schematic = new Schematic("API_KEY", {
+          offlineFlagChecks: true,
+          useWebSocket: true,
+        });
+
+        // Even with useWebSocket=true, should not connect due to offlineFlagChecks
+        await schematic.setContext({ user: { userId: "test-user" } });
+
+        expect(schematic.getIsPending()).toBe(false);
+      });
+    });
+
+    describe("offline + offlineFlagChecks", () => {
+      it("should prioritize offline mode when both are enabled", async () => {
+        const schematic = new Schematic("API_KEY", {
+          offline: true,
+          offlineFlagChecks: true, // This should be redundant
+          flagValueDefaults: {
+            'test-flag': true,
+          },
+        });
+
+        // Flag behavior should be the same
+        const flagResult = await schematic.checkFlag({ key: 'test-flag' });
+        expect(flagResult).toBe(true);
+
+        // Events should be blocked (offline mode wins)
+        await schematic.track({
+          user: { userId: "test-user" },
+          event: "test_event",
+        });
+
+        expect(mockFetch).not.toHaveBeenCalled(); // No network calls at all
+      });
+
+      it("should handle initialization with both modes enabled", () => {
+        const schematic = new Schematic("API_KEY", {
+          offline: true,
+          offlineFlagChecks: true,
+        });
+
+        expect(schematic).toBeDefined();
+        expect(schematic.getIsPending()).toBe(false);
+      });
+    });
+
+    describe("complex mode combinations", () => {
+      it("should handle offline + useWebSocket + offlineFlagChecks", async () => {
+        const schematic = new Schematic("API_KEY", {
+          offline: true, // Should override everything
+          useWebSocket: true,
+          offlineFlagChecks: true,
+          flagValueDefaults: {
+            'test-flag': false,
+          },
+        });
+
+        // Flag checks should work with defaults
+        const flagResult = await schematic.checkFlag({ key: 'test-flag' });
+        expect(flagResult).toBe(false);
+
+        // Events should be blocked due to offline mode
+        await schematic.identify({ keys: { userId: "test-user" } });
+        await schematic.track({ user: { userId: "test-user" }, event: "test_event" });
+
+        expect(mockFetch).not.toHaveBeenCalled(); // No network calls
+        expect(schematic.getIsPending()).toBe(false);
+      });
+
+      it("should handle useWebSocket + offlineFlagChecks without offline", async () => {
+        const schematic = new Schematic("API_KEY", {
+          useWebSocket: true, // Should be disabled for flags but events work
+          offlineFlagChecks: true,
+          flagValueDefaults: {
+            'premium-feature': true,
+          },
+        });
+
+        // Flags should use defaults immediately
+        const flagResult = await schematic.checkFlag({ key: 'premium-feature' });
+        expect(flagResult).toBe(true);
+        // Note: isPending might be true due to WebSocket initialization attempt
+        // but flag evaluation still uses defaults immediately
+
+        // Events should still be sent
+        await schematic.identify({ keys: { userId: "test-user" } });
+
+        expect(mockFetch).toHaveBeenCalledTimes(1); // Only event call
+        expect(mockFetch).toHaveBeenCalledWith(
+          expect.stringContaining("/e"),
+          expect.objectContaining({ method: "POST" })
+        );
+      });
+    });
+
+    describe("mode precedence and conflicts", () => {
+      it("should establish clear precedence: offline > offlineFlagChecks > useWebSocket", async () => {
+        // Test that offline mode completely overrides other settings
+        const fullOfflineSchematic = new Schematic("API_KEY", {
+          offline: true,
+          offlineFlagChecks: false, // Should be ignored
+          useWebSocket: true, // Should be ignored
+        });
+
+        await fullOfflineSchematic.identify({ keys: { userId: "test1" } });
+        expect(mockFetch).not.toHaveBeenCalled();
+
+        mockFetch.mockClear();
+
+        // Test that offlineFlagChecks overrides useWebSocket for flags only
+        const flagsOfflineSchematic = new Schematic("API_KEY", {
+          offline: false,
+          offlineFlagChecks: true,
+          useWebSocket: true, // Should be ignored for flags
+        });
+
+        await flagsOfflineSchematic.checkFlag({ key: 'test-flag' });
+        await flagsOfflineSchematic.identify({ keys: { userId: "test2" } });
+
+        expect(mockFetch).toHaveBeenCalledTimes(1); // Only the identify call
+      });
+
+      it("should handle conflicting fallback configurations gracefully", async () => {
+        const schematic = new Schematic("API_KEY", {
+          offline: true,
+          flagValueDefaults: {
+            'conflict-flag': true,
+          },
+          flagCheckDefaults: {
+            'conflict-flag': {
+              flag: 'conflict-flag',
+              value: false, // Conflicts with flagValueDefaults
+              reason: 'From flagCheckDefaults',
+            },
+          },
+        });
+
+        // Should prioritize flagCheckDefaults over flagValueDefaults
+        const result = await schematic.checkFlag({ key: 'conflict-flag' });
+        expect(result).toBe(false); // flagCheckDefaults wins
+      });
+    });
+  });
 });
