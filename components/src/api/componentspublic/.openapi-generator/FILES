@@ -18,6 +18,7 @@ models/CustomPlanConfig.ts
 models/CustomPlanViewConfigResponseData.ts
 models/DeleteResponse.ts
 models/EntityTraitDefinitionResponseData.ts
+models/EntityType.ts
 models/EventSummaryResponseData.ts
 models/FeatureDetailResponseData.ts
 models/FeatureResponseData.ts
@@ -29,6 +30,7 @@ models/PlanDetailResponseData.ts
 models/PlanEntitlementResponseData.ts
 models/PlanGroupPlanDetailResponseData.ts
 models/PlanResponseData.ts
+models/PlanType.ts
 models/PlanViewPublicResponseData.ts
 models/PreviewObject.ts
 models/PreviewObjectResponseData.ts

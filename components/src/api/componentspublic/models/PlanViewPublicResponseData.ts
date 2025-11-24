@@ -31,6 +31,12 @@ import {
   PlanEntitlementResponseDataFromJSONTyped,
   PlanEntitlementResponseDataToJSON,
 } from "./PlanEntitlementResponseData";
+import type { PlanType } from "./PlanType";
+import {
+  PlanTypeFromJSON,
+  PlanTypeFromJSONTyped,
+  PlanTypeToJSON,
+} from "./PlanType";
 import type { BillingPriceResponseData } from "./BillingPriceResponseData";
 import {
   BillingPriceResponseDataFromJSON,
@@ -192,10 +198,10 @@ export interface PlanViewPublicResponseData {
   oneTimePrice?: BillingPriceResponseData;
   /**
    *
-   * @type {string}
+   * @type {PlanType}
    * @memberof PlanViewPublicResponseData
    */
-  planType: string;
+  planType: PlanType;
   /**
    *
    * @type {number}
@@ -313,7 +319,7 @@ export function PlanViewPublicResponseDataFromJSONTyped(
       json["one_time_price"] == null
         ? undefined
         : BillingPriceResponseDataFromJSON(json["one_time_price"]),
-    planType: json["plan_type"],
+    planType: PlanTypeFromJSON(json["plan_type"]),
     trialDays: json["trial_days"] == null ? undefined : json["trial_days"],
     updatedAt: new Date(json["updated_at"]),
     yearlyPrice:
@@ -360,7 +366,7 @@ export function PlanViewPublicResponseDataToJSON(
     monthly_price: BillingPriceResponseDataToJSON(value["monthlyPrice"]),
     name: value["name"],
     one_time_price: BillingPriceResponseDataToJSON(value["oneTimePrice"]),
-    plan_type: value["planType"],
+    plan_type: PlanTypeToJSON(value["planType"]),
     trial_days: value["trialDays"],
     updated_at: value["updatedAt"].toISOString(),
     yearly_price: BillingPriceResponseDataToJSON(value["yearlyPrice"]),

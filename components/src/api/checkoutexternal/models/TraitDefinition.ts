@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from "../runtime";
+import type { EntityType } from "./EntityType";
+import {
+  EntityTypeFromJSON,
+  EntityTypeFromJSONTyped,
+  EntityTypeToJSON,
+} from "./EntityType";
+
 /**
  *
  * @export
@@ -27,10 +34,10 @@ export interface TraitDefinition {
   comparableType: TraitDefinitionComparableTypeEnum;
   /**
    *
-   * @type {string}
+   * @type {EntityType}
    * @memberof TraitDefinition
    */
-  entityType: TraitDefinitionEntityTypeEnum;
+  entityType: EntityType;
   /**
    *
    * @type {string}
@@ -50,16 +57,6 @@ export const TraitDefinitionComparableTypeEnum = {
 } as const;
 export type TraitDefinitionComparableTypeEnum =
   (typeof TraitDefinitionComparableTypeEnum)[keyof typeof TraitDefinitionComparableTypeEnum];
-
-/**
- * @export
- */
-export const TraitDefinitionEntityTypeEnum = {
-  User: "user",
-  Company: "company",
-} as const;
-export type TraitDefinitionEntityTypeEnum =
-  (typeof TraitDefinitionEntityTypeEnum)[keyof typeof TraitDefinitionEntityTypeEnum];
 
 /**
  * Check if a given object implements the TraitDefinition interface.
@@ -88,7 +85,7 @@ export function TraitDefinitionFromJSONTyped(
   }
   return {
     comparableType: json["comparable_type"],
-    entityType: json["entity_type"],
+    entityType: EntityTypeFromJSON(json["entity_type"]),
     id: json["id"],
   };
 }
@@ -99,7 +96,7 @@ export function TraitDefinitionToJSON(value?: TraitDefinition | null): any {
   }
   return {
     comparable_type: value["comparableType"],
-    entity_type: value["entityType"],
+    entity_type: EntityTypeToJSON(value["entityType"]),
     id: value["id"],
   };
 }
