@@ -108,16 +108,18 @@ export const UpcomingBill = forwardRef<
   }, [data?.component?.id, data?.subscription, getUpcomingInvoice]);
 
   const getBalances = useCallback(async () => {
-    try {
-      const response = await getCustomerBalance();
+    if (data?.subscription && !data.subscription.cancelAt) {
+      try {
+        const response = await getCustomerBalance();
 
-      if (response) {
-        setBalances(response.data.balances);
+        if (response) {
+          setBalances(response.data.balances);
+        }
+      } catch (err) {
+        debug("Failed to fetch customer balance.", err);
       }
-    } catch (err) {
-      debug("Failed to fetch customer balance.", err);
     }
-  }, [debug, getCustomerBalance]);
+  }, [data?.subscription, debug, getCustomerBalance]);
 
   useEffect(() => {
     getInvoice();
