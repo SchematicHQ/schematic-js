@@ -1,5 +1,6 @@
 import { vi } from "vitest";
 import { Schematic } from "./index";
+import { RuleType } from "./types";
 import { Server as WebSocketServer } from "mock-socket";
 
 import { version } from "./version";
@@ -712,5 +713,708 @@ describe("Schematic WebSocket", () => {
     expect(firstValue).toBe(true);
     expect(secondValue).toBe(true);
     expect(messageCount).toBe(1);
+  });
+});
+
+describe("Fallback Values", () => {
+  afterEach(() => {
+    mockFetch.mockClear();
+  });
+
+  describe("flagValueDefaults", () => {
+    it("should use flagValueDefaults when offline and no callsite fallback provided", async () => {
+      const schematic = new Schematic("API_KEY", {
+        offline: true,
+        flagValueDefaults: {
+          'premium-feature': true,
+          'beta-feature': false,
+        },
+      });
+
+      const premiumResult = await schematic.checkFlag({ key: 'premium-feature' });
+      const betaResult = await schematic.checkFlag({ key: 'beta-feature' });
+      const unknownResult = await schematic.checkFlag({ key: 'unknown-feature' });
+
+      expect(premiumResult).toBe(true);
+      expect(betaResult).toBe(false);
+      expect(unknownResult).toBe(false); // Default false
+    });
+
+    it("should use flagValueDefaults when REST API fails", async () => {
+      const schematic = new Schematic("API_KEY", {
+        flagValueDefaults: {
+          'api-failure-test': true,
+        },
+      });
+
+      // Mock API failure
+      mockFetch.mockImplementationOnce(() =>
+        Promise.reject(new Error("Network error"))
+      );
+
+      // Mock the flag check event endpoint
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        statusText: "OK",
+      });
+
+      const result = await schematic.checkFlag({ key: 'api-failure-test' });
+
+      expect(result).toBe(true);
+      expect(mockFetch).toHaveBeenCalledTimes(2); // One for flag check attempt, one for event
+    });
+  });
+
+  describe("flagCheckDefaults", () => {
+    it("should use flagCheckDefaults when offline and no callsite fallback provided", async () => {
+      const schematic = new Schematic("API_KEY", {
+        offline: true,
+        flagCheckDefaults: {
+          'advanced-feature': {
+            flag: 'advanced-feature',
+            value: true,
+            reason: 'Company has premium plan',
+            ruleType: RuleType.PLAN_ENTITLEMENT,
+            featureAllocation: 1000,
+            featureUsage: 250,
+            featureUsageEvent: 'api_call',
+          },
+        },
+      });
+
+      const result = await schematic.checkFlag({ key: 'advanced-feature' });
+
+      expect(result).toBe(true);
+    });
+
+    it("should use flagCheckDefaults when REST API fails", async () => {
+      const schematic = new Schematic("API_KEY", {
+        flagCheckDefaults: {
+          'complex-fallback': {
+            flag: 'complex-fallback',
+            value: false,
+            reason: 'Usage limit exceeded',
+            ruleType: RuleType.PLAN_ENTITLEMENT_USAGE_EXCEEDED,
+            featureUsageExceeded: true,
+          },
+        },
+      });
+
+      // Mock API failure
+      mockFetch.mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: false,
+          status: 500,
+          statusText: "Internal Server Error",
+        })
+      );
+
+      // Mock the flag check event endpoint
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        statusText: "OK",
+      });
+
+      const result = await schematic.checkFlag({ key: 'complex-fallback' });
+
+      expect(result).toBe(false);
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe("Priority Order", () => {
+    it("should prioritize callsite fallback over flagValueDefaults", async () => {
+      const schematic = new Schematic("API_KEY", {
+        offline: true,
+        flagValueDefaults: {
+          'priority-test': false, // Default says false
+        },
+      });
+
+      const withoutCallsite = await schematic.checkFlag({ key: 'priority-test' });
+      const withCallsite = await schematic.checkFlag({ key: 'priority-test', fallback: true });
+
+      expect(withoutCallsite).toBe(false); // Uses flagValueDefaults
+      expect(withCallsite).toBe(true); // Uses callsite fallback
+    });
+
+    it("should prioritize callsite fallback over flagCheckDefaults", async () => {
+      const schematic = new Schematic("API_KEY", {
+        offline: true,
+        flagCheckDefaults: {
+          'priority-test': {
+            flag: 'priority-test',
+            value: false,
+            reason: 'Default from flagCheckDefaults',
+          },
+        },
+      });
+
+      const withoutCallsite = await schematic.checkFlag({ key: 'priority-test' });
+      const withCallsite = await schematic.checkFlag({ key: 'priority-test', fallback: true });
+
+      expect(withoutCallsite).toBe(false); // Uses flagCheckDefaults
+      expect(withCallsite).toBe(true); // Uses callsite fallback
+    });
+
+    it("should prioritize flagCheckDefaults over flagValueDefaults", async () => {
+      const schematic = new Schematic("API_KEY", {
+        offline: true,
+        flagValueDefaults: {
+          'priority-test': true, // Simple default says true
+        },
+        flagCheckDefaults: {
+          'priority-test': {
+            flag: 'priority-test',
+            value: false, // Complex default says false
+            reason: 'flagCheckDefaults takes priority',
+          },
+        },
+      });
+
+      const result = await schematic.checkFlag({ key: 'priority-test' });
+
+      expect(result).toBe(false); // Uses flagCheckDefaults, not flagValueDefaults
+    });
+
+    it("should use default false when no fallbacks are configured", async () => {
+      const schematic = new Schematic("API_KEY", {
+        offline: true,
+      });
+
+      const result = await schematic.checkFlag({ key: 'unconfigured-flag' });
+
+      expect(result).toBe(false);
+    });
+
+    it("should prioritize API response over all fallbacks", async () => {
+      const schematic = new Schematic("API_KEY", {
+        flagValueDefaults: {
+          'api-priority-test': false,
+        },
+        flagCheckDefaults: {
+          'api-priority-test': {
+            flag: 'api-priority-test',
+            value: false,
+            reason: 'Should not be used',
+          },
+        },
+      });
+
+      const context = {
+        company: { companyId: "456" },
+        user: { userId: "123" },
+      };
+
+      const expectedResponse = {
+        data: {
+          companyId: "comp_YRucCyZ3us4",
+          flag: "api-priority-test",
+          reason: "API response takes priority",
+          value: true, // API says true, overriding all fallbacks
+        },
+      };
+
+      // Mock successful API response
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: vi.fn().mockResolvedValueOnce(expectedResponse),
+      });
+
+      // Mock the flag check event endpoint
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        statusText: "OK",
+      });
+
+      const result = await schematic.checkFlag({
+        key: 'api-priority-test',
+        context,
+        fallback: false, // Even callsite fallback doesn't matter when API succeeds
+      });
+
+      expect(result).toBe(true); // API response wins
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe("Combined fallbacks", () => {
+    it("should handle both flagValueDefaults and flagCheckDefaults correctly", async () => {
+      const schematic = new Schematic("API_KEY", {
+        offline: true,
+        flagValueDefaults: {
+          'simple-flag': true,
+        },
+        flagCheckDefaults: {
+          'complex-flag': {
+            flag: 'complex-flag',
+            value: false,
+            reason: 'Complex fallback',
+          },
+        },
+      });
+
+      const simpleResult = await schematic.checkFlag({ key: 'simple-flag' });
+      const complexResult = await schematic.checkFlag({ key: 'complex-flag' });
+
+      expect(simpleResult).toBe(true); // From flagValueDefaults
+      expect(complexResult).toBe(false); // From flagCheckDefaults
+    });
+  });
+
+  describe("CheckFlagReturn object construction from flagValueDefaults", () => {
+    it("should construct complete CheckFlagReturn object from boolean flagValueDefaults value", async () => {
+      const schematic = new Schematic("API_KEY", {
+        offline: true,
+        flagValueDefaults: {
+          'boolean-only-flag': true,
+        },
+      });
+
+      // We need to test the internal method since there's no public method that returns CheckFlagReturn
+      // This tests the behavior that would occur if such a method existed
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = (schematic as any).resolveFallbackCheckFlagReturn(
+        'boolean-only-flag',
+        undefined,
+        "Test fallback scenario"
+      );
+
+      // Should construct a complete CheckFlagReturn object
+      expect(result).toEqual({
+        flag: 'boolean-only-flag',
+        value: true, // From flagValueDefaults
+        reason: "Test fallback scenario",
+        error: undefined,
+      });
+
+      // Should have the essential properties
+      expect(result.flag).toBe('boolean-only-flag');
+      expect(result.value).toBe(true);
+      expect(result.reason).toBe("Test fallback scenario");
+      expect(result.error).toBeUndefined();
+
+      // Rich metadata fields should be undefined since we only have boolean
+      expect(result.ruleType).toBeUndefined();
+      expect(result.featureUsage).toBeUndefined();
+      expect(result.featureAllocation).toBeUndefined();
+      expect(result.featureUsageEvent).toBeUndefined();
+      expect(result.featureUsageExceeded).toBeUndefined();
+    });
+
+    it("should construct CheckFlagReturn with false value from flagValueDefaults", async () => {
+      const schematic = new Schematic("API_KEY", {
+        offline: true,
+        flagValueDefaults: {
+          'disabled-flag': false,
+        },
+      });
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = (schematic as any).resolveFallbackCheckFlagReturn(
+        'disabled-flag',
+        undefined,
+        "Test fallback scenario"
+      );
+
+      expect(result).toEqual({
+        flag: 'disabled-flag',
+        value: false, // From flagValueDefaults
+        reason: "Test fallback scenario",
+        error: undefined,
+      });
+    });
+
+    it("should prioritize flagCheckDefaults over constructed object from flagValueDefaults", async () => {
+      const schematic = new Schematic("API_KEY", {
+        offline: true,
+        flagValueDefaults: {
+          'priority-flag': true, // Boolean default
+        },
+        flagCheckDefaults: {
+          'priority-flag': {
+            flag: 'priority-flag',
+            value: false, // Rich default with different value
+            reason: 'Rich default takes priority',
+            ruleType: RuleType.PLAN_ENTITLEMENT,
+            featureAllocation: 100,
+          },
+        },
+      });
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = (schematic as any).resolveFallbackCheckFlagReturn(
+        'priority-flag',
+        undefined,
+        "Test fallback scenario"
+      );
+
+      // Should use flagCheckDefaults, not construct from flagValueDefaults
+      expect(result.value).toBe(false); // From flagCheckDefaults, not flagValueDefaults
+      expect(result.reason).toBe('Rich default takes priority'); // From flagCheckDefaults
+      expect(result.ruleType).toBe(RuleType.PLAN_ENTITLEMENT); // Rich metadata preserved
+      expect(result.featureAllocation).toBe(100);
+    });
+  });
+});
+
+describe("WebSocket Fallback Behavior", () => {
+  let mockServer: WebSocketServer;
+  const TEST_WS_URL = "ws://localhost:1234";
+  const FULL_WS_URL = `${TEST_WS_URL}/flags/bootstrap?apiKey=API_KEY`;
+
+  beforeEach(() => {
+    mockServer?.stop();
+    mockServer = new WebSocketServer(FULL_WS_URL);
+  });
+
+  afterEach(async () => {
+    mockServer.stop();
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    mockFetch.mockClear();
+  });
+
+  describe("Before WebSocket connection is established", () => {
+    it("should use flagValueDefaults when WebSocket connection is pending", async () => {
+      const schematic = new Schematic("API_KEY", {
+        useWebSocket: true,
+        webSocketUrl: TEST_WS_URL,
+        flagValueDefaults: {
+          'ws-pending-test': true,
+        },
+      });
+
+      // Set up WebSocket connection but don't send any flag data
+      let connectionEstablished = false;
+      mockServer.on("connection", (socket) => {
+        connectionEstablished = true;
+        // Don't send any response - simulate pending state
+        socket.on("message", () => {
+          // Don't send any response to simulate pending/timeout
+        });
+      });
+
+      const result = await schematic.checkFlag({ key: 'ws-pending-test' });
+
+      // Connection should be established but no flag data received
+      expect(connectionEstablished).toBe(true);
+
+      // Should use fallback from flagValueDefaults since no WebSocket response for this flag
+      expect(result).toBe(true);
+
+      await schematic.cleanup();
+    });
+
+    it("should use flagCheckDefaults when WebSocket connection is pending", async () => {
+      const schematic = new Schematic("API_KEY", {
+        useWebSocket: true,
+        webSocketUrl: TEST_WS_URL,
+        flagCheckDefaults: {
+          'ws-pending-complex': {
+            flag: 'ws-pending-complex',
+            value: false,
+            reason: 'WebSocket connection pending',
+          },
+        },
+      });
+
+      // Set up WebSocket connection but don't send any flag data
+      let connectionEstablished = false;
+      mockServer.on("connection", (socket) => {
+        connectionEstablished = true;
+        // Don't send any response - simulate pending state
+        socket.on("message", () => {
+          // Don't send any response to simulate pending/timeout
+        });
+      });
+
+      const result = await schematic.checkFlag({ key: 'ws-pending-complex' });
+
+      // Connection should be established but no flag data received
+      expect(connectionEstablished).toBe(true);
+
+      // Should use fallback from flagCheckDefaults since no WebSocket response for this flag
+      expect(result).toBe(false);
+
+      await schematic.cleanup();
+    });
+  });
+
+  describe("When WebSocket connection cannot be established", () => {
+    it("should use flagValueDefaults when WebSocket connection fails", async () => {
+      // Stop the mock server to simulate connection failure
+      mockServer.stop();
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      const schematic = new Schematic("API_KEY", {
+        useWebSocket: true,
+        webSocketUrl: TEST_WS_URL,
+        flagValueDefaults: {
+          'ws-failure-test': true,
+        },
+      });
+
+      // Mock successful REST fallback
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: vi.fn().mockResolvedValueOnce({
+          data: {
+            flag: 'ws-failure-test',
+            value: true,
+            reason: 'REST fallback after WebSocket failure',
+          },
+        }),
+      });
+
+      // Mock the flag check event endpoint
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        statusText: "OK",
+      });
+
+      const result = await schematic.checkFlag({ key: 'ws-failure-test' });
+
+      expect(result).toBe(true);
+      expect(mockFetch).toHaveBeenCalledTimes(2); // REST fallback + event
+
+      await schematic.cleanup();
+    });
+
+    it("should use flagCheckDefaults when both WebSocket and REST fail", async () => {
+      // Stop the mock server to simulate WebSocket connection failure
+      mockServer.stop();
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      const schematic = new Schematic("API_KEY", {
+        useWebSocket: true,
+        webSocketUrl: TEST_WS_URL,
+        flagCheckDefaults: {
+          'ws-rest-failure': {
+            flag: 'ws-rest-failure',
+            value: false,
+            reason: 'Both WebSocket and REST failed',
+          },
+        },
+      });
+
+      // Mock REST API failure
+      mockFetch.mockImplementationOnce(() =>
+        Promise.reject(new Error("REST API also failed"))
+      );
+
+      // Mock the flag check event endpoint
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        statusText: "OK",
+      });
+
+      const result = await schematic.checkFlag({ key: 'ws-rest-failure' });
+
+      expect(result).toBe(false); // From flagCheckDefaults
+      expect(mockFetch).toHaveBeenCalledTimes(2); // REST attempt + event
+
+      await schematic.cleanup();
+    });
+  });
+
+  describe("After WebSocket connection is established and then lost", () => {
+    it("should use cached WebSocket values rather than fallbacks after connection loss", async () => {
+      const schematic = new Schematic("API_KEY", {
+        useWebSocket: true,
+        webSocketUrl: TEST_WS_URL,
+        flagValueDefaults: {
+          'ws-cache-test': false, // Fallback says false
+        },
+      });
+
+      const context = {
+        company: { companyId: "456" },
+        user: { userId: "123" },
+      };
+
+      // Set up WebSocket connection that sends flag value
+      mockServer.on("connection", (socket) => {
+        socket.on("message", () => {
+          socket.send(
+            JSON.stringify({
+              flags: [
+                {
+                  flag: "ws-cache-test",
+                  value: true, // WebSocket says true (different from fallback)
+                  reason: "WebSocket response",
+                },
+              ],
+            }),
+          );
+        });
+      });
+
+      // First check - should get value from WebSocket
+      const firstResult = await schematic.checkFlag({
+        key: 'ws-cache-test',
+        context,
+      });
+
+      expect(firstResult).toBe(true); // WebSocket value
+
+      // Now close the WebSocket connection to simulate connection loss
+      mockServer.stop();
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Second check after connection loss - should use cached WebSocket value, not fallback
+      const secondResult = await schematic.checkFlag({
+        key: 'ws-cache-test',
+        context,
+      });
+
+      expect(secondResult).toBe(true); // Still uses cached WebSocket value (true), not fallback (false)
+
+      await schematic.cleanup();
+    });
+
+    it("should handle unknown flags with fallbacks after WebSocket connection loss", async () => {
+      const schematic = new Schematic("API_KEY", {
+        useWebSocket: true,
+        webSocketUrl: TEST_WS_URL,
+        flagValueDefaults: {
+          'unknown-flag': true,
+        },
+      });
+
+      const context = {
+        company: { companyId: "456" },
+        user: { userId: "123" },
+      };
+
+      // Set up WebSocket connection that sends different flag value
+      mockServer.on("connection", (socket) => {
+        socket.on("message", () => {
+          socket.send(
+            JSON.stringify({
+              flags: [
+                {
+                  flag: "known-flag", // Different flag
+                  value: true,
+                  reason: "WebSocket response",
+                },
+              ],
+            }),
+          );
+        });
+      });
+
+      // First check - establish WebSocket connection with different flag
+      await schematic.checkFlag({
+        key: 'known-flag',
+        context,
+      });
+
+      // Close WebSocket connection
+      mockServer.stop();
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Check for unknown flag after connection loss - should use fallback since no cached value exists
+      const result = await schematic.checkFlag({
+        key: 'unknown-flag',
+        context,
+      });
+
+      expect(result).toBe(true); // Uses fallback since no cached value for this flag
+
+      await schematic.cleanup();
+    });
+  });
+
+  describe("WebSocket priority over fallbacks", () => {
+    it("should prioritize WebSocket values over flagValueDefaults when connected", async () => {
+      const schematic = new Schematic("API_KEY", {
+        useWebSocket: true,
+        webSocketUrl: TEST_WS_URL,
+        flagValueDefaults: {
+          'ws-priority-test': false, // Fallback says false
+        },
+      });
+
+      const context = {
+        company: { companyId: "456" },
+        user: { userId: "123" },
+      };
+
+      // WebSocket returns true (opposite of fallback)
+      mockServer.on("connection", (socket) => {
+        socket.on("message", () => {
+          socket.send(
+            JSON.stringify({
+              flags: [
+                {
+                  flag: "ws-priority-test",
+                  value: true, // WebSocket says true
+                  reason: "WebSocket has priority",
+                },
+              ],
+            }),
+          );
+        });
+      });
+
+      const result = await schematic.checkFlag({
+        key: 'ws-priority-test',
+        context,
+      });
+
+      expect(result).toBe(true); // WebSocket value wins over fallback
+
+      await schematic.cleanup();
+    });
+
+    it("should prioritize WebSocket values over flagCheckDefaults when connected", async () => {
+      const schematic = new Schematic("API_KEY", {
+        useWebSocket: true,
+        webSocketUrl: TEST_WS_URL,
+        flagCheckDefaults: {
+          'ws-priority-complex': {
+            flag: 'ws-priority-complex',
+            value: false, // Complex fallback says false
+            reason: 'Should not be used when WebSocket is connected',
+          },
+        },
+      });
+
+      const context = {
+        company: { companyId: "456" },
+        user: { userId: "123" },
+      };
+
+      // WebSocket returns true (opposite of fallback)
+      mockServer.on("connection", (socket) => {
+        socket.on("message", () => {
+          socket.send(
+            JSON.stringify({
+              flags: [
+                {
+                  flag: "ws-priority-complex",
+                  value: true, // WebSocket says true
+                  reason: "WebSocket value overrides fallback",
+                },
+              ],
+            }),
+          );
+        });
+      });
+
+      const result = await schematic.checkFlag({
+        key: 'ws-priority-complex',
+        context,
+      });
+
+      expect(result).toBe(true); // WebSocket value wins over complex fallback
+
+      await schematic.cleanup();
+    });
   });
 });
