@@ -13,6 +13,19 @@
  */
 
 import { mapValues } from "../runtime";
+import type { ComponentEntityType } from "./ComponentEntityType";
+import {
+  ComponentEntityTypeFromJSON,
+  ComponentEntityTypeFromJSONTyped,
+  ComponentEntityTypeToJSON,
+} from "./ComponentEntityType";
+import type { ComponentState } from "./ComponentState";
+import {
+  ComponentStateFromJSON,
+  ComponentStateFromJSONTyped,
+  ComponentStateToJSON,
+} from "./ComponentState";
+
 /**
  *
  * @export
@@ -45,16 +58,16 @@ export interface ComponentResponseData {
   name: string;
   /**
    *
-   * @type {string}
+   * @type {ComponentState}
    * @memberof ComponentResponseData
    */
-  state: string;
+  state: ComponentState;
   /**
    *
-   * @type {string}
+   * @type {ComponentEntityType}
    * @memberof ComponentResponseData
    */
-  type: string;
+  type: ComponentEntityType;
   /**
    *
    * @type {Date}
@@ -96,8 +109,8 @@ export function ComponentResponseDataFromJSONTyped(
     createdAt: new Date(json["created_at"]),
     id: json["id"],
     name: json["name"],
-    state: json["state"],
-    type: json["type"],
+    state: ComponentStateFromJSON(json["state"]),
+    type: ComponentEntityTypeFromJSON(json["type"]),
     updatedAt: new Date(json["updated_at"]),
   };
 }
@@ -113,8 +126,8 @@ export function ComponentResponseDataToJSON(
     created_at: value["createdAt"].toISOString(),
     id: value["id"],
     name: value["name"],
-    state: value["state"],
-    type: value["type"],
+    state: ComponentStateToJSON(value["state"]),
+    type: ComponentEntityTypeToJSON(value["type"]),
     updated_at: value["updatedAt"].toISOString(),
   };
 }

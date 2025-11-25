@@ -25,6 +25,18 @@ import {
   FeatureDetailResponseDataFromJSONTyped,
   FeatureDetailResponseDataToJSON,
 } from "./FeatureDetailResponseData";
+import type { PlanControlledByType } from "./PlanControlledByType";
+import {
+  PlanControlledByTypeFromJSON,
+  PlanControlledByTypeFromJSONTyped,
+  PlanControlledByTypeToJSON,
+} from "./PlanControlledByType";
+import type { ChargeType } from "./ChargeType";
+import {
+  ChargeTypeFromJSON,
+  ChargeTypeFromJSONTyped,
+  ChargeTypeToJSON,
+} from "./ChargeType";
 import type { PlanType } from "./PlanType";
 import {
   PlanTypeFromJSON,
@@ -65,10 +77,10 @@ export interface PlanDetailResponseData {
   billingProduct?: BillingProductDetailResponseData;
   /**
    *
-   * @type {string}
+   * @type {ChargeType}
    * @memberof PlanDetailResponseData
    */
-  chargeType: string;
+  chargeType: ChargeType;
   /**
    *
    * @type {number}
@@ -77,10 +89,10 @@ export interface PlanDetailResponseData {
   companyCount: number;
   /**
    *
-   * @type {string}
+   * @type {PlanControlledByType}
    * @memberof PlanDetailResponseData
    */
-  controlledBy: string;
+  controlledBy: PlanControlledByType;
   /**
    *
    * @type {Date}
@@ -228,9 +240,9 @@ export function PlanDetailResponseDataFromJSONTyped(
       json["billing_product"] == null
         ? undefined
         : BillingProductDetailResponseDataFromJSON(json["billing_product"]),
-    chargeType: json["charge_type"],
+    chargeType: ChargeTypeFromJSON(json["charge_type"]),
     companyCount: json["company_count"],
-    controlledBy: json["controlled_by"],
+    controlledBy: PlanControlledByTypeFromJSON(json["controlled_by"]),
     createdAt: new Date(json["created_at"]),
     description: json["description"],
     features: (json["features"] as Array<any>).map(
@@ -277,9 +289,9 @@ export function PlanDetailResponseDataToJSON(
     billing_product: BillingProductDetailResponseDataToJSON(
       value["billingProduct"],
     ),
-    charge_type: value["chargeType"],
+    charge_type: ChargeTypeToJSON(value["chargeType"]),
     company_count: value["companyCount"],
-    controlled_by: value["controlledBy"],
+    controlled_by: PlanControlledByTypeToJSON(value["controlledBy"]),
     created_at: value["createdAt"].toISOString(),
     description: value["description"],
     features: (value["features"] as Array<any>).map(

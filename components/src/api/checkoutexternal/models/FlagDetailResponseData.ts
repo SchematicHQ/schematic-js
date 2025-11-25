@@ -25,6 +25,12 @@ import {
   FeatureResponseDataFromJSONTyped,
   FeatureResponseDataToJSON,
 } from "./FeatureResponseData";
+import type { FlagType } from "./FlagType";
+import {
+  FlagTypeFromJSON,
+  FlagTypeFromJSONTyped,
+  FlagTypeToJSON,
+} from "./FlagType";
 
 /**
  *
@@ -64,10 +70,10 @@ export interface FlagDetailResponseData {
   featureId?: string | null;
   /**
    *
-   * @type {string}
+   * @type {FlagType}
    * @memberof FlagDetailResponseData
    */
-  flagType: string;
+  flagType: FlagType;
   /**
    *
    * @type {string}
@@ -154,7 +160,7 @@ export function FlagDetailResponseDataFromJSONTyped(
         ? undefined
         : FeatureResponseDataFromJSON(json["feature"]),
     featureId: json["feature_id"] == null ? undefined : json["feature_id"],
-    flagType: json["flag_type"],
+    flagType: FlagTypeFromJSON(json["flag_type"]),
     id: json["id"],
     key: json["key"],
     lastCheckedAt:
@@ -181,7 +187,7 @@ export function FlagDetailResponseDataToJSON(
     description: value["description"],
     feature: FeatureResponseDataToJSON(value["feature"]),
     feature_id: value["featureId"],
-    flag_type: value["flagType"],
+    flag_type: FlagTypeToJSON(value["flagType"]),
     id: value["id"],
     key: value["key"],
     last_checked_at:
