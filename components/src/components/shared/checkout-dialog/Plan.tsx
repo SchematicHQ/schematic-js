@@ -89,13 +89,19 @@ const TrialPlan = ({
   plan,
   isLoading,
   isSelected,
-  isTrialing,
   onSelect,
   shouldTrial,
-}: SharedPlanProps & {
-  isTrialing: boolean;
-}) => {
+}: SharedPlanProps) => {
   const { t } = useTranslation();
+
+  const { data } = useEmbed();
+
+  const isTrialing = data?.subscription?.status === "trialing";
+
+  const isDowngradeNotPermitted =
+    plan.invalidReason === CompanyPlanInvalidReason.DowngradeNotPermitted;
+  const isDisabled =
+    (isLoading || (!plan.valid && !isDowngradeNotPermitted)) && !plan.custom;
 
   return (
     <Flex $flexDirection="column" $gap="1.5rem">
@@ -107,7 +113,7 @@ const TrialPlan = ({
             <Flex $flexDirection="column" $gap="0.5rem">
               <Button
                 type="button"
-                disabled={(isLoading || !plan.valid) && !plan.custom}
+                disabled={isDisabled}
                 {...(plan.custom
                   ? {
                       as: "a",
@@ -115,28 +121,34 @@ const TrialPlan = ({
                       target: "_blank",
                       rel: "noreferrer",
                     }
-                  : {
-                      onClick: () => {
-                        onSelect({
-                          plan,
-                          shouldTrial: true,
-                        });
-                      },
-                    })}
+                  : isDowngradeNotPermitted
+                    ? {
+                        as: "a",
+                        href: data?.preventSelfServiceDowngradeUrl ?? "#",
+                        target: "_blank",
+                        rel: "noreferrer",
+                      }
+                    : {
+                        onClick: () => {
+                          onSelect({
+                            plan,
+                            shouldTrial: true,
+                          });
+                        },
+                      })}
                 $size="sm"
                 $color="primary"
                 $variant="filled"
                 $fullWidth
               >
-                {plan.custom ? (
-                  (plan.customPlanConfig?.ctaText ?? t("Talk to support"))
-                ) : !plan.valid ? (
-                  <Text as={Box} $align="center">
-                    {t("Over plan limit")}
-                  </Text>
-                ) : (
-                  t("Start X day trial", { days: plan.trialDays })
-                )}
+                {plan.custom
+                  ? (plan.customPlanConfig?.ctaText ?? t("Talk to support"))
+                  : isDowngradeNotPermitted
+                    ? (data?.preventSelfServiceDowngradeButtonText ??
+                      t("Talk to support"))
+                    : !plan.valid
+                      ? t("Over plan limit")
+                      : t("Start X day trial", { days: plan.trialDays })}
               </Button>
 
               {!plan.valid && (
@@ -155,7 +167,7 @@ const TrialPlan = ({
             <Flex $flexDirection="column" $gap="0.5rem">
               <Button
                 type="button"
-                disabled={isLoading || !plan.valid}
+                disabled={isDisabled}
                 onClick={() => {
                   onSelect({ plan, shouldTrial: false });
                 }}
@@ -194,13 +206,20 @@ export const ChoosePlan = ({
 }: SharedPlanProps) => {
   const { t } = useTranslation();
 
+  const { data } = useEmbed();
+
+  const isDowngradeNotPermitted =
+    plan.invalidReason === CompanyPlanInvalidReason.DowngradeNotPermitted;
+  const isDisabled =
+    (isLoading || (!plan.valid && !isDowngradeNotPermitted)) && !plan.custom;
+
   return isSelected ? (
     <Selected isCurrent={plan.current} />
   ) : (
     <Flex $flexDirection="column" $gap="0.5rem">
       <Button
         type="button"
-        disabled={(isLoading || !plan.valid) && !plan.custom}
+        disabled={isDisabled}
         {...(plan.custom
           ? {
               as: "a",
@@ -208,25 +227,31 @@ export const ChoosePlan = ({
               target: "_blank",
               rel: "noreferrer",
             }
-          : {
-              onClick: () => {
-                onSelect({ plan });
-              },
-            })}
+          : isDowngradeNotPermitted
+            ? {
+                as: "a",
+                href: data?.preventSelfServiceDowngradeUrl ?? "#",
+                target: "_blank",
+                rel: "noreferrer",
+              }
+            : {
+                onClick: () => {
+                  onSelect({ plan });
+                },
+              })}
         $size="sm"
         $color="primary"
         $variant="filled"
         $fullWidth
       >
-        {plan.custom ? (
-          (plan.customPlanConfig?.ctaText ?? t("Talk to support"))
-        ) : !plan.valid ? (
-          <Text as={Box} $align="center">
-            {t("Over plan limit")}
-          </Text>
-        ) : (
-          t("Choose plan")
-        )}
+        {plan.custom
+          ? (plan.customPlanConfig?.ctaText ?? t("Talk to support"))
+          : !plan.valid
+            ? t("Over plan limit")
+            : isDowngradeNotPermitted
+              ? (data?.preventSelfServiceDowngradeButtonText ??
+                t("Talk to support"))
+              : t("Choose plan")}
       </Button>
 
       {!plan.valid && <UsageViolationText violations={plan.usageViolations} />}
@@ -237,29 +262,21 @@ export const ChoosePlan = ({
 const PlanButtonGroup = ({
   plan,
   isLoading,
-  isSelectable,
   isSelected,
-  isTrialing,
   onSelect,
   shouldTrial,
-}: SharedPlanProps & {
-  isSelectable: boolean;
-  isTrialing: boolean;
-}) => {
+}: SharedPlanProps) => {
   return plan.companyCanTrial && plan.isTrialable ? (
     <TrialPlan
       plan={plan}
-      isDisabled={!isSelectable}
       isLoading={isLoading}
       isSelected={isSelected}
-      isTrialing={isTrialing}
       onSelect={onSelect}
       shouldTrial={shouldTrial}
     />
   ) : (
     <ChoosePlan
       plan={plan}
-      isDisabled={!isSelectable}
       isLoading={isLoading}
       isSelected={isSelected}
       onSelect={onSelect}
@@ -285,7 +302,6 @@ export const Plan = ({
   isLoading,
   plans,
   selectedPlan,
-  currentPeriod,
   period,
   selectPlan,
   shouldTrial,
@@ -300,34 +316,20 @@ export const Plan = ({
     plans.reduce(entitlementCountsReducer, {}),
   );
 
-  const {
-    isTrialing,
-    preventSelfServiceDowngrade,
-    preventSelfServiceDowngradeButtonText,
-    preventSelfServiceDowngradeURL,
-    showCredits,
-    showPeriodToggle,
-    showZeroPriceAsFree,
-  } = useMemo(() => {
-    return {
-      isTrialing: data?.subscription?.status === "trialing",
-      preventSelfServiceDowngrade: data?.preventSelfServiceDowngrade === true,
-      preventSelfServiceDowngradeButtonText:
-        data?.preventSelfServiceDowngradeButtonText,
-      preventSelfServiceDowngradeURL: data?.preventSelfServiceDowngradeURL,
-      showCredits: data?.showCredits ?? true,
-      showPeriodToggle: data?.showPeriodToggle ?? true,
-      showZeroPriceAsFree: data?.showZeroPriceAsFree ?? false,
-    };
-  }, [
-    data?.preventSelfServiceDowngrade,
-    data?.preventSelfServiceDowngradeButtonText,
-    data?.preventSelfServiceDowngradeURL,
-    data?.showCredits,
-    data?.showPeriodToggle,
-    data?.showZeroPriceAsFree,
-    data?.subscription?.status,
-  ]);
+  const { isTrialing, showCredits, showPeriodToggle, showZeroPriceAsFree } =
+    useMemo(() => {
+      return {
+        isTrialing: data?.subscription?.status === "trialing",
+        showCredits: data?.showCredits ?? true,
+        showPeriodToggle: data?.showPeriodToggle ?? true,
+        showZeroPriceAsFree: data?.showZeroPriceAsFree ?? false,
+      };
+    }, [
+      data?.showCredits,
+      data?.showPeriodToggle,
+      data?.showZeroPriceAsFree,
+      data?.subscription?.status,
+    ]);
 
   const handleToggleShowAll = (id: string) => {
     setEntitlementCounts((prev) => {
@@ -383,13 +385,6 @@ export const Plan = ({
 
         const count = entitlementCounts[plan.id];
         const isExpanded = count && count.limit > VISIBLE_ENTITLEMENT_COUNT;
-        const isDowngradeNotPermitted =
-          plan.invalidReason === CompanyPlanInvalidReason.DowngradeNotPermitted;
-        const isSelectable =
-          (!isLoading &&
-            plan.valid &&
-            (!preventSelfServiceDowngrade || isDowngradeNotPermitted)) ||
-          plan.custom;
 
         return (
           <Flex
@@ -856,9 +851,7 @@ export const Plan = ({
               <PlanButtonGroup
                 plan={plan}
                 isLoading={isLoading}
-                isSelectable={isSelectable}
                 isSelected={plan.id === selectedPlan?.id}
-                isTrialing={isTrialing}
                 onSelect={selectPlan}
                 shouldTrial={shouldTrial}
               />
