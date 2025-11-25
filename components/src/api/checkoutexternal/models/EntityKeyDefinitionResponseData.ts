@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from "../runtime";
+import type { EntityType } from "./EntityType";
+import {
+  EntityTypeFromJSON,
+  EntityTypeFromJSONTyped,
+  EntityTypeToJSON,
+} from "./EntityType";
+
 /**
  *
  * @export
@@ -27,10 +34,10 @@ export interface EntityKeyDefinitionResponseData {
   createdAt: Date;
   /**
    *
-   * @type {string}
+   * @type {EntityType}
    * @memberof EntityKeyDefinitionResponseData
    */
-  entityType: string;
+  entityType: EntityType;
   /**
    *
    * @type {string}
@@ -81,7 +88,7 @@ export function EntityKeyDefinitionResponseDataFromJSONTyped(
   }
   return {
     createdAt: new Date(json["created_at"]),
-    entityType: json["entity_type"],
+    entityType: EntityTypeFromJSON(json["entity_type"]),
     id: json["id"],
     key: json["key"],
     updatedAt: new Date(json["updated_at"]),
@@ -96,7 +103,7 @@ export function EntityKeyDefinitionResponseDataToJSON(
   }
   return {
     created_at: value["createdAt"].toISOString(),
-    entity_type: value["entityType"],
+    entity_type: EntityTypeToJSON(value["entityType"]),
     id: value["id"],
     key: value["key"],
     updated_at: value["updatedAt"].toISOString(),

@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from "../runtime";
+import type { EntityType } from "./EntityType";
+import {
+  EntityTypeFromJSON,
+  EntityTypeFromJSONTyped,
+  EntityTypeToJSON,
+} from "./EntityType";
+
 /**
  *
  * @export
@@ -33,10 +40,10 @@ export interface EntityTraitDefinitionResponseData {
   displayName: string;
   /**
    *
-   * @type {string}
+   * @type {EntityType}
    * @memberof EntityTraitDefinitionResponseData
    */
-  entityType: string;
+  entityType: EntityType;
   /**
    *
    * @type {Array<string>}
@@ -97,7 +104,7 @@ export function EntityTraitDefinitionResponseDataFromJSONTyped(
   return {
     createdAt: new Date(json["created_at"]),
     displayName: json["display_name"],
-    entityType: json["entity_type"],
+    entityType: EntityTypeFromJSON(json["entity_type"]),
     hierarchy: json["hierarchy"],
     id: json["id"],
     traitType: json["trait_type"],
@@ -114,7 +121,7 @@ export function EntityTraitDefinitionResponseDataToJSON(
   return {
     created_at: value["createdAt"].toISOString(),
     display_name: value["displayName"],
-    entity_type: value["entityType"],
+    entity_type: EntityTypeToJSON(value["entityType"]),
     hierarchy: value["hierarchy"],
     id: value["id"],
     trait_type: value["traitType"],

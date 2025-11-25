@@ -51,6 +51,7 @@ models/EntityKeyResponseData.ts
 models/EntityTraitDefinitionResponseData.ts
 models/EntityTraitDetailResponseData.ts
 models/EntityTraitResponseData.ts
+models/EntityType.ts
 models/EventSummaryResponseData.ts
 models/FeatureDetailResponseData.ts
 models/FeatureResponseData.ts
@@ -73,6 +74,7 @@ models/PlanDetailResponseData.ts
 models/PlanEntitlementResponseData.ts
 models/PlanGroupPlanDetailResponseData.ts
 models/PlanResponseData.ts
+models/PlanType.ts
 models/PreviewCheckoutResponse.ts
 models/PreviewObject.ts
 models/PreviewObjectResponseData.ts
