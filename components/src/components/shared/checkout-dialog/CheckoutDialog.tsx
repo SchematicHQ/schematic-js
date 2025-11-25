@@ -1049,7 +1049,6 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           ) : checkoutStage === "plan" ? (
             <Plan
               isLoading={isLoading}
-              currentPeriod={currentPeriod}
               period={planPeriod}
               plans={availablePlans}
               selectedPlan={selectedPlan}
