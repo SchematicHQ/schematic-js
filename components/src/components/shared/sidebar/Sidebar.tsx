@@ -547,9 +547,6 @@ export const Sidebar = forwardRef<HTMLDivElement | null, SidebarProps>(
           checkout={handleCheckout}
           checkoutStage={checkoutStage}
           checkoutStages={checkoutStages}
-          hasAddOns={addOns.length > 0}
-          hasPayInAdvanceEntitlements={payInAdvanceEntitlements.length > 0}
-          hasCreditBundles={creditBundles.length > 0}
           hasPaymentMethod={
             typeof paymentMethod !== "undefined" ||
             typeof paymentMethodId === "string"
