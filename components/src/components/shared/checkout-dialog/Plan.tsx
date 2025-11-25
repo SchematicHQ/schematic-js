@@ -288,7 +288,6 @@ interface PlanProps {
   isLoading: boolean;
   plans: SelectedPlan[];
   selectedPlan?: SelectedPlan;
-  currentPeriod: string;
   period: string;
   selectPlan: (updates: {
     plan: SelectedPlan;

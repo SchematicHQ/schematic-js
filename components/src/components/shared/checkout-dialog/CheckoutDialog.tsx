@@ -555,8 +555,6 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
         });
 
         if (response) {
-          // TODO: handle invalid reason errors
-
           setCharges(response.data.finance);
           setIsPaymentMethodRequired(response.data.paymentMethodRequired);
         }
