@@ -584,6 +584,9 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
               case "Quantity is required":
                 setError(t("Quantity is required."));
                 return;
+              case "self-service downgrade not permitted":
+                setError(t("Self-service downgrade not permitted."));
+                return;
             }
           }
 
