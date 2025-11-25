@@ -1681,4 +1681,181 @@ describe("forceReconnect", () => {
     // No connection should be made since there's no context
     expect(connectionCount).toBe(0);
   }, 15000);
+
+  it("should reconnect even if connection is healthy", async () => {
+    const context = {
+      company: { companyId: "456" },
+      user: { userId: "123" },
+    };
+
+    let connectionCount = 0;
+
+    mockServer.on("connection", (socket) => {
+      connectionCount++;
+      socket.on("message", () => {
+        socket.send(
+          JSON.stringify({
+            flags: [
+              {
+                flag: "TEST_FLAG",
+                value: true,
+              },
+            ],
+          }),
+        );
+      });
+    });
+
+    // Establish initial connection
+    await schematic.checkFlag({
+      key: "TEST_FLAG",
+      context,
+      fallback: false,
+    });
+    expect(connectionCount).toBe(1);
+
+    // forceReconnect should reconnect even if connection is healthy
+    await schematic.forceReconnect();
+
+    // Give time for reconnection
+    await new Promise((resolve) => setTimeout(resolve, 200));
+
+    // Should have made a new connection (total 2)
+    expect(connectionCount).toBe(2);
+  }, 15000);
+});
+
+describe("reconnectIfNeeded", () => {
+  let schematic: Schematic;
+  let mockServer: WebSocketServer;
+  const TEST_WS_URL = "ws://localhost:1234";
+  const FULL_WS_URL = `${TEST_WS_URL}/flags/bootstrap?apiKey=API_KEY`;
+
+  beforeEach(() => {
+    mockServer?.stop();
+    mockServer = new WebSocketServer(FULL_WS_URL);
+    schematic = new Schematic("API_KEY", {
+      useWebSocket: true,
+      webSocketUrl: TEST_WS_URL,
+    });
+  });
+
+  afterEach(async () => {
+    await schematic.cleanup();
+    mockServer.stop();
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    mockFetch.mockClear();
+  });
+
+  it("should no-op if connection is healthy", async () => {
+    const context = {
+      company: { companyId: "456" },
+      user: { userId: "123" },
+    };
+
+    let connectionCount = 0;
+
+    mockServer.on("connection", (socket) => {
+      connectionCount++;
+      socket.on("message", () => {
+        socket.send(
+          JSON.stringify({
+            flags: [
+              {
+                flag: "TEST_FLAG",
+                value: true,
+              },
+            ],
+          }),
+        );
+      });
+    });
+
+    // Establish initial connection
+    await schematic.checkFlag({
+      key: "TEST_FLAG",
+      context,
+      fallback: false,
+    });
+    expect(connectionCount).toBe(1);
+
+    // reconnectIfNeeded should no-op since connection is healthy
+    await schematic.reconnectIfNeeded();
+
+    // Give time for any potential connection
+    await new Promise((resolve) => setTimeout(resolve, 200));
+
+    // Should still be just 1 connection
+    expect(connectionCount).toBe(1);
+  }, 15000);
+
+  it("should reconnect if connection is unhealthy", async () => {
+    const context = {
+      company: { companyId: "456" },
+      user: { userId: "123" },
+    };
+
+    let connectionCount = 0;
+    const serverSockets: WebSocket[] = [];
+
+    mockServer.on("connection", (socket) => {
+      connectionCount++;
+      serverSockets.push(socket);
+      socket.on("message", () => {
+        socket.send(
+          JSON.stringify({
+            flags: [
+              {
+                flag: "TEST_FLAG",
+                value: true,
+              },
+            ],
+          }),
+        );
+      });
+    });
+
+    // Establish initial connection
+    await schematic.checkFlag({
+      key: "TEST_FLAG",
+      context,
+      fallback: false,
+    });
+    expect(connectionCount).toBe(1);
+
+    // Explicitly close the server-side socket to ensure client knows connection is closed
+    serverSockets.forEach((socket) => socket.close());
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    // Close the server
+    mockServer.stop();
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    // Restart server
+    mockServer = new WebSocketServer(FULL_WS_URL);
+    mockServer.on("connection", (socket) => {
+      connectionCount++;
+      socket.on("message", () => {
+        socket.send(
+          JSON.stringify({
+            flags: [
+              {
+                flag: "TEST_FLAG",
+                value: true,
+              },
+            ],
+          }),
+        );
+      });
+    });
+
+    // reconnectIfNeeded should reconnect since connection is unhealthy
+    await schematic.reconnectIfNeeded();
+
+    // Give time for reconnection
+    await new Promise((resolve) => setTimeout(resolve, 200));
+
+    // Should have made a new connection
+    expect(connectionCount).toBe(2);
+  }, 15000);
 });
