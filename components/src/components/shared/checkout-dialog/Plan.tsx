@@ -9,7 +9,7 @@ import {
   TEXT_BASE_SIZE,
   VISIBLE_ENTITLEMENT_COUNT,
 } from "../../../const";
-import { useEmbed, useIsLightBackground } from "../../../hooks";
+import { useEmbed, useIsLightBackground, useTrialEnd } from "../../../hooks";
 import type { SelectedPlan } from "../../../types";
 import {
   entitlementCountsReducer,
@@ -160,7 +160,7 @@ const PlanButtonGroup = ({
         {!plan.custom && (
           <>
             {isSelected && (!shouldTrial || isTrialing) ? (
-              <Selected isCurrent={isCurrentPlan} />
+              <Selected isCurrent={isCurrentPlan} isTrial={isTrialing} />
             ) : (
               <Flex $flexDirection="column" $gap="0.5rem">
                 <Button
@@ -263,24 +263,31 @@ export const Plan = ({
 
   const isLightBackground = useIsLightBackground();
 
+  const trialEnd = useTrialEnd();
+
   const [entitlementCounts, setEntitlementCounts] = useState(() =>
     plans.reduce(entitlementCountsReducer, {}),
   );
 
-  const { isTrialing, showCredits, showPeriodToggle, showZeroPriceAsFree } =
-    useMemo(() => {
-      return {
-        isTrialing: data?.subscription?.status === "trialing",
-        showCredits: data?.showCredits ?? true,
-        showPeriodToggle: data?.showPeriodToggle ?? true,
-        showZeroPriceAsFree: data?.showZeroPriceAsFree ?? false,
-      };
-    }, [
-      data?.showCredits,
-      data?.showPeriodToggle,
-      data?.showZeroPriceAsFree,
-      data?.subscription?.status,
-    ]);
+  const {
+    isTrialSubscription,
+    showCredits,
+    showPeriodToggle,
+    showZeroPriceAsFree,
+  } = useMemo(() => {
+    return {
+      isTrialSubscription:
+        data?.company?.billingSubscription?.status === "trialing",
+      showCredits: data?.showCredits ?? true,
+      showPeriodToggle: data?.showPeriodToggle ?? true,
+      showZeroPriceAsFree: data?.showZeroPriceAsFree ?? false,
+    };
+  }, [
+    data?.company?.billingSubscription?.status,
+    data?.showCredits,
+    data?.showPeriodToggle,
+    data?.showZeroPriceAsFree,
+  ]);
 
   const handleToggleShowAll = (id: string) => {
     setEntitlementCounts((prev) => {
@@ -520,7 +527,10 @@ export const Plan = ({
                         : "#FFFFFF"
                     }
                   >
-                    {isTrialing ? t("Trialing") : t("Active")}
+                    {isTrialSubscription &&
+                    typeof trialEnd.endDate !== "undefined"
+                      ? t("X time left in trial", trialEnd)
+                      : t("Active")}
                   </Text>
                 </Flex>
               )}

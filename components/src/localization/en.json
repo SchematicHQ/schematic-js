@@ -148,6 +148,7 @@
     "X items included in plan": "{{amount}} {{item}} included in plan",
     "X off": "{{amount}} off",
     "X% off": "{{percent}}% off",
+    "X time left in trial": "{{amount}} {{units}} left in trial",
     "Yearly total": "Yearly total",
     "You will retain access to your plan until the end of the billing period, on": "You will retain access to your plan until the end of the billing period, on",
 
