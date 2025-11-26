@@ -3,7 +3,7 @@ import type {
   FeatureDetailResponseData,
   FeatureUsageResponseData,
 } from "../../api/checkoutexternal";
-import { FeatureUsageResponseDataAllocationTypeEnum } from "../../api/checkoutexternal";
+import { EntitlementType, EntitlementValueType } from "../../api/checkoutexternal";
 import {
   extractCurrentUsageBasedEntitlements,
   getEntitlementFeatureName,
@@ -24,9 +24,9 @@ describe("calculateCurrentUsageBasedEntitlements", () => {
     const features: Array<FeatureUsageResponseData> = [
       {
         access: true,
-        allocationType: FeatureUsageResponseDataAllocationTypeEnum.Numeric,
+        allocationType: EntitlementValueType.Numeric,
         entitlementId: "ent1",
-        entitlementType: "boolean",
+        entitlementType: EntitlementType.PlanEntitlement,
         allocation: 10,
         usage: 5,
         priceBehavior: null,
@@ -46,9 +46,9 @@ describe("calculateCurrentUsageBasedEntitlements", () => {
     const features: Array<FeatureUsageResponseData> = [
       {
         access: true,
-        allocationType: FeatureUsageResponseDataAllocationTypeEnum.Numeric,
+        allocationType: EntitlementValueType.Numeric,
         entitlementId: "ent1",
-        entitlementType: "boolean",
+        entitlementType: EntitlementType.PlanEntitlement,
         allocation: 10,
         usage: 5,
         priceBehavior: "pay_in_advance",
@@ -74,9 +74,9 @@ describe("calculateCurrentUsageBasedEntitlements", () => {
     const features: Array<FeatureUsageResponseData> = [
       {
         access: true,
-        allocationType: FeatureUsageResponseDataAllocationTypeEnum.Numeric,
+        allocationType: EntitlementValueType.Numeric,
         entitlementId: "ent1",
-        entitlementType: "boolean",
+        entitlementType: EntitlementType.PlanEntitlement,
         allocation: 15,
         usage: 8,
         priceBehavior: "pay_as_you_go",
@@ -102,9 +102,9 @@ describe("calculateCurrentUsageBasedEntitlements", () => {
     const features: Array<FeatureUsageResponseData> = [
       {
         access: true,
-        allocationType: FeatureUsageResponseDataAllocationTypeEnum.Numeric,
+        allocationType: EntitlementValueType.Numeric,
         entitlementId: "ent1",
-        entitlementType: "boolean",
+        entitlementType: EntitlementType.PlanEntitlement,
         allocation: 10,
         usage: 5,
         priceBehavior: "pay_in_advance",
@@ -124,9 +124,9 @@ describe("calculateCurrentUsageBasedEntitlements", () => {
     const features: Array<FeatureUsageResponseData> = [
       {
         access: true,
-        allocationType: FeatureUsageResponseDataAllocationTypeEnum.Numeric,
+        allocationType: EntitlementValueType.Numeric,
         entitlementId: "ent1",
-        entitlementType: "boolean",
+        entitlementType: EntitlementType.PlanEntitlement,
         allocation: null,
         usage: null,
         priceBehavior: "pay_in_advance",
@@ -151,9 +151,9 @@ describe("calculateCurrentUsageBasedEntitlements", () => {
     const features: Array<FeatureUsageResponseData> = [
       {
         access: true,
-        allocationType: FeatureUsageResponseDataAllocationTypeEnum.Numeric,
+        allocationType: EntitlementValueType.Numeric,
         entitlementId: "ent1",
-        entitlementType: "boolean",
+        entitlementType: EntitlementType.PlanEntitlement,
         allocation: 20,
         usage: 5,
         priceBehavior: "pay_in_advance",
@@ -173,9 +173,9 @@ describe("calculateCurrentUsageBasedEntitlements", () => {
     const features: Array<FeatureUsageResponseData> = [
       {
         access: true,
-        allocationType: FeatureUsageResponseDataAllocationTypeEnum.Numeric,
+        allocationType: EntitlementValueType.Numeric,
         entitlementId: "ent1",
-        entitlementType: "boolean",
+        entitlementType: EntitlementType.PlanEntitlement,
         allocation: 0,
         usage: 15,
         priceBehavior: "pay_as_you_go",
@@ -195,9 +195,9 @@ describe("calculateCurrentUsageBasedEntitlements", () => {
     const features: Array<FeatureUsageResponseData> = [
       {
         access: true,
-        allocationType: FeatureUsageResponseDataAllocationTypeEnum.Numeric,
+        allocationType: EntitlementValueType.Numeric,
         entitlementId: "ent1",
-        entitlementType: "boolean",
+        entitlementType: EntitlementType.PlanEntitlement,
         allocation: 10,
         usage: 5,
         priceBehavior: "pay_in_advance",
@@ -209,9 +209,9 @@ describe("calculateCurrentUsageBasedEntitlements", () => {
       },
       {
         access: false,
-        allocationType: FeatureUsageResponseDataAllocationTypeEnum.Numeric,
+        allocationType: EntitlementValueType.Numeric,
         entitlementId: "ent2",
-        entitlementType: "boolean",
+        entitlementType: EntitlementType.PlanEntitlement,
         allocation: null,
         usage: null,
         priceBehavior: null,
@@ -219,9 +219,9 @@ describe("calculateCurrentUsageBasedEntitlements", () => {
       },
       {
         access: true,
-        allocationType: FeatureUsageResponseDataAllocationTypeEnum.Numeric,
+        allocationType: EntitlementValueType.Numeric,
         entitlementId: "ent3",
-        entitlementType: "boolean",
+        entitlementType: EntitlementType.PlanEntitlement,
         allocation: 20,
         usage: 15,
         priceBehavior: "pay_as_you_go",
@@ -246,9 +246,9 @@ describe("calculateCurrentUsageBasedEntitlements", () => {
     const features: Array<FeatureUsageResponseData> = [
       {
         access: true,
-        allocationType: FeatureUsageResponseDataAllocationTypeEnum.Numeric,
+        allocationType: EntitlementValueType.Numeric,
         entitlementId: "ent1",
-        entitlementType: "boolean",
+        entitlementType: EntitlementType.PlanEntitlement,
         allocation: 10,
         usage: 5,
         priceBehavior: "pay_in_advance",
@@ -270,7 +270,7 @@ describe("calculateCurrentUsageBasedEntitlements", () => {
       access: true,
       allocationType: "numeric",
       entitlementId: "ent1",
-      entitlementType: "boolean",
+      entitlementType: "plan_entitlement",
       allocation: 10,
       usage: 5,
       quantity: 10,
