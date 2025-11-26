@@ -13,6 +13,12 @@
  */
 
 import { mapValues } from "../runtime";
+import type { EntitlementValueType } from "./EntitlementValueType";
+import {
+  EntitlementValueTypeFromJSON,
+  EntitlementValueTypeFromJSONTyped,
+  EntitlementValueTypeToJSON,
+} from "./EntitlementValueType";
 import type { FeatureDetailResponseData } from "./FeatureDetailResponseData";
 import {
   FeatureDetailResponseDataFromJSON,
@@ -31,12 +37,24 @@ import {
   PlanEntitlementResponseDataFromJSONTyped,
   PlanEntitlementResponseDataToJSON,
 } from "./PlanEntitlementResponseData";
+import type { EntitlementPriceBehavior } from "./EntitlementPriceBehavior";
+import {
+  EntitlementPriceBehaviorFromJSON,
+  EntitlementPriceBehaviorFromJSONTyped,
+  EntitlementPriceBehaviorToJSON,
+} from "./EntitlementPriceBehavior";
 import type { CreditGrantDetail } from "./CreditGrantDetail";
 import {
   CreditGrantDetailFromJSON,
   CreditGrantDetailFromJSONTyped,
   CreditGrantDetailToJSON,
 } from "./CreditGrantDetail";
+import type { EntitlementType } from "./EntitlementType";
+import {
+  EntitlementTypeFromJSON,
+  EntitlementTypeFromJSONTyped,
+  EntitlementTypeToJSON,
+} from "./EntitlementType";
 import type { BillingPriceView } from "./BillingPriceView";
 import {
   BillingPriceViewFromJSON,
@@ -49,6 +67,12 @@ import {
   PlanResponseDataFromJSONTyped,
   PlanResponseDataToJSON,
 } from "./PlanResponseData";
+import type { GrantReason } from "./GrantReason";
+import {
+  GrantReasonFromJSON,
+  GrantReasonFromJSONTyped,
+  GrantReasonToJSON,
+} from "./GrantReason";
 
 /**
  *
@@ -69,11 +93,11 @@ export interface FeatureUsageResponseData {
    */
   allocation?: number | null;
   /**
-   * The type of allocation that is being used.
-   * @type {string}
+   *
+   * @type {EntitlementValueType}
    * @memberof FeatureUsageResponseData
    */
-  allocationType: FeatureUsageResponseDataAllocationTypeEnum;
+  allocationType: EntitlementValueType;
   /**
    *
    * @type {CompanyOverrideResponseData}
@@ -99,11 +123,11 @@ export interface FeatureUsageResponseData {
    */
   creditGrantDetails?: Array<CreditGrantDetail>;
   /**
-   * Reason for the credit grant
-   * @type {string}
+   *
+   * @type {GrantReason}
    * @memberof FeatureUsageResponseData
    */
-  creditGrantReason?: FeatureUsageResponseDataCreditGrantReasonEnum | null;
+  creditGrantReason?: GrantReason | null;
   /**
    *
    * @type {number}
@@ -160,10 +184,10 @@ export interface FeatureUsageResponseData {
   entitlementSource?: string | null;
   /**
    *
-   * @type {string}
+   * @type {EntitlementType}
    * @memberof FeatureUsageResponseData
    */
-  entitlementType: string;
+  entitlementType: EntitlementType;
   /**
    *
    * @type {FeatureDetailResponseData}
@@ -232,10 +256,10 @@ export interface FeatureUsageResponseData {
   planEntitlement?: PlanEntitlementResponseData;
   /**
    *
-   * @type {string}
+   * @type {EntitlementPriceBehavior}
    * @memberof FeatureUsageResponseData
    */
-  priceBehavior?: string | null;
+  priceBehavior?: EntitlementPriceBehavior | null;
   /**
    * The soft limit for the feature usage. Available only for overage price behavior
    * @type {number}
@@ -255,29 +279,6 @@ export interface FeatureUsageResponseData {
    */
   yearlyUsageBasedPrice?: BillingPriceView;
 }
-
-/**
- * @export
- */
-export const FeatureUsageResponseDataAllocationTypeEnum = {
-  Boolean: "boolean",
-  Numeric: "numeric",
-  Trait: "trait",
-  Unlimited: "unlimited",
-} as const;
-export type FeatureUsageResponseDataAllocationTypeEnum =
-  (typeof FeatureUsageResponseDataAllocationTypeEnum)[keyof typeof FeatureUsageResponseDataAllocationTypeEnum];
-
-/**
- * @export
- */
-export const FeatureUsageResponseDataCreditGrantReasonEnum = {
-  Free: "free",
-  Plan: "plan",
-  Purchased: "purchased",
-} as const;
-export type FeatureUsageResponseDataCreditGrantReasonEnum =
-  (typeof FeatureUsageResponseDataCreditGrantReasonEnum)[keyof typeof FeatureUsageResponseDataCreditGrantReasonEnum];
 
 /**
  * Check if a given object implements the FeatureUsageResponseData interface.
@@ -311,7 +312,7 @@ export function FeatureUsageResponseDataFromJSONTyped(
   return {
     access: json["access"],
     allocation: json["allocation"] == null ? undefined : json["allocation"],
-    allocationType: json["allocation_type"],
+    allocationType: EntitlementValueTypeFromJSON(json["allocation_type"]),
     companyOverride:
       json["company_override"] == null
         ? undefined
@@ -333,7 +334,7 @@ export function FeatureUsageResponseDataFromJSONTyped(
     creditGrantReason:
       json["credit_grant_reason"] == null
         ? undefined
-        : json["credit_grant_reason"],
+        : GrantReasonFromJSON(json["credit_grant_reason"]),
     creditRemaining:
       json["credit_remaining"] == null ? undefined : json["credit_remaining"],
     creditTotal:
@@ -354,7 +355,7 @@ export function FeatureUsageResponseDataFromJSONTyped(
       json["entitlement_source"] == null
         ? undefined
         : json["entitlement_source"],
-    entitlementType: json["entitlement_type"],
+    entitlementType: EntitlementTypeFromJSON(json["entitlement_type"]),
     feature:
       json["feature"] == null
         ? undefined
@@ -385,7 +386,9 @@ export function FeatureUsageResponseDataFromJSONTyped(
         ? undefined
         : PlanEntitlementResponseDataFromJSON(json["plan_entitlement"]),
     priceBehavior:
-      json["price_behavior"] == null ? undefined : json["price_behavior"],
+      json["price_behavior"] == null
+        ? undefined
+        : EntitlementPriceBehaviorFromJSON(json["price_behavior"]),
     softLimit: json["soft_limit"] == null ? undefined : json["soft_limit"],
     usage: json["usage"] == null ? undefined : json["usage"],
     yearlyUsageBasedPrice:
@@ -404,7 +407,7 @@ export function FeatureUsageResponseDataToJSON(
   return {
     access: value["access"],
     allocation: value["allocation"],
-    allocation_type: value["allocationType"],
+    allocation_type: EntitlementValueTypeToJSON(value["allocationType"]),
     company_override: CompanyOverrideResponseDataToJSON(
       value["companyOverride"],
     ),
@@ -416,7 +419,7 @@ export function FeatureUsageResponseDataToJSON(
         : (value["creditGrantDetails"] as Array<any>).map(
             CreditGrantDetailToJSON,
           ),
-    credit_grant_reason: value["creditGrantReason"],
+    credit_grant_reason: GrantReasonToJSON(value["creditGrantReason"]),
     credit_remaining: value["creditRemaining"],
     credit_total: value["creditTotal"],
     credit_type_icon: value["creditTypeIcon"],
@@ -429,7 +432,7 @@ export function FeatureUsageResponseDataToJSON(
         : (value["entitlementExpirationDate"] as any).toISOString(),
     entitlement_id: value["entitlementId"],
     entitlement_source: value["entitlementSource"],
-    entitlement_type: value["entitlementType"],
+    entitlement_type: EntitlementTypeToJSON(value["entitlementType"]),
     feature: FeatureDetailResponseDataToJSON(value["feature"]),
     has_valid_allocation: value["hasValidAllocation"],
     is_unlimited: value["isUnlimited"],
@@ -448,7 +451,7 @@ export function FeatureUsageResponseDataToJSON(
     plan_entitlement: PlanEntitlementResponseDataToJSON(
       value["planEntitlement"],
     ),
-    price_behavior: value["priceBehavior"],
+    price_behavior: EntitlementPriceBehaviorToJSON(value["priceBehavior"]),
     soft_limit: value["softLimit"],
     usage: value["usage"],
     yearly_usage_based_price: BillingPriceViewToJSON(

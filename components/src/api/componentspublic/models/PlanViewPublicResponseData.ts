@@ -19,6 +19,12 @@ import {
   FeatureDetailResponseDataFromJSONTyped,
   FeatureDetailResponseDataToJSON,
 } from "./FeatureDetailResponseData";
+import type { PlanControlledByType } from "./PlanControlledByType";
+import {
+  PlanControlledByTypeFromJSON,
+  PlanControlledByTypeFromJSONTyped,
+  PlanControlledByTypeToJSON,
+} from "./PlanControlledByType";
 import type { PlanCreditGrantView } from "./PlanCreditGrantView";
 import {
   PlanCreditGrantViewFromJSON,
@@ -31,6 +37,12 @@ import {
   PlanEntitlementResponseDataFromJSONTyped,
   PlanEntitlementResponseDataToJSON,
 } from "./PlanEntitlementResponseData";
+import type { ChargeType } from "./ChargeType";
+import {
+  ChargeTypeFromJSON,
+  ChargeTypeFromJSONTyped,
+  ChargeTypeToJSON,
+} from "./ChargeType";
 import type { PlanType } from "./PlanType";
 import {
   PlanTypeFromJSON,
@@ -77,10 +89,10 @@ export interface PlanViewPublicResponseData {
   billingProduct?: BillingProductDetailResponseData;
   /**
    *
-   * @type {string}
+   * @type {ChargeType}
    * @memberof PlanViewPublicResponseData
    */
-  chargeType: string;
+  chargeType: ChargeType;
   /**
    *
    * @type {number}
@@ -95,10 +107,10 @@ export interface PlanViewPublicResponseData {
   compatiblePlanIds: Array<string>;
   /**
    *
-   * @type {string}
+   * @type {PlanControlledByType}
    * @memberof PlanViewPublicResponseData
    */
-  controlledBy: string;
+  controlledBy: PlanControlledByType;
   /**
    *
    * @type {Date}
@@ -284,10 +296,10 @@ export function PlanViewPublicResponseDataFromJSONTyped(
       json["billing_product"] == null
         ? undefined
         : BillingProductDetailResponseDataFromJSON(json["billing_product"]),
-    chargeType: json["charge_type"],
+    chargeType: ChargeTypeFromJSON(json["charge_type"]),
     companyCount: json["company_count"],
     compatiblePlanIds: json["compatible_plan_ids"],
-    controlledBy: json["controlled_by"],
+    controlledBy: PlanControlledByTypeFromJSON(json["controlled_by"]),
     createdAt: new Date(json["created_at"]),
     custom: json["custom"],
     customPlanConfig:
@@ -340,10 +352,10 @@ export function PlanViewPublicResponseDataToJSON(
     billing_product: BillingProductDetailResponseDataToJSON(
       value["billingProduct"],
     ),
-    charge_type: value["chargeType"],
+    charge_type: ChargeTypeToJSON(value["chargeType"]),
     company_count: value["companyCount"],
     compatible_plan_ids: value["compatiblePlanIds"],
-    controlled_by: value["controlledBy"],
+    controlled_by: PlanControlledByTypeToJSON(value["controlledBy"]),
     created_at: value["createdAt"].toISOString(),
     custom: value["custom"],
     custom_plan_config: CustomPlanConfigToJSON(value["customPlanConfig"]),

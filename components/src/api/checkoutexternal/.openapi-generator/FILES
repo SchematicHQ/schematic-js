@@ -17,6 +17,7 @@ models/BillingSubscriptionDiscountView.ts
 models/BillingSubscriptionResponseData.ts
 models/BillingSubscriptionView.ts
 models/ChangeSubscriptionRequestBody.ts
+models/ChargeType.ts
 models/CheckoutResponse.ts
 models/CheckoutResponseData.ts
 models/CheckoutUnsubscribeResponse.ts
@@ -32,8 +33,10 @@ models/CompanySubscriptionResponseData.ts
 models/CompatiblePlans.ts
 models/ComponentCapabilities.ts
 models/ComponentCheckoutSettings.ts
+models/ComponentEntityType.ts
 models/ComponentHydrateResponseData.ts
 models/ComponentResponseData.ts
+models/ComponentState.ts
 models/Condition.ts
 models/ConditionGroup.ts
 models/CountResponse.ts
@@ -45,6 +48,9 @@ models/CustomPlanConfig.ts
 models/CustomPlanViewConfigResponseData.ts
 models/DeletePaymentMethodResponse.ts
 models/DeleteResponse.ts
+models/EntitlementPriceBehavior.ts
+models/EntitlementType.ts
+models/EntitlementValueType.ts
 models/EntityKeyDefinitionResponseData.ts
 models/EntityKeyDetailResponseData.ts
 models/EntityKeyResponseData.ts
@@ -54,14 +60,18 @@ models/EntityTraitResponseData.ts
 models/EntityType.ts
 models/EventSummaryResponseData.ts
 models/FeatureDetailResponseData.ts
+models/FeatureLifecyclePhase.ts
 models/FeatureResponseData.ts
+models/FeatureType.ts
 models/FeatureUsageDetailResponseData.ts
 models/FeatureUsageResponseData.ts
 models/FetchCustomerBalanceResponse.ts
 models/FlagDetailResponseData.ts
 models/FlagResponseData.ts
+models/FlagType.ts
 models/GenericPreviewObject.ts
 models/GetSetupIntentResponse.ts
+models/GrantReason.ts
 models/HydrateComponentResponse.ts
 models/HydrateResponse.ts
 models/HydrateUpcomingInvoiceResponse.ts
@@ -69,6 +79,7 @@ models/InvoiceResponseData.ts
 models/ListInvoicesParams.ts
 models/ListInvoicesResponse.ts
 models/PaymentMethodResponseData.ts
+models/PlanControlledByType.ts
 models/PlanCreditGrantView.ts
 models/PlanDetailResponseData.ts
 models/PlanEntitlementResponseData.ts
@@ -91,6 +102,7 @@ models/RuleResponseData.ts
 models/SetupIntentResponseData.ts
 models/StripeEmbedInfo.ts
 models/TraitDefinition.ts
+models/TraitType.ts
 models/UpdateAddOnRequestBody.ts
 models/UpdateCreditBundleRequestBody.ts
 models/UpdatePayInAdvanceRequestBody.ts
