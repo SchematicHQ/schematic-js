@@ -67,12 +67,12 @@ import {
   PlanResponseDataFromJSONTyped,
   PlanResponseDataToJSON,
 } from "./PlanResponseData";
-import type { GrantReason } from "./GrantReason";
+import type { BillingCreditGrantReason } from "./BillingCreditGrantReason";
 import {
-  GrantReasonFromJSON,
-  GrantReasonFromJSONTyped,
-  GrantReasonToJSON,
-} from "./GrantReason";
+  BillingCreditGrantReasonFromJSON,
+  BillingCreditGrantReasonFromJSONTyped,
+  BillingCreditGrantReasonToJSON,
+} from "./BillingCreditGrantReason";
 
 /**
  *
@@ -124,10 +124,10 @@ export interface FeatureUsageResponseData {
   creditGrantDetails?: Array<CreditGrantDetail>;
   /**
    *
-   * @type {GrantReason}
+   * @type {BillingCreditGrantReason}
    * @memberof FeatureUsageResponseData
    */
-  creditGrantReason?: GrantReason | null;
+  creditGrantReason?: BillingCreditGrantReason | null;
   /**
    *
    * @type {number}
@@ -334,7 +334,7 @@ export function FeatureUsageResponseDataFromJSONTyped(
     creditGrantReason:
       json["credit_grant_reason"] == null
         ? undefined
-        : GrantReasonFromJSON(json["credit_grant_reason"]),
+        : BillingCreditGrantReasonFromJSON(json["credit_grant_reason"]),
     creditRemaining:
       json["credit_remaining"] == null ? undefined : json["credit_remaining"],
     creditTotal:
@@ -419,7 +419,9 @@ export function FeatureUsageResponseDataToJSON(
         : (value["creditGrantDetails"] as Array<any>).map(
             CreditGrantDetailToJSON,
           ),
-    credit_grant_reason: GrantReasonToJSON(value["creditGrantReason"]),
+    credit_grant_reason: BillingCreditGrantReasonToJSON(
+      value["creditGrantReason"],
+    ),
     credit_remaining: value["creditRemaining"],
     credit_total: value["creditTotal"],
     credit_type_icon: value["creditTypeIcon"],

@@ -13,6 +13,12 @@
  */
 
 import { mapValues } from "../runtime";
+import type { BillingCreditBurnStrategy } from "./BillingCreditBurnStrategy";
+import {
+  BillingCreditBurnStrategyFromJSON,
+  BillingCreditBurnStrategyFromJSONTyped,
+  BillingCreditBurnStrategyToJSON,
+} from "./BillingCreditBurnStrategy";
 import type { BillingProductResponseData } from "./BillingProductResponseData";
 import {
   BillingProductResponseDataFromJSON,
@@ -25,6 +31,18 @@ import {
   BillingPriceResponseDataFromJSONTyped,
   BillingPriceResponseDataToJSON,
 } from "./BillingPriceResponseData";
+import type { BillingCreditExpiryUnit } from "./BillingCreditExpiryUnit";
+import {
+  BillingCreditExpiryUnitFromJSON,
+  BillingCreditExpiryUnitFromJSONTyped,
+  BillingCreditExpiryUnitToJSON,
+} from "./BillingCreditExpiryUnit";
+import type { BillingCreditRolloverPolicy } from "./BillingCreditRolloverPolicy";
+import {
+  BillingCreditRolloverPolicyFromJSON,
+  BillingCreditRolloverPolicyFromJSONTyped,
+  BillingCreditRolloverPolicyToJSON,
+} from "./BillingCreditRolloverPolicy";
 
 /**
  *
@@ -34,10 +52,10 @@ import {
 export interface BillingCreditResponseData {
   /**
    *
-   * @type {string}
+   * @type {BillingCreditBurnStrategy}
    * @memberof BillingCreditResponseData
    */
-  burnStrategy: string;
+  burnStrategy: BillingCreditBurnStrategy;
   /**
    *
    * @type {Date}
@@ -46,10 +64,10 @@ export interface BillingCreditResponseData {
   createdAt: Date;
   /**
    *
-   * @type {string}
+   * @type {BillingCreditExpiryUnit}
    * @memberof BillingCreditResponseData
    */
-  defaultExpiryUnit: string;
+  defaultExpiryUnit: BillingCreditExpiryUnit;
   /**
    *
    * @type {number}
@@ -58,10 +76,10 @@ export interface BillingCreditResponseData {
   defaultExpiryUnitCount?: number | null;
   /**
    *
-   * @type {string}
+   * @type {BillingCreditRolloverPolicy}
    * @memberof BillingCreditResponseData
    */
-  defaultRolloverPolicy: string;
+  defaultRolloverPolicy: BillingCreditRolloverPolicy;
   /**
    *
    * @type {string}
@@ -159,14 +177,18 @@ export function BillingCreditResponseDataFromJSONTyped(
     return json;
   }
   return {
-    burnStrategy: json["burn_strategy"],
+    burnStrategy: BillingCreditBurnStrategyFromJSON(json["burn_strategy"]),
     createdAt: new Date(json["created_at"]),
-    defaultExpiryUnit: json["default_expiry_unit"],
+    defaultExpiryUnit: BillingCreditExpiryUnitFromJSON(
+      json["default_expiry_unit"],
+    ),
     defaultExpiryUnitCount:
       json["default_expiry_unit_count"] == null
         ? undefined
         : json["default_expiry_unit_count"],
-    defaultRolloverPolicy: json["default_rollover_policy"],
+    defaultRolloverPolicy: BillingCreditRolloverPolicyFromJSON(
+      json["default_rollover_policy"],
+    ),
     description: json["description"],
     icon: json["icon"] == null ? undefined : json["icon"],
     id: json["id"],
@@ -193,11 +215,15 @@ export function BillingCreditResponseDataToJSON(
     return value;
   }
   return {
-    burn_strategy: value["burnStrategy"],
+    burn_strategy: BillingCreditBurnStrategyToJSON(value["burnStrategy"]),
     created_at: value["createdAt"].toISOString(),
-    default_expiry_unit: value["defaultExpiryUnit"],
+    default_expiry_unit: BillingCreditExpiryUnitToJSON(
+      value["defaultExpiryUnit"],
+    ),
     default_expiry_unit_count: value["defaultExpiryUnitCount"],
-    default_rollover_policy: value["defaultRolloverPolicy"],
+    default_rollover_policy: BillingCreditRolloverPolicyToJSON(
+      value["defaultRolloverPolicy"],
+    ),
     description: value["description"],
     icon: value["icon"],
     id: value["id"],

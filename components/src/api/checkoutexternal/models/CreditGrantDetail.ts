@@ -13,12 +13,12 @@
  */
 
 import { mapValues } from "../runtime";
-import type { GrantReason } from "./GrantReason";
+import type { BillingCreditGrantReason } from "./BillingCreditGrantReason";
 import {
-  GrantReasonFromJSON,
-  GrantReasonFromJSONTyped,
-  GrantReasonToJSON,
-} from "./GrantReason";
+  BillingCreditGrantReasonFromJSON,
+  BillingCreditGrantReasonFromJSONTyped,
+  BillingCreditGrantReasonToJSON,
+} from "./BillingCreditGrantReason";
 
 /**
  *
@@ -40,10 +40,10 @@ export interface CreditGrantDetail {
   expiresAt?: Date | null;
   /**
    *
-   * @type {GrantReason}
+   * @type {BillingCreditGrantReason}
    * @memberof CreditGrantDetail
    */
-  grantReason: GrantReason;
+  grantReason: BillingCreditGrantReason;
   /**
    *
    * @type {number}
@@ -80,7 +80,7 @@ export function CreditGrantDetailFromJSONTyped(
       json["credit_type_icon"] == null ? undefined : json["credit_type_icon"],
     expiresAt:
       json["expires_at"] == null ? undefined : new Date(json["expires_at"]),
-    grantReason: GrantReasonFromJSON(json["grant_reason"]),
+    grantReason: BillingCreditGrantReasonFromJSON(json["grant_reason"]),
     quantity: json["quantity"],
   };
 }
@@ -95,7 +95,7 @@ export function CreditGrantDetailToJSON(value?: CreditGrantDetail | null): any {
       value["expiresAt"] == null
         ? undefined
         : (value["expiresAt"] as any).toISOString(),
-    grant_reason: GrantReasonToJSON(value["grantReason"]),
+    grant_reason: BillingCreditGrantReasonToJSON(value["grantReason"]),
     quantity: value["quantity"],
   };
 }
