@@ -1146,6 +1146,163 @@ export class Schematic {
    */
 
   /**
+   * Force an immediate WebSocket reconnection.
+   * This is useful when the application returns from a background state (e.g., mobile app
+   * coming back to foreground) and wants to immediately re-establish the connection
+   * rather than waiting for the exponential backoff timer.
+   *
+   * This method will:
+   * - Cancel any pending reconnection timer
+   * - Reset the reconnection attempt counter
+   * - Close any existing connection
+   * - Immediately attempt to reconnect
+   * - Re-send the current context to get fresh flag values
+   *
+   * Use this when you need guaranteed fresh values (e.g., after an in-app purchase).
+   *
+   * @example
+   * ```typescript
+   * // React Native example: reconnect when app comes to foreground
+   * useEffect(() => {
+   *   const subscription = AppState.addEventListener("change", (state) => {
+   *     if (state === "active") {
+   *       client.forceReconnect();
+   *     }
+   *   });
+   *   return () => subscription.remove();
+   * }, [client]);
+   * ```
+   */
+  forceReconnect = async (): Promise<void> => {
+    return this.reconnect({ force: true });
+  };
+
+  /**
+   * Reconnect the WebSocket connection only if the current connection is unhealthy.
+   * This is useful when the application returns from a background state and wants to
+   * ensure a healthy connection exists, but doesn't need to force a reconnection if
+   * the connection is still active.
+   *
+   * This method will:
+   * - Check if an existing connection is healthy (readyState === OPEN)
+   * - If healthy, return immediately without reconnecting
+   * - If unhealthy, perform the same reconnection logic as forceReconnect()
+   *
+   * Use this when you want efficient reconnection that avoids unnecessary disconnects.
+   *
+   * @example
+   * ```typescript
+   * // React Native example: reconnect only if needed when app comes to foreground
+   * useEffect(() => {
+   *   const subscription = AppState.addEventListener("change", (state) => {
+   *     if (state === "active") {
+   *       client.reconnectIfNeeded();
+   *     }
+   *   });
+   *   return () => subscription.remove();
+   * }, [client]);
+   * ```
+   */
+  reconnectIfNeeded = async (): Promise<void> => {
+    return this.reconnect({ force: false });
+  };
+
+  /**
+   * Internal method to handle reconnection logic for both forceReconnect and reconnectIfNeeded.
+   */
+  private reconnect = async (options: { force: boolean }): Promise<void> => {
+    const { force } = options;
+    const methodName = force ? "forceReconnect" : "reconnectIfNeeded";
+
+    // In offline mode, no need to reconnect
+    if (this.isOffline()) {
+      this.debug(`${methodName}: skipped (offline mode)`);
+      return Promise.resolve();
+    }
+
+    // Check if we already have a healthy connection
+    if (!force && this.conn !== null) {
+      try {
+        const existingSocket = await this.conn;
+        if (existingSocket.readyState === WebSocket.OPEN) {
+          this.debug(`${methodName}: connection is healthy, skipping`);
+          return Promise.resolve();
+        }
+      } catch {
+        // Connection promise rejected, proceed with reconnection
+      }
+    }
+
+    this.debug(
+      `${methodName}: ${force ? "forcing immediate reconnection" : "reconnecting"}`,
+    );
+
+    // Reset the intentional disconnect flag in case it was set
+    this.wsIntentionalDisconnect = false;
+
+    // Cancel any pending reconnection timer
+    if (this.wsReconnectTimer !== null) {
+      this.debug(`${methodName}: cancelling pending reconnection timer`);
+      clearTimeout(this.wsReconnectTimer);
+      this.wsReconnectTimer = null;
+    }
+
+    // Reset reconnection attempts for a fresh start
+    this.wsReconnectAttempts = 0;
+
+    // Close existing connection if any
+    if (this.conn !== null) {
+      this.debug(`${methodName}: closing existing connection`);
+      try {
+        const existingSocket = await this.conn;
+
+        // Mark the existing socket as no longer current
+        if (this.currentWebSocket === existingSocket) {
+          this.currentWebSocket = null;
+        }
+
+        if (
+          existingSocket.readyState === WebSocket.OPEN ||
+          existingSocket.readyState === WebSocket.CONNECTING
+        ) {
+          existingSocket.close();
+        }
+      } catch (error) {
+        this.debug(`${methodName}: error closing existing connection:`, error);
+      }
+      this.conn = null;
+      this.isConnecting = false;
+    }
+
+    // If we have context, reconnect and re-send it
+    if (
+      this.context.company !== undefined ||
+      this.context.user !== undefined
+    ) {
+      this.debug(`${methodName}: reconnecting with existing context`);
+      try {
+        this.isConnecting = true;
+        this.conn = this.wsConnect();
+        const socket = await this.conn;
+        this.isConnecting = false;
+
+        // Re-send context to get fresh flag values
+        await this.wsSendMessage(socket, this.context, true);
+
+        this.debug(`${methodName}: reconnection successful`);
+      } catch (error) {
+        this.isConnecting = false;
+        this.debug(`${methodName}: reconnection failed:`, error);
+        // Let the normal reconnection logic handle retries
+      }
+    } else {
+      this.debug(`${methodName}: no context set, skipping reconnection`);
+    }
+
+    return Promise.resolve();
+  };
+
+  /**
    * If using websocket mode, close the connection when done.
    * In offline mode, this is a no-op.
    */
@@ -1186,109 +1343,6 @@ export class Schematic {
         this.currentWebSocket = null;
         this.isConnecting = false;
       }
-    }
-  };
-
-  /**
-   * Force an immediate WebSocket reconnection.
-   * This is useful when the application returns from a background state (e.g., mobile app
-   * coming back to foreground) and wants to immediately re-establish the connection
-   * rather than waiting for the exponential backoff timer.
-   *
-   * This method will:
-   * - Cancel any pending reconnection timer
-   * - Reset the reconnection attempt counter
-   * - Immediately attempt to reconnect
-   * - Re-send the current context to get fresh flag values
-   *
-   * If a connection is already active and healthy, this will close it and create a new one.
-   * If you just want to ensure a connection exists, check the connection state first.
-   *
-   * @example
-   * ```typescript
-   * // React Native example: reconnect when app comes to foreground
-   * useEffect(() => {
-   *   const subscription = AppState.addEventListener("change", (state) => {
-   *     if (state === "active") {
-   *       client.forceReconnect();
-   *     }
-   *   });
-   *   return () => subscription.remove();
-   * }, [client]);
-   * ```
-   */
-  forceReconnect = async (): Promise<void> => {
-    // In offline mode, no need to reconnect
-    if (this.isOffline()) {
-      this.debug("forceReconnect: skipped (offline mode)");
-      return Promise.resolve();
-    }
-
-    this.debug("forceReconnect: forcing immediate reconnection");
-
-    // Reset the intentional disconnect flag in case it was set
-    this.wsIntentionalDisconnect = false;
-
-    // Cancel any pending reconnection timer
-    if (this.wsReconnectTimer !== null) {
-      this.debug("forceReconnect: cancelling pending reconnection timer");
-      clearTimeout(this.wsReconnectTimer);
-      this.wsReconnectTimer = null;
-    }
-
-    // Reset reconnection attempts for a fresh start
-    this.wsReconnectAttempts = 0;
-
-    // Close existing connection if any
-    if (this.conn !== null) {
-      this.debug("forceReconnect: closing existing connection");
-      try {
-        const existingSocket = await this.conn;
-
-        // Mark the existing socket as no longer current
-        if (this.currentWebSocket === existingSocket) {
-          this.currentWebSocket = null;
-        }
-
-        if (
-          existingSocket.readyState === WebSocket.OPEN ||
-          existingSocket.readyState === WebSocket.CONNECTING
-        ) {
-          existingSocket.close();
-        }
-      } catch (error) {
-        this.debug("forceReconnect: error closing existing connection:", error);
-      }
-      this.conn = null;
-      this.isConnecting = false;
-    }
-
-    // If we have context, reconnect and re-send it
-    if (
-      this.context.company !== undefined ||
-      this.context.user !== undefined
-    ) {
-      this.debug("forceReconnect: reconnecting with existing context");
-      try {
-        this.isConnecting = true;
-        this.conn = this.wsConnect();
-        const socket = await this.conn;
-        this.isConnecting = false;
-
-        // Re-send context to get fresh flag values
-        await this.wsSendMessage(socket, this.context, true);
-
-        this.debug("forceReconnect: reconnection successful");
-      } catch (error) {
-        this.isConnecting = false;
-        this.debug("forceReconnect: reconnection failed:", error);
-        // Let the normal reconnection logic handle retries
-        this.attemptReconnect();
-      }
-    } else {
-      this.debug(
-        "forceReconnect: no context available, websocket will connect when context is set",
-      );
     }
   };
 
