@@ -235,6 +235,13 @@ export const Sidebar = forwardRef<HTMLDivElement | null, SidebarProps>(
         previous: CurrentUsageBasedEntitlement;
         next: UsageBasedEntitlement;
       }[] = [];
+
+      // Combine plan and add-on usage-based entitlements for comparison
+      const allSelectedUsageBasedEntitlements = [
+        ...usageBasedEntitlements,
+        ...addOnUsageBasedEntitlements,
+      ];
+
       const addedUsageBasedEntitlements = selectedPlan
         ? usageBasedEntitlements.reduce(
             (acc: UsageBasedEntitlement[], selected) => {
@@ -262,10 +269,12 @@ export const Sidebar = forwardRef<HTMLDivElement | null, SidebarProps>(
       const removedUsageBasedEntitlements = selectedPlan
         ? currentUsageBasedEntitlements.reduce(
             (acc: CurrentUsageBasedEntitlement[], current) => {
+              // Check if entitlement exists in either plan or add-on entitlements
+              const existsInSelected = allSelectedUsageBasedEntitlements.some(
+                (entitlement) => entitlement.id === current.entitlementId,
+              );
               const match =
-                usageBasedEntitlements.every(
-                  (entitlement) => entitlement.id !== current.entitlementId,
-                ) &&
+                !existsInSelected &&
                 currentEntitlements.find(
                   (usage) => usage.entitlementId === current.entitlementId,
                 );
@@ -300,6 +309,7 @@ export const Sidebar = forwardRef<HTMLDivElement | null, SidebarProps>(
       currentEntitlements,
       currentUsageBasedEntitlements,
       usageBasedEntitlements,
+      addOnUsageBasedEntitlements,
     ]);
 
     const selectedAddOns = useMemo(
