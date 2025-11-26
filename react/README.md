@@ -136,6 +136,43 @@ const MyComponent = () => {
 
 *Note: `useSchematicIsPending` is checking if entitlement data has been loaded, typically via `identify`. It should, therefore, be used to wrap flag and entitlement checks, but never the initial call to `identify`.*
 
+## React Native
+
+### Handling app background/foreground
+
+When a React Native app is backgrounded for an extended period, the WebSocket connection may be closed by the OS. When the app returns to the foreground, the connection will automatically reconnect, but this happens on an exponential backoff timer which may cause a delay before fresh flag values are available.
+
+For cases where you need immediate flag updates when returning to the foreground (e.g., after an in-app purchase), you can use one of these methods to re-establish the connection:
+
+- `forceReconnect()`: Always closes and re-establishes the WebSocket connection, guaranteeing fresh values
+- `reconnectIfNeeded()`: Only reconnects if the current connection is unhealthy (more efficient for frequent foreground events)
+
+```tsx
+import { useSchematic } from "@schematichq/schematic-react";
+import { useEffect } from "react";
+import { AppState } from "react-native";
+
+const SchematicAppStateHandler = () => {
+    const { client } = useSchematic();
+
+    useEffect(() => {
+        const subscription = AppState.addEventListener("change", (state) => {
+            if (state === "active") {
+                // Use forceReconnect() for guaranteed fresh values
+                client.forceReconnect();
+                // Or use reconnectIfNeeded() to skip if connection is healthy
+                // client.reconnectIfNeeded();
+            }
+        });
+        return () => subscription.remove();
+    }, [client]);
+
+    return null;
+};
+```
+
+Render this inside your `SchematicProvider`.
+
 ## Troubleshooting
 
 For debugging and development, Schematic supports two special modes:
