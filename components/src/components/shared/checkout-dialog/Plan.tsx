@@ -47,7 +47,7 @@ const Selected = ({ isCurrent = false, isTrial = false }: SelectedProps) => {
 
   const text = useMemo(() => {
     if (isCurrent) {
-      return isTrial ? t("Trial in progress") : t("Current plan");
+      return isTrial ? t("Plan selected") : t("Current plan");
     }
 
     return isTrial ? t("Trial selected") : t("Plan selected");

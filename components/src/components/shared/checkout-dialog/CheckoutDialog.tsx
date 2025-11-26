@@ -151,6 +151,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           (checkoutState?.planId
             ? plan.id === checkoutState.planId
             : plan.current) &&
+          // do not initially set the current plan for a trial
           (!plan.isTrialable || !plan.companyCanTrial),
       );
     },
