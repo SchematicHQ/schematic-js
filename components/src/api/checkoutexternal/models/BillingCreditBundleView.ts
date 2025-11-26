@@ -13,12 +13,36 @@
  */
 
 import { mapValues } from "../runtime";
+import type { BillingCreditBundleType } from "./BillingCreditBundleType";
+import {
+  BillingCreditBundleTypeFromJSON,
+  BillingCreditBundleTypeFromJSONTyped,
+  BillingCreditBundleTypeToJSON,
+} from "./BillingCreditBundleType";
+import type { BillingCreditExpiryType } from "./BillingCreditExpiryType";
+import {
+  BillingCreditExpiryTypeFromJSON,
+  BillingCreditExpiryTypeFromJSONTyped,
+  BillingCreditExpiryTypeToJSON,
+} from "./BillingCreditExpiryType";
+import type { BillingCreditBundleStatus } from "./BillingCreditBundleStatus";
+import {
+  BillingCreditBundleStatusFromJSON,
+  BillingCreditBundleStatusFromJSONTyped,
+  BillingCreditBundleStatusToJSON,
+} from "./BillingCreditBundleStatus";
 import type { BillingProductPriceResponseData } from "./BillingProductPriceResponseData";
 import {
   BillingProductPriceResponseDataFromJSON,
   BillingProductPriceResponseDataFromJSONTyped,
   BillingProductPriceResponseDataToJSON,
 } from "./BillingProductPriceResponseData";
+import type { BillingCreditExpiryUnit } from "./BillingCreditExpiryUnit";
+import {
+  BillingCreditExpiryUnitFromJSON,
+  BillingCreditExpiryUnitFromJSONTyped,
+  BillingCreditExpiryUnitToJSON,
+} from "./BillingCreditExpiryUnit";
 
 /**
  *
@@ -34,10 +58,10 @@ export interface BillingCreditBundleView {
   billingInvoiceId?: string | null;
   /**
    *
-   * @type {string}
+   * @type {BillingCreditBundleType}
    * @memberof BillingCreditBundleView
    */
-  bundleType: string;
+  bundleType: BillingCreditBundleType;
   /**
    *
    * @type {Date}
@@ -70,16 +94,16 @@ export interface BillingCreditBundleView {
   creditName: string;
   /**
    *
-   * @type {string}
+   * @type {BillingCreditExpiryType}
    * @memberof BillingCreditBundleView
    */
-  expiryType: string;
+  expiryType: BillingCreditExpiryType;
   /**
    *
-   * @type {string}
+   * @type {BillingCreditExpiryUnit}
    * @memberof BillingCreditBundleView
    */
-  expiryUnit: string;
+  expiryUnit: BillingCreditExpiryUnit;
   /**
    *
    * @type {number}
@@ -130,10 +154,10 @@ export interface BillingCreditBundleView {
   singularName?: string | null;
   /**
    *
-   * @type {string}
+   * @type {BillingCreditBundleStatus}
    * @memberof BillingCreditBundleView
    */
-  status: string;
+  status: BillingCreditBundleStatus;
   /**
    *
    * @type {BillingProductPriceResponseData}
@@ -190,7 +214,7 @@ export function BillingCreditBundleViewFromJSONTyped(
       json["billing_invoice_id"] == null
         ? undefined
         : json["billing_invoice_id"],
-    bundleType: json["bundle_type"],
+    bundleType: BillingCreditBundleTypeFromJSON(json["bundle_type"]),
     createdAt: new Date(json["created_at"]),
     creditDescription:
       json["credit_description"] == null
@@ -199,8 +223,8 @@ export function BillingCreditBundleViewFromJSONTyped(
     creditIcon: json["credit_icon"] == null ? undefined : json["credit_icon"],
     creditId: json["credit_id"],
     creditName: json["credit_name"],
-    expiryType: json["expiry_type"],
-    expiryUnit: json["expiry_unit"],
+    expiryType: BillingCreditExpiryTypeFromJSON(json["expiry_type"]),
+    expiryUnit: BillingCreditExpiryUnitFromJSON(json["expiry_unit"]),
     expiryUnitCount:
       json["expiry_unit_count"] == null ? undefined : json["expiry_unit_count"],
     hasGrants: json["has_grants"],
@@ -214,7 +238,7 @@ export function BillingCreditBundleViewFromJSONTyped(
     quantity: json["quantity"] == null ? undefined : json["quantity"],
     singularName:
       json["singular_name"] == null ? undefined : json["singular_name"],
-    status: json["status"],
+    status: BillingCreditBundleStatusFromJSON(json["status"]),
     unitPrice:
       json["unit_price"] == null
         ? undefined
@@ -231,14 +255,14 @@ export function BillingCreditBundleViewToJSON(
   }
   return {
     billing_invoice_id: value["billingInvoiceId"],
-    bundle_type: value["bundleType"],
+    bundle_type: BillingCreditBundleTypeToJSON(value["bundleType"]),
     created_at: value["createdAt"].toISOString(),
     credit_description: value["creditDescription"],
     credit_icon: value["creditIcon"],
     credit_id: value["creditId"],
     credit_name: value["creditName"],
-    expiry_type: value["expiryType"],
-    expiry_unit: value["expiryUnit"],
+    expiry_type: BillingCreditExpiryTypeToJSON(value["expiryType"]),
+    expiry_unit: BillingCreditExpiryUnitToJSON(value["expiryUnit"]),
     expiry_unit_count: value["expiryUnitCount"],
     has_grants: value["hasGrants"],
     id: value["id"],
@@ -247,7 +271,7 @@ export function BillingCreditBundleViewToJSON(
     price: BillingProductPriceResponseDataToJSON(value["price"]),
     quantity: value["quantity"],
     singular_name: value["singularName"],
-    status: value["status"],
+    status: BillingCreditBundleStatusToJSON(value["status"]),
     unit_price: BillingProductPriceResponseDataToJSON(value["unitPrice"]),
     updated_at: value["updatedAt"].toISOString(),
   };

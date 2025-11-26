@@ -19,6 +19,12 @@ import {
   BillingProductPriceTierResponseDataFromJSONTyped,
   BillingProductPriceTierResponseDataToJSON,
 } from "./BillingProductPriceTierResponseData";
+import type { BillingPriceUsageType } from "./BillingPriceUsageType";
+import {
+  BillingPriceUsageTypeFromJSON,
+  BillingPriceUsageTypeFromJSONTyped,
+  BillingPriceUsageTypeToJSON,
+} from "./BillingPriceUsageType";
 
 /**
  *
@@ -148,10 +154,10 @@ export interface BillingProductForSubscriptionResponseData {
   updatedAt: Date;
   /**
    *
-   * @type {string}
+   * @type {BillingPriceUsageType}
    * @memberof BillingProductForSubscriptionResponseData
    */
-  usageType: string;
+  usageType: BillingPriceUsageType;
 }
 
 /**
@@ -227,7 +233,7 @@ export function BillingProductForSubscriptionResponseDataFromJSONTyped(
         ? undefined
         : json["subscription_item_external_id"],
     updatedAt: new Date(json["updated_at"]),
-    usageType: json["usage_type"],
+    usageType: BillingPriceUsageTypeFromJSON(json["usage_type"]),
   };
 }
 
@@ -260,6 +266,6 @@ export function BillingProductForSubscriptionResponseDataToJSON(
     subscription_id: value["subscriptionId"],
     subscription_item_external_id: value["subscriptionItemExternalId"],
     updated_at: value["updatedAt"].toISOString(),
-    usage_type: value["usageType"],
+    usage_type: BillingPriceUsageTypeToJSON(value["usageType"]),
   };
 }

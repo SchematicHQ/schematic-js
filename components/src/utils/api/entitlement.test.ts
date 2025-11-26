@@ -3,7 +3,10 @@ import type {
   FeatureDetailResponseData,
   FeatureUsageResponseData,
 } from "../../api/checkoutexternal";
-import { EntitlementType, EntitlementValueType } from "../../api/checkoutexternal";
+import {
+  EntitlementType,
+  EntitlementValueType,
+} from "../../api/checkoutexternal";
 import {
   extractCurrentUsageBasedEntitlements,
   getEntitlementFeatureName,
