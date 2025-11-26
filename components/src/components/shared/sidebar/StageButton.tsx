@@ -37,9 +37,6 @@ type StageButtonProps = {
   checkout: () => Promise<void>;
   checkoutStage?: string;
   checkoutStages?: CheckoutStage[];
-  hasAddOns: boolean;
-  hasPayInAdvanceEntitlements: boolean;
-  hasCreditBundles: boolean;
   hasPaymentMethod: boolean;
   hasPlan: boolean;
   inEditMode: boolean;
@@ -58,9 +55,6 @@ export const StageButton = ({
   checkout,
   checkoutStage,
   checkoutStages,
-  hasAddOns,
-  hasPayInAdvanceEntitlements,
-  hasCreditBundles,
   hasPaymentMethod,
   hasPlan,
   inEditMode,
@@ -77,7 +71,36 @@ export const StageButton = ({
 
   const isDisabled = isLoading || !hasPlan || inEditMode;
 
+  // Helper to get the next stage after the current one
+  const getNextStageId = (currentStageId: string): string | undefined => {
+    if (!checkoutStages) return undefined;
+    const currentIndex = checkoutStages.findIndex(
+      (s) => s.id === currentStageId,
+    );
+    return checkoutStages[currentIndex + 1]?.id;
+  };
+
+  // Helper to get stage display name
+  const getStageDisplayName = (stageId: string | undefined): string => {
+    switch (stageId) {
+      case "usage":
+        return t("Usage");
+      case "addons":
+        return t("Addons");
+      case "addonsUsage":
+        return t("Add-ons Quantity");
+      case "credits":
+        return t("Credits");
+      case "checkout":
+        return t("Checkout");
+      default:
+        return t("Checkout");
+    }
+  };
+
   if (checkoutStage === "plan") {
+    const nextStage = getNextStageId("plan");
+
     if (isSelectedPlanTrialable && trialPaymentMethodRequired && shouldTrial) {
       return (
         <Button
@@ -102,15 +125,7 @@ export const StageButton = ({
       );
     }
 
-    if (
-      !isPaymentMethodRequired &&
-      !checkoutStages?.some(
-        (stage) =>
-          stage.id === "usage" ||
-          stage.id === "addons" ||
-          stage.id === "credits",
-      )
-    ) {
+    if (!isPaymentMethodRequired && !nextStage) {
       return (
         <NoPaymentRequired
           isDisabled={isDisabled}
@@ -126,29 +141,14 @@ export const StageButton = ({
         type="button"
         disabled={isDisabled}
         onClick={async () => {
-          setCheckoutStage?.(
-            hasPayInAdvanceEntitlements
-              ? "usage"
-              : hasAddOns
-                ? "addons"
-                : hasCreditBundles
-                  ? "credits"
-                  : "checkout",
-          );
+          setCheckoutStage?.(nextStage ?? "checkout");
         }}
         $isLoading={isLoading}
         $fullWidth
         $size={isSticky ? "sm" : "md"}
       >
         <Flex $gap="0.5rem" $justifyContent="center" $alignItems="center">
-          {t("Next")}:{" "}
-          {hasPayInAdvanceEntitlements
-            ? t("Usage")
-            : hasAddOns
-              ? t("Addons")
-              : hasCreditBundles
-                ? t("Credits")
-                : t("Checkout")}
+          {t("Next")}: {getStageDisplayName(nextStage)}
           <Icon name="arrow-right" />
         </Flex>
       </Button>
@@ -156,12 +156,9 @@ export const StageButton = ({
   }
 
   if (checkoutStage === "usage") {
-    if (
-      !isPaymentMethodRequired &&
-      !checkoutStages?.some(
-        (stage) => stage.id === "addons" || stage.id === "credits",
-      )
-    ) {
+    const nextStage = getNextStageId("usage");
+
+    if (!isPaymentMethodRequired && !nextStage) {
       return (
         <NoPaymentRequired
           isDisabled={isDisabled}
@@ -177,9 +174,7 @@ export const StageButton = ({
         type="button"
         disabled={isDisabled}
         onClick={async () => {
-          setCheckoutStage?.(
-            hasAddOns ? "addons" : hasCreditBundles ? "credits" : "checkout",
-          );
+          setCheckoutStage?.(nextStage ?? "checkout");
         }}
         $isLoading={isLoading}
         $fullWidth
@@ -191,12 +186,7 @@ export const StageButton = ({
           $alignItems="center"
           $padding="0 1rem"
         >
-          {t("Next")}:{" "}
-          {hasAddOns
-            ? t("Addons")
-            : hasCreditBundles
-              ? t("Credits")
-              : t("Checkout")}
+          {t("Next")}: {getStageDisplayName(nextStage)}
           <Icon name="arrow-right" />
         </Flex>
       </Button>
@@ -204,14 +194,9 @@ export const StageButton = ({
   }
 
   if (checkoutStage === "addons") {
-    // Check if there's an addonsUsage stage next
-    const hasAddonsUsageStage = checkoutStages?.some(
-      (stage) => stage.id === "addonsUsage",
-    );
-    const hasCreditsStage = checkoutStages?.some(
-      (stage) => stage.id === "credits",
-    );
-    if (!isPaymentMethodRequired && !hasAddonsUsageStage && !hasCreditsStage) {
+    const nextStage = getNextStageId("addons");
+
+    if (!isPaymentMethodRequired && !nextStage) {
       return (
         <NoPaymentRequired
           isDisabled={isDisabled}
@@ -227,13 +212,7 @@ export const StageButton = ({
         type="button"
         disabled={isDisabled}
         onClick={async () => {
-          setCheckoutStage?.(
-            hasAddonsUsageStage
-              ? "addonsUsage"
-              : hasCreditsStage
-                ? "credits"
-                : "checkout",
-          );
+          setCheckoutStage?.(nextStage ?? "checkout");
         }}
         $isLoading={isLoading}
         $fullWidth
@@ -244,12 +223,7 @@ export const StageButton = ({
           $alignItems="center"
           $padding="0 1rem"
         >
-          {t("Next")}:{" "}
-          {hasAddonsUsageStage
-            ? t("Add-ons Quantity")
-            : hasCreditsStage
-              ? t("Credits")
-              : t("Checkout")}
+          {t("Next")}: {getStageDisplayName(nextStage)}
           <Icon name="arrow-right" />
         </Flex>
       </Button>
@@ -257,10 +231,9 @@ export const StageButton = ({
   }
 
   if (checkoutStage === "addonsUsage") {
-    if (
-      !isPaymentMethodRequired &&
-      !checkoutStages?.some((stage) => stage.id === "credits")
-    ) {
+    const nextStage = getNextStageId("addonsUsage");
+
+    if (!isPaymentMethodRequired && !nextStage) {
       return (
         <NoPaymentRequired
           isDisabled={isDisabled}
@@ -276,7 +249,7 @@ export const StageButton = ({
         type="button"
         disabled={isDisabled}
         onClick={async () => {
-          setCheckoutStage?.(hasCreditBundles ? "credits" : "checkout");
+          setCheckoutStage?.(nextStage ?? "checkout");
         }}
         $isLoading={isLoading}
         $fullWidth
@@ -288,7 +261,7 @@ export const StageButton = ({
           $alignItems="center"
           $padding="0 1rem"
         >
-          {t("Next")}: {hasCreditBundles ? t("Credits") : t("Checkout")}
+          {t("Next")}: {getStageDisplayName(nextStage)}
           <Icon name="arrow-right" />
         </Flex>
       </Button>

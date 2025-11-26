@@ -911,6 +911,23 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     });
   }, [checkoutStages, checkoutState]);
 
+  // Filter stages for navigation (always excludes bypassed stages)
+  const navigableStages = useMemo(() => {
+    return checkoutStages.filter((stage) => {
+      if (stage.id === "plan" && checkoutState?.bypassPlanSelection) {
+        return false;
+      }
+      if (stage.id === "addons" && checkoutState?.bypassAddOnSelection) {
+        return false;
+      }
+      return true;
+    });
+  }, [
+    checkoutStages,
+    checkoutState?.bypassPlanSelection,
+    checkoutState?.bypassAddOnSelection,
+  ]);
+
   // Show loading overlay while bypass mode resolves initial stage
   const shouldShowBypassOverlay =
     isBypassLoading ||
@@ -1109,7 +1126,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           creditBundles={creditBundles}
           charges={charges}
           checkoutStage={checkoutStage}
-          checkoutStages={checkoutStages}
+          checkoutStages={navigableStages}
           error={error}
           isLoading={isLoading}
           isPaymentMethodRequired={isPaymentMethodRequired}
