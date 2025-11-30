@@ -19,6 +19,12 @@ import {
   EntityKeyDefinitionResponseDataFromJSONTyped,
   EntityKeyDefinitionResponseDataToJSON,
 } from "./EntityKeyDefinitionResponseData";
+import type { EntityType } from "./EntityType";
+import {
+  EntityTypeFromJSON,
+  EntityTypeFromJSONTyped,
+  EntityTypeToJSON,
+} from "./EntityType";
 
 /**
  *
@@ -52,10 +58,10 @@ export interface EntityKeyDetailResponseData {
   entityId: string;
   /**
    *
-   * @type {string}
+   * @type {EntityType}
    * @memberof EntityKeyDetailResponseData
    */
-  entityType: string;
+  entityType: EntityType;
   /**
    *
    * @type {string}
@@ -130,7 +136,7 @@ export function EntityKeyDetailResponseDataFromJSONTyped(
         : EntityKeyDefinitionResponseDataFromJSON(json["definition"]),
     definitionId: json["definition_id"],
     entityId: json["entity_id"],
-    entityType: json["entity_type"],
+    entityType: EntityTypeFromJSON(json["entity_type"]),
     environmentId: json["environment_id"],
     id: json["id"],
     key: json["key"],
@@ -150,7 +156,7 @@ export function EntityKeyDetailResponseDataToJSON(
     definition: EntityKeyDefinitionResponseDataToJSON(value["definition"]),
     definition_id: value["definitionId"],
     entity_id: value["entityId"],
-    entity_type: value["entityType"],
+    entity_type: EntityTypeToJSON(value["entityType"]),
     environment_id: value["environmentId"],
     id: value["id"],
     key: value["key"],

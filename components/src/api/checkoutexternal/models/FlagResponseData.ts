@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from "../runtime";
+import type { FlagType } from "./FlagType";
+import {
+  FlagTypeFromJSON,
+  FlagTypeFromJSONTyped,
+  FlagTypeToJSON,
+} from "./FlagType";
+
 /**
  *
  * @export
@@ -45,10 +52,10 @@ export interface FlagResponseData {
   featureId?: string | null;
   /**
    *
-   * @type {string}
+   * @type {FlagType}
    * @memberof FlagResponseData
    */
-  flagType: string;
+  flagType: FlagType;
   /**
    *
    * @type {string}
@@ -116,7 +123,7 @@ export function FlagResponseDataFromJSONTyped(
     defaultValue: json["default_value"],
     description: json["description"],
     featureId: json["feature_id"] == null ? undefined : json["feature_id"],
-    flagType: json["flag_type"],
+    flagType: FlagTypeFromJSON(json["flag_type"]),
     id: json["id"],
     key: json["key"],
     maintainerId:
@@ -135,7 +142,7 @@ export function FlagResponseDataToJSON(value?: FlagResponseData | null): any {
     default_value: value["defaultValue"],
     description: value["description"],
     feature_id: value["featureId"],
-    flag_type: value["flagType"],
+    flag_type: FlagTypeToJSON(value["flagType"]),
     id: value["id"],
     key: value["key"],
     maintainer_id: value["maintainerId"],

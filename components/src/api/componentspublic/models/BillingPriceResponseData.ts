@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from "../runtime";
+import type { BillingProductPriceInterval } from "./BillingProductPriceInterval";
+import {
+  BillingProductPriceIntervalFromJSON,
+  BillingProductPriceIntervalFromJSONTyped,
+  BillingProductPriceIntervalToJSON,
+} from "./BillingProductPriceInterval";
+
 /**
  *
  * @export
@@ -39,10 +46,10 @@ export interface BillingPriceResponseData {
   id: string;
   /**
    *
-   * @type {string}
+   * @type {BillingProductPriceInterval}
    * @memberof BillingPriceResponseData
    */
-  interval: string;
+  interval: BillingProductPriceInterval;
   /**
    *
    * @type {number}
@@ -96,7 +103,7 @@ export function BillingPriceResponseDataFromJSONTyped(
     currency: json["currency"],
     externalPriceId: json["external_price_id"],
     id: json["id"],
-    interval: json["interval"],
+    interval: BillingProductPriceIntervalFromJSON(json["interval"]),
     price: json["price"],
     priceDecimal:
       json["price_decimal"] == null ? undefined : json["price_decimal"],
@@ -114,7 +121,7 @@ export function BillingPriceResponseDataToJSON(
     currency: value["currency"],
     external_price_id: value["externalPriceId"],
     id: value["id"],
-    interval: value["interval"],
+    interval: BillingProductPriceIntervalToJSON(value["interval"]),
     price: value["price"],
     price_decimal: value["priceDecimal"],
     scheme: value["scheme"],

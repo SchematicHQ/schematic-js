@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from "../runtime";
+import type { EntityType } from "./EntityType";
+import {
+  EntityTypeFromJSON,
+  EntityTypeFromJSONTyped,
+  EntityTypeToJSON,
+} from "./EntityType";
+
 /**
  *
  * @export
@@ -105,10 +112,10 @@ export interface RuleConditionResponseData {
   ruleId: string;
   /**
    *
-   * @type {string}
+   * @type {EntityType}
    * @memberof RuleConditionResponseData
    */
-  traitEntityType?: string | null;
+  traitEntityType?: EntityType | null;
   /**
    *
    * @type {string}
@@ -192,7 +199,9 @@ export function RuleConditionResponseDataFromJSONTyped(
     resourceIds: json["resource_ids"],
     ruleId: json["rule_id"],
     traitEntityType:
-      json["trait_entity_type"] == null ? undefined : json["trait_entity_type"],
+      json["trait_entity_type"] == null
+        ? undefined
+        : EntityTypeFromJSON(json["trait_entity_type"]),
     traitId: json["trait_id"] == null ? undefined : json["trait_id"],
     traitValue: json["trait_value"],
     updatedAt: new Date(json["updated_at"]),
@@ -220,7 +229,7 @@ export function RuleConditionResponseDataToJSON(
     operator: value["operator"],
     resource_ids: value["resourceIds"],
     rule_id: value["ruleId"],
-    trait_entity_type: value["traitEntityType"],
+    trait_entity_type: EntityTypeToJSON(value["traitEntityType"]),
     trait_id: value["traitId"],
     trait_value: value["traitValue"],
     updated_at: value["updatedAt"].toISOString(),

@@ -1418,3 +1418,444 @@ describe("WebSocket Fallback Behavior", () => {
     });
   });
 });
+
+describe("forceReconnect", () => {
+  let schematic: Schematic;
+  let mockServer: WebSocketServer;
+  const TEST_WS_URL = "ws://localhost:1234";
+  const FULL_WS_URL = `${TEST_WS_URL}/flags/bootstrap?apiKey=API_KEY`;
+
+  beforeEach(() => {
+    mockServer?.stop();
+    mockServer = new WebSocketServer(FULL_WS_URL);
+    schematic = new Schematic("API_KEY", {
+      useWebSocket: true,
+      webSocketUrl: TEST_WS_URL,
+    });
+  });
+
+  afterEach(async () => {
+    await schematic.cleanup();
+    mockServer.stop();
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    mockFetch.mockClear();
+  });
+
+  it("should immediately reconnect and get fresh flag values", async () => {
+    const context = {
+      company: { companyId: "456" },
+      user: { userId: "123" },
+    };
+
+    let connectionCount = 0;
+    let flagValue = true;
+
+    mockServer.on("connection", (socket) => {
+      connectionCount++;
+      socket.on("message", () => {
+        socket.send(
+          JSON.stringify({
+            flags: [
+              {
+                flag: "TEST_FLAG",
+                value: flagValue,
+              },
+            ],
+          }),
+        );
+      });
+    });
+
+    // Establish initial connection
+    const firstValue = await schematic.checkFlag({
+      key: "TEST_FLAG",
+      context,
+      fallback: false,
+    });
+    expect(firstValue).toBe(true);
+    expect(connectionCount).toBe(1);
+
+    // Change the flag value that will be returned
+    flagValue = false;
+
+    // Force reconnect - should get new value
+    await schematic.forceReconnect();
+
+    // Give time for reconnection
+    await new Promise((resolve) => setTimeout(resolve, 200));
+
+    // Should have made a new connection
+    expect(connectionCount).toBe(2);
+
+    // Check flag should now return the new value
+    const secondValue = await schematic.checkFlag({
+      key: "TEST_FLAG",
+      context,
+      fallback: true,
+    });
+    expect(secondValue).toBe(false);
+  }, 15000);
+
+  it("should reconnect even after max retry attempts exhausted", async () => {
+    const context = {
+      company: { companyId: "456" },
+      user: { userId: "123" },
+    };
+
+    // Create client with very few retry attempts
+    await schematic.cleanup();
+    schematic = new Schematic("API_KEY", {
+      useWebSocket: true,
+      webSocketUrl: TEST_WS_URL,
+      webSocketMaxReconnectAttempts: 1,
+    });
+
+    let connectionCount = 0;
+
+    mockServer.on("connection", (socket) => {
+      connectionCount++;
+      socket.on("message", () => {
+        socket.send(
+          JSON.stringify({
+            flags: [
+              {
+                flag: "TEST_FLAG",
+                value: true,
+              },
+            ],
+          }),
+        );
+      });
+    });
+
+    // Establish initial connection
+    await schematic.checkFlag({
+      key: "TEST_FLAG",
+      context,
+      fallback: false,
+    });
+    expect(connectionCount).toBe(1);
+
+    // Simulate connection loss and wait for retries to exhaust
+    mockServer.stop();
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    // Restart server
+    mockServer = new WebSocketServer(FULL_WS_URL);
+    mockServer.on("connection", (socket) => {
+      connectionCount++;
+      socket.on("message", () => {
+        socket.send(
+          JSON.stringify({
+            flags: [
+              {
+                flag: "TEST_FLAG",
+                value: true,
+              },
+            ],
+          }),
+        );
+      });
+    });
+
+    // forceReconnect should work even though retries were exhausted
+    await schematic.forceReconnect();
+
+    // Give time for reconnection
+    await new Promise((resolve) => setTimeout(resolve, 200));
+
+    // Should have made a new connection
+    expect(connectionCount).toBe(2);
+  }, 15000);
+
+  it("should cancel pending reconnection timer and reconnect immediately", async () => {
+    const context = {
+      company: { companyId: "456" },
+      user: { userId: "123" },
+    };
+
+    // Create client with long initial retry delay
+    await schematic.cleanup();
+    schematic = new Schematic("API_KEY", {
+      useWebSocket: true,
+      webSocketUrl: TEST_WS_URL,
+      webSocketInitialRetryDelay: 10000, // 10 second delay
+    });
+
+    let connectionCount = 0;
+
+    mockServer.on("connection", (socket) => {
+      connectionCount++;
+      socket.on("message", () => {
+        socket.send(
+          JSON.stringify({
+            flags: [
+              {
+                flag: "TEST_FLAG",
+                value: true,
+              },
+            ],
+          }),
+        );
+      });
+    });
+
+    // Establish initial connection
+    await schematic.checkFlag({
+      key: "TEST_FLAG",
+      context,
+      fallback: false,
+    });
+    expect(connectionCount).toBe(1);
+
+    // Close connection to trigger reconnection with long delay
+    mockServer.stop();
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    // Restart server
+    mockServer = new WebSocketServer(FULL_WS_URL);
+    mockServer.on("connection", (socket) => {
+      connectionCount++;
+      socket.on("message", () => {
+        socket.send(
+          JSON.stringify({
+            flags: [
+              {
+                flag: "TEST_FLAG",
+                value: true,
+              },
+            ],
+          }),
+        );
+      });
+    });
+
+    // forceReconnect should bypass the 10 second delay and reconnect immediately
+    const startTime = Date.now();
+    await schematic.forceReconnect();
+    const elapsed = Date.now() - startTime;
+
+    // Should have reconnected much faster than the 10 second delay
+    expect(elapsed).toBeLessThan(2000);
+
+    // Give time for reconnection
+    await new Promise((resolve) => setTimeout(resolve, 200));
+
+    // Should have made a new connection
+    expect(connectionCount).toBe(2);
+  }, 15000);
+
+  it("should be a no-op in offline mode", async () => {
+    await schematic.cleanup();
+    schematic = new Schematic("API_KEY", {
+      offline: true,
+    });
+
+    // Should not throw and should complete immediately
+    await schematic.forceReconnect();
+
+    // No connections should have been made
+    // (We can't easily verify this, but at least it shouldn't throw)
+  });
+
+  it("should handle forceReconnect when no context is set", async () => {
+    // Create a fresh client without setting context
+    await schematic.cleanup();
+    schematic = new Schematic("API_KEY", {
+      useWebSocket: true,
+      webSocketUrl: TEST_WS_URL,
+    });
+
+    let connectionCount = 0;
+
+    mockServer.on("connection", () => {
+      connectionCount++;
+    });
+
+    // forceReconnect without context should not create a connection
+    await schematic.forceReconnect();
+
+    // Give time for any potential connection
+    await new Promise((resolve) => setTimeout(resolve, 200));
+
+    // No connection should be made since there's no context
+    expect(connectionCount).toBe(0);
+  }, 15000);
+
+  it("should reconnect even if connection is healthy", async () => {
+    const context = {
+      company: { companyId: "456" },
+      user: { userId: "123" },
+    };
+
+    let connectionCount = 0;
+
+    mockServer.on("connection", (socket) => {
+      connectionCount++;
+      socket.on("message", () => {
+        socket.send(
+          JSON.stringify({
+            flags: [
+              {
+                flag: "TEST_FLAG",
+                value: true,
+              },
+            ],
+          }),
+        );
+      });
+    });
+
+    // Establish initial connection
+    await schematic.checkFlag({
+      key: "TEST_FLAG",
+      context,
+      fallback: false,
+    });
+    expect(connectionCount).toBe(1);
+
+    // forceReconnect should reconnect even if connection is healthy
+    await schematic.forceReconnect();
+
+    // Give time for reconnection
+    await new Promise((resolve) => setTimeout(resolve, 200));
+
+    // Should have made a new connection (total 2)
+    expect(connectionCount).toBe(2);
+  }, 15000);
+});
+
+describe("reconnectIfNeeded", () => {
+  let schematic: Schematic;
+  let mockServer: WebSocketServer;
+  const TEST_WS_URL = "ws://localhost:1234";
+  const FULL_WS_URL = `${TEST_WS_URL}/flags/bootstrap?apiKey=API_KEY`;
+
+  beforeEach(() => {
+    mockServer?.stop();
+    mockServer = new WebSocketServer(FULL_WS_URL);
+    schematic = new Schematic("API_KEY", {
+      useWebSocket: true,
+      webSocketUrl: TEST_WS_URL,
+    });
+  });
+
+  afterEach(async () => {
+    await schematic.cleanup();
+    mockServer.stop();
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    mockFetch.mockClear();
+  });
+
+  it("should no-op if connection is healthy", async () => {
+    const context = {
+      company: { companyId: "456" },
+      user: { userId: "123" },
+    };
+
+    let connectionCount = 0;
+
+    mockServer.on("connection", (socket) => {
+      connectionCount++;
+      socket.on("message", () => {
+        socket.send(
+          JSON.stringify({
+            flags: [
+              {
+                flag: "TEST_FLAG",
+                value: true,
+              },
+            ],
+          }),
+        );
+      });
+    });
+
+    // Establish initial connection
+    await schematic.checkFlag({
+      key: "TEST_FLAG",
+      context,
+      fallback: false,
+    });
+    expect(connectionCount).toBe(1);
+
+    // reconnectIfNeeded should no-op since connection is healthy
+    await schematic.reconnectIfNeeded();
+
+    // Give time for any potential connection
+    await new Promise((resolve) => setTimeout(resolve, 200));
+
+    // Should still be just 1 connection
+    expect(connectionCount).toBe(1);
+  }, 15000);
+
+  it("should reconnect if connection is unhealthy", async () => {
+    const context = {
+      company: { companyId: "456" },
+      user: { userId: "123" },
+    };
+
+    let connectionCount = 0;
+    const serverSockets: WebSocket[] = [];
+
+    mockServer.on("connection", (socket) => {
+      connectionCount++;
+      serverSockets.push(socket);
+      socket.on("message", () => {
+        socket.send(
+          JSON.stringify({
+            flags: [
+              {
+                flag: "TEST_FLAG",
+                value: true,
+              },
+            ],
+          }),
+        );
+      });
+    });
+
+    // Establish initial connection
+    await schematic.checkFlag({
+      key: "TEST_FLAG",
+      context,
+      fallback: false,
+    });
+    expect(connectionCount).toBe(1);
+
+    // Explicitly close the server-side socket to ensure client knows connection is closed
+    serverSockets.forEach((socket) => socket.close());
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    // Close the server
+    mockServer.stop();
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    // Restart server
+    mockServer = new WebSocketServer(FULL_WS_URL);
+    mockServer.on("connection", (socket) => {
+      connectionCount++;
+      socket.on("message", () => {
+        socket.send(
+          JSON.stringify({
+            flags: [
+              {
+                flag: "TEST_FLAG",
+                value: true,
+              },
+            ],
+          }),
+        );
+      });
+    });
+
+    // reconnectIfNeeded should reconnect since connection is unhealthy
+    await schematic.reconnectIfNeeded();
+
+    // Give time for reconnection
+    await new Promise((resolve) => setTimeout(resolve, 200));
+
+    // Should have made a new connection
+    expect(connectionCount).toBe(2);
+  }, 15000);
+});

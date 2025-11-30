@@ -13,6 +13,19 @@
  */
 
 import { mapValues } from "../runtime";
+import type { BillingProductPriceInterval } from "./BillingProductPriceInterval";
+import {
+  BillingProductPriceIntervalFromJSON,
+  BillingProductPriceIntervalFromJSONTyped,
+  BillingProductPriceIntervalToJSON,
+} from "./BillingProductPriceInterval";
+import type { BillingTiersMode } from "./BillingTiersMode";
+import {
+  BillingTiersModeFromJSON,
+  BillingTiersModeFromJSONTyped,
+  BillingTiersModeToJSON,
+} from "./BillingTiersMode";
+
 /**
  *
  * @export
@@ -45,10 +58,10 @@ export interface BillingProductPriceResponseData {
   id: string;
   /**
    *
-   * @type {string}
+   * @type {BillingProductPriceInterval}
    * @memberof BillingProductPriceResponseData
    */
-  interval: string;
+  interval: BillingProductPriceInterval;
   /**
    *
    * @type {boolean}
@@ -93,10 +106,10 @@ export interface BillingProductPriceResponseData {
   productExternalId: string;
   /**
    *
-   * @type {string}
+   * @type {BillingTiersMode}
    * @memberof BillingProductPriceResponseData
    */
-  tiersMode?: string | null;
+  tiersMode?: BillingTiersMode | null;
   /**
    *
    * @type {Date}
@@ -157,7 +170,7 @@ export function BillingProductPriceResponseDataFromJSONTyped(
     createdAt: new Date(json["created_at"]),
     currency: json["currency"],
     id: json["id"],
-    interval: json["interval"],
+    interval: BillingProductPriceIntervalFromJSON(json["interval"]),
     isActive: json["is_active"],
     meterId: json["meter_id"] == null ? undefined : json["meter_id"],
     packageSize: json["package_size"],
@@ -166,7 +179,10 @@ export function BillingProductPriceResponseDataFromJSONTyped(
       json["price_decimal"] == null ? undefined : json["price_decimal"],
     priceExternalId: json["price_external_id"],
     productExternalId: json["product_external_id"],
-    tiersMode: json["tiers_mode"] == null ? undefined : json["tiers_mode"],
+    tiersMode:
+      json["tiers_mode"] == null
+        ? undefined
+        : BillingTiersModeFromJSON(json["tiers_mode"]),
     updatedAt: new Date(json["updated_at"]),
     usageType: json["usage_type"],
   };
@@ -183,7 +199,7 @@ export function BillingProductPriceResponseDataToJSON(
     created_at: value["createdAt"].toISOString(),
     currency: value["currency"],
     id: value["id"],
-    interval: value["interval"],
+    interval: BillingProductPriceIntervalToJSON(value["interval"]),
     is_active: value["isActive"],
     meter_id: value["meterId"],
     package_size: value["packageSize"],
@@ -191,7 +207,7 @@ export function BillingProductPriceResponseDataToJSON(
     price_decimal: value["priceDecimal"],
     price_external_id: value["priceExternalId"],
     product_external_id: value["productExternalId"],
-    tiers_mode: value["tiersMode"],
+    tiers_mode: BillingTiersModeToJSON(value["tiersMode"]),
     updated_at: value["updatedAt"].toISOString(),
     usage_type: value["usageType"],
   };

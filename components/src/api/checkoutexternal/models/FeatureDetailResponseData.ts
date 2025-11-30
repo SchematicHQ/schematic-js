@@ -13,6 +13,12 @@
  */
 
 import { mapValues } from "../runtime";
+import type { FeatureType } from "./FeatureType";
+import {
+  FeatureTypeFromJSON,
+  FeatureTypeFromJSONTyped,
+  FeatureTypeToJSON,
+} from "./FeatureType";
 import type { EntityTraitDefinitionResponseData } from "./EntityTraitDefinitionResponseData";
 import {
   EntityTraitDefinitionResponseDataFromJSON,
@@ -31,6 +37,12 @@ import {
   EventSummaryResponseDataFromJSONTyped,
   EventSummaryResponseDataToJSON,
 } from "./EventSummaryResponseData";
+import type { FeatureLifecyclePhase } from "./FeatureLifecyclePhase";
+import {
+  FeatureLifecyclePhaseFromJSON,
+  FeatureLifecyclePhaseFromJSONTyped,
+  FeatureLifecyclePhaseToJSON,
+} from "./FeatureLifecyclePhase";
 import type { FlagDetailResponseData } from "./FlagDetailResponseData";
 import {
   FlagDetailResponseDataFromJSON,
@@ -70,10 +82,10 @@ export interface FeatureDetailResponseData {
   eventSummary?: EventSummaryResponseData;
   /**
    *
-   * @type {string}
+   * @type {FeatureType}
    * @memberof FeatureDetailResponseData
    */
-  featureType: string;
+  featureType: FeatureType;
   /**
    *
    * @type {Array<FlagDetailResponseData>}
@@ -94,10 +106,10 @@ export interface FeatureDetailResponseData {
   id: string;
   /**
    *
-   * @type {string}
+   * @type {FeatureLifecyclePhase}
    * @memberof FeatureDetailResponseData
    */
-  lifecyclePhase?: string | null;
+  lifecyclePhase?: FeatureLifecyclePhase | null;
   /**
    *
    * @type {string}
@@ -190,12 +202,14 @@ export function FeatureDetailResponseDataFromJSONTyped(
       json["event_summary"] == null
         ? undefined
         : EventSummaryResponseDataFromJSON(json["event_summary"]),
-    featureType: json["feature_type"],
+    featureType: FeatureTypeFromJSON(json["feature_type"]),
     flags: (json["flags"] as Array<any>).map(FlagDetailResponseDataFromJSON),
     icon: json["icon"],
     id: json["id"],
     lifecyclePhase:
-      json["lifecycle_phase"] == null ? undefined : json["lifecycle_phase"],
+      json["lifecycle_phase"] == null
+        ? undefined
+        : FeatureLifecyclePhaseFromJSON(json["lifecycle_phase"]),
     maintainerId:
       json["maintainer_id"] == null ? undefined : json["maintainer_id"],
     name: json["name"],
@@ -223,11 +237,11 @@ export function FeatureDetailResponseDataToJSON(
     description: value["description"],
     event_subtype: value["eventSubtype"],
     event_summary: EventSummaryResponseDataToJSON(value["eventSummary"]),
-    feature_type: value["featureType"],
+    feature_type: FeatureTypeToJSON(value["featureType"]),
     flags: (value["flags"] as Array<any>).map(FlagDetailResponseDataToJSON),
     icon: value["icon"],
     id: value["id"],
-    lifecycle_phase: value["lifecyclePhase"],
+    lifecycle_phase: FeatureLifecyclePhaseToJSON(value["lifecyclePhase"]),
     maintainer_id: value["maintainerId"],
     name: value["name"],
     plans: (value["plans"] as Array<any>).map(PreviewObjectToJSON),

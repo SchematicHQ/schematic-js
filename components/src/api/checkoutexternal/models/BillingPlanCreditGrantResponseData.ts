@@ -13,6 +13,37 @@
  */
 
 import { mapValues } from "../runtime";
+import type { BillingCreditExpiryType } from "./BillingCreditExpiryType";
+import {
+  BillingCreditExpiryTypeFromJSON,
+  BillingCreditExpiryTypeFromJSONTyped,
+  BillingCreditExpiryTypeToJSON,
+} from "./BillingCreditExpiryType";
+import type { BillingPlanCreditGrantResetStart } from "./BillingPlanCreditGrantResetStart";
+import {
+  BillingPlanCreditGrantResetStartFromJSON,
+  BillingPlanCreditGrantResetStartFromJSONTyped,
+  BillingPlanCreditGrantResetStartToJSON,
+} from "./BillingPlanCreditGrantResetStart";
+import type { BillingPlanCreditGrantResetType } from "./BillingPlanCreditGrantResetType";
+import {
+  BillingPlanCreditGrantResetTypeFromJSON,
+  BillingPlanCreditGrantResetTypeFromJSONTyped,
+  BillingPlanCreditGrantResetTypeToJSON,
+} from "./BillingPlanCreditGrantResetType";
+import type { BillingCreditExpiryUnit } from "./BillingCreditExpiryUnit";
+import {
+  BillingCreditExpiryUnitFromJSON,
+  BillingCreditExpiryUnitFromJSONTyped,
+  BillingCreditExpiryUnitToJSON,
+} from "./BillingCreditExpiryUnit";
+import type { BillingPlanCreditGrantResetCadence } from "./BillingPlanCreditGrantResetCadence";
+import {
+  BillingPlanCreditGrantResetCadenceFromJSON,
+  BillingPlanCreditGrantResetCadenceFromJSONTyped,
+  BillingPlanCreditGrantResetCadenceToJSON,
+} from "./BillingPlanCreditGrantResetCadence";
+
 /**
  *
  * @export
@@ -39,16 +70,16 @@ export interface BillingPlanCreditGrantResponseData {
   autoTopupEnabled: boolean;
   /**
    *
-   * @type {string}
+   * @type {BillingCreditExpiryType}
    * @memberof BillingPlanCreditGrantResponseData
    */
-  autoTopupExpiryType?: string | null;
+  autoTopupExpiryType?: BillingCreditExpiryType | null;
   /**
    *
-   * @type {string}
+   * @type {BillingCreditExpiryUnit}
    * @memberof BillingPlanCreditGrantResponseData
    */
-  autoTopupExpiryUnit?: string | null;
+  autoTopupExpiryUnit?: BillingCreditExpiryUnit | null;
   /**
    *
    * @type {number}
@@ -99,16 +130,16 @@ export interface BillingPlanCreditGrantResponseData {
   creditSingularName?: string | null;
   /**
    *
-   * @type {string}
+   * @type {BillingCreditExpiryType}
    * @memberof BillingPlanCreditGrantResponseData
    */
-  expiryType?: string | null;
+  expiryType?: BillingCreditExpiryType | null;
   /**
    *
-   * @type {string}
+   * @type {BillingCreditExpiryUnit}
    * @memberof BillingPlanCreditGrantResponseData
    */
-  expiryUnit?: string | null;
+  expiryUnit?: BillingCreditExpiryUnit | null;
   /**
    *
    * @type {number}
@@ -135,22 +166,22 @@ export interface BillingPlanCreditGrantResponseData {
   planName: string;
   /**
    *
-   * @type {string}
+   * @type {BillingPlanCreditGrantResetCadence}
    * @memberof BillingPlanCreditGrantResponseData
    */
-  resetCadence: string;
+  resetCadence: BillingPlanCreditGrantResetCadence;
   /**
    *
-   * @type {string}
+   * @type {BillingPlanCreditGrantResetStart}
    * @memberof BillingPlanCreditGrantResponseData
    */
-  resetStart: string;
+  resetStart: BillingPlanCreditGrantResetStart;
   /**
    *
-   * @type {string}
+   * @type {BillingPlanCreditGrantResetType}
    * @memberof BillingPlanCreditGrantResponseData
    */
-  resetType?: string | null;
+  resetType?: BillingPlanCreditGrantResetType | null;
   /**
    *
    * @type {Date}
@@ -208,11 +239,11 @@ export function BillingPlanCreditGrantResponseDataFromJSONTyped(
     autoTopupExpiryType:
       json["auto_topup_expiry_type"] == null
         ? undefined
-        : json["auto_topup_expiry_type"],
+        : BillingCreditExpiryTypeFromJSON(json["auto_topup_expiry_type"]),
     autoTopupExpiryUnit:
       json["auto_topup_expiry_unit"] == null
         ? undefined
-        : json["auto_topup_expiry_unit"],
+        : BillingCreditExpiryUnitFromJSON(json["auto_topup_expiry_unit"]),
     autoTopupExpiryUnitCount:
       json["auto_topup_expiry_unit_count"] == null
         ? undefined
@@ -233,16 +264,27 @@ export function BillingPlanCreditGrantResponseDataFromJSONTyped(
       json["credit_singular_name"] == null
         ? undefined
         : json["credit_singular_name"],
-    expiryType: json["expiry_type"] == null ? undefined : json["expiry_type"],
-    expiryUnit: json["expiry_unit"] == null ? undefined : json["expiry_unit"],
+    expiryType:
+      json["expiry_type"] == null
+        ? undefined
+        : BillingCreditExpiryTypeFromJSON(json["expiry_type"]),
+    expiryUnit:
+      json["expiry_unit"] == null
+        ? undefined
+        : BillingCreditExpiryUnitFromJSON(json["expiry_unit"]),
     expiryUnitCount:
       json["expiry_unit_count"] == null ? undefined : json["expiry_unit_count"],
     id: json["id"],
     planId: json["plan_id"],
     planName: json["plan_name"],
-    resetCadence: json["reset_cadence"],
-    resetStart: json["reset_start"],
-    resetType: json["reset_type"] == null ? undefined : json["reset_type"],
+    resetCadence: BillingPlanCreditGrantResetCadenceFromJSON(
+      json["reset_cadence"],
+    ),
+    resetStart: BillingPlanCreditGrantResetStartFromJSON(json["reset_start"]),
+    resetType:
+      json["reset_type"] == null
+        ? undefined
+        : BillingPlanCreditGrantResetTypeFromJSON(json["reset_type"]),
     updatedAt: new Date(json["updated_at"]),
   };
 }
@@ -257,8 +299,12 @@ export function BillingPlanCreditGrantResponseDataToJSON(
     auto_topup_amount: value["autoTopupAmount"],
     auto_topup_amount_type: value["autoTopupAmountType"],
     auto_topup_enabled: value["autoTopupEnabled"],
-    auto_topup_expiry_type: value["autoTopupExpiryType"],
-    auto_topup_expiry_unit: value["autoTopupExpiryUnit"],
+    auto_topup_expiry_type: BillingCreditExpiryTypeToJSON(
+      value["autoTopupExpiryType"],
+    ),
+    auto_topup_expiry_unit: BillingCreditExpiryUnitToJSON(
+      value["autoTopupExpiryUnit"],
+    ),
     auto_topup_expiry_unit_count: value["autoTopupExpiryUnitCount"],
     auto_topup_threshold_percent: value["autoTopupThresholdPercent"],
     created_at: value["createdAt"].toISOString(),
@@ -267,15 +313,17 @@ export function BillingPlanCreditGrantResponseDataToJSON(
     credit_name: value["creditName"],
     credit_plural_name: value["creditPluralName"],
     credit_singular_name: value["creditSingularName"],
-    expiry_type: value["expiryType"],
-    expiry_unit: value["expiryUnit"],
+    expiry_type: BillingCreditExpiryTypeToJSON(value["expiryType"]),
+    expiry_unit: BillingCreditExpiryUnitToJSON(value["expiryUnit"]),
     expiry_unit_count: value["expiryUnitCount"],
     id: value["id"],
     plan_id: value["planId"],
     plan_name: value["planName"],
-    reset_cadence: value["resetCadence"],
-    reset_start: value["resetStart"],
-    reset_type: value["resetType"],
+    reset_cadence: BillingPlanCreditGrantResetCadenceToJSON(
+      value["resetCadence"],
+    ),
+    reset_start: BillingPlanCreditGrantResetStartToJSON(value["resetStart"]),
+    reset_type: BillingPlanCreditGrantResetTypeToJSON(value["resetType"]),
     updated_at: value["updatedAt"].toISOString(),
   };
 }
