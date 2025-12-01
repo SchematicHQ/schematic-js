@@ -25,6 +25,12 @@ import {
   BillingPriceUsageTypeFromJSONTyped,
   BillingPriceUsageTypeToJSON,
 } from "./BillingPriceUsageType";
+import type { BillingPriceScheme } from "./BillingPriceScheme";
+import {
+  BillingPriceSchemeFromJSON,
+  BillingPriceSchemeFromJSONTyped,
+  BillingPriceSchemeToJSON,
+} from "./BillingPriceScheme";
 
 /**
  *
@@ -34,10 +40,10 @@ import {
 export interface BillingProductForSubscriptionResponseData {
   /**
    *
-   * @type {string}
+   * @type {BillingPriceScheme}
    * @memberof BillingProductForSubscriptionResponseData
    */
-  billingScheme: string;
+  billingScheme: BillingPriceScheme;
   /**
    *
    * @type {number}
@@ -206,7 +212,7 @@ export function BillingProductForSubscriptionResponseDataFromJSONTyped(
     return json;
   }
   return {
-    billingScheme: json["billing_scheme"],
+    billingScheme: BillingPriceSchemeFromJSON(json["billing_scheme"]),
     billingThreshold:
       json["billing_threshold"] == null ? undefined : json["billing_threshold"],
     createdAt: new Date(json["created_at"]),
@@ -244,7 +250,7 @@ export function BillingProductForSubscriptionResponseDataToJSON(
     return value;
   }
   return {
-    billing_scheme: value["billingScheme"],
+    billing_scheme: BillingPriceSchemeToJSON(value["billingScheme"]),
     billing_threshold: value["billingThreshold"],
     created_at: value["createdAt"].toISOString(),
     currency: value["currency"],
