@@ -13,6 +13,12 @@
  */
 
 import { mapValues } from "../runtime";
+import type { CompanyPlanInvalidReason } from "./CompanyPlanInvalidReason";
+import {
+  CompanyPlanInvalidReasonFromJSON,
+  CompanyPlanInvalidReasonFromJSONTyped,
+  CompanyPlanInvalidReasonToJSON,
+} from "./CompanyPlanInvalidReason";
 import type { FeatureDetailResponseData } from "./FeatureDetailResponseData";
 import {
   FeatureDetailResponseDataFromJSON,
@@ -185,10 +191,10 @@ export interface CompanyPlanDetailResponseData {
   includedCreditGrants: Array<PlanCreditGrantView>;
   /**
    *
-   * @type {string}
+   * @type {CompanyPlanInvalidReason}
    * @memberof CompanyPlanDetailResponseData
    */
-  invalidReason?: CompanyPlanDetailResponseDataInvalidReasonEnum | null;
+  invalidReason?: CompanyPlanInvalidReason | null;
   /**
    *
    * @type {boolean}
@@ -269,16 +275,6 @@ export interface CompanyPlanDetailResponseData {
    */
   yearlyPrice?: BillingPriceResponseData;
 }
-
-/**
- * @export
- */
-export const CompanyPlanDetailResponseDataInvalidReasonEnum = {
-  FeatureUsageExceeded: "feature_usage_exceeded",
-  DowngradeNotPermitted: "downgrade_not_permitted",
-} as const;
-export type CompanyPlanDetailResponseDataInvalidReasonEnum =
-  (typeof CompanyPlanDetailResponseDataInvalidReasonEnum)[keyof typeof CompanyPlanDetailResponseDataInvalidReasonEnum];
 
 /**
  * Check if a given object implements the CompanyPlanDetailResponseData interface.
@@ -373,7 +369,9 @@ export function CompanyPlanDetailResponseDataFromJSONTyped(
       PlanCreditGrantViewFromJSON,
     ),
     invalidReason:
-      json["invalid_reason"] == null ? undefined : json["invalid_reason"],
+      json["invalid_reason"] == null
+        ? undefined
+        : CompanyPlanInvalidReasonFromJSON(json["invalid_reason"]),
     isCustom: json["is_custom"],
     isDefault: json["is_default"],
     isFree: json["is_free"],
@@ -433,7 +431,7 @@ export function CompanyPlanDetailResponseDataToJSON(
     included_credit_grants: (value["includedCreditGrants"] as Array<any>).map(
       PlanCreditGrantViewToJSON,
     ),
-    invalid_reason: value["invalidReason"],
+    invalid_reason: CompanyPlanInvalidReasonToJSON(value["invalidReason"]),
     is_custom: value["isCustom"],
     is_default: value["isDefault"],
     is_free: value["isFree"],
