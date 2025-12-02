@@ -95,16 +95,22 @@ export const Invoices = forwardRef<
     DeepPartial<DesignProps> & {
       data?: InvoiceResponseData[];
     } & React.HTMLAttributes<HTMLDivElement>
->(({ className, data, ...rest }, ref) => {
+>(({ className, ...rest }, ref) => {
   const props = resolveDesignProps(rest);
 
   const { t } = useTranslation();
 
-  const { listInvoices, settings } = useEmbed();
+  const { data, listInvoices, settings } = useEmbed();
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error>();
-  const [invoices, setInvoices] = useState(() => formatInvoices(data));
+  const [invoices, setInvoices] = useState(() =>
+    formatInvoices(
+      data && "invoices" in data
+        ? (data.invoices as InvoiceResponseData[])
+        : rest.data,
+    ),
+  );
   const [listSize, setListSize] = useState(props.limit.number);
 
   const getInvoices = useCallback(async () => {
@@ -137,7 +143,18 @@ export const Invoices = forwardRef<
   }, [getInvoices]);
 
   useEffect(() => {
-    setInvoices(formatInvoices(data));
+    if (rest.data) {
+      setInvoices(formatInvoices(rest.data));
+    }
+  }, [rest.data]);
+
+  // ensure shared data updates are tracked
+  // used to keep in sync with preview data
+  useEffect(() => {
+    if (data && "invoices" in data) {
+      const invoicesPreviewData = data.invoices as InvoiceResponseData[];
+      setInvoices(formatInvoices(invoicesPreviewData));
+    }
   }, [data]);
 
   if (invoices.length === 0) {
