@@ -2,6 +2,7 @@ import { MouseEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { type PreviewSubscriptionFinanceResponseData } from "../../../api/checkoutexternal";
+import { useEmbed } from "../../../hooks";
 import type { SelectedPlan } from "../../../types";
 import { formatCurrency } from "../../../utils";
 import { Box, Button, Flex, Icon, Text } from "../../ui";
@@ -14,6 +15,8 @@ type ProrationProps = {
 
 export const Proration = ({ currency, charges }: ProrationProps) => {
   const { t } = useTranslation();
+
+  const { settings } = useEmbed();
 
   const [open, setOpen] = useState(false);
 
@@ -50,7 +53,10 @@ export const Proration = ({ currency, charges }: ProrationProps) => {
               style={{ height: "auto", padding: 0 }}
               $variant="text"
             >
-              <Icon name={open ? "chevron-up" : "chevron-down"} />
+              <Icon
+                name={open ? "chevron-up" : "chevron-down"}
+                color={settings.theme.typography.text.color}
+              />
               <Text>{open ? t("Hide details") : t("Show details")}</Text>
             </Button>
           </Flex>
