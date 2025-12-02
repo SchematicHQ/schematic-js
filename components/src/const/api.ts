@@ -1,3 +1,9 @@
+export enum CompanyPlanInvalidReason {
+  None = "",
+  FeatureUsageExceeded = "feature_usage_exceeded",
+  DowngradeNotPermitted = "downgrade_not_permitted",
+}
+
 export enum PriceInterval {
   OneTime = "one-time",
   Day = "day",
