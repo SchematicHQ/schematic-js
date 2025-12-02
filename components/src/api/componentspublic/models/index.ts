@@ -11,6 +11,8 @@ export * from "./BillingPlanCreditGrantResetStart";
 export * from "./BillingPlanCreditGrantResetType";
 export * from "./BillingPlanCreditGrantResponseData";
 export * from "./BillingPriceResponseData";
+export * from "./BillingPriceScheme";
+export * from "./BillingPriceUsageType";
 export * from "./BillingPriceView";
 export * from "./BillingProductDetailResponseData";
 export * from "./BillingProductPriceInterval";
