@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 
 import { type PaymentMethodResponseData } from "../../../api/checkoutexternal";
 import { type FontStyle } from "../../../context";
-import { useIsLightBackground } from "../../../hooks";
+import { useEmbed, useIsLightBackground } from "../../../hooks";
 import { createKeyboardExecutionHandler } from "../../../utils";
 import { Box, Flex, Icon, Text, type IconNames } from "../../ui";
 
@@ -50,19 +50,25 @@ const PaymentElement = ({
   label,
   paymentLast4,
 }: PaymentElementProps) => {
-  return (
-    <Text>
-      <Flex $flexDirection="row" $alignItems="center" $gap="0.5rem">
-        {iconName && <Icon name={iconName} title={iconTitle} />}
+  const { settings } = useEmbed();
 
-        {(label || paymentLast4) && (
-          <Box $flexGrow={1}>
-            {label && <Text>{label}</Text>}{" "}
-            {paymentLast4 && <Text>{paymentLast4}</Text>}
-          </Box>
-        )}
-      </Flex>
-    </Text>
+  return (
+    <Flex $flexDirection="row" $alignItems="center" $gap="0.5rem">
+      {iconName && (
+        <Icon
+          name={iconName}
+          title={iconTitle}
+          color={settings.theme.typography.text.color}
+        />
+      )}
+
+      {(label || paymentLast4) && (
+        <Box $flexGrow={1}>
+          {label && <Text>{label}</Text>}{" "}
+          {paymentLast4 && <Text>{paymentLast4}</Text>}
+        </Box>
+      )}
+    </Flex>
   );
 };
 
@@ -213,6 +219,8 @@ export const PaymentListElement = ({
   setDefault,
   handleDelete,
 }: PaymentElementListProps) => {
+  const { settings } = useEmbed();
+
   const isLightBackground = useIsLightBackground();
 
   const { iconName, iconTitle, label, paymentLast4 } =
@@ -247,7 +255,13 @@ export const PaymentListElement = ({
           : "hsla(0, 0%, 100%, 0.175)"
       }
     >
-      {iconName && <Icon name={iconName} title={iconTitle} />}
+      {iconName && (
+        <Icon
+          name={iconName}
+          title={iconTitle}
+          color={settings.theme.typography.text.color}
+        />
+      )}
 
       {(label || paymentLast4) && (
         <Box $flexGrow={1}>
