@@ -29,16 +29,12 @@ import type {
   UsageBasedEntitlement,
 } from "../../../types";
 import { ERROR_UNKNOWN, getAddOnPrice, isError } from "../../../utils";
-import { PeriodToggle } from "../../shared";
+import { PeriodToggle, Sidebar } from "../../shared";
 import { Flex, Loader, Modal, ModalContent, ModalHeader, Text } from "../../ui";
-import { Sidebar } from "../sidebar";
 
-import { AddOns } from "./AddOns";
-import { Checkout } from "./Checkout";
-import { Credits } from "./Credits";
 import { Navigation } from "./Navigation";
-import { Plan } from "./Plan";
-import { Usage } from "./Usage";
+
+import { AddOns, Checkout, Credits, Plan, Usage } from ".";
 
 export const createActiveUsageBasedEntitlementsReducer =
   (entitlements: FeatureUsageResponseData[], period: string) =>
@@ -585,6 +581,9 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
                 return;
               case "Quantity is required":
                 setError(t("Quantity is required."));
+                return;
+              case "self-service downgrade not permitted":
+                setError(t("Self-service downgrade not permitted."));
                 return;
             }
           }

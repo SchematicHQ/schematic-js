@@ -13,6 +13,8 @@ models/BillingPlanCreditGrantResetStart.ts
 models/BillingPlanCreditGrantResetType.ts
 models/BillingPlanCreditGrantResponseData.ts
 models/BillingPriceResponseData.ts
+models/BillingPriceScheme.ts
+models/BillingPriceUsageType.ts
 models/BillingPriceView.ts
 models/BillingProductDetailResponseData.ts
 models/BillingProductPriceInterval.ts
