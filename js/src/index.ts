@@ -59,7 +59,8 @@ export class Schematic {
   private webSocketUrl = "wss://api.schematichq.com";
   private webSocketConnectionTimeout = 10000;
   private webSocketReconnect = true;
-  private webSocketMaxReconnectAttempts = 7;
+  private webSocketMaxReconnectAttempts = 7; // Max attempts after connection disrupted
+  private webSocketMaxConnectionAttempts = 3; // Max attempts for initial connection
   private webSocketInitialRetryDelay = 1000;
   private webSocketMaxRetryDelay = 30000;
   private wsReconnectAttempts = 0;
@@ -362,7 +363,7 @@ export class Schematic {
           return result.value;
         })
         .catch((error) => {
-          console.error("There was a problem with the fetch operation:", error);
+          console.warn("There was a problem with the fetch operation:", error);
 
           // Create a result for the error case using fallback priority and submit event
           const errorResult = this.resolveFallbackCheckFlagReturn(
@@ -398,10 +399,7 @@ export class Schematic {
       try {
         await this.setContext(context);
       } catch (error) {
-        console.error(
-          "WebSocket connection failed, falling back to REST:",
-          error,
-        );
+        console.warn("WebSocket connection failed, falling back to REST:", error);
         return this.fallbackToRest(key, context, fallback);
       }
 
@@ -604,7 +602,7 @@ export class Schematic {
 
       return result.value;
     } catch (error) {
-      console.error("REST API call failed, using fallback value:", error);
+      console.warn("REST API call failed, using fallback value:", error);
 
       // Create a result for the error case using fallback priority and submit event
       const errorResult = this.resolveFallbackCheckFlagReturn(
@@ -669,7 +667,7 @@ export class Schematic {
         );
       })
       .catch((error) => {
-        console.error("There was a problem with the fetch operation:", error);
+        console.warn("There was a problem with the fetch operation:", error);
         return {};
       });
   };
@@ -689,7 +687,7 @@ export class Schematic {
         user: body.keys,
       });
     } catch (error) {
-      console.error("Error setting context:", error);
+      console.warn("Error setting context:", error);
     }
 
     // Send the identify event immediately
@@ -759,7 +757,7 @@ export class Schematic {
       const socket = await this.conn;
       await this.wsSendMessage(socket, context);
     } catch (error) {
-      console.error("Failed to establish WebSocket connection:", error);
+      console.warn("Failed to establish WebSocket connection:", error);
       throw error;
     }
   };
@@ -1337,7 +1335,7 @@ export class Schematic {
 
         socket.close();
       } catch (error) {
-        console.error("Error during cleanup:", error);
+        console.warn("Error during cleanup:", error);
       } finally {
         this.conn = null;
         this.currentWebSocket = null;
@@ -1547,16 +1545,62 @@ export class Schematic {
     }, delay);
   };
 
-  // Open a websocket connection
-  private wsConnect = (): Promise<WebSocket> => {
+  // Open a websocket connection with retry logic for timeouts
+  private wsConnect = async (): Promise<WebSocket> => {
     // If in offline mode, don't actually connect
     if (this.isOffline()) {
       this.debug("wsConnect: skipped (offline mode)");
-      return Promise.reject(
-        new Error("WebSocket connection skipped in offline mode"),
-      );
+      throw new Error("WebSocket connection skipped in offline mode");
     }
 
+    let lastError: Error | null = null;
+    const maxAttempts = this.webSocketMaxConnectionAttempts;
+
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      try {
+        const socket = await this.wsConnectOnce();
+        // Reset reconnection attempts on successful connection
+        this.wsReconnectAttempts = 0;
+        return socket;
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error(String(error));
+
+        // Only retry on timeout errors, not on other errors (like auth failures)
+        const isTimeout = lastError.message === "WebSocket connection timeout";
+        if (!isTimeout) {
+          this.debug(
+            `WebSocket connection failed with non-timeout error, not retrying:`,
+            lastError.message,
+          );
+          throw lastError;
+        }
+
+        if (attempt < maxAttempts - 1) {
+          // Calculate delay with exponential backoff and jitter
+          const baseDelay =
+            this.webSocketInitialRetryDelay * Math.pow(2, attempt);
+          const cappedDelay = Math.min(baseDelay, this.webSocketMaxRetryDelay);
+          const jitter = cappedDelay * 0.2 * Math.random();
+          const delay = cappedDelay + jitter;
+
+          this.debug(
+            `WebSocket connection timeout (attempt ${attempt + 1}/${maxAttempts}), retrying in ${delay.toFixed(0)}ms`,
+          );
+
+          await new Promise((resolve) => setTimeout(resolve, delay));
+        } else {
+          this.debug(
+            `WebSocket connection timeout (attempt ${attempt + 1}/${maxAttempts}), no more retries`,
+          );
+        }
+      }
+    }
+
+    throw lastError ?? new Error("WebSocket connection failed");
+  };
+
+  // Single attempt to open a websocket connection (no retry logic)
+  private wsConnectOnce = (): Promise<WebSocket> => {
     return new Promise((resolve, reject) => {
       const wsUrl = `${this.webSocketUrl}/flags/bootstrap?apiKey=${this.apiKey}`;
 
@@ -1572,6 +1616,7 @@ export class Schematic {
       // Set up connection timeout
       timeoutId = setTimeout(() => {
         if (!isResolved) {
+          isResolved = true;
           this.debug(
             `WebSocket connection timeout after ${this.webSocketConnectionTimeout}ms`,
           );
@@ -1581,13 +1626,12 @@ export class Schematic {
       }, this.webSocketConnectionTimeout);
 
       webSocket.onopen = () => {
+        if (isResolved) return; // Ignore if already timed out
         isResolved = true;
         if (timeoutId !== null) {
           clearTimeout(timeoutId);
         }
 
-        // Reset reconnection attempts on successful connection
-        this.wsReconnectAttempts = 0;
         this.wsIntentionalDisconnect = false;
 
         this.debug(`WebSocket connection ${connectionId} opened successfully`);
@@ -1595,6 +1639,7 @@ export class Schematic {
       };
 
       webSocket.onerror = (error) => {
+        if (isResolved) return; // Ignore if already timed out
         isResolved = true;
         if (timeoutId !== null) {
           clearTimeout(timeoutId);
@@ -1605,7 +1650,6 @@ export class Schematic {
       };
 
       webSocket.onclose = () => {
-        isResolved = true;
         if (timeoutId !== null) {
           clearTimeout(timeoutId);
         }
@@ -1619,8 +1663,13 @@ export class Schematic {
           this.isConnecting = false;
         }
 
-        // Attempt to reconnect if not intentionally disconnected
-        if (!this.wsIntentionalDisconnect && this.webSocketReconnect) {
+        // Only trigger reconnect if we successfully connected before (not during initial connection attempts)
+        // and not intentionally disconnected
+        if (
+          !isResolved &&
+          !this.wsIntentionalDisconnect &&
+          this.webSocketReconnect
+        ) {
           this.attemptReconnect();
         }
       };
