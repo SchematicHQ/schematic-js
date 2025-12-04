@@ -7,8 +7,10 @@ import { Container } from "./styles";
 
 export { Container };
 
-export interface RootProps
-  extends Omit<React.HTMLProps<HTMLDivElement>, "data"> {
+export interface RootProps extends Omit<
+  React.HTMLProps<HTMLDivElement>,
+  "data"
+> {
   data?: HydrateDataWithCompanyContext;
   settings?: EmbedSettings;
 }

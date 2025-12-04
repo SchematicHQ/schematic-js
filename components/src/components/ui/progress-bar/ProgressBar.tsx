@@ -13,8 +13,9 @@ export const progressColorMap = [
   "red",
 ] satisfies ProgressBarProps["color"][];
 
-export interface ProgressBarProps
-  extends React.ComponentPropsWithoutRef<typeof Flex> {
+export interface ProgressBarProps extends React.ComponentPropsWithoutRef<
+  typeof Flex
+> {
   progress: number;
   value: number;
   total?: number;
