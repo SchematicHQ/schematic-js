@@ -19,6 +19,18 @@ import {
   BillingProductPriceTierResponseDataFromJSONTyped,
   BillingProductPriceTierResponseDataToJSON,
 } from "./BillingProductPriceTierResponseData";
+import type { BillingPriceUsageType } from "./BillingPriceUsageType";
+import {
+  BillingPriceUsageTypeFromJSON,
+  BillingPriceUsageTypeFromJSONTyped,
+  BillingPriceUsageTypeToJSON,
+} from "./BillingPriceUsageType";
+import type { BillingPriceScheme } from "./BillingPriceScheme";
+import {
+  BillingPriceSchemeFromJSON,
+  BillingPriceSchemeFromJSONTyped,
+  BillingPriceSchemeToJSON,
+} from "./BillingPriceScheme";
 
 /**
  *
@@ -28,10 +40,10 @@ import {
 export interface BillingProductForSubscriptionResponseData {
   /**
    *
-   * @type {string}
+   * @type {BillingPriceScheme}
    * @memberof BillingProductForSubscriptionResponseData
    */
-  billingScheme: string;
+  billingScheme: BillingPriceScheme;
   /**
    *
    * @type {number}
@@ -148,10 +160,10 @@ export interface BillingProductForSubscriptionResponseData {
   updatedAt: Date;
   /**
    *
-   * @type {string}
+   * @type {BillingPriceUsageType}
    * @memberof BillingProductForSubscriptionResponseData
    */
-  usageType: string;
+  usageType: BillingPriceUsageType;
 }
 
 /**
@@ -200,7 +212,7 @@ export function BillingProductForSubscriptionResponseDataFromJSONTyped(
     return json;
   }
   return {
-    billingScheme: json["billing_scheme"],
+    billingScheme: BillingPriceSchemeFromJSON(json["billing_scheme"]),
     billingThreshold:
       json["billing_threshold"] == null ? undefined : json["billing_threshold"],
     createdAt: new Date(json["created_at"]),
@@ -227,7 +239,7 @@ export function BillingProductForSubscriptionResponseDataFromJSONTyped(
         ? undefined
         : json["subscription_item_external_id"],
     updatedAt: new Date(json["updated_at"]),
-    usageType: json["usage_type"],
+    usageType: BillingPriceUsageTypeFromJSON(json["usage_type"]),
   };
 }
 
@@ -238,7 +250,7 @@ export function BillingProductForSubscriptionResponseDataToJSON(
     return value;
   }
   return {
-    billing_scheme: value["billingScheme"],
+    billing_scheme: BillingPriceSchemeToJSON(value["billingScheme"]),
     billing_threshold: value["billingThreshold"],
     created_at: value["createdAt"].toISOString(),
     currency: value["currency"],
@@ -260,6 +272,6 @@ export function BillingProductForSubscriptionResponseDataToJSON(
     subscription_id: value["subscriptionId"],
     subscription_item_external_id: value["subscriptionItemExternalId"],
     updated_at: value["updatedAt"].toISOString(),
-    usage_type: value["usageType"],
+    usage_type: BillingPriceUsageTypeToJSON(value["usageType"]),
   };
 }

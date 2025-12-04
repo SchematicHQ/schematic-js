@@ -29,16 +29,12 @@ import type {
   UsageBasedEntitlement,
 } from "../../../types";
 import { ERROR_UNKNOWN, getAddOnPrice, isError } from "../../../utils";
-import { PeriodToggle } from "../../shared";
+import { PeriodToggle, Sidebar } from "../../shared";
 import { Flex, Loader, Modal, ModalContent, ModalHeader, Text } from "../../ui";
-import { Sidebar } from "../sidebar";
 
-import { AddOns } from "./AddOns";
-import { Checkout } from "./Checkout";
-import { Credits } from "./Credits";
 import { Navigation } from "./Navigation";
-import { Plan } from "./Plan";
-import { Usage } from "./Usage";
+
+import { AddOns, Checkout, Credits, Plan, Usage } from ".";
 
 export const createActiveUsageBasedEntitlementsReducer =
   (entitlements: FeatureUsageResponseData[], period: string) =>
@@ -591,6 +587,9 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
               case "Quantity is required":
                 setError(t("Quantity is required."));
                 return;
+              case "self-service downgrade not permitted":
+                setError(t("Self-service downgrade not permitted."));
+                return;
             }
           }
 
@@ -916,6 +915,23 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     });
   }, [checkoutStages, checkoutState]);
 
+  // Filter stages for navigation (always excludes bypassed stages)
+  const navigableStages = useMemo(() => {
+    return checkoutStages.filter((stage) => {
+      if (stage.id === "plan" && checkoutState?.bypassPlanSelection) {
+        return false;
+      }
+      if (stage.id === "addons" && checkoutState?.bypassAddOnSelection) {
+        return false;
+      }
+      return true;
+    });
+  }, [
+    checkoutStages,
+    checkoutState?.bypassPlanSelection,
+    checkoutState?.bypassAddOnSelection,
+  ]);
+
   // Show loading overlay while bypass mode resolves initial stage
   const shouldShowBypassOverlay =
     isBypassLoading ||
@@ -1114,7 +1130,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           creditBundles={creditBundles}
           charges={charges}
           checkoutStage={checkoutStage}
-          checkoutStages={checkoutStages}
+          checkoutStages={navigableStages}
           error={error}
           isLoading={isLoading}
           isPaymentMethodRequired={isPaymentMethodRequired}

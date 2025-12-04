@@ -257,7 +257,12 @@ export const PaymentMethodDetails = ({
   ]);
 
   return (
-    <Flex $position="relative" $flexDirection="column" $gap="1.5rem">
+    <Flex
+      $position="relative"
+      $flexDirection="column"
+      $flexGrow={1}
+      $gap="1.5rem"
+    >
       <Flex
         $position="absolute"
         $zIndex={isLoading || isConfirmingPayment ? 1 : 0}
@@ -363,6 +368,7 @@ export const PaymentMethodDetails = ({
                   name={
                     showDifferentPaymentMethods ? "chevron-up" : "chevron-down"
                   }
+                  color={settings.theme.typography.text.color}
                 />
               </Flex>
             )}

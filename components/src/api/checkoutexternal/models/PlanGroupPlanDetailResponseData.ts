@@ -25,12 +25,24 @@ import {
   FeatureDetailResponseDataFromJSONTyped,
   FeatureDetailResponseDataToJSON,
 } from "./FeatureDetailResponseData";
+import type { PlanControlledByType } from "./PlanControlledByType";
+import {
+  PlanControlledByTypeFromJSON,
+  PlanControlledByTypeFromJSONTyped,
+  PlanControlledByTypeToJSON,
+} from "./PlanControlledByType";
 import type { PlanEntitlementResponseData } from "./PlanEntitlementResponseData";
 import {
   PlanEntitlementResponseDataFromJSON,
   PlanEntitlementResponseDataFromJSONTyped,
   PlanEntitlementResponseDataToJSON,
 } from "./PlanEntitlementResponseData";
+import type { ChargeType } from "./ChargeType";
+import {
+  ChargeTypeFromJSON,
+  ChargeTypeFromJSONTyped,
+  ChargeTypeToJSON,
+} from "./ChargeType";
 import type { PlanType } from "./PlanType";
 import {
   PlanTypeFromJSON,
@@ -77,10 +89,10 @@ export interface PlanGroupPlanDetailResponseData {
   billingProduct?: BillingProductDetailResponseData;
   /**
    *
-   * @type {string}
+   * @type {ChargeType}
    * @memberof PlanGroupPlanDetailResponseData
    */
-  chargeType: string;
+  chargeType: ChargeType;
   /**
    *
    * @type {number}
@@ -95,10 +107,10 @@ export interface PlanGroupPlanDetailResponseData {
   compatiblePlanIds: Array<string>;
   /**
    *
-   * @type {string}
+   * @type {PlanControlledByType}
    * @memberof PlanGroupPlanDetailResponseData
    */
-  controlledBy: string;
+  controlledBy: PlanControlledByType;
   /**
    *
    * @type {Date}
@@ -272,10 +284,10 @@ export function PlanGroupPlanDetailResponseDataFromJSONTyped(
       json["billing_product"] == null
         ? undefined
         : BillingProductDetailResponseDataFromJSON(json["billing_product"]),
-    chargeType: json["charge_type"],
+    chargeType: ChargeTypeFromJSON(json["charge_type"]),
     companyCount: json["company_count"],
     compatiblePlanIds: json["compatible_plan_ids"],
-    controlledBy: json["controlled_by"],
+    controlledBy: PlanControlledByTypeFromJSON(json["controlled_by"]),
     createdAt: new Date(json["created_at"]),
     customPlanConfig:
       json["custom_plan_config"] == null
@@ -330,10 +342,10 @@ export function PlanGroupPlanDetailResponseDataToJSON(
     billing_product: BillingProductDetailResponseDataToJSON(
       value["billingProduct"],
     ),
-    charge_type: value["chargeType"],
+    charge_type: ChargeTypeToJSON(value["chargeType"]),
     company_count: value["companyCount"],
     compatible_plan_ids: value["compatiblePlanIds"],
-    controlled_by: value["controlledBy"],
+    controlled_by: PlanControlledByTypeToJSON(value["controlledBy"]),
     created_at: value["createdAt"].toISOString(),
     custom_plan_config: CustomPlanViewConfigResponseDataToJSON(
       value["customPlanConfig"],

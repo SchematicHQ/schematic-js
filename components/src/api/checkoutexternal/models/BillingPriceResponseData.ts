@@ -13,6 +13,19 @@
  */
 
 import { mapValues } from "../runtime";
+import type { BillingProductPriceInterval } from "./BillingProductPriceInterval";
+import {
+  BillingProductPriceIntervalFromJSON,
+  BillingProductPriceIntervalFromJSONTyped,
+  BillingProductPriceIntervalToJSON,
+} from "./BillingProductPriceInterval";
+import type { BillingPriceScheme } from "./BillingPriceScheme";
+import {
+  BillingPriceSchemeFromJSON,
+  BillingPriceSchemeFromJSONTyped,
+  BillingPriceSchemeToJSON,
+} from "./BillingPriceScheme";
+
 /**
  *
  * @export
@@ -39,10 +52,10 @@ export interface BillingPriceResponseData {
   id: string;
   /**
    *
-   * @type {string}
+   * @type {BillingProductPriceInterval}
    * @memberof BillingPriceResponseData
    */
-  interval: string;
+  interval: BillingProductPriceInterval;
   /**
    *
    * @type {number}
@@ -57,10 +70,10 @@ export interface BillingPriceResponseData {
   priceDecimal?: string | null;
   /**
    *
-   * @type {string}
+   * @type {BillingPriceScheme}
    * @memberof BillingPriceResponseData
    */
-  scheme: string;
+  scheme: BillingPriceScheme;
 }
 
 /**
@@ -96,11 +109,11 @@ export function BillingPriceResponseDataFromJSONTyped(
     currency: json["currency"],
     externalPriceId: json["external_price_id"],
     id: json["id"],
-    interval: json["interval"],
+    interval: BillingProductPriceIntervalFromJSON(json["interval"]),
     price: json["price"],
     priceDecimal:
       json["price_decimal"] == null ? undefined : json["price_decimal"],
-    scheme: json["scheme"],
+    scheme: BillingPriceSchemeFromJSON(json["scheme"]),
   };
 }
 
@@ -114,9 +127,9 @@ export function BillingPriceResponseDataToJSON(
     currency: value["currency"],
     external_price_id: value["externalPriceId"],
     id: value["id"],
-    interval: value["interval"],
+    interval: BillingProductPriceIntervalToJSON(value["interval"]),
     price: value["price"],
     price_decimal: value["priceDecimal"],
-    scheme: value["scheme"],
+    scheme: BillingPriceSchemeToJSON(value["scheme"]),
   };
 }

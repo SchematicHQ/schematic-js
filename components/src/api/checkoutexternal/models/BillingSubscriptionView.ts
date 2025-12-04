@@ -31,6 +31,12 @@ import {
   InvoiceResponseDataFromJSONTyped,
   InvoiceResponseDataToJSON,
 } from "./InvoiceResponseData";
+import type { BillingSubscriptionTrialEndSetting } from "./BillingSubscriptionTrialEndSetting";
+import {
+  BillingSubscriptionTrialEndSettingFromJSON,
+  BillingSubscriptionTrialEndSettingFromJSONTyped,
+  BillingSubscriptionTrialEndSettingToJSON,
+} from "./BillingSubscriptionTrialEndSetting";
 import type { PaymentMethodResponseData } from "./PaymentMethodResponseData";
 import {
   PaymentMethodResponseDataFromJSON,
@@ -178,10 +184,10 @@ export interface BillingSubscriptionView {
   trialEnd?: number | null;
   /**
    *
-   * @type {string}
+   * @type {BillingSubscriptionTrialEndSetting}
    * @memberof BillingSubscriptionView
    */
-  trialEndSetting?: string | null;
+  trialEndSetting?: BillingSubscriptionTrialEndSetting | null;
 }
 
 /**
@@ -272,7 +278,9 @@ export function BillingSubscriptionViewFromJSONTyped(
     totalPrice: json["total_price"],
     trialEnd: json["trial_end"] == null ? undefined : json["trial_end"],
     trialEndSetting:
-      json["trial_end_setting"] == null ? undefined : json["trial_end_setting"],
+      json["trial_end_setting"] == null
+        ? undefined
+        : BillingSubscriptionTrialEndSettingFromJSON(json["trial_end_setting"]),
   };
 }
 
@@ -312,6 +320,8 @@ export function BillingSubscriptionViewToJSON(
     subscription_external_id: value["subscriptionExternalId"],
     total_price: value["totalPrice"],
     trial_end: value["trialEnd"],
-    trial_end_setting: value["trialEndSetting"],
+    trial_end_setting: BillingSubscriptionTrialEndSettingToJSON(
+      value["trialEndSetting"],
+    ),
   };
 }

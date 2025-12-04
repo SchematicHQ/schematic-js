@@ -13,12 +13,36 @@
  */
 
 import { mapValues } from "../runtime";
+import type { BillingCreditExpiryType } from "./BillingCreditExpiryType";
+import {
+  BillingCreditExpiryTypeFromJSON,
+  BillingCreditExpiryTypeFromJSONTyped,
+  BillingCreditExpiryTypeToJSON,
+} from "./BillingCreditExpiryType";
+import type { BillingCreditGrantZeroedOutReason } from "./BillingCreditGrantZeroedOutReason";
+import {
+  BillingCreditGrantZeroedOutReasonFromJSON,
+  BillingCreditGrantZeroedOutReasonFromJSONTyped,
+  BillingCreditGrantZeroedOutReasonToJSON,
+} from "./BillingCreditGrantZeroedOutReason";
 import type { BillingProductPriceResponseData } from "./BillingProductPriceResponseData";
 import {
   BillingProductPriceResponseDataFromJSON,
   BillingProductPriceResponseDataFromJSONTyped,
   BillingProductPriceResponseDataToJSON,
 } from "./BillingProductPriceResponseData";
+import type { BillingCreditExpiryUnit } from "./BillingCreditExpiryUnit";
+import {
+  BillingCreditExpiryUnitFromJSON,
+  BillingCreditExpiryUnitFromJSONTyped,
+  BillingCreditExpiryUnitToJSON,
+} from "./BillingCreditExpiryUnit";
+import type { BillingCreditGrantReason } from "./BillingCreditGrantReason";
+import {
+  BillingCreditGrantReasonFromJSON,
+  BillingCreditGrantReasonFromJSONTyped,
+  BillingCreditGrantReasonToJSON,
+} from "./BillingCreditGrantReason";
 
 /**
  *
@@ -82,16 +106,16 @@ export interface CreditCompanyGrantView {
   expiresAt?: Date | null;
   /**
    *
-   * @type {string}
+   * @type {BillingCreditExpiryType}
    * @memberof CreditCompanyGrantView
    */
-  expiryType?: string | null;
+  expiryType?: BillingCreditExpiryType | null;
   /**
    *
-   * @type {string}
+   * @type {BillingCreditExpiryUnit}
    * @memberof CreditCompanyGrantView
    */
-  expiryUnit?: string | null;
+  expiryUnit?: BillingCreditExpiryUnit | null;
   /**
    *
    * @type {number}
@@ -100,10 +124,10 @@ export interface CreditCompanyGrantView {
   expiryUnitCount?: number | null;
   /**
    *
-   * @type {string}
+   * @type {BillingCreditGrantReason}
    * @memberof CreditCompanyGrantView
    */
-  grantReason: string;
+  grantReason: BillingCreditGrantReason;
   /**
    *
    * @type {string}
@@ -184,10 +208,10 @@ export interface CreditCompanyGrantView {
   zeroedOutDate?: Date | null;
   /**
    *
-   * @type {string}
+   * @type {BillingCreditGrantZeroedOutReason}
    * @memberof CreditCompanyGrantView
    */
-  zeroedOutReason?: string | null;
+  zeroedOutReason?: BillingCreditGrantZeroedOutReason | null;
 }
 
 /**
@@ -253,11 +277,17 @@ export function CreditCompanyGrantViewFromJSONTyped(
     creditName: json["credit_name"],
     expiresAt:
       json["expires_at"] == null ? undefined : new Date(json["expires_at"]),
-    expiryType: json["expiry_type"] == null ? undefined : json["expiry_type"],
-    expiryUnit: json["expiry_unit"] == null ? undefined : json["expiry_unit"],
+    expiryType:
+      json["expiry_type"] == null
+        ? undefined
+        : BillingCreditExpiryTypeFromJSON(json["expiry_type"]),
+    expiryUnit:
+      json["expiry_unit"] == null
+        ? undefined
+        : BillingCreditExpiryUnitFromJSON(json["expiry_unit"]),
     expiryUnitCount:
       json["expiry_unit_count"] == null ? undefined : json["expiry_unit_count"],
-    grantReason: json["grant_reason"],
+    grantReason: BillingCreditGrantReasonFromJSON(json["grant_reason"]),
     id: json["id"],
     planId: json["plan_id"] == null ? undefined : json["plan_id"],
     planName: json["plan_name"] == null ? undefined : json["plan_name"],
@@ -280,7 +310,9 @@ export function CreditCompanyGrantViewFromJSONTyped(
         ? undefined
         : new Date(json["zeroed_out_date"]),
     zeroedOutReason:
-      json["zeroed_out_reason"] == null ? undefined : json["zeroed_out_reason"],
+      json["zeroed_out_reason"] == null
+        ? undefined
+        : BillingCreditGrantZeroedOutReasonFromJSON(json["zeroed_out_reason"]),
   };
 }
 
@@ -303,10 +335,10 @@ export function CreditCompanyGrantViewToJSON(
       value["expiresAt"] == null
         ? undefined
         : (value["expiresAt"] as any).toISOString(),
-    expiry_type: value["expiryType"],
-    expiry_unit: value["expiryUnit"],
+    expiry_type: BillingCreditExpiryTypeToJSON(value["expiryType"]),
+    expiry_unit: BillingCreditExpiryUnitToJSON(value["expiryUnit"]),
     expiry_unit_count: value["expiryUnitCount"],
-    grant_reason: value["grantReason"],
+    grant_reason: BillingCreditGrantReasonToJSON(value["grantReason"]),
     id: value["id"],
     plan_id: value["planId"],
     plan_name: value["planName"],
@@ -326,6 +358,8 @@ export function CreditCompanyGrantViewToJSON(
       value["zeroedOutDate"] == null
         ? undefined
         : (value["zeroedOutDate"] as any).toISOString(),
-    zeroed_out_reason: value["zeroedOutReason"],
+    zeroed_out_reason: BillingCreditGrantZeroedOutReasonToJSON(
+      value["zeroedOutReason"],
+    ),
   };
 }

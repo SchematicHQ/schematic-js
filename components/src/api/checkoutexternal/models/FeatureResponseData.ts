@@ -13,6 +13,19 @@
  */
 
 import { mapValues } from "../runtime";
+import type { FeatureType } from "./FeatureType";
+import {
+  FeatureTypeFromJSON,
+  FeatureTypeFromJSONTyped,
+  FeatureTypeToJSON,
+} from "./FeatureType";
+import type { FeatureLifecyclePhase } from "./FeatureLifecyclePhase";
+import {
+  FeatureLifecyclePhaseFromJSON,
+  FeatureLifecyclePhaseFromJSONTyped,
+  FeatureLifecyclePhaseToJSON,
+} from "./FeatureLifecyclePhase";
+
 /**
  *
  * @export
@@ -39,10 +52,10 @@ export interface FeatureResponseData {
   eventSubtype?: string | null;
   /**
    *
-   * @type {string}
+   * @type {FeatureType}
    * @memberof FeatureResponseData
    */
-  featureType: string;
+  featureType: FeatureType;
   /**
    *
    * @type {string}
@@ -57,10 +70,10 @@ export interface FeatureResponseData {
   id: string;
   /**
    *
-   * @type {string}
+   * @type {FeatureLifecyclePhase}
    * @memberof FeatureResponseData
    */
-  lifecyclePhase?: string | null;
+  lifecyclePhase?: FeatureLifecyclePhase | null;
   /**
    *
    * @type {string}
@@ -133,11 +146,13 @@ export function FeatureResponseDataFromJSONTyped(
     description: json["description"],
     eventSubtype:
       json["event_subtype"] == null ? undefined : json["event_subtype"],
-    featureType: json["feature_type"],
+    featureType: FeatureTypeFromJSON(json["feature_type"]),
     icon: json["icon"],
     id: json["id"],
     lifecyclePhase:
-      json["lifecycle_phase"] == null ? undefined : json["lifecycle_phase"],
+      json["lifecycle_phase"] == null
+        ? undefined
+        : FeatureLifecyclePhaseFromJSON(json["lifecycle_phase"]),
     maintainerId:
       json["maintainer_id"] == null ? undefined : json["maintainer_id"],
     name: json["name"],
@@ -159,10 +174,10 @@ export function FeatureResponseDataToJSON(
     created_at: value["createdAt"].toISOString(),
     description: value["description"],
     event_subtype: value["eventSubtype"],
-    feature_type: value["featureType"],
+    feature_type: FeatureTypeToJSON(value["featureType"]),
     icon: value["icon"],
     id: value["id"],
-    lifecycle_phase: value["lifecyclePhase"],
+    lifecycle_phase: FeatureLifecyclePhaseToJSON(value["lifecyclePhase"]),
     maintainer_id: value["maintainerId"],
     name: value["name"],
     plural_name: value["pluralName"],
