@@ -31,6 +31,12 @@ import {
   PlanViewPublicResponseDataFromJSONTyped,
   PlanViewPublicResponseDataToJSON,
 } from "./PlanViewPublicResponseData";
+import type { ComponentDisplaySettings } from "./ComponentDisplaySettings";
+import {
+  ComponentDisplaySettingsFromJSON,
+  ComponentDisplaySettingsFromJSONTyped,
+  ComponentDisplaySettingsToJSON,
+} from "./ComponentDisplaySettings";
 
 /**
  *
@@ -64,20 +70,36 @@ export interface PublicPlansResponseData {
   capabilities?: ComponentCapabilities;
   /**
    *
+   * @type {ComponentDisplaySettings}
+   * @memberof PublicPlansResponseData
+   */
+  displaySettings: ComponentDisplaySettings;
+  /**
+   *
    * @type {boolean}
    * @memberof PublicPlansResponseData
+   * @deprecated
+   */
+  showAsMonthlyPrices: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof PublicPlansResponseData
+   * @deprecated
    */
   showCredits: boolean;
   /**
    *
    * @type {boolean}
    * @memberof PublicPlansResponseData
+   * @deprecated
    */
   showPeriodToggle: boolean;
   /**
    *
    * @type {boolean}
    * @memberof PublicPlansResponseData
+   * @deprecated
    */
   showZeroPriceAsFree: boolean;
 }
@@ -95,6 +117,13 @@ export function instanceOfPublicPlansResponseData(
   if (
     !("addOnCompatibilities" in value) ||
     value["addOnCompatibilities"] === undefined
+  )
+    return false;
+  if (!("displaySettings" in value) || value["displaySettings"] === undefined)
+    return false;
+  if (
+    !("showAsMonthlyPrices" in value) ||
+    value["showAsMonthlyPrices"] === undefined
   )
     return false;
   if (!("showCredits" in value) || value["showCredits"] === undefined)
@@ -136,6 +165,8 @@ export function PublicPlansResponseDataFromJSONTyped(
       json["capabilities"] == null
         ? undefined
         : ComponentCapabilitiesFromJSON(json["capabilities"]),
+    displaySettings: ComponentDisplaySettingsFromJSON(json["display_settings"]),
+    showAsMonthlyPrices: json["show_as_monthly_prices"],
     showCredits: json["show_credits"],
     showPeriodToggle: json["show_period_toggle"],
     showZeroPriceAsFree: json["show_zero_price_as_free"],
@@ -159,6 +190,8 @@ export function PublicPlansResponseDataToJSON(
       CompatiblePlansToJSON,
     ),
     capabilities: ComponentCapabilitiesToJSON(value["capabilities"]),
+    display_settings: ComponentDisplaySettingsToJSON(value["displaySettings"]),
+    show_as_monthly_prices: value["showAsMonthlyPrices"],
     show_credits: value["showCredits"],
     show_period_toggle: value["showPeriodToggle"],
     show_zero_price_as_free: value["showZeroPriceAsFree"],
