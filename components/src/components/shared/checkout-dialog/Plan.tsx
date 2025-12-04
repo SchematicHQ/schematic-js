@@ -94,7 +94,7 @@ const PlanButtonGroup = ({
 
   const { data } = useEmbed();
 
-  const isTrialing = data?.subscription?.status === "trialing";
+  const isTrialing = data?.company?.billingSubscription?.status === "trialing";
   const isCurrentPlan = data?.company?.plan?.id === plan.id;
   const isValidPlan = plan.valid;
   const isDowngradeNotPermitted =
