@@ -48,6 +48,7 @@ export * from "./CompanySubscriptionResponseData";
 export * from "./CompatiblePlans";
 export * from "./ComponentCapabilities";
 export * from "./ComponentCheckoutSettings";
+export * from "./ComponentDisplaySettings";
 export * from "./ComponentEntityType";
 export * from "./ComponentHydrateResponseData";
 export * from "./ComponentResponseData";

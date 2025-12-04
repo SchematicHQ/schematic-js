@@ -50,6 +50,7 @@ models/CompanySubscriptionResponseData.ts
 models/CompatiblePlans.ts
 models/ComponentCapabilities.ts
 models/ComponentCheckoutSettings.ts
+models/ComponentDisplaySettings.ts
 models/ComponentEntityType.ts
 models/ComponentHydrateResponseData.ts
 models/ComponentResponseData.ts

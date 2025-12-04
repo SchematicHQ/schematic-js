@@ -25,6 +25,7 @@ models/BillingTiersMode.ts
 models/ChargeType.ts
 models/CompatiblePlans.ts
 models/ComponentCapabilities.ts
+models/ComponentDisplaySettings.ts
 models/CountResponse.ts
 models/CustomPlanConfig.ts
 models/CustomPlanViewConfigResponseData.ts
