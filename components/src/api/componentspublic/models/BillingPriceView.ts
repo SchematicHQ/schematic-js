@@ -13,12 +13,36 @@
  */
 
 import { mapValues } from "../runtime";
+import type { BillingProductPriceInterval } from "./BillingProductPriceInterval";
+import {
+  BillingProductPriceIntervalFromJSON,
+  BillingProductPriceIntervalFromJSONTyped,
+  BillingProductPriceIntervalToJSON,
+} from "./BillingProductPriceInterval";
 import type { BillingProductPriceTierResponseData } from "./BillingProductPriceTierResponseData";
 import {
   BillingProductPriceTierResponseDataFromJSON,
   BillingProductPriceTierResponseDataFromJSONTyped,
   BillingProductPriceTierResponseDataToJSON,
 } from "./BillingProductPriceTierResponseData";
+import type { BillingPriceUsageType } from "./BillingPriceUsageType";
+import {
+  BillingPriceUsageTypeFromJSON,
+  BillingPriceUsageTypeFromJSONTyped,
+  BillingPriceUsageTypeToJSON,
+} from "./BillingPriceUsageType";
+import type { BillingPriceScheme } from "./BillingPriceScheme";
+import {
+  BillingPriceSchemeFromJSON,
+  BillingPriceSchemeFromJSONTyped,
+  BillingPriceSchemeToJSON,
+} from "./BillingPriceScheme";
+import type { BillingTiersMode } from "./BillingTiersMode";
+import {
+  BillingTiersModeFromJSON,
+  BillingTiersModeFromJSONTyped,
+  BillingTiersModeToJSON,
+} from "./BillingTiersMode";
 
 /**
  *
@@ -28,10 +52,10 @@ import {
 export interface BillingPriceView {
   /**
    *
-   * @type {string}
+   * @type {BillingPriceScheme}
    * @memberof BillingPriceView
    */
-  billingScheme: string;
+  billingScheme: BillingPriceScheme;
   /**
    *
    * @type {Date}
@@ -52,10 +76,10 @@ export interface BillingPriceView {
   id: string;
   /**
    *
-   * @type {string}
+   * @type {BillingProductPriceInterval}
    * @memberof BillingPriceView
    */
-  interval: string;
+  interval: BillingProductPriceInterval;
   /**
    *
    * @type {boolean}
@@ -136,10 +160,10 @@ export interface BillingPriceView {
   productName: string;
   /**
    *
-   * @type {string}
+   * @type {BillingTiersMode}
    * @memberof BillingPriceView
    */
-  tiersMode?: string | null;
+  tiersMode?: BillingTiersMode | null;
   /**
    *
    * @type {Date}
@@ -148,10 +172,10 @@ export interface BillingPriceView {
   updatedAt: Date;
   /**
    *
-   * @type {string}
+   * @type {BillingPriceUsageType}
    * @memberof BillingPriceView
    */
-  usageType: string;
+  usageType: BillingPriceUsageType;
 }
 
 /**
@@ -199,11 +223,11 @@ export function BillingPriceViewFromJSONTyped(
     return json;
   }
   return {
-    billingScheme: json["billing_scheme"],
+    billingScheme: BillingPriceSchemeFromJSON(json["billing_scheme"]),
     createdAt: new Date(json["created_at"]),
     currency: json["currency"],
     id: json["id"],
-    interval: json["interval"],
+    interval: BillingProductPriceIntervalFromJSON(json["interval"]),
     isActive: json["is_active"],
     meterEventName:
       json["meter_event_name"] == null ? undefined : json["meter_event_name"],
@@ -224,9 +248,12 @@ export function BillingPriceViewFromJSONTyped(
     productExternalId: json["product_external_id"],
     productId: json["product_id"],
     productName: json["product_name"],
-    tiersMode: json["tiers_mode"] == null ? undefined : json["tiers_mode"],
+    tiersMode:
+      json["tiers_mode"] == null
+        ? undefined
+        : BillingTiersModeFromJSON(json["tiers_mode"]),
     updatedAt: new Date(json["updated_at"]),
-    usageType: json["usage_type"],
+    usageType: BillingPriceUsageTypeFromJSON(json["usage_type"]),
   };
 }
 
@@ -235,11 +262,11 @@ export function BillingPriceViewToJSON(value?: BillingPriceView | null): any {
     return value;
   }
   return {
-    billing_scheme: value["billingScheme"],
+    billing_scheme: BillingPriceSchemeToJSON(value["billingScheme"]),
     created_at: value["createdAt"].toISOString(),
     currency: value["currency"],
     id: value["id"],
-    interval: value["interval"],
+    interval: BillingProductPriceIntervalToJSON(value["interval"]),
     is_active: value["isActive"],
     meter_event_name: value["meterEventName"],
     meter_event_payload_key: value["meterEventPayloadKey"],
@@ -255,8 +282,8 @@ export function BillingPriceViewToJSON(value?: BillingPriceView | null): any {
     product_external_id: value["productExternalId"],
     product_id: value["productId"],
     product_name: value["productName"],
-    tiers_mode: value["tiersMode"],
+    tiers_mode: BillingTiersModeToJSON(value["tiersMode"]),
     updated_at: value["updatedAt"].toISOString(),
-    usage_type: value["usageType"],
+    usage_type: BillingPriceUsageTypeToJSON(value["usageType"]),
   };
 }

@@ -70,7 +70,9 @@ export const UpcomingBill = forwardRef<
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error>();
-  const [upcomingInvoice, setUpcomingInvoice] = useState<InvoiceResponseData>();
+  const [upcomingInvoice, setUpcomingInvoice] = useState<
+    InvoiceResponseData | undefined
+  >(data?.upcomingInvoice);
   const [balances, setBalances] = useState<CurrencyBalance[]>([]);
 
   const discounts = useMemo(() => {
@@ -126,6 +128,15 @@ export const UpcomingBill = forwardRef<
   useEffect(() => {
     getBalances();
   }, [getBalances]);
+
+  // ensure shared data updates are tracked
+  // used to keep in sync with preview data
+  // TODO: move this logic outside of components
+  useEffect(() => {
+    if (data?.upcomingInvoice) {
+      setUpcomingInvoice(data.upcomingInvoice);
+    }
+  }, [data?.upcomingInvoice]);
 
   if (!data?.subscription || data.subscription.cancelAt) {
     return null;

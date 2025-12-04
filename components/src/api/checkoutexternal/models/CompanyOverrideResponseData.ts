@@ -13,6 +13,12 @@
  */
 
 import { mapValues } from "../runtime";
+import type { EntitlementValueType } from "./EntitlementValueType";
+import {
+  EntitlementValueTypeFromJSON,
+  EntitlementValueTypeFromJSONTyped,
+  EntitlementValueTypeToJSON,
+} from "./EntitlementValueType";
 import type { EntityTraitDefinitionResponseData } from "./EntityTraitDefinitionResponseData";
 import {
   EntityTraitDefinitionResponseDataFromJSON,
@@ -160,10 +166,10 @@ export interface CompanyOverrideResponseData {
   valueTraitId?: string | null;
   /**
    *
-   * @type {string}
+   * @type {EntitlementValueType}
    * @memberof CompanyOverrideResponseData
    */
-  valueType: string;
+  valueType: EntitlementValueType;
 }
 
 /**
@@ -241,7 +247,7 @@ export function CompanyOverrideResponseDataFromJSONTyped(
         : EntityTraitDefinitionResponseDataFromJSON(json["value_trait"]),
     valueTraitId:
       json["value_trait_id"] == null ? undefined : json["value_trait_id"],
-    valueType: json["value_type"],
+    valueType: EntitlementValueTypeFromJSON(json["value_type"]),
   };
 }
 
@@ -276,6 +282,6 @@ export function CompanyOverrideResponseDataToJSON(
     value_numeric: value["valueNumeric"],
     value_trait: EntityTraitDefinitionResponseDataToJSON(value["valueTrait"]),
     value_trait_id: value["valueTraitId"],
-    value_type: value["valueType"],
+    value_type: EntitlementValueTypeToJSON(value["valueType"]),
   };
 }

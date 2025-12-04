@@ -6,10 +6,10 @@ import { attr, camelToHyphen } from "../../../utils";
 
 export type BoxProps = ComponentProps & {
   $viewport?: {
-    sm?: TransientCSSProperties;
-    md?: TransientCSSProperties;
-    lg?: TransientCSSProperties;
-    xl?: TransientCSSProperties;
+    "sm"?: TransientCSSProperties;
+    "md"?: TransientCSSProperties;
+    "lg"?: TransientCSSProperties;
+    "xl"?: TransientCSSProperties;
     "2xl"?: TransientCSSProperties;
     [key: string]: TransientCSSProperties | undefined;
   };
@@ -38,10 +38,10 @@ export const Box = styled("div")<BoxProps>((props) => {
   for (const [key, value] of Object.entries(props.$viewport || {})) {
     styles.push(css`
       ${{
-        sm: "@container (min-width: 640px)",
-        md: "@container (min-width: 768px)",
-        lg: "@container (min-width: 1024px)",
-        xl: "@container (min-width: 1280px)",
+        "sm": "@container (min-width: 640px)",
+        "md": "@container (min-width: 768px)",
+        "lg": "@container (min-width: 1024px)",
+        "xl": "@container (min-width: 1280px)",
         "2xl": "@container (min-width: 1536px)",
       }[key] || key} {
         ${Object.entries(value || {}).reduce(reducer, [])}

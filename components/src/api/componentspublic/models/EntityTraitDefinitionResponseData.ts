@@ -13,6 +13,19 @@
  */
 
 import { mapValues } from "../runtime";
+import type { EntityType } from "./EntityType";
+import {
+  EntityTypeFromJSON,
+  EntityTypeFromJSONTyped,
+  EntityTypeToJSON,
+} from "./EntityType";
+import type { TraitType } from "./TraitType";
+import {
+  TraitTypeFromJSON,
+  TraitTypeFromJSONTyped,
+  TraitTypeToJSON,
+} from "./TraitType";
+
 /**
  *
  * @export
@@ -33,10 +46,10 @@ export interface EntityTraitDefinitionResponseData {
   displayName: string;
   /**
    *
-   * @type {string}
+   * @type {EntityType}
    * @memberof EntityTraitDefinitionResponseData
    */
-  entityType: string;
+  entityType: EntityType;
   /**
    *
    * @type {Array<string>}
@@ -51,10 +64,10 @@ export interface EntityTraitDefinitionResponseData {
   id: string;
   /**
    *
-   * @type {string}
+   * @type {TraitType}
    * @memberof EntityTraitDefinitionResponseData
    */
-  traitType: string;
+  traitType: TraitType;
   /**
    *
    * @type {Date}
@@ -97,10 +110,10 @@ export function EntityTraitDefinitionResponseDataFromJSONTyped(
   return {
     createdAt: new Date(json["created_at"]),
     displayName: json["display_name"],
-    entityType: json["entity_type"],
+    entityType: EntityTypeFromJSON(json["entity_type"]),
     hierarchy: json["hierarchy"],
     id: json["id"],
-    traitType: json["trait_type"],
+    traitType: TraitTypeFromJSON(json["trait_type"]),
     updatedAt: new Date(json["updated_at"]),
   };
 }
@@ -114,10 +127,10 @@ export function EntityTraitDefinitionResponseDataToJSON(
   return {
     created_at: value["createdAt"].toISOString(),
     display_name: value["displayName"],
-    entity_type: value["entityType"],
+    entity_type: EntityTypeToJSON(value["entityType"]),
     hierarchy: value["hierarchy"],
     id: value["id"],
-    trait_type: value["traitType"],
+    trait_type: TraitTypeToJSON(value["traitType"]),
     updated_at: value["updatedAt"].toISOString(),
   };
 }

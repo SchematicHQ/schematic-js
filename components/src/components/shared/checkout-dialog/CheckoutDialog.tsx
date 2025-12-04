@@ -29,16 +29,12 @@ import type {
   UsageBasedEntitlement,
 } from "../../../types";
 import { ERROR_UNKNOWN, getAddOnPrice, isError } from "../../../utils";
-import { PeriodToggle } from "../../shared";
+import { PeriodToggle, Sidebar } from "../../shared";
 import { Flex, Loader, Modal, ModalContent, ModalHeader, Text } from "../../ui";
-import { Sidebar } from "../sidebar";
 
-import { AddOns } from "./AddOns";
-import { Checkout } from "./Checkout";
-import { Credits } from "./Credits";
 import { Navigation } from "./Navigation";
-import { Plan } from "./Plan";
-import { Usage } from "./Usage";
+
+import { AddOns, Checkout, Credits, Plan, Usage } from ".";
 
 export const createActiveUsageBasedEntitlementsReducer =
   (entitlements: FeatureUsageResponseData[], period: string) =>
@@ -162,11 +158,14 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     return availableAddOns.map((addOn) => ({
       ...addOn,
       isSelected:
-        typeof checkoutState?.addOnId !== "undefined"
+        // Check if bypassed with specific add-on IDs
+        checkoutState?.addOnIds?.includes(addOn.id) ||
+        // Check if single add-on ID provided
+        (typeof checkoutState?.addOnId !== "undefined"
           ? addOn.id === checkoutState.addOnId
           : (data?.company?.addOns || []).some(
               (currentAddOn) => addOn.id === currentAddOn.id,
-            ),
+            )),
     }));
   });
 
@@ -189,21 +188,62 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
   const [addOnUsageBasedEntitlements, setAddOnUsageBasedEntitlements] =
     useState<UsageBasedEntitlement[]>(() => {
-      return (data?.company?.addOns || []).flatMap((currentAddOn) => {
-        const availableAddOn = availableAddOns.find(
-          (available) => available.id === currentAddOn.id,
-        );
+      // Get entitlements from currently active add-ons
+      const currentAddOnEntitlements = (data?.company?.addOns || []).flatMap(
+        (currentAddOn) => {
+          const availableAddOn = availableAddOns.find(
+            (available) => available.id === currentAddOn.id,
+          );
 
-        if (!availableAddOn) return [];
+          if (!availableAddOn) return [];
 
-        return availableAddOn.entitlements.reduce(
-          createActiveUsageBasedEntitlementsReducer(
-            currentEntitlements,
-            planPeriod,
-          ),
-          [],
+          return availableAddOn.entitlements.reduce(
+            createActiveUsageBasedEntitlementsReducer(
+              currentEntitlements,
+              planPeriod,
+            ),
+            [],
+          );
+        },
+      );
+
+      // Also get entitlements from pre-selected add-ons in bypass mode
+      const bypassAddOnEntitlements = (checkoutState?.addOnIds || []).flatMap(
+        (addOnId) => {
+          const availableAddOn = availableAddOns.find(
+            (available) => available.id === addOnId,
+          );
+
+          if (!availableAddOn) return [];
+
+          // Calculate pay-in-advance entitlements (same logic as toggleAddOn)
+          return availableAddOn.entitlements
+            .filter(
+              (entitlement) =>
+                entitlement.priceBehavior === PriceBehavior.PayInAdvance,
+            )
+            .map((entitlement) => ({
+              ...entitlement,
+              allocation: entitlement.valueNumeric || 0,
+              usage: 0,
+              quantity: 1,
+            }));
+        },
+      );
+
+      // Combine both sources, avoiding duplicates by featureId
+      const allEntitlements = [...currentAddOnEntitlements];
+
+      for (const bypassEnt of bypassAddOnEntitlements) {
+        const exists = currentAddOnEntitlements.some(
+          (current) => current.featureId === bypassEnt.featureId,
         );
-      });
+        if (!exists) {
+          allEntitlements.push(bypassEnt);
+        }
+      }
+
+      return allEntitlements;
     });
 
   const payInAdvanceEntitlements = useMemo(
@@ -319,6 +359,13 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
   // Track if we've already performed the initial skip in bypass mode
   const [hasSkippedInitialPlan, setHasSkippedInitialPlan] = useState(false);
+  const [hasSkippedInitialAddOns, setHasSkippedInitialAddOns] = useState(false);
+
+  // Track if we're in the initial bypass loading phase
+  const [isBypassLoading, setIsBypassLoading] = useState(
+    () =>
+      checkoutState?.bypassPlanSelection || checkoutState?.bypassAddOnSelection,
+  );
 
   const [checkoutStage, setCheckoutStage] = useState(() => {
     if (checkoutState?.addOnId) {
@@ -337,13 +384,9 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       return "credits";
     }
 
-    // the user has preselected a different plan before starting the checkout flow
-    // or is using bypass mode
-    if (
-      (typeof checkoutState?.planId !== "undefined" &&
-        checkoutState.planId !== currentPlanId) ||
-      checkoutState?.bypassPlanSelection
-    ) {
+    // Skip plan stage only when explicitly configured via bypassPlanSelection
+    // Pre-selecting a plan (via planId) without bypass shows the plan stage
+    if (checkoutState?.bypassPlanSelection) {
       return checkoutStages.some((stage) => stage.id === "usage")
         ? "usage"
         : checkoutStages.some((stage) => stage.id === "addons")
@@ -360,26 +403,42 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     return "plan";
   });
 
-  // Skip past plan stage when using bypass mode (initializeWithPlan)
+  // Skip past bypassed stages when using bypass mode (initializeWithPlan)
   useEffect(() => {
-    // Only run if we're bypassing plan selection AND haven't skipped yet
+    // Skip plan stage if bypassing plan selection
     if (
       checkoutState?.bypassPlanSelection &&
       checkoutStage === "plan" &&
       !hasSkippedInitialPlan
     ) {
-      // Find first non-plan stage (usage/addons/checkout)
-      const nextStage = checkoutStages.find((stage) => stage.id !== "plan");
+      const currentIndex = checkoutStages.findIndex((s) => s.id === "plan");
+      const nextStage = checkoutStages[currentIndex + 1];
       if (nextStage) {
         setHasSkippedInitialPlan(true);
+        setCheckoutStage(nextStage.id);
+      }
+    }
+
+    // Skip add-ons stage if bypassing add-on selection
+    if (
+      checkoutState?.bypassAddOnSelection &&
+      checkoutStage === "addons" &&
+      !hasSkippedInitialAddOns
+    ) {
+      const currentIndex = checkoutStages.findIndex((s) => s.id === "addons");
+      const nextStage = checkoutStages[currentIndex + 1];
+      if (nextStage) {
+        setHasSkippedInitialAddOns(true);
         setCheckoutStage(nextStage.id);
       }
     }
   }, [
     checkoutStages,
     checkoutState?.bypassPlanSelection,
+    checkoutState?.bypassAddOnSelection,
     checkoutStage,
     hasSkippedInitialPlan,
+    hasSkippedInitialAddOns,
   ]);
 
   const handlePreviewCheckout = useCallback(
@@ -527,6 +586,9 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
               case "Quantity is required":
                 setError(t("Quantity is required."));
                 return;
+              case "self-service downgrade not permitted":
+                setError(t("Self-service downgrade not permitted."));
+                return;
             }
           }
 
@@ -540,6 +602,10 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
         setError(msg);
       } finally {
         setIsLoading(false);
+        // Turn off bypass loading after first API call completes
+        if (isBypassLoading) {
+          setIsBypassLoading(false);
+        }
       }
     },
     [
@@ -553,6 +619,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       creditBundles,
       shouldTrial,
       promoCode,
+      isBypassLoading,
     ],
   );
 
@@ -750,14 +817,14 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
   // this is needed to run the `selectPlan` logic on initial load
   // if the user is already on an available plan
+  const hasInitializedPlan = useRef(false);
+
   useEffect(() => {
-    if (selectedPlan) {
+    if (!hasInitializedPlan.current && selectedPlan) {
+      hasInitializedPlan.current = true;
       selectPlan({ plan: selectedPlan, period: currentPeriod });
     }
-
-    // adding dependencies will cause an endless loop since `selectPlan` updates the value of `selectedPlan`
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [selectedPlan, currentPeriod, selectPlan]);
 
   useEffect(() => {
     if (checkoutState?.planId) {
@@ -765,26 +832,18 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
         (plan) => plan.id === checkoutState.planId,
       );
 
-      setSelectedPlan(plan);
+      // Only call selectPlan if the plan actually changed to avoid redundant API calls
+      if (plan && plan.id !== selectedPlan?.id) {
+        selectPlan({ plan, period: currentPeriod });
+      }
     }
-  }, [availablePlans, checkoutState?.planId]);
-
-  useEffect(() => {
-    if (checkoutState?.addOnId) {
-      const checkoutStateAddOn = availableAddOns.find(
-        (addOn) => addOn.id === checkoutState.addOnId,
-      );
-
-      setAddOns((prev) =>
-        prev.map((addOn) => ({
-          ...addOn,
-          ...(addOn.id === checkoutStateAddOn?.id && {
-            isSelected: true,
-          }),
-        })),
-      );
-    }
-  }, [availableAddOns, checkoutState?.addOnId]);
+  }, [
+    availablePlans,
+    checkoutState?.planId,
+    currentPeriod,
+    selectPlan,
+    selectedPlan?.id,
+  ]);
 
   useEffect(() => {
     setAddOns((prevAddOns) => {
@@ -837,11 +896,50 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     (stage) => stage.id === checkoutStage,
   );
 
+  // Filter stages for breadcrumb display based on hideSkippedStages
+  const visibleStages = useMemo(() => {
+    if (!checkoutState?.hideSkippedStages) {
+      return checkoutStages;
+    }
+
+    // Hide stages that were bypassed
+    return checkoutStages.filter((stage) => {
+      if (stage.id === "plan" && checkoutState.bypassPlanSelection) {
+        return false;
+      }
+      if (stage.id === "addons" && checkoutState.bypassAddOnSelection) {
+        return false;
+      }
+      return true;
+    });
+  }, [checkoutStages, checkoutState]);
+
+  // Filter stages for navigation (always excludes bypassed stages)
+  const navigableStages = useMemo(() => {
+    return checkoutStages.filter((stage) => {
+      if (stage.id === "plan" && checkoutState?.bypassPlanSelection) {
+        return false;
+      }
+      if (stage.id === "addons" && checkoutState?.bypassAddOnSelection) {
+        return false;
+      }
+      return true;
+    });
+  }, [
+    checkoutStages,
+    checkoutState?.bypassPlanSelection,
+    checkoutState?.bypassAddOnSelection,
+  ]);
+
   // Show loading overlay while bypass mode resolves initial stage
   const shouldShowBypassOverlay =
-    checkoutState?.bypassPlanSelection &&
-    checkoutStage === "plan" &&
-    !hasSkippedInitialPlan;
+    isBypassLoading ||
+    (checkoutState?.bypassPlanSelection &&
+      checkoutStage === "plan" &&
+      !hasSkippedInitialPlan) ||
+    (checkoutState?.bypassAddOnSelection &&
+      checkoutStage === "addons" &&
+      !hasSkippedInitialAddOns);
 
   return (
     <Modal ref={modalRef} size="lg" top={top}>
@@ -882,12 +980,12 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
             },
           }}
         >
-          {checkoutStages.map((stage, index, stages) => (
+          {visibleStages.map((stage, index, stages) => (
             <Navigation
               key={stage.id}
               name={stage.name}
               index={index}
-              activeIndex={checkoutStages.findIndex(
+              activeIndex={visibleStages.findIndex(
                 (s) => s.id === checkoutStage,
               )}
               isLast={index === stages.length - 1}
@@ -1031,7 +1129,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           creditBundles={creditBundles}
           charges={charges}
           checkoutStage={checkoutStage}
-          checkoutStages={checkoutStages}
+          checkoutStages={navigableStages}
           error={error}
           isLoading={isLoading}
           isPaymentMethodRequired={isPaymentMethodRequired}

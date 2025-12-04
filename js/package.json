@@ -1,6 +1,6 @@
 {
   "name": "@schematichq/schematic-js",
-  "version": "1.2.6",
+  "version": "1.2.13",
   "main": "dist/schematic.cjs.js",
   "module": "dist/schematic.esm.js",
   "types": "dist/schematic.d.ts",
@@ -38,20 +38,20 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
-    "@microsoft/api-extractor": "^7.54.0",
-    "@openapitools/openapi-generator-cli": "^2.25.0",
-    "@vitest/browser": "^4.0.8",
+    "@microsoft/api-extractor": "^7.55.0",
+    "@openapitools/openapi-generator-cli": "^2.25.2",
+    "@vitest/browser": "^4.0.10",
     "esbuild": "^0.27.0",
     "eslint": "^9.39.1",
     "globals": "^16.5.0",
     "happy-dom": "^20.0.10",
     "husky": "^9.1.7",
-    "jsdom": "^27.1.0",
+    "jsdom": "^27.2.0",
     "mock-socket": "^9.3.1",
     "prettier": "^3.6.2",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.46.4",
-    "vitest": "^4.0.8"
+    "typescript-eslint": "^8.47.0",
+    "vitest": "^4.0.10"
   },
   "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }

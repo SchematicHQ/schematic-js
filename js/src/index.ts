@@ -57,6 +57,24 @@ export class Schematic {
     Record<string, CheckFlagReturn | undefined> | undefined
   > = {};
   private webSocketUrl = "wss://api.schematichq.com";
+  private webSocketConnectionTimeout = 10000;
+  private webSocketReconnect = true;
+  private webSocketMaxReconnectAttempts = 7; // Max attempts after connection disrupted
+  private webSocketMaxConnectionAttempts = 3; // Max attempts for initial connection
+  private webSocketInitialRetryDelay = 1000;
+  private webSocketMaxRetryDelay = 30000;
+  private wsReconnectAttempts = 0;
+  private wsReconnectTimer: ReturnType<typeof setTimeout> | null = null;
+  private wsIntentionalDisconnect = false;
+  private currentWebSocket: WebSocket | null = null;
+  private isConnecting = false;
+  private maxEventQueueSize = 100; // Prevent memory issues with very long network outages
+  private maxEventRetries = 5; // Maximum retry attempts for failed events
+  private eventRetryInitialDelay = 1000; // Initial retry delay in ms
+  private eventRetryMaxDelay = 30000; // Maximum retry delay in ms
+  private retryTimer: ReturnType<typeof setInterval> | null = null;
+  private flagValueDefaults: Record<string, boolean> = {};
+  private flagCheckDefaults: Record<string, CheckFlagReturn> = {};
 
   constructor(apiKey: string, options?: SchematicOptions) {
     this.apiKey = apiKey;
@@ -127,12 +145,70 @@ export class Schematic {
       this.webSocketUrl = options.webSocketUrl;
     }
 
+    if (options?.webSocketConnectionTimeout !== undefined) {
+      this.webSocketConnectionTimeout = options.webSocketConnectionTimeout;
+    }
+
+    if (options?.webSocketReconnect !== undefined) {
+      this.webSocketReconnect = options.webSocketReconnect;
+    }
+
+    if (options?.webSocketMaxReconnectAttempts !== undefined) {
+      this.webSocketMaxReconnectAttempts =
+        options.webSocketMaxReconnectAttempts;
+    }
+
+    if (options?.webSocketInitialRetryDelay !== undefined) {
+      this.webSocketInitialRetryDelay = options.webSocketInitialRetryDelay;
+    }
+
+    if (options?.webSocketMaxRetryDelay !== undefined) {
+      this.webSocketMaxRetryDelay = options.webSocketMaxRetryDelay;
+    }
+
+    if (options?.maxEventQueueSize !== undefined) {
+      this.maxEventQueueSize = options.maxEventQueueSize;
+    }
+
+    if (options?.maxEventRetries !== undefined) {
+      this.maxEventRetries = options.maxEventRetries;
+    }
+
+    if (options?.eventRetryInitialDelay !== undefined) {
+      this.eventRetryInitialDelay = options.eventRetryInitialDelay;
+    }
+
+    if (options?.eventRetryMaxDelay !== undefined) {
+      this.eventRetryMaxDelay = options.eventRetryMaxDelay;
+    }
+
+    if (options?.flagValueDefaults !== undefined) {
+      this.flagValueDefaults = options.flagValueDefaults;
+    }
+
+    if (options?.flagCheckDefaults !== undefined) {
+      this.flagCheckDefaults = options.flagCheckDefaults;
+    }
+
     /* eslint-disable-next-line @typescript-eslint/strict-boolean-expressions */
     if (typeof window !== "undefined" && window?.addEventListener) {
       window.addEventListener("beforeunload", () => {
         this.flushEventQueue();
         this.flushContextDependentEventQueue();
       });
+
+      // Listen for browser online/offline events to handle network changes
+      if (this.useWebSocket) {
+        window.addEventListener("offline", () => {
+          this.debug("Browser went offline, closing WebSocket connection");
+          this.handleNetworkOffline();
+        });
+
+        window.addEventListener("online", () => {
+          this.debug("Browser came online, attempting to reconnect WebSocket");
+          this.handleNetworkOnline();
+        });
+      }
     }
 
     if (this.offlineEnabled) {
@@ -145,6 +221,84 @@ export class Schematic {
   }
 
   /**
+   * Resolve fallback value according to priority order:
+   * 1. Callsite fallback value (if provided)
+   * 2. Initialization fallback value (flagValueDefaults)
+   * 3. Default to false
+   */
+  private resolveFallbackValue(
+    key: string,
+    callsiteFallback?: boolean,
+  ): boolean {
+    // Priority 1: Callsite fallback value
+    if (callsiteFallback !== undefined) {
+      return callsiteFallback;
+    }
+
+    // Priority 2: Initialization fallback value from flagValueDefaults
+    if (key in this.flagValueDefaults) {
+      return this.flagValueDefaults[key];
+    }
+
+    // Priority 3: Default to false
+    return false;
+  }
+
+  /**
+   * Resolve complete CheckFlagReturn object according to priority order:
+   * 1. Use callsite fallback for boolean value, construct CheckFlagReturn
+   * 2. Use flagCheckDefaults if available for this flag
+   * 3. Use flagValueDefaults if available for this flag, construct CheckFlagReturn
+   * 4. Default CheckFlagReturn with value: false
+   */
+  private resolveFallbackCheckFlagReturn(
+    key: string,
+    callsiteFallback?: boolean,
+    reason: string = "Fallback value used",
+    error?: string,
+  ): CheckFlagReturn {
+    // Priority 1: If callsite fallback is provided, use it and construct CheckFlagReturn
+    if (callsiteFallback !== undefined) {
+      return {
+        flag: key,
+        value: callsiteFallback,
+        reason: reason,
+        error: error,
+      };
+    }
+
+    // Priority 2: If flagCheckDefaults has an entry for this flag, use it
+    if (key in this.flagCheckDefaults) {
+      const defaultReturn = this.flagCheckDefaults[key];
+      // Create a copy to avoid modifying the original default
+      return {
+        ...defaultReturn,
+        flag: key, // Ensure flag matches the requested key
+        reason: error !== undefined ? reason : defaultReturn.reason,
+        error: error,
+      };
+    }
+
+    // Priority 3: If flagValueDefaults has an entry for this flag, construct CheckFlagReturn
+    if (key in this.flagValueDefaults) {
+      return {
+        flag: key,
+        value: this.flagValueDefaults[key],
+        reason: reason,
+        error: error,
+      };
+    }
+
+    // Priority 4: Default CheckFlagReturn with value: false
+    return {
+      flag: key,
+      value: false,
+      reason: reason,
+      error: error,
+    };
+  }
+
+  /**
    * Get value for a single flag.
    * In WebSocket mode, returns cached values if connection is active, otherwise establishes
    * new connection and then returns the requestedvalue. Falls back to REST API if WebSocket
@@ -152,7 +306,7 @@ export class Schematic {
    * In REST mode, makes an API call for each check.
    */
   async checkFlag(options: CheckOptions): Promise<boolean> {
-    const { fallback = false, key } = options;
+    const { fallback, key } = options;
     const context = options.context || this.context;
     const contextStr = contextString(context);
 
@@ -160,12 +314,18 @@ export class Schematic {
 
     // If in offline mode, return fallback immediately without making any network request
     if (this.isOffline()) {
+      // In offline mode, use the full fallback resolution including flagCheckDefaults
+      const resolvedFallbackResult = this.resolveFallbackCheckFlagReturn(
+        key,
+        fallback,
+        "Offline mode - using initialization defaults",
+      );
       this.debug(`checkFlag offline result: ${key}`, {
-        value: fallback,
+        value: resolvedFallbackResult.value,
         offlineMode: true,
       });
 
-      return fallback;
+      return resolvedFallbackResult.value;
     }
 
     if (!this.useWebSocket) {
@@ -203,18 +363,18 @@ export class Schematic {
           return result.value;
         })
         .catch((error) => {
-          console.error("There was a problem with the fetch operation:", error);
+          console.warn("There was a problem with the fetch operation:", error);
 
-          // Create a minimal result for the error case and submit event
-          const errorResult: CheckFlagReturn = {
-            flag: key,
-            value: fallback,
-            reason: "API request failed",
-            error: error instanceof Error ? error.message : String(error),
-          };
+          // Create a result for the error case using fallback priority and submit event
+          const errorResult = this.resolveFallbackCheckFlagReturn(
+            key,
+            fallback,
+            "API request failed",
+            error instanceof Error ? error.message : String(error),
+          );
           this.submitFlagCheckEvent(key, errorResult, context);
 
-          return fallback;
+          return errorResult.value;
         });
     }
 
@@ -232,30 +392,28 @@ export class Schematic {
 
       // If in offline mode, return fallback immediately
       if (this.isOffline()) {
-        return fallback;
+        return this.resolveFallbackValue(key, fallback);
       }
 
       // If we don't have values or connection is closed, we need to fetch them
       try {
         await this.setContext(context);
       } catch (error) {
-        console.error(
-          "WebSocket connection failed, falling back to REST:",
-          error,
-        );
+        console.warn("WebSocket connection failed, falling back to REST:", error);
         return this.fallbackToRest(key, context, fallback);
       }
 
       // After setting context and getting a response, return the value
       const contextVals = this.checks[contextStr] ?? {};
       const flagCheck = contextVals[key];
-      const result = flagCheck?.value ?? fallback;
+      const result =
+        flagCheck?.value ?? this.resolveFallbackValue(key, fallback);
 
       this.debug(
         `checkFlag WebSocket result: ${key}`,
         typeof flagCheck !== "undefined"
           ? flagCheck
-          : { value: fallback, fallbackUsed: true },
+          : { value: result, fallbackUsed: true },
       );
 
       // If we have flag check results, submit an event
@@ -267,16 +425,16 @@ export class Schematic {
     } catch (error) {
       console.error("Unexpected error in checkFlag:", error);
 
-      // Create a minimal result for the error case and submit event
-      const errorResult: CheckFlagReturn = {
-        flag: key,
-        value: fallback,
-        reason: "Unexpected error in flag check",
-        error: error instanceof Error ? error.message : String(error),
-      };
+      // Create a result for the error case using fallback priority and submit event
+      const errorResult = this.resolveFallbackCheckFlagReturn(
+        key,
+        fallback,
+        "Unexpected error in flag check",
+        error instanceof Error ? error.message : String(error),
+      );
       this.submitFlagCheckEvent(key, errorResult, context);
 
-      return fallback;
+      return errorResult.value;
     }
   }
 
@@ -284,10 +442,77 @@ export class Schematic {
    * Helper function to log debug messages
    * Only logs if debug mode is enabled
    */
-  private debug(message: string, ...args: unknown[]): void {
+  debug(message: string, ...args: unknown[]): void {
     if (this.debugEnabled) {
       console.log(`[Schematic] ${message}`, ...args);
     }
+  }
+
+  /**
+   * Create a persistent message handler for websocket flag updates
+   */
+  private createPersistentMessageHandler(
+    context: SchematicContext,
+  ): (event: MessageEvent) => void {
+    return (event: MessageEvent) => {
+      const message = JSON.parse(event.data);
+
+      this.debug(`WebSocket persistent message received:`, message);
+
+      // Initialize flag checks for context
+      if (!(contextString(context) in this.checks)) {
+        this.checks[contextString(context)] = {};
+      }
+
+      // Message may contain only a subset of flags; merge with existing context
+      /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+      (message.flags ?? []).forEach((flag: any) => {
+        const flagCheck = CheckFlagReturnFromJSON(flag);
+        const contextStr = contextString(context);
+        if (this.checks[contextStr] === undefined) {
+          this.checks[contextStr] = {};
+        }
+        this.checks[contextStr][flagCheck.flag] = flagCheck;
+
+        this.debug(`WebSocket flag update:`, {
+          flag: flagCheck.flag,
+          value: flagCheck.value,
+          flagCheck,
+        });
+
+        // Store in feature usage event map if appropriate
+        if (typeof flagCheck.featureUsageEvent === "string") {
+          this.updateFeatureUsageEventMap(flagCheck);
+        }
+
+        // Log flag check events if there are listeners registered
+        if (
+          (this.flagCheckListeners[flag.flag]?.size ?? 0) > 0 ||
+          (this.flagValueListeners[flag.flag]?.size ?? 0) > 0
+        ) {
+          this.submitFlagCheckEvent(flagCheck.flag, flagCheck, context);
+        }
+
+        this.debug(`About to notify listeners for flag ${flag.flag}`, {
+          flag: flag.flag,
+          value: flagCheck.value,
+        });
+
+        this.notifyFlagCheckListeners(flag.flag, flagCheck);
+        this.notifyFlagValueListeners(flag.flag, flagCheck.value);
+
+        this.debug(`Finished notifying listeners for flag ${flag.flag}`, {
+          flag: flag.flag,
+          value: flagCheck.value,
+        });
+      });
+
+      // Flush any context-dependent events that were queued
+      this.flushContextDependentEventQueue();
+
+      // Update pending state
+      this.setIsPending(false);
+    };
   }
 
   /**
@@ -330,16 +555,17 @@ export class Schematic {
   private async fallbackToRest(
     key: string,
     context: SchematicContext,
-    fallback: boolean,
+    fallback?: boolean,
   ): Promise<boolean> {
     // If in offline mode, immediately return fallback value
     if (this.isOffline()) {
+      const resolvedFallback = this.resolveFallbackValue(key, fallback);
       this.debug(`fallbackToRest offline result: ${key}`, {
-        value: fallback,
+        value: resolvedFallback,
         offlineMode: true,
       });
 
-      return fallback;
+      return resolvedFallback;
     }
 
     try {
@@ -376,18 +602,18 @@ export class Schematic {
 
       return result.value;
     } catch (error) {
-      console.error("REST API call failed, using fallback value:", error);
+      console.warn("REST API call failed, using fallback value:", error);
 
-      // Create a minimal result for the error case and submit event
-      const errorResult: CheckFlagReturn = {
-        flag: key,
-        value: fallback,
-        reason: "API request failed (fallback)",
-        error: error instanceof Error ? error.message : String(error),
-      };
+      // Create a result for the error case using fallback priority and submit event
+      const errorResult = this.resolveFallbackCheckFlagReturn(
+        key,
+        fallback,
+        "API request failed (fallback)",
+        error instanceof Error ? error.message : String(error),
+      );
       this.submitFlagCheckEvent(key, errorResult, context);
 
-      return fallback;
+      return errorResult.value;
     }
   }
 
@@ -441,7 +667,7 @@ export class Schematic {
         );
       })
       .catch((error) => {
-        console.error("There was a problem with the fetch operation:", error);
+        console.warn("There was a problem with the fetch operation:", error);
         return {};
       });
   };
@@ -461,7 +687,7 @@ export class Schematic {
         user: body.keys,
       });
     } catch (error) {
-      console.error("Error setting context:", error);
+      console.warn("Error setting context:", error);
     }
 
     // Send the identify event immediately
@@ -490,13 +716,48 @@ export class Schematic {
       this.setIsPending(true);
 
       if (!this.conn) {
-        this.conn = this.wsConnect();
+        // Prevent multiple concurrent connections
+        if (this.isConnecting) {
+          this.debug(
+            `Connection already in progress, waiting for it to complete`,
+          );
+          // Wait for the current connection attempt to complete
+          while (this.isConnecting && this.conn === null) {
+            await new Promise((resolve) => setTimeout(resolve, 10));
+          }
+          if (this.conn !== null) {
+            const socket = await this.conn;
+            await this.wsSendMessage(socket, context);
+            return;
+          }
+        }
+
+        // Cancel any pending reconnection and connect immediately
+        if (this.wsReconnectTimer !== null) {
+          this.debug(
+            `Cancelling scheduled reconnection, connecting immediately`,
+          );
+          clearTimeout(this.wsReconnectTimer);
+          this.wsReconnectTimer = null;
+        }
+
+        this.isConnecting = true;
+        try {
+          this.conn = this.wsConnect();
+          const socket = await this.conn;
+          this.isConnecting = false;
+          await this.wsSendMessage(socket, context);
+          return;
+        } catch (error) {
+          this.isConnecting = false;
+          throw error;
+        }
       }
 
       const socket = await this.conn;
       await this.wsSendMessage(socket, context);
     } catch (error) {
-      console.error("Failed to establish WebSocket connection:", error);
+      console.warn("Failed to establish WebSocket connection:", error);
       throw error;
     }
   };
@@ -685,11 +946,74 @@ export class Schematic {
     }
   };
 
-  private flushEventQueue = (): void => {
-    while (this.eventQueue.length > 0) {
-      const event = this.eventQueue.shift();
-      if (event) {
-        this.sendEvent(event);
+  private startRetryTimer = (): void => {
+    if (this.retryTimer !== null) {
+      return; // Timer already running
+    }
+
+    // Check for ready events every 5 seconds
+    this.retryTimer = setInterval(() => {
+      this.flushEventQueue().catch((error) => {
+        this.debug("Error in retry timer flush:", error);
+      });
+
+      // Stop timer if queue is empty
+      if (this.eventQueue.length === 0) {
+        this.stopRetryTimer();
+      }
+    }, 5000);
+
+    this.debug("Started retry timer");
+  };
+
+  private stopRetryTimer = (): void => {
+    if (this.retryTimer !== null) {
+      clearInterval(this.retryTimer);
+      this.retryTimer = null;
+      this.debug("Stopped retry timer");
+    }
+  };
+
+  private flushEventQueue = async (): Promise<void> => {
+    if (this.eventQueue.length === 0) {
+      return;
+    }
+
+    const now = Date.now();
+    const readyEvents: Event[] = [];
+    const notReadyEvents: Event[] = [];
+
+    // Separate events that are ready for retry from those still in backoff
+    for (const event of this.eventQueue) {
+      if (event.next_retry_at === undefined || event.next_retry_at <= now) {
+        readyEvents.push(event);
+      } else {
+        notReadyEvents.push(event);
+      }
+    }
+
+    if (readyEvents.length === 0) {
+      this.debug(
+        `No events ready for retry yet (${notReadyEvents.length} still in backoff)`,
+      );
+      return;
+    }
+
+    this.debug(
+      `Flushing event queue: ${readyEvents.length} ready, ${notReadyEvents.length} waiting`,
+    );
+
+    // Keep events that aren't ready for retry yet
+    this.eventQueue = notReadyEvents;
+
+    // Process ready events one by one to avoid overwhelming the server
+    for (const event of readyEvents) {
+      try {
+        await this.sendEvent(event);
+        this.debug(`Queued event sent successfully:`, event.type);
+      } catch (error) {
+        this.debug(`Failed to send queued event:`, error);
+        // sendEvent already re-adds failed events to queue with updated retry info
       }
     }
   };
@@ -751,12 +1075,60 @@ export class Schematic {
         body: payload,
       });
 
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
       this.debug(`event sent:`, {
         status: response.status,
         statusText: response.statusText,
       });
     } catch (error) {
-      console.error("Error sending Schematic event: ", error);
+      const retryCount = (event.retry_count ?? 0) + 1;
+
+      if (retryCount <= this.maxEventRetries) {
+        this.debug(
+          `Event failed to send (attempt ${retryCount}/${this.maxEventRetries}), queueing for retry:`,
+          error,
+        );
+
+        // Calculate exponential backoff delay
+        const baseDelay =
+          this.eventRetryInitialDelay * Math.pow(2, retryCount - 1);
+        const jitterDelay = Math.min(baseDelay, this.eventRetryMaxDelay);
+        const nextRetryAt = Date.now() + jitterDelay;
+
+        // Update event with retry metadata
+        const retryEvent = {
+          ...event,
+          retry_count: retryCount,
+          next_retry_at: nextRetryAt,
+        };
+
+        // Add event back to queue for retry, but limit queue size
+        if (this.eventQueue.length < this.maxEventQueueSize) {
+          this.eventQueue.push(retryEvent);
+          this.debug(
+            `Event queued for retry in ${jitterDelay}ms (${this.eventQueue.length}/${this.maxEventQueueSize})`,
+          );
+        } else {
+          this.debug(
+            `Event queue full (${this.maxEventQueueSize}), dropping oldest event`,
+          );
+          // Remove oldest event and add new one (FIFO with size limit)
+          this.eventQueue.shift();
+          this.eventQueue.push(retryEvent);
+        }
+
+        // Start retry timer to periodically check for ready events
+        this.startRetryTimer();
+      } else {
+        this.debug(
+          `Event failed permanently after ${this.maxEventRetries} attempts, dropping:`,
+          error,
+        );
+        // Event is permanently failed, don't retry
+      }
     }
 
     return Promise.resolve();
@@ -772,6 +1144,163 @@ export class Schematic {
    */
 
   /**
+   * Force an immediate WebSocket reconnection.
+   * This is useful when the application returns from a background state (e.g., mobile app
+   * coming back to foreground) and wants to immediately re-establish the connection
+   * rather than waiting for the exponential backoff timer.
+   *
+   * This method will:
+   * - Cancel any pending reconnection timer
+   * - Reset the reconnection attempt counter
+   * - Close any existing connection
+   * - Immediately attempt to reconnect
+   * - Re-send the current context to get fresh flag values
+   *
+   * Use this when you need guaranteed fresh values (e.g., after an in-app purchase).
+   *
+   * @example
+   * ```typescript
+   * // React Native example: reconnect when app comes to foreground
+   * useEffect(() => {
+   *   const subscription = AppState.addEventListener("change", (state) => {
+   *     if (state === "active") {
+   *       client.forceReconnect();
+   *     }
+   *   });
+   *   return () => subscription.remove();
+   * }, [client]);
+   * ```
+   */
+  forceReconnect = async (): Promise<void> => {
+    return this.reconnect({ force: true });
+  };
+
+  /**
+   * Reconnect the WebSocket connection only if the current connection is unhealthy.
+   * This is useful when the application returns from a background state and wants to
+   * ensure a healthy connection exists, but doesn't need to force a reconnection if
+   * the connection is still active.
+   *
+   * This method will:
+   * - Check if an existing connection is healthy (readyState === OPEN)
+   * - If healthy, return immediately without reconnecting
+   * - If unhealthy, perform the same reconnection logic as forceReconnect()
+   *
+   * Use this when you want efficient reconnection that avoids unnecessary disconnects.
+   *
+   * @example
+   * ```typescript
+   * // React Native example: reconnect only if needed when app comes to foreground
+   * useEffect(() => {
+   *   const subscription = AppState.addEventListener("change", (state) => {
+   *     if (state === "active") {
+   *       client.reconnectIfNeeded();
+   *     }
+   *   });
+   *   return () => subscription.remove();
+   * }, [client]);
+   * ```
+   */
+  reconnectIfNeeded = async (): Promise<void> => {
+    return this.reconnect({ force: false });
+  };
+
+  /**
+   * Internal method to handle reconnection logic for both forceReconnect and reconnectIfNeeded.
+   */
+  private reconnect = async (options: { force: boolean }): Promise<void> => {
+    const { force } = options;
+    const methodName = force ? "forceReconnect" : "reconnectIfNeeded";
+
+    // In offline mode, no need to reconnect
+    if (this.isOffline()) {
+      this.debug(`${methodName}: skipped (offline mode)`);
+      return Promise.resolve();
+    }
+
+    // Check if we already have a healthy connection
+    if (!force && this.conn !== null) {
+      try {
+        const existingSocket = await this.conn;
+        if (existingSocket.readyState === WebSocket.OPEN) {
+          this.debug(`${methodName}: connection is healthy, skipping`);
+          return Promise.resolve();
+        }
+      } catch {
+        // Connection promise rejected, proceed with reconnection
+      }
+    }
+
+    this.debug(
+      `${methodName}: ${force ? "forcing immediate reconnection" : "reconnecting"}`,
+    );
+
+    // Reset the intentional disconnect flag in case it was set
+    this.wsIntentionalDisconnect = false;
+
+    // Cancel any pending reconnection timer
+    if (this.wsReconnectTimer !== null) {
+      this.debug(`${methodName}: cancelling pending reconnection timer`);
+      clearTimeout(this.wsReconnectTimer);
+      this.wsReconnectTimer = null;
+    }
+
+    // Reset reconnection attempts for a fresh start
+    this.wsReconnectAttempts = 0;
+
+    // Close existing connection if any
+    if (this.conn !== null) {
+      this.debug(`${methodName}: closing existing connection`);
+      try {
+        const existingSocket = await this.conn;
+
+        // Mark the existing socket as no longer current
+        if (this.currentWebSocket === existingSocket) {
+          this.currentWebSocket = null;
+        }
+
+        if (
+          existingSocket.readyState === WebSocket.OPEN ||
+          existingSocket.readyState === WebSocket.CONNECTING
+        ) {
+          existingSocket.close();
+        }
+      } catch (error) {
+        this.debug(`${methodName}: error closing existing connection:`, error);
+      }
+      this.conn = null;
+      this.isConnecting = false;
+    }
+
+    // If we have context, reconnect and re-send it
+    if (
+      this.context.company !== undefined ||
+      this.context.user !== undefined
+    ) {
+      this.debug(`${methodName}: reconnecting with existing context`);
+      try {
+        this.isConnecting = true;
+        this.conn = this.wsConnect();
+        const socket = await this.conn;
+        this.isConnecting = false;
+
+        // Re-send context to get fresh flag values
+        await this.wsSendMessage(socket, this.context, true);
+
+        this.debug(`${methodName}: reconnection successful`);
+      } catch (error) {
+        this.isConnecting = false;
+        this.debug(`${methodName}: reconnection failed:`, error);
+        // Let the normal reconnection logic handle retries
+      }
+    } else {
+      this.debug(`${methodName}: no context set, skipping reconnection`);
+    }
+
+    return Promise.resolve();
+  };
+
+  /**
    * If using websocket mode, close the connection when done.
    * In offline mode, this is a no-op.
    */
@@ -782,48 +1311,367 @@ export class Schematic {
       return Promise.resolve();
     }
 
+    // Mark this as an intentional disconnect to prevent reconnection
+    this.wsIntentionalDisconnect = true;
+
+    // Clear any pending reconnection timers
+    if (this.wsReconnectTimer !== null) {
+      clearTimeout(this.wsReconnectTimer);
+      this.wsReconnectTimer = null;
+    }
+
+    // Stop retry timer
+    this.stopRetryTimer();
+
     if (this.conn) {
       try {
         const socket = await this.conn;
+
+        // Mark this websocket as no longer current if it's the one being cleaned up
+        if (this.currentWebSocket === socket) {
+          this.debug(`Cleaning up current websocket tracking`);
+          this.currentWebSocket = null;
+        }
+
         socket.close();
       } catch (error) {
-        console.error("Error during cleanup:", error);
+        console.warn("Error during cleanup:", error);
       } finally {
         this.conn = null;
+        this.currentWebSocket = null;
+        this.isConnecting = false;
       }
     }
   };
 
-  // Open a websocket connection
-  private wsConnect = (): Promise<WebSocket> => {
+  /**
+   * Calculate the delay for the next reconnection attempt using exponential backoff with jitter.
+   * This helps prevent dogpiling when the server recovers from an outage.
+   */
+  private calculateReconnectDelay = (): number => {
+    // Calculate exponential backoff: initialDelay * 2^attempt
+    const exponentialDelay =
+      this.webSocketInitialRetryDelay * Math.pow(2, this.wsReconnectAttempts);
+
+    // Cap at maximum delay
+    const cappedDelay = Math.min(exponentialDelay, this.webSocketMaxRetryDelay);
+
+    // Add jitter: random value between 0 and 50% of the delay
+    // This spreads out reconnection attempts to avoid thundering herd
+    const jitter = Math.random() * cappedDelay * 0.5;
+
+    const totalDelay = cappedDelay + jitter;
+
+    this.debug(
+      `Reconnect delay calculated: ${totalDelay.toFixed(0)}ms (attempt ${this.wsReconnectAttempts + 1}/${this.webSocketMaxReconnectAttempts})`,
+    );
+
+    return totalDelay;
+  };
+
+  /**
+   * Handle browser going offline
+   */
+  private handleNetworkOffline = async (): Promise<void> => {
+    // Don't mark as intentional disconnect - we want to reconnect when online
+    if (this.conn !== null) {
+      try {
+        const socket = await this.conn;
+        // Close the zombie connection
+        if (
+          socket.readyState === WebSocket.OPEN ||
+          socket.readyState === WebSocket.CONNECTING
+        ) {
+          socket.close();
+        }
+      } catch (error) {
+        // Connection might already be dead, that's ok
+        this.debug("Error closing connection on offline:", error);
+      }
+      this.conn = null;
+    }
+
+    // Clear any pending reconnection timers
+    if (this.wsReconnectTimer !== null) {
+      clearTimeout(this.wsReconnectTimer);
+      this.wsReconnectTimer = null;
+    }
+  };
+
+  /**
+   * Handle browser coming back online
+   */
+  private handleNetworkOnline = (): void => {
+    // Always attempt reconnection when network comes back online.
+    // The application layer will re-establish context as needed.
+    this.debug(
+      "Network online, attempting reconnection and flushing queued events",
+    );
+
+    // Reset reconnection attempts for fresh start
+    this.wsReconnectAttempts = 0;
+
+    // Cancel any pending reconnection timer
+    if (this.wsReconnectTimer !== null) {
+      clearTimeout(this.wsReconnectTimer);
+      this.wsReconnectTimer = null;
+    }
+
+    // Flush any queued events that failed to send while offline
+    this.flushEventQueue().catch((error) => {
+      this.debug("Error flushing event queue on network online:", error);
+    });
+
+    // Attempt immediate reconnection
+    this.attemptReconnect();
+  };
+
+  /**
+   * Attempt to reconnect the WebSocket connection with exponential backoff.
+   * Called automatically when the connection closes unexpectedly.
+   */
+  private attemptReconnect = (): void => {
+    // Check if we've exceeded max reconnection attempts
+    if (this.wsReconnectAttempts >= this.webSocketMaxReconnectAttempts) {
+      this.debug(
+        `Maximum reconnection attempts (${this.webSocketMaxReconnectAttempts}) reached, giving up`,
+      );
+      return;
+    }
+
+    // Prevent multiple concurrent reconnection attempts
+    if (this.wsReconnectTimer !== null) {
+      this.debug(
+        `Reconnection attempt already scheduled, ignoring duplicate request`,
+      );
+      return;
+    }
+
+    // Calculate delay with exponential backoff and jitter
+    const delay = this.calculateReconnectDelay();
+
+    this.debug(
+      `Scheduling reconnection attempt ${this.wsReconnectAttempts + 1}/${this.webSocketMaxReconnectAttempts} in ${delay.toFixed(0)}ms`,
+    );
+
+    // Schedule the reconnection
+    this.wsReconnectTimer = setTimeout(async () => {
+      this.wsReconnectTimer = null;
+      this.wsReconnectAttempts++;
+
+      this.debug(
+        `Attempting to reconnect (attempt ${this.wsReconnectAttempts}/${this.webSocketMaxReconnectAttempts})`,
+      );
+
+      try {
+        // Ensure any existing connection is fully cleaned up before creating new one
+        if (this.conn !== null) {
+          this.debug(`Cleaning up existing connection before reconnection`);
+          try {
+            const existingSocket = await this.conn;
+
+            // Mark the existing socket as no longer current
+            if (this.currentWebSocket === existingSocket) {
+              this.debug(`Existing websocket is current, will be replaced`);
+              this.currentWebSocket = null;
+            }
+
+            if (
+              existingSocket.readyState === WebSocket.OPEN ||
+              existingSocket.readyState === WebSocket.CONNECTING
+            ) {
+              existingSocket.close();
+            }
+          } catch (error) {
+            this.debug(`Error cleaning up existing connection:`, error);
+          }
+          this.conn = null;
+          this.currentWebSocket = null;
+          this.isConnecting = false;
+        }
+
+        // Create new connection
+        this.isConnecting = true;
+        try {
+          this.conn = this.wsConnect();
+          const socket = await this.conn;
+          this.isConnecting = false;
+
+          // Check if we have a context to re-send
+          this.debug(`Reconnection context check:`, {
+            hasCompany: this.context.company !== undefined,
+            hasUser: this.context.user !== undefined,
+            context: this.context,
+          });
+
+          if (
+            this.context.company !== undefined ||
+            this.context.user !== undefined
+          ) {
+            this.debug(`Reconnected, force re-sending context`);
+            // After reconnection, always send context even if it appears "unchanged"
+            // because the server has lost all state and needs the initial context
+            await this.wsSendMessage(socket, this.context, true);
+          } else {
+            this.debug(
+              `No context to re-send after reconnection - websocket ready for new context`,
+            );
+
+            // Even if we don't have context to send, we should still track this websocket
+            // so that future setContext calls use the correct connection
+            this.debug(
+              `Setting up tracking for reconnected websocket (no context to send)`,
+            );
+            this.currentWebSocket = socket;
+          }
+
+          // After successful websocket reconnection, flush any queued events
+          this.flushEventQueue().catch((error) => {
+            this.debug(
+              "Error flushing event queue after websocket reconnection:",
+              error,
+            );
+          });
+
+          this.debug(`Reconnection successful`);
+        } catch (error) {
+          this.isConnecting = false;
+          throw error;
+        }
+      } catch (error) {
+        this.debug(`Reconnection attempt failed:`, error);
+        // The wsConnect onclose handler will trigger another attemptReconnect
+      }
+    }, delay);
+  };
+
+  // Open a websocket connection with retry logic for timeouts
+  private wsConnect = async (): Promise<WebSocket> => {
     // If in offline mode, don't actually connect
     if (this.isOffline()) {
       this.debug("wsConnect: skipped (offline mode)");
-      return Promise.reject(
-        new Error("WebSocket connection skipped in offline mode"),
-      );
+      throw new Error("WebSocket connection skipped in offline mode");
     }
 
+    let lastError: Error | null = null;
+    const maxAttempts = this.webSocketMaxConnectionAttempts;
+
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      try {
+        const socket = await this.wsConnectOnce();
+        // Reset reconnection attempts on successful connection
+        this.wsReconnectAttempts = 0;
+        return socket;
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error(String(error));
+
+        // Only retry on timeout errors, not on other errors (like auth failures)
+        const isTimeout = lastError.message === "WebSocket connection timeout";
+        if (!isTimeout) {
+          this.debug(
+            `WebSocket connection failed with non-timeout error, not retrying:`,
+            lastError.message,
+          );
+          throw lastError;
+        }
+
+        if (attempt < maxAttempts - 1) {
+          // Calculate delay with exponential backoff and jitter
+          const baseDelay =
+            this.webSocketInitialRetryDelay * Math.pow(2, attempt);
+          const cappedDelay = Math.min(baseDelay, this.webSocketMaxRetryDelay);
+          const jitter = cappedDelay * 0.2 * Math.random();
+          const delay = cappedDelay + jitter;
+
+          this.debug(
+            `WebSocket connection timeout (attempt ${attempt + 1}/${maxAttempts}), retrying in ${delay.toFixed(0)}ms`,
+          );
+
+          await new Promise((resolve) => setTimeout(resolve, delay));
+        } else {
+          this.debug(
+            `WebSocket connection timeout (attempt ${attempt + 1}/${maxAttempts}), no more retries`,
+          );
+        }
+      }
+    }
+
+    throw lastError ?? new Error("WebSocket connection failed");
+  };
+
+  // Single attempt to open a websocket connection (no retry logic)
+  private wsConnectOnce = (): Promise<WebSocket> => {
     return new Promise((resolve, reject) => {
       const wsUrl = `${this.webSocketUrl}/flags/bootstrap?apiKey=${this.apiKey}`;
 
       this.debug(`connecting to WebSocket:`, wsUrl);
 
       const webSocket = new WebSocket(wsUrl);
+      const connectionId = Math.random().toString(36).substring(7);
+      this.debug(`Creating WebSocket connection ${connectionId} to ${wsUrl}`);
+
+      let timeoutId: ReturnType<typeof setTimeout> | null = null;
+      let isResolved = false;
+
+      // Set up connection timeout
+      timeoutId = setTimeout(() => {
+        if (!isResolved) {
+          isResolved = true;
+          this.debug(
+            `WebSocket connection timeout after ${this.webSocketConnectionTimeout}ms`,
+          );
+          webSocket.close();
+          reject(new Error("WebSocket connection timeout"));
+        }
+      }, this.webSocketConnectionTimeout);
 
       webSocket.onopen = () => {
-        this.debug(`WebSocket connection opened`);
+        if (isResolved) return; // Ignore if already timed out
+        isResolved = true;
+        if (timeoutId !== null) {
+          clearTimeout(timeoutId);
+        }
+
+        this.wsIntentionalDisconnect = false;
+
+        this.debug(`WebSocket connection ${connectionId} opened successfully`);
         resolve(webSocket);
       };
 
       webSocket.onerror = (error) => {
-        this.debug(`WebSocket connection error:`, error);
+        if (isResolved) return; // Ignore if already timed out
+        isResolved = true;
+        if (timeoutId !== null) {
+          clearTimeout(timeoutId);
+        }
+
+        this.debug(`WebSocket connection ${connectionId} error:`, error);
         reject(error);
       };
 
       webSocket.onclose = () => {
-        this.debug(`WebSocket connection closed`);
+        if (timeoutId !== null) {
+          clearTimeout(timeoutId);
+        }
+
+        this.debug(`WebSocket connection ${connectionId} closed`);
         this.conn = null;
+
+        // Clean up tracking references when this specific socket closes
+        if (this.currentWebSocket === webSocket) {
+          this.currentWebSocket = null;
+          this.isConnecting = false;
+        }
+
+        // Only trigger reconnect if we successfully connected before (not during initial connection attempts)
+        // and not intentionally disconnected
+        if (
+          !isResolved &&
+          !this.wsIntentionalDisconnect &&
+          this.webSocketReconnect
+        ) {
+          this.attemptReconnect();
+        }
       };
     });
   };
@@ -833,6 +1681,7 @@ export class Schematic {
   private wsSendMessage = (
     socket: WebSocket,
     context: SchematicContext,
+    forceContextSend = false,
   ): Promise<void> => {
     // If in offline mode, don't send messages
     if (this.isOffline()) {
@@ -843,66 +1692,34 @@ export class Schematic {
 
     return new Promise((resolve, reject) => {
       // Confirm that the context has changed; if it hasn't, we don't need to do anything
-      if (contextString(context) == contextString(this.context)) {
+      // Unless forceContextSend is true (used during reconnection)
+      if (
+        !forceContextSend &&
+        contextString(context) == contextString(this.context)
+      ) {
         this.debug(`WebSocket context unchanged, skipping update`);
         return resolve(this.setIsPending(false));
       }
 
-      this.debug(`WebSocket context updated:`, context);
+      this.debug(
+        forceContextSend
+          ? `WebSocket force sending context (reconnection):`
+          : `WebSocket context updated:`,
+        context,
+      );
 
       this.context = context;
 
       const sendMessage = () => {
         let resolved = false;
 
+        // Create persistent message handler using extracted method
+        const persistentMessageHandler =
+          this.createPersistentMessageHandler(context);
+
+        // Wrap with resolve logic for initial message
         const messageHandler = (event: MessageEvent) => {
-          const message = JSON.parse(event.data);
-
-          this.debug(`WebSocket message received:`, message);
-
-          // Initialize flag checks for context
-          if (!(contextString(context) in this.checks)) {
-            this.checks[contextString(context)] = {};
-          }
-
-          // Message may contain only a subset of flags; merge with existing context
-          /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-          (message.flags ?? []).forEach((flag: any) => {
-            const flagCheck = CheckFlagReturnFromJSON(flag);
-            const contextStr = contextString(context);
-            if (this.checks[contextStr] === undefined) {
-              this.checks[contextStr] = {};
-            }
-            this.checks[contextStr][flagCheck.flag] = flagCheck;
-
-            this.debug(`WebSocket flag update:`, {
-              flag: flagCheck.flag,
-              value: flagCheck.value,
-              flagCheck,
-            });
-
-            // Store in feature usage event map if appropriate
-            if (typeof flagCheck.featureUsageEvent === "string") {
-              this.updateFeatureUsageEventMap(flagCheck);
-            }
-
-            // Log flag check events if there are listeners registered
-            if (
-              this.flagCheckListeners[flag.flag]?.size > 0 ||
-              this.flagValueListeners[flag.flag]?.size > 0
-            ) {
-              this.submitFlagCheckEvent(flagCheck.flag, flagCheck, context);
-            }
-
-            this.notifyFlagCheckListeners(flag.flag, flagCheck);
-            this.notifyFlagValueListeners(flag.flag, flagCheck.value);
-          });
-
-          // Flush any context-dependent events that were queued
-          this.flushContextDependentEventQueue();
-
-          // Update pending state
-          this.setIsPending(false);
+          persistentMessageHandler(event);
 
           // If this is the first message received on the websocket, we need to resolve the promise
           if (!resolved) {
@@ -912,6 +1729,9 @@ export class Schematic {
         };
 
         socket.addEventListener("message", messageHandler);
+
+        // Track the current websocket for cleanup and ensuring React listeners use the right connection
+        this.currentWebSocket = socket;
 
         const clientVersion =
           this.additionalHeaders["X-Schematic-Client-Version"] ??
@@ -977,6 +1797,7 @@ export class Schematic {
   // flagValues state
   getFlagValue = (flagKey: string) => {
     const check = this.getFlagCheck(flagKey);
+
     return check?.value;
   };
 
@@ -1058,7 +1879,17 @@ export class Schematic {
       );
     }
 
-    listeners.forEach((listener) => notifyFlagValueListener(listener, value));
+    listeners.forEach((listener, index) => {
+      this.debug(`Calling listener ${index} for flag ${flagKey}`, {
+        flagKey,
+        value,
+      });
+      notifyFlagValueListener(listener, value);
+      this.debug(`Listener ${index} for flag ${flagKey} completed`, {
+        flagKey,
+        value,
+      });
+    });
   };
 }
 

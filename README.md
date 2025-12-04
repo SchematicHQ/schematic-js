@@ -12,6 +12,10 @@ This directory contains the core JavaScript/TypeScript packages and scripts for 
   The `schematic-react` package: React hooks and utilities for integrating Schematic into React apps.  
   See [`react/README.md`](./react/README.md) for details.
 
+- **vue/**  
+  The `schematic-vue` package: Vue composables and utilities for integrating Schematic into Vue apps.  
+  See [`vue/README.md`](./vue/README.md) for details.
+
 - **js/**  
   The core Schematic JS SDK: Core logic and utilities for interacting with Schematic APIs.  
   See [`js/README.md`](./js/README.md) for details.
