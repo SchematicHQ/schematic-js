@@ -295,9 +295,12 @@ export const Plan = ({
   }, [plans]);
 
   const isTrialing = data?.subscription?.status === "trialing";
-  const showCredits = data?.showCredits ?? true;
-  const showPeriodToggle = data?.showPeriodToggle ?? true;
-  const showZeroPriceAsFree = data?.showZeroPriceAsFree ?? false;
+  const showAsMonthlyPrices =
+    data?.displaySettings.showAsMonthlyPrices ?? false;
+  const showCredits = data?.displaySettings.showCredits ?? true;
+  const showPeriodToggle = data?.displaySettings.showPeriodToggle ?? true;
+  const showZeroPriceAsFree =
+    data?.displaySettings.showZeroPriceAsFree ?? false;
 
   const cardPadding = settings.theme.card.padding / TEXT_BASE_SIZE;
 
@@ -387,7 +390,10 @@ export const Plan = ({
                       ? t("Usage-based")
                       : isFreePlan && showZeroPriceAsFree
                         ? t("Free")
-                        : formatCurrency(planPrice ?? 0, planCurrency)}
+                        : showAsMonthlyPrices &&
+                            planPeriod === PriceInterval.Year
+                          ? formatCurrency((planPrice ?? 0) / 12, planCurrency)
+                          : formatCurrency(planPrice ?? 0, planCurrency)}
                 </Text>
 
                 {!plan.custom && !isFreePlan && (
