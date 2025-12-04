@@ -23,6 +23,7 @@ export * from "./BillingTiersMode";
 export * from "./ChargeType";
 export * from "./CompatiblePlans";
 export * from "./ComponentCapabilities";
+export * from "./ComponentDisplaySettings";
 export * from "./CountResponse";
 export * from "./CustomPlanConfig";
 export * from "./CustomPlanViewConfigResponseData";

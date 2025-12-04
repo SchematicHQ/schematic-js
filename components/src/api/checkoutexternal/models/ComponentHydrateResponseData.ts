@@ -43,6 +43,12 @@ import {
   InvoiceResponseDataFromJSONTyped,
   InvoiceResponseDataToJSON,
 } from "./InvoiceResponseData";
+import type { ComponentDisplaySettings } from "./ComponentDisplaySettings";
+import {
+  ComponentDisplaySettingsFromJSON,
+  ComponentDisplaySettingsFromJSONTyped,
+  ComponentDisplaySettingsToJSON,
+} from "./ComponentDisplaySettings";
 import type { CreditCompanyGrantView } from "./CreditCompanyGrantView";
 import {
   CreditCompanyGrantViewFromJSON,
@@ -172,6 +178,12 @@ export interface ComponentHydrateResponseData {
   defaultPlan?: PlanDetailResponseData;
   /**
    *
+   * @type {ComponentDisplaySettings}
+   * @memberof ComponentHydrateResponseData
+   */
+  displaySettings: ComponentDisplaySettings;
+  /**
+   *
    * @type {FeatureUsageDetailResponseData}
    * @memberof ComponentHydrateResponseData
    */
@@ -204,18 +216,28 @@ export interface ComponentHydrateResponseData {
    *
    * @type {boolean}
    * @memberof ComponentHydrateResponseData
+   * @deprecated
+   */
+  showAsMonthlyPrices: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof ComponentHydrateResponseData
+   * @deprecated
    */
   showCredits: boolean;
   /**
    *
    * @type {boolean}
    * @memberof ComponentHydrateResponseData
+   * @deprecated
    */
   showPeriodToggle: boolean;
   /**
    *
    * @type {boolean}
    * @memberof ComponentHydrateResponseData
+   * @deprecated
    */
   showZeroPriceAsFree: boolean;
   /**
@@ -270,9 +292,16 @@ export function instanceOfComponentHydrateResponseData(
     return false;
   if (!("creditGrants" in value) || value["creditGrants"] === undefined)
     return false;
+  if (!("displaySettings" in value) || value["displaySettings"] === undefined)
+    return false;
   if (
     !("preventSelfServiceDowngrade" in value) ||
     value["preventSelfServiceDowngrade"] === undefined
+  )
+    return false;
+  if (
+    !("showAsMonthlyPrices" in value) ||
+    value["showAsMonthlyPrices"] === undefined
   )
     return false;
   if (!("showCredits" in value) || value["showCredits"] === undefined)
@@ -338,6 +367,7 @@ export function ComponentHydrateResponseDataFromJSONTyped(
       json["default_plan"] == null
         ? undefined
         : PlanDetailResponseDataFromJSON(json["default_plan"]),
+    displaySettings: ComponentDisplaySettingsFromJSON(json["display_settings"]),
     featureUsage:
       json["feature_usage"] == null
         ? undefined
@@ -355,6 +385,7 @@ export function ComponentHydrateResponseDataFromJSONTyped(
       json["prevent_self_service_downgrade_url"] == null
         ? undefined
         : json["prevent_self_service_downgrade_url"],
+    showAsMonthlyPrices: json["show_as_monthly_prices"],
     showCredits: json["show_credits"],
     showPeriodToggle: json["show_period_toggle"],
     showZeroPriceAsFree: json["show_zero_price_as_free"],
@@ -409,12 +440,14 @@ export function ComponentHydrateResponseDataToJSON(
       CreditCompanyGrantViewToJSON,
     ),
     default_plan: PlanDetailResponseDataToJSON(value["defaultPlan"]),
+    display_settings: ComponentDisplaySettingsToJSON(value["displaySettings"]),
     feature_usage: FeatureUsageDetailResponseDataToJSON(value["featureUsage"]),
     post_trial_plan: PlanDetailResponseDataToJSON(value["postTrialPlan"]),
     prevent_self_service_downgrade: value["preventSelfServiceDowngrade"],
     prevent_self_service_downgrade_button_text:
       value["preventSelfServiceDowngradeButtonText"],
     prevent_self_service_downgrade_url: value["preventSelfServiceDowngradeUrl"],
+    show_as_monthly_prices: value["showAsMonthlyPrices"],
     show_credits: value["showCredits"],
     show_period_toggle: value["showPeriodToggle"],
     show_zero_price_as_free: value["showZeroPriceAsFree"],
