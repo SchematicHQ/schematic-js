@@ -142,6 +142,7 @@ export const Invoices = forwardRef<
     getInvoices();
   }, [getInvoices]);
 
+  // this should be how the below TODO will set invoices
   useEffect(() => {
     if (rest.data) {
       setInvoices(formatInvoices(rest.data));
@@ -150,6 +151,7 @@ export const Invoices = forwardRef<
 
   // ensure shared data updates are tracked
   // used to keep in sync with preview data
+  // TODO: move this logic outside of components
   useEffect(() => {
     if (data && "invoices" in data) {
       const invoicesPreviewData = data.invoices as InvoiceResponseData[];

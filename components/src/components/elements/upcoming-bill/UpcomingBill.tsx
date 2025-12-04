@@ -131,6 +131,7 @@ export const UpcomingBill = forwardRef<
 
   // ensure shared data updates are tracked
   // used to keep in sync with preview data
+  // TODO: move this logic outside of components
   useEffect(() => {
     if (data?.upcomingInvoice) {
       setUpcomingInvoice(data.upcomingInvoice);
