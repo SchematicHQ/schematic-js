@@ -34,7 +34,7 @@
   },
   "dependencies": {
     "@schematichq/schematic-icons": "^0.5.2",
-    "@stripe/stripe-js": "^8.4.0",
+    "@stripe/stripe-js": "^8.5.3",
     "lodash": "^4.17.21",
     "pako": "^2.1.0",
     "styled-components": "^6.1.19",
