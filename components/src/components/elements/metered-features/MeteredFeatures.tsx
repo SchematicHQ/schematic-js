@@ -225,7 +225,7 @@ export const MeteredFeatures = forwardRef<
       : undefined;
 
   const canCheckout = data?.capabilities?.checkout ?? false;
-  const showCredits = data?.showCredits ?? true;
+  const showCredits = data?.displaySettings.showCredits ?? true;
 
   return (
     <styles.Container ref={ref} className={className}>
