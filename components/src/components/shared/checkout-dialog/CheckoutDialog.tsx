@@ -116,12 +116,12 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
         currentEntitlements: data?.featureUsage
           ? data.featureUsage.features
           : [],
-        showPeriodToggle: data?.displaySettings.showPeriodToggle ?? true,
+        showPeriodToggle: data?.displaySettings?.showPeriodToggle ?? true,
         trialPaymentMethodRequired: data?.trialPaymentMethodRequired === true,
       };
     }, [
       data?.featureUsage,
-      data?.displaySettings.showPeriodToggle,
+      data?.displaySettings?.showPeriodToggle,
       data?.trialPaymentMethodRequired,
     ]);
 

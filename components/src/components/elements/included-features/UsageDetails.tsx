@@ -54,9 +54,9 @@ export const UsageDetails = ({
   const { period, showCredits } = useMemo(() => {
     return {
       period: data?.company?.plan?.planPeriod || undefined,
-      showCredits: data?.displaySettings.showCredits ?? true,
+      showCredits: data?.displaySettings?.showCredits ?? true,
     };
-  }, [data?.company?.plan?.planPeriod, data?.displaySettings.showCredits]);
+  }, [data?.company?.plan?.planPeriod, data?.displaySettings?.showCredits]);
 
   const { billingPrice, cost, currentTier } = useMemo(
     () => getUsageDetails(entitlement, period),

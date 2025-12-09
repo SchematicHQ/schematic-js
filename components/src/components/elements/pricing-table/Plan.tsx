@@ -72,11 +72,11 @@ export const Plan = ({
     data?.company?.billingSubscription?.status === "trialing";
   const willSubscriptionCancel =
     typeof data?.company?.billingSubscription?.cancelAt === "number";
-  const showCredits = data?.displaySettings.showCredits ?? true;
+  const showCredits = data?.displaySettings?.showCredits ?? true;
   const showZeroPriceAsFree =
-    data?.displaySettings.showZeroPriceAsFree ?? false;
+    data?.displaySettings?.showZeroPriceAsFree ?? false;
   const showAsMonthlyPrices =
-    data?.displaySettings.showAsMonthlyPrices ?? false;
+    data?.displaySettings?.showAsMonthlyPrices ?? false;
 
   const currentPlanIndex = plans.findIndex((plan) => plan.current);
 
