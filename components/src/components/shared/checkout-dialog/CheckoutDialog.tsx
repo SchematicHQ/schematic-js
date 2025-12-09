@@ -110,24 +110,20 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | undefined>();
 
-  const {
-    currentPlanId,
-    currentEntitlements,
-    showPeriodToggle,
-    trialPaymentMethodRequired,
-  } = useMemo(() => {
-    return {
-      currentPlanId: data?.company?.plan?.id,
-      currentEntitlements: data?.featureUsage ? data.featureUsage.features : [],
-      showPeriodToggle: data?.displaySettings.showPeriodToggle ?? true,
-      trialPaymentMethodRequired: data?.trialPaymentMethodRequired === true,
-    };
-  }, [
-    data?.company?.plan?.id,
-    data?.featureUsage,
-    data?.displaySettings.showPeriodToggle,
-    data?.trialPaymentMethodRequired,
-  ]);
+  const { currentEntitlements, showPeriodToggle, trialPaymentMethodRequired } =
+    useMemo(() => {
+      return {
+        currentEntitlements: data?.featureUsage
+          ? data.featureUsage.features
+          : [],
+        showPeriodToggle: data?.displaySettings.showPeriodToggle ?? true,
+        trialPaymentMethodRequired: data?.trialPaymentMethodRequired === true,
+      };
+    }, [
+      data?.featureUsage,
+      data?.displaySettings.showPeriodToggle,
+      data?.trialPaymentMethodRequired,
+    ]);
 
   const currentPeriod = useMemo(
     () => checkoutState?.period || data?.company?.plan?.planPeriod || "month",
