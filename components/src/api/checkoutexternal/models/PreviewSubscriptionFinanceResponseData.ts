@@ -88,6 +88,12 @@ export interface PreviewSubscriptionFinanceResponseData {
   taxRequireBillingDetails: boolean;
   /**
    *
+   * @type {number}
+   * @memberof PreviewSubscriptionFinanceResponseData
+   */
+  totalPerBillingPeriod: number;
+  /**
+   *
    * @type {Date}
    * @memberof PreviewSubscriptionFinanceResponseData
    */
@@ -123,6 +129,11 @@ export function instanceOfPreviewSubscriptionFinanceResponseData(
   )
     return false;
   if (
+    !("totalPerBillingPeriod" in value) ||
+    value["totalPerBillingPeriod"] === undefined
+  )
+    return false;
+  if (
     !("upcomingInvoiceLineItems" in value) ||
     value["upcomingInvoiceLineItems"] === undefined
   )
@@ -155,6 +166,7 @@ export function PreviewSubscriptionFinanceResponseDataFromJSONTyped(
     taxDisplayName:
       json["tax_display_name"] == null ? undefined : json["tax_display_name"],
     taxRequireBillingDetails: json["tax_require_billing_details"],
+    totalPerBillingPeriod: json["total_per_billing_period"],
     trialEnd:
       json["trial_end"] == null ? undefined : new Date(json["trial_end"]),
     upcomingInvoiceLineItems: (
@@ -180,6 +192,7 @@ export function PreviewSubscriptionFinanceResponseDataToJSON(
     tax_amount: value["taxAmount"],
     tax_display_name: value["taxDisplayName"],
     tax_require_billing_details: value["taxRequireBillingDetails"],
+    total_per_billing_period: value["totalPerBillingPeriod"],
     trial_end:
       value["trialEnd"] == null
         ? undefined
