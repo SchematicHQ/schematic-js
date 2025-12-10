@@ -1,9 +1,7 @@
 import {
   forwardRef,
   useCallback,
-  useEffect,
   useMemo,
-  useRef,
   useState,
   type Dispatch,
   type SetStateAction,
@@ -45,6 +43,7 @@ import { Proration } from "./Proration";
 import { StageButton } from "./StageButton";
 
 interface SidebarProps {
+  modalRef?: React.RefObject<HTMLDialogElement | null>;
   planPeriod: string;
   selectedPlan?: SelectedPlan;
   addOns: SelectedPlan[];
@@ -75,6 +74,7 @@ interface SidebarProps {
 export const Sidebar = forwardRef<HTMLDivElement | null, SidebarProps>(
   (
     {
+      modalRef,
       planPeriod,
       selectedPlan,
       addOns,
@@ -113,6 +113,8 @@ export const Sidebar = forwardRef<HTMLDivElement | null, SidebarProps>(
     } = useEmbed();
 
     const isLightBackground = useIsLightBackground();
+
+    const [checkoutButtonInView, setCheckoutButtonInView] = useState(false);
 
     const {
       currentPlan,
@@ -317,6 +319,28 @@ export const Sidebar = forwardRef<HTMLDivElement | null, SidebarProps>(
       [addOns],
     );
 
+    const { removedAddOns, willAddOnsChange } = useMemo(() => {
+      const addedAddOns = selectedAddOns.filter(
+        (selected) =>
+          !currentAddOns.some((current) => selected.id === current.id),
+      );
+
+      const removedAddOns = currentAddOns.filter(
+        (current) =>
+          !selectedAddOns.some((selected) => current.id === selected.id) &&
+          current.planPeriod !== "one-time",
+      );
+
+      const willAddOnsChange =
+        removedAddOns.length > 0 || addedAddOns.length > 0;
+
+      return {
+        addedAddOns,
+        removedAddOns,
+        willAddOnsChange,
+      };
+    }, [currentAddOns, selectedAddOns]);
+
     const addedCreditBundles = useMemo(
       () => creditBundles.filter((bundle) => bundle.count > 0),
       [creditBundles],
@@ -501,55 +525,25 @@ export const Sidebar = forwardRef<HTMLDivElement | null, SidebarProps>(
       }
     }, [t, unsubscribe, setError, setIsLoading, setLayout]);
 
-    const { removedAddOns, willAddOnsChange } = useMemo(() => {
-      const addedAddOns = selectedAddOns.filter(
-        (selected) =>
-          !currentAddOns.some((current) => selected.id === current.id),
-      );
+    const observeCheckoutButton = useCallback<React.RefCallback<HTMLElement>>(
+      (element) => {
+        const observer = new IntersectionObserver(
+          ([entry]) => {
+            setCheckoutButtonInView(entry.isIntersecting);
+          },
+          { root: modalRef?.current || document.body },
+        );
 
-      const removedAddOns = currentAddOns.filter(
-        (current) =>
-          !selectedAddOns.some((selected) => current.id === selected.id) &&
-          current.planPeriod !== "one-time",
-      );
+        if (element) {
+          observer.observe(element);
+        }
 
-      const willAddOnsChange =
-        removedAddOns.length > 0 || addedAddOns.length > 0;
-
-      return {
-        addedAddOns,
-        removedAddOns,
-        willAddOnsChange,
-      };
-    }, [currentAddOns, selectedAddOns]);
-
-    const isSelectedPlanTrialable =
-      selectedPlan?.companyCanTrial === true &&
-      selectedPlan?.isTrialable === true;
-    const now = new Date();
-    const trialEndsOn = new Date(now);
-    if (isSelectedPlanTrialable && selectedPlan.trialDays) {
-      trialEndsOn.setDate(trialEndsOn.getDate() + selectedPlan.trialDays);
-    }
-
-    const { price: selectedPlanPrice, currency: selectedPlanCurrency } =
-      selectedPlan ? getPlanPrice(selectedPlan, planPeriod) || {} : {};
-
-    const buttonRef = useRef<HTMLDivElement>(null);
-    const [checkoutButtonInView, setCheckoutButtonInView] = useState(false);
-
-    useEffect(() => {
-      const observer = new IntersectionObserver(
-        ([entry]) => setCheckoutButtonInView(entry.isIntersecting),
-        { threshold: 0 },
-      );
-
-      if (buttonRef.current) {
-        observer.observe(buttonRef.current);
-      }
-
-      return () => observer.disconnect();
-    }, []);
+        return () => {
+          observer.disconnect();
+        };
+      },
+      [modalRef],
+    );
 
     const StageButtonComponent = () => {
       return (
@@ -574,6 +568,17 @@ export const Sidebar = forwardRef<HTMLDivElement | null, SidebarProps>(
         />
       );
     };
+
+    const { price: selectedPlanPrice, currency: selectedPlanCurrency } =
+      selectedPlan ? getPlanPrice(selectedPlan, planPeriod) || {} : {};
+    const isSelectedPlanTrialable =
+      selectedPlan?.companyCanTrial === true &&
+      selectedPlan?.isTrialable === true;
+    const now = new Date();
+    const trialEndsOn = new Date(now);
+    if (isSelectedPlanTrialable && selectedPlan.trialDays) {
+      trialEndsOn.setDate(trialEndsOn.getDate() + selectedPlan.trialDays);
+    }
 
     return (
       <Flex
@@ -1139,15 +1144,16 @@ export const Sidebar = forwardRef<HTMLDivElement | null, SidebarProps>(
           )}
 
           {layout === "checkout" && (
-            <div ref={buttonRef}>
-              {checkoutButtonInView && <StageButtonComponent />}
-              {!checkoutButtonInView &&
+            <div ref={observeCheckoutButton}>
+              {checkoutButtonInView ? (
+                <StageButtonComponent />
+              ) : (
                 createPortal(
                   <div
                     style={{
-                      position: "fixed",
-                      bottom: "-1px",
-                      left: "0px",
+                      position: "sticky",
+                      bottom: 0,
+                      left: 0,
                       zIndex: 9999999,
                       width: "100%",
                       overflow: "hidden",
@@ -1171,8 +1177,9 @@ export const Sidebar = forwardRef<HTMLDivElement | null, SidebarProps>(
                       <StageButtonComponent />
                     </div>
                   </div>,
-                  document.body,
-                )}
+                  modalRef?.current || document.body,
+                )
+              )}
             </div>
           )}
 

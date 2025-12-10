@@ -7,14 +7,14 @@ import { type CheckoutStage } from "../checkout-dialog";
 type NoPaymentRequiredProps = {
   isDisabled: boolean;
   isLoading: boolean;
-  isSticky: boolean;
+  isSticky?: boolean;
   onClick: () => Promise<void>;
 };
 
 const NoPaymentRequired = ({
   isDisabled,
   isLoading,
-  isSticky,
+  isSticky = false,
   onClick,
 }: NoPaymentRequiredProps) => {
   const { t } = useTranslation();
@@ -41,7 +41,7 @@ type StageButtonProps = {
   hasPlan: boolean;
   inEditMode: boolean;
   isLoading: boolean;
-  isSticky: boolean;
+  isSticky?: boolean;
   checkoutButtonRef?: RefObject<HTMLDivElement>;
   isPaymentMethodRequired: boolean;
   isSelectedPlanTrialable: boolean;
@@ -59,7 +59,7 @@ export const StageButton = ({
   hasPlan,
   inEditMode,
   isLoading,
-  isSticky,
+  isSticky = false,
   isPaymentMethodRequired,
   isSelectedPlanTrialable,
   setCheckoutStage,

@@ -81,12 +81,19 @@ interface ConfirmPaymentIntentProps {
 export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   const { t } = useTranslation();
 
-  const { data, settings, isPending, checkoutState, previewCheckout } =
-    useEmbed();
+  const {
+    data,
+    layout,
+    settings,
+    isPending,
+    checkoutState,
+    setLayout,
+    previewCheckout,
+  } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
 
-  const modalRef = useRef<HTMLDivElement>(null);
+  const modalRef = useRef<HTMLDialogElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const sidebarRef = useRef<HTMLDivElement>(null);
@@ -880,6 +887,17 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     }
   }, [charges]);
 
+  useEffect(() => {
+    const el = modalRef.current;
+    if (el && layout === "checkout") {
+      el.showModal();
+    }
+
+    return () => {
+      el?.close();
+    };
+  }, [layout]);
+
   useLayoutEffect(() => {
     stageRef.current?.scrollTo({
       top: 0,
@@ -938,7 +956,14 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       !hasSkippedInitialAddOns);
 
   return (
-    <Modal ref={modalRef} size="lg" top={top}>
+    <Modal
+      ref={modalRef}
+      size="lg"
+      top={top}
+      onClose={() => {
+        setLayout("portal");
+      }}
+    >
       {shouldShowBypassOverlay && (
         <Flex
           $position="absolute"
@@ -1117,6 +1142,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
         <Sidebar
           ref={sidebarRef}
+          modalRef={modalRef}
           planPeriod={planPeriod}
           selectedPlan={selectedPlan}
           addOns={addOns}
