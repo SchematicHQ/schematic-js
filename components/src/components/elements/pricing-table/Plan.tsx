@@ -64,7 +64,6 @@ export const Plan = ({
     currentPeriod,
     canCheckout,
     isTrialSubscription,
-    willSubscriptionCancel,
     isStandalone,
     showCredits,
     showZeroPriceAsFree,
@@ -76,15 +75,12 @@ export const Plan = ({
       canCheckout: isStandalone || (data?.capabilities?.checkout ?? true),
       isTrialSubscription:
         data?.company?.billingSubscription?.status === "trialing",
-      willSubscriptionCancel:
-        typeof data?.company?.billingSubscription?.cancelAt === "number",
       isStandalone,
       showCredits: data?.showCredits ?? true,
       showZeroPriceAsFree: data?.showZeroPriceAsFree ?? false,
     };
   }, [
     data?.capabilities?.checkout,
-    data?.company?.billingSubscription?.cancelAt,
     data?.company?.billingSubscription?.status,
     data?.company?.plan?.planPeriod,
     data?.component,
@@ -235,10 +231,8 @@ export const Plan = ({
                 hexToHSL(settings.theme.primary).l > 50 ? "#000000" : "#FFFFFF"
               }
             >
-              {isTrialSubscription &&
-              !willSubscriptionCancel &&
-              typeof trialEnd !== "undefined"
-                ? trialEnd.formatted
+              {isTrialSubscription && typeof trialEnd.endDate !== "undefined"
+                ? t("X time left in trial", trialEnd)
                 : t("Active")}
             </Text>
           </Flex>
