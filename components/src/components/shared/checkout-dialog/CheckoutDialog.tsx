@@ -142,8 +142,13 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
   const [selectedPlan, setSelectedPlan] = useState<SelectedPlan | undefined>(
     () => {
-      return availablePlans.find((plan) =>
-        checkoutState?.planId ? plan.id === checkoutState.planId : plan.current,
+      return availablePlans.find(
+        (plan) =>
+          (checkoutState?.planId
+            ? plan.id === checkoutState.planId
+            : plan.current) &&
+          // do not initially set the current plan for a trial
+          (!plan.isTrialable || !plan.companyCanTrial),
       );
     },
   );
