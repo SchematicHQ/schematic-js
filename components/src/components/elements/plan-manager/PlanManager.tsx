@@ -228,9 +228,9 @@ export const PlanManager = forwardRef<
               : lighten(settings.theme.card.background, 0.04)
           }
         >
-          {typeof trialEnd.formatted !== "undefined" && (
+          {typeof trialEnd.endDate !== "undefined" && (
             <Text as="h3" display="heading3">
-              {trialEnd.formatted}
+              {t("Trial ends in", trialEnd)}
             </Text>
           )}
 
