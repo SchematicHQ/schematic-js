@@ -157,7 +157,14 @@ export const Plan = ({
                   : showAsMonthlyPrices && selectedPeriod === PriceInterval.Year
                     ? formatCurrency((planPrice ?? 0) / 12, planCurrency)
                     : formatCurrency(planPrice ?? 0, planCurrency)}
-            {!plan.custom && !isFreePlan && <sub>/{selectedPeriod}</sub>}
+            {!plan.custom && !isFreePlan && (
+              <sub>
+                /
+                {showAsMonthlyPrices && selectedPeriod === PriceInterval.Year
+                  ? t("month, billed yearly")
+                  : t(selectedPeriod)}
+              </sub>
+            )}
           </Text>
         </Box>
 

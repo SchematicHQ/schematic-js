@@ -403,7 +403,10 @@ export const Plan = ({
                       (16 / 30) * settings.theme.typography.heading2.fontSize
                     }
                   >
-                    /{planPeriod}
+                    /
+                    {showAsMonthlyPrices && planPeriod === PriceInterval.Year
+                      ? t("month, billed yearly")
+                      : t(planPeriod)}
                   </Text>
                 )}
               </Box>

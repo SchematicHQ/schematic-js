@@ -155,14 +155,15 @@
     "day": "day",
     "month": "month",
     "year": "year",
-    "billing period": "billing period",
     "one time": "one time",
+    "billing period": "billing period",
 
     "per": "per",
     "then": "then",
     "use": "use",
     "used": "used",
 
+    "month, billed yearly": "month, billed yearly",
     "purchased": "purchased {{date}}",
     "usage": {
       "limited": "{{amount}} of {{allocation}} used",
