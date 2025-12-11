@@ -528,7 +528,7 @@ describe("`PricingTable`", () => {
 
       render(<SchematicEmbed accessToken="token_0" id="0" />);
 
-      const trialEndText = await screen.findByText(/Trial ends in \d+ days/);
+      const trialEndText = await screen.findByText(/\d+ days left in trial/);
       expect(trialEndText).toBeInTheDocument();
     });
 

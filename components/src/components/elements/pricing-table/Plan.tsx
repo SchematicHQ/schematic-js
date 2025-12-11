@@ -70,8 +70,6 @@ export const Plan = ({
   const canCheckout = isStandalone || (data?.capabilities?.checkout ?? true);
   const isTrialSubscription =
     data?.company?.billingSubscription?.status === "trialing";
-  const willSubscriptionCancel =
-    typeof data?.company?.billingSubscription?.cancelAt === "number";
   const showCredits = data?.displaySettings?.showCredits ?? true;
   const showZeroPriceAsFree =
     data?.displaySettings?.showZeroPriceAsFree ?? false;
@@ -228,10 +226,8 @@ export const Plan = ({
                 hexToHSL(settings.theme.primary).l > 50 ? "#000000" : "#FFFFFF"
               }
             >
-              {isTrialSubscription &&
-              !willSubscriptionCancel &&
-              typeof trialEnd !== "undefined"
-                ? trialEnd.formatted
+              {isTrialSubscription && typeof trialEnd.endDate !== "undefined"
+                ? t("X time left in trial", trialEnd)
                 : t("Active")}
             </Text>
           </Flex>

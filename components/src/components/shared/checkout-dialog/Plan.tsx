@@ -10,7 +10,7 @@ import {
   TEXT_BASE_SIZE,
   VISIBLE_ENTITLEMENT_COUNT,
 } from "../../../const";
-import { useEmbed, useIsLightBackground } from "../../../hooks";
+import { useEmbed, useIsLightBackground, useTrialEnd } from "../../../hooks";
 import type { SelectedPlan } from "../../../types";
 import {
   entitlementCountsReducer,
@@ -94,7 +94,7 @@ const PlanButtonGroup = ({
 
   const { data } = useEmbed();
 
-  const isTrialing = data?.subscription?.status === "trialing";
+  const isTrialing = data?.company?.billingSubscription?.status === "trialing";
   const isCurrentPlan = data?.company?.plan?.id === plan.id;
   const isValidPlan = plan.valid;
   const isDowngradeNotPermitted =
@@ -162,7 +162,7 @@ const PlanButtonGroup = ({
         {!plan.custom && (
           <>
             {isSelected && (!shouldTrial || isTrialing) ? (
-              <Selected isCurrent={isCurrentPlan} />
+              <Selected isCurrent={isCurrentPlan} isTrial={isTrialing} />
             ) : (
               <Flex $flexDirection="column" $gap="0.5rem">
                 <Button
@@ -262,6 +262,8 @@ export const Plan = ({
   const { data, settings } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
+
+  const trialEnd = useTrialEnd();
 
   const [entitlementCounts, setEntitlementCounts] = useState(() =>
     plans.reduce(entitlementCountsReducer, {}),
@@ -519,7 +521,9 @@ export const Plan = ({
                         : "#FFFFFF"
                     }
                   >
-                    {isTrialing ? t("Trialing") : t("Active")}
+                    {isTrialing && typeof trialEnd.endDate !== "undefined"
+                      ? t("X time left in trial", trialEnd)
+                      : t("Active")}
                   </Text>
                 </Flex>
               )}
