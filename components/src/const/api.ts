@@ -5,10 +5,10 @@ export enum CompanyPlanInvalidReason {
 }
 
 export enum PriceInterval {
-  OneTime = "one-time",
   Day = "day",
   Month = "month",
   Year = "year",
+  OneTime = "one-time",
 }
 
 export enum PriceBehavior {
