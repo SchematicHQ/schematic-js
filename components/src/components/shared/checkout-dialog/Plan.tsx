@@ -10,7 +10,7 @@ import {
   TEXT_BASE_SIZE,
   VISIBLE_ENTITLEMENT_COUNT,
 } from "../../../const";
-import { useEmbed, useIsLightBackground } from "../../../hooks";
+import { useEmbed, useIsLightBackground, useTrialEnd } from "../../../hooks";
 import type { SelectedPlan } from "../../../types";
 import {
   entitlementCountsReducer,
@@ -94,7 +94,7 @@ const PlanButtonGroup = ({
 
   const { data } = useEmbed();
 
-  const isTrialing = data?.subscription?.status === "trialing";
+  const isTrialing = data?.company?.billingSubscription?.status === "trialing";
   const isCurrentPlan = data?.company?.plan?.id === plan.id;
   const isValidPlan = plan.valid;
   const isDowngradeNotPermitted =
@@ -162,7 +162,7 @@ const PlanButtonGroup = ({
         {!plan.custom && (
           <>
             {isSelected && (!shouldTrial || isTrialing) ? (
-              <Selected isCurrent={isCurrentPlan} />
+              <Selected isCurrent={isCurrentPlan} isTrial={isTrialing} />
             ) : (
               <Flex $flexDirection="column" $gap="0.5rem">
                 <Button
@@ -263,6 +263,8 @@ export const Plan = ({
 
   const isLightBackground = useIsLightBackground();
 
+  const trialEnd = useTrialEnd();
+
   const [entitlementCounts, setEntitlementCounts] = useState(() =>
     plans.reduce(entitlementCountsReducer, {}),
   );
@@ -295,9 +297,12 @@ export const Plan = ({
   }, [plans]);
 
   const isTrialing = data?.subscription?.status === "trialing";
-  const showCredits = data?.showCredits ?? true;
-  const showPeriodToggle = data?.showPeriodToggle ?? true;
-  const showZeroPriceAsFree = data?.showZeroPriceAsFree ?? false;
+  const showAsMonthlyPrices =
+    data?.displaySettings?.showAsMonthlyPrices ?? false;
+  const showCredits = data?.displaySettings?.showCredits ?? true;
+  const showPeriodToggle = data?.displaySettings?.showPeriodToggle ?? true;
+  const showZeroPriceAsFree =
+    data?.displaySettings?.showZeroPriceAsFree ?? false;
 
   const cardPadding = settings.theme.card.padding / TEXT_BASE_SIZE;
 
@@ -387,7 +392,10 @@ export const Plan = ({
                       ? t("Usage-based")
                       : isFreePlan && showZeroPriceAsFree
                         ? t("Free")
-                        : formatCurrency(planPrice ?? 0, planCurrency)}
+                        : showAsMonthlyPrices &&
+                            planPeriod === PriceInterval.Year
+                          ? formatCurrency((planPrice ?? 0) / 12, planCurrency)
+                          : formatCurrency(planPrice ?? 0, planCurrency)}
                 </Text>
 
                 {!plan.custom && !isFreePlan && (
@@ -397,7 +405,10 @@ export const Plan = ({
                       (16 / 30) * settings.theme.typography.heading2.fontSize
                     }
                   >
-                    /{planPeriod}
+                    /
+                    {showAsMonthlyPrices && planPeriod === PriceInterval.Year
+                      ? t("month, billed yearly")
+                      : t(planPeriod)}
                   </Text>
                 )}
               </Box>
@@ -510,7 +521,9 @@ export const Plan = ({
                         : "#FFFFFF"
                     }
                   >
-                    {isTrialing ? t("Trialing") : t("Active")}
+                    {isTrialing && typeof trialEnd.endDate !== "undefined"
+                      ? t("X time left in trial", trialEnd)
+                      : t("Active")}
                   </Text>
                 </Flex>
               )}

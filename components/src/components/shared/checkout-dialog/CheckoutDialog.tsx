@@ -123,12 +123,12 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
         currentEntitlements: data?.featureUsage
           ? data.featureUsage.features
           : [],
-        showPeriodToggle: data?.showPeriodToggle ?? true,
+        showPeriodToggle: data?.displaySettings?.showPeriodToggle ?? true,
         trialPaymentMethodRequired: data?.trialPaymentMethodRequired === true,
       };
     }, [
       data?.featureUsage,
-      data?.showPeriodToggle,
+      data?.displaySettings?.showPeriodToggle,
       data?.trialPaymentMethodRequired,
     ]);
 
@@ -149,8 +149,13 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
   const [selectedPlan, setSelectedPlan] = useState<SelectedPlan | undefined>(
     () => {
-      return availablePlans.find((plan) =>
-        checkoutState?.planId ? plan.id === checkoutState.planId : plan.current,
+      return availablePlans.find(
+        (plan) =>
+          (checkoutState?.planId
+            ? plan.id === checkoutState.planId
+            : plan.current) &&
+          // do not initially set the current plan for a trial
+          (!plan.isTrialable || !plan.companyCanTrial),
       );
     },
   );
