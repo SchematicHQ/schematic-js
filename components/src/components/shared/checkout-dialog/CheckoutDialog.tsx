@@ -81,8 +81,14 @@ interface ConfirmPaymentIntentProps {
 export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   const { t } = useTranslation();
 
-  const { data, settings, isPending, checkoutState, previewCheckout } =
-    useEmbed();
+  const {
+    data,
+    settings,
+    isPending,
+    checkoutState,
+    previewCheckout,
+    clearCheckoutState,
+  } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
 
@@ -943,7 +949,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       !hasSkippedInitialAddOns);
 
   return (
-    <Modal ref={modalRef} size="lg" top={top}>
+    <Modal ref={modalRef} size="lg" top={top} onClose={clearCheckoutState}>
       {shouldShowBypassOverlay && (
         <Flex
           $position="absolute"
@@ -971,7 +977,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
         </Flex>
       )}
 
-      <ModalHeader bordered>
+      <ModalHeader bordered onClose={clearCheckoutState}>
         <Flex
           $flexWrap="wrap"
           $gap="0.5rem"

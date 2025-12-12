@@ -53,7 +53,8 @@ type EmbedAction =
     }
   | { type: "CHANGE_LAYOUT"; layout: EmbedLayout }
   | { type: "SET_CHECKOUT_STATE"; state: CheckoutState }
-  | { type: "SET_PLANID_BYPASS"; config: string | BypassConfig };
+  | { type: "SET_PLANID_BYPASS"; config: string | BypassConfig }
+  | { type: "CLEAR_CHECKOUT_STATE" };
 
 function normalize(data?: HydrateData): HydrateDataWithCompanyContext {
   return merge({}, data, {
@@ -266,6 +267,13 @@ export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {
           ...(config.addOnIds && { addOnIds: config.addOnIds }),
           hideSkippedStages: config.hideSkipped ?? false,
         },
+      };
+    }
+
+    case "CLEAR_CHECKOUT_STATE": {
+      return {
+        ...state,
+        checkoutState: undefined,
       };
     }
   }
