@@ -7,40 +7,12 @@ on:
   workflow_dispatch:
 
 jobs:
-  lint:
-    name: Lint
-    runs-on: runs-on=${{ github.run_id }}/runner=4cpu-linux-x64/extras=s3-cache
-    steps:
-      - uses: runs-on/action@v2.0.3
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
-        with:
-          node-version: 24.x
-      - name: Yarn install
-        working-directory: ./react
-        run: yarn install
-      - name: Lint
-        working-directory: ./react
-        run: yarn lint
-
-  test:
-    name: Test
-    runs-on: runs-on=${{ github.run_id }}/runner=4cpu-linux-x64/extras=s3-cache
-    steps:
-      - uses: runs-on/action@v2.0.3
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
-        with:
-          node-version: 24.x
-      - name: Yarn install
-        working-directory: ./react
-        run: yarn install
-      - name: Test
-        working-directory: ./react
-        run: yarn test
-      - name: Test (React Native)
-        working-directory: ./react
-        run: yarn test:reactnative
+  lint_test:
+    name: Lint and Test
+    uses: ./.github/workflows/reusable_lint_test.yml
+    with:
+      package: schematic-react
+      working_dir: react
 
   publish:
     name: NPM Publish
@@ -48,7 +20,7 @@ jobs:
     permissions:
       packages: write
       contents: read
-    needs: [test, lint]
+    needs: [lint_test]
     steps:
       - uses: runs-on/action@v2.0.3
       - uses: actions/checkout@v6
