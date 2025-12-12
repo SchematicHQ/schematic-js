@@ -69,7 +69,7 @@
     "jsdom": "^27.2.0",
     "msw": "^2.12.3",
     "prettier": "^3.7.3",
-    "react": "^19.2.0",
+    "react": "^19.2.3",
     "react-dom": "^19.2.0",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.48.0",
