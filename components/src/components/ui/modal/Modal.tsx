@@ -1,68 +1,45 @@
-import {
-  forwardRef,
-  useCallback,
-  useImperativeHandle,
-  useLayoutEffect,
-  useRef,
-} from "react";
+import { forwardRef, useCallback, useImperativeHandle, useRef } from "react";
 
-import { useEmbed, useIsLightBackground } from "../../../hooks";
+import { useEmbed } from "../../../hooks";
 import { Container } from "../../layout";
 
 import * as styles from "./styles";
 
 export type ModalSize = "sm" | "md" | "lg" | "auto";
 
-export interface ModalProps extends React.HTMLAttributes<HTMLElement> {
-  children: React.ReactNode;
+export interface ModalProps extends React.DialogHTMLAttributes<HTMLDialogElement> {
   size?: ModalSize;
   top?: number;
-  onClose?: () => void;
 }
 
-export const Modal = forwardRef<HTMLDivElement | null, ModalProps>(
-  ({ children, size = "auto", top = 0, onClose, ...rest }, outerRef) => {
-    const innerRef = useRef<HTMLDivElement>(null);
+export const Modal = forwardRef<HTMLDialogElement | null, ModalProps>(
+  ({ children, size = "auto", top = 0, open, onClose, ...rest }, outerRef) => {
+    const innerRef = useRef<HTMLDialogElement>(null);
 
     useImperativeHandle(outerRef, () => innerRef.current!, []);
 
     const { setLayout } = useEmbed();
 
-    const isLightBackground = useIsLightBackground();
-
-    const handleClose = useCallback(() => {
-      setLayout("portal");
-      onClose?.();
-    }, [setLayout, onClose]);
-
-    useLayoutEffect(() => {
-      innerRef.current?.focus({ preventScroll: true });
-    }, []);
+    const handleClose = useCallback<React.ReactEventHandler<HTMLDialogElement>>(
+      (event) => {
+        setLayout("portal");
+        onClose?.(event);
+      },
+      [setLayout, onClose],
+    );
 
     return (
       <Container>
-        <styles.Overlay
-          $marginTop={`${top}px`}
-          $backgroundColor={
-            isLightBackground
-              ? "hsla(0, 0%, 87.5%, 0.9)"
-              : "hsla(0, 0%, 12.5%, 0.9)"
-          }
-          $scrollbarColor={`${isLightBackground ? "hsla(0, 0%, 0%, 0.15)" : "hsla(0, 0%, 100%, 0.15)"} transparent`}
+        <styles.Modal
+          ref={innerRef}
+          open={open}
+          onClose={handleClose}
+          $size={size}
+          $top={top}
           {...rest}
         >
-          <styles.Modal
-            ref={innerRef}
-            onKeyDown={(event) => {
-              if (event.key === "Escape") {
-                handleClose();
-              }
-            }}
-            $size={size}
-          >
-            {children}
-          </styles.Modal>
-        </styles.Overlay>
+          {children}
+        </styles.Modal>
       </Container>
     );
   },

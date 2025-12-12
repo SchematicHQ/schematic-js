@@ -66,7 +66,6 @@ export const Viewport = forwardRef<HTMLDivElement | null, ViewportProps>(
         </StyledViewport>
 
         {canCheckout &&
-          layout === "checkout" &&
           createPortal(<CheckoutDialog top={top} />, portal || document.body)}
 
         {layout === "unsubscribe" &&
