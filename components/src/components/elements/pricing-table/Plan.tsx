@@ -1,7 +1,10 @@
-import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
-import { TEXT_BASE_SIZE, VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
+import {
+  PriceInterval,
+  TEXT_BASE_SIZE,
+  VISIBLE_ENTITLEMENT_COUNT,
+} from "../../../const";
 import { useEmbed, useIsLightBackground, useTrialEnd } from "../../../hooks";
 import type { SelectedPlan } from "../../../types";
 import {
@@ -60,39 +63,18 @@ export const Plan = ({
 
   const trialEnd = useTrialEnd();
 
-  const {
-    currentPeriod,
-    canCheckout,
-    isTrialSubscription,
-    willSubscriptionCancel,
-    isStandalone,
-    showCredits,
-    showZeroPriceAsFree,
-  } = useMemo(() => {
-    const isStandalone = typeof data?.component === "undefined";
-
-    return {
-      currentPeriod: data?.company?.plan?.planPeriod || "month",
-      canCheckout: isStandalone || (data?.capabilities?.checkout ?? true),
-      isTrialSubscription:
-        data?.company?.billingSubscription?.status === "trialing",
-      willSubscriptionCancel:
-        typeof data?.company?.billingSubscription?.cancelAt === "number",
-      isStandalone,
-      showCredits: data?.showCredits ?? true,
-      showZeroPriceAsFree: data?.showZeroPriceAsFree ?? false,
-    };
-  }, [
-    data?.capabilities?.checkout,
-    data?.company?.billingSubscription?.cancelAt,
-    data?.company?.billingSubscription?.status,
-    data?.company?.plan?.planPeriod,
-    data?.component,
-    data?.showCredits,
-    data?.showZeroPriceAsFree,
-  ]);
-
   const cardPadding = settings.theme.card.padding / TEXT_BASE_SIZE;
+
+  const isStandalone = typeof data?.component === "undefined";
+  const currentPeriod = data?.company?.plan?.planPeriod || "month";
+  const canCheckout = isStandalone || (data?.capabilities?.checkout ?? true);
+  const isTrialSubscription =
+    data?.company?.billingSubscription?.status === "trialing";
+  const showCredits = data?.displaySettings?.showCredits ?? true;
+  const showZeroPriceAsFree =
+    data?.displaySettings?.showZeroPriceAsFree ?? false;
+  const showAsMonthlyPrices =
+    data?.displaySettings?.showAsMonthlyPrices ?? false;
 
   const currentPlanIndex = plans.findIndex((plan) => plan.current);
 
@@ -170,8 +152,17 @@ export const Plan = ({
                 ? t("Usage-based")
                 : isFreePlan && showZeroPriceAsFree
                   ? t("Free")
-                  : formatCurrency(planPrice ?? 0, planCurrency)}
-            {!plan.custom && !isFreePlan && <sub>/{selectedPeriod}</sub>}
+                  : showAsMonthlyPrices && selectedPeriod === PriceInterval.Year
+                    ? formatCurrency((planPrice ?? 0) / 12, planCurrency)
+                    : formatCurrency(planPrice ?? 0, planCurrency)}
+            {!plan.custom && !isFreePlan && (
+              <sub>
+                /
+                {showAsMonthlyPrices && selectedPeriod === PriceInterval.Year
+                  ? t("month, billed yearly")
+                  : t(selectedPeriod)}
+              </sub>
+            )}
           </Text>
         </Box>
 
@@ -235,10 +226,8 @@ export const Plan = ({
                 hexToHSL(settings.theme.primary).l > 50 ? "#000000" : "#FFFFFF"
               }
             >
-              {isTrialSubscription &&
-              !willSubscriptionCancel &&
-              typeof trialEnd !== "undefined"
-                ? trialEnd.formatted
+              {isTrialSubscription && typeof trialEnd.endDate !== "undefined"
+                ? t("X time left in trial", trialEnd)
                 : t("Active")}
             </Text>
           </Flex>

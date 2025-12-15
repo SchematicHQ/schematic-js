@@ -2147,9 +2147,11 @@
       "checkout": false,
       "badge_visibility": true
     },
-    "show_period_toggle": true,
-    "show_credits": true,
-    "show_zero_price_as_free": true
+    "display_settings": {
+      "show_period_toggle": true,
+      "show_credits": true,
+      "show_zero_price_as_free": true
+    }
   },
   "params": {}
 }
