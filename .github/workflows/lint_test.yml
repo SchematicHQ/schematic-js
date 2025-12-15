@@ -57,7 +57,7 @@ jobs:
   lint_test:
     name: Lint and Test
     needs: [validate]
-    uses: ./.github/workflows/reusable_lint_test.yml
+    uses: ./.github/workflows/lint_test.yml
     with:
       package: ${{ inputs.package }}
       working_dir: ${{ needs.validate.outputs.working_dir }}

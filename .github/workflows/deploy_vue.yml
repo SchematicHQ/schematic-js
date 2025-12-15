@@ -9,7 +9,7 @@ on:
 jobs:
   lint_test:
     name: Lint and Test
-    uses: ./.github/workflows/reusable_lint_test.yml
+    uses: ./.github/workflows/lint_test.yml
     with:
       package: schematic-vue
       working_dir: vue
