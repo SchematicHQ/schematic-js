@@ -28,22 +28,10 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: 24.x
-      - name: Yarn install
-        working-directory: ./components
-        run: yarn install
-      - name: Build
-        working-directory: ./components
-        run: yarn build
-      - name: Set up .npmrc
-        run: touch .npmrc && echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > .npmrc
+      - name: Publish
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        working-directory: ./components
-      - name: Test .npmrc
-        run: cat .npmrc
-        working-directory: ./components
-      - run: yarn publish --access public
-        working-directory: ./components
+        run: ./scripts/publish-package.sh "${{ github.ref_name }}"
 
   update_example_app:
     name: Update Example App

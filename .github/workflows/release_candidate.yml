@@ -74,28 +74,10 @@ jobs:
         with:
           node-version: 24.x
 
-      - name: Yarn install
-        working-directory: ./${{ needs.parse_tag.outputs.working_dir }}
-        run: yarn install
-
-      - name: Update package.json version
-        working-directory: ./${{ needs.parse_tag.outputs.working_dir }}
-        run: |
-          npm version ${{ needs.parse_tag.outputs.version }} --no-git-tag-version
-
-      - name: Build
-        working-directory: ./${{ needs.parse_tag.outputs.working_dir }}
-        run: yarn build
-
-      - name: Set up .npmrc
-        run: touch .npmrc && echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > .npmrc
+      - name: Publish RC
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        working-directory: ./${{ needs.parse_tag.outputs.working_dir }}
-
-      - name: Publish to NPM (RC tag)
-        working-directory: ./${{ needs.parse_tag.outputs.working_dir }}
-        run: yarn publish --access public --tag rc
+        run: ./scripts/publish-package.sh "${{ github.ref_name }}"
 
   summary:
     name: Summary

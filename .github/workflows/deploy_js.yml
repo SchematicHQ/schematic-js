@@ -77,19 +77,10 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: 24.x
-      - name: Yarn install
-        working-directory: ./js
-        run: yarn install
-      - name: Build
-        working-directory: ./js
-        run: yarn build
-      - name: Set up .npmrc
-        run: touch .npmrc && echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > .npmrc
+      - name: Publish
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        working-directory: ./js
-      - run: yarn publish --access public
-        working-directory: ./js
+        run: ./scripts/publish-package.sh "${{ github.ref_name }}"
 
   notify_slack:
     name: Notify Slack
