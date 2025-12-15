@@ -1,0 +1,121 @@
+name: Release Candidate
+
+on:
+  push:
+    tags:
+      - 'schematic-js@*-rc.*'
+      - 'schematic-react@*-rc.*'
+      - 'schematic-components@*-rc.*'
+      - 'schematic-vue@*-rc.*'
+
+jobs:
+  parse_tag:
+    name: Parse Tag
+    runs-on: ubuntu-latest
+    outputs:
+      package: ${{ steps.parse.outputs.package }}
+      version: ${{ steps.parse.outputs.version }}
+      working_dir: ${{ steps.parse.outputs.working_dir }}
+    steps:
+      - name: Parse tag
+        id: parse
+        run: |
+          TAG="${{ github.ref_name }}"
+          PACKAGE="${TAG%@*}"
+          VERSION="${TAG#*@}"
+
+          echo "package=$PACKAGE" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+          case "$PACKAGE" in
+            schematic-js)
+              echo "working_dir=js" >> $GITHUB_OUTPUT
+              ;;
+            schematic-react)
+              echo "working_dir=react" >> $GITHUB_OUTPUT
+              ;;
+            schematic-components)
+              echo "working_dir=components" >> $GITHUB_OUTPUT
+              ;;
+            schematic-vue)
+              echo "working_dir=vue" >> $GITHUB_OUTPUT
+              ;;
+            *)
+              echo "Error: Unknown package $PACKAGE"
+              exit 1
+              ;;
+          esac
+
+          echo "## Parsed Tag" >> $GITHUB_STEP_SUMMARY
+          echo "- Package: \`$PACKAGE\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Version: \`$VERSION\`" >> $GITHUB_STEP_SUMMARY
+
+  lint_test:
+    name: Lint and Test
+    needs: [parse_tag]
+    uses: ./.github/workflows/lint_test.yml
+    with:
+      package: ${{ needs.parse_tag.outputs.package }}
+      working_dir: ${{ needs.parse_tag.outputs.working_dir }}
+
+  publish:
+    name: NPM Publish (RC)
+    runs-on: runs-on=${{ github.run_id }}/runner=4cpu-linux-x64/extras=s3-cache
+    permissions:
+      packages: write
+      contents: read
+    needs: [parse_tag, lint_test]
+    steps:
+      - uses: runs-on/action@v2.0.3
+      - uses: actions/checkout@v6
+
+      - name: Set Node.js 24.x
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24.x
+
+      - name: Yarn install
+        working-directory: ./${{ needs.parse_tag.outputs.working_dir }}
+        run: yarn install
+
+      - name: Update package.json version
+        working-directory: ./${{ needs.parse_tag.outputs.working_dir }}
+        run: |
+          npm version ${{ needs.parse_tag.outputs.version }} --no-git-tag-version
+
+      - name: Build
+        working-directory: ./${{ needs.parse_tag.outputs.working_dir }}
+        run: yarn build
+
+      - name: Set up .npmrc
+        run: touch .npmrc && echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > .npmrc
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        working-directory: ./${{ needs.parse_tag.outputs.working_dir }}
+
+      - name: Publish to NPM (RC tag)
+        working-directory: ./${{ needs.parse_tag.outputs.working_dir }}
+        run: yarn publish --access public --tag rc
+
+  summary:
+    name: Summary
+    runs-on: ubuntu-latest
+    needs: [parse_tag, publish]
+    if: always()
+    steps:
+      - name: Print summary
+        run: |
+          echo "## Release Candidate Published" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Property | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Package | \`${{ needs.parse_tag.outputs.package }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Version | \`${{ needs.parse_tag.outputs.version }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| NPM | [@schematichq/${{ needs.parse_tag.outputs.package }}](https://www.npmjs.com/package/@schematichq/${{ needs.parse_tag.outputs.package }}) |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Install" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+          echo "npm install @schematichq/${{ needs.parse_tag.outputs.package }}@${{ needs.parse_tag.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "# or" >> $GITHUB_STEP_SUMMARY
+          echo "npm install @schematichq/${{ needs.parse_tag.outputs.package }}@rc" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
