@@ -441,6 +441,10 @@ export const EmbedProvider = ({
     dispatch({ type: "SET_CHECKOUT_STATE", state });
   }, []);
 
+  const clearCheckoutState = useCallback(() => {
+    dispatch({ type: "CLEAR_CHECKOUT_STATE" });
+  }, []);
+
   const initializeWithPlan = useCallback((config: string | BypassConfig) => {
     dispatch({ type: "SET_PLANID_BYPASS", config });
   }, []);
@@ -583,6 +587,7 @@ export const EmbedProvider = ({
         setAccessToken,
         setLayout,
         setCheckoutState,
+        clearCheckoutState,
         initializeWithPlan,
         setData,
         updateSettings,

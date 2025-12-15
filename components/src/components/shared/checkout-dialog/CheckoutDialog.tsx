@@ -87,8 +87,9 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     settings,
     isPending,
     checkoutState,
-    setLayout,
+    clearCheckoutState,
     previewCheckout,
+    setLayout,
   } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
@@ -823,6 +824,11 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     [handlePreviewCheckout],
   );
 
+  const handleClose = useCallback(() => {
+    setLayout("portal");
+    clearCheckoutState();
+  }, [setLayout, clearCheckoutState]);
+
   // this is needed to run the `selectPlan` logic on initial load
   // if the user is already on an available plan
   const hasInitializedPlan = useRef(false);
@@ -893,13 +899,16 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   }, [charges]);
 
   useEffect(() => {
-    const el = modalRef.current;
-    if (el && layout === "checkout") {
-      el.showModal();
+    const element = modalRef.current;
+
+    if (layout === "checkout") {
+      element?.showModal();
+    } else {
+      element?.close();
     }
 
     return () => {
-      el?.close();
+      element?.close();
     };
   }, [layout]);
 
@@ -961,14 +970,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       !hasSkippedInitialAddOns);
 
   return (
-    <Modal
-      ref={modalRef}
-      size="lg"
-      top={top}
-      onClose={() => {
-        setLayout("portal");
-      }}
-    >
+    <Modal ref={modalRef} size="lg" top={top} onClose={handleClose}>
       {shouldShowBypassOverlay && (
         <Flex
           $position="absolute"
@@ -996,7 +998,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
         </Flex>
       )}
 
-      <ModalHeader bordered>
+      <ModalHeader bordered onClose={handleClose}>
         <Flex
           $flexWrap="wrap"
           $gap="0.5rem"

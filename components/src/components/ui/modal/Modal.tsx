@@ -1,6 +1,5 @@
-import { forwardRef, useCallback, useImperativeHandle, useRef } from "react";
+import { forwardRef, useImperativeHandle, useRef } from "react";
 
-import { useEmbed } from "../../../hooks";
 import { Container } from "../../layout";
 
 import * as styles from "./styles";
@@ -18,22 +17,12 @@ export const Modal = forwardRef<HTMLDialogElement | null, ModalProps>(
 
     useImperativeHandle(outerRef, () => innerRef.current!, []);
 
-    const { setLayout } = useEmbed();
-
-    const handleClose = useCallback<React.ReactEventHandler<HTMLDialogElement>>(
-      (event) => {
-        setLayout("portal");
-        onClose?.(event);
-      },
-      [setLayout, onClose],
-    );
-
     return (
       <Container>
         <styles.Modal
           ref={innerRef}
           open={open}
-          onClose={handleClose}
+          onClose={onClose}
           $size={size}
           $top={top}
           {...rest}
