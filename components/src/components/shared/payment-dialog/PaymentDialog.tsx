@@ -12,7 +12,7 @@ interface PaymentDialogProps {
 export const PaymentDialog = ({ top = 0 }: PaymentDialogProps) => {
   const { t } = useTranslation();
 
-  const { layout, setLayout, clearCheckoutState } = useEmbed();
+  const { setLayout, clearCheckoutState } = useEmbed();
 
   const modalRef = useRef<HTMLDialogElement>(null);
 
@@ -23,21 +23,8 @@ export const PaymentDialog = ({ top = 0 }: PaymentDialogProps) => {
 
   useLayoutEffect(() => {
     const element = modalRef.current;
-
-    if (layout === "payment") {
-      element?.showModal();
-    } else {
-      element?.close();
-    }
-
-    return () => {
-      element?.close();
-    };
-  }, [layout]);
-
-  if (layout !== "payment") {
-    return null;
-  }
+    element?.showModal();
+  }, []);
 
   return (
     <Modal ref={modalRef} size="md" top={top} onClose={handleClose}>

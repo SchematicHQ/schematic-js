@@ -83,7 +83,6 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
   const {
     data,
-    layout,
     settings,
     isPending,
     checkoutState,
@@ -890,17 +889,8 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
   useLayoutEffect(() => {
     const element = modalRef.current;
-
-    if (layout === "checkout") {
-      element?.showModal();
-    } else {
-      element?.close();
-    }
-
-    return () => {
-      element?.close();
-    };
-  }, [layout]);
+    element?.showModal();
+  }, []);
 
   useLayoutEffect(() => {
     stageRef.current?.scrollTo({

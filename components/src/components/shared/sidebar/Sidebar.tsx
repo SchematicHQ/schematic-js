@@ -93,6 +93,8 @@ export const Sidebar = forwardRef<HTMLDivElement | null, SidebarProps>(
     },
     ref,
   ) => {
+    const stageButtonPortal = modalRef.current || document.body;
+
     const { t } = useTranslation();
 
     const {
@@ -517,28 +519,6 @@ export const Sidebar = forwardRef<HTMLDivElement | null, SidebarProps>(
         setError(t("Unsubscribe failed"));
       }
     }, [t, unsubscribe, setError, setIsLoading, setLayout]);
-
-    const observeStageButton = useCallback<React.RefCallback<HTMLElement>>(
-      (element) => {
-        const observer = new IntersectionObserver(
-          ([entry]) => {
-            setCheckoutButtonInView(entry.isIntersecting);
-          },
-          {
-            root: modalRef.current || document.body,
-          },
-        );
-
-        if (element) {
-          observer.observe(element);
-        }
-
-        return () => {
-          observer.disconnect();
-        };
-      },
-      [modalRef],
-    );
 
     const isSelectedPlanTrialable =
       selectedPlan?.companyCanTrial === true &&
@@ -1157,7 +1137,26 @@ export const Sidebar = forwardRef<HTMLDivElement | null, SidebarProps>(
           )}
 
           {layout === "checkout" && (
-            <div ref={observeStageButton}>
+            <div
+              ref={(element) => {
+                const observer = new IntersectionObserver(
+                  ([entry]) => {
+                    setCheckoutButtonInView(entry.isIntersecting);
+                  },
+                  {
+                    root: stageButtonPortal,
+                  },
+                );
+
+                if (element) {
+                  observer.observe(element);
+                }
+
+                return () => {
+                  observer.disconnect();
+                };
+              }}
+            >
               {stageButtonElement}
 
               {createPortal(
@@ -1179,7 +1178,7 @@ export const Sidebar = forwardRef<HTMLDivElement | null, SidebarProps>(
                 >
                   <Box $padding="1rem 1.5rem">{stageButtonElement}</Box>
                 </Box>,
-                modalRef.current || document.body,
+                stageButtonPortal,
               )}
             </div>
           )}

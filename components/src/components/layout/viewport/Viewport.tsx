@@ -15,9 +15,10 @@ export interface ViewportProps extends React.HTMLProps<HTMLDivElement> {
 
 export const Viewport = forwardRef<HTMLDivElement | null, ViewportProps>(
   ({ children, portal, ...props }, ref) => {
-    const portalRef = useRef(portal || document.body);
+    portal = portal || document.body;
+    const portalRef = useRef(portal);
 
-    const { data, settings } = useEmbed();
+    const { data, layout, settings } = useEmbed();
 
     const [top, setTop] = useState(0);
 
@@ -48,9 +49,14 @@ export const Viewport = forwardRef<HTMLDivElement | null, ViewportProps>(
           {isBadgeVisible && <Badge />}
         </StyledViewport>
 
-        {createPortal(<CheckoutDialog top={top} />, portal || document.body)}
-        {createPortal(<UnsubscribeDialog top={top} />, portal || document.body)}
-        {createPortal(<PaymentDialog top={top} />, portal || document.body)}
+        {layout === "checkout" &&
+          createPortal(<CheckoutDialog top={top} />, portal)}
+
+        {layout === "unsubscribe" &&
+          createPortal(<UnsubscribeDialog top={top} />, portal)}
+
+        {layout === "payment" &&
+          createPortal(<PaymentDialog top={top} />, portal)}
       </>
     );
   },

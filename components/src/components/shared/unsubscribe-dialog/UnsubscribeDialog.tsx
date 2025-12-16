@@ -14,8 +14,7 @@ interface UnsubscribeDialogProps {
 export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
   const { t } = useTranslation();
 
-  const { data, layout, setLayout, setCheckoutState, clearCheckoutState } =
-    useEmbed();
+  const { data, setLayout, setCheckoutState, clearCheckoutState } = useEmbed();
 
   const modalRef = useRef<HTMLDialogElement>(null);
 
@@ -73,21 +72,8 @@ export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
 
   useLayoutEffect(() => {
     const element = modalRef.current;
-
-    if (layout === "unsubscribe") {
-      element?.showModal();
-    } else {
-      element?.close();
-    }
-
-    return () => {
-      element?.close();
-    };
-  }, [layout]);
-
-  if (layout !== "unsubscribe") {
-    return null;
-  }
+    element?.showModal();
+  }, []);
 
   return (
     <Modal ref={modalRef} size="auto" top={top} onClose={handleClose}>
