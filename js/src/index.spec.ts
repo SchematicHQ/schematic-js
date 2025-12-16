@@ -1059,6 +1059,145 @@ describe("Fallback Values", () => {
       expect(result.featureAllocation).toBe(100);
     });
   });
+
+  describe("Synchronous getters (getFlagValue/getFlagCheck)", () => {
+    it("getFlagValue should return flagValueDefaults when no server value exists", () => {
+      const schematic = new Schematic("API_KEY", {
+        offline: true,
+        flagValueDefaults: {
+          'sync-flag-true': true,
+          'sync-flag-false': false,
+        },
+      });
+
+      expect(schematic.getFlagValue('sync-flag-true')).toBe(true);
+      expect(schematic.getFlagValue('sync-flag-false')).toBe(false);
+      expect(schematic.getFlagValue('unknown-flag')).toBeUndefined();
+    });
+
+    it("getFlagCheck should return flagCheckDefaults when no server value exists", () => {
+      const schematic = new Schematic("API_KEY", {
+        offline: true,
+        flagCheckDefaults: {
+          'sync-check-flag': {
+            flag: 'sync-check-flag',
+            value: true,
+            reason: 'Has premium plan',
+            ruleType: RuleType.PLAN_ENTITLEMENT,
+            featureAllocation: 500,
+            featureUsage: 100,
+          },
+        },
+      });
+
+      const result = schematic.getFlagCheck('sync-check-flag');
+      expect(result).toBeDefined();
+      expect(result?.value).toBe(true);
+      expect(result?.reason).toBe('Has premium plan'); // Preserves reason from flagCheckDefaults
+      expect(result?.featureAllocation).toBe(500);
+      expect(result?.featureUsage).toBe(100);
+    });
+
+    it("getFlagCheck should construct from flagValueDefaults when no flagCheckDefaults exists", () => {
+      const schematic = new Schematic("API_KEY", {
+        offline: true,
+        flagValueDefaults: {
+          'simple-default-flag': true,
+        },
+      });
+
+      const result = schematic.getFlagCheck('simple-default-flag');
+      expect(result).toBeDefined();
+      expect(result?.value).toBe(true);
+      expect(result?.reason).toBe('Default value used');
+      expect(result?.flag).toBe('simple-default-flag');
+    });
+
+    it("getFlagValue should use boolean value from flagCheckDefaults when no flagValueDefaults exists", () => {
+      const schematic = new Schematic("API_KEY", {
+        offline: true,
+        flagCheckDefaults: {
+          'check-only-flag': {
+            flag: 'check-only-flag',
+            value: true,
+            reason: 'Has premium plan',
+            featureAllocation: 100,
+          },
+        },
+      });
+
+      // Should extract the boolean value from flagCheckDefaults
+      expect(schematic.getFlagValue('check-only-flag')).toBe(true);
+    });
+
+    it("getFlagCheck should return undefined when no defaults configured", () => {
+      const schematic = new Schematic("API_KEY", {
+        offline: true,
+      });
+
+      expect(schematic.getFlagCheck('no-default-flag')).toBeUndefined();
+    });
+
+    it("getFlagValue should return undefined when no defaults configured", () => {
+      const schematic = new Schematic("API_KEY", {
+        offline: true,
+      });
+
+      expect(schematic.getFlagValue('no-default-flag')).toBeUndefined();
+    });
+
+    it("getFlagValue should prefer server value over defaults", () => {
+      const schematic = new Schematic("API_KEY", {
+        offline: true,
+        flagValueDefaults: {
+          'override-flag': true, // Default is true
+        },
+      });
+
+      // Manually set a check to simulate server response
+      // The context string for empty context {} is JSON.stringify({}) = "{}"
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const checks = (schematic as any).checks;
+      checks['{}'] = {
+        'override-flag': {
+          flag: 'override-flag',
+          value: false, // Server says false
+          reason: 'From server',
+        },
+      };
+
+      expect(schematic.getFlagValue('override-flag')).toBe(false); // Server value wins
+    });
+
+    it("getFlagCheck should prefer server value over defaults", () => {
+      const schematic = new Schematic("API_KEY", {
+        offline: true,
+        flagCheckDefaults: {
+          'override-check-flag': {
+            flag: 'override-check-flag',
+            value: true,
+            reason: 'Default reason',
+          },
+        },
+      });
+
+      // Manually set a check to simulate server response
+      // The context string for empty context {} is JSON.stringify({}) = "{}"
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const checks = (schematic as any).checks;
+      checks['{}'] = {
+        'override-check-flag': {
+          flag: 'override-check-flag',
+          value: false,
+          reason: 'Server reason',
+        },
+      };
+
+      const result = schematic.getFlagCheck('override-check-flag');
+      expect(result?.value).toBe(false); // Server value wins
+      expect(result?.reason).toBe('Server reason');
+    });
+  });
 });
 
 describe("WebSocket Fallback Behavior", () => {
