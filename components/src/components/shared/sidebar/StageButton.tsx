@@ -24,9 +24,9 @@ const NoPaymentRequired = ({
       type="button"
       disabled={isDisabled}
       onClick={onClick}
-      $isLoading={isLoading}
       $size={isSticky ? "sm" : "md"}
       $fullWidth
+      $isLoading={isLoading}
     >
       {t("Subscribe and close")}
     </Button>
@@ -109,8 +109,8 @@ export const StageButton = ({
           onClick={async () => {
             setCheckoutStage?.("checkout");
           }}
-          $isLoading={isLoading}
           $fullWidth
+          $isLoading={isLoading}
         >
           <Flex
             $gap="0.5rem"
@@ -143,9 +143,9 @@ export const StageButton = ({
         onClick={async () => {
           setCheckoutStage?.(nextStage ?? "checkout");
         }}
-        $isLoading={isLoading}
-        $fullWidth
         $size={isSticky ? "sm" : "md"}
+        $fullWidth
+        $isLoading={isLoading}
       >
         <Flex $gap="0.5rem" $justifyContent="center" $alignItems="center">
           {t("Next")}: {getStageDisplayName(nextStage)}
@@ -176,9 +176,9 @@ export const StageButton = ({
         onClick={async () => {
           setCheckoutStage?.(nextStage ?? "checkout");
         }}
-        $isLoading={isLoading}
-        $fullWidth
         $size={isSticky ? "sm" : "md"}
+        $fullWidth
+        $isLoading={isLoading}
       >
         <Flex
           $gap="0.5rem"
@@ -214,8 +214,8 @@ export const StageButton = ({
         onClick={async () => {
           setCheckoutStage?.(nextStage ?? "checkout");
         }}
-        $isLoading={isLoading}
         $fullWidth
+        $isLoading={isLoading}
       >
         <Flex
           $gap="0.5rem"
@@ -251,9 +251,9 @@ export const StageButton = ({
         onClick={async () => {
           setCheckoutStage?.(nextStage ?? "checkout");
         }}
-        $isLoading={isLoading}
-        $fullWidth
         $size={isSticky ? "sm" : "md"}
+        $fullWidth
+        $isLoading={isLoading}
       >
         <Flex
           $gap="0.5rem"
@@ -287,8 +287,8 @@ export const StageButton = ({
         onClick={async () => {
           setCheckoutStage?.("checkout");
         }}
-        $isLoading={isLoading}
         $fullWidth
+        $isLoading={isLoading}
       >
         <Flex
           $gap="0.5rem"
@@ -320,8 +320,8 @@ export const StageButton = ({
         type="button"
         disabled={isDisabled || !hasPaymentMethod}
         onClick={checkout}
-        $isLoading={isLoading}
         $fullWidth
+        $isLoading={isLoading}
       >
         {willTrialWithoutPaymentMethod ? t("Start trial") : t("Pay now")}
       </Button>

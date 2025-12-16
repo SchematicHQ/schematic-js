@@ -21,6 +21,7 @@ export const Modal = styled.dialog<ModalProps>(({ theme, $size, $top }) => {
     max-width: 100dvw;
     height: fit-content;
     max-height: 100dvh;
+    margin-top: ${$top}px;
     overflow: auto;
     background-color: ${theme.card.background};
     box-shadow:
@@ -31,12 +32,15 @@ export const Modal = styled.dialog<ModalProps>(({ theme, $size, $top }) => {
         : "hsla(0, 0%, 100%, 0.15)"}
       transparent;
 
+    body:has(&[open]) {
+      overflow: hidden;
+    }
+
     &:focus-visible {
       outline: 2px solid ${theme.primary};
     }
 
     &::backdrop {
-      margin-top: ${$top}px;
       background-color: ${isLightBackground
         ? "hsla(0, 0%, 87.5%, 0.9)"
         : "hsla(0, 0%, 12.5%, 0.9)"};

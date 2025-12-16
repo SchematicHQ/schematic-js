@@ -1,11 +1,4 @@
-import {
-  forwardRef,
-  useCallback,
-  useMemo,
-  useState,
-  type Dispatch,
-  type SetStateAction,
-} from "react";
+import { forwardRef, useCallback, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 
@@ -43,7 +36,7 @@ import { Proration } from "./Proration";
 import { StageButton } from "./StageButton";
 
 interface SidebarProps {
-  modalRef?: React.RefObject<HTMLDialogElement | null>;
+  modalRef: React.RefObject<HTMLDialogElement | null>;
   planPeriod: string;
   selectedPlan?: SelectedPlan;
   addOns: SelectedPlan[];
@@ -60,7 +53,7 @@ interface SidebarProps {
   promoCode?: string | null;
   setCheckoutStage?: (stage: string) => void;
   setError: (msg?: string) => void;
-  setIsLoading: Dispatch<SetStateAction<boolean>>;
+  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   updatePromoCode?: (code: string | null) => void;
   showHeader?: boolean;
   shouldTrial?: boolean;
@@ -525,13 +518,15 @@ export const Sidebar = forwardRef<HTMLDivElement | null, SidebarProps>(
       }
     }, [t, unsubscribe, setError, setIsLoading, setLayout]);
 
-    const observeCheckoutButton = useCallback<React.RefCallback<HTMLElement>>(
+    const observeStageButton = useCallback<React.RefCallback<HTMLElement>>(
       (element) => {
         const observer = new IntersectionObserver(
           ([entry]) => {
             setCheckoutButtonInView(entry.isIntersecting);
           },
-          { root: modalRef?.current || document.body },
+          {
+            root: modalRef.current || document.body,
+          },
         );
 
         if (element) {
@@ -545,7 +540,11 @@ export const Sidebar = forwardRef<HTMLDivElement | null, SidebarProps>(
       [modalRef],
     );
 
-    const StageButtonComponent = () => {
+    const isSelectedPlanTrialable =
+      selectedPlan?.companyCanTrial === true &&
+      selectedPlan?.isTrialable === true;
+
+    const stageButtonElement = useMemo(() => {
       return (
         <StageButton
           checkout={handleCheckout}
@@ -567,13 +566,27 @@ export const Sidebar = forwardRef<HTMLDivElement | null, SidebarProps>(
           willTrialWithoutPaymentMethod={willTrialWithoutPaymentMethod}
         />
       );
-    };
+    }, [
+      checkoutButtonInView,
+      checkoutStage,
+      checkoutStages,
+      handleCheckout,
+      isLoading,
+      isPaymentMethodRequired,
+      isSelectedPlanTrialable,
+      paymentMethod,
+      paymentMethodId,
+      selectedPlan,
+      setCheckoutStage,
+      settings.mode,
+      shouldTrial,
+      trialPaymentMethodRequired,
+      willTrialWithoutPaymentMethod,
+    ]);
 
     const { price: selectedPlanPrice, currency: selectedPlanCurrency } =
       selectedPlan ? getPlanPrice(selectedPlan, planPeriod) || {} : {};
-    const isSelectedPlanTrialable =
-      selectedPlan?.companyCanTrial === true &&
-      selectedPlan?.isTrialable === true;
+
     const now = new Date();
     const trialEndsOn = new Date(now);
     if (isSelectedPlanTrialable && selectedPlan.trialDays) {
@@ -1144,41 +1157,29 @@ export const Sidebar = forwardRef<HTMLDivElement | null, SidebarProps>(
           )}
 
           {layout === "checkout" && (
-            <div ref={observeCheckoutButton}>
-              {checkoutButtonInView ? (
-                <StageButtonComponent />
-              ) : (
-                createPortal(
-                  <div
-                    style={{
-                      position: "sticky",
-                      bottom: 0,
-                      left: 0,
-                      zIndex: 9999999,
-                      width: "100%",
-                      overflow: "hidden",
-                      backgroundColor: settings.theme.card.background,
-                      borderTopWidth: "1px",
-                      borderTopStyle: "solid",
-                      borderTopColor: isLightBackground
-                        ? "hsla(0, 0%, 0%, 0.1)"
-                        : "hsla(0, 0%, 100%, 0.2)",
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        padding: "1rem 1.5rem",
-                        backgroundColor: settings.theme.card.background,
-                      }}
-                    >
-                      <StageButtonComponent />
-                    </div>
-                  </div>,
-                  modalRef?.current || document.body,
-                )
+            <div ref={observeStageButton}>
+              {stageButtonElement}
+
+              {createPortal(
+                <Box
+                  $position="sticky"
+                  $bottom={0}
+                  $left={0}
+                  $display={checkoutButtonInView ? "none" : "block"}
+                  $width="100%"
+                  $overflow="hidden"
+                  $backgroundColor={settings.theme.card.background}
+                  $borderTopWidth="1px"
+                  $borderTopStyle="solid"
+                  $borderTopColor={
+                    isLightBackground
+                      ? "hsla(0, 0%, 0%, 0.1)"
+                      : "hsla(0, 0%, 100%, 0.2)"
+                  }
+                >
+                  <Box $padding="1rem 1.5rem">{stageButtonElement}</Box>
+                </Box>,
+                modalRef.current || document.body,
               )}
             </div>
           )}

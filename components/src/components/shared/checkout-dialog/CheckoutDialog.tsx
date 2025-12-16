@@ -888,17 +888,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     });
   }, [data?.addOnCompatibilities, availableAddOns, selectedPlan]);
 
-  useEffect(() => {
-    if (charges) {
-      sidebarRef.current?.scrollTo({
-        top: 0,
-        left: 0,
-        behavior: "smooth",
-      });
-    }
-  }, [charges]);
-
-  useEffect(() => {
+  useLayoutEffect(() => {
     const element = modalRef.current;
 
     if (layout === "checkout") {
@@ -919,6 +909,16 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       behavior: "smooth",
     });
   }, [checkoutStage]);
+
+  useLayoutEffect(() => {
+    if (charges) {
+      sidebarRef.current?.scrollTo({
+        top: 0,
+        left: 0,
+        behavior: "smooth",
+      });
+    }
+  }, [charges]);
 
   const activeCheckoutStage = checkoutStages.find(
     (stage) => stage.id === checkoutStage,
@@ -968,6 +968,11 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     (checkoutState?.bypassAddOnSelection &&
       checkoutStage === "addons" &&
       !hasSkippedInitialAddOns);
+
+  const canCheckout = data?.capabilities?.checkout ?? true;
+  if (!canCheckout) {
+    return null;
+  }
 
   return (
     <Modal ref={modalRef} size="lg" top={top} onClose={handleClose}>

@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useAvailablePlans, useEmbed } from "../../../hooks";
@@ -14,9 +14,10 @@ interface UnsubscribeDialogProps {
 export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
   const { t } = useTranslation();
 
-  const { data, setCheckoutState } = useEmbed();
+  const { data, layout, setLayout, setCheckoutState, clearCheckoutState } =
+    useEmbed();
 
-  const modalRef = useRef<HTMLDivElement>(null);
+  const modalRef = useRef<HTMLDialogElement>(null);
 
   const [error, setError] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(false);
@@ -65,9 +66,32 @@ export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
     [currentAddOns, availableAddOns],
   );
 
+  const handleClose = useCallback(() => {
+    setLayout("portal");
+    clearCheckoutState();
+  }, [setLayout, clearCheckoutState]);
+
+  useLayoutEffect(() => {
+    const element = modalRef.current;
+
+    if (layout === "unsubscribe") {
+      element?.showModal();
+    } else {
+      element?.close();
+    }
+
+    return () => {
+      element?.close();
+    };
+  }, [layout]);
+
+  if (layout !== "unsubscribe") {
+    return null;
+  }
+
   return (
-    <Modal ref={modalRef} size="auto" top={top}>
-      <ModalHeader />
+    <Modal ref={modalRef} size="auto" top={top} onClose={handleClose}>
+      <ModalHeader onClose={handleClose} />
 
       <ModalContent>
         <Flex
@@ -114,6 +138,7 @@ export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
         </Flex>
 
         <Sidebar
+          modalRef={modalRef}
           planPeriod={planPeriod}
           addOns={addOns}
           usageBasedEntitlements={usageBasedEntitlements}
