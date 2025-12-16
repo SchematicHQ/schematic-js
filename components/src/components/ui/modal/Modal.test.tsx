@@ -10,7 +10,7 @@ import { ModalHeader } from "./ModalHeader";
 describe("`Modal` component", () => {
   test("renders a basic modal", async () => {
     render(
-      <Modal>
+      <Modal open>
         <ModalHeader>Modal Dialog</ModalHeader>
         <ModalContent>This is content</ModalContent>
       </Modal>,
