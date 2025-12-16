@@ -33,7 +33,7 @@ const NoPaymentRequired = ({
   );
 };
 
-type StageButtonProps = {
+type CheckoutStageButtonProps = {
   checkout: () => Promise<void>;
   checkoutStage?: string;
   checkoutStages?: CheckoutStage[];
@@ -51,7 +51,7 @@ type StageButtonProps = {
   willTrialWithoutPaymentMethod: boolean;
 };
 
-export const StageButton = ({
+export const CheckoutStageButton = ({
   checkout,
   checkoutStage,
   checkoutStages,
@@ -66,7 +66,7 @@ export const StageButton = ({
   trialPaymentMethodRequired,
   shouldTrial,
   willTrialWithoutPaymentMethod,
-}: StageButtonProps) => {
+}: CheckoutStageButtonProps) => {
   const { t } = useTranslation();
 
   const isDisabled = isLoading || !hasPlan || inEditMode;

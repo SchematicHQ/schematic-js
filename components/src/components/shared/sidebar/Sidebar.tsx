@@ -31,9 +31,9 @@ import {
 import { Box, Button, Flex, Icon, Text } from "../../ui";
 import { type CheckoutStage } from "../checkout-dialog";
 
+import { CheckoutStageButton } from "./CheckoutStageButton";
 import { EntitlementRow } from "./EntitlementRow";
 import { Proration } from "./Proration";
-import { StageButton } from "./StageButton";
 
 interface SidebarProps {
   modalRef: React.RefObject<HTMLDialogElement | null>;
@@ -93,7 +93,7 @@ export const Sidebar = forwardRef<HTMLDivElement | null, SidebarProps>(
     },
     ref,
   ) => {
-    const stageButtonPortal = modalRef.current || document.body;
+    const checkoutStageButtonPortal = modalRef.current || document.body;
 
     const { t } = useTranslation();
 
@@ -109,7 +109,8 @@ export const Sidebar = forwardRef<HTMLDivElement | null, SidebarProps>(
 
     const isLightBackground = useIsLightBackground();
 
-    const [checkoutButtonInView, setCheckoutButtonInView] = useState(false);
+    const [isCheckoutStageButtonInView, setIsCheckoutStageButtonInView] =
+      useState(false);
 
     const {
       currentPlan,
@@ -524,9 +525,9 @@ export const Sidebar = forwardRef<HTMLDivElement | null, SidebarProps>(
       selectedPlan?.companyCanTrial === true &&
       selectedPlan?.isTrialable === true;
 
-    const stageButtonElement = useMemo(() => {
+    const checkoutStageButtonElement = useMemo(() => {
       return (
-        <StageButton
+        <CheckoutStageButton
           checkout={handleCheckout}
           checkoutStage={checkoutStage}
           checkoutStages={checkoutStages}
@@ -539,7 +540,7 @@ export const Sidebar = forwardRef<HTMLDivElement | null, SidebarProps>(
           isLoading={isLoading}
           isPaymentMethodRequired={isPaymentMethodRequired}
           isSelectedPlanTrialable={isSelectedPlanTrialable}
-          isSticky={!checkoutButtonInView}
+          isSticky={!isCheckoutStageButtonInView}
           setCheckoutStage={setCheckoutStage}
           trialPaymentMethodRequired={trialPaymentMethodRequired}
           shouldTrial={shouldTrial}
@@ -547,10 +548,10 @@ export const Sidebar = forwardRef<HTMLDivElement | null, SidebarProps>(
         />
       );
     }, [
-      checkoutButtonInView,
       checkoutStage,
       checkoutStages,
       handleCheckout,
+      isCheckoutStageButtonInView,
       isLoading,
       isPaymentMethodRequired,
       isSelectedPlanTrialable,
@@ -1141,10 +1142,10 @@ export const Sidebar = forwardRef<HTMLDivElement | null, SidebarProps>(
               ref={(element) => {
                 const observer = new IntersectionObserver(
                   ([entry]) => {
-                    setCheckoutButtonInView(entry.isIntersecting);
+                    setIsCheckoutStageButtonInView(entry.isIntersecting);
                   },
                   {
-                    root: stageButtonPortal,
+                    root: checkoutStageButtonPortal,
                   },
                 );
 
@@ -1157,14 +1158,14 @@ export const Sidebar = forwardRef<HTMLDivElement | null, SidebarProps>(
                 };
               }}
             >
-              {stageButtonElement}
+              {checkoutStageButtonElement}
 
               {createPortal(
                 <Box
                   $position="sticky"
                   $bottom={0}
                   $left={0}
-                  $display={checkoutButtonInView ? "none" : "block"}
+                  $display={isCheckoutStageButtonInView ? "none" : "block"}
                   $width="100%"
                   $overflow="hidden"
                   $backgroundColor={settings.theme.card.background}
@@ -1176,9 +1177,9 @@ export const Sidebar = forwardRef<HTMLDivElement | null, SidebarProps>(
                       : "hsla(0, 0%, 100%, 0.2)"
                   }
                 >
-                  <Box $padding="1rem 1.5rem">{stageButtonElement}</Box>
+                  <Box $padding="1rem 1.5rem">{checkoutStageButtonElement}</Box>
                 </Box>,
-                stageButtonPortal,
+                checkoutStageButtonPortal,
               )}
             </div>
           )}
