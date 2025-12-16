@@ -31,6 +31,12 @@ import {
   BillingProductPriceResponseDataFromJSONTyped,
   BillingProductPriceResponseDataToJSON,
 } from "./BillingProductPriceResponseData";
+import type { CreditTransferView } from "./CreditTransferView";
+import {
+  CreditTransferViewFromJSON,
+  CreditTransferViewFromJSONTyped,
+  CreditTransferViewToJSON,
+} from "./CreditTransferView";
 import type { BillingCreditExpiryUnit } from "./BillingCreditExpiryUnit";
 import {
   BillingCreditExpiryUnitFromJSON,
@@ -196,6 +202,12 @@ export interface CreditCompanyGrantView {
   sourceLabel: string;
   /**
    *
+   * @type {Array<CreditTransferView>}
+   * @memberof CreditCompanyGrantView
+   */
+  transfers?: Array<CreditTransferView>;
+  /**
+   *
    * @type {Date}
    * @memberof CreditCompanyGrantView
    */
@@ -310,6 +322,10 @@ export function CreditCompanyGrantViewFromJSONTyped(
     singularName:
       json["singular_name"] == null ? undefined : json["singular_name"],
     sourceLabel: json["source_label"],
+    transfers:
+      json["transfers"] == null
+        ? undefined
+        : (json["transfers"] as Array<any>).map(CreditTransferViewFromJSON),
     updatedAt: new Date(json["updated_at"]),
     validFrom:
       json["valid_from"] == null ? undefined : new Date(json["valid_from"]),
@@ -361,6 +377,10 @@ export function CreditCompanyGrantViewToJSON(
     quantity_used: value["quantityUsed"],
     singular_name: value["singularName"],
     source_label: value["sourceLabel"],
+    transfers:
+      value["transfers"] == null
+        ? undefined
+        : (value["transfers"] as Array<any>).map(CreditTransferViewToJSON),
     updated_at: value["updatedAt"].toISOString(),
     valid_from:
       value["validFrom"] == null
