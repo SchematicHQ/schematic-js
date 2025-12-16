@@ -1,6 +1,6 @@
 {
   "name": "@schematichq/schematic-js",
-  "version": "1.2.14",
+  "version": "1.2.15",
   "main": "dist/schematic.cjs.js",
   "module": "dist/schematic.esm.js",
   "types": "dist/schematic.d.ts",
@@ -37,7 +37,7 @@
     "uuid": "^13.0.0"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.1",
+    "@eslint/js": "^9.39.2",
     "@microsoft/api-extractor": "^7.55.0",
     "@openapitools/openapi-generator-cli": "^2.25.2",
     "@vitest/browser": "^4.0.10",
