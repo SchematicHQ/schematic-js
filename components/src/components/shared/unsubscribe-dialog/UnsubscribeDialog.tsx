@@ -1,4 +1,11 @@
-import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
+import {
+  forwardRef,
+  useCallback,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useTranslation } from "react-i18next";
 
 import { useAvailablePlans, useEmbed } from "../../../hooks";
@@ -11,12 +18,16 @@ interface UnsubscribeDialogProps {
   top?: number;
 }
 
-export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
+export const UnsubscribeDialog = forwardRef<
+  HTMLDialogElement | null,
+  UnsubscribeDialogProps
+>(({ top = 0 }, ref) => {
   const { t } = useTranslation();
 
   const { data, setLayout, setCheckoutState, clearCheckoutState } = useEmbed();
 
   const modalRef = useRef<HTMLDialogElement>(null);
+  useImperativeHandle(ref, () => modalRef.current!, []);
 
   const [error, setError] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(false);
@@ -69,11 +80,6 @@ export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
     setLayout("portal");
     clearCheckoutState();
   }, [setLayout, clearCheckoutState]);
-
-  useLayoutEffect(() => {
-    const element = modalRef.current;
-    element?.showModal();
-  }, []);
 
   return (
     <Modal ref={modalRef} size="auto" top={top} onClose={handleClose}>
@@ -139,4 +145,6 @@ export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
       </ModalContent>
     </Modal>
   );
-};
+});
+
+UnsubscribeDialog.displayName = "UnsubscribeDialog";

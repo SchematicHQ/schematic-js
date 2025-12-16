@@ -18,6 +18,10 @@ export const Viewport = forwardRef<HTMLDivElement | null, ViewportProps>(
     portal = portal || document.body;
     const portalRef = useRef(portal);
 
+    const checkoutDialogRef = useRef<HTMLDialogElement>(null);
+    const unsubscribeDialogRef = useRef<HTMLDialogElement>(null);
+    const paymentDialogRef = useRef<HTMLDialogElement>(null);
+
     const { data, layout, settings } = useEmbed();
 
     const [top, setTop] = useState(0);
@@ -38,6 +42,30 @@ export const Viewport = forwardRef<HTMLDivElement | null, ViewportProps>(
       };
     }, []);
 
+    useLayoutEffect(() => {
+      switch (layout) {
+        case "checkout":
+          checkoutDialogRef.current?.showModal();
+          unsubscribeDialogRef.current?.close();
+          paymentDialogRef.current?.close();
+          break;
+        case "unsubscribe":
+          checkoutDialogRef.current?.close();
+          unsubscribeDialogRef.current?.showModal();
+          paymentDialogRef.current?.close();
+          break;
+        case "payment":
+          checkoutDialogRef.current?.close();
+          unsubscribeDialogRef.current?.close();
+          paymentDialogRef.current?.showModal();
+          break;
+        default:
+          checkoutDialogRef.current?.close();
+          unsubscribeDialogRef.current?.close();
+          paymentDialogRef.current?.close();
+      }
+    }, [layout]);
+
     const isBadgeVisible =
       !data?.capabilities?.badgeVisibility ||
       settings.badge?.visibility !== "hidden";
@@ -49,14 +77,20 @@ export const Viewport = forwardRef<HTMLDivElement | null, ViewportProps>(
           {isBadgeVisible && <Badge />}
         </StyledViewport>
 
-        {layout === "checkout" &&
-          createPortal(<CheckoutDialog top={top} />, portal)}
+        {createPortal(
+          <CheckoutDialog ref={checkoutDialogRef} top={top} />,
+          portal,
+        )}
 
-        {layout === "unsubscribe" &&
-          createPortal(<UnsubscribeDialog top={top} />, portal)}
+        {createPortal(
+          <UnsubscribeDialog ref={unsubscribeDialogRef} top={top} />,
+          portal,
+        )}
 
-        {layout === "payment" &&
-          createPortal(<PaymentDialog top={top} />, portal)}
+        {createPortal(
+          <PaymentDialog ref={paymentDialogRef} top={top} />,
+          portal,
+        )}
       </>
     );
   },

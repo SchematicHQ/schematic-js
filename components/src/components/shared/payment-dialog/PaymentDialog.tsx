@@ -1,4 +1,4 @@
-import { useCallback, useLayoutEffect, useRef } from "react";
+import { forwardRef, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useEmbed } from "../../../hooks";
@@ -9,25 +9,21 @@ interface PaymentDialogProps {
   top?: number;
 }
 
-export const PaymentDialog = ({ top = 0 }: PaymentDialogProps) => {
+export const PaymentDialog = forwardRef<
+  HTMLDialogElement | null,
+  PaymentDialogProps
+>(({ top = 0 }, ref) => {
   const { t } = useTranslation();
 
   const { setLayout, clearCheckoutState } = useEmbed();
-
-  const modalRef = useRef<HTMLDialogElement>(null);
 
   const handleClose = useCallback(() => {
     setLayout("portal");
     clearCheckoutState();
   }, [setLayout, clearCheckoutState]);
 
-  useLayoutEffect(() => {
-    const element = modalRef.current;
-    element?.showModal();
-  }, []);
-
   return (
-    <Modal ref={modalRef} size="md" top={top} onClose={handleClose}>
+    <Modal ref={ref} size="md" top={top} onClose={handleClose}>
       <ModalHeader bordered onClose={handleClose}>
         <Text $size={18}>{t("Edit payment method")}</Text>
       </ModalHeader>
@@ -39,4 +35,6 @@ export const PaymentDialog = ({ top = 0 }: PaymentDialogProps) => {
       </ModalContent>
     </Modal>
   );
-};
+});
+
+PaymentDialog.displayName = "PaymentDialog";

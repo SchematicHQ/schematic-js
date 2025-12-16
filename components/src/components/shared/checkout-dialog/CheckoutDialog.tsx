@@ -1,6 +1,8 @@
 import {
+  forwardRef,
   useCallback,
   useEffect,
+  useImperativeHandle,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -78,7 +80,10 @@ interface ConfirmPaymentIntentProps {
   callback: (confirmed: boolean) => void;
 }
 
-export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
+export const CheckoutDialog = forwardRef<
+  HTMLDialogElement | null,
+  CheckoutDialogProps
+>(({ top = 0 }, ref) => {
   const { t } = useTranslation();
 
   const {
@@ -94,7 +99,8 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   const isLightBackground = useIsLightBackground();
 
   const modalRef = useRef<HTMLDialogElement>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
+  useImperativeHandle(ref, () => modalRef.current!, []);
+
   const stageRef = useRef<HTMLDivElement>(null);
   const sidebarRef = useRef<HTMLDivElement>(null);
 
@@ -888,11 +894,6 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   }, [data?.addOnCompatibilities, availableAddOns, selectedPlan]);
 
   useLayoutEffect(() => {
-    const element = modalRef.current;
-    element?.showModal();
-  }, []);
-
-  useLayoutEffect(() => {
     stageRef.current?.scrollTo({
       top: 0,
       left: 0,
@@ -1018,7 +1019,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
         </Flex>
       </ModalHeader>
 
-      <ModalContent ref={contentRef}>
+      <ModalContent>
         <Flex
           ref={stageRef}
           $flexDirection="column"
@@ -1170,4 +1171,6 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       </ModalContent>
     </Modal>
   );
-};
+});
+
+CheckoutDialog.displayName = "CheckoutDialog";
