@@ -5,7 +5,7 @@ import { useAvailablePlans, useEmbed } from "../../../hooks";
 import { toPrettyDate } from "../../../utils";
 import { Button, Flex, Modal, ModalContent, ModalHeader, Text } from "../../ui";
 import { createActiveUsageBasedEntitlementsReducer } from "../checkout-dialog";
-import { Sidebar } from "../sidebar";
+import { SubscriptionSidebar } from "../subscription-sidebar";
 
 interface UnsubscribeDialogProps {
   top?: number;
@@ -123,7 +123,7 @@ export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
           </Flex>
         </Flex>
 
-        <Sidebar
+        <SubscriptionSidebar
           modalRef={modalRef}
           planPeriod={planPeriod}
           addOns={addOns}

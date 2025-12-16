@@ -35,7 +35,7 @@ import { CheckoutStageButton } from "./CheckoutStageButton";
 import { EntitlementRow } from "./EntitlementRow";
 import { Proration } from "./Proration";
 
-interface SidebarProps {
+interface SubscriptionSidebarProps {
   modalRef: React.RefObject<HTMLDialogElement | null>;
   planPeriod: string;
   selectedPlan?: SelectedPlan;
@@ -64,7 +64,10 @@ interface SidebarProps {
   }) => void;
 }
 
-export const Sidebar = forwardRef<HTMLDivElement | null, SidebarProps>(
+export const SubscriptionSidebar = forwardRef<
+  HTMLDivElement | null,
+  SubscriptionSidebarProps
+>(
   (
     {
       modalRef,
@@ -93,7 +96,7 @@ export const Sidebar = forwardRef<HTMLDivElement | null, SidebarProps>(
     },
     ref,
   ) => {
-    const checkoutStageButtonPortal = modalRef.current || document.body;
+    const buttonPortal = modalRef.current || document.body;
 
     const { t } = useTranslation();
 
@@ -109,8 +112,7 @@ export const Sidebar = forwardRef<HTMLDivElement | null, SidebarProps>(
 
     const isLightBackground = useIsLightBackground();
 
-    const [isCheckoutStageButtonInView, setIsCheckoutStageButtonInView] =
-      useState(false);
+    const [isButtonInView, setIsButtonInView] = useState(false);
 
     const {
       currentPlan,
@@ -525,44 +527,68 @@ export const Sidebar = forwardRef<HTMLDivElement | null, SidebarProps>(
       selectedPlan?.companyCanTrial === true &&
       selectedPlan?.isTrialable === true;
 
-    const checkoutStageButtonElement = useMemo(() => {
-      return (
-        <CheckoutStageButton
-          checkout={handleCheckout}
-          checkoutStage={checkoutStage}
-          checkoutStages={checkoutStages}
-          hasPaymentMethod={
-            typeof paymentMethod !== "undefined" ||
-            typeof paymentMethodId === "string"
-          }
-          hasPlan={typeof selectedPlan !== "undefined"}
-          inEditMode={settings.mode === "edit"}
-          isLoading={isLoading}
-          isPaymentMethodRequired={isPaymentMethodRequired}
-          isSelectedPlanTrialable={isSelectedPlanTrialable}
-          isSticky={!isCheckoutStageButtonInView}
-          setCheckoutStage={setCheckoutStage}
-          trialPaymentMethodRequired={trialPaymentMethodRequired}
-          shouldTrial={shouldTrial}
-          willTrialWithoutPaymentMethod={willTrialWithoutPaymentMethod}
-        />
-      );
+    const button = useMemo(() => {
+      const isSticky = !isButtonInView;
+
+      switch (layout) {
+        case "checkout":
+          return (
+            <CheckoutStageButton
+              isLoading={isLoading}
+              isSticky={isSticky}
+              inEditMode={settings.mode === "edit"}
+              checkoutStage={checkoutStage}
+              setCheckoutStage={setCheckoutStage}
+              checkoutStages={checkoutStages}
+              hasPlan={typeof selectedPlan !== "undefined"}
+              isPaymentMethodRequired={isPaymentMethodRequired}
+              hasPaymentMethod={
+                typeof paymentMethod !== "undefined" ||
+                typeof paymentMethodId === "string"
+              }
+              isSelectedPlanTrialable={isSelectedPlanTrialable}
+              trialPaymentMethodRequired={trialPaymentMethodRequired}
+              willTrialWithoutPaymentMethod={willTrialWithoutPaymentMethod}
+              shouldTrial={shouldTrial}
+              checkout={handleCheckout}
+            />
+          );
+
+        case "unsubscribe":
+          return (
+            <Button
+              type="button"
+              onClick={handleUnsubscribe}
+              $size={isSticky ? "sm" : "md"}
+              $isLoading={isLoading}
+              $fullWidth
+            >
+              {t("Cancel subscription")}
+            </Button>
+          );
+
+        default:
+          return null;
+      }
     }, [
-      checkoutStage,
-      checkoutStages,
-      handleCheckout,
-      isCheckoutStageButtonInView,
-      isLoading,
-      isPaymentMethodRequired,
-      isSelectedPlanTrialable,
-      paymentMethod,
-      paymentMethodId,
-      selectedPlan,
-      setCheckoutStage,
+      t,
+      layout,
       settings.mode,
-      shouldTrial,
+      isLoading,
+      isButtonInView,
+      checkoutStage,
+      setCheckoutStage,
+      checkoutStages,
+      selectedPlan,
+      isSelectedPlanTrialable,
       trialPaymentMethodRequired,
       willTrialWithoutPaymentMethod,
+      shouldTrial,
+      isPaymentMethodRequired,
+      paymentMethod,
+      paymentMethodId,
+      handleCheckout,
+      handleUnsubscribe,
     ]);
 
     const { price: selectedPlanPrice, currency: selectedPlanCurrency } =
@@ -1137,63 +1163,50 @@ export const Sidebar = forwardRef<HTMLDivElement | null, SidebarProps>(
             </Flex>
           )}
 
-          {layout === "checkout" && (
-            <div
-              ref={(element) => {
-                const observer = new IntersectionObserver(
-                  ([entry]) => {
-                    setIsCheckoutStageButtonInView(entry.isIntersecting);
-                  },
-                  {
-                    root: checkoutStageButtonPortal,
-                  },
-                );
+          <div
+            ref={(element) => {
+              const observer = new IntersectionObserver(
+                ([entry]) => {
+                  setIsButtonInView(entry.isIntersecting);
+                },
+                {
+                  root: buttonPortal,
+                },
+              );
 
-                if (element) {
-                  observer.observe(element);
+              if (element) {
+                observer.observe(element);
+              }
+
+              return () => {
+                observer.disconnect();
+              };
+            }}
+          >
+            {button}
+
+            {createPortal(
+              <Box
+                $position="sticky"
+                $bottom={0}
+                $left={0}
+                $display={isButtonInView ? "none" : "block"}
+                $width="100%"
+                $overflow="hidden"
+                $backgroundColor={settings.theme.card.background}
+                $borderTopWidth="1px"
+                $borderTopStyle="solid"
+                $borderTopColor={
+                  isLightBackground
+                    ? "hsla(0, 0%, 0%, 0.1)"
+                    : "hsla(0, 0%, 100%, 0.2)"
                 }
-
-                return () => {
-                  observer.disconnect();
-                };
-              }}
-            >
-              {checkoutStageButtonElement}
-
-              {createPortal(
-                <Box
-                  $position="sticky"
-                  $bottom={0}
-                  $left={0}
-                  $display={isCheckoutStageButtonInView ? "none" : "block"}
-                  $width="100%"
-                  $overflow="hidden"
-                  $backgroundColor={settings.theme.card.background}
-                  $borderTopWidth="1px"
-                  $borderTopStyle="solid"
-                  $borderTopColor={
-                    isLightBackground
-                      ? "hsla(0, 0%, 0%, 0.1)"
-                      : "hsla(0, 0%, 100%, 0.2)"
-                  }
-                >
-                  <Box $padding="1rem 1.5rem">{checkoutStageButtonElement}</Box>
-                </Box>,
-                checkoutStageButtonPortal,
-              )}
-            </div>
-          )}
-
-          {layout === "unsubscribe" && (
-            <Button
-              type="button"
-              onClick={handleUnsubscribe}
-              $isLoading={isLoading}
-              $fullWidth
-            >
-              {t("Cancel subscription")}
-            </Button>
-          )}
+              >
+                <Box $padding="1rem 1.5rem">{button}</Box>
+              </Box>,
+              buttonPortal,
+            )}
+          </div>
 
           {!isLoading && error && (
             <Box>
@@ -1219,4 +1232,4 @@ export const Sidebar = forwardRef<HTMLDivElement | null, SidebarProps>(
   },
 );
 
-Sidebar.displayName = "Sidebar";
+SubscriptionSidebar.displayName = "SubscriptionSidebar";

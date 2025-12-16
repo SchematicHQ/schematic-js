@@ -29,7 +29,7 @@ import type {
   UsageBasedEntitlement,
 } from "../../../types";
 import { ERROR_UNKNOWN, getAddOnPrice, isError } from "../../../utils";
-import { PeriodToggle, Sidebar } from "../../shared";
+import { PeriodToggle, SubscriptionSidebar } from "../../shared";
 import { Flex, Loader, Modal, ModalContent, ModalHeader, Text } from "../../ui";
 
 import { Navigation } from "./Navigation";
@@ -1142,7 +1142,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           )}
         </Flex>
 
-        <Sidebar
+        <SubscriptionSidebar
           ref={sidebarRef}
           modalRef={modalRef}
           planPeriod={planPeriod}

@@ -4,7 +4,7 @@ export * from "./payment-dialog";
 export * from "./payment-form";
 export * from "./period-toggle";
 export * from "./pricing-tiers-tooltip";
-export * from "./sidebar";
+export * from "./subscription-sidebar";
 export * from "./tiered-pricing-details";
 export * from "./unsubscribe-dialog";
 export * from "./usage-violation-text";
