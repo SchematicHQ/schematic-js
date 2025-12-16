@@ -61,6 +61,7 @@ models/CountResponse.ts
 models/CreateSetupIntentResponse.ts
 models/CreditCompanyGrantView.ts
 models/CreditGrantDetail.ts
+models/CreditTransferView.ts
 models/CurrencyBalance.ts
 models/CustomPlanConfig.ts
 models/CustomPlanViewConfigResponseData.ts
