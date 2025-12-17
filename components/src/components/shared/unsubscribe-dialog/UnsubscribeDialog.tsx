@@ -66,8 +66,8 @@ export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
   );
 
   const handleClose = useCallback(() => {
-    setLayout("portal");
     clearCheckoutState();
+    setLayout("portal");
   }, [setLayout, clearCheckoutState]);
 
   useLayoutEffect(() => {

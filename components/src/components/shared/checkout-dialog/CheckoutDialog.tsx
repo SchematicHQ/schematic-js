@@ -824,8 +824,8 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   );
 
   const handleClose = useCallback(() => {
-    setLayout("portal");
     clearCheckoutState();
+    setLayout("portal");
   }, [setLayout, clearCheckoutState]);
 
   // this is needed to run the `selectPlan` logic on initial load

@@ -17,8 +17,8 @@ export const PaymentDialog = ({ top = 0 }: PaymentDialogProps) => {
   const modalRef = useRef<HTMLDialogElement>(null);
 
   const handleClose = useCallback(() => {
-    setLayout("portal");
     clearCheckoutState();
+    setLayout("portal");
   }, [setLayout, clearCheckoutState]);
 
   useLayoutEffect(() => {
