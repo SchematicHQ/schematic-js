@@ -26,16 +26,7 @@ import {
   type UsageDetails,
 } from "../../../utils";
 import { Element } from "../../layout";
-import {
-  Box,
-  Button,
-  Flex,
-  Icon,
-  ProgressBar,
-  Text,
-  TransitionBox,
-  progressColorMap,
-} from "../../ui";
+import { Box, Button, Flex, Icon, Text, TransitionBox } from "../../ui";
 
 import { Meter } from "./Meter";
 import { PriceDetails } from "./PriceDetails";
@@ -396,20 +387,18 @@ export const MeteredFeatures = forwardRef<
                     </Flex>
                   </Flex>
 
-                  <Flex $gap="1rem">
-                    <ProgressBar
-                      progress={(credit.total.used / credit.total.value) * 100}
-                      value={credit.total.used}
-                      total={credit.total.value}
-                      color={
-                        progressColorMap[
-                          Math.floor(
-                            (credit.total.used / credit.total.value) *
-                              (progressColorMap.length - 1),
-                          )
-                        ]
-                      }
-                    />
+                  <Flex
+                    $justifyContent="space-between"
+                    $alignItems="center"
+                    $gap="1rem"
+                  >
+                    <Box>
+                      <Text display={props.usage.fontStyle}>
+                        {formatNumber(credit.total.remaining)}{" "}
+                        {getFeatureName(credit, credit.total.remaining)}{" "}
+                        {t("remaining")}
+                      </Text>
+                    </Box>
 
                     {canCheckout && (
                       <Button

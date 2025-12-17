@@ -45,6 +45,8 @@ export const UsageDetails = ({
     usage,
     softLimit,
     metricResetAt,
+    creditRemaining,
+    creditConsumptionRate,
   } = entitlement;
 
   const { t } = useTranslation();
@@ -125,16 +127,13 @@ export const UsageDetails = ({
       showCredits &&
       priceBehavior === PriceBehavior.Credit &&
       planEntitlement?.valueCredit &&
-      typeof planEntitlement?.consumptionRate === "number"
+      typeof creditRemaining === "number"
     ) {
       return (
         <>
-          {planEntitlement.consumptionRate}{" "}
-          {getFeatureName(
-            planEntitlement.valueCredit,
-            planEntitlement.consumptionRate,
-          )}{" "}
-          {t("per")} {t("use")}
+          {formatNumber(creditRemaining)}{" "}
+          {getFeatureName(planEntitlement.valueCredit, creditRemaining)}{" "}
+          {t("remaining")}
         </>
       );
     }
@@ -161,6 +160,8 @@ export const UsageDetails = ({
     billingPrice,
     currentTier,
     showCredits,
+    creditRemaining,
+    creditConsumptionRate,
   ]);
 
   const usageText = useMemo(() => {
@@ -191,8 +192,7 @@ export const UsageDetails = ({
     } else if (
       (priceBehavior === PriceBehavior.PayAsYouGo ||
         priceBehavior === PriceBehavior.Overage ||
-        priceBehavior === PriceBehavior.Tiered ||
-        priceBehavior === PriceBehavior.Credit) &&
+        priceBehavior === PriceBehavior.Tiered) &&
       typeof usage === "number"
     ) {
       acc.push(
