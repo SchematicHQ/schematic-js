@@ -72,7 +72,18 @@ export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
 
   useLayoutEffect(() => {
     const element = modalRef.current;
-    element?.showModal();
+
+    if (element) {
+      if (element.open) {
+        return;
+      }
+
+      if (element.parentElement === document.body) {
+        element.showModal();
+      } else {
+        element.show();
+      }
+    }
   }, []);
 
   return (

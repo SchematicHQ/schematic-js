@@ -1,6 +1,7 @@
 import { css, styled } from "styled-components";
 
 import { useIsLightBackground } from "../../../hooks";
+import { ResetStyle } from "../../layout";
 
 import { type ModalSize } from ".";
 
@@ -13,15 +14,18 @@ export const Modal = styled.dialog<ModalProps>(({ theme, $size, $top }) => {
   const isLightBackground = useIsLightBackground();
 
   return css`
+    ${ResetStyle}
+
     position: absolute;
     top: 50%;
     left: 50%;
+    z-index: 9;
     transform: translate(-50%, -50%);
     width: 100%;
     max-width: 100dvw;
     height: fit-content;
     max-height: 100dvh;
-    margin-top: ${$top}px;
+    margin: ${$top}px 0 0;
     overflow: auto;
     background-color: ${theme.card.background};
     box-shadow:
@@ -32,10 +36,6 @@ export const Modal = styled.dialog<ModalProps>(({ theme, $size, $top }) => {
         : "hsla(0, 0%, 100%, 0.15)"}
       transparent;
 
-    body:has(&[open]) {
-      overflow: hidden;
-    }
-
     &:focus-visible {
       outline: 2px solid ${theme.primary};
     }
@@ -44,6 +44,7 @@ export const Modal = styled.dialog<ModalProps>(({ theme, $size, $top }) => {
       background-color: ${isLightBackground
         ? "hsla(0, 0%, 87.5%, 0.9)"
         : "hsla(0, 0%, 12.5%, 0.9)"};
+      backdrop-filter: blur(8px);
     }
 
     @media (min-width: 768px) {

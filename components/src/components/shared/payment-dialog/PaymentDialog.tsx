@@ -23,7 +23,18 @@ export const PaymentDialog = ({ top = 0 }: PaymentDialogProps) => {
 
   useLayoutEffect(() => {
     const element = modalRef.current;
-    element?.showModal();
+
+    if (element) {
+      if (element.open) {
+        return;
+      }
+
+      if (element.parentElement === document.body) {
+        element.showModal();
+      } else {
+        element.show();
+      }
+    }
   }, []);
 
   return (

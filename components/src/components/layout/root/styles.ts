@@ -1,6 +1,6 @@
-import { styled } from "styled-components";
+import { css, styled } from "styled-components";
 
-export const Container = styled.div`
+export const ResetStyle = css`
   all: initial;
   box-sizing: border-box;
   display: block;
@@ -30,4 +30,8 @@ export const Container = styled.div`
   sup {
     vertical-align: top;
   }
+`;
+
+export const Container = styled.div`
+  ${ResetStyle}
 `;

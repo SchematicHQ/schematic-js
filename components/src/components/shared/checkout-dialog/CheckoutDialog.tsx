@@ -889,7 +889,18 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
   useLayoutEffect(() => {
     const element = modalRef.current;
-    element?.showModal();
+
+    if (element) {
+      if (element.open) {
+        return;
+      }
+
+      if (element.parentElement === document.body) {
+        element.showModal();
+      } else {
+        element.show();
+      }
+    }
   }, []);
 
   useLayoutEffect(() => {

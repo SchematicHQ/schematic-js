@@ -1,4 +1,11 @@
-import { forwardRef, useCallback, useMemo, useState } from "react";
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 
@@ -111,6 +118,8 @@ export const SubscriptionSidebar = forwardRef<
     } = useEmbed();
 
     const isLightBackground = useIsLightBackground();
+
+    const buttonRef = useRef<HTMLDivElement>(null);
 
     const [isButtonInView, setIsButtonInView] = useState(false);
 
@@ -590,6 +599,28 @@ export const SubscriptionSidebar = forwardRef<
       handleCheckout,
       handleUnsubscribe,
     ]);
+
+    useEffect(() => {
+      const element = buttonRef.current;
+      if (!element) {
+        return;
+      }
+
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          setIsButtonInView(entry.isIntersecting);
+        },
+        {
+          root: buttonPortal,
+        },
+      );
+
+      observer.observe(element);
+
+      return () => {
+        observer.disconnect();
+      };
+    }, [buttonPortal]);
 
     const { price: selectedPlanPrice, currency: selectedPlanCurrency } =
       selectedPlan ? getPlanPrice(selectedPlan, planPeriod) || {} : {};
@@ -1163,26 +1194,7 @@ export const SubscriptionSidebar = forwardRef<
             </Flex>
           )}
 
-          <div
-            ref={(element) => {
-              const observer = new IntersectionObserver(
-                ([entry]) => {
-                  setIsButtonInView(entry.isIntersecting);
-                },
-                {
-                  root: buttonPortal,
-                },
-              );
-
-              if (element) {
-                observer.observe(element);
-              }
-
-              return () => {
-                observer.disconnect();
-              };
-            }}
-          >
+          <div ref={buttonRef}>
             {button}
 
             {createPortal(
