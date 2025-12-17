@@ -1,6 +1,6 @@
 {
   "name": "@schematichq/schematic-js",
-  "version": "1.2.14",
+  "version": "1.2.15",
   "main": "dist/schematic.cjs.js",
   "module": "dist/schematic.esm.js",
   "types": "dist/schematic.d.ts",
@@ -42,7 +42,7 @@
     "@openapitools/openapi-generator-cli": "^2.25.2",
     "@vitest/browser": "^4.0.10",
     "esbuild": "^0.27.1",
-    "eslint": "^9.39.1",
+    "eslint": "^9.39.2",
     "globals": "^16.5.0",
     "happy-dom": "^20.0.10",
     "husky": "^9.1.7",

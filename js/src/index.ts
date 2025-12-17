@@ -689,15 +689,13 @@ export class Schematic {
   identify = (body: EventBodyIdentify): Promise<void> => {
     this.debug(`identify:`, body);
 
-    try {
-      // Set context for future events (async, don't wait)
-      this.setContext({
-        company: body.company?.keys,
-        user: body.keys,
-      });
-    } catch (error) {
+    // Set context for future events (async, don't wait)
+    this.setContext({
+      company: body.company?.keys,
+      user: body.keys,
+    }).catch((error) => {
       console.warn("Error setting context:", error);
-    }
+    });
 
     // Send the identify event immediately
     return this.handleEvent("identify", body);
