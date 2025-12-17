@@ -86,6 +86,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     settings,
     isPending,
     checkoutState,
+    setCheckoutState,
     previewCheckout,
     clearCheckoutState,
   } = useEmbed();
@@ -996,7 +997,17 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
                 (s) => s.id === checkoutStage,
               )}
               isLast={index === stages.length - 1}
-              onSelect={() => setCheckoutStage(stage.id)}
+              onSelect={() => {
+                // Clear bypass state when user manually navigates back to plan stage
+                if (stage.id === "plan" && checkoutState?.bypassPlanSelection) {
+                  setCheckoutState({
+                    ...checkoutState,
+                    planId: undefined,
+                    bypassPlanSelection: false,
+                  });
+                }
+                setCheckoutStage(stage.id);
+              }}
             />
           ))}
         </Flex>
