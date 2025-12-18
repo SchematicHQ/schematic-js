@@ -55,6 +55,12 @@ import {
   EntitlementTypeFromJSONTyped,
   EntitlementTypeToJSON,
 } from "./EntitlementType";
+import type { FeatureUsageResponseDataCreditUsageAggregation } from "./FeatureUsageResponseDataCreditUsageAggregation";
+import {
+  FeatureUsageResponseDataCreditUsageAggregationFromJSON,
+  FeatureUsageResponseDataCreditUsageAggregationFromJSONTyped,
+  FeatureUsageResponseDataCreditUsageAggregationToJSON,
+} from "./FeatureUsageResponseDataCreditUsageAggregation";
 import type { BillingPriceView } from "./BillingPriceView";
 import {
   BillingPriceViewFromJSON,
@@ -87,7 +93,7 @@ export interface FeatureUsageResponseData {
    */
   access: boolean;
   /**
-   * The maximum amount of usage that is permitted; a null value indicates that unlimited usage is permitted.
+   * The maximum amount of usage that is permitted; a null value indicates that unlimited usage is permitted or that this is a credit-based entitlement (use credit_remaining instead).
    * @type {number}
    * @memberof FeatureUsageResponseData
    */
@@ -135,9 +141,10 @@ export interface FeatureUsageResponseData {
    */
   creditRemaining?: number | null;
   /**
-   *
+   * Deprecated: Use credit_remaining instead.
    * @type {number}
    * @memberof FeatureUsageResponseData
+   * @deprecated
    */
   creditTotal?: number | null;
   /**
@@ -146,6 +153,12 @@ export interface FeatureUsageResponseData {
    * @memberof FeatureUsageResponseData
    */
   creditTypeIcon?: string | null;
+  /**
+   *
+   * @type {FeatureUsageResponseDataCreditUsageAggregation}
+   * @memberof FeatureUsageResponseData
+   */
+  creditUsageAggregation?: FeatureUsageResponseDataCreditUsageAggregation;
   /**
    *
    * @type {number}
@@ -267,7 +280,7 @@ export interface FeatureUsageResponseData {
    */
   softLimit?: number | null;
   /**
-   * The amount of usage that has been consumed; a null value indicates that usage is not being measured.
+   * The amount of usage that has been consumed; a null value indicates that usage is not being measured or that this is a credit-based entitlement (use credit_used instead).
    * @type {number}
    * @memberof FeatureUsageResponseData
    */
@@ -341,6 +354,12 @@ export function FeatureUsageResponseDataFromJSONTyped(
       json["credit_total"] == null ? undefined : json["credit_total"],
     creditTypeIcon:
       json["credit_type_icon"] == null ? undefined : json["credit_type_icon"],
+    creditUsageAggregation:
+      json["credit_usage_aggregation"] == null
+        ? undefined
+        : FeatureUsageResponseDataCreditUsageAggregationFromJSON(
+            json["credit_usage_aggregation"],
+          ),
     creditUsed: json["credit_used"] == null ? undefined : json["credit_used"],
     effectiveLimit:
       json["effective_limit"] == null ? undefined : json["effective_limit"],
@@ -425,6 +444,10 @@ export function FeatureUsageResponseDataToJSON(
     credit_remaining: value["creditRemaining"],
     credit_total: value["creditTotal"],
     credit_type_icon: value["creditTypeIcon"],
+    credit_usage_aggregation:
+      FeatureUsageResponseDataCreditUsageAggregationToJSON(
+        value["creditUsageAggregation"],
+      ),
     credit_used: value["creditUsed"],
     effective_limit: value["effectiveLimit"],
     effective_price: value["effectivePrice"],
