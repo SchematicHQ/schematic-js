@@ -1,17 +1,17 @@
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import { Flex, Icon } from "../../ui";
 
-interface ModalHeaderProps {
+interface DialogHeaderProps {
   children?: React.ReactNode;
   bordered?: boolean;
   onClose?: () => void;
 }
 
-export const ModalHeader = ({
+export const DialogHeader = ({
   children,
   bordered = false,
   onClose,
-}: ModalHeaderProps) => {
+}: DialogHeaderProps) => {
   const { settings } = useEmbed();
 
   const isLightBackground = useIsLightBackground();

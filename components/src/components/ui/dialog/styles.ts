@@ -3,14 +3,14 @@ import { css, styled } from "styled-components";
 import { useIsLightBackground } from "../../../hooks";
 import { ResetStyle } from "../../layout";
 
-import { type ModalSize } from ".";
+import { type DialogSize } from ".";
 
-interface ModalProps {
-  $size: ModalSize;
+interface DialogProps {
+  $size: DialogSize;
   $top: number;
 }
 
-export const Modal = styled.dialog<ModalProps>(({ theme, $size, $top }) => {
+export const Dialog = styled.dialog<DialogProps>(({ theme, $size, $top }) => {
   const isLightBackground = useIsLightBackground();
 
   return css`
@@ -19,7 +19,7 @@ export const Modal = styled.dialog<ModalProps>(({ theme, $size, $top }) => {
     position: absolute;
     top: 50%;
     left: 50%;
-    z-index: 9;
+    z-index: 10;
     transform: translate(-50%, -50%);
     width: 100%;
     max-width: 100dvw;
@@ -61,5 +61,23 @@ export const Modal = styled.dialog<ModalProps>(({ theme, $size, $top }) => {
     @media (min-width: 768px) and (min-height: 896px) {
       max-height: 860px;
     }
+  `;
+});
+
+export const Overlay = styled.div(({ theme, $size, $top }) => {
+  const isLightBackground = useIsLightBackground();
+
+  return css`
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 9;
+    width: 100%;
+    height: 100%;
+    margin: ${$top}px 0 0;
+    background-color: ${isLightBackground
+      ? "hsla(0, 0%, 87.5%, 0.9)"
+      : "hsla(0, 0%, 12.5%, 0.9)"};
+    backdrop-filter: blur(8px);
   `;
 });

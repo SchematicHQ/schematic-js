@@ -1,7 +1,7 @@
 import {
   forwardRef,
   useCallback,
-  useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -43,7 +43,7 @@ import { EntitlementRow } from "./EntitlementRow";
 import { Proration } from "./Proration";
 
 interface SubscriptionSidebarProps {
-  modalRef: React.RefObject<HTMLDialogElement | null>;
+  portalRef?: React.RefObject<HTMLDialogElement | null>;
   planPeriod: string;
   selectedPlan?: SelectedPlan;
   addOns: SelectedPlan[];
@@ -77,7 +77,7 @@ export const SubscriptionSidebar = forwardRef<
 >(
   (
     {
-      modalRef,
+      portalRef,
       planPeriod,
       selectedPlan,
       addOns,
@@ -103,7 +103,7 @@ export const SubscriptionSidebar = forwardRef<
     },
     ref,
   ) => {
-    const buttonPortal = modalRef.current || document.body;
+    const portal = portalRef?.current || document.body;
 
     const { t } = useTranslation();
 
@@ -600,7 +600,7 @@ export const SubscriptionSidebar = forwardRef<
       handleUnsubscribe,
     ]);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
       const element = buttonRef.current;
       if (!element) {
         return;
@@ -610,9 +610,7 @@ export const SubscriptionSidebar = forwardRef<
         ([entry]) => {
           setIsButtonInView(entry.isIntersecting);
         },
-        {
-          root: buttonPortal,
-        },
+        { root: portal },
       );
 
       observer.observe(element);
@@ -620,7 +618,7 @@ export const SubscriptionSidebar = forwardRef<
       return () => {
         observer.disconnect();
       };
-    }, [buttonPortal]);
+    }, [portal]);
 
     const { price: selectedPlanPrice, currency: selectedPlanCurrency } =
       selectedPlan ? getPlanPrice(selectedPlan, planPeriod) || {} : {};
@@ -1216,7 +1214,7 @@ export const SubscriptionSidebar = forwardRef<
               >
                 <Box $padding="1rem 1.5rem">{button}</Box>
               </Box>,
-              buttonPortal,
+              portal,
             )}
           </div>
 
