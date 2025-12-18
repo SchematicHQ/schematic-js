@@ -31,6 +31,12 @@ import {
   BillingProductPriceResponseDataFromJSONTyped,
   BillingProductPriceResponseDataToJSON,
 } from "./BillingProductPriceResponseData";
+import type { CreditTransferView } from "./CreditTransferView";
+import {
+  CreditTransferViewFromJSON,
+  CreditTransferViewFromJSONTyped,
+  CreditTransferViewToJSON,
+} from "./CreditTransferView";
 import type { BillingCreditExpiryUnit } from "./BillingCreditExpiryUnit";
 import {
   BillingCreditExpiryUnitFromJSON,
@@ -98,6 +104,12 @@ export interface CreditCompanyGrantView {
    * @memberof CreditCompanyGrantView
    */
   creditName: string;
+  /**
+   *
+   * @type {Date}
+   * @memberof CreditCompanyGrantView
+   */
+  exhaustedAt?: Date | null;
   /**
    *
    * @type {Date}
@@ -190,6 +202,12 @@ export interface CreditCompanyGrantView {
   sourceLabel: string;
   /**
    *
+   * @type {Array<CreditTransferView>}
+   * @memberof CreditCompanyGrantView
+   */
+  transfers?: Array<CreditTransferView>;
+  /**
+   *
    * @type {Date}
    * @memberof CreditCompanyGrantView
    */
@@ -275,6 +293,8 @@ export function CreditCompanyGrantViewFromJSONTyped(
     creditDescription: json["credit_description"],
     creditIcon: json["credit_icon"] == null ? undefined : json["credit_icon"],
     creditName: json["credit_name"],
+    exhaustedAt:
+      json["exhausted_at"] == null ? undefined : new Date(json["exhausted_at"]),
     expiresAt:
       json["expires_at"] == null ? undefined : new Date(json["expires_at"]),
     expiryType:
@@ -302,6 +322,10 @@ export function CreditCompanyGrantViewFromJSONTyped(
     singularName:
       json["singular_name"] == null ? undefined : json["singular_name"],
     sourceLabel: json["source_label"],
+    transfers:
+      json["transfers"] == null
+        ? undefined
+        : (json["transfers"] as Array<any>).map(CreditTransferViewFromJSON),
     updatedAt: new Date(json["updated_at"]),
     validFrom:
       json["valid_from"] == null ? undefined : new Date(json["valid_from"]),
@@ -331,6 +355,10 @@ export function CreditCompanyGrantViewToJSON(
     credit_description: value["creditDescription"],
     credit_icon: value["creditIcon"],
     credit_name: value["creditName"],
+    exhausted_at:
+      value["exhaustedAt"] == null
+        ? undefined
+        : (value["exhaustedAt"] as any).toISOString(),
     expires_at:
       value["expiresAt"] == null
         ? undefined
@@ -349,6 +377,10 @@ export function CreditCompanyGrantViewToJSON(
     quantity_used: value["quantityUsed"],
     singular_name: value["singularName"],
     source_label: value["sourceLabel"],
+    transfers:
+      value["transfers"] == null
+        ? undefined
+        : (value["transfers"] as Array<any>).map(CreditTransferViewToJSON),
     updated_at: value["updatedAt"].toISOString(),
     valid_from:
       value["validFrom"] == null

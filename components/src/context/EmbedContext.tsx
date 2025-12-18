@@ -61,6 +61,7 @@ export interface EmbedContextProps extends EmbedState {
   setError: (error: Error) => void;
   setLayout: (layout: EmbedLayout) => void;
   setCheckoutState: (state: CheckoutState) => void;
+  clearCheckoutState: () => void;
   initializeWithPlan: (config: string | BypassConfig) => void;
   setData: (data: HydrateDataWithCompanyContext) => void;
   updateSettings: (
@@ -93,6 +94,7 @@ export const initialContext = {
   setAccessToken: stub,
   setLayout: stub,
   setCheckoutState: stub,
+  clearCheckoutState: stub,
   initializeWithPlan: stub,
   setData: stub,
   updateSettings: stub,

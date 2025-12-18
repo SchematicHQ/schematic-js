@@ -81,8 +81,15 @@ interface ConfirmPaymentIntentProps {
 export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   const { t } = useTranslation();
 
-  const { data, settings, isPending, checkoutState, previewCheckout } =
-    useEmbed();
+  const {
+    data,
+    settings,
+    isPending,
+    checkoutState,
+    setCheckoutState,
+    previewCheckout,
+    clearCheckoutState,
+  } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
 
@@ -116,12 +123,12 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
         currentEntitlements: data?.featureUsage
           ? data.featureUsage.features
           : [],
-        showPeriodToggle: data?.showPeriodToggle ?? true,
+        showPeriodToggle: data?.displaySettings?.showPeriodToggle ?? true,
         trialPaymentMethodRequired: data?.trialPaymentMethodRequired === true,
       };
     }, [
       data?.featureUsage,
-      data?.showPeriodToggle,
+      data?.displaySettings?.showPeriodToggle,
       data?.trialPaymentMethodRequired,
     ]);
 
@@ -943,7 +950,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       !hasSkippedInitialAddOns);
 
   return (
-    <Modal ref={modalRef} size="lg" top={top}>
+    <Modal ref={modalRef} size="lg" top={top} onClose={clearCheckoutState}>
       {shouldShowBypassOverlay && (
         <Flex
           $position="absolute"
@@ -971,7 +978,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
         </Flex>
       )}
 
-      <ModalHeader bordered>
+      <ModalHeader bordered onClose={clearCheckoutState}>
         <Flex
           $flexWrap="wrap"
           $gap="0.5rem"
@@ -990,7 +997,17 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
                 (s) => s.id === checkoutStage,
               )}
               isLast={index === stages.length - 1}
-              onSelect={() => setCheckoutStage(stage.id)}
+              onSelect={() => {
+                // Clear bypass state when user manually navigates back to plan stage
+                if (stage.id === "plan" && checkoutState?.bypassPlanSelection) {
+                  setCheckoutState({
+                    ...checkoutState,
+                    planId: undefined,
+                    bypassPlanSelection: false,
+                  });
+                }
+                setCheckoutStage(stage.id);
+              }}
             />
           ))}
         </Flex>

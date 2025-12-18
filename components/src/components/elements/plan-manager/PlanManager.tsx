@@ -159,8 +159,8 @@ export const PlanManager = forwardRef<
       postTrialPlan: data?.postTrialPlan,
       featureUsage: data?.featureUsage?.features || [],
       trialPaymentMethodRequired: data?.trialPaymentMethodRequired ?? false,
-      showCredits: data?.showCredits ?? true,
-      showZeroPriceAsFree: data?.showZeroPriceAsFree ?? false,
+      showCredits: data?.displaySettings?.showCredits ?? true,
+      showZeroPriceAsFree: data?.displaySettings?.showZeroPriceAsFree ?? false,
     };
   }, [
     data?.activePlans,
@@ -172,8 +172,8 @@ export const PlanManager = forwardRef<
     data?.creditGrants,
     data?.featureUsage?.features,
     data?.postTrialPlan,
-    data?.showCredits,
-    data?.showZeroPriceAsFree,
+    data?.displaySettings?.showCredits,
+    data?.displaySettings?.showZeroPriceAsFree,
     data?.trialPaymentMethodRequired,
   ]);
 
