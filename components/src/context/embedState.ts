@@ -253,7 +253,7 @@ export interface BypassConfig {
    * Billing period to pre-select.
    * Optional - defaults to company's current period or "month".
    */
-  period?: string;
+  period?: "month" | "year";
 }
 
 export type CheckoutState = {
