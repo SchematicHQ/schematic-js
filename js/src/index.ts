@@ -223,8 +223,9 @@ export class Schematic {
   /**
    * Resolve fallback value according to priority order:
    * 1. Callsite fallback value (if provided)
-   * 2. Initialization fallback value (flagValueDefaults)
-   * 3. Default to false
+   * 2. Boolean value from flagCheckDefaults initialization option
+   * 3. Boolean value from flagValueDefaults initialization option
+   * 4. Default to false
    */
   private resolveFallbackValue(
     key: string,
@@ -235,12 +236,17 @@ export class Schematic {
       return callsiteFallback;
     }
 
-    // Priority 2: Initialization fallback value from flagValueDefaults
+    // Priority 2: Boolean value from flagCheckDefaults
+    if (key in this.flagCheckDefaults) {
+      return this.flagCheckDefaults[key].value;
+    }
+
+    // Priority 3: Boolean value from flagValueDefaults
     if (key in this.flagValueDefaults) {
       return this.flagValueDefaults[key];
     }
 
-    // Priority 3: Default to false
+    // Priority 4: Default to false
     return false;
   }
 
@@ -399,7 +405,10 @@ export class Schematic {
       try {
         await this.setContext(context);
       } catch (error) {
-        console.warn("WebSocket connection failed, falling back to REST:", error);
+        console.warn(
+          "WebSocket connection failed, falling back to REST:",
+          error,
+        );
         return this.fallbackToRest(key, context, fallback);
       }
 
@@ -680,15 +689,13 @@ export class Schematic {
   identify = (body: EventBodyIdentify): Promise<void> => {
     this.debug(`identify:`, body);
 
-    try {
-      // Set context for future events (async, don't wait)
-      this.setContext({
-        company: body.company?.keys,
-        user: body.keys,
-      });
-    } catch (error) {
+    // Set context for future events (async, don't wait)
+    this.setContext({
+      company: body.company?.keys,
+      user: body.keys,
+    }).catch((error) => {
       console.warn("Error setting context:", error);
-    }
+    });
 
     // Send the identify event immediately
     return this.handleEvent("identify", body);
@@ -1273,10 +1280,7 @@ export class Schematic {
     }
 
     // If we have context, reconnect and re-send it
-    if (
-      this.context.company !== undefined ||
-      this.context.user !== undefined
-    ) {
+    if (this.context.company !== undefined || this.context.user !== undefined) {
       this.debug(`${methodName}: reconnecting with existing context`);
       try {
         this.isConnecting = true;
@@ -1788,17 +1792,51 @@ export class Schematic {
   };
 
   // flag checks state
-  getFlagCheck = (flagKey: string) => {
+  getFlagCheck = (flagKey: string): CheckFlagReturn | undefined => {
     const contextStr = contextString(this.context);
     const checks = this.checks[contextStr] ?? {};
-    return checks[flagKey];
+    const check = checks[flagKey];
+
+    // Return resolved value if present
+    if (check !== undefined) {
+      return check;
+    }
+
+    // Check initialization options for fallback
+    if (
+      flagKey in this.flagCheckDefaults ||
+      flagKey in this.flagValueDefaults
+    ) {
+      return this.resolveFallbackCheckFlagReturn(
+        flagKey,
+        undefined,
+        "Default value used",
+      );
+    }
+
+    return undefined;
   };
 
   // flagValues state
-  getFlagValue = (flagKey: string) => {
-    const check = this.getFlagCheck(flagKey);
+  getFlagValue = (flagKey: string): boolean | undefined => {
+    const contextStr = contextString(this.context);
+    const checks = this.checks[contextStr] ?? {};
+    const check = checks[flagKey];
 
-    return check?.value;
+    // Return resolved value if present
+    if (check?.value !== undefined) {
+      return check.value;
+    }
+
+    // Check initialization options for fallback
+    if (
+      flagKey in this.flagCheckDefaults ||
+      flagKey in this.flagValueDefaults
+    ) {
+      return this.resolveFallbackValue(flagKey);
+    }
+
+    return undefined;
   };
 
   /** Register an event listener that will be notified with the boolean value for a given flag when this value changes */
