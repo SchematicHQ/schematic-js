@@ -249,6 +249,11 @@ export interface BypassConfig {
    * Default: false (skipped stages still appear in breadcrumbs)
    */
   hideSkipped?: boolean;
+  /**
+   * Billing period to pre-select.
+   * Optional - defaults to company's current period or "month".
+   */
+  period?: string;
 }
 
 export type CheckoutState = {

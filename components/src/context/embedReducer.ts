@@ -262,6 +262,7 @@ export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {
         layout: "checkout",
         checkoutState: {
           ...(config.planId && { planId: config.planId }),
+          ...(config.period && { period: config.period }),
           bypassPlanSelection,
           bypassAddOnSelection,
           ...(config.addOnIds && { addOnIds: config.addOnIds }),
