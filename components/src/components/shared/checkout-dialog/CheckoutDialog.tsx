@@ -132,10 +132,36 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       data?.trialPaymentMethodRequired,
     ]);
 
-  const currentPeriod = useMemo(
-    () => checkoutState?.period || data?.company?.plan?.planPeriod || "month",
-    [data?.company?.plan?.planPeriod, checkoutState?.period],
-  );
+  const currentPeriod = useMemo(() => {
+    const requestedPeriod =
+      checkoutState?.period || data?.company?.plan?.planPeriod || "month";
+
+    // If a specific plan is requested, validate the period against that plan's availability
+    if (checkoutState?.planId) {
+      const requestedPlan = data?.activePlans?.find(
+        (plan) => plan.id === checkoutState.planId,
+      );
+
+      if (requestedPlan) {
+        const planSupportsRequestedPeriod =
+          (requestedPeriod === "month" && requestedPlan.monthlyPrice) ||
+          (requestedPeriod === "year" && requestedPlan.yearlyPrice);
+
+        if (!planSupportsRequestedPeriod) {
+          // Fall back to the period the plan does support
+          if (requestedPlan.yearlyPrice) return "year";
+          if (requestedPlan.monthlyPrice) return "month";
+        }
+      }
+    }
+
+    return requestedPeriod;
+  }, [
+    data?.company?.plan?.planPeriod,
+    data?.activePlans,
+    checkoutState?.period,
+    checkoutState?.planId,
+  ]);
 
   const [planPeriod, setPlanPeriod] = useState(currentPeriod);
 
