@@ -132,7 +132,9 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       data?.trialPaymentMethodRequired,
     ]);
 
-  const currentPeriod = useMemo(() => {
+  // Validates the requested period against the plan's availability.
+  // Note: Plan data must be loaded by the time CheckoutDialog mounts.
+  const getValidatedPeriod = () => {
     const requestedPeriod =
       checkoutState?.period || data?.company?.plan?.planPeriod || "month";
 
@@ -156,14 +158,9 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     }
 
     return requestedPeriod;
-  }, [
-    data?.company?.plan?.planPeriod,
-    data?.activePlans,
-    checkoutState?.period,
-    checkoutState?.planId,
-  ]);
+  };
 
-  const [planPeriod, setPlanPeriod] = useState(currentPeriod);
+  const [planPeriod, setPlanPeriod] = useState(getValidatedPeriod);
 
   const {
     plans: availablePlans,
@@ -856,9 +853,9 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
   useEffect(() => {
     if (!hasInitializedPlan.current && selectedPlan) {
       hasInitializedPlan.current = true;
-      selectPlan({ plan: selectedPlan, period: currentPeriod });
+      selectPlan({ plan: selectedPlan, period: planPeriod });
     }
-  }, [selectedPlan, currentPeriod, selectPlan]);
+  }, [selectedPlan, planPeriod, selectPlan]);
 
   useEffect(() => {
     if (checkoutState?.planId) {
@@ -868,13 +865,13 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
       // Only call selectPlan if the plan actually changed to avoid redundant API calls
       if (plan && plan.id !== selectedPlan?.id) {
-        selectPlan({ plan, period: currentPeriod });
+        selectPlan({ plan, period: planPeriod });
       }
     }
   }, [
     availablePlans,
     checkoutState?.planId,
-    currentPeriod,
+    planPeriod,
     selectPlan,
     selectedPlan?.id,
   ]);
