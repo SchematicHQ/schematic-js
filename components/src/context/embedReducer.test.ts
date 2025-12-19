@@ -176,4 +176,36 @@ describe("embedReducer - SET_PLANID_BYPASS", () => {
       expect(result.checkoutState?.hideSkippedStages).toBe(false);
     });
   });
+
+  describe("Period configuration", () => {
+    it("should set period when provided", () => {
+      const config: BypassConfig = {
+        planId: "plan_xyz",
+        period: "year",
+      };
+
+      const result = reducer(initialState, {
+        type: "SET_PLANID_BYPASS",
+        config,
+      });
+
+      expect(result.checkoutState).toMatchObject({
+        planId: "plan_xyz",
+        period: "year",
+      });
+    });
+
+    it("should not set period when not provided", () => {
+      const config: BypassConfig = {
+        planId: "plan_xyz",
+      };
+
+      const result = reducer(initialState, {
+        type: "SET_PLANID_BYPASS",
+        config,
+      });
+
+      expect(result.checkoutState?.period).toBeUndefined();
+    });
+  });
 });

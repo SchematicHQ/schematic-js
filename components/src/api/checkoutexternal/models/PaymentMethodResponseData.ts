@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from "../runtime";
+import type { BillingProviderType } from "./BillingProviderType";
+import {
+  BillingProviderTypeFromJSON,
+  BillingProviderTypeFromJSONTyped,
+  BillingProviderTypeToJSON,
+} from "./BillingProviderType";
+
 /**
  *
  * @export
@@ -117,6 +124,12 @@ export interface PaymentMethodResponseData {
   paymentMethodType: string;
   /**
    *
+   * @type {BillingProviderType}
+   * @memberof PaymentMethodResponseData
+   */
+  providerType: BillingProviderType;
+  /**
+   *
    * @type {Date}
    * @memberof PaymentMethodResponseData
    */
@@ -144,6 +157,8 @@ export function instanceOfPaymentMethodResponseData(
     !("paymentMethodType" in value) ||
     value["paymentMethodType"] === undefined
   )
+    return false;
+  if (!("providerType" in value) || value["providerType"] === undefined)
     return false;
   if (!("updatedAt" in value) || value["updatedAt"] === undefined) return false;
   return true;
@@ -185,6 +200,7 @@ export function PaymentMethodResponseDataFromJSONTyped(
     externalId: json["external_id"],
     id: json["id"],
     paymentMethodType: json["payment_method_type"],
+    providerType: BillingProviderTypeFromJSON(json["provider_type"]),
     updatedAt: new Date(json["updated_at"]),
   };
 }
@@ -212,6 +228,7 @@ export function PaymentMethodResponseDataToJSON(
     external_id: value["externalId"],
     id: value["id"],
     payment_method_type: value["paymentMethodType"],
+    provider_type: BillingProviderTypeToJSON(value["providerType"]),
     updated_at: value["updatedAt"].toISOString(),
   };
 }

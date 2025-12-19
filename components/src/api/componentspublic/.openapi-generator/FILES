@@ -21,6 +21,7 @@ models/BillingProductPriceInterval.ts
 models/BillingProductPriceResponseData.ts
 models/BillingProductPriceTierResponseData.ts
 models/BillingProductResponseData.ts
+models/BillingProviderType.ts
 models/BillingTiersMode.ts
 models/ChargeType.ts
 models/CompatiblePlans.ts

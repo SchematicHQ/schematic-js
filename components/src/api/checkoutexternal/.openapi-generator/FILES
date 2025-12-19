@@ -27,6 +27,7 @@ models/BillingProductPriceInterval.ts
 models/BillingProductPriceResponseData.ts
 models/BillingProductPriceTierResponseData.ts
 models/BillingProductResponseData.ts
+models/BillingProviderType.ts
 models/BillingSubscriptionDiscountView.ts
 models/BillingSubscriptionResponseData.ts
 models/BillingSubscriptionTrialEndSetting.ts
@@ -62,6 +63,7 @@ models/CreateSetupIntentResponse.ts
 models/CreditCompanyGrantView.ts
 models/CreditGrantDetail.ts
 models/CreditTransferView.ts
+models/CreditUsageAggregation.ts
 models/CurrencyBalance.ts
 models/CustomPlanConfig.ts
 models/CustomPlanViewConfigResponseData.ts
@@ -84,6 +86,7 @@ models/FeatureResponseData.ts
 models/FeatureType.ts
 models/FeatureUsageDetailResponseData.ts
 models/FeatureUsageResponseData.ts
+models/FeatureUsageResponseDataCreditUsageAggregation.ts
 models/FetchCustomerBalanceResponse.ts
 models/FlagDetailResponseData.ts
 models/FlagResponseData.ts

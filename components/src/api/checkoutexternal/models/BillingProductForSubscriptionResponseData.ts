@@ -25,6 +25,12 @@ import {
   BillingPriceUsageTypeFromJSONTyped,
   BillingPriceUsageTypeToJSON,
 } from "./BillingPriceUsageType";
+import type { BillingProviderType } from "./BillingProviderType";
+import {
+  BillingProviderTypeFromJSON,
+  BillingProviderTypeFromJSONTyped,
+  BillingProviderTypeToJSON,
+} from "./BillingProviderType";
 import type { BillingPriceScheme } from "./BillingPriceScheme";
 import {
   BillingPriceSchemeFromJSON,
@@ -136,6 +142,12 @@ export interface BillingProductForSubscriptionResponseData {
   priceTier: Array<BillingProductPriceTierResponseData>;
   /**
    *
+   * @type {BillingProviderType}
+   * @memberof BillingProductForSubscriptionResponseData
+   */
+  providerType: BillingProviderType;
+  /**
+   *
    * @type {number}
    * @memberof BillingProductForSubscriptionResponseData
    */
@@ -190,6 +202,8 @@ export function instanceOfBillingProductForSubscriptionResponseData(
     return false;
   if (!("priceId" in value) || value["priceId"] === undefined) return false;
   if (!("priceTier" in value) || value["priceTier"] === undefined) return false;
+  if (!("providerType" in value) || value["providerType"] === undefined)
+    return false;
   if (!("quantity" in value) || value["quantity"] === undefined) return false;
   if (!("subscriptionId" in value) || value["subscriptionId"] === undefined)
     return false;
@@ -232,6 +246,7 @@ export function BillingProductForSubscriptionResponseDataFromJSONTyped(
     priceTier: (json["price_tier"] as Array<any>).map(
       BillingProductPriceTierResponseDataFromJSON,
     ),
+    providerType: BillingProviderTypeFromJSON(json["provider_type"]),
     quantity: json["quantity"],
     subscriptionId: json["subscription_id"],
     subscriptionItemExternalId:
@@ -268,6 +283,7 @@ export function BillingProductForSubscriptionResponseDataToJSON(
     price_tier: (value["priceTier"] as Array<any>).map(
       BillingProductPriceTierResponseDataToJSON,
     ),
+    provider_type: BillingProviderTypeToJSON(value["providerType"]),
     quantity: value["quantity"],
     subscription_id: value["subscriptionId"],
     subscription_item_external_id: value["subscriptionItemExternalId"],

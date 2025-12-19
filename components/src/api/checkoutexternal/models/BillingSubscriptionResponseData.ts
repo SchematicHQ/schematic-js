@@ -19,6 +19,12 @@ import {
   BillingSubscriptionTrialEndSettingFromJSONTyped,
   BillingSubscriptionTrialEndSettingToJSON,
 } from "./BillingSubscriptionTrialEndSetting";
+import type { BillingProviderType } from "./BillingProviderType";
+import {
+  BillingProviderTypeFromJSON,
+  BillingProviderTypeFromJSONTyped,
+  BillingProviderTypeToJSON,
+} from "./BillingProviderType";
 
 /**
  *
@@ -112,6 +118,12 @@ export interface BillingSubscriptionResponseData {
   periodStart: number;
   /**
    *
+   * @type {BillingProviderType}
+   * @memberof BillingSubscriptionResponseData
+   */
+  providerType: BillingProviderType;
+  /**
+   *
    * @type {string}
    * @memberof BillingSubscriptionResponseData
    */
@@ -165,6 +177,8 @@ export function instanceOfBillingSubscriptionResponseData(
   if (!("periodEnd" in value) || value["periodEnd"] === undefined) return false;
   if (!("periodStart" in value) || value["periodStart"] === undefined)
     return false;
+  if (!("providerType" in value) || value["providerType"] === undefined)
+    return false;
   if (!("status" in value) || value["status"] === undefined) return false;
   if (
     !("subscriptionExternalId" in value) ||
@@ -209,6 +223,7 @@ export function BillingSubscriptionResponseDataFromJSONTyped(
     metadata: json["metadata"] == null ? undefined : json["metadata"],
     periodEnd: json["period_end"],
     periodStart: json["period_start"],
+    providerType: BillingProviderTypeFromJSON(json["provider_type"]),
     status: json["status"],
     subscriptionExternalId: json["subscription_external_id"],
     totalPrice: json["total_price"],
@@ -244,6 +259,7 @@ export function BillingSubscriptionResponseDataToJSON(
     metadata: value["metadata"],
     period_end: value["periodEnd"],
     period_start: value["periodStart"],
+    provider_type: BillingProviderTypeToJSON(value["providerType"]),
     status: value["status"],
     subscription_external_id: value["subscriptionExternalId"],
     total_price: value["totalPrice"],
