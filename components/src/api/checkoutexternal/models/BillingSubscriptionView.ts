@@ -37,6 +37,12 @@ import {
   BillingSubscriptionTrialEndSettingFromJSONTyped,
   BillingSubscriptionTrialEndSettingToJSON,
 } from "./BillingSubscriptionTrialEndSetting";
+import type { BillingProviderType } from "./BillingProviderType";
+import {
+  BillingProviderTypeFromJSON,
+  BillingProviderTypeFromJSONTyped,
+  BillingProviderTypeToJSON,
+} from "./BillingProviderType";
 import type { PaymentMethodResponseData } from "./PaymentMethodResponseData";
 import {
   PaymentMethodResponseDataFromJSON,
@@ -160,6 +166,12 @@ export interface BillingSubscriptionView {
   products: Array<BillingProductForSubscriptionResponseData>;
   /**
    *
+   * @type {BillingProviderType}
+   * @memberof BillingSubscriptionView
+   */
+  providerType: BillingProviderType;
+  /**
+   *
    * @type {string}
    * @memberof BillingSubscriptionView
    */
@@ -215,6 +227,8 @@ export function instanceOfBillingSubscriptionView(
   if (!("periodStart" in value) || value["periodStart"] === undefined)
     return false;
   if (!("products" in value) || value["products"] === undefined) return false;
+  if (!("providerType" in value) || value["providerType"] === undefined)
+    return false;
   if (!("status" in value) || value["status"] === undefined) return false;
   if (
     !("subscriptionExternalId" in value) ||
@@ -273,6 +287,7 @@ export function BillingSubscriptionViewFromJSONTyped(
     products: (json["products"] as Array<any>).map(
       BillingProductForSubscriptionResponseDataFromJSON,
     ),
+    providerType: BillingProviderTypeFromJSON(json["provider_type"]),
     status: json["status"],
     subscriptionExternalId: json["subscription_external_id"],
     totalPrice: json["total_price"],
@@ -316,6 +331,7 @@ export function BillingSubscriptionViewToJSON(
     products: (value["products"] as Array<any>).map(
       BillingProductForSubscriptionResponseDataToJSON,
     ),
+    provider_type: BillingProviderTypeToJSON(value["providerType"]),
     status: value["status"],
     subscription_external_id: value["subscriptionExternalId"],
     total_price: value["totalPrice"],

@@ -141,7 +141,7 @@ export interface FeatureUsageResponseData {
    */
   creditRemaining?: number | null;
   /**
-   * Deprecated: Use credit_remaining instead. This field is no longer populated.
+   * Deprecated: Use credit_remaining instead.
    * @type {number}
    * @memberof FeatureUsageResponseData
    * @deprecated

@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from "../runtime";
+import type { BillingProviderType } from "./BillingProviderType";
+import {
+  BillingProviderTypeFromJSON,
+  BillingProviderTypeFromJSONTyped,
+  BillingProviderTypeToJSON,
+} from "./BillingProviderType";
+
 /**
  *
  * @export
@@ -99,6 +106,12 @@ export interface InvoiceResponseData {
   paymentMethodExternalId?: string | null;
   /**
    *
+   * @type {BillingProviderType}
+   * @memberof InvoiceResponseData
+   */
+  providerType: BillingProviderType;
+  /**
+   *
    * @type {string}
    * @memberof InvoiceResponseData
    */
@@ -146,6 +159,8 @@ export function instanceOfInvoiceResponseData(
   if (!("environmentId" in value) || value["environmentId"] === undefined)
     return false;
   if (!("id" in value) || value["id"] === undefined) return false;
+  if (!("providerType" in value) || value["providerType"] === undefined)
+    return false;
   if (!("subtotal" in value) || value["subtotal"] === undefined) return false;
   if (!("updatedAt" in value) || value["updatedAt"] === undefined) return false;
   return true;
@@ -179,6 +194,7 @@ export function InvoiceResponseDataFromJSONTyped(
       json["payment_method_external_id"] == null
         ? undefined
         : json["payment_method_external_id"],
+    providerType: BillingProviderTypeFromJSON(json["provider_type"]),
     subscriptionExternalId:
       json["subscription_external_id"] == null
         ? undefined
@@ -212,6 +228,7 @@ export function InvoiceResponseDataToJSON(
     external_id: value["externalId"],
     id: value["id"],
     payment_method_external_id: value["paymentMethodExternalId"],
+    provider_type: BillingProviderTypeToJSON(value["providerType"]),
     subscription_external_id: value["subscriptionExternalId"],
     subtotal: value["subtotal"],
     updated_at: value["updatedAt"].toISOString(),

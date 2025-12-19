@@ -25,6 +25,7 @@ export * from "./BillingProductPriceInterval";
 export * from "./BillingProductPriceResponseData";
 export * from "./BillingProductPriceTierResponseData";
 export * from "./BillingProductResponseData";
+export * from "./BillingProviderType";
 export * from "./BillingSubscriptionDiscountView";
 export * from "./BillingSubscriptionResponseData";
 export * from "./BillingSubscriptionTrialEndSetting";

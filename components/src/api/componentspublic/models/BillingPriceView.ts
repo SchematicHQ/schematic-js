@@ -31,6 +31,12 @@ import {
   BillingPriceUsageTypeFromJSONTyped,
   BillingPriceUsageTypeToJSON,
 } from "./BillingPriceUsageType";
+import type { BillingProviderType } from "./BillingProviderType";
+import {
+  BillingProviderTypeFromJSON,
+  BillingProviderTypeFromJSONTyped,
+  BillingProviderTypeToJSON,
+} from "./BillingProviderType";
 import type { BillingPriceScheme } from "./BillingPriceScheme";
 import {
   BillingPriceSchemeFromJSON,
@@ -160,6 +166,12 @@ export interface BillingPriceView {
   productName: string;
   /**
    *
+   * @type {BillingProviderType}
+   * @memberof BillingPriceView
+   */
+  providerType: BillingProviderType;
+  /**
+   *
    * @type {BillingTiersMode}
    * @memberof BillingPriceView
    */
@@ -206,6 +218,8 @@ export function instanceOfBillingPriceView(
   if (!("productId" in value) || value["productId"] === undefined) return false;
   if (!("productName" in value) || value["productName"] === undefined)
     return false;
+  if (!("providerType" in value) || value["providerType"] === undefined)
+    return false;
   if (!("updatedAt" in value) || value["updatedAt"] === undefined) return false;
   if (!("usageType" in value) || value["usageType"] === undefined) return false;
   return true;
@@ -248,6 +262,7 @@ export function BillingPriceViewFromJSONTyped(
     productExternalId: json["product_external_id"],
     productId: json["product_id"],
     productName: json["product_name"],
+    providerType: BillingProviderTypeFromJSON(json["provider_type"]),
     tiersMode:
       json["tiers_mode"] == null
         ? undefined
@@ -282,6 +297,7 @@ export function BillingPriceViewToJSON(value?: BillingPriceView | null): any {
     product_external_id: value["productExternalId"],
     product_id: value["productId"],
     product_name: value["productName"],
+    provider_type: BillingProviderTypeToJSON(value["providerType"]),
     tiers_mode: BillingTiersModeToJSON(value["tiersMode"]),
     updated_at: value["updatedAt"].toISOString(),
     usage_type: BillingPriceUsageTypeToJSON(value["usageType"]),
