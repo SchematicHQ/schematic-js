@@ -19,6 +19,7 @@ export * from "./BillingProductPriceInterval";
 export * from "./BillingProductPriceResponseData";
 export * from "./BillingProductPriceTierResponseData";
 export * from "./BillingProductResponseData";
+export * from "./BillingProviderType";
 export * from "./BillingTiersMode";
 export * from "./ChargeType";
 export * from "./CompatiblePlans";

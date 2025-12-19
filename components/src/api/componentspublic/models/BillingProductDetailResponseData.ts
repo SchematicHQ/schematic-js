@@ -19,6 +19,12 @@ import {
   BillingPriceResponseDataFromJSONTyped,
   BillingPriceResponseDataToJSON,
 } from "./BillingPriceResponseData";
+import type { BillingProviderType } from "./BillingProviderType";
+import {
+  BillingProviderTypeFromJSON,
+  BillingProviderTypeFromJSONTyped,
+  BillingProviderTypeToJSON,
+} from "./BillingProviderType";
 
 /**
  *
@@ -95,6 +101,12 @@ export interface BillingProductDetailResponseData {
   productId: string;
   /**
    *
+   * @type {BillingProviderType}
+   * @memberof BillingProductDetailResponseData
+   */
+  providerType: BillingProviderType;
+  /**
+   *
    * @type {number}
    * @memberof BillingProductDetailResponseData
    */
@@ -130,6 +142,8 @@ export function instanceOfBillingProductDetailResponseData(
   if (!("price" in value) || value["price"] === undefined) return false;
   if (!("prices" in value) || value["prices"] === undefined) return false;
   if (!("productId" in value) || value["productId"] === undefined) return false;
+  if (!("providerType" in value) || value["providerType"] === undefined)
+    return false;
   if (!("quantity" in value) || value["quantity"] === undefined) return false;
   if (
     !("subscriptionCount" in value) ||
@@ -168,6 +182,7 @@ export function BillingProductDetailResponseDataFromJSONTyped(
       BillingPriceResponseDataFromJSON,
     ),
     productId: json["product_id"],
+    providerType: BillingProviderTypeFromJSON(json["provider_type"]),
     quantity: json["quantity"],
     subscriptionCount: json["subscription_count"],
     updatedAt: new Date(json["updated_at"]),
@@ -192,6 +207,7 @@ export function BillingProductDetailResponseDataToJSON(
     price_decimal: value["priceDecimal"],
     prices: (value["prices"] as Array<any>).map(BillingPriceResponseDataToJSON),
     product_id: value["productId"],
+    provider_type: BillingProviderTypeToJSON(value["providerType"]),
     quantity: value["quantity"],
     subscription_count: value["subscriptionCount"],
     updated_at: value["updatedAt"].toISOString(),

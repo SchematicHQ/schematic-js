@@ -25,6 +25,12 @@ import {
   BillingPriceUsageTypeFromJSONTyped,
   BillingPriceUsageTypeToJSON,
 } from "./BillingPriceUsageType";
+import type { BillingProviderType } from "./BillingProviderType";
+import {
+  BillingProviderTypeFromJSON,
+  BillingProviderTypeFromJSONTyped,
+  BillingProviderTypeToJSON,
+} from "./BillingProviderType";
 import type { BillingPriceScheme } from "./BillingPriceScheme";
 import {
   BillingPriceSchemeFromJSON,
@@ -118,6 +124,12 @@ export interface BillingProductPriceResponseData {
   productExternalId: string;
   /**
    *
+   * @type {BillingProviderType}
+   * @memberof BillingProductPriceResponseData
+   */
+  providerType: BillingProviderType;
+  /**
+   *
    * @type {BillingTiersMode}
    * @memberof BillingProductPriceResponseData
    */
@@ -159,6 +171,8 @@ export function instanceOfBillingProductPriceResponseData(
     value["productExternalId"] === undefined
   )
     return false;
+  if (!("providerType" in value) || value["providerType"] === undefined)
+    return false;
   if (!("updatedAt" in value) || value["updatedAt"] === undefined) return false;
   if (!("usageType" in value) || value["usageType"] === undefined) return false;
   return true;
@@ -191,6 +205,7 @@ export function BillingProductPriceResponseDataFromJSONTyped(
       json["price_decimal"] == null ? undefined : json["price_decimal"],
     priceExternalId: json["price_external_id"],
     productExternalId: json["product_external_id"],
+    providerType: BillingProviderTypeFromJSON(json["provider_type"]),
     tiersMode:
       json["tiers_mode"] == null
         ? undefined
@@ -219,6 +234,7 @@ export function BillingProductPriceResponseDataToJSON(
     price_decimal: value["priceDecimal"],
     price_external_id: value["priceExternalId"],
     product_external_id: value["productExternalId"],
+    provider_type: BillingProviderTypeToJSON(value["providerType"]),
     tiers_mode: BillingTiersModeToJSON(value["tiersMode"]),
     updated_at: value["updatedAt"].toISOString(),
     usage_type: BillingPriceUsageTypeToJSON(value["usageType"]),
