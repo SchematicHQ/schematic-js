@@ -85,7 +85,7 @@ interface ConfirmPaymentIntentProps {
   callback: (confirmed: boolean) => void;
 }
 
-export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
+export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
   const { t } = useTranslation();
 
   const {

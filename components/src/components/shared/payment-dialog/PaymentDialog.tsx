@@ -9,7 +9,7 @@ interface PaymentDialogProps {
   top?: number;
 }
 
-export const PaymentDialog = ({ top = 0 }: PaymentDialogProps) => {
+export const PaymentDialog = ({ top }: PaymentDialogProps) => {
   const { t } = useTranslation();
 
   const { layout, setLayout, clearCheckoutState } = useEmbed();

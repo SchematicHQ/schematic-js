@@ -3,9 +3,9 @@ import { forwardRef } from "react";
 import { type EmbedSettings } from "../../../context";
 import type { HydrateDataWithCompanyContext } from "../../../types";
 
-import { Container, ResetStyle } from "./styles";
+import { Container, ContainerStyle, ResetStyle } from "./styles";
 
-export { Container, ResetStyle };
+export { Container, ContainerStyle, ResetStyle };
 
 export interface RootProps extends Omit<
   React.HTMLProps<HTMLDivElement>,

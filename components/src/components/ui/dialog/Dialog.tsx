@@ -54,6 +54,7 @@ export const Dialog = forwardRef<HTMLDialogElement | null, DialogProps>(
           ref={innerRef}
           open={open}
           onClose={onClose}
+          $isModal={isModal}
           $size={size}
           $top={top}
           {...rest}
@@ -61,7 +62,7 @@ export const Dialog = forwardRef<HTMLDialogElement | null, DialogProps>(
           {children}
         </styles.Dialog>
       ),
-      [children, open, onClose, rest, size, top],
+      [children, open, onClose, rest, isModal, size, top],
     );
 
     if (isModal) {

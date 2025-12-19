@@ -8,8 +8,6 @@ export const ResetStyle = css`
   line-height: 1.35;
   width: 100%;
   height: auto;
-  container-type: inline-size;
-  interpolate-size: allow-keywords;
 
   *,
   *::before,
@@ -32,6 +30,12 @@ export const ResetStyle = css`
   }
 `;
 
+export const ContainerStyle = css`
+  container-type: inline-size;
+  interpolate-size: allow-keywords;
+`;
+
 export const Container = styled.div`
   ${ResetStyle}
+  ${ContainerStyle}
 `;

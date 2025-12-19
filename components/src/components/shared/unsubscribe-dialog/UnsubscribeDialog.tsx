@@ -18,7 +18,7 @@ interface UnsubscribeDialogProps {
   top?: number;
 }
 
-export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
+export const UnsubscribeDialog = ({ top }: UnsubscribeDialogProps) => {
   const { t } = useTranslation();
 
   const { data, layout, setLayout, setCheckoutState, clearCheckoutState } =
