@@ -284,13 +284,18 @@ export const PaymentMethodDetails = ({
         $flexGrow={1}
         $gap="1rem"
         $height="fit-content"
-        $padding="2rem 2.5rem 2rem 2.5rem"
+        $padding="1rem"
         $visibility={isLoading || isConfirmingPayment ? "hidden" : "visible"}
         $backgroundColor={
           isLightBackground
             ? "hsla(0, 0%, 0%, 0.025)"
             : "hsla(0, 0%, 100%, 0.025)"
         }
+        $viewport={{
+          md: {
+            $padding: "2rem 2.5rem",
+          },
+        }}
       >
         {setupIntent && showPaymentForm && stripe ? (
           <Elements

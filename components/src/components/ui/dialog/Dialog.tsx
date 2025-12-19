@@ -6,6 +6,8 @@ import {
   useRef,
 } from "react";
 
+import { Overlay } from "../../ui";
+
 import * as styles from "./styles";
 
 export type DialogSize = "sm" | "md" | "lg" | "auto";
@@ -69,7 +71,7 @@ export const Dialog = forwardRef<HTMLDialogElement | null, DialogProps>(
       return dialog;
     }
 
-    return <styles.Overlay>{dialog}</styles.Overlay>;
+    return <Overlay>{dialog}</Overlay>;
   },
 );
 

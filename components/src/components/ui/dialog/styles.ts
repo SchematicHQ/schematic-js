@@ -65,18 +65,3 @@ export const Dialog = styled.dialog<DialogProps>(
     `;
   },
 );
-
-export const Overlay = styled.div(({ theme }) => {
-  return css`
-    position: absolute;
-    top: 0;
-    left: 0;
-    z-index: 9;
-    width: 100%;
-    height: 100%;
-    background-color: ${isLightColor(theme.card.background)
-      ? "hsla(0, 0%, 87.5%, 0.9)"
-      : "hsla(0, 0%, 12.5%, 0.9)"};
-    backdrop-filter: blur(8px);
-  `;
-});

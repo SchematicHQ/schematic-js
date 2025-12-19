@@ -1200,6 +1200,7 @@ export const SubscriptionSidebar = forwardRef<
                 $position="sticky"
                 $bottom={0}
                 $left={0}
+                $zIndex={1}
                 $display={isButtonInView ? "none" : "block"}
                 $width="100%"
                 $overflow="hidden"

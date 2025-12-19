@@ -36,6 +36,7 @@ import {
   DialogHeader,
   Flex,
   Loader,
+  Overlay,
   Text,
 } from "../../ui";
 
@@ -1017,30 +1018,9 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       onClose={handleClose}
     >
       {shouldShowBypassOverlay && (
-        <Flex
-          $position="absolute"
-          $top={0}
-          $left={0}
-          $zIndex={3}
-          $width="100%"
-          $height="100dvh"
-          $justifyContent="center"
-          $alignItems="center"
-          $backgroundColor={
-            isLightBackground
-              ? "hsla(0, 0%, 100%, 0.9)"
-              : "hsla(0, 0%, 0%, 0.9)"
-          }
-          $backdropFilter="blur(8px)"
-          $padding="1rem"
-          $viewport={{
-            md: {
-              $padding: "1.5rem",
-            },
-          }}
-        >
+        <Overlay $justifyContent="center" $alignItems="center">
           <Loader $color={settings.theme.primary} $size="2xl" />
-        </Flex>
+        </Overlay>
       )}
 
       <DialogHeader bordered onClose={handleClose}>
