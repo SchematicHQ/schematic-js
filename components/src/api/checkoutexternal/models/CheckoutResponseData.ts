@@ -19,6 +19,12 @@ import {
   BillingSubscriptionTrialEndSettingFromJSONTyped,
   BillingSubscriptionTrialEndSettingToJSON,
 } from "./BillingSubscriptionTrialEndSetting";
+import type { BillingProviderType } from "./BillingProviderType";
+import {
+  BillingProviderTypeFromJSON,
+  BillingProviderTypeFromJSONTyped,
+  BillingProviderTypeToJSON,
+} from "./BillingProviderType";
 
 /**
  *
@@ -124,6 +130,12 @@ export interface CheckoutResponseData {
   periodStart: number;
   /**
    *
+   * @type {BillingProviderType}
+   * @memberof CheckoutResponseData
+   */
+  providerType: BillingProviderType;
+  /**
+   *
    * @type {string}
    * @memberof CheckoutResponseData
    */
@@ -177,6 +189,8 @@ export function instanceOfCheckoutResponseData(
   if (!("periodEnd" in value) || value["periodEnd"] === undefined) return false;
   if (!("periodStart" in value) || value["periodStart"] === undefined)
     return false;
+  if (!("providerType" in value) || value["providerType"] === undefined)
+    return false;
   if (!("status" in value) || value["status"] === undefined) return false;
   if (
     !("subscriptionExternalId" in value) ||
@@ -227,6 +241,7 @@ export function CheckoutResponseDataFromJSONTyped(
     metadata: json["metadata"] == null ? undefined : json["metadata"],
     periodEnd: json["period_end"],
     periodStart: json["period_start"],
+    providerType: BillingProviderTypeFromJSON(json["provider_type"]),
     status: json["status"],
     subscriptionExternalId: json["subscription_external_id"],
     totalPrice: json["total_price"],
@@ -265,6 +280,7 @@ export function CheckoutResponseDataToJSON(
     metadata: value["metadata"],
     period_end: value["periodEnd"],
     period_start: value["periodStart"],
+    provider_type: BillingProviderTypeToJSON(value["providerType"]),
     status: value["status"],
     subscription_external_id: value["subscriptionExternalId"],
     total_price: value["totalPrice"],

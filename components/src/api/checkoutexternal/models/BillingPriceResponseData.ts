@@ -19,6 +19,12 @@ import {
   BillingProductPriceIntervalFromJSONTyped,
   BillingProductPriceIntervalToJSON,
 } from "./BillingProductPriceInterval";
+import type { BillingProviderType } from "./BillingProviderType";
+import {
+  BillingProviderTypeFromJSON,
+  BillingProviderTypeFromJSONTyped,
+  BillingProviderTypeToJSON,
+} from "./BillingProviderType";
 import type { BillingPriceScheme } from "./BillingPriceScheme";
 import {
   BillingPriceSchemeFromJSON,
@@ -70,6 +76,12 @@ export interface BillingPriceResponseData {
   priceDecimal?: string | null;
   /**
    *
+   * @type {BillingProviderType}
+   * @memberof BillingPriceResponseData
+   */
+  providerType: BillingProviderType;
+  /**
+   *
    * @type {BillingPriceScheme}
    * @memberof BillingPriceResponseData
    */
@@ -88,6 +100,8 @@ export function instanceOfBillingPriceResponseData(
   if (!("id" in value) || value["id"] === undefined) return false;
   if (!("interval" in value) || value["interval"] === undefined) return false;
   if (!("price" in value) || value["price"] === undefined) return false;
+  if (!("providerType" in value) || value["providerType"] === undefined)
+    return false;
   if (!("scheme" in value) || value["scheme"] === undefined) return false;
   return true;
 }
@@ -113,6 +127,7 @@ export function BillingPriceResponseDataFromJSONTyped(
     price: json["price"],
     priceDecimal:
       json["price_decimal"] == null ? undefined : json["price_decimal"],
+    providerType: BillingProviderTypeFromJSON(json["provider_type"]),
     scheme: BillingPriceSchemeFromJSON(json["scheme"]),
   };
 }
@@ -130,6 +145,7 @@ export function BillingPriceResponseDataToJSON(
     interval: BillingProductPriceIntervalToJSON(value["interval"]),
     price: value["price"],
     price_decimal: value["priceDecimal"],
+    provider_type: BillingProviderTypeToJSON(value["providerType"]),
     scheme: BillingPriceSchemeToJSON(value["scheme"]),
   };
 }

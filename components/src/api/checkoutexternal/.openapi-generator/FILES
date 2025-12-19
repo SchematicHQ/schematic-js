@@ -27,6 +27,7 @@ models/BillingProductPriceInterval.ts
 models/BillingProductPriceResponseData.ts
 models/BillingProductPriceTierResponseData.ts
 models/BillingProductResponseData.ts
+models/BillingProviderType.ts
 models/BillingSubscriptionDiscountView.ts
 models/BillingSubscriptionResponseData.ts
 models/BillingSubscriptionTrialEndSetting.ts
