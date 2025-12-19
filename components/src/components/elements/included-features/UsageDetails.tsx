@@ -161,7 +161,6 @@ export const UsageDetails = ({
     currentTier,
     showCredits,
     creditRemaining,
-    creditConsumptionRate,
   ]);
 
   const usageText = useMemo(() => {
@@ -198,6 +197,24 @@ export const UsageDetails = ({
       acc.push(
         <Fragment key={index}>
           {usage} {getFeatureName(feature, usage)} {t("used")}
+        </Fragment>,
+      );
+
+      index += 1;
+    } else if (
+      showCredits &&
+      priceBehavior === PriceBehavior.Credit &&
+      typeof creditRemaining === "number" &&
+      typeof creditConsumptionRate === "number" &&
+      creditConsumptionRate > 0
+    ) {
+      const unitsRemaining = Math.floor(
+        creditRemaining / creditConsumptionRate,
+      );
+      acc.push(
+        <Fragment key={index}>
+          {formatNumber(unitsRemaining)}{" "}
+          {getFeatureName(feature, unitsRemaining)} {t("remaining")}
         </Fragment>,
       );
 
@@ -265,6 +282,9 @@ export const UsageDetails = ({
     metricResetAt,
     billingPrice,
     cost,
+    showCredits,
+    creditRemaining,
+    creditConsumptionRate,
   ]);
 
   // this should never be the case since there should always be an associated feature,

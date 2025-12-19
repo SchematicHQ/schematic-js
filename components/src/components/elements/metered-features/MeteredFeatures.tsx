@@ -41,45 +41,60 @@ interface LimitProps {
 const Limit = ({ entitlement, usageDetails, fontStyle }: LimitProps) => {
   const { t } = useTranslation();
 
-  const { feature, priceBehavior, allocation, usage, metricResetAt } =
-    entitlement;
+  const {
+    feature,
+    priceBehavior,
+    allocation,
+    usage,
+    metricResetAt,
+    creditRemaining,
+    creditConsumptionRate,
+  } = entitlement;
   const { billingPrice, limit, cost, currentTier } = usageDetails;
 
   const acc: React.ReactNode[] = [];
 
-  acc.push(
-    priceBehavior === PriceBehavior.Tiered &&
-      typeof currentTier?.to === "number" &&
-      typeof feature?.name === "string"
-      ? currentTier?.to === Infinity
-        ? t("Unlimited in this tier", {
-            feature: getFeatureName(feature),
-          })
-        : t("Up to X units in this tier", {
-            amount: currentTier.to,
-            feature: getFeatureName(feature),
-          })
-      : priceBehavior === PriceBehavior.Overage && typeof limit === "number"
-        ? t("X included", {
-            amount: formatNumber(limit),
-          })
-        : priceBehavior === PriceBehavior.PayInAdvance &&
-            typeof usage === "number"
-          ? `${formatNumber(usage)} ${t("used")}`
-          : priceBehavior === PriceBehavior.PayAsYouGo &&
-              typeof cost === "number"
-            ? formatCurrency(cost, billingPrice?.currency)
-            : priceBehavior === PriceBehavior.Credit &&
-                typeof limit === "number"
-              ? t("Limit of", {
-                  amount: formatNumber(limit),
-                })
+  if (
+    priceBehavior === PriceBehavior.Credit &&
+    typeof creditRemaining === "number" &&
+    typeof creditConsumptionRate === "number" &&
+    creditConsumptionRate > 0 &&
+    feature
+  ) {
+    const unitsRemaining = Math.floor(creditRemaining / creditConsumptionRate);
+    acc.push(
+      `${formatNumber(unitsRemaining)} ${getFeatureName(feature, unitsRemaining)} ${t("remaining")}`,
+    );
+  } else {
+    acc.push(
+      priceBehavior === PriceBehavior.Tiered &&
+        typeof currentTier?.to === "number" &&
+        typeof feature?.name === "string"
+        ? currentTier?.to === Infinity
+          ? t("Unlimited in this tier", {
+              feature: getFeatureName(feature),
+            })
+          : t("Up to X units in this tier", {
+              amount: currentTier.to,
+              feature: getFeatureName(feature),
+            })
+        : priceBehavior === PriceBehavior.Overage && typeof limit === "number"
+          ? t("X included", {
+              amount: formatNumber(limit),
+            })
+          : priceBehavior === PriceBehavior.PayInAdvance &&
+              typeof usage === "number"
+            ? `${formatNumber(usage)} ${t("used")}`
+            : priceBehavior === PriceBehavior.PayAsYouGo &&
+                typeof cost === "number"
+              ? formatCurrency(cost, billingPrice?.currency)
               : typeof allocation === "number"
                 ? t("Limit of", {
                     amount: formatNumber(allocation),
                   })
                 : t("No limit"),
-  );
+    );
+  }
 
   if (metricResetAt) {
     acc.push(
@@ -253,6 +268,7 @@ export const MeteredFeatures = forwardRef<
                     }
                   }}
                   $flexWrap="wrap"
+                  $justifyContent="space-between"
                   $gap="1rem"
                 >
                   <Flex $flexDirection="column" $gap="0.5rem" $flexGrow={1}>
@@ -269,47 +285,78 @@ export const MeteredFeatures = forwardRef<
                         </Text>
                       </Box>
                     )}
+
+                    {showCredits &&
+                      priceBehavior === PriceBehavior.Credit &&
+                      typeof entitlement.creditRemaining === "number" &&
+                      entitlement.planEntitlement?.valueCredit && (
+                        <>
+                          {props.usage.isVisible && (
+                            <Box $whiteSpace="nowrap">
+                              <Text display={props.usage.fontStyle}>
+                                {formatNumber(entitlement.creditRemaining)}{" "}
+                                {getFeatureName(
+                                  entitlement.planEntitlement.valueCredit,
+                                  entitlement.creditRemaining,
+                                )}{" "}
+                                {t("remaining")}
+                              </Text>
+                            </Box>
+                          )}
+
+                          {props.allocation.isVisible && (
+                            <Limit
+                              entitlement={entitlement}
+                              usageDetails={usageDetails}
+                              fontStyle={props.allocation.fontStyle}
+                            />
+                          )}
+                        </>
+                      )}
                   </Flex>
 
-                  <Box
-                    $flexBasis="min-content"
-                    $flexGrow={1}
-                    $textAlign={shouldWrapChildren ? "left" : "right"}
-                  >
-                    {props.usage.isVisible && (
-                      <Box $whiteSpace="nowrap">
-                        <Text display={props.usage.fontStyle}>
-                          {priceBehavior === PriceBehavior.PayInAdvance ? (
-                            <>
-                              {typeof limit === "number" && (
-                                <>{formatNumber(limit)} </>
-                              )}
-                              {getFeatureName(feature, limit)}
-                            </>
-                          ) : (
-                            typeof usage === "number" && (
+                  {priceBehavior !== PriceBehavior.Credit && (
+                    <Box
+                      $flexBasis="min-content"
+                      $flexGrow={1}
+                      $textAlign={shouldWrapChildren ? "left" : "right"}
+                    >
+                      {props.usage.isVisible && (
+                        <Box $whiteSpace="nowrap">
+                          <Text display={props.usage.fontStyle}>
+                            {priceBehavior === PriceBehavior.PayInAdvance ? (
                               <>
-                                {formatNumber(usage)}{" "}
-                                {getFeatureName(feature, usage)} {t("used")}
+                                {typeof limit === "number" && (
+                                  <>{formatNumber(limit)} </>
+                                )}
+                                {getFeatureName(feature, limit)}
                               </>
-                            )
-                          )}
-                        </Text>
-                      </Box>
-                    )}
+                            ) : (
+                              typeof usage === "number" && (
+                                <>
+                                  {formatNumber(usage)}{" "}
+                                  {getFeatureName(feature, usage)} {t("used")}
+                                </>
+                              )
+                            )}
+                          </Text>
+                        </Box>
+                      )}
 
-                    {props.allocation.isVisible && (
-                      <Limit
-                        entitlement={entitlement}
-                        usageDetails={usageDetails}
-                        fontStyle={props.allocation.fontStyle}
-                      />
-                    )}
-                  </Box>
+                      {props.allocation.isVisible && (
+                        <Limit
+                          entitlement={entitlement}
+                          usageDetails={usageDetails}
+                          fontStyle={props.allocation.fontStyle}
+                        />
+                      )}
+                    </Box>
+                  )}
                 </Flex>
 
                 {props.isVisible &&
-                  priceBehavior !== PriceBehavior.PayAsYouGo && (
+                  priceBehavior !== PriceBehavior.PayAsYouGo &&
+                  priceBehavior !== PriceBehavior.Credit && (
                     <Meter
                       entitlement={entitlement}
                       usageDetails={usageDetails}
