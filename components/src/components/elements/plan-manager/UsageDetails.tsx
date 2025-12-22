@@ -7,6 +7,7 @@ import { type FontStyle } from "../../../context";
 import { useEmbed } from "../../../hooks";
 import {
   formatCurrency,
+  formatNumber,
   getEntitlementPrice,
   getFeatureName,
   getUsageDetails,
@@ -98,30 +99,18 @@ export const UsageDetails = ({
     if (
       showCredits &&
       entitlement.priceBehavior === PriceBehavior.Credit &&
-      entitlement.planEntitlement?.consumptionRate &&
-      entitlement.planEntitlement?.valueCredit
+      entitlement.planEntitlement?.valueCredit &&
+      typeof entitlement.creditRemaining === "number"
     ) {
-      const creditAmount = entitlement.planEntitlement.consumptionRate * amount;
       acc.push(
-        creditAmount > 0 ? (
-          <Fragment key={index}>
-            {creditAmount}{" "}
-            {getFeatureName(
-              entitlement.planEntitlement.valueCredit,
-              creditAmount,
-            )}{" "}
-            {t("used")}
-          </Fragment>
-        ) : (
-          <Fragment key={index}>
-            {entitlement.planEntitlement.consumptionRate}{" "}
-            {getFeatureName(
-              entitlement.planEntitlement.valueCredit,
-              entitlement.planEntitlement.consumptionRate,
-            )}{" "}
-            {t("per")} {t("use")}
-          </Fragment>
-        ),
+        <Fragment key={index}>
+          {formatNumber(entitlement.creditRemaining)}{" "}
+          {getFeatureName(
+            entitlement.planEntitlement.valueCredit,
+            entitlement.creditRemaining,
+          )}{" "}
+          {t("remaining")}
+        </Fragment>,
       );
 
       index += 1;
