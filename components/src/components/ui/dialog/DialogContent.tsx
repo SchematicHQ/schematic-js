@@ -2,13 +2,13 @@ import { forwardRef } from "react";
 
 import { Flex } from "../../ui";
 
-interface ModalContentProps {
+interface DialogContentProps {
   children?: React.ReactNode;
 }
 
-export const ModalContent = forwardRef<
+export const DialogContent = forwardRef<
   HTMLDivElement | null,
-  ModalContentProps
+  DialogContentProps
 >(({ children }, ref) => {
   return (
     <Flex
@@ -28,4 +28,4 @@ export const ModalContent = forwardRef<
   );
 });
 
-ModalContent.displayName = "ModalContent";
+DialogContent.displayName = "DialogContent";

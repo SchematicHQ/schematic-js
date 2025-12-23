@@ -29,8 +29,16 @@ import type {
   UsageBasedEntitlement,
 } from "../../../types";
 import { ERROR_UNKNOWN, getAddOnPrice, isError } from "../../../utils";
-import { PeriodToggle, Sidebar } from "../../shared";
-import { Flex, Loader, Modal, ModalContent, ModalHeader, Text } from "../../ui";
+import { PeriodToggle, SubscriptionSidebar } from "../../shared";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  Flex,
+  Loader,
+  Overlay,
+  Text,
+} from "../../ui";
 
 import { Navigation } from "./Navigation";
 
@@ -78,22 +86,24 @@ interface ConfirmPaymentIntentProps {
   callback: (confirmed: boolean) => void;
 }
 
-export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
+export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
   const { t } = useTranslation();
 
   const {
     data,
+    layout,
     settings,
     isPending,
     checkoutState,
+    clearCheckoutState,
     setCheckoutState,
     previewCheckout,
-    clearCheckoutState,
+    setLayout,
   } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
 
-  const modalRef = useRef<HTMLDivElement>(null);
+  const dialogRef = useRef<HTMLDialogElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const sidebarRef = useRef<HTMLDivElement>(null);
@@ -116,6 +126,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | undefined>();
+  const [isModal, setIsModal] = useState(true);
 
   const { currentEntitlements, showPeriodToggle, trialPaymentMethodRequired } =
     useMemo(() => {
@@ -846,6 +857,11 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     [handlePreviewCheckout],
   );
 
+  const handleClose = useCallback(() => {
+    clearCheckoutState();
+    setLayout("portal");
+  }, [setLayout, clearCheckoutState]);
+
   // this is needed to run the `selectPlan` logic on initial load
   // if the user is already on an available plan
   const hasInitializedPlan = useRef(false);
@@ -905,15 +921,21 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     });
   }, [data?.addOnCompatibilities, availableAddOns, selectedPlan]);
 
-  useEffect(() => {
-    if (charges) {
-      sidebarRef.current?.scrollTo({
-        top: 0,
-        left: 0,
-        behavior: "smooth",
-      });
+  useLayoutEffect(() => {
+    const element = dialogRef.current;
+    if (layout !== "checkout" || !element || element.open) {
+      return;
     }
-  }, [charges]);
+
+    const isParentBody = element.parentElement === document.body;
+    setIsModal(isParentBody);
+
+    if (isParentBody) {
+      element.showModal();
+    } else {
+      element.show();
+    }
+  }, [layout]);
 
   useLayoutEffect(() => {
     stageRef.current?.scrollTo({
@@ -922,6 +944,16 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       behavior: "smooth",
     });
   }, [checkoutStage]);
+
+  useLayoutEffect(() => {
+    if (charges) {
+      sidebarRef.current?.scrollTo({
+        top: 0,
+        left: 0,
+        behavior: "smooth",
+      });
+    }
+  }, [charges]);
 
   const activeCheckoutStage = checkoutStages.find(
     (stage) => stage.id === checkoutStage,
@@ -972,36 +1004,26 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       checkoutStage === "addons" &&
       !hasSkippedInitialAddOns);
 
+  const canCheckout = data?.capabilities?.checkout ?? true;
+  if (!canCheckout) {
+    return null;
+  }
+
   return (
-    <Modal ref={modalRef} size="lg" top={top} onClose={clearCheckoutState}>
+    <Dialog
+      ref={dialogRef}
+      isModal={isModal}
+      size="lg"
+      top={top}
+      onClose={handleClose}
+    >
       {shouldShowBypassOverlay && (
-        <Flex
-          $position="absolute"
-          $top={0}
-          $left={0}
-          $zIndex={3}
-          $width="100%"
-          $height="100dvh"
-          $justifyContent="center"
-          $alignItems="center"
-          $backgroundColor={
-            isLightBackground
-              ? "hsla(0, 0%, 100%, 0.9)"
-              : "hsla(0, 0%, 0%, 0.9)"
-          }
-          $backdropFilter="blur(8px)"
-          $padding="1rem"
-          $viewport={{
-            md: {
-              $padding: "1.5rem",
-            },
-          }}
-        >
+        <Overlay $justifyContent="center" $alignItems="center">
           <Loader $color={settings.theme.primary} $size="2xl" />
-        </Flex>
+        </Overlay>
       )}
 
-      <ModalHeader bordered onClose={clearCheckoutState}>
+      <DialogHeader bordered onClose={handleClose}>
         <Flex
           $flexWrap="wrap"
           $gap="0.5rem"
@@ -1034,9 +1056,9 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
             />
           ))}
         </Flex>
-      </ModalHeader>
+      </DialogHeader>
 
-      <ModalContent ref={contentRef}>
+      <DialogContent ref={contentRef}>
         <Flex
           ref={stageRef}
           $flexDirection="column"
@@ -1160,8 +1182,9 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           )}
         </Flex>
 
-        <Sidebar
+        <SubscriptionSidebar
           ref={sidebarRef}
+          portalRef={dialogRef}
           planPeriod={planPeriod}
           selectedPlan={selectedPlan}
           addOns={addOns}
@@ -1184,7 +1207,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           setConfirmPaymentIntent={setConfirmPaymentIntentProps}
           willTrialWithoutPaymentMethod={willTrialWithoutPaymentMethod}
         />
-      </ModalContent>
-    </Modal>
+      </DialogContent>
+    </Dialog>
   );
 };

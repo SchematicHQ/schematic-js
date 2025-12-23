@@ -113,3 +113,7 @@ export function invert(color: string) {
   const hex = color.replace("#", "");
   return `#${(Number(`0x1${hex}`) ^ 0xffffff).toString(16).slice(1).toUpperCase()}`;
 }
+
+export function isLightColor(color: string) {
+  return hexToHSL(color).l > 50;
+}
