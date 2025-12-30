@@ -149,9 +149,17 @@
     "X items included in plan": "{{amount}} {{item}} included in plan",
     "X off": "{{amount}} off",
     "X% off": "{{percent}}% off",
+    "X units": "{{amount}} {{units}}",
+    "X units used": "{{amount}} {{units}} used",
+    "X units per use": "{{amount}} {{units}} per use",
     "X time left in trial": "{{amount}} {{units}} left in trial",
     "Yearly total": "Yearly total",
     "You will retain access to your plan until the end of the billing period, on": "You will retain access to your plan until the end of the billing period, on",
+
+    "$X per unit": "{{cost}} per {{unit}}",
+    "$X per Y units": "{{cost}} per {{size}} {{units}}",
+    "$X/unit/period": "{{cost}}/{{unit}}/{{period}}",
+    "$X/Y units/period": "{{cost}}/{{size}} {{units}}/{{period}}",
 
     "day": "day",
     "month": "month",
@@ -166,6 +174,7 @@
 
     "month, billed yearly": "month, billed yearly",
     "purchased": "purchased {{date}}",
+
     "usage": {
       "limited": "{{amount}} of {{allocation}} used",
       "unlimited": "{{amount}} used"
