@@ -1839,6 +1839,39 @@ export class Schematic {
     return undefined;
   };
 
+  /**
+   * Get the default value for a flag based on initialization options.
+   * This is useful for React/framework integrations that need access to configured defaults
+   * for server-side rendering or hydration scenarios.
+   *
+   * Priority order:
+   * 1. Callsite fallback value (if provided)
+   * 2. Boolean value from flagCheckDefaults initialization option
+   * 3. Boolean value from flagValueDefaults initialization option
+   * 4. Default to false
+   */
+  getDefaultValue = (flagKey: string, callsiteFallback?: boolean): boolean => {
+    return this.resolveFallbackValue(flagKey, callsiteFallback);
+  };
+
+  /**
+   * Get the default CheckFlagReturn for a flag based on initialization options.
+   * This is useful for React/framework integrations that need access to configured defaults
+   * for server-side rendering or hydration scenarios.
+   *
+   * Priority order:
+   * 1. Callsite fallback value (if provided), construct CheckFlagReturn
+   * 2. CheckFlagReturn from flagCheckDefaults initialization option
+   * 3. Boolean value from flagValueDefaults, construct CheckFlagReturn
+   * 4. Default CheckFlagReturn with value: false
+   */
+  getDefaultFlagCheck = (
+    flagKey: string,
+    callsiteFallback?: boolean,
+  ): CheckFlagReturn => {
+    return this.resolveFallbackCheckFlagReturn(flagKey, callsiteFallback);
+  };
+
   /** Register an event listener that will be notified with the boolean value for a given flag when this value changes */
   addFlagValueListener = (flagKey: string, listener: FlagValueListenerFn) => {
     if (!(flagKey in this.flagValueListeners)) {
