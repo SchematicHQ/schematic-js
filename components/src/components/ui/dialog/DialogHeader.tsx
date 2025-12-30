@@ -1,28 +1,20 @@
-import { useCallback } from "react";
-
 import { useEmbed, useIsLightBackground } from "../../../hooks";
-import { createKeyboardExecutionHandler } from "../../../utils";
 import { Flex, Icon } from "../../ui";
 
-interface ModalHeaderProps {
+interface DialogHeaderProps {
   children?: React.ReactNode;
   bordered?: boolean;
   onClose?: () => void;
 }
 
-export const ModalHeader = ({
+export const DialogHeader = ({
   children,
   bordered = false,
   onClose,
-}: ModalHeaderProps) => {
-  const { settings, setLayout } = useEmbed();
+}: DialogHeaderProps) => {
+  const { settings } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
-
-  const handleClose = useCallback(() => {
-    setLayout("portal");
-    onClose?.();
-  }, [setLayout, onClose]);
 
   return (
     <Flex
@@ -54,8 +46,7 @@ export const ModalHeader = ({
 
       <Flex
         tabIndex={0}
-        onClick={handleClose}
-        onKeyDown={createKeyboardExecutionHandler(handleClose)}
+        onClick={onClose}
         $justifyContent="center"
         $alignItems="center"
         $cursor="pointer"

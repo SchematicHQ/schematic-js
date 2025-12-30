@@ -1,5 +1,7 @@
 import { styled } from "styled-components";
 
+import { isLightColor } from "../../../utils";
+
 export const Label = styled.label`
   display: flex;
   margin-bottom: 0.75rem;
@@ -9,7 +11,8 @@ export const Label = styled.label`
   transition:
     transform 0.5s cubic-bezier(0.19, 1, 0.22, 1),
     opacity 0.5s cubic-bezier(0.19, 1, 0.22, 1);
-  color: ${({ theme }) => (theme.colorMode === "dark" ? "#cdd6f4" : "#000000")};
+  color: ${({ theme }) =>
+    isLightColor(theme.card.background) ? "#000000" : "#cdd6f4"};
   touch-action: manipulation;
 `;
 

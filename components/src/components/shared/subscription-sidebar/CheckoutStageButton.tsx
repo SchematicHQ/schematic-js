@@ -7,14 +7,14 @@ import { type CheckoutStage } from "../checkout-dialog";
 type NoPaymentRequiredProps = {
   isDisabled: boolean;
   isLoading: boolean;
-  isSticky: boolean;
+  isSticky?: boolean;
   onClick: () => Promise<void>;
 };
 
 const NoPaymentRequired = ({
   isDisabled,
   isLoading,
-  isSticky,
+  isSticky = false,
   onClick,
 }: NoPaymentRequiredProps) => {
   const { t } = useTranslation();
@@ -24,16 +24,16 @@ const NoPaymentRequired = ({
       type="button"
       disabled={isDisabled}
       onClick={onClick}
-      $isLoading={isLoading}
       $size={isSticky ? "sm" : "md"}
       $fullWidth
+      $isLoading={isLoading}
     >
       {t("Subscribe and close")}
     </Button>
   );
 };
 
-type StageButtonProps = {
+type CheckoutStageButtonProps = {
   checkout: () => Promise<void>;
   checkoutStage?: string;
   checkoutStages?: CheckoutStage[];
@@ -41,7 +41,7 @@ type StageButtonProps = {
   hasPlan: boolean;
   inEditMode: boolean;
   isLoading: boolean;
-  isSticky: boolean;
+  isSticky?: boolean;
   checkoutButtonRef?: RefObject<HTMLDivElement>;
   isPaymentMethodRequired: boolean;
   isSelectedPlanTrialable: boolean;
@@ -51,7 +51,7 @@ type StageButtonProps = {
   willTrialWithoutPaymentMethod: boolean;
 };
 
-export const StageButton = ({
+export const CheckoutStageButton = ({
   checkout,
   checkoutStage,
   checkoutStages,
@@ -59,14 +59,14 @@ export const StageButton = ({
   hasPlan,
   inEditMode,
   isLoading,
-  isSticky,
+  isSticky = false,
   isPaymentMethodRequired,
   isSelectedPlanTrialable,
   setCheckoutStage,
   trialPaymentMethodRequired,
   shouldTrial,
   willTrialWithoutPaymentMethod,
-}: StageButtonProps) => {
+}: CheckoutStageButtonProps) => {
   const { t } = useTranslation();
 
   const isDisabled = isLoading || !hasPlan || inEditMode;
@@ -109,8 +109,8 @@ export const StageButton = ({
           onClick={async () => {
             setCheckoutStage?.("checkout");
           }}
-          $isLoading={isLoading}
           $fullWidth
+          $isLoading={isLoading}
         >
           <Flex
             $gap="0.5rem"
@@ -143,9 +143,9 @@ export const StageButton = ({
         onClick={async () => {
           setCheckoutStage?.(nextStage ?? "checkout");
         }}
-        $isLoading={isLoading}
-        $fullWidth
         $size={isSticky ? "sm" : "md"}
+        $fullWidth
+        $isLoading={isLoading}
       >
         <Flex $gap="0.5rem" $justifyContent="center" $alignItems="center">
           {t("Next")}: {getStageDisplayName(nextStage)}
@@ -176,9 +176,9 @@ export const StageButton = ({
         onClick={async () => {
           setCheckoutStage?.(nextStage ?? "checkout");
         }}
-        $isLoading={isLoading}
-        $fullWidth
         $size={isSticky ? "sm" : "md"}
+        $fullWidth
+        $isLoading={isLoading}
       >
         <Flex
           $gap="0.5rem"
@@ -214,8 +214,8 @@ export const StageButton = ({
         onClick={async () => {
           setCheckoutStage?.(nextStage ?? "checkout");
         }}
-        $isLoading={isLoading}
         $fullWidth
+        $isLoading={isLoading}
       >
         <Flex
           $gap="0.5rem"
@@ -251,9 +251,9 @@ export const StageButton = ({
         onClick={async () => {
           setCheckoutStage?.(nextStage ?? "checkout");
         }}
-        $isLoading={isLoading}
-        $fullWidth
         $size={isSticky ? "sm" : "md"}
+        $fullWidth
+        $isLoading={isLoading}
       >
         <Flex
           $gap="0.5rem"
@@ -287,8 +287,8 @@ export const StageButton = ({
         onClick={async () => {
           setCheckoutStage?.("checkout");
         }}
-        $isLoading={isLoading}
         $fullWidth
+        $isLoading={isLoading}
       >
         <Flex
           $gap="0.5rem"
@@ -320,8 +320,8 @@ export const StageButton = ({
         type="button"
         disabled={isDisabled || !hasPaymentMethod}
         onClick={checkout}
-        $isLoading={isLoading}
         $fullWidth
+        $isLoading={isLoading}
       >
         {willTrialWithoutPaymentMethod ? t("Start trial") : t("Pay now")}
       </Button>

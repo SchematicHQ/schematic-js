@@ -1,25 +1,34 @@
-import { useMemo, useRef, useState } from "react";
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useAvailablePlans, useEmbed } from "../../../hooks";
 import { toPrettyDate } from "../../../utils";
-import { Button, Flex, Modal, ModalContent, ModalHeader, Text } from "../../ui";
+import {
+  Button,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  Flex,
+  Text,
+} from "../../ui";
 import { createActiveUsageBasedEntitlementsReducer } from "../checkout-dialog";
-import { Sidebar } from "../sidebar";
+import { SubscriptionSidebar } from "../subscription-sidebar";
 
 interface UnsubscribeDialogProps {
   top?: number;
 }
 
-export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
+export const UnsubscribeDialog = ({ top }: UnsubscribeDialogProps) => {
   const { t } = useTranslation();
 
-  const { data, setCheckoutState } = useEmbed();
+  const { data, layout, setLayout, setCheckoutState, clearCheckoutState } =
+    useEmbed();
 
-  const modalRef = useRef<HTMLDivElement>(null);
+  const dialogRef = useRef<HTMLDialogElement>(null);
 
   const [error, setError] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(false);
+  const [isModal, setIsModal] = useState(true);
 
   const { planPeriod, currentPlan, currentAddOns, featureUsage, cancelDate } =
     useMemo(() => {
@@ -65,11 +74,38 @@ export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
     [currentAddOns, availableAddOns],
   );
 
-  return (
-    <Modal ref={modalRef} size="auto" top={top}>
-      <ModalHeader />
+  const handleClose = useCallback(() => {
+    clearCheckoutState();
+    setLayout("portal");
+  }, [setLayout, clearCheckoutState]);
 
-      <ModalContent>
+  useLayoutEffect(() => {
+    const element = dialogRef.current;
+    if (layout !== "unsubscribe" || !element || element.open) {
+      return;
+    }
+
+    const isParentBody = element.parentElement === document.body;
+    setIsModal(isParentBody);
+
+    if (isParentBody) {
+      element.showModal();
+    } else {
+      element.show();
+    }
+  }, [layout]);
+
+  return (
+    <Dialog
+      ref={dialogRef}
+      isModal={isModal}
+      size="auto"
+      top={top}
+      onClose={handleClose}
+    >
+      <DialogHeader onClose={handleClose} />
+
+      <DialogContent>
         <Flex
           $flexDirection="column"
           $flexGrow={1}
@@ -113,7 +149,8 @@ export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
           </Flex>
         </Flex>
 
-        <Sidebar
+        <SubscriptionSidebar
+          portalRef={dialogRef}
           planPeriod={planPeriod}
           addOns={addOns}
           usageBasedEntitlements={usageBasedEntitlements}
@@ -125,7 +162,7 @@ export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
           setIsLoading={setIsLoading}
           setConfirmPaymentIntent={() => {}}
         />
-      </ModalContent>
-    </Modal>
+      </DialogContent>
+    </Dialog>
   );
 };
