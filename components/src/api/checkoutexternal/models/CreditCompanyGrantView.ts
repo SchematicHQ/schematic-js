@@ -49,6 +49,12 @@ import {
   BillingCreditGrantReasonFromJSONTyped,
   BillingCreditGrantReasonToJSON,
 } from "./BillingCreditGrantReason";
+import type { BillingPlanCreditGrantResetCadence } from "./BillingPlanCreditGrantResetCadence";
+import {
+  BillingPlanCreditGrantResetCadenceFromJSON,
+  BillingPlanCreditGrantResetCadenceFromJSONTyped,
+  BillingPlanCreditGrantResetCadenceToJSON,
+} from "./BillingPlanCreditGrantResetCadence";
 
 /**
  *
@@ -190,6 +196,18 @@ export interface CreditCompanyGrantView {
   quantityUsed: number;
   /**
    *
+   * @type {boolean}
+   * @memberof CreditCompanyGrantView
+   */
+  renewalEnabled: boolean;
+  /**
+   *
+   * @type {BillingPlanCreditGrantResetCadence}
+   * @memberof CreditCompanyGrantView
+   */
+  renewalPeriod?: BillingPlanCreditGrantResetCadence | null;
+  /**
+   *
    * @type {string}
    * @memberof CreditCompanyGrantView
    */
@@ -262,6 +280,8 @@ export function instanceOfCreditCompanyGrantView(
     return false;
   if (!("quantityUsed" in value) || value["quantityUsed"] === undefined)
     return false;
+  if (!("renewalEnabled" in value) || value["renewalEnabled"] === undefined)
+    return false;
   if (!("sourceLabel" in value) || value["sourceLabel"] === undefined)
     return false;
   if (!("updatedAt" in value) || value["updatedAt"] === undefined) return false;
@@ -319,6 +339,11 @@ export function CreditCompanyGrantViewFromJSONTyped(
     quantity: json["quantity"],
     quantityRemaining: json["quantity_remaining"],
     quantityUsed: json["quantity_used"],
+    renewalEnabled: json["renewal_enabled"],
+    renewalPeriod:
+      json["renewal_period"] == null
+        ? undefined
+        : BillingPlanCreditGrantResetCadenceFromJSON(json["renewal_period"]),
     singularName:
       json["singular_name"] == null ? undefined : json["singular_name"],
     sourceLabel: json["source_label"],
@@ -375,6 +400,10 @@ export function CreditCompanyGrantViewToJSON(
     quantity: value["quantity"],
     quantity_remaining: value["quantityRemaining"],
     quantity_used: value["quantityUsed"],
+    renewal_enabled: value["renewalEnabled"],
+    renewal_period: BillingPlanCreditGrantResetCadenceToJSON(
+      value["renewalPeriod"],
+    ),
     singular_name: value["singularName"],
     source_label: value["sourceLabel"],
     transfers:
