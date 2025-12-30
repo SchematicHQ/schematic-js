@@ -45,6 +45,8 @@ export const UsageDetails = ({
     usage,
     softLimit,
     metricResetAt,
+    creditRemaining,
+    creditConsumptionRate,
   } = entitlement;
 
   const { t } = useTranslation();
@@ -125,16 +127,13 @@ export const UsageDetails = ({
       showCredits &&
       priceBehavior === PriceBehavior.Credit &&
       planEntitlement?.valueCredit &&
-      typeof planEntitlement?.consumptionRate === "number"
+      typeof creditRemaining === "number"
     ) {
       return (
         <>
-          {planEntitlement.consumptionRate}{" "}
-          {getFeatureName(
-            planEntitlement.valueCredit,
-            planEntitlement.consumptionRate,
-          )}{" "}
-          {t("per")} {t("use")}
+          {formatNumber(creditRemaining)}{" "}
+          {getFeatureName(planEntitlement.valueCredit, creditRemaining)}{" "}
+          {t("remaining")}
         </>
       );
     }
@@ -161,6 +160,7 @@ export const UsageDetails = ({
     billingPrice,
     currentTier,
     showCredits,
+    creditRemaining,
   ]);
 
   const usageText = useMemo(() => {
@@ -191,13 +191,30 @@ export const UsageDetails = ({
     } else if (
       (priceBehavior === PriceBehavior.PayAsYouGo ||
         priceBehavior === PriceBehavior.Overage ||
-        priceBehavior === PriceBehavior.Tiered ||
-        priceBehavior === PriceBehavior.Credit) &&
+        priceBehavior === PriceBehavior.Tiered) &&
       typeof usage === "number"
     ) {
       acc.push(
         <Fragment key={index}>
           {usage} {getFeatureName(feature, usage)} {t("used")}
+        </Fragment>,
+      );
+
+      index += 1;
+    } else if (
+      showCredits &&
+      priceBehavior === PriceBehavior.Credit &&
+      typeof creditRemaining === "number" &&
+      typeof creditConsumptionRate === "number" &&
+      creditConsumptionRate > 0
+    ) {
+      const unitsRemaining = Math.floor(
+        creditRemaining / creditConsumptionRate,
+      );
+      acc.push(
+        <Fragment key={index}>
+          {formatNumber(unitsRemaining)}{" "}
+          {getFeatureName(feature, unitsRemaining)} {t("remaining")}
         </Fragment>,
       );
 
@@ -265,6 +282,9 @@ export const UsageDetails = ({
     metricResetAt,
     billingPrice,
     cost,
+    showCredits,
+    creditRemaining,
+    creditConsumptionRate,
   ]);
 
   // this should never be the case since there should always be an associated feature,
