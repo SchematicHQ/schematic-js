@@ -38,7 +38,6 @@ export const Credits = ({ bundles, updateCount }: CreditsProps) => {
             $flexDirection="column"
             $gap="2rem"
             $padding={`${cardPadding}rem`}
-            $backgroundColor={settings.theme.card.background}
             $borderRadius={`${settings.theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
             {...(settings.theme.card.hasShadow && {
               $boxShadow: cardBoxShadow,

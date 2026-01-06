@@ -635,7 +635,6 @@ export const SubscriptionSidebar = forwardRef<
         $flexDirection="column"
         $flexShrink={0}
         $overflow="auto"
-        $backgroundColor={settings.theme.card.background}
         $borderRadius="0 0 0.5rem"
         $boxShadow="0px 1px 20px 0px #1018280F, 0px 1px 3px 0px #1018281A;"
         $viewport={{

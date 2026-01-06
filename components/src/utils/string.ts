@@ -12,15 +12,47 @@ export function formatNumber(num: number) {
   return new Intl.NumberFormat("en-US").format(num);
 }
 
-export function formatCurrency(amount: number, currency?: string) {
-  const resolvedCurrency = (currency || DEFAULT_CURRENCY).toUpperCase();
+interface FormatCurrencyOptions {
+  currency?: string;
+  testSignificantDigits?: boolean;
+}
+
+export function formatCurrency(
+  amount: number,
+  options:
+    | FormatCurrencyOptions
+    | FormatCurrencyOptions["currency"]
+    | FormatCurrencyOptions["testSignificantDigits"],
+) {
+  let currency = DEFAULT_CURRENCY;
+  let testSignificantDigits = true;
+
+  switch (typeof options) {
+    case "string":
+      currency = options;
+      break;
+    case "boolean":
+      testSignificantDigits = options;
+      break;
+    case "object": {
+      if (typeof options.currency === "string") {
+        currency = options.currency;
+      }
+
+      if (typeof options.testSignificantDigits === "boolean") {
+        testSignificantDigits = options.testSignificantDigits;
+      }
+    }
+  }
+
+  const resolvedCurrency = currency.toUpperCase();
 
   try {
     const dollars = amount / 100;
 
-    const hasManySignificantDigits = /[1-9]/.test(
-      (amount % 1.0).toFixed(MAXIMUM_SIGNIFICANT_DIGITS),
-    );
+    const hasManySignificantDigits =
+      testSignificantDigits &&
+      /[1-9]/.test((amount % 1.0).toFixed(MAXIMUM_SIGNIFICANT_DIGITS));
 
     return new Intl.NumberFormat("en-US", {
       style: "currency",

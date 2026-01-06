@@ -46,7 +46,6 @@ export const Usage = ({ entitlements, updateQuantity, period }: UsageProps) => {
               $alignItems="center"
               $gap="1rem"
               $padding={`${cardPadding}rem`}
-              $backgroundColor={settings.theme.card.background}
               $borderRadius={`${settings.theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
               {...(settings.theme.card.hasShadow && {
                 $boxShadow: cardBoxShadow,

@@ -153,7 +153,10 @@ export const Plan = ({
                 : isFreePlan && showZeroPriceAsFree
                   ? t("Free")
                   : showAsMonthlyPrices && selectedPeriod === PriceInterval.Year
-                    ? formatCurrency((planPrice ?? 0) / 12, planCurrency)
+                    ? formatCurrency((planPrice ?? 0) / 12, {
+                        currency: planCurrency,
+                        testSignificantDigits: false,
+                      })
                     : formatCurrency(planPrice ?? 0, planCurrency)}
             {!plan.custom && !isFreePlan && (
               <sub>

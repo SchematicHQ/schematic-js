@@ -43,7 +43,6 @@ export const PeriodToggle = ({
       $alignSelf="center"
       $width="fit-content"
       $margin={0}
-      $backgroundColor={settings.theme.card.background}
       $borderWidth="1px"
       $borderStyle="solid"
       $borderColor={
