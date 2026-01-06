@@ -58,86 +58,66 @@ export const UsageDetails = ({
     };
   }, [data?.company?.plan?.planPeriod, data?.displaySettings?.showCredits]);
 
-  const {
-    price,
-    priceTiers,
-    currency,
-    packageSize,
-    amount,
-    limit,
-    cost,
-    currentTier,
-  } = useMemo(() => {
-    const { billingPrice, amount, limit, cost, currentTier } = getUsageDetails(
-      entitlement,
-      period,
-    );
-    const { price, priceTier, currency, packageSize = 1 } = billingPrice || {};
-
-    return {
-      price,
-      priceTiers: priceTier,
-      currency,
-      packageSize,
-      amount,
-      limit,
-      cost,
-      currentTier,
-    };
-  }, [entitlement, period]);
+  const { billingPrice, cost, currentTier } = useMemo(
+    () => getUsageDetails(entitlement, period),
+    [entitlement, period],
+  );
 
   const text = useMemo(() => {
     if (!feature) {
       return;
     }
 
+    const { price, currency, packageSize = 1 } = billingPrice || {};
+
     if (
       priceBehavior === PriceBehavior.PayInAdvance &&
       typeof allocation === "number"
     ) {
-      return t("X units", {
-        amount: formatNumber(allocation),
-        units: getFeatureName(feature, allocation),
-      });
+      return (
+        <>
+          {formatNumber(allocation)} {getFeatureName(feature, allocation)}
+        </>
+      );
     }
 
     if (
       priceBehavior === PriceBehavior.PayAsYouGo &&
       typeof price === "number"
     ) {
-      const formattedCost = formatCurrency(price, currency);
-      const featureName = getFeatureName(feature, packageSize);
-
-      return packageSize > 1
-        ? t("$X per Y units", {
-            cost: formattedCost,
-            size: packageSize,
-            units: featureName,
-          })
-        : t("$X per unit", { cost: formattedCost, unit: featureName });
+      return (
+        <>
+          {formatCurrency(price, currency)} {t("per")}{" "}
+          {packageSize > 1 && <>{packageSize} </>}
+          {getFeatureName(feature, packageSize)}
+        </>
+      );
     }
 
     if (
       priceBehavior === PriceBehavior.Overage &&
       typeof softLimit === "number"
     ) {
-      return t("X units", {
-        amount: formatNumber(softLimit),
-        units: getFeatureName(feature, softLimit),
-      });
+      return (
+        <>
+          {formatNumber(softLimit)} {getFeatureName(feature, softLimit)}
+        </>
+      );
     }
 
     if (priceBehavior === PriceBehavior.Tiered) {
       return (
-        typeof currentTier?.to === "number" &&
-        (currentTier?.to === Infinity
-          ? t("Unlimited in this tier", {
-              feature: getFeatureName(feature),
-            })
-          : t("Up to X units in this tier", {
-              amount: formatNumber(currentTier.to),
-              feature: getFeatureName(feature, currentTier?.to),
-            }))
+        <>
+          {typeof currentTier?.to === "number" &&
+            (currentTier?.to === Infinity
+              ? t("Unlimited in this tier", {
+                  feature: getFeatureName(feature),
+                })
+              : t("Up to X units in this tier", {
+                  amount: formatNumber(currentTier.to),
+                  feature: getFeatureName(feature, currentTier?.to),
+                }))}
+        </>
       );
     }
 
@@ -147,20 +127,24 @@ export const UsageDetails = ({
       planEntitlement?.valueCredit &&
       typeof planEntitlement?.consumptionRate === "number"
     ) {
-      return t("X units per use", {
-        amount: planEntitlement.consumptionRate,
-        units: getFeatureName(
-          planEntitlement.valueCredit,
-          planEntitlement.consumptionRate,
-        ),
-      });
+      return (
+        <>
+          {planEntitlement.consumptionRate}{" "}
+          {getFeatureName(
+            planEntitlement.valueCredit,
+            planEntitlement.consumptionRate,
+          )}{" "}
+          {t("per")} {t("use")}
+        </>
+      );
     }
 
     if (!priceBehavior && typeof allocation === "number") {
-      return t("X units", {
-        amount: formatNumber(allocation),
-        units: getFeatureName(feature, allocation),
-      });
+      return (
+        <>
+          {formatNumber(allocation)} {getFeatureName(feature, allocation)}
+        </>
+      );
     }
 
     if (!priceBehavior && allocationType === "unlimited") {
@@ -172,11 +156,9 @@ export const UsageDetails = ({
     allocationType,
     feature,
     planEntitlement,
-    currency,
-    price,
     priceBehavior,
-    packageSize,
     softLimit,
+    billingPrice,
     currentTier,
     showCredits,
   ]);
@@ -185,6 +167,8 @@ export const UsageDetails = ({
     if (!feature) {
       return;
     }
+
+    const { price, currency, packageSize = 1 } = billingPrice || {};
 
     const acc: React.ReactNode[] = [];
 
@@ -197,18 +181,9 @@ export const UsageDetails = ({
     ) {
       acc.push(
         <Fragment key={index}>
-          {packageSize > 1
-            ? t("$X/Y units/period", {
-                cost: formatCurrency(price, currency),
-                size: packageSize,
-                units: getFeatureName(feature, packageSize),
-                period: shortenPeriod(period),
-              })
-            : t("$X/unit/period", {
-                cost: formatCurrency(price, currency),
-                unit: getFeatureName(feature, packageSize),
-                period: shortenPeriod(period),
-              })}
+          {formatCurrency(price, currency)}/
+          {packageSize > 1 && <>{packageSize} </>}
+          {getFeatureName(feature, packageSize)}/{shortenPeriod(period)}
         </Fragment>,
       );
 
@@ -222,10 +197,7 @@ export const UsageDetails = ({
     ) {
       acc.push(
         <Fragment key={index}>
-          {t("X units used", {
-            amount: usage,
-            units: getFeatureName(feature, usage),
-          })}
+          {usage} {getFeatureName(feature, usage)} {t("used")}
         </Fragment>,
       );
 
@@ -287,13 +259,11 @@ export const UsageDetails = ({
     t,
     period,
     feature,
-    currency,
-    price,
     priceBehavior,
-    packageSize,
     allocation,
     usage,
     metricResetAt,
+    billingPrice,
     cost,
   ]);
 
@@ -327,8 +297,8 @@ export const UsageDetails = ({
             <PricingTiersTooltip
               feature={feature}
               period={period}
-              currency={currency}
-              priceTiers={priceTiers}
+              currency={billingPrice?.currency}
+              priceTiers={billingPrice?.priceTier}
             />
           )}
         </Flex>
