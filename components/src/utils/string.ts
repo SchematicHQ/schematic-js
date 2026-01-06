@@ -19,7 +19,7 @@ interface FormatCurrencyOptions {
 
 export function formatCurrency(
   amount: number,
-  options:
+  options?:
     | FormatCurrencyOptions
     | FormatCurrencyOptions["currency"]
     | FormatCurrencyOptions["testSignificantDigits"],
