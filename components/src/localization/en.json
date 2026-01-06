@@ -149,6 +149,7 @@
     "X off": "{{amount}} off",
     "X% off": "{{percent}}% off",
     "X units": "{{amount}} {{units}}",
+    "X units remaining": "{{amount}} {{units}} remaining",
     "X units used": "{{amount}} {{units}} used",
     "X units per use": "{{amount}} {{units}} per use",
     "X time left in trial": "{{amount}} {{units}} left in trial",

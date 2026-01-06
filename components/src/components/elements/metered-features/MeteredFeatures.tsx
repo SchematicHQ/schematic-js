@@ -50,6 +50,8 @@ interface LimitProps {
 const Limit = ({ entitlement, usageDetails, fontStyle }: LimitProps) => {
   const { t } = useTranslation();
 
+  const { data } = useEmbed();
+
   const {
     feature,
     planEntitlement,
@@ -65,7 +67,7 @@ const Limit = ({ entitlement, usageDetails, fontStyle }: LimitProps) => {
   acc.push(
     priceBehavior === PriceBehavior.Tiered &&
       typeof currentTier?.to === "number" &&
-      typeof feature?.name === "string"
+      typeof feature !== "undefined"
       ? currentTier?.to === Infinity
         ? t("Unlimited in this tier", {
             feature: getFeatureName(feature),
@@ -84,7 +86,8 @@ const Limit = ({ entitlement, usageDetails, fontStyle }: LimitProps) => {
           : priceBehavior === PriceBehavior.PayAsYouGo &&
               typeof cost === "number"
             ? formatCurrency(cost, billingPrice?.currency)
-            : priceBehavior === PriceBehavior.Credit &&
+            : data?.displaySettings.showCredits &&
+                priceBehavior === PriceBehavior.Credit &&
                 typeof planEntitlement?.valueCredit !== "undefined" &&
                 typeof planEntitlement?.consumptionRate === "number"
               ? t("X units per use", {
@@ -94,11 +97,18 @@ const Limit = ({ entitlement, usageDetails, fontStyle }: LimitProps) => {
                     planEntitlement.consumptionRate,
                   ),
                 })
-              : typeof allocation === "number"
-                ? t("Limit of", {
-                    amount: formatNumber(allocation),
+              : priceBehavior === PriceBehavior.Credit &&
+                  typeof feature !== "undefined" &&
+                  typeof limit === "number"
+                ? t("X units remaining", {
+                    amount: formatNumber(limit),
+                    units: getFeatureName(feature, limit),
                   })
-                : t("No limit"),
+                : typeof allocation === "number"
+                  ? t("Limit of", {
+                      amount: formatNumber(allocation),
+                    })
+                  : t("No limit"),
   );
 
   if (metricResetAt) {

@@ -58,7 +58,7 @@ export const UsageDetails = ({
     };
   }, [data?.company?.plan?.planPeriod, data?.displaySettings?.showCredits]);
 
-  const { price, priceTiers, currency, packageSize, cost, currentTier } =
+  const { price, priceTiers, currency, packageSize, limit, cost, currentTier } =
     useMemo(() => {
       const { billingPrice, amount, limit, cost, currentTier } =
         getUsageDetails(entitlement, period);
@@ -151,6 +151,13 @@ export const UsageDetails = ({
       });
     }
 
+    if (priceBehavior === PriceBehavior.Credit && typeof limit === "number") {
+      return t("X units remaining", {
+        amount: formatNumber(limit),
+        units: getFeatureName(feature, limit),
+      });
+    }
+
     if (!priceBehavior && typeof allocation === "number") {
       return t("X units", {
         amount: formatNumber(allocation),
@@ -171,6 +178,7 @@ export const UsageDetails = ({
     price,
     priceBehavior,
     packageSize,
+    limit,
     softLimit,
     currentTier,
     showCredits,
