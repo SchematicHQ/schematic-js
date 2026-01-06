@@ -15,7 +15,6 @@ interface PricingTiersTooltipProps {
   currency?: string;
   priceTiers?: BillingProductPriceTierResponseData[];
   tiersMode?: string;
-  portal?: HTMLElement | null;
 }
 
 export const PricingTiersTooltip = ({
@@ -24,7 +23,6 @@ export const PricingTiersTooltip = ({
   currency,
   priceTiers = [],
   tiersMode,
-  portal,
 }: PricingTiersTooltipProps) => {
   const { t } = useTranslation();
 
@@ -149,7 +147,6 @@ export const PricingTiersTooltip = ({
           )}
         </Flex>
       }
-      portal={portal}
     />
   );
 };

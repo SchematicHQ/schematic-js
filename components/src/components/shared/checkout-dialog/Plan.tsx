@@ -247,7 +247,6 @@ interface PlanProps {
     shouldTrial?: boolean;
   }) => void;
   shouldTrial: boolean;
-  tooltipPortal?: HTMLElement | null;
 }
 
 export const Plan = ({
@@ -257,7 +256,6 @@ export const Plan = ({
   period,
   selectPlan,
   shouldTrial,
-  tooltipPortal,
 }: PlanProps) => {
   const { t } = useTranslation();
 
@@ -752,7 +750,6 @@ export const Plan = ({
                                           period={planPeriod}
                                           currency={entitlementCurrency}
                                           priceTiers={entitlementPriceTiers}
-                                          portal={tooltipPortal}
                                         />
                                       </Flex>
                                     )
@@ -763,7 +760,6 @@ export const Plan = ({
                                       billingThreshold={
                                         entitlement.billingThreshold
                                       }
-                                      portal={tooltipPortal}
                                     />
                                   )}
                                 </UsageDetailsContainer>
