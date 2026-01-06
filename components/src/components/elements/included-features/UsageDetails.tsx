@@ -58,33 +58,28 @@ export const UsageDetails = ({
     };
   }, [data?.company?.plan?.planPeriod, data?.displaySettings?.showCredits]);
 
-  const {
-    price,
-    priceTiers,
-    currency,
-    packageSize,
-    amount,
-    limit,
-    cost,
-    currentTier,
-  } = useMemo(() => {
-    const { billingPrice, amount, limit, cost, currentTier } = getUsageDetails(
-      entitlement,
-      period,
-    );
-    const { price, priceTier, currency, packageSize = 1 } = billingPrice || {};
+  const { price, priceTiers, currency, packageSize, cost, currentTier } =
+    useMemo(() => {
+      const { billingPrice, amount, limit, cost, currentTier } =
+        getUsageDetails(entitlement, period);
+      const {
+        price,
+        priceTier,
+        currency,
+        packageSize = 1,
+      } = billingPrice || {};
 
-    return {
-      price,
-      priceTiers: priceTier,
-      currency,
-      packageSize,
-      amount,
-      limit,
-      cost,
-      currentTier,
-    };
-  }, [entitlement, period]);
+      return {
+        price,
+        priceTiers: priceTier,
+        currency,
+        packageSize,
+        amount,
+        limit,
+        cost,
+        currentTier,
+      };
+    }, [entitlement, period]);
 
   const text = useMemo(() => {
     if (!feature) {
@@ -318,7 +313,7 @@ export const UsageDetails = ({
       )}
 
       {layout.usage.isVisible && usageText && (
-        <Flex $justifyContent="end" $alignItems="end" $whiteSpace="nowrap">
+        <Flex $justifyContent="end" $alignItems="baseline" $whiteSpace="nowrap">
           <Text display={layout.usage.fontStyle} $leading={1}>
             {usageText}
           </Text>

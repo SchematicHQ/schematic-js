@@ -282,7 +282,7 @@ export const MeteredFeatures = forwardRef<
                       </Text>
                     </Box>
 
-                    {props.description.isVisible && (
+                    {props.description.isVisible && feature.description && (
                       <Box>
                         <Text display={props.description.fontStyle}>
                           {feature.description}
@@ -398,7 +398,7 @@ export const MeteredFeatures = forwardRef<
                         </Text>
                       </Box>
 
-                      {props.description.isVisible && (
+                      {props.description.isVisible && credit.description && (
                         <Box>
                           <Text display={props.description.fontStyle}>
                             {credit.description}
