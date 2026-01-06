@@ -1,4 +1,4 @@
-import { useEmbed, useIsLightBackground } from "../../../hooks";
+import { useIsLightBackground } from "../../../hooks";
 import { Flex, Icon } from "../../ui";
 
 interface DialogHeaderProps {
