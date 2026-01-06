@@ -16,14 +16,16 @@ import { PricingTiersTooltip } from "../../shared";
 import { Box, Flex, Text } from "../../ui";
 
 export const EntitlementRow = (
-  entitlement: (UsageBasedEntitlement | CurrentUsageBasedEntitlement) & {
+  props: (UsageBasedEntitlement | CurrentUsageBasedEntitlement) & {
     planPeriod: string;
+    tooltipPortal?: HTMLElement | null;
   },
 ) => {
   const { t } = useTranslation();
 
   const { settings } = useEmbed();
 
+  const { tooltipPortal, ...entitlement } = props;
   const { feature, priceBehavior, quantity, softLimit, planPeriod } =
     entitlement;
 
@@ -89,6 +91,7 @@ export const EntitlementRow = (
                   period={planPeriod}
                   currency={currency}
                   priceTiers={priceTiers}
+                  portal={tooltipPortal}
                 />
               </Flex>
             )

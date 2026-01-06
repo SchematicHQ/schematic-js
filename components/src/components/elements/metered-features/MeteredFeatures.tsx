@@ -50,8 +50,14 @@ interface LimitProps {
 const Limit = ({ entitlement, usageDetails, fontStyle }: LimitProps) => {
   const { t } = useTranslation();
 
-  const { feature, priceBehavior, allocation, usage, metricResetAt } =
-    entitlement;
+  const {
+    feature,
+    planEntitlement,
+    priceBehavior,
+    allocation,
+    usage,
+    metricResetAt,
+  } = entitlement;
   const { billingPrice, limit, cost, currentTier } = usageDetails;
 
   const acc: React.ReactNode[] = [];
@@ -79,9 +85,14 @@ const Limit = ({ entitlement, usageDetails, fontStyle }: LimitProps) => {
               typeof cost === "number"
             ? formatCurrency(cost, billingPrice?.currency)
             : priceBehavior === PriceBehavior.Credit &&
-                typeof limit === "number"
-              ? t("Limit of", {
-                  amount: formatNumber(limit),
+                typeof planEntitlement?.valueCredit !== "undefined" &&
+                typeof planEntitlement?.consumptionRate === "number"
+              ? t("X units per use", {
+                  amount: planEntitlement?.consumptionRate,
+                  units: getFeatureName(
+                    planEntitlement.valueCredit,
+                    planEntitlement.consumptionRate,
+                  ),
                 })
               : typeof allocation === "number"
                 ? t("Limit of", {
@@ -318,7 +329,8 @@ export const MeteredFeatures = forwardRef<
                 </Flex>
 
                 {props.isVisible &&
-                  priceBehavior !== PriceBehavior.PayAsYouGo && (
+                  priceBehavior !== PriceBehavior.PayAsYouGo &&
+                  priceBehavior !== PriceBehavior.Credit && (
                     <Meter
                       entitlement={entitlement}
                       usageDetails={usageDetails}

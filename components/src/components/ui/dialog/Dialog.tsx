@@ -67,11 +67,7 @@ export const Dialog = forwardRef<HTMLDialogElement | null, DialogProps>(
       [children, open, onClose, rest, isModal, size, top],
     );
 
-    if (isModal) {
-      return dialog;
-    }
-
-    return <Overlay>{dialog}</Overlay>;
+    return isModal ? dialog : <Overlay>{dialog}</Overlay>;
   },
 );
 

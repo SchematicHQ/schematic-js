@@ -1116,6 +1116,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
                   selectedOption={planPeriod}
                   selectedPlan={selectedPlan}
                   onSelect={changePlanPeriod}
+                  tooltipPortal={dialogRef.current}
                 />
               )}
           </Flex>
@@ -1138,6 +1139,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
               selectedPlan={selectedPlan}
               selectPlan={selectPlan}
               shouldTrial={shouldTrial}
+              tooltipPortal={dialogRef.current}
             />
           ) : checkoutStage === "usage" ? (
             <Usage

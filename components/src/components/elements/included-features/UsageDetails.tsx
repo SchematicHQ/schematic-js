@@ -204,9 +204,9 @@ export const UsageDetails = ({
                 units: getFeatureName(feature, packageSize),
                 period: shortenPeriod(period),
               })
-            : t("$X unit/period", {
+            : t("$X/unit/period", {
                 cost: formatCurrency(price, currency),
-                units: getFeatureName(feature, packageSize),
+                unit: getFeatureName(feature, packageSize),
                 period: shortenPeriod(period),
               })}
         </Fragment>,
