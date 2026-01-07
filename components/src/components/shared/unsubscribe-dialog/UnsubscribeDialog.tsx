@@ -81,12 +81,16 @@ export const UnsubscribeDialog = ({ top }: UnsubscribeDialogProps) => {
 
   useLayoutEffect(() => {
     const element = dialogRef.current;
-    if (layout !== "unsubscribe" || !element || element.open) {
+    if (layout !== "unsubscribe" || !element) {
       return;
     }
 
     const isParentBody = element.parentElement === document.body;
     setIsModal(isParentBody);
+
+    if (element.open) {
+      return;
+    }
 
     if (isParentBody) {
       element.showModal();
@@ -102,6 +106,7 @@ export const UnsubscribeDialog = ({ top }: UnsubscribeDialogProps) => {
       size="auto"
       top={top}
       onClose={handleClose}
+      {...(!isModal && { open: layout === "unsubscribe" })}
     >
       <DialogHeader onClose={handleClose} />
 

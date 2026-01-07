@@ -22,7 +22,7 @@ export const Dialog = styled.dialog<DialogProps>(
       left: 50%;
       z-index: 10;
       transform: translate(-50%, -50%);
-      overflow: hidden;
+      overflow: auto;
       width: 100%;
       max-width: 100dvw;
       height: fit-content;
