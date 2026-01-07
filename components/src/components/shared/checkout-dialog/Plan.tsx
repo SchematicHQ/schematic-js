@@ -298,11 +298,11 @@ export const Plan = ({
 
   const isTrialing = data?.subscription?.status === "trialing";
   const showAsMonthlyPrices =
-    data?.displaySettings?.showAsMonthlyPrices ?? false;
-  const showCredits = data?.displaySettings?.showCredits ?? true;
-  const showPeriodToggle = data?.displaySettings?.showPeriodToggle ?? true;
+    data?.displaySettings.showAsMonthlyPrices ?? false;
+  const showCredits = data?.displaySettings.showCredits ?? true;
+  const showPeriodToggle = data?.displaySettings.showPeriodToggle ?? true;
   const showZeroPriceAsFree =
-    data?.displaySettings?.showZeroPriceAsFree ?? false;
+    data?.displaySettings.showZeroPriceAsFree ?? false;
 
   const cardPadding = settings.theme.card.padding / TEXT_BASE_SIZE;
 

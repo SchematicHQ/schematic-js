@@ -134,12 +134,12 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
         currentEntitlements: data?.featureUsage
           ? data.featureUsage.features
           : [],
-        showPeriodToggle: data?.displaySettings?.showPeriodToggle ?? true,
+        showPeriodToggle: data?.displaySettings.showPeriodToggle ?? true,
         trialPaymentMethodRequired: data?.trialPaymentMethodRequired === true,
       };
     }, [
       data?.featureUsage,
-      data?.displaySettings?.showPeriodToggle,
+      data?.displaySettings.showPeriodToggle,
       data?.trialPaymentMethodRequired,
     ]);
 
@@ -151,7 +151,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
     // If a specific plan is requested, validate the period against that plan's availability
     if (checkoutState?.planId) {
-      const requestedPlan = data?.activePlans?.find(
+      const requestedPlan = data?.activePlans.find(
         (plan) => plan.id === checkoutState.planId,
       );
 

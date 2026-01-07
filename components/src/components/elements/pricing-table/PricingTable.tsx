@@ -158,7 +158,7 @@ export const PricingTable = forwardRef<
   );
 
   const showPeriodToggle =
-    rest.showPeriodToggle ?? data?.displaySettings?.showPeriodToggle ?? true;
+    rest.showPeriodToggle ?? data?.displaySettings.showPeriodToggle ?? true;
   const { plans, addOns, periods } = useAvailablePlans(selectedPeriod, {
     useSelectedPeriod: showPeriodToggle,
   });
