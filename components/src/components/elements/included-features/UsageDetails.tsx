@@ -131,7 +131,7 @@ export const UsageDetails = ({
             })
           : t("Up to X units in this tier", {
               amount: formatNumber(currentTier.to),
-              feature: getFeatureName(feature, currentTier?.to),
+              feature: getFeatureName(feature, currentTier.to),
             }))
       );
     }

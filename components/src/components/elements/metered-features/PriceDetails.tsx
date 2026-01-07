@@ -47,7 +47,7 @@ export const PriceDetails = ({
     tiersMode: billingPrice?.tiersMode || undefined,
     currentTierPerUnitPrice:
       typeof currentTier?.perUnitPriceDecimal === "string"
-        ? Number(currentTier?.perUnitPriceDecimal)
+        ? Number(currentTier.perUnitPriceDecimal)
         : currentTier?.perUnitPrice,
   };
 
@@ -89,7 +89,7 @@ export const PriceDetails = ({
             <Text>
               {t("Tier")}: {currentTier?.from || 1}
               {typeof currentTier?.to === "number" &&
-                (currentTier?.from || 1) !== currentTier?.to && (
+                (currentTier.from || 1) !== currentTier.to && (
                   <>
                     {currentTier.to === Infinity ? "+" : `–${currentTier.to}`}
                   </>

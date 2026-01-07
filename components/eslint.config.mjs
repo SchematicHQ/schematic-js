@@ -35,6 +35,7 @@ export default defineConfig([
         "error",
         { ignoreRestSiblings: true },
       ],
+      "@typescript-eslint/prefer-optional-chain": "error",
       "react/no-unescaped-entities": "off",
       "import/first": "error",
       "import/newline-after-import": "error",
@@ -44,11 +45,11 @@ export default defineConfig([
         "error",
         {
           "newlines-between": "always",
-          alphabetize: {
+          "alphabetize": {
             order: "asc",
             orderImportKind: "asc",
           },
-          named: {
+          "named": {
             enabled: true,
             types: "types-last",
           },
@@ -61,7 +62,7 @@ export default defineConfig([
         typescript: true,
         node: true,
       },
-      react: {
+      "react": {
         version: "detect",
       },
     },

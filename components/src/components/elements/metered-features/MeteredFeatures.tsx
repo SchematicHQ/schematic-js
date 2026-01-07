@@ -91,7 +91,7 @@ const Limit = ({ entitlement, usageDetails, fontStyle }: LimitProps) => {
                 typeof planEntitlement?.valueCredit !== "undefined" &&
                 typeof planEntitlement?.consumptionRate === "number"
               ? t("X units per use", {
-                  amount: planEntitlement?.consumptionRate,
+                  amount: planEntitlement.consumptionRate,
                   units: getFeatureName(
                     planEntitlement.valueCredit,
                     planEntitlement.consumptionRate,
