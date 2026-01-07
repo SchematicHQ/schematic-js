@@ -5,17 +5,19 @@ import { type BillingProductPriceTierResponseData } from "../../../api/checkoute
 import { TiersMode } from "../../../const";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import type { Feature } from "../../../types";
-import { Box, Flex, Icon, Text, Tooltip } from "../../ui";
+import { Box, Flex, Icon, Text, Tooltip, type TooltipProps } from "../../ui";
 
 import { PriceText } from "./PriceText";
 
-interface PricingTiersTooltipProps {
+interface PricingTiersTooltipProps extends Omit<
+  TooltipProps,
+  "trigger" | "content"
+> {
   feature: Feature;
   period?: string;
   currency?: string;
   priceTiers?: BillingProductPriceTierResponseData[];
   tiersMode?: string;
-  portal?: HTMLElement | null;
 }
 
 export const PricingTiersTooltip = ({
@@ -25,6 +27,8 @@ export const PricingTiersTooltip = ({
   priceTiers = [],
   tiersMode,
   portal,
+  position,
+  fullWidth,
 }: PricingTiersTooltipProps) => {
   const { t } = useTranslation();
 
@@ -150,6 +154,8 @@ export const PricingTiersTooltip = ({
         </Flex>
       }
       portal={portal}
+      position={position}
+      fullWidth={fullWidth}
     />
   );
 };

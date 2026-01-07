@@ -92,6 +92,7 @@ export const EntitlementRow = (
                   currency={currency}
                   priceTiers={priceTiers}
                   portal={tooltipPortal}
+                  position="left"
                 />
               </Flex>
             )

@@ -1,4 +1,4 @@
-import { useIsLightBackground } from "../../../hooks";
+import { useEmbed, useIsLightBackground } from "../../../hooks";
 import { Flex, Icon } from "../../ui";
 
 interface DialogHeaderProps {
@@ -12,6 +12,8 @@ export const DialogHeader = ({
   bordered = false,
   onClose,
 }: DialogHeaderProps) => {
+  const { settings } = useEmbed();
+
   const isLightBackground = useIsLightBackground();
 
   return (
@@ -25,6 +27,7 @@ export const DialogHeader = ({
       $flexShrink={0}
       $gap="1rem"
       $padding="0.5rem 0.5rem 0.5rem 1.5rem"
+      $backgroundColor={settings.theme.card.background}
       {...(bordered && {
         $borderWidth: "0",
         $borderBottomWidth: "1px",
