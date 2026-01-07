@@ -60,7 +60,6 @@ export const Tooltip = ({
   ...rest
 }: TooltipProps) => {
   const triggerRef = useRef<HTMLDivElement>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
 
   const [show, setShow] = useState(false);
   const [coords, setCoords] = useState({ x: 0, y: 0 });
@@ -103,7 +102,7 @@ export const Tooltip = ({
 
       {show &&
         createPortal(
-          <Content ref={contentRef} {...coords} position={position}>
+          <Content {...coords} position={position}>
             {content}
           </Content>,
           portal || document.body,

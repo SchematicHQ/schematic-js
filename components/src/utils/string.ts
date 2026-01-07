@@ -42,6 +42,8 @@ export function formatCurrency(
       if (typeof options.testSignificantDigits === "boolean") {
         testSignificantDigits = options.testSignificantDigits;
       }
+
+      break;
     }
   }
 
