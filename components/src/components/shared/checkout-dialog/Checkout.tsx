@@ -53,7 +53,7 @@ export const Checkout = ({
   }
 
   return (
-    <>
+    <Flex $flexDirection="column" $gap="1.5rem">
       <PaymentMethodDetails
         confirmPaymentIntentProps={confirmPaymentIntentProps}
         setPaymentMethodId={setPaymentMethodId}
@@ -109,6 +109,6 @@ export const Checkout = ({
           </Box>
         </Flex>
       </Flex>
-    </>
+    </Flex>
   );
 };

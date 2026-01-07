@@ -25,6 +25,24 @@ import {
   FeatureDetailResponseDataFromJSONTyped,
   FeatureDetailResponseDataToJSON,
 } from "./FeatureDetailResponseData";
+import type { PlanControlledByType } from "./PlanControlledByType";
+import {
+  PlanControlledByTypeFromJSON,
+  PlanControlledByTypeFromJSONTyped,
+  PlanControlledByTypeToJSON,
+} from "./PlanControlledByType";
+import type { ChargeType } from "./ChargeType";
+import {
+  ChargeTypeFromJSON,
+  ChargeTypeFromJSONTyped,
+  ChargeTypeToJSON,
+} from "./ChargeType";
+import type { PlanType } from "./PlanType";
+import {
+  PlanTypeFromJSON,
+  PlanTypeFromJSONTyped,
+  PlanTypeToJSON,
+} from "./PlanType";
 import type { BillingPriceResponseData } from "./BillingPriceResponseData";
 import {
   BillingPriceResponseDataFromJSON,
@@ -48,6 +66,7 @@ export interface PlanDetailResponseData {
    *
    * @type {string}
    * @memberof PlanDetailResponseData
+   * @deprecated
    */
   audienceType?: string | null;
   /**
@@ -58,10 +77,10 @@ export interface PlanDetailResponseData {
   billingProduct?: BillingProductDetailResponseData;
   /**
    *
-   * @type {string}
+   * @type {ChargeType}
    * @memberof PlanDetailResponseData
    */
-  chargeType: string;
+  chargeType: ChargeType;
   /**
    *
    * @type {number}
@@ -70,10 +89,10 @@ export interface PlanDetailResponseData {
   companyCount: number;
   /**
    *
-   * @type {string}
+   * @type {PlanControlledByType}
    * @memberof PlanDetailResponseData
    */
-  controlledBy: string;
+  controlledBy: PlanControlledByType;
   /**
    *
    * @type {Date}
@@ -149,10 +168,10 @@ export interface PlanDetailResponseData {
   oneTimePrice?: BillingPriceResponseData;
   /**
    *
-   * @type {string}
+   * @type {PlanType}
    * @memberof PlanDetailResponseData
    */
-  planType: string;
+  planType: PlanType;
   /**
    *
    * @type {number}
@@ -221,9 +240,9 @@ export function PlanDetailResponseDataFromJSONTyped(
       json["billing_product"] == null
         ? undefined
         : BillingProductDetailResponseDataFromJSON(json["billing_product"]),
-    chargeType: json["charge_type"],
+    chargeType: ChargeTypeFromJSON(json["charge_type"]),
     companyCount: json["company_count"],
-    controlledBy: json["controlled_by"],
+    controlledBy: PlanControlledByTypeFromJSON(json["controlled_by"]),
     createdAt: new Date(json["created_at"]),
     description: json["description"],
     features: (json["features"] as Array<any>).map(
@@ -249,7 +268,7 @@ export function PlanDetailResponseDataFromJSONTyped(
       json["one_time_price"] == null
         ? undefined
         : BillingPriceResponseDataFromJSON(json["one_time_price"]),
-    planType: json["plan_type"],
+    planType: PlanTypeFromJSON(json["plan_type"]),
     trialDays: json["trial_days"] == null ? undefined : json["trial_days"],
     updatedAt: new Date(json["updated_at"]),
     yearlyPrice:
@@ -270,9 +289,9 @@ export function PlanDetailResponseDataToJSON(
     billing_product: BillingProductDetailResponseDataToJSON(
       value["billingProduct"],
     ),
-    charge_type: value["chargeType"],
+    charge_type: ChargeTypeToJSON(value["chargeType"]),
     company_count: value["companyCount"],
-    controlled_by: value["controlledBy"],
+    controlled_by: PlanControlledByTypeToJSON(value["controlledBy"]),
     created_at: value["createdAt"].toISOString(),
     description: value["description"],
     features: (value["features"] as Array<any>).map(
@@ -292,7 +311,7 @@ export function PlanDetailResponseDataToJSON(
     monthly_price: BillingPriceResponseDataToJSON(value["monthlyPrice"]),
     name: value["name"],
     one_time_price: BillingPriceResponseDataToJSON(value["oneTimePrice"]),
-    plan_type: value["planType"],
+    plan_type: PlanTypeToJSON(value["planType"]),
     trial_days: value["trialDays"],
     updated_at: value["updatedAt"].toISOString(),
     yearly_price: BillingPriceResponseDataToJSON(value["yearlyPrice"]),

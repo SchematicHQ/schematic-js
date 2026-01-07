@@ -16,8 +16,8 @@ jobs:
     runs-on: runs-on=${{ github.run_id }}/runner=4cpu-linux-x64/extras=s3-cache
     steps:
       - uses: runs-on/action@v2.0.3
-      - uses: actions/checkout@v5.0.0
-      - uses: actions/setup-node@v5.0.0
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: 24.x
       - name: Yarn install
@@ -32,8 +32,8 @@ jobs:
     runs-on: runs-on=${{ github.run_id }}/runner=4cpu-linux-x64/extras=s3-cache
     steps:
       - uses: runs-on/action@v2.0.3
-      - uses: actions/checkout@v5.0.0
-      - uses: actions/setup-node@v5.0.0
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: 24.x
       - name: Yarn install
@@ -52,10 +52,10 @@ jobs:
     needs: ["test", "lint"]
     steps:
       - uses: runs-on/action@v2.0.3
-      - uses: actions/checkout@v5.0.0
+      - uses: actions/checkout@v6
 
       - name: Set Node.js 24.x
-        uses: actions/setup-node@v5.0.0
+        uses: actions/setup-node@v6
         with:
           node-version: 24.x
 
@@ -72,7 +72,7 @@ jobs:
         run: yarn build:browser
 
       - name: 🚀auth-oidc-aws-prod
-        uses: aws-actions/configure-aws-credentials@v5.0.0
+        uses: aws-actions/configure-aws-credentials@v5.1.0
         with:
           role-to-assume: ${{ vars.PROD_AWS_ROLE_ARN }}
           aws-region: ${{ vars.PROD_AWS_REGION }}
@@ -100,9 +100,9 @@ jobs:
     needs: ["test", "lint"]
     steps:
       - uses: runs-on/action@v2.0.3
-      - uses: actions/checkout@v5.0.0
+      - uses: actions/checkout@v6
       - name: Set Node.js 24.x
-        uses: actions/setup-node@v5.0.0
+        uses: actions/setup-node@v6
         with:
           node-version: 24.x
       - name: Yarn install

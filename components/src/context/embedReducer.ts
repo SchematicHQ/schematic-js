@@ -14,6 +14,7 @@ import type {
 
 import {
   defaultSettings,
+  type BypassConfig,
   type CheckoutState,
   type EmbedLayout,
   type EmbedSettings,
@@ -51,7 +52,9 @@ type EmbedAction =
       update?: boolean;
     }
   | { type: "CHANGE_LAYOUT"; layout: EmbedLayout }
-  | { type: "SET_CHECKOUT_STATE"; state: CheckoutState };
+  | { type: "SET_CHECKOUT_STATE"; state: CheckoutState }
+  | { type: "SET_PLANID_BYPASS"; config: string | BypassConfig }
+  | { type: "CLEAR_CHECKOUT_STATE" };
 
 function normalize(data?: HydrateData): HydrateDataWithCompanyContext {
   return merge({}, data, {
@@ -78,6 +81,7 @@ function normalize(data?: HydrateData): HydrateDataWithCompanyContext {
     },
     creditBundles: [],
     creditGrants: [],
+    preventSelfServiceDowngrade: false,
   });
 }
 
@@ -218,6 +222,59 @@ export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {
         ...state,
         layout: "checkout",
         checkoutState: { ...action.state },
+      };
+    }
+
+    case "SET_PLANID_BYPASS": {
+      const isStringFormat = typeof action.config === "string";
+
+      // Normalize string format to object format
+      const config: BypassConfig = isStringFormat
+        ? { planId: action.config as string, hideSkipped: false }
+        : (action.config as BypassConfig);
+
+      // Three behavior modes for stage skipping:
+      // 1. Pre-Selection Mode (object without skipped): Show stages with pre-selected values
+      // 2. Explicit Skip Mode (object with skipped): Precise control over which stages to skip
+      // 3. Legacy String Mode: Pre-select plan and skip plan stage (backwards compatible)
+      let bypassPlanSelection: boolean;
+      let bypassAddOnSelection: boolean;
+
+      if (config.skipped !== undefined) {
+        // Mode 2: Explicit skip configuration provided
+        // Use exactly what was specified (defaults to false if undefined)
+        bypassPlanSelection = config.skipped.planStage ?? false;
+        bypassAddOnSelection = config.skipped.addOnStage ?? false;
+      } else if (isStringFormat) {
+        // Mode 3: Legacy string format
+        // Maintains backwards compatibility by skipping plan stage
+        bypassPlanSelection = true;
+        bypassAddOnSelection = false;
+      } else {
+        // Mode 1: Pre-selection without explicit skip config
+        // Show all stages with pre-selected values for user review
+        bypassPlanSelection = false;
+        bypassAddOnSelection = false;
+      }
+
+      return {
+        ...state,
+        layout: "checkout",
+        checkoutState: {
+          ...(config.planId && { planId: config.planId }),
+          ...(config.period && { period: config.period }),
+          bypassPlanSelection,
+          bypassAddOnSelection,
+          ...(config.addOnIds && { addOnIds: config.addOnIds }),
+          hideSkippedStages: config.hideSkipped ?? false,
+        },
+      };
+    }
+
+    case "CLEAR_CHECKOUT_STATE": {
+      return {
+        ...state,
+        checkoutState: undefined,
       };
     }
   }

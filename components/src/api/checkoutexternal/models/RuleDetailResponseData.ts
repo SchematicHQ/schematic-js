@@ -76,12 +76,6 @@ export interface RuleDetailResponseData {
   name: string;
   /**
    *
-   * @type {string}
-   * @memberof RuleDetailResponseData
-   */
-  planId?: string | null;
-  /**
-   *
    * @type {number}
    * @memberof RuleDetailResponseData
    */
@@ -153,7 +147,6 @@ export function RuleDetailResponseDataFromJSONTyped(
     flagId: json["flag_id"] == null ? undefined : json["flag_id"],
     id: json["id"],
     name: json["name"],
-    planId: json["plan_id"] == null ? undefined : json["plan_id"],
     priority: json["priority"],
     ruleType: json["rule_type"],
     updatedAt: new Date(json["updated_at"]),
@@ -179,7 +172,6 @@ export function RuleDetailResponseDataToJSON(
     flag_id: value["flagId"],
     id: value["id"],
     name: value["name"],
-    plan_id: value["planId"],
     priority: value["priority"],
     rule_type: value["ruleType"],
     updated_at: value["updatedAt"].toISOString(),

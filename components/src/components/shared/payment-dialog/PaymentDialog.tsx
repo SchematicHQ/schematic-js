@@ -1,25 +1,61 @@
-import { useRef } from "react";
+import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { useEmbed } from "../../../hooks";
 import { PaymentMethodDetails } from "../../elements";
-import { Modal, ModalHeader, Text } from "../../ui";
+import { Dialog, DialogContent, DialogHeader, Flex, Text } from "../../ui";
 
 interface PaymentDialogProps {
   top?: number;
 }
 
-export const PaymentDialog = ({ top = 0 }: PaymentDialogProps) => {
+export const PaymentDialog = ({ top }: PaymentDialogProps) => {
   const { t } = useTranslation();
 
-  const contentRef = useRef<HTMLDivElement>(null);
+  const { layout, setLayout, clearCheckoutState } = useEmbed();
+
+  const dialogRef = useRef<HTMLDialogElement>(null);
+
+  const [isModal, setIsModal] = useState(true);
+
+  const handleClose = useCallback(() => {
+    clearCheckoutState();
+    setLayout("portal");
+  }, [setLayout, clearCheckoutState]);
+
+  useLayoutEffect(() => {
+    const element = dialogRef.current;
+    if (layout !== "payment" || !element || element.open) {
+      return;
+    }
+
+    const isParentBody = element.parentElement === document.body;
+    setIsModal(isParentBody);
+
+    if (isParentBody) {
+      element.showModal();
+    } else {
+      element.show();
+    }
+  }, [layout]);
 
   return (
-    <Modal size="md" top={top} contentRef={contentRef}>
-      <ModalHeader bordered>
+    <Dialog
+      ref={dialogRef}
+      isModal={isModal}
+      size="md"
+      top={top}
+      onClose={handleClose}
+    >
+      <DialogHeader bordered onClose={handleClose}>
         <Text $size={18}>{t("Edit payment method")}</Text>
-      </ModalHeader>
+      </DialogHeader>
 
-      <PaymentMethodDetails />
-    </Modal>
+      <DialogContent>
+        <Flex $position="relative" $flexGrow={1} $overflow="auto">
+          <PaymentMethodDetails />
+        </Flex>
+      </DialogContent>
+    </Dialog>
   );
 };

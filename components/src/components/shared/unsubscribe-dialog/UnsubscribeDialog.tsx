@@ -1,38 +1,46 @@
-import { useMemo, useRef, useState } from "react";
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useAvailablePlans, useEmbed } from "../../../hooks";
 import { toPrettyDate } from "../../../utils";
-import { Button, Flex, Modal, ModalHeader, Text } from "../../ui";
+import {
+  Button,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  Flex,
+  Text,
+} from "../../ui";
 import { createActiveUsageBasedEntitlementsReducer } from "../checkout-dialog";
-import { Sidebar } from "../sidebar";
+import { SubscriptionSidebar } from "../subscription-sidebar";
 
 interface UnsubscribeDialogProps {
   top?: number;
 }
 
-export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
+export const UnsubscribeDialog = ({ top }: UnsubscribeDialogProps) => {
   const { t } = useTranslation();
 
-  const { data, setCheckoutState } = useEmbed();
+  const { data, layout, setLayout, setCheckoutState, clearCheckoutState } =
+    useEmbed();
 
-  const contentRef = useRef<HTMLDivElement>(null);
+  const dialogRef = useRef<HTMLDialogElement>(null);
 
   const [error, setError] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(false);
+  const [isModal, setIsModal] = useState(true);
 
   const { planPeriod, currentPlan, currentAddOns, featureUsage, cancelDate } =
     useMemo(() => {
+      const cancelDate =
+        data?.subscription?.cancelAt || data?.upcomingInvoice?.dueDate;
+
       return {
         planPeriod: data?.company?.plan?.planPeriod || "month",
         currentPlan: data?.company?.plan,
         currentAddOns: data?.company?.addOns || [],
         featureUsage: data?.featureUsage,
-        cancelDate: new Date(
-          data?.subscription?.cancelAt ||
-            data?.upcomingInvoice?.dueDate ||
-            Date.now(),
-        ),
+        cancelDate: cancelDate ? new Date(cancelDate) : new Date(),
       };
     }, [
       data?.company?.addOns,
@@ -66,26 +74,44 @@ export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
     [currentAddOns, availableAddOns],
   );
 
-  return (
-    <Modal size="auto" top={top} contentRef={contentRef}>
-      <ModalHeader />
+  const handleClose = useCallback(() => {
+    clearCheckoutState();
+    setLayout("portal");
+  }, [setLayout, clearCheckoutState]);
 
-      <Flex
-        $position="relative"
-        $flexDirection="column"
-        $viewport={{
-          md: {
-            $flexDirection: "row",
-          },
-        }}
-      >
+  useLayoutEffect(() => {
+    const element = dialogRef.current;
+    if (layout !== "unsubscribe" || !element || element.open) {
+      return;
+    }
+
+    const isParentBody = element.parentElement === document.body;
+    setIsModal(isParentBody);
+
+    if (isParentBody) {
+      element.showModal();
+    } else {
+      element.show();
+    }
+  }, [layout]);
+
+  return (
+    <Dialog
+      ref={dialogRef}
+      isModal={isModal}
+      size="auto"
+      top={top}
+      onClose={handleClose}
+    >
+      <DialogHeader onClose={handleClose} />
+
+      <DialogContent>
         <Flex
           $flexDirection="column"
-          $flexWrap="wrap"
-          $justifyContent="center"
+          $flexGrow={1}
           $gap="2rem"
-          $marginTop="-2.5rem"
           $padding="0 2.5rem 2.5rem"
+          $overflow="auto"
         >
           <Flex $flexDirection="column" $flexWrap="wrap" $gap="0.5rem">
             <Text as="h2" display="heading2">
@@ -123,7 +149,8 @@ export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
           </Flex>
         </Flex>
 
-        <Sidebar
+        <SubscriptionSidebar
+          portalRef={dialogRef}
           planPeriod={planPeriod}
           addOns={addOns}
           usageBasedEntitlements={usageBasedEntitlements}
@@ -135,7 +162,7 @@ export const UnsubscribeDialog = ({ top = 0 }: UnsubscribeDialogProps) => {
           setIsLoading={setIsLoading}
           setConfirmPaymentIntent={() => {}}
         />
-      </Flex>
-    </Modal>
+      </DialogContent>
+    </Dialog>
   );
 };

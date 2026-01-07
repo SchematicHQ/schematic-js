@@ -1,8 +1,6 @@
-import { jest } from "@jest/globals";
-import "@testing-library/dom";
-import "@testing-library/jest-dom";
 import cloneDeep from "lodash/cloneDeep";
 import { HttpResponse, delay, http } from "msw";
+import { vi } from "vitest";
 
 import hydrateJson from "../../../test/mocks/handlers/response/hydrate.json";
 import plansJson from "../../../test/mocks/handlers/response/plans.json";
@@ -136,7 +134,7 @@ describe("`PricingTable`", () => {
     });
 
     test("Should call `onCallToAction` when clicking a plan button", async () => {
-      const mockOnCallToAction = jest.fn();
+      const mockOnCallToAction = vi.fn();
 
       render(<PricingTable onCallToAction={mockOnCallToAction} />);
 
@@ -159,7 +157,7 @@ describe("`PricingTable`", () => {
           response.data.active_plans[0].monthly_price.price_decimal = "0";
           response.data.active_plans[0].yearly_price.price = 0;
           response.data.active_plans[0].yearly_price.price_decimal = "0";
-          response.data.show_zero_price_as_free = true;
+          response.data.display_settings.show_zero_price_as_free = true;
 
           return HttpResponse.json(response);
         }),
@@ -294,7 +292,7 @@ describe("`PricingTable`", () => {
         http.get("https://api.schematichq.com/public/plans", async () => {
           const response = cloneDeep(plansJson);
 
-          response.data.show_credits = true;
+          response.data.display_settings.show_credits = true;
 
           const plan = response.data.active_plans[2];
           const grant = plan.included_credit_grants[0];
@@ -321,7 +319,7 @@ describe("`PricingTable`", () => {
         http.get("https://api.schematichq.com/public/plans", async () => {
           const response = cloneDeep(plansJson);
 
-          response.data.show_credits = false;
+          response.data.display_settings.show_credits = false;
 
           const plan = response.data.active_plans[2];
           const grant = plan.included_credit_grants[0];
@@ -530,7 +528,7 @@ describe("`PricingTable`", () => {
 
       render(<SchematicEmbed accessToken="token_0" id="0" />);
 
-      const trialEndText = await screen.findByText(/Trial ends in \d+ days/);
+      const trialEndText = await screen.findByText(/\d+ days left in trial/);
       expect(trialEndText).toBeInTheDocument();
     });
 

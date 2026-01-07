@@ -44,6 +44,9 @@ export type Event = {
   tracker_event_id: string;
   tracker_user_id: string;
   type: EventType;
+  // Retry metadata (optional for backwards compatibility)
+  retry_count?: number;
+  next_retry_at?: number;
 };
 
 export enum RuleType {
@@ -141,6 +144,39 @@ export type SchematicOptions = {
 
   /** Optionally provide a custom WebSocket URL */
   webSocketUrl?: string;
+
+  /** WebSocket connection timeout in milliseconds (default: 10000) */
+  webSocketConnectionTimeout?: number;
+
+  /** Enable automatic reconnection on WebSocket disconnect (default: true) */
+  webSocketReconnect?: boolean;
+
+  /** Maximum number of reconnection attempts (default: 7, set to Infinity for unlimited) */
+  webSocketMaxReconnectAttempts?: number;
+
+  /** Initial retry delay in milliseconds for exponential backoff (default: 1000) */
+  webSocketInitialRetryDelay?: number;
+
+  /** Maximum retry delay in milliseconds for exponential backoff (default: 30000) */
+  webSocketMaxRetryDelay?: number;
+
+  /** Maximum number of events to queue for retry when network is down (default: 100) */
+  maxEventQueueSize?: number;
+
+  /** Maximum number of retry attempts for failed events (default: 5) */
+  maxEventRetries?: number;
+
+  /** Initial retry delay in milliseconds for failed events (default: 1000) */
+  eventRetryInitialDelay?: number;
+
+  /** Maximum retry delay in milliseconds for failed events (default: 30000) */
+  eventRetryMaxDelay?: number;
+
+  /** Default boolean values for flags when Schematic API cannot be reached and no callsite fallback is provided */
+  flagValueDefaults?: Record<string, boolean>;
+
+  /** Default CheckFlagReturn objects for flags when Schematic API cannot be reached and no callsite fallback is provided */
+  flagCheckDefaults?: Record<string, CheckFlagReturn>;
 };
 
 export type CheckOptions = {

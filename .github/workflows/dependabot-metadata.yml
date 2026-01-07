@@ -18,7 +18,7 @@ jobs:
     steps:
 
       - name: Checkout
-        uses: actions/checkout@v5.0.0
+        uses: actions/checkout@v6
 
       # This is not working from Public repos.
       # - name: Dependabot Metadata

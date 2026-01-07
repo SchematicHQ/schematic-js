@@ -13,12 +13,24 @@
  */
 
 import { mapValues } from "../runtime";
+import type { CompanyPlanInvalidReason } from "./CompanyPlanInvalidReason";
+import {
+  CompanyPlanInvalidReasonFromJSON,
+  CompanyPlanInvalidReasonFromJSONTyped,
+  CompanyPlanInvalidReasonToJSON,
+} from "./CompanyPlanInvalidReason";
 import type { FeatureDetailResponseData } from "./FeatureDetailResponseData";
 import {
   FeatureDetailResponseDataFromJSON,
   FeatureDetailResponseDataFromJSONTyped,
   FeatureDetailResponseDataToJSON,
 } from "./FeatureDetailResponseData";
+import type { PlanControlledByType } from "./PlanControlledByType";
+import {
+  PlanControlledByTypeFromJSON,
+  PlanControlledByTypeFromJSONTyped,
+  PlanControlledByTypeToJSON,
+} from "./PlanControlledByType";
 import type { PlanCreditGrantView } from "./PlanCreditGrantView";
 import {
   PlanCreditGrantViewFromJSON,
@@ -31,6 +43,18 @@ import {
   PlanEntitlementResponseDataFromJSONTyped,
   PlanEntitlementResponseDataToJSON,
 } from "./PlanEntitlementResponseData";
+import type { ChargeType } from "./ChargeType";
+import {
+  ChargeTypeFromJSON,
+  ChargeTypeFromJSONTyped,
+  ChargeTypeToJSON,
+} from "./ChargeType";
+import type { PlanType } from "./PlanType";
+import {
+  PlanTypeFromJSON,
+  PlanTypeFromJSONTyped,
+  PlanTypeToJSON,
+} from "./PlanType";
 import type { BillingPriceResponseData } from "./BillingPriceResponseData";
 import {
   BillingPriceResponseDataFromJSON,
@@ -66,6 +90,7 @@ export interface CompanyPlanDetailResponseData {
    *
    * @type {string}
    * @memberof CompanyPlanDetailResponseData
+   * @deprecated
    */
   audienceType?: string | null;
   /**
@@ -76,10 +101,10 @@ export interface CompanyPlanDetailResponseData {
   billingProduct?: BillingProductDetailResponseData;
   /**
    *
-   * @type {string}
+   * @type {ChargeType}
    * @memberof CompanyPlanDetailResponseData
    */
-  chargeType: string;
+  chargeType: ChargeType;
   /**
    *
    * @type {boolean}
@@ -100,10 +125,10 @@ export interface CompanyPlanDetailResponseData {
   compatiblePlanIds: Array<string>;
   /**
    *
-   * @type {string}
+   * @type {PlanControlledByType}
    * @memberof CompanyPlanDetailResponseData
    */
-  controlledBy: string;
+  controlledBy: PlanControlledByType;
   /**
    *
    * @type {Date}
@@ -166,6 +191,12 @@ export interface CompanyPlanDetailResponseData {
   includedCreditGrants: Array<PlanCreditGrantView>;
   /**
    *
+   * @type {CompanyPlanInvalidReason}
+   * @memberof CompanyPlanDetailResponseData
+   */
+  invalidReason?: CompanyPlanInvalidReason | null;
+  /**
+   *
    * @type {boolean}
    * @memberof CompanyPlanDetailResponseData
    */
@@ -209,10 +240,10 @@ export interface CompanyPlanDetailResponseData {
   oneTimePrice?: BillingPriceResponseData;
   /**
    *
-   * @type {string}
+   * @type {PlanType}
    * @memberof CompanyPlanDetailResponseData
    */
-  planType: string;
+  planType: PlanType;
   /**
    *
    * @type {number}
@@ -313,11 +344,11 @@ export function CompanyPlanDetailResponseDataFromJSONTyped(
       json["billing_product"] == null
         ? undefined
         : BillingProductDetailResponseDataFromJSON(json["billing_product"]),
-    chargeType: json["charge_type"],
+    chargeType: ChargeTypeFromJSON(json["charge_type"]),
     companyCanTrial: json["company_can_trial"],
     companyCount: json["company_count"],
     compatiblePlanIds: json["compatible_plan_ids"],
-    controlledBy: json["controlled_by"],
+    controlledBy: PlanControlledByTypeFromJSON(json["controlled_by"]),
     createdAt: new Date(json["created_at"]),
     current: json["current"],
     custom: json["custom"],
@@ -337,6 +368,10 @@ export function CompanyPlanDetailResponseDataFromJSONTyped(
     includedCreditGrants: (json["included_credit_grants"] as Array<any>).map(
       PlanCreditGrantViewFromJSON,
     ),
+    invalidReason:
+      json["invalid_reason"] == null
+        ? undefined
+        : CompanyPlanInvalidReasonFromJSON(json["invalid_reason"]),
     isCustom: json["is_custom"],
     isDefault: json["is_default"],
     isFree: json["is_free"],
@@ -350,7 +385,7 @@ export function CompanyPlanDetailResponseDataFromJSONTyped(
       json["one_time_price"] == null
         ? undefined
         : BillingPriceResponseDataFromJSON(json["one_time_price"]),
-    planType: json["plan_type"],
+    planType: PlanTypeFromJSON(json["plan_type"]),
     trialDays: json["trial_days"] == null ? undefined : json["trial_days"],
     updatedAt: new Date(json["updated_at"]),
     usageViolations: (json["usage_violations"] as Array<any>).map(
@@ -375,11 +410,11 @@ export function CompanyPlanDetailResponseDataToJSON(
     billing_product: BillingProductDetailResponseDataToJSON(
       value["billingProduct"],
     ),
-    charge_type: value["chargeType"],
+    charge_type: ChargeTypeToJSON(value["chargeType"]),
     company_can_trial: value["companyCanTrial"],
     company_count: value["companyCount"],
     compatible_plan_ids: value["compatiblePlanIds"],
-    controlled_by: value["controlledBy"],
+    controlled_by: PlanControlledByTypeToJSON(value["controlledBy"]),
     created_at: value["createdAt"].toISOString(),
     current: value["current"],
     custom: value["custom"],
@@ -396,6 +431,7 @@ export function CompanyPlanDetailResponseDataToJSON(
     included_credit_grants: (value["includedCreditGrants"] as Array<any>).map(
       PlanCreditGrantViewToJSON,
     ),
+    invalid_reason: CompanyPlanInvalidReasonToJSON(value["invalidReason"]),
     is_custom: value["isCustom"],
     is_default: value["isDefault"],
     is_free: value["isFree"],
@@ -403,7 +439,7 @@ export function CompanyPlanDetailResponseDataToJSON(
     monthly_price: BillingPriceResponseDataToJSON(value["monthlyPrice"]),
     name: value["name"],
     one_time_price: BillingPriceResponseDataToJSON(value["oneTimePrice"]),
-    plan_type: value["planType"],
+    plan_type: PlanTypeToJSON(value["planType"]),
     trial_days: value["trialDays"],
     updated_at: value["updatedAt"].toISOString(),
     usage_violations: (value["usageViolations"] as Array<any>).map(

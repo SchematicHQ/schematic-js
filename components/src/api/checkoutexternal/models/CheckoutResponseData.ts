@@ -13,12 +13,31 @@
  */
 
 import { mapValues } from "../runtime";
+import type { BillingSubscriptionTrialEndSetting } from "./BillingSubscriptionTrialEndSetting";
+import {
+  BillingSubscriptionTrialEndSettingFromJSON,
+  BillingSubscriptionTrialEndSettingFromJSONTyped,
+  BillingSubscriptionTrialEndSettingToJSON,
+} from "./BillingSubscriptionTrialEndSetting";
+import type { BillingProviderType } from "./BillingProviderType";
+import {
+  BillingProviderTypeFromJSON,
+  BillingProviderTypeFromJSONTyped,
+  BillingProviderTypeToJSON,
+} from "./BillingProviderType";
+
 /**
  *
  * @export
  * @interface CheckoutResponseData
  */
 export interface CheckoutResponseData {
+  /**
+   *
+   * @type {string}
+   * @memberof CheckoutResponseData
+   */
+  applicationId?: string | null;
   /**
    *
    * @type {number}
@@ -111,6 +130,12 @@ export interface CheckoutResponseData {
   periodStart: number;
   /**
    *
+   * @type {BillingProviderType}
+   * @memberof CheckoutResponseData
+   */
+  providerType: BillingProviderType;
+  /**
+   *
    * @type {string}
    * @memberof CheckoutResponseData
    */
@@ -135,10 +160,10 @@ export interface CheckoutResponseData {
   trialEnd?: number | null;
   /**
    *
-   * @type {string}
+   * @type {BillingSubscriptionTrialEndSetting}
    * @memberof CheckoutResponseData
    */
-  trialEndSetting?: string | null;
+  trialEndSetting?: BillingSubscriptionTrialEndSetting | null;
 }
 
 /**
@@ -164,6 +189,8 @@ export function instanceOfCheckoutResponseData(
   if (!("periodEnd" in value) || value["periodEnd"] === undefined) return false;
   if (!("periodStart" in value) || value["periodStart"] === undefined)
     return false;
+  if (!("providerType" in value) || value["providerType"] === undefined)
+    return false;
   if (!("status" in value) || value["status"] === undefined) return false;
   if (
     !("subscriptionExternalId" in value) ||
@@ -187,6 +214,8 @@ export function CheckoutResponseDataFromJSONTyped(
     return json;
   }
   return {
+    applicationId:
+      json["application_id"] == null ? undefined : json["application_id"],
     cancelAt: json["cancel_at"] == null ? undefined : json["cancel_at"],
     cancelAtPeriodEnd: json["cancel_at_period_end"],
     companyId: json["company_id"] == null ? undefined : json["company_id"],
@@ -212,12 +241,15 @@ export function CheckoutResponseDataFromJSONTyped(
     metadata: json["metadata"] == null ? undefined : json["metadata"],
     periodEnd: json["period_end"],
     periodStart: json["period_start"],
+    providerType: BillingProviderTypeFromJSON(json["provider_type"]),
     status: json["status"],
     subscriptionExternalId: json["subscription_external_id"],
     totalPrice: json["total_price"],
     trialEnd: json["trial_end"] == null ? undefined : json["trial_end"],
     trialEndSetting:
-      json["trial_end_setting"] == null ? undefined : json["trial_end_setting"],
+      json["trial_end_setting"] == null
+        ? undefined
+        : BillingSubscriptionTrialEndSettingFromJSON(json["trial_end_setting"]),
   };
 }
 
@@ -228,6 +260,7 @@ export function CheckoutResponseDataToJSON(
     return value;
   }
   return {
+    application_id: value["applicationId"],
     cancel_at: value["cancelAt"],
     cancel_at_period_end: value["cancelAtPeriodEnd"],
     company_id: value["companyId"],
@@ -247,10 +280,13 @@ export function CheckoutResponseDataToJSON(
     metadata: value["metadata"],
     period_end: value["periodEnd"],
     period_start: value["periodStart"],
+    provider_type: BillingProviderTypeToJSON(value["providerType"]),
     status: value["status"],
     subscription_external_id: value["subscriptionExternalId"],
     total_price: value["totalPrice"],
     trial_end: value["trialEnd"],
-    trial_end_setting: value["trialEndSetting"],
+    trial_end_setting: BillingSubscriptionTrialEndSettingToJSON(
+      value["trialEndSetting"],
+    ),
   };
 }

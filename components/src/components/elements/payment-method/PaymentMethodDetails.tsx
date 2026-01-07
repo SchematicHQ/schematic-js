@@ -257,7 +257,12 @@ export const PaymentMethodDetails = ({
   ]);
 
   return (
-    <Flex $position="relative">
+    <Flex
+      $position="relative"
+      $flexDirection="column"
+      $flexGrow={1}
+      $gap="1.5rem"
+    >
       <Flex
         $position="absolute"
         $zIndex={isLoading || isConfirmingPayment ? 1 : 0}
@@ -274,19 +279,23 @@ export const PaymentMethodDetails = ({
       </Flex>
 
       <Flex
-        $position="relative"
         $zIndex={isLoading || isConfirmingPayment ? 0 : 1}
         $flexDirection="column"
         $flexGrow={1}
         $gap="1rem"
-        $overflow="auto"
-        $padding="2rem 2.5rem 2rem 2.5rem"
+        $height="fit-content"
+        $padding="1rem"
         $visibility={isLoading || isConfirmingPayment ? "hidden" : "visible"}
         $backgroundColor={
           isLightBackground
             ? "hsla(0, 0%, 0%, 0.025)"
             : "hsla(0, 0%, 100%, 0.025)"
         }
+        $viewport={{
+          md: {
+            $padding: "2rem 2.5rem",
+          },
+        }}
       >
         {setupIntent && showPaymentForm && stripe ? (
           <Elements
@@ -364,38 +373,39 @@ export const PaymentMethodDetails = ({
                   name={
                     showDifferentPaymentMethods ? "chevron-up" : "chevron-down"
                   }
+                  color={settings.theme.typography.text.color}
                 />
               </Flex>
             )}
 
             {showDifferentPaymentMethods && (
               <Flex $flexDirection="column" $gap="2rem" $marginTop="-1rem">
-                <Flex $flexDirection="column" $overflow="auto">
-                  {(
-                    paymentMethods.filter(
-                      (paymentMethod) =>
-                        paymentMethod.id !== currentPaymentMethod?.id,
-                    ) || []
-                  ).map((paymentMethod) => (
-                    <PaymentListElement
-                      key={paymentMethod.id}
-                      paymentMethod={paymentMethod}
-                      setDefault={handleUpdatePaymentMethod}
-                      handleDelete={handleDeletePaymentMethod}
-                    />
-                  ))}
-                </Flex>
-
-                {(!setupIntent || !currentPaymentMethod) && (
-                  <Button
-                    type="button"
-                    onClick={initializePaymentMethod}
-                    $size="lg"
-                    $fullWidth
-                  >
-                    {t("Add new payment method")}
-                  </Button>
+                {paymentMethods.length > 1 && (
+                  <Flex $flexDirection="column" $overflow="auto">
+                    {(
+                      paymentMethods.filter(
+                        (paymentMethod) =>
+                          paymentMethod.id !== currentPaymentMethod?.id,
+                      ) || []
+                    ).map((paymentMethod) => (
+                      <PaymentListElement
+                        key={paymentMethod.id}
+                        paymentMethod={paymentMethod}
+                        setDefault={handleUpdatePaymentMethod}
+                        handleDelete={handleDeletePaymentMethod}
+                      />
+                    ))}
+                  </Flex>
                 )}
+
+                <Button
+                  type="button"
+                  onClick={initializePaymentMethod}
+                  $size="lg"
+                  $fullWidth
+                >
+                  {t("Add new payment method")}
+                </Button>
               </Flex>
             )}
           </Flex>

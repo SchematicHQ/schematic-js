@@ -33,13 +33,13 @@ export const PeriodToggle = ({
       const yearly = yearlyBillingPrice?.price ?? 0;
       return Math.round(((monthly - yearly) / monthly) * 10000) / 100;
     }
-
-    return 0;
   }, [selectedPlan]);
 
   return (
     <Flex
       data-testid="sch-period-toggle"
+      $alignSelf="center"
+      $width="fit-content"
       $margin={0}
       $backgroundColor={settings.theme.card.background}
       $borderWidth="1px"
@@ -51,11 +51,6 @@ export const PeriodToggle = ({
       }
       $borderRadius="2.5rem"
       $cursor="pointer"
-      $viewport={{
-        md: {
-          $width: "fit-content",
-        },
-      }}
     >
       {options.map((option) => {
         const element = (
@@ -72,7 +67,9 @@ export const PeriodToggle = ({
               }
             }}
             style={{
+              flexGrow: 1,
               flexBasis: "50%",
+              width: "100%",
               textDecoration: "none",
               whiteSpace: "nowrap",
               borderRadius: "2.5rem",
@@ -96,7 +93,7 @@ export const PeriodToggle = ({
           </Button>
         );
 
-        if (option === "year") {
+        if (option === "year" && typeof savingsPercentage === "number") {
           return (
             <Tooltip
               key={option}
@@ -112,6 +109,7 @@ export const PeriodToggle = ({
                       })}
                 </Text>
               }
+              $flexGrow={1}
               $flexBasis="50%"
             />
           );

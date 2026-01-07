@@ -13,6 +13,18 @@
  */
 
 import { mapValues } from "../runtime";
+import type { EntitlementValueType } from "./EntitlementValueType";
+import {
+  EntitlementValueTypeFromJSON,
+  EntitlementValueTypeFromJSONTyped,
+  EntitlementValueTypeToJSON,
+} from "./EntitlementValueType";
+import type { EntitlementPriceBehavior } from "./EntitlementPriceBehavior";
+import {
+  EntitlementPriceBehaviorFromJSON,
+  EntitlementPriceBehaviorFromJSONTyped,
+  EntitlementPriceBehaviorToJSON,
+} from "./EntitlementPriceBehavior";
 import type { BillingPriceView } from "./BillingPriceView";
 import {
   BillingPriceViewFromJSON,
@@ -70,10 +82,10 @@ export interface UsageBasedEntitlementResponseData {
   monthlyUsageBasedPrice?: BillingPriceView;
   /**
    *
-   * @type {string}
+   * @type {EntitlementPriceBehavior}
    * @memberof UsageBasedEntitlementResponseData
    */
-  priceBehavior?: string | null;
+  priceBehavior?: EntitlementPriceBehavior | null;
   /**
    *
    * @type {boolean}
@@ -88,10 +100,10 @@ export interface UsageBasedEntitlementResponseData {
   valueNumeric?: number | null;
   /**
    *
-   * @type {string}
+   * @type {EntitlementValueType}
    * @memberof UsageBasedEntitlementResponseData
    */
-  valueType: string;
+  valueType: EntitlementValueType;
   /**
    *
    * @type {BillingPriceView}
@@ -145,11 +157,13 @@ export function UsageBasedEntitlementResponseDataFromJSONTyped(
         ? undefined
         : BillingPriceViewFromJSON(json["monthly_usage_based_price"]),
     priceBehavior:
-      json["price_behavior"] == null ? undefined : json["price_behavior"],
+      json["price_behavior"] == null
+        ? undefined
+        : EntitlementPriceBehaviorFromJSON(json["price_behavior"]),
     valueBool: json["value_bool"] == null ? undefined : json["value_bool"],
     valueNumeric:
       json["value_numeric"] == null ? undefined : json["value_numeric"],
-    valueType: json["value_type"],
+    valueType: EntitlementValueTypeFromJSON(json["value_type"]),
     yearlyUsageBasedPrice:
       json["yearly_usage_based_price"] == null
         ? undefined
@@ -173,10 +187,10 @@ export function UsageBasedEntitlementResponseDataToJSON(
     monthly_usage_based_price: BillingPriceViewToJSON(
       value["monthlyUsageBasedPrice"],
     ),
-    price_behavior: value["priceBehavior"],
+    price_behavior: EntitlementPriceBehaviorToJSON(value["priceBehavior"]),
     value_bool: value["valueBool"],
     value_numeric: value["valueNumeric"],
-    value_type: value["valueType"],
+    value_type: EntitlementValueTypeToJSON(value["valueType"]),
     yearly_usage_based_price: BillingPriceViewToJSON(
       value["yearlyUsageBasedPrice"],
     ),

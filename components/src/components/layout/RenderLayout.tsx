@@ -5,7 +5,7 @@ import { Card, Element } from ".";
 
 const Disabled = () => {
   return (
-    <Box $width="max-content" $height="max-content" $margin="0 auto">
+    <Box $width="max-content" $height="max-content">
       <Card>
         <Element
           as={Flex}

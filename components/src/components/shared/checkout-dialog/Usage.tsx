@@ -76,7 +76,7 @@ export const Usage = ({ entitlements, updateQuantity, period }: UsageProps) => {
                 <Input
                   $size="lg"
                   type="number"
-                  value={entitlement.quantity}
+                  defaultValue={entitlement.quantity}
                   min={0}
                   autoFocus
                   onFocus={(event) => {

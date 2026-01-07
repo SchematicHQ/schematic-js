@@ -1,0 +1,71 @@
+name: Deploy schematic-vue
+
+on:
+  push:
+    tags:
+      - 'schematic-vue@*'
+  workflow_dispatch:
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: runs-on=${{ github.run_id }}/runner=4cpu-linux-x64/extras=s3-cache
+    steps:
+      - uses: runs-on/action@v2.0.3
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.x
+      - name: Yarn install
+        working-directory: ./vue
+        run: yarn install
+      - name: Lint
+        working-directory: ./vue
+        run: yarn lint
+
+  test:
+    name: Test
+    runs-on: runs-on=${{ github.run_id }}/runner=4cpu-linux-x64/extras=s3-cache
+    steps:
+      - uses: runs-on/action@v2.0.3
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.x
+      - name: Yarn install
+        working-directory: ./vue
+        run: yarn install
+      - name: Test
+        working-directory: ./vue
+        run: yarn test
+
+  publish:
+    name: NPM Publish
+    runs-on: runs-on=${{ github.run_id }}/runner=4cpu-linux-x64/extras=s3-cache
+    permissions:
+      packages: write
+      contents: read
+    needs: [lint]
+    steps:
+      - uses: runs-on/action@v2.0.3
+      - uses: actions/checkout@v6
+      - name: Set Node.js 24.x
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24.x
+      - name: Yarn install
+        working-directory: ./vue
+        run: yarn install
+      - name: Build
+        working-directory: ./vue
+        run: yarn build
+      - name: Set up .npmrc
+        run: touch .npmrc && echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > .npmrc
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        working-directory: ./vue
+      - name: Test .npmrc
+        run: cat .npmrc
+        working-directory: ./vue
+      - run: yarn publish --access public
+        working-directory: ./vue

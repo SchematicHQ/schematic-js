@@ -5,7 +5,7 @@ import { version } from "../version";
 
 type BaseSchematicProviderProps = Omit<
   SchematicJS.SchematicOptions,
-  "client" | "publishableKey"
+  "client" | "publishableKey" | "useWebSocket"
 > & {
   children: React.ReactNode;
 };
@@ -40,7 +40,7 @@ export const SchematicProvider: React.FC<SchematicProviderProps> = ({
 }) => {
   const initialOptsRef = useRef({
     publishableKey,
-    useWebSocket: clientOpts.useWebSocket ?? true,
+    useWebSocket: true,
     additionalHeaders: {
       "X-Schematic-Client-Version": `schematic-react@${version}`,
     },

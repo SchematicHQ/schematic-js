@@ -17,7 +17,7 @@ import {
   type UpdateAddOnRequestBody,
   type UpdatePayInAdvanceRequestBody,
 } from "../../../api/checkoutexternal";
-import { PriceBehavior, TEXT_BASE_SIZE } from "../../../const";
+import { PriceBehavior, PriceInterval, TEXT_BASE_SIZE } from "../../../const";
 import {
   useAvailablePlans,
   useEmbed,
@@ -29,16 +29,20 @@ import type {
   UsageBasedEntitlement,
 } from "../../../types";
 import { ERROR_UNKNOWN, getAddOnPrice, isError } from "../../../utils";
-import { PeriodToggle } from "../../shared";
-import { Flex, Loader, Modal, ModalHeader, Text } from "../../ui";
-import { Sidebar } from "../sidebar";
+import { PeriodToggle, SubscriptionSidebar } from "../../shared";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  Flex,
+  Loader,
+  Overlay,
+  Text,
+} from "../../ui";
 
-import { AddOns } from "./AddOns";
-import { Checkout } from "./Checkout";
-import { Credits } from "./Credits";
 import { Navigation } from "./Navigation";
-import { Plan } from "./Plan";
-import { Usage } from "./Usage";
+
+import { AddOns, Checkout, Credits, Plan, Usage } from ".";
 
 export const createActiveUsageBasedEntitlementsReducer =
   (entitlements: FeatureUsageResponseData[], period: string) =>
@@ -82,16 +86,27 @@ interface ConfirmPaymentIntentProps {
   callback: (confirmed: boolean) => void;
 }
 
-export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
+export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
   const { t } = useTranslation();
 
-  const { data, settings, isPending, checkoutState, previewCheckout } =
-    useEmbed();
+  const {
+    data,
+    layout,
+    settings,
+    isPending,
+    checkoutState,
+    clearCheckoutState,
+    setCheckoutState,
+    previewCheckout,
+    setLayout,
+  } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
 
+  const dialogRef = useRef<HTMLDialogElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
-  const checkoutRef = useRef<HTMLDivElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const sidebarRef = useRef<HTMLDivElement>(null);
 
   const [confirmPaymentIntentProps, setConfirmPaymentIntentProps] = useState<
     ConfirmPaymentIntentProps | undefined | null
@@ -111,32 +126,52 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | undefined>();
+  const [isModal, setIsModal] = useState(true);
 
-  const {
-    currentPlanId,
-    currentEntitlements,
-    showPeriodToggle,
-    trialPaymentMethodRequired,
-  } = useMemo(() => {
-    return {
-      currentPlanId: data?.company?.plan?.id,
-      currentEntitlements: data?.featureUsage ? data.featureUsage.features : [],
-      showPeriodToggle: data?.showPeriodToggle ?? true,
-      trialPaymentMethodRequired: data?.trialPaymentMethodRequired === true,
-    };
-  }, [
-    data?.company?.plan?.id,
-    data?.featureUsage,
-    data?.showPeriodToggle,
-    data?.trialPaymentMethodRequired,
-  ]);
+  const { currentEntitlements, showPeriodToggle, trialPaymentMethodRequired } =
+    useMemo(() => {
+      return {
+        currentEntitlements: data?.featureUsage
+          ? data.featureUsage.features
+          : [],
+        showPeriodToggle: data?.displaySettings?.showPeriodToggle ?? true,
+        trialPaymentMethodRequired: data?.trialPaymentMethodRequired === true,
+      };
+    }, [
+      data?.featureUsage,
+      data?.displaySettings?.showPeriodToggle,
+      data?.trialPaymentMethodRequired,
+    ]);
 
-  const currentPeriod = useMemo(
-    () => checkoutState?.period || data?.company?.plan?.planPeriod || "month",
-    [data?.company?.plan?.planPeriod, checkoutState?.period],
-  );
+  // Validates the requested period against the plan's availability.
+  // Note: Plan data must be loaded by the time CheckoutDialog mounts.
+  const getValidatedPeriod = () => {
+    const requestedPeriod =
+      checkoutState?.period || data?.company?.plan?.planPeriod || "month";
 
-  const [planPeriod, setPlanPeriod] = useState(currentPeriod);
+    // If a specific plan is requested, validate the period against that plan's availability
+    if (checkoutState?.planId) {
+      const requestedPlan = data?.activePlans?.find(
+        (plan) => plan.id === checkoutState.planId,
+      );
+
+      if (requestedPlan) {
+        const planSupportsRequestedPeriod =
+          (requestedPeriod === "month" && requestedPlan.monthlyPrice) ||
+          (requestedPeriod === "year" && requestedPlan.yearlyPrice);
+
+        if (!planSupportsRequestedPeriod) {
+          // Fall back to the period the plan does support
+          if (requestedPlan.yearlyPrice) return "year";
+          if (requestedPlan.monthlyPrice) return "month";
+        }
+      }
+    }
+
+    return requestedPeriod;
+  };
+
+  const [planPeriod, setPlanPeriod] = useState(getValidatedPeriod);
 
   const {
     plans: availablePlans,
@@ -148,8 +183,13 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
   const [selectedPlan, setSelectedPlan] = useState<SelectedPlan | undefined>(
     () => {
-      return availablePlans.find((plan) =>
-        checkoutState?.planId ? plan.id === checkoutState.planId : plan.current,
+      return availablePlans.find(
+        (plan) =>
+          (checkoutState?.planId
+            ? plan.id === checkoutState.planId
+            : plan.current) &&
+          // do not initially set the current plan for a trial
+          (!plan.isTrialable || !plan.companyCanTrial),
       );
     },
   );
@@ -160,11 +200,14 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     return availableAddOns.map((addOn) => ({
       ...addOn,
       isSelected:
-        typeof checkoutState?.addOnId !== "undefined"
+        // Check if bypassed with specific add-on IDs
+        checkoutState?.addOnIds?.includes(addOn.id) ||
+        // Check if single add-on ID provided
+        (typeof checkoutState?.addOnId !== "undefined"
           ? addOn.id === checkoutState.addOnId
           : (data?.company?.addOns || []).some(
               (currentAddOn) => addOn.id === currentAddOn.id,
-            ),
+            )),
     }));
   });
 
@@ -187,21 +230,62 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
 
   const [addOnUsageBasedEntitlements, setAddOnUsageBasedEntitlements] =
     useState<UsageBasedEntitlement[]>(() => {
-      return (data?.company?.addOns || []).flatMap((currentAddOn) => {
-        const availableAddOn = availableAddOns.find(
-          (available) => available.id === currentAddOn.id,
-        );
+      // Get entitlements from currently active add-ons
+      const currentAddOnEntitlements = (data?.company?.addOns || []).flatMap(
+        (currentAddOn) => {
+          const availableAddOn = availableAddOns.find(
+            (available) => available.id === currentAddOn.id,
+          );
 
-        if (!availableAddOn) return [];
+          if (!availableAddOn) return [];
 
-        return availableAddOn.entitlements.reduce(
-          createActiveUsageBasedEntitlementsReducer(
-            currentEntitlements,
-            planPeriod,
-          ),
-          [],
+          return availableAddOn.entitlements.reduce(
+            createActiveUsageBasedEntitlementsReducer(
+              currentEntitlements,
+              planPeriod,
+            ),
+            [],
+          );
+        },
+      );
+
+      // Also get entitlements from pre-selected add-ons in bypass mode
+      const bypassAddOnEntitlements = (checkoutState?.addOnIds || []).flatMap(
+        (addOnId) => {
+          const availableAddOn = availableAddOns.find(
+            (available) => available.id === addOnId,
+          );
+
+          if (!availableAddOn) return [];
+
+          // Calculate pay-in-advance entitlements (same logic as toggleAddOn)
+          return availableAddOn.entitlements
+            .filter(
+              (entitlement) =>
+                entitlement.priceBehavior === PriceBehavior.PayInAdvance,
+            )
+            .map((entitlement) => ({
+              ...entitlement,
+              allocation: entitlement.valueNumeric || 0,
+              usage: 0,
+              quantity: 1,
+            }));
+        },
+      );
+
+      // Combine both sources, avoiding duplicates by featureId
+      const allEntitlements = [...currentAddOnEntitlements];
+
+      for (const bypassEnt of bypassAddOnEntitlements) {
+        const exists = currentAddOnEntitlements.some(
+          (current) => current.featureId === bypassEnt.featureId,
         );
-      });
+        if (!exists) {
+          allEntitlements.push(bypassEnt);
+        }
+      }
+
+      return allEntitlements;
     });
 
   const payInAdvanceEntitlements = useMemo(
@@ -315,6 +399,16 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     isPaymentMethodRequired,
   ]);
 
+  // Track if we've already performed the initial skip in bypass mode
+  const [hasSkippedInitialPlan, setHasSkippedInitialPlan] = useState(false);
+  const [hasSkippedInitialAddOns, setHasSkippedInitialAddOns] = useState(false);
+
+  // Track if we're in the initial bypass loading phase
+  const [isBypassLoading, setIsBypassLoading] = useState(
+    () =>
+      checkoutState?.bypassPlanSelection || checkoutState?.bypassAddOnSelection,
+  );
+
   const [checkoutStage, setCheckoutStage] = useState(() => {
     if (checkoutState?.addOnId) {
       return "addons";
@@ -332,11 +426,9 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       return "credits";
     }
 
-    // the user has preselected a different plan before starting the checkout flow
-    if (
-      typeof checkoutState?.planId !== "undefined" &&
-      checkoutState.planId !== currentPlanId
-    ) {
+    // Skip plan stage only when explicitly configured via bypassPlanSelection
+    // Pre-selecting a plan (via planId) without bypass shows the plan stage
+    if (checkoutState?.bypassPlanSelection) {
       return checkoutStages.some((stage) => stage.id === "usage")
         ? "usage"
         : checkoutStages.some((stage) => stage.id === "addons")
@@ -345,11 +437,51 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
             ? "addonsUsage"
             : checkoutStages.some((stage) => stage.id === "credits")
               ? "credits"
-              : "plan";
+              : checkoutStages.some((stage) => stage.id === "checkout")
+                ? "checkout"
+                : checkoutStages[0]?.id || "plan";
     }
 
     return "plan";
   });
+
+  // Skip past bypassed stages when using bypass mode (initializeWithPlan)
+  useEffect(() => {
+    // Skip plan stage if bypassing plan selection
+    if (
+      checkoutState?.bypassPlanSelection &&
+      checkoutStage === "plan" &&
+      !hasSkippedInitialPlan
+    ) {
+      const currentIndex = checkoutStages.findIndex((s) => s.id === "plan");
+      const nextStage = checkoutStages[currentIndex + 1];
+      if (nextStage) {
+        setHasSkippedInitialPlan(true);
+        setCheckoutStage(nextStage.id);
+      }
+    }
+
+    // Skip add-ons stage if bypassing add-on selection
+    if (
+      checkoutState?.bypassAddOnSelection &&
+      checkoutStage === "addons" &&
+      !hasSkippedInitialAddOns
+    ) {
+      const currentIndex = checkoutStages.findIndex((s) => s.id === "addons");
+      const nextStage = checkoutStages[currentIndex + 1];
+      if (nextStage) {
+        setHasSkippedInitialAddOns(true);
+        setCheckoutStage(nextStage.id);
+      }
+    }
+  }, [
+    checkoutStages,
+    checkoutState?.bypassPlanSelection,
+    checkoutState?.bypassAddOnSelection,
+    checkoutStage,
+    hasSkippedInitialPlan,
+    hasSkippedInitialAddOns,
+  ]);
 
   const handlePreviewCheckout = useCallback(
     async (updates: {
@@ -496,6 +628,9 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
               case "Quantity is required":
                 setError(t("Quantity is required."));
                 return;
+              case "self-service downgrade not permitted":
+                setError(t("Self-service downgrade not permitted."));
+                return;
             }
           }
 
@@ -509,6 +644,10 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
         setError(msg);
       } finally {
         setIsLoading(false);
+        // Turn off bypass loading after first API call completes
+        if (isBypassLoading) {
+          setIsBypassLoading(false);
+        }
       }
     },
     [
@@ -522,6 +661,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       creditBundles,
       shouldTrial,
       promoCode,
+      isBypassLoading,
     ],
   );
 
@@ -532,16 +672,29 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
       shouldTrial?: boolean;
     }) => {
       const plan = updates.plan;
-      const period = updates.period || planPeriod;
+
+      const period = showPeriodToggle
+        ? updates.period || planPeriod
+        : plan.yearlyPrice && !plan.monthlyPrice
+          ? PriceInterval.Year
+          : PriceInterval.Month;
+
       const updatedUsageBasedEntitlements = plan.entitlements.reduce(
         createActiveUsageBasedEntitlementsReducer(currentEntitlements, period),
         [],
       );
 
-      // only update if the plan is changing
+      if (period !== planPeriod || plan.id !== selectedPlan?.id) {
+        setUsageBasedEntitlements(updatedUsageBasedEntitlements);
+      }
+
+      if (period !== planPeriod) {
+        setPlanPeriod(period);
+      }
+
+      // only update selected plan if the plan is changing
       if (plan.id !== selectedPlan?.id) {
         setSelectedPlan(plan);
-        setUsageBasedEntitlements(updatedUsageBasedEntitlements);
       }
 
       const updatedShouldTrial = updates.shouldTrial ?? shouldTrial;
@@ -576,6 +729,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     [
       selectedPlan?.id,
       planPeriod,
+      showPeriodToggle,
       currentEntitlements,
       shouldTrial,
       willTrialWithoutPaymentMethod,
@@ -703,16 +857,40 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     [handlePreviewCheckout],
   );
 
+  const handleClose = useCallback(() => {
+    clearCheckoutState();
+    setLayout("portal");
+  }, [setLayout, clearCheckoutState]);
+
   // this is needed to run the `selectPlan` logic on initial load
   // if the user is already on an available plan
-  useEffect(() => {
-    if (selectedPlan) {
-      selectPlan({ plan: selectedPlan, period: currentPeriod });
-    }
+  const hasInitializedPlan = useRef(false);
 
-    // adding dependencies will cause an endless loop since `selectPlan` updates the value of `selectedPlan`
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  useEffect(() => {
+    if (!hasInitializedPlan.current && selectedPlan) {
+      hasInitializedPlan.current = true;
+      selectPlan({ plan: selectedPlan, period: planPeriod });
+    }
+  }, [selectedPlan, planPeriod, selectPlan]);
+
+  useEffect(() => {
+    if (checkoutState?.planId) {
+      const plan = availablePlans.find(
+        (plan) => plan.id === checkoutState.planId,
+      );
+
+      // Only call selectPlan if the plan actually changed to avoid redundant API calls
+      if (plan && plan.id !== selectedPlan?.id) {
+        selectPlan({ plan, period: planPeriod });
+      }
+    }
+  }, [
+    availablePlans,
+    checkoutState?.planId,
+    planPeriod,
+    selectPlan,
+    selectedPlan?.id,
+  ]);
 
   useEffect(() => {
     setAddOns((prevAddOns) => {
@@ -743,9 +921,33 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     });
   }, [data?.addOnCompatibilities, availableAddOns, selectedPlan]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
+    const element = dialogRef.current;
+    if (layout !== "checkout" || !element || element.open) {
+      return;
+    }
+
+    const isParentBody = element.parentElement === document.body;
+    setIsModal(isParentBody);
+
+    if (isParentBody) {
+      element.showModal();
+    } else {
+      element.show();
+    }
+  }, [layout]);
+
+  useLayoutEffect(() => {
+    stageRef.current?.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: "smooth",
+    });
+  }, [checkoutStage]);
+
+  useLayoutEffect(() => {
     if (charges) {
-      checkoutRef.current?.scrollTo({
+      sidebarRef.current?.scrollTo({
         top: 0,
         left: 0,
         behavior: "smooth",
@@ -753,21 +955,75 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
     }
   }, [charges]);
 
-  useLayoutEffect(() => {
-    contentRef.current?.scrollTo({
-      top: 0,
-      left: 0,
-      behavior: "smooth",
-    });
-  }, [checkoutStage]);
-
   const activeCheckoutStage = checkoutStages.find(
     (stage) => stage.id === checkoutStage,
   );
 
+  // Filter stages for breadcrumb display based on hideSkippedStages
+  const visibleStages = useMemo(() => {
+    if (!checkoutState?.hideSkippedStages) {
+      return checkoutStages;
+    }
+
+    // Hide stages that were bypassed
+    return checkoutStages.filter((stage) => {
+      if (stage.id === "plan" && checkoutState.bypassPlanSelection) {
+        return false;
+      }
+      if (stage.id === "addons" && checkoutState.bypassAddOnSelection) {
+        return false;
+      }
+      return true;
+    });
+  }, [checkoutStages, checkoutState]);
+
+  // Filter stages for navigation (always excludes bypassed stages)
+  const navigableStages = useMemo(() => {
+    return checkoutStages.filter((stage) => {
+      if (stage.id === "plan" && checkoutState?.bypassPlanSelection) {
+        return false;
+      }
+      if (stage.id === "addons" && checkoutState?.bypassAddOnSelection) {
+        return false;
+      }
+      return true;
+    });
+  }, [
+    checkoutStages,
+    checkoutState?.bypassPlanSelection,
+    checkoutState?.bypassAddOnSelection,
+  ]);
+
+  // Show loading overlay while bypass mode resolves initial stage
+  const shouldShowBypassOverlay =
+    isBypassLoading ||
+    (checkoutState?.bypassPlanSelection &&
+      checkoutStage === "plan" &&
+      !hasSkippedInitialPlan) ||
+    (checkoutState?.bypassAddOnSelection &&
+      checkoutStage === "addons" &&
+      !hasSkippedInitialAddOns);
+
+  const canCheckout = data?.capabilities?.checkout ?? true;
+  if (!canCheckout) {
+    return null;
+  }
+
   return (
-    <Modal size="lg" top={top} contentRef={contentRef}>
-      <ModalHeader bordered>
+    <Dialog
+      ref={dialogRef}
+      isModal={isModal}
+      size="lg"
+      top={top}
+      onClose={handleClose}
+    >
+      {shouldShowBypassOverlay && (
+        <Overlay $justifyContent="center" $alignItems="center">
+          <Loader $color={settings.theme.primary} $size="2xl" />
+        </Overlay>
+      )}
+
+      <DialogHeader bordered onClose={handleClose}>
         <Flex
           $flexWrap="wrap"
           $gap="0.5rem"
@@ -777,35 +1033,36 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
             },
           }}
         >
-          {checkoutStages.map((stage, index, stages) => (
+          {visibleStages.map((stage, index, stages) => (
             <Navigation
               key={stage.id}
               name={stage.name}
               index={index}
-              activeIndex={checkoutStages.findIndex(
+              activeIndex={visibleStages.findIndex(
                 (s) => s.id === checkoutStage,
               )}
               isLast={index === stages.length - 1}
-              onSelect={() => setCheckoutStage(stage.id)}
+              onSelect={() => {
+                // Clear bypass state when user manually navigates back to plan stage
+                if (stage.id === "plan" && checkoutState?.bypassPlanSelection) {
+                  setCheckoutState({
+                    ...checkoutState,
+                    planId: undefined,
+                    bypassPlanSelection: false,
+                  });
+                }
+                setCheckoutStage(stage.id);
+              }}
             />
           ))}
         </Flex>
-      </ModalHeader>
+      </DialogHeader>
 
-      <Flex
-        $position="relative"
-        $flexDirection="column"
-        $height="auto"
-        $viewport={{
-          md: {
-            $flexDirection: "row",
-            $height: "calc(100% - 5rem)",
-          },
-        }}
-      >
+      <DialogContent ref={contentRef}>
         <Flex
+          ref={stageRef}
           $flexDirection="column"
-          $flexGrow="1"
+          $flexGrow={1}
           $gap="1.5rem"
           $padding="1.5rem"
           $backgroundColor={
@@ -925,7 +1182,9 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           )}
         </Flex>
 
-        <Sidebar
+        <SubscriptionSidebar
+          ref={sidebarRef}
+          portalRef={dialogRef}
           planPeriod={planPeriod}
           selectedPlan={selectedPlan}
           addOns={addOns}
@@ -933,9 +1192,8 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           addOnUsageBasedEntitlements={addOnUsageBasedEntitlements}
           creditBundles={creditBundles}
           charges={charges}
-          checkoutRef={checkoutRef}
           checkoutStage={checkoutStage}
-          checkoutStages={checkoutStages}
+          checkoutStages={navigableStages}
           error={error}
           isLoading={isLoading}
           isPaymentMethodRequired={isPaymentMethodRequired}
@@ -949,7 +1207,7 @@ export const CheckoutDialog = ({ top = 0 }: CheckoutDialogProps) => {
           setConfirmPaymentIntent={setConfirmPaymentIntentProps}
           willTrialWithoutPaymentMethod={willTrialWithoutPaymentMethod}
         />
-      </Flex>
-    </Modal>
+      </DialogContent>
+    </Dialog>
   );
 };

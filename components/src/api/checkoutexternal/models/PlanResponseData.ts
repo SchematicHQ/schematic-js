@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from "../runtime";
+import type { PlanType } from "./PlanType";
+import {
+  PlanTypeFromJSON,
+  PlanTypeFromJSONTyped,
+  PlanTypeToJSON,
+} from "./PlanType";
+
 /**
  *
  * @export
@@ -23,6 +30,7 @@ export interface PlanResponseData {
    *
    * @type {string}
    * @memberof PlanResponseData
+   * @deprecated
    */
   audienceType?: string | null;
   /**
@@ -57,10 +65,10 @@ export interface PlanResponseData {
   name: string;
   /**
    *
-   * @type {string}
+   * @type {PlanType}
    * @memberof PlanResponseData
    */
-  planType: string;
+  planType: PlanType;
   /**
    *
    * @type {Date}
@@ -105,7 +113,7 @@ export function PlanResponseDataFromJSONTyped(
     icon: json["icon"],
     id: json["id"],
     name: json["name"],
-    planType: json["plan_type"],
+    planType: PlanTypeFromJSON(json["plan_type"]),
     updatedAt: new Date(json["updated_at"]),
   };
 }
@@ -121,7 +129,7 @@ export function PlanResponseDataToJSON(value?: PlanResponseData | null): any {
     icon: value["icon"],
     id: value["id"],
     name: value["name"],
-    plan_type: value["planType"],
+    plan_type: PlanTypeToJSON(value["planType"]),
     updated_at: value["updatedAt"].toISOString(),
   };
 }

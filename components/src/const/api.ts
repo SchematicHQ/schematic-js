@@ -1,8 +1,14 @@
+export enum CompanyPlanInvalidReason {
+  None = "",
+  FeatureUsageExceeded = "feature_usage_exceeded",
+  DowngradeNotPermitted = "downgrade_not_permitted",
+}
+
 export enum PriceInterval {
-  OneTime = "one-time",
   Day = "day",
   Month = "month",
   Year = "year",
+  OneTime = "one-time",
 }
 
 export enum PriceBehavior {
@@ -58,4 +64,5 @@ export enum CreditGrantReason {
   Free = "free",
   Plan = "plan",
   Purchased = "purchased",
+  AutoTopup = "billing_credit_auto_topup",
 }

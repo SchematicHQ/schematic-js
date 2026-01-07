@@ -13,6 +13,12 @@
  */
 
 import { mapValues } from "../runtime";
+import type { EntitlementValueType } from "./EntitlementValueType";
+import {
+  EntitlementValueTypeFromJSON,
+  EntitlementValueTypeFromJSONTyped,
+  EntitlementValueTypeToJSON,
+} from "./EntitlementValueType";
 import type { EntityTraitDefinitionResponseData } from "./EntityTraitDefinitionResponseData";
 import {
   EntityTraitDefinitionResponseDataFromJSON,
@@ -37,6 +43,12 @@ import {
   FeatureResponseDataFromJSONTyped,
   FeatureResponseDataToJSON,
 } from "./FeatureResponseData";
+import type { EntitlementPriceBehavior } from "./EntitlementPriceBehavior";
+import {
+  EntitlementPriceBehaviorFromJSON,
+  EntitlementPriceBehaviorFromJSONTyped,
+  EntitlementPriceBehaviorToJSON,
+} from "./EntitlementPriceBehavior";
 import type { BillingPriceView } from "./BillingPriceView";
 import {
   BillingPriceViewFromJSON,
@@ -136,10 +148,10 @@ export interface PlanEntitlementResponseData {
   planId: string;
   /**
    *
-   * @type {string}
+   * @type {EntitlementPriceBehavior}
    * @memberof PlanEntitlementResponseData
    */
-  priceBehavior?: string | null;
+  priceBehavior?: EntitlementPriceBehavior | null;
   /**
    *
    * @type {string}
@@ -202,10 +214,10 @@ export interface PlanEntitlementResponseData {
   valueTraitId?: string | null;
   /**
    *
-   * @type {string}
+   * @type {EntitlementValueType}
    * @memberof PlanEntitlementResponseData
    */
-  valueType: string;
+  valueType: EntitlementValueType;
 }
 
 /**
@@ -270,7 +282,9 @@ export function PlanEntitlementResponseDataFromJSONTyped(
       json["plan"] == null ? undefined : PlanResponseDataFromJSON(json["plan"]),
     planId: json["plan_id"],
     priceBehavior:
-      json["price_behavior"] == null ? undefined : json["price_behavior"],
+      json["price_behavior"] == null
+        ? undefined
+        : EntitlementPriceBehaviorFromJSON(json["price_behavior"]),
     ruleId: json["rule_id"],
     ruleIdUsageExceeded:
       json["rule_id_usage_exceeded"] == null
@@ -295,7 +309,7 @@ export function PlanEntitlementResponseDataFromJSONTyped(
         : EntityTraitDefinitionResponseDataFromJSON(json["value_trait"]),
     valueTraitId:
       json["value_trait_id"] == null ? undefined : json["value_trait_id"],
-    valueType: json["value_type"],
+    valueType: EntitlementValueTypeFromJSON(json["value_type"]),
   };
 }
 
@@ -319,7 +333,7 @@ export function PlanEntitlementResponseDataToJSON(
     metric_period_month_reset: value["metricPeriodMonthReset"],
     plan: PlanResponseDataToJSON(value["plan"]),
     plan_id: value["planId"],
-    price_behavior: value["priceBehavior"],
+    price_behavior: EntitlementPriceBehaviorToJSON(value["priceBehavior"]),
     rule_id: value["ruleId"],
     rule_id_usage_exceeded: value["ruleIdUsageExceeded"],
     soft_limit: value["softLimit"],
@@ -332,6 +346,6 @@ export function PlanEntitlementResponseDataToJSON(
     value_numeric: value["valueNumeric"],
     value_trait: EntityTraitDefinitionResponseDataToJSON(value["valueTrait"]),
     value_trait_id: value["valueTraitId"],
-    value_type: value["valueType"],
+    value_type: EntitlementValueTypeToJSON(value["valueType"]),
   };
 }

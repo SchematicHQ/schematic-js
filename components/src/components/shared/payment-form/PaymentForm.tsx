@@ -92,8 +92,6 @@ export const PaymentForm = ({ onConfirm, financeData }: PaymentFormProps) => {
       id="payment-form"
       onSubmit={handleSubmit}
       $flexDirection="column"
-      $overflowX="hidden"
-      $overflowY="auto"
     >
       <Box $marginBottom="1.5rem">
         <PaymentElement

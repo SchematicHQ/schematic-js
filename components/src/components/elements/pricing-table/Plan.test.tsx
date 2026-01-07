@@ -1,6 +1,4 @@
-import { jest } from "@jest/globals";
-import "@testing-library/dom";
-import "@testing-library/jest-dom";
+import { vi } from "vitest";
 
 import {
   type BillingPriceResponseData,
@@ -8,64 +6,68 @@ import {
   type PlanEntitlementResponseData,
 } from "../../../api/checkoutexternal";
 import { PriceInterval, VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
-import { type EmbedContextProps } from "../../../context";
 import { act, fireEvent, render, screen } from "../../../test/setup";
 import type { DeepPartial, SelectedPlan } from "../../../types";
 
 import { Plan, type PlanProps } from "./Plan";
 
-const mockOnCallToAction = jest.fn();
-const mockSetCheckoutState = jest.fn();
+const { mockOnCallToAction, mockSetCheckoutState, trialEnd } = vi.hoisted(
+  () => {
+    const mockOnCallToAction = vi.fn();
+    const mockSetCheckoutState = vi.fn();
+    const trialEnd = new Date();
+    trialEnd.setDate(trialEnd.getDate() + 15);
+    return { mockOnCallToAction, mockSetCheckoutState, trialEnd };
+  },
+);
 
-jest.mock("../../../hooks", () => {
-  const trialEnd = new Date();
-  trialEnd.setDate(trialEnd.getDate() + 15);
-
+vi.mock("../../../hooks", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../../../hooks")>();
   return {
-    useEmbed: () =>
-      ({
-        data: {
-          showCredits: true,
-          showPeriodToggle: true,
-          showZeroPriceAsFree: true,
-          trialPaymentMethodRequired: false,
-          company: {
-            billingSubscription: {
-              status: "active",
-              cancelAt: undefined,
-              trialEnd: trialEnd.getTime(),
+    ...actual,
+    useEmbed: () => ({
+      data: {
+        showCredits: true,
+        showPeriodToggle: true,
+        showZeroPriceAsFree: true,
+        trialPaymentMethodRequired: false,
+        company: {
+          billingSubscription: {
+            status: "active",
+            cancelAt: undefined,
+            trialEnd: trialEnd.getTime(),
+          },
+        },
+      },
+      settings: {
+        theme: {
+          primary: "#000000",
+          card: {
+            background: "#FFFFFF",
+            padding: 16,
+            borderRadius: 10,
+            hasShadow: true,
+          },
+          typography: {
+            heading2: {
+              fontFamily: "Arial",
+              fontSize: 24,
+              fontWeight: 600,
+              color: "#000000",
+            },
+            text: {
+              fontFamily: "Arial",
+              fontSize: 16,
+              fontWeight: 400,
+              color: "#000000",
             },
           },
         },
-        settings: {
-          theme: {
-            primary: "#000000",
-            card: {
-              background: "#FFFFFF",
-              padding: 16,
-              borderRadius: 10,
-              hasShadow: true,
-            },
-            typography: {
-              heading2: {
-                fontFamily: "Arial",
-                fontSize: 24,
-                fontWeight: 600,
-                color: "#000000",
-              },
-              text: {
-                fontFamily: "Arial",
-                fontSize: 16,
-                fontWeight: 400,
-                color: "#000000",
-              },
-            },
-          },
-        },
-        setCheckoutState: jest.fn(),
-      }) satisfies DeepPartial<EmbedContextProps>,
+      },
+      setCheckoutState: mockSetCheckoutState,
+    }),
     useIsLightBackground: () => true,
-    setCheckoutState: mockSetCheckoutState,
+    useTrialEnd: () => trialEnd,
   };
 });
 
@@ -170,7 +172,7 @@ const mockEntitlementCounts = {
   },
 };
 
-const mockHandleToggleShowAll = jest.fn();
+const mockHandleToggleShowAll = vi.fn();
 
 describe("`Plan` component", () => {
   test("renders plan correctly", () => {
@@ -221,57 +223,8 @@ describe("`Plan` component", () => {
 
   // `trialEnd` is not available in standalone mode
   // TODO: figure out how to render a subcomponent with company context (ie. not standalone)
-  // eslint-disable-next-line jest/no-disabled-tests
+  // NOTE: Cannot use vi.mock() inside test cases - mocks are hoisted and would override the main mock
   test.skip("renders trial badge for trial subscription", async () => {
-    jest.mock("../../../hooks", () => {
-      const trialEnd = new Date();
-      trialEnd.setDate(trialEnd.getDate() + 15);
-
-      return {
-        useEmbed: () =>
-          ({
-            data: {
-              showCredits: true,
-              showPeriodToggle: true,
-              showZeroPriceAsFree: true,
-              trialPaymentMethodRequired: false,
-              company: {
-                billingSubscription: {
-                  status: "trialing",
-                  cancelAt: undefined,
-                  trialEnd: trialEnd.getTime(),
-                },
-              },
-            },
-            settings: {
-              theme: {
-                primary: "#000000",
-                card: {
-                  background: "#FFFFFF",
-                  padding: 16,
-                  borderRadius: 10,
-                  hasShadow: true,
-                },
-                typography: {
-                  heading2: {
-                    fontFamily: "Arial",
-                    fontSize: 24,
-                    fontWeight: 600,
-                    color: "#000000",
-                  },
-                  text: {
-                    fontFamily: "Arial",
-                    fontSize: 16,
-                    fontWeight: 400,
-                    color: "#000000",
-                  },
-                },
-              },
-            },
-          }) as EmbedContextProps,
-      };
-    });
-
     render(
       <Plan
         plan={{
@@ -426,51 +379,8 @@ describe("`Plan` component", () => {
 
   // `showZeroPriceAsFree` value defaults to "false"
   // TODO: figure out how to mock the value
-  // eslint-disable-next-line jest/no-disabled-tests
+  // NOTE: Cannot use vi.mock() inside test cases - mocks are hoisted and would override the main mock
   test.skip("renders 'Free' text for free plans when `showZeroPriceAsFree` is true", async () => {
-    jest.mock("../../../hooks", () => {
-      return {
-        useEmbed: () => ({
-          data: {
-            showCredits: true,
-            showPeriodToggle: true,
-            showZeroPriceAsFree: true,
-            trialPaymentMethodRequired: false,
-            company: {
-              billingSubscription: {
-                status: "active",
-              },
-            },
-          },
-          settings: {
-            theme: {
-              primary: "#000000",
-              card: {
-                background: "#FFFFFF",
-                padding: 16,
-                borderRadius: 10,
-                hasShadow: true,
-              },
-              typography: {
-                heading2: {
-                  fontFamily: "Arial",
-                  fontSize: 24,
-                  fontWeight: 600,
-                  color: "#000000",
-                },
-                text: {
-                  fontFamily: "Arial",
-                  fontSize: 16,
-                  fontWeight: 400,
-                  color: "#000000",
-                },
-              },
-            },
-          },
-        }),
-      };
-    });
-
     render(
       <Plan
         plan={{

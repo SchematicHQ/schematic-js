@@ -31,6 +31,18 @@ import {
   InvoiceResponseDataFromJSONTyped,
   InvoiceResponseDataToJSON,
 } from "./InvoiceResponseData";
+import type { BillingSubscriptionTrialEndSetting } from "./BillingSubscriptionTrialEndSetting";
+import {
+  BillingSubscriptionTrialEndSettingFromJSON,
+  BillingSubscriptionTrialEndSettingFromJSONTyped,
+  BillingSubscriptionTrialEndSettingToJSON,
+} from "./BillingSubscriptionTrialEndSetting";
+import type { BillingProviderType } from "./BillingProviderType";
+import {
+  BillingProviderTypeFromJSON,
+  BillingProviderTypeFromJSONTyped,
+  BillingProviderTypeToJSON,
+} from "./BillingProviderType";
 import type { PaymentMethodResponseData } from "./PaymentMethodResponseData";
 import {
   PaymentMethodResponseDataFromJSON,
@@ -44,6 +56,12 @@ import {
  * @interface BillingSubscriptionView
  */
 export interface BillingSubscriptionView {
+  /**
+   *
+   * @type {string}
+   * @memberof BillingSubscriptionView
+   */
+  applicationId?: string | null;
   /**
    *
    * @type {number}
@@ -148,6 +166,12 @@ export interface BillingSubscriptionView {
   products: Array<BillingProductForSubscriptionResponseData>;
   /**
    *
+   * @type {BillingProviderType}
+   * @memberof BillingSubscriptionView
+   */
+  providerType: BillingProviderType;
+  /**
+   *
    * @type {string}
    * @memberof BillingSubscriptionView
    */
@@ -172,10 +196,10 @@ export interface BillingSubscriptionView {
   trialEnd?: number | null;
   /**
    *
-   * @type {string}
+   * @type {BillingSubscriptionTrialEndSetting}
    * @memberof BillingSubscriptionView
    */
-  trialEndSetting?: string | null;
+  trialEndSetting?: BillingSubscriptionTrialEndSetting | null;
 }
 
 /**
@@ -203,6 +227,8 @@ export function instanceOfBillingSubscriptionView(
   if (!("periodStart" in value) || value["periodStart"] === undefined)
     return false;
   if (!("products" in value) || value["products"] === undefined) return false;
+  if (!("providerType" in value) || value["providerType"] === undefined)
+    return false;
   if (!("status" in value) || value["status"] === undefined) return false;
   if (
     !("subscriptionExternalId" in value) ||
@@ -228,6 +254,8 @@ export function BillingSubscriptionViewFromJSONTyped(
     return json;
   }
   return {
+    applicationId:
+      json["application_id"] == null ? undefined : json["application_id"],
     cancelAt: json["cancel_at"] == null ? undefined : json["cancel_at"],
     cancelAtPeriodEnd: json["cancel_at_period_end"],
     companyId: json["company_id"] == null ? undefined : json["company_id"],
@@ -259,12 +287,15 @@ export function BillingSubscriptionViewFromJSONTyped(
     products: (json["products"] as Array<any>).map(
       BillingProductForSubscriptionResponseDataFromJSON,
     ),
+    providerType: BillingProviderTypeFromJSON(json["provider_type"]),
     status: json["status"],
     subscriptionExternalId: json["subscription_external_id"],
     totalPrice: json["total_price"],
     trialEnd: json["trial_end"] == null ? undefined : json["trial_end"],
     trialEndSetting:
-      json["trial_end_setting"] == null ? undefined : json["trial_end_setting"],
+      json["trial_end_setting"] == null
+        ? undefined
+        : BillingSubscriptionTrialEndSettingFromJSON(json["trial_end_setting"]),
   };
 }
 
@@ -275,6 +306,7 @@ export function BillingSubscriptionViewToJSON(
     return value;
   }
   return {
+    application_id: value["applicationId"],
     cancel_at: value["cancelAt"],
     cancel_at_period_end: value["cancelAtPeriodEnd"],
     company_id: value["companyId"],
@@ -299,10 +331,13 @@ export function BillingSubscriptionViewToJSON(
     products: (value["products"] as Array<any>).map(
       BillingProductForSubscriptionResponseDataToJSON,
     ),
+    provider_type: BillingProviderTypeToJSON(value["providerType"]),
     status: value["status"],
     subscription_external_id: value["subscriptionExternalId"],
     total_price: value["totalPrice"],
     trial_end: value["trialEnd"],
-    trial_end_setting: value["trialEndSetting"],
+    trial_end_setting: BillingSubscriptionTrialEndSettingToJSON(
+      value["trialEndSetting"],
+    ),
   };
 }

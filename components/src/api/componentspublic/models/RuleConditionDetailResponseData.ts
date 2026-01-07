@@ -13,6 +13,12 @@
  */
 
 import { mapValues } from "../runtime";
+import type { EntityType } from "./EntityType";
+import {
+  EntityTypeFromJSON,
+  EntityTypeFromJSONTyped,
+  EntityTypeToJSON,
+} from "./EntityType";
 import type { EntityTraitDefinitionResponseData } from "./EntityTraitDefinitionResponseData";
 import {
   EntityTraitDefinitionResponseDataFromJSON,
@@ -112,12 +118,6 @@ export interface RuleConditionDetailResponseData {
   operator: string;
   /**
    *
-   * @type {string}
-   * @memberof RuleConditionDetailResponseData
-   */
-  planId?: string | null;
-  /**
-   *
    * @type {Array<string>}
    * @memberof RuleConditionDetailResponseData
    */
@@ -142,10 +142,10 @@ export interface RuleConditionDetailResponseData {
   trait?: EntityTraitDefinitionResponseData;
   /**
    *
-   * @type {string}
+   * @type {EntityType}
    * @memberof RuleConditionDetailResponseData
    */
-  traitEntityType?: string | null;
+  traitEntityType?: EntityType | null;
   /**
    *
    * @type {string}
@@ -231,7 +231,6 @@ export function RuleConditionDetailResponseDataFromJSONTyped(
     metricValue:
       json["metric_value"] == null ? undefined : json["metric_value"],
     operator: json["operator"],
-    planId: json["plan_id"] == null ? undefined : json["plan_id"],
     resourceIds: json["resource_ids"],
     resources: (json["resources"] as Array<any>).map(
       PreviewObjectResponseDataFromJSON,
@@ -242,7 +241,9 @@ export function RuleConditionDetailResponseDataFromJSONTyped(
         ? undefined
         : EntityTraitDefinitionResponseDataFromJSON(json["trait"]),
     traitEntityType:
-      json["trait_entity_type"] == null ? undefined : json["trait_entity_type"],
+      json["trait_entity_type"] == null
+        ? undefined
+        : EntityTypeFromJSON(json["trait_entity_type"]),
     traitId: json["trait_id"] == null ? undefined : json["trait_id"],
     traitValue: json["trait_value"],
     updatedAt: new Date(json["updated_at"]),
@@ -271,14 +272,13 @@ export function RuleConditionDetailResponseDataToJSON(
     metric_period_month_reset: value["metricPeriodMonthReset"],
     metric_value: value["metricValue"],
     operator: value["operator"],
-    plan_id: value["planId"],
     resource_ids: value["resourceIds"],
     resources: (value["resources"] as Array<any>).map(
       PreviewObjectResponseDataToJSON,
     ),
     rule_id: value["ruleId"],
     trait: EntityTraitDefinitionResponseDataToJSON(value["trait"]),
-    trait_entity_type: value["traitEntityType"],
+    trait_entity_type: EntityTypeToJSON(value["traitEntityType"]),
     trait_id: value["traitId"],
     trait_value: value["traitValue"],
     updated_at: value["updatedAt"].toISOString(),

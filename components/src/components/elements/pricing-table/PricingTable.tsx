@@ -2,8 +2,8 @@ import {
   Fragment,
   HTMLAttributeAnchorTarget,
   forwardRef,
+  useCallback,
   useEffect,
-  useMemo,
   useState,
 } from "react";
 import { useTranslation } from "react-i18next";
@@ -131,59 +131,34 @@ export const PricingTable = forwardRef<
 
   const { data, settings, isPending, hydratePublic } = useEmbed();
 
-  const showCallToAction = useMemo(() => {
-    return (
-      typeof data?.component !== "undefined" ||
-      typeof rest.callToActionUrl === "string" ||
-      typeof rest.onCallToAction === "function"
-    );
-  }, [rest.callToActionUrl, rest.onCallToAction, data?.component]);
-
-  const callToActionTarget = useMemo(() => {
-    if (rest.callToActionTarget) {
-      return rest.callToActionTarget;
-    }
-
-    if (rest.callToActionUrl) {
-      try {
-        const ctaUrlOrigin = new URL(rest.callToActionUrl).origin;
-        if (ctaUrlOrigin === window.location.hostname) {
-          return "_self";
-        }
-      } catch {
-        // fallback to the default value if the provided target value is not a full URL
+  const getCallToActionTarget = useCallback(
+    (url?: string, target?: HTMLAttributeAnchorTarget) => {
+      if (target) {
+        return target;
       }
-    }
 
-    return "_blank";
-  }, [rest.callToActionUrl, rest.callToActionTarget]);
+      if (url) {
+        try {
+          const ctaUrlOrigin = new URL(url).origin;
+          if (ctaUrlOrigin === window.location.hostname) {
+            return "_self";
+          }
+        } catch {
+          // fallback to the default value if the provided target value is not a full URL
+        }
+      }
 
-  const { currentPeriod, showPeriodToggle, isStandalone } = useMemo(() => {
-    const isStandalone = typeof data?.component === "undefined";
+      return "_blank";
+    },
+    [],
+  );
 
-    return {
-      currentPeriod: data?.company?.plan?.planPeriod || "month",
-      currentAddOns: data?.company?.addOns || [],
-      canCheckout: isStandalone ?? data?.capabilities?.checkout ?? true,
-      showPeriodToggle: rest.showPeriodToggle ?? data?.showPeriodToggle ?? true,
-      isTrialSubscription:
-        data?.company?.billingSubscription?.status === "trialing",
-      willSubscriptionCancel: data?.company?.billingSubscription?.cancelAt,
-      isStandalone,
-    };
-  }, [
-    rest.showPeriodToggle,
-    data?.capabilities?.checkout,
-    data?.company?.addOns,
-    data?.company?.billingSubscription?.cancelAt,
-    data?.company?.billingSubscription?.status,
-    data?.company?.plan?.planPeriod,
-    data?.component,
-    data?.showPeriodToggle,
-  ]);
+  const [selectedPeriod, setSelectedPeriod] = useState(
+    () => data?.company?.plan?.planPeriod || "month",
+  );
 
-  const [selectedPeriod, setSelectedPeriod] = useState(currentPeriod);
-
+  const showPeriodToggle =
+    rest.showPeriodToggle ?? data?.displaySettings?.showPeriodToggle ?? true;
   const { plans, addOns, periods } = useAvailablePlans(selectedPeriod, {
     useSelectedPeriod: showPeriodToggle,
   });
@@ -214,12 +189,14 @@ export const PricingTable = forwardRef<
   };
 
   useEffect(() => {
-    if (isStandalone) {
+    if (typeof data?.component === "undefined") {
       hydratePublic();
     }
-  }, [isStandalone, hydratePublic]);
+  }, [data?.component, hydratePublic]);
 
   useEffect(() => {
+    // TODO: refactor entitlement counts
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setEntitlementCounts(plans.reduce(entitlementCountsReducer, {}));
   }, [plans]);
 
@@ -237,7 +214,19 @@ export const PricingTable = forwardRef<
     );
   }
 
-  const Wrapper = isStandalone ? Container : Fragment;
+  const currentPlan = plans.find((plan) => plan.id === data?.company?.plan?.id);
+
+  const showCallToAction =
+    typeof data?.component !== "undefined" ||
+    typeof rest.callToActionUrl === "string" ||
+    typeof rest.onCallToAction === "function";
+
+  const callToActionTarget = getCallToActionTarget(
+    rest.callToActionUrl,
+    rest.callToActionTarget,
+  );
+
+  const Wrapper = typeof data?.component === "undefined" ? Container : Fragment;
 
   return (
     <Wrapper>
@@ -274,6 +263,7 @@ export const PricingTable = forwardRef<
               <PeriodToggle
                 options={periods}
                 selectedOption={selectedPeriod}
+                selectedPlan={currentPlan}
                 onSelect={(period) => {
                   if (period !== selectedPeriod) {
                     setSelectedPeriod(period);

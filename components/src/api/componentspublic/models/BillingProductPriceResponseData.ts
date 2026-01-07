@@ -13,6 +13,37 @@
  */
 
 import { mapValues } from "../runtime";
+import type { BillingProductPriceInterval } from "./BillingProductPriceInterval";
+import {
+  BillingProductPriceIntervalFromJSON,
+  BillingProductPriceIntervalFromJSONTyped,
+  BillingProductPriceIntervalToJSON,
+} from "./BillingProductPriceInterval";
+import type { BillingPriceUsageType } from "./BillingPriceUsageType";
+import {
+  BillingPriceUsageTypeFromJSON,
+  BillingPriceUsageTypeFromJSONTyped,
+  BillingPriceUsageTypeToJSON,
+} from "./BillingPriceUsageType";
+import type { BillingProviderType } from "./BillingProviderType";
+import {
+  BillingProviderTypeFromJSON,
+  BillingProviderTypeFromJSONTyped,
+  BillingProviderTypeToJSON,
+} from "./BillingProviderType";
+import type { BillingPriceScheme } from "./BillingPriceScheme";
+import {
+  BillingPriceSchemeFromJSON,
+  BillingPriceSchemeFromJSONTyped,
+  BillingPriceSchemeToJSON,
+} from "./BillingPriceScheme";
+import type { BillingTiersMode } from "./BillingTiersMode";
+import {
+  BillingTiersModeFromJSON,
+  BillingTiersModeFromJSONTyped,
+  BillingTiersModeToJSON,
+} from "./BillingTiersMode";
+
 /**
  *
  * @export
@@ -21,10 +52,10 @@ import { mapValues } from "../runtime";
 export interface BillingProductPriceResponseData {
   /**
    *
-   * @type {string}
+   * @type {BillingPriceScheme}
    * @memberof BillingProductPriceResponseData
    */
-  billingScheme: string;
+  billingScheme: BillingPriceScheme;
   /**
    *
    * @type {Date}
@@ -45,10 +76,10 @@ export interface BillingProductPriceResponseData {
   id: string;
   /**
    *
-   * @type {string}
+   * @type {BillingProductPriceInterval}
    * @memberof BillingProductPriceResponseData
    */
-  interval: string;
+  interval: BillingProductPriceInterval;
   /**
    *
    * @type {boolean}
@@ -93,10 +124,16 @@ export interface BillingProductPriceResponseData {
   productExternalId: string;
   /**
    *
-   * @type {string}
+   * @type {BillingProviderType}
    * @memberof BillingProductPriceResponseData
    */
-  tiersMode?: string | null;
+  providerType: BillingProviderType;
+  /**
+   *
+   * @type {BillingTiersMode}
+   * @memberof BillingProductPriceResponseData
+   */
+  tiersMode?: BillingTiersMode | null;
   /**
    *
    * @type {Date}
@@ -105,10 +142,10 @@ export interface BillingProductPriceResponseData {
   updatedAt: Date;
   /**
    *
-   * @type {string}
+   * @type {BillingPriceUsageType}
    * @memberof BillingProductPriceResponseData
    */
-  usageType: string;
+  usageType: BillingPriceUsageType;
 }
 
 /**
@@ -134,6 +171,8 @@ export function instanceOfBillingProductPriceResponseData(
     value["productExternalId"] === undefined
   )
     return false;
+  if (!("providerType" in value) || value["providerType"] === undefined)
+    return false;
   if (!("updatedAt" in value) || value["updatedAt"] === undefined) return false;
   if (!("usageType" in value) || value["usageType"] === undefined) return false;
   return true;
@@ -153,11 +192,11 @@ export function BillingProductPriceResponseDataFromJSONTyped(
     return json;
   }
   return {
-    billingScheme: json["billing_scheme"],
+    billingScheme: BillingPriceSchemeFromJSON(json["billing_scheme"]),
     createdAt: new Date(json["created_at"]),
     currency: json["currency"],
     id: json["id"],
-    interval: json["interval"],
+    interval: BillingProductPriceIntervalFromJSON(json["interval"]),
     isActive: json["is_active"],
     meterId: json["meter_id"] == null ? undefined : json["meter_id"],
     packageSize: json["package_size"],
@@ -166,9 +205,13 @@ export function BillingProductPriceResponseDataFromJSONTyped(
       json["price_decimal"] == null ? undefined : json["price_decimal"],
     priceExternalId: json["price_external_id"],
     productExternalId: json["product_external_id"],
-    tiersMode: json["tiers_mode"] == null ? undefined : json["tiers_mode"],
+    providerType: BillingProviderTypeFromJSON(json["provider_type"]),
+    tiersMode:
+      json["tiers_mode"] == null
+        ? undefined
+        : BillingTiersModeFromJSON(json["tiers_mode"]),
     updatedAt: new Date(json["updated_at"]),
-    usageType: json["usage_type"],
+    usageType: BillingPriceUsageTypeFromJSON(json["usage_type"]),
   };
 }
 
@@ -179,11 +222,11 @@ export function BillingProductPriceResponseDataToJSON(
     return value;
   }
   return {
-    billing_scheme: value["billingScheme"],
+    billing_scheme: BillingPriceSchemeToJSON(value["billingScheme"]),
     created_at: value["createdAt"].toISOString(),
     currency: value["currency"],
     id: value["id"],
-    interval: value["interval"],
+    interval: BillingProductPriceIntervalToJSON(value["interval"]),
     is_active: value["isActive"],
     meter_id: value["meterId"],
     package_size: value["packageSize"],
@@ -191,8 +234,9 @@ export function BillingProductPriceResponseDataToJSON(
     price_decimal: value["priceDecimal"],
     price_external_id: value["priceExternalId"],
     product_external_id: value["productExternalId"],
-    tiers_mode: value["tiersMode"],
+    provider_type: BillingProviderTypeToJSON(value["providerType"]),
+    tiers_mode: BillingTiersModeToJSON(value["tiersMode"]),
     updated_at: value["updatedAt"].toISOString(),
-    usage_type: value["usageType"],
+    usage_type: BillingPriceUsageTypeToJSON(value["usageType"]),
   };
 }
