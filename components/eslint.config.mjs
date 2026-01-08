@@ -35,7 +35,6 @@ export default defineConfig([
         "error",
         { ignoreRestSiblings: true },
       ],
-      "@typescript-eslint/prefer-optional-chain": "error",
       "react/no-unescaped-entities": "off",
       "import/first": "error",
       "import/newline-after-import": "error",
