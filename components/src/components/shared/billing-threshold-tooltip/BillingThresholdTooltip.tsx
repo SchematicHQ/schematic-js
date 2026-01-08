@@ -6,10 +6,12 @@ import { Icon, Text, Tooltip } from "../../ui";
 
 interface BillingThresholdTooltipProps {
   billingThreshold: number;
+  portal?: HTMLElement | null;
 }
 
 export const BillingThresholdTooltip = ({
   billingThreshold,
+  portal,
 }: BillingThresholdTooltipProps) => {
   const { t } = useTranslation();
 
@@ -36,6 +38,7 @@ export const BillingThresholdTooltip = ({
           color={`hsla(0, 0%, ${isLightBackground ? 0 : 100}%, 0.5)`}
         />
       }
+      portal={portal}
     />
   );
 };

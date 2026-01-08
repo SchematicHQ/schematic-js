@@ -784,6 +784,7 @@ export const SubscriptionSidebar = forwardRef<
                         <EntitlementRow
                           {...entitlement}
                           planPeriod={planPeriod}
+                          tooltipPortal={portalRef?.current}
                         />
                       </Flex>,
                     );
@@ -810,6 +811,7 @@ export const SubscriptionSidebar = forwardRef<
                           <EntitlementRow
                             {...previous}
                             planPeriod={planPeriod}
+                            tooltipPortal={portalRef?.current}
                           />
                         </Flex>
 
@@ -818,7 +820,11 @@ export const SubscriptionSidebar = forwardRef<
                           $alignItems="baseline"
                           $gap="1rem"
                         >
-                          <EntitlementRow {...next} planPeriod={planPeriod} />
+                          <EntitlementRow
+                            {...next}
+                            planPeriod={planPeriod}
+                            tooltipPortal={portalRef?.current}
+                          />
                         </Flex>
                       </Box>,
                     );
@@ -842,6 +848,7 @@ export const SubscriptionSidebar = forwardRef<
                         <EntitlementRow
                           {...entitlement}
                           planPeriod={planPeriod}
+                          tooltipPortal={portalRef?.current}
                         />
                       </Flex>,
                     );

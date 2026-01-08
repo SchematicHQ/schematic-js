@@ -11,6 +11,7 @@ interface PeriodToggleProps {
   selectedOption: string;
   selectedPlan?: SelectedPlan;
   onSelect: (period: string) => void;
+  tooltipPortal?: HTMLElement | null;
 }
 
 export const PeriodToggle = ({
@@ -18,6 +19,7 @@ export const PeriodToggle = ({
   selectedOption,
   selectedPlan,
   onSelect,
+  tooltipPortal,
 }: PeriodToggleProps) => {
   const { t } = useTranslation();
 
@@ -41,7 +43,6 @@ export const PeriodToggle = ({
       $alignSelf="center"
       $width="fit-content"
       $margin={0}
-      $backgroundColor={settings.theme.card.background}
       $borderWidth="1px"
       $borderStyle="solid"
       $borderColor={
@@ -109,6 +110,7 @@ export const PeriodToggle = ({
                       })}
                 </Text>
               }
+              portal={tooltipPortal}
               $flexGrow={1}
               $flexBasis="50%"
             />

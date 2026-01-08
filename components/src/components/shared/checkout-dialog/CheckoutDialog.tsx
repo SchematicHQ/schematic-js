@@ -923,12 +923,16 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
   useLayoutEffect(() => {
     const element = dialogRef.current;
-    if (layout !== "checkout" || !element || element.open) {
+    if (layout !== "checkout" || !element) {
       return;
     }
 
     const isParentBody = element.parentElement === document.body;
     setIsModal(isParentBody);
+
+    if (element.open) {
+      return;
+    }
 
     if (isParentBody) {
       element.showModal();
@@ -1016,6 +1020,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       size="lg"
       top={top}
       onClose={handleClose}
+      {...(!isModal && { open: layout === "checkout" })}
     >
       {shouldShowBypassOverlay && (
         <Overlay $justifyContent="center" $alignItems="center">
@@ -1116,6 +1121,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
                   selectedOption={planPeriod}
                   selectedPlan={selectedPlan}
                   onSelect={changePlanPeriod}
+                  tooltipPortal={dialogRef.current}
                 />
               )}
           </Flex>
@@ -1138,6 +1144,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
               selectedPlan={selectedPlan}
               selectPlan={selectPlan}
               shouldTrial={shouldTrial}
+              tooltipPortal={dialogRef.current}
             />
           ) : checkoutStage === "usage" ? (
             <Usage

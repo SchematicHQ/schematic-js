@@ -17,17 +17,17 @@ export const Dialog = styled.dialog<DialogProps>(
       ${ResetStyle}
       ${$isModal && ContainerStyle}
 
-    position: absolute;
+      position: absolute;
       top: 50%;
       left: 50%;
       z-index: 10;
       transform: translate(-50%, -50%);
+      overflow: auto;
       width: 100%;
       max-width: 100dvw;
       height: fit-content;
       max-height: 100dvh;
       margin: ${$top}px 0 0;
-      overflow: auto;
       background-color: ${theme.card.background};
       box-shadow:
         0px 1px 20px 0px #1018280f,
@@ -49,11 +49,11 @@ export const Dialog = styled.dialog<DialogProps>(
       }
 
       @media (min-width: 768px) {
-        width: ${$size === "auto" ? "fit-content" : "100%"};
+        width: ${$size === "auto" ? "auto" : "100%"};
         max-width: ${$size === "sm"
           ? "480px"
           : $size === "md"
-            ? "688px"
+            ? "768px"
             : "1356px"};
         height: ${$size === "lg" ? "100%" : "fit-content"};
         border-radius: 0.5rem;
