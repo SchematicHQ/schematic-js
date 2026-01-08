@@ -166,6 +166,14 @@ export interface CheckoutStageSkipConfig {
    * - undefined: Defaults to false (show stage)
    */
   addOnStage?: boolean;
+
+  /**
+   * Skip the credits selection stage.
+   * - true: Skip directly to next stage
+   * - false: Show credits stage (user can review/change selection)
+   * - undefined: Defaults to false (show stage)
+   */
+  creditStage?: boolean;
 }
 
 /**
@@ -265,6 +273,7 @@ export type CheckoutState = {
   credits?: boolean;
   bypassPlanSelection?: boolean;
   bypassAddOnSelection?: boolean;
+  bypassCreditsSelection?: boolean;
   addOnIds?: string[];
   hideSkippedStages?: boolean;
 };
