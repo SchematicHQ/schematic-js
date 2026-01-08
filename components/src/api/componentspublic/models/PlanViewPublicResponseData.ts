@@ -49,6 +49,12 @@ import {
   PlanTypeFromJSONTyped,
   PlanTypeToJSON,
 } from "./PlanType";
+import type { PlanVersionResponseData } from "./PlanVersionResponseData";
+import {
+  PlanVersionResponseDataFromJSON,
+  PlanVersionResponseDataFromJSONTyped,
+  PlanVersionResponseDataToJSON,
+} from "./PlanVersionResponseData";
 import type { BillingPriceResponseData } from "./BillingPriceResponseData";
 import {
   BillingPriceResponseDataFromJSON,
@@ -228,6 +234,12 @@ export interface PlanViewPublicResponseData {
   updatedAt: Date;
   /**
    *
+   * @type {Array<PlanVersionResponseData>}
+   * @memberof PlanViewPublicResponseData
+   */
+  versions: Array<PlanVersionResponseData>;
+  /**
+   *
    * @type {BillingPriceResponseData}
    * @memberof PlanViewPublicResponseData
    */
@@ -273,6 +285,7 @@ export function instanceOfPlanViewPublicResponseData(
   if (!("name" in value) || value["name"] === undefined) return false;
   if (!("planType" in value) || value["planType"] === undefined) return false;
   if (!("updatedAt" in value) || value["updatedAt"] === undefined) return false;
+  if (!("versions" in value) || value["versions"] === undefined) return false;
   return true;
 }
 
@@ -334,6 +347,9 @@ export function PlanViewPublicResponseDataFromJSONTyped(
     planType: PlanTypeFromJSON(json["plan_type"]),
     trialDays: json["trial_days"] == null ? undefined : json["trial_days"],
     updatedAt: new Date(json["updated_at"]),
+    versions: (json["versions"] as Array<any>).map(
+      PlanVersionResponseDataFromJSON,
+    ),
     yearlyPrice:
       json["yearly_price"] == null
         ? undefined
@@ -381,6 +397,9 @@ export function PlanViewPublicResponseDataToJSON(
     plan_type: PlanTypeToJSON(value["planType"]),
     trial_days: value["trialDays"],
     updated_at: value["updatedAt"].toISOString(),
+    versions: (value["versions"] as Array<any>).map(
+      PlanVersionResponseDataToJSON,
+    ),
     yearly_price: BillingPriceResponseDataToJSON(value["yearlyPrice"]),
   };
 }

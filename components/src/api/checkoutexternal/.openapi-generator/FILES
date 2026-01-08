@@ -107,6 +107,8 @@ models/PlanEntitlementResponseData.ts
 models/PlanGroupPlanDetailResponseData.ts
 models/PlanResponseData.ts
 models/PlanType.ts
+models/PlanVersionResponseData.ts
+models/PlanVersionStatus.ts
 models/PreviewCheckoutResponse.ts
 models/PreviewObject.ts
 models/PreviewObjectResponseData.ts
