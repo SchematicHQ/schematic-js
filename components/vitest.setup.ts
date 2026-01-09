@@ -33,7 +33,7 @@ Object.defineProperty(globalThis, "localStorage", {
 import { server } from "./src/test/mocks/node";
 
 beforeAll(() => {
-  server.listen({ onUnhandledRequest: "bypass" });
+  server.listen({ onUnhandledRequest: "warn" });
 
   Object.defineProperty(window, "matchMedia", {
     writable: true,
