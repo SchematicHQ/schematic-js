@@ -19,7 +19,7 @@ Object.defineProperty(globalThis, "localStorage", {
 import { server } from "./src/test/mocks/node";
 
 beforeAll(() => {
-  server.listen();
+  server.listen({ onUnhandledRequest: "bypass" });
 
   Object.defineProperty(window, "matchMedia", {
     writable: true,
