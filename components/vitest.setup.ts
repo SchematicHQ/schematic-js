@@ -1,6 +1,20 @@
 import "@testing-library/jest-dom/vitest";
 import { vi } from "vitest";
 
+// Mock Stripe to prevent network requests that cause EINVAL errors in Node 25.x
+vi.mock("@stripe/stripe-js", () => ({
+  loadStripe: vi.fn(() =>
+    Promise.resolve({
+      elements: vi.fn(() => ({
+        create: vi.fn(),
+        getElement: vi.fn(),
+      })),
+      confirmSetup: vi.fn(),
+      confirmPayment: vi.fn(),
+    })
+  ),
+}));
+
 // Mock localStorage for Node v25 compatibility BEFORE importing MSW
 const mockStorage: Storage = {
   length: 0,
