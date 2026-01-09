@@ -55,6 +55,7 @@ specific stages.
 const config = {
   planId: 'plan_VBXv4bHjSf3',      // pre-select a Plan
   addOnIds: ['plan_AWv7bPjSx2'],   // pre-select 1 or more Add-ons
+  period: 'month',                 // pre-select 'month' or 'year' for the billing period (optional)
   skipped: {
     planStage: true,               // if true, skip Plan selection
     addOnStage: true               // if true, skip Add-on selection
