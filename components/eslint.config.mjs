@@ -44,11 +44,11 @@ export default defineConfig([
         "error",
         {
           "newlines-between": "always",
-          alphabetize: {
+          "alphabetize": {
             order: "asc",
             orderImportKind: "asc",
           },
-          named: {
+          "named": {
             enabled: true,
             types: "types-last",
           },
@@ -61,7 +61,7 @@ export default defineConfig([
         typescript: true,
         node: true,
       },
-      react: {
+      "react": {
         version: "detect",
       },
     },

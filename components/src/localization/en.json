@@ -14,8 +14,7 @@
     "After the trial, subscribe": "After the trial, subscription starts and you will be billed.",
     "Amount off": "{{amount}} off",
     "at": "at",
-    "Auto-topup enabled": "Auto-topup enabled",
-    "Auto-topup enabled at X%": "Auto-topup enabled at {{threshold}}%",
+    "When balance reaches X remaining, an auto top-up of Y credits will be processed.": "When credit balance reaches {{threshold}} remaining, an auto top-up of {{amount}} credits will be processed.",
     "An invoice is created when charges reach $X; the rest is billed monthly.": "An invoice is created when charges reach {{amount}}; the rest is billed monthly.",
     "An unknown error occurred.": "An unknown error occurred.",
     "Billed": "Billed {{period}}",
@@ -149,9 +148,18 @@
     "X items included in plan": "{{amount}} {{item}} included in plan",
     "X off": "{{amount}} off",
     "X% off": "{{percent}}% off",
+    "X units": "{{amount}} {{units}}",
+    "X units remaining": "{{amount}} {{units}} remaining",
+    "X units used": "{{amount}} {{units}} used",
+    "X units per use": "{{amount}} {{units}} per use",
     "X time left in trial": "{{amount}} {{units}} left in trial",
     "Yearly total": "Yearly total",
     "You will retain access to your plan until the end of the billing period, on": "You will retain access to your plan until the end of the billing period, on",
+
+    "$X per unit": "{{cost}} per {{unit}}",
+    "$X per Y units": "{{cost}} per {{size}} {{units}}",
+    "$X/unit/period": "{{cost}}/{{unit}}/{{period}}",
+    "$X/Y units/period": "{{cost}}/{{size}} {{units}}/{{period}}",
 
     "day": "day",
     "month": "month",
@@ -166,6 +174,7 @@
 
     "month, billed yearly": "month, billed yearly",
     "purchased": "purchased {{date}}",
+
     "usage": {
       "limited": "{{amount}} of {{allocation}} used",
       "unlimited": "{{amount}} used"

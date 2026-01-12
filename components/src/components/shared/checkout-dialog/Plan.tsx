@@ -32,7 +32,7 @@ import {
   TieredPricingDetails,
   UsageViolationText,
 } from "../../shared";
-import { Box, Button, Flex, Icon, Text } from "../../ui";
+import { Box, Button, Flex, Icon, Text, Tooltip } from "../../ui";
 
 import { FlexWithAlignEnd } from "./styles";
 
@@ -453,11 +453,7 @@ export const Plan = ({
                             />
                           )}
 
-                          <Flex
-                            $flexDirection="column"
-                            $justifyContent="center"
-                            $gap="0.5rem"
-                          >
+                          <Flex $alignItems="baseline" $alignSelf="center">
                             <Text>
                               {credit.quantity}{" "}
                               {getFeatureName(credit, credit.quantity)}
@@ -470,35 +466,39 @@ export const Plan = ({
                             </Text>
 
                             {hasAutoTopup && (
-                              <Text
-                                $size={
-                                  0.8125 *
-                                  settings.theme.typography.text.fontSize
+                              <Tooltip
+                                trigger={
+                                  <Icon
+                                    title="auto top-up"
+                                    name="info-rounded"
+                                    color={`hsla(0, 0%, ${isLightBackground ? 0 : 100}%, 0.5)`}
+                                  />
                                 }
-                                style={{ opacity: 0.7 }}
-                              >
-                                {typeof planCreditGrant.billingCreditAutoTopupThresholdPercent ===
-                                "number"
-                                  ? t("Auto-topup enabled at X%", {
-                                      threshold:
-                                        planCreditGrant.billingCreditAutoTopupThresholdPercent,
-                                    })
-                                  : t("Auto-topup enabled")}
-                                {planCreditGrant.billingCreditAutoTopupAmount && (
-                                  <>
-                                    {" "}
-                                    (+
-                                    {
-                                      planCreditGrant.billingCreditAutoTopupAmount
-                                    }{" "}
-                                    {getFeatureName(
-                                      credit,
-                                      planCreditGrant.billingCreditAutoTopupAmount,
-                                    )}
-                                    )
-                                  </>
-                                )}
-                              </Text>
+                                content={
+                                  <Text
+                                    $size={
+                                      0.875 *
+                                      settings.theme.typography.text.fontSize
+                                    }
+                                  >
+                                    {typeof planCreditGrant.billingCreditAutoTopupThresholdPercent ===
+                                      "number" &&
+                                      typeof planCreditGrant.billingCreditAutoTopupAmount ===
+                                        "number" &&
+                                      t(
+                                        "When balance reaches X remaining, an auto top-up of Y credits will be processed.",
+                                        {
+                                          threshold:
+                                            (planCreditGrant.billingCreditAutoTopupThresholdPercent /
+                                              100) *
+                                            credit.quantity,
+                                          amount:
+                                            planCreditGrant.billingCreditAutoTopupAmount,
+                                        },
+                                      )}
+                                  </Text>
+                                }
+                              />
                             )}
                           </Flex>
                         </Flex>

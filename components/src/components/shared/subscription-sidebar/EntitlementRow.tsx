@@ -77,7 +77,7 @@ export const EntitlementRow = (
             </Text>
           ) : (
             priceBehavior === PriceBehavior.Tiered && (
-              <Flex $alignItems="end">
+              <Flex $alignItems="baseline">
                 <Text
                   style={{ opacity: 0.54 }}
                   $size={0.875 * settings.theme.typography.text.fontSize}

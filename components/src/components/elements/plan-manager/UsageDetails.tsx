@@ -171,7 +171,7 @@ export const UsageDetails = ({
         )}
 
         {(cost > 0 || entitlement.priceBehavior === PriceBehavior.Tiered) && (
-          <Flex $alignItems="end">
+          <Flex $alignItems="baseline">
             <Text>
               {formatCurrency(cost, billingPrice?.currency)}
               {entitlement.feature.featureType === FeatureType.Trait && (

@@ -47,7 +47,7 @@ export const PriceDetails = ({
     tiersMode: billingPrice?.tiersMode || undefined,
     currentTierPerUnitPrice:
       typeof currentTier?.perUnitPriceDecimal === "string"
-        ? Number(currentTier?.perUnitPriceDecimal)
+        ? Number(currentTier.perUnitPriceDecimal)
         : currentTier?.perUnitPrice,
   };
 
@@ -85,11 +85,11 @@ export const PriceDetails = ({
         </Text>
       ) : (
         priceBehavior === PriceBehavior.Tiered && (
-          <Flex $alignItems="end">
+          <Flex $alignItems="baseline">
             <Text>
               {t("Tier")}: {currentTier?.from || 1}
               {typeof currentTier?.to === "number" &&
-                (currentTier?.from || 1) !== currentTier?.to && (
+                (currentTier.from || 1) !== currentTier.to && (
                   <>
                     {currentTier.to === Infinity ? "+" : `–${currentTier.to}`}
                   </>
