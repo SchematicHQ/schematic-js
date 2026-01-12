@@ -225,17 +225,23 @@ export const PlanManager = forwardRef<
             </Text>
           )}
 
-          <Text as="p" $size={0.8125 * settings.theme.typography.text.fontSize}>
-            {trialPaymentMethodRequired
-              ? t("After the trial, subscribe")
-              : postTrialPlan
-                ? t("After the trial, cancel", {
-                    postTrialPlanName: postTrialPlan?.name,
-                  })
-                : t("After the trial, cancel no default", {
-                    planName: currentPlan?.name,
-                  })}
-          </Text>
+          {(trialPaymentMethodRequired || postTrialPlan || currentPlan) && (
+            <Text
+              as="p"
+              $size={0.8125 * settings.theme.typography.text.fontSize}
+            >
+              {trialPaymentMethodRequired
+                ? t("After the trial, subscribe")
+                : postTrialPlan
+                  ? t("After the trial, cancel", {
+                      postTrialPlanName: postTrialPlan.name,
+                    })
+                  : currentPlan &&
+                    t("After the trial, cancel no default", {
+                      planName: currentPlan.name,
+                    })}
+            </Text>
+          )}
         </Notice>
       ) : (
         willSubscriptionCancel && (
@@ -301,8 +307,7 @@ export const PlanManager = forwardRef<
             </Flex>
 
             {props.header.price.isVisible &&
-              typeof currentPlan.planPrice === "number" &&
-              typeof currentPlan.planPeriod === "string" && (
+              typeof currentPlan.planPrice === "number" && (
                 <Box>
                   <Text
                     display={
@@ -321,7 +326,7 @@ export const PlanManager = forwardRef<
                           )}
                   </Text>
 
-                  {!isFreePlan && (
+                  {!isFreePlan && currentPlan?.planPeriod && (
                     <Text display={props.header.price.fontStyle}>
                       <sub>/{shortenPeriod(currentPlan.planPeriod)}</sub>
                     </Text>
@@ -380,11 +385,7 @@ export const PlanManager = forwardRef<
                   <UsageDetails
                     key={entitlementIndex}
                     entitlement={entitlement}
-                    period={
-                      currentPlan && "planPeriod" in currentPlan
-                        ? currentPlan.planPeriod || "month"
-                        : "month"
-                    }
+                    period={currentPlan?.planPeriod || "month"}
                     showCredits={showCredits}
                     layout={props}
                   />

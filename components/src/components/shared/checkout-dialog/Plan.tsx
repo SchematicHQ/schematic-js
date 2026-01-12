@@ -340,6 +340,7 @@ export const Plan = ({
             $position="relative"
             $flexDirection="column"
             $padding={`${0.75 * cardPadding}rem 0`}
+            $backgroundColor={settings.theme.card.background}
             $borderRadius={`${settings.theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
             $outlineWidth="2px"
             $outlineStyle="solid"
