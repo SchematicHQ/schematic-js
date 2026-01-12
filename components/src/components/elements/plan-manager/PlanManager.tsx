@@ -19,7 +19,7 @@ import {
   toPrettyDate,
 } from "../../../utils";
 import { Element, Notice } from "../../layout";
-import { Box, Button, Flex, Text } from "../../ui";
+import { Box, Button, Flex, Icon, Text, Tooltip } from "../../ui";
 
 import { AddOn } from "./AddOn";
 import { UsageDetails } from "./UsageDetails";
@@ -442,7 +442,7 @@ export const PlanManager = forwardRef<
                     >
                       <Flex
                         $justifyContent="space-between"
-                        $alignItems="center"
+                        $alignItems="baseline"
                         $flexWrap="wrap"
                         $gap="0.5rem"
                       >
@@ -457,51 +457,55 @@ export const PlanManager = forwardRef<
                         </Text>
 
                         {group.total.used > 0 && (
-                          <Text
-                            style={{ opacity: 0.54 }}
-                            $size={
-                              0.875 * settings.theme.typography.text.fontSize
-                            }
-                            $color={settings.theme.typography.text.color}
-                          >
-                            {group.total.used} {t("used")}
-                          </Text>
+                          <Flex $alignItems="baseline">
+                            <Text
+                              style={{ opacity: 0.54 }}
+                              $size={
+                                0.875 * settings.theme.typography.text.fontSize
+                              }
+                              $color={settings.theme.typography.text.color}
+                            >
+                              {group.total.used} {t("used")}
+                            </Text>
+
+                            {hasAutoTopup && (
+                              <Tooltip
+                                trigger={
+                                  <Icon
+                                    title="auto top-up"
+                                    name="info-rounded"
+                                    color={`hsla(0, 0%, ${isLightBackground ? 0 : 100}%, 0.5)`}
+                                  />
+                                }
+                                content={
+                                  <Text
+                                    $size={
+                                      0.875 *
+                                      settings.theme.typography.text.fontSize
+                                    }
+                                  >
+                                    {typeof planCreditGrant.billingCreditAutoTopupThresholdPercent ===
+                                      "number" &&
+                                      typeof planCreditGrant.billingCreditAutoTopupAmount ===
+                                        "number" &&
+                                      t(
+                                        "When balance reaches X remaining, an auto top-up of Y credits will be processed.",
+                                        {
+                                          threshold:
+                                            (planCreditGrant.billingCreditAutoTopupThresholdPercent /
+                                              100) *
+                                            group.quantity,
+                                          amount:
+                                            planCreditGrant.billingCreditAutoTopupAmount,
+                                        },
+                                      )}
+                                  </Text>
+                                }
+                              />
+                            )}
+                          </Flex>
                         )}
                       </Flex>
-
-                      {hasAutoTopup && (
-                        <Text
-                          $size={
-                            0.8125 * settings.theme.typography.text.fontSize
-                          }
-                          $color={
-                            isLightBackground
-                              ? darken(settings.theme.card.background, 0.38)
-                              : lighten(settings.theme.card.background, 0.38)
-                          }
-                        >
-                          {typeof planCreditGrant.billingCreditAutoTopupThresholdPercent ===
-                          "number"
-                            ? t("Auto-topup enabled at X%", {
-                                threshold:
-                                  planCreditGrant.billingCreditAutoTopupThresholdPercent,
-                              })
-                            : t("Auto-topup enabled")}
-                          {planCreditGrant.billingCreditAutoTopupAmount && (
-                            <>
-                              {" "}
-                              (+{
-                                planCreditGrant.billingCreditAutoTopupAmount
-                              }{" "}
-                              {getFeatureName(
-                                group,
-                                planCreditGrant.billingCreditAutoTopupAmount,
-                              )}
-                              )
-                            </>
-                          )}
-                        </Text>
-                      )}
                     </Flex>
                   );
                 })}

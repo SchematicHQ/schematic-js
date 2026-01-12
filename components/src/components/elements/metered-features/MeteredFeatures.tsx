@@ -50,8 +50,16 @@ interface LimitProps {
 const Limit = ({ entitlement, usageDetails, fontStyle }: LimitProps) => {
   const { t } = useTranslation();
 
-  const { feature, priceBehavior, allocation, usage, metricResetAt } =
-    entitlement;
+  const { data } = useEmbed();
+
+  const {
+    feature,
+    planEntitlement,
+    priceBehavior,
+    allocation,
+    usage,
+    metricResetAt,
+  } = entitlement;
   const { billingPrice, limit, cost, currentTier } = usageDetails;
 
   const acc: React.ReactNode[] = [];
@@ -59,7 +67,7 @@ const Limit = ({ entitlement, usageDetails, fontStyle }: LimitProps) => {
   acc.push(
     priceBehavior === PriceBehavior.Tiered &&
       typeof currentTier?.to === "number" &&
-      typeof feature?.name === "string"
+      typeof feature !== "undefined"
       ? currentTier?.to === Infinity
         ? t("Unlimited in this tier", {
             feature: getFeatureName(feature),
@@ -78,16 +86,29 @@ const Limit = ({ entitlement, usageDetails, fontStyle }: LimitProps) => {
           : priceBehavior === PriceBehavior.PayAsYouGo &&
               typeof cost === "number"
             ? formatCurrency(cost, billingPrice?.currency)
-            : priceBehavior === PriceBehavior.Credit &&
-                typeof limit === "number"
-              ? t("Limit of", {
-                  amount: formatNumber(limit),
+            : data?.displaySettings.showCredits &&
+                priceBehavior === PriceBehavior.Credit &&
+                typeof planEntitlement?.valueCredit !== "undefined" &&
+                typeof planEntitlement?.consumptionRate === "number"
+              ? t("X units per use", {
+                  amount: planEntitlement.consumptionRate,
+                  units: getFeatureName(
+                    planEntitlement.valueCredit,
+                    planEntitlement.consumptionRate,
+                  ),
                 })
-              : typeof allocation === "number"
-                ? t("Limit of", {
-                    amount: formatNumber(allocation),
+              : priceBehavior === PriceBehavior.Credit &&
+                  typeof feature !== "undefined" &&
+                  typeof limit === "number"
+                ? t("X units remaining", {
+                    amount: formatNumber(limit),
+                    units: getFeatureName(feature, limit),
                   })
-                : t("No limit"),
+                : typeof allocation === "number"
+                  ? t("Limit of", {
+                      amount: formatNumber(allocation),
+                    })
+                  : t("No limit"),
   );
 
   if (metricResetAt) {
@@ -271,7 +292,7 @@ export const MeteredFeatures = forwardRef<
                       </Text>
                     </Box>
 
-                    {props.description.isVisible && (
+                    {props.description.isVisible && feature.description && (
                       <Box>
                         <Text display={props.description.fontStyle}>
                           {feature.description}
@@ -318,7 +339,8 @@ export const MeteredFeatures = forwardRef<
                 </Flex>
 
                 {props.isVisible &&
-                  priceBehavior !== PriceBehavior.PayAsYouGo && (
+                  priceBehavior !== PriceBehavior.PayAsYouGo &&
+                  priceBehavior !== PriceBehavior.Credit && (
                     <Meter
                       entitlement={entitlement}
                       usageDetails={usageDetails}
@@ -386,7 +408,7 @@ export const MeteredFeatures = forwardRef<
                         </Text>
                       </Box>
 
-                      {props.description.isVisible && (
+                      {props.description.isVisible && credit.description && (
                         <Box>
                           <Text display={props.description.fontStyle}>
                             {credit.description}
