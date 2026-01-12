@@ -25,12 +25,16 @@ export const PaymentDialog = ({ top }: PaymentDialogProps) => {
 
   useLayoutEffect(() => {
     const element = dialogRef.current;
-    if (layout !== "payment" || !element || element.open) {
+    if (layout !== "payment" || !element) {
       return;
     }
 
     const isParentBody = element.parentElement === document.body;
     setIsModal(isParentBody);
+
+    if (element.open) {
+      return;
+    }
 
     if (isParentBody) {
       element.showModal();
@@ -46,6 +50,7 @@ export const PaymentDialog = ({ top }: PaymentDialogProps) => {
       size="md"
       top={top}
       onClose={handleClose}
+      {...(!isModal && { open: layout === "payment" })}
     >
       <DialogHeader bordered onClose={handleClose}>
         <Text $size={18}>{t("Edit payment method")}</Text>

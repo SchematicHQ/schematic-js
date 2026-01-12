@@ -247,6 +247,7 @@ interface PlanProps {
     shouldTrial?: boolean;
   }) => void;
   shouldTrial: boolean;
+  tooltipPortal?: HTMLElement | null;
 }
 
 export const Plan = ({
@@ -256,6 +257,7 @@ export const Plan = ({
   period,
   selectPlan,
   shouldTrial,
+  tooltipPortal,
 }: PlanProps) => {
   const { t } = useTranslation();
 
@@ -338,7 +340,6 @@ export const Plan = ({
             $position="relative"
             $flexDirection="column"
             $padding={`${0.75 * cardPadding}rem 0`}
-            $backgroundColor={settings.theme.card.background}
             $borderRadius={`${settings.theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
             $outlineWidth="2px"
             $outlineStyle="solid"
@@ -394,7 +395,10 @@ export const Plan = ({
                         ? t("Free")
                         : showAsMonthlyPrices &&
                             planPeriod === PriceInterval.Year
-                          ? formatCurrency((planPrice ?? 0) / 12, planCurrency)
+                          ? formatCurrency((planPrice ?? 0) / 12, {
+                              currency: planCurrency,
+                              testSignificantDigits: false,
+                            })
                           : formatCurrency(planPrice ?? 0, planCurrency)}
                 </Text>
 
@@ -750,6 +754,7 @@ export const Plan = ({
                                           period={planPeriod}
                                           currency={entitlementCurrency}
                                           priceTiers={entitlementPriceTiers}
+                                          portal={tooltipPortal}
                                         />
                                       </Flex>
                                     )
@@ -760,6 +765,7 @@ export const Plan = ({
                                       billingThreshold={
                                         entitlement.billingThreshold
                                       }
+                                      portal={tooltipPortal}
                                     />
                                   )}
                                 </UsageDetailsContainer>
