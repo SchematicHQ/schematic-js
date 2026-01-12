@@ -119,13 +119,8 @@ export const PlanManager = forwardRef<
     showZeroPriceAsFree,
     trialPaymentMethodRequired,
   } = useMemo(() => {
-    // Find the full plan details from activePlans which includes includedCreditGrants
-    const fullPlanDetails = data?.activePlans?.find(
-      (plan) => plan.id === data?.company?.plan?.id && plan.current === true,
-    );
-
     return {
-      currentPlan: fullPlanDetails || data?.company?.plan,
+      currentPlan: data?.company?.plan,
       currentAddOns: data?.company?.addOns || [],
       creditBundles: data?.creditBundles || [],
       creditGroups: groupCreditGrants(data?.creditGrants || [], {
@@ -163,7 +158,6 @@ export const PlanManager = forwardRef<
       showZeroPriceAsFree: data?.displaySettings?.showZeroPriceAsFree ?? false,
     };
   }, [
-    data?.activePlans,
     data?.capabilities?.checkout,
     data?.company?.addOns,
     data?.company?.billingSubscription,
@@ -205,10 +199,7 @@ export const PlanManager = forwardRef<
   }, [billingSubscription]);
 
   const { isFreePlan, isUsageBasedPlan } = useMemo(() => {
-    const isFreePlan =
-      currentPlan && "planPrice" in currentPlan
-        ? currentPlan.planPrice === 0
-        : false;
+    const isFreePlan = currentPlan?.planPrice === 0;
     const isUsageBasedPlan = isFreePlan && usageBasedEntitlements.length > 0;
     return { isFreePlan, isUsageBasedPlan };
   }, [currentPlan, usageBasedEntitlements]);
@@ -234,17 +225,23 @@ export const PlanManager = forwardRef<
             </Text>
           )}
 
-          <Text as="p" $size={0.8125 * settings.theme.typography.text.fontSize}>
-            {trialPaymentMethodRequired
-              ? t("After the trial, subscribe")
-              : postTrialPlan
-                ? t("After the trial, cancel", {
-                    postTrialPlanName: postTrialPlan?.name,
-                  })
-                : t("After the trial, cancel no default", {
-                    planName: currentPlan?.name,
-                  })}
-          </Text>
+          {(trialPaymentMethodRequired || postTrialPlan || currentPlan) && (
+            <Text
+              as="p"
+              $size={0.8125 * settings.theme.typography.text.fontSize}
+            >
+              {trialPaymentMethodRequired
+                ? t("After the trial, subscribe")
+                : postTrialPlan
+                  ? t("After the trial, cancel", {
+                      postTrialPlanName: postTrialPlan.name,
+                    })
+                  : currentPlan &&
+                    t("After the trial, cancel no default", {
+                      planName: currentPlan.name,
+                    })}
+            </Text>
+          )}
         </Notice>
       ) : (
         willSubscriptionCancel && (
@@ -310,11 +307,7 @@ export const PlanManager = forwardRef<
             </Flex>
 
             {props.header.price.isVisible &&
-              currentPlan &&
-              "planPrice" in currentPlan &&
-              typeof currentPlan.planPrice === "number" &&
-              "planPeriod" in currentPlan &&
-              currentPlan.planPeriod && (
+              typeof currentPlan.planPrice === "number" && (
                 <Box>
                   <Text
                     display={
@@ -333,7 +326,7 @@ export const PlanManager = forwardRef<
                           )}
                   </Text>
 
-                  {!isFreePlan && (
+                  {!isFreePlan && currentPlan?.planPeriod && (
                     <Text display={props.header.price.fontStyle}>
                       <sub>/{shortenPeriod(currentPlan.planPeriod)}</sub>
                     </Text>
@@ -392,11 +385,7 @@ export const PlanManager = forwardRef<
                   <UsageDetails
                     key={entitlementIndex}
                     entitlement={entitlement}
-                    period={
-                      currentPlan && "planPeriod" in currentPlan
-                        ? currentPlan.planPeriod || "month"
-                        : "month"
-                    }
+                    period={currentPlan?.planPeriod || "month"}
                     showCredits={showCredits}
                     layout={props}
                   />
@@ -426,11 +415,9 @@ export const PlanManager = forwardRef<
               <Flex $flexDirection="column" $gap="1rem">
                 {creditGroups.plan.map((group, groupIndex) => {
                   const planCreditGrant =
-                    currentPlan && "includedCreditGrants" in currentPlan
-                      ? currentPlan.includedCreditGrants?.find(
-                          (grant) => grant.creditId === group.id,
-                        )
-                      : undefined;
+                    currentPlan?.includedCreditGrants.find(
+                      (grant) => grant.creditId === group.id,
+                    );
                   const hasAutoTopup =
                     planCreditGrant?.billingCreditAutoTopupEnabled;
 
