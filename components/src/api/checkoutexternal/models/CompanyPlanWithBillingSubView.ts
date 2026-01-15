@@ -86,6 +86,12 @@ export interface CompanyPlanWithBillingSubView {
    * @memberof CompanyPlanWithBillingSubView
    */
   planPrice?: number | null;
+  /**
+   *
+   * @type {string}
+   * @memberof CompanyPlanWithBillingSubView
+   */
+  planVersionId?: string | null;
 }
 
 /**
@@ -136,6 +142,8 @@ export function CompanyPlanWithBillingSubViewFromJSONTyped(
     name: json["name"],
     planPeriod: json["plan_period"] == null ? undefined : json["plan_period"],
     planPrice: json["plan_price"] == null ? undefined : json["plan_price"],
+    planVersionId:
+      json["plan_version_id"] == null ? undefined : json["plan_version_id"],
   };
 }
 
@@ -161,5 +169,6 @@ export function CompanyPlanWithBillingSubViewToJSON(
     name: value["name"],
     plan_period: value["planPeriod"],
     plan_price: value["planPrice"],
+    plan_version_id: value["planVersionId"],
   };
 }
