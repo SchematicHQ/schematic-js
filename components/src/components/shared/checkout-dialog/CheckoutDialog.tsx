@@ -42,7 +42,7 @@ import {
 
 import { Navigation } from "./Navigation";
 
-import { AddOns, Checkout, Credits, Plan, Usage } from ".";
+import { AddOns, Checkout, Credits, Plan, Quantity } from ".";
 
 export const createActiveUsageBasedEntitlementsReducer =
   (entitlements: FeatureUsageResponseData[], period: string) =>
@@ -1183,7 +1183,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
               tooltipPortal={dialogRef.current}
             />
           ) : checkoutStage === "usage" ? (
-            <Usage
+            <Quantity
               isLoading={isLoading}
               period={planPeriod}
               selectedPlan={selectedPlan}
@@ -1198,7 +1198,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
               toggle={(id) => toggleAddOn(id)}
             />
           ) : checkoutStage === "addonsUsage" ? (
-            <Usage
+            <Quantity
               isLoading={isLoading}
               period={planPeriod}
               selectedPlan={selectedPlan}

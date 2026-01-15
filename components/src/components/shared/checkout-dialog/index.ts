@@ -1,6 +1,6 @@
 // checkout stages
 export * from "./Plan";
-export * from "./Usage";
+export * from "./Quantity";
 export * from "./AddOns";
 export * from "./Credits";
 export * from "./Checkout";
