@@ -58,12 +58,16 @@ export const createActiveUsageBasedEntitlementsReducer =
       const allocation =
         featureUsage?.allocation ?? entitlement.valueNumeric ?? 0;
       const usage = featureUsage?.usage ?? 0;
+      const quantity =
+        featureUsage?.priceBehavior === PriceBehavior.PayInAdvance
+          ? allocation
+          : 0;
 
       acc.push({
         ...entitlement,
         allocation,
         usage,
-        quantity: allocation,
+        quantity,
       });
     }
 
@@ -128,12 +132,10 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
   const [error, setError] = useState<string | undefined>();
   const [isModal, setIsModal] = useState(true);
 
-  const { currentEntitlements, showPeriodToggle, trialPaymentMethodRequired } =
+  const { featureUsage, showPeriodToggle, trialPaymentMethodRequired } =
     useMemo(() => {
       return {
-        currentEntitlements: data?.featureUsage
-          ? data.featureUsage.features
-          : [],
+        featureUsage: data?.featureUsage ? data.featureUsage.features : [],
         showPeriodToggle: data?.displaySettings?.showPeriodToggle ?? true,
         trialPaymentMethodRequired: data?.trialPaymentMethodRequired === true,
       };
@@ -220,10 +222,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
   const [usageBasedEntitlements, setUsageBasedEntitlements] = useState(() =>
     (selectedPlan?.entitlements || []).reduce(
-      createActiveUsageBasedEntitlementsReducer(
-        currentEntitlements,
-        planPeriod,
-      ),
+      createActiveUsageBasedEntitlementsReducer(featureUsage, planPeriod),
       [],
     ),
   );
@@ -240,10 +239,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
           if (!availableAddOn) return [];
 
           return availableAddOn.entitlements.reduce(
-            createActiveUsageBasedEntitlementsReducer(
-              currentEntitlements,
-              planPeriod,
-            ),
+            createActiveUsageBasedEntitlementsReducer(featureUsage, planPeriod),
             [],
           );
         },
@@ -695,12 +691,27 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
           : PriceInterval.Month;
 
       const updatedUsageBasedEntitlements = plan.entitlements.reduce(
-        createActiveUsageBasedEntitlementsReducer(currentEntitlements, period),
+        createActiveUsageBasedEntitlementsReducer(featureUsage, period),
         [],
       );
 
       if (period !== planPeriod || plan.id !== selectedPlan?.id) {
-        setUsageBasedEntitlements(updatedUsageBasedEntitlements);
+        setUsageBasedEntitlements((prev) => {
+          return updatedUsageBasedEntitlements.map((updated) => {
+            const current = prev.find(
+              ({ featureId }) => featureId === updated.featureId,
+            );
+
+            if (typeof current?.quantity === "number") {
+              return {
+                ...updated,
+                quantity: current.quantity,
+              };
+            }
+
+            return updated;
+          });
+        });
       }
 
       if (period !== planPeriod) {
@@ -745,7 +756,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       selectedPlan?.id,
       planPeriod,
       showPeriodToggle,
-      currentEntitlements,
+      featureUsage,
       shouldTrial,
       willTrialWithoutPaymentMethod,
       handlePreviewCheckout,
