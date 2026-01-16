@@ -11,67 +11,87 @@
         "plan_type": "add_on",
         "updated_at": "2025-10-01T14:41:46.369987Z",
         "billing_product": {
-          "product_id": "bilp_RaSBhLQM1Ye",
-          "external_id": "prod_T9kjkZ4Yc8QhiZ",
           "account_id": "acct_Rxs59v2X8BG",
+          "created_at": "2025-10-01T14:41:47.355349Z",
+          "currency": "USD",
           "environment_id": "env_66p5iXPxRJU",
+          "external_id": "prod_T9kjkZ4Yc8QhiZ",
+          "is_active": true,
           "name": "add_on Simple Add-on - Development",
           "price": 0,
           "price_decimal": null,
-          "currency": "USD",
+          "product_id": "bilp_RaSBhLQM1Ye",
+          "provider_type": "stripe",
           "quantity": 0,
-          "is_active": true,
-          "created_at": "2025-10-01T14:41:47.355349Z",
           "updated_at": "2025-10-01T14:41:48.004048Z",
           "prices": [
             {
-              "id": "bilpp_2CYnLGzpQ9V",
+              "currency": "usd",
               "external_price_id": "price_1SDRDzLCXzCTAHre1sY3V7li",
+              "id": "bilpp_2CYnLGzpQ9V",
+              "interval": "month",
               "price": 500,
               "price_decimal": "500",
-              "currency": "usd",
-              "scheme": "per_unit",
-              "interval": "month"
+              "provider_type": "stripe",
+              "scheme": "per_unit"
             },
             {
-              "id": "bilpp_XKjxdnhHGVp",
+              "currency": "usd",
               "external_price_id": "price_1SDRDzLCXzCTAHre0yn02dsv",
+              "id": "bilpp_XKjxdnhHGVp",
+              "interval": "year",
               "price": 5000,
               "price_decimal": "5000",
-              "currency": "usd",
-              "scheme": "per_unit",
-              "interval": "year"
+              "provider_type": "stripe",
+              "scheme": "per_unit"
             }
           ],
           "subscription_count": 0
         },
         "charge_type": "recurring",
         "company_count": 0,
+        "controlled_by": "schematic",
         "features": [],
         "is_default": false,
+        "is_free": false,
         "is_trialable": false,
-        "controlled_by": "schematic",
         "monthly_price": {
-          "id": "bilpp_2CYnLGzpQ9V",
+          "currency": "usd",
           "external_price_id": "price_1SDRDzLCXzCTAHre1sY3V7li",
+          "id": "bilpp_2CYnLGzpQ9V",
+          "interval": "month",
           "price": 500,
           "price_decimal": "500",
-          "currency": "usd",
-          "scheme": "per_unit",
-          "interval": "month"
+          "provider_type": "stripe",
+          "scheme": "per_unit"
         },
         "one_time_price": null,
         "trial_days": null,
+        "versions": [
+          {
+            "created_at": "2025-10-01T14:41:46.369987Z",
+            "description": "A simple add-on",
+            "environment_id": "env_66p5iXPxRJU",
+            "icon": "pink",
+            "id": "plnv_YRRdugzWyCV",
+            "name": "Simple Add-on",
+            "original_plan_id": "plan_aDevbC1pNVr",
+            "plan_type": "add_on",
+            "status": "published",
+            "updated_at": "2025-10-01T14:41:46.369987Z",
+            "version": 1
+          }
+        ],
         "yearly_price": {
-          "id": "bilpp_XKjxdnhHGVp",
+          "currency": "usd",
           "external_price_id": "price_1SDRDzLCXzCTAHre0yn02dsv",
+          "id": "bilpp_XKjxdnhHGVp",
+          "interval": "year",
           "price": 5000,
           "price_decimal": "5000",
-          "currency": "usd",
-          "scheme": "per_unit",
-          "interval": "year"
+          "provider_type": "stripe",
+          "scheme": "per_unit"
         },
-        "is_free": false,
         "is_custom": false,
         "entitlements": [],
         "compatible_plan_ids": [],
@@ -89,33 +109,36 @@
         "plan_type": "add_on",
         "updated_at": "2025-10-01T14:40:50.057358Z",
         "billing_product": {
-          "product_id": "bilp_eUbNBKjPhUv",
-          "external_id": "prod_T9kiIe8sqKWBG7",
           "account_id": "acct_Rxs59v2X8BG",
+          "created_at": "2025-10-01T14:40:50.987643Z",
+          "currency": "USD",
           "environment_id": "env_66p5iXPxRJU",
+          "external_id": "prod_T9kiIe8sqKWBG7",
+          "is_active": true,
           "name": "add_on One-time Add-on - Development",
           "price": 0,
           "price_decimal": null,
-          "currency": "USD",
+          "product_id": "bilp_eUbNBKjPhUv",
+          "provider_type": "stripe",
           "quantity": 0,
-          "is_active": true,
-          "created_at": "2025-10-01T14:40:50.987643Z",
           "updated_at": "2025-10-01T14:40:51.777901Z",
           "prices": [
             {
-              "id": "bilpp_2SWeoQQGe8B",
+              "currency": "usd",
               "external_price_id": "price_1SDRD5LCXzCTAHreTPDsTInJ",
+              "id": "bilpp_2SWeoQQGe8B",
+              "interval": "one-time",
               "price": 1000,
               "price_decimal": "1000",
-              "currency": "usd",
-              "scheme": "per_unit",
-              "interval": "one-time"
+              "provider_type": "stripe",
+              "scheme": "per_unit"
             }
           ],
           "subscription_count": 0
         },
         "charge_type": "one_time",
         "company_count": 0,
+        "controlled_by": "schematic",
         "features": [
           {
             "id": "feat_47NF6M6F1MD",
@@ -125,7 +148,7 @@
             "description": "A trait-based feature",
             "feature_type": "trait",
             "lifecycle_phase": null,
-            "event_subtype": "trait-based-feature",
+            "event_subtype": null,
             "trait_id": "trt_U78jdcBghdn",
             "icon": "📔",
             "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
@@ -181,21 +204,36 @@
           }
         ],
         "is_default": false,
+        "is_free": false,
         "is_trialable": false,
-        "controlled_by": "schematic",
         "monthly_price": null,
         "one_time_price": {
-          "id": "bilpp_2SWeoQQGe8B",
+          "currency": "usd",
           "external_price_id": "price_1SDRD5LCXzCTAHreTPDsTInJ",
+          "id": "bilpp_2SWeoQQGe8B",
+          "interval": "one-time",
           "price": 1000,
           "price_decimal": "1000",
-          "currency": "usd",
-          "scheme": "per_unit",
-          "interval": "one-time"
+          "provider_type": "stripe",
+          "scheme": "per_unit"
         },
         "trial_days": null,
+        "versions": [
+          {
+            "created_at": "2025-10-01T14:40:50.057358Z",
+            "description": "A one-time add-on",
+            "environment_id": "env_66p5iXPxRJU",
+            "icon": "trueGray",
+            "id": "plnv_creMNm5XbuY",
+            "name": "One-time Add-on",
+            "original_plan_id": "plan_S9LDYYDpQ3X",
+            "plan_type": "add_on",
+            "status": "published",
+            "updated_at": "2025-10-01T14:40:50.057358Z",
+            "version": 1
+          }
+        ],
         "yearly_price": null,
-        "is_free": false,
         "is_custom": false,
         "entitlements": [
           {
@@ -209,7 +247,7 @@
               "description": "A trait-based feature",
               "feature_type": "trait",
               "lifecycle_phase": null,
-              "event_subtype": "trait-based-feature",
+              "event_subtype": null,
               "trait_id": "trt_U78jdcBghdn",
               "icon": "📔",
               "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
@@ -266,78 +304,86 @@
         "plan_type": "plan",
         "updated_at": "2025-10-01T15:39:24.026192Z",
         "billing_product": {
-          "product_id": "bilp_bBtSkBhLp2j",
-          "external_id": "prod_T9Uudzcr1KAhzj",
           "account_id": "acct_Rxs59v2X8BG",
+          "created_at": "2025-09-30T22:20:25.841135Z",
+          "currency": "USD",
           "environment_id": "env_66p5iXPxRJU",
+          "external_id": "prod_T9Uudzcr1KAhzj",
+          "is_active": true,
           "name": "plan Basic - Development",
           "price": 0,
-          "price_decimal": "0",
-          "currency": "USD",
+          "price_decimal": null,
+          "product_id": "bilp_bBtSkBhLp2j",
+          "provider_type": "stripe",
           "quantity": 0,
-          "is_active": true,
-          "created_at": "2025-09-30T22:20:25.841135Z",
-          "updated_at": "2025-10-03T16:17:39.930896Z",
+          "updated_at": "2026-01-16T20:43:43.586154Z",
           "prices": [
             {
-              "id": "bilpp_3cQ11nu6YbG",
+              "currency": "usd",
               "external_price_id": "price_1SDBuHLCXzCTAHreVhywvBkp",
+              "id": "bilpp_3cQ11nu6YbG",
+              "interval": "month",
               "price": 500,
               "price_decimal": "500",
-              "currency": "usd",
-              "scheme": "per_unit",
-              "interval": "month"
+              "provider_type": "stripe",
+              "scheme": "per_unit"
             },
             {
-              "id": "bilpp_NpmrRuwUR8R",
+              "currency": "usd",
               "external_price_id": "price_1SDBuILCXzCTAHreBO4ykoyi",
+              "id": "bilpp_NpmrRuwUR8R",
+              "interval": "year",
               "price": 5000,
               "price_decimal": "5000",
-              "currency": "usd",
-              "scheme": "per_unit",
-              "interval": "year"
+              "provider_type": "stripe",
+              "scheme": "per_unit"
             },
             {
-              "id": "bilpp_7oyXSqm2hv2",
+              "currency": "usd",
               "external_price_id": "price_1SDRfGLCXzCTAHre5Gic5NVJ",
+              "id": "bilpp_7oyXSqm2hv2",
+              "interval": "month",
               "price": 500,
               "price_decimal": "500",
-              "currency": "usd",
-              "scheme": "per_unit",
-              "interval": "month"
+              "provider_type": "stripe",
+              "scheme": "per_unit"
             },
             {
-              "id": "bilpp_GP75ZBdUtGF",
+              "currency": "usd",
               "external_price_id": "price_1SDRfGLCXzCTAHreLOkqmPCT",
+              "id": "bilpp_GP75ZBdUtGF",
+              "interval": "year",
               "price": 5000,
               "price_decimal": "5000",
-              "currency": "usd",
-              "scheme": "per_unit",
-              "interval": "year"
+              "provider_type": "stripe",
+              "scheme": "per_unit"
             },
             {
-              "id": "bilpp_QjMiemTYNz1",
+              "currency": "usd",
               "external_price_id": "price_1SDS7kLCXzCTAHreofwDCL2N",
+              "id": "bilpp_QjMiemTYNz1",
+              "interval": "month",
               "price": 500,
               "price_decimal": "500",
-              "currency": "usd",
-              "scheme": "per_unit",
-              "interval": "month"
+              "provider_type": "stripe",
+              "scheme": "per_unit"
             },
             {
-              "id": "bilpp_N4nNHSKaGDX",
+              "currency": "usd",
               "external_price_id": "price_1SDS7lLCXzCTAHre9sWWODy2",
+              "id": "bilpp_N4nNHSKaGDX",
+              "interval": "year",
               "price": 5000,
               "price_decimal": "5000",
-              "currency": "usd",
-              "scheme": "per_unit",
-              "interval": "year"
+              "provider_type": "stripe",
+              "scheme": "per_unit"
             }
           ],
           "subscription_count": 0
         },
         "charge_type": "recurring",
         "company_count": 0,
+        "controlled_by": "schematic",
         "features": [
           {
             "id": "feat_ZqF9dmerf3s",
@@ -379,6 +425,12 @@
                 "description": "A basic plan"
               },
               {
+                "id": "plan_BFXJjJrhYiE",
+                "image_url": null,
+                "name": "Free Add-on",
+                "description": "A free add-on"
+              },
+              {
                 "id": "plan_8HMdwCRkuc8",
                 "image_url": null,
                 "name": "Standard",
@@ -389,12 +441,6 @@
                 "image_url": null,
                 "name": "Professional",
                 "description": "A professional plan"
-              },
-              {
-                "id": "plan_BFXJjJrhYiE",
-                "image_url": null,
-                "name": "Free Add-on",
-                "description": "A free add-on"
               },
               {
                 "id": "plan_GiNhGS3KjDp",
@@ -467,29 +513,45 @@
           }
         ],
         "is_default": false,
+        "is_free": false,
         "is_trialable": true,
-        "controlled_by": "schematic",
         "monthly_price": {
-          "id": "bilpp_QjMiemTYNz1",
+          "currency": "usd",
           "external_price_id": "price_1SDS7kLCXzCTAHreofwDCL2N",
+          "id": "bilpp_QjMiemTYNz1",
+          "interval": "month",
           "price": 500,
           "price_decimal": "500",
-          "currency": "usd",
-          "scheme": "per_unit",
-          "interval": "month"
+          "provider_type": "stripe",
+          "scheme": "per_unit"
         },
         "one_time_price": null,
         "trial_days": 30,
+        "versions": [
+          {
+            "created_at": "2025-09-30T22:05:52.679328Z",
+            "description": "A basic plan",
+            "environment_id": "env_66p5iXPxRJU",
+            "icon": "gray",
+            "id": "plnv_SR67Utoaxj8",
+            "name": "Basic",
+            "original_plan_id": "plan_6Nne9wATKg2",
+            "plan_type": "plan",
+            "status": "published",
+            "updated_at": "2025-10-01T15:39:24.026192Z",
+            "version": 1
+          }
+        ],
         "yearly_price": {
-          "id": "bilpp_N4nNHSKaGDX",
+          "currency": "usd",
           "external_price_id": "price_1SDS7lLCXzCTAHre9sWWODy2",
+          "id": "bilpp_N4nNHSKaGDX",
+          "interval": "year",
           "price": 5000,
           "price_decimal": "5000",
-          "currency": "usd",
-          "scheme": "per_unit",
-          "interval": "year"
+          "provider_type": "stripe",
+          "scheme": "per_unit"
         },
-        "is_free": true,
         "is_custom": false,
         "entitlements": [
           {
@@ -608,96 +670,106 @@
         "plan_type": "plan",
         "updated_at": "2025-10-01T15:40:35.771758Z",
         "billing_product": {
-          "product_id": "bilp_JaJKE3Chcak",
-          "external_id": "prod_T9lA5UwyvCuoCi",
           "account_id": "acct_Rxs59v2X8BG",
+          "created_at": "2025-10-01T15:08:30.976362Z",
+          "currency": "USD",
           "environment_id": "env_66p5iXPxRJU",
+          "external_id": "prod_T9lA5UwyvCuoCi",
+          "is_active": true,
           "name": "plan Standard - Development",
           "price": 0,
           "price_decimal": null,
-          "currency": "USD",
+          "product_id": "bilp_JaJKE3Chcak",
+          "provider_type": "stripe",
           "quantity": 0,
-          "is_active": true,
-          "created_at": "2025-10-01T15:08:30.976362Z",
           "updated_at": "2025-10-01T15:08:31.457848Z",
           "prices": [
             {
-              "id": "bilpp_8UVEuJMRZmM",
-              "external_price_id": "price_1SDRdrLCXzCTAHreeGbfNca0",
-              "price": 20000,
-              "price_decimal": "20000",
               "currency": "usd",
-              "scheme": "per_unit",
-              "interval": "year"
-            },
-            {
-              "id": "bilpp_KWajBkdXMvV",
               "external_price_id": "price_1SDRdrLCXzCTAHreDesOTWtx",
+              "id": "bilpp_KWajBkdXMvV",
+              "interval": "month",
               "price": 2000,
               "price_decimal": "2000",
-              "currency": "usd",
-              "scheme": "per_unit",
-              "interval": "month"
+              "provider_type": "stripe",
+              "scheme": "per_unit"
             },
             {
-              "id": "bilpp_DJUpAewyzFC",
+              "currency": "usd",
+              "external_price_id": "price_1SDRdrLCXzCTAHreeGbfNca0",
+              "id": "bilpp_8UVEuJMRZmM",
+              "interval": "year",
+              "price": 20000,
+              "price_decimal": "20000",
+              "provider_type": "stripe",
+              "scheme": "per_unit"
+            },
+            {
+              "currency": "usd",
               "external_price_id": "price_1SDReKLCXzCTAHreaC0DcOIv",
+              "id": "bilpp_DJUpAewyzFC",
+              "interval": "month",
               "price": 1000,
               "price_decimal": "1000",
-              "currency": "usd",
-              "scheme": "per_unit",
-              "interval": "month"
+              "provider_type": "stripe",
+              "scheme": "per_unit"
             },
             {
-              "id": "bilpp_KodNBC1cpQV",
+              "currency": "usd",
               "external_price_id": "price_1SDReLLCXzCTAHreh3Plo9BJ",
+              "id": "bilpp_KodNBC1cpQV",
+              "interval": "year",
               "price": 10000,
               "price_decimal": "10000",
-              "currency": "usd",
-              "scheme": "per_unit",
-              "interval": "year"
+              "provider_type": "stripe",
+              "scheme": "per_unit"
             },
             {
-              "id": "bilpp_WXQCG5zRwuj",
+              "currency": "usd",
               "external_price_id": "price_1SDS8HLCXzCTAHreib2oI1yZ",
+              "id": "bilpp_WXQCG5zRwuj",
+              "interval": "month",
               "price": 1000,
               "price_decimal": "1000",
-              "currency": "usd",
-              "scheme": "per_unit",
-              "interval": "month"
+              "provider_type": "stripe",
+              "scheme": "per_unit"
             },
             {
-              "id": "bilpp_ZM1HbQ4ZbNF",
+              "currency": "usd",
               "external_price_id": "price_1SDS8HLCXzCTAHrevWaDcBKE",
+              "id": "bilpp_ZM1HbQ4ZbNF",
+              "interval": "year",
               "price": 10000,
               "price_decimal": "10000",
-              "currency": "usd",
-              "scheme": "per_unit",
-              "interval": "year"
+              "provider_type": "stripe",
+              "scheme": "per_unit"
             },
             {
-              "id": "bilpp_QptpvucNGF6",
-              "external_price_id": "price_1SDS8vLCXzCTAHre0uveNNDu",
-              "price": 10000,
-              "price_decimal": "10000",
               "currency": "usd",
-              "scheme": "per_unit",
-              "interval": "year"
-            },
-            {
-              "id": "bilpp_PnoZEZddyfp",
               "external_price_id": "price_1SDS8vLCXzCTAHrel0wlIDBU",
+              "id": "bilpp_PnoZEZddyfp",
+              "interval": "month",
               "price": 1000,
               "price_decimal": "1000",
+              "provider_type": "stripe",
+              "scheme": "per_unit"
+            },
+            {
               "currency": "usd",
-              "scheme": "per_unit",
-              "interval": "month"
+              "external_price_id": "price_1SDS8vLCXzCTAHre0uveNNDu",
+              "id": "bilpp_QptpvucNGF6",
+              "interval": "year",
+              "price": 10000,
+              "price_decimal": "10000",
+              "provider_type": "stripe",
+              "scheme": "per_unit"
             }
           ],
           "subscription_count": 0
         },
         "charge_type": "recurring",
         "company_count": 0,
+        "controlled_by": "schematic",
         "features": [
           {
             "id": "feat_ZqF9dmerf3s",
@@ -739,6 +811,12 @@
                 "description": "A basic plan"
               },
               {
+                "id": "plan_BFXJjJrhYiE",
+                "image_url": null,
+                "name": "Free Add-on",
+                "description": "A free add-on"
+              },
+              {
                 "id": "plan_8HMdwCRkuc8",
                 "image_url": null,
                 "name": "Standard",
@@ -749,12 +827,6 @@
                 "image_url": null,
                 "name": "Professional",
                 "description": "A professional plan"
-              },
-              {
-                "id": "plan_BFXJjJrhYiE",
-                "image_url": null,
-                "name": "Free Add-on",
-                "description": "A free add-on"
               },
               {
                 "id": "plan_GiNhGS3KjDp",
@@ -827,29 +899,45 @@
           }
         ],
         "is_default": false,
+        "is_free": false,
         "is_trialable": false,
-        "controlled_by": "schematic",
         "monthly_price": {
-          "id": "bilpp_PnoZEZddyfp",
+          "currency": "usd",
           "external_price_id": "price_1SDS8vLCXzCTAHrel0wlIDBU",
+          "id": "bilpp_PnoZEZddyfp",
+          "interval": "month",
           "price": 1000,
           "price_decimal": "1000",
-          "currency": "usd",
-          "scheme": "per_unit",
-          "interval": "month"
+          "provider_type": "stripe",
+          "scheme": "per_unit"
         },
         "one_time_price": null,
         "trial_days": null,
+        "versions": [
+          {
+            "created_at": "2025-10-01T15:08:30.567389Z",
+            "description": "A standard plan",
+            "environment_id": "env_66p5iXPxRJU",
+            "icon": "emerald",
+            "id": "plnv_F8Xjceintcs",
+            "name": "Standard",
+            "original_plan_id": "plan_8HMdwCRkuc8",
+            "plan_type": "plan",
+            "status": "published",
+            "updated_at": "2025-10-01T15:40:35.771758Z",
+            "version": 1
+          }
+        ],
         "yearly_price": {
-          "id": "bilpp_QptpvucNGF6",
+          "currency": "usd",
           "external_price_id": "price_1SDS8vLCXzCTAHre0uveNNDu",
+          "id": "bilpp_QptpvucNGF6",
+          "interval": "year",
           "price": 10000,
           "price_decimal": "10000",
-          "currency": "usd",
-          "scheme": "per_unit",
-          "interval": "year"
+          "provider_type": "stripe",
+          "scheme": "per_unit"
         },
-        "is_free": false,
         "is_custom": false,
         "entitlements": [
           {
@@ -946,20 +1034,21 @@
             "value_type": "numeric",
             "metered_monthly_price": {
               "id": "bilpp_AU8A5DyXiSS",
-              "price_external_id": "price_1SDSDeLCXzCTAHre1ui3fGuY",
-              "product_external_id": "prod_T9llS80mvbW661",
-              "interval": "month",
               "billing_scheme": "tiered",
-              "usage_type": "metered",
+              "created_at": "2025-10-01T15:45:30.539441Z",
+              "currency": "usd",
+              "interval": "month",
+              "is_active": true,
               "meter_id": "mtr_test_61TMqAzS92gVNOviO41LCXzCTAHre9Wi",
+              "package_size": 1,
               "price": 0,
               "price_decimal": "0",
-              "package_size": 1,
+              "price_external_id": "price_1SDSDeLCXzCTAHre1ui3fGuY",
+              "product_external_id": "prod_T9llS80mvbW661",
+              "provider_type": "stripe",
               "tiers_mode": "graduated",
-              "is_active": true,
-              "currency": "usd",
-              "created_at": "2025-10-01T15:45:30.539441Z",
               "updated_at": "2025-10-01T15:45:31.123933Z",
+              "usage_type": "metered",
               "price_id": "bilpp_AU8A5DyXiSS",
               "product_id": "bilp_WKw1cyTfFSt",
               "meter_event_name": "usage.event-basedfeature",
@@ -967,36 +1056,37 @@
               "product_name": "Event-based Feature",
               "price_tier": [
                 {
+                  "flat_amount": null,
                   "per_unit_price": 0,
                   "per_unit_price_decimal": null,
-                  "up_to": 200,
-                  "flat_amount": null
+                  "up_to": 200
                 },
                 {
+                  "flat_amount": null,
                   "per_unit_price": 2,
                   "per_unit_price_decimal": "2",
-                  "up_to": null,
-                  "flat_amount": null
+                  "up_to": null
                 }
               ]
             },
             "consumption_rate": null,
             "metered_yearly_price": {
               "id": "bilpp_2phGGmckY9p",
-              "price_external_id": "price_1SDSDdLCXzCTAHreVErB5OWT",
-              "product_external_id": "prod_T9llS80mvbW661",
-              "interval": "year",
               "billing_scheme": "tiered",
-              "usage_type": "metered",
+              "created_at": "2025-10-01T15:45:29.910576Z",
+              "currency": "usd",
+              "interval": "year",
+              "is_active": true,
               "meter_id": "mtr_test_61TMqAzS92gVNOviO41LCXzCTAHre9Wi",
+              "package_size": 1,
               "price": 0,
               "price_decimal": "0",
-              "package_size": 1,
+              "price_external_id": "price_1SDSDdLCXzCTAHreVErB5OWT",
+              "product_external_id": "prod_T9llS80mvbW661",
+              "provider_type": "stripe",
               "tiers_mode": "graduated",
-              "is_active": true,
-              "currency": "usd",
-              "created_at": "2025-10-01T15:45:29.910576Z",
               "updated_at": "2025-10-01T15:45:30.710042Z",
+              "usage_type": "metered",
               "price_id": "bilpp_2phGGmckY9p",
               "product_id": "bilp_WKw1cyTfFSt",
               "meter_event_name": "usage.event-basedfeature",
@@ -1004,31 +1094,32 @@
               "product_name": "Event-based Feature",
               "price_tier": [
                 {
+                  "flat_amount": null,
                   "per_unit_price": 0,
                   "per_unit_price_decimal": null,
-                  "up_to": 200,
-                  "flat_amount": null
+                  "up_to": 200
                 },
                 {
+                  "flat_amount": null,
                   "per_unit_price": 1,
                   "per_unit_price_decimal": "1",
-                  "up_to": null,
-                  "flat_amount": null
+                  "up_to": null
                 }
               ]
             },
             "usage_based_product": {
-              "product_id": "bilp_WKw1cyTfFSt",
-              "external_id": "prod_T9llS80mvbW661",
               "account_id": "acct_Rxs59v2X8BG",
+              "created_at": "2025-10-01T15:45:28.964231Z",
+              "currency": "USD",
               "environment_id": "env_66p5iXPxRJU",
+              "external_id": "prod_T9llS80mvbW661",
+              "is_active": true,
               "name": "Event-based Feature",
               "price": 0,
               "price_decimal": null,
-              "currency": "USD",
+              "product_id": "bilp_WKw1cyTfFSt",
+              "provider_type": "stripe",
               "quantity": 0,
-              "is_active": true,
-              "created_at": "2025-10-01T15:45:28.964231Z",
               "updated_at": "2025-10-01T15:45:29.504319Z"
             },
             "price_behavior": "overage",
@@ -1051,60 +1142,66 @@
         "plan_type": "plan",
         "updated_at": "2025-10-01T15:39:37.845431Z",
         "billing_product": {
-          "product_id": "bilp_Ld9PEPu1ZEN",
-          "external_id": "prod_T9lB93iOcwenOP",
           "account_id": "acct_Rxs59v2X8BG",
+          "created_at": "2025-10-01T15:09:36.668927Z",
+          "currency": "USD",
           "environment_id": "env_66p5iXPxRJU",
+          "external_id": "prod_T9lB93iOcwenOP",
+          "is_active": true,
           "name": "plan Professional - Development",
           "price": 0,
           "price_decimal": null,
-          "currency": "USD",
+          "product_id": "bilp_Ld9PEPu1ZEN",
+          "provider_type": "stripe",
           "quantity": 0,
-          "is_active": true,
-          "created_at": "2025-10-01T15:09:36.668927Z",
           "updated_at": "2025-10-01T15:09:37.41502Z",
           "prices": [
             {
-              "id": "bilpp_feMaoM4K43q",
+              "currency": "usd",
               "external_price_id": "price_1SDReuLCXzCTAHreaZ1jc6p0",
+              "id": "bilpp_feMaoM4K43q",
+              "interval": "month",
               "price": 2000,
               "price_decimal": "2000",
-              "currency": "usd",
-              "scheme": "per_unit",
-              "interval": "month"
+              "provider_type": "stripe",
+              "scheme": "per_unit"
             },
             {
-              "id": "bilpp_gkNGxfHMpJQ",
+              "currency": "usd",
               "external_price_id": "price_1SDRevLCXzCTAHreNPLgUiun",
+              "id": "bilpp_gkNGxfHMpJQ",
+              "interval": "year",
               "price": 20000,
               "price_decimal": "20000",
-              "currency": "usd",
-              "scheme": "per_unit",
-              "interval": "year"
+              "provider_type": "stripe",
+              "scheme": "per_unit"
             },
             {
-              "id": "bilpp_Dudw6UyrWJA",
-              "external_price_id": "price_1SDS7yLCXzCTAHreITwew7ZU",
-              "price": 20000,
-              "price_decimal": "20000",
               "currency": "usd",
-              "scheme": "per_unit",
-              "interval": "year"
-            },
-            {
-              "id": "bilpp_sveL74sgZQ",
               "external_price_id": "price_1SDS7yLCXzCTAHrevEUgH9Nj",
+              "id": "bilpp_sveL74sgZQ",
+              "interval": "month",
               "price": 2000,
               "price_decimal": "2000",
+              "provider_type": "stripe",
+              "scheme": "per_unit"
+            },
+            {
               "currency": "usd",
-              "scheme": "per_unit",
-              "interval": "month"
+              "external_price_id": "price_1SDS7yLCXzCTAHreITwew7ZU",
+              "id": "bilpp_Dudw6UyrWJA",
+              "interval": "year",
+              "price": 20000,
+              "price_decimal": "20000",
+              "provider_type": "stripe",
+              "scheme": "per_unit"
             }
           ],
           "subscription_count": 0
         },
         "charge_type": "recurring",
         "company_count": 0,
+        "controlled_by": "schematic",
         "features": [
           {
             "id": "feat_ZqF9dmerf3s",
@@ -1146,6 +1243,12 @@
                 "description": "A basic plan"
               },
               {
+                "id": "plan_BFXJjJrhYiE",
+                "image_url": null,
+                "name": "Free Add-on",
+                "description": "A free add-on"
+              },
+              {
                 "id": "plan_8HMdwCRkuc8",
                 "image_url": null,
                 "name": "Standard",
@@ -1156,12 +1259,6 @@
                 "image_url": null,
                 "name": "Professional",
                 "description": "A professional plan"
-              },
-              {
-                "id": "plan_BFXJjJrhYiE",
-                "image_url": null,
-                "name": "Free Add-on",
-                "description": "A free add-on"
               },
               {
                 "id": "plan_GiNhGS3KjDp",
@@ -1240,7 +1337,7 @@
             "description": "A trait-based feature",
             "feature_type": "trait",
             "lifecycle_phase": null,
-            "event_subtype": "trait-based-feature",
+            "event_subtype": null,
             "trait_id": "trt_U78jdcBghdn",
             "icon": "📔",
             "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
@@ -1266,6 +1363,12 @@
             "event_summary": null,
             "plans": [
               {
+                "id": "plan_S9LDYYDpQ3X",
+                "image_url": null,
+                "name": "One-time Add-on",
+                "description": "A one-time add-on"
+              },
+              {
                 "id": "plan_9Qeb3Aqc6jY",
                 "image_url": null,
                 "name": "Professional",
@@ -1276,12 +1379,6 @@
                 "image_url": null,
                 "name": "Enterprise",
                 "description": "An enterprise plan"
-              },
-              {
-                "id": "plan_S9LDYYDpQ3X",
-                "image_url": null,
-                "name": "One-time Add-on",
-                "description": "A one-time add-on"
               }
             ],
             "trait": {
@@ -1296,29 +1393,45 @@
           }
         ],
         "is_default": false,
+        "is_free": false,
         "is_trialable": false,
-        "controlled_by": "schematic",
         "monthly_price": {
-          "id": "bilpp_sveL74sgZQ",
+          "currency": "usd",
           "external_price_id": "price_1SDS7yLCXzCTAHrevEUgH9Nj",
+          "id": "bilpp_sveL74sgZQ",
+          "interval": "month",
           "price": 2000,
           "price_decimal": "2000",
-          "currency": "usd",
-          "scheme": "per_unit",
-          "interval": "month"
+          "provider_type": "stripe",
+          "scheme": "per_unit"
         },
         "one_time_price": null,
         "trial_days": null,
+        "versions": [
+          {
+            "created_at": "2025-10-01T15:09:35.11325Z",
+            "description": "A professional plan",
+            "environment_id": "env_66p5iXPxRJU",
+            "icon": "blue",
+            "id": "plnv_ercKgKoJGDU",
+            "name": "Professional",
+            "original_plan_id": "plan_9Qeb3Aqc6jY",
+            "plan_type": "plan",
+            "status": "published",
+            "updated_at": "2025-10-01T15:39:37.845431Z",
+            "version": 1
+          }
+        ],
         "yearly_price": {
-          "id": "bilpp_Dudw6UyrWJA",
+          "currency": "usd",
           "external_price_id": "price_1SDS7yLCXzCTAHreITwew7ZU",
+          "id": "bilpp_Dudw6UyrWJA",
+          "interval": "year",
           "price": 20000,
           "price_decimal": "20000",
-          "currency": "usd",
-          "scheme": "per_unit",
-          "interval": "year"
+          "provider_type": "stripe",
+          "scheme": "per_unit"
         },
-        "is_free": false,
         "is_custom": false,
         "entitlements": [
           {
@@ -1415,20 +1528,21 @@
             "value_type": "unlimited",
             "metered_monthly_price": {
               "id": "bilpp_XWt1ejuNBEx",
-              "price_external_id": "price_1SDSFiLCXzCTAHrej2VRuPe2",
-              "product_external_id": "prod_T9lnfmj1beHm74",
-              "interval": "month",
               "billing_scheme": "tiered",
-              "usage_type": "metered",
+              "created_at": "2025-10-01T15:47:38.279355Z",
+              "currency": "usd",
+              "interval": "month",
+              "is_active": true,
               "meter_id": "mtr_test_61TMqAzS92gVNOviO41LCXzCTAHre9Wi",
+              "package_size": 1,
               "price": 0,
               "price_decimal": "0",
-              "package_size": 1,
+              "price_external_id": "price_1SDSFiLCXzCTAHrej2VRuPe2",
+              "product_external_id": "prod_T9lnfmj1beHm74",
+              "provider_type": "stripe",
               "tiers_mode": "graduated",
-              "is_active": true,
-              "currency": "usd",
-              "created_at": "2025-10-01T15:47:38.279355Z",
               "updated_at": "2025-10-01T15:47:38.991473Z",
+              "usage_type": "metered",
               "price_id": "bilpp_XWt1ejuNBEx",
               "product_id": "bilp_doxLS64oX4a",
               "meter_event_name": "usage.event-basedfeature",
@@ -1436,48 +1550,49 @@
               "product_name": "Event-based Feature",
               "price_tier": [
                 {
+                  "flat_amount": null,
                   "per_unit_price": 5,
                   "per_unit_price_decimal": "5",
-                  "up_to": 100,
-                  "flat_amount": null
+                  "up_to": 100
                 },
                 {
+                  "flat_amount": null,
                   "per_unit_price": 2,
                   "per_unit_price_decimal": "2",
-                  "up_to": 500,
-                  "flat_amount": null
+                  "up_to": 500
                 },
                 {
+                  "flat_amount": null,
                   "per_unit_price": 1,
                   "per_unit_price_decimal": "1",
-                  "up_to": 1000,
-                  "flat_amount": null
+                  "up_to": 1000
                 },
                 {
+                  "flat_amount": null,
                   "per_unit_price": 0,
                   "per_unit_price_decimal": null,
-                  "up_to": null,
-                  "flat_amount": null
+                  "up_to": null
                 }
               ]
             },
             "consumption_rate": null,
             "metered_yearly_price": {
               "id": "bilpp_Rujy4rmRYpR",
-              "price_external_id": "price_1SDSFhLCXzCTAHrema5r1oDw",
-              "product_external_id": "prod_T9lnfmj1beHm74",
-              "interval": "year",
               "billing_scheme": "tiered",
-              "usage_type": "metered",
+              "created_at": "2025-10-01T15:47:37.728566Z",
+              "currency": "usd",
+              "interval": "year",
+              "is_active": true,
               "meter_id": "mtr_test_61TMqAzS92gVNOviO41LCXzCTAHre9Wi",
+              "package_size": 1,
               "price": 0,
               "price_decimal": "0",
-              "package_size": 1,
+              "price_external_id": "price_1SDSFhLCXzCTAHrema5r1oDw",
+              "product_external_id": "prod_T9lnfmj1beHm74",
+              "provider_type": "stripe",
               "tiers_mode": "graduated",
-              "is_active": true,
-              "currency": "usd",
-              "created_at": "2025-10-01T15:47:37.728566Z",
               "updated_at": "2025-10-01T15:47:38.503129Z",
+              "usage_type": "metered",
               "price_id": "bilpp_Rujy4rmRYpR",
               "product_id": "bilp_doxLS64oX4a",
               "meter_event_name": "usage.event-basedfeature",
@@ -1485,43 +1600,44 @@
               "product_name": "Event-based Feature",
               "price_tier": [
                 {
+                  "flat_amount": null,
                   "per_unit_price": 4,
                   "per_unit_price_decimal": "4",
-                  "up_to": 100,
-                  "flat_amount": null
+                  "up_to": 100
                 },
                 {
+                  "flat_amount": null,
                   "per_unit_price": 2,
                   "per_unit_price_decimal": "2",
-                  "up_to": 500,
-                  "flat_amount": null
+                  "up_to": 500
                 },
                 {
+                  "flat_amount": null,
                   "per_unit_price": 1,
                   "per_unit_price_decimal": "1",
-                  "up_to": 1000,
-                  "flat_amount": null
+                  "up_to": 1000
                 },
                 {
+                  "flat_amount": null,
                   "per_unit_price": 0,
                   "per_unit_price_decimal": null,
-                  "up_to": null,
-                  "flat_amount": null
+                  "up_to": null
                 }
               ]
             },
             "usage_based_product": {
-              "product_id": "bilp_doxLS64oX4a",
-              "external_id": "prod_T9lnfmj1beHm74",
               "account_id": "acct_Rxs59v2X8BG",
+              "created_at": "2025-10-01T15:47:37.149253Z",
+              "currency": "USD",
               "environment_id": "env_66p5iXPxRJU",
+              "external_id": "prod_T9lnfmj1beHm74",
+              "is_active": true,
               "name": "Event-based Feature",
               "price": 0,
               "price_decimal": null,
-              "currency": "USD",
+              "product_id": "bilp_doxLS64oX4a",
+              "provider_type": "stripe",
               "quantity": 0,
-              "is_active": true,
-              "created_at": "2025-10-01T15:47:37.149253Z",
               "updated_at": "2025-10-01T15:47:37.641065Z"
             },
             "price_behavior": "tier",
@@ -1539,7 +1655,7 @@
               "description": "A trait-based feature",
               "feature_type": "trait",
               "lifecycle_phase": null,
-              "event_subtype": "trait-based-feature",
+              "event_subtype": null,
               "trait_id": "trt_U78jdcBghdn",
               "icon": "📔",
               "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
@@ -1580,20 +1696,21 @@
             "value_type": "trait",
             "metered_monthly_price": {
               "id": "bilpp_3878NewBpts",
-              "price_external_id": "price_1SDSGiLCXzCTAHreKgKGrWKC",
-              "product_external_id": "prod_T9lofG1eTIV1jY",
-              "interval": "month",
               "billing_scheme": "per_unit",
-              "usage_type": "licensed",
+              "created_at": "2025-10-01T15:48:40.444126Z",
+              "currency": "usd",
+              "interval": "month",
+              "is_active": true,
               "meter_id": null,
+              "package_size": 1,
               "price": 100,
               "price_decimal": "100",
-              "package_size": 1,
+              "price_external_id": "price_1SDSGiLCXzCTAHreKgKGrWKC",
+              "product_external_id": "prod_T9lofG1eTIV1jY",
+              "provider_type": "stripe",
               "tiers_mode": null,
-              "is_active": true,
-              "currency": "usd",
-              "created_at": "2025-10-01T15:48:40.444126Z",
               "updated_at": "2025-10-01T15:48:40.819091Z",
+              "usage_type": "licensed",
               "price_id": "bilpp_3878NewBpts",
               "product_id": "bilp_7vCWGgUQVgL",
               "meter_event_name": null,
@@ -1601,30 +1718,31 @@
               "product_name": "Trait-based Feature",
               "price_tier": [
                 {
+                  "flat_amount": null,
                   "per_unit_price": null,
                   "per_unit_price_decimal": null,
-                  "up_to": null,
-                  "flat_amount": null
+                  "up_to": null
                 }
               ]
             },
             "consumption_rate": null,
             "metered_yearly_price": {
               "id": "bilpp_5dRTXefcPca",
-              "price_external_id": "price_1SDSGhLCXzCTAHreHUlOhCa3",
-              "product_external_id": "prod_T9lofG1eTIV1jY",
-              "interval": "year",
               "billing_scheme": "per_unit",
-              "usage_type": "licensed",
+              "created_at": "2025-10-01T15:48:40.012007Z",
+              "currency": "usd",
+              "interval": "year",
+              "is_active": true,
               "meter_id": null,
+              "package_size": 1,
               "price": 90,
               "price_decimal": "90",
-              "package_size": 1,
+              "price_external_id": "price_1SDSGhLCXzCTAHreHUlOhCa3",
+              "product_external_id": "prod_T9lofG1eTIV1jY",
+              "provider_type": "stripe",
               "tiers_mode": null,
-              "is_active": true,
-              "currency": "usd",
-              "created_at": "2025-10-01T15:48:40.012007Z",
               "updated_at": "2025-10-01T15:48:40.345414Z",
+              "usage_type": "licensed",
               "price_id": "bilpp_5dRTXefcPca",
               "product_id": "bilp_7vCWGgUQVgL",
               "meter_event_name": null,
@@ -1632,25 +1750,26 @@
               "product_name": "Trait-based Feature",
               "price_tier": [
                 {
+                  "flat_amount": null,
                   "per_unit_price": null,
                   "per_unit_price_decimal": null,
-                  "up_to": null,
-                  "flat_amount": null
+                  "up_to": null
                 }
               ]
             },
             "usage_based_product": {
-              "product_id": "bilp_7vCWGgUQVgL",
-              "external_id": "prod_T9lofG1eTIV1jY",
               "account_id": "acct_Rxs59v2X8BG",
+              "created_at": "2025-10-01T15:48:39.553766Z",
+              "currency": "USD",
               "environment_id": "env_66p5iXPxRJU",
+              "external_id": "prod_T9lofG1eTIV1jY",
+              "is_active": true,
               "name": "Trait-based Feature",
               "price": 0,
               "price_decimal": null,
-              "currency": "USD",
+              "product_id": "bilp_7vCWGgUQVgL",
+              "provider_type": "stripe",
               "quantity": 0,
-              "is_active": true,
-              "created_at": "2025-10-01T15:48:39.553766Z",
               "updated_at": "2025-10-01T15:48:40.069129Z"
             },
             "price_behavior": "pay_in_advance",
@@ -1676,6 +1795,13 @@
             "reset_cadence": "monthly",
             "reset_start": "billing_period",
             "reset_type": "plan_period",
+            "billing_credit_auto_topup_enabled": false,
+            "billing_credit_auto_topup_threshold_percent": null,
+            "billing_credit_auto_topup_amount": null,
+            "billing_credit_auto_topup_amount_type": null,
+            "billing_credit_auto_topup_expiry_type": null,
+            "billing_credit_auto_topup_expiry_unit": null,
+            "billing_credit_auto_topup_expiry_unit_count": null,
             "expiry_type": null,
             "expiry_unit": null,
             "expiry_unit_count": null,
@@ -1694,60 +1820,66 @@
         "plan_type": "plan",
         "updated_at": "2025-10-01T15:41:43.873855Z",
         "billing_product": {
-          "product_id": "bilp_Z4Y2Ga5E4PD",
-          "external_id": "prod_T9lgotKlpiqVBV",
           "account_id": "acct_Rxs59v2X8BG",
+          "created_at": "2025-10-01T15:41:17.558266Z",
+          "currency": "USD",
           "environment_id": "env_66p5iXPxRJU",
+          "external_id": "prod_T9lgotKlpiqVBV",
+          "is_active": true,
           "name": "plan Enterprise - Development",
           "price": 0,
           "price_decimal": null,
-          "currency": "USD",
+          "product_id": "bilp_Z4Y2Ga5E4PD",
+          "provider_type": "stripe",
           "quantity": 0,
-          "is_active": true,
-          "created_at": "2025-10-01T15:41:17.558266Z",
           "updated_at": "2025-10-01T15:41:18.135553Z",
           "prices": [
             {
-              "id": "bilpp_MHJqRmG2TfG",
-              "external_price_id": "price_1SDSA1LCXzCTAHretGyKUj9O",
-              "price": 500000,
-              "price_decimal": "500000",
               "currency": "usd",
-              "scheme": "per_unit",
-              "interval": "year"
-            },
-            {
-              "id": "bilpp_iH1y4yQ29pX",
               "external_price_id": "price_1SDS9aLCXzCTAHreaGL59OMF",
+              "id": "bilpp_iH1y4yQ29pX",
+              "interval": "month",
               "price": 50000,
               "price_decimal": "50000",
-              "currency": "usd",
-              "scheme": "per_unit",
-              "interval": "month"
+              "provider_type": "stripe",
+              "scheme": "per_unit"
             },
             {
-              "id": "bilpp_hnXMEXp46Lt",
+              "currency": "usd",
               "external_price_id": "price_1SDS9aLCXzCTAHrertkPSOft",
+              "id": "bilpp_hnXMEXp46Lt",
+              "interval": "year",
               "price": 500000,
               "price_decimal": "500000",
-              "currency": "usd",
-              "scheme": "per_unit",
-              "interval": "year"
+              "provider_type": "stripe",
+              "scheme": "per_unit"
             },
             {
-              "id": "bilpp_fKaLDEEWMrb",
+              "currency": "usd",
               "external_price_id": "price_1SDSA0LCXzCTAHreZslXoY7i",
+              "id": "bilpp_fKaLDEEWMrb",
+              "interval": "month",
               "price": 50000,
               "price_decimal": "50000",
+              "provider_type": "stripe",
+              "scheme": "per_unit"
+            },
+            {
               "currency": "usd",
-              "scheme": "per_unit",
-              "interval": "month"
+              "external_price_id": "price_1SDSA1LCXzCTAHretGyKUj9O",
+              "id": "bilpp_MHJqRmG2TfG",
+              "interval": "year",
+              "price": 500000,
+              "price_decimal": "500000",
+              "provider_type": "stripe",
+              "scheme": "per_unit"
             }
           ],
           "subscription_count": 0
         },
         "charge_type": "recurring",
         "company_count": 0,
+        "controlled_by": "schematic",
         "features": [
           {
             "id": "feat_ZqF9dmerf3s",
@@ -1789,6 +1921,12 @@
                 "description": "A basic plan"
               },
               {
+                "id": "plan_BFXJjJrhYiE",
+                "image_url": null,
+                "name": "Free Add-on",
+                "description": "A free add-on"
+              },
+              {
                 "id": "plan_8HMdwCRkuc8",
                 "image_url": null,
                 "name": "Standard",
@@ -1799,12 +1937,6 @@
                 "image_url": null,
                 "name": "Professional",
                 "description": "A professional plan"
-              },
-              {
-                "id": "plan_BFXJjJrhYiE",
-                "image_url": null,
-                "name": "Free Add-on",
-                "description": "A free add-on"
               },
               {
                 "id": "plan_GiNhGS3KjDp",
@@ -1883,7 +2015,7 @@
             "description": "A trait-based feature",
             "feature_type": "trait",
             "lifecycle_phase": null,
-            "event_subtype": "trait-based-feature",
+            "event_subtype": null,
             "trait_id": "trt_U78jdcBghdn",
             "icon": "📔",
             "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
@@ -1909,6 +2041,12 @@
             "event_summary": null,
             "plans": [
               {
+                "id": "plan_S9LDYYDpQ3X",
+                "image_url": null,
+                "name": "One-time Add-on",
+                "description": "A one-time add-on"
+              },
+              {
                 "id": "plan_9Qeb3Aqc6jY",
                 "image_url": null,
                 "name": "Professional",
@@ -1919,12 +2057,6 @@
                 "image_url": null,
                 "name": "Enterprise",
                 "description": "An enterprise plan"
-              },
-              {
-                "id": "plan_S9LDYYDpQ3X",
-                "image_url": null,
-                "name": "One-time Add-on",
-                "description": "A one-time add-on"
               }
             ],
             "trait": {
@@ -1939,29 +2071,45 @@
           }
         ],
         "is_default": false,
+        "is_free": false,
         "is_trialable": false,
-        "controlled_by": "schematic",
         "monthly_price": {
-          "id": "bilpp_fKaLDEEWMrb",
+          "currency": "usd",
           "external_price_id": "price_1SDSA0LCXzCTAHreZslXoY7i",
+          "id": "bilpp_fKaLDEEWMrb",
+          "interval": "month",
           "price": 50000,
           "price_decimal": "50000",
-          "currency": "usd",
-          "scheme": "per_unit",
-          "interval": "month"
+          "provider_type": "stripe",
+          "scheme": "per_unit"
         },
         "one_time_price": null,
-        "trial_days": null,
+        "trial_days": 30,
+        "versions": [
+          {
+            "created_at": "2025-10-01T15:41:16.879857Z",
+            "description": "An enterprise plan",
+            "environment_id": "env_66p5iXPxRJU",
+            "icon": "violet",
+            "id": "plnv_Yx2E2Yq8agv",
+            "name": "Enterprise",
+            "original_plan_id": "plan_GiNhGS3KjDp",
+            "plan_type": "plan",
+            "status": "published",
+            "updated_at": "2025-10-01T15:41:43.873855Z",
+            "version": 1
+          }
+        ],
         "yearly_price": {
-          "id": "bilpp_MHJqRmG2TfG",
+          "currency": "usd",
           "external_price_id": "price_1SDSA1LCXzCTAHretGyKUj9O",
+          "id": "bilpp_MHJqRmG2TfG",
+          "interval": "year",
           "price": 500000,
           "price_decimal": "500000",
-          "currency": "usd",
-          "scheme": "per_unit",
-          "interval": "year"
+          "provider_type": "stripe",
+          "scheme": "per_unit"
         },
-        "is_free": false,
         "is_custom": false,
         "entitlements": [
           {
@@ -2075,7 +2223,7 @@
               "description": "A trait-based feature",
               "feature_type": "trait",
               "lifecycle_phase": null,
-              "event_subtype": "trait-based-feature",
+              "event_subtype": null,
               "trait_id": "trt_U78jdcBghdn",
               "icon": "📔",
               "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
@@ -2134,23 +2282,19 @@
       }
     ],
     "add_on_compatibilities": [
-      {
-        "source_plan_id": "plan_aDevbC1pNVr",
-        "compatible_plan_ids": []
-      },
-      {
-        "source_plan_id": "plan_S9LDYYDpQ3X",
-        "compatible_plan_ids": []
-      }
+      { "source_plan_id": "plan_aDevbC1pNVr", "compatible_plan_ids": [] },
+      { "source_plan_id": "plan_S9LDYYDpQ3X", "compatible_plan_ids": [] }
     ],
-    "capabilities": {
-      "checkout": false,
-      "badge_visibility": true
-    },
+    "capabilities": { "checkout": false, "badge_visibility": false },
+    "show_as_monthly_prices": false,
+    "show_credits": true,
+    "show_period_toggle": true,
+    "show_zero_price_as_free": false,
     "display_settings": {
-      "show_period_toggle": true,
+      "show_as_monthly_prices": false,
       "show_credits": true,
-      "show_zero_price_as_free": true
+      "show_period_toggle": true,
+      "show_zero_price_as_free": false
     }
   },
   "params": {}

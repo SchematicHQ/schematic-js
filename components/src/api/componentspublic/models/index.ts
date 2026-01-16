@@ -49,6 +49,8 @@ export * from "./PlanEntitlementResponseData";
 export * from "./PlanGroupPlanDetailResponseData";
 export * from "./PlanResponseData";
 export * from "./PlanType";
+export * from "./PlanVersionResponseData";
+export * from "./PlanVersionStatus";
 export * from "./PlanViewPublicResponseData";
 export * from "./PreviewObject";
 export * from "./PreviewObjectResponseData";

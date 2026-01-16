@@ -55,6 +55,12 @@ import {
   PlanTypeFromJSONTyped,
   PlanTypeToJSON,
 } from "./PlanType";
+import type { PlanVersionResponseData } from "./PlanVersionResponseData";
+import {
+  PlanVersionResponseDataFromJSON,
+  PlanVersionResponseDataFromJSONTyped,
+  PlanVersionResponseDataToJSON,
+} from "./PlanVersionResponseData";
 import type { BillingPriceResponseData } from "./BillingPriceResponseData";
 import {
   BillingPriceResponseDataFromJSON,
@@ -270,6 +276,12 @@ export interface CompanyPlanDetailResponseData {
   valid: boolean;
   /**
    *
+   * @type {Array<PlanVersionResponseData>}
+   * @memberof CompanyPlanDetailResponseData
+   */
+  versions: Array<PlanVersionResponseData>;
+  /**
+   *
    * @type {BillingPriceResponseData}
    * @memberof CompanyPlanDetailResponseData
    */
@@ -321,6 +333,7 @@ export function instanceOfCompanyPlanDetailResponseData(
   if (!("usageViolations" in value) || value["usageViolations"] === undefined)
     return false;
   if (!("valid" in value) || value["valid"] === undefined) return false;
+  if (!("versions" in value) || value["versions"] === undefined) return false;
   return true;
 }
 
@@ -392,6 +405,9 @@ export function CompanyPlanDetailResponseDataFromJSONTyped(
       FeatureUsageResponseDataFromJSON,
     ),
     valid: json["valid"],
+    versions: (json["versions"] as Array<any>).map(
+      PlanVersionResponseDataFromJSON,
+    ),
     yearlyPrice:
       json["yearly_price"] == null
         ? undefined
@@ -446,6 +462,9 @@ export function CompanyPlanDetailResponseDataToJSON(
       FeatureUsageResponseDataToJSON,
     ),
     valid: value["valid"],
+    versions: (value["versions"] as Array<any>).map(
+      PlanVersionResponseDataToJSON,
+    ),
     yearly_price: BillingPriceResponseDataToJSON(value["yearlyPrice"]),
   };
 }
