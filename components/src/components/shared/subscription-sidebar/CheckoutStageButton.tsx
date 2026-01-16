@@ -84,9 +84,9 @@ export const CheckoutStageButton = ({
   const getStageDisplayName = (stageId: string | undefined): string => {
     switch (stageId) {
       case "usage":
-        return t("Usage");
+        return t("Quantity");
       case "addons":
-        return t("Addons");
+        return t("Add-ons");
       case "addonsUsage":
         return t("Add-ons Quantity");
       case "credits":

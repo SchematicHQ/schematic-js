@@ -12,7 +12,7 @@ import {
 import { cardBoxShadow } from "../../layout";
 import { Box, Flex, Input, Text } from "../../ui";
 
-interface UsageProps {
+interface QuantityProps {
   isLoading: boolean;
   period: string;
   selectedPlan?: SelectedPlan;
@@ -20,7 +20,11 @@ interface UsageProps {
   updateQuantity: (id: string, quantity: number) => void;
 }
 
-export const Usage = ({ entitlements, updateQuantity, period }: UsageProps) => {
+export const Quantity = ({
+  entitlements,
+  updateQuantity,
+  period,
+}: QuantityProps) => {
   const { settings } = useEmbed();
 
   const { t } = useTranslation();

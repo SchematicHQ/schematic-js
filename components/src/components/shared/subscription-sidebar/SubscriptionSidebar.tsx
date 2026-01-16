@@ -254,11 +254,14 @@ export const SubscriptionSidebar = forwardRef<
       const addedUsageBasedEntitlements = selectedPlan
         ? usageBasedEntitlements.reduce(
             (acc: UsageBasedEntitlement[], selected) => {
-              const changed = currentUsageBasedEntitlements.find(
-                (current) =>
-                  current.entitlementId === selected.id &&
-                  current.quantity !== selected.quantity,
-              );
+              const changed =
+                selected.priceBehavior === PriceBehavior.PayInAdvance
+                  ? currentUsageBasedEntitlements.find(
+                      (current) =>
+                        current.entitlementId === selected.id &&
+                        current.quantity !== selected.quantity,
+                    )
+                  : undefined;
 
               if (changed) {
                 changedUsageBasedEntitlements.push({
