@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - 'schematic-components@*'
+      - '!schematic-components@*-rc*'
   workflow_dispatch:
 
 jobs:
