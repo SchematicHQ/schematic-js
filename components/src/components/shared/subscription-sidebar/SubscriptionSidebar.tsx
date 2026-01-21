@@ -34,6 +34,7 @@ import {
   getMonthName,
   getPlanPrice,
   shortenPeriod,
+  toPrettyDate,
 } from "../../../utils";
 import { Box, Button, Flex, Icon, Text } from "../../ui";
 import { type CheckoutStage } from "../checkout-dialog";
@@ -65,6 +66,7 @@ interface SubscriptionSidebarProps {
   showHeader?: boolean;
   shouldTrial?: boolean;
   willTrialWithoutPaymentMethod?: boolean;
+  willScheduleDowngrade?: boolean;
   setConfirmPaymentIntent: (params: {
     clientSecret: string;
     callback: (confirmed: boolean) => void;
@@ -99,6 +101,7 @@ export const SubscriptionSidebar = forwardRef<
       showHeader = true,
       shouldTrial = false,
       willTrialWithoutPaymentMethod = false,
+      willScheduleDowngrade = false,
       setConfirmPaymentIntent,
     },
     ref,
@@ -561,6 +564,7 @@ export const SubscriptionSidebar = forwardRef<
               isSelectedPlanTrialable={isSelectedPlanTrialable}
               trialPaymentMethodRequired={trialPaymentMethodRequired}
               willTrialWithoutPaymentMethod={willTrialWithoutPaymentMethod}
+              willScheduleDowngrade={willScheduleDowngrade}
               shouldTrial={shouldTrial}
               checkout={handleCheckout}
             />
@@ -631,6 +635,10 @@ export const SubscriptionSidebar = forwardRef<
     if (isSelectedPlanTrialable && selectedPlan.trialDays) {
       trialEndsOn.setDate(trialEndsOn.getDate() + selectedPlan.trialDays);
     }
+
+    // TODO: update for api model
+    const downgradeRule = data?.downgradeRule || "immediate";
+    const scheduledPlanChange = data?.company?.scheduledPlanChange || {};
 
     return (
       <Flex
@@ -1240,9 +1248,22 @@ export const SubscriptionSidebar = forwardRef<
           {layout !== "unsubscribe" && (
             <Box $opacity="0.625">
               <Text>
-                {subscriptionPrice &&
-                  // TODO: localize
-                  `You will be billed ${subscriptionPrice} ${usageBasedEntitlements.length > 0 ? "plus usage based costs" : ""} for this subscription
+                {scheduledPlanChange && billingSubscription
+                  ? t(
+                      "You will be downgraded at the end of your billing period.",
+                      {
+                        plan: scheduledPlanChange?.plan?.name,
+                        date: toPrettyDate(
+                          new Date(billingSubscription.periodEnd * 1000),
+                          {
+                            month: "numeric",
+                          },
+                        ),
+                      },
+                    )
+                  : subscriptionPrice &&
+                    // TODO: localize
+                    `You will be billed ${subscriptionPrice} ${usageBasedEntitlements.length > 0 ? "plus usage based costs" : ""} for this subscription
                 every ${planPeriod} ${periodStart ? `on the ${formatOrdinal(periodStart.getDate())}` : ""} ${planPeriod === "year" && periodStart ? `of ${getMonthName(periodStart)}` : ""} unless you unsubscribe.`}
               </Text>
             </Box>

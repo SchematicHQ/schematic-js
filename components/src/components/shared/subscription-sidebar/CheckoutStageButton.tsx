@@ -8,6 +8,7 @@ type NoPaymentRequiredProps = {
   isDisabled: boolean;
   isLoading: boolean;
   isSticky?: boolean;
+  willScheduleDowngrade?: boolean;
   onClick: () => Promise<void>;
 };
 
@@ -15,6 +16,7 @@ const NoPaymentRequired = ({
   isDisabled,
   isLoading,
   isSticky = false,
+  willScheduleDowngrade = false,
   onClick,
 }: NoPaymentRequiredProps) => {
   const { t } = useTranslation();
@@ -28,7 +30,9 @@ const NoPaymentRequired = ({
       $fullWidth
       $isLoading={isLoading}
     >
-      {t("Subscribe and close")}
+      {willScheduleDowngrade
+        ? t("Schedule downgrade")
+        : t("Subscribe and close")}
     </Button>
   );
 };
@@ -49,6 +53,7 @@ type CheckoutStageButtonProps = {
   trialPaymentMethodRequired: boolean;
   shouldTrial: boolean;
   willTrialWithoutPaymentMethod: boolean;
+  willScheduleDowngrade: boolean;
 };
 
 export const CheckoutStageButton = ({
@@ -66,6 +71,7 @@ export const CheckoutStageButton = ({
   trialPaymentMethodRequired,
   shouldTrial,
   willTrialWithoutPaymentMethod,
+  willScheduleDowngrade,
 }: CheckoutStageButtonProps) => {
   const { t } = useTranslation();
 
@@ -323,7 +329,11 @@ export const CheckoutStageButton = ({
         $fullWidth
         $isLoading={isLoading}
       >
-        {willTrialWithoutPaymentMethod ? t("Start trial") : t("Pay now")}
+        {willScheduleDowngrade
+          ? t("Schedule downgrade")
+          : willTrialWithoutPaymentMethod
+            ? t("Start trial")
+            : t("Pay now")}
       </Button>
     );
   }

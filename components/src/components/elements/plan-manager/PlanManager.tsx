@@ -204,6 +204,10 @@ export const PlanManager = forwardRef<
     return { isFreePlan, isUsageBasedPlan };
   }, [currentPlan, usageBasedEntitlements]);
 
+  // TODO: update for api model
+  const downgradeRule = data?.downgradeRule || "immediate";
+  const scheduledPlanChange = data?.company?.scheduledPlanChange || {};
+
   return (
     <>
       {isTrialSubscription && !willSubscriptionCancel ? (
@@ -243,8 +247,42 @@ export const PlanManager = forwardRef<
             </Text>
           )}
         </Notice>
+      ) : willSubscriptionCancel ? (
+        <Notice
+          as={Flex}
+          $flexDirection="column"
+          $gap="0.5rem"
+          $padding="1.5rem"
+          $textAlign="center"
+          $backgroundColor={
+            isLightBackground
+              ? darken(settings.theme.card.background, 0.04)
+              : lighten(settings.theme.card.background, 0.04)
+          }
+        >
+          <Text as="h3" display="heading3">
+            {t("Subscription canceled")}
+          </Text>
+
+          {typeof billingSubscription?.cancelAt === "number" && (
+            <Text
+              as="p"
+              $size={0.8125 * settings.theme.typography.text.fontSize}
+            >
+              {t("Access to plan will end.", {
+                plan: currentPlan?.name || "plan",
+                date: toPrettyDate(
+                  new Date(billingSubscription.cancelAt * 1000),
+                  {
+                    month: "numeric",
+                  },
+                ),
+              })}
+            </Text>
+          )}
+        </Notice>
       ) : (
-        willSubscriptionCancel && (
+        scheduledPlanChange && (
           <Notice
             as={Flex}
             $flexDirection="column"
@@ -258,17 +296,20 @@ export const PlanManager = forwardRef<
             }
           >
             <Text as="h3" display="heading3">
-              {t("Subscription canceled")}
+              {t("Downgrade to plan scheduled", {
+                plan: scheduledPlanChange?.plan?.name || "plan",
+              })}
             </Text>
 
-            {typeof billingSubscription?.cancelAt === "number" && (
+            {typeof billingSubscription?.periodEnd === "number" && (
               <Text
                 as="p"
                 $size={0.8125 * settings.theme.typography.text.fontSize}
               >
-                {t("Access to plan will end on", {
+                {t("Access to plan will end.", {
+                  plan: scheduledPlanChange?.plan?.name || "plan",
                   date: toPrettyDate(
-                    new Date(billingSubscription.cancelAt * 1000),
+                    new Date(billingSubscription.periodEnd * 1000),
                     {
                       month: "numeric",
                     },
