@@ -98,7 +98,12 @@ cd "$SCRIPT_DIR/../$WORKING_DIR"
 
 # Update package.json version
 echo "Updating package.json version to $VERSION..."
-npm version "$VERSION" --no-git-tag-version
+npm version "$VERSION" --no-git-tag-version --allow-same-version
+
+if ! git diff --quiet; then
+  echo "There are changes"
+  exit 1
+fi
 
 # Install dependencies
 echo "Installing dependencies..."
