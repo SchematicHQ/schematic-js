@@ -5,6 +5,7 @@ on:
     paths:
       - react/**
       - .github/workflows/**
+      - scripts/**
 
 jobs:
   build:

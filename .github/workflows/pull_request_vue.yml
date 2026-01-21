@@ -5,6 +5,7 @@ on:
     paths:
       - vue/**
       - .github/workflows/**
+      - scripts/**
 
 jobs:
   build:
