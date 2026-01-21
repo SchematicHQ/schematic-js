@@ -12,6 +12,7 @@ import {
   type ButtonVariant,
 } from "../../ui";
 
+/** DesignProps */
 interface DesignProps {
   button: {
     link: string;
