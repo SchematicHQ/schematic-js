@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - components/**
+      - .github/workflows/**
 
 jobs:
   build:

@@ -8,6 +8,7 @@ on:
   push:
     tags:
       - "schematic-js@*"
+      - "!schematic-js@*-rc*"
   workflow_dispatch:
 
 jobs:
