@@ -103,6 +103,12 @@ export const EmbedProvider = ({
   const hydratePublic = useCallback(async () => {
     dispatch({ type: "HYDRATE_STARTED" });
 
+    if (!api.public && options.debug) {
+      debug(
+        "Error: Public API client is not initialized. Please provide an apiKey prop to EmbedProvider.",
+      );
+    }
+
     try {
       const response = await api.public?.getPublicPlans();
 
@@ -120,7 +126,7 @@ export const EmbedProvider = ({
         error: isError(err) ? err : ERROR_UNKNOWN,
       });
     }
-  }, [api.public]);
+  }, [api.public, debug]);
 
   const debouncedHydratePublic = useMemo(
     () =>
