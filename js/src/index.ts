@@ -75,6 +75,12 @@ export class Schematic {
   private retryTimer: ReturnType<typeof setInterval> | null = null;
   private flagValueDefaults: Record<string, boolean> = {};
   private flagCheckDefaults: Record<string, CheckFlagReturn> = {};
+  private manualOverrides: Record<string, boolean> = {};
+  private developerToolbarEnabled: boolean = false;
+  private developerToolbarElement: HTMLElement | null = null;
+  private developerToolbarSelect: HTMLSelectElement | null = null;
+  private developerToolbarToggle: HTMLButtonElement | null = null;
+  private developerToolbarFlagListeners: Array<() => void> = [];
 
   constructor(apiKey: string, options?: SchematicOptions) {
     this.apiKey = apiKey;
@@ -188,6 +194,10 @@ export class Schematic {
 
     if (options?.flagCheckDefaults !== undefined) {
       this.flagCheckDefaults = options.flagCheckDefaults;
+    }
+
+    if (options?.developerToolbar !== undefined) {
+      this.developerToolbarEnabled = options.developerToolbar;
     }
 
     /* eslint-disable-next-line @typescript-eslint/strict-boolean-expressions */
@@ -521,6 +531,11 @@ export class Schematic {
 
       // Update pending state
       this.setIsPending(false);
+
+      // Update developer toolbar after flags are updated
+      if (this.developerToolbarEnabled) {
+        this.initializeDeveloperToolbar();
+      }
     };
   }
 
@@ -715,6 +730,9 @@ export class Schematic {
       this.context = context;
       this.flushContextDependentEventQueue();
       this.setIsPending(false);
+      if (this.developerToolbarEnabled) {
+        this.initializeDeveloperToolbar();
+      }
       return Promise.resolve();
     }
 
@@ -1309,6 +1327,19 @@ export class Schematic {
    * In offline mode, this is a no-op.
    */
   cleanup = async (): Promise<void> => {
+    // Clean up developer toolbar
+    if (this.developerToolbarElement) {
+      this.developerToolbarElement.remove();
+      this.developerToolbarElement = null;
+      // Remove padding from body
+      document.body.style.paddingTop = "";
+    }
+    // Clean up flag listeners
+    this.developerToolbarFlagListeners.forEach((unsubscribe) => unsubscribe());
+    this.developerToolbarFlagListeners = [];
+    this.developerToolbarSelect = null;
+    this.developerToolbarToggle = null;
+
     // In offline mode, no need to clean up connections since none are made
     if (this.isOffline()) {
       this.debug("cleanup: skipped (offline mode)");
@@ -1793,6 +1824,15 @@ export class Schematic {
 
   // flag checks state
   getFlagCheck = (flagKey: string): CheckFlagReturn | undefined => {
+    // Check manual overrides first (developer toolbar)
+    if (this.developerToolbarEnabled && flagKey in this.manualOverrides) {
+      return {
+        flag: flagKey,
+        value: this.manualOverrides[flagKey],
+        reason: "Developer toolbar override",
+      };
+    }
+
     const contextStr = contextString(this.context);
     const checks = this.checks[contextStr] ?? {};
     const check = checks[flagKey];
@@ -1819,6 +1859,11 @@ export class Schematic {
 
   // flagValues state
   getFlagValue = (flagKey: string): boolean | undefined => {
+    // Check manual overrides first (developer toolbar)
+    if (this.developerToolbarEnabled && flagKey in this.manualOverrides) {
+      return this.manualOverrides[flagKey];
+    }
+
     const contextStr = contextString(this.context);
     const checks = this.checks[contextStr] ?? {};
     const check = checks[flagKey];
@@ -1927,6 +1972,293 @@ export class Schematic {
         flagKey,
         value,
       });
+    });
+  };
+
+  /**
+   * Set a manual override for a flag (used by developer toolbar)
+   */
+  setManualOverride = (flagKey: string, value: boolean | null): void => {
+    if (value === null) {
+      delete this.manualOverrides[flagKey];
+    } else {
+      this.manualOverrides[flagKey] = value;
+    }
+
+    // Notify listeners of the change
+    const check = this.getFlagCheck(flagKey);
+    if (check) {
+      this.notifyFlagCheckListeners(flagKey, check);
+      this.notifyFlagValueListeners(flagKey, check.value);
+    }
+  };
+
+  /**
+   * Get all flags for the current context
+   */
+  getAllFlags = (): Record<string, CheckFlagReturn> => {
+    const contextStr = contextString(this.context);
+    const checks = this.checks[contextStr] ?? {};
+    const allFlags: Record<string, CheckFlagReturn> = {};
+
+    Object.keys(checks).forEach((flagKey) => {
+      const check = checks[flagKey];
+      if (check) {
+        allFlags[flagKey] = check;
+      }
+    });
+
+    if (this.developerToolbarEnabled) {
+      Object.keys(this.manualOverrides).forEach((flagKey) => {
+        allFlags[flagKey] = {
+          flag: flagKey,
+          value: this.manualOverrides[flagKey],
+          reason: "Developer toolbar override",
+        };
+      });
+    }
+
+    return allFlags;
+  };
+
+  private initializeDeveloperToolbar = (): void => {
+    if (!this.developerToolbarEnabled || typeof window === "undefined") {
+      return;
+    }
+
+    // Developer toolbar requires WebSocket mode
+    if (!this.useWebSocket) {
+      console.warn(
+        "[Schematic] Developer toolbar requires WebSocket mode. Please enable useWebSocket: true in your Schematic configuration.",
+      );
+      return;
+    }
+
+    // we're choosing to require a successful to use the toolbar
+    // this ensures flags load so we know what flags can be overiden
+    const hasContext = !!(this.context.company || this.context.user);
+    if (!hasContext) {
+      if (this.developerToolbarElement) {
+        this.developerToolbarElement.remove();
+        this.developerToolbarElement = null;
+        document.body.style.paddingTop = "";
+      }
+      // Clean up flag listeners
+      this.developerToolbarFlagListeners.forEach((unsubscribe) => unsubscribe());
+      this.developerToolbarFlagListeners = [];
+      this.developerToolbarSelect = null;
+      this.developerToolbarToggle = null;
+      return;
+    }
+
+    if (!this.developerToolbarElement) {
+      this.developerToolbarElement = this.createDeveloperToolbar();
+      document.body.appendChild(this.developerToolbarElement);
+    }
+
+    // Setup/update listeners for flag changes
+    this.setupDeveloperToolbarListeners();
+    this.updateDeveloperToolbar();
+  };
+
+  private createDeveloperToolbar = (): HTMLElement => {
+    const toolbar = document.createElement("div");
+    toolbar.id = "schematic-developer-toolbar";
+    toolbar.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 999999;
+      background: #1a1a1a;
+      color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      font-size: 13px;
+      padding: 8px 12px;
+      border-bottom: 1px solid #333;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    `;
+
+    document.body.style.paddingTop = "41px";
+
+    return toolbar;
+  };
+
+  private updateDeveloperToolbar = (): void => {
+    if (!this.developerToolbarElement) {
+      return;
+    }
+
+    const flags = this.getAllFlags();
+    const flagKeys = Object.keys(flags).sort();
+
+    if (!this.developerToolbarSelect || !this.developerToolbarToggle) {
+      this.developerToolbarElement.innerHTML = "";
+
+      const label = document.createElement("span");
+      label.textContent = "Schematic Dev Toolbar:";
+      label.style.cssText = "font-weight: 600; color: #fff;";
+      this.developerToolbarElement.appendChild(label);
+
+      const select = document.createElement("select");
+      select.style.cssText = `
+        background: #2a2a2a;
+        color: #fff;
+        border: 1px solid #444;
+        border-radius: 4px;
+        padding: 4px 8px;
+        font-size: 12px;
+        cursor: pointer;
+      `;
+      this.developerToolbarSelect = select;
+
+      const toggleContainer = document.createElement("div");
+      toggleContainer.style.cssText = "display: flex; align-items: center; gap: 8px;";
+
+      const toggleLabel = document.createElement("span");
+      toggleLabel.textContent = "Toggle:";
+      toggleLabel.style.cssText = "color: #aaa; font-size: 12px;";
+      toggleContainer.appendChild(toggleLabel);
+
+      const toggle = document.createElement("button");
+      toggle.textContent = "OFF";
+      toggle.disabled = true;
+      toggle.style.cssText = `
+        background: #444;
+        color: #fff;
+        border: 1px solid #666;
+        border-radius: 4px;
+        padding: 4px 12px;
+        font-size: 12px;
+        cursor: not-allowed;
+        min-width: 50px;
+      `;
+      this.developerToolbarToggle = toggle;
+
+      const updateToggle = () => {
+        const selectedFlag = select.value;
+        if (!selectedFlag) {
+          toggle.disabled = true;
+          toggle.textContent = "OFF";
+          toggle.style.background = "#444";
+          return;
+        }
+
+        toggle.disabled = false;
+        const currentValue = this.getFlagValue(selectedFlag) ?? false;
+        const isOverridden = selectedFlag in this.manualOverrides;
+        const displayValue = isOverridden
+          ? this.manualOverrides[selectedFlag]
+          : currentValue;
+
+        toggle.textContent = displayValue ? "ON" : "OFF";
+        toggle.style.background = displayValue ? "#22c55e" : "#ef4444";
+        toggle.style.cursor = "pointer";
+      };
+
+      select.addEventListener("change", updateToggle);
+      toggle.addEventListener("click", () => {
+        const selectedFlag = select.value;
+        if (!selectedFlag) {
+          return;
+        }
+
+        const currentValue = this.getFlagValue(selectedFlag) ?? false;
+        const isOverridden = selectedFlag in this.manualOverrides;
+        const effectiveValue = isOverridden
+          ? this.manualOverrides[selectedFlag]
+          : currentValue;
+
+        this.setManualOverride(selectedFlag, !effectiveValue);
+        updateToggle();
+      });
+
+      toggleContainer.appendChild(toggle);
+      this.developerToolbarElement.appendChild(select);
+      this.developerToolbarElement.appendChild(toggleContainer);
+    }
+
+    const select = this.developerToolbarSelect;
+    const currentValue = select.value;
+    select.innerHTML = "";
+
+    const placeholder = document.createElement("option");
+    placeholder.value = "";
+    placeholder.textContent = "Select a flag...";
+    placeholder.disabled = true;
+    placeholder.selected = !currentValue || !flagKeys.includes(currentValue);
+    select.appendChild(placeholder);
+
+    flagKeys.forEach((flagKey) => {
+      const option = document.createElement("option");
+      option.value = flagKey;
+      option.textContent = flagKey;
+      option.selected = flagKey === currentValue;
+      select.appendChild(option);
+    });
+
+    if (this.developerToolbarToggle) {
+      const selectedFlag = select.value;
+      if (!selectedFlag) {
+        this.developerToolbarToggle.disabled = true;
+        this.developerToolbarToggle.textContent = "OFF";
+        this.developerToolbarToggle.style.background = "#444";
+      } else {
+        this.developerToolbarToggle.disabled = false;
+        const currentValue = this.getFlagValue(selectedFlag) ?? false;
+        const isOverridden = selectedFlag in this.manualOverrides;
+        const displayValue = isOverridden
+          ? this.manualOverrides[selectedFlag]
+          : currentValue;
+
+        this.developerToolbarToggle.textContent = displayValue ? "ON" : "OFF";
+        this.developerToolbarToggle.style.background = displayValue ? "#22c55e" : "#ef4444";
+        this.developerToolbarToggle.style.cursor = "pointer";
+      }
+    }
+  };
+
+  /**
+   * Setup listeners for flag changes to update the toolbar
+   */
+  private setupDeveloperToolbarListeners = (): void => {
+    if (!this.developerToolbarEnabled) {
+      return;
+    }
+
+    // Clean up existing listeners
+    this.developerToolbarFlagListeners.forEach((unsubscribe) => unsubscribe());
+    this.developerToolbarFlagListeners = [];
+
+    // Get all current flags
+    const flags = this.getAllFlags();
+    const flagKeys = Object.keys(flags);
+
+    // Listen for changes to any flag
+    flagKeys.forEach((flagKey) => {
+      const unsubscribe = this.addFlagValueListener(flagKey, () => {
+        // Update toolbar when any flag value changes
+        if (this.developerToolbarElement && this.developerToolbarToggle) {
+          const select = this.developerToolbarSelect;
+          if (select && select.value === flagKey) {
+            // If this is the currently selected flag, update the toggle
+            const currentValue = this.getFlagValue(flagKey) ?? false;
+            const isOverridden = flagKey in this.manualOverrides;
+            const displayValue = isOverridden
+              ? this.manualOverrides[flagKey]
+              : currentValue;
+
+            this.developerToolbarToggle.textContent = displayValue ? "ON" : "OFF";
+            this.developerToolbarToggle.style.background = displayValue ? "#22c55e" : "#ef4444";
+          }
+        }
+        // Also update the select options in case new flags were added
+        this.updateDeveloperToolbar();
+      });
+      this.developerToolbarFlagListeners.push(unsubscribe);
     });
   };
 }
