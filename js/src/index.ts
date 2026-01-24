@@ -75,7 +75,7 @@ export class Schematic {
   private retryTimer: ReturnType<typeof setInterval> | null = null;
   private flagValueDefaults: Record<string, boolean> = {};
   private flagCheckDefaults: Record<string, CheckFlagReturn> = {};
-  private manualOverrides: Record<string, boolean> = {};
+  private manualOverrides: Record<string, CheckFlagReturn> = {};
   private developerToolbarEnabled: boolean = false;
   private developerToolbarElement: HTMLElement | null = null;
   private developerToolbarSelect: HTMLSelectElement | null = null;
@@ -1826,11 +1826,7 @@ export class Schematic {
   getFlagCheck = (flagKey: string): CheckFlagReturn | undefined => {
     // Check manual overrides first (developer toolbar)
     if (this.developerToolbarEnabled && flagKey in this.manualOverrides) {
-      return {
-        flag: flagKey,
-        value: this.manualOverrides[flagKey],
-        reason: "Developer toolbar override",
-      };
+      return this.manualOverrides[flagKey];
     }
 
     const contextStr = contextString(this.context);
@@ -1861,7 +1857,7 @@ export class Schematic {
   getFlagValue = (flagKey: string): boolean | undefined => {
     // Check manual overrides first (developer toolbar)
     if (this.developerToolbarEnabled && flagKey in this.manualOverrides) {
-      return this.manualOverrides[flagKey];
+      return this.manualOverrides[flagKey].value;
     }
 
     const contextStr = contextString(this.context);
@@ -1982,7 +1978,12 @@ export class Schematic {
     if (value === null) {
       delete this.manualOverrides[flagKey];
     } else {
-      this.manualOverrides[flagKey] = value;
+      // Store as CheckFlagReturn object for stable reference
+      this.manualOverrides[flagKey] = {
+        flag: flagKey,
+        value: value,
+        reason: "Developer toolbar override",
+      };
     }
 
     // Notify listeners of the change
@@ -2010,11 +2011,7 @@ export class Schematic {
 
     if (this.developerToolbarEnabled) {
       Object.keys(this.manualOverrides).forEach((flagKey) => {
-        allFlags[flagKey] = {
-          flag: flagKey,
-          value: this.manualOverrides[flagKey],
-          reason: "Developer toolbar override",
-        };
+        allFlags[flagKey] = this.manualOverrides[flagKey];
       });
     }
 
@@ -2151,7 +2148,7 @@ export class Schematic {
         const currentValue = this.getFlagValue(selectedFlag) ?? false;
         const isOverridden = selectedFlag in this.manualOverrides;
         const displayValue = isOverridden
-          ? this.manualOverrides[selectedFlag]
+          ? this.manualOverrides[selectedFlag].value
           : currentValue;
 
         toggle.textContent = displayValue ? "ON" : "OFF";
@@ -2169,7 +2166,7 @@ export class Schematic {
         const currentValue = this.getFlagValue(selectedFlag) ?? false;
         const isOverridden = selectedFlag in this.manualOverrides;
         const effectiveValue = isOverridden
-          ? this.manualOverrides[selectedFlag]
+          ? this.manualOverrides[selectedFlag].value
           : currentValue;
 
         this.setManualOverride(selectedFlag, !effectiveValue);
@@ -2248,7 +2245,7 @@ export class Schematic {
             const currentValue = this.getFlagValue(flagKey) ?? false;
             const isOverridden = flagKey in this.manualOverrides;
             const displayValue = isOverridden
-              ? this.manualOverrides[flagKey]
+              ? this.manualOverrides[flagKey].value
               : currentValue;
 
             this.developerToolbarToggle.textContent = displayValue ? "ON" : "OFF";
