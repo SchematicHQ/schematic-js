@@ -126,7 +126,7 @@ export const EmbedProvider = ({
         error: isError(err) ? err : ERROR_UNKNOWN,
       });
     }
-  }, [api.public, debug]);
+  }, [api.public, options.debug]);
 
   const debouncedHydratePublic = useMemo(
     () =>
