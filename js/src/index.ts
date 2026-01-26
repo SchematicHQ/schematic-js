@@ -2004,7 +2004,6 @@ export class Schematic {
         addFlagValueListener: this.addFlagValueListener,
         notifyFlagCheckListeners: this.notifyFlagCheckListeners,
         notifyFlagValueListeners: this.notifyFlagValueListeners,
-        getFlagCheck: this.getFlagCheck,
       });
     }
 
