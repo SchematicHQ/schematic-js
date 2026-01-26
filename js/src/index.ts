@@ -80,6 +80,7 @@ export class Schematic {
   private developerToolbarElement: HTMLElement | null = null;
   private developerToolbarSelect: HTMLSelectElement | null = null;
   private developerToolbarToggle: HTMLButtonElement | null = null;
+  private developerToolbarValueLabel: HTMLElement | null = null;
   private developerToolbarFlagListeners: Array<() => void> = [];
 
   constructor(apiKey: string, options?: SchematicOptions) {
@@ -1339,6 +1340,7 @@ export class Schematic {
     this.developerToolbarFlagListeners = [];
     this.developerToolbarSelect = null;
     this.developerToolbarToggle = null;
+    this.developerToolbarValueLabel = null;
 
     // In offline mode, no need to clean up connections since none are made
     if (this.isOffline()) {
@@ -2045,6 +2047,7 @@ export class Schematic {
       this.developerToolbarFlagListeners = [];
       this.developerToolbarSelect = null;
       this.developerToolbarToggle = null;
+      this.developerToolbarValueLabel = null;
       return;
     }
 
@@ -2067,19 +2070,19 @@ export class Schematic {
       left: 0;
       right: 0;
       z-index: 999999;
-      background: #1a1a1a;
+      background: rgb(5, 5, 5);
       color: #fff;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
       font-size: 13px;
-      padding: 8px 12px;
-      border-bottom: 1px solid #333;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      padding: 10px 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 16px;
     `;
 
-    document.body.style.paddingTop = "41px";
+    document.body.style.paddingTop = "45px";
 
     return toolbar;
   };
@@ -2097,41 +2100,53 @@ export class Schematic {
 
       const label = document.createElement("span");
       label.textContent = "Schematic Dev Toolbar:";
-      label.style.cssText = "font-weight: 600; color: #fff;";
+      label.style.cssText = "font-weight: 600; color: #fff; font-size: 13px;";
       this.developerToolbarElement.appendChild(label);
 
       const select = document.createElement("select");
       select.style.cssText = `
-        background: #2a2a2a;
+        background: rgba(255, 255, 255, 0.1);
         color: #fff;
-        border: 1px solid #444;
-        border-radius: 4px;
-        padding: 4px 8px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 6px;
+        padding: 6px 12px;
         font-size: 12px;
         cursor: pointer;
+        transition: all 0.2s ease;
       `;
+      select.addEventListener("mouseenter", () => {
+        select.style.background = "rgba(255, 255, 255, 0.15)";
+        select.style.borderColor = "rgba(255, 255, 255, 0.3)";
+      });
+      select.addEventListener("mouseleave", () => {
+        select.style.background = "rgba(255, 255, 255, 0.1)";
+        select.style.borderColor = "rgba(255, 255, 255, 0.2)";
+      });
       this.developerToolbarSelect = select;
 
-      const toggleContainer = document.createElement("div");
-      toggleContainer.style.cssText = "display: flex; align-items: center; gap: 8px;";
+      const valueLabelContainer = document.createElement("div");
+      valueLabelContainer.style.cssText = "display: flex; align-items: center; gap: 12px;";
 
-      const toggleLabel = document.createElement("span");
-      toggleLabel.textContent = "Toggle:";
-      toggleLabel.style.cssText = "color: #aaa; font-size: 12px;";
-      toggleContainer.appendChild(toggleLabel);
+      const valueLabel = document.createElement("span");
+      valueLabel.textContent = "Current value: —";
+      valueLabel.style.cssText = "color: rgba(255, 255, 255, 0.7); font-size: 12px;";
+      this.developerToolbarValueLabel = valueLabel;
+      valueLabelContainer.appendChild(valueLabel);
 
       const toggle = document.createElement("button");
-      toggle.textContent = "OFF";
+      toggle.textContent = "Select a flag";
       toggle.disabled = true;
       toggle.style.cssText = `
-        background: #444;
-        color: #fff;
-        border: 1px solid #666;
-        border-radius: 4px;
-        padding: 4px 12px;
+        background: rgba(255, 255, 255, 0.1);
+        color: rgba(255, 255, 255, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 6px;
+        padding: 6px 16px;
         font-size: 12px;
+        font-weight: 500;
         cursor: not-allowed;
-        min-width: 50px;
+        min-width: 120px;
+        transition: all 0.2s ease;
       `;
       this.developerToolbarToggle = toggle;
 
@@ -2139,8 +2154,13 @@ export class Schematic {
         const selectedFlag = select.value;
         if (!selectedFlag) {
           toggle.disabled = true;
-          toggle.textContent = "OFF";
-          toggle.style.background = "#444";
+          toggle.textContent = "Select a flag";
+          toggle.style.background = "rgba(255, 255, 255, 0.1)";
+          toggle.style.color = "rgba(255, 255, 255, 0.5)";
+          toggle.style.borderColor = "rgba(255, 255, 255, 0.2)";
+          toggle.style.cursor = "not-allowed";
+          valueLabel.textContent = "Current value: —";
+          valueLabel.style.color = "rgba(255, 255, 255, 0.7)";
           return;
         }
 
@@ -2151,10 +2171,53 @@ export class Schematic {
           ? this.manualOverrides[selectedFlag].value
           : currentValue;
 
-        toggle.textContent = displayValue ? "ON" : "OFF";
-        toggle.style.background = displayValue ? "#22c55e" : "#ef4444";
+        // Update button text based on flag value
+        toggle.textContent = displayValue ? "Restrict feature" : "Allow feature";
+        
+        // Update button styling with Schematic orange accent
+        toggle.style.background = displayValue 
+          ? "rgba(255, 107, 53, 0.15)" 
+          : "rgba(255, 107, 53, 0.2)";
+        toggle.style.color = "#ff6b35";
+        toggle.style.borderColor = displayValue 
+          ? "rgba(255, 107, 53, 0.4)" 
+          : "rgba(255, 107, 53, 0.5)";
         toggle.style.cursor = "pointer";
+        
+        // Update value label
+        valueLabel.textContent = `Current value: ${displayValue ? "true" : "false"}`;
+        valueLabel.style.color = displayValue 
+          ? "rgba(255, 107, 53, 0.9)" 
+          : "rgba(255, 255, 255, 0.7)";
       };
+
+      toggle.addEventListener("mouseenter", () => {
+        if (!toggle.disabled) {
+          toggle.style.background = toggle.textContent === "Restrict feature"
+            ? "rgba(255, 107, 53, 0.25)"
+            : "rgba(255, 107, 53, 0.3)";
+          toggle.style.borderColor = "rgba(255, 107, 53, 0.6)";
+        }
+      });
+
+      toggle.addEventListener("mouseleave", () => {
+        if (!toggle.disabled) {
+          const selectedFlag = select.value;
+          if (selectedFlag) {
+            const currentValue = this.getFlagValue(selectedFlag) ?? false;
+            const isOverridden = selectedFlag in this.manualOverrides;
+            const displayValue = isOverridden
+              ? this.manualOverrides[selectedFlag].value
+              : currentValue;
+            toggle.style.background = displayValue 
+              ? "rgba(255, 107, 53, 0.15)" 
+              : "rgba(255, 107, 53, 0.2)";
+            toggle.style.borderColor = displayValue 
+              ? "rgba(255, 107, 53, 0.4)" 
+              : "rgba(255, 107, 53, 0.5)";
+          }
+        }
+      });
 
       select.addEventListener("change", updateToggle);
       toggle.addEventListener("click", () => {
@@ -2173,9 +2236,9 @@ export class Schematic {
         updateToggle();
       });
 
-      toggleContainer.appendChild(toggle);
+      valueLabelContainer.appendChild(toggle);
       this.developerToolbarElement.appendChild(select);
-      this.developerToolbarElement.appendChild(toggleContainer);
+      this.developerToolbarElement.appendChild(valueLabelContainer);
     }
 
     const select = this.developerToolbarSelect;
@@ -2197,23 +2260,43 @@ export class Schematic {
       select.appendChild(option);
     });
 
-    if (this.developerToolbarToggle) {
+    if (this.developerToolbarToggle && this.developerToolbarValueLabel) {
       const selectedFlag = select.value;
       if (!selectedFlag) {
         this.developerToolbarToggle.disabled = true;
-        this.developerToolbarToggle.textContent = "OFF";
-        this.developerToolbarToggle.style.background = "#444";
+        this.developerToolbarToggle.textContent = "Select a flag";
+        this.developerToolbarToggle.style.background = "rgba(255, 255, 255, 0.1)";
+        this.developerToolbarToggle.style.color = "rgba(255, 255, 255, 0.5)";
+        this.developerToolbarToggle.style.borderColor = "rgba(255, 255, 255, 0.2)";
+        this.developerToolbarToggle.style.cursor = "not-allowed";
+        this.developerToolbarValueLabel.textContent = "Current value: —";
+        this.developerToolbarValueLabel.style.color = "rgba(255, 255, 255, 0.7)";
       } else {
         this.developerToolbarToggle.disabled = false;
         const currentValue = this.getFlagValue(selectedFlag) ?? false;
         const isOverridden = selectedFlag in this.manualOverrides;
         const displayValue = isOverridden
-          ? this.manualOverrides[selectedFlag]
+          ? this.manualOverrides[selectedFlag].value
           : currentValue;
 
-        this.developerToolbarToggle.textContent = displayValue ? "ON" : "OFF";
-        this.developerToolbarToggle.style.background = displayValue ? "#22c55e" : "#ef4444";
+        // Update button text based on flag value
+        this.developerToolbarToggle.textContent = displayValue ? "Restrict feature" : "Allow feature";
+        
+        // Update button styling with Schematic orange accent
+        this.developerToolbarToggle.style.background = displayValue 
+          ? "rgba(255, 107, 53, 0.15)" 
+          : "rgba(255, 107, 53, 0.2)";
+        this.developerToolbarToggle.style.color = "#ff6b35";
+        this.developerToolbarToggle.style.borderColor = displayValue 
+          ? "rgba(255, 107, 53, 0.4)" 
+          : "rgba(255, 107, 53, 0.5)";
         this.developerToolbarToggle.style.cursor = "pointer";
+        
+        // Update value label
+        this.developerToolbarValueLabel.textContent = `Current value: ${displayValue ? "true" : "false"}`;
+        this.developerToolbarValueLabel.style.color = displayValue 
+          ? "rgba(255, 107, 53, 0.9)" 
+          : "rgba(255, 255, 255, 0.7)";
       }
     }
   };
@@ -2238,7 +2321,7 @@ export class Schematic {
     flagKeys.forEach((flagKey) => {
       const unsubscribe = this.addFlagValueListener(flagKey, () => {
         // Update toolbar when any flag value changes
-        if (this.developerToolbarElement && this.developerToolbarToggle) {
+        if (this.developerToolbarElement && this.developerToolbarToggle && this.developerToolbarValueLabel) {
           const select = this.developerToolbarSelect;
           if (select && select.value === flagKey) {
             // If this is the currently selected flag, update the toggle
@@ -2248,8 +2331,23 @@ export class Schematic {
               ? this.manualOverrides[flagKey].value
               : currentValue;
 
-            this.developerToolbarToggle.textContent = displayValue ? "ON" : "OFF";
-            this.developerToolbarToggle.style.background = displayValue ? "#22c55e" : "#ef4444";
+            // Update button text based on flag value
+            this.developerToolbarToggle.textContent = displayValue ? "Restrict feature" : "Allow feature";
+            
+            // Update button styling with Schematic orange accent
+            this.developerToolbarToggle.style.background = displayValue 
+              ? "rgba(255, 107, 53, 0.15)" 
+              : "rgba(255, 107, 53, 0.2)";
+            this.developerToolbarToggle.style.color = "#ff6b35";
+            this.developerToolbarToggle.style.borderColor = displayValue 
+              ? "rgba(255, 107, 53, 0.4)" 
+              : "rgba(255, 107, 53, 0.5)";
+            
+            // Update value label
+            this.developerToolbarValueLabel.textContent = `Current value: ${displayValue ? "true" : "false"}`;
+            this.developerToolbarValueLabel.style.color = displayValue 
+              ? "rgba(255, 107, 53, 0.9)" 
+              : "rgba(255, 255, 255, 0.7)";
           }
         }
         // Also update the select options in case new flags were added
