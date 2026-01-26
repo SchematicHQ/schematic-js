@@ -6,7 +6,6 @@ interface DeveloperToolbarDependencies {
   addFlagValueListener: (flagKey: string, listener: (value: boolean) => void) => () => void;
   notifyFlagCheckListeners: (flagKey: string, check: CheckFlagReturn) => void;
   notifyFlagValueListeners: (flagKey: string, value: boolean) => void;
-  getFlagCheck: (flagKey: string) => CheckFlagReturn | undefined;
 }
 
 interface ToolbarState {
@@ -73,7 +72,6 @@ export class DeveloperToolbar {
   private addFlagValueListener: (flagKey: string, listener: (value: boolean) => void) => () => void;
   private notifyFlagCheckListeners: (flagKey: string, check: CheckFlagReturn) => void;
   private notifyFlagValueListeners: (flagKey: string, value: boolean) => void;
-  private getFlagCheck: (flagKey: string) => CheckFlagReturn | undefined;
 
   constructor(deps: DeveloperToolbarDependencies) {
     this.getAllFlags = deps.getAllFlags;
@@ -81,7 +79,6 @@ export class DeveloperToolbar {
     this.addFlagValueListener = deps.addFlagValueListener;
     this.notifyFlagCheckListeners = deps.notifyFlagCheckListeners;
     this.notifyFlagValueListeners = deps.notifyFlagValueListeners;
-    this.getFlagCheck = deps.getFlagCheck;
   }
 
   initialize(): void {
@@ -139,9 +136,9 @@ export class DeveloperToolbar {
   private getState(): ToolbarState {
     const flags = this.getAllFlags();
     const availableFlagKeys = Object.keys(flags).sort();
-    const selectedFlagKey = this.select?.value || null;
+    const selectedFlagKey = this.select?.value ?? "";
 
-    if (!selectedFlagKey) {
+    if (selectedFlagKey === "") {
       return {
         selectedFlagKey: null,
         availableFlagKeys,
@@ -154,7 +151,7 @@ export class DeveloperToolbar {
       ? this.manualOverrides[selectedFlagKey].value
       : currentValue;
 
-    return {
+      return {
       selectedFlagKey,
       availableFlagKeys,
       flagValue,
@@ -183,7 +180,6 @@ export class DeveloperToolbar {
   private updateSelectOptions(flagKeys: string[], selectedKey: string | null): void {
     if (!this.select) return;
 
-    const currentValue = this.select.value;
     this.select.innerHTML = "";
 
     const placeholder = createElement(
@@ -193,7 +189,7 @@ export class DeveloperToolbar {
     );
     placeholder.value = "";
     placeholder.disabled = true;
-    placeholder.selected = !selectedKey || !flagKeys.includes(selectedKey);
+    placeholder.selected = selectedKey === null || selectedKey === "" || !flagKeys.includes(selectedKey);
     this.select.appendChild(placeholder);
 
     flagKeys.forEach((flagKey) => {
@@ -335,7 +331,7 @@ export class DeveloperToolbar {
 
     this.toggle.addEventListener("click", () => {
       const state = this.getState();
-      if (!state.selectedFlagKey || state.flagValue === null) {
+      if (state.selectedFlagKey === null || state.selectedFlagKey === "" || state.flagValue === null) {
         return;
       }
 
@@ -352,8 +348,8 @@ export class DeveloperToolbar {
     this.flagListeners.forEach((unsubscribe) => unsubscribe());
     this.flagListeners = [];
 
-    const selectedFlag = this.select?.value;
-    if (selectedFlag && !this.hasManualOverride(selectedFlag)) {
+    const selectedFlag = this.select?.value ?? "";
+    if (!this.hasManualOverride(selectedFlag)) {
       const unsubscribe = this.addFlagValueListener(selectedFlag, () => {
         if (this.select?.value === selectedFlag) {
           this.render();
