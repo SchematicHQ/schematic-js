@@ -1966,9 +1966,8 @@ export class Schematic {
     });
   };
 
-
   /**
-   * Get all flags for the current context
+   * used by the developer toolbar to get all flags for the current context
    */
   getAllFlags = (): Record<string, CheckFlagReturn> => {
     const contextStr = contextString(this.context);
@@ -1981,13 +1980,6 @@ export class Schematic {
         allFlags[flagKey] = check;
       }
     });
-
-    if (this.developerToolbarEnabled && this.developerToolbar) {
-      const overrides = this.developerToolbar.getAllManualOverrides();
-      Object.keys(overrides).forEach((flagKey) => {
-        allFlags[flagKey] = overrides[flagKey];
-      });
-    }
 
     return allFlags;
   };
