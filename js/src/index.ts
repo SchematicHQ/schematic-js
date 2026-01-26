@@ -27,6 +27,7 @@ import {
 } from "./types";
 import { contextString } from "./utils";
 import { version } from "./version";
+import { DeveloperToolbar } from "./developer-toolbar";
 
 const anonymousIdKey = "schematicId";
 
@@ -75,13 +76,8 @@ export class Schematic {
   private retryTimer: ReturnType<typeof setInterval> | null = null;
   private flagValueDefaults: Record<string, boolean> = {};
   private flagCheckDefaults: Record<string, CheckFlagReturn> = {};
-  private manualOverrides: Record<string, CheckFlagReturn> = {};
   private developerToolbarEnabled: boolean = false;
-  private developerToolbarElement: HTMLElement | null = null;
-  private developerToolbarSelect: HTMLSelectElement | null = null;
-  private developerToolbarToggle: HTMLButtonElement | null = null;
-  private developerToolbarValueLabel: HTMLElement | null = null;
-  private developerToolbarFlagListeners: Array<() => void> = [];
+  private developerToolbar: DeveloperToolbar | null = null;
 
   constructor(apiKey: string, options?: SchematicOptions) {
     this.apiKey = apiKey;
@@ -1329,18 +1325,10 @@ export class Schematic {
    */
   cleanup = async (): Promise<void> => {
     // Clean up developer toolbar
-    if (this.developerToolbarElement) {
-      this.developerToolbarElement.remove();
-      this.developerToolbarElement = null;
-      // Remove padding from body
-      document.body.style.paddingTop = "";
+    if (this.developerToolbar) {
+      this.developerToolbar.cleanup();
+      this.developerToolbar = null;
     }
-    // Clean up flag listeners
-    this.developerToolbarFlagListeners.forEach((unsubscribe) => unsubscribe());
-    this.developerToolbarFlagListeners = [];
-    this.developerToolbarSelect = null;
-    this.developerToolbarToggle = null;
-    this.developerToolbarValueLabel = null;
 
     // In offline mode, no need to clean up connections since none are made
     if (this.isOffline()) {
@@ -1827,8 +1815,10 @@ export class Schematic {
   // flag checks state
   getFlagCheck = (flagKey: string): CheckFlagReturn | undefined => {
     // Check manual overrides first (developer toolbar)
-    if (this.developerToolbarEnabled && flagKey in this.manualOverrides) {
-      return this.manualOverrides[flagKey];
+    if (this.developerToolbarEnabled && this.developerToolbar) {
+      if (this.developerToolbar.hasManualOverride(flagKey)) {
+        return this.developerToolbar.getManualOverride(flagKey);
+      }
     }
 
     const contextStr = contextString(this.context);
@@ -1858,8 +1848,11 @@ export class Schematic {
   // flagValues state
   getFlagValue = (flagKey: string): boolean | undefined => {
     // Check manual overrides first (developer toolbar)
-    if (this.developerToolbarEnabled && flagKey in this.manualOverrides) {
-      return this.manualOverrides[flagKey].value;
+    if (this.developerToolbarEnabled && this.developerToolbar) {
+      const override = this.developerToolbar.getManualOverride(flagKey);
+      if (override) {
+        return override.value;
+      }
     }
 
     const contextStr = contextString(this.context);
@@ -1973,28 +1966,6 @@ export class Schematic {
     });
   };
 
-  /**
-   * Set a manual override for a flag (used by developer toolbar)
-   */
-  setManualOverride = (flagKey: string, value: boolean | null): void => {
-    if (value === null) {
-      delete this.manualOverrides[flagKey];
-    } else {
-      // Store as CheckFlagReturn object for stable reference
-      this.manualOverrides[flagKey] = {
-        flag: flagKey,
-        value: value,
-        reason: "Developer toolbar override",
-      };
-    }
-
-    // Notify listeners of the change
-    const check = this.getFlagCheck(flagKey);
-    if (check) {
-      this.notifyFlagCheckListeners(flagKey, check);
-      this.notifyFlagValueListeners(flagKey, check.value);
-    }
-  };
 
   /**
    * Get all flags for the current context
@@ -2011,9 +1982,10 @@ export class Schematic {
       }
     });
 
-    if (this.developerToolbarEnabled) {
-      Object.keys(this.manualOverrides).forEach((flagKey) => {
-        allFlags[flagKey] = this.manualOverrides[flagKey];
+    if (this.developerToolbarEnabled && this.developerToolbar) {
+      const overrides = this.developerToolbar.getAllManualOverrides();
+      Object.keys(overrides).forEach((flagKey) => {
+        allFlags[flagKey] = overrides[flagKey];
       });
     }
 
@@ -2033,329 +2005,20 @@ export class Schematic {
       return;
     }
 
-    // we're choosing to require a successful to use the toolbar
-    // this ensures flags load so we know what flags can be overiden
-    const hasContext = !!(this.context.company || this.context.user);
-    if (!hasContext) {
-      if (this.developerToolbarElement) {
-        this.developerToolbarElement.remove();
-        this.developerToolbarElement = null;
-        document.body.style.paddingTop = "";
-      }
-      // Clean up flag listeners
-      this.developerToolbarFlagListeners.forEach((unsubscribe) => unsubscribe());
-      this.developerToolbarFlagListeners = [];
-      this.developerToolbarSelect = null;
-      this.developerToolbarToggle = null;
-      this.developerToolbarValueLabel = null;
-      return;
+    if (!this.developerToolbar) {
+      this.developerToolbar = new DeveloperToolbar({
+        getAllFlags: this.getAllFlags,
+        getFlagValue: this.getFlagValue,
+        addFlagValueListener: this.addFlagValueListener,
+        notifyFlagCheckListeners: this.notifyFlagCheckListeners,
+        notifyFlagValueListeners: this.notifyFlagValueListeners,
+        getFlagCheck: this.getFlagCheck,
+      });
     }
 
-    if (!this.developerToolbarElement) {
-      this.developerToolbarElement = this.createDeveloperToolbar();
-      document.body.appendChild(this.developerToolbarElement);
-    }
-
-    // Setup/update listeners for flag changes
-    this.setupDeveloperToolbarListeners();
-    this.updateDeveloperToolbar();
+    this.developerToolbar.initialize();
   };
 
-  private createDeveloperToolbar = (): HTMLElement => {
-    const toolbar = document.createElement("div");
-    toolbar.id = "schematic-developer-toolbar";
-    toolbar.style.cssText = `
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      z-index: 999999;
-      background: rgb(5, 5, 5);
-      color: #fff;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-      font-size: 13px;
-      padding: 10px 16px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    `;
-
-    document.body.style.paddingTop = "45px";
-
-    return toolbar;
-  };
-
-  private updateDeveloperToolbar = (): void => {
-    if (!this.developerToolbarElement) {
-      return;
-    }
-
-    const flags = this.getAllFlags();
-    const flagKeys = Object.keys(flags).sort();
-
-    if (!this.developerToolbarSelect || !this.developerToolbarToggle) {
-      this.developerToolbarElement.innerHTML = "";
-
-      const label = document.createElement("span");
-      label.textContent = "Schematic Dev Toolbar:";
-      label.style.cssText = "font-weight: 600; color: #fff; font-size: 13px;";
-      this.developerToolbarElement.appendChild(label);
-
-      const select = document.createElement("select");
-      select.style.cssText = `
-        background: rgba(255, 255, 255, 0.1);
-        color: #fff;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 6px;
-        padding: 6px 12px;
-        font-size: 12px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-      `;
-      select.addEventListener("mouseenter", () => {
-        select.style.background = "rgba(255, 255, 255, 0.15)";
-        select.style.borderColor = "rgba(255, 255, 255, 0.3)";
-      });
-      select.addEventListener("mouseleave", () => {
-        select.style.background = "rgba(255, 255, 255, 0.1)";
-        select.style.borderColor = "rgba(255, 255, 255, 0.2)";
-      });
-      this.developerToolbarSelect = select;
-
-      const valueLabelContainer = document.createElement("div");
-      valueLabelContainer.style.cssText = "display: flex; align-items: center; gap: 12px;";
-
-      const valueLabel = document.createElement("span");
-      valueLabel.textContent = "Current value: —";
-      valueLabel.style.cssText = "color: rgba(255, 255, 255, 0.7); font-size: 12px;";
-      this.developerToolbarValueLabel = valueLabel;
-      valueLabelContainer.appendChild(valueLabel);
-
-      const toggle = document.createElement("button");
-      toggle.textContent = "Select a flag";
-      toggle.disabled = true;
-      toggle.style.cssText = `
-        background: rgba(255, 255, 255, 0.1);
-        color: rgba(255, 255, 255, 0.5);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 6px;
-        padding: 6px 16px;
-        font-size: 12px;
-        font-weight: 500;
-        cursor: not-allowed;
-        min-width: 120px;
-        transition: all 0.2s ease;
-      `;
-      this.developerToolbarToggle = toggle;
-
-      const updateToggle = () => {
-        const selectedFlag = select.value;
-        if (!selectedFlag) {
-          toggle.disabled = true;
-          toggle.textContent = "Select a flag";
-          toggle.style.background = "rgba(255, 255, 255, 0.1)";
-          toggle.style.color = "rgba(255, 255, 255, 0.5)";
-          toggle.style.borderColor = "rgba(255, 255, 255, 0.2)";
-          toggle.style.cursor = "not-allowed";
-          valueLabel.textContent = "Current value: —";
-          valueLabel.style.color = "rgba(255, 255, 255, 0.7)";
-          return;
-        }
-
-        toggle.disabled = false;
-        const currentValue = this.getFlagValue(selectedFlag) ?? false;
-        const isOverridden = selectedFlag in this.manualOverrides;
-        const displayValue = isOverridden
-          ? this.manualOverrides[selectedFlag].value
-          : currentValue;
-
-        // Update button text based on flag value
-        toggle.textContent = displayValue ? "Restrict feature" : "Allow feature";
-        
-        // Update button styling with Schematic orange accent
-        toggle.style.background = displayValue 
-          ? "rgba(255, 107, 53, 0.15)" 
-          : "rgba(255, 107, 53, 0.2)";
-        toggle.style.color = "#ff6b35";
-        toggle.style.borderColor = displayValue 
-          ? "rgba(255, 107, 53, 0.4)" 
-          : "rgba(255, 107, 53, 0.5)";
-        toggle.style.cursor = "pointer";
-        
-        // Update value label
-        valueLabel.textContent = `Current value: ${displayValue ? "true" : "false"}`;
-        valueLabel.style.color = displayValue 
-          ? "rgba(255, 107, 53, 0.9)" 
-          : "rgba(255, 255, 255, 0.7)";
-      };
-
-      toggle.addEventListener("mouseenter", () => {
-        if (!toggle.disabled) {
-          toggle.style.background = toggle.textContent === "Restrict feature"
-            ? "rgba(255, 107, 53, 0.25)"
-            : "rgba(255, 107, 53, 0.3)";
-          toggle.style.borderColor = "rgba(255, 107, 53, 0.6)";
-        }
-      });
-
-      toggle.addEventListener("mouseleave", () => {
-        if (!toggle.disabled) {
-          const selectedFlag = select.value;
-          if (selectedFlag) {
-            const currentValue = this.getFlagValue(selectedFlag) ?? false;
-            const isOverridden = selectedFlag in this.manualOverrides;
-            const displayValue = isOverridden
-              ? this.manualOverrides[selectedFlag].value
-              : currentValue;
-            toggle.style.background = displayValue 
-              ? "rgba(255, 107, 53, 0.15)" 
-              : "rgba(255, 107, 53, 0.2)";
-            toggle.style.borderColor = displayValue 
-              ? "rgba(255, 107, 53, 0.4)" 
-              : "rgba(255, 107, 53, 0.5)";
-          }
-        }
-      });
-
-      select.addEventListener("change", updateToggle);
-      toggle.addEventListener("click", () => {
-        const selectedFlag = select.value;
-        if (!selectedFlag) {
-          return;
-        }
-
-        const currentValue = this.getFlagValue(selectedFlag) ?? false;
-        const isOverridden = selectedFlag in this.manualOverrides;
-        const effectiveValue = isOverridden
-          ? this.manualOverrides[selectedFlag].value
-          : currentValue;
-
-        this.setManualOverride(selectedFlag, !effectiveValue);
-        updateToggle();
-      });
-
-      valueLabelContainer.appendChild(toggle);
-      this.developerToolbarElement.appendChild(select);
-      this.developerToolbarElement.appendChild(valueLabelContainer);
-    }
-
-    const select = this.developerToolbarSelect;
-    const currentValue = select.value;
-    select.innerHTML = "";
-
-    const placeholder = document.createElement("option");
-    placeholder.value = "";
-    placeholder.textContent = "Select a flag...";
-    placeholder.disabled = true;
-    placeholder.selected = !currentValue || !flagKeys.includes(currentValue);
-    select.appendChild(placeholder);
-
-    flagKeys.forEach((flagKey) => {
-      const option = document.createElement("option");
-      option.value = flagKey;
-      option.textContent = flagKey;
-      option.selected = flagKey === currentValue;
-      select.appendChild(option);
-    });
-
-    if (this.developerToolbarToggle && this.developerToolbarValueLabel) {
-      const selectedFlag = select.value;
-      if (!selectedFlag) {
-        this.developerToolbarToggle.disabled = true;
-        this.developerToolbarToggle.textContent = "Select a flag";
-        this.developerToolbarToggle.style.background = "rgba(255, 255, 255, 0.1)";
-        this.developerToolbarToggle.style.color = "rgba(255, 255, 255, 0.5)";
-        this.developerToolbarToggle.style.borderColor = "rgba(255, 255, 255, 0.2)";
-        this.developerToolbarToggle.style.cursor = "not-allowed";
-        this.developerToolbarValueLabel.textContent = "Current value: —";
-        this.developerToolbarValueLabel.style.color = "rgba(255, 255, 255, 0.7)";
-      } else {
-        this.developerToolbarToggle.disabled = false;
-        const currentValue = this.getFlagValue(selectedFlag) ?? false;
-        const isOverridden = selectedFlag in this.manualOverrides;
-        const displayValue = isOverridden
-          ? this.manualOverrides[selectedFlag].value
-          : currentValue;
-
-        // Update button text based on flag value
-        this.developerToolbarToggle.textContent = displayValue ? "Restrict feature" : "Allow feature";
-        
-        // Update button styling with Schematic orange accent
-        this.developerToolbarToggle.style.background = displayValue 
-          ? "rgba(255, 107, 53, 0.15)" 
-          : "rgba(255, 107, 53, 0.2)";
-        this.developerToolbarToggle.style.color = "#ff6b35";
-        this.developerToolbarToggle.style.borderColor = displayValue 
-          ? "rgba(255, 107, 53, 0.4)" 
-          : "rgba(255, 107, 53, 0.5)";
-        this.developerToolbarToggle.style.cursor = "pointer";
-        
-        // Update value label
-        this.developerToolbarValueLabel.textContent = `Current value: ${displayValue ? "true" : "false"}`;
-        this.developerToolbarValueLabel.style.color = displayValue 
-          ? "rgba(255, 107, 53, 0.9)" 
-          : "rgba(255, 255, 255, 0.7)";
-      }
-    }
-  };
-
-  /**
-   * Setup listeners for flag changes to update the toolbar
-   */
-  private setupDeveloperToolbarListeners = (): void => {
-    if (!this.developerToolbarEnabled) {
-      return;
-    }
-
-    // Clean up existing listeners
-    this.developerToolbarFlagListeners.forEach((unsubscribe) => unsubscribe());
-    this.developerToolbarFlagListeners = [];
-
-    // Get all current flags
-    const flags = this.getAllFlags();
-    const flagKeys = Object.keys(flags);
-
-    // Listen for changes to any flag
-    flagKeys.forEach((flagKey) => {
-      const unsubscribe = this.addFlagValueListener(flagKey, () => {
-        // Update toolbar when any flag value changes
-        if (this.developerToolbarElement && this.developerToolbarToggle && this.developerToolbarValueLabel) {
-          const select = this.developerToolbarSelect;
-          if (select && select.value === flagKey) {
-            // If this is the currently selected flag, update the toggle
-            const currentValue = this.getFlagValue(flagKey) ?? false;
-            const isOverridden = flagKey in this.manualOverrides;
-            const displayValue = isOverridden
-              ? this.manualOverrides[flagKey].value
-              : currentValue;
-
-            // Update button text based on flag value
-            this.developerToolbarToggle.textContent = displayValue ? "Restrict feature" : "Allow feature";
-            
-            // Update button styling with Schematic orange accent
-            this.developerToolbarToggle.style.background = displayValue 
-              ? "rgba(255, 107, 53, 0.15)" 
-              : "rgba(255, 107, 53, 0.2)";
-            this.developerToolbarToggle.style.color = "#ff6b35";
-            this.developerToolbarToggle.style.borderColor = displayValue 
-              ? "rgba(255, 107, 53, 0.4)" 
-              : "rgba(255, 107, 53, 0.5)";
-            
-            // Update value label
-            this.developerToolbarValueLabel.textContent = `Current value: ${displayValue ? "true" : "false"}`;
-            this.developerToolbarValueLabel.style.color = displayValue 
-              ? "rgba(255, 107, 53, 0.9)" 
-              : "rgba(255, 255, 255, 0.7)";
-          }
-        }
-        // Also update the select options in case new flags were added
-        this.updateDeveloperToolbar();
-      });
-      this.developerToolbarFlagListeners.push(unsubscribe);
-    });
-  };
 }
 
 const notifyPendingListener = (listener: PendingListenerFn, value: boolean) => {
