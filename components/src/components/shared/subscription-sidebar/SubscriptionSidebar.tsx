@@ -33,7 +33,6 @@ import {
   getFeatureName,
   getMonthName,
   getPlanPrice,
-  getPriceValue,
   shortenPeriod,
 } from "../../../utils";
 import { Box, Button, Flex, Icon, Text } from "../../ui";
