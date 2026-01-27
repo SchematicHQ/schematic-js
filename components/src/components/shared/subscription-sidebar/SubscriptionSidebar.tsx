@@ -10,12 +10,13 @@ import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 
 import {
+  type CompanyPlanWithBillingSubView,
   type PreviewSubscriptionFinanceResponseData,
   type UpdateAddOnRequestBody,
   type UpdateCreditBundleRequestBody,
   type UpdatePayInAdvanceRequestBody,
 } from "../../../api/checkoutexternal";
-import { PriceBehavior } from "../../../const";
+import { PeriodName, PriceBehavior } from "../../../const";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import type {
   CreditBundle,
@@ -240,84 +241,84 @@ export const SubscriptionSidebar = forwardRef<
     }, [charges]);
 
     const updatedUsageBasedEntitlements = useMemo(() => {
-      const changedUsageBasedEntitlements: {
-        previous: CurrentUsageBasedEntitlement;
-        next: UsageBasedEntitlement;
-      }[] = [];
-
-      // Combine plan and add-on usage-based entitlements for comparison
       const allSelectedUsageBasedEntitlements = [
         ...usageBasedEntitlements,
         ...addOnUsageBasedEntitlements,
       ];
 
-      const addedUsageBasedEntitlements = selectedPlan
-        ? usageBasedEntitlements.reduce(
-            (acc: UsageBasedEntitlement[], selected) => {
-              const changed =
-                selected.priceBehavior === PriceBehavior.PayInAdvance
-                  ? currentUsageBasedEntitlements.find(
-                      (current) =>
-                        current.entitlementId === selected.id &&
-                        current.quantity !== selected.quantity,
-                    )
-                  : undefined;
+      const removedUsageBasedEntitlements =
+        currentUsageBasedEntitlements.reduce(
+          (acc: CurrentUsageBasedEntitlement[], current) => {
+            const existsInSelected = allSelectedUsageBasedEntitlements.some(
+              (selected) => selected.id === current.entitlementId,
+            );
 
-              if (changed) {
-                changedUsageBasedEntitlements.push({
-                  previous: changed,
-                  next: selected,
-                });
-              } else {
-                acc.push(selected);
-              }
-
-              return acc;
-            },
-            [],
-          )
-        : [];
-
-      const removedUsageBasedEntitlements = selectedPlan
-        ? currentUsageBasedEntitlements.reduce(
-            (acc: CurrentUsageBasedEntitlement[], current) => {
-              // Check if entitlement exists in either plan or add-on entitlements
-              const existsInSelected = allSelectedUsageBasedEntitlements.some(
-                (entitlement) => entitlement.id === current.entitlementId,
+            const match =
+              !existsInSelected &&
+              currentEntitlements.find(
+                (usage) => usage.entitlementId === current.entitlementId,
               );
-              const match =
-                !existsInSelected &&
-                currentEntitlements.find(
-                  (usage) => usage.entitlementId === current.entitlementId,
-                );
-              if (match) {
-                acc.push({
-                  ...match,
-                  allocation: current.allocation,
-                  usage: current.usage,
-                  quantity: current.quantity,
-                });
-              }
 
-              return acc;
-            },
-            [],
-          )
-        : [];
+            if (match) {
+              acc.push({
+                ...match,
+                period: PeriodName[match.period!] || "month",
+                allocation: current.allocation,
+                usage: current.usage,
+                quantity: current.quantity,
+              });
+            }
 
-      const willUsageBasedEntitlementsChange =
-        changedUsageBasedEntitlements.length > 0 ||
-        addedUsageBasedEntitlements.length > 0 ||
-        removedUsageBasedEntitlements.length > 0;
+            return acc;
+          },
+          [],
+        );
+
+      const changedUsageBasedEntitlements: {
+        previous: CurrentUsageBasedEntitlement;
+        next: UsageBasedEntitlement;
+      }[] = [];
+
+      const addedUsageBasedEntitlements =
+        allSelectedUsageBasedEntitlements.reduce(
+          (acc: UsageBasedEntitlement[], selected) => {
+            const current =
+              selected.priceBehavior === PriceBehavior.PayInAdvance
+                ? currentUsageBasedEntitlements.find(
+                    (usage) =>
+                      usage.entitlementId === selected.id &&
+                      usage.priceBehavior &&
+                      ((usage.priceBehavior === PriceBehavior.PayInAdvance &&
+                        usage.quantity !== selected.quantity) ||
+                        usage.priceBehavior !== PriceBehavior.PayInAdvance ||
+                        (PeriodName[usage.period!] || "month") !== planPeriod),
+                  )
+                : undefined;
+
+            if (current) {
+              changedUsageBasedEntitlements.push({
+                previous: {
+                  ...current,
+                  period: PeriodName[current.period!] || "month",
+                },
+                next: selected,
+              });
+            } else {
+              acc.push(selected);
+            }
+
+            return acc;
+          },
+          [],
+        );
 
       return {
+        removed: removedUsageBasedEntitlements,
         changed: changedUsageBasedEntitlements,
         added: addedUsageBasedEntitlements,
-        removed: removedUsageBasedEntitlements,
-        willChange: willUsageBasedEntitlementsChange,
       };
     }, [
-      selectedPlan,
+      planPeriod,
       currentEntitlements,
       currentUsageBasedEntitlements,
       usageBasedEntitlements,
@@ -329,25 +330,27 @@ export const SubscriptionSidebar = forwardRef<
       [addOns],
     );
 
-    const { removedAddOns, willAddOnsChange } = useMemo(() => {
-      const addedAddOns = selectedAddOns.filter(
-        (selected) =>
-          !currentAddOns.some((current) => selected.id === current.id),
-      );
-
+    const { removedAddOns, changedAddOns, addedAddOns } = useMemo(() => {
       const removedAddOns = currentAddOns.filter(
         (current) =>
           !selectedAddOns.some((selected) => current.id === selected.id) &&
           current.planPeriod !== "one-time",
       );
 
-      const willAddOnsChange =
-        removedAddOns.length > 0 || addedAddOns.length > 0;
+      const changedAddOns: {
+        previous: CompanyPlanWithBillingSubView;
+        next: SelectedPlan;
+      }[] = [];
+
+      const addedAddOns = selectedAddOns.filter(
+        (selected) =>
+          !currentAddOns.some((current) => selected.id === current.id),
+      );
 
       return {
-        addedAddOns,
         removedAddOns,
-        willAddOnsChange,
+        changedAddOns,
+        addedAddOns,
       };
     }, [currentAddOns, selectedAddOns]);
 
@@ -632,6 +635,11 @@ export const SubscriptionSidebar = forwardRef<
       trialEndsOn.setDate(trialEndsOn.getDate() + selectedPlan.trialDays);
     }
 
+    const showCurrentPlan =
+      currentPlan &&
+      (currentPlan.planPeriod !== planPeriod ||
+        currentPlan.id !== selectedPlan?.id);
+
     return (
       <Flex
         ref={ref}
@@ -692,17 +700,14 @@ export const SubscriptionSidebar = forwardRef<
           </Box>
 
           <Flex $flexDirection="column" $gap="0.5rem" $marginBottom="1.5rem">
-            {currentPlan && (
+            {showCurrentPlan && (
               <Flex
                 $justifyContent="space-between"
                 $alignItems="center"
                 $gap="1rem"
-                {...(selectedPlan &&
-                  !selectedPlan.current && {
-                    $opacity: "0.625",
-                    $textDecoration: "line-through",
-                    $color: settings.theme.typography.heading4.color,
-                  })}
+                $opacity="0.625"
+                $textDecoration="line-through"
+                $color={settings.theme.typography.heading4.color}
               >
                 <Box>
                   <Text display="heading4">{currentPlan.name}</Text>
@@ -715,32 +720,35 @@ export const SubscriptionSidebar = forwardRef<
                         currentPlan.planPrice,
                         billingSubscription?.currency,
                       )}
-                      <sub>
-                        /{shortenPeriod(currentPlan.planPeriod || planPeriod)}
-                      </sub>
+
+                      {currentPlan.planPeriod && (
+                        <sub>/{shortenPeriod(currentPlan.planPeriod)}</sub>
+                      )}
                     </Text>
                   </Box>
                 )}
               </Flex>
             )}
 
-            {selectedPlan && !selectedPlan.current && (
+            {selectedPlan && (
               <Box>
-                <Box
-                  $width="100%"
-                  $textAlign="left"
-                  $opacity="50%"
-                  $marginBottom="0.25rem"
-                  $marginTop="-0.25rem"
-                >
-                  <Icon
-                    name="arrow-down"
-                    color={settings.theme.typography.text.color}
-                    style={{
-                      display: "inline-flex",
-                    }}
-                  />
-                </Box>
+                {showCurrentPlan && (
+                  <Box
+                    $width="100%"
+                    $textAlign="left"
+                    $opacity="50%"
+                    $marginBottom="0.25rem"
+                    $marginTop="-0.25rem"
+                  >
+                    <Icon
+                      name="arrow-down"
+                      color={settings.theme.typography.text.color}
+                      style={{
+                        display: "inline-flex",
+                      }}
+                    />
+                  </Box>
+                )}
 
                 <Flex
                   $justifyContent="space-between"
@@ -765,7 +773,9 @@ export const SubscriptionSidebar = forwardRef<
             )}
           </Flex>
 
-          {updatedUsageBasedEntitlements.willChange && (
+          {(updatedUsageBasedEntitlements.removed.length > 0 ||
+            updatedUsageBasedEntitlements.changed.length > 0 ||
+            updatedUsageBasedEntitlements.added.length > 0) && (
             <Flex $flexDirection="column" $gap="0.5rem" $marginBottom="1.5rem">
               <Box $opacity="0.625">
                 <Text $size={14}>{t("Usage-based")}</Text>
@@ -786,7 +796,7 @@ export const SubscriptionSidebar = forwardRef<
                       >
                         <EntitlementRow
                           {...entitlement}
-                          planPeriod={planPeriod}
+                          planPeriod={entitlement.period}
                           tooltipPortal={portalRef?.current}
                         />
                       </Flex>,
@@ -813,7 +823,7 @@ export const SubscriptionSidebar = forwardRef<
                         >
                           <EntitlementRow
                             {...previous}
-                            planPeriod={planPeriod}
+                            planPeriod={previous.period}
                             tooltipPortal={portalRef?.current}
                           />
                         </Flex>
@@ -893,7 +903,9 @@ export const SubscriptionSidebar = forwardRef<
             </Box>
           )}
 
-          {(willAddOnsChange || selectedAddOns.length > 0) && (
+          {(removedAddOns.length > 0 ||
+            addedAddOns.length > 0 ||
+            selectedAddOns.length > 0) && (
             <Flex $flexDirection="column" $gap="0.5rem" $marginBottom="1.5rem">
               <Box $opacity="0.625">
                 <Text $size={14}>{t("Add-ons")}</Text>

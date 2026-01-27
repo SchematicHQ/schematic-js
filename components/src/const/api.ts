@@ -66,3 +66,10 @@ export enum CreditGrantReason {
   Purchased = "purchased",
   AutoTopup = "billing_credit_auto_topup",
 }
+
+export const PeriodName: Record<string, string | undefined> = {
+  billing: "billing period",
+  current_day: "day",
+  current_month: "month",
+  current_year: "year",
+};

@@ -3,7 +3,7 @@ import {
   type FeatureUsageResponseData,
   type PlanEntitlementResponseData,
 } from "../../api/checkoutexternal";
-import { FeatureType, PriceBehavior } from "../../const";
+import { FeatureType, PeriodName, PriceBehavior } from "../../const";
 import type {
   Credit,
   CurrentUsageBasedEntitlement,
@@ -11,13 +11,6 @@ import type {
   PriceTier,
 } from "../../types";
 import { getEntitlementCost } from "../../utils";
-
-const PeriodName: Record<string, string | undefined> = {
-  billing: "billing period",
-  current_day: "day",
-  current_month: "month",
-  current_year: "year",
-};
 
 export function getMetricPeriodName(entitlement: Entitlement) {
   if (entitlement.feature?.featureType !== FeatureType.Event) {
