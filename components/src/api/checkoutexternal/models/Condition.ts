@@ -126,7 +126,6 @@ export const ConditionConditionTypeEnum = {
   BillingProduct: "billing_product",
   Company: "company",
   Credit: "credit",
-  CrmProduct: "crm_product",
   Metric: "metric",
   Plan: "plan",
   Trait: "trait",
