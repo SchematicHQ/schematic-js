@@ -128,6 +128,7 @@ export const ConditionConditionTypeEnum = {
   Credit: "credit",
   Metric: "metric",
   Plan: "plan",
+  PlanVersion: "plan_version",
   Trait: "trait",
   User: "user",
 } as const;

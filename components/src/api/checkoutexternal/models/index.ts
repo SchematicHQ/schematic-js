@@ -79,6 +79,7 @@ export * from "./EntityTraitResponseData";
 export * from "./EntityType";
 export * from "./EventSummaryResponseData";
 export * from "./FeatureDetailResponseData";
+export * from "./FeatureEntitlement";
 export * from "./FeatureLifecyclePhase";
 export * from "./FeatureResponseData";
 export * from "./FeatureType";
