@@ -527,11 +527,10 @@ export class Schematic {
 
       this.setIsPending(false);
 
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       if (
         !(
           typeof process !== "undefined" &&
-          process.env &&
+          process.env && // eslint-disable-line @typescript-eslint/strict-boolean-expressions
           process.env.NODE_ENV === "production"
         ) &&
         this.developerToolbarEnabled
@@ -732,9 +731,9 @@ export class Schematic {
       this.context = context;
       this.flushContextDependentEventQueue();
       this.setIsPending(false);
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+       
       if ((typeof process === "undefined" ||
-          !process.env ||
+          !process.env || // eslint-disable-line @typescript-eslint/strict-boolean-expressions
           process.env.NODE_ENV !== "production") &&
         this.developerToolbarEnabled
       ) {
@@ -1826,11 +1825,10 @@ export class Schematic {
 
   // flag checks state
   getFlagCheck = (flagKey: string): CheckFlagReturn | undefined => {
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if (
       !(
         typeof process !== "undefined" &&
-        process.env &&
+        process.env && // eslint-disable-line @typescript-eslint/strict-boolean-expressions
         process.env.NODE_ENV === "production"
       ) &&
       this.developerToolbarEnabled &&
@@ -1867,11 +1865,10 @@ export class Schematic {
 
   // flagValues state
   getFlagValue = (flagKey: string): boolean | undefined => {
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if (
       !(
         typeof process !== "undefined" &&
-        process.env &&
+        process.env && // eslint-disable-line @typescript-eslint/strict-boolean-expressions
         process.env.NODE_ENV === "production"
       ) &&
       this.developerToolbarEnabled &&
