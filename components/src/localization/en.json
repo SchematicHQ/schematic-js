@@ -1,7 +1,7 @@
 {
   "translation": {
     "A problem occurred while saving your payment method.": "A problem occurred while saving your payment method.",
-    "Access to plan will end on": "Access to plan will end on {{date}}",
+    "Access to plan will end.": "Access to {{plan}} will end on {{date}}.",
     "Active": "Active",
     "Add": "Add",
     "Add new payment method": "Add new payment method",
@@ -18,6 +18,7 @@
     "An invoice is created when charges reach $X; the rest is billed monthly.": "An invoice is created when charges reach {{amount}}; the rest is billed monthly.",
     "An unknown error occurred.": "An unknown error occurred.",
     "Billed": "Billed {{period}}",
+    "Cancel": "Cancel",
     "Cancel subscription": "Cancel subscription",
     "Cannot change to this plan.": "{{reason, list(style: 'long'; type: 'disjunction';)}} usage is over the limit.",
     "Cannot downgrade entitlement": "Cannot downgrade to a quantity lower than current usage.",
@@ -38,6 +39,7 @@
     "Currently using": "Currently using {{quantity}} {{unit}}",
     "Custom price": "Custom price",
     "Discount": "Discount",
+    "Downgrade to plan scheduled": "Downgrade to {{plan}} scheduled",
     "Due today": "Due today",
     "Edit payment method": "Edit payment method",
     "Edit": "Edit",
@@ -154,6 +156,7 @@
     "X units per use": "{{amount}} {{units}} per use",
     "X time left in trial": "{{amount}} {{units}} left in trial",
     "Yearly total": "Yearly total",
+    "You will be downgraded at the end of your billing period.": "You will be downgraded to the {{plan}} plan at the end of your billing period on {{date}}.",
     "You will retain access to your plan until the end of the billing period, on": "You will retain access to your plan until the end of the billing period, on",
 
     "$X per unit": "{{cost}} per {{unit}}",

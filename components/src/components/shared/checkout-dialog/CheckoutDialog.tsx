@@ -28,7 +28,12 @@ import type {
   SelectedPlan,
   UsageBasedEntitlement,
 } from "../../../types";
-import { ERROR_UNKNOWN, getAddOnPrice, isError } from "../../../utils";
+import {
+  ERROR_UNKNOWN,
+  getAddOnPrice,
+  getPlanPrice,
+  isError,
+} from "../../../utils";
 import { PeriodToggle, SubscriptionSidebar } from "../../shared";
 import {
   Dialog,
@@ -305,6 +310,8 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
   const [promoCode, setPromoCode] = useState<string | null>(null);
 
   const [isPaymentMethodRequired, setIsPaymentMethodRequired] = useState(false);
+
+  const [willScheduleDowngrade, setWillScheduleDowngrade] = useState(false);
 
   const willTrialWithoutPaymentMethod = useMemo(
     () => shouldTrial && !trialPaymentMethodRequired,
@@ -614,6 +621,12 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
         if (response) {
           setCharges(response.data.finance);
           setIsPaymentMethodRequired(response.data.paymentMethodRequired);
+          // TODO: use updated preview response from api instead of mock logic
+          setWillScheduleDowngrade(() => {
+            const from = getPlanPrice(updates.plan!, period)?.price ?? 0;
+            const to = getPlanPrice(selectedPlan!, period)?.price ?? 0;
+            return from < to;
+          });
         }
 
         if (typeof updates.promoCode !== "undefined") {
@@ -642,6 +655,9 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
               case "self-service downgrade not permitted":
                 setError(t("Self-service downgrade not permitted."));
                 return;
+              // TODO: update when api error is known
+              case "downgrade pending":
+                setError(t("Downgrade pending."));
             }
           }
 
@@ -1249,6 +1265,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
           shouldTrial={shouldTrial}
           setConfirmPaymentIntent={setConfirmPaymentIntentProps}
           willTrialWithoutPaymentMethod={willTrialWithoutPaymentMethod}
+          willScheduleDowngrade={willScheduleDowngrade}
         />
       </DialogContent>
     </Dialog>
