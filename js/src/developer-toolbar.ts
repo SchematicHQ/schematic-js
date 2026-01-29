@@ -82,13 +82,7 @@ export class DeveloperToolbar {
   }
 
   initialize(): void {
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-    if (
-      (typeof process !== "undefined" &&
-        process.env &&
-        process.env.NODE_ENV === "production") ||
-      typeof window === "undefined"
-    ) {
+    if (typeof window === "undefined") {
       return;
     }
 
