@@ -57,7 +57,7 @@ export const useSchematicFlag = (
   opts?: UseSchematicFlagOpts,
 ): boolean => {
   const client = useSchematicClient(opts);
-  const fallback = opts?.fallback ?? false;
+  const fallback = opts?.fallback;
 
   const subscribe = useCallback(
     (callback: () => void) => client.addFlagValueListener(key, callback),
@@ -66,10 +66,15 @@ export const useSchematicFlag = (
 
   const getSnapshot = useCallback(() => {
     const value = client.getFlagValue(key);
-    return typeof value === "undefined" ? fallback : value;
+    return value ?? client.getDefaultValue(key, fallback);
   }, [client, key, fallback]);
 
-  return useSyncExternalStore(subscribe, getSnapshot, () => fallback);
+  const getServerSnapshot = useCallback(
+    () => client.getDefaultValue(key, fallback),
+    [client, key, fallback],
+  );
+
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 };
 
 export const useSchematicEntitlement = (
@@ -77,16 +82,7 @@ export const useSchematicEntitlement = (
   opts?: UseSchematicFlagOpts,
 ): SchematicJS.CheckFlagReturn => {
   const client = useSchematicClient(opts);
-  const fallback = opts?.fallback ?? false;
-
-  const fallbackCheck = useMemo(
-    () => ({
-      flag: key,
-      reason: "Fallback",
-      value: fallback,
-    }),
-    [key, fallback],
-  );
+  const fallback = opts?.fallback;
 
   const subscribe = useCallback(
     (callback: () => void) => client.addFlagCheckListener(key, callback),
@@ -95,10 +91,15 @@ export const useSchematicEntitlement = (
 
   const getSnapshot = useCallback(() => {
     const check = client.getFlagCheck(key);
-    return check ?? fallbackCheck;
-  }, [client, key, fallbackCheck]);
+    return check ?? client.getDefaultFlagCheck(key, fallback);
+  }, [client, key, fallback]);
 
-  return useSyncExternalStore(subscribe, getSnapshot, () => fallbackCheck);
+  const getServerSnapshot = useCallback(
+    () => client.getDefaultFlagCheck(key, fallback),
+    [client, key, fallback],
+  );
+
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 };
 
 export const useSchematicIsPending = (opts?: SchematicHookOpts) => {
