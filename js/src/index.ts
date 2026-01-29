@@ -27,7 +27,7 @@ import {
 } from "./types";
 import { contextString } from "./utils";
 import { version } from "./version";
-import { DeveloperToolbar } from "./developer-toolbar";
+import type { DeveloperToolbar } from "./developer-toolbar";
 
 const anonymousIdKey = "schematicId";
 
@@ -523,14 +523,19 @@ export class Schematic {
         });
       });
 
-      // Flush any context-dependent events that were queued
       this.flushContextDependentEventQueue();
 
-      // Update pending state
       this.setIsPending(false);
 
-      // Update developer toolbar after flags are updated
-      if (this.developerToolbarEnabled) {
+      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+      if (
+        !(
+          typeof process !== "undefined" &&
+          process.env &&
+          process.env.NODE_ENV === "production"
+        ) &&
+        this.developerToolbarEnabled
+      ) {
         this.initializeDeveloperToolbar();
       }
     };
@@ -727,7 +732,12 @@ export class Schematic {
       this.context = context;
       this.flushContextDependentEventQueue();
       this.setIsPending(false);
-      if (this.developerToolbarEnabled) {
+      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+      if ((typeof process === "undefined" ||
+          !process.env ||
+          process.env.NODE_ENV !== "production") &&
+        this.developerToolbarEnabled
+      ) {
         this.initializeDeveloperToolbar();
       }
       return Promise.resolve();
@@ -1324,8 +1334,10 @@ export class Schematic {
    * In offline mode, this is a no-op.
    */
   cleanup = async (): Promise<void> => {
-    // Clean up developer toolbar
-    if (this.developerToolbar) {
+    if (
+      (typeof process === "undefined" || process.env?.NODE_ENV !== "production") &&
+      this.developerToolbar
+    ) {
       this.developerToolbar.cleanup();
       this.developerToolbar = null;
     }
@@ -1814,8 +1826,16 @@ export class Schematic {
 
   // flag checks state
   getFlagCheck = (flagKey: string): CheckFlagReturn | undefined => {
-    // Check manual overrides first (developer toolbar)
-    if (this.developerToolbarEnabled && this.developerToolbar) {
+    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+    if (
+      !(
+        typeof process !== "undefined" &&
+        process.env &&
+        process.env.NODE_ENV === "production"
+      ) &&
+      this.developerToolbarEnabled &&
+      this.developerToolbar
+    ) {
       if (this.developerToolbar.hasManualOverride(flagKey)) {
         return this.developerToolbar.getManualOverride(flagKey);
       }
@@ -1847,8 +1867,16 @@ export class Schematic {
 
   // flagValues state
   getFlagValue = (flagKey: string): boolean | undefined => {
-    // Check manual overrides first (developer toolbar)
-    if (this.developerToolbarEnabled && this.developerToolbar) {
+    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+    if (
+      !(
+        typeof process !== "undefined" &&
+        process.env &&
+        process.env.NODE_ENV === "production"
+      ) &&
+      this.developerToolbarEnabled &&
+      this.developerToolbar
+    ) {
       const override = this.developerToolbar.getManualOverride(flagKey);
       if (override) {
         return override.value;
@@ -1984,32 +2012,35 @@ export class Schematic {
     return allFlags;
   };
 
-  private initializeDeveloperToolbar = (): void => {
-    if (!this.developerToolbarEnabled || typeof window === "undefined") {
-      return;
-    }
+  private initializeDeveloperToolbar = async (): Promise<void> => {
+    if (process.env.NODE_ENV !== "production") {
+      if (!this.developerToolbarEnabled || typeof window === "undefined") {
+        return;
+      }
 
-    // Developer toolbar requires WebSocket mode
-    if (!this.useWebSocket) {
-      console.warn(
-        "[Schematic] Developer toolbar requires WebSocket mode. Please enable useWebSocket: true in your Schematic configuration.",
-      );
-      return;
-    }
+      if (!this.useWebSocket) {
+        console.warn(
+          "[Schematic] Developer toolbar requires WebSocket mode. Please enable useWebSocket: true in your Schematic configuration.",
+        );
+        return;
+      }
 
-    if (!this.developerToolbar) {
-      this.developerToolbar = new DeveloperToolbar({
-        getAllFlags: this.getAllFlags,
-        getFlagValue: this.getFlagValue,
-        addFlagValueListener: this.addFlagValueListener,
-        notifyFlagCheckListeners: this.notifyFlagCheckListeners,
-        notifyFlagValueListeners: this.notifyFlagValueListeners,
-      });
-    }
+      // Dynamic import to enable dead code elimination in production builds
+      const { DeveloperToolbar } = await import("./developer-toolbar");
 
-    this.developerToolbar.initialize();
+      if (!this.developerToolbar) {
+        this.developerToolbar = new DeveloperToolbar({
+          getAllFlags: this.getAllFlags,
+          getFlagValue: this.getFlagValue,
+          addFlagValueListener: this.addFlagValueListener,
+          notifyFlagCheckListeners: this.notifyFlagCheckListeners,
+          notifyFlagValueListeners: this.notifyFlagValueListeners,
+        });
+      }
+
+      this.developerToolbar.initialize();
+    }
   };
-
 }
 
 const notifyPendingListener = (listener: PendingListenerFn, value: boolean) => {

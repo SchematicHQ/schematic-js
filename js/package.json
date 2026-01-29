@@ -23,6 +23,7 @@
     "build:cjs": "npx esbuild src/index.ts --bundle --format=cjs --outfile=dist/schematic.cjs.js",
     "build:esm": "npx esbuild src/index.ts --bundle --format=esm --outfile=dist/schematic.esm.js",
     "build:types": "npx tsc && npx api-extractor run",
+    "test:toolbar-stripping": "node scripts/test-toolbar-stripping.js",
     "clean": "rm -rf dist",
     "format": "prettier --write src/*.ts",
     "lint": "eslint src --report-unused-disable-directives --fix",
