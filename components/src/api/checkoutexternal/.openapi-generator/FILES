@@ -81,6 +81,7 @@ models/EntityTraitResponseData.ts
 models/EntityType.ts
 models/EventSummaryResponseData.ts
 models/FeatureDetailResponseData.ts
+models/FeatureEntitlement.ts
 models/FeatureLifecyclePhase.ts
 models/FeatureResponseData.ts
 models/FeatureType.ts
