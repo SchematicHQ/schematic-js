@@ -217,6 +217,31 @@ ReactDOM.render(
 
 Offline mode automatically enables debug mode to help with troubleshooting.
 
+### Developer Toolbar
+
+Enables a developer toolbar at the top of the page for testing flags. The toolbar allows you to manually override flag values on/off for testing purposes. **Requires WebSocket mode** (enabled by default in React).
+
+```typescript
+// Enable at initialization
+import { SchematicProvider } from "@schematichq/schematic-react";
+
+ReactDOM.render(
+    <SchematicProvider 
+        publishableKey="your-publishable-key" 
+        developerToolbar={true}
+    >
+        <App />
+    </SchematicProvider>,
+    document.getElementById("root"),
+);
+```
+
+The toolbar will:
+- Only appear when a company/user has been identified
+- Show all available flags in a dropdown
+- Allow you to toggle flags on/off
+- Preserve manual overrides even when websocket updates arrive
+- Reset all overrides on page reload (not persisted)
 
 ## License
 
