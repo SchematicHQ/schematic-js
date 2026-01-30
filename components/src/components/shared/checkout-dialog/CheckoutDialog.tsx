@@ -636,6 +636,9 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
               case "Invalid promo code":
                 setError(t("Invalid discount code."));
                 return;
+              case "ineligible for this discount":
+                setError(t("Ineligible for this discount."));
+                return;
               case "Quantity is required":
                 setError(t("Quantity is required."));
                 return;
