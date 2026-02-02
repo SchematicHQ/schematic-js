@@ -18,8 +18,11 @@ import { Box, Flex, Text } from "../../ui";
 
 interface UsageDetailsProps {
   entitlement: FeatureUsageResponseData;
-  shouldWrapChildren: boolean;
   layout: {
+    entitlementExpiration: {
+      isVisible: boolean;
+      fontStyle: FontStyle;
+    };
     entitlement: {
       isVisible: boolean;
       fontStyle: FontStyle;
@@ -31,11 +34,7 @@ interface UsageDetailsProps {
   };
 }
 
-export const UsageDetails = ({
-  entitlement,
-  shouldWrapChildren,
-  layout,
-}: UsageDetailsProps) => {
+export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
   const {
     allocation,
     allocationType,
@@ -82,7 +81,11 @@ export const UsageDetails = ({
     }, [entitlement, period]);
 
   const text = useMemo(() => {
-    if (!feature) {
+    if (
+      !feature ||
+      (feature.featureType !== FeatureType.Event &&
+        feature.featureType !== FeatureType.Trait)
+    ) {
       return;
     }
 
@@ -185,7 +188,11 @@ export const UsageDetails = ({
   ]);
 
   const usageText = useMemo(() => {
-    if (!feature) {
+    if (
+      !feature ||
+      (feature.featureType !== FeatureType.Event &&
+        feature.featureType !== FeatureType.Trait)
+    ) {
       return;
     }
 
@@ -307,24 +314,23 @@ export const UsageDetails = ({
   }
 
   return (
-    <Box
-      $flexBasis="min-content"
-      $flexGrow={1}
-      $textAlign={shouldWrapChildren ? "left" : "right"}
-    >
+    <>
       {layout.entitlement.isVisible && (
-        <Box $whiteSpace="nowrap">
-          <Text display={layout.entitlement.fontStyle} $leading={1}>
-            {text}
-          </Text>
+        <Box
+          $marginTop="0.75rem"
+          $viewport={{
+            "@container (min-width: 375px)": {
+              $marginTop: 0,
+            },
+          }}
+        >
+          <Text display={layout.entitlement.fontStyle}>{text}</Text>
         </Box>
       )}
 
       {layout.usage.isVisible && usageText && (
-        <Flex $justifyContent="end" $alignItems="baseline" $whiteSpace="nowrap">
-          <Text display={layout.usage.fontStyle} $leading={1}>
-            {usageText}
-          </Text>
+        <Flex $alignItems="baseline">
+          <Text display={layout.usage.fontStyle}>{usageText}</Text>
 
           {priceBehavior === PriceBehavior.Tiered && (
             <PricingTiersTooltip
@@ -336,6 +342,6 @@ export const UsageDetails = ({
           )}
         </Flex>
       )}
-    </Box>
+    </>
   );
 };

@@ -57,7 +57,7 @@ const Selected = ({ isCurrent = false, isTrial = false }: SelectedProps) => {
 
       <Text
         $size={0.9375 * settings.theme.typography.text.fontSize}
-        $leading={1}
+        $leading="none"
       >
         {isCurrent
           ? isTrial
@@ -799,7 +799,7 @@ export const Plan = ({
                           }
                         }}
                         display="link"
-                        $leading={1}
+                        $leading="none"
                         style={{ cursor: "pointer" }}
                       >
                         {isExpanded ? t("Hide all") : t("See all")}
