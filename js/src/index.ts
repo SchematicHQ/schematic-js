@@ -129,8 +129,16 @@ export class Schematic {
 
     if (options?.storage) {
       this.storage = options.storage;
-    } else if (typeof localStorage !== "undefined") {
-      this.storage = localStorage;
+    } else {
+      try {
+        if (typeof localStorage !== "undefined") {
+          this.storage = localStorage;
+        }
+      } catch {
+        // localStorage may throw SecurityError in Safari private browsing
+        // or cross-origin iframes. getAnonymousId() will fall back to
+        // generating fresh UUIDs when storage is unavailable.
+      }
     }
 
     if (options?.apiUrl !== undefined) {
