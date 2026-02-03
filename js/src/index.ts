@@ -307,8 +307,8 @@ export class Schematic {
   /**
    * Get value for a single flag.
    * In WebSocket mode, returns cached values if connection is active, otherwise establishes
-   * new connection and then returns the requestedvalue. Falls back to REST API if WebSocket
-   * connection fails.
+   * new connection and then returns the requested value. Falls back to preconfigured fallback
+   * values if WebSocket connection fails.
    * In REST mode, makes an API call for each check.
    */
   async checkFlag(options: CheckOptions): Promise<boolean> {
@@ -406,10 +406,18 @@ export class Schematic {
         await this.setContext(context);
       } catch (error) {
         console.warn(
-          "WebSocket connection failed, falling back to REST:",
+          "WebSocket connection failed, using fallback value:",
           error,
         );
-        return this.fallbackToRest(key, context, fallback);
+        // Create a result for the error case using fallback priority and submit event
+        const errorResult = this.resolveFallbackCheckFlagReturn(
+          key,
+          fallback,
+          "WebSocket connection failed",
+          error instanceof Error ? error.message : String(error),
+        );
+        this.submitFlagCheckEvent(key, errorResult, context);
+        return errorResult.value;
       }
 
       // After setting context and getting a response, return the value
@@ -558,73 +566,6 @@ export class Schematic {
     return this.handleEvent("flag_check", EventBodyFlagCheckToJSON(eventBody));
   }
 
-  /**
-   * Helper method for falling back to REST API when WebSocket connection fails
-   */
-  private async fallbackToRest(
-    key: string,
-    context: SchematicContext,
-    fallback?: boolean,
-  ): Promise<boolean> {
-    // If in offline mode, immediately return fallback value
-    if (this.isOffline()) {
-      const resolvedFallback = this.resolveFallbackValue(key, fallback);
-      this.debug(`fallbackToRest offline result: ${key}`, {
-        value: resolvedFallback,
-        offlineMode: true,
-      });
-
-      return resolvedFallback;
-    }
-
-    try {
-      const requestUrl = `${this.apiUrl}/flags/${key}/check`;
-      const response = await fetch(requestUrl, {
-        method: "POST",
-        headers: {
-          ...(this.additionalHeaders ?? {}),
-          "Content-Type": "application/json;charset=UTF-8",
-          "X-Schematic-Api-Key": this.apiKey,
-        },
-        body: JSON.stringify(context),
-      });
-
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-
-      const responseJson = await response.json();
-      const data = CheckFlagResponseFromJSON(responseJson);
-
-      this.debug(`fallbackToRest result: ${key}`, data);
-
-      // Create a flag check result object
-      const result = CheckFlagReturnFromJSON(data.data);
-
-      // Store in feature usage event map if appropriate
-      if (typeof result.featureUsageEvent === "string") {
-        this.updateFeatureUsageEventMap(result);
-      }
-
-      // Submit a flag check event
-      this.submitFlagCheckEvent(key, result, context);
-
-      return result.value;
-    } catch (error) {
-      console.warn("REST API call failed, using fallback value:", error);
-
-      // Create a result for the error case using fallback priority and submit event
-      const errorResult = this.resolveFallbackCheckFlagReturn(
-        key,
-        fallback,
-        "API request failed (fallback)",
-        error instanceof Error ? error.message : String(error),
-      );
-      this.submitFlagCheckEvent(key, errorResult, context);
-
-      return errorResult.value;
-    }
-  }
 
   /**
    * Make an API call to fetch all flag values for a given context.
