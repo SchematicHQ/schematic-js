@@ -1,6 +1,6 @@
 {
   "name": "@schematichq/schematic-react",
-  "version": "1.2.15",
+  "version": "1.2.16",
   "main": "dist/schematic-react.cjs.js",
   "module": "dist/schematic-react.esm.js",
   "types": "dist/schematic-react.d.ts",
@@ -31,7 +31,7 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "@schematichq/schematic-js": "^1.2.15"
+    "@schematichq/schematic-js": "^1.2.16"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
