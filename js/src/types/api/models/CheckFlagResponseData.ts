@@ -13,14 +13,6 @@
  */
 
 import { mapValues } from "../runtime";
-import type { CheckFlagResponseDataEntitlement } from "./CheckFlagResponseDataEntitlement";
-import {
-  CheckFlagResponseDataEntitlementFromJSON,
-  CheckFlagResponseDataEntitlementFromJSONTyped,
-  CheckFlagResponseDataEntitlementToJSON,
-  CheckFlagResponseDataEntitlementToJSONTyped,
-} from "./CheckFlagResponseDataEntitlement";
-
 /**
  *
  * @export
@@ -34,50 +26,39 @@ export interface CheckFlagResponseData {
    */
   companyId?: string | null;
   /**
-   *
-   * @type {CheckFlagResponseDataEntitlement}
-   * @memberof CheckFlagResponseData
-   */
-  entitlement?: CheckFlagResponseDataEntitlement;
-  /**
    * If an error occurred while checking the flag, the error message
    * @type {string}
    * @memberof CheckFlagResponseData
    */
   error?: string | null;
   /**
-   * Deprecated: Use Entitlement.Allocation instead.
+   * If a numeric feature entitlement rule was matched, its allocation
    * @type {number}
    * @memberof CheckFlagResponseData
-   * @deprecated
    */
   featureAllocation?: number | null;
   /**
-   * Deprecated: Use Entitlement.CurrentUsage instead.
+   * If a numeric feature entitlement rule was matched, the company's usage
    * @type {number}
    * @memberof CheckFlagResponseData
-   * @deprecated
    */
   featureUsage?: number | null;
   /**
-   * Deprecated: Use Entitlement.MetricEventSubtype instead.
+   * If an event-based numeric feature entitlement rule was matched, the event used to track its usage
    * @type {string}
    * @memberof CheckFlagResponseData
-   * @deprecated
    */
   featureUsageEvent?: string | null;
   /**
-   * Deprecated: Use Entitlement.MetricPeriod instead.
+   * For event-based feature entitlement rules, the period over which usage is tracked (current_month, current_day, current_week, all_time)
    * @type {string}
    * @memberof CheckFlagResponseData
-   * @deprecated
    */
   featureUsagePeriod?: string | null;
   /**
-   * Deprecated: Use Entitlement.ResetDate instead.
+   * For event-based feature entitlement rules, when the usage period will reset
    * @type {Date}
    * @memberof CheckFlagResponseData
-   * @deprecated
    */
   featureUsageResetAt?: Date | null;
   /**
@@ -151,10 +132,6 @@ export function CheckFlagResponseDataFromJSONTyped(
   }
   return {
     companyId: json["company_id"] == null ? undefined : json["company_id"],
-    entitlement:
-      json["entitlement"] == null
-        ? undefined
-        : CheckFlagResponseDataEntitlementFromJSON(json["entitlement"]),
     error: json["error"] == null ? undefined : json["error"],
     featureAllocation:
       json["feature_allocation"] == null
@@ -198,7 +175,6 @@ export function CheckFlagResponseDataToJSONTyped(
 
   return {
     company_id: value["companyId"],
-    entitlement: CheckFlagResponseDataEntitlementToJSON(value["entitlement"]),
     error: value["error"],
     feature_allocation: value["featureAllocation"],
     feature_usage: value["featureUsage"],
