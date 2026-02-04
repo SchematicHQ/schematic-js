@@ -56,6 +56,7 @@
     "Hide all": "Hide all",
     "Hide balance details": "Hide balance details",
     "Hide details": "Hide details",
+    "Ineligible for this discount.": "Ineligible for this discount.",
     "Invalid access token; your temporary access token will start with `token_`.": "Invalid access token; your temporary access token will start with `token_`.",
     "Invalid discount code.": "Invalid discount code.",
     "Invoices": "Invoices",
