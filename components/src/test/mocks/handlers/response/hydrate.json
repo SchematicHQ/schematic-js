@@ -2521,6 +2521,7 @@
         "provider_type": "stripe",
         "updated_at": "2026-01-16T20:43:43.595197Z"
       },
+      "entitlements": [],
       "entity_traits": [],
       "keys": [
         {
