@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - js/**
+      - .github/workflows/**
+      - scripts/**
 
 jobs:
   build:

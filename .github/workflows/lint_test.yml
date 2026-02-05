@@ -1,0 +1,50 @@
+name: Lint and Test
+
+on:
+  workflow_call:
+    inputs:
+      package:
+        description: 'Package name (schematic-js, schematic-react, schematic-components, schematic-vue)'
+        required: true
+        type: string
+      working_dir:
+        description: 'Working directory (js, react, components, vue)'
+        required: true
+        type: string
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: runs-on=${{ github.run_id }}/runner=4cpu-linux-x64/extras=s3-cache
+    steps:
+      - uses: runs-on/action@v2.0.3
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.x
+      - name: Yarn install
+        working-directory: ./${{ inputs.working_dir }}
+        run: yarn install
+      - name: Lint
+        working-directory: ./${{ inputs.working_dir }}
+        run: yarn lint
+
+  test:
+    name: Test
+    runs-on: runs-on=${{ github.run_id }}/runner=4cpu-linux-x64/extras=s3-cache
+    steps:
+      - uses: runs-on/action@v2.0.3
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.x
+      - name: Yarn install
+        working-directory: ./${{ inputs.working_dir }}
+        run: yarn install
+      - name: Test
+        working-directory: ./${{ inputs.working_dir }}
+        run: yarn test
+      - name: Test (React Native)
+        if: inputs.package == 'schematic-js' || inputs.package == 'schematic-react'
+        working-directory: ./${{ inputs.working_dir }}
+        run: yarn test:reactnative

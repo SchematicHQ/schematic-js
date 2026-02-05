@@ -4,40 +4,16 @@ on:
   push:
     tags:
       - 'schematic-components@*'
+      - '!schematic-components@*-rc*'
   workflow_dispatch:
 
 jobs:
-  lint:
-    name: Lint
-    runs-on: runs-on=${{ github.run_id }}/runner=4cpu-linux-x64/extras=s3-cache
-    steps:
-      - uses: runs-on/action@v2.0.3
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
-        with:
-          node-version: 24.x
-      - name: Yarn install
-        working-directory: ./components
-        run: yarn install
-      - name: Lint
-        working-directory: ./components
-        run: yarn lint
-
-  test:
-    name: Test
-    runs-on: runs-on=${{ github.run_id }}/runner=4cpu-linux-x64/extras=s3-cache
-    steps:
-      - uses: runs-on/action@v2.0.3
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
-        with:
-          node-version: 24.x
-      - name: Yarn install
-        working-directory: ./components
-        run: yarn install
-      - name: Test
-        working-directory: ./components
-        run: yarn test
+  lint_test:
+    name: Lint and Test
+    uses: ./.github/workflows/lint_test.yml
+    with:
+      package: schematic-components
+      working_dir: components
 
   publish:
     name: NPM Publish
@@ -45,7 +21,7 @@ jobs:
     permissions:
       packages: write
       contents: read
-    needs: [test, lint]
+    needs: [lint_test]
     steps:
       - uses: runs-on/action@v2.0.3
       - uses: actions/checkout@v6
@@ -53,22 +29,10 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: 24.x
-      - name: Yarn install
-        working-directory: ./components
-        run: yarn install
-      - name: Build
-        working-directory: ./components
-        run: yarn build
-      - name: Set up .npmrc
-        run: touch .npmrc && echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > .npmrc
+      - name: Publish
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        working-directory: ./components
-      - name: Test .npmrc
-        run: cat .npmrc
-        working-directory: ./components
-      - run: yarn publish --access public
-        working-directory: ./components
+        run: ./scripts/publish-package.sh "${{ github.ref_name }}"
 
   update_example_app:
     name: Update Example App
@@ -112,7 +76,7 @@ jobs:
 
       - name: Create Pull Request
         if: steps.check_changes.outputs.HAS_CHANGES == 'true'
-        uses: peter-evans/create-pull-request@v8.0.0
+        uses: peter-evans/create-pull-request@v8.1.0
         with:
           token: ${{ secrets.DEPENDENT_UPDATE_PAT }}
           commit-message: Update @schematichq/schematic-components to ${{ steps.get_version.outputs.SCHEMATIC_COMPONENTS_VERSION }}

@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - vue/**
+      - .github/workflows/**
+      - scripts/**
 
 jobs:
   build:
