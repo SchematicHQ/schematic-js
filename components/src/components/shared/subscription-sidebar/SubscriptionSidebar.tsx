@@ -328,7 +328,6 @@ export const SubscriptionSidebar = forwardRef<
         willChange: willUsageBasedEntitlementsChange,
       };
     }, [
-      planPeriod,
       selectedPlan,
       currentEntitlements,
       currentUsageBasedEntitlements,
