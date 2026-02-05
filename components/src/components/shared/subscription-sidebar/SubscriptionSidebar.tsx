@@ -25,6 +25,7 @@ import type {
 } from "../../../types";
 import {
   ChargeType,
+  entitlementHasCost,
   extractCurrentUsageBasedEntitlements,
   formatCurrency,
   formatOrdinal,
@@ -254,6 +255,10 @@ export const SubscriptionSidebar = forwardRef<
       const addedUsageBasedEntitlements = selectedPlan
         ? usageBasedEntitlements.reduce(
             (acc: UsageBasedEntitlement[], selected) => {
+              if (!entitlementHasCost(selected)) {
+                return acc;
+              }
+
               const changed =
                 selected.priceBehavior === PriceBehavior.PayInAdvance
                   ? currentUsageBasedEntitlements.find(
@@ -281,9 +286,15 @@ export const SubscriptionSidebar = forwardRef<
       const removedUsageBasedEntitlements = selectedPlan
         ? currentUsageBasedEntitlements.reduce(
             (acc: CurrentUsageBasedEntitlement[], current) => {
+              if (!entitlementHasCost(current)) {
+                return acc;
+              }
+
               // Check if entitlement exists in either plan or add-on entitlements
               const existsInSelected = allSelectedUsageBasedEntitlements.some(
-                (entitlement) => entitlement.id === current.entitlementId,
+                (entitlement) =>
+                  entitlement.id === current.entitlementId &&
+                  entitlementHasCost(entitlement),
               );
               const match =
                 !existsInSelected &&
@@ -324,21 +335,28 @@ export const SubscriptionSidebar = forwardRef<
       addOnUsageBasedEntitlements,
     ]);
 
-    const selectedAddOns = useMemo(
-      () => addOns.filter((addOn) => addOn.isSelected),
+    const selectedAddOnsWithCost = useMemo(
+      () =>
+        addOns.filter(
+          (addOn) => addOn.isSelected && getPlanPrice(addOn)?.price,
+        ),
       [addOns],
     );
 
     const { removedAddOns, willAddOnsChange } = useMemo(() => {
-      const addedAddOns = selectedAddOns.filter(
+      const addedAddOns = selectedAddOnsWithCost.filter(
         (selected) =>
+          getPlanPrice(selected)?.price &&
           !currentAddOns.some((current) => selected.id === current.id),
       );
 
       const removedAddOns = currentAddOns.filter(
         (current) =>
-          !selectedAddOns.some((selected) => current.id === selected.id) &&
-          current.planPeriod !== "one-time",
+          current.planPrice &&
+          current.planPeriod !== "one-time" &&
+          !selectedAddOnsWithCost.some(
+            (selected) => current.id === selected.id,
+          ),
       );
 
       const willAddOnsChange =
@@ -349,7 +367,7 @@ export const SubscriptionSidebar = forwardRef<
         removedAddOns,
         willAddOnsChange,
       };
-    }, [currentAddOns, selectedAddOns]);
+    }, [currentAddOns, selectedAddOnsWithCost]);
 
     const addedCreditBundles = useMemo(
       () => creditBundles.filter((bundle) => bundle.count > 0),
@@ -802,7 +820,7 @@ export const SubscriptionSidebar = forwardRef<
                 (acc: React.ReactElement[], { previous, next }, index) => {
                   if (next.feature?.name) {
                     acc.push(
-                      <Box key={index}>
+                      <Flex key={index} $flexDirection="column" $gap="0.5rem">
                         <Flex
                           $justifyContent="space-between"
                           $alignItems="baseline"
@@ -829,7 +847,7 @@ export const SubscriptionSidebar = forwardRef<
                             tooltipPortal={portalRef?.current}
                           />
                         </Flex>
-                      </Box>,
+                      </Flex>,
                     );
                   }
 
@@ -893,7 +911,7 @@ export const SubscriptionSidebar = forwardRef<
             </Box>
           )}
 
-          {(willAddOnsChange || selectedAddOns.length > 0) && (
+          {(willAddOnsChange || selectedAddOnsWithCost.length > 0) && (
             <Flex $flexDirection="column" $gap="0.5rem" $marginBottom="1.5rem">
               <Box $opacity="0.625">
                 <Text $size={14}>{t("Add-ons")}</Text>
@@ -932,7 +950,7 @@ export const SubscriptionSidebar = forwardRef<
                 );
               })}
 
-              {selectedAddOns.map((addOn, index) => {
+              {selectedAddOnsWithCost.map((addOn, index) => {
                 const { price: addOnPrice, currency: addOnCurrency } =
                   getAddOnPrice(addOn, planPeriod) || {};
 
