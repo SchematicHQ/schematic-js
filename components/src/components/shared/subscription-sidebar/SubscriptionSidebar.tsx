@@ -25,6 +25,7 @@ import type {
 } from "../../../types";
 import {
   ChargeType,
+  entitlementHasCost,
   extractCurrentUsageBasedEntitlements,
   formatCurrency,
   formatOrdinal,
@@ -254,11 +255,7 @@ export const SubscriptionSidebar = forwardRef<
       const addedUsageBasedEntitlements = selectedPlan
         ? usageBasedEntitlements.reduce(
             (acc: UsageBasedEntitlement[], selected) => {
-              if (
-                (selected.priceBehavior === PriceBehavior.PayInAdvance &&
-                  !selected.quantity) ||
-                !getEntitlementPrice(selected, planPeriod)?.price
-              ) {
+              if (!entitlementHasCost(selected)) {
                 return acc;
               }
 
@@ -289,11 +286,7 @@ export const SubscriptionSidebar = forwardRef<
       const removedUsageBasedEntitlements = selectedPlan
         ? currentUsageBasedEntitlements.reduce(
             (acc: CurrentUsageBasedEntitlement[], current) => {
-              if (
-                (current.priceBehavior === PriceBehavior.PayInAdvance &&
-                  !current.quantity) ||
-                !getEntitlementPrice(current, planPeriod)?.price
-              ) {
+              if (!entitlementHasCost(current)) {
                 return acc;
               }
 
@@ -301,9 +294,7 @@ export const SubscriptionSidebar = forwardRef<
               const existsInSelected = allSelectedUsageBasedEntitlements.some(
                 (entitlement) =>
                   entitlement.id === current.entitlementId &&
-                  ((entitlement.priceBehavior === PriceBehavior.PayInAdvance &&
-                    entitlement.quantity > 0) ||
-                    entitlement.priceBehavior !== PriceBehavior.PayInAdvance),
+                  entitlementHasCost(entitlement),
               );
               const match =
                 !existsInSelected &&
