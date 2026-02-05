@@ -294,7 +294,7 @@ export const PlanManager = forwardRef<
             $gap="1rem"
           >
             <Flex $flexDirection="column" $gap="1rem">
-              <Text display={props.header.title.fontStyle} $leading={1}>
+              <Text display={props.header.title.fontStyle} $leading="none">
                 {currentPlan.name}
               </Text>
 
