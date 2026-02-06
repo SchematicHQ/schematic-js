@@ -43,6 +43,7 @@ models/FeatureType.ts
 models/FlagDetailResponseData.ts
 models/FlagResponseData.ts
 models/FlagType.ts
+models/GenericPreviewObject.ts
 models/GetPublicPlansResponse.ts
 models/PlanControlledByType.ts
 models/PlanCreditGrantView.ts

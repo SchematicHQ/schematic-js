@@ -38,7 +38,7 @@ export function groupPlanCreditGrants(creditGrants: PlanCreditGrantView[]) {
         grantReason: "plan",
         quantity: grant.creditAmount,
         planId: grant.planId,
-        planName: grant.planName,
+        planName: grant.plan?.name,
         period: getResetCadencePeriod(grant.resetCadence),
       };
 

@@ -37,6 +37,12 @@ import {
   BillingCreditExpiryUnitFromJSONTyped,
   BillingCreditExpiryUnitToJSON,
 } from "./BillingCreditExpiryUnit";
+import type { PreviewObjectResponseData } from "./PreviewObjectResponseData";
+import {
+  PreviewObjectResponseDataFromJSON,
+  PreviewObjectResponseDataFromJSONTyped,
+  PreviewObjectResponseDataToJSON,
+} from "./PreviewObjectResponseData";
 import type { BillingPlanCreditGrantResetCadence } from "./BillingPlanCreditGrantResetCadence";
 import {
   BillingPlanCreditGrantResetCadenceFromJSON,
@@ -154,14 +160,21 @@ export interface BillingPlanCreditGrantResponseData {
   id: string;
   /**
    *
+   * @type {PreviewObjectResponseData}
+   * @memberof BillingPlanCreditGrantResponseData
+   */
+  plan?: PreviewObjectResponseData;
+  /**
+   *
    * @type {string}
    * @memberof BillingPlanCreditGrantResponseData
    */
   planId: string;
   /**
-   *
+   * Use plan.name from the nested plan object instead
    * @type {string}
    * @memberof BillingPlanCreditGrantResponseData
+   * @deprecated
    */
   planName: string;
   /**
@@ -275,6 +288,10 @@ export function BillingPlanCreditGrantResponseDataFromJSONTyped(
     expiryUnitCount:
       json["expiry_unit_count"] == null ? undefined : json["expiry_unit_count"],
     id: json["id"],
+    plan:
+      json["plan"] == null
+        ? undefined
+        : PreviewObjectResponseDataFromJSON(json["plan"]),
     planId: json["plan_id"],
     planName: json["plan_name"],
     resetCadence: BillingPlanCreditGrantResetCadenceFromJSON(
@@ -317,6 +334,7 @@ export function BillingPlanCreditGrantResponseDataToJSON(
     expiry_unit: BillingCreditExpiryUnitToJSON(value["expiryUnit"]),
     expiry_unit_count: value["expiryUnitCount"],
     id: value["id"],
+    plan: PreviewObjectResponseDataToJSON(value["plan"]),
     plan_id: value["planId"],
     plan_name: value["planName"],
     reset_cadence: BillingPlanCreditGrantResetCadenceToJSON(
