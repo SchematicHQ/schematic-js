@@ -27,6 +27,7 @@ import {
 } from "./types";
 import { contextString } from "./utils";
 import { version } from "./version";
+import { DeveloperToolbar } from "./developer-toolbar";
 
 const anonymousIdKey = "schematicId";
 
@@ -75,6 +76,8 @@ export class Schematic {
   private retryTimer: ReturnType<typeof setInterval> | null = null;
   private flagValueDefaults: Record<string, boolean> = {};
   private flagCheckDefaults: Record<string, CheckFlagReturn> = {};
+  private developerToolbarEnabled: boolean = false;
+  private developerToolbar: DeveloperToolbar | null = null;
 
   constructor(apiKey: string, options?: SchematicOptions) {
     this.apiKey = apiKey;
@@ -196,6 +199,10 @@ export class Schematic {
 
     if (options?.flagCheckDefaults !== undefined) {
       this.flagCheckDefaults = options.flagCheckDefaults;
+    }
+
+    if (options?.developerToolbar !== undefined) {
+      this.developerToolbarEnabled = options.developerToolbar;
     }
 
     /* eslint-disable-next-line @typescript-eslint/strict-boolean-expressions */
@@ -529,6 +536,11 @@ export class Schematic {
 
       // Update pending state
       this.setIsPending(false);
+
+      // Update developer toolbar after flags are updated
+      if (this.developerToolbarEnabled) {
+        this.initializeDeveloperToolbar();
+      }
     };
   }
 
@@ -723,6 +735,9 @@ export class Schematic {
       this.context = context;
       this.flushContextDependentEventQueue();
       this.setIsPending(false);
+      if (this.developerToolbarEnabled) {
+        this.initializeDeveloperToolbar();
+      }
       return Promise.resolve();
     }
 
@@ -1317,6 +1332,12 @@ export class Schematic {
    * In offline mode, this is a no-op.
    */
   cleanup = async (): Promise<void> => {
+    // Clean up developer toolbar
+    if (this.developerToolbar) {
+      this.developerToolbar.cleanup();
+      this.developerToolbar = null;
+    }
+
     // In offline mode, no need to clean up connections since none are made
     if (this.isOffline()) {
       this.debug("cleanup: skipped (offline mode)");
@@ -1801,6 +1822,13 @@ export class Schematic {
 
   // flag checks state
   getFlagCheck = (flagKey: string): CheckFlagReturn | undefined => {
+    // Check manual overrides first (developer toolbar)
+    if (this.developerToolbarEnabled && this.developerToolbar) {
+      if (this.developerToolbar.hasManualOverride(flagKey)) {
+        return this.developerToolbar.getManualOverride(flagKey);
+      }
+    }
+
     const contextStr = contextString(this.context);
     const checks = this.checks[contextStr] ?? {};
     const check = checks[flagKey];
@@ -1827,6 +1855,14 @@ export class Schematic {
 
   // flagValues state
   getFlagValue = (flagKey: string): boolean | undefined => {
+    // Check manual overrides first (developer toolbar)
+    if (this.developerToolbarEnabled && this.developerToolbar) {
+      const override = this.developerToolbar.getManualOverride(flagKey);
+      if (override) {
+        return override.value;
+      }
+    }
+
     const contextStr = contextString(this.context);
     const checks = this.checks[contextStr] ?? {};
     const check = checks[flagKey];
@@ -1937,6 +1973,51 @@ export class Schematic {
       });
     });
   };
+
+  /**
+   * used by the developer toolbar to get all flags for the current context
+   */
+  getAllFlags = (): Record<string, CheckFlagReturn> => {
+    const contextStr = contextString(this.context);
+    const checks = this.checks[contextStr] ?? {};
+    const allFlags: Record<string, CheckFlagReturn> = {};
+
+    Object.keys(checks).forEach((flagKey) => {
+      const check = checks[flagKey];
+      if (check) {
+        allFlags[flagKey] = check;
+      }
+    });
+
+    return allFlags;
+  };
+
+  private initializeDeveloperToolbar = (): void => {
+    if (!this.developerToolbarEnabled || typeof window === "undefined") {
+      return;
+    }
+
+    // Developer toolbar requires WebSocket mode
+    if (!this.useWebSocket) {
+      console.warn(
+        "[Schematic] Developer toolbar requires WebSocket mode. Please enable useWebSocket: true in your Schematic configuration.",
+      );
+      return;
+    }
+
+    if (!this.developerToolbar) {
+      this.developerToolbar = new DeveloperToolbar({
+        getAllFlags: this.getAllFlags,
+        getFlagValue: this.getFlagValue,
+        addFlagValueListener: this.addFlagValueListener,
+        notifyFlagCheckListeners: this.notifyFlagCheckListeners,
+        notifyFlagValueListeners: this.notifyFlagValueListeners,
+      });
+    }
+
+    this.developerToolbar.initialize();
+  };
+
 }
 
 const notifyPendingListener = (listener: PendingListenerFn, value: boolean) => {
