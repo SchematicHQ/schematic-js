@@ -567,7 +567,7 @@ describe("Schematic WebSocket", () => {
     expect(connectionCount).toBe(2);
   }, 15000);
 
-  it("should fall back to REST API if WebSocket connection fails", async () => {
+  it("should use fallback value if WebSocket connection fails", async () => {
     mockServer.stop();
     await new Promise((resolve) => setTimeout(resolve, 100));
 
@@ -575,22 +575,6 @@ describe("Schematic WebSocket", () => {
       company: { companyId: "456" },
       user: { userId: "123" },
     };
-
-    // Mock the successful flag check API response
-    mockFetch.mockImplementationOnce(() =>
-      Promise.resolve({
-        ok: true,
-        json: () =>
-          Promise.resolve({
-            data: {
-              value: true,
-              flag: "TEST_FLAG",
-              companyId: context.company?.companyId,
-              userId: context.user?.userId,
-            },
-          }),
-      }),
-    );
 
     // Mock the flag check event endpoint
     mockFetch.mockResolvedValueOnce({
@@ -605,74 +589,8 @@ describe("Schematic WebSocket", () => {
       fallback: false,
     });
 
-    expect(flagValue).toBe(true);
-    expect(mockFetch).toHaveBeenCalledTimes(2); // One for flag check, one for event
-  });
-
-  it("should return fallback value if REST API call fails", async () => {
-    mockServer.stop();
-    await new Promise((resolve) => setTimeout(resolve, 100));
-
-    const context = {
-      company: { companyId: "456" },
-      user: { userId: "123" },
-    };
-
-    // API response with server error
-    mockFetch.mockImplementationOnce(() =>
-      Promise.resolve({
-        ok: false,
-        status: 500,
-        statusText: "Internal Server Error",
-      }),
-    );
-
-    // Mock the flag check event endpoint
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      status: 200,
-      statusText: "OK",
-    });
-
-    const flagValue = await schematic.checkFlag({
-      key: "TEST_FLAG",
-      context,
-      fallback: true,
-    });
-
-    expect(flagValue).toBe(true); // fallback value
-    expect(mockFetch).toHaveBeenCalledTimes(2); // One for flag check attempt, one for event
-  });
-
-  it("should return fallback value if REST API call throws", async () => {
-    mockServer.stop();
-    await new Promise((resolve) => setTimeout(resolve, 100));
-
-    const context = {
-      company: { companyId: "456" },
-      user: { userId: "123" },
-    };
-
-    // network error
-    mockFetch.mockImplementationOnce(() =>
-      Promise.reject(new Error("Network error")),
-    );
-
-    // Mock the flag check event endpoint
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      status: 200,
-      statusText: "OK",
-    });
-
-    const flagValue = await schematic.checkFlag({
-      key: "TEST_FLAG",
-      context,
-      fallback: true,
-    });
-
-    expect(flagValue).toBe(true); // fallback value
-    expect(mockFetch).toHaveBeenCalledTimes(2); // One for flag check attempt, one for event
+    expect(flagValue).toBe(false); // fallback value
+    expect(mockFetch).toHaveBeenCalledTimes(1); // Only event, no REST API call
   });
 
   it("should use cached values for subsequent checks", async () => {
@@ -1296,18 +1214,6 @@ describe("WebSocket Fallback Behavior", () => {
         },
       });
 
-      // Mock successful REST fallback
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: vi.fn().mockResolvedValueOnce({
-          data: {
-            flag: 'ws-failure-test',
-            value: true,
-            reason: 'REST fallback after WebSocket failure',
-          },
-        }),
-      });
-
       // Mock the flag check event endpoint
       mockFetch.mockResolvedValueOnce({
         ok: true,
@@ -1317,13 +1223,13 @@ describe("WebSocket Fallback Behavior", () => {
 
       const result = await schematic.checkFlag({ key: 'ws-failure-test' });
 
-      expect(result).toBe(true);
-      expect(mockFetch).toHaveBeenCalledTimes(2); // REST fallback + event
+      expect(result).toBe(true); // From flagValueDefaults
+      expect(mockFetch).toHaveBeenCalledTimes(1); // Only event, no REST API call
 
       await schematic.cleanup();
     });
 
-    it("should use flagCheckDefaults when both WebSocket and REST fail", async () => {
+    it("should use flagCheckDefaults when WebSocket connection fails", async () => {
       // Stop the mock server to simulate WebSocket connection failure
       mockServer.stop();
       await new Promise((resolve) => setTimeout(resolve, 100));
@@ -1332,18 +1238,13 @@ describe("WebSocket Fallback Behavior", () => {
         useWebSocket: true,
         webSocketUrl: TEST_WS_URL,
         flagCheckDefaults: {
-          'ws-rest-failure': {
-            flag: 'ws-rest-failure',
+          'ws-failure': {
+            flag: 'ws-failure',
             value: false,
-            reason: 'Both WebSocket and REST failed',
+            reason: 'WebSocket connection failed',
           },
         },
       });
-
-      // Mock REST API failure
-      mockFetch.mockImplementationOnce(() =>
-        Promise.reject(new Error("REST API also failed"))
-      );
 
       // Mock the flag check event endpoint
       mockFetch.mockResolvedValueOnce({
@@ -1352,10 +1253,10 @@ describe("WebSocket Fallback Behavior", () => {
         statusText: "OK",
       });
 
-      const result = await schematic.checkFlag({ key: 'ws-rest-failure' });
+      const result = await schematic.checkFlag({ key: 'ws-failure' });
 
       expect(result).toBe(false); // From flagCheckDefaults
-      expect(mockFetch).toHaveBeenCalledTimes(2); // REST attempt + event
+      expect(mockFetch).toHaveBeenCalledTimes(1); // Only event, no REST API call
 
       await schematic.cleanup();
     });
@@ -1969,7 +1870,7 @@ describe("WebSocket Initial Connection Retry", () => {
     expect(connectionCount).toBe(1);
   }, 15000);
 
-  it("should fall back to REST after exhausting all connection attempts", async () => {
+  it("should use fallback value after exhausting all connection attempts", async () => {
     // Don't start a WebSocket server - all attempts should timeout
     schematic = new Schematic("API_KEY", {
       useWebSocket: true,
@@ -1984,18 +1885,6 @@ describe("WebSocket Initial Connection Retry", () => {
       user: { userId: "123" },
     };
 
-    // Mock successful REST fallback
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: vi.fn().mockResolvedValueOnce({
-        data: {
-          flag: "TEST_FLAG",
-          value: true,
-          reason: "REST fallback after WebSocket timeout",
-        },
-      }),
-    });
-
     // Mock the flag check event endpoint
     mockFetch.mockResolvedValueOnce({
       ok: true,
@@ -2009,9 +1898,9 @@ describe("WebSocket Initial Connection Retry", () => {
       fallback: false,
     });
 
-    expect(result).toBe(true);
-    // Should have fallen back to REST API
-    expect(mockFetch).toHaveBeenCalledTimes(2);
+    expect(result).toBe(false); // fallback value
+    // Should only call event endpoint, no REST API call
+    expect(mockFetch).toHaveBeenCalledTimes(1);
   }, 20000);
 
   it("should not retry on non-timeout errors", async () => {
@@ -2037,18 +1926,6 @@ describe("WebSocket Initial Connection Retry", () => {
       user: { userId: "123" },
     };
 
-    // Mock successful REST fallback
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: vi.fn().mockResolvedValueOnce({
-        data: {
-          flag: "TEST_FLAG",
-          value: true,
-          reason: "REST fallback",
-        },
-      }),
-    });
-
     // Mock the flag check event endpoint
     mockFetch.mockResolvedValueOnce({
       ok: true,
@@ -2062,9 +1939,11 @@ describe("WebSocket Initial Connection Retry", () => {
       fallback: false,
     });
 
-    expect(result).toBe(true);
+    expect(result).toBe(false); // fallback value
     // Should only have one connection attempt since it wasn't a timeout
     expect(connectionCount).toBe(1);
+    // Should only call event endpoint, no REST API call
+    expect(mockFetch).toHaveBeenCalledTimes(1);
   }, 15000);
 
   it("should cap retry delay at webSocketMaxRetryDelay", async () => {
