@@ -13,12 +13,6 @@
  */
 
 import { mapValues } from "../runtime";
-import type { PreviewObject } from "./PreviewObject";
-import {
-  PreviewObjectFromJSON,
-  PreviewObjectFromJSONTyped,
-  PreviewObjectToJSON,
-} from "./PreviewObject";
 import type { BillingCreditExpiryType } from "./BillingCreditExpiryType";
 import {
   BillingCreditExpiryTypeFromJSON,
@@ -37,6 +31,12 @@ import {
   BillingPlanCreditGrantResetTypeFromJSONTyped,
   BillingPlanCreditGrantResetTypeToJSON,
 } from "./BillingPlanCreditGrantResetType";
+import type { GenericPreviewObject } from "./GenericPreviewObject";
+import {
+  GenericPreviewObjectFromJSON,
+  GenericPreviewObjectFromJSONTyped,
+  GenericPreviewObjectToJSON,
+} from "./GenericPreviewObject";
 import type { BillingCreditExpiryUnit } from "./BillingCreditExpiryUnit";
 import {
   BillingCreditExpiryUnitFromJSON,
@@ -160,10 +160,10 @@ export interface PlanCreditGrantView {
   id: string;
   /**
    *
-   * @type {PreviewObject}
+   * @type {GenericPreviewObject}
    * @memberof PlanCreditGrantView
    */
-  plan?: PreviewObject;
+  plan?: GenericPreviewObject;
   /**
    *
    * @type {string}
@@ -300,7 +300,9 @@ export function PlanCreditGrantViewFromJSONTyped(
       json["expiry_unit_count"] == null ? undefined : json["expiry_unit_count"],
     id: json["id"],
     plan:
-      json["plan"] == null ? undefined : PreviewObjectFromJSON(json["plan"]),
+      json["plan"] == null
+        ? undefined
+        : GenericPreviewObjectFromJSON(json["plan"]),
     planId: json["plan_id"],
     pluralName: json["plural_name"] == null ? undefined : json["plural_name"],
     resetCadence: BillingPlanCreditGrantResetCadenceFromJSON(
@@ -345,7 +347,7 @@ export function PlanCreditGrantViewToJSON(
     expiry_unit: BillingCreditExpiryUnitToJSON(value["expiryUnit"]),
     expiry_unit_count: value["expiryUnitCount"],
     id: value["id"],
-    plan: PreviewObjectToJSON(value["plan"]),
+    plan: GenericPreviewObjectToJSON(value["plan"]),
     plan_id: value["planId"],
     plural_name: value["pluralName"],
     reset_cadence: BillingPlanCreditGrantResetCadenceToJSON(
