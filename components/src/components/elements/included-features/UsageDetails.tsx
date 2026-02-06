@@ -319,7 +319,7 @@ export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
         <Box
           $marginTop="0.75rem"
           $viewport={{
-            "@container (min-width: 375px)": {
+            xs: {
               $marginTop: 0,
             },
           }}
@@ -329,7 +329,14 @@ export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
       )}
 
       {layout.usage.isVisible && usageText && (
-        <Flex $alignItems="baseline">
+        <Flex
+          $alignItems="baseline"
+          $viewport={{
+            xs: {
+              $justifyContent: "end",
+            },
+          }}
+        >
           <Text display={layout.usage.fontStyle}>{usageText}</Text>
 
           {priceBehavior === PriceBehavior.Tiered && (

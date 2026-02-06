@@ -162,7 +162,7 @@ export const IncludedFeatures = forwardRef<
         $gridTemplateColumns="min-content 1fr"
         $columnGap="0.5rem"
         $viewport={{
-          "@container (min-width: 375px)": {
+          xs: {
             $gridTemplateColumns: "min-content 3fr 2fr",
             $rowGap: "1.5rem",
           },
@@ -189,9 +189,6 @@ export const IncludedFeatures = forwardRef<
                 $flexDirection="column"
                 $alignSelf="baseline"
                 $gap="0.25rem"
-                $viewport={{
-                  "@container (min-width: 375px)": {},
-                }}
               >
                 {entitlement.feature?.name && (
                   <Text display={props.icons.fontStyle}>
@@ -231,9 +228,8 @@ export const IncludedFeatures = forwardRef<
                 $marginBottom="1.5rem"
                 $marginLeft="3.75rem"
                 $viewport={{
-                  "@container (min-width: 375px)": {
+                  xs: {
                     $gridColumn: 3,
-                    $justifySelf: "end",
                     $alignSelf: "baseline",
                     $textAlign: "right",
                     $marginBottom: 0,
