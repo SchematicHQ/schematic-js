@@ -13,6 +13,12 @@
  */
 
 import { mapValues } from "../runtime";
+import type { PreviewObject } from "./PreviewObject";
+import {
+  PreviewObjectFromJSON,
+  PreviewObjectFromJSONTyped,
+  PreviewObjectToJSON,
+} from "./PreviewObject";
 import type { BillingCreditExpiryType } from "./BillingCreditExpiryType";
 import {
   BillingCreditExpiryTypeFromJSON,
@@ -154,16 +160,16 @@ export interface PlanCreditGrantView {
   id: string;
   /**
    *
-   * @type {string}
+   * @type {PreviewObject}
    * @memberof PlanCreditGrantView
    */
-  planId: string;
+  plan?: PreviewObject;
   /**
    *
    * @type {string}
    * @memberof PlanCreditGrantView
    */
-  planName: string;
+  planId: string;
   /**
    *
    * @type {string}
@@ -226,7 +232,6 @@ export function instanceOfPlanCreditGrantView(
     return false;
   if (!("id" in value) || value["id"] === undefined) return false;
   if (!("planId" in value) || value["planId"] === undefined) return false;
-  if (!("planName" in value) || value["planName"] === undefined) return false;
   if (!("resetCadence" in value) || value["resetCadence"] === undefined)
     return false;
   if (!("resetStart" in value) || value["resetStart"] === undefined)
@@ -294,8 +299,9 @@ export function PlanCreditGrantViewFromJSONTyped(
     expiryUnitCount:
       json["expiry_unit_count"] == null ? undefined : json["expiry_unit_count"],
     id: json["id"],
+    plan:
+      json["plan"] == null ? undefined : PreviewObjectFromJSON(json["plan"]),
     planId: json["plan_id"],
-    planName: json["plan_name"],
     pluralName: json["plural_name"] == null ? undefined : json["plural_name"],
     resetCadence: BillingPlanCreditGrantResetCadenceFromJSON(
       json["reset_cadence"],
@@ -339,8 +345,8 @@ export function PlanCreditGrantViewToJSON(
     expiry_unit: BillingCreditExpiryUnitToJSON(value["expiryUnit"]),
     expiry_unit_count: value["expiryUnitCount"],
     id: value["id"],
+    plan: PreviewObjectToJSON(value["plan"]),
     plan_id: value["planId"],
-    plan_name: value["planName"],
     plural_name: value["pluralName"],
     reset_cadence: BillingPlanCreditGrantResetCadenceToJSON(
       value["resetCadence"],
