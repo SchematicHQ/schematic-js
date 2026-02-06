@@ -44,6 +44,7 @@ type CheckoutStageButtonProps = {
   isSticky?: boolean;
   checkoutButtonRef?: RefObject<HTMLDivElement>;
   isPaymentMethodRequired: boolean;
+  isScheduledDowngrade?: boolean;
   isSelectedPlanTrialable: boolean;
   setCheckoutStage?: (stage: string) => void;
   trialPaymentMethodRequired: boolean;
@@ -61,6 +62,7 @@ export const CheckoutStageButton = ({
   isLoading,
   isSticky = false,
   isPaymentMethodRequired,
+  isScheduledDowngrade = false,
   isSelectedPlanTrialable,
   setCheckoutStage,
   trialPaymentMethodRequired,
@@ -305,6 +307,21 @@ export const CheckoutStageButton = ({
 
   if (checkoutStage === "checkout") {
     if (!isPaymentMethodRequired) {
+      if (isScheduledDowngrade) {
+        return (
+          <Button
+            type="button"
+            disabled={isDisabled}
+            onClick={checkout}
+            $size={isSticky ? "sm" : "md"}
+            $fullWidth
+            $isLoading={isLoading}
+          >
+            {t("Schedule Downgrade")}
+          </Button>
+        );
+      }
+
       return (
         <NoPaymentRequired
           isDisabled={isDisabled}
@@ -323,7 +340,11 @@ export const CheckoutStageButton = ({
         $fullWidth
         $isLoading={isLoading}
       >
-        {willTrialWithoutPaymentMethod ? t("Start trial") : t("Pay now")}
+        {isScheduledDowngrade
+          ? t("Schedule Downgrade")
+          : willTrialWithoutPaymentMethod
+            ? t("Start trial")
+            : t("Pay now")}
       </Button>
     );
   }

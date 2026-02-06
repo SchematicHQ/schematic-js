@@ -305,6 +305,10 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
   const [promoCode, setPromoCode] = useState<string | null>(null);
 
   const [isPaymentMethodRequired, setIsPaymentMethodRequired] = useState(false);
+  const [isScheduledDowngrade, setIsScheduledDowngrade] = useState(false);
+  const [scheduledChangeTime, setScheduledChangeTime] = useState<
+    Date | undefined
+  >();
 
   const willTrialWithoutPaymentMethod = useMemo(
     () => shouldTrial && !trialPaymentMethodRequired,
@@ -614,6 +618,8 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
         if (response) {
           setCharges(response.data.finance);
           setIsPaymentMethodRequired(response.data.paymentMethodRequired);
+          setIsScheduledDowngrade(response.data.isScheduledDowngrade);
+          setScheduledChangeTime(response.data.scheduledChangeTime ?? undefined);
         }
 
         if (typeof updates.promoCode !== "undefined") {
@@ -1243,8 +1249,10 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
           error={error}
           isLoading={isLoading}
           isPaymentMethodRequired={isPaymentMethodRequired}
+          isScheduledDowngrade={isScheduledDowngrade}
           paymentMethodId={paymentMethodId}
           promoCode={promoCode}
+          scheduledChangeTime={scheduledChangeTime}
           setCheckoutStage={(stage) => setCheckoutStage(stage)}
           setError={(msg) => setError(msg)}
           setIsLoading={setIsLoading}

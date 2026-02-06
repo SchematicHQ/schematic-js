@@ -94,6 +94,7 @@
     "Resets": "Resets {{date}}",
     "Save payment method": "Save payment method",
     "Save with yearly billing": "Save up to {{percent}}% with yearly billing",
+    "Schedule Downgrade": "Schedule Downgrade",
     "Saving with yearly billing": "You are saving {{percent}}% with yearly billing",
     "See all": "See all",
     "See balance details": "See balance details",
@@ -155,6 +156,7 @@
     "X units per use": "{{amount}} {{units}} per use",
     "X time left in trial": "{{amount}} {{units}} left in trial",
     "Yearly total": "Yearly total",
+    "You will be downgraded to the {{plan}} plan at the end of your billing period on {{date}}.": "You will be downgraded to the {{plan}} plan at the end of your billing period on {{date}}.",
     "You will retain access to your plan until the end of the billing period, on": "You will retain access to your plan until the end of the billing period, on",
 
     "$X per unit": "{{cost}} per {{unit}}",

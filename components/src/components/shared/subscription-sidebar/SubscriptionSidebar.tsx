@@ -57,8 +57,10 @@ interface SubscriptionSidebarProps {
   error?: string;
   isLoading: boolean;
   isPaymentMethodRequired: boolean;
+  isScheduledDowngrade?: boolean;
   paymentMethodId?: string;
   promoCode?: string | null;
+  scheduledChangeTime?: Date;
   setCheckoutStage?: (stage: string) => void;
   setError: (msg?: string) => void;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
@@ -91,8 +93,10 @@ export const SubscriptionSidebar = forwardRef<
       error,
       isLoading,
       isPaymentMethodRequired,
+      isScheduledDowngrade = false,
       paymentMethodId,
       promoCode,
+      scheduledChangeTime,
       setCheckoutStage,
       setError,
       setIsLoading,
@@ -572,6 +576,7 @@ export const SubscriptionSidebar = forwardRef<
               checkoutStages={checkoutStages}
               hasPlan={typeof selectedPlan !== "undefined"}
               isPaymentMethodRequired={isPaymentMethodRequired}
+              isScheduledDowngrade={isScheduledDowngrade}
               hasPaymentMethod={
                 typeof paymentMethod !== "undefined" ||
                 typeof paymentMethodId === "string"
@@ -1258,9 +1263,17 @@ export const SubscriptionSidebar = forwardRef<
           {layout !== "unsubscribe" && (
             <Box $opacity="0.625">
               <Text>
-                {subscriptionPrice &&
-                  // TODO: localize
-                  `You will be billed ${subscriptionPrice} ${usageBasedEntitlements.length > 0 ? "plus usage based costs" : ""} for this subscription
+                {isScheduledDowngrade && scheduledChangeTime
+                  ? t(
+                      "You will be downgraded to the {{plan}} plan at the end of your billing period on {{date}}.",
+                      {
+                        plan: selectedPlan?.name ?? "",
+                        date: scheduledChangeTime.toLocaleDateString(),
+                      },
+                    )
+                  : subscriptionPrice &&
+                    // TODO: localize
+                    `You will be billed ${subscriptionPrice} ${usageBasedEntitlements.length > 0 ? "plus usage based costs" : ""} for this subscription
                 every ${planPeriod} ${periodStart ? `on the ${formatOrdinal(periodStart.getDate())}` : ""} ${planPeriod === "year" && periodStart ? `of ${getMonthName(periodStart)}` : ""} unless you unsubscribe.`}
               </Text>
             </Box>
