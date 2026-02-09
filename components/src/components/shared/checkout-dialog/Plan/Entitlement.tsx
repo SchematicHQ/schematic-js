@@ -15,6 +15,7 @@ import {
   getEntitlementPrice,
   getFeatureName,
   getMetricPeriodName,
+  isTieredPrice,
   shortenPeriod,
 } from "../../../../utils";
 import {
@@ -50,12 +51,18 @@ export const Entitlement = ({
   const secondaryTextSize = 0.875 * settings.theme.typography.text.fontSize;
   const secondaryTextColor = `color-mix(in oklch, ${settings.theme.typography.text.color} 62.5%, ${settings.theme.card.background})`;
 
+  const entitlementBillingPrice = getEntitlementPrice(entitlement, period);
   const {
     price,
     priceTier,
     currency,
     packageSize = 1,
-  } = getEntitlementPrice(entitlement, period) || {};
+    tiersMode,
+  } = entitlementBillingPrice || {};
+
+  const tiered =
+    entitlement.priceBehavior === PriceBehavior.PayInAdvance &&
+    isTieredPrice(entitlementBillingPrice);
 
   const text = useMemo(() => {
     if (!entitlement.feature) {
@@ -77,6 +84,7 @@ export const Entitlement = ({
 
     if (
       typeof price === "number" &&
+      !tiered &&
       (entitlement.priceBehavior === PriceBehavior.PayInAdvance ||
         entitlement.priceBehavior === PriceBehavior.PayAsYouGo)
     ) {
@@ -95,7 +103,7 @@ export const Entitlement = ({
       );
     }
 
-    if (entitlement.priceBehavior === PriceBehavior.Tiered) {
+    if (entitlement.priceBehavior === PriceBehavior.Tiered || tiered) {
       return <TieredPricingDetails entitlement={entitlement} period={period} />;
     }
 
@@ -177,6 +185,7 @@ export const Entitlement = ({
     price,
     currency,
     packageSize,
+    tiered,
   ]);
 
   const usageText = useMemo(() => {
@@ -200,10 +209,10 @@ export const Entitlement = ({
       );
     }
 
-    if (entitlement.priceBehavior === PriceBehavior.Tiered) {
+    if (entitlement.priceBehavior === PriceBehavior.Tiered || tiered) {
       return t("Tier-based");
     }
-  }, [t, entitlement, period, price, currency, packageSize]);
+  }, [t, entitlement, period, price, currency, packageSize, tiered]);
 
   return (
     <Flex
@@ -236,12 +245,14 @@ export const Entitlement = ({
                   {usageText}
                 </Text>
 
-                {entitlement.priceBehavior === PriceBehavior.Tiered && (
+                {(entitlement.priceBehavior === PriceBehavior.Tiered ||
+                  tiered) && (
                   <PricingTiersTooltip
                     feature={entitlement.feature}
                     period={period}
                     currency={currency}
                     priceTiers={priceTier}
+                    tiersMode={tiersMode ?? undefined}
                     portal={tooltipPortal}
                   />
                 )}

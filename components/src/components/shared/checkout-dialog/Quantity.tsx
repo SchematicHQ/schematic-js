@@ -4,12 +4,15 @@ import { TEXT_BASE_SIZE } from "../../../const";
 import { useEmbed } from "../../../hooks";
 import type { SelectedPlan, UsageBasedEntitlement } from "../../../types";
 import {
+  calculateTieredCost,
   formatCurrency,
   getEntitlementPrice,
   getFeatureName,
+  isTieredPrice,
   shortenPeriod,
 } from "../../../utils";
 import { cardBoxShadow } from "../../layout";
+import { PricingTiersTooltip } from "../../shared";
 import { Box, Flex, Input, Text } from "../../ui";
 
 interface QuantityProps {
@@ -37,11 +40,19 @@ export const Quantity = ({
     <Flex $flexDirection="column" $gap="1rem">
       {entitlements.reduce((acc: React.ReactElement[], entitlement, index) => {
         if (entitlement.feature) {
+          const entitlementBillingPrice = getEntitlementPrice(
+            entitlement,
+            period,
+          );
           const {
             price,
             currency,
             packageSize = 1,
-          } = getEntitlementPrice(entitlement, period) || {};
+            priceTier: priceTiers,
+            tiersMode,
+          } = entitlementBillingPrice || {};
+
+          const tiered = isTieredPrice(entitlementBillingPrice);
 
           acc.push(
             <Flex
@@ -121,7 +132,13 @@ export const Quantity = ({
                 <Box $whiteSpace="nowrap">
                   <Text>
                     {formatCurrency(
-                      (price ?? 0) * entitlement.quantity,
+                      tiered && priceTiers
+                        ? calculateTieredCost(
+                            entitlement.quantity,
+                            priceTiers,
+                            tiersMode,
+                          )
+                        : (price ?? 0) * entitlement.quantity,
                       currency,
                     )}
                     <sub>/{shortenPeriod(period)}</sub>
@@ -129,18 +146,38 @@ export const Quantity = ({
                 </Box>
 
                 <Box $whiteSpace="nowrap">
-                  <Text
-                    style={{ opacity: 0.54 }}
-                    $size={unitPriceFontSize}
-                    $color={settings.theme.typography.text.color}
-                  >
-                    {formatCurrency(price ?? 0, currency)}
-                    <sub>
-                      /{packageSize > 1 && <>{packageSize} </>}
-                      {getFeatureName(entitlement.feature, packageSize)}/
-                      {shortenPeriod(period)}
-                    </sub>
-                  </Text>
+                  {tiered ? (
+                    <Flex $alignItems="baseline" $justifyContent="end">
+                      <Text
+                        style={{ opacity: 0.54 }}
+                        $size={unitPriceFontSize}
+                        $color={settings.theme.typography.text.color}
+                      >
+                        {t("Tier-based")}
+                      </Text>
+
+                      <PricingTiersTooltip
+                        feature={entitlement.feature}
+                        period={period}
+                        currency={currency}
+                        priceTiers={priceTiers}
+                        tiersMode={tiersMode ?? undefined}
+                      />
+                    </Flex>
+                  ) : (
+                    <Text
+                      style={{ opacity: 0.54 }}
+                      $size={unitPriceFontSize}
+                      $color={settings.theme.typography.text.color}
+                    >
+                      {formatCurrency(price ?? 0, currency)}
+                      <sub>
+                        /{packageSize > 1 && <>{packageSize} </>}
+                        {getFeatureName(entitlement.feature, packageSize)}/
+                        {shortenPeriod(period)}
+                      </sub>
+                    </Text>
+                  )}
                 </Box>
               </Box>
             </Flex>,
