@@ -636,10 +636,6 @@ export const SubscriptionSidebar = forwardRef<
       trialEndsOn.setDate(trialEndsOn.getDate() + selectedPlan.trialDays);
     }
 
-    // TODO: update for api model
-    const downgradeRule = data?.downgradeRule || "immediate";
-    const scheduledPlanChange = data?.company?.scheduledPlanChange || {};
-
     return (
       <Flex
         ref={ref}
@@ -1248,11 +1244,13 @@ export const SubscriptionSidebar = forwardRef<
           {layout !== "unsubscribe" && (
             <Box $opacity="0.625">
               <Text>
-                {scheduledPlanChange && billingSubscription
+                {willScheduleDowngrade &&
+                selectedPlan?.name &&
+                billingSubscription
                   ? t(
                       "You will be downgraded at the end of your billing period.",
                       {
-                        plan: scheduledPlanChange?.plan?.name,
+                        plan: selectedPlan.name,
                         date: toPrettyDate(
                           new Date(billingSubscription.periodEnd * 1000),
                           {

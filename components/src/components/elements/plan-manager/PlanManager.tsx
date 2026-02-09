@@ -204,10 +204,6 @@ export const PlanManager = forwardRef<
     return { isFreePlan, isUsageBasedPlan };
   }, [currentPlan, usageBasedEntitlements]);
 
-  // TODO: update for api model
-  const downgradeRule = data?.downgradeRule || "immediate";
-  const scheduledPlanChange = data?.company?.scheduledPlanChange || {};
-
   return (
     <>
       {isTrialSubscription && !willSubscriptionCancel ? (
@@ -282,7 +278,7 @@ export const PlanManager = forwardRef<
           )}
         </Notice>
       ) : (
-        scheduledPlanChange && (
+        data?.company?.scheduledDowngrade?.toPlanName && (
           <Notice
             as={Flex}
             $flexDirection="column"
@@ -297,7 +293,7 @@ export const PlanManager = forwardRef<
           >
             <Text as="h3" display="heading3">
               {t("Downgrade to plan scheduled", {
-                plan: scheduledPlanChange?.plan?.name || "plan",
+                plan: data.company.scheduledDowngrade.toPlanName,
               })}
             </Text>
 
@@ -307,7 +303,7 @@ export const PlanManager = forwardRef<
                 $size={0.8125 * settings.theme.typography.text.fontSize}
               >
                 {t("Access to plan will end.", {
-                  plan: scheduledPlanChange?.plan?.name || "plan",
+                  plan: data.company.scheduledDowngrade.toPlanName,
                   date: toPrettyDate(
                     new Date(billingSubscription.periodEnd * 1000),
                     {
