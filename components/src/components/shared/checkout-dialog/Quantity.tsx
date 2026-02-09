@@ -21,12 +21,14 @@ interface QuantityProps {
   selectedPlan?: SelectedPlan;
   entitlements: UsageBasedEntitlement[];
   updateQuantity: (id: string, quantity: number) => void;
+  tooltipPortal?: HTMLElement | null;
 }
 
 export const Quantity = ({
   entitlements,
   updateQuantity,
   period,
+  tooltipPortal,
 }: QuantityProps) => {
   const { settings } = useEmbed();
 
@@ -162,6 +164,7 @@ export const Quantity = ({
                         currency={currency}
                         priceTiers={priceTiers}
                         tiersMode={tiersMode ?? undefined}
+                        portal={tooltipPortal}
                       />
                     </Flex>
                   ) : (
