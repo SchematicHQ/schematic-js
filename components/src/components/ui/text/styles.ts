@@ -4,7 +4,7 @@ import { TEXT_BASE_SIZE } from "../../../const";
 import { type FontStyle } from "../../../context";
 import type { ComponentProps } from "../../../types";
 
-export enum TextPropNames {
+export enum TextPropName {
   Font = "$font",
   Size = "$size",
   Weight = "$weight",
@@ -13,7 +13,27 @@ export enum TextPropNames {
   Align = "$align",
 }
 
-export type TextPropNameTypes = `${TextPropNames}`;
+export type TextPropNameType = `${TextPropName}`;
+
+export enum LeadingName {
+  None = "none",
+  Tight = "tight",
+  Snug = "snug",
+  Normal = "normal",
+  Relaxed = "relaxed",
+  Loose = "loose",
+}
+
+export type LeadingNameType = `${LeadingName}`;
+
+export const LeadingLineHeightMap: Record<LeadingNameType, number> = {
+  none: 1,
+  tight: 1.25,
+  snug: 1.375,
+  normal: 1.5,
+  relaxed: 1.625,
+  loose: 2,
+};
 
 export interface TextProps {
   display?: FontStyle;
@@ -22,7 +42,7 @@ export interface TextProps {
   $size?: ComponentProps["$fontSize"];
   $weight?: ComponentProps["$fontWeight"];
   $color?: ComponentProps["$color"];
-  $leading?: ComponentProps["$lineHeight"];
+  $leading?: LeadingNameType;
   $align?: ComponentProps["$textAlign"];
 }
 
@@ -42,13 +62,14 @@ export const Text = styled.span
     $size,
     $weight,
     $color,
-    $leading = 1.35,
+    $leading,
     $align,
   }) => {
     const fontStyle = theme.typography[display];
     const fontFamily = $font || fontStyle.fontFamily;
     const fontSize = $size || fontStyle.fontSize;
     const fontWeight = $weight || fontStyle.fontWeight;
+    const lineHeight = $leading && LeadingLineHeightMap[$leading];
     const color = $color || fontStyle.color;
 
     return css`
@@ -58,8 +79,13 @@ export const Text = styled.span
         : fontSize};
       font-weight: ${fontWeight};
       font-variation-settings: "wght" ${fontWeight};
-      line-height: ${$leading};
       color: ${color};
+      text-wrap: pretty;
+
+      ${lineHeight &&
+      css`
+        line-height: ${lineHeight};
+      `}
 
       ${$align &&
       css`

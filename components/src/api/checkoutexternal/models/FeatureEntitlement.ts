@@ -27,37 +27,37 @@ import {
  */
 export interface FeatureEntitlement {
   /**
-   * If a numeric feature entitlement rule was matched, its allocation
+   * If the company has a numeric entitlement for this feature, the allocated amount
    * @type {number}
    * @memberof FeatureEntitlement
    */
   allocation?: number | null;
   /**
-   * If a credit-based feature entitlement rule was matched, the ID of the credit
+   * If the company has a credit-based entitlement for this feature, the ID of the credit
    * @type {string}
    * @memberof FeatureEntitlement
    */
   creditId?: string | null;
   /**
-   * If a credit-based feature entitlement rule was matched, the remaining credit amount
+   * If the company has a credit-based entitlement for this feature, the remaining credit amount
    * @type {number}
    * @memberof FeatureEntitlement
    */
   creditRemaining?: number | null;
   /**
-   * If a credit-based feature entitlement rule was matched, the total credit amount
+   * If the company has a credit-based entitlement for this feature, the total credit amount
    * @type {number}
    * @memberof FeatureEntitlement
    */
   creditTotal?: number | null;
   /**
-   * If a credit-based feature entitlement rule was matched, the amount of credit used
+   * If the company has a credit-based entitlement for this feature, the amount of credit used
    * @type {number}
    * @memberof FeatureEntitlement
    */
   creditUsed?: number | null;
   /**
-   * For event-based feature entitlement rules, the name of the event being tracked
+   * If the feature is event-based, the name of the event tracked for usage
    * @type {string}
    * @memberof FeatureEntitlement
    */
@@ -69,31 +69,37 @@ export interface FeatureEntitlement {
    */
   featureId: string;
   /**
-   * The key of the feature
+   * The key of the flag associated with the feature
    * @type {string}
    * @memberof FeatureEntitlement
    */
   featureKey: string;
   /**
-   * For event-based feature entitlement rules, the period over which usage is tracked (current_month, current_day, current_week, all_time)
+   * For event-based feature entitlements, the period over which usage is tracked
    * @type {string}
    * @memberof FeatureEntitlement
    */
   metricPeriod?: FeatureEntitlementMetricPeriodEnum | null;
   /**
-   * For event-based feature entitlement rules, when the usage period will reset
+   * For event-based feature entitlements, when the usage period will reset
    * @type {Date}
    * @memberof FeatureEntitlement
    */
   metricResetAt?: Date | null;
   /**
-   * For event-based feature entitlement rules, when the usage period resets (first_of_month or billing_cycle)
+   * For event-based feature entitlements that have a monthly period, whether that monthly reset is based on the calendar month or a billing cycle
    * @type {string}
    * @memberof FeatureEntitlement
    */
   monthReset?: FeatureEntitlementMonthResetEnum | null;
   /**
-   * If a numeric feature entitlement rule was matched, the company's usage
+   * For usage-based pricing, the soft limit for overage charges or the next tier boundary
+   * @type {number}
+   * @memberof FeatureEntitlement
+   */
+  softLimit?: number | null;
+  /**
+   * If the company has a numeric entitlement for this feature, the current usage amount
    * @type {number}
    * @memberof FeatureEntitlement
    */
@@ -170,6 +176,7 @@ export function FeatureEntitlementFromJSONTyped(
         ? undefined
         : new Date(json["metric_reset_at"]),
     monthReset: json["month_reset"] == null ? undefined : json["month_reset"],
+    softLimit: json["soft_limit"] == null ? undefined : json["soft_limit"],
     usage: json["usage"] == null ? undefined : json["usage"],
     valueType: EntitlementValueTypeFromJSON(json["value_type"]),
   };
@@ -196,6 +203,7 @@ export function FeatureEntitlementToJSON(
         ? undefined
         : (value["metricResetAt"] as any).toISOString(),
     month_reset: value["monthReset"],
+    soft_limit: value["softLimit"],
     usage: value["usage"],
     value_type: EntitlementValueTypeToJSON(value["valueType"]),
   };

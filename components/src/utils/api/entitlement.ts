@@ -9,6 +9,7 @@ import type {
   CurrentUsageBasedEntitlement,
   Entitlement,
   PriceTier,
+  SharedEntitlementUsageProps,
 } from "../../types";
 import { getEntitlementCost } from "../../utils";
 
@@ -205,5 +206,16 @@ export function getEntitlementFeatureName(
     entitlement.featureName ||
     defaultValue ||
     ""
+  );
+}
+
+export function entitlementHasCost(
+  entitlement: Entitlement & SharedEntitlementUsageProps,
+) {
+  return (
+    entitlement.priceBehavior &&
+    ((entitlement.priceBehavior === PriceBehavior.PayInAdvance &&
+      entitlement.quantity > 0) ||
+      entitlement.priceBehavior !== PriceBehavior.PayInAdvance)
   );
 }

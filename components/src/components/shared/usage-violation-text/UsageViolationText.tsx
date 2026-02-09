@@ -16,7 +16,7 @@ export const UsageViolationText = ({ violations }: UsageViolationsProps) => {
   return (
     <Text
       $size={0.875 * settings.theme.typography.text.fontSize}
-      $leading={1.35}
+      $leading="snug"
       style={{ opacity: 0.625 }}
     >
       {t("Cannot change to this plan.", {
