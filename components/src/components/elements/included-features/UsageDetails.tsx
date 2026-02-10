@@ -10,6 +10,7 @@ import {
   formatNumber,
   getFeatureName,
   getUsageDetails,
+  isTieredPrice,
   shortenPeriod,
   toPrettyDate,
 } from "../../../utils";
@@ -57,28 +58,44 @@ export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
     };
   }, [data?.company?.plan?.planPeriod, data?.displaySettings?.showCredits]);
 
-  const { price, priceTiers, currency, packageSize, limit, cost, currentTier } =
-    useMemo(() => {
-      const { billingPrice, amount, limit, cost, currentTier } =
-        getUsageDetails(entitlement, period);
-      const {
-        price,
-        priceTier,
-        currency,
-        packageSize = 1,
-      } = billingPrice || {};
+  const {
+    price,
+    priceTiers,
+    currency,
+    packageSize,
+    limit,
+    cost,
+    currentTier,
+    tiersMode,
+    tiered,
+  } = useMemo(() => {
+    const { billingPrice, amount, limit, cost, currentTier } = getUsageDetails(
+      entitlement,
+      period,
+    );
+    const {
+      price,
+      priceTier,
+      currency,
+      packageSize = 1,
+      tiersMode,
+    } = billingPrice || {};
 
-      return {
-        price,
-        priceTiers: priceTier,
-        currency,
-        packageSize,
-        amount,
-        limit,
-        cost,
-        currentTier,
-      };
-    }, [entitlement, period]);
+    return {
+      price,
+      priceTiers: priceTier,
+      currency,
+      packageSize,
+      amount,
+      limit,
+      cost,
+      currentTier,
+      tiersMode,
+      tiered:
+        priceBehavior === PriceBehavior.PayInAdvance &&
+        isTieredPrice(billingPrice),
+    };
+  }, [entitlement, period, priceBehavior]);
 
   const text = useMemo(() => {
     if (
@@ -202,6 +219,7 @@ export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
 
     if (
       priceBehavior === PriceBehavior.PayInAdvance &&
+      !tiered &&
       typeof period === "string" &&
       typeof price === "number"
     ) {
@@ -227,7 +245,8 @@ export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
       (priceBehavior === PriceBehavior.PayAsYouGo ||
         priceBehavior === PriceBehavior.Overage ||
         priceBehavior === PriceBehavior.Tiered ||
-        priceBehavior === PriceBehavior.Credit) &&
+        priceBehavior === PriceBehavior.Credit ||
+        tiered) &&
       typeof usage === "number"
     ) {
       acc.push(
@@ -305,6 +324,7 @@ export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
     usage,
     metricResetAt,
     cost,
+    tiered,
   ]);
 
   // this should never be the case since there should always be an associated feature,
@@ -339,12 +359,13 @@ export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
         >
           <Text display={layout.usage.fontStyle}>{usageText}</Text>
 
-          {priceBehavior === PriceBehavior.Tiered && (
+          {(priceBehavior === PriceBehavior.Tiered || tiered) && (
             <PricingTiersTooltip
               feature={feature}
               period={period}
               currency={currency}
               priceTiers={priceTiers}
+              tiersMode={tiersMode ?? undefined}
             />
           )}
         </Flex>

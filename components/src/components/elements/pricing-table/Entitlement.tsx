@@ -16,6 +16,7 @@ import {
   getEntitlementPrice,
   getFeatureName,
   getMetricPeriodName,
+  isTieredPrice,
   shortenPeriod,
 } from "../../../utils";
 import {
@@ -55,12 +56,21 @@ export const Entitlement = ({
 
   const isLightBackground = useIsLightBackground();
 
+  const entitlementBillingPrice = getEntitlementPrice(
+    entitlement,
+    selectedPeriod,
+  );
   const {
     price: entitlementPrice,
     priceTier: entitlementPriceTiers,
     currency: entitlementCurrency,
     packageSize: entitlementPackageSize = 1,
-  } = getEntitlementPrice(entitlement, selectedPeriod) || {};
+    tiersMode: entitlementTiersMode,
+  } = entitlementBillingPrice || {};
+
+  const tiered =
+    entitlement.priceBehavior === PriceBehavior.PayInAdvance &&
+    isTieredPrice(entitlementBillingPrice);
 
   const limit = entitlement.softLimit ?? entitlement.valueNumeric ?? undefined;
 
@@ -87,6 +97,7 @@ export const Entitlement = ({
           <Flex $flexDirection="column" $justifyContent="center" $flexGrow={1}>
             <Text>
               {typeof entitlementPrice === "number" &&
+              !tiered &&
               (entitlement.priceBehavior === PriceBehavior.PayInAdvance ||
                 entitlement.priceBehavior === PriceBehavior.PayAsYouGo) ? (
                 <>
@@ -103,7 +114,8 @@ export const Entitlement = ({
                     </>
                   )}
                 </>
-              ) : entitlement.priceBehavior === PriceBehavior.Tiered ? (
+              ) : entitlement.priceBehavior === PriceBehavior.Tiered ||
+                tiered ? (
                 <TieredPricingDetails
                   entitlement={entitlement}
                   period={selectedPeriod}
@@ -186,7 +198,8 @@ export const Entitlement = ({
                   )}
                 </Text>
               ) : (
-                entitlement.priceBehavior === PriceBehavior.Tiered && (
+                (entitlement.priceBehavior === PriceBehavior.Tiered ||
+                  tiered) && (
                   <Flex $alignItems="end">
                     <Text
                       style={{ opacity: 0.54 }}
@@ -201,6 +214,7 @@ export const Entitlement = ({
                       period={selectedPeriod}
                       currency={entitlementCurrency}
                       priceTiers={entitlementPriceTiers}
+                      tiersMode={entitlementTiersMode ?? undefined}
                     />
                   </Flex>
                 )
