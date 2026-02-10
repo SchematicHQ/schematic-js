@@ -81,7 +81,7 @@ jobs:
       - name: Publish
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: ./scripts/publish-package.sh "${{ github.ref_name }}"
+        run: TAG="${{ github.ref_name }}" ./scripts/publish-package.sh
 
   notify_slack:
     name: Notify Slack
