@@ -1,17 +1,12 @@
-import { CheckFlagReturn } from "./types";
-
-interface DeveloperToolbarDependencies {
-  getAllFlags: () => Record<string, CheckFlagReturn>;
-  getFlagValue: (flagKey: string) => boolean | undefined;
-  addFlagValueListener: (flagKey: string, listener: (value: boolean) => void) => () => void;
-  notifyFlagCheckListeners: (flagKey: string, check: CheckFlagReturn) => void;
-  notifyFlagValueListeners: (flagKey: string, value: boolean) => void;
-}
+import type {
+  CheckFlagReturn,
+  DeveloperToolbarDependencies,
+} from "@schematichq/schematic-js";
 
 interface ToolbarState {
   selectedFlagKey: string | null;
   availableFlagKeys: string[];
-  flagValue: boolean | null; 
+  flagValue: boolean | null;
 }
 
 function createElement<T extends keyof HTMLElementTagNameMap>(
@@ -267,7 +262,7 @@ export class DeveloperToolbar {
     this.select.id = "schematic-toolbar-select";
     this.setupSelectHandlers();
     this.element.appendChild(this.select);
-    
+
     if (!document.getElementById("schematic-toolbar-styles")) {
       const style = createElement("style", undefined, `
         #schematic-toolbar-select:hover {

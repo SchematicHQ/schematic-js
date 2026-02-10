@@ -245,6 +245,23 @@ export const CheckFlagReturnFromJSON = (
   };
 };
 
+export interface DeveloperToolbarDependencies {
+  getAllFlags: () => Record<string, CheckFlagReturn>;
+  getFlagValue: (flagKey: string) => boolean | undefined;
+  addFlagValueListener: (flagKey: string, listener: (value: boolean) => void) => () => void;
+  notifyFlagCheckListeners: (flagKey: string, check: CheckFlagReturn) => void;
+  notifyFlagValueListeners: (flagKey: string, value: boolean) => void;
+}
+
+export interface DeveloperToolbarInterface {
+  initialize(): void;
+  cleanup(): void;
+  getManualOverride(flagKey: string): CheckFlagReturn | undefined;
+  hasManualOverride(flagKey: string): boolean;
+  setManualOverride(flagKey: string, value: boolean): void;
+  getAllManualOverrides(): Record<string, CheckFlagReturn>;
+}
+
 export type { EventBodyFlagCheck } from "./api/models/EventBodyFlagCheck";
 export { EventBodyFlagCheckToJSON } from "./api/models/EventBodyFlagCheck";
 export type { CheckFlagResponseData } from "./api/models/CheckFlagResponseData";

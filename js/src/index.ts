@@ -9,6 +9,7 @@ import {
   CheckFlagReturnFromJSON,
   CheckFlagReturnListenerFn,
   CheckFlagsResponseFromJSON,
+  DeveloperToolbarInterface,
   CheckOptions,
   EmptyListenerFn,
   Event,
@@ -27,7 +28,6 @@ import {
 } from "./types";
 import { contextString } from "./utils";
 import { version } from "./version";
-import { DeveloperToolbar } from "./developer-toolbar";
 
 const anonymousIdKey = "schematicId";
 
@@ -77,7 +77,7 @@ export class Schematic {
   private flagValueDefaults: Record<string, boolean> = {};
   private flagCheckDefaults: Record<string, CheckFlagReturn> = {};
   private developerToolbarEnabled: boolean = false;
-  private developerToolbar: DeveloperToolbar | null = null;
+  private developerToolbar: DeveloperToolbarInterface | null = null;
 
   constructor(apiKey: string, options?: SchematicOptions) {
     this.apiKey = apiKey;
@@ -1984,7 +1984,7 @@ export class Schematic {
     return allFlags;
   };
 
-  private initializeDeveloperToolbar = (): void => {
+  private initializeDeveloperToolbar = async (): Promise<void> => {
     if (!this.developerToolbarEnabled || typeof window === "undefined") {
       return;
     }
@@ -1998,16 +1998,28 @@ export class Schematic {
     }
 
     if (!this.developerToolbar) {
-      this.developerToolbar = new DeveloperToolbar({
-        getAllFlags: this.getAllFlags,
-        getFlagValue: this.getFlagValue,
-        addFlagValueListener: this.addFlagValueListener,
-        notifyFlagCheckListeners: this.notifyFlagCheckListeners,
-        notifyFlagValueListeners: this.notifyFlagValueListeners,
-      });
+      try {
+        const toolbarModule = "@schematichq/schematic-dev-toolbar";
+        const { DeveloperToolbar } = await import(
+          /* @vite-ignore */ toolbarModule
+        );
+        this.developerToolbar = new DeveloperToolbar({
+          getAllFlags: this.getAllFlags,
+          getFlagValue: this.getFlagValue,
+          addFlagValueListener: this.addFlagValueListener,
+          notifyFlagCheckListeners: this.notifyFlagCheckListeners,
+          notifyFlagValueListeners: this.notifyFlagValueListeners,
+        });
+      } catch {
+        console.error(
+          "[Schematic] Developer toolbar enabled but not installed. " +
+            "Please install it:\n\n  npm install --save-dev @schematichq/schematic-dev-toolbar\n",
+        );
+        return;
+      }
     }
 
-    this.developerToolbar.initialize();
+    this.developerToolbar?.initialize();
   };
 
 }
