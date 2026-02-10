@@ -91,13 +91,11 @@ export PUBLISH_IS_RC="$IS_RC"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR/../$WORKING_DIR"
 
-# Update package.json version
-echo "Updating package.json version to $VERSION..."
-npm version "$VERSION" --no-git-tag-version --allow-same-version
-
-if ! git diff --quiet; then
-  echo "There are changes"
-  exit 1
+# Verify package.json version matches expected version
+ACTUAL_VERSION=$(awk -F'"' '/"version"/{print $4; exit}' package.json)
+if [[ "$ACTUAL_VERSION" != "$VERSION" ]]; then
+    echo "Error: package.json version '$ACTUAL_VERSION' does not match expected version '$VERSION'"
+    exit 1
 fi
 
 # Install dependencies
@@ -116,4 +114,4 @@ fi
 
 # Publish
 echo "Publishing to NPM with '$NPM_TAG' tag..."
-yarn publish --access public --tag "$NPM_TAG"
+yarn publish --new-version "$VERSION" --access public --tag "$NPM_TAG"

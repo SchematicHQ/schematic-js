@@ -78,7 +78,7 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: 24.x
-      - name: Publish
+      - name: Publish schematic-js
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: TAG="${{ github.ref_name }}" ./scripts/publish-package.sh
