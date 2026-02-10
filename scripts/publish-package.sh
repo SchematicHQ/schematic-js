@@ -17,7 +17,7 @@ set -euo pipefail
 # Environment variables:
 #   NPM_TOKEN - Required for publishing to NPM
 
-TAG="${1:-}"
+TAG="${1:-latest}"
 
 if [[ -z "$TAG" ]]; then
     echo "Error: Tag argument required"
