@@ -8,23 +8,18 @@ set -euo pipefail
 #   - RC: schematic-react@1.3.0-rc.1 -> publishes with 'rc' tag
 #
 # Usage:
-#   ./scripts/publish-package.sh <tag>
+#   TAG="<tag>" ./scripts/publish-package.sh
 #
 # Examples:
-#   ./scripts/publish-package.sh schematic-react@1.3.0
-#   ./scripts/publish-package.sh schematic-react@1.3.0-rc.1
+#   TAG="schematic-react@1.3.0" ./scripts/publish-package.sh
+#   TAG="schematic-react@1.3.0-rc.1" ./scripts/publish-package.sh schematic-react@1.3.0-rc.1
 #
 # Environment variables:
 #   NPM_TOKEN - Required for publishing to NPM
 
-TAG="${1:-}"
-
 if [[ -z "$TAG" ]]; then
-    echo "Error: Tag argument required"
-    echo "Usage: $0 <tag>"
-    echo "Examples:"
-    echo "  $0 schematic-react@1.3.0"
-    echo "  $0 schematic-react@1.3.0-rc.1"
+    echo "Error: TAG env var required; should match git tag"
+    echo "Usage: TAG=<tag> $0"
     exit 1
 fi
 
