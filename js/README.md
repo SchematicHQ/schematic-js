@@ -131,19 +131,7 @@ When events (track, identify) cannot be sent due to network issues, they are aut
 
 ### WebSocket Fallback
 
-In WebSocket mode, if the WebSocket connection fails:
-
-- The SDK automatically falls back to REST API calls for flag checks
-- If REST API calls also fail, flag checks use the same fallback priority described above
-- The SDK automatically attempts to reconnect the WebSocket with exponential backoff
-
-### Network Resilience
-
-The SDK includes several mechanisms to handle network disruptions:
-
-- Automatic retry logic for both WebSocket connections and REST API calls
-- Exponential backoff to avoid overwhelming the service during outages
-- Event queueing to ensure events are not lost during network issues
+In WebSocket mode, if the WebSocket connection fails, the SDK will provide the last known value or the configured fallback values as [outlined above](/#flag-check-fallbacks). The WebSocket will also automatically attempt to re-establish it's connection with Schematic using an exponential backoff. 
 
 ## Troubleshooting
 
