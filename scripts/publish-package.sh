@@ -12,7 +12,7 @@ set -euo pipefail
 #
 # Examples:
 #   TAG="schematic-react@1.3.0" ./scripts/publish-package.sh
-#   TAG="schematic-react@1.3.0-rc.1" ./scripts/publish-package.sh schematic-react@1.3.0-rc.1
+#   TAG="schematic-react@1.3.0-rc.1" ./scripts/publish-package.sh
 #
 # Environment variables:
 #   NPM_TOKEN - Required for publishing to NPM
@@ -113,5 +113,5 @@ if [[ -n "${NPM_TOKEN:-}" ]]; then
 fi
 
 # Publish
-echo "Publishing to NPM with '$NPM_TAG' tag..."
-yarn publish --new-version "$VERSION" --access public --tag "$NPM_TAG"
+echo "Publishing $VERSION to NPM with '$NPM_TAG' tag..."
+npm publish --access public --tag "$NPM_TAG"
