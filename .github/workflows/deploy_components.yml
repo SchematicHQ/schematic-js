@@ -3,8 +3,8 @@ name: Deploy schematic-components
 on:
   push:
     tags:
-      - 'schematic-components@*'
-      - '!schematic-components@*-rc*'
+      - "schematic-components@*"
+      - "!schematic-components@*-rc*"
   workflow_dispatch:
 
 jobs:
@@ -32,7 +32,7 @@ jobs:
       - name: Publish
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: TAG="${{ github.ref_name }}" ./scripts/publish-package.sh
+        run: echo "tag is ${{ github.ref_name }}" && TAG="${{ github.ref_name }}" ./scripts/publish-package.sh
 
   update_example_app:
     name: Update Example App
