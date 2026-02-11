@@ -44,7 +44,7 @@
     "esbuild": "^0.27.1",
     "eslint": "^9.39.2",
     "globals": "^16.5.0",
-    "happy-dom": "^20.0.10",
+    "happy-dom": "^20.6.1",
     "husky": "^9.1.7",
     "jsdom": "^27.2.0",
     "mock-socket": "^9.3.1",
