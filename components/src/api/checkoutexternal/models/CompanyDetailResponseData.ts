@@ -25,6 +25,12 @@ import {
   CompanyPlanWithBillingSubViewFromJSONTyped,
   CompanyPlanWithBillingSubViewToJSON,
 } from "./CompanyPlanWithBillingSubView";
+import type { FeatureEntitlement } from "./FeatureEntitlement";
+import {
+  FeatureEntitlementFromJSON,
+  FeatureEntitlementFromJSONTyped,
+  FeatureEntitlementToJSON,
+} from "./FeatureEntitlement";
 import type { EntityKeyDetailResponseData } from "./EntityKeyDetailResponseData";
 import {
   EntityKeyDetailResponseDataFromJSON,
@@ -100,6 +106,12 @@ export interface CompanyDetailResponseData {
    * @memberof CompanyDetailResponseData
    */
   defaultPaymentMethod?: PaymentMethodResponseData;
+  /**
+   *
+   * @type {Array<FeatureEntitlement>}
+   * @memberof CompanyDetailResponseData
+   */
+  entitlements: Array<FeatureEntitlement>;
   /**
    *
    * @type {Array<EntityTraitDetailResponseData>}
@@ -205,6 +217,8 @@ export function instanceOfCompanyDetailResponseData(
   )
     return false;
   if (!("createdAt" in value) || value["createdAt"] === undefined) return false;
+  if (!("entitlements" in value) || value["entitlements"] === undefined)
+    return false;
   if (!("entityTraits" in value) || value["entityTraits"] === undefined)
     return false;
   if (!("environmentId" in value) || value["environmentId"] === undefined)
@@ -255,6 +269,9 @@ export function CompanyDetailResponseDataFromJSONTyped(
       json["default_payment_method"] == null
         ? undefined
         : PaymentMethodResponseDataFromJSON(json["default_payment_method"]),
+    entitlements: (json["entitlements"] as Array<any>).map(
+      FeatureEntitlementFromJSON,
+    ),
     entityTraits: (json["entity_traits"] as Array<any>).map(
       EntityTraitDetailResponseDataFromJSON,
     ),
@@ -303,6 +320,9 @@ export function CompanyDetailResponseDataToJSON(
     created_at: value["createdAt"].toISOString(),
     default_payment_method: PaymentMethodResponseDataToJSON(
       value["defaultPaymentMethod"],
+    ),
+    entitlements: (value["entitlements"] as Array<any>).map(
+      FeatureEntitlementToJSON,
     ),
     entity_traits: (value["entityTraits"] as Array<any>).map(
       EntityTraitDetailResponseDataToJSON,

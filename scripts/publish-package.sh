@@ -8,23 +8,18 @@ set -euo pipefail
 #   - RC: schematic-react@1.3.0-rc.1 -> publishes with 'rc' tag
 #
 # Usage:
-#   ./scripts/publish-package.sh <tag>
+#   TAG="<tag>" ./scripts/publish-package.sh
 #
 # Examples:
-#   ./scripts/publish-package.sh schematic-react@1.3.0
-#   ./scripts/publish-package.sh schematic-react@1.3.0-rc.1
+#   TAG="schematic-react@1.3.0" ./scripts/publish-package.sh
+#   TAG="schematic-react@1.3.0-rc.1" ./scripts/publish-package.sh
 #
 # Environment variables:
 #   NPM_TOKEN - Required for publishing to NPM
 
-TAG="${1:-}"
-
 if [[ -z "$TAG" ]]; then
-    echo "Error: Tag argument required"
-    echo "Usage: $0 <tag>"
-    echo "Examples:"
-    echo "  $0 schematic-react@1.3.0"
-    echo "  $0 schematic-react@1.3.0-rc.1"
+    echo "Error: TAG env var required; should match git tag"
+    echo "Usage: TAG=<tag> $0"
     exit 1
 fi
 
@@ -96,13 +91,11 @@ export PUBLISH_IS_RC="$IS_RC"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR/../$WORKING_DIR"
 
-# Update package.json version
-echo "Updating package.json version to $VERSION..."
-npm version "$VERSION" --no-git-tag-version --allow-same-version
-
-if ! git diff --quiet; then
-  echo "There are changes"
-  exit 1
+# Verify package.json version matches expected version
+ACTUAL_VERSION=$(awk -F'"' '/"version"/{print $4; exit}' package.json)
+if [[ "$ACTUAL_VERSION" != "$VERSION" ]]; then
+    echo "Error: package.json version '$ACTUAL_VERSION' does not match expected version '$VERSION'"
+    exit 1
 fi
 
 # Install dependencies
@@ -120,5 +113,5 @@ if [[ -n "${NPM_TOKEN:-}" ]]; then
 fi
 
 # Publish
-echo "Publishing to NPM with '$NPM_TAG' tag..."
-yarn publish --access public --tag "$NPM_TAG"
+echo "Publishing $VERSION to NPM with '$NPM_TAG' tag..."
+npm publish --access public --tag "$NPM_TAG"
