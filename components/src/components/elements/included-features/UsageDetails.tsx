@@ -10,6 +10,7 @@ import {
   formatNumber,
   getFeatureName,
   getUsageDetails,
+  isTieredPrice,
   shortenPeriod,
   toPrettyDate,
 } from "../../../utils";
@@ -18,8 +19,11 @@ import { Box, Flex, Text } from "../../ui";
 
 interface UsageDetailsProps {
   entitlement: FeatureUsageResponseData;
-  shouldWrapChildren: boolean;
   layout: {
+    entitlementExpiration: {
+      isVisible: boolean;
+      fontStyle: FontStyle;
+    };
     entitlement: {
       isVisible: boolean;
       fontStyle: FontStyle;
@@ -31,11 +35,7 @@ interface UsageDetailsProps {
   };
 }
 
-export const UsageDetails = ({
-  entitlement,
-  shouldWrapChildren,
-  layout,
-}: UsageDetailsProps) => {
+export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
   const {
     allocation,
     allocationType,
@@ -58,31 +58,51 @@ export const UsageDetails = ({
     };
   }, [data?.company?.plan?.planPeriod, data?.displaySettings?.showCredits]);
 
-  const { price, priceTiers, currency, packageSize, limit, cost, currentTier } =
-    useMemo(() => {
-      const { billingPrice, amount, limit, cost, currentTier } =
-        getUsageDetails(entitlement, period);
-      const {
-        price,
-        priceTier,
-        currency,
-        packageSize = 1,
-      } = billingPrice || {};
+  const {
+    price,
+    priceTiers,
+    currency,
+    packageSize,
+    limit,
+    cost,
+    currentTier,
+    tiersMode,
+    tiered,
+  } = useMemo(() => {
+    const { billingPrice, amount, limit, cost, currentTier } = getUsageDetails(
+      entitlement,
+      period,
+    );
+    const {
+      price,
+      priceTier,
+      currency,
+      packageSize = 1,
+      tiersMode,
+    } = billingPrice || {};
 
-      return {
-        price,
-        priceTiers: priceTier,
-        currency,
-        packageSize,
-        amount,
-        limit,
-        cost,
-        currentTier,
-      };
-    }, [entitlement, period]);
+    return {
+      price,
+      priceTiers: priceTier,
+      currency,
+      packageSize,
+      amount,
+      limit,
+      cost,
+      currentTier,
+      tiersMode,
+      tiered:
+        priceBehavior === PriceBehavior.PayInAdvance &&
+        isTieredPrice(billingPrice),
+    };
+  }, [entitlement, period, priceBehavior]);
 
   const text = useMemo(() => {
-    if (!feature) {
+    if (
+      !feature ||
+      (feature.featureType !== FeatureType.Event &&
+        feature.featureType !== FeatureType.Trait)
+    ) {
       return;
     }
 
@@ -185,7 +205,11 @@ export const UsageDetails = ({
   ]);
 
   const usageText = useMemo(() => {
-    if (!feature) {
+    if (
+      !feature ||
+      (feature.featureType !== FeatureType.Event &&
+        feature.featureType !== FeatureType.Trait)
+    ) {
       return;
     }
 
@@ -195,6 +219,7 @@ export const UsageDetails = ({
 
     if (
       priceBehavior === PriceBehavior.PayInAdvance &&
+      !tiered &&
       typeof period === "string" &&
       typeof price === "number"
     ) {
@@ -220,7 +245,8 @@ export const UsageDetails = ({
       (priceBehavior === PriceBehavior.PayAsYouGo ||
         priceBehavior === PriceBehavior.Overage ||
         priceBehavior === PriceBehavior.Tiered ||
-        priceBehavior === PriceBehavior.Credit) &&
+        priceBehavior === PriceBehavior.Credit ||
+        tiered) &&
       typeof usage === "number"
     ) {
       acc.push(
@@ -298,6 +324,7 @@ export const UsageDetails = ({
     usage,
     metricResetAt,
     cost,
+    tiered,
   ]);
 
   // this should never be the case since there should always be an associated feature,
@@ -307,35 +334,42 @@ export const UsageDetails = ({
   }
 
   return (
-    <Box
-      $flexBasis="min-content"
-      $flexGrow={1}
-      $textAlign={shouldWrapChildren ? "left" : "right"}
-    >
+    <>
       {layout.entitlement.isVisible && (
-        <Box $whiteSpace="nowrap">
-          <Text display={layout.entitlement.fontStyle} $leading={1}>
-            {text}
-          </Text>
+        <Box
+          $marginTop="0.75rem"
+          $viewport={{
+            xs: {
+              $marginTop: 0,
+            },
+          }}
+        >
+          <Text display={layout.entitlement.fontStyle}>{text}</Text>
         </Box>
       )}
 
       {layout.usage.isVisible && usageText && (
-        <Flex $justifyContent="end" $alignItems="baseline" $whiteSpace="nowrap">
-          <Text display={layout.usage.fontStyle} $leading={1}>
-            {usageText}
-          </Text>
+        <Flex
+          $alignItems="baseline"
+          $viewport={{
+            xs: {
+              $justifyContent: "end",
+            },
+          }}
+        >
+          <Text display={layout.usage.fontStyle}>{usageText}</Text>
 
-          {priceBehavior === PriceBehavior.Tiered && (
+          {(priceBehavior === PriceBehavior.Tiered || tiered) && (
             <PricingTiersTooltip
               feature={feature}
               period={period}
               currency={currency}
               priceTiers={priceTiers}
+              tiersMode={tiersMode ?? undefined}
             />
           )}
         </Flex>
       )}
-    </Box>
+    </>
   );
 };

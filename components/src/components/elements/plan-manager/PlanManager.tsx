@@ -331,7 +331,7 @@ export const PlanManager = forwardRef<
             $gap="1rem"
           >
             <Flex $flexDirection="column" $gap="1rem">
-              <Text display={props.header.title.fontStyle} $leading={1}>
+              <Text display={props.header.title.fontStyle} $leading="none">
                 {currentPlan.name}
               </Text>
 
@@ -382,7 +382,7 @@ export const PlanManager = forwardRef<
                     ? darken(settings.theme.card.background, 0.46)
                     : lighten(settings.theme.card.background, 0.46)
                 }
-                $leading={1}
+                $leading="none"
               >
                 {t("Add-ons")}
               </Text>
@@ -410,7 +410,7 @@ export const PlanManager = forwardRef<
                     ? darken(settings.theme.card.background, 0.46)
                     : lighten(settings.theme.card.background, 0.46)
                 }
-                $leading={1}
+                $leading="none"
               >
                 {t("Usage-based")}
               </Text>
@@ -443,7 +443,7 @@ export const PlanManager = forwardRef<
                       ? darken(settings.theme.card.background, 0.46)
                       : lighten(settings.theme.card.background, 0.46)
                   }
-                  $leading={1}
+                  $leading="none"
                 >
                   {t("Credits in plan")}
                 </Text>
@@ -546,7 +546,7 @@ export const PlanManager = forwardRef<
                     ? darken(settings.theme.card.background, 0.46)
                     : lighten(settings.theme.card.background, 0.46)
                 }
-                $leading={1}
+                $leading="none"
               >
                 {t("Credit bundles")}
               </Text>
@@ -607,7 +607,7 @@ export const PlanManager = forwardRef<
                     ? darken(settings.theme.card.background, 0.46)
                     : lighten(settings.theme.card.background, 0.46)
                 }
-                $leading={1}
+                $leading="none"
               >
                 {t("Promotional credits")}
               </Text>

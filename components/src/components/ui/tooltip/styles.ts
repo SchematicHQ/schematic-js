@@ -113,8 +113,8 @@ export const Content = styled.div.withConfig({
     transform: translate(${translate.x}%, ${translate.y}%);
     z-index: 9999999;
     line-height: 1;
-    width: max-content;
-    max-width: 100%;
+    width: fit-content;
+    max-width: 384px;
     padding: 1rem;
     text-align: left;
     opacity: 0;

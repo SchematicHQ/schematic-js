@@ -1,6 +1,7 @@
 import {
   type BillingPriceResponseData,
   type BillingPriceView,
+  type BillingProductPriceTierResponseData,
   type FeatureUsageResponseData,
   type PreviewSubscriptionFinanceResponseData,
 } from "../../api/checkoutexternal";
@@ -99,6 +100,60 @@ export function getEntitlementPrice(
   }
 }
 
+export function isTieredPrice(billingPrice?: BillingPriceView): boolean {
+  if (!billingPrice) return false;
+  return billingPrice.priceTier.length > 1 || !!billingPrice.tiersMode;
+}
+
+export function calculateTieredCost(
+  quantity: number,
+  priceTiers: BillingProductPriceTierResponseData[],
+  tiersMode?: string | null,
+): number {
+  let cost = 0;
+
+  if (tiersMode === "volume") {
+    let start = 0;
+    const currentTier = priceTiers.find((tier) => {
+      const end = tier.upTo ?? Infinity;
+      const isCurrentTier = quantity >= start && quantity <= end;
+      start = end + 1;
+      return isCurrentTier;
+    });
+
+    if (quantity > 0) {
+      const flatAmount = currentTier?.flatAmount ?? 0;
+      const perUnitPrice =
+        typeof currentTier?.perUnitPriceDecimal === "string"
+          ? Number(currentTier.perUnitPriceDecimal)
+          : (currentTier?.perUnitPrice ?? 0);
+      cost += quantity * perUnitPrice + (flatAmount ?? 0);
+    }
+  } else {
+    // default to graduated tiers mode
+    let acc = 0;
+
+    for (let i = 0; i < priceTiers.length; i++) {
+      const tier = priceTiers[i];
+      const upTo = tier.upTo ?? Infinity;
+      const flatAmount = tier.flatAmount ?? 0;
+      const perUnitPrice =
+        typeof tier.perUnitPriceDecimal === "string"
+          ? Number(tier.perUnitPriceDecimal)
+          : (tier.perUnitPrice ?? 0);
+
+      if (acc < quantity) {
+        const tierAmount = Math.min(upTo, quantity) - acc;
+        cost += flatAmount;
+        cost += tierAmount * perUnitPrice;
+        acc += tierAmount;
+      }
+    }
+  }
+
+  return cost;
+}
+
 export function getEntitlementCost(
   entitlement: FeatureUsageResponseData,
   period: string | null = "month",
@@ -116,6 +171,13 @@ export function getEntitlementCost(
       typeof entitlement.allocation === "number" &&
       entitlement.allocation > 0
     ) {
+      if (isTieredPrice(billingPrice)) {
+        return calculateTieredCost(
+          entitlement.allocation,
+          billingPrice.priceTier,
+          billingPrice.tiersMode,
+        );
+      }
       return entitlement.allocation * billingPrice.price;
     }
 
@@ -159,49 +221,11 @@ export function getEntitlementCost(
       entitlement.priceBehavior === PriceBehavior.Tiered &&
       typeof entitlement.usage === "number" // a price needs to be displayed next to the tiered tooltip
     ) {
-      const usage = entitlement.usage;
-
-      let cost = 0;
-
-      if (billingPrice.tiersMode === "volume") {
-        let start = 0;
-        const currentTier = billingPrice.priceTier.find((tier) => {
-          const end = tier.upTo ?? Infinity;
-          const isCurrentTier = usage >= start && usage <= end;
-          start = end + 1;
-
-          return isCurrentTier;
-        });
-
-        if (usage > 0) {
-          const flatAmount = currentTier?.flatAmount ?? 0;
-          const perUnitPrice = currentTier?.perUnitPrice ?? 0;
-
-          cost += usage * perUnitPrice + (flatAmount ?? 0);
-        }
-      } else {
-        // default to graduated tiers mode
-
-        let acc = 0;
-
-        for (let i = 0; i < billingPrice.priceTier.length; i++) {
-          const tier = billingPrice.priceTier[i];
-          const upTo = tier.upTo ?? Infinity;
-          const flatAmount = tier.flatAmount ?? 0;
-          const perUnitPrice = tier.perUnitPrice ?? 0;
-
-          if (acc < usage) {
-            const tierAmount = Math.min(upTo, usage) - acc;
-
-            cost += flatAmount;
-            cost += tierAmount * perUnitPrice;
-
-            acc += tierAmount;
-          }
-        }
-      }
-
-      return cost;
+      return calculateTieredCost(
+        entitlement.usage,
+        billingPrice.priceTier,
+        billingPrice.tiersMode,
+      );
     }
   }
 }
