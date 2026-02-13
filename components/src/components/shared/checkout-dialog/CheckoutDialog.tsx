@@ -654,9 +654,14 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
               case "self-service downgrade not permitted":
                 setError(t("Self-service downgrade not permitted."));
                 return;
-              // TODO: update when api error is known
-              case "downgrade pending":
+            }
+          }
+
+          if (err.response.status === 409) {
+            switch (data.error) {
+              case "cannot purchase pay-in-advance entitlements while a scheduled downgrade is pending; cancel the scheduled downgrade first":
                 setError(t("Downgrade pending."));
+                return;
             }
           }
 
