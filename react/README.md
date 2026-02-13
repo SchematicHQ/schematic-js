@@ -136,6 +136,66 @@ const MyComponent = () => {
 
 *Note: `useSchematicIsPending` is checking if entitlement data has been loaded, typically via `identify`. It should, therefore, be used to wrap flag and entitlement checks, but never the initial call to `identify`.*
 
+## Fallback Behavior
+
+The SDK includes built-in fallback behavior you can use to ensure your application continues to function even when unable to reach Schematic (e.g., during service disruptions or network issues).
+
+### Flag Check Fallbacks
+
+When flag checks cannot reach Schematic, they use fallback values in the following priority order:
+
+1. Callsite fallback - fallback values can be provided directly in the hook options
+2. Initialization defaults - fallback values configured via `flagCheckDefaults` or `flagValueDefaults` options when initializing the provider
+3. Default value - Returns `false` if no fallback is configured
+
+```tsx
+// Provide a fallback value at the callsite
+import { useSchematicFlag } from "@schematichq/schematic-react";
+
+const MyComponent = () => {
+    const isFeatureEnabled = useSchematicFlag("feature-flag", {
+        fallback: true,  // Used if API request fails
+    });
+
+    return isFeatureEnabled ? <Feature /> : <Fallback />;
+};
+
+// Or configure defaults at initialization
+import { SchematicProvider } from "@schematichq/schematic-react";
+
+ReactDOM.render(
+    <SchematicProvider
+        publishableKey="your-publishable-key"
+        flagValueDefaults={{
+            "feature-flag": true,  // Used if API request fails and no callsite fallback
+        }}
+        flagCheckDefaults={{
+            "another-flag": {
+                flag: "another-flag",
+                value: true,
+                reason: "Default value",
+            },
+        }}
+    >
+        <App />
+    </SchematicProvider>,
+    document.getElementById("root"),
+);
+```
+
+### Event Queueing and Retry
+
+When events (track, identify) cannot be sent due to network issues, they are automatically queued and retried:
+
+- Events are queued in memory (up to 100 events by default, configurable via `maxEventQueueSize`)
+- Failed events are retried with exponential backoff (up to 5 attempts by default, configurable via `maxEventRetries`)
+- Events are automatically flushed when the network connection is restored
+- Events queued when the page is hidden are sent when the page becomes visible
+
+### WebSocket Fallback
+
+In WebSocket mode, if the WebSocket connection fails, the SDK will provide the last known value or the configured fallback values as [outlined above](/#flag-check-fallbacks). The WebSocket will also automatically attempt to re-establish it's connection with Schematic using an exponential backoff. 
+
 ## React Native
 
 ### Handling app background/foreground
@@ -216,7 +276,6 @@ ReactDOM.render(
 ```
 
 Offline mode automatically enables debug mode to help with troubleshooting.
-
 
 ## License
 
