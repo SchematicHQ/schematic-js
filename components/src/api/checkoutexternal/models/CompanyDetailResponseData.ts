@@ -31,6 +31,12 @@ import {
   FeatureEntitlementFromJSONTyped,
   FeatureEntitlementToJSON,
 } from "./FeatureEntitlement";
+import type { ScheduledDowngradeResponseData } from "./ScheduledDowngradeResponseData";
+import {
+  ScheduledDowngradeResponseDataFromJSON,
+  ScheduledDowngradeResponseDataFromJSONTyped,
+  ScheduledDowngradeResponseDataToJSON,
+} from "./ScheduledDowngradeResponseData";
 import type { EntityKeyDetailResponseData } from "./EntityKeyDetailResponseData";
 import {
   EntityKeyDetailResponseDataFromJSON,
@@ -185,6 +191,12 @@ export interface CompanyDetailResponseData {
    */
   rules: Array<Rule>;
   /**
+   *
+   * @type {ScheduledDowngradeResponseData}
+   * @memberof CompanyDetailResponseData
+   */
+  scheduledDowngrade?: ScheduledDowngradeResponseData;
+  /**
    * A map of trait names to trait values
    * @type {object}
    * @memberof CompanyDetailResponseData
@@ -294,6 +306,10 @@ export function CompanyDetailResponseDataFromJSONTyped(
         : CompanyPlanWithBillingSubViewFromJSON(json["plan"]),
     plans: (json["plans"] as Array<any>).map(GenericPreviewObjectFromJSON),
     rules: (json["rules"] as Array<any>).map(RuleFromJSON),
+    scheduledDowngrade:
+      json["scheduled_downgrade"] == null
+        ? undefined
+        : ScheduledDowngradeResponseDataFromJSON(json["scheduled_downgrade"]),
     traits: json["traits"] == null ? undefined : json["traits"],
     updatedAt: new Date(json["updated_at"]),
     userCount: json["user_count"],
@@ -345,6 +361,9 @@ export function CompanyDetailResponseDataToJSON(
     plan: CompanyPlanWithBillingSubViewToJSON(value["plan"]),
     plans: (value["plans"] as Array<any>).map(GenericPreviewObjectToJSON),
     rules: (value["rules"] as Array<any>).map(RuleToJSON),
+    scheduled_downgrade: ScheduledDowngradeResponseDataToJSON(
+      value["scheduledDowngrade"],
+    ),
     traits: value["traits"],
     updated_at: value["updatedAt"].toISOString(),
     user_count: value["userCount"],

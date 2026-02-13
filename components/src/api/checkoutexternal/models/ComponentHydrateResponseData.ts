@@ -19,6 +19,12 @@ import {
   PlanDetailResponseDataFromJSONTyped,
   PlanDetailResponseDataToJSON,
 } from "./PlanDetailResponseData";
+import type { ScheduledDowngradeResponseData } from "./ScheduledDowngradeResponseData";
+import {
+  ScheduledDowngradeResponseDataFromJSON,
+  ScheduledDowngradeResponseDataFromJSONTyped,
+  ScheduledDowngradeResponseDataToJSON,
+} from "./ScheduledDowngradeResponseData";
 import type { ComponentCheckoutSettings } from "./ComponentCheckoutSettings";
 import {
   ComponentCheckoutSettingsFromJSON,
@@ -214,6 +220,12 @@ export interface ComponentHydrateResponseData {
   preventSelfServiceDowngradeUrl?: string | null;
   /**
    *
+   * @type {ScheduledDowngradeResponseData}
+   * @memberof ComponentHydrateResponseData
+   */
+  scheduledDowngrade?: ScheduledDowngradeResponseData;
+  /**
+   *
    * @type {boolean}
    * @memberof ComponentHydrateResponseData
    * @deprecated
@@ -385,6 +397,10 @@ export function ComponentHydrateResponseDataFromJSONTyped(
       json["prevent_self_service_downgrade_url"] == null
         ? undefined
         : json["prevent_self_service_downgrade_url"],
+    scheduledDowngrade:
+      json["scheduled_downgrade"] == null
+        ? undefined
+        : ScheduledDowngradeResponseDataFromJSON(json["scheduled_downgrade"]),
     showAsMonthlyPrices: json["show_as_monthly_prices"],
     showCredits: json["show_credits"],
     showPeriodToggle: json["show_period_toggle"],
@@ -447,6 +463,9 @@ export function ComponentHydrateResponseDataToJSON(
     prevent_self_service_downgrade_button_text:
       value["preventSelfServiceDowngradeButtonText"],
     prevent_self_service_downgrade_url: value["preventSelfServiceDowngradeUrl"],
+    scheduled_downgrade: ScheduledDowngradeResponseDataToJSON(
+      value["scheduledDowngrade"],
+    ),
     show_as_monthly_prices: value["showAsMonthlyPrices"],
     show_credits: value["showCredits"],
     show_period_toggle: value["showPeriodToggle"],
