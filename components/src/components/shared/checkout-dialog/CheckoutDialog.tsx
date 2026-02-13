@@ -1192,6 +1192,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
               selectedPlan={selectedPlan}
               entitlements={payInAdvanceEntitlements}
               updateQuantity={updateUsageBasedEntitlementQuantity}
+              tooltipPortal={dialogRef.current}
             />
           ) : checkoutStage === "addons" ? (
             <AddOns
@@ -1207,6 +1208,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
               selectedPlan={selectedPlan}
               entitlements={addOnPayInAdvanceEntitlements}
               updateQuantity={updateAddOnEntitlementQuantity}
+              tooltipPortal={dialogRef.current}
             />
           ) : checkoutStage === "credits" ? (
             <Credits
