@@ -24,7 +24,7 @@ import {
   PricingTiersTooltip,
   TieredPricingDetails,
 } from "../../shared";
-import { Flex, Icon, Text } from "../../ui";
+import { Flex, Icon, Text, Tooltip } from "../../ui";
 
 import {
   type PricingTableOptions,
@@ -180,23 +180,53 @@ export const Entitlement = ({
               )}
             </Text>
 
-            <Flex $alignItems="end">
+            <Flex $alignItems="start">
               {entitlement.priceBehavior === PriceBehavior.Overage &&
               typeof entitlementPrice === "number" ? (
-                <Text
-                  $size={0.875 * settings.theme.typography.text.fontSize}
-                  $color={`color-mix(in oklch, ${settings.theme.typography.text.color}, ${settings.theme.card.background})`}
-                >
-                  {t("then")}{" "}
-                  {formatCurrency(entitlementPrice, entitlementCurrency)}/
-                  {entitlementPackageSize > 1 && (
-                    <>{formatNumber(entitlementPackageSize)} </>
-                  )}
-                  {getFeatureName(entitlement.feature, entitlementPackageSize)}
-                  {entitlement.feature.featureType === FeatureType.Trait && (
-                    <>/{shortenPeriod(selectedPeriod)}</>
-                  )}
-                </Text>
+                <>
+                  <Text
+                    $size={0.875 * settings.theme.typography.text.fontSize}
+                    $color={`color-mix(in oklch, ${settings.theme.typography.text.color}, ${settings.theme.card.background})`}
+                  >
+                    {t("then")}{" "}
+                    {formatCurrency(entitlementPrice, entitlementCurrency)}/
+                    {entitlementPackageSize > 1 && (
+                      <>{formatNumber(entitlementPackageSize)} </>
+                    )}
+                    {getFeatureName(
+                      entitlement.feature,
+                      entitlementPackageSize,
+                    )}
+                    {entitlement.feature.featureType === FeatureType.Trait && (
+                      <>/{shortenPeriod(selectedPeriod)}</>
+                    )}
+                  </Text>
+
+                  {entitlement.priceBehavior === PriceBehavior.Overage &&
+                    typeof entitlement.valueNumeric === "number" &&
+                    typeof entitlement.feature !== "undefined" && (
+                      <Tooltip
+                        trigger={
+                          <Icon
+                            title="overage pricing"
+                            name="info-rounded"
+                            color={`hsla(0, 0%, ${isLightBackground ? 0 : 100}%, 0.5)`}
+                          />
+                        }
+                        content={
+                          <Text>
+                            {t("Up to a limit of", {
+                              amount: entitlement.valueNumeric,
+                              units: getFeatureName(
+                                entitlement.feature,
+                                entitlement.valueNumeric,
+                              ),
+                            })}
+                          </Text>
+                        }
+                      />
+                    )}
+                </>
               ) : (
                 (entitlement.priceBehavior === PriceBehavior.Tiered ||
                   tiered) && (

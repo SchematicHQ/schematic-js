@@ -23,7 +23,7 @@ import {
   PricingTiersTooltip,
   TieredPricingDetails,
 } from "../../../shared";
-import { Flex, Icon, Text } from "../../../ui";
+import { Flex, Icon, Text, Tooltip } from "../../../ui";
 
 export interface EntitlementProps {
   entitlement: PlanEntitlementResponseData;
@@ -256,6 +256,32 @@ export const Entitlement = ({
                     portal={tooltipPortal}
                   />
                 )}
+
+                {entitlement.priceBehavior === PriceBehavior.Overage &&
+                  typeof entitlement.valueNumeric === "number" &&
+                  typeof entitlement.feature !== "undefined" && (
+                    <Tooltip
+                      trigger={
+                        <Icon
+                          title="overage pricing"
+                          name="info-rounded"
+                          color={`hsla(0, 0%, ${isLightBackground ? 0 : 100}%, 0.5)`}
+                        />
+                      }
+                      content={
+                        <Text>
+                          {t("Up to a limit of", {
+                            amount: entitlement.valueNumeric,
+                            units: getFeatureName(
+                              entitlement.feature,
+                              entitlement.valueNumeric,
+                            ),
+                          })}
+                        </Text>
+                      }
+                      portal={tooltipPortal}
+                    />
+                  )}
 
                 {entitlement.billingThreshold && (
                   <BillingThresholdTooltip
