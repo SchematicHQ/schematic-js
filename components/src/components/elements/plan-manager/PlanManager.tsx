@@ -303,7 +303,7 @@ export const PlanManager = forwardRef<
                 $size={0.8125 * settings.theme.typography.text.fontSize}
               >
                 {t("Access to plan will end.", {
-                  plan: data.company.scheduledDowngrade.toPlanName,
+                  plan: data.company.scheduledDowngrade.fromPlanName,
                   date: toPrettyDate(
                     new Date(billingSubscription.periodEnd * 1000),
                     {
