@@ -179,6 +179,12 @@ export interface BillingPlanCreditGrantResponseData {
   planName: string;
   /**
    *
+   * @type {string}
+   * @memberof BillingPlanCreditGrantResponseData
+   */
+  planVersionId?: string | null;
+  /**
+   *
    * @type {BillingPlanCreditGrantResetCadence}
    * @memberof BillingPlanCreditGrantResponseData
    */
@@ -294,6 +300,8 @@ export function BillingPlanCreditGrantResponseDataFromJSONTyped(
         : PreviewObjectResponseDataFromJSON(json["plan"]),
     planId: json["plan_id"],
     planName: json["plan_name"],
+    planVersionId:
+      json["plan_version_id"] == null ? undefined : json["plan_version_id"],
     resetCadence: BillingPlanCreditGrantResetCadenceFromJSON(
       json["reset_cadence"],
     ),
@@ -337,6 +345,7 @@ export function BillingPlanCreditGrantResponseDataToJSON(
     plan: PreviewObjectResponseDataToJSON(value["plan"]),
     plan_id: value["planId"],
     plan_name: value["planName"],
+    plan_version_id: value["planVersionId"],
     reset_cadence: BillingPlanCreditGrantResetCadenceToJSON(
       value["resetCadence"],
     ),
