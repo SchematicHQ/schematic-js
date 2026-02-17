@@ -9,7 +9,6 @@ import {
   useMemo,
   useReducer,
   useRef,
-  useState,
 } from "react";
 import { ThemeProvider } from "styled-components";
 import { v4 as uuidv4 } from "uuid";
@@ -59,7 +58,7 @@ export const EmbedProvider = ({
   apiConfig,
   ...options
 }: EmbedProviderProps) => {
-  const sessionIdRef = useRef(uuidv4());
+  const sessionId = useMemo(() => uuidv4(), []);
   const styleRef = useRef<HTMLLinkElement>(null);
 
   const [state, dispatch] = useReducer(reducer, options, (opts) => {
@@ -69,10 +68,23 @@ export const EmbedProvider = ({
     return resolvedState;
   });
 
-  const [api, setApi] = useState<{
-    public?: ComponentspublicApi;
-    checkout?: CheckoutexternalApi;
-  }>({});
+  const publicApi = useMemo(() => {
+    if (!apiKey) return undefined;
+    const configParams = merge({}, apiConfig, {
+      apiKey,
+      headers: getCustomHeaders(sessionId),
+    });
+    return new ComponentspublicApi(new PublicConfiguration(configParams));
+  }, [apiKey, apiConfig, sessionId]);
+
+  const checkoutApi = useMemo(() => {
+    if (!state.accessToken) return undefined;
+    const configParams = merge({}, apiConfig, {
+      apiKey: state.accessToken,
+      headers: getCustomHeaders(sessionId),
+    });
+    return new CheckoutexternalApi(new CheckoutConfiguration(configParams));
+  }, [state.accessToken, apiConfig, sessionId]);
 
   const debug = useCallback(
     (message: string, ...args: unknown[]) => {
@@ -103,14 +115,14 @@ export const EmbedProvider = ({
   const hydratePublic = useCallback(async () => {
     dispatch({ type: "HYDRATE_STARTED" });
 
-    if (!api.public) {
+    if (!publicApi) {
       console.warn(
         "Error: Public API client is not initialized. Please provide an apiKey prop to EmbedProvider.",
       );
     }
 
     try {
-      const response = await api.public?.getPublicPlans();
+      const response = await publicApi?.getPublicPlans();
 
       if (response) {
         dispatch({
@@ -126,7 +138,7 @@ export const EmbedProvider = ({
         error: isError(err) ? err : ERROR_UNKNOWN,
       });
     }
-  }, [api.public]);
+  }, [publicApi]);
 
   const debouncedHydratePublic = useMemo(
     () =>
@@ -148,7 +160,7 @@ export const EmbedProvider = ({
     dispatch({ type: "HYDRATE_STARTED" });
 
     try {
-      const response = await api.checkout?.hydrate();
+      const response = await checkoutApi?.hydrate();
 
       if (response) {
         dispatch({
@@ -164,7 +176,7 @@ export const EmbedProvider = ({
         error: isError(err) ? err : ERROR_UNKNOWN,
       });
     }
-  }, [api.checkout]);
+  }, [checkoutApi]);
 
   const debouncedHydrate = useMemo(
     () => debounce(hydrate, FETCH_DEBOUNCE_TIMEOUT, LEADING_DEBOUNCE_SETTINGS),
@@ -181,7 +193,7 @@ export const EmbedProvider = ({
       dispatch({ type: "HYDRATE_STARTED" });
 
       try {
-        const response = await api.checkout?.hydrateComponent({
+        const response = await checkoutApi?.hydrateComponent({
           componentId: id,
         });
 
@@ -200,7 +212,7 @@ export const EmbedProvider = ({
         });
       }
     },
-    [api.checkout],
+    [checkoutApi],
   );
 
   const debouncedHydrateComponent = useMemo(
@@ -251,8 +263,8 @@ export const EmbedProvider = ({
 
   // api methods
   const createSetupIntent = useCallback(async () => {
-    return api.checkout?.createSetupIntent();
-  }, [api.checkout]);
+    return checkoutApi?.createSetupIntent();
+  }, [checkoutApi]);
 
   const debouncedCreateSetupIntent = useMemo(
     () =>
@@ -266,7 +278,7 @@ export const EmbedProvider = ({
 
   const updatePaymentMethod = useCallback(
     async (paymentMethodId: string) => {
-      const response = await api.checkout?.updatePaymentMethod({
+      const response = await checkoutApi?.updatePaymentMethod({
         updatePaymentMethodRequestBody: { paymentMethodId },
       });
 
@@ -279,7 +291,7 @@ export const EmbedProvider = ({
 
       return response;
     },
-    [api.checkout],
+    [checkoutApi],
   );
 
   const debouncedUpdatePaymentMethod = useMemo(
@@ -294,7 +306,7 @@ export const EmbedProvider = ({
 
   const deletePaymentMethod = useCallback(
     async (paymentMethodId: string) => {
-      const response = await api.checkout?.deletePaymentMethod({
+      const response = await checkoutApi?.deletePaymentMethod({
         checkoutId: paymentMethodId,
       });
 
@@ -307,7 +319,7 @@ export const EmbedProvider = ({
 
       return response;
     },
-    [api.checkout],
+    [checkoutApi],
   );
 
   const debouncedDeletePaymentMethod = useMemo(
@@ -322,7 +334,7 @@ export const EmbedProvider = ({
 
   const checkout = useCallback(
     async (changeSubscriptionRequestBody: ChangeSubscriptionRequestBody) => {
-      const response = await api.checkout?.checkout({
+      const response = await checkoutApi?.checkout({
         changeSubscriptionRequestBody,
       });
 
@@ -335,7 +347,7 @@ export const EmbedProvider = ({
 
       return response;
     },
-    [api.checkout],
+    [checkoutApi],
   );
 
   const debouncedCheckout = useMemo(
@@ -345,13 +357,13 @@ export const EmbedProvider = ({
 
   const previewCheckout = useCallback(
     async (changeSubscriptionRequestBody: ChangeSubscriptionRequestBody) => {
-      return api.checkout?.previewCheckout({ changeSubscriptionRequestBody });
+      return checkoutApi?.previewCheckout({ changeSubscriptionRequestBody });
     },
-    [api.checkout],
+    [checkoutApi],
   );
 
   const unsubscribe = useCallback(async () => {
-    const response = await api.checkout?.checkoutUnsubscribe();
+    const response = await checkoutApi?.checkoutUnsubscribe();
 
     if (response) {
       dispatch({
@@ -361,7 +373,7 @@ export const EmbedProvider = ({
     }
 
     return response;
-  }, [api.checkout]);
+  }, [checkoutApi]);
 
   const debouncedUnsubscribe = useMemo(
     () =>
@@ -371,11 +383,11 @@ export const EmbedProvider = ({
 
   const getUpcomingInvoice = useCallback(
     async (id: string) => {
-      return api.checkout?.hydrateUpcomingInvoice({
+      return checkoutApi?.hydrateUpcomingInvoice({
         componentId: id,
       });
     },
-    [api.checkout],
+    [checkoutApi],
   );
 
   const debouncedGetUpcomingInvoice = useMemo(
@@ -389,8 +401,8 @@ export const EmbedProvider = ({
   );
 
   const getCustomerBalance = useCallback(async () => {
-    return api.checkout?.fetchCustomerBalance();
-  }, [api.checkout]);
+    return checkoutApi?.fetchCustomerBalance();
+  }, [checkoutApi]);
 
   const debouncedGetCustomerBalance = useMemo(
     () =>
@@ -403,8 +415,8 @@ export const EmbedProvider = ({
   );
 
   const listInvoices = useCallback(async () => {
-    return api.checkout?.listInvoices();
-  }, [api.checkout]);
+    return checkoutApi?.listInvoices();
+  }, [checkoutApi]);
 
   const debouncedListInvoices = useMemo(
     () =>
@@ -513,37 +525,6 @@ export const EmbedProvider = ({
     }
   }, [styleRef, state.settings.theme.typography]);
 
-  useEffect(() => {
-    if (apiKey) {
-      const configParams = merge({}, apiConfig, {
-        apiKey,
-        headers: getCustomHeaders(sessionIdRef.current),
-      });
-      const publicApi = new ComponentspublicApi(
-        new PublicConfiguration(configParams),
-      );
-      setApi((prev) => ({
-        ...prev,
-        public: publicApi,
-      }));
-    }
-  }, [apiKey, apiConfig]);
-
-  useEffect(() => {
-    if (state.accessToken) {
-      const configParams = merge({}, apiConfig, {
-        apiKey: state.accessToken,
-        headers: getCustomHeaders(sessionIdRef.current),
-      });
-
-      setApi((prev) => ({
-        ...prev,
-        checkout: new CheckoutexternalApi(
-          new CheckoutConfiguration(configParams),
-        ),
-      }));
-    }
-  }, [state.accessToken, apiConfig]);
 
   useEffect(() => {
     if (options.settings) {
