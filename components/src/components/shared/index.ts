@@ -1,5 +1,6 @@
 export * from "./billing-threshold-tooltip";
 export * from "./checkout-dialog";
+export * from "./overage-tooltip";
 export * from "./payment-dialog";
 export * from "./payment-form";
 export * from "./period-toggle";

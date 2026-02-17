@@ -12,7 +12,7 @@ import {
   getUsageDetails,
   shortenPeriod,
 } from "../../../utils";
-import { PricingTiersTooltip } from "../../shared";
+import { OverageTooltip, PricingTiersTooltip } from "../../shared";
 import { Flex, Text } from "../../ui";
 
 export interface UsageDetailsProps {
@@ -179,13 +179,20 @@ export const UsageDetails = ({
               )}
             </Text>
 
-            {entitlement.priceBehavior === PriceBehavior.Tiered && (
-              <PricingTiersTooltip
+            {entitlement.priceBehavior === PriceBehavior.Overage ? (
+              <OverageTooltip
                 feature={entitlement.feature}
-                period={period}
-                currency={billingPrice?.currency}
-                priceTiers={billingPrice?.priceTier}
+                limit={entitlement.allocation}
               />
+            ) : (
+              entitlement.priceBehavior === PriceBehavior.Tiered && (
+                <PricingTiersTooltip
+                  feature={entitlement.feature}
+                  period={period}
+                  currency={billingPrice?.currency}
+                  priceTiers={billingPrice?.priceTier}
+                />
+              )
             )}
           </Flex>
         )}

@@ -12,7 +12,7 @@ import {
   shortenPeriod,
   type UsageDetails,
 } from "../../../utils";
-import { PricingTiersTooltip } from "../../shared";
+import { OverageTooltip, PricingTiersTooltip } from "../../shared";
 import { Box, Flex, Text } from "../../ui";
 
 interface PriceDetailsProps {
@@ -73,16 +73,24 @@ export const PriceDetails = ({
       })}
     >
       {priceBehavior === PriceBehavior.Overage ? (
-        <Text>
-          {t("Additional")}: {formatCurrency(currentTierPerUnitPrice, currency)}
-          <Box as="sub" $whiteSpace="nowrap">
-            /{packageSize > 1 && <>{packageSize} </>}
-            {getFeatureName(feature, packageSize)}
-            {feature.featureType === FeatureType.Trait && period && (
-              <>/{shortenPeriod(period)}</>
-            )}
-          </Box>
-        </Text>
+        <Flex $alignItems="baseline">
+          <Text>
+            {t("Additional")}:{" "}
+            {formatCurrency(currentTierPerUnitPrice, currency)}
+            <Box as="sub" $whiteSpace="nowrap">
+              /{packageSize > 1 && <>{packageSize} </>}
+              {getFeatureName(feature, packageSize)}
+              {feature.featureType === FeatureType.Trait && period && (
+                <>/{shortenPeriod(period)}</>
+              )}
+            </Box>
+          </Text>
+
+          <OverageTooltip
+            feature={entitlement.feature}
+            limit={entitlement.allocation}
+          />
+        </Flex>
       ) : (
         priceBehavior === PriceBehavior.Tiered && (
           <Flex $alignItems="baseline">
