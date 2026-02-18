@@ -19,7 +19,7 @@
     "An unknown error occurred.": "An unknown error occurred.",
     "Billed": "Billed {{period}}",
     "Cancel subscription": "Cancel subscription",
-    "Cannot change to this plan.": "{{reason, list(style: 'long'; type: 'disjunction';)}} usage is over the limit.",
+    "Cannot change to this plan.": "{{reason, list(type: 'conjunction')}} usage is over the limit.",
     "Cannot downgrade entitlement": "Cannot downgrade to a quantity lower than current usage.",
     "Card ending in": "💳 Card ending in {{value}}",
     "Change add-on": "Change add-on",
