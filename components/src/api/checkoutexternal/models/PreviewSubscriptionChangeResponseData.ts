@@ -54,6 +54,12 @@ export interface PreviewSubscriptionChangeResponseData {
   finance?: PreviewSubscriptionFinanceResponseData;
   /**
    *
+   * @type {boolean}
+   * @memberof PreviewSubscriptionChangeResponseData
+   */
+  isScheduledDowngrade: boolean;
+  /**
+   *
    * @type {number}
    * @memberof PreviewSubscriptionChangeResponseData
    * @deprecated
@@ -97,6 +103,12 @@ export interface PreviewSubscriptionChangeResponseData {
    *
    * @type {Date}
    * @memberof PreviewSubscriptionChangeResponseData
+   */
+  scheduledChangeTime?: Date | null;
+  /**
+   *
+   * @type {Date}
+   * @memberof PreviewSubscriptionChangeResponseData
    * @deprecated
    */
   trialEnd?: Date | null;
@@ -116,6 +128,11 @@ export function instanceOfPreviewSubscriptionChangeResponseData(
 ): value is PreviewSubscriptionChangeResponseData {
   if (!("amountOff" in value) || value["amountOff"] === undefined) return false;
   if (!("dueNow" in value) || value["dueNow"] === undefined) return false;
+  if (
+    !("isScheduledDowngrade" in value) ||
+    value["isScheduledDowngrade"] === undefined
+  )
+    return false;
   if (!("newCharges" in value) || value["newCharges"] === undefined)
     return false;
   if (
@@ -155,12 +172,17 @@ export function PreviewSubscriptionChangeResponseDataFromJSONTyped(
       json["finance"] == null
         ? undefined
         : PreviewSubscriptionFinanceResponseDataFromJSON(json["finance"]),
+    isScheduledDowngrade: json["is_scheduled_downgrade"],
     newCharges: json["new_charges"],
     paymentMethodRequired: json["payment_method_required"],
     percentOff: json["percent_off"],
     periodStart: new Date(json["period_start"]),
     promoCodeApplied: json["promo_code_applied"],
     proration: json["proration"],
+    scheduledChangeTime:
+      json["scheduled_change_time"] == null
+        ? undefined
+        : new Date(json["scheduled_change_time"]),
     trialEnd:
       json["trial_end"] == null ? undefined : new Date(json["trial_end"]),
     usageViolations: (json["usage_violations"] as Array<any>).map(
@@ -179,12 +201,17 @@ export function PreviewSubscriptionChangeResponseDataToJSON(
     amount_off: value["amountOff"],
     due_now: value["dueNow"],
     finance: PreviewSubscriptionFinanceResponseDataToJSON(value["finance"]),
+    is_scheduled_downgrade: value["isScheduledDowngrade"],
     new_charges: value["newCharges"],
     payment_method_required: value["paymentMethodRequired"],
     percent_off: value["percentOff"],
     period_start: value["periodStart"].toISOString(),
     promo_code_applied: value["promoCodeApplied"],
     proration: value["proration"],
+    scheduled_change_time:
+      value["scheduledChangeTime"] == null
+        ? undefined
+        : (value["scheduledChangeTime"] as any).toISOString(),
     trial_end:
       value["trialEnd"] == null
         ? undefined

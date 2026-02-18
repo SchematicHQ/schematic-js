@@ -121,6 +121,7 @@ export * from "./RuleConditionGroupResponseData";
 export * from "./RuleConditionResponseData";
 export * from "./RuleDetailResponseData";
 export * from "./RuleResponseData";
+export * from "./ScheduledDowngradeConfigBehavior";
 export * from "./ScheduledDowngradeResponseData";
 export * from "./SetupIntentResponseData";
 export * from "./StripeEmbedInfo";
