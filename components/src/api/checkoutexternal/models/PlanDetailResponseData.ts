@@ -70,6 +70,12 @@ import {
 export interface PlanDetailResponseData {
   /**
    *
+   * @type {PlanVersionResponseData}
+   * @memberof PlanDetailResponseData
+   */
+  activeVersion?: PlanVersionResponseData;
+  /**
+   *
    * @type {string}
    * @memberof PlanDetailResponseData
    * @deprecated
@@ -111,6 +117,12 @@ export interface PlanDetailResponseData {
    * @memberof PlanDetailResponseData
    */
   description: string;
+  /**
+   *
+   * @type {PlanVersionResponseData}
+   * @memberof PlanDetailResponseData
+   */
+  draftVersion?: PlanVersionResponseData;
   /**
    *
    * @type {Array<FeatureDetailResponseData>}
@@ -247,6 +259,10 @@ export function PlanDetailResponseDataFromJSONTyped(
     return json;
   }
   return {
+    activeVersion:
+      json["active_version"] == null
+        ? undefined
+        : PlanVersionResponseDataFromJSON(json["active_version"]),
     audienceType:
       json["audience_type"] == null ? undefined : json["audience_type"],
     billingProduct:
@@ -258,6 +274,10 @@ export function PlanDetailResponseDataFromJSONTyped(
     controlledBy: PlanControlledByTypeFromJSON(json["controlled_by"]),
     createdAt: new Date(json["created_at"]),
     description: json["description"],
+    draftVersion:
+      json["draft_version"] == null
+        ? undefined
+        : PlanVersionResponseDataFromJSON(json["draft_version"]),
     features: (json["features"] as Array<any>).map(
       FeatureDetailResponseDataFromJSON,
     ),
@@ -301,6 +321,7 @@ export function PlanDetailResponseDataToJSON(
     return value;
   }
   return {
+    active_version: PlanVersionResponseDataToJSON(value["activeVersion"]),
     audience_type: value["audienceType"],
     billing_product: BillingProductDetailResponseDataToJSON(
       value["billingProduct"],
@@ -310,6 +331,7 @@ export function PlanDetailResponseDataToJSON(
     controlled_by: PlanControlledByTypeToJSON(value["controlledBy"]),
     created_at: value["createdAt"].toISOString(),
     description: value["description"],
+    draft_version: PlanVersionResponseDataToJSON(value["draftVersion"]),
     features: (value["features"] as Array<any>).map(
       FeatureDetailResponseDataToJSON,
     ),
