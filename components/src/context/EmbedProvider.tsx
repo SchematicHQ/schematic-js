@@ -3,13 +3,7 @@ import "../localization";
 import { IconStyles } from "@schematichq/schematic-icons";
 import debounce from "lodash/debounce";
 import merge from "lodash/merge";
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useReducer,
-  useRef,
-} from "react";
+import { useCallback, useEffect, useMemo, useReducer, useRef } from "react";
 import { ThemeProvider } from "styled-components";
 import { v4 as uuidv4 } from "uuid";
 
@@ -524,7 +518,6 @@ export const EmbedProvider = ({
       }
     }
   }, [styleRef, state.settings.theme.typography]);
-
 
   useEffect(() => {
     if (options.settings) {

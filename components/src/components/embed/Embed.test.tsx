@@ -21,7 +21,10 @@ describe("SchematicEmbed access token", () => {
     );
 
     render(
-      <SchematicEmbed id="comp_test" accessToken="token_abc12345678901234567890123456" />,
+      <SchematicEmbed
+        id="comp_test"
+        accessToken="token_abc12345678901234567890123456"
+      />,
     );
 
     await waitFor(() => {
@@ -52,9 +55,7 @@ describe("SchematicEmbed access token", () => {
     );
 
     await waitFor(() => {
-      expect(tokensReceived).toContain(
-        "token_old12345678901234567890123456",
-      );
+      expect(tokensReceived).toContain("token_old12345678901234567890123456");
     });
 
     rerender(
@@ -65,9 +66,7 @@ describe("SchematicEmbed access token", () => {
     );
 
     await waitFor(() => {
-      expect(tokensReceived).toContain(
-        "token_new12345678901234567890123456",
-      );
+      expect(tokensReceived).toContain("token_new12345678901234567890123456");
     });
   });
 });
