@@ -82,6 +82,12 @@ import {
 export interface PlanGroupPlanDetailResponseData {
   /**
    *
+   * @type {PlanVersionResponseData}
+   * @memberof PlanGroupPlanDetailResponseData
+   */
+  activeVersion?: PlanVersionResponseData;
+  /**
+   *
    * @type {string}
    * @memberof PlanGroupPlanDetailResponseData
    * @deprecated
@@ -135,6 +141,12 @@ export interface PlanGroupPlanDetailResponseData {
    * @memberof PlanGroupPlanDetailResponseData
    */
   description: string;
+  /**
+   *
+   * @type {PlanVersionResponseData}
+   * @memberof PlanGroupPlanDetailResponseData
+   */
+  draftVersion?: PlanVersionResponseData;
   /**
    *
    * @type {Array<PlanEntitlementResponseData>}
@@ -291,6 +303,10 @@ export function PlanGroupPlanDetailResponseDataFromJSONTyped(
     return json;
   }
   return {
+    activeVersion:
+      json["active_version"] == null
+        ? undefined
+        : PlanVersionResponseDataFromJSON(json["active_version"]),
     audienceType:
       json["audience_type"] == null ? undefined : json["audience_type"],
     billingProduct:
@@ -307,6 +323,10 @@ export function PlanGroupPlanDetailResponseDataFromJSONTyped(
         ? undefined
         : CustomPlanViewConfigResponseDataFromJSON(json["custom_plan_config"]),
     description: json["description"],
+    draftVersion:
+      json["draft_version"] == null
+        ? undefined
+        : PlanVersionResponseDataFromJSON(json["draft_version"]),
     entitlements: (json["entitlements"] as Array<any>).map(
       PlanEntitlementResponseDataFromJSON,
     ),
@@ -354,6 +374,7 @@ export function PlanGroupPlanDetailResponseDataToJSON(
     return value;
   }
   return {
+    active_version: PlanVersionResponseDataToJSON(value["activeVersion"]),
     audience_type: value["audienceType"],
     billing_product: BillingProductDetailResponseDataToJSON(
       value["billingProduct"],
@@ -367,6 +388,7 @@ export function PlanGroupPlanDetailResponseDataToJSON(
       value["customPlanConfig"],
     ),
     description: value["description"],
+    draft_version: PlanVersionResponseDataToJSON(value["draftVersion"]),
     entitlements: (value["entitlements"] as Array<any>).map(
       PlanEntitlementResponseDataToJSON,
     ),

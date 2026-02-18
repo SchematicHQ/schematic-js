@@ -34,6 +34,7 @@ const NoPaymentRequired = ({
 };
 
 type CheckoutStageButtonProps = {
+  canCheckout: boolean;
   checkout: () => Promise<void>;
   checkoutStage?: string;
   checkoutStages?: CheckoutStage[];
@@ -52,6 +53,7 @@ type CheckoutStageButtonProps = {
 };
 
 export const CheckoutStageButton = ({
+  canCheckout,
   checkout,
   checkoutStage,
   checkoutStages,
@@ -69,7 +71,7 @@ export const CheckoutStageButton = ({
 }: CheckoutStageButtonProps) => {
   const { t } = useTranslation();
 
-  const isDisabled = isLoading || !hasPlan || inEditMode;
+  const isDisabled = isLoading || !hasPlan || inEditMode || !canCheckout;
 
   // Helper to get the next stage after the current one
   const getNextStageId = (currentStageId: string): string | undefined => {

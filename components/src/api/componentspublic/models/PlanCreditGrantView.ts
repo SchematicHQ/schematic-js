@@ -175,6 +175,12 @@ export interface PlanCreditGrantView {
    * @type {string}
    * @memberof PlanCreditGrantView
    */
+  planVersionId?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof PlanCreditGrantView
+   */
   pluralName?: string | null;
   /**
    *
@@ -304,6 +310,8 @@ export function PlanCreditGrantViewFromJSONTyped(
         ? undefined
         : GenericPreviewObjectFromJSON(json["plan"]),
     planId: json["plan_id"],
+    planVersionId:
+      json["plan_version_id"] == null ? undefined : json["plan_version_id"],
     pluralName: json["plural_name"] == null ? undefined : json["plural_name"],
     resetCadence: BillingPlanCreditGrantResetCadenceFromJSON(
       json["reset_cadence"],
@@ -349,6 +357,7 @@ export function PlanCreditGrantViewToJSON(
     id: value["id"],
     plan: GenericPreviewObjectToJSON(value["plan"]),
     plan_id: value["planId"],
+    plan_version_id: value["planVersionId"],
     plural_name: value["pluralName"],
     reset_cadence: BillingPlanCreditGrantResetCadenceToJSON(
       value["resetCadence"],

@@ -574,7 +574,6 @@ export class Schematic {
     return this.handleEvent("flag_check", EventBodyFlagCheckToJSON(eventBody));
   }
 
-
   /**
    * Make an API call to fetch all flag values for a given context.
    * Recommended for use in REST mode only.
@@ -1599,7 +1598,10 @@ export class Schematic {
         }
 
         this.debug(`WebSocket connection ${connectionId} error:`, error);
-        reject(error);
+        const wrappedError = new Error(
+          "WebSocket connection failed during handshake",
+        );
+        reject(wrappedError);
       };
 
       webSocket.onclose = () => {
@@ -1682,6 +1684,22 @@ export class Schematic {
         };
 
         socket.addEventListener("message", messageHandler);
+
+        // Detect server-side close with application error codes (e.g. 4001 for auth failure)
+        socket.addEventListener("close", (event: CloseEvent) => {
+          if (!resolved) {
+            resolved = true;
+            if (event.code === 4001) {
+              reject(
+                new Error(
+                  `Authentication failed: ${event.reason !== "" ? event.reason : "Invalid API key"}`,
+                ),
+              );
+            } else {
+              reject(new Error("WebSocket connection closed unexpectedly"));
+            }
+          }
+        });
 
         // Track the current websocket for cleanup and ensuring React listeners use the right connection
         this.currentWebSocket = socket;

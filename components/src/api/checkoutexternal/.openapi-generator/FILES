@@ -123,6 +123,7 @@ models/RuleConditionGroupResponseData.ts
 models/RuleConditionResponseData.ts
 models/RuleDetailResponseData.ts
 models/RuleResponseData.ts
+models/ScheduledDowngradeConfigBehavior.ts
 models/ScheduledDowngradeResponseData.ts
 models/SetupIntentResponseData.ts
 models/StripeEmbedInfo.ts
