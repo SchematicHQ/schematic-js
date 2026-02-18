@@ -1256,16 +1256,18 @@ export const SubscriptionSidebar = forwardRef<
                 {error}
               </Text>
 
-              {error === t("Downgrade not permitted.") && (
-                <Text
-                  as="a"
-                  display="link"
-                  href={data?.preventSelfServiceDowngradeUrl ?? "#"}
-                >
-                  {data?.preventSelfServiceDowngradeButtonText ??
-                    t("Talk to support")}
-                </Text>
-              )}
+              {error === t("Downgrade not permitted.") &&
+                data?.preventSelfServiceDowngrade &&
+                data?.preventSelfServiceDowngradeUrl &&
+                data?.preventSelfServiceDowngradeButtonText && (
+                  <Text
+                    as="a"
+                    display="link"
+                    href={data.preventSelfServiceDowngradeUrl}
+                  >
+                    {data.preventSelfServiceDowngradeButtonText}
+                  </Text>
+                )}
             </Flex>
           )}
 
