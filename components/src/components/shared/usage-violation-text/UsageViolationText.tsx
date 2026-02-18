@@ -13,6 +13,10 @@ export const UsageViolationText = ({ violations }: UsageViolationsProps) => {
 
   const { settings } = useEmbed();
 
+  if (violations.length === 0) {
+    return null;
+  }
+
   return (
     <Text
       $size={0.875 * settings.theme.typography.text.fontSize}
