@@ -23,6 +23,7 @@ describe("`CheckoutStageButton` component", () => {
     trialPaymentMethodRequired: false,
     shouldTrial: false,
     willTrialWithoutPaymentMethod: false,
+    willScheduleDowngrade: false,
   };
 
   beforeEach(() => {
