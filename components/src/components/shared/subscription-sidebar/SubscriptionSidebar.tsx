@@ -622,6 +622,7 @@ export const SubscriptionSidebar = forwardRef<
       willTrialWithoutPaymentMethod,
       shouldTrial,
       isPaymentMethodRequired,
+      willScheduleDowngrade,
       paymentMethod,
       paymentMethodId,
       handleCheckout,

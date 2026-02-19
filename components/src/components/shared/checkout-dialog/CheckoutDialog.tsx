@@ -28,12 +28,7 @@ import type {
   SelectedPlan,
   UsageBasedEntitlement,
 } from "../../../types";
-import {
-  ERROR_UNKNOWN,
-  getAddOnPrice,
-  getPlanPrice,
-  isError,
-} from "../../../utils";
+import { ERROR_UNKNOWN, getAddOnPrice, isError } from "../../../utils";
 import { PeriodToggle, SubscriptionSidebar } from "../../shared";
 import {
   Dialog,
