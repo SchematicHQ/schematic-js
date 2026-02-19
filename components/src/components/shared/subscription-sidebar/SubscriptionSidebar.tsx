@@ -561,12 +561,14 @@ export const SubscriptionSidebar = forwardRef<
       selectedPlan?.isTrialable === true;
 
     const button = useMemo(() => {
+      const canCheckout = error !== t("Downgrade not permitted.");
       const isSticky = !isButtonInView;
 
       switch (layout) {
         case "checkout":
           return (
             <CheckoutStageButton
+              canCheckout={canCheckout}
               isLoading={isLoading}
               isSticky={isSticky}
               inEditMode={settings.mode === "edit"}
@@ -608,6 +610,7 @@ export const SubscriptionSidebar = forwardRef<
       t,
       layout,
       settings.mode,
+      error,
       isLoading,
       isButtonInView,
       checkoutStage,
@@ -1252,11 +1255,24 @@ export const SubscriptionSidebar = forwardRef<
           </div>
 
           {!isLoading && error && (
-            <Box>
+            <Flex $flexDirection="column">
               <Text $weight={500} $color="#DB6669">
                 {error}
               </Text>
-            </Box>
+
+              {error === t("Downgrade not permitted.") &&
+                data?.preventSelfServiceDowngrade &&
+                data?.preventSelfServiceDowngradeUrl &&
+                data?.preventSelfServiceDowngradeButtonText && (
+                  <Text
+                    as="a"
+                    display="link"
+                    href={data.preventSelfServiceDowngradeUrl}
+                  >
+                    {data.preventSelfServiceDowngradeButtonText}
+                  </Text>
+                )}
+            </Flex>
           )}
 
           {layout !== "unsubscribe" && (
