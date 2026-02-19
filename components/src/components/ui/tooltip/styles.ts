@@ -103,12 +103,10 @@ export const Content = styled.div.withConfig({
   return css`
     position: absolute;
     top: calc(
-      ${y}px -
-        ${position === "top" ? 0.75 : position === "bottom" ? -0.75 : 0}rem
+      ${y}px - ${position === "top" ? 0.5 : position === "bottom" ? -0.5 : 0}rem
     );
     left: calc(
-      ${x}px -
-        ${position === "left" ? 0.75 : position === "right" ? -0.75 : 0}rem
+      ${x}px - ${position === "left" ? 0.5 : position === "right" ? -0.5 : 0}rem
     );
     transform: translate(${translate.x}%, ${translate.y}%);
     z-index: 9999999;
