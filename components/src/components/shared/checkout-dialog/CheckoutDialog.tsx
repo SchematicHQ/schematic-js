@@ -621,7 +621,6 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
         if (response) {
           setCharges(response.data.finance);
           setIsPaymentMethodRequired(response.data.paymentMethodRequired);
-          // TODO: use updated preview response from api instead of mock logic
           setWillScheduleDowngrade(response.data.isScheduledDowngrade);
         }
 
