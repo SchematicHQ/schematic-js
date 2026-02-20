@@ -764,27 +764,27 @@
   resolved "https://registry.yarnpkg.com/@lukeed/csprng/-/csprng-1.1.0.tgz#1e3e4bd05c1cc7a0b2ddbd8a03f39f6e4b5e6cfe"
   integrity sha512-Z7C/xXCiGWsg0KuKsHTKJxbWhpI3Vs5GwLfOean7MGyVFGqdRgBbAjOCh6u4bbjPc/8MJ2pZmK/0DLdCbivLDA==
 
-"@microsoft/api-extractor-model@7.32.2":
-  version "7.32.2"
-  resolved "https://registry.yarnpkg.com/@microsoft/api-extractor-model/-/api-extractor-model-7.32.2.tgz#2b891b2bad26d6ba19d7cc21c23510c8c6f05476"
-  integrity sha512-Ussc25rAalc+4JJs9HNQE7TuO9y6jpYQX9nWD1DhqUzYPBr3Lr7O9intf+ZY8kD5HnIqeIRJX7ccCT0QyBy2Ww==
+"@microsoft/api-extractor-model@7.33.1":
+  version "7.33.1"
+  resolved "https://registry.yarnpkg.com/@microsoft/api-extractor-model/-/api-extractor-model-7.33.1.tgz#9763ad17d9e00b83a88d6086a29315bbdb56b8ad"
+  integrity sha512-KX0LI6xzI0gcBOXXmr5mnnbdhsK2W93pqvJo8OgJgWvRRh+wMEp0Ccj38h1XKeJ29E1tuAZKSUOfHUQ1WA8fZg==
   dependencies:
     "@microsoft/tsdoc" "~0.16.0"
     "@microsoft/tsdoc-config" "~0.18.0"
-    "@rushstack/node-core-library" "5.19.1"
+    "@rushstack/node-core-library" "5.20.1"
 
-"@microsoft/api-extractor@^7.56.3":
-  version "7.56.3"
-  resolved "https://registry.yarnpkg.com/@microsoft/api-extractor/-/api-extractor-7.56.3.tgz#77ffac4dba7c192e42dc9aed0535bda5bec75aef"
-  integrity sha512-fRqok4aRNq5GpgGBv2fKlSSKbirPKTJ75vQefthB5x9dwt4Zz+AezUzdc1p/AG4wUBIgmhjcEwn/Rj+N4Wh4Mw==
+"@microsoft/api-extractor@^7.57.1":
+  version "7.57.1"
+  resolved "https://registry.yarnpkg.com/@microsoft/api-extractor/-/api-extractor-7.57.1.tgz#d105ec5d0ae1c598f885e639edc78a257e313b1b"
+  integrity sha512-rTHuqQeI38kNgUoWNlCNrAJWgRA7s48DNZcMyPkQvTzb33EQL/a0FA8S1IAXh9133NG4/cJ19trXtBZSwZndsw==
   dependencies:
-    "@microsoft/api-extractor-model" "7.32.2"
+    "@microsoft/api-extractor-model" "7.33.1"
     "@microsoft/tsdoc" "~0.16.0"
     "@microsoft/tsdoc-config" "~0.18.0"
-    "@rushstack/node-core-library" "5.19.1"
-    "@rushstack/rig-package" "0.6.0"
-    "@rushstack/terminal" "0.21.0"
-    "@rushstack/ts-command-line" "5.2.0"
+    "@rushstack/node-core-library" "5.20.1"
+    "@rushstack/rig-package" "0.7.1"
+    "@rushstack/terminal" "0.22.1"
+    "@rushstack/ts-command-line" "5.3.1"
     diff "~8.0.2"
     lodash "~4.17.23"
     minimatch "10.1.2"
@@ -1034,10 +1034,10 @@
   resolved "https://registry.yarnpkg.com/@rtsao/scc/-/scc-1.1.0.tgz#927dd2fae9bc3361403ac2c7a00c32ddce9ad7e8"
   integrity sha512-zt6OdqaDoOnJ1ZYsCYGt9YmWzDXl4vQdKTyJev62gFhRGKdx7mcT54V9KIjg+d2wi9EXsPvAPKe7i7WjfVWB8g==
 
-"@rushstack/node-core-library@5.19.1":
-  version "5.19.1"
-  resolved "https://registry.yarnpkg.com/@rushstack/node-core-library/-/node-core-library-5.19.1.tgz#2bafbb81cdd886798db2adc44ad41506fa80195a"
-  integrity sha512-ESpb2Tajlatgbmzzukg6zyAhH+sICqJR2CNXNhXcEbz6UGCQfrKCtkxOpJTftWc8RGouroHG0Nud1SJAszvpmA==
+"@rushstack/node-core-library@5.20.1":
+  version "5.20.1"
+  resolved "https://registry.yarnpkg.com/@rushstack/node-core-library/-/node-core-library-5.20.1.tgz#4b758ea0c6b9db524d1e6f2433a175df7b08db6b"
+  integrity sha512-QvxZyh+RsTJ77JpQkS9K9lJujh6lj5WyMxieT0bdACtwqxEkGB9zCuSMX5UlXRweaIgSpu1ztdHmhV07fKUpMg==
   dependencies:
     ajv "~8.13.0"
     ajv-draft-04 "~1.0.0"
@@ -1048,34 +1048,34 @@
     resolve "~1.22.1"
     semver "~7.5.4"
 
-"@rushstack/problem-matcher@0.1.1":
-  version "0.1.1"
-  resolved "https://registry.yarnpkg.com/@rushstack/problem-matcher/-/problem-matcher-0.1.1.tgz#db9303ef3c47010c8aba5841e8c9511e091159df"
-  integrity sha512-Fm5XtS7+G8HLcJHCWpES5VmeMyjAKaWeyZU5qPzZC+22mPlJzAsOxymHiWIfuirtPckX3aptWws+K2d0BzniJA==
+"@rushstack/problem-matcher@0.2.1":
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/@rushstack/problem-matcher/-/problem-matcher-0.2.1.tgz#e9f6cac2dd6a882d60e76a8d4462b7d24b4f17e5"
+  integrity sha512-gulfhBs6n+I5b7DvjKRfhMGyUejtSgOHTclF/eONr8hcgF1APEDjhxIsfdUYYMzC3rvLwGluqLjbwCFZ8nxrog==
 
-"@rushstack/rig-package@0.6.0":
-  version "0.6.0"
-  resolved "https://registry.yarnpkg.com/@rushstack/rig-package/-/rig-package-0.6.0.tgz#c80f93fe2c0d9d4977fc925ed9ce9decb75047a5"
-  integrity sha512-ZQmfzsLE2+Y91GF15c65L/slMRVhF6Hycq04D4TwtdGaUAbIXXg9c5pKA5KFU7M4QMaihoobp9JJYpYcaY3zOw==
+"@rushstack/rig-package@0.7.1":
+  version "0.7.1"
+  resolved "https://registry.yarnpkg.com/@rushstack/rig-package/-/rig-package-0.7.1.tgz#ffe5b46e55ee141432710a329336b087471c82a8"
+  integrity sha512-hLwDnp4yMcAd/gcUol8NPWNctpIXzVOgMyhZ8DagnEJls9TOZd0xF//5hS+YTiX7/+4rLfBra+NoB3rtFxjDdA==
   dependencies:
     resolve "~1.22.1"
     strip-json-comments "~3.1.1"
 
-"@rushstack/terminal@0.21.0":
-  version "0.21.0"
-  resolved "https://registry.yarnpkg.com/@rushstack/terminal/-/terminal-0.21.0.tgz#216d4383d5c10d6f3fe7530af43717b2c2513329"
-  integrity sha512-cLaI4HwCNYmknM5ns4G+drqdEB6q3dCPV423+d3TZeBusYSSm09+nR7CnhzJMjJqeRcdMAaLnrA4M/3xDz4R3w==
+"@rushstack/terminal@0.22.1":
+  version "0.22.1"
+  resolved "https://registry.yarnpkg.com/@rushstack/terminal/-/terminal-0.22.1.tgz#bb40fc351b3a5987c51a11f8a6db5aa2e47fc672"
+  integrity sha512-Mdtu0VN7v31O5Zcno8ZZH5kQHF13Ez7WN9Aio7nFJVcR36i4bkERionYrWgBDQJ0JdVPLKGecZER/xRU5IvGLw==
   dependencies:
-    "@rushstack/node-core-library" "5.19.1"
-    "@rushstack/problem-matcher" "0.1.1"
+    "@rushstack/node-core-library" "5.20.1"
+    "@rushstack/problem-matcher" "0.2.1"
     supports-color "~8.1.1"
 
-"@rushstack/ts-command-line@5.2.0":
-  version "5.2.0"
-  resolved "https://registry.yarnpkg.com/@rushstack/ts-command-line/-/ts-command-line-5.2.0.tgz#2e6f6bc2c63f79a7422772a78edc52c50cfe8837"
-  integrity sha512-lYxCX0nDdkDtCkVpvF0m25ymf66SaMWuppbD6b7MdkIzvGXKBXNIVZlwBH/C0YfkanrupnICWf2n4z3AKSfaHw==
+"@rushstack/ts-command-line@5.3.1":
+  version "5.3.1"
+  resolved "https://registry.yarnpkg.com/@rushstack/ts-command-line/-/ts-command-line-5.3.1.tgz#433d17a5f0f939f7e781de8d5116fab53bad0464"
+  integrity sha512-mid/JIZSJafwy3x9e4v0wVLuAqSSYYErEHV0HXPALYLSBN13YNkR5caOk0hf97lSRKrxhtvQjGaDKSEelR3sMg==
   dependencies:
-    "@rushstack/terminal" "0.21.0"
+    "@rushstack/terminal" "0.22.1"
     "@types/argparse" "1.0.38"
     argparse "~1.0.9"
     string-argv "~0.3.1"
@@ -3157,10 +3157,10 @@ https-proxy-agent@^7.0.6:
     agent-base "^7.1.2"
     debug "4"
 
-i18next@^25.8.10:
-  version "25.8.10"
-  resolved "https://registry.yarnpkg.com/i18next/-/i18next-25.8.10.tgz#5bfe20c167761a7c4e33427aae54e33615ce944a"
-  integrity sha512-CtPJLMAz1G8sxo+mIzfBjGgLxWs7d6WqIjlmmv9BTsOat4pJIfwZ8cm07n3kFS6bP9c6YwsYutYrwsEeJVBo2g==
+i18next@^25.8.11:
+  version "25.8.11"
+  resolved "https://registry.yarnpkg.com/i18next/-/i18next-25.8.11.tgz#c7d4d876181f63d76248da44e0e92a55a65fe2d2"
+  integrity sha512-LZ32llTLGludnddjLoijHV7TbmVubU5eJnsWf8taiuM3jmSfUuvBLuyDeubJKS1yBjLBgb7As124M4KWNcBvpw==
   dependencies:
     "@babel/runtime" "^7.28.4"
 
@@ -5099,10 +5099,25 @@ strtok3@^10.3.4:
   dependencies:
     "@tokenizer/token" "^0.3.0"
 
-styled-components@^6.1.19, styled-components@^6.3.9:
+styled-components@^6.1.19:
   version "6.3.9"
   resolved "https://registry.yarnpkg.com/styled-components/-/styled-components-6.3.9.tgz#b03c36606e7fa449028af1433d86a849ab289931"
   integrity sha512-J72R4ltw0UBVUlEjTzI0gg2STOqlI9JBhQOL4Dxt7aJOnnSesy0qJDn4PYfMCafk9cWOaVg129Pesl5o+DIh0Q==
+  dependencies:
+    "@emotion/is-prop-valid" "1.4.0"
+    "@emotion/unitless" "0.10.0"
+    "@types/stylis" "4.2.7"
+    css-to-react-native "3.2.0"
+    csstype "3.2.3"
+    postcss "8.4.49"
+    shallowequal "1.1.0"
+    stylis "4.3.6"
+    tslib "2.8.1"
+
+styled-components@^6.3.11:
+  version "6.3.11"
+  resolved "https://registry.yarnpkg.com/styled-components/-/styled-components-6.3.11.tgz#6babdb151a3419b0a79a368353d1dfbe8c5dddbc"
+  integrity sha512-opzgceGlQ5rdZdGwf9ddLW7EM2F4L7tgsgLn6fFzQ2JgE5EVQ4HZwNkcgB1p8WfOBx1GEZP3fa66ajJmtXhSrA==
   dependencies:
     "@emotion/is-prop-valid" "1.4.0"
     "@emotion/unitless" "0.10.0"
