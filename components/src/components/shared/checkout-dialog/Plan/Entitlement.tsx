@@ -20,6 +20,7 @@ import {
 } from "../../../../utils";
 import {
   BillingThresholdTooltip,
+  OverageTooltip,
   PricingTiersTooltip,
   TieredPricingDetails,
 } from "../../../shared";
@@ -245,16 +246,24 @@ export const Entitlement = ({
                   {usageText}
                 </Text>
 
-                {(entitlement.priceBehavior === PriceBehavior.Tiered ||
-                  tiered) && (
-                  <PricingTiersTooltip
+                {entitlement.priceBehavior === PriceBehavior.Overage ? (
+                  <OverageTooltip
                     feature={entitlement.feature}
-                    period={period}
-                    currency={currency}
-                    priceTiers={priceTier}
-                    tiersMode={tiersMode ?? undefined}
+                    limit={entitlement.valueNumeric}
                     portal={tooltipPortal}
                   />
+                ) : (
+                  (entitlement.priceBehavior === PriceBehavior.Tiered ||
+                    tiered) && (
+                    <PricingTiersTooltip
+                      feature={entitlement.feature}
+                      period={period}
+                      currency={currency}
+                      priceTiers={priceTier}
+                      tiersMode={tiersMode ?? undefined}
+                      portal={tooltipPortal}
+                    />
+                  )
                 )}
 
                 {entitlement.billingThreshold && (

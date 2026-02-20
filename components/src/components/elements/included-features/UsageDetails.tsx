@@ -14,7 +14,7 @@ import {
   shortenPeriod,
   toPrettyDate,
 } from "../../../utils";
-import { PricingTiersTooltip } from "../../shared";
+import { OverageTooltip, PricingTiersTooltip } from "../../shared";
 import { Box, Flex, Text } from "../../ui";
 
 interface UsageDetailsProps {
@@ -359,14 +359,21 @@ export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
         >
           <Text display={layout.usage.fontStyle}>{usageText}</Text>
 
-          {(priceBehavior === PriceBehavior.Tiered || tiered) && (
-            <PricingTiersTooltip
-              feature={feature}
-              period={period}
-              currency={currency}
-              priceTiers={priceTiers}
-              tiersMode={tiersMode ?? undefined}
+          {priceBehavior === PriceBehavior.Overage ? (
+            <OverageTooltip
+              feature={entitlement.feature}
+              limit={entitlement.allocation}
             />
+          ) : (
+            (priceBehavior === PriceBehavior.Tiered || tiered) && (
+              <PricingTiersTooltip
+                feature={feature}
+                period={period}
+                currency={currency}
+                priceTiers={priceTiers}
+                tiersMode={tiersMode ?? undefined}
+              />
+            )
           )}
         </Flex>
       )}

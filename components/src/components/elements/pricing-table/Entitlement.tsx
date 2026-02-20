@@ -21,6 +21,7 @@ import {
 } from "../../../utils";
 import {
   BillingThresholdTooltip,
+  OverageTooltip,
   PricingTiersTooltip,
   TieredPricingDetails,
 } from "../../shared";
@@ -180,23 +181,33 @@ export const Entitlement = ({
               )}
             </Text>
 
-            <Flex $alignItems="end">
+            <Flex $alignItems="start">
               {entitlement.priceBehavior === PriceBehavior.Overage &&
               typeof entitlementPrice === "number" ? (
-                <Text
-                  $size={0.875 * settings.theme.typography.text.fontSize}
-                  $color={`color-mix(in oklch, ${settings.theme.typography.text.color}, ${settings.theme.card.background})`}
-                >
-                  {t("then")}{" "}
-                  {formatCurrency(entitlementPrice, entitlementCurrency)}/
-                  {entitlementPackageSize > 1 && (
-                    <>{formatNumber(entitlementPackageSize)} </>
-                  )}
-                  {getFeatureName(entitlement.feature, entitlementPackageSize)}
-                  {entitlement.feature.featureType === FeatureType.Trait && (
-                    <>/{shortenPeriod(selectedPeriod)}</>
-                  )}
-                </Text>
+                <>
+                  <Text
+                    $size={0.875 * settings.theme.typography.text.fontSize}
+                    $color={`color-mix(in oklch, ${settings.theme.typography.text.color}, ${settings.theme.card.background})`}
+                  >
+                    {t("then")}{" "}
+                    {formatCurrency(entitlementPrice, entitlementCurrency)}/
+                    {entitlementPackageSize > 1 && (
+                      <>{formatNumber(entitlementPackageSize)} </>
+                    )}
+                    {getFeatureName(
+                      entitlement.feature,
+                      entitlementPackageSize,
+                    )}
+                    {entitlement.feature.featureType === FeatureType.Trait && (
+                      <>/{shortenPeriod(selectedPeriod)}</>
+                    )}
+                  </Text>
+
+                  <OverageTooltip
+                    feature={entitlement.feature}
+                    limit={entitlement.valueNumeric}
+                  />
+                </>
               ) : (
                 (entitlement.priceBehavior === PriceBehavior.Tiered ||
                   tiered) && (
