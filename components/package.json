@@ -65,7 +65,7 @@
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.0.1",
     "globals": "^17.3.0",
-    "happy-dom": "^20.6.1",
+    "happy-dom": "^20.6.3",
     "jsdom": "^28.1.0",
     "msw": "^2.12.10",
     "prettier": "^3.8.1",
