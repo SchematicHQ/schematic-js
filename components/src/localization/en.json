@@ -119,6 +119,7 @@
     "Tax (description):": "Tax ({{description}}):",
     "There was a problem retrieving your upcoming invoice.": "There was a problem retrieving your upcoming invoice.",
     "There was a problem retrieving your invoices.": "There was a problem retrieving your invoices.",
+    "Tier-based": "Tier-based",
     "Tiers apply progressively as quantity increases.": "Tiers apply progressively as quantity increases.",
     "Total": "Total",
     "Trial ends in": "Trial ends in {{amount}} {{units}}",

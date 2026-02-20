@@ -69,6 +69,11 @@ export const UsageDetails = ({
       index += 1;
     }
 
+    if (entitlement.priceBehavior === PriceBehavior.Tiered && cost === 0) {
+      acc.push(<Fragment key={index}>{t("Tier-based")}</Fragment>);
+      index += 1;
+    }
+
     const { price } = getEntitlementPrice(entitlement, period) || {};
 
     if (
@@ -128,7 +133,7 @@ export const UsageDetails = ({
     }
 
     return acc;
-  }, [t, period, showCredits, entitlement, billingPrice, amount]);
+  }, [t, period, showCredits, entitlement, billingPrice, amount, cost]);
 
   if (
     (entitlement.priceBehavior === PriceBehavior.Credit && !showCredits) ||
@@ -152,49 +157,49 @@ export const UsageDetails = ({
       <Text display={layout.addOns.fontStyle}>
         {typeof quantity === "number" && quantity > 0 ? (
           <>
-            {quantity} {entitlement.feature.name}
+            {quantity} {getFeatureName(entitlement.feature, quantity, true)}
           </>
         ) : (
           entitlement.feature.name
         )}
       </Text>
 
-      <Flex $alignItems="center" $gap="0.5rem">
-        {description.length > 0 && (
-          <Text
-            style={{ opacity: 0.54 }}
-            $size={0.875 * settings.theme.typography.text.fontSize}
-            $color={settings.theme.typography.text.color}
-          >
-            {description}
-          </Text>
-        )}
+      <Flex $alignItems="baseline">
+        <Flex $alignItems="baseline" $gap="0.5rem">
+          {description.length > 0 && (
+            <Text
+              style={{ opacity: 0.54 }}
+              $size={0.875 * settings.theme.typography.text.fontSize}
+              $color={settings.theme.typography.text.color}
+            >
+              {description}
+            </Text>
+          )}
 
-        {(cost > 0 || entitlement.priceBehavior === PriceBehavior.Tiered) && (
-          <Flex $alignItems="baseline">
+          {cost > 0 && (
             <Text>
               {formatCurrency(cost, billingPrice?.currency)}
               {entitlement.feature.featureType === FeatureType.Trait && (
                 <sub>/{shortenPeriod(period)}</sub>
               )}
             </Text>
+          )}
+        </Flex>
 
-            {entitlement.priceBehavior === PriceBehavior.Overage ? (
-              <OverageTooltip
-                feature={entitlement.feature}
-                limit={entitlement.allocation}
-              />
-            ) : (
-              entitlement.priceBehavior === PriceBehavior.Tiered && (
-                <PricingTiersTooltip
-                  feature={entitlement.feature}
-                  period={period}
-                  currency={billingPrice?.currency}
-                  priceTiers={billingPrice?.priceTier}
-                />
-              )
-            )}
-          </Flex>
+        {entitlement.priceBehavior === PriceBehavior.Overage ? (
+          <OverageTooltip
+            feature={entitlement.feature}
+            limit={entitlement.allocation}
+          />
+        ) : (
+          entitlement.priceBehavior === PriceBehavior.Tiered && (
+            <PricingTiersTooltip
+              feature={entitlement.feature}
+              period={period}
+              currency={billingPrice?.currency}
+              priceTiers={billingPrice?.priceTier}
+            />
+          )
         )}
       </Flex>
     </Flex>
