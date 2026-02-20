@@ -1,7 +1,7 @@
 {
   "translation": {
     "A problem occurred while saving your payment method.": "A problem occurred while saving your payment method.",
-    "Access to plan will end on": "Access to plan will end on {{date}}",
+    "Access to plan will end.": "Access to {{plan}} will end on {{date}}.",
     "Active": "Active",
     "Add": "Add",
     "Add new payment method": "Add new payment method",
@@ -38,6 +38,7 @@
     "Currently using": "Currently using {{quantity}} {{unit}}",
     "Custom price": "Custom price",
     "Discount": "Discount",
+    "Downgrade to plan scheduled": "Downgrade to {{plan}} scheduled",
     "Due today": "Due today",
     "Edit payment method": "Edit payment method",
     "Edit": "Edit",
@@ -108,6 +109,7 @@
     "Selected": "Selected",
     "Selected plan or associated price is missing.": "Selected plan or associated price is missing.",
     "Downgrade not permitted.": "Downgrade not permitted.",
+    "Downgrade pending.": "Downgrade pending.",
     "Session expired. Please refresh and try again.": "Session expired. Please refresh and try again.",
     "Show details": "Show details",
     "Start trial": "Start trial",
@@ -155,6 +157,7 @@
     "X units per use": "{{amount}} {{units}} per use",
     "X time left in trial": "{{amount}} {{units}} left in trial",
     "Yearly total": "Yearly total",
+    "You will be downgraded at the end of your billing period.": "You will be downgraded to the {{plan}} plan at the end of your billing period on {{date}}.",
     "You will retain access to your plan until the end of the billing period, on": "You will retain access to your plan until the end of the billing period, on",
 
     "$X per unit": "{{cost}} per {{unit}}",
