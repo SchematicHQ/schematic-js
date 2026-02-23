@@ -306,6 +306,8 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
   const [isPaymentMethodRequired, setIsPaymentMethodRequired] = useState(false);
 
+  const [willScheduleDowngrade, setWillScheduleDowngrade] = useState(false);
+
   const willTrialWithoutPaymentMethod = useMemo(
     () => shouldTrial && !trialPaymentMethodRequired,
     [shouldTrial, trialPaymentMethodRequired],
@@ -614,6 +616,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
         if (response) {
           setCharges(response.data.finance);
           setIsPaymentMethodRequired(response.data.paymentMethodRequired);
+          setWillScheduleDowngrade(response.data.isScheduledDowngrade);
         }
 
         if (typeof updates.promoCode !== "undefined") {
@@ -644,6 +647,14 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
                 return;
               case "self-service downgrade not permitted":
                 setError(t("Downgrade not permitted."));
+                return;
+            }
+          }
+
+          if (err.response.status === 409) {
+            switch (data.error) {
+              case "cannot purchase pay-in-advance entitlements while a scheduled downgrade is pending; cancel the scheduled downgrade first":
+                setError(t("Downgrade pending."));
                 return;
             }
           }
@@ -1254,6 +1265,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
           shouldTrial={shouldTrial}
           setConfirmPaymentIntent={setConfirmPaymentIntentProps}
           willTrialWithoutPaymentMethod={willTrialWithoutPaymentMethod}
+          willScheduleDowngrade={willScheduleDowngrade}
         />
       </DialogContent>
     </Dialog>

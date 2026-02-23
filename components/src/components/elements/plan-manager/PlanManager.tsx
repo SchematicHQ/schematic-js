@@ -243,8 +243,42 @@ export const PlanManager = forwardRef<
             </Text>
           )}
         </Notice>
+      ) : willSubscriptionCancel ? (
+        <Notice
+          as={Flex}
+          $flexDirection="column"
+          $gap="0.5rem"
+          $padding="1.5rem"
+          $textAlign="center"
+          $backgroundColor={
+            isLightBackground
+              ? darken(settings.theme.card.background, 0.04)
+              : lighten(settings.theme.card.background, 0.04)
+          }
+        >
+          <Text as="h3" display="heading3">
+            {t("Subscription canceled")}
+          </Text>
+
+          {typeof billingSubscription?.cancelAt === "number" && (
+            <Text
+              as="p"
+              $size={0.8125 * settings.theme.typography.text.fontSize}
+            >
+              {t("Access to plan will end.", {
+                plan: currentPlan?.name || "plan",
+                date: toPrettyDate(
+                  new Date(billingSubscription.cancelAt * 1000),
+                  {
+                    month: "numeric",
+                  },
+                ),
+              })}
+            </Text>
+          )}
+        </Notice>
       ) : (
-        willSubscriptionCancel && (
+        data?.company?.scheduledDowngrade?.toPlanName && (
           <Notice
             as={Flex}
             $flexDirection="column"
@@ -258,17 +292,20 @@ export const PlanManager = forwardRef<
             }
           >
             <Text as="h3" display="heading3">
-              {t("Subscription canceled")}
+              {t("Downgrade to plan scheduled", {
+                plan: data.company.scheduledDowngrade.toPlanName,
+              })}
             </Text>
 
-            {typeof billingSubscription?.cancelAt === "number" && (
+            {typeof billingSubscription?.periodEnd === "number" && (
               <Text
                 as="p"
                 $size={0.8125 * settings.theme.typography.text.fontSize}
               >
-                {t("Access to plan will end on", {
+                {t("Access to plan will end.", {
+                  plan: data.company.scheduledDowngrade.fromPlanName,
                   date: toPrettyDate(
-                    new Date(billingSubscription.cancelAt * 1000),
+                    new Date(billingSubscription.periodEnd * 1000),
                     {
                       month: "numeric",
                     },
