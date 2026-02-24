@@ -105,7 +105,7 @@ export interface FeatureEntitlement {
    */
   usage?: number | null;
   /**
-   *
+   * The type of the entitlement value
    * @type {EntitlementValueType}
    * @memberof FeatureEntitlement
    */

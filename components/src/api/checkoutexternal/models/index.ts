@@ -85,7 +85,6 @@ export * from "./FeatureResponseData";
 export * from "./FeatureType";
 export * from "./FeatureUsageDetailResponseData";
 export * from "./FeatureUsageResponseData";
-export * from "./FeatureUsageResponseDataCreditUsageAggregation";
 export * from "./FetchCustomerBalanceResponse";
 export * from "./FlagDetailResponseData";
 export * from "./FlagResponseData";

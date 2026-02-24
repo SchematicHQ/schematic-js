@@ -87,7 +87,6 @@ models/FeatureResponseData.ts
 models/FeatureType.ts
 models/FeatureUsageDetailResponseData.ts
 models/FeatureUsageResponseData.ts
-models/FeatureUsageResponseDataCreditUsageAggregation.ts
 models/FetchCustomerBalanceResponse.ts
 models/FlagDetailResponseData.ts
 models/FlagResponseData.ts

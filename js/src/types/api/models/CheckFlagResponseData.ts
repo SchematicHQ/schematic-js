@@ -13,13 +13,13 @@
  */
 
 import { mapValues } from "../runtime";
-import type { CheckFlagResponseDataEntitlement } from "./CheckFlagResponseDataEntitlement";
+import type { FeatureEntitlement } from "./FeatureEntitlement";
 import {
-  CheckFlagResponseDataEntitlementFromJSON,
-  CheckFlagResponseDataEntitlementFromJSONTyped,
-  CheckFlagResponseDataEntitlementToJSON,
-  CheckFlagResponseDataEntitlementToJSONTyped,
-} from "./CheckFlagResponseDataEntitlement";
+  FeatureEntitlementFromJSON,
+  FeatureEntitlementFromJSONTyped,
+  FeatureEntitlementToJSON,
+  FeatureEntitlementToJSONTyped,
+} from "./FeatureEntitlement";
 
 /**
  *
@@ -34,11 +34,11 @@ export interface CheckFlagResponseData {
    */
   companyId?: string | null;
   /**
-   *
-   * @type {CheckFlagResponseDataEntitlement}
+   * If a feature entitlement rule was matched, its entitlement details
+   * @type {FeatureEntitlement}
    * @memberof CheckFlagResponseData
    */
-  entitlement?: CheckFlagResponseDataEntitlement;
+  entitlement?: FeatureEntitlement;
   /**
    * If an error occurred while checking the flag, the error message
    * @type {string}
@@ -154,7 +154,7 @@ export function CheckFlagResponseDataFromJSONTyped(
     entitlement:
       json["entitlement"] == null
         ? undefined
-        : CheckFlagResponseDataEntitlementFromJSON(json["entitlement"]),
+        : FeatureEntitlementFromJSON(json["entitlement"]),
     error: json["error"] == null ? undefined : json["error"],
     featureAllocation:
       json["feature_allocation"] == null
@@ -198,7 +198,7 @@ export function CheckFlagResponseDataToJSONTyped(
 
   return {
     company_id: value["companyId"],
-    entitlement: CheckFlagResponseDataEntitlementToJSON(value["entitlement"]),
+    entitlement: FeatureEntitlementToJSON(value["entitlement"]),
     error: value["error"],
     feature_allocation: value["featureAllocation"],
     feature_usage: value["featureUsage"],
