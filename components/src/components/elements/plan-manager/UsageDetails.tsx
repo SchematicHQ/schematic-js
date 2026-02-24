@@ -41,7 +41,6 @@ export const UsageDetails = ({
   const {
     billingPrice,
     limit,
-    amount = 0,
     cost = 0,
   } = useMemo(
     () => getUsageDetails(entitlement, period),
@@ -54,22 +53,11 @@ export const UsageDetails = ({
     let index = 0;
 
     if (entitlement.priceBehavior === PriceBehavior.Overage) {
-      acc.push(
-        amount > 0 ? (
-          <Fragment key={index}>
-            {t("X additional", {
-              amount: amount,
-            })}
-          </Fragment>
-        ) : (
-          <Fragment key={index}>{t("Additional")}: </Fragment>
-        ),
-      );
-
+      acc.push(<Fragment key={index}>{t("Additional")}: </Fragment>);
       index += 1;
     }
 
-    if (entitlement.priceBehavior === PriceBehavior.Tiered && cost === 0) {
+    if (entitlement.priceBehavior === PriceBehavior.Tiered) {
       acc.push(<Fragment key={index}>{t("Tier-based")}</Fragment>);
       index += 1;
     }
@@ -77,13 +65,12 @@ export const UsageDetails = ({
     const { price } = getEntitlementPrice(entitlement, period) || {};
 
     if (
-      entitlement.priceBehavior !== PriceBehavior.Tiered &&
+      (entitlement.priceBehavior === PriceBehavior.PayAsYouGo ||
+        entitlement.priceBehavior === PriceBehavior.Overage) &&
       entitlement.feature &&
-      typeof price === "number" &&
-      !amount
+      typeof price === "number"
     ) {
       const packageSize = billingPrice?.packageSize ?? 1;
-
       acc.push(
         <Fragment key={index}>
           {formatCurrency(price, billingPrice?.currency)}
@@ -106,34 +93,29 @@ export const UsageDetails = ({
       entitlement.planEntitlement?.consumptionRate &&
       entitlement.planEntitlement?.valueCredit
     ) {
-      const creditAmount = entitlement.planEntitlement.consumptionRate * amount;
       acc.push(
-        creditAmount > 0 ? (
-          <Fragment key={index}>
-            {creditAmount}{" "}
-            {getFeatureName(
-              entitlement.planEntitlement.valueCredit,
-              creditAmount,
-            )}{" "}
-            {t("used")}
-          </Fragment>
-        ) : (
-          <Fragment key={index}>
-            {entitlement.planEntitlement.consumptionRate}{" "}
-            {getFeatureName(
-              entitlement.planEntitlement.valueCredit,
-              entitlement.planEntitlement.consumptionRate,
-            )}{" "}
-            {t("per")} {t("use")}
-          </Fragment>
-        ),
+        <Fragment key={index}>
+          {entitlement.planEntitlement.consumptionRate}{" "}
+          {getFeatureName(
+            entitlement.planEntitlement.valueCredit,
+            entitlement.planEntitlement.consumptionRate,
+          )}{" "}
+          {t("per")} {t("use")}
+        </Fragment>,
       );
 
       index += 1;
     }
 
     return acc;
-  }, [t, period, showCredits, entitlement, billingPrice, amount, cost]);
+  }, [
+    t,
+    period,
+    showCredits,
+    entitlement,
+    billingPrice?.packageSize,
+    billingPrice?.currency,
+  ]);
 
   if (
     (entitlement.priceBehavior === PriceBehavior.Credit && !showCredits) ||
@@ -143,9 +125,7 @@ export const UsageDetails = ({
   }
 
   const quantity =
-    entitlement.priceBehavior !== PriceBehavior.Credit
-      ? limit || amount
-      : undefined;
+    entitlement.priceBehavior !== PriceBehavior.Credit ? limit : undefined;
 
   return (
     <Flex
@@ -155,7 +135,7 @@ export const UsageDetails = ({
       $gap="0.5rem"
     >
       <Text display={layout.addOns.fontStyle}>
-        {typeof quantity === "number" && quantity > 0 ? (
+        {typeof quantity === "number" ? (
           <>
             {quantity} {getFeatureName(entitlement.feature, quantity, true)}
           </>
@@ -176,14 +156,18 @@ export const UsageDetails = ({
             </Text>
           )}
 
-          {cost > 0 && (
-            <Text>
-              {formatCurrency(cost, billingPrice?.currency)}
-              {entitlement.feature.featureType === FeatureType.Trait && (
-                <sub>/{shortenPeriod(period)}</sub>
-              )}
-            </Text>
-          )}
+          {
+            // only show cost for pay-in-advance entitlements
+            // `description` will include price for other price behaviors
+            entitlement.priceBehavior === PriceBehavior.PayInAdvance && (
+              <Text>
+                {formatCurrency(cost, billingPrice?.currency)}
+                {entitlement.feature.featureType === FeatureType.Trait && (
+                  <sub>/{shortenPeriod(period)}</sub>
+                )}
+              </Text>
+            )
+          }
         </Flex>
 
         {entitlement.priceBehavior === PriceBehavior.Overage ? (
