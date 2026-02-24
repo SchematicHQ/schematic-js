@@ -51,28 +51,37 @@ export function formatCurrency(
 
   try {
     const dollars = amount / 100;
+    const isNegative = dollars < 0;
+    const absDollars = Math.abs(dollars);
 
     const hasManySignificantDigits =
       testSignificantDigits &&
       /[1-9]/.test((amount % 1.0).toFixed(MAXIMUM_SIGNIFICANT_DIGITS));
 
-    return new Intl.NumberFormat("en-US", {
+    const formatted = new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: resolvedCurrency,
       ...(hasManySignificantDigits && {
         minimumSignificantDigits: 1,
         maximumSignificantDigits: 12,
       }),
-    }).format(dollars);
+    }).format(absDollars);
+
+    return isNegative ? `(${formatted})` : formatted;
   } catch (err) {
     console.error("Error formatting currency", err);
 
-    return new Intl.NumberFormat("en-US", {
+    const dollars = amount / 100;
+    const isNegative = dollars < 0;
+
+    const formatted = new Intl.NumberFormat("en-US", {
       style: "currency",
       minimumFractionDigits: 2,
       maximumSignificantDigits: 12,
       currency: resolvedCurrency,
-    }).format(amount / 100);
+    }).format(Math.abs(dollars));
+
+    return isNegative ? `(${formatted})` : formatted;
   }
 }
 

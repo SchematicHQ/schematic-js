@@ -14,7 +14,15 @@ import {
   toPrettyDate,
 } from "../../../utils";
 import { Element } from "../../layout";
-import { Button, Flex, Icon, Loader, Text, TransitionBox } from "../../ui";
+import {
+  Button,
+  Flex,
+  Icon,
+  Loader,
+  Text,
+  Tooltip,
+  TransitionBox,
+} from "../../ui";
 
 interface DesignProps {
   header: {
@@ -80,6 +88,7 @@ function formatInvoices(
     .sort((a, b) => (a.dueDate && b.dueDate ? +b.dueDate - +a.dueDate : 1))
     .map(({ amountDue, dueDate, url, currency }) => ({
       amount: formatCurrency(amountDue, currency),
+      amountDue,
       date: dueDate ? toPrettyDate(dueDate) : undefined,
       url: url || undefined,
     }));
@@ -206,7 +215,7 @@ export const Invoices = forwardRef<
                   <Flex $flexDirection="column" $gap="0.5rem">
                     {invoices
                       .slice(0, listSize)
-                      .map(({ date, amount, url }, index) => {
+                      .map(({ date, amount, amountDue, url }, index) => {
                         return (
                           <Flex key={index} $justifyContent="space-between">
                             {props.date.isVisible && (
@@ -229,9 +238,22 @@ export const Invoices = forwardRef<
                             )}
 
                             {props.amount.isVisible && (
-                              <Text display={props.amount.fontStyle}>
-                                {amount}
-                              </Text>
+                              <Tooltip
+                                trigger={
+                                  <Text display={props.amount.fontStyle}>
+                                    {amount}
+                                  </Text>
+                                }
+                                content={
+                                  amountDue < 0
+                                    ? t(
+                                        "Credit — this amount was returned to your account, typically due to a plan change or proration",
+                                      )
+                                    : t(
+                                        "Charge — you were billed this amount",
+                                      )
+                                }
+                              />
                             )}
                           </Flex>
                         );
