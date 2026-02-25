@@ -1,10 +1,7 @@
 import { useTranslation } from "react-i18next";
 
-import {
-  PriceInterval,
-  TEXT_BASE_SIZE,
-  VISIBLE_ENTITLEMENT_COUNT,
-} from "../../../const";
+import { BillingProductPriceInterval } from "../../../api/checkoutexternal";
+import { TEXT_BASE_SIZE, VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
 import { useEmbed, useIsLightBackground, useTrialEnd } from "../../../hooks";
 import type { SelectedPlan } from "../../../types";
 import {
@@ -152,7 +149,8 @@ export const Plan = ({
                 ? t("Usage-based")
                 : isFreePlan && showZeroPriceAsFree
                   ? t("Free")
-                  : showAsMonthlyPrices && selectedPeriod === PriceInterval.Year
+                  : showAsMonthlyPrices &&
+                      selectedPeriod === BillingProductPriceInterval.Year
                     ? formatCurrency((planPrice ?? 0) / 12, {
                         currency: planCurrency,
                         testSignificantDigits: false,
@@ -161,7 +159,8 @@ export const Plan = ({
             {!plan.custom && !isFreePlan && (
               <sub>
                 /
-                {showAsMonthlyPrices && selectedPeriod === PriceInterval.Year
+                {showAsMonthlyPrices &&
+                selectedPeriod === BillingProductPriceInterval.Year
                   ? t("month, billed yearly")
                   : t(selectedPeriod)}
               </sub>

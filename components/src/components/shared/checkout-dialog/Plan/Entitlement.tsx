@@ -2,10 +2,11 @@ import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
+  EntitlementPriceBehavior,
   EntitlementValueType,
+  FeatureType,
   type PlanEntitlementResponseData,
 } from "../../../../api/checkoutexternal";
-import { FeatureType, PriceBehavior } from "../../../../const";
 import { useEmbed, useIsLightBackground } from "../../../../hooks";
 import type { Credit } from "../../../../types";
 import {
@@ -20,7 +21,7 @@ import {
 } from "../../../../utils";
 import {
   BillingThresholdTooltip,
-  OverageTooltip,
+  HardLimitTooltip,
   PricingTiersTooltip,
   TieredPricingDetails,
 } from "../../../shared";
@@ -62,7 +63,7 @@ export const Entitlement = ({
   } = entitlementBillingPrice || {};
 
   const tiered =
-    entitlement.priceBehavior === PriceBehavior.PayInAdvance &&
+    entitlement.priceBehavior === EntitlementPriceBehavior.PayInAdvance &&
     isTieredPrice(entitlementBillingPrice);
 
   const text = useMemo(() => {
@@ -75,7 +76,11 @@ export const Entitlement = ({
       entitlement.valueType === EntitlementValueType.Unlimited ||
       entitlement.valueType === EntitlementValueType.Trait;
 
-    const limit = entitlement.softLimit ?? entitlement.valueNumeric;
+    const limit =
+      entitlement.priceBehavior === EntitlementPriceBehavior.Overage &&
+      typeof entitlement.softLimit === "number"
+        ? entitlement.softLimit
+        : (entitlement.valueNumeric ?? undefined);
     const creditBasedEntitlementLimit = getCreditBasedEntitlementLimit(
       entitlement,
       credits,
@@ -86,15 +91,16 @@ export const Entitlement = ({
     if (
       typeof price === "number" &&
       !tiered &&
-      (entitlement.priceBehavior === PriceBehavior.PayInAdvance ||
-        entitlement.priceBehavior === PriceBehavior.PayAsYouGo)
+      (entitlement.priceBehavior === EntitlementPriceBehavior.PayInAdvance ||
+        entitlement.priceBehavior === EntitlementPriceBehavior.PayAsYouGo)
     ) {
       return (
         <>
           {formatCurrency(price, currency)} {t("per")}{" "}
           {packageSize > 1 && <>{packageSize} </>}
           {getFeatureName(entitlement.feature, packageSize)}
-          {entitlement.priceBehavior === PriceBehavior.PayInAdvance && (
+          {entitlement.priceBehavior ===
+            EntitlementPriceBehavior.PayInAdvance && (
             <>
               {" "}
               {t("per")} {period}
@@ -104,13 +110,13 @@ export const Entitlement = ({
       );
     }
 
-    if (entitlement.priceBehavior === PriceBehavior.Tiered || tiered) {
+    if (entitlement.priceBehavior === EntitlementPriceBehavior.Tier || tiered) {
       return <TieredPricingDetails entitlement={entitlement} period={period} />;
     }
 
     if (
       showCredits &&
-      entitlement.priceBehavior === PriceBehavior.Credit &&
+      entitlement.priceBehavior === EntitlementPriceBehavior.CreditBurndown &&
       entitlement.valueCredit
     ) {
       return (
@@ -126,7 +132,7 @@ export const Entitlement = ({
     }
 
     if (
-      entitlement.priceBehavior === PriceBehavior.Credit &&
+      entitlement.priceBehavior === EntitlementPriceBehavior.CreditBurndown &&
       creditBasedEntitlementLimit
     ) {
       return (
@@ -195,7 +201,7 @@ export const Entitlement = ({
     }
 
     if (
-      entitlement.priceBehavior === PriceBehavior.Overage &&
+      entitlement.priceBehavior === EntitlementPriceBehavior.Overage &&
       typeof price === "number"
     ) {
       return (
@@ -210,7 +216,7 @@ export const Entitlement = ({
       );
     }
 
-    if (entitlement.priceBehavior === PriceBehavior.Tiered || tiered) {
+    if (entitlement.priceBehavior === EntitlementPriceBehavior.Tier || tiered) {
       return t("Tier-based");
     }
   }, [t, entitlement, period, price, currency, packageSize, tiered]);
@@ -246,25 +252,26 @@ export const Entitlement = ({
                   {usageText}
                 </Text>
 
-                {entitlement.priceBehavior === PriceBehavior.Overage ? (
-                  <OverageTooltip
+                {(entitlement.priceBehavior === EntitlementPriceBehavior.Tier ||
+                  tiered) && (
+                  <PricingTiersTooltip
                     feature={entitlement.feature}
-                    limit={entitlement.valueNumeric}
+                    period={period}
+                    currency={currency}
+                    priceTiers={priceTier}
+                    tiersMode={tiersMode ?? undefined}
                     portal={tooltipPortal}
                   />
-                ) : (
-                  (entitlement.priceBehavior === PriceBehavior.Tiered ||
-                    tiered) && (
-                    <PricingTiersTooltip
+                )}
+
+                {entitlement.priceBehavior &&
+                  entitlement.valueType === EntitlementValueType.Numeric && (
+                    <HardLimitTooltip
                       feature={entitlement.feature}
-                      period={period}
-                      currency={currency}
-                      priceTiers={priceTier}
-                      tiersMode={tiersMode ?? undefined}
+                      limit={entitlement.valueNumeric}
                       portal={tooltipPortal}
                     />
-                  )
-                )}
+                  )}
 
                 {entitlement.billingThreshold && (
                   <BillingThresholdTooltip

@@ -1,13 +1,14 @@
 import { forwardRef, useCallback, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { type FeatureUsageResponseData } from "../../../api/checkoutexternal";
 import {
-  CreditGrantReason,
+  BillingCreditGrantReason,
+  EntitlementPriceBehavior,
+  EntitlementValueType,
   FeatureType,
-  PriceBehavior,
-  TEXT_BASE_SIZE,
-} from "../../../const";
+  type FeatureUsageResponseData,
+} from "../../../api/checkoutexternal";
+import { TEXT_BASE_SIZE } from "../../../const";
 import { type FontStyle } from "../../../context";
 import {
   useEmbed,
@@ -26,6 +27,7 @@ import {
   type UsageDetails,
 } from "../../../utils";
 import { Element } from "../../layout";
+import { HardLimitTooltip } from "../../shared";
 import {
   Box,
   Button,
@@ -65,7 +67,7 @@ const Limit = ({ entitlement, usageDetails, fontStyle }: LimitProps) => {
   const acc: React.ReactNode[] = [];
 
   acc.push(
-    priceBehavior === PriceBehavior.Tiered &&
+    priceBehavior === EntitlementPriceBehavior.Tier &&
       typeof currentTier?.to === "number" &&
       typeof feature !== "undefined"
       ? currentTier?.to === Infinity
@@ -76,18 +78,19 @@ const Limit = ({ entitlement, usageDetails, fontStyle }: LimitProps) => {
             amount: currentTier.to,
             feature: getFeatureName(feature),
           })
-      : priceBehavior === PriceBehavior.Overage && typeof limit === "number"
+      : priceBehavior === EntitlementPriceBehavior.Overage &&
+          typeof limit === "number"
         ? t("X included", {
             amount: formatNumber(limit),
           })
-        : priceBehavior === PriceBehavior.PayInAdvance &&
+        : priceBehavior === EntitlementPriceBehavior.PayInAdvance &&
             typeof usage === "number"
           ? `${formatNumber(usage)} ${t("used")}`
-          : priceBehavior === PriceBehavior.PayAsYouGo &&
+          : priceBehavior === EntitlementPriceBehavior.PayAsYouGo &&
               typeof cost === "number"
             ? formatCurrency(cost, billingPrice?.currency)
             : data?.displaySettings.showCredits &&
-                priceBehavior === PriceBehavior.Credit &&
+                priceBehavior === EntitlementPriceBehavior.CreditBurndown &&
                 typeof planEntitlement?.valueCredit !== "undefined" &&
                 typeof planEntitlement?.consumptionRate === "number"
               ? t("X units per use", {
@@ -97,7 +100,7 @@ const Limit = ({ entitlement, usageDetails, fontStyle }: LimitProps) => {
                     planEntitlement.consumptionRate,
                   ),
                 })
-              : priceBehavior === PriceBehavior.Credit &&
+              : priceBehavior === EntitlementPriceBehavior.CreditBurndown &&
                   typeof feature !== "undefined" &&
                   typeof limit === "number"
                 ? t("X units remaining", {
@@ -124,9 +127,16 @@ const Limit = ({ entitlement, usageDetails, fontStyle }: LimitProps) => {
   }
 
   return (
-    <Box $whiteSpace="nowrap">
+    <Flex $alignItems="baseline">
       <Text display={fontStyle}>{acc.join(" • ")}</Text>
-    </Box>
+      {entitlement.priceBehavior &&
+        entitlement.allocationType === EntitlementValueType.Numeric && (
+          <HardLimitTooltip
+            feature={entitlement.feature}
+            limit={entitlement.allocation}
+          />
+        )}
+    </Flex>
   );
 };
 
@@ -309,7 +319,8 @@ export const MeteredFeatures = forwardRef<
                     {props.usage.isVisible && (
                       <Box $whiteSpace="nowrap">
                         <Text display={props.usage.fontStyle}>
-                          {priceBehavior === PriceBehavior.PayInAdvance ? (
+                          {priceBehavior ===
+                          EntitlementPriceBehavior.PayInAdvance ? (
                             <>
                               {typeof limit === "number" && (
                                 <>{formatNumber(limit)} </>
@@ -339,8 +350,8 @@ export const MeteredFeatures = forwardRef<
                 </Flex>
 
                 {props.isVisible &&
-                  priceBehavior !== PriceBehavior.PayAsYouGo &&
-                  priceBehavior !== PriceBehavior.Credit && (
+                  priceBehavior !== EntitlementPriceBehavior.PayAsYouGo &&
+                  priceBehavior !== EntitlementPriceBehavior.CreditBurndown && (
                     <Meter
                       entitlement={entitlement}
                       usageDetails={usageDetails}
@@ -348,7 +359,7 @@ export const MeteredFeatures = forwardRef<
                   )}
 
                 {canCheckout &&
-                  priceBehavior === PriceBehavior.PayInAdvance && (
+                  priceBehavior === EntitlementPriceBehavior.PayInAdvance && (
                     <Button
                       type="button"
                       onClick={() => {
@@ -362,8 +373,8 @@ export const MeteredFeatures = forwardRef<
               </Flex>
             </Flex>
 
-            {(priceBehavior === PriceBehavior.Overage ||
-              priceBehavior === PriceBehavior.Tiered) && (
+            {(priceBehavior === EntitlementPriceBehavior.Overage ||
+              priceBehavior === EntitlementPriceBehavior.Tier) && (
               <PriceDetails
                 entitlement={entitlement}
                 usageDetails={usageDetails}
@@ -471,7 +482,7 @@ export const MeteredFeatures = forwardRef<
 
                     return (
                       <Box key={grant.id} $display="table-row">
-                        {grant.grantReason === CreditGrantReason.Plan ? (
+                        {grant.grantReason === BillingCreditGrantReason.Plan ? (
                           <>
                             <Box $display="table-cell" $padding={padding}>
                               <Text>
@@ -509,7 +520,7 @@ export const MeteredFeatures = forwardRef<
                             <Box $display="table-cell" $padding={padding}>
                               <Text>
                                 {grant.grantReason ===
-                                CreditGrantReason.Purchased ? (
+                                BillingCreditGrantReason.Purchased ? (
                                   <>
                                     {t("X item bundle", {
                                       amount: grant.quantity,
@@ -522,7 +533,7 @@ export const MeteredFeatures = forwardRef<
                                     })}
                                   </>
                                 ) : grant.grantReason ===
-                                  CreditGrantReason.AutoTopup ? (
+                                  BillingCreditGrantReason.BillingCreditAutoTopup ? (
                                   <>
                                     {t("X item auto-topup", {
                                       amount: grant.quantity,

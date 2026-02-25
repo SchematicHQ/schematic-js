@@ -1,6 +1,9 @@
 import { useTranslation } from "react-i18next";
 
-import { FeatureType, PriceBehavior } from "../../../const";
+import {
+  EntitlementPriceBehavior,
+  FeatureType,
+} from "../../../api/checkoutexternal";
 import { useEmbed } from "../../../hooks";
 import {
   type CurrentUsageBasedEntitlement,
@@ -41,18 +44,18 @@ export const EntitlementRow = (
     } = entitlementPrice || {};
 
     const tiered =
-      priceBehavior === PriceBehavior.PayInAdvance &&
+      priceBehavior === EntitlementPriceBehavior.PayInAdvance &&
       isTieredPrice(entitlementPrice);
 
     return (
       <>
         <Box>
           <Text display="heading4">
-            {priceBehavior === PriceBehavior.PayInAdvance ? (
+            {priceBehavior === EntitlementPriceBehavior.PayInAdvance ? (
               <>
                 {quantity} {getFeatureName(feature, quantity)}
               </>
-            ) : priceBehavior === PriceBehavior.Overage &&
+            ) : priceBehavior === EntitlementPriceBehavior.Overage &&
               typeof softLimit === "number" ? (
               <>
                 {softLimit} {getFeatureName(feature, softLimit)}
@@ -64,15 +67,18 @@ export const EntitlementRow = (
         </Box>
 
         <Box $whiteSpace="nowrap">
-          {priceBehavior === PriceBehavior.PayInAdvance && !tiered ? (
+          {priceBehavior === EntitlementPriceBehavior.PayInAdvance &&
+          !tiered ? (
             <Text>
               {formatCurrency((price ?? 0) * quantity, currency)}
               <sub>/{shortenPeriod(planPeriod)}</sub>
             </Text>
-          ) : priceBehavior === PriceBehavior.PayAsYouGo ||
-            priceBehavior === PriceBehavior.Overage ? (
+          ) : priceBehavior === EntitlementPriceBehavior.PayAsYouGo ||
+            priceBehavior === EntitlementPriceBehavior.Overage ? (
             <Text>
-              {priceBehavior === PriceBehavior.Overage && <>{t("then")} </>}
+              {priceBehavior === EntitlementPriceBehavior.Overage && (
+                <>{t("then")} </>
+              )}
               {formatCurrency(price ?? 0, currency)}
               <sub>
                 /{packageSize > 1 && <>{packageSize} </>}
@@ -83,7 +89,7 @@ export const EntitlementRow = (
               </sub>
             </Text>
           ) : (
-            (priceBehavior === PriceBehavior.Tiered || tiered) && (
+            (priceBehavior === EntitlementPriceBehavior.Tier || tiered) && (
               <Flex $alignItems="baseline">
                 <Text
                   style={{ opacity: 0.54 }}

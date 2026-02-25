@@ -1,8 +1,10 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
-import { type BillingProductPriceTierResponseData } from "../../../api/checkoutexternal";
-import { TiersMode } from "../../../const";
+import {
+  BillingTiersMode,
+  type BillingProductPriceTierResponseData,
+} from "../../../api/checkoutexternal";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import type { Feature } from "../../../types";
 import { Box, Flex, Icon, Text, Tooltip, type TooltipProps } from "../../ui";
@@ -17,7 +19,7 @@ interface PricingTiersTooltipProps extends Omit<
   period?: string;
   currency?: string;
   priceTiers?: BillingProductPriceTierResponseData[];
-  tiersMode?: string;
+  tiersMode?: BillingTiersMode;
 }
 
 export const PricingTiersTooltip = ({
@@ -131,8 +133,7 @@ export const PricingTiersTooltip = ({
             })}
           </dl>
 
-          {(tiersMode === TiersMode.Volume ||
-            tiersMode === TiersMode.Graduated) && (
+          {tiersMode && (
             <>
               <hr
                 style={{
@@ -144,7 +145,7 @@ export const PricingTiersTooltip = ({
               <Box>
                 <Text $size={0.875 * settings.theme.typography.text.fontSize}>
                   ℹ️{" "}
-                  {tiersMode === TiersMode.Volume
+                  {tiersMode === BillingTiersMode.Volume
                     ? t("Price by unit based on final tier reached.")
                     : t("Tiers apply progressively as quantity increases.")}
                 </Text>

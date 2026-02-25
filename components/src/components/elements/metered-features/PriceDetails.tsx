@@ -1,7 +1,11 @@
 import { useTranslation } from "react-i18next";
 
-import { type FeatureUsageResponseData } from "../../../api/checkoutexternal";
-import { FeatureType, PriceBehavior, TEXT_BASE_SIZE } from "../../../const";
+import {
+  EntitlementPriceBehavior,
+  FeatureType,
+  type FeatureUsageResponseData,
+} from "../../../api/checkoutexternal";
+import { TEXT_BASE_SIZE } from "../../../const";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import {
   darken,
@@ -12,7 +16,7 @@ import {
   shortenPeriod,
   type UsageDetails,
 } from "../../../utils";
-import { OverageTooltip, PricingTiersTooltip } from "../../shared";
+import { PricingTiersTooltip } from "../../shared";
 import { Box, Flex, Text } from "../../ui";
 
 interface PriceDetailsProps {
@@ -72,8 +76,8 @@ export const PriceDetails = ({
         $borderBottomRightRadius: `${settings.theme.card.borderRadius / TEXT_BASE_SIZE}rem`,
       })}
     >
-      {priceBehavior === PriceBehavior.Overage ? (
-        <Flex $alignItems="baseline">
+      <Flex $alignItems="baseline">
+        {priceBehavior === EntitlementPriceBehavior.Overage ? (
           <Text>
             {t("Additional")}:{" "}
             {formatCurrency(currentTierPerUnitPrice, currency)}
@@ -85,39 +89,34 @@ export const PriceDetails = ({
               )}
             </Box>
           </Text>
+        ) : (
+          priceBehavior === EntitlementPriceBehavior.Tier && (
+            <>
+              <Text>
+                {t("Tier")}: {currentTier?.from || 1}
+                {typeof currentTier?.to === "number" &&
+                  (currentTier.from || 1) !== currentTier.to && (
+                    <>
+                      {currentTier.to === Infinity ? "+" : `–${currentTier.to}`}
+                    </>
+                  )}
+              </Text>
 
-          <OverageTooltip
-            feature={entitlement.feature}
-            limit={entitlement.allocation}
-          />
-        </Flex>
-      ) : (
-        priceBehavior === PriceBehavior.Tiered && (
-          <Flex $alignItems="baseline">
-            <Text>
-              {t("Tier")}: {currentTier?.from || 1}
-              {typeof currentTier?.to === "number" &&
-                (currentTier.from || 1) !== currentTier.to && (
-                  <>
-                    {currentTier.to === Infinity ? "+" : `–${currentTier.to}`}
-                  </>
-                )}
-            </Text>
-
-            <PricingTiersTooltip
-              period={period}
-              feature={feature}
-              currency={currency}
-              priceTiers={priceTiers}
-              tiersMode={tiersMode}
-            />
-          </Flex>
-        )
-      )}
+              <PricingTiersTooltip
+                period={period}
+                feature={feature}
+                currency={currency}
+                priceTiers={priceTiers}
+                tiersMode={tiersMode}
+              />
+            </>
+          )
+        )}
+      </Flex>
 
       {typeof amount === "number" && (
         <>
-          {priceBehavior === PriceBehavior.Overage ? (
+          {priceBehavior === EntitlementPriceBehavior.Overage ? (
             <Text>
               {formatNumber(amount)} {getFeatureName(feature, amount)}
               {" · "}
@@ -130,7 +129,7 @@ export const PriceDetails = ({
                 )}
             </Text>
           ) : (
-            priceBehavior === PriceBehavior.Tiered &&
+            priceBehavior === EntitlementPriceBehavior.Tier &&
             typeof cost === "number" && (
               <Text>
                 {formatCurrency(cost, currency)}

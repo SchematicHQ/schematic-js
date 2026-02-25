@@ -1,26 +1,30 @@
 import { useTranslation } from "react-i18next";
 
 import { type FeatureResponseData } from "../../../api/checkoutexternal";
-import { useIsLightBackground } from "../../../hooks";
+import { useEmbed, useIsLightBackground } from "../../../hooks";
 import { getFeatureName } from "../../../utils";
 import { Icon, Text, Tooltip } from "../../ui";
 
-interface OverageTooltipProps {
+interface HardLimitTooltipProps {
   feature?: FeatureResponseData;
   limit?: number | null;
   portal?: HTMLElement | null;
 }
 
-export const OverageTooltip = ({
+export const HardLimitTooltip = ({
   feature,
   limit,
   portal,
-}: OverageTooltipProps) => {
+}: HardLimitTooltipProps) => {
   const { t } = useTranslation();
+
+  const { data } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
 
-  if (!feature || typeof limit !== "number") {
+  const showHardLimit = data?.displaySettings.showHardLimit ?? true;
+
+  if (!showHardLimit || !feature || typeof limit !== "number") {
     return null;
   }
 
@@ -28,7 +32,7 @@ export const OverageTooltip = ({
     <Tooltip
       trigger={
         <Icon
-          title="overage pricing"
+          title="limit"
           name="info-rounded"
           color={`hsla(0, 0%, ${isLightBackground ? 0 : 100}%, 0.5)`}
         />

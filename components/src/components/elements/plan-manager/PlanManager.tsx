@@ -1,7 +1,7 @@
 import { forwardRef, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
-import { CreditGrantReason } from "../../../const";
+import { BillingCreditGrantReason } from "../../../api/checkoutexternal";
 import { type FontStyle } from "../../../context";
 import { useEmbed, useIsLightBackground, useTrialEnd } from "../../../hooks";
 import type {
@@ -135,13 +135,13 @@ export const PlanManager = forwardRef<
           grant,
         ) => {
           switch (grant.grantReason) {
-            case CreditGrantReason.Plan:
+            case BillingCreditGrantReason.Plan:
               acc.plan.push(grant);
               break;
-            case CreditGrantReason.Purchased:
+            case BillingCreditGrantReason.Purchased:
               acc.bundles.push(grant);
               break;
-            case CreditGrantReason.Free:
+            case BillingCreditGrantReason.Free:
               acc.promotional.push(grant);
           }
 

@@ -1,8 +1,12 @@
 import { Fragment, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
-import { type FeatureUsageResponseData } from "../../../api/checkoutexternal";
-import { FeatureType, PriceBehavior } from "../../../const";
+import {
+  EntitlementPriceBehavior,
+  EntitlementValueType,
+  FeatureType,
+  type FeatureUsageResponseData,
+} from "../../../api/checkoutexternal";
 import { type FontStyle } from "../../../context";
 import { useEmbed } from "../../../hooks";
 import {
@@ -14,7 +18,7 @@ import {
   shortenPeriod,
   toPrettyDate,
 } from "../../../utils";
-import { OverageTooltip, PricingTiersTooltip } from "../../shared";
+import { HardLimitTooltip, PricingTiersTooltip } from "../../shared";
 import { Box, Flex, Text } from "../../ui";
 
 interface UsageDetailsProps {
@@ -51,12 +55,8 @@ export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
 
   const { data } = useEmbed();
 
-  const { period, showCredits } = useMemo(() => {
-    return {
-      period: data?.company?.plan?.planPeriod || undefined,
-      showCredits: data?.displaySettings?.showCredits ?? true,
-    };
-  }, [data?.company?.plan?.planPeriod, data?.displaySettings?.showCredits]);
+  const period = data?.company?.plan?.planPeriod || undefined;
+  const showCredits = data?.displaySettings?.showCredits ?? true;
 
   const {
     price,
@@ -92,7 +92,7 @@ export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
       currentTier,
       tiersMode,
       tiered:
-        priceBehavior === PriceBehavior.PayInAdvance &&
+        priceBehavior === EntitlementPriceBehavior.PayInAdvance &&
         isTieredPrice(billingPrice),
     };
   }, [entitlement, period, priceBehavior]);
@@ -107,7 +107,7 @@ export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
     }
 
     if (
-      priceBehavior === PriceBehavior.PayInAdvance &&
+      priceBehavior === EntitlementPriceBehavior.PayInAdvance &&
       typeof allocation === "number"
     ) {
       return t("X units", {
@@ -117,7 +117,7 @@ export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
     }
 
     if (
-      priceBehavior === PriceBehavior.PayAsYouGo &&
+      priceBehavior === EntitlementPriceBehavior.PayAsYouGo &&
       typeof price === "number"
     ) {
       const formattedCost = formatCurrency(price, currency);
@@ -133,7 +133,7 @@ export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
     }
 
     if (
-      priceBehavior === PriceBehavior.Overage &&
+      priceBehavior === EntitlementPriceBehavior.Overage &&
       typeof softLimit === "number"
     ) {
       return t("X units", {
@@ -142,7 +142,7 @@ export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
       });
     }
 
-    if (priceBehavior === PriceBehavior.Tiered) {
+    if (priceBehavior === EntitlementPriceBehavior.Tier) {
       return (
         typeof currentTier?.to === "number" &&
         (currentTier?.to === Infinity
@@ -158,7 +158,7 @@ export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
 
     if (
       showCredits &&
-      priceBehavior === PriceBehavior.Credit &&
+      priceBehavior === EntitlementPriceBehavior.CreditBurndown &&
       planEntitlement?.valueCredit &&
       typeof planEntitlement?.consumptionRate === "number"
     ) {
@@ -171,7 +171,10 @@ export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
       });
     }
 
-    if (priceBehavior === PriceBehavior.Credit && typeof limit === "number") {
+    if (
+      priceBehavior === EntitlementPriceBehavior.CreditBurndown &&
+      typeof limit === "number"
+    ) {
       return t("X units remaining", {
         amount: formatNumber(limit),
         units: getFeatureName(feature, limit),
@@ -218,7 +221,7 @@ export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
     let index = 0;
 
     if (
-      priceBehavior === PriceBehavior.PayInAdvance &&
+      priceBehavior === EntitlementPriceBehavior.PayInAdvance &&
       !tiered &&
       typeof period === "string" &&
       typeof price === "number"
@@ -242,10 +245,10 @@ export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
 
       index += 1;
     } else if (
-      (priceBehavior === PriceBehavior.PayAsYouGo ||
-        priceBehavior === PriceBehavior.Overage ||
-        priceBehavior === PriceBehavior.Tiered ||
-        priceBehavior === PriceBehavior.Credit ||
+      (priceBehavior === EntitlementPriceBehavior.PayAsYouGo ||
+        priceBehavior === EntitlementPriceBehavior.Overage ||
+        priceBehavior === EntitlementPriceBehavior.Tier ||
+        priceBehavior === EntitlementPriceBehavior.CreditBurndown ||
         tiered) &&
       typeof usage === "number"
     ) {
@@ -336,16 +339,26 @@ export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
   return (
     <>
       {layout.entitlement.isVisible && (
-        <Box
+        <Flex
+          $alignItems="baseline"
           $marginTop="0.75rem"
           $viewport={{
             xs: {
+              $justifyContent: "end",
               $marginTop: 0,
             },
           }}
         >
           <Text display={layout.entitlement.fontStyle}>{text}</Text>
-        </Box>
+
+          {entitlement.priceBehavior &&
+            entitlement.allocationType === EntitlementValueType.Numeric && (
+              <HardLimitTooltip
+                feature={entitlement.feature}
+                limit={entitlement.allocation}
+              />
+            )}
+        </Flex>
       )}
 
       {layout.usage.isVisible && usageText && (
@@ -359,21 +372,14 @@ export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
         >
           <Text display={layout.usage.fontStyle}>{usageText}</Text>
 
-          {priceBehavior === PriceBehavior.Overage ? (
-            <OverageTooltip
-              feature={entitlement.feature}
-              limit={entitlement.allocation}
+          {(priceBehavior === EntitlementPriceBehavior.Tier || tiered) && (
+            <PricingTiersTooltip
+              feature={feature}
+              period={period}
+              currency={currency}
+              priceTiers={priceTiers}
+              tiersMode={tiersMode ?? undefined}
             />
-          ) : (
-            (priceBehavior === PriceBehavior.Tiered || tiered) && (
-              <PricingTiersTooltip
-                feature={feature}
-                period={period}
-                currency={currency}
-                priceTiers={priceTiers}
-                tiersMode={tiersMode ?? undefined}
-              />
-            )
           )}
         </Flex>
       )}
