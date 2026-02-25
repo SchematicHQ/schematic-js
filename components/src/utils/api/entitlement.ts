@@ -221,3 +221,12 @@ export function entitlementHasCost(
       entitlement.priceBehavior !== EntitlementPriceBehavior.PayInAdvance)
   );
 }
+
+export function entitlementHasHardLimit(entitlement: {
+  priceBehavior?: EntitlementPriceBehavior | null;
+}) {
+  return (
+    entitlement.priceBehavior &&
+    entitlement.priceBehavior !== EntitlementPriceBehavior.CreditBurndown
+  );
+}

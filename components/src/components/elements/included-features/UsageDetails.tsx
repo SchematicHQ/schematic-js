@@ -10,6 +10,7 @@ import {
 import { type FontStyle } from "../../../context";
 import { useEmbed } from "../../../hooks";
 import {
+  entitlementHasHardLimit,
   formatCurrency,
   formatNumber,
   getFeatureName,
@@ -19,7 +20,7 @@ import {
   toPrettyDate,
 } from "../../../utils";
 import { HardLimitTooltip, PricingTiersTooltip } from "../../shared";
-import { Box, Flex, Text } from "../../ui";
+import { Flex, Text } from "../../ui";
 
 interface UsageDetailsProps {
   entitlement: FeatureUsageResponseData;
@@ -340,7 +341,6 @@ export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
     <>
       {layout.entitlement.isVisible && (
         <Flex
-          $alignItems="baseline"
           $marginTop="0.75rem"
           $viewport={{
             xs: {
@@ -349,38 +349,39 @@ export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
             },
           }}
         >
-          <Text display={layout.entitlement.fontStyle}>{text}</Text>
-
-          {entitlement.priceBehavior &&
-            entitlement.allocationType === EntitlementValueType.Numeric && (
-              <HardLimitTooltip
-                feature={entitlement.feature}
-                limit={entitlement.allocation}
-              />
-            )}
+          <Text display={layout.entitlement.fontStyle}>
+            {text}
+            {entitlementHasHardLimit(entitlement) &&
+              entitlement.allocationType === EntitlementValueType.Numeric && (
+                <HardLimitTooltip
+                  feature={entitlement.feature}
+                  limit={entitlement.allocation}
+                />
+              )}
+          </Text>
         </Flex>
       )}
 
       {layout.usage.isVisible && usageText && (
         <Flex
-          $alignItems="baseline"
           $viewport={{
             xs: {
               $justifyContent: "end",
             },
           }}
         >
-          <Text display={layout.usage.fontStyle}>{usageText}</Text>
-
-          {(priceBehavior === EntitlementPriceBehavior.Tier || tiered) && (
-            <PricingTiersTooltip
-              feature={feature}
-              period={period}
-              currency={currency}
-              priceTiers={priceTiers}
-              tiersMode={tiersMode ?? undefined}
-            />
-          )}
+          <Text display={layout.usage.fontStyle}>
+            {usageText}
+            {(priceBehavior === EntitlementPriceBehavior.Tier || tiered) && (
+              <PricingTiersTooltip
+                feature={feature}
+                period={period}
+                currency={currency}
+                priceTiers={priceTiers}
+                tiersMode={tiersMode ?? undefined}
+              />
+            )}
+          </Text>
         </Flex>
       )}
     </>

@@ -10,6 +10,7 @@ import {
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import type { Credit } from "../../../types";
 import {
+  entitlementHasHardLimit,
   formatCurrency,
   formatNumber,
   getCreditBasedEntitlementLimit,
@@ -192,7 +193,7 @@ export const Entitlement = ({
               )}
             </Text>
 
-            <Flex $alignItems="end">
+            <Text>
               {entitlement.priceBehavior === EntitlementPriceBehavior.Overage &&
               typeof entitlementPrice === "number" ? (
                 <>
@@ -237,7 +238,7 @@ export const Entitlement = ({
                 )
               )}
 
-              {entitlement.priceBehavior &&
+              {entitlementHasHardLimit(entitlement) &&
                 entitlement.valueType === EntitlementValueType.Numeric && (
                   <HardLimitTooltip
                     feature={entitlement.feature}
@@ -250,7 +251,7 @@ export const Entitlement = ({
                   billingThreshold={entitlement.billingThreshold}
                 />
               )}
-            </Flex>
+            </Text>
           </Flex>
 
           {layout.plans.showFeatureDescriptions &&

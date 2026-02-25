@@ -30,7 +30,6 @@ export const PricingTiersTooltip = ({
   tiersMode,
   portal,
   position,
-  fullWidth,
 }: PricingTiersTooltipProps) => {
   const { t } = useTranslation();
 
@@ -82,6 +81,7 @@ export const PricingTiersTooltip = ({
           title="tiered pricing"
           name="info-rounded"
           color={`hsla(0, 0%, ${isLightBackground ? 0 : 100}%, 0.5)`}
+          style={{ lineHeight: 0 }}
         />
       }
       content={
@@ -156,7 +156,6 @@ export const PricingTiersTooltip = ({
       }
       portal={portal}
       position={position}
-      fullWidth={fullWidth}
     />
   );
 };

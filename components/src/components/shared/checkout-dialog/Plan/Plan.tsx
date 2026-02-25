@@ -238,18 +238,15 @@ export const Plan = ({
                             />
                           )}
 
-                          <Flex $alignItems="baseline" $alignSelf="center">
-                            <Text>
-                              {credit.quantity}{" "}
-                              {getFeatureName(credit, credit.quantity)}
-                              {credit.period && (
-                                <>
-                                  {" "}
-                                  {t("per")} {credit.period}
-                                </>
-                              )}
-                            </Text>
-
+                          <Text>
+                            {credit.quantity}{" "}
+                            {getFeatureName(credit, credit.quantity)}
+                            {credit.period && (
+                              <>
+                                {" "}
+                                {t("per")} {credit.period}
+                              </>
+                            )}
                             {hasAutoTopup && (
                               <Tooltip
                                 trigger={
@@ -286,7 +283,7 @@ export const Plan = ({
                                 portal={tooltipPortal}
                               />
                             )}
-                          </Flex>
+                          </Text>
                         </Flex>
                       </Flex>
                     );

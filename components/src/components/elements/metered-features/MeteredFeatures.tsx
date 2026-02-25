@@ -17,6 +17,7 @@ import {
 } from "../../../hooks";
 import type { DeepPartial, ElementProps } from "../../../types";
 import {
+  entitlementHasHardLimit,
   formatCurrency,
   formatNumber,
   getFeatureName,
@@ -127,16 +128,16 @@ const Limit = ({ entitlement, usageDetails, fontStyle }: LimitProps) => {
   }
 
   return (
-    <Flex $alignItems="baseline">
-      <Text display={fontStyle}>{acc.join(" • ")}</Text>
-      {entitlement.priceBehavior &&
+    <Text display={fontStyle}>
+      {acc.join(" • ")}
+      {entitlementHasHardLimit(entitlement) &&
         entitlement.allocationType === EntitlementValueType.Numeric && (
           <HardLimitTooltip
             feature={entitlement.feature}
             limit={entitlement.allocation}
           />
         )}
-    </Flex>
+    </Text>
   );
 };
 

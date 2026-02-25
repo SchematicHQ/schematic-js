@@ -149,23 +149,22 @@ export const Quantity = ({
 
                 <Box $whiteSpace="nowrap">
                   {tiered ? (
-                    <Flex $alignItems="baseline" $justifyContent="end">
+                    <Flex $justifyContent="end">
                       <Text
                         style={{ opacity: 0.54 }}
                         $size={unitPriceFontSize}
                         $color={settings.theme.typography.text.color}
                       >
                         {t("Tier-based")}
+                        <PricingTiersTooltip
+                          feature={entitlement.feature}
+                          period={period}
+                          currency={currency}
+                          priceTiers={priceTiers}
+                          tiersMode={tiersMode ?? undefined}
+                          portal={tooltipPortal}
+                        />
                       </Text>
-
-                      <PricingTiersTooltip
-                        feature={entitlement.feature}
-                        period={period}
-                        currency={currency}
-                        priceTiers={priceTiers}
-                        tiersMode={tiersMode ?? undefined}
-                        portal={tooltipPortal}
-                      />
                     </Flex>
                   ) : (
                     <Text

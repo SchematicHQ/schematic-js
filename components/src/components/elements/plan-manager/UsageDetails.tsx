@@ -10,6 +10,7 @@ import {
 import { type FontStyle } from "../../../context";
 import { useEmbed } from "../../../hooks";
 import {
+  entitlementHasHardLimit,
   formatCurrency,
   getEntitlementPrice,
   getFeatureName,
@@ -40,9 +41,8 @@ export const UsageDetails = ({
 }: UsageDetailsProps) => {
   const { t } = useTranslation();
 
-  const { data, settings } = useEmbed();
+  const { settings } = useEmbed();
 
-  const showHardLimit = data?.displaySettings?.showHardLimit ?? false;
   const {
     billingPrice,
     limit,
@@ -152,33 +152,30 @@ export const UsageDetails = ({
         )}
       </Text>
 
-      <Flex $alignItems="baseline">
-        <Flex $alignItems="baseline" $gap="0.5rem">
-          {description.length > 0 && (
-            <Text
-              style={{ opacity: 0.54 }}
-              $size={0.875 * settings.theme.typography.text.fontSize}
-              $color={settings.theme.typography.text.color}
-            >
-              {description}
-            </Text>
-          )}
-
-          {
-            // only show cost for pay-in-advance entitlements
-            // `description` will include price for other price behaviors
-            entitlement.priceBehavior ===
-              EntitlementPriceBehavior.PayInAdvance && (
-              <Text>
-                {formatCurrency(cost, billingPrice?.currency)}
-                {entitlement.feature.featureType === FeatureType.Trait && (
-                  <sub>/{shortenPeriod(period)}</sub>
-                )}
-              </Text>
-            )
-          }
-        </Flex>
-
+      <Text>
+        {description.length > 0 && (
+          <Text
+            style={{ opacity: 0.54 }}
+            $size={0.875 * settings.theme.typography.text.fontSize}
+            $color={settings.theme.typography.text.color}
+          >
+            {description}
+          </Text>
+        )}
+        {
+          // only show cost for pay-in-advance entitlements
+          // `description` will include price for other price behaviors
+          entitlement.priceBehavior ===
+            EntitlementPriceBehavior.PayInAdvance && (
+            <>
+              {" "}
+              {formatCurrency(cost, billingPrice?.currency)}
+              {entitlement.feature.featureType === FeatureType.Trait && (
+                <sub>/{shortenPeriod(period)}</sub>
+              )}
+            </>
+          )
+        }
         {entitlement.priceBehavior === EntitlementPriceBehavior.Tier && (
           <PricingTiersTooltip
             feature={entitlement.feature}
@@ -188,15 +185,14 @@ export const UsageDetails = ({
             tiersMode={billingPrice?.tiersMode ?? undefined}
           />
         )}
-
-        {entitlement.priceBehavior &&
+        {entitlementHasHardLimit(entitlement) &&
           entitlement.allocationType === EntitlementValueType.Numeric && (
             <HardLimitTooltip
               feature={entitlement.feature}
               limit={entitlement.allocation}
             />
           )}
-      </Flex>
+      </Text>
     </Flex>
   );
 };

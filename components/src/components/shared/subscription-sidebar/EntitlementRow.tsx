@@ -90,15 +90,12 @@ export const EntitlementRow = (
             </Text>
           ) : (
             (priceBehavior === EntitlementPriceBehavior.Tier || tiered) && (
-              <Flex $alignItems="baseline">
-                <Text
-                  style={{ opacity: 0.54 }}
-                  $size={0.875 * settings.theme.typography.text.fontSize}
-                  $color={settings.theme.typography.text.color}
-                >
-                  {t("Tier-based")}
-                </Text>
-
+              <Text
+                style={{ opacity: 0.54 }}
+                $size={0.875 * settings.theme.typography.text.fontSize}
+                $color={settings.theme.typography.text.color}
+              >
+                {t("Tier-based")}
                 <PricingTiersTooltip
                   feature={feature}
                   period={planPeriod}
@@ -108,7 +105,7 @@ export const EntitlementRow = (
                   portal={tooltipPortal}
                   position="left"
                 />
-              </Flex>
+              </Text>
             )
           )}
         </Box>

@@ -76,43 +76,35 @@ export const PriceDetails = ({
         $borderBottomRightRadius: `${settings.theme.card.borderRadius / TEXT_BASE_SIZE}rem`,
       })}
     >
-      <Flex $alignItems="baseline">
-        {priceBehavior === EntitlementPriceBehavior.Overage ? (
+      {priceBehavior === EntitlementPriceBehavior.Overage ? (
+        <Text>
+          {t("Additional")}: {formatCurrency(currentTierPerUnitPrice, currency)}
+          <Box as="sub" $whiteSpace="nowrap">
+            /{packageSize > 1 && <>{packageSize} </>}
+            {getFeatureName(feature, packageSize)}
+            {feature.featureType === FeatureType.Trait && period && (
+              <>/{shortenPeriod(period)}</>
+            )}
+          </Box>
+        </Text>
+      ) : (
+        priceBehavior === EntitlementPriceBehavior.Tier && (
           <Text>
-            {t("Additional")}:{" "}
-            {formatCurrency(currentTierPerUnitPrice, currency)}
-            <Box as="sub" $whiteSpace="nowrap">
-              /{packageSize > 1 && <>{packageSize} </>}
-              {getFeatureName(feature, packageSize)}
-              {feature.featureType === FeatureType.Trait && period && (
-                <>/{shortenPeriod(period)}</>
+            {t("Tier")}: {currentTier?.from || 1}
+            {typeof currentTier?.to === "number" &&
+              (currentTier.from || 1) !== currentTier.to && (
+                <>{currentTier.to === Infinity ? "+" : `–${currentTier.to}`}</>
               )}
-            </Box>
+            <PricingTiersTooltip
+              period={period}
+              feature={feature}
+              currency={currency}
+              priceTiers={priceTiers}
+              tiersMode={tiersMode}
+            />
           </Text>
-        ) : (
-          priceBehavior === EntitlementPriceBehavior.Tier && (
-            <>
-              <Text>
-                {t("Tier")}: {currentTier?.from || 1}
-                {typeof currentTier?.to === "number" &&
-                  (currentTier.from || 1) !== currentTier.to && (
-                    <>
-                      {currentTier.to === Infinity ? "+" : `–${currentTier.to}`}
-                    </>
-                  )}
-              </Text>
-
-              <PricingTiersTooltip
-                period={period}
-                feature={feature}
-                currency={currency}
-                priceTiers={priceTiers}
-                tiersMode={tiersMode}
-              />
-            </>
-          )
-        )}
-      </Flex>
+        )
+      )}
 
       {typeof amount === "number" && (
         <>

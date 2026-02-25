@@ -490,43 +490,42 @@ export const PlanManager = forwardRef<
                               $color={settings.theme.typography.text.color}
                             >
                               {group.total.used} {t("used")}
-                            </Text>
-
-                            {hasAutoTopup && (
-                              <Tooltip
-                                trigger={
-                                  <Icon
-                                    title="auto top-up"
-                                    name="info-rounded"
-                                    color={`hsla(0, 0%, ${isLightBackground ? 0 : 100}%, 0.5)`}
-                                  />
-                                }
-                                content={
-                                  <Text
-                                    $size={
-                                      0.875 *
-                                      settings.theme.typography.text.fontSize
-                                    }
-                                  >
-                                    {typeof planCreditGrant.billingCreditAutoTopupThresholdPercent ===
-                                      "number" &&
-                                      typeof planCreditGrant.billingCreditAutoTopupAmount ===
+                              {hasAutoTopup && (
+                                <Tooltip
+                                  trigger={
+                                    <Icon
+                                      title="auto top-up"
+                                      name="info-rounded"
+                                      color={`hsla(0, 0%, ${isLightBackground ? 0 : 100}%, 0.5)`}
+                                    />
+                                  }
+                                  content={
+                                    <Text
+                                      $size={
+                                        0.875 *
+                                        settings.theme.typography.text.fontSize
+                                      }
+                                    >
+                                      {typeof planCreditGrant.billingCreditAutoTopupThresholdPercent ===
                                         "number" &&
-                                      t(
-                                        "When balance reaches X remaining, an auto top-up of Y credits will be processed.",
-                                        {
-                                          threshold:
-                                            (planCreditGrant.billingCreditAutoTopupThresholdPercent /
-                                              100) *
-                                            group.quantity,
-                                          amount:
-                                            planCreditGrant.billingCreditAutoTopupAmount,
-                                        },
-                                      )}
-                                  </Text>
-                                }
-                              />
-                            )}
+                                        typeof planCreditGrant.billingCreditAutoTopupAmount ===
+                                          "number" &&
+                                        t(
+                                          "When balance reaches X remaining, an auto top-up of Y credits will be processed.",
+                                          {
+                                            threshold:
+                                              (planCreditGrant.billingCreditAutoTopupThresholdPercent /
+                                                100) *
+                                              group.quantity,
+                                            amount:
+                                              planCreditGrant.billingCreditAutoTopupAmount,
+                                          },
+                                        )}
+                                    </Text>
+                                  }
+                                />
+                              )}
+                            </Text>
                           </Flex>
                         )}
                       </Flex>

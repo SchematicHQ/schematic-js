@@ -10,6 +10,7 @@ import {
 import { useEmbed, useIsLightBackground } from "../../../../hooks";
 import type { Credit } from "../../../../types";
 import {
+  entitlementHasHardLimit,
   formatCurrency,
   formatNumber,
   getCreditBasedEntitlementLimit,
@@ -247,11 +248,8 @@ export const Entitlement = ({
             <Flex $flexDirection="column">
               <Text>{text}</Text>
 
-              <Flex $alignItems="end">
-                <Text $size={secondaryTextSize} $color={secondaryTextColor}>
-                  {usageText}
-                </Text>
-
+              <Text $size={secondaryTextSize} $color={secondaryTextColor}>
+                {usageText}
                 {(entitlement.priceBehavior === EntitlementPriceBehavior.Tier ||
                   tiered) && (
                   <PricingTiersTooltip
@@ -264,7 +262,7 @@ export const Entitlement = ({
                   />
                 )}
 
-                {entitlement.priceBehavior &&
+                {entitlementHasHardLimit(entitlement) &&
                   entitlement.valueType === EntitlementValueType.Numeric && (
                     <HardLimitTooltip
                       feature={entitlement.feature}
@@ -279,7 +277,7 @@ export const Entitlement = ({
                     portal={tooltipPortal}
                   />
                 )}
-              </Flex>
+              </Text>
             </Flex>
 
             {showFeatureDescription && entitlement.feature.description && (
