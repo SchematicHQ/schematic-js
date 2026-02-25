@@ -11,6 +11,7 @@ export * from "./BillingCreditGrantReason";
 export * from "./BillingCreditGrantZeroedOutReason";
 export * from "./BillingCreditResponseData";
 export * from "./BillingCreditRolloverPolicy";
+export * from "./BillingCreditView";
 export * from "./BillingPlanCreditGrantResetCadence";
 export * from "./BillingPlanCreditGrantResetStart";
 export * from "./BillingPlanCreditGrantResetType";

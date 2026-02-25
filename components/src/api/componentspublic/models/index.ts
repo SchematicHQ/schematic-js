@@ -6,6 +6,7 @@ export * from "./BillingCreditExpiryType";
 export * from "./BillingCreditExpiryUnit";
 export * from "./BillingCreditResponseData";
 export * from "./BillingCreditRolloverPolicy";
+export * from "./BillingCreditView";
 export * from "./BillingPlanCreditGrantResetCadence";
 export * from "./BillingPlanCreditGrantResetStart";
 export * from "./BillingPlanCreditGrantResetType";

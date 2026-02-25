@@ -8,6 +8,7 @@ models/BillingCreditExpiryType.ts
 models/BillingCreditExpiryUnit.ts
 models/BillingCreditResponseData.ts
 models/BillingCreditRolloverPolicy.ts
+models/BillingCreditView.ts
 models/BillingPlanCreditGrantResetCadence.ts
 models/BillingPlanCreditGrantResetStart.ts
 models/BillingPlanCreditGrantResetType.ts
