@@ -203,13 +203,13 @@ export interface PlanCreditGrantView {
    * @type {BillingPlanCreditGrantResetCadence}
    * @memberof PlanCreditGrantView
    */
-  resetCadence: BillingPlanCreditGrantResetCadence;
+  resetCadence?: BillingPlanCreditGrantResetCadence | null;
   /**
    *
    * @type {BillingPlanCreditGrantResetStart}
    * @memberof PlanCreditGrantView
    */
-  resetStart: BillingPlanCreditGrantResetStart;
+  resetStart?: BillingPlanCreditGrantResetStart | null;
   /**
    *
    * @type {BillingPlanCreditGrantResetType}
@@ -255,10 +255,6 @@ export function instanceOfPlanCreditGrantView(
     return false;
   if (!("id" in value) || value["id"] === undefined) return false;
   if (!("planId" in value) || value["planId"] === undefined) return false;
-  if (!("resetCadence" in value) || value["resetCadence"] === undefined)
-    return false;
-  if (!("resetStart" in value) || value["resetStart"] === undefined)
-    return false;
   if (!("resetType" in value) || value["resetType"] === undefined) return false;
   if (!("updatedAt" in value) || value["updatedAt"] === undefined) return false;
   return true;
@@ -334,10 +330,14 @@ export function PlanCreditGrantViewFromJSONTyped(
     planVersionId:
       json["plan_version_id"] == null ? undefined : json["plan_version_id"],
     pluralName: json["plural_name"] == null ? undefined : json["plural_name"],
-    resetCadence: BillingPlanCreditGrantResetCadenceFromJSON(
-      json["reset_cadence"],
-    ),
-    resetStart: BillingPlanCreditGrantResetStartFromJSON(json["reset_start"]),
+    resetCadence:
+      json["reset_cadence"] == null
+        ? undefined
+        : BillingPlanCreditGrantResetCadenceFromJSON(json["reset_cadence"]),
+    resetStart:
+      json["reset_start"] == null
+        ? undefined
+        : BillingPlanCreditGrantResetStartFromJSON(json["reset_start"]),
     resetType: BillingPlanCreditGrantResetTypeFromJSON(json["reset_type"]),
     singularName:
       json["singular_name"] == null ? undefined : json["singular_name"],
