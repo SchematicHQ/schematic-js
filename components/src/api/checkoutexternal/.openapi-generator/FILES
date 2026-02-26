@@ -98,6 +98,7 @@ models/HydrateComponentResponse.ts
 models/HydrateResponse.ts
 models/HydrateUpcomingInvoiceResponse.ts
 models/InvoiceResponseData.ts
+models/InvoiceStatus.ts
 models/ListInvoicesParams.ts
 models/ListInvoicesResponse.ts
 models/PaymentMethodResponseData.ts
