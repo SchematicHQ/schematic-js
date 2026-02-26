@@ -96,6 +96,7 @@ export * from "./HydrateComponentResponse";
 export * from "./HydrateResponse";
 export * from "./HydrateUpcomingInvoiceResponse";
 export * from "./InvoiceResponseData";
+export * from "./InvoiceStatus";
 export * from "./ListInvoicesParams";
 export * from "./ListInvoicesResponse";
 export * from "./PaymentMethodResponseData";
