@@ -2,9 +2,11 @@ models/CheckFlagResponse.ts
 models/CheckFlagResponseData.ts
 models/CheckFlagsResponse.ts
 models/CheckFlagsResponseData.ts
+models/EntitlementValueType.ts
 models/EventBody.ts
 models/EventBodyFlagCheck.ts
 models/EventBodyIdentify.ts
 models/EventBodyIdentifyCompany.ts
 models/EventBodyTrack.ts
+models/FeatureEntitlement.ts
 runtime.ts
