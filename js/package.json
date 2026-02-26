@@ -25,7 +25,7 @@
     "clean": "rm -rf dist",
     "format": "prettier --write src/*.ts",
     "lint": "eslint src --report-unused-disable-directives --fix",
-    "openapi": "rm -rf src/types/api/ && npx openapi-generator-cli generate -c openapi-config.yaml --global-property models=\"EventBody:EventBodyFlagCheck:EventBodyIdentify:EventBodyIdentifyCompany:EventBodyTrack:CheckFlagResponse:CheckFlagResponseData:CheckFlagsResponse:CheckFlagsResponseData\",supportingFiles=runtime.ts && prettier --write \"src/types/api/**/*.{ts,tsx}\"",
+    "openapi": "rm -rf src/types/api/ && npx openapi-generator-cli generate -c openapi-config.yaml --global-property models=\"EventBody:EventBodyFlagCheck:EventBodyIdentify:EventBodyIdentifyCompany:EventBodyTrack:CheckFlagResponse:CheckFlagResponseData:CheckFlagsResponse:CheckFlagsResponseData:FeatureEntitlement:EntitlementValueType\",supportingFiles=runtime.ts && prettier --write \"src/types/api/**/*.{ts,tsx}\"",
     "prepare": "husky",
     "test": "vitest run",
     "test:reactnative": "vitest run --config vitest.config.reactnative.ts",

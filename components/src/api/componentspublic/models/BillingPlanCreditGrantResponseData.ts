@@ -13,6 +13,12 @@
  */
 
 import { mapValues } from "../runtime";
+import type { BillingCreditResponseData } from "./BillingCreditResponseData";
+import {
+  BillingCreditResponseDataFromJSON,
+  BillingCreditResponseDataFromJSONTyped,
+  BillingCreditResponseDataToJSON,
+} from "./BillingCreditResponseData";
 import type { BillingCreditExpiryType } from "./BillingCreditExpiryType";
 import {
   BillingCreditExpiryTypeFromJSON,
@@ -106,6 +112,12 @@ export interface BillingPlanCreditGrantResponseData {
   createdAt: Date;
   /**
    *
+   * @type {BillingCreditResponseData}
+   * @memberof BillingPlanCreditGrantResponseData
+   */
+  credit?: BillingCreditResponseData;
+  /**
+   *
    * @type {number}
    * @memberof BillingPlanCreditGrantResponseData
    */
@@ -117,21 +129,24 @@ export interface BillingPlanCreditGrantResponseData {
    */
   creditId: string;
   /**
-   *
+   * Use credit.name from the nested credit object instead
    * @type {string}
    * @memberof BillingPlanCreditGrantResponseData
+   * @deprecated
    */
   creditName: string;
   /**
-   *
+   * Use plural_name from the nested credit object instead
    * @type {string}
    * @memberof BillingPlanCreditGrantResponseData
+   * @deprecated
    */
   creditPluralName?: string | null;
   /**
-   *
+   * Use singular_name from the nested credit object instead
    * @type {string}
    * @memberof BillingPlanCreditGrantResponseData
+   * @deprecated
    */
   creditSingularName?: string | null;
   /**
@@ -188,13 +203,13 @@ export interface BillingPlanCreditGrantResponseData {
    * @type {BillingPlanCreditGrantResetCadence}
    * @memberof BillingPlanCreditGrantResponseData
    */
-  resetCadence: BillingPlanCreditGrantResetCadence;
+  resetCadence?: BillingPlanCreditGrantResetCadence | null;
   /**
    *
    * @type {BillingPlanCreditGrantResetStart}
    * @memberof BillingPlanCreditGrantResponseData
    */
-  resetStart: BillingPlanCreditGrantResetStart;
+  resetStart?: BillingPlanCreditGrantResetStart | null;
   /**
    *
    * @type {BillingPlanCreditGrantResetType}
@@ -226,10 +241,6 @@ export function instanceOfBillingPlanCreditGrantResponseData(
   if (!("id" in value) || value["id"] === undefined) return false;
   if (!("planId" in value) || value["planId"] === undefined) return false;
   if (!("planName" in value) || value["planName"] === undefined) return false;
-  if (!("resetCadence" in value) || value["resetCadence"] === undefined)
-    return false;
-  if (!("resetStart" in value) || value["resetStart"] === undefined)
-    return false;
   if (!("updatedAt" in value) || value["updatedAt"] === undefined) return false;
   return true;
 }
@@ -272,6 +283,10 @@ export function BillingPlanCreditGrantResponseDataFromJSONTyped(
         ? undefined
         : json["auto_topup_threshold_percent"],
     createdAt: new Date(json["created_at"]),
+    credit:
+      json["credit"] == null
+        ? undefined
+        : BillingCreditResponseDataFromJSON(json["credit"]),
     creditAmount: json["credit_amount"],
     creditId: json["credit_id"],
     creditName: json["credit_name"],
@@ -302,10 +317,14 @@ export function BillingPlanCreditGrantResponseDataFromJSONTyped(
     planName: json["plan_name"],
     planVersionId:
       json["plan_version_id"] == null ? undefined : json["plan_version_id"],
-    resetCadence: BillingPlanCreditGrantResetCadenceFromJSON(
-      json["reset_cadence"],
-    ),
-    resetStart: BillingPlanCreditGrantResetStartFromJSON(json["reset_start"]),
+    resetCadence:
+      json["reset_cadence"] == null
+        ? undefined
+        : BillingPlanCreditGrantResetCadenceFromJSON(json["reset_cadence"]),
+    resetStart:
+      json["reset_start"] == null
+        ? undefined
+        : BillingPlanCreditGrantResetStartFromJSON(json["reset_start"]),
     resetType:
       json["reset_type"] == null
         ? undefined
@@ -333,6 +352,7 @@ export function BillingPlanCreditGrantResponseDataToJSON(
     auto_topup_expiry_unit_count: value["autoTopupExpiryUnitCount"],
     auto_topup_threshold_percent: value["autoTopupThresholdPercent"],
     created_at: value["createdAt"].toISOString(),
+    credit: BillingCreditResponseDataToJSON(value["credit"]),
     credit_amount: value["creditAmount"],
     credit_id: value["creditId"],
     credit_name: value["creditName"],

@@ -18,6 +18,7 @@ import {
   EntitlementValueTypeFromJSON,
   EntitlementValueTypeFromJSONTyped,
   EntitlementValueTypeToJSON,
+  EntitlementValueTypeToJSONTyped,
 } from "./EntitlementValueType";
 
 /**
@@ -182,12 +183,18 @@ export function FeatureEntitlementFromJSONTyped(
   };
 }
 
-export function FeatureEntitlementToJSON(
+export function FeatureEntitlementToJSON(json: any): FeatureEntitlement {
+  return FeatureEntitlementToJSONTyped(json, false);
+}
+
+export function FeatureEntitlementToJSONTyped(
   value?: FeatureEntitlement | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     allocation: value["allocation"],
     credit_id: value["creditId"],

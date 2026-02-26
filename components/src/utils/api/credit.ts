@@ -5,7 +5,7 @@ import {
 import { CreditResetCadence } from "../../const";
 import type { Credit, CreditWithCompanyContext } from "../../types";
 
-function getResetCadencePeriod(cadence: string) {
+function getResetCadencePeriod(cadence: PlanCreditGrantView["resetCadence"]) {
   switch (cadence) {
     case CreditResetCadence.Year:
       return "year";
