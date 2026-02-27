@@ -20,7 +20,7 @@ export const Meter = ({ entitlement, usageDetails }: MeterProps) => {
 
   const meter = (
     <ProgressBar
-      progress={(Math.min(usage, limit) / Math.max(usage, limit)) * 100}
+      progress={(usage / limit) * 100}
       value={usage}
       total={limit}
       {...(priceBehavior === PriceBehavior.Overage ||
