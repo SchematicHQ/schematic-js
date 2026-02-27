@@ -43,7 +43,20 @@ describe("formatInvoices", () => {
     ];
     const result = formatInvoices(invoices);
     expect(result).toHaveLength(1);
-    expect(result[0].status).toBe(InvoiceStatus.Paid);
+    expect(result[0].date).toBeDefined();
+  });
+
+  test("falls back to createdAt when dueDate is null", () => {
+    const invoices = [
+      makeInvoice({
+        status: InvoiceStatus.Paid,
+        dueDate: null,
+        createdAt: new Date("2025-12-16"),
+        externalId: "in_abc",
+      }),
+    ];
+    const result = formatInvoices(invoices);
+    expect(result[0].date).toContain("December");
   });
 
   test("excludes draft invoices", () => {
@@ -119,22 +132,38 @@ describe("formatInvoices", () => {
     expect(result).toHaveLength(1);
   });
 
-  test("sorts by due date descending", () => {
+  test("sorts by date descending", () => {
     const invoices = [
       makeInvoice({
         status: InvoiceStatus.Paid,
-        dueDate: new Date("2025-01-01"),
-        externalId: "in_old",
+        dueDate: new Date("2025-01-15T12:00:00"),
       }),
       makeInvoice({
         status: InvoiceStatus.Paid,
-        dueDate: new Date("2025-06-01"),
-        externalId: "in_new",
+        dueDate: new Date("2025-06-15T12:00:00"),
       }),
     ];
     const result = formatInvoices(invoices);
-    expect(result[0].invoiceNumber).toBe("in_new");
-    expect(result[1].invoiceNumber).toBe("in_old");
+    expect(result[0].date).toContain("June");
+    expect(result[1].date).toContain("January");
+  });
+
+  test("sorts by createdAt when dueDate is null", () => {
+    const invoices = [
+      makeInvoice({
+        status: InvoiceStatus.Paid,
+        dueDate: null,
+        createdAt: new Date("2025-01-15T12:00:00"),
+      }),
+      makeInvoice({
+        status: InvoiceStatus.Paid,
+        dueDate: null,
+        createdAt: new Date("2025-06-15T12:00:00"),
+      }),
+    ];
+    const result = formatInvoices(invoices);
+    expect(result[0].date).toContain("June");
+    expect(result[1].date).toContain("January");
   });
 
   test("includes invoice with null status", () => {
@@ -147,6 +176,5 @@ describe("formatInvoices", () => {
     ];
     const result = formatInvoices(invoices);
     expect(result).toHaveLength(1);
-    expect(result[0].status).toBeNull();
   });
 });

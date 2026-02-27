@@ -103,14 +103,16 @@ export function formatInvoices(
       ({ externalId }) =>
         !externalId || !externalId.startsWith("upcoming_"),
     )
-    .sort((a, b) => (a.dueDate && b.dueDate ? +b.dueDate - +a.dueDate : 1))
-    .map(({ amountDue, dueDate, url, currency, status, externalId }) => ({
+    .sort((a, b) => {
+      const dateA = a.dueDate ?? a.createdAt;
+      const dateB = b.dueDate ?? b.createdAt;
+      return +dateB - +dateA;
+    })
+    .map(({ amountDue, dueDate, createdAt, url, currency }) => ({
       amount: formatCurrency(amountDue, currency),
       amountDue,
-      date: dueDate ? toPrettyDate(dueDate) : undefined,
+      date: toPrettyDate(dueDate ?? createdAt),
       url: url || undefined,
-      status: (status as InvoiceStatus) ?? null,
-      invoiceNumber: externalId || null,
     }));
 }
 
@@ -236,84 +238,31 @@ export const Invoices = forwardRef<
                     {invoices
                       .slice(0, listSize)
                       .map(
-                        (
-                          {
-                            date,
-                            amount,
-                            amountDue,
-                            url,
-                            status,
-                            invoiceNumber,
-                          },
-                          index,
-                        ) => {
+                        ({ date, amount, amountDue, url }, index) => {
                           return (
                             <Flex
                               key={index}
                               $justifyContent="space-between"
                               $alignItems="center"
                             >
-                              <Flex $alignItems="center" $gap="0.5rem">
-                                {props.date.isVisible && (
-                                  <Text
-                                    display={props.date.fontStyle}
-                                    {...(url && {
-                                      as: "a",
-                                      href: url,
-                                      target: "_blank",
-                                      rel: "noreferrer",
-                                    })}
-                                    $color={
-                                      url
-                                        ? settings.theme.typography.link.color
-                                        : settings.theme.typography.text.color
-                                    }
-                                  >
-                                    {date}
-                                  </Text>
-                                )}
-
-                                {invoiceNumber && (
-                                  <Text
-                                    display="text"
-                                    $size={12}
-                                    $color="#8A8A8A"
-                                  >
-                                    {invoiceNumber}
-                                  </Text>
-                                )}
-
-                                {status === InvoiceStatus.Paid && (
-                                  <Text
-                                    display="text"
-                                    $size={12}
-                                    $weight={500}
-                                    $color="#15803D"
-                                  >
-                                    {t("Paid")}
-                                  </Text>
-                                )}
-                                {status === InvoiceStatus.Open && (
-                                  <Text
-                                    display="text"
-                                    $size={12}
-                                    $weight={500}
-                                    $color="#CA8A04"
-                                  >
-                                    {t("Open")}
-                                  </Text>
-                                )}
-                                {status === InvoiceStatus.Uncollectible && (
-                                  <Text
-                                    display="text"
-                                    $size={12}
-                                    $weight={500}
-                                    $color="#DC2626"
-                                  >
-                                    {t("Uncollectible")}
-                                  </Text>
-                                )}
-                              </Flex>
+                              {props.date.isVisible && (
+                                <Text
+                                  display={props.date.fontStyle}
+                                  {...(url && {
+                                    as: "a",
+                                    href: url,
+                                    target: "_blank",
+                                    rel: "noreferrer",
+                                  })}
+                                  $color={
+                                    url
+                                      ? settings.theme.typography.link.color
+                                      : settings.theme.typography.text.color
+                                  }
+                                >
+                                  {date}
+                                </Text>
+                              )}
 
                               {props.amount.isVisible && (
                                 <Tooltip
