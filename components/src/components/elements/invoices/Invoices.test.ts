@@ -169,6 +169,19 @@ describe("formatInvoices", () => {
     expect(result[1].date).toContain("January");
   });
 
+  test("formats negative amounts as credits wrapped in parentheses", () => {
+    const invoices = [
+      makeInvoice({
+        amountDue: -1500,
+        status: InvoiceStatus.Paid,
+        externalId: "in_abc",
+      }),
+    ];
+    const result = formatInvoices(invoices);
+    expect(result).toHaveLength(1);
+    expect(result[0].amount).toBe("($15.00)");
+  });
+
   test("includes invoice with null status", () => {
     const invoices = [
       makeInvoice({
