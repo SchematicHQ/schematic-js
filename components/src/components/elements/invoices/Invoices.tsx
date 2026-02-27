@@ -1,7 +1,10 @@
 import { forwardRef, useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { type InvoiceResponseData } from "../../../api/checkoutexternal";
+import {
+  type InvoiceResponseData,
+  type InvoiceStatus,
+} from "../../../api/checkoutexternal";
 import { MAX_VISIBLE_INVOICE_COUNT } from "../../../const";
 import { type FontStyle } from "../../../context";
 import { useEmbed } from "../../../hooks";
@@ -85,12 +88,24 @@ function formatInvoices(
 
   return (invoices || [])
     .filter(({ dueDate }) => !hideUpcoming || (dueDate && +dueDate <= +now))
+    .filter(({ amountDue }) => amountDue !== 0)
+    .filter(
+      ({ status }) =>
+        !status ||
+        !["void", "draft", "uncollectible"].includes(status as string),
+    )
+    .filter(
+      ({ externalId }) =>
+        !externalId || !externalId.startsWith("upcoming_"),
+    )
     .sort((a, b) => (a.dueDate && b.dueDate ? +b.dueDate - +a.dueDate : 1))
-    .map(({ amountDue, dueDate, url, currency }) => ({
+    .map(({ amountDue, dueDate, url, currency, status, externalId }) => ({
       amount: formatCurrency(amountDue, currency),
       amountDue,
       date: dueDate ? toPrettyDate(dueDate) : undefined,
       url: url || undefined,
+      status: (status as InvoiceStatus) || null,
+      invoiceNumber: externalId || null,
     }));
 }
 
@@ -215,49 +230,108 @@ export const Invoices = forwardRef<
                   <Flex $flexDirection="column" $gap="0.5rem">
                     {invoices
                       .slice(0, listSize)
-                      .map(({ date, amount, amountDue, url }, index) => {
-                        return (
-                          <Flex key={index} $justifyContent="space-between">
-                            {props.date.isVisible && (
-                              <Text
-                                display={props.date.fontStyle}
-                                {...(url && {
-                                  as: "a",
-                                  href: url,
-                                  target: "_blank",
-                                  rel: "noreferrer",
-                                })}
-                                $color={
-                                  url
-                                    ? settings.theme.typography.link.color
-                                    : settings.theme.typography.text.color
-                                }
-                              >
-                                {date}
-                              </Text>
-                            )}
-
-                            {props.amount.isVisible && (
-                              <Tooltip
-                                trigger={
-                                  <Text display={props.amount.fontStyle}>
-                                    {amount}
+                      .map(
+                        (
+                          {
+                            date,
+                            amount,
+                            amountDue,
+                            url,
+                            status,
+                            invoiceNumber,
+                          },
+                          index,
+                        ) => {
+                          return (
+                            <Flex
+                              key={index}
+                              $justifyContent="space-between"
+                              $alignItems="center"
+                            >
+                              <Flex $alignItems="center" $gap="0.5rem">
+                                {props.date.isVisible && (
+                                  <Text
+                                    display={props.date.fontStyle}
+                                    {...(url && {
+                                      as: "a",
+                                      href: url,
+                                      target: "_blank",
+                                      rel: "noreferrer",
+                                    })}
+                                    $color={
+                                      url
+                                        ? settings.theme.typography.link.color
+                                        : settings.theme.typography.text.color
+                                    }
+                                  >
+                                    {date}
                                   </Text>
-                                }
-                                content={
-                                  amountDue < 0
-                                    ? t(
-                                        "Credit — this amount was returned to your account, typically due to a plan change or proration",
-                                      )
-                                    : t(
-                                        "Charge — you were billed this amount",
-                                      )
-                                }
-                              />
-                            )}
-                          </Flex>
-                        );
-                      })}
+                                )}
+
+                                {invoiceNumber && (
+                                  <Text
+                                    display="text"
+                                    $size={12}
+                                    $color="#8A8A8A"
+                                  >
+                                    {invoiceNumber}
+                                  </Text>
+                                )}
+
+                                {status === "paid" && (
+                                  <Text
+                                    display="text"
+                                    $size={12}
+                                    $weight={500}
+                                    $color="#15803D"
+                                  >
+                                    {t("Paid")}
+                                  </Text>
+                                )}
+                                {status === "open" && (
+                                  <Text
+                                    display="text"
+                                    $size={12}
+                                    $weight={500}
+                                    $color="#CA8A04"
+                                  >
+                                    {t("Open")}
+                                  </Text>
+                                )}
+                                {status === "uncollectible" && (
+                                  <Text
+                                    display="text"
+                                    $size={12}
+                                    $weight={500}
+                                    $color="#DC2626"
+                                  >
+                                    {t("Uncollectible")}
+                                  </Text>
+                                )}
+                              </Flex>
+
+                              {props.amount.isVisible && (
+                                <Tooltip
+                                  trigger={
+                                    <Text display={props.amount.fontStyle}>
+                                      {amount}
+                                    </Text>
+                                  }
+                                  content={
+                                    amountDue < 0
+                                      ? t(
+                                          "Credit — this amount was returned to your account, typically due to a plan change or proration",
+                                        )
+                                      : t(
+                                          "Charge — you were billed this amount",
+                                        )
+                                  }
+                                />
+                              )}
+                            </Flex>
+                          );
+                        },
+                      )}
                   </Flex>
 
                   {props.collapse.isVisible &&
