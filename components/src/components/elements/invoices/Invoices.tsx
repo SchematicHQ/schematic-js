@@ -79,7 +79,7 @@ interface FormatInvoiceOptions {
   hideUpcoming?: boolean;
 }
 
-function formatInvoices(
+export function formatInvoices(
   invoices?: InvoiceResponseData[],
   options?: FormatInvoiceOptions,
 ) {
