@@ -54,11 +54,9 @@ export const Entitlement = ({
 
   const { t } = useTranslation();
 
-  const { data, settings } = useEmbed();
+  const { settings } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
-
-  const showHardLimit = data?.displaySettings?.showHardLimit ?? false;
 
   const entitlementBillingPrice = getEntitlementPrice(
     entitlement,

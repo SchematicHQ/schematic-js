@@ -17,7 +17,7 @@ import {
   shortenPeriod,
 } from "../../../utils";
 import { PricingTiersTooltip } from "../../shared";
-import { Box, Flex, Text } from "../../ui";
+import { Box, Text } from "../../ui";
 
 export const EntitlementRow = (
   props: (UsageBasedEntitlement | CurrentUsageBasedEntitlement) & {
