@@ -22,7 +22,7 @@ export const HardLimitTooltip = ({
 
   const isLightBackground = useIsLightBackground();
 
-  const showHardLimit = data?.displaySettings.showHardLimit ?? true;
+  const showHardLimit = data?.displaySettings.showHardLimit ?? false;
 
   if (!showHardLimit || !feature || typeof limit !== "number") {
     return null;
