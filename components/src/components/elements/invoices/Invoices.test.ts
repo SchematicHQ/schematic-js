@@ -1,7 +1,10 @@
 import { describe, expect, test } from "vitest";
 
-import type { InvoiceResponseData } from "../../../api/checkoutexternal";
-import { InvoiceStatus } from "../../../api/checkoutexternal";
+import {
+  InvoiceStatus,
+  type InvoiceResponseData,
+} from "../../../api/checkoutexternal";
+
 import { formatInvoices } from "./Invoices";
 
 function makeInvoice(

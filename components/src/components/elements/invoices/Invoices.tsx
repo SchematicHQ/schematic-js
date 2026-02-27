@@ -2,8 +2,8 @@ import { forwardRef, useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
-  type InvoiceResponseData,
   InvoiceStatus,
+  type InvoiceResponseData,
 } from "../../../api/checkoutexternal";
 import { MAX_VISIBLE_INVOICE_COUNT } from "../../../const";
 import { type FontStyle } from "../../../context";
