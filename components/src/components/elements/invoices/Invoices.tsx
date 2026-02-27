@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 
 import {
   type InvoiceResponseData,
-  type InvoiceStatus,
+  InvoiceStatus,
 } from "../../../api/checkoutexternal";
 import { MAX_VISIBLE_INVOICE_COUNT } from "../../../const";
 import { type FontStyle } from "../../../context";
@@ -87,12 +87,17 @@ function formatInvoices(
   const now = new Date();
 
   return (invoices || [])
-    .filter(({ dueDate }) => !hideUpcoming || (dueDate && +dueDate <= +now))
+    .filter(
+      ({ dueDate, status }) =>
+        !hideUpcoming ||
+        status === InvoiceStatus.Paid ||
+        (dueDate && +dueDate <= +now),
+    )
     .filter(({ amountDue }) => amountDue !== 0)
     .filter(
       ({ status }) =>
         !status ||
-        !["void", "draft", "uncollectible"].includes(status as string),
+        !([InvoiceStatus.Void, InvoiceStatus.Draft, InvoiceStatus.Uncollectible] as InvoiceStatus[]).includes(status as InvoiceStatus),
     )
     .filter(
       ({ externalId }) =>
@@ -104,7 +109,7 @@ function formatInvoices(
       amountDue,
       date: dueDate ? toPrettyDate(dueDate) : undefined,
       url: url || undefined,
-      status: (status as InvoiceStatus) || null,
+      status: (status as InvoiceStatus) ?? null,
       invoiceNumber: externalId || null,
     }));
 }
@@ -278,7 +283,7 @@ export const Invoices = forwardRef<
                                   </Text>
                                 )}
 
-                                {status === "paid" && (
+                                {status === InvoiceStatus.Paid && (
                                   <Text
                                     display="text"
                                     $size={12}
@@ -288,7 +293,7 @@ export const Invoices = forwardRef<
                                     {t("Paid")}
                                   </Text>
                                 )}
-                                {status === "open" && (
+                                {status === InvoiceStatus.Open && (
                                   <Text
                                     display="text"
                                     $size={12}
@@ -298,7 +303,7 @@ export const Invoices = forwardRef<
                                     {t("Open")}
                                   </Text>
                                 )}
-                                {status === "uncollectible" && (
+                                {status === InvoiceStatus.Uncollectible && (
                                   <Text
                                     display="text"
                                     $size={12}
