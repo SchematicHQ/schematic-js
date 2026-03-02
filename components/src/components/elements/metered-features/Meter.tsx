@@ -30,7 +30,7 @@ export const Meter = ({ entitlement, usageDetails }: MeterProps) => {
       progress={progress}
       value={usage}
       total={limit}
-      {...(priceBehavior === PriceBehavior.Tier
+      {...(priceBehavior === PriceBehavior.Tiered
         ? { color: "blue", bgColor: "#2563EB80" }
         : priceBehavior === PriceBehavior.Overage && usage > limit
           ? { color: "blue", bgColor: "#FFAA06" }
