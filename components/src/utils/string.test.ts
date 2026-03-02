@@ -79,9 +79,9 @@ describe("formatCurrency", () => {
     expect(formatCurrency(0)).toBe("$0.00");
   });
 
-  test("wraps negative amounts in parentheses", () => {
-    expect(formatCurrency(-1000)).toBe("($10.00)");
-    expect(formatCurrency(-150)).toBe("($1.50)");
+  test("formats negative amounts with minus sign", () => {
+    expect(formatCurrency(-1000)).toBe("-$10.00");
+    expect(formatCurrency(-150)).toBe("-$1.50");
   });
 
   test("accepts currency as string option", () => {

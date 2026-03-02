@@ -60,6 +60,8 @@
     "Ineligible for this discount.": "Ineligible for this discount.",
     "Invalid access token; your temporary access token will start with `token_`.": "Invalid access token; your temporary access token will start with `token_`.",
     "Invalid discount code.": "Invalid discount code.",
+    "Invoice credit tooltip": "Credit — this amount was returned to your account, typically due to a plan change or proration",
+    "Invoice charge tooltip": "Charge — you were billed this amount",
     "Invoices": "Invoices",
     "Limit of": "Limit of {{amount}}",
     "Loading": "Loading",

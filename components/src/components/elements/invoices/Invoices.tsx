@@ -86,34 +86,40 @@ export function formatInvoices(
   const { hideUpcoming = true } = options || {};
   const now = new Date();
 
+  const excludedStatuses: InvoiceStatus[] = [
+    InvoiceStatus.Void,
+    InvoiceStatus.Draft,
+    InvoiceStatus.Uncollectible,
+  ];
+
   return (invoices || [])
-    .filter(
-      ({ dueDate, status }) =>
-        !hideUpcoming ||
-        status === InvoiceStatus.Paid ||
-        (dueDate && +dueDate <= +now),
-    )
-    .filter(({ amountDue }) => amountDue !== 0)
-    .filter(
-      ({ status }) =>
-        !status ||
-        !([InvoiceStatus.Void, InvoiceStatus.Draft, InvoiceStatus.Uncollectible] as InvoiceStatus[]).includes(status as InvoiceStatus),
-    )
-    .filter(
-      ({ externalId }) =>
-        !externalId || !externalId.startsWith("upcoming_"),
-    )
+    .filter(({ amountDue, dueDate, externalId, status }) => {
+      if (amountDue === 0) return false;
+      if (externalId?.startsWith("upcoming_")) return false;
+      if (status && excludedStatuses.includes(status as InvoiceStatus))
+        return false;
+      if (
+        hideUpcoming &&
+        status !== InvoiceStatus.Paid &&
+        !(dueDate && +dueDate <= +now)
+      )
+        return false;
+      return true;
+    })
     .sort((a, b) => {
       const dateA = a.dueDate ?? a.createdAt;
       const dateB = b.dueDate ?? b.createdAt;
       return +dateB - +dateA;
     })
-    .map(({ amountDue, dueDate, createdAt, url, currency }) => ({
-      amount: formatCurrency(amountDue, currency),
-      amountDue,
-      date: toPrettyDate(dueDate ?? createdAt),
-      url: url || undefined,
-    }));
+    .map(({ amountDue, dueDate, createdAt, url, currency }) => {
+      const formatted = formatCurrency(Math.abs(amountDue), currency);
+      return {
+        amount: amountDue < 0 ? `(${formatted})` : formatted,
+        amountDue,
+        date: toPrettyDate(dueDate ?? createdAt),
+        url: url || undefined,
+      };
+    });
 }
 
 export type InvoicesProps = DesignProps & {
@@ -273,12 +279,8 @@ export const Invoices = forwardRef<
                                   }
                                   content={
                                     amountDue < 0
-                                      ? t(
-                                          "Credit — this amount was returned to your account, typically due to a plan change or proration",
-                                        )
-                                      : t(
-                                          "Charge — you were billed this amount",
-                                        )
+                                      ? t("Invoice credit tooltip")
+                                      : t("Invoice charge tooltip")
                                   }
                                 />
                               )}
