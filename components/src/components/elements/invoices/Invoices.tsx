@@ -1,7 +1,10 @@
 import { forwardRef, useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { type InvoiceResponseData } from "../../../api/checkoutexternal";
+import {
+  InvoiceStatus,
+  type InvoiceResponseData,
+} from "../../../api/checkoutexternal";
 import { MAX_VISIBLE_INVOICE_COUNT } from "../../../const";
 import { type FontStyle } from "../../../context";
 import { useEmbed } from "../../../hooks";
@@ -14,7 +17,15 @@ import {
   toPrettyDate,
 } from "../../../utils";
 import { Element } from "../../layout";
-import { Button, Flex, Icon, Loader, Text, TransitionBox } from "../../ui";
+import {
+  Button,
+  Flex,
+  Icon,
+  Loader,
+  Text,
+  Tooltip,
+  TransitionBox,
+} from "../../ui";
 
 interface DesignProps {
   header: {
@@ -68,21 +79,47 @@ interface FormatInvoiceOptions {
   hideUpcoming?: boolean;
 }
 
-function formatInvoices(
+export function formatInvoices(
   invoices?: InvoiceResponseData[],
   options?: FormatInvoiceOptions,
 ) {
   const { hideUpcoming = true } = options || {};
   const now = new Date();
 
+  const excludedStatuses: InvoiceStatus[] = [
+    InvoiceStatus.Void,
+    InvoiceStatus.Draft,
+    InvoiceStatus.Uncollectible,
+  ];
+
   return (invoices || [])
-    .filter(({ dueDate }) => !hideUpcoming || (dueDate && +dueDate <= +now))
-    .sort((a, b) => (a.dueDate && b.dueDate ? +b.dueDate - +a.dueDate : 1))
-    .map(({ amountDue, dueDate, url, currency }) => ({
-      amount: formatCurrency(amountDue, currency),
-      date: dueDate ? toPrettyDate(dueDate) : undefined,
-      url: url || undefined,
-    }));
+    .filter(({ amountDue, dueDate, externalId, status }) => {
+      if (amountDue === 0) return false;
+      if (externalId?.startsWith("upcoming_")) return false;
+      if (status && excludedStatuses.includes(status as InvoiceStatus))
+        return false;
+      if (
+        hideUpcoming &&
+        status !== InvoiceStatus.Paid &&
+        !(dueDate && +dueDate <= +now)
+      )
+        return false;
+      return true;
+    })
+    .sort((a, b) => {
+      const dateA = a.dueDate ?? a.createdAt;
+      const dateB = b.dueDate ?? b.createdAt;
+      return +dateB - +dateA;
+    })
+    .map(({ amountDue, dueDate, createdAt, url, currency }) => {
+      const formatted = formatCurrency(Math.abs(amountDue), currency);
+      return {
+        amount: amountDue < 0 ? `(${formatted})` : formatted,
+        amountDue,
+        date: toPrettyDate(dueDate ?? createdAt),
+        url: url || undefined,
+      };
+    });
 }
 
 export type InvoicesProps = DesignProps & {
@@ -206,36 +243,51 @@ export const Invoices = forwardRef<
                   <Flex $flexDirection="column" $gap="0.5rem">
                     {invoices
                       .slice(0, listSize)
-                      .map(({ date, amount, url }, index) => {
-                        return (
-                          <Flex key={index} $justifyContent="space-between">
-                            {props.date.isVisible && (
-                              <Text
-                                display={props.date.fontStyle}
-                                {...(url && {
-                                  as: "a",
-                                  href: url,
-                                  target: "_blank",
-                                  rel: "noreferrer",
-                                })}
-                                $color={
-                                  url
-                                    ? settings.theme.typography.link.color
-                                    : settings.theme.typography.text.color
-                                }
-                              >
-                                {date}
-                              </Text>
-                            )}
+                      .map(
+                        ({ date, amount, amountDue, url }, index) => {
+                          return (
+                            <Flex
+                              key={index}
+                              $justifyContent="space-between"
+                              $alignItems="center"
+                            >
+                              {props.date.isVisible && (
+                                <Text
+                                  display={props.date.fontStyle}
+                                  {...(url && {
+                                    as: "a",
+                                    href: url,
+                                    target: "_blank",
+                                    rel: "noreferrer",
+                                  })}
+                                  $color={
+                                    url
+                                      ? settings.theme.typography.link.color
+                                      : settings.theme.typography.text.color
+                                  }
+                                >
+                                  {date}
+                                </Text>
+                              )}
 
-                            {props.amount.isVisible && (
-                              <Text display={props.amount.fontStyle}>
-                                {amount}
-                              </Text>
-                            )}
-                          </Flex>
-                        );
-                      })}
+                              {props.amount.isVisible && (
+                                <Tooltip
+                                  trigger={
+                                    <Text display={props.amount.fontStyle}>
+                                      {amount}
+                                    </Text>
+                                  }
+                                  content={
+                                    amountDue < 0
+                                      ? t("Invoice credit tooltip")
+                                      : t("Invoice charge tooltip")
+                                  }
+                                />
+                              )}
+                            </Flex>
+                          );
+                        },
+                      )}
                   </Flex>
 
                   {props.collapse.isVisible &&
