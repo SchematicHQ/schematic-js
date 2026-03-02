@@ -1274,6 +1274,143 @@ describe("WebSocket Fallback Behavior", () => {
 
       await schematic.cleanup();
     });
+
+    it("should resolve setContext without throwing when WebSocket connection fails", async () => {
+      mockServer.stop();
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      const schematic = new Schematic("API_KEY", {
+        useWebSocket: true,
+        webSocketUrl: TEST_WS_URL,
+      });
+
+      const context = {
+        company: { companyId: "456" },
+        user: { userId: "123" },
+      };
+
+      // setContext should resolve gracefully, not reject
+      await expect(schematic.setContext(context)).resolves.toBeUndefined();
+
+      await schematic.cleanup();
+    });
+
+    it("should set isPending to false when WebSocket connection fails", async () => {
+      mockServer.stop();
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      const schematic = new Schematic("API_KEY", {
+        useWebSocket: true,
+        webSocketUrl: TEST_WS_URL,
+      });
+
+      expect(schematic.getIsPending()).toBe(true);
+
+      await schematic.setContext({
+        company: { companyId: "456" },
+        user: { userId: "123" },
+      });
+
+      expect(schematic.getIsPending()).toBe(false);
+
+      await schematic.cleanup();
+    });
+
+    it("should set context locally when WebSocket connection fails", async () => {
+      mockServer.stop();
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      const schematic = new Schematic("API_KEY", {
+        useWebSocket: true,
+        webSocketUrl: TEST_WS_URL,
+        flagValueDefaults: {
+          "local-flag": true,
+        },
+      });
+
+      // Mock the flag check event endpoint
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        statusText: "OK",
+      });
+
+      const context = {
+        company: { companyId: "456" },
+        user: { userId: "123" },
+      };
+
+      await schematic.setContext(context);
+
+      // checkFlag should use the context set locally and return the
+      // flagValueDefault since no WS values are available
+      const result = await schematic.checkFlag({
+        key: "local-flag",
+      });
+
+      expect(result).toBe(true); // From flagValueDefaults
+      await schematic.cleanup();
+    });
+
+    it("should attempt background reconnection after initial connection failure", async () => {
+      mockServer.stop();
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      const schematic = new Schematic("API_KEY", {
+        useWebSocket: true,
+        webSocketUrl: TEST_WS_URL,
+        flagValueDefaults: {
+          "reconnect-flag": false,
+        },
+      });
+
+      // Mock fetch for flag check events
+      mockFetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+        statusText: "OK",
+      });
+
+      const context = {
+        company: { companyId: "456" },
+        user: { userId: "123" },
+      };
+
+      // Initial setContext fails, falls back to defaults
+      await schematic.setContext(context);
+      expect(schematic.getIsPending()).toBe(false);
+
+      // Now restart the server so background reconnection can succeed
+      mockServer = new WebSocketServer(FULL_WS_URL);
+      mockServer.on("connection", (socket) => {
+        socket.on("message", () => {
+          socket.send(
+            JSON.stringify({
+              flags: [
+                {
+                  flag: "reconnect-flag",
+                  value: true, // Real value differs from fallback (false)
+                  reason: "Server value",
+                },
+              ],
+            }),
+          );
+        });
+      });
+
+      // Wait for background reconnection (exponential backoff starts at 1s)
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      // After reconnection, checkFlag should return the real server value
+      const result = await schematic.checkFlag({
+        key: "reconnect-flag",
+        context,
+      });
+
+      expect(result).toBe(true); // Real value from server, not fallback
+
+      await schematic.cleanup();
+    }, 15000);
   });
 
   describe("After WebSocket connection is established and then lost", () => {
