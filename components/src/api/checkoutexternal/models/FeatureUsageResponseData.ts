@@ -37,6 +37,12 @@ import {
   PlanEntitlementResponseDataFromJSONTyped,
   PlanEntitlementResponseDataToJSON,
 } from "./PlanEntitlementResponseData";
+import type { CreditUsageAggregation } from "./CreditUsageAggregation";
+import {
+  CreditUsageAggregationFromJSON,
+  CreditUsageAggregationFromJSONTyped,
+  CreditUsageAggregationToJSON,
+} from "./CreditUsageAggregation";
 import type { EntitlementPriceBehavior } from "./EntitlementPriceBehavior";
 import {
   EntitlementPriceBehaviorFromJSON,
@@ -55,12 +61,6 @@ import {
   EntitlementTypeFromJSONTyped,
   EntitlementTypeToJSON,
 } from "./EntitlementType";
-import type { FeatureUsageResponseDataCreditUsageAggregation } from "./FeatureUsageResponseDataCreditUsageAggregation";
-import {
-  FeatureUsageResponseDataCreditUsageAggregationFromJSON,
-  FeatureUsageResponseDataCreditUsageAggregationFromJSONTyped,
-  FeatureUsageResponseDataCreditUsageAggregationToJSON,
-} from "./FeatureUsageResponseDataCreditUsageAggregation";
 import type { BillingPriceView } from "./BillingPriceView";
 import {
   BillingPriceViewFromJSON,
@@ -99,7 +99,7 @@ export interface FeatureUsageResponseData {
    */
   allocation?: number | null;
   /**
-   *
+   * The type of allocation that is being used.
    * @type {EntitlementValueType}
    * @memberof FeatureUsageResponseData
    */
@@ -129,7 +129,7 @@ export interface FeatureUsageResponseData {
    */
   creditGrantDetails?: Array<CreditGrantDetail>;
   /**
-   *
+   * Reason for the credit grant
    * @type {BillingCreditGrantReason}
    * @memberof FeatureUsageResponseData
    */
@@ -154,11 +154,11 @@ export interface FeatureUsageResponseData {
    */
   creditTypeIcon?: string | null;
   /**
-   *
-   * @type {FeatureUsageResponseDataCreditUsageAggregation}
+   * Aggregated credit usage by time period (day, week, month, billing period)
+   * @type {CreditUsageAggregation}
    * @memberof FeatureUsageResponseData
    */
-  creditUsageAggregation?: FeatureUsageResponseDataCreditUsageAggregation;
+  creditUsageAggregation?: CreditUsageAggregation;
   /**
    *
    * @type {number}
@@ -357,9 +357,7 @@ export function FeatureUsageResponseDataFromJSONTyped(
     creditUsageAggregation:
       json["credit_usage_aggregation"] == null
         ? undefined
-        : FeatureUsageResponseDataCreditUsageAggregationFromJSON(
-            json["credit_usage_aggregation"],
-          ),
+        : CreditUsageAggregationFromJSON(json["credit_usage_aggregation"]),
     creditUsed: json["credit_used"] == null ? undefined : json["credit_used"],
     effectiveLimit:
       json["effective_limit"] == null ? undefined : json["effective_limit"],
@@ -444,10 +442,9 @@ export function FeatureUsageResponseDataToJSON(
     credit_remaining: value["creditRemaining"],
     credit_total: value["creditTotal"],
     credit_type_icon: value["creditTypeIcon"],
-    credit_usage_aggregation:
-      FeatureUsageResponseDataCreditUsageAggregationToJSON(
-        value["creditUsageAggregation"],
-      ),
+    credit_usage_aggregation: CreditUsageAggregationToJSON(
+      value["creditUsageAggregation"],
+    ),
     credit_used: value["creditUsed"],
     effective_limit: value["effectiveLimit"],
     effective_price: value["effectivePrice"],

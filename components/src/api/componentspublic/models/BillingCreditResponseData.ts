@@ -58,6 +58,12 @@ export interface BillingCreditResponseData {
   burnStrategy: BillingCreditBurnStrategy;
   /**
    *
+   * @type {boolean}
+   * @memberof BillingCreditResponseData
+   */
+  costEditable: boolean;
+  /**
+   *
    * @type {Date}
    * @memberof BillingCreditResponseData
    */
@@ -144,6 +150,8 @@ export function instanceOfBillingCreditResponseData(
 ): value is BillingCreditResponseData {
   if (!("burnStrategy" in value) || value["burnStrategy"] === undefined)
     return false;
+  if (!("costEditable" in value) || value["costEditable"] === undefined)
+    return false;
   if (!("createdAt" in value) || value["createdAt"] === undefined) return false;
   if (
     !("defaultExpiryUnit" in value) ||
@@ -178,6 +186,7 @@ export function BillingCreditResponseDataFromJSONTyped(
   }
   return {
     burnStrategy: BillingCreditBurnStrategyFromJSON(json["burn_strategy"]),
+    costEditable: json["cost_editable"],
     createdAt: new Date(json["created_at"]),
     defaultExpiryUnit: BillingCreditExpiryUnitFromJSON(
       json["default_expiry_unit"],
@@ -216,6 +225,7 @@ export function BillingCreditResponseDataToJSON(
   }
   return {
     burn_strategy: BillingCreditBurnStrategyToJSON(value["burnStrategy"]),
+    cost_editable: value["costEditable"],
     created_at: value["createdAt"].toISOString(),
     default_expiry_unit: BillingCreditExpiryUnitToJSON(
       value["defaultExpiryUnit"],

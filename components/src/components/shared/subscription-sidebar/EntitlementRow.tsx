@@ -10,6 +10,7 @@ import {
   formatCurrency,
   getEntitlementPrice,
   getFeatureName,
+  isTieredPrice,
   shortenPeriod,
 } from "../../../utils";
 import { PricingTiersTooltip } from "../../shared";
@@ -30,12 +31,18 @@ export const EntitlementRow = (
     entitlement;
 
   if (feature) {
+    const entitlementPrice = getEntitlementPrice(entitlement, planPeriod);
     const {
       price,
       currency,
       packageSize = 1,
       priceTier: priceTiers,
-    } = getEntitlementPrice(entitlement, planPeriod) || {};
+      tiersMode,
+    } = entitlementPrice || {};
+
+    const tiered =
+      priceBehavior === PriceBehavior.PayInAdvance &&
+      isTieredPrice(entitlementPrice);
 
     return (
       <>
@@ -57,7 +64,7 @@ export const EntitlementRow = (
         </Box>
 
         <Box $whiteSpace="nowrap">
-          {priceBehavior === PriceBehavior.PayInAdvance ? (
+          {priceBehavior === PriceBehavior.PayInAdvance && !tiered ? (
             <Text>
               {formatCurrency((price ?? 0) * quantity, currency)}
               <sub>/{shortenPeriod(planPeriod)}</sub>
@@ -76,7 +83,7 @@ export const EntitlementRow = (
               </sub>
             </Text>
           ) : (
-            priceBehavior === PriceBehavior.Tiered && (
+            (priceBehavior === PriceBehavior.Tiered || tiered) && (
               <Flex $alignItems="baseline">
                 <Text
                   style={{ opacity: 0.54 }}
@@ -91,6 +98,7 @@ export const EntitlementRow = (
                   period={planPeriod}
                   currency={currency}
                   priceTiers={priceTiers}
+                  tiersMode={tiersMode ?? undefined}
                   portal={tooltipPortal}
                   position="left"
                 />

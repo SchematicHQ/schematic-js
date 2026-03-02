@@ -36,6 +36,18 @@ export interface ComponentDisplaySettings {
    * @type {boolean}
    * @memberof ComponentDisplaySettings
    */
+  showFeatureDescription: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof ComponentDisplaySettings
+   */
+  showHardLimit: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof ComponentDisplaySettings
+   */
   showPeriodToggle: boolean;
   /**
    *
@@ -57,6 +69,13 @@ export function instanceOfComponentDisplaySettings(
   )
     return false;
   if (!("showCredits" in value) || value["showCredits"] === undefined)
+    return false;
+  if (
+    !("showFeatureDescription" in value) ||
+    value["showFeatureDescription"] === undefined
+  )
+    return false;
+  if (!("showHardLimit" in value) || value["showHardLimit"] === undefined)
     return false;
   if (!("showPeriodToggle" in value) || value["showPeriodToggle"] === undefined)
     return false;
@@ -84,6 +103,8 @@ export function ComponentDisplaySettingsFromJSONTyped(
   return {
     showAsMonthlyPrices: json["show_as_monthly_prices"],
     showCredits: json["show_credits"],
+    showFeatureDescription: json["show_feature_description"],
+    showHardLimit: json["show_hard_limit"],
     showPeriodToggle: json["show_period_toggle"],
     showZeroPriceAsFree: json["show_zero_price_as_free"],
   };
@@ -98,6 +119,8 @@ export function ComponentDisplaySettingsToJSON(
   return {
     show_as_monthly_prices: value["showAsMonthlyPrices"],
     show_credits: value["showCredits"],
+    show_feature_description: value["showFeatureDescription"],
+    show_hard_limit: value["showHardLimit"],
     show_period_toggle: value["showPeriodToggle"],
     show_zero_price_as_free: value["showZeroPriceAsFree"],
   };

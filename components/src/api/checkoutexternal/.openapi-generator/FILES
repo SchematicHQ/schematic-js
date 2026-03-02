@@ -13,6 +13,7 @@ models/BillingCreditGrantReason.ts
 models/BillingCreditGrantZeroedOutReason.ts
 models/BillingCreditResponseData.ts
 models/BillingCreditRolloverPolicy.ts
+models/BillingCreditView.ts
 models/BillingPlanCreditGrantResetCadence.ts
 models/BillingPlanCreditGrantResetStart.ts
 models/BillingPlanCreditGrantResetType.ts
@@ -81,12 +82,12 @@ models/EntityTraitResponseData.ts
 models/EntityType.ts
 models/EventSummaryResponseData.ts
 models/FeatureDetailResponseData.ts
+models/FeatureEntitlement.ts
 models/FeatureLifecyclePhase.ts
 models/FeatureResponseData.ts
 models/FeatureType.ts
 models/FeatureUsageDetailResponseData.ts
 models/FeatureUsageResponseData.ts
-models/FeatureUsageResponseDataCreditUsageAggregation.ts
 models/FetchCustomerBalanceResponse.ts
 models/FlagDetailResponseData.ts
 models/FlagResponseData.ts
@@ -97,6 +98,7 @@ models/HydrateComponentResponse.ts
 models/HydrateResponse.ts
 models/HydrateUpcomingInvoiceResponse.ts
 models/InvoiceResponseData.ts
+models/InvoiceStatus.ts
 models/ListInvoicesParams.ts
 models/ListInvoicesResponse.ts
 models/PaymentMethodResponseData.ts
@@ -122,6 +124,8 @@ models/RuleConditionGroupResponseData.ts
 models/RuleConditionResponseData.ts
 models/RuleDetailResponseData.ts
 models/RuleResponseData.ts
+models/ScheduledDowngradeConfigBehavior.ts
+models/ScheduledDowngradeResponseData.ts
 models/SetupIntentResponseData.ts
 models/StripeEmbedInfo.ts
 models/TraitDefinition.ts

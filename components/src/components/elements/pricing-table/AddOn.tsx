@@ -12,6 +12,7 @@ import {
   getEntitlementPrice,
   getFeatureName,
   hexToHSL,
+  isTieredPrice,
 } from "../../../utils";
 import { cardBoxShadow } from "../../layout";
 import { Box, Button, Flex, Icon, Text } from "../../ui";
@@ -68,6 +69,12 @@ function renderMeteredEntitlementPricing({
     );
   }
 
+  // Tiered pricing (check before flat PayInAdvance/PayAsYouGo)
+  if (isTiered) {
+    return <>Tier-based pricing</>;
+  }
+
+  // Pay-as-you-go or Pay-in-advance pricing (flat)
   if (
     priceBehavior === PriceBehavior.PayAsYouGo ||
     priceBehavior === PriceBehavior.PayInAdvance
@@ -87,10 +94,6 @@ function renderMeteredEntitlementPricing({
           : featureName || "unit"}
       </>
     );
-  }
-
-  if (isTiered) {
-    return <>Tier-based pricing</>;
   }
 
   return null;
@@ -174,7 +177,9 @@ export const AddOn = ({ addOn, sharedProps, selectedPeriod }: AddOnProps) => {
           price: priceData?.price ?? 0,
           currency: priceData?.currency || addOnCurrency,
           packageSize: priceData?.packageSize ?? 1,
-          isTiered: entitlement.priceBehavior === PriceBehavior.Tiered,
+          isTiered:
+            entitlement.priceBehavior === PriceBehavior.Tiered ||
+            isTieredPrice(priceData),
         };
       }) || [];
 

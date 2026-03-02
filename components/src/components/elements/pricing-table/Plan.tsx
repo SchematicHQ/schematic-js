@@ -291,7 +291,7 @@ export const Plan = ({
                   }}
                   style={{ cursor: "pointer" }}
                   display="link"
-                  $leading={1}
+                  $leading="none"
                 >
                   {isExpanded ? t("Hide all") : t("See all")}
                 </Text>
@@ -313,7 +313,7 @@ export const Plan = ({
               color={settings.theme.primary}
             />
 
-            <Text $size={15} $leading={1}>
+            <Text $size={15} $leading="none">
               {t("Current plan")}
             </Text>
           </Flex>

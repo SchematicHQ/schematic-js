@@ -198,7 +198,7 @@ export const PaymentMethodElement = ({
             onClick={onEdit}
             onKeyDown={createKeyboardExecutionHandler(onEdit)}
             display="link"
-            $leading={1}
+            $leading="none"
           >
             {paymentMethod ? t("Edit") : t("Add")}
           </Text>

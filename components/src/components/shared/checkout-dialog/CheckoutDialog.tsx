@@ -306,6 +306,8 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
   const [isPaymentMethodRequired, setIsPaymentMethodRequired] = useState(false);
 
+  const [willScheduleDowngrade, setWillScheduleDowngrade] = useState(false);
+
   const willTrialWithoutPaymentMethod = useMemo(
     () => shouldTrial && !trialPaymentMethodRequired,
     [shouldTrial, trialPaymentMethodRequired],
@@ -614,6 +616,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
         if (response) {
           setCharges(response.data.finance);
           setIsPaymentMethodRequired(response.data.paymentMethodRequired);
+          setWillScheduleDowngrade(response.data.isScheduledDowngrade);
         }
 
         if (typeof updates.promoCode !== "undefined") {
@@ -636,11 +639,22 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
               case "Invalid promo code":
                 setError(t("Invalid discount code."));
                 return;
+              case "ineligible for this discount":
+                setError(t("Ineligible for this discount."));
+                return;
               case "Quantity is required":
                 setError(t("Quantity is required."));
                 return;
               case "self-service downgrade not permitted":
-                setError(t("Self-service downgrade not permitted."));
+                setError(t("Downgrade not permitted."));
+                return;
+            }
+          }
+
+          if (err.response.status === 409) {
+            switch (data.error) {
+              case "cannot purchase pay-in-advance entitlements while a scheduled downgrade is pending; cancel the scheduled downgrade first":
+                setError(t("Downgrade pending."));
                 return;
             }
           }
@@ -1189,6 +1203,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
               selectedPlan={selectedPlan}
               entitlements={payInAdvanceEntitlements}
               updateQuantity={updateUsageBasedEntitlementQuantity}
+              tooltipPortal={dialogRef.current}
             />
           ) : checkoutStage === "addons" ? (
             <AddOns
@@ -1204,6 +1219,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
               selectedPlan={selectedPlan}
               entitlements={addOnPayInAdvanceEntitlements}
               updateQuantity={updateAddOnEntitlementQuantity}
+              tooltipPortal={dialogRef.current}
             />
           ) : checkoutStage === "credits" ? (
             <Credits
@@ -1249,6 +1265,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
           shouldTrial={shouldTrial}
           setConfirmPaymentIntent={setConfirmPaymentIntentProps}
           willTrialWithoutPaymentMethod={willTrialWithoutPaymentMethod}
+          willScheduleDowngrade={willScheduleDowngrade}
         />
       </DialogContent>
     </Dialog>

@@ -5,7 +5,7 @@ import {
 import { CreditResetCadence } from "../../const";
 import type { Credit, CreditWithCompanyContext } from "../../types";
 
-function getResetCadencePeriod(cadence: string) {
+function getResetCadencePeriod(cadence: PlanCreditGrantView["resetCadence"]) {
   switch (cadence) {
     case CreditResetCadence.Year:
       return "year";
@@ -38,7 +38,7 @@ export function groupPlanCreditGrants(creditGrants: PlanCreditGrantView[]) {
         grantReason: "plan",
         quantity: grant.creditAmount,
         planId: grant.planId,
-        planName: grant.planName,
+        planName: grant.plan?.name,
         period: getResetCadencePeriod(grant.resetCadence),
       };
 

@@ -8,6 +8,7 @@ type NoPaymentRequiredProps = {
   isDisabled: boolean;
   isLoading: boolean;
   isSticky?: boolean;
+  willScheduleDowngrade?: boolean;
   onClick: () => Promise<void>;
 };
 
@@ -15,6 +16,7 @@ const NoPaymentRequired = ({
   isDisabled,
   isLoading,
   isSticky = false,
+  willScheduleDowngrade = false,
   onClick,
 }: NoPaymentRequiredProps) => {
   const { t } = useTranslation();
@@ -28,12 +30,15 @@ const NoPaymentRequired = ({
       $fullWidth
       $isLoading={isLoading}
     >
-      {t("Subscribe and close")}
+      {willScheduleDowngrade
+        ? t("Schedule downgrade")
+        : t("Subscribe and close")}
     </Button>
   );
 };
 
 type CheckoutStageButtonProps = {
+  canCheckout: boolean;
   checkout: () => Promise<void>;
   checkoutStage?: string;
   checkoutStages?: CheckoutStage[];
@@ -49,9 +54,11 @@ type CheckoutStageButtonProps = {
   trialPaymentMethodRequired: boolean;
   shouldTrial: boolean;
   willTrialWithoutPaymentMethod: boolean;
+  willScheduleDowngrade: boolean;
 };
 
 export const CheckoutStageButton = ({
+  canCheckout,
   checkout,
   checkoutStage,
   checkoutStages,
@@ -66,10 +73,11 @@ export const CheckoutStageButton = ({
   trialPaymentMethodRequired,
   shouldTrial,
   willTrialWithoutPaymentMethod,
+  willScheduleDowngrade,
 }: CheckoutStageButtonProps) => {
   const { t } = useTranslation();
 
-  const isDisabled = isLoading || !hasPlan || inEditMode;
+  const isDisabled = isLoading || !hasPlan || inEditMode || !canCheckout;
 
   // Helper to get the next stage after the current one
   const getNextStageId = (currentStageId: string): string | undefined => {
@@ -323,7 +331,11 @@ export const CheckoutStageButton = ({
         $fullWidth
         $isLoading={isLoading}
       >
-        {willTrialWithoutPaymentMethod ? t("Start trial") : t("Pay now")}
+        {willScheduleDowngrade
+          ? t("Schedule downgrade")
+          : willTrialWithoutPaymentMethod
+            ? t("Start trial")
+            : t("Pay now")}
       </Button>
     );
   }

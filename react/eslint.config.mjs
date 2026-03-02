@@ -40,8 +40,8 @@ export default defineConfig([
           extensions: [".ts", ".tsx"],
         },
       },
-      react: {
-        version: "detect",
+      "react": {
+        version: "19",
       },
     },
   },

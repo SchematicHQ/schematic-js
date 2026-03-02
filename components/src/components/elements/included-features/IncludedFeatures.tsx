@@ -1,14 +1,10 @@
-import { forwardRef, useMemo, useRef, useState } from "react";
+import { Fragment, forwardRef, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { type FeatureUsageResponseData } from "../../../api/checkoutexternal";
-import { FeatureType, VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
+import { VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
 import { type FontStyle } from "../../../context";
-import {
-  useEmbed,
-  useIsLightBackground,
-  useWrapChildren,
-} from "../../../hooks";
+import { useEmbed, useIsLightBackground } from "../../../hooks";
 import type { DeepPartial, ElementProps } from "../../../types";
 import { createKeyboardExecutionHandler, toPrettyDate } from "../../../utils";
 import { Element } from "../../layout";
@@ -17,6 +13,7 @@ import { Box, Flex, Icon, Text } from "../../ui";
 import { UsageDetails } from "./UsageDetails";
 
 interface DesignProps {
+  visibleFeatures?: string[];
   header: {
     isVisible: boolean;
     fontStyle: FontStyle;
@@ -27,7 +24,7 @@ interface DesignProps {
     fontStyle: FontStyle;
     style: "light" | "dark";
   };
-  entitlement: {
+  description: {
     isVisible: boolean;
     fontStyle: FontStyle;
   };
@@ -35,15 +32,20 @@ interface DesignProps {
     isVisible: boolean;
     fontStyle: FontStyle;
   };
+  entitlement: {
+    isVisible: boolean;
+    fontStyle: FontStyle;
+  };
   usage: {
     isVisible: boolean;
     fontStyle: FontStyle;
   };
-  visibleFeatures?: string[];
 }
 
 function resolveDesignProps(props: DeepPartial<DesignProps>): DesignProps {
   return {
+    // there is a typescript bug with `DeepPartial` so we must cast to `string[] | undefined`
+    visibleFeatures: props.visibleFeatures as string[] | undefined,
     header: {
       isVisible: props.header?.isVisible ?? true,
       fontStyle: props.header?.fontStyle ?? "heading4",
@@ -54,20 +56,22 @@ function resolveDesignProps(props: DeepPartial<DesignProps>): DesignProps {
       fontStyle: props.icons?.fontStyle ?? "heading5",
       style: props.icons?.style ?? "light",
     },
-    entitlement: {
-      isVisible: props.entitlement?.isVisible ?? true,
-      fontStyle: props.entitlement?.fontStyle ?? "text",
+    description: {
+      isVisible: props.description?.isVisible ?? true,
+      fontStyle: props.description?.fontStyle ?? "heading6",
     },
     entitlementExpiration: {
       isVisible: props.entitlementExpiration?.isVisible ?? true,
       fontStyle: props.entitlementExpiration?.fontStyle ?? "heading6",
     },
+    entitlement: {
+      isVisible: props.entitlement?.isVisible ?? true,
+      fontStyle: props.entitlement?.fontStyle ?? "text",
+    },
     usage: {
       isVisible: props.usage?.isVisible ?? true,
       fontStyle: props.usage?.fontStyle ?? "heading6",
     },
-    // there is a typescript bug with `DeepPartial` so we must cast to `string[] | undefined`
-    visibleFeatures: props.visibleFeatures as string[] | undefined,
   };
 }
 
@@ -82,9 +86,6 @@ export const IncludedFeatures = forwardRef<
   const { t } = useTranslation();
 
   const { data, settings } = useEmbed();
-
-  const elementsRef = useRef<HTMLElement[]>([]);
-  const shouldWrapChildren = useWrapChildren(elementsRef);
 
   const isLightBackground = useIsLightBackground();
 
@@ -145,43 +146,31 @@ export const IncludedFeatures = forwardRef<
 
   return (
     <Element
-      as={Flex}
       ref={ref}
       className={className}
-      $flexDirection="column"
-      $gap="1rem"
+      $containerType="inline-size"
+      $lineHeight={1.125}
     >
       {props.header.isVisible && (
-        <Box $marginBottom="0.5rem">
+        <Box $marginBottom="1.5rem">
           <Text display={props.header.fontStyle}>{props.header.text}</Text>
         </Box>
       )}
 
-      {featureUsage.slice(0, showCount).map((entitlement, index) => {
-        const shouldShowDetails =
-          entitlement.feature?.name &&
-          (entitlement.feature?.featureType === FeatureType.Event ||
-            entitlement.feature?.featureType === FeatureType.Trait);
-
-        return (
-          <Flex
-            key={index}
-            ref={(el) => {
-              if (el) {
-                elementsRef.current.push(el);
-              }
-            }}
-            $flexWrap="wrap"
-            $justifyContent="space-between"
-            $alignItems="center"
-            $gap="1rem"
-          >
-            <Flex
-              $alignItems="center"
-              $flexGrow={1}
-              $flexBasis="min-content"
-              $gap="1rem"
-            >
+      <Box
+        $display="grid"
+        $gridTemplateColumns="min-content 1fr"
+        $columnGap="0.5rem"
+        $viewport={{
+          xs: {
+            $gridTemplateColumns: "min-content 3fr 2fr",
+            $rowGap: "1.5rem",
+          },
+        }}
+      >
+        {featureUsage.slice(0, showCount).map((entitlement, index) => {
+          return (
+            <Fragment key={index}>
               {props.icons.isVisible && entitlement.feature?.icon && (
                 <Icon
                   name={entitlement.feature.icon}
@@ -192,42 +181,71 @@ export const IncludedFeatures = forwardRef<
                       : "hsla(0, 0%, 100%, 0.25)"
                   }
                   rounded
+                  style={{ marginRight: "0.5rem" }}
                 />
               )}
 
-              {entitlement.feature?.name && (
-                <Text display={props.icons.fontStyle}>
-                  {entitlement.feature.name}
-                </Text>
-              )}
-
-              {props.entitlementExpiration.isVisible &&
-                entitlement.entitlementExpirationDate && (
-                  <Text
-                    display={props.entitlementExpiration.fontStyle}
-                    $leading={1}
-                  >
-                    Expires{" "}
-                    {toPrettyDate(entitlement.entitlementExpirationDate, {
-                      month: "short",
-                    })}
+              <Flex
+                $flexDirection="column"
+                $alignSelf="baseline"
+                $gap="0.25rem"
+              >
+                {entitlement.feature?.name && (
+                  <Text display={props.icons.fontStyle}>
+                    {entitlement.feature.name}
                   </Text>
                 )}
-            </Flex>
 
-            {shouldShowDetails && (
-              <UsageDetails
-                entitlement={entitlement}
-                shouldWrapChildren={shouldWrapChildren}
-                layout={props}
-              />
-            )}
-          </Flex>
-        );
-      })}
+                {props.description.isVisible &&
+                  entitlement.feature?.description && (
+                    <Text display={props.description.fontStyle}>
+                      {entitlement.feature.description}
+                    </Text>
+                  )}
+
+                {props.entitlementExpiration.isVisible &&
+                  entitlement.entitlementExpirationDate && (
+                    <Text
+                      as="em"
+                      display={props.entitlementExpiration.fontStyle}
+                    >
+                      {t("Expires", {
+                        date: toPrettyDate(
+                          entitlement.entitlementExpirationDate,
+                          {
+                            month: "short",
+                          },
+                        ),
+                      })}
+                    </Text>
+                  )}
+              </Flex>
+
+              <Flex
+                $gridColumn="span 2"
+                $flexDirection="column"
+                $gap="0.25rem"
+                $marginBottom="1.5rem"
+                $marginLeft="3.75rem"
+                $viewport={{
+                  xs: {
+                    $gridColumn: 3,
+                    $alignSelf: "baseline",
+                    $textAlign: "right",
+                    $marginBottom: 0,
+                    $marginLeft: 0,
+                  },
+                }}
+              >
+                <UsageDetails entitlement={entitlement} layout={props} />
+              </Flex>
+            </Fragment>
+          );
+        })}
+      </Box>
 
       {shouldShowExpand && (
-        <Flex $alignItems="center" $justifyContent="start" $marginTop="1rem">
+        <Flex $alignItems="center" $marginTop="1rem">
           <Icon
             name={isExpanded ? "chevron-up" : "chevron-down"}
             color="#D0D0D0"

@@ -100,7 +100,7 @@ export const PeriodToggle = ({
               key={option}
               trigger={element}
               content={
-                <Text $size={11} $leading={1}>
+                <Text $size={11} $leading="none">
                   {selectedOption === "month"
                     ? t("Save with yearly billing", {
                         percent: savingsPercentage,

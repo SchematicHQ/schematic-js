@@ -31,12 +31,24 @@ import {
   BillingPlanCreditGrantResetTypeFromJSONTyped,
   BillingPlanCreditGrantResetTypeToJSON,
 } from "./BillingPlanCreditGrantResetType";
+import type { GenericPreviewObject } from "./GenericPreviewObject";
+import {
+  GenericPreviewObjectFromJSON,
+  GenericPreviewObjectFromJSONTyped,
+  GenericPreviewObjectToJSON,
+} from "./GenericPreviewObject";
 import type { BillingCreditExpiryUnit } from "./BillingCreditExpiryUnit";
 import {
   BillingCreditExpiryUnitFromJSON,
   BillingCreditExpiryUnitFromJSONTyped,
   BillingCreditExpiryUnitToJSON,
 } from "./BillingCreditExpiryUnit";
+import type { BillingCreditView } from "./BillingCreditView";
+import {
+  BillingCreditViewFromJSON,
+  BillingCreditViewFromJSONTyped,
+  BillingCreditViewToJSON,
+} from "./BillingCreditView";
 import type { BillingPlanCreditGrantResetCadence } from "./BillingPlanCreditGrantResetCadence";
 import {
   BillingPlanCreditGrantResetCadenceFromJSON,
@@ -100,20 +112,28 @@ export interface PlanCreditGrantView {
   createdAt: Date;
   /**
    *
+   * @type {BillingCreditView}
+   * @memberof PlanCreditGrantView
+   */
+  credit?: BillingCreditView;
+  /**
+   *
    * @type {number}
    * @memberof PlanCreditGrantView
    */
   creditAmount: number;
   /**
-   *
+   * Deprecated field, will be removed in the future. Use Credit.Description instead.
    * @type {string}
    * @memberof PlanCreditGrantView
+   * @deprecated
    */
   creditDescription: string;
   /**
-   *
+   * Deprecated field, will be removed in the future. Use Credit.Icon instead.
    * @type {string}
    * @memberof PlanCreditGrantView
+   * @deprecated
    */
   creditIcon?: string | null;
   /**
@@ -123,9 +143,10 @@ export interface PlanCreditGrantView {
    */
   creditId: string;
   /**
-   *
+   * Deprecated field, will be removed in the future. Use Credit.Name instead.
    * @type {string}
    * @memberof PlanCreditGrantView
+   * @deprecated
    */
   creditName: string;
   /**
@@ -154,6 +175,12 @@ export interface PlanCreditGrantView {
   id: string;
   /**
    *
+   * @type {GenericPreviewObject}
+   * @memberof PlanCreditGrantView
+   */
+  plan?: GenericPreviewObject;
+  /**
+   *
    * @type {string}
    * @memberof PlanCreditGrantView
    */
@@ -163,11 +190,12 @@ export interface PlanCreditGrantView {
    * @type {string}
    * @memberof PlanCreditGrantView
    */
-  planName: string;
+  planVersionId?: string | null;
   /**
-   *
+   * Deprecated field, will be removed in the future. Use Credit.PluralName instead.
    * @type {string}
    * @memberof PlanCreditGrantView
+   * @deprecated
    */
   pluralName?: string | null;
   /**
@@ -175,13 +203,13 @@ export interface PlanCreditGrantView {
    * @type {BillingPlanCreditGrantResetCadence}
    * @memberof PlanCreditGrantView
    */
-  resetCadence: BillingPlanCreditGrantResetCadence;
+  resetCadence?: BillingPlanCreditGrantResetCadence | null;
   /**
    *
    * @type {BillingPlanCreditGrantResetStart}
    * @memberof PlanCreditGrantView
    */
-  resetStart: BillingPlanCreditGrantResetStart;
+  resetStart?: BillingPlanCreditGrantResetStart | null;
   /**
    *
    * @type {BillingPlanCreditGrantResetType}
@@ -189,9 +217,10 @@ export interface PlanCreditGrantView {
    */
   resetType: BillingPlanCreditGrantResetType;
   /**
-   *
+   * Deprecated field, will be removed in the future. Use Credit.SingularName instead.
    * @type {string}
    * @memberof PlanCreditGrantView
+   * @deprecated
    */
   singularName?: string | null;
   /**
@@ -226,11 +255,6 @@ export function instanceOfPlanCreditGrantView(
     return false;
   if (!("id" in value) || value["id"] === undefined) return false;
   if (!("planId" in value) || value["planId"] === undefined) return false;
-  if (!("planName" in value) || value["planName"] === undefined) return false;
-  if (!("resetCadence" in value) || value["resetCadence"] === undefined)
-    return false;
-  if (!("resetStart" in value) || value["resetStart"] === undefined)
-    return false;
   if (!("resetType" in value) || value["resetType"] === undefined) return false;
   if (!("updatedAt" in value) || value["updatedAt"] === undefined) return false;
   return true;
@@ -278,6 +302,10 @@ export function PlanCreditGrantViewFromJSONTyped(
         ? undefined
         : json["billing_credit_auto_topup_threshold_percent"],
     createdAt: new Date(json["created_at"]),
+    credit:
+      json["credit"] == null
+        ? undefined
+        : BillingCreditViewFromJSON(json["credit"]),
     creditAmount: json["credit_amount"],
     creditDescription: json["credit_description"],
     creditIcon: json["credit_icon"] == null ? undefined : json["credit_icon"],
@@ -294,13 +322,22 @@ export function PlanCreditGrantViewFromJSONTyped(
     expiryUnitCount:
       json["expiry_unit_count"] == null ? undefined : json["expiry_unit_count"],
     id: json["id"],
+    plan:
+      json["plan"] == null
+        ? undefined
+        : GenericPreviewObjectFromJSON(json["plan"]),
     planId: json["plan_id"],
-    planName: json["plan_name"],
+    planVersionId:
+      json["plan_version_id"] == null ? undefined : json["plan_version_id"],
     pluralName: json["plural_name"] == null ? undefined : json["plural_name"],
-    resetCadence: BillingPlanCreditGrantResetCadenceFromJSON(
-      json["reset_cadence"],
-    ),
-    resetStart: BillingPlanCreditGrantResetStartFromJSON(json["reset_start"]),
+    resetCadence:
+      json["reset_cadence"] == null
+        ? undefined
+        : BillingPlanCreditGrantResetCadenceFromJSON(json["reset_cadence"]),
+    resetStart:
+      json["reset_start"] == null
+        ? undefined
+        : BillingPlanCreditGrantResetStartFromJSON(json["reset_start"]),
     resetType: BillingPlanCreditGrantResetTypeFromJSON(json["reset_type"]),
     singularName:
       json["singular_name"] == null ? undefined : json["singular_name"],
@@ -330,6 +367,7 @@ export function PlanCreditGrantViewToJSON(
     billing_credit_auto_topup_threshold_percent:
       value["billingCreditAutoTopupThresholdPercent"],
     created_at: value["createdAt"].toISOString(),
+    credit: BillingCreditViewToJSON(value["credit"]),
     credit_amount: value["creditAmount"],
     credit_description: value["creditDescription"],
     credit_icon: value["creditIcon"],
@@ -339,8 +377,9 @@ export function PlanCreditGrantViewToJSON(
     expiry_unit: BillingCreditExpiryUnitToJSON(value["expiryUnit"]),
     expiry_unit_count: value["expiryUnitCount"],
     id: value["id"],
+    plan: GenericPreviewObjectToJSON(value["plan"]),
     plan_id: value["planId"],
-    plan_name: value["planName"],
+    plan_version_id: value["planVersionId"],
     plural_name: value["pluralName"],
     reset_cadence: BillingPlanCreditGrantResetCadenceToJSON(
       value["resetCadence"],

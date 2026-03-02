@@ -13,10 +13,14 @@ export const UsageViolationText = ({ violations }: UsageViolationsProps) => {
 
   const { settings } = useEmbed();
 
+  if (violations.length === 0) {
+    return null;
+  }
+
   return (
     <Text
       $size={0.875 * settings.theme.typography.text.fontSize}
-      $leading={1.35}
+      $leading="snug"
       style={{ opacity: 0.625 }}
     >
       {t("Cannot change to this plan.", {

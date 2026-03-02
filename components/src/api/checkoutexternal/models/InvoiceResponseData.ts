@@ -19,6 +19,12 @@ import {
   BillingProviderTypeFromJSONTyped,
   BillingProviderTypeToJSON,
 } from "./BillingProviderType";
+import type { InvoiceStatus } from "./InvoiceStatus";
+import {
+  InvoiceStatusFromJSON,
+  InvoiceStatusFromJSONTyped,
+  InvoiceStatusToJSON,
+} from "./InvoiceStatus";
 
 /**
  *
@@ -112,6 +118,12 @@ export interface InvoiceResponseData {
   providerType: BillingProviderType;
   /**
    *
+   * @type {InvoiceStatus}
+   * @memberof InvoiceResponseData
+   */
+  status?: InvoiceStatus | null;
+  /**
+   *
    * @type {string}
    * @memberof InvoiceResponseData
    */
@@ -195,6 +207,10 @@ export function InvoiceResponseDataFromJSONTyped(
         ? undefined
         : json["payment_method_external_id"],
     providerType: BillingProviderTypeFromJSON(json["provider_type"]),
+    status:
+      json["status"] == null
+        ? undefined
+        : InvoiceStatusFromJSON(json["status"]),
     subscriptionExternalId:
       json["subscription_external_id"] == null
         ? undefined
@@ -229,6 +245,7 @@ export function InvoiceResponseDataToJSON(
     id: value["id"],
     payment_method_external_id: value["paymentMethodExternalId"],
     provider_type: BillingProviderTypeToJSON(value["providerType"]),
+    status: InvoiceStatusToJSON(value["status"]),
     subscription_external_id: value["subscriptionExternalId"],
     subtotal: value["subtotal"],
     updated_at: value["updatedAt"].toISOString(),
