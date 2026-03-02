@@ -1,20 +1,18 @@
 import { type FeatureUsageResponseData } from "../../../api/checkoutexternal";
 import { PriceBehavior } from "../../../const";
-import { type UsageDetails } from "../../../utils";
 import { ProgressBar, progressColorMap } from "../../ui";
 
 interface MeterProps {
   entitlement: FeatureUsageResponseData;
-  usageDetails: UsageDetails;
   period?: string;
 }
 
-export const Meter = ({ entitlement, usageDetails }: MeterProps) => {
-  const { priceBehavior, usage } = entitlement;
-  const limit = usageDetails.limit ?? usageDetails.currentTier?.to;
+export const Meter = ({ entitlement }: MeterProps) => {
+  const { allocation, priceBehavior, softLimit, usage } = entitlement;
+  const limit = softLimit ?? allocation;
 
   // check conditions required for showing the meter
-  if (typeof usage !== "number" || !limit || limit === Infinity) {
+  if (typeof usage !== "number" || typeof limit !== "number") {
     return null;
   }
 
@@ -22,7 +20,7 @@ export const Meter = ({ entitlement, usageDetails }: MeterProps) => {
   // we need to display progress differently (but only) in this case
   const progress =
     (priceBehavior === PriceBehavior.Overage && usage > limit
-      ? limit / (limit + usage)
+      ? Math.min(usage, limit) / Math.max(usage, limit)
       : usage / limit) * 100;
 
   const meter = (
