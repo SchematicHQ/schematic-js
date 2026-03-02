@@ -438,11 +438,11 @@ describe("getUsageDetails", () => {
       expect(result.limit).toBe(200);
     });
 
-    it("should be undefined when no price behavior", () => {
+    it("should use allocation when no price behavior", () => {
       const result = getUsageDetails(
         makeEntitlement({ allocation: 50, usage: 10 }),
       );
-      expect(result.limit).toBeUndefined();
+      expect(result.limit).toBe(50);
     });
 
     it("should be undefined for pay-as-you-go", () => {

@@ -18,23 +18,31 @@ export const Meter = ({ entitlement, usageDetails }: MeterProps) => {
     return null;
   }
 
+  // `limit` is a soft limit in the case of overage price behavior
+  // we need to display progress differently (but only) in this case
+  const progress =
+    (priceBehavior === PriceBehavior.Overage && usage > limit
+      ? limit / (limit + usage)
+      : usage / limit) * 100;
+
   const meter = (
     <ProgressBar
-      progress={(usage / limit) * 100}
+      progress={progress}
       value={usage}
       total={limit}
-      {...(priceBehavior === PriceBehavior.Overage ||
-      priceBehavior === PriceBehavior.Tiered
+      {...(priceBehavior === PriceBehavior.Tier
         ? { color: "blue", bgColor: "#2563EB80" }
-        : {
-            color:
-              progressColorMap[
-                Math.floor(
-                  (Math.min(usage, limit) / limit) *
-                    (progressColorMap.length - 1),
-                )
-              ],
-          })}
+        : priceBehavior === PriceBehavior.Overage && usage > limit
+          ? { color: "blue", bgColor: "#FFAA06" }
+          : {
+              color:
+                progressColorMap[
+                  Math.floor(
+                    (Math.min(usage, limit) / limit) *
+                      (progressColorMap.length - 1),
+                  )
+                ],
+            })}
     />
   );
 
