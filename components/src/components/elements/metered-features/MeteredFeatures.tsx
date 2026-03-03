@@ -341,10 +341,7 @@ export const MeteredFeatures = forwardRef<
                 {props.isVisible &&
                   priceBehavior !== PriceBehavior.PayAsYouGo &&
                   priceBehavior !== PriceBehavior.Credit && (
-                    <Meter
-                      entitlement={entitlement}
-                      usageDetails={usageDetails}
-                    />
+                    <Meter entitlement={entitlement} />
                   )}
 
                 {canCheckout &&
