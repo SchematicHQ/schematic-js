@@ -75,6 +75,7 @@ export class Schematic {
   private retryTimer: ReturnType<typeof setInterval> | null = null;
   private flagValueDefaults: Record<string, boolean> = {};
   private flagCheckDefaults: Record<string, CheckFlagReturn> = {};
+  private fallbackCheckCache: Record<string, CheckFlagReturn> = {};
 
   constructor(apiKey: string, options?: SchematicOptions) {
     this.apiKey = apiKey;
@@ -1795,16 +1796,21 @@ export class Schematic {
       return check;
     }
 
-    // Check initialization options for fallback
+    // Check initialization options for fallback, using cache to ensure
+    // stable object references (required by React's useSyncExternalStore)
     if (
       flagKey in this.flagCheckDefaults ||
       flagKey in this.flagValueDefaults
     ) {
-      return this.resolveFallbackCheckFlagReturn(
-        flagKey,
-        undefined,
-        "Default value used",
-      );
+      if (!(flagKey in this.fallbackCheckCache)) {
+        this.fallbackCheckCache[flagKey] =
+          this.resolveFallbackCheckFlagReturn(
+            flagKey,
+            undefined,
+            "Default value used",
+          );
+      }
+      return this.fallbackCheckCache[flagKey];
     }
 
     return undefined;
