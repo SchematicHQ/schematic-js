@@ -18,7 +18,6 @@ import {
   BillingPriceResponseDataFromJSON,
   BillingPriceResponseDataFromJSONTyped,
   BillingPriceResponseDataToJSON,
-  BillingPriceResponseDataToJSONTyped,
 } from "./BillingPriceResponseData";
 
 /**
@@ -94,19 +93,11 @@ export function PlanCurrencyPricesResponseDataFromJSONTyped(
 }
 
 export function PlanCurrencyPricesResponseDataToJSON(
-  json: any,
-): PlanCurrencyPricesResponseData {
-  return PlanCurrencyPricesResponseDataToJSONTyped(json, false);
-}
-
-export function PlanCurrencyPricesResponseDataToJSONTyped(
   value?: PlanCurrencyPricesResponseData | null,
-  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
-
   return {
     currency: value["currency"],
     monthly_price: BillingPriceResponseDataToJSON(value["monthlyPrice"]),

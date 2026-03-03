@@ -67,6 +67,7 @@ interface SubscriptionSidebarProps extends Omit<BoxProps, "children"> {
   updatePromoCode?: (code: string | null) => void;
   showHeader?: boolean;
   shouldTrial?: boolean;
+  currency?: string;
   willTrialWithoutPaymentMethod?: boolean;
   willScheduleDowngrade?: boolean;
   setConfirmPaymentIntent: (params: {
@@ -103,6 +104,7 @@ export const SubscriptionSidebar = forwardRef<
       updatePromoCode,
       showHeader = true,
       shouldTrial = false,
+      currency,
       willTrialWithoutPaymentMethod = false,
       willScheduleDowngrade = false,
       setConfirmPaymentIntent,
@@ -184,13 +186,18 @@ export const SubscriptionSidebar = forwardRef<
 
     const subscriptionPrice = useMemo(() => {
       let planPrice: number | undefined;
-      let currency: string | undefined;
+      let resolvedCurrency: string | undefined;
 
       if (selectedPlan) {
-        const planBillingPrice = getPlanPrice(selectedPlan, planPeriod);
+        const planBillingPrice = getPlanPrice(
+          selectedPlan,
+          planPeriod,
+          { useSelectedPeriod: true },
+          currency,
+        );
 
         planPrice = planBillingPrice?.price;
-        currency = planBillingPrice?.currency;
+        resolvedCurrency = planBillingPrice?.currency;
       } else if (typeof currentPlan?.planPrice === "number") {
         planPrice = currentPlan.planPrice;
       }
@@ -203,7 +210,7 @@ export const SubscriptionSidebar = forwardRef<
 
       const addOnCost = addOns.reduce((sum, addOn) => {
         if (addOn.isSelected) {
-          sum += getAddOnPrice(addOn, planPeriod)?.price ?? 0;
+          sum += getAddOnPrice(addOn, planPeriod, currency)?.price ?? 0;
         }
 
         return sum;
@@ -214,18 +221,20 @@ export const SubscriptionSidebar = forwardRef<
         (sum, entitlement) =>
           sum +
           entitlement.quantity *
-            (getEntitlementPrice(entitlement, planPeriod)?.price ?? 0),
+            (getEntitlementPrice(entitlement, planPeriod, currency)?.price ??
+              0),
         0,
       );
       total += payInAdvanceCost;
 
-      return formatCurrency(total, currency);
+      return formatCurrency(total, resolvedCurrency);
     }, [
       selectedPlan,
       currentPlan,
       planPeriod,
       addOns,
       payInAdvanceEntitlements,
+      currency,
     ]);
 
     const {
@@ -349,14 +358,16 @@ export const SubscriptionSidebar = forwardRef<
       () =>
         addOns.filter(
           (addOn) =>
-            addOn.isSelected && typeof getPlanPrice(addOn)?.price === "number",
+            addOn.isSelected &&
+            getPlanPrice(addOn, undefined, undefined, currency)?.price,
         ),
-      [addOns],
+      [addOns, currency],
     );
 
     const { removedAddOns, willAddOnsChange } = useMemo(() => {
       const addedAddOns = selectedAddOnsWithPrice.filter(
         (selected) =>
+          getPlanPrice(selected, undefined, undefined, currency)?.price &&
           !currentAddOns.some((current) => selected.id === current.id),
       );
 
@@ -377,7 +388,7 @@ export const SubscriptionSidebar = forwardRef<
         removedAddOns,
         willAddOnsChange,
       };
-    }, [currentAddOns, selectedAddOnsWithPrice]);
+    }, [currentAddOns, selectedAddOnsWithPrice, currency]);
 
     const addedCreditBundles = useMemo(
       () => creditBundles.filter((bundle) => bundle.count > 0),
@@ -493,6 +504,7 @@ export const SubscriptionSidebar = forwardRef<
       shouldTrial,
       promoCode,
       finishCheckout,
+      currency,
     ]);
 
     const handleUnsubscribe = useCallback(async () => {
@@ -605,7 +617,14 @@ export const SubscriptionSidebar = forwardRef<
     }, [portal]);
 
     const { price: selectedPlanPrice, currency: selectedPlanCurrency } =
-      selectedPlan ? getPlanPrice(selectedPlan, planPeriod) || {} : {};
+      selectedPlan
+        ? getPlanPrice(
+            selectedPlan,
+            planPeriod,
+            { useSelectedPeriod: true },
+            currency,
+          ) || {}
+        : {};
 
     const now = new Date();
     const trialEndsOn = new Date(now);
@@ -916,7 +935,7 @@ export const SubscriptionSidebar = forwardRef<
 
               {selectedAddOnsWithPrice.map((addOn, index) => {
                 const { price: addOnPrice, currency: addOnCurrency } =
-                  getAddOnPrice(addOn, planPeriod) || {};
+                  getAddOnPrice(addOn, planPeriod, currency) || {};
 
                 return (
                   <Flex

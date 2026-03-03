@@ -39,7 +39,6 @@ import {
   PlanCurrencyPricesResponseDataFromJSON,
   PlanCurrencyPricesResponseDataFromJSONTyped,
   PlanCurrencyPricesResponseDataToJSON,
-  PlanCurrencyPricesResponseDataToJSONTyped,
 } from "./PlanCurrencyPricesResponseData";
 import type { ChargeType } from "./ChargeType";
 import {

@@ -31,7 +31,27 @@ export function getPlanPrice(
   plan: Plan,
   period = "month",
   options: PlanPriceOptions = { useSelectedPeriod: true },
+  currency?: string,
 ): BillingPriceResponseData | undefined {
+  if (currency && plan.currencyPrices?.length) {
+    const currencyPrice = plan.currencyPrices.find(
+      (cp) => cp.currency.toLowerCase() === currency.toLowerCase(),
+    );
+    if (currencyPrice) {
+      const billingPrice = options.useSelectedPeriod
+        ? period === "year"
+          ? currencyPrice.yearlyPrice
+          : currencyPrice.monthlyPrice
+        : currencyPrice.yearlyPrice && !currencyPrice.monthlyPrice
+          ? currencyPrice.yearlyPrice
+          : currencyPrice.monthlyPrice;
+
+      if (billingPrice) {
+        return { ...billingPrice, price: getPriceValue(billingPrice) };
+      }
+    }
+  }
+
   const billingPrice = options.useSelectedPeriod
     ? period === "year"
       ? plan.yearlyPrice
@@ -48,7 +68,26 @@ export function getPlanPrice(
 export function getAddOnPrice(
   addOn: Plan,
   period = "month",
+  currency?: string,
 ): BillingPriceResponseData | undefined {
+  if (currency && addOn.currencyPrices?.length) {
+    const currencyPrice = addOn.currencyPrices.find(
+      (cp) => cp.currency.toLowerCase() === currency.toLowerCase(),
+    );
+    if (currencyPrice) {
+      const billingPrice =
+        addOn.chargeType === ChargeType.oneTime
+          ? currencyPrice.oneTimePrice
+          : period === "year"
+            ? currencyPrice.yearlyPrice
+            : currencyPrice.monthlyPrice;
+
+      if (billingPrice) {
+        return { ...billingPrice, price: getPriceValue(billingPrice) };
+      }
+    }
+  }
+
   const billingPrice =
     addOn.chargeType === ChargeType.oneTime
       ? addOn.oneTimePrice
@@ -64,7 +103,30 @@ export function getAddOnPrice(
 export function getEntitlementPrice(
   entitlement: Entitlement,
   period = "month",
+  currency?: string,
 ): BillingPriceView | undefined {
+  if (
+    currency &&
+    "valueType" in entitlement &&
+    entitlement.currencyPrices?.length
+  ) {
+    const currencyPrice = entitlement.currencyPrices.find(
+      (cp) => cp.currency.toLowerCase() === currency.toLowerCase(),
+    );
+    if (currencyPrice) {
+      const source =
+        period === "year"
+          ? currencyPrice.yearlyPrice
+          : currencyPrice.monthlyPrice;
+      if (source) {
+        return {
+          ...source,
+          price: getPriceValue(source),
+        } as unknown as BillingPriceView;
+      }
+    }
+  }
+
   let source: BillingPriceView | undefined;
   if ("valueType" in entitlement) {
     // entitlement

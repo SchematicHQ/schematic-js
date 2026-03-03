@@ -13,13 +13,12 @@
  */
 
 import { mapValues } from "../runtime";
-import type { BillingPriceView } from "./BillingPriceView";
+import type { BillingPriceResponseData } from "./BillingPriceResponseData";
 import {
-  BillingPriceViewFromJSON,
-  BillingPriceViewFromJSONTyped,
-  BillingPriceViewToJSON,
-  BillingPriceViewToJSONTyped,
-} from "./BillingPriceView";
+  BillingPriceResponseDataFromJSON,
+  BillingPriceResponseDataFromJSONTyped,
+  BillingPriceResponseDataToJSON,
+} from "./BillingPriceResponseData";
 
 /**
  *
@@ -35,16 +34,16 @@ export interface EntitlementCurrencyPricesResponseData {
   currency: string;
   /**
    *
-   * @type {BillingPriceView}
+   * @type {BillingPriceResponseData}
    * @memberof EntitlementCurrencyPricesResponseData
    */
-  monthlyPrice?: BillingPriceView;
+  monthlyPrice?: BillingPriceResponseData;
   /**
    *
-   * @type {BillingPriceView}
+   * @type {BillingPriceResponseData}
    * @memberof EntitlementCurrencyPricesResponseData
    */
-  yearlyPrice?: BillingPriceView;
+  yearlyPrice?: BillingPriceResponseData;
 }
 
 /**
@@ -75,31 +74,23 @@ export function EntitlementCurrencyPricesResponseDataFromJSONTyped(
     monthlyPrice:
       json["monthly_price"] == null
         ? undefined
-        : BillingPriceViewFromJSON(json["monthly_price"]),
+        : BillingPriceResponseDataFromJSON(json["monthly_price"]),
     yearlyPrice:
       json["yearly_price"] == null
         ? undefined
-        : BillingPriceViewFromJSON(json["yearly_price"]),
+        : BillingPriceResponseDataFromJSON(json["yearly_price"]),
   };
 }
 
 export function EntitlementCurrencyPricesResponseDataToJSON(
-  json: any,
-): EntitlementCurrencyPricesResponseData {
-  return EntitlementCurrencyPricesResponseDataToJSONTyped(json, false);
-}
-
-export function EntitlementCurrencyPricesResponseDataToJSONTyped(
   value?: EntitlementCurrencyPricesResponseData | null,
-  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
-
   return {
     currency: value["currency"],
-    monthly_price: BillingPriceViewToJSON(value["monthlyPrice"]),
-    yearly_price: BillingPriceViewToJSON(value["yearlyPrice"]),
+    monthly_price: BillingPriceResponseDataToJSON(value["monthlyPrice"]),
+    yearly_price: BillingPriceResponseDataToJSON(value["yearlyPrice"]),
   };
 }

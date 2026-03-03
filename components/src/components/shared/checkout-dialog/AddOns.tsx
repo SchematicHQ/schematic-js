@@ -25,6 +25,7 @@ interface AddOnsProps {
   toggle: (id: string) => void;
   isLoading: boolean;
   period: string;
+  currency?: string;
 }
 
 interface MeteredEntitlementPricingProps {
@@ -109,7 +110,13 @@ function shouldShowUsageBased(
   );
 }
 
-export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
+export const AddOns = ({
+  addOns,
+  toggle,
+  isLoading,
+  period,
+  currency,
+}: AddOnsProps) => {
   const { t } = useTranslation();
 
   const { settings } = useEmbed();
@@ -127,7 +134,8 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
       $gap="1rem"
     >
       {addOns.map((addOn, index) => {
-        const { price, currency } = getAddOnPrice(addOn, period) || {};
+        const { price, currency: addOnCurrency } =
+          getAddOnPrice(addOn, period, currency) || {};
 
         // Collect all usage-based and unlimited entitlements for display
         const displayableEntitlements =
@@ -157,14 +165,18 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
                 };
               }
 
-              const priceData = getEntitlementPrice(entitlement, period);
+              const priceData = getEntitlementPrice(
+                entitlement,
+                period,
+                currency,
+              );
 
               return {
                 isUnlimited: false,
                 priceBehavior: entitlement.priceBehavior,
                 softLimit: entitlement.softLimit,
                 price: priceData?.price ?? 0,
-                currency: priceData?.currency || currency,
+                currency: priceData?.currency || addOnCurrency,
                 featureName: entitlement.feature?.name,
                 feature: entitlement.feature,
                 packageSize: priceData?.packageSize ?? 1,
@@ -224,7 +236,7 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
                   ) : (
                     <>
                       <Text display="heading2">
-                        {formatCurrency(price ?? 0, currency)}
+                        {formatCurrency(price ?? 0, addOnCurrency)}
                       </Text>
 
                       <Text

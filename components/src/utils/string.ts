@@ -93,3 +93,17 @@ export function formatOrdinal(n: number) {
 export function adjectify(str: string) {
   return `${str}ly`;
 }
+
+export function getCurrencySymbol(currency: string): string {
+  try {
+    const parts = new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: currency.toUpperCase(),
+      currencyDisplay: "narrowSymbol",
+    }).formatToParts(0);
+
+    return parts.find((part) => part.type === "currency")?.value ?? currency;
+  } catch {
+    return currency;
+  }
+}
