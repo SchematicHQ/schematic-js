@@ -441,9 +441,16 @@ export class Schematic {
           : { value: result, fallbackUsed: true },
       );
 
-      // If we have flag check results, submit an event
+      // Submit a flag check event
       if (typeof flagCheck !== "undefined") {
         this.submitFlagCheckEvent(key, flagCheck, context);
+      } else {
+        const fallbackResult = this.resolveFallbackCheckFlagReturn(
+          key,
+          fallback,
+          "No flag values available",
+        );
+        this.submitFlagCheckEvent(key, fallbackResult, context);
       }
 
       return result;
@@ -713,7 +720,16 @@ export class Schematic {
       await this.wsSendMessage(socket, context);
     } catch (error) {
       console.warn("Failed to establish WebSocket connection:", error);
-      throw error;
+
+      // On connection failure, still set context locally and resolve pending state
+      // so the UI renders with default flag values instead of hanging indefinitely
+      this.context = context;
+      this.flushContextDependentEventQueue();
+      this.setIsPending(false);
+
+      // Attempt to reconnect in the background so real flag values
+      // can replace fallbacks if the server becomes reachable
+      this.attemptReconnect();
     }
   };
 
