@@ -1,6 +1,6 @@
 {
   "name": "@schematichq/schematic-js",
-  "version": "1.2.17",
+  "version": "1.2.21",
   "main": "dist/schematic.cjs.js",
   "module": "dist/schematic.esm.js",
   "types": "dist/schematic.d.ts",
@@ -43,8 +43,8 @@
     "@vitest/browser": "^4.0.18",
     "esbuild": "^0.27.3",
     "eslint": "^10.0.2",
-    "globals": "^17.3.0",
-    "happy-dom": "^20.7.0",
+    "globals": "^17.4.0",
+    "happy-dom": "^20.8.3",
     "husky": "^9.1.7",
     "jsdom": "^28.1.0",
     "mock-socket": "^9.3.1",

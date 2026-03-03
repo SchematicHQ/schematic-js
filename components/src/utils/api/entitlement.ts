@@ -62,7 +62,8 @@ export function getUsageDetails(
   // if there is any sort of limit
   let limit: number | undefined;
   if (
-    entitlement.priceBehavior === EntitlementPriceBehavior.PayInAdvance &&
+    (!entitlement.priceBehavior ||
+      entitlement.priceBehavior === EntitlementPriceBehavior.PayInAdvance) &&
     typeof entitlement.allocation === "number"
   ) {
     limit = entitlement.allocation;

@@ -815,10 +815,10 @@
     argparse "~1.0.9"
     string-argv "~0.3.1"
 
-"@schematichq/schematic-js@^1.2.17":
-  version "1.2.17"
-  resolved "https://registry.yarnpkg.com/@schematichq/schematic-js/-/schematic-js-1.2.17.tgz#7e65ebc75846adfe1d4bd4783ee4cb486db56b5b"
-  integrity sha512-2zx3BsRTEBBWuXS7V+V3kCv1F2TorD+g+J0LsZBv5kSVBzdW6gYgdxMaCoX4ZZIFFfHXLaidbCEwKb1y7VDS4w==
+"@schematichq/schematic-js@^1.2.21":
+  version "1.2.21"
+  resolved "https://registry.yarnpkg.com/@schematichq/schematic-js/-/schematic-js-1.2.21.tgz#2ce7f6fc25f404a3dcc8b48929bcc2f96c05cd29"
+  integrity sha512-tdpAr1bD5uK8Oh4NYLoam3Ee4sDhVOJ7KOA1WUGtMFzzWfzedPEe05gSbUi3IB6KXT62e1yGhrZyuAEAuSruvg==
   dependencies:
     cross-fetch "^4.1.0"
     uuid "^13.0.0"
@@ -2108,10 +2108,10 @@ graceful-fs@^4.1.6, graceful-fs@^4.2.0:
   resolved "https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.2.11.tgz#4183e4e8bf08bb6e05bbb2f7d2e0c8f712ca40e3"
   integrity sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==
 
-happy-dom@^20.7.0:
-  version "20.7.0"
-  resolved "https://registry.yarnpkg.com/happy-dom/-/happy-dom-20.7.0.tgz#b0b02f8c9b7553e093ca7ef414f17ad95436e43b"
-  integrity sha512-hR/uLYQdngTyEfxnOoa+e6KTcfBFyc1hgFj/Cc144A5JJUuHFYqIEBDcD4FeGqUeKLRZqJ9eN9u7/GDjYEgS1g==
+happy-dom@^20.8.3:
+  version "20.8.3"
+  resolved "https://registry.yarnpkg.com/happy-dom/-/happy-dom-20.8.3.tgz#aa59a13c0e43c48819190d913ab5e36800e87431"
+  integrity sha512-lMHQRRwIPyJ70HV0kkFT7jH/gXzSI7yDkQFe07E2flwmNDFoWUTRMKpW2sglsnpeA7b6S2TJPp98EbQxai8eaQ==
   dependencies:
     "@types/node" ">=20.0.0"
     "@types/whatwg-mimetype" "^3.0.2"

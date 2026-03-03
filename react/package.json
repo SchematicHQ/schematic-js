@@ -1,6 +1,6 @@
 {
   "name": "@schematichq/schematic-react",
-  "version": "1.2.17",
+  "version": "1.2.21",
   "main": "dist/schematic-react.cjs.js",
   "module": "dist/schematic-react.esm.js",
   "types": "dist/schematic-react.d.ts",
@@ -31,7 +31,7 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "@schematichq/schematic-js": "^1.2.17"
+    "@schematichq/schematic-js": "^1.2.21"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -47,7 +47,7 @@
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.0.1",
     "globals": "^17.4.0",
-    "happy-dom": "^20.7.0",
+    "happy-dom": "^20.8.3",
     "husky": "^9.1.7",
     "jsdom": "^28.1.0",
     "prettier": "^3.8.1",

@@ -75,6 +75,7 @@ export class Schematic {
   private retryTimer: ReturnType<typeof setInterval> | null = null;
   private flagValueDefaults: Record<string, boolean> = {};
   private flagCheckDefaults: Record<string, CheckFlagReturn> = {};
+  private fallbackCheckCache: Record<string, CheckFlagReturn> = {};
 
   constructor(apiKey: string, options?: SchematicOptions) {
     this.apiKey = apiKey;
@@ -441,9 +442,16 @@ export class Schematic {
           : { value: result, fallbackUsed: true },
       );
 
-      // If we have flag check results, submit an event
+      // Submit a flag check event
       if (typeof flagCheck !== "undefined") {
         this.submitFlagCheckEvent(key, flagCheck, context);
+      } else {
+        const fallbackResult = this.resolveFallbackCheckFlagReturn(
+          key,
+          fallback,
+          "No flag values available",
+        );
+        this.submitFlagCheckEvent(key, fallbackResult, context);
       }
 
       return result;
@@ -666,6 +674,15 @@ export class Schematic {
       return Promise.resolve();
     }
 
+    // Skip if context hasn't changed, we have an active connection, and we're not pending
+    if (
+      contextString(context) === contextString(this.context) &&
+      this.conn !== null &&
+      !this.isPending
+    ) {
+      return;
+    }
+
     // If using websocket, wsSendMessage will handle setting the context
     try {
       this.setIsPending(true);
@@ -713,7 +730,16 @@ export class Schematic {
       await this.wsSendMessage(socket, context);
     } catch (error) {
       console.warn("Failed to establish WebSocket connection:", error);
-      throw error;
+
+      // On connection failure, still set context locally and resolve pending state
+      // so the UI renders with default flag values instead of hanging indefinitely
+      this.context = context;
+      this.flushContextDependentEventQueue();
+      this.setIsPending(false);
+
+      // Attempt to reconnect in the background so real flag values
+      // can replace fallbacks if the server becomes reachable
+      this.attemptReconnect();
     }
   };
 
@@ -1752,6 +1778,7 @@ export class Schematic {
   };
 
   private setIsPending = (isPending: boolean) => {
+    if (this.isPending === isPending) return;
     this.isPending = isPending;
     this.isPendingListeners.forEach((listener) =>
       notifyPendingListener(listener, isPending),
@@ -1769,16 +1796,21 @@ export class Schematic {
       return check;
     }
 
-    // Check initialization options for fallback
+    // Check initialization options for fallback, using cache to ensure
+    // stable object references (required by React's useSyncExternalStore)
     if (
       flagKey in this.flagCheckDefaults ||
       flagKey in this.flagValueDefaults
     ) {
-      return this.resolveFallbackCheckFlagReturn(
-        flagKey,
-        undefined,
-        "Default value used",
-      );
+      if (!(flagKey in this.fallbackCheckCache)) {
+        this.fallbackCheckCache[flagKey] =
+          this.resolveFallbackCheckFlagReturn(
+            flagKey,
+            undefined,
+            "Default value used",
+          );
+      }
+      return this.fallbackCheckCache[flagKey];
     }
 
     return undefined;
