@@ -276,6 +276,7 @@ export type CheckoutState = {
   bypassCreditsSelection?: boolean;
   addOnIds?: string[];
   hideSkippedStages?: boolean;
+  selectedCurrency?: string;
 };
 
 export type EmbedMode = "edit" | "view";

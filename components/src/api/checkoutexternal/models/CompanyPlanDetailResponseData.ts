@@ -34,13 +34,6 @@ import {
   PlanControlledByTypeToJSON,
   PlanControlledByTypeToJSONTyped,
 } from "./PlanControlledByType";
-import type { PlanCreditGrantView } from "./PlanCreditGrantView";
-import {
-  PlanCreditGrantViewFromJSON,
-  PlanCreditGrantViewFromJSONTyped,
-  PlanCreditGrantViewToJSON,
-  PlanCreditGrantViewToJSONTyped,
-} from "./PlanCreditGrantView";
 import type { PlanEntitlementResponseData } from "./PlanEntitlementResponseData";
 import {
   PlanEntitlementResponseDataFromJSON,
@@ -48,6 +41,30 @@ import {
   PlanEntitlementResponseDataToJSON,
   PlanEntitlementResponseDataToJSONTyped,
 } from "./PlanEntitlementResponseData";
+import type { CustomPlanConfig } from "./CustomPlanConfig";
+import {
+  CustomPlanConfigFromJSON,
+  CustomPlanConfigFromJSONTyped,
+  CustomPlanConfigToJSON,
+} from "./CustomPlanConfig";
+import type { BillingProductDetailResponseData } from "./BillingProductDetailResponseData";
+import {
+  BillingProductDetailResponseDataFromJSON,
+  BillingProductDetailResponseDataFromJSONTyped,
+  BillingProductDetailResponseDataToJSON,
+} from "./BillingProductDetailResponseData";
+import type { PlanCreditGrantView } from "./PlanCreditGrantView";
+import {
+  PlanCreditGrantViewFromJSON,
+  PlanCreditGrantViewFromJSONTyped,
+  PlanCreditGrantViewToJSON,
+} from "./PlanCreditGrantView";
+import type { PlanCurrencyPricesResponseData } from "./PlanCurrencyPricesResponseData";
+import {
+  PlanCurrencyPricesResponseDataFromJSON,
+  PlanCurrencyPricesResponseDataFromJSONTyped,
+  PlanCurrencyPricesResponseDataToJSON,
+} from "./PlanCurrencyPricesResponseData";
 import type { ChargeType } from "./ChargeType";
 import {
   ChargeTypeFromJSON,
@@ -76,20 +93,6 @@ import {
   BillingPriceResponseDataToJSON,
   BillingPriceResponseDataToJSONTyped,
 } from "./BillingPriceResponseData";
-import type { CustomPlanConfig } from "./CustomPlanConfig";
-import {
-  CustomPlanConfigFromJSON,
-  CustomPlanConfigFromJSONTyped,
-  CustomPlanConfigToJSON,
-  CustomPlanConfigToJSONTyped,
-} from "./CustomPlanConfig";
-import type { BillingProductDetailResponseData } from "./BillingProductDetailResponseData";
-import {
-  BillingProductDetailResponseDataFromJSON,
-  BillingProductDetailResponseDataFromJSONTyped,
-  BillingProductDetailResponseDataToJSON,
-  BillingProductDetailResponseDataToJSONTyped,
-} from "./BillingProductDetailResponseData";
 import type { FeatureUsageResponseData } from "./FeatureUsageResponseData";
 import {
   FeatureUsageResponseDataFromJSON,
@@ -159,6 +162,12 @@ export interface CompanyPlanDetailResponseData {
    * @memberof CompanyPlanDetailResponseData
    */
   createdAt: Date;
+  /**
+   *
+   * @type {Array<PlanCurrencyPricesResponseData>}
+   * @memberof CompanyPlanDetailResponseData
+   */
+  currencyPrices: Array<PlanCurrencyPricesResponseData>;
   /**
    *
    * @type {boolean}
@@ -332,6 +341,8 @@ export function instanceOfCompanyPlanDetailResponseData(
   if (!("controlledBy" in value) || value["controlledBy"] === undefined)
     return false;
   if (!("createdAt" in value) || value["createdAt"] === undefined) return false;
+  if (!("currencyPrices" in value) || value["currencyPrices"] === undefined)
+    return false;
   if (!("current" in value) || value["current"] === undefined) return false;
   if (!("custom" in value) || value["custom"] === undefined) return false;
   if (!("description" in value) || value["description"] === undefined)
@@ -391,6 +402,9 @@ export function CompanyPlanDetailResponseDataFromJSONTyped(
     compatiblePlanIds: json["compatible_plan_ids"],
     controlledBy: PlanControlledByTypeFromJSON(json["controlled_by"]),
     createdAt: new Date(json["created_at"]),
+    currencyPrices: (json["currency_prices"] as Array<any>).map(
+      PlanCurrencyPricesResponseDataFromJSON,
+    ),
     current: json["current"],
     custom: json["custom"],
     customPlanConfig:
@@ -473,6 +487,9 @@ export function CompanyPlanDetailResponseDataToJSONTyped(
     compatible_plan_ids: value["compatiblePlanIds"],
     controlled_by: PlanControlledByTypeToJSON(value["controlledBy"]),
     created_at: value["createdAt"].toISOString(),
+    currency_prices: (value["currencyPrices"] as Array<any>).map(
+      PlanCurrencyPricesResponseDataToJSON,
+    ),
     current: value["current"],
     custom: value["custom"],
     custom_plan_config: CustomPlanConfigToJSON(value["customPlanConfig"]),

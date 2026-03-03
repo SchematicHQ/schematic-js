@@ -30,6 +30,7 @@ export interface PlanProps {
   };
   plans: SelectedPlan[];
   selectedPeriod: string;
+  currency?: string;
   entitlementCounts: Record<
     string,
     | {
@@ -47,6 +48,7 @@ export const Plan = ({
   sharedProps,
   plans,
   selectedPeriod,
+  currency,
   entitlementCounts,
   handleToggleShowAll,
 }: PlanProps) => {
@@ -77,7 +79,8 @@ export const Plan = ({
 
   const isActivePlan = plan.current && currentPeriod === selectedPeriod;
   const { price: planPrice, currency: planCurrency } =
-    getPlanPrice(plan, selectedPeriod) || {};
+    getPlanPrice(plan, selectedPeriod, { useSelectedPeriod: true }, currency) ||
+    {};
   const credits = groupPlanCreditGrants(plan.includedCreditGrants);
 
   const hasUsageBasedEntitlements = plan.entitlements.some(

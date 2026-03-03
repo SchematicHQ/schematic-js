@@ -19,8 +19,14 @@ import {
   type UpdateAddOnRequestBody,
   type UpdatePayInAdvanceRequestBody,
 } from "../../../api/checkoutexternal";
-import { TEXT_BASE_SIZE } from "../../../const";
 import {
+  DEFAULT_CURRENCY,
+  PriceBehavior,
+  PriceInterval,
+  TEXT_BASE_SIZE,
+} from "../../../const";
+import {
+  useAvailableCurrencies,
   useAvailablePlans,
   useEmbed,
   useIsLightBackground,
@@ -31,7 +37,11 @@ import type {
   UsageBasedEntitlement,
 } from "../../../types";
 import { ERROR_UNKNOWN, getAddOnPrice, isError } from "../../../utils";
-import { PeriodToggle, SubscriptionSidebar } from "../../shared";
+import {
+  CurrencyToggle,
+  PeriodToggle,
+  SubscriptionSidebar,
+} from "../../shared";
 import {
   Dialog,
   DialogContent,
@@ -176,6 +186,12 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
   };
 
   const [planPeriod, setPlanPeriod] = useState(getValidatedPeriod);
+
+  const currencies = useAvailableCurrencies();
+  const [selectedCurrency, setSelectedCurrency] = useState(
+    () => checkoutState?.selectedCurrency ?? DEFAULT_CURRENCY,
+  );
+  const showCurrencySelector = currencies.length > 1;
 
   const {
     plans: availablePlans,
@@ -1170,17 +1186,27 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
               </Flex>
             )}
 
-            {checkoutStage === "plan" &&
-              showPeriodToggle &&
-              availablePeriods.length > 1 && (
-                <PeriodToggle
-                  options={availablePeriods}
-                  selectedOption={planPeriod}
-                  selectedPlan={selectedPlan}
-                  onSelect={changePlanPeriod}
-                  tooltipPortal={dialogRef.current}
-                />
-              )}
+            {checkoutStage === "plan" && (
+              <Flex $alignItems="center" $gap="0.75rem">
+                {showCurrencySelector && (
+                  <CurrencyToggle
+                    currencies={currencies}
+                    selectedCurrency={selectedCurrency}
+                    onSelect={setSelectedCurrency}
+                  />
+                )}
+
+                {showPeriodToggle && availablePeriods.length > 1 && (
+                  <PeriodToggle
+                    options={availablePeriods}
+                    selectedOption={planPeriod}
+                    selectedPlan={selectedPlan}
+                    onSelect={changePlanPeriod}
+                    tooltipPortal={dialogRef.current}
+                  />
+                )}
+              </Flex>
+            )}
           </Flex>
 
           {isPending ? (
@@ -1202,6 +1228,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
               selectPlan={selectPlan}
               shouldTrial={shouldTrial}
               tooltipPortal={dialogRef.current}
+              currency={showCurrencySelector ? selectedCurrency : undefined}
             />
           ) : checkoutStage === "usage" ? (
             <Quantity
@@ -1218,6 +1245,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
               period={planPeriod}
               addOns={addOns}
               toggle={(id) => toggleAddOn(id)}
+              currency={showCurrencySelector ? selectedCurrency : undefined}
             />
           ) : checkoutStage === "addonsUsage" ? (
             <Quantity
@@ -1273,6 +1301,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
           setConfirmPaymentIntent={setConfirmPaymentIntentProps}
           willTrialWithoutPaymentMethod={willTrialWithoutPaymentMethod}
           willScheduleDowngrade={willScheduleDowngrade}
+          currency={showCurrencySelector ? selectedCurrency : undefined}
         />
       </DialogContent>
     </Dialog>

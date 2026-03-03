@@ -13,13 +13,21 @@ import {
   type CompanyPlanDetailResponseData,
 } from "../../../api/checkoutexternal";
 import { type PlanViewPublicResponseData } from "../../../api/componentspublic";
-import { TEXT_BASE_SIZE, VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
+import {
+  DEFAULT_CURRENCY,
+  TEXT_BASE_SIZE,
+  VISIBLE_ENTITLEMENT_COUNT,
+} from "../../../const";
 import { type FontStyle } from "../../../context";
-import { useAvailablePlans, useEmbed } from "../../../hooks";
+import {
+  useAvailableCurrencies,
+  useAvailablePlans,
+  useEmbed,
+} from "../../../hooks";
 import type { DeepPartial, ElementProps } from "../../../types";
 import { entitlementCountsReducer } from "../../../utils";
 import { Container, FussyChild } from "../../layout";
-import { PeriodToggle } from "../../shared";
+import { CurrencyToggle, PeriodToggle } from "../../shared";
 import { Box, Flex, Loader, Text } from "../../ui";
 
 import { AddOn } from "./AddOn";
@@ -27,6 +35,7 @@ import { Plan } from "./Plan";
 
 interface DesignProps {
   showPeriodToggle: boolean;
+  showCurrencySelector: boolean;
   showDiscount: boolean;
   header: {
     isVisible: boolean;
@@ -68,6 +77,7 @@ interface DesignProps {
 const resolveDesignProps = (props: DeepPartial<DesignProps>): DesignProps => {
   return {
     showPeriodToggle: props.showPeriodToggle ?? true,
+    showCurrencySelector: props.showCurrencySelector ?? true,
     showDiscount: props.showDiscount ?? true,
     header: {
       isVisible: props.header?.isVisible ?? true,
@@ -156,8 +166,13 @@ export const PricingTable = forwardRef<
     () => data?.company?.plan?.planPeriod || "month",
   );
 
+  const currencies = useAvailableCurrencies();
+  const [selectedCurrency, setSelectedCurrency] = useState(DEFAULT_CURRENCY);
+
   const showPeriodToggle =
     rest.showPeriodToggle ?? data?.displaySettings?.showPeriodToggle ?? true;
+  const showCurrencySelector =
+    props.showCurrencySelector && currencies.length > 1;
   const { plans, addOns, periods } = useAvailablePlans(selectedPeriod, {
     useSelectedPeriod: showPeriodToggle,
   });
@@ -258,18 +273,28 @@ export const PricingTable = forwardRef<
                 t("Plans")}
             </Text>
 
-            {showPeriodToggle && periods.length > 1 && (
-              <PeriodToggle
-                options={periods}
-                selectedOption={selectedPeriod}
-                selectedPlan={currentPlan}
-                onSelect={(period) => {
-                  if (period !== selectedPeriod) {
-                    setSelectedPeriod(period);
-                  }
-                }}
-              />
-            )}
+            <Flex $alignItems="center" $gap="0.75rem">
+              {showCurrencySelector && (
+                <CurrencyToggle
+                  currencies={currencies}
+                  selectedCurrency={selectedCurrency}
+                  onSelect={setSelectedCurrency}
+                />
+              )}
+
+              {showPeriodToggle && periods.length > 1 && (
+                <PeriodToggle
+                  options={periods}
+                  selectedOption={selectedPeriod}
+                  selectedPlan={currentPlan}
+                  onSelect={(period) => {
+                    if (period !== selectedPeriod) {
+                      setSelectedPeriod(period);
+                    }
+                  }}
+                />
+              )}
+            </Flex>
           </Flex>
 
           {props.plans.isVisible && plans.length > 0 && (
@@ -300,6 +325,9 @@ export const PricingTable = forwardRef<
                     }}
                     plans={self}
                     selectedPeriod={planPeriod}
+                    currency={
+                      showCurrencySelector ? selectedCurrency : undefined
+                    }
                     entitlementCounts={entitlementCounts}
                     handleToggleShowAll={handleToggleShowAll}
                   />
@@ -346,6 +374,9 @@ export const PricingTable = forwardRef<
                         onCallToAction: rest.onCallToAction,
                       }}
                       selectedPeriod={addOnPeriod}
+                      currency={
+                        showCurrencySelector ? selectedCurrency : undefined
+                      }
                     />
                   );
                 })}

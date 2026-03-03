@@ -1,3 +1,4 @@
+export * from "./useAvailableCurrencies";
 export * from "./useAvailablePlans";
 export * from "./useEmbed";
 export * from "./useIsLightBackground";
