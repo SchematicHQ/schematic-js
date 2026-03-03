@@ -18,6 +18,7 @@ import {
   PreviewSubscriptionChangeResponseDataFromJSON,
   PreviewSubscriptionChangeResponseDataFromJSONTyped,
   PreviewSubscriptionChangeResponseDataToJSON,
+  PreviewSubscriptionChangeResponseDataToJSONTyped,
 } from "./PreviewSubscriptionChangeResponseData";
 
 /**
@@ -71,11 +72,19 @@ export function PreviewCheckoutResponseFromJSONTyped(
 }
 
 export function PreviewCheckoutResponseToJSON(
+  json: any,
+): PreviewCheckoutResponse {
+  return PreviewCheckoutResponseToJSONTyped(json, false);
+}
+
+export function PreviewCheckoutResponseToJSONTyped(
   value?: PreviewCheckoutResponse | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     data: PreviewSubscriptionChangeResponseDataToJSON(value["data"]),
     params: value["params"],

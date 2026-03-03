@@ -18,12 +18,14 @@ import {
   BillingPriceResponseDataFromJSON,
   BillingPriceResponseDataFromJSONTyped,
   BillingPriceResponseDataToJSON,
+  BillingPriceResponseDataToJSONTyped,
 } from "./BillingPriceResponseData";
 import type { BillingProviderType } from "./BillingProviderType";
 import {
   BillingProviderTypeFromJSON,
   BillingProviderTypeFromJSONTyped,
   BillingProviderTypeToJSON,
+  BillingProviderTypeToJSONTyped,
 } from "./BillingProviderType";
 
 /**
@@ -190,11 +192,19 @@ export function BillingProductDetailResponseDataFromJSONTyped(
 }
 
 export function BillingProductDetailResponseDataToJSON(
+  json: any,
+): BillingProductDetailResponseData {
+  return BillingProductDetailResponseDataToJSONTyped(json, false);
+}
+
+export function BillingProductDetailResponseDataToJSONTyped(
   value?: BillingProductDetailResponseData | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     account_id: value["accountId"],
     created_at: value["createdAt"].toISOString(),

@@ -34,12 +34,9 @@ export function instanceOfBillingSubscriptionTrialEndSetting(
       )
     ) {
       if (
-        (
-          BillingSubscriptionTrialEndSetting as Record<
-            string,
-            BillingSubscriptionTrialEndSetting
-          >
-        )[key] === value
+        BillingSubscriptionTrialEndSetting[
+          key as keyof typeof BillingSubscriptionTrialEndSetting
+        ] === value
       ) {
         return true;
       }
@@ -65,4 +62,11 @@ export function BillingSubscriptionTrialEndSettingToJSON(
   value?: BillingSubscriptionTrialEndSetting | null,
 ): any {
   return value as any;
+}
+
+export function BillingSubscriptionTrialEndSettingToJSONTyped(
+  value: any,
+  ignoreDiscriminator: boolean,
+): BillingSubscriptionTrialEndSetting {
+  return value as BillingSubscriptionTrialEndSetting;
 }

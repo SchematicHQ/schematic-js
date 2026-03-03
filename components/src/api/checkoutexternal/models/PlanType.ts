@@ -25,7 +25,7 @@ export type PlanType = (typeof PlanType)[keyof typeof PlanType];
 export function instanceOfPlanType(value: any): boolean {
   for (const key in PlanType) {
     if (Object.prototype.hasOwnProperty.call(PlanType, key)) {
-      if ((PlanType as Record<string, PlanType>)[key] === value) {
+      if (PlanType[key as keyof typeof PlanType] === value) {
         return true;
       }
     }
@@ -46,4 +46,11 @@ export function PlanTypeFromJSONTyped(
 
 export function PlanTypeToJSON(value?: PlanType | null): any {
   return value as any;
+}
+
+export function PlanTypeToJSONTyped(
+  value: any,
+  ignoreDiscriminator: boolean,
+): PlanType {
+  return value as PlanType;
 }

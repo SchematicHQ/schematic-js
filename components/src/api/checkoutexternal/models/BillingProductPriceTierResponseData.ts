@@ -80,11 +80,19 @@ export function BillingProductPriceTierResponseDataFromJSONTyped(
 }
 
 export function BillingProductPriceTierResponseDataToJSON(
+  json: any,
+): BillingProductPriceTierResponseData {
+  return BillingProductPriceTierResponseDataToJSONTyped(json, false);
+}
+
+export function BillingProductPriceTierResponseDataToJSONTyped(
   value?: BillingProductPriceTierResponseData | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     flat_amount: value["flatAmount"],
     per_unit_price: value["perUnitPrice"],

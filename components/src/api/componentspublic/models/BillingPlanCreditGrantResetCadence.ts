@@ -36,12 +36,9 @@ export function instanceOfBillingPlanCreditGrantResetCadence(
       )
     ) {
       if (
-        (
-          BillingPlanCreditGrantResetCadence as Record<
-            string,
-            BillingPlanCreditGrantResetCadence
-          >
-        )[key] === value
+        BillingPlanCreditGrantResetCadence[
+          key as keyof typeof BillingPlanCreditGrantResetCadence
+        ] === value
       ) {
         return true;
       }
@@ -67,4 +64,11 @@ export function BillingPlanCreditGrantResetCadenceToJSON(
   value?: BillingPlanCreditGrantResetCadence | null,
 ): any {
   return value as any;
+}
+
+export function BillingPlanCreditGrantResetCadenceToJSONTyped(
+  value: any,
+  ignoreDiscriminator: boolean,
+): BillingPlanCreditGrantResetCadence {
+  return value as BillingPlanCreditGrantResetCadence;
 }

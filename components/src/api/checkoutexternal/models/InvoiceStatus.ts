@@ -28,7 +28,7 @@ export type InvoiceStatus = (typeof InvoiceStatus)[keyof typeof InvoiceStatus];
 export function instanceOfInvoiceStatus(value: any): boolean {
   for (const key in InvoiceStatus) {
     if (Object.prototype.hasOwnProperty.call(InvoiceStatus, key)) {
-      if ((InvoiceStatus as Record<string, InvoiceStatus>)[key] === value) {
+      if (InvoiceStatus[key as keyof typeof InvoiceStatus] === value) {
         return true;
       }
     }
@@ -49,4 +49,11 @@ export function InvoiceStatusFromJSONTyped(
 
 export function InvoiceStatusToJSON(value?: InvoiceStatus | null): any {
   return value as any;
+}
+
+export function InvoiceStatusToJSONTyped(
+  value: any,
+  ignoreDiscriminator: boolean,
+): InvoiceStatus {
+  return value as InvoiceStatus;
 }

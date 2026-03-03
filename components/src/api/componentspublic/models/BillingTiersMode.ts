@@ -26,9 +26,7 @@ export type BillingTiersMode =
 export function instanceOfBillingTiersMode(value: any): boolean {
   for (const key in BillingTiersMode) {
     if (Object.prototype.hasOwnProperty.call(BillingTiersMode, key)) {
-      if (
-        (BillingTiersMode as Record<string, BillingTiersMode>)[key] === value
-      ) {
+      if (BillingTiersMode[key as keyof typeof BillingTiersMode] === value) {
         return true;
       }
     }
@@ -49,4 +47,11 @@ export function BillingTiersModeFromJSONTyped(
 
 export function BillingTiersModeToJSON(value?: BillingTiersMode | null): any {
   return value as any;
+}
+
+export function BillingTiersModeToJSONTyped(
+  value: any,
+  ignoreDiscriminator: boolean,
+): BillingTiersMode {
+  return value as BillingTiersMode;
 }

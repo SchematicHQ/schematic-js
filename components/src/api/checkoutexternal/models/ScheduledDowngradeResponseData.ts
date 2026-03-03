@@ -146,11 +146,19 @@ export function ScheduledDowngradeResponseDataFromJSONTyped(
 }
 
 export function ScheduledDowngradeResponseDataToJSON(
+  json: any,
+): ScheduledDowngradeResponseData {
+  return ScheduledDowngradeResponseDataToJSONTyped(json, false);
+}
+
+export function ScheduledDowngradeResponseDataToJSONTyped(
   value?: ScheduledDowngradeResponseData | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     currency: value["currency"],
     effective_after: value["effectiveAfter"].toISOString(),

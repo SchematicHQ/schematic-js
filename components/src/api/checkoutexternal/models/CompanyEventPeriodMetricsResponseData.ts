@@ -141,11 +141,19 @@ export function CompanyEventPeriodMetricsResponseDataFromJSONTyped(
 }
 
 export function CompanyEventPeriodMetricsResponseDataToJSON(
+  json: any,
+): CompanyEventPeriodMetricsResponseData {
+  return CompanyEventPeriodMetricsResponseDataToJSONTyped(json, false);
+}
+
+export function CompanyEventPeriodMetricsResponseDataToJSONTyped(
   value?: CompanyEventPeriodMetricsResponseData | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     account_id: value["accountId"],
     captured_at_max: value["capturedAtMax"].toISOString(),

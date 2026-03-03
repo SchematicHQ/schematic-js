@@ -111,11 +111,19 @@ export function ComponentDisplaySettingsFromJSONTyped(
 }
 
 export function ComponentDisplaySettingsToJSON(
+  json: any,
+): ComponentDisplaySettings {
+  return ComponentDisplaySettingsToJSONTyped(json, false);
+}
+
+export function ComponentDisplaySettingsToJSONTyped(
   value?: ComponentDisplaySettings | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     show_as_monthly_prices: value["showAsMonthlyPrices"],
     show_credits: value["showCredits"],

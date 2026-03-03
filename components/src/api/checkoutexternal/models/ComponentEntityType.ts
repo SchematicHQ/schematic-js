@@ -27,8 +27,7 @@ export function instanceOfComponentEntityType(value: any): boolean {
   for (const key in ComponentEntityType) {
     if (Object.prototype.hasOwnProperty.call(ComponentEntityType, key)) {
       if (
-        (ComponentEntityType as Record<string, ComponentEntityType>)[key] ===
-        value
+        ComponentEntityType[key as keyof typeof ComponentEntityType] === value
       ) {
         return true;
       }
@@ -52,4 +51,11 @@ export function ComponentEntityTypeToJSON(
   value?: ComponentEntityType | null,
 ): any {
   return value as any;
+}
+
+export function ComponentEntityTypeToJSONTyped(
+  value: any,
+  ignoreDiscriminator: boolean,
+): ComponentEntityType {
+  return value as ComponentEntityType;
 }

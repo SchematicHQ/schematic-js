@@ -1,4 +1,4 @@
 generatorName: typescript-fetch
-inputSpec: https://openapi.schematichq.com/checkoutexternal.yml
+inputSpec: https://openapi.schematichq.com/prod/api/temporaryaccesstoken.yml
 enablePostProcessFile: true
 outputDir: ./src/api/checkoutexternal/

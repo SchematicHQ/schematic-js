@@ -18,72 +18,84 @@ import {
   CompanyPlanInvalidReasonFromJSON,
   CompanyPlanInvalidReasonFromJSONTyped,
   CompanyPlanInvalidReasonToJSON,
+  CompanyPlanInvalidReasonToJSONTyped,
 } from "./CompanyPlanInvalidReason";
 import type { FeatureDetailResponseData } from "./FeatureDetailResponseData";
 import {
   FeatureDetailResponseDataFromJSON,
   FeatureDetailResponseDataFromJSONTyped,
   FeatureDetailResponseDataToJSON,
+  FeatureDetailResponseDataToJSONTyped,
 } from "./FeatureDetailResponseData";
 import type { PlanControlledByType } from "./PlanControlledByType";
 import {
   PlanControlledByTypeFromJSON,
   PlanControlledByTypeFromJSONTyped,
   PlanControlledByTypeToJSON,
+  PlanControlledByTypeToJSONTyped,
 } from "./PlanControlledByType";
 import type { PlanCreditGrantView } from "./PlanCreditGrantView";
 import {
   PlanCreditGrantViewFromJSON,
   PlanCreditGrantViewFromJSONTyped,
   PlanCreditGrantViewToJSON,
+  PlanCreditGrantViewToJSONTyped,
 } from "./PlanCreditGrantView";
 import type { PlanEntitlementResponseData } from "./PlanEntitlementResponseData";
 import {
   PlanEntitlementResponseDataFromJSON,
   PlanEntitlementResponseDataFromJSONTyped,
   PlanEntitlementResponseDataToJSON,
+  PlanEntitlementResponseDataToJSONTyped,
 } from "./PlanEntitlementResponseData";
 import type { ChargeType } from "./ChargeType";
 import {
   ChargeTypeFromJSON,
   ChargeTypeFromJSONTyped,
   ChargeTypeToJSON,
+  ChargeTypeToJSONTyped,
 } from "./ChargeType";
 import type { PlanType } from "./PlanType";
 import {
   PlanTypeFromJSON,
   PlanTypeFromJSONTyped,
   PlanTypeToJSON,
+  PlanTypeToJSONTyped,
 } from "./PlanType";
 import type { PlanVersionResponseData } from "./PlanVersionResponseData";
 import {
   PlanVersionResponseDataFromJSON,
   PlanVersionResponseDataFromJSONTyped,
   PlanVersionResponseDataToJSON,
+  PlanVersionResponseDataToJSONTyped,
 } from "./PlanVersionResponseData";
 import type { BillingPriceResponseData } from "./BillingPriceResponseData";
 import {
   BillingPriceResponseDataFromJSON,
   BillingPriceResponseDataFromJSONTyped,
   BillingPriceResponseDataToJSON,
+  BillingPriceResponseDataToJSONTyped,
 } from "./BillingPriceResponseData";
 import type { CustomPlanConfig } from "./CustomPlanConfig";
 import {
   CustomPlanConfigFromJSON,
   CustomPlanConfigFromJSONTyped,
   CustomPlanConfigToJSON,
+  CustomPlanConfigToJSONTyped,
 } from "./CustomPlanConfig";
 import type { BillingProductDetailResponseData } from "./BillingProductDetailResponseData";
 import {
   BillingProductDetailResponseDataFromJSON,
   BillingProductDetailResponseDataFromJSONTyped,
   BillingProductDetailResponseDataToJSON,
+  BillingProductDetailResponseDataToJSONTyped,
 } from "./BillingProductDetailResponseData";
 import type { FeatureUsageResponseData } from "./FeatureUsageResponseData";
 import {
   FeatureUsageResponseDataFromJSON,
   FeatureUsageResponseDataFromJSONTyped,
   FeatureUsageResponseDataToJSON,
+  FeatureUsageResponseDataToJSONTyped,
 } from "./FeatureUsageResponseData";
 
 /**
@@ -436,11 +448,19 @@ export function CompanyPlanDetailResponseDataFromJSONTyped(
 }
 
 export function CompanyPlanDetailResponseDataToJSON(
+  json: any,
+): CompanyPlanDetailResponseData {
+  return CompanyPlanDetailResponseDataToJSONTyped(json, false);
+}
+
+export function CompanyPlanDetailResponseDataToJSONTyped(
   value?: CompanyPlanDetailResponseData | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     active_version: PlanVersionResponseDataToJSON(value["activeVersion"]),
     audience_type: value["audienceType"],

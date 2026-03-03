@@ -18,18 +18,21 @@ import {
   ScheduledDowngradeConfigBehaviorFromJSON,
   ScheduledDowngradeConfigBehaviorFromJSONTyped,
   ScheduledDowngradeConfigBehaviorToJSON,
+  ScheduledDowngradeConfigBehaviorToJSONTyped,
 } from "./ScheduledDowngradeConfigBehavior";
 import type { BillingSubscriptionTrialEndSetting } from "./BillingSubscriptionTrialEndSetting";
 import {
   BillingSubscriptionTrialEndSettingFromJSON,
   BillingSubscriptionTrialEndSettingFromJSONTyped,
   BillingSubscriptionTrialEndSettingToJSON,
+  BillingSubscriptionTrialEndSettingToJSONTyped,
 } from "./BillingSubscriptionTrialEndSetting";
 import type { BillingProviderType } from "./BillingProviderType";
 import {
   BillingProviderTypeFromJSON,
   BillingProviderTypeFromJSONTyped,
   BillingProviderTypeToJSON,
+  BillingProviderTypeToJSONTyped,
 } from "./BillingProviderType";
 
 /**
@@ -281,12 +284,18 @@ export function CheckoutResponseDataFromJSONTyped(
   };
 }
 
-export function CheckoutResponseDataToJSON(
+export function CheckoutResponseDataToJSON(json: any): CheckoutResponseData {
+  return CheckoutResponseDataToJSONTyped(json, false);
+}
+
+export function CheckoutResponseDataToJSONTyped(
   value?: CheckoutResponseData | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     application_id: value["applicationId"],
     cancel_at: value["cancelAt"],

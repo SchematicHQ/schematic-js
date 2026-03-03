@@ -18,30 +18,35 @@ import {
   BillingCreditBundleTypeFromJSON,
   BillingCreditBundleTypeFromJSONTyped,
   BillingCreditBundleTypeToJSON,
+  BillingCreditBundleTypeToJSONTyped,
 } from "./BillingCreditBundleType";
 import type { BillingCreditExpiryType } from "./BillingCreditExpiryType";
 import {
   BillingCreditExpiryTypeFromJSON,
   BillingCreditExpiryTypeFromJSONTyped,
   BillingCreditExpiryTypeToJSON,
+  BillingCreditExpiryTypeToJSONTyped,
 } from "./BillingCreditExpiryType";
 import type { BillingCreditBundleStatus } from "./BillingCreditBundleStatus";
 import {
   BillingCreditBundleStatusFromJSON,
   BillingCreditBundleStatusFromJSONTyped,
   BillingCreditBundleStatusToJSON,
+  BillingCreditBundleStatusToJSONTyped,
 } from "./BillingCreditBundleStatus";
 import type { BillingProductPriceResponseData } from "./BillingProductPriceResponseData";
 import {
   BillingProductPriceResponseDataFromJSON,
   BillingProductPriceResponseDataFromJSONTyped,
   BillingProductPriceResponseDataToJSON,
+  BillingProductPriceResponseDataToJSONTyped,
 } from "./BillingProductPriceResponseData";
 import type { BillingCreditExpiryUnit } from "./BillingCreditExpiryUnit";
 import {
   BillingCreditExpiryUnitFromJSON,
   BillingCreditExpiryUnitFromJSONTyped,
   BillingCreditExpiryUnitToJSON,
+  BillingCreditExpiryUnitToJSONTyped,
 } from "./BillingCreditExpiryUnit";
 
 /**
@@ -248,11 +253,19 @@ export function BillingCreditBundleViewFromJSONTyped(
 }
 
 export function BillingCreditBundleViewToJSON(
+  json: any,
+): BillingCreditBundleView {
+  return BillingCreditBundleViewToJSONTyped(json, false);
+}
+
+export function BillingCreditBundleViewToJSONTyped(
   value?: BillingCreditBundleView | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     billing_invoice_id: value["billingInvoiceId"],
     bundle_type: BillingCreditBundleTypeToJSON(value["bundleType"]),

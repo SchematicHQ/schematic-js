@@ -18,12 +18,14 @@ import {
   PreviewSubscriptionFinanceResponseDataFromJSON,
   PreviewSubscriptionFinanceResponseDataFromJSONTyped,
   PreviewSubscriptionFinanceResponseDataToJSON,
+  PreviewSubscriptionFinanceResponseDataToJSONTyped,
 } from "./PreviewSubscriptionFinanceResponseData";
 import type { FeatureUsageResponseData } from "./FeatureUsageResponseData";
 import {
   FeatureUsageResponseDataFromJSON,
   FeatureUsageResponseDataFromJSONTyped,
   FeatureUsageResponseDataToJSON,
+  FeatureUsageResponseDataToJSONTyped,
 } from "./FeatureUsageResponseData";
 
 /**
@@ -192,11 +194,19 @@ export function PreviewSubscriptionChangeResponseDataFromJSONTyped(
 }
 
 export function PreviewSubscriptionChangeResponseDataToJSON(
+  json: any,
+): PreviewSubscriptionChangeResponseData {
+  return PreviewSubscriptionChangeResponseDataToJSONTyped(json, false);
+}
+
+export function PreviewSubscriptionChangeResponseDataToJSONTyped(
   value?: PreviewSubscriptionChangeResponseData | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     amount_off: value["amountOff"],
     due_now: value["dueNow"],

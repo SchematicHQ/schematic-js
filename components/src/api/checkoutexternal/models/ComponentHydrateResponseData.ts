@@ -18,96 +18,112 @@ import {
   PlanDetailResponseDataFromJSON,
   PlanDetailResponseDataFromJSONTyped,
   PlanDetailResponseDataToJSON,
+  PlanDetailResponseDataToJSONTyped,
 } from "./PlanDetailResponseData";
 import type { ScheduledDowngradeResponseData } from "./ScheduledDowngradeResponseData";
 import {
   ScheduledDowngradeResponseDataFromJSON,
   ScheduledDowngradeResponseDataFromJSONTyped,
   ScheduledDowngradeResponseDataToJSON,
+  ScheduledDowngradeResponseDataToJSONTyped,
 } from "./ScheduledDowngradeResponseData";
 import type { ComponentCheckoutSettings } from "./ComponentCheckoutSettings";
 import {
   ComponentCheckoutSettingsFromJSON,
   ComponentCheckoutSettingsFromJSONTyped,
   ComponentCheckoutSettingsToJSON,
+  ComponentCheckoutSettingsToJSONTyped,
 } from "./ComponentCheckoutSettings";
 import type { BillingCreditBundleView } from "./BillingCreditBundleView";
 import {
   BillingCreditBundleViewFromJSON,
   BillingCreditBundleViewFromJSONTyped,
   BillingCreditBundleViewToJSON,
+  BillingCreditBundleViewToJSONTyped,
 } from "./BillingCreditBundleView";
 import type { StripeEmbedInfo } from "./StripeEmbedInfo";
 import {
   StripeEmbedInfoFromJSON,
   StripeEmbedInfoFromJSONTyped,
   StripeEmbedInfoToJSON,
+  StripeEmbedInfoToJSONTyped,
 } from "./StripeEmbedInfo";
 import type { InvoiceResponseData } from "./InvoiceResponseData";
 import {
   InvoiceResponseDataFromJSON,
   InvoiceResponseDataFromJSONTyped,
   InvoiceResponseDataToJSON,
+  InvoiceResponseDataToJSONTyped,
 } from "./InvoiceResponseData";
 import type { ComponentDisplaySettings } from "./ComponentDisplaySettings";
 import {
   ComponentDisplaySettingsFromJSON,
   ComponentDisplaySettingsFromJSONTyped,
   ComponentDisplaySettingsToJSON,
+  ComponentDisplaySettingsToJSONTyped,
 } from "./ComponentDisplaySettings";
 import type { CreditCompanyGrantView } from "./CreditCompanyGrantView";
 import {
   CreditCompanyGrantViewFromJSON,
   CreditCompanyGrantViewFromJSONTyped,
   CreditCompanyGrantViewToJSON,
+  CreditCompanyGrantViewToJSONTyped,
 } from "./CreditCompanyGrantView";
 import type { CompanyPlanDetailResponseData } from "./CompanyPlanDetailResponseData";
 import {
   CompanyPlanDetailResponseDataFromJSON,
   CompanyPlanDetailResponseDataFromJSONTyped,
   CompanyPlanDetailResponseDataToJSON,
+  CompanyPlanDetailResponseDataToJSONTyped,
 } from "./CompanyPlanDetailResponseData";
 import type { UsageBasedEntitlementResponseData } from "./UsageBasedEntitlementResponseData";
 import {
   UsageBasedEntitlementResponseDataFromJSON,
   UsageBasedEntitlementResponseDataFromJSONTyped,
   UsageBasedEntitlementResponseDataToJSON,
+  UsageBasedEntitlementResponseDataToJSONTyped,
 } from "./UsageBasedEntitlementResponseData";
 import type { CompatiblePlans } from "./CompatiblePlans";
 import {
   CompatiblePlansFromJSON,
   CompatiblePlansFromJSONTyped,
   CompatiblePlansToJSON,
+  CompatiblePlansToJSONTyped,
 } from "./CompatiblePlans";
 import type { ComponentCapabilities } from "./ComponentCapabilities";
 import {
   ComponentCapabilitiesFromJSON,
   ComponentCapabilitiesFromJSONTyped,
   ComponentCapabilitiesToJSON,
+  ComponentCapabilitiesToJSONTyped,
 } from "./ComponentCapabilities";
 import type { ComponentResponseData } from "./ComponentResponseData";
 import {
   ComponentResponseDataFromJSON,
   ComponentResponseDataFromJSONTyped,
   ComponentResponseDataToJSON,
+  ComponentResponseDataToJSONTyped,
 } from "./ComponentResponseData";
 import type { FeatureUsageDetailResponseData } from "./FeatureUsageDetailResponseData";
 import {
   FeatureUsageDetailResponseDataFromJSON,
   FeatureUsageDetailResponseDataFromJSONTyped,
   FeatureUsageDetailResponseDataToJSON,
+  FeatureUsageDetailResponseDataToJSONTyped,
 } from "./FeatureUsageDetailResponseData";
 import type { CompanyDetailResponseData } from "./CompanyDetailResponseData";
 import {
   CompanyDetailResponseDataFromJSON,
   CompanyDetailResponseDataFromJSONTyped,
   CompanyDetailResponseDataToJSON,
+  CompanyDetailResponseDataToJSONTyped,
 } from "./CompanyDetailResponseData";
 import type { CompanySubscriptionResponseData } from "./CompanySubscriptionResponseData";
 import {
   CompanySubscriptionResponseDataFromJSON,
   CompanySubscriptionResponseDataFromJSONTyped,
   CompanySubscriptionResponseDataToJSON,
+  CompanySubscriptionResponseDataToJSONTyped,
 } from "./CompanySubscriptionResponseData";
 
 /**
@@ -425,11 +441,19 @@ export function ComponentHydrateResponseDataFromJSONTyped(
 }
 
 export function ComponentHydrateResponseDataToJSON(
+  json: any,
+): ComponentHydrateResponseData {
+  return ComponentHydrateResponseDataToJSONTyped(json, false);
+}
+
+export function ComponentHydrateResponseDataToJSONTyped(
   value?: ComponentHydrateResponseData | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     active_add_ons: (value["activeAddOns"] as Array<any>).map(
       CompanyPlanDetailResponseDataToJSON,

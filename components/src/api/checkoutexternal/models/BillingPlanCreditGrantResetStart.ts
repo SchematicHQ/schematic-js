@@ -34,12 +34,9 @@ export function instanceOfBillingPlanCreditGrantResetStart(
       )
     ) {
       if (
-        (
-          BillingPlanCreditGrantResetStart as Record<
-            string,
-            BillingPlanCreditGrantResetStart
-          >
-        )[key] === value
+        BillingPlanCreditGrantResetStart[
+          key as keyof typeof BillingPlanCreditGrantResetStart
+        ] === value
       ) {
         return true;
       }
@@ -65,4 +62,11 @@ export function BillingPlanCreditGrantResetStartToJSON(
   value?: BillingPlanCreditGrantResetStart | null,
 ): any {
   return value as any;
+}
+
+export function BillingPlanCreditGrantResetStartToJSONTyped(
+  value: any,
+  ignoreDiscriminator: boolean,
+): BillingPlanCreditGrantResetStart {
+  return value as BillingPlanCreditGrantResetStart;
 }

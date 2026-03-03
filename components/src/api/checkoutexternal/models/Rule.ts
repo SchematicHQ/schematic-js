@@ -18,12 +18,14 @@ import {
   ConditionFromJSON,
   ConditionFromJSONTyped,
   ConditionToJSON,
+  ConditionToJSONTyped,
 } from "./Condition";
 import type { ConditionGroup } from "./ConditionGroup";
 import {
   ConditionGroupFromJSON,
   ConditionGroupFromJSONTyped,
   ConditionGroupToJSON,
+  ConditionGroupToJSONTyped,
 } from "./ConditionGroup";
 
 /**
@@ -155,10 +157,18 @@ export function RuleFromJSONTyped(
   };
 }
 
-export function RuleToJSON(value?: Rule | null): any {
+export function RuleToJSON(json: any): Rule {
+  return RuleToJSONTyped(json, false);
+}
+
+export function RuleToJSONTyped(
+  value?: Rule | null,
+  ignoreDiscriminator: boolean = false,
+): any {
   if (value == null) {
     return value;
   }
+
   return {
     account_id: value["accountId"],
     condition_groups: (value["conditionGroups"] as Array<any>).map(

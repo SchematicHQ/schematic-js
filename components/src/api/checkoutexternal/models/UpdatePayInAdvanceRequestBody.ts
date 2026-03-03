@@ -64,11 +64,19 @@ export function UpdatePayInAdvanceRequestBodyFromJSONTyped(
 }
 
 export function UpdatePayInAdvanceRequestBodyToJSON(
+  json: any,
+): UpdatePayInAdvanceRequestBody {
+  return UpdatePayInAdvanceRequestBodyToJSONTyped(json, false);
+}
+
+export function UpdatePayInAdvanceRequestBodyToJSONTyped(
   value?: UpdatePayInAdvanceRequestBody | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     price_id: value["priceId"],
     quantity: value["quantity"],

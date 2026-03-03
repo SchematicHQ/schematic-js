@@ -50,10 +50,18 @@ export function CountResponseFromJSONTyped(
   };
 }
 
-export function CountResponseToJSON(value?: CountResponse | null): any {
+export function CountResponseToJSON(json: any): CountResponse {
+  return CountResponseToJSONTyped(json, false);
+}
+
+export function CountResponseToJSONTyped(
+  value?: CountResponse | null,
+  ignoreDiscriminator: boolean = false,
+): any {
   if (value == null) {
     return value;
   }
+
   return {
     count: value["count"],
   };

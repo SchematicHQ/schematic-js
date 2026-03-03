@@ -18,6 +18,7 @@ import {
   PaymentMethodResponseDataFromJSON,
   PaymentMethodResponseDataFromJSONTyped,
   PaymentMethodResponseDataToJSON,
+  PaymentMethodResponseDataToJSONTyped,
 } from "./PaymentMethodResponseData";
 
 /**
@@ -71,11 +72,19 @@ export function UpdatePaymentMethodResponseFromJSONTyped(
 }
 
 export function UpdatePaymentMethodResponseToJSON(
+  json: any,
+): UpdatePaymentMethodResponse {
+  return UpdatePaymentMethodResponseToJSONTyped(json, false);
+}
+
+export function UpdatePaymentMethodResponseToJSONTyped(
   value?: UpdatePaymentMethodResponse | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     data: PaymentMethodResponseDataToJSON(value["data"]),
     params: value["params"],

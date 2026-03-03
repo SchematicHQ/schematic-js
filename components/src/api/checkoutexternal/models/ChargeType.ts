@@ -26,7 +26,7 @@ export type ChargeType = (typeof ChargeType)[keyof typeof ChargeType];
 export function instanceOfChargeType(value: any): boolean {
   for (const key in ChargeType) {
     if (Object.prototype.hasOwnProperty.call(ChargeType, key)) {
-      if ((ChargeType as Record<string, ChargeType>)[key] === value) {
+      if (ChargeType[key as keyof typeof ChargeType] === value) {
         return true;
       }
     }
@@ -47,4 +47,11 @@ export function ChargeTypeFromJSONTyped(
 
 export function ChargeTypeToJSON(value?: ChargeType | null): any {
   return value as any;
+}
+
+export function ChargeTypeToJSONTyped(
+  value: any,
+  ignoreDiscriminator: boolean,
+): ChargeType {
+  return value as ChargeType;
 }

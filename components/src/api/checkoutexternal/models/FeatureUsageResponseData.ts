@@ -18,66 +18,77 @@ import {
   EntitlementValueTypeFromJSON,
   EntitlementValueTypeFromJSONTyped,
   EntitlementValueTypeToJSON,
+  EntitlementValueTypeToJSONTyped,
 } from "./EntitlementValueType";
 import type { FeatureDetailResponseData } from "./FeatureDetailResponseData";
 import {
   FeatureDetailResponseDataFromJSON,
   FeatureDetailResponseDataFromJSONTyped,
   FeatureDetailResponseDataToJSON,
+  FeatureDetailResponseDataToJSONTyped,
 } from "./FeatureDetailResponseData";
 import type { CompanyOverrideResponseData } from "./CompanyOverrideResponseData";
 import {
   CompanyOverrideResponseDataFromJSON,
   CompanyOverrideResponseDataFromJSONTyped,
   CompanyOverrideResponseDataToJSON,
+  CompanyOverrideResponseDataToJSONTyped,
 } from "./CompanyOverrideResponseData";
 import type { PlanEntitlementResponseData } from "./PlanEntitlementResponseData";
 import {
   PlanEntitlementResponseDataFromJSON,
   PlanEntitlementResponseDataFromJSONTyped,
   PlanEntitlementResponseDataToJSON,
+  PlanEntitlementResponseDataToJSONTyped,
 } from "./PlanEntitlementResponseData";
 import type { CreditUsageAggregation } from "./CreditUsageAggregation";
 import {
   CreditUsageAggregationFromJSON,
   CreditUsageAggregationFromJSONTyped,
   CreditUsageAggregationToJSON,
+  CreditUsageAggregationToJSONTyped,
 } from "./CreditUsageAggregation";
 import type { EntitlementPriceBehavior } from "./EntitlementPriceBehavior";
 import {
   EntitlementPriceBehaviorFromJSON,
   EntitlementPriceBehaviorFromJSONTyped,
   EntitlementPriceBehaviorToJSON,
+  EntitlementPriceBehaviorToJSONTyped,
 } from "./EntitlementPriceBehavior";
 import type { CreditGrantDetail } from "./CreditGrantDetail";
 import {
   CreditGrantDetailFromJSON,
   CreditGrantDetailFromJSONTyped,
   CreditGrantDetailToJSON,
+  CreditGrantDetailToJSONTyped,
 } from "./CreditGrantDetail";
 import type { EntitlementType } from "./EntitlementType";
 import {
   EntitlementTypeFromJSON,
   EntitlementTypeFromJSONTyped,
   EntitlementTypeToJSON,
+  EntitlementTypeToJSONTyped,
 } from "./EntitlementType";
 import type { BillingPriceView } from "./BillingPriceView";
 import {
   BillingPriceViewFromJSON,
   BillingPriceViewFromJSONTyped,
   BillingPriceViewToJSON,
+  BillingPriceViewToJSONTyped,
 } from "./BillingPriceView";
 import type { PlanResponseData } from "./PlanResponseData";
 import {
   PlanResponseDataFromJSON,
   PlanResponseDataFromJSONTyped,
   PlanResponseDataToJSON,
+  PlanResponseDataToJSONTyped,
 } from "./PlanResponseData";
 import type { BillingCreditGrantReason } from "./BillingCreditGrantReason";
 import {
   BillingCreditGrantReasonFromJSON,
   BillingCreditGrantReasonFromJSONTyped,
   BillingCreditGrantReasonToJSON,
+  BillingCreditGrantReasonToJSONTyped,
 } from "./BillingCreditGrantReason";
 
 /**
@@ -416,11 +427,19 @@ export function FeatureUsageResponseDataFromJSONTyped(
 }
 
 export function FeatureUsageResponseDataToJSON(
+  json: any,
+): FeatureUsageResponseData {
+  return FeatureUsageResponseDataToJSONTyped(json, false);
+}
+
+export function FeatureUsageResponseDataToJSONTyped(
   value?: FeatureUsageResponseData | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     access: value["access"],
     allocation: value["allocation"],

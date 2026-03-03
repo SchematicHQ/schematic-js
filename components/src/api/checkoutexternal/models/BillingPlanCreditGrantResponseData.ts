@@ -18,42 +18,49 @@ import {
   BillingCreditResponseDataFromJSON,
   BillingCreditResponseDataFromJSONTyped,
   BillingCreditResponseDataToJSON,
+  BillingCreditResponseDataToJSONTyped,
 } from "./BillingCreditResponseData";
 import type { BillingCreditExpiryType } from "./BillingCreditExpiryType";
 import {
   BillingCreditExpiryTypeFromJSON,
   BillingCreditExpiryTypeFromJSONTyped,
   BillingCreditExpiryTypeToJSON,
+  BillingCreditExpiryTypeToJSONTyped,
 } from "./BillingCreditExpiryType";
 import type { BillingPlanCreditGrantResetStart } from "./BillingPlanCreditGrantResetStart";
 import {
   BillingPlanCreditGrantResetStartFromJSON,
   BillingPlanCreditGrantResetStartFromJSONTyped,
   BillingPlanCreditGrantResetStartToJSON,
+  BillingPlanCreditGrantResetStartToJSONTyped,
 } from "./BillingPlanCreditGrantResetStart";
 import type { BillingPlanCreditGrantResetType } from "./BillingPlanCreditGrantResetType";
 import {
   BillingPlanCreditGrantResetTypeFromJSON,
   BillingPlanCreditGrantResetTypeFromJSONTyped,
   BillingPlanCreditGrantResetTypeToJSON,
+  BillingPlanCreditGrantResetTypeToJSONTyped,
 } from "./BillingPlanCreditGrantResetType";
 import type { BillingCreditExpiryUnit } from "./BillingCreditExpiryUnit";
 import {
   BillingCreditExpiryUnitFromJSON,
   BillingCreditExpiryUnitFromJSONTyped,
   BillingCreditExpiryUnitToJSON,
+  BillingCreditExpiryUnitToJSONTyped,
 } from "./BillingCreditExpiryUnit";
 import type { PreviewObjectResponseData } from "./PreviewObjectResponseData";
 import {
   PreviewObjectResponseDataFromJSON,
   PreviewObjectResponseDataFromJSONTyped,
   PreviewObjectResponseDataToJSON,
+  PreviewObjectResponseDataToJSONTyped,
 } from "./PreviewObjectResponseData";
 import type { BillingPlanCreditGrantResetCadence } from "./BillingPlanCreditGrantResetCadence";
 import {
   BillingPlanCreditGrantResetCadenceFromJSON,
   BillingPlanCreditGrantResetCadenceFromJSONTyped,
   BillingPlanCreditGrantResetCadenceToJSON,
+  BillingPlanCreditGrantResetCadenceToJSONTyped,
 } from "./BillingPlanCreditGrantResetCadence";
 
 /**
@@ -334,11 +341,19 @@ export function BillingPlanCreditGrantResponseDataFromJSONTyped(
 }
 
 export function BillingPlanCreditGrantResponseDataToJSON(
+  json: any,
+): BillingPlanCreditGrantResponseData {
+  return BillingPlanCreditGrantResponseDataToJSONTyped(json, false);
+}
+
+export function BillingPlanCreditGrantResponseDataToJSONTyped(
   value?: BillingPlanCreditGrantResponseData | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     auto_topup_amount: value["autoTopupAmount"],
     auto_topup_amount_type: value["autoTopupAmountType"],

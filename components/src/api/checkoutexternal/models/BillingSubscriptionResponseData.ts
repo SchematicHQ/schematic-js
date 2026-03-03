@@ -18,12 +18,14 @@ import {
   BillingSubscriptionTrialEndSettingFromJSON,
   BillingSubscriptionTrialEndSettingFromJSONTyped,
   BillingSubscriptionTrialEndSettingToJSON,
+  BillingSubscriptionTrialEndSettingToJSONTyped,
 } from "./BillingSubscriptionTrialEndSetting";
 import type { BillingProviderType } from "./BillingProviderType";
 import {
   BillingProviderTypeFromJSON,
   BillingProviderTypeFromJSONTyped,
   BillingProviderTypeToJSON,
+  BillingProviderTypeToJSONTyped,
 } from "./BillingProviderType";
 
 /**
@@ -236,11 +238,19 @@ export function BillingSubscriptionResponseDataFromJSONTyped(
 }
 
 export function BillingSubscriptionResponseDataToJSON(
+  json: any,
+): BillingSubscriptionResponseData {
+  return BillingSubscriptionResponseDataToJSONTyped(json, false);
+}
+
+export function BillingSubscriptionResponseDataToJSONTyped(
   value?: BillingSubscriptionResponseData | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     application_id: value["applicationId"],
     cancel_at: value["cancelAt"],

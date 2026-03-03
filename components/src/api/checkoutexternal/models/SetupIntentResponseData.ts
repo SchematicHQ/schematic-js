@@ -85,11 +85,19 @@ export function SetupIntentResponseDataFromJSONTyped(
 }
 
 export function SetupIntentResponseDataToJSON(
+  json: any,
+): SetupIntentResponseData {
+  return SetupIntentResponseDataToJSONTyped(json, false);
+}
+
+export function SetupIntentResponseDataToJSONTyped(
   value?: SetupIntentResponseData | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     account_id: value["accountId"],
     publishable_key: value["publishableKey"],

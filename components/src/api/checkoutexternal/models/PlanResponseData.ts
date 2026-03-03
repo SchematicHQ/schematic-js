@@ -18,6 +18,7 @@ import {
   PlanTypeFromJSON,
   PlanTypeFromJSONTyped,
   PlanTypeToJSON,
+  PlanTypeToJSONTyped,
 } from "./PlanType";
 
 /**
@@ -118,10 +119,18 @@ export function PlanResponseDataFromJSONTyped(
   };
 }
 
-export function PlanResponseDataToJSON(value?: PlanResponseData | null): any {
+export function PlanResponseDataToJSON(json: any): PlanResponseData {
+  return PlanResponseDataToJSONTyped(json, false);
+}
+
+export function PlanResponseDataToJSONTyped(
+  value?: PlanResponseData | null,
+  ignoreDiscriminator: boolean = false,
+): any {
   if (value == null) {
     return value;
   }
+
   return {
     audience_type: value["audienceType"],
     created_at: value["createdAt"].toISOString(),

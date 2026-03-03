@@ -18,24 +18,28 @@ import {
   CompatiblePlansFromJSON,
   CompatiblePlansFromJSONTyped,
   CompatiblePlansToJSON,
+  CompatiblePlansToJSONTyped,
 } from "./CompatiblePlans";
 import type { ComponentCapabilities } from "./ComponentCapabilities";
 import {
   ComponentCapabilitiesFromJSON,
   ComponentCapabilitiesFromJSONTyped,
   ComponentCapabilitiesToJSON,
+  ComponentCapabilitiesToJSONTyped,
 } from "./ComponentCapabilities";
 import type { PlanViewPublicResponseData } from "./PlanViewPublicResponseData";
 import {
   PlanViewPublicResponseDataFromJSON,
   PlanViewPublicResponseDataFromJSONTyped,
   PlanViewPublicResponseDataToJSON,
+  PlanViewPublicResponseDataToJSONTyped,
 } from "./PlanViewPublicResponseData";
 import type { ComponentDisplaySettings } from "./ComponentDisplaySettings";
 import {
   ComponentDisplaySettingsFromJSON,
   ComponentDisplaySettingsFromJSONTyped,
   ComponentDisplaySettingsToJSON,
+  ComponentDisplaySettingsToJSONTyped,
 } from "./ComponentDisplaySettings";
 
 /**
@@ -174,11 +178,19 @@ export function PublicPlansResponseDataFromJSONTyped(
 }
 
 export function PublicPlansResponseDataToJSON(
+  json: any,
+): PublicPlansResponseData {
+  return PublicPlansResponseDataToJSONTyped(json, false);
+}
+
+export function PublicPlansResponseDataToJSONTyped(
   value?: PublicPlansResponseData | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     active_add_ons: (value["activeAddOns"] as Array<any>).map(
       PlanViewPublicResponseDataToJSON,

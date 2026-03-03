@@ -18,18 +18,21 @@ import {
   EntitlementValueTypeFromJSON,
   EntitlementValueTypeFromJSONTyped,
   EntitlementValueTypeToJSON,
+  EntitlementValueTypeToJSONTyped,
 } from "./EntitlementValueType";
 import type { EntitlementPriceBehavior } from "./EntitlementPriceBehavior";
 import {
   EntitlementPriceBehaviorFromJSON,
   EntitlementPriceBehaviorFromJSONTyped,
   EntitlementPriceBehaviorToJSON,
+  EntitlementPriceBehaviorToJSONTyped,
 } from "./EntitlementPriceBehavior";
 import type { BillingPriceView } from "./BillingPriceView";
 import {
   BillingPriceViewFromJSON,
   BillingPriceViewFromJSONTyped,
   BillingPriceViewToJSON,
+  BillingPriceViewToJSONTyped,
 } from "./BillingPriceView";
 
 /**
@@ -172,11 +175,19 @@ export function UsageBasedEntitlementResponseDataFromJSONTyped(
 }
 
 export function UsageBasedEntitlementResponseDataToJSON(
+  json: any,
+): UsageBasedEntitlementResponseData {
+  return UsageBasedEntitlementResponseDataToJSONTyped(json, false);
+}
+
+export function UsageBasedEntitlementResponseDataToJSONTyped(
   value?: UsageBasedEntitlementResponseData | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     billing_threshold: value["billingThreshold"],
     consumption_rate: value["consumptionRate"],

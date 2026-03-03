@@ -75,12 +75,18 @@ export function GenericPreviewObjectFromJSONTyped(
   };
 }
 
-export function GenericPreviewObjectToJSON(
+export function GenericPreviewObjectToJSON(json: any): GenericPreviewObject {
+  return GenericPreviewObjectToJSONTyped(json, false);
+}
+
+export function GenericPreviewObjectToJSONTyped(
   value?: GenericPreviewObject | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     description: value["description"],
     id: value["id"],

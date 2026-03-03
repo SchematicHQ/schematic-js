@@ -27,9 +27,9 @@ export function instanceOfBillingCreditBundleStatus(value: any): boolean {
   for (const key in BillingCreditBundleStatus) {
     if (Object.prototype.hasOwnProperty.call(BillingCreditBundleStatus, key)) {
       if (
-        (
-          BillingCreditBundleStatus as Record<string, BillingCreditBundleStatus>
-        )[key] === value
+        BillingCreditBundleStatus[
+          key as keyof typeof BillingCreditBundleStatus
+        ] === value
       ) {
         return true;
       }
@@ -55,4 +55,11 @@ export function BillingCreditBundleStatusToJSON(
   value?: BillingCreditBundleStatus | null,
 ): any {
   return value as any;
+}
+
+export function BillingCreditBundleStatusToJSONTyped(
+  value: any,
+  ignoreDiscriminator: boolean,
+): BillingCreditBundleStatus {
+  return value as BillingCreditBundleStatus;
 }

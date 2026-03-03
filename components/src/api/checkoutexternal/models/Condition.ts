@@ -18,6 +18,7 @@ import {
   TraitDefinitionFromJSON,
   TraitDefinitionFromJSONTyped,
   TraitDefinitionToJSON,
+  TraitDefinitionToJSONTyped,
 } from "./TraitDefinition";
 
 /**
@@ -234,10 +235,18 @@ export function ConditionFromJSONTyped(
   };
 }
 
-export function ConditionToJSON(value?: Condition | null): any {
+export function ConditionToJSON(json: any): Condition {
+  return ConditionToJSONTyped(json, false);
+}
+
+export function ConditionToJSONTyped(
+  value?: Condition | null,
+  ignoreDiscriminator: boolean = false,
+): any {
   if (value == null) {
     return value;
   }
+
   return {
     account_id: value["accountId"],
     comparison_trait_definition: TraitDefinitionToJSON(

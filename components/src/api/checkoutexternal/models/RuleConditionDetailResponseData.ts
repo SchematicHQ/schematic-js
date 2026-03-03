@@ -18,18 +18,21 @@ import {
   EntityTypeFromJSON,
   EntityTypeFromJSONTyped,
   EntityTypeToJSON,
+  EntityTypeToJSONTyped,
 } from "./EntityType";
 import type { EntityTraitDefinitionResponseData } from "./EntityTraitDefinitionResponseData";
 import {
   EntityTraitDefinitionResponseDataFromJSON,
   EntityTraitDefinitionResponseDataFromJSONTyped,
   EntityTraitDefinitionResponseDataToJSON,
+  EntityTraitDefinitionResponseDataToJSONTyped,
 } from "./EntityTraitDefinitionResponseData";
 import type { PreviewObjectResponseData } from "./PreviewObjectResponseData";
 import {
   PreviewObjectResponseDataFromJSON,
   PreviewObjectResponseDataFromJSONTyped,
   PreviewObjectResponseDataToJSON,
+  PreviewObjectResponseDataToJSONTyped,
 } from "./PreviewObjectResponseData";
 
 /**
@@ -251,11 +254,19 @@ export function RuleConditionDetailResponseDataFromJSONTyped(
 }
 
 export function RuleConditionDetailResponseDataToJSON(
+  json: any,
+): RuleConditionDetailResponseData {
+  return RuleConditionDetailResponseDataToJSONTyped(json, false);
+}
+
+export function RuleConditionDetailResponseDataToJSONTyped(
   value?: RuleConditionDetailResponseData | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     comparison_trait: EntityTraitDefinitionResponseDataToJSON(
       value["comparisonTrait"],

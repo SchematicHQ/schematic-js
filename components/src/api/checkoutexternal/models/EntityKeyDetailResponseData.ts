@@ -18,12 +18,14 @@ import {
   EntityKeyDefinitionResponseDataFromJSON,
   EntityKeyDefinitionResponseDataFromJSONTyped,
   EntityKeyDefinitionResponseDataToJSON,
+  EntityKeyDefinitionResponseDataToJSONTyped,
 } from "./EntityKeyDefinitionResponseData";
 import type { EntityType } from "./EntityType";
 import {
   EntityTypeFromJSON,
   EntityTypeFromJSONTyped,
   EntityTypeToJSON,
+  EntityTypeToJSONTyped,
 } from "./EntityType";
 
 /**
@@ -146,11 +148,19 @@ export function EntityKeyDetailResponseDataFromJSONTyped(
 }
 
 export function EntityKeyDetailResponseDataToJSON(
+  json: any,
+): EntityKeyDetailResponseData {
+  return EntityKeyDetailResponseDataToJSONTyped(json, false);
+}
+
+export function EntityKeyDetailResponseDataToJSONTyped(
   value?: EntityKeyDetailResponseData | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     created_at: value["createdAt"].toISOString(),
     definition: EntityKeyDefinitionResponseDataToJSON(value["definition"]),

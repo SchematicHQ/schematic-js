@@ -18,6 +18,7 @@ import {
   ConditionFromJSON,
   ConditionFromJSONTyped,
   ConditionToJSON,
+  ConditionToJSONTyped,
 } from "./Condition";
 
 /**
@@ -61,10 +62,18 @@ export function ConditionGroupFromJSONTyped(
   };
 }
 
-export function ConditionGroupToJSON(value?: ConditionGroup | null): any {
+export function ConditionGroupToJSON(json: any): ConditionGroup {
+  return ConditionGroupToJSONTyped(json, false);
+}
+
+export function ConditionGroupToJSONTyped(
+  value?: ConditionGroup | null,
+  ignoreDiscriminator: boolean = false,
+): any {
   if (value == null) {
     return value;
   }
+
   return {
     conditions: (value["conditions"] as Array<any>).map(ConditionToJSON),
   };

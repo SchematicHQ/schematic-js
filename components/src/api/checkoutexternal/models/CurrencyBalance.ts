@@ -61,10 +61,18 @@ export function CurrencyBalanceFromJSONTyped(
   };
 }
 
-export function CurrencyBalanceToJSON(value?: CurrencyBalance | null): any {
+export function CurrencyBalanceToJSON(json: any): CurrencyBalance {
+  return CurrencyBalanceToJSONTyped(json, false);
+}
+
+export function CurrencyBalanceToJSONTyped(
+  value?: CurrencyBalance | null,
+  ignoreDiscriminator: boolean = false,
+): any {
   if (value == null) {
     return value;
   }
+
   return {
     balance: value["balance"],
     currency: value["currency"],

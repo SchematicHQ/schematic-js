@@ -18,6 +18,7 @@ import {
   EntityTraitDefinitionResponseDataFromJSON,
   EntityTraitDefinitionResponseDataFromJSONTyped,
   EntityTraitDefinitionResponseDataToJSON,
+  EntityTraitDefinitionResponseDataToJSONTyped,
 } from "./EntityTraitDefinitionResponseData";
 
 /**
@@ -115,11 +116,19 @@ export function EntityTraitDetailResponseDataFromJSONTyped(
 }
 
 export function EntityTraitDetailResponseDataToJSON(
+  json: any,
+): EntityTraitDetailResponseData {
+  return EntityTraitDetailResponseDataToJSONTyped(json, false);
+}
+
+export function EntityTraitDetailResponseDataToJSONTyped(
   value?: EntityTraitDetailResponseData | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     created_at: value["createdAt"].toISOString(),
     definition: EntityTraitDefinitionResponseDataToJSON(value["definition"]),

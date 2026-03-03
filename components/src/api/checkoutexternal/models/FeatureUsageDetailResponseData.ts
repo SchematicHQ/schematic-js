@@ -18,6 +18,7 @@ import {
   FeatureUsageResponseDataFromJSON,
   FeatureUsageResponseDataFromJSONTyped,
   FeatureUsageResponseDataToJSON,
+  FeatureUsageResponseDataToJSONTyped,
 } from "./FeatureUsageResponseData";
 
 /**
@@ -65,11 +66,19 @@ export function FeatureUsageDetailResponseDataFromJSONTyped(
 }
 
 export function FeatureUsageDetailResponseDataToJSON(
+  json: any,
+): FeatureUsageDetailResponseData {
+  return FeatureUsageDetailResponseDataToJSONTyped(json, false);
+}
+
+export function FeatureUsageDetailResponseDataToJSONTyped(
   value?: FeatureUsageDetailResponseData | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     features: (value["features"] as Array<any>).map(
       FeatureUsageResponseDataToJSON,

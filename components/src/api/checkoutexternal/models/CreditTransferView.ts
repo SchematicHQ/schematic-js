@@ -94,12 +94,18 @@ export function CreditTransferViewFromJSONTyped(
   };
 }
 
-export function CreditTransferViewToJSON(
+export function CreditTransferViewToJSON(json: any): CreditTransferView {
+  return CreditTransferViewToJSONTyped(json, false);
+}
+
+export function CreditTransferViewToJSONTyped(
   value?: CreditTransferView | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     amount: value["amount"],
     created_at: value["createdAt"].toISOString(),

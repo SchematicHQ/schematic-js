@@ -18,6 +18,7 @@ import {
   PublicPlansResponseDataFromJSON,
   PublicPlansResponseDataFromJSONTyped,
   PublicPlansResponseDataToJSON,
+  PublicPlansResponseDataToJSONTyped,
 } from "./PublicPlansResponseData";
 
 /**
@@ -71,11 +72,19 @@ export function GetPublicPlansResponseFromJSONTyped(
 }
 
 export function GetPublicPlansResponseToJSON(
+  json: any,
+): GetPublicPlansResponse {
+  return GetPublicPlansResponseToJSONTyped(json, false);
+}
+
+export function GetPublicPlansResponseToJSONTyped(
   value?: GetPublicPlansResponse | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     data: PublicPlansResponseDataToJSON(value["data"]),
     params: value["params"],
