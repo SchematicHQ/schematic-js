@@ -673,6 +673,15 @@ export class Schematic {
       return Promise.resolve();
     }
 
+    // Skip if context hasn't changed, we have an active connection, and we're not pending
+    if (
+      contextString(context) === contextString(this.context) &&
+      this.conn !== null &&
+      !this.isPending
+    ) {
+      return;
+    }
+
     // If using websocket, wsSendMessage will handle setting the context
     try {
       this.setIsPending(true);
