@@ -10,6 +10,7 @@ import {
 import {
   extractCurrentUsageBasedEntitlements,
   getEntitlementFeatureName,
+  getUsageDetails,
 } from "../index";
 
 describe("calculateCurrentUsageBasedEntitlements", () => {
@@ -386,5 +387,240 @@ describe("getEntitlementFeatureName", () => {
 
     const result = getEntitlementFeatureName(entitlement);
     expect(result).toBe("Seat");
+  });
+});
+
+// Helper to create a minimal FeatureUsageResponseData with overrides
+function makeEntitlement(
+  overrides: Partial<FeatureUsageResponseData> = {},
+): FeatureUsageResponseData {
+  return {
+    access: true,
+    allocationType: EntitlementValueType.Numeric,
+    entitlementId: "ent-1",
+    entitlementType: EntitlementType.PlanEntitlement,
+    ...overrides,
+  };
+}
+
+describe("getUsageDetails", () => {
+  describe("limit", () => {
+    it("should use allocation for pay-in-advance", () => {
+      const result = getUsageDetails(
+        makeEntitlement({
+          priceBehavior: "pay_in_advance",
+          allocation: 100,
+          usage: 40,
+        }),
+      );
+      expect(result.limit).toBe(100);
+    });
+
+    it("should use softLimit for overage pricing", () => {
+      const result = getUsageDetails(
+        makeEntitlement({
+          priceBehavior: "overage",
+          softLimit: 10,
+          usage: 7,
+        }),
+      );
+      expect(result.limit).toBe(10);
+    });
+
+    it("should use creditTotal / creditConsumptionRate for credit pricing", () => {
+      const result = getUsageDetails(
+        makeEntitlement({
+          priceBehavior: "credit_burndown",
+          creditTotal: 1000,
+          creditConsumptionRate: 5,
+        }),
+      );
+      expect(result.limit).toBe(200);
+    });
+
+    it("should use allocation when no price behavior", () => {
+      const result = getUsageDetails(
+        makeEntitlement({ allocation: 50, usage: 10 }),
+      );
+      expect(result.limit).toBe(50);
+    });
+
+    it("should be undefined for pay-as-you-go", () => {
+      const result = getUsageDetails(
+        makeEntitlement({
+          priceBehavior: "pay_as_you_go",
+          usage: 25,
+        }),
+      );
+      expect(result.limit).toBeUndefined();
+    });
+  });
+
+  describe("amount", () => {
+    it("should use allocation for pay-in-advance", () => {
+      const result = getUsageDetails(
+        makeEntitlement({
+          priceBehavior: "pay_in_advance",
+          allocation: 100,
+        }),
+      );
+      expect(result.amount).toBe(100);
+    });
+
+    it("should use usage for pay-as-you-go", () => {
+      const result = getUsageDetails(
+        makeEntitlement({
+          priceBehavior: "pay_as_you_go",
+          usage: 42,
+        }),
+      );
+      expect(result.amount).toBe(42);
+    });
+
+    it("should use usage for tiered pricing", () => {
+      const result = getUsageDetails(
+        makeEntitlement({
+          priceBehavior: "tier",
+          usage: 75,
+        }),
+      );
+      expect(result.amount).toBe(75);
+    });
+
+    it("should compute overage amount as usage - softLimit", () => {
+      const result = getUsageDetails(
+        makeEntitlement({
+          priceBehavior: "overage",
+          usage: 7,
+          softLimit: 1,
+        }),
+      );
+      expect(result.amount).toBe(6);
+    });
+
+    it("should clamp overage amount to 0 when under soft limit", () => {
+      const result = getUsageDetails(
+        makeEntitlement({
+          priceBehavior: "overage",
+          usage: 0,
+          softLimit: 10,
+        }),
+      );
+      expect(result.amount).toBe(0);
+    });
+
+    it("should compute credit amount as creditUsed / consumptionRate", () => {
+      const result = getUsageDetails(
+        makeEntitlement({
+          priceBehavior: "credit_burndown",
+          creditUsed: 50,
+          creditConsumptionRate: 5,
+        }),
+      );
+      expect(result.amount).toBe(10);
+    });
+  });
+
+  describe("currentTier", () => {
+    it("should resolve overage tier from billing price tiers", () => {
+      const result = getUsageDetails(
+        makeEntitlement({
+          priceBehavior: "overage",
+          softLimit: 100,
+          usage: 150,
+          monthlyUsageBasedPrice: {
+            priceId: "p1",
+            price: 10,
+            priceTier: [
+              { upTo: 100, perUnitPrice: 0 },
+              { upTo: null, perUnitPrice: 5 },
+            ],
+          } as BillingPriceView,
+        }),
+        "month",
+      );
+      expect(result.currentTier).toMatchObject({
+        from: 101,
+        to: Infinity,
+        perUnitPrice: 5,
+      });
+    });
+
+    it("should resolve tiered pricing current tier based on usage", () => {
+      const result = getUsageDetails(
+        makeEntitlement({
+          priceBehavior: "tier",
+          usage: 150,
+          monthlyUsageBasedPrice: {
+            priceId: "p1",
+            price: 10,
+            priceTier: [
+              { upTo: 100, perUnitPrice: 10 },
+              { upTo: 500, perUnitPrice: 5 },
+              { upTo: null, perUnitPrice: 2 },
+            ],
+          } as BillingPriceView,
+        }),
+        "month",
+      );
+      expect(result.currentTier).toMatchObject({
+        from: 101,
+        to: 500,
+        perUnitPrice: 5,
+      });
+    });
+
+    it("should be undefined when no tiers exist", () => {
+      const result = getUsageDetails(
+        makeEntitlement({
+          priceBehavior: "overage",
+          softLimit: 10,
+          usage: 15,
+        }),
+      );
+      expect(result.currentTier).toBeUndefined();
+    });
+  });
+
+  describe("billingPrice", () => {
+    const monthlyPrice = {
+      priceId: "monthly",
+      price: 10,
+    } as BillingPriceView;
+    const yearlyPrice = {
+      priceId: "yearly",
+      price: 100,
+    } as BillingPriceView;
+
+    it("should select monthly price for month period", () => {
+      const result = getUsageDetails(
+        makeEntitlement({
+          monthlyUsageBasedPrice: monthlyPrice,
+          yearlyUsageBasedPrice: yearlyPrice,
+        }),
+        "month",
+      );
+      expect(result.billingPrice?.priceId).toBe("monthly");
+    });
+
+    it("should select yearly price for year period", () => {
+      const result = getUsageDetails(
+        makeEntitlement({
+          monthlyUsageBasedPrice: monthlyPrice,
+          yearlyUsageBasedPrice: yearlyPrice,
+        }),
+        "year",
+      );
+      expect(result.billingPrice?.priceId).toBe("yearly");
+    });
+
+    it("should be undefined when no period provided", () => {
+      const result = getUsageDetails(
+        makeEntitlement({
+          monthlyUsageBasedPrice: monthlyPrice,
+        }),
+      );
+      expect(result.billingPrice).toBeUndefined();
+    });
   });
 });
