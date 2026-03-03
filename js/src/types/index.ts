@@ -175,6 +175,9 @@ export type SchematicOptions = {
 
   /** Default CheckFlagReturn objects for flags when Schematic API cannot be reached and no callsite fallback is provided */
   flagCheckDefaults?: Record<string, CheckFlagReturn>;
+
+  /** Enable developer toolbar for testing flags (default: false) */
+  developerToolbar?: boolean;
 };
 
 export type CheckOptions = {
