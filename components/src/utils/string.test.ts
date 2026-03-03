@@ -15,9 +15,7 @@ describe("hyphenToCamel", () => {
   });
 
   test("converts multiple hyphens", () => {
-    expect(hyphenToCamel("border-top-left-radius")).toBe(
-      "borderTopLeftRadius",
-    );
+    expect(hyphenToCamel("border-top-left-radius")).toBe("borderTopLeftRadius");
   });
 
   test("returns string unchanged if no hyphens", () => {
@@ -35,9 +33,7 @@ describe("camelToHyphen", () => {
   });
 
   test("converts multiple uppercase letters", () => {
-    expect(camelToHyphen("borderTopLeftRadius")).toBe(
-      "border-top-left-radius",
-    );
+    expect(camelToHyphen("borderTopLeftRadius")).toBe("border-top-left-radius");
   });
 
   test("returns string unchanged if already lowercase", () => {

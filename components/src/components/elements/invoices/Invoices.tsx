@@ -243,51 +243,49 @@ export const Invoices = forwardRef<
                   <Flex $flexDirection="column" $gap="0.5rem">
                     {invoices
                       .slice(0, listSize)
-                      .map(
-                        ({ date, amount, amountDue, url }, index) => {
-                          return (
-                            <Flex
-                              key={index}
-                              $justifyContent="space-between"
-                              $alignItems="center"
-                            >
-                              {props.date.isVisible && (
-                                <Text
-                                  display={props.date.fontStyle}
-                                  {...(url && {
-                                    as: "a",
-                                    href: url,
-                                    target: "_blank",
-                                    rel: "noreferrer",
-                                  })}
-                                  $color={
-                                    url
-                                      ? settings.theme.typography.link.color
-                                      : settings.theme.typography.text.color
-                                  }
-                                >
-                                  {date}
-                                </Text>
-                              )}
+                      .map(({ date, amount, amountDue, url }, index) => {
+                        return (
+                          <Flex
+                            key={index}
+                            $justifyContent="space-between"
+                            $alignItems="center"
+                          >
+                            {props.date.isVisible && (
+                              <Text
+                                display={props.date.fontStyle}
+                                {...(url && {
+                                  as: "a",
+                                  href: url,
+                                  target: "_blank",
+                                  rel: "noreferrer",
+                                })}
+                                $color={
+                                  url
+                                    ? settings.theme.typography.link.color
+                                    : settings.theme.typography.text.color
+                                }
+                              >
+                                {date}
+                              </Text>
+                            )}
 
-                              {props.amount.isVisible && (
-                                <Tooltip
-                                  trigger={
-                                    <Text display={props.amount.fontStyle}>
-                                      {amount}
-                                    </Text>
-                                  }
-                                  content={
-                                    amountDue < 0
-                                      ? t("Invoice credit tooltip")
-                                      : t("Invoice charge tooltip")
-                                  }
-                                />
-                              )}
-                            </Flex>
-                          );
-                        },
-                      )}
+                            {props.amount.isVisible && (
+                              <Tooltip
+                                trigger={
+                                  <Text display={props.amount.fontStyle}>
+                                    {amount}
+                                  </Text>
+                                }
+                                content={
+                                  amountDue < 0
+                                    ? t("Invoice credit tooltip")
+                                    : t("Invoice charge tooltip")
+                                }
+                              />
+                            )}
+                          </Flex>
+                        );
+                      })}
                   </Flex>
 
                   {props.collapse.isVisible &&
