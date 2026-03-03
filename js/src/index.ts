@@ -1768,6 +1768,7 @@ export class Schematic {
   };
 
   private setIsPending = (isPending: boolean) => {
+    if (this.isPending === isPending) return;
     this.isPending = isPending;
     this.isPendingListeners.forEach((listener) =>
       notifyPendingListener(listener, isPending),
