@@ -1,18 +1,23 @@
 import { Fragment, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
-import { type FeatureUsageResponseData } from "../../../api/checkoutexternal";
-import { FeatureType, PriceBehavior } from "../../../const";
+import {
+  EntitlementPriceBehavior,
+  EntitlementValueType,
+  FeatureType,
+  type FeatureUsageResponseData,
+} from "../../../api/checkoutexternal";
 import { type FontStyle } from "../../../context";
 import { useEmbed } from "../../../hooks";
 import {
+  entitlementHasHardLimit,
   formatCurrency,
   getEntitlementPrice,
   getFeatureName,
   getUsageDetails,
   shortenPeriod,
 } from "../../../utils";
-import { PricingTiersTooltip } from "../../shared";
+import { HardLimitTooltip, PricingTiersTooltip } from "../../shared";
 import { Flex, Text } from "../../ui";
 
 export interface UsageDetailsProps {
@@ -41,7 +46,6 @@ export const UsageDetails = ({
   const {
     billingPrice,
     limit,
-    amount = 0,
     cost = 0,
   } = useMemo(
     () => getUsageDetails(entitlement, period),
@@ -53,32 +57,25 @@ export const UsageDetails = ({
 
     let index = 0;
 
-    if (entitlement.priceBehavior === PriceBehavior.Overage) {
-      acc.push(
-        amount > 0 ? (
-          <Fragment key={index}>
-            {t("X additional", {
-              amount: amount,
-            })}
-          </Fragment>
-        ) : (
-          <Fragment key={index}>{t("Additional")}: </Fragment>
-        ),
-      );
+    if (entitlement.priceBehavior === EntitlementPriceBehavior.Overage) {
+      acc.push(<Fragment key={index}>{t("Additional")}: </Fragment>);
+      index += 1;
+    }
 
+    if (entitlement.priceBehavior === EntitlementPriceBehavior.Tier) {
+      acc.push(<Fragment key={index}>{t("Tier-based")}</Fragment>);
       index += 1;
     }
 
     const { price } = getEntitlementPrice(entitlement, period) || {};
 
     if (
-      entitlement.priceBehavior !== PriceBehavior.Tiered &&
+      (entitlement.priceBehavior === EntitlementPriceBehavior.PayAsYouGo ||
+        entitlement.priceBehavior === EntitlementPriceBehavior.Overage) &&
       entitlement.feature &&
-      typeof price === "number" &&
-      !amount
+      typeof price === "number"
     ) {
       const packageSize = billingPrice?.packageSize ?? 1;
-
       acc.push(
         <Fragment key={index}>
           {formatCurrency(price, billingPrice?.currency)}
@@ -97,49 +94,45 @@ export const UsageDetails = ({
 
     if (
       showCredits &&
-      entitlement.priceBehavior === PriceBehavior.Credit &&
+      entitlement.priceBehavior === EntitlementPriceBehavior.CreditBurndown &&
       entitlement.planEntitlement?.consumptionRate &&
       entitlement.planEntitlement?.valueCredit
     ) {
-      const creditAmount = entitlement.planEntitlement.consumptionRate * amount;
       acc.push(
-        creditAmount > 0 ? (
-          <Fragment key={index}>
-            {creditAmount}{" "}
-            {getFeatureName(
-              entitlement.planEntitlement.valueCredit,
-              creditAmount,
-            )}{" "}
-            {t("used")}
-          </Fragment>
-        ) : (
-          <Fragment key={index}>
-            {entitlement.planEntitlement.consumptionRate}{" "}
-            {getFeatureName(
-              entitlement.planEntitlement.valueCredit,
-              entitlement.planEntitlement.consumptionRate,
-            )}{" "}
-            {t("per")} {t("use")}
-          </Fragment>
-        ),
+        <Fragment key={index}>
+          {entitlement.planEntitlement.consumptionRate}{" "}
+          {getFeatureName(
+            entitlement.planEntitlement.valueCredit,
+            entitlement.planEntitlement.consumptionRate,
+          )}{" "}
+          {t("per")} {t("use")}
+        </Fragment>,
       );
 
       index += 1;
     }
 
     return acc;
-  }, [t, period, showCredits, entitlement, billingPrice, amount]);
+  }, [
+    t,
+    period,
+    showCredits,
+    entitlement,
+    billingPrice?.packageSize,
+    billingPrice?.currency,
+  ]);
 
   if (
-    (entitlement.priceBehavior === PriceBehavior.Credit && !showCredits) ||
+    (entitlement.priceBehavior === EntitlementPriceBehavior.CreditBurndown &&
+      !showCredits) ||
     !entitlement.feature?.name
   ) {
     return null;
   }
 
   const quantity =
-    entitlement.priceBehavior !== PriceBehavior.Credit
-      ? limit || amount
+    entitlement.priceBehavior !== EntitlementPriceBehavior.CreditBurndown
+      ? limit
       : undefined;
 
   return (
@@ -150,16 +143,16 @@ export const UsageDetails = ({
       $gap="0.5rem"
     >
       <Text display={layout.addOns.fontStyle}>
-        {typeof quantity === "number" && quantity > 0 ? (
+        {typeof quantity === "number" ? (
           <>
-            {quantity} {entitlement.feature.name}
+            {quantity} {getFeatureName(entitlement.feature, quantity, true)}
           </>
         ) : (
           entitlement.feature.name
         )}
       </Text>
 
-      <Flex $alignItems="center" $gap="0.5rem">
+      <Text>
         {description.length > 0 && (
           <Text
             style={{ opacity: 0.54 }}
@@ -169,27 +162,37 @@ export const UsageDetails = ({
             {description}
           </Text>
         )}
-
-        {(cost > 0 || entitlement.priceBehavior === PriceBehavior.Tiered) && (
-          <Flex $alignItems="baseline">
-            <Text>
+        {
+          // only show cost for pay-in-advance entitlements
+          // `description` will include price for other price behaviors
+          entitlement.priceBehavior ===
+            EntitlementPriceBehavior.PayInAdvance && (
+            <>
+              {" "}
               {formatCurrency(cost, billingPrice?.currency)}
               {entitlement.feature.featureType === FeatureType.Trait && (
                 <sub>/{shortenPeriod(period)}</sub>
               )}
-            </Text>
-
-            {entitlement.priceBehavior === PriceBehavior.Tiered && (
-              <PricingTiersTooltip
-                feature={entitlement.feature}
-                period={period}
-                currency={billingPrice?.currency}
-                priceTiers={billingPrice?.priceTier}
-              />
-            )}
-          </Flex>
+            </>
+          )
+        }
+        {entitlement.priceBehavior === EntitlementPriceBehavior.Tier && (
+          <PricingTiersTooltip
+            feature={entitlement.feature}
+            period={period}
+            currency={billingPrice?.currency}
+            priceTiers={billingPrice?.priceTier}
+            tiersMode={billingPrice?.tiersMode ?? undefined}
+          />
         )}
-      </Flex>
+        {entitlementHasHardLimit(entitlement) &&
+          entitlement.allocationType === EntitlementValueType.Numeric && (
+            <HardLimitTooltip
+              feature={entitlement.feature}
+              limit={entitlement.allocation}
+            />
+          )}
+      </Text>
     </Flex>
   );
 };

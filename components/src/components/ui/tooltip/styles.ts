@@ -1,16 +1,7 @@
 import { css, keyframes, styled } from "styled-components";
 
 import { TEXT_BASE_SIZE } from "../../../const";
-import { Box, type Position } from "../../ui";
-
-export const Trigger = styled(Box)<{ $fullWidth?: boolean }>`
-  ${({ $fullWidth = false }) =>
-    $fullWidth &&
-    css`
-      width: 100%;
-      flex-grow: 1;
-    `}
-`;
+import { type Position } from "../../ui";
 
 const coords = (position: Position) => {
   let x = 0;
@@ -103,12 +94,10 @@ export const Content = styled.div.withConfig({
   return css`
     position: absolute;
     top: calc(
-      ${y}px -
-        ${position === "top" ? 0.75 : position === "bottom" ? -0.75 : 0}rem
+      ${y}px - ${position === "top" ? 0.5 : position === "bottom" ? -0.5 : 0}rem
     );
     left: calc(
-      ${x}px -
-        ${position === "left" ? 0.75 : position === "right" ? -0.75 : 0}rem
+      ${x}px - ${position === "left" ? 0.5 : position === "right" ? -0.5 : 0}rem
     );
     transform: translate(${translate.x}%, ${translate.y}%);
     z-index: 9999999;

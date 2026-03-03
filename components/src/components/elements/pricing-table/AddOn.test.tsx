@@ -1,14 +1,14 @@
 import cloneDeep from "lodash/cloneDeep";
 import { vi } from "vitest";
 
-import { PlanEntitlementResponseData } from "../../../api/checkoutexternal";
 import {
+  BillingProductPriceInterval,
   EntitlementValueType,
   EntityType,
   FeatureType,
-  PriceInterval,
+  PlanEntitlementResponseData,
   TraitType,
-} from "../../../const";
+} from "../../../api/checkoutexternal";
 import { act, fireEvent, render, screen } from "../../../test/setup";
 import type { DeepPartial, SelectedPlan } from "../../../types";
 
@@ -144,7 +144,7 @@ describe("`AddOn` component", () => {
       <AddOn
         addOn={mockAddOn}
         sharedProps={mockSharedProps}
-        selectedPeriod={PriceInterval.Month}
+        selectedPeriod={BillingProductPriceInterval.Month}
       />,
     );
 
@@ -171,7 +171,7 @@ describe("`AddOn` component", () => {
       <AddOn
         addOn={{ ...mockAddOn, current: true }}
         sharedProps={mockSharedProps}
-        selectedPeriod={PriceInterval.Month}
+        selectedPeriod={BillingProductPriceInterval.Month}
       />,
     );
 
@@ -184,7 +184,7 @@ describe("`AddOn` component", () => {
       <AddOn
         addOn={mockAddOn}
         sharedProps={mockSharedProps}
-        selectedPeriod={PriceInterval.Year}
+        selectedPeriod={BillingProductPriceInterval.Year}
       />,
     );
 
@@ -198,7 +198,7 @@ describe("`AddOn` component", () => {
       <AddOn
         addOn={{ ...mockAddOn, current: true }}
         sharedProps={mockSharedProps}
-        selectedPeriod={PriceInterval.Year}
+        selectedPeriod={BillingProductPriceInterval.Year}
       />,
     );
 
@@ -213,7 +213,7 @@ describe("`AddOn` component", () => {
       <AddOn
         addOn={mockAddOn}
         sharedProps={propsWithoutEntitlements}
-        selectedPeriod={PriceInterval.Month}
+        selectedPeriod={BillingProductPriceInterval.Month}
       />,
     );
 
@@ -229,7 +229,7 @@ describe("`AddOn` component", () => {
       <AddOn
         addOn={mockAddOn}
         sharedProps={propsWithoutDescription}
-        selectedPeriod={PriceInterval.Month}
+        selectedPeriod={BillingProductPriceInterval.Month}
       />,
     );
 
@@ -246,7 +246,7 @@ describe("`AddOn` component", () => {
       <AddOn
         addOn={mockAddOn}
         sharedProps={propsWithoutIcons}
-        selectedPeriod={PriceInterval.Month}
+        selectedPeriod={BillingProductPriceInterval.Month}
       />,
     );
 
@@ -264,7 +264,7 @@ describe("`AddOn` component", () => {
           callToActionUrl: undefined,
           onCallToAction: mockOnCallToAction,
         }}
-        selectedPeriod={PriceInterval.Month}
+        selectedPeriod={BillingProductPriceInterval.Month}
       />,
     );
 
@@ -290,7 +290,7 @@ describe("`AddOn` component", () => {
           callToActionUrl: undefined,
           onCallToAction: mockOnCallToAction,
         }}
-        selectedPeriod={PriceInterval.Month}
+        selectedPeriod={BillingProductPriceInterval.Month}
       />,
     );
 
@@ -323,7 +323,7 @@ describe("`AddOn` component", () => {
           ],
         }}
         sharedProps={mockSharedProps}
-        selectedPeriod={PriceInterval.Month}
+        selectedPeriod={BillingProductPriceInterval.Month}
       />,
     );
 
@@ -350,7 +350,7 @@ describe("`AddOn` component", () => {
           ],
         }}
         sharedProps={mockSharedProps}
-        selectedPeriod={PriceInterval.Month}
+        selectedPeriod={BillingProductPriceInterval.Month}
       />,
     );
 

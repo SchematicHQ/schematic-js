@@ -1,7 +1,7 @@
 import { forwardRef, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
-import { CreditGrantReason } from "../../../const";
+import { BillingCreditGrantReason } from "../../../api/checkoutexternal";
 import { type FontStyle } from "../../../context";
 import { useEmbed, useIsLightBackground, useTrialEnd } from "../../../hooks";
 import type {
@@ -135,13 +135,13 @@ export const PlanManager = forwardRef<
           grant,
         ) => {
           switch (grant.grantReason) {
-            case CreditGrantReason.Plan:
+            case BillingCreditGrantReason.Plan:
               acc.plan.push(grant);
               break;
-            case CreditGrantReason.Purchased:
+            case BillingCreditGrantReason.Purchased:
               acc.bundles.push(grant);
               break;
-            case CreditGrantReason.Free:
+            case BillingCreditGrantReason.Free:
               acc.promotional.push(grant);
           }
 
@@ -490,43 +490,42 @@ export const PlanManager = forwardRef<
                               $color={settings.theme.typography.text.color}
                             >
                               {group.total.used} {t("used")}
-                            </Text>
-
-                            {hasAutoTopup && (
-                              <Tooltip
-                                trigger={
-                                  <Icon
-                                    title="auto top-up"
-                                    name="info-rounded"
-                                    color={`hsla(0, 0%, ${isLightBackground ? 0 : 100}%, 0.5)`}
-                                  />
-                                }
-                                content={
-                                  <Text
-                                    $size={
-                                      0.875 *
-                                      settings.theme.typography.text.fontSize
-                                    }
-                                  >
-                                    {typeof planCreditGrant.billingCreditAutoTopupThresholdPercent ===
-                                      "number" &&
-                                      typeof planCreditGrant.billingCreditAutoTopupAmount ===
+                              {hasAutoTopup && (
+                                <Tooltip
+                                  trigger={
+                                    <Icon
+                                      title="auto top-up"
+                                      name="info-rounded"
+                                      color={`hsla(0, 0%, ${isLightBackground ? 0 : 100}%, 0.5)`}
+                                    />
+                                  }
+                                  content={
+                                    <Text
+                                      $size={
+                                        0.875 *
+                                        settings.theme.typography.text.fontSize
+                                      }
+                                    >
+                                      {typeof planCreditGrant.billingCreditAutoTopupThresholdPercent ===
                                         "number" &&
-                                      t(
-                                        "When balance reaches X remaining, an auto top-up of Y credits will be processed.",
-                                        {
-                                          threshold:
-                                            (planCreditGrant.billingCreditAutoTopupThresholdPercent /
-                                              100) *
-                                            group.quantity,
-                                          amount:
-                                            planCreditGrant.billingCreditAutoTopupAmount,
-                                        },
-                                      )}
-                                  </Text>
-                                }
-                              />
-                            )}
+                                        typeof planCreditGrant.billingCreditAutoTopupAmount ===
+                                          "number" &&
+                                        t(
+                                          "When balance reaches X remaining, an auto top-up of Y credits will be processed.",
+                                          {
+                                            threshold:
+                                              (planCreditGrant.billingCreditAutoTopupThresholdPercent /
+                                                100) *
+                                              group.quantity,
+                                            amount:
+                                              planCreditGrant.billingCreditAutoTopupAmount,
+                                          },
+                                        )}
+                                    </Text>
+                                  }
+                                />
+                              )}
+                            </Text>
                           </Flex>
                         )}
                       </Flex>

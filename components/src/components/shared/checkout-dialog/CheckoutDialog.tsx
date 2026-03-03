@@ -9,6 +9,8 @@ import {
 import { useTranslation } from "react-i18next";
 
 import {
+  BillingProductPriceInterval,
+  EntitlementPriceBehavior,
   ResponseError,
   UpdateCreditBundleRequestBody,
   type FeatureUsageResponseData,
@@ -17,7 +19,7 @@ import {
   type UpdateAddOnRequestBody,
   type UpdatePayInAdvanceRequestBody,
 } from "../../../api/checkoutexternal";
-import { PriceBehavior, PriceInterval, TEXT_BASE_SIZE } from "../../../const";
+import { TEXT_BASE_SIZE } from "../../../const";
 import {
   useAvailablePlans,
   useEmbed,
@@ -59,7 +61,7 @@ export const createActiveUsageBasedEntitlementsReducer =
         featureUsage?.allocation ?? entitlement.valueNumeric ?? 0;
       const usage = featureUsage?.usage ?? 0;
       const quantity =
-        featureUsage?.priceBehavior === PriceBehavior.PayInAdvance
+        featureUsage?.priceBehavior === EntitlementPriceBehavior.PayInAdvance
           ? allocation
           : 0;
 
@@ -258,7 +260,8 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
           return availableAddOn.entitlements
             .filter(
               (entitlement) =>
-                entitlement.priceBehavior === PriceBehavior.PayInAdvance,
+                entitlement.priceBehavior ===
+                EntitlementPriceBehavior.PayInAdvance,
             )
             .map((entitlement) => ({
               ...entitlement,
@@ -288,7 +291,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     () =>
       usageBasedEntitlements.filter(
         (entitlement) =>
-          entitlement.priceBehavior === PriceBehavior.PayInAdvance,
+          entitlement.priceBehavior === EntitlementPriceBehavior.PayInAdvance,
       ),
     [usageBasedEntitlements],
   );
@@ -297,7 +300,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     () =>
       addOnUsageBasedEntitlements.filter(
         (entitlement) =>
-          entitlement.priceBehavior === PriceBehavior.PayInAdvance,
+          entitlement.priceBehavior === EntitlementPriceBehavior.PayInAdvance,
       ),
     [addOnUsageBasedEntitlements],
   );
@@ -353,7 +356,9 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       return (
         addOn.isSelected &&
         addOn.entitlements.some((entitlement) => {
-          return entitlement.priceBehavior === PriceBehavior.PayInAdvance;
+          return (
+            entitlement.priceBehavior === EntitlementPriceBehavior.PayInAdvance
+          );
         })
       );
     });
@@ -701,8 +706,8 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       const period = showPeriodToggle
         ? updates.period || planPeriod
         : plan.yearlyPrice && !plan.monthlyPrice
-          ? PriceInterval.Year
-          : PriceInterval.Month;
+          ? BillingProductPriceInterval.Year
+          : BillingProductPriceInterval.Month;
 
       const updatedUsageBasedEntitlements = plan.entitlements.reduce(
         createActiveUsageBasedEntitlementsReducer(featureUsage, period),
@@ -761,7 +766,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
           : {
               payInAdvanceEntitlements: updatedUsageBasedEntitlements.filter(
                 ({ priceBehavior }) =>
-                  priceBehavior === PriceBehavior.PayInAdvance,
+                  priceBehavior === EntitlementPriceBehavior.PayInAdvance,
               ),
             }),
       });
@@ -801,7 +806,8 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
             addOn.entitlements
               .filter(
                 (entitlement) =>
-                  entitlement.priceBehavior === PriceBehavior.PayInAdvance,
+                  entitlement.priceBehavior ===
+                  EntitlementPriceBehavior.PayInAdvance,
               )
               .map((entitlement) => ({
                 ...entitlement,
@@ -838,7 +844,8 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
         handlePreviewCheckout({
           payInAdvanceEntitlements: updated.filter(
-            ({ priceBehavior }) => priceBehavior === PriceBehavior.PayInAdvance,
+            ({ priceBehavior }) =>
+              priceBehavior === EntitlementPriceBehavior.PayInAdvance,
           ),
         });
 

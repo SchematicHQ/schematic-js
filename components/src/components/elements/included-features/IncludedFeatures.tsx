@@ -145,12 +145,7 @@ export const IncludedFeatures = forwardRef<
   const isExpanded = showCount > VISIBLE_ENTITLEMENT_COUNT;
 
   return (
-    <Element
-      ref={ref}
-      className={className}
-      $containerType="inline-size"
-      $lineHeight={1.125}
-    >
+    <Element ref={ref} className={className} $containerType="inline-size">
       {props.header.isVisible && (
         <Box $marginBottom="1.5rem">
           <Text display={props.header.fontStyle}>{props.header.text}</Text>

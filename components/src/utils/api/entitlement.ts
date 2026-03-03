@@ -1,9 +1,10 @@
 import {
   BillingPriceView,
+  EntitlementPriceBehavior,
+  FeatureType,
   type FeatureUsageResponseData,
   type PlanEntitlementResponseData,
 } from "../../api/checkoutexternal";
-import { FeatureType, PriceBehavior } from "../../const";
 import type {
   Credit,
   CurrentUsageBasedEntitlement,
@@ -16,6 +17,7 @@ import { getEntitlementCost } from "../../utils";
 const PeriodName: Record<string, string | undefined> = {
   billing: "billing period",
   current_day: "day",
+  current_week: "week",
   current_month: "month",
   current_year: "year",
 };
@@ -61,17 +63,17 @@ export function getUsageDetails(
   let limit: number | undefined;
   if (
     (!entitlement.priceBehavior ||
-      entitlement.priceBehavior === PriceBehavior.PayInAdvance) &&
+      entitlement.priceBehavior === EntitlementPriceBehavior.PayInAdvance) &&
     typeof entitlement.allocation === "number"
   ) {
     limit = entitlement.allocation;
   } else if (
-    entitlement.priceBehavior === PriceBehavior.Overage &&
+    entitlement.priceBehavior === EntitlementPriceBehavior.Overage &&
     typeof entitlement.softLimit === "number"
   ) {
     limit = entitlement.softLimit;
   } else if (
-    entitlement.priceBehavior === PriceBehavior.Credit &&
+    entitlement.priceBehavior === EntitlementPriceBehavior.CreditBurndown &&
     typeof entitlement.creditTotal === "number" &&
     typeof entitlement.creditConsumptionRate === "number"
   ) {
@@ -81,24 +83,24 @@ export function getUsageDetails(
   // amount related to cost
   let amount: number | undefined;
   if (
-    entitlement.priceBehavior === PriceBehavior.PayInAdvance &&
+    entitlement.priceBehavior === EntitlementPriceBehavior.PayInAdvance &&
     typeof entitlement.allocation === "number"
   ) {
     amount = entitlement.allocation;
   } else if (
-    (entitlement.priceBehavior === PriceBehavior.PayAsYouGo ||
-      entitlement.priceBehavior === PriceBehavior.Tiered) &&
+    (entitlement.priceBehavior === EntitlementPriceBehavior.PayAsYouGo ||
+      entitlement.priceBehavior === EntitlementPriceBehavior.Tier) &&
     typeof entitlement.usage === "number"
   ) {
     amount = entitlement.usage;
   } else if (
-    entitlement.priceBehavior === PriceBehavior.Overage &&
+    entitlement.priceBehavior === EntitlementPriceBehavior.Overage &&
     typeof entitlement.usage === "number" &&
     typeof entitlement.softLimit === "number"
   ) {
     amount = Math.max(0, entitlement.usage - entitlement.softLimit);
   } else if (
-    entitlement.priceBehavior === PriceBehavior.Credit &&
+    entitlement.priceBehavior === EntitlementPriceBehavior.CreditBurndown &&
     typeof entitlement.creditUsed === "number" &&
     typeof entitlement.creditConsumptionRate === "number"
   ) {
@@ -113,7 +115,7 @@ export function getUsageDetails(
   // current price tier based on usage
   let currentTier: PriceTier | undefined;
   if (
-    entitlement.priceBehavior === PriceBehavior.Overage &&
+    entitlement.priceBehavior === EntitlementPriceBehavior.Overage &&
     typeof entitlement.softLimit === "number"
   ) {
     const overageTier =
@@ -127,7 +129,7 @@ export function getUsageDetails(
       };
     }
   } else if (
-    entitlement.priceBehavior === PriceBehavior.Tiered &&
+    entitlement.priceBehavior === EntitlementPriceBehavior.Tier &&
     typeof amount === "number"
   ) {
     for (let i = 0, start = 0; i < tiers.length; i++) {
@@ -215,8 +217,17 @@ export function entitlementHasCost(
 ) {
   return (
     entitlement.priceBehavior &&
-    ((entitlement.priceBehavior === PriceBehavior.PayInAdvance &&
+    ((entitlement.priceBehavior === EntitlementPriceBehavior.PayInAdvance &&
       entitlement.quantity > 0) ||
-      entitlement.priceBehavior !== PriceBehavior.PayInAdvance)
+      entitlement.priceBehavior !== EntitlementPriceBehavior.PayInAdvance)
+  );
+}
+
+export function entitlementHasHardLimit(entitlement: {
+  priceBehavior?: EntitlementPriceBehavior | null;
+}) {
+  return (
+    entitlement.priceBehavior &&
+    entitlement.priceBehavior !== EntitlementPriceBehavior.CreditBurndown
   );
 }

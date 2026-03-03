@@ -1,11 +1,11 @@
 import {
+  EntitlementPriceBehavior,
   type BillingPriceResponseData,
   type BillingPriceView,
   type BillingProductPriceTierResponseData,
   type FeatureUsageResponseData,
   type PreviewSubscriptionFinanceResponseData,
 } from "../../api/checkoutexternal";
-import { PriceBehavior } from "../../const";
 import type { BillingPrice, Entitlement, Plan } from "../../types";
 
 export const ChargeType = {
@@ -83,7 +83,7 @@ export function getEntitlementPrice(
   if (source) {
     const billingPrice = { ...source };
 
-    if (entitlement.priceBehavior === PriceBehavior.Overage) {
+    if (entitlement.priceBehavior === EntitlementPriceBehavior.Overage) {
       const overagePriceTier =
         billingPrice.priceTier[billingPrice.priceTier.length - 1];
 
@@ -167,7 +167,7 @@ export function getEntitlementCost(
     const billingPrice: BillingPriceView = { ...source };
 
     if (
-      entitlement.priceBehavior === PriceBehavior.PayInAdvance &&
+      entitlement.priceBehavior === EntitlementPriceBehavior.PayInAdvance &&
       typeof entitlement.allocation === "number" &&
       entitlement.allocation > 0
     ) {
@@ -182,7 +182,7 @@ export function getEntitlementCost(
     }
 
     if (
-      entitlement.priceBehavior === PriceBehavior.PayAsYouGo &&
+      entitlement.priceBehavior === EntitlementPriceBehavior.PayAsYouGo &&
       typeof entitlement.usage === "number" &&
       entitlement.usage > 0
     ) {
@@ -190,7 +190,7 @@ export function getEntitlementCost(
     }
 
     if (
-      entitlement.priceBehavior === PriceBehavior.Overage &&
+      entitlement.priceBehavior === EntitlementPriceBehavior.Overage &&
       typeof entitlement.usage === "number" &&
       entitlement.usage > 0
     ) {
@@ -218,7 +218,7 @@ export function getEntitlementCost(
     }
 
     if (
-      entitlement.priceBehavior === PriceBehavior.Tiered &&
+      entitlement.priceBehavior === EntitlementPriceBehavior.Tier &&
       typeof entitlement.usage === "number" // a price needs to be displayed next to the tiered tooltip
     ) {
       return calculateTieredCost(

@@ -1,11 +1,8 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import {
-  PriceInterval,
-  TEXT_BASE_SIZE,
-  VISIBLE_ENTITLEMENT_COUNT,
-} from "../../../../const";
+import { BillingProductPriceInterval } from "../../../../api/checkoutexternal";
+import { TEXT_BASE_SIZE, VISIBLE_ENTITLEMENT_COUNT } from "../../../../const";
 import { useEmbed, useIsLightBackground, useTrialEnd } from "../../../../hooks";
 import type { SelectedPlan } from "../../../../types";
 import {
@@ -105,8 +102,8 @@ export const Plan = ({
         const planPeriod = showPeriodToggle
           ? period
           : plan.yearlyPrice && !plan.monthlyPrice
-            ? PriceInterval.Year
-            : PriceInterval.Month;
+            ? BillingProductPriceInterval.Year
+            : BillingProductPriceInterval.Month;
         const { price: planPrice, currency: planCurrency } =
           getPlanPrice(plan, planPeriod) || {};
         const credits = groupPlanCreditGrants(plan.includedCreditGrants);
@@ -181,7 +178,7 @@ export const Plan = ({
                       : isFreePlan && showZeroPriceAsFree
                         ? t("Free")
                         : showAsMonthlyPrices &&
-                            planPeriod === PriceInterval.Year
+                            planPeriod === BillingProductPriceInterval.Year
                           ? formatCurrency((planPrice ?? 0) / 12, {
                               currency: planCurrency,
                               testSignificantDigits: false,
@@ -197,7 +194,8 @@ export const Plan = ({
                     }
                   >
                     /
-                    {showAsMonthlyPrices && planPeriod === PriceInterval.Year
+                    {showAsMonthlyPrices &&
+                    planPeriod === BillingProductPriceInterval.Year
                       ? t("month, billed yearly")
                       : t(planPeriod)}
                   </Text>
@@ -240,18 +238,15 @@ export const Plan = ({
                             />
                           )}
 
-                          <Flex $alignItems="baseline" $alignSelf="center">
-                            <Text>
-                              {credit.quantity}{" "}
-                              {getFeatureName(credit, credit.quantity)}
-                              {credit.period && (
-                                <>
-                                  {" "}
-                                  {t("per")} {credit.period}
-                                </>
-                              )}
-                            </Text>
-
+                          <Text>
+                            {credit.quantity}{" "}
+                            {getFeatureName(credit, credit.quantity)}
+                            {credit.period && (
+                              <>
+                                {" "}
+                                {t("per")} {credit.period}
+                              </>
+                            )}
                             {hasAutoTopup && (
                               <Tooltip
                                 trigger={
@@ -288,7 +283,7 @@ export const Plan = ({
                                 portal={tooltipPortal}
                               />
                             )}
-                          </Flex>
+                          </Text>
                         </Flex>
                       </Flex>
                     );

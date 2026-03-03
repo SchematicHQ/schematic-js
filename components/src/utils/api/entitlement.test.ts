@@ -4,10 +4,12 @@ import type {
   FeatureUsageResponseData,
 } from "../../api/checkoutexternal";
 import {
+  EntitlementPriceBehavior,
   EntitlementType,
   EntitlementValueType,
 } from "../../api/checkoutexternal";
 import {
+  entitlementHasHardLimit,
   extractCurrentUsageBasedEntitlements,
   getEntitlementFeatureName,
   getUsageDetails,
@@ -387,6 +389,56 @@ describe("getEntitlementFeatureName", () => {
 
     const result = getEntitlementFeatureName(entitlement);
     expect(result).toBe("Seat");
+  });
+});
+
+describe("entitlementHasHardLimit", () => {
+  it("should return truthy for PayInAdvance price behavior", () => {
+    expect(
+      entitlementHasHardLimit({
+        priceBehavior: EntitlementPriceBehavior.PayInAdvance,
+      }),
+    ).toBeTruthy();
+  });
+
+  it("should return truthy for PayAsYouGo price behavior", () => {
+    expect(
+      entitlementHasHardLimit({
+        priceBehavior: EntitlementPriceBehavior.PayAsYouGo,
+      }),
+    ).toBeTruthy();
+  });
+
+  it("should return truthy for Overage price behavior", () => {
+    expect(
+      entitlementHasHardLimit({
+        priceBehavior: EntitlementPriceBehavior.Overage,
+      }),
+    ).toBeTruthy();
+  });
+
+  it("should return truthy for Tier price behavior", () => {
+    expect(
+      entitlementHasHardLimit({
+        priceBehavior: EntitlementPriceBehavior.Tier,
+      }),
+    ).toBeTruthy();
+  });
+
+  it("should return falsy for CreditBurndown price behavior", () => {
+    expect(
+      entitlementHasHardLimit({
+        priceBehavior: EntitlementPriceBehavior.CreditBurndown,
+      }),
+    ).toBeFalsy();
+  });
+
+  it("should return falsy when priceBehavior is null", () => {
+    expect(entitlementHasHardLimit({ priceBehavior: null })).toBeFalsy();
+  });
+
+  it("should return falsy when priceBehavior is undefined", () => {
+    expect(entitlementHasHardLimit({ priceBehavior: undefined })).toBeFalsy();
   });
 });
 

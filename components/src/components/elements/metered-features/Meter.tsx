@@ -1,5 +1,7 @@
-import { type FeatureUsageResponseData } from "../../../api/checkoutexternal";
-import { PriceBehavior } from "../../../const";
+import {
+  EntitlementPriceBehavior,
+  type FeatureUsageResponseData,
+} from "../../../api/checkoutexternal";
 import { ProgressBar, progressColorMap } from "../../ui";
 
 interface MeterProps {
@@ -19,7 +21,7 @@ export const Meter = ({ entitlement }: MeterProps) => {
   // `limit` is a soft limit in the case of overage price behavior
   // we need to display progress differently (but only) in this case
   const progress =
-    (priceBehavior === PriceBehavior.Overage && usage > limit
+    (priceBehavior === EntitlementPriceBehavior.Overage && usage > limit
       ? Math.min(usage, limit) / Math.max(usage, limit)
       : usage / limit) * 100;
 
@@ -28,9 +30,9 @@ export const Meter = ({ entitlement }: MeterProps) => {
       progress={progress}
       value={usage}
       total={limit}
-      {...(priceBehavior === PriceBehavior.Tiered
+      {...(priceBehavior === EntitlementPriceBehavior.Tier
         ? { color: "blue", bgColor: "#2563EB80" }
-        : priceBehavior === PriceBehavior.Overage && usage > limit
+        : priceBehavior === EntitlementPriceBehavior.Overage && usage > limit
           ? { color: "blue", bgColor: "#FFAA06" }
           : {
               color:

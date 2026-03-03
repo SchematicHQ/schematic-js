@@ -10,12 +10,12 @@ import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 
 import {
+  EntitlementPriceBehavior,
   type PreviewSubscriptionFinanceResponseData,
   type UpdateAddOnRequestBody,
   type UpdateCreditBundleRequestBody,
   type UpdatePayInAdvanceRequestBody,
 } from "../../../api/checkoutexternal";
-import { PriceBehavior } from "../../../const";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import type {
   CreditBundle,
@@ -164,11 +164,15 @@ export const SubscriptionSidebar = forwardRef<
       const payAsYouGoEntitlements: UsageBasedEntitlement[] = [];
       const payInAdvanceEntitlements = usageBasedEntitlements.filter(
         (entitlement) => {
-          if (entitlement.priceBehavior === PriceBehavior.PayAsYouGo) {
+          if (
+            entitlement.priceBehavior === EntitlementPriceBehavior.PayAsYouGo
+          ) {
             payAsYouGoEntitlements.push(entitlement);
           }
 
-          return entitlement.priceBehavior === PriceBehavior.PayInAdvance;
+          return (
+            entitlement.priceBehavior === EntitlementPriceBehavior.PayInAdvance
+          );
         },
       );
 
@@ -263,7 +267,7 @@ export const SubscriptionSidebar = forwardRef<
               }
 
               const changed =
-                selected.priceBehavior === PriceBehavior.PayInAdvance
+                selected.priceBehavior === EntitlementPriceBehavior.PayInAdvance
                   ? currentUsageBasedEntitlements.find(
                       (current) =>
                         current.entitlementId === selected.id &&
@@ -422,7 +426,8 @@ export const SubscriptionSidebar = forwardRef<
         const addOnPayInAdvance = addOnUsageBasedEntitlements
           .filter(
             (entitlement) =>
-              entitlement.priceBehavior === PriceBehavior.PayInAdvance,
+              entitlement.priceBehavior ===
+              EntitlementPriceBehavior.PayInAdvance,
           )
           .reduce(
             (
