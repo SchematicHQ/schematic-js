@@ -11,8 +11,10 @@ import { Box, Flex, Icon, Text, Tooltip, type TooltipProps } from "../../ui";
 
 import { PriceText } from "./PriceText";
 
-interface PricingTiersTooltipProps
-  extends Omit<TooltipProps, "trigger" | "content"> {
+interface PricingTiersTooltipProps extends Omit<
+  TooltipProps,
+  "trigger" | "content"
+> {
   feature: Feature;
   period?: string;
   currency?: string;
