@@ -12,8 +12,7 @@ import * as styles from "./styles";
 
 export type DialogSize = "sm" | "md" | "lg" | "auto";
 
-export interface DialogProps
-  extends React.DialogHTMLAttributes<HTMLDialogElement> {
+export interface DialogProps extends React.DialogHTMLAttributes<HTMLDialogElement> {
   isModal?: boolean;
   size?: DialogSize;
   top?: number;
