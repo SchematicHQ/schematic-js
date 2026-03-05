@@ -87,11 +87,19 @@ export function ComponentCheckoutSettingsFromJSONTyped(
 }
 
 export function ComponentCheckoutSettingsToJSON(
+  json: any,
+): ComponentCheckoutSettings {
+  return ComponentCheckoutSettingsToJSONTyped(json, false);
+}
+
+export function ComponentCheckoutSettingsToJSONTyped(
   value?: ComponentCheckoutSettings | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     collect_address: value["collectAddress"],
     collect_email: value["collectEmail"],

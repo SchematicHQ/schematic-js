@@ -24,7 +24,7 @@ export type FlagType = (typeof FlagType)[keyof typeof FlagType];
 export function instanceOfFlagType(value: any): boolean {
   for (const key in FlagType) {
     if (Object.prototype.hasOwnProperty.call(FlagType, key)) {
-      if ((FlagType as Record<string, FlagType>)[key] === value) {
+      if (FlagType[key as keyof typeof FlagType] === value) {
         return true;
       }
     }
@@ -45,4 +45,11 @@ export function FlagTypeFromJSONTyped(
 
 export function FlagTypeToJSON(value?: FlagType | null): any {
   return value as any;
+}
+
+export function FlagTypeToJSONTyped(
+  value: any,
+  ignoreDiscriminator: boolean,
+): FlagType {
+  return value as FlagType;
 }

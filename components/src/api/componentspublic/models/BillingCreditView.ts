@@ -18,30 +18,35 @@ import {
   BillingCreditBurnStrategyFromJSON,
   BillingCreditBurnStrategyFromJSONTyped,
   BillingCreditBurnStrategyToJSON,
+  BillingCreditBurnStrategyToJSONTyped,
 } from "./BillingCreditBurnStrategy";
 import type { BillingProductResponseData } from "./BillingProductResponseData";
 import {
   BillingProductResponseDataFromJSON,
   BillingProductResponseDataFromJSONTyped,
   BillingProductResponseDataToJSON,
+  BillingProductResponseDataToJSONTyped,
 } from "./BillingProductResponseData";
 import type { BillingPriceView } from "./BillingPriceView";
 import {
   BillingPriceViewFromJSON,
   BillingPriceViewFromJSONTyped,
   BillingPriceViewToJSON,
+  BillingPriceViewToJSONTyped,
 } from "./BillingPriceView";
 import type { BillingCreditExpiryUnit } from "./BillingCreditExpiryUnit";
 import {
   BillingCreditExpiryUnitFromJSON,
   BillingCreditExpiryUnitFromJSONTyped,
   BillingCreditExpiryUnitToJSON,
+  BillingCreditExpiryUnitToJSONTyped,
 } from "./BillingCreditExpiryUnit";
 import type { BillingCreditRolloverPolicy } from "./BillingCreditRolloverPolicy";
 import {
   BillingCreditRolloverPolicyFromJSON,
   BillingCreditRolloverPolicyFromJSONTyped,
   BillingCreditRolloverPolicyToJSON,
+  BillingCreditRolloverPolicyToJSONTyped,
 } from "./BillingCreditRolloverPolicy";
 
 /**
@@ -250,10 +255,18 @@ export function BillingCreditViewFromJSONTyped(
   };
 }
 
-export function BillingCreditViewToJSON(value?: BillingCreditView | null): any {
+export function BillingCreditViewToJSON(json: any): BillingCreditView {
+  return BillingCreditViewToJSONTyped(json, false);
+}
+
+export function BillingCreditViewToJSONTyped(
+  value?: BillingCreditView | null,
+  ignoreDiscriminator: boolean = false,
+): any {
   if (value == null) {
     return value;
   }
+
   return {
     account_id: value["accountId"],
     burn_strategy: BillingCreditBurnStrategyToJSON(value["burnStrategy"]),

@@ -34,12 +34,9 @@ export function instanceOfScheduledDowngradeConfigBehavior(
       )
     ) {
       if (
-        (
-          ScheduledDowngradeConfigBehavior as Record<
-            string,
-            ScheduledDowngradeConfigBehavior
-          >
-        )[key] === value
+        ScheduledDowngradeConfigBehavior[
+          key as keyof typeof ScheduledDowngradeConfigBehavior
+        ] === value
       ) {
         return true;
       }
@@ -65,4 +62,11 @@ export function ScheduledDowngradeConfigBehaviorToJSON(
   value?: ScheduledDowngradeConfigBehavior | null,
 ): any {
   return value as any;
+}
+
+export function ScheduledDowngradeConfigBehaviorToJSONTyped(
+  value: any,
+  ignoreDiscriminator: boolean,
+): ScheduledDowngradeConfigBehavior {
+  return value as ScheduledDowngradeConfigBehavior;
 }

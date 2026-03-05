@@ -18,48 +18,56 @@ import {
   EntitlementValueTypeFromJSON,
   EntitlementValueTypeFromJSONTyped,
   EntitlementValueTypeToJSON,
+  EntitlementValueTypeToJSONTyped,
 } from "./EntitlementValueType";
 import type { EntityTraitDefinitionResponseData } from "./EntityTraitDefinitionResponseData";
 import {
   EntityTraitDefinitionResponseDataFromJSON,
   EntityTraitDefinitionResponseDataFromJSONTyped,
   EntityTraitDefinitionResponseDataToJSON,
+  EntityTraitDefinitionResponseDataToJSONTyped,
 } from "./EntityTraitDefinitionResponseData";
 import type { BillingCreditResponseData } from "./BillingCreditResponseData";
 import {
   BillingCreditResponseDataFromJSON,
   BillingCreditResponseDataFromJSONTyped,
   BillingCreditResponseDataToJSON,
+  BillingCreditResponseDataToJSONTyped,
 } from "./BillingCreditResponseData";
 import type { BillingProductResponseData } from "./BillingProductResponseData";
 import {
   BillingProductResponseDataFromJSON,
   BillingProductResponseDataFromJSONTyped,
   BillingProductResponseDataToJSON,
+  BillingProductResponseDataToJSONTyped,
 } from "./BillingProductResponseData";
 import type { FeatureResponseData } from "./FeatureResponseData";
 import {
   FeatureResponseDataFromJSON,
   FeatureResponseDataFromJSONTyped,
   FeatureResponseDataToJSON,
+  FeatureResponseDataToJSONTyped,
 } from "./FeatureResponseData";
 import type { EntitlementPriceBehavior } from "./EntitlementPriceBehavior";
 import {
   EntitlementPriceBehaviorFromJSON,
   EntitlementPriceBehaviorFromJSONTyped,
   EntitlementPriceBehaviorToJSON,
+  EntitlementPriceBehaviorToJSONTyped,
 } from "./EntitlementPriceBehavior";
 import type { BillingPriceView } from "./BillingPriceView";
 import {
   BillingPriceViewFromJSON,
   BillingPriceViewFromJSONTyped,
   BillingPriceViewToJSON,
+  BillingPriceViewToJSONTyped,
 } from "./BillingPriceView";
 import type { PlanResponseData } from "./PlanResponseData";
 import {
   PlanResponseDataFromJSON,
   PlanResponseDataFromJSONTyped,
   PlanResponseDataToJSON,
+  PlanResponseDataToJSONTyped,
 } from "./PlanResponseData";
 
 /**
@@ -314,11 +322,19 @@ export function PlanEntitlementResponseDataFromJSONTyped(
 }
 
 export function PlanEntitlementResponseDataToJSON(
+  json: any,
+): PlanEntitlementResponseData {
+  return PlanEntitlementResponseDataToJSONTyped(json, false);
+}
+
+export function PlanEntitlementResponseDataToJSONTyped(
   value?: PlanEntitlementResponseData | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     billing_threshold: value["billingThreshold"],
     consumption_rate: value["consumptionRate"],

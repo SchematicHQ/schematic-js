@@ -18,6 +18,7 @@ import {
   DeleteResponseFromJSON,
   DeleteResponseFromJSONTyped,
   DeleteResponseToJSON,
+  DeleteResponseToJSONTyped,
 } from "./DeleteResponse";
 
 /**
@@ -71,11 +72,19 @@ export function CheckoutUnsubscribeResponseFromJSONTyped(
 }
 
 export function CheckoutUnsubscribeResponseToJSON(
+  json: any,
+): CheckoutUnsubscribeResponse {
+  return CheckoutUnsubscribeResponseToJSONTyped(json, false);
+}
+
+export function CheckoutUnsubscribeResponseToJSONTyped(
   value?: CheckoutUnsubscribeResponse | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     data: DeleteResponseToJSON(value["data"]),
     params: value["params"],

@@ -18,6 +18,7 @@ import {
   BillingProviderTypeFromJSON,
   BillingProviderTypeFromJSONTyped,
   BillingProviderTypeToJSON,
+  BillingProviderTypeToJSONTyped,
 } from "./BillingProviderType";
 
 /**
@@ -206,11 +207,19 @@ export function PaymentMethodResponseDataFromJSONTyped(
 }
 
 export function PaymentMethodResponseDataToJSON(
+  json: any,
+): PaymentMethodResponseData {
+  return PaymentMethodResponseDataToJSONTyped(json, false);
+}
+
+export function PaymentMethodResponseDataToJSONTyped(
   value?: PaymentMethodResponseData | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     account_last4: value["accountLast4"],
     account_name: value["accountName"],

@@ -57,11 +57,19 @@ export function UpdatePaymentMethodRequestBodyFromJSONTyped(
 }
 
 export function UpdatePaymentMethodRequestBodyToJSON(
+  json: any,
+): UpdatePaymentMethodRequestBody {
+  return UpdatePaymentMethodRequestBodyToJSONTyped(json, false);
+}
+
+export function UpdatePaymentMethodRequestBodyToJSONTyped(
   value?: UpdatePaymentMethodRequestBody | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     payment_method_id: value["paymentMethodId"],
   };

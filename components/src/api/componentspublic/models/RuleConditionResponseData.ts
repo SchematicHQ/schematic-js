@@ -18,6 +18,7 @@ import {
   EntityTypeFromJSON,
   EntityTypeFromJSONTyped,
   EntityTypeToJSON,
+  EntityTypeToJSONTyped,
 } from "./EntityType";
 
 /**
@@ -209,11 +210,19 @@ export function RuleConditionResponseDataFromJSONTyped(
 }
 
 export function RuleConditionResponseDataToJSON(
+  json: any,
+): RuleConditionResponseData {
+  return RuleConditionResponseDataToJSONTyped(json, false);
+}
+
+export function RuleConditionResponseDataToJSONTyped(
   value?: RuleConditionResponseData | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     comparison_trait_id: value["comparisonTraitId"],
     condition_group_id: value["conditionGroupId"],

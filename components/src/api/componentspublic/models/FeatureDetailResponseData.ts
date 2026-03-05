@@ -18,36 +18,42 @@ import {
   FeatureTypeFromJSON,
   FeatureTypeFromJSONTyped,
   FeatureTypeToJSON,
+  FeatureTypeToJSONTyped,
 } from "./FeatureType";
 import type { EntityTraitDefinitionResponseData } from "./EntityTraitDefinitionResponseData";
 import {
   EntityTraitDefinitionResponseDataFromJSON,
   EntityTraitDefinitionResponseDataFromJSONTyped,
   EntityTraitDefinitionResponseDataToJSON,
+  EntityTraitDefinitionResponseDataToJSONTyped,
 } from "./EntityTraitDefinitionResponseData";
 import type { PreviewObject } from "./PreviewObject";
 import {
   PreviewObjectFromJSON,
   PreviewObjectFromJSONTyped,
   PreviewObjectToJSON,
+  PreviewObjectToJSONTyped,
 } from "./PreviewObject";
 import type { EventSummaryResponseData } from "./EventSummaryResponseData";
 import {
   EventSummaryResponseDataFromJSON,
   EventSummaryResponseDataFromJSONTyped,
   EventSummaryResponseDataToJSON,
+  EventSummaryResponseDataToJSONTyped,
 } from "./EventSummaryResponseData";
 import type { FeatureLifecyclePhase } from "./FeatureLifecyclePhase";
 import {
   FeatureLifecyclePhaseFromJSON,
   FeatureLifecyclePhaseFromJSONTyped,
   FeatureLifecyclePhaseToJSON,
+  FeatureLifecyclePhaseToJSONTyped,
 } from "./FeatureLifecyclePhase";
 import type { FlagDetailResponseData } from "./FlagDetailResponseData";
 import {
   FlagDetailResponseDataFromJSON,
   FlagDetailResponseDataFromJSONTyped,
   FlagDetailResponseDataToJSON,
+  FlagDetailResponseDataToJSONTyped,
 } from "./FlagDetailResponseData";
 
 /**
@@ -227,11 +233,19 @@ export function FeatureDetailResponseDataFromJSONTyped(
 }
 
 export function FeatureDetailResponseDataToJSON(
+  json: any,
+): FeatureDetailResponseData {
+  return FeatureDetailResponseDataToJSONTyped(json, false);
+}
+
+export function FeatureDetailResponseDataToJSONTyped(
   value?: FeatureDetailResponseData | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     created_at: value["createdAt"].toISOString(),
     description: value["description"],

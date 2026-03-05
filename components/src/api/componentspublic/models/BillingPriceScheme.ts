@@ -27,8 +27,7 @@ export function instanceOfBillingPriceScheme(value: any): boolean {
   for (const key in BillingPriceScheme) {
     if (Object.prototype.hasOwnProperty.call(BillingPriceScheme, key)) {
       if (
-        (BillingPriceScheme as Record<string, BillingPriceScheme>)[key] ===
-        value
+        BillingPriceScheme[key as keyof typeof BillingPriceScheme] === value
       ) {
         return true;
       }
@@ -52,4 +51,11 @@ export function BillingPriceSchemeToJSON(
   value?: BillingPriceScheme | null,
 ): any {
   return value as any;
+}
+
+export function BillingPriceSchemeToJSONTyped(
+  value: any,
+  ignoreDiscriminator: boolean,
+): BillingPriceScheme {
+  return value as BillingPriceScheme;
 }

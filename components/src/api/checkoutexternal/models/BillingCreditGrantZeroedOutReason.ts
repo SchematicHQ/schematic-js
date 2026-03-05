@@ -36,12 +36,9 @@ export function instanceOfBillingCreditGrantZeroedOutReason(
       )
     ) {
       if (
-        (
-          BillingCreditGrantZeroedOutReason as Record<
-            string,
-            BillingCreditGrantZeroedOutReason
-          >
-        )[key] === value
+        BillingCreditGrantZeroedOutReason[
+          key as keyof typeof BillingCreditGrantZeroedOutReason
+        ] === value
       ) {
         return true;
       }
@@ -67,4 +64,11 @@ export function BillingCreditGrantZeroedOutReasonToJSON(
   value?: BillingCreditGrantZeroedOutReason | null,
 ): any {
   return value as any;
+}
+
+export function BillingCreditGrantZeroedOutReasonToJSONTyped(
+  value: any,
+  ignoreDiscriminator: boolean,
+): BillingCreditGrantZeroedOutReason {
+  return value as BillingCreditGrantZeroedOutReason;
 }

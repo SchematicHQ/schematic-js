@@ -26,7 +26,7 @@ export type FeatureType = (typeof FeatureType)[keyof typeof FeatureType];
 export function instanceOfFeatureType(value: any): boolean {
   for (const key in FeatureType) {
     if (Object.prototype.hasOwnProperty.call(FeatureType, key)) {
-      if ((FeatureType as Record<string, FeatureType>)[key] === value) {
+      if (FeatureType[key as keyof typeof FeatureType] === value) {
         return true;
       }
     }
@@ -47,4 +47,11 @@ export function FeatureTypeFromJSONTyped(
 
 export function FeatureTypeToJSON(value?: FeatureType | null): any {
   return value as any;
+}
+
+export function FeatureTypeToJSONTyped(
+  value: any,
+  ignoreDiscriminator: boolean,
+): FeatureType {
+  return value as FeatureType;
 }

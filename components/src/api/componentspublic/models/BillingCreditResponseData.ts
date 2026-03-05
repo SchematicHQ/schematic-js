@@ -18,30 +18,35 @@ import {
   BillingCreditBurnStrategyFromJSON,
   BillingCreditBurnStrategyFromJSONTyped,
   BillingCreditBurnStrategyToJSON,
+  BillingCreditBurnStrategyToJSONTyped,
 } from "./BillingCreditBurnStrategy";
 import type { BillingProductResponseData } from "./BillingProductResponseData";
 import {
   BillingProductResponseDataFromJSON,
   BillingProductResponseDataFromJSONTyped,
   BillingProductResponseDataToJSON,
+  BillingProductResponseDataToJSONTyped,
 } from "./BillingProductResponseData";
 import type { BillingPriceResponseData } from "./BillingPriceResponseData";
 import {
   BillingPriceResponseDataFromJSON,
   BillingPriceResponseDataFromJSONTyped,
   BillingPriceResponseDataToJSON,
+  BillingPriceResponseDataToJSONTyped,
 } from "./BillingPriceResponseData";
 import type { BillingCreditExpiryUnit } from "./BillingCreditExpiryUnit";
 import {
   BillingCreditExpiryUnitFromJSON,
   BillingCreditExpiryUnitFromJSONTyped,
   BillingCreditExpiryUnitToJSON,
+  BillingCreditExpiryUnitToJSONTyped,
 } from "./BillingCreditExpiryUnit";
 import type { BillingCreditRolloverPolicy } from "./BillingCreditRolloverPolicy";
 import {
   BillingCreditRolloverPolicyFromJSON,
   BillingCreditRolloverPolicyFromJSONTyped,
   BillingCreditRolloverPolicyToJSON,
+  BillingCreditRolloverPolicyToJSONTyped,
 } from "./BillingCreditRolloverPolicy";
 
 /**
@@ -218,11 +223,19 @@ export function BillingCreditResponseDataFromJSONTyped(
 }
 
 export function BillingCreditResponseDataToJSON(
+  json: any,
+): BillingCreditResponseData {
+  return BillingCreditResponseDataToJSONTyped(json, false);
+}
+
+export function BillingCreditResponseDataToJSONTyped(
   value?: BillingCreditResponseData | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     burn_strategy: BillingCreditBurnStrategyToJSON(value["burnStrategy"]),
     cost_editable: value["costEditable"],

@@ -117,10 +117,18 @@ export function RuleResponseDataFromJSONTyped(
   };
 }
 
-export function RuleResponseDataToJSON(value?: RuleResponseData | null): any {
+export function RuleResponseDataToJSON(json: any): RuleResponseData {
+  return RuleResponseDataToJSONTyped(json, false);
+}
+
+export function RuleResponseDataToJSONTyped(
+  value?: RuleResponseData | null,
+  ignoreDiscriminator: boolean = false,
+): any {
   if (value == null) {
     return value;
   }
+
   return {
     created_at: value["createdAt"].toISOString(),
     environment_id: value["environmentId"],

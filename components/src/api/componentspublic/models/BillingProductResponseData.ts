@@ -18,6 +18,7 @@ import {
   BillingProviderTypeFromJSON,
   BillingProviderTypeFromJSONTyped,
   BillingProviderTypeToJSON,
+  BillingProviderTypeToJSONTyped,
 } from "./BillingProviderType";
 
 /**
@@ -162,11 +163,19 @@ export function BillingProductResponseDataFromJSONTyped(
 }
 
 export function BillingProductResponseDataToJSON(
+  json: any,
+): BillingProductResponseData {
+  return BillingProductResponseDataToJSONTyped(json, false);
+}
+
+export function BillingProductResponseDataToJSONTyped(
   value?: BillingProductResponseData | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     account_id: value["accountId"],
     created_at: value["createdAt"].toISOString(),

@@ -18,18 +18,21 @@ import {
   RuleDetailResponseDataFromJSON,
   RuleDetailResponseDataFromJSONTyped,
   RuleDetailResponseDataToJSON,
+  RuleDetailResponseDataToJSONTyped,
 } from "./RuleDetailResponseData";
 import type { FeatureResponseData } from "./FeatureResponseData";
 import {
   FeatureResponseDataFromJSON,
   FeatureResponseDataFromJSONTyped,
   FeatureResponseDataToJSON,
+  FeatureResponseDataToJSONTyped,
 } from "./FeatureResponseData";
 import type { FlagType } from "./FlagType";
 import {
   FlagTypeFromJSON,
   FlagTypeFromJSONTyped,
   FlagTypeToJSON,
+  FlagTypeToJSONTyped,
 } from "./FlagType";
 
 /**
@@ -176,11 +179,19 @@ export function FlagDetailResponseDataFromJSONTyped(
 }
 
 export function FlagDetailResponseDataToJSON(
+  json: any,
+): FlagDetailResponseData {
+  return FlagDetailResponseDataToJSONTyped(json, false);
+}
+
+export function FlagDetailResponseDataToJSONTyped(
   value?: FlagDetailResponseData | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     created_at: value["createdAt"].toISOString(),
     default_value: value["defaultValue"],

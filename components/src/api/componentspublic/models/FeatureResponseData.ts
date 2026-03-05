@@ -18,12 +18,14 @@ import {
   FeatureTypeFromJSON,
   FeatureTypeFromJSONTyped,
   FeatureTypeToJSON,
+  FeatureTypeToJSONTyped,
 } from "./FeatureType";
 import type { FeatureLifecyclePhase } from "./FeatureLifecyclePhase";
 import {
   FeatureLifecyclePhaseFromJSON,
   FeatureLifecyclePhaseFromJSONTyped,
   FeatureLifecyclePhaseToJSON,
+  FeatureLifecyclePhaseToJSONTyped,
 } from "./FeatureLifecyclePhase";
 
 /**
@@ -164,12 +166,18 @@ export function FeatureResponseDataFromJSONTyped(
   };
 }
 
-export function FeatureResponseDataToJSON(
+export function FeatureResponseDataToJSON(json: any): FeatureResponseData {
+  return FeatureResponseDataToJSONTyped(json, false);
+}
+
+export function FeatureResponseDataToJSONTyped(
   value?: FeatureResponseData | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     created_at: value["createdAt"].toISOString(),
     description: value["description"],

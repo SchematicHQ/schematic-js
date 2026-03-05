@@ -82,10 +82,18 @@ export function StripeEmbedInfoFromJSONTyped(
   };
 }
 
-export function StripeEmbedInfoToJSON(value?: StripeEmbedInfo | null): any {
+export function StripeEmbedInfoToJSON(json: any): StripeEmbedInfo {
+  return StripeEmbedInfoToJSONTyped(json, false);
+}
+
+export function StripeEmbedInfoToJSONTyped(
+  value?: StripeEmbedInfo | null,
+  ignoreDiscriminator: boolean = false,
+): any {
   if (value == null) {
     return value;
   }
+
   return {
     account_id: value["accountId"],
     publishable_key: value["publishableKey"],

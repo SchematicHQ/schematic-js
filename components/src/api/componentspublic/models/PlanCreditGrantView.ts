@@ -18,42 +18,49 @@ import {
   BillingCreditExpiryTypeFromJSON,
   BillingCreditExpiryTypeFromJSONTyped,
   BillingCreditExpiryTypeToJSON,
+  BillingCreditExpiryTypeToJSONTyped,
 } from "./BillingCreditExpiryType";
 import type { BillingPlanCreditGrantResetStart } from "./BillingPlanCreditGrantResetStart";
 import {
   BillingPlanCreditGrantResetStartFromJSON,
   BillingPlanCreditGrantResetStartFromJSONTyped,
   BillingPlanCreditGrantResetStartToJSON,
+  BillingPlanCreditGrantResetStartToJSONTyped,
 } from "./BillingPlanCreditGrantResetStart";
 import type { BillingPlanCreditGrantResetType } from "./BillingPlanCreditGrantResetType";
 import {
   BillingPlanCreditGrantResetTypeFromJSON,
   BillingPlanCreditGrantResetTypeFromJSONTyped,
   BillingPlanCreditGrantResetTypeToJSON,
+  BillingPlanCreditGrantResetTypeToJSONTyped,
 } from "./BillingPlanCreditGrantResetType";
 import type { GenericPreviewObject } from "./GenericPreviewObject";
 import {
   GenericPreviewObjectFromJSON,
   GenericPreviewObjectFromJSONTyped,
   GenericPreviewObjectToJSON,
+  GenericPreviewObjectToJSONTyped,
 } from "./GenericPreviewObject";
 import type { BillingCreditExpiryUnit } from "./BillingCreditExpiryUnit";
 import {
   BillingCreditExpiryUnitFromJSON,
   BillingCreditExpiryUnitFromJSONTyped,
   BillingCreditExpiryUnitToJSON,
+  BillingCreditExpiryUnitToJSONTyped,
 } from "./BillingCreditExpiryUnit";
 import type { BillingCreditView } from "./BillingCreditView";
 import {
   BillingCreditViewFromJSON,
   BillingCreditViewFromJSONTyped,
   BillingCreditViewToJSON,
+  BillingCreditViewToJSONTyped,
 } from "./BillingCreditView";
 import type { BillingPlanCreditGrantResetCadence } from "./BillingPlanCreditGrantResetCadence";
 import {
   BillingPlanCreditGrantResetCadenceFromJSON,
   BillingPlanCreditGrantResetCadenceFromJSONTyped,
   BillingPlanCreditGrantResetCadenceToJSON,
+  BillingPlanCreditGrantResetCadenceToJSONTyped,
 } from "./BillingPlanCreditGrantResetCadence";
 
 /**
@@ -345,12 +352,18 @@ export function PlanCreditGrantViewFromJSONTyped(
   };
 }
 
-export function PlanCreditGrantViewToJSON(
+export function PlanCreditGrantViewToJSON(json: any): PlanCreditGrantView {
+  return PlanCreditGrantViewToJSONTyped(json, false);
+}
+
+export function PlanCreditGrantViewToJSONTyped(
   value?: PlanCreditGrantView | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     billing_credit_auto_topup_amount: value["billingCreditAutoTopupAmount"],
     billing_credit_auto_topup_amount_type:

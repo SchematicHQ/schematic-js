@@ -26,7 +26,7 @@ export type ComponentState =
 export function instanceOfComponentState(value: any): boolean {
   for (const key in ComponentState) {
     if (Object.prototype.hasOwnProperty.call(ComponentState, key)) {
-      if ((ComponentState as Record<string, ComponentState>)[key] === value) {
+      if (ComponentState[key as keyof typeof ComponentState] === value) {
         return true;
       }
     }
@@ -47,4 +47,11 @@ export function ComponentStateFromJSONTyped(
 
 export function ComponentStateToJSON(value?: ComponentState | null): any {
   return value as any;
+}
+
+export function ComponentStateToJSONTyped(
+  value: any,
+  ignoreDiscriminator: boolean,
+): ComponentState {
+  return value as ComponentState;
 }

@@ -18,42 +18,49 @@ import {
   BillingCreditExpiryTypeFromJSON,
   BillingCreditExpiryTypeFromJSONTyped,
   BillingCreditExpiryTypeToJSON,
+  BillingCreditExpiryTypeToJSONTyped,
 } from "./BillingCreditExpiryType";
 import type { BillingCreditGrantZeroedOutReason } from "./BillingCreditGrantZeroedOutReason";
 import {
   BillingCreditGrantZeroedOutReasonFromJSON,
   BillingCreditGrantZeroedOutReasonFromJSONTyped,
   BillingCreditGrantZeroedOutReasonToJSON,
+  BillingCreditGrantZeroedOutReasonToJSONTyped,
 } from "./BillingCreditGrantZeroedOutReason";
 import type { BillingProductPriceResponseData } from "./BillingProductPriceResponseData";
 import {
   BillingProductPriceResponseDataFromJSON,
   BillingProductPriceResponseDataFromJSONTyped,
   BillingProductPriceResponseDataToJSON,
+  BillingProductPriceResponseDataToJSONTyped,
 } from "./BillingProductPriceResponseData";
 import type { CreditTransferView } from "./CreditTransferView";
 import {
   CreditTransferViewFromJSON,
   CreditTransferViewFromJSONTyped,
   CreditTransferViewToJSON,
+  CreditTransferViewToJSONTyped,
 } from "./CreditTransferView";
 import type { BillingCreditExpiryUnit } from "./BillingCreditExpiryUnit";
 import {
   BillingCreditExpiryUnitFromJSON,
   BillingCreditExpiryUnitFromJSONTyped,
   BillingCreditExpiryUnitToJSON,
+  BillingCreditExpiryUnitToJSONTyped,
 } from "./BillingCreditExpiryUnit";
 import type { BillingCreditGrantReason } from "./BillingCreditGrantReason";
 import {
   BillingCreditGrantReasonFromJSON,
   BillingCreditGrantReasonFromJSONTyped,
   BillingCreditGrantReasonToJSON,
+  BillingCreditGrantReasonToJSONTyped,
 } from "./BillingCreditGrantReason";
 import type { BillingPlanCreditGrantResetCadence } from "./BillingPlanCreditGrantResetCadence";
 import {
   BillingPlanCreditGrantResetCadenceFromJSON,
   BillingPlanCreditGrantResetCadenceFromJSONTyped,
   BillingPlanCreditGrantResetCadenceToJSON,
+  BillingPlanCreditGrantResetCadenceToJSONTyped,
 } from "./BillingPlanCreditGrantResetCadence";
 
 /**
@@ -366,11 +373,19 @@ export function CreditCompanyGrantViewFromJSONTyped(
 }
 
 export function CreditCompanyGrantViewToJSON(
+  json: any,
+): CreditCompanyGrantView {
+  return CreditCompanyGrantViewToJSONTyped(json, false);
+}
+
+export function CreditCompanyGrantViewToJSONTyped(
   value?: CreditCompanyGrantView | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     billing_credit_bundle_id: value["billingCreditBundleId"],
     billing_credit_id: value["billingCreditId"],

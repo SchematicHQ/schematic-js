@@ -78,11 +78,19 @@ export function PreviewObjectResponseDataFromJSONTyped(
 }
 
 export function PreviewObjectResponseDataToJSON(
+  json: any,
+): PreviewObjectResponseData {
+  return PreviewObjectResponseDataToJSONTyped(json, false);
+}
+
+export function PreviewObjectResponseDataToJSONTyped(
   value?: PreviewObjectResponseData | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     description: value["description"],
     id: value["id"],

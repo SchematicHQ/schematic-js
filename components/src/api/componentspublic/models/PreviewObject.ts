@@ -73,10 +73,18 @@ export function PreviewObjectFromJSONTyped(
   };
 }
 
-export function PreviewObjectToJSON(value?: PreviewObject | null): any {
+export function PreviewObjectToJSON(json: any): PreviewObject {
+  return PreviewObjectToJSONTyped(json, false);
+}
+
+export function PreviewObjectToJSONTyped(
+  value?: PreviewObject | null,
+  ignoreDiscriminator: boolean = false,
+): any {
   if (value == null) {
     return value;
   }
+
   return {
     description: value["description"],
     id: value["id"],

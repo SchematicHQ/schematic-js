@@ -18,18 +18,21 @@ import {
   UpdatePayInAdvanceRequestBodyFromJSON,
   UpdatePayInAdvanceRequestBodyFromJSONTyped,
   UpdatePayInAdvanceRequestBodyToJSON,
+  UpdatePayInAdvanceRequestBodyToJSONTyped,
 } from "./UpdatePayInAdvanceRequestBody";
 import type { UpdateCreditBundleRequestBody } from "./UpdateCreditBundleRequestBody";
 import {
   UpdateCreditBundleRequestBodyFromJSON,
   UpdateCreditBundleRequestBodyFromJSONTyped,
   UpdateCreditBundleRequestBodyToJSON,
+  UpdateCreditBundleRequestBodyToJSONTyped,
 } from "./UpdateCreditBundleRequestBody";
 import type { UpdateAddOnRequestBody } from "./UpdateAddOnRequestBody";
 import {
   UpdateAddOnRequestBodyFromJSON,
   UpdateAddOnRequestBodyFromJSONTyped,
   UpdateAddOnRequestBodyToJSON,
+  UpdateAddOnRequestBodyToJSONTyped,
 } from "./UpdateAddOnRequestBody";
 
 /**
@@ -149,11 +152,19 @@ export function ChangeSubscriptionRequestBodyFromJSONTyped(
 }
 
 export function ChangeSubscriptionRequestBodyToJSON(
+  json: any,
+): ChangeSubscriptionRequestBody {
+  return ChangeSubscriptionRequestBodyToJSONTyped(json, false);
+}
+
+export function ChangeSubscriptionRequestBodyToJSONTyped(
   value?: ChangeSubscriptionRequestBody | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     add_on_ids: (value["addOnIds"] as Array<any>).map(
       UpdateAddOnRequestBodyToJSON,

@@ -18,56 +18,70 @@ import {
   CompanyEventPeriodMetricsResponseDataFromJSON,
   CompanyEventPeriodMetricsResponseDataFromJSONTyped,
   CompanyEventPeriodMetricsResponseDataToJSON,
+  CompanyEventPeriodMetricsResponseDataToJSONTyped,
 } from "./CompanyEventPeriodMetricsResponseData";
 import type { CompanyPlanWithBillingSubView } from "./CompanyPlanWithBillingSubView";
 import {
   CompanyPlanWithBillingSubViewFromJSON,
   CompanyPlanWithBillingSubViewFromJSONTyped,
   CompanyPlanWithBillingSubViewToJSON,
+  CompanyPlanWithBillingSubViewToJSONTyped,
 } from "./CompanyPlanWithBillingSubView";
 import type { FeatureEntitlement } from "./FeatureEntitlement";
 import {
   FeatureEntitlementFromJSON,
   FeatureEntitlementFromJSONTyped,
   FeatureEntitlementToJSON,
+  FeatureEntitlementToJSONTyped,
 } from "./FeatureEntitlement";
 import type { ScheduledDowngradeResponseData } from "./ScheduledDowngradeResponseData";
 import {
   ScheduledDowngradeResponseDataFromJSON,
   ScheduledDowngradeResponseDataFromJSONTyped,
   ScheduledDowngradeResponseDataToJSON,
+  ScheduledDowngradeResponseDataToJSONTyped,
 } from "./ScheduledDowngradeResponseData";
 import type { EntityKeyDetailResponseData } from "./EntityKeyDetailResponseData";
 import {
   EntityKeyDetailResponseDataFromJSON,
   EntityKeyDetailResponseDataFromJSONTyped,
   EntityKeyDetailResponseDataToJSON,
+  EntityKeyDetailResponseDataToJSONTyped,
 } from "./EntityKeyDetailResponseData";
 import type { EntityTraitDetailResponseData } from "./EntityTraitDetailResponseData";
 import {
   EntityTraitDetailResponseDataFromJSON,
   EntityTraitDetailResponseDataFromJSONTyped,
   EntityTraitDetailResponseDataToJSON,
+  EntityTraitDetailResponseDataToJSONTyped,
 } from "./EntityTraitDetailResponseData";
 import type { Rule } from "./Rule";
-import { RuleFromJSON, RuleFromJSONTyped, RuleToJSON } from "./Rule";
+import {
+  RuleFromJSON,
+  RuleFromJSONTyped,
+  RuleToJSON,
+  RuleToJSONTyped,
+} from "./Rule";
 import type { GenericPreviewObject } from "./GenericPreviewObject";
 import {
   GenericPreviewObjectFromJSON,
   GenericPreviewObjectFromJSONTyped,
   GenericPreviewObjectToJSON,
+  GenericPreviewObjectToJSONTyped,
 } from "./GenericPreviewObject";
 import type { PaymentMethodResponseData } from "./PaymentMethodResponseData";
 import {
   PaymentMethodResponseDataFromJSON,
   PaymentMethodResponseDataFromJSONTyped,
   PaymentMethodResponseDataToJSON,
+  PaymentMethodResponseDataToJSONTyped,
 } from "./PaymentMethodResponseData";
 import type { BillingSubscriptionView } from "./BillingSubscriptionView";
 import {
   BillingSubscriptionViewFromJSON,
   BillingSubscriptionViewFromJSONTyped,
   BillingSubscriptionViewToJSON,
+  BillingSubscriptionViewToJSONTyped,
 } from "./BillingSubscriptionView";
 
 /**
@@ -317,11 +331,19 @@ export function CompanyDetailResponseDataFromJSONTyped(
 }
 
 export function CompanyDetailResponseDataToJSON(
+  json: any,
+): CompanyDetailResponseData {
+  return CompanyDetailResponseDataToJSONTyped(json, false);
+}
+
+export function CompanyDetailResponseDataToJSONTyped(
   value?: CompanyDetailResponseData | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     add_ons: (value["addOns"] as Array<any>).map(
       CompanyPlanWithBillingSubViewToJSON,

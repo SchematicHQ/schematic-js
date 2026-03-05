@@ -66,10 +66,18 @@ export function CompatiblePlansFromJSONTyped(
   };
 }
 
-export function CompatiblePlansToJSON(value?: CompatiblePlans | null): any {
+export function CompatiblePlansToJSON(json: any): CompatiblePlans {
+  return CompatiblePlansToJSONTyped(json, false);
+}
+
+export function CompatiblePlansToJSONTyped(
+  value?: CompatiblePlans | null,
+  ignoreDiscriminator: boolean = false,
+): any {
   if (value == null) {
     return value;
   }
+
   return {
     compatible_plan_ids: value["compatiblePlanIds"],
     source_plan_id: value["sourcePlanId"],

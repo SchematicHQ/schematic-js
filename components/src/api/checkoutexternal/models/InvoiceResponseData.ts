@@ -18,12 +18,14 @@ import {
   BillingProviderTypeFromJSON,
   BillingProviderTypeFromJSONTyped,
   BillingProviderTypeToJSON,
+  BillingProviderTypeToJSONTyped,
 } from "./BillingProviderType";
 import type { InvoiceStatus } from "./InvoiceStatus";
 import {
   InvoiceStatusFromJSON,
   InvoiceStatusFromJSONTyped,
   InvoiceStatusToJSON,
+  InvoiceStatusToJSONTyped,
 } from "./InvoiceStatus";
 
 /**
@@ -221,12 +223,18 @@ export function InvoiceResponseDataFromJSONTyped(
   };
 }
 
-export function InvoiceResponseDataToJSON(
+export function InvoiceResponseDataToJSON(json: any): InvoiceResponseData {
+  return InvoiceResponseDataToJSONTyped(json, false);
+}
+
+export function InvoiceResponseDataToJSONTyped(
   value?: InvoiceResponseData | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     amount_due: value["amountDue"],
     amount_paid: value["amountPaid"],

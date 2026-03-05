@@ -18,30 +18,35 @@ import {
   BillingProductPriceIntervalFromJSON,
   BillingProductPriceIntervalFromJSONTyped,
   BillingProductPriceIntervalToJSON,
+  BillingProductPriceIntervalToJSONTyped,
 } from "./BillingProductPriceInterval";
 import type { BillingPriceUsageType } from "./BillingPriceUsageType";
 import {
   BillingPriceUsageTypeFromJSON,
   BillingPriceUsageTypeFromJSONTyped,
   BillingPriceUsageTypeToJSON,
+  BillingPriceUsageTypeToJSONTyped,
 } from "./BillingPriceUsageType";
 import type { BillingProviderType } from "./BillingProviderType";
 import {
   BillingProviderTypeFromJSON,
   BillingProviderTypeFromJSONTyped,
   BillingProviderTypeToJSON,
+  BillingProviderTypeToJSONTyped,
 } from "./BillingProviderType";
 import type { BillingPriceScheme } from "./BillingPriceScheme";
 import {
   BillingPriceSchemeFromJSON,
   BillingPriceSchemeFromJSONTyped,
   BillingPriceSchemeToJSON,
+  BillingPriceSchemeToJSONTyped,
 } from "./BillingPriceScheme";
 import type { BillingTiersMode } from "./BillingTiersMode";
 import {
   BillingTiersModeFromJSON,
   BillingTiersModeFromJSONTyped,
   BillingTiersModeToJSON,
+  BillingTiersModeToJSONTyped,
 } from "./BillingTiersMode";
 
 /**
@@ -216,11 +221,19 @@ export function BillingProductPriceResponseDataFromJSONTyped(
 }
 
 export function BillingProductPriceResponseDataToJSON(
+  json: any,
+): BillingProductPriceResponseData {
+  return BillingProductPriceResponseDataToJSONTyped(json, false);
+}
+
+export function BillingProductPriceResponseDataToJSONTyped(
   value?: BillingProductPriceResponseData | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     billing_scheme: BillingPriceSchemeToJSON(value["billingScheme"]),
     created_at: value["createdAt"].toISOString(),

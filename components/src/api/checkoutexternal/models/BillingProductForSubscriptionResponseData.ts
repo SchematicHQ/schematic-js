@@ -18,24 +18,28 @@ import {
   BillingProductPriceTierResponseDataFromJSON,
   BillingProductPriceTierResponseDataFromJSONTyped,
   BillingProductPriceTierResponseDataToJSON,
+  BillingProductPriceTierResponseDataToJSONTyped,
 } from "./BillingProductPriceTierResponseData";
 import type { BillingPriceUsageType } from "./BillingPriceUsageType";
 import {
   BillingPriceUsageTypeFromJSON,
   BillingPriceUsageTypeFromJSONTyped,
   BillingPriceUsageTypeToJSON,
+  BillingPriceUsageTypeToJSONTyped,
 } from "./BillingPriceUsageType";
 import type { BillingProviderType } from "./BillingProviderType";
 import {
   BillingProviderTypeFromJSON,
   BillingProviderTypeFromJSONTyped,
   BillingProviderTypeToJSON,
+  BillingProviderTypeToJSONTyped,
 } from "./BillingProviderType";
 import type { BillingPriceScheme } from "./BillingPriceScheme";
 import {
   BillingPriceSchemeFromJSON,
   BillingPriceSchemeFromJSONTyped,
   BillingPriceSchemeToJSON,
+  BillingPriceSchemeToJSONTyped,
 } from "./BillingPriceScheme";
 
 /**
@@ -259,11 +263,19 @@ export function BillingProductForSubscriptionResponseDataFromJSONTyped(
 }
 
 export function BillingProductForSubscriptionResponseDataToJSON(
+  json: any,
+): BillingProductForSubscriptionResponseData {
+  return BillingProductForSubscriptionResponseDataToJSONTyped(json, false);
+}
+
+export function BillingProductForSubscriptionResponseDataToJSONTyped(
   value?: BillingProductForSubscriptionResponseData | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     billing_scheme: BillingPriceSchemeToJSON(value["billingScheme"]),
     billing_threshold: value["billingThreshold"],
