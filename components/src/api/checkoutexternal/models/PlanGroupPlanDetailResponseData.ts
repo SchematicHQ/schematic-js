@@ -34,6 +34,12 @@ import {
   PlanControlledByTypeToJSON,
   PlanControlledByTypeToJSONTyped,
 } from "./PlanControlledByType";
+import type { PlanCurrencyPricesResponseData } from "./PlanCurrencyPricesResponseData";
+import {
+  PlanCurrencyPricesResponseDataFromJSON,
+  PlanCurrencyPricesResponseDataFromJSONTyped,
+  PlanCurrencyPricesResponseDataToJSON,
+} from "./PlanCurrencyPricesResponseData";
 import type { PlanEntitlementResponseData } from "./PlanEntitlementResponseData";
 import {
   PlanEntitlementResponseDataFromJSON,
@@ -139,6 +145,12 @@ export interface PlanGroupPlanDetailResponseData {
    * @memberof PlanGroupPlanDetailResponseData
    */
   createdAt: Date;
+  /**
+   *
+   * @type {Array<PlanCurrencyPricesResponseData>}
+   * @memberof PlanGroupPlanDetailResponseData
+   */
+  currencyPrices: Array<PlanCurrencyPricesResponseData>;
   /**
    *
    * @type {CustomPlanViewConfigResponseData}
@@ -280,6 +292,8 @@ export function instanceOfPlanGroupPlanDetailResponseData(
   if (!("controlledBy" in value) || value["controlledBy"] === undefined)
     return false;
   if (!("createdAt" in value) || value["createdAt"] === undefined) return false;
+  if (!("currencyPrices" in value) || value["currencyPrices"] === undefined)
+    return false;
   if (!("description" in value) || value["description"] === undefined)
     return false;
   if (!("entitlements" in value) || value["entitlements"] === undefined)
@@ -328,6 +342,9 @@ export function PlanGroupPlanDetailResponseDataFromJSONTyped(
     compatiblePlanIds: json["compatible_plan_ids"],
     controlledBy: PlanControlledByTypeFromJSON(json["controlled_by"]),
     createdAt: new Date(json["created_at"]),
+    currencyPrices: (json["currency_prices"] as Array<any>).map(
+      PlanCurrencyPricesResponseDataFromJSON,
+    ),
     customPlanConfig:
       json["custom_plan_config"] == null
         ? undefined
@@ -402,6 +419,9 @@ export function PlanGroupPlanDetailResponseDataToJSONTyped(
     compatible_plan_ids: value["compatiblePlanIds"],
     controlled_by: PlanControlledByTypeToJSON(value["controlledBy"]),
     created_at: value["createdAt"].toISOString(),
+    currency_prices: (value["currencyPrices"] as Array<any>).map(
+      PlanCurrencyPricesResponseDataToJSON,
+    ),
     custom_plan_config: CustomPlanViewConfigResponseDataToJSON(
       value["customPlanConfig"],
     ),

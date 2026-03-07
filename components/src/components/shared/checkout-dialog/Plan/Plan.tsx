@@ -31,6 +31,7 @@ interface PlanProps {
   }) => void;
   shouldTrial: boolean;
   tooltipPortal?: HTMLElement | null;
+  currency?: string;
 }
 
 export const Plan = ({
@@ -41,6 +42,7 @@ export const Plan = ({
   selectPlan,
   shouldTrial,
   tooltipPortal,
+  currency,
 }: PlanProps) => {
   const { t } = useTranslation();
 
@@ -105,7 +107,12 @@ export const Plan = ({
             ? BillingProductPriceInterval.Year
             : BillingProductPriceInterval.Month;
         const { price: planPrice, currency: planCurrency } =
-          getPlanPrice(plan, planPeriod) || {};
+          getPlanPrice(
+            plan,
+            planPeriod,
+            { useSelectedPeriod: true },
+            currency,
+          ) || {};
         const credits = groupPlanCreditGrants(plan.includedCreditGrants);
         const hasUsageBasedEntitlements = plan.entitlements.some(
           (entitlement) => !!entitlement.priceBehavior,

@@ -34,6 +34,12 @@ import {
   PlanControlledByTypeToJSON,
   PlanControlledByTypeToJSONTyped,
 } from "./PlanControlledByType";
+import type { PlanCurrencyPricesResponseData } from "./PlanCurrencyPricesResponseData";
+import {
+  PlanCurrencyPricesResponseDataFromJSON,
+  PlanCurrencyPricesResponseDataFromJSONTyped,
+  PlanCurrencyPricesResponseDataToJSON,
+} from "./PlanCurrencyPricesResponseData";
 import type { ChargeType } from "./ChargeType";
 import {
   ChargeTypeFromJSON,
@@ -119,6 +125,12 @@ export interface PlanDetailResponseData {
    * @memberof PlanDetailResponseData
    */
   createdAt: Date;
+  /**
+   *
+   * @type {Array<PlanCurrencyPricesResponseData>}
+   * @memberof PlanDetailResponseData
+   */
+  currencyPrices: Array<PlanCurrencyPricesResponseData>;
   /**
    *
    * @type {string}
@@ -237,6 +249,8 @@ export function instanceOfPlanDetailResponseData(
   if (!("controlledBy" in value) || value["controlledBy"] === undefined)
     return false;
   if (!("createdAt" in value) || value["createdAt"] === undefined) return false;
+  if (!("currencyPrices" in value) || value["currencyPrices"] === undefined)
+    return false;
   if (!("description" in value) || value["description"] === undefined)
     return false;
   if (!("features" in value) || value["features"] === undefined) return false;
@@ -281,6 +295,9 @@ export function PlanDetailResponseDataFromJSONTyped(
     companyCount: json["company_count"],
     controlledBy: PlanControlledByTypeFromJSON(json["controlled_by"]),
     createdAt: new Date(json["created_at"]),
+    currencyPrices: (json["currency_prices"] as Array<any>).map(
+      PlanCurrencyPricesResponseDataFromJSON,
+    ),
     description: json["description"],
     draftVersion:
       json["draft_version"] == null
@@ -346,6 +363,9 @@ export function PlanDetailResponseDataToJSONTyped(
     company_count: value["companyCount"],
     controlled_by: PlanControlledByTypeToJSON(value["controlledBy"]),
     created_at: value["createdAt"].toISOString(),
+    currency_prices: (value["currencyPrices"] as Array<any>).map(
+      PlanCurrencyPricesResponseDataToJSON,
+    ),
     description: value["description"],
     draft_version: PlanVersionResponseDataToJSON(value["draftVersion"]),
     features: (value["features"] as Array<any>).map(

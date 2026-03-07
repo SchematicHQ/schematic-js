@@ -70,6 +70,7 @@ models/CustomPlanConfig.ts
 models/CustomPlanViewConfigResponseData.ts
 models/DeletePaymentMethodResponse.ts
 models/DeleteResponse.ts
+models/EntitlementCurrencyPricesResponseData.ts
 models/EntitlementPriceBehavior.ts
 models/EntitlementType.ts
 models/EntitlementValueType.ts
@@ -104,6 +105,7 @@ models/ListInvoicesResponse.ts
 models/PaymentMethodResponseData.ts
 models/PlanControlledByType.ts
 models/PlanCreditGrantView.ts
+models/PlanCurrencyPricesResponseData.ts
 models/PlanDetailResponseData.ts
 models/PlanEntitlementResponseData.ts
 models/PlanGroupPlanDetailResponseData.ts
