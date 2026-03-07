@@ -12,7 +12,7 @@ export const FussyChild = styled(Element)``;
 export const Notice = styled(Box)``;
 
 export const cardBoxShadow =
-  "0px 1px 20px 0px #1018280F, 0px 1px 3px 0px #1018281A";
+  "0px 2px 24px 0px #3B82F61A, 0px 1px 4px 0px #3B82F626"; // blue tint - spinup test
 
 export const StyledCard = styled.div(({ theme }) => {
   const { l } = hexToHSL(theme.card.background);
