@@ -41,6 +41,7 @@ export * from "./CreateEventRequestBody";
 export * from "./CreateEventResponse";
 export * from "./CustomPlanConfig";
 export * from "./CustomPlanViewConfigResponseData";
+export * from "./DatastreamCompanyPlan";
 export * from "./DeleteResponse";
 export * from "./EntitlementPriceBehavior";
 export * from "./EntitlementValueType";
