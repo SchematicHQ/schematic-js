@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from "../runtime";
+import type { DatastreamCompanyPlan } from "./DatastreamCompanyPlan";
+import {
+  DatastreamCompanyPlanFromJSON,
+  DatastreamCompanyPlanFromJSONTyped,
+  DatastreamCompanyPlanToJSON,
+  DatastreamCompanyPlanToJSONTyped,
+} from "./DatastreamCompanyPlan";
 import type { CheckFlagResponseData } from "./CheckFlagResponseData";
 import {
   CheckFlagResponseDataFromJSON,
@@ -33,6 +40,12 @@ export interface CheckFlagsResponseData {
    * @memberof CheckFlagsResponseData
    */
   flags: Array<CheckFlagResponseData>;
+  /**
+   *
+   * @type {DatastreamCompanyPlan}
+   * @memberof CheckFlagsResponseData
+   */
+  plan?: DatastreamCompanyPlan;
 }
 
 /**
@@ -60,6 +73,10 @@ export function CheckFlagsResponseDataFromJSONTyped(
   }
   return {
     flags: (json["flags"] as Array<any>).map(CheckFlagResponseDataFromJSON),
+    plan:
+      json["plan"] == null
+        ? undefined
+        : DatastreamCompanyPlanFromJSON(json["plan"]),
   };
 }
 
@@ -79,5 +96,6 @@ export function CheckFlagsResponseDataToJSONTyped(
 
   return {
     flags: (value["flags"] as Array<any>).map(CheckFlagResponseDataToJSON),
+    plan: DatastreamCompanyPlanToJSON(value["plan"]),
   };
 }

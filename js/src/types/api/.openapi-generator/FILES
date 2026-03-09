@@ -40,6 +40,7 @@ models/CreateEventRequestBody.ts
 models/CreateEventResponse.ts
 models/CustomPlanConfig.ts
 models/CustomPlanViewConfigResponseData.ts
+models/DatastreamCompanyPlan.ts
 models/DeleteResponse.ts
 models/EntitlementPriceBehavior.ts
 models/EntitlementValueType.ts
