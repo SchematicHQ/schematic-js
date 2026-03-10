@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from "../runtime";
+import type { ActorType } from "./ActorType";
+import {
+  ActorTypeFromJSON,
+  ActorTypeFromJSONTyped,
+  ActorTypeToJSON,
+  ActorTypeToJSONTyped,
+} from "./ActorType";
 import type { EnvironmentResponseData } from "./EnvironmentResponseData";
 import {
   EnvironmentResponseDataFromJSON,
@@ -41,10 +48,10 @@ export interface WhoAmIResponseData {
   accountName: string;
   /**
    *
-   * @type {string}
+   * @type {ActorType}
    * @memberof WhoAmIResponseData
    */
-  actorType: string;
+  actorType: ActorType;
   /**
    *
    * @type {string}
@@ -112,7 +119,7 @@ export function WhoAmIResponseDataFromJSONTyped(
   return {
     accountId: json["account_id"],
     accountName: json["account_name"],
-    actorType: json["actor_type"],
+    actorType: ActorTypeFromJSON(json["actor_type"]),
     apiKeyId: json["api_key_id"] == null ? undefined : json["api_key_id"],
     environmentId:
       json["environment_id"] == null ? undefined : json["environment_id"],
@@ -141,7 +148,7 @@ export function WhoAmIResponseDataToJSONTyped(
   return {
     account_id: value["accountId"],
     account_name: value["accountName"],
-    actor_type: value["actorType"],
+    actor_type: ActorTypeToJSON(value["actorType"]),
     api_key_id: value["apiKeyId"],
     environment_id: value["environmentId"],
     environments: (value["environments"] as Array<any>).map(

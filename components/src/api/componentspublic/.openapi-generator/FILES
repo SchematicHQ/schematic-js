@@ -5,6 +5,7 @@ apis/EventsApi.ts
 apis/FeaturesApi.ts
 apis/index.ts
 index.ts
+models/ActorType.ts
 models/ApiError.ts
 models/BillingCreditBurnStrategy.ts
 models/BillingCreditExpiryType.ts
