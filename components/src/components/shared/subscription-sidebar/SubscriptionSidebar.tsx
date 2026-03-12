@@ -402,11 +402,20 @@ export const SubscriptionSidebar = forwardRef<
 
     const handleCheckout = useCallback(async () => {
       const planId = selectedPlan?.id;
-      const planPriceId = (
-        planPeriod === "year"
+      const currencyPrice = selectedPlan
+        ? getPlanPrice(
+            selectedPlan,
+            planPeriod,
+            { useSelectedPeriod: true },
+            currency,
+          )
+        : undefined;
+      const planPriceId =
+        currencyPrice?.id ??
+        (planPeriod === "year"
           ? selectedPlan?.yearlyPrice
           : selectedPlan?.monthlyPrice
-      )?.id;
+        )?.id;
 
       try {
         if (!planId || !planPriceId) {
@@ -430,6 +439,8 @@ export const SubscriptionSidebar = forwardRef<
           addOns,
           planPeriod,
           shouldTrial,
+          addOnPayInAdvanceEntitlements,
+          currency,
         );
 
         const creditBundlesRequestBody =

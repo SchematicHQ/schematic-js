@@ -40,10 +40,12 @@ export function buildAddOnRequestBody(
   addOns: SelectedPlan[],
   period: string,
   shouldTrial: boolean,
+  addOnPayInAdvanceEntitlements: UsageBasedEntitlement[],
+  currency?: string,
 ): UpdateAddOnRequestBody[] {
   return addOns.reduce((acc: UpdateAddOnRequestBody[], addOn) => {
     if (addOn.isSelected && !shouldTrial) {
-      const addOnPrice = getAddOnPrice(addOn, period);
+      const addOnPrice = getAddOnPrice(addOn, period, currency);
       const addOnPriceId = addOnPrice?.id;
 
       if (addOnPriceId) {

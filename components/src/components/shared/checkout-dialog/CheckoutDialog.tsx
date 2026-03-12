@@ -38,6 +38,7 @@ import {
   buildAddOnRequestBody,
   buildCreditBundlesRequestBody,
   buildPayInAdvanceRequestBody,
+  getPlanPrice,
   isError,
 } from "../../../utils";
 import {
@@ -192,7 +193,8 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
   const currencies = useAvailableCurrencies();
   const [selectedCurrency, setSelectedCurrency] = useState(
-    () => checkoutState?.selectedCurrency ?? DEFAULT_CURRENCY,
+    () =>
+      checkoutState?.selectedCurrency ?? currencies[0] ?? DEFAULT_CURRENCY,
   );
   const showCurrencySelector = currencies.length > 1;
 
@@ -529,8 +531,14 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     }) => {
       const period = updates.period || planPeriod;
       const plan = updates.plan || selectedPlan;
+      const resolvedCurrency =
+        showCurrencySelector ? selectedCurrency : undefined;
+      const currencyPrice = plan
+        ? getPlanPrice(plan, period, { useSelectedPeriod: true }, resolvedCurrency)
+        : undefined;
       const planPriceId =
-        period === "year" ? plan?.yearlyPrice?.id : plan?.monthlyPrice?.id;
+        currencyPrice?.id ??
+        (period === "year" ? plan?.yearlyPrice?.id : plan?.monthlyPrice?.id);
       const code =
         typeof updates.promoCode !== "undefined"
           ? updates.promoCode
@@ -569,6 +577,8 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
         resolvedAddOns,
         period,
         shouldTrial,
+        resolvedAddOnPayInAdvanceEntitlements,
+        resolvedCurrency,
       );
 
       const creditBundlesRequestBody = buildCreditBundlesRequestBody(
@@ -656,6 +666,8 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       previewCheckout,
       planPeriod,
       selectedPlan,
+      selectedCurrency,
+      showCurrencySelector,
       payInAdvanceEntitlements,
       addOnPayInAdvanceEntitlements,
       addOns,

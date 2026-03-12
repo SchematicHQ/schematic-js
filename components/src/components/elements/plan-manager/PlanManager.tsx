@@ -1,11 +1,9 @@
-import { forwardRef, useMemo, useState } from "react";
+import { forwardRef, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import { BillingCreditGrantReason } from "../../../api/checkoutexternal";
-import { DEFAULT_CURRENCY } from "../../../const";
 import { type FontStyle } from "../../../context";
 import {
-  useAvailableCurrencies,
   useEmbed,
   useIsLightBackground,
   useTrialEnd,
@@ -25,7 +23,6 @@ import {
   toPrettyDate,
 } from "../../../utils";
 import { Element, Notice } from "../../layout";
-import { CurrencyToggle } from "../../shared";
 import { Box, Button, Flex, Icon, Text, Tooltip } from "../../ui";
 
 import { AddOn } from "./AddOn";
@@ -205,11 +202,6 @@ export const PlanManager = forwardRef<
     };
   }, [billingSubscription]);
 
-  const currencies = useAvailableCurrencies();
-  const [selectedCurrency, setSelectedCurrency] = useState(
-    () => subscriptionCurrency?.toUpperCase() ?? DEFAULT_CURRENCY,
-  );
-  const showCurrencySelector = currencies.length > 1;
 
   const { isFreePlan, isUsageBasedPlan } = useMemo(() => {
     const isFreePlan = currentPlan?.planPrice === 0;
@@ -337,16 +329,6 @@ export const PlanManager = forwardRef<
         $flexDirection="column"
         $gap="2rem"
       >
-        {showCurrencySelector && (
-          <Flex $justifyContent="end" $marginBottom="-1rem">
-            <CurrencyToggle
-              currencies={currencies}
-              selectedCurrency={selectedCurrency}
-              onSelect={setSelectedCurrency}
-            />
-          </Flex>
-        )}
-
         {props.header.isVisible && currentPlan && (
           <Flex
             $justifyContent="space-between"
