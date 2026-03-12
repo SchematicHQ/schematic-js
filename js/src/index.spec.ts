@@ -2634,6 +2634,7 @@ describe("Plan via WebSocket", () => {
       webSocketUrl: TEST_WS_URL,
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const planListener = vi.fn((plan: CheckPlanReturn) => {});
     schematic.addPlanListener(planListener);
 
@@ -2682,7 +2683,10 @@ describe("Plan via WebSocket", () => {
       webSocketUrl: TEST_WS_URL,
     });
 
-    const listener1 = vi.fn((plan: CheckPlanReturn) => {});
+    
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const listener1 = vi.fn((plan: CheckPlanReturn) => { });
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const listener2 = vi.fn((plan: CheckPlanReturn) => {});
     schematic.addPlanListener(listener1);
     schematic.addPlanListener(listener2);
@@ -2853,6 +2857,7 @@ describe("Plan via WebSocket", () => {
       webSocketUrl: TEST_WS_URL,
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const planListener = vi.fn((plan: CheckPlanReturn) => {});
     schematic.addPlanListener(planListener);
 
