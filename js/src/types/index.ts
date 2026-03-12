@@ -1,4 +1,7 @@
-import { CheckFlagResponseDataFromJSON } from "./api/models/CheckFlagResponseData";
+import {
+  CheckFlagResponseDataFromJSON,
+  DatastreamCompanyPlanFromJSON,
+} from "./api/models";
 import { EventBodyFlagCheck } from "./api/models/EventBodyFlagCheck";
 
 export type EventType = "identify" | "track" | "flag_check";
@@ -106,6 +109,12 @@ export type CheckFlagReturn = {
   value: boolean;
 };
 
+export type CheckPlanReturn = {
+  id: string;
+  name: string;
+  trialEndDate?: Date;
+};
+
 /** Optional type for implementing custom client-side storage */
 export type StoragePersister = {
   /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
@@ -189,6 +198,8 @@ export type FlagCheckListenerFn = CheckFlagReturnListenerFn | EmptyListenerFn;
 export type FlagValueListenerFn = BooleanListenerFn | EmptyListenerFn;
 export type PendingListenerFn = BooleanListenerFn | EmptyListenerFn;
 export type CheckFlagReturnListenerFn = (value: CheckFlagReturn) => void;
+export type CheckPlanReturnListenerFn = (value: CheckPlanReturn) => void;
+export type PlanListenerFn = CheckPlanReturnListenerFn | EmptyListenerFn;
 
 export const CheckFlagReturnFromJSON = (
   /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
@@ -242,8 +253,23 @@ export const CheckFlagReturnFromJSON = (
   };
 };
 
+export const CheckPlanReturnFromJSON = (
+  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+  json: any,
+): CheckPlanReturn => {
+  const { id, name, trialEndDate } = DatastreamCompanyPlanFromJSON(json);
+
+  // OpenAPI types return undefined or null; simplify this so callers only have to deal with undefined, and also use enums
+  return {
+    id,
+    name,
+    trialEndDate: trialEndDate == null ? undefined : trialEndDate,
+  };
+};
+
 export type { EventBodyFlagCheck } from "./api/models/EventBodyFlagCheck";
 export { EventBodyFlagCheckToJSON } from "./api/models/EventBodyFlagCheck";
 export type { CheckFlagResponseData } from "./api/models/CheckFlagResponseData";
 export { CheckFlagResponseFromJSON } from "./api/models/CheckFlagResponse";
 export { CheckFlagsResponseFromJSON } from "./api/models/CheckFlagsResponse";
+export { DatastreamCompanyPlanFromJSON } from "./api/models/DatastreamCompanyPlan";
