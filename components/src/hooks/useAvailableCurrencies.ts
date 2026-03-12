@@ -8,13 +8,6 @@ export function useAvailableCurrencies(): string[] {
   const { data } = useEmbed();
 
   return useMemo(() => {
-    // If the company already has a subscription, lock to that currency.
-    // Stripe doesn't allow mixing currencies on a subscription.
-    const subscriptionCurrency = data?.subscription?.currency?.toUpperCase();
-    if (subscriptionCurrency) {
-      return [subscriptionCurrency];
-    }
-
     const currencySet = new Set<string>();
     currencySet.add(DEFAULT_CURRENCY);
 
@@ -27,5 +20,15 @@ export function useAvailableCurrencies(): string[] {
     }
 
     return Array.from(currencySet).sort();
-  }, [data?.activePlans, data?.activeAddOns, data?.subscription?.currency]);
+  }, [data?.activePlans, data?.activeAddOns]);
+}
+
+/**
+ * Returns the currency of the company's active subscription, if any.
+ * Stripe does not allow mixing currencies on a subscription, so when
+ * this is set the currency selector should be locked.
+ */
+export function useSubscriptionCurrency(): string | undefined {
+  const { data } = useEmbed();
+  return data?.subscription?.currency?.toUpperCase();
 }

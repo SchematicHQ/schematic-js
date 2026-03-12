@@ -6,12 +6,14 @@ interface CurrencyToggleProps {
   currencies: string[];
   selectedCurrency: string;
   onSelect: (currency: string) => void;
+  disabled?: boolean;
 }
 
 export const CurrencyToggle = ({
   currencies,
   selectedCurrency,
   onSelect,
+  disabled = false,
 }: CurrencyToggleProps) => {
   const { settings } = useEmbed();
 
@@ -31,7 +33,8 @@ export const CurrencyToggle = ({
           : "hsla(0, 0%, 100%, 0.125)"
       }
       $borderRadius="2.5rem"
-      $cursor="pointer"
+      $cursor={disabled ? "default" : "pointer"}
+      $opacity={disabled ? 0.6 : 1}
     >
       <Flex
         $alignItems="center"
@@ -52,13 +55,14 @@ export const CurrencyToggle = ({
           data-testid="sch-currency-select"
           value={selectedCurrency}
           onChange={(e) => onSelect(e.target.value)}
+          disabled={disabled}
           style={{
             position: "absolute",
             inset: 0,
             width: "100%",
             height: "100%",
             opacity: 0,
-            cursor: "pointer",
+            cursor: disabled ? "default" : "pointer",
             fontSize: "inherit",
           }}
         >

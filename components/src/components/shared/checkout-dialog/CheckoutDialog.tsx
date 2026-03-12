@@ -27,6 +27,7 @@ import {
   useAvailablePlans,
   useEmbed,
   useIsLightBackground,
+  useSubscriptionCurrency,
 } from "../../../hooks";
 import type {
   CreditBundle,
@@ -192,11 +193,22 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
   const [planPeriod, setPlanPeriod] = useState(getValidatedPeriod);
 
   const currencies = useAvailableCurrencies();
+  const lockedCurrency = useSubscriptionCurrency();
   const [selectedCurrency, setSelectedCurrency] = useState(
     () =>
-      checkoutState?.selectedCurrency ?? currencies[0] ?? DEFAULT_CURRENCY,
+      lockedCurrency ??
+      checkoutState?.selectedCurrency ??
+      currencies[0] ??
+      DEFAULT_CURRENCY,
   );
-  const showCurrencySelector = currencies.length > 1;
+  const showCurrencySelector = currencies.length > 1 || !!lockedCurrency;
+
+  // Keep currency pinned to the subscription currency when it loads async
+  useEffect(() => {
+    if (lockedCurrency) {
+      setSelectedCurrency(lockedCurrency);
+    }
+  }, [lockedCurrency]);
 
   const {
     plans: availablePlans,
@@ -1172,6 +1184,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
                     currencies={currencies}
                     selectedCurrency={selectedCurrency}
                     onSelect={setSelectedCurrency}
+                    disabled={!!lockedCurrency}
                   />
                 )}
 
