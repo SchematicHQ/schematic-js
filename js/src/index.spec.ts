@@ -1,6 +1,6 @@
 import { vi } from "vitest";
 import { Schematic } from "./index";
-import { RuleType } from "./types";
+import { CheckPlanReturn, CheckPlanReturnFromJSON, RuleType } from "./types";
 import { Server as WebSocketServer } from "mock-socket";
 
 import { version } from "./version";
@@ -2445,5 +2445,486 @@ describe("WebSocket auth error close code", () => {
     expect(flagValue).toBe(false); // fallback value
 
     await schematic.cleanup();
+  });
+});
+
+describe("CheckPlanReturnFromJSON", () => {
+  it("should parse plan data with all fields", () => {
+    const json = {
+      id: "plan-123",
+      name: "Pro Plan",
+      trial_end_date: "2025-12-31T00:00:00Z",
+    };
+
+    const result = CheckPlanReturnFromJSON(json);
+
+    expect(result.id).toBe("plan-123");
+    expect(result.name).toBe("Pro Plan");
+    expect(result.trialEndDate).toBeInstanceOf(Date);
+    expect(result.trialEndDate?.toISOString()).toBe("2025-12-31T00:00:00.000Z");
+  });
+
+  it("should parse plan data without trial_end_date", () => {
+    const json = {
+      id: "plan-456",
+      name: "Basic Plan",
+    };
+
+    const result = CheckPlanReturnFromJSON(json);
+
+    expect(result.id).toBe("plan-456");
+    expect(result.name).toBe("Basic Plan");
+    expect(result.trialEndDate).toBeUndefined();
+  });
+
+  it("should normalize null trial_end_date to undefined", () => {
+    const json = {
+      id: "plan-789",
+      name: "Starter Plan",
+      trial_end_date: null,
+    };
+
+    const result = CheckPlanReturnFromJSON(json);
+
+    expect(result.id).toBe("plan-789");
+    expect(result.name).toBe("Starter Plan");
+    expect(result.trialEndDate).toBeUndefined();
+  });
+});
+
+describe("Plan via WebSocket", () => {
+  let schematic: Schematic;
+  let mockServer: WebSocketServer;
+  const TEST_WS_URL = "ws://localhost:1234";
+  const FULL_WS_URL = `${TEST_WS_URL}/flags/bootstrap?apiKey=API_KEY`;
+
+  beforeEach(() => {
+    mockServer?.stop();
+    mockServer = new WebSocketServer(FULL_WS_URL);
+  });
+
+  afterEach(async () => {
+    await schematic.cleanup();
+    mockServer.stop();
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    mockFetch.mockClear();
+  });
+
+  it("should store plan from WebSocket message and return via getPlan", async () => {
+    schematic = new Schematic("API_KEY", {
+      useWebSocket: true,
+      webSocketUrl: TEST_WS_URL,
+    });
+
+    const context = {
+      company: { companyId: "456" },
+      user: { userId: "123" },
+    };
+
+    mockServer.on("connection", (socket) => {
+      socket.on("message", () => {
+        socket.send(
+          JSON.stringify({
+            flags: [
+              {
+                flag: "TEST_FLAG",
+                value: true,
+              },
+            ],
+            plan: {
+              id: "plan-ws-1",
+              name: "Enterprise Plan",
+              trial_end_date: "2025-06-15T00:00:00Z",
+            },
+          }),
+        );
+      });
+    });
+
+    await schematic.checkFlag({
+      key: "TEST_FLAG",
+      context,
+      fallback: false,
+    });
+
+    const plan = schematic.getPlan();
+    expect(plan).toBeDefined();
+    expect(plan?.id).toBe("plan-ws-1");
+    expect(plan?.name).toBe("Enterprise Plan");
+    expect(plan?.trialEndDate).toBeInstanceOf(Date);
+    expect(plan?.trialEndDate?.toISOString()).toBe("2025-06-15T00:00:00.000Z");
+  }, 15000);
+
+  it("should return undefined from getPlan when no plan has been received", async () => {
+    schematic = new Schematic("API_KEY", {
+      useWebSocket: true,
+      webSocketUrl: TEST_WS_URL,
+    });
+
+    const context = {
+      company: { companyId: "456" },
+      user: { userId: "123" },
+    };
+
+    mockServer.on("connection", (socket) => {
+      socket.on("message", () => {
+        socket.send(
+          JSON.stringify({
+            flags: [
+              {
+                flag: "TEST_FLAG",
+                value: true,
+              },
+            ],
+          }),
+        );
+      });
+    });
+
+    await schematic.checkFlag({
+      key: "TEST_FLAG",
+      context,
+      fallback: false,
+    });
+
+    const plan = schematic.getPlan();
+    expect(plan).toBeUndefined();
+  }, 15000);
+
+  it("should not store plan when message.plan is null", async () => {
+    schematic = new Schematic("API_KEY", {
+      useWebSocket: true,
+      webSocketUrl: TEST_WS_URL,
+    });
+
+    const context = {
+      company: { companyId: "456" },
+      user: { userId: "123" },
+    };
+
+    mockServer.on("connection", (socket) => {
+      socket.on("message", () => {
+        socket.send(
+          JSON.stringify({
+            flags: [
+              {
+                flag: "TEST_FLAG",
+                value: true,
+              },
+            ],
+            plan: null,
+          }),
+        );
+      });
+    });
+
+    await schematic.checkFlag({
+      key: "TEST_FLAG",
+      context,
+      fallback: false,
+    });
+
+    const plan = schematic.getPlan();
+    expect(plan).toBeUndefined();
+  }, 15000);
+
+  it("should notify plan listeners when plan is received via WebSocket", async () => {
+    schematic = new Schematic("API_KEY", {
+      useWebSocket: true,
+      webSocketUrl: TEST_WS_URL,
+    });
+
+    const planListener = vi.fn((plan: CheckPlanReturn) => {});
+    schematic.addPlanListener(planListener);
+
+    const context = {
+      company: { companyId: "456" },
+      user: { userId: "123" },
+    };
+
+    mockServer.on("connection", (socket) => {
+      socket.on("message", () => {
+        socket.send(
+          JSON.stringify({
+            flags: [
+              {
+                flag: "TEST_FLAG",
+                value: true,
+              },
+            ],
+            plan: {
+              id: "plan-listener-1",
+              name: "Pro Plan",
+            },
+          }),
+        );
+      });
+    });
+
+    await schematic.checkFlag({
+      key: "TEST_FLAG",
+      context,
+      fallback: false,
+    });
+
+    expect(planListener).toHaveBeenCalledTimes(1);
+    expect(planListener).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: "plan-listener-1",
+        name: "Pro Plan",
+      }),
+    );
+  }, 15000);
+
+  it("should notify multiple plan listeners", async () => {
+    schematic = new Schematic("API_KEY", {
+      useWebSocket: true,
+      webSocketUrl: TEST_WS_URL,
+    });
+
+    const listener1 = vi.fn((plan: CheckPlanReturn) => {});
+    const listener2 = vi.fn((plan: CheckPlanReturn) => {});
+    schematic.addPlanListener(listener1);
+    schematic.addPlanListener(listener2);
+
+    const context = {
+      company: { companyId: "456" },
+      user: { userId: "123" },
+    };
+
+    mockServer.on("connection", (socket) => {
+      socket.on("message", () => {
+        socket.send(
+          JSON.stringify({
+            flags: [],
+            plan: {
+              id: "plan-multi",
+              name: "Multi Plan",
+            },
+          }),
+        );
+      });
+    });
+
+    await schematic.checkFlag({
+      key: "SOME_FLAG",
+      context,
+      fallback: false,
+    });
+
+    expect(listener1).toHaveBeenCalledTimes(1);
+    expect(listener2).toHaveBeenCalledTimes(1);
+    expect(listener1).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: "plan-multi",
+        name: "Multi Plan",
+      }),
+    );
+    expect(listener2).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: "plan-multi",
+        name: "Multi Plan",
+      }),
+    );
+  }, 15000);
+
+  it("should not notify removed plan listeners", async () => {
+    schematic = new Schematic("API_KEY", {
+      useWebSocket: true,
+      webSocketUrl: TEST_WS_URL,
+    });
+
+    const listener = vi.fn();
+    const unsubscribe = schematic.addPlanListener(listener);
+
+    // Remove the listener before the message arrives
+    unsubscribe();
+
+    const context = {
+      company: { companyId: "456" },
+      user: { userId: "123" },
+    };
+
+    mockServer.on("connection", (socket) => {
+      socket.on("message", () => {
+        socket.send(
+          JSON.stringify({
+            flags: [],
+            plan: {
+              id: "plan-removed",
+              name: "Removed Plan",
+            },
+          }),
+        );
+      });
+    });
+
+    await schematic.checkFlag({
+      key: "SOME_FLAG",
+      context,
+      fallback: false,
+    });
+
+    expect(listener).not.toHaveBeenCalled();
+  }, 15000);
+
+  it("should call empty listeners (no arguments) for plan updates", async () => {
+    schematic = new Schematic("API_KEY", {
+      useWebSocket: true,
+      webSocketUrl: TEST_WS_URL,
+    });
+
+    // An empty listener has .length === 0
+    const emptyListener = vi.fn(() => {});
+    Object.defineProperty(emptyListener, "length", { value: 0 });
+    schematic.addPlanListener(emptyListener);
+
+    const context = {
+      company: { companyId: "456" },
+      user: { userId: "123" },
+    };
+
+    mockServer.on("connection", (socket) => {
+      socket.on("message", () => {
+        socket.send(
+          JSON.stringify({
+            flags: [],
+            plan: {
+              id: "plan-empty",
+              name: "Empty Listener Plan",
+            },
+          }),
+        );
+      });
+    });
+
+    await schematic.checkFlag({
+      key: "SOME_FLAG",
+      context,
+      fallback: false,
+    });
+
+    expect(emptyListener).toHaveBeenCalledTimes(1);
+    // Empty listeners are called without arguments
+    expect(emptyListener).toHaveBeenCalledWith();
+  }, 15000);
+
+  it("should handle plan without trial_end_date in WebSocket message", async () => {
+    schematic = new Schematic("API_KEY", {
+      useWebSocket: true,
+      webSocketUrl: TEST_WS_URL,
+    });
+
+    const context = {
+      company: { companyId: "456" },
+      user: { userId: "123" },
+    };
+
+    mockServer.on("connection", (socket) => {
+      socket.on("message", () => {
+        socket.send(
+          JSON.stringify({
+            flags: [],
+            plan: {
+              id: "plan-no-trial",
+              name: "No Trial Plan",
+            },
+          }),
+        );
+      });
+    });
+
+    await schematic.checkFlag({
+      key: "SOME_FLAG",
+      context,
+      fallback: false,
+    });
+
+    const plan = schematic.getPlan();
+    expect(plan).toBeDefined();
+    expect(plan?.id).toBe("plan-no-trial");
+    expect(plan?.name).toBe("No Trial Plan");
+    expect(plan?.trialEndDate).toBeUndefined();
+  }, 15000);
+
+  it("should update plan when a new WebSocket message arrives", async () => {
+    schematic = new Schematic("API_KEY", {
+      useWebSocket: true,
+      webSocketUrl: TEST_WS_URL,
+    });
+
+    const planListener = vi.fn((plan: CheckPlanReturn) => {});
+    schematic.addPlanListener(planListener);
+
+    const context = {
+      company: { companyId: "456" },
+      user: { userId: "123" },
+    };
+
+    let messageCount = 0;
+
+    mockServer.on("connection", (socket) => {
+      socket.on("message", () => {
+        messageCount++;
+        if (messageCount === 1) {
+          socket.send(
+            JSON.stringify({
+              flags: [{ flag: "TEST_FLAG", value: true }],
+              plan: {
+                id: "plan-v1",
+                name: "Plan V1",
+              },
+            }),
+          );
+        }
+      });
+    });
+
+    await schematic.checkFlag({
+      key: "TEST_FLAG",
+      context,
+      fallback: false,
+    });
+
+    const firstPlan = schematic.getPlan();
+    expect(firstPlan).toBeDefined();
+    expect(firstPlan?.id).toBe("plan-v1");
+    expect(firstPlan?.name).toBe("Plan V1");
+    expect(planListener).toHaveBeenCalledTimes(1);
+  }, 15000);
+});
+
+describe("getPlan without WebSocket", () => {
+  it("should return undefined when no context is set", () => {
+    const schematic = new Schematic("API_KEY", { offline: true });
+
+    const plan = schematic.getPlan();
+    expect(plan).toBeUndefined();
+  });
+});
+
+describe("addPlanListener", () => {
+  it("should return an unsubscribe function", () => {
+    const schematic = new Schematic("API_KEY", { offline: true });
+    const listener = vi.fn();
+
+    const unsubscribe = schematic.addPlanListener(listener);
+    expect(typeof unsubscribe).toBe("function");
+  });
+
+  it("should allow adding and removing listeners without error", () => {
+    const schematic = new Schematic("API_KEY", { offline: true });
+    const listener1 = vi.fn();
+    const listener2 = vi.fn();
+
+    const unsub1 = schematic.addPlanListener(listener1);
+    const unsub2 = schematic.addPlanListener(listener2);
+
+    // Removing should not throw
+    unsub1();
+    unsub2();
+
+    // Double remove should not throw
+    unsub1();
   });
 });
