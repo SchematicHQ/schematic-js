@@ -513,12 +513,6 @@ export class Schematic {
         }
         this.checks[contextStr][flagCheck.flag] = flagCheck;
 
-        this.debug(`WebSocket flag update:`, {
-          flag: flagCheck.flag,
-          value: flagCheck.value,
-          flagCheck,
-        });
-
         // Store in feature usage event map if appropriate
         if (typeof flagCheck.featureUsageEvent === "string") {
           this.updateFeatureUsageEventMap(flagCheck);
@@ -532,18 +526,17 @@ export class Schematic {
           this.submitFlagCheckEvent(flagCheck.flag, flagCheck, context);
         }
 
-        this.debug(`About to notify listeners for flag ${flag.flag}`, {
-          flag: flag.flag,
-          value: flagCheck.value,
-        });
+        this.debug(
+          `WebSocket flag update received. Notifying listeners for ${flag.flag}`,
+          {
+            flag: flag.flag,
+            value: flagCheck.value,
+            flagCheck,
+          },
+        );
 
         this.notifyFlagCheckListeners(flag.flag, flagCheck);
         this.notifyFlagValueListeners(flag.flag, flagCheck.value);
-
-        this.debug(`Finished notifying listeners for flag ${flag.flag}`, {
-          flag: flag.flag,
-          value: flagCheck.value,
-        });
       });
 
       if (message.plan !== undefined && message.plan !== null) {
@@ -551,13 +544,11 @@ export class Schematic {
         const contextStr = contextString(context);
         this.planChecks[contextStr] = plan;
 
-        this.debug(`WebSocket plan update:`, { plan });
-
-        this.debug(`About to notify listeners for plan`, { plan });
+        this.debug(`WebSocket plan update received. Notifying listeners`, {
+          plan,
+        });
 
         this.notifyPlanListeners(plan);
-
-        this.debug(`Finished notifying listeners for plan`, { plan });
       }
 
       // Flush any context-dependent events that were queued
