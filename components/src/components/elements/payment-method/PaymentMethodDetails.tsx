@@ -354,11 +354,12 @@ export const PaymentMethodDetails = ({
             <PaymentMethodElement
               paymentMethod={currentPaymentMethod}
               monthsToExpiration={monthsToExpiration}
-              onRemove={() => {
-                if (currentPaymentMethod) {
-                  handleDeletePaymentMethod(currentPaymentMethod.id);
-                }
-              }}
+              {...(paymentMethods.length > 1 &&
+                currentPaymentMethod && {
+                  onRemove: () => {
+                    handleDeletePaymentMethod(currentPaymentMethod.id);
+                  },
+                })}
               {...props}
             />
 
