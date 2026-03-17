@@ -216,9 +216,10 @@ export const PaymentMethodDetails = ({
     async (paymentMethodId: string) => {
       try {
         setIsLoading(true);
-        // Payment method id is used and expected
-        // Some problem with type generation
-        deletePaymentMethod(paymentMethodId);
+        const response = await deletePaymentMethod(paymentMethodId);
+        if (response?.data.deleted) {
+          setCurrentPaymentMethod(undefined);
+        }
       } catch {
         setError(t("Error deleting payment method. Please try again."));
       } finally {
@@ -354,6 +355,12 @@ export const PaymentMethodDetails = ({
             <PaymentMethodElement
               paymentMethod={currentPaymentMethod}
               monthsToExpiration={monthsToExpiration}
+              {...(paymentMethods.length > 1 &&
+                currentPaymentMethod && {
+                  onRemove: () => {
+                    handleDeletePaymentMethod(currentPaymentMethod.id);
+                  },
+                })}
               {...props}
             />
 

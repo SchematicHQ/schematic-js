@@ -35,6 +35,7 @@ interface PaymentMethodElementProps extends DesignProps {
   paymentMethod?: PaymentMethodResponseData;
   monthsToExpiration?: number;
   onEdit?: () => void;
+  onRemove?: () => void;
 }
 
 interface PaymentElementProps {
@@ -150,6 +151,7 @@ export const PaymentMethodElement = ({
   paymentMethod,
   monthsToExpiration,
   onEdit,
+  onRemove,
   ...props
 }: PaymentMethodElementProps) => {
   const { t } = useTranslation();
@@ -191,6 +193,17 @@ export const PaymentMethodElement = ({
           <PaymentElement {...getPaymentMethodData(paymentMethod)} />
         ) : (
           <EmptyPaymentElement />
+        )}
+
+        {onRemove && (
+          <Text
+            onClick={onRemove}
+            onKeyDown={createKeyboardExecutionHandler(onRemove)}
+            display="link"
+            $leading="none"
+          >
+            {t("Remove")}
+          </Text>
         )}
 
         {props.functions.allowEdit && onEdit && (
