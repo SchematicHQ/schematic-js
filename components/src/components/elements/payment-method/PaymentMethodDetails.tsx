@@ -218,7 +218,10 @@ export const PaymentMethodDetails = ({
         setIsLoading(true);
         // Payment method id is used and expected
         // Some problem with type generation
-        deletePaymentMethod(paymentMethodId);
+        const response = await deletePaymentMethod(paymentMethodId);
+        if (response?.data.deleted) {
+          setCurrentPaymentMethod(undefined);
+        }
       } catch {
         setError(t("Error deleting payment method. Please try again."));
       } finally {

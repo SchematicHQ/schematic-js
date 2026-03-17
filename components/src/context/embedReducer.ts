@@ -164,6 +164,10 @@ export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {
     case "DELETE_PAYMENT_METHOD": {
       const updated = normalize(state.data);
 
+      if (updated.subscription?.paymentMethod?.id === action.paymentMethodId) {
+        updated.subscription.paymentMethod = undefined;
+      }
+
       if (updated.company) {
         const paymentMethods = [...updated.company.paymentMethods];
         updated.company.paymentMethods = paymentMethods.filter(
