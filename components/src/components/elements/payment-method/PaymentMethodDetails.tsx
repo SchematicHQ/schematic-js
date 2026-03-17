@@ -216,8 +216,6 @@ export const PaymentMethodDetails = ({
     async (paymentMethodId: string) => {
       try {
         setIsLoading(true);
-        // Payment method id is used and expected
-        // Some problem with type generation
         const response = await deletePaymentMethod(paymentMethodId);
         if (response?.data.deleted) {
           setCurrentPaymentMethod(undefined);
