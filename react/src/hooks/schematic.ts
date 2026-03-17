@@ -111,7 +111,10 @@ export const useSchematicPlan = (
   const client = useSchematicClient(opts);
   const fallback = opts?.fallback;
 
-  const fallbackPlan = useMemo(() => fallback, [fallback]);
+  const fallbackPlan = useMemo(
+    () => fallback,
+    [fallback?.id, fallback?.name, fallback?.trialEndDate?.getTime()],
+  );
 
   const subscribe = useCallback(
     (callback: () => void) => client.addPlanListener(callback),
