@@ -9,6 +9,8 @@ import {
   CheckFlagReturnFromJSON,
   CheckFlagReturnListenerFn,
   CheckFlagsResponseFromJSON,
+  CheckPlanReturn,
+  CheckPlanReturnFromJSON,
   CheckOptions,
   EmptyListenerFn,
   Event,
@@ -21,9 +23,11 @@ import {
   FlagCheckListenerFn,
   FlagValueListenerFn,
   PendingListenerFn,
+  PlanListenerFn,
   SchematicContext,
   SchematicOptions,
   StoragePersister,
+  CheckPlanReturnListenerFn,
 } from "./types";
 import { contextString } from "./utils";
 import { version } from "./version";
@@ -46,6 +50,7 @@ export class Schematic {
   private flagValueListeners: Record<string, Set<FlagValueListenerFn>> = {};
   private isPending: boolean = true;
   private isPendingListeners: Set<PendingListenerFn> = new Set();
+  private planListeners: Set<PlanListenerFn> = new Set();
   private storage: StoragePersister | undefined;
   private useWebSocket: boolean = false;
   private checks: Record<
@@ -56,6 +61,7 @@ export class Schematic {
     string,
     Record<string, CheckFlagReturn | undefined> | undefined
   > = {};
+  private planChecks: Record<string, CheckPlanReturn | undefined> = {};
   private webSocketUrl = "wss://api.schematichq.com";
   private webSocketConnectionTimeout = 10000;
   private webSocketReconnect = true;
@@ -507,12 +513,6 @@ export class Schematic {
         }
         this.checks[contextStr][flagCheck.flag] = flagCheck;
 
-        this.debug(`WebSocket flag update:`, {
-          flag: flagCheck.flag,
-          value: flagCheck.value,
-          flagCheck,
-        });
-
         // Store in feature usage event map if appropriate
         if (typeof flagCheck.featureUsageEvent === "string") {
           this.updateFeatureUsageEventMap(flagCheck);
@@ -526,19 +526,30 @@ export class Schematic {
           this.submitFlagCheckEvent(flagCheck.flag, flagCheck, context);
         }
 
-        this.debug(`About to notify listeners for flag ${flag.flag}`, {
-          flag: flag.flag,
-          value: flagCheck.value,
-        });
+        this.debug(
+          `WebSocket flag update received. Notifying listeners for ${flag.flag}`,
+          {
+            flag: flag.flag,
+            value: flagCheck.value,
+            flagCheck,
+          },
+        );
 
         this.notifyFlagCheckListeners(flag.flag, flagCheck);
         this.notifyFlagValueListeners(flag.flag, flagCheck.value);
-
-        this.debug(`Finished notifying listeners for flag ${flag.flag}`, {
-          flag: flag.flag,
-          value: flagCheck.value,
-        });
       });
+
+      if (message.plan !== undefined && message.plan !== null) {
+        const plan = CheckPlanReturnFromJSON(message.plan);
+        const contextStr = contextString(context);
+        this.planChecks[contextStr] = plan;
+
+        this.debug(`WebSocket plan update received. Notifying listeners`, {
+          plan,
+        });
+
+        this.notifyPlanListeners(plan);
+      }
 
       // Flush any context-dependent events that were queued
       this.flushContextDependentEventQueue();
@@ -1785,6 +1796,13 @@ export class Schematic {
     );
   };
 
+  getPlan = (): CheckPlanReturn | undefined => {
+    const contextStr = contextString(this.context);
+    const plan = this.planChecks[contextStr];
+
+    return plan;
+  };
+
   // flag checks state
   getFlagCheck = (flagKey: string): CheckFlagReturn | undefined => {
     const contextStr = contextString(this.context);
@@ -1803,12 +1821,11 @@ export class Schematic {
       flagKey in this.flagValueDefaults
     ) {
       if (!(flagKey in this.fallbackCheckCache)) {
-        this.fallbackCheckCache[flagKey] =
-          this.resolveFallbackCheckFlagReturn(
-            flagKey,
-            undefined,
-            "Default value used",
-          );
+        this.fallbackCheckCache[flagKey] = this.resolveFallbackCheckFlagReturn(
+          flagKey,
+          undefined,
+          "Default value used",
+        );
       }
       return this.fallbackCheckCache[flagKey];
     }
@@ -1861,6 +1878,14 @@ export class Schematic {
 
     return () => {
       this.flagCheckListeners[flagKey].delete(listener);
+    };
+  };
+
+  addPlanListener = (listener: PlanListenerFn) => {
+    this.planListeners.add(listener);
+
+    return () => {
+      this.planListeners.delete(listener);
     };
   };
 
@@ -1928,6 +1953,24 @@ export class Schematic {
       });
     });
   };
+
+  private notifyPlanListeners = (value: CheckPlanReturn) => {
+    const listeners = this.planListeners ?? [];
+
+    if (listeners.size > 0) {
+      this.debug(`Notifying ${listeners.size} plan listeners`, { value });
+    }
+
+    listeners.forEach((listener, index) => {
+      this.debug(`Calling listener ${index} for plan`, {
+        value,
+      });
+      notifyPlanListener(listener, value);
+      this.debug(`Listener ${index} for plan completed`, {
+        value,
+      });
+    });
+  };
 }
 
 const notifyPendingListener = (listener: PendingListenerFn, value: boolean) => {
@@ -1955,6 +1998,17 @@ const notifyFlagValueListener = (
 ) => {
   if (listener.length > 0) {
     (listener as BooleanListenerFn)(value);
+  } else {
+    (listener as EmptyListenerFn)();
+  }
+};
+
+const notifyPlanListener = (
+  listener: PlanListenerFn,
+  value: CheckPlanReturn,
+) => {
+  if (listener.length > 0) {
+    (listener as CheckPlanReturnListenerFn)(value);
   } else {
     (listener as EmptyListenerFn)();
   }
