@@ -1,5 +1,5 @@
 import { useEmbed, useIsLightBackground } from "../../../hooks";
-import { getCurrencySymbol } from "../../../utils";
+import { getCurrencyFlag, getCurrencySymbol } from "../../../utils";
 import { Flex, Text } from "../../ui";
 
 interface CurrencyToggleProps {
@@ -48,7 +48,7 @@ export const CurrencyToggle = ({
           $size={15}
           $weight={600}
         >
-          {getCurrencySymbol(selectedCurrency)} {selectedCurrency.toUpperCase()}
+          {getCurrencyFlag(selectedCurrency)} {getCurrencySymbol(selectedCurrency)} {selectedCurrency.toUpperCase()}
         </Text>
 
         <select
@@ -68,7 +68,7 @@ export const CurrencyToggle = ({
         >
           {currencies.map((currency) => (
             <option key={currency} value={currency}>
-              {getCurrencySymbol(currency)} {currency.toUpperCase()}
+              {getCurrencyFlag(currency)} {getCurrencySymbol(currency)} {currency.toUpperCase()}
             </option>
           ))}
         </select>

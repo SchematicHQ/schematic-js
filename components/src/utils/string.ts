@@ -104,6 +104,23 @@ export function adjectify(str: string) {
   return `${str}ly`;
 }
 
+const CURRENCY_FLAGS: Record<string, string> = {
+  usd: "🇺🇸", gbp: "🇬🇧", jpy: "🇯🇵", cad: "🇨🇦", aud: "🇦🇺",
+  chf: "🇨🇭", cny: "🇨🇳", krw: "🇰🇷", inr: "🇮🇳", brl: "🇧🇷",
+  mxn: "🇲🇽", sgd: "🇸🇬", hkd: "🇭🇰", nok: "🇳🇴", sek: "🇸🇪",
+  dkk: "🇩🇰", nzd: "🇳🇿", zar: "🇿🇦", try: "🇹🇷", thb: "🇹🇭",
+  pln: "🇵🇱", twd: "🇹🇼", ils: "🇮🇱", php: "🇵🇭", czk: "🇨🇿",
+  clp: "🇨🇱", cop: "🇨🇴", myr: "🇲🇾", idr: "🇮🇩", vnd: "🇻🇳",
+  aed: "🇦🇪", sar: "🇸🇦", egp: "🇪🇬", ngn: "🇳🇬", ars: "🇦🇷",
+  pen: "🇵🇪", uah: "🇺🇦", ron: "🇷🇴", bgn: "🇧🇬", huf: "🇭🇺",
+  isk: "🇮🇸",
+  eur: "🇪🇺",
+};
+
+export function getCurrencyFlag(currency: string): string {
+  return CURRENCY_FLAGS[currency.toLowerCase()] ?? "";
+}
+
 export function getCurrencySymbol(currency: string): string {
   try {
     const parts = new Intl.NumberFormat("en-US", {
