@@ -6,8 +6,8 @@ import { toPrettyDate } from "../../../utils";
 import {
   Button,
   Dialog,
+  DialogClose,
   DialogContent,
-  DialogHeader,
   Flex,
   Text,
 } from "../../ui";
@@ -108,14 +108,21 @@ export const UnsubscribeDialog = ({ top }: UnsubscribeDialogProps) => {
       onClose={handleClose}
       {...(!isModal && { open: layout === "unsubscribe" })}
     >
-      <DialogHeader onClose={handleClose} />
-
       <DialogContent>
+        <DialogClose
+          onClose={handleClose}
+          $position="absolute"
+          $zIndex={1}
+          $inset="0 0 auto auto"
+          $margin="1rem 0.75rem 0 0"
+        />
+
         <Flex
           $flexDirection="column"
+          $justifyContent="center"
           $flexGrow={1}
           $gap="2rem"
-          $padding="0 2.5rem 2.5rem"
+          $padding="2.5rem"
           $overflow="auto"
         >
           <Flex $flexDirection="column" $flexWrap="wrap" $gap="0.5rem">
@@ -166,6 +173,9 @@ export const UnsubscribeDialog = ({ top }: UnsubscribeDialogProps) => {
           setError={(msg) => setError(msg)}
           setIsLoading={setIsLoading}
           setConfirmPaymentIntent={() => {}}
+          $viewport={{
+            md: { $paddingTop: "1.5rem" },
+          }}
         />
       </DialogContent>
     </Dialog>
