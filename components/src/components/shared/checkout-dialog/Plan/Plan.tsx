@@ -341,6 +341,7 @@ export const Plan = ({
                           period={planPeriod}
                           credits={credits}
                           tooltipPortal={tooltipPortal}
+                          currency={currency}
                         />
                       );
                     })

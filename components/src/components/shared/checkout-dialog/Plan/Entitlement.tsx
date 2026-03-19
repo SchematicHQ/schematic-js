@@ -33,6 +33,7 @@ export interface EntitlementProps {
   period: string;
   credits: Credit[];
   tooltipPortal?: HTMLElement | null;
+  currency?: string;
 }
 
 export const Entitlement = ({
@@ -40,6 +41,7 @@ export const Entitlement = ({
   period,
   credits,
   tooltipPortal,
+  currency: selectedCurrency,
 }: EntitlementProps) => {
   const { t } = useTranslation();
 
@@ -54,7 +56,7 @@ export const Entitlement = ({
   const secondaryTextSize = 0.875 * settings.theme.typography.text.fontSize;
   const secondaryTextColor = `color-mix(in oklch, ${settings.theme.typography.text.color} 62.5%, ${settings.theme.card.background})`;
 
-  const entitlementBillingPrice = getEntitlementPrice(entitlement, period);
+  const entitlementBillingPrice = getEntitlementPrice(entitlement, period, selectedCurrency);
   const {
     price,
     priceTier,
@@ -112,7 +114,7 @@ export const Entitlement = ({
     }
 
     if (entitlement.priceBehavior === EntitlementPriceBehavior.Tier || tiered) {
-      return <TieredPricingDetails entitlement={entitlement} period={period} />;
+      return <TieredPricingDetails entitlement={entitlement} period={period} currency={selectedCurrency} />;
     }
 
     if (

@@ -22,6 +22,7 @@ import { Box, Text } from "../../ui";
 export const EntitlementRow = (
   props: (UsageBasedEntitlement | CurrentUsageBasedEntitlement) & {
     planPeriod: string;
+    currency?: string;
     tooltipPortal?: HTMLElement | null;
   },
 ) => {
@@ -29,12 +30,12 @@ export const EntitlementRow = (
 
   const { settings } = useEmbed();
 
-  const { tooltipPortal, ...entitlement } = props;
+  const { tooltipPortal, currency: sidebarCurrency, ...entitlement } = props;
   const { feature, priceBehavior, quantity, softLimit, planPeriod } =
     entitlement;
 
   if (feature) {
-    const entitlementPrice = getEntitlementPrice(entitlement, planPeriod);
+    const entitlementPrice = getEntitlementPrice(entitlement, planPeriod, sidebarCurrency);
     const {
       price,
       currency,

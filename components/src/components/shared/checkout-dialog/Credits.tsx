@@ -9,9 +9,10 @@ interface CreditsProps {
   isLoading: boolean;
   bundles: CreditBundle[];
   updateCount: (id: string, count: number) => void;
+  currency?: string;
 }
 
-export const Credits = ({ bundles, updateCount }: CreditsProps) => {
+export const Credits = ({ bundles, updateCount, currency }: CreditsProps) => {
   const { settings } = useEmbed();
 
   const cardPadding = settings.theme.card.padding / TEXT_BASE_SIZE;
@@ -58,7 +59,7 @@ export const Credits = ({ bundles, updateCount }: CreditsProps) => {
 
               {typeof price === "number" && (
                 <Box $marginBottom="0.5rem">
-                  <Text>{formatCurrency(price, bundle.price?.currency)}</Text>
+                  <Text>{formatCurrency(price, currency || bundle.price?.currency)}</Text>
                 </Box>
               )}
             </Flex>

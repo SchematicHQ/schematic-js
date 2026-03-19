@@ -1230,6 +1230,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
               entitlements={payInAdvanceEntitlements}
               updateQuantity={updateUsageBasedEntitlementQuantity}
               tooltipPortal={dialogRef.current}
+              currency={showCurrencySelector ? selectedCurrency : undefined}
             />
           ) : checkoutStage === "addons" ? (
             <AddOns
@@ -1247,12 +1248,14 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
               entitlements={addOnPayInAdvanceEntitlements}
               updateQuantity={updateAddOnEntitlementQuantity}
               tooltipPortal={dialogRef.current}
+              currency={showCurrencySelector ? selectedCurrency : undefined}
             />
           ) : checkoutStage === "credits" ? (
             <Credits
               isLoading={isLoading}
               bundles={creditBundles}
               updateCount={updateCreditBundleCount}
+              currency={showCurrencySelector ? selectedCurrency : undefined}
             />
           ) : (
             checkoutStage === "checkout" && (

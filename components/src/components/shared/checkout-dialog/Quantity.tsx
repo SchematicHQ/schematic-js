@@ -22,6 +22,7 @@ interface QuantityProps {
   entitlements: UsageBasedEntitlement[];
   updateQuantity: (id: string, quantity: number) => void;
   tooltipPortal?: HTMLElement | null;
+  currency?: string;
 }
 
 export const Quantity = ({
@@ -29,6 +30,7 @@ export const Quantity = ({
   updateQuantity,
   period,
   tooltipPortal,
+  currency: selectedCurrency,
 }: QuantityProps) => {
   const { settings } = useEmbed();
 
@@ -45,6 +47,7 @@ export const Quantity = ({
           const entitlementBillingPrice = getEntitlementPrice(
             entitlement,
             period,
+            selectedCurrency,
           );
           const {
             price,

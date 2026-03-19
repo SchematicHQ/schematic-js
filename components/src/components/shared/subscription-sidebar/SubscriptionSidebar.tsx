@@ -799,6 +799,7 @@ export const SubscriptionSidebar = forwardRef<
                         <EntitlementRow
                           {...entitlement}
                           planPeriod={planPeriod}
+                          currency={currency}
                           tooltipPortal={portalRef?.current}
                         />
                       </Flex>,
@@ -826,6 +827,7 @@ export const SubscriptionSidebar = forwardRef<
                           <EntitlementRow
                             {...previous}
                             planPeriod={planPeriod}
+                            currency={currency}
                             tooltipPortal={portalRef?.current}
                           />
                         </Flex>
@@ -838,6 +840,7 @@ export const SubscriptionSidebar = forwardRef<
                           <EntitlementRow
                             {...next}
                             planPeriod={planPeriod}
+                            currency={currency}
                             tooltipPortal={portalRef?.current}
                           />
                         </Flex>
@@ -863,6 +866,7 @@ export const SubscriptionSidebar = forwardRef<
                         <EntitlementRow
                           {...entitlement}
                           planPeriod={planPeriod}
+                          currency={currency}
                           tooltipPortal={portalRef?.current}
                         />
                       </Flex>,
