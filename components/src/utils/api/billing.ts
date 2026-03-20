@@ -122,6 +122,8 @@ export function getEntitlementPrice(
         return {
           ...source,
           price: getPriceValue(source),
+          priceId: source.id,
+          priceExternalId: source.externalPriceId,
         } as unknown as BillingPriceView;
       }
     }
@@ -145,7 +147,7 @@ export function getEntitlementPrice(
   if (source) {
     const billingPrice = { ...source };
 
-    if (entitlement.priceBehavior === EntitlementPriceBehavior.Overage) {
+    if (entitlement.priceBehavior === EntitlementPriceBehavior.Overage && billingPrice.priceTier?.length) {
       const overagePriceTier =
         billingPrice.priceTier[billingPrice.priceTier.length - 1];
 
@@ -164,7 +166,7 @@ export function getEntitlementPrice(
 
 export function isTieredPrice(billingPrice?: BillingPriceView): boolean {
   if (!billingPrice) return false;
-  return billingPrice.priceTier.length > 1 || !!billingPrice.tiersMode;
+  return (billingPrice.priceTier?.length ?? 0) > 1 || !!billingPrice.tiersMode;
 }
 
 export function calculateTieredCost(

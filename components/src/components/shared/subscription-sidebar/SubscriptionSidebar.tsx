@@ -428,11 +428,13 @@ export const SubscriptionSidebar = forwardRef<
         const planPayInAdvanceRequestBody = buildPayInAdvanceRequestBody(
           payInAdvanceEntitlements,
           planPeriod,
+          currency,
         );
 
         const addOnPayInAdvanceRequestBody = buildPayInAdvanceRequestBody(
           addOnPayInAdvanceEntitlements,
           planPeriod,
+          currency,
         );
 
         const addOnRequestBody = buildAddOnRequestBody(

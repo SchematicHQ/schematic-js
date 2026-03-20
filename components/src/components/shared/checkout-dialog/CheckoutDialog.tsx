@@ -64,10 +64,16 @@ import { AddOns, Checkout, Credits, Plan, Quantity } from ".";
 export const createActiveUsageBasedEntitlementsReducer =
   (entitlements: FeatureUsageResponseData[], period: string) =>
   (acc: UsageBasedEntitlement[], entitlement: PlanEntitlementResponseData) => {
+    const hasCurrencyPrice = entitlement.currencyPrices?.some(
+      (cp) =>
+        (period === "month" && cp.monthlyPrice) ||
+        (period === "year" && cp.yearlyPrice),
+    );
     if (
       entitlement.priceBehavior &&
       ((period === "month" && entitlement.meteredMonthlyPrice) ||
-        (period === "year" && entitlement.meteredYearlyPrice))
+        (period === "year" && entitlement.meteredYearlyPrice) ||
+        hasCurrencyPrice)
     ) {
       const featureUsage = entitlements.find(
         (usage) => usage.feature?.id === entitlement.feature?.id,
@@ -578,11 +584,13 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       const planPayInAdvanceRequestBody = buildPayInAdvanceRequestBody(
         resolvedPayInAdvanceEntitlements,
         period,
+        resolvedCurrency,
       );
 
       const addOnPayInAdvanceRequestBody = buildPayInAdvanceRequestBody(
         resolvedAddOnPayInAdvanceEntitlements,
         period,
+        resolvedCurrency,
       );
 
       const addOnRequestBody = buildAddOnRequestBody(

@@ -8,25 +8,22 @@ import type {
   SelectedPlan,
   UsageBasedEntitlement,
 } from "../../types";
-import { getAddOnPrice } from "./billing";
+import { getAddOnPrice, getEntitlementPrice } from "./billing";
 
 export function buildPayInAdvanceRequestBody(
   entitlements: UsageBasedEntitlement[],
   period: string,
+  currency?: string,
 ): UpdatePayInAdvanceRequestBody[] {
   return entitlements.reduce(
-    (
-      acc: UpdatePayInAdvanceRequestBody[],
-      { meteredMonthlyPrice, meteredYearlyPrice, quantity },
-    ) => {
-      const priceId = (
-        period === "year" ? meteredYearlyPrice : meteredMonthlyPrice
-      )?.priceId;
+    (acc: UpdatePayInAdvanceRequestBody[], entitlement) => {
+      const billingPrice = getEntitlementPrice(entitlement, period, currency);
+      const priceId = billingPrice?.priceId;
 
       if (priceId) {
         acc.push({
           priceId,
-          quantity,
+          quantity: entitlement.quantity,
         });
       }
 
