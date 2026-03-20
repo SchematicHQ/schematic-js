@@ -171,8 +171,7 @@ export const PricingTable = forwardRef<
 
   const showPeriodToggle =
     rest.showPeriodToggle ?? data?.displaySettings?.showPeriodToggle ?? true;
-  const showCurrencySelector =
-    props.showCurrencySelector && currencies.length > 1;
+  const showCurrencySelector = currencies.length > 1;
   const { plans, addOns, periods } = useAvailablePlans(selectedPeriod, {
     useSelectedPeriod: showPeriodToggle,
   });
