@@ -1,5 +1,7 @@
 import { useEmbed, useIsLightBackground } from "../../../hooks";
-import { Flex, Icon } from "../../ui";
+import { Flex } from "../../ui";
+
+import { DialogClose } from "./DialogClose";
 
 interface DialogHeaderProps {
   children?: React.ReactNode;
@@ -44,25 +46,7 @@ export const DialogHeader = ({
     >
       {children}
 
-      <Flex
-        tabIndex={0}
-        onClick={onClose}
-        $justifyContent="center"
-        $alignItems="center"
-        $cursor="pointer"
-        $width="2.75rem"
-        $height="2.75rem"
-      >
-        <Icon
-          name="close"
-          size="xl"
-          color={
-            isLightBackground
-              ? "hsla(0, 0%, 0%, 0.275)"
-              : "hsla(0, 0%, 100%, 0.275)"
-          }
-        />
-      </Flex>
+      <DialogClose onClose={onClose} />
     </Flex>
   );
 };

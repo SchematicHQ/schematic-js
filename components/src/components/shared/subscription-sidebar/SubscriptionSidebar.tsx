@@ -37,14 +37,14 @@ import {
   shortenPeriod,
   toPrettyDate,
 } from "../../../utils";
-import { Box, Button, Flex, Icon, Text } from "../../ui";
+import { Box, Button, Flex, Icon, Text, type BoxProps } from "../../ui";
 import { type CheckoutStage } from "../checkout-dialog";
 
 import { CheckoutStageButton } from "./CheckoutStageButton";
 import { EntitlementRow } from "./EntitlementRow";
 import { Proration } from "./Proration";
 
-interface SubscriptionSidebarProps {
+interface SubscriptionSidebarProps extends Omit<BoxProps, "children"> {
   portalRef?: React.RefObject<HTMLDialogElement | null>;
   planPeriod: string;
   selectedPlan?: SelectedPlan;
@@ -104,6 +104,7 @@ export const SubscriptionSidebar = forwardRef<
       willTrialWithoutPaymentMethod = false,
       willScheduleDowngrade = false,
       setConfirmPaymentIntent,
+      ...rest
     },
     ref,
   ) => {
@@ -677,6 +678,7 @@ export const SubscriptionSidebar = forwardRef<
             $width: "21.5rem",
           },
         }}
+        {...rest}
       >
         {showHeader && (
           <Flex
