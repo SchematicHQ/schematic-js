@@ -1,7 +1,8 @@
+import { useEffect, useMemo, useRef } from "react";
 import * as SchematicJS from "@schematichq/schematic-js";
-import React, { createContext, useEffect, useMemo, useRef } from "react";
 
 import { version } from "../version";
+import { SchematicContext, type SchematicContextProps } from ".";
 
 type BaseSchematicProviderProps = Omit<
   SchematicJS.SchematicOptions,
@@ -24,20 +25,12 @@ export type SchematicProviderProps =
   | SchematicProviderPropsWithClient
   | SchematicProviderPropsWithPublishableKey;
 
-export interface SchematicContextProps {
-  client: SchematicJS.Schematic;
-}
-
-export const SchematicContext = createContext<SchematicContextProps | null>(
-  null,
-);
-
-export const SchematicProvider: React.FC<SchematicProviderProps> = ({
+export const SchematicProvider = ({
   children,
   client: providedClient,
   publishableKey,
   ...clientOpts
-}) => {
+}: SchematicProviderProps) => {
   const initialOptsRef = useRef({
     publishableKey,
     useWebSocket: true,
@@ -72,9 +65,7 @@ export const SchematicProvider: React.FC<SchematicProviderProps> = ({
   }, [client, providedClient]);
 
   const contextValue = useMemo<SchematicContextProps>(
-    () => ({
-      client,
-    }),
+    () => ({ client }),
     [client],
   );
 
@@ -83,12 +74,4 @@ export const SchematicProvider: React.FC<SchematicProviderProps> = ({
       {children}
     </SchematicContext.Provider>
   );
-};
-
-export const useSchematic = () => {
-  const context = React.useContext(SchematicContext);
-  if (context === null) {
-    throw new Error("useSchematic must be used within a SchematicProvider");
-  }
-  return context;
 };

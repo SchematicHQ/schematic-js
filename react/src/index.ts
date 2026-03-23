@@ -1,9 +1,6 @@
+import { SchematicProvider, type SchematicProviderProps } from "./context";
 import {
   useSchematic,
-  SchematicProvider,
-  type SchematicProviderProps,
-} from "./context";
-import {
   useSchematicContext,
   useSchematicEntitlement,
   useSchematicEvents,
@@ -11,8 +8,8 @@ import {
   useSchematicIsPending,
   useSchematicPlan,
   type SchematicHookOpts,
-  type UseSchematicPlanOpts,
   type UseSchematicFlagOpts,
+  type UseSchematicPlanOpts,
 } from "./hooks";
 
 export {
