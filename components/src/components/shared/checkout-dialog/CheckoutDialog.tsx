@@ -533,87 +533,93 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       setCharges(undefined);
       setIsLoading(true);
 
+      const addOnRequestBody = (updates.addOns || addOns).reduce(
+        (acc: UpdateAddOnRequestBody[], addOn) => {
+          if (addOn.isSelected) {
+            const addOnPriceId = getAddOnPrice(addOn, period)?.id;
+
+            if (addOnPriceId) {
+              acc.push({
+                addOnId: addOn.id,
+                priceId: addOnPriceId,
+              });
+            }
+          }
+
+          return acc;
+        },
+        [],
+      );
+
+      const payInAdvanceRequestBody = (
+        updates.payInAdvanceEntitlements || payInAdvanceEntitlements
+      ).reduce(
+        (
+          acc: UpdatePayInAdvanceRequestBody[],
+          { meteredMonthlyPrice, meteredYearlyPrice, quantity },
+        ) => {
+          const priceId = (
+            period === "year" ? meteredYearlyPrice : meteredMonthlyPrice
+          )?.priceId;
+
+          if (priceId) {
+            acc.push({
+              priceId,
+              quantity,
+            });
+          }
+
+          return acc;
+        },
+        [],
+      );
+
+      const addOnPayInAdvanceRequestBody = (
+        updates.addOnPayInAdvanceEntitlements || addOnUsageBasedEntitlements
+      ).reduce(
+        (
+          acc: UpdatePayInAdvanceRequestBody[],
+          { meteredMonthlyPrice, meteredYearlyPrice, quantity },
+        ) => {
+          const priceId = (
+            period === "year" ? meteredYearlyPrice : meteredMonthlyPrice
+          )?.priceId;
+
+          if (priceId) {
+            acc.push({
+              priceId,
+              quantity,
+            });
+          }
+
+          return acc;
+        },
+        [],
+      );
+
+      const creditBundlesRequestBody = (
+        updates.creditBundles || creditBundles
+      ).reduce((acc: UpdateCreditBundleRequestBody[], { id, count }) => {
+        if (count > 0) {
+          acc.push({
+            bundleId: id,
+            quantity: count,
+          });
+        }
+
+        return acc;
+      }, []);
+
       try {
         const response = await previewCheckout({
           newPlanId: plan.id,
           newPriceId: planPriceId,
-          addOnIds: (updates.addOns || addOns).reduce(
-            (acc: UpdateAddOnRequestBody[], addOn) => {
-              if (addOn.isSelected) {
-                const addOnPriceId = getAddOnPrice(addOn, period)?.id;
-
-                if (addOnPriceId) {
-                  acc.push({
-                    addOnId: addOn.id,
-                    priceId: addOnPriceId,
-                  });
-                }
-              }
-
-              return acc;
-            },
-            [],
-          ),
+          addOnIds: addOnRequestBody,
           payInAdvance: [
-            ...(
-              updates.payInAdvanceEntitlements || payInAdvanceEntitlements
-            ).reduce(
-              (
-                acc: UpdatePayInAdvanceRequestBody[],
-                { meteredMonthlyPrice, meteredYearlyPrice, quantity },
-              ) => {
-                const priceId = (
-                  period === "year" ? meteredYearlyPrice : meteredMonthlyPrice
-                )?.priceId;
-
-                if (priceId) {
-                  acc.push({
-                    priceId,
-                    quantity,
-                  });
-                }
-
-                return acc;
-              },
-              [],
-            ),
-            ...(
-              updates.addOnPayInAdvanceEntitlements ||
-              addOnUsageBasedEntitlements
-            ).reduce(
-              (
-                acc: UpdatePayInAdvanceRequestBody[],
-                { meteredMonthlyPrice, meteredYearlyPrice, quantity },
-              ) => {
-                const priceId = (
-                  period === "year" ? meteredYearlyPrice : meteredMonthlyPrice
-                )?.priceId;
-
-                if (priceId) {
-                  acc.push({
-                    priceId,
-                    quantity,
-                  });
-                }
-
-                return acc;
-              },
-              [],
-            ),
+            ...payInAdvanceRequestBody,
+            ...addOnPayInAdvanceRequestBody,
           ],
-          creditBundles: (updates.creditBundles || creditBundles).reduce(
-            (acc: UpdateCreditBundleRequestBody[], { id, count }) => {
-              if (count > 0) {
-                acc.push({
-                  bundleId: id,
-                  quantity: count,
-                });
-              }
-
-              return acc;
-            },
-            [],
-          ),
+          creditBundles: creditBundlesRequestBody,
           skipTrial,
           ...(code && { promoCode: code }),
         });

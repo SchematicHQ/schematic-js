@@ -261,7 +261,7 @@ export const SubscriptionSidebar = forwardRef<
       ];
 
       const addedUsageBasedEntitlements = selectedPlan
-        ? usageBasedEntitlements.reduce(
+        ? allSelectedUsageBasedEntitlements.reduce(
             (acc: UsageBasedEntitlement[], selected) => {
               if (!entitlementHasCost(selected)) {
                 return acc;
@@ -457,7 +457,7 @@ export const SubscriptionSidebar = forwardRef<
           newPlanId: planId,
           newPriceId: priceId,
           addOnIds: addOns.reduce((acc: UpdateAddOnRequestBody[], addOn) => {
-            if (addOn.isSelected && !selectedPlan.companyCanTrial) {
+            if (addOn.isSelected && !shouldTrial) {
               const addOnPriceId = getAddOnPrice(addOn, planPeriod)?.id;
 
               if (addOnPriceId) {
