@@ -66,7 +66,7 @@ export const EntitlementRow = (
           </Text>
         </Box>
 
-        <Box $whiteSpace="nowrap">
+        <Box $whiteSpace="nowrap" $lineHeight={1} $textAlign="right">
           {priceBehavior === EntitlementPriceBehavior.PayInAdvance &&
           !tiered ? (
             <Text>

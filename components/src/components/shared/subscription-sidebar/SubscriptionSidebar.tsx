@@ -52,6 +52,7 @@ interface SubscriptionSidebarProps extends Omit<BoxProps, "children"> {
   creditBundles?: CreditBundle[];
   usageBasedEntitlements: UsageBasedEntitlement[];
   addOnUsageBasedEntitlements?: UsageBasedEntitlement[];
+  addOnPayInAdvanceEntitlements?: UsageBasedEntitlement[];
   charges?: PreviewSubscriptionFinanceResponseData;
   checkoutStage?: string;
   checkoutStages?: CheckoutStage[];
@@ -87,6 +88,7 @@ export const SubscriptionSidebar = forwardRef<
       creditBundles = [],
       usageBasedEntitlements,
       addOnUsageBasedEntitlements = [],
+      addOnPayInAdvanceEntitlements = [],
       charges,
       checkoutStage,
       checkoutStages,
@@ -389,21 +391,21 @@ export const SubscriptionSidebar = forwardRef<
 
     const handleCheckout = useCallback(async () => {
       const planId = selectedPlan?.id;
-      const priceId = (
+      const planPriceId = (
         planPeriod === "year"
           ? selectedPlan?.yearlyPrice
           : selectedPlan?.monthlyPrice
       )?.id;
 
       try {
-        if (!planId || !priceId) {
+        if (!planId || !planPriceId) {
           throw new Error(t("Selected plan or associated price is missing."));
         }
 
         setError(undefined);
         setIsLoading(true);
 
-        const planPayInAdvance = payInAdvanceEntitlements.reduce(
+        const planPayInAdvanceRequestBody = payInAdvanceEntitlements.reduce(
           (
             acc: UpdatePayInAdvanceRequestBody[],
             { meteredMonthlyPrice, meteredYearlyPrice, quantity },
@@ -424,13 +426,8 @@ export const SubscriptionSidebar = forwardRef<
           [],
         );
 
-        const addOnPayInAdvance = addOnUsageBasedEntitlements
-          .filter(
-            (entitlement) =>
-              entitlement.priceBehavior ===
-              EntitlementPriceBehavior.PayInAdvance,
-          )
-          .reduce(
+        const addOnPayInAdvanceRequestBody =
+          addOnPayInAdvanceEntitlements.reduce(
             (
               acc: UpdatePayInAdvanceRequestBody[],
               { meteredMonthlyPrice, meteredYearlyPrice, quantity },
@@ -451,16 +448,20 @@ export const SubscriptionSidebar = forwardRef<
             [],
           );
 
-        const allPayInAdvance = [...planPayInAdvance, ...addOnPayInAdvance];
-
-        const checkoutResponseFromBackend = await checkout({
-          newPlanId: planId,
-          newPriceId: priceId,
-          addOnIds: addOns.reduce((acc: UpdateAddOnRequestBody[], addOn) => {
+        const addOnRequestBody = addOns.reduce(
+          (acc: UpdateAddOnRequestBody[], addOn) => {
             if (addOn.isSelected && !shouldTrial) {
-              const addOnPriceId = getAddOnPrice(addOn, planPeriod)?.id;
+              const addOnPrice = getAddOnPrice(addOn, planPeriod);
+              const addOnPriceId = addOnPrice?.id;
 
-              if (addOnPriceId) {
+              if (
+                addOnPriceId &&
+                (addOnPrice?.price ||
+                  addOnPayInAdvanceEntitlements.some(
+                    (e) =>
+                      e.priceBehavior === EntitlementPriceBehavior.PayInAdvance,
+                  ))
+              ) {
                 acc.push({
                   addOnId: addOn.id,
                   priceId: addOnPriceId,
@@ -469,21 +470,33 @@ export const SubscriptionSidebar = forwardRef<
             }
 
             return acc;
-          }, []),
-          payInAdvance: allPayInAdvance,
-          creditBundles: creditBundles.reduce(
-            (acc: UpdateCreditBundleRequestBody[], { id, count }) => {
-              if (count > 0) {
-                acc.push({
-                  bundleId: id,
-                  quantity: count,
-                });
-              }
+          },
+          [],
+        );
 
-              return acc;
-            },
-            [],
-          ),
+        const creditBundlesRequestBody = creditBundles.reduce(
+          (acc: UpdateCreditBundleRequestBody[], { id, count }) => {
+            if (count > 0) {
+              acc.push({
+                bundleId: id,
+                quantity: count,
+              });
+            }
+
+            return acc;
+          },
+          [],
+        );
+
+        const checkoutResponseFromBackend = await checkout({
+          newPlanId: planId,
+          newPriceId: planPriceId,
+          addOnIds: addOnRequestBody,
+          payInAdvance: [
+            ...planPayInAdvanceRequestBody,
+            ...addOnPayInAdvanceRequestBody,
+          ],
+          creditBundles: creditBundlesRequestBody,
           skipTrial: !shouldTrial,
           ...(paymentMethodId && { paymentMethodId }),
           ...(promoCode && { promoCode }),
@@ -540,7 +553,7 @@ export const SubscriptionSidebar = forwardRef<
       setIsLoading,
       setLayout,
       payInAdvanceEntitlements,
-      addOnUsageBasedEntitlements,
+      addOnPayInAdvanceEntitlements,
       shouldTrial,
       promoCode,
       finishCheckout,
