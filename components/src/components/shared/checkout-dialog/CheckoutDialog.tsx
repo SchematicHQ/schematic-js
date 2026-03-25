@@ -12,12 +12,9 @@ import {
   BillingProductPriceInterval,
   EntitlementPriceBehavior,
   ResponseError,
-  UpdateCreditBundleRequestBody,
   type FeatureUsageResponseData,
   type PlanEntitlementResponseData,
   type PreviewSubscriptionFinanceResponseData,
-  type UpdateAddOnRequestBody,
-  type UpdatePayInAdvanceRequestBody,
 } from "../../../api/checkoutexternal";
 import { TEXT_BASE_SIZE } from "../../../const";
 import {
@@ -30,7 +27,13 @@ import type {
   SelectedPlan,
   UsageBasedEntitlement,
 } from "../../../types";
-import { ERROR_UNKNOWN, getAddOnPrice, isError } from "../../../utils";
+import {
+  ERROR_UNKNOWN,
+  buildAddOnRequestBody,
+  buildCreditBundlesRequestBody,
+  buildPayInAdvanceRequestBody,
+  isError,
+} from "../../../utils";
 import { PeriodToggle, SubscriptionSidebar } from "../../shared";
 import {
   Dialog,
@@ -533,93 +536,33 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       setCharges(undefined);
       setIsLoading(true);
 
-      const planPayInAdvanceRequestBody = (
-        updates.payInAdvanceEntitlements || payInAdvanceEntitlements
-      ).reduce(
-        (
-          acc: UpdatePayInAdvanceRequestBody[],
-          { meteredMonthlyPrice, meteredYearlyPrice, quantity },
-        ) => {
-          const priceId = (
-            period === "year" ? meteredYearlyPrice : meteredMonthlyPrice
-          )?.priceId;
+      const resolvedPayInAdvanceEntitlements =
+        updates.payInAdvanceEntitlements || payInAdvanceEntitlements;
+      const resolvedAddOnPayInAdvanceEntitlements =
+        updates.addOnPayInAdvanceEntitlements || addOnPayInAdvanceEntitlements;
+      const resolvedAddOns = updates.addOns || addOns;
+      const resolvedCreditBundles = updates.creditBundles || creditBundles;
 
-          if (priceId) {
-            acc.push({
-              priceId,
-              quantity,
-            });
-          }
-
-          return acc;
-        },
-        [],
+      const planPayInAdvanceRequestBody = buildPayInAdvanceRequestBody(
+        resolvedPayInAdvanceEntitlements,
+        period,
       );
 
-      const addOnPayInAdvanceRequestBody = (
-        updates.addOnPayInAdvanceEntitlements || addOnPayInAdvanceEntitlements
-      ).reduce(
-        (
-          acc: UpdatePayInAdvanceRequestBody[],
-          { meteredMonthlyPrice, meteredYearlyPrice, quantity },
-        ) => {
-          const priceId = (
-            period === "year" ? meteredYearlyPrice : meteredMonthlyPrice
-          )?.priceId;
-
-          if (priceId) {
-            acc.push({
-              priceId,
-              quantity,
-            });
-          }
-
-          return acc;
-        },
-        [],
+      const addOnPayInAdvanceRequestBody = buildPayInAdvanceRequestBody(
+        resolvedAddOnPayInAdvanceEntitlements,
+        period,
       );
 
-      const addOnRequestBody = (updates.addOns || addOns).reduce(
-        (acc: UpdateAddOnRequestBody[], addOn) => {
-          if (addOn.isSelected && !shouldTrial) {
-            const addOnPrice = getAddOnPrice(addOn, period);
-            const addOnPriceId = addOnPrice?.id;
-
-            const affectedEntitlements =
-              updates.addOnPayInAdvanceEntitlements ||
-              addOnPayInAdvanceEntitlements;
-            if (
-              addOnPriceId &&
-              (addOnPrice?.price ||
-                affectedEntitlements.some(
-                  (e) =>
-                    e.priceBehavior === EntitlementPriceBehavior.PayInAdvance,
-                ))
-            ) {
-              acc.push({
-                addOnId: addOn.id,
-                priceId: addOnPriceId,
-              });
-            }
-          }
-
-          return acc;
-        },
-        [],
+      const addOnRequestBody = buildAddOnRequestBody(
+        resolvedAddOns,
+        period,
+        shouldTrial,
+        resolvedAddOnPayInAdvanceEntitlements,
       );
 
-      const creditBundlesRequestBody = (
-        updates.creditBundles || creditBundles
-      ).reduce((acc: UpdateCreditBundleRequestBody[], { id, count }) => {
-        if (count > 0) {
-          acc.push({
-            bundleId: id,
-            quantity: count,
-          });
-        }
-
-        return acc;
-      }, []);
+      const creditBundlesRequestBody = buildCreditBundlesRequestBody(
+        resolvedCreditBundles,
+      );
 
       try {
         const response = await previewCheckout({
