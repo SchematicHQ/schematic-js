@@ -762,16 +762,22 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
         const updatedAddOnEntitlements = updated
           .filter((addOn) => addOn.isSelected)
-          .flatMap((addOn) =>
-            addOn.entitlements
+          .flatMap((addOn) => {
+            return addOn.entitlements
               .filter((entitlement) => !!entitlement.priceBehavior)
-              .map((entitlement) => ({
-                ...entitlement,
-                allocation: entitlement.valueNumeric || 0,
-                usage: 0,
-                quantity: 1,
-              })),
-          );
+              .map((source) => {
+                const found = addOnUsageBasedEntitlements.find(
+                  (current) => current.id === source.id,
+                );
+
+                return {
+                  ...source,
+                  allocation: found?.allocation ?? source.valueNumeric ?? 0,
+                  usage: found?.usage ?? 0,
+                  quantity: found?.quantity ?? 1,
+                };
+              });
+          });
 
         setAddOnUsageBasedEntitlements(updatedAddOnEntitlements);
 
