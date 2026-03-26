@@ -795,7 +795,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
         return updated;
       });
     },
-    [handlePreviewCheckout],
+    [handlePreviewCheckout, addOnUsageBasedEntitlements],
   );
 
   const updateUsageBasedEntitlementQuantity = useCallback(
