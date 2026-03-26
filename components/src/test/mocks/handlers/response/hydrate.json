@@ -101,7 +101,8 @@
         "custom_plan_config": null,
         "included_credit_grants": [],
         "usage_violations": [],
-        "valid": true
+        "valid": true,
+        "currency_prices": []
       },
       {
         "audience_type": "plan",
@@ -154,7 +155,7 @@
             "lifecycle_phase": null,
             "event_subtype": null,
             "trait_id": "trt_U78jdcBghdn",
-            "icon": "📔",
+            "icon": "\ud83d\udcd4",
             "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
             "created_at": "2025-10-01T14:43:50.323983Z",
             "updated_at": "2025-10-01T15:39:05.831304Z",
@@ -200,7 +201,9 @@
               "created_at": "2025-10-01T14:43:37.694471Z",
               "display_name": "trait-based-feature",
               "entity_type": "company",
-              "hierarchy": ["trait-based-feature"],
+              "hierarchy": [
+                "trait-based-feature"
+              ],
               "id": "trt_U78jdcBghdn",
               "trait_type": "number",
               "updated_at": "2025-10-01T14:43:37.694471Z"
@@ -253,7 +256,7 @@
               "lifecycle_phase": null,
               "event_subtype": null,
               "trait_id": "trt_U78jdcBghdn",
-              "icon": "📔",
+              "icon": "\ud83d\udcd4",
               "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
               "created_at": "2025-10-01T14:43:50.323983Z",
               "updated_at": "2025-10-01T15:39:05.831304Z"
@@ -288,7 +291,8 @@
             "usage_based_product": null,
             "price_behavior": null,
             "soft_limit": null,
-            "billing_threshold": null
+            "billing_threshold": null,
+            "currency_prices": []
           }
         ],
         "compatible_plan_ids": [],
@@ -298,7 +302,8 @@
         "custom_plan_config": null,
         "included_credit_grants": [],
         "usage_violations": [],
-        "valid": true
+        "valid": true,
+        "currency_prices": []
       }
     ],
     "active_plans": [
@@ -403,7 +408,7 @@
             "lifecycle_phase": null,
             "event_subtype": "boolean-feature",
             "trait_id": null,
-            "icon": "☑️",
+            "icon": "\u2611\ufe0f",
             "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
             "created_at": "2025-09-30T22:07:09.016745Z",
             "updated_at": "2025-10-01T15:13:58.966969Z",
@@ -469,7 +474,7 @@
             "lifecycle_phase": null,
             "event_subtype": "event-based-feature",
             "trait_id": null,
-            "icon": "⭐",
+            "icon": "\u2b50",
             "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
             "created_at": "2025-10-01T14:42:58.193974Z",
             "updated_at": "2025-10-01T15:16:41.374445Z",
@@ -575,7 +580,7 @@
               "lifecycle_phase": null,
               "event_subtype": "boolean-feature",
               "trait_id": null,
-              "icon": "☑️",
+              "icon": "\u2611\ufe0f",
               "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
               "created_at": "2025-09-30T22:07:09.016745Z",
               "updated_at": "2025-10-01T15:13:58.966969Z"
@@ -610,7 +615,8 @@
             "usage_based_product": null,
             "price_behavior": null,
             "soft_limit": null,
-            "billing_threshold": null
+            "billing_threshold": null,
+            "currency_prices": []
           },
           {
             "created_at": "2025-10-01T15:12:17.666052Z",
@@ -625,7 +631,7 @@
               "lifecycle_phase": null,
               "event_subtype": "event-based-feature",
               "trait_id": null,
-              "icon": "⭐",
+              "icon": "\u2b50",
               "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
               "created_at": "2025-10-01T14:42:58.193974Z",
               "updated_at": "2025-10-01T15:16:41.374445Z"
@@ -660,7 +666,8 @@
             "usage_based_product": null,
             "price_behavior": null,
             "soft_limit": null,
-            "billing_threshold": null
+            "billing_threshold": null,
+            "currency_prices": []
           }
         ],
         "compatible_plan_ids": [],
@@ -670,7 +677,8 @@
         "custom_plan_config": null,
         "included_credit_grants": [],
         "usage_violations": [],
-        "valid": true
+        "valid": true,
+        "currency_prices": []
       },
       {
         "audience_type": "plan",
@@ -793,7 +801,7 @@
             "lifecycle_phase": null,
             "event_subtype": "boolean-feature",
             "trait_id": null,
-            "icon": "☑️",
+            "icon": "\u2611\ufe0f",
             "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
             "created_at": "2025-09-30T22:07:09.016745Z",
             "updated_at": "2025-10-01T15:13:58.966969Z",
@@ -859,7 +867,7 @@
             "lifecycle_phase": null,
             "event_subtype": "event-based-feature",
             "trait_id": null,
-            "icon": "⭐",
+            "icon": "\u2b50",
             "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
             "created_at": "2025-10-01T14:42:58.193974Z",
             "updated_at": "2025-10-01T15:16:41.374445Z",
@@ -965,7 +973,7 @@
               "lifecycle_phase": null,
               "event_subtype": "boolean-feature",
               "trait_id": null,
-              "icon": "☑️",
+              "icon": "\u2611\ufe0f",
               "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
               "created_at": "2025-09-30T22:07:09.016745Z",
               "updated_at": "2025-10-01T15:13:58.966969Z"
@@ -1000,7 +1008,8 @@
             "usage_based_product": null,
             "price_behavior": null,
             "soft_limit": null,
-            "billing_threshold": null
+            "billing_threshold": null,
+            "currency_prices": []
           },
           {
             "created_at": "2025-10-01T15:45:30.611471Z",
@@ -1015,7 +1024,7 @@
               "lifecycle_phase": null,
               "event_subtype": "event-based-feature",
               "trait_id": null,
-              "icon": "⭐",
+              "icon": "\u2b50",
               "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
               "created_at": "2025-10-01T14:42:58.193974Z",
               "updated_at": "2025-10-01T15:16:41.374445Z"
@@ -1136,7 +1145,8 @@
             },
             "price_behavior": "overage",
             "soft_limit": 200,
-            "billing_threshold": 500
+            "billing_threshold": 500,
+            "currency_prices": []
           }
         ],
         "compatible_plan_ids": [],
@@ -1146,7 +1156,8 @@
         "custom_plan_config": null,
         "included_credit_grants": [],
         "usage_violations": [],
-        "valid": true
+        "valid": true,
+        "currency_prices": []
       },
       {
         "audience_type": "plan",
@@ -1229,7 +1240,7 @@
             "lifecycle_phase": null,
             "event_subtype": "boolean-feature",
             "trait_id": null,
-            "icon": "☑️",
+            "icon": "\u2611\ufe0f",
             "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
             "created_at": "2025-09-30T22:07:09.016745Z",
             "updated_at": "2025-10-01T15:13:58.966969Z",
@@ -1295,7 +1306,7 @@
             "lifecycle_phase": null,
             "event_subtype": "event-based-feature",
             "trait_id": null,
-            "icon": "⭐",
+            "icon": "\u2b50",
             "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
             "created_at": "2025-10-01T14:42:58.193974Z",
             "updated_at": "2025-10-01T15:16:41.374445Z",
@@ -1355,7 +1366,7 @@
             "lifecycle_phase": null,
             "event_subtype": null,
             "trait_id": "trt_U78jdcBghdn",
-            "icon": "📔",
+            "icon": "\ud83d\udcd4",
             "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
             "created_at": "2025-10-01T14:43:50.323983Z",
             "updated_at": "2025-10-01T15:39:05.831304Z",
@@ -1401,7 +1412,9 @@
               "created_at": "2025-10-01T14:43:37.694471Z",
               "display_name": "trait-based-feature",
               "entity_type": "company",
-              "hierarchy": ["trait-based-feature"],
+              "hierarchy": [
+                "trait-based-feature"
+              ],
               "id": "trt_U78jdcBghdn",
               "trait_type": "number",
               "updated_at": "2025-10-01T14:43:37.694471Z"
@@ -1463,7 +1476,7 @@
               "lifecycle_phase": null,
               "event_subtype": "boolean-feature",
               "trait_id": null,
-              "icon": "☑️",
+              "icon": "\u2611\ufe0f",
               "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
               "created_at": "2025-09-30T22:07:09.016745Z",
               "updated_at": "2025-10-01T15:13:58.966969Z"
@@ -1498,7 +1511,8 @@
             "usage_based_product": null,
             "price_behavior": null,
             "soft_limit": null,
-            "billing_threshold": null
+            "billing_threshold": null,
+            "currency_prices": []
           },
           {
             "created_at": "2025-10-01T15:47:38.28802Z",
@@ -1513,7 +1527,7 @@
               "lifecycle_phase": null,
               "event_subtype": "event-based-feature",
               "trait_id": null,
-              "icon": "⭐",
+              "icon": "\u2b50",
               "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
               "created_at": "2025-10-01T14:42:58.193974Z",
               "updated_at": "2025-10-01T15:16:41.374445Z"
@@ -1658,7 +1672,8 @@
             },
             "price_behavior": "tier",
             "soft_limit": null,
-            "billing_threshold": null
+            "billing_threshold": null,
+            "currency_prices": []
           },
           {
             "created_at": "2025-10-01T15:48:40.543137Z",
@@ -1673,7 +1688,7 @@
               "lifecycle_phase": null,
               "event_subtype": null,
               "trait_id": "trt_U78jdcBghdn",
-              "icon": "📔",
+              "icon": "\ud83d\udcd4",
               "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
               "created_at": "2025-10-01T14:43:50.323983Z",
               "updated_at": "2025-10-01T15:39:05.831304Z"
@@ -1702,7 +1717,9 @@
               "created_at": "2025-10-01T15:48:38.898863Z",
               "display_name": "trait-based-feature-schematic-system-trait",
               "entity_type": "company",
-              "hierarchy": ["trait-based-feature-schematic-system-trait"],
+              "hierarchy": [
+                "trait-based-feature-schematic-system-trait"
+              ],
               "id": "trt_E6V7hTVPSyV",
               "trait_type": "number",
               "updated_at": "2025-10-01T15:48:38.898863Z"
@@ -1790,7 +1807,8 @@
             },
             "price_behavior": "pay_in_advance",
             "soft_limit": null,
-            "billing_threshold": null
+            "billing_threshold": null,
+            "currency_prices": []
           }
         ],
         "compatible_plan_ids": [],
@@ -1805,7 +1823,7 @@
             "plan_id": "plan_9Qeb3Aqc6jY",
             "plan_name": "Professional",
             "credit_amount": 80,
-            "credit_icon": "🪙",
+            "credit_icon": "\ud83e\ude99",
             "credit_name": "Normal Token",
             "singular_name": "normal token",
             "plural_name": "normal tokens",
@@ -1828,7 +1846,8 @@
           }
         ],
         "usage_violations": [],
-        "valid": true
+        "valid": true,
+        "currency_prices": []
       },
       {
         "audience_type": "plan",
@@ -1911,7 +1930,7 @@
             "lifecycle_phase": null,
             "event_subtype": "boolean-feature",
             "trait_id": null,
-            "icon": "☑️",
+            "icon": "\u2611\ufe0f",
             "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
             "created_at": "2025-09-30T22:07:09.016745Z",
             "updated_at": "2025-10-01T15:13:58.966969Z",
@@ -1977,7 +1996,7 @@
             "lifecycle_phase": null,
             "event_subtype": "event-based-feature",
             "trait_id": null,
-            "icon": "⭐",
+            "icon": "\u2b50",
             "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
             "created_at": "2025-10-01T14:42:58.193974Z",
             "updated_at": "2025-10-01T15:16:41.374445Z",
@@ -2037,7 +2056,7 @@
             "lifecycle_phase": null,
             "event_subtype": null,
             "trait_id": "trt_U78jdcBghdn",
-            "icon": "📔",
+            "icon": "\ud83d\udcd4",
             "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
             "created_at": "2025-10-01T14:43:50.323983Z",
             "updated_at": "2025-10-01T15:39:05.831304Z",
@@ -2083,7 +2102,9 @@
               "created_at": "2025-10-01T14:43:37.694471Z",
               "display_name": "trait-based-feature",
               "entity_type": "company",
-              "hierarchy": ["trait-based-feature"],
+              "hierarchy": [
+                "trait-based-feature"
+              ],
               "id": "trt_U78jdcBghdn",
               "trait_type": "number",
               "updated_at": "2025-10-01T14:43:37.694471Z"
@@ -2145,7 +2166,7 @@
               "lifecycle_phase": null,
               "event_subtype": "boolean-feature",
               "trait_id": null,
-              "icon": "☑️",
+              "icon": "\u2611\ufe0f",
               "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
               "created_at": "2025-09-30T22:07:09.016745Z",
               "updated_at": "2025-10-01T15:13:58.966969Z"
@@ -2180,7 +2201,8 @@
             "usage_based_product": null,
             "price_behavior": null,
             "soft_limit": null,
-            "billing_threshold": null
+            "billing_threshold": null,
+            "currency_prices": []
           },
           {
             "created_at": "2025-10-01T15:49:00.519908Z",
@@ -2195,7 +2217,7 @@
               "lifecycle_phase": null,
               "event_subtype": "event-based-feature",
               "trait_id": null,
-              "icon": "⭐",
+              "icon": "\u2b50",
               "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
               "created_at": "2025-10-01T14:42:58.193974Z",
               "updated_at": "2025-10-01T15:16:41.374445Z"
@@ -2230,7 +2252,8 @@
             "usage_based_product": null,
             "price_behavior": null,
             "soft_limit": null,
-            "billing_threshold": null
+            "billing_threshold": null,
+            "currency_prices": []
           },
           {
             "created_at": "2025-10-01T15:49:24.894337Z",
@@ -2245,7 +2268,7 @@
               "lifecycle_phase": null,
               "event_subtype": null,
               "trait_id": "trt_U78jdcBghdn",
-              "icon": "📔",
+              "icon": "\ud83d\udcd4",
               "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
               "created_at": "2025-10-01T14:43:50.323983Z",
               "updated_at": "2025-10-01T15:39:05.831304Z"
@@ -2274,7 +2297,9 @@
               "created_at": "2025-10-01T14:43:37.694471Z",
               "display_name": "trait-based-feature",
               "entity_type": "company",
-              "hierarchy": ["trait-based-feature"],
+              "hierarchy": [
+                "trait-based-feature"
+              ],
               "id": "trt_U78jdcBghdn",
               "trait_type": "number",
               "updated_at": "2025-10-01T14:43:37.694471Z"
@@ -2288,7 +2313,8 @@
             "usage_based_product": null,
             "price_behavior": null,
             "soft_limit": null,
-            "billing_threshold": null
+            "billing_threshold": null,
+            "currency_prices": []
           }
         ],
         "compatible_plan_ids": [],
@@ -2302,15 +2328,25 @@
         },
         "included_credit_grants": [],
         "usage_violations": [],
-        "valid": true
+        "valid": true,
+        "currency_prices": []
       }
     ],
     "active_usage_based_entitlements": [],
     "add_on_compatibilities": [
-      { "source_plan_id": "plan_aDevbC1pNVr", "compatible_plan_ids": [] },
-      { "source_plan_id": "plan_S9LDYYDpQ3X", "compatible_plan_ids": [] }
+      {
+        "source_plan_id": "plan_aDevbC1pNVr",
+        "compatible_plan_ids": []
+      },
+      {
+        "source_plan_id": "plan_S9LDYYDpQ3X",
+        "compatible_plan_ids": []
+      }
     ],
-    "capabilities": { "checkout": true, "badge_visibility": false },
+    "capabilities": {
+      "checkout": true,
+      "badge_visibility": false
+    },
     "company": {
       "created_at": "2026-01-16T20:39:36.469911Z",
       "environment_id": "env_66p5iXPxRJU",
@@ -2320,7 +2356,9 @@
       "name": "C",
       "updated_at": "2026-01-16T20:43:45.383329Z",
       "add_ons": [],
-      "billing_credit_balances": { "bilcr_SEzUjtGmNaD": 0 },
+      "billing_credit_balances": {
+        "bilcr_SEzUjtGmNaD": 0
+      },
       "billing_subscription": {
         "application_id": "ca_RwRVKJOzZi515GG0hWMh8OCwnlozKkWE",
         "cancel_at": 0,
@@ -3431,7 +3469,7 @@
         "expiry_type": "duration",
         "credit_name": "Normal Token",
         "credit_description": "A normal token",
-        "credit_icon": "🪙",
+        "credit_icon": "\ud83e\ude99",
         "singular_name": "normal token",
         "plural_name": "normal tokens",
         "billing_invoice_id": null,
@@ -3479,7 +3517,8 @@
           "version": 1
         }
       ],
-      "yearly_price": null
+      "yearly_price": null,
+      "currency_prices": []
     },
     "post_trial_plan": {
       "audience_type": "plan",
@@ -3516,7 +3555,8 @@
           "version": 1
         }
       ],
-      "yearly_price": null
+      "yearly_price": null,
+      "currency_prices": []
     },
     "feature_usage": {
       "features": [
@@ -3539,7 +3579,7 @@
             "lifecycle_phase": null,
             "event_subtype": "boolean-feature",
             "trait_id": null,
-            "icon": "☑️",
+            "icon": "\u2611\ufe0f",
             "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
             "created_at": "2025-09-30T22:07:09.016745Z",
             "updated_at": "2025-10-01T15:13:58.966969Z",
@@ -3624,7 +3664,7 @@
               "lifecycle_phase": null,
               "event_subtype": "boolean-feature",
               "trait_id": null,
-              "icon": "☑️",
+              "icon": "\u2611\ufe0f",
               "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
               "created_at": "2025-09-30T22:07:09.016745Z",
               "updated_at": "2025-10-01T15:13:58.966969Z"
@@ -3659,7 +3699,8 @@
             "usage_based_product": null,
             "price_behavior": null,
             "soft_limit": null,
-            "billing_threshold": null
+            "billing_threshold": null,
+            "currency_prices": []
           },
           "price_behavior": null,
           "soft_limit": null,
@@ -3686,7 +3727,7 @@
             "lifecycle_phase": null,
             "event_subtype": "event-based-feature",
             "trait_id": null,
-            "icon": "⭐",
+            "icon": "\u2b50",
             "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
             "created_at": "2025-10-01T14:42:58.193974Z",
             "updated_at": "2025-10-01T15:16:41.374445Z",
@@ -3766,7 +3807,7 @@
               "lifecycle_phase": null,
               "event_subtype": "event-based-feature",
               "trait_id": null,
-              "icon": "⭐",
+              "icon": "\u2b50",
               "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
               "created_at": "2025-10-01T14:42:58.193974Z",
               "updated_at": "2025-10-01T15:16:41.374445Z"
@@ -3801,7 +3842,8 @@
             "usage_based_product": null,
             "price_behavior": null,
             "soft_limit": null,
-            "billing_threshold": null
+            "billing_threshold": null,
+            "currency_prices": []
           },
           "price_behavior": null,
           "soft_limit": null,

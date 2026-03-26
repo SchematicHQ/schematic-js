@@ -16,6 +16,7 @@ function makeUsageBasedEntitlement(
 ): UsageBasedEntitlement {
   return {
     createdAt: new Date(),
+    currencyPrices: [],
     environmentId: "env-1",
     featureId: "feat-1",
     id: "ent-1",
@@ -38,6 +39,7 @@ function makeSelectedPlan(overrides: Partial<SelectedPlan> = {}): SelectedPlan {
     compatiblePlanIds: [],
     controlledBy: "self_serve" as any,
     createdAt: new Date(),
+    currencyPrices: [],
     current: false,
     custom: false,
     description: "",
