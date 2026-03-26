@@ -12,9 +12,6 @@ import { useTranslation } from "react-i18next";
 import {
   EntitlementPriceBehavior,
   type PreviewSubscriptionFinanceResponseData,
-  type UpdateAddOnRequestBody,
-  type UpdateCreditBundleRequestBody,
-  type UpdatePayInAdvanceRequestBody,
 } from "../../../api/checkoutexternal";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import type {
@@ -25,6 +22,9 @@ import type {
 } from "../../../types";
 import {
   ChargeType,
+  buildAddOnRequestBody,
+  buildCreditBundlesRequestBody,
+  buildPayInAdvanceRequestBody,
   entitlementHasCost,
   extractCurrentUsageBasedEntitlements,
   formatCurrency,
@@ -52,6 +52,7 @@ interface SubscriptionSidebarProps extends Omit<BoxProps, "children"> {
   creditBundles?: CreditBundle[];
   usageBasedEntitlements: UsageBasedEntitlement[];
   addOnUsageBasedEntitlements?: UsageBasedEntitlement[];
+  addOnPayInAdvanceEntitlements?: UsageBasedEntitlement[];
   charges?: PreviewSubscriptionFinanceResponseData;
   checkoutStage?: string;
   checkoutStages?: CheckoutStage[];
@@ -87,6 +88,7 @@ export const SubscriptionSidebar = forwardRef<
       creditBundles = [],
       usageBasedEntitlements,
       addOnUsageBasedEntitlements = [],
+      addOnPayInAdvanceEntitlements = [],
       charges,
       checkoutStage,
       checkoutStages,
@@ -389,101 +391,49 @@ export const SubscriptionSidebar = forwardRef<
 
     const handleCheckout = useCallback(async () => {
       const planId = selectedPlan?.id;
-      const priceId = (
+      const planPriceId = (
         planPeriod === "year"
           ? selectedPlan?.yearlyPrice
           : selectedPlan?.monthlyPrice
       )?.id;
 
       try {
-        if (!planId || !priceId) {
+        if (!planId || !planPriceId) {
           throw new Error(t("Selected plan or associated price is missing."));
         }
 
         setError(undefined);
         setIsLoading(true);
 
-        const planPayInAdvance = payInAdvanceEntitlements.reduce(
-          (
-            acc: UpdatePayInAdvanceRequestBody[],
-            { meteredMonthlyPrice, meteredYearlyPrice, quantity },
-          ) => {
-            const priceId = (
-              planPeriod === "year" ? meteredYearlyPrice : meteredMonthlyPrice
-            )?.priceId;
-
-            if (priceId) {
-              acc.push({
-                priceId,
-                quantity,
-              });
-            }
-
-            return acc;
-          },
-          [],
+        const planPayInAdvanceRequestBody = buildPayInAdvanceRequestBody(
+          payInAdvanceEntitlements,
+          planPeriod,
         );
 
-        const addOnPayInAdvance = addOnUsageBasedEntitlements
-          .filter(
-            (entitlement) =>
-              entitlement.priceBehavior ===
-              EntitlementPriceBehavior.PayInAdvance,
-          )
-          .reduce(
-            (
-              acc: UpdatePayInAdvanceRequestBody[],
-              { meteredMonthlyPrice, meteredYearlyPrice, quantity },
-            ) => {
-              const priceId = (
-                planPeriod === "year" ? meteredYearlyPrice : meteredMonthlyPrice
-              )?.priceId;
+        const addOnPayInAdvanceRequestBody = buildPayInAdvanceRequestBody(
+          addOnPayInAdvanceEntitlements,
+          planPeriod,
+        );
 
-              if (priceId) {
-                acc.push({
-                  priceId,
-                  quantity,
-                });
-              }
+        const addOnRequestBody = buildAddOnRequestBody(
+          addOns,
+          planPeriod,
+          shouldTrial,
+          addOnPayInAdvanceEntitlements,
+        );
 
-              return acc;
-            },
-            [],
-          );
-
-        const allPayInAdvance = [...planPayInAdvance, ...addOnPayInAdvance];
+        const creditBundlesRequestBody =
+          buildCreditBundlesRequestBody(creditBundles);
 
         const checkoutResponseFromBackend = await checkout({
           newPlanId: planId,
-          newPriceId: priceId,
-          addOnIds: addOns.reduce((acc: UpdateAddOnRequestBody[], addOn) => {
-            if (addOn.isSelected && !shouldTrial) {
-              const addOnPriceId = getAddOnPrice(addOn, planPeriod)?.id;
-
-              if (addOnPriceId) {
-                acc.push({
-                  addOnId: addOn.id,
-                  priceId: addOnPriceId,
-                });
-              }
-            }
-
-            return acc;
-          }, []),
-          payInAdvance: allPayInAdvance,
-          creditBundles: creditBundles.reduce(
-            (acc: UpdateCreditBundleRequestBody[], { id, count }) => {
-              if (count > 0) {
-                acc.push({
-                  bundleId: id,
-                  quantity: count,
-                });
-              }
-
-              return acc;
-            },
-            [],
-          ),
+          newPriceId: planPriceId,
+          addOnIds: addOnRequestBody,
+          payInAdvance: [
+            ...planPayInAdvanceRequestBody,
+            ...addOnPayInAdvanceRequestBody,
+          ],
+          creditBundles: creditBundlesRequestBody,
           skipTrial: !shouldTrial,
           ...(paymentMethodId && { paymentMethodId }),
           ...(promoCode && { promoCode }),
@@ -540,7 +490,7 @@ export const SubscriptionSidebar = forwardRef<
       setIsLoading,
       setLayout,
       payInAdvanceEntitlements,
-      addOnUsageBasedEntitlements,
+      addOnPayInAdvanceEntitlements,
       shouldTrial,
       promoCode,
       finishCheckout,

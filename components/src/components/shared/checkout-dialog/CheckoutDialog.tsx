@@ -12,12 +12,9 @@ import {
   BillingProductPriceInterval,
   EntitlementPriceBehavior,
   ResponseError,
-  UpdateCreditBundleRequestBody,
   type FeatureUsageResponseData,
   type PlanEntitlementResponseData,
   type PreviewSubscriptionFinanceResponseData,
-  type UpdateAddOnRequestBody,
-  type UpdatePayInAdvanceRequestBody,
 } from "../../../api/checkoutexternal";
 import { TEXT_BASE_SIZE } from "../../../const";
 import {
@@ -30,7 +27,13 @@ import type {
   SelectedPlan,
   UsageBasedEntitlement,
 } from "../../../types";
-import { ERROR_UNKNOWN, getAddOnPrice, isError } from "../../../utils";
+import {
+  ERROR_UNKNOWN,
+  buildAddOnRequestBody,
+  buildCreditBundlesRequestBody,
+  buildPayInAdvanceRequestBody,
+  isError,
+} from "../../../utils";
 import { PeriodToggle, SubscriptionSidebar } from "../../shared";
 import {
   Dialog,
@@ -533,82 +536,33 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       setCharges(undefined);
       setIsLoading(true);
 
-      const addOnRequestBody = (updates.addOns || addOns).reduce(
-        (acc: UpdateAddOnRequestBody[], addOn) => {
-          if (addOn.isSelected) {
-            const addOnPriceId = getAddOnPrice(addOn, period)?.id;
+      const resolvedPayInAdvanceEntitlements =
+        updates.payInAdvanceEntitlements || payInAdvanceEntitlements;
+      const resolvedAddOnPayInAdvanceEntitlements =
+        updates.addOnPayInAdvanceEntitlements || addOnPayInAdvanceEntitlements;
+      const resolvedAddOns = updates.addOns || addOns;
+      const resolvedCreditBundles = updates.creditBundles || creditBundles;
 
-            if (addOnPriceId) {
-              acc.push({
-                addOnId: addOn.id,
-                priceId: addOnPriceId,
-              });
-            }
-          }
-
-          return acc;
-        },
-        [],
+      const planPayInAdvanceRequestBody = buildPayInAdvanceRequestBody(
+        resolvedPayInAdvanceEntitlements,
+        period,
       );
 
-      const payInAdvanceRequestBody = (
-        updates.payInAdvanceEntitlements || payInAdvanceEntitlements
-      ).reduce(
-        (
-          acc: UpdatePayInAdvanceRequestBody[],
-          { meteredMonthlyPrice, meteredYearlyPrice, quantity },
-        ) => {
-          const priceId = (
-            period === "year" ? meteredYearlyPrice : meteredMonthlyPrice
-          )?.priceId;
-
-          if (priceId) {
-            acc.push({
-              priceId,
-              quantity,
-            });
-          }
-
-          return acc;
-        },
-        [],
+      const addOnPayInAdvanceRequestBody = buildPayInAdvanceRequestBody(
+        resolvedAddOnPayInAdvanceEntitlements,
+        period,
       );
 
-      const addOnPayInAdvanceRequestBody = (
-        updates.addOnPayInAdvanceEntitlements || addOnUsageBasedEntitlements
-      ).reduce(
-        (
-          acc: UpdatePayInAdvanceRequestBody[],
-          { meteredMonthlyPrice, meteredYearlyPrice, quantity },
-        ) => {
-          const priceId = (
-            period === "year" ? meteredYearlyPrice : meteredMonthlyPrice
-          )?.priceId;
-
-          if (priceId) {
-            acc.push({
-              priceId,
-              quantity,
-            });
-          }
-
-          return acc;
-        },
-        [],
+      const addOnRequestBody = buildAddOnRequestBody(
+        resolvedAddOns,
+        period,
+        shouldTrial,
+        resolvedAddOnPayInAdvanceEntitlements,
       );
 
-      const creditBundlesRequestBody = (
-        updates.creditBundles || creditBundles
-      ).reduce((acc: UpdateCreditBundleRequestBody[], { id, count }) => {
-        if (count > 0) {
-          acc.push({
-            bundleId: id,
-            quantity: count,
-          });
-        }
-
-        return acc;
-      }, []);
+      const creditBundlesRequestBody = buildCreditBundlesRequestBody(
+        resolvedCreditBundles,
+      );
 
       try {
         const response = await previewCheckout({
@@ -616,7 +570,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
           newPriceId: planPriceId,
           addOnIds: addOnRequestBody,
           payInAdvance: [
-            ...payInAdvanceRequestBody,
+            ...planPayInAdvanceRequestBody,
             ...addOnPayInAdvanceRequestBody,
           ],
           creditBundles: creditBundlesRequestBody,
@@ -692,7 +646,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       planPeriod,
       selectedPlan,
       payInAdvanceEntitlements,
-      addOnUsageBasedEntitlements,
+      addOnPayInAdvanceEntitlements,
       addOns,
       creditBundles,
       shouldTrial,
@@ -808,32 +762,40 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
         const updatedAddOnEntitlements = updated
           .filter((addOn) => addOn.isSelected)
-          .flatMap((addOn) =>
-            addOn.entitlements
-              .filter(
-                (entitlement) =>
-                  entitlement.priceBehavior ===
-                  EntitlementPriceBehavior.PayInAdvance,
-              )
-              .map((entitlement) => ({
-                ...entitlement,
-                allocation: entitlement.valueNumeric || 0,
-                usage: 0,
-                quantity: 1,
-              })),
-          );
+          .flatMap((addOn) => {
+            return addOn.entitlements
+              .filter((entitlement) => !!entitlement.priceBehavior)
+              .map((source) => {
+                const found = addOnUsageBasedEntitlements.find(
+                  (current) => current.id === source.id,
+                );
+
+                return {
+                  ...source,
+                  allocation: found?.allocation ?? source.valueNumeric ?? 0,
+                  usage: found?.usage ?? 0,
+                  quantity: found?.quantity ?? 1,
+                };
+              });
+          });
 
         setAddOnUsageBasedEntitlements(updatedAddOnEntitlements);
 
+        const updatedAddOnPayInAdvanceEntitlements =
+          updatedAddOnEntitlements.filter(
+            (entitlement) =>
+              entitlement.priceBehavior ===
+              EntitlementPriceBehavior.PayInAdvance,
+          );
         handlePreviewCheckout({
           addOns: updated,
-          addOnPayInAdvanceEntitlements: updatedAddOnEntitlements,
+          addOnPayInAdvanceEntitlements: updatedAddOnPayInAdvanceEntitlements,
         });
 
         return updated;
       });
     },
-    [handlePreviewCheckout],
+    [handlePreviewCheckout, addOnUsageBasedEntitlements],
   );
 
   const updateUsageBasedEntitlementQuantity = useCallback(
@@ -893,8 +855,12 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
             : entitlement,
         );
 
+        const updatedAddOnPayInAdvanceEntitlements = updated.filter(
+          (entitlement) =>
+            entitlement.priceBehavior === EntitlementPriceBehavior.PayInAdvance,
+        );
         handlePreviewCheckout({
-          addOnPayInAdvanceEntitlements: updated,
+          addOnPayInAdvanceEntitlements: updatedAddOnPayInAdvanceEntitlements,
         });
 
         return updated;
@@ -1262,6 +1228,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
           addOns={addOns}
           usageBasedEntitlements={usageBasedEntitlements}
           addOnUsageBasedEntitlements={addOnUsageBasedEntitlements}
+          addOnPayInAdvanceEntitlements={addOnPayInAdvanceEntitlements}
           creditBundles={creditBundles}
           charges={charges}
           checkoutStage={checkoutStage}
