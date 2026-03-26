@@ -61,7 +61,9 @@ models/Condition.ts
 models/ConditionGroup.ts
 models/CountResponse.ts
 models/CreateSetupIntentResponse.ts
+models/CreditBundleCurrencyPrice.ts
 models/CreditCompanyGrantView.ts
+models/CreditCurrencyPriceResponseData.ts
 models/CreditGrantDetail.ts
 models/CreditTransferView.ts
 models/CreditUsageAggregation.ts
@@ -70,6 +72,7 @@ models/CustomPlanConfig.ts
 models/CustomPlanViewConfigResponseData.ts
 models/DeletePaymentMethodResponse.ts
 models/DeleteResponse.ts
+models/EntitlementCurrencyPricesResponseData.ts
 models/EntitlementPriceBehavior.ts
 models/EntitlementType.ts
 models/EntitlementValueType.ts
@@ -104,6 +107,7 @@ models/ListInvoicesResponse.ts
 models/PaymentMethodResponseData.ts
 models/PlanControlledByType.ts
 models/PlanCreditGrantView.ts
+models/PlanCurrencyPricesResponseData.ts
 models/PlanDetailResponseData.ts
 models/PlanEntitlementResponseData.ts
 models/PlanGroupPlanDetailResponseData.ts

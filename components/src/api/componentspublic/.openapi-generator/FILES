@@ -45,10 +45,12 @@ models/CreateEventBatchRequestBody.ts
 models/CreateEventBatchResponse.ts
 models/CreateEventRequestBody.ts
 models/CreateEventResponse.ts
+models/CreditCurrencyPriceResponseData.ts
 models/CustomPlanConfig.ts
 models/CustomPlanViewConfigResponseData.ts
 models/DatastreamCompanyPlan.ts
 models/DeleteResponse.ts
+models/EntitlementCurrencyPricesResponseData.ts
 models/EntitlementPriceBehavior.ts
 models/EntitlementValueType.ts
 models/EntityTraitDefinitionResponseData.ts
@@ -75,6 +77,7 @@ models/GetPublicPlansResponse.ts
 models/GetWhoAmIResponse.ts
 models/PlanControlledByType.ts
 models/PlanCreditGrantView.ts
+models/PlanCurrencyPricesResponseData.ts
 models/PlanDetailResponseData.ts
 models/PlanEntitlementResponseData.ts
 models/PlanGroupPlanDetailResponseData.ts
