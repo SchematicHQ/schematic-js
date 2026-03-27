@@ -119,6 +119,12 @@ export interface CreditCompanyGrantView {
   creditName: string;
   /**
    *
+   * @type {string}
+   * @memberof CreditCompanyGrantView
+   */
+  currency?: string | null;
+  /**
+   *
    * @type {Date}
    * @memberof CreditCompanyGrantView
    */
@@ -320,6 +326,7 @@ export function CreditCompanyGrantViewFromJSONTyped(
     creditDescription: json["credit_description"],
     creditIcon: json["credit_icon"] == null ? undefined : json["credit_icon"],
     creditName: json["credit_name"],
+    currency: json["currency"] == null ? undefined : json["currency"],
     exhaustedAt:
       json["exhausted_at"] == null ? undefined : new Date(json["exhausted_at"]),
     expiresAt:
@@ -395,6 +402,7 @@ export function CreditCompanyGrantViewToJSONTyped(
     credit_description: value["creditDescription"],
     credit_icon: value["creditIcon"],
     credit_name: value["creditName"],
+    currency: value["currency"],
     exhausted_at:
       value["exhaustedAt"] == null
         ? undefined
