@@ -39,6 +39,7 @@ import {
   PlanCurrencyPricesResponseDataFromJSON,
   PlanCurrencyPricesResponseDataFromJSONTyped,
   PlanCurrencyPricesResponseDataToJSON,
+  PlanCurrencyPricesResponseDataToJSONTyped,
 } from "./PlanCurrencyPricesResponseData";
 import type { PlanEntitlementResponseData } from "./PlanEntitlementResponseData";
 import {

@@ -3,11 +3,7 @@ import { useTranslation } from "react-i18next";
 
 import { BillingCreditGrantReason } from "../../../api/checkoutexternal";
 import { type FontStyle } from "../../../context";
-import {
-  useEmbed,
-  useIsLightBackground,
-  useTrialEnd,
-} from "../../../hooks";
+import { useEmbed, useIsLightBackground, useTrialEnd } from "../../../hooks";
 import type {
   CreditWithCompanyContext,
   DeepPartial,
@@ -201,7 +197,6 @@ export const PlanManager = forwardRef<
       willSubscriptionCancel,
     };
   }, [billingSubscription]);
-
 
   const { isFreePlan, isUsageBasedPlan } = useMemo(() => {
     const isFreePlan = currentPlan?.planPrice === 0;

@@ -48,7 +48,8 @@ export const CurrencyToggle = ({
           $size={15}
           $weight={600}
         >
-          {getCurrencyFlag(selectedCurrency)} {getCurrencySymbol(selectedCurrency)} {selectedCurrency.toUpperCase()}
+          {getCurrencyFlag(selectedCurrency)}{" "}
+          {getCurrencySymbol(selectedCurrency)} {selectedCurrency.toUpperCase()}
         </Text>
 
         <select
@@ -68,7 +69,8 @@ export const CurrencyToggle = ({
         >
           {currencies.map((currency) => (
             <option key={currency} value={currency}>
-              {getCurrencyFlag(currency)} {getCurrencySymbol(currency)} {currency.toUpperCase()}
+              {getCurrencyFlag(currency)} {getCurrencySymbol(currency)}{" "}
+              {currency.toUpperCase()}
             </option>
           ))}
         </select>

@@ -41,6 +41,13 @@ import {
   BillingProductPriceResponseDataToJSON,
   BillingProductPriceResponseDataToJSONTyped,
 } from "./BillingProductPriceResponseData";
+import type { CreditBundleCurrencyPrice } from "./CreditBundleCurrencyPrice";
+import {
+  CreditBundleCurrencyPriceFromJSON,
+  CreditBundleCurrencyPriceFromJSONTyped,
+  CreditBundleCurrencyPriceToJSON,
+  CreditBundleCurrencyPriceToJSONTyped,
+} from "./CreditBundleCurrencyPrice";
 import type { BillingCreditExpiryUnit } from "./BillingCreditExpiryUnit";
 import {
   BillingCreditExpiryUnitFromJSON,
@@ -93,10 +100,10 @@ export interface BillingCreditBundleView {
   creditName: string;
   /**
    *
-   * @type {Array<object>}
+   * @type {Array<CreditBundleCurrencyPrice>}
    * @memberof BillingCreditBundleView
    */
-  currencyPrices?: Array<object>;
+  currencyPrices?: Array<CreditBundleCurrencyPrice>;
   /**
    *
    * @type {BillingCreditExpiryType}
@@ -225,7 +232,11 @@ export function BillingCreditBundleViewFromJSONTyped(
     creditId: json["credit_id"],
     creditName: json["credit_name"],
     currencyPrices:
-      json["currency_prices"] == null ? undefined : json["currency_prices"],
+      json["currency_prices"] == null
+        ? undefined
+        : (json["currency_prices"] as Array<any>).map(
+            CreditBundleCurrencyPriceFromJSON,
+          ),
     expiryType: BillingCreditExpiryTypeFromJSON(json["expiry_type"]),
     expiryUnit: BillingCreditExpiryUnitFromJSON(json["expiry_unit"]),
     expiryUnitCount:
@@ -271,7 +282,12 @@ export function BillingCreditBundleViewToJSONTyped(
     credit_icon: value["creditIcon"],
     credit_id: value["creditId"],
     credit_name: value["creditName"],
-    currency_prices: value["currencyPrices"],
+    currency_prices:
+      value["currencyPrices"] == null
+        ? undefined
+        : (value["currencyPrices"] as Array<any>).map(
+            CreditBundleCurrencyPriceToJSON,
+          ),
     expiry_type: BillingCreditExpiryTypeToJSON(value["expiryType"]),
     expiry_unit: BillingCreditExpiryUnitToJSON(value["expiryUnit"]),
     expiry_unit_count: value["expiryUnitCount"],

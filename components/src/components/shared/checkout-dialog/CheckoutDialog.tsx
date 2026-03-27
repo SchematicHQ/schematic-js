@@ -16,10 +16,7 @@ import {
   type PlanEntitlementResponseData,
   type PreviewSubscriptionFinanceResponseData,
 } from "../../../api/checkoutexternal";
-import {
-  DEFAULT_CURRENCY,
-  TEXT_BASE_SIZE,
-} from "../../../const";
+import { DEFAULT_CURRENCY, TEXT_BASE_SIZE } from "../../../const";
 import {
   useAvailableCurrencies,
   useAvailablePlans,
@@ -547,10 +544,16 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     }) => {
       const period = updates.period || planPeriod;
       const plan = updates.plan || selectedPlan;
-      const resolvedCurrency =
-        showCurrencySelector ? selectedCurrency : undefined;
+      const resolvedCurrency = showCurrencySelector
+        ? selectedCurrency
+        : undefined;
       const currencyPrice = plan
-        ? getPlanPrice(plan, period, { useSelectedPeriod: true }, resolvedCurrency)
+        ? getPlanPrice(
+            plan,
+            period,
+            { useSelectedPeriod: true },
+            resolvedCurrency,
+          )
         : undefined;
       const planPriceId =
         currencyPrice?.id ??

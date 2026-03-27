@@ -35,7 +35,11 @@ export const EntitlementRow = (
     entitlement;
 
   if (feature) {
-    const entitlementPrice = getEntitlementPrice(entitlement, planPeriod, sidebarCurrency);
+    const entitlementPrice = getEntitlementPrice(
+      entitlement,
+      planPeriod,
+      sidebarCurrency,
+    );
     const {
       price,
       currency,

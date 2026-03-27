@@ -59,7 +59,9 @@ export const Credits = ({ bundles, updateCount, currency }: CreditsProps) => {
 
               {typeof price === "number" && (
                 <Box $marginBottom="0.5rem">
-                  <Text>{formatCurrency(price, currency || bundle.price?.currency)}</Text>
+                  <Text>
+                    {formatCurrency(price, currency || bundle.price?.currency)}
+                  </Text>
                 </Box>
               )}
             </Flex>
