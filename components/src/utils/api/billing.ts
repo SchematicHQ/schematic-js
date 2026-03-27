@@ -122,9 +122,7 @@ export function getEntitlementPrice(
         return {
           ...source,
           price: getPriceValue(source),
-          priceId: source.id,
-          priceExternalId: source.externalPriceId,
-        } as unknown as BillingPriceView;
+        };
       }
     }
   }
@@ -147,7 +145,10 @@ export function getEntitlementPrice(
   if (source) {
     const billingPrice = { ...source };
 
-    if (entitlement.priceBehavior === EntitlementPriceBehavior.Overage && billingPrice.priceTier?.length) {
+    if (
+      entitlement.priceBehavior === EntitlementPriceBehavior.Overage &&
+      billingPrice.priceTier?.length
+    ) {
       const overagePriceTier =
         billingPrice.priceTier[billingPrice.priceTier.length - 1];
 
