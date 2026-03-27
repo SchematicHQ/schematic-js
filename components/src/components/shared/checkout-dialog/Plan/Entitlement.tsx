@@ -196,6 +196,7 @@ export const Entitlement = ({
     currency,
     packageSize,
     tiered,
+    selectedCurrency,
   ]);
 
   const usageText = useMemo(() => {

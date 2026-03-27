@@ -18,8 +18,6 @@ import {
 } from "../../../api/checkoutexternal";
 import {
   DEFAULT_CURRENCY,
-  PriceBehavior,
-  PriceInterval,
   TEXT_BASE_SIZE,
 } from "../../../const";
 import {
