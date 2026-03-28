@@ -261,11 +261,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
           // Calculate pay-in-advance entitlements (same logic as toggleAddOn)
           return availableAddOn.entitlements
-            .filter(
-              (entitlement) =>
-                entitlement.priceBehavior ===
-                EntitlementPriceBehavior.PayInAdvance,
-            )
+            .filter((entitlement) => !!entitlement.priceBehavior)
             .map((entitlement) => ({
               ...entitlement,
               allocation: entitlement.valueNumeric || 0,
