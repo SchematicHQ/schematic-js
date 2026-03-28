@@ -544,6 +544,7 @@ export const EmbedProvider = ({
       value={{
         isPending: state.isPending,
         stale: state.stale,
+        accessToken: state.accessToken,
         data: state.data,
         error: state.error,
         settings: state.settings,
