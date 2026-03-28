@@ -1,15 +1,15 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
+import { type CompanyPlanDetailResponseData } from "../../../api/checkoutexternal";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
-import type { SelectedPlan } from "../../../types";
 import { adjectify, getPlanPrice } from "../../../utils";
 import { Button, Flex, Text, Tooltip } from "../../ui";
 
 interface PeriodToggleProps {
   options: string[];
   selectedOption: string;
-  selectedPlan?: SelectedPlan;
+  selectedPlan?: CompanyPlanDetailResponseData;
   onSelect: (period: string) => void;
   tooltipPortal?: HTMLElement | null;
 }

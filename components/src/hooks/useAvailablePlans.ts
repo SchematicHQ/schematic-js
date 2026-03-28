@@ -1,7 +1,6 @@
 import { useCallback, useMemo } from "react";
 
 import { type CompanyPlanDetailResponseData } from "../api/checkoutexternal";
-import type { SelectedPlan } from "../types";
 import { ChargeType } from "../utils";
 
 import { useEmbed } from ".";
@@ -16,8 +15,9 @@ export function useAvailablePlans(
 ) {
   const { data, settings } = useEmbed();
 
-  const getAvailablePeriods = useCallback((): string[] => {
-    const periods = [];
+  const getAvailablePeriods = useCallback<() => string[]>(() => {
+    const periods: string[] = [];
+
     if (
       (data?.activePlans || []).some((plan) => plan.monthlyPrice) ||
       (data?.activeAddOns || []).some((addOn) => addOn.monthlyPrice)
@@ -34,8 +34,10 @@ export function useAvailablePlans(
     return periods;
   }, [data?.activePlans, data?.activeAddOns]);
 
-  const getActivePlans = useCallback(
-    (plans: CompanyPlanDetailResponseData[]): SelectedPlan[] => {
+  const getAvailablePlans = useCallback<
+    (plans?: CompanyPlanDetailResponseData[]) => CompanyPlanDetailResponseData[]
+  >(
+    (plans = []) => {
       const activePlans =
         settings.mode === "edit"
           ? plans.slice()
@@ -60,16 +62,21 @@ export function useAvailablePlans(
     [activePeriod, options.useSelectedPeriod, settings.mode],
   );
 
-  return useMemo(() => {
-    return {
-      plans: getActivePlans(data?.activePlans || []),
-      addOns: getActivePlans(data?.activeAddOns || []),
-      periods: getAvailablePeriods(),
-    };
-  }, [
-    data?.activePlans,
-    data?.activeAddOns,
-    getActivePlans,
-    getAvailablePeriods,
-  ]);
+  const availablePeriods = useMemo<string[]>(() => {
+    return getAvailablePeriods();
+  }, [getAvailablePeriods]);
+
+  const availablePlans = useMemo<CompanyPlanDetailResponseData[]>(() => {
+    return getAvailablePlans(data?.activePlans);
+  }, [getAvailablePlans, data?.activePlans]);
+
+  const availableAddOns = useMemo<CompanyPlanDetailResponseData[]>(() => {
+    return getAvailablePlans(data?.activeAddOns);
+  }, [getAvailablePlans, data?.activeAddOns]);
+
+  return {
+    plans: availablePlans,
+    addOns: availableAddOns,
+    periods: availablePeriods,
+  };
 }

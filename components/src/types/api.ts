@@ -51,7 +51,7 @@ export type Credit = Omit<
   "companyId" | "companyName" | "bundleId" | "total" | "grants"
 > & { period?: string };
 
-export type CreditBundle = BillingCreditBundleView & { count: number };
+export type CreditBundle = BillingCreditBundleView & { quantity: number };
 
 export type Feature = FeatureDetailResponseData | FeatureResponseData;
 

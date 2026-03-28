@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { BillingProductPriceInterval } from "../../../../api/checkoutexternal";
+import {
+  BillingProductPriceInterval,
+  type CompanyPlanDetailResponseData,
+} from "../../../../api/checkoutexternal";
 import { TEXT_BASE_SIZE, VISIBLE_ENTITLEMENT_COUNT } from "../../../../const";
 import { useEmbed, useIsLightBackground, useTrialEnd } from "../../../../hooks";
-import type { SelectedPlan } from "../../../../types";
 import {
   entitlementCountsReducer,
   formatCurrency,
@@ -21,11 +23,11 @@ import { Entitlement } from "./Entitlement";
 
 interface PlanProps {
   isLoading: boolean;
-  plans: SelectedPlan[];
-  selectedPlan?: SelectedPlan;
+  plans: CompanyPlanDetailResponseData[];
+  selectedPlan?: CompanyPlanDetailResponseData;
   period: string;
   selectPlan: (updates: {
-    plan: SelectedPlan;
+    plan: CompanyPlanDetailResponseData;
     period?: string;
     shouldTrial?: boolean;
   }) => void;

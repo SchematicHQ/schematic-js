@@ -1,8 +1,9 @@
 import { useTranslation } from "react-i18next";
 
+import { type CompanyPlanDetailResponseData } from "../../../api/checkoutexternal";
 import { TEXT_BASE_SIZE } from "../../../const";
 import { useEmbed } from "../../../hooks";
-import type { SelectedPlan, UsageBasedEntitlement } from "../../../types";
+import type { UsageBasedEntitlement } from "../../../types";
 import {
   calculateTieredCost,
   formatCurrency,
@@ -18,7 +19,7 @@ import { Box, Flex, Input, Text } from "../../ui";
 interface QuantityProps {
   isLoading: boolean;
   period: string;
-  selectedPlan?: SelectedPlan;
+  selectedPlan?: CompanyPlanDetailResponseData;
   entitlements: UsageBasedEntitlement[];
   updateQuantity: (id: string, quantity: number) => void;
   tooltipPortal?: HTMLElement | null;

@@ -1,19 +1,21 @@
 import { useTranslation } from "react-i18next";
 
-import { CompanyPlanInvalidReason } from "../../../../api/checkoutexternal";
+import {
+  CompanyPlanInvalidReason,
+  type CompanyPlanDetailResponseData,
+} from "../../../../api/checkoutexternal";
 import { useEmbed } from "../../../../hooks";
-import { SelectedPlan } from "../../../../types";
 import { UsageViolationText } from "../../../shared";
 import { Button, Flex } from "../../../ui";
 
 import { Selected } from "./Selected";
 
 export interface ButtonGroupProps {
-  plan: SelectedPlan;
+  plan: CompanyPlanDetailResponseData;
   isLoading: boolean;
   isSelected: boolean;
   onSelect: (updates: {
-    plan: SelectedPlan;
+    plan: CompanyPlanDetailResponseData;
     period?: string;
     shouldTrial?: boolean;
   }) => void;

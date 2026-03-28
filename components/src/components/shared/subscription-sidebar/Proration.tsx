@@ -1,16 +1,18 @@
 import { MouseEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { type PreviewSubscriptionFinanceResponseData } from "../../../api/checkoutexternal";
+import {
+  type CompanyPlanDetailResponseData,
+  type PreviewSubscriptionFinanceResponseData,
+} from "../../../api/checkoutexternal";
 import { useEmbed } from "../../../hooks";
-import type { SelectedPlan } from "../../../types";
 import { formatCurrency } from "../../../utils";
 import { Box, Button, Flex, Icon, Text } from "../../ui";
 
 type ProrationProps = {
   currency: string;
   charges: PreviewSubscriptionFinanceResponseData;
-  selectedPlan?: SelectedPlan;
+  selectedPlan?: CompanyPlanDetailResponseData;
 };
 
 export const Proration = ({ currency, charges }: ProrationProps) => {

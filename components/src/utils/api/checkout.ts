@@ -1,5 +1,6 @@
 import {
   EntitlementPriceBehavior,
+  type CompanyPlanDetailResponseData,
   type UpdateAddOnRequestBody,
   type UpdateCreditBundleRequestBody,
   type UpdatePayInAdvanceRequestBody,
@@ -38,7 +39,7 @@ export function buildPayInAdvanceRequestBody(
 }
 
 export function buildAddOnRequestBody(
-  addOns: SelectedPlan[],
+  addOns: CompanyPlanDetailResponseData[],
   period: string,
   shouldTrial: boolean,
   addOnPayInAdvanceEntitlements: UsageBasedEntitlement[],
@@ -50,7 +51,7 @@ export function buildAddOnRequestBody(
 
       if (
         addOnPriceId &&
-        (addOnPrice?.price ||
+        (typeof addOnPrice?.price === "number" ||
           addOnPayInAdvanceEntitlements.some(
             (e) => e.priceBehavior === EntitlementPriceBehavior.PayInAdvance,
           ))

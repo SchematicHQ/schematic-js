@@ -20,3 +20,37 @@ export function entitlementCountsReducer(
 
   return acc;
 }
+
+export function getSelectedPlan(
+  plans: CompanyPlanDetailResponseData[],
+  id?: string | null,
+) {
+  const match = plans.find(
+    (plan) =>
+      (id ? plan.id === id : plan.current) &&
+      // do not consider a trial
+      (!plan.isTrialable || !plan.companyCanTrial),
+  );
+
+  return match;
+}
+
+export function isAddOnSelected(
+  addOn: CompanyPlanDetailResponseData,
+  ids?: string[],
+) {
+  return (
+    (ids ? ids.includes(addOn.id) : addOn.current) &&
+    // do not consider a trial
+    (!addOn.isTrialable || !addOn.companyCanTrial)
+  );
+}
+
+export function getSelectedAddOns(
+  addOns: CompanyPlanDetailResponseData[],
+  ids?: string[],
+) {
+  const matches = addOns.filter((addOn) => isAddOnSelected(addOn, ids));
+
+  return matches;
+}

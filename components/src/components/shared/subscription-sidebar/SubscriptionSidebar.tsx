@@ -11,13 +11,13 @@ import { useTranslation } from "react-i18next";
 
 import {
   EntitlementPriceBehavior,
+  type CompanyPlanDetailResponseData,
   type PreviewSubscriptionFinanceResponseData,
 } from "../../../api/checkoutexternal";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import type {
   CreditBundle,
   CurrentUsageBasedEntitlement,
-  SelectedPlan,
   UsageBasedEntitlement,
 } from "../../../types";
 import {
@@ -47,8 +47,8 @@ import { Proration } from "./Proration";
 interface SubscriptionSidebarProps extends Omit<BoxProps, "children"> {
   portalRef?: React.RefObject<HTMLDialogElement | null>;
   planPeriod: string;
-  selectedPlan?: SelectedPlan;
-  addOns: SelectedPlan[];
+  selectedPlan?: CompanyPlanDetailResponseData;
+  addOns: CompanyPlanDetailResponseData[];
   creditBundles?: CreditBundle[];
   usageBasedEntitlements: UsageBasedEntitlement[];
   addOnUsageBasedEntitlements?: UsageBasedEntitlement[];
@@ -345,18 +345,18 @@ export const SubscriptionSidebar = forwardRef<
       addOnUsageBasedEntitlements,
     ]);
 
-    const selectedAddOnsWithCost = useMemo(
+    const selectedAddOnsWithPrice = useMemo(
       () =>
         addOns.filter(
-          (addOn) => addOn.isSelected && getPlanPrice(addOn)?.price,
+          (addOn) =>
+            addOn.isSelected && typeof getPlanPrice(addOn)?.price === "number",
         ),
       [addOns],
     );
 
     const { removedAddOns, willAddOnsChange } = useMemo(() => {
-      const addedAddOns = selectedAddOnsWithCost.filter(
+      const addedAddOns = selectedAddOnsWithPrice.filter(
         (selected) =>
-          getPlanPrice(selected)?.price &&
           !currentAddOns.some((current) => selected.id === current.id),
       );
 
@@ -364,7 +364,7 @@ export const SubscriptionSidebar = forwardRef<
         (current) =>
           current.planPrice &&
           current.planPeriod !== "one-time" &&
-          !selectedAddOnsWithCost.some(
+          !selectedAddOnsWithPrice.some(
             (selected) => current.id === selected.id,
           ),
       );
@@ -377,7 +377,7 @@ export const SubscriptionSidebar = forwardRef<
         removedAddOns,
         willAddOnsChange,
       };
-    }, [currentAddOns, selectedAddOnsWithCost]);
+    }, [currentAddOns, selectedAddOnsWithPrice]);
 
     const addedCreditBundles = useMemo(
       () => creditBundles.filter((bundle) => bundle.count > 0),
@@ -876,7 +876,7 @@ export const SubscriptionSidebar = forwardRef<
             </Box>
           )}
 
-          {(willAddOnsChange || selectedAddOnsWithCost.length > 0) && (
+          {(willAddOnsChange || selectedAddOnsWithPrice.length > 0) && (
             <Flex $flexDirection="column" $gap="0.5rem" $marginBottom="1.5rem">
               <Box $opacity="0.625">
                 <Text $size={14}>{t("Add-ons")}</Text>
@@ -915,7 +915,7 @@ export const SubscriptionSidebar = forwardRef<
                 );
               })}
 
-              {selectedAddOnsWithCost.map((addOn, index) => {
+              {selectedAddOnsWithPrice.map((addOn, index) => {
                 const { price: addOnPrice, currency: addOnCurrency } =
                   getAddOnPrice(addOn, planPeriod) || {};
 
