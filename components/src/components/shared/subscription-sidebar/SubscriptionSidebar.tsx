@@ -419,7 +419,6 @@ export const SubscriptionSidebar = forwardRef<
           addOns,
           planPeriod,
           shouldTrial,
-          addOnPayInAdvanceEntitlements,
         );
 
         const creditBundlesRequestBody =
