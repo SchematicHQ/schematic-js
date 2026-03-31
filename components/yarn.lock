@@ -594,10 +594,10 @@
     "@humanwhocodes/momoa" "^3.3.10"
     natural-compare "^1.4.0"
 
-"@eslint/markdown@^8.0.0":
-  version "8.0.0"
-  resolved "https://registry.yarnpkg.com/@eslint/markdown/-/markdown-8.0.0.tgz#166bd465f0a28c0f7af4345403e782b306824ee8"
-  integrity sha512-Rh3+76uHdnkk/ocLMZfWHXoPA/MK+GOqqjCAioiyNk2eYBC8UniRHdTMbM+2XZqTLWAcQo/SuU1CsXtdIOTX1g==
+"@eslint/markdown@^8.0.1":
+  version "8.0.1"
+  resolved "https://registry.yarnpkg.com/@eslint/markdown/-/markdown-8.0.1.tgz#48a1fd05ecc480fff60128a9b50694e9ce02d192"
+  integrity sha512-WWKmld/EyNdEB8GMq7JMPX1SDWgyJAM1uhtCi5ySrqYQM4HQjmg11EX/q3ZpnpRXHfdccFtli3NBvvGaYjWyQw==
   dependencies:
     "@eslint/core" "^1.1.1"
     "@eslint/plugin-kit" "^0.6.1"
