@@ -270,7 +270,7 @@ export const Plan = ({
                                       settings.theme.typography.text.fontSize
                                     }
                                   >
-                                    {typeof planCreditGrant.billingCreditAutoTopupThresholdPercent ===
+                                    {typeof planCreditGrant.billingCreditAutoTopupThresholdCredits ===
                                       "number" &&
                                       typeof planCreditGrant.billingCreditAutoTopupAmount ===
                                         "number" &&
@@ -278,9 +278,7 @@ export const Plan = ({
                                         "When balance reaches X remaining, an auto top-up of Y credits will be processed.",
                                         {
                                           threshold:
-                                            (planCreditGrant.billingCreditAutoTopupThresholdPercent /
-                                              100) *
-                                            credit.quantity,
+                                            planCreditGrant.billingCreditAutoTopupThresholdCredits,
                                           amount:
                                             planCreditGrant.billingCreditAutoTopupAmount,
                                         },

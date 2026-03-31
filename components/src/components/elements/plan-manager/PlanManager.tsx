@@ -507,7 +507,7 @@ export const PlanManager = forwardRef<
                                         settings.theme.typography.text.fontSize
                                       }
                                     >
-                                      {typeof planCreditGrant.billingCreditAutoTopupThresholdPercent ===
+                                      {typeof planCreditGrant.billingCreditAutoTopupThresholdCredits ===
                                         "number" &&
                                         typeof planCreditGrant.billingCreditAutoTopupAmount ===
                                           "number" &&
@@ -515,9 +515,7 @@ export const PlanManager = forwardRef<
                                           "When balance reaches X remaining, an auto top-up of Y credits will be processed.",
                                           {
                                             threshold:
-                                              (planCreditGrant.billingCreditAutoTopupThresholdPercent /
-                                                100) *
-                                              group.quantity,
+                                              planCreditGrant.billingCreditAutoTopupThresholdCredits,
                                             amount:
                                               planCreditGrant.billingCreditAutoTopupAmount,
                                           },
