@@ -1,4 +1,3 @@
-import { EntitlementPriceBehavior } from "../../api/checkoutexternal";
 import type { BillingPriceView } from "../../api/checkoutexternal";
 import type {
   CreditBundle,
@@ -224,7 +223,7 @@ describe("buildPayInAdvanceRequestBody", () => {
 
 describe("buildAddOnRequestBody", () => {
   it("should return an empty array for empty addOns", () => {
-    const result = buildAddOnRequestBody([], "month", false, []);
+    const result = buildAddOnRequestBody([], "month", false);
     expect(result).toEqual([]);
   });
 
@@ -245,7 +244,7 @@ describe("buildAddOnRequestBody", () => {
       }),
     ];
 
-    const result = buildAddOnRequestBody(addOns, "month", false, []);
+    const result = buildAddOnRequestBody(addOns, "month", false);
     expect(result).toEqual([]);
   });
 
@@ -266,7 +265,7 @@ describe("buildAddOnRequestBody", () => {
       }),
     ];
 
-    const result = buildAddOnRequestBody(addOns, "month", true, []);
+    const result = buildAddOnRequestBody(addOns, "month", true);
     expect(result).toEqual([]);
   });
 
@@ -287,7 +286,7 @@ describe("buildAddOnRequestBody", () => {
       }),
     ];
 
-    const result = buildAddOnRequestBody(addOns, "month", false, []);
+    const result = buildAddOnRequestBody(addOns, "month", false);
     expect(result).toEqual([{ addOnId: "addon-1", priceId: "mp-1" }]);
   });
 
@@ -308,11 +307,11 @@ describe("buildAddOnRequestBody", () => {
       }),
     ];
 
-    const result = buildAddOnRequestBody(addOns, "year", false, []);
+    const result = buildAddOnRequestBody(addOns, "year", false);
     expect(result).toEqual([{ addOnId: "addon-1", priceId: "yp-1" }]);
   });
 
-  it("should exclude a selected add-on with zero price and no pay-in-advance entitlements", () => {
+  it("should include a selected add-on with zero price", () => {
     const addOns = [
       makeSelectedPlan({
         id: "addon-1",
@@ -329,74 +328,8 @@ describe("buildAddOnRequestBody", () => {
       }),
     ];
 
-    const result = buildAddOnRequestBody(addOns, "month", false, []);
-    expect(result).toEqual([]);
-  });
-
-  it("should include a selected add-on with zero price if pay-in-advance entitlements exist", () => {
-    const addOns = [
-      makeSelectedPlan({
-        id: "addon-1",
-        isSelected: true,
-        monthlyPrice: {
-          id: "mp-1",
-          price: 0,
-          currency: "USD",
-          externalPriceId: "ext-1",
-          interval: "month" as any,
-          providerType: "stripe" as any,
-          scheme: "per_unit" as any,
-        },
-      }),
-    ];
-
-    const payInAdvanceEntitlements = [
-      makeUsageBasedEntitlement({
-        priceBehavior: EntitlementPriceBehavior.PayInAdvance,
-      }),
-    ];
-
-    const result = buildAddOnRequestBody(
-      addOns,
-      "month",
-      false,
-      payInAdvanceEntitlements,
-    );
-
+    const result = buildAddOnRequestBody(addOns, "month", false);
     expect(result).toEqual([{ addOnId: "addon-1", priceId: "mp-1" }]);
-  });
-
-  it("should exclude a selected add-on with zero price when entitlements are not pay-in-advance", () => {
-    const addOns = [
-      makeSelectedPlan({
-        id: "addon-1",
-        isSelected: true,
-        monthlyPrice: {
-          id: "mp-1",
-          price: 0,
-          currency: "USD",
-          externalPriceId: "ext-1",
-          interval: "month" as any,
-          providerType: "stripe" as any,
-          scheme: "per_unit" as any,
-        },
-      }),
-    ];
-
-    const payAsYouGoEntitlements = [
-      makeUsageBasedEntitlement({
-        priceBehavior: EntitlementPriceBehavior.PayAsYouGo,
-      }),
-    ];
-
-    const result = buildAddOnRequestBody(
-      addOns,
-      "month",
-      false,
-      payAsYouGoEntitlements,
-    );
-
-    expect(result).toEqual([]);
   });
 
   it("should exclude a selected add-on without a price for the period", () => {
@@ -409,7 +342,7 @@ describe("buildAddOnRequestBody", () => {
       }),
     ];
 
-    const result = buildAddOnRequestBody(addOns, "month", false, []);
+    const result = buildAddOnRequestBody(addOns, "month", false);
     expect(result).toEqual([]);
   });
 
@@ -433,10 +366,10 @@ describe("buildAddOnRequestBody", () => {
       }),
     ];
 
-    const resultMonth = buildAddOnRequestBody(addOns, "month", false, []);
+    const resultMonth = buildAddOnRequestBody(addOns, "month", false);
     expect(resultMonth).toEqual([{ addOnId: "addon-ot", priceId: "otp-1" }]);
 
-    const resultYear = buildAddOnRequestBody(addOns, "year", false, []);
+    const resultYear = buildAddOnRequestBody(addOns, "year", false);
     expect(resultYear).toEqual([{ addOnId: "addon-ot", priceId: "otp-1" }]);
   });
 
@@ -483,7 +416,7 @@ describe("buildAddOnRequestBody", () => {
       }),
     ];
 
-    const result = buildAddOnRequestBody(addOns, "month", false, []);
+    const result = buildAddOnRequestBody(addOns, "month", false);
     expect(result).toEqual([
       { addOnId: "addon-1", priceId: "mp-1" },
       { addOnId: "addon-3", priceId: "mp-3" },

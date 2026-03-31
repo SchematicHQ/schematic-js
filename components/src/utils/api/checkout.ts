@@ -1,5 +1,4 @@
 import {
-  EntitlementPriceBehavior,
   type UpdateAddOnRequestBody,
   type UpdateCreditBundleRequestBody,
   type UpdatePayInAdvanceRequestBody,
@@ -41,20 +40,13 @@ export function buildAddOnRequestBody(
   addOns: SelectedPlan[],
   period: string,
   shouldTrial: boolean,
-  addOnPayInAdvanceEntitlements: UsageBasedEntitlement[],
 ): UpdateAddOnRequestBody[] {
   return addOns.reduce((acc: UpdateAddOnRequestBody[], addOn) => {
     if (addOn.isSelected && !shouldTrial) {
       const addOnPrice = getAddOnPrice(addOn, period);
       const addOnPriceId = addOnPrice?.id;
 
-      if (
-        addOnPriceId &&
-        (addOnPrice?.price ||
-          addOnPayInAdvanceEntitlements.some(
-            (e) => e.priceBehavior === EntitlementPriceBehavior.PayInAdvance,
-          ))
-      ) {
+      if (addOnPriceId) {
         acc.push({
           addOnId: addOn.id,
           priceId: addOnPriceId,

@@ -553,7 +553,6 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
         resolvedAddOns,
         period,
         shouldTrial,
-        resolvedAddOnPayInAdvanceEntitlements,
       );
 
       const creditBundlesRequestBody = buildCreditBundlesRequestBody(
