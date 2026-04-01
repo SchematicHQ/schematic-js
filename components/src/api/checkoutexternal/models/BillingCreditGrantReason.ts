@@ -17,6 +17,7 @@
  * @export
  */
 export const BillingCreditGrantReason = {
+  Adjustment: "adjustment",
   BillingCreditAutoTopup: "billing_credit_auto_topup",
   Free: "free",
   Plan: "plan",
