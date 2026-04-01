@@ -19,7 +19,11 @@ export function useAvailableCurrencies(): string[] {
       }
     }
 
-    return Array.from(currencySet).sort();
+    return Array.from(currencySet).sort((a, b) => {
+      if (a === DEFAULT_CURRENCY) return -1;
+      if (b === DEFAULT_CURRENCY) return 1;
+      return a.localeCompare(b);
+    });
   }, [data?.activePlans, data?.activeAddOns]);
 }
 

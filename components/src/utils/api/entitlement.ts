@@ -111,7 +111,7 @@ export function getUsageDetails(
   }
 
   // total cost based on current usage or allocation
-  const cost = getEntitlementCost(entitlement, period);
+  const cost = getEntitlementCost(entitlement, period, currency);
 
   const tiers = billingPrice?.priceTier || [];
 
