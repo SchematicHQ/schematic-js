@@ -1,7 +1,15 @@
-import type {
-  CheckFlagReturn,
-  DeveloperToolbarDependencies,
-} from "@schematichq/schematic-js";
+import type { CheckFlagReturn } from "@schematichq/schematic-js";
+
+export interface DeveloperToolbarDependencies {
+  getAllFlags: () => Record<string, CheckFlagReturn>;
+  getFlagValue: (flagKey: string) => boolean | undefined;
+  addFlagValueListener: (
+    flagKey: string,
+    listener: (value: boolean) => void,
+  ) => () => void;
+  notifyFlagCheckListeners: (flagKey: string, check: CheckFlagReturn) => void;
+  notifyFlagValueListeners: (flagKey: string, value: boolean) => void;
+}
 
 interface ToolbarState {
   selectedFlagKey: string | null;

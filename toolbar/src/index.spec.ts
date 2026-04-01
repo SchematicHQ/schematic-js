@@ -1,9 +1,7 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 import { DeveloperToolbar } from "./index";
-import type {
-  CheckFlagReturn,
-  DeveloperToolbarDependencies,
-} from "@schematichq/schematic-js";
+import type { CheckFlagReturn } from "@schematichq/schematic-js";
+import type { DeveloperToolbarDependencies } from "./index";
 
 function makeDeps(): DeveloperToolbarDependencies {
   return {

@@ -11,6 +11,7 @@ import {
   CheckFlagsResponseFromJSON,
   CheckPlanReturn,
   CheckPlanReturnFromJSON,
+  DeveloperToolbarDependencies,
   DeveloperToolbarInterface,
   CheckOptions,
   EmptyListenerFn,
@@ -2024,9 +2025,13 @@ export class Schematic {
     if (!this.developerToolbar) {
       try {
         const toolbarModule = "@schematichq/schematic-dev-toolbar";
-        const { DeveloperToolbar } = await import(
+        const { DeveloperToolbar } = (await import(
           /* @vite-ignore */ toolbarModule
-        );
+        )) as {
+          DeveloperToolbar: new (
+            deps: DeveloperToolbarDependencies,
+          ) => DeveloperToolbarInterface;
+        };
         this.developerToolbar = new DeveloperToolbar({
           getAllFlags: this.getAllFlags,
           getFlagValue: this.getFlagValue,
