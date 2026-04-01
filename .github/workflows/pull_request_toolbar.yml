@@ -1,0 +1,60 @@
+name: Pull request - schematic-dev-toolbar
+
+on:
+  pull_request:
+    paths:
+      - toolbar/**
+      - .github/workflows/**
+      - scripts/**
+
+jobs:
+  build:
+    name: Build
+    runs-on: runs-on=${{ github.run_id }}/runner=4cpu-linux-x64/extras=s3-cache
+    steps:
+      - uses: runs-on/action@v2.0.3
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.x
+      - name: Yarn install
+        working-directory: ./toolbar
+        run: yarn install
+      - name: Build
+        working-directory: ./toolbar
+        run: yarn build
+
+  lint:
+    name: Lint
+    runs-on: runs-on=${{ github.run_id }}/runner=4cpu-linux-x64/extras=s3-cache
+    steps:
+      - uses: runs-on/action@v2.0.3
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.x
+      - name: Yarn install
+        working-directory: ./toolbar
+        run: yarn install
+      - name: Lint
+        working-directory: ./toolbar
+        run: yarn lint
+
+  test:
+    name: Test (Node ${{ matrix.node-version }})
+    runs-on: runs-on=${{ github.run_id }}/runner=4cpu-linux-x64/extras=s3-cache
+    strategy:
+      matrix:
+        node-version: [24.11.0, 25.1.0]
+    steps:
+      - uses: runs-on/action@v2.0.3
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Yarn install
+        working-directory: ./toolbar
+        run: yarn install
+      - name: Test
+        working-directory: ./toolbar
+        run: yarn test

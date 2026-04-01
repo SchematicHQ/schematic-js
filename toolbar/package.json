@@ -20,14 +20,25 @@
     "build:cjs": "npx esbuild src/index.ts --bundle --format=cjs --outfile=dist/schematic-dev-toolbar.cjs.js --external:@schematichq/schematic-js",
     "build:esm": "npx esbuild src/index.ts --bundle --format=esm --outfile=dist/schematic-dev-toolbar.esm.js --external:@schematichq/schematic-js",
     "build:types": "npx tsc --declaration --emitDeclarationOnly --outDir dist",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "lint": "eslint src --report-unused-disable-directives --fix",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "peerDependencies": {
     "@schematichq/schematic-js": "^1.2.15"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.2",
+    "@schematichq/schematic-js": "^1.2.15",
+    "@vitest/coverage-v8": "^4.0.17",
     "esbuild": "^0.27.1",
-    "typescript": "^5.9.3"
+    "eslint": "^9.39.2",
+    "globals": "^16.5.0",
+    "jsdom": "^27.2.0",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.50.1",
+    "vitest": "^4.0.17"
   },
   "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }
