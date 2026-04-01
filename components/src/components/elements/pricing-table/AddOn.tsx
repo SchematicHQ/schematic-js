@@ -194,9 +194,11 @@ export const AddOn = ({
 
   return (
     <Flex
+      as="li"
       className="sch-PricingTable_AddOn"
       data-testid="sch-addon"
       data-addon-id={addOn.id}
+      style={{ listStyle: "none" }}
       $position="relative"
       $flexDirection="column"
       $padding={`${0.75 * cardPadding}rem 0`}
@@ -223,7 +225,7 @@ export const AddOn = ({
         }
       >
         <Box>
-          <Text display={layout.plans.name.fontStyle}>{addOn.name}</Text>
+          <Text as="h3" display={layout.plans.name.fontStyle} style={{ margin: 0 }}>{addOn.name}</Text>
         </Box>
 
         {layout.addOns.showDescription && (
@@ -281,16 +283,26 @@ export const AddOn = ({
       >
         {layout.addOns.showEntitlements &&
           displayableEntitlements.length > 0 && (
-            <Flex $flexDirection="column" $gap="1rem" $flexGrow={1}>
+            <Flex
+              as="ul"
+              $flexDirection="column"
+              $gap="1rem"
+              $flexGrow={1}
+              $padding="0"
+              $margin="0"
+              style={{ listStyle: "none" }}
+            >
               {displayableEntitlements.map((entitlement, idx) => {
                 if (entitlement.isUnlimited) {
                   return (
                     <Flex
                       key={idx}
+                      as="li"
                       $flexWrap="wrap"
                       $justifyContent="space-between"
                       $alignItems="center"
                       $gap="1rem"
+                      style={{ listStyle: "none" }}
                     >
                       <Flex $gap="1rem">
                         {layout.addOns.showFeatureIcons &&
@@ -342,10 +354,12 @@ export const AddOn = ({
                 return (
                   <Flex
                     key={idx}
+                    as="li"
                     $flexWrap="wrap"
                     $justifyContent="space-between"
                     $alignItems="center"
                     $gap="1rem"
+                    style={{ listStyle: "none" }}
                   >
                     <Flex $gap="1rem">
                       {meteredEntitlement.feature?.icon && (
