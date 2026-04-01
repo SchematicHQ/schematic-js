@@ -304,6 +304,12 @@ export const Plan = ({
                   as="button"
                   type="button"
                   onClick={() => handleToggleShowAll(plan.id)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      handleToggleShowAll(plan.id);
+                    }
+                  }}
                   style={{ cursor: "pointer", background: "none", border: "none", padding: 0 }}
                   display="link"
                   $leading="none"
