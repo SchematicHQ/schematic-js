@@ -89,11 +89,19 @@ export function PreviewSubscriptionUpcomingInvoiceLineItemsFromJSONTyped(
 }
 
 export function PreviewSubscriptionUpcomingInvoiceLineItemsToJSON(
+  json: any,
+): PreviewSubscriptionUpcomingInvoiceLineItems {
+  return PreviewSubscriptionUpcomingInvoiceLineItemsToJSONTyped(json, false);
+}
+
+export function PreviewSubscriptionUpcomingInvoiceLineItemsToJSONTyped(
   value?: PreviewSubscriptionUpcomingInvoiceLineItems | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     amount: value["amount"],
     description: value["description"],

@@ -96,11 +96,19 @@ export function RuleConditionGroupResponseDataFromJSONTyped(
 }
 
 export function RuleConditionGroupResponseDataToJSON(
+  json: any,
+): RuleConditionGroupResponseData {
+  return RuleConditionGroupResponseDataToJSONTyped(json, false);
+}
+
+export function RuleConditionGroupResponseDataToJSONTyped(
   value?: RuleConditionGroupResponseData | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     created_at: value["createdAt"].toISOString(),
     environment_id: value["environmentId"],

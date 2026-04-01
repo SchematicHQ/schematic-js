@@ -30,8 +30,8 @@ export function instanceOfEntitlementPriceBehavior(value: any): boolean {
   for (const key in EntitlementPriceBehavior) {
     if (Object.prototype.hasOwnProperty.call(EntitlementPriceBehavior, key)) {
       if (
-        (EntitlementPriceBehavior as Record<string, EntitlementPriceBehavior>)[
-          key
+        EntitlementPriceBehavior[
+          key as keyof typeof EntitlementPriceBehavior
         ] === value
       ) {
         return true;
@@ -58,4 +58,11 @@ export function EntitlementPriceBehaviorToJSON(
   value?: EntitlementPriceBehavior | null,
 ): any {
   return value as any;
+}
+
+export function EntitlementPriceBehaviorToJSONTyped(
+  value: any,
+  ignoreDiscriminator: boolean,
+): EntitlementPriceBehavior {
+  return value as EntitlementPriceBehavior;
 }

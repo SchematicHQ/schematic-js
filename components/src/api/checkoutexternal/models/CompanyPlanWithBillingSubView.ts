@@ -18,6 +18,7 @@ import {
   PlanCreditGrantViewFromJSON,
   PlanCreditGrantViewFromJSONTyped,
   PlanCreditGrantViewToJSON,
+  PlanCreditGrantViewToJSONTyped,
 } from "./PlanCreditGrantView";
 
 /**
@@ -148,11 +149,19 @@ export function CompanyPlanWithBillingSubViewFromJSONTyped(
 }
 
 export function CompanyPlanWithBillingSubViewToJSON(
+  json: any,
+): CompanyPlanWithBillingSubView {
+  return CompanyPlanWithBillingSubViewToJSONTyped(json, false);
+}
+
+export function CompanyPlanWithBillingSubViewToJSONTyped(
   value?: CompanyPlanWithBillingSubView | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     added_on:
       value["addedOn"] == null

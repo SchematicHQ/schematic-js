@@ -64,11 +64,19 @@ export function UpdateCreditBundleRequestBodyFromJSONTyped(
 }
 
 export function UpdateCreditBundleRequestBodyToJSON(
+  json: any,
+): UpdateCreditBundleRequestBody {
+  return UpdateCreditBundleRequestBodyToJSONTyped(json, false);
+}
+
+export function UpdateCreditBundleRequestBodyToJSONTyped(
   value?: UpdateCreditBundleRequestBody | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     bundle_id: value["bundleId"],
     quantity: value["quantity"],

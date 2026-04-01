@@ -13,17 +13,26 @@
  */
 
 import { mapValues } from "../runtime";
+import type { ScheduledDowngradeConfigBehavior } from "./ScheduledDowngradeConfigBehavior";
+import {
+  ScheduledDowngradeConfigBehaviorFromJSON,
+  ScheduledDowngradeConfigBehaviorFromJSONTyped,
+  ScheduledDowngradeConfigBehaviorToJSON,
+  ScheduledDowngradeConfigBehaviorToJSONTyped,
+} from "./ScheduledDowngradeConfigBehavior";
 import type { BillingSubscriptionTrialEndSetting } from "./BillingSubscriptionTrialEndSetting";
 import {
   BillingSubscriptionTrialEndSettingFromJSON,
   BillingSubscriptionTrialEndSettingFromJSONTyped,
   BillingSubscriptionTrialEndSettingToJSON,
+  BillingSubscriptionTrialEndSettingToJSONTyped,
 } from "./BillingSubscriptionTrialEndSetting";
 import type { BillingProviderType } from "./BillingProviderType";
 import {
   BillingProviderTypeFromJSON,
   BillingProviderTypeFromJSONTyped,
   BillingProviderTypeToJSON,
+  BillingProviderTypeToJSONTyped,
 } from "./BillingProviderType";
 
 /**
@@ -136,6 +145,18 @@ export interface CheckoutResponseData {
   providerType: BillingProviderType;
   /**
    *
+   * @type {Date}
+   * @memberof CheckoutResponseData
+   */
+  scheduledChangeTime?: Date | null;
+  /**
+   *
+   * @type {ScheduledDowngradeConfigBehavior}
+   * @memberof CheckoutResponseData
+   */
+  scheduledDowngradeBehavior?: ScheduledDowngradeConfigBehavior | null;
+  /**
+   *
    * @type {string}
    * @memberof CheckoutResponseData
    */
@@ -242,6 +263,16 @@ export function CheckoutResponseDataFromJSONTyped(
     periodEnd: json["period_end"],
     periodStart: json["period_start"],
     providerType: BillingProviderTypeFromJSON(json["provider_type"]),
+    scheduledChangeTime:
+      json["scheduled_change_time"] == null
+        ? undefined
+        : new Date(json["scheduled_change_time"]),
+    scheduledDowngradeBehavior:
+      json["scheduled_downgrade_behavior"] == null
+        ? undefined
+        : ScheduledDowngradeConfigBehaviorFromJSON(
+            json["scheduled_downgrade_behavior"],
+          ),
     status: json["status"],
     subscriptionExternalId: json["subscription_external_id"],
     totalPrice: json["total_price"],
@@ -253,12 +284,18 @@ export function CheckoutResponseDataFromJSONTyped(
   };
 }
 
-export function CheckoutResponseDataToJSON(
+export function CheckoutResponseDataToJSON(json: any): CheckoutResponseData {
+  return CheckoutResponseDataToJSONTyped(json, false);
+}
+
+export function CheckoutResponseDataToJSONTyped(
   value?: CheckoutResponseData | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     application_id: value["applicationId"],
     cancel_at: value["cancelAt"],
@@ -281,6 +318,13 @@ export function CheckoutResponseDataToJSON(
     period_end: value["periodEnd"],
     period_start: value["periodStart"],
     provider_type: BillingProviderTypeToJSON(value["providerType"]),
+    scheduled_change_time:
+      value["scheduledChangeTime"] == null
+        ? undefined
+        : (value["scheduledChangeTime"] as any).toISOString(),
+    scheduled_downgrade_behavior: ScheduledDowngradeConfigBehaviorToJSON(
+      value["scheduledDowngradeBehavior"],
+    ),
     status: value["status"],
     subscription_external_id: value["subscriptionExternalId"],
     total_price: value["totalPrice"],

@@ -59,12 +59,18 @@ export function ListInvoicesParamsFromJSONTyped(
   };
 }
 
-export function ListInvoicesParamsToJSON(
+export function ListInvoicesParamsToJSON(json: any): ListInvoicesParams {
+  return ListInvoicesParamsToJSONTyped(json, false);
+}
+
+export function ListInvoicesParamsToJSONTyped(
   value?: ListInvoicesParams | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     limit: value["limit"],
     offset: value["offset"],

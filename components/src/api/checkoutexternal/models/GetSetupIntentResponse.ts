@@ -18,6 +18,7 @@ import {
   SetupIntentResponseDataFromJSON,
   SetupIntentResponseDataFromJSONTyped,
   SetupIntentResponseDataToJSON,
+  SetupIntentResponseDataToJSONTyped,
 } from "./SetupIntentResponseData";
 
 /**
@@ -71,11 +72,19 @@ export function GetSetupIntentResponseFromJSONTyped(
 }
 
 export function GetSetupIntentResponseToJSON(
+  json: any,
+): GetSetupIntentResponse {
+  return GetSetupIntentResponseToJSONTyped(json, false);
+}
+
+export function GetSetupIntentResponseToJSONTyped(
   value?: GetSetupIntentResponse | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     data: SetupIntentResponseDataToJSON(value["data"]),
     params: value["params"],

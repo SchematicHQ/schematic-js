@@ -18,72 +18,91 @@ import {
   CompanyPlanInvalidReasonFromJSON,
   CompanyPlanInvalidReasonFromJSONTyped,
   CompanyPlanInvalidReasonToJSON,
+  CompanyPlanInvalidReasonToJSONTyped,
 } from "./CompanyPlanInvalidReason";
 import type { FeatureDetailResponseData } from "./FeatureDetailResponseData";
 import {
   FeatureDetailResponseDataFromJSON,
   FeatureDetailResponseDataFromJSONTyped,
   FeatureDetailResponseDataToJSON,
+  FeatureDetailResponseDataToJSONTyped,
 } from "./FeatureDetailResponseData";
 import type { PlanControlledByType } from "./PlanControlledByType";
 import {
   PlanControlledByTypeFromJSON,
   PlanControlledByTypeFromJSONTyped,
   PlanControlledByTypeToJSON,
+  PlanControlledByTypeToJSONTyped,
 } from "./PlanControlledByType";
-import type { PlanCreditGrantView } from "./PlanCreditGrantView";
-import {
-  PlanCreditGrantViewFromJSON,
-  PlanCreditGrantViewFromJSONTyped,
-  PlanCreditGrantViewToJSON,
-} from "./PlanCreditGrantView";
 import type { PlanEntitlementResponseData } from "./PlanEntitlementResponseData";
 import {
   PlanEntitlementResponseDataFromJSON,
   PlanEntitlementResponseDataFromJSONTyped,
   PlanEntitlementResponseDataToJSON,
+  PlanEntitlementResponseDataToJSONTyped,
 } from "./PlanEntitlementResponseData";
-import type { ChargeType } from "./ChargeType";
-import {
-  ChargeTypeFromJSON,
-  ChargeTypeFromJSONTyped,
-  ChargeTypeToJSON,
-} from "./ChargeType";
-import type { PlanType } from "./PlanType";
-import {
-  PlanTypeFromJSON,
-  PlanTypeFromJSONTyped,
-  PlanTypeToJSON,
-} from "./PlanType";
-import type { PlanVersionResponseData } from "./PlanVersionResponseData";
-import {
-  PlanVersionResponseDataFromJSON,
-  PlanVersionResponseDataFromJSONTyped,
-  PlanVersionResponseDataToJSON,
-} from "./PlanVersionResponseData";
-import type { BillingPriceResponseData } from "./BillingPriceResponseData";
-import {
-  BillingPriceResponseDataFromJSON,
-  BillingPriceResponseDataFromJSONTyped,
-  BillingPriceResponseDataToJSON,
-} from "./BillingPriceResponseData";
 import type { CustomPlanConfig } from "./CustomPlanConfig";
 import {
   CustomPlanConfigFromJSON,
   CustomPlanConfigFromJSONTyped,
   CustomPlanConfigToJSON,
+  CustomPlanConfigToJSONTyped,
 } from "./CustomPlanConfig";
 import type { BillingProductDetailResponseData } from "./BillingProductDetailResponseData";
 import {
   BillingProductDetailResponseDataFromJSON,
   BillingProductDetailResponseDataFromJSONTyped,
   BillingProductDetailResponseDataToJSON,
+  BillingProductDetailResponseDataToJSONTyped,
 } from "./BillingProductDetailResponseData";
+import type { PlanCreditGrantView } from "./PlanCreditGrantView";
+import {
+  PlanCreditGrantViewFromJSON,
+  PlanCreditGrantViewFromJSONTyped,
+  PlanCreditGrantViewToJSON,
+  PlanCreditGrantViewToJSONTyped,
+} from "./PlanCreditGrantView";
+import type { PlanCurrencyPricesResponseData } from "./PlanCurrencyPricesResponseData";
+import {
+  PlanCurrencyPricesResponseDataFromJSON,
+  PlanCurrencyPricesResponseDataFromJSONTyped,
+  PlanCurrencyPricesResponseDataToJSON,
+  PlanCurrencyPricesResponseDataToJSONTyped,
+} from "./PlanCurrencyPricesResponseData";
+import type { ChargeType } from "./ChargeType";
+import {
+  ChargeTypeFromJSON,
+  ChargeTypeFromJSONTyped,
+  ChargeTypeToJSON,
+  ChargeTypeToJSONTyped,
+} from "./ChargeType";
+import type { PlanType } from "./PlanType";
+import {
+  PlanTypeFromJSON,
+  PlanTypeFromJSONTyped,
+  PlanTypeToJSON,
+  PlanTypeToJSONTyped,
+} from "./PlanType";
+import type { PlanVersionResponseData } from "./PlanVersionResponseData";
+import {
+  PlanVersionResponseDataFromJSON,
+  PlanVersionResponseDataFromJSONTyped,
+  PlanVersionResponseDataToJSON,
+  PlanVersionResponseDataToJSONTyped,
+} from "./PlanVersionResponseData";
+import type { BillingPriceResponseData } from "./BillingPriceResponseData";
+import {
+  BillingPriceResponseDataFromJSON,
+  BillingPriceResponseDataFromJSONTyped,
+  BillingPriceResponseDataToJSON,
+  BillingPriceResponseDataToJSONTyped,
+} from "./BillingPriceResponseData";
 import type { FeatureUsageResponseData } from "./FeatureUsageResponseData";
 import {
   FeatureUsageResponseDataFromJSON,
   FeatureUsageResponseDataFromJSONTyped,
   FeatureUsageResponseDataToJSON,
+  FeatureUsageResponseDataToJSONTyped,
 } from "./FeatureUsageResponseData";
 
 /**
@@ -92,6 +111,12 @@ import {
  * @interface CompanyPlanDetailResponseData
  */
 export interface CompanyPlanDetailResponseData {
+  /**
+   *
+   * @type {PlanVersionResponseData}
+   * @memberof CompanyPlanDetailResponseData
+   */
+  activeVersion?: PlanVersionResponseData;
   /**
    *
    * @type {string}
@@ -143,6 +168,12 @@ export interface CompanyPlanDetailResponseData {
   createdAt: Date;
   /**
    *
+   * @type {Array<PlanCurrencyPricesResponseData>}
+   * @memberof CompanyPlanDetailResponseData
+   */
+  currencyPrices: Array<PlanCurrencyPricesResponseData>;
+  /**
+   *
    * @type {boolean}
    * @memberof CompanyPlanDetailResponseData
    */
@@ -165,6 +196,12 @@ export interface CompanyPlanDetailResponseData {
    * @memberof CompanyPlanDetailResponseData
    */
   description: string;
+  /**
+   *
+   * @type {PlanVersionResponseData}
+   * @memberof CompanyPlanDetailResponseData
+   */
+  draftVersion?: PlanVersionResponseData;
   /**
    *
    * @type {Array<PlanEntitlementResponseData>}
@@ -308,6 +345,8 @@ export function instanceOfCompanyPlanDetailResponseData(
   if (!("controlledBy" in value) || value["controlledBy"] === undefined)
     return false;
   if (!("createdAt" in value) || value["createdAt"] === undefined) return false;
+  if (!("currencyPrices" in value) || value["currencyPrices"] === undefined)
+    return false;
   if (!("current" in value) || value["current"] === undefined) return false;
   if (!("custom" in value) || value["custom"] === undefined) return false;
   if (!("description" in value) || value["description"] === undefined)
@@ -351,6 +390,10 @@ export function CompanyPlanDetailResponseDataFromJSONTyped(
     return json;
   }
   return {
+    activeVersion:
+      json["active_version"] == null
+        ? undefined
+        : PlanVersionResponseDataFromJSON(json["active_version"]),
     audienceType:
       json["audience_type"] == null ? undefined : json["audience_type"],
     billingProduct:
@@ -363,6 +406,9 @@ export function CompanyPlanDetailResponseDataFromJSONTyped(
     compatiblePlanIds: json["compatible_plan_ids"],
     controlledBy: PlanControlledByTypeFromJSON(json["controlled_by"]),
     createdAt: new Date(json["created_at"]),
+    currencyPrices: (json["currency_prices"] as Array<any>).map(
+      PlanCurrencyPricesResponseDataFromJSON,
+    ),
     current: json["current"],
     custom: json["custom"],
     customPlanConfig:
@@ -370,6 +416,10 @@ export function CompanyPlanDetailResponseDataFromJSONTyped(
         ? undefined
         : CustomPlanConfigFromJSON(json["custom_plan_config"]),
     description: json["description"],
+    draftVersion:
+      json["draft_version"] == null
+        ? undefined
+        : PlanVersionResponseDataFromJSON(json["draft_version"]),
     entitlements: (json["entitlements"] as Array<any>).map(
       PlanEntitlementResponseDataFromJSON,
     ),
@@ -416,12 +466,21 @@ export function CompanyPlanDetailResponseDataFromJSONTyped(
 }
 
 export function CompanyPlanDetailResponseDataToJSON(
+  json: any,
+): CompanyPlanDetailResponseData {
+  return CompanyPlanDetailResponseDataToJSONTyped(json, false);
+}
+
+export function CompanyPlanDetailResponseDataToJSONTyped(
   value?: CompanyPlanDetailResponseData | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
+    active_version: PlanVersionResponseDataToJSON(value["activeVersion"]),
     audience_type: value["audienceType"],
     billing_product: BillingProductDetailResponseDataToJSON(
       value["billingProduct"],
@@ -432,10 +491,14 @@ export function CompanyPlanDetailResponseDataToJSON(
     compatible_plan_ids: value["compatiblePlanIds"],
     controlled_by: PlanControlledByTypeToJSON(value["controlledBy"]),
     created_at: value["createdAt"].toISOString(),
+    currency_prices: (value["currencyPrices"] as Array<any>).map(
+      PlanCurrencyPricesResponseDataToJSON,
+    ),
     current: value["current"],
     custom: value["custom"],
     custom_plan_config: CustomPlanConfigToJSON(value["customPlanConfig"]),
     description: value["description"],
+    draft_version: PlanVersionResponseDataToJSON(value["draftVersion"]),
     entitlements: (value["entitlements"] as Array<any>).map(
       PlanEntitlementResponseDataToJSON,
     ),

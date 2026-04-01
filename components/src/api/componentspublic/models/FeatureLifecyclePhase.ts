@@ -34,9 +34,8 @@ export function instanceOfFeatureLifecyclePhase(value: any): boolean {
   for (const key in FeatureLifecyclePhase) {
     if (Object.prototype.hasOwnProperty.call(FeatureLifecyclePhase, key)) {
       if (
-        (FeatureLifecyclePhase as Record<string, FeatureLifecyclePhase>)[
-          key
-        ] === value
+        FeatureLifecyclePhase[key as keyof typeof FeatureLifecyclePhase] ===
+        value
       ) {
         return true;
       }
@@ -62,4 +61,11 @@ export function FeatureLifecyclePhaseToJSON(
   value?: FeatureLifecyclePhase | null,
 ): any {
   return value as any;
+}
+
+export function FeatureLifecyclePhaseToJSONTyped(
+  value: any,
+  ignoreDiscriminator: boolean,
+): FeatureLifecyclePhase {
+  return value as FeatureLifecyclePhase;
 }

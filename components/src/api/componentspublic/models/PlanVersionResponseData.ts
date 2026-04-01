@@ -18,12 +18,14 @@ import {
   PlanVersionStatusFromJSON,
   PlanVersionStatusFromJSONTyped,
   PlanVersionStatusToJSON,
+  PlanVersionStatusToJSONTyped,
 } from "./PlanVersionStatus";
 import type { PlanType } from "./PlanType";
 import {
   PlanTypeFromJSON,
   PlanTypeFromJSONTyped,
   PlanTypeToJSON,
+  PlanTypeToJSONTyped,
 } from "./PlanType";
 
 /**
@@ -151,11 +153,19 @@ export function PlanVersionResponseDataFromJSONTyped(
 }
 
 export function PlanVersionResponseDataToJSON(
+  json: any,
+): PlanVersionResponseData {
+  return PlanVersionResponseDataToJSONTyped(json, false);
+}
+
+export function PlanVersionResponseDataToJSONTyped(
   value?: PlanVersionResponseData | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     created_at: value["createdAt"].toISOString(),
     description: value["description"],

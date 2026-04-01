@@ -73,11 +73,19 @@ export function CustomPlanViewConfigResponseDataFromJSONTyped(
 }
 
 export function CustomPlanViewConfigResponseDataToJSON(
+  json: any,
+): CustomPlanViewConfigResponseData {
+  return CustomPlanViewConfigResponseDataToJSONTyped(json, false);
+}
+
+export function CustomPlanViewConfigResponseDataToJSONTyped(
   value?: CustomPlanViewConfigResponseData | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     cta_text: value["ctaText"],
     cta_web_site: value["ctaWebSite"],

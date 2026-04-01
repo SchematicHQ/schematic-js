@@ -14,6 +14,10 @@ export type UseSchematicFlagOpts = SchematicHookOpts & {
   fallback?: boolean;
 };
 
+export type UseSchematicPlanOpts = SchematicHookOpts & {
+  fallback?: SchematicJS.CheckPlanReturn;
+};
+
 export const useSchematicClient = (opts?: SchematicHookOpts) => {
   const schematic = useSchematic();
   const { client } = opts ?? {};
@@ -99,6 +103,30 @@ export const useSchematicEntitlement = (
   }, [client, key, fallbackCheck]);
 
   return useSyncExternalStore(subscribe, getSnapshot, () => fallbackCheck);
+};
+
+export const useSchematicPlan = (
+  opts?: UseSchematicPlanOpts,
+): SchematicJS.CheckPlanReturn | undefined => {
+  const client = useSchematicClient(opts);
+  const fallback = opts?.fallback;
+
+  const fallbackPlan = useMemo(
+    () => fallback,
+    [fallback?.id, fallback?.name, fallback?.trialEndDate?.getTime()],
+  );
+
+  const subscribe = useCallback(
+    (callback: () => void) => client.addPlanListener(callback),
+    [client],
+  );
+
+  const getSnapshot = useCallback(() => {
+    const plan = client.getPlan();
+    return plan ?? fallbackPlan;
+  }, [client, fallbackPlan]);
+
+  return useSyncExternalStore(subscribe, getSnapshot, () => fallbackPlan);
 };
 
 export const useSchematicIsPending = (opts?: SchematicHookOpts) => {

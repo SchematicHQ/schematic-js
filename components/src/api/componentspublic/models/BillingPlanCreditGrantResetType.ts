@@ -29,12 +29,9 @@ export function instanceOfBillingPlanCreditGrantResetType(value: any): boolean {
       Object.prototype.hasOwnProperty.call(BillingPlanCreditGrantResetType, key)
     ) {
       if (
-        (
-          BillingPlanCreditGrantResetType as Record<
-            string,
-            BillingPlanCreditGrantResetType
-          >
-        )[key] === value
+        BillingPlanCreditGrantResetType[
+          key as keyof typeof BillingPlanCreditGrantResetType
+        ] === value
       ) {
         return true;
       }
@@ -60,4 +57,11 @@ export function BillingPlanCreditGrantResetTypeToJSON(
   value?: BillingPlanCreditGrantResetType | null,
 ): any {
   return value as any;
+}
+
+export function BillingPlanCreditGrantResetTypeToJSONTyped(
+  value: any,
+  ignoreDiscriminator: boolean,
+): BillingPlanCreditGrantResetType {
+  return value as BillingPlanCreditGrantResetType;
 }

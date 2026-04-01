@@ -18,30 +18,42 @@ import {
   BillingCreditBundleTypeFromJSON,
   BillingCreditBundleTypeFromJSONTyped,
   BillingCreditBundleTypeToJSON,
+  BillingCreditBundleTypeToJSONTyped,
 } from "./BillingCreditBundleType";
 import type { BillingCreditExpiryType } from "./BillingCreditExpiryType";
 import {
   BillingCreditExpiryTypeFromJSON,
   BillingCreditExpiryTypeFromJSONTyped,
   BillingCreditExpiryTypeToJSON,
+  BillingCreditExpiryTypeToJSONTyped,
 } from "./BillingCreditExpiryType";
 import type { BillingCreditBundleStatus } from "./BillingCreditBundleStatus";
 import {
   BillingCreditBundleStatusFromJSON,
   BillingCreditBundleStatusFromJSONTyped,
   BillingCreditBundleStatusToJSON,
+  BillingCreditBundleStatusToJSONTyped,
 } from "./BillingCreditBundleStatus";
 import type { BillingProductPriceResponseData } from "./BillingProductPriceResponseData";
 import {
   BillingProductPriceResponseDataFromJSON,
   BillingProductPriceResponseDataFromJSONTyped,
   BillingProductPriceResponseDataToJSON,
+  BillingProductPriceResponseDataToJSONTyped,
 } from "./BillingProductPriceResponseData";
+import type { CreditBundleCurrencyPrice } from "./CreditBundleCurrencyPrice";
+import {
+  CreditBundleCurrencyPriceFromJSON,
+  CreditBundleCurrencyPriceFromJSONTyped,
+  CreditBundleCurrencyPriceToJSON,
+  CreditBundleCurrencyPriceToJSONTyped,
+} from "./CreditBundleCurrencyPrice";
 import type { BillingCreditExpiryUnit } from "./BillingCreditExpiryUnit";
 import {
   BillingCreditExpiryUnitFromJSON,
   BillingCreditExpiryUnitFromJSONTyped,
   BillingCreditExpiryUnitToJSON,
+  BillingCreditExpiryUnitToJSONTyped,
 } from "./BillingCreditExpiryUnit";
 
 /**
@@ -50,12 +62,6 @@ import {
  * @interface BillingCreditBundleView
  */
 export interface BillingCreditBundleView {
-  /**
-   *
-   * @type {string}
-   * @memberof BillingCreditBundleView
-   */
-  billingInvoiceId?: string | null;
   /**
    *
    * @type {BillingCreditBundleType}
@@ -92,6 +98,12 @@ export interface BillingCreditBundleView {
    * @memberof BillingCreditBundleView
    */
   creditName: string;
+  /**
+   *
+   * @type {Array<CreditBundleCurrencyPrice>}
+   * @memberof BillingCreditBundleView
+   */
+  currencyPrices?: Array<CreditBundleCurrencyPrice>;
   /**
    *
    * @type {BillingCreditExpiryType}
@@ -210,10 +222,6 @@ export function BillingCreditBundleViewFromJSONTyped(
     return json;
   }
   return {
-    billingInvoiceId:
-      json["billing_invoice_id"] == null
-        ? undefined
-        : json["billing_invoice_id"],
     bundleType: BillingCreditBundleTypeFromJSON(json["bundle_type"]),
     createdAt: new Date(json["created_at"]),
     creditDescription:
@@ -223,6 +231,12 @@ export function BillingCreditBundleViewFromJSONTyped(
     creditIcon: json["credit_icon"] == null ? undefined : json["credit_icon"],
     creditId: json["credit_id"],
     creditName: json["credit_name"],
+    currencyPrices:
+      json["currency_prices"] == null
+        ? undefined
+        : (json["currency_prices"] as Array<any>).map(
+            CreditBundleCurrencyPriceFromJSON,
+          ),
     expiryType: BillingCreditExpiryTypeFromJSON(json["expiry_type"]),
     expiryUnit: BillingCreditExpiryUnitFromJSON(json["expiry_unit"]),
     expiryUnitCount:
@@ -248,19 +262,32 @@ export function BillingCreditBundleViewFromJSONTyped(
 }
 
 export function BillingCreditBundleViewToJSON(
+  json: any,
+): BillingCreditBundleView {
+  return BillingCreditBundleViewToJSONTyped(json, false);
+}
+
+export function BillingCreditBundleViewToJSONTyped(
   value?: BillingCreditBundleView | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
-    billing_invoice_id: value["billingInvoiceId"],
     bundle_type: BillingCreditBundleTypeToJSON(value["bundleType"]),
     created_at: value["createdAt"].toISOString(),
     credit_description: value["creditDescription"],
     credit_icon: value["creditIcon"],
     credit_id: value["creditId"],
     credit_name: value["creditName"],
+    currency_prices:
+      value["currencyPrices"] == null
+        ? undefined
+        : (value["currencyPrices"] as Array<any>).map(
+            CreditBundleCurrencyPriceToJSON,
+          ),
     expiry_type: BillingCreditExpiryTypeToJSON(value["expiryType"]),
     expiry_unit: BillingCreditExpiryUnitToJSON(value["expiryUnit"]),
     expiry_unit_count: value["expiryUnitCount"],

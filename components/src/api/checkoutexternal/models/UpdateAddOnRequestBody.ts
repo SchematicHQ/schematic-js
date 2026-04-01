@@ -64,11 +64,19 @@ export function UpdateAddOnRequestBodyFromJSONTyped(
 }
 
 export function UpdateAddOnRequestBodyToJSON(
+  json: any,
+): UpdateAddOnRequestBody {
+  return UpdateAddOnRequestBodyToJSONTyped(json, false);
+}
+
+export function UpdateAddOnRequestBodyToJSONTyped(
   value?: UpdateAddOnRequestBody | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     add_on_id: value["addOnId"],
     price_id: value["priceId"],

@@ -18,12 +18,14 @@ import {
   RuleConditionDetailResponseDataFromJSON,
   RuleConditionDetailResponseDataFromJSONTyped,
   RuleConditionDetailResponseDataToJSON,
+  RuleConditionDetailResponseDataToJSONTyped,
 } from "./RuleConditionDetailResponseData";
 import type { RuleConditionGroupDetailResponseData } from "./RuleConditionGroupDetailResponseData";
 import {
   RuleConditionGroupDetailResponseDataFromJSON,
   RuleConditionGroupDetailResponseDataFromJSONTyped,
   RuleConditionGroupDetailResponseDataToJSON,
+  RuleConditionGroupDetailResponseDataToJSONTyped,
 } from "./RuleConditionGroupDetailResponseData";
 
 /**
@@ -155,11 +157,19 @@ export function RuleDetailResponseDataFromJSONTyped(
 }
 
 export function RuleDetailResponseDataToJSON(
+  json: any,
+): RuleDetailResponseData {
+  return RuleDetailResponseDataToJSONTyped(json, false);
+}
+
+export function RuleDetailResponseDataToJSONTyped(
   value?: RuleDetailResponseData | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     condition_groups: (value["conditionGroups"] as Array<any>).map(
       RuleConditionGroupDetailResponseDataToJSON,

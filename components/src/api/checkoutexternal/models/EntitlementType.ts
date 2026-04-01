@@ -27,7 +27,7 @@ export type EntitlementType =
 export function instanceOfEntitlementType(value: any): boolean {
   for (const key in EntitlementType) {
     if (Object.prototype.hasOwnProperty.call(EntitlementType, key)) {
-      if ((EntitlementType as Record<string, EntitlementType>)[key] === value) {
+      if (EntitlementType[key as keyof typeof EntitlementType] === value) {
         return true;
       }
     }
@@ -48,4 +48,11 @@ export function EntitlementTypeFromJSONTyped(
 
 export function EntitlementTypeToJSON(value?: EntitlementType | null): any {
   return value as any;
+}
+
+export function EntitlementTypeToJSONTyped(
+  value: any,
+  ignoreDiscriminator: boolean,
+): EntitlementType {
+  return value as EntitlementType;
 }

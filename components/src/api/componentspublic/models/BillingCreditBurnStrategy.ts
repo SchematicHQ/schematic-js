@@ -30,9 +30,9 @@ export function instanceOfBillingCreditBurnStrategy(value: any): boolean {
   for (const key in BillingCreditBurnStrategy) {
     if (Object.prototype.hasOwnProperty.call(BillingCreditBurnStrategy, key)) {
       if (
-        (
-          BillingCreditBurnStrategy as Record<string, BillingCreditBurnStrategy>
-        )[key] === value
+        BillingCreditBurnStrategy[
+          key as keyof typeof BillingCreditBurnStrategy
+        ] === value
       ) {
         return true;
       }
@@ -58,4 +58,11 @@ export function BillingCreditBurnStrategyToJSON(
   value?: BillingCreditBurnStrategy | null,
 ): any {
   return value as any;
+}
+
+export function BillingCreditBurnStrategyToJSONTyped(
+  value: any,
+  ignoreDiscriminator: boolean,
+): BillingCreditBurnStrategy {
+  return value as BillingCreditBurnStrategy;
 }

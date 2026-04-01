@@ -27,8 +27,8 @@ export function instanceOfCompanyPlanInvalidReason(value: any): boolean {
   for (const key in CompanyPlanInvalidReason) {
     if (Object.prototype.hasOwnProperty.call(CompanyPlanInvalidReason, key)) {
       if (
-        (CompanyPlanInvalidReason as Record<string, CompanyPlanInvalidReason>)[
-          key
+        CompanyPlanInvalidReason[
+          key as keyof typeof CompanyPlanInvalidReason
         ] === value
       ) {
         return true;
@@ -55,4 +55,11 @@ export function CompanyPlanInvalidReasonToJSON(
   value?: CompanyPlanInvalidReason | null,
 ): any {
   return value as any;
+}
+
+export function CompanyPlanInvalidReasonToJSONTyped(
+  value: any,
+  ignoreDiscriminator: boolean,
+): CompanyPlanInvalidReason {
+  return value as CompanyPlanInvalidReason;
 }

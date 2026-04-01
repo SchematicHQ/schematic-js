@@ -15,6 +15,14 @@ updates:
     labels:
       - "npm"
       - "Dependabot"
+    ignore:
+      - dependency-name: "react-i18next"
+        update-types:
+          [
+            "version-update:semver-major",
+            "version-update:semver-minor",
+            "version-update:semver-patch",
+          ]
     assignees:
       - "bpapillon"
   - package-ecosystem: "github-actions"

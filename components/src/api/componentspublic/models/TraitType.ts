@@ -29,7 +29,7 @@ export type TraitType = (typeof TraitType)[keyof typeof TraitType];
 export function instanceOfTraitType(value: any): boolean {
   for (const key in TraitType) {
     if (Object.prototype.hasOwnProperty.call(TraitType, key)) {
-      if ((TraitType as Record<string, TraitType>)[key] === value) {
+      if (TraitType[key as keyof typeof TraitType] === value) {
         return true;
       }
     }
@@ -50,4 +50,11 @@ export function TraitTypeFromJSONTyped(
 
 export function TraitTypeToJSON(value?: TraitType | null): any {
   return value as any;
+}
+
+export function TraitTypeToJSONTyped(
+  value: any,
+  ignoreDiscriminator: boolean,
+): TraitType {
+  return value as TraitType;
 }

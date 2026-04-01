@@ -10,12 +10,9 @@ import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 
 import {
+  EntitlementPriceBehavior,
   type PreviewSubscriptionFinanceResponseData,
-  type UpdateAddOnRequestBody,
-  type UpdateCreditBundleRequestBody,
-  type UpdatePayInAdvanceRequestBody,
 } from "../../../api/checkoutexternal";
-import { PriceBehavior } from "../../../const";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import type {
   CreditBundle,
@@ -25,6 +22,10 @@ import type {
 } from "../../../types";
 import {
   ChargeType,
+  buildAddOnRequestBody,
+  buildCreditBundlesRequestBody,
+  buildPayInAdvanceRequestBody,
+  entitlementHasCost,
   extractCurrentUsageBasedEntitlements,
   formatCurrency,
   formatOrdinal,
@@ -34,15 +35,16 @@ import {
   getMonthName,
   getPlanPrice,
   shortenPeriod,
+  toPrettyDate,
 } from "../../../utils";
-import { Box, Button, Flex, Icon, Text } from "../../ui";
+import { Box, Button, Flex, Icon, Text, type BoxProps } from "../../ui";
 import { type CheckoutStage } from "../checkout-dialog";
 
 import { CheckoutStageButton } from "./CheckoutStageButton";
 import { EntitlementRow } from "./EntitlementRow";
 import { Proration } from "./Proration";
 
-interface SubscriptionSidebarProps {
+interface SubscriptionSidebarProps extends Omit<BoxProps, "children"> {
   portalRef?: React.RefObject<HTMLDialogElement | null>;
   planPeriod: string;
   selectedPlan?: SelectedPlan;
@@ -50,6 +52,7 @@ interface SubscriptionSidebarProps {
   creditBundles?: CreditBundle[];
   usageBasedEntitlements: UsageBasedEntitlement[];
   addOnUsageBasedEntitlements?: UsageBasedEntitlement[];
+  addOnPayInAdvanceEntitlements?: UsageBasedEntitlement[];
   charges?: PreviewSubscriptionFinanceResponseData;
   checkoutStage?: string;
   checkoutStages?: CheckoutStage[];
@@ -65,6 +68,7 @@ interface SubscriptionSidebarProps {
   showHeader?: boolean;
   shouldTrial?: boolean;
   willTrialWithoutPaymentMethod?: boolean;
+  willScheduleDowngrade?: boolean;
   setConfirmPaymentIntent: (params: {
     clientSecret: string;
     callback: (confirmed: boolean) => void;
@@ -84,6 +88,7 @@ export const SubscriptionSidebar = forwardRef<
       creditBundles = [],
       usageBasedEntitlements,
       addOnUsageBasedEntitlements = [],
+      addOnPayInAdvanceEntitlements = [],
       charges,
       checkoutStage,
       checkoutStages,
@@ -99,7 +104,9 @@ export const SubscriptionSidebar = forwardRef<
       showHeader = true,
       shouldTrial = false,
       willTrialWithoutPaymentMethod = false,
+      willScheduleDowngrade = false,
       setConfirmPaymentIntent,
+      ...rest
     },
     ref,
   ) => {
@@ -160,11 +167,15 @@ export const SubscriptionSidebar = forwardRef<
       const payAsYouGoEntitlements: UsageBasedEntitlement[] = [];
       const payInAdvanceEntitlements = usageBasedEntitlements.filter(
         (entitlement) => {
-          if (entitlement.priceBehavior === PriceBehavior.PayAsYouGo) {
+          if (
+            entitlement.priceBehavior === EntitlementPriceBehavior.PayAsYouGo
+          ) {
             payAsYouGoEntitlements.push(entitlement);
           }
 
-          return entitlement.priceBehavior === PriceBehavior.PayInAdvance;
+          return (
+            entitlement.priceBehavior === EntitlementPriceBehavior.PayInAdvance
+          );
         },
       );
 
@@ -252,10 +263,14 @@ export const SubscriptionSidebar = forwardRef<
       ];
 
       const addedUsageBasedEntitlements = selectedPlan
-        ? usageBasedEntitlements.reduce(
+        ? allSelectedUsageBasedEntitlements.reduce(
             (acc: UsageBasedEntitlement[], selected) => {
+              if (!entitlementHasCost(selected)) {
+                return acc;
+              }
+
               const changed =
-                selected.priceBehavior === PriceBehavior.PayInAdvance
+                selected.priceBehavior === EntitlementPriceBehavior.PayInAdvance
                   ? currentUsageBasedEntitlements.find(
                       (current) =>
                         current.entitlementId === selected.id &&
@@ -281,9 +296,15 @@ export const SubscriptionSidebar = forwardRef<
       const removedUsageBasedEntitlements = selectedPlan
         ? currentUsageBasedEntitlements.reduce(
             (acc: CurrentUsageBasedEntitlement[], current) => {
+              if (!entitlementHasCost(current)) {
+                return acc;
+              }
+
               // Check if entitlement exists in either plan or add-on entitlements
               const existsInSelected = allSelectedUsageBasedEntitlements.some(
-                (entitlement) => entitlement.id === current.entitlementId,
+                (entitlement) =>
+                  entitlement.id === current.entitlementId &&
+                  entitlementHasCost(entitlement),
               );
               const match =
                 !existsInSelected &&
@@ -324,21 +345,28 @@ export const SubscriptionSidebar = forwardRef<
       addOnUsageBasedEntitlements,
     ]);
 
-    const selectedAddOns = useMemo(
-      () => addOns.filter((addOn) => addOn.isSelected),
+    const selectedAddOnsWithPrice = useMemo(
+      () =>
+        addOns.filter(
+          (addOn) =>
+            addOn.isSelected && typeof getPlanPrice(addOn)?.price === "number",
+        ),
       [addOns],
     );
 
     const { removedAddOns, willAddOnsChange } = useMemo(() => {
-      const addedAddOns = selectedAddOns.filter(
+      const addedAddOns = selectedAddOnsWithPrice.filter(
         (selected) =>
           !currentAddOns.some((current) => selected.id === current.id),
       );
 
       const removedAddOns = currentAddOns.filter(
         (current) =>
-          !selectedAddOns.some((selected) => current.id === selected.id) &&
-          current.planPeriod !== "one-time",
+          current.planPrice &&
+          current.planPeriod !== "one-time" &&
+          !selectedAddOnsWithPrice.some(
+            (selected) => current.id === selected.id,
+          ),
       );
 
       const willAddOnsChange =
@@ -349,7 +377,7 @@ export const SubscriptionSidebar = forwardRef<
         removedAddOns,
         willAddOnsChange,
       };
-    }, [currentAddOns, selectedAddOns]);
+    }, [currentAddOns, selectedAddOnsWithPrice]);
 
     const addedCreditBundles = useMemo(
       () => creditBundles.filter((bundle) => bundle.count > 0),
@@ -363,100 +391,48 @@ export const SubscriptionSidebar = forwardRef<
 
     const handleCheckout = useCallback(async () => {
       const planId = selectedPlan?.id;
-      const priceId = (
+      const planPriceId = (
         planPeriod === "year"
           ? selectedPlan?.yearlyPrice
           : selectedPlan?.monthlyPrice
       )?.id;
 
       try {
-        if (!planId || !priceId) {
+        if (!planId || !planPriceId) {
           throw new Error(t("Selected plan or associated price is missing."));
         }
 
         setError(undefined);
         setIsLoading(true);
 
-        const planPayInAdvance = payInAdvanceEntitlements.reduce(
-          (
-            acc: UpdatePayInAdvanceRequestBody[],
-            { meteredMonthlyPrice, meteredYearlyPrice, quantity },
-          ) => {
-            const priceId = (
-              planPeriod === "year" ? meteredYearlyPrice : meteredMonthlyPrice
-            )?.priceId;
-
-            if (priceId) {
-              acc.push({
-                priceId,
-                quantity,
-              });
-            }
-
-            return acc;
-          },
-          [],
+        const planPayInAdvanceRequestBody = buildPayInAdvanceRequestBody(
+          payInAdvanceEntitlements,
+          planPeriod,
         );
 
-        const addOnPayInAdvance = addOnUsageBasedEntitlements
-          .filter(
-            (entitlement) =>
-              entitlement.priceBehavior === PriceBehavior.PayInAdvance,
-          )
-          .reduce(
-            (
-              acc: UpdatePayInAdvanceRequestBody[],
-              { meteredMonthlyPrice, meteredYearlyPrice, quantity },
-            ) => {
-              const priceId = (
-                planPeriod === "year" ? meteredYearlyPrice : meteredMonthlyPrice
-              )?.priceId;
+        const addOnPayInAdvanceRequestBody = buildPayInAdvanceRequestBody(
+          addOnPayInAdvanceEntitlements,
+          planPeriod,
+        );
 
-              if (priceId) {
-                acc.push({
-                  priceId,
-                  quantity,
-                });
-              }
+        const addOnRequestBody = buildAddOnRequestBody(
+          addOns,
+          planPeriod,
+          shouldTrial,
+        );
 
-              return acc;
-            },
-            [],
-          );
-
-        const allPayInAdvance = [...planPayInAdvance, ...addOnPayInAdvance];
+        const creditBundlesRequestBody =
+          buildCreditBundlesRequestBody(creditBundles);
 
         const checkoutResponseFromBackend = await checkout({
           newPlanId: planId,
-          newPriceId: priceId,
-          addOnIds: addOns.reduce((acc: UpdateAddOnRequestBody[], addOn) => {
-            if (addOn.isSelected && !selectedPlan.companyCanTrial) {
-              const addOnPriceId = getAddOnPrice(addOn, planPeriod)?.id;
-
-              if (addOnPriceId) {
-                acc.push({
-                  addOnId: addOn.id,
-                  priceId: addOnPriceId,
-                });
-              }
-            }
-
-            return acc;
-          }, []),
-          payInAdvance: allPayInAdvance,
-          creditBundles: creditBundles.reduce(
-            (acc: UpdateCreditBundleRequestBody[], { id, count }) => {
-              if (count > 0) {
-                acc.push({
-                  bundleId: id,
-                  quantity: count,
-                });
-              }
-
-              return acc;
-            },
-            [],
-          ),
+          newPriceId: planPriceId,
+          addOnIds: addOnRequestBody,
+          payInAdvance: [
+            ...planPayInAdvanceRequestBody,
+            ...addOnPayInAdvanceRequestBody,
+          ],
+          creditBundles: creditBundlesRequestBody,
           skipTrial: !shouldTrial,
           ...(paymentMethodId && { paymentMethodId }),
           ...(promoCode && { promoCode }),
@@ -513,7 +489,7 @@ export const SubscriptionSidebar = forwardRef<
       setIsLoading,
       setLayout,
       payInAdvanceEntitlements,
-      addOnUsageBasedEntitlements,
+      addOnPayInAdvanceEntitlements,
       shouldTrial,
       promoCode,
       finishCheckout,
@@ -540,12 +516,14 @@ export const SubscriptionSidebar = forwardRef<
       selectedPlan?.isTrialable === true;
 
     const button = useMemo(() => {
+      const canCheckout = error !== t("Downgrade not permitted.");
       const isSticky = !isButtonInView;
 
       switch (layout) {
         case "checkout":
           return (
             <CheckoutStageButton
+              canCheckout={canCheckout}
               isLoading={isLoading}
               isSticky={isSticky}
               inEditMode={settings.mode === "edit"}
@@ -561,6 +539,7 @@ export const SubscriptionSidebar = forwardRef<
               isSelectedPlanTrialable={isSelectedPlanTrialable}
               trialPaymentMethodRequired={trialPaymentMethodRequired}
               willTrialWithoutPaymentMethod={willTrialWithoutPaymentMethod}
+              willScheduleDowngrade={willScheduleDowngrade}
               shouldTrial={shouldTrial}
               checkout={handleCheckout}
             />
@@ -586,6 +565,7 @@ export const SubscriptionSidebar = forwardRef<
       t,
       layout,
       settings.mode,
+      error,
       isLoading,
       isButtonInView,
       checkoutStage,
@@ -597,6 +577,7 @@ export const SubscriptionSidebar = forwardRef<
       willTrialWithoutPaymentMethod,
       shouldTrial,
       isPaymentMethodRequired,
+      willScheduleDowngrade,
       paymentMethod,
       paymentMethodId,
       handleCheckout,
@@ -646,6 +627,7 @@ export const SubscriptionSidebar = forwardRef<
             $width: "21.5rem",
           },
         }}
+        {...rest}
       >
         {showHeader && (
           <Flex
@@ -802,7 +784,7 @@ export const SubscriptionSidebar = forwardRef<
                 (acc: React.ReactElement[], { previous, next }, index) => {
                   if (next.feature?.name) {
                     acc.push(
-                      <Box key={index}>
+                      <Flex key={index} $flexDirection="column" $gap="0.5rem">
                         <Flex
                           $justifyContent="space-between"
                           $alignItems="baseline"
@@ -829,7 +811,7 @@ export const SubscriptionSidebar = forwardRef<
                             tooltipPortal={portalRef?.current}
                           />
                         </Flex>
-                      </Box>,
+                      </Flex>,
                     );
                   }
 
@@ -893,7 +875,7 @@ export const SubscriptionSidebar = forwardRef<
             </Box>
           )}
 
-          {(willAddOnsChange || selectedAddOns.length > 0) && (
+          {(willAddOnsChange || selectedAddOnsWithPrice.length > 0) && (
             <Flex $flexDirection="column" $gap="0.5rem" $marginBottom="1.5rem">
               <Box $opacity="0.625">
                 <Text $size={14}>{t("Add-ons")}</Text>
@@ -932,7 +914,7 @@ export const SubscriptionSidebar = forwardRef<
                 );
               })}
 
-              {selectedAddOns.map((addOn, index) => {
+              {selectedAddOnsWithPrice.map((addOn, index) => {
                 const { price: addOnPrice, currency: addOnCurrency } =
                   getAddOnPrice(addOn, planPeriod) || {};
 
@@ -1230,19 +1212,47 @@ export const SubscriptionSidebar = forwardRef<
           </div>
 
           {!isLoading && error && (
-            <Box>
+            <Flex $flexDirection="column">
               <Text $weight={500} $color="#DB6669">
                 {error}
               </Text>
-            </Box>
+
+              {error === t("Downgrade not permitted.") &&
+                data?.preventSelfServiceDowngrade &&
+                data?.preventSelfServiceDowngradeUrl &&
+                data?.preventSelfServiceDowngradeButtonText && (
+                  <Text
+                    as="a"
+                    display="link"
+                    href={data.preventSelfServiceDowngradeUrl}
+                  >
+                    {data.preventSelfServiceDowngradeButtonText}
+                  </Text>
+                )}
+            </Flex>
           )}
 
           {layout !== "unsubscribe" && (
             <Box $opacity="0.625">
               <Text>
-                {subscriptionPrice &&
-                  // TODO: localize
-                  `You will be billed ${subscriptionPrice} ${usageBasedEntitlements.length > 0 ? "plus usage based costs" : ""} for this subscription
+                {willScheduleDowngrade &&
+                selectedPlan?.name &&
+                billingSubscription
+                  ? t(
+                      "You will be downgraded at the end of your billing period.",
+                      {
+                        plan: selectedPlan.name,
+                        date: toPrettyDate(
+                          new Date(billingSubscription.periodEnd * 1000),
+                          {
+                            month: "numeric",
+                          },
+                        ),
+                      },
+                    )
+                  : subscriptionPrice &&
+                    // TODO: localize
+                    `You will be billed ${subscriptionPrice} ${usageBasedEntitlements.length > 0 ? "plus usage based costs" : ""} for this subscription
                 every ${planPeriod} ${periodStart ? `on the ${formatOrdinal(periodStart.getDate())}` : ""} ${planPeriod === "year" && periodStart ? `of ${getMonthName(periodStart)}` : ""} unless you unsubscribe.`}
               </Text>
             </Box>

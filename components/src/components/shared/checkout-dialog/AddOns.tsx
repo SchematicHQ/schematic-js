@@ -1,7 +1,10 @@
 import { useTranslation } from "react-i18next";
 
-import type { FeatureResponseData } from "../../../api/checkoutexternal";
-import { PriceBehavior, TEXT_BASE_SIZE } from "../../../const";
+import {
+  EntitlementPriceBehavior,
+  type FeatureResponseData,
+} from "../../../api/checkoutexternal";
+import { TEXT_BASE_SIZE } from "../../../const";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import type { SelectedPlan } from "../../../types";
 import {
@@ -12,6 +15,7 @@ import {
   getEntitlementPrice,
   getFeatureName,
   hexToHSL,
+  isTieredPrice,
 } from "../../../utils";
 import { cardBoxShadow } from "../../layout";
 import { Box, Button, Flex, Icon, Text } from "../../ui";
@@ -45,7 +49,7 @@ function renderMeteredEntitlementPricing({
   isTiered,
 }: MeteredEntitlementPricingProps): React.ReactNode {
   // Overage pricing
-  if (priceBehavior === PriceBehavior.Overage && softLimit) {
+  if (priceBehavior === EntitlementPriceBehavior.Overage && softLimit) {
     return (
       <>
         Additional: {formatCurrency(price, currency)}/
@@ -62,10 +66,15 @@ function renderMeteredEntitlementPricing({
     );
   }
 
-  // Pay-as-you-go or Pay-in-advance pricing
+  // Tiered pricing (check before flat PayInAdvance/PayAsYouGo)
+  if (isTiered) {
+    return <>Tier-based pricing</>;
+  }
+
+  // Pay-as-you-go or Pay-in-advance pricing (flat)
   if (
-    priceBehavior === PriceBehavior.PayAsYouGo ||
-    priceBehavior === PriceBehavior.PayInAdvance
+    priceBehavior === EntitlementPriceBehavior.PayAsYouGo ||
+    priceBehavior === EntitlementPriceBehavior.PayInAdvance
   ) {
     return (
       <>
@@ -82,11 +91,6 @@ function renderMeteredEntitlementPricing({
           : featureName || "unit"}
       </>
     );
-  }
-
-  // Tiered pricing
-  if (isTiered) {
-    return <>Tier-based pricing</>;
   }
 
   return null;
@@ -133,10 +137,10 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
                 entitlement.valueType === "unlimited" ||
                 (entitlement.priceBehavior &&
                   [
-                    PriceBehavior.PayAsYouGo as string,
-                    PriceBehavior.PayInAdvance as string,
-                    PriceBehavior.Overage as string,
-                    PriceBehavior.Tiered as string,
+                    EntitlementPriceBehavior.PayAsYouGo as string,
+                    EntitlementPriceBehavior.PayInAdvance as string,
+                    EntitlementPriceBehavior.Overage as string,
+                    EntitlementPriceBehavior.Tier as string,
                   ].includes(entitlement.priceBehavior)),
             )
             .map((entitlement) => {
@@ -164,7 +168,9 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
                 featureName: entitlement.feature?.name,
                 feature: entitlement.feature,
                 packageSize: priceData?.packageSize ?? 1,
-                isTiered: entitlement.priceBehavior === PriceBehavior.Tiered,
+                isTiered:
+                  entitlement.priceBehavior === EntitlementPriceBehavior.Tier ||
+                  isTieredPrice(priceData),
               };
             }) || [];
 
@@ -357,7 +363,7 @@ export const AddOns = ({ addOns, toggle, isLoading, period }: AddOnsProps) => {
                           >
                             <Text>
                               {meteredEntitlement.priceBehavior ===
-                                PriceBehavior.Overage &&
+                                EntitlementPriceBehavior.Overage &&
                               meteredEntitlement.softLimit
                                 ? `${meteredEntitlement.softLimit} ${getEntitlementFeatureName(meteredEntitlement, "units")}`
                                 : getEntitlementFeatureName(meteredEntitlement)}

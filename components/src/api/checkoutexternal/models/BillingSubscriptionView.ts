@@ -18,36 +18,42 @@ import {
   BillingProductForSubscriptionResponseDataFromJSON,
   BillingProductForSubscriptionResponseDataFromJSONTyped,
   BillingProductForSubscriptionResponseDataToJSON,
+  BillingProductForSubscriptionResponseDataToJSONTyped,
 } from "./BillingProductForSubscriptionResponseData";
 import type { BillingSubscriptionDiscountView } from "./BillingSubscriptionDiscountView";
 import {
   BillingSubscriptionDiscountViewFromJSON,
   BillingSubscriptionDiscountViewFromJSONTyped,
   BillingSubscriptionDiscountViewToJSON,
+  BillingSubscriptionDiscountViewToJSONTyped,
 } from "./BillingSubscriptionDiscountView";
 import type { InvoiceResponseData } from "./InvoiceResponseData";
 import {
   InvoiceResponseDataFromJSON,
   InvoiceResponseDataFromJSONTyped,
   InvoiceResponseDataToJSON,
+  InvoiceResponseDataToJSONTyped,
 } from "./InvoiceResponseData";
 import type { BillingSubscriptionTrialEndSetting } from "./BillingSubscriptionTrialEndSetting";
 import {
   BillingSubscriptionTrialEndSettingFromJSON,
   BillingSubscriptionTrialEndSettingFromJSONTyped,
   BillingSubscriptionTrialEndSettingToJSON,
+  BillingSubscriptionTrialEndSettingToJSONTyped,
 } from "./BillingSubscriptionTrialEndSetting";
 import type { BillingProviderType } from "./BillingProviderType";
 import {
   BillingProviderTypeFromJSON,
   BillingProviderTypeFromJSONTyped,
   BillingProviderTypeToJSON,
+  BillingProviderTypeToJSONTyped,
 } from "./BillingProviderType";
 import type { PaymentMethodResponseData } from "./PaymentMethodResponseData";
 import {
   PaymentMethodResponseDataFromJSON,
   PaymentMethodResponseDataFromJSONTyped,
   PaymentMethodResponseDataToJSON,
+  PaymentMethodResponseDataToJSONTyped,
 } from "./PaymentMethodResponseData";
 
 /**
@@ -300,11 +306,19 @@ export function BillingSubscriptionViewFromJSONTyped(
 }
 
 export function BillingSubscriptionViewToJSON(
+  json: any,
+): BillingSubscriptionView {
+  return BillingSubscriptionViewToJSONTyped(json, false);
+}
+
+export function BillingSubscriptionViewToJSONTyped(
   value?: BillingSubscriptionView | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     application_id: value["applicationId"],
     cancel_at: value["cancelAt"],

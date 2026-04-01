@@ -18,44 +18,70 @@ import {
   CompanyEventPeriodMetricsResponseDataFromJSON,
   CompanyEventPeriodMetricsResponseDataFromJSONTyped,
   CompanyEventPeriodMetricsResponseDataToJSON,
+  CompanyEventPeriodMetricsResponseDataToJSONTyped,
 } from "./CompanyEventPeriodMetricsResponseData";
 import type { CompanyPlanWithBillingSubView } from "./CompanyPlanWithBillingSubView";
 import {
   CompanyPlanWithBillingSubViewFromJSON,
   CompanyPlanWithBillingSubViewFromJSONTyped,
   CompanyPlanWithBillingSubViewToJSON,
+  CompanyPlanWithBillingSubViewToJSONTyped,
 } from "./CompanyPlanWithBillingSubView";
+import type { FeatureEntitlement } from "./FeatureEntitlement";
+import {
+  FeatureEntitlementFromJSON,
+  FeatureEntitlementFromJSONTyped,
+  FeatureEntitlementToJSON,
+  FeatureEntitlementToJSONTyped,
+} from "./FeatureEntitlement";
+import type { ScheduledDowngradeResponseData } from "./ScheduledDowngradeResponseData";
+import {
+  ScheduledDowngradeResponseDataFromJSON,
+  ScheduledDowngradeResponseDataFromJSONTyped,
+  ScheduledDowngradeResponseDataToJSON,
+  ScheduledDowngradeResponseDataToJSONTyped,
+} from "./ScheduledDowngradeResponseData";
 import type { EntityKeyDetailResponseData } from "./EntityKeyDetailResponseData";
 import {
   EntityKeyDetailResponseDataFromJSON,
   EntityKeyDetailResponseDataFromJSONTyped,
   EntityKeyDetailResponseDataToJSON,
+  EntityKeyDetailResponseDataToJSONTyped,
 } from "./EntityKeyDetailResponseData";
 import type { EntityTraitDetailResponseData } from "./EntityTraitDetailResponseData";
 import {
   EntityTraitDetailResponseDataFromJSON,
   EntityTraitDetailResponseDataFromJSONTyped,
   EntityTraitDetailResponseDataToJSON,
+  EntityTraitDetailResponseDataToJSONTyped,
 } from "./EntityTraitDetailResponseData";
 import type { Rule } from "./Rule";
-import { RuleFromJSON, RuleFromJSONTyped, RuleToJSON } from "./Rule";
+import {
+  RuleFromJSON,
+  RuleFromJSONTyped,
+  RuleToJSON,
+  RuleToJSONTyped,
+} from "./Rule";
 import type { GenericPreviewObject } from "./GenericPreviewObject";
 import {
   GenericPreviewObjectFromJSON,
   GenericPreviewObjectFromJSONTyped,
   GenericPreviewObjectToJSON,
+  GenericPreviewObjectToJSONTyped,
 } from "./GenericPreviewObject";
 import type { PaymentMethodResponseData } from "./PaymentMethodResponseData";
 import {
   PaymentMethodResponseDataFromJSON,
   PaymentMethodResponseDataFromJSONTyped,
   PaymentMethodResponseDataToJSON,
+  PaymentMethodResponseDataToJSONTyped,
 } from "./PaymentMethodResponseData";
 import type { BillingSubscriptionView } from "./BillingSubscriptionView";
 import {
   BillingSubscriptionViewFromJSON,
   BillingSubscriptionViewFromJSONTyped,
   BillingSubscriptionViewToJSON,
+  BillingSubscriptionViewToJSONTyped,
 } from "./BillingSubscriptionView";
 
 /**
@@ -100,6 +126,12 @@ export interface CompanyDetailResponseData {
    * @memberof CompanyDetailResponseData
    */
   defaultPaymentMethod?: PaymentMethodResponseData;
+  /**
+   *
+   * @type {Array<FeatureEntitlement>}
+   * @memberof CompanyDetailResponseData
+   */
+  entitlements: Array<FeatureEntitlement>;
   /**
    *
    * @type {Array<EntityTraitDetailResponseData>}
@@ -173,6 +205,12 @@ export interface CompanyDetailResponseData {
    */
   rules: Array<Rule>;
   /**
+   *
+   * @type {ScheduledDowngradeResponseData}
+   * @memberof CompanyDetailResponseData
+   */
+  scheduledDowngrade?: ScheduledDowngradeResponseData;
+  /**
    * A map of trait names to trait values
    * @type {object}
    * @memberof CompanyDetailResponseData
@@ -205,6 +243,8 @@ export function instanceOfCompanyDetailResponseData(
   )
     return false;
   if (!("createdAt" in value) || value["createdAt"] === undefined) return false;
+  if (!("entitlements" in value) || value["entitlements"] === undefined)
+    return false;
   if (!("entityTraits" in value) || value["entityTraits"] === undefined)
     return false;
   if (!("environmentId" in value) || value["environmentId"] === undefined)
@@ -255,6 +295,9 @@ export function CompanyDetailResponseDataFromJSONTyped(
       json["default_payment_method"] == null
         ? undefined
         : PaymentMethodResponseDataFromJSON(json["default_payment_method"]),
+    entitlements: (json["entitlements"] as Array<any>).map(
+      FeatureEntitlementFromJSON,
+    ),
     entityTraits: (json["entity_traits"] as Array<any>).map(
       EntityTraitDetailResponseDataFromJSON,
     ),
@@ -277,6 +320,10 @@ export function CompanyDetailResponseDataFromJSONTyped(
         : CompanyPlanWithBillingSubViewFromJSON(json["plan"]),
     plans: (json["plans"] as Array<any>).map(GenericPreviewObjectFromJSON),
     rules: (json["rules"] as Array<any>).map(RuleFromJSON),
+    scheduledDowngrade:
+      json["scheduled_downgrade"] == null
+        ? undefined
+        : ScheduledDowngradeResponseDataFromJSON(json["scheduled_downgrade"]),
     traits: json["traits"] == null ? undefined : json["traits"],
     updatedAt: new Date(json["updated_at"]),
     userCount: json["user_count"],
@@ -284,11 +331,19 @@ export function CompanyDetailResponseDataFromJSONTyped(
 }
 
 export function CompanyDetailResponseDataToJSON(
+  json: any,
+): CompanyDetailResponseData {
+  return CompanyDetailResponseDataToJSONTyped(json, false);
+}
+
+export function CompanyDetailResponseDataToJSONTyped(
   value?: CompanyDetailResponseData | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     add_ons: (value["addOns"] as Array<any>).map(
       CompanyPlanWithBillingSubViewToJSON,
@@ -303,6 +358,9 @@ export function CompanyDetailResponseDataToJSON(
     created_at: value["createdAt"].toISOString(),
     default_payment_method: PaymentMethodResponseDataToJSON(
       value["defaultPaymentMethod"],
+    ),
+    entitlements: (value["entitlements"] as Array<any>).map(
+      FeatureEntitlementToJSON,
     ),
     entity_traits: (value["entityTraits"] as Array<any>).map(
       EntityTraitDetailResponseDataToJSON,
@@ -325,6 +383,9 @@ export function CompanyDetailResponseDataToJSON(
     plan: CompanyPlanWithBillingSubViewToJSON(value["plan"]),
     plans: (value["plans"] as Array<any>).map(GenericPreviewObjectToJSON),
     rules: (value["rules"] as Array<any>).map(RuleToJSON),
+    scheduled_downgrade: ScheduledDowngradeResponseDataToJSON(
+      value["scheduledDowngrade"],
+    ),
     traits: value["traits"],
     updated_at: value["updatedAt"].toISOString(),
     user_count: value["userCount"],

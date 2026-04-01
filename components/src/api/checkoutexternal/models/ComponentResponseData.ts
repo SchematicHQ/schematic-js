@@ -18,12 +18,14 @@ import {
   ComponentEntityTypeFromJSON,
   ComponentEntityTypeFromJSONTyped,
   ComponentEntityTypeToJSON,
+  ComponentEntityTypeToJSONTyped,
 } from "./ComponentEntityType";
 import type { ComponentState } from "./ComponentState";
 import {
   ComponentStateFromJSON,
   ComponentStateFromJSONTyped,
   ComponentStateToJSON,
+  ComponentStateToJSONTyped,
 } from "./ComponentState";
 
 /**
@@ -115,12 +117,18 @@ export function ComponentResponseDataFromJSONTyped(
   };
 }
 
-export function ComponentResponseDataToJSON(
+export function ComponentResponseDataToJSON(json: any): ComponentResponseData {
+  return ComponentResponseDataToJSONTyped(json, false);
+}
+
+export function ComponentResponseDataToJSONTyped(
   value?: ComponentResponseData | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     ast: value["ast"],
     created_at: value["createdAt"].toISOString(),

@@ -18,7 +18,7 @@ export const Icon = styled(SchematicIcon).attrs(({ name, title, onClick }) => ({
   title: title || name,
   ...(onClick && { tabIndex: 0 }),
 }))<StyledIconProps>`
-  display: flex;
+  display: inline-flex;
   justify-content: center;
   align-items: center;
   flex-shrink: 0;

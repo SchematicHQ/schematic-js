@@ -18,24 +18,28 @@ import {
   BillingProductForSubscriptionResponseDataFromJSON,
   BillingProductForSubscriptionResponseDataFromJSONTyped,
   BillingProductForSubscriptionResponseDataToJSON,
+  BillingProductForSubscriptionResponseDataToJSONTyped,
 } from "./BillingProductForSubscriptionResponseData";
 import type { BillingSubscriptionDiscountView } from "./BillingSubscriptionDiscountView";
 import {
   BillingSubscriptionDiscountViewFromJSON,
   BillingSubscriptionDiscountViewFromJSONTyped,
   BillingSubscriptionDiscountViewToJSON,
+  BillingSubscriptionDiscountViewToJSONTyped,
 } from "./BillingSubscriptionDiscountView";
 import type { InvoiceResponseData } from "./InvoiceResponseData";
 import {
   InvoiceResponseDataFromJSON,
   InvoiceResponseDataFromJSONTyped,
   InvoiceResponseDataToJSON,
+  InvoiceResponseDataToJSONTyped,
 } from "./InvoiceResponseData";
 import type { PaymentMethodResponseData } from "./PaymentMethodResponseData";
 import {
   PaymentMethodResponseDataFromJSON,
   PaymentMethodResponseDataFromJSONTyped,
   PaymentMethodResponseDataToJSON,
+  PaymentMethodResponseDataToJSONTyped,
 } from "./PaymentMethodResponseData";
 
 /**
@@ -206,11 +210,19 @@ export function CompanySubscriptionResponseDataFromJSONTyped(
 }
 
 export function CompanySubscriptionResponseDataToJSON(
+  json: any,
+): CompanySubscriptionResponseData {
+  return CompanySubscriptionResponseDataToJSONTyped(json, false);
+}
+
+export function CompanySubscriptionResponseDataToJSONTyped(
   value?: CompanySubscriptionResponseData | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     cancel_at:
       value["cancelAt"] == null

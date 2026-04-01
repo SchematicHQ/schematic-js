@@ -27,8 +27,7 @@ export function instanceOfBillingProviderType(value: any): boolean {
   for (const key in BillingProviderType) {
     if (Object.prototype.hasOwnProperty.call(BillingProviderType, key)) {
       if (
-        (BillingProviderType as Record<string, BillingProviderType>)[key] ===
-        value
+        BillingProviderType[key as keyof typeof BillingProviderType] === value
       ) {
         return true;
       }
@@ -52,4 +51,11 @@ export function BillingProviderTypeToJSON(
   value?: BillingProviderType | null,
 ): any {
   return value as any;
+}
+
+export function BillingProviderTypeToJSONTyped(
+  value: any,
+  ignoreDiscriminator: boolean,
+): BillingProviderType {
+  return value as BillingProviderType;
 }

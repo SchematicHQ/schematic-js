@@ -102,7 +102,7 @@ export const Checkout = ({
             <Text
               onClick={() => updatePromoCode(discount)}
               display="link"
-              $leading={1}
+              $leading="none"
             >
               {t("Apply discount")}
             </Text>

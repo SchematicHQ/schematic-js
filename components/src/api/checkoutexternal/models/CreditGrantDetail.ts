@@ -18,6 +18,7 @@ import {
   BillingCreditGrantReasonFromJSON,
   BillingCreditGrantReasonFromJSONTyped,
   BillingCreditGrantReasonToJSON,
+  BillingCreditGrantReasonToJSONTyped,
 } from "./BillingCreditGrantReason";
 
 /**
@@ -85,10 +86,18 @@ export function CreditGrantDetailFromJSONTyped(
   };
 }
 
-export function CreditGrantDetailToJSON(value?: CreditGrantDetail | null): any {
+export function CreditGrantDetailToJSON(json: any): CreditGrantDetail {
+  return CreditGrantDetailToJSONTyped(json, false);
+}
+
+export function CreditGrantDetailToJSONTyped(
+  value?: CreditGrantDetail | null,
+  ignoreDiscriminator: boolean = false,
+): any {
   if (value == null) {
     return value;
   }
+
   return {
     credit_type_icon: value["creditTypeIcon"],
     expires_at:

@@ -18,30 +18,35 @@ import {
   EntitlementValueTypeFromJSON,
   EntitlementValueTypeFromJSONTyped,
   EntitlementValueTypeToJSON,
+  EntitlementValueTypeToJSONTyped,
 } from "./EntitlementValueType";
 import type { EntityTraitDefinitionResponseData } from "./EntityTraitDefinitionResponseData";
 import {
   EntityTraitDefinitionResponseDataFromJSON,
   EntityTraitDefinitionResponseDataFromJSONTyped,
   EntityTraitDefinitionResponseDataToJSON,
+  EntityTraitDefinitionResponseDataToJSONTyped,
 } from "./EntityTraitDefinitionResponseData";
 import type { FeatureResponseData } from "./FeatureResponseData";
 import {
   FeatureResponseDataFromJSON,
   FeatureResponseDataFromJSONTyped,
   FeatureResponseDataToJSON,
+  FeatureResponseDataToJSONTyped,
 } from "./FeatureResponseData";
 import type { CompanyOverrideNoteResponseData } from "./CompanyOverrideNoteResponseData";
 import {
   CompanyOverrideNoteResponseDataFromJSON,
   CompanyOverrideNoteResponseDataFromJSONTyped,
   CompanyOverrideNoteResponseDataToJSON,
+  CompanyOverrideNoteResponseDataToJSONTyped,
 } from "./CompanyOverrideNoteResponseData";
 import type { CompanyDetailResponseData } from "./CompanyDetailResponseData";
 import {
   CompanyDetailResponseDataFromJSON,
   CompanyDetailResponseDataFromJSONTyped,
   CompanyDetailResponseDataToJSON,
+  CompanyDetailResponseDataToJSONTyped,
 } from "./CompanyDetailResponseData";
 
 /**
@@ -252,11 +257,19 @@ export function CompanyOverrideResponseDataFromJSONTyped(
 }
 
 export function CompanyOverrideResponseDataToJSON(
+  json: any,
+): CompanyOverrideResponseData {
+  return CompanyOverrideResponseDataToJSONTyped(json, false);
+}
+
+export function CompanyOverrideResponseDataToJSONTyped(
   value?: CompanyOverrideResponseData | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     company: CompanyDetailResponseDataToJSON(value["company"]),
     company_id: value["companyId"],

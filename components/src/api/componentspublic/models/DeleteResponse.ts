@@ -52,10 +52,18 @@ export function DeleteResponseFromJSONTyped(
   };
 }
 
-export function DeleteResponseToJSON(value?: DeleteResponse | null): any {
+export function DeleteResponseToJSON(json: any): DeleteResponse {
+  return DeleteResponseToJSONTyped(json, false);
+}
+
+export function DeleteResponseToJSONTyped(
+  value?: DeleteResponse | null,
+  ignoreDiscriminator: boolean = false,
+): any {
   if (value == null) {
     return value;
   }
+
   return {
     deleted: value["deleted"],
   };

@@ -9,7 +9,9 @@ import {
   useSchematicEvents,
   useSchematicFlag,
   useSchematicIsPending,
+  useSchematicPlan,
   type SchematicHookOpts,
+  type UseSchematicPlanOpts,
   type UseSchematicFlagOpts,
 } from "./hooks";
 
@@ -20,15 +22,22 @@ export {
   useSchematicEvents,
   useSchematicFlag,
   useSchematicIsPending,
+  useSchematicPlan,
   SchematicProvider,
 };
 
-export type { SchematicHookOpts, SchematicProviderProps, UseSchematicFlagOpts };
+export type {
+  SchematicHookOpts,
+  SchematicProviderProps,
+  UseSchematicFlagOpts,
+  UseSchematicPlanOpts,
+};
 
 export { RuleType, Schematic, UsagePeriod } from "@schematichq/schematic-js";
 
 export type {
   CheckFlagReturn,
+  CheckPlanReturn,
   Event,
   EventBody,
   EventBodyIdentify,

@@ -18,18 +18,21 @@ import {
   BillingProductPriceIntervalFromJSON,
   BillingProductPriceIntervalFromJSONTyped,
   BillingProductPriceIntervalToJSON,
+  BillingProductPriceIntervalToJSONTyped,
 } from "./BillingProductPriceInterval";
 import type { BillingProviderType } from "./BillingProviderType";
 import {
   BillingProviderTypeFromJSON,
   BillingProviderTypeFromJSONTyped,
   BillingProviderTypeToJSON,
+  BillingProviderTypeToJSONTyped,
 } from "./BillingProviderType";
 import type { BillingPriceScheme } from "./BillingPriceScheme";
 import {
   BillingPriceSchemeFromJSON,
   BillingPriceSchemeFromJSONTyped,
   BillingPriceSchemeToJSON,
+  BillingPriceSchemeToJSONTyped,
 } from "./BillingPriceScheme";
 
 /**
@@ -133,11 +136,19 @@ export function BillingPriceResponseDataFromJSONTyped(
 }
 
 export function BillingPriceResponseDataToJSON(
+  json: any,
+): BillingPriceResponseData {
+  return BillingPriceResponseDataToJSONTyped(json, false);
+}
+
+export function BillingPriceResponseDataToJSONTyped(
   value?: BillingPriceResponseData | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     currency: value["currency"],
     external_price_id: value["externalPriceId"],

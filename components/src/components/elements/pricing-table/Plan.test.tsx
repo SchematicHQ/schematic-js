@@ -1,11 +1,12 @@
 import { vi } from "vitest";
 
 import {
+  BillingProductPriceInterval,
   type BillingPriceResponseData,
   type FeatureUsageResponseData,
   type PlanEntitlementResponseData,
 } from "../../../api/checkoutexternal";
-import { PriceInterval, VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
+import { VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
 import { act, fireEvent, render, screen } from "../../../test/setup";
 import type { DeepPartial, SelectedPlan } from "../../../types";
 
@@ -182,7 +183,7 @@ describe("`Plan` component", () => {
         index={0}
         sharedProps={mockSharedProps}
         plans={[mockPlan]}
-        selectedPeriod={PriceInterval.Month}
+        selectedPeriod={BillingProductPriceInterval.Month}
         entitlementCounts={mockEntitlementCounts}
         handleToggleShowAll={mockHandleToggleShowAll}
       />,
@@ -210,7 +211,7 @@ describe("`Plan` component", () => {
         index={0}
         sharedProps={mockSharedProps}
         plans={[mockPlan]}
-        selectedPeriod={PriceInterval.Month}
+        selectedPeriod={BillingProductPriceInterval.Month}
         entitlementCounts={mockEntitlementCounts}
         handleToggleShowAll={mockHandleToggleShowAll}
       />,
@@ -237,7 +238,7 @@ describe("`Plan` component", () => {
         index={0}
         sharedProps={mockSharedProps}
         plans={[mockPlan]}
-        selectedPeriod={PriceInterval.Month}
+        selectedPeriod={BillingProductPriceInterval.Month}
         entitlementCounts={mockEntitlementCounts}
         handleToggleShowAll={mockHandleToggleShowAll}
       />,
@@ -259,7 +260,7 @@ describe("`Plan` component", () => {
         index={0}
         sharedProps={mockSharedProps}
         plans={[mockPlan]}
-        selectedPeriod={PriceInterval.Month}
+        selectedPeriod={BillingProductPriceInterval.Month}
         entitlementCounts={mockEntitlementCounts}
         handleToggleShowAll={mockHandleToggleShowAll}
       />,
@@ -284,7 +285,7 @@ describe("`Plan` component", () => {
         index={0}
         sharedProps={mockSharedProps}
         plans={[mockPlan]}
-        selectedPeriod={PriceInterval.Month}
+        selectedPeriod={BillingProductPriceInterval.Month}
         entitlementCounts={mockEntitlementCounts}
         handleToggleShowAll={mockHandleToggleShowAll}
       />,
@@ -304,7 +305,7 @@ describe("`Plan` component", () => {
         index={0}
         sharedProps={mockSharedProps}
         plans={[mockPlan]}
-        selectedPeriod={PriceInterval.Year}
+        selectedPeriod={BillingProductPriceInterval.Year}
         entitlementCounts={mockEntitlementCounts}
         handleToggleShowAll={mockHandleToggleShowAll}
       />,
@@ -344,7 +345,7 @@ describe("`Plan` component", () => {
         index={0}
         sharedProps={mockSharedProps}
         plans={[manyEntitlementsPlan]}
-        selectedPeriod={PriceInterval.Month}
+        selectedPeriod={BillingProductPriceInterval.Month}
         entitlementCounts={manyEntitlementsCounts}
         handleToggleShowAll={mockHandleToggleShowAll}
       />,
@@ -368,7 +369,7 @@ describe("`Plan` component", () => {
           { ...mockPlan, id: "previous-plan", name: "Starter Plan" },
           mockPlan,
         ]}
-        selectedPeriod={PriceInterval.Month}
+        selectedPeriod={BillingProductPriceInterval.Month}
         entitlementCounts={mockEntitlementCounts}
         handleToggleShowAll={mockHandleToggleShowAll}
       />,
@@ -400,7 +401,7 @@ describe("`Plan` component", () => {
         index={0}
         sharedProps={mockSharedProps}
         plans={[mockPlan]}
-        selectedPeriod={PriceInterval.Month}
+        selectedPeriod={BillingProductPriceInterval.Month}
         entitlementCounts={mockEntitlementCounts}
         handleToggleShowAll={mockHandleToggleShowAll}
       />,
@@ -421,7 +422,7 @@ describe("`Plan` component", () => {
           onCallToAction: mockOnCallToAction,
         }}
         plans={[mockPlan]}
-        selectedPeriod={PriceInterval.Month}
+        selectedPeriod={BillingProductPriceInterval.Month}
         entitlementCounts={mockEntitlementCounts}
         handleToggleShowAll={mockHandleToggleShowAll}
       />,

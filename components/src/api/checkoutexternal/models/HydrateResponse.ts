@@ -18,6 +18,7 @@ import {
   ComponentHydrateResponseDataFromJSON,
   ComponentHydrateResponseDataFromJSONTyped,
   ComponentHydrateResponseDataToJSON,
+  ComponentHydrateResponseDataToJSONTyped,
 } from "./ComponentHydrateResponseData";
 
 /**
@@ -68,10 +69,18 @@ export function HydrateResponseFromJSONTyped(
   };
 }
 
-export function HydrateResponseToJSON(value?: HydrateResponse | null): any {
+export function HydrateResponseToJSON(json: any): HydrateResponse {
+  return HydrateResponseToJSONTyped(json, false);
+}
+
+export function HydrateResponseToJSONTyped(
+  value?: HydrateResponse | null,
+  ignoreDiscriminator: boolean = false,
+): any {
   if (value == null) {
     return value;
   }
+
   return {
     data: ComponentHydrateResponseDataToJSON(value["data"]),
     params: value["params"],

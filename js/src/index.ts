@@ -9,6 +9,8 @@ import {
   CheckFlagReturnFromJSON,
   CheckFlagReturnListenerFn,
   CheckFlagsResponseFromJSON,
+  CheckPlanReturn,
+  CheckPlanReturnFromJSON,
   DeveloperToolbarInterface,
   CheckOptions,
   EmptyListenerFn,
@@ -22,9 +24,11 @@ import {
   FlagCheckListenerFn,
   FlagValueListenerFn,
   PendingListenerFn,
+  PlanListenerFn,
   SchematicContext,
   SchematicOptions,
   StoragePersister,
+  CheckPlanReturnListenerFn,
 } from "./types";
 import { contextString } from "./utils";
 import { version } from "./version";
@@ -47,6 +51,7 @@ export class Schematic {
   private flagValueListeners: Record<string, Set<FlagValueListenerFn>> = {};
   private isPending: boolean = true;
   private isPendingListeners: Set<PendingListenerFn> = new Set();
+  private planListeners: Set<PlanListenerFn> = new Set();
   private storage: StoragePersister | undefined;
   private useWebSocket: boolean = false;
   private checks: Record<
@@ -57,6 +62,7 @@ export class Schematic {
     string,
     Record<string, CheckFlagReturn | undefined> | undefined
   > = {};
+  private planChecks: Record<string, CheckPlanReturn | undefined> = {};
   private webSocketUrl = "wss://api.schematichq.com";
   private webSocketConnectionTimeout = 10000;
   private webSocketReconnect = true;
@@ -78,6 +84,7 @@ export class Schematic {
   private flagCheckDefaults: Record<string, CheckFlagReturn> = {};
   private developerToolbarEnabled: boolean = false;
   private developerToolbar: DeveloperToolbarInterface | null = null;
+  private fallbackCheckCache: Record<string, CheckFlagReturn> = {};
 
   constructor(apiKey: string, options?: SchematicOptions) {
     this.apiKey = apiKey;
@@ -132,8 +139,16 @@ export class Schematic {
 
     if (options?.storage) {
       this.storage = options.storage;
-    } else if (typeof localStorage !== "undefined") {
-      this.storage = localStorage;
+    } else {
+      try {
+        if (typeof localStorage !== "undefined") {
+          this.storage = localStorage;
+        }
+      } catch {
+        // localStorage may throw SecurityError in Safari private browsing
+        // or cross-origin iframes. getAnonymousId() will fall back to
+        // generating fresh UUIDs when storage is unavailable.
+      }
     }
 
     if (options?.apiUrl !== undefined) {
@@ -314,8 +329,8 @@ export class Schematic {
   /**
    * Get value for a single flag.
    * In WebSocket mode, returns cached values if connection is active, otherwise establishes
-   * new connection and then returns the requestedvalue. Falls back to REST API if WebSocket
-   * connection fails.
+   * new connection and then returns the requested value. Falls back to preconfigured fallback
+   * values if WebSocket connection fails.
    * In REST mode, makes an API call for each check.
    */
   async checkFlag(options: CheckOptions): Promise<boolean> {
@@ -413,10 +428,18 @@ export class Schematic {
         await this.setContext(context);
       } catch (error) {
         console.warn(
-          "WebSocket connection failed, falling back to REST:",
+          "WebSocket connection failed, using fallback value:",
           error,
         );
-        return this.fallbackToRest(key, context, fallback);
+        // Create a result for the error case using fallback priority and submit event
+        const errorResult = this.resolveFallbackCheckFlagReturn(
+          key,
+          fallback,
+          "WebSocket connection failed",
+          error instanceof Error ? error.message : String(error),
+        );
+        this.submitFlagCheckEvent(key, errorResult, context);
+        return errorResult.value;
       }
 
       // After setting context and getting a response, return the value
@@ -432,9 +455,16 @@ export class Schematic {
           : { value: result, fallbackUsed: true },
       );
 
-      // If we have flag check results, submit an event
+      // Submit a flag check event
       if (typeof flagCheck !== "undefined") {
         this.submitFlagCheckEvent(key, flagCheck, context);
+      } else {
+        const fallbackResult = this.resolveFallbackCheckFlagReturn(
+          key,
+          fallback,
+          "No flag values available",
+        );
+        this.submitFlagCheckEvent(key, fallbackResult, context);
       }
 
       return result;
@@ -490,12 +520,6 @@ export class Schematic {
         }
         this.checks[contextStr][flagCheck.flag] = flagCheck;
 
-        this.debug(`WebSocket flag update:`, {
-          flag: flagCheck.flag,
-          value: flagCheck.value,
-          flagCheck,
-        });
-
         // Store in feature usage event map if appropriate
         if (typeof flagCheck.featureUsageEvent === "string") {
           this.updateFeatureUsageEventMap(flagCheck);
@@ -509,19 +533,30 @@ export class Schematic {
           this.submitFlagCheckEvent(flagCheck.flag, flagCheck, context);
         }
 
-        this.debug(`About to notify listeners for flag ${flag.flag}`, {
-          flag: flag.flag,
-          value: flagCheck.value,
-        });
+        this.debug(
+          `WebSocket flag update received. Notifying listeners for ${flag.flag}`,
+          {
+            flag: flag.flag,
+            value: flagCheck.value,
+            flagCheck,
+          },
+        );
 
         this.notifyFlagCheckListeners(flag.flag, flagCheck);
         this.notifyFlagValueListeners(flag.flag, flagCheck.value);
-
-        this.debug(`Finished notifying listeners for flag ${flag.flag}`, {
-          flag: flag.flag,
-          value: flagCheck.value,
-        });
       });
+
+      if (message.plan !== undefined && message.plan !== null) {
+        const plan = CheckPlanReturnFromJSON(message.plan);
+        const contextStr = contextString(context);
+        this.planChecks[contextStr] = plan;
+
+        this.debug(`WebSocket plan update received. Notifying listeners`, {
+          plan,
+        });
+
+        this.notifyPlanListeners(plan);
+      }
 
       // Flush any context-dependent events that were queued
       this.flushContextDependentEventQueue();
@@ -568,74 +603,6 @@ export class Schematic {
     this.debug(`submitting flag check event:`, eventBody);
 
     return this.handleEvent("flag_check", EventBodyFlagCheckToJSON(eventBody));
-  }
-
-  /**
-   * Helper method for falling back to REST API when WebSocket connection fails
-   */
-  private async fallbackToRest(
-    key: string,
-    context: SchematicContext,
-    fallback?: boolean,
-  ): Promise<boolean> {
-    // If in offline mode, immediately return fallback value
-    if (this.isOffline()) {
-      const resolvedFallback = this.resolveFallbackValue(key, fallback);
-      this.debug(`fallbackToRest offline result: ${key}`, {
-        value: resolvedFallback,
-        offlineMode: true,
-      });
-
-      return resolvedFallback;
-    }
-
-    try {
-      const requestUrl = `${this.apiUrl}/flags/${key}/check`;
-      const response = await fetch(requestUrl, {
-        method: "POST",
-        headers: {
-          ...(this.additionalHeaders ?? {}),
-          "Content-Type": "application/json;charset=UTF-8",
-          "X-Schematic-Api-Key": this.apiKey,
-        },
-        body: JSON.stringify(context),
-      });
-
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-
-      const responseJson = await response.json();
-      const data = CheckFlagResponseFromJSON(responseJson);
-
-      this.debug(`fallbackToRest result: ${key}`, data);
-
-      // Create a flag check result object
-      const result = CheckFlagReturnFromJSON(data.data);
-
-      // Store in feature usage event map if appropriate
-      if (typeof result.featureUsageEvent === "string") {
-        this.updateFeatureUsageEventMap(result);
-      }
-
-      // Submit a flag check event
-      this.submitFlagCheckEvent(key, result, context);
-
-      return result.value;
-    } catch (error) {
-      console.warn("REST API call failed, using fallback value:", error);
-
-      // Create a result for the error case using fallback priority and submit event
-      const errorResult = this.resolveFallbackCheckFlagReturn(
-        key,
-        fallback,
-        "API request failed (fallback)",
-        error instanceof Error ? error.message : String(error),
-      );
-      this.submitFlagCheckEvent(key, errorResult, context);
-
-      return errorResult.value;
-    }
   }
 
   /**
@@ -733,6 +700,15 @@ export class Schematic {
       return Promise.resolve();
     }
 
+    // Skip if context hasn't changed, we have an active connection, and we're not pending
+    if (
+      contextString(context) === contextString(this.context) &&
+      this.conn !== null &&
+      !this.isPending
+    ) {
+      return;
+    }
+
     // If using websocket, wsSendMessage will handle setting the context
     try {
       this.setIsPending(true);
@@ -780,7 +756,16 @@ export class Schematic {
       await this.wsSendMessage(socket, context);
     } catch (error) {
       console.warn("Failed to establish WebSocket connection:", error);
-      throw error;
+
+      // On connection failure, still set context locally and resolve pending state
+      // so the UI renders with default flag values instead of hanging indefinitely
+      this.context = context;
+      this.flushContextDependentEventQueue();
+      this.setIsPending(false);
+
+      // Attempt to reconnect in the background so real flag values
+      // can replace fallbacks if the server becomes reachable
+      this.attemptReconnect();
     }
   };
 
@@ -1671,7 +1656,10 @@ export class Schematic {
         }
 
         this.debug(`WebSocket connection ${connectionId} error:`, error);
-        reject(error);
+        const wrappedError = new Error(
+          "WebSocket connection failed during handshake",
+        );
+        reject(wrappedError);
       };
 
       webSocket.onclose = () => {
@@ -1755,6 +1743,22 @@ export class Schematic {
 
         socket.addEventListener("message", messageHandler);
 
+        // Detect server-side close with application error codes (e.g. 4001 for auth failure)
+        socket.addEventListener("close", (event: CloseEvent) => {
+          if (!resolved) {
+            resolved = true;
+            if (event.code === 4001) {
+              reject(
+                new Error(
+                  `Authentication failed: ${event.reason !== "" ? event.reason : "Invalid API key"}`,
+                ),
+              );
+            } else {
+              reject(new Error("WebSocket connection closed unexpectedly"));
+            }
+          }
+        });
+
         // Track the current websocket for cleanup and ensuring React listeners use the right connection
         this.currentWebSocket = socket;
 
@@ -1806,10 +1810,18 @@ export class Schematic {
   };
 
   private setIsPending = (isPending: boolean) => {
+    if (this.isPending === isPending) return;
     this.isPending = isPending;
     this.isPendingListeners.forEach((listener) =>
       notifyPendingListener(listener, isPending),
     );
+  };
+
+  getPlan = (): CheckPlanReturn | undefined => {
+    const contextStr = contextString(this.context);
+    const plan = this.planChecks[contextStr];
+
+    return plan;
   };
 
   // flag checks state
@@ -1830,16 +1842,20 @@ export class Schematic {
       return check;
     }
 
-    // Check initialization options for fallback
+    // Check initialization options for fallback, using cache to ensure
+    // stable object references (required by React's useSyncExternalStore)
     if (
       flagKey in this.flagCheckDefaults ||
       flagKey in this.flagValueDefaults
     ) {
-      return this.resolveFallbackCheckFlagReturn(
-        flagKey,
-        undefined,
-        "Default value used",
-      );
+      if (!(flagKey in this.fallbackCheckCache)) {
+        this.fallbackCheckCache[flagKey] = this.resolveFallbackCheckFlagReturn(
+          flagKey,
+          undefined,
+          "Default value used",
+        );
+      }
+      return this.fallbackCheckCache[flagKey];
     }
 
     return undefined;
@@ -1898,6 +1914,14 @@ export class Schematic {
 
     return () => {
       this.flagCheckListeners[flagKey].delete(listener);
+    };
+  };
+
+  addPlanListener = (listener: PlanListenerFn) => {
+    this.planListeners.add(listener);
+
+    return () => {
+      this.planListeners.delete(listener);
     };
   };
 
@@ -2022,6 +2046,23 @@ export class Schematic {
     this.developerToolbar?.initialize();
   };
 
+  private notifyPlanListeners = (value: CheckPlanReturn) => {
+    const listeners = this.planListeners ?? [];
+
+    if (listeners.size > 0) {
+      this.debug(`Notifying ${listeners.size} plan listeners`, { value });
+    }
+
+    listeners.forEach((listener, index) => {
+      this.debug(`Calling listener ${index} for plan`, {
+        value,
+      });
+      notifyPlanListener(listener, value);
+      this.debug(`Listener ${index} for plan completed`, {
+        value,
+      });
+    });
+  };
 }
 
 const notifyPendingListener = (listener: PendingListenerFn, value: boolean) => {
@@ -2049,6 +2090,17 @@ const notifyFlagValueListener = (
 ) => {
   if (listener.length > 0) {
     (listener as BooleanListenerFn)(value);
+  } else {
+    (listener as EmptyListenerFn)();
+  }
+};
+
+const notifyPlanListener = (
+  listener: PlanListenerFn,
+  value: CheckPlanReturn,
+) => {
+  if (listener.length > 0) {
+    (listener as CheckPlanReturnListenerFn)(value);
   } else {
     (listener as EmptyListenerFn)();
   }

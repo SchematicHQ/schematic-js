@@ -83,11 +83,19 @@ export function CreditUsageAggregationFromJSONTyped(
 }
 
 export function CreditUsageAggregationToJSON(
+  json: any,
+): CreditUsageAggregation {
+  return CreditUsageAggregationToJSONTyped(json, false);
+}
+
+export function CreditUsageAggregationToJSONTyped(
   value?: CreditUsageAggregation | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     usage_this_billing_period: value["usageThisBillingPeriod"],
     usage_this_calendar_month: value["usageThisCalendarMonth"],

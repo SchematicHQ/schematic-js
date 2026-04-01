@@ -101,12 +101,18 @@ export function CompanyResponseDataFromJSONTyped(
   };
 }
 
-export function CompanyResponseDataToJSON(
+export function CompanyResponseDataToJSON(json: any): CompanyResponseData {
+  return CompanyResponseDataToJSONTyped(json, false);
+}
+
+export function CompanyResponseDataToJSONTyped(
   value?: CompanyResponseData | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     created_at: value["createdAt"].toISOString(),
     environment_id: value["environmentId"],

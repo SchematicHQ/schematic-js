@@ -13,35 +13,47 @@
  */
 
 import { mapValues } from "../runtime";
+import type { CreditCurrencyPriceResponseData } from "./CreditCurrencyPriceResponseData";
+import {
+  CreditCurrencyPriceResponseDataFromJSON,
+  CreditCurrencyPriceResponseDataFromJSONTyped,
+  CreditCurrencyPriceResponseDataToJSON,
+  CreditCurrencyPriceResponseDataToJSONTyped,
+} from "./CreditCurrencyPriceResponseData";
 import type { BillingCreditBurnStrategy } from "./BillingCreditBurnStrategy";
 import {
   BillingCreditBurnStrategyFromJSON,
   BillingCreditBurnStrategyFromJSONTyped,
   BillingCreditBurnStrategyToJSON,
+  BillingCreditBurnStrategyToJSONTyped,
 } from "./BillingCreditBurnStrategy";
 import type { BillingProductResponseData } from "./BillingProductResponseData";
 import {
   BillingProductResponseDataFromJSON,
   BillingProductResponseDataFromJSONTyped,
   BillingProductResponseDataToJSON,
+  BillingProductResponseDataToJSONTyped,
 } from "./BillingProductResponseData";
 import type { BillingPriceResponseData } from "./BillingPriceResponseData";
 import {
   BillingPriceResponseDataFromJSON,
   BillingPriceResponseDataFromJSONTyped,
   BillingPriceResponseDataToJSON,
+  BillingPriceResponseDataToJSONTyped,
 } from "./BillingPriceResponseData";
 import type { BillingCreditExpiryUnit } from "./BillingCreditExpiryUnit";
 import {
   BillingCreditExpiryUnitFromJSON,
   BillingCreditExpiryUnitFromJSONTyped,
   BillingCreditExpiryUnitToJSON,
+  BillingCreditExpiryUnitToJSONTyped,
 } from "./BillingCreditExpiryUnit";
 import type { BillingCreditRolloverPolicy } from "./BillingCreditRolloverPolicy";
 import {
   BillingCreditRolloverPolicyFromJSON,
   BillingCreditRolloverPolicyFromJSONTyped,
   BillingCreditRolloverPolicyToJSON,
+  BillingCreditRolloverPolicyToJSONTyped,
 } from "./BillingCreditRolloverPolicy";
 
 /**
@@ -58,10 +70,22 @@ export interface BillingCreditResponseData {
   burnStrategy: BillingCreditBurnStrategy;
   /**
    *
+   * @type {boolean}
+   * @memberof BillingCreditResponseData
+   */
+  costEditable: boolean;
+  /**
+   *
    * @type {Date}
    * @memberof BillingCreditResponseData
    */
   createdAt: Date;
+  /**
+   *
+   * @type {Array<CreditCurrencyPriceResponseData>}
+   * @memberof BillingCreditResponseData
+   */
+  currencyPrices: Array<CreditCurrencyPriceResponseData>;
   /**
    *
    * @type {BillingCreditExpiryUnit}
@@ -144,7 +168,11 @@ export function instanceOfBillingCreditResponseData(
 ): value is BillingCreditResponseData {
   if (!("burnStrategy" in value) || value["burnStrategy"] === undefined)
     return false;
+  if (!("costEditable" in value) || value["costEditable"] === undefined)
+    return false;
   if (!("createdAt" in value) || value["createdAt"] === undefined) return false;
+  if (!("currencyPrices" in value) || value["currencyPrices"] === undefined)
+    return false;
   if (
     !("defaultExpiryUnit" in value) ||
     value["defaultExpiryUnit"] === undefined
@@ -178,7 +206,11 @@ export function BillingCreditResponseDataFromJSONTyped(
   }
   return {
     burnStrategy: BillingCreditBurnStrategyFromJSON(json["burn_strategy"]),
+    costEditable: json["cost_editable"],
     createdAt: new Date(json["created_at"]),
+    currencyPrices: (json["currency_prices"] as Array<any>).map(
+      CreditCurrencyPriceResponseDataFromJSON,
+    ),
     defaultExpiryUnit: BillingCreditExpiryUnitFromJSON(
       json["default_expiry_unit"],
     ),
@@ -209,14 +241,26 @@ export function BillingCreditResponseDataFromJSONTyped(
 }
 
 export function BillingCreditResponseDataToJSON(
+  json: any,
+): BillingCreditResponseData {
+  return BillingCreditResponseDataToJSONTyped(json, false);
+}
+
+export function BillingCreditResponseDataToJSONTyped(
   value?: BillingCreditResponseData | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     burn_strategy: BillingCreditBurnStrategyToJSON(value["burnStrategy"]),
+    cost_editable: value["costEditable"],
     created_at: value["createdAt"].toISOString(),
+    currency_prices: (value["currencyPrices"] as Array<any>).map(
+      CreditCurrencyPriceResponseDataToJSON,
+    ),
     default_expiry_unit: BillingCreditExpiryUnitToJSON(
       value["defaultExpiryUnit"],
     ),

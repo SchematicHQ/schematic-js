@@ -18,7 +18,15 @@ import {
   BillingProviderTypeFromJSON,
   BillingProviderTypeFromJSONTyped,
   BillingProviderTypeToJSON,
+  BillingProviderTypeToJSONTyped,
 } from "./BillingProviderType";
+import type { InvoiceStatus } from "./InvoiceStatus";
+import {
+  InvoiceStatusFromJSON,
+  InvoiceStatusFromJSONTyped,
+  InvoiceStatusToJSON,
+  InvoiceStatusToJSONTyped,
+} from "./InvoiceStatus";
 
 /**
  *
@@ -112,6 +120,12 @@ export interface InvoiceResponseData {
   providerType: BillingProviderType;
   /**
    *
+   * @type {InvoiceStatus}
+   * @memberof InvoiceResponseData
+   */
+  status?: InvoiceStatus | null;
+  /**
+   *
    * @type {string}
    * @memberof InvoiceResponseData
    */
@@ -195,6 +209,10 @@ export function InvoiceResponseDataFromJSONTyped(
         ? undefined
         : json["payment_method_external_id"],
     providerType: BillingProviderTypeFromJSON(json["provider_type"]),
+    status:
+      json["status"] == null
+        ? undefined
+        : InvoiceStatusFromJSON(json["status"]),
     subscriptionExternalId:
       json["subscription_external_id"] == null
         ? undefined
@@ -205,12 +223,18 @@ export function InvoiceResponseDataFromJSONTyped(
   };
 }
 
-export function InvoiceResponseDataToJSON(
+export function InvoiceResponseDataToJSON(json: any): InvoiceResponseData {
+  return InvoiceResponseDataToJSONTyped(json, false);
+}
+
+export function InvoiceResponseDataToJSONTyped(
   value?: InvoiceResponseData | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     amount_due: value["amountDue"],
     amount_paid: value["amountPaid"],
@@ -229,6 +253,7 @@ export function InvoiceResponseDataToJSON(
     id: value["id"],
     payment_method_external_id: value["paymentMethodExternalId"],
     provider_type: BillingProviderTypeToJSON(value["providerType"]),
+    status: InvoiceStatusToJSON(value["status"]),
     subscription_external_id: value["subscriptionExternalId"],
     subtotal: value["subtotal"],
     updated_at: value["updatedAt"].toISOString(),

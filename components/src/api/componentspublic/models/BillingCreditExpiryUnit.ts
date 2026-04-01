@@ -27,9 +27,8 @@ export function instanceOfBillingCreditExpiryUnit(value: any): boolean {
   for (const key in BillingCreditExpiryUnit) {
     if (Object.prototype.hasOwnProperty.call(BillingCreditExpiryUnit, key)) {
       if (
-        (BillingCreditExpiryUnit as Record<string, BillingCreditExpiryUnit>)[
-          key
-        ] === value
+        BillingCreditExpiryUnit[key as keyof typeof BillingCreditExpiryUnit] ===
+        value
       ) {
         return true;
       }
@@ -55,4 +54,11 @@ export function BillingCreditExpiryUnitToJSON(
   value?: BillingCreditExpiryUnit | null,
 ): any {
   return value as any;
+}
+
+export function BillingCreditExpiryUnitToJSONTyped(
+  value: any,
+  ignoreDiscriminator: boolean,
+): BillingCreditExpiryUnit {
+  return value as BillingCreditExpiryUnit;
 }

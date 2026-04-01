@@ -188,7 +188,7 @@ export const UpcomingBill = forwardRef<
                   $gap="1rem"
                 >
                   {props.price.isVisible && (
-                    <Text display={props.price.fontStyle} $leading={1}>
+                    <Text display={props.price.fontStyle} $leading="none">
                       {formatCurrency(
                         upcomingInvoice.amountDue,
                         upcomingInvoice.currency,

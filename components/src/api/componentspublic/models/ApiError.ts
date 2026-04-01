@@ -51,10 +51,18 @@ export function ApiErrorFromJSONTyped(
   };
 }
 
-export function ApiErrorToJSON(value?: ApiError | null): any {
+export function ApiErrorToJSON(json: any): ApiError {
+  return ApiErrorToJSONTyped(json, false);
+}
+
+export function ApiErrorToJSONTyped(
+  value?: ApiError | null,
+  ignoreDiscriminator: boolean = false,
+): any {
   if (value == null) {
     return value;
   }
+
   return {
     error: value["error"],
   };

@@ -18,6 +18,7 @@ import {
   EntityTypeFromJSON,
   EntityTypeFromJSONTyped,
   EntityTypeToJSON,
+  EntityTypeToJSONTyped,
 } from "./EntityType";
 
 /**
@@ -129,12 +130,18 @@ export function EntityKeyResponseDataFromJSONTyped(
   };
 }
 
-export function EntityKeyResponseDataToJSON(
+export function EntityKeyResponseDataToJSON(json: any): EntityKeyResponseData {
+  return EntityKeyResponseDataToJSONTyped(json, false);
+}
+
+export function EntityKeyResponseDataToJSONTyped(
   value?: EntityKeyResponseData | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     created_at: value["createdAt"].toISOString(),
     definition_id: value["definitionId"],

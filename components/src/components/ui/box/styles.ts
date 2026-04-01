@@ -38,6 +38,7 @@ export const Box = styled("div")<BoxProps>((props) => {
   for (const [key, value] of Object.entries(props.$viewport || {})) {
     styles.push(css`
       ${{
+        "xs": "@container (min-width: 375px)",
         "sm": "@container (min-width: 640px)",
         "md": "@container (min-width: 768px)",
         "lg": "@container (min-width: 1024px)",

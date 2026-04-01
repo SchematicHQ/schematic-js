@@ -171,11 +171,19 @@ export function BillingSubscriptionDiscountViewFromJSONTyped(
 }
 
 export function BillingSubscriptionDiscountViewToJSON(
+  json: any,
+): BillingSubscriptionDiscountView {
+  return BillingSubscriptionDiscountViewToJSONTyped(json, false);
+}
+
+export function BillingSubscriptionDiscountViewToJSONTyped(
   value?: BillingSubscriptionDiscountView | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     amount_off: value["amountOff"],
     coupon_id: value["couponId"],

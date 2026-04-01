@@ -18,6 +18,7 @@ import {
   CurrencyBalanceFromJSON,
   CurrencyBalanceFromJSONTyped,
   CurrencyBalanceToJSON,
+  CurrencyBalanceToJSONTyped,
 } from "./CurrencyBalance";
 
 /**
@@ -63,11 +64,19 @@ export function CompanyCustomerBalanceFromJSONTyped(
 }
 
 export function CompanyCustomerBalanceToJSON(
+  json: any,
+): CompanyCustomerBalance {
+  return CompanyCustomerBalanceToJSONTyped(json, false);
+}
+
+export function CompanyCustomerBalanceToJSONTyped(
   value?: CompanyCustomerBalance | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     balances: (value["balances"] as Array<any>).map(CurrencyBalanceToJSON),
   };

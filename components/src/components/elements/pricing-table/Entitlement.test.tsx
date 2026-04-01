@@ -1,9 +1,9 @@
-import { type PlanEntitlementResponseData } from "../../../api/componentspublic";
 import {
+  EntitlementPriceBehavior,
   EntitlementValueType,
   FeatureType,
-  PriceBehavior,
-} from "../../../const";
+  type PlanEntitlementResponseData,
+} from "../../../api/componentspublic";
 import { render, screen } from "../../../test/setup";
 import type { Credit, DeepPartial } from "../../../types";
 
@@ -213,7 +213,7 @@ describe("`Entitlement` component", () => {
         name: "API Call",
         icon: "api",
       },
-      priceBehavior: PriceBehavior.Credit,
+      priceBehavior: EntitlementPriceBehavior.CreditBurndown,
       valueType: EntitlementValueType.Credit,
       valueCredit: {
         id: "credit-1",
@@ -303,7 +303,7 @@ describe("`Entitlement` component", () => {
         name: "API Call",
         icon: "api",
       },
-      priceBehavior: PriceBehavior.Credit,
+      priceBehavior: EntitlementPriceBehavior.CreditBurndown,
       valueType: EntitlementValueType.Credit,
       valueCredit: {
         id: "credit-2",

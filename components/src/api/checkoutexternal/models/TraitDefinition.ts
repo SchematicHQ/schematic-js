@@ -18,6 +18,7 @@ import {
   EntityTypeFromJSON,
   EntityTypeFromJSONTyped,
   EntityTypeToJSON,
+  EntityTypeToJSONTyped,
 } from "./EntityType";
 
 /**
@@ -90,10 +91,18 @@ export function TraitDefinitionFromJSONTyped(
   };
 }
 
-export function TraitDefinitionToJSON(value?: TraitDefinition | null): any {
+export function TraitDefinitionToJSON(json: any): TraitDefinition {
+  return TraitDefinitionToJSONTyped(json, false);
+}
+
+export function TraitDefinitionToJSONTyped(
+  value?: TraitDefinition | null,
+  ignoreDiscriminator: boolean = false,
+): any {
   if (value == null) {
     return value;
   }
+
   return {
     comparable_type: value["comparableType"],
     entity_type: EntityTypeToJSON(value["entityType"]),

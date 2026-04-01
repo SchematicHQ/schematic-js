@@ -18,6 +18,7 @@ import {
   FlagTypeFromJSON,
   FlagTypeFromJSONTyped,
   FlagTypeToJSON,
+  FlagTypeToJSONTyped,
 } from "./FlagType";
 
 /**
@@ -133,10 +134,18 @@ export function FlagResponseDataFromJSONTyped(
   };
 }
 
-export function FlagResponseDataToJSON(value?: FlagResponseData | null): any {
+export function FlagResponseDataToJSON(json: any): FlagResponseData {
+  return FlagResponseDataToJSONTyped(json, false);
+}
+
+export function FlagResponseDataToJSONTyped(
+  value?: FlagResponseData | null,
+  ignoreDiscriminator: boolean = false,
+): any {
   if (value == null) {
     return value;
   }
+
   return {
     created_at: value["createdAt"].toISOString(),
     default_value: value["defaultValue"],

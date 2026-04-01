@@ -27,8 +27,7 @@ export function instanceOfPlanControlledByType(value: any): boolean {
   for (const key in PlanControlledByType) {
     if (Object.prototype.hasOwnProperty.call(PlanControlledByType, key)) {
       if (
-        (PlanControlledByType as Record<string, PlanControlledByType>)[key] ===
-        value
+        PlanControlledByType[key as keyof typeof PlanControlledByType] === value
       ) {
         return true;
       }
@@ -52,4 +51,11 @@ export function PlanControlledByTypeToJSON(
   value?: PlanControlledByType | null,
 ): any {
   return value as any;
+}
+
+export function PlanControlledByTypeToJSONTyped(
+  value: any,
+  ignoreDiscriminator: boolean,
+): PlanControlledByType {
+  return value as PlanControlledByType;
 }

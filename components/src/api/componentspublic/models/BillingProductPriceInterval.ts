@@ -31,12 +31,9 @@ export function instanceOfBillingProductPriceInterval(value: any): boolean {
       Object.prototype.hasOwnProperty.call(BillingProductPriceInterval, key)
     ) {
       if (
-        (
-          BillingProductPriceInterval as Record<
-            string,
-            BillingProductPriceInterval
-          >
-        )[key] === value
+        BillingProductPriceInterval[
+          key as keyof typeof BillingProductPriceInterval
+        ] === value
       ) {
         return true;
       }
@@ -62,4 +59,11 @@ export function BillingProductPriceIntervalToJSON(
   value?: BillingProductPriceInterval | null,
 ): any {
   return value as any;
+}
+
+export function BillingProductPriceIntervalToJSONTyped(
+  value: any,
+  ignoreDiscriminator: boolean,
+): BillingProductPriceInterval {
+  return value as BillingProductPriceInterval;
 }

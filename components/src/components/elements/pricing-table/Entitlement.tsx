@@ -1,25 +1,28 @@
 import { useTranslation } from "react-i18next";
 
-import { type PlanEntitlementResponseData } from "../../../api/checkoutexternal";
 import {
+  BillingProductPriceInterval,
+  EntitlementPriceBehavior,
   EntitlementValueType,
   FeatureType,
-  PriceBehavior,
-  PriceInterval,
-} from "../../../const";
+  type PlanEntitlementResponseData,
+} from "../../../api/checkoutexternal";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import type { Credit } from "../../../types";
 import {
+  entitlementHasHardLimit,
   formatCurrency,
   formatNumber,
   getCreditBasedEntitlementLimit,
   getEntitlementPrice,
   getFeatureName,
   getMetricPeriodName,
+  isTieredPrice,
   shortenPeriod,
 } from "../../../utils";
 import {
   BillingThresholdTooltip,
+  HardLimitTooltip,
   PricingTiersTooltip,
   TieredPricingDetails,
 } from "../../shared";
@@ -43,7 +46,7 @@ export interface EntitlementProps {
 export const Entitlement = ({
   entitlement,
   sharedProps,
-  selectedPeriod = PriceInterval.Month,
+  selectedPeriod = BillingProductPriceInterval.Month,
   credits = [],
   showCredits = true,
 }: EntitlementProps) => {
@@ -55,14 +58,27 @@ export const Entitlement = ({
 
   const isLightBackground = useIsLightBackground();
 
+  const entitlementBillingPrice = getEntitlementPrice(
+    entitlement,
+    selectedPeriod,
+  );
   const {
     price: entitlementPrice,
     priceTier: entitlementPriceTiers,
     currency: entitlementCurrency,
     packageSize: entitlementPackageSize = 1,
-  } = getEntitlementPrice(entitlement, selectedPeriod) || {};
+    tiersMode: entitlementTiersMode,
+  } = entitlementBillingPrice || {};
 
-  const limit = entitlement.softLimit ?? entitlement.valueNumeric ?? undefined;
+  const tiered =
+    entitlement.priceBehavior === EntitlementPriceBehavior.PayInAdvance &&
+    isTieredPrice(entitlementBillingPrice);
+
+  const limit =
+    entitlement.priceBehavior === EntitlementPriceBehavior.Overage &&
+    typeof entitlement.softLimit === "number"
+      ? entitlement.softLimit
+      : (entitlement.valueNumeric ?? undefined);
 
   const metricPeriodName = getMetricPeriodName(entitlement);
   const creditBasedEntitlementLimit = getCreditBasedEntitlementLimit(
@@ -87,8 +103,11 @@ export const Entitlement = ({
           <Flex $flexDirection="column" $justifyContent="center" $flexGrow={1}>
             <Text>
               {typeof entitlementPrice === "number" &&
-              (entitlement.priceBehavior === PriceBehavior.PayInAdvance ||
-                entitlement.priceBehavior === PriceBehavior.PayAsYouGo) ? (
+              !tiered &&
+              (entitlement.priceBehavior ===
+                EntitlementPriceBehavior.PayInAdvance ||
+                entitlement.priceBehavior ===
+                  EntitlementPriceBehavior.PayAsYouGo) ? (
                 <>
                   {formatCurrency(entitlementPrice, entitlementCurrency)}{" "}
                   {t("per")}{" "}
@@ -96,20 +115,23 @@ export const Entitlement = ({
                     <>{formatNumber(entitlementPackageSize)} </>
                   )}
                   {getFeatureName(entitlement.feature, entitlementPackageSize)}
-                  {entitlement.priceBehavior === PriceBehavior.PayInAdvance && (
+                  {entitlement.priceBehavior ===
+                    EntitlementPriceBehavior.PayInAdvance && (
                     <>
                       {" "}
                       {t("per")} {selectedPeriod}
                     </>
                   )}
                 </>
-              ) : entitlement.priceBehavior === PriceBehavior.Tiered ? (
+              ) : entitlement.priceBehavior === EntitlementPriceBehavior.Tier ||
+                tiered ? (
                 <TieredPricingDetails
                   entitlement={entitlement}
                   period={selectedPeriod}
                 />
               ) : showCredits &&
-                entitlement.priceBehavior === PriceBehavior.Credit &&
+                entitlement.priceBehavior ===
+                  EntitlementPriceBehavior.CreditBurndown &&
                 entitlement.valueCredit &&
                 entitlement.consumptionRate ? (
                 <>
@@ -120,7 +142,8 @@ export const Entitlement = ({
                   )}{" "}
                   {t("per")} {getFeatureName(entitlement.feature, 1)}
                 </>
-              ) : entitlement.priceBehavior === PriceBehavior.Credit &&
+              ) : entitlement.priceBehavior ===
+                  EntitlementPriceBehavior.CreditBurndown &&
                 creditBasedEntitlementLimit ? (
                 <>
                   {creditBasedEntitlementLimit?.period
@@ -168,26 +191,32 @@ export const Entitlement = ({
               )}
             </Text>
 
-            <Flex $alignItems="end">
-              {entitlement.priceBehavior === PriceBehavior.Overage &&
+            <Text>
+              {entitlement.priceBehavior === EntitlementPriceBehavior.Overage &&
               typeof entitlementPrice === "number" ? (
-                <Text
-                  $size={0.875 * settings.theme.typography.text.fontSize}
-                  $color={`color-mix(in oklch, ${settings.theme.typography.text.color}, ${settings.theme.card.background})`}
-                >
-                  {t("then")}{" "}
-                  {formatCurrency(entitlementPrice, entitlementCurrency)}/
-                  {entitlementPackageSize > 1 && (
-                    <>{formatNumber(entitlementPackageSize)} </>
-                  )}
-                  {getFeatureName(entitlement.feature, entitlementPackageSize)}
-                  {entitlement.feature.featureType === FeatureType.Trait && (
-                    <>/{shortenPeriod(selectedPeriod)}</>
-                  )}
-                </Text>
+                <>
+                  <Text
+                    $size={0.875 * settings.theme.typography.text.fontSize}
+                    $color={`color-mix(in oklch, ${settings.theme.typography.text.color}, ${settings.theme.card.background})`}
+                  >
+                    {t("then")}{" "}
+                    {formatCurrency(entitlementPrice, entitlementCurrency)}/
+                    {entitlementPackageSize > 1 && (
+                      <>{formatNumber(entitlementPackageSize)} </>
+                    )}
+                    {getFeatureName(
+                      entitlement.feature,
+                      entitlementPackageSize,
+                    )}
+                    {entitlement.feature.featureType === FeatureType.Trait && (
+                      <>/{shortenPeriod(selectedPeriod)}</>
+                    )}
+                  </Text>
+                </>
               ) : (
-                entitlement.priceBehavior === PriceBehavior.Tiered && (
-                  <Flex $alignItems="end">
+                (entitlement.priceBehavior === EntitlementPriceBehavior.Tier ||
+                  tiered) && (
+                  <>
                     <Text
                       style={{ opacity: 0.54 }}
                       $size={0.875 * settings.theme.typography.text.fontSize}
@@ -201,17 +230,26 @@ export const Entitlement = ({
                       period={selectedPeriod}
                       currency={entitlementCurrency}
                       priceTiers={entitlementPriceTiers}
+                      tiersMode={entitlementTiersMode ?? undefined}
                     />
-                  </Flex>
+                  </>
                 )
               )}
+
+              {entitlementHasHardLimit(entitlement) &&
+                entitlement.valueType === EntitlementValueType.Numeric && (
+                  <HardLimitTooltip
+                    feature={entitlement.feature}
+                    limit={entitlement.valueNumeric}
+                  />
+                )}
 
               {entitlement.billingThreshold && (
                 <BillingThresholdTooltip
                   billingThreshold={entitlement.billingThreshold}
                 />
               )}
-            </Flex>
+            </Text>
           </Flex>
 
           {layout.plans.showFeatureDescriptions &&

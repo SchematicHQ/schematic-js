@@ -18,6 +18,7 @@ import {
   CompanyCustomerBalanceFromJSON,
   CompanyCustomerBalanceFromJSONTyped,
   CompanyCustomerBalanceToJSON,
+  CompanyCustomerBalanceToJSONTyped,
 } from "./CompanyCustomerBalance";
 
 /**
@@ -71,11 +72,19 @@ export function FetchCustomerBalanceResponseFromJSONTyped(
 }
 
 export function FetchCustomerBalanceResponseToJSON(
+  json: any,
+): FetchCustomerBalanceResponse {
+  return FetchCustomerBalanceResponseToJSONTyped(json, false);
+}
+
+export function FetchCustomerBalanceResponseToJSONTyped(
   value?: FetchCustomerBalanceResponse | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     data: CompanyCustomerBalanceToJSON(value["data"]),
     params: value["params"],

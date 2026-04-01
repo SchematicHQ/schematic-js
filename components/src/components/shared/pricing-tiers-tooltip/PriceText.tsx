@@ -53,7 +53,10 @@ export const PriceText = ({
   }, [feature, period, currency, flatAmount, perUnitPrice]);
 
   return (
-    <Text $size={0.875 * settings.theme.typography.text.fontSize} $leading={1}>
+    <Text
+      $size={0.875 * settings.theme.typography.text.fontSize}
+      $leading="none"
+    >
       {text}
     </Text>
   );

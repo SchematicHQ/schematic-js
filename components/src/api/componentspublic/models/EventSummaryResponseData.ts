@@ -100,11 +100,19 @@ export function EventSummaryResponseDataFromJSONTyped(
 }
 
 export function EventSummaryResponseDataToJSON(
+  json: any,
+): EventSummaryResponseData {
+  return EventSummaryResponseDataToJSONTyped(json, false);
+}
+
+export function EventSummaryResponseDataToJSONTyped(
   value?: EventSummaryResponseData | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     company_count: value["companyCount"],
     environment_id: value["environmentId"],

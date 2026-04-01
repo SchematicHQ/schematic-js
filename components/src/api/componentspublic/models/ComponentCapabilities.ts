@@ -64,12 +64,18 @@ export function ComponentCapabilitiesFromJSONTyped(
   };
 }
 
-export function ComponentCapabilitiesToJSON(
+export function ComponentCapabilitiesToJSON(json: any): ComponentCapabilities {
+  return ComponentCapabilitiesToJSONTyped(json, false);
+}
+
+export function ComponentCapabilitiesToJSONTyped(
   value?: ComponentCapabilities | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     badge_visibility: value["badgeVisibility"],
     checkout: value["checkout"],

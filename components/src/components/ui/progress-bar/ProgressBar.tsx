@@ -4,6 +4,8 @@ import { TEXT_BASE_SIZE } from "../../../const";
 import { formatNumber } from "../../../utils";
 import { Box, Flex, Text } from "../../ui";
 
+export type ProgressBarColor = "gray" | "blue" | "yellow" | "orange" | "red";
+
 export const progressColorMap = [
   "blue",
   "blue",
@@ -11,7 +13,7 @@ export const progressColorMap = [
   "yellow",
   "red",
   "red",
-] satisfies ProgressBarProps["color"][];
+] satisfies ProgressBarColor[];
 
 export interface ProgressBarProps extends React.ComponentPropsWithoutRef<
   typeof Flex
@@ -19,7 +21,7 @@ export interface ProgressBarProps extends React.ComponentPropsWithoutRef<
   progress: number;
   value: number;
   total?: number;
-  color?: "gray" | "blue" | "yellow" | "orange" | "red";
+  color?: ProgressBarColor;
   bgColor?: string;
 }
 

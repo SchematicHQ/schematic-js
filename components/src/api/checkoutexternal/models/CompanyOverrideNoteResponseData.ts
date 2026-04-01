@@ -98,11 +98,19 @@ export function CompanyOverrideNoteResponseDataFromJSONTyped(
 }
 
 export function CompanyOverrideNoteResponseDataToJSON(
+  json: any,
+): CompanyOverrideNoteResponseData {
+  return CompanyOverrideNoteResponseDataToJSONTyped(json, false);
+}
+
+export function CompanyOverrideNoteResponseDataToJSONTyped(
   value?: CompanyOverrideNoteResponseData | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     created_at: value["createdAt"].toISOString(),
     external_user_id: value["externalUserId"],

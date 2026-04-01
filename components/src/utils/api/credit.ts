@@ -1,19 +1,19 @@
 import {
+  BillingPlanCreditGrantResetCadence,
   type CreditCompanyGrantView,
   type PlanCreditGrantView,
 } from "../../api/checkoutexternal";
-import { CreditResetCadence } from "../../const";
 import type { Credit, CreditWithCompanyContext } from "../../types";
 
-function getResetCadencePeriod(cadence: string) {
+function getResetCadencePeriod(cadence: PlanCreditGrantView["resetCadence"]) {
   switch (cadence) {
-    case CreditResetCadence.Year:
+    case BillingPlanCreditGrantResetCadence.Yearly:
       return "year";
-    case CreditResetCadence.Month:
+    case BillingPlanCreditGrantResetCadence.Monthly:
       return "month";
-    case CreditResetCadence.Week:
+    case BillingPlanCreditGrantResetCadence.Weekly:
       return "week";
-    case CreditResetCadence.Day:
+    case BillingPlanCreditGrantResetCadence.Daily:
       return "day";
   }
 }
@@ -38,7 +38,7 @@ export function groupPlanCreditGrants(creditGrants: PlanCreditGrantView[]) {
         grantReason: "plan",
         quantity: grant.creditAmount,
         planId: grant.planId,
-        planName: grant.planName,
+        planName: grant.plan?.name,
         period: getResetCadencePeriod(grant.resetCadence),
       };
 

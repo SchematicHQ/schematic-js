@@ -18,12 +18,14 @@ import {
   EntityTypeFromJSON,
   EntityTypeFromJSONTyped,
   EntityTypeToJSON,
+  EntityTypeToJSONTyped,
 } from "./EntityType";
 import type { TraitType } from "./TraitType";
 import {
   TraitTypeFromJSON,
   TraitTypeFromJSONTyped,
   TraitTypeToJSON,
+  TraitTypeToJSONTyped,
 } from "./TraitType";
 
 /**
@@ -119,11 +121,19 @@ export function EntityTraitDefinitionResponseDataFromJSONTyped(
 }
 
 export function EntityTraitDefinitionResponseDataToJSON(
+  json: any,
+): EntityTraitDefinitionResponseData {
+  return EntityTraitDefinitionResponseDataToJSONTyped(json, false);
+}
+
+export function EntityTraitDefinitionResponseDataToJSONTyped(
   value?: EntityTraitDefinitionResponseData | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     created_at: value["createdAt"].toISOString(),
     display_name: value["displayName"],

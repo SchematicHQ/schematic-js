@@ -18,6 +18,7 @@ import {
   CheckoutResponseDataFromJSON,
   CheckoutResponseDataFromJSONTyped,
   CheckoutResponseDataToJSON,
+  CheckoutResponseDataToJSONTyped,
 } from "./CheckoutResponseData";
 
 /**
@@ -68,10 +69,18 @@ export function CheckoutResponseFromJSONTyped(
   };
 }
 
-export function CheckoutResponseToJSON(value?: CheckoutResponse | null): any {
+export function CheckoutResponseToJSON(json: any): CheckoutResponse {
+  return CheckoutResponseToJSONTyped(json, false);
+}
+
+export function CheckoutResponseToJSONTyped(
+  value?: CheckoutResponse | null,
+  ignoreDiscriminator: boolean = false,
+): any {
   if (value == null) {
     return value;
   }
+
   return {
     data: CheckoutResponseDataToJSON(value["data"]),
     params: value["params"],

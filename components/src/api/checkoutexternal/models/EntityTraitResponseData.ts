@@ -98,11 +98,19 @@ export function EntityTraitResponseDataFromJSONTyped(
 }
 
 export function EntityTraitResponseDataToJSON(
+  json: any,
+): EntityTraitResponseData {
+  return EntityTraitResponseDataToJSONTyped(json, false);
+}
+
+export function EntityTraitResponseDataToJSONTyped(
   value?: EntityTraitResponseData | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     created_at: value["createdAt"].toISOString(),
     definition_id: value["definitionId"],

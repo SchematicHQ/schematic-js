@@ -31,8 +31,7 @@ export function instanceOfEntitlementValueType(value: any): boolean {
   for (const key in EntitlementValueType) {
     if (Object.prototype.hasOwnProperty.call(EntitlementValueType, key)) {
       if (
-        (EntitlementValueType as Record<string, EntitlementValueType>)[key] ===
-        value
+        EntitlementValueType[key as keyof typeof EntitlementValueType] === value
       ) {
         return true;
       }
@@ -56,4 +55,11 @@ export function EntitlementValueTypeToJSON(
   value?: EntitlementValueType | null,
 ): any {
   return value as any;
+}
+
+export function EntitlementValueTypeToJSONTyped(
+  value: any,
+  ignoreDiscriminator: boolean,
+): EntitlementValueType {
+  return value as EntitlementValueType;
 }

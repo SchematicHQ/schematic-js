@@ -59,17 +59,15 @@ export type Entitlement =
   | PlanEntitlementResponseData
   | FeatureUsageResponseData;
 
-export interface UsageBasedEntitlement extends PlanEntitlementResponseData {
+export type SharedEntitlementUsageProps = {
   allocation: number;
   usage: number;
   quantity: number;
-}
-
-export interface CurrentUsageBasedEntitlement extends FeatureUsageResponseData {
-  allocation: number;
-  usage: number;
-  quantity: number;
-}
+};
+export type UsageBasedEntitlement = PlanEntitlementResponseData &
+  SharedEntitlementUsageProps;
+export type CurrentUsageBasedEntitlement = FeatureUsageResponseData &
+  SharedEntitlementUsageProps;
 
 export type PriceTier = Omit<BillingProductPriceTierResponseData, "upTo"> & {
   from?: number;

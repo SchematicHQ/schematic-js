@@ -3,7 +3,7 @@ import { css, styled } from "styled-components";
 export const ResetStyle = css`
   box-sizing: border-box;
   font-size: 1rem;
-  line-height: 1.35;
+  line-height: 1.375;
 
   *,
   *::before,

@@ -30,12 +30,9 @@ export function instanceOfBillingCreditRolloverPolicy(value: any): boolean {
       Object.prototype.hasOwnProperty.call(BillingCreditRolloverPolicy, key)
     ) {
       if (
-        (
-          BillingCreditRolloverPolicy as Record<
-            string,
-            BillingCreditRolloverPolicy
-          >
-        )[key] === value
+        BillingCreditRolloverPolicy[
+          key as keyof typeof BillingCreditRolloverPolicy
+        ] === value
       ) {
         return true;
       }
@@ -61,4 +58,11 @@ export function BillingCreditRolloverPolicyToJSON(
   value?: BillingCreditRolloverPolicy | null,
 ): any {
   return value as any;
+}
+
+export function BillingCreditRolloverPolicyToJSONTyped(
+  value: any,
+  ignoreDiscriminator: boolean,
+): BillingCreditRolloverPolicy {
+  return value as BillingCreditRolloverPolicy;
 }

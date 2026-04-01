@@ -1,7 +1,7 @@
 import js from "@eslint/js";
 import json from "@eslint/json";
 import markdown from "@eslint/markdown";
-import { defineConfig } from "eslint/config";
+import { defineConfig, globalIgnores } from "eslint/config";
 import importPlugin from "eslint-plugin-import";
 import pluginReact from "eslint-plugin-react";
 import reactHooks from "eslint-plugin-react-hooks";
@@ -9,6 +9,7 @@ import globals from "globals";
 import tseslint from "typescript-eslint";
 
 export default defineConfig([
+  globalIgnores(["**/api/", "**/mockServiceWorker.js"]),
   {
     files: ["**/*.{js,mjs,cjs,ts,jsx,tsx}"],
     plugins: { js, pluginReact },

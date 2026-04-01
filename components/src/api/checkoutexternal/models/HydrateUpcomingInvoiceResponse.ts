@@ -18,6 +18,7 @@ import {
   InvoiceResponseDataFromJSON,
   InvoiceResponseDataFromJSONTyped,
   InvoiceResponseDataToJSON,
+  InvoiceResponseDataToJSONTyped,
 } from "./InvoiceResponseData";
 
 /**
@@ -71,11 +72,19 @@ export function HydrateUpcomingInvoiceResponseFromJSONTyped(
 }
 
 export function HydrateUpcomingInvoiceResponseToJSON(
+  json: any,
+): HydrateUpcomingInvoiceResponse {
+  return HydrateUpcomingInvoiceResponseToJSONTyped(json, false);
+}
+
+export function HydrateUpcomingInvoiceResponseToJSONTyped(
   value?: HydrateUpcomingInvoiceResponse | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     data: InvoiceResponseDataToJSON(value["data"]),
     params: value["params"],

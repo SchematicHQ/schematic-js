@@ -1,11 +1,17 @@
 import debounce from "lodash/debounce";
-import { useCallback, useLayoutEffect, useRef, useState } from "react";
+import {
+  cloneElement,
+  useCallback,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { createPortal } from "react-dom";
 
 import { EVENT_DEBOUNCE_TIMEOUT } from "../../../const";
-import { Box, type BoxProps } from "../../ui";
+import { type BoxProps } from "../../ui";
 
-import { Content, Trigger } from "./styles";
+import { Content } from "./styles";
 
 export type Position = "top" | "right" | "bottom" | "left";
 
@@ -44,22 +50,21 @@ const getCoords = ({ element, portal, position }: GetCoordsArgs) => {
 };
 
 export interface TooltipProps extends BoxProps {
-  trigger: React.ReactNode;
+  trigger: React.ReactElement;
   content: React.ReactNode;
   portal?: HTMLElement | null;
   position?: Position;
-  fullWidth?: boolean;
 }
 
 export const Tooltip = ({
+  children,
   trigger,
   content,
   portal,
   position = "top",
-  fullWidth = false,
   ...rest
 }: TooltipProps) => {
-  const triggerRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLElement>(null);
 
   const [show, setShow] = useState(false);
   const [coords, setCoords] = useState({ x: 0, y: 0 });
@@ -87,18 +92,16 @@ export const Tooltip = ({
   }, [updateCoords]);
 
   return (
-    <Box $position="relative">
-      <Trigger
-        ref={triggerRef}
-        onFocus={() => setShow(true)}
-        onBlur={() => setShow(false)}
-        onPointerEnter={() => setShow(true)}
-        onPointerLeave={() => setShow(false)}
-        $fullWidth={fullWidth}
-        {...rest}
-      >
-        {trigger}
-      </Trigger>
+    <>
+      {cloneElement(trigger, {
+        // @ts-expect-error: ignore unknown ref type
+        ref: triggerRef,
+        onFocus: () => setShow(true),
+        onBlur: () => setShow(false),
+        onPointerEnter: () => setShow(true),
+        onPointerLeave: () => setShow(false),
+        ...rest,
+      })}
 
       {show &&
         createPortal(
@@ -107,6 +110,6 @@ export const Tooltip = ({
           </Content>,
           portal || document.body,
         )}
-    </Box>
+    </>
   );
 };

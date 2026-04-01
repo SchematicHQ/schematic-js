@@ -18,6 +18,7 @@ import {
   PreviewSubscriptionUpcomingInvoiceLineItemsFromJSON,
   PreviewSubscriptionUpcomingInvoiceLineItemsFromJSONTyped,
   PreviewSubscriptionUpcomingInvoiceLineItemsToJSON,
+  PreviewSubscriptionUpcomingInvoiceLineItemsToJSONTyped,
 } from "./PreviewSubscriptionUpcomingInvoiceLineItems";
 
 /**
@@ -176,11 +177,19 @@ export function PreviewSubscriptionFinanceResponseDataFromJSONTyped(
 }
 
 export function PreviewSubscriptionFinanceResponseDataToJSON(
+  json: any,
+): PreviewSubscriptionFinanceResponseData {
+  return PreviewSubscriptionFinanceResponseDataToJSONTyped(json, false);
+}
+
+export function PreviewSubscriptionFinanceResponseDataToJSONTyped(
   value?: PreviewSubscriptionFinanceResponseData | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     amount_off: value["amountOff"],
     due_now: value["dueNow"],

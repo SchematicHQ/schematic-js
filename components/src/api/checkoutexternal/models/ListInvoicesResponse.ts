@@ -18,12 +18,14 @@ import {
   ListInvoicesParamsFromJSON,
   ListInvoicesParamsFromJSONTyped,
   ListInvoicesParamsToJSON,
+  ListInvoicesParamsToJSONTyped,
 } from "./ListInvoicesParams";
 import type { InvoiceResponseData } from "./InvoiceResponseData";
 import {
   InvoiceResponseDataFromJSON,
   InvoiceResponseDataFromJSONTyped,
   InvoiceResponseDataToJSON,
+  InvoiceResponseDataToJSONTyped,
 } from "./InvoiceResponseData";
 
 /**
@@ -74,12 +76,18 @@ export function ListInvoicesResponseFromJSONTyped(
   };
 }
 
-export function ListInvoicesResponseToJSON(
+export function ListInvoicesResponseToJSON(json: any): ListInvoicesResponse {
+  return ListInvoicesResponseToJSONTyped(json, false);
+}
+
+export function ListInvoicesResponseToJSONTyped(
   value?: ListInvoicesResponse | null,
+  ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
     return value;
   }
+
   return {
     data: (value["data"] as Array<any>).map(InvoiceResponseDataToJSON),
     params: ListInvoicesParamsToJSON(value["params"]),

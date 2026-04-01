@@ -27,9 +27,7 @@ export type PlanVersionStatus =
 export function instanceOfPlanVersionStatus(value: any): boolean {
   for (const key in PlanVersionStatus) {
     if (Object.prototype.hasOwnProperty.call(PlanVersionStatus, key)) {
-      if (
-        (PlanVersionStatus as Record<string, PlanVersionStatus>)[key] === value
-      ) {
+      if (PlanVersionStatus[key as keyof typeof PlanVersionStatus] === value) {
         return true;
       }
     }
@@ -50,4 +48,11 @@ export function PlanVersionStatusFromJSONTyped(
 
 export function PlanVersionStatusToJSON(value?: PlanVersionStatus | null): any {
   return value as any;
+}
+
+export function PlanVersionStatusToJSONTyped(
+  value: any,
+  ignoreDiscriminator: boolean,
+): PlanVersionStatus {
+  return value as PlanVersionStatus;
 }
