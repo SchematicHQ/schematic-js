@@ -10,11 +10,12 @@ import type {
 } from "../../types";
 import { getAddOnPrice, getEntitlementPrice } from "./billing";
 
-export function buildPayInAdvanceRequestBody(
-  entitlements: UsageBasedEntitlement[],
-  period: string,
-  currency?: string,
-): UpdatePayInAdvanceRequestBody[] {
+export function buildPayInAdvanceRequestBody(options: {
+  entitlements: UsageBasedEntitlement[];
+  period: string;
+  currency?: string;
+}): UpdatePayInAdvanceRequestBody[] {
+  const { entitlements, period, currency } = options;
   return entitlements.reduce(
     (acc: UpdatePayInAdvanceRequestBody[], entitlement) => {
       const billingPrice = getEntitlementPrice(entitlement, period, currency);
@@ -33,13 +34,13 @@ export function buildPayInAdvanceRequestBody(
   );
 }
 
-export function buildAddOnRequestBody(
-  addOns: SelectedPlan[],
-  period: string,
-  shouldTrial: boolean,
-  addOnPayInAdvanceEntitlements: UsageBasedEntitlement[],
-  currency?: string,
-): UpdateAddOnRequestBody[] {
+export function buildAddOnRequestBody(options: {
+  addOns: SelectedPlan[];
+  period: string;
+  shouldTrial: boolean;
+  currency?: string;
+}): UpdateAddOnRequestBody[] {
+  const { addOns, period, shouldTrial, currency } = options;
   return addOns.reduce((acc: UpdateAddOnRequestBody[], addOn) => {
     if (addOn.isSelected && !shouldTrial) {
       const addOnPrice = getAddOnPrice(addOn, period, currency);

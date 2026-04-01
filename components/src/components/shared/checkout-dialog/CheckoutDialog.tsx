@@ -582,25 +582,24 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       const resolvedAddOns = updates.addOns || addOns;
       const resolvedCreditBundles = updates.creditBundles || creditBundles;
 
-      const planPayInAdvanceRequestBody = buildPayInAdvanceRequestBody(
-        resolvedPayInAdvanceEntitlements,
+      const planPayInAdvanceRequestBody = buildPayInAdvanceRequestBody({
+        entitlements: resolvedPayInAdvanceEntitlements,
         period,
-        resolvedCurrency,
-      );
+        currency: resolvedCurrency,
+      });
 
-      const addOnPayInAdvanceRequestBody = buildPayInAdvanceRequestBody(
-        resolvedAddOnPayInAdvanceEntitlements,
+      const addOnPayInAdvanceRequestBody = buildPayInAdvanceRequestBody({
+        entitlements: resolvedAddOnPayInAdvanceEntitlements,
         period,
-        resolvedCurrency,
-      );
+        currency: resolvedCurrency,
+      });
 
-      const addOnRequestBody = buildAddOnRequestBody(
-        resolvedAddOns,
+      const addOnRequestBody = buildAddOnRequestBody({
+        addOns: resolvedAddOns,
         period,
         shouldTrial,
-        resolvedAddOnPayInAdvanceEntitlements,
-        resolvedCurrency,
-      );
+        currency: resolvedCurrency,
+      });
 
       const creditBundlesRequestBody = buildCreditBundlesRequestBody(
         resolvedCreditBundles,

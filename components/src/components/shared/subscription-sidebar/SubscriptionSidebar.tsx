@@ -425,25 +425,24 @@ export const SubscriptionSidebar = forwardRef<
         setError(undefined);
         setIsLoading(true);
 
-        const planPayInAdvanceRequestBody = buildPayInAdvanceRequestBody(
-          payInAdvanceEntitlements,
-          planPeriod,
+        const planPayInAdvanceRequestBody = buildPayInAdvanceRequestBody({
+          entitlements: payInAdvanceEntitlements,
+          period: planPeriod,
           currency,
-        );
+        });
 
-        const addOnPayInAdvanceRequestBody = buildPayInAdvanceRequestBody(
-          addOnPayInAdvanceEntitlements,
-          planPeriod,
+        const addOnPayInAdvanceRequestBody = buildPayInAdvanceRequestBody({
+          entitlements: addOnPayInAdvanceEntitlements,
+          period: planPeriod,
           currency,
-        );
+        });
 
-        const addOnRequestBody = buildAddOnRequestBody(
+        const addOnRequestBody = buildAddOnRequestBody({
           addOns,
-          planPeriod,
+          period: planPeriod,
           shouldTrial,
-          addOnPayInAdvanceEntitlements,
           currency,
-        );
+        });
 
         const creditBundlesRequestBody =
           buildCreditBundlesRequestBody(creditBundles);
