@@ -8,7 +8,7 @@ import type {
 function makeDeps(): DeveloperToolbarDependencies {
   return {
     getAllFlags: vi.fn(() => ({})),
-    getFlagValue: vi.fn((_key: string) => undefined),
+    getFlagValue: vi.fn(() => undefined),
     addFlagValueListener: vi.fn(() => vi.fn()),
     notifyFlagCheckListeners: vi.fn(),
     notifyFlagValueListeners: vi.fn(),

@@ -2362,7 +2362,6 @@ describe("reconnectIfNeeded", () => {
 
 describe("Developer Toolbar integration", () => {
   const TEST_WS_URL = "ws://localhost:1234";
-  const FULL_WS_URL = `${TEST_WS_URL}/flags/bootstrap?apiKey=API_KEY`;
 
   beforeEach(() => {
     MockDeveloperToolbar.mockClear();
@@ -2379,6 +2378,7 @@ describe("Developer Toolbar integration", () => {
   describe("initializeDeveloperToolbar()", () => {
     it("does nothing when developerToolbar option is not set", async () => {
       const schematic = new Schematic("API_KEY");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (schematic as any).initializeDeveloperToolbar();
       expect(MockDeveloperToolbar).not.toHaveBeenCalled();
     });
@@ -2386,12 +2386,14 @@ describe("Developer Toolbar integration", () => {
     it("does nothing when window is undefined (SSR guard)", async () => {
       vi.stubGlobal("window", undefined);
       const schematic = new Schematic("API_KEY", { developerToolbar: true });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (schematic as any).initializeDeveloperToolbar();
       expect(MockDeveloperToolbar).not.toHaveBeenCalled();
     });
 
     it("logs a warning and skips when useWebSocket is false", async () => {
       const schematic = new Schematic("API_KEY", { developerToolbar: true });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (schematic as any).initializeDeveloperToolbar();
       expect(console.warn).toHaveBeenCalledWith(
         expect.stringContaining("requires WebSocket mode"),
@@ -2408,11 +2410,13 @@ describe("Developer Toolbar integration", () => {
         webSocketUrl: TEST_WS_URL,
       });
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (schematic as any).initializeDeveloperToolbar();
 
       expect(console.error).toHaveBeenCalledWith(
         expect.stringContaining("npm install --save-dev @schematichq/schematic-dev-toolbar"),
       );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((schematic as any).developerToolbar).toBeNull();
     });
   });
@@ -2420,7 +2424,9 @@ describe("Developer Toolbar integration", () => {
   describe("getFlagValue() with toolbar override", () => {
     it("returns the override value when toolbar has a manual override", () => {
       const schematic = new Schematic("API_KEY");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (schematic as any).developerToolbarEnabled = true;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (schematic as any).developerToolbar = {
         hasManualOverride: vi.fn(() => true),
         getManualOverride: vi.fn(() => ({
@@ -2437,7 +2443,9 @@ describe("Developer Toolbar integration", () => {
       const schematic = new Schematic("API_KEY", {
         flagValueDefaults: { "my-flag": false },
       });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (schematic as any).developerToolbarEnabled = true;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (schematic as any).developerToolbar = {
         hasManualOverride: vi.fn(() => false),
         getManualOverride: vi.fn(() => undefined),
@@ -2451,6 +2459,7 @@ describe("Developer Toolbar integration", () => {
         flagValueDefaults: { "my-flag": false },
       });
       // developerToolbarEnabled is false by default — toolbar should be ignored even if set
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (schematic as any).developerToolbar = {
         hasManualOverride: vi.fn(() => true),
         getManualOverride: vi.fn(() => ({
@@ -2472,7 +2481,9 @@ describe("Developer Toolbar integration", () => {
         value: true,
         reason: "Developer toolbar override",
       };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (schematic as any).developerToolbarEnabled = true;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (schematic as any).developerToolbar = {
         hasManualOverride: vi.fn(() => true),
         getManualOverride: vi.fn(() => override),
@@ -2487,7 +2498,9 @@ describe("Developer Toolbar integration", () => {
           "my-flag": { flag: "my-flag", value: false, reason: "default" },
         },
       });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (schematic as any).developerToolbarEnabled = true;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (schematic as any).developerToolbar = {
         hasManualOverride: vi.fn(() => false),
         getManualOverride: vi.fn(() => undefined),
@@ -2507,6 +2520,7 @@ describe("Developer Toolbar integration", () => {
     it("returns all flags stored for the current context", () => {
       const schematic = new Schematic("API_KEY");
       const contextStr = "{}";
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (schematic as any).checks[contextStr] = {
         "flag-a": { flag: "flag-a", value: true, reason: "test" },
         "flag-b": { flag: "flag-b", value: false, reason: "test" },
