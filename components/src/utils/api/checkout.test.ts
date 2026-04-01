@@ -223,7 +223,7 @@ describe("buildPayInAdvanceRequestBody", () => {
 
 describe("buildAddOnRequestBody", () => {
   it("should return an empty array for empty addOns", () => {
-    const result = buildAddOnRequestBody([], "month", false);
+    const result = buildAddOnRequestBody([], "month", false, []);
     expect(result).toEqual([]);
   });
 
@@ -244,7 +244,7 @@ describe("buildAddOnRequestBody", () => {
       }),
     ];
 
-    const result = buildAddOnRequestBody(addOns, "month", false);
+    const result = buildAddOnRequestBody(addOns, "month", false, []);
     expect(result).toEqual([]);
   });
 
@@ -265,7 +265,7 @@ describe("buildAddOnRequestBody", () => {
       }),
     ];
 
-    const result = buildAddOnRequestBody(addOns, "month", true);
+    const result = buildAddOnRequestBody(addOns, "month", true, []);
     expect(result).toEqual([]);
   });
 
@@ -286,7 +286,7 @@ describe("buildAddOnRequestBody", () => {
       }),
     ];
 
-    const result = buildAddOnRequestBody(addOns, "month", false);
+    const result = buildAddOnRequestBody(addOns, "month", false, []);
     expect(result).toEqual([{ addOnId: "addon-1", priceId: "mp-1" }]);
   });
 
@@ -307,7 +307,7 @@ describe("buildAddOnRequestBody", () => {
       }),
     ];
 
-    const result = buildAddOnRequestBody(addOns, "year", false);
+    const result = buildAddOnRequestBody(addOns, "year", false, []);
     expect(result).toEqual([{ addOnId: "addon-1", priceId: "yp-1" }]);
   });
 
@@ -328,7 +328,7 @@ describe("buildAddOnRequestBody", () => {
       }),
     ];
 
-    const result = buildAddOnRequestBody(addOns, "month", false);
+    const result = buildAddOnRequestBody(addOns, "month", false, []);
     expect(result).toEqual([{ addOnId: "addon-1", priceId: "mp-1" }]);
   });
 
@@ -342,7 +342,7 @@ describe("buildAddOnRequestBody", () => {
       }),
     ];
 
-    const result = buildAddOnRequestBody(addOns, "month", false);
+    const result = buildAddOnRequestBody(addOns, "month", false, []);
     expect(result).toEqual([]);
   });
 
@@ -366,10 +366,10 @@ describe("buildAddOnRequestBody", () => {
       }),
     ];
 
-    const resultMonth = buildAddOnRequestBody(addOns, "month", false);
+    const resultMonth = buildAddOnRequestBody(addOns, "month", false, []);
     expect(resultMonth).toEqual([{ addOnId: "addon-ot", priceId: "otp-1" }]);
 
-    const resultYear = buildAddOnRequestBody(addOns, "year", false);
+    const resultYear = buildAddOnRequestBody(addOns, "year", false, []);
     expect(resultYear).toEqual([{ addOnId: "addon-ot", priceId: "otp-1" }]);
   });
 
@@ -416,7 +416,7 @@ describe("buildAddOnRequestBody", () => {
       }),
     ];
 
-    const result = buildAddOnRequestBody(addOns, "month", false);
+    const result = buildAddOnRequestBody(addOns, "month", false, []);
     expect(result).toEqual([
       { addOnId: "addon-1", priceId: "mp-1" },
       { addOnId: "addon-3", priceId: "mp-3" },
