@@ -1,5 +1,6 @@
 export * from "./billing-threshold-tooltip";
 export * from "./checkout-dialog";
+export * from "./currency-toggle";
 export * from "./hard-limit-tooltip";
 export * from "./payment-dialog";
 export * from "./payment-form";

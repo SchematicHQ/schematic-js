@@ -1,5 +1,28 @@
 import { DEFAULT_CURRENCY, MAXIMUM_SIGNIFICANT_DIGITS } from "../const";
 
+/**
+ * Zero-decimal currencies where amounts are already in the smallest unit
+ * (i.e. no cents). Matches the Stripe list.
+ */
+const ZERO_DECIMAL_CURRENCIES = new Set([
+  "BIF",
+  "CLP",
+  "DJF",
+  "GNF",
+  "JPY",
+  "KMF",
+  "KRW",
+  "MGA",
+  "PYG",
+  "RWF",
+  "UGX",
+  "VND",
+  "VUV",
+  "XAF",
+  "XOF",
+  "XPF",
+]);
+
 export function hyphenToCamel(str: string) {
   return str.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
 }
@@ -48,9 +71,10 @@ export function formatCurrency(
   }
 
   const resolvedCurrency = currency.toUpperCase();
+  const divisor = ZERO_DECIMAL_CURRENCIES.has(resolvedCurrency) ? 1 : 100;
 
   try {
-    const dollars = amount / 100;
+    const dollars = amount / divisor;
 
     const hasManySignificantDigits =
       testSignificantDigits &&
@@ -72,7 +96,7 @@ export function formatCurrency(
       minimumFractionDigits: 2,
       maximumSignificantDigits: 12,
       currency: resolvedCurrency,
-    }).format(amount / 100);
+    }).format(amount / divisor);
   }
 }
 
@@ -92,4 +116,67 @@ export function formatOrdinal(n: number) {
 
 export function adjectify(str: string) {
   return `${str}ly`;
+}
+
+const CURRENCY_FLAGS: Record<string, string> = {
+  usd: "🇺🇸",
+  gbp: "🇬🇧",
+  jpy: "🇯🇵",
+  cad: "🇨🇦",
+  aud: "🇦🇺",
+  chf: "🇨🇭",
+  cny: "🇨🇳",
+  krw: "🇰🇷",
+  inr: "🇮🇳",
+  brl: "🇧🇷",
+  mxn: "🇲🇽",
+  sgd: "🇸🇬",
+  hkd: "🇭🇰",
+  nok: "🇳🇴",
+  sek: "🇸🇪",
+  dkk: "🇩🇰",
+  nzd: "🇳🇿",
+  zar: "🇿🇦",
+  try: "🇹🇷",
+  thb: "🇹🇭",
+  pln: "🇵🇱",
+  twd: "🇹🇼",
+  ils: "🇮🇱",
+  php: "🇵🇭",
+  czk: "🇨🇿",
+  clp: "🇨🇱",
+  cop: "🇨🇴",
+  myr: "🇲🇾",
+  idr: "🇮🇩",
+  vnd: "🇻🇳",
+  aed: "🇦🇪",
+  sar: "🇸🇦",
+  egp: "🇪🇬",
+  ngn: "🇳🇬",
+  ars: "🇦🇷",
+  pen: "🇵🇪",
+  uah: "🇺🇦",
+  ron: "🇷🇴",
+  bgn: "🇧🇬",
+  huf: "🇭🇺",
+  isk: "🇮🇸",
+  eur: "🇪🇺",
+};
+
+export function getCurrencyFlag(currency: string): string {
+  return CURRENCY_FLAGS[currency.toLowerCase()] ?? "";
+}
+
+export function getCurrencySymbol(currency: string): string {
+  try {
+    const parts = new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: currency.toUpperCase(),
+      currencyDisplay: "narrowSymbol",
+    }).formatToParts(0);
+
+    return parts.find((part) => part.type === "currency")?.value ?? currency;
+  } catch {
+    return currency;
+  }
 }
