@@ -23,6 +23,7 @@ import { Flex, Text } from "../../ui";
 export interface UsageDetailsProps {
   entitlement: FeatureUsageResponseData;
   period: string;
+  currency?: string;
   showCredits: boolean;
   layout: {
     addOns: {
@@ -36,6 +37,7 @@ export interface UsageDetailsProps {
 export const UsageDetails = ({
   entitlement,
   period,
+  currency,
   showCredits,
   layout,
 }: UsageDetailsProps) => {
@@ -48,8 +50,8 @@ export const UsageDetails = ({
     limit,
     cost = 0,
   } = useMemo(
-    () => getUsageDetails(entitlement, period),
-    [entitlement, period],
+    () => getUsageDetails(entitlement, period, currency),
+    [entitlement, period, currency],
   );
 
   const description = useMemo(() => {
@@ -67,7 +69,7 @@ export const UsageDetails = ({
       index += 1;
     }
 
-    const { price } = getEntitlementPrice(entitlement, period) || {};
+    const { price } = getEntitlementPrice(entitlement, period, currency) || {};
 
     if (
       (entitlement.priceBehavior === EntitlementPriceBehavior.PayAsYouGo ||
@@ -114,6 +116,7 @@ export const UsageDetails = ({
   }, [
     t,
     period,
+    currency,
     showCredits,
     entitlement,
     billingPrice?.packageSize,

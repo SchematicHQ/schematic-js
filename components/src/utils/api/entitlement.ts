@@ -13,6 +13,7 @@ import type {
   SharedEntitlementUsageProps,
 } from "../../types";
 import { getEntitlementCost } from "../../utils";
+import { getEntitlementPrice } from "./billing";
 
 const PeriodName: Record<string, string | undefined> = {
   billing: "billing period",
@@ -50,10 +51,12 @@ export interface UsageDetails {
 export function getUsageDetails(
   entitlement: FeatureUsageResponseData,
   period?: string,
+  currency?: string,
 ): UsageDetails {
   // billing price associated with the current period
-  const billingPrice =
-    period === "year"
+  const billingPrice = currency
+    ? getEntitlementPrice(entitlement, period ?? "month", currency)
+    : period === "year"
       ? entitlement.yearlyUsageBasedPrice
       : period === "month"
         ? entitlement.monthlyUsageBasedPrice
