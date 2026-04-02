@@ -1,6 +1,7 @@
+import { act, fireEvent, screen } from "@testing-library/react";
 import { vi } from "vitest";
 
-import { act, fireEvent, render, screen } from "../../../test/setup";
+import { render } from "../../../test/setup";
 
 import { CheckoutStageButton } from "./CheckoutStageButton";
 

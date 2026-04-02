@@ -1,10 +1,12 @@
+import { screen } from "@testing-library/react";
+
 import {
   EntitlementPriceBehavior,
   EntitlementValueType,
   FeatureType,
   type PlanEntitlementResponseData,
 } from "../../../api/componentspublic";
-import { render, screen } from "../../../test/setup";
+import { render } from "../../../test/setup";
 import type { Credit, DeepPartial } from "../../../types";
 
 import { Entitlement, type EntitlementProps } from "./Entitlement";

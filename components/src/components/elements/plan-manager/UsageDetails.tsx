@@ -108,8 +108,6 @@ export const UsageDetails = ({
           {t("per")} {t("use")}
         </Fragment>,
       );
-
-      index += 1;
     }
 
     return acc;
