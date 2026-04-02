@@ -2,7 +2,7 @@ import js from "@eslint/js";
 import json from "@eslint/json";
 import markdown from "@eslint/markdown";
 import { defineConfig, globalIgnores } from "eslint/config";
-import importPlugin from "eslint-plugin-import";
+import { importX } from "eslint-plugin-import-x";
 import pluginReact from "eslint-plugin-react";
 import reactHooks from "eslint-plugin-react-hooks";
 import globals from "globals";
@@ -16,8 +16,8 @@ export default defineConfig([
     extends: [
       js.configs.recommended,
       tseslint.configs.recommended,
-      importPlugin.flatConfigs.recommended,
-      importPlugin.flatConfigs.typescript,
+      importX.flatConfigs.recommended,
+      importX.flatConfigs.typescript,
       pluginReact.configs.flat.recommended,
       pluginReact.configs.flat["jsx-runtime"],
       reactHooks.configs.flat["recommended-latest"],
@@ -37,11 +37,11 @@ export default defineConfig([
         { ignoreRestSiblings: true },
       ],
       "react/no-unescaped-entities": "off",
-      "import/first": "error",
-      "import/newline-after-import": "error",
-      "import/no-duplicates": "error",
-      "import/no-named-as-default": "off",
-      "import/order": [
+      "import-x/first": "error",
+      "import-x/newline-after-import": "error",
+      "import-x/no-duplicates": "error",
+      "import-x/no-named-as-default": "off",
+      "import-x/order": [
         "error",
         {
           "newlines-between": "always",
@@ -57,13 +57,12 @@ export default defineConfig([
       ],
     },
     settings: {
-      "import/extensions": [".ts", ".tsx"],
-      "import/resolver": {
+      "import-x/extensions": [".ts", ".tsx"],
+      "import-x/resolver": {
         typescript: true,
-        node: true,
       },
       "react": {
-        version: "detect",
+        version: "19",
       },
     },
   },

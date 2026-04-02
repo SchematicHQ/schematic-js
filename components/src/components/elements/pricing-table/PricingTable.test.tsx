@@ -1,3 +1,10 @@
+import {
+  act,
+  fireEvent,
+  screen,
+  waitForElementToBeRemoved,
+  within,
+} from "@testing-library/react";
 import cloneDeep from "lodash/cloneDeep";
 import { HttpResponse, delay, http } from "msw";
 import { vi } from "vitest";
@@ -5,14 +12,7 @@ import { vi } from "vitest";
 import hydrateJson from "../../../test/mocks/handlers/response/hydrate.json";
 import plansJson from "../../../test/mocks/handlers/response/plans.json";
 import { server } from "../../../test/mocks/node";
-import {
-  act,
-  fireEvent,
-  render,
-  screen,
-  waitForElementToBeRemoved,
-  within,
-} from "../../../test/setup";
+import { render } from "../../../test/setup";
 import { SchematicEmbed } from "../../embed";
 
 import { PricingTable } from ".";

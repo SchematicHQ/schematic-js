@@ -1,5 +1,7 @@
+import { screen } from "@testing-library/react";
+
 import type { FeatureUsageResponseData } from "../../../api/checkoutexternal";
-import { render, screen } from "../../../test/setup";
+import { render } from "../../../test/setup";
 
 import { UsageViolationText } from "./UsageViolationText";
 

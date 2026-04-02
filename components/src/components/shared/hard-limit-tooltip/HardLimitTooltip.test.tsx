@@ -1,7 +1,8 @@
+import { fireEvent, screen } from "@testing-library/react";
 import { vi } from "vitest";
 
 import type { FeatureResponseData } from "../../../api/checkoutexternal";
-import { fireEvent, render, screen } from "../../../test/setup";
+import { render } from "../../../test/setup";
 
 import { HardLimitTooltip } from "./HardLimitTooltip";
 
