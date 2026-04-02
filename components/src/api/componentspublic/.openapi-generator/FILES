@@ -81,6 +81,7 @@ models/PlanCurrencyPricesResponseData.ts
 models/PlanDetailResponseData.ts
 models/PlanEntitlementResponseData.ts
 models/PlanGroupPlanDetailResponseData.ts
+models/PlanIcon.ts
 models/PlanResponseData.ts
 models/PlanType.ts
 models/PlanVersionResponseData.ts

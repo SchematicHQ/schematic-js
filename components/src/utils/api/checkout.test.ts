@@ -1,4 +1,5 @@
 import type { BillingPriceView } from "../../api/checkoutexternal";
+import { PlanIcon } from "../../api/checkoutexternal";
 import type {
   CreditBundle,
   SelectedPlan,
@@ -44,7 +45,7 @@ function makeSelectedPlan(overrides: Partial<SelectedPlan> = {}): SelectedPlan {
     description: "",
     entitlements: [],
     features: [],
-    icon: "",
+    icon: PlanIcon.Blue,
     id: "addon-1",
     includedCreditGrants: [],
     isCustom: false,

@@ -55,6 +55,13 @@ import {
   ChargeTypeToJSON,
   ChargeTypeToJSONTyped,
 } from "./ChargeType";
+import type { PlanIcon } from "./PlanIcon";
+import {
+  PlanIconFromJSON,
+  PlanIconFromJSONTyped,
+  PlanIconToJSON,
+  PlanIconToJSONTyped,
+} from "./PlanIcon";
 import type { PlanType } from "./PlanType";
 import {
   PlanTypeFromJSON,
@@ -184,10 +191,10 @@ export interface PlanGroupPlanDetailResponseData {
   features: Array<FeatureDetailResponseData>;
   /**
    *
-   * @type {string}
+   * @type {PlanIcon}
    * @memberof PlanGroupPlanDetailResponseData
    */
-  icon: string;
+  icon: PlanIcon;
   /**
    *
    * @type {string}
@@ -361,7 +368,7 @@ export function PlanGroupPlanDetailResponseDataFromJSONTyped(
     features: (json["features"] as Array<any>).map(
       FeatureDetailResponseDataFromJSON,
     ),
-    icon: json["icon"],
+    icon: PlanIconFromJSON(json["icon"]),
     id: json["id"],
     includedCreditGrants:
       json["included_credit_grants"] == null
@@ -434,7 +441,7 @@ export function PlanGroupPlanDetailResponseDataToJSONTyped(
     features: (value["features"] as Array<any>).map(
       FeatureDetailResponseDataToJSON,
     ),
-    icon: value["icon"],
+    icon: PlanIconToJSON(value["icon"]),
     id: value["id"],
     included_credit_grants:
       value["includedCreditGrants"] == null
