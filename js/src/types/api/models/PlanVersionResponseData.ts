@@ -20,6 +20,13 @@ import {
   PlanVersionStatusToJSON,
   PlanVersionStatusToJSONTyped,
 } from "./PlanVersionStatus";
+import type { PlanIcon } from "./PlanIcon";
+import {
+  PlanIconFromJSON,
+  PlanIconFromJSONTyped,
+  PlanIconToJSON,
+  PlanIconToJSONTyped,
+} from "./PlanIcon";
 import type { PlanType } from "./PlanType";
 import {
   PlanTypeFromJSON,
@@ -54,10 +61,10 @@ export interface PlanVersionResponseData {
   environmentId: string;
   /**
    *
-   * @type {string}
+   * @type {PlanIcon}
    * @memberof PlanVersionResponseData
    */
-  icon: string;
+  icon: PlanIcon;
   /**
    *
    * @type {string}
@@ -140,7 +147,7 @@ export function PlanVersionResponseDataFromJSONTyped(
     createdAt: new Date(json["created_at"]),
     description: json["description"],
     environmentId: json["environment_id"],
-    icon: json["icon"],
+    icon: PlanIconFromJSON(json["icon"]),
     id: json["id"],
     name: json["name"],
     originalPlanId:
@@ -170,7 +177,7 @@ export function PlanVersionResponseDataToJSONTyped(
     created_at: value["createdAt"].toISOString(),
     description: value["description"],
     environment_id: value["environmentId"],
-    icon: value["icon"],
+    icon: PlanIconToJSON(value["icon"]),
     id: value["id"],
     name: value["name"],
     original_plan_id: value["originalPlanId"],
