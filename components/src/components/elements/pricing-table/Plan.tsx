@@ -265,6 +265,7 @@ export const Plan = ({
                   entitlement={entitlement}
                   credits={credits}
                   selectedPeriod={selectedPeriod}
+                  currency={currency}
                   showCredits={showCredits}
                   sharedProps={{ layout }}
                 />

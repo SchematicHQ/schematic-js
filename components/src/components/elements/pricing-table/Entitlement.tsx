@@ -39,6 +39,7 @@ export interface EntitlementProps {
     layout: PricingTableProps;
   };
   selectedPeriod?: string;
+  currency?: string;
   credits?: Credit[];
   showCredits?: boolean;
 }
@@ -47,6 +48,7 @@ export const Entitlement = ({
   entitlement,
   sharedProps,
   selectedPeriod = BillingProductPriceInterval.Month,
+  currency,
   credits = [],
   showCredits = true,
 }: EntitlementProps) => {
@@ -61,6 +63,7 @@ export const Entitlement = ({
   const entitlementBillingPrice = getEntitlementPrice(
     entitlement,
     selectedPeriod,
+    currency,
   );
   const {
     price: entitlementPrice,
