@@ -110,6 +110,12 @@ export interface BillingPlanCreditGrantResponseData {
    * @type {number}
    * @memberof BillingPlanCreditGrantResponseData
    */
+  autoTopupThresholdCredits?: number | null;
+  /**
+   *
+   * @type {number}
+   * @memberof BillingPlanCreditGrantResponseData
+   */
   autoTopupThresholdPercent?: number | null;
   /**
    *
@@ -285,6 +291,10 @@ export function BillingPlanCreditGrantResponseDataFromJSONTyped(
       json["auto_topup_expiry_unit_count"] == null
         ? undefined
         : json["auto_topup_expiry_unit_count"],
+    autoTopupThresholdCredits:
+      json["auto_topup_threshold_credits"] == null
+        ? undefined
+        : json["auto_topup_threshold_credits"],
     autoTopupThresholdPercent:
       json["auto_topup_threshold_percent"] == null
         ? undefined
@@ -365,6 +375,7 @@ export function BillingPlanCreditGrantResponseDataToJSONTyped(
       value["autoTopupExpiryUnit"],
     ),
     auto_topup_expiry_unit_count: value["autoTopupExpiryUnitCount"],
+    auto_topup_threshold_credits: value["autoTopupThresholdCredits"],
     auto_topup_threshold_percent: value["autoTopupThresholdPercent"],
     created_at: value["createdAt"].toISOString(),
     credit: BillingCreditResponseDataToJSON(value["credit"]),

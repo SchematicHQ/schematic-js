@@ -109,6 +109,7 @@ export * from "./PlanCurrencyPricesResponseData";
 export * from "./PlanDetailResponseData";
 export * from "./PlanEntitlementResponseData";
 export * from "./PlanGroupPlanDetailResponseData";
+export * from "./PlanIcon";
 export * from "./PlanResponseData";
 export * from "./PlanType";
 export * from "./PlanVersionResponseData";

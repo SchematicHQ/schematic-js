@@ -423,6 +423,7 @@ export const PlanManager = forwardRef<
                     key={entitlementIndex}
                     entitlement={entitlement}
                     period={currentPlan?.planPeriod || "month"}
+                    currency={subscriptionCurrency}
                     showCredits={showCredits}
                     layout={props}
                   />
