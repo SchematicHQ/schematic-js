@@ -100,10 +100,10 @@ export const Plan = ({
       className="sch-PricingTable_Plan"
       data-testid="sch-plan"
       data-plan-id={plan.id}
-      style={{ listStyle: "none" }}
       $position="relative"
       $flexDirection="column"
       $padding={`${cardPadding}rem 0`}
+      $listStyle="none"
       $backgroundColor={settings.theme.card.background}
       $borderRadius={`${settings.theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
       $outlineWidth="2px"
@@ -180,13 +180,13 @@ export const Plan = ({
             $gap="1rem"
             $flexGrow={1}
             $marginTop="0.5rem"
-            $padding="0"
-            $margin="0"
-            style={{ listStyle: "none" }}
+            $padding={0}
+            $margin={0}
+            $listStyle="none"
           >
             {credits.map((credit, idx) => {
               return (
-                <Flex key={idx} as="li" $gap="1rem" style={{ listStyle: "none" }}>
+                <Flex key={idx} as="li" $gap="1rem" $listStyle="none">
                   {layout.plans.showFeatureIcons && credit.icon && (
                     <Icon
                       data-testid="sch-feature-icon"
@@ -258,9 +258,9 @@ export const Plan = ({
             $flexDirection="column"
             $gap="1rem"
             $flexGrow={1}
-            $padding="0"
-            $margin="0"
-            style={{ listStyle: "none" }}
+            $padding={0}
+            $margin={0}
+            $listStyle="none"
           >
             {layout.plans.showInclusionText && index > 0 && (
               <Box $marginBottom="1.5rem">
@@ -294,7 +294,7 @@ export const Plan = ({
                 $alignItems="center"
                 $gap="0.5rem"
                 $marginTop="1rem"
-                style={{ listStyle: "none" }}
+                $listStyle="none"
               >
                 <Icon
                   name={isExpanded ? "chevron-up" : "chevron-down"}

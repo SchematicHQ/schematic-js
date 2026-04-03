@@ -207,7 +207,7 @@ export const AddOns = ({
               $flexDirection="column"
               $gap="0.75rem"
               $padding={`0 ${cardPadding}rem ${displayableEntitlements.length > 0 ? 0.75 * cardPadding : 0}rem`}
-              $borderWidth="0"
+              $borderWidth={0}
               $borderBottomWidth={
                 displayableEntitlements.length > 0 ? "1px" : "0"
               }

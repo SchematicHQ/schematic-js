@@ -303,9 +303,9 @@ export const PricingTable = forwardRef<
               $display="grid"
               $gridTemplateColumns="repeat(auto-fill, minmax(320px, 1fr))"
               $gap="1rem"
-              $padding="0"
-              $margin="0"
-              style={{ listStyle: "none" }}
+              $padding={0}
+              $margin={0}
+              $listStyle="none"
             >
               {plans.map((plan, index, self) => {
                 const planPeriod = showPeriodToggle
@@ -358,9 +358,9 @@ export const PricingTable = forwardRef<
                 $display="grid"
                 $gridTemplateColumns="repeat(auto-fill, minmax(320px, 1fr))"
                 $gap="1rem"
-                $padding="0"
-                $margin="0"
-                style={{ listStyle: "none" }}
+                $padding={0}
+                $margin={0}
+                $listStyle="none"
               >
                 {addOns.map((addOn, index) => {
                   const addOnPeriod = showPeriodToggle
