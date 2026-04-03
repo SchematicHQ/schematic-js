@@ -1,6 +1,6 @@
 import { forwardRef } from "react";
 
-import { Flex } from "../../ui";
+import * as styles from "./styles";
 
 interface DialogContentProps {
   children?: React.ReactNode;
@@ -10,22 +10,7 @@ export const DialogContent = forwardRef<
   HTMLDivElement | null,
   DialogContentProps
 >(({ children }, ref) => {
-  return (
-    <Flex
-      ref={ref}
-      $position="relative"
-      $flexDirection="column"
-      $viewport={{
-        md: {
-          $flexDirection: "row",
-          $height: "calc(100% - 5rem + 3px)",
-          $maxHeight: "calc(100dvh - 5rem + 3px)",
-        },
-      }}
-    >
-      {children}
-    </Flex>
-  );
+  return <styles.DialogContent ref={ref}>{children}</styles.DialogContent>;
 });
 
 DialogContent.displayName = "DialogContent";
