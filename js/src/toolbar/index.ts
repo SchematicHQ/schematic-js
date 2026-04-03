@@ -36,8 +36,8 @@ const BUTTON_STYLES = {
       borderColor: "rgba(255, 107, 53, 0.4)",
     },
     false: {
-      background: "rgba(255, 107, 53, 0.2)",
-      borderColor: "rgba(255, 107, 53, 0.5)",
+      background: "rgba(34, 197, 94, 0.2)",
+      borderColor: "rgba(34, 197, 94, 0.5)",
     },
     hover: {
       true: {
@@ -45,8 +45,8 @@ const BUTTON_STYLES = {
         borderColor: "rgba(255, 107, 53, 0.6)",
       },
       false: {
-        background: "rgba(255, 107, 53, 0.3)",
-        borderColor: "rgba(255, 107, 53, 0.6)",
+        background: "rgba(34, 197, 94, 0.3)",
+        borderColor: "rgba(34, 197, 94, 0.6)",
       },
     },
   },
@@ -208,7 +208,7 @@ export class DeveloperToolbar {
       this.toggle.disabled = false;
       this.toggle.textContent = state.flagValue ? "Restrict feature" : "Allow feature";
       this.toggle.classList.add(state.flagValue ? "flag-true" : "flag-false");
-      this.toggle.style.color = "#ff6b35";
+      this.toggle.style.color = state.flagValue ? "#ff6b35" : "#22c55e";
       this.toggle.style.cursor = "pointer";
       Object.assign(
         this.toggle.style,
@@ -271,8 +271,8 @@ export class DeveloperToolbar {
           border-color: rgba(255, 107, 53, 0.6) !important;
         }
         #schematic-toolbar-button.flag-false:hover:not(:disabled) {
-          background: rgba(255, 107, 53, 0.3) !important;
-          border-color: rgba(255, 107, 53, 0.6) !important;
+          background: rgba(34, 197, 94, 0.3) !important;
+          border-color: rgba(34, 197, 94, 0.6) !important;
         }
       `);
       style.id = "schematic-toolbar-styles";
