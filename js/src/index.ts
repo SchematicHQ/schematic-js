@@ -2017,15 +2017,14 @@ export class Schematic {
       return;
     }
 
-    // Developer toolbar requires WebSocket mode
-    if (!this.useWebSocket) {
-      console.warn(
-        "[Schematic] Developer toolbar requires WebSocket mode. Please enable useWebSocket: true in your Schematic configuration.",
-      );
-      return;
-    }
-
     if (__DEV__) {
+      if (!this.useWebSocket) {
+        console.warn(
+          "[Schematic] Developer toolbar requires WebSocket mode. Please enable useWebSocket: true in your Schematic configuration.",
+        );
+        return;
+      }
+
       if (!this.developerToolbar) {
         this.developerToolbar = new DeveloperToolbar({
           getAllFlags: this.getAllFlags,

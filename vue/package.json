@@ -1,8 +1,8 @@
 {
   "name": "@schematichq/schematic-vue",
   "version": "1.2.16",
-  "main": "dist/schematic-vue.dev.cjs.js",
-  "module": "dist/schematic-vue.dev.esm.js",
+  "main": "dist/schematic-vue.prod.cjs.js",
+  "module": "dist/schematic-vue.prod.esm.js",
   "types": "dist/schematic-vue.d.ts",
   "exports": {
     ".": {
@@ -15,8 +15,8 @@
         "import": "./dist/schematic-vue.prod.esm.js"
       },
       "default": {
-        "require": "./dist/schematic-vue.dev.cjs.js",
-        "import": "./dist/schematic-vue.dev.esm.js"
+        "require": "./dist/schematic-vue.prod.cjs.js",
+        "import": "./dist/schematic-vue.prod.esm.js"
       }
     }
   },

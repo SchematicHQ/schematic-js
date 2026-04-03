@@ -1,8 +1,8 @@
 {
   "name": "@schematichq/schematic-js",
   "version": "1.3.0",
-  "main": "dist/schematic.dev.cjs.js",
-  "module": "dist/schematic.dev.esm.js",
+  "main": "dist/schematic.prod.cjs.js",
+  "module": "dist/schematic.prod.esm.js",
   "types": "dist/schematic.d.ts",
   "exports": {
     ".": {
@@ -15,8 +15,8 @@
         "import": "./dist/schematic.prod.esm.js"
       },
       "default": {
-        "require": "./dist/schematic.dev.cjs.js",
-        "import": "./dist/schematic.dev.esm.js"
+        "require": "./dist/schematic.prod.cjs.js",
+        "import": "./dist/schematic.prod.esm.js"
       }
     }
   },

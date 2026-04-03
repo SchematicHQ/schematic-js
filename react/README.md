@@ -279,10 +279,9 @@ Offline mode automatically enables debug mode to help with troubleshooting.
 
 ### Developer Toolbar
 
-Enables a developer toolbar at the top of the page for testing flags. The toolbar allows you to manually override flag values on/off for testing purposes. **Requires WebSocket mode** (enabled by default in React).
+Enables a developer toolbar at the top of the page for testing flags. The toolbar allows you to manually override flag values on/off for testing purposes.
 
 ```typescript
-// Enable at initialization
 import { SchematicProvider } from "@schematichq/schematic-react";
 
 ReactDOM.render(
@@ -302,6 +301,10 @@ The toolbar will:
 - Allow you to toggle flags on/off
 - Preserve manual overrides even when websocket updates arrive
 - Reset all overrides on page reload (not persisted)
+
+The toolbar is omitted from production builds to decrease bundle size. If `developerToolbar={true}` is left on in a production build, it will silently no-op. 
+
+If you're using Rollup without Vite, add `exportConditions: ['development']` to your `@rollup/plugin-node-resolve` config to enable the toolbar in your dev environment.
 
 
 ## License
