@@ -105,12 +105,18 @@ export function getEntitlementPrice(
   period = "month",
   currency?: string,
 ): BillingPriceView | undefined {
-  if (
-    currency &&
-    "valueType" in entitlement &&
-    entitlement.currencyPrices?.length
-  ) {
-    const currencyPrice = entitlement.currencyPrices.find(
+  // Resolve currency prices from whichever shape carries them:
+  // PlanEntitlementResponseData has currencyPrices directly,
+  // FeatureUsageResponseData carries them on planEntitlement.
+  const currencyPrices =
+    "valueType" in entitlement
+      ? entitlement.currencyPrices
+      : "entitlementType" in entitlement
+        ? entitlement.planEntitlement?.currencyPrices
+        : undefined;
+
+  if (currency && currencyPrices?.length) {
+    const currencyPrice = currencyPrices.find(
       (cp) => cp.currency.toLowerCase() === currency.toLowerCase(),
     );
     if (currencyPrice) {
@@ -222,9 +228,11 @@ export function calculateTieredCost(
 export function getEntitlementCost(
   entitlement: FeatureUsageResponseData,
   period: string | null = "month",
+  currency?: string,
 ): number | undefined {
-  const source =
-    period === "year"
+  const source = currency
+    ? getEntitlementPrice(entitlement, period ?? "month", currency)
+    : period === "year"
       ? entitlement.yearlyUsageBasedPrice
       : entitlement.monthlyUsageBasedPrice;
 
