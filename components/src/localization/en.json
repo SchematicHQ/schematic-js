@@ -134,6 +134,7 @@
     "Try again": "Try again",
     "Unlimited": "Unlimited {{item}}",
     "Unlimited in this tier": "Unlimited {{feature}} in this tier",
+    "Unable to load payment form.": "Unable to load payment form. Your browser's security or privacy settings may be blocking it. Please try a different browser or adjust your privacy settings.",
     "Unsubscribe failed": "Unsubscribe failed",
     "Unsubscribe": "Unsubscribe",
     "Unused time": "Unused time",

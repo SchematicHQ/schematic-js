@@ -4,7 +4,7 @@ import {
   useElements,
   useStripe,
 } from "@stripe/react-stripe-js";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import type { PreviewSubscriptionFinanceResponseData } from "../../../api/checkoutexternal";
@@ -32,6 +32,28 @@ export const PaymentForm = ({ onConfirm, financeData }: PaymentFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [isPaymentComplete, setIsPaymentComplete] = useState(false);
+  const [isPaymentReady, setIsPaymentReady] = useState(false);
+  const [loadError, setLoadError] = useState<string | undefined>();
+  const loadTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  useEffect(() => {
+    loadTimerRef.current = setTimeout(() => {
+      if (!isPaymentReady) {
+        setLoadError(
+          t(
+            "Unable to load payment form.",
+          ),
+        );
+      }
+    }, 10000);
+
+    return () => {
+      if (loadTimerRef.current) {
+        clearTimeout(loadTimerRef.current);
+      }
+    };
+  }, [isPaymentReady, t]);
+
   const [isAddressComplete, setIsAddressComplete] = useState(() => {
     // Check if billing address collection is needed (either configured or required for tax)
     const shouldCollectAddress = shouldCollectBillingAddress(
@@ -96,11 +118,35 @@ export const PaymentForm = ({ onConfirm, financeData }: PaymentFormProps) => {
       <Box $marginBottom="1.5rem">
         <PaymentElement
           id="payment-element"
+          onReady={() => {
+            setIsPaymentReady(true);
+            if (loadTimerRef.current) {
+              clearTimeout(loadTimerRef.current);
+            }
+          }}
+          onLoadError={() => {
+            setLoadError(
+              t(
+                "Unable to load payment form.",
+              ),
+            );
+            if (loadTimerRef.current) {
+              clearTimeout(loadTimerRef.current);
+            }
+          }}
           onChange={(event) => {
             setIsPaymentComplete(event.complete);
           }}
         />
       </Box>
+
+      {loadError && (
+        <Box $margin="0 0 1rem">
+          <Text $size={15} $weight={500} $color="#DB6669">
+            {loadError}
+          </Text>
+        </Box>
+      )}
 
       {stripe && data?.checkoutSettings.collectEmail && (
         <Box data-field="name" $marginBottom="1.5rem" $verticalAlign="top">

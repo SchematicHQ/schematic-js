@@ -242,9 +242,19 @@ export const PaymentMethodDetails = ({
       }
 
       const stripePromise = loadStripe(publishableKey, stripeOptions);
+      stripePromise.then((instance) => {
+        if (!instance) {
+          setError(
+            t(
+              "Unable to load payment form.",
+            ),
+          );
+          setShowPaymentForm(false);
+        }
+      });
       setStripe(stripePromise);
     }
-  }, [stripe, setupIntent]);
+  }, [stripe, setupIntent, t]);
 
   useEffect(() => {
     if (!setupIntent && (!currentPaymentMethod || showPaymentForm)) {
