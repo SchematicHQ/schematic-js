@@ -25,6 +25,7 @@ import { AddOn } from "./AddOn";
 import { UsageDetails } from "./UsageDetails";
 
 interface DesignProps {
+  showCurrencySelector: boolean;
   header: {
     isVisible: boolean;
     title: {
@@ -53,6 +54,7 @@ interface DesignProps {
 
 const resolveDesignProps = (props: DeepPartial<DesignProps>): DesignProps => {
   return {
+    showCurrencySelector: props.showCurrencySelector ?? false,
     header: {
       isVisible: props.header?.isVisible ?? true,
       title: {
