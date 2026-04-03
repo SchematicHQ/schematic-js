@@ -16,7 +16,7 @@ const MockDeveloperToolbar = vi.hoisted(() =>
   })),
 );
 
-vi.mock("@schematichq/schematic-dev-toolbar", () => ({
+vi.mock("./toolbar", () => ({
   DeveloperToolbar: MockDeveloperToolbar,
 }));
 
@@ -2376,48 +2376,29 @@ describe("Developer Toolbar integration", () => {
   });
 
   describe("initializeDeveloperToolbar()", () => {
-    it("does nothing when developerToolbar option is not set", async () => {
+    it("does nothing when developerToolbar option is not set", () => {
       const schematic = new Schematic("API_KEY");
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await (schematic as any).initializeDeveloperToolbar();
+      (schematic as any).initializeDeveloperToolbar();
       expect(MockDeveloperToolbar).not.toHaveBeenCalled();
     });
 
-    it("does nothing when window is undefined (SSR guard)", async () => {
+    it("does nothing when window is undefined (SSR guard)", () => {
       vi.stubGlobal("window", undefined);
       const schematic = new Schematic("API_KEY", { developerToolbar: true });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await (schematic as any).initializeDeveloperToolbar();
+      (schematic as any).initializeDeveloperToolbar();
       expect(MockDeveloperToolbar).not.toHaveBeenCalled();
     });
 
-    it("logs a warning and skips when useWebSocket is false", async () => {
+    it("logs a warning and skips when useWebSocket is false", () => {
       const schematic = new Schematic("API_KEY", { developerToolbar: true });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await (schematic as any).initializeDeveloperToolbar();
+      (schematic as any).initializeDeveloperToolbar();
       expect(console.warn).toHaveBeenCalledWith(
         expect.stringContaining("requires WebSocket mode"),
       );
       expect(MockDeveloperToolbar).not.toHaveBeenCalled();
-    });
-
-    it("logs an error and skips when the toolbar package is not installed", async () => {
-      // Note: vi.mock cannot intercept imports using /* @vite-ignore */ with a variable,
-      // so the real import is attempted here and fails since the package is not installed in js/
-      const schematic = new Schematic("API_KEY", {
-        developerToolbar: true,
-        useWebSocket: true,
-        webSocketUrl: TEST_WS_URL,
-      });
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await (schematic as any).initializeDeveloperToolbar();
-
-      expect(console.error).toHaveBeenCalledWith(
-        expect.stringContaining("npm install --save-dev @schematichq/schematic-dev-toolbar"),
-      );
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      expect((schematic as any).developerToolbar).toBeNull();
     });
   });
 

@@ -1,12 +1,30 @@
 {
   "name": "@schematichq/schematic-js",
   "version": "1.3.0",
-  "main": "dist/schematic.cjs.js",
-  "module": "dist/schematic.esm.js",
+  "main": "dist/schematic.dev.cjs.js",
+  "module": "dist/schematic.dev.esm.js",
   "types": "dist/schematic.d.ts",
+  "exports": {
+    ".": {
+      "development": {
+        "require": "./dist/schematic.dev.cjs.js",
+        "import": "./dist/schematic.dev.esm.js"
+      },
+      "production": {
+        "require": "./dist/schematic.prod.cjs.js",
+        "import": "./dist/schematic.prod.esm.js"
+      },
+      "default": {
+        "require": "./dist/schematic.dev.cjs.js",
+        "import": "./dist/schematic.dev.esm.js"
+      }
+    }
+  },
   "files": [
-    "dist/schematic.cjs.js",
-    "dist/schematic.esm.js",
+    "dist/schematic.dev.cjs.js",
+    "dist/schematic.dev.esm.js",
+    "dist/schematic.prod.cjs.js",
+    "dist/schematic.prod.esm.js",
     "dist/schematic.browser.js",
     "dist/schematic.d.ts"
   ],
@@ -18,10 +36,12 @@
   },
   "scripts": {
     "dev": "npx esbuild src/index.ts --bundle --format=esm --outfile=dist/schematic.esm.js --watch",
-    "build": "./version.sh && npx tsc && yarn clean && yarn build:browser && yarn build:cjs && yarn build:esm && yarn build:types",
-    "build:browser": "npx esbuild src/browser.ts --bundle --minify --outfile=dist/schematic.browser.js --platform=browser",
-    "build:cjs": "npx esbuild src/index.ts --bundle --format=cjs --outfile=dist/schematic.cjs.js --external:@schematichq/schematic-dev-toolbar",
-    "build:esm": "npx esbuild src/index.ts --bundle --format=esm --outfile=dist/schematic.esm.js --external:@schematichq/schematic-dev-toolbar",
+    "build": "./version.sh && npx tsc && yarn clean && yarn build:browser && yarn build:cjs:dev && yarn build:cjs:prod && yarn build:esm:dev && yarn build:esm:prod && yarn build:types",
+    "build:browser": "npx esbuild src/browser.ts --bundle --minify --outfile=dist/schematic.browser.js --platform=browser --define:__DEV__=false",
+    "build:cjs:dev": "npx esbuild src/index.ts --bundle --format=cjs --outfile=dist/schematic.dev.cjs.js --define:__DEV__=true",
+    "build:cjs:prod": "npx esbuild src/index.ts --bundle --format=cjs --outfile=dist/schematic.prod.cjs.js --define:__DEV__=false",
+    "build:esm:dev": "npx esbuild src/index.ts --bundle --format=esm --outfile=dist/schematic.dev.esm.js --define:__DEV__=true",
+    "build:esm:prod": "npx esbuild src/index.ts --bundle --format=esm --outfile=dist/schematic.prod.esm.js --define:__DEV__=false",
     "build:types": "npx tsc && npx api-extractor run",
     "clean": "rm -rf dist",
     "format": "prettier --write src/*.ts",

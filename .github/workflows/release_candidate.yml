@@ -7,7 +7,6 @@ on:
       - 'schematic-react@*-rc.*'
       - 'schematic-components@*-rc.*'
       - 'schematic-vue@*-rc.*'
-      - 'schematic-dev-toolbar@*-rc.*'
 
 jobs:
   parse_tag:
@@ -40,9 +39,6 @@ jobs:
               ;;
             schematic-vue)
               echo "working_dir=vue" >> $GITHUB_OUTPUT
-              ;;
-            schematic-dev-toolbar)
-              echo "working_dir=toolbar" >> $GITHUB_OUTPUT
               ;;
             *)
               echo "Error: Unknown package $PACKAGE"
