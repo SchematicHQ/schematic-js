@@ -5,6 +5,12 @@ import { ContainerStyle, ResetStyle } from "../../layout";
 
 import { type DialogSize } from ".";
 
+export const DialogContent = styled.div`
+  position: relative;
+  display: flex;
+  flex-direction: column;
+`;
+
 interface DialogProps {
   $isModal: boolean;
   $size: DialogSize;
@@ -57,6 +63,16 @@ export const Dialog = styled.dialog<DialogProps>(
             : "1356px"};
         height: ${$size === "lg" ? "100%" : "fit-content"};
         border-radius: 0.5rem;
+
+        ${DialogContent} {
+          flex-direction: row;
+          max-height: calc(100dvh - 5rem + 3px);
+
+          ${$size === "lg" &&
+          css`
+            height: calc(100% - 5rem + 3px);
+          `}
+        }
       }
 
       @media (min-width: 768px) and (min-height: 896px) {
