@@ -177,7 +177,7 @@ export const PaymentMethodDetails = ({
       }
 
       try {
-        const stripePromise = loadStripe(`${publishableKey}a`, stripeOptions);
+        const stripePromise = loadStripe(publishableKey, stripeOptions);
         setStripe(stripePromise);
 
         const instance = await stripePromise;
