@@ -202,7 +202,8 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       currencies[0] ??
       DEFAULT_CURRENCY,
   );
-  const showCurrencySelector = currencies.length > 1 || !!lockedCurrency;
+  const showCurrencySelector = currencies.length > 1 && !lockedCurrency;
+  const hasCurrency = currencies.length > 1 || !!lockedCurrency;
 
   // Keep currency pinned to the subscription currency when it loads async
   useEffect(() => {
@@ -544,7 +545,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     }) => {
       const period = updates.period || planPeriod;
       const plan = updates.plan || selectedPlan;
-      const resolvedCurrency = showCurrencySelector
+      const resolvedCurrency = hasCurrency
         ? selectedCurrency
         : undefined;
       const currencyPrice = plan
@@ -687,7 +688,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       planPeriod,
       selectedPlan,
       selectedCurrency,
-      showCurrencySelector,
+      hasCurrency,
       payInAdvanceEntitlements,
       addOnPayInAdvanceEntitlements,
       addOns,
@@ -1192,7 +1193,6 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
                     currencies={currencies}
                     selectedCurrency={selectedCurrency}
                     onSelect={setSelectedCurrency}
-                    disabled={!!lockedCurrency}
                   />
                 )}
 
@@ -1228,7 +1228,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
               selectPlan={selectPlan}
               shouldTrial={shouldTrial}
               tooltipPortal={dialogRef.current}
-              currency={showCurrencySelector ? selectedCurrency : undefined}
+              currency={hasCurrency ? selectedCurrency : undefined}
             />
           ) : checkoutStage === "usage" ? (
             <Quantity
@@ -1238,7 +1238,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
               entitlements={payInAdvanceEntitlements}
               updateQuantity={updateUsageBasedEntitlementQuantity}
               tooltipPortal={dialogRef.current}
-              currency={showCurrencySelector ? selectedCurrency : undefined}
+              currency={hasCurrency ? selectedCurrency : undefined}
             />
           ) : checkoutStage === "addons" ? (
             <AddOns
@@ -1246,7 +1246,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
               period={planPeriod}
               addOns={addOns}
               toggle={(id) => toggleAddOn(id)}
-              currency={showCurrencySelector ? selectedCurrency : undefined}
+              currency={hasCurrency ? selectedCurrency : undefined}
             />
           ) : checkoutStage === "addonsUsage" ? (
             <Quantity
@@ -1256,14 +1256,14 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
               entitlements={addOnPayInAdvanceEntitlements}
               updateQuantity={updateAddOnEntitlementQuantity}
               tooltipPortal={dialogRef.current}
-              currency={showCurrencySelector ? selectedCurrency : undefined}
+              currency={hasCurrency ? selectedCurrency : undefined}
             />
           ) : checkoutStage === "credits" ? (
             <Credits
               isLoading={isLoading}
               bundles={creditBundles}
               updateCount={updateCreditBundleCount}
-              currency={showCurrencySelector ? selectedCurrency : undefined}
+              currency={hasCurrency ? selectedCurrency : undefined}
             />
           ) : (
             checkoutStage === "checkout" && (
@@ -1305,7 +1305,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
           setConfirmPaymentIntent={setConfirmPaymentIntentProps}
           willTrialWithoutPaymentMethod={willTrialWithoutPaymentMethod}
           willScheduleDowngrade={willScheduleDowngrade}
-          currency={showCurrencySelector ? selectedCurrency : undefined}
+          currency={hasCurrency ? selectedCurrency : undefined}
         />
       </DialogContent>
     </Dialog>
