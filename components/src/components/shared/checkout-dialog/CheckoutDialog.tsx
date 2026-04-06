@@ -545,9 +545,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     }) => {
       const period = updates.period || planPeriod;
       const plan = updates.plan || selectedPlan;
-      const resolvedCurrency = hasCurrency
-        ? selectedCurrency
-        : undefined;
+      const resolvedCurrency = hasCurrency ? selectedCurrency : undefined;
       const currencyPrice = plan
         ? getPlanPrice(
             plan,
