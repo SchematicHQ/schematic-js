@@ -2361,8 +2361,6 @@ describe("reconnectIfNeeded", () => {
 });
 
 describe("Developer Toolbar integration", () => {
-  const TEST_WS_URL = "ws://localhost:1234";
-
   beforeEach(() => {
     MockDeveloperToolbar.mockClear();
     vi.spyOn(console, "warn").mockImplementation(() => {});

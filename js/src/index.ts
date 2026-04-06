@@ -11,7 +11,6 @@ import {
   CheckFlagsResponseFromJSON,
   CheckPlanReturn,
   CheckPlanReturnFromJSON,
-  DeveloperToolbarDependencies,
   DeveloperToolbarInterface,
   CheckOptions,
   EmptyListenerFn,
