@@ -93,6 +93,7 @@ models/RuleConditionResponseData.ts
 models/RuleDetailResponseData.ts
 models/RuleResponseData.ts
 models/TraitType.ts
+models/TrialStatus.ts
 models/WhoAmIResponseData.ts
 models/index.ts
 runtime.ts

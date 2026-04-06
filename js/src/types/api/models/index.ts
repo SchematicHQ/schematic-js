@@ -94,4 +94,5 @@ export * from "./RuleConditionResponseData";
 export * from "./RuleDetailResponseData";
 export * from "./RuleResponseData";
 export * from "./TraitType";
+export * from "./TrialStatus";
 export * from "./WhoAmIResponseData";
