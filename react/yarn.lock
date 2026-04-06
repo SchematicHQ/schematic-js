@@ -602,10 +602,10 @@
     "@microsoft/tsdoc-config" "~0.18.1"
     "@rushstack/node-core-library" "5.21.0"
 
-"@microsoft/api-extractor@^7.58.0":
-  version "7.58.0"
-  resolved "https://registry.yarnpkg.com/@microsoft/api-extractor/-/api-extractor-7.58.0.tgz#295a9b439cb58dbe2135c3ce30b26dc17d4ff93c"
-  integrity sha512-XcHlDylX5GblbGbs1eBoexjVyvdJMioTPuBCgCorE2rqijzTYxi6eudXyez3xACRxtH9aDtahoL9fYM4XTvQmg==
+"@microsoft/api-extractor@^7.58.1":
+  version "7.58.1"
+  resolved "https://registry.yarnpkg.com/@microsoft/api-extractor/-/api-extractor-7.58.1.tgz#e86ebd25b0dde66ba2ff8a496b2ef3f05f00df68"
+  integrity sha512-kF3GFME4lN22O5zbnXk2RP4y/4PDQdps0xKiYTipMYprkwCmmpsWLZt/N2Fkbil540cSLfJX0BW7LkHzgMVUYg==
   dependencies:
     "@microsoft/api-extractor-model" "7.33.5"
     "@microsoft/tsdoc" "~0.16.0"
@@ -615,7 +615,7 @@
     "@rushstack/terminal" "0.22.4"
     "@rushstack/ts-command-line" "5.3.4"
     diff "~8.0.2"
-    lodash "~4.17.23"
+    lodash "~4.18.1"
     minimatch "10.2.3"
     resolve "~1.22.1"
     semver "~7.5.4"
@@ -2501,10 +2501,10 @@ locate-path@^6.0.0:
   dependencies:
     p-locate "^5.0.0"
 
-lodash@~4.17.23:
-  version "4.17.23"
-  resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.23.tgz#f113b0378386103be4f6893388c73d0bde7f2c5a"
-  integrity sha512-LgVTMpQtIopCi79SJeDiP0TfWi5CNEc/L/aRdTh3yIvmZXTnheWpKjSZhnvMl8iXbC1tFg9gdHHDMLoV7CnG+w==
+lodash@~4.18.1:
+  version "4.18.1"
+  resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.18.1.tgz#ff2b66c1f6326d59513de2407bf881439812771c"
+  integrity sha512-dMInicTPVE8d1e5otfwmmjlxkZoUpiVLwyeTdUsi/Caj/gfzzblBcCE5sRHV/AsjuCmxWrte2TNGSYuCeCq+0Q==
 
 loose-envify@^1.4.0:
   version "1.4.0"
