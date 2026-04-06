@@ -113,7 +113,12 @@ export const useSchematicPlan = (
 
   const fallbackPlan = useMemo(
     () => fallback,
-    [fallback?.id, fallback?.name, fallback?.trialEndDate?.getTime()],
+    [
+      fallback?.id,
+      fallback?.name,
+      fallback?.trialEndDate?.getTime(),
+      fallback?.trialStatus,
+    ],
   );
 
   const subscribe = useCallback(
