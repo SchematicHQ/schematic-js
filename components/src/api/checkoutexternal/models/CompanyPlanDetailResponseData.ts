@@ -34,6 +34,13 @@ import {
   PlanControlledByTypeToJSON,
   PlanControlledByTypeToJSONTyped,
 } from "./PlanControlledByType";
+import type { BillingLinkedResourceResponseData } from "./BillingLinkedResourceResponseData";
+import {
+  BillingLinkedResourceResponseDataFromJSON,
+  BillingLinkedResourceResponseDataFromJSONTyped,
+  BillingLinkedResourceResponseDataToJSON,
+  BillingLinkedResourceResponseDataToJSONTyped,
+} from "./BillingLinkedResourceResponseData";
 import type { PlanEntitlementResponseData } from "./PlanEntitlementResponseData";
 import {
   PlanEntitlementResponseDataFromJSON,
@@ -131,6 +138,12 @@ export interface CompanyPlanDetailResponseData {
    * @deprecated
    */
   audienceType?: string | null;
+  /**
+   *
+   * @type {BillingLinkedResourceResponseData}
+   * @memberof CompanyPlanDetailResponseData
+   */
+  billingLinkedResource?: BillingLinkedResourceResponseData;
   /**
    *
    * @type {BillingProductDetailResponseData}
@@ -403,6 +416,12 @@ export function CompanyPlanDetailResponseDataFromJSONTyped(
         : PlanVersionResponseDataFromJSON(json["active_version"]),
     audienceType:
       json["audience_type"] == null ? undefined : json["audience_type"],
+    billingLinkedResource:
+      json["billing_linked_resource"] == null
+        ? undefined
+        : BillingLinkedResourceResponseDataFromJSON(
+            json["billing_linked_resource"],
+          ),
     billingProduct:
       json["billing_product"] == null
         ? undefined
@@ -489,6 +508,9 @@ export function CompanyPlanDetailResponseDataToJSONTyped(
   return {
     active_version: PlanVersionResponseDataToJSON(value["activeVersion"]),
     audience_type: value["audienceType"],
+    billing_linked_resource: BillingLinkedResourceResponseDataToJSON(
+      value["billingLinkedResource"],
+    ),
     billing_product: BillingProductDetailResponseDataToJSON(
       value["billingProduct"],
     ),
