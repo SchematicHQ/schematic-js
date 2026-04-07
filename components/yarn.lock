@@ -1074,10 +1074,10 @@
   dependencies:
     prop-types "^15.7.2"
 
-"@stripe/stripe-js@^9.0.1":
-  version "9.0.1"
-  resolved "https://registry.yarnpkg.com/@stripe/stripe-js/-/stripe-js-9.0.1.tgz#2924ebe40857f934a5348b743fee9ecb993c7cce"
-  integrity sha512-un0URSosrW7wNr7xZ5iI2mC9mdeXZ3KERoVlA2RdmeLXYxHUPXq0yHzir2n/MtyXXEdSaELtz4WXGS6dzPEeKA==
+"@stripe/stripe-js@^9.1.0":
+  version "9.1.0"
+  resolved "https://registry.yarnpkg.com/@stripe/stripe-js/-/stripe-js-9.1.0.tgz#58dcf5594c3ba87c55c1c59d67df500fa4ea928c"
+  integrity sha512-v51LoEfZNiNS/5DcarWPCYgn24w4dqwwALR4GTbMW/N0DDzzj4DgYNoixX6PYvpt6uIJMucGUabn/BHhylggIQ==
 
 "@swc/core-darwin-arm64@1.15.24":
   version "1.15.24"
