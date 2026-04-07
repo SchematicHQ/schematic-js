@@ -41,6 +41,13 @@ import {
   PlanCurrencyPricesResponseDataToJSON,
   PlanCurrencyPricesResponseDataToJSONTyped,
 } from "./PlanCurrencyPricesResponseData";
+import type { BillingLinkedResourceResponseData } from "./BillingLinkedResourceResponseData";
+import {
+  BillingLinkedResourceResponseDataFromJSON,
+  BillingLinkedResourceResponseDataFromJSONTyped,
+  BillingLinkedResourceResponseDataToJSON,
+  BillingLinkedResourceResponseDataToJSONTyped,
+} from "./BillingLinkedResourceResponseData";
 import type { ChargeType } from "./ChargeType";
 import {
   ChargeTypeFromJSON,
@@ -103,6 +110,12 @@ export interface PlanDetailResponseData {
    * @deprecated
    */
   audienceType?: string | null;
+  /**
+   *
+   * @type {BillingLinkedResourceResponseData}
+   * @memberof PlanDetailResponseData
+   */
+  billingLinkedResource?: BillingLinkedResourceResponseData;
   /**
    *
    * @type {BillingProductDetailResponseData}
@@ -295,6 +308,12 @@ export function PlanDetailResponseDataFromJSONTyped(
         : PlanVersionResponseDataFromJSON(json["active_version"]),
     audienceType:
       json["audience_type"] == null ? undefined : json["audience_type"],
+    billingLinkedResource:
+      json["billing_linked_resource"] == null
+        ? undefined
+        : BillingLinkedResourceResponseDataFromJSON(
+            json["billing_linked_resource"],
+          ),
     billingProduct:
       json["billing_product"] == null
         ? undefined
@@ -364,6 +383,9 @@ export function PlanDetailResponseDataToJSONTyped(
   return {
     active_version: PlanVersionResponseDataToJSON(value["activeVersion"]),
     audience_type: value["audienceType"],
+    billing_linked_resource: BillingLinkedResourceResponseDataToJSON(
+      value["billingLinkedResource"],
+    ),
     billing_product: BillingProductDetailResponseDataToJSON(
       value["billingProduct"],
     ),
