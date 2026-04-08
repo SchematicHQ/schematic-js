@@ -104,7 +104,6 @@ export * from "./InvoiceStatus";
 export * from "./ListInvoicesParams";
 export * from "./ListInvoicesResponse";
 export * from "./PaymentMethodResponseData";
-export * from "./PlanControlledByType";
 export * from "./PlanCreditGrantView";
 export * from "./PlanCurrencyPricesResponseData";
 export * from "./PlanDetailResponseData";

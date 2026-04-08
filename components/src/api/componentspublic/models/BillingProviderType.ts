@@ -17,6 +17,7 @@
  * @export
  */
 export const BillingProviderType = {
+  Orb: "orb",
   Schematic: "schematic",
   Stripe: "stripe",
 } as const;

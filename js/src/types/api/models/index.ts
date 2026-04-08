@@ -71,7 +71,6 @@ export * from "./FlagType";
 export * from "./GenericPreviewObject";
 export * from "./GetPublicPlansResponse";
 export * from "./GetWhoAmIResponse";
-export * from "./PlanControlledByType";
 export * from "./PlanCreditGrantView";
 export * from "./PlanCurrencyPricesResponseData";
 export * from "./PlanDetailResponseData";

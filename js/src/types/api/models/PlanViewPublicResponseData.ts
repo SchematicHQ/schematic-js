@@ -20,13 +20,6 @@ import {
   FeatureDetailResponseDataToJSON,
   FeatureDetailResponseDataToJSONTyped,
 } from "./FeatureDetailResponseData";
-import type { PlanControlledByType } from "./PlanControlledByType";
-import {
-  PlanControlledByTypeFromJSON,
-  PlanControlledByTypeFromJSONTyped,
-  PlanControlledByTypeToJSON,
-  PlanControlledByTypeToJSONTyped,
-} from "./PlanControlledByType";
 import type { BillingLinkedResourceResponseData } from "./BillingLinkedResourceResponseData";
 import {
   BillingLinkedResourceResponseDataFromJSON,
@@ -41,6 +34,13 @@ import {
   PlanEntitlementResponseDataToJSON,
   PlanEntitlementResponseDataToJSONTyped,
 } from "./PlanEntitlementResponseData";
+import type { BillingProviderType } from "./BillingProviderType";
+import {
+  BillingProviderTypeFromJSON,
+  BillingProviderTypeFromJSONTyped,
+  BillingProviderTypeToJSON,
+  BillingProviderTypeToJSONTyped,
+} from "./BillingProviderType";
 import type { CustomPlanConfig } from "./CustomPlanConfig";
 import {
   CustomPlanConfigFromJSON,
@@ -156,10 +156,10 @@ export interface PlanViewPublicResponseData {
   compatiblePlanIds: Array<string>;
   /**
    *
-   * @type {PlanControlledByType}
+   * @type {BillingProviderType}
    * @memberof PlanViewPublicResponseData
    */
-  controlledBy: PlanControlledByType;
+  controlledBy: BillingProviderType;
   /**
    *
    * @type {Date}
@@ -379,7 +379,7 @@ export function PlanViewPublicResponseDataFromJSONTyped(
     chargeType: ChargeTypeFromJSON(json["charge_type"]),
     companyCount: json["company_count"],
     compatiblePlanIds: json["compatible_plan_ids"],
-    controlledBy: PlanControlledByTypeFromJSON(json["controlled_by"]),
+    controlledBy: BillingProviderTypeFromJSON(json["controlled_by"]),
     createdAt: new Date(json["created_at"]),
     currencyPrices: (json["currency_prices"] as Array<any>).map(
       PlanCurrencyPricesResponseDataFromJSON,
@@ -457,7 +457,7 @@ export function PlanViewPublicResponseDataToJSONTyped(
     charge_type: ChargeTypeToJSON(value["chargeType"]),
     company_count: value["companyCount"],
     compatible_plan_ids: value["compatiblePlanIds"],
-    controlled_by: PlanControlledByTypeToJSON(value["controlledBy"]),
+    controlled_by: BillingProviderTypeToJSON(value["controlledBy"]),
     created_at: value["createdAt"].toISOString(),
     currency_prices: (value["currencyPrices"] as Array<any>).map(
       PlanCurrencyPricesResponseDataToJSON,
