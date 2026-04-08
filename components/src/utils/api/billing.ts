@@ -115,37 +115,34 @@ export function getEntitlementPrice(
         ? entitlement.planEntitlement?.currencyPrices
         : undefined;
 
+  let source: BillingPriceView | undefined;
+
   if (currency && currencyPrices?.length) {
     const currencyPrice = currencyPrices.find(
       (cp) => cp.currency.toLowerCase() === currency.toLowerCase(),
     );
     if (currencyPrice) {
-      const source =
+      source =
         period === "year"
           ? currencyPrice.yearlyPrice
           : currencyPrice.monthlyPrice;
-      if (source) {
-        return {
-          ...source,
-          price: getPriceValue(source),
-        };
-      }
     }
   }
 
-  let source: BillingPriceView | undefined;
-  if ("valueType" in entitlement) {
-    // entitlement
-    source =
-      period === "year"
-        ? entitlement.meteredYearlyPrice
-        : entitlement.meteredMonthlyPrice;
-  } else if ("entitlementType" in entitlement) {
-    // feature usage
-    source =
-      period === "year"
-        ? entitlement.yearlyUsageBasedPrice
-        : entitlement.monthlyUsageBasedPrice;
+  if (!source) {
+    if ("valueType" in entitlement) {
+      // entitlement
+      source =
+        period === "year"
+          ? entitlement.meteredYearlyPrice
+          : entitlement.meteredMonthlyPrice;
+    } else if ("entitlementType" in entitlement) {
+      // feature usage
+      source =
+        period === "year"
+          ? entitlement.yearlyUsageBasedPrice
+          : entitlement.monthlyUsageBasedPrice;
+    }
   }
 
   if (source) {
@@ -162,9 +159,13 @@ export function getEntitlementPrice(
         billingPrice.price = overagePriceTier.perUnitPrice;
       }
 
-      if (typeof overagePriceTier.perUnitPriceDecimal === "string") {
-        billingPrice.priceDecimal = overagePriceTier.perUnitPriceDecimal;
-      }
+      // Always realign priceDecimal with the overage tier so getPriceValue
+      // does not return the parent tiered price's stale priceDecimal (which
+      // is typically "0" for tiered schemes and would mask the per-unit cost).
+      billingPrice.priceDecimal =
+        typeof overagePriceTier.perUnitPriceDecimal === "string"
+          ? overagePriceTier.perUnitPriceDecimal
+          : null;
     }
 
     return { ...billingPrice, price: getPriceValue(billingPrice) };
