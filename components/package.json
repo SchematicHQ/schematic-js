@@ -33,7 +33,7 @@
     "test:demo": "../scripts/test-components.sh"
   },
   "dependencies": {
-    "@schematichq/schematic-icons": "^0.5.3",
+    "@schematichq/schematic-icons": "^0.5.4",
     "@stripe/stripe-js": "^9.1.0",
     "i18next": "^26.0.4",
     "lodash": "^4.18.1",
