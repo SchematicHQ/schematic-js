@@ -70,7 +70,6 @@ models/FlagType.ts
 models/GenericPreviewObject.ts
 models/GetPublicPlansResponse.ts
 models/GetWhoAmIResponse.ts
-models/PlanControlledByType.ts
 models/PlanCreditGrantView.ts
 models/PlanCurrencyPricesResponseData.ts
 models/PlanDetailResponseData.ts

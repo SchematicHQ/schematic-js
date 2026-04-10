@@ -106,7 +106,6 @@ models/InvoiceStatus.ts
 models/ListInvoicesParams.ts
 models/ListInvoicesResponse.ts
 models/PaymentMethodResponseData.ts
-models/PlanControlledByType.ts
 models/PlanCreditGrantView.ts
 models/PlanCurrencyPricesResponseData.ts
 models/PlanDetailResponseData.ts

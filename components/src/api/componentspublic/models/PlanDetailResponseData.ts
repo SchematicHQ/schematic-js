@@ -27,13 +27,6 @@ import {
   FeatureDetailResponseDataToJSON,
   FeatureDetailResponseDataToJSONTyped,
 } from "./FeatureDetailResponseData";
-import type { PlanControlledByType } from "./PlanControlledByType";
-import {
-  PlanControlledByTypeFromJSON,
-  PlanControlledByTypeFromJSONTyped,
-  PlanControlledByTypeToJSON,
-  PlanControlledByTypeToJSONTyped,
-} from "./PlanControlledByType";
 import type { PlanCurrencyPricesResponseData } from "./PlanCurrencyPricesResponseData";
 import {
   PlanCurrencyPricesResponseDataFromJSON,
@@ -83,6 +76,13 @@ import {
   BillingPriceResponseDataToJSON,
   BillingPriceResponseDataToJSONTyped,
 } from "./BillingPriceResponseData";
+import type { BillingProviderType } from "./BillingProviderType";
+import {
+  BillingProviderTypeFromJSON,
+  BillingProviderTypeFromJSONTyped,
+  BillingProviderTypeToJSON,
+  BillingProviderTypeToJSONTyped,
+} from "./BillingProviderType";
 import type { BillingProductDetailResponseData } from "./BillingProductDetailResponseData";
 import {
   BillingProductDetailResponseDataFromJSON,
@@ -136,10 +136,10 @@ export interface PlanDetailResponseData {
   companyCount: number;
   /**
    *
-   * @type {PlanControlledByType}
+   * @type {BillingProviderType}
    * @memberof PlanDetailResponseData
    */
-  controlledBy: PlanControlledByType;
+  controlledBy: BillingProviderType;
   /**
    *
    * @type {Date}
@@ -320,7 +320,7 @@ export function PlanDetailResponseDataFromJSONTyped(
         : BillingProductDetailResponseDataFromJSON(json["billing_product"]),
     chargeType: ChargeTypeFromJSON(json["charge_type"]),
     companyCount: json["company_count"],
-    controlledBy: PlanControlledByTypeFromJSON(json["controlled_by"]),
+    controlledBy: BillingProviderTypeFromJSON(json["controlled_by"]),
     createdAt: new Date(json["created_at"]),
     currencyPrices: (json["currency_prices"] as Array<any>).map(
       PlanCurrencyPricesResponseDataFromJSON,
@@ -391,7 +391,7 @@ export function PlanDetailResponseDataToJSONTyped(
     ),
     charge_type: ChargeTypeToJSON(value["chargeType"]),
     company_count: value["companyCount"],
-    controlled_by: PlanControlledByTypeToJSON(value["controlledBy"]),
+    controlled_by: BillingProviderTypeToJSON(value["controlledBy"]),
     created_at: value["createdAt"].toISOString(),
     currency_prices: (value["currencyPrices"] as Array<any>).map(
       PlanCurrencyPricesResponseDataToJSON,
