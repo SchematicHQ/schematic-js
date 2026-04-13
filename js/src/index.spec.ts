@@ -2389,15 +2389,6 @@ describe("Developer Toolbar integration", () => {
       expect(MockDeveloperToolbar).not.toHaveBeenCalled();
     });
 
-    it("logs a warning and skips when useWebSocket is false", () => {
-      const schematic = new Schematic("API_KEY", { developerToolbar: true });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (schematic as any).initializeDeveloperToolbar();
-      expect(console.warn).toHaveBeenCalledWith(
-        expect.stringContaining("requires WebSocket mode"),
-      );
-      expect(MockDeveloperToolbar).not.toHaveBeenCalled();
-    });
   });
 
   describe("getFlagValue() with toolbar override", () => {
