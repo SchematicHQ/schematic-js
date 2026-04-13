@@ -62,6 +62,13 @@ import {
   RuleToJSON,
   RuleToJSONTyped,
 } from "./Rule";
+import type { CustomPlanBillingResponseData } from "./CustomPlanBillingResponseData";
+import {
+  CustomPlanBillingResponseDataFromJSON,
+  CustomPlanBillingResponseDataFromJSONTyped,
+  CustomPlanBillingResponseDataToJSON,
+  CustomPlanBillingResponseDataToJSONTyped,
+} from "./CustomPlanBillingResponseData";
 import type { GenericPreviewObject } from "./GenericPreviewObject";
 import {
   GenericPreviewObjectFromJSON,
@@ -120,6 +127,12 @@ export interface CompanyDetailResponseData {
    * @memberof CompanyDetailResponseData
    */
   createdAt: Date;
+  /**
+   *
+   * @type {Array<CustomPlanBillingResponseData>}
+   * @memberof CompanyDetailResponseData
+   */
+  customPlanBillings: Array<CustomPlanBillingResponseData>;
   /**
    *
    * @type {PaymentMethodResponseData}
@@ -243,6 +256,11 @@ export function instanceOfCompanyDetailResponseData(
   )
     return false;
   if (!("createdAt" in value) || value["createdAt"] === undefined) return false;
+  if (
+    !("customPlanBillings" in value) ||
+    value["customPlanBillings"] === undefined
+  )
+    return false;
   if (!("entitlements" in value) || value["entitlements"] === undefined)
     return false;
   if (!("entityTraits" in value) || value["entityTraits"] === undefined)
@@ -291,6 +309,9 @@ export function CompanyDetailResponseDataFromJSONTyped(
       BillingSubscriptionViewFromJSON,
     ),
     createdAt: new Date(json["created_at"]),
+    customPlanBillings: (json["custom_plan_billings"] as Array<any>).map(
+      CustomPlanBillingResponseDataFromJSON,
+    ),
     defaultPaymentMethod:
       json["default_payment_method"] == null
         ? undefined
@@ -356,6 +377,9 @@ export function CompanyDetailResponseDataToJSONTyped(
       BillingSubscriptionViewToJSON,
     ),
     created_at: value["createdAt"].toISOString(),
+    custom_plan_billings: (value["customPlanBillings"] as Array<any>).map(
+      CustomPlanBillingResponseDataToJSON,
+    ),
     default_payment_method: PaymentMethodResponseDataToJSON(
       value["defaultPaymentMethod"],
     ),

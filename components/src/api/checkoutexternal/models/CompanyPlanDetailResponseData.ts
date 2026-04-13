@@ -41,13 +41,6 @@ import {
   PlanEntitlementResponseDataToJSON,
   PlanEntitlementResponseDataToJSONTyped,
 } from "./PlanEntitlementResponseData";
-import type { BillingProviderType } from "./BillingProviderType";
-import {
-  BillingProviderTypeFromJSON,
-  BillingProviderTypeFromJSONTyped,
-  BillingProviderTypeToJSON,
-  BillingProviderTypeToJSONTyped,
-} from "./BillingProviderType";
 import type { CustomPlanConfig } from "./CustomPlanConfig";
 import {
   CustomPlanConfigFromJSON,
@@ -170,16 +163,34 @@ export interface CompanyPlanDetailResponseData {
   companyCount: number;
   /**
    *
+   * @type {string}
+   * @memberof CompanyPlanDetailResponseData
+   */
+  companyId?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof CompanyPlanDetailResponseData
+   */
+  companyName?: string | null;
+  /**
+   *
    * @type {Array<string>}
    * @memberof CompanyPlanDetailResponseData
    */
   compatiblePlanIds: Array<string>;
   /**
    *
-   * @type {BillingProviderType}
+   * @type {string}
    * @memberof CompanyPlanDetailResponseData
    */
-  controlledBy: BillingProviderType;
+  controlledBy: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CompanyPlanDetailResponseData
+   */
+  copiedFromPlanId?: string | null;
   /**
    *
    * @type {Date}
@@ -429,8 +440,15 @@ export function CompanyPlanDetailResponseDataFromJSONTyped(
     chargeType: ChargeTypeFromJSON(json["charge_type"]),
     companyCanTrial: json["company_can_trial"],
     companyCount: json["company_count"],
+    companyId: json["company_id"] == null ? undefined : json["company_id"],
+    companyName:
+      json["company_name"] == null ? undefined : json["company_name"],
     compatiblePlanIds: json["compatible_plan_ids"],
-    controlledBy: BillingProviderTypeFromJSON(json["controlled_by"]),
+    controlledBy: json["controlled_by"],
+    copiedFromPlanId:
+      json["copied_from_plan_id"] == null
+        ? undefined
+        : json["copied_from_plan_id"],
     createdAt: new Date(json["created_at"]),
     currencyPrices: (json["currency_prices"] as Array<any>).map(
       PlanCurrencyPricesResponseDataFromJSON,
@@ -517,8 +535,11 @@ export function CompanyPlanDetailResponseDataToJSONTyped(
     charge_type: ChargeTypeToJSON(value["chargeType"]),
     company_can_trial: value["companyCanTrial"],
     company_count: value["companyCount"],
+    company_id: value["companyId"],
+    company_name: value["companyName"],
     compatible_plan_ids: value["compatiblePlanIds"],
-    controlled_by: BillingProviderTypeToJSON(value["controlledBy"]),
+    controlled_by: value["controlledBy"],
+    copied_from_plan_id: value["copiedFromPlanId"],
     created_at: value["createdAt"].toISOString(),
     currency_prices: (value["currencyPrices"] as Array<any>).map(
       PlanCurrencyPricesResponseDataToJSON,

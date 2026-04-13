@@ -43,6 +43,18 @@ export interface PlanResponseData {
   audienceType?: string | null;
   /**
    *
+   * @type {string}
+   * @memberof PlanResponseData
+   */
+  companyId?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof PlanResponseData
+   */
+  copiedFromPlanId?: string | null;
+  /**
+   *
    * @type {Date}
    * @memberof PlanResponseData
    */
@@ -116,6 +128,11 @@ export function PlanResponseDataFromJSONTyped(
   return {
     audienceType:
       json["audience_type"] == null ? undefined : json["audience_type"],
+    companyId: json["company_id"] == null ? undefined : json["company_id"],
+    copiedFromPlanId:
+      json["copied_from_plan_id"] == null
+        ? undefined
+        : json["copied_from_plan_id"],
     createdAt: new Date(json["created_at"]),
     description: json["description"],
     icon: PlanIconFromJSON(json["icon"]),
@@ -140,6 +157,8 @@ export function PlanResponseDataToJSONTyped(
 
   return {
     audience_type: value["audienceType"],
+    company_id: value["companyId"],
+    copied_from_plan_id: value["copiedFromPlanId"],
     created_at: value["createdAt"].toISOString(),
     description: value["description"],
     icon: PlanIconToJSON(value["icon"]),

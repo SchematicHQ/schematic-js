@@ -69,6 +69,9 @@ models/CreditGrantDetail.ts
 models/CreditTransferView.ts
 models/CreditUsageAggregation.ts
 models/CurrencyBalance.ts
+models/CustomPlanActivationStrategy.ts
+models/CustomPlanBillingResponseData.ts
+models/CustomPlanBillingStatus.ts
 models/CustomPlanConfig.ts
 models/CustomPlanViewConfigResponseData.ts
 models/DeletePaymentMethodResponse.ts
