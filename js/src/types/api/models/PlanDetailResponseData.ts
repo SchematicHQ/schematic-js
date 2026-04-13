@@ -76,13 +76,6 @@ import {
   BillingPriceResponseDataToJSON,
   BillingPriceResponseDataToJSONTyped,
 } from "./BillingPriceResponseData";
-import type { BillingProviderType } from "./BillingProviderType";
-import {
-  BillingProviderTypeFromJSON,
-  BillingProviderTypeFromJSONTyped,
-  BillingProviderTypeToJSON,
-  BillingProviderTypeToJSONTyped,
-} from "./BillingProviderType";
 import type { BillingProductDetailResponseData } from "./BillingProductDetailResponseData";
 import {
   BillingProductDetailResponseDataFromJSON,
@@ -136,10 +129,28 @@ export interface PlanDetailResponseData {
   companyCount: number;
   /**
    *
-   * @type {BillingProviderType}
+   * @type {string}
    * @memberof PlanDetailResponseData
    */
-  controlledBy: BillingProviderType;
+  companyId?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof PlanDetailResponseData
+   */
+  companyName?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof PlanDetailResponseData
+   */
+  controlledBy: string;
+  /**
+   *
+   * @type {string}
+   * @memberof PlanDetailResponseData
+   */
+  copiedFromPlanId?: string | null;
   /**
    *
    * @type {Date}
@@ -320,7 +331,14 @@ export function PlanDetailResponseDataFromJSONTyped(
         : BillingProductDetailResponseDataFromJSON(json["billing_product"]),
     chargeType: ChargeTypeFromJSON(json["charge_type"]),
     companyCount: json["company_count"],
-    controlledBy: BillingProviderTypeFromJSON(json["controlled_by"]),
+    companyId: json["company_id"] == null ? undefined : json["company_id"],
+    companyName:
+      json["company_name"] == null ? undefined : json["company_name"],
+    controlledBy: json["controlled_by"],
+    copiedFromPlanId:
+      json["copied_from_plan_id"] == null
+        ? undefined
+        : json["copied_from_plan_id"],
     createdAt: new Date(json["created_at"]),
     currencyPrices: (json["currency_prices"] as Array<any>).map(
       PlanCurrencyPricesResponseDataFromJSON,
@@ -391,7 +409,10 @@ export function PlanDetailResponseDataToJSONTyped(
     ),
     charge_type: ChargeTypeToJSON(value["chargeType"]),
     company_count: value["companyCount"],
-    controlled_by: BillingProviderTypeToJSON(value["controlledBy"]),
+    company_id: value["companyId"],
+    company_name: value["companyName"],
+    controlled_by: value["controlledBy"],
+    copied_from_plan_id: value["copiedFromPlanId"],
     created_at: value["createdAt"].toISOString(),
     currency_prices: (value["currencyPrices"] as Array<any>).map(
       PlanCurrencyPricesResponseDataToJSON,
