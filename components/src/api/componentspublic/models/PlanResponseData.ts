@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from "../runtime";
+import type { PlanIcon } from "./PlanIcon";
+import {
+  PlanIconFromJSON,
+  PlanIconFromJSONTyped,
+  PlanIconToJSON,
+  PlanIconToJSONTyped,
+} from "./PlanIcon";
 import type { PlanType } from "./PlanType";
 import {
   PlanTypeFromJSON,
@@ -48,10 +55,10 @@ export interface PlanResponseData {
   description: string;
   /**
    *
-   * @type {string}
+   * @type {PlanIcon}
    * @memberof PlanResponseData
    */
-  icon: string;
+  icon: PlanIcon;
   /**
    *
    * @type {string}
@@ -111,7 +118,7 @@ export function PlanResponseDataFromJSONTyped(
       json["audience_type"] == null ? undefined : json["audience_type"],
     createdAt: new Date(json["created_at"]),
     description: json["description"],
-    icon: json["icon"],
+    icon: PlanIconFromJSON(json["icon"]),
     id: json["id"],
     name: json["name"],
     planType: PlanTypeFromJSON(json["plan_type"]),
@@ -135,7 +142,7 @@ export function PlanResponseDataToJSONTyped(
     audience_type: value["audienceType"],
     created_at: value["createdAt"].toISOString(),
     description: value["description"],
-    icon: value["icon"],
+    icon: PlanIconToJSON(value["icon"]),
     id: value["id"],
     name: value["name"],
     plan_type: PlanTypeToJSON(value["planType"]),

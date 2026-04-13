@@ -14,6 +14,7 @@ models/BillingCreditGrantZeroedOutReason.ts
 models/BillingCreditResponseData.ts
 models/BillingCreditRolloverPolicy.ts
 models/BillingCreditView.ts
+models/BillingLinkedResourceResponseData.ts
 models/BillingPlanCreditGrantResetCadence.ts
 models/BillingPlanCreditGrantResetStart.ts
 models/BillingPlanCreditGrantResetType.ts
@@ -105,12 +106,12 @@ models/InvoiceStatus.ts
 models/ListInvoicesParams.ts
 models/ListInvoicesResponse.ts
 models/PaymentMethodResponseData.ts
-models/PlanControlledByType.ts
 models/PlanCreditGrantView.ts
 models/PlanCurrencyPricesResponseData.ts
 models/PlanDetailResponseData.ts
 models/PlanEntitlementResponseData.ts
 models/PlanGroupPlanDetailResponseData.ts
+models/PlanIcon.ts
 models/PlanResponseData.ts
 models/PlanType.ts
 models/PlanVersionResponseData.ts

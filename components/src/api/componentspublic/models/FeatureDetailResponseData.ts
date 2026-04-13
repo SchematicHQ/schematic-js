@@ -41,6 +41,13 @@ import {
   EventSummaryResponseDataToJSON,
   EventSummaryResponseDataToJSONTyped,
 } from "./EventSummaryResponseData";
+import type { BillingLinkedResourceResponseData } from "./BillingLinkedResourceResponseData";
+import {
+  BillingLinkedResourceResponseDataFromJSON,
+  BillingLinkedResourceResponseDataFromJSONTyped,
+  BillingLinkedResourceResponseDataToJSON,
+  BillingLinkedResourceResponseDataToJSONTyped,
+} from "./BillingLinkedResourceResponseData";
 import type { FeatureLifecyclePhase } from "./FeatureLifecyclePhase";
 import {
   FeatureLifecyclePhaseFromJSON,
@@ -62,6 +69,12 @@ import {
  * @interface FeatureDetailResponseData
  */
 export interface FeatureDetailResponseData {
+  /**
+   *
+   * @type {BillingLinkedResourceResponseData}
+   * @memberof FeatureDetailResponseData
+   */
+  billingLinkedResource?: BillingLinkedResourceResponseData;
   /**
    *
    * @type {Date}
@@ -200,6 +213,12 @@ export function FeatureDetailResponseDataFromJSONTyped(
     return json;
   }
   return {
+    billingLinkedResource:
+      json["billing_linked_resource"] == null
+        ? undefined
+        : BillingLinkedResourceResponseDataFromJSON(
+            json["billing_linked_resource"],
+          ),
     createdAt: new Date(json["created_at"]),
     description: json["description"],
     eventSubtype:
@@ -247,6 +266,9 @@ export function FeatureDetailResponseDataToJSONTyped(
   }
 
   return {
+    billing_linked_resource: BillingLinkedResourceResponseDataToJSON(
+      value["billingLinkedResource"],
+    ),
     created_at: value["createdAt"].toISOString(),
     description: value["description"],
     event_subtype: value["eventSubtype"],

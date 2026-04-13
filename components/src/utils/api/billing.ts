@@ -31,7 +31,27 @@ export function getPlanPrice(
   plan: Plan,
   period = "month",
   options: PlanPriceOptions = { useSelectedPeriod: true },
+  currency?: string,
 ): BillingPriceResponseData | undefined {
+  if (currency && plan.currencyPrices?.length) {
+    const currencyPrice = plan.currencyPrices.find(
+      (cp) => cp.currency.toLowerCase() === currency.toLowerCase(),
+    );
+    if (currencyPrice) {
+      const billingPrice = options.useSelectedPeriod
+        ? period === "year"
+          ? currencyPrice.yearlyPrice
+          : currencyPrice.monthlyPrice
+        : currencyPrice.yearlyPrice && !currencyPrice.monthlyPrice
+          ? currencyPrice.yearlyPrice
+          : currencyPrice.monthlyPrice;
+
+      if (billingPrice) {
+        return { ...billingPrice, price: getPriceValue(billingPrice) };
+      }
+    }
+  }
+
   const billingPrice = options.useSelectedPeriod
     ? period === "year"
       ? plan.yearlyPrice
@@ -48,7 +68,26 @@ export function getPlanPrice(
 export function getAddOnPrice(
   addOn: Plan,
   period = "month",
+  currency?: string,
 ): BillingPriceResponseData | undefined {
+  if (currency && addOn.currencyPrices?.length) {
+    const currencyPrice = addOn.currencyPrices.find(
+      (cp) => cp.currency.toLowerCase() === currency.toLowerCase(),
+    );
+    if (currencyPrice) {
+      const billingPrice =
+        addOn.chargeType === ChargeType.oneTime
+          ? currencyPrice.oneTimePrice
+          : period === "year"
+            ? currencyPrice.yearlyPrice
+            : currencyPrice.monthlyPrice;
+
+      if (billingPrice) {
+        return { ...billingPrice, price: getPriceValue(billingPrice) };
+      }
+    }
+  }
+
   const billingPrice =
     addOn.chargeType === ChargeType.oneTime
       ? addOn.oneTimePrice
@@ -64,26 +103,55 @@ export function getAddOnPrice(
 export function getEntitlementPrice(
   entitlement: Entitlement,
   period = "month",
+  currency?: string,
 ): BillingPriceView | undefined {
+  // Resolve currency prices from whichever shape carries them:
+  // PlanEntitlementResponseData has currencyPrices directly,
+  // FeatureUsageResponseData carries them on planEntitlement.
+  const currencyPrices =
+    "valueType" in entitlement
+      ? entitlement.currencyPrices
+      : "entitlementType" in entitlement
+        ? entitlement.planEntitlement?.currencyPrices
+        : undefined;
+
   let source: BillingPriceView | undefined;
-  if ("valueType" in entitlement) {
-    // entitlement
-    source =
-      period === "year"
-        ? entitlement.meteredYearlyPrice
-        : entitlement.meteredMonthlyPrice;
-  } else if ("entitlementType" in entitlement) {
-    // feature usage
-    source =
-      period === "year"
-        ? entitlement.yearlyUsageBasedPrice
-        : entitlement.monthlyUsageBasedPrice;
+
+  if (currency && currencyPrices?.length) {
+    const currencyPrice = currencyPrices.find(
+      (cp) => cp.currency.toLowerCase() === currency.toLowerCase(),
+    );
+    if (currencyPrice) {
+      source =
+        period === "year"
+          ? currencyPrice.yearlyPrice
+          : currencyPrice.monthlyPrice;
+    }
+  }
+
+  if (!source) {
+    if ("valueType" in entitlement) {
+      // entitlement
+      source =
+        period === "year"
+          ? entitlement.meteredYearlyPrice
+          : entitlement.meteredMonthlyPrice;
+    } else if ("entitlementType" in entitlement) {
+      // feature usage
+      source =
+        period === "year"
+          ? entitlement.yearlyUsageBasedPrice
+          : entitlement.monthlyUsageBasedPrice;
+    }
   }
 
   if (source) {
     const billingPrice = { ...source };
 
-    if (entitlement.priceBehavior === EntitlementPriceBehavior.Overage) {
+    if (
+      entitlement.priceBehavior === EntitlementPriceBehavior.Overage &&
+      billingPrice.priceTier?.length
+    ) {
       const overagePriceTier =
         billingPrice.priceTier[billingPrice.priceTier.length - 1];
 
@@ -91,9 +159,13 @@ export function getEntitlementPrice(
         billingPrice.price = overagePriceTier.perUnitPrice;
       }
 
-      if (typeof overagePriceTier.perUnitPriceDecimal === "string") {
-        billingPrice.priceDecimal = overagePriceTier.perUnitPriceDecimal;
-      }
+      // Always realign priceDecimal with the overage tier so getPriceValue
+      // does not return the parent tiered price's stale priceDecimal (which
+      // is typically "0" for tiered schemes and would mask the per-unit cost).
+      billingPrice.priceDecimal =
+        typeof overagePriceTier.perUnitPriceDecimal === "string"
+          ? overagePriceTier.perUnitPriceDecimal
+          : null;
     }
 
     return { ...billingPrice, price: getPriceValue(billingPrice) };
@@ -102,7 +174,7 @@ export function getEntitlementPrice(
 
 export function isTieredPrice(billingPrice?: BillingPriceView): boolean {
   if (!billingPrice) return false;
-  return billingPrice.priceTier.length > 1 || !!billingPrice.tiersMode;
+  return (billingPrice.priceTier?.length ?? 0) > 1 || !!billingPrice.tiersMode;
 }
 
 export function calculateTieredCost(
@@ -157,9 +229,11 @@ export function calculateTieredCost(
 export function getEntitlementCost(
   entitlement: FeatureUsageResponseData,
   period: string | null = "month",
+  currency?: string,
 ): number | undefined {
-  const source =
-    period === "year"
+  const source = currency
+    ? getEntitlementPrice(entitlement, period ?? "month", currency)
+    : period === "year"
       ? entitlement.yearlyUsageBasedPrice
       : entitlement.monthlyUsageBasedPrice;
 

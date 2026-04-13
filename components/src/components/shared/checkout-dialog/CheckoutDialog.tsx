@@ -16,11 +16,13 @@ import {
   type PlanEntitlementResponseData,
   type PreviewSubscriptionFinanceResponseData,
 } from "../../../api/checkoutexternal";
-import { TEXT_BASE_SIZE } from "../../../const";
+import { DEFAULT_CURRENCY, TEXT_BASE_SIZE } from "../../../const";
 import {
+  useAvailableCurrencies,
   useAvailablePlans,
   useEmbed,
   useIsLightBackground,
+  useSubscriptionCurrency,
 } from "../../../hooks";
 import type {
   CreditBundle,
@@ -32,9 +34,14 @@ import {
   buildAddOnRequestBody,
   buildCreditBundlesRequestBody,
   buildPayInAdvanceRequestBody,
+  getPlanPrice,
   isError,
 } from "../../../utils";
-import { PeriodToggle, SubscriptionSidebar } from "../../shared";
+import {
+  CurrencyToggle,
+  PeriodToggle,
+  SubscriptionSidebar,
+} from "../../shared";
 import {
   Dialog,
   DialogContent,
@@ -52,10 +59,16 @@ import { AddOns, Checkout, Credits, Plan, Quantity } from ".";
 export const createActiveUsageBasedEntitlementsReducer =
   (entitlements: FeatureUsageResponseData[], period: string) =>
   (acc: UsageBasedEntitlement[], entitlement: PlanEntitlementResponseData) => {
+    const hasCurrencyPrice = entitlement.currencyPrices?.some(
+      (cp) =>
+        (period === "month" && cp.monthlyPrice) ||
+        (period === "year" && cp.yearlyPrice),
+    );
     if (
       entitlement.priceBehavior &&
       ((period === "month" && entitlement.meteredMonthlyPrice) ||
-        (period === "year" && entitlement.meteredYearlyPrice))
+        (period === "year" && entitlement.meteredYearlyPrice) ||
+        hasCurrencyPrice)
     ) {
       const featureUsage = entitlements.find(
         (usage) => usage.feature?.id === entitlement.feature?.id,
@@ -179,6 +192,25 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
   };
 
   const [planPeriod, setPlanPeriod] = useState(getValidatedPeriod);
+
+  const currencies = useAvailableCurrencies();
+  const lockedCurrency = useSubscriptionCurrency();
+  const [selectedCurrency, setSelectedCurrency] = useState(
+    () =>
+      lockedCurrency ??
+      checkoutState?.selectedCurrency ??
+      currencies[0] ??
+      DEFAULT_CURRENCY,
+  );
+  const showCurrencySelector = currencies.length > 1 && !lockedCurrency;
+  const hasCurrency = currencies.length > 1 || !!lockedCurrency;
+
+  // Keep currency pinned to the subscription currency when it loads async
+  useEffect(() => {
+    if (lockedCurrency) {
+      setSelectedCurrency(lockedCurrency);
+    }
+  }, [lockedCurrency]);
 
   const {
     plans: availablePlans,
@@ -513,8 +545,18 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     }) => {
       const period = updates.period || planPeriod;
       const plan = updates.plan || selectedPlan;
+      const resolvedCurrency = hasCurrency ? selectedCurrency : undefined;
+      const currencyPrice = plan
+        ? getPlanPrice(
+            plan,
+            period,
+            { useSelectedPeriod: true },
+            resolvedCurrency,
+          )
+        : undefined;
       const planPriceId =
-        period === "year" ? plan?.yearlyPrice?.id : plan?.monthlyPrice?.id;
+        currencyPrice?.id ??
+        (period === "year" ? plan?.yearlyPrice?.id : plan?.monthlyPrice?.id);
       const code =
         typeof updates.promoCode !== "undefined"
           ? updates.promoCode
@@ -539,21 +581,24 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       const resolvedAddOns = updates.addOns || addOns;
       const resolvedCreditBundles = updates.creditBundles || creditBundles;
 
-      const planPayInAdvanceRequestBody = buildPayInAdvanceRequestBody(
-        resolvedPayInAdvanceEntitlements,
+      const planPayInAdvanceRequestBody = buildPayInAdvanceRequestBody({
+        entitlements: resolvedPayInAdvanceEntitlements,
         period,
-      );
+        currency: resolvedCurrency,
+      });
 
-      const addOnPayInAdvanceRequestBody = buildPayInAdvanceRequestBody(
-        resolvedAddOnPayInAdvanceEntitlements,
+      const addOnPayInAdvanceRequestBody = buildPayInAdvanceRequestBody({
+        entitlements: resolvedAddOnPayInAdvanceEntitlements,
         period,
-      );
+        currency: resolvedCurrency,
+      });
 
-      const addOnRequestBody = buildAddOnRequestBody(
-        resolvedAddOns,
+      const addOnRequestBody = buildAddOnRequestBody({
+        addOns: resolvedAddOns,
         period,
         shouldTrial,
-      );
+        currency: resolvedCurrency,
+      });
 
       const creditBundlesRequestBody = buildCreditBundlesRequestBody(
         resolvedCreditBundles,
@@ -640,6 +685,8 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       previewCheckout,
       planPeriod,
       selectedPlan,
+      selectedCurrency,
+      hasCurrency,
       payInAdvanceEntitlements,
       addOnPayInAdvanceEntitlements,
       addOns,
@@ -1137,17 +1184,27 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
               </Flex>
             )}
 
-            {checkoutStage === "plan" &&
-              showPeriodToggle &&
-              availablePeriods.length > 1 && (
-                <PeriodToggle
-                  options={availablePeriods}
-                  selectedOption={planPeriod}
-                  selectedPlan={selectedPlan}
-                  onSelect={changePlanPeriod}
-                  tooltipPortal={dialogRef.current}
-                />
-              )}
+            {checkoutStage === "plan" && (
+              <Flex $alignItems="center" $gap="0.75rem">
+                {showCurrencySelector && (
+                  <CurrencyToggle
+                    currencies={currencies}
+                    selectedCurrency={selectedCurrency}
+                    onSelect={setSelectedCurrency}
+                  />
+                )}
+
+                {showPeriodToggle && availablePeriods.length > 1 && (
+                  <PeriodToggle
+                    options={availablePeriods}
+                    selectedOption={planPeriod}
+                    selectedPlan={selectedPlan}
+                    onSelect={changePlanPeriod}
+                    tooltipPortal={dialogRef.current}
+                  />
+                )}
+              </Flex>
+            )}
           </Flex>
 
           {isPending ? (
@@ -1169,6 +1226,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
               selectPlan={selectPlan}
               shouldTrial={shouldTrial}
               tooltipPortal={dialogRef.current}
+              currency={hasCurrency ? selectedCurrency : undefined}
             />
           ) : checkoutStage === "usage" ? (
             <Quantity
@@ -1178,6 +1236,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
               entitlements={payInAdvanceEntitlements}
               updateQuantity={updateUsageBasedEntitlementQuantity}
               tooltipPortal={dialogRef.current}
+              currency={hasCurrency ? selectedCurrency : undefined}
             />
           ) : checkoutStage === "addons" ? (
             <AddOns
@@ -1185,6 +1244,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
               period={planPeriod}
               addOns={addOns}
               toggle={(id) => toggleAddOn(id)}
+              currency={hasCurrency ? selectedCurrency : undefined}
             />
           ) : checkoutStage === "addonsUsage" ? (
             <Quantity
@@ -1194,12 +1254,14 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
               entitlements={addOnPayInAdvanceEntitlements}
               updateQuantity={updateAddOnEntitlementQuantity}
               tooltipPortal={dialogRef.current}
+              currency={hasCurrency ? selectedCurrency : undefined}
             />
           ) : checkoutStage === "credits" ? (
             <Credits
               isLoading={isLoading}
               bundles={creditBundles}
               updateCount={updateCreditBundleCount}
+              currency={hasCurrency ? selectedCurrency : undefined}
             />
           ) : (
             checkoutStage === "checkout" && (
@@ -1241,6 +1303,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
           setConfirmPaymentIntent={setConfirmPaymentIntentProps}
           willTrialWithoutPaymentMethod={willTrialWithoutPaymentMethod}
           willScheduleDowngrade={willScheduleDowngrade}
+          currency={hasCurrency ? selectedCurrency : undefined}
         />
       </DialogContent>
     </Dialog>

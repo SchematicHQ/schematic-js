@@ -27,13 +27,13 @@ import {
   FeatureDetailResponseDataToJSON,
   FeatureDetailResponseDataToJSONTyped,
 } from "./FeatureDetailResponseData";
-import type { PlanControlledByType } from "./PlanControlledByType";
+import type { BillingLinkedResourceResponseData } from "./BillingLinkedResourceResponseData";
 import {
-  PlanControlledByTypeFromJSON,
-  PlanControlledByTypeFromJSONTyped,
-  PlanControlledByTypeToJSON,
-  PlanControlledByTypeToJSONTyped,
-} from "./PlanControlledByType";
+  BillingLinkedResourceResponseDataFromJSON,
+  BillingLinkedResourceResponseDataFromJSONTyped,
+  BillingLinkedResourceResponseDataToJSON,
+  BillingLinkedResourceResponseDataToJSONTyped,
+} from "./BillingLinkedResourceResponseData";
 import type { PlanEntitlementResponseData } from "./PlanEntitlementResponseData";
 import {
   PlanEntitlementResponseDataFromJSON,
@@ -41,6 +41,13 @@ import {
   PlanEntitlementResponseDataToJSON,
   PlanEntitlementResponseDataToJSONTyped,
 } from "./PlanEntitlementResponseData";
+import type { BillingProviderType } from "./BillingProviderType";
+import {
+  BillingProviderTypeFromJSON,
+  BillingProviderTypeFromJSONTyped,
+  BillingProviderTypeToJSON,
+  BillingProviderTypeToJSONTyped,
+} from "./BillingProviderType";
 import type { CustomPlanConfig } from "./CustomPlanConfig";
 import {
   CustomPlanConfigFromJSON,
@@ -76,6 +83,13 @@ import {
   ChargeTypeToJSON,
   ChargeTypeToJSONTyped,
 } from "./ChargeType";
+import type { PlanIcon } from "./PlanIcon";
+import {
+  PlanIconFromJSON,
+  PlanIconFromJSONTyped,
+  PlanIconToJSON,
+  PlanIconToJSONTyped,
+} from "./PlanIcon";
 import type { PlanType } from "./PlanType";
 import {
   PlanTypeFromJSON,
@@ -126,6 +140,12 @@ export interface CompanyPlanDetailResponseData {
   audienceType?: string | null;
   /**
    *
+   * @type {BillingLinkedResourceResponseData}
+   * @memberof CompanyPlanDetailResponseData
+   */
+  billingLinkedResource?: BillingLinkedResourceResponseData;
+  /**
+   *
    * @type {BillingProductDetailResponseData}
    * @memberof CompanyPlanDetailResponseData
    */
@@ -156,10 +176,10 @@ export interface CompanyPlanDetailResponseData {
   compatiblePlanIds: Array<string>;
   /**
    *
-   * @type {PlanControlledByType}
+   * @type {BillingProviderType}
    * @memberof CompanyPlanDetailResponseData
    */
-  controlledBy: PlanControlledByType;
+  controlledBy: BillingProviderType;
   /**
    *
    * @type {Date}
@@ -216,10 +236,10 @@ export interface CompanyPlanDetailResponseData {
   features: Array<FeatureDetailResponseData>;
   /**
    *
-   * @type {string}
+   * @type {PlanIcon}
    * @memberof CompanyPlanDetailResponseData
    */
-  icon: string;
+  icon: PlanIcon;
   /**
    *
    * @type {string}
@@ -396,6 +416,12 @@ export function CompanyPlanDetailResponseDataFromJSONTyped(
         : PlanVersionResponseDataFromJSON(json["active_version"]),
     audienceType:
       json["audience_type"] == null ? undefined : json["audience_type"],
+    billingLinkedResource:
+      json["billing_linked_resource"] == null
+        ? undefined
+        : BillingLinkedResourceResponseDataFromJSON(
+            json["billing_linked_resource"],
+          ),
     billingProduct:
       json["billing_product"] == null
         ? undefined
@@ -404,7 +430,7 @@ export function CompanyPlanDetailResponseDataFromJSONTyped(
     companyCanTrial: json["company_can_trial"],
     companyCount: json["company_count"],
     compatiblePlanIds: json["compatible_plan_ids"],
-    controlledBy: PlanControlledByTypeFromJSON(json["controlled_by"]),
+    controlledBy: BillingProviderTypeFromJSON(json["controlled_by"]),
     createdAt: new Date(json["created_at"]),
     currencyPrices: (json["currency_prices"] as Array<any>).map(
       PlanCurrencyPricesResponseDataFromJSON,
@@ -426,7 +452,7 @@ export function CompanyPlanDetailResponseDataFromJSONTyped(
     features: (json["features"] as Array<any>).map(
       FeatureDetailResponseDataFromJSON,
     ),
-    icon: json["icon"],
+    icon: PlanIconFromJSON(json["icon"]),
     id: json["id"],
     includedCreditGrants: (json["included_credit_grants"] as Array<any>).map(
       PlanCreditGrantViewFromJSON,
@@ -482,6 +508,9 @@ export function CompanyPlanDetailResponseDataToJSONTyped(
   return {
     active_version: PlanVersionResponseDataToJSON(value["activeVersion"]),
     audience_type: value["audienceType"],
+    billing_linked_resource: BillingLinkedResourceResponseDataToJSON(
+      value["billingLinkedResource"],
+    ),
     billing_product: BillingProductDetailResponseDataToJSON(
       value["billingProduct"],
     ),
@@ -489,7 +518,7 @@ export function CompanyPlanDetailResponseDataToJSONTyped(
     company_can_trial: value["companyCanTrial"],
     company_count: value["companyCount"],
     compatible_plan_ids: value["compatiblePlanIds"],
-    controlled_by: PlanControlledByTypeToJSON(value["controlledBy"]),
+    controlled_by: BillingProviderTypeToJSON(value["controlledBy"]),
     created_at: value["createdAt"].toISOString(),
     currency_prices: (value["currencyPrices"] as Array<any>).map(
       PlanCurrencyPricesResponseDataToJSON,
@@ -505,7 +534,7 @@ export function CompanyPlanDetailResponseDataToJSONTyped(
     features: (value["features"] as Array<any>).map(
       FeatureDetailResponseDataToJSON,
     ),
-    icon: value["icon"],
+    icon: PlanIconToJSON(value["icon"]),
     id: value["id"],
     included_credit_grants: (value["includedCreditGrants"] as Array<any>).map(
       PlanCreditGrantViewToJSON,

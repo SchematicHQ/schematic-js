@@ -8,25 +8,23 @@ import type {
   SelectedPlan,
   UsageBasedEntitlement,
 } from "../../types";
-import { getAddOnPrice } from "./billing";
+import { getAddOnPrice, getEntitlementPrice } from "./billing";
 
-export function buildPayInAdvanceRequestBody(
-  entitlements: UsageBasedEntitlement[],
-  period: string,
-): UpdatePayInAdvanceRequestBody[] {
+export function buildPayInAdvanceRequestBody(options: {
+  entitlements: UsageBasedEntitlement[];
+  period: string;
+  currency?: string;
+}): UpdatePayInAdvanceRequestBody[] {
+  const { entitlements, period, currency } = options;
   return entitlements.reduce(
-    (
-      acc: UpdatePayInAdvanceRequestBody[],
-      { meteredMonthlyPrice, meteredYearlyPrice, quantity },
-    ) => {
-      const priceId = (
-        period === "year" ? meteredYearlyPrice : meteredMonthlyPrice
-      )?.priceId;
+    (acc: UpdatePayInAdvanceRequestBody[], entitlement) => {
+      const billingPrice = getEntitlementPrice(entitlement, period, currency);
+      const priceId = billingPrice?.priceId;
 
       if (priceId) {
         acc.push({
           priceId,
-          quantity,
+          quantity: entitlement.quantity,
         });
       }
 
@@ -36,14 +34,16 @@ export function buildPayInAdvanceRequestBody(
   );
 }
 
-export function buildAddOnRequestBody(
-  addOns: SelectedPlan[],
-  period: string,
-  shouldTrial: boolean,
-): UpdateAddOnRequestBody[] {
+export function buildAddOnRequestBody(options: {
+  addOns: SelectedPlan[];
+  period: string;
+  shouldTrial: boolean;
+  currency?: string;
+}): UpdateAddOnRequestBody[] {
+  const { addOns, period, shouldTrial, currency } = options;
   return addOns.reduce((acc: UpdateAddOnRequestBody[], addOn) => {
     if (addOn.isSelected && !shouldTrial) {
-      const addOnPrice = getAddOnPrice(addOn, period);
+      const addOnPrice = getAddOnPrice(addOn, period, currency);
       const addOnPriceId = addOnPrice?.id;
 
       if (addOnPriceId) {

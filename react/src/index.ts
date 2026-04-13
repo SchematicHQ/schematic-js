@@ -33,7 +33,12 @@ export type {
   UseSchematicPlanOpts,
 };
 
-export { RuleType, Schematic, UsagePeriod } from "@schematichq/schematic-js";
+export {
+  RuleType,
+  Schematic,
+  TrialStatus,
+  UsagePeriod,
+} from "@schematichq/schematic-js";
 
 export type {
   CheckFlagReturn,

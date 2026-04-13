@@ -32,6 +32,7 @@ export interface AddOnProps {
     showCallToAction: boolean;
   };
   selectedPeriod: string;
+  currency?: string;
 }
 
 interface MeteredEntitlementPricingProps {
@@ -115,7 +116,12 @@ function shouldShowUsageBased(
   );
 }
 
-export const AddOn = ({ addOn, sharedProps, selectedPeriod }: AddOnProps) => {
+export const AddOn = ({
+  addOn,
+  sharedProps,
+  selectedPeriod,
+  currency,
+}: AddOnProps) => {
   const { layout } = sharedProps;
 
   const { t } = useTranslation();
@@ -142,7 +148,7 @@ export const AddOn = ({ addOn, sharedProps, selectedPeriod }: AddOnProps) => {
       currentAddOns.find((currentAddOn) => currentAddOn.id === addOn.id)
         ?.planPeriod;
   const { price: addOnPrice, currency: addOnCurrency } =
-    getAddOnPrice(addOn, selectedPeriod) || {};
+    getAddOnPrice(addOn, selectedPeriod, currency) || {};
 
   const displayableEntitlements =
     addOn.entitlements
@@ -165,7 +171,11 @@ export const AddOn = ({ addOn, sharedProps, selectedPeriod }: AddOnProps) => {
           };
         }
 
-        const priceData = getEntitlementPrice(entitlement, selectedPeriod);
+        const priceData = getEntitlementPrice(
+          entitlement,
+          selectedPeriod,
+          currency,
+        );
 
         return {
           isUnlimited: false,

@@ -110,6 +110,12 @@ export interface PlanCreditGrantView {
    * @type {number}
    * @memberof PlanCreditGrantView
    */
+  billingCreditAutoTopupThresholdCredits?: number | null;
+  /**
+   *
+   * @type {number}
+   * @memberof PlanCreditGrantView
+   */
   billingCreditAutoTopupThresholdPercent?: number | null;
   /**
    *
@@ -304,6 +310,10 @@ export function PlanCreditGrantViewFromJSONTyped(
       json["billing_credit_auto_topup_expiry_unit_count"] == null
         ? undefined
         : json["billing_credit_auto_topup_expiry_unit_count"],
+    billingCreditAutoTopupThresholdCredits:
+      json["billing_credit_auto_topup_threshold_credits"] == null
+        ? undefined
+        : json["billing_credit_auto_topup_threshold_credits"],
     billingCreditAutoTopupThresholdPercent:
       json["billing_credit_auto_topup_threshold_percent"] == null
         ? undefined
@@ -377,6 +387,8 @@ export function PlanCreditGrantViewToJSONTyped(
     ),
     billing_credit_auto_topup_expiry_unit_count:
       value["billingCreditAutoTopupExpiryUnitCount"],
+    billing_credit_auto_topup_threshold_credits:
+      value["billingCreditAutoTopupThresholdCredits"],
     billing_credit_auto_topup_threshold_percent:
       value["billingCreditAutoTopupThresholdPercent"],
     created_at: value["createdAt"].toISOString(),

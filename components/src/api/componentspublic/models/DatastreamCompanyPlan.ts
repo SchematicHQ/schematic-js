@@ -13,6 +13,14 @@
  */
 
 import { mapValues } from "../runtime";
+import type { TrialStatus } from "./TrialStatus";
+import {
+  TrialStatusFromJSON,
+  TrialStatusFromJSONTyped,
+  TrialStatusToJSON,
+  TrialStatusToJSONTyped,
+} from "./TrialStatus";
+
 /**
  *
  * @export
@@ -37,6 +45,12 @@ export interface DatastreamCompanyPlan {
    * @memberof DatastreamCompanyPlan
    */
   trialEndDate?: Date | null;
+  /**
+   *
+   * @type {TrialStatus}
+   * @memberof DatastreamCompanyPlan
+   */
+  trialStatus?: TrialStatus | null;
 }
 
 /**
@@ -70,6 +84,10 @@ export function DatastreamCompanyPlanFromJSONTyped(
       json["trial_end_date"] == null
         ? undefined
         : new Date(json["trial_end_date"]),
+    trialStatus:
+      json["trial_status"] == null
+        ? undefined
+        : TrialStatusFromJSON(json["trial_status"]),
   };
 }
 
@@ -92,5 +110,6 @@ export function DatastreamCompanyPlanToJSONTyped(
       value["trialEndDate"] == null
         ? undefined
         : (value["trialEndDate"] as any).toISOString(),
+    trial_status: TrialStatusToJSON(value["trialStatus"]),
   };
 }

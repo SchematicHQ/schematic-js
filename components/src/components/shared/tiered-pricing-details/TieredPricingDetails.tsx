@@ -11,17 +11,19 @@ import {
 export interface TieredPricingDetailsProps {
   entitlement: PlanEntitlementResponseData;
   period: string;
+  currency?: string;
 }
 
 export const TieredPricingDetails = ({
   entitlement,
   period,
+  currency: selectedCurrency,
 }: TieredPricingDetailsProps) => {
   const { t } = useTranslation();
 
   const { currency, flatAmount, perUnitPrice, upTo } = useMemo(() => {
     const { currency, priceTier } =
-      getEntitlementPrice(entitlement, period) || {};
+      getEntitlementPrice(entitlement, period, selectedCurrency) || {};
 
     const { flatAmount, perUnitPrice, perUnitPriceDecimal, upTo } =
       priceTier?.[0] || {};
@@ -35,7 +37,7 @@ export const TieredPricingDetails = ({
           : perUnitPrice || 0,
       upTo: upTo || undefined,
     };
-  }, [entitlement, period]);
+  }, [entitlement, period, selectedCurrency]);
 
   if (!entitlement.feature) {
     return null;

@@ -3,6 +3,7 @@ import {
   DatastreamCompanyPlanFromJSON,
 } from "./api/models";
 import { EventBodyFlagCheck } from "./api/models/EventBodyFlagCheck";
+import { type TrialStatus } from "./api/models/TrialStatus";
 
 export type EventType = "identify" | "track" | "flag_check";
 
@@ -113,6 +114,7 @@ export type CheckPlanReturn = {
   id: string;
   name: string;
   trialEndDate?: Date;
+  trialStatus?: TrialStatus;
 };
 
 /** Optional type for implementing custom client-side storage */
@@ -277,13 +279,15 @@ export const CheckPlanReturnFromJSON = (
   /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
   json: any,
 ): CheckPlanReturn => {
-  const { id, name, trialEndDate } = DatastreamCompanyPlanFromJSON(json);
+  const { id, name, trialEndDate, trialStatus } =
+    DatastreamCompanyPlanFromJSON(json);
 
   // OpenAPI types return undefined or null; simplify this so callers only have to deal with undefined, and also use enums
   return {
     id,
     name,
     trialEndDate: trialEndDate == null ? undefined : trialEndDate,
+    trialStatus: trialStatus == null ? undefined : trialStatus,
   };
 };
 
@@ -293,3 +297,4 @@ export type { CheckFlagResponseData } from "./api/models/CheckFlagResponseData";
 export { CheckFlagResponseFromJSON } from "./api/models/CheckFlagResponse";
 export { CheckFlagsResponseFromJSON } from "./api/models/CheckFlagsResponse";
 export { DatastreamCompanyPlanFromJSON } from "./api/models/DatastreamCompanyPlan";
+export { TrialStatus } from "./api/models/TrialStatus";

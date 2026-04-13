@@ -48,6 +48,13 @@ import {
   EntitlementCurrencyPricesResponseDataToJSON,
   EntitlementCurrencyPricesResponseDataToJSONTyped,
 } from "./EntitlementCurrencyPricesResponseData";
+import type { BillingLinkedResourceResponseData } from "./BillingLinkedResourceResponseData";
+import {
+  BillingLinkedResourceResponseDataFromJSON,
+  BillingLinkedResourceResponseDataFromJSONTyped,
+  BillingLinkedResourceResponseDataToJSON,
+  BillingLinkedResourceResponseDataToJSONTyped,
+} from "./BillingLinkedResourceResponseData";
 import type { FeatureResponseData } from "./FeatureResponseData";
 import {
   FeatureResponseDataFromJSON,
@@ -83,6 +90,12 @@ import {
  * @interface PlanEntitlementResponseData
  */
 export interface PlanEntitlementResponseData {
+  /**
+   *
+   * @type {BillingLinkedResourceResponseData}
+   * @memberof PlanEntitlementResponseData
+   */
+  billingLinkedResource?: BillingLinkedResourceResponseData;
   /**
    *
    * @type {number}
@@ -275,6 +288,12 @@ export function PlanEntitlementResponseDataFromJSONTyped(
     return json;
   }
   return {
+    billingLinkedResource:
+      json["billing_linked_resource"] == null
+        ? undefined
+        : BillingLinkedResourceResponseDataFromJSON(
+            json["billing_linked_resource"],
+          ),
     billingThreshold:
       json["billing_threshold"] == null ? undefined : json["billing_threshold"],
     consumptionRate:
@@ -354,6 +373,9 @@ export function PlanEntitlementResponseDataToJSONTyped(
   }
 
   return {
+    billing_linked_resource: BillingLinkedResourceResponseDataToJSON(
+      value["billingLinkedResource"],
+    ),
     billing_threshold: value["billingThreshold"],
     consumption_rate: value["consumptionRate"],
     created_at: value["createdAt"].toISOString(),

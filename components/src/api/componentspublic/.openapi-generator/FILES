@@ -13,6 +13,7 @@ models/BillingCreditExpiryUnit.ts
 models/BillingCreditResponseData.ts
 models/BillingCreditRolloverPolicy.ts
 models/BillingCreditView.ts
+models/BillingLinkedResourceResponseData.ts
 models/BillingPlanCreditGrantResetCadence.ts
 models/BillingPlanCreditGrantResetStart.ts
 models/BillingPlanCreditGrantResetType.ts
@@ -75,12 +76,12 @@ models/FlagType.ts
 models/GenericPreviewObject.ts
 models/GetPublicPlansResponse.ts
 models/GetWhoAmIResponse.ts
-models/PlanControlledByType.ts
 models/PlanCreditGrantView.ts
 models/PlanCurrencyPricesResponseData.ts
 models/PlanDetailResponseData.ts
 models/PlanEntitlementResponseData.ts
 models/PlanGroupPlanDetailResponseData.ts
+models/PlanIcon.ts
 models/PlanResponseData.ts
 models/PlanType.ts
 models/PlanVersionResponseData.ts
@@ -98,6 +99,7 @@ models/RuleConditionResponseData.ts
 models/RuleDetailResponseData.ts
 models/RuleResponseData.ts
 models/TraitType.ts
+models/TrialStatus.ts
 models/WhoAmIResponseData.ts
 models/index.ts
 runtime.ts

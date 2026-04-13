@@ -164,6 +164,33 @@ export const PaymentMethodDetails = ({
     setShowDifferentPaymentMethods((prev) => !prev);
   };
 
+  const initializeStripe = useCallback(async () => {
+    if (!stripe && setupIntent) {
+      let publishableKey =
+        setupIntent.publishableKey || setupIntent.schematicPublishableKey;
+
+      const stripeOptions: StripeConstructorOptions = {};
+
+      if (setupIntent.accountId) {
+        publishableKey = setupIntent.schematicPublishableKey;
+        stripeOptions.stripeAccount = setupIntent.accountId;
+      }
+
+      try {
+        const stripePromise = loadStripe(publishableKey, stripeOptions);
+        setStripe(stripePromise);
+
+        const instance = await stripePromise;
+        if (!instance) {
+          throw new Error("Failed to load Stripe instance");
+        }
+      } catch {
+        setError(t("Unable to load payment form."));
+        setShowPaymentForm(false);
+      }
+    }
+  }, [t, stripe, setupIntent]);
+
   const initializePaymentMethod = useCallback(async () => {
     try {
       setIsLoading(true);
@@ -230,21 +257,8 @@ export const PaymentMethodDetails = ({
   );
 
   useEffect(() => {
-    if (!stripe && setupIntent) {
-      let publishableKey =
-        setupIntent.publishableKey || setupIntent.schematicPublishableKey;
-
-      const stripeOptions: StripeConstructorOptions = {};
-
-      if (setupIntent.accountId) {
-        publishableKey = setupIntent.schematicPublishableKey;
-        stripeOptions.stripeAccount = setupIntent.accountId;
-      }
-
-      const stripePromise = loadStripe(publishableKey, stripeOptions);
-      setStripe(stripePromise);
-    }
-  }, [stripe, setupIntent]);
+    initializeStripe();
+  }, [initializeStripe]);
 
   useEffect(() => {
     if (!setupIntent && (!currentPaymentMethod || showPaymentForm)) {

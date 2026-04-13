@@ -20,13 +20,41 @@ import {
   FeatureDetailResponseDataToJSON,
   FeatureDetailResponseDataToJSONTyped,
 } from "./FeatureDetailResponseData";
-import type { PlanControlledByType } from "./PlanControlledByType";
+import type { BillingLinkedResourceResponseData } from "./BillingLinkedResourceResponseData";
 import {
-  PlanControlledByTypeFromJSON,
-  PlanControlledByTypeFromJSONTyped,
-  PlanControlledByTypeToJSON,
-  PlanControlledByTypeToJSONTyped,
-} from "./PlanControlledByType";
+  BillingLinkedResourceResponseDataFromJSON,
+  BillingLinkedResourceResponseDataFromJSONTyped,
+  BillingLinkedResourceResponseDataToJSON,
+  BillingLinkedResourceResponseDataToJSONTyped,
+} from "./BillingLinkedResourceResponseData";
+import type { PlanEntitlementResponseData } from "./PlanEntitlementResponseData";
+import {
+  PlanEntitlementResponseDataFromJSON,
+  PlanEntitlementResponseDataFromJSONTyped,
+  PlanEntitlementResponseDataToJSON,
+  PlanEntitlementResponseDataToJSONTyped,
+} from "./PlanEntitlementResponseData";
+import type { BillingProviderType } from "./BillingProviderType";
+import {
+  BillingProviderTypeFromJSON,
+  BillingProviderTypeFromJSONTyped,
+  BillingProviderTypeToJSON,
+  BillingProviderTypeToJSONTyped,
+} from "./BillingProviderType";
+import type { CustomPlanConfig } from "./CustomPlanConfig";
+import {
+  CustomPlanConfigFromJSON,
+  CustomPlanConfigFromJSONTyped,
+  CustomPlanConfigToJSON,
+  CustomPlanConfigToJSONTyped,
+} from "./CustomPlanConfig";
+import type { BillingProductDetailResponseData } from "./BillingProductDetailResponseData";
+import {
+  BillingProductDetailResponseDataFromJSON,
+  BillingProductDetailResponseDataFromJSONTyped,
+  BillingProductDetailResponseDataToJSON,
+  BillingProductDetailResponseDataToJSONTyped,
+} from "./BillingProductDetailResponseData";
 import type { PlanCreditGrantView } from "./PlanCreditGrantView";
 import {
   PlanCreditGrantViewFromJSON,
@@ -41,13 +69,6 @@ import {
   PlanCurrencyPricesResponseDataToJSON,
   PlanCurrencyPricesResponseDataToJSONTyped,
 } from "./PlanCurrencyPricesResponseData";
-import type { PlanEntitlementResponseData } from "./PlanEntitlementResponseData";
-import {
-  PlanEntitlementResponseDataFromJSON,
-  PlanEntitlementResponseDataFromJSONTyped,
-  PlanEntitlementResponseDataToJSON,
-  PlanEntitlementResponseDataToJSONTyped,
-} from "./PlanEntitlementResponseData";
 import type { ChargeType } from "./ChargeType";
 import {
   ChargeTypeFromJSON,
@@ -55,6 +76,13 @@ import {
   ChargeTypeToJSON,
   ChargeTypeToJSONTyped,
 } from "./ChargeType";
+import type { PlanIcon } from "./PlanIcon";
+import {
+  PlanIconFromJSON,
+  PlanIconFromJSONTyped,
+  PlanIconToJSON,
+  PlanIconToJSONTyped,
+} from "./PlanIcon";
 import type { PlanType } from "./PlanType";
 import {
   PlanTypeFromJSON,
@@ -76,20 +104,6 @@ import {
   BillingPriceResponseDataToJSON,
   BillingPriceResponseDataToJSONTyped,
 } from "./BillingPriceResponseData";
-import type { CustomPlanConfig } from "./CustomPlanConfig";
-import {
-  CustomPlanConfigFromJSON,
-  CustomPlanConfigFromJSONTyped,
-  CustomPlanConfigToJSON,
-  CustomPlanConfigToJSONTyped,
-} from "./CustomPlanConfig";
-import type { BillingProductDetailResponseData } from "./BillingProductDetailResponseData";
-import {
-  BillingProductDetailResponseDataFromJSON,
-  BillingProductDetailResponseDataFromJSONTyped,
-  BillingProductDetailResponseDataToJSON,
-  BillingProductDetailResponseDataToJSONTyped,
-} from "./BillingProductDetailResponseData";
 
 /**
  *
@@ -110,6 +124,12 @@ export interface PlanViewPublicResponseData {
    * @deprecated
    */
   audienceType?: string | null;
+  /**
+   *
+   * @type {BillingLinkedResourceResponseData}
+   * @memberof PlanViewPublicResponseData
+   */
+  billingLinkedResource?: BillingLinkedResourceResponseData;
   /**
    *
    * @type {BillingProductDetailResponseData}
@@ -136,10 +156,10 @@ export interface PlanViewPublicResponseData {
   compatiblePlanIds: Array<string>;
   /**
    *
-   * @type {PlanControlledByType}
+   * @type {BillingProviderType}
    * @memberof PlanViewPublicResponseData
    */
-  controlledBy: PlanControlledByType;
+  controlledBy: BillingProviderType;
   /**
    *
    * @type {Date}
@@ -190,10 +210,10 @@ export interface PlanViewPublicResponseData {
   features: Array<FeatureDetailResponseData>;
   /**
    *
-   * @type {string}
+   * @type {PlanIcon}
    * @memberof PlanViewPublicResponseData
    */
-  icon: string;
+  icon: PlanIcon;
   /**
    *
    * @type {string}
@@ -346,6 +366,12 @@ export function PlanViewPublicResponseDataFromJSONTyped(
         : PlanVersionResponseDataFromJSON(json["active_version"]),
     audienceType:
       json["audience_type"] == null ? undefined : json["audience_type"],
+    billingLinkedResource:
+      json["billing_linked_resource"] == null
+        ? undefined
+        : BillingLinkedResourceResponseDataFromJSON(
+            json["billing_linked_resource"],
+          ),
     billingProduct:
       json["billing_product"] == null
         ? undefined
@@ -353,7 +379,7 @@ export function PlanViewPublicResponseDataFromJSONTyped(
     chargeType: ChargeTypeFromJSON(json["charge_type"]),
     companyCount: json["company_count"],
     compatiblePlanIds: json["compatible_plan_ids"],
-    controlledBy: PlanControlledByTypeFromJSON(json["controlled_by"]),
+    controlledBy: BillingProviderTypeFromJSON(json["controlled_by"]),
     createdAt: new Date(json["created_at"]),
     currencyPrices: (json["currency_prices"] as Array<any>).map(
       PlanCurrencyPricesResponseDataFromJSON,
@@ -374,7 +400,7 @@ export function PlanViewPublicResponseDataFromJSONTyped(
     features: (json["features"] as Array<any>).map(
       FeatureDetailResponseDataFromJSON,
     ),
-    icon: json["icon"],
+    icon: PlanIconFromJSON(json["icon"]),
     id: json["id"],
     includedCreditGrants: (json["included_credit_grants"] as Array<any>).map(
       PlanCreditGrantViewFromJSON,
@@ -422,13 +448,16 @@ export function PlanViewPublicResponseDataToJSONTyped(
   return {
     active_version: PlanVersionResponseDataToJSON(value["activeVersion"]),
     audience_type: value["audienceType"],
+    billing_linked_resource: BillingLinkedResourceResponseDataToJSON(
+      value["billingLinkedResource"],
+    ),
     billing_product: BillingProductDetailResponseDataToJSON(
       value["billingProduct"],
     ),
     charge_type: ChargeTypeToJSON(value["chargeType"]),
     company_count: value["companyCount"],
     compatible_plan_ids: value["compatiblePlanIds"],
-    controlled_by: PlanControlledByTypeToJSON(value["controlledBy"]),
+    controlled_by: BillingProviderTypeToJSON(value["controlledBy"]),
     created_at: value["createdAt"].toISOString(),
     currency_prices: (value["currencyPrices"] as Array<any>).map(
       PlanCurrencyPricesResponseDataToJSON,
@@ -443,7 +472,7 @@ export function PlanViewPublicResponseDataToJSONTyped(
     features: (value["features"] as Array<any>).map(
       FeatureDetailResponseDataToJSON,
     ),
-    icon: value["icon"],
+    icon: PlanIconToJSON(value["icon"]),
     id: value["id"],
     included_credit_grants: (value["includedCreditGrants"] as Array<any>).map(
       PlanCreditGrantViewToJSON,

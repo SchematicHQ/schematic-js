@@ -1,8 +1,9 @@
+import { waitFor } from "@testing-library/react";
 import { HttpResponse, http } from "msw";
 import { vi } from "vitest";
 
 import { server } from "../../test/mocks/node";
-import { render, waitFor } from "../../test/setup";
+import { render } from "../../test/setup";
 
 import { SchematicEmbed } from ".";
 

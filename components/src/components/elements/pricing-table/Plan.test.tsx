@@ -1,3 +1,4 @@
+import { act, fireEvent, screen } from "@testing-library/react";
 import { vi } from "vitest";
 
 import {
@@ -7,7 +8,7 @@ import {
   type PlanEntitlementResponseData,
 } from "../../../api/checkoutexternal";
 import { VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
-import { act, fireEvent, render, screen } from "../../../test/setup";
+import { render } from "../../../test/setup";
 import type { DeepPartial, SelectedPlan } from "../../../types";
 
 import { Plan, type PlanProps } from "./Plan";

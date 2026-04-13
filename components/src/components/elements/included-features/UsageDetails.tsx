@@ -298,8 +298,6 @@ export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
           })}
         </Fragment>,
       );
-
-      index += 1;
     }
 
     if (acc.length > 0) {

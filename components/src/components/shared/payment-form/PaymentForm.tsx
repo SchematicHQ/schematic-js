@@ -4,13 +4,13 @@ import {
   useElements,
   useStripe,
 } from "@stripe/react-stripe-js";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import type { PreviewSubscriptionFinanceResponseData } from "../../../api/checkoutexternal";
 import { useEmbed } from "../../../hooks";
 import { shouldCollectBillingAddress } from "../../../utils";
-import { Box, Button, Flex, Text } from "../../ui";
+import { Box, Button, Flex, Text, TransitionBox } from "../../ui";
 
 import { Input, Label } from "./styles";
 
@@ -27,11 +27,18 @@ export const PaymentForm = ({ onConfirm, financeData }: PaymentFormProps) => {
 
   const { data } = useEmbed();
 
+  const loadTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
+
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [isPaymentComplete, setIsPaymentComplete] = useState(false);
+  const [isPaymentReady, setIsPaymentReady] = useState(false);
+  const [loadError, setLoadError] = useState<string | undefined>();
+
   const [isAddressComplete, setIsAddressComplete] = useState(() => {
     // Check if billing address collection is needed (either configured or required for tax)
     const shouldCollectAddress = shouldCollectBillingAddress(
@@ -42,7 +49,7 @@ export const PaymentForm = ({ onConfirm, financeData }: PaymentFormProps) => {
     return !shouldCollectAddress;
   });
 
-  const handleSubmit: React.FormEventHandler<HTMLFormElement> = async (
+  const handleSubmit: React.SubmitEventHandler<HTMLFormElement> = async (
     event,
   ) => {
     event.preventDefault();
@@ -86,6 +93,20 @@ export const PaymentForm = ({ onConfirm, financeData }: PaymentFormProps) => {
     }
   };
 
+  useEffect(() => {
+    loadTimerRef.current = setTimeout(() => {
+      if (!isPaymentReady) {
+        setLoadError(t("Unable to load payment form."));
+      }
+    }, 10000);
+
+    return () => {
+      if (loadTimerRef.current) {
+        clearTimeout(loadTimerRef.current);
+      }
+    };
+  }, [t, isPaymentReady]);
+
   return (
     <Flex
       as="form"
@@ -96,10 +117,36 @@ export const PaymentForm = ({ onConfirm, financeData }: PaymentFormProps) => {
       <Box $marginBottom="1.5rem">
         <PaymentElement
           id="payment-element"
+          onReady={() => {
+            setIsPaymentReady(true);
+            if (loadTimerRef.current) {
+              clearTimeout(loadTimerRef.current);
+            }
+          }}
+          onLoadError={() => {
+            setLoadError(t("Unable to load payment form."));
+            if (loadTimerRef.current) {
+              clearTimeout(loadTimerRef.current);
+            }
+          }}
           onChange={(event) => {
             setIsPaymentComplete(event.complete);
           }}
         />
+
+        {loadError && (
+          <Flex
+            as={TransitionBox}
+            $flexDirection="column"
+            $justifyContent="center"
+            $alignItems="center"
+            $gap="1rem"
+          >
+            <Text $weight={500} $color="#DB6669">
+              {loadError}
+            </Text>
+          </Flex>
+        )}
       </Box>
 
       {stripe && data?.checkoutSettings.collectEmail && (

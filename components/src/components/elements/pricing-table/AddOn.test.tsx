@@ -1,3 +1,4 @@
+import { act, fireEvent, screen } from "@testing-library/react";
 import cloneDeep from "lodash/cloneDeep";
 import { vi } from "vitest";
 
@@ -9,7 +10,7 @@ import {
   PlanEntitlementResponseData,
   TraitType,
 } from "../../../api/checkoutexternal";
-import { act, fireEvent, render, screen } from "../../../test/setup";
+import { render } from "../../../test/setup";
 import type { DeepPartial, SelectedPlan } from "../../../types";
 
 import { AddOn, type AddOnProps } from "./AddOn";

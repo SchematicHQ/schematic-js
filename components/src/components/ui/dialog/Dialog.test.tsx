@@ -1,7 +1,8 @@
 import "@testing-library/dom";
 import "@testing-library/jest-dom";
+import { screen, within } from "@testing-library/react";
 
-import { render, screen, within } from "../../../test/setup";
+import { render } from "../../../test/setup";
 
 import { Dialog } from "./Dialog";
 import { DialogContent } from "./DialogContent";

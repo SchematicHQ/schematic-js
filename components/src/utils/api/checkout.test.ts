@@ -1,4 +1,5 @@
 import type { BillingPriceView } from "../../api/checkoutexternal";
+import { PlanIcon } from "../../api/checkoutexternal";
 import type {
   CreditBundle,
   SelectedPlan,
@@ -44,7 +45,7 @@ function makeSelectedPlan(overrides: Partial<SelectedPlan> = {}): SelectedPlan {
     description: "",
     entitlements: [],
     features: [],
-    icon: "",
+    icon: PlanIcon.Blue,
     id: "addon-1",
     includedCreditGrants: [],
     isCustom: false,
@@ -107,7 +108,10 @@ function makeCreditBundle(overrides: Partial<CreditBundle> = {}): CreditBundle {
 
 describe("buildPayInAdvanceRequestBody", () => {
   it("should return an empty array for empty entitlements", () => {
-    const result = buildPayInAdvanceRequestBody([], "month");
+    const result = buildPayInAdvanceRequestBody({
+      entitlements: [],
+      period: "month",
+    });
     expect(result).toEqual([]);
   });
 
@@ -124,7 +128,10 @@ describe("buildPayInAdvanceRequestBody", () => {
       }),
     ];
 
-    const result = buildPayInAdvanceRequestBody(entitlements, "month");
+    const result = buildPayInAdvanceRequestBody({
+      entitlements,
+      period: "month",
+    });
 
     expect(result).toEqual([{ priceId: "monthly-price-1", quantity: 5 }]);
   });
@@ -142,7 +149,10 @@ describe("buildPayInAdvanceRequestBody", () => {
       }),
     ];
 
-    const result = buildPayInAdvanceRequestBody(entitlements, "year");
+    const result = buildPayInAdvanceRequestBody({
+      entitlements,
+      period: "year",
+    });
 
     expect(result).toEqual([{ priceId: "yearly-price-1", quantity: 10 }]);
   });
@@ -158,7 +168,10 @@ describe("buildPayInAdvanceRequestBody", () => {
       }),
     ];
 
-    const result = buildPayInAdvanceRequestBody(entitlements, "month");
+    const result = buildPayInAdvanceRequestBody({
+      entitlements,
+      period: "month",
+    });
     expect(result).toEqual([]);
   });
 
@@ -174,7 +187,10 @@ describe("buildPayInAdvanceRequestBody", () => {
       }),
     ];
 
-    const result = buildPayInAdvanceRequestBody(entitlements, "month");
+    const result = buildPayInAdvanceRequestBody({
+      entitlements,
+      period: "month",
+    });
     expect(result).toEqual([]);
   });
 
@@ -198,7 +214,10 @@ describe("buildPayInAdvanceRequestBody", () => {
       }),
     ];
 
-    const result = buildPayInAdvanceRequestBody(entitlements, "month");
+    const result = buildPayInAdvanceRequestBody({
+      entitlements,
+      period: "month",
+    });
 
     expect(result).toEqual([
       { priceId: "price-a", quantity: 3 },
@@ -216,14 +235,21 @@ describe("buildPayInAdvanceRequestBody", () => {
       }),
     ];
 
-    const result = buildPayInAdvanceRequestBody(entitlements, "month");
+    const result = buildPayInAdvanceRequestBody({
+      entitlements,
+      period: "month",
+    });
     expect(result).toEqual([{ priceId: "price-zero", quantity: 0 }]);
   });
 });
 
 describe("buildAddOnRequestBody", () => {
   it("should return an empty array for empty addOns", () => {
-    const result = buildAddOnRequestBody([], "month", false);
+    const result = buildAddOnRequestBody({
+      addOns: [],
+      period: "month",
+      shouldTrial: false,
+    });
     expect(result).toEqual([]);
   });
 
@@ -244,7 +270,11 @@ describe("buildAddOnRequestBody", () => {
       }),
     ];
 
-    const result = buildAddOnRequestBody(addOns, "month", false);
+    const result = buildAddOnRequestBody({
+      addOns,
+      period: "month",
+      shouldTrial: false,
+    });
     expect(result).toEqual([]);
   });
 
@@ -265,7 +295,11 @@ describe("buildAddOnRequestBody", () => {
       }),
     ];
 
-    const result = buildAddOnRequestBody(addOns, "month", true);
+    const result = buildAddOnRequestBody({
+      addOns,
+      period: "month",
+      shouldTrial: true,
+    });
     expect(result).toEqual([]);
   });
 
@@ -286,7 +320,11 @@ describe("buildAddOnRequestBody", () => {
       }),
     ];
 
-    const result = buildAddOnRequestBody(addOns, "month", false);
+    const result = buildAddOnRequestBody({
+      addOns,
+      period: "month",
+      shouldTrial: false,
+    });
     expect(result).toEqual([{ addOnId: "addon-1", priceId: "mp-1" }]);
   });
 
@@ -307,7 +345,11 @@ describe("buildAddOnRequestBody", () => {
       }),
     ];
 
-    const result = buildAddOnRequestBody(addOns, "year", false);
+    const result = buildAddOnRequestBody({
+      addOns,
+      period: "year",
+      shouldTrial: false,
+    });
     expect(result).toEqual([{ addOnId: "addon-1", priceId: "yp-1" }]);
   });
 
@@ -328,7 +370,11 @@ describe("buildAddOnRequestBody", () => {
       }),
     ];
 
-    const result = buildAddOnRequestBody(addOns, "month", false);
+    const result = buildAddOnRequestBody({
+      addOns,
+      period: "month",
+      shouldTrial: false,
+    });
     expect(result).toEqual([{ addOnId: "addon-1", priceId: "mp-1" }]);
   });
 
@@ -342,7 +388,11 @@ describe("buildAddOnRequestBody", () => {
       }),
     ];
 
-    const result = buildAddOnRequestBody(addOns, "month", false);
+    const result = buildAddOnRequestBody({
+      addOns,
+      period: "month",
+      shouldTrial: false,
+    });
     expect(result).toEqual([]);
   });
 
@@ -366,10 +416,18 @@ describe("buildAddOnRequestBody", () => {
       }),
     ];
 
-    const resultMonth = buildAddOnRequestBody(addOns, "month", false);
+    const resultMonth = buildAddOnRequestBody({
+      addOns,
+      period: "month",
+      shouldTrial: false,
+    });
     expect(resultMonth).toEqual([{ addOnId: "addon-ot", priceId: "otp-1" }]);
 
-    const resultYear = buildAddOnRequestBody(addOns, "year", false);
+    const resultYear = buildAddOnRequestBody({
+      addOns,
+      period: "year",
+      shouldTrial: false,
+    });
     expect(resultYear).toEqual([{ addOnId: "addon-ot", priceId: "otp-1" }]);
   });
 
@@ -416,7 +474,11 @@ describe("buildAddOnRequestBody", () => {
       }),
     ];
 
-    const result = buildAddOnRequestBody(addOns, "month", false);
+    const result = buildAddOnRequestBody({
+      addOns,
+      period: "month",
+      shouldTrial: false,
+    });
     expect(result).toEqual([
       { addOnId: "addon-1", priceId: "mp-1" },
       { addOnId: "addon-3", priceId: "mp-3" },
