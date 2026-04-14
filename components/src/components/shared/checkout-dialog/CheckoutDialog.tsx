@@ -215,7 +215,8 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       DEFAULT_CURRENCY,
   );
   const showCurrencySelector = currencies.length > 1 && !lockedCurrency;
-  const hasCurrency = currencies.length > 1 || !!lockedCurrency;
+  const hasCurrency =
+    !!lockedCurrency || currencies.length > 1 || hasCurrencyFilter;
   const hasNoUsableCurrency = !lockedCurrency && currencies.length === 0;
 
   useEffect(() => {

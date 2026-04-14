@@ -142,7 +142,8 @@ export const PricingTable = forwardRef<
 
   const { t } = useTranslation();
 
-  const { data, settings, isPending, hydratePublic } = useEmbed();
+  const { data, settings, isPending, hydratePublic, currencyFilter } =
+    useEmbed();
 
   const getCallToActionTarget = useCallback(
     (url?: string, target?: HTMLAttributeAnchorTarget) => {
@@ -185,7 +186,9 @@ export const PricingTable = forwardRef<
 
   const showPeriodToggle =
     rest.showPeriodToggle ?? data?.displaySettings?.showPeriodToggle ?? true;
+  const hasCurrencyFilter = !!currencyFilter && currencyFilter.length > 0;
   const showCurrencySelector = currencies.length > 1;
+  const hasCurrency = currencies.length > 1 || hasCurrencyFilter;
   const hasNoUsableCurrency = currencies.length === 0;
   const { plans, addOns, periods } = useAvailablePlans(selectedPeriod, {
     useSelectedPeriod: showPeriodToggle,
@@ -347,9 +350,7 @@ export const PricingTable = forwardRef<
                     }}
                     plans={self}
                     selectedPeriod={planPeriod}
-                    currency={
-                      showCurrencySelector ? selectedCurrency : undefined
-                    }
+                    currency={hasCurrency ? selectedCurrency : undefined}
                     entitlementCounts={entitlementCounts}
                     handleToggleShowAll={handleToggleShowAll}
                   />
@@ -396,9 +397,7 @@ export const PricingTable = forwardRef<
                         onCallToAction: rest.onCallToAction,
                       }}
                       selectedPeriod={addOnPeriod}
-                      currency={
-                        showCurrencySelector ? selectedCurrency : undefined
-                      }
+                      currency={hasCurrency ? selectedCurrency : undefined}
                     />
                   );
                 })}
