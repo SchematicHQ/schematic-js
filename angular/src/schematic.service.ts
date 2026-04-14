@@ -1,11 +1,14 @@
-import { Inject, Injectable } from "@angular/core";
+import { Injectable, Signal, inject } from "@angular/core";
+import { toSignal } from "@angular/core/rxjs-interop";
 import * as SchematicJS from "@schematichq/schematic-js";
-import { Observable, shareReplay } from "rxjs";
+import { Observable, distinctUntilChanged, shareReplay } from "rxjs";
 
-import { SCHEMATIC_CLIENT } from "./provide";
+import { SCHEMATIC_CLIENT } from "./token";
 
-@Injectable({ providedIn: "root" })
+@Injectable()
 export class SchematicService {
+  private client = inject(SCHEMATIC_CLIENT);
+
   private flagValueCache = new Map<string, Observable<boolean>>();
   private flagCheckCache = new Map<
     string,
@@ -13,10 +16,6 @@ export class SchematicService {
   >();
   private planCache?: Observable<SchematicJS.CheckPlanReturn | undefined>;
   private isPendingCache?: Observable<boolean>;
-
-  constructor(
-    @Inject(SCHEMATIC_CLIENT) private client: SchematicJS.Schematic,
-  ) {}
 
   getClient(): SchematicJS.Schematic {
     return this.client;
@@ -49,7 +48,7 @@ export class SchematicService {
       });
 
       return () => unsubscribe();
-    }).pipe(shareReplay({ bufferSize: 1, refCount: true }));
+    }).pipe(distinctUntilChanged(), shareReplay({ bufferSize: 1, refCount: true }));
 
     this.flagValueCache.set(cacheKey, cached);
     return cached;
@@ -79,7 +78,17 @@ export class SchematicService {
       });
 
       return () => unsubscribe();
-    }).pipe(shareReplay({ bufferSize: 1, refCount: true }));
+    }).pipe(
+      distinctUntilChanged(
+        (a, b) =>
+          a.flag === b.flag &&
+          a.value === b.value &&
+          a.reason === b.reason &&
+          a.featureUsage === b.featureUsage &&
+          a.featureAllocation === b.featureAllocation,
+      ),
+      shareReplay({ bufferSize: 1, refCount: true }),
+    );
 
     this.flagCheckCache.set(cacheKey, cached);
     return cached;
@@ -98,7 +107,12 @@ export class SchematicService {
 
         return () => unsubscribe();
       },
-    ).pipe(shareReplay({ bufferSize: 1, refCount: true }));
+    ).pipe(
+      distinctUntilChanged(
+        (a, b) => a?.id === b?.id && a?.name === b?.name && a?.trialStatus === b?.trialStatus,
+      ),
+      shareReplay({ bufferSize: 1, refCount: true }),
+    );
 
     return this.planCache;
   }
@@ -114,8 +128,34 @@ export class SchematicService {
       });
 
       return () => unsubscribe();
-    }).pipe(shareReplay({ bufferSize: 1, refCount: true }));
+    }).pipe(distinctUntilChanged(), shareReplay({ bufferSize: 1, refCount: true }));
 
     return this.isPendingCache;
+  }
+
+  flagValue(key: string, fallback: boolean = false): Signal<boolean> {
+    return toSignal(this.flagValue$(key, fallback), { initialValue: fallback });
+  }
+
+  flagCheck(
+    key: string,
+    fallback: boolean = false,
+  ): Signal<SchematicJS.CheckFlagReturn> {
+    const fallbackCheck: SchematicJS.CheckFlagReturn = {
+      flag: key,
+      reason: "Fallback",
+      value: fallback,
+    };
+    return toSignal(this.flagCheck$(key, fallback), {
+      initialValue: fallbackCheck,
+    });
+  }
+
+  plan(): Signal<SchematicJS.CheckPlanReturn | undefined> {
+    return toSignal(this.plan$(), { initialValue: undefined });
+  }
+
+  isPending(): Signal<boolean> {
+    return toSignal(this.isPending$(), { initialValue: true });
   }
 }

@@ -1,5 +1,6 @@
-export { provideSchematic, SCHEMATIC_CLIENT } from "./provide";
+export { provideSchematic } from "./provide";
 export type { SchematicConfig } from "./provide";
+export { SCHEMATIC_CLIENT } from "./token";
 
 export { SchematicService } from "./schematic.service";
 

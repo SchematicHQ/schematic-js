@@ -1,16 +1,13 @@
 import {
   DestroyRef,
   inject,
-  InjectionToken,
   makeEnvironmentProviders,
 } from "@angular/core";
 import * as SchematicJS from "@schematichq/schematic-js";
 
+import { SchematicService } from "./schematic.service";
+import { SCHEMATIC_CLIENT } from "./token";
 import { version } from "./version";
-
-export const SCHEMATIC_CLIENT = new InjectionToken<SchematicJS.Schematic>(
-  "SchematicClient",
-);
 
 type BaseSchematicConfig = Omit<SchematicJS.SchematicOptions, "useWebSocket">;
 
@@ -29,21 +26,28 @@ export type SchematicConfig =
   | SchematicConfigWithKey;
 
 export function provideSchematic(config: SchematicConfig) {
+  const {
+    client: providedClient,
+    publishableKey,
+    additionalHeaders,
+    ...restOpts
+  } = config;
+
   return makeEnvironmentProviders([
     {
       provide: SCHEMATIC_CLIENT,
       useFactory: () => {
-        const isProvidedClient = "client" in config && !!config.client;
+        const isProvidedClient = !!providedClient;
 
         const client = isProvidedClient
-          ? config.client
-          : new SchematicJS.Schematic(config.publishableKey!, {
+          ? providedClient
+          : new SchematicJS.Schematic(publishableKey!, {
+              ...restOpts,
               useWebSocket: true,
               additionalHeaders: {
                 "X-Schematic-Client-Version": `schematic-angular@${version}`,
-                ...config.additionalHeaders,
+                ...additionalHeaders,
               },
-              ...config,
             });
 
         const destroyRef = inject(DestroyRef);
@@ -58,5 +62,6 @@ export function provideSchematic(config: SchematicConfig) {
         return client;
       },
     },
+    SchematicService,
   ]);
 }

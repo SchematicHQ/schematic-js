@@ -1,6 +1,9 @@
+import "@angular/compiler";
+import { Injector, EnvironmentInjector, runInInjectionContext } from "@angular/core";
 import { vi } from "vitest";
 import { firstValueFrom, take, toArray } from "rxjs";
 import { SchematicService } from "./schematic.service";
+import { SCHEMATIC_CLIENT } from "./token";
 import type {
   CheckFlagReturn,
   CheckPlanReturn,
@@ -55,9 +58,14 @@ function createMockClient() {
 
 type MockClient = ReturnType<typeof createMockClient>;
 
-function createService(mockClient: MockClient): SchematicService {
-  // Pass the mock client via constructor (mirrors @Inject(SCHEMATIC_CLIENT))
-  return new SchematicService(mockClient as never);
+function createServiceWithInjector(mockClient: MockClient) {
+  const injector = Injector.create({
+    providers: [
+      { provide: SCHEMATIC_CLIENT, useValue: mockClient },
+      { provide: SchematicService, useClass: SchematicService },
+    ],
+  });
+  return injector.get(SchematicService);
 }
 
 describe("SchematicService", () => {
@@ -67,7 +75,17 @@ describe("SchematicService", () => {
   beforeEach(() => {
     mockFetch.mockClear();
     mockClient = createMockClient();
-    service = createService(mockClient);
+    service = createServiceWithInjector(mockClient);
+  });
+
+  describe("DI wiring", () => {
+    it("should resolve SchematicService via Angular injector", () => {
+      expect(service).toBeInstanceOf(SchematicService);
+    });
+
+    it("should inject the SCHEMATIC_CLIENT token", () => {
+      expect(service.getClient()).toBe(mockClient);
+    });
   });
 
   describe("getClient", () => {
@@ -127,6 +145,24 @@ describe("SchematicService", () => {
       );
 
       // Simulate a flag update
+      mockClient.getFlagValue.mockReturnValue(true);
+      mockClient._notify("flagValue");
+
+      const values = await valuesPromise;
+      expect(values).toEqual([false, true]);
+    });
+
+    it("should not emit duplicate values", async () => {
+      mockClient.getFlagValue.mockReturnValue(false);
+
+      const valuesPromise = firstValueFrom(
+        service.flagValue$("my-flag").pipe(take(2), toArray()),
+      );
+
+      // Notify with same value, should be filtered by distinctUntilChanged
+      mockClient._notify("flagValue");
+
+      // Now change the value
       mockClient.getFlagValue.mockReturnValue(true);
       mockClient._notify("flagValue");
 
@@ -274,6 +310,88 @@ describe("SchematicService", () => {
       const obs1 = service.isPending$();
       const obs2 = service.isPending$();
       expect(obs1).toBe(obs2);
+    });
+  });
+
+  describe("signal methods", () => {
+    it("flagValue should return a signal with the current value", () => {
+      mockClient.getFlagValue.mockReturnValue(true);
+      const injector = Injector.create({
+        providers: [
+          { provide: SCHEMATIC_CLIENT, useValue: mockClient },
+          { provide: SchematicService, useClass: SchematicService },
+        ],
+      }) as EnvironmentInjector;
+
+      const svc = injector.get(SchematicService);
+      const signal = runInInjectionContext(injector, () =>
+        svc.flagValue("my-flag"),
+      );
+      expect(signal()).toBe(true);
+    });
+
+    it("flagValue should use fallback when no value", () => {
+      mockClient.getFlagValue.mockReturnValue(undefined);
+      const injector = Injector.create({
+        providers: [
+          { provide: SCHEMATIC_CLIENT, useValue: mockClient },
+          { provide: SchematicService, useClass: SchematicService },
+        ],
+      }) as EnvironmentInjector;
+
+      const svc = injector.get(SchematicService);
+      const signal = runInInjectionContext(injector, () =>
+        svc.flagValue("my-flag", true),
+      );
+      expect(signal()).toBe(true);
+    });
+
+    it("flagCheck should return a signal with fallback check", () => {
+      mockClient.getFlagCheck.mockReturnValue(undefined);
+      const injector = Injector.create({
+        providers: [
+          { provide: SCHEMATIC_CLIENT, useValue: mockClient },
+          { provide: SchematicService, useClass: SchematicService },
+        ],
+      }) as EnvironmentInjector;
+
+      const svc = injector.get(SchematicService);
+      const signal = runInInjectionContext(injector, () =>
+        svc.flagCheck("my-flag"),
+      );
+      expect(signal()).toEqual({
+        flag: "my-flag",
+        reason: "Fallback",
+        value: false,
+      });
+    });
+
+    it("plan should return a signal with undefined initially", () => {
+      mockClient.getPlan.mockReturnValue(undefined);
+      const injector = Injector.create({
+        providers: [
+          { provide: SCHEMATIC_CLIENT, useValue: mockClient },
+          { provide: SchematicService, useClass: SchematicService },
+        ],
+      }) as EnvironmentInjector;
+
+      const svc = injector.get(SchematicService);
+      const signal = runInInjectionContext(injector, () => svc.plan());
+      expect(signal()).toBeUndefined();
+    });
+
+    it("isPending should return a signal with the current state", () => {
+      mockClient.getIsPending.mockReturnValue(true);
+      const injector = Injector.create({
+        providers: [
+          { provide: SCHEMATIC_CLIENT, useValue: mockClient },
+          { provide: SchematicService, useClass: SchematicService },
+        ],
+      }) as EnvironmentInjector;
+
+      const svc = injector.get(SchematicService);
+      const signal = runInInjectionContext(injector, () => svc.isPending());
+      expect(signal()).toBe(true);
     });
   });
 });
