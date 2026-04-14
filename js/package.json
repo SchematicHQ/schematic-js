@@ -54,6 +54,7 @@
     "vitest": "^4.0.18"
   },
   "resolutions": {
+    "axios": ">=1.15.0",
     "basic-ftp": ">=5.2.0",
     "rollup": ">=4.59.0",
     "undici": ">=7.24.0"
