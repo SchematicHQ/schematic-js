@@ -4017,10 +4017,10 @@ ms@^2.1.3:
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.1.3.tgz#574c8138ce1d2b5861f0b44579dbadd60c6615b2"
   integrity sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==
 
-msw@^2.13.2:
-  version "2.13.2"
-  resolved "https://registry.yarnpkg.com/msw/-/msw-2.13.2.tgz#41061f344eb4105fc791dc8d2d3672020e164469"
-  integrity sha512-go2H1TIERKkC48pXiwec5l6sbNqYuvqOk3/vHGo1Zd+pq/H63oFawDQerH+WQdUw/flJFHDG7F+QdWMwhntA/A==
+msw@^2.13.3:
+  version "2.13.3"
+  resolved "https://registry.yarnpkg.com/msw/-/msw-2.13.3.tgz#730dc26e0d2bc7cf14ca85987c0cddd724198329"
+  integrity sha512-/F49bxavkNGfreMlrKmTxZs6YorjfMbbDLd89Q3pWi+cXGtQQNXXaHt4MkXN7li91xnQJ24HWXqW9QDm5id33w==
   dependencies:
     "@inquirer/confirm" "^5.0.0"
     "@mswjs/interceptors" "^0.41.2"
@@ -4033,7 +4033,7 @@ msw@^2.13.2:
     outvariant "^1.4.3"
     path-to-regexp "^6.3.0"
     picocolors "^1.1.1"
-    rettime "^0.10.1"
+    rettime "^0.11.7"
     statuses "^2.0.2"
     strict-event-emitter "^0.5.1"
     tough-cookie "^6.0.0"
@@ -4450,10 +4450,10 @@ resolve@~1.22.1, resolve@~1.22.2:
     path-parse "^1.0.7"
     supports-preserve-symlinks-flag "^1.0.0"
 
-rettime@^0.10.1:
-  version "0.10.1"
-  resolved "https://registry.yarnpkg.com/rettime/-/rettime-0.10.1.tgz#cc8bb9870343f282b182e5a276899c08b94914be"
-  integrity sha512-uyDrIlUEH37cinabq0AX4QbgV4HbFZ/gqoiunWQ1UqBtRvTTytwhNYjE++pO/MjPTZL5KQCf2bEoJ/BJNVQ5Kw==
+rettime@^0.11.7:
+  version "0.11.7"
+  resolved "https://registry.yarnpkg.com/rettime/-/rettime-0.11.7.tgz#93ba5b4619aa19d18e9d21ea3a6b3b9845a4f071"
+  integrity sha512-DoAm1WjR1eH7z8sHPtvvUMIZh4/CSKkGCz6CxPqOrEAnOGtOuHSnSE9OC+razqxKuf4ub7pAYyl/vZV0vGs5tg==
 
 rolldown@1.0.0-rc.12:
   version "1.0.0-rc.12"
