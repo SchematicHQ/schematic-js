@@ -18,7 +18,7 @@ import {
 } from "../../../api/checkoutexternal";
 import { DEFAULT_CURRENCY, TEXT_BASE_SIZE } from "../../../const";
 import {
-  useAvailableCurrencies,
+  useAvailableCurrenciesWithInvalid,
   useAvailablePlans,
   useEmbed,
   useIsLightBackground,
@@ -39,6 +39,7 @@ import {
 } from "../../../utils";
 import {
   CurrencyToggle,
+  InvalidCurrencyNotice,
   PeriodToggle,
   SubscriptionSidebar,
 } from "../../shared";
@@ -121,6 +122,8 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     setCheckoutState,
     previewCheckout,
     setLayout,
+    currencyFilter,
+    debug,
   } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
@@ -193,17 +196,38 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
   const [planPeriod, setPlanPeriod] = useState(getValidatedPeriod);
 
-  const currencies = useAvailableCurrencies();
+  const { currencies, invalidFilterEntries } =
+    useAvailableCurrenciesWithInvalid();
   const lockedCurrency = useSubscriptionCurrency();
+  const hasCurrencyFilter = !!currencyFilter && currencyFilter.length > 0;
+  const filterBlocksSubscriptionCurrency =
+    hasCurrencyFilter &&
+    !!lockedCurrency &&
+    !currencyFilter!.includes(lockedCurrency);
   const [selectedCurrency, setSelectedCurrency] = useState(
     () =>
       lockedCurrency ??
-      checkoutState?.selectedCurrency ??
+      (checkoutState?.selectedCurrency &&
+      currencies.includes(checkoutState.selectedCurrency)
+        ? checkoutState.selectedCurrency
+        : undefined) ??
       currencies[0] ??
       DEFAULT_CURRENCY,
   );
   const showCurrencySelector = currencies.length > 1 && !lockedCurrency;
   const hasCurrency = currencies.length > 1 || !!lockedCurrency;
+  const hasNoUsableCurrency = !lockedCurrency && currencies.length === 0;
+
+  useEffect(() => {
+    if (filterBlocksSubscriptionCurrency) {
+      console.error(
+        `[Schematic] currencyFilter excludes the active subscription currency (${lockedCurrency}); keeping subscription currency.`,
+      );
+      debug("currencyFilter conflicts with subscription currency", {
+        lockedCurrency,
+      });
+    }
+  }, [filterBlocksSubscriptionCurrency, lockedCurrency, debug]);
 
   // Keep currency pinned to the subscription currency when it loads async
   useEffect(() => {
@@ -1082,6 +1106,25 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
   const canCheckout = data?.capabilities?.checkout ?? true;
   if (!canCheckout) {
     return null;
+  }
+
+  if (hasNoUsableCurrency) {
+    return (
+      <Dialog
+        ref={dialogRef}
+        isModal={isModal}
+        size="lg"
+        top={top}
+        onClose={handleClose}
+        {...(!isModal && { open: layout === "checkout" })}
+      >
+        <DialogContent>
+          <Flex $padding="2rem" $justifyContent="center">
+            <InvalidCurrencyNotice invalidEntries={invalidFilterEntries} />
+          </Flex>
+        </DialogContent>
+      </Dialog>
+    );
   }
 
   return (
