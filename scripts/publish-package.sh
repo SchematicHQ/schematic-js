@@ -65,9 +65,12 @@ case "$PACKAGE" in
     schematic-vue)
         WORKING_DIR="vue"
         ;;
+    schematic-angular)
+        WORKING_DIR="angular"
+        ;;
     *)
         echo "Error: Unknown package '$PACKAGE'"
-        echo "Valid packages: schematic-js, schematic-react, schematic-components, schematic-vue"
+        echo "Valid packages: schematic-js, schematic-react, schematic-components, schematic-vue, schematic-angular"
         exit 1
         ;;
 esac
