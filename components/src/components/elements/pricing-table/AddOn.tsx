@@ -225,7 +225,13 @@ export const AddOn = ({
         }
       >
         <Box>
-          <Text as="h3" display={layout.plans.name.fontStyle} style={{ margin: 0 }}>{addOn.name}</Text>
+          <Text
+            as="h3"
+            display={layout.plans.name.fontStyle}
+            style={{ margin: 0 }}
+          >
+            {addOn.name}
+          </Text>
         </Box>
 
         {layout.addOns.showDescription && (
