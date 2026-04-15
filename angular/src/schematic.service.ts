@@ -1,5 +1,4 @@
-import { Injectable, Signal, inject } from "@angular/core";
-import { toSignal } from "@angular/core/rxjs-interop";
+import { Injectable, inject } from "@angular/core";
 import * as SchematicJS from "@schematichq/schematic-js";
 import { Observable, distinctUntilChanged, finalize, shareReplay } from "rxjs";
 
@@ -155,31 +154,5 @@ export class SchematicService {
     );
 
     return this.isPendingCache;
-  }
-
-  flagValue(key: string, fallback: boolean = false): Signal<boolean> {
-    return toSignal(this.flagValue$(key, fallback), { initialValue: fallback });
-  }
-
-  entitlement(
-    key: string,
-    fallback: boolean = false,
-  ): Signal<SchematicJS.CheckFlagReturn> {
-    const fallbackCheck: SchematicJS.CheckFlagReturn = {
-      flag: key,
-      reason: "Fallback",
-      value: fallback,
-    };
-    return toSignal(this.entitlement$(key, fallback), {
-      initialValue: fallbackCheck,
-    });
-  }
-
-  plan(): Signal<SchematicJS.CheckPlanReturn | undefined> {
-    return toSignal(this.plan$(), { initialValue: undefined });
-  }
-
-  isPending(): Signal<boolean> {
-    return toSignal(this.isPending$(), { initialValue: true });
   }
 }

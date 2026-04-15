@@ -100,6 +100,6 @@ The library is built on Angular's dependency injection pattern:
 
 ## Dependencies
 
-- Angular >=16 (peer dependency). Note: the signal convenience methods (`flagValue`, `entitlement`, `plan`, `isPending`) use `toSignal` from `@angular/core/rxjs-interop`, which was introduced in Angular 16.
+- Angular >=16 (peer dependency). Consumers can use `toSignal` from `@angular/core/rxjs-interop` (introduced in Angular 16) to convert Observables to Signals.
 - RxJS >=7 (peer dependency)
 - @schematichq/schematic-js (main dependency)

@@ -1,9 +1,5 @@
 import "@angular/compiler";
-import {
-  Injector,
-  EnvironmentInjector,
-  runInInjectionContext,
-} from "@angular/core";
+import { Injector } from "@angular/core";
 import { vi } from "vitest";
 import { firstValueFrom, take, toArray } from "rxjs";
 import { SchematicService } from "./schematic.service";
@@ -70,15 +66,6 @@ function createServiceWithInjector(mockClient: MockClient) {
     ],
   });
   return injector.get(SchematicService);
-}
-
-function createEnvironmentInjector(mockClient: MockClient) {
-  return Injector.create({
-    providers: [
-      { provide: SCHEMATIC_CLIENT, useValue: mockClient },
-      { provide: SchematicService, useClass: SchematicService },
-    ],
-  }) as EnvironmentInjector;
 }
 
 describe("SchematicService", () => {
@@ -322,58 +309,6 @@ describe("SchematicService", () => {
       const obs1 = service.isPending$();
       const obs2 = service.isPending$();
       expect(obs1).toBe(obs2);
-    });
-  });
-
-  describe("signal methods", () => {
-    it("flagValue should return a signal with the current value", () => {
-      mockClient.getFlagValue.mockReturnValue(true);
-      const injector = createEnvironmentInjector(mockClient);
-      const svc = injector.get(SchematicService);
-      const signal = runInInjectionContext(injector, () =>
-        svc.flagValue("my-flag"),
-      );
-      expect(signal()).toBe(true);
-    });
-
-    it("flagValue should use fallback when no value", () => {
-      mockClient.getFlagValue.mockReturnValue(undefined);
-      const injector = createEnvironmentInjector(mockClient);
-      const svc = injector.get(SchematicService);
-      const signal = runInInjectionContext(injector, () =>
-        svc.flagValue("my-flag", true),
-      );
-      expect(signal()).toBe(true);
-    });
-
-    it("entitlement should return a signal with fallback check", () => {
-      mockClient.getFlagCheck.mockReturnValue(undefined);
-      const injector = createEnvironmentInjector(mockClient);
-      const svc = injector.get(SchematicService);
-      const signal = runInInjectionContext(injector, () =>
-        svc.entitlement("my-flag"),
-      );
-      expect(signal()).toEqual({
-        flag: "my-flag",
-        reason: "Fallback",
-        value: false,
-      });
-    });
-
-    it("plan should return a signal with undefined initially", () => {
-      mockClient.getPlan.mockReturnValue(undefined);
-      const injector = createEnvironmentInjector(mockClient);
-      const svc = injector.get(SchematicService);
-      const signal = runInInjectionContext(injector, () => svc.plan());
-      expect(signal()).toBeUndefined();
-    });
-
-    it("isPending should return a signal with the current state", () => {
-      mockClient.getIsPending.mockReturnValue(true);
-      const injector = createEnvironmentInjector(mockClient);
-      const svc = injector.get(SchematicService);
-      const signal = runInInjectionContext(injector, () => svc.isPending());
-      expect(signal()).toBe(true);
     });
   });
 });
