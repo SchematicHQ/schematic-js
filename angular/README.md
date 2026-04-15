@@ -165,7 +165,7 @@ export class FeatureComponent {
 
 ### Checking entitlements
 
-Use `flagCheck$` to get an Observable with detailed entitlement data including usage information:
+Use `entitlement$` to get an Observable with detailed entitlement data including usage information:
 
 ```typescript
 import { Component, inject } from "@angular/core";
@@ -196,7 +196,7 @@ import { SchematicService } from "@schematichq/schematic-angular";
 export class EntitlementComponent {
   private schematic = inject(SchematicService);
   isPending$ = this.schematic.isPending$();
-  entitlement$ = this.schematic.flagCheck$("my-flag-key");
+  entitlement$ = this.schematic.entitlement$("my-flag-key");
 }
 ```
 
@@ -246,7 +246,7 @@ Injectable service providing all Schematic functionality:
 | `identify(body)` | `void` | Identify a user and/or company |
 | `track(body)` | `void` | Track a usage event |
 | `flagValue$(key, fallback?)` | `Observable<boolean>` | Observe a feature flag's boolean value |
-| `flagCheck$(key, fallback?)` | `Observable<CheckFlagReturn>` | Observe detailed entitlement data |
+| `entitlement$(key, fallback?)` | `Observable<CheckFlagReturn>` | Observe detailed entitlement data |
 | `plan$()` | `Observable<CheckPlanReturn \| undefined>` | Observe plan information |
 | `isPending$()` | `Observable<boolean>` | Observe loading state |
 
@@ -262,7 +262,7 @@ The SDK includes built-in fallback behavior to ensure your application continues
 
 When flag checks cannot reach Schematic, they use fallback values in the following priority order:
 
-1. **Callsite fallback**: provided as the second argument to `flagValue$` or `flagCheck$`
+1. **Callsite fallback**: provided as the second argument to `flagValue$` or `entitlement$`
 2. **Initialization defaults**: configured via `flagCheckDefaults` or `flagValueDefaults` options in `provideSchematic`
 3. **Default value**: returns `false` if no fallback is configured
 

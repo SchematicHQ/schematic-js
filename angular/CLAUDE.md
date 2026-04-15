@@ -63,7 +63,7 @@ The library is built on Angular's dependency injection pattern:
 
 2. `SchematicService`: Single injectable service exposing all functionality
    - `flagValue$(key)`: Check feature flag values (returns `Observable<boolean>`)
-   - `flagCheck$(key)`: Check entitlements with usage data (returns `Observable<CheckFlagReturn>`)
+   - `entitlement$(key)`: Check entitlements with usage data (returns `Observable<CheckFlagReturn>`)
    - `plan$()`: Get plan information (returns `Observable<CheckPlanReturn | undefined>`)
    - `isPending$()`: Check if data is still loading (returns `Observable<boolean>`)
    - `setContext(ctx)`: Set the evaluation context
@@ -75,8 +75,8 @@ The library is built on Angular's dependency injection pattern:
 ### Dependency Injection
 
 - Uses `InjectionToken` for the raw Schematic client
-- `SchematicService` is `providedIn: 'root'` for tree-shaking
-- Consumer apps call `provideSchematic()` in their app config or module providers
+- `SchematicService` uses bare `@Injectable()` and is provided explicitly via `provideSchematic()`, ensuring consumers get a clear error if they forget to call the provider function
+- Consumer apps call `provideSchematic()` in their app config
 
 ### Reactivity
 
@@ -100,6 +100,6 @@ The library is built on Angular's dependency injection pattern:
 
 ## Dependencies
 
-- Angular >=16 (peer dependency)
+- Angular >=16 (peer dependency). Note: the signal convenience methods (`flagValue`, `entitlement`, `plan`, `isPending`) use `toSignal` from `@angular/core/rxjs-interop`, which was introduced in Angular 16.
 - RxJS >=7 (peer dependency)
 - @schematichq/schematic-js (main dependency)

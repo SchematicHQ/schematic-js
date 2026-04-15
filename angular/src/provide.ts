@@ -1,8 +1,4 @@
-import {
-  DestroyRef,
-  inject,
-  makeEnvironmentProviders,
-} from "@angular/core";
+import { DestroyRef, inject, makeEnvironmentProviders } from "@angular/core";
 import * as SchematicJS from "@schematichq/schematic-js";
 
 import { SchematicService } from "./schematic.service";

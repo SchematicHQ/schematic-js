@@ -1,7 +1,26 @@
 import { Injectable, Signal, inject } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
 import * as SchematicJS from "@schematichq/schematic-js";
-import { Observable, distinctUntilChanged, shareReplay } from "rxjs";
+import { Observable, distinctUntilChanged, finalize, shareReplay } from "rxjs";
+
+function shallowEqual<T extends Record<string, unknown>>(
+  a: T | undefined,
+  b: T | undefined,
+): boolean {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  const keysA = Object.keys(a);
+  const keysB = Object.keys(b);
+  if (keysA.length !== keysB.length) return false;
+  return keysA.every((key) => {
+    const valA = a[key];
+    const valB = b[key];
+    if (valA instanceof Date && valB instanceof Date) {
+      return valA.getTime() === valB.getTime();
+    }
+    return valA === valB;
+  });
+}
 
 import { SCHEMATIC_CLIENT } from "./token";
 
@@ -10,7 +29,7 @@ export class SchematicService {
   private client = inject(SCHEMATIC_CLIENT);
 
   private flagValueCache = new Map<string, Observable<boolean>>();
-  private flagCheckCache = new Map<
+  private entitlementCache = new Map<
     string,
     Observable<SchematicJS.CheckFlagReturn>
   >();
@@ -48,18 +67,22 @@ export class SchematicService {
       });
 
       return () => unsubscribe();
-    }).pipe(distinctUntilChanged(), shareReplay({ bufferSize: 1, refCount: true }));
+    }).pipe(
+      distinctUntilChanged(),
+      shareReplay({ bufferSize: 1, refCount: true }),
+      finalize(() => this.flagValueCache.delete(cacheKey)),
+    );
 
     this.flagValueCache.set(cacheKey, cached);
     return cached;
   }
 
-  flagCheck$(
+  entitlement$(
     key: string,
     fallback: boolean = false,
   ): Observable<SchematicJS.CheckFlagReturn> {
     const cacheKey = `${key}:${fallback}`;
-    let cached = this.flagCheckCache.get(cacheKey);
+    let cached = this.entitlementCache.get(cacheKey);
     if (cached) return cached;
 
     const fallbackCheck: SchematicJS.CheckFlagReturn = {
@@ -79,18 +102,12 @@ export class SchematicService {
 
       return () => unsubscribe();
     }).pipe(
-      distinctUntilChanged(
-        (a, b) =>
-          a.flag === b.flag &&
-          a.value === b.value &&
-          a.reason === b.reason &&
-          a.featureUsage === b.featureUsage &&
-          a.featureAllocation === b.featureAllocation,
-      ),
+      distinctUntilChanged(shallowEqual),
       shareReplay({ bufferSize: 1, refCount: true }),
+      finalize(() => this.entitlementCache.delete(cacheKey)),
     );
 
-    this.flagCheckCache.set(cacheKey, cached);
+    this.entitlementCache.set(cacheKey, cached);
     return cached;
   }
 
@@ -108,10 +125,11 @@ export class SchematicService {
         return () => unsubscribe();
       },
     ).pipe(
-      distinctUntilChanged(
-        (a, b) => a?.id === b?.id && a?.name === b?.name && a?.trialStatus === b?.trialStatus,
-      ),
+      distinctUntilChanged(shallowEqual),
       shareReplay({ bufferSize: 1, refCount: true }),
+      finalize(() => {
+        this.planCache = undefined;
+      }),
     );
 
     return this.planCache;
@@ -128,7 +146,13 @@ export class SchematicService {
       });
 
       return () => unsubscribe();
-    }).pipe(distinctUntilChanged(), shareReplay({ bufferSize: 1, refCount: true }));
+    }).pipe(
+      distinctUntilChanged(),
+      shareReplay({ bufferSize: 1, refCount: true }),
+      finalize(() => {
+        this.isPendingCache = undefined;
+      }),
+    );
 
     return this.isPendingCache;
   }
@@ -137,7 +161,7 @@ export class SchematicService {
     return toSignal(this.flagValue$(key, fallback), { initialValue: fallback });
   }
 
-  flagCheck(
+  entitlement(
     key: string,
     fallback: boolean = false,
   ): Signal<SchematicJS.CheckFlagReturn> {
@@ -146,7 +170,7 @@ export class SchematicService {
       reason: "Fallback",
       value: fallback,
     };
-    return toSignal(this.flagCheck$(key, fallback), {
+    return toSignal(this.entitlement$(key, fallback), {
       initialValue: fallbackCheck,
     });
   }
