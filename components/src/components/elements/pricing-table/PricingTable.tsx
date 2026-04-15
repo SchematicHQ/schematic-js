@@ -248,7 +248,9 @@ export const PricingTable = forwardRef<
   if (hasNoUsableCurrency) {
     return (
       <Container>
-        <InvalidCurrencyNotice invalidEntries={invalidFilterEntries} />
+        <Flex $justifyContent="center" $padding="2rem 0">
+          <InvalidCurrencyNotice invalidEntries={invalidFilterEntries} />
+        </Flex>
       </Container>
     );
   }
