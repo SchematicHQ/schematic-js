@@ -136,6 +136,45 @@ const MyComponent = () => {
 
 *Note: `useSchematicIsPending` is checking if entitlement data has been loaded, typically via `identify`. It should, therefore, be used to wrap flag and entitlement checks, but never the initial call to `identify`.*
 
+### Company plan information
+
+To access the current company's plan and trial status, you can use the `useSchematicPlan` hook:
+
+```tsx
+import { useSchematicPlan } from "@schematichq/schematic-react";
+
+const MyComponent = () => {
+    const plan = useSchematicPlan();
+
+    if (!plan) {
+        return <div>No plan assigned</div>;
+    }
+
+    return (
+        <div>
+            <p>Current plan: {plan.name}</p>
+
+            {plan.trialStatus === "active" && (
+                <p>Trial ends: {plan.trialEndDate?.toLocaleDateString()}</p>
+            )}
+
+            {plan.trialStatus === "expired" && (
+                <p>Your trial has ended. <a href="/upgrade">Upgrade now</a></p>
+            )}
+        </div>
+    );
+};
+```
+
+The hook returns an object with the following properties:
+
+| Property | Type | Description |
+| --- | --- | --- |
+| `id` | `string` | The plan ID |
+| `name` | `string` | The plan name |
+| `trialEndDate` | `Date \| undefined` | The trial end date, if the company has or had a trial |
+| `trialStatus` | `"active" \| "expired" \| "converted" \| undefined` | The company's trial status: `active` if the trial is ongoing, `expired` if the trial ended without conversion, `converted` if the company converted to a paid plan, or `undefined` if the company has never trialed |
+
 ## Fallback Behavior
 
 The SDK includes built-in fallback behavior you can use to ensure your application continues to function even when unable to reach Schematic (e.g., during service disruptions or network issues).
