@@ -290,6 +290,7 @@ export interface EmbedState {
   settings: EmbedSettings;
   layout: EmbedLayout;
   checkoutState?: CheckoutState;
+  currencyFilter?: string[];
 }
 
 export const initialState: EmbedState = {

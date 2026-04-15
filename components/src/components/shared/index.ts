@@ -2,6 +2,7 @@ export * from "./billing-threshold-tooltip";
 export * from "./checkout-dialog";
 export * from "./currency-toggle";
 export * from "./hard-limit-tooltip";
+export * from "./invalid-currency-notice";
 export * from "./payment-dialog";
 export * from "./payment-form";
 export * from "./period-toggle";

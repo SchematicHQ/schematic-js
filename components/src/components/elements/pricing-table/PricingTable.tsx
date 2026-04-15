@@ -20,14 +20,18 @@ import {
 } from "../../../const";
 import { type FontStyle } from "../../../context";
 import {
-  useAvailableCurrencies,
+  useAvailableCurrenciesWithInvalid,
   useAvailablePlans,
   useEmbed,
 } from "../../../hooks";
 import type { DeepPartial, ElementProps } from "../../../types";
 import { entitlementCountsReducer } from "../../../utils";
 import { Container, FussyChild } from "../../layout";
-import { CurrencyToggle, PeriodToggle } from "../../shared";
+import {
+  CurrencyToggle,
+  InvalidCurrencyNotice,
+  PeriodToggle,
+} from "../../shared";
 import { Box, Flex, Loader, Text } from "../../ui";
 
 import { AddOn } from "./AddOn";
@@ -138,7 +142,8 @@ export const PricingTable = forwardRef<
 
   const { t } = useTranslation();
 
-  const { data, settings, isPending, hydratePublic } = useEmbed();
+  const { data, settings, isPending, hydratePublic, currencyFilter } =
+    useEmbed();
 
   const getCallToActionTarget = useCallback(
     (url?: string, target?: HTMLAttributeAnchorTarget) => {
@@ -166,12 +171,25 @@ export const PricingTable = forwardRef<
     () => data?.company?.plan?.planPeriod || "month",
   );
 
-  const currencies = useAvailableCurrencies();
-  const [selectedCurrency, setSelectedCurrency] = useState(DEFAULT_CURRENCY);
+  const { currencies, invalidFilterEntries } =
+    useAvailableCurrenciesWithInvalid();
+  const [selectedCurrency, setSelectedCurrency] = useState(
+    () => currencies[0] ?? DEFAULT_CURRENCY,
+  );
+
+  useEffect(() => {
+    if (currencies.length > 0 && !currencies.includes(selectedCurrency)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setSelectedCurrency(currencies[0]);
+    }
+  }, [currencies, selectedCurrency]);
 
   const showPeriodToggle =
     rest.showPeriodToggle ?? data?.displaySettings?.showPeriodToggle ?? true;
+  const hasCurrencyFilter = !!currencyFilter && currencyFilter.length > 0;
   const showCurrencySelector = currencies.length > 1;
+  const hasCurrency = currencies.length > 1 || hasCurrencyFilter;
+  const hasNoUsableCurrency = currencies.length === 0;
   const { plans, addOns, periods } = useAvailablePlans(selectedPeriod, {
     useSelectedPeriod: showPeriodToggle,
   });
@@ -224,6 +242,14 @@ export const PricingTable = forwardRef<
       >
         <Loader aria-label="loading" $size="2xl" />
       </Flex>
+    );
+  }
+
+  if (hasNoUsableCurrency) {
+    return (
+      <Container>
+        <InvalidCurrencyNotice invalidEntries={invalidFilterEntries} />
+      </Container>
     );
   }
 
@@ -328,9 +354,7 @@ export const PricingTable = forwardRef<
                     }}
                     plans={self}
                     selectedPeriod={planPeriod}
-                    currency={
-                      showCurrencySelector ? selectedCurrency : undefined
-                    }
+                    currency={hasCurrency ? selectedCurrency : undefined}
                     entitlementCounts={entitlementCounts}
                     handleToggleShowAll={handleToggleShowAll}
                   />
@@ -381,9 +405,7 @@ export const PricingTable = forwardRef<
                         onCallToAction: rest.onCallToAction,
                       }}
                       selectedPeriod={addOnPeriod}
-                      currency={
-                        showCurrencySelector ? selectedCurrency : undefined
-                      }
+                      currency={hasCurrency ? selectedCurrency : undefined}
                     />
                   );
                 })}
