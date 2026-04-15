@@ -1120,7 +1120,12 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
         {...(!isModal && { open: layout === "checkout" })}
       >
         <DialogContent>
-          <Flex $padding="2rem" $justifyContent="center">
+          <Flex
+            $flexGrow={1}
+            $alignItems="center"
+            $justifyContent="center"
+            $padding="2rem"
+          >
             <InvalidCurrencyNotice invalidEntries={invalidFilterEntries} />
           </Flex>
         </DialogContent>
