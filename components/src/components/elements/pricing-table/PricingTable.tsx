@@ -265,7 +265,7 @@ export const PricingTable = forwardRef<
               },
             }}
           >
-            <Text display={props.header.fontStyle}>
+            <Text as="h2" display={props.header.fontStyle} style={{ margin: 0 }}>
               {props.header.isVisible &&
                 props.plans.isVisible &&
                 plans.length > 0 &&
@@ -298,10 +298,14 @@ export const PricingTable = forwardRef<
 
           {props.plans.isVisible && plans.length > 0 && (
             <Box
+              as="ul"
               data-testid="sch-plans"
               $display="grid"
               $gridTemplateColumns="repeat(auto-fill, minmax(320px, 1fr))"
               $gap="1rem"
+              $padding={0}
+              $margin={0}
+              $listStyle="none"
             >
               {plans.map((plan, index, self) => {
                 const planPeriod = showPeriodToggle
@@ -345,14 +349,18 @@ export const PricingTable = forwardRef<
                   $alignItems="center"
                   $marginBottom="1rem"
                 >
-                  <Text display={props.header.fontStyle}>{t("Add-ons")}</Text>
+                  <Text as="h2" display={props.header.fontStyle} style={{ margin: 0 }}>{t("Add-ons")}</Text>
                 </Flex>
               )}
 
               <Box
+                as="ul"
                 $display="grid"
                 $gridTemplateColumns="repeat(auto-fill, minmax(320px, 1fr))"
                 $gap="1rem"
+                $padding={0}
+                $margin={0}
+                $listStyle="none"
               >
                 {addOns.map((addOn, index) => {
                   const addOnPeriod = showPeriodToggle
