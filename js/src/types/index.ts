@@ -211,10 +211,9 @@ export const CheckFlagReturnFromJSON = (
   /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
   json: any,
 ): CheckFlagReturn => {
-  const parsed = CheckFlagResponseDataFromJSON(json);
-  const { entitlement } = parsed;
   const {
     companyId,
+    entitlement,
     error,
     featureAllocation,
     featureUsage,
@@ -228,7 +227,7 @@ export const CheckFlagReturnFromJSON = (
     ruleType,
     userId,
     value,
-  } = parsed;
+  } = CheckFlagResponseDataFromJSON(json);
 
   const featureUsageExceeded =
     !value && // if flag is not false, then we haven't exceeded usage
