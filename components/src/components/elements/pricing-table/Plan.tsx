@@ -127,7 +127,13 @@ export const Plan = ({
         }
       >
         <Box>
-          <Text as="h3" display={layout.plans.name.fontStyle} style={{ margin: 0 }}>{plan.name}</Text>
+          <Text
+            as="h3"
+            display={layout.plans.name.fontStyle}
+            style={{ margin: 0 }}
+          >
+            {plan.name}
+          </Text>
         </Box>
 
         {layout.plans.description.isVisible && (
@@ -310,7 +316,12 @@ export const Plan = ({
                       handleToggleShowAll(plan.id);
                     }
                   }}
-                  style={{ cursor: "pointer", background: "none", border: "none", padding: 0 }}
+                  style={{
+                    cursor: "pointer",
+                    background: "none",
+                    border: "none",
+                    padding: 0,
+                  }}
                   display="link"
                   $leading="none"
                 >

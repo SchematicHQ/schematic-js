@@ -293,7 +293,11 @@ export const PricingTable = forwardRef<
               },
             }}
           >
-            <Text as="h2" display={props.header.fontStyle} style={{ margin: 0 }}>
+            <Text
+              as="h2"
+              display={props.header.fontStyle}
+              style={{ margin: 0 }}
+            >
               {props.header.isVisible &&
                 props.plans.isVisible &&
                 plans.length > 0 &&
@@ -375,7 +379,13 @@ export const PricingTable = forwardRef<
                   $alignItems="center"
                   $marginBottom="1rem"
                 >
-                  <Text as="h2" display={props.header.fontStyle} style={{ margin: 0 }}>{t("Add-ons")}</Text>
+                  <Text
+                    as="h2"
+                    display={props.header.fontStyle}
+                    style={{ margin: 0 }}
+                  >
+                    {t("Add-ons")}
+                  </Text>
                 </Flex>
               )}
 
