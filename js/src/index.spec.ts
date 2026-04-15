@@ -1,6 +1,11 @@
 import { vi } from "vitest";
 import { Schematic } from "./index";
-import { CheckPlanReturn, CheckPlanReturnFromJSON, RuleType } from "./types";
+import {
+  CheckFlagReturnFromJSON,
+  CheckPlanReturn,
+  CheckPlanReturnFromJSON,
+  RuleType,
+} from "./types";
 import { Server as WebSocketServer } from "mock-socket";
 
 import { version } from "./version";
@@ -2931,5 +2936,88 @@ describe("addPlanListener", () => {
 
     // Double remove should not throw
     unsub1();
+  });
+});
+
+describe("CheckFlagReturnFromJSON", () => {
+  it("should include creditRemaining and softLimit from entitlement object", () => {
+    const result = CheckFlagReturnFromJSON({
+      flag: "test-flag",
+      value: true,
+      reason: "match",
+      entitlement: {
+        feature_id: "feat-1",
+        feature_key: "test-flag",
+        value_type: "credit",
+        credit_remaining: 42,
+        soft_limit: 100,
+      },
+    });
+
+    expect(result.creditRemaining).toBe(42);
+    expect(result.softLimit).toBe(100);
+  });
+
+  it("should prefer entitlement fields over deprecated flat fields", () => {
+    const result = CheckFlagReturnFromJSON({
+      flag: "test-flag",
+      value: true,
+      reason: "match",
+      feature_allocation: 500,
+      feature_usage: 100,
+      feature_usage_event: "old_event",
+      feature_usage_period: "current_month",
+      entitlement: {
+        feature_id: "feat-1",
+        feature_key: "test-flag",
+        value_type: "numeric",
+        allocation: 1000,
+        usage: 200,
+        event_name: "new_event",
+        metric_period: "current_week",
+      },
+    });
+
+    expect(result.featureAllocation).toBe(1000);
+    expect(result.featureUsage).toBe(200);
+    expect(result.featureUsageEvent).toBe("new_event");
+    expect(result.featureUsagePeriod).toBe("current_week");
+  });
+
+  it("should fall back to flat fields when entitlement is not present", () => {
+    const result = CheckFlagReturnFromJSON({
+      flag: "test-flag",
+      value: true,
+      reason: "match",
+      feature_allocation: 500,
+      feature_usage: 100,
+      feature_usage_event: "api_call",
+      feature_usage_period: "current_month",
+    });
+
+    expect(result.featureAllocation).toBe(500);
+    expect(result.featureUsage).toBe(100);
+    expect(result.featureUsageEvent).toBe("api_call");
+    expect(result.featureUsagePeriod).toBe("current_month");
+    expect(result.creditRemaining).toBeUndefined();
+    expect(result.softLimit).toBeUndefined();
+  });
+
+  it("should return undefined for creditRemaining and softLimit when entitlement has null values", () => {
+    const result = CheckFlagReturnFromJSON({
+      flag: "test-flag",
+      value: true,
+      reason: "match",
+      entitlement: {
+        feature_id: "feat-1",
+        feature_key: "test-flag",
+        value_type: "boolean",
+        credit_remaining: null,
+        soft_limit: null,
+      },
+    });
+
+    expect(result.creditRemaining).toBeUndefined();
+    expect(result.softLimit).toBeUndefined();
   });
 });

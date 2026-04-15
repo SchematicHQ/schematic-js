@@ -82,6 +82,8 @@ export type CheckFlagReturn = {
   featureUsageExceeded?: boolean;
   /** If company keys were provided and matched a company, its ID */
   companyId?: string;
+  /** If the company has a credit-based entitlement for this feature, the remaining credit amount */
+  creditRemaining?: number;
   /** If an error occurred while checking the flag, the error message */
   error?: string;
   /** If a numeric feature entitlement rule was matched, its allocation */
@@ -104,6 +106,8 @@ export type CheckFlagReturn = {
   ruleId?: string;
   /** If a rule was found, its type  */
   ruleType?: RuleType;
+  /** For usage-based pricing, the soft limit for overage charges or the next tier boundary */
+  softLimit?: number;
   /** If user keys were provided and matched a user, its ID */
   userId?: string;
   /** A boolean flag check result; for feature entitlements, this represents whether further consumption of the feature is permitted */
@@ -207,6 +211,8 @@ export const CheckFlagReturnFromJSON = (
   /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
   json: any,
 ): CheckFlagReturn => {
+  const parsed = CheckFlagResponseDataFromJSON(json);
+  const { entitlement } = parsed;
   const {
     companyId,
     error,
@@ -222,34 +228,44 @@ export const CheckFlagReturnFromJSON = (
     ruleType,
     userId,
     value,
-  } = CheckFlagResponseDataFromJSON(json);
+  } = parsed;
 
   const featureUsageExceeded =
     !value && // if flag is not false, then we haven't exceeded usage
     (ruleType == RuleType.COMPANY_OVERRIDE_USAGE_EXCEEDED || // if the rule type is one of these, then we have exceeded usage
       ruleType == RuleType.PLAN_ENTITLEMENT_USAGE_EXCEEDED);
 
+  // Prefer entitlement object fields over deprecated flat fields
+  const resolvedAllocation = entitlement?.allocation ?? featureAllocation;
+  const resolvedUsage = entitlement?.usage ?? featureUsage;
+  const resolvedEvent = entitlement?.eventName ?? featureUsageEvent;
+  const resolvedPeriod = entitlement?.metricPeriod ?? featureUsagePeriod;
+  const resolvedResetAt = entitlement?.metricResetAt ?? featureUsageResetAt;
+
   // OpenAPI types return undefined or null; simplify this so callers only have to deal with undefined, and also use enums
   return {
     featureUsageExceeded,
     companyId: companyId == null ? undefined : companyId,
+    creditRemaining:
+      entitlement?.creditRemaining == null
+        ? undefined
+        : entitlement.creditRemaining,
     error: error == null ? undefined : error,
     featureAllocation:
-      featureAllocation == null ? undefined : featureAllocation,
-    featureUsage: featureUsage == null ? undefined : featureUsage,
-    featureUsageEvent:
-      featureUsageEvent === null ? undefined : featureUsageEvent,
+      resolvedAllocation == null ? undefined : resolvedAllocation,
+    featureUsage: resolvedUsage == null ? undefined : resolvedUsage,
+    featureUsageEvent: resolvedEvent == null ? undefined : resolvedEvent,
     featureUsagePeriod:
-      featureUsagePeriod == null
-        ? undefined
-        : (featureUsagePeriod as UsagePeriod),
+      resolvedPeriod == null ? undefined : (resolvedPeriod as UsagePeriod),
     featureUsageResetAt:
-      featureUsageResetAt == null ? undefined : featureUsageResetAt,
+      resolvedResetAt == null ? undefined : resolvedResetAt,
     flag,
     flagId: flagId == null ? undefined : flagId,
     reason,
     ruleId: ruleId == null ? undefined : ruleId,
     ruleType: ruleType == null ? undefined : (ruleType as RuleType),
+    softLimit:
+      entitlement?.softLimit == null ? undefined : entitlement.softLimit,
     userId: userId == null ? undefined : userId,
     value,
   };
