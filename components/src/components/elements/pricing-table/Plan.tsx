@@ -96,12 +96,14 @@ export const Plan = ({
 
   return (
     <Flex
+      as="li"
       className="sch-PricingTable_Plan"
       data-testid="sch-plan"
       data-plan-id={plan.id}
       $position="relative"
       $flexDirection="column"
       $padding={`${cardPadding}rem 0`}
+      $listStyle="none"
       $backgroundColor={settings.theme.card.background}
       $borderRadius={`${settings.theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
       $outlineWidth="2px"
@@ -125,7 +127,13 @@ export const Plan = ({
         }
       >
         <Box>
-          <Text display={layout.plans.name.fontStyle}>{plan.name}</Text>
+          <Text
+            as="h3"
+            display={layout.plans.name.fontStyle}
+            style={{ margin: 0 }}
+          >
+            {plan.name}
+          </Text>
         </Box>
 
         {layout.plans.description.isVisible && (
@@ -173,14 +181,18 @@ export const Plan = ({
 
         {showCredits && credits.length > 0 && (
           <Flex
+            as="ul"
             $flexDirection="column"
             $gap="1rem"
             $flexGrow={1}
             $marginTop="0.5rem"
+            $padding={0}
+            $margin={0}
+            $listStyle="none"
           >
             {credits.map((credit, idx) => {
               return (
-                <Flex key={idx} $gap="1rem">
+                <Flex key={idx} as="li" $gap="1rem" $listStyle="none">
                   {layout.plans.showFeatureIcons && credit.icon && (
                     <Icon
                       data-testid="sch-feature-icon"
@@ -247,7 +259,15 @@ export const Plan = ({
         $padding={`${0.75 * cardPadding}rem ${cardPadding}rem 0`}
       >
         {layout.plans.showEntitlements && (
-          <Flex $flexDirection="column" $gap="1rem" $flexGrow={1}>
+          <Flex
+            as="ul"
+            $flexDirection="column"
+            $gap="1rem"
+            $flexGrow={1}
+            $padding={0}
+            $margin={0}
+            $listStyle="none"
+          >
             {layout.plans.showInclusionText && index > 0 && (
               <Box $marginBottom="1.5rem">
                 <Text>
@@ -275,16 +295,20 @@ export const Plan = ({
             {(count?.size || plan.entitlements.length) >
               VISIBLE_ENTITLEMENT_COUNT && (
               <Flex
+                as="li"
                 $justifyContent="start"
                 $alignItems="center"
                 $gap="0.5rem"
                 $marginTop="1rem"
+                $listStyle="none"
               >
                 <Icon
                   name={isExpanded ? "chevron-up" : "chevron-down"}
                   color="#D0D0D0"
                 />
                 <Text
+                  as="button"
+                  type="button"
                   onClick={() => handleToggleShowAll(plan.id)}
                   onKeyDown={(event) => {
                     if (event.key === "Enter" || event.key === " ") {
@@ -292,7 +316,12 @@ export const Plan = ({
                       handleToggleShowAll(plan.id);
                     }
                   }}
-                  style={{ cursor: "pointer" }}
+                  style={{
+                    cursor: "pointer",
+                    background: "none",
+                    border: "none",
+                    padding: 0,
+                  }}
                   display="link"
                   $leading="none"
                 >

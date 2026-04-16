@@ -90,7 +90,7 @@ export const Entitlement = ({
   );
 
   return (
-    <Flex $gap="1rem">
+    <Flex as="li" $gap="1rem" style={{ listStyle: "none" }}>
       {layout.plans.showFeatureIcons && entitlement.feature?.icon && (
         <Icon
           data-testid="sch-feature-icon"

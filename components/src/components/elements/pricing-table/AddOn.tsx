@@ -194,12 +194,14 @@ export const AddOn = ({
 
   return (
     <Flex
+      as="li"
       className="sch-PricingTable_AddOn"
       data-testid="sch-addon"
       data-addon-id={addOn.id}
       $position="relative"
       $flexDirection="column"
       $padding={`${0.75 * cardPadding}rem 0`}
+      $listStyle="none"
       $backgroundColor={settings.theme.card.background}
       $borderRadius={`${settings.theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
       $outlineWidth="2px"
@@ -213,7 +215,7 @@ export const AddOn = ({
         $flexDirection="column"
         $gap="0.75rem"
         $padding={`0 ${cardPadding}rem ${displayableEntitlements.length > 0 ? 0.75 * cardPadding : 0}rem`}
-        $borderWidth="0"
+        $borderWidth={0}
         $borderBottomWidth={displayableEntitlements.length > 0 ? "1px" : "0"}
         $borderStyle="solid"
         $borderColor={
@@ -223,7 +225,13 @@ export const AddOn = ({
         }
       >
         <Box>
-          <Text display={layout.plans.name.fontStyle}>{addOn.name}</Text>
+          <Text
+            as="h3"
+            display={layout.plans.name.fontStyle}
+            style={{ margin: 0 }}
+          >
+            {addOn.name}
+          </Text>
         </Box>
 
         {layout.addOns.showDescription && (
@@ -281,12 +289,21 @@ export const AddOn = ({
       >
         {layout.addOns.showEntitlements &&
           displayableEntitlements.length > 0 && (
-            <Flex $flexDirection="column" $gap="1rem" $flexGrow={1}>
+            <Flex
+              as="ul"
+              $flexDirection="column"
+              $gap="1rem"
+              $flexGrow={1}
+              $padding={0}
+              $margin={0}
+              $listStyle="none"
+            >
               {displayableEntitlements.map((entitlement, idx) => {
                 if (entitlement.isUnlimited) {
                   return (
                     <Flex
                       key={idx}
+                      as="li"
                       $flexWrap="wrap"
                       $justifyContent="space-between"
                       $alignItems="center"
@@ -342,10 +359,12 @@ export const AddOn = ({
                 return (
                   <Flex
                     key={idx}
+                    as="li"
                     $flexWrap="wrap"
                     $justifyContent="space-between"
                     $alignItems="center"
                     $gap="1rem"
+                    $listStyle="none"
                   >
                     <Flex $gap="1rem">
                       {meteredEntitlement.feature?.icon && (

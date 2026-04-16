@@ -76,8 +76,8 @@ export const CurrencyToggle = ({
         </select>
 
         <svg
-          width="12"
-          height="12"
+          width={12}
+          height={12}
           viewBox="0 0 12 12"
           fill="none"
           style={{ marginLeft: "0.25rem", flexShrink: 0 }}
