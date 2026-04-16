@@ -54,7 +54,8 @@ type EmbedAction =
   | { type: "CHANGE_LAYOUT"; layout: EmbedLayout }
   | { type: "SET_CHECKOUT_STATE"; state: CheckoutState }
   | { type: "SET_PLANID_BYPASS"; config: string | BypassConfig }
-  | { type: "CLEAR_CHECKOUT_STATE" };
+  | { type: "CLEAR_CHECKOUT_STATE" }
+  | { type: "SET_CURRENCY_FILTER"; currencyFilter?: string[] };
 
 function normalize(data?: HydrateData): HydrateDataWithCompanyContext {
   return merge({}, data, {
@@ -284,6 +285,13 @@ export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {
       return {
         ...state,
         checkoutState: undefined,
+      };
+    }
+
+    case "SET_CURRENCY_FILTER": {
+      return {
+        ...state,
+        currencyFilter: action.currencyFilter,
       };
     }
   }

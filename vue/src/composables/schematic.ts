@@ -10,6 +10,10 @@ export type UseSchematicFlagOpts = SchematicComposableOpts & {
   fallback?: boolean;
 };
 
+export type UseSchematicPlanOpts = SchematicComposableOpts & {
+  fallback?: SchematicJS.CheckPlanReturn;
+};
+
 /**
  * Get the Schematic client instance
  * Can optionally override with a custom client
@@ -200,6 +204,50 @@ export const useSchematicEntitlement = (
     companyId: computed(() => flagCheck.value.companyId),
     userId: computed(() => flagCheck.value.userId),
   };
+};
+
+/**
+ * Get the current plan for the identified company
+ * Returns a reactive ref that updates when the plan changes
+ *
+ * @param opts - Optional configuration including fallback value
+ * @returns Ref<SchematicJS.CheckPlanReturn | undefined> - Reactive plan data
+ *
+ * @example
+ * ```typescript
+ * const plan = useSchematicPlan()
+ *
+ * // In template
+ * <div v-if="plan">Current plan: {{ plan.name }}</div>
+ * ```
+ */
+export const useSchematicPlan = (
+  opts?: UseSchematicPlanOpts,
+): Ref<SchematicJS.CheckPlanReturn | undefined> => {
+  const client = useSchematicClient(opts);
+  const fallback = opts?.fallback;
+
+  // Get initial value synchronously (works for SSR)
+  const plan = ref<SchematicJS.CheckPlanReturn | undefined>(
+    client.getPlan() ?? fallback,
+  );
+
+  // Defer subscription to client-side only (avoids SSR issues)
+  let unsubscribe: (() => void) | null = null;
+
+  onMounted(() => {
+    // Subscribe to plan changes
+    unsubscribe = client.addPlanListener((value) => {
+      plan.value = value;
+    });
+  });
+
+  // Cleanup listener when scope is disposed
+  onScopeDispose(() => {
+    unsubscribe?.();
+  });
+
+  return plan;
 };
 
 /**
