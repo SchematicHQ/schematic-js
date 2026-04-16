@@ -30,10 +30,8 @@
     "tsc": "npx tsc",
     "prepare": "husky"
   },
-  "dependencies": {
-    "@schematichq/schematic-js": "^1.3.1"
-  },
   "devDependencies": {
+    "@schematichq/schematic-js": "^1.4.0",
     "@eslint/js": "^10.0.1",
     "@microsoft/api-extractor": "^7.58.2",
     "@testing-library/dom": "^10.4.1",
