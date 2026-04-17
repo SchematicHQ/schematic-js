@@ -1,6 +1,6 @@
 {
   "name": "@schematichq/schematic-angular",
-  "version": "1.0.0",
+  "version": "1.4.0",
   "main": "dist/schematic-angular.cjs.js",
   "module": "dist/schematic-angular.esm.js",
   "types": "dist/schematic-angular.d.ts",
@@ -57,7 +57,7 @@
     "vitest": "^4.0.18"
   },
   "peerDependencies": {
-    "@angular/core": ">=16.0.0",
+    "@angular/core": ">=19.0.0",
     "rxjs": ">=7.0.0"
   },
   "resolutions": {

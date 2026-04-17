@@ -1,6 +1,7 @@
 import { Injectable, inject } from "@angular/core";
 import * as SchematicJS from "@schematichq/schematic-js";
 import { Observable, distinctUntilChanged, finalize, shareReplay } from "rxjs";
+import { SCHEMATIC_CLIENT } from "./token";
 
 function shallowEqual<T extends Record<string, unknown>>(
   a: T | undefined,
@@ -20,8 +21,6 @@ function shallowEqual<T extends Record<string, unknown>>(
     return valA === valB;
   });
 }
-
-import { SCHEMATIC_CLIENT } from "./token";
 
 @Injectable()
 export class SchematicService {
