@@ -125,4 +125,4 @@ fi
 
 # Publish
 echo "Publishing $VERSION to NPM with '$NPM_TAG' tag..."
-npm publish "$PUBLISH_DIR" --access public --tag "$NPM_TAG"
+npm publish "./$PUBLISH_DIR" --access public --tag "$NPM_TAG"
