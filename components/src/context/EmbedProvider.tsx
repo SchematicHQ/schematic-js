@@ -44,19 +44,36 @@ export interface EmbedProviderProps {
   apiConfig?: ConfigurationParameters;
   settings?: DeepPartial<EmbedSettings>;
   debug?: boolean;
+  /**
+   * Restricts which currencies are presented in components that support
+   * multi-currency display (PricingTable, CheckoutDialog). Entries are
+   * ISO-4217 codes; case-insensitive. Omit to disable filtering.
+   */
+  currencyFilter?: string[];
 }
+
+const normalizeCurrencyFilter = (
+  filter: string[] | undefined,
+): string[] | undefined => {
+  if (!filter || filter.length === 0) return undefined;
+  return Array.from(new Set(filter.map((c) => c.toUpperCase())));
+};
 
 export const EmbedProvider = ({
   children,
   apiKey,
   apiConfig,
+  currencyFilter,
   ...options
 }: EmbedProviderProps) => {
   const sessionId = useMemo(() => uuidv4(), []);
   const styleRef = useRef<HTMLLinkElement>(null);
 
   const [state, dispatch] = useReducer(reducer, options, (opts) => {
-    const providedState = { settings: opts.settings || {} };
+    const providedState = {
+      settings: opts.settings || {},
+      currencyFilter: normalizeCurrencyFilter(currencyFilter),
+    };
     const resolvedState = merge({}, initialState, providedState);
 
     return resolvedState;
@@ -526,6 +543,13 @@ export const EmbedProvider = ({
   }, [options.settings, updateSettings]);
 
   useEffect(() => {
+    dispatch({
+      type: "SET_CURRENCY_FILTER",
+      currencyFilter: normalizeCurrencyFilter(currencyFilter),
+    });
+  }, [currencyFilter]);
+
+  useEffect(() => {
     function planChangedHandler(event: Event) {
       if (event instanceof CustomEvent) {
         debug("plan changed", event.detail);
@@ -550,6 +574,7 @@ export const EmbedProvider = ({
         settings: state.settings,
         layout: state.layout,
         checkoutState: state.checkoutState,
+        currencyFilter: state.currencyFilter,
         hydratePublic: debouncedHydratePublic,
         hydrate: debouncedHydrate,
         hydrateComponent: debouncedHydrateComponent,

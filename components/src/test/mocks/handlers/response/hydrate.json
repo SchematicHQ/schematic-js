@@ -1827,6 +1827,7 @@
             "reset_type": "plan_period",
             "billing_credit_auto_topup_enabled": false,
             "billing_credit_auto_topup_threshold_percent": null,
+            "billing_credit_auto_topup_threshold_credits": null,
             "billing_credit_auto_topup_amount": null,
             "billing_credit_auto_topup_amount_type": null,
             "billing_credit_auto_topup_expiry_type": null,

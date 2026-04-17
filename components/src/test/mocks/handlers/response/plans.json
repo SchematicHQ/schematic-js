@@ -197,9 +197,7 @@
               "created_at": "2025-10-01T14:43:37.694471Z",
               "display_name": "trait-based-feature",
               "entity_type": "company",
-              "hierarchy": [
-                "trait-based-feature"
-              ],
+              "hierarchy": ["trait-based-feature"],
               "id": "trt_U78jdcBghdn",
               "trait_type": "number",
               "updated_at": "2025-10-01T14:43:37.694471Z"
@@ -1396,9 +1394,7 @@
               "created_at": "2025-10-01T14:43:37.694471Z",
               "display_name": "trait-based-feature",
               "entity_type": "company",
-              "hierarchy": [
-                "trait-based-feature"
-              ],
+              "hierarchy": ["trait-based-feature"],
               "id": "trt_U78jdcBghdn",
               "trait_type": "number",
               "updated_at": "2025-10-01T14:43:37.694471Z"
@@ -1701,9 +1697,7 @@
               "created_at": "2025-10-01T15:48:38.898863Z",
               "display_name": "trait-based-feature-schematic-system-trait",
               "entity_type": "company",
-              "hierarchy": [
-                "trait-based-feature-schematic-system-trait"
-              ],
+              "hierarchy": ["trait-based-feature-schematic-system-trait"],
               "id": "trt_E6V7hTVPSyV",
               "trait_type": "number",
               "updated_at": "2025-10-01T15:48:38.898863Z"
@@ -1815,6 +1809,7 @@
             "reset_type": "plan_period",
             "billing_credit_auto_topup_enabled": false,
             "billing_credit_auto_topup_threshold_percent": null,
+            "billing_credit_auto_topup_threshold_credits": null,
             "billing_credit_auto_topup_amount": null,
             "billing_credit_auto_topup_amount_type": null,
             "billing_credit_auto_topup_expiry_type": null,
@@ -2082,9 +2077,7 @@
               "created_at": "2025-10-01T14:43:37.694471Z",
               "display_name": "trait-based-feature",
               "entity_type": "company",
-              "hierarchy": [
-                "trait-based-feature"
-              ],
+              "hierarchy": ["trait-based-feature"],
               "id": "trt_U78jdcBghdn",
               "trait_type": "number",
               "updated_at": "2025-10-01T14:43:37.694471Z"
@@ -2277,9 +2270,7 @@
               "created_at": "2025-10-01T14:43:37.694471Z",
               "display_name": "trait-based-feature",
               "entity_type": "company",
-              "hierarchy": [
-                "trait-based-feature"
-              ],
+              "hierarchy": ["trait-based-feature"],
               "id": "trt_U78jdcBghdn",
               "trait_type": "number",
               "updated_at": "2025-10-01T14:43:37.694471Z"
