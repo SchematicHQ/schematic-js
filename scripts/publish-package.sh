@@ -65,9 +65,12 @@ case "$PACKAGE" in
     schematic-vue)
         WORKING_DIR="vue"
         ;;
+    schematic-angular)
+        WORKING_DIR="angular"
+        ;;
     *)
         echo "Error: Unknown package '$PACKAGE'"
-        echo "Valid packages: schematic-js, schematic-react, schematic-components, schematic-vue"
+        echo "Valid packages: schematic-js, schematic-react, schematic-components, schematic-vue, schematic-angular"
         exit 1
         ;;
 esac
@@ -106,12 +109,20 @@ yarn install
 echo "Building..."
 yarn build
 
+# Determine publish directory
+# ng-packagr (used by angular) generates a complete package in dist/
+if [[ "$PACKAGE" == "schematic-angular" ]]; then
+    PUBLISH_DIR="dist"
+else
+    PUBLISH_DIR="."
+fi
+
 # Set up npmrc if NPM_TOKEN is provided
 if [[ -n "${NPM_TOKEN:-}" ]]; then
     echo "Setting up .npmrc..."
-    echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > .npmrc
+    echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > "$PUBLISH_DIR/.npmrc"
 fi
 
 # Publish
 echo "Publishing $VERSION to NPM with '$NPM_TAG' tag..."
-npm publish --access public --tag "$NPM_TAG"
+npm publish "$PUBLISH_DIR" --access public --tag "$NPM_TAG"
