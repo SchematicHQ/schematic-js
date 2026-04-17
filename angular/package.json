@@ -1,6 +1,21 @@
 {
   "name": "@schematichq/schematic-angular",
-  "version": "1.0.0",
+  "version": "1.4.0",
+  "main": "dist/schematic-angular.cjs.js",
+  "module": "dist/schematic-angular.esm.js",
+  "types": "dist/schematic-angular.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/schematic-angular.d.ts",
+      "import": "./dist/schematic-angular.esm.js",
+      "require": "./dist/schematic-angular.cjs.js"
+    }
+  },
+  "files": [
+    "dist/schematic-angular.cjs.js",
+    "dist/schematic-angular.esm.js",
+    "dist/schematic-angular.d.ts"
+  ],
   "author": "Schematic <engineering@schematichq.com>",
   "license": "MIT",
   "repository": {
@@ -16,10 +31,8 @@
     "test:watch": "vitest",
     "prepare": "husky"
   },
-  "dependencies": {
-    "@schematichq/schematic-js": "^1.3.1"
-  },
   "devDependencies": {
+    "@schematichq/schematic-js": "^1.4.0",
     "@angular/compiler": "^21.2.0",
     "@angular/compiler-cli": "^21.2.0",
     "@angular/core": "^21.2.0",
@@ -38,7 +51,7 @@
     "vitest": "^4.0.18"
   },
   "peerDependencies": {
-    "@angular/core": ">=16.0.0",
+    "@angular/core": ">=19.0.0",
     "rxjs": ">=7.0.0"
   },
   "resolutions": {
