@@ -3,8 +3,5 @@
   "dest": "dist",
   "lib": {
     "entryFile": "src/index.ts"
-  },
-  "allowedNonPeerDependencies": [
-    "@schematichq/schematic-js"
-  ]
+  }
 }
