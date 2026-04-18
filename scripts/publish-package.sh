@@ -118,9 +118,11 @@ else
 fi
 
 # Set up npmrc if NPM_TOKEN is provided
+# Write to cwd (where npm publish runs); npm reads the project .npmrc from
+# cwd, not from the publish target directory.
 if [[ -n "${NPM_TOKEN:-}" ]]; then
     echo "Setting up .npmrc..."
-    echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > "$PUBLISH_DIR/.npmrc"
+    echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > .npmrc
 fi
 
 # Publish
