@@ -20,7 +20,8 @@ export const AutoTopupNotice = ({
   const isLightBackground = useIsLightBackground();
 
   if (
-    typeof planCreditGrant.billingCreditAutoTopupThresholdCredits !== "number" ||
+    typeof planCreditGrant.billingCreditAutoTopupThresholdCredits !==
+      "number" ||
     typeof planCreditGrant.billingCreditAutoTopupAmount !== "number"
   ) {
     return null;
@@ -41,8 +42,7 @@ export const AutoTopupNotice = ({
           {t(
             "When balance reaches X remaining, an auto top-up of Y credits will be processed.",
             {
-              threshold:
-                planCreditGrant.billingCreditAutoTopupThresholdCredits,
+              threshold: planCreditGrant.billingCreditAutoTopupThresholdCredits,
               amount: planCreditGrant.billingCreditAutoTopupAmount,
             },
           )}

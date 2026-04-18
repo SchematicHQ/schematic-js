@@ -18,6 +18,7 @@
  */
 export const CustomPlanBillingStatus = {
   Active: "active",
+  Expired: "expired",
   Paid: "paid",
   Pending: "pending",
 } as const;
