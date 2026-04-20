@@ -91,6 +91,8 @@ export const CheckoutStageButton = ({
   // Helper to get stage display name
   const getStageDisplayName = (stageId: string | undefined): string => {
     switch (stageId) {
+      case "autoTopup":
+        return t("Auto Top-up");
       case "usage":
         return t("Quantity");
       case "addons":

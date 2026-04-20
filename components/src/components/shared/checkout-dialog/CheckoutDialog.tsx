@@ -391,6 +391,20 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       });
     }
 
+    const hasSelfServiceAutoTopup = selectedPlan?.includedCreditGrants.some(
+      (grant) => grant.billingCreditAutoTopupSelfService,
+    );
+    if (hasSelfServiceAutoTopup) {
+      stages.push({
+        id: "autoTopup",
+        name: t("Auto Top-up"),
+        label: t("Auto Top-up"),
+        description: t(
+          "Automatically purchase more tokens when your balance is low",
+        ),
+      });
+    }
+
     if (willTrialWithoutPaymentMethod) {
       return stages;
     }
@@ -455,6 +469,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
   }, [
     t,
     availablePlans,
+    selectedPlan?.includedCreditGrants,
     willTrialWithoutPaymentMethod,
     payInAdvanceEntitlements,
     addOns,
@@ -1304,6 +1319,13 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
               shouldTrial={shouldTrial}
               // eslint-disable-next-line react-hooks/refs
               tooltipPortal={dialogRef.current}
+              currency={hasCurrency ? selectedCurrency : undefined}
+            />
+          ) : checkoutStage === "autoTopup" ? (
+            <AutoTopUp
+              isLoading={isLoading}
+              includedCreditGrants={selectedPlan?.includedCreditGrants}
+              updateAutoTopUp={updateAutoTopUp}
               currency={hasCurrency ? selectedCurrency : undefined}
             />
           ) : checkoutStage === "usage" ? (
