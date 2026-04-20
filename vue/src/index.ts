@@ -11,8 +11,10 @@ import {
   useSchematicEvents,
   useSchematicFlag,
   useSchematicIsPending,
+  useSchematicPlan,
   type SchematicComposableOpts,
   type UseSchematicFlagOpts,
+  type UseSchematicPlanOpts,
 } from "./composables";
 
 export {
@@ -23,6 +25,7 @@ export {
   useSchematicEvents,
   useSchematicFlag,
   useSchematicIsPending,
+  useSchematicPlan,
   SchematicPlugin,
 };
 
@@ -31,6 +34,7 @@ export type {
   SchematicPluginOptions,
   SchematicContextValue,
   UseSchematicFlagOpts,
+  UseSchematicPlanOpts,
 };
 
 // Re-export types and classes from schematic-js
@@ -38,6 +42,7 @@ export { RuleType, Schematic, UsagePeriod } from "@schematichq/schematic-js";
 
 export type {
   CheckFlagReturn,
+  CheckPlanReturn,
   Event,
   EventBody,
   EventBodyIdentify,

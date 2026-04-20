@@ -20,14 +20,18 @@ import {
 } from "../../../const";
 import { type FontStyle } from "../../../context";
 import {
-  useAvailableCurrencies,
+  useAvailableCurrenciesWithInvalid,
   useAvailablePlans,
   useEmbed,
 } from "../../../hooks";
 import type { DeepPartial, ElementProps } from "../../../types";
 import { entitlementCountsReducer } from "../../../utils";
 import { Container, FussyChild } from "../../layout";
-import { CurrencyToggle, PeriodToggle } from "../../shared";
+import {
+  CurrencyToggle,
+  InvalidCurrencyNotice,
+  PeriodToggle,
+} from "../../shared";
 import { Box, Flex, Loader, Text } from "../../ui";
 
 import { AddOn } from "./AddOn";
@@ -138,7 +142,8 @@ export const PricingTable = forwardRef<
 
   const { t } = useTranslation();
 
-  const { data, settings, isPending, hydratePublic } = useEmbed();
+  const { data, settings, isPending, hydratePublic, currencyFilter } =
+    useEmbed();
 
   const getCallToActionTarget = useCallback(
     (url?: string, target?: HTMLAttributeAnchorTarget) => {
@@ -166,12 +171,25 @@ export const PricingTable = forwardRef<
     () => data?.company?.plan?.planPeriod || "month",
   );
 
-  const currencies = useAvailableCurrencies();
-  const [selectedCurrency, setSelectedCurrency] = useState(DEFAULT_CURRENCY);
+  const { currencies, invalidFilterEntries } =
+    useAvailableCurrenciesWithInvalid();
+  const [selectedCurrency, setSelectedCurrency] = useState(
+    () => currencies[0] ?? DEFAULT_CURRENCY,
+  );
+
+  useEffect(() => {
+    if (currencies.length > 0 && !currencies.includes(selectedCurrency)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setSelectedCurrency(currencies[0]);
+    }
+  }, [currencies, selectedCurrency]);
 
   const showPeriodToggle =
     rest.showPeriodToggle ?? data?.displaySettings?.showPeriodToggle ?? true;
+  const hasCurrencyFilter = !!currencyFilter && currencyFilter.length > 0;
   const showCurrencySelector = currencies.length > 1;
+  const hasCurrency = currencies.length > 1 || hasCurrencyFilter;
+  const hasNoUsableCurrency = currencies.length === 0;
   const { plans, addOns, periods } = useAvailablePlans(selectedPeriod, {
     useSelectedPeriod: showPeriodToggle,
   });
@@ -227,6 +245,16 @@ export const PricingTable = forwardRef<
     );
   }
 
+  if (hasNoUsableCurrency) {
+    return (
+      <Container>
+        <Flex $justifyContent="center" $padding="2rem 0">
+          <InvalidCurrencyNotice invalidEntries={invalidFilterEntries} />
+        </Flex>
+      </Container>
+    );
+  }
+
   const currentPlan = plans.find((plan) => plan.id === data?.company?.plan?.id);
 
   const showCallToAction =
@@ -265,7 +293,11 @@ export const PricingTable = forwardRef<
               },
             }}
           >
-            <Text display={props.header.fontStyle}>
+            <Text
+              as="h2"
+              display={props.header.fontStyle}
+              style={{ margin: 0 }}
+            >
               {props.header.isVisible &&
                 props.plans.isVisible &&
                 plans.length > 0 &&
@@ -298,10 +330,14 @@ export const PricingTable = forwardRef<
 
           {props.plans.isVisible && plans.length > 0 && (
             <Box
+              as="ul"
               data-testid="sch-plans"
               $display="grid"
               $gridTemplateColumns="repeat(auto-fill, minmax(320px, 1fr))"
               $gap="1rem"
+              $padding={0}
+              $margin={0}
+              $listStyle="none"
             >
               {plans.map((plan, index, self) => {
                 const planPeriod = showPeriodToggle
@@ -324,9 +360,7 @@ export const PricingTable = forwardRef<
                     }}
                     plans={self}
                     selectedPeriod={planPeriod}
-                    currency={
-                      showCurrencySelector ? selectedCurrency : undefined
-                    }
+                    currency={hasCurrency ? selectedCurrency : undefined}
                     entitlementCounts={entitlementCounts}
                     handleToggleShowAll={handleToggleShowAll}
                   />
@@ -345,14 +379,24 @@ export const PricingTable = forwardRef<
                   $alignItems="center"
                   $marginBottom="1rem"
                 >
-                  <Text display={props.header.fontStyle}>{t("Add-ons")}</Text>
+                  <Text
+                    as="h2"
+                    display={props.header.fontStyle}
+                    style={{ margin: 0 }}
+                  >
+                    {t("Add-ons")}
+                  </Text>
                 </Flex>
               )}
 
               <Box
+                as="ul"
                 $display="grid"
                 $gridTemplateColumns="repeat(auto-fill, minmax(320px, 1fr))"
                 $gap="1rem"
+                $padding={0}
+                $margin={0}
+                $listStyle="none"
               >
                 {addOns.map((addOn, index) => {
                   const addOnPeriod = showPeriodToggle
@@ -373,9 +417,7 @@ export const PricingTable = forwardRef<
                         onCallToAction: rest.onCallToAction,
                       }}
                       selectedPeriod={addOnPeriod}
-                      currency={
-                        showCurrencySelector ? selectedCurrency : undefined
-                      }
+                      currency={hasCurrency ? selectedCurrency : undefined}
                     />
                   );
                 })}

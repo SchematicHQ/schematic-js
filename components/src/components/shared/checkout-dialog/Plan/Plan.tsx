@@ -14,7 +14,8 @@ import {
   hexToHSL,
 } from "../../../../utils";
 import { cardBoxShadow } from "../../../layout";
-import { Box, Flex, Icon, Text, Tooltip } from "../../../ui";
+import { AutoTopupNotice } from "../../../shared";
+import { Box, Flex, Icon, Text } from "../../../ui";
 
 import { ButtonGroup } from "./ButtonGroup";
 import { Entitlement } from "./Entitlement";
@@ -147,7 +148,7 @@ export const Plan = ({
               $flexDirection="column"
               $gap="0.5rem"
               $padding={`0 ${cardPadding}rem ${0.75 * cardPadding}rem`}
-              $borderWidth="0"
+              $borderWidth={0}
               $borderBottomWidth="1px"
               $borderStyle="solid"
               $borderColor={
@@ -254,39 +255,9 @@ export const Plan = ({
                                 {t("per")} {credit.period}
                               </>
                             )}
-                            {hasAutoTopup && (
-                              <Tooltip
-                                trigger={
-                                  <Icon
-                                    title="auto top-up"
-                                    name="info-rounded"
-                                    color={`hsla(0, 0%, ${isLightBackground ? 0 : 100}%, 0.5)`}
-                                  />
-                                }
-                                content={
-                                  <Text
-                                    $size={
-                                      0.875 *
-                                      settings.theme.typography.text.fontSize
-                                    }
-                                  >
-                                    {typeof planCreditGrant.billingCreditAutoTopupThresholdPercent ===
-                                      "number" &&
-                                      typeof planCreditGrant.billingCreditAutoTopupAmount ===
-                                        "number" &&
-                                      t(
-                                        "When balance reaches X remaining, an auto top-up of Y credits will be processed.",
-                                        {
-                                          threshold:
-                                            (planCreditGrant.billingCreditAutoTopupThresholdPercent /
-                                              100) *
-                                            credit.quantity,
-                                          amount:
-                                            planCreditGrant.billingCreditAutoTopupAmount,
-                                        },
-                                      )}
-                                  </Text>
-                                }
+                            {hasAutoTopup && planCreditGrant && (
+                              <AutoTopupNotice
+                                planCreditGrant={planCreditGrant}
                                 portal={tooltipPortal}
                               />
                             )}

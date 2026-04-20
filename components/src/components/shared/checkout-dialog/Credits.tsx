@@ -66,7 +66,7 @@ export const Credits = ({ bundles, updateCount, currency }: CreditsProps) => {
               )}
             </Flex>
 
-            <Flex $flexDirection="column" $justifyContent="end" $flexGrow="1">
+            <Flex $flexDirection="column" $justifyContent="end" $flexGrow={1}>
               <Input
                 $size="lg"
                 type="number"

@@ -34,6 +34,7 @@ export const Dialog = styled.dialog<DialogProps>(
       height: fit-content;
       max-height: 100dvh;
       margin: ${$top}px 0 0;
+      padding: 0;
       background-color: ${theme.card.background};
       box-shadow:
         0px 1px 20px 0px #1018280f,
