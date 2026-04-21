@@ -227,6 +227,16 @@ export const SubscriptionSidebar = forwardRef<
       );
       total += payInAdvanceCost;
 
+      const addOnPayInAdvanceCost = addOnPayInAdvanceEntitlements.reduce(
+        (sum, entitlement) =>
+          sum +
+          entitlement.quantity *
+            (getEntitlementPrice(entitlement, planPeriod, currency)?.price ??
+              0),
+        0,
+      );
+      total += addOnPayInAdvanceCost;
+
       return formatCurrency(total, resolvedCurrency);
     }, [
       selectedPlan,
@@ -234,6 +244,7 @@ export const SubscriptionSidebar = forwardRef<
       planPeriod,
       addOns,
       payInAdvanceEntitlements,
+      addOnPayInAdvanceEntitlements,
       currency,
     ]);
 
