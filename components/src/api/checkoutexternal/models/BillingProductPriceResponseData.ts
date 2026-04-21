@@ -99,6 +99,12 @@ export interface BillingProductPriceResponseData {
   meterId?: string | null;
   /**
    *
+   * @type {string}
+   * @memberof BillingProductPriceResponseData
+   */
+  nickname?: string | null;
+  /**
+   *
    * @type {number}
    * @memberof BillingProductPriceResponseData
    */
@@ -204,6 +210,7 @@ export function BillingProductPriceResponseDataFromJSONTyped(
     interval: BillingProductPriceIntervalFromJSON(json["interval"]),
     isActive: json["is_active"],
     meterId: json["meter_id"] == null ? undefined : json["meter_id"],
+    nickname: json["nickname"] == null ? undefined : json["nickname"],
     packageSize: json["package_size"],
     price: json["price"],
     priceDecimal:
@@ -242,6 +249,7 @@ export function BillingProductPriceResponseDataToJSONTyped(
     interval: BillingProductPriceIntervalToJSON(value["interval"]),
     is_active: value["isActive"],
     meter_id: value["meterId"],
+    nickname: value["nickname"],
     package_size: value["packageSize"],
     price: value["price"],
     price_decimal: value["priceDecimal"],
