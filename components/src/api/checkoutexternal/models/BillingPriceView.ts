@@ -118,6 +118,12 @@ export interface BillingPriceView {
   meterId?: string | null;
   /**
    *
+   * @type {string}
+   * @memberof BillingPriceView
+   */
+  nickname?: string | null;
+  /**
+   *
    * @type {number}
    * @memberof BillingPriceView
    */
@@ -256,6 +262,7 @@ export function BillingPriceViewFromJSONTyped(
         ? undefined
         : json["meter_event_payload_key"],
     meterId: json["meter_id"] == null ? undefined : json["meter_id"],
+    nickname: json["nickname"] == null ? undefined : json["nickname"],
     packageSize: json["package_size"],
     price: json["price"],
     priceDecimal:
@@ -300,6 +307,7 @@ export function BillingPriceViewToJSONTyped(
     meter_event_name: value["meterEventName"],
     meter_event_payload_key: value["meterEventPayloadKey"],
     meter_id: value["meterId"],
+    nickname: value["nickname"],
     package_size: value["packageSize"],
     price: value["price"],
     price_decimal: value["priceDecimal"],

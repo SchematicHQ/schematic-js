@@ -67,6 +67,12 @@ export interface BillingPriceResponseData {
   interval: BillingProductPriceInterval;
   /**
    *
+   * @type {string}
+   * @memberof BillingPriceResponseData
+   */
+  nickname?: string | null;
+  /**
+   *
    * @type {number}
    * @memberof BillingPriceResponseData
    */
@@ -127,6 +133,7 @@ export function BillingPriceResponseDataFromJSONTyped(
     externalPriceId: json["external_price_id"],
     id: json["id"],
     interval: BillingProductPriceIntervalFromJSON(json["interval"]),
+    nickname: json["nickname"] == null ? undefined : json["nickname"],
     price: json["price"],
     priceDecimal:
       json["price_decimal"] == null ? undefined : json["price_decimal"],
@@ -154,6 +161,7 @@ export function BillingPriceResponseDataToJSONTyped(
     external_price_id: value["externalPriceId"],
     id: value["id"],
     interval: BillingProductPriceIntervalToJSON(value["interval"]),
+    nickname: value["nickname"],
     price: value["price"],
     price_decimal: value["priceDecimal"],
     provider_type: BillingProviderTypeToJSON(value["providerType"]),
