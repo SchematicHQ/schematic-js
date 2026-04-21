@@ -227,6 +227,16 @@ export const SubscriptionSidebar = forwardRef<
       );
       total += payInAdvanceCost;
 
+      const addOnPayInAdvanceCost = addOnPayInAdvanceEntitlements.reduce(
+        (sum, entitlement) =>
+          sum +
+          entitlement.quantity *
+            (getEntitlementPrice(entitlement, planPeriod, currency)?.price ??
+              0),
+        0,
+      );
+      total += addOnPayInAdvanceCost;
+
       return formatCurrency(total, resolvedCurrency);
     }, [
       selectedPlan,
@@ -234,6 +244,7 @@ export const SubscriptionSidebar = forwardRef<
       planPeriod,
       addOns,
       payInAdvanceEntitlements,
+      addOnPayInAdvanceEntitlements,
       currency,
     ]);
 
@@ -540,7 +551,11 @@ export const SubscriptionSidebar = forwardRef<
       selectedPlan?.isTrialable === true;
 
     const button = useMemo(() => {
-      const canCheckout = error !== t("Downgrade not permitted.");
+      const hasEntitlementDowngrade =
+        payInAdvanceEntitlements.some((e) => e.quantity < e.usage) ||
+        addOnPayInAdvanceEntitlements.some((e) => e.quantity < e.usage);
+      const canCheckout =
+        error !== t("Downgrade not permitted.") && !hasEntitlementDowngrade;
       const isSticky = !isButtonInView;
 
       switch (layout) {
@@ -606,6 +621,8 @@ export const SubscriptionSidebar = forwardRef<
       paymentMethodId,
       handleCheckout,
       handleUnsubscribe,
+      payInAdvanceEntitlements,
+      addOnPayInAdvanceEntitlements,
     ]);
 
     useLayoutEffect(() => {
