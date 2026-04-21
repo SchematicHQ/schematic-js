@@ -27,6 +27,34 @@ import {
   EntityTraitDefinitionResponseDataToJSON,
   EntityTraitDefinitionResponseDataToJSONTyped,
 } from "./EntityTraitDefinitionResponseData";
+import type { ComparableOperator } from "./ComparableOperator";
+import {
+  ComparableOperatorFromJSON,
+  ComparableOperatorFromJSONTyped,
+  ComparableOperatorToJSON,
+  ComparableOperatorToJSONTyped,
+} from "./ComparableOperator";
+import type { MetricPeriodMonthReset } from "./MetricPeriodMonthReset";
+import {
+  MetricPeriodMonthResetFromJSON,
+  MetricPeriodMonthResetFromJSONTyped,
+  MetricPeriodMonthResetToJSON,
+  MetricPeriodMonthResetToJSONTyped,
+} from "./MetricPeriodMonthReset";
+import type { MetricPeriod } from "./MetricPeriod";
+import {
+  MetricPeriodFromJSON,
+  MetricPeriodFromJSONTyped,
+  MetricPeriodToJSON,
+  MetricPeriodToJSONTyped,
+} from "./MetricPeriod";
+import type { ConditionType } from "./ConditionType";
+import {
+  ConditionTypeFromJSON,
+  ConditionTypeFromJSONTyped,
+  ConditionTypeToJSON,
+  ConditionTypeToJSONTyped,
+} from "./ConditionType";
 import type { PreviewObjectResponseData } from "./PreviewObjectResponseData";
 import {
   PreviewObjectResponseDataFromJSON,
@@ -61,10 +89,10 @@ export interface RuleConditionDetailResponseData {
   conditionGroupId?: string | null;
   /**
    *
-   * @type {string}
+   * @type {ConditionType}
    * @memberof RuleConditionDetailResponseData
    */
-  conditionType: string;
+  conditionType: ConditionType;
   /**
    *
    * @type {Date}
@@ -97,16 +125,16 @@ export interface RuleConditionDetailResponseData {
   id: string;
   /**
    *
-   * @type {string}
+   * @type {MetricPeriod}
    * @memberof RuleConditionDetailResponseData
    */
-  metricPeriod?: string | null;
+  metricPeriod?: MetricPeriod | null;
   /**
    *
-   * @type {string}
+   * @type {MetricPeriodMonthReset}
    * @memberof RuleConditionDetailResponseData
    */
-  metricPeriodMonthReset?: string | null;
+  metricPeriodMonthReset?: MetricPeriodMonthReset | null;
   /**
    *
    * @type {number}
@@ -115,10 +143,10 @@ export interface RuleConditionDetailResponseData {
   metricValue?: number | null;
   /**
    *
-   * @type {string}
+   * @type {ComparableOperator}
    * @memberof RuleConditionDetailResponseData
    */
-  operator: string;
+  operator: ComparableOperator;
   /**
    *
    * @type {Array<string>}
@@ -218,7 +246,7 @@ export function RuleConditionDetailResponseDataFromJSONTyped(
       json["condition_group_id"] == null
         ? undefined
         : json["condition_group_id"],
-    conditionType: json["condition_type"],
+    conditionType: ConditionTypeFromJSON(json["condition_type"]),
     createdAt: new Date(json["created_at"]),
     environmentId: json["environment_id"],
     eventSubtype:
@@ -226,14 +254,16 @@ export function RuleConditionDetailResponseDataFromJSONTyped(
     flagId: json["flag_id"] == null ? undefined : json["flag_id"],
     id: json["id"],
     metricPeriod:
-      json["metric_period"] == null ? undefined : json["metric_period"],
+      json["metric_period"] == null
+        ? undefined
+        : MetricPeriodFromJSON(json["metric_period"]),
     metricPeriodMonthReset:
       json["metric_period_month_reset"] == null
         ? undefined
-        : json["metric_period_month_reset"],
+        : MetricPeriodMonthResetFromJSON(json["metric_period_month_reset"]),
     metricValue:
       json["metric_value"] == null ? undefined : json["metric_value"],
-    operator: json["operator"],
+    operator: ComparableOperatorFromJSON(json["operator"]),
     resourceIds: json["resource_ids"],
     resources: (json["resources"] as Array<any>).map(
       PreviewObjectResponseDataFromJSON,
@@ -273,16 +303,18 @@ export function RuleConditionDetailResponseDataToJSONTyped(
     ),
     comparison_trait_id: value["comparisonTraitId"],
     condition_group_id: value["conditionGroupId"],
-    condition_type: value["conditionType"],
+    condition_type: ConditionTypeToJSON(value["conditionType"]),
     created_at: value["createdAt"].toISOString(),
     environment_id: value["environmentId"],
     event_subtype: value["eventSubtype"],
     flag_id: value["flagId"],
     id: value["id"],
-    metric_period: value["metricPeriod"],
-    metric_period_month_reset: value["metricPeriodMonthReset"],
+    metric_period: MetricPeriodToJSON(value["metricPeriod"]),
+    metric_period_month_reset: MetricPeriodMonthResetToJSON(
+      value["metricPeriodMonthReset"],
+    ),
     metric_value: value["metricValue"],
-    operator: value["operator"],
+    operator: ComparableOperatorToJSON(value["operator"]),
     resource_ids: value["resourceIds"],
     resources: (value["resources"] as Array<any>).map(
       PreviewObjectResponseDataToJSON,

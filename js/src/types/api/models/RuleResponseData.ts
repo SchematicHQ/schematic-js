@@ -13,6 +13,14 @@
  */
 
 import { mapValues } from "../runtime";
+import type { RuleType } from "./RuleType";
+import {
+  RuleTypeFromJSON,
+  RuleTypeFromJSONTyped,
+  RuleTypeToJSON,
+  RuleTypeToJSONTyped,
+} from "./RuleType";
+
 /**
  *
  * @export
@@ -57,10 +65,10 @@ export interface RuleResponseData {
   priority: number;
   /**
    *
-   * @type {string}
+   * @type {RuleType}
    * @memberof RuleResponseData
    */
-  ruleType: string;
+  ruleType: RuleType;
   /**
    *
    * @type {Date}
@@ -111,7 +119,7 @@ export function RuleResponseDataFromJSONTyped(
     id: json["id"],
     name: json["name"],
     priority: json["priority"],
-    ruleType: json["rule_type"],
+    ruleType: RuleTypeFromJSON(json["rule_type"]),
     updatedAt: new Date(json["updated_at"]),
     value: json["value"],
   };
@@ -136,7 +144,7 @@ export function RuleResponseDataToJSONTyped(
     id: value["id"],
     name: value["name"],
     priority: value["priority"],
-    rule_type: value["ruleType"],
+    rule_type: RuleTypeToJSON(value["ruleType"]),
     updated_at: value["updatedAt"].toISOString(),
     value: value["value"],
   };

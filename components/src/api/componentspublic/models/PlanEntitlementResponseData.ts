@@ -27,6 +27,13 @@ import {
   EntityTraitDefinitionResponseDataToJSON,
   EntityTraitDefinitionResponseDataToJSONTyped,
 } from "./EntityTraitDefinitionResponseData";
+import type { MetricPeriodMonthReset } from "./MetricPeriodMonthReset";
+import {
+  MetricPeriodMonthResetFromJSON,
+  MetricPeriodMonthResetFromJSONTyped,
+  MetricPeriodMonthResetToJSON,
+  MetricPeriodMonthResetToJSONTyped,
+} from "./MetricPeriodMonthReset";
 import type { BillingCreditResponseData } from "./BillingCreditResponseData";
 import {
   BillingCreditResponseDataFromJSON,
@@ -62,6 +69,13 @@ import {
   FeatureResponseDataToJSON,
   FeatureResponseDataToJSONTyped,
 } from "./FeatureResponseData";
+import type { MetricPeriod } from "./MetricPeriod";
+import {
+  MetricPeriodFromJSON,
+  MetricPeriodFromJSONTyped,
+  MetricPeriodToJSON,
+  MetricPeriodToJSONTyped,
+} from "./MetricPeriod";
 import type { EntitlementPriceBehavior } from "./EntitlementPriceBehavior";
 import {
   EntitlementPriceBehaviorFromJSON,
@@ -158,16 +172,16 @@ export interface PlanEntitlementResponseData {
   meteredYearlyPrice?: BillingPriceView;
   /**
    *
-   * @type {string}
+   * @type {MetricPeriod}
    * @memberof PlanEntitlementResponseData
    */
-  metricPeriod?: string | null;
+  metricPeriod?: MetricPeriod | null;
   /**
    *
-   * @type {string}
+   * @type {MetricPeriodMonthReset}
    * @memberof PlanEntitlementResponseData
    */
-  metricPeriodMonthReset?: string | null;
+  metricPeriodMonthReset?: MetricPeriodMonthReset | null;
   /**
    *
    * @type {PlanResponseData}
@@ -318,11 +332,13 @@ export function PlanEntitlementResponseDataFromJSONTyped(
         ? undefined
         : BillingPriceViewFromJSON(json["metered_yearly_price"]),
     metricPeriod:
-      json["metric_period"] == null ? undefined : json["metric_period"],
+      json["metric_period"] == null
+        ? undefined
+        : MetricPeriodFromJSON(json["metric_period"]),
     metricPeriodMonthReset:
       json["metric_period_month_reset"] == null
         ? undefined
-        : json["metric_period_month_reset"],
+        : MetricPeriodMonthResetFromJSON(json["metric_period_month_reset"]),
     plan:
       json["plan"] == null ? undefined : PlanResponseDataFromJSON(json["plan"]),
     planId: json["plan_id"],
@@ -388,8 +404,10 @@ export function PlanEntitlementResponseDataToJSONTyped(
     id: value["id"],
     metered_monthly_price: BillingPriceViewToJSON(value["meteredMonthlyPrice"]),
     metered_yearly_price: BillingPriceViewToJSON(value["meteredYearlyPrice"]),
-    metric_period: value["metricPeriod"],
-    metric_period_month_reset: value["metricPeriodMonthReset"],
+    metric_period: MetricPeriodToJSON(value["metricPeriod"]),
+    metric_period_month_reset: MetricPeriodMonthResetToJSON(
+      value["metricPeriodMonthReset"],
+    ),
     plan: PlanResponseDataToJSON(value["plan"]),
     plan_id: value["planId"],
     price_behavior: EntitlementPriceBehaviorToJSON(value["priceBehavior"]),

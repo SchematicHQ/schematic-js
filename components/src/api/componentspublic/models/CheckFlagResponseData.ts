@@ -20,6 +20,20 @@ import {
   FeatureEntitlementToJSON,
   FeatureEntitlementToJSONTyped,
 } from "./FeatureEntitlement";
+import type { MetricPeriod } from "./MetricPeriod";
+import {
+  MetricPeriodFromJSON,
+  MetricPeriodFromJSONTyped,
+  MetricPeriodToJSON,
+  MetricPeriodToJSONTyped,
+} from "./MetricPeriod";
+import type { RuleType } from "./RuleType";
+import {
+  RuleTypeFromJSON,
+  RuleTypeFromJSONTyped,
+  RuleTypeToJSON,
+  RuleTypeToJSONTyped,
+} from "./RuleType";
 
 /**
  *
@@ -68,11 +82,11 @@ export interface CheckFlagResponseData {
   featureUsageEvent?: string | null;
   /**
    * Deprecated: Use Entitlement.MetricPeriod instead.
-   * @type {string}
+   * @type {MetricPeriod}
    * @memberof CheckFlagResponseData
    * @deprecated
    */
-  featureUsagePeriod?: string | null;
+  featureUsagePeriod?: MetricPeriod | null;
   /**
    * Deprecated: Use Entitlement.MetricResetAt instead.
    * @type {Date}
@@ -106,10 +120,10 @@ export interface CheckFlagResponseData {
   ruleId?: string | null;
   /**
    * If a rule was found, its type
-   * @type {string}
+   * @type {RuleType}
    * @memberof CheckFlagResponseData
    */
-  ruleType?: string | null;
+  ruleType?: RuleType | null;
   /**
    * If user keys were provided and matched a user, its ID
    * @type {string}
@@ -169,7 +183,7 @@ export function CheckFlagResponseDataFromJSONTyped(
     featureUsagePeriod:
       json["feature_usage_period"] == null
         ? undefined
-        : json["feature_usage_period"],
+        : MetricPeriodFromJSON(json["feature_usage_period"]),
     featureUsageResetAt:
       json["feature_usage_reset_at"] == null
         ? undefined
@@ -178,7 +192,10 @@ export function CheckFlagResponseDataFromJSONTyped(
     flagId: json["flag_id"] == null ? undefined : json["flag_id"],
     reason: json["reason"],
     ruleId: json["rule_id"] == null ? undefined : json["rule_id"],
-    ruleType: json["rule_type"] == null ? undefined : json["rule_type"],
+    ruleType:
+      json["rule_type"] == null
+        ? undefined
+        : RuleTypeFromJSON(json["rule_type"]),
     userId: json["user_id"] == null ? undefined : json["user_id"],
     value: json["value"],
   };
@@ -203,7 +220,7 @@ export function CheckFlagResponseDataToJSONTyped(
     feature_allocation: value["featureAllocation"],
     feature_usage: value["featureUsage"],
     feature_usage_event: value["featureUsageEvent"],
-    feature_usage_period: value["featureUsagePeriod"],
+    feature_usage_period: MetricPeriodToJSON(value["featureUsagePeriod"]),
     feature_usage_reset_at:
       value["featureUsageResetAt"] == null
         ? undefined
@@ -212,7 +229,7 @@ export function CheckFlagResponseDataToJSONTyped(
     flag_id: value["flagId"],
     reason: value["reason"],
     rule_id: value["ruleId"],
-    rule_type: value["ruleType"],
+    rule_type: RuleTypeToJSON(value["ruleType"]),
     user_id: value["userId"],
     value: value["value"],
   };

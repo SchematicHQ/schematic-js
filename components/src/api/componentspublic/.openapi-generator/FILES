@@ -38,9 +38,11 @@ models/CheckFlagsBulkResponse.ts
 models/CheckFlagsBulkResponseData.ts
 models/CheckFlagsResponse.ts
 models/CheckFlagsResponseData.ts
+models/ComparableOperator.ts
 models/CompatiblePlans.ts
 models/ComponentCapabilities.ts
 models/ComponentDisplaySettings.ts
+models/ConditionType.ts
 models/CountResponse.ts
 models/CreateEventBatchRequestBody.ts
 models/CreateEventBatchResponse.ts
@@ -76,6 +78,8 @@ models/FlagType.ts
 models/GenericPreviewObject.ts
 models/GetPublicPlansResponse.ts
 models/GetWhoAmIResponse.ts
+models/MetricPeriod.ts
+models/MetricPeriodMonthReset.ts
 models/PlanCreditGrantView.ts
 models/PlanCurrencyPricesResponseData.ts
 models/PlanDetailResponseData.ts
@@ -98,6 +102,7 @@ models/RuleConditionGroupResponseData.ts
 models/RuleConditionResponseData.ts
 models/RuleDetailResponseData.ts
 models/RuleResponseData.ts
+models/RuleType.ts
 models/TraitType.ts
 models/TrialStatus.ts
 models/WhoAmIResponseData.ts

@@ -20,6 +20,13 @@ import {
   ConditionToJSON,
   ConditionToJSONTyped,
 } from "./Condition";
+import type { RuleType } from "./RuleType";
+import {
+  RuleTypeFromJSON,
+  RuleTypeFromJSONTyped,
+  RuleTypeToJSON,
+  RuleTypeToJSONTyped,
+} from "./RuleType";
 import type { ConditionGroup } from "./ConditionGroup";
 import {
   ConditionGroupFromJSON,
@@ -84,10 +91,10 @@ export interface Rule {
   priority: number;
   /**
    *
-   * @type {string}
+   * @type {RuleType}
    * @memberof Rule
    */
-  ruleType: RuleRuleTypeEnum;
+  ruleType: RuleType;
   /**
    *
    * @type {boolean}
@@ -95,21 +102,6 @@ export interface Rule {
    */
   value: boolean;
 }
-
-/**
- * @export
- */
-export const RuleRuleTypeEnum = {
-  Default: "default",
-  GlobalOverride: "global_override",
-  CompanyOverride: "company_override",
-  CompanyOverrideUsageExceeded: "company_override_usage_exceeded",
-  PlanEntitlement: "plan_entitlement",
-  PlanEntitlementUsageExceeded: "plan_entitlement_usage_exceeded",
-  Standard: "standard",
-} as const;
-export type RuleRuleTypeEnum =
-  (typeof RuleRuleTypeEnum)[keyof typeof RuleRuleTypeEnum];
 
 /**
  * Check if a given object implements the Rule interface.
@@ -152,7 +144,7 @@ export function RuleFromJSONTyped(
     id: json["id"],
     name: json["name"],
     priority: json["priority"],
-    ruleType: json["rule_type"],
+    ruleType: RuleTypeFromJSON(json["rule_type"]),
     value: json["value"],
   };
 }
@@ -180,7 +172,7 @@ export function RuleToJSONTyped(
     id: value["id"],
     name: value["name"],
     priority: value["priority"],
-    rule_type: value["ruleType"],
+    rule_type: RuleTypeToJSON(value["ruleType"]),
     value: value["value"],
   };
 }
