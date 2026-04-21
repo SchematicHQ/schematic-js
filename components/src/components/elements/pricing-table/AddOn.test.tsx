@@ -7,6 +7,7 @@ import {
   EntitlementValueType,
   EntityType,
   FeatureType,
+  MetricPeriod,
   PlanEntitlementResponseData,
   TraitType,
 } from "../../../api/checkoutexternal";
@@ -319,7 +320,7 @@ describe("`AddOn` component", () => {
               },
               valueType: "numeric",
               valueNumeric: 10000,
-              metricPeriod: "month",
+              metricPeriod: MetricPeriod.CurrentMonth,
             } as PlanEntitlementResponseData,
           ],
         }}
