@@ -8,6 +8,39 @@ import { useEmbed } from ".";
 
 interface AvailablePlanOptions {
   useSelectedPeriod?: boolean;
+  /**
+   * When set, plans that don't support this currency are filtered out.
+   * A plan supports a currency if it has a currency_prices row for it,
+   * or (for legacy plans with no currency_prices) its primary price is
+   * in that currency.
+   */
+  selectedCurrency?: string;
+}
+
+/**
+ * Does `plan` offer pricing in `currency`? Uses currency_prices when
+ * present; falls back to the legacy single-currency price fields so we
+ * don't hide plans that haven't been migrated to multi-currency yet.
+ *
+ * Exported for unit tests.
+ */
+export function planSupportsCurrency(
+  plan: CompanyPlanDetailResponseData,
+  currency: string,
+): boolean {
+  const target = currency.toUpperCase();
+
+  const currencyPrices = plan.currencyPrices ?? [];
+  if (currencyPrices.length > 0) {
+    return currencyPrices.some((cp) => cp.currency.toUpperCase() === target);
+  }
+
+  const legacy = (
+    plan.monthlyPrice?.currency ??
+    plan.yearlyPrice?.currency ??
+    plan.oneTimePrice?.currency
+  )?.toUpperCase();
+  return legacy === target;
 }
 
 export function useAvailablePlans(
@@ -40,24 +73,33 @@ export function useAvailablePlans(
         settings.mode === "edit"
           ? plans.slice()
           : plans.filter((plan) => {
-              if (options.useSelectedPeriod) {
-                return (
-                  (activePeriod === "month" && plan.monthlyPrice) ||
+              const matchesPeriod = options.useSelectedPeriod
+                ? (activePeriod === "month" && plan.monthlyPrice) ||
                   (activePeriod === "year" && plan.yearlyPrice) ||
                   plan.chargeType === ChargeType.oneTime
-                );
+                : plan.monthlyPrice ||
+                  plan.yearlyPrice ||
+                  plan.chargeType === ChargeType.oneTime;
+
+              if (!matchesPeriod) {
+                return false;
               }
 
-              return (
-                plan.monthlyPrice ||
-                plan.yearlyPrice ||
-                plan.chargeType === ChargeType.oneTime
-              );
+              if (options.selectedCurrency) {
+                return planSupportsCurrency(plan, options.selectedCurrency);
+              }
+
+              return true;
             });
 
       return activePlans.map((plan) => ({ ...plan, isSelected: false }));
     },
-    [activePeriod, options.useSelectedPeriod, settings.mode],
+    [
+      activePeriod,
+      options.useSelectedPeriod,
+      options.selectedCurrency,
+      settings.mode,
+    ],
   );
 
   return useMemo(() => {

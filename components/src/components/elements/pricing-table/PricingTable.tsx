@@ -192,6 +192,7 @@ export const PricingTable = forwardRef<
   const hasNoUsableCurrency = currencies.length === 0;
   const { plans, addOns, periods } = useAvailablePlans(selectedPeriod, {
     useSelectedPeriod: showPeriodToggle,
+    selectedCurrency,
   });
 
   const [entitlementCounts, setEntitlementCounts] = useState(() =>

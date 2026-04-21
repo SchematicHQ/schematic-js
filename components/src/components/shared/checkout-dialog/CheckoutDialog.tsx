@@ -243,6 +243,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     periods: availablePeriods,
   } = useAvailablePlans(planPeriod, {
     useSelectedPeriod: showPeriodToggle,
+    selectedCurrency,
   });
 
   const [selectedPlan, setSelectedPlan] = useState<SelectedPlan | undefined>(
@@ -257,6 +258,16 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       );
     },
   );
+
+  // If the user switches currency and their currently-selected plan no
+  // longer offers that currency, drop the selection so they re-pick from
+  // the filtered list.
+  useEffect(() => {
+    if (!selectedPlan) return;
+    if (!availablePlans.some((plan) => plan.id === selectedPlan.id)) {
+      setSelectedPlan(undefined);
+    }
+  }, [availablePlans, selectedPlan]);
 
   const [shouldTrial, setShouldTrial] = useState(false);
 
