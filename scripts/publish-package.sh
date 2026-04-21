@@ -105,6 +105,12 @@ fi
 echo "Installing dependencies..."
 yarn install
 
+# Stamp version into source before build
+# Stamp version into source before build (components only)
+if [[ -f src/version.ts ]]; then
+    echo "export const PACKAGE_VERSION = \"$VERSION\";" > src/version.ts
+fi
+
 # Build
 echo "Building..."
 yarn build

@@ -1,5 +1,6 @@
 import "../localization";
 
+import { PACKAGE_VERSION } from "../version";
 import { IconStyles } from "@schematichq/schematic-icons";
 import debounce from "lodash/debounce";
 import merge from "lodash/merge";
@@ -33,8 +34,7 @@ import {
 } from "./embedState";
 
 const getCustomHeaders = (sessionId: string) => ({
-  "X-Schematic-Components-Version":
-    process.env.SCHEMATIC_COMPONENTS_VERSION || "unknown",
+  "X-Schematic-Components-Version": PACKAGE_VERSION,
   "X-Schematic-Session-ID": sessionId,
 });
 
