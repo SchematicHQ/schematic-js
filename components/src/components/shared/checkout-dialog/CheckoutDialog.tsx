@@ -11,6 +11,7 @@ import { useTranslation } from "react-i18next";
 import {
   BillingProductPriceInterval,
   EntitlementPriceBehavior,
+  PlanCreditGrantView,
   ResponseError,
   type FeatureUsageResponseData,
   type PlanEntitlementResponseData,
@@ -57,7 +58,7 @@ import {
 
 import { Navigation } from "./Navigation";
 
-import { AddOns, Checkout, Credits, Plan, Quantity } from ".";
+import { AddOns, AutoTopup, Checkout, Credits, Plan, Quantity } from ".";
 
 export const createActiveUsageBasedEntitlementsReducer =
   (entitlements: FeatureUsageResponseData[], period: string) =>
@@ -264,6 +265,18 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
   const [shouldTrial, setShouldTrial] = useState(false);
 
+  const [autoTopupConfigs, setAutoTopupConfigs] = useState<
+    Map<
+      string,
+      Pick<
+        PlanCreditGrantView,
+        | "billingCreditAutoTopupEnabled"
+        | "billingCreditAutoTopupThresholdCredits"
+        | "billingCreditAutoTopupAmount"
+      >
+    >
+  >(new Map());
+
   const [addOns, setAddOns] = useState(() => {
     return availableAddOns.map((addOn) => ({
       ...addOn,
@@ -399,9 +412,6 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
         id: "autoTopup",
         name: t("Auto Top-up"),
         label: t("Auto Top-up"),
-        description: t(
-          "Automatically purchase more tokens when your balance is low",
-        ),
       });
     }
 
@@ -886,6 +896,53 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     [handlePreviewCheckout, addOnUsageBasedEntitlements],
   );
 
+  const updateAutoTopupConfig = useCallback(
+    (
+      // plan credit grant id
+      id: string,
+      updates: {
+        billingCreditAutoTopupEnabled?: boolean;
+        billingCreditAutoTopupThresholdCredits?: number;
+        billingCreditAutoTopupAmount?: number;
+      },
+    ) => {
+      setAutoTopupConfigs((prev) => {
+        const nextMap = new Map(prev);
+        const prevConfig = prev.get(id);
+
+        const matchedCreditGrant = selectedPlan?.includedCreditGrants.find(
+          (grant) => grant.id === id,
+        );
+
+        const updatedConfig = {
+          billingCreditAutoTopupEnabled:
+            updates.billingCreditAutoTopupEnabled ??
+            prevConfig?.billingCreditAutoTopupEnabled ??
+            matchedCreditGrant?.billingCreditAutoTopupEnabled ??
+            false,
+          billingCreditAutoTopupThresholdCredits:
+            updates.billingCreditAutoTopupThresholdCredits ??
+            prevConfig?.billingCreditAutoTopupThresholdCredits ??
+            matchedCreditGrant?.billingCreditAutoTopupThresholdCredits ??
+            0,
+          billingCreditAutoTopupAmount:
+            updates.billingCreditAutoTopupAmount ??
+            prevConfig?.billingCreditAutoTopupAmount ??
+            matchedCreditGrant?.billingCreditAutoTopupAmount ??
+            0,
+        };
+
+        nextMap.set(id, updatedConfig);
+
+        // TODO
+        //handlePreviewCheckout({ autoTopupConfigs: updated });
+
+        return nextMap;
+      });
+    },
+    [selectedPlan?.includedCreditGrants],
+  );
+
   const updateUsageBasedEntitlementQuantity = useCallback(
     (id: string, updatedQuantity: number) => {
       setUsageBasedEntitlements((prev) => {
@@ -1322,10 +1379,11 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
               currency={hasCurrency ? selectedCurrency : undefined}
             />
           ) : checkoutStage === "autoTopup" ? (
-            <AutoTopUp
+            <AutoTopup
               isLoading={isLoading}
-              includedCreditGrants={selectedPlan?.includedCreditGrants}
-              updateAutoTopUp={updateAutoTopUp}
+              includedCreditGrants={selectedPlan?.includedCreditGrants || []}
+              autoTopupConfigs={autoTopupConfigs}
+              updateAutoTopupConfig={updateAutoTopupConfig}
               currency={hasCurrency ? selectedCurrency : undefined}
             />
           ) : checkoutStage === "usage" ? (
