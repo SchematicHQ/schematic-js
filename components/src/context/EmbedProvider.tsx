@@ -1,6 +1,5 @@
 import "../localization";
 
-import { PACKAGE_VERSION } from "../version";
 import { IconStyles } from "@schematichq/schematic-icons";
 import debounce from "lodash/debounce";
 import merge from "lodash/merge";
@@ -22,6 +21,7 @@ import {
 import { FETCH_DEBOUNCE_TIMEOUT, LEADING_DEBOUNCE_SETTINGS } from "../const";
 import type { DeepPartial, HydrateDataWithCompanyContext } from "../types";
 import { ERROR_UNKNOWN, isError } from "../utils";
+import { PACKAGE_VERSION } from "../version";
 
 import { EmbedContext } from "./EmbedContext";
 import { reducer } from "./embedReducer";
