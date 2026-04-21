@@ -20,6 +20,34 @@ import {
   TraitDefinitionToJSON,
   TraitDefinitionToJSONTyped,
 } from "./TraitDefinition";
+import type { ComparableOperator } from "./ComparableOperator";
+import {
+  ComparableOperatorFromJSON,
+  ComparableOperatorFromJSONTyped,
+  ComparableOperatorToJSON,
+  ComparableOperatorToJSONTyped,
+} from "./ComparableOperator";
+import type { MetricPeriodMonthReset } from "./MetricPeriodMonthReset";
+import {
+  MetricPeriodMonthResetFromJSON,
+  MetricPeriodMonthResetFromJSONTyped,
+  MetricPeriodMonthResetToJSON,
+  MetricPeriodMonthResetToJSONTyped,
+} from "./MetricPeriodMonthReset";
+import type { MetricPeriod } from "./MetricPeriod";
+import {
+  MetricPeriodFromJSON,
+  MetricPeriodFromJSONTyped,
+  MetricPeriodToJSON,
+  MetricPeriodToJSONTyped,
+} from "./MetricPeriod";
+import type { ConditionType } from "./ConditionType";
+import {
+  ConditionTypeFromJSON,
+  ConditionTypeFromJSONTyped,
+  ConditionTypeToJSON,
+  ConditionTypeToJSONTyped,
+} from "./ConditionType";
 
 /**
  *
@@ -41,10 +69,10 @@ export interface Condition {
   comparisonTraitDefinition?: TraitDefinition;
   /**
    *
-   * @type {string}
+   * @type {ConditionType}
    * @memberof Condition
    */
-  conditionType: ConditionConditionTypeEnum;
+  conditionType: ConditionType;
   /**
    *
    * @type {number}
@@ -77,16 +105,16 @@ export interface Condition {
   id: string;
   /**
    *
-   * @type {string}
+   * @type {MetricPeriod}
    * @memberof Condition
    */
-  metricPeriod?: ConditionMetricPeriodEnum | null;
+  metricPeriod?: MetricPeriod | null;
   /**
    *
-   * @type {string}
+   * @type {MetricPeriodMonthReset}
    * @memberof Condition
    */
-  metricPeriodMonthReset?: ConditionMetricPeriodMonthResetEnum | null;
+  metricPeriodMonthReset?: MetricPeriodMonthReset | null;
   /**
    *
    * @type {number}
@@ -95,10 +123,10 @@ export interface Condition {
   metricValue?: number | null;
   /**
    *
-   * @type {string}
+   * @type {ComparableOperator}
    * @memberof Condition
    */
-  operator: ConditionOperatorEnum;
+  operator: ComparableOperator;
   /**
    *
    * @type {Array<string>}
@@ -118,61 +146,6 @@ export interface Condition {
    */
   traitValue: string;
 }
-
-/**
- * @export
- */
-export const ConditionConditionTypeEnum = {
-  BasePlan: "base_plan",
-  BillingProduct: "billing_product",
-  Company: "company",
-  Credit: "credit",
-  Metric: "metric",
-  Plan: "plan",
-  PlanVersion: "plan_version",
-  Trait: "trait",
-  User: "user",
-} as const;
-export type ConditionConditionTypeEnum =
-  (typeof ConditionConditionTypeEnum)[keyof typeof ConditionConditionTypeEnum];
-
-/**
- * @export
- */
-export const ConditionMetricPeriodEnum = {
-  AllTime: "all_time",
-  CurrentDay: "current_day",
-  CurrentMonth: "current_month",
-  CurrentWeek: "current_week",
-} as const;
-export type ConditionMetricPeriodEnum =
-  (typeof ConditionMetricPeriodEnum)[keyof typeof ConditionMetricPeriodEnum];
-
-/**
- * @export
- */
-export const ConditionMetricPeriodMonthResetEnum = {
-  FirstOfMonth: "first_of_month",
-  BillingCycle: "billing_cycle",
-} as const;
-export type ConditionMetricPeriodMonthResetEnum =
-  (typeof ConditionMetricPeriodMonthResetEnum)[keyof typeof ConditionMetricPeriodMonthResetEnum];
-
-/**
- * @export
- */
-export const ConditionOperatorEnum = {
-  Eq: "eq",
-  Ne: "ne",
-  Gt: "gt",
-  Lt: "lt",
-  Gte: "gte",
-  Lte: "lte",
-  IsEmpty: "is_empty",
-  NotEmpty: "not_empty",
-} as const;
-export type ConditionOperatorEnum =
-  (typeof ConditionOperatorEnum)[keyof typeof ConditionOperatorEnum];
 
 /**
  * Check if a given object implements the Condition interface.
@@ -209,7 +182,7 @@ export function ConditionFromJSONTyped(
       json["comparison_trait_definition"] == null
         ? undefined
         : TraitDefinitionFromJSON(json["comparison_trait_definition"]),
-    conditionType: json["condition_type"],
+    conditionType: ConditionTypeFromJSON(json["condition_type"]),
     consumptionRate:
       json["consumption_rate"] == null ? undefined : json["consumption_rate"],
     creditId: json["credit_id"] == null ? undefined : json["credit_id"],
@@ -218,14 +191,16 @@ export function ConditionFromJSONTyped(
       json["event_subtype"] == null ? undefined : json["event_subtype"],
     id: json["id"],
     metricPeriod:
-      json["metric_period"] == null ? undefined : json["metric_period"],
+      json["metric_period"] == null
+        ? undefined
+        : MetricPeriodFromJSON(json["metric_period"]),
     metricPeriodMonthReset:
       json["metric_period_month_reset"] == null
         ? undefined
-        : json["metric_period_month_reset"],
+        : MetricPeriodMonthResetFromJSON(json["metric_period_month_reset"]),
     metricValue:
       json["metric_value"] == null ? undefined : json["metric_value"],
-    operator: json["operator"],
+    operator: ComparableOperatorFromJSON(json["operator"]),
     resourceIds: json["resource_ids"],
     traitDefinition:
       json["trait_definition"] == null
@@ -252,16 +227,18 @@ export function ConditionToJSONTyped(
     comparison_trait_definition: TraitDefinitionToJSON(
       value["comparisonTraitDefinition"],
     ),
-    condition_type: value["conditionType"],
+    condition_type: ConditionTypeToJSON(value["conditionType"]),
     consumption_rate: value["consumptionRate"],
     credit_id: value["creditId"],
     environment_id: value["environmentId"],
     event_subtype: value["eventSubtype"],
     id: value["id"],
-    metric_period: value["metricPeriod"],
-    metric_period_month_reset: value["metricPeriodMonthReset"],
+    metric_period: MetricPeriodToJSON(value["metricPeriod"]),
+    metric_period_month_reset: MetricPeriodMonthResetToJSON(
+      value["metricPeriodMonthReset"],
+    ),
     metric_value: value["metricValue"],
-    operator: value["operator"],
+    operator: ComparableOperatorToJSON(value["operator"]),
     resource_ids: value["resourceIds"],
     trait_definition: TraitDefinitionToJSON(value["traitDefinition"]),
     trait_value: value["traitValue"],

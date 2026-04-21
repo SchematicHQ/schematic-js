@@ -20,6 +20,20 @@ import {
   EntitlementValueTypeToJSON,
   EntitlementValueTypeToJSONTyped,
 } from "./EntitlementValueType";
+import type { MetricPeriodMonthReset } from "./MetricPeriodMonthReset";
+import {
+  MetricPeriodMonthResetFromJSON,
+  MetricPeriodMonthResetFromJSONTyped,
+  MetricPeriodMonthResetToJSON,
+  MetricPeriodMonthResetToJSONTyped,
+} from "./MetricPeriodMonthReset";
+import type { MetricPeriod } from "./MetricPeriod";
+import {
+  MetricPeriodFromJSON,
+  MetricPeriodFromJSONTyped,
+  MetricPeriodToJSON,
+  MetricPeriodToJSONTyped,
+} from "./MetricPeriod";
 import type { EntitlementPriceBehavior } from "./EntitlementPriceBehavior";
 import {
   EntitlementPriceBehaviorFromJSON,
@@ -67,16 +81,16 @@ export interface UsageBasedEntitlementResponseData {
   meteredPrice?: BillingPriceView;
   /**
    *
-   * @type {string}
+   * @type {MetricPeriod}
    * @memberof UsageBasedEntitlementResponseData
    */
-  metricPeriod?: string | null;
+  metricPeriod?: MetricPeriod | null;
   /**
    *
-   * @type {string}
+   * @type {MetricPeriodMonthReset}
    * @memberof UsageBasedEntitlementResponseData
    */
-  metricPeriodMonthReset?: string | null;
+  metricPeriodMonthReset?: MetricPeriodMonthReset | null;
   /**
    *
    * @type {BillingPriceView}
@@ -150,11 +164,13 @@ export function UsageBasedEntitlementResponseDataFromJSONTyped(
         ? undefined
         : BillingPriceViewFromJSON(json["metered_price"]),
     metricPeriod:
-      json["metric_period"] == null ? undefined : json["metric_period"],
+      json["metric_period"] == null
+        ? undefined
+        : MetricPeriodFromJSON(json["metric_period"]),
     metricPeriodMonthReset:
       json["metric_period_month_reset"] == null
         ? undefined
-        : json["metric_period_month_reset"],
+        : MetricPeriodMonthResetFromJSON(json["metric_period_month_reset"]),
     monthlyUsageBasedPrice:
       json["monthly_usage_based_price"] == null
         ? undefined
@@ -193,8 +209,10 @@ export function UsageBasedEntitlementResponseDataToJSONTyped(
     consumption_rate: value["consumptionRate"],
     feature_id: value["featureId"],
     metered_price: BillingPriceViewToJSON(value["meteredPrice"]),
-    metric_period: value["metricPeriod"],
-    metric_period_month_reset: value["metricPeriodMonthReset"],
+    metric_period: MetricPeriodToJSON(value["metricPeriod"]),
+    metric_period_month_reset: MetricPeriodMonthResetToJSON(
+      value["metricPeriodMonthReset"],
+    ),
     monthly_usage_based_price: BillingPriceViewToJSON(
       value["monthlyUsageBasedPrice"],
     ),

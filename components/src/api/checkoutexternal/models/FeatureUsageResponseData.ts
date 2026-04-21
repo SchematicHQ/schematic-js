@@ -27,13 +27,6 @@ import {
   FeatureDetailResponseDataToJSON,
   FeatureDetailResponseDataToJSONTyped,
 } from "./FeatureDetailResponseData";
-import type { CompanyOverrideResponseData } from "./CompanyOverrideResponseData";
-import {
-  CompanyOverrideResponseDataFromJSON,
-  CompanyOverrideResponseDataFromJSONTyped,
-  CompanyOverrideResponseDataToJSON,
-  CompanyOverrideResponseDataToJSONTyped,
-} from "./CompanyOverrideResponseData";
 import type { PlanEntitlementResponseData } from "./PlanEntitlementResponseData";
 import {
   PlanEntitlementResponseDataFromJSON,
@@ -48,6 +41,13 @@ import {
   CreditUsageAggregationToJSON,
   CreditUsageAggregationToJSONTyped,
 } from "./CreditUsageAggregation";
+import type { MetricPeriod } from "./MetricPeriod";
+import {
+  MetricPeriodFromJSON,
+  MetricPeriodFromJSONTyped,
+  MetricPeriodToJSON,
+  MetricPeriodToJSONTyped,
+} from "./MetricPeriod";
 import type { EntitlementPriceBehavior } from "./EntitlementPriceBehavior";
 import {
   EntitlementPriceBehaviorFromJSON,
@@ -55,6 +55,34 @@ import {
   EntitlementPriceBehaviorToJSON,
   EntitlementPriceBehaviorToJSONTyped,
 } from "./EntitlementPriceBehavior";
+import type { BillingPriceView } from "./BillingPriceView";
+import {
+  BillingPriceViewFromJSON,
+  BillingPriceViewFromJSONTyped,
+  BillingPriceViewToJSON,
+  BillingPriceViewToJSONTyped,
+} from "./BillingPriceView";
+import type { BillingCreditGrantReason } from "./BillingCreditGrantReason";
+import {
+  BillingCreditGrantReasonFromJSON,
+  BillingCreditGrantReasonFromJSONTyped,
+  BillingCreditGrantReasonToJSON,
+  BillingCreditGrantReasonToJSONTyped,
+} from "./BillingCreditGrantReason";
+import type { MetricPeriodMonthReset } from "./MetricPeriodMonthReset";
+import {
+  MetricPeriodMonthResetFromJSON,
+  MetricPeriodMonthResetFromJSONTyped,
+  MetricPeriodMonthResetToJSON,
+  MetricPeriodMonthResetToJSONTyped,
+} from "./MetricPeriodMonthReset";
+import type { CompanyOverrideResponseData } from "./CompanyOverrideResponseData";
+import {
+  CompanyOverrideResponseDataFromJSON,
+  CompanyOverrideResponseDataFromJSONTyped,
+  CompanyOverrideResponseDataToJSON,
+  CompanyOverrideResponseDataToJSONTyped,
+} from "./CompanyOverrideResponseData";
 import type { CreditGrantDetail } from "./CreditGrantDetail";
 import {
   CreditGrantDetailFromJSON,
@@ -69,13 +97,6 @@ import {
   EntitlementTypeToJSON,
   EntitlementTypeToJSONTyped,
 } from "./EntitlementType";
-import type { BillingPriceView } from "./BillingPriceView";
-import {
-  BillingPriceViewFromJSON,
-  BillingPriceViewFromJSONTyped,
-  BillingPriceViewToJSON,
-  BillingPriceViewToJSONTyped,
-} from "./BillingPriceView";
 import type { PlanResponseData } from "./PlanResponseData";
 import {
   PlanResponseDataFromJSON,
@@ -83,13 +104,6 @@ import {
   PlanResponseDataToJSON,
   PlanResponseDataToJSONTyped,
 } from "./PlanResponseData";
-import type { BillingCreditGrantReason } from "./BillingCreditGrantReason";
-import {
-  BillingCreditGrantReasonFromJSON,
-  BillingCreditGrantReasonFromJSONTyped,
-  BillingCreditGrantReasonToJSON,
-  BillingCreditGrantReasonToJSONTyped,
-} from "./BillingCreditGrantReason";
 
 /**
  *
@@ -238,10 +252,10 @@ export interface FeatureUsageResponseData {
   metricResetAt?: Date | null;
   /**
    * If the period is current_month, when the month resets.
-   * @type {string}
+   * @type {MetricPeriodMonthReset}
    * @memberof FeatureUsageResponseData
    */
-  monthReset?: string | null;
+  monthReset?: MetricPeriodMonthReset | null;
   /**
    *
    * @type {BillingPriceView}
@@ -262,10 +276,10 @@ export interface FeatureUsageResponseData {
   percentUsed?: number | null;
   /**
    * The period over which usage is measured.
-   * @type {string}
+   * @type {MetricPeriod}
    * @memberof FeatureUsageResponseData
    */
-  period?: string | null;
+  period?: MetricPeriod | null;
   /**
    *
    * @type {PlanResponseData}
@@ -398,7 +412,10 @@ export function FeatureUsageResponseDataFromJSONTyped(
       json["metric_reset_at"] == null
         ? undefined
         : new Date(json["metric_reset_at"]),
-    monthReset: json["month_reset"] == null ? undefined : json["month_reset"],
+    monthReset:
+      json["month_reset"] == null
+        ? undefined
+        : MetricPeriodMonthResetFromJSON(json["month_reset"]),
     monthlyUsageBasedPrice:
       json["monthly_usage_based_price"] == null
         ? undefined
@@ -406,7 +423,8 @@ export function FeatureUsageResponseDataFromJSONTyped(
     overuse: json["overuse"] == null ? undefined : json["overuse"],
     percentUsed:
       json["percent_used"] == null ? undefined : json["percent_used"],
-    period: json["period"] == null ? undefined : json["period"],
+    period:
+      json["period"] == null ? undefined : MetricPeriodFromJSON(json["period"]),
     plan:
       json["plan"] == null ? undefined : PlanResponseDataFromJSON(json["plan"]),
     planEntitlement:
@@ -481,13 +499,13 @@ export function FeatureUsageResponseDataToJSONTyped(
       value["metricResetAt"] == null
         ? undefined
         : (value["metricResetAt"] as any).toISOString(),
-    month_reset: value["monthReset"],
+    month_reset: MetricPeriodMonthResetToJSON(value["monthReset"]),
     monthly_usage_based_price: BillingPriceViewToJSON(
       value["monthlyUsageBasedPrice"],
     ),
     overuse: value["overuse"],
     percent_used: value["percentUsed"],
-    period: value["period"],
+    period: MetricPeriodToJSON(value["period"]),
     plan: PlanResponseDataToJSON(value["plan"]),
     plan_entitlement: PlanEntitlementResponseDataToJSON(
       value["planEntitlement"],

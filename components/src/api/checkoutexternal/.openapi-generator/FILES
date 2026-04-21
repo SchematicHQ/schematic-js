@@ -50,6 +50,7 @@ models/CompanyPlanInvalidReason.ts
 models/CompanyPlanWithBillingSubView.ts
 models/CompanyResponseData.ts
 models/CompanySubscriptionResponseData.ts
+models/ComparableOperator.ts
 models/CompatiblePlans.ts
 models/ComponentCapabilities.ts
 models/ComponentCheckoutSettings.ts
@@ -60,6 +61,7 @@ models/ComponentResponseData.ts
 models/ComponentState.ts
 models/Condition.ts
 models/ConditionGroup.ts
+models/ConditionType.ts
 models/CountResponse.ts
 models/CreateSetupIntentResponse.ts
 models/CreditBundleCurrencyPrice.ts
@@ -108,6 +110,8 @@ models/InvoiceResponseData.ts
 models/InvoiceStatus.ts
 models/ListInvoicesParams.ts
 models/ListInvoicesResponse.ts
+models/MetricPeriod.ts
+models/MetricPeriodMonthReset.ts
 models/PaymentMethodResponseData.ts
 models/PlanCreditGrantView.ts
 models/PlanCurrencyPricesResponseData.ts
@@ -132,6 +136,7 @@ models/RuleConditionGroupResponseData.ts
 models/RuleConditionResponseData.ts
 models/RuleDetailResponseData.ts
 models/RuleResponseData.ts
+models/RuleType.ts
 models/ScheduledDowngradeConfigBehavior.ts
 models/ScheduledDowngradeResponseData.ts
 models/SetupIntentResponseData.ts

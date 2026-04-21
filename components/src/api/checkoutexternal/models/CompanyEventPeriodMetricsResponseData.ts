@@ -13,6 +13,21 @@
  */
 
 import { mapValues } from "../runtime";
+import type { MetricPeriodMonthReset } from "./MetricPeriodMonthReset";
+import {
+  MetricPeriodMonthResetFromJSON,
+  MetricPeriodMonthResetFromJSONTyped,
+  MetricPeriodMonthResetToJSON,
+  MetricPeriodMonthResetToJSONTyped,
+} from "./MetricPeriodMonthReset";
+import type { MetricPeriod } from "./MetricPeriod";
+import {
+  MetricPeriodFromJSON,
+  MetricPeriodFromJSONTyped,
+  MetricPeriodToJSON,
+  MetricPeriodToJSONTyped,
+} from "./MetricPeriod";
+
 /**
  *
  * @export
@@ -63,16 +78,16 @@ export interface CompanyEventPeriodMetricsResponseData {
   eventSubtype: string;
   /**
    *
-   * @type {string}
+   * @type {MetricPeriodMonthReset}
    * @memberof CompanyEventPeriodMetricsResponseData
    */
-  monthReset: string;
+  monthReset: MetricPeriodMonthReset;
   /**
    *
-   * @type {string}
+   * @type {MetricPeriod}
    * @memberof CompanyEventPeriodMetricsResponseData
    */
-  period: string;
+  period: MetricPeriod;
   /**
    *
    * @type {Date}
@@ -132,8 +147,8 @@ export function CompanyEventPeriodMetricsResponseDataFromJSONTyped(
     createdAt: new Date(json["created_at"]),
     environmentId: json["environment_id"],
     eventSubtype: json["event_subtype"],
-    monthReset: json["month_reset"],
-    period: json["period"],
+    monthReset: MetricPeriodMonthResetFromJSON(json["month_reset"]),
+    period: MetricPeriodFromJSON(json["period"]),
     validUntil:
       json["valid_until"] == null ? undefined : new Date(json["valid_until"]),
     value: json["value"],
@@ -162,8 +177,8 @@ export function CompanyEventPeriodMetricsResponseDataToJSONTyped(
     created_at: value["createdAt"].toISOString(),
     environment_id: value["environmentId"],
     event_subtype: value["eventSubtype"],
-    month_reset: value["monthReset"],
-    period: value["period"],
+    month_reset: MetricPeriodMonthResetToJSON(value["monthReset"]),
+    period: MetricPeriodToJSON(value["period"]),
     valid_until:
       value["validUntil"] == null
         ? undefined
