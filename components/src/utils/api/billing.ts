@@ -1,5 +1,6 @@
 import {
   EntitlementPriceBehavior,
+  type BillingCreditView,
   type BillingPriceResponseData,
   type BillingPriceView,
   type BillingProductPriceTierResponseData,
@@ -198,6 +199,14 @@ export function getEntitlementPrice(
     }
 
     return { ...billingPrice, price: getPriceValue(billingPrice) };
+  }
+}
+
+export function getCreditPrice(
+  credit: BillingCreditView,
+): BillingPriceView | undefined {
+  if (credit.price) {
+    return { ...credit.price, price: getPriceValue(credit.price) };
   }
 }
 

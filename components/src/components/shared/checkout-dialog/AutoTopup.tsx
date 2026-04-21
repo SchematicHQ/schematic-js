@@ -4,9 +4,14 @@ import { useTranslation } from "react-i18next";
 import { PlanCreditGrantView } from "../../../api/checkoutexternal";
 import { TEXT_BASE_SIZE } from "../../../const";
 import { useEmbed } from "../../../hooks";
-import { formatCurrency, getFeatureName } from "../../../utils";
+import {
+  formatCurrency,
+  getCreditPrice,
+  getFeatureName,
+  getPriceValue,
+} from "../../../utils";
 import { cardBoxShadow } from "../../layout";
-import { Box, Flex, Input, Text } from "../../ui";
+import { Box, Flex, Input, Text, Toggle } from "../../ui";
 
 interface AutoTopupProps {
   isLoading: boolean;
@@ -47,31 +52,56 @@ export const AutoTopup = ({
   const unitPriceFontSize = 0.875 * settings.theme.typography.text.fontSize;
 
   const configurableCreditGrants = useMemo(() => {
-    return includedCreditGrants.reduce((acc: PlanCreditGrantView[], grant) => {
-      if (
-        grant.billingCreditAutoTopupEnabled &&
-        grant.billingCreditAutoTopupSelfService
-      ) {
-        const config = autoTopupConfigs.get(grant.id);
-        acc.push({
-          ...grant,
-          ...config,
-        });
-      }
+    return includedCreditGrants.reduce(
+      (
+        acc: (PlanCreditGrantView & {
+          // TODO: remove `billingCreditAutoTopupSelfService` for testing
+          billingCreditAutoTopupSelfService: boolean;
+          cost?: number;
+        })[],
+        grant,
+      ) => {
+        // TODO: remove fallback value for testing
+        // @ts-expect-error: not implemented yet
+        const isSelfService = grant.billingCreditAutoTopupSelfService ?? true;
 
-      return acc;
-    }, []);
+        if (grant.billingCreditAutoTopupEnabled && isSelfService) {
+          const config = autoTopupConfigs.get(grant.id);
+          // TODO: remove passing `billingCreditAutoTopupSelfService` for testing
+          const updatedGrant = {
+            ...grant,
+            ...config,
+            billingCreditAutoTopupSelfService: isSelfService,
+          };
+          const price =
+            typeof grant.credit?.price?.priceDecimal === "string"
+              ? Number(grant.credit.price.priceDecimal)
+              : grant.credit?.price?.price;
+          const cost =
+            typeof updatedGrant.billingCreditAutoTopupAmount == "number" &&
+            typeof price === "number"
+              ? updatedGrant.billingCreditAutoTopupAmount * price
+              : undefined;
+
+          acc.push({
+            ...updatedGrant,
+            cost,
+          });
+        }
+
+        return acc;
+      },
+      [],
+    );
   }, [includedCreditGrants, autoTopupConfigs]);
 
   return (
     <Flex $flexDirection="column" $gap="1rem">
       {configurableCreditGrants.map((grant, index) => {
         return (
-          <Flex
+          <Box
+            as="section"
             key={index}
-            $justifyContent="space-between"
-            $alignItems="center"
-            $gap="1rem"
             $padding={`${cardPadding}rem`}
             $backgroundColor={settings.theme.card.background}
             $borderRadius={`${settings.theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
@@ -79,60 +109,114 @@ export const AutoTopup = ({
               $boxShadow: cardBoxShadow,
             })}
           >
-            <Flex
-              $flexDirection="column"
-              $gap="0.75rem"
-              $flexBasis={`calc(${100 / 3}% - 0.375rem)`}
-            >
-              {grant?.credit && (
-                <>
-                  <Box>
-                    {/* TODO: localize */}
-                    <Text display="heading2">
-                      {getFeatureName(grant.credit, 1)} Auto Top-up
-                    </Text>
-                  </Box>
+            {grant.credit && (
+              <>
+                <Box as="h1" $marginBottom="0.25rem">
+                  <Text display="heading2">
+                    {t("Credit Auto Top-up", {
+                      unit: grant.credit.name,
+                    })}
+                  </Text>
+                </Box>
 
-                  <Box $marginBottom="0.5rem">
-                    <Text>
-                      {/* TODO: localize */}
-                      Automatically purchase more{" "}
-                      {getFeatureName(grant.credit, 2)} when your balance is low
-                    </Text>
-                  </Box>
-                </>
-              )}
-            </Flex>
+                <Box as="p" $marginBottom="2rem">
+                  <Text>
+                    {t(
+                      "Automatically purchase more credits when your balance is low",
+                      { units: getFeatureName(grant.credit) },
+                    )}
+                  </Text>
+                </Box>
+              </>
+            )}
 
-            <Flex
-              $flexDirection="column"
-              $gap="0.5rem"
-              $flexBasis={`calc(${100 / 3}% - 0.375rem)`}
-            >
-              <Input
-                $size="lg"
-                type="number"
-                defaultValue={
-                  grant.billingCreditAutoTopupThresholdCredits ?? ""
-                }
-                min={0}
-                autoFocus
-                onFocus={(event) => {
-                  event.target.select();
-                }}
-                onChange={(event) => {
-                  event.preventDefault();
-
-                  const value = parseInt(event.target.value);
-                  if (!isNaN(value)) {
-                    updateAutoTopupConfig(grant.id, {
-                      billingCreditAutoTopupThresholdCredits: value,
-                    });
-                  }
+            <Flex $alignItems="center" $gap="0.5rem" $marginBottom="1rem">
+              <Toggle
+                id={`${grant.id}-enabled`}
+                defaultChecked={grant.billingCreditAutoTopupEnabled}
+                onChange={() => {
+                  updateAutoTopupConfig(grant.id, {
+                    billingCreditAutoTopupEnabled:
+                      !grant.billingCreditAutoTopupEnabled,
+                  });
                 }}
               />
+              <Text as="label" htmlFor={`${grant.id}-enabled`}>
+                {t("Auto top-up enabled")}
+              </Text>
             </Flex>
-          </Flex>
+
+            {grant.billingCreditAutoTopupSelfService &&
+              grant.billingCreditAutoTopupEnabled && (
+                <Flex $gap="2rem">
+                  <Box>
+                    <Box $marginBottom="0.5rem">
+                      <Text as="label" htmlFor={`${grant.id}-amount`}>
+                        {t("When balance reaches:")}
+                      </Text>
+                    </Box>
+
+                    <Input
+                      id={`${grant.id}-amount`}
+                      type="number"
+                      defaultValue={grant.billingCreditAutoTopupAmount ?? ""}
+                      min={0}
+                      autoFocus
+                      onFocus={(event) => {
+                        event.target.select();
+                      }}
+                      onChange={(event) => {
+                        event.preventDefault();
+
+                        const value = parseInt(event.target.value);
+                        if (!isNaN(value)) {
+                          updateAutoTopupConfig(grant.id, {
+                            billingCreditAutoTopupAmount: value,
+                          });
+                        }
+                      }}
+                      $size="lg"
+                    />
+                  </Box>
+
+                  <Box>
+                    <Box $marginBottom="0.5rem">
+                      <Text as="label" htmlFor={`${grant.id}-threshold`}>
+                        {t("Top up balance with:")}
+                      </Text>
+                    </Box>
+
+                    <Input
+                      id={`${grant.id}-threshold`}
+                      type="number"
+                      defaultValue={
+                        grant.billingCreditAutoTopupThresholdCredits ?? ""
+                      }
+                      min={0}
+                      autoFocus
+                      onFocus={(event) => {
+                        event.target.select();
+                      }}
+                      onChange={(event) => {
+                        event.preventDefault();
+
+                        const value = parseInt(event.target.value);
+                        if (!isNaN(value)) {
+                          updateAutoTopupConfig(grant.id, {
+                            billingCreditAutoTopupThresholdCredits: value,
+                          });
+                        }
+                      }}
+                      $size="lg"
+                    />
+                  </Box>
+
+                  {typeof grant.cost === "number" && (
+                    <Text>{t("for cost", { cost: grant.cost })}</Text>
+                  )}
+                </Flex>
+              )}
+          </Box>
         );
       })}
     </Flex>

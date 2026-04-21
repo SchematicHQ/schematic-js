@@ -405,7 +405,12 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     }
 
     const hasSelfServiceAutoTopup = selectedPlan?.includedCreditGrants.some(
-      (grant) => grant.billingCreditAutoTopupSelfService,
+      (grant) => {
+        // TODO: remove fallback value for testing
+        // @ts-expect-error: not implemented yet
+        const isSelfService = grant.billingCreditAutoTopupSelfService ?? true;
+        return isSelfService;
+      },
     );
     if (hasSelfServiceAutoTopup) {
       stages.push({
