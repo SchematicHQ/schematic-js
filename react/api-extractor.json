@@ -1,6 +1,7 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/api-extractor/v7/api-extractor.schema.json",
   "mainEntryPointFilePath": "./dist/index.d.ts",
+  "bundledPackages": ["@schematichq/schematic-js"],
   "dtsRollup": {
     "enabled": true,
     "publicTrimmedFilePath": "./dist/schematic-react.d.ts"
