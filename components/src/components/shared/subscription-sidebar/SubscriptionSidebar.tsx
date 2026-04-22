@@ -16,6 +16,7 @@ import {
 } from "../../../api/checkoutexternal";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import type {
+  AutoTopupConfig,
   CreditBundle,
   CurrentUsageBasedEntitlement,
   SelectedPlan,
@@ -24,6 +25,7 @@ import type {
 import {
   ChargeType,
   buildAddOnRequestBody,
+  buildAutoTopupRequestBody,
   buildCreditBundlesRequestBody,
   buildPayInAdvanceRequestBody,
   entitlementHasCost,
@@ -50,6 +52,7 @@ interface SubscriptionSidebarProps extends Omit<BoxProps, "children"> {
   portalRef?: React.RefObject<HTMLDialogElement | null>;
   planPeriod: string;
   selectedPlan?: SelectedPlan;
+  autoTopupConfigs: Map<string, AutoTopupConfig>;
   addOns: SelectedPlan[];
   creditBundles?: CreditBundle[];
   usageBasedEntitlements: UsageBasedEntitlement[];
@@ -87,6 +90,7 @@ export const SubscriptionSidebar = forwardRef<
       portalRef,
       planPeriod,
       selectedPlan,
+      autoTopupConfigs,
       addOns,
       creditBundles = [],
       usageBasedEntitlements,
@@ -440,6 +444,11 @@ export const SubscriptionSidebar = forwardRef<
         setError(undefined);
         setIsLoading(true);
 
+        const autoTopupRequestBody = buildAutoTopupRequestBody({
+          creditGrants: selectedPlan.includedCreditGrants,
+          autoTopupConfigs,
+        });
+
         const planPayInAdvanceRequestBody = buildPayInAdvanceRequestBody({
           entitlements: payInAdvanceEntitlements,
           period: planPeriod,
@@ -465,6 +474,9 @@ export const SubscriptionSidebar = forwardRef<
         const checkoutResponseFromBackend = await checkout({
           newPlanId: planId,
           newPriceId: planPriceId,
+          // TODO: remove once openapi updates
+          // @ts-expect-error: not implemented yet
+          autoTopupOverrides: autoTopupRequestBody,
           addOnIds: addOnRequestBody,
           autoTopupOverrides: [],
           payInAdvance: [
@@ -556,6 +568,7 @@ export const SubscriptionSidebar = forwardRef<
       paymentMethodId,
       planPeriod,
       selectedPlan,
+      autoTopupConfigs,
       addOns,
       creditBundles,
       setError,

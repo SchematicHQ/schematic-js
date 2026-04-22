@@ -752,6 +752,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       selectedPlan,
       selectedCurrency,
       hasCurrency,
+      autoTopupConfigs,
       payInAdvanceEntitlements,
       addOnPayInAdvanceEntitlements,
       addOns,
@@ -1446,6 +1447,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
           portalRef={dialogRef}
           planPeriod={planPeriod}
           selectedPlan={selectedPlan}
+          autoTopupConfigs={autoTopupConfigs}
           addOns={addOns}
           usageBasedEntitlements={usageBasedEntitlements}
           addOnUsageBasedEntitlements={addOnUsageBasedEntitlements}
