@@ -23,6 +23,12 @@ export type BillingPrice = BillingPriceView | BillingPriceResponseData;
 export type Plan = CompanyPlanDetailResponseData;
 export type SelectedPlan = Plan & { isSelected: boolean };
 
+export interface AutoTopupConfig {
+  billingCreditAutoTopupEnabled: boolean;
+  billingCreditAutoTopupThresholdCredits: number;
+  billingCreditAutoTopupAmount: number;
+}
+
 export interface CreditWithCompanyContext {
   id: CreditCompanyGrantView["billingCreditId"];
   name: CreditCompanyGrantView["creditName"];

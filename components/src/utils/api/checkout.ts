@@ -1,14 +1,53 @@
 import {
+  PlanCreditGrantView,
   type UpdateAddOnRequestBody,
+  // TODO: uncomment once openapi updates
+  //type UpdateAutoTopupOverrideRequestBody,
   type UpdateCreditBundleRequestBody,
   type UpdatePayInAdvanceRequestBody,
 } from "../../api/checkoutexternal";
 import type {
+  AutoTopupConfig,
   CreditBundle,
   SelectedPlan,
   UsageBasedEntitlement,
 } from "../../types";
 import { getAddOnPrice, getEntitlementPrice } from "./billing";
+
+// TODO: remove once openapi updates
+// for testing only
+type UpdateAutoTopupOverrideRequestBody = {
+  planCreditGrantID: string;
+  autoTopupEnabled?: boolean;
+  autoTopupAmount?: number;
+  autoTopupThresholdCredits?: number;
+};
+
+export function buildAutoTopupRequestBody(options: {
+  creditGrants: PlanCreditGrantView[];
+  autoTopupConfigs: Map<string, AutoTopupConfig>;
+}) {
+  const { creditGrants, autoTopupConfigs } = options;
+
+  return creditGrants.reduce(
+    (acc: UpdateAutoTopupOverrideRequestBody[], grant) => {
+      if (autoTopupConfigs.has(grant.id)) {
+        const config = autoTopupConfigs.get(grant.id);
+
+        acc.push({
+          planCreditGrantID: grant.id,
+          autoTopupEnabled: config?.billingCreditAutoTopupEnabled,
+          autoTopupAmount: config?.billingCreditAutoTopupAmount,
+          autoTopupThresholdCredits:
+            config?.billingCreditAutoTopupThresholdCredits,
+        });
+      }
+
+      return acc;
+    },
+    [],
+  );
+}
 
 export function buildPayInAdvanceRequestBody(options: {
   entitlements: UsageBasedEntitlement[];

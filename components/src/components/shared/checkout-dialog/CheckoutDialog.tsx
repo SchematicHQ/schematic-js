@@ -11,7 +11,6 @@ import { useTranslation } from "react-i18next";
 import {
   BillingProductPriceInterval,
   EntitlementPriceBehavior,
-  PlanCreditGrantView,
   ResponseError,
   type FeatureUsageResponseData,
   type PlanEntitlementResponseData,
@@ -26,6 +25,7 @@ import {
   useSubscriptionCurrency,
 } from "../../../hooks";
 import type {
+  AutoTopupConfig,
   CreditBundle,
   SelectedPlan,
   UsageBasedEntitlement,
@@ -33,6 +33,7 @@ import type {
 import {
   ERROR_UNKNOWN,
   buildAddOnRequestBody,
+  buildAutoTopupRequestBody,
   buildCreditBundlesRequestBody,
   buildPayInAdvanceRequestBody,
   getPlanPrice,
@@ -266,15 +267,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
   const [shouldTrial, setShouldTrial] = useState(false);
 
   const [autoTopupConfigs, setAutoTopupConfigs] = useState<
-    Map<
-      string,
-      Pick<
-        PlanCreditGrantView,
-        | "billingCreditAutoTopupEnabled"
-        | "billingCreditAutoTopupThresholdCredits"
-        | "billingCreditAutoTopupAmount"
-      >
-    >
+    Map<string, AutoTopupConfig>
   >(new Map());
 
   const [addOns, setAddOns] = useState(() => {
@@ -600,6 +593,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       period?: string;
       plan?: SelectedPlan;
       shouldTrial?: boolean;
+      autoTopupConfigs?: Map<string, AutoTopupConfig>;
       addOns?: SelectedPlan[];
       payInAdvanceEntitlements?: UsageBasedEntitlement[];
       addOnPayInAdvanceEntitlements?: UsageBasedEntitlement[];
@@ -637,12 +631,19 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       setCharges(undefined);
       setIsLoading(true);
 
+      const resolvedAutoTopupConfigs =
+        updates.autoTopupConfigs || autoTopupConfigs;
       const resolvedPayInAdvanceEntitlements =
         updates.payInAdvanceEntitlements || payInAdvanceEntitlements;
       const resolvedAddOnPayInAdvanceEntitlements =
         updates.addOnPayInAdvanceEntitlements || addOnPayInAdvanceEntitlements;
       const resolvedAddOns = updates.addOns || addOns;
       const resolvedCreditBundles = updates.creditBundles || creditBundles;
+
+      const autoTopupRequestBody = buildAutoTopupRequestBody({
+        creditGrants: plan.includedCreditGrants,
+        autoTopupConfigs: resolvedAutoTopupConfigs,
+      });
 
       const planPayInAdvanceRequestBody = buildPayInAdvanceRequestBody({
         entitlements: resolvedPayInAdvanceEntitlements,
@@ -671,6 +672,9 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
         const response = await previewCheckout({
           newPlanId: plan.id,
           newPriceId: planPriceId,
+          // TODO: remove once openapi updates
+          // @ts-expect-error: not implemented yet
+          autoTopupOverrides: autoTopupRequestBody,
           addOnIds: addOnRequestBody,
           autoTopupOverrides: [],
           payInAdvance: [
@@ -905,11 +909,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     (
       // plan credit grant id
       id: string,
-      updates: {
-        billingCreditAutoTopupEnabled?: boolean;
-        billingCreditAutoTopupThresholdCredits?: number;
-        billingCreditAutoTopupAmount?: number;
-      },
+      updates: Partial<AutoTopupConfig>,
     ) => {
       setAutoTopupConfigs((prev) => {
         const nextMap = new Map(prev);
@@ -919,7 +919,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
           (grant) => grant.id === id,
         );
 
-        const updatedConfig = {
+        const updatedConfig: AutoTopupConfig = {
           billingCreditAutoTopupEnabled:
             updates.billingCreditAutoTopupEnabled ??
             prevConfig?.billingCreditAutoTopupEnabled ??
@@ -939,13 +939,12 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
         nextMap.set(id, updatedConfig);
 
-        // TODO
-        //handlePreviewCheckout({ autoTopupConfigs: updated });
+        handlePreviewCheckout({ autoTopupConfigs: nextMap });
 
         return nextMap;
       });
     },
-    [selectedPlan?.includedCreditGrants],
+    [handlePreviewCheckout, selectedPlan?.includedCreditGrants],
   );
 
   const updateUsageBasedEntitlementQuantity = useCallback(
