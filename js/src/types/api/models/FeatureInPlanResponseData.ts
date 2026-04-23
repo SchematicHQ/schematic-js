@@ -140,12 +140,6 @@ export interface FeatureInPlanResponseData {
    * @type {string}
    * @memberof FeatureInPlanResponseData
    */
-  maintainerId?: string | null;
-  /**
-   *
-   * @type {string}
-   * @memberof FeatureInPlanResponseData
-   */
   name: string;
   /**
    *
@@ -245,8 +239,6 @@ export function FeatureInPlanResponseDataFromJSONTyped(
       json["maintainer_account_member_id"] == null
         ? undefined
         : json["maintainer_account_member_id"],
-    maintainerId:
-      json["maintainer_id"] == null ? undefined : json["maintainer_id"],
     name: json["name"],
     plans: (json["plans"] as Array<any>).map(PreviewObjectFromJSON),
     pluralName: json["plural_name"] == null ? undefined : json["plural_name"],
@@ -289,7 +281,6 @@ export function FeatureInPlanResponseDataToJSONTyped(
     id: value["id"],
     lifecycle_phase: FeatureLifecyclePhaseToJSON(value["lifecyclePhase"]),
     maintainer_account_member_id: value["maintainerAccountMemberId"],
-    maintainer_id: value["maintainerId"],
     name: value["name"],
     plans: (value["plans"] as Array<any>).map(PreviewObjectToJSON),
     plural_name: value["pluralName"],

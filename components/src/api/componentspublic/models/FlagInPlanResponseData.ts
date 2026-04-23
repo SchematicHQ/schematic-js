@@ -106,12 +106,6 @@ export interface FlagInPlanResponseData {
    * @type {string}
    * @memberof FlagInPlanResponseData
    */
-  maintainerId?: string | null;
-  /**
-   *
-   * @type {string}
-   * @memberof FlagInPlanResponseData
-   */
   name: string;
   /**
    *
@@ -180,8 +174,6 @@ export function FlagInPlanResponseDataFromJSONTyped(
       json["maintainer_account_member_id"] == null
         ? undefined
         : json["maintainer_account_member_id"],
-    maintainerId:
-      json["maintainer_id"] == null ? undefined : json["maintainer_id"],
     name: json["name"],
     rules: (json["rules"] as Array<any>).map(RuleDetailResponseDataFromJSON),
     updatedAt: new Date(json["updated_at"]),
@@ -216,7 +208,6 @@ export function FlagInPlanResponseDataToJSONTyped(
         ? undefined
         : (value["lastCheckedAt"] as any).toISOString(),
     maintainer_account_member_id: value["maintainerAccountMemberId"],
-    maintainer_id: value["maintainerId"],
     name: value["name"],
     rules: (value["rules"] as Array<any>).map(RuleDetailResponseDataToJSON),
     updated_at: value["updatedAt"].toISOString(),

@@ -41,6 +41,13 @@ import {
   FeatureInPlanResponseDataToJSON,
   FeatureInPlanResponseDataToJSONTyped,
 } from "./FeatureInPlanResponseData";
+import type { BillingProviderType } from "./BillingProviderType";
+import {
+  BillingProviderTypeFromJSON,
+  BillingProviderTypeFromJSONTyped,
+  BillingProviderTypeToJSON,
+  BillingProviderTypeToJSONTyped,
+} from "./BillingProviderType";
 import type { CustomPlanConfig } from "./CustomPlanConfig";
 import {
   CustomPlanConfigFromJSON,
@@ -181,10 +188,10 @@ export interface CompanyPlanDetailResponseData {
   compatiblePlanIds: Array<string>;
   /**
    *
-   * @type {string}
+   * @type {BillingProviderType}
    * @memberof CompanyPlanDetailResponseData
    */
-  controlledBy: string;
+  controlledBy: BillingProviderType;
   /**
    *
    * @type {string}
@@ -444,7 +451,7 @@ export function CompanyPlanDetailResponseDataFromJSONTyped(
     companyName:
       json["company_name"] == null ? undefined : json["company_name"],
     compatiblePlanIds: json["compatible_plan_ids"],
-    controlledBy: json["controlled_by"],
+    controlledBy: BillingProviderTypeFromJSON(json["controlled_by"]),
     copiedFromPlanId:
       json["copied_from_plan_id"] == null
         ? undefined
@@ -538,7 +545,7 @@ export function CompanyPlanDetailResponseDataToJSONTyped(
     company_id: value["companyId"],
     company_name: value["companyName"],
     compatible_plan_ids: value["compatiblePlanIds"],
-    controlled_by: value["controlledBy"],
+    controlled_by: BillingProviderTypeToJSON(value["controlledBy"]),
     copied_from_plan_id: value["copiedFromPlanId"],
     created_at: value["createdAt"].toISOString(),
     currency_prices: (value["currencyPrices"] as Array<any>).map(

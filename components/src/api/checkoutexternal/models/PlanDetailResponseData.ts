@@ -76,6 +76,13 @@ import {
   BillingPriceResponseDataToJSON,
   BillingPriceResponseDataToJSONTyped,
 } from "./BillingPriceResponseData";
+import type { BillingProviderType } from "./BillingProviderType";
+import {
+  BillingProviderTypeFromJSON,
+  BillingProviderTypeFromJSONTyped,
+  BillingProviderTypeToJSON,
+  BillingProviderTypeToJSONTyped,
+} from "./BillingProviderType";
 import type { BillingProductDetailResponseData } from "./BillingProductDetailResponseData";
 import {
   BillingProductDetailResponseDataFromJSON,
@@ -141,10 +148,10 @@ export interface PlanDetailResponseData {
   companyName?: string | null;
   /**
    *
-   * @type {string}
+   * @type {BillingProviderType}
    * @memberof PlanDetailResponseData
    */
-  controlledBy: string;
+  controlledBy: BillingProviderType;
   /**
    *
    * @type {string}
@@ -334,7 +341,7 @@ export function PlanDetailResponseDataFromJSONTyped(
     companyId: json["company_id"] == null ? undefined : json["company_id"],
     companyName:
       json["company_name"] == null ? undefined : json["company_name"],
-    controlledBy: json["controlled_by"],
+    controlledBy: BillingProviderTypeFromJSON(json["controlled_by"]),
     copiedFromPlanId:
       json["copied_from_plan_id"] == null
         ? undefined
@@ -411,7 +418,7 @@ export function PlanDetailResponseDataToJSONTyped(
     company_count: value["companyCount"],
     company_id: value["companyId"],
     company_name: value["companyName"],
-    controlled_by: value["controlledBy"],
+    controlled_by: BillingProviderTypeToJSON(value["controlledBy"]),
     copied_from_plan_id: value["copiedFromPlanId"],
     created_at: value["createdAt"].toISOString(),
     currency_prices: (value["currencyPrices"] as Array<any>).map(
