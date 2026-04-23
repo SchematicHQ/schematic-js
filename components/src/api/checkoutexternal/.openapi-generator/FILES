@@ -90,15 +90,15 @@ models/EntityTraitDetailResponseData.ts
 models/EntityTraitResponseData.ts
 models/EntityType.ts
 models/EventSummaryResponseData.ts
-models/FeatureDetailResponseData.ts
 models/FeatureEntitlement.ts
+models/FeatureInPlanResponseData.ts
 models/FeatureLifecyclePhase.ts
 models/FeatureResponseData.ts
 models/FeatureType.ts
 models/FeatureUsageDetailResponseData.ts
 models/FeatureUsageResponseData.ts
 models/FetchCustomerBalanceResponse.ts
-models/FlagDetailResponseData.ts
+models/FlagInPlanResponseData.ts
 models/FlagResponseData.ts
 models/FlagType.ts
 models/GenericPreviewObject.ts

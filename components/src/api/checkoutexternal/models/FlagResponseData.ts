@@ -74,6 +74,12 @@ export interface FlagResponseData {
    * @type {string}
    * @memberof FlagResponseData
    */
+  maintainerAccountMemberId?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof FlagResponseData
+   */
   maintainerId?: string | null;
   /**
    *
@@ -127,6 +133,10 @@ export function FlagResponseDataFromJSONTyped(
     flagType: FlagTypeFromJSON(json["flag_type"]),
     id: json["id"],
     key: json["key"],
+    maintainerAccountMemberId:
+      json["maintainer_account_member_id"] == null
+        ? undefined
+        : json["maintainer_account_member_id"],
     maintainerId:
       json["maintainer_id"] == null ? undefined : json["maintainer_id"],
     name: json["name"],
@@ -154,6 +164,7 @@ export function FlagResponseDataToJSONTyped(
     flag_type: FlagTypeToJSON(value["flagType"]),
     id: value["id"],
     key: value["key"],
+    maintainer_account_member_id: value["maintainerAccountMemberId"],
     maintainer_id: value["maintainerId"],
     name: value["name"],
     updated_at: value["updatedAt"].toISOString(),

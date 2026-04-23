@@ -20,13 +20,6 @@ import {
   BillingPlanCreditGrantResponseDataToJSON,
   BillingPlanCreditGrantResponseDataToJSONTyped,
 } from "./BillingPlanCreditGrantResponseData";
-import type { FeatureDetailResponseData } from "./FeatureDetailResponseData";
-import {
-  FeatureDetailResponseDataFromJSON,
-  FeatureDetailResponseDataFromJSONTyped,
-  FeatureDetailResponseDataToJSON,
-  FeatureDetailResponseDataToJSONTyped,
-} from "./FeatureDetailResponseData";
 import type { PlanCurrencyPricesResponseData } from "./PlanCurrencyPricesResponseData";
 import {
   PlanCurrencyPricesResponseDataFromJSON,
@@ -48,6 +41,13 @@ import {
   ChargeTypeToJSON,
   ChargeTypeToJSONTyped,
 } from "./ChargeType";
+import type { FeatureInPlanResponseData } from "./FeatureInPlanResponseData";
+import {
+  FeatureInPlanResponseDataFromJSON,
+  FeatureInPlanResponseDataFromJSONTyped,
+  FeatureInPlanResponseDataToJSON,
+  FeatureInPlanResponseDataToJSONTyped,
+} from "./FeatureInPlanResponseData";
 import type { PlanIcon } from "./PlanIcon";
 import {
   PlanIconFromJSON,
@@ -177,10 +177,10 @@ export interface PlanDetailResponseData {
   draftVersion?: PlanVersionResponseData;
   /**
    *
-   * @type {Array<FeatureDetailResponseData>}
+   * @type {Array<FeatureInPlanResponseData>}
    * @memberof PlanDetailResponseData
    */
-  features: Array<FeatureDetailResponseData>;
+  features: Array<FeatureInPlanResponseData>;
   /**
    *
    * @type {PlanIcon}
@@ -349,7 +349,7 @@ export function PlanDetailResponseDataFromJSONTyped(
         ? undefined
         : PlanVersionResponseDataFromJSON(json["draft_version"]),
     features: (json["features"] as Array<any>).map(
-      FeatureDetailResponseDataFromJSON,
+      FeatureInPlanResponseDataFromJSON,
     ),
     icon: PlanIconFromJSON(json["icon"]),
     id: json["id"],
@@ -420,7 +420,7 @@ export function PlanDetailResponseDataToJSONTyped(
     description: value["description"],
     draft_version: PlanVersionResponseDataToJSON(value["draftVersion"]),
     features: (value["features"] as Array<any>).map(
-      FeatureDetailResponseDataToJSON,
+      FeatureInPlanResponseDataToJSON,
     ),
     icon: PlanIconToJSON(value["icon"]),
     id: value["id"],

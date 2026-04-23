@@ -20,13 +20,6 @@ import {
   EntitlementValueTypeToJSON,
   EntitlementValueTypeToJSONTyped,
 } from "./EntitlementValueType";
-import type { FeatureDetailResponseData } from "./FeatureDetailResponseData";
-import {
-  FeatureDetailResponseDataFromJSON,
-  FeatureDetailResponseDataFromJSONTyped,
-  FeatureDetailResponseDataToJSON,
-  FeatureDetailResponseDataToJSONTyped,
-} from "./FeatureDetailResponseData";
 import type { PlanEntitlementResponseData } from "./PlanEntitlementResponseData";
 import {
   PlanEntitlementResponseDataFromJSON,
@@ -41,6 +34,13 @@ import {
   CreditUsageAggregationToJSON,
   CreditUsageAggregationToJSONTyped,
 } from "./CreditUsageAggregation";
+import type { FeatureInPlanResponseData } from "./FeatureInPlanResponseData";
+import {
+  FeatureInPlanResponseDataFromJSON,
+  FeatureInPlanResponseDataFromJSONTyped,
+  FeatureInPlanResponseDataToJSON,
+  FeatureInPlanResponseDataToJSONTyped,
+} from "./FeatureInPlanResponseData";
 import type { MetricPeriod } from "./MetricPeriod";
 import {
   MetricPeriodFromJSON,
@@ -228,10 +228,10 @@ export interface FeatureUsageResponseData {
   entitlementType: EntitlementType;
   /**
    *
-   * @type {FeatureDetailResponseData}
+   * @type {FeatureInPlanResponseData}
    * @memberof FeatureUsageResponseData
    */
-  feature?: FeatureDetailResponseData;
+  feature?: FeatureInPlanResponseData;
   /**
    * Whether a valid allocation exists
    * @type {boolean}
@@ -401,7 +401,7 @@ export function FeatureUsageResponseDataFromJSONTyped(
     feature:
       json["feature"] == null
         ? undefined
-        : FeatureDetailResponseDataFromJSON(json["feature"]),
+        : FeatureInPlanResponseDataFromJSON(json["feature"]),
     hasValidAllocation:
       json["has_valid_allocation"] == null
         ? undefined
@@ -492,7 +492,7 @@ export function FeatureUsageResponseDataToJSONTyped(
     entitlement_id: value["entitlementId"],
     entitlement_source: value["entitlementSource"],
     entitlement_type: EntitlementTypeToJSON(value["entitlementType"]),
-    feature: FeatureDetailResponseDataToJSON(value["feature"]),
+    feature: FeatureInPlanResponseDataToJSON(value["feature"]),
     has_valid_allocation: value["hasValidAllocation"],
     is_unlimited: value["isUnlimited"],
     metric_reset_at:

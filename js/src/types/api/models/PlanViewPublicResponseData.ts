@@ -13,13 +13,6 @@
  */
 
 import { mapValues } from "../runtime";
-import type { FeatureDetailResponseData } from "./FeatureDetailResponseData";
-import {
-  FeatureDetailResponseDataFromJSON,
-  FeatureDetailResponseDataFromJSONTyped,
-  FeatureDetailResponseDataToJSON,
-  FeatureDetailResponseDataToJSONTyped,
-} from "./FeatureDetailResponseData";
 import type { PlanCreditGrantView } from "./PlanCreditGrantView";
 import {
   PlanCreditGrantViewFromJSON,
@@ -55,6 +48,13 @@ import {
   ChargeTypeToJSON,
   ChargeTypeToJSONTyped,
 } from "./ChargeType";
+import type { FeatureInPlanResponseData } from "./FeatureInPlanResponseData";
+import {
+  FeatureInPlanResponseDataFromJSON,
+  FeatureInPlanResponseDataFromJSONTyped,
+  FeatureInPlanResponseDataToJSON,
+  FeatureInPlanResponseDataToJSONTyped,
+} from "./FeatureInPlanResponseData";
 import type { PlanIcon } from "./PlanIcon";
 import {
   PlanIconFromJSON,
@@ -215,10 +215,10 @@ export interface PlanViewPublicResponseData {
   entitlements: Array<PlanEntitlementResponseData>;
   /**
    *
-   * @type {Array<FeatureDetailResponseData>}
+   * @type {Array<FeatureInPlanResponseData>}
    * @memberof PlanViewPublicResponseData
    */
-  features: Array<FeatureDetailResponseData>;
+  features: Array<FeatureInPlanResponseData>;
   /**
    *
    * @type {PlanIcon}
@@ -416,7 +416,7 @@ export function PlanViewPublicResponseDataFromJSONTyped(
       PlanEntitlementResponseDataFromJSON,
     ),
     features: (json["features"] as Array<any>).map(
-      FeatureDetailResponseDataFromJSON,
+      FeatureInPlanResponseDataFromJSON,
     ),
     icon: PlanIconFromJSON(json["icon"]),
     id: json["id"],
@@ -491,7 +491,7 @@ export function PlanViewPublicResponseDataToJSONTyped(
       PlanEntitlementResponseDataToJSON,
     ),
     features: (value["features"] as Array<any>).map(
-      FeatureDetailResponseDataToJSON,
+      FeatureInPlanResponseDataToJSON,
     ),
     icon: PlanIconToJSON(value["icon"]),
     id: value["id"],

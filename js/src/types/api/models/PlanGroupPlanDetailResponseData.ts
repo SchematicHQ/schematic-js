@@ -20,13 +20,6 @@ import {
   BillingPlanCreditGrantResponseDataToJSON,
   BillingPlanCreditGrantResponseDataToJSONTyped,
 } from "./BillingPlanCreditGrantResponseData";
-import type { FeatureDetailResponseData } from "./FeatureDetailResponseData";
-import {
-  FeatureDetailResponseDataFromJSON,
-  FeatureDetailResponseDataFromJSONTyped,
-  FeatureDetailResponseDataToJSON,
-  FeatureDetailResponseDataToJSONTyped,
-} from "./FeatureDetailResponseData";
 import type { PlanCurrencyPricesResponseData } from "./PlanCurrencyPricesResponseData";
 import {
   PlanCurrencyPricesResponseDataFromJSON,
@@ -55,6 +48,13 @@ import {
   ChargeTypeToJSON,
   ChargeTypeToJSONTyped,
 } from "./ChargeType";
+import type { FeatureInPlanResponseData } from "./FeatureInPlanResponseData";
+import {
+  FeatureInPlanResponseDataFromJSON,
+  FeatureInPlanResponseDataFromJSONTyped,
+  FeatureInPlanResponseDataToJSON,
+  FeatureInPlanResponseDataToJSONTyped,
+} from "./FeatureInPlanResponseData";
 import type { PlanIcon } from "./PlanIcon";
 import {
   PlanIconFromJSON,
@@ -209,10 +209,10 @@ export interface PlanGroupPlanDetailResponseData {
   entitlements: Array<PlanEntitlementResponseData>;
   /**
    *
-   * @type {Array<FeatureDetailResponseData>}
+   * @type {Array<FeatureInPlanResponseData>}
    * @memberof PlanGroupPlanDetailResponseData
    */
-  features: Array<FeatureDetailResponseData>;
+  features: Array<FeatureInPlanResponseData>;
   /**
    *
    * @type {PlanIcon}
@@ -403,7 +403,7 @@ export function PlanGroupPlanDetailResponseDataFromJSONTyped(
       PlanEntitlementResponseDataFromJSON,
     ),
     features: (json["features"] as Array<any>).map(
-      FeatureDetailResponseDataFromJSON,
+      FeatureInPlanResponseDataFromJSON,
     ),
     icon: PlanIconFromJSON(json["icon"]),
     id: json["id"],
@@ -482,7 +482,7 @@ export function PlanGroupPlanDetailResponseDataToJSONTyped(
       PlanEntitlementResponseDataToJSON,
     ),
     features: (value["features"] as Array<any>).map(
-      FeatureDetailResponseDataToJSON,
+      FeatureInPlanResponseDataToJSON,
     ),
     icon: PlanIconToJSON(value["icon"]),
     id: value["id"],
