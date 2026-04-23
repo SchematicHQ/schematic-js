@@ -1,6 +1,6 @@
 import type {
   BillingPriceView,
-  FeatureDetailResponseData,
+  FeatureInPlanResponseData,
   FeatureUsageResponseData,
 } from "../../api/checkoutexternal";
 import {
@@ -267,7 +267,7 @@ describe("calculateCurrentUsageBasedEntitlements", () => {
         feature: {
           id: "feat1",
           name: "Feature 1",
-        } as FeatureDetailResponseData,
+        } as FeatureInPlanResponseData,
         period: MetricPeriod.CurrentMonth,
       },
     ];

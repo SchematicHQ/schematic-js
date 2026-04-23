@@ -61,12 +61,12 @@ models/EventBodyIdentifyCompany.ts
 models/EventBodyTrack.ts
 models/EventSummaryResponseData.ts
 models/EventType.ts
-models/FeatureDetailResponseData.ts
 models/FeatureEntitlement.ts
+models/FeatureInPlanResponseData.ts
 models/FeatureLifecyclePhase.ts
 models/FeatureResponseData.ts
 models/FeatureType.ts
-models/FlagDetailResponseData.ts
+models/FlagInPlanResponseData.ts
 models/FlagResponseData.ts
 models/FlagType.ts
 models/GenericPreviewObject.ts

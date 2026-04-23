@@ -1,11 +1,10 @@
-import type { FeatureDetailResponseData } from "../../api/checkoutexternal";
-
 import { getFeatureName } from "./feature";
 
-type FeaturePick = Pick<
-  FeatureDetailResponseData,
-  "name" | "singularName" | "pluralName"
->;
+type FeaturePick = {
+  name: string;
+  singularName?: string | null;
+  pluralName?: string | null;
+};
 
 describe("getFeatureName", () => {
   describe("without ignore parameter", () => {

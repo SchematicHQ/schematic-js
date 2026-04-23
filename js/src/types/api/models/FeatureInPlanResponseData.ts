@@ -55,136 +55,136 @@ import {
   FeatureLifecyclePhaseToJSON,
   FeatureLifecyclePhaseToJSONTyped,
 } from "./FeatureLifecyclePhase";
-import type { FlagDetailResponseData } from "./FlagDetailResponseData";
+import type { FlagInPlanResponseData } from "./FlagInPlanResponseData";
 import {
-  FlagDetailResponseDataFromJSON,
-  FlagDetailResponseDataFromJSONTyped,
-  FlagDetailResponseDataToJSON,
-  FlagDetailResponseDataToJSONTyped,
-} from "./FlagDetailResponseData";
+  FlagInPlanResponseDataFromJSON,
+  FlagInPlanResponseDataFromJSONTyped,
+  FlagInPlanResponseDataToJSON,
+  FlagInPlanResponseDataToJSONTyped,
+} from "./FlagInPlanResponseData";
 
 /**
  *
  * @export
- * @interface FeatureDetailResponseData
+ * @interface FeatureInPlanResponseData
  */
-export interface FeatureDetailResponseData {
+export interface FeatureInPlanResponseData {
   /**
    *
    * @type {BillingLinkedResourceResponseData}
-   * @memberof FeatureDetailResponseData
+   * @memberof FeatureInPlanResponseData
    */
   billingLinkedResource?: BillingLinkedResourceResponseData;
   /**
    *
    * @type {Date}
-   * @memberof FeatureDetailResponseData
+   * @memberof FeatureInPlanResponseData
    */
   createdAt: Date;
   /**
    *
    * @type {string}
-   * @memberof FeatureDetailResponseData
+   * @memberof FeatureInPlanResponseData
    */
   description: string;
   /**
    *
    * @type {string}
-   * @memberof FeatureDetailResponseData
+   * @memberof FeatureInPlanResponseData
    */
   eventSubtype?: string | null;
   /**
    *
    * @type {EventSummaryResponseData}
-   * @memberof FeatureDetailResponseData
+   * @memberof FeatureInPlanResponseData
    */
   eventSummary?: EventSummaryResponseData;
   /**
    *
    * @type {FeatureType}
-   * @memberof FeatureDetailResponseData
+   * @memberof FeatureInPlanResponseData
    */
   featureType: FeatureType;
   /**
    *
-   * @type {Array<FlagDetailResponseData>}
-   * @memberof FeatureDetailResponseData
+   * @type {Array<FlagInPlanResponseData>}
+   * @memberof FeatureInPlanResponseData
    */
-  flags: Array<FlagDetailResponseData>;
+  flags: Array<FlagInPlanResponseData>;
   /**
    *
    * @type {string}
-   * @memberof FeatureDetailResponseData
+   * @memberof FeatureInPlanResponseData
    */
   icon: string;
   /**
    *
    * @type {string}
-   * @memberof FeatureDetailResponseData
+   * @memberof FeatureInPlanResponseData
    */
   id: string;
   /**
    *
    * @type {FeatureLifecyclePhase}
-   * @memberof FeatureDetailResponseData
+   * @memberof FeatureInPlanResponseData
    */
   lifecyclePhase?: FeatureLifecyclePhase | null;
   /**
    *
    * @type {string}
-   * @memberof FeatureDetailResponseData
+   * @memberof FeatureInPlanResponseData
    */
-  maintainerId?: string | null;
+  maintainerAccountMemberId?: string | null;
   /**
    *
    * @type {string}
-   * @memberof FeatureDetailResponseData
+   * @memberof FeatureInPlanResponseData
    */
   name: string;
   /**
    *
    * @type {Array<PreviewObject>}
-   * @memberof FeatureDetailResponseData
+   * @memberof FeatureInPlanResponseData
    */
   plans: Array<PreviewObject>;
   /**
    *
    * @type {string}
-   * @memberof FeatureDetailResponseData
+   * @memberof FeatureInPlanResponseData
    */
   pluralName?: string | null;
   /**
    *
    * @type {string}
-   * @memberof FeatureDetailResponseData
+   * @memberof FeatureInPlanResponseData
    */
   singularName?: string | null;
   /**
    *
    * @type {EntityTraitDefinitionResponseData}
-   * @memberof FeatureDetailResponseData
+   * @memberof FeatureInPlanResponseData
    */
   trait?: EntityTraitDefinitionResponseData;
   /**
    *
    * @type {string}
-   * @memberof FeatureDetailResponseData
+   * @memberof FeatureInPlanResponseData
    */
   traitId?: string | null;
   /**
    *
    * @type {Date}
-   * @memberof FeatureDetailResponseData
+   * @memberof FeatureInPlanResponseData
    */
   updatedAt: Date;
 }
 
 /**
- * Check if a given object implements the FeatureDetailResponseData interface.
+ * Check if a given object implements the FeatureInPlanResponseData interface.
  */
-export function instanceOfFeatureDetailResponseData(
+export function instanceOfFeatureInPlanResponseData(
   value: object,
-): value is FeatureDetailResponseData {
+): value is FeatureInPlanResponseData {
   if (!("createdAt" in value) || value["createdAt"] === undefined) return false;
   if (!("description" in value) || value["description"] === undefined)
     return false;
@@ -199,16 +199,16 @@ export function instanceOfFeatureDetailResponseData(
   return true;
 }
 
-export function FeatureDetailResponseDataFromJSON(
+export function FeatureInPlanResponseDataFromJSON(
   json: any,
-): FeatureDetailResponseData {
-  return FeatureDetailResponseDataFromJSONTyped(json, false);
+): FeatureInPlanResponseData {
+  return FeatureInPlanResponseDataFromJSONTyped(json, false);
 }
 
-export function FeatureDetailResponseDataFromJSONTyped(
+export function FeatureInPlanResponseDataFromJSONTyped(
   json: any,
   ignoreDiscriminator: boolean,
-): FeatureDetailResponseData {
+): FeatureInPlanResponseData {
   if (json == null) {
     return json;
   }
@@ -228,15 +228,17 @@ export function FeatureDetailResponseDataFromJSONTyped(
         ? undefined
         : EventSummaryResponseDataFromJSON(json["event_summary"]),
     featureType: FeatureTypeFromJSON(json["feature_type"]),
-    flags: (json["flags"] as Array<any>).map(FlagDetailResponseDataFromJSON),
+    flags: (json["flags"] as Array<any>).map(FlagInPlanResponseDataFromJSON),
     icon: json["icon"],
     id: json["id"],
     lifecyclePhase:
       json["lifecycle_phase"] == null
         ? undefined
         : FeatureLifecyclePhaseFromJSON(json["lifecycle_phase"]),
-    maintainerId:
-      json["maintainer_id"] == null ? undefined : json["maintainer_id"],
+    maintainerAccountMemberId:
+      json["maintainer_account_member_id"] == null
+        ? undefined
+        : json["maintainer_account_member_id"],
     name: json["name"],
     plans: (json["plans"] as Array<any>).map(PreviewObjectFromJSON),
     pluralName: json["plural_name"] == null ? undefined : json["plural_name"],
@@ -251,14 +253,14 @@ export function FeatureDetailResponseDataFromJSONTyped(
   };
 }
 
-export function FeatureDetailResponseDataToJSON(
+export function FeatureInPlanResponseDataToJSON(
   json: any,
-): FeatureDetailResponseData {
-  return FeatureDetailResponseDataToJSONTyped(json, false);
+): FeatureInPlanResponseData {
+  return FeatureInPlanResponseDataToJSONTyped(json, false);
 }
 
-export function FeatureDetailResponseDataToJSONTyped(
-  value?: FeatureDetailResponseData | null,
+export function FeatureInPlanResponseDataToJSONTyped(
+  value?: FeatureInPlanResponseData | null,
   ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
@@ -274,11 +276,11 @@ export function FeatureDetailResponseDataToJSONTyped(
     event_subtype: value["eventSubtype"],
     event_summary: EventSummaryResponseDataToJSON(value["eventSummary"]),
     feature_type: FeatureTypeToJSON(value["featureType"]),
-    flags: (value["flags"] as Array<any>).map(FlagDetailResponseDataToJSON),
+    flags: (value["flags"] as Array<any>).map(FlagInPlanResponseDataToJSON),
     icon: value["icon"],
     id: value["id"],
     lifecycle_phase: FeatureLifecyclePhaseToJSON(value["lifecyclePhase"]),
-    maintainer_id: value["maintainerId"],
+    maintainer_account_member_id: value["maintainerAccountMemberId"],
     name: value["name"],
     plans: (value["plans"] as Array<any>).map(PreviewObjectToJSON),
     plural_name: value["pluralName"],

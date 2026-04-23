@@ -1,4 +1,3 @@
-import { type FeatureDetailResponseData } from "../../api/checkoutexternal";
 import { pluralize } from "../pluralize";
 
 /**
@@ -9,10 +8,11 @@ import { pluralize } from "../pluralize";
  */
 
 export function getFeatureName(
-  feature: Pick<
-    FeatureDetailResponseData,
-    "name" | "singularName" | "pluralName"
-  >,
+  feature: {
+    name: string;
+    singularName?: string | null;
+    pluralName?: string | null;
+  },
   count = 0,
   ignore = false,
 ) {

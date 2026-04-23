@@ -38,95 +38,95 @@ import {
 /**
  *
  * @export
- * @interface FlagDetailResponseData
+ * @interface FlagInPlanResponseData
  */
-export interface FlagDetailResponseData {
+export interface FlagInPlanResponseData {
   /**
    *
    * @type {Date}
-   * @memberof FlagDetailResponseData
+   * @memberof FlagInPlanResponseData
    */
   createdAt: Date;
   /**
    *
    * @type {boolean}
-   * @memberof FlagDetailResponseData
+   * @memberof FlagInPlanResponseData
    */
   defaultValue: boolean;
   /**
    *
    * @type {string}
-   * @memberof FlagDetailResponseData
+   * @memberof FlagInPlanResponseData
    */
   description: string;
   /**
    *
    * @type {FeatureResponseData}
-   * @memberof FlagDetailResponseData
+   * @memberof FlagInPlanResponseData
    */
   feature?: FeatureResponseData;
   /**
    *
    * @type {string}
-   * @memberof FlagDetailResponseData
+   * @memberof FlagInPlanResponseData
    */
   featureId?: string | null;
   /**
    *
    * @type {FlagType}
-   * @memberof FlagDetailResponseData
+   * @memberof FlagInPlanResponseData
    */
   flagType: FlagType;
   /**
    *
    * @type {string}
-   * @memberof FlagDetailResponseData
+   * @memberof FlagInPlanResponseData
    */
   id: string;
   /**
    *
    * @type {string}
-   * @memberof FlagDetailResponseData
+   * @memberof FlagInPlanResponseData
    */
   key: string;
   /**
    *
    * @type {Date}
-   * @memberof FlagDetailResponseData
+   * @memberof FlagInPlanResponseData
    */
   lastCheckedAt?: Date | null;
   /**
    *
    * @type {string}
-   * @memberof FlagDetailResponseData
+   * @memberof FlagInPlanResponseData
    */
-  maintainerId?: string | null;
+  maintainerAccountMemberId?: string | null;
   /**
    *
    * @type {string}
-   * @memberof FlagDetailResponseData
+   * @memberof FlagInPlanResponseData
    */
   name: string;
   /**
    *
    * @type {Array<RuleDetailResponseData>}
-   * @memberof FlagDetailResponseData
+   * @memberof FlagInPlanResponseData
    */
   rules: Array<RuleDetailResponseData>;
   /**
    *
    * @type {Date}
-   * @memberof FlagDetailResponseData
+   * @memberof FlagInPlanResponseData
    */
   updatedAt: Date;
 }
 
 /**
- * Check if a given object implements the FlagDetailResponseData interface.
+ * Check if a given object implements the FlagInPlanResponseData interface.
  */
-export function instanceOfFlagDetailResponseData(
+export function instanceOfFlagInPlanResponseData(
   value: object,
-): value is FlagDetailResponseData {
+): value is FlagInPlanResponseData {
   if (!("createdAt" in value) || value["createdAt"] === undefined) return false;
   if (!("defaultValue" in value) || value["defaultValue"] === undefined)
     return false;
@@ -141,16 +141,16 @@ export function instanceOfFlagDetailResponseData(
   return true;
 }
 
-export function FlagDetailResponseDataFromJSON(
+export function FlagInPlanResponseDataFromJSON(
   json: any,
-): FlagDetailResponseData {
-  return FlagDetailResponseDataFromJSONTyped(json, false);
+): FlagInPlanResponseData {
+  return FlagInPlanResponseDataFromJSONTyped(json, false);
 }
 
-export function FlagDetailResponseDataFromJSONTyped(
+export function FlagInPlanResponseDataFromJSONTyped(
   json: any,
   ignoreDiscriminator: boolean,
-): FlagDetailResponseData {
+): FlagInPlanResponseData {
   if (json == null) {
     return json;
   }
@@ -170,22 +170,24 @@ export function FlagDetailResponseDataFromJSONTyped(
       json["last_checked_at"] == null
         ? undefined
         : new Date(json["last_checked_at"]),
-    maintainerId:
-      json["maintainer_id"] == null ? undefined : json["maintainer_id"],
+    maintainerAccountMemberId:
+      json["maintainer_account_member_id"] == null
+        ? undefined
+        : json["maintainer_account_member_id"],
     name: json["name"],
     rules: (json["rules"] as Array<any>).map(RuleDetailResponseDataFromJSON),
     updatedAt: new Date(json["updated_at"]),
   };
 }
 
-export function FlagDetailResponseDataToJSON(
+export function FlagInPlanResponseDataToJSON(
   json: any,
-): FlagDetailResponseData {
-  return FlagDetailResponseDataToJSONTyped(json, false);
+): FlagInPlanResponseData {
+  return FlagInPlanResponseDataToJSONTyped(json, false);
 }
 
-export function FlagDetailResponseDataToJSONTyped(
-  value?: FlagDetailResponseData | null,
+export function FlagInPlanResponseDataToJSONTyped(
+  value?: FlagInPlanResponseData | null,
   ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
@@ -205,7 +207,7 @@ export function FlagDetailResponseDataToJSONTyped(
       value["lastCheckedAt"] == null
         ? undefined
         : (value["lastCheckedAt"] as any).toISOString(),
-    maintainer_id: value["maintainerId"],
+    maintainer_account_member_id: value["maintainerAccountMemberId"],
     name: value["name"],
     rules: (value["rules"] as Array<any>).map(RuleDetailResponseDataToJSON),
     updated_at: value["updatedAt"].toISOString(),
