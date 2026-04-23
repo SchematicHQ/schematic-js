@@ -6,7 +6,6 @@ import {
   type CompanyPlanDetailResponseData,
   type ComponentHydrateResponseData,
   type CreditCompanyGrantView,
-  type FeatureDetailResponseData,
   type FeatureResponseData,
   type FeatureUsageResponseData,
   type PlanEntitlementResponseData,
@@ -53,7 +52,7 @@ export type Credit = Omit<
 
 export type CreditBundle = BillingCreditBundleView & { count: number };
 
-export type Feature = FeatureDetailResponseData | FeatureResponseData;
+export type Feature = FeatureResponseData;
 
 export type Entitlement =
   | PlanEntitlementResponseData
