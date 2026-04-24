@@ -209,7 +209,9 @@ export const SubscriptionSidebar = forwardRef<
       }
 
       const addOnCost = addOns.reduce((sum, addOn) => {
-        if (addOn.isSelected) {
+        // One-time charges are billed once at checkout and do not recur; they
+        // should not contribute to the recurring monthly/yearly total.
+        if (addOn.isSelected && addOn.chargeType !== ChargeType.oneTime) {
           sum += getAddOnPrice(addOn, planPeriod, currency)?.price ?? 0;
         }
 

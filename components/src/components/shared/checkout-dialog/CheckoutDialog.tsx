@@ -78,7 +78,7 @@ export const createActiveUsageBasedEntitlementsReducer =
         featureUsage?.allocation ?? entitlement.valueNumeric ?? 0;
       const usage = featureUsage?.usage ?? 0;
       const quantity =
-        featureUsage?.priceBehavior === EntitlementPriceBehavior.PayInAdvance
+        entitlement.priceBehavior === EntitlementPriceBehavior.PayInAdvance
           ? allocation
           : 0;
 
