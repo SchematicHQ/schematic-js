@@ -56,7 +56,7 @@ jobs:
         with:
           repository: schematichq/schematic-next-example
           path: schematic-next-example
-          token: ${{ secrets.DEPENDENT_UPDATE_PAT }}
+          token: ${{ secrets.GH_TOKEN }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v6
@@ -78,7 +78,7 @@ jobs:
         if: steps.check_changes.outputs.HAS_CHANGES == 'true'
         uses: peter-evans/create-pull-request@v8.1.1
         with:
-          token: ${{ secrets.DEPENDENT_UPDATE_PAT }}
+          token: ${{ secrets.GH_TOKEN }}
           commit-message: Update @schematichq/schematic-react to ${{ steps.get_version.outputs.SCHEMATIC_REACT_VERSION }}
           title: Update @schematichq/schematic-react to ${{ steps.get_version.outputs.SCHEMATIC_REACT_VERSION }}
           body: |
