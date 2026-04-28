@@ -47,6 +47,12 @@ export interface CreateEventRequestBody {
    */
   eventType: EventType;
   /**
+   * Optional client-supplied key. Duplicate events with the same key (scoped to the environment) are dropped for 24h.
+   * @type {string}
+   * @memberof CreateEventRequestBody
+   */
+  idempotencyKey?: string | null;
+  /**
    * Optionally provide a timestamp at which the event was sent to Schematic
    * @type {Date}
    * @memberof CreateEventRequestBody
@@ -80,6 +86,8 @@ export function CreateEventRequestBodyFromJSONTyped(
   return {
     body: json["body"] == null ? undefined : EventBodyFromJSON(json["body"]),
     eventType: EventTypeFromJSON(json["event_type"]),
+    idempotencyKey:
+      json["idempotency_key"] == null ? undefined : json["idempotency_key"],
     sentAt: json["sent_at"] == null ? undefined : new Date(json["sent_at"]),
   };
 }
@@ -101,6 +109,7 @@ export function CreateEventRequestBodyToJSONTyped(
   return {
     body: EventBodyToJSON(value["body"]),
     event_type: EventTypeToJSON(value["eventType"]),
+    idempotency_key: value["idempotencyKey"],
     sent_at:
       value["sentAt"] == null
         ? undefined
