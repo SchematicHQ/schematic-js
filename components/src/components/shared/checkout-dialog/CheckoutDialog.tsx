@@ -654,15 +654,12 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
         }
       } catch (err) {
         if (err instanceof ResponseError) {
-          const data = await err.response.json();
-
-          if (
-            err.response.status === 401 &&
-            data.error === "Access Token Invalid"
-          ) {
+          if (err.response.status === 401) {
             setError(t("Session expired. Please refresh and try again."));
             return;
           }
+
+          const data = await err.response.json();
 
           if (err.response.status === 400) {
             switch (data.error) {
