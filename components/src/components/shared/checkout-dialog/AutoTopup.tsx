@@ -5,17 +5,17 @@ import { PlanCreditGrantView } from "../../../api/checkoutexternal";
 import { TEXT_BASE_SIZE } from "../../../const";
 import { useEmbed } from "../../../hooks";
 import {
-  formatCurrency,
-  getCreditPrice,
+  //formatCurrency,
+  //getCreditPrice,
   getFeatureName,
-  getPriceValue,
+  //getPriceValue,
 } from "../../../utils";
 import { cardBoxShadow } from "../../layout";
 import { Box, Flex, Input, Text, Toggle } from "../../ui";
 
 interface AutoTopupProps {
   isLoading: boolean;
-  includedCreditGrants: PlanCreditGrantView[];
+  planCreditGrants: PlanCreditGrantView[];
   autoTopupConfigs: Map<
     string,
     Pick<
@@ -37,11 +37,11 @@ interface AutoTopupProps {
 }
 
 export const AutoTopup = ({
-  isLoading,
-  includedCreditGrants,
+  //isLoading,
+  planCreditGrants,
   autoTopupConfigs,
   updateAutoTopupConfig,
-  currency,
+  //currency,
 }: AutoTopupProps) => {
   const { settings } = useEmbed();
 
@@ -49,42 +49,29 @@ export const AutoTopup = ({
 
   const cardPadding = settings.theme.card.padding / TEXT_BASE_SIZE;
 
-  const unitPriceFontSize = 0.875 * settings.theme.typography.text.fontSize;
+  //const unitPriceFontSize = 0.875 * settings.theme.typography.text.fontSize;
 
   const configurableCreditGrants = useMemo(() => {
-    return includedCreditGrants.reduce(
-      (
-        acc: (PlanCreditGrantView & {
-          // TODO: remove `billingCreditAutoTopupSelfService` for testing
-          billingCreditAutoTopupSelfService: boolean;
-          cost?: number;
-        })[],
-        grant,
-      ) => {
-        // TODO: remove fallback value for testing
-        // @ts-expect-error: not implemented yet
-        const isSelfService = grant.billingCreditAutoTopupSelfService ?? true;
-
-        if (grant.billingCreditAutoTopupEnabled && isSelfService) {
+    return planCreditGrants.reduce(
+      (acc: (PlanCreditGrantView & { cost?: number })[], grant) => {
+        if (grant.billingCreditAutoTopupSelfService) {
           const config = autoTopupConfigs.get(grant.id);
-          // TODO: remove passing `billingCreditAutoTopupSelfService` for testing
-          const updatedGrant = {
+          const resolvedGrant = {
             ...grant,
             ...config,
-            billingCreditAutoTopupSelfService: isSelfService,
           };
           const price =
             typeof grant.credit?.price?.priceDecimal === "string"
               ? Number(grant.credit.price.priceDecimal)
               : grant.credit?.price?.price;
           const cost =
-            typeof updatedGrant.billingCreditAutoTopupAmount == "number" &&
+            typeof resolvedGrant.billingCreditAutoTopupAmount == "number" &&
             typeof price === "number"
-              ? updatedGrant.billingCreditAutoTopupAmount * price
+              ? resolvedGrant.billingCreditAutoTopupAmount * price
               : undefined;
 
           acc.push({
-            ...updatedGrant,
+            ...resolvedGrant,
             cost,
           });
         }
@@ -93,7 +80,7 @@ export const AutoTopup = ({
       },
       [],
     );
-  }, [includedCreditGrants, autoTopupConfigs]);
+  }, [planCreditGrants, autoTopupConfigs]);
 
   return (
     <Flex $flexDirection="column" $gap="1rem">
@@ -151,38 +138,8 @@ export const AutoTopup = ({
                 <Flex $gap="2rem">
                   <Box>
                     <Box $marginBottom="0.5rem">
-                      <Text as="label" htmlFor={`${grant.id}-amount`}>
-                        {t("When balance reaches:")}
-                      </Text>
-                    </Box>
-
-                    <Input
-                      id={`${grant.id}-amount`}
-                      type="number"
-                      defaultValue={grant.billingCreditAutoTopupAmount ?? ""}
-                      min={0}
-                      autoFocus
-                      onFocus={(event) => {
-                        event.target.select();
-                      }}
-                      onChange={(event) => {
-                        event.preventDefault();
-
-                        const value = parseInt(event.target.value);
-                        if (!isNaN(value)) {
-                          updateAutoTopupConfig(grant.id, {
-                            billingCreditAutoTopupAmount: value,
-                          });
-                        }
-                      }}
-                      $size="lg"
-                    />
-                  </Box>
-
-                  <Box>
-                    <Box $marginBottom="0.5rem">
                       <Text as="label" htmlFor={`${grant.id}-threshold`}>
-                        {t("Top up balance with:")}
+                        {t("When balance reaches:")}
                       </Text>
                     </Box>
 
@@ -204,6 +161,36 @@ export const AutoTopup = ({
                         if (!isNaN(value)) {
                           updateAutoTopupConfig(grant.id, {
                             billingCreditAutoTopupThresholdCredits: value,
+                          });
+                        }
+                      }}
+                      $size="lg"
+                    />
+                  </Box>
+
+                  <Box>
+                    <Box $marginBottom="0.5rem">
+                      <Text as="label" htmlFor={`${grant.id}-amount`}>
+                        {t("Top up balance with:")}
+                      </Text>
+                    </Box>
+
+                    <Input
+                      id={`${grant.id}-amount`}
+                      type="number"
+                      defaultValue={grant.billingCreditAutoTopupAmount ?? ""}
+                      min={0}
+                      autoFocus
+                      onFocus={(event) => {
+                        event.target.select();
+                      }}
+                      onChange={(event) => {
+                        event.preventDefault();
+
+                        const value = parseInt(event.target.value);
+                        if (!isNaN(value)) {
+                          updateAutoTopupConfig(grant.id, {
+                            billingCreditAutoTopupAmount: value,
                           });
                         }
                       }}

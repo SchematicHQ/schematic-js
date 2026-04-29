@@ -474,8 +474,6 @@ export const SubscriptionSidebar = forwardRef<
         const checkoutResponseFromBackend = await checkout({
           newPlanId: planId,
           newPriceId: planPriceId,
-          // TODO: remove once openapi updates
-          // @ts-expect-error: not implemented yet
           autoTopupOverrides: autoTopupRequestBody,
           addOnIds: addOnRequestBody,
           autoTopupOverrides: [],

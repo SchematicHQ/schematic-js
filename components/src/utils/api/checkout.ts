@@ -1,8 +1,7 @@
 import {
   PlanCreditGrantView,
   type UpdateAddOnRequestBody,
-  // TODO: uncomment once openapi updates
-  //type UpdateAutoTopupOverrideRequestBody,
+  type UpdateAutoTopupOverrideRequestBody,
   type UpdateCreditBundleRequestBody,
   type UpdatePayInAdvanceRequestBody,
 } from "../../api/checkoutexternal";
@@ -13,15 +12,6 @@ import type {
   UsageBasedEntitlement,
 } from "../../types";
 import { getAddOnPrice, getEntitlementPrice } from "./billing";
-
-// TODO: remove once openapi updates
-// for testing only
-type UpdateAutoTopupOverrideRequestBody = {
-  planCreditGrantID: string;
-  autoTopupEnabled?: boolean;
-  autoTopupAmount?: number;
-  autoTopupThresholdCredits?: number;
-};
 
 export function buildAutoTopupRequestBody(options: {
   creditGrants: PlanCreditGrantView[];
@@ -35,7 +25,7 @@ export function buildAutoTopupRequestBody(options: {
         const config = autoTopupConfigs.get(grant.id);
 
         acc.push({
-          planCreditGrantID: grant.id,
+          planCreditGrantId: grant.id,
           autoTopupEnabled: config?.billingCreditAutoTopupEnabled,
           autoTopupAmount: config?.billingCreditAutoTopupAmount,
           autoTopupThresholdCredits:

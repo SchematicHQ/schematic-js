@@ -399,9 +399,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
     const hasSelfServiceAutoTopup = selectedPlan?.includedCreditGrants.some(
       (grant) => {
-        // TODO: remove fallback value for testing
-        // @ts-expect-error: not implemented yet
-        const isSelfService = grant.billingCreditAutoTopupSelfService ?? true;
+        const isSelfService = grant.billingCreditAutoTopupSelfService ?? false;
         return isSelfService;
       },
     );
@@ -672,8 +670,6 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
         const response = await previewCheckout({
           newPlanId: plan.id,
           newPriceId: planPriceId,
-          // TODO: remove once openapi updates
-          // @ts-expect-error: not implemented yet
           autoTopupOverrides: autoTopupRequestBody,
           addOnIds: addOnRequestBody,
           autoTopupOverrides: [],
@@ -1386,7 +1382,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
           ) : checkoutStage === "autoTopup" ? (
             <AutoTopup
               isLoading={isLoading}
-              includedCreditGrants={selectedPlan?.includedCreditGrants || []}
+              planCreditGrants={selectedPlan?.includedCreditGrants || []}
               autoTopupConfigs={autoTopupConfigs}
               updateAutoTopupConfig={updateAutoTopupConfig}
               currency={hasCurrency ? selectedCurrency : undefined}

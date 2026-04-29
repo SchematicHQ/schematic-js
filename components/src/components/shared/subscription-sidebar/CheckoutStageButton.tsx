@@ -165,6 +165,44 @@ export const CheckoutStageButton = ({
     );
   }
 
+  if (checkoutStage === "autoTopup") {
+    const nextStage = getNextStageId("autoTopup");
+
+    if (!isPaymentMethodRequired && !nextStage) {
+      return (
+        <NoPaymentRequired
+          isDisabled={isDisabled}
+          isLoading={isLoading}
+          onClick={checkout}
+          isSticky={isSticky}
+        />
+      );
+    }
+
+    return (
+      <Button
+        type="button"
+        disabled={isDisabled}
+        onClick={async () => {
+          setCheckoutStage?.(nextStage ?? "checkout");
+        }}
+        $size={isSticky ? "sm" : "md"}
+        $fullWidth
+        $isLoading={isLoading}
+      >
+        <Flex
+          $gap="0.5rem"
+          $justifyContent="center"
+          $alignItems="center"
+          $padding="0 1rem"
+        >
+          {t("Next")}: {getStageDisplayName(nextStage)}
+          <Icon name="arrow-right" />
+        </Flex>
+      </Button>
+    );
+  }
+
   if (checkoutStage === "usage") {
     const nextStage = getNextStageId("usage");
 
