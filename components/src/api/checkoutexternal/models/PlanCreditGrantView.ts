@@ -125,6 +125,24 @@ export interface PlanCreditGrantView {
   billingCreditAutoTopupThresholdPercent?: number | null;
   /**
    *
+   * @type {number}
+   * @memberof PlanCreditGrantView
+   */
+  companyAutoTopupAmount?: number | null;
+  /**
+   *
+   * @type {boolean}
+   * @memberof PlanCreditGrantView
+   */
+  companyAutoTopupEnabled?: boolean | null;
+  /**
+   *
+   * @type {number}
+   * @memberof PlanCreditGrantView
+   */
+  companyAutoTopupThresholdCredits?: number | null;
+  /**
+   *
    * @type {Date}
    * @memberof PlanCreditGrantView
    */
@@ -331,6 +349,18 @@ export function PlanCreditGrantViewFromJSONTyped(
       json["billing_credit_auto_topup_threshold_percent"] == null
         ? undefined
         : json["billing_credit_auto_topup_threshold_percent"],
+    companyAutoTopupAmount:
+      json["company_auto_topup_amount"] == null
+        ? undefined
+        : json["company_auto_topup_amount"],
+    companyAutoTopupEnabled:
+      json["company_auto_topup_enabled"] == null
+        ? undefined
+        : json["company_auto_topup_enabled"],
+    companyAutoTopupThresholdCredits:
+      json["company_auto_topup_threshold_credits"] == null
+        ? undefined
+        : json["company_auto_topup_threshold_credits"],
     createdAt: new Date(json["created_at"]),
     credit:
       json["credit"] == null
@@ -406,6 +436,10 @@ export function PlanCreditGrantViewToJSONTyped(
       value["billingCreditAutoTopupThresholdCredits"],
     billing_credit_auto_topup_threshold_percent:
       value["billingCreditAutoTopupThresholdPercent"],
+    company_auto_topup_amount: value["companyAutoTopupAmount"],
+    company_auto_topup_enabled: value["companyAutoTopupEnabled"],
+    company_auto_topup_threshold_credits:
+      value["companyAutoTopupThresholdCredits"],
     created_at: value["createdAt"].toISOString(),
     credit: BillingCreditViewToJSON(value["credit"]),
     credit_amount: value["creditAmount"],

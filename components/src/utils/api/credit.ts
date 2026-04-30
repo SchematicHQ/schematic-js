@@ -112,3 +112,39 @@ export function groupCreditGrants(
 
   return Object.values(map);
 }
+
+export function mergeAutoTopupOverrides(
+  grant: PlanCreditGrantView,
+  companyGrant?: PlanCreditGrantView,
+) {
+  if (!companyGrant) {
+    return grant;
+  }
+
+  const resolvedGrant: PlanCreditGrantView = {
+    ...grant,
+    billingCreditAutoTopupEnabled:
+      companyGrant.companyAutoTopupEnabled ??
+      grant.billingCreditAutoTopupEnabled,
+    billingCreditAutoTopupThresholdCredits:
+      companyGrant.companyAutoTopupThresholdCredits ??
+      grant.billingCreditAutoTopupThresholdCredits,
+    billingCreditAutoTopupAmount:
+      companyGrant.companyAutoTopupAmount ?? grant.billingCreditAutoTopupAmount,
+  };
+
+  return resolvedGrant;
+}
+
+export function mergeCompanyGrants(
+  grants: PlanCreditGrantView[] = [],
+  companyGrants?: PlanCreditGrantView[],
+) {
+  return grants.map((grant) => {
+    const match = companyGrants?.find(
+      (companyGrant) => grant.id === companyGrant.id,
+    );
+
+    return mergeAutoTopupOverrides(grant, match);
+  });
+}

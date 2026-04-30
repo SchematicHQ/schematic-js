@@ -9,6 +9,7 @@
     "Add-ons": "Add-ons",
     "Add-ons Quantity": "Add-ons Quantity",
     "Additional": "Additional",
+    "Adds X tokens when below Y remaining": "Adds {{amount}} {{unit}} when below {{threshold}} remaining",
     "After the trial, cancel no default": "After the trial, you will be lose access to {{planName}} plan and your subscription will be cancelled. You will not be charged unless you subscribe to a paid plan during the trial.",
     "After the trial, cancel": "After the trial, you will be downgraded to the {{postTrialPlanName}} plan and your subscription will be cancelled. You will not be charged unless you subscribe to a paid plan during the trial.",
     "After the trial, subscribe": "After the trial, subscription starts and you will be billed.",

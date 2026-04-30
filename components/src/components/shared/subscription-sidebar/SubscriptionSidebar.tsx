@@ -38,6 +38,7 @@ import {
   getMonthName,
   getPlanPrice,
   isScheduledCheckoutConflictMessage,
+  mergeCompanyGrants,
   shortenPeriod,
   toPrettyDate,
 } from "../../../utils";
@@ -444,8 +445,12 @@ export const SubscriptionSidebar = forwardRef<
         setError(undefined);
         setIsLoading(true);
 
+        const planCreditGrants = mergeCompanyGrants(
+          selectedPlan?.includedCreditGrants,
+          data?.company?.plan?.includedCreditGrants,
+        );
         const autoTopupRequestBody = buildAutoTopupRequestBody({
-          creditGrants: selectedPlan.includedCreditGrants,
+          creditGrants: planCreditGrants,
           autoTopupConfigs,
         });
 
@@ -561,6 +566,7 @@ export const SubscriptionSidebar = forwardRef<
       }
     }, [
       t,
+      data?.company?.plan?.includedCreditGrants,
       checkout,
       setConfirmPaymentIntent,
       paymentMethodId,

@@ -12,6 +12,7 @@ import {
   getPlanPrice,
   groupPlanCreditGrants,
   hexToHSL,
+  mergeCompanyGrants,
 } from "../../../../utils";
 import { cardBoxShadow } from "../../../layout";
 import { AutoTopupNotice } from "../../../shared";
@@ -218,9 +219,10 @@ export const Plan = ({
                   $marginTop="0.5rem"
                 >
                   {credits.map((credit, creditIndex) => {
-                    const planCreditGrant = plan.includedCreditGrants?.find(
-                      (grant) => grant.creditId === credit.id,
-                    );
+                    const planCreditGrant = mergeCompanyGrants(
+                      plan.includedCreditGrants,
+                      data?.company?.plan?.includedCreditGrants,
+                    ).find((grant) => grant.creditId === credit.id);
                     const hasAutoTopup =
                       planCreditGrant?.billingCreditAutoTopupEnabled;
 

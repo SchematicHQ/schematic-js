@@ -39,6 +39,7 @@ import {
   getPlanPrice,
   isError,
   isScheduledCheckoutConflictMessage,
+  mergeCompanyGrants,
   planSupportsCurrency,
 } from "../../../utils";
 import {
@@ -265,6 +266,18 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
   );
 
   const [shouldTrial, setShouldTrial] = useState(false);
+
+  const planCreditGrants = useMemo(() => {
+    const grants = mergeCompanyGrants(
+      selectedPlan?.includedCreditGrants,
+      data?.company?.plan?.includedCreditGrants,
+    );
+
+    return grants;
+  }, [
+    selectedPlan?.includedCreditGrants,
+    data?.company?.plan?.includedCreditGrants,
+  ]);
 
   const [autoTopupConfigs, setAutoTopupConfigs] = useState<
     Map<string, AutoTopupConfig>
@@ -637,9 +650,13 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
         updates.addOnPayInAdvanceEntitlements || addOnPayInAdvanceEntitlements;
       const resolvedAddOns = updates.addOns || addOns;
       const resolvedCreditBundles = updates.creditBundles || creditBundles;
+      const resolvedPlanCreditGrants = mergeCompanyGrants(
+        plan.includedCreditGrants,
+        data?.company?.plan?.includedCreditGrants,
+      );
 
       const autoTopupRequestBody = buildAutoTopupRequestBody({
-        creditGrants: plan.includedCreditGrants,
+        creditGrants: resolvedPlanCreditGrants,
         autoTopupConfigs: resolvedAutoTopupConfigs,
       });
 
@@ -743,6 +760,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     },
     [
       t,
+      data?.company?.plan?.includedCreditGrants,
       previewCheckout,
       planPeriod,
       selectedPlan,
@@ -912,7 +930,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
         const nextMap = new Map(prev);
         const prevConfig = prev.get(id);
 
-        const matchedCreditGrant = selectedPlan?.includedCreditGrants.find(
+        const matchedCreditGrant = planCreditGrants.find(
           (grant) => grant.id === id,
         );
 
@@ -941,7 +959,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
         return nextMap;
       });
     },
-    [handlePreviewCheckout, selectedPlan?.includedCreditGrants],
+    [handlePreviewCheckout, planCreditGrants],
   );
 
   const updateUsageBasedEntitlementQuantity = useCallback(
@@ -1382,7 +1400,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
           ) : checkoutStage === "autoTopup" ? (
             <AutoTopup
               isLoading={isLoading}
-              planCreditGrants={selectedPlan?.includedCreditGrants || []}
+              planCreditGrants={planCreditGrants}
               autoTopupConfigs={autoTopupConfigs}
               updateAutoTopupConfig={updateAutoTopupConfig}
               currency={hasCurrency ? selectedCurrency : undefined}

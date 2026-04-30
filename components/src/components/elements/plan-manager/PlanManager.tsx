@@ -100,7 +100,7 @@ export const PlanManager = forwardRef<
 
   const { t } = useTranslation();
 
-  const { data, settings, setLayout } = useEmbed();
+  const { data, settings, setCheckoutState, setLayout } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
 
@@ -211,6 +211,11 @@ export const PlanManager = forwardRef<
     const isUsageBasedPlan = isFreePlan && usageBasedEntitlements.length > 0;
     return { isFreePlan, isUsageBasedPlan };
   }, [currentPlan, usageBasedEntitlements]);
+
+  const hasAutoTopupSelfService =
+    currentPlan?.includedCreditGrants.some((grant) => {
+      return grant.billingCreditAutoTopupSelfService;
+    }) ?? false;
 
   return (
     <>
@@ -569,6 +574,66 @@ export const PlanManager = forwardRef<
                   );
                 })}
               </Flex>
+
+              {hasAutoTopupSelfService && (
+                <Flex
+                  $justifyContent="space-between"
+                  $gap="0.5rem"
+                  $padding="1.5rem"
+                  $backgroundColor={
+                    isLightBackground
+                      ? darken(settings.theme.card.background, 0.04)
+                      : lighten(settings.theme.card.background, 0.04)
+                  }
+                  $borderRadius="0.5rem"
+                >
+                  <Flex $flexDirection="column" $gap="0.5rem">
+                    <Text $weight={600} $leading="tight">
+                      {t("Auto top-up enabled")}
+                    </Text>
+                    {currentPlan?.includedCreditGrants.reduce(
+                      (acc: React.ReactNode[], grant) => {
+                        if (
+                          grant.credit &&
+                          grant.billingCreditAutoTopupSelfService &&
+                          typeof grant.billingCreditAutoTopupThresholdCredits ===
+                            "number" &&
+                          typeof grant.billingCreditAutoTopupAmount === "number"
+                        ) {
+                          acc.push(
+                            <Text key={grant.id} $leading="tight">
+                              {t("Adds X tokens when below Y remaining", {
+                                unit: getFeatureName(
+                                  grant.credit,
+                                  grant.billingCreditAutoTopupAmount,
+                                ),
+                                amount: grant.billingCreditAutoTopupAmount,
+                                threshold:
+                                  grant.billingCreditAutoTopupThresholdCredits,
+                              })}
+                            </Text>,
+                          );
+                        }
+
+                        return acc;
+                      },
+                      [],
+                    )}
+                  </Flex>
+
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      setCheckoutState({ bypassPlanSelection: true });
+                      setLayout("checkout");
+                    }}
+                    $size="sm"
+                    $variant="ghost"
+                  >
+                    {t("Edit")}
+                  </Button>
+                </Flex>
+              )}
             </Flex>
           )}
 
