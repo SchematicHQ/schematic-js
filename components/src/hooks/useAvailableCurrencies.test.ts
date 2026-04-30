@@ -148,6 +148,23 @@ describe("useAvailableCurrencies", () => {
     expect(result.current).toEqual(["EUR", "JPY", "USD"]);
   });
 
+  test("currencyFilter matches case-insensitively", () => {
+    // Currency codes round-trip through the API as lowercase. Lowercase ("usd") should 
+    // still match the hydrated uppercase set without falling into invalidFilterEntries.
+    setupEmbed({
+      activePlans: [
+        {
+          currencyPrices: [{ currency: "USD" }, { currency: "EUR" }],
+        },
+      ],
+      currencyFilter: ["eur", "usd"],
+    });
+
+    const { result } = renderHook(() => useAvailableCurrenciesWithInvalid());
+    expect(result.current.currencies).toEqual(["EUR", "USD"]);
+    expect(result.current.invalidFilterEntries).toEqual([]);
+  });
+
   test("currencyFilter reports invalid entries", () => {
     setupEmbed({
       activePlans: [{ currencyPrices: [{ currency: "USD" }] }],

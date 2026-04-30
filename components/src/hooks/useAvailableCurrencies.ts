@@ -102,10 +102,15 @@ export function useAvailableCurrenciesWithInvalid(): AvailableCurrenciesResult {
     const invalid: string[] = [];
 
     // Walk the filter in user-input order so the toggle reflects the order
-    // the integrator configured rather than alphabetizing it back.
+    // the integrator configured rather than alphabetizing it back. Normalize
+    // each entry to uppercase before lookup — currency codes round-trip
+    // through the API as lowercase (the DB stores them that way), and while
+    // EmbedProvider already uppercases the filter at its boundary, doing it
+    // here too keeps the hook self-contained.
     for (const entry of currencyFilter) {
-      if (hydratedSet.has(entry)) {
-        matched.push(entry);
+      const code = entry.toUpperCase();
+      if (hydratedSet.has(code)) {
+        matched.push(code);
       } else {
         invalid.push(entry);
       }
