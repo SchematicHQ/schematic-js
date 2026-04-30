@@ -53,7 +53,7 @@ interface SubscriptionSidebarProps extends Omit<BoxProps, "children"> {
   portalRef?: React.RefObject<HTMLDialogElement | null>;
   planPeriod: string;
   selectedPlan?: SelectedPlan;
-  autoTopupConfigs: Map<string, AutoTopupConfig>;
+  autoTopupConfigs?: Map<string, AutoTopupConfig>;
   addOns: SelectedPlan[];
   creditBundles?: CreditBundle[];
   usageBasedEntitlements: UsageBasedEntitlement[];

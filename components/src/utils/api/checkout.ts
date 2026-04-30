@@ -15,13 +15,13 @@ import { getAddOnPrice, getEntitlementPrice } from "./billing";
 
 export function buildAutoTopupRequestBody(options: {
   creditGrants: PlanCreditGrantView[];
-  autoTopupConfigs: Map<string, AutoTopupConfig>;
+  autoTopupConfigs?: Map<string, AutoTopupConfig>;
 }) {
   const { creditGrants, autoTopupConfigs } = options;
 
   return creditGrants.reduce(
     (acc: UpdateAutoTopupOverrideRequestBody[], grant) => {
-      if (autoTopupConfigs.has(grant.id)) {
+      if (autoTopupConfigs?.has(grant.id)) {
         const config = autoTopupConfigs.get(grant.id);
 
         acc.push({
