@@ -1,9 +1,6 @@
-import { css, styled } from "styled-components";
-
-import { useIsLightBackground } from "../../../hooks";
+import { styled } from "styled-components";
 
 export const Toggle = styled.input.attrs({ type: "checkbox" })`
-  -webkit-appearance: none;
   appearance: none;
   font: inherit;
   font-size: inherit;

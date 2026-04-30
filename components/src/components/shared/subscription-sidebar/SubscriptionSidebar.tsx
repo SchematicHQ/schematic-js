@@ -172,6 +172,18 @@ export const SubscriptionSidebar = forwardRef<
       data?.trialPaymentMethodRequired,
     ]);
 
+    const planCreditGrants = useMemo(() => {
+      const grants = mergeCompanyGrants(
+        selectedPlan?.includedCreditGrants,
+        data?.company?.plan?.includedCreditGrants,
+      );
+
+      return grants;
+    }, [
+      selectedPlan?.includedCreditGrants,
+      data?.company?.plan?.includedCreditGrants,
+    ]);
+
     const { payInAdvanceEntitlements } = useMemo(() => {
       const payAsYouGoEntitlements: UsageBasedEntitlement[] = [];
       const payInAdvanceEntitlements = usageBasedEntitlements.filter(
@@ -445,10 +457,6 @@ export const SubscriptionSidebar = forwardRef<
         setError(undefined);
         setIsLoading(true);
 
-        const planCreditGrants = mergeCompanyGrants(
-          selectedPlan?.includedCreditGrants,
-          data?.company?.plan?.includedCreditGrants,
-        );
         const autoTopupRequestBody = buildAutoTopupRequestBody({
           creditGrants: planCreditGrants,
           autoTopupConfigs,
@@ -572,6 +580,7 @@ export const SubscriptionSidebar = forwardRef<
       paymentMethodId,
       planPeriod,
       selectedPlan,
+      planCreditGrants,
       autoTopupConfigs,
       addOns,
       creditBundles,
