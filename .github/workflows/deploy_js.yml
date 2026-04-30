@@ -39,6 +39,10 @@ jobs:
         working-directory: ./js
         run: ./version.sh
 
+      - name: Update cache version
+        working-directory: ./js
+        run: yarn cache-version
+
       - name: Build browser bundle
         working-directory: ./js
         run: yarn build:browser
