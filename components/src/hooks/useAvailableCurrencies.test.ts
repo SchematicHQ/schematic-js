@@ -149,7 +149,7 @@ describe("useAvailableCurrencies", () => {
   });
 
   test("currencyFilter matches case-insensitively", () => {
-    // Currency codes round-trip through the API as lowercase. Lowercase ("usd") should 
+    // Currency codes round-trip through the API as lowercase. Lowercase ("usd") should
     // still match the hydrated uppercase set without falling into invalidFilterEntries.
     setupEmbed({
       activePlans: [
@@ -170,7 +170,9 @@ describe("useAvailableCurrencies", () => {
       activePlans: [{ currencyPrices: [{ currency: "USD" }] }],
       currencyFilter: ["USD", "ZZZ"],
     });
-    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
 
     const { result } = renderHook(() => useAvailableCurrenciesWithInvalid());
     expect(result.current.currencies).toEqual(["USD"]);
