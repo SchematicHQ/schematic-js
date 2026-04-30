@@ -4,33 +4,66 @@ import { DEFAULT_CURRENCY } from "../const";
 
 import { useEmbed } from "./useEmbed";
 
-const sortCurrencies = (currencies: string[]): string[] =>
-  [...currencies].sort((a, b) => {
-    if (a === DEFAULT_CURRENCY) return -1;
-    if (b === DEFAULT_CURRENCY) return 1;
-    return a.localeCompare(b);
-  });
-
 /**
  * Returns the full, unfiltered set of currencies present in the hydrated
- * plan and add-on data, with DEFAULT_CURRENCY guaranteed to be included.
+ * plan and add-on data. The first plan's `currencyPrices` is used to derive
+ * the sort order. Any non-overlapping currencies beyond that are sorted
+ * alphabetically.
  */
 function useHydratedCurrencies(): string[] {
   const { data } = useEmbed();
 
   return useMemo(() => {
-    const currencySet = new Set<string>();
-    currencySet.add(DEFAULT_CURRENCY);
+    const ordered: string[] = [];
+    const seen = new Set<string>();
 
-    const plans = [...(data?.activePlans || []), ...(data?.activeAddOns || [])];
+    const push = (currency?: string | null) => {
+      if (!currency) return;
+      const code = currency.toUpperCase();
+      if (seen.has(code)) return;
+      seen.add(code);
+      ordered.push(code);
+    };
 
-    for (const plan of plans) {
-      for (const cp of plan.currencyPrices || []) {
-        currencySet.add(cp.currency.toUpperCase());
+    // Prefix: first plan's stored currency order wins. Position 0 of its
+    // `currencyPrices` is the plan's default; we want that to be the toggle's
+    // default too.
+    const firstPlan = data?.activePlans?.[0];
+    if (firstPlan) {
+      const prices = firstPlan.currencyPrices ?? [];
+      if (prices.length > 0) {
+        for (const cp of prices) {
+          push(cp.currency);
+        }
+      } else {
+        // Legacy single-currency plan: still seeds the prefix so the toggle
+        // default reflects the first plan.
+        push(firstPlan.monthlyPrice?.currency);
+        push(firstPlan.yearlyPrice?.currency);
+        push(firstPlan.oneTimePrice?.currency);
       }
     }
 
-    return sortCurrencies(Array.from(currencySet));
+    // Tail: every other currency across remaining plans + add-ons,
+    // alphabetized. Currencies already in the prefix are dropped via `seen`.
+    const leftover = new Set<string>();
+    const rest = [
+      ...(data?.activePlans ?? []).slice(1),
+      ...(data?.activeAddOns ?? []),
+    ];
+    for (const plan of rest) {
+      for (const cp of plan.currencyPrices ?? []) {
+        const code = cp.currency.toUpperCase();
+        if (!seen.has(code)) leftover.add(code);
+      }
+    }
+    [...leftover].sort().forEach((c) => push(c));
+
+    if (ordered.length === 0) {
+      ordered.push(DEFAULT_CURRENCY);
+    }
+
+    return ordered;
   }, [data?.activePlans, data?.activeAddOns]);
 }
 
@@ -68,9 +101,16 @@ export function useAvailableCurrenciesWithInvalid(): AvailableCurrenciesResult {
     const matched: string[] = [];
     const invalid: string[] = [];
 
+    // Walk the filter in user-input order so the toggle reflects the order
+    // the integrator configured rather than alphabetizing it back. Normalize
+    // each entry to uppercase before lookup — currency codes round-trip
+    // through the API as lowercase (the DB stores them that way), and while
+    // EmbedProvider already uppercases the filter at its boundary, doing it
+    // here too keeps the hook self-contained.
     for (const entry of currencyFilter) {
-      if (hydratedSet.has(entry)) {
-        matched.push(entry);
+      const code = entry.toUpperCase();
+      if (hydratedSet.has(code)) {
+        matched.push(code);
       } else {
         invalid.push(entry);
       }
@@ -84,7 +124,7 @@ export function useAvailableCurrenciesWithInvalid(): AvailableCurrenciesResult {
     }
 
     return {
-      currencies: sortCurrencies(matched),
+      currencies: matched,
       invalidFilterEntries: invalid,
     };
   }, [currencyFilter, hydrated, debug]);
