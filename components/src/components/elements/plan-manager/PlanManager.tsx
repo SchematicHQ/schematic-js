@@ -578,6 +578,7 @@ export const PlanManager = forwardRef<
               {hasAutoTopupSelfService && (
                 <Flex
                   $justifyContent="space-between"
+                  $alignItems="center"
                   $gap="0.5rem"
                   $padding="1.5rem"
                   $backgroundColor={
@@ -589,27 +590,32 @@ export const PlanManager = forwardRef<
                 >
                   <Flex $flexDirection="column" $gap="0.5rem">
                     <Text $weight={600} $leading="tight">
-                      {t("Auto top-up enabled")}
+                      {t("Auto top-up")}
                     </Text>
                     {currentPlan?.includedCreditGrants.reduce(
                       (acc: React.ReactNode[], grant) => {
+                        const autoTopupThresholdCredits =
+                          grant.companyAutoTopupThresholdCredits ??
+                          grant.billingCreditAutoTopupThresholdCredits;
+                        const autoTopupAmount =
+                          grant.companyAutoTopupAmount ??
+                          grant.billingCreditAutoTopupAmount;
+
                         if (
                           grant.credit &&
                           grant.billingCreditAutoTopupSelfService &&
-                          typeof grant.billingCreditAutoTopupThresholdCredits ===
-                            "number" &&
-                          typeof grant.billingCreditAutoTopupAmount === "number"
+                          typeof autoTopupThresholdCredits === "number" &&
+                          typeof autoTopupAmount === "number"
                         ) {
                           acc.push(
                             <Text key={grant.id} $leading="tight">
                               {t("Adds X tokens when below Y remaining", {
                                 unit: getFeatureName(
                                   grant.credit,
-                                  grant.billingCreditAutoTopupAmount,
+                                  autoTopupAmount,
                                 ),
-                                amount: grant.billingCreditAutoTopupAmount,
-                                threshold:
-                                  grant.billingCreditAutoTopupThresholdCredits,
+                                amount: autoTopupAmount,
+                                threshold: autoTopupThresholdCredits,
                               })}
                             </Text>,
                           );

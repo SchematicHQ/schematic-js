@@ -1,5 +1,6 @@
 import {
   BillingPlanCreditGrantResetCadence,
+  type CompanyPlanCreditGrantView,
   type CreditCompanyGrantView,
   type PlanCreditGrantView,
 } from "../../api/checkoutexternal";
@@ -115,7 +116,7 @@ export function groupCreditGrants(
 
 export function mergeAutoTopupOverrides(
   grant: PlanCreditGrantView,
-  companyGrant?: PlanCreditGrantView,
+  companyGrant?: CompanyPlanCreditGrantView,
 ) {
   if (!companyGrant) {
     return grant;
@@ -138,7 +139,7 @@ export function mergeAutoTopupOverrides(
 
 export function mergeCompanyGrants(
   grants: PlanCreditGrantView[] = [],
-  companyGrants?: PlanCreditGrantView[],
+  companyGrants?: CompanyPlanCreditGrantView[],
 ) {
   return grants.map((grant) => {
     const match = companyGrants?.find(

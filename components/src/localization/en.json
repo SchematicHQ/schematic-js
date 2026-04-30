@@ -14,7 +14,7 @@
     "After the trial, cancel": "After the trial, you will be downgraded to the {{postTrialPlanName}} plan and your subscription will be cancelled. You will not be charged unless you subscribe to a paid plan during the trial.",
     "After the trial, subscribe": "After the trial, subscription starts and you will be billed.",
     "Amount off": "{{amount}} off",
-    "Auto top-up enabled": "Auto top-up enabled",
+    "Auto top-up": "Auto top-up",
     "Automatically purchase more credits when your balance is low": "Automatically purchase more {{units}} when your balance is low",
     "at": "at",
     "When balance reaches X remaining, an auto top-up of Y credits will be processed.": "When credit balance reaches {{threshold}} remaining, an auto top-up of {{amount}} credits will be processed.",
