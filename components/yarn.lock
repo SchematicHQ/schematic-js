@@ -148,7 +148,7 @@
   dependencies:
     "@babel/types" "^7.28.5"
 
-"@babel/runtime@^7.12.5", "@babel/runtime@^7.27.6", "@babel/runtime@^7.29.2":
+"@babel/runtime@^7.12.5", "@babel/runtime@^7.27.6":
   version "7.29.2"
   resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.29.2.tgz#9a6e2d05f4b6692e1801cd4fb176ad823930ed5e"
   integrity sha512-JiDShH45zKHWyGe4ZNVRrCjBz8Nh9TMmZG1kh4QTK8hCBTWBi8Da+i7s1fJw7/lYpM4ccepSNfqzZ/QvABBi5g==
@@ -3028,12 +3028,10 @@ https-proxy-agent@^7.0.6:
     agent-base "^7.1.2"
     debug "4"
 
-i18next@^26.0.6:
-  version "26.0.6"
-  resolved "https://registry.yarnpkg.com/i18next/-/i18next-26.0.6.tgz#558b5e3170249d7d338d7732edb662a4108082a0"
-  integrity sha512-A4U6eCXodIbrhf8EarRurB9/4ebyaurH4+fu4gig9bqxmpSt+fCAFm/GpRQDcN1Xzu/LdFCx4nYHsnM1edIIbg==
-  dependencies:
-    "@babel/runtime" "^7.29.2"
+i18next@^26.0.8:
+  version "26.0.8"
+  resolved "https://registry.yarnpkg.com/i18next/-/i18next-26.0.8.tgz#be27c02733962574cb47156d190ac8d0ff5365c4"
+  integrity sha512-BRzLom0mhDhV9v0QhgUUHWQJuwFmnr1194xEcNLYD6ym8y8s542n4jXUvRLnhNTbh9PmpU6kGZamyuGHQMsGjw==
 
 ieee754@^1.2.1:
   version "1.2.1"
