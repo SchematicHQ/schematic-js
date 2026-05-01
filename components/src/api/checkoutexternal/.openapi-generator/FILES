@@ -66,6 +66,7 @@ models/CountResponse.ts
 models/CreateSetupIntentResponse.ts
 models/CreditBundleCurrencyPrice.ts
 models/CreditCompanyGrantView.ts
+models/CreditCurrencyPrice.ts
 models/CreditCurrencyPriceResponseData.ts
 models/CreditGrantDetail.ts
 models/CreditTransferView.ts

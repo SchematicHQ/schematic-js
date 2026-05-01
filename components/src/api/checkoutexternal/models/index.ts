@@ -64,6 +64,7 @@ export * from "./CountResponse";
 export * from "./CreateSetupIntentResponse";
 export * from "./CreditBundleCurrencyPrice";
 export * from "./CreditCompanyGrantView";
+export * from "./CreditCurrencyPrice";
 export * from "./CreditCurrencyPriceResponseData";
 export * from "./CreditGrantDetail";
 export * from "./CreditTransferView";

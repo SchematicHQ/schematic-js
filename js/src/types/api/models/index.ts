@@ -43,6 +43,7 @@ export * from "./CreateEventBatchRequestBody";
 export * from "./CreateEventBatchResponse";
 export * from "./CreateEventRequestBody";
 export * from "./CreateEventResponse";
+export * from "./CreditCurrencyPrice";
 export * from "./CreditCurrencyPriceResponseData";
 export * from "./CustomPlanConfig";
 export * from "./CustomPlanViewConfigResponseData";

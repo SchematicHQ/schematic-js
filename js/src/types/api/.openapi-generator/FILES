@@ -42,6 +42,7 @@ models/CreateEventBatchRequestBody.ts
 models/CreateEventBatchResponse.ts
 models/CreateEventRequestBody.ts
 models/CreateEventResponse.ts
+models/CreditCurrencyPrice.ts
 models/CreditCurrencyPriceResponseData.ts
 models/CustomPlanConfig.ts
 models/CustomPlanViewConfigResponseData.ts
