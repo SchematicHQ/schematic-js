@@ -94,6 +94,7 @@ function makeCreditBundle(overrides: Partial<CreditBundle> = {}): CreditBundle {
     createdAt: new Date(),
     creditId: "credit-1",
     creditName: "Credits",
+    currencyPrices: [],
     expiryType: "never" as any,
     expiryUnit: "month" as any,
     hasGrants: false,

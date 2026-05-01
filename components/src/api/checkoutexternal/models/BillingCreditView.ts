@@ -81,6 +81,12 @@ export interface BillingCreditView {
   createdAt: Date;
   /**
    *
+   * @type {Array<object>}
+   * @memberof BillingCreditView
+   */
+  currencyPrices: Array<object>;
+  /**
+   *
    * @type {BillingCreditExpiryUnit}
    * @memberof BillingCreditView
    */
@@ -183,6 +189,8 @@ export function instanceOfBillingCreditView(
   if (!("costEditable" in value) || value["costEditable"] === undefined)
     return false;
   if (!("createdAt" in value) || value["createdAt"] === undefined) return false;
+  if (!("currencyPrices" in value) || value["currencyPrices"] === undefined)
+    return false;
   if (
     !("defaultExpiryUnit" in value) ||
     value["defaultExpiryUnit"] === undefined
@@ -219,6 +227,7 @@ export function BillingCreditViewFromJSONTyped(
     burnStrategy: BillingCreditBurnStrategyFromJSON(json["burn_strategy"]),
     costEditable: json["cost_editable"],
     createdAt: new Date(json["created_at"]),
+    currencyPrices: json["currency_prices"],
     defaultExpiryUnit: BillingCreditExpiryUnitFromJSON(
       json["default_expiry_unit"],
     ),
@@ -272,6 +281,7 @@ export function BillingCreditViewToJSONTyped(
     burn_strategy: BillingCreditBurnStrategyToJSON(value["burnStrategy"]),
     cost_editable: value["costEditable"],
     created_at: value["createdAt"].toISOString(),
+    currency_prices: value["currencyPrices"],
     default_expiry_unit: BillingCreditExpiryUnitToJSON(
       value["defaultExpiryUnit"],
     ),
