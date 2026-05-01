@@ -27,6 +27,13 @@ import {
   BillingProductResponseDataToJSON,
   BillingProductResponseDataToJSONTyped,
 } from "./BillingProductResponseData";
+import type { CreditCurrencyPrice } from "./CreditCurrencyPrice";
+import {
+  CreditCurrencyPriceFromJSON,
+  CreditCurrencyPriceFromJSONTyped,
+  CreditCurrencyPriceToJSON,
+  CreditCurrencyPriceToJSONTyped,
+} from "./CreditCurrencyPrice";
 import type { BillingPriceView } from "./BillingPriceView";
 import {
   BillingPriceViewFromJSON,
@@ -81,10 +88,10 @@ export interface BillingCreditView {
   createdAt: Date;
   /**
    *
-   * @type {Array<object>}
+   * @type {Array<CreditCurrencyPrice>}
    * @memberof BillingCreditView
    */
-  currencyPrices: Array<object>;
+  currencyPrices: Array<CreditCurrencyPrice>;
   /**
    *
    * @type {BillingCreditExpiryUnit}
@@ -227,7 +234,9 @@ export function BillingCreditViewFromJSONTyped(
     burnStrategy: BillingCreditBurnStrategyFromJSON(json["burn_strategy"]),
     costEditable: json["cost_editable"],
     createdAt: new Date(json["created_at"]),
-    currencyPrices: json["currency_prices"],
+    currencyPrices: (json["currency_prices"] as Array<any>).map(
+      CreditCurrencyPriceFromJSON,
+    ),
     defaultExpiryUnit: BillingCreditExpiryUnitFromJSON(
       json["default_expiry_unit"],
     ),
@@ -281,7 +290,9 @@ export function BillingCreditViewToJSONTyped(
     burn_strategy: BillingCreditBurnStrategyToJSON(value["burnStrategy"]),
     cost_editable: value["costEditable"],
     created_at: value["createdAt"].toISOString(),
-    currency_prices: value["currencyPrices"],
+    currency_prices: (value["currencyPrices"] as Array<any>).map(
+      CreditCurrencyPriceToJSON,
+    ),
     default_expiry_unit: BillingCreditExpiryUnitToJSON(
       value["defaultExpiryUnit"],
     ),
