@@ -589,11 +589,34 @@ export const PlanManager = forwardRef<
                   $borderRadius="0.5rem"
                 >
                   <Flex $flexDirection="column" $gap="0.5rem">
-                    <Text $weight={600} $leading="tight">
+                    <Text display={props.addOns.fontStyle}>
                       {t("Auto top-up")}
                     </Text>
                     {currentPlan?.includedCreditGrants.reduce(
                       (acc: React.ReactNode[], grant) => {
+                        if (
+                          !grant.credit ||
+                          !grant.billingCreditAutoTopupSelfService
+                        ) {
+                          return acc;
+                        }
+
+                        const autoTopupEnabled =
+                          grant.companyAutoTopupEnabled ??
+                          grant.billingCreditAutoTopupEnabled;
+
+                        if (!autoTopupEnabled) {
+                          acc.push(
+                            <Text key={grant.id} $leading="tight">
+                              {t("Auto top-up disabled for token", {
+                                unit: getFeatureName(grant.credit, 1),
+                              })}
+                            </Text>,
+                          );
+
+                          return acc;
+                        }
+
                         const autoTopupThresholdCredits =
                           grant.companyAutoTopupThresholdCredits ??
                           grant.billingCreditAutoTopupThresholdCredits;
@@ -602,14 +625,12 @@ export const PlanManager = forwardRef<
                           grant.billingCreditAutoTopupAmount;
 
                         if (
-                          grant.credit &&
-                          grant.billingCreditAutoTopupSelfService &&
                           typeof autoTopupThresholdCredits === "number" &&
                           typeof autoTopupAmount === "number"
                         ) {
                           acc.push(
                             <Text key={grant.id} $leading="tight">
-                              {t("Adds X tokens when below Y remaining", {
+                              {t("Adds X tokens when Y remaining in balance", {
                                 unit: getFeatureName(
                                   grant.credit,
                                   autoTopupAmount,

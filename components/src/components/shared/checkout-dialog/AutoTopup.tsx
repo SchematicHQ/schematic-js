@@ -129,7 +129,9 @@ export const AutoTopup = ({
                 }}
               />
               <Text as="label" htmlFor={`${grant.id}-enabled`}>
-                {t("Auto top-up enabled")}
+                {grant.billingCreditAutoTopupEnabled
+                  ? t("Auto top-up enabled")
+                  : t("Auto top-up disabled")}
               </Text>
             </Flex>
 
