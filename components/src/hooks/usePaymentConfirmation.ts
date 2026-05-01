@@ -118,6 +118,7 @@ export const usePaymentConfirmation = ({
 
   useEffect(() => {
     if (autoConfirm && status === "idle" && stripe && clientSecret) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       confirmPayment();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -134,6 +135,7 @@ export const usePaymentConfirmation = ({
 
   useEffect(() => {
     if (clientSecret && status !== "idle") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       reset();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

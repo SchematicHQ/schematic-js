@@ -155,6 +155,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
   const [isModal, setIsModal] = useState(true);
 
   const { featureUsage, showPeriodToggle, trialPaymentMethodRequired } =
+    // eslint-disable-next-line react-hooks/preserve-manual-memoization
     useMemo(() => {
       return {
         featureUsage: data?.featureUsage ? data.featureUsage.features : [],
@@ -234,6 +235,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
   // Keep currency pinned to the subscription currency when it loads async
   useEffect(() => {
     if (lockedCurrency) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectedCurrency(lockedCurrency);
     }
   }, [lockedCurrency]);
@@ -505,6 +507,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       return;
     }
 
+    /* eslint-disable react-hooks/set-state-in-effect */
     // Skip plan stage if bypassing plan selection
     if (
       checkoutState?.bypassPlanSelection &&
@@ -546,6 +549,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
         setCheckoutStage(nextStage.id);
       }
     }
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [
     checkoutStages,
     checkoutState?.bypassPlanSelection,
@@ -965,6 +969,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
       // Only call selectPlan if the plan actually changed to avoid redundant API calls
       if (plan && plan.id !== selectedPlan?.id) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         selectPlan({ plan, period: planPeriod });
       }
     }
@@ -977,6 +982,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
   ]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setAddOns((prevAddOns) => {
       return availableAddOns
         .filter((availAddOn) => {
@@ -1247,6 +1253,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
                     selectedOption={planPeriod}
                     selectedPlan={selectedPlan}
                     onSelect={changePlanPeriod}
+                    // eslint-disable-next-line react-hooks/refs
                     tooltipPortal={dialogRef.current}
                   />
                 )}
@@ -1272,6 +1279,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
               selectedPlan={selectedPlan}
               selectPlan={selectPlan}
               shouldTrial={shouldTrial}
+              // eslint-disable-next-line react-hooks/refs
               tooltipPortal={dialogRef.current}
               currency={hasCurrency ? selectedCurrency : undefined}
             />
@@ -1282,6 +1290,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
               selectedPlan={selectedPlan}
               entitlements={payInAdvanceEntitlements}
               updateQuantity={updateUsageBasedEntitlementQuantity}
+              // eslint-disable-next-line react-hooks/refs
               tooltipPortal={dialogRef.current}
               currency={hasCurrency ? selectedCurrency : undefined}
             />
@@ -1300,6 +1309,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
               selectedPlan={selectedPlan}
               entitlements={addOnPayInAdvanceEntitlements}
               updateQuantity={updateAddOnEntitlementQuantity}
+              // eslint-disable-next-line react-hooks/refs
               tooltipPortal={dialogRef.current}
               currency={hasCurrency ? selectedCurrency : undefined}
             />
