@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { BillingProductPriceInterval } from "../../../../api/checkoutexternal";
@@ -53,9 +53,15 @@ export const Plan = ({
 
   const trialEnd = useTrialEnd();
 
+  const [prevPlans, setPrevPlans] = useState(plans);
   const [entitlementCounts, setEntitlementCounts] = useState(() =>
     plans.reduce(entitlementCountsReducer, {}),
   );
+
+  if (plans !== prevPlans) {
+    setPrevPlans(plans);
+    setEntitlementCounts(plans.reduce(entitlementCountsReducer, {}));
+  }
 
   const handleToggleShowAll = (id: string) => {
     setEntitlementCounts((prev) => {
@@ -77,12 +83,6 @@ export const Plan = ({
       return prev;
     });
   };
-
-  useEffect(() => {
-    // TODO: refactor entitlement counts
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setEntitlementCounts(plans.reduce(entitlementCountsReducer, {}));
-  }, [plans]);
 
   const isTrialing = data?.subscription?.status === "trialing";
   const showAsMonthlyPrices =

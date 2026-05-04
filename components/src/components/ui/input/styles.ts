@@ -1,13 +1,13 @@
 import { css, styled } from "styled-components";
 
-import { useIsLightBackground } from "../../../hooks";
+import { isLightColor } from "../../../utils";
 
 export const Input = styled.input<{
   $size?: "xs" | "sm" | "md" | "lg" | "full";
   $color?: "primary" | "secondary" | "danger";
   $variant?: "filled" | "outline" | "ghost" | "text";
 }>(({ theme, $size = "md", $variant = "filled" }) => {
-  const isLightBackground = useIsLightBackground();
+  const isLightBackground = isLightColor(theme.card.background);
 
   return css`
     font-family: "Inter", sans-serif;

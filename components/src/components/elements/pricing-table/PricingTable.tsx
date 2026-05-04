@@ -180,7 +180,6 @@ export const PricingTable = forwardRef<
 
   useEffect(() => {
     if (currencies.length > 0 && !currencies.includes(selectedCurrency)) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectedCurrency(currencies[0]);
     }
   }, [currencies, selectedCurrency]);
@@ -257,7 +256,6 @@ export const PricingTable = forwardRef<
 
   useEffect(() => {
     // TODO: refactor entitlement counts
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setEntitlementCounts(plans.reduce(entitlementCountsReducer, {}));
   }, [plans]);
 

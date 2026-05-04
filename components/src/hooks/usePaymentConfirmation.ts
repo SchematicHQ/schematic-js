@@ -29,6 +29,7 @@ export const usePaymentConfirmation = ({
   const [status, setStatus] = useState<
     "idle" | "confirming" | "succeeded" | "failed"
   >("idle");
+  const [prevClientSecret, setPrevClientSecret] = useState(clientSecret);
 
   const confirmedSecrets = useRef(new Set<string>());
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -44,10 +45,11 @@ export const usePaymentConfirmation = ({
       return;
     }
 
-    if (confirmedSecrets.current.has(clientSecret) || isConfirming) {
+    if (confirmedSecrets.current.has(clientSecret)) {
       console.warn("Payment confirmation already attempted or in progress");
       return;
     }
+    confirmedSecrets.current.add(clientSecret);
 
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
@@ -61,8 +63,6 @@ export const usePaymentConfirmation = ({
     setStatus("confirming");
 
     try {
-      confirmedSecrets.current.add(clientSecret);
-
       const stripeInstance = await stripe;
 
       if (signal.aborted) {
@@ -100,7 +100,7 @@ export const usePaymentConfirmation = ({
       }
       abortControllerRef.current = null;
     }
-  }, [stripe, clientSecret, onSuccess, onError, isConfirming]);
+  }, [stripe, clientSecret, onSuccess, onError]);
 
   const reset = useCallback(() => {
     if (clientSecret) {
@@ -116,12 +116,23 @@ export const usePaymentConfirmation = ({
     }
   }, [clientSecret]);
 
+  if (clientSecret !== prevClientSecret) {
+    setPrevClientSecret(clientSecret);
+    setIsConfirming(false);
+    setError(null);
+    setStatus("idle");
+  }
+
   useEffect(() => {
-    if (autoConfirm && status === "idle" && stripe && clientSecret) {
+    if (
+      autoConfirm &&
+      stripe &&
+      clientSecret &&
+      !confirmedSecrets.current.has(clientSecret)
+    ) {
       confirmPayment();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoConfirm, stripe, clientSecret]);
+  }, [autoConfirm, stripe, clientSecret, confirmPayment]);
 
   useEffect(() => {
     return () => {
@@ -130,13 +141,6 @@ export const usePaymentConfirmation = ({
         abortControllerRef.current = null;
       }
     };
-  }, []);
-
-  useEffect(() => {
-    if (clientSecret && status !== "idle") {
-      reset();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clientSecret]);
 
   return {
