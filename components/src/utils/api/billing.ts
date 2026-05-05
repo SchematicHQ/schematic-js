@@ -100,6 +100,35 @@ export function getAddOnPrice(
   }
 }
 
+/**
+ * Returns true if the plan/add-on offers pricing in the given currency.
+ *
+ * - If `currency` is omitted, returns true (no filter).
+ * - If the plan has explicit `currencyPrices`, the currency must be present
+ *   there.
+ * - Otherwise we treat the legacy single-currency pricing fields as
+ *   authoritative and match against whichever interval price is set.
+ * - A plan with no pricing at all (e.g. a free plan) is currency-agnostic.
+ */
+export function planSupportsCurrency(plan: Plan, currency?: string): boolean {
+  if (!currency) return true;
+
+  const target = currency.toLowerCase();
+
+  if (plan.currencyPrices?.length) {
+    return plan.currencyPrices.some(
+      (cp) => cp.currency.toLowerCase() === target,
+    );
+  }
+
+  const legacyCurrency =
+    plan.monthlyPrice?.currency ??
+    plan.yearlyPrice?.currency ??
+    plan.oneTimePrice?.currency;
+
+  return !legacyCurrency || legacyCurrency.toLowerCase() === target;
+}
+
 export function getEntitlementPrice(
   entitlement: Entitlement,
   period = "month",

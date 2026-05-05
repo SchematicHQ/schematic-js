@@ -710,6 +710,100 @@ describe("`PricingTable`", () => {
       expect(secondPlanPrice).toHaveTextContent("€10.00/month");
     });
 
+    test("hides plans and add-ons that lack the selected currency", async () => {
+      server.use(
+        http.get("https://api.schematichq.com/public/plans", async () => {
+          const response = cloneDeep(plansJson);
+
+          const usdMonthly = (price: number) => ({
+            currency: "usd",
+            external_price_id: `price_usd_${price}_m`,
+            id: `bilpp_usd_${price}_m`,
+            interval: "month",
+            price,
+            price_decimal: String(price),
+            provider_type: "stripe",
+            scheme: "per_unit",
+          });
+          const usdYearly = (price: number) => ({
+            ...usdMonthly(price),
+            external_price_id: `price_usd_${price}_y`,
+            id: `bilpp_usd_${price}_y`,
+            interval: "year",
+          });
+          const jpyMonthly = (price: number) => ({
+            currency: "jpy",
+            external_price_id: `price_jpy_${price}_m`,
+            id: `bilpp_jpy_${price}_m`,
+            interval: "month",
+            price,
+            price_decimal: String(price),
+            provider_type: "stripe",
+            scheme: "per_unit",
+          });
+          const jpyYearly = (price: number) => ({
+            ...jpyMonthly(price),
+            external_price_id: `price_jpy_${price}_y`,
+            id: `bilpp_jpy_${price}_y`,
+            interval: "year",
+          });
+
+          // The inferred type from `plansJson` types `currency_prices` as
+          // `never[]`, so cast each entry list through `unknown` rather than
+          // sprinkling `@ts-expect-error` (which doesn't reach inside the
+          // multi-line literal).
+          // Plans 0/1 support both USD and JPY; plans 2/3 are USD only.
+          response.data.active_plans[0].currency_prices = [
+            { currency: "usd", monthly_price: usdMonthly(500), yearly_price: usdYearly(5000) },
+            { currency: "jpy", monthly_price: jpyMonthly(500), yearly_price: jpyYearly(5000) },
+          ] as unknown as never[];
+          response.data.active_plans[1].currency_prices = [
+            { currency: "usd", monthly_price: usdMonthly(1000), yearly_price: usdYearly(10000) },
+            { currency: "jpy", monthly_price: jpyMonthly(1000), yearly_price: jpyYearly(10000) },
+          ] as unknown as never[];
+
+          // Add-on 0 supports both; add-on 1 is USD only.
+          response.data.active_add_ons[0].currency_prices = [
+            { currency: "usd", monthly_price: usdMonthly(500), yearly_price: usdYearly(5000) },
+            { currency: "jpy", monthly_price: jpyMonthly(500), yearly_price: jpyYearly(5000) },
+          ] as unknown as never[];
+
+          return HttpResponse.json(response);
+        }),
+      );
+
+      render(<PricingTable callToActionUrl="/" />);
+
+      // Selector shows because more than one currency is hydrated.
+      const currencySelect = await screen.findByTestId("sch-currency-select");
+      expect(currencySelect).toHaveValue("USD");
+
+      // USD is selected initially: every plan and add-on renders.
+      let plans = screen.queryAllByTestId("sch-plan");
+      expect(plans).toHaveLength(4);
+      expect(screen.getByText("Basic")).toBeInTheDocument();
+      expect(screen.getByText("Standard")).toBeInTheDocument();
+      expect(screen.getByText("Professional")).toBeInTheDocument();
+      expect(screen.getByText("Enterprise")).toBeInTheDocument();
+      expect(screen.getByText("Simple Add-on")).toBeInTheDocument();
+      expect(screen.getByText("One-time Add-on")).toBeInTheDocument();
+
+      // Switch to JPY.
+      act(() => {
+        fireEvent.change(currencySelect, { target: { value: "JPY" } });
+      });
+
+      // Only the plans/add-ons that offer JPY remain.
+      plans = screen.queryAllByTestId("sch-plan");
+      expect(plans).toHaveLength(2);
+      expect(screen.getByText("Basic")).toBeInTheDocument();
+      expect(screen.getByText("Standard")).toBeInTheDocument();
+      expect(screen.queryByText("Professional")).not.toBeInTheDocument();
+      expect(screen.queryByText("Enterprise")).not.toBeInTheDocument();
+      expect(screen.getByText("Simple Add-on")).toBeInTheDocument();
+      expect(screen.queryByText("One-time Add-on")).not.toBeInTheDocument();
+    });
+
     test("renders plans with very large prices properly", async () => {
       server.use(
         http.get("https://api.schematichq.com/public/plans", async () => {

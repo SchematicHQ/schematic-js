@@ -4,6 +4,7 @@ import {
   forwardRef,
   useCallback,
   useEffect,
+  useMemo,
   useState,
 } from "react";
 import { useTranslation } from "react-i18next";
@@ -25,7 +26,7 @@ import {
   useEmbed,
 } from "../../../hooks";
 import type { DeepPartial, ElementProps } from "../../../types";
-import { entitlementCountsReducer } from "../../../utils";
+import { entitlementCountsReducer, planSupportsCurrency } from "../../../utils";
 import { Container, FussyChild } from "../../layout";
 import {
   CurrencyToggle,
@@ -190,9 +191,38 @@ export const PricingTable = forwardRef<
   const showCurrencySelector = currencies.length > 1;
   const hasCurrency = currencies.length > 1 || hasCurrencyFilter;
   const hasNoUsableCurrency = currencies.length === 0;
-  const { plans, addOns, periods } = useAvailablePlans(selectedPeriod, {
+  const {
+    plans: allPlans,
+    addOns: allAddOns,
+    periods,
+  } = useAvailablePlans(selectedPeriod, {
     useSelectedPeriod: showPeriodToggle,
   });
+
+  // When a currency is in play (multi-currency data or an explicit
+  // currencyFilter), hide plans/add-ons that lack pricing in the selected
+  // currency rather than rendering them with a mismatched legacy fallback.
+  // Memoize so a stable reference is handed to the entitlement-count effect
+  // below — without this the filtered array would be a fresh value on every
+  // render and trigger an infinite update loop.
+  const plans = useMemo(
+    () =>
+      hasCurrency
+        ? allPlans.filter((plan) =>
+            planSupportsCurrency(plan, selectedCurrency),
+          )
+        : allPlans,
+    [allPlans, hasCurrency, selectedCurrency],
+  );
+  const addOns = useMemo(
+    () =>
+      hasCurrency
+        ? allAddOns.filter((addOn) =>
+            planSupportsCurrency(addOn, selectedCurrency),
+          )
+        : allAddOns,
+    [allAddOns, hasCurrency, selectedCurrency],
+  );
 
   const [entitlementCounts, setEntitlementCounts] = useState(() =>
     plans.reduce(entitlementCountsReducer, {}),
