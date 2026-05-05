@@ -36,6 +36,7 @@ import {
   buildPayInAdvanceRequestBody,
   getPlanPrice,
   isError,
+  isScheduledCheckoutConflictMessage,
 } from "../../../utils";
 import {
   CurrencyToggle,
@@ -678,12 +679,12 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
             }
           }
 
-          if (err.response.status === 409) {
-            switch (data.error) {
-              case "cannot purchase pay-in-advance entitlements while a scheduled downgrade is pending; cancel the scheduled downgrade first":
-                setError(t("Downgrade pending."));
-                return;
-            }
+          if (
+            err.response.status === 409 &&
+            isScheduledCheckoutConflictMessage(data?.error)
+          ) {
+            setError(t("Downgrade pending."));
+            return;
           }
 
           setError(
