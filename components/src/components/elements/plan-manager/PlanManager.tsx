@@ -17,8 +17,11 @@ import type {
 import {
   darken,
   formatCurrency,
+  getAutoTopupAmount,
+  getAutoTopupThresholdCredits,
   getFeatureName,
   groupCreditGrants,
+  isAutoTopupEnabled,
   lighten,
   shortenPeriod,
   toPrettyDate,
@@ -526,8 +529,10 @@ export const PlanManager = forwardRef<
                     currentPlan?.includedCreditGrants.find(
                       (grant) => grant.creditId === group.id,
                     );
-                  const hasAutoTopup =
-                    planCreditGrant?.billingCreditAutoTopupEnabled;
+                  const hasAutoTopup = isAutoTopupEnabled(planCreditGrant);
+                  const thresholdCredits =
+                    getAutoTopupThresholdCredits(planCreditGrant);
+                  const topupAmount = getAutoTopupAmount(planCreditGrant);
 
                   return (
                     <Flex
@@ -563,7 +568,8 @@ export const PlanManager = forwardRef<
                               {group.total.used} {t("used")}
                               {hasAutoTopup && planCreditGrant && (
                                 <AutoTopupNotice
-                                  planCreditGrant={planCreditGrant}
+                                  thresholdCredits={thresholdCredits}
+                                  topupAmount={topupAmount}
                                 />
                               )}
                             </Text>
@@ -602,8 +608,7 @@ export const PlanManager = forwardRef<
                         }
 
                         const autoTopupEnabled =
-                          grant.companyAutoTopupEnabled ??
-                          grant.billingCreditAutoTopupEnabled;
+                          grant.companyAutoTopupEnabled ?? false;
 
                         if (!autoTopupEnabled) {
                           acc.push(
@@ -618,11 +623,8 @@ export const PlanManager = forwardRef<
                         }
 
                         const autoTopupThresholdCredits =
-                          grant.companyAutoTopupThresholdCredits ??
-                          grant.billingCreditAutoTopupThresholdCredits;
-                        const autoTopupAmount =
-                          grant.companyAutoTopupAmount ??
-                          grant.billingCreditAutoTopupAmount;
+                          getAutoTopupThresholdCredits(grant);
+                        const autoTopupAmount = getAutoTopupAmount(grant);
 
                         if (
                           typeof autoTopupThresholdCredits === "number" &&

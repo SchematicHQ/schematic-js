@@ -3,6 +3,7 @@ import {
   type BillingPriceResponseData,
   type BillingPriceView,
   type BillingProductPriceTierResponseData,
+  type CompanyPlanCreditGrantView,
   type CompanyPlanDetailResponseData,
   type ComponentHydrateResponseData,
   type CreditCompanyGrantView,
@@ -23,11 +24,12 @@ export type BillingPrice = BillingPriceView | BillingPriceResponseData;
 export type Plan = CompanyPlanDetailResponseData;
 export type SelectedPlan = Plan & { isSelected: boolean };
 
-export interface AutoTopupConfig {
-  billingCreditAutoTopupEnabled: boolean;
-  billingCreditAutoTopupThresholdCredits: number;
-  billingCreditAutoTopupAmount: number;
-}
+export type AutoTopupConfig = Pick<
+  CompanyPlanCreditGrantView,
+  | "companyAutoTopupEnabled"
+  | "companyAutoTopupThresholdCredits"
+  | "companyAutoTopupAmount"
+>;
 
 export interface CreditWithCompanyContext {
   id: CreditCompanyGrantView["billingCreditId"];

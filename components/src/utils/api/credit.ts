@@ -114,6 +114,27 @@ export function groupCreditGrants(
   return Object.values(map);
 }
 
+export function isAutoTopupEnabled(grant?: CompanyPlanCreditGrantView) {
+  if (grant?.billingCreditAutoTopupSelfService) {
+    return grant.companyAutoTopupEnabled ?? false;
+  }
+
+  return grant?.billingCreditAutoTopupEnabled ?? false;
+}
+
+export function getAutoTopupThresholdCredits(
+  grant?: CompanyPlanCreditGrantView,
+) {
+  return (
+    grant?.companyAutoTopupThresholdCredits ??
+    grant?.billingCreditAutoTopupThresholdCredits
+  );
+}
+
+export function getAutoTopupAmount(grant?: CompanyPlanCreditGrantView) {
+  return grant?.companyAutoTopupAmount ?? grant?.billingCreditAutoTopupAmount;
+}
+
 export function mergeAutoTopupOverrides(
   grant: PlanCreditGrantView,
   companyGrant?: CompanyPlanCreditGrantView,

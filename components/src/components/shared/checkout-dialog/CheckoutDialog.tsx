@@ -10,6 +10,7 @@ import { useTranslation } from "react-i18next";
 
 import {
   BillingProductPriceInterval,
+  CompanyPlanCreditGrantView,
   EntitlementPriceBehavior,
   ResponseError,
   type FeatureUsageResponseData,
@@ -281,7 +282,33 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
   const [autoTopupConfigs, setAutoTopupConfigs] = useState<
     Map<string, AutoTopupConfig>
-  >(new Map());
+  >(() => {
+    const initialConfigs = data?.company?.plan?.includedCreditGrants.reduce(
+      (
+        acc: [id: string, config: AutoTopupConfig][],
+        companyGrant: CompanyPlanCreditGrantView,
+      ) => {
+        const {
+          companyAutoTopupEnabled,
+          companyAutoTopupThresholdCredits,
+          companyAutoTopupAmount,
+        } = companyGrant;
+
+        const config: AutoTopupConfig = {
+          companyAutoTopupEnabled,
+          companyAutoTopupThresholdCredits,
+          companyAutoTopupAmount,
+        };
+
+        acc.push([companyGrant.id, config]);
+
+        return acc;
+      },
+      [],
+    );
+
+    return new Map(initialConfigs);
+  });
 
   const [addOns, setAddOns] = useState(() => {
     return availableAddOns.map((addOn) => ({
@@ -935,19 +962,18 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
         );
 
         const updatedConfig: AutoTopupConfig = {
-          billingCreditAutoTopupEnabled:
-            updates.billingCreditAutoTopupEnabled ??
-            prevConfig?.billingCreditAutoTopupEnabled ??
-            matchedCreditGrant?.billingCreditAutoTopupEnabled ??
+          companyAutoTopupEnabled:
+            updates.companyAutoTopupEnabled ??
+            prevConfig?.companyAutoTopupEnabled ??
             false,
-          billingCreditAutoTopupThresholdCredits:
-            updates.billingCreditAutoTopupThresholdCredits ??
-            prevConfig?.billingCreditAutoTopupThresholdCredits ??
+          companyAutoTopupThresholdCredits:
+            updates.companyAutoTopupThresholdCredits ??
+            prevConfig?.companyAutoTopupThresholdCredits ??
             matchedCreditGrant?.billingCreditAutoTopupThresholdCredits ??
             0,
-          billingCreditAutoTopupAmount:
-            updates.billingCreditAutoTopupAmount ??
-            prevConfig?.billingCreditAutoTopupAmount ??
+          companyAutoTopupAmount:
+            updates.companyAutoTopupAmount ??
+            prevConfig?.companyAutoTopupAmount ??
             matchedCreditGrant?.billingCreditAutoTopupAmount ??
             0,
         };

@@ -26,10 +26,9 @@ export function buildAutoTopupRequestBody(options: {
 
         acc.push({
           planCreditGrantId: grant.id,
-          autoTopupEnabled: config?.billingCreditAutoTopupEnabled,
-          autoTopupAmount: config?.billingCreditAutoTopupAmount,
-          autoTopupThresholdCredits:
-            config?.billingCreditAutoTopupThresholdCredits,
+          autoTopupEnabled: config?.companyAutoTopupEnabled,
+          autoTopupAmount: config?.companyAutoTopupAmount,
+          autoTopupThresholdCredits: config?.companyAutoTopupThresholdCredits,
         });
       }
 

@@ -4,44 +4,23 @@ import { useTranslation } from "react-i18next";
 import { PlanCreditGrantView } from "../../../api/checkoutexternal";
 import { TEXT_BASE_SIZE } from "../../../const";
 import { useEmbed } from "../../../hooks";
-import {
-  //formatCurrency,
-  //getCreditPrice,
-  getFeatureName,
-  //getPriceValue,
-} from "../../../utils";
+import { AutoTopupConfig } from "../../../types";
+import { getFeatureName } from "../../../utils";
 import { cardBoxShadow } from "../../layout";
 import { Box, Flex, Input, Text, Toggle } from "../../ui";
 
 interface AutoTopupProps {
   isLoading: boolean;
   planCreditGrants: PlanCreditGrantView[];
-  autoTopupConfigs: Map<
-    string,
-    Pick<
-      PlanCreditGrantView,
-      | "billingCreditAutoTopupEnabled"
-      | "billingCreditAutoTopupThresholdCredits"
-      | "billingCreditAutoTopupAmount"
-    >
-  >;
-  updateAutoTopupConfig: (
-    id: string,
-    config: {
-      billingCreditAutoTopupEnabled?: boolean;
-      billingCreditAutoTopupThresholdCredits?: number;
-      billingCreditAutoTopupAmount?: number;
-    },
-  ) => void;
+  autoTopupConfigs: Map<string, AutoTopupConfig>;
+  updateAutoTopupConfig: (id: string, config: Partial<AutoTopupConfig>) => void;
   currency?: string;
 }
 
 export const AutoTopup = ({
-  //isLoading,
   planCreditGrants,
   autoTopupConfigs,
   updateAutoTopupConfig,
-  //currency,
 }: AutoTopupProps) => {
   const { settings } = useEmbed();
 
@@ -49,16 +28,24 @@ export const AutoTopup = ({
 
   const cardPadding = settings.theme.card.padding / TEXT_BASE_SIZE;
 
-  //const unitPriceFontSize = 0.875 * settings.theme.typography.text.fontSize;
-
   const configurableCreditGrants = useMemo(() => {
     return planCreditGrants.reduce(
       (acc: (PlanCreditGrantView & { cost?: number })[], grant) => {
         if (grant.billingCreditAutoTopupSelfService) {
-          const config = autoTopupConfigs.get(grant.id);
-          const resolvedGrant = {
+          const {
+            companyAutoTopupEnabled,
+            companyAutoTopupThresholdCredits,
+            companyAutoTopupAmount,
+          } = autoTopupConfigs.get(grant.id) || {};
+          const resolvedGrant: PlanCreditGrantView = {
             ...grant,
-            ...config,
+            billingCreditAutoTopupEnabled: companyAutoTopupEnabled ?? false,
+            billingCreditAutoTopupThresholdCredits:
+              companyAutoTopupThresholdCredits ??
+              grant.billingCreditAutoTopupThresholdCredits ??
+              0,
+            billingCreditAutoTopupAmount:
+              companyAutoTopupAmount ?? grant.billingCreditAutoTopupAmount ?? 0,
           };
           const price =
             typeof grant.credit?.price?.priceDecimal === "string"
@@ -123,7 +110,7 @@ export const AutoTopup = ({
                 defaultChecked={grant.billingCreditAutoTopupEnabled}
                 onChange={() => {
                   updateAutoTopupConfig(grant.id, {
-                    billingCreditAutoTopupEnabled:
+                    companyAutoTopupEnabled:
                       !grant.billingCreditAutoTopupEnabled,
                   });
                 }}
@@ -162,7 +149,7 @@ export const AutoTopup = ({
                         const value = parseInt(event.target.value);
                         if (!isNaN(value)) {
                           updateAutoTopupConfig(grant.id, {
-                            billingCreditAutoTopupThresholdCredits: value,
+                            companyAutoTopupThresholdCredits: value,
                           });
                         }
                       }}
@@ -192,7 +179,7 @@ export const AutoTopup = ({
                         const value = parseInt(event.target.value);
                         if (!isNaN(value)) {
                           updateAutoTopupConfig(grant.id, {
-                            billingCreditAutoTopupAmount: value,
+                            companyAutoTopupAmount: value,
                           });
                         }
                       }}

@@ -8,10 +8,13 @@ import type { SelectedPlan } from "../../../../types";
 import {
   entitlementCountsReducer,
   formatCurrency,
+  getAutoTopupAmount,
+  getAutoTopupThresholdCredits,
   getFeatureName,
   getPlanPrice,
   groupPlanCreditGrants,
   hexToHSL,
+  isAutoTopupEnabled,
   mergeCompanyGrants,
 } from "../../../../utils";
 import { cardBoxShadow } from "../../../layout";
@@ -223,8 +226,10 @@ export const Plan = ({
                       plan.includedCreditGrants,
                       data?.company?.plan?.includedCreditGrants,
                     ).find((grant) => grant.creditId === credit.id);
-                    const hasAutoTopup =
-                      planCreditGrant?.billingCreditAutoTopupEnabled;
+                    const hasAutoTopup = isAutoTopupEnabled(planCreditGrant);
+                    const thresholdCredits =
+                      getAutoTopupThresholdCredits(planCreditGrant);
+                    const topupAmount = getAutoTopupAmount(planCreditGrant);
 
                     return (
                       <Flex
@@ -259,8 +264,8 @@ export const Plan = ({
                             )}
                             {hasAutoTopup && planCreditGrant && (
                               <AutoTopupNotice
-                                planCreditGrant={planCreditGrant}
-                                portal={tooltipPortal}
+                                thresholdCredits={thresholdCredits}
+                                topupAmount={topupAmount}
                               />
                             )}
                           </Text>
