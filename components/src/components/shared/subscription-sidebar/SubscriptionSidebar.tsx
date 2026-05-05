@@ -574,7 +574,6 @@ export const SubscriptionSidebar = forwardRef<
       }
     }, [
       t,
-      data?.company?.plan?.includedCreditGrants,
       checkout,
       setConfirmPaymentIntent,
       paymentMethodId,
