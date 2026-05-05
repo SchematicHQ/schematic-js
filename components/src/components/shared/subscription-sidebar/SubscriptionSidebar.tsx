@@ -11,6 +11,7 @@ import { useTranslation } from "react-i18next";
 
 import {
   EntitlementPriceBehavior,
+  ResponseError,
   type PreviewSubscriptionFinanceResponseData,
 } from "../../../api/checkoutexternal";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
@@ -34,6 +35,7 @@ import {
   getFeatureName,
   getMonthName,
   getPlanPrice,
+  isScheduledCheckoutConflictMessage,
   shortenPeriod,
   toPrettyDate,
 } from "../../../utils";
@@ -505,9 +507,43 @@ export const SubscriptionSidebar = forwardRef<
           setIsLoading(false);
           setLayout("portal");
         }
-      } catch {
+      } catch (err) {
         setIsLoading(false);
         setLayout("checkout");
+
+        if (err instanceof ResponseError) {
+          if (err.response.status === 401) {
+            setError(t("Session expired. Please refresh and try again."));
+            return;
+          }
+
+          // Read the body once; the `data.error` string is what the API
+          // helpers in lib/web/helpers.go put under the top-level error key.
+          let data: { error?: unknown } | undefined;
+          try {
+            data = await err.response.json();
+          } catch {
+            data = undefined;
+          }
+
+          if (
+            err.response.status === 409 &&
+            isScheduledCheckoutConflictMessage(data?.error)
+          ) {
+            setError(
+              t(
+                "Downgrade pending. Cancel the scheduled downgrade before making another change.",
+              ),
+            );
+            return;
+          }
+        }
+
+        // Default fallback. The original copy assumed every checkout error
+        // was a payment-method problem; that's right for Stripe-rejection
+        // failures (handled in the confirmPaymentIntent callback above), but
+        // misleading for transport / API errors. Keep the "try a different
+        // payment method" hint for now — broader copy review is out of scope.
         setError(
           t("Error processing payment. Please try a different payment method."),
         );

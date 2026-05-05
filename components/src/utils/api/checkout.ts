@@ -58,6 +58,20 @@ export function buildAddOnRequestBody(options: {
   }, []);
 }
 
+// Recognizes 409 responses from POST /checkout(/preview) where a pending
+// scheduled checkout is blocking the action. The backend currently emits
+// four variants of this conflict (already-exists, blocks add-ons, blocks
+// pay-in-advance, blocks credits) — see api/apps/errors/errors.go. Match on
+// the shared phrasing rather than exact strings so a wording tweak on the
+// backend doesn't silently regress the friendly UI message.
+export function isScheduledCheckoutConflictMessage(message: unknown): boolean {
+  if (typeof message !== "string") {
+    return false;
+  }
+  const m = message.toLowerCase();
+  return m.includes("scheduled downgrade") || m.includes("scheduled checkout");
+}
+
 export function buildCreditBundlesRequestBody(
   creditBundles: CreditBundle[],
 ): UpdateCreditBundleRequestBody[] {
