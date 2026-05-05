@@ -37,6 +37,7 @@ import {
   getPlanPrice,
   isError,
   isScheduledCheckoutConflictMessage,
+  planSupportsCurrency,
 } from "../../../utils";
 import {
   CurrencyToggle,
@@ -399,7 +400,9 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       });
     }
 
-    // addOns could be filtered by compatibility rules
+    // addOns is already filtered by plan compatibility and currency support
+    // (see the setAddOns effect below); skip the stage entirely when nothing
+    // remains.
     if (addOns.length > 0 && (!isSelectedPlanTrialable || !shouldTrial)) {
       stages.push({
         id: "addons",
@@ -994,6 +997,17 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
           return ourCompats?.compatiblePlanIds.includes(selectedPlan?.id);
         })
+        .filter((availAddOn) =>
+          // Drop add-ons that don't offer the in-play currency. The currency
+          // is pinned to lockedCurrency (the active subscription) when one
+          // exists, so this also hides add-ons incompatible with a fixed
+          // subscription currency. We only filter when there's a meaningful
+          // currency choice — otherwise legacy single-currency setups would
+          // disappear unexpectedly.
+          hasCurrency
+            ? planSupportsCurrency(availAddOn, selectedCurrency)
+            : true,
+        )
         .map((addOn) => {
           const prevAddOn = prevAddOns.find((prev) => prev.id === addOn.id);
 
@@ -1003,7 +1017,13 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
           };
         });
     });
-  }, [data?.addOnCompatibilities, availableAddOns, selectedPlan]);
+  }, [
+    data?.addOnCompatibilities,
+    availableAddOns,
+    selectedPlan,
+    hasCurrency,
+    selectedCurrency,
+  ]);
 
   useLayoutEffect(() => {
     const element = dialogRef.current;
