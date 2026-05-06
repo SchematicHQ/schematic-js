@@ -3,7 +3,12 @@ import { useTranslation } from "react-i18next";
 
 import { BillingCreditGrantReason } from "../../../api/checkoutexternal";
 import { type FontStyle } from "../../../context";
-import { useEmbed, useIsLightBackground, useTrialEnd } from "../../../hooks";
+import {
+  useCustomPlanBilling,
+  useEmbed,
+  useIsLightBackground,
+  useTrialEnd,
+} from "../../../hooks";
 import type {
   CreditWithCompanyContext,
   DeepPartial,
@@ -100,6 +105,8 @@ export const PlanManager = forwardRef<
   const isLightBackground = useIsLightBackground();
 
   const trialEnd = useTrialEnd();
+
+  const customPlanBilling = useCustomPlanBilling();
 
   /**
    * Can change plan if there is:
@@ -276,6 +283,63 @@ export const PlanManager = forwardRef<
                 ),
               })}
             </Text>
+          )}
+        </Notice>
+      ) : customPlanBilling ? (
+        <Notice
+          as={Flex}
+          $flexDirection="column"
+          $gap="0.5rem"
+          $padding="1.5rem"
+          $textAlign="center"
+          $backgroundColor={
+            isLightBackground
+              ? darken(settings.theme.card.background, 0.04)
+              : lighten(settings.theme.card.background, 0.04)
+          }
+        >
+          <Text as="h3" display="heading3">
+            {customPlanBilling.isAwaitingActivation
+              ? t("Custom plan awaiting payment", {
+                  plan: customPlanBilling.planName ?? t("your plan"),
+                })
+              : t("Custom plan payment due", {
+                  plan: customPlanBilling.planName ?? t("your plan"),
+                  date: toPrettyDate(customPlanBilling.deadline, {
+                    month: "numeric",
+                  }),
+                })}
+          </Text>
+
+          <Text
+            as="p"
+            $size={0.8125 * settings.theme.typography.text.fontSize}
+          >
+            {customPlanBilling.isAwaitingActivation
+              ? t("Custom plan awaiting payment description", {
+                  date: toPrettyDate(customPlanBilling.deadline, {
+                    month: "numeric",
+                  }),
+                })
+              : t("Custom plan payment due description", {
+                  plan: customPlanBilling.planName ?? t("your plan"),
+                  date: toPrettyDate(customPlanBilling.deadline, {
+                    month: "numeric",
+                  }),
+                })}
+          </Text>
+
+          {customPlanBilling.billing.stripeInvoiceUrl && (
+            <Button
+              as="a"
+              href={customPlanBilling.billing.stripeInvoiceUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              $size="md"
+              $color="primary"
+            >
+              {t("Pay now")}
+            </Button>
           )}
         </Notice>
       ) : (
@@ -614,19 +678,21 @@ export const PlanManager = forwardRef<
           </Flex>
         )}
 
-        {canCheckout && props.callToAction.isVisible && (
-          <Button
-            type="button"
-            onClick={() => {
-              setLayout("checkout");
-            }}
-            $size={props.callToAction.buttonSize}
-            $color={props.callToAction.buttonStyle}
-            $fullWidth
-          >
-            {t("Change plan")}
-          </Button>
-        )}
+        {canCheckout &&
+          props.callToAction.isVisible &&
+          !customPlanBilling?.isAwaitingActivation && (
+            <Button
+              type="button"
+              onClick={() => {
+                setLayout("checkout");
+              }}
+              $size={props.callToAction.buttonSize}
+              $color={props.callToAction.buttonStyle}
+              $fullWidth
+            >
+              {t("Change plan")}
+            </Button>
+          )}
       </Element>
     </>
   );
