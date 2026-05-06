@@ -45,7 +45,7 @@ jobs:
         run: yarn build:browser
 
       - name: 🚀auth-oidc-aws-prod
-        uses: aws-actions/configure-aws-credentials@v6.1.0
+        uses: aws-actions/configure-aws-credentials@v6.1.1
         with:
           role-to-assume: ${{ vars.PROD_AWS_ROLE_ARN }}
           aws-region: ${{ vars.PROD_AWS_REGION }}
