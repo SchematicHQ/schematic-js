@@ -754,18 +754,42 @@ describe("`PricingTable`", () => {
           // multi-line literal).
           // Plans 0/1 support both USD and JPY; plans 2/3 are USD only.
           response.data.active_plans[0].currency_prices = [
-            { currency: "usd", monthly_price: usdMonthly(500), yearly_price: usdYearly(5000) },
-            { currency: "jpy", monthly_price: jpyMonthly(500), yearly_price: jpyYearly(5000) },
+            {
+              currency: "usd",
+              monthly_price: usdMonthly(500),
+              yearly_price: usdYearly(5000),
+            },
+            {
+              currency: "jpy",
+              monthly_price: jpyMonthly(500),
+              yearly_price: jpyYearly(5000),
+            },
           ] as unknown as never[];
           response.data.active_plans[1].currency_prices = [
-            { currency: "usd", monthly_price: usdMonthly(1000), yearly_price: usdYearly(10000) },
-            { currency: "jpy", monthly_price: jpyMonthly(1000), yearly_price: jpyYearly(10000) },
+            {
+              currency: "usd",
+              monthly_price: usdMonthly(1000),
+              yearly_price: usdYearly(10000),
+            },
+            {
+              currency: "jpy",
+              monthly_price: jpyMonthly(1000),
+              yearly_price: jpyYearly(10000),
+            },
           ] as unknown as never[];
 
           // Add-on 0 supports both; add-on 1 is USD only.
           response.data.active_add_ons[0].currency_prices = [
-            { currency: "usd", monthly_price: usdMonthly(500), yearly_price: usdYearly(5000) },
-            { currency: "jpy", monthly_price: jpyMonthly(500), yearly_price: jpyYearly(5000) },
+            {
+              currency: "usd",
+              monthly_price: usdMonthly(500),
+              yearly_price: usdYearly(5000),
+            },
+            {
+              currency: "jpy",
+              monthly_price: jpyMonthly(500),
+              yearly_price: jpyYearly(5000),
+            },
           ] as unknown as never[];
 
           return HttpResponse.json(response);
