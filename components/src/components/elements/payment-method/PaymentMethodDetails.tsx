@@ -257,11 +257,13 @@ export const PaymentMethodDetails = ({
   );
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     initializeStripe();
   }, [initializeStripe]);
 
   useEffect(() => {
     if (!setupIntent && (!currentPaymentMethod || showPaymentForm)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       initializePaymentMethod();
     }
   }, [
