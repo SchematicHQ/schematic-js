@@ -266,6 +266,7 @@ export const Plan = ({
                               <AutoTopupNotice
                                 thresholdCredits={thresholdCredits}
                                 topupAmount={topupAmount}
+                                portal={tooltipPortal}
                               />
                             )}
                           </Text>
