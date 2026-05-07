@@ -466,6 +466,7 @@ export const SubscriptionSidebar = forwardRef<
           newPlanId: planId,
           newPriceId: planPriceId,
           addOnIds: addOnRequestBody,
+          autoTopupOverrides: [],
           payInAdvance: [
             ...planPayInAdvanceRequestBody,
             ...addOnPayInAdvanceRequestBody,

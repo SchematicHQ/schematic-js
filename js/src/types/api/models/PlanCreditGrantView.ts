@@ -107,6 +107,12 @@ export interface PlanCreditGrantView {
   billingCreditAutoTopupExpiryUnitCount?: number | null;
   /**
    *
+   * @type {boolean}
+   * @memberof PlanCreditGrantView
+   */
+  billingCreditAutoTopupSelfService: boolean;
+  /**
+   *
    * @type {number}
    * @memberof PlanCreditGrantView
    */
@@ -255,6 +261,11 @@ export function instanceOfPlanCreditGrantView(
     value["billingCreditAutoTopupEnabled"] === undefined
   )
     return false;
+  if (
+    !("billingCreditAutoTopupSelfService" in value) ||
+    value["billingCreditAutoTopupSelfService"] === undefined
+  )
+    return false;
   if (!("createdAt" in value) || value["createdAt"] === undefined) return false;
   if (!("creditAmount" in value) || value["creditAmount"] === undefined)
     return false;
@@ -310,6 +321,8 @@ export function PlanCreditGrantViewFromJSONTyped(
       json["billing_credit_auto_topup_expiry_unit_count"] == null
         ? undefined
         : json["billing_credit_auto_topup_expiry_unit_count"],
+    billingCreditAutoTopupSelfService:
+      json["billing_credit_auto_topup_self_service"],
     billingCreditAutoTopupThresholdCredits:
       json["billing_credit_auto_topup_threshold_credits"] == null
         ? undefined
@@ -387,6 +400,8 @@ export function PlanCreditGrantViewToJSONTyped(
     ),
     billing_credit_auto_topup_expiry_unit_count:
       value["billingCreditAutoTopupExpiryUnitCount"],
+    billing_credit_auto_topup_self_service:
+      value["billingCreditAutoTopupSelfService"],
     billing_credit_auto_topup_threshold_credits:
       value["billingCreditAutoTopupThresholdCredits"],
     billing_credit_auto_topup_threshold_percent:

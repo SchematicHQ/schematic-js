@@ -34,6 +34,13 @@ import {
   UpdateAddOnRequestBodyToJSON,
   UpdateAddOnRequestBodyToJSONTyped,
 } from "./UpdateAddOnRequestBody";
+import type { UpdateAutoTopupOverrideRequestBody } from "./UpdateAutoTopupOverrideRequestBody";
+import {
+  UpdateAutoTopupOverrideRequestBodyFromJSON,
+  UpdateAutoTopupOverrideRequestBodyFromJSONTyped,
+  UpdateAutoTopupOverrideRequestBodyToJSON,
+  UpdateAutoTopupOverrideRequestBodyToJSONTyped,
+} from "./UpdateAutoTopupOverrideRequestBody";
 
 /**
  *
@@ -47,6 +54,12 @@ export interface ChangeSubscriptionRequestBody {
    * @memberof ChangeSubscriptionRequestBody
    */
   addOnIds: Array<UpdateAddOnRequestBody>;
+  /**
+   *
+   * @type {Array<UpdateAutoTopupOverrideRequestBody>}
+   * @memberof ChangeSubscriptionRequestBody
+   */
+  autoTopupOverrides: Array<UpdateAutoTopupOverrideRequestBody>;
   /**
    *
    * @type {string}
@@ -104,6 +117,11 @@ export function instanceOfChangeSubscriptionRequestBody(
   value: object,
 ): value is ChangeSubscriptionRequestBody {
   if (!("addOnIds" in value) || value["addOnIds"] === undefined) return false;
+  if (
+    !("autoTopupOverrides" in value) ||
+    value["autoTopupOverrides"] === undefined
+  )
+    return false;
   if (!("creditBundles" in value) || value["creditBundles"] === undefined)
     return false;
   if (!("newPlanId" in value) || value["newPlanId"] === undefined) return false;
@@ -131,6 +149,9 @@ export function ChangeSubscriptionRequestBodyFromJSONTyped(
   return {
     addOnIds: (json["add_on_ids"] as Array<any>).map(
       UpdateAddOnRequestBodyFromJSON,
+    ),
+    autoTopupOverrides: (json["auto_topup_overrides"] as Array<any>).map(
+      UpdateAutoTopupOverrideRequestBodyFromJSON,
     ),
     couponExternalId:
       json["coupon_external_id"] == null
@@ -168,6 +189,9 @@ export function ChangeSubscriptionRequestBodyToJSONTyped(
   return {
     add_on_ids: (value["addOnIds"] as Array<any>).map(
       UpdateAddOnRequestBodyToJSON,
+    ),
+    auto_topup_overrides: (value["autoTopupOverrides"] as Array<any>).map(
+      UpdateAutoTopupOverrideRequestBodyToJSON,
     ),
     coupon_external_id: value["couponExternalId"],
     credit_bundles: (value["creditBundles"] as Array<any>).map(

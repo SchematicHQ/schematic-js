@@ -13,13 +13,13 @@
  */
 
 import { mapValues } from "../runtime";
-import type { PlanCreditGrantView } from "./PlanCreditGrantView";
+import type { CompanyPlanCreditGrantView } from "./CompanyPlanCreditGrantView";
 import {
-  PlanCreditGrantViewFromJSON,
-  PlanCreditGrantViewFromJSONTyped,
-  PlanCreditGrantViewToJSON,
-  PlanCreditGrantViewToJSONTyped,
-} from "./PlanCreditGrantView";
+  CompanyPlanCreditGrantViewFromJSON,
+  CompanyPlanCreditGrantViewFromJSONTyped,
+  CompanyPlanCreditGrantViewToJSON,
+  CompanyPlanCreditGrantViewToJSONTyped,
+} from "./CompanyPlanCreditGrantView";
 
 /**
  *
@@ -65,10 +65,10 @@ export interface CompanyPlanWithBillingSubView {
   imageUrl?: string | null;
   /**
    *
-   * @type {Array<PlanCreditGrantView>}
+   * @type {Array<CompanyPlanCreditGrantView>}
    * @memberof CompanyPlanWithBillingSubView
    */
-  includedCreditGrants: Array<PlanCreditGrantView>;
+  includedCreditGrants: Array<CompanyPlanCreditGrantView>;
   /**
    *
    * @type {string}
@@ -138,7 +138,7 @@ export function CompanyPlanWithBillingSubViewFromJSONTyped(
     id: json["id"],
     imageUrl: json["image_url"] == null ? undefined : json["image_url"],
     includedCreditGrants: (json["included_credit_grants"] as Array<any>).map(
-      PlanCreditGrantViewFromJSON,
+      CompanyPlanCreditGrantViewFromJSON,
     ),
     name: json["name"],
     planPeriod: json["plan_period"] == null ? undefined : json["plan_period"],
@@ -173,7 +173,7 @@ export function CompanyPlanWithBillingSubViewToJSONTyped(
     id: value["id"],
     image_url: value["imageUrl"],
     included_credit_grants: (value["includedCreditGrants"] as Array<any>).map(
-      PlanCreditGrantViewToJSON,
+      CompanyPlanCreditGrantViewToJSON,
     ),
     name: value["name"],
     plan_period: value["planPeriod"],

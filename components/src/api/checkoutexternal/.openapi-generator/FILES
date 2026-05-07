@@ -45,6 +45,7 @@ models/CompanyDetailResponseData.ts
 models/CompanyEventPeriodMetricsResponseData.ts
 models/CompanyOverrideNoteResponseData.ts
 models/CompanyOverrideResponseData.ts
+models/CompanyPlanCreditGrantView.ts
 models/CompanyPlanDetailResponseData.ts
 models/CompanyPlanInvalidReason.ts
 models/CompanyPlanWithBillingSubView.ts
@@ -145,6 +146,7 @@ models/StripeEmbedInfo.ts
 models/TraitDefinition.ts
 models/TraitType.ts
 models/UpdateAddOnRequestBody.ts
+models/UpdateAutoTopupOverrideRequestBody.ts
 models/UpdateCreditBundleRequestBody.ts
 models/UpdatePayInAdvanceRequestBody.ts
 models/UpdatePaymentMethodRequestBody.ts
