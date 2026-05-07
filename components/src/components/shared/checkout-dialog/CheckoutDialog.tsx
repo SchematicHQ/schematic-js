@@ -289,7 +289,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
         companyGrant: CompanyPlanCreditGrantView,
       ) => {
         const {
-          companyAutoTopupEnabled,
+          companyAutoTopupEnabled = false,
           companyAutoTopupThresholdCredits,
           companyAutoTopupAmount,
         } = companyGrant;
