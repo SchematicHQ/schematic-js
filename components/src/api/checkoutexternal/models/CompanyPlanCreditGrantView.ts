@@ -66,196 +66,214 @@ import {
 /**
  *
  * @export
- * @interface PlanCreditGrantView
+ * @interface CompanyPlanCreditGrantView
  */
-export interface PlanCreditGrantView {
+export interface CompanyPlanCreditGrantView {
   /**
    *
    * @type {number}
-   * @memberof PlanCreditGrantView
+   * @memberof CompanyPlanCreditGrantView
    */
   billingCreditAutoTopupAmount?: number | null;
   /**
    *
    * @type {string}
-   * @memberof PlanCreditGrantView
+   * @memberof CompanyPlanCreditGrantView
    */
   billingCreditAutoTopupAmountType?: string | null;
   /**
    *
    * @type {boolean}
-   * @memberof PlanCreditGrantView
+   * @memberof CompanyPlanCreditGrantView
    */
   billingCreditAutoTopupEnabled: boolean;
   /**
    *
    * @type {BillingCreditExpiryType}
-   * @memberof PlanCreditGrantView
+   * @memberof CompanyPlanCreditGrantView
    */
   billingCreditAutoTopupExpiryType?: BillingCreditExpiryType | null;
   /**
    *
    * @type {BillingCreditExpiryUnit}
-   * @memberof PlanCreditGrantView
+   * @memberof CompanyPlanCreditGrantView
    */
   billingCreditAutoTopupExpiryUnit?: BillingCreditExpiryUnit | null;
   /**
    *
    * @type {number}
-   * @memberof PlanCreditGrantView
+   * @memberof CompanyPlanCreditGrantView
    */
   billingCreditAutoTopupExpiryUnitCount?: number | null;
   /**
    *
    * @type {boolean}
-   * @memberof PlanCreditGrantView
+   * @memberof CompanyPlanCreditGrantView
    */
   billingCreditAutoTopupSelfService: boolean;
   /**
    *
    * @type {number}
-   * @memberof PlanCreditGrantView
+   * @memberof CompanyPlanCreditGrantView
    */
   billingCreditAutoTopupThresholdCredits?: number | null;
   /**
    *
    * @type {number}
-   * @memberof PlanCreditGrantView
+   * @memberof CompanyPlanCreditGrantView
    */
   billingCreditAutoTopupThresholdPercent?: number | null;
   /**
    *
+   * @type {number}
+   * @memberof CompanyPlanCreditGrantView
+   */
+  companyAutoTopupAmount?: number | null;
+  /**
+   *
+   * @type {boolean}
+   * @memberof CompanyPlanCreditGrantView
+   */
+  companyAutoTopupEnabled?: boolean | null;
+  /**
+   *
+   * @type {number}
+   * @memberof CompanyPlanCreditGrantView
+   */
+  companyAutoTopupThresholdCredits?: number | null;
+  /**
+   *
    * @type {Date}
-   * @memberof PlanCreditGrantView
+   * @memberof CompanyPlanCreditGrantView
    */
   createdAt: Date;
   /**
    *
    * @type {BillingCreditView}
-   * @memberof PlanCreditGrantView
+   * @memberof CompanyPlanCreditGrantView
    */
   credit?: BillingCreditView;
   /**
    *
    * @type {number}
-   * @memberof PlanCreditGrantView
+   * @memberof CompanyPlanCreditGrantView
    */
   creditAmount: number;
   /**
    * Deprecated field, will be removed in the future. Use Credit.Description instead.
    * @type {string}
-   * @memberof PlanCreditGrantView
+   * @memberof CompanyPlanCreditGrantView
    * @deprecated
    */
   creditDescription: string;
   /**
    * Deprecated field, will be removed in the future. Use Credit.Icon instead.
    * @type {string}
-   * @memberof PlanCreditGrantView
+   * @memberof CompanyPlanCreditGrantView
    * @deprecated
    */
   creditIcon?: string | null;
   /**
    *
    * @type {string}
-   * @memberof PlanCreditGrantView
+   * @memberof CompanyPlanCreditGrantView
    */
   creditId: string;
   /**
    * Deprecated field, will be removed in the future. Use Credit.Name instead.
    * @type {string}
-   * @memberof PlanCreditGrantView
+   * @memberof CompanyPlanCreditGrantView
    * @deprecated
    */
   creditName: string;
   /**
    *
    * @type {BillingCreditExpiryType}
-   * @memberof PlanCreditGrantView
+   * @memberof CompanyPlanCreditGrantView
    */
   expiryType?: BillingCreditExpiryType | null;
   /**
    *
    * @type {BillingCreditExpiryUnit}
-   * @memberof PlanCreditGrantView
+   * @memberof CompanyPlanCreditGrantView
    */
   expiryUnit?: BillingCreditExpiryUnit | null;
   /**
    *
    * @type {number}
-   * @memberof PlanCreditGrantView
+   * @memberof CompanyPlanCreditGrantView
    */
   expiryUnitCount?: number | null;
   /**
    *
    * @type {string}
-   * @memberof PlanCreditGrantView
+   * @memberof CompanyPlanCreditGrantView
    */
   id: string;
   /**
    *
    * @type {GenericPreviewObject}
-   * @memberof PlanCreditGrantView
+   * @memberof CompanyPlanCreditGrantView
    */
   plan?: GenericPreviewObject;
   /**
    *
    * @type {string}
-   * @memberof PlanCreditGrantView
+   * @memberof CompanyPlanCreditGrantView
    */
   planId: string;
   /**
    *
    * @type {string}
-   * @memberof PlanCreditGrantView
+   * @memberof CompanyPlanCreditGrantView
    */
   planVersionId?: string | null;
   /**
    * Deprecated field, will be removed in the future. Use Credit.PluralName instead.
    * @type {string}
-   * @memberof PlanCreditGrantView
+   * @memberof CompanyPlanCreditGrantView
    * @deprecated
    */
   pluralName?: string | null;
   /**
    *
    * @type {BillingPlanCreditGrantResetCadence}
-   * @memberof PlanCreditGrantView
+   * @memberof CompanyPlanCreditGrantView
    */
   resetCadence?: BillingPlanCreditGrantResetCadence | null;
   /**
    *
    * @type {BillingPlanCreditGrantResetStart}
-   * @memberof PlanCreditGrantView
+   * @memberof CompanyPlanCreditGrantView
    */
   resetStart?: BillingPlanCreditGrantResetStart | null;
   /**
    *
    * @type {BillingPlanCreditGrantResetType}
-   * @memberof PlanCreditGrantView
+   * @memberof CompanyPlanCreditGrantView
    */
   resetType: BillingPlanCreditGrantResetType;
   /**
    * Deprecated field, will be removed in the future. Use Credit.SingularName instead.
    * @type {string}
-   * @memberof PlanCreditGrantView
+   * @memberof CompanyPlanCreditGrantView
    * @deprecated
    */
   singularName?: string | null;
   /**
    *
    * @type {Date}
-   * @memberof PlanCreditGrantView
+   * @memberof CompanyPlanCreditGrantView
    */
   updatedAt: Date;
 }
 
 /**
- * Check if a given object implements the PlanCreditGrantView interface.
+ * Check if a given object implements the CompanyPlanCreditGrantView interface.
  */
-export function instanceOfPlanCreditGrantView(
+export function instanceOfCompanyPlanCreditGrantView(
   value: object,
-): value is PlanCreditGrantView {
+): value is CompanyPlanCreditGrantView {
   if (
     !("billingCreditAutoTopupEnabled" in value) ||
     value["billingCreditAutoTopupEnabled"] === undefined
@@ -284,14 +302,16 @@ export function instanceOfPlanCreditGrantView(
   return true;
 }
 
-export function PlanCreditGrantViewFromJSON(json: any): PlanCreditGrantView {
-  return PlanCreditGrantViewFromJSONTyped(json, false);
+export function CompanyPlanCreditGrantViewFromJSON(
+  json: any,
+): CompanyPlanCreditGrantView {
+  return CompanyPlanCreditGrantViewFromJSONTyped(json, false);
 }
 
-export function PlanCreditGrantViewFromJSONTyped(
+export function CompanyPlanCreditGrantViewFromJSONTyped(
   json: any,
   ignoreDiscriminator: boolean,
-): PlanCreditGrantView {
+): CompanyPlanCreditGrantView {
   if (json == null) {
     return json;
   }
@@ -331,6 +351,18 @@ export function PlanCreditGrantViewFromJSONTyped(
       json["billing_credit_auto_topup_threshold_percent"] == null
         ? undefined
         : json["billing_credit_auto_topup_threshold_percent"],
+    companyAutoTopupAmount:
+      json["company_auto_topup_amount"] == null
+        ? undefined
+        : json["company_auto_topup_amount"],
+    companyAutoTopupEnabled:
+      json["company_auto_topup_enabled"] == null
+        ? undefined
+        : json["company_auto_topup_enabled"],
+    companyAutoTopupThresholdCredits:
+      json["company_auto_topup_threshold_credits"] == null
+        ? undefined
+        : json["company_auto_topup_threshold_credits"],
     createdAt: new Date(json["created_at"]),
     credit:
       json["credit"] == null
@@ -375,12 +407,14 @@ export function PlanCreditGrantViewFromJSONTyped(
   };
 }
 
-export function PlanCreditGrantViewToJSON(json: any): PlanCreditGrantView {
-  return PlanCreditGrantViewToJSONTyped(json, false);
+export function CompanyPlanCreditGrantViewToJSON(
+  json: any,
+): CompanyPlanCreditGrantView {
+  return CompanyPlanCreditGrantViewToJSONTyped(json, false);
 }
 
-export function PlanCreditGrantViewToJSONTyped(
-  value?: PlanCreditGrantView | null,
+export function CompanyPlanCreditGrantViewToJSONTyped(
+  value?: CompanyPlanCreditGrantView | null,
   ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
@@ -406,6 +440,10 @@ export function PlanCreditGrantViewToJSONTyped(
       value["billingCreditAutoTopupThresholdCredits"],
     billing_credit_auto_topup_threshold_percent:
       value["billingCreditAutoTopupThresholdPercent"],
+    company_auto_topup_amount: value["companyAutoTopupAmount"],
+    company_auto_topup_enabled: value["companyAutoTopupEnabled"],
+    company_auto_topup_threshold_credits:
+      value["companyAutoTopupThresholdCredits"],
     created_at: value["createdAt"].toISOString(),
     credit: BillingCreditViewToJSON(value["credit"]),
     credit_amount: value["creditAmount"],
