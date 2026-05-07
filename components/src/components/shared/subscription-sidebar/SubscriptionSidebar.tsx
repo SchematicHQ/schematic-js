@@ -487,9 +487,8 @@ export const SubscriptionSidebar = forwardRef<
         const checkoutResponseFromBackend = await checkout({
           newPlanId: planId,
           newPriceId: planPriceId,
-          autoTopupOverrides: autoTopupRequestBody,
           addOnIds: addOnRequestBody,
-          autoTopupOverrides: [],
+          autoTopupOverrides: autoTopupRequestBody,
           payInAdvance: [
             ...planPayInAdvanceRequestBody,
             ...addOnPayInAdvanceRequestBody,

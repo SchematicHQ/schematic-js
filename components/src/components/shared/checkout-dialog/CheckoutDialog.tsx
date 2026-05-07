@@ -714,9 +714,8 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
         const response = await previewCheckout({
           newPlanId: plan.id,
           newPriceId: planPriceId,
-          autoTopupOverrides: autoTopupRequestBody,
           addOnIds: addOnRequestBody,
-          autoTopupOverrides: [],
+          autoTopupOverrides: autoTopupRequestBody,
           payInAdvance: [
             ...planPayInAdvanceRequestBody,
             ...addOnPayInAdvanceRequestBody,
