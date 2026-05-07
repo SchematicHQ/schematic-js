@@ -90,6 +90,62 @@ jobs:
           delete-branch: true
           path: schematic-next-example
 
+  update_example_app_orb:
+    name: Update Example App (Orb)
+    runs-on: runs-on=${{ github.run_id }}/runner=4cpu-linux-x64/extras=s3-cache
+    needs: [publish]
+    steps:
+      - uses: runs-on/action@v2.0.3
+      - name: Checkout schematic-react
+        uses: actions/checkout@v6
+        with:
+          path: schematic-react
+
+      - name: Get react version
+        id: get_version
+        run: |
+          cd schematic-react/react
+          echo "SCHEMATIC_REACT_VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+
+      - name: Checkout example app
+        uses: actions/checkout@v6
+        with:
+          repository: schematichq/schematic-next-example-orb
+          path: schematic-next-example-orb
+          token: ${{ secrets.GH_TOKEN }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24.x
+
+      - name: Update example app dependencies
+        run: |
+          cd schematic-next-example-orb
+          yarn add @schematichq/schematic-react@${{ steps.get_version.outputs.SCHEMATIC_REACT_VERSION }}
+
+      - name: Check for changes
+        id: check_changes
+        run: |
+          cd schematic-next-example-orb
+          git diff --exit-code || echo "HAS_CHANGES=true" >> $GITHUB_OUTPUT
+
+      - name: Create Pull Request
+        if: steps.check_changes.outputs.HAS_CHANGES == 'true'
+        uses: peter-evans/create-pull-request@v8.1.1
+        with:
+          token: ${{ secrets.GH_TOKEN }}
+          commit-message: Update @schematichq/schematic-react to ${{ steps.get_version.outputs.SCHEMATIC_REACT_VERSION }}
+          title: Update @schematichq/schematic-react to ${{ steps.get_version.outputs.SCHEMATIC_REACT_VERSION }}
+          body: |
+            This PR updates the @schematichq/schematic-react package to version ${{ steps.get_version.outputs.SCHEMATIC_REACT_VERSION }}.
+
+            This update was automatically created by the schematic-react deployment process.
+          branch: schematic-react-${{ steps.get_version.outputs.SCHEMATIC_REACT_VERSION }}
+          base: main
+          delete-branch: true
+          path: schematic-next-example-orb
+
   notify_slack:
     name: Notify Slack
     runs-on: runs-on=${{ github.run_id }}/runner=1cpu-linux-arm64
