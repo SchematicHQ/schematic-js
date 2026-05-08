@@ -159,19 +159,13 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
   const [error, setError] = useState<string | undefined>();
   const [isModal, setIsModal] = useState(true);
 
-  const { featureUsage, showPeriodToggle, trialPaymentMethodRequired } =
-    // eslint-disable-next-line react-hooks/preserve-manual-memoization
-    useMemo(() => {
-      return {
-        featureUsage: data?.featureUsage ? data.featureUsage.features : [],
-        showPeriodToggle: data?.displaySettings?.showPeriodToggle ?? true,
-        trialPaymentMethodRequired: data?.trialPaymentMethodRequired === true,
-      };
-    }, [
-      data?.featureUsage,
-      data?.displaySettings?.showPeriodToggle,
-      data?.trialPaymentMethodRequired,
-    ]);
+  const showPeriodToggle = data?.displaySettings?.showPeriodToggle ?? true;
+  const trialPaymentMethodRequired = data?.trialPaymentMethodRequired === true;
+
+  const featureUsage = useMemo(
+    () => data?.featureUsage?.features ?? [],
+    [data?.featureUsage?.features],
+  );
 
   // Validates the requested period against the plan's availability.
   // Note: Plan data must be loaded by the time CheckoutDialog mounts.
