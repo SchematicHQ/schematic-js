@@ -98,6 +98,7 @@ export const usePaymentConfirmation = ({
       if (!signal.aborted) {
         setIsConfirming(false);
       }
+
       abortControllerRef.current = null;
     }
   }, [stripe, clientSecret, onSuccess, onError, isConfirming]);
@@ -106,6 +107,7 @@ export const usePaymentConfirmation = ({
     if (clientSecret) {
       confirmedSecrets.current.delete(clientSecret);
     }
+
     setIsConfirming(false);
     setError(null);
     setStatus("idle");
