@@ -7,7 +7,6 @@ import {
   type FeatureUsageResponseData,
   type PlanEntitlementResponseData,
 } from "../../../api/checkoutexternal";
-import { VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
 import { render } from "../../../test/setup";
 import type { DeepPartial, SelectedPlan } from "../../../types";
 
@@ -167,13 +166,6 @@ const mockSharedProps = {
   callToActionTarget: "_self",
 } satisfies DeepPartial<PlanProps["sharedProps"]> as PlanProps["sharedProps"];
 
-const mockEntitlementCounts = {
-  "plan-1": {
-    size: 2,
-    limit: 2,
-  },
-};
-
 const mockHandleToggleShowAll = vi.fn();
 
 describe("`Plan` component", () => {
@@ -185,8 +177,6 @@ describe("`Plan` component", () => {
         sharedProps={mockSharedProps}
         plans={[mockPlan]}
         selectedPeriod={BillingProductPriceInterval.Month}
-        entitlementCounts={mockEntitlementCounts}
-        handleToggleShowAll={mockHandleToggleShowAll}
       />,
     );
 
@@ -213,8 +203,6 @@ describe("`Plan` component", () => {
         sharedProps={mockSharedProps}
         plans={[mockPlan]}
         selectedPeriod={BillingProductPriceInterval.Month}
-        entitlementCounts={mockEntitlementCounts}
-        handleToggleShowAll={mockHandleToggleShowAll}
       />,
     );
 
@@ -240,8 +228,6 @@ describe("`Plan` component", () => {
         sharedProps={mockSharedProps}
         plans={[mockPlan]}
         selectedPeriod={BillingProductPriceInterval.Month}
-        entitlementCounts={mockEntitlementCounts}
-        handleToggleShowAll={mockHandleToggleShowAll}
       />,
     );
 
@@ -262,8 +248,6 @@ describe("`Plan` component", () => {
         sharedProps={mockSharedProps}
         plans={[mockPlan]}
         selectedPeriod={BillingProductPriceInterval.Month}
-        entitlementCounts={mockEntitlementCounts}
-        handleToggleShowAll={mockHandleToggleShowAll}
       />,
     );
 
@@ -287,8 +271,6 @@ describe("`Plan` component", () => {
         sharedProps={mockSharedProps}
         plans={[mockPlan]}
         selectedPeriod={BillingProductPriceInterval.Month}
-        entitlementCounts={mockEntitlementCounts}
-        handleToggleShowAll={mockHandleToggleShowAll}
       />,
     );
 
@@ -307,8 +289,6 @@ describe("`Plan` component", () => {
         sharedProps={mockSharedProps}
         plans={[mockPlan]}
         selectedPeriod={BillingProductPriceInterval.Year}
-        entitlementCounts={mockEntitlementCounts}
-        handleToggleShowAll={mockHandleToggleShowAll}
       />,
     );
 
@@ -333,13 +313,6 @@ describe("`Plan` component", () => {
         ),
     };
 
-    const manyEntitlementsCounts = {
-      "plan-1": {
-        size: 10,
-        limit: VISIBLE_ENTITLEMENT_COUNT,
-      },
-    };
-
     render(
       <Plan
         plan={manyEntitlementsPlan}
@@ -347,8 +320,6 @@ describe("`Plan` component", () => {
         sharedProps={mockSharedProps}
         plans={[manyEntitlementsPlan]}
         selectedPeriod={BillingProductPriceInterval.Month}
-        entitlementCounts={manyEntitlementsCounts}
-        handleToggleShowAll={mockHandleToggleShowAll}
       />,
     );
 
@@ -371,8 +342,6 @@ describe("`Plan` component", () => {
           mockPlan,
         ]}
         selectedPeriod={BillingProductPriceInterval.Month}
-        entitlementCounts={mockEntitlementCounts}
-        handleToggleShowAll={mockHandleToggleShowAll}
       />,
     );
 
@@ -403,8 +372,6 @@ describe("`Plan` component", () => {
         sharedProps={mockSharedProps}
         plans={[mockPlan]}
         selectedPeriod={BillingProductPriceInterval.Month}
-        entitlementCounts={mockEntitlementCounts}
-        handleToggleShowAll={mockHandleToggleShowAll}
       />,
     );
 
@@ -424,8 +391,6 @@ describe("`Plan` component", () => {
         }}
         plans={[mockPlan]}
         selectedPeriod={BillingProductPriceInterval.Month}
-        entitlementCounts={mockEntitlementCounts}
-        handleToggleShowAll={mockHandleToggleShowAll}
       />,
     );
 
