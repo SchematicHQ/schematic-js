@@ -256,6 +256,10 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       return undefined;
     }
 
+    if (selectedPlanId) {
+      return availablePlans.find((p) => p.id === selectedPlanId);
+    }
+
     if (checkoutState?.planId) {
       return availablePlans.find((plan) => plan.id === checkoutState.planId);
     }
@@ -367,7 +371,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
         isSelected: selectedAddOnIds.has(addOn.id),
       }));
   }, [
-    data,
+    data?.addOnCompatibilities,
     availableAddOns,
     selectedPlan,
     hasCurrency,

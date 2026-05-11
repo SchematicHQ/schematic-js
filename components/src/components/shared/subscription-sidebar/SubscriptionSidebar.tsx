@@ -511,7 +511,10 @@ export const SubscriptionSidebar = forwardRef<
                 return;
               }
 
-              console.log("Payment intent has confirmed. Result: ", confirmed);
+              console.debug(
+                "Payment intent has confirmed. Result: ",
+                confirmed,
+              );
               setIsLoading(false);
               if (!confirmed) {
                 setError(

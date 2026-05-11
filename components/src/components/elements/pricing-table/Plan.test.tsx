@@ -7,6 +7,7 @@ import {
   type FeatureUsageResponseData,
   type PlanEntitlementResponseData,
 } from "../../../api/checkoutexternal";
+import { VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
 import { render } from "../../../test/setup";
 import type { DeepPartial, SelectedPlan } from "../../../types";
 
@@ -166,8 +167,6 @@ const mockSharedProps = {
   callToActionTarget: "_self",
 } satisfies DeepPartial<PlanProps["sharedProps"]> as PlanProps["sharedProps"];
 
-const mockHandleToggleShowAll = vi.fn();
-
 describe("`Plan` component", () => {
   test("renders plan correctly", () => {
     render(
@@ -296,10 +295,11 @@ describe("`Plan` component", () => {
     expect(planPrice).toHaveTextContent("$199.99/year");
   });
 
-  test("calls handleToggleShowAll when 'See all' is clicked", () => {
+  test("expands and collapses entitlements when 'See all' / 'Hide all' is clicked", () => {
+    const totalEntitlements = 10;
     const manyEntitlementsPlan = {
       ...mockPlan,
-      entitlements: Array(10)
+      entitlements: Array(totalEntitlements)
         .fill(null)
         .map(
           (_, i) =>
@@ -323,12 +323,36 @@ describe("`Plan` component", () => {
       />,
     );
 
+    // Collapsed: only the first VISIBLE_ENTITLEMENT_COUNT features are rendered.
+    for (let i = 0; i < VISIBLE_ENTITLEMENT_COUNT; i++) {
+      expect(screen.getByText(`Feature ${i}`)).toBeInTheDocument();
+    }
+    expect(
+      screen.queryByText(`Feature ${VISIBLE_ENTITLEMENT_COUNT}`),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(`Feature ${totalEntitlements - 1}`),
+    ).not.toBeInTheDocument();
+
     act(() => {
-      const seeAllButton = screen.getByText("See all");
-      fireEvent.click(seeAllButton);
+      fireEvent.click(screen.getByText("See all"));
     });
 
-    expect(mockHandleToggleShowAll).toHaveBeenCalledWith("plan-1");
+    // Expanded: all features are rendered, and the toggle flips to "Hide all".
+    for (let i = 0; i < totalEntitlements; i++) {
+      expect(screen.getByText(`Feature ${i}`)).toBeInTheDocument();
+    }
+    expect(screen.getByText("Hide all")).toBeInTheDocument();
+
+    act(() => {
+      fireEvent.click(screen.getByText("Hide all"));
+    });
+
+    // Collapsed again.
+    expect(
+      screen.queryByText(`Feature ${totalEntitlements - 1}`),
+    ).not.toBeInTheDocument();
+    expect(screen.getByText("See all")).toBeInTheDocument();
   });
 
   test("shows inclusion text for non-first plans", () => {
