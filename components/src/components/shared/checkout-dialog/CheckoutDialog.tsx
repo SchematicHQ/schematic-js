@@ -139,6 +139,14 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
   const stageRef = useRef<HTMLDivElement>(null);
   const sidebarRef = useRef<HTMLDivElement>(null);
 
+  const [dialogElement, setDialogElement] = useState<HTMLDialogElement | null>(
+    null,
+  );
+  const setDialog = useCallback((element: HTMLDialogElement | null) => {
+    dialogRef.current = element;
+    setDialogElement(element);
+  }, []);
+
   const [confirmPaymentIntentProps, setConfirmPaymentIntentProps] = useState<
     ConfirmPaymentIntentProps | undefined | null
   >(undefined);
@@ -1249,7 +1257,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
   if (hasNoUsableCurrency) {
     return (
       <Dialog
-        ref={dialogRef}
+        ref={setDialog}
         isModal={isModal}
         size="lg"
         top={top}
@@ -1272,7 +1280,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
   return (
     <Dialog
-      ref={dialogRef}
+      ref={setDialog}
       isModal={isModal}
       size="lg"
       top={top}
@@ -1382,8 +1390,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
                 {showPeriodToggle && availablePeriods.length > 1 && (
                   <PeriodToggle
-                    // eslint-disable-next-line react-hooks/refs
-                    portal={dialogRef.current}
+                    portal={dialogElement}
                     options={availablePeriods}
                     selectedOption={planPeriod}
                     selectedPlan={selectedPlan}
@@ -1406,8 +1413,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
             </Flex>
           ) : checkoutStage === "plan" ? (
             <Plan
-              // eslint-disable-next-line react-hooks/refs
-              portal={dialogRef.current}
+              portal={dialogElement}
               isLoading={isLoading}
               period={planPeriod}
               plans={availablePlans}
@@ -1426,8 +1432,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
             />
           ) : checkoutStage === "usage" ? (
             <Quantity
-              // eslint-disable-next-line react-hooks/refs
-              portal={dialogRef.current}
+              portal={dialogElement}
               isLoading={isLoading}
               period={planPeriod}
               selectedPlan={selectedPlan}
@@ -1445,8 +1450,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
             />
           ) : checkoutStage === "addonsUsage" ? (
             <Quantity
-              // eslint-disable-next-line react-hooks/refs
-              portal={dialogRef.current}
+              portal={dialogElement}
               isLoading={isLoading}
               period={planPeriod}
               selectedPlan={selectedPlan}
