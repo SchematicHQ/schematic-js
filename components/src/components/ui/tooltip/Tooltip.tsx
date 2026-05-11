@@ -50,7 +50,9 @@ const getCoords = ({ element, portal, position }: GetCoordsArgs) => {
 };
 
 export interface TooltipProps extends BoxProps {
-  trigger: React.ReactElement;
+  trigger: React.ReactElement<
+    React.HTMLAttributes<HTMLElement> & React.RefAttributes<HTMLElement>
+  >;
   content: React.ReactNode;
   portal?: HTMLElement | null;
   position?: Position;
@@ -94,7 +96,6 @@ export const Tooltip = ({
   return (
     <>
       {cloneElement(trigger, {
-        // @ts-expect-error: ignore unknown ref type
         ref: triggerRef,
         onFocus: () => setShow(true),
         onBlur: () => setShow(false),

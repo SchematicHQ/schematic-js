@@ -7,9 +7,9 @@ export const handlers = [
     return HttpResponse.json(hydrate);
   }),
   http.get("https://api.schematichq.com/components/hydrate", () => {
-    const response = { ...hydrate };
-    // @ts-expect-error: the `component` data does not exist for this endpoint
-    delete response.data.component;
-    return HttpResponse.json(hydrate);
+    const source = { ...hydrate };
+    const { data, params } = source;
+    const { component, ...rest } = data;
+    return HttpResponse.json({ data: rest, params });
   }),
 ];
