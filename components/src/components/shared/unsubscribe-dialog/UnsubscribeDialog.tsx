@@ -25,6 +25,15 @@ export const UnsubscribeDialog = ({ top }: UnsubscribeDialogProps) => {
     useEmbed();
 
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const sidebarRef = useRef<HTMLDivElement>(null);
+
+  const [dialogElement, setDialogElement] = useState<HTMLDialogElement | null>(
+    null,
+  );
+  const setDialog = useCallback((element: HTMLDialogElement | null) => {
+    dialogRef.current = element;
+    setDialogElement(element);
+  }, []);
 
   const [error, setError] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(false);
@@ -101,7 +110,7 @@ export const UnsubscribeDialog = ({ top }: UnsubscribeDialogProps) => {
 
   return (
     <Dialog
-      ref={dialogRef}
+      ref={setDialog}
       isModal={isModal}
       size="auto"
       top={top}
@@ -162,7 +171,8 @@ export const UnsubscribeDialog = ({ top }: UnsubscribeDialogProps) => {
         </Flex>
 
         <SubscriptionSidebar
-          portalRef={dialogRef}
+          ref={sidebarRef}
+          portal={dialogElement}
           planPeriod={planPeriod}
           addOns={addOns}
           usageBasedEntitlements={usageBasedEntitlements}

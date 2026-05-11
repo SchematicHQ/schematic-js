@@ -50,7 +50,7 @@ import { EntitlementRow } from "./EntitlementRow";
 import { Proration } from "./Proration";
 
 interface SubscriptionSidebarProps extends Omit<BoxProps, "children"> {
-  portalRef?: React.RefObject<HTMLDialogElement | null>;
+  portal?: HTMLElement | null;
   planPeriod: string;
   selectedPlan?: SelectedPlan;
   autoTopupConfigs?: Map<string, AutoTopupConfig>;
@@ -88,7 +88,7 @@ export const SubscriptionSidebar = forwardRef<
 >(
   (
     {
-      portalRef,
+      portal,
       planPeriod,
       selectedPlan,
       autoTopupConfigs,
@@ -119,7 +119,7 @@ export const SubscriptionSidebar = forwardRef<
     },
     ref,
   ) => {
-    const portal = portalRef?.current || document.body;
+    const resolvedPortal = portal || document.body;
 
     const { t } = useTranslation();
 
@@ -698,7 +698,7 @@ export const SubscriptionSidebar = forwardRef<
         ([entry]) => {
           setIsButtonInView(entry.isIntersecting);
         },
-        { root: portal },
+        { root: resolvedPortal },
       );
 
       observer.observe(element);
@@ -706,7 +706,7 @@ export const SubscriptionSidebar = forwardRef<
       return () => {
         observer.disconnect();
       };
-    }, [portal]);
+    }, [resolvedPortal]);
 
     const { price: selectedPlanPrice, currency: selectedPlanCurrency } =
       selectedPlan
@@ -878,7 +878,7 @@ export const SubscriptionSidebar = forwardRef<
                         $color={settings.theme.typography.heading4.color}
                       >
                         <EntitlementRow
-                          portalRef={portalRef}
+                          portal={resolvedPortal}
                           {...entitlement}
                           planPeriod={planPeriod}
                           currency={currency}
@@ -906,7 +906,7 @@ export const SubscriptionSidebar = forwardRef<
                           $color={settings.theme.typography.heading4.color}
                         >
                           <EntitlementRow
-                            portalRef={portalRef}
+                            portal={resolvedPortal}
                             {...previous}
                             planPeriod={planPeriod}
                             currency={currency}
@@ -919,7 +919,7 @@ export const SubscriptionSidebar = forwardRef<
                           $gap="1rem"
                         >
                           <EntitlementRow
-                            portalRef={portalRef}
+                            portal={resolvedPortal}
                             {...next}
                             planPeriod={planPeriod}
                             currency={currency}
@@ -945,7 +945,7 @@ export const SubscriptionSidebar = forwardRef<
                         $gap="1rem"
                       >
                         <EntitlementRow
-                          portalRef={portalRef}
+                          portal={resolvedPortal}
                           {...entitlement}
                           planPeriod={planPeriod}
                           currency={currency}
@@ -1322,7 +1322,7 @@ export const SubscriptionSidebar = forwardRef<
               >
                 <Box $padding="1rem 1.5rem">{button}</Box>
               </Box>,
-              portal,
+              resolvedPortal,
             )}
           </div>
 
