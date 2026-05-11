@@ -21,16 +21,16 @@ import { Box, Text } from "../../ui";
 
 export const EntitlementRow = (
   props: (UsageBasedEntitlement | CurrentUsageBasedEntitlement) & {
+    portalRef?: React.RefObject<HTMLElement | null>;
     planPeriod: string;
     currency?: string;
-    tooltipPortal?: HTMLElement | null;
   },
 ) => {
   const { t } = useTranslation();
 
   const { settings } = useEmbed();
 
-  const { tooltipPortal, currency: sidebarCurrency, ...entitlement } = props;
+  const { portalRef, currency: sidebarCurrency, ...entitlement } = props;
   const { feature, priceBehavior, quantity, softLimit, planPeriod } =
     entitlement;
 
@@ -102,12 +102,13 @@ export const EntitlementRow = (
               >
                 {t("Tier-based")}
                 <PricingTiersTooltip
+                  // eslint-disable-next-line react-hooks/refs
+                  portal={portalRef?.current}
                   feature={feature}
                   period={planPeriod}
                   currency={currency}
                   priceTiers={priceTiers}
                   tiersMode={tiersMode ?? undefined}
-                  portal={tooltipPortal}
                   position="left"
                 />
               </Text>

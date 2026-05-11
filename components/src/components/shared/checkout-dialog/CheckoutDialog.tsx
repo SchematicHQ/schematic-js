@@ -1382,12 +1382,12 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
                 {showPeriodToggle && availablePeriods.length > 1 && (
                   <PeriodToggle
+                    // eslint-disable-next-line react-hooks/refs
+                    portal={dialogRef.current}
                     options={availablePeriods}
                     selectedOption={planPeriod}
                     selectedPlan={selectedPlan}
                     onSelect={changePlanPeriod}
-                    // eslint-disable-next-line react-hooks/refs
-                    tooltipPortal={dialogRef.current}
                   />
                 )}
               </Flex>
@@ -1406,14 +1406,14 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
             </Flex>
           ) : checkoutStage === "plan" ? (
             <Plan
+              // eslint-disable-next-line react-hooks/refs
+              portal={dialogRef.current}
               isLoading={isLoading}
               period={planPeriod}
               plans={availablePlans}
               selectedPlan={selectedPlan}
               selectPlan={selectPlan}
               shouldTrial={shouldTrial}
-              // eslint-disable-next-line react-hooks/refs
-              tooltipPortal={dialogRef.current}
               currency={hasCurrency ? selectedCurrency : undefined}
             />
           ) : checkoutStage === "autoTopup" ? (
@@ -1426,13 +1426,13 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
             />
           ) : checkoutStage === "usage" ? (
             <Quantity
+              // eslint-disable-next-line react-hooks/refs
+              portal={dialogRef.current}
               isLoading={isLoading}
               period={planPeriod}
               selectedPlan={selectedPlan}
               entitlements={payInAdvanceEntitlements}
               updateQuantity={updateUsageBasedEntitlementQuantity}
-              // eslint-disable-next-line react-hooks/refs
-              tooltipPortal={dialogRef.current}
               currency={hasCurrency ? selectedCurrency : undefined}
             />
           ) : checkoutStage === "addons" ? (
@@ -1445,13 +1445,13 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
             />
           ) : checkoutStage === "addonsUsage" ? (
             <Quantity
+              // eslint-disable-next-line react-hooks/refs
+              portal={dialogRef.current}
               isLoading={isLoading}
               period={planPeriod}
               selectedPlan={selectedPlan}
               entitlements={addOnPayInAdvanceEntitlements}
               updateQuantity={updateAddOnEntitlementQuantity}
-              // eslint-disable-next-line react-hooks/refs
-              tooltipPortal={dialogRef.current}
               currency={hasCurrency ? selectedCurrency : undefined}
             />
           ) : checkoutStage === "credits" ? (

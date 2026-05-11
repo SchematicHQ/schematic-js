@@ -878,10 +878,10 @@ export const SubscriptionSidebar = forwardRef<
                         $color={settings.theme.typography.heading4.color}
                       >
                         <EntitlementRow
+                          portalRef={portalRef}
                           {...entitlement}
                           planPeriod={planPeriod}
                           currency={currency}
-                          tooltipPortal={portalRef?.current}
                         />
                       </Flex>,
                     );
@@ -906,10 +906,10 @@ export const SubscriptionSidebar = forwardRef<
                           $color={settings.theme.typography.heading4.color}
                         >
                           <EntitlementRow
+                            portalRef={portalRef}
                             {...previous}
                             planPeriod={planPeriod}
                             currency={currency}
-                            tooltipPortal={portalRef?.current}
                           />
                         </Flex>
 
@@ -919,10 +919,10 @@ export const SubscriptionSidebar = forwardRef<
                           $gap="1rem"
                         >
                           <EntitlementRow
+                            portalRef={portalRef}
                             {...next}
                             planPeriod={planPeriod}
                             currency={currency}
-                            tooltipPortal={portalRef?.current}
                           />
                         </Flex>
                       </Flex>,
@@ -945,10 +945,10 @@ export const SubscriptionSidebar = forwardRef<
                         $gap="1rem"
                       >
                         <EntitlementRow
+                          portalRef={portalRef}
                           {...entitlement}
                           planPeriod={planPeriod}
                           currency={currency}
-                          tooltipPortal={portalRef?.current}
                         />
                       </Flex>,
                     );

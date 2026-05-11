@@ -50,19 +50,21 @@ const getCoords = ({ element, portal, position }: GetCoordsArgs) => {
 };
 
 export interface TooltipProps extends BoxProps {
+  portal?: HTMLElement | null;
   trigger: React.ReactElement<
-    React.HTMLAttributes<HTMLElement> & React.RefAttributes<HTMLElement>
+    BoxProps &
+      React.HTMLAttributes<HTMLElement> &
+      React.RefAttributes<HTMLElement>
   >;
   content: React.ReactNode;
-  portal?: HTMLElement | null;
   position?: Position;
 }
 
 export const Tooltip = ({
   children,
+  portal,
   trigger,
   content,
-  portal,
   position = "top",
   ...rest
 }: TooltipProps) => {

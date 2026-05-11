@@ -26,6 +26,7 @@ export const AutoTopupNotice = ({
 
   return (
     <Tooltip
+      portal={portal}
       trigger={
         <Icon
           title="auto top-up"
@@ -45,7 +46,6 @@ export const AutoTopupNotice = ({
           )}
         </Text>
       }
-      portal={portal}
     />
   );
 };

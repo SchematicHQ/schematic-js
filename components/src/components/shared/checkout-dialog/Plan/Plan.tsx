@@ -24,6 +24,7 @@ import { ButtonGroup } from "./ButtonGroup";
 import { Entitlement } from "./Entitlement";
 
 interface PlanProps {
+  portal?: HTMLElement | null;
   isLoading: boolean;
   plans: SelectedPlan[];
   selectedPlan?: SelectedPlan;
@@ -34,18 +35,17 @@ interface PlanProps {
     shouldTrial?: boolean;
   }) => void;
   shouldTrial: boolean;
-  tooltipPortal?: HTMLElement | null;
   currency?: string;
 }
 
 export const Plan = ({
+  portal,
   isLoading,
   plans,
   selectedPlan,
   period,
   selectPlan,
   shouldTrial,
-  tooltipPortal,
   currency,
 }: PlanProps) => {
   const { t } = useTranslation();
@@ -246,9 +246,9 @@ export const Plan = ({
                             )}
                             {hasAutoTopup && planCreditGrant && (
                               <AutoTopupNotice
+                                portal={portal}
                                 thresholdCredits={thresholdCredits}
                                 topupAmount={topupAmount}
-                                portal={tooltipPortal}
                               />
                             )}
                           </Text>
@@ -302,10 +302,10 @@ export const Plan = ({
                         acc.push(
                           <Entitlement
                             key={entitlementIndex}
+                            portal={portal}
                             entitlement={entitlement}
                             period={planPeriod}
                             credits={credits}
-                            tooltipPortal={tooltipPortal}
                             currency={currency}
                           />,
                         );

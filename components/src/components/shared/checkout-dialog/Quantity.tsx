@@ -16,20 +16,20 @@ import { PricingTiersTooltip } from "../../shared";
 import { Box, Flex, Input, Text } from "../../ui";
 
 interface QuantityProps {
+  portal?: HTMLElement | null;
   isLoading: boolean;
   period: string;
   selectedPlan?: SelectedPlan;
   entitlements: UsageBasedEntitlement[];
   updateQuantity: (id: string, quantity: number) => void;
-  tooltipPortal?: HTMLElement | null;
   currency?: string;
 }
 
 export const Quantity = ({
+  portal,
   entitlements,
   updateQuantity,
   period,
-  tooltipPortal,
   currency: selectedCurrency,
 }: QuantityProps) => {
   const { settings } = useEmbed();
@@ -160,12 +160,12 @@ export const Quantity = ({
                       >
                         {t("Tier-based")}
                         <PricingTiersTooltip
+                          portal={portal}
                           feature={entitlement.feature}
                           period={period}
                           currency={currency}
                           priceTiers={priceTiers}
                           tiersMode={tiersMode ?? undefined}
-                          portal={tooltipPortal}
                         />
                       </Text>
                     </Flex>
