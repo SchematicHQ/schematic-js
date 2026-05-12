@@ -121,16 +121,34 @@ fi
 # Authenticate to npm. In CI, exchange the GitHub OIDC token for a short-lived
 # npm publish token (Trusted Publishing). For local use, fall back to NPM_TOKEN.
 if [[ -n "${ACTIONS_ID_TOKEN_REQUEST_URL:-}" && -n "${ACTIONS_ID_TOKEN_REQUEST_TOKEN:-}" ]]; then
-    echo "Exchanging GitHub OIDC token for npm publish token..."
-    OIDC_TOKEN=$(curl -fsSL \
+    AUDIENCE="npm%3Aregistry.npmjs.org"
+    OIDC_URL="${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=${AUDIENCE}"
+
+    echo "Requesting GitHub OIDC token (audience: ${AUDIENCE})..."
+    GH_OIDC_RESPONSE=$(curl -fsSL --retry 3 \
         -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
-        "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=npm:registry.npmjs.org" \
-        | node -e 'let d=""; process.stdin.on("data",c=>d+=c).on("end",()=>console.log(JSON.parse(d).value))')
-    NPM_PUBLISH_TOKEN=$(curl -fsSL -X POST \
+        -H "Accept: application/json" \
+        "${OIDC_URL}") || { echo "Failed to fetch OIDC token from GitHub"; exit 1; }
+    OIDC_TOKEN=$(echo "$GH_OIDC_RESPONSE" | node -e 'let d=""; process.stdin.on("data",c=>d+=c).on("end",()=>console.log(JSON.parse(d).value))')
+    if [[ -z "$OIDC_TOKEN" || "$OIDC_TOKEN" == "undefined" ]]; then
+        echo "GitHub OIDC response did not contain a token: $GH_OIDC_RESPONSE"
+        exit 1
+    fi
+    echo "Got GitHub OIDC token (length: ${#OIDC_TOKEN})"
+
+    echo "Exchanging for npm publish token..."
+    NPM_EXCHANGE_RESPONSE=$(curl -fsSL --retry 3 -X POST \
         -H "Content-Type: application/json" \
+        -H "Accept: application/json" \
         -d "{\"id_token\":\"${OIDC_TOKEN}\"}" \
-        "https://registry.npmjs.org/-/npm/v1/oidc/token/exchange" \
-        | node -e 'let d=""; process.stdin.on("data",c=>d+=c).on("end",()=>console.log(JSON.parse(d).token))')
+        "https://registry.npmjs.org/-/npm/v1/oidc/token/exchange") || { echo "Failed to exchange OIDC token with npm"; exit 1; }
+    NPM_PUBLISH_TOKEN=$(echo "$NPM_EXCHANGE_RESPONSE" | node -e 'let d=""; process.stdin.on("data",c=>d+=c).on("end",()=>console.log(JSON.parse(d).token))')
+    if [[ -z "$NPM_PUBLISH_TOKEN" || "$NPM_PUBLISH_TOKEN" == "undefined" ]]; then
+        echo "npm exchange response did not contain a token: $NPM_EXCHANGE_RESPONSE"
+        exit 1
+    fi
+    echo "Got npm publish token (length: ${#NPM_PUBLISH_TOKEN})"
+
     echo "//registry.npmjs.org/:_authToken=${NPM_PUBLISH_TOKEN}" > .npmrc
 elif [[ -n "${NPM_TOKEN:-}" ]]; then
     echo "Setting up .npmrc with NPM_TOKEN..."
