@@ -66,6 +66,9 @@ jobs:
   publish:
     name: NPM Publish
     needs: [lint_test]
+    permissions:
+      id-token: write
+      contents: read
     uses: ./.github/workflows/npm_publish.yml
     with:
       tag: ${{ github.ref_name }}
