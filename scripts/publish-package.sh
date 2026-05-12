@@ -118,10 +118,21 @@ else
     PUBLISH_DIR="."
 fi
 
-# Fallback for local/legacy use: if an NPM_TOKEN is provided, write an .npmrc
-# so npm publish can authenticate via token. In CI we rely on Trusted
-# Publishing (OIDC), so this block is a no-op there.
-if [[ -n "${NPM_TOKEN:-}" ]]; then
+# Authenticate to npm. In CI, exchange the GitHub OIDC token for a short-lived
+# npm publish token (Trusted Publishing). For local use, fall back to NPM_TOKEN.
+if [[ -n "${ACTIONS_ID_TOKEN_REQUEST_URL:-}" && -n "${ACTIONS_ID_TOKEN_REQUEST_TOKEN:-}" ]]; then
+    echo "Exchanging GitHub OIDC token for npm publish token..."
+    OIDC_TOKEN=$(curl -fsSL \
+        -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
+        "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=npm:registry.npmjs.org" \
+        | node -e 'let d=""; process.stdin.on("data",c=>d+=c).on("end",()=>console.log(JSON.parse(d).value))')
+    NPM_PUBLISH_TOKEN=$(curl -fsSL -X POST \
+        -H "Content-Type: application/json" \
+        -d "{\"id_token\":\"${OIDC_TOKEN}\"}" \
+        "https://registry.npmjs.org/-/npm/v1/oidc/token/exchange" \
+        | node -e 'let d=""; process.stdin.on("data",c=>d+=c).on("end",()=>console.log(JSON.parse(d).token))')
+    echo "//registry.npmjs.org/:_authToken=${NPM_PUBLISH_TOKEN}" > .npmrc
+elif [[ -n "${NPM_TOKEN:-}" ]]; then
     echo "Setting up .npmrc with NPM_TOKEN..."
     echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > .npmrc
 fi
