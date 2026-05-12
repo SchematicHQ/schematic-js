@@ -33,4 +33,10 @@ jobs:
         run: npm install -g npm@latest
 
       - name: Publish
+        env:
+          # Disable provenance attestation: it requires a GitHub-hosted
+          # runner and we use self-hosted RunsOn runners. Without this,
+          # publish fails with E422 "Unsupported GitHub Actions runner
+          # environment: self-hosted". OIDC auth still works regardless.
+          NPM_CONFIG_PROVENANCE: "false"
         run: TAG="${{ inputs.tag }}" ./scripts/publish-package.sh
