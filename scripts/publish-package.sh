@@ -137,11 +137,11 @@ if [[ -n "${ACTIONS_ID_TOKEN_REQUEST_URL:-}" && -n "${ACTIONS_ID_TOKEN_REQUEST_T
     echo "Got GitHub OIDC token (length: ${#OIDC_TOKEN})"
 
     echo "Exchanging for npm publish token..."
+    NPM_PACKAGE_PATH="@schematichq%2F${PACKAGE}"
     NPM_EXCHANGE_RESPONSE=$(curl -fsSL --retry 3 -X POST \
-        -H "Content-Type: application/json" \
+        -H "Authorization: Bearer ${OIDC_TOKEN}" \
         -H "Accept: application/json" \
-        -d "{\"id_token\":\"${OIDC_TOKEN}\"}" \
-        "https://registry.npmjs.org/-/npm/v1/oidc/token/exchange") || { echo "Failed to exchange OIDC token with npm"; exit 1; }
+        "https://registry.npmjs.org/-/npm/v1/oidc/token/exchange/package/${NPM_PACKAGE_PATH}") || { echo "Failed to exchange OIDC token with npm"; exit 1; }
     NPM_PUBLISH_TOKEN=$(echo "$NPM_EXCHANGE_RESPONSE" | node -e 'let d=""; process.stdin.on("data",c=>d+=c).on("end",()=>console.log(JSON.parse(d).token))')
     if [[ -z "$NPM_PUBLISH_TOKEN" || "$NPM_PUBLISH_TOKEN" == "undefined" ]]; then
         echo "npm exchange response did not contain a token: $NPM_EXCHANGE_RESPONSE"
