@@ -137,11 +137,26 @@ if [[ -n "${ACTIONS_ID_TOKEN_REQUEST_URL:-}" && -n "${ACTIONS_ID_TOKEN_REQUEST_T
     echo "Got GitHub OIDC token (length: ${#OIDC_TOKEN})"
 
     echo "Exchanging for npm publish token..."
-    NPM_PACKAGE_PATH="@schematichq%2F${PACKAGE}"
-    NPM_EXCHANGE_RESPONSE=$(curl -fsSL --retry 3 -X POST \
+    # npm-package-arg's escapedName uses lowercase %2f for the slash in
+    # scoped names — match that exactly.
+    NPM_PACKAGE_PATH="@schematichq%2f${PACKAGE}"
+    NPM_EXCHANGE_URL="https://registry.npmjs.org/-/npm/v1/oidc/token/exchange/package/${NPM_PACKAGE_PATH}"
+    echo "POST ${NPM_EXCHANGE_URL}"
+
+    HTTP_STATUS=$(curl -sS --retry 3 -X POST --path-as-is \
         -H "Authorization: Bearer ${OIDC_TOKEN}" \
         -H "Accept: application/json" \
-        "https://registry.npmjs.org/-/npm/v1/oidc/token/exchange/package/${NPM_PACKAGE_PATH}") || { echo "Failed to exchange OIDC token with npm"; exit 1; }
+        -o /tmp/npm-exchange-response.json \
+        -w "%{http_code}" \
+        "${NPM_EXCHANGE_URL}")
+    NPM_EXCHANGE_RESPONSE=$(cat /tmp/npm-exchange-response.json)
+    rm -f /tmp/npm-exchange-response.json
+
+    if [[ "$HTTP_STATUS" != "200" && "$HTTP_STATUS" != "201" ]]; then
+        echo "npm exchange returned HTTP $HTTP_STATUS"
+        echo "Response body: $NPM_EXCHANGE_RESPONSE"
+        exit 1
+    fi
     NPM_PUBLISH_TOKEN=$(echo "$NPM_EXCHANGE_RESPONSE" | node -e 'let d=""; process.stdin.on("data",c=>d+=c).on("end",()=>console.log(JSON.parse(d).token))')
     if [[ -z "$NPM_PUBLISH_TOKEN" || "$NPM_PUBLISH_TOKEN" == "undefined" ]]; then
         echo "npm exchange response did not contain a token: $NPM_EXCHANGE_RESPONSE"
