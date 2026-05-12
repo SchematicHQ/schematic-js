@@ -1,5 +1,6 @@
 export * from "./useAvailableCurrencies";
 export * from "./useAvailablePlans";
+export * from "./useCustomPlanBilling";
 export * from "./useEmbed";
 export * from "./useIsLightBackground";
 export * from "./usePaymentConfirmation";
