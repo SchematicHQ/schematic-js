@@ -91,6 +91,8 @@ export const CheckoutStageButton = ({
   // Helper to get stage display name
   const getStageDisplayName = (stageId: string | undefined): string => {
     switch (stageId) {
+      case "autoTopup":
+        return t("Auto Top-up");
       case "usage":
         return t("Quantity");
       case "addons":
@@ -156,6 +158,44 @@ export const CheckoutStageButton = ({
         $isLoading={isLoading}
       >
         <Flex $gap="0.5rem" $justifyContent="center" $alignItems="center">
+          {t("Next")}: {getStageDisplayName(nextStage)}
+          <Icon name="arrow-right" />
+        </Flex>
+      </Button>
+    );
+  }
+
+  if (checkoutStage === "autoTopup") {
+    const nextStage = getNextStageId("autoTopup");
+
+    if (!isPaymentMethodRequired && !nextStage) {
+      return (
+        <NoPaymentRequired
+          isDisabled={isDisabled}
+          isLoading={isLoading}
+          onClick={checkout}
+          isSticky={isSticky}
+        />
+      );
+    }
+
+    return (
+      <Button
+        type="button"
+        disabled={isDisabled}
+        onClick={async () => {
+          setCheckoutStage?.(nextStage ?? "checkout");
+        }}
+        $size={isSticky ? "sm" : "md"}
+        $fullWidth
+        $isLoading={isLoading}
+      >
+        <Flex
+          $gap="0.5rem"
+          $justifyContent="center"
+          $alignItems="center"
+          $padding="0 1rem"
+        >
           {t("Next")}: {getStageDisplayName(nextStage)}
           <Icon name="arrow-right" />
         </Flex>

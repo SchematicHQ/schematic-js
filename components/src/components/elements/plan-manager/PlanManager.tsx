@@ -17,8 +17,11 @@ import type {
 import {
   darken,
   formatCurrency,
+  getAutoTopupAmount,
+  getAutoTopupThresholdCredits,
   getFeatureName,
   groupCreditGrants,
+  isAutoTopupEnabled,
   lighten,
   shortenPeriod,
   toPrettyDate,
@@ -100,7 +103,7 @@ export const PlanManager = forwardRef<
 
   const { t } = useTranslation();
 
-  const { data, settings, setLayout } = useEmbed();
+  const { data, settings, setCheckoutState, setLayout } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
 
@@ -211,6 +214,11 @@ export const PlanManager = forwardRef<
     const isUsageBasedPlan = isFreePlan && usageBasedEntitlements.length > 0;
     return { isFreePlan, isUsageBasedPlan };
   }, [currentPlan, usageBasedEntitlements]);
+
+  const hasAutoTopupSelfService =
+    currentPlan?.includedCreditGrants.some((grant) => {
+      return grant.billingCreditAutoTopupSelfService;
+    }) ?? false;
 
   return (
     <>
@@ -521,8 +529,10 @@ export const PlanManager = forwardRef<
                     currentPlan?.includedCreditGrants.find(
                       (grant) => grant.creditId === group.id,
                     );
-                  const hasAutoTopup =
-                    planCreditGrant?.billingCreditAutoTopupEnabled;
+                  const hasAutoTopup = isAutoTopupEnabled(planCreditGrant);
+                  const thresholdCredits =
+                    getAutoTopupThresholdCredits(planCreditGrant);
+                  const topupAmount = getAutoTopupAmount(planCreditGrant);
 
                   return (
                     <Flex
@@ -558,7 +568,8 @@ export const PlanManager = forwardRef<
                               {group.total.used} {t("used")}
                               {hasAutoTopup && planCreditGrant && (
                                 <AutoTopupNotice
-                                  planCreditGrant={planCreditGrant}
+                                  thresholdCredits={thresholdCredits}
+                                  topupAmount={topupAmount}
                                 />
                               )}
                             </Text>
@@ -569,6 +580,89 @@ export const PlanManager = forwardRef<
                   );
                 })}
               </Flex>
+
+              {hasAutoTopupSelfService && (
+                <Flex
+                  $justifyContent="space-between"
+                  $alignItems="center"
+                  $gap="0.5rem"
+                  $padding="1.5rem"
+                  $backgroundColor={
+                    isLightBackground
+                      ? darken(settings.theme.card.background, 0.04)
+                      : lighten(settings.theme.card.background, 0.04)
+                  }
+                  $borderRadius="0.5rem"
+                >
+                  <Flex $flexDirection="column" $gap="0.5rem">
+                    <Text display={props.addOns.fontStyle}>
+                      {t("Auto top-up")}
+                    </Text>
+                    {currentPlan?.includedCreditGrants.reduce(
+                      (acc: React.ReactNode[], grant) => {
+                        if (
+                          !grant.credit ||
+                          !grant.billingCreditAutoTopupSelfService
+                        ) {
+                          return acc;
+                        }
+
+                        const autoTopupEnabled =
+                          grant.companyAutoTopupEnabled ?? false;
+
+                        if (!autoTopupEnabled) {
+                          acc.push(
+                            <Text key={grant.id} $leading="tight">
+                              {t("Auto top-up disabled for token", {
+                                unit: getFeatureName(grant.credit, 1),
+                              })}
+                            </Text>,
+                          );
+
+                          return acc;
+                        }
+
+                        const autoTopupThresholdCredits =
+                          getAutoTopupThresholdCredits(grant);
+                        const autoTopupAmount = getAutoTopupAmount(grant);
+
+                        if (
+                          typeof autoTopupThresholdCredits === "number" &&
+                          typeof autoTopupAmount === "number"
+                        ) {
+                          acc.push(
+                            <Text key={grant.id} $leading="tight">
+                              {t("Adds X tokens when Y remaining in balance", {
+                                unit: getFeatureName(
+                                  grant.credit,
+                                  autoTopupAmount,
+                                ),
+                                amount: autoTopupAmount,
+                                threshold: autoTopupThresholdCredits,
+                              })}
+                            </Text>,
+                          );
+                        }
+
+                        return acc;
+                      },
+                      [],
+                    )}
+                  </Flex>
+
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      setCheckoutState({ bypassPlanSelection: true });
+                      setLayout("checkout");
+                    }}
+                    $size="sm"
+                    $variant="ghost"
+                  >
+                    {t("Edit")}
+                  </Button>
+                </Flex>
+              )}
             </Flex>
           )}
 

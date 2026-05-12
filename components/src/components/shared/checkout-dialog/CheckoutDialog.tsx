@@ -10,6 +10,7 @@ import { useTranslation } from "react-i18next";
 
 import {
   BillingProductPriceInterval,
+  CompanyPlanCreditGrantView,
   EntitlementPriceBehavior,
   ResponseError,
   type FeatureUsageResponseData,
@@ -25,6 +26,7 @@ import {
   useSubscriptionCurrency,
 } from "../../../hooks";
 import type {
+  AutoTopupConfig,
   CreditBundle,
   SelectedPlan,
   UsageBasedEntitlement,
@@ -32,11 +34,13 @@ import type {
 import {
   ERROR_UNKNOWN,
   buildAddOnRequestBody,
+  buildAutoTopupRequestBody,
   buildCreditBundlesRequestBody,
   buildPayInAdvanceRequestBody,
   getPlanPrice,
   isError,
   isScheduledCheckoutConflictMessage,
+  mergeCompanyGrants,
   planSupportsCurrency,
 } from "../../../utils";
 import {
@@ -57,7 +61,7 @@ import {
 
 import { Navigation } from "./Navigation";
 
-import { AddOns, Checkout, Credits, Plan, Quantity } from ".";
+import { AddOns, AutoTopup, Checkout, Credits, Plan, Quantity } from ".";
 
 export const createActiveUsageBasedEntitlementsReducer =
   (entitlements: FeatureUsageResponseData[], period: string) =>
@@ -264,6 +268,48 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
   const [shouldTrial, setShouldTrial] = useState(false);
 
+  const planCreditGrants = useMemo(() => {
+    const grants = mergeCompanyGrants(
+      selectedPlan?.includedCreditGrants,
+      data?.company?.plan?.includedCreditGrants,
+    );
+
+    return grants;
+  }, [
+    selectedPlan?.includedCreditGrants,
+    data?.company?.plan?.includedCreditGrants,
+  ]);
+
+  const [autoTopupConfigs, setAutoTopupConfigs] = useState<
+    Map<string, AutoTopupConfig>
+  >(() => {
+    const initialConfigs = data?.company?.plan?.includedCreditGrants.reduce(
+      (
+        acc: [id: string, config: AutoTopupConfig][],
+        companyGrant: CompanyPlanCreditGrantView,
+      ) => {
+        const {
+          companyAutoTopupEnabled = false,
+          companyAutoTopupThresholdCredits,
+          companyAutoTopupAmount,
+        } = companyGrant;
+
+        const config: AutoTopupConfig = {
+          companyAutoTopupEnabled,
+          companyAutoTopupThresholdCredits,
+          companyAutoTopupAmount,
+        };
+
+        acc.push([companyGrant.id, config]);
+
+        return acc;
+      },
+      [],
+    );
+
+    return new Map(initialConfigs);
+  });
+
   const [addOns, setAddOns] = useState(() => {
     return availableAddOns.map((addOn) => ({
       ...addOn,
@@ -391,6 +437,20 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       });
     }
 
+    const hasSelfServiceAutoTopup = selectedPlan?.includedCreditGrants.some(
+      (grant) => {
+        const isSelfService = grant.billingCreditAutoTopupSelfService ?? false;
+        return isSelfService;
+      },
+    );
+    if (hasSelfServiceAutoTopup) {
+      stages.push({
+        id: "autoTopup",
+        name: t("Auto Top-up"),
+        label: t("Auto Top-up"),
+      });
+    }
+
     if (willTrialWithoutPaymentMethod) {
       return stages;
     }
@@ -455,6 +515,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
   }, [
     t,
     availablePlans,
+    selectedPlan?.includedCreditGrants,
     willTrialWithoutPaymentMethod,
     payInAdvanceEntitlements,
     addOns,
@@ -570,6 +631,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       period?: string;
       plan?: SelectedPlan;
       shouldTrial?: boolean;
+      autoTopupConfigs?: Map<string, AutoTopupConfig>;
       addOns?: SelectedPlan[];
       payInAdvanceEntitlements?: UsageBasedEntitlement[];
       addOnPayInAdvanceEntitlements?: UsageBasedEntitlement[];
@@ -607,12 +669,23 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       setCharges(undefined);
       setIsLoading(true);
 
+      const resolvedAutoTopupConfigs =
+        updates.autoTopupConfigs || autoTopupConfigs;
       const resolvedPayInAdvanceEntitlements =
         updates.payInAdvanceEntitlements || payInAdvanceEntitlements;
       const resolvedAddOnPayInAdvanceEntitlements =
         updates.addOnPayInAdvanceEntitlements || addOnPayInAdvanceEntitlements;
       const resolvedAddOns = updates.addOns || addOns;
       const resolvedCreditBundles = updates.creditBundles || creditBundles;
+      const resolvedPlanCreditGrants = mergeCompanyGrants(
+        plan.includedCreditGrants,
+        data?.company?.plan?.includedCreditGrants,
+      );
+
+      const autoTopupRequestBody = buildAutoTopupRequestBody({
+        creditGrants: resolvedPlanCreditGrants,
+        autoTopupConfigs: resolvedAutoTopupConfigs,
+      });
 
       const planPayInAdvanceRequestBody = buildPayInAdvanceRequestBody({
         entitlements: resolvedPayInAdvanceEntitlements,
@@ -642,7 +715,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
           newPlanId: plan.id,
           newPriceId: planPriceId,
           addOnIds: addOnRequestBody,
-          autoTopupOverrides: [],
+          autoTopupOverrides: autoTopupRequestBody,
           payInAdvance: [
             ...planPayInAdvanceRequestBody,
             ...addOnPayInAdvanceRequestBody,
@@ -713,11 +786,13 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     },
     [
       t,
+      data?.company?.plan?.includedCreditGrants,
       previewCheckout,
       planPeriod,
       selectedPlan,
       selectedCurrency,
       hasCurrency,
+      autoTopupConfigs,
       payInAdvanceEntitlements,
       addOnPayInAdvanceEntitlements,
       addOns,
@@ -869,6 +944,47 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       });
     },
     [handlePreviewCheckout, addOnUsageBasedEntitlements],
+  );
+
+  const updateAutoTopupConfig = useCallback(
+    (
+      // plan credit grant id
+      id: string,
+      updates: Partial<AutoTopupConfig>,
+    ) => {
+      setAutoTopupConfigs((prev) => {
+        const nextMap = new Map(prev);
+        const prevConfig = prev.get(id);
+
+        const matchedCreditGrant = planCreditGrants.find(
+          (grant) => grant.id === id,
+        );
+
+        const updatedConfig: AutoTopupConfig = {
+          companyAutoTopupEnabled:
+            updates.companyAutoTopupEnabled ??
+            prevConfig?.companyAutoTopupEnabled ??
+            false,
+          companyAutoTopupThresholdCredits:
+            updates.companyAutoTopupThresholdCredits ??
+            prevConfig?.companyAutoTopupThresholdCredits ??
+            matchedCreditGrant?.billingCreditAutoTopupThresholdCredits ??
+            0,
+          companyAutoTopupAmount:
+            updates.companyAutoTopupAmount ??
+            prevConfig?.companyAutoTopupAmount ??
+            matchedCreditGrant?.billingCreditAutoTopupAmount ??
+            0,
+        };
+
+        nextMap.set(id, updatedConfig);
+
+        handlePreviewCheckout({ autoTopupConfigs: nextMap });
+
+        return nextMap;
+      });
+    },
+    [handlePreviewCheckout, planCreditGrants],
   );
 
   const updateUsageBasedEntitlementQuantity = useCallback(
@@ -1306,6 +1422,14 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
               tooltipPortal={dialogRef.current}
               currency={hasCurrency ? selectedCurrency : undefined}
             />
+          ) : checkoutStage === "autoTopup" ? (
+            <AutoTopup
+              isLoading={isLoading}
+              planCreditGrants={planCreditGrants}
+              autoTopupConfigs={autoTopupConfigs}
+              updateAutoTopupConfig={updateAutoTopupConfig}
+              currency={hasCurrency ? selectedCurrency : undefined}
+            />
           ) : checkoutStage === "usage" ? (
             <Quantity
               isLoading={isLoading}
@@ -1362,6 +1486,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
           portalRef={dialogRef}
           planPeriod={planPeriod}
           selectedPlan={selectedPlan}
+          autoTopupConfigs={autoTopupConfigs}
           addOns={addOns}
           usageBasedEntitlements={usageBasedEntitlements}
           addOnUsageBasedEntitlements={addOnUsageBasedEntitlements}

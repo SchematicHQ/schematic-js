@@ -16,6 +16,7 @@ import {
 } from "../../../api/checkoutexternal";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import type {
+  AutoTopupConfig,
   CreditBundle,
   CurrentUsageBasedEntitlement,
   SelectedPlan,
@@ -24,6 +25,7 @@ import type {
 import {
   ChargeType,
   buildAddOnRequestBody,
+  buildAutoTopupRequestBody,
   buildCreditBundlesRequestBody,
   buildPayInAdvanceRequestBody,
   entitlementHasCost,
@@ -36,6 +38,7 @@ import {
   getMonthName,
   getPlanPrice,
   isScheduledCheckoutConflictMessage,
+  mergeCompanyGrants,
   shortenPeriod,
   toPrettyDate,
 } from "../../../utils";
@@ -50,6 +53,7 @@ interface SubscriptionSidebarProps extends Omit<BoxProps, "children"> {
   portalRef?: React.RefObject<HTMLDialogElement | null>;
   planPeriod: string;
   selectedPlan?: SelectedPlan;
+  autoTopupConfigs?: Map<string, AutoTopupConfig>;
   addOns: SelectedPlan[];
   creditBundles?: CreditBundle[];
   usageBasedEntitlements: UsageBasedEntitlement[];
@@ -87,6 +91,7 @@ export const SubscriptionSidebar = forwardRef<
       portalRef,
       planPeriod,
       selectedPlan,
+      autoTopupConfigs,
       addOns,
       creditBundles = [],
       usageBasedEntitlements,
@@ -165,6 +170,18 @@ export const SubscriptionSidebar = forwardRef<
       data?.featureUsage?.features,
       data?.subscription?.paymentMethod,
       data?.trialPaymentMethodRequired,
+    ]);
+
+    const planCreditGrants = useMemo(() => {
+      const grants = mergeCompanyGrants(
+        selectedPlan?.includedCreditGrants,
+        data?.company?.plan?.includedCreditGrants,
+      );
+
+      return grants;
+    }, [
+      selectedPlan?.includedCreditGrants,
+      data?.company?.plan?.includedCreditGrants,
     ]);
 
     const { payInAdvanceEntitlements } = useMemo(() => {
@@ -440,6 +457,11 @@ export const SubscriptionSidebar = forwardRef<
         setError(undefined);
         setIsLoading(true);
 
+        const autoTopupRequestBody = buildAutoTopupRequestBody({
+          creditGrants: planCreditGrants,
+          autoTopupConfigs,
+        });
+
         const planPayInAdvanceRequestBody = buildPayInAdvanceRequestBody({
           entitlements: payInAdvanceEntitlements,
           period: planPeriod,
@@ -466,7 +488,7 @@ export const SubscriptionSidebar = forwardRef<
           newPlanId: planId,
           newPriceId: planPriceId,
           addOnIds: addOnRequestBody,
-          autoTopupOverrides: [],
+          autoTopupOverrides: autoTopupRequestBody,
           payInAdvance: [
             ...planPayInAdvanceRequestBody,
             ...addOnPayInAdvanceRequestBody,
@@ -556,6 +578,8 @@ export const SubscriptionSidebar = forwardRef<
       paymentMethodId,
       planPeriod,
       selectedPlan,
+      planCreditGrants,
+      autoTopupConfigs,
       addOns,
       creditBundles,
       setError,

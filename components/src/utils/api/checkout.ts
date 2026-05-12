@@ -1,14 +1,42 @@
 import {
+  PlanCreditGrantView,
   type UpdateAddOnRequestBody,
+  type UpdateAutoTopupOverrideRequestBody,
   type UpdateCreditBundleRequestBody,
   type UpdatePayInAdvanceRequestBody,
 } from "../../api/checkoutexternal";
 import type {
+  AutoTopupConfig,
   CreditBundle,
   SelectedPlan,
   UsageBasedEntitlement,
 } from "../../types";
 import { getAddOnPrice, getEntitlementPrice } from "./billing";
+
+export function buildAutoTopupRequestBody(options: {
+  creditGrants: PlanCreditGrantView[];
+  autoTopupConfigs?: Map<string, AutoTopupConfig>;
+}) {
+  const { creditGrants, autoTopupConfigs } = options;
+
+  return creditGrants.reduce(
+    (acc: UpdateAutoTopupOverrideRequestBody[], grant) => {
+      if (autoTopupConfigs?.has(grant.id)) {
+        const config = autoTopupConfigs.get(grant.id);
+
+        acc.push({
+          planCreditGrantId: grant.id,
+          autoTopupEnabled: config?.companyAutoTopupEnabled,
+          autoTopupAmount: config?.companyAutoTopupAmount,
+          autoTopupThresholdCredits: config?.companyAutoTopupThresholdCredits,
+        });
+      }
+
+      return acc;
+    },
+    [],
+  );
+}
 
 export function buildPayInAdvanceRequestBody(options: {
   entitlements: UsageBasedEntitlement[];
