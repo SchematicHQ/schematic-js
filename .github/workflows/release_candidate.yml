@@ -60,24 +60,10 @@ jobs:
 
   publish:
     name: NPM Publish (RC)
-    runs-on: runs-on=${{ github.run_id }}/runner=4cpu-linux-x64/extras=s3-cache
-    permissions:
-      packages: write
-      contents: read
     needs: [parse_tag, lint_test]
-    steps:
-      - uses: runs-on/action@v2.0.3
-      - uses: actions/checkout@v6
-
-      - name: Set Node.js 24.x
-        uses: actions/setup-node@v6
-        with:
-          node-version: 24.x
-
-      - name: Publish RC
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: TAG="${{ github.ref_name }}" ./scripts/publish-package.sh
+    uses: ./.github/workflows/npm_publish.yml
+    with:
+      tag: ${{ github.ref_name }}
 
   summary:
     name: Summary

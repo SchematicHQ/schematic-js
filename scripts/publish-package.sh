@@ -14,8 +14,9 @@ set -euo pipefail
 #   TAG="schematic-react@1.3.0" ./scripts/publish-package.sh
 #   TAG="schematic-react@1.3.0-rc.1" ./scripts/publish-package.sh
 #
-# Environment variables:
-#   NPM_TOKEN - Required for publishing to NPM
+# In CI this runs under npm Trusted Publishing (OIDC); no NPM_TOKEN is needed.
+# If NPM_TOKEN is set in the environment, it is used as a fallback (useful for
+# local testing).
 
 if [[ -z "$TAG" ]]; then
     echo "Error: TAG env var required; should match git tag"
@@ -117,11 +118,11 @@ else
     PUBLISH_DIR="."
 fi
 
-# Set up npmrc if NPM_TOKEN is provided
-# Write to cwd (where npm publish runs); npm reads the project .npmrc from
-# cwd, not from the publish target directory.
+# Fallback for local/legacy use: if an NPM_TOKEN is provided, write an .npmrc
+# so npm publish can authenticate via token. In CI we rely on Trusted
+# Publishing (OIDC), so this block is a no-op there.
 if [[ -n "${NPM_TOKEN:-}" ]]; then
-    echo "Setting up .npmrc..."
+    echo "Setting up .npmrc with NPM_TOKEN..."
     echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > .npmrc
 fi
 
