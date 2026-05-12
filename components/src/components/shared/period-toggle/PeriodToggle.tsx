@@ -7,19 +7,19 @@ import { adjectify, getPlanPrice } from "../../../utils";
 import { Button, Flex, Text, Tooltip } from "../../ui";
 
 interface PeriodToggleProps {
+  portal?: HTMLElement | null;
   options: string[];
   selectedOption: string;
   selectedPlan?: SelectedPlan;
   onSelect: (period: string) => void;
-  tooltipPortal?: HTMLElement | null;
 }
 
 export const PeriodToggle = ({
+  portal,
   options,
   selectedOption,
   selectedPlan,
   onSelect,
-  tooltipPortal,
 }: PeriodToggleProps) => {
   const { t } = useTranslation();
 
@@ -98,6 +98,7 @@ export const PeriodToggle = ({
           return (
             <Tooltip
               key={option}
+              portal={portal}
               trigger={element}
               content={
                 <Text $size={11} $leading="none">
@@ -110,7 +111,6 @@ export const PeriodToggle = ({
                       })}
                 </Text>
               }
-              portal={tooltipPortal}
               $flexGrow={1}
               $flexBasis="50%"
             />

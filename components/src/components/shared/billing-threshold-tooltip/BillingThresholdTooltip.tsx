@@ -5,13 +5,13 @@ import { formatCurrency } from "../../../utils";
 import { Icon, Text, Tooltip } from "../../ui";
 
 interface BillingThresholdTooltipProps {
-  billingThreshold: number;
   portal?: HTMLElement | null;
+  billingThreshold: number;
 }
 
 export const BillingThresholdTooltip = ({
-  billingThreshold,
   portal,
+  billingThreshold,
 }: BillingThresholdTooltipProps) => {
   const { t } = useTranslation();
 
@@ -21,6 +21,7 @@ export const BillingThresholdTooltip = ({
 
   return (
     <Tooltip
+      portal={portal}
       content={
         <Text $size={0.875 * settings.theme.typography.text.fontSize}>
           {t(
@@ -39,7 +40,6 @@ export const BillingThresholdTooltip = ({
           style={{ lineHeight: 0 }}
         />
       }
-      portal={portal}
     />
   );
 };

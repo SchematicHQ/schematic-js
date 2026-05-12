@@ -139,6 +139,14 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
   const stageRef = useRef<HTMLDivElement>(null);
   const sidebarRef = useRef<HTMLDivElement>(null);
 
+  const [dialogElement, setDialogElement] = useState<HTMLDialogElement | null>(
+    null,
+  );
+  const setDialog = useCallback((element: HTMLDialogElement | null) => {
+    dialogRef.current = element;
+    setDialogElement(element);
+  }, []);
+
   const [confirmPaymentIntentProps, setConfirmPaymentIntentProps] = useState<
     ConfirmPaymentIntentProps | undefined | null
   >(undefined);
@@ -159,19 +167,13 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
   const [error, setError] = useState<string | undefined>();
   const [isModal, setIsModal] = useState(true);
 
-  const { featureUsage, showPeriodToggle, trialPaymentMethodRequired } =
-    // eslint-disable-next-line react-hooks/preserve-manual-memoization
-    useMemo(() => {
-      return {
-        featureUsage: data?.featureUsage ? data.featureUsage.features : [],
-        showPeriodToggle: data?.displaySettings?.showPeriodToggle ?? true,
-        trialPaymentMethodRequired: data?.trialPaymentMethodRequired === true,
-      };
-    }, [
-      data?.featureUsage,
-      data?.displaySettings?.showPeriodToggle,
-      data?.trialPaymentMethodRequired,
-    ]);
+  const showPeriodToggle = data?.displaySettings?.showPeriodToggle ?? true;
+  const trialPaymentMethodRequired = data?.trialPaymentMethodRequired === true;
+
+  const featureUsage = useMemo(
+    () => data?.featureUsage?.features ?? [],
+    [data?.featureUsage?.features],
+  );
 
   // Validates the requested period against the plan's availability.
   // Note: Plan data must be loaded by the time CheckoutDialog mounts.
@@ -213,7 +215,6 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     !currencyFilter!.includes(lockedCurrency);
   const [selectedCurrency, setSelectedCurrency] = useState(
     () =>
-      lockedCurrency ??
       (checkoutState?.selectedCurrency &&
       currencies.includes(checkoutState.selectedCurrency)
         ? checkoutState.selectedCurrency
@@ -221,6 +222,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       currencies[0] ??
       DEFAULT_CURRENCY,
   );
+  const effectiveCurrency = lockedCurrency ?? selectedCurrency;
   const showCurrencySelector = currencies.length > 1 && !lockedCurrency;
   const hasCurrency =
     !!lockedCurrency || currencies.length > 1 || hasCurrencyFilter;
@@ -237,14 +239,6 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     }
   }, [filterBlocksSubscriptionCurrency, lockedCurrency, debug]);
 
-  // Keep currency pinned to the subscription currency when it loads async
-  useEffect(() => {
-    if (lockedCurrency) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setSelectedCurrency(lockedCurrency);
-    }
-  }, [lockedCurrency]);
-
   const {
     plans: availablePlans,
     addOns: availableAddOns,
@@ -253,18 +247,30 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     useSelectedPeriod: showPeriodToggle,
   });
 
-  const [selectedPlan, setSelectedPlan] = useState<SelectedPlan | undefined>(
-    () => {
-      return availablePlans.find(
-        (plan) =>
-          (checkoutState?.planId
-            ? plan.id === checkoutState.planId
-            : plan.current) &&
-          // do not initially set the current plan for a trial
-          (!plan.isTrialable || !plan.companyCanTrial),
-      );
-    },
-  );
+  const [selectedPlanId, setSelectedPlanId] = useState<
+    string | null | undefined
+  >(undefined);
+
+  const selectedPlan = useMemo<SelectedPlan | undefined>(() => {
+    if (selectedPlanId === null) {
+      return undefined;
+    }
+
+    if (selectedPlanId) {
+      return availablePlans.find((p) => p.id === selectedPlanId);
+    }
+
+    if (checkoutState?.planId) {
+      return availablePlans.find((plan) => plan.id === checkoutState.planId);
+    }
+
+    return availablePlans.find(
+      (plan) =>
+        plan.current &&
+        // do not initially set the current plan for a trial
+        (!plan.isTrialable || !plan.companyCanTrial),
+    );
+  }, [availablePlans, checkoutState, selectedPlanId]);
 
   const [shouldTrial, setShouldTrial] = useState(false);
 
@@ -310,20 +316,68 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     return new Map(initialConfigs);
   });
 
-  const [addOns, setAddOns] = useState(() => {
-    return availableAddOns.map((addOn) => ({
-      ...addOn,
-      isSelected:
-        // Check if bypassed with specific add-on IDs
-        checkoutState?.addOnIds?.includes(addOn.id) ||
-        // Check if single add-on ID provided
-        (typeof checkoutState?.addOnId !== "undefined"
-          ? addOn.id === checkoutState.addOnId
-          : (data?.company?.addOns || []).some(
-              (currentAddOn) => addOn.id === currentAddOn.id,
-            )),
-    }));
+  const [selectedAddOnIds, setSelectedAddOnIds] = useState<Set<string>>(() => {
+    const ids = new Set<string>();
+
+    if (checkoutState?.addOnIds) {
+      for (const id of checkoutState.addOnIds) ids.add(id);
+    }
+
+    if (typeof checkoutState?.addOnId !== "undefined") {
+      if (checkoutState.addOnId !== null) {
+        ids.add(checkoutState.addOnId);
+      }
+    } else {
+      for (const addOn of data?.company?.addOns || []) {
+        ids.add(addOn.id);
+      }
+    }
+
+    return ids;
   });
+
+  const addOns = useMemo(() => {
+    return availableAddOns
+      .filter((availAddOn) => {
+        // Drop add-ons that don't offer the in-play currency. The currency
+        // is pinned to lockedCurrency (the active subscription) when one
+        // exists, so this also hides add-ons incompatible with a fixed
+        // subscription currency. We only filter when there's a meaningful
+        // currency choice — otherwise legacy single-currency setups would
+        // disappear unexpectedly.
+        if (
+          hasCurrency &&
+          !planSupportsCurrency(availAddOn, effectiveCurrency)
+        ) {
+          return false;
+        }
+
+        if (!selectedPlan) {
+          return true;
+        }
+
+        const ourCompats = data?.addOnCompatibilities.find(
+          (compat) => compat.sourcePlanId === availAddOn.id,
+        );
+
+        if (!ourCompats || !ourCompats.compatiblePlanIds?.length) {
+          return true;
+        }
+
+        return ourCompats?.compatiblePlanIds.includes(selectedPlan?.id);
+      })
+      .map((addOn) => ({
+        ...addOn,
+        isSelected: selectedAddOnIds.has(addOn.id),
+      }));
+  }, [
+    data?.addOnCompatibilities,
+    availableAddOns,
+    selectedPlan,
+    hasCurrency,
+    effectiveCurrency,
+    selectedAddOnIds,
+  ]);
 
   const [creditBundles, setCreditBundles] = useState<CreditBundle[]>(() => {
     return (data?.creditBundles || []).map((bundle) => ({
@@ -463,8 +517,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     }
 
     // addOns is already filtered by plan compatibility and currency support
-    // (see the setAddOns effect below); skip the stage entirely when nothing
-    // remains.
+    // in the addOns useMemo; skip the stage entirely when nothing remains.
     if (addOns.length > 0 && (!isSelectedPlanTrialable || !shouldTrial)) {
       stages.push({
         id: "addons",
@@ -525,12 +578,6 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     isPaymentMethodRequired,
   ]);
 
-  // Track if we've already performed the initial skip in bypass mode
-  const [hasSkippedInitialPlan, setHasSkippedInitialPlan] = useState(false);
-  const [hasSkippedInitialAddOns, setHasSkippedInitialAddOns] = useState(false);
-  const [hasSkippedInitialCredits, setHasSkippedInitialCredits] =
-    useState(false);
-
   // Track if we're in the initial bypass loading phase
   const [isBypassLoading, setIsBypassLoading] = useState(
     () =>
@@ -556,75 +603,29 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       return "credits";
     }
 
-    // Always start at "plan" stage - let useEffect handle bypass skipping
-    // after stages are fully loaded. This prevents skipping past stages
-    // (like credits) that haven't been populated yet from async data.
     return "plan";
   });
 
-  // Skip past bypassed stages when using bypass mode (initializeWithPlan)
-  useEffect(() => {
-    // Wait for bypass loading to complete before skipping stages.
-    // This ensures we have the complete stage list (credits, etc.) loaded
-    // from async data before deciding which stages to skip.
-    if (isBypassLoading) {
-      return;
-    }
+  // Walk past bypassed stages so the user lands on the first non-bypassed one.
+  // The raw `checkoutStage` is preserved as the user's selection; navigating
+  // back to a bypassed stage requires clearing the bypass flag first (see
+  // the breadcrumb onSelect below).
+  const effectiveCheckoutStage = useMemo(() => {
+    if (isBypassLoading) return checkoutStage;
 
-    /* eslint-disable react-hooks/set-state-in-effect */
-    // Skip plan stage if bypassing plan selection
-    if (
-      checkoutState?.bypassPlanSelection &&
-      checkoutStage === "plan" &&
-      !hasSkippedInitialPlan
+    let id = checkoutStage;
+    while (
+      (id === "plan" && checkoutState?.bypassPlanSelection) ||
+      (id === "addons" && checkoutState?.bypassAddOnSelection) ||
+      (id === "credits" && checkoutState?.bypassCreditsSelection)
     ) {
-      const currentIndex = checkoutStages.findIndex((s) => s.id === "plan");
-      const nextStage = checkoutStages[currentIndex + 1];
-      if (nextStage) {
-        setHasSkippedInitialPlan(true);
-        setCheckoutStage(nextStage.id);
-      }
+      const idx = checkoutStages.findIndex((s) => s.id === id);
+      const next = checkoutStages[idx + 1];
+      if (!next) break;
+      id = next.id;
     }
-
-    // Skip add-ons stage if bypassing add-on selection
-    if (
-      checkoutState?.bypassAddOnSelection &&
-      checkoutStage === "addons" &&
-      !hasSkippedInitialAddOns
-    ) {
-      const currentIndex = checkoutStages.findIndex((s) => s.id === "addons");
-      const nextStage = checkoutStages[currentIndex + 1];
-      if (nextStage) {
-        setHasSkippedInitialAddOns(true);
-        setCheckoutStage(nextStage.id);
-      }
-    }
-
-    // Skip credits stage if bypassing credits selection
-    if (
-      checkoutState?.bypassCreditsSelection &&
-      checkoutStage === "credits" &&
-      !hasSkippedInitialCredits
-    ) {
-      const currentIndex = checkoutStages.findIndex((s) => s.id === "credits");
-      const nextStage = checkoutStages[currentIndex + 1];
-      if (nextStage) {
-        setHasSkippedInitialCredits(true);
-        setCheckoutStage(nextStage.id);
-      }
-    }
-    /* eslint-enable react-hooks/set-state-in-effect */
-  }, [
-    checkoutStages,
-    checkoutState?.bypassPlanSelection,
-    checkoutState?.bypassAddOnSelection,
-    checkoutState?.bypassCreditsSelection,
-    checkoutStage,
-    hasSkippedInitialPlan,
-    hasSkippedInitialAddOns,
-    hasSkippedInitialCredits,
-    isBypassLoading,
-  ]);
+    return id;
+  }, [checkoutStage, checkoutStages, checkoutState, isBypassLoading]);
 
   const handlePreviewCheckout = useCallback(
     async (updates: {
@@ -640,7 +641,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     }) => {
       const period = updates.period || planPeriod;
       const plan = updates.plan || selectedPlan;
-      const resolvedCurrency = hasCurrency ? selectedCurrency : undefined;
+      const resolvedCurrency = hasCurrency ? effectiveCurrency : undefined;
       const currencyPrice = plan
         ? getPlanPrice(
             plan,
@@ -661,7 +662,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       // do not preview if user updates do not result in a valid plan
       if (!plan || !planPriceId) {
         // ensure selected plan is reset if no valid price is found
-        setSelectedPlan(undefined);
+        setSelectedPlanId(null);
         return;
       }
 
@@ -790,7 +791,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       previewCheckout,
       planPeriod,
       selectedPlan,
-      selectedCurrency,
+      effectiveCurrency,
       hasCurrency,
       autoTopupConfigs,
       payInAdvanceEntitlements,
@@ -847,19 +848,14 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
       // only update selected plan if the plan is changing
       if (plan.id !== selectedPlan?.id) {
-        setSelectedPlan(plan);
+        setSelectedPlanId(plan.id);
       }
 
       const updatedShouldTrial = updates.shouldTrial ?? shouldTrial;
       setShouldTrial(updatedShouldTrial);
 
       if (willTrialWithoutPaymentMethod) {
-        setAddOns((prev) =>
-          prev.map((addOn) => ({
-            ...addOn,
-            isSelected: false,
-          })),
-        );
+        setSelectedAddOnIds(new Set());
       }
 
       handlePreviewCheckout({
@@ -902,48 +898,47 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
   const toggleAddOn = useCallback(
     (id: string) => {
-      setAddOns((prev) => {
-        const updated = prev.map((addOn) => ({
-          ...addOn,
-          ...(addOn.id === id && { isSelected: !addOn.isSelected }),
-        }));
+      const updated = addOns.map((addOn) => ({
+        ...addOn,
+        ...(addOn.id === id && { isSelected: !addOn.isSelected }),
+      }));
 
-        const updatedAddOnEntitlements = updated
-          .filter((addOn) => addOn.isSelected)
-          .flatMap((addOn) => {
-            return addOn.entitlements
-              .filter((entitlement) => !!entitlement.priceBehavior)
-              .map((source) => {
-                const found = addOnUsageBasedEntitlements.find(
-                  (current) => current.id === source.id,
-                );
+      const updatedAddOnEntitlements = updated
+        .filter((addOn) => addOn.isSelected)
+        .flatMap((addOn) => {
+          return addOn.entitlements
+            .filter((entitlement) => !!entitlement.priceBehavior)
+            .map((source) => {
+              const found = addOnUsageBasedEntitlements.find(
+                (current) => current.id === source.id,
+              );
 
-                return {
-                  ...source,
-                  allocation: found?.allocation ?? source.valueNumeric ?? 0,
-                  usage: found?.usage ?? 0,
-                  quantity: found?.quantity ?? 1,
-                };
-              });
-          });
-
-        setAddOnUsageBasedEntitlements(updatedAddOnEntitlements);
-
-        const updatedAddOnPayInAdvanceEntitlements =
-          updatedAddOnEntitlements.filter(
-            (entitlement) =>
-              entitlement.priceBehavior ===
-              EntitlementPriceBehavior.PayInAdvance,
-          );
-        handlePreviewCheckout({
-          addOns: updated,
-          addOnPayInAdvanceEntitlements: updatedAddOnPayInAdvanceEntitlements,
+              return {
+                ...source,
+                allocation: found?.allocation ?? source.valueNumeric ?? 0,
+                usage: found?.usage ?? 0,
+                quantity: found?.quantity ?? 1,
+              };
+            });
         });
 
-        return updated;
+      setAddOnUsageBasedEntitlements(updatedAddOnEntitlements);
+
+      setSelectedAddOnIds(
+        new Set(updated.filter((a) => a.isSelected).map((a) => a.id)),
+      );
+
+      const updatedAddOnPayInAdvanceEntitlements =
+        updatedAddOnEntitlements.filter(
+          (entitlement) =>
+            entitlement.priceBehavior === EntitlementPriceBehavior.PayInAdvance,
+        );
+      handlePreviewCheckout({
+        addOns: updated,
+        addOnPayInAdvanceEntitlements: updatedAddOnPayInAdvanceEntitlements,
       });
     },
-    [handlePreviewCheckout, addOnUsageBasedEntitlements],
+    [handlePreviewCheckout, addOnUsageBasedEntitlements, addOns],
   );
 
   const updateAutoTopupConfig = useCallback(
@@ -1081,75 +1076,6 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     }
   }, [selectedPlan, planPeriod, selectPlan]);
 
-  useEffect(() => {
-    if (checkoutState?.planId) {
-      const plan = availablePlans.find(
-        (plan) => plan.id === checkoutState.planId,
-      );
-
-      // Only call selectPlan if the plan actually changed to avoid redundant API calls
-      if (plan && plan.id !== selectedPlan?.id) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        selectPlan({ plan, period: planPeriod });
-      }
-    }
-  }, [
-    availablePlans,
-    checkoutState?.planId,
-    planPeriod,
-    selectPlan,
-    selectedPlan?.id,
-  ]);
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setAddOns((prevAddOns) => {
-      return availableAddOns
-        .filter((availAddOn) => {
-          // Drop add-ons that don't offer the in-play currency. The currency
-          // is pinned to lockedCurrency (the active subscription) when one
-          // exists, so this also hides add-ons incompatible with a fixed
-          // subscription currency. We only filter when there's a meaningful
-          // currency choice — otherwise legacy single-currency setups would
-          // disappear unexpectedly.
-          if (
-            hasCurrency &&
-            !planSupportsCurrency(availAddOn, selectedCurrency)
-          ) {
-            return false;
-          }
-
-          if (!selectedPlan) {
-            return true;
-          }
-
-          const ourCompats = data?.addOnCompatibilities.find(
-            (compat) => compat.sourcePlanId === availAddOn.id,
-          );
-
-          if (!ourCompats || !ourCompats.compatiblePlanIds?.length) {
-            return true;
-          }
-
-          return ourCompats?.compatiblePlanIds.includes(selectedPlan?.id);
-        })
-        .map((addOn) => {
-          const prevAddOn = prevAddOns.find((prev) => prev.id === addOn.id);
-
-          return {
-            ...addOn,
-            isSelected: prevAddOn?.isSelected ?? false,
-          };
-        });
-    });
-  }, [
-    data?.addOnCompatibilities,
-    availableAddOns,
-    selectedPlan,
-    hasCurrency,
-    selectedCurrency,
-  ]);
-
   useLayoutEffect(() => {
     const element = dialogRef.current;
     if (layout !== "checkout" || !element) {
@@ -1176,7 +1102,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       left: 0,
       behavior: "smooth",
     });
-  }, [checkoutStage]);
+  }, [effectiveCheckoutStage]);
 
   useLayoutEffect(() => {
     if (charges) {
@@ -1189,7 +1115,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
   }, [charges]);
 
   const activeCheckoutStage = checkoutStages.find(
-    (stage) => stage.id === checkoutStage,
+    (stage) => stage.id === effectiveCheckoutStage,
   );
 
   // Filter stages for breadcrumb display based on hideSkippedStages
@@ -1235,17 +1161,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
   ]);
 
   // Show loading overlay while bypass mode resolves initial stage
-  const shouldShowBypassOverlay =
-    isBypassLoading ||
-    (checkoutState?.bypassPlanSelection &&
-      checkoutStage === "plan" &&
-      !hasSkippedInitialPlan) ||
-    (checkoutState?.bypassAddOnSelection &&
-      checkoutStage === "addons" &&
-      !hasSkippedInitialAddOns) ||
-    (checkoutState?.bypassCreditsSelection &&
-      checkoutStage === "credits" &&
-      !hasSkippedInitialCredits);
+  const shouldShowBypassOverlay = isBypassLoading;
 
   const canCheckout = data?.capabilities?.checkout ?? true;
   if (!canCheckout) {
@@ -1255,7 +1171,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
   if (hasNoUsableCurrency) {
     return (
       <Dialog
-        ref={dialogRef}
+        ref={setDialog}
         isModal={isModal}
         size="lg"
         top={top}
@@ -1278,7 +1194,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
   return (
     <Dialog
-      ref={dialogRef}
+      ref={setDialog}
       isModal={isModal}
       size="lg"
       top={top}
@@ -1307,7 +1223,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
               name={stage.name}
               index={index}
               activeIndex={visibleStages.findIndex(
-                (s) => s.id === checkoutStage,
+                (s) => s.id === effectiveCheckoutStage,
               )}
               isLast={index === stages.length - 1}
               onSelect={() => {
@@ -1376,24 +1292,23 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
               </Flex>
             )}
 
-            {checkoutStage === "plan" && (
+            {effectiveCheckoutStage === "plan" && (
               <Flex $alignItems="center" $gap="0.75rem">
                 {showCurrencySelector && (
                   <CurrencyToggle
                     currencies={currencies}
-                    selectedCurrency={selectedCurrency}
+                    selectedCurrency={effectiveCurrency}
                     onSelect={setSelectedCurrency}
                   />
                 )}
 
                 {showPeriodToggle && availablePeriods.length > 1 && (
                   <PeriodToggle
+                    portal={dialogElement}
                     options={availablePeriods}
                     selectedOption={planPeriod}
                     selectedPlan={selectedPlan}
                     onSelect={changePlanPeriod}
-                    // eslint-disable-next-line react-hooks/refs
-                    tooltipPortal={dialogRef.current}
                   />
                 )}
               </Flex>
@@ -1410,19 +1325,18 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
             >
               <Loader $size="2xl" />
             </Flex>
-          ) : checkoutStage === "plan" ? (
+          ) : effectiveCheckoutStage === "plan" ? (
             <Plan
+              portal={dialogElement}
               isLoading={isLoading}
               period={planPeriod}
               plans={availablePlans}
               selectedPlan={selectedPlan}
               selectPlan={selectPlan}
               shouldTrial={shouldTrial}
-              // eslint-disable-next-line react-hooks/refs
-              tooltipPortal={dialogRef.current}
-              currency={hasCurrency ? selectedCurrency : undefined}
+              currency={hasCurrency ? effectiveCurrency : undefined}
             />
-          ) : checkoutStage === "autoTopup" ? (
+          ) : effectiveCheckoutStage === "autoTopup" ? (
             <AutoTopup
               isLoading={isLoading}
               planCreditGrants={planCreditGrants}
@@ -1430,45 +1344,43 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
               updateAutoTopupConfig={updateAutoTopupConfig}
               currency={hasCurrency ? selectedCurrency : undefined}
             />
-          ) : checkoutStage === "usage" ? (
+          ) : effectiveCheckoutStage === "usage" ? (
             <Quantity
+              portal={dialogElement}
               isLoading={isLoading}
               period={planPeriod}
               selectedPlan={selectedPlan}
               entitlements={payInAdvanceEntitlements}
               updateQuantity={updateUsageBasedEntitlementQuantity}
-              // eslint-disable-next-line react-hooks/refs
-              tooltipPortal={dialogRef.current}
-              currency={hasCurrency ? selectedCurrency : undefined}
+              currency={hasCurrency ? effectiveCurrency : undefined}
             />
-          ) : checkoutStage === "addons" ? (
+          ) : effectiveCheckoutStage === "addons" ? (
             <AddOns
               isLoading={isLoading}
               period={planPeriod}
               addOns={addOns}
               toggle={(id) => toggleAddOn(id)}
-              currency={hasCurrency ? selectedCurrency : undefined}
+              currency={hasCurrency ? effectiveCurrency : undefined}
             />
-          ) : checkoutStage === "addonsUsage" ? (
+          ) : effectiveCheckoutStage === "addonsUsage" ? (
             <Quantity
+              portal={dialogElement}
               isLoading={isLoading}
               period={planPeriod}
               selectedPlan={selectedPlan}
               entitlements={addOnPayInAdvanceEntitlements}
               updateQuantity={updateAddOnEntitlementQuantity}
-              // eslint-disable-next-line react-hooks/refs
-              tooltipPortal={dialogRef.current}
-              currency={hasCurrency ? selectedCurrency : undefined}
+              currency={hasCurrency ? effectiveCurrency : undefined}
             />
-          ) : checkoutStage === "credits" ? (
+          ) : effectiveCheckoutStage === "credits" ? (
             <Credits
               isLoading={isLoading}
               bundles={creditBundles}
               updateCount={updateCreditBundleCount}
-              currency={hasCurrency ? selectedCurrency : undefined}
+              currency={hasCurrency ? effectiveCurrency : undefined}
             />
           ) : (
-            checkoutStage === "checkout" && (
+            effectiveCheckoutStage === "checkout" && (
               <Checkout
                 isPaymentMethodRequired={isPaymentMethodRequired}
                 setPaymentMethodId={(id) => setPaymentMethodId(id)}
@@ -1483,7 +1395,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
         <SubscriptionSidebar
           ref={sidebarRef}
-          portalRef={dialogRef}
+          portal={dialogElement}
           planPeriod={planPeriod}
           selectedPlan={selectedPlan}
           autoTopupConfigs={autoTopupConfigs}
@@ -1493,7 +1405,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
           addOnPayInAdvanceEntitlements={addOnPayInAdvanceEntitlements}
           creditBundles={creditBundles}
           charges={charges}
-          checkoutStage={checkoutStage}
+          checkoutStage={effectiveCheckoutStage}
           checkoutStages={navigableStages}
           error={error}
           isLoading={isLoading}
@@ -1508,7 +1420,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
           setConfirmPaymentIntent={setConfirmPaymentIntentProps}
           willTrialWithoutPaymentMethod={willTrialWithoutPaymentMethod}
           willScheduleDowngrade={willScheduleDowngrade}
-          currency={hasCurrency ? selectedCurrency : undefined}
+          currency={hasCurrency ? effectiveCurrency : undefined}
         />
       </DialogContent>
     </Dialog>

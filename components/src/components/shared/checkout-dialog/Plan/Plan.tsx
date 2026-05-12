@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { BillingProductPriceInterval } from "../../../../api/checkoutexternal";
@@ -6,7 +6,6 @@ import { TEXT_BASE_SIZE, VISIBLE_ENTITLEMENT_COUNT } from "../../../../const";
 import { useEmbed, useIsLightBackground, useTrialEnd } from "../../../../hooks";
 import type { SelectedPlan } from "../../../../types";
 import {
-  entitlementCountsReducer,
   formatCurrency,
   getAutoTopupAmount,
   getAutoTopupThresholdCredits,
@@ -25,6 +24,7 @@ import { ButtonGroup } from "./ButtonGroup";
 import { Entitlement } from "./Entitlement";
 
 interface PlanProps {
+  portal?: HTMLElement | null;
   isLoading: boolean;
   plans: SelectedPlan[];
   selectedPlan?: SelectedPlan;
@@ -35,18 +35,17 @@ interface PlanProps {
     shouldTrial?: boolean;
   }) => void;
   shouldTrial: boolean;
-  tooltipPortal?: HTMLElement | null;
   currency?: string;
 }
 
 export const Plan = ({
+  portal,
   isLoading,
   plans,
   selectedPlan,
   period,
   selectPlan,
   shouldTrial,
-  tooltipPortal,
   currency,
 }: PlanProps) => {
   const { t } = useTranslation();
@@ -57,36 +56,20 @@ export const Plan = ({
 
   const trialEnd = useTrialEnd();
 
-  const [entitlementCounts, setEntitlementCounts] = useState(() =>
-    plans.reduce(entitlementCountsReducer, {}),
-  );
+  const [entitlementVisibility, setEntitlementVisibility] = useState<
+    Record<string, boolean | undefined>
+  >({});
 
   const handleToggleShowAll = (id: string) => {
-    setEntitlementCounts((prev) => {
-      const count = prev[id] ? { ...prev[id] } : undefined;
+    setEntitlementVisibility((prev) => {
+      const updated = !(prev[id] ?? false);
 
-      if (count) {
-        return {
-          ...prev,
-          [id]: {
-            size: count.size,
-            limit:
-              count.limit > VISIBLE_ENTITLEMENT_COUNT
-                ? VISIBLE_ENTITLEMENT_COUNT
-                : count.size,
-          },
-        };
-      }
-
-      return prev;
+      return {
+        ...prev,
+        [id]: updated,
+      };
     });
   };
-
-  useEffect(() => {
-    // TODO: refactor entitlement counts
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setEntitlementCounts(plans.reduce(entitlementCountsReducer, {}));
-  }, [plans]);
 
   const isTrialing = data?.subscription?.status === "trialing";
   const showAsMonthlyPrices =
@@ -126,8 +109,7 @@ export const Plan = ({
         const isUsageBasedPlan = isFreePlan && hasUsageBasedEntitlements;
         const headerPriceFontStyle = settings.theme.typography.heading2;
 
-        const count = entitlementCounts[plan.id];
-        const isExpanded = count && count.limit > VISIBLE_ENTITLEMENT_COUNT;
+        const isExpanded = entitlementVisibility[plan.id] ?? false;
 
         return (
           <Flex
@@ -264,9 +246,9 @@ export const Plan = ({
                             )}
                             {hasAutoTopup && planCreditGrant && (
                               <AutoTopupNotice
+                                portal={portal}
                                 thresholdCredits={thresholdCredits}
                                 topupAmount={topupAmount}
-                                portal={tooltipPortal}
                               />
                             )}
                           </Text>
@@ -311,23 +293,30 @@ export const Plan = ({
             >
               {plan.entitlements.length > 0 && (
                 <Flex $flexDirection="column" $gap="1rem" $flexGrow={1}>
-                  {plan.entitlements
-                    .map((entitlement, entitlementIndex) => {
-                      return (
-                        <Entitlement
-                          key={entitlementIndex}
-                          entitlement={entitlement}
-                          period={planPeriod}
-                          credits={credits}
-                          tooltipPortal={tooltipPortal}
-                          currency={currency}
-                        />
-                      );
-                    })
-                    .slice(0, count?.limit ?? VISIBLE_ENTITLEMENT_COUNT)}
+                  {plan.entitlements.reduce(
+                    (acc: React.ReactNode[], entitlement, entitlementIndex) => {
+                      if (
+                        isExpanded ||
+                        entitlementIndex < VISIBLE_ENTITLEMENT_COUNT
+                      ) {
+                        acc.push(
+                          <Entitlement
+                            key={entitlementIndex}
+                            portal={portal}
+                            entitlement={entitlement}
+                            period={planPeriod}
+                            credits={credits}
+                            currency={currency}
+                          />,
+                        );
+                      }
 
-                  {(count?.size || plan.entitlements.length) >
-                    VISIBLE_ENTITLEMENT_COUNT && (
+                      return acc;
+                    },
+                    [],
+                  )}
+
+                  {plan.entitlements.length > VISIBLE_ENTITLEMENT_COUNT && (
                     <Flex
                       $alignItems="center"
                       $justifyContent="start"

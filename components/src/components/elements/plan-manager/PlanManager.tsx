@@ -319,10 +319,7 @@ export const PlanManager = forwardRef<
                 })}
           </Text>
 
-          <Text
-            as="p"
-            $size={0.8125 * settings.theme.typography.text.fontSize}
-          >
+          <Text as="p" $size={0.8125 * settings.theme.typography.text.fontSize}>
             {customPlanBilling.isAwaitingActivation
               ? t("Custom plan awaiting payment description", {
                   date: toPrettyDate(customPlanBilling.deadline, {

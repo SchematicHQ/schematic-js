@@ -52,5 +52,9 @@ export function useCustomPlanBilling(): CustomPlanBillingState | undefined {
       isAwaitingActivation,
       isAwaitingPayment,
     };
-  }, [data?.company?.customPlanBillings, data?.company?.plan, data?.company?.plans]);
+  }, [
+    data?.company?.customPlanBillings,
+    data?.company?.plan,
+    data?.company?.plans,
+  ]);
 }

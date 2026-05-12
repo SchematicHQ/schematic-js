@@ -6,15 +6,15 @@ import { getFeatureName } from "../../../utils";
 import { Icon, Text, Tooltip } from "../../ui";
 
 interface HardLimitTooltipProps {
+  portal?: HTMLElement | null;
   feature?: FeatureResponseData;
   limit?: number | null;
-  portal?: HTMLElement | null;
 }
 
 export const HardLimitTooltip = ({
+  portal,
   feature,
   limit,
-  portal,
 }: HardLimitTooltipProps) => {
   const { t } = useTranslation();
 
@@ -30,6 +30,7 @@ export const HardLimitTooltip = ({
 
   return (
     <Tooltip
+      portal={portal}
       trigger={
         <Icon
           title="limit"
@@ -46,7 +47,6 @@ export const HardLimitTooltip = ({
           })}
         </Text>
       }
-      portal={portal}
     />
   );
 };

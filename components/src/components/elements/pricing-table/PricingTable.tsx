@@ -14,11 +14,7 @@ import {
   type CompanyPlanDetailResponseData,
 } from "../../../api/checkoutexternal";
 import { type PlanViewPublicResponseData } from "../../../api/componentspublic";
-import {
-  DEFAULT_CURRENCY,
-  TEXT_BASE_SIZE,
-  VISIBLE_ENTITLEMENT_COUNT,
-} from "../../../const";
+import { DEFAULT_CURRENCY, TEXT_BASE_SIZE } from "../../../const";
 import { type FontStyle } from "../../../context";
 import {
   useAvailableCurrenciesWithInvalid,
@@ -26,7 +22,7 @@ import {
   useEmbed,
 } from "../../../hooks";
 import type { DeepPartial, ElementProps } from "../../../types";
-import { entitlementCountsReducer, planSupportsCurrency } from "../../../utils";
+import { planSupportsCurrency } from "../../../utils";
 import { Container, FussyChild } from "../../layout";
 import {
   CurrencyToggle,
@@ -223,41 +219,11 @@ export const PricingTable = forwardRef<
     [allAddOns, hasCurrency, selectedCurrency],
   );
 
-  const [entitlementCounts, setEntitlementCounts] = useState(() =>
-    plans.reduce(entitlementCountsReducer, {}),
-  );
-
-  const handleToggleShowAll = (id: string) => {
-    setEntitlementCounts((prev) => {
-      const count = prev[id] ? { ...prev[id] } : undefined;
-
-      if (count) {
-        return {
-          ...prev,
-          [id]: {
-            size: count.size,
-            limit:
-              count.limit > VISIBLE_ENTITLEMENT_COUNT
-                ? VISIBLE_ENTITLEMENT_COUNT
-                : count.size,
-          },
-        };
-      }
-
-      return prev;
-    });
-  };
-
   useEffect(() => {
     if (typeof data?.component === "undefined") {
       hydratePublic();
     }
   }, [data?.component, hydratePublic]);
-
-  useEffect(() => {
-    // TODO: refactor entitlement counts
-    setEntitlementCounts(plans.reduce(entitlementCountsReducer, {}));
-  }, [plans]);
 
   if (isPending) {
     return (
@@ -389,8 +355,6 @@ export const PricingTable = forwardRef<
                     plans={self}
                     selectedPeriod={planPeriod}
                     currency={hasCurrency ? selectedCurrency : undefined}
-                    entitlementCounts={entitlementCounts}
-                    handleToggleShowAll={handleToggleShowAll}
                   />
                 );
               })}

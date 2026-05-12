@@ -167,15 +167,6 @@ const mockSharedProps = {
   callToActionTarget: "_self",
 } satisfies DeepPartial<PlanProps["sharedProps"]> as PlanProps["sharedProps"];
 
-const mockEntitlementCounts = {
-  "plan-1": {
-    size: 2,
-    limit: 2,
-  },
-};
-
-const mockHandleToggleShowAll = vi.fn();
-
 describe("`Plan` component", () => {
   test("renders plan correctly", () => {
     render(
@@ -185,8 +176,6 @@ describe("`Plan` component", () => {
         sharedProps={mockSharedProps}
         plans={[mockPlan]}
         selectedPeriod={BillingProductPriceInterval.Month}
-        entitlementCounts={mockEntitlementCounts}
-        handleToggleShowAll={mockHandleToggleShowAll}
       />,
     );
 
@@ -213,8 +202,6 @@ describe("`Plan` component", () => {
         sharedProps={mockSharedProps}
         plans={[mockPlan]}
         selectedPeriod={BillingProductPriceInterval.Month}
-        entitlementCounts={mockEntitlementCounts}
-        handleToggleShowAll={mockHandleToggleShowAll}
       />,
     );
 
@@ -240,8 +227,6 @@ describe("`Plan` component", () => {
         sharedProps={mockSharedProps}
         plans={[mockPlan]}
         selectedPeriod={BillingProductPriceInterval.Month}
-        entitlementCounts={mockEntitlementCounts}
-        handleToggleShowAll={mockHandleToggleShowAll}
       />,
     );
 
@@ -262,8 +247,6 @@ describe("`Plan` component", () => {
         sharedProps={mockSharedProps}
         plans={[mockPlan]}
         selectedPeriod={BillingProductPriceInterval.Month}
-        entitlementCounts={mockEntitlementCounts}
-        handleToggleShowAll={mockHandleToggleShowAll}
       />,
     );
 
@@ -287,8 +270,6 @@ describe("`Plan` component", () => {
         sharedProps={mockSharedProps}
         plans={[mockPlan]}
         selectedPeriod={BillingProductPriceInterval.Month}
-        entitlementCounts={mockEntitlementCounts}
-        handleToggleShowAll={mockHandleToggleShowAll}
       />,
     );
 
@@ -307,8 +288,6 @@ describe("`Plan` component", () => {
         sharedProps={mockSharedProps}
         plans={[mockPlan]}
         selectedPeriod={BillingProductPriceInterval.Year}
-        entitlementCounts={mockEntitlementCounts}
-        handleToggleShowAll={mockHandleToggleShowAll}
       />,
     );
 
@@ -316,10 +295,11 @@ describe("`Plan` component", () => {
     expect(planPrice).toHaveTextContent("$199.99/year");
   });
 
-  test("calls handleToggleShowAll when 'See all' is clicked", () => {
+  test("expands and collapses entitlements when 'See all' / 'Hide all' is clicked", () => {
+    const totalEntitlements = 10;
     const manyEntitlementsPlan = {
       ...mockPlan,
-      entitlements: Array(10)
+      entitlements: Array(totalEntitlements)
         .fill(null)
         .map(
           (_, i) =>
@@ -333,13 +313,6 @@ describe("`Plan` component", () => {
         ),
     };
 
-    const manyEntitlementsCounts = {
-      "plan-1": {
-        size: 10,
-        limit: VISIBLE_ENTITLEMENT_COUNT,
-      },
-    };
-
     render(
       <Plan
         plan={manyEntitlementsPlan}
@@ -347,17 +320,39 @@ describe("`Plan` component", () => {
         sharedProps={mockSharedProps}
         plans={[manyEntitlementsPlan]}
         selectedPeriod={BillingProductPriceInterval.Month}
-        entitlementCounts={manyEntitlementsCounts}
-        handleToggleShowAll={mockHandleToggleShowAll}
       />,
     );
 
+    // Collapsed: only the first VISIBLE_ENTITLEMENT_COUNT features are rendered.
+    for (let i = 0; i < VISIBLE_ENTITLEMENT_COUNT; i++) {
+      expect(screen.getByText(`Feature ${i}`)).toBeInTheDocument();
+    }
+    expect(
+      screen.queryByText(`Feature ${VISIBLE_ENTITLEMENT_COUNT}`),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(`Feature ${totalEntitlements - 1}`),
+    ).not.toBeInTheDocument();
+
     act(() => {
-      const seeAllButton = screen.getByText("See all");
-      fireEvent.click(seeAllButton);
+      fireEvent.click(screen.getByText("See all"));
     });
 
-    expect(mockHandleToggleShowAll).toHaveBeenCalledWith("plan-1");
+    // Expanded: all features are rendered, and the toggle flips to "Hide all".
+    for (let i = 0; i < totalEntitlements; i++) {
+      expect(screen.getByText(`Feature ${i}`)).toBeInTheDocument();
+    }
+    expect(screen.getByText("Hide all")).toBeInTheDocument();
+
+    act(() => {
+      fireEvent.click(screen.getByText("Hide all"));
+    });
+
+    // Collapsed again.
+    expect(
+      screen.queryByText(`Feature ${totalEntitlements - 1}`),
+    ).not.toBeInTheDocument();
+    expect(screen.getByText("See all")).toBeInTheDocument();
   });
 
   test("shows inclusion text for non-first plans", () => {
@@ -371,8 +366,6 @@ describe("`Plan` component", () => {
           mockPlan,
         ]}
         selectedPeriod={BillingProductPriceInterval.Month}
-        entitlementCounts={mockEntitlementCounts}
-        handleToggleShowAll={mockHandleToggleShowAll}
       />,
     );
 
@@ -403,8 +396,6 @@ describe("`Plan` component", () => {
         sharedProps={mockSharedProps}
         plans={[mockPlan]}
         selectedPeriod={BillingProductPriceInterval.Month}
-        entitlementCounts={mockEntitlementCounts}
-        handleToggleShowAll={mockHandleToggleShowAll}
       />,
     );
 
@@ -424,8 +415,6 @@ describe("`Plan` component", () => {
         }}
         plans={[mockPlan]}
         selectedPeriod={BillingProductPriceInterval.Month}
-        entitlementCounts={mockEntitlementCounts}
-        handleToggleShowAll={mockHandleToggleShowAll}
       />,
     );
 
