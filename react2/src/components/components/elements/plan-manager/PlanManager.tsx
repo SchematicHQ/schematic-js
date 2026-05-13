@@ -2,7 +2,7 @@ import { forwardRef, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import { BillingCreditGrantReason } from "../../../api/checkoutexternal";
-import { type FontStyle } from "../../../context";
+import { type FontStyle } from "../../../embed";
 import {
   useCustomPlanBilling,
   useEmbed,

@@ -1,6 +1,6 @@
 import { forwardRef } from "react";
 
-import { type FontStyle } from "../../../context";
+import { type FontStyle } from "../../../embed";
 import { DeepPartial, ElementProps, type ComponentProps } from "../../../types";
 import { Element } from "../../layout";
 import { Flex, Text } from "../../ui";

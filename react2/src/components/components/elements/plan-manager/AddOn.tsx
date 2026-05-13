@@ -1,5 +1,5 @@
 import { type CompanyPlanWithBillingSubView } from "../../../api/checkoutexternal";
-import { FontStyle } from "../../../context";
+import { FontStyle } from "../../../embed";
 import { formatCurrency, shortenPeriod } from "../../../utils";
 import { Flex, Text } from "../../ui";
 

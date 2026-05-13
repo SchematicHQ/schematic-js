@@ -5,7 +5,7 @@ import {
   type CurrencyBalance,
   type InvoiceResponseData,
 } from "../../../api/checkoutexternal";
-import { type FontStyle } from "../../../context";
+import { type FontStyle } from "../../../embed";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import type { DeepPartial, ElementProps } from "../../../types";
 import {

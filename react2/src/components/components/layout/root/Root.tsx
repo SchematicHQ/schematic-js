@@ -1,6 +1,6 @@
 import { forwardRef } from "react";
 
-import { type EmbedSettings } from "../../../context";
+import { type EmbedSettings } from "../../../embed";
 import type { HydrateDataWithCompanyContext } from "../../../types";
 
 import { Container, ContainerStyle, ResetStyle } from "./styles";

@@ -12,7 +12,7 @@ import {
   type PreviewSubscriptionFinanceResponseData,
   type SetupIntentResponseData,
 } from "../../../api/checkoutexternal";
-import { type FontStyle } from "../../../context";
+import { type FontStyle } from "../../../embed";
 import {
   useEmbed,
   useIsLightBackground,

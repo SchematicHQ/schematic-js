@@ -6,7 +6,7 @@ import {
   type InvoiceResponseData,
 } from "../../../api/checkoutexternal";
 import { MAX_VISIBLE_INVOICE_COUNT } from "../../../const";
-import { type FontStyle } from "../../../context";
+import { type FontStyle } from "../../../embed";
 import { useEmbed } from "../../../hooks";
 import type { DeepPartial, ElementProps } from "../../../types";
 import {

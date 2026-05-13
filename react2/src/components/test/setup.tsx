@@ -1,9 +1,11 @@
 import { render, type RenderOptions } from "@testing-library/react";
 
-import { EmbedProvider } from "..";
+import { SchematicProvider } from "..";
 
 const Provided = ({ children }: { children: React.ReactNode }) => {
-  return <EmbedProvider apiKey="api_0">{children}</EmbedProvider>;
+  return (
+    <SchematicProvider publishableKey="api_0">{children}</SchematicProvider>
+  );
 };
 
 const customRender = (

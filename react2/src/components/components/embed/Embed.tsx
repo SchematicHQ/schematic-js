@@ -3,7 +3,7 @@ import { useContext, useEffect, useMemo } from "react";
 import { ThemeContext } from "styled-components";
 
 import { TEXT_BASE_SIZE } from "../../const";
-import { EmbedSettings, stub } from "../../context";
+import { EmbedSettings } from "../../embed";
 import { useEmbed } from "../../hooks";
 import { DeepPartial } from "../../types";
 import { ERROR_UNKNOWN, isError } from "../../utils";
@@ -137,11 +137,14 @@ export const SchematicEmbed = ({ id, accessToken }: EmbedProps) => {
     }
   }, [parseError, setError]);
 
-  // `EmbedProvider` provides a `ThemeContext`, therefore we need ensure that one exists.
-  // If there is no `EmbedContext` available, we must check for the missing theme.
-  // This will throw a missing provider error.
+  // `SchematicProvider` (via the embed adapter) provides the ThemeContext.
+  // If no theme is available, the user forgot to wrap in SchematicProvider —
+  // or imported it from the /core entry without the embed adapter.
   if (!theme) {
-    return stub();
+    // Local `Error` below is a React component; reach for the global ctor.
+    throw new globalThis.Error(
+      "You forgot to wrap your code with <SchematicProvider>.",
+    );
   }
 
   if (error) {
