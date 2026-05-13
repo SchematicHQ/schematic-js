@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(awk:*)",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(rg:*)",
+      "Bash(npx jest:*)",
+      "Bash(yarn)",
+      "Bash(yarn build)",
+      "Bash(yarn format)",
+      "Bash(yarn lint)",
+      "Bash(yarn test)",
+      "Bash(yarn tsc)"
+    ],
+    "deny": []
+  }
+}
