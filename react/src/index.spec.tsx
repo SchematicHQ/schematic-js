@@ -11,10 +11,9 @@ import {
 const mockFetch = vi.fn();
 globalThis.fetch = mockFetch as typeof fetch;
 
-// Check if we're in a DOM environment
 const isDOMEnvironment = typeof document !== "undefined";
 
-describe("schematic-react", () => {
+describe("schematic-react (root entry / core)", () => {
   beforeEach(() => {
     mockFetch.mockClear();
   });

@@ -1,2 +1,0 @@
-#!/bin/sh
-./version.sh && git add src/version.ts

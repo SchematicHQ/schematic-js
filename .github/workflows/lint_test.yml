@@ -4,11 +4,11 @@ on:
   workflow_call:
     inputs:
       package:
-        description: 'Package name (schematic-js, schematic-react, schematic-components, schematic-vue)'
+        description: 'Package name (schematic-js, schematic-react, schematic-vue)'
         required: true
         type: string
       working_dir:
-        description: 'Working directory (js, react, components, vue)'
+        description: 'Working directory (js, react, vue)'
         required: true
         type: string
 
