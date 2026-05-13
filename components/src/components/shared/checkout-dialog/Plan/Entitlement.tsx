@@ -1,0 +1,306 @@
+import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
+
+import {
+  EntitlementPriceBehavior,
+  EntitlementValueType,
+  FeatureType,
+  type PlanEntitlementResponseData,
+} from "../../../../api/checkoutexternal";
+import { useEmbed, useIsLightBackground } from "../../../../hooks";
+import type { Credit } from "../../../../types";
+import {
+  entitlementHasHardLimit,
+  formatCurrency,
+  formatNumber,
+  getCreditBasedEntitlementLimit,
+  getEntitlementPrice,
+  getFeatureName,
+  getMetricPeriodName,
+  isTieredPrice,
+  shortenPeriod,
+} from "../../../../utils";
+import {
+  BillingThresholdTooltip,
+  HardLimitTooltip,
+  PricingTiersTooltip,
+  TieredPricingDetails,
+} from "../../../shared";
+import { Flex, Icon, Text } from "../../../ui";
+
+export interface EntitlementProps {
+  portal?: HTMLElement | null;
+  entitlement: PlanEntitlementResponseData;
+  period: string;
+  credits: Credit[];
+  currency?: string;
+}
+
+export const Entitlement = ({
+  portal,
+  entitlement,
+  period,
+  credits,
+  currency: selectedCurrency,
+}: EntitlementProps) => {
+  const { t } = useTranslation();
+
+  const { data, settings } = useEmbed();
+
+  const isLightBackground = useIsLightBackground();
+
+  const showCredits = data?.displaySettings?.showCredits ?? true;
+  const showFeatureDescription =
+    data?.displaySettings.showFeatureDescription ?? false;
+
+  const secondaryTextSize = 0.875 * settings.theme.typography.text.fontSize;
+  const secondaryTextColor = `color-mix(in oklch, ${settings.theme.typography.text.color} 62.5%, ${settings.theme.card.background})`;
+
+  const entitlementBillingPrice = getEntitlementPrice(
+    entitlement,
+    period,
+    selectedCurrency,
+  );
+  const {
+    price,
+    priceTier,
+    currency,
+    packageSize = 1,
+    tiersMode,
+  } = entitlementBillingPrice || {};
+
+  const tiered =
+    entitlement.priceBehavior === EntitlementPriceBehavior.PayInAdvance &&
+    isTieredPrice(entitlementBillingPrice);
+
+  const text = useMemo(() => {
+    if (!entitlement.feature) {
+      return;
+    }
+
+    const hasNumericValue =
+      entitlement.valueType === EntitlementValueType.Numeric ||
+      entitlement.valueType === EntitlementValueType.Unlimited ||
+      entitlement.valueType === EntitlementValueType.Trait;
+
+    const limit =
+      entitlement.priceBehavior === EntitlementPriceBehavior.Overage &&
+      typeof entitlement.softLimit === "number"
+        ? entitlement.softLimit
+        : (entitlement.valueNumeric ?? undefined);
+    const creditBasedEntitlementLimit = getCreditBasedEntitlementLimit(
+      entitlement,
+      credits,
+    );
+
+    const metricPeriodName = getMetricPeriodName(entitlement);
+
+    if (
+      typeof price === "number" &&
+      !tiered &&
+      (entitlement.priceBehavior === EntitlementPriceBehavior.PayInAdvance ||
+        entitlement.priceBehavior === EntitlementPriceBehavior.PayAsYouGo)
+    ) {
+      return (
+        <>
+          {formatCurrency(price, currency)} {t("per")}{" "}
+          {packageSize > 1 && <>{packageSize} </>}
+          {getFeatureName(entitlement.feature, packageSize)}
+          {entitlement.priceBehavior ===
+            EntitlementPriceBehavior.PayInAdvance && (
+            <>
+              {" "}
+              {t("per")} {period}
+            </>
+          )}
+        </>
+      );
+    }
+
+    if (entitlement.priceBehavior === EntitlementPriceBehavior.Tier || tiered) {
+      return (
+        <TieredPricingDetails
+          entitlement={entitlement}
+          period={period}
+          currency={selectedCurrency}
+        />
+      );
+    }
+
+    if (
+      showCredits &&
+      entitlement.priceBehavior === EntitlementPriceBehavior.CreditBurndown &&
+      entitlement.valueCredit
+    ) {
+      return (
+        <>
+          {entitlement.consumptionRate}{" "}
+          {getFeatureName(
+            entitlement.valueCredit,
+            entitlement.consumptionRate || undefined,
+          )}{" "}
+          {t("per")} {getFeatureName(entitlement.feature, 1)}
+        </>
+      );
+    }
+
+    if (
+      entitlement.priceBehavior === EntitlementPriceBehavior.CreditBurndown &&
+      creditBasedEntitlementLimit
+    ) {
+      return (
+        <>
+          {creditBasedEntitlementLimit?.period
+            ? t("Up to X units per period", {
+                amount: creditBasedEntitlementLimit.limit,
+                units: getFeatureName(
+                  entitlement.feature,
+                  creditBasedEntitlementLimit.limit,
+                ),
+                period: creditBasedEntitlementLimit.period,
+              })
+            : t("Up to X units", {
+                amount: creditBasedEntitlementLimit.limit,
+                units: getFeatureName(
+                  entitlement.feature,
+                  creditBasedEntitlementLimit.limit,
+                ),
+              })}
+        </>
+      );
+    }
+
+    if (hasNumericValue) {
+      return (
+        <>
+          {entitlement.valueType === EntitlementValueType.Unlimited &&
+          !entitlement.priceBehavior
+            ? t("Unlimited", {
+                item: getFeatureName(entitlement.feature),
+              })
+            : typeof limit === "number" && (
+                <>
+                  {formatNumber(limit)}{" "}
+                  {getFeatureName(entitlement.feature, limit)}
+                </>
+              )}
+
+          {metricPeriodName && (
+            <>
+              {" "}
+              {t("per")} {t(metricPeriodName)}
+            </>
+          )}
+        </>
+      );
+    }
+
+    return entitlement.feature.name;
+  }, [
+    t,
+    entitlement,
+    period,
+    credits,
+    showCredits,
+    price,
+    currency,
+    packageSize,
+    tiered,
+    selectedCurrency,
+  ]);
+
+  const usageText = useMemo(() => {
+    if (!entitlement.feature) {
+      return;
+    }
+
+    if (
+      entitlement.priceBehavior === EntitlementPriceBehavior.Overage &&
+      typeof price === "number"
+    ) {
+      return (
+        <>
+          {t("then")} {formatCurrency(price, currency)}/
+          {packageSize > 1 && <>{packageSize} </>}
+          {getFeatureName(entitlement.feature, packageSize)}
+          {entitlement.feature.featureType === FeatureType.Trait && (
+            <>/{shortenPeriod(period)}</>
+          )}
+        </>
+      );
+    }
+
+    if (entitlement.priceBehavior === EntitlementPriceBehavior.Tier || tiered) {
+      return t("Tier-based");
+    }
+  }, [t, entitlement, period, price, currency, packageSize, tiered]);
+
+  return (
+    <Flex
+      $flexWrap="wrap"
+      $justifyContent="space-between"
+      $alignItems="center"
+      $gap="1rem"
+    >
+      <Flex $gap="1rem">
+        {entitlement.feature?.icon && (
+          <Icon
+            name={entitlement.feature.icon}
+            color={settings.theme.primary}
+            background={
+              isLightBackground
+                ? "hsla(0, 0%, 0%, 0.0625)"
+                : "hsla(0, 0%, 100%, 0.25)"
+            }
+            rounded
+          />
+        )}
+
+        {entitlement.feature?.name && (
+          <Flex $flexDirection="column" $justifyContent="center" $gap="0.5rem">
+            <Flex $flexDirection="column">
+              <Text>{text}</Text>
+
+              <Text $size={secondaryTextSize} $color={secondaryTextColor}>
+                {usageText}
+                {(entitlement.priceBehavior === EntitlementPriceBehavior.Tier ||
+                  tiered) && (
+                  <PricingTiersTooltip
+                    portal={portal}
+                    feature={entitlement.feature}
+                    period={period}
+                    currency={currency}
+                    priceTiers={priceTier}
+                    tiersMode={tiersMode ?? undefined}
+                  />
+                )}
+
+                {entitlementHasHardLimit(entitlement) &&
+                  entitlement.valueType === EntitlementValueType.Numeric && (
+                    <HardLimitTooltip
+                      portal={portal}
+                      feature={entitlement.feature}
+                      limit={entitlement.valueNumeric}
+                    />
+                  )}
+
+                {entitlement.billingThreshold && (
+                  <BillingThresholdTooltip
+                    portal={portal}
+                    billingThreshold={entitlement.billingThreshold}
+                  />
+                )}
+              </Text>
+            </Flex>
+
+            {showFeatureDescription && entitlement.feature.description && (
+              <Text $size={secondaryTextSize} $color={secondaryTextColor}>
+                {entitlement.feature.description}
+              </Text>
+            )}
+          </Flex>
+        )}
+      </Flex>
+    </Flex>
+  );
+};
