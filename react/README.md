@@ -5,10 +5,12 @@ A single Schematic SDK for React that unifies what used to be two packages
 **one React context, one provider, and one set of hooks** — without bloating
 the bundle for users who only need the lightweight surface.
 
-This package replaces both `@schematichq/schematic-react` (legacy WS-only)
-and `@schematichq/schematic-components` (legacy UI-only). The
-`components/` package is deprecated; its functionality is reachable here
-via the `/components` subpath.
+This package bundles the functionality of the previous
+`@schematichq/schematic-react` (WS-backed flags/entitlements) and
+`@schematichq/schematic-components` (REST-backed UI components). The
+standalone `components/` package still ships from this monorepo for
+existing consumers; new code should prefer this package's `/components`
+subpath.
 
 ## The shape
 
