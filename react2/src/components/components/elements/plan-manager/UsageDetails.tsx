@@ -7,7 +7,7 @@ import {
   FeatureType,
   type FeatureUsageResponseData,
 } from "../../../api/checkoutexternal";
-import { type FontStyle } from "../../../context";
+import { type FontStyle } from "../../../embed";
 import { useEmbed } from "../../../hooks";
 import {
   entitlementHasHardLimit,

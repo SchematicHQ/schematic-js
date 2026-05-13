@@ -1,9 +1,12 @@
 #!/usr/bin/env node
 // Validates that the root entry bundle does NOT contain code from any of the
-// heavy UI peer deps. If the root bundle ever leaks a string like
-// "styled-components" or "@stripe/" it means a /components-only import has
-// accidentally been pulled into the core entry, and importers of the root
-// package would be forced to install those peer deps.
+// heavy UI peer deps. The unified `SchematicProvider` at `src/provider.tsx`
+// is supposed to stay light by accepting an `embed` adapter component as a
+// prop — the heavy embed code lives in `src/components/embed/EmbedAdapter`
+// and is only reachable via the /components subpath entry. If a string like
+// "styled-components" or "@stripe/" appears in the root bundle, the
+// abstraction has leaked and /core users would be forced to install those
+// peer deps.
 //
 // Run after `yarn build` (which emits the bundles into dist/).
 
