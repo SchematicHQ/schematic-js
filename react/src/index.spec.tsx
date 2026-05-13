@@ -1,15 +1,15 @@
-import { vi } from "vitest";
-import { render } from "@testing-library/react";
 import { Schematic } from "@schematichq/schematic-js";
+import { render } from "@testing-library/react";
+import { vi } from "vitest";
+
 import { SchematicProvider, useSchematicFlag } from "./index";
 
 const mockFetch = vi.fn();
 globalThis.fetch = mockFetch as typeof fetch;
 
-// Check if we're in a DOM environment
 const isDOMEnvironment = typeof document !== "undefined";
 
-describe("schematic-react", () => {
+describe("schematic-react (root entry / core)", () => {
   beforeEach(() => {
     mockFetch.mockClear();
   });
