@@ -1,9 +1,10 @@
 import "../localization";
 
-import { IconStyles } from "@schematichq/schematic-icons";
 import debounce from "lodash/debounce";
 import merge from "lodash/merge";
 import React, {
+  Suspense,
+  lazy,
   useCallback,
   useContext,
   useEffect,
@@ -15,26 +16,24 @@ import { ThemeProvider } from "styled-components";
 import { v4 as uuidv4 } from "uuid";
 
 import { SchematicContext, type SchematicContextValue } from "../../context";
-import {
+import type {
+  ChangeSubscriptionRequestBody,
+  CheckoutResponse,
+  CheckoutResponseData,
+  CheckoutUnsubscribeResponse,
   CheckoutexternalApi,
-  Configuration as CheckoutConfiguration,
-  type ChangeSubscriptionRequestBody,
-  type CheckoutResponse,
-  type CheckoutResponseData,
-  type CheckoutUnsubscribeResponse,
-  type ConfigurationParameters,
-  type DeletePaymentMethodResponse,
-  type FetchCustomerBalanceResponse,
-  type GetSetupIntentResponse,
-  type HydrateUpcomingInvoiceResponse,
-  type ListInvoicesResponse,
-  type PreviewCheckoutResponse,
-  type UpdatePaymentMethodResponse,
+  ConfigurationParameters,
+  DeletePaymentMethodResponse,
+  FetchCustomerBalanceResponse,
+  GetSetupIntentResponse,
+  HydrateUpcomingInvoiceResponse,
+  ListInvoicesResponse,
+  PreviewCheckoutResponse,
+  UpdatePaymentMethodResponse,
 } from "../api/checkoutexternal";
-import {
+import type {
   ComponentspublicApi,
-  Configuration as PublicConfiguration,
-  type PublicPlansResponseData,
+  PublicPlansResponseData,
 } from "../api/componentspublic";
 import { FETCH_DEBOUNCE_TIMEOUT, LEADING_DEBOUNCE_SETTINGS } from "../const";
 import type { DeepPartial, HydrateDataWithCompanyContext } from "../types";
@@ -159,6 +158,14 @@ const normalizeCheckoutPrefill = (
   return { billingDetails: { email, name } };
 };
 
+// Loaded only when an embed subcomponent first commits — keeps the icon font
+// payload (~38 KB base64-inlined font) out of the eager EmbedAdapter chunk.
+const LazyIconStyles = lazy(() =>
+  import("@schematichq/schematic-icons").then((m) => ({
+    default: m.IconStyles,
+  })),
+);
+
 /**
  * The embed surface adapter. Mounted as a child of `SchematicProvider` when
  * `embed={EmbedAdapter}` is supplied — picks up the WS client from the
@@ -202,24 +209,49 @@ export const EmbedAdapter: React.FC<EmbedAdapterProps> = ({
     },
   );
 
-  const publicApi = useMemo(() => {
+  // Lazy factories: the OpenAPI client modules (~50–80 KB gzipped each) are
+  // dynamic-imported on first call and the constructed client is memoized for
+  // subsequent calls. When the configuration inputs change, the factory is
+  // recreated and the next call re-imports + reconstructs.
+  const getPublicApi = useMemo(() => {
     if (!publishableKey) return undefined;
-    const configParams = merge({}, apiConfig, {
-      // OpenAPI client's auth parameter is named `apiKey`; the value is the
-      // same publishable key the WS client uses.
-      apiKey: publishableKey,
-      headers: getCustomHeaders(sessionId),
-    });
-    return new ComponentspublicApi(new PublicConfiguration(configParams));
+    let promise: Promise<ComponentspublicApi> | undefined;
+    return () => {
+      if (!promise) {
+        promise = import("../api/componentspublic").then(
+          ({ ComponentspublicApi, Configuration }) => {
+            const configParams = merge({}, apiConfig, {
+              // OpenAPI client's auth parameter is named `apiKey`; the value
+              // is the same publishable key the WS client uses.
+              apiKey: publishableKey,
+              headers: getCustomHeaders(sessionId),
+            });
+            return new ComponentspublicApi(new Configuration(configParams));
+          },
+        );
+      }
+      return promise;
+    };
   }, [publishableKey, apiConfig, sessionId]);
 
-  const checkoutApi = useMemo(() => {
-    if (!state.accessToken) return undefined;
-    const configParams = merge({}, apiConfig, {
-      apiKey: state.accessToken,
-      headers: getCustomHeaders(sessionId),
-    });
-    return new CheckoutexternalApi(new CheckoutConfiguration(configParams));
+  const getCheckoutApi = useMemo(() => {
+    const accessToken = state.accessToken;
+    if (!accessToken) return undefined;
+    let promise: Promise<CheckoutexternalApi> | undefined;
+    return () => {
+      if (!promise) {
+        promise = import("../api/checkoutexternal").then(
+          ({ CheckoutexternalApi, Configuration }) => {
+            const configParams = merge({}, apiConfig, {
+              apiKey: accessToken,
+              headers: getCustomHeaders(sessionId),
+            });
+            return new CheckoutexternalApi(new Configuration(configParams));
+          },
+        );
+      }
+      return promise;
+    };
   }, [state.accessToken, apiConfig, sessionId]);
 
   const debug = useCallback(
@@ -248,14 +280,16 @@ export const EmbedAdapter: React.FC<EmbedAdapterProps> = ({
   const hydratePublic = useCallback(async () => {
     dispatch({ type: "HYDRATE_STARTED" });
 
-    if (!publicApi) {
+    if (!getPublicApi) {
       console.warn(
         "Error: Public API client is not initialized. Please provide a publishableKey prop to SchematicProvider.",
       );
+      return;
     }
 
     try {
-      const response = await publicApi?.getPublicPlans();
+      const api = await getPublicApi();
+      const response = await api.getPublicPlans();
 
       if (response) {
         dispatch({
@@ -271,7 +305,7 @@ export const EmbedAdapter: React.FC<EmbedAdapterProps> = ({
         error: isError(err) ? err : ERROR_UNKNOWN,
       });
     }
-  }, [publicApi]);
+  }, [getPublicApi]);
 
   const debouncedHydratePublic = useMemo(
     () =>
@@ -292,8 +326,11 @@ export const EmbedAdapter: React.FC<EmbedAdapterProps> = ({
   const hydrate = useCallback(async () => {
     dispatch({ type: "HYDRATE_STARTED" });
 
+    if (!getCheckoutApi) return;
+
     try {
-      const response = await checkoutApi?.hydrate();
+      const api = await getCheckoutApi();
+      const response = await api.hydrate();
 
       if (response) {
         dispatch({
@@ -309,7 +346,7 @@ export const EmbedAdapter: React.FC<EmbedAdapterProps> = ({
         error: isError(err) ? err : ERROR_UNKNOWN,
       });
     }
-  }, [checkoutApi]);
+  }, [getCheckoutApi]);
 
   const debouncedHydrate = useMemo(
     () => debounce(hydrate, FETCH_DEBOUNCE_TIMEOUT, LEADING_DEBOUNCE_SETTINGS),
@@ -325,8 +362,11 @@ export const EmbedAdapter: React.FC<EmbedAdapterProps> = ({
     async (id: string) => {
       dispatch({ type: "HYDRATE_STARTED" });
 
+      if (!getCheckoutApi) return;
+
       try {
-        const response = await checkoutApi?.hydrateComponent({
+        const api = await getCheckoutApi();
+        const response = await api.hydrateComponent({
           componentId: id,
         });
 
@@ -345,7 +385,7 @@ export const EmbedAdapter: React.FC<EmbedAdapterProps> = ({
         });
       }
     },
-    [checkoutApi],
+    [getCheckoutApi],
   );
 
   const debouncedHydrateComponent = useMemo(
@@ -397,8 +437,10 @@ export const EmbedAdapter: React.FC<EmbedAdapterProps> = ({
 
   // api methods
   const createSetupIntent = useCallback(async () => {
-    return checkoutApi?.createSetupIntent();
-  }, [checkoutApi]);
+    if (!getCheckoutApi) return;
+    const api = await getCheckoutApi();
+    return api.createSetupIntent();
+  }, [getCheckoutApi]);
 
   const debouncedCreateSetupIntent = useMemo(
     () =>
@@ -412,7 +454,9 @@ export const EmbedAdapter: React.FC<EmbedAdapterProps> = ({
 
   const updatePaymentMethod = useCallback(
     async (paymentMethodId: string) => {
-      const response = await checkoutApi?.updatePaymentMethod({
+      if (!getCheckoutApi) return;
+      const api = await getCheckoutApi();
+      const response = await api.updatePaymentMethod({
         updatePaymentMethodRequestBody: { paymentMethodId },
       });
 
@@ -425,7 +469,7 @@ export const EmbedAdapter: React.FC<EmbedAdapterProps> = ({
 
       return response;
     },
-    [checkoutApi],
+    [getCheckoutApi],
   );
 
   const debouncedUpdatePaymentMethod = useMemo(
@@ -440,7 +484,9 @@ export const EmbedAdapter: React.FC<EmbedAdapterProps> = ({
 
   const deletePaymentMethod = useCallback(
     async (paymentMethodId: string) => {
-      const response = await checkoutApi?.deletePaymentMethod({
+      if (!getCheckoutApi) return;
+      const api = await getCheckoutApi();
+      const response = await api.deletePaymentMethod({
         checkoutId: paymentMethodId,
       });
 
@@ -453,7 +499,7 @@ export const EmbedAdapter: React.FC<EmbedAdapterProps> = ({
 
       return response;
     },
-    [checkoutApi],
+    [getCheckoutApi],
   );
 
   const debouncedDeletePaymentMethod = useMemo(
@@ -468,7 +514,9 @@ export const EmbedAdapter: React.FC<EmbedAdapterProps> = ({
 
   const checkout = useCallback(
     async (changeSubscriptionRequestBody: ChangeSubscriptionRequestBody) => {
-      const response = await checkoutApi?.checkout({
+      if (!getCheckoutApi) return;
+      const api = await getCheckoutApi();
+      const response = await api.checkout({
         changeSubscriptionRequestBody,
       });
 
@@ -481,7 +529,7 @@ export const EmbedAdapter: React.FC<EmbedAdapterProps> = ({
 
       return response;
     },
-    [checkoutApi],
+    [getCheckoutApi],
   );
 
   const debouncedCheckout = useMemo(
@@ -491,13 +539,17 @@ export const EmbedAdapter: React.FC<EmbedAdapterProps> = ({
 
   const previewCheckout = useCallback(
     async (changeSubscriptionRequestBody: ChangeSubscriptionRequestBody) => {
-      return checkoutApi?.previewCheckout({ changeSubscriptionRequestBody });
+      if (!getCheckoutApi) return;
+      const api = await getCheckoutApi();
+      return api.previewCheckout({ changeSubscriptionRequestBody });
     },
-    [checkoutApi],
+    [getCheckoutApi],
   );
 
   const unsubscribe = useCallback(async () => {
-    const response = await checkoutApi?.checkoutUnsubscribe();
+    if (!getCheckoutApi) return;
+    const api = await getCheckoutApi();
+    const response = await api.checkoutUnsubscribe();
 
     if (response) {
       dispatch({
@@ -507,7 +559,7 @@ export const EmbedAdapter: React.FC<EmbedAdapterProps> = ({
     }
 
     return response;
-  }, [checkoutApi]);
+  }, [getCheckoutApi]);
 
   const debouncedUnsubscribe = useMemo(
     () =>
@@ -543,11 +595,13 @@ export const EmbedAdapter: React.FC<EmbedAdapterProps> = ({
 
   const getUpcomingInvoice = useCallback(
     async (id: string) => {
-      return checkoutApi?.hydrateUpcomingInvoice({
+      if (!getCheckoutApi) return;
+      const api = await getCheckoutApi();
+      return api.hydrateUpcomingInvoice({
         componentId: id,
       });
     },
-    [checkoutApi],
+    [getCheckoutApi],
   );
 
   const debouncedGetUpcomingInvoice = useMemo(
@@ -561,8 +615,10 @@ export const EmbedAdapter: React.FC<EmbedAdapterProps> = ({
   );
 
   const getCustomerBalance = useCallback(async () => {
-    return checkoutApi?.fetchCustomerBalance();
-  }, [checkoutApi]);
+    if (!getCheckoutApi) return;
+    const api = await getCheckoutApi();
+    return api.fetchCustomerBalance();
+  }, [getCheckoutApi]);
 
   const debouncedGetCustomerBalance = useMemo(
     () =>
@@ -575,8 +631,10 @@ export const EmbedAdapter: React.FC<EmbedAdapterProps> = ({
   );
 
   const listInvoices = useCallback(async () => {
-    return checkoutApi?.listInvoices();
-  }, [checkoutApi]);
+    if (!getCheckoutApi) return;
+    const api = await getCheckoutApi();
+    return api.listInvoices();
+  }, [getCheckoutApi]);
 
   const debouncedListInvoices = useMemo(
     () =>
@@ -807,7 +865,9 @@ export const EmbedAdapter: React.FC<EmbedAdapterProps> = ({
   return (
     <SchematicContext.Provider value={contextValue}>
       <ThemeProvider theme={state.settings.theme}>
-        <IconStyles />
+        <Suspense fallback={null}>
+          <LazyIconStyles />
+        </Suspense>
         {children}
       </ThemeProvider>
     </SchematicContext.Provider>
