@@ -1,7 +1,7 @@
 import * as SchematicJS from "@schematichq/schematic-js";
-import { useCallback, useMemo, useSyncExternalStore } from "react";
+import { useCallback, useContext, useMemo, useSyncExternalStore } from "react";
 
-import { useSchematic } from "./context";
+import { SchematicContext } from "../context";
 
 export interface SchematicFlags {
   [key: string]: boolean;
@@ -17,6 +17,14 @@ export type UseSchematicFlagOpts = SchematicHookOpts & {
 
 export type UseSchematicPlanOpts = SchematicHookOpts & {
   fallback?: SchematicJS.CheckPlanReturn;
+};
+
+export const useSchematic = () => {
+  const context = useContext(SchematicContext);
+  if (context.client === null) {
+    throw new Error("useSchematic must be used within a SchematicProvider");
+  }
+  return { client: context.client };
 };
 
 export const useSchematicClient = (opts?: SchematicHookOpts) => {

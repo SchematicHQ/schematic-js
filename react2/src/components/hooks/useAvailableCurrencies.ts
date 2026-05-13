@@ -69,7 +69,7 @@ function useHydratedCurrencies(): string[] {
 
 /**
  * Returns the currencies that should be displayed in the UI. When a
- * `currencyFilter` is configured on EmbedProvider, this is the intersection
+ * `currencyFilter` is configured on SchematicProvider, this is the intersection
  * of the filter with the hydrated currency set. Otherwise it is the full
  * hydrated set.
  */
@@ -105,7 +105,7 @@ export function useAvailableCurrenciesWithInvalid(): AvailableCurrenciesResult {
     // the integrator configured rather than alphabetizing it back. Normalize
     // each entry to uppercase before lookup — currency codes round-trip
     // through the API as lowercase (the DB stores them that way), and while
-    // EmbedProvider already uppercases the filter at its boundary, doing it
+    // SchematicProvider already uppercases the filter at its boundary, doing it
     // here too keeps the hook self-contained.
     for (const entry of currencyFilter) {
       const code = entry.toUpperCase();

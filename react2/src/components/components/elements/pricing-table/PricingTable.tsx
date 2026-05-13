@@ -15,7 +15,7 @@ import {
 } from "../../../api/checkoutexternal";
 import { type PlanViewPublicResponseData } from "../../../api/componentspublic";
 import { DEFAULT_CURRENCY, TEXT_BASE_SIZE } from "../../../const";
-import { type FontStyle } from "../../../context";
+import { type FontStyle } from "../../../embed";
 import {
   useAvailableCurrenciesWithInvalid,
   useAvailablePlans,
