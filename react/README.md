@@ -1,325 +1,191 @@
-# schematic-react
+# @schematichq/schematic-react
 
-`schematic-react` is a client-side React library for [Schematic](https://schematichq.com) which provides hooks to track events, check flags, and more. `schematic-react` provides the same capabilities as [schematic-js](https://github.com/schematichq/schematic-js/tree/main/js), for React apps.
+A single Schematic SDK for React that unifies what used to be two packages
+(websocket-backed flags/entitlements and REST-backed UI components) behind
+**one React context, one provider, and one set of hooks** — without bloating
+the bundle for users who only need the lightweight surface.
 
-## Install
+This package replaces both `@schematichq/schematic-react` (legacy WS-only)
+and `@schematichq/schematic-components` (legacy UI-only). The
+`components/` package is deprecated; its functionality is reachable here
+via the `/components` subpath.
+
+## The shape
+
+- `src/context.ts` — the ONE `SchematicContext`. Value type
+  `{ client: Schematic | null; embed: unknown | null }`. The `embed` slot
+  stays `null` unless a /components import wires it up.
+- `src/provider.tsx` — the ONE `SchematicProvider`, a pure plugin host.
+  Composes optional `ws` and `embed` adapter components around `children`.
+  Holds no React state itself.
+- `src/core/WsAdapter.tsx` — WS adapter. Constructs a `Schematic` client
+  from `publishableKey` (or accepts a pre-built `client`) and provides the
+  context. Auto-bound by both subpath entries; pass `ws={null}` to opt out.
+- `src/components/embed/EmbedAdapter.tsx` — embed adapter. REST clients,
+  reducer, theme, i18n, fonts. Heavy. Only reachable from the /components
+  subpath.
+
+## Subpath exports & tree-shaking
+
+```ts
+// Flags / entitlements / events only.
+// Bundle is ~6 KB ESM, pulls in NOTHING beyond `react` and
+// `@schematichq/schematic-js`.
+import { SchematicProvider, useSchematicFlag } from "@schematichq/schematic-react";
+
+// Same provider, plus the REST-backed UI surface (PricingTable, Embed,
+// PaymentMethod, etc.). Bundle is ~890 KB ESM with lodash, pako, uuid, and
+// @schematichq/schematic-icons inlined; Stripe, styled-components, i18next,
+// and react-i18next stay external and must be installed by the consumer.
+import { SchematicProvider, PricingTable, useEmbed } from "@schematichq/schematic-react/components";
+```
+
+The /components entry's `SchematicProvider` is a thin wrapper that pre-binds
+both the `ws` and `embed` adapters — same component name, same context, no
+extra setup required from the user.
+
+To use only the UI surface (no WebSocket connection), pass `ws={null}` to
+the `/components` `SchematicProvider`:
+
+```tsx
+import { SchematicProvider, PricingTable } from "@schematichq/schematic-react/components";
+
+<SchematicProvider publishableKey="..." ws={null}>
+  <PricingTable />
+</SchematicProvider>
+```
+
+`scripts/check-tree-shake.mjs` runs after the build and fails if any
+forbidden string (`@stripe/*`, `styled-components`, `i18next`,
+`react-i18next`, `@schematichq/schematic-icons`) shows up in the root
+bundle, guarding the abstraction.
+
+## Hooks
+
+**Core hooks** (available from both entries; read only `client` from the
+context):
+
+- `useSchematicFlag(key, opts?)` — boolean flag value
+- `useSchematicEntitlement(key, opts?)` — entitlement check + reason + usage
+- `useSchematicPlan(opts?)` — plan + trial status
+- `useSchematicEvents(opts?)` — `{ track, identify }`
+- `useSchematicContext(opts?)` — `{ setContext }`
+- `useSchematicIsPending(opts?)` — boolean loading state
+- `useSchematic()` — `{ client }`
+
+**Embed hooks** (only from `/components`; read the embed slot and throw if
+called outside an embed-providing tree):
+
+- `useEmbed()` — the full embed surface (data, settings, hydrate, checkout, etc.)
+- `useAvailableCurrencies()`
+- `useAvailablePlans()`
+- `useCustomPlanBilling()`
+- `usePaymentConfirmation()`
+- `useTrialEnd()`
+- `useIsLightBackground()`
+- plus internals: `useRequest`, `useWrapChildren`
+
+## Layout
+
+```
+react/
+├── README.md
+├── package.json              # subpath exports + optional peer deps
+├── tsconfig.json
+├── api-extractor.{core,components}.json
+├── eslint.config.mjs
+├── vitest.config.ts
+├── vitest.setup.ts
+├── test.sh
+├── version.sh
+├── generate_openapi.sh
+├── openapitools.json
+├── mockServiceWorker.js
+├── scripts/
+│   └── check-tree-shake.mjs  # post-build invariant guard
+└── src/
+    ├── context.ts            # ONE SchematicContext
+    ├── provider.tsx          # ONE SchematicProvider (plugin host)
+    ├── index.tsx             # /core entry — pre-binds WsAdapter
+    ├── version.ts
+    ├── index.spec.tsx
+    ├── core/
+    │   ├── WsAdapter.tsx     # WS client adapter
+    │   ├── hooks.ts          # 7 core hooks; read from ../context
+    │   └── index.ts
+    └── components/
+        ├── index.tsx         # /components entry — pre-binds both adapters
+        ├── api/              # generated OpenAPI clients
+        ├── components/       # UI components (PricingTable, Embed, etc.)
+        ├── embed/
+        │   ├── EmbedAdapter.tsx  # heavy embed implementation
+        │   ├── embedReducer.ts
+        │   ├── embedState.ts
+        │   └── index.ts
+        ├── hooks/            # 11 embed hooks
+        ├── const/
+        ├── localization/     # i18n (side-effectful import)
+        ├── types/
+        ├── utils/
+        └── test/             # MSW handlers + setup
+```
+
+## Build
 
 ```bash
-npm install @schematichq/schematic-react
-# or
-yarn add @schematichq/schematic-react
-# or
-pnpm add @schematichq/schematic-react
+yarn build
 ```
 
-## Usage
+Emits:
 
-### SchematicProvider
-
-You can use the `SchematicProvider` to wrap your application and provide the Schematic instance to all components:
-
-```tsx
-import { SchematicProvider } from "@schematichq/schematic-react";
-
-ReactDOM.render(
-    <SchematicProvider publishableKey="your-publishable-key">
-        <App />
-    </SchematicProvider>,
-    document.getElementById("root"),
-);
+```
+dist/
+├── schematic-react.cjs.js          # ~8.5 KB
+├── schematic-react.esm.js          # ~6 KB
+├── schematic-react.d.ts            # rolled-up types
+└── components/
+    ├── schematic-react-components.cjs.js   # ~925 KB
+    ├── schematic-react-components.esm.js   # ~893 KB
+    └── schematic-react-components.d.ts     # rolled-up types
 ```
 
-### Setting context
+## Test
 
-To set the user context for events and flag checks, you can use the `identify` function provided by the `useSchematicEvents` hook:
-
-```tsx
-import { useSchematicEvents } from "@schematichq/schematic-react";
-
-const MyComponent = () => {
-    const { identify } = useSchematicEvents();
-
-    useEffect(() => {
-        identify({
-            keys: { id: "my-user-id" },
-            company: {
-                keys: { id: "my-company-id" },
-                traits: { location: "Atlanta, GA" },
-            },
-        });
-    }, []);
-
-    return <div>My Component</div>;
-};
+```bash
+yarn test          # one-shot
+yarn test:watch    # watch mode
 ```
 
-To learn more about identifying companies with the `keys` map, see [key management in Schematic public docs](https://docs.schematichq.com/developer_resources/key_management).
-
-### Tracking usage
-
-Once you've set the context with `identify`, you can track events:
-
-```tsx
-import { useSchematicEvents } from "@schematichq/schematic-react";
-
-const MyComponent = () => {
-    const { track } = useSchematicEvents();
-
-    useEffect(() => {
-        track({ event: "query" });
-    }, []);
-
-    return <div>My Component</div>;
-};
-```
-
-If you want to record large numbers of the same event at once, or perhaps measure usage in terms of a unit like tokens or memory, you can optionally specify a quantity for your event:
-
-```tsx
-track({ event: "query", quantity: 10 });
-```
-
-### Checking flags
-
-To check a flag, you can use the `useSchematicFlag` hook:
-
-```tsx
-import { useSchematicFlag } from "@schematichq/schematic-react";
-import { Feature, Fallback } from "./components";
-
-const MyComponent = () => {
-    const isFeatureEnabled = useSchematicFlag("my-flag-key");
-
-    return isFeatureEnabled ? <Feature /> : <Fallback />;
-};
-```
-
-### Checking entitlements
-
-You can check entitlements (i.e., company access to a feature) using a flag check as well, and using the `useSchematicEntitlement` hook you can get additional data to render various feature states:
-
-```tsx
-import {
-    useSchematicEntitlement,
-    useSchematicIsPending,
-} from "@schematichq/schematic-react";
-import { Feature, Loader, NoAccess } from "./components";
-
-const MyComponent = () => {
-    const schematicIsPending = useSchematicIsPending();
-    const {
-        featureAllocation,
-        featureUsage,
-        featureUsageExceeded,
-        value: isFeatureEnabled,
-    } = useSchematicEntitlement("my-flag-key");
-
-    // loading state
-    if (schematicIsPending) {
-        return <Loader />;
-    }
-
-    // usage exceeded state
-    if (featureUsageExceeded) {
-        return (
-            <div>
-                You have used all of your usage ({featureUsage} /{" "}
-                {featureAllocation})
-            </div>
-        );
-    }
-
-    // either feature state or "no access" state
-    return isFeatureEnabled ? <Feature /> : <NoAccess />;
-};
-```
-
-*Note: `useSchematicIsPending` is checking if entitlement data has been loaded, typically via `identify`. It should, therefore, be used to wrap flag and entitlement checks, but never the initial call to `identify`.*
-
-### Company plan information
-
-To access the current company's plan and trial status, you can use the `useSchematicPlan` hook:
-
-```tsx
-import { useSchematicPlan } from "@schematichq/schematic-react";
-
-const MyComponent = () => {
-    const plan = useSchematicPlan();
-
-    if (!plan) {
-        return <div>No plan assigned</div>;
-    }
-
-    return (
-        <div>
-            <p>Current plan: {plan.name}</p>
-
-            {plan.trialStatus === "active" && (
-                <p>Trial ends: {plan.trialEndDate?.toLocaleDateString()}</p>
-            )}
-
-            {plan.trialStatus === "expired" && (
-                <p>Your trial has ended. <a href="/upgrade">Upgrade now</a></p>
-            )}
-        </div>
-    );
-};
-```
-
-The hook returns an object with the following properties:
-
-| Property | Type | Description |
-| --- | --- | --- |
-| `id` | `string` | The plan ID |
-| `name` | `string` | The plan name |
-| `trialEndDate` | `Date \| undefined` | The trial end date, if the company has or had a trial |
-| `trialStatus` | `"active" \| "expired" \| "converted" \| undefined` | The company's trial status: `active` if the trial is ongoing, `expired` if the trial ended without conversion, `converted` if the company converted to a paid plan, or `undefined` if the company has never trialed |
-
-## Fallback Behavior
-
-The SDK includes built-in fallback behavior you can use to ensure your application continues to function even when unable to reach Schematic (e.g., during service disruptions or network issues).
-
-### Flag Check Fallbacks
-
-When flag checks cannot reach Schematic, they use fallback values in the following priority order:
-
-1. Callsite fallback - fallback values can be provided directly in the hook options
-2. Initialization defaults - fallback values configured via `flagCheckDefaults` or `flagValueDefaults` options when initializing the provider
-3. Default value - Returns `false` if no fallback is configured
-
-```tsx
-// Provide a fallback value at the callsite
-import { useSchematicFlag } from "@schematichq/schematic-react";
-
-const MyComponent = () => {
-    const isFeatureEnabled = useSchematicFlag("feature-flag", {
-        fallback: true,  // Used if API request fails
-    });
-
-    return isFeatureEnabled ? <Feature /> : <Fallback />;
-};
-
-// Or configure defaults at initialization
-import { SchematicProvider } from "@schematichq/schematic-react";
-
-ReactDOM.render(
-    <SchematicProvider
-        publishableKey="your-publishable-key"
-        flagValueDefaults={{
-            "feature-flag": true,  // Used if API request fails and no callsite fallback
-        }}
-        flagCheckDefaults={{
-            "another-flag": {
-                flag: "another-flag",
-                value: true,
-                reason: "Default value",
-            },
-        }}
-    >
-        <App />
-    </SchematicProvider>,
-    document.getElementById("root"),
-);
-```
-
-### Event Queueing and Retry
-
-When events (track, identify) cannot be sent due to network issues, they are automatically queued and retried:
-
-- Events are queued in memory (up to 100 events by default, configurable via `maxEventQueueSize`)
-- Failed events are retried with exponential backoff (up to 5 attempts by default, configurable via `maxEventRetries`)
-- Events are automatically flushed when the network connection is restored
-- Events queued when the page is hidden are sent when the page becomes visible
-
-### WebSocket Fallback
-
-In WebSocket mode, if the WebSocket connection fails, the SDK will provide the last known value or the configured fallback values as [outlined above](/#flag-check-fallbacks). The WebSocket will also automatically attempt to re-establish it's connection with Schematic using an exponential backoff. 
-
-## React Native
-
-### Handling app background/foreground
-
-When a React Native app is backgrounded for an extended period, the WebSocket connection may be closed by the OS. When the app returns to the foreground, the connection will automatically reconnect, but this happens on an exponential backoff timer which may cause a delay before fresh flag values are available.
-
-For cases where you need immediate flag updates when returning to the foreground (e.g., after an in-app purchase), you can use one of these methods to re-establish the connection:
-
-- `forceReconnect()`: Always closes and re-establishes the WebSocket connection, guaranteeing fresh values
-- `reconnectIfNeeded()`: Only reconnects if the current connection is unhealthy (more efficient for frequent foreground events)
-
-```tsx
-import { useSchematic } from "@schematichq/schematic-react";
-import { useEffect } from "react";
-import { AppState } from "react-native";
-
-const SchematicAppStateHandler = () => {
-    const { client } = useSchematic();
-
-    useEffect(() => {
-        const subscription = AppState.addEventListener("change", (state) => {
-            if (state === "active") {
-                // Use forceReconnect() for guaranteed fresh values
-                client.forceReconnect();
-                // Or use reconnectIfNeeded() to skip if connection is healthy
-                // client.reconnectIfNeeded();
-            }
-        });
-        return () => subscription.remove();
-    }, [client]);
-
-    return null;
-};
-```
-
-Render this inside your `SchematicProvider`.
-
-## Troubleshooting
-
-For debugging and development, Schematic supports two special modes:
-
-### Debug Mode
-
-Enables console logging of all Schematic operations:
-
-```typescript
-// Enable at initialization
-import { SchematicProvider } from "@schematichq/schematic-react";
-
-ReactDOM.render(
-    <SchematicProvider publishableKey="your-publishable-key" debug={true}>
-        <App />
-    </SchematicProvider>,
-    document.getElementById("root"),
-);
-
-// Or via URL parameter
-// https://yoursite.com/?schematic_debug=true
-```
-
-### Offline Mode
-
-Prevents network requests and returns fallback values for all flag checks:
-
-```typescript
-// Enable at initialization
-import { SchematicProvider } from "@schematichq/schematic-react";
-
-ReactDOM.render(
-    <SchematicProvider publishableKey="your-publishable-key" offline={true}>
-        <App />
-    </SchematicProvider>,
-    document.getElementById("root"),
-);
-
-// Or via URL parameter
-// https://yoursite.com/?schematic_offline=true
-```
-
-Offline mode automatically enables debug mode to help with troubleshooting.
-
-## License
-
-MIT
-
-## Support
-
-Need help? Please open a GitHub issue or reach out to [support@schematichq.com](mailto:support@schematichq.com) and we'll be happy to assist.
+Tests run under `jsdom` with MSW-mocked APIs. Fixtures live in
+`src/components/test/`.
+
+## Notes
+
+- `sideEffects` is an array, not `false` — only
+  `./src/components/localization/**` has side effects (i18next registers
+  translation resources on import). Marking the whole package as
+  side-effect-free would drop that import during bundling.
+- `resolutions.undici` is pinned to `^7.24.0`. `jsdom@29` uses a 7.x API
+  in `jsdom-dispatcher.js` that isn't present in `undici@8`.
+- The bundled deps for `/components` (lodash, pako, uuid,
+  `@schematichq/schematic-icons`) sit in `devDependencies` so they're
+  available during build but aren't installed by consumers — esbuild inlines
+  them.
+- esbuild defines `process.env.SCHEMATIC_COMPONENTS_VERSION` at build time;
+  the value is read from `package.json` and surfaced in the
+  `X-Schematic-Components-Version` request header.
+- The JS `SchematicContext` type (the user/company context shape from
+  `@schematichq/schematic-js`) is intentionally **not** re-exported — its
+  name collides with the React context we expose. Import it directly from
+  `@schematichq/schematic-js` if you need to type your user/company context.
+
+## Migration from prior packages
+
+- **Legacy `@schematichq/schematic-react` (WS-only) users:** root entry's
+  import surface is unchanged. Bump the version and you're done.
+- **Legacy `@schematichq/schematic-components` users:** change the package
+  name and append `/components` to your imports. `EmbedProvider` is no
+  longer exported — use `SchematicProvider` from `/components`, which
+  pre-binds the embed adapter. The `apiKey` prop is gone; the same
+  `publishableKey` authenticates both the WS client and the public REST
+  surface.
