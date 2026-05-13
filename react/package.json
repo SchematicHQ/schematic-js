@@ -1,6 +1,6 @@
 {
   "name": "@schematichq/schematic-react",
-  "version": "0.0.0",
+  "version": "2.0.0",
   "description": "Unified React SDK for Schematic — merges schematic-react (WS-backed flags/entitlements) and schematic-components (REST-backed UI) behind a single provider with subpath exports for tree-shaking.",
   "main": "dist/schematic-react.cjs.js",
   "module": "dist/schematic-react.esm.js",
@@ -101,12 +101,24 @@
     "styled-components": ">=6"
   },
   "peerDependenciesMeta": {
-    "@stripe/react-stripe-js": { "optional": true },
-    "@stripe/stripe-js": { "optional": true },
-    "i18next": { "optional": true },
-    "react-dom": { "optional": true },
-    "react-i18next": { "optional": true },
-    "styled-components": { "optional": true }
+    "@stripe/react-stripe-js": {
+      "optional": true
+    },
+    "@stripe/stripe-js": {
+      "optional": true
+    },
+    "i18next": {
+      "optional": true
+    },
+    "react-dom": {
+      "optional": true
+    },
+    "react-i18next": {
+      "optional": true
+    },
+    "styled-components": {
+      "optional": true
+    }
   },
   "resolutions": {
     "minimatch": ">=3.1.3",
