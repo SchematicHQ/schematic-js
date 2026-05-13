@@ -7,7 +7,7 @@ set -euo pipefail
 #   ./scripts/commits-touching-dir.sh <dir> <commit1> <commit2>
 #
 # Example:
-#   ./scripts/commits-touching-dir.sh components/ schematic-components@2.8.4 schematic-components@2.9.0
+#   ./scripts/commits-touching-dir.sh react/ schematic-react@1.4.0 schematic-react@1.4.1
 
 if [ "$#" -ne 3 ]; then
   echo "Usage: $0 <dir> <commit1> <commit2>" >&2
