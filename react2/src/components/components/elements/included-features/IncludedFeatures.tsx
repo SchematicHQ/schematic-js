@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 
 import { type FeatureUsageResponseData } from "../../../api/checkoutexternal";
 import { VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
-import { type FontStyle } from "../../../context";
+import { type FontStyle } from "../../../embed";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import type { DeepPartial, ElementProps } from "../../../types";
 import { createKeyboardExecutionHandler, toPrettyDate } from "../../../utils";

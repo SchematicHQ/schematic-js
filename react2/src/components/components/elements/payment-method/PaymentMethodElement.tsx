@@ -3,7 +3,7 @@ import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import { type PaymentMethodResponseData } from "../../../api/checkoutexternal";
-import { type FontStyle } from "../../../context";
+import { type FontStyle } from "../../../embed";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import { createKeyboardExecutionHandler } from "../../../utils";
 import { Box, Flex, Icon, Text, type IconNames } from "../../ui";

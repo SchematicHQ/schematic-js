@@ -9,7 +9,7 @@ import {
   type FeatureUsageResponseData,
 } from "../../../api/checkoutexternal";
 import { TEXT_BASE_SIZE } from "../../../const";
-import { type FontStyle } from "../../../context";
+import { type FontStyle } from "../../../embed";
 import {
   useEmbed,
   useIsLightBackground,

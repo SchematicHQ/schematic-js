@@ -4,65 +4,52 @@
 > `@schematichq/schematic-react`, replacing the current `react/` and
 > `components/` packages. Don't depend on the `react2` name long-term.
 
-A single Schematic SDK for React that unifies what used to be two packages:
+A single Schematic SDK for React that unifies what used to be two packages
+(websocket-backed flags/entitlements and REST-backed UI components) behind
+**one React context, one provider, and one set of hooks** — without bloating
+the bundle for users who only need the lightweight surface.
 
-- The old `@schematichq/schematic-react` (websocket-backed flags, entitlements,
-  plan checks, event tracking).
-- The old `@schematichq/schematic-components` (REST-backed pricing tables,
-  checkout dialogs, payment methods, plan management UI).
+## The shape
 
-Both surfaces sit behind one `SchematicProvider`, exposed through two
-subpath exports so consumers only pull in the dependencies they actually use.
+- `src/context.ts` — the ONE `SchematicContext`. Value type:
+  `{ client: Schematic | null; embed: unknown | null }`. The `embed` slot
+  stays `null` unless a /components import wires it up.
+- `src/provider.tsx` — the ONE `SchematicProvider`. Constructs the WS-backed
+  Schematic client and provides the context. Accepts an optional `embed`
+  adapter component as a prop; when supplied, renders it as a child and the
+  adapter re-provides `SchematicContext` with `embed` populated.
+- `src/components/embed/EmbedAdapter.tsx` — the embed adapter implementation
+  (REST clients, reducer, theme, i18n, fonts). Heavy. Only reachable from the
+  /components subpath.
 
 ## Subpath exports & tree-shaking
 
 ```ts
 // Flags / entitlements / events only.
-// Bundle is ~5 KB ESM and pulls in NOTHING beyond `react` and
+// Bundle is ~5.6 KB ESM, pulls in NOTHING beyond `react` and
 // `@schematichq/schematic-js`.
 import { SchematicProvider, useSchematicFlag } from "@schematichq/schematic-react2";
 
-// Everything above, plus the REST-backed UI surface (PricingTable, Embed,
-// PaymentMethod, etc.). Bundle is ~900 KB ESM with lodash, pako, uuid, and
-// @schematichq/schematic-icons inlined. The UI peer deps (Stripe,
-// styled-components, i18next, react-i18next) stay external and must be
-// installed by the consumer.
+// Same provider, plus the REST-backed UI surface (PricingTable, Embed,
+// PaymentMethod, etc.). Bundle is ~890 KB ESM with lodash, pako, uuid, and
+// @schematichq/schematic-icons inlined; Stripe, styled-components, i18next,
+// and react-i18next stay external and must be installed by the consumer.
 import { SchematicProvider, PricingTable, useEmbed } from "@schematichq/schematic-react2/components";
 ```
 
-The heavy peers (`@stripe/react-stripe-js`, `@stripe/stripe-js`,
-`styled-components`, `i18next`, `react-i18next`, `react-dom`) are listed in
-`peerDependenciesMeta` as `optional: true`. `yarn install` doesn't complain
-when consumers never reach for the `/components` entry.
+The /components entry's `SchematicProvider` is a 3-line wrapper that
+pre-binds the embed adapter to the base provider — same component name, same
+context, no extra setup required from the user.
 
-To enforce that "import from root → install zero UI deps" invariant, the build
-runs `scripts/check-tree-shake.mjs` after bundling and fails if any forbidden
-string (`styled-components`, `@stripe/*`, etc.) appears in the root CJS or ESM
-bundle.
+`scripts/check-tree-shake.mjs` runs after the build and fails if any
+forbidden string (`@stripe/*`, `styled-components`, `i18next`,
+`react-i18next`, `@schematichq/schematic-icons`) shows up in the root
+bundle, guarding the abstraction.
 
-## Unified provider design
+## Hooks
 
-There is conceptually a single `SchematicProvider`:
-
-- Imported from `@schematichq/schematic-react2`: it initializes only the
-  WebSocket Schematic client. Same prop surface as the existing `react/`
-  package (`publishableKey` xor `client`, plus `SchematicOptions`).
-- Imported from `@schematichq/schematic-react2/components`: same prop set
-  plus the embed superset (`apiKey`, `apiConfig`, `settings`, `debug`,
-  `currencyFilter`). Internally composes `CoreSchematicProvider` with
-  `EmbedProvider`, so all `useSchematic*` hooks AND the embed hooks
-  (`useEmbed`, `useAvailableCurrencies`, etc.) work in the same tree.
-
-By default the `apiKey` (public REST) defaults to the same `publishableKey`
-the WS client uses. Override `apiKey` explicitly if you want to authenticate
-the REST surface with a different key.
-
-Don't nest the two `SchematicProvider`s — pick whichever subpath fits your
-use case.
-
-## Hook surface
-
-**Core hooks** (available from both entries):
+**Core hooks** (available from both entries; read only `client` from the
+context):
 
 - `useSchematicFlag(key, opts?)` — boolean flag value
 - `useSchematicEntitlement(key, opts?)` — entitlement check + reason + usage
@@ -70,11 +57,12 @@ use case.
 - `useSchematicEvents(opts?)` — `{ track, identify }`
 - `useSchematicContext(opts?)` — `{ setContext }`
 - `useSchematicIsPending(opts?)` — boolean loading state
-- `useSchematic()` — access the underlying client
+- `useSchematic()` — `{ client }`
 
-**Embed hooks** (only from `/components`):
+**Embed hooks** (only from `/components`; read the embed slot and throw if
+called outside an embed-providing tree):
 
-- `useEmbed()` — the full embed context (data, settings, hydrate, checkout, etc.)
+- `useEmbed()` — the full embed surface (data, settings, hydrate, checkout, etc.)
 - `useAvailableCurrencies()`
 - `useAvailablePlans()`
 - `useCustomPlanBilling()`
@@ -83,17 +71,6 @@ use case.
 - `useIsLightBackground()`
 - plus internals: `useRequest`, `useWrapChildren`
 
-## Components (exported from `/components`)
-
-- Elements: `PricingTable`, `PaymentMethod`, `PaymentMethodDialog`,
-  `PlanManager`, `PlanManagerDialog`, `InvoiceHistory`, `Invoice`,
-  `MeteredUsage`, `IncludedFeatures`, `UnsubscribeButton`, `UpcomingBill`
-- UI primitives: `Button`, `Dialog`, `Input`, `Toggle`, `Badge`, `Box`,
-  `Flex`, `Text`, `Icon`, `Loader`, `Overlay`, `ProgressBar`, `Tooltip`
-- Layout: layout primitives + `Viewport` / `Card` / `Column` / `Root`
-- Embed wrapper: `Embed`
-- Shared: `CheckoutDialog`, `UnsubscribeDialog`, `PaymentDialog`, etc.
-
 ## Layout
 
 ```
@@ -101,12 +78,11 @@ react2/
 ├── README.md
 ├── package.json              # subpath exports + optional peer deps
 ├── tsconfig.json
-├── api-extractor.core.json
-├── api-extractor.components.json
+├── api-extractor.{core,components}.json
 ├── eslint.config.mjs
 ├── vitest.config.ts
 ├── vitest.setup.ts
-├── test.sh                   # tests entry (handles Node v25+ flags)
+├── test.sh
 ├── version.sh
 ├── generate_openapi.sh
 ├── openapitools.json
@@ -114,24 +90,30 @@ react2/
 ├── scripts/
 │   └── check-tree-shake.mjs  # post-build invariant guard
 └── src/
-    ├── index.ts              # root entry — re-exports core
-    ├── version.ts            # generated by version.sh
+    ├── context.ts            # ONE SchematicContext
+    ├── provider.tsx          # ONE SchematicProvider (light, optional embed slot)
+    ├── index.ts              # /core entry
+    ├── version.ts
     ├── index.spec.tsx
     ├── core/
-    │   ├── context.tsx       # SchematicProvider (WS client only)
-    │   ├── hooks.ts          # 7 hooks
+    │   ├── hooks.ts          # 7 core hooks; read from ../context
     │   └── index.ts
     └── components/
-        ├── index.ts          # /components entry
+        ├── index.tsx         # /components entry — wraps SchematicProvider
+        │                     # with the adapter pre-bound
         ├── api/              # generated OpenAPI clients
-        ├── components/       # 25 UI components
-        ├── context/          # EmbedProvider + unified SchematicProvider
+        ├── components/       # UI components (PricingTable, Embed, etc.)
+        ├── embed/
+        │   ├── EmbedAdapter.tsx  # heavy embed implementation
+        │   ├── embedReducer.ts
+        │   ├── embedState.ts
+        │   └── index.ts
         ├── hooks/            # 11 embed hooks
         ├── const/
-        ├── localization/     # i18n resources (side-effectful)
+        ├── localization/     # i18n (side-effectful import)
         ├── types/
         ├── utils/
-        └── test/             # MSW handlers
+        └── test/             # MSW handlers + setup
 ```
 
 ## Build
@@ -144,12 +126,12 @@ Emits:
 
 ```
 dist/
-├── schematic-react2.cjs.js          # ~7 KB
-├── schematic-react2.esm.js          # ~5 KB
+├── schematic-react2.cjs.js          # ~7.9 KB
+├── schematic-react2.esm.js          # ~5.6 KB
 ├── schematic-react2.d.ts            # rolled-up types
 └── components/
-    ├── schematic-react2-components.cjs.js   # ~900 KB (lodash + pako + uuid + icons inline)
-    ├── schematic-react2-components.esm.js   # ~870 KB
+    ├── schematic-react2-components.cjs.js   # ~925 KB
+    ├── schematic-react2-components.esm.js   # ~893 KB
     └── schematic-react2-components.d.ts     # rolled-up types
 ```
 
@@ -160,24 +142,31 @@ yarn test          # one-shot
 yarn test:watch    # watch mode
 ```
 
-Tests run under `jsdom` with MSW-mocked APIs. Test fixtures live in
+Tests run under `jsdom` with MSW-mocked APIs. Fixtures live in
 `src/components/test/`.
 
 ## Notes
 
-- `sideEffects` is an array, not `false`. Only `./src/components/localization/**`
-  has side effects (i18next registers translation resources on import). Marking
-  the whole package as side-effect-free would drop that import during bundling.
-- `resolutions.undici` is pinned to `^7.24.0`. `jsdom@29` uses a 7.x API in
-  `jsdom-dispatcher.js` that isn't present in `undici@8`.
+- `sideEffects` is an array, not `false` — only
+  `./src/components/localization/**` has side effects (i18next registers
+  translation resources on import). Marking the whole package as
+  side-effect-free would drop that import during bundling.
+- `resolutions.undici` is pinned to `^7.24.0`. `jsdom@29` uses a 7.x API
+  in `jsdom-dispatcher.js` that isn't present in `undici@8`.
 - The bundled deps for `/components` (lodash, pako, uuid,
-  `@schematichq/schematic-icons`) sit in `devDependencies` so they're available
-  during build but aren't installed by consumers — esbuild inlines them.
+  `@schematichq/schematic-icons`) sit in `devDependencies` so they're
+  available during build but aren't installed by consumers — esbuild inlines
+  them.
 - esbuild defines `process.env.SCHEMATIC_COMPONENTS_VERSION` at build time;
   the value is read from `package.json` and surfaced in the
   `X-Schematic-Components-Version` request header.
+- The JS `SchematicContext` type (the user/company context shape from
+  `@schematichq/schematic-js`) is intentionally **not** re-exported from
+  `react2` — its name collides with the React context we expose. Import it
+  directly from `@schematichq/schematic-js` if you need to type your
+  user/company context.
 
-## Migration plan
+## Migration
 
 1. `@schematichq/schematic-react2` ships under this temporary name until the
    surface stabilizes.
@@ -187,6 +176,5 @@ Tests run under `jsdom` with MSW-mocked APIs. Test fixtures live in
 3. Existing `react/` users migrate by changing the package name only — root
    entry's import surface is unchanged.
 4. Existing `components/` users migrate by changing the package name and
-   appending `/components` to their imports. The unified `SchematicProvider`
-   replaces `EmbedProvider` (which is still exported as an internal escape
-   hatch for advanced cases).
+   appending `/components` to their imports. `EmbedProvider` is no longer
+   exported — use `SchematicProvider` from `/components`.
