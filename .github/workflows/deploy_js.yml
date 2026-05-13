@@ -4,7 +4,6 @@ on:
   push:
     tags:
       - "schematic-js@*"
-      - "!schematic-js@*-rc*"
   workflow_dispatch:
 
 jobs:
@@ -17,6 +16,7 @@ jobs:
 
   deploy:
     name: Browser Deploy
+    if: ${{ !contains(github.ref_name, '-rc.') }}
     runs-on: runs-on=${{ github.run_id }}/runner=4cpu-linux-x64/extras=s3-cache
     needs: [lint_test]
     permissions:
@@ -75,6 +75,7 @@ jobs:
 
   notify_slack:
     name: Notify Slack
+    if: ${{ !contains(github.ref_name, '-rc.') }}
     runs-on: runs-on=${{ github.run_id }}/runner=1cpu-linux-arm64
     needs: [deploy, publish]
     steps:
