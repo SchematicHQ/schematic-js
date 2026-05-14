@@ -21,6 +21,7 @@ import {
   formatCurrency,
   formatNumber,
   getFeatureName,
+  getSubscriptionPeriod,
   getUsageDetails,
   groupCreditGrants,
   modifyDate,
@@ -252,9 +253,10 @@ export const MeteredFeatures = forwardRef<
   }
 
   const period =
-    typeof data?.company?.plan?.planPeriod === "string"
+    getSubscriptionPeriod(data?.company?.billingSubscription) ??
+    (typeof data?.company?.plan?.planPeriod === "string"
       ? data.company?.plan?.planPeriod
-      : undefined;
+      : undefined);
 
   const canCheckout = data?.capabilities?.checkout ?? false;
   const showCredits = data?.displaySettings?.showCredits ?? true;

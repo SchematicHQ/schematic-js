@@ -22,7 +22,7 @@ import {
   useEmbed,
 } from "../../../hooks";
 import type { DeepPartial, ElementProps } from "../../../types";
-import { planSupportsCurrency } from "../../../utils";
+import { getSubscriptionPeriod, planSupportsCurrency } from "../../../utils";
 import { Container, FussyChild } from "../../layout";
 import {
   CurrencyToggle,
@@ -165,7 +165,10 @@ export const PricingTable = forwardRef<
   );
 
   const [selectedPeriod, setSelectedPeriod] = useState(
-    () => data?.company?.plan?.planPeriod || "month",
+    () =>
+      getSubscriptionPeriod(data?.company?.billingSubscription) ||
+      data?.company?.plan?.planPeriod ||
+      "month",
   );
 
   const { currencies, invalidFilterEntries } =
@@ -336,9 +339,13 @@ export const PricingTable = forwardRef<
               {plans.map((plan, index, self) => {
                 const planPeriod = showPeriodToggle
                   ? selectedPeriod
-                  : plan.yearlyPrice && !plan.monthlyPrice
-                    ? BillingProductPriceInterval.Year
-                    : BillingProductPriceInterval.Month;
+                  : plan.monthlyPrice
+                    ? BillingProductPriceInterval.Month
+                    : plan.quarterlyPrice
+                      ? "quarter"
+                      : plan.yearlyPrice
+                        ? BillingProductPriceInterval.Year
+                        : BillingProductPriceInterval.Month;
 
                 return (
                   <Plan
@@ -393,9 +400,13 @@ export const PricingTable = forwardRef<
                 {addOns.map((addOn, index) => {
                   const addOnPeriod = showPeriodToggle
                     ? selectedPeriod
-                    : addOn.yearlyPrice && !addOn.monthlyPrice
-                      ? BillingProductPriceInterval.Year
-                      : BillingProductPriceInterval.Month;
+                    : addOn.monthlyPrice
+                      ? BillingProductPriceInterval.Month
+                      : addOn.quarterlyPrice
+                        ? "quarter"
+                        : addOn.yearlyPrice
+                          ? BillingProductPriceInterval.Year
+                          : BillingProductPriceInterval.Month;
 
                   return (
                     <AddOn

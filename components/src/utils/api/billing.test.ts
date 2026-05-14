@@ -117,5 +117,28 @@ describe("getEntitlementPrice", () => {
       const result = getEntitlementPrice(entitlement, "month", "USD");
       expect(result?.price).toBe(9);
     });
+
+    it("extracts the per-unit price from the highest tier when reading from meteredQuarterlyPrice", () => {
+      const entitlement = makeOverageEntitlement({
+        meteredQuarterlyPrice: makeTieredOveragePriceView(27),
+      });
+
+      const result = getEntitlementPrice(entitlement, "quarter");
+      expect(result?.price).toBe(27);
+    });
+
+    it("reads the quarterly currency price when it is provided", () => {
+      const entitlement = makeOverageEntitlement({
+        currencyPrices: [
+          {
+            currency: "USD",
+            quarterlyPrice: makeTieredOveragePriceView(27),
+          } as EntitlementCurrencyPricesResponseData,
+        ],
+      });
+
+      const result = getEntitlementPrice(entitlement, "quarter", "USD");
+      expect(result?.price).toBe(27);
+    });
   });
 });

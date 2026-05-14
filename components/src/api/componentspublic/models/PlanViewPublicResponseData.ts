@@ -295,6 +295,12 @@ export interface PlanViewPublicResponseData {
   planType: PlanType;
   /**
    *
+   * @type {BillingPriceResponseData}
+   * @memberof PlanViewPublicResponseData
+   */
+  quarterlyPrice?: BillingPriceResponseData;
+  /**
+   *
    * @type {number}
    * @memberof PlanViewPublicResponseData
    */
@@ -444,6 +450,10 @@ export function PlanViewPublicResponseDataFromJSONTyped(
         ? undefined
         : BillingPriceResponseDataFromJSON(json["one_time_price"]),
     planType: PlanTypeFromJSON(json["plan_type"]),
+    quarterlyPrice:
+      json["quarterly_price"] == null
+        ? undefined
+        : BillingPriceResponseDataFromJSON(json["quarterly_price"]),
     trialDays: json["trial_days"] == null ? undefined : json["trial_days"],
     updatedAt: new Date(json["updated_at"]),
     versions: (json["versions"] as Array<any>).map(
@@ -513,6 +523,7 @@ export function PlanViewPublicResponseDataToJSONTyped(
     name: value["name"],
     one_time_price: BillingPriceResponseDataToJSON(value["oneTimePrice"]),
     plan_type: PlanTypeToJSON(value["planType"]),
+    quarterly_price: BillingPriceResponseDataToJSON(value["quarterlyPrice"]),
     trial_days: value["trialDays"],
     updated_at: value["updatedAt"].toISOString(),
     versions: (value["versions"] as Array<any>).map(

@@ -131,4 +131,32 @@ describe("`PeriodToggle` component", () => {
     expect(screen.getByText("Billed quarterly")).toBeInTheDocument();
     expect(screen.getByText("Billed yearly")).toBeInTheDocument();
   });
+
+  test("displays quarterly savings tooltip when a plan has a quarterly price", () => {
+    const mockPlan = {
+      monthlyPrice: { price: 1000, priceDecimal: "1000", currency: "usd" },
+      quarterlyPrice: { price: 2700, priceDecimal: "2700", currency: "usd" },
+    };
+
+    render(
+      <PeriodToggle
+        options={["month", "quarter"]}
+        selectedOption="month"
+        selectedPlan={mockPlan as SelectedPlan}
+        onSelect={mockOnSelect}
+      />,
+    );
+
+    const quarterlyOption = screen.getByText("Billed quarterly");
+    expect(quarterlyOption).toBeInTheDocument();
+
+    act(() => {
+      fireEvent.focus(quarterlyOption);
+      fireEvent.pointerEnter(quarterlyOption);
+    });
+
+    expect(
+      screen.getByText("Save up to 10% with quarterly billing"),
+    ).toBeInTheDocument();
+  });
 });

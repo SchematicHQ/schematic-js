@@ -169,6 +169,12 @@ export interface PlanEntitlementResponseData {
    * @type {BillingPriceView}
    * @memberof PlanEntitlementResponseData
    */
+  meteredQuarterlyPrice?: BillingPriceView;
+  /**
+   *
+   * @type {BillingPriceView}
+   * @memberof PlanEntitlementResponseData
+   */
   meteredYearlyPrice?: BillingPriceView;
   /**
    *
@@ -327,6 +333,10 @@ export function PlanEntitlementResponseDataFromJSONTyped(
       json["metered_monthly_price"] == null
         ? undefined
         : BillingPriceViewFromJSON(json["metered_monthly_price"]),
+    meteredQuarterlyPrice:
+      json["metered_quarterly_price"] == null
+        ? undefined
+        : BillingPriceViewFromJSON(json["metered_quarterly_price"]),
     meteredYearlyPrice:
       json["metered_yearly_price"] == null
         ? undefined
@@ -403,6 +413,9 @@ export function PlanEntitlementResponseDataToJSONTyped(
     feature_id: value["featureId"],
     id: value["id"],
     metered_monthly_price: BillingPriceViewToJSON(value["meteredMonthlyPrice"]),
+    metered_quarterly_price: BillingPriceViewToJSON(
+      value["meteredQuarterlyPrice"],
+    ),
     metered_yearly_price: BillingPriceViewToJSON(value["meteredYearlyPrice"]),
     metric_period: MetricPeriodToJSON(value["metricPeriod"]),
     metric_period_month_reset: MetricPeriodMonthResetToJSON(

@@ -50,6 +50,12 @@ export interface PlanCurrencyPricesResponseData {
    * @type {BillingPriceResponseData}
    * @memberof PlanCurrencyPricesResponseData
    */
+  quarterlyPrice?: BillingPriceResponseData;
+  /**
+   *
+   * @type {BillingPriceResponseData}
+   * @memberof PlanCurrencyPricesResponseData
+   */
   yearlyPrice?: BillingPriceResponseData;
 }
 
@@ -86,6 +92,10 @@ export function PlanCurrencyPricesResponseDataFromJSONTyped(
       json["one_time_price"] == null
         ? undefined
         : BillingPriceResponseDataFromJSON(json["one_time_price"]),
+    quarterlyPrice:
+      json["quarterly_price"] == null
+        ? undefined
+        : BillingPriceResponseDataFromJSON(json["quarterly_price"]),
     yearlyPrice:
       json["yearly_price"] == null
         ? undefined
@@ -111,6 +121,7 @@ export function PlanCurrencyPricesResponseDataToJSONTyped(
     currency: value["currency"],
     monthly_price: BillingPriceResponseDataToJSON(value["monthlyPrice"]),
     one_time_price: BillingPriceResponseDataToJSON(value["oneTimePrice"]),
+    quarterly_price: BillingPriceResponseDataToJSON(value["quarterlyPrice"]),
     yearly_price: BillingPriceResponseDataToJSON(value["yearlyPrice"]),
   };
 }

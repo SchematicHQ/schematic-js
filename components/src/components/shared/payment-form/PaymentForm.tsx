@@ -49,7 +49,7 @@ export const PaymentForm = ({ onConfirm, financeData }: PaymentFormProps) => {
     return !shouldCollectAddress;
   });
 
-  const handleSubmit: React.SubmitEventHandler<HTMLFormElement> = async (
+  const handleSubmit: React.FormEventHandler<HTMLFormElement> = async (
     event,
   ) => {
     event.preventDefault();

@@ -87,6 +87,12 @@ export interface BillingProductPriceResponseData {
   interval: BillingProductPriceInterval;
   /**
    *
+   * @type {number}
+   * @memberof BillingProductPriceResponseData
+   */
+  intervalCount: number;
+  /**
+   *
    * @type {boolean}
    * @memberof BillingProductPriceResponseData
    */
@@ -171,6 +177,8 @@ export function instanceOfBillingProductPriceResponseData(
   if (!("currency" in value) || value["currency"] === undefined) return false;
   if (!("id" in value) || value["id"] === undefined) return false;
   if (!("interval" in value) || value["interval"] === undefined) return false;
+  if (!("intervalCount" in value) || value["intervalCount"] === undefined)
+    return false;
   if (!("isActive" in value) || value["isActive"] === undefined) return false;
   if (!("packageSize" in value) || value["packageSize"] === undefined)
     return false;
@@ -208,6 +216,7 @@ export function BillingProductPriceResponseDataFromJSONTyped(
     currency: json["currency"],
     id: json["id"],
     interval: BillingProductPriceIntervalFromJSON(json["interval"]),
+    intervalCount: json["interval_count"],
     isActive: json["is_active"],
     meterId: json["meter_id"] == null ? undefined : json["meter_id"],
     nickname: json["nickname"] == null ? undefined : json["nickname"],
@@ -247,6 +256,7 @@ export function BillingProductPriceResponseDataToJSONTyped(
     currency: value["currency"],
     id: value["id"],
     interval: BillingProductPriceIntervalToJSON(value["interval"]),
+    interval_count: value["intervalCount"],
     is_active: value["isActive"],
     meter_id: value["meterId"],
     nickname: value["nickname"],

@@ -14,6 +14,7 @@ import {
   formatCurrency,
   formatNumber,
   getFeatureName,
+  getSubscriptionPeriod,
   getUsageDetails,
   isTieredPrice,
   shortenPeriod,
@@ -56,7 +57,10 @@ export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
 
   const { data } = useEmbed();
 
-  const period = data?.company?.plan?.planPeriod || undefined;
+  const period =
+    getSubscriptionPeriod(data?.company?.billingSubscription) ??
+    data?.company?.plan?.planPeriod ??
+    undefined;
   const showCredits = data?.displaySettings?.showCredits ?? true;
 
   const {

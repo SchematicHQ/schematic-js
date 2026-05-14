@@ -6,6 +6,7 @@ import { Flex, Text } from "../../ui";
 interface AddOnProps {
   addOn: CompanyPlanWithBillingSubView;
   currency?: string;
+  period?: string;
   layout: {
     addOns: {
       isVisible: boolean;
@@ -15,7 +16,12 @@ interface AddOnProps {
   };
 }
 
-export const AddOn = ({ addOn, currency, layout }: AddOnProps) => {
+export const AddOn = ({ addOn, currency, period, layout }: AddOnProps) => {
+  const resolvedPeriod =
+    addOn.planPeriod === "one-time"
+      ? addOn.planPeriod
+      : (period ?? addOn.planPeriod);
+
   return (
     <Flex
       $justifyContent="space-between"
@@ -25,13 +31,13 @@ export const AddOn = ({ addOn, currency, layout }: AddOnProps) => {
     >
       <Text display={layout.addOns.fontStyle}>{addOn.name}</Text>
 
-      {typeof addOn.planPrice === "number" && addOn.planPeriod && (
+      {typeof addOn.planPrice === "number" && resolvedPeriod && (
         <Text>
           {formatCurrency(addOn.planPrice, currency)}
           <sub>
-            {addOn.planPeriod == "one-time"
-              ? shortenPeriod(addOn.planPeriod)
-              : `/${shortenPeriod(addOn.planPeriod)}`}
+            {resolvedPeriod === "one-time"
+              ? shortenPeriod(resolvedPeriod)
+              : `/${shortenPeriod(resolvedPeriod)}`}
           </sub>
         </Text>
       )}

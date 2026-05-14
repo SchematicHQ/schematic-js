@@ -4,10 +4,51 @@ import {
   type BillingPriceResponseData,
   type BillingPriceView,
   type BillingProductPriceTierResponseData,
+  type BillingSubscriptionView,
   type FeatureUsageResponseData,
   type PreviewSubscriptionFinanceResponseData,
 } from "../../api/checkoutexternal";
 import type { BillingPrice, Entitlement, Plan } from "../../types";
+
+/**
+ * Resolves a display period from an interval + interval_count pair.
+ * Quarterly prices are stored as interval="month" with interval_count=3, so
+ * they must be detected here rather than inferred from `interval` alone.
+ */
+export function derivePeriod(
+  interval?: string | null,
+  intervalCount?: number | null,
+): string | undefined {
+  if (!interval) {
+    return undefined;
+  }
+  if (interval === "month" && intervalCount === 3) {
+    return "quarter";
+  }
+  return interval;
+}
+
+/**
+ * Derives the effective period of a current subscription, preferring the
+ * recurring products' interval + interval_count (so quarterly is surfaced
+ * even when the legacy `interval` field returns "month").
+ */
+export function getSubscriptionPeriod(
+  billingSubscription?: BillingSubscriptionView | null,
+): string | undefined {
+  if (!billingSubscription) {
+    return undefined;
+  }
+
+  const product = billingSubscription.products?.find(
+    (p) => p.interval && p.interval !== "one-time",
+  );
+
+  return (
+    derivePeriod(product?.interval, product?.intervalCount) ??
+    derivePeriod(billingSubscription.interval)
+  );
+}
 
 export const ChargeType = {
   oneTime: "one_time",
@@ -28,6 +69,30 @@ interface PlanPriceOptions {
   useSelectedPeriod?: boolean;
 }
 
+type PricesForPeriod<T> = {
+  monthlyPrice?: T;
+  quarterlyPrice?: T;
+  yearlyPrice?: T;
+};
+
+function selectPriceForPeriod<T>(
+  source: PricesForPeriod<T>,
+  period: string,
+): T | undefined {
+  switch (period) {
+    case "year":
+      return source.yearlyPrice;
+    case "quarter":
+      return source.quarterlyPrice;
+    default:
+      return source.monthlyPrice;
+  }
+}
+
+function selectAvailablePrice<T>(source: PricesForPeriod<T>): T | undefined {
+  return source.monthlyPrice ?? source.quarterlyPrice ?? source.yearlyPrice;
+}
+
 export function getPlanPrice(
   plan: Plan,
   period = "month",
@@ -40,12 +105,8 @@ export function getPlanPrice(
     );
     if (currencyPrice) {
       const billingPrice = options.useSelectedPeriod
-        ? period === "year"
-          ? currencyPrice.yearlyPrice
-          : currencyPrice.monthlyPrice
-        : currencyPrice.yearlyPrice && !currencyPrice.monthlyPrice
-          ? currencyPrice.yearlyPrice
-          : currencyPrice.monthlyPrice;
+        ? selectPriceForPeriod(currencyPrice, period)
+        : selectAvailablePrice(currencyPrice);
 
       if (billingPrice) {
         return { ...billingPrice, price: getPriceValue(billingPrice) };
@@ -54,12 +115,8 @@ export function getPlanPrice(
   }
 
   const billingPrice = options.useSelectedPeriod
-    ? period === "year"
-      ? plan.yearlyPrice
-      : plan.monthlyPrice
-    : plan.yearlyPrice && !plan.monthlyPrice
-      ? plan.yearlyPrice
-      : plan.monthlyPrice;
+    ? selectPriceForPeriod(plan, period)
+    : selectAvailablePrice(plan);
 
   if (billingPrice) {
     return { ...billingPrice, price: getPriceValue(billingPrice) };
@@ -79,9 +136,7 @@ export function getAddOnPrice(
       const billingPrice =
         addOn.chargeType === ChargeType.oneTime
           ? currencyPrice.oneTimePrice
-          : period === "year"
-            ? currencyPrice.yearlyPrice
-            : currencyPrice.monthlyPrice;
+          : selectPriceForPeriod(currencyPrice, period);
 
       if (billingPrice) {
         return { ...billingPrice, price: getPriceValue(billingPrice) };
@@ -92,9 +147,7 @@ export function getAddOnPrice(
   const billingPrice =
     addOn.chargeType === ChargeType.oneTime
       ? addOn.oneTimePrice
-      : period === "year"
-        ? addOn.yearlyPrice
-        : addOn.monthlyPrice;
+      : selectPriceForPeriod(addOn, period);
 
   if (billingPrice) {
     return { ...billingPrice, price: getPriceValue(billingPrice) };
@@ -152,26 +205,31 @@ export function getEntitlementPrice(
       (cp) => cp.currency.toLowerCase() === currency.toLowerCase(),
     );
     if (currencyPrice) {
-      source =
-        period === "year"
-          ? currencyPrice.yearlyPrice
-          : currencyPrice.monthlyPrice;
+      source = selectPriceForPeriod(currencyPrice, period);
     }
   }
 
   if (!source) {
     if ("valueType" in entitlement) {
       // entitlement
-      source =
-        period === "year"
-          ? entitlement.meteredYearlyPrice
-          : entitlement.meteredMonthlyPrice;
+      source = selectPriceForPeriod(
+        {
+          monthlyPrice: entitlement.meteredMonthlyPrice,
+          quarterlyPrice: entitlement.meteredQuarterlyPrice,
+          yearlyPrice: entitlement.meteredYearlyPrice,
+        },
+        period,
+      );
     } else if ("entitlementType" in entitlement) {
       // feature usage
-      source =
-        period === "year"
-          ? entitlement.yearlyUsageBasedPrice
-          : entitlement.monthlyUsageBasedPrice;
+      source = selectPriceForPeriod(
+        {
+          monthlyPrice: entitlement.monthlyUsageBasedPrice,
+          quarterlyPrice: entitlement.quarterlyUsageBasedPrice,
+          yearlyPrice: entitlement.yearlyUsageBasedPrice,
+        },
+        period,
+      );
     }
   }
 
@@ -269,11 +327,17 @@ export function getEntitlementCost(
   period: string | null = "month",
   currency?: string,
 ): number | undefined {
+  const resolvedPeriod = period ?? "month";
   const source = currency
-    ? getEntitlementPrice(entitlement, period ?? "month", currency)
-    : period === "year"
-      ? entitlement.yearlyUsageBasedPrice
-      : entitlement.monthlyUsageBasedPrice;
+    ? getEntitlementPrice(entitlement, resolvedPeriod, currency)
+    : selectPriceForPeriod(
+        {
+          monthlyPrice: entitlement.monthlyUsageBasedPrice,
+          quarterlyPrice: entitlement.quarterlyUsageBasedPrice,
+          yearlyPrice: entitlement.yearlyUsageBasedPrice,
+        },
+        resolvedPeriod,
+      );
 
   if (source) {
     const billingPrice: BillingPriceView = { ...source };

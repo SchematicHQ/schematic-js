@@ -44,6 +44,12 @@ export interface EntitlementCurrencyPricesResponseData {
    * @type {BillingPriceView}
    * @memberof EntitlementCurrencyPricesResponseData
    */
+  quarterlyPrice?: BillingPriceView;
+  /**
+   *
+   * @type {BillingPriceView}
+   * @memberof EntitlementCurrencyPricesResponseData
+   */
   yearlyPrice?: BillingPriceView;
 }
 
@@ -76,6 +82,10 @@ export function EntitlementCurrencyPricesResponseDataFromJSONTyped(
       json["monthly_price"] == null
         ? undefined
         : BillingPriceViewFromJSON(json["monthly_price"]),
+    quarterlyPrice:
+      json["quarterly_price"] == null
+        ? undefined
+        : BillingPriceViewFromJSON(json["quarterly_price"]),
     yearlyPrice:
       json["yearly_price"] == null
         ? undefined
@@ -100,6 +110,7 @@ export function EntitlementCurrencyPricesResponseDataToJSONTyped(
   return {
     currency: value["currency"],
     monthly_price: BillingPriceViewToJSON(value["monthlyPrice"]),
+    quarterly_price: BillingPriceViewToJSON(value["quarterlyPrice"]),
     yearly_price: BillingPriceViewToJSON(value["yearlyPrice"]),
   };
 }

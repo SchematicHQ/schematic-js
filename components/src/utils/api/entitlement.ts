@@ -58,9 +58,11 @@ export function getUsageDetails(
     ? getEntitlementPrice(entitlement, period ?? "month", currency)
     : period === "year"
       ? entitlement.yearlyUsageBasedPrice
-      : period === "month"
-        ? entitlement.monthlyUsageBasedPrice
-        : undefined;
+      : period === "quarter"
+        ? entitlement.quarterlyUsageBasedPrice
+        : period === "month"
+          ? entitlement.monthlyUsageBasedPrice
+          : undefined;
 
   // if there is any sort of limit
   let limit: number | undefined;
@@ -179,6 +181,7 @@ export function extractCurrentUsageBasedEntitlements(
     if (
       entitlement.priceBehavior &&
       ((planPeriod === "month" && entitlement.monthlyUsageBasedPrice) ||
+        (planPeriod === "quarter" && entitlement.quarterlyUsageBasedPrice) ||
         (planPeriod === "year" && entitlement.yearlyUsageBasedPrice))
     ) {
       const allocation = entitlement.allocation || 0;

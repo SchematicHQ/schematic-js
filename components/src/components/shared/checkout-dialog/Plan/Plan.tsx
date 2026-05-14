@@ -91,9 +91,13 @@ export const Plan = ({
       {plans.map((plan, planIndex) => {
         const planPeriod = showPeriodToggle
           ? period
-          : plan.yearlyPrice && !plan.monthlyPrice
-            ? BillingProductPriceInterval.Year
-            : BillingProductPriceInterval.Month;
+          : plan.monthlyPrice
+            ? BillingProductPriceInterval.Month
+            : plan.quarterlyPrice
+              ? "quarter"
+              : plan.yearlyPrice
+                ? BillingProductPriceInterval.Year
+                : BillingProductPriceInterval.Month;
         const { price: planPrice, currency: planCurrency } =
           getPlanPrice(
             plan,
@@ -177,7 +181,12 @@ export const Plan = ({
                               currency: planCurrency,
                               testSignificantDigits: false,
                             })
-                          : formatCurrency(planPrice ?? 0, planCurrency)}
+                          : showAsMonthlyPrices && planPeriod === "quarter"
+                            ? formatCurrency((planPrice ?? 0) / 3, {
+                                currency: planCurrency,
+                                testSignificantDigits: false,
+                              })
+                            : formatCurrency(planPrice ?? 0, planCurrency)}
                 </Text>
 
                 {!plan.custom && !isFreePlan && (
@@ -191,7 +200,9 @@ export const Plan = ({
                     {showAsMonthlyPrices &&
                     planPeriod === BillingProductPriceInterval.Year
                       ? t("month, billed yearly")
-                      : t(planPeriod)}
+                      : showAsMonthlyPrices && planPeriod === "quarter"
+                        ? t("month, billed quarterly")
+                        : t(planPeriod)}
                   </Text>
                 )}
               </Box>

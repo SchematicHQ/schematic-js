@@ -38,6 +38,7 @@ import {
   buildCreditBundlesRequestBody,
   buildPayInAdvanceRequestBody,
   getPlanPrice,
+  getSubscriptionPeriod,
   isError,
   isScheduledCheckoutConflictMessage,
   mergeCompanyGrants,
@@ -69,11 +70,13 @@ export const createActiveUsageBasedEntitlementsReducer =
     const hasCurrencyPrice = entitlement.currencyPrices?.some(
       (cp) =>
         (period === "month" && cp.monthlyPrice) ||
+        (period === "quarter" && cp.quarterlyPrice) ||
         (period === "year" && cp.yearlyPrice),
     );
     if (
       entitlement.priceBehavior &&
       ((period === "month" && entitlement.meteredMonthlyPrice) ||
+        (period === "quarter" && entitlement.meteredQuarterlyPrice) ||
         (period === "year" && entitlement.meteredYearlyPrice) ||
         hasCurrencyPrice)
     ) {
@@ -179,7 +182,10 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
   // Note: Plan data must be loaded by the time CheckoutDialog mounts.
   const getValidatedPeriod = () => {
     const requestedPeriod =
-      checkoutState?.period || data?.company?.plan?.planPeriod || "month";
+      checkoutState?.period ||
+      getSubscriptionPeriod(data?.company?.billingSubscription) ||
+      data?.company?.plan?.planPeriod ||
+      "month";
 
     // If a specific plan is requested, validate the period against that plan's availability
     if (checkoutState?.planId) {
@@ -190,11 +196,13 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       if (requestedPlan) {
         const planSupportsRequestedPeriod =
           (requestedPeriod === "month" && requestedPlan.monthlyPrice) ||
+          (requestedPeriod === "quarter" && requestedPlan.quarterlyPrice) ||
           (requestedPeriod === "year" && requestedPlan.yearlyPrice);
 
         if (!planSupportsRequestedPeriod) {
           // Fall back to the period the plan does support
           if (requestedPlan.yearlyPrice) return "year";
+          if (requestedPlan.quarterlyPrice) return "quarter";
           if (requestedPlan.monthlyPrice) return "month";
         }
       }
@@ -652,7 +660,11 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
         : undefined;
       const planPriceId =
         currencyPrice?.id ??
-        (period === "year" ? plan?.yearlyPrice?.id : plan?.monthlyPrice?.id);
+        (period === "year"
+          ? plan?.yearlyPrice?.id
+          : period === "quarter"
+            ? plan?.quarterlyPrice?.id
+            : plan?.monthlyPrice?.id);
       const code =
         typeof updates.promoCode !== "undefined"
           ? updates.promoCode
@@ -814,9 +826,13 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
       const period = showPeriodToggle
         ? updates.period || planPeriod
-        : plan.yearlyPrice && !plan.monthlyPrice
-          ? BillingProductPriceInterval.Year
-          : BillingProductPriceInterval.Month;
+        : plan.monthlyPrice
+          ? BillingProductPriceInterval.Month
+          : plan.quarterlyPrice
+            ? "quarter"
+            : plan.yearlyPrice
+              ? BillingProductPriceInterval.Year
+              : BillingProductPriceInterval.Month;
 
       const updatedUsageBasedEntitlements = plan.entitlements.reduce(
         createActiveUsageBasedEntitlementsReducer(featureUsage, period),
@@ -888,12 +904,73 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
   const changePlanPeriod = useCallback(
     (period: string) => {
-      if (period !== planPeriod) {
-        setPlanPeriod(period);
-        handlePreviewCheckout({ period });
+      if (period === planPeriod) {
+        return;
       }
+
+      setPlanPeriod(period);
+
+      const updatedUsageBasedEntitlements = (
+        selectedPlan?.entitlements || []
+      ).reduce(
+        createActiveUsageBasedEntitlementsReducer(featureUsage, period),
+        [...[]] as UsageBasedEntitlement[],
+      );
+
+      setUsageBasedEntitlements((prev) =>
+        updatedUsageBasedEntitlements.map((updated) => {
+          const current = prev.find(
+            ({ featureId }) => featureId === updated.featureId,
+          );
+          if (typeof current?.quantity === "number") {
+            return { ...updated, quantity: current.quantity };
+          }
+          return updated;
+        }),
+      );
+
+      const updatedAddOnUsageBasedEntitlements = addOns
+        .filter((addOn) => addOn.isSelected)
+        .flatMap((addOn) =>
+          addOn.entitlements.reduce(
+            createActiveUsageBasedEntitlementsReducer(featureUsage, period),
+            [] as UsageBasedEntitlement[],
+          ),
+        );
+
+      setAddOnUsageBasedEntitlements((prev) =>
+        updatedAddOnUsageBasedEntitlements.map((updated) => {
+          const current = prev.find(
+            ({ featureId }) => featureId === updated.featureId,
+          );
+          if (typeof current?.quantity === "number") {
+            return { ...updated, quantity: current.quantity };
+          }
+          return updated;
+        }),
+      );
+
+      handlePreviewCheckout({
+        period,
+        payInAdvanceEntitlements: updatedUsageBasedEntitlements.filter(
+          ({ priceBehavior }) =>
+            priceBehavior === EntitlementPriceBehavior.PayInAdvance,
+        ),
+        addOnPayInAdvanceEntitlements:
+          updatedAddOnUsageBasedEntitlements.filter(
+            ({ priceBehavior }) =>
+              priceBehavior === EntitlementPriceBehavior.PayInAdvance,
+          ),
+      });
     },
-    [planPeriod, setPlanPeriod, handlePreviewCheckout],
+    [
+      planPeriod,
+      selectedPlan?.entitlements,
+      featureUsage,
+      addOns,
+      setPlanPeriod,
+      handlePreviewCheckout,
+    ],
   );
 
   const toggleAddOn = useCallback(
