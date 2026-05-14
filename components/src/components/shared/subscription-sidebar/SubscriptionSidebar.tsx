@@ -37,6 +37,7 @@ import {
   getFeatureName,
   getMonthName,
   getPlanPrice,
+  getSubscriptionPeriod,
   isScheduledCheckoutConflictMessage,
   mergeCompanyGrants,
   shortenPeriod,
@@ -446,7 +447,9 @@ export const SubscriptionSidebar = forwardRef<
         currencyPrice?.id ??
         (planPeriod === "year"
           ? selectedPlan?.yearlyPrice
-          : selectedPlan?.monthlyPrice
+          : planPeriod === "quarter"
+            ? selectedPlan?.quarterlyPrice
+            : selectedPlan?.monthlyPrice
         )?.id;
 
       try {
@@ -812,7 +815,12 @@ export const SubscriptionSidebar = forwardRef<
                         billingSubscription?.currency,
                       )}
                       <sub>
-                        /{shortenPeriod(currentPlan.planPeriod || planPeriod)}
+                        /
+                        {shortenPeriod(
+                          getSubscriptionPeriod(billingSubscription) ||
+                            currentPlan.planPeriod ||
+                            planPeriod,
+                        )}
                       </sub>
                     </Text>
                   </Box>
@@ -1236,7 +1244,9 @@ export const SubscriptionSidebar = forwardRef<
                 <Text>
                   {planPeriod === "year"
                     ? t("Yearly total")
-                    : t("Monthly total")}
+                    : planPeriod === "quarter"
+                      ? t("Quarterly total")
+                      : t("Monthly total")}
                   :
                 </Text>
               </Box>

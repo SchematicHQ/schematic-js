@@ -123,7 +123,12 @@ export const AddOns = ({
 
   const isLightBackground = useIsLightBackground();
 
-  const periodKey = period === "year" ? "yearlyPrice" : "monthlyPrice";
+  const periodKey =
+    period === "year"
+      ? "yearlyPrice"
+      : period === "quarter"
+        ? "quarterlyPrice"
+        : "monthlyPrice";
 
   const cardPadding = settings.theme.card.padding / TEXT_BASE_SIZE;
 

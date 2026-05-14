@@ -24,6 +24,8 @@ export function shortenPeriod(period: string) {
   switch (period) {
     case "month":
       return "mo";
+    case "quarter":
+      return "qtr";
     case "year":
       return "yr";
   }
