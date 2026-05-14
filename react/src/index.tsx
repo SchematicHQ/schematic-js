@@ -8,7 +8,7 @@
 import type * as SchematicJS from "@schematichq/schematic-js";
 import React from "react";
 
-import { WsAdapter } from "./core/WsAdapter";
+import { WsAdapter, type WsAdapterProps } from "./core/WsAdapter";
 import {
   SchematicProvider as BareSchematicProvider,
   type SchematicAdapter,
@@ -16,11 +16,25 @@ import {
 } from "./provider";
 
 export { SchematicContext, type SchematicContextValue } from "./context";
-export type {
-  SchematicAdapter,
-  SchematicAdapterProps,
-  SchematicProviderBaseProps,
+export {
+  SchematicProvider as BareSchematicProvider,
+  type SchematicAdapter,
+  type SchematicAdapterProps,
+  type SchematicProviderBaseProps,
 } from "./provider";
+
+// Internal embed-loader plumbing — re-exported from the root entry so the
+// `/components` bundle can reach the same module instance via a self-package
+// import (see `react/src/components/index.tsx`). Sharing the singleton
+// `cached` / `subscribers` state across the two bundles is what lets
+// Path C (Suspense-throw lazy embed activation) work when consumers mix
+// imports from both subpath entries. Not part of the documented public API.
+export {
+  SchematicEmbedDisabledContext,
+  getCachedEmbedAdapter,
+  loadEmbedAdapter,
+  subscribeEmbedAdapter,
+} from "./embed-loader";
 
 export {
   useSchematic,
@@ -107,4 +121,4 @@ const SchematicProvider: React.FC<SchematicProviderProps> = (props) => {
 };
 SchematicProvider.displayName = "SchematicProvider";
 
-export { SchematicProvider };
+export { SchematicProvider, WsAdapter, type WsAdapterProps };
