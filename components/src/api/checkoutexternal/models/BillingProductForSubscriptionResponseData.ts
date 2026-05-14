@@ -98,6 +98,12 @@ export interface BillingProductForSubscriptionResponseData {
   interval: string;
   /**
    *
+   * @type {number}
+   * @memberof BillingProductForSubscriptionResponseData
+   */
+  intervalCount?: number | null;
+  /**
+   *
    * @type {string}
    * @memberof BillingProductForSubscriptionResponseData
    */
@@ -239,6 +245,8 @@ export function BillingProductForSubscriptionResponseDataFromJSONTyped(
     externalId: json["external_id"],
     id: json["id"],
     interval: json["interval"],
+    intervalCount:
+      json["interval_count"] == null ? undefined : json["interval_count"],
     meterId: json["meter_id"] == null ? undefined : json["meter_id"],
     name: json["name"],
     packageSize: json["package_size"],
@@ -285,6 +293,7 @@ export function BillingProductForSubscriptionResponseDataToJSONTyped(
     external_id: value["externalId"],
     id: value["id"],
     interval: value["interval"],
+    interval_count: value["intervalCount"],
     meter_id: value["meterId"],
     name: value["name"],
     package_size: value["packageSize"],
