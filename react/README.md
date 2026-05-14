@@ -43,8 +43,10 @@ import { SchematicProvider, PricingTable, useEmbed } from "@schematichq/schemati
 ```
 
 The /components entry's `SchematicProvider` is a thin wrapper that pre-binds
-both the `ws` and `embed` adapters — same component name, same context, no
-extra setup required from the user.
+the `ws` adapter. The `embed` adapter is **not** statically bound — it loads
+lazily the first time `useEmbed` (or one of the lazy UI components below)
+mounts. To start the embed-adapter chunk loading on provider mount instead,
+pass `embed={EmbedAdapter}` (the lazy-wrapped re-export from /components).
 
 To use only the UI surface (no WebSocket connection), pass `ws={null}` to
 the `/components` `SchematicProvider`:
@@ -108,7 +110,7 @@ react/
 └── src/
     ├── context.ts            # ONE SchematicContext
     ├── provider.tsx          # ONE SchematicProvider (plugin host)
-    ├── index.tsx             # /core entry — pre-binds WsAdapter
+    ├── index.tsx             # root entry (WS-only surface) — pre-binds WsAdapter
     ├── version.ts
     ├── index.spec.tsx
     ├── core/
@@ -116,7 +118,7 @@ react/
     │   ├── hooks.ts          # 7 core hooks; read from ../context
     │   └── index.ts
     └── components/
-        ├── index.tsx         # /components entry — pre-binds both adapters
+        ├── index.tsx         # /components entry — pre-binds WsAdapter; embed loads lazily
         ├── api/              # generated OpenAPI clients
         ├── components/       # UI components (PricingTable, Embed, etc.)
         ├── embed/
@@ -187,7 +189,9 @@ Tests run under `jsdom` with MSW-mocked APIs. Fixtures live in
   import surface is unchanged. Bump the version and you're done.
 - **Legacy `@schematichq/schematic-components` users:** change the package
   name and append `/components` to your imports. `EmbedProvider` is no
-  longer exported — use `SchematicProvider` from `/components`, which
-  pre-binds the embed adapter. The `apiKey` prop is gone; the same
+  longer exported — use `SchematicProvider` from `/components`. The embed
+  adapter loads automatically on first `useEmbed` (or first lazy UI
+  component mount); pass `embed={EmbedAdapter}` if you want it loaded
+  eagerly on provider mount. The `apiKey` prop is gone; the same
   `publishableKey` authenticates both the WS client and the public REST
   surface.
