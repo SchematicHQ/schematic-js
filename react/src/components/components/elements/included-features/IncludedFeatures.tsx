@@ -12,7 +12,7 @@ import { Box, Flex, Icon, Text } from "../../ui";
 
 import { UsageDetails } from "./UsageDetails";
 
-interface DesignProps {
+export interface DesignProps {
   visibleFeatures?: string[];
   header: {
     isVisible: boolean;
