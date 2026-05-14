@@ -141,7 +141,7 @@ const Limit = ({ entitlement, usageDetails, fontStyle }: LimitProps) => {
   );
 };
 
-interface DesignProps {
+export interface DesignProps {
   isVisible: boolean;
   header: {
     fontStyle: FontStyle;

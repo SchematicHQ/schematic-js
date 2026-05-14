@@ -61,7 +61,7 @@ interface ConfirmPaymentIntentProps {
   callback: (confirmed: boolean) => void;
 }
 
-interface PaymentMethodDetailsProps {
+export interface PaymentMethodDetailsProps {
   setPaymentMethodId?: (id: string) => void;
   confirmPaymentIntentProps?: ConfirmPaymentIntentProps | null | undefined;
   financeData?: PreviewSubscriptionFinanceResponseData | null;

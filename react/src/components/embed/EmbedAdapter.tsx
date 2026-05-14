@@ -107,7 +107,7 @@ export interface EmbedContextValue extends EmbedState {
  * `settings` as `unknown`). The adapter narrows the values internally.
  */
 export interface EmbedAdapterProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   /**
    * The same publishable key the WS client uses. The bare provider spreads
    * it through to this adapter and we authenticate the public REST API
@@ -576,7 +576,9 @@ export const EmbedAdapter: React.FC<EmbedAdapterProps> = ({
         throw new Error("Cannot update custom field values without a company.");
       }
 
-      await checkoutApi?.updateCheckoutFieldValues({
+      if (!getCheckoutApi) return;
+      const api = await getCheckoutApi();
+      await api.updateCheckoutFieldValues({
         updateCheckoutFieldValuesRequestBody: {
           values: Object.entries(values).map(([id, value]) => ({
             id,
@@ -590,7 +592,7 @@ export const EmbedAdapter: React.FC<EmbedAdapterProps> = ({
         values,
       });
     },
-    [checkoutApi, state.data?.company?.id],
+    [getCheckoutApi, state.data?.company?.id],
   );
 
   const getUpcomingInvoice = useCallback(

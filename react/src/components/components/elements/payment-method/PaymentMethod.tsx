@@ -7,7 +7,7 @@ import { Element } from "../../layout";
 
 import { PaymentMethodElement } from "./PaymentMethodElement";
 
-interface DesignProps {
+export interface DesignProps {
   header: {
     isVisible: boolean;
     fontStyle: FontStyle;

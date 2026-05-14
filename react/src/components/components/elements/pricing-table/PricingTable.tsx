@@ -34,7 +34,7 @@ import { Box, Flex, Loader, Text } from "../../ui";
 import { AddOn } from "./AddOn";
 import { Plan } from "./Plan";
 
-interface DesignProps {
+export interface DesignProps {
   showPeriodToggle: boolean;
   showCurrencySelector: boolean;
   showDiscount: boolean;

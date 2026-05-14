@@ -33,7 +33,7 @@ import { Box, Button, Flex, Text } from "../../ui";
 import { AddOn } from "./AddOn";
 import { UsageDetails } from "./UsageDetails";
 
-interface DesignProps {
+export interface DesignProps {
   header: {
     isVisible: boolean;
     title: {

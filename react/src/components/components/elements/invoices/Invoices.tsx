@@ -27,7 +27,7 @@ import {
   TransitionBox,
 } from "../../ui";
 
-interface DesignProps {
+export interface DesignProps {
   header: {
     isVisible: boolean;
     fontStyle: FontStyle;

@@ -10,7 +10,7 @@ type CoreOptions = Omit<
 >;
 
 export interface WsAdapterProps extends CoreOptions {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   publishableKey?: string;
   client?: SchematicJS.Schematic;
 }

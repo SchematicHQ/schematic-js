@@ -154,7 +154,7 @@ interface PreviewCheckoutUpdates {
   promoCode?: string | null;
 }
 
-interface CheckoutDialogProps {
+export interface CheckoutDialogProps {
   top?: number;
 }
 
