@@ -25,6 +25,12 @@ export function useAvailablePlans(
       periods.push("month");
     }
     if (
+      (data?.activePlans || []).some((plan) => plan.quarterlyPrice) ||
+      (data?.activeAddOns || []).some((addOn) => addOn.quarterlyPrice)
+    ) {
+      periods.push("quarter");
+    }
+    if (
       (data?.activePlans || []).some((plan) => plan.yearlyPrice) ||
       (data?.activeAddOns || []).some((addOn) => addOn.yearlyPrice)
     ) {
@@ -43,6 +49,7 @@ export function useAvailablePlans(
               if (options.useSelectedPeriod) {
                 return (
                   (activePeriod === "month" && plan.monthlyPrice) ||
+                  (activePeriod === "quarter" && plan.quarterlyPrice) ||
                   (activePeriod === "year" && plan.yearlyPrice) ||
                   plan.chargeType === ChargeType.oneTime
                 );
@@ -50,6 +57,7 @@ export function useAvailablePlans(
 
               return (
                 plan.monthlyPrice ||
+                plan.quarterlyPrice ||
                 plan.yearlyPrice ||
                 plan.chargeType === ChargeType.oneTime
               );

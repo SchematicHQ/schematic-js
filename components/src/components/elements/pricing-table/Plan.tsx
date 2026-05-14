@@ -9,6 +9,7 @@ import {
   formatCurrency,
   getFeatureName,
   getPlanPrice,
+  getSubscriptionPeriod,
   groupPlanCreditGrants,
   hexToHSL,
 } from "../../../utils";
@@ -70,7 +71,10 @@ export const Plan = ({
   const cardPadding = settings.theme.card.padding / TEXT_BASE_SIZE;
 
   const isStandalone = typeof data?.component === "undefined";
-  const currentPeriod = data?.company?.plan?.planPeriod || "month";
+  const currentPeriod =
+    getSubscriptionPeriod(data?.company?.billingSubscription) ||
+    data?.company?.plan?.planPeriod ||
+    "month";
   const canCheckout = isStandalone || (data?.capabilities?.checkout ?? true);
   const isTrialSubscription =
     data?.company?.billingSubscription?.status === "trialing";
@@ -170,14 +174,21 @@ export const Plan = ({
                         currency: planCurrency,
                         testSignificantDigits: false,
                       })
-                    : formatCurrency(planPrice ?? 0, planCurrency)}
+                    : showAsMonthlyPrices && selectedPeriod === "quarter"
+                      ? formatCurrency((planPrice ?? 0) / 3, {
+                          currency: planCurrency,
+                          testSignificantDigits: false,
+                        })
+                      : formatCurrency(planPrice ?? 0, planCurrency)}
             {!plan.custom && !isFreePlan && (
               <sub>
                 /
                 {showAsMonthlyPrices &&
                 selectedPeriod === BillingProductPriceInterval.Year
                   ? t("month, billed yearly")
-                  : t(selectedPeriod)}
+                  : showAsMonthlyPrices && selectedPeriod === "quarter"
+                    ? t("month, billed quarterly")
+                    : t(selectedPeriod)}
               </sub>
             )}
           </Text>

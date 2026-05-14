@@ -327,6 +327,12 @@ export interface CompanyPlanDetailResponseData {
   planType: PlanType;
   /**
    *
+   * @type {BillingPriceResponseData}
+   * @memberof CompanyPlanDetailResponseData
+   */
+  quarterlyPrice?: BillingPriceResponseData;
+  /**
+   *
    * @type {number}
    * @memberof CompanyPlanDetailResponseData
    */
@@ -500,6 +506,10 @@ export function CompanyPlanDetailResponseDataFromJSONTyped(
         ? undefined
         : BillingPriceResponseDataFromJSON(json["one_time_price"]),
     planType: PlanTypeFromJSON(json["plan_type"]),
+    quarterlyPrice:
+      json["quarterly_price"] == null
+        ? undefined
+        : BillingPriceResponseDataFromJSON(json["quarterly_price"]),
     trialDays: json["trial_days"] == null ? undefined : json["trial_days"],
     updatedAt: new Date(json["updated_at"]),
     usageViolations: (json["usage_violations"] as Array<any>).map(
@@ -576,6 +586,7 @@ export function CompanyPlanDetailResponseDataToJSONTyped(
     name: value["name"],
     one_time_price: BillingPriceResponseDataToJSON(value["oneTimePrice"]),
     plan_type: PlanTypeToJSON(value["planType"]),
+    quarterly_price: BillingPriceResponseDataToJSON(value["quarterlyPrice"]),
     trial_days: value["trialDays"],
     updated_at: value["updatedAt"].toISOString(),
     usage_violations: (value["usageViolations"] as Array<any>).map(
