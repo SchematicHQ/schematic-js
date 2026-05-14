@@ -30,8 +30,9 @@ const pkgRoot = resolve(__dirname, "..");
 const ROOT_BUNDLES = ["dist/schematic-react.esm.js"];
 
 // Strings that should NEVER appear in the root ESM main bundle. Each entry
-// is a peer dep that only the /components surface (or the lazy embed chunk)
-// should reach for.
+// is a dependency that only the /components surface (or the lazy embed
+// chunk) should reach for — the heavy peer deps plus the bundled
+// `@schematichq/schematic-icons` package.
 const FORBIDDEN = [
   "@stripe/react-stripe-js",
   "@stripe/stripe-js",

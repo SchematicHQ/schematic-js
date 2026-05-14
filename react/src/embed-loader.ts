@@ -1,10 +1,12 @@
 // Path C — Suspense-throw activation for the embed adapter.
 //
-// Allows a /core consumer to use embed UI components (PricingTable, etc.)
-// without paying for the embed surface up front: the embed hooks throw the
-// import promise, Suspense catches it, and the bare provider — which
-// subscribes here via `useSyncExternalStore` — re-renders with the
-// dynamically-loaded adapter mounted.
+// Lets consumers reach the embed UI (PricingTable, etc.) without paying
+// for the embed surface up front: the embed hooks throw the import
+// promise, Suspense catches it, and the bare provider — which subscribes
+// here via `useSyncExternalStore` — re-renders with the dynamically-loaded
+// adapter mounted. Neither entry's `SchematicProvider` wrapper pre-binds
+// `embed`, so this is the path that runs by default; pass
+// `embed={EmbedAdapter}` to opt into eager mounting instead.
 //
 // The dynamic `import()` is the seam that lets esbuild emit the embed
 // adapter as a separate chunk (with --splitting). In CJS builds it inlines

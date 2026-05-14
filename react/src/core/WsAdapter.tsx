@@ -21,8 +21,9 @@ export interface WsAdapterProps extends CoreOptions {
  * `SchematicContext`, and cleans up the connection on unmount.
  *
  * Mounted as a child of the bare `SchematicProvider` when `ws={WsAdapter}`
- * is supplied — both /core's and /components' wrappers pre-bind this by
- * default. Pass `ws={null}` to the wrapper to opt out (UI-only mode).
+ * is supplied — both the root and /components entries' wrappers pre-bind
+ * this by default. Pass `ws={null}` to the wrapper to opt out (UI-only
+ * mode).
  */
 export const WsAdapter: React.FC<WsAdapterProps> = ({
   children,
