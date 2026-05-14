@@ -13,6 +13,8 @@
 // instead, which is unavoidable without a separate runtime resolution
 // strategy; see `scripts/check-tree-shake.mjs` for the policy.
 
+import { createContext } from "react";
+
 import type { SchematicAdapter } from "./provider";
 
 type Subscriber = () => void;
@@ -42,8 +44,21 @@ export function subscribeEmbedAdapter(subscriber: Subscriber): () => void {
 export function loadEmbedAdapter(): Promise<void> {
   if (inflight) return inflight;
   inflight = import("./components/embed/EmbedAdapter").then((mod) => {
-    cached = mod.EmbedAdapter as unknown as SchematicAdapter;
+    cached = mod.EmbedAdapter;
     for (const subscriber of subscribers) subscriber();
   });
   return inflight;
 }
+
+/**
+ * Signal context: set to `true` by `SchematicProvider` when the consumer
+ * passed `embed={null}`. Read by `useEmbed` so it can throw a clear,
+ * non-suspending error instead of throwing a load promise that the provider
+ * would never recover from (an infinite Suspense loop, since opting out
+ * disables the lazy-mount path that resolves the suspended render).
+ *
+ * Defaulted to `false` so descendants outside any `SchematicProvider` get
+ * the normal Suspense-throw behavior (which itself surfaces as an
+ * unhandled promise in dev — a clearer failure than a silent loop).
+ */
+export const SchematicEmbedDisabledContext = createContext(false);

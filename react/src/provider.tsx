@@ -1,7 +1,12 @@
 import type * as SchematicJS from "@schematichq/schematic-js";
 import React, { Suspense, createElement, useSyncExternalStore } from "react";
 
-import { getCachedEmbedAdapter, subscribeEmbedAdapter } from "./embed-loader";
+import {
+  SchematicEmbedDisabledContext,
+  getCachedEmbedAdapter,
+  subscribeEmbedAdapter,
+} from "./embed-loader";
+import type { CheckoutPrefill } from "./components/embed/embedState";
 
 type CoreOptions = Omit<
   SchematicJS.SchematicOptions,
@@ -9,63 +14,56 @@ type CoreOptions = Omit<
 >;
 
 /**
- * Loose prop shape for plugin adapters. The bare provider passes all of its
- * props through to each mounted adapter; each adapter destructures what it
- * needs. Types are deliberately loose here so `src/provider.tsx` pulls in
- * zero adapter-side dependencies — the typed wrappers in
- * `@schematichq/schematic-react` (/core) and
- * `@schematichq/schematic-react/components` sharpen them at the boundary.
+ * The full flat prop bag the bare provider hands to each adapter. Types are
+ * deliberately loose (`apiConfig`/`settings` as `unknown`) so the bare
+ * provider compiles without pulling in any adapter-side dependency. The
+ * wrappers in `react/src/index.tsx` and `react/src/components/index.tsx`
+ * sharpen these at the public API boundary.
  */
-interface AdapterProps {
-  // WS-side
+export interface SchematicAdapterProps {
+  children?: React.ReactNode;
   publishableKey?: string;
   client?: SchematicJS.Schematic;
-  // Embed-side
   apiConfig?: unknown;
   settings?: unknown;
   debug?: boolean;
   currencyFilter?: string[];
+  checkoutPrefill?: CheckoutPrefill;
 }
 
 /**
  * A `SchematicProvider` plugin adapter. Wraps `children` and re-provides
  * `SchematicContext` with the slot it owns (WS `client`, or embed surface).
  *
- * Two implementations ship with this package:
- *   * `WsAdapter` (internal, not exported) — auto-bound via both entries'
- *     `SchematicProvider` wrappers; pass `ws={null}` to opt out.
- *   * `EmbedAdapter` — lazy-wrapped re-export from
- *     `@schematichq/schematic-react/components`. Not pre-bound by either
- *     wrapper; loaded automatically on first `useEmbed` call via
- *     `embed-loader.ts`, or pass `embed={EmbedAdapter}` for eager mount.
- *
- * You can also write your own — anything that satisfies this shape works.
+ * Accepts both regular `ComponentType` refs and `React.lazy`-wrapped refs
+ * (`ExoticComponent`). The latter is what lets `EmbedAdapter` ship as a
+ * chunk-split re-export from `@schematichq/schematic-react/components`
+ * without any cast at the consumer boundary.
  */
-export type SchematicAdapter = React.ComponentType<
-  AdapterProps & { children?: React.ReactNode }
+export type SchematicAdapter =
+  | React.ComponentType<SchematicAdapterProps>
+  | React.ExoticComponent<SchematicAdapterProps>;
+
+type ForwardableProps = Omit<
+  SchematicProviderBaseProps,
+  "children" | "ws" | "embed" | "fallback"
 >;
 
 /**
- * Props accepted by `SchematicProvider`. The shape is intentionally flat
- * (no discriminated union on `ws` vs `client`/`publishableKey`) so the
- * wrapper functions in the root and /components entries can forward the
- * `ws` slot cleanly. Combinations the runtime expects:
- *
- *   * WS active (default): pass `publishableKey` xor `client`.
- *   * WS disabled: pass `ws={null}`. `publishableKey` and `client` are
- *     ignored. UI surface still works if the `embed` slot is bound.
- *
- * If WS is active but neither `publishableKey` nor `client` is provided,
- * `WsAdapter` throws at construction with a clear error message.
+ * Base prop shape for the bare provider — accepts any adapter combination.
+ * The exported `SchematicProvider` wrappers narrow this with a
+ * discriminated union (client xor publishableKey, or `ws={null}`).
  */
-export type SchematicProviderProps = {
+export type SchematicProviderBaseProps = {
   children: React.ReactNode;
   ws?: SchematicAdapter | null;
   embed?: SchematicAdapter | null;
   /**
-   * Rendered while the embed adapter chunk (or any descendant suspending
-   * via `useEmbed`) is loading. Defaults to `null`. Wrap individual children
-   * in their own `<Suspense>` boundaries for finer-grained fallbacks.
+   * Rendered while a lazy adapter chunk is loading. Defaults to `null`.
+   * The inner Suspense boundary around `children` uses `null` so a child's
+   * `useEmbed` throw doesn't show this fallback for the whole tree —
+   * consumers can place finer-grained `<Suspense>` boundaries around any
+   * descendant for that.
    */
   fallback?: React.ReactNode;
   publishableKey?: string;
@@ -74,59 +72,107 @@ export type SchematicProviderProps = {
   settings?: unknown;
   debug?: boolean;
   currencyFilter?: string[];
+  checkoutPrefill?: CheckoutPrefill;
 } & CoreOptions;
+
+// === Per-adapter prop filtering =============================================
+//
+// The bare provider used to forward every prop to every adapter, which (a)
+// let embed-only options like `apiConfig` flow into the WS adapter — and
+// from there into `new Schematic(key, {...})` — and (b) handed CoreOptions
+// (`additionalHeaders` etc.) to the embed adapter, which ignores them but
+// would silently swallow a typo. We now split into two known buckets so
+// each adapter only sees props it actually consumes.
+
+function pickWsProps(
+  props: ForwardableProps,
+): SchematicAdapterProps & CoreOptions {
+  const {
+    apiConfig: _apiConfig,
+    settings: _settings,
+    debug: _debug,
+    currencyFilter: _currencyFilter,
+    checkoutPrefill: _checkoutPrefill,
+    ...rest
+  } = props;
+  return rest;
+}
+
+function pickEmbedProps(props: ForwardableProps): SchematicAdapterProps {
+  return {
+    publishableKey: props.publishableKey,
+    apiConfig: props.apiConfig,
+    settings: props.settings,
+    debug: props.debug,
+    currencyFilter: props.currencyFilter,
+    checkoutPrefill: props.checkoutPrefill,
+  };
+}
 
 /**
  * The bare Schematic provider — a pure plugin host. Composes the `ws` and
- * `embed` adapter slots (each optional) around `children` and forwards
- * every other prop to both adapters. Each adapter destructures what it
- * needs and ignores the rest.
+ * `embed` adapter slots (each optional) around `children`, forwarding only
+ * the prop subsets each adapter cares about.
  *
- * The root and /components entries each export a thin wrapper named
- * `SchematicProvider` that pre-binds `ws={WsAdapter}` by default. Pass
- * `ws={null}` to opt out of the WS adapter (UI-only mode), or
- * `ws={MyAdapter}` to swap in a custom implementation. Neither wrapper
- * pre-binds an embed adapter — that loads lazily (see below).
+ * Suspense boundaries:
+ *   * Outer boundary (uses `fallback`): catches adapter-level lazy throws,
+ *     e.g. `embed={EmbedAdapter}` where the export is `React.lazy`-wrapped.
+ *   * Inner boundary around `children` (always `null` fallback): isolates
+ *     a descendant's `useEmbed` throw from cascading past the consumer's
+ *     content. Consumers wanting visible "loading…" UI place their own
+ *     `<Suspense>` boundary closer to the affected component.
  *
  * Lazy embed loading: when no `embed` adapter is bound (the prop is
- * `undefined`), descendants that call `useEmbed` (and the embed-specific
- * hooks built on it) throw the embed adapter's import promise. The
- * Suspense boundary below catches it; the provider subscribes to
- * `embed-loader` via `useSyncExternalStore` and re-renders with the
- * dynamically-loaded adapter mounted. Pass `embed={null}` to explicitly
- * disable this behavior, or `embed={EmbedAdapter}` (the lazy-wrapped
- * re-export from /components) to start the import on provider mount.
+ * `undefined`), descendants that call `useEmbed` (and embed-specific hooks
+ * built on it) throw the embed adapter's import promise. The inner
+ * Suspense catches it; the provider subscribes to `embed-loader` via
+ * `useSyncExternalStore` and re-renders with the dynamically-loaded
+ * adapter mounted. Pass `embed={null}` to explicitly disable this — the
+ * provider then publishes that decision via
+ * `SchematicEmbedDisabledContext` so `useEmbed` throws a clear error
+ * rather than looping on a Suspense throw that no one will resolve.
  */
-export const SchematicProvider: React.FC<SchematicProviderProps> = ({
+export const SchematicProvider: React.FC<SchematicProviderBaseProps> = ({
   children,
   ws: Ws,
   embed: ExplicitEmbed,
   fallback,
   ...props
 }) => {
-  // When no explicit embed adapter is bound, watch the module-level loader
-  // so the provider re-renders the moment a lazy-loaded adapter is ready.
-  // Returning `null` for the SSR snapshot keeps server rendering unchanged.
   const LazyLoadedEmbed = useSyncExternalStore(
     subscribeEmbedAdapter,
     getCachedEmbedAdapter,
     () => null,
   );
 
-  // `ExplicitEmbed === null` is an explicit opt-out; only fall back to the
-  // lazy-loaded adapter when the prop is `undefined`. We use
-  // `React.createElement` rather than JSX for the dynamic mounts so the
-  // `react-hooks/static-components` lint doesn't false-positive on these
-  // capitalized but locally-resolved component references.
+  // `embed === null` is an explicit opt-out. Don't auto-load, and broadcast
+  // the decision so `useEmbed` throws a clear error instead of looping.
+  const embedDisabled = ExplicitEmbed === null;
   const Embed: SchematicAdapter | null =
     ExplicitEmbed === undefined ? LazyLoadedEmbed : ExplicitEmbed;
 
-  let tree: React.ReactNode = children;
+  // Inner Suspense around children: a child's `useEmbed` throw is caught
+  // here so it doesn't bubble to the outer fallback, and so the adapter
+  // load swap re-renders inside this boundary specifically.
+  let tree: React.ReactNode = <Suspense fallback={null}>{children}</Suspense>;
   if (Embed) {
-    tree = createElement(Embed, props, tree);
+    tree = createElement(
+      Embed as React.ComponentType<SchematicAdapterProps>,
+      pickEmbedProps(props as ForwardableProps),
+      tree,
+    );
   }
   if (Ws) {
-    tree = createElement(Ws, props, tree);
+    tree = createElement(
+      Ws as React.ComponentType<SchematicAdapterProps>,
+      pickWsProps(props as ForwardableProps),
+      tree,
+    );
   }
-  return <Suspense fallback={fallback ?? null}>{tree}</Suspense>;
+
+  return (
+    <SchematicEmbedDisabledContext.Provider value={embedDisabled}>
+      <Suspense fallback={fallback ?? null}>{tree}</Suspense>
+    </SchematicEmbedDisabledContext.Provider>
+  );
 };

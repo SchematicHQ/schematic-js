@@ -16,6 +16,8 @@ import { ThemeProvider } from "styled-components";
 import { v4 as uuidv4 } from "uuid";
 
 import { SchematicContext, type SchematicContextValue } from "../../context";
+import type { SchematicAdapterProps } from "../../provider";
+import { version } from "../../version";
 import type {
   ChangeSubscriptionRequestBody,
   CheckoutResponse,
@@ -102,33 +104,16 @@ export interface EmbedContextValue extends EmbedState {
 }
 
 /**
- * Loose prop shape used at the adapter boundary so this component is
- * assignable to `SchematicAdapter` (which types `apiConfig` and `settings`
- * as `unknown`). The adapter narrows the values internally.
+ * Re-exports the bare-provider adapter prop shape so consumers and tests
+ * can refer to the embed adapter's accepted props by name. The component
+ * itself is typed as `React.FC<SchematicAdapterProps>` so the lazy
+ * re-export in `components/index.tsx` is assignable to `SchematicAdapter`
+ * with no cast.
  */
-export interface EmbedAdapterProps {
-  children?: React.ReactNode;
-  /**
-   * The same publishable key the WS client uses. The bare provider spreads
-   * it through to this adapter and we authenticate the public REST API
-   * with it.
-   */
-  publishableKey?: string;
-  apiConfig?: unknown;
-  settings?: unknown;
-  debug?: boolean;
-  /**
-   * Restricts which currencies are presented in components that support
-   * multi-currency display (PricingTable, CheckoutDialog). Entries are
-   * ISO-4217 codes; case-insensitive. Omit to disable filtering.
-   */
-  currencyFilter?: string[];
-  checkoutPrefill?: CheckoutPrefill;
-}
+export type EmbedAdapterProps = SchematicAdapterProps;
 
 const getCustomHeaders = (sessionId: string) => ({
-  "X-Schematic-Components-Version":
-    process.env.SCHEMATIC_COMPONENTS_VERSION || "unknown",
+  "X-Schematic-Components-Version": version,
   "X-Schematic-Session-ID": sessionId,
 });
 
