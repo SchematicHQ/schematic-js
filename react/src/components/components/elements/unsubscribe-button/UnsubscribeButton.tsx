@@ -31,7 +31,7 @@ const buttonStyles: Record<
   },
 };
 
-interface DesignProps {
+export interface DesignProps {
   button: {
     text: string;
     style: ComponentStyle;
