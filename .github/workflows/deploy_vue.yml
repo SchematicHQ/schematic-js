@@ -4,7 +4,6 @@ on:
   push:
     tags:
       - 'schematic-vue@*'
-      - '!schematic-vue@*-rc*'
   workflow_dispatch:
 
 jobs:
