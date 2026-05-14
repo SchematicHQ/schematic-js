@@ -15,30 +15,35 @@
 // first embed render), pass `embed={EmbedAdapter}` to `SchematicProvider`;
 // the export below is a thin FC that wraps the chunk-split lazy ref.
 
+// The shared-core import below (`@schematichq/schematic-react`) is a
+// self-package reference, NOT a relative path. The esbuild config for this
+// /components bundle marks `@schematichq/schematic-react` as external, so
+// at runtime the import resolves to the same module instance the root entry
+// exports. Without this, both subpath bundles inline their own copy of
+// `SchematicContext`/hooks/`WsAdapter`, and a consumer mixing imports from
+// both entries trips a dual-package hazard: `useSchematic` (root) reads a
+// different React context than the one `SchematicProvider` (/components)
+// writes through `WsAdapter`. See SCHY-372.
 import type * as SchematicJS from "@schematichq/schematic-js";
 import React, { createElement, lazy } from "react";
-
-import { WsAdapter } from "../core/WsAdapter";
-import {
-  SchematicProvider as BareSchematicProvider,
-  type SchematicAdapter,
-  type SchematicAdapterProps,
-  type SchematicProviderBaseProps,
-} from "../provider";
 
 import type { ConfigurationParameters } from "./api/checkoutexternal";
 import type { EmbedSettings } from "./embed/embedState";
 import type { DeepPartial } from "./types/util";
 
+import {
+  BareSchematicProvider,
+  WsAdapter,
+  type SchematicAdapter,
+  type SchematicAdapterProps,
+  type SchematicProviderBaseProps,
+  type WsAdapterProps,
+} from "@schematichq/schematic-react";
+
 // === Root-entry surface re-exports ===
 
-export { SchematicContext, type SchematicContextValue } from "../context";
-export type {
-  SchematicAdapter,
-  SchematicAdapterProps,
-  SchematicProviderBaseProps,
-} from "../provider";
 export {
+  SchematicContext,
   useSchematic,
   useSchematicContext,
   useSchematicEntitlement,
@@ -46,10 +51,14 @@ export {
   useSchematicFlag,
   useSchematicIsPending,
   useSchematicPlan,
+  type SchematicAdapter,
+  type SchematicAdapterProps,
+  type SchematicContextValue,
   type SchematicHookOpts,
+  type SchematicProviderBaseProps,
   type UseSchematicFlagOpts,
   type UseSchematicPlanOpts,
-} from "../core/hooks";
+} from "@schematichq/schematic-react";
 export {
   RuleType,
   Schematic,
@@ -257,4 +266,4 @@ const SchematicProvider: React.FC<SchematicProviderProps> = (props) => {
 };
 SchematicProvider.displayName = "SchematicProvider";
 
-export { SchematicProvider };
+export { SchematicProvider, WsAdapter, type WsAdapterProps };
