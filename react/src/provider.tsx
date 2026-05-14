@@ -32,10 +32,12 @@ interface AdapterProps {
  * `SchematicContext` with the slot it owns (WS `client`, or embed surface).
  *
  * Two implementations ship with this package:
- *   * `WsAdapter` — `@schematichq/schematic-react/core` (auto-bound via the
- *     root entry's `SchematicProvider`)
- *   * `EmbedAdapter` — `@schematichq/schematic-react/components` (auto-bound
- *     via that entry's `SchematicProvider`)
+ *   * `WsAdapter` (internal, not exported) — auto-bound via both entries'
+ *     `SchematicProvider` wrappers; pass `ws={null}` to opt out.
+ *   * `EmbedAdapter` — lazy-wrapped re-export from
+ *     `@schematichq/schematic-react/components`. Not pre-bound by either
+ *     wrapper; loaded automatically on first `useEmbed` call via
+ *     `embed-loader.ts`, or pass `embed={EmbedAdapter}` for eager mount.
  *
  * You can also write your own — anything that satisfies this shape works.
  */
@@ -46,8 +48,8 @@ export type SchematicAdapter = React.ComponentType<
 /**
  * Props accepted by `SchematicProvider`. The shape is intentionally flat
  * (no discriminated union on `ws` vs `client`/`publishableKey`) so the
- * wrapper functions in /core and /components can forward the `ws` slot
- * cleanly. Combinations the runtime expects:
+ * wrapper functions in the root and /components entries can forward the
+ * `ws` slot cleanly. Combinations the runtime expects:
  *
  *   * WS active (default): pass `publishableKey` xor `client`.
  *   * WS disabled: pass `ws={null}`. `publishableKey` and `client` are
@@ -80,21 +82,20 @@ export type SchematicProviderProps = {
  * every other prop to both adapters. Each adapter destructures what it
  * needs and ignores the rest.
  *
- * The /core and /components subpath entries each export a thin wrapper
- * named `SchematicProvider` that pre-binds the appropriate adapters:
- *   * /core: `ws={WsAdapter}` (no eager embed binding)
- *   * /components: `ws={WsAdapter}, embed={EmbedAdapter}` (eager)
+ * The root and /components entries each export a thin wrapper named
+ * `SchematicProvider` that pre-binds `ws={WsAdapter}` by default. Pass
+ * `ws={null}` to opt out of the WS adapter (UI-only mode), or
+ * `ws={MyAdapter}` to swap in a custom implementation. Neither wrapper
+ * pre-binds an embed adapter — that loads lazily (see below).
  *
- * In both wrappers, pass `ws={null}` to opt out of the WS adapter (UI-only
- * mode), or pass `ws={MyAdapter}` to swap in a custom implementation.
- *
- * Lazy embed loading: when no `embed` adapter is bound (either explicitly
- * `undefined` or via the /core wrapper), descendants that call `useEmbed`
- * (and the embed-specific hooks built on it) throw the embed adapter's
- * import promise. The Suspense boundary below catches it; the provider
- * subscribes to `embed-loader` via `useSyncExternalStore` and re-renders
- * with the dynamically-loaded adapter mounted. Pass `embed={null}` to
- * explicitly disable this behavior.
+ * Lazy embed loading: when no `embed` adapter is bound (the prop is
+ * `undefined`), descendants that call `useEmbed` (and the embed-specific
+ * hooks built on it) throw the embed adapter's import promise. The
+ * Suspense boundary below catches it; the provider subscribes to
+ * `embed-loader` via `useSyncExternalStore` and re-renders with the
+ * dynamically-loaded adapter mounted. Pass `embed={null}` to explicitly
+ * disable this behavior, or `embed={EmbedAdapter}` (the lazy-wrapped
+ * re-export from /components) to start the import on provider mount.
  */
 export const SchematicProvider: React.FC<SchematicProviderProps> = ({
   children,

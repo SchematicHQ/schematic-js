@@ -103,8 +103,8 @@ export interface EmbedContextValue extends EmbedState {
 
 /**
  * Loose prop shape used at the adapter boundary so this component is
- * assignable to `SchematicEmbedAdapter` (which types `apiConfig` and
- * `settings` as `unknown`). The adapter narrows the values internally.
+ * assignable to `SchematicAdapter` (which types `apiConfig` and `settings`
+ * as `unknown`). The adapter narrows the values internally.
  */
 export interface EmbedAdapterProps {
   children?: React.ReactNode;
@@ -172,8 +172,11 @@ const LazyIconStyles = lazy(() =>
  * parent `SchematicContext`, sets up the REST clients + embed reducer, then
  * re-provides `SchematicContext` with the `embed` slot populated.
  *
- * This is an implementation detail; /components users get it pre-bound via
- * the convenience wrapper in `@schematichq/schematic-react/components`.
+ * This is an implementation detail. Neither entry's `SchematicProvider`
+ * wrapper mounts it eagerly: descendants that call `useEmbed` trigger a
+ * lazy import via `embed-loader.ts`. Consumers who want eager mounting
+ * pass `embed={EmbedAdapter}` — the lazy-wrapped re-export from
+ * `@schematichq/schematic-react/components`.
  */
 export const EmbedAdapter: React.FC<EmbedAdapterProps> = ({
   children,
