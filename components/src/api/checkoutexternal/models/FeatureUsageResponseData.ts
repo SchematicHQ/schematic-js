@@ -299,6 +299,12 @@ export interface FeatureUsageResponseData {
    */
   priceBehavior?: EntitlementPriceBehavior | null;
   /**
+   *
+   * @type {BillingPriceView}
+   * @memberof FeatureUsageResponseData
+   */
+  quarterlyUsageBasedPrice?: BillingPriceView;
+  /**
    * The soft limit for the feature usage. Available only for overage price behavior
    * @type {number}
    * @memberof FeatureUsageResponseData
@@ -435,6 +441,10 @@ export function FeatureUsageResponseDataFromJSONTyped(
       json["price_behavior"] == null
         ? undefined
         : EntitlementPriceBehaviorFromJSON(json["price_behavior"]),
+    quarterlyUsageBasedPrice:
+      json["quarterly_usage_based_price"] == null
+        ? undefined
+        : BillingPriceViewFromJSON(json["quarterly_usage_based_price"]),
     softLimit: json["soft_limit"] == null ? undefined : json["soft_limit"],
     usage: json["usage"] == null ? undefined : json["usage"],
     yearlyUsageBasedPrice:
@@ -511,6 +521,9 @@ export function FeatureUsageResponseDataToJSONTyped(
       value["planEntitlement"],
     ),
     price_behavior: EntitlementPriceBehaviorToJSON(value["priceBehavior"]),
+    quarterly_usage_based_price: BillingPriceViewToJSON(
+      value["quarterlyUsageBasedPrice"],
+    ),
     soft_limit: value["softLimit"],
     usage: value["usage"],
     yearly_usage_based_price: BillingPriceViewToJSON(

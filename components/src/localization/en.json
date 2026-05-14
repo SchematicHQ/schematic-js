@@ -78,6 +78,7 @@
     "Loading": "Loading",
     "Manage plan": "Manage plan",
     "Monthly total": "Monthly total",
+    "Quarterly total": "Quarterly total",
     "Next": "Next",
     "No invoices created yet": "No invoices created yet",
     "No limit": "No limit",
@@ -110,6 +111,8 @@
     "Save payment method": "Save payment method",
     "Save with yearly billing": "Save up to {{percent}}% with yearly billing",
     "Saving with yearly billing": "You are saving {{percent}}% with yearly billing",
+    "Save with quarterly billing": "Save up to {{percent}}% with quarterly billing",
+    "Saving with quarterly billing": "You are saving {{percent}}% with quarterly billing",
     "See all": "See all",
     "See balance details": "See balance details",
     "See less": "See less",
@@ -185,6 +188,7 @@
 
     "day": "day",
     "month": "month",
+    "quarter": "quarter",
     "year": "year",
     "one time": "one time",
     "billing period": "billing period",
@@ -195,6 +199,7 @@
     "used": "used",
 
     "month, billed yearly": "month, billed yearly",
+    "month, billed quarterly": "month, billed quarterly",
     "purchased": "purchased {{date}}",
 
     "usage": {
