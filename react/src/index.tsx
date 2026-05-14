@@ -5,16 +5,22 @@
 // re-exports. Importing from here pulls in `@schematichq/schematic-js`
 // (peer dep) plus React; no UI deps.
 
+import type * as SchematicJS from "@schematichq/schematic-js";
 import React from "react";
 
 import { WsAdapter } from "./core/WsAdapter";
 import {
   SchematicProvider as BareSchematicProvider,
-  type SchematicProviderProps as BareSchematicProviderProps,
+  type SchematicAdapter,
+  type SchematicProviderBaseProps,
 } from "./provider";
 
 export { SchematicContext, type SchematicContextValue } from "./context";
-export type { SchematicAdapter, SchematicProviderProps } from "./provider";
+export type {
+  SchematicAdapter,
+  SchematicAdapterProps,
+  SchematicProviderBaseProps,
+} from "./provider";
 
 export {
   useSchematic,
@@ -53,21 +59,52 @@ export type {
   Traits,
 } from "@schematichq/schematic-js";
 
+type CoreOptions = Omit<
+  SchematicJS.SchematicOptions,
+  "client" | "publishableKey" | "useWebSocket"
+>;
+
+type CommonProviderProps = {
+  children: React.ReactNode;
+  ws?: SchematicAdapter | null;
+  embed?: SchematicAdapter | null;
+  fallback?: React.ReactNode;
+} & CoreOptions;
+
+// Restored client xor publishableKey union (lost in the initial unification).
+// Plus a `ws: null` variant so consumers can drop the WS adapter entirely.
+type WithClient = {
+  client: SchematicJS.Schematic;
+  publishableKey?: never;
+};
+type WithPublishableKey = {
+  client?: never;
+  publishableKey: string;
+};
+type WithoutWs = {
+  client?: never;
+  publishableKey?: string;
+  ws: null;
+};
+
+export type SchematicProviderProps = CommonProviderProps &
+  (WithClient | WithPublishableKey | WithoutWs);
+
 /**
  * `SchematicProvider` — pre-binds the WS adapter so flag/entitlement hooks
- * work out of the box. Same prop surface as the original `react/` package
- * plus the new `ws` slot (defaults to `WsAdapter`; pass `ws={null}` to opt
- * out, e.g. when only using UI components from `/components`).
+ * work out of the box. Accepts exactly one of `client`, `publishableKey`,
+ * or `ws={null}` (UI-only mode). Pass `ws={null}` to opt out of the WS
+ * adapter — typically when only using UI components from `/components`.
  */
-const SchematicProvider: React.FC<BareSchematicProviderProps> = ({
-  ws,
-  ...props
-}) => (
-  <BareSchematicProvider
-    ws={ws === undefined ? WsAdapter : ws}
-    {...(props as BareSchematicProviderProps)}
-  />
-);
+const SchematicProvider: React.FC<SchematicProviderProps> = (props) => {
+  const { ws } = props;
+  return (
+    <BareSchematicProvider
+      {...(props as unknown as SchematicProviderBaseProps)}
+      ws={ws === undefined ? WsAdapter : ws}
+    />
+  );
+};
 SchematicProvider.displayName = "SchematicProvider";
 
 export { SchematicProvider };

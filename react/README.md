@@ -175,13 +175,38 @@ Tests run under `jsdom` with MSW-mocked APIs. Fixtures live in
   `@schematichq/schematic-icons`) sit in `devDependencies` so they're
   available during build but aren't installed by consumers — esbuild inlines
   them.
-- esbuild defines `process.env.SCHEMATIC_COMPONENTS_VERSION` at build time;
-  the value is read from `package.json` and surfaced in the
-  `X-Schematic-Components-Version` request header.
+- `version.ts` is the single source of truth for the package version; both
+  the WS adapter's `X-Schematic-Client-Version` header and the embed
+  adapter's `X-Schematic-Components-Version` header read it directly. The
+  file is regenerated from `package.json` by `version.sh` at the start of
+  `yarn build`.
 - The JS `SchematicContext` type (the user/company context shape from
   `@schematichq/schematic-js`) is intentionally **not** re-exported — its
   name collides with the React context we expose. Import it directly from
   `@schematichq/schematic-js` if you need to type your user/company context.
+
+## SSR / hydration
+
+Both entries are safe to import from server code, but be aware of how the
+lazy embed mechanism interacts with server rendering:
+
+- During SSR, `useSyncExternalStore`'s server snapshot for the embed
+  adapter is always `null`, so the embed slot is never populated. Any
+  descendant that calls `useEmbed` throws the load promise; the bare
+  provider's Suspense boundary catches it and renders the `fallback`
+  prop's value (default `null`).
+- The HTML the server emits for embed-using subtrees is therefore the
+  fallback, not the populated UI. On the client, the same flow runs:
+  fallback first, then the embed adapter chunk loads, then the populated
+  UI replaces it. Plan your `fallback` (or per-component `<Suspense>`)
+  with this in mind — a visible skeleton tends to feel better than `null`.
+- The flag/entitlement surface (root entry) does not suspend during SSR.
+  It renders the configured fallback (`false` for `useSchematicFlag`,
+  etc.) until the WS client connects and hydrates on the client.
+- To eliminate the fallback flash on first paint, pass
+  `embed={EmbedAdapter}` so the chunk starts loading at provider mount,
+  and place a `<Suspense>` boundary closer to the affected component for
+  finer-grained control.
 
 ## Migration from prior packages
 
