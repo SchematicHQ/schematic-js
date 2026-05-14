@@ -12,22 +12,32 @@
 // calls an embed hook or mounts one of the lazy UI components below. This
 // is what allows styled-components to stay out of the /components main
 // bundle. If you want the adapter eagerly mounted (no Suspense flash on
-// first embed render), pass a custom `embed` prop or wrap a child in a
-// component that triggers the load on mount.
+// first embed render), pass `embed={EmbedAdapter}` to `SchematicProvider`;
+// the export below is a thin FC that wraps the chunk-split lazy ref.
 
-import React, { lazy } from "react";
+import type * as SchematicJS from "@schematichq/schematic-js";
+import React, { createElement, lazy } from "react";
 
 import { WsAdapter } from "../core/WsAdapter";
 import {
   SchematicProvider as BareSchematicProvider,
   type SchematicAdapter,
-  type SchematicProviderProps as BareSchematicProviderProps,
+  type SchematicAdapterProps,
+  type SchematicProviderBaseProps,
 } from "../provider";
+
+import type { ConfigurationParameters } from "./api/checkoutexternal";
+import type { EmbedSettings } from "./embed/embedState";
+import type { DeepPartial } from "./types/util";
 
 // === Root-entry surface re-exports ===
 
 export { SchematicContext, type SchematicContextValue } from "../context";
-export type { SchematicAdapter, SchematicProviderProps } from "../provider";
+export type {
+  SchematicAdapter,
+  SchematicAdapterProps,
+  SchematicProviderBaseProps,
+} from "../provider";
 export {
   useSchematic,
   useSchematicContext,
@@ -171,35 +181,80 @@ export type { CheckoutStage } from "./components/shared/checkout-dialog/Checkout
 
 // === EmbedAdapter (opt-in eager binding) ===
 //
-// Lazy-wrapped re-export of the embed adapter. Pass it as `embed={EmbedAdapter}`
-// to `SchematicProvider` to start loading the adapter chunk on provider mount
-// instead of on first `useEmbed` call. Still ships out of the /components
-// main bundle — the chunk loads asynchronously via React.lazy regardless of
-// when it's referenced. Cast preserves the original component type for
-// consumer ergonomics (the runtime is a `LazyExoticComponent` but it
-// renders identically as a JSX tag and is assignable to `SchematicAdapter`).
+// A thin function-component wrapper around the chunk-split lazy ref. The
+// indirection lets `EmbedAdapter` be typed as a plain `SchematicAdapter`
+// (no `LazyExoticComponent` cast on the export site), while preserving the
+// dynamic-import seam that keeps the heavy embed implementation out of the
+// /components main bundle. Pass it as `embed={EmbedAdapter}` to
+// `SchematicProvider` to start the chunk loading on provider mount instead
+// of on first `useEmbed` call.
 
-export const EmbedAdapter = lazy(() =>
+const InternalLazyEmbedAdapter = lazy(() =>
   import("./embed/EmbedAdapter").then((m) => ({ default: m.EmbedAdapter })),
-) as unknown as SchematicAdapter;
+);
+
+export const EmbedAdapter: SchematicAdapter = (props: SchematicAdapterProps) =>
+  createElement(InternalLazyEmbedAdapter, props);
+(EmbedAdapter as React.FC).displayName = "EmbedAdapter";
 
 // === SchematicProvider ===
-//
-// Pre-binds the WS adapter (so flag/entitlement hooks work out of the box)
-// but NOT the embed adapter — that loads on demand via the lazy embed-loader
-// the first time `useEmbed` (or one of the lazy components above) fires.
-// This is the change that keeps styled-components out of the main bundle.
-// To force eager embed binding, supply a custom `embed` prop — most commonly
-// the lazy `EmbedAdapter` re-exported above.
-const SchematicProvider: React.FC<BareSchematicProviderProps> = ({
-  ws,
-  ...props
-}) => (
-  <BareSchematicProvider
-    ws={ws === undefined ? WsAdapter : ws}
-    {...(props as BareSchematicProviderProps)}
-  />
-);
+
+type CoreOptions = Omit<
+  SchematicJS.SchematicOptions,
+  "client" | "publishableKey" | "useWebSocket"
+>;
+
+type CommonProviderProps = {
+  children: React.ReactNode;
+  ws?: SchematicAdapter | null;
+  embed?: SchematicAdapter | null;
+  fallback?: React.ReactNode;
+  apiConfig?: ConfigurationParameters;
+  settings?: DeepPartial<EmbedSettings>;
+  debug?: boolean;
+  currencyFilter?: string[];
+} & CoreOptions;
+
+// Restored client xor publishableKey union, sharpened for the /components
+// surface. apiConfig/settings/currencyFilter now have real types instead
+// of `unknown`.
+type WithClient = {
+  client: SchematicJS.Schematic;
+  publishableKey?: never;
+};
+type WithPublishableKey = {
+  client?: never;
+  publishableKey: string;
+};
+type WithoutWs = {
+  client?: never;
+  publishableKey?: string;
+  ws: null;
+};
+
+export type SchematicProviderProps = CommonProviderProps &
+  (WithClient | WithPublishableKey | WithoutWs);
+
+/**
+ * `SchematicProvider` for the /components entry — pre-binds the WS adapter
+ * (so flag/entitlement hooks work out of the box) but NOT the embed
+ * adapter. That loads on demand via the lazy embed-loader the first time
+ * `useEmbed` (or one of the lazy components above) mounts.
+ *
+ * To force eager embed binding, pass `embed={EmbedAdapter}` (the lazy
+ * wrapper exported above). To disable the embed surface entirely, pass
+ * `embed={null}` — `useEmbed` will throw an explicit error from inside
+ * that tree instead of looping on a Suspense throw.
+ */
+const SchematicProvider: React.FC<SchematicProviderProps> = (props) => {
+  const { ws } = props;
+  return (
+    <BareSchematicProvider
+      {...(props as unknown as SchematicProviderBaseProps)}
+      ws={ws === undefined ? WsAdapter : ws}
+    />
+  );
+};
 SchematicProvider.displayName = "SchematicProvider";
 
 export { SchematicProvider };
