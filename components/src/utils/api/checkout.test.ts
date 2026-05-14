@@ -73,6 +73,7 @@ function makeBillingPriceView(
     currency: "USD",
     id: "price-view-1",
     interval: "month" as any,
+    intervalCount: 1,
     isActive: true,
     packageSize: 1,
     price: 1000,
