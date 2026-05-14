@@ -17,7 +17,7 @@ import {
 import { Element } from "../../layout";
 import { Box, Button, Flex, Loader, Text, TransitionBox } from "../../ui";
 
-interface DesignProps {
+export interface DesignProps {
   header: {
     isVisible: boolean;
     fontStyle: FontStyle;

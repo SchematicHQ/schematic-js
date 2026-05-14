@@ -2,7 +2,6 @@
   "$schema": "https://developer.microsoft.com/json-schemas/api-extractor/v7/api-extractor.schema.json",
   "projectFolder": ".",
   "mainEntryPointFilePath": "<projectFolder>/dist/components/index.d.ts",
-  "bundledPackages": ["@schematichq/schematic-js"],
   "dtsRollup": {
     "enabled": true,
     "untrimmedFilePath": "",
