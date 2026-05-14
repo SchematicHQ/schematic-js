@@ -15,8 +15,6 @@ import React, {
 import { ThemeProvider } from "styled-components";
 import { v4 as uuidv4 } from "uuid";
 
-import { SchematicContext, type SchematicContextValue } from "../../context";
-import type { SchematicAdapterProps } from "../../provider";
 import { version } from "../../version";
 import type {
   ChangeSubscriptionRequestBody,
@@ -51,6 +49,16 @@ import {
   type EmbedSettings,
   type EmbedState,
 } from "./embedState";
+
+// Self-package import (externalized at build time for this /components
+// bundle) so the embed-side `Context.Provider` writes to the SAME context
+// instance the root-entry hooks read from. See SCHY-372 / the comment at
+// the top of `react/src/components/index.tsx`.
+import {
+  SchematicContext,
+  type SchematicAdapterProps,
+  type SchematicContextValue,
+} from "@schematichq/schematic-react";
 
 // apis are not defined immediately on mount
 type DebouncedApiPromise<R> = Promise<R | undefined> | undefined;

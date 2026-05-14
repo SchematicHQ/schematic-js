@@ -1,11 +1,17 @@
+// `SchematicContext` and the embed-loader plumbing come from the package's
+// root entry — esbuild externalizes `@schematichq/schematic-react` for this
+// bundle so the import resolves to the single shared instance at runtime,
+// rather than getting inlined a second time. See SCHY-372 and the comment at
+// the top of `react/src/components/index.tsx`.
 import { useContext } from "react";
 
-import { SchematicContext } from "../../context";
+import type { EmbedContextValue } from "../embed/EmbedAdapter";
+
 import {
+  SchematicContext,
   SchematicEmbedDisabledContext,
   loadEmbedAdapter,
-} from "../../embed-loader";
-import type { EmbedContextValue } from "../embed/EmbedAdapter";
+} from "@schematichq/schematic-react";
 
 /**
  * Returns the embed surface from `SchematicContext`. If no embed adapter is

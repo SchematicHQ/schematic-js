@@ -1,0 +1,12 @@
+{
+  // Used by api-extractor only. Same as tsconfig.json without the `paths`
+  // alias for `@schematichq/schematic-react` — leaving the alias in would
+  // cause api-extractor to follow the self-package import into source and
+  // try to roll the root entry's exports up into the /components rollup,
+  // double-emitting WsAdapter etc. and crashing with an "Unable to
+  // determine semantic information" error.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "paths": {}
+  }
+}
