@@ -20,6 +20,7 @@ import {
   getAutoTopupAmount,
   getAutoTopupThresholdCredits,
   getFeatureName,
+  getSubscriptionPeriod,
   groupCreditGrants,
   isAutoTopupEnabled,
   lighten,
@@ -194,7 +195,9 @@ export const PlanManager = forwardRef<
     willSubscriptionCancel,
     isTrialSubscription,
   } = useMemo(() => {
-    const subscriptionInterval = billingSubscription?.interval;
+    const subscriptionInterval =
+      getSubscriptionPeriod(billingSubscription) ??
+      billingSubscription?.interval;
     const subscriptionCurrency = billingSubscription?.currency;
     const isTrialSubscription = billingSubscription?.status === "trialing";
     const willSubscriptionCancel =
@@ -208,6 +211,11 @@ export const PlanManager = forwardRef<
       willSubscriptionCancel,
     };
   }, [billingSubscription]);
+
+  const currentPlanPeriod =
+    getSubscriptionPeriod(billingSubscription) ??
+    currentPlan?.planPeriod ??
+    undefined;
 
   const { isFreePlan, isUsageBasedPlan } = useMemo(() => {
     const isFreePlan = currentPlan?.planPrice === 0;
@@ -433,9 +441,9 @@ export const PlanManager = forwardRef<
                           )}
                   </Text>
 
-                  {!isFreePlan && currentPlan?.planPeriod && (
+                  {!isFreePlan && currentPlanPeriod && (
                     <Text display={props.header.price.fontStyle}>
-                      <sub>/{shortenPeriod(currentPlan.planPeriod)}</sub>
+                      <sub>/{shortenPeriod(currentPlanPeriod)}</sub>
                     </Text>
                   )}
                 </Box>
@@ -464,6 +472,7 @@ export const PlanManager = forwardRef<
                   key={addOnIndex}
                   addOn={addOn}
                   currency={subscriptionCurrency}
+                  period={currentPlanPeriod}
                   layout={props}
                 />
               ))}
@@ -492,7 +501,7 @@ export const PlanManager = forwardRef<
                   <UsageDetails
                     key={entitlementIndex}
                     entitlement={entitlement}
-                    period={currentPlan?.planPeriod || "month"}
+                    period={currentPlanPeriod || "month"}
                     currency={subscriptionCurrency}
                     showCredits={showCredits}
                     layout={props}

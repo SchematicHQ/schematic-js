@@ -105,6 +105,12 @@ export interface UsageBasedEntitlementResponseData {
   priceBehavior?: EntitlementPriceBehavior | null;
   /**
    *
+   * @type {BillingPriceView}
+   * @memberof UsageBasedEntitlementResponseData
+   */
+  quarterlyUsageBasedPrice?: BillingPriceView;
+  /**
+   *
    * @type {boolean}
    * @memberof UsageBasedEntitlementResponseData
    */
@@ -179,6 +185,10 @@ export function UsageBasedEntitlementResponseDataFromJSONTyped(
       json["price_behavior"] == null
         ? undefined
         : EntitlementPriceBehaviorFromJSON(json["price_behavior"]),
+    quarterlyUsageBasedPrice:
+      json["quarterly_usage_based_price"] == null
+        ? undefined
+        : BillingPriceViewFromJSON(json["quarterly_usage_based_price"]),
     valueBool: json["value_bool"] == null ? undefined : json["value_bool"],
     valueNumeric:
       json["value_numeric"] == null ? undefined : json["value_numeric"],
@@ -217,6 +227,9 @@ export function UsageBasedEntitlementResponseDataToJSONTyped(
       value["monthlyUsageBasedPrice"],
     ),
     price_behavior: EntitlementPriceBehaviorToJSON(value["priceBehavior"]),
+    quarterly_usage_based_price: BillingPriceViewToJSON(
+      value["quarterlyUsageBasedPrice"],
+    ),
     value_bool: value["valueBool"],
     value_numeric: value["valueNumeric"],
     value_type: EntitlementValueTypeToJSON(value["valueType"]),
