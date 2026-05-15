@@ -31,8 +31,10 @@ const ROOT_BUNDLES = ["dist/schematic-react.esm.js"];
 
 // Strings that should NEVER appear in the root ESM main bundle. Each entry
 // is a dependency that only the /components surface (or the lazy embed
-// chunk) should reach for — the heavy peer deps plus the bundled
-// `@schematichq/schematic-icons` package.
+// chunk) should reach for. All are externalized in every esbuild build,
+// so the only way one of these would appear in the root entry is if
+// non-component code imported it directly — which is the leak we're
+// guarding against.
 const FORBIDDEN = [
   "@stripe/react-stripe-js",
   "@stripe/stripe-js",
@@ -40,6 +42,9 @@ const FORBIDDEN = [
   "i18next",
   "react-i18next",
   "@schematichq/schematic-icons",
+  "lodash",
+  "pako",
+  "uuid",
 ];
 
 let failed = false;
