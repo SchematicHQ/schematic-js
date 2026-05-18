@@ -1,6 +1,6 @@
 {
   "name": "@schematichq/schematic-components",
-  "version": "2.11.0",
+  "version": "2.12.0",
   "main": "dist/schematic-components.cjs.js",
   "module": "dist/schematic-components.esm.js",
   "types": "dist/schematic-components.d.ts",
@@ -34,7 +34,7 @@
   },
   "dependencies": {
     "@schematichq/schematic-icons": "^0.6.0",
-    "@stripe/stripe-js": "^9.5.0",
+    "@stripe/stripe-js": "^9.6.0",
     "i18next": "^26.2.0",
     "lodash": "^4.18.1",
     "pako": "^2.1.0",
@@ -48,7 +48,7 @@
     "@eslint/markdown": "^8.0.1",
     "@microsoft/api-extractor": "^7.58.7",
     "@openapitools/openapi-generator-cli": "^2.32.0",
-    "@stripe/react-stripe-js": "^6.3.0",
+    "@stripe/react-stripe-js": "^6.4.0",
     "@swc/core": "^1.15.33",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
@@ -59,7 +59,7 @@
     "@types/react-dom": "^19.2.3",
     "@vitest/browser": "^4.1.6",
     "esbuild": "^0.28.0",
-    "eslint": "^10.3.0",
+    "eslint": "^10.4.0",
     "eslint-import-resolver-typescript": "^4.4.4",
     "eslint-plugin-import-x": "^4.16.2",
     "eslint-plugin-react": "^7.37.5",
@@ -72,7 +72,7 @@
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.59.3",
+    "typescript-eslint": "^8.59.4",
     "vitest": "^4.1.6"
   },
   "peerDependencies": {
