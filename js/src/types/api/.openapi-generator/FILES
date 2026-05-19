@@ -22,6 +22,7 @@ models/BillingProductPriceResponseData.ts
 models/BillingProductPriceTierResponseData.ts
 models/BillingProductResponseData.ts
 models/BillingProviderType.ts
+models/BillingStrategy.ts
 models/BillingTiersMode.ts
 models/ChargeType.ts
 models/CheckFlagRequestBody.ts
