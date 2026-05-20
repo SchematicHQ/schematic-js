@@ -21,9 +21,11 @@ export type UseSchematicPlanOpts = SchematicHookOpts & {
 
 export const useSchematic = () => {
   const context = useContext(SchematicContext);
+
   if (context.client === null) {
     throw new Error("useSchematic must be used within a SchematicProvider");
   }
+
   return { client: context.client };
 };
 
@@ -35,12 +37,14 @@ export const useSchematicClient = (opts?: SchematicHookOpts) => {
     if (client) {
       return client;
     }
+
     return schematic.client;
   }, [client, schematic.client]);
 };
 
 export const useSchematicContext = (opts?: SchematicHookOpts) => {
   const client = useSchematicClient(opts);
+
   return useMemo(
     () => ({
       setContext: client.setContext.bind(client),
@@ -72,6 +76,7 @@ export const useSchematicFlag = (
 
   const getSnapshot = useCallback(() => {
     const value = client.getFlagValue(key);
+
     return typeof value === "undefined" ? fallback : value;
   }, [client, key, fallback]);
 
@@ -101,6 +106,7 @@ export const useSchematicEntitlement = (
 
   const getSnapshot = useCallback(() => {
     const check = client.getFlagCheck(key);
+
     return check ?? fallbackCheck;
   }, [client, key, fallbackCheck]);
 
@@ -144,6 +150,7 @@ export const useSchematicPlan = (
 
   const getSnapshot = useCallback(() => {
     const plan = client.getPlan();
+
     return plan ?? fallbackPlan;
   }, [client, fallbackPlan]);
 

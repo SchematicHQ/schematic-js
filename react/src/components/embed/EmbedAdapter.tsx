@@ -212,6 +212,7 @@ export const EmbedAdapter: React.FC<EmbedAdapterProps> = ({
   const getPublicApi = useMemo(() => {
     if (!publishableKey) return undefined;
     let promise: Promise<ComponentspublicApi> | undefined;
+
     return () => {
       if (!promise) {
         promise = import("../api/componentspublic").then(
@@ -226,6 +227,7 @@ export const EmbedAdapter: React.FC<EmbedAdapterProps> = ({
           },
         );
       }
+
       return promise;
     };
   }, [publishableKey, apiConfig, sessionId]);
@@ -234,6 +236,7 @@ export const EmbedAdapter: React.FC<EmbedAdapterProps> = ({
     const accessToken = state.accessToken;
     if (!accessToken) return undefined;
     let promise: Promise<CheckoutexternalApi> | undefined;
+
     return () => {
       if (!promise) {
         promise = import("../api/checkoutexternal").then(
@@ -246,6 +249,7 @@ export const EmbedAdapter: React.FC<EmbedAdapterProps> = ({
           },
         );
       }
+
       return promise;
     };
   }, [state.accessToken, apiConfig, sessionId]);
@@ -433,8 +437,12 @@ export const EmbedAdapter: React.FC<EmbedAdapterProps> = ({
 
   // api methods
   const createSetupIntent = useCallback(async () => {
-    if (!getCheckoutApi) return;
+    if (!getCheckoutApi) {
+      return;
+    }
+
     const api = await getCheckoutApi();
+
     return api.createSetupIntent();
   }, [getCheckoutApi]);
 
@@ -480,7 +488,10 @@ export const EmbedAdapter: React.FC<EmbedAdapterProps> = ({
 
   const deletePaymentMethod = useCallback(
     async (paymentMethodId: string) => {
-      if (!getCheckoutApi) return;
+      if (!getCheckoutApi) {
+        return;
+      }
+
       const api = await getCheckoutApi();
       const response = await api.deletePaymentMethod({
         checkoutId: paymentMethodId,
@@ -510,7 +521,10 @@ export const EmbedAdapter: React.FC<EmbedAdapterProps> = ({
 
   const checkout = useCallback(
     async (changeSubscriptionRequestBody: ChangeSubscriptionRequestBody) => {
-      if (!getCheckoutApi) return;
+      if (!getCheckoutApi) {
+        return;
+      }
+
       const api = await getCheckoutApi();
       const response = await api.checkout({
         changeSubscriptionRequestBody,
@@ -535,15 +549,22 @@ export const EmbedAdapter: React.FC<EmbedAdapterProps> = ({
 
   const previewCheckout = useCallback(
     async (changeSubscriptionRequestBody: ChangeSubscriptionRequestBody) => {
-      if (!getCheckoutApi) return;
+      if (!getCheckoutApi) {
+        return;
+      }
+
       const api = await getCheckoutApi();
+
       return api.previewCheckout({ changeSubscriptionRequestBody });
     },
     [getCheckoutApi],
   );
 
   const unsubscribe = useCallback(async () => {
-    if (!getCheckoutApi) return;
+    if (!getCheckoutApi) {
+      return;
+    }
+
     const api = await getCheckoutApi();
     const response = await api.checkoutUnsubscribe();
 
@@ -593,8 +614,12 @@ export const EmbedAdapter: React.FC<EmbedAdapterProps> = ({
 
   const getUpcomingInvoice = useCallback(
     async (id: string) => {
-      if (!getCheckoutApi) return;
+      if (!getCheckoutApi) {
+        return;
+      }
+
       const api = await getCheckoutApi();
+
       return api.hydrateUpcomingInvoice({
         componentId: id,
       });
@@ -613,8 +638,12 @@ export const EmbedAdapter: React.FC<EmbedAdapterProps> = ({
   );
 
   const getCustomerBalance = useCallback(async () => {
-    if (!getCheckoutApi) return;
+    if (!getCheckoutApi) {
+      return;
+    }
+
     const api = await getCheckoutApi();
+
     return api.fetchCustomerBalance();
   }, [getCheckoutApi]);
 
@@ -629,8 +658,12 @@ export const EmbedAdapter: React.FC<EmbedAdapterProps> = ({
   );
 
   const listInvoices = useCallback(async () => {
-    if (!getCheckoutApi) return;
+    if (!getCheckoutApi) {
+      return;
+    }
+
     const api = await getCheckoutApi();
+
     return api.listInvoices();
   }, [getCheckoutApi]);
 
@@ -688,6 +721,7 @@ export const EmbedAdapter: React.FC<EmbedAdapterProps> = ({
     const element = document.getElementById(
       "schematic-fonts",
     ) as HTMLLinkElement;
+
     if (element) {
       styleRef.current = element;
     } else {
@@ -737,6 +771,7 @@ export const EmbedAdapter: React.FC<EmbedAdapterProps> = ({
             `family=${fontFamily}:wght@${weights.join(";")}&display=swap`,
         )
         .join("&")}`;
+
       if (styleRef.current) {
         styleRef.current.href = src;
       }
