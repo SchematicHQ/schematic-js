@@ -4,10 +4,20 @@
 // flag/entitlement hooks, the shared `SchematicContext`, and SchematicJS
 // re-exports. Importing from here pulls in `@schematichq/schematic-js`
 // (peer dep) plus React; no UI deps.
+//
+// Note: a few embed-adapter prop *types* below (`ConfigurationParameters`,
+// `EmbedSettings`, `DeepPartial`) are pulled in via `import type` from the
+// `/components` subtree. These are erased at compile time and have zero
+// runtime cost — the values they describe never reach the root bundle. The
+// purpose is purely so a single `SchematicProviderProps` type lives at the
+// root entry and is re-exported (not duplicated) from `/components`.
 
 import type * as SchematicJS from "@schematichq/schematic-js";
 import React from "react";
 
+import type { ConfigurationParameters } from "./components/api/checkoutexternal";
+import type { EmbedSettings } from "./components/embed/embedState";
+import type { DeepPartial } from "./components/types/util";
 import { WsAdapter, type WsAdapterProps } from "./core/WsAdapter";
 import {
   SchematicProvider as BareSchematicProvider,
@@ -36,6 +46,7 @@ export {
   subscribeEmbedAdapter,
 } from "./embed-loader";
 
+export { Meter } from "./core/components";
 export {
   useSchematic,
   useSchematicContext,
@@ -85,6 +96,14 @@ type CommonProviderProps = {
   ws?: SchematicAdapter | null;
   embed?: SchematicAdapter | null;
   fallback?: React.ReactNode;
+  /** Only consumed by the embed adapter — has no effect without one bound. */
+  apiConfig?: ConfigurationParameters;
+  /** Only consumed by the embed adapter — has no effect without one bound. */
+  settings?: DeepPartial<EmbedSettings>;
+  /** Only consumed by the embed adapter — has no effect without one bound. */
+  debug?: boolean;
+  /** Only consumed by the embed adapter — has no effect without one bound. */
+  currencyFilter?: string[];
 } & CoreOptions;
 
 // Restored client xor publishableKey union (lost in the initial unification).
@@ -93,10 +112,12 @@ type WithClient = {
   client: SchematicJS.Schematic;
   publishableKey?: never;
 };
+
 type WithPublishableKey = {
   client?: never;
   publishableKey: string;
 };
+
 type WithoutWs = {
   client?: never;
   publishableKey?: string;
@@ -114,6 +135,7 @@ export type SchematicProviderProps = CommonProviderProps &
  */
 const SchematicProvider: React.FC<SchematicProviderProps> = (props) => {
   const { ws } = props;
+
   return (
     <BareSchematicProvider
       {...(props as unknown as SchematicProviderBaseProps)}
@@ -121,6 +143,7 @@ const SchematicProvider: React.FC<SchematicProviderProps> = (props) => {
     />
   );
 };
+
 SchematicProvider.displayName = "SchematicProvider";
 
 export { SchematicProvider, WsAdapter, type WsAdapterProps };

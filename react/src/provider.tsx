@@ -95,6 +95,7 @@ function pickWsProps(
     checkoutPrefill: _checkoutPrefill,
     ...rest
   } = props;
+
   return rest;
 }
 
@@ -155,6 +156,7 @@ export const SchematicProvider: React.FC<SchematicProviderBaseProps> = ({
   // here so it doesn't bubble to the outer fallback, and so the adapter
   // load swap re-renders inside this boundary specifically.
   let tree: React.ReactNode = <Suspense fallback={null}>{children}</Suspense>;
+
   if (Embed) {
     tree = createElement(
       Embed as React.ComponentType<SchematicAdapterProps>,
@@ -162,6 +164,7 @@ export const SchematicProvider: React.FC<SchematicProviderBaseProps> = ({
       tree,
     );
   }
+
   if (Ws) {
     tree = createElement(
       Ws as React.ComponentType<SchematicAdapterProps>,

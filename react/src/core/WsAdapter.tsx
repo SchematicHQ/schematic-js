@@ -17,6 +17,7 @@ type CoreOptions = Omit<
 function isProductionEnv(): boolean {
   const proc = (globalThis as { process?: { env?: { NODE_ENV?: string } } })
     .process;
+
   return proc?.env?.NODE_ENV === "production";
 }
 
@@ -72,8 +73,12 @@ export const WsAdapter: React.FC<WsAdapterProps> = ({
   // "production", letting their minifier drop the body in prod builds.
   const initialKeyRef = useRef(publishableKey);
   const initialClientRef = useRef(providedClient);
+
   useEffect(() => {
-    if (isProductionEnv()) return;
+    if (isProductionEnv()) {
+      return;
+    }
+
     if (publishableKey !== initialKeyRef.current) {
       console.warn(
         "[SchematicProvider] publishableKey changed after mount; the WS " +
@@ -82,6 +87,7 @@ export const WsAdapter: React.FC<WsAdapterProps> = ({
           "a new credential.",
       );
     }
+
     if (providedClient !== initialClientRef.current) {
       console.warn(
         "[SchematicProvider] `client` prop changed after mount; the WS " +
@@ -95,12 +101,14 @@ export const WsAdapter: React.FC<WsAdapterProps> = ({
     if (providedClient) {
       return providedClient;
     }
+
     if (!initialOpts.publishableKey) {
       throw new Error(
         "SchematicProvider requires `publishableKey` or `client` when the " +
           "WS adapter is active. Pass `ws={null}` to disable it.",
       );
     }
+
     return new SchematicJS.Schematic(initialOpts.publishableKey, initialOpts);
   }, [providedClient, initialOpts]);
 

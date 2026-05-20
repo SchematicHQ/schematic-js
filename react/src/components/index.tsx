@@ -24,26 +24,25 @@
 // both entries trips a dual-package hazard: `useSchematic` (root) reads a
 // different React context than the one `SchematicProvider` (/components)
 // writes through `WsAdapter`. See SCHY-372.
-import type * as SchematicJS from "@schematichq/schematic-js";
 import React, { createElement, lazy } from "react";
 
-import type { ConfigurationParameters } from "./api/checkoutexternal";
-import type { EmbedSettings } from "./embed/embedState";
-import type { DeepPartial } from "./types/util";
-
 import {
-  BareSchematicProvider,
-  WsAdapter,
   type SchematicAdapter,
   type SchematicAdapterProps,
-  type SchematicProviderBaseProps,
-  type WsAdapterProps,
 } from "@schematichq/schematic-react";
 
 // === Root-entry surface re-exports ===
+//
+// `SchematicProvider` / `SchematicProviderProps` are re-exported straight
+// from the root entry — the root type already includes the embed-adapter
+// props (`apiConfig`, `settings`, `currencyFilter`, `debug`) typed against
+// the `/components` subtree via `import type`, so there's nothing for this
+// entry to add. Runtime behavior is identical.
 
 export {
   SchematicContext,
+  SchematicProvider,
+  WsAdapter,
   useSchematic,
   useSchematicContext,
   useSchematicEntitlement,
@@ -56,8 +55,10 @@ export {
   type SchematicContextValue,
   type SchematicHookOpts,
   type SchematicProviderBaseProps,
+  type SchematicProviderProps,
   type UseSchematicFlagOpts,
   type UseSchematicPlanOpts,
+  type WsAdapterProps,
 } from "@schematichq/schematic-react";
 export {
   RuleType,
@@ -205,65 +206,3 @@ const InternalLazyEmbedAdapter = lazy(() =>
 export const EmbedAdapter: SchematicAdapter = (props: SchematicAdapterProps) =>
   createElement(InternalLazyEmbedAdapter, props);
 (EmbedAdapter as React.FC).displayName = "EmbedAdapter";
-
-// === SchematicProvider ===
-
-type CoreOptions = Omit<
-  SchematicJS.SchematicOptions,
-  "client" | "publishableKey" | "useWebSocket"
->;
-
-type CommonProviderProps = {
-  children: React.ReactNode;
-  ws?: SchematicAdapter | null;
-  embed?: SchematicAdapter | null;
-  fallback?: React.ReactNode;
-  apiConfig?: ConfigurationParameters;
-  settings?: DeepPartial<EmbedSettings>;
-  debug?: boolean;
-  currencyFilter?: string[];
-} & CoreOptions;
-
-// Restored client xor publishableKey union, sharpened for the /components
-// surface. apiConfig/settings/currencyFilter now have real types instead
-// of `unknown`.
-type WithClient = {
-  client: SchematicJS.Schematic;
-  publishableKey?: never;
-};
-type WithPublishableKey = {
-  client?: never;
-  publishableKey: string;
-};
-type WithoutWs = {
-  client?: never;
-  publishableKey?: string;
-  ws: null;
-};
-
-export type SchematicProviderProps = CommonProviderProps &
-  (WithClient | WithPublishableKey | WithoutWs);
-
-/**
- * `SchematicProvider` for the /components entry — pre-binds the WS adapter
- * (so flag/entitlement hooks work out of the box) but NOT the embed
- * adapter. That loads on demand via the lazy embed-loader the first time
- * `useEmbed` (or one of the lazy components above) mounts.
- *
- * To force eager embed binding, pass `embed={EmbedAdapter}` (the lazy
- * wrapper exported above). To disable the embed surface entirely, pass
- * `embed={null}` — `useEmbed` will throw an explicit error from inside
- * that tree instead of looping on a Suspense throw.
- */
-const SchematicProvider: React.FC<SchematicProviderProps> = (props) => {
-  const { ws } = props;
-  return (
-    <BareSchematicProvider
-      {...(props as unknown as SchematicProviderBaseProps)}
-      ws={ws === undefined ? WsAdapter : ws}
-    />
-  );
-};
-SchematicProvider.displayName = "SchematicProvider";
-
-export { SchematicProvider, WsAdapter, type WsAdapterProps };
