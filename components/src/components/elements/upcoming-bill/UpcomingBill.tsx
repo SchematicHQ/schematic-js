@@ -138,6 +138,24 @@ export const UpcomingBill = forwardRef<
     }
   }, [data?.upcomingInvoice]);
 
+  const balanceEntries = useMemo(() => {
+    const invoiceCurrency = upcomingInvoice?.currency?.toLowerCase();
+    const subtotal = Math.max(0, upcomingInvoice?.subtotal ?? 0);
+
+    return balances.map((item) => {
+      const matchesInvoice = item.currency.toLowerCase() === invoiceCurrency;
+      const applied = matchesInvoice ? Math.min(item.balance, subtotal) : 0;
+      return {
+        currency: item.currency,
+        applied,
+        remaining: item.balance - applied,
+      };
+    });
+  }, [balances, upcomingInvoice?.currency, upcomingInvoice?.subtotal]);
+
+  const hasApplied = balanceEntries.some((entry) => entry.applied > 0);
+  const hasBalance = balances.some((item) => item.balance > 0);
+
   if (!data?.subscription || data.subscription.cancelAt) {
     return null;
   }
@@ -203,19 +221,45 @@ export const UpcomingBill = forwardRef<
                   </Box>
                 </Flex>
 
-                {balances.length > 0 && (
+                {hasApplied && (
                   <Flex
                     as={TransitionBox}
                     $justifyContent="space-between"
                     $alignItems="start"
                     $gap="1rem"
                   >
-                    <Text $weight={600}>{t("Remaining balance")}</Text>
+                    <Text $weight={600}>
+                      {t("Applied balance towards next invoice")}
+                    </Text>
 
                     <Flex $flexDirection="column" $gap="0.5rem">
-                      {balances.map((item, idx) => (
+                      {balanceEntries.map(
+                        (entry, idx) =>
+                          entry.applied > 0 && (
+                            <Text key={idx}>
+                              {formatCurrency(-entry.applied, entry.currency)}
+                            </Text>
+                          ),
+                      )}
+                    </Flex>
+                  </Flex>
+                )}
+
+                {hasBalance && (
+                  <Flex
+                    as={TransitionBox}
+                    $justifyContent="space-between"
+                    $alignItems="start"
+                    $gap="1rem"
+                  >
+                    <Text $weight={600}>
+                      {t("Remaining balance after next invoice")}
+                    </Text>
+
+                    <Flex $flexDirection="column" $gap="0.5rem">
+                      {balanceEntries.map((entry, idx) => (
                         <Text key={idx}>
-                          {formatCurrency(item.balance, item.currency)}
+                          {formatCurrency(entry.remaining, entry.currency)}
                         </Text>
                       ))}
                     </Flex>
