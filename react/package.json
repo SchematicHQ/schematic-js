@@ -40,7 +40,9 @@
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
     "lint": "eslint src",
     "openapi": "./generate_openapi.sh -c ./src/components/api/config_checkoutexternal.yml && ./generate_openapi.sh -c ./src/components/api/config_componentspublic.yml",
+    "prepare": "husky",
     "test": "./test.sh",
+    "test:reactnative": "./test.sh --config vitest.config.reactnative.ts",
     "test:watch": "vitest",
     "tsc": "npx tsc"
   },

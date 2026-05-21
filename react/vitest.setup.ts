@@ -1,6 +1,8 @@
 import "@testing-library/jest-dom/vitest";
 import { vi } from "vitest";
 
+import { server } from "./src/components/test/mocks/node";
+
 // Mock Stripe to prevent network requests that cause EINVAL errors in Node 25.x
 vi.mock("@stripe/stripe-js", () => ({
   loadStripe: vi.fn(() =>
@@ -11,7 +13,7 @@ vi.mock("@stripe/stripe-js", () => ({
       })),
       confirmSetup: vi.fn(),
       confirmPayment: vi.fn(),
-    })
+    }),
   ),
 }));
 
@@ -30,24 +32,26 @@ Object.defineProperty(globalThis, "localStorage", {
   writable: true,
 });
 
-import { server } from "./src/components/test/mocks/node";
-
 beforeAll(() => {
   server.listen({ onUnhandledRequest: "warn" });
 
-  Object.defineProperty(window, "matchMedia", {
-    writable: true,
-    value: vi.fn().mockImplementation((query) => ({
-      matches: false,
-      media: query,
-      onchange: null,
-      addListener: vi.fn(), // deprecated
-      removeListener: vi.fn(), // deprecated
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
-      dispatchEvent: vi.fn(),
-    })),
-  });
+  // matchMedia only exists in a DOM environment. The React Native test
+  // config runs under `environment: "node"`, so guard the mock.
+  if (typeof window !== "undefined") {
+    Object.defineProperty(window, "matchMedia", {
+      writable: true,
+      value: vi.fn().mockImplementation((query) => ({
+        matches: false,
+        media: query,
+        onchange: null,
+        addListener: vi.fn(), // deprecated
+        removeListener: vi.fn(), // deprecated
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+      })),
+    });
+  }
 });
 
 beforeEach(() => {

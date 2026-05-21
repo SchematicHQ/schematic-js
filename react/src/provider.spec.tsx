@@ -13,6 +13,9 @@ import {
   type SchematicAdapterProps,
 } from "./provider";
 
+const isDOMEnvironment = typeof document !== "undefined";
+const describeDOM = isDOMEnvironment ? describe : describe.skip;
+
 function makeRecordingAdapter(): {
   Adapter: SchematicAdapter;
   calls: SchematicAdapterProps[];
@@ -27,7 +30,7 @@ function makeRecordingAdapter(): {
   return { Adapter, calls };
 }
 
-describe("bare SchematicProvider — adapter composition", () => {
+describeDOM("bare SchematicProvider — adapter composition", () => {
   it("forwards children unchanged when no adapters are bound", () => {
     const { container } = render(
       <BareSchematicProvider>
@@ -57,7 +60,7 @@ describe("bare SchematicProvider — adapter composition", () => {
   });
 });
 
-describe("bare SchematicProvider — per-adapter prop filtering", () => {
+describeDOM("bare SchematicProvider — per-adapter prop filtering", () => {
   it("strips embed-only props before handing them to the WS adapter", () => {
     const { Adapter: Ws, calls: wsCalls } = makeRecordingAdapter();
 
@@ -118,7 +121,7 @@ describe("bare SchematicProvider — per-adapter prop filtering", () => {
   });
 });
 
-describe("bare SchematicProvider — embed disabled signal", () => {
+describeDOM("bare SchematicProvider — embed disabled signal", () => {
   it("publishes SchematicEmbedDisabledContext={true} when embed={null}", () => {
     let observed: boolean | undefined;
     const Probe = () => {
@@ -152,7 +155,7 @@ describe("bare SchematicProvider — embed disabled signal", () => {
   });
 });
 
-describe("bare SchematicProvider — Suspense topology", () => {
+describeDOM("bare SchematicProvider — Suspense topology", () => {
   it("inner Suspense catches a child throw without invoking the outer fallback", async () => {
     let resolveLoad: (() => void) | undefined;
     const loadPromise = new Promise<void>((resolve) => {
@@ -187,7 +190,7 @@ describe("bare SchematicProvider — Suspense topology", () => {
   });
 });
 
-describe("bare SchematicProvider — context default", () => {
+describeDOM("bare SchematicProvider — context default", () => {
   it("provides null client + null embed when no adapters mounted", () => {
     let snapshot: { client: unknown; embed: unknown } | undefined;
     const Probe = () => {
