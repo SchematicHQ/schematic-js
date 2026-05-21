@@ -15,7 +15,7 @@
 
 import { createContext } from "react";
 
-import type { SchematicAdapter } from "./provider";
+import { type SchematicAdapter } from "./provider";
 
 type Subscriber = () => void;
 
@@ -29,6 +29,7 @@ export function getCachedEmbedAdapter(): SchematicAdapter | null {
 
 export function subscribeEmbedAdapter(subscriber: Subscriber): () => void {
   subscribers.add(subscriber);
+
   return () => {
     subscribers.delete(subscriber);
   };
@@ -42,11 +43,15 @@ export function subscribeEmbedAdapter(subscriber: Subscriber): () => void {
  * the suspended descendant retries inside the new context.
  */
 export function loadEmbedAdapter(): Promise<void> {
-  if (inflight) return inflight;
+  if (inflight) {
+    return inflight;
+  }
+
   inflight = import("./components/embed/EmbedAdapter").then((mod) => {
     cached = mod.EmbedAdapter;
     for (const subscriber of subscribers) subscriber();
   });
+
   return inflight;
 }
 

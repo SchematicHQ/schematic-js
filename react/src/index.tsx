@@ -46,7 +46,7 @@ export {
   subscribeEmbedAdapter,
 } from "./embed-loader";
 
-export { Meter } from "./core/components";
+export { UsageMeter } from "./core/components";
 export {
   useSchematic,
   useSchematicContext,

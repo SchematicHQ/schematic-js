@@ -17,14 +17,15 @@ async function loadIsolatedModule() {
   vi.doMock("./components/embed/EmbedAdapter", () => ({
     EmbedAdapter: () => null,
   }));
+
   return await import("./embed-loader");
 }
 
 describe("embed-loader state machine", () => {
   it("returns null from the cache until the import resolves", async () => {
     const mod = await loadIsolatedModule();
-
     expect(mod.getCachedEmbedAdapter()).toBeNull();
+
     const promise = mod.loadEmbedAdapter();
     expect(mod.getCachedEmbedAdapter()).toBeNull(); // still pending
 
