@@ -1,6 +1,6 @@
 import { type CheckFlagReturn } from "@schematichq/schematic-js";
 
-import { useSchematicEntitlement } from "..";
+import { useSchematicEntitlement } from "../../hooks";
 
 export interface UsageMeterProps extends React.HTMLAttributes<HTMLDivElement> {
   flag: CheckFlagReturn["flag"];
