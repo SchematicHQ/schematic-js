@@ -4,7 +4,7 @@
 // lives in one place instead of being duplicated across four scripts in
 // package.json.
 
-import { build } from "esbuild";
+import { build, context } from "esbuild";
 
 // Deps externalized in every build. Some are heavy peer deps (Stripe,
 // styled-components, i18next), some are shared with the consumer's app
@@ -81,8 +81,11 @@ const builds = [
 
 // CLI args filter the build set. An arg matches by exact name
 // (`core:esm`) or by colon-prefix (`core` → both `core:cjs` and
-// `core:esm`). With no args, every target is built.
-const requested = process.argv.slice(2);
+// `core:esm`). With no args, every target is built. `--watch` keeps
+// esbuild running and rebuilds on file changes.
+const args = process.argv.slice(2);
+const watchMode = args.includes("--watch");
+const requested = args.filter((a) => a !== "--watch");
 const selected =
   requested.length === 0
     ? builds
@@ -96,13 +99,26 @@ if (requested.length > 0 && selected.length === 0) {
   process.exit(1);
 }
 
-const start = Date.now();
-await Promise.all(
-  selected.map(async ({ name, ...options }) => {
-    await build(options);
-    console.log(`[build] ok: ${name}`);
-  }),
-);
-console.log(
-  `[build] ${selected.length} bundle${selected.length === 1 ? "" : "s"} built in ${Date.now() - start}ms`,
-);
+if (watchMode) {
+  await Promise.all(
+    selected.map(async ({ name, ...options }) => {
+      const ctx = await context(options);
+      await ctx.watch();
+      console.log(`[build] watching: ${name}`);
+    }),
+  );
+  console.log(
+    `[build] watching ${selected.length} bundle${selected.length === 1 ? "" : "s"} (Ctrl+C to stop)`,
+  );
+} else {
+  const start = Date.now();
+  await Promise.all(
+    selected.map(async ({ name, ...options }) => {
+      await build(options);
+      console.log(`[build] ok: ${name}`);
+    }),
+  );
+  console.log(
+    `[build] ${selected.length} bundle${selected.length === 1 ? "" : "s"} built in ${Date.now() - start}ms`,
+  );
+}
