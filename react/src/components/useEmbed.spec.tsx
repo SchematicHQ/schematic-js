@@ -29,6 +29,7 @@ class CaptureBoundary extends Component<
 
 const Consumer = () => {
   useEmbed();
+
   return <span>should not render</span>;
 };
 

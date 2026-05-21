@@ -1,16 +1,20 @@
 #!/usr/bin/env node
-// Validates that the root entry's ESM main bundle does NOT contain code or
-// imports from any of the heavy UI peer deps. The unified `SchematicProvider`
-// at `src/provider.tsx` is supposed to stay light: the embed adapter is only
+// Validates that nothing reachable from the root entry via STATIC imports
+// pulls in the heavy UI peer deps. The unified `SchematicProvider` at
+// `src/provider.tsx` is supposed to stay light: the embed adapter is only
 // reachable via a dynamic `import()` (the lazy Path C path) or via the
 // /components subpath entry. If a string like "styled-components" or
-// "@stripe/" appears in the root ESM bundle, the abstraction has leaked.
+// "@stripe/" appears anywhere in the eagerly-loaded graph, the abstraction
+// has leaked.
 //
 // Note on splitting: the /core ESM build runs with `--splitting`, so the
-// dynamically-imported embed adapter lands in `dist/chunks/`. Those chunk
-// files are EXPECTED to reference the heavy peer deps; they're only loaded
-// at runtime when an embed component actually mounts. We therefore only
-// scan the main entry file here, not the chunks.
+// entry is mostly a shim that re-exports from `dist/chunks/`. We can't just
+// scan `schematic-react.esm.js` — virtually all of its code lives in a
+// chunk it statically imports. Instead, we walk the static-import graph
+// rooted at the entry and scan every reachable file. Chunks reachable only
+// via dynamic `import()` (e.g. the lazy embed adapter) are intentionally
+// skipped — they don't load until a consumer actually mounts an embed
+// component.
 //
 // Note on CJS: esbuild does not support `--splitting` for CJS, so the CJS
 // bundle inlines the dynamic import and unavoidably mentions the heavy
@@ -21,7 +25,7 @@
 // Run after `yarn build` (which emits the bundles into dist/).
 
 import { readFileSync, existsSync } from "node:fs";
-import { resolve, dirname } from "node:path";
+import { resolve, dirname, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -29,12 +33,12 @@ const pkgRoot = resolve(__dirname, "..");
 
 const ROOT_BUNDLES = ["dist/schematic-react.esm.js"];
 
-// Strings that should NEVER appear in the root ESM main bundle. Each entry
-// is a dependency that only the /components surface (or the lazy embed
-// chunk) should reach for. All are externalized in every esbuild build,
-// so the only way one of these would appear in the root entry is if
-// non-component code imported it directly — which is the leak we're
-// guarding against.
+// Strings that should NEVER appear in any file reachable from the root
+// entry via static imports. Each entry is a dependency that only the
+// /components surface (or the lazy embed chunk) should reach for. All are
+// externalized in every esbuild build, so the only way one of these would
+// appear in the eagerly-loaded graph is if non-component code imported it
+// directly — which is the leak we're guarding against.
 const FORBIDDEN = [
   "@stripe/react-stripe-js",
   "@stripe/stripe-js",
@@ -47,6 +51,23 @@ const FORBIDDEN = [
   "uuid",
 ];
 
+// Matches static `import`/`export … from "x"` (and side-effect `import "x"`).
+// Dynamic `import("x")` does NOT match: that form has `(` directly after
+// `import`, while this pattern requires `\s+` between `import` and what
+// follows. esbuild's output preserves that distinction.
+const STATIC_IMPORT_RE =
+  /(?:^|[;\n}])\s*(?:import|export)\s+(?:[^;'"]*?\s+from\s+)?["']([^"']+)["']/gm;
+
+function collectStaticImports(src) {
+  const out = [];
+  STATIC_IMPORT_RE.lastIndex = 0;
+  let m;
+  while ((m = STATIC_IMPORT_RE.exec(src)) !== null) {
+    out.push(m[1]);
+  }
+  return out;
+}
+
 let failed = false;
 
 for (const rel of ROOT_BUNDLES) {
@@ -57,15 +78,49 @@ for (const rel of ROOT_BUNDLES) {
     continue;
   }
 
-  const src = readFileSync(abs, "utf8");
-  const hits = FORBIDDEN.filter((needle) => src.includes(needle));
+  const visited = new Set();
+  const stack = [abs];
+  const hitsByFile = [];
 
-  if (hits.length === 0) {
-    console.log(`[check-tree-shake] ok: ${rel}`);
+  while (stack.length > 0) {
+    const file = stack.pop();
+    if (visited.has(file)) continue;
+    visited.add(file);
+
+    if (!existsSync(file)) {
+      console.error(
+        `[check-tree-shake] missing file referenced from graph: ${relative(pkgRoot, file)}`,
+      );
+      failed = true;
+      continue;
+    }
+
+    const src = readFileSync(file, "utf8");
+    const hits = FORBIDDEN.filter((needle) => src.includes(needle));
+    if (hits.length > 0) {
+      hitsByFile.push({ file, hits });
+    }
+
+    for (const spec of collectStaticImports(src)) {
+      // Only follow relative paths. Bare specifiers (e.g. "react") are
+      // externals — they resolve to node_modules at consumer install
+      // time, not to files we can scan.
+      if (!spec.startsWith("./") && !spec.startsWith("../")) continue;
+      stack.push(resolve(dirname(file), spec));
+    }
+  }
+
+  if (hitsByFile.length === 0) {
+    console.log(
+      `[check-tree-shake] ok: ${rel} (scanned ${visited.size} file${visited.size === 1 ? "" : "s"})`,
+    );
   } else {
     console.error(
-      `[check-tree-shake] FAIL: ${rel} contains forbidden refs: ${hits.join(", ")}`,
+      `[check-tree-shake] FAIL: forbidden refs reachable from ${rel} via static imports:`,
     );
+    for (const { file, hits } of hitsByFile) {
+      console.error(`  ${relative(pkgRoot, file)}: ${hits.join(", ")}`);
+    }
     failed = true;
   }
 }

@@ -20,8 +20,10 @@ function makeRecordingAdapter(): {
   const calls: SchematicAdapterProps[] = [];
   const Adapter: SchematicAdapter = (props: SchematicAdapterProps) => {
     calls.push({ ...props });
+
     return <>{props.children}</>;
   };
+
   return { Adapter, calls };
 }
 
@@ -156,8 +158,8 @@ describe("bare SchematicProvider — Suspense topology", () => {
     const loadPromise = new Promise<void>((resolve) => {
       resolveLoad = resolve;
     });
-    let throws = 1;
 
+    let throws = 1;
     const Thrower = () => {
       if (throws > 0) {
         throws -= 1;

@@ -31,7 +31,7 @@
     "url": "git+ssh://git@github.com/SchematicHQ/schematic-js.git"
   },
   "scripts": {
-    "dev": "yarn tsc --watch",
+    "dev": "yarn build:bundles --watch",
     "build": "./version.sh && yarn tsc && yarn format && yarn lint && yarn clean && yarn build:bundles && yarn build:types && yarn check:tree-shake",
     "build:bundles": "node scripts/build.mjs",
     "build:types": "npx tsc && npx api-extractor run --config api-extractor.core.json && npx api-extractor run --config api-extractor.components.json",
