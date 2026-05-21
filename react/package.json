@@ -40,7 +40,9 @@
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
     "lint": "eslint src",
     "openapi": "./generate_openapi.sh -c ./src/components/api/config_checkoutexternal.yml && ./generate_openapi.sh -c ./src/components/api/config_componentspublic.yml",
+    "prepare": "husky",
     "test": "./test.sh",
+    "test:reactnative": "./test.sh --config vitest.config.reactnative.ts",
     "test:watch": "vitest",
     "tsc": "npx tsc"
   },
@@ -73,6 +75,7 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "globals": "^17.6.0",
     "happy-dom": "^20.10.2",
+    "husky": "^9.1.7",
     "i18next": "^26.1.0",
     "jsdom": "^29.1.1",
     "lodash": "^4.18.1",
