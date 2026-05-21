@@ -1,1 +1,1 @@
-export * from "./UsageMeter";
+export * from "./usage-meter";
