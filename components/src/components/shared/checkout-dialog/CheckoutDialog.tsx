@@ -395,6 +395,78 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     }));
   });
 
+  const selectedPlanPriceId = useMemo(() => {
+    if (!selectedPlan) {
+      return undefined;
+    }
+
+    const currencyPrice = getPlanPrice(
+      selectedPlan,
+      planPeriod,
+      { useSelectedPeriod: true },
+      hasCurrency ? effectiveCurrency : undefined,
+    );
+
+    return (
+      currencyPrice?.id ??
+      (planPeriod === "year"
+        ? selectedPlan.yearlyPrice?.id
+        : planPeriod === "quarter"
+          ? selectedPlan.quarterlyPrice?.id
+          : selectedPlan.monthlyPrice?.id)
+    );
+  }, [selectedPlan, planPeriod, hasCurrency, effectiveCurrency]);
+
+  // Whether the company already had a payment method when the dialog opened.
+  // Read once (via ref) so entering a card mid-flow doesn't retroactively drop
+  // the checkout stage the user is currently standing on.
+  const hasInitialPaymentMethodRef = useRef(
+    !!(
+      data?.subscription?.paymentMethod?.externalId ||
+      data?.company?.defaultPaymentMethod?.externalId
+    ),
+  );
+  const hasInitialPaymentMethod = hasInitialPaymentMethodRef.current;
+
+  // A credit-bundle-only purchase on a free/non-billing subscription: there is
+  // no subscription to create or change, so the backend charges for the credits
+  // standalone. Mirrors the API's isCreditBundleOnlyCheckout (bundles present,
+  // no add-ons / pay-in-advance, empty or non-billing plan), gated on the
+  // company having no active billing subscription.
+  const isCreditOnlyPurchase = useMemo(() => {
+    if (data?.company?.billingSubscription) {
+      return false;
+    }
+
+    if (selectedPlanPriceId) {
+      return false;
+    }
+
+    if (!creditBundles.some((bundle) => bundle.count > 0)) {
+      return false;
+    }
+
+    const hasPaidAddOn = addOns.some(
+      (addOn) =>
+        addOn.isSelected &&
+        !!getAddOnPrice(
+          addOn,
+          planPeriod,
+          hasCurrency ? effectiveCurrency : undefined,
+        )?.id,
+    );
+
+    return !hasPaidAddOn;
+  }, [
+    data?.company?.billingSubscription,
+    selectedPlanPriceId,
+    creditBundles,
+    addOns,
+    planPeriod,
+    hasCurrency,
+    effectiveCurrency,
+  ]);
+
   const [usageBasedEntitlements, setUsageBasedEntitlements] = useState(() =>
     (selectedPlan?.entitlements || []).reduce(
       createActiveUsageBasedEntitlementsReducer(featureUsage, planPeriod),
@@ -565,7 +637,13 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       });
     }
 
-    if (isPaymentMethodRequired) {
+    // A credit-only purchase needs a payment method too, but when the company
+    // already has one on file we skip the dedicated payment stage so the user
+    // can buy credits directly from the Credits stage.
+    if (
+      isPaymentMethodRequired &&
+      !(isCreditOnlyPurchase && hasInitialPaymentMethod)
+    ) {
       stages.push({
         id: "checkout",
         name: t("Checkout"),
@@ -585,6 +663,8 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     shouldTrial,
     creditBundles,
     isPaymentMethodRequired,
+    isCreditOnlyPurchase,
+    hasInitialPaymentMethod,
   ]);
 
   // Track if we're in the initial bypass loading phase
@@ -1497,6 +1577,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
           addOnUsageBasedEntitlements={addOnUsageBasedEntitlements}
           addOnPayInAdvanceEntitlements={addOnPayInAdvanceEntitlements}
           creditBundles={creditBundles}
+          isCreditOnlyPurchase={isCreditOnlyPurchase}
           charges={charges}
           checkoutStage={effectiveCheckoutStage}
           checkoutStages={navigableStages}
