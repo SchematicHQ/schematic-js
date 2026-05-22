@@ -111,6 +111,13 @@ import {
   BillingPriceResponseDataToJSON,
   BillingPriceResponseDataToJSONTyped,
 } from "./BillingPriceResponseData";
+import type { BillingStrategy } from "./BillingStrategy";
+import {
+  BillingStrategyFromJSON,
+  BillingStrategyFromJSONTyped,
+  BillingStrategyToJSON,
+  BillingStrategyToJSONTyped,
+} from "./BillingStrategy";
 import type { FeatureUsageResponseData } from "./FeatureUsageResponseData";
 import {
   FeatureUsageResponseDataFromJSON,
@@ -150,6 +157,12 @@ export interface CompanyPlanDetailResponseData {
    * @memberof CompanyPlanDetailResponseData
    */
   billingProduct?: BillingProductDetailResponseData;
+  /**
+   *
+   * @type {BillingStrategy}
+   * @memberof CompanyPlanDetailResponseData
+   */
+  billingStrategy: BillingStrategy;
   /**
    *
    * @type {ChargeType}
@@ -290,9 +303,10 @@ export interface CompanyPlanDetailResponseData {
    */
   isDefault: boolean;
   /**
-   *
+   * Deprecated: Use BillingStrategy instead
    * @type {boolean}
    * @memberof CompanyPlanDetailResponseData
+   * @deprecated
    */
   isFree: boolean;
   /**
@@ -375,6 +389,8 @@ export interface CompanyPlanDetailResponseData {
 export function instanceOfCompanyPlanDetailResponseData(
   value: object,
 ): value is CompanyPlanDetailResponseData {
+  if (!("billingStrategy" in value) || value["billingStrategy"] === undefined)
+    return false;
   if (!("chargeType" in value) || value["chargeType"] === undefined)
     return false;
   if (!("companyCanTrial" in value) || value["companyCanTrial"] === undefined)
@@ -450,6 +466,7 @@ export function CompanyPlanDetailResponseDataFromJSONTyped(
       json["billing_product"] == null
         ? undefined
         : BillingProductDetailResponseDataFromJSON(json["billing_product"]),
+    billingStrategy: BillingStrategyFromJSON(json["billing_strategy"]),
     chargeType: ChargeTypeFromJSON(json["charge_type"]),
     companyCanTrial: json["company_can_trial"],
     companyCount: json["company_count"],
@@ -549,6 +566,7 @@ export function CompanyPlanDetailResponseDataToJSONTyped(
     billing_product: BillingProductDetailResponseDataToJSON(
       value["billingProduct"],
     ),
+    billing_strategy: BillingStrategyToJSON(value["billingStrategy"]),
     charge_type: ChargeTypeToJSON(value["chargeType"]),
     company_can_trial: value["companyCanTrial"],
     company_count: value["companyCount"],
