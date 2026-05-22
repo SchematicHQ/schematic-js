@@ -418,15 +418,15 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
   }, [selectedPlan, planPeriod, hasCurrency, effectiveCurrency]);
 
   // Whether the company already had a payment method when the dialog opened.
-  // Read once (via ref) so entering a card mid-flow doesn't retroactively drop
-  // the checkout stage the user is currently standing on.
-  const hasInitialPaymentMethodRef = useRef(
-    !!(
-      data?.subscription?.paymentMethod?.externalId ||
-      data?.company?.defaultPaymentMethod?.externalId
-    ),
+  // Captured once at mount (lazy useState init) so entering a card mid-flow
+  // doesn't retroactively drop the checkout stage the user is standing on.
+  const [hasInitialPaymentMethod] = useState(
+    () =>
+      !!(
+        data?.subscription?.paymentMethod?.externalId ||
+        data?.company?.defaultPaymentMethod?.externalId
+      ),
   );
-  const hasInitialPaymentMethod = hasInitialPaymentMethodRef.current;
 
   // A credit-bundle-only purchase on a free/non-billing subscription: there is
   // no subscription to create or change, so the backend charges for the credits
