@@ -428,6 +428,45 @@ export const SubscriptionSidebar = forwardRef<
       [creditBundles],
     );
 
+    // A credit-bundle-only purchase on a free/non-billing subscription: no
+    // subscription to create or change, so the backend charges for the credits
+    // standalone. Mirrors the API's isCreditBundleOnlyCheckout: bundles present,
+    // no paid plan or add-ons, gated on having no active billing subscription.
+    const isCreditOnlyPurchase = useMemo(() => {
+      if (data?.company?.billingSubscription) {
+        return false;
+      }
+
+      if (addedCreditBundles.length === 0 || selectedAddOnsWithPrice.length > 0) {
+        return false;
+      }
+
+      const currencyPrice = selectedPlan
+        ? getPlanPrice(
+            selectedPlan,
+            planPeriod,
+            { useSelectedPeriod: true },
+            currency,
+          )
+        : undefined;
+      const planPriceId =
+        currencyPrice?.id ??
+        (planPeriod === "year"
+          ? selectedPlan?.yearlyPrice?.id
+          : planPeriod === "quarter"
+            ? selectedPlan?.quarterlyPrice?.id
+            : selectedPlan?.monthlyPrice?.id);
+
+      return !planPriceId;
+    }, [
+      data?.company?.billingSubscription,
+      addedCreditBundles,
+      selectedAddOnsWithPrice,
+      selectedPlan,
+      planPeriod,
+      currency,
+    ]);
+
     const discountApplied = useMemo(
       () => promoCode && (amountOff > 0 || percentOff > 0),
       [promoCode, amountOff, percentOff],
@@ -453,7 +492,7 @@ export const SubscriptionSidebar = forwardRef<
         )?.id;
 
       try {
-        if (!planId || !planPriceId) {
+        if ((!planId || !planPriceId) && !isCreditOnlyPurchase) {
           throw new Error(t("Selected plan or associated price is missing."));
         }
 
@@ -488,14 +527,13 @@ export const SubscriptionSidebar = forwardRef<
           buildCreditBundlesRequestBody(creditBundles);
 
         const checkoutResponseFromBackend = await checkout({
-          newPlanId: planId,
-          newPriceId: planPriceId,
-          addOnIds: addOnRequestBody,
-          autoTopupOverrides: autoTopupRequestBody,
-          payInAdvance: [
-            ...planPayInAdvanceRequestBody,
-            ...addOnPayInAdvanceRequestBody,
-          ],
+          newPlanId: isCreditOnlyPurchase ? "" : (planId ?? ""),
+          newPriceId: isCreditOnlyPurchase ? "" : (planPriceId ?? ""),
+          addOnIds: isCreditOnlyPurchase ? [] : addOnRequestBody,
+          autoTopupOverrides: isCreditOnlyPurchase ? [] : autoTopupRequestBody,
+          payInAdvance: isCreditOnlyPurchase
+            ? []
+            : [...planPayInAdvanceRequestBody, ...addOnPayInAdvanceRequestBody],
           creditBundles: creditBundlesRequestBody,
           skipTrial: !shouldTrial,
           ...(paymentMethodId && { paymentMethodId }),
@@ -588,6 +626,7 @@ export const SubscriptionSidebar = forwardRef<
       autoTopupConfigs,
       addOns,
       creditBundles,
+      isCreditOnlyPurchase,
       setError,
       setIsLoading,
       setLayout,
@@ -649,6 +688,7 @@ export const SubscriptionSidebar = forwardRef<
               willTrialWithoutPaymentMethod={willTrialWithoutPaymentMethod}
               willScheduleDowngrade={willScheduleDowngrade}
               shouldTrial={shouldTrial}
+              isCreditOnlyPurchase={isCreditOnlyPurchase}
               checkout={handleCheckout}
             />
           );
@@ -692,6 +732,7 @@ export const SubscriptionSidebar = forwardRef<
       handleUnsubscribe,
       payInAdvanceEntitlements,
       addOnPayInAdvanceEntitlements,
+      isCreditOnlyPurchase,
     ]);
 
     useLayoutEffect(() => {
@@ -1234,7 +1275,7 @@ export const SubscriptionSidebar = forwardRef<
             </Flex>
           )}
 
-          {subscriptionPrice && (
+          {!isCreditOnlyPurchase && subscriptionPrice && (
             <Flex
               $justifyContent="space-between"
               $alignItems="center"
@@ -1360,7 +1401,7 @@ export const SubscriptionSidebar = forwardRef<
             </Flex>
           )}
 
-          {layout !== "unsubscribe" && (
+          {layout !== "unsubscribe" && !isCreditOnlyPurchase && (
             <Box $opacity="0.625">
               <Text>
                 {willScheduleDowngrade &&

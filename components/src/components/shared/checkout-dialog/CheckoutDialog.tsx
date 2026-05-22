@@ -37,6 +37,7 @@ import {
   buildAutoTopupRequestBody,
   buildCreditBundlesRequestBody,
   buildPayInAdvanceRequestBody,
+  getAddOnPrice,
   getPlanPrice,
   getSubscriptionPeriod,
   isError,
@@ -671,8 +672,23 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
           : promoCode;
       const skipTrial = !(updates.shouldTrial ?? shouldTrial);
 
-      // do not preview if user updates do not result in a valid plan
-      if (!plan || !planPriceId) {
+      // A credit-bundle-only purchase on a non-billing subscription has no plan
+      // or price to send; the backend charges for the credits standalone.
+      const isCreditOnly =
+        !data?.company?.billingSubscription &&
+        !planPriceId &&
+        (updates.creditBundles || creditBundles).some(
+          (bundle) => bundle.count > 0,
+        ) &&
+        !(updates.addOns || addOns).some(
+          (addOn) =>
+            addOn.isSelected &&
+            !!getAddOnPrice(addOn, period, resolvedCurrency)?.id,
+        );
+
+      // do not preview if user updates do not result in a valid plan,
+      // unless this is a credit-only purchase that needs no plan
+      if ((!plan || !planPriceId) && !isCreditOnly) {
         // ensure selected plan is reset if no valid price is found
         setSelectedPlanId(null);
         return;
@@ -691,7 +707,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       const resolvedAddOns = updates.addOns || addOns;
       const resolvedCreditBundles = updates.creditBundles || creditBundles;
       const resolvedPlanCreditGrants = mergeCompanyGrants(
-        plan.includedCreditGrants,
+        plan?.includedCreditGrants,
         data?.company?.plan?.includedCreditGrants,
       );
 
@@ -725,14 +741,13 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
       try {
         const response = await previewCheckout({
-          newPlanId: plan.id,
-          newPriceId: planPriceId,
-          addOnIds: addOnRequestBody,
-          autoTopupOverrides: autoTopupRequestBody,
-          payInAdvance: [
-            ...planPayInAdvanceRequestBody,
-            ...addOnPayInAdvanceRequestBody,
-          ],
+          newPlanId: isCreditOnly ? "" : (plan?.id ?? ""),
+          newPriceId: isCreditOnly ? "" : (planPriceId ?? ""),
+          addOnIds: isCreditOnly ? [] : addOnRequestBody,
+          autoTopupOverrides: isCreditOnly ? [] : autoTopupRequestBody,
+          payInAdvance: isCreditOnly
+            ? []
+            : [...planPayInAdvanceRequestBody, ...addOnPayInAdvanceRequestBody],
           creditBundles: creditBundlesRequestBody,
           skipTrial,
           ...(code && { promoCode: code }),
@@ -800,6 +815,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     [
       t,
       data?.company?.plan?.includedCreditGrants,
+      data?.company?.billingSubscription,
       previewCheckout,
       planPeriod,
       selectedPlan,

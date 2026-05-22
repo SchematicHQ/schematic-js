@@ -177,11 +177,13 @@ export const PricingTable = forwardRef<
     () => currencies[0] ?? DEFAULT_CURRENCY,
   );
 
-  useEffect(() => {
-    if (currencies.length > 0 && !currencies.includes(selectedCurrency)) {
-      setSelectedCurrency(currencies[0]);
-    }
-  }, [currencies, selectedCurrency]);
+  // Snap to a valid currency when the available set changes and the current
+  // selection is no longer offered. Done during render (not in an effect) to
+  // avoid a cascading re-render; the guard converges because the new value is
+  // always a member of `currencies`.
+  if (currencies.length > 0 && !currencies.includes(selectedCurrency)) {
+    setSelectedCurrency(currencies[0]);
+  }
 
   const showPeriodToggle =
     rest.showPeriodToggle ?? data?.displaySettings?.showPeriodToggle ?? true;
