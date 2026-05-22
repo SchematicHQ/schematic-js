@@ -19,16 +19,19 @@ export const UsageMeter = ({
     return;
   }
 
-  const value = entitlement.featureUsage ?? 0;
+  const value = entitlement.featureUsage;
+  if (typeof value !== "number") {
+    return;
+  }
+
   const percent =
     max > 0
       ? Math.min(100, Math.max(0, Math.round((value / max) * 100 * 100) / 100))
       : 0;
 
   // Visual defaults are wrapped in `var(--…, fallback)` so consumers can
-  // restyle without targeting our selectors or using `!important`. The
-  // fallbacks keep the component visually functional when the optional
-  // styles.css is not imported.
+  // restyle without targeting our selectors or using `!important`.
+  // The fallbacks keep the component visually functional
   const trackStyle = {
     height: "var(--schematic-meter-height, 0.5rem)",
     background:
@@ -38,9 +41,9 @@ export const UsageMeter = ({
   };
 
   const fillStyle = {
-    width: "attr(data-percent %)",
+    width: `${percent}%`,
     height: "100%",
-    background: `var(--schematic-meter-fill-background, color-mix(in hsl, green, red attr(data-percent %)))`,
+    background: `var(--schematic-meter-fill-background, color-mix(in hsl, green, red ${percent}%))`,
     transition:
       "var(--schematic-meter-fill-transition, var(--schematic-transition, width 200ms ease))",
   };
@@ -63,7 +66,6 @@ export const UsageMeter = ({
     >
       <div
         data-schematic="usage-meter-fill"
-        data-percent={percent}
         className="schematic-usage-meter__fill"
         style={fillStyle}
       />
