@@ -104,6 +104,13 @@ import {
   BillingPriceResponseDataToJSON,
   BillingPriceResponseDataToJSONTyped,
 } from "./BillingPriceResponseData";
+import type { BillingStrategy } from "./BillingStrategy";
+import {
+  BillingStrategyFromJSON,
+  BillingStrategyFromJSONTyped,
+  BillingStrategyToJSON,
+  BillingStrategyToJSONTyped,
+} from "./BillingStrategy";
 
 /**
  *
@@ -136,6 +143,12 @@ export interface PlanGroupPlanDetailResponseData {
    * @memberof PlanGroupPlanDetailResponseData
    */
   billingProduct?: BillingProductDetailResponseData;
+  /**
+   *
+   * @type {BillingStrategy}
+   * @memberof PlanGroupPlanDetailResponseData
+   */
+  billingStrategy: BillingStrategy;
   /**
    *
    * @type {ChargeType}
@@ -252,9 +265,10 @@ export interface PlanGroupPlanDetailResponseData {
    */
   isDefault: boolean;
   /**
-   *
+   * Deprecated: Use BillingStrategy instead
    * @type {boolean}
    * @memberof PlanGroupPlanDetailResponseData
+   * @deprecated
    */
   isFree: boolean;
   /**
@@ -325,6 +339,8 @@ export interface PlanGroupPlanDetailResponseData {
 export function instanceOfPlanGroupPlanDetailResponseData(
   value: object,
 ): value is PlanGroupPlanDetailResponseData {
+  if (!("billingStrategy" in value) || value["billingStrategy"] === undefined)
+    return false;
   if (!("chargeType" in value) || value["chargeType"] === undefined)
     return false;
   if (!("companyCount" in value) || value["companyCount"] === undefined)
@@ -388,6 +404,7 @@ export function PlanGroupPlanDetailResponseDataFromJSONTyped(
       json["billing_product"] == null
         ? undefined
         : BillingProductDetailResponseDataFromJSON(json["billing_product"]),
+    billingStrategy: BillingStrategyFromJSON(json["billing_strategy"]),
     chargeType: ChargeTypeFromJSON(json["charge_type"]),
     companyCount: json["company_count"],
     companyId: json["company_id"] == null ? undefined : json["company_id"],
@@ -479,6 +496,7 @@ export function PlanGroupPlanDetailResponseDataToJSONTyped(
     billing_product: BillingProductDetailResponseDataToJSON(
       value["billingProduct"],
     ),
+    billing_strategy: BillingStrategyToJSON(value["billingStrategy"]),
     charge_type: ChargeTypeToJSON(value["chargeType"]),
     company_count: value["companyCount"],
     company_id: value["companyId"],

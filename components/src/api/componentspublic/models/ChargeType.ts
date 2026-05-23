@@ -18,6 +18,7 @@
  */
 export const ChargeType = {
   Free: "free",
+  None: "none",
   OneTime: "one_time",
   Recurring: "recurring",
 } as const;
