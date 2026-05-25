@@ -24,6 +24,7 @@
     "An invoice is created when charges reach $X; the rest is billed monthly.": "An invoice is created when charges reach {{amount}}; the rest is billed monthly.",
     "An unknown error occurred.": "An unknown error occurred.",
     "Billed": "Billed {{period}}",
+    "Buy credits": "Buy credits",
     "Cancel subscription": "Cancel subscription",
     "Cannot change to this plan.": "{{reason, list(type: 'conjunction')}} usage is over the limit.",
     "Cannot downgrade entitlement": "Cannot downgrade to a quantity lower than current usage.",
