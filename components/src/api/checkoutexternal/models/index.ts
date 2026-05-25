@@ -120,6 +120,7 @@ export * from "./PlanDetailResponseData";
 export * from "./PlanEntitlementResponseData";
 export * from "./PlanGroupPlanDetailResponseData";
 export * from "./PlanIcon";
+export * from "./PlanPriceCadence";
 export * from "./PlanResponseData";
 export * from "./PlanType";
 export * from "./PlanVersionResponseData";

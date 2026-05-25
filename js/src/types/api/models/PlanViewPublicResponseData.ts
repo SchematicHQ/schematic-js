@@ -41,6 +41,13 @@ import {
   BillingProviderTypeToJSON,
   BillingProviderTypeToJSONTyped,
 } from "./BillingProviderType";
+import type { PlanPriceCadence } from "./PlanPriceCadence";
+import {
+  PlanPriceCadenceFromJSON,
+  PlanPriceCadenceFromJSONTyped,
+  PlanPriceCadenceToJSON,
+  PlanPriceCadenceToJSONTyped,
+} from "./PlanPriceCadence";
 import type { CustomPlanConfig } from "./CustomPlanConfig";
 import {
   CustomPlanConfigFromJSON,
@@ -131,6 +138,12 @@ export interface PlanViewPublicResponseData {
    * @deprecated
    */
   audienceType?: string | null;
+  /**
+   *
+   * @type {Array<PlanPriceCadence>}
+   * @memberof PlanViewPublicResponseData
+   */
+  availablePeriods: Array<PlanPriceCadence>;
   /**
    *
    * @type {BillingLinkedResourceResponseData}
@@ -345,6 +358,8 @@ export interface PlanViewPublicResponseData {
 export function instanceOfPlanViewPublicResponseData(
   value: object,
 ): value is PlanViewPublicResponseData {
+  if (!("availablePeriods" in value) || value["availablePeriods"] === undefined)
+    return false;
   if (!("billingStrategy" in value) || value["billingStrategy"] === undefined)
     return false;
   if (!("chargeType" in value) || value["chargeType"] === undefined)
@@ -406,6 +421,9 @@ export function PlanViewPublicResponseDataFromJSONTyped(
         : PlanVersionResponseDataFromJSON(json["active_version"]),
     audienceType:
       json["audience_type"] == null ? undefined : json["audience_type"],
+    availablePeriods: (json["available_periods"] as Array<any>).map(
+      PlanPriceCadenceFromJSON,
+    ),
     billingLinkedResource:
       json["billing_linked_resource"] == null
         ? undefined
@@ -500,6 +518,9 @@ export function PlanViewPublicResponseDataToJSONTyped(
   return {
     active_version: PlanVersionResponseDataToJSON(value["activeVersion"]),
     audience_type: value["audienceType"],
+    available_periods: (value["availablePeriods"] as Array<any>).map(
+      PlanPriceCadenceToJSON,
+    ),
     billing_linked_resource: BillingLinkedResourceResponseDataToJSON(
       value["billingLinkedResource"],
     ),
