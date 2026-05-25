@@ -63,6 +63,12 @@ export interface CustomPlanBillingResponseData {
    * @type {string}
    * @memberof CustomPlanBillingResponseData
    */
+  externalInvoiceId?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof CustomPlanBillingResponseData
+   */
   id: string;
   /**
    *
@@ -144,6 +150,10 @@ export function CustomPlanBillingResponseDataFromJSONTyped(
     companyId: json["company_id"],
     createdAt: new Date(json["created_at"]),
     daysUntilDue: json["days_until_due"],
+    externalInvoiceId:
+      json["external_invoice_id"] == null
+        ? undefined
+        : json["external_invoice_id"],
     id: json["id"],
     paidAt: json["paid_at"] == null ? undefined : new Date(json["paid_at"]),
     planId: json["plan_id"],
@@ -179,6 +189,7 @@ export function CustomPlanBillingResponseDataToJSONTyped(
     company_id: value["companyId"],
     created_at: value["createdAt"].toISOString(),
     days_until_due: value["daysUntilDue"],
+    external_invoice_id: value["externalInvoiceId"],
     id: value["id"],
     paid_at:
       value["paidAt"] == null
