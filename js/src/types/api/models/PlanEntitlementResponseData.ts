@@ -237,6 +237,12 @@ export interface PlanEntitlementResponseData {
    */
   usageBasedProduct?: BillingProductResponseData;
   /**
+   * The committed unit quantity for this entitlement. For custom plans this is the quantity the company is contractually committed to; for standard plans it is the quantity pre-filled when subscribing. Only applies to pay-in-advance entitlements. Note: this is not yet enforced/auto-provisioned as a true default — it is currently stored for downstream billing use.
+   * @type {number}
+   * @memberof PlanEntitlementResponseData
+   */
+  usageQuantity?: number | null;
+  /**
    *
    * @type {boolean}
    * @memberof PlanEntitlementResponseData
@@ -367,6 +373,8 @@ export function PlanEntitlementResponseDataFromJSONTyped(
       json["usage_based_product"] == null
         ? undefined
         : BillingProductResponseDataFromJSON(json["usage_based_product"]),
+    usageQuantity:
+      json["usage_quantity"] == null ? undefined : json["usage_quantity"],
     valueBool: json["value_bool"] == null ? undefined : json["value_bool"],
     valueCredit:
       json["value_credit"] == null
@@ -431,6 +439,7 @@ export function PlanEntitlementResponseDataToJSONTyped(
     usage_based_product: BillingProductResponseDataToJSON(
       value["usageBasedProduct"],
     ),
+    usage_quantity: value["usageQuantity"],
     value_bool: value["valueBool"],
     value_credit: BillingCreditResponseDataToJSON(value["valueCredit"]),
     value_numeric: value["valueNumeric"],
