@@ -1245,8 +1245,15 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
   useEffect(() => {
     if (!hasInitializedPlan.current && selectedPlan) {
       hasInitializedPlan.current = true;
-      selectPlan({ plan: selectedPlan, period: planPeriod });
+      const shouldTrial =
+        checkoutState?.startTrialIfAvailable &&
+        selectedPlan.isTrialable &&
+        selectedPlan.companyCanTrial;
+      selectPlan({ plan: selectedPlan, period: planPeriod, shouldTrial });
     }
+    // startTrialIfAvailable is set once by initializeWithPlan and is stable
+    // for the dialog's lifetime; intentionally excluded from deps.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedPlan, planPeriod, selectPlan]);
 
   useLayoutEffect(() => {

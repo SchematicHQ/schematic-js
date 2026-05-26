@@ -13,7 +13,7 @@ describe("embedReducer - SET_PLANID_BYPASS", () => {
       });
 
       expect(result.layout).toBe("checkout");
-      expect(result.checkoutState).toEqual({
+      expect(result.checkoutState).toMatchObject({
         planId: "plan_xyz123",
         bypassPlanSelection: true,
         bypassAddOnSelection: false,
@@ -35,7 +35,7 @@ describe("embedReducer - SET_PLANID_BYPASS", () => {
       });
 
       expect(result.layout).toBe("checkout");
-      expect(result.checkoutState).toEqual({
+      expect(result.checkoutState).toMatchObject({
         planId: "plan_abc",
         bypassPlanSelection: false,
         bypassAddOnSelection: false,
@@ -55,7 +55,7 @@ describe("embedReducer - SET_PLANID_BYPASS", () => {
         config,
       });
 
-      expect(result.checkoutState).toEqual({
+      expect(result.checkoutState).toMatchObject({
         planId: "plan_abc",
         addOnIds: ["addon_1", "addon_2"],
         bypassPlanSelection: false,
@@ -183,7 +183,7 @@ describe("embedReducer - SET_PLANID_BYPASS", () => {
         config,
       });
 
-      expect(result.checkoutState).toEqual({
+      expect(result.checkoutState).toMatchObject({
         bypassPlanSelection: true,
         bypassAddOnSelection: false,
         bypassCreditsSelection: false,
@@ -220,6 +220,44 @@ describe("embedReducer - SET_PLANID_BYPASS", () => {
       });
 
       expect(result.checkoutState?.hideSkippedStages).toBe(false);
+    });
+  });
+
+  describe("startTrialIfAvailable configuration", () => {
+    it("should default startTrialIfAvailable to true", () => {
+      const config: BypassConfig = {
+        planId: "plan_xyz",
+      };
+
+      const result = reducer(initialState, {
+        type: "SET_PLANID_BYPASS",
+        config,
+      });
+
+      expect(result.checkoutState?.startTrialIfAvailable).toBe(true);
+    });
+
+    it("should default startTrialIfAvailable to true for legacy string format", () => {
+      const result = reducer(initialState, {
+        type: "SET_PLANID_BYPASS",
+        config: "plan_xyz",
+      });
+
+      expect(result.checkoutState?.startTrialIfAvailable).toBe(true);
+    });
+
+    it("should respect startTrialIfAvailable: false when explicitly set", () => {
+      const config: BypassConfig = {
+        planId: "plan_xyz",
+        startTrialIfAvailable: false,
+      };
+
+      const result = reducer(initialState, {
+        type: "SET_PLANID_BYPASS",
+        config,
+      });
+
+      expect(result.checkoutState?.startTrialIfAvailable).toBe(false);
     });
   });
 
