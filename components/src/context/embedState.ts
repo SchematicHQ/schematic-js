@@ -234,6 +234,19 @@ export interface CheckoutStageSkipConfig {
  * @example
  * initializeWithPlan('plan_xyz')
  * // Equivalent to: { planId: 'plan_xyz', skipped: { planStage: true } }
+ *
+ * ## Trial Behavior
+ *
+ * When the pre-selected plan is trialable and the company is eligible for a
+ * trial, checkout starts in trial mode by default. Pass
+ * `startTrialIfAvailable: false` to skip the trial and charge immediately.
+ *
+ * @example
+ * // Opt out of the automatic trial for a trialable plan
+ * initializeWithPlan({
+ *   planId: 'plan_xyz',
+ *   startTrialIfAvailable: false,
+ * })
  */
 export interface BypassConfig {
   /**
@@ -262,6 +275,15 @@ export interface BypassConfig {
    * Optional - defaults to company's current period or "month".
    */
   period?: "month" | "year";
+  /**
+   * When the pre-selected plan is trialable and the company is eligible for a
+   * trial, automatically start the checkout in trial mode. Default: true.
+   *
+   * Set to false to charge the customer immediately even when a trial is
+   * available. Has no effect when the plan is not trialable or the company
+   * is not eligible for a trial.
+   */
+  startTrialIfAvailable?: boolean;
 }
 
 export type CheckoutState = {
@@ -277,6 +299,7 @@ export type CheckoutState = {
   addOnIds?: string[];
   hideSkippedStages?: boolean;
   selectedCurrency?: string;
+  startTrialIfAvailable?: boolean;
 };
 
 export type EmbedMode = "edit" | "view";

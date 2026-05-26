@@ -277,6 +277,10 @@ export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {
           bypassCreditsSelection,
           ...(config.addOnIds && { addOnIds: config.addOnIds }),
           hideSkippedStages: config.hideSkipped ?? false,
+          startTrialIfAvailable:
+            isStringFormat || config.startTrialIfAvailable === undefined
+              ? true
+              : config.startTrialIfAvailable,
         },
       };
     }
