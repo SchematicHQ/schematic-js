@@ -45,7 +45,7 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@eslint/json": "^1.2.0",
-    "@eslint/markdown": "^8.0.1",
+    "@eslint/markdown": "^8.0.2",
     "@microsoft/api-extractor": "^7.58.7",
     "@openapitools/openapi-generator-cli": "^2.34.0",
     "@stripe/react-stripe-js": "^6.4.0",
