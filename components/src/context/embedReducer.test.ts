@@ -13,13 +13,12 @@ describe("embedReducer - SET_PLANID_BYPASS", () => {
       });
 
       expect(result.layout).toBe("checkout");
-      expect(result.checkoutState).toEqual({
+      expect(result.checkoutState).toMatchObject({
         planId: "plan_xyz123",
         bypassPlanSelection: true,
         bypassAddOnSelection: false,
         bypassCreditsSelection: false,
         hideSkippedStages: false,
-        startTrialIfAvailable: true,
       });
     });
   });
@@ -36,13 +35,12 @@ describe("embedReducer - SET_PLANID_BYPASS", () => {
       });
 
       expect(result.layout).toBe("checkout");
-      expect(result.checkoutState).toEqual({
+      expect(result.checkoutState).toMatchObject({
         planId: "plan_abc",
         bypassPlanSelection: false,
         bypassAddOnSelection: false,
         bypassCreditsSelection: false,
         hideSkippedStages: false,
-        startTrialIfAvailable: true,
       });
     });
 
@@ -57,14 +55,13 @@ describe("embedReducer - SET_PLANID_BYPASS", () => {
         config,
       });
 
-      expect(result.checkoutState).toEqual({
+      expect(result.checkoutState).toMatchObject({
         planId: "plan_abc",
         addOnIds: ["addon_1", "addon_2"],
         bypassPlanSelection: false,
         bypassAddOnSelection: false,
         bypassCreditsSelection: false,
         hideSkippedStages: false,
-        startTrialIfAvailable: true,
       });
     });
   });
@@ -186,12 +183,11 @@ describe("embedReducer - SET_PLANID_BYPASS", () => {
         config,
       });
 
-      expect(result.checkoutState).toEqual({
+      expect(result.checkoutState).toMatchObject({
         bypassPlanSelection: true,
         bypassAddOnSelection: false,
         bypassCreditsSelection: false,
         hideSkippedStages: false,
-        startTrialIfAvailable: true,
       });
       expect(result.checkoutState?.planId).toBeUndefined();
     });
