@@ -1089,10 +1089,10 @@
     argparse "~1.0.9"
     string-argv "~0.3.1"
 
-"@schematichq/schematic-icons@^0.6.0":
-  version "0.6.0"
-  resolved "https://registry.yarnpkg.com/@schematichq/schematic-icons/-/schematic-icons-0.6.0.tgz#a1c540aadaf7770e60fb4a4ae0e5bbab1ddc910d"
-  integrity sha512-TX6iIXIV3ehuuJ0KD5D2TCQ1r/MCDnlQH+wMnJS/E2yrkqy4Y17jylOOKWqXxypGdMjc+Ezh/ob01hCrVGk0Cg==
+"@schematichq/schematic-icons@^0.7.0":
+  version "0.7.0"
+  resolved "https://registry.yarnpkg.com/@schematichq/schematic-icons/-/schematic-icons-0.7.0.tgz#19f356d26104483f2e8b523fe3392e4f504ad02c"
+  integrity sha512-CAK/Bc6vt+WWDZj8DzH2zuSBBqJKHVHkE7HWjYVWagWbtT1t7yscAb/Lv/YaE7eiLRixG+vD6mP373DFtb98sA==
   dependencies:
     styled-components "6.3.12"
 
