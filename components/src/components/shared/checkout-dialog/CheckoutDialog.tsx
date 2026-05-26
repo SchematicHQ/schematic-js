@@ -1245,17 +1245,18 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
   useEffect(() => {
     if (!hasInitializedPlan.current && selectedPlan) {
       hasInitializedPlan.current = true;
-      const autoTrial =
-        (checkoutState?.startTrialIfAvailable ?? false) &&
-        !!selectedPlan.isTrialable &&
-        !!selectedPlan.companyCanTrial;
-      selectPlan({
-        plan: selectedPlan,
-        period: planPeriod,
-        ...(autoTrial && { shouldTrial: true }),
-      });
+      const shouldTrial =
+        checkoutState?.startTrialIfAvailable &&
+        selectedPlan.isTrialable &&
+        selectedPlan.companyCanTrial;
+      selectPlan({ plan: selectedPlan, period: planPeriod, shouldTrial });
     }
-  }, [selectedPlan, planPeriod, selectPlan, checkoutState?.startTrialIfAvailable]);
+  }, [
+    selectedPlan,
+    planPeriod,
+    selectPlan,
+    checkoutState?.startTrialIfAvailable,
+  ]);
 
   useLayoutEffect(() => {
     const element = dialogRef.current;
