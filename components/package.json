@@ -39,7 +39,7 @@
     "lodash": "^4.18.1",
     "pako": "^2.1.0",
     "react-i18next": "16.1.6",
-    "styled-components": "^6.4.1",
+    "styled-components": "^6.4.2",
     "uuid": "^14.0.0"
   },
   "devDependencies": {
@@ -47,7 +47,7 @@
     "@eslint/json": "^1.2.0",
     "@eslint/markdown": "^8.0.1",
     "@microsoft/api-extractor": "^7.58.7",
-    "@openapitools/openapi-generator-cli": "^2.32.0",
+    "@openapitools/openapi-generator-cli": "^2.34.0",
     "@stripe/react-stripe-js": "^6.4.0",
     "@swc/core": "^1.15.33",
     "@testing-library/dom": "^10.4.1",
