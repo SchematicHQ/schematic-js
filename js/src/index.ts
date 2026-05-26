@@ -29,10 +29,25 @@ import {
   StoragePersister,
   CheckPlanReturnListenerFn,
 } from "./types";
+import { cacheVersion } from "./cacheVersion";
 import { contextString } from "./utils";
 import { version } from "./version";
 
 const anonymousIdKey = "schematicId";
+const flagStateCachePrefix = "schematicCache";
+const flagStateCacheMaxContexts = 10;
+const flagStateCacheDefaultMaxAgeMs = 7 * 24 * 60 * 60 * 1000;
+
+type CachedContextEntry = {
+  checks: Record<string, CheckFlagReturn>;
+  plan?: CheckPlanReturn;
+  updatedAt: number;
+};
+
+type CachedFlagState = {
+  version: string;
+  contexts: Record<string, CachedContextEntry>;
+};
 
 /* @preserve */
 export class Schematic {
@@ -52,6 +67,10 @@ export class Schematic {
   private isPendingListeners: Set<PendingListenerFn> = new Set();
   private planListeners: Set<PlanListenerFn> = new Set();
   private storage: StoragePersister | undefined;
+  private persistFlagState: boolean = true;
+  private flagStateCacheKey: string;
+  private flagStateCacheMaxAgeMs: number = flagStateCacheDefaultMaxAgeMs;
+  private cachedFlagState: CachedFlagState | null = null;
   private useWebSocket: boolean = false;
   private checks: Record<
     string,
@@ -85,11 +104,19 @@ export class Schematic {
 
   constructor(apiKey: string, options?: SchematicOptions) {
     this.apiKey = apiKey;
+    this.flagStateCacheKey = `${flagStateCachePrefix}:${apiKey}`;
     this.eventQueue = [];
     this.contextDependentEventQueue = [];
     this.useWebSocket = options?.useWebSocket ?? false;
     this.debugEnabled = options?.debug ?? false;
     this.offlineEnabled = options?.offline ?? false;
+    this.persistFlagState = options?.persistFlagState ?? true;
+    if (
+      typeof options?.flagStateCacheMaxAgeMs === "number" &&
+      options.flagStateCacheMaxAgeMs > 0
+    ) {
+      this.flagStateCacheMaxAgeMs = options.flagStateCacheMaxAgeMs;
+    }
 
     // Check for debug mode in URL query parameter
     if (
@@ -147,6 +174,8 @@ export class Schematic {
         // generating fresh UUIDs when storage is unavailable.
       }
     }
+
+    this.hydrateFlagStateFromCache();
 
     if (options?.apiUrl !== undefined) {
       this.apiUrl = options.apiUrl;
@@ -551,6 +580,10 @@ export class Schematic {
         this.notifyPlanListeners(plan);
       }
 
+      // Persist updated flag state for this context so the next page load
+      // can boot with these values rather than fallbacks
+      this.persistContextToCache(contextString(context));
+
       // Flush any context-dependent events that were queued
       this.flushContextDependentEventQueue();
 
@@ -696,7 +729,38 @@ export class Schematic {
 
     // If using websocket, wsSendMessage will handle setting the context
     try {
-      this.setIsPending(true);
+      // If we already have cached values for this context (from a previous session
+      // via persisted storage, or a prior identification this session), pre-resolve
+      // synchronously: set the context, fire listeners with cached values, and skip
+      // the pending state. The WebSocket connection still happens in the background
+      // so fresh values reconcile when they arrive.
+      const newContextStr = contextString(context);
+      // `cacheHit` is also passed as the `forceContextSend` arg to wsSendMessage
+      // below: on a cache hit we set this.context = context synchronously, so
+      // wsSendMessage's same-context guard would otherwise no-op the WS send.
+      const cacheHit = this.hasCachedValuesForContext(newContextStr);
+
+      if (cacheHit) {
+        this.debug(
+          `setContext: cache hit for context, pre-resolving from cached values`,
+        );
+        this.context = context;
+        this.flushContextDependentEventQueue();
+        this.setIsPending(false);
+
+        const cachedChecks = this.checks[newContextStr] ?? {};
+        for (const [flagKey, check] of Object.entries(cachedChecks)) {
+          if (check === undefined) continue;
+          this.notifyFlagCheckListeners(flagKey, check);
+          this.notifyFlagValueListeners(flagKey, check.value);
+        }
+        const cachedPlan = this.planChecks[newContextStr];
+        if (cachedPlan !== undefined) {
+          this.notifyPlanListeners(cachedPlan);
+        }
+      } else {
+        this.setIsPending(true);
+      }
 
       if (!this.conn) {
         // Prevent multiple concurrent connections
@@ -710,7 +774,7 @@ export class Schematic {
           }
           if (this.conn !== null) {
             const socket = await this.conn;
-            await this.wsSendMessage(socket, context);
+            await this.wsSendMessage(socket, context, cacheHit);
             return;
           }
         }
@@ -729,7 +793,7 @@ export class Schematic {
           this.conn = this.wsConnect();
           const socket = await this.conn;
           this.isConnecting = false;
-          await this.wsSendMessage(socket, context);
+          await this.wsSendMessage(socket, context, cacheHit);
           return;
         } catch (error) {
           this.isConnecting = false;
@@ -738,7 +802,7 @@ export class Schematic {
       }
 
       const socket = await this.conn;
-      await this.wsSendMessage(socket, context);
+      await this.wsSendMessage(socket, context, cacheHit);
     } catch (error) {
       console.warn("Failed to establish WebSocket connection:", error);
 
@@ -821,6 +885,7 @@ export class Schematic {
       { quantity },
     );
 
+    let dirty = false;
     Object.entries(flagsForEvent).forEach(([flagKey, check]) => {
       if (check === undefined) return;
 
@@ -829,6 +894,7 @@ export class Schematic {
 
       // Increment usage by the specified quantity
       if (typeof updatedCheck.featureUsage === "number") {
+        dirty = true;
         updatedCheck.featureUsage += quantity;
 
         // Determine if usage now exceeds allocation
@@ -874,6 +940,10 @@ export class Schematic {
         this.notifyFlagValueListeners(flagKey, updatedCheck.value);
       }
     });
+
+    if (dirty) {
+      this.persistContextToCache(contextString(this.context));
+    }
   };
 
   /**
@@ -1023,6 +1093,216 @@ export class Schematic {
     const generatedAnonymousId = uuidv4();
     this.storage.setItem(anonymousIdKey, generatedAnonymousId);
     return generatedAnonymousId;
+  };
+
+  private hasCachedValuesForContext = (contextStr: string): boolean => {
+    const cachedChecks = this.checks[contextStr];
+    if (cachedChecks !== undefined && Object.keys(cachedChecks).length > 0) {
+      return true;
+    }
+    return this.planChecks[contextStr] !== undefined;
+  };
+
+  private readFlagStateCache = (): CachedFlagState | null => {
+    if (!this.persistFlagState || this.storage === undefined) {
+      return null;
+    }
+
+    let raw: unknown;
+    try {
+      raw = this.storage.getItem(this.flagStateCacheKey);
+    } catch (error) {
+      this.debug("Failed to read flag state cache:", error);
+      return null;
+    }
+
+    if (raw === null || raw === undefined) {
+      return null;
+    }
+
+    let parsed: unknown;
+    try {
+      parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
+    } catch (error) {
+      this.debug("Flag state cache is not valid JSON, ignoring:", error);
+      return null;
+    }
+
+    if (
+      parsed === null ||
+      typeof parsed !== "object" ||
+      (parsed as { version?: unknown }).version !== cacheVersion ||
+      typeof (parsed as { contexts?: unknown }).contexts !== "object" ||
+      (parsed as { contexts?: unknown }).contexts === null
+    ) {
+      this.debug(
+        `Flag state cache invalid or version mismatch (expected ${cacheVersion}), ignoring`,
+        {
+          parsedType: typeof parsed,
+          version: (parsed as { version?: unknown } | null)?.version,
+        },
+      );
+      return null;
+    }
+
+    return parsed as CachedFlagState;
+  };
+
+  private reviveCachedCheck = (raw: unknown): CheckFlagReturn | null => {
+    if (raw === null || typeof raw !== "object") return null;
+    const obj = raw as Record<string, unknown>;
+    if (
+      typeof obj.flag !== "string" ||
+      typeof obj.value !== "boolean" ||
+      typeof obj.reason !== "string"
+    ) {
+      return null;
+    }
+    const revived = { ...obj } as CheckFlagReturn;
+    if (typeof revived.featureUsageResetAt === "string") {
+      const d = new Date(revived.featureUsageResetAt);
+      revived.featureUsageResetAt = isNaN(d.getTime()) ? undefined : d;
+    }
+    return revived;
+  };
+
+  private reviveCachedPlan = (raw: unknown): CheckPlanReturn | null => {
+    if (raw === null || typeof raw !== "object") return null;
+    const obj = raw as Record<string, unknown>;
+    if (typeof obj.id !== "string" || typeof obj.name !== "string") {
+      return null;
+    }
+    const revived = { ...obj } as CheckPlanReturn;
+    if (typeof revived.trialEndDate === "string") {
+      const d = new Date(revived.trialEndDate);
+      revived.trialEndDate = isNaN(d.getTime()) ? undefined : d;
+    }
+    return revived;
+  };
+
+  private hydrateFlagStateFromCache = (): void => {
+    const parsed = this.readFlagStateCache();
+    if (parsed === null) return;
+
+    const cutoff = Date.now() - this.flagStateCacheMaxAgeMs;
+    const fresh: Record<string, CachedContextEntry> = {};
+    let contextsLoaded = 0;
+    let contextsExpired = 0;
+
+    for (const [contextStr, entry] of Object.entries(parsed.contexts)) {
+      if (entry === null || typeof entry !== "object") continue;
+
+      // Drop entries with a missing/non-numeric updatedAt: we wrote them with
+      // a number, so anything else is either tampered or a legacy shape, and
+      // letting NaN propagate would break LRU eviction sort order.
+      if (typeof entry.updatedAt !== "number") continue;
+
+      if (entry.updatedAt < cutoff) {
+        contextsExpired += 1;
+        continue;
+      }
+
+      const revivedChecks: Record<string, CheckFlagReturn> = {};
+      if (entry.checks !== null && typeof entry.checks === "object") {
+        for (const [flagKey, rawCheck] of Object.entries(entry.checks)) {
+          const revived = this.reviveCachedCheck(rawCheck);
+          if (revived === null || revived.flag !== flagKey) continue;
+          revivedChecks[flagKey] = revived;
+          if (typeof revived.featureUsageEvent === "string") {
+            this.updateFeatureUsageEventMap(revived);
+          }
+        }
+        if (Object.keys(revivedChecks).length > 0) {
+          this.checks[contextStr] = revivedChecks;
+        }
+      }
+
+      let revivedPlan: CheckPlanReturn | undefined;
+      if (entry.plan !== undefined && entry.plan !== null) {
+        const p = this.reviveCachedPlan(entry.plan);
+        if (p !== null) {
+          revivedPlan = p;
+          this.planChecks[contextStr] = p;
+        }
+      }
+
+      fresh[contextStr] = {
+        checks: revivedChecks,
+        plan: revivedPlan,
+        updatedAt: entry.updatedAt,
+      };
+      contextsLoaded += 1;
+    }
+
+    this.cachedFlagState = { version: cacheVersion, contexts: fresh };
+    this.debug(
+      `Hydrated flag state cache: ${contextsLoaded} loaded, ${contextsExpired} expired`,
+    );
+  };
+
+  private persistContextToCache = (contextStr: string): void => {
+    const checksForContext = this.checks[contextStr];
+    const planForContext = this.planChecks[contextStr];
+    if (checksForContext === undefined && planForContext === undefined) {
+      return;
+    }
+
+    // Always maintain the in-memory mirror — even when persistFlagState is
+    // false — so we can bound this.checks/planChecks growth below.
+    if (this.cachedFlagState === null) {
+      this.cachedFlagState = (
+        this.persistFlagState ? this.readFlagStateCache() : null
+      ) ?? {
+        version: cacheVersion,
+        contexts: {},
+      };
+    }
+
+    const cleanChecks: Record<string, CheckFlagReturn> = {};
+    if (checksForContext !== undefined) {
+      for (const [flagKey, check] of Object.entries(checksForContext)) {
+        if (check !== undefined) cleanChecks[flagKey] = check;
+      }
+    }
+
+    this.cachedFlagState.contexts[contextStr] = {
+      checks: cleanChecks,
+      plan: planForContext,
+      updatedAt: Date.now(),
+    };
+
+    const entries = Object.entries(this.cachedFlagState.contexts);
+    if (entries.length > flagStateCacheMaxContexts) {
+      entries.sort((a, b) => b[1].updatedAt - a[1].updatedAt);
+      const survivors = entries.slice(0, flagStateCacheMaxContexts);
+      const survivorKeys = new Set(survivors.map(([k]) => k));
+
+      // Evict the same keys from in-memory state. Without this, a long-lived
+      // SPA cycling through many contexts grows this.checks/planChecks
+      // unbounded even though storage is bounded.
+      for (const key of Object.keys(this.checks)) {
+        if (!survivorKeys.has(key)) delete this.checks[key];
+      }
+      for (const key of Object.keys(this.planChecks)) {
+        if (!survivorKeys.has(key)) delete this.planChecks[key];
+      }
+
+      this.cachedFlagState = {
+        version: cacheVersion,
+        contexts: Object.fromEntries(survivors),
+      };
+    }
+
+    if (!this.persistFlagState || this.storage === undefined) return;
+
+    try {
+      this.storage.setItem(
+        this.flagStateCacheKey,
+        JSON.stringify(this.cachedFlagState),
+      );
+    } catch (error) {
+      this.debug("Failed to write flag state cache:", error);
+    }
   };
 
   private handleEvent = (
