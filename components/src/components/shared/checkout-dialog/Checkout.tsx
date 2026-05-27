@@ -13,6 +13,7 @@ import type {
 } from "../../../types";
 import { PaymentMethodDetails } from "../../elements";
 import { Box, Flex, Input, Text } from "../../ui";
+
 import { CustomCheckoutFields } from "./CustomCheckoutFields";
 
 interface ConfirmPaymentIntentProps {

@@ -4,11 +4,10 @@ import {
   type Stripe,
   type StripeConstructorOptions,
 } from "@stripe/stripe-js";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
-  type CheckoutFieldWithValue,
   type PaymentMethodResponseData,
   type PreviewSubscriptionFinanceResponseData,
   type SetupIntentResponseData,
@@ -140,27 +139,17 @@ export const PaymentMethodDetails = ({
   });
   const [isSavingCustomFields, setIsSavingCustomFields] = useState(false);
 
-  const prevCustomFieldsRef = useRef(data?.customCheckoutFields);
-  useEffect(() => {
-    if (data?.customCheckoutFields !== prevCustomFieldsRef.current) {
-      prevCustomFieldsRef.current = data?.customCheckoutFields;
-      if (!editingCustomFields) {
-        const values: Record<string, string> = {};
-        for (const field of data?.customCheckoutFields ?? []) {
-          values[field.id] = field.value ?? "";
-        }
-        setCustomFieldValues(values);
-      }
-    }
-  }, [data?.customCheckoutFields, editingCustomFields]);
-
-  const resetCustomFieldValues = useCallback(() => {
+  const serverFieldValues = useMemo(() => {
     const values: Record<string, string> = {};
     for (const field of data?.customCheckoutFields ?? []) {
       values[field.id] = field.value ?? "";
     }
-    setCustomFieldValues(values);
+    return values;
   }, [data?.customCheckoutFields]);
+
+  const resetCustomFieldValues = useCallback(() => {
+    setCustomFieldValues(serverFieldValues);
+  }, [serverFieldValues]);
 
   const handleSaveCustomFields = useCallback(async () => {
     setIsSavingCustomFields(true);
@@ -498,10 +487,14 @@ export const PaymentMethodDetails = ({
                   <Text display="heading4">{t("Additional information")}</Text>
                   {!editingCustomFields && (
                     <Text
-                      onClick={() => setEditingCustomFields(true)}
-                      onKeyDown={createKeyboardExecutionHandler(() =>
-                        setEditingCustomFields(true),
-                      )}
+                      onClick={() => {
+                        resetCustomFieldValues();
+                        setEditingCustomFields(true);
+                      }}
+                      onKeyDown={createKeyboardExecutionHandler(() => {
+                        resetCustomFieldValues();
+                        setEditingCustomFields(true);
+                      })}
                       display="link"
                       $leading="none"
                     >
