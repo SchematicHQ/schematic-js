@@ -417,9 +417,14 @@ export const EmbedProvider = ({
 
   const updateCustomFieldValues = useCallback(
     async (values: Record<string, string>) => {
+      const companyId = state.data?.company?.id;
+      if (!companyId) {
+        return;
+      }
+
       await checkoutApi?.updateCheckoutFieldValues({
         updateCheckoutFieldValuesRequestBody: {
-          companyId: state.data?.company?.id ?? "",
+          companyId,
           values,
         },
       });

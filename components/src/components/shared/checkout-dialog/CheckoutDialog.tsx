@@ -583,7 +583,19 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
   const [customFieldValues, setCustomFieldValues] = useState<
     Record<string, string>
-  >({});
+  >(() => {
+    const values: Record<string, string> = {};
+    for (const field of data?.customCheckoutFields ?? []) {
+      values[field.id] = field.value ?? "";
+    }
+    return values;
+  });
+
+  const hasIncompleteRequiredCustomFields = useMemo(() => {
+    return (data?.customCheckoutFields ?? []).some(
+      (field) => field.required && !customFieldValues[field.id]?.trim(),
+    );
+  }, [data?.customCheckoutFields, customFieldValues]);
 
   const handleCustomFieldChange = useCallback(
     (fieldId: string, value: string) => {
@@ -1781,6 +1793,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
           addOnPayInAdvanceEntitlements={addOnPayInAdvanceEntitlements}
           creditBundles={creditBundles}
           customFieldValues={customFieldValues}
+          hasIncompleteRequiredCustomFields={hasIncompleteRequiredCustomFields}
           isCreditOnlyPurchase={isCreditOnlyPurchase}
           charges={charges}
           checkoutStage={effectiveCheckoutStage}

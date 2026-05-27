@@ -31,7 +31,7 @@ export const CustomCheckoutFields = ({
 
       <Flex $flexDirection="column" $gap="1rem">
         {fields.map((field) => (
-          <Box key={field.id} data-field={field.stripeMetadataKey}>
+          <Box key={field.id}>
             <Label htmlFor={`custom-field-${field.id}`}>
               {field.name}
               {field.required && (
@@ -44,7 +44,6 @@ export const CustomCheckoutFields = ({
               id={`custom-field-${field.id}`}
               type="text"
               value={values[field.id] ?? field.value ?? ""}
-              placeholder={field.helperText ?? ""}
               onChange={(e) => onChange(field.id, e.target.value)}
             />
             {field.helperText && (

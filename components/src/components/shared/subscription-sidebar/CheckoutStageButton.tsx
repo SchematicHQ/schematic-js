@@ -59,6 +59,7 @@ type CheckoutStageButtonProps = {
   shouldTrial: boolean;
   willTrialWithoutPaymentMethod: boolean;
   willScheduleDowngrade: boolean;
+  hasIncompleteRequiredCustomFields?: boolean;
   isCreditOnlyPurchase?: boolean;
 };
 
@@ -79,6 +80,7 @@ export const CheckoutStageButton = ({
   shouldTrial,
   willTrialWithoutPaymentMethod,
   willScheduleDowngrade,
+  hasIncompleteRequiredCustomFields = false,
   isCreditOnlyPurchase = false,
 }: CheckoutStageButtonProps) => {
   const { t } = useTranslation();
@@ -390,7 +392,9 @@ export const CheckoutStageButton = ({
     return (
       <Button
         type="button"
-        disabled={isDisabled || !hasPaymentMethod}
+        disabled={
+          isDisabled || !hasPaymentMethod || hasIncompleteRequiredCustomFields
+        }
         onClick={checkout}
         $fullWidth
         $isLoading={isLoading}

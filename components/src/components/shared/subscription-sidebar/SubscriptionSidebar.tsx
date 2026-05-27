@@ -58,6 +58,7 @@ interface SubscriptionSidebarProps extends Omit<BoxProps, "children"> {
   addOns: SelectedPlan[];
   creditBundles?: CreditBundle[];
   customFieldValues?: Record<string, string>;
+  hasIncompleteRequiredCustomFields?: boolean;
   isCreditOnlyPurchase?: boolean;
   usageBasedEntitlements: UsageBasedEntitlement[];
   addOnUsageBasedEntitlements?: UsageBasedEntitlement[];
@@ -98,6 +99,7 @@ export const SubscriptionSidebar = forwardRef<
       addOns,
       creditBundles = [],
       customFieldValues = {},
+      hasIncompleteRequiredCustomFields = false,
       isCreditOnlyPurchase = false,
       usageBasedEntitlements,
       addOnUsageBasedEntitlements = [],
@@ -659,6 +661,7 @@ export const SubscriptionSidebar = forwardRef<
               willTrialWithoutPaymentMethod={willTrialWithoutPaymentMethod}
               willScheduleDowngrade={willScheduleDowngrade}
               shouldTrial={shouldTrial}
+              hasIncompleteRequiredCustomFields={hasIncompleteRequiredCustomFields}
               isCreditOnlyPurchase={isCreditOnlyPurchase}
               checkout={handleCheckout}
             />

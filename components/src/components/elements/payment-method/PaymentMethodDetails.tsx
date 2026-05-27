@@ -4,7 +4,7 @@ import {
   type Stripe,
   type StripeConstructorOptions,
 } from "@stripe/stripe-js";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -139,6 +139,28 @@ export const PaymentMethodDetails = ({
     return values;
   });
   const [isSavingCustomFields, setIsSavingCustomFields] = useState(false);
+
+  const prevCustomFieldsRef = useRef(data?.customCheckoutFields);
+  useEffect(() => {
+    if (data?.customCheckoutFields !== prevCustomFieldsRef.current) {
+      prevCustomFieldsRef.current = data?.customCheckoutFields;
+      if (!editingCustomFields) {
+        const values: Record<string, string> = {};
+        for (const field of data?.customCheckoutFields ?? []) {
+          values[field.id] = field.value ?? "";
+        }
+        setCustomFieldValues(values);
+      }
+    }
+  }, [data?.customCheckoutFields, editingCustomFields]);
+
+  const resetCustomFieldValues = useCallback(() => {
+    const values: Record<string, string> = {};
+    for (const field of data?.customCheckoutFields ?? []) {
+      values[field.id] = field.value ?? "";
+    }
+    setCustomFieldValues(values);
+  }, [data?.customCheckoutFields]);
 
   const handleSaveCustomFields = useCallback(async () => {
     setIsSavingCustomFields(true);
@@ -524,13 +546,23 @@ export const PaymentMethodDetails = ({
                         type="button"
                         onClick={handleSaveCustomFields}
                         $isLoading={isSavingCustomFields}
-                        disabled={isSavingCustomFields}
+                        disabled={
+                          isSavingCustomFields ||
+                          customCheckoutFields.some(
+                            (f) =>
+                              f.required &&
+                              !customFieldValues[f.id]?.trim(),
+                          )
+                        }
                       >
                         {t("Save changes")}
                       </Button>
                       <Button
                         type="button"
-                        onClick={() => setEditingCustomFields(false)}
+                        onClick={() => {
+                          setEditingCustomFields(false);
+                          resetCustomFieldValues();
+                        }}
                         $color="secondary"
                       >
                         {t("Cancel")}
