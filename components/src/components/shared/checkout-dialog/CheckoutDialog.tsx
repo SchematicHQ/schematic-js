@@ -581,6 +581,17 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
   const [promoCode, setPromoCode] = useState<string | null>(null);
 
+  const [customFieldValues, setCustomFieldValues] = useState<
+    Record<string, string>
+  >({});
+
+  const handleCustomFieldChange = useCallback(
+    (fieldId: string, value: string) => {
+      setCustomFieldValues((prev) => ({ ...prev, [fieldId]: value }));
+    },
+    [],
+  );
+
   const [isPaymentMethodRequired, setIsPaymentMethodRequired] = useState(false);
 
   const [willScheduleDowngrade, setWillScheduleDowngrade] = useState(false);
@@ -1744,7 +1755,10 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
           ) : (
             effectiveCheckoutStage === "checkout" && (
               <Checkout
+                customCheckoutFields={data?.customCheckoutFields}
+                customFieldValues={customFieldValues}
                 isPaymentMethodRequired={isPaymentMethodRequired}
+                onCustomFieldChange={handleCustomFieldChange}
                 setPaymentMethodId={(id) => setPaymentMethodId(id)}
                 updatePromoCode={updatePromoCode}
                 confirmPaymentIntentProps={confirmPaymentIntentProps}
@@ -1766,6 +1780,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
           addOnUsageBasedEntitlements={addOnUsageBasedEntitlements}
           addOnPayInAdvanceEntitlements={addOnPayInAdvanceEntitlements}
           creditBundles={creditBundles}
+          customFieldValues={customFieldValues}
           isCreditOnlyPurchase={isCreditOnlyPurchase}
           charges={charges}
           checkoutStage={effectiveCheckoutStage}

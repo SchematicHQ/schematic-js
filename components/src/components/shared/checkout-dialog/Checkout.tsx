@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import type { PreviewSubscriptionFinanceResponseData } from "../../../api/checkoutexternal";
+import type {
+  CheckoutFieldWithValue,
+  PreviewSubscriptionFinanceResponseData,
+} from "../../../api/checkoutexternal";
 import { useIsLightBackground } from "../../../hooks";
 import type {
   CreditBundle,
@@ -10,6 +13,7 @@ import type {
 } from "../../../types";
 import { PaymentMethodDetails } from "../../elements";
 import { Box, Flex, Input, Text } from "../../ui";
+import { CustomCheckoutFields } from "./CustomCheckoutFields";
 
 interface ConfirmPaymentIntentProps {
   clientSecret: string;
@@ -17,7 +21,10 @@ interface ConfirmPaymentIntentProps {
 }
 
 interface CheckoutProps {
+  customCheckoutFields?: CheckoutFieldWithValue[];
+  customFieldValues: Record<string, string>;
   isPaymentMethodRequired: boolean;
+  onCustomFieldChange: (fieldId: string, value: string) => void;
   setPaymentMethodId: (id: string) => void;
   updatePromoCode: (code: string) => void;
   confirmPaymentIntentProps?: ConfirmPaymentIntentProps | null | undefined;
@@ -35,7 +42,10 @@ interface CheckoutProps {
 }
 
 export const Checkout = ({
+  customCheckoutFields,
+  customFieldValues,
   isPaymentMethodRequired,
+  onCustomFieldChange,
   setPaymentMethodId,
   updatePromoCode,
   confirmPaymentIntentProps,
@@ -60,6 +70,14 @@ export const Checkout = ({
         financeData={financeData}
         onPaymentMethodSaved={onPaymentMethodSaved}
       />
+
+      {customCheckoutFields && customCheckoutFields.length > 0 && (
+        <CustomCheckoutFields
+          fields={customCheckoutFields}
+          values={customFieldValues}
+          onChange={onCustomFieldChange}
+        />
+      )}
 
       <Flex $flexDirection="column" $gap="1rem">
         <Box>

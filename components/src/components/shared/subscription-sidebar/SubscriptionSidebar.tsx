@@ -57,6 +57,7 @@ interface SubscriptionSidebarProps extends Omit<BoxProps, "children"> {
   autoTopupConfigs?: Map<string, AutoTopupConfig>;
   addOns: SelectedPlan[];
   creditBundles?: CreditBundle[];
+  customFieldValues?: Record<string, string>;
   isCreditOnlyPurchase?: boolean;
   usageBasedEntitlements: UsageBasedEntitlement[];
   addOnUsageBasedEntitlements?: UsageBasedEntitlement[];
@@ -96,6 +97,7 @@ export const SubscriptionSidebar = forwardRef<
       autoTopupConfigs,
       addOns,
       creditBundles = [],
+      customFieldValues = {},
       isCreditOnlyPurchase = false,
       usageBasedEntitlements,
       addOnUsageBasedEntitlements = [],
@@ -502,6 +504,11 @@ export const SubscriptionSidebar = forwardRef<
           skipTrial: !shouldTrial,
           ...(paymentMethodId && { paymentMethodId }),
           ...(promoCode && { promoCode }),
+          ...(Object.keys(customFieldValues).length > 0 && {
+            customFieldValues: Object.entries(customFieldValues).map(
+              ([id, value]) => ({ id, value }),
+            ),
+          }),
         });
 
         if (
