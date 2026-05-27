@@ -415,6 +415,26 @@ export const EmbedProvider = ({
     [unsubscribe],
   );
 
+  const updateCustomFieldValues = useCallback(
+    async (values: Record<string, string>) => {
+      await checkoutApi?.updateCheckoutFieldValues({
+        updateCheckoutFieldValuesRequestBody: {
+          companyId: state.data?.company?.id ?? "",
+          values,
+        },
+      });
+
+      const hydrateResponse = await checkoutApi?.hydrate();
+      if (hydrateResponse) {
+        dispatch({
+          type: "HYDRATE",
+          data: hydrateResponse.data,
+        });
+      }
+    },
+    [checkoutApi, state.data?.company?.id],
+  );
+
   const getUpcomingInvoice = useCallback(
     async (id: string) => {
       return checkoutApi?.hydrateUpcomingInvoice({
@@ -616,6 +636,7 @@ export const EmbedProvider = ({
         checkout: debouncedCheckout,
         previewCheckout,
         unsubscribe: debouncedUnsubscribe,
+        updateCustomFieldValues,
         getUpcomingInvoice: debouncedGetUpcomingInvoice,
         getCustomerBalance: debouncedGetCustomerBalance,
         listInvoices: debouncedListInvoices,

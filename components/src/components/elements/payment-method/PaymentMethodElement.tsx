@@ -2,7 +2,10 @@ import { t } from "i18next";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
-import { type PaymentMethodResponseData } from "../../../api/checkoutexternal";
+import {
+  type CheckoutFieldWithValue,
+  type PaymentMethodResponseData,
+} from "../../../api/checkoutexternal";
 import { type FontStyle } from "../../../context";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import { createKeyboardExecutionHandler } from "../../../utils";
@@ -31,6 +34,7 @@ interface DesignProps {
 }
 
 interface PaymentMethodElementProps extends DesignProps {
+  customCheckoutFields?: CheckoutFieldWithValue[];
   size?: PaymentElementSizes;
   paymentMethod?: PaymentMethodResponseData;
   monthsToExpiration?: number;
@@ -147,6 +151,7 @@ const getPaymentMethodData = ({
 };
 
 export const PaymentMethodElement = ({
+  customCheckoutFields,
   size = "md",
   paymentMethod,
   monthsToExpiration,
@@ -160,11 +165,17 @@ export const PaymentMethodElement = ({
 
   const sizeFactor = size === "lg" ? 1.5 : size === "md" ? 1 : 0.5;
 
+  const hasCustomFields =
+    customCheckoutFields && customCheckoutFields.length > 0;
+  const headerText = hasCustomFields
+    ? t("Payment Details")
+    : t("Payment Method");
+
   return (
     <Flex $flexDirection="column" $gap={`${sizeFactor}rem`}>
       {props.header.isVisible && (
         <Flex $justifyContent="space-between" $alignItems="center">
-          <Text display={props.header.fontStyle}>{t("Payment Method")}</Text>
+          <Text display={props.header.fontStyle}>{headerText}</Text>
 
           {props.functions.showExpiration &&
             typeof monthsToExpiration === "number" &&
@@ -217,6 +228,37 @@ export const PaymentMethodElement = ({
           </Text>
         )}
       </Flex>
+
+      {hasCustomFields && (
+        <Flex $flexDirection="column" $gap="0.75rem" $marginTop="0.5rem">
+          {customCheckoutFields.map((field) => (
+            <Flex key={field.id} $flexDirection="column" $gap="0.125rem">
+              <Text
+                $size={12}
+                $color={
+                  isLightBackground
+                    ? "hsla(0, 0%, 0%, 0.5)"
+                    : "hsla(0, 0%, 100%, 0.5)"
+                }
+              >
+                {field.name}
+              </Text>
+              <Text $size={14}>
+                {field.value || (
+                  <span
+                    style={{
+                      fontStyle: "italic",
+                      opacity: 0.5,
+                    }}
+                  >
+                    {t("Not provided")}
+                  </span>
+                )}
+              </Text>
+            </Flex>
+          ))}
+        </Flex>
+      )}
     </Flex>
   );
 };

@@ -8,6 +8,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
+  type CheckoutFieldWithValue,
   type PaymentMethodResponseData,
   type PreviewSubscriptionFinanceResponseData,
   type SetupIntentResponseData,
@@ -25,6 +26,7 @@ import type {
 } from "../../../types";
 import { createKeyboardExecutionHandler } from "../../../utils";
 import { PaymentForm } from "../../shared";
+import { Input, Label } from "../../shared/payment-form/styles";
 import { Box, Button, Flex, Icon, Loader, Text } from "../../ui";
 
 import {
@@ -94,6 +96,7 @@ export const PaymentMethodDetails = ({
     createSetupIntent,
     updatePaymentMethod,
     deletePaymentMethod,
+    updateCustomFieldValues,
   } = useEmbed();
 
   const { defaultPaymentMethod, paymentMethods, subscription } = useMemo(() => {
@@ -122,6 +125,32 @@ export const PaymentMethodDetails = ({
   const [currentPaymentMethod, setCurrentPaymentMethod] = useState<
     PaymentMethodResponseData | undefined
   >(initialPaymentMethod);
+
+  const customCheckoutFields = data?.customCheckoutFields ?? [];
+  const hasCustomFields = customCheckoutFields.length > 0;
+  const [editingCustomFields, setEditingCustomFields] = useState(false);
+  const [customFieldValues, setCustomFieldValues] = useState<
+    Record<string, string>
+  >(() => {
+    const values: Record<string, string> = {};
+    for (const field of data?.customCheckoutFields ?? []) {
+      values[field.id] = field.value ?? "";
+    }
+    return values;
+  });
+  const [isSavingCustomFields, setIsSavingCustomFields] = useState(false);
+
+  const handleSaveCustomFields = useCallback(async () => {
+    setIsSavingCustomFields(true);
+    try {
+      await updateCustomFieldValues?.(customFieldValues);
+      setEditingCustomFields(false);
+    } catch {
+      setError(t("Error saving custom field values. Please try again."));
+    } finally {
+      setIsSavingCustomFields(false);
+    }
+  }, [t, customFieldValues, updateCustomFieldValues]);
 
   const { isConfirming: isConfirmingPayment } = usePaymentConfirmation({
     stripe,
@@ -438,6 +467,110 @@ export const PaymentMethodDetails = ({
                 >
                   {t("Add new payment method")}
                 </Button>
+              </Flex>
+            )}
+
+            {hasCustomFields && (
+              <Flex $flexDirection="column" $gap="1rem" $marginTop="0.5rem">
+                <Flex $justifyContent="space-between" $alignItems="center">
+                  <Text display="heading4">{t("Additional information")}</Text>
+                  {!editingCustomFields && (
+                    <Text
+                      onClick={() => setEditingCustomFields(true)}
+                      onKeyDown={createKeyboardExecutionHandler(() =>
+                        setEditingCustomFields(true),
+                      )}
+                      display="link"
+                      $leading="none"
+                    >
+                      {t("Edit")}
+                    </Text>
+                  )}
+                </Flex>
+
+                {editingCustomFields ? (
+                  <Flex $flexDirection="column" $gap="1rem">
+                    {customCheckoutFields.map((field) => (
+                      <Box key={field.id}>
+                        <Label htmlFor={`edit-field-${field.id}`}>
+                          {field.name}
+                          {field.required && (
+                            <span
+                              style={{
+                                color: "#DB6669",
+                                marginLeft: "0.25rem",
+                              }}
+                            >
+                              *
+                            </span>
+                          )}
+                        </Label>
+                        <Input
+                          id={`edit-field-${field.id}`}
+                          type="text"
+                          value={customFieldValues[field.id] ?? ""}
+                          placeholder={field.helperText ?? ""}
+                          onChange={(e) =>
+                            setCustomFieldValues((prev) => ({
+                              ...prev,
+                              [field.id]: e.target.value,
+                            }))
+                          }
+                        />
+                      </Box>
+                    ))}
+                    <Flex $gap="0.5rem">
+                      <Button
+                        type="button"
+                        onClick={handleSaveCustomFields}
+                        $isLoading={isSavingCustomFields}
+                        disabled={isSavingCustomFields}
+                      >
+                        {t("Save changes")}
+                      </Button>
+                      <Button
+                        type="button"
+                        onClick={() => setEditingCustomFields(false)}
+                        $color="secondary"
+                      >
+                        {t("Cancel")}
+                      </Button>
+                    </Flex>
+                  </Flex>
+                ) : (
+                  <Flex $flexDirection="column" $gap="0.5rem">
+                    {customCheckoutFields.map((field) => (
+                      <Flex
+                        key={field.id}
+                        $flexDirection="column"
+                        $gap="0.125rem"
+                      >
+                        <Text
+                          $size={12}
+                          $color={
+                            isLightBackground
+                              ? "hsla(0, 0%, 0%, 0.5)"
+                              : "hsla(0, 0%, 100%, 0.5)"
+                          }
+                        >
+                          {field.name}
+                        </Text>
+                        <Text $size={14}>
+                          {field.value || (
+                            <span
+                              style={{
+                                fontStyle: "italic",
+                                opacity: 0.5,
+                              }}
+                            >
+                              {t("Not provided")}
+                            </span>
+                          )}
+                        </Text>
+                      </Flex>
+                    ))}
+                  </Flex>
+                )}
               </Flex>
             )}
           </Flex>
