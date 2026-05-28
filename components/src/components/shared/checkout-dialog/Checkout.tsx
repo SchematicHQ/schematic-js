@@ -73,11 +73,17 @@ export const Checkout = ({
       />
 
       {customCheckoutFields && customCheckoutFields.length > 0 && (
-        <CustomCheckoutFields
-          fields={customCheckoutFields}
-          values={customFieldValues}
-          onChange={onCustomFieldChange}
-        />
+        <Flex $flexDirection="column" $gap="1.5rem">
+          <Box>
+            <Text display="heading4">{t("Additional information")}</Text>
+          </Box>
+
+          <CustomCheckoutFields
+            fields={customCheckoutFields}
+            values={customFieldValues}
+            onChange={onCustomFieldChange}
+          />
+        </Flex>
       )}
 
       <Flex $flexDirection="column" $gap="1rem">

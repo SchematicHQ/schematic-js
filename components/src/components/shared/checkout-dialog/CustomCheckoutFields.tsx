@@ -1,5 +1,3 @@
-import { useTranslation } from "react-i18next";
-
 import type { CheckoutFieldWithValue } from "../../../api/checkoutexternal";
 import { useIsLightBackground } from "../../../hooks";
 import { Box, Flex, Text } from "../../ui";
@@ -16,7 +14,6 @@ export const CustomCheckoutFields = ({
   values,
   onChange,
 }: CustomCheckoutFieldsProps) => {
-  const { t } = useTranslation();
   const isLightBackground = useIsLightBackground();
 
   if (fields.length === 0) {
@@ -24,40 +21,32 @@ export const CustomCheckoutFields = ({
   }
 
   return (
-    <Flex $flexDirection="column" $gap="1.5rem">
-      <Box>
-        <Text display="heading4">{t("Additional information")}</Text>
-      </Box>
-
-      <Flex $flexDirection="column" $gap="1rem">
-        {fields.map((field) => (
-          <Box key={field.id}>
-            <Label htmlFor={`custom-field-${field.id}`}>
-              {field.name}
-              {field.required && (
-                <span style={{ color: "#DB6669", marginLeft: "0.25rem" }}>
-                  *
-                </span>
-              )}
-            </Label>
-            <Input
-              id={`custom-field-${field.id}`}
-              type="text"
-              value={values[field.id] ?? field.value ?? ""}
-              onChange={(e) => onChange(field.id, e.target.value)}
-            />
-            {field.helperText && (
-              <Text
-                $size={12}
-                $color={isLightBackground ? "#666" : "#999"}
-                style={{ marginTop: "0.25rem" }}
-              >
-                {field.helperText}
-              </Text>
+    <Flex $flexDirection="column" $gap="1rem">
+      {fields.map((field) => (
+        <Box key={field.id}>
+          <Label htmlFor={`custom-field-${field.id}`}>
+            {field.name}
+            {field.required && (
+              <span style={{ color: "#DB6669", marginLeft: "0.25rem" }}>*</span>
             )}
-          </Box>
-        ))}
-      </Flex>
+          </Label>
+          <Input
+            id={`custom-field-${field.id}`}
+            type="text"
+            value={values[field.id] ?? field.value ?? ""}
+            onChange={(e) => onChange(field.id, e.target.value)}
+          />
+          {field.helperText && (
+            <Text
+              $size={12}
+              $color={isLightBackground ? "#666" : "#999"}
+              style={{ marginTop: "0.25rem" }}
+            >
+              {field.helperText}
+            </Text>
+          )}
+        </Box>
+      ))}
     </Flex>
   );
 };
