@@ -609,6 +609,7 @@ export const SubscriptionSidebar = forwardRef<
       promoCode,
       finishCheckout,
       currency,
+      customFieldValues,
     ]);
 
     const handleUnsubscribe = useCallback(async () => {
@@ -661,7 +662,9 @@ export const SubscriptionSidebar = forwardRef<
               willTrialWithoutPaymentMethod={willTrialWithoutPaymentMethod}
               willScheduleDowngrade={willScheduleDowngrade}
               shouldTrial={shouldTrial}
-              hasIncompleteRequiredCustomFields={hasIncompleteRequiredCustomFields}
+              hasIncompleteRequiredCustomFields={
+                hasIncompleteRequiredCustomFields
+              }
               isCreditOnlyPurchase={isCreditOnlyPurchase}
               checkout={handleCheckout}
             />
@@ -707,6 +710,7 @@ export const SubscriptionSidebar = forwardRef<
       payInAdvanceEntitlements,
       addOnPayInAdvanceEntitlements,
       isCreditOnlyPurchase,
+      hasIncompleteRequiredCustomFields,
     ]);
 
     useLayoutEffect(() => {

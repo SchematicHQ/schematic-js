@@ -167,15 +167,12 @@ export const PaymentMethodElement = ({
 
   const hasCustomFields =
     customCheckoutFields && customCheckoutFields.length > 0;
-  const headerText = hasCustomFields
-    ? t("Payment Details")
-    : t("Payment Method");
 
   return (
     <Flex $flexDirection="column" $gap={`${sizeFactor}rem`}>
       {props.header.isVisible && (
         <Flex $justifyContent="space-between" $alignItems="center">
-          <Text display={props.header.fontStyle}>{headerText}</Text>
+          <Text display={props.header.fontStyle}>{t("Payment Details")}</Text>
 
           {props.functions.showExpiration &&
             typeof monthsToExpiration === "number" &&

@@ -543,8 +543,7 @@ export const PaymentMethodDetails = ({
                           isSavingCustomFields ||
                           customCheckoutFields.some(
                             (f) =>
-                              f.required &&
-                              !customFieldValues[f.id]?.trim(),
+                              f.required && !customFieldValues[f.id]?.trim(),
                           )
                         }
                       >

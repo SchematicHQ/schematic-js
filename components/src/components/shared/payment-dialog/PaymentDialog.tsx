@@ -53,7 +53,7 @@ export const PaymentDialog = ({ top }: PaymentDialogProps) => {
       {...(!isModal && { open: layout === "payment" })}
     >
       <DialogHeader bordered onClose={handleClose}>
-        <Text $size={18}>{t("Edit payment method")}</Text>
+        <Text $size={18}>{t("Edit payment details")}</Text>
       </DialogHeader>
 
       <DialogContent>
