@@ -79,7 +79,7 @@ export const EditableCustomCheckoutFields = () => {
       }
       $viewport={{
         md: {
-          $padding: "2rem 2.5rem",
+          $padding: "0 2.5rem 2rem",
         },
       }}
     >
@@ -105,7 +105,10 @@ export const EditableCustomCheckoutFields = () => {
             onChange={handleChange}
           />
 
-          <Flex $gap="0.5rem">
+          <Flex $justifyContent="end" $gap="0.5rem">
+            <Button type="button" onClick={handleCancel} $variant="text">
+              {t("Cancel")}
+            </Button>
             <Button
               type="button"
               onClick={handleSave}
@@ -113,9 +116,6 @@ export const EditableCustomCheckoutFields = () => {
               disabled={isSaving || hasIncompleteRequired}
             >
               {t("Save changes")}
-            </Button>
-            <Button type="button" onClick={handleCancel} $color="secondary">
-              {t("Cancel")}
             </Button>
           </Flex>
 

@@ -72,20 +72,6 @@ export const Checkout = ({
         onPaymentMethodSaved={onPaymentMethodSaved}
       />
 
-      {customCheckoutFields && customCheckoutFields.length > 0 && (
-        <Flex $flexDirection="column" $gap="1.5rem">
-          <Box>
-            <Text display="heading4">{t("Additional information")}</Text>
-          </Box>
-
-          <CustomCheckoutFields
-            fields={customCheckoutFields}
-            values={customFieldValues}
-            onChange={onCustomFieldChange}
-          />
-        </Flex>
-      )}
-
       <Flex $flexDirection="column" $gap="1rem">
         <Box>
           <Text display="heading4">{t("Discount")}</Text>
@@ -134,6 +120,20 @@ export const Checkout = ({
           </Box>
         </Flex>
       </Flex>
+
+      {customCheckoutFields && customCheckoutFields.length > 0 && (
+        <Flex $flexDirection="column" $gap="1.5rem">
+          <Box>
+            <Text display="heading4">{t("Additional information")}</Text>
+          </Box>
+
+          <CustomCheckoutFields
+            fields={customCheckoutFields}
+            values={customFieldValues}
+            onChange={onCustomFieldChange}
+          />
+        </Flex>
+      )}
     </Flex>
   );
 };
