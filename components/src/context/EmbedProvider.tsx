@@ -27,6 +27,7 @@ import { reducer } from "./embedReducer";
 import {
   initialState,
   type BypassConfig,
+  type CheckoutPrefill,
   type CheckoutState,
   type EmbedLayout,
   type EmbedSettings,
@@ -50,6 +51,13 @@ export interface EmbedProviderProps {
    * ISO-4217 codes; case-insensitive. Omit to disable filtering.
    */
   currencyFilter?: string[];
+  /**
+   * Initial values supplied by the host application to pre-populate the
+   * checkout payment form (currently billing email + name). These are never
+   * auto-detected from backend data. Memoize the object so it keeps a stable
+   * reference across renders (same as `settings`).
+   */
+  checkoutPrefill?: CheckoutPrefill;
 }
 
 const normalizeCurrencyFilter = (
@@ -59,11 +67,33 @@ const normalizeCurrencyFilter = (
   return Array.from(new Set(filter.map((c) => c.toUpperCase())));
 };
 
+const normalizeString = (value: string | undefined): string | undefined => {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : undefined;
+};
+
+// Trim string values and drop empty ones so downstream consumers only ever see
+// meaningful prefill values. Returns undefined when nothing usable remains.
+const normalizeCheckoutPrefill = (
+  prefill: CheckoutPrefill | undefined,
+): CheckoutPrefill | undefined => {
+  if (!prefill) return undefined;
+
+  const billingDetails = prefill.billingDetails;
+  const email = normalizeString(billingDetails?.email);
+  const name = normalizeString(billingDetails?.name);
+
+  if (!email && !name) return undefined;
+
+  return { billingDetails: { email, name } };
+};
+
 export const EmbedProvider = ({
   children,
   apiKey,
   apiConfig,
   currencyFilter,
+  checkoutPrefill,
   ...options
 }: EmbedProviderProps) => {
   const sessionId = useMemo(() => uuidv4(), []);
@@ -73,6 +103,7 @@ export const EmbedProvider = ({
     const providedState = {
       settings: opts.settings || {},
       currencyFilter: normalizeCurrencyFilter(currencyFilter),
+      checkoutPrefill: normalizeCheckoutPrefill(checkoutPrefill),
     };
     const resolvedState = merge({}, initialState, providedState);
 
@@ -550,6 +581,13 @@ export const EmbedProvider = ({
   }, [currencyFilter]);
 
   useEffect(() => {
+    dispatch({
+      type: "SET_CHECKOUT_PREFILL",
+      checkoutPrefill: normalizeCheckoutPrefill(checkoutPrefill),
+    });
+  }, [checkoutPrefill]);
+
+  useEffect(() => {
     function planChangedHandler(event: Event) {
       if (event instanceof CustomEvent) {
         debug("plan changed", event.detail);
@@ -575,6 +613,7 @@ export const EmbedProvider = ({
         layout: state.layout,
         checkoutState: state.checkoutState,
         currencyFilter: state.currencyFilter,
+        checkoutPrefill: state.checkoutPrefill,
         hydratePublic: debouncedHydratePublic,
         hydrate: debouncedHydrate,
         hydrateComponent: debouncedHydrateComponent,

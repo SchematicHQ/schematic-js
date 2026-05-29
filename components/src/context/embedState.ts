@@ -286,6 +286,32 @@ export interface BypassConfig {
   startTrialIfAvailable?: boolean;
 }
 
+/**
+ * Host-provided initial values used to pre-populate the checkout payment form.
+ * Values come exclusively from the host application; nothing here is
+ * auto-detected from backend/hydrate data.
+ *
+ * Only the fields we currently consume are present. Additional fields (e.g.
+ * address, phone) can be added here as they are wired up.
+ */
+export interface CheckoutBillingDetails {
+  email?: string;
+  name?: string;
+}
+
+/**
+ * Configuration for pre-populating the checkout flow with host-provided values.
+ *
+ * @example
+ * <EmbedProvider
+ *   apiKey={apiKey}
+ *   checkoutPrefill={{ billingDetails: { email: "a@b.com", name: "Ada Lovelace" } }}
+ * >
+ */
+export interface CheckoutPrefill {
+  billingDetails?: CheckoutBillingDetails;
+}
+
 export type CheckoutState = {
   period?: string;
   planId?: string | null;
@@ -314,6 +340,7 @@ export interface EmbedState {
   layout: EmbedLayout;
   checkoutState?: CheckoutState;
   currencyFilter?: string[];
+  checkoutPrefill?: CheckoutPrefill;
 }
 
 export const initialState: EmbedState = {
