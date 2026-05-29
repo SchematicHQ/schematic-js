@@ -30,13 +30,10 @@ export const PaymentForm = ({ onConfirm, financeData }: PaymentFormProps) => {
 
   const collectEmail = data?.checkoutSettings.collectEmail ?? false;
   const collectPhone = data?.checkoutSettings.collectPhone ?? false;
-  // Check if billing address collection is needed (either configured or required for tax)
   const shouldCollectAddress = shouldCollectBillingAddress(
     data?.checkoutSettings.collectAddress ?? false,
     financeData,
   );
-  // The AddressElement (which also collects the billing name) is shown whenever
-  // address or phone collection is active.
   const showBillingAddress = shouldCollectAddress || collectPhone;
 
   const loadTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(
@@ -44,8 +41,6 @@ export const PaymentForm = ({ onConfirm, financeData }: PaymentFormProps) => {
   );
 
   const [email, setEmail] = useState(() => billing?.email ?? "");
-  // Tracks whether the user has edited the email so a late-arriving prefill
-  // value never clobbers their input.
   const userEditedEmailRef = useRef(false);
   const [message, setMessage] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(false);
@@ -65,8 +60,6 @@ export const PaymentForm = ({ onConfirm, financeData }: PaymentFormProps) => {
     [billing],
   );
 
-  // Keep the email input in sync with host-provided prefill until the user
-  // edits it themselves.
   useEffect(() => {
     if (!userEditedEmailRef.current && billing?.email) {
       setEmail(billing.email);
@@ -86,9 +79,6 @@ export const PaymentForm = ({ onConfirm, financeData }: PaymentFormProps) => {
     setIsConfirmed(false);
     setMessage(undefined);
 
-    // Only attach fields the merchant actually collects. The email input is
-    // shown when `collectEmail` is set; the name comes from the AddressElement,
-    // which is shown when billing address/phone collection is active.
     const billingDetails: { email?: string; name?: string } = {};
     if (collectEmail && email) {
       billingDetails.email = email;

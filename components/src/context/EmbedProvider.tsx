@@ -51,12 +51,6 @@ export interface EmbedProviderProps {
    * ISO-4217 codes; case-insensitive. Omit to disable filtering.
    */
   currencyFilter?: string[];
-  /**
-   * Initial values supplied by the host application to pre-populate the
-   * checkout payment form (currently billing email + name). These are never
-   * auto-detected from backend data. Memoize the object so it keeps a stable
-   * reference across renders (same as `settings`).
-   */
   checkoutPrefill?: CheckoutPrefill;
 }
 
@@ -72,8 +66,6 @@ const normalizeString = (value: string | undefined): string | undefined => {
   return trimmed ? trimmed : undefined;
 };
 
-// Trim string values and drop empty ones so downstream consumers only ever see
-// meaningful prefill values. Returns undefined when nothing usable remains.
 const normalizeCheckoutPrefill = (
   prefill: CheckoutPrefill | undefined,
 ): CheckoutPrefill | undefined => {
