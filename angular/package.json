@@ -1,6 +1,6 @@
 {
   "name": "@schematichq/schematic-angular",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "author": "Schematic <engineering@schematichq.com>",
   "license": "MIT",
   "repository": {
@@ -16,8 +16,10 @@
     "test:watch": "vitest",
     "prepare": "husky"
   },
+  "dependencies": {
+    "@schematichq/schematic-js": "^1.4.0"
+  },
   "devDependencies": {
-    "@schematichq/schematic-js": "^1.4.0",
     "@angular/compiler": "^21.2.0",
     "@angular/compiler-cli": "^21.2.0",
     "@angular/core": "^21.2.0",

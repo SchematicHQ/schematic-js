@@ -33,9 +33,9 @@
     "test:demo": "../scripts/test-components.sh"
   },
   "dependencies": {
-    "@schematichq/schematic-icons": "^0.6.0",
+    "@schematichq/schematic-icons": "^0.7.0",
     "@stripe/stripe-js": "^9.6.0",
-    "i18next": "^26.2.0",
+    "i18next": "^26.3.0",
     "lodash": "^4.18.1",
     "pako": "^2.1.0",
     "react-i18next": "16.1.6",
@@ -72,7 +72,7 @@
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.59.4",
+    "typescript-eslint": "^8.60.0",
     "vitest": "^4.1.7"
   },
   "peerDependencies": {
