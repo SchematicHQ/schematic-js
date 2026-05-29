@@ -1,6 +1,6 @@
 {
   "name": "@schematichq/schematic-components",
-  "version": "2.13.0",
+  "version": "2.14.0",
   "main": "dist/schematic-components.cjs.js",
   "module": "dist/schematic-components.esm.js",
   "types": "dist/schematic-components.d.ts",
