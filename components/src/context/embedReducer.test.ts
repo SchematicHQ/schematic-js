@@ -293,3 +293,48 @@ describe("embedReducer - SET_PLANID_BYPASS", () => {
     });
   });
 });
+
+describe("embedReducer - SET_CHECKOUT_PREFILL", () => {
+  it("should set the checkout prefill", () => {
+    const result = reducer(initialState, {
+      type: "SET_CHECKOUT_PREFILL",
+      checkoutPrefill: {
+        billingDetails: { email: "a@b.com", name: "Ada Lovelace" },
+      },
+    });
+
+    expect(result.checkoutPrefill).toEqual({
+      billingDetails: { email: "a@b.com", name: "Ada Lovelace" },
+    });
+  });
+
+  it("should replace an existing prefill", () => {
+    const seeded = reducer(initialState, {
+      type: "SET_CHECKOUT_PREFILL",
+      checkoutPrefill: { billingDetails: { email: "a@b.com" } },
+    });
+
+    const result = reducer(seeded, {
+      type: "SET_CHECKOUT_PREFILL",
+      checkoutPrefill: { billingDetails: { name: "Grace Hopper" } },
+    });
+
+    expect(result.checkoutPrefill).toEqual({
+      billingDetails: { name: "Grace Hopper" },
+    });
+  });
+
+  it("should clear the prefill when set to undefined", () => {
+    const seeded = reducer(initialState, {
+      type: "SET_CHECKOUT_PREFILL",
+      checkoutPrefill: { billingDetails: { email: "a@b.com" } },
+    });
+
+    const result = reducer(seeded, {
+      type: "SET_CHECKOUT_PREFILL",
+      checkoutPrefill: undefined,
+    });
+
+    expect(result.checkoutPrefill).toBeUndefined();
+  });
+});
