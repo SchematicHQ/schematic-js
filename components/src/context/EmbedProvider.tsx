@@ -429,13 +429,10 @@ export const EmbedProvider = ({
         },
       });
 
-      const hydrateResponse = await checkoutApi?.hydrate();
-      if (hydrateResponse) {
-        dispatch({
-          type: "HYDRATE",
-          data: hydrateResponse.data,
-        });
-      }
+      dispatch({
+        type: "UPDATE_CUSTOM_FIELD_VALUES",
+        values,
+      });
     },
     [checkoutApi, state.data?.company?.id],
   );
