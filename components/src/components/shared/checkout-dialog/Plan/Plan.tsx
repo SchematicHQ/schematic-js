@@ -327,7 +327,8 @@ export const Plan = ({
                     [],
                   )}
 
-                  {(plan.entitlements ?? []).length > VISIBLE_ENTITLEMENT_COUNT && (
+                  {(plan.entitlements ?? []).length >
+                    VISIBLE_ENTITLEMENT_COUNT && (
                     <Flex
                       $alignItems="center"
                       $justifyContent="start"
