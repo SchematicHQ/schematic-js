@@ -485,7 +485,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
           if (!availableAddOn) return [];
 
-          return availableAddOn.entitlements.reduce(
+          return (availableAddOn.entitlements ?? []).reduce(
             createActiveUsageBasedEntitlementsReducer(featureUsage, planPeriod),
             [],
           );
@@ -502,7 +502,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
           if (!availableAddOn) return [];
 
           // Calculate usage-based entitlements (same logic as toggleAddOn)
-          return availableAddOn.entitlements
+          return (availableAddOn.entitlements ?? [])
             .filter((entitlement) => !!entitlement.priceBehavior)
             .map((entitlement) => ({
               ...entitlement,
@@ -611,7 +611,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     const hasUsageBasedAddOnSelected = addOns.some((addOn) => {
       return (
         addOn.isSelected &&
-        addOn.entitlements.some((entitlement) => {
+        (addOn.entitlements ?? []).some((entitlement) => {
           return (
             entitlement.priceBehavior === EntitlementPriceBehavior.PayInAdvance
           );
@@ -930,7 +930,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
               ? BillingProductPriceInterval.Year
               : BillingProductPriceInterval.Month;
 
-      const updatedUsageBasedEntitlements = plan.entitlements.reduce(
+      const updatedUsageBasedEntitlements = (plan.entitlements ?? []).reduce(
         createActiveUsageBasedEntitlementsReducer(featureUsage, period),
         [],
       );
@@ -1028,7 +1028,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       const updatedAddOnUsageBasedEntitlements = addOns
         .filter((addOn) => addOn.isSelected)
         .flatMap((addOn) =>
-          addOn.entitlements.reduce(
+          (addOn.entitlements ?? []).reduce(
             createActiveUsageBasedEntitlementsReducer(featureUsage, period),
             [] as UsageBasedEntitlement[],
           ),
@@ -1079,7 +1079,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       const updatedAddOnEntitlements = updated
         .filter((addOn) => addOn.isSelected)
         .flatMap((addOn) => {
-          return addOn.entitlements
+          return (addOn.entitlements ?? [])
             .filter((entitlement) => !!entitlement.priceBehavior)
             .map((source) => {
               const found = addOnUsageBasedEntitlements.find(

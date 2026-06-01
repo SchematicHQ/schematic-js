@@ -106,7 +106,7 @@ export const Plan = ({
             currency,
           ) || {};
         const credits = groupPlanCreditGrants(plan.includedCreditGrants);
-        const hasUsageBasedEntitlements = plan.entitlements.some(
+        const hasUsageBasedEntitlements = (plan.entitlements ?? []).some(
           (entitlement) => !!entitlement.priceBehavior,
         );
         const isFreePlan = planPrice === 0;
@@ -302,9 +302,9 @@ export const Plan = ({
               $gap={`${cardPadding}rem`}
               $padding={`${0.75 * cardPadding}rem ${cardPadding}rem 0`}
             >
-              {plan.entitlements.length > 0 && (
+              {(plan.entitlements ?? []).length > 0 && (
                 <Flex $flexDirection="column" $gap="1rem" $flexGrow={1}>
-                  {plan.entitlements.reduce(
+                  {(plan.entitlements ?? []).reduce(
                     (acc: React.ReactNode[], entitlement, entitlementIndex) => {
                       if (
                         isExpanded ||
@@ -327,7 +327,7 @@ export const Plan = ({
                     [],
                   )}
 
-                  {plan.entitlements.length > VISIBLE_ENTITLEMENT_COUNT && (
+                  {(plan.entitlements ?? []).length > VISIBLE_ENTITLEMENT_COUNT && (
                     <Flex
                       $alignItems="center"
                       $justifyContent="start"

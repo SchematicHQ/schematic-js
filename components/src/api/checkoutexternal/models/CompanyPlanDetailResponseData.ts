@@ -271,7 +271,7 @@ export interface CompanyPlanDetailResponseData {
    * @type {Array<PlanEntitlementResponseData>}
    * @memberof CompanyPlanDetailResponseData
    */
-  entitlements: Array<PlanEntitlementResponseData>;
+  entitlements?: Array<PlanEntitlementResponseData> | null;
   /**
    *
    * @type {Array<FeatureInPlanResponseData>}
@@ -426,8 +426,6 @@ export function instanceOfCompanyPlanDetailResponseData(
   if (!("custom" in value) || value["custom"] === undefined) return false;
   if (!("description" in value) || value["description"] === undefined)
     return false;
-  if (!("entitlements" in value) || value["entitlements"] === undefined)
-    return false;
   if (!("features" in value) || value["features"] === undefined) return false;
   if (!("icon" in value) || value["icon"] === undefined) return false;
   if (!("id" in value) || value["id"] === undefined) return false;
@@ -512,9 +510,12 @@ export function CompanyPlanDetailResponseDataFromJSONTyped(
       json["draft_version"] == null
         ? undefined
         : PlanVersionResponseDataFromJSON(json["draft_version"]),
-    entitlements: (json["entitlements"] as Array<any>).map(
-      PlanEntitlementResponseDataFromJSON,
-    ),
+    entitlements:
+      json["entitlements"] == null
+        ? undefined
+        : (json["entitlements"] as Array<any>).map(
+            PlanEntitlementResponseDataFromJSON,
+          ),
     features: (json["features"] as Array<any>).map(
       FeatureInPlanResponseDataFromJSON,
     ),
@@ -605,9 +606,12 @@ export function CompanyPlanDetailResponseDataToJSONTyped(
     custom_plan_config: CustomPlanConfigToJSON(value["customPlanConfig"]),
     description: value["description"],
     draft_version: PlanVersionResponseDataToJSON(value["draftVersion"]),
-    entitlements: (value["entitlements"] as Array<any>).map(
-      PlanEntitlementResponseDataToJSON,
-    ),
+    entitlements:
+      value["entitlements"] == null
+        ? undefined
+        : (value["entitlements"] as Array<any>).map(
+            PlanEntitlementResponseDataToJSON,
+          ),
     features: (value["features"] as Array<any>).map(
       FeatureInPlanResponseDataToJSON,
     ),
