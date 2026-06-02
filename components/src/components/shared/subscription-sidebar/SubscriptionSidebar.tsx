@@ -69,6 +69,8 @@ interface SubscriptionSidebarProps extends Omit<BoxProps, "children"> {
   error?: string;
   isLoading: boolean;
   isPaymentMethodRequired: boolean;
+  optInRequired?: boolean;
+  optInAccepted?: boolean;
   paymentMethodId?: string;
   promoCode?: string | null;
   setCheckoutStage?: (stage: string) => void;
@@ -110,6 +112,8 @@ export const SubscriptionSidebar = forwardRef<
       error,
       isLoading,
       isPaymentMethodRequired,
+      optInRequired = false,
+      optInAccepted = false,
       paymentMethodId,
       promoCode,
       setCheckoutStage,
@@ -506,6 +510,7 @@ export const SubscriptionSidebar = forwardRef<
             ([id, value]) => ({ id, value }),
           ),
           skipTrial: !shouldTrial,
+          optInAccepted,
           ...(paymentMethodId && { paymentMethodId }),
           ...(promoCode && { promoCode }),
         });
@@ -604,6 +609,7 @@ export const SubscriptionSidebar = forwardRef<
       addOnPayInAdvanceEntitlements,
       shouldTrial,
       promoCode,
+      optInAccepted,
       finishCheckout,
       currency,
       customFieldValues,
@@ -650,6 +656,8 @@ export const SubscriptionSidebar = forwardRef<
               checkoutStages={checkoutStages}
               hasPlan={typeof selectedPlan !== "undefined"}
               isPaymentMethodRequired={isPaymentMethodRequired}
+              optInRequired={optInRequired}
+              optInAccepted={optInAccepted}
               hasPaymentMethod={
                 typeof paymentMethod !== "undefined" ||
                 typeof paymentMethodId === "string"
@@ -699,6 +707,8 @@ export const SubscriptionSidebar = forwardRef<
       willTrialWithoutPaymentMethod,
       shouldTrial,
       isPaymentMethodRequired,
+      optInRequired,
+      optInAccepted,
       willScheduleDowngrade,
       paymentMethod,
       paymentMethodId,

@@ -11,8 +11,9 @@ import type {
   SelectedPlan,
   UsageBasedEntitlement,
 } from "../../../types";
+import { renderOptInMarkdown } from "../../../utils";
 import { PaymentMethodDetails } from "../../elements";
-import { Box, Flex, Input, Text } from "../../ui";
+import { Box, Checkbox, Flex, Input, Text } from "../../ui";
 
 import { CustomCheckoutFields } from "./CustomCheckoutFields";
 
@@ -26,6 +27,11 @@ interface CheckoutProps {
   customFieldValues: Record<string, string>;
   isPaymentMethodRequired: boolean;
   onCustomFieldChange: (fieldId: string, value: string) => void;
+  optInRequired: boolean;
+  optInTitle?: string | null;
+  optInText?: string | null;
+  optInAccepted: boolean;
+  setOptInAccepted: (accepted: boolean) => void;
   setPaymentMethodId: (id: string) => void;
   updatePromoCode: (code: string) => void;
   confirmPaymentIntentProps?: ConfirmPaymentIntentProps | null | undefined;
@@ -47,6 +53,11 @@ export const Checkout = ({
   customFieldValues,
   isPaymentMethodRequired,
   onCustomFieldChange,
+  optInRequired,
+  optInTitle,
+  optInText,
+  optInAccepted,
+  setOptInAccepted,
   setPaymentMethodId,
   updatePromoCode,
   confirmPaymentIntentProps,
@@ -64,11 +75,15 @@ export const Checkout = ({
 
   // The checkout stage can be reached without a payment method when the only
   // reason it exists is to collect custom checkout fields (e.g. a returning
-  // customer with a card already on file). Render nothing only when there is
-  // genuinely nothing to show.
-  if (!isPaymentMethodRequired && !hasCustomFields) {
+  // customer with a card already on file) or an agreement. Render nothing only
+  // when there is genuinely nothing to show.
+  if (!isPaymentMethodRequired && !hasCustomFields && !optInRequired) {
     return null;
   }
+
+  const cardBackground = isLightBackground
+    ? "hsla(0, 0%, 0%, 0.0625)"
+    : "hsla(0, 0%, 100%, 0.125)";
 
   return (
     <Flex $flexDirection="column" $gap="1.5rem">
@@ -89,11 +104,7 @@ export const Checkout = ({
             <Flex
               $alignItems="center"
               $gap="1rem"
-              $backgroundColor={
-                isLightBackground
-                  ? "hsla(0, 0%, 0%, 0.0625)"
-                  : "hsla(0, 0%, 100%, 0.125)"
-              }
+              $backgroundColor={cardBackground}
               $borderRadius="9999px"
             >
               <Box $flexGrow={1}>
@@ -143,6 +154,40 @@ export const Checkout = ({
             values={customFieldValues}
             onChange={onCustomFieldChange}
           />
+        </Flex>
+      )}
+
+      {optInRequired && (
+        <Flex $flexDirection="column" $gap="1rem">
+          <Box>
+            <Text display="heading4">{optInTitle || t("Agreement")}</Text>
+          </Box>
+
+          <Flex
+            $alignItems="flex-start"
+            $gap="1rem"
+            $padding="1rem"
+            $backgroundColor={cardBackground}
+            $borderRadius="0.5rem"
+            style={{ cursor: "pointer" }}
+            onClick={(event) => {
+              // Let clicks on links pass through to the link; otherwise toggle.
+              if ((event.target as HTMLElement).closest("a")) {
+                return;
+              }
+              setOptInAccepted(!optInAccepted);
+            }}
+          >
+            <Checkbox
+              checked={optInAccepted}
+              onChange={(event) => setOptInAccepted(event.target.checked)}
+              onClick={(event) => event.stopPropagation()}
+              aria-label={optInTitle || t("Agreement")}
+            />
+            <Box $flexGrow={1}>
+              <Text>{renderOptInMarkdown(optInText)}</Text>
+            </Box>
+          </Flex>
         </Flex>
       )}
     </Flex>

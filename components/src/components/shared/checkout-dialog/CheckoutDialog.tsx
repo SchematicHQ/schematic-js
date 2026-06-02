@@ -606,6 +606,14 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
   const [isPaymentMethodRequired, setIsPaymentMethodRequired] = useState(false);
 
+  // Custom opt-in (mirrors isPaymentMethodRequired): the API returns these on the
+  // checkout preview only for an initial paid subscription. optInAccepted is the
+  // end-user's transient checkbox state for this checkout session.
+  const [optInRequired, setOptInRequired] = useState(false);
+  const [optInTitle, setOptInTitle] = useState<string | null>(null);
+  const [optInText, setOptInText] = useState<string | null>(null);
+  const [optInAccepted, setOptInAccepted] = useState(false);
+
   const [willScheduleDowngrade, setWillScheduleDowngrade] = useState(false);
 
   const willTrialWithoutPaymentMethod = useMemo(
@@ -978,6 +986,9 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
         if (response) {
           setCharges(response.data.finance);
           setIsPaymentMethodRequired(response.data.paymentMethodRequired);
+          setOptInRequired(response.data.optInRequired);
+          setOptInTitle(response.data.optInTitle ?? null);
+          setOptInText(response.data.optInText ?? null);
           setWillScheduleDowngrade(response.data.isScheduledDowngrade);
         }
 
@@ -1793,6 +1804,11 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
                 customFieldValues={customFieldValues}
                 isPaymentMethodRequired={isPaymentMethodRequired}
                 onCustomFieldChange={handleCustomFieldChange}
+                optInRequired={optInRequired}
+                optInTitle={optInTitle}
+                optInText={optInText}
+                optInAccepted={optInAccepted}
+                setOptInAccepted={setOptInAccepted}
                 setPaymentMethodId={(id) => setPaymentMethodId(id)}
                 updatePromoCode={updatePromoCode}
                 confirmPaymentIntentProps={confirmPaymentIntentProps}
@@ -1823,6 +1839,8 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
           error={error}
           isLoading={isLoading}
           isPaymentMethodRequired={isPaymentMethodRequired}
+          optInRequired={optInRequired}
+          optInAccepted={optInAccepted}
           paymentMethodId={paymentMethodId}
           promoCode={promoCode}
           setCheckoutStage={(stage) => setCheckoutStage(stage)}
