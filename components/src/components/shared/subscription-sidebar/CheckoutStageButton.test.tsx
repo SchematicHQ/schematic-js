@@ -361,4 +361,91 @@ describe("`CheckoutStageButton` component", () => {
       expect(screen.getByText(/Checkout/)).toBeInTheDocument();
     });
   });
+
+  describe("custom opt-in", () => {
+    test("does not disable the 'Next' button on an earlier stage when opt-in is unaccepted", () => {
+      render(
+        <CheckoutStageButton
+          {...defaultProps}
+          checkoutStage="plan"
+          optInRequired={true}
+          optInAccepted={false}
+        />,
+      );
+
+      const button = screen.getByRole("button");
+      expect(button).not.toBeDisabled();
+    });
+
+    test("still navigates between stages when opt-in is unaccepted", async () => {
+      const setCheckoutStage = vi.fn();
+
+      render(
+        <CheckoutStageButton
+          {...defaultProps}
+          checkoutStage="plan"
+          optInRequired={true}
+          optInAccepted={false}
+          setCheckoutStage={setCheckoutStage}
+        />,
+      );
+
+      const button = screen.getByRole("button");
+      await act(async () => {
+        fireEvent.click(button);
+      });
+
+      expect(setCheckoutStage).toHaveBeenCalledWith("checkout");
+    });
+
+    test("disables 'Pay now' at the checkout stage when opt-in is unaccepted", () => {
+      render(
+        <CheckoutStageButton
+          {...defaultProps}
+          checkoutStage="checkout"
+          hasPaymentMethod={true}
+          isPaymentMethodRequired={true}
+          optInRequired={true}
+          optInAccepted={false}
+        />,
+      );
+
+      const button = screen.getByRole("button");
+      expect(button).toBeDisabled();
+      expect(
+        screen.getByText("Please accept the agreement to continue."),
+      ).toBeInTheDocument();
+    });
+
+    test("enables 'Pay now' at the checkout stage once opt-in is accepted", () => {
+      render(
+        <CheckoutStageButton
+          {...defaultProps}
+          checkoutStage="checkout"
+          hasPaymentMethod={true}
+          isPaymentMethodRequired={true}
+          optInRequired={true}
+          optInAccepted={true}
+        />,
+      );
+
+      const button = screen.getByRole("button");
+      expect(button).not.toBeDisabled();
+    });
+
+    test("gates the no-payment-required checkout button on opt-in acceptance", () => {
+      render(
+        <CheckoutStageButton
+          {...defaultProps}
+          checkoutStage="checkout"
+          isPaymentMethodRequired={false}
+          optInRequired={true}
+          optInAccepted={false}
+        />,
+      );
+
+      const button = screen.getByRole("button");
+      expect(button).toBeDisabled();
+    });
+  });
 });

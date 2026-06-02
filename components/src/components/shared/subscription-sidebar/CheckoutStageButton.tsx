@@ -95,8 +95,13 @@ export const CheckoutStageButton = ({
     isLoading ||
     (!hasPlan && !isCreditOnlyPurchase) ||
     inEditMode ||
-    !canCheckout ||
-    (optInRequired && !optInAccepted);
+    !canCheckout;
+
+  // The opt-in agreement is collected on the final `checkout` stage, so it must
+  // only gate finalizing checkout there — never the "Next" buttons that move
+  // between earlier stages, which would otherwise trap the user before they can
+  // even reach the agreement.
+  const optInUnmet = optInRequired && !optInAccepted;
 
   // Helper to get the next stage after the current one
   const getNextStageId = (currentStageId: string): string | undefined => {
@@ -383,18 +388,19 @@ export const CheckoutStageButton = ({
 
   if (checkoutStage === "checkout") {
     // Amber helper shown below the button when an unaccepted opt-in is blocking checkout.
-    const optInNotice =
-      optInRequired && !optInAccepted ? (
-        <Text $color="#D97706" $size={15}>
-          {t("Please accept the agreement to continue.")}
-        </Text>
-      ) : null;
+    const optInNotice = optInUnmet ? (
+      <Text $color="#D97706" $size={15}>
+        {t("Please accept the agreement to continue.")}
+      </Text>
+    ) : null;
 
     if (!isPaymentMethodRequired) {
       return (
         <Flex $flexDirection="column" $gap="0.5rem">
           <NoPaymentRequired
-            isDisabled={isDisabled || hasIncompleteRequiredCustomFields}
+            isDisabled={
+              isDisabled || hasIncompleteRequiredCustomFields || optInUnmet
+            }
             isLoading={isLoading}
             onClick={checkout}
             isSticky={isSticky}
@@ -410,7 +416,10 @@ export const CheckoutStageButton = ({
         <Button
           type="button"
           disabled={
-            isDisabled || !hasPaymentMethod || hasIncompleteRequiredCustomFields
+            isDisabled ||
+            !hasPaymentMethod ||
+            hasIncompleteRequiredCustomFields ||
+            optInUnmet
           }
           onClick={checkout}
           $fullWidth
