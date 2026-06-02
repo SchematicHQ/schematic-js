@@ -279,6 +279,12 @@ export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {
           bypassAddOnSelection,
           bypassCreditsSelection,
           ...(config.addOnIds && { addOnIds: config.addOnIds }),
+          ...(config.currency && {
+            selectedCurrency: config.currency.toUpperCase(),
+          }),
+          ...(config.showCurrencySelector !== undefined && {
+            showCurrencySelector: config.showCurrencySelector,
+          }),
           hideSkippedStages: config.hideSkipped ?? false,
           startTrialIfAvailable:
             isStringFormat || config.startTrialIfAvailable === undefined

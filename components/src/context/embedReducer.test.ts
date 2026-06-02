@@ -292,6 +292,66 @@ describe("embedReducer - SET_PLANID_BYPASS", () => {
       expect(result.checkoutState?.period).toBeUndefined();
     });
   });
+
+  describe("Currency Configuration", () => {
+    it("should pre-select the currency, uppercased", () => {
+      const config: BypassConfig = {
+        planId: "plan_xyz",
+        currency: "eur",
+      };
+
+      const result = reducer(initialState, {
+        type: "SET_PLANID_BYPASS",
+        config,
+      });
+
+      expect(result.checkoutState?.selectedCurrency).toBe("EUR");
+    });
+
+    it("should not set selectedCurrency when currency is not provided", () => {
+      const config: BypassConfig = {
+        planId: "plan_xyz",
+      };
+
+      const result = reducer(initialState, {
+        type: "SET_PLANID_BYPASS",
+        config,
+      });
+
+      expect(result.checkoutState?.selectedCurrency).toBeUndefined();
+    });
+
+    it("should carry showCurrencySelector through when set to false", () => {
+      const config: BypassConfig = {
+        planId: "plan_xyz",
+        currency: "EUR",
+        showCurrencySelector: false,
+        skipped: { planStage: true },
+      };
+
+      const result = reducer(initialState, {
+        type: "SET_PLANID_BYPASS",
+        config,
+      });
+
+      expect(result.checkoutState?.showCurrencySelector).toBe(false);
+      expect(result.checkoutState?.selectedCurrency).toBe("EUR");
+      expect(result.checkoutState?.bypassPlanSelection).toBe(true);
+    });
+
+    it("should leave showCurrencySelector undefined when not provided", () => {
+      const config: BypassConfig = {
+        planId: "plan_xyz",
+      };
+
+      const result = reducer(initialState, {
+        type: "SET_PLANID_BYPASS",
+        config,
+      });
+
+      expect(result.checkoutState?.showCurrencySelector).toBeUndefined();
+    });
+  });
 });
 
 describe("embedReducer - SET_CHECKOUT_PREFILL", () => {
