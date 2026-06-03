@@ -1,4 +1,6 @@
-import { Fragment, type ReactNode } from "react";
+import { Fragment } from "react";
+
+import { Text } from "../components";
 
 // Matches the three opt-in markdown constructs we support, in precedence order:
 // a link `[text](url)`, bold `**text**`, then italic `*text*`. Anything else is
@@ -24,12 +26,12 @@ const isSafeUrl = (url: string): boolean => {
  * and always open in a new tab with `rel="noopener noreferrer"`; an unsafe URL renders
  * its link text as plain text instead.
  */
-export const renderOptInMarkdown = (text?: string | null): ReactNode => {
+export const renderOptInMarkdown = (text?: string | null): React.ReactNode => {
   if (!text) {
     return null;
   }
 
-  const nodes: ReactNode[] = [];
+  const nodes: React.ReactNode[] = [];
   let lastIndex = 0;
   let key = 0;
 
@@ -47,14 +49,16 @@ export const renderOptInMarkdown = (text?: string | null): ReactNode => {
       const parts = LINK.exec(link);
       if (parts && isSafeUrl(parts[2])) {
         nodes.push(
-          <a
+          <Text
+            as="a"
+            display="link"
             key={key++}
             href={parts[2]}
             target="_blank"
             rel="noopener noreferrer"
           >
             {parts[1]}
-          </a>,
+          </Text>,
         );
       } else {
         nodes.push(<Fragment key={key++}>{parts ? parts[1] : token}</Fragment>);

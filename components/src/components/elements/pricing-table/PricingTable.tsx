@@ -1,6 +1,5 @@
 import {
   Fragment,
-  HTMLAttributeAnchorTarget,
   forwardRef,
   useCallback,
   useEffect,
@@ -120,7 +119,7 @@ const resolveDesignProps = (props: DeepPartial<DesignProps>): DesignProps => {
 
 export type PricingTableOptions = {
   callToActionUrl?: string;
-  callToActionTarget?: HTMLAttributeAnchorTarget;
+  callToActionTarget?: React.HTMLAttributeAnchorTarget;
   onCallToAction?: (
     plan: PlanViewPublicResponseData | CompanyPlanDetailResponseData,
   ) => unknown;
@@ -143,7 +142,7 @@ export const PricingTable = forwardRef<
     useEmbed();
 
   const getCallToActionTarget = useCallback(
-    (url?: string, target?: HTMLAttributeAnchorTarget) => {
+    (url?: string, target?: React.HTMLAttributeAnchorTarget) => {
       if (target) {
         return target;
       }
