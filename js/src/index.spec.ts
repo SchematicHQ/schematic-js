@@ -1547,6 +1547,74 @@ describe("WebSocket Fallback Behavior", () => {
 
       await schematic.cleanup();
     });
+
+    it("should automatically reconnect after an established connection is dropped by the server", async () => {
+      const schematic = new Schematic("API_KEY", {
+        useWebSocket: true,
+        webSocketUrl: TEST_WS_URL,
+        flagValueDefaults: {
+          "credit-remaining": false,
+        },
+      });
+
+      const context = {
+        company: { companyId: "456" },
+        user: { userId: "123" },
+      };
+
+      // First connection reports the flag as true; if the client correctly
+      // reconnects after the connection is dropped, the second connection will
+      // report false, proving fresh values arrive over the new socket.
+      let connectionCount = 0;
+      const serverSockets: Array<{ close: () => void }> = [];
+      mockServer.on("connection", (socket) => {
+        connectionCount += 1;
+        const valueForThisConnection = connectionCount === 1;
+        serverSockets.push(socket);
+        socket.on("message", () => {
+          socket.send(
+            JSON.stringify({
+              flags: [
+                {
+                  flag: "credit-remaining",
+                  value: valueForThisConnection,
+                  reason: `connection ${connectionCount}`,
+                },
+              ],
+            }),
+          );
+        });
+      });
+
+      // Establish the connection and receive the first value.
+      const first = await schematic.checkFlag({
+        key: "credit-remaining",
+        context,
+      });
+      expect(first).toBe(true);
+      expect(connectionCount).toBe(1);
+
+      // Simulate the server dropping an idle connection. This is NOT a
+      // client-initiated (intentional) disconnect, so the client should
+      // automatically reconnect.
+      serverSockets[0].close();
+
+      // Wait for the auto-reconnect (exponential backoff starts ~1s).
+      await new Promise((resolve) => setTimeout(resolve, 2500));
+
+      // The client should have reconnected on its own without any explicit
+      // forceReconnect/setContext call.
+      expect(connectionCount).toBe(2);
+
+      // And it should now receive fresh pushes over the new connection.
+      const second = await schematic.checkFlag({
+        key: "credit-remaining",
+        context,
+      });
+      expect(second).toBe(false);
+
+      await schematic.cleanup();
+    }, 15000);
   });
 
   describe("WebSocket priority over fallbacks", () => {

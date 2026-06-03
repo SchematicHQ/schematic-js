@@ -1881,6 +1881,11 @@ export class Schematic {
 
       let timeoutId: ReturnType<typeof setTimeout> | null = null;
       let isResolved = false;
+      // Tracks whether this socket ever successfully opened. We only want to
+      // auto-reconnect when an established connection is later lost (e.g. the
+      // server closes an idle connection), not when the initial handshake
+      // fails — those are handled by wsConnect's own retry loop.
+      let didOpen = false;
 
       // Set up connection timeout
       timeoutId = setTimeout(() => {
@@ -1897,6 +1902,7 @@ export class Schematic {
       webSocket.onopen = () => {
         if (isResolved) return; // Ignore if already timed out
         isResolved = true;
+        didOpen = true;
         if (timeoutId !== null) {
           clearTimeout(timeoutId);
         }
@@ -1938,7 +1944,7 @@ export class Schematic {
         // Only trigger reconnect if we successfully connected before (not during initial connection attempts)
         // and not intentionally disconnected
         if (
-          !isResolved &&
+          didOpen &&
           !this.wsIntentionalDisconnect &&
           this.webSocketReconnect
         ) {
