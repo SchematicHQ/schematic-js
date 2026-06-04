@@ -30,6 +30,7 @@ import {
   useAvailablePlans,
   useEmbed,
   useIsLightBackground,
+  useLatestRequestGuard,
   useSubscriptionCurrency,
 } from "../../../hooks";
 import type {
@@ -735,12 +736,12 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     return id;
   }, [checkoutStage, checkoutStages, checkoutState, isBypassLoading]);
 
-  // Monotonically increasing id used to discard stale preview responses.
-  // Multiple previews can be in flight at once (e.g. typing "11" into a
-  // quantity input fires a preview for "1" and another for "11"); without
-  // this guard, whichever response resolves last wins and the dialog can
-  // display charges for a quantity the user is no longer requesting.
-  const previewRequestIdRef = useRef(0);
+  // Discards stale preview responses. Multiple previews can be in flight at
+  // once (e.g. typing "11" into a quantity input fires a preview for "1" and
+  // another for "11"); without this guard, whichever response resolves last
+  // wins and the dialog can display charges for a quantity the user is no
+  // longer requesting.
+  const beginPreviewRequest = useLatestRequestGuard();
 
   const handlePreviewCheckout = useCallback(
     async (updates: PreviewCheckoutUpdates) => {
@@ -790,8 +791,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
         return;
       }
 
-      const requestId = ++previewRequestIdRef.current;
-      const isStale = () => requestId !== previewRequestIdRef.current;
+      const isStale = beginPreviewRequest();
 
       setError(undefined);
       setCharges(undefined);
@@ -927,6 +927,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     },
     [
       t,
+      beginPreviewRequest,
       data?.company?.plan?.includedCreditGrants,
       data?.company?.billingSubscription,
       previewCheckout,

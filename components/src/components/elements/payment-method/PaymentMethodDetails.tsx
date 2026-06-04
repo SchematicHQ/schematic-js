@@ -16,6 +16,7 @@ import { type FontStyle } from "../../../context";
 import {
   useEmbed,
   useIsLightBackground,
+  useLatestRequestGuard,
   usePaymentConfirmation,
 } from "../../../hooks";
 import type {
@@ -198,25 +199,35 @@ export const PaymentMethodDetails = ({
       });
   }, [t, stripe, setupIntent]);
 
+  // The effect below can re-run while a setup intent is still being created
+  // (its deps include `showPaymentForm`/`currentPaymentMethod`); guard so a
+  // superseded request's response can't overwrite the latest setup intent.
+  const beginSetupIntentRequest = useLatestRequestGuard();
+
   const initializePaymentMethod = useCallback(() => {
+    const isStale = beginSetupIntentRequest();
     const pending = createSetupIntent() ?? Promise.resolve(undefined);
 
     return pending
       .then((response) => {
-        if (response) {
+        if (response && !isStale()) {
           setSetupIntent(response.data);
         }
       })
       .catch(() => {
-        setError(
-          t("Error initializing payment method change. Please try again."),
-        );
+        if (!isStale()) {
+          setError(
+            t("Error initializing payment method change. Please try again."),
+          );
+        }
       })
       .finally(() => {
-        setShowPaymentForm(true);
-        setIsLoading(false);
+        if (!isStale()) {
+          setShowPaymentForm(true);
+          setIsLoading(false);
+        }
       });
-  }, [t, createSetupIntent]);
+  }, [t, beginSetupIntentRequest, createSetupIntent]);
 
   const handleUpdatePaymentMethod = useCallback(
     async (paymentMethodId: string) => {

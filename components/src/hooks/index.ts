@@ -3,6 +3,7 @@ export * from "./useAvailablePlans";
 export * from "./useCustomPlanBilling";
 export * from "./useEmbed";
 export * from "./useIsLightBackground";
+export * from "./useLatestRequestGuard";
 export * from "./usePaymentConfirmation";
 export * from "./useRequest";
 export * from "./useTrialEnd";

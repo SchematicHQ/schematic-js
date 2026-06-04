@@ -7,7 +7,7 @@ import {
 } from "../../../api/checkoutexternal";
 import { MAX_VISIBLE_INVOICE_COUNT } from "../../../const";
 import { type FontStyle } from "../../../context";
-import { useEmbed } from "../../../hooks";
+import { useEmbed, useLatestRequestGuard } from "../../../hooks";
 import type { DeepPartial, ElementProps } from "../../../types";
 import {
   ERROR_UNKNOWN,
@@ -150,22 +150,32 @@ export const Invoices = forwardRef<
   );
   const [listSize, setListSize] = useState(props.limit.number);
 
+  // Guard against an earlier fetch resolving after a later one (or after the
+  // list has been refreshed via props/shared data) and clobbering newer data.
+  const beginInvoicesRequest = useLatestRequestGuard();
+
   const getInvoices = useCallback(async () => {
+    const isStale = beginInvoicesRequest();
+
     try {
       setError(undefined);
       setIsLoading(true);
 
       const response = await listInvoices();
 
-      if (response) {
+      if (response && !isStale()) {
         setInvoices(formatInvoices(response.data));
       }
     } catch (err) {
-      setError(isError(err) ? err : ERROR_UNKNOWN);
+      if (!isStale()) {
+        setError(isError(err) ? err : ERROR_UNKNOWN);
+      }
     } finally {
-      setIsLoading(false);
+      if (!isStale()) {
+        setIsLoading(false);
+      }
     }
-  }, [listInvoices]);
+  }, [beginInvoicesRequest, listInvoices]);
 
   const toggleListSize = () => {
     setListSize((prev) =>
