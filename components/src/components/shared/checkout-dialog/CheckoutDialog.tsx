@@ -1,3 +1,5 @@
+import type { DebouncedFunc } from "lodash";
+import debounce from "lodash/debounce";
 import {
   useCallback,
   useEffect,
@@ -17,7 +19,12 @@ import {
   type PlanEntitlementResponseData,
   type PreviewSubscriptionFinanceResponseData,
 } from "../../../api/checkoutexternal";
-import { DEFAULT_CURRENCY, TEXT_BASE_SIZE } from "../../../const";
+import {
+  DEFAULT_CURRENCY,
+  FETCH_DEBOUNCE_TIMEOUT,
+  TEXT_BASE_SIZE,
+  TRAILING_DEBOUNCE_SETTINGS,
+} from "../../../const";
 import {
   useAvailableCurrenciesWithInvalid,
   useAvailablePlans,
@@ -108,6 +115,18 @@ export interface CheckoutStage {
   name: string;
   label?: string;
   description?: string;
+}
+
+interface PreviewCheckoutUpdates {
+  period?: string;
+  plan?: SelectedPlan;
+  shouldTrial?: boolean;
+  autoTopupConfigs?: Map<string, AutoTopupConfig>;
+  addOns?: SelectedPlan[];
+  payInAdvanceEntitlements?: UsageBasedEntitlement[];
+  addOnPayInAdvanceEntitlements?: UsageBasedEntitlement[];
+  creditBundles?: CreditBundle[];
+  promoCode?: string | null;
 }
 
 interface CheckoutDialogProps {
@@ -716,18 +735,15 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     return id;
   }, [checkoutStage, checkoutStages, checkoutState, isBypassLoading]);
 
+  // Monotonically increasing id used to discard stale preview responses.
+  // Multiple previews can be in flight at once (e.g. typing "11" into a
+  // quantity input fires a preview for "1" and another for "11"); without
+  // this guard, whichever response resolves last wins and the dialog can
+  // display charges for a quantity the user is no longer requesting.
+  const previewRequestIdRef = useRef(0);
+
   const handlePreviewCheckout = useCallback(
-    async (updates: {
-      period?: string;
-      plan?: SelectedPlan;
-      shouldTrial?: boolean;
-      autoTopupConfigs?: Map<string, AutoTopupConfig>;
-      addOns?: SelectedPlan[];
-      payInAdvanceEntitlements?: UsageBasedEntitlement[];
-      addOnPayInAdvanceEntitlements?: UsageBasedEntitlement[];
-      creditBundles?: CreditBundle[];
-      promoCode?: string | null;
-    }) => {
+    async (updates: PreviewCheckoutUpdates) => {
       const period = updates.period || planPeriod;
       const plan = updates.plan || selectedPlan;
       const resolvedCurrency = hasCurrency ? effectiveCurrency : undefined;
@@ -773,6 +789,9 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
         setSelectedPlanId(null);
         return;
       }
+
+      const requestId = ++previewRequestIdRef.current;
+      const isStale = () => requestId !== previewRequestIdRef.current;
 
       setError(undefined);
       setCharges(undefined);
@@ -833,6 +852,12 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
           ...(code && { promoCode: code }),
         });
 
+        // A newer preview superseded this one while it was in flight; let the
+        // newer request's response drive the UI.
+        if (isStale()) {
+          return;
+        }
+
         if (response) {
           setCharges(response.data.finance);
           setIsPaymentMethodRequired(response.data.paymentMethodRequired);
@@ -843,6 +868,10 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
           setPromoCode(code);
         }
       } catch (err) {
+        if (isStale()) {
+          return;
+        }
+
         if (err instanceof ResponseError) {
           if (err.response.status === 401) {
             setError(t("Session expired. Please refresh and try again."));
@@ -885,10 +914,14 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
         const { message: msg } = isError(err) ? err : ERROR_UNKNOWN;
         setError(msg);
       } finally {
-        setIsLoading(false);
-        // Turn off bypass loading after first API call completes
-        if (isBypassLoading) {
-          setIsBypassLoading(false);
+        // Loading state is owned by the latest request; a stale request must
+        // not clear the spinner while a newer one is still in flight.
+        if (!isStale()) {
+          setIsLoading(false);
+          // Turn off bypass loading after first API call completes
+          if (isBypassLoading) {
+            setIsBypassLoading(false);
+          }
         }
       }
     },
@@ -910,6 +943,44 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       promoCode,
       isBypassLoading,
     ],
+  );
+
+  // Debounced preview for rapid-fire inputs (quantity fields, credit bundle
+  // counts, auto top-up amounts). Typing a multi-digit quantity fires
+  // `onChange` per keystroke; previewing each intermediate value both spams
+  // the API and (before the request-id guard above) raced responses. The
+  // debounced instance must survive re-renders — `handlePreviewCheckout` gets
+  // a new identity on every state change, so debouncing it directly would
+  // reset the timer's instance each keystroke — hence the ref indirection,
+  // wired up in an effect to keep refs out of render.
+  const handlePreviewCheckoutRef = useRef(handlePreviewCheckout);
+  useEffect(() => {
+    handlePreviewCheckoutRef.current = handlePreviewCheckout;
+  }, [handlePreviewCheckout]);
+
+  const debouncedPreviewCheckoutRef = useRef<DebouncedFunc<
+    (updates: PreviewCheckoutUpdates) => void
+  > | null>(null);
+  useEffect(() => {
+    const debounced = debounce(
+      (updates: PreviewCheckoutUpdates) =>
+        handlePreviewCheckoutRef.current(updates),
+      FETCH_DEBOUNCE_TIMEOUT,
+      TRAILING_DEBOUNCE_SETTINGS,
+    );
+    debouncedPreviewCheckoutRef.current = debounced;
+
+    return () => {
+      debounced.cancel();
+      debouncedPreviewCheckoutRef.current = null;
+    };
+  }, []);
+
+  const debouncedPreviewCheckout = useCallback(
+    (updates: PreviewCheckoutUpdates) => {
+      debouncedPreviewCheckoutRef.current?.(updates);
+    },
+    [],
   );
 
   const selectPlan = useCallback(
@@ -1147,12 +1218,12 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
         nextMap.set(id, updatedConfig);
 
-        handlePreviewCheckout({ autoTopupConfigs: nextMap });
+        debouncedPreviewCheckout({ autoTopupConfigs: nextMap });
 
         return nextMap;
       });
     },
-    [handlePreviewCheckout, planCreditGrants],
+    [debouncedPreviewCheckout, planCreditGrants],
   );
 
   const updateUsageBasedEntitlementQuantity = useCallback(
@@ -1167,7 +1238,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
             : entitlement,
         );
 
-        handlePreviewCheckout({
+        debouncedPreviewCheckout({
           payInAdvanceEntitlements: updated.filter(
             ({ priceBehavior }) =>
               priceBehavior === EntitlementPriceBehavior.PayInAdvance,
@@ -1177,7 +1248,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
         return updated;
       });
     },
-    [handlePreviewCheckout],
+    [debouncedPreviewCheckout],
   );
 
   const updateCreditBundleCount = useCallback(
@@ -1192,12 +1263,12 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
             : bundle,
         );
 
-        handlePreviewCheckout({ creditBundles: updated });
+        debouncedPreviewCheckout({ creditBundles: updated });
 
         return updated;
       });
     },
-    [handlePreviewCheckout],
+    [debouncedPreviewCheckout],
   );
 
   const updateAddOnEntitlementQuantity = useCallback(
@@ -1216,14 +1287,14 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
           (entitlement) =>
             entitlement.priceBehavior === EntitlementPriceBehavior.PayInAdvance,
         );
-        handlePreviewCheckout({
+        debouncedPreviewCheckout({
           addOnPayInAdvanceEntitlements: updatedAddOnPayInAdvanceEntitlements,
         });
 
         return updated;
       });
     },
-    [handlePreviewCheckout],
+    [debouncedPreviewCheckout],
   );
 
   const updatePromoCode = useCallback(
