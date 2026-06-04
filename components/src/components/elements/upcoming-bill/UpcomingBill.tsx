@@ -6,7 +6,11 @@ import {
   type InvoiceResponseData,
 } from "../../../api/checkoutexternal";
 import { type FontStyle } from "../../../context";
-import { useEmbed, useIsLightBackground } from "../../../hooks";
+import {
+  useEmbed,
+  useIsLightBackground,
+  useLatestRequestGuard,
+} from "../../../hooks";
 import type { DeepPartial, ElementProps } from "../../../types";
 import {
   ERROR_UNKNOWN,
@@ -86,40 +90,63 @@ export const UpcomingBill = forwardRef<
     }));
   }, [data?.subscription?.discounts]);
 
+  // `getInvoice` refetches whenever `data.subscription` changes identity
+  // (i.e. on every hydrate/preview), so multiple requests can be in flight at
+  // once; guard against an earlier response resolving after a later one.
+  const beginInvoiceRequest = useLatestRequestGuard();
+  const beginBalancesRequest = useLatestRequestGuard();
+
   const getInvoice = useCallback(async () => {
     if (
       data?.component?.id &&
       data?.subscription &&
       !data.subscription.cancelAt
     ) {
+      const isStale = beginInvoiceRequest();
+
       try {
         setError(undefined);
         setIsLoading(true);
 
         const response = await getUpcomingInvoice(data.component.id);
 
+        if (isStale()) {
+          return;
+        }
+
         if (response) {
           setUpcomingInvoice(response.data);
         }
       } catch (err) {
-        setError(isError(err) ? err : ERROR_UNKNOWN);
+        if (!isStale()) {
+          setError(isError(err) ? err : ERROR_UNKNOWN);
+        }
       } finally {
-        setIsLoading(false);
+        if (!isStale()) {
+          setIsLoading(false);
+        }
       }
     }
-  }, [data?.component?.id, data?.subscription, getUpcomingInvoice]);
+  }, [
+    beginInvoiceRequest,
+    data?.component?.id,
+    data?.subscription,
+    getUpcomingInvoice,
+  ]);
 
   const getBalances = useCallback(async () => {
+    const isStale = beginBalancesRequest();
+
     try {
       const response = await getCustomerBalance();
 
-      if (response) {
+      if (response && !isStale()) {
         setBalances(response.data.balances);
       }
     } catch (err) {
       debug("Failed to fetch customer balance.", err);
     }
-  }, [debug, getCustomerBalance]);
+  }, [beginBalancesRequest, debug, getCustomerBalance]);
 
   useEffect(() => {
     getInvoice();
