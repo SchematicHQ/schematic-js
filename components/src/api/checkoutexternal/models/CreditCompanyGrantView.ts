@@ -230,6 +230,12 @@ export interface CreditCompanyGrantView {
    * @type {string}
    * @memberof CreditCompanyGrantView
    */
+  sourceGrantId?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof CreditCompanyGrantView
+   */
   sourceLabel: string;
   /**
    *
@@ -360,6 +366,8 @@ export function CreditCompanyGrantViewFromJSONTyped(
         : BillingPlanCreditGrantResetCadenceFromJSON(json["renewal_period"]),
     singularName:
       json["singular_name"] == null ? undefined : json["singular_name"],
+    sourceGrantId:
+      json["source_grant_id"] == null ? undefined : json["source_grant_id"],
     sourceLabel: json["source_label"],
     transfers:
       json["transfers"] == null
@@ -428,6 +436,7 @@ export function CreditCompanyGrantViewToJSONTyped(
       value["renewalPeriod"],
     ),
     singular_name: value["singularName"],
+    source_grant_id: value["sourceGrantId"],
     source_label: value["sourceLabel"],
     transfers:
       value["transfers"] == null
