@@ -424,8 +424,10 @@ export const EmbedProvider = ({
 
       await checkoutApi?.updateCheckoutFieldValues({
         updateCheckoutFieldValuesRequestBody: {
-          companyId,
-          values,
+          values: Object.entries(values).map(([id, value]) => ({
+            id,
+            value,
+          })),
         },
       });
 

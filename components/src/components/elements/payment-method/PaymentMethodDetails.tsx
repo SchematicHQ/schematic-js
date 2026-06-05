@@ -440,7 +440,6 @@ export const PaymentMethodDetails = ({
                 </Button>
               </Flex>
             )}
-
           </Flex>
         )}
 

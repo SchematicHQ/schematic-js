@@ -13,6 +13,14 @@
  */
 
 import { mapValues } from "../runtime";
+import type { CheckoutFieldValue } from "./CheckoutFieldValue";
+import {
+  CheckoutFieldValueFromJSON,
+  CheckoutFieldValueFromJSONTyped,
+  CheckoutFieldValueToJSON,
+  CheckoutFieldValueToJSONTyped,
+} from "./CheckoutFieldValue";
+
 /**
  *
  * @export
@@ -21,16 +29,10 @@ import { mapValues } from "../runtime";
 export interface UpdateCheckoutFieldValuesRequestBody {
   /**
    *
-   * @type {string}
+   * @type {Array<CheckoutFieldValue>}
    * @memberof UpdateCheckoutFieldValuesRequestBody
    */
-  companyId: string;
-  /**
-   *
-   * @type {{ [key: string]: string; }}
-   * @memberof UpdateCheckoutFieldValuesRequestBody
-   */
-  values: { [key: string]: string };
+  values: Array<CheckoutFieldValue>;
 }
 
 /**
@@ -39,7 +41,6 @@ export interface UpdateCheckoutFieldValuesRequestBody {
 export function instanceOfUpdateCheckoutFieldValuesRequestBody(
   value: object,
 ): value is UpdateCheckoutFieldValuesRequestBody {
-  if (!("companyId" in value) || value["companyId"] === undefined) return false;
   if (!("values" in value) || value["values"] === undefined) return false;
   return true;
 }
@@ -58,8 +59,7 @@ export function UpdateCheckoutFieldValuesRequestBodyFromJSONTyped(
     return json;
   }
   return {
-    companyId: json["company_id"],
-    values: json["values"],
+    values: (json["values"] as Array<any>).map(CheckoutFieldValueFromJSON),
   };
 }
 
@@ -78,7 +78,6 @@ export function UpdateCheckoutFieldValuesRequestBodyToJSONTyped(
   }
 
   return {
-    company_id: value["companyId"],
-    values: value["values"],
+    values: (value["values"] as Array<any>).map(CheckoutFieldValueToJSON),
   };
 }

@@ -1037,6 +1037,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       addOnPayInAdvanceEntitlements,
       addOns,
       creditBundles,
+      customFieldValues,
       shouldTrial,
       promoCode,
       isBypassLoading,
