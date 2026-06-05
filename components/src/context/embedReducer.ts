@@ -84,6 +84,7 @@ function normalize(data?: HydrateData): HydrateDataWithCompanyContext {
     },
     creditBundles: [],
     creditGrants: [],
+    customCheckoutFields: [],
     preventSelfServiceDowngrade: false,
   });
 }

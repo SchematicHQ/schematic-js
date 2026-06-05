@@ -27,6 +27,13 @@ import {
   UpdateCreditBundleRequestBodyToJSON,
   UpdateCreditBundleRequestBodyToJSONTyped,
 } from "./UpdateCreditBundleRequestBody";
+import type { CheckoutFieldValue } from "./CheckoutFieldValue";
+import {
+  CheckoutFieldValueFromJSON,
+  CheckoutFieldValueFromJSONTyped,
+  CheckoutFieldValueToJSON,
+  CheckoutFieldValueToJSONTyped,
+} from "./CheckoutFieldValue";
 import type { UpdateAddOnRequestBody } from "./UpdateAddOnRequestBody";
 import {
   UpdateAddOnRequestBodyFromJSON,
@@ -72,6 +79,12 @@ export interface ChangeSubscriptionRequestBody {
    * @memberof ChangeSubscriptionRequestBody
    */
   creditBundles: Array<UpdateCreditBundleRequestBody>;
+  /**
+   *
+   * @type {Array<CheckoutFieldValue>}
+   * @memberof ChangeSubscriptionRequestBody
+   */
+  customFieldValues: Array<CheckoutFieldValue>;
   /**
    *
    * @type {string}
@@ -124,6 +137,11 @@ export function instanceOfChangeSubscriptionRequestBody(
     return false;
   if (!("creditBundles" in value) || value["creditBundles"] === undefined)
     return false;
+  if (
+    !("customFieldValues" in value) ||
+    value["customFieldValues"] === undefined
+  )
+    return false;
   if (!("newPlanId" in value) || value["newPlanId"] === undefined) return false;
   if (!("newPriceId" in value) || value["newPriceId"] === undefined)
     return false;
@@ -159,6 +177,9 @@ export function ChangeSubscriptionRequestBodyFromJSONTyped(
         : json["coupon_external_id"],
     creditBundles: (json["credit_bundles"] as Array<any>).map(
       UpdateCreditBundleRequestBodyFromJSON,
+    ),
+    customFieldValues: (json["custom_field_values"] as Array<any>).map(
+      CheckoutFieldValueFromJSON,
     ),
     newPlanId: json["new_plan_id"],
     newPriceId: json["new_price_id"],
@@ -196,6 +217,9 @@ export function ChangeSubscriptionRequestBodyToJSONTyped(
     coupon_external_id: value["couponExternalId"],
     credit_bundles: (value["creditBundles"] as Array<any>).map(
       UpdateCreditBundleRequestBodyToJSON,
+    ),
+    custom_field_values: (value["customFieldValues"] as Array<any>).map(
+      CheckoutFieldValueToJSON,
     ),
     new_plan_id: value["newPlanId"],
     new_price_id: value["newPriceId"],
