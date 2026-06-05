@@ -5,6 +5,7 @@ export * from "./ApiError";
 export * from "./BillingCreditBurnStrategy";
 export * from "./BillingCreditExpiryType";
 export * from "./BillingCreditExpiryUnit";
+export * from "./BillingCreditLedgerAuthority";
 export * from "./BillingCreditResponseData";
 export * from "./BillingCreditRolloverPolicy";
 export * from "./BillingCreditView";

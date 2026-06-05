@@ -11,6 +11,7 @@ models/BillingCreditExpiryType.ts
 models/BillingCreditExpiryUnit.ts
 models/BillingCreditGrantReason.ts
 models/BillingCreditGrantZeroedOutReason.ts
+models/BillingCreditLedgerAuthority.ts
 models/BillingCreditResponseData.ts
 models/BillingCreditRolloverPolicy.ts
 models/BillingCreditView.ts

@@ -10,6 +10,7 @@ models/ApiError.ts
 models/BillingCreditBurnStrategy.ts
 models/BillingCreditExpiryType.ts
 models/BillingCreditExpiryUnit.ts
+models/BillingCreditLedgerAuthority.ts
 models/BillingCreditResponseData.ts
 models/BillingCreditRolloverPolicy.ts
 models/BillingCreditView.ts
