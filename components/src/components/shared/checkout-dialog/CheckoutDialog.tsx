@@ -943,7 +943,9 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
             ? []
             : [...planPayInAdvanceRequestBody, ...addOnPayInAdvanceRequestBody],
           creditBundles: creditBundlesRequestBody,
-          customFieldValues: [],
+          customFieldValues: Object.entries(customFieldValues).map(
+            ([id, value]) => ({ id, value }),
+          ),
           skipTrial,
           ...(code && { promoCode: code }),
         });

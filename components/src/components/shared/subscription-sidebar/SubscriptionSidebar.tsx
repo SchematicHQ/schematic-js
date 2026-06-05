@@ -502,15 +502,12 @@ export const SubscriptionSidebar = forwardRef<
             ? []
             : [...planPayInAdvanceRequestBody, ...addOnPayInAdvanceRequestBody],
           creditBundles: creditBundlesRequestBody,
-          customFieldValues: [],
+          customFieldValues: Object.entries(customFieldValues).map(
+            ([id, value]) => ({ id, value }),
+          ),
           skipTrial: !shouldTrial,
           ...(paymentMethodId && { paymentMethodId }),
           ...(promoCode && { promoCode }),
-          ...(Object.keys(customFieldValues).length > 0 && {
-            customFieldValues: Object.entries(customFieldValues).map(
-              ([id, value]) => ({ id, value }),
-            ),
-          }),
         });
 
         if (
