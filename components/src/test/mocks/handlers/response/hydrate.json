@@ -3478,6 +3478,7 @@
       }
     ],
     "credit_grants": [],
+    "custom_checkout_fields": [],
     "prevent_self_service_downgrade": false,
     "prevent_self_service_downgrade_button_text": null,
     "prevent_self_service_downgrade_url": null,
