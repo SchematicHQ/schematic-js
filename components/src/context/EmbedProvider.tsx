@@ -419,7 +419,9 @@ export const EmbedProvider = ({
     async (values: Record<string, string>) => {
       const companyId = state.data?.company?.id;
       if (!companyId) {
-        return;
+        // Surface as an error to the caller rather than silently resolving, so
+        // the UI does not report a successful save when nothing was persisted.
+        throw new Error("Cannot update custom field values without a company.");
       }
 
       await checkoutApi?.updateCheckoutFieldValues({

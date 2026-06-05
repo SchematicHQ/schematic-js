@@ -38,16 +38,19 @@ export const EditableCustomCheckoutFields = () => {
   }, []);
 
   const handleEdit = useCallback(() => {
+    setError(undefined);
     setValues(serverFieldValues);
     setEditing(true);
   }, [serverFieldValues]);
 
   const handleCancel = useCallback(() => {
+    setError(undefined);
     setEditing(false);
     setValues(serverFieldValues);
   }, [serverFieldValues]);
 
   const handleSave = useCallback(async () => {
+    setError(undefined);
     setIsSaving(true);
     try {
       await updateCustomFieldValues?.(values);
@@ -142,7 +145,9 @@ export const EditableCustomCheckoutFields = () => {
                 {field.name}
               </Text>
               <Text $size={14}>
-                {field.value || (
+                {field.value != null && field.value !== "" ? (
+                  field.value
+                ) : (
                   <span style={{ fontStyle: "italic", opacity: 0.5 }}>
                     {t("Not provided")}
                   </span>

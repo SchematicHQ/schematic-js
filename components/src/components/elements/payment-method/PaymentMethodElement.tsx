@@ -241,7 +241,9 @@ export const PaymentMethodElement = ({
                 {field.name}
               </Text>
               <Text $size={14}>
-                {field.value || (
+                {field.value != null && field.value !== "" ? (
+                  field.value
+                ) : (
                   <span
                     style={{
                       fontStyle: "italic",

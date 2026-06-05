@@ -59,67 +59,78 @@ export const Checkout = ({
 
   const [discount, setDiscount] = useState("");
 
-  if (!isPaymentMethodRequired) {
+  const hasCustomFields =
+    !!customCheckoutFields && customCheckoutFields.length > 0;
+
+  // The checkout stage can be reached without a payment method when the only
+  // reason it exists is to collect custom checkout fields (e.g. a returning
+  // customer with a card already on file). Render nothing only when there is
+  // genuinely nothing to show.
+  if (!isPaymentMethodRequired && !hasCustomFields) {
     return null;
   }
 
   return (
     <Flex $flexDirection="column" $gap="1.5rem">
-      <PaymentMethodDetails
-        confirmPaymentIntentProps={confirmPaymentIntentProps}
-        setPaymentMethodId={setPaymentMethodId}
-        financeData={financeData}
-        onPaymentMethodSaved={onPaymentMethodSaved}
-      />
+      {isPaymentMethodRequired && (
+        <>
+          <PaymentMethodDetails
+            confirmPaymentIntentProps={confirmPaymentIntentProps}
+            setPaymentMethodId={setPaymentMethodId}
+            financeData={financeData}
+            onPaymentMethodSaved={onPaymentMethodSaved}
+          />
 
-      <Flex $flexDirection="column" $gap="1rem">
-        <Box>
-          <Text display="heading4">{t("Discount")}</Text>
-        </Box>
+          <Flex $flexDirection="column" $gap="1rem">
+            <Box>
+              <Text display="heading4">{t("Discount")}</Text>
+            </Box>
 
-        <Flex
-          $alignItems="center"
-          $gap="1rem"
-          $backgroundColor={
-            isLightBackground
-              ? "hsla(0, 0%, 0%, 0.0625)"
-              : "hsla(0, 0%, 100%, 0.125)"
-          }
-          $borderRadius="9999px"
-        >
-          <Box $flexGrow={1}>
-            <Input
-              $size="full"
-              $color="secondary"
-              $variant="text"
-              type="text"
-              placeholder={t("Enter discount code")}
-              value={discount}
-              onChange={(event) => {
-                const value = event.target.value;
-                setDiscount(value);
-              }}
-              style={{
-                backgroundColor: "transparent",
-                border: "none",
-                borderRadius: "9999px",
-                maxWidth: "100%",
-                padding: "0.5rem 1rem",
-              }}
-            />
-          </Box>
-
-          <Box $flexShrink={0} $padding="0.5rem 1rem">
-            <Text
-              onClick={() => updatePromoCode(discount)}
-              display="link"
-              $leading="none"
+            <Flex
+              $alignItems="center"
+              $gap="1rem"
+              $backgroundColor={
+                isLightBackground
+                  ? "hsla(0, 0%, 0%, 0.0625)"
+                  : "hsla(0, 0%, 100%, 0.125)"
+              }
+              $borderRadius="9999px"
             >
-              {t("Apply discount")}
-            </Text>
-          </Box>
-        </Flex>
-      </Flex>
+              <Box $flexGrow={1}>
+                <Input
+                  $size="full"
+                  $color="secondary"
+                  $variant="text"
+                  type="text"
+                  placeholder={t("Enter discount code")}
+                  value={discount}
+                  onChange={(event) => {
+                    const value = event.target.value;
+                    setDiscount(value);
+                  }}
+                  style={{
+                    backgroundColor: "transparent",
+                    border: "none",
+                    borderRadius: "9999px",
+                    maxWidth: "100%",
+                    padding: "0.5rem 1rem",
+                  }}
+                />
+              </Box>
+
+              <Box $flexShrink={0} $padding="0.5rem 1rem">
+                <Text
+                  onClick={() => updatePromoCode(discount)}
+                  display="link"
+                  $leading="none"
+                >
+                  {t("Apply discount")}
+                </Text>
+              </Box>
+            </Flex>
+          </Flex>
+        </>
+      )}
 
       {customCheckoutFields && customCheckoutFields.length > 0 && (
         <Flex $flexDirection="column" $gap="1.5rem">

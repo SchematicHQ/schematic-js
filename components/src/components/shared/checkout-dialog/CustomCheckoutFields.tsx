@@ -39,7 +39,11 @@ export const CustomCheckoutFields = ({
           {field.helperText && (
             <Text
               $size={12}
-              $color={isLightBackground ? "#666" : "#999"}
+              $color={
+                isLightBackground
+                  ? "hsla(0, 0%, 0%, 0.5)"
+                  : "hsla(0, 0%, 100%, 0.5)"
+              }
               style={{ marginTop: "0.25rem" }}
             >
               {field.helperText}

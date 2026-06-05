@@ -619,6 +619,14 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
   const checkoutStages = useMemo(() => {
     const stages: CheckoutStage[] = [];
 
+    // Required custom checkout fields are collected on the "checkout" stage. If
+    // that stage is never created (e.g. payment is not required), a required
+    // field with no existing value would leave the purchase button permanently
+    // disabled with no way to fill it. Track this so the stage is reachable
+    // whenever there are fields to collect.
+    const hasCustomCheckoutFields =
+      (data?.customCheckoutFields ?? []).length > 0;
+
     if (availablePlans.length > 0) {
       stages.push({
         id: "plan",
@@ -643,6 +651,13 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     }
 
     if (willTrialWithoutPaymentMethod) {
+      if (hasCustomCheckoutFields) {
+        stages.push({
+          id: "checkout",
+          name: t("Checkout"),
+          label: t("Checkout"),
+        });
+      }
       return stages;
     }
 
@@ -695,10 +710,13 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
     // A credit-only purchase needs a payment method too, but when the company
     // already has one on file we skip the dedicated payment stage so the user
-    // can buy credits directly from the Credits stage.
+    // can buy credits directly from the Credits stage. The stage is also needed
+    // whenever there are custom checkout fields to collect, even if no payment
+    // method is required.
     if (
-      isPaymentMethodRequired &&
-      !(isCreditOnlyPurchase && hasInitialPaymentMethod)
+      hasCustomCheckoutFields ||
+      (isPaymentMethodRequired &&
+        !(isCreditOnlyPurchase && hasInitialPaymentMethod))
     ) {
       stages.push({
         id: "checkout",
@@ -710,6 +728,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     return stages;
   }, [
     t,
+    data?.customCheckoutFields,
     availablePlans,
     selectedPlan?.includedCreditGrants,
     willTrialWithoutPaymentMethod,
