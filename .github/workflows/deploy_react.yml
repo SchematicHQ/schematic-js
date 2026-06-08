@@ -144,7 +144,7 @@ jobs:
     runs-on: runs-on=${{ github.run_id }}/runner=1cpu-linux-arm64
     needs: [publish]
     steps:
-      - uses: rtCamp/action-slack-notify@v2.3.3
+      - uses: rtCamp/action-slack-notify@v2.4.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_TITLE: Updated schematic-react
