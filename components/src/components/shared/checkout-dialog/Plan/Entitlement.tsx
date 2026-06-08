@@ -29,18 +29,18 @@ import {
 import { Flex, Icon, Text } from "../../../ui";
 
 export interface EntitlementProps {
+  portal?: HTMLElement | null;
   entitlement: PlanEntitlementResponseData;
   period: string;
   credits: Credit[];
-  tooltipPortal?: HTMLElement | null;
   currency?: string;
 }
 
 export const Entitlement = ({
+  portal,
   entitlement,
   period,
   credits,
-  tooltipPortal,
   currency: selectedCurrency,
 }: EntitlementProps) => {
   const { t } = useTranslation();
@@ -266,28 +266,28 @@ export const Entitlement = ({
                 {(entitlement.priceBehavior === EntitlementPriceBehavior.Tier ||
                   tiered) && (
                   <PricingTiersTooltip
+                    portal={portal}
                     feature={entitlement.feature}
                     period={period}
                     currency={currency}
                     priceTiers={priceTier}
                     tiersMode={tiersMode ?? undefined}
-                    portal={tooltipPortal}
                   />
                 )}
 
                 {entitlementHasHardLimit(entitlement) &&
                   entitlement.valueType === EntitlementValueType.Numeric && (
                     <HardLimitTooltip
+                      portal={portal}
                       feature={entitlement.feature}
                       limit={entitlement.valueNumeric}
-                      portal={tooltipPortal}
                     />
                   )}
 
                 {entitlement.billingThreshold && (
                   <BillingThresholdTooltip
+                    portal={portal}
                     billingThreshold={entitlement.billingThreshold}
-                    portal={tooltipPortal}
                   />
                 )}
               </Text>

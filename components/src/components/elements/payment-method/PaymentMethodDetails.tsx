@@ -110,7 +110,9 @@ export const PaymentMethodDetails = ({
 
   const isLightBackground = useIsLightBackground();
 
-  const [isLoading, setIsLoading] = useState(false);
+  const initialPaymentMethod =
+    subscription?.paymentMethod || defaultPaymentMethod;
+  const [isLoading, setIsLoading] = useState(!initialPaymentMethod);
   const [error, setError] = useState<string | undefined>();
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [stripe, setStripe] = useState<Promise<Stripe | null> | null>(null);
@@ -119,7 +121,7 @@ export const PaymentMethodDetails = ({
     useState(false);
   const [currentPaymentMethod, setCurrentPaymentMethod] = useState<
     PaymentMethodResponseData | undefined
-  >(subscription?.paymentMethod || defaultPaymentMethod);
+  >(initialPaymentMethod);
 
   const { isConfirming: isConfirmingPayment } = usePaymentConfirmation({
     stripe,
@@ -164,50 +166,56 @@ export const PaymentMethodDetails = ({
     setShowDifferentPaymentMethods((prev) => !prev);
   };
 
-  const initializeStripe = useCallback(async () => {
-    if (!stripe && setupIntent) {
-      let publishableKey =
-        setupIntent.publishableKey || setupIntent.schematicPublishableKey;
+  const initializeStripe = useCallback(() => {
+    if (stripe || !setupIntent) {
+      return;
+    }
 
-      const stripeOptions: StripeConstructorOptions = {};
+    let publishableKey =
+      setupIntent.publishableKey || setupIntent.schematicPublishableKey;
 
-      if (setupIntent.accountId) {
-        publishableKey = setupIntent.schematicPublishableKey;
-        stripeOptions.stripeAccount = setupIntent.accountId;
-      }
+    const stripeOptions: StripeConstructorOptions = {};
 
-      try {
-        const stripePromise = loadStripe(publishableKey, stripeOptions);
-        setStripe(stripePromise);
+    if (setupIntent.accountId) {
+      publishableKey = setupIntent.schematicPublishableKey;
+      stripeOptions.stripeAccount = setupIntent.accountId;
+    }
 
-        const instance = await stripePromise;
+    const stripePromise = loadStripe(publishableKey, stripeOptions);
+
+    stripePromise
+      .then((instance) => {
         if (!instance) {
-          throw new Error("Failed to load Stripe instance");
+          setError(t("Unable to load payment form."));
+          setShowPaymentForm(false);
+          return;
         }
-      } catch {
+        setStripe(stripePromise);
+      })
+      .catch(() => {
         setError(t("Unable to load payment form."));
         setShowPaymentForm(false);
-      }
-    }
+      });
   }, [t, stripe, setupIntent]);
 
-  const initializePaymentMethod = useCallback(async () => {
-    try {
-      setIsLoading(true);
+  const initializePaymentMethod = useCallback(() => {
+    const pending = createSetupIntent() ?? Promise.resolve(undefined);
 
-      const response = await createSetupIntent();
-
-      if (response) {
-        setSetupIntent(response.data);
-      }
-    } catch {
-      setError(
-        t("Error initializing payment method change. Please try again."),
-      );
-    } finally {
-      setShowPaymentForm(true);
-      setIsLoading(false);
-    }
+    return pending
+      .then((response) => {
+        if (response) {
+          setSetupIntent(response.data);
+        }
+      })
+      .catch(() => {
+        setError(
+          t("Error initializing payment method change. Please try again."),
+        );
+      })
+      .finally(() => {
+        setShowPaymentForm(true);
+        setIsLoading(false);
+      });
   }, [t, createSetupIntent]);
 
   const handleUpdatePaymentMethod = useCallback(
@@ -421,7 +429,10 @@ export const PaymentMethodDetails = ({
 
                 <Button
                   type="button"
-                  onClick={initializePaymentMethod}
+                  onClick={() => {
+                    setIsLoading(true);
+                    initializePaymentMethod();
+                  }}
                   $size="lg"
                   $fullWidth
                 >

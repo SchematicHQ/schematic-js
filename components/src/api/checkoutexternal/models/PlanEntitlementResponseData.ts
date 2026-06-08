@@ -27,6 +27,13 @@ import {
   EntityTraitDefinitionResponseDataToJSON,
   EntityTraitDefinitionResponseDataToJSONTyped,
 } from "./EntityTraitDefinitionResponseData";
+import type { MetricPeriodMonthReset } from "./MetricPeriodMonthReset";
+import {
+  MetricPeriodMonthResetFromJSON,
+  MetricPeriodMonthResetFromJSONTyped,
+  MetricPeriodMonthResetToJSON,
+  MetricPeriodMonthResetToJSONTyped,
+} from "./MetricPeriodMonthReset";
 import type { BillingCreditResponseData } from "./BillingCreditResponseData";
 import {
   BillingCreditResponseDataFromJSON,
@@ -62,6 +69,13 @@ import {
   FeatureResponseDataToJSON,
   FeatureResponseDataToJSONTyped,
 } from "./FeatureResponseData";
+import type { MetricPeriod } from "./MetricPeriod";
+import {
+  MetricPeriodFromJSON,
+  MetricPeriodFromJSONTyped,
+  MetricPeriodToJSON,
+  MetricPeriodToJSONTyped,
+} from "./MetricPeriod";
 import type { EntitlementPriceBehavior } from "./EntitlementPriceBehavior";
 import {
   EntitlementPriceBehaviorFromJSON,
@@ -155,19 +169,25 @@ export interface PlanEntitlementResponseData {
    * @type {BillingPriceView}
    * @memberof PlanEntitlementResponseData
    */
+  meteredQuarterlyPrice?: BillingPriceView;
+  /**
+   *
+   * @type {BillingPriceView}
+   * @memberof PlanEntitlementResponseData
+   */
   meteredYearlyPrice?: BillingPriceView;
   /**
    *
-   * @type {string}
+   * @type {MetricPeriod}
    * @memberof PlanEntitlementResponseData
    */
-  metricPeriod?: string | null;
+  metricPeriod?: MetricPeriod | null;
   /**
    *
-   * @type {string}
+   * @type {MetricPeriodMonthReset}
    * @memberof PlanEntitlementResponseData
    */
-  metricPeriodMonthReset?: string | null;
+  metricPeriodMonthReset?: MetricPeriodMonthReset | null;
   /**
    *
    * @type {PlanResponseData}
@@ -216,6 +236,12 @@ export interface PlanEntitlementResponseData {
    * @memberof PlanEntitlementResponseData
    */
   usageBasedProduct?: BillingProductResponseData;
+  /**
+   * The committed unit quantity for this entitlement. For custom plans this is the quantity the company is contractually committed to; for standard plans it is the quantity pre-filled when subscribing. Only applies to pay-in-advance entitlements. Note: this is not yet enforced/auto-provisioned as a true default — it is currently stored for downstream billing use.
+   * @type {number}
+   * @memberof PlanEntitlementResponseData
+   */
+  usageQuantity?: number | null;
   /**
    *
    * @type {boolean}
@@ -313,16 +339,22 @@ export function PlanEntitlementResponseDataFromJSONTyped(
       json["metered_monthly_price"] == null
         ? undefined
         : BillingPriceViewFromJSON(json["metered_monthly_price"]),
+    meteredQuarterlyPrice:
+      json["metered_quarterly_price"] == null
+        ? undefined
+        : BillingPriceViewFromJSON(json["metered_quarterly_price"]),
     meteredYearlyPrice:
       json["metered_yearly_price"] == null
         ? undefined
         : BillingPriceViewFromJSON(json["metered_yearly_price"]),
     metricPeriod:
-      json["metric_period"] == null ? undefined : json["metric_period"],
+      json["metric_period"] == null
+        ? undefined
+        : MetricPeriodFromJSON(json["metric_period"]),
     metricPeriodMonthReset:
       json["metric_period_month_reset"] == null
         ? undefined
-        : json["metric_period_month_reset"],
+        : MetricPeriodMonthResetFromJSON(json["metric_period_month_reset"]),
     plan:
       json["plan"] == null ? undefined : PlanResponseDataFromJSON(json["plan"]),
     planId: json["plan_id"],
@@ -341,6 +373,8 @@ export function PlanEntitlementResponseDataFromJSONTyped(
       json["usage_based_product"] == null
         ? undefined
         : BillingProductResponseDataFromJSON(json["usage_based_product"]),
+    usageQuantity:
+      json["usage_quantity"] == null ? undefined : json["usage_quantity"],
     valueBool: json["value_bool"] == null ? undefined : json["value_bool"],
     valueCredit:
       json["value_credit"] == null
@@ -387,9 +421,14 @@ export function PlanEntitlementResponseDataToJSONTyped(
     feature_id: value["featureId"],
     id: value["id"],
     metered_monthly_price: BillingPriceViewToJSON(value["meteredMonthlyPrice"]),
+    metered_quarterly_price: BillingPriceViewToJSON(
+      value["meteredQuarterlyPrice"],
+    ),
     metered_yearly_price: BillingPriceViewToJSON(value["meteredYearlyPrice"]),
-    metric_period: value["metricPeriod"],
-    metric_period_month_reset: value["metricPeriodMonthReset"],
+    metric_period: MetricPeriodToJSON(value["metricPeriod"]),
+    metric_period_month_reset: MetricPeriodMonthResetToJSON(
+      value["metricPeriodMonthReset"],
+    ),
     plan: PlanResponseDataToJSON(value["plan"]),
     plan_id: value["planId"],
     price_behavior: EntitlementPriceBehaviorToJSON(value["priceBehavior"]),
@@ -400,6 +439,7 @@ export function PlanEntitlementResponseDataToJSONTyped(
     usage_based_product: BillingProductResponseDataToJSON(
       value["usageBasedProduct"],
     ),
+    usage_quantity: value["usageQuantity"],
     value_bool: value["valueBool"],
     value_credit: BillingCreditResponseDataToJSON(value["valueCredit"]),
     value_numeric: value["valueNumeric"],

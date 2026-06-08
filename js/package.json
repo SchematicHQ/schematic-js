@@ -1,6 +1,6 @@
 {
   "name": "@schematichq/schematic-js",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "main": "dist/schematic.cjs.js",
   "module": "dist/schematic.esm.js",
   "types": "dist/schematic.d.ts",
@@ -56,28 +56,26 @@
   },
   "dependencies": {
     "cross-fetch": "^4.1.0",
-    "uuid": "^13.0.0"
+    "uuid": "^14.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@microsoft/api-extractor": "^7.58.2",
-    "@openapitools/openapi-generator-cli": "^2.31.1",
-    "@vitest/browser": "^4.1.4",
+    "@microsoft/api-extractor": "^7.58.7",
+    "@openapitools/openapi-generator-cli": "^2.34.0",
+    "@vitest/browser": "^4.1.7",
     "esbuild": "^0.28.0",
-    "eslint": "^10.2.0",
-    "globals": "^17.5.0",
+    "eslint": "^10.4.0",
+    "globals": "^17.6.0",
     "happy-dom": "^20.9.0",
     "husky": "^9.1.7",
-    "jsdom": "^29.0.2",
+    "jsdom": "^29.1.1",
     "mock-socket": "^9.3.1",
     "prettier": "^3.8.3",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.58.2",
-    "vitest": "^4.1.4"
+    "typescript-eslint": "^8.60.1",
+    "vitest": "^4.1.7"
   },
   "resolutions": {
-    "axios": ">=1.15.0",
-    "basic-ftp": ">=5.2.0",
     "rollup": ">=4.59.0",
     "undici": ">=7.24.0"
   },

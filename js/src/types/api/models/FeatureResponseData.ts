@@ -81,7 +81,7 @@ export interface FeatureResponseData {
    * @type {string}
    * @memberof FeatureResponseData
    */
-  maintainerId?: string | null;
+  maintainerAccountMemberId?: string | null;
   /**
    *
    * @type {string}
@@ -155,8 +155,10 @@ export function FeatureResponseDataFromJSONTyped(
       json["lifecycle_phase"] == null
         ? undefined
         : FeatureLifecyclePhaseFromJSON(json["lifecycle_phase"]),
-    maintainerId:
-      json["maintainer_id"] == null ? undefined : json["maintainer_id"],
+    maintainerAccountMemberId:
+      json["maintainer_account_member_id"] == null
+        ? undefined
+        : json["maintainer_account_member_id"],
     name: json["name"],
     pluralName: json["plural_name"] == null ? undefined : json["plural_name"],
     singularName:
@@ -186,7 +188,7 @@ export function FeatureResponseDataToJSONTyped(
     icon: value["icon"],
     id: value["id"],
     lifecycle_phase: FeatureLifecyclePhaseToJSON(value["lifecyclePhase"]),
-    maintainer_id: value["maintainerId"],
+    maintainer_account_member_id: value["maintainerAccountMemberId"],
     name: value["name"],
     plural_name: value["pluralName"],
     singular_name: value["singularName"],

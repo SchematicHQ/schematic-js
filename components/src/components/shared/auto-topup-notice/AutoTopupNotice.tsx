@@ -1,16 +1,17 @@
 import { useTranslation } from "react-i18next";
 
-import { type PlanCreditGrantView } from "../../../api/checkoutexternal";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import { Icon, Text, Tooltip } from "../../ui";
 
 interface AutoTopupNoticeProps {
-  planCreditGrant: PlanCreditGrantView;
+  thresholdCredits?: number | null;
+  topupAmount?: number | null;
   portal?: HTMLElement | null;
 }
 
 export const AutoTopupNotice = ({
-  planCreditGrant,
+  thresholdCredits,
+  topupAmount,
   portal,
 }: AutoTopupNoticeProps) => {
   const { t } = useTranslation();
@@ -19,16 +20,13 @@ export const AutoTopupNotice = ({
 
   const isLightBackground = useIsLightBackground();
 
-  if (
-    typeof planCreditGrant.billingCreditAutoTopupThresholdCredits !==
-      "number" ||
-    typeof planCreditGrant.billingCreditAutoTopupAmount !== "number"
-  ) {
+  if (typeof thresholdCredits !== "number" || typeof topupAmount !== "number") {
     return null;
   }
 
   return (
     <Tooltip
+      portal={portal}
       trigger={
         <Icon
           title="auto top-up"
@@ -42,13 +40,12 @@ export const AutoTopupNotice = ({
           {t(
             "When balance reaches X remaining, an auto top-up of Y credits will be processed.",
             {
-              threshold: planCreditGrant.billingCreditAutoTopupThresholdCredits,
-              amount: planCreditGrant.billingCreditAutoTopupAmount,
+              threshold: thresholdCredits,
+              amount: topupAmount,
             },
           )}
         </Text>
       }
-      portal={portal}
     />
   );
 };

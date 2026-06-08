@@ -1,6 +1,6 @@
 {
   "name": "@schematichq/schematic-vue",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "main": "dist/schematic-vue.prod.cjs.js",
   "module": "dist/schematic-vue.prod.esm.js",
   "types": "dist/schematic-vue.d.ts",
@@ -75,6 +75,7 @@
   },
   "resolutions": {
     "handlebars": ">=4.7.9",
+    "lodash": ">=4.18.0",
     "minimatch": ">=3.1.3"
   },
   "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"

@@ -1,11 +1,11 @@
 import { inflate } from "pako";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useMemo } from "react";
 import { ThemeContext } from "styled-components";
 
 import { TEXT_BASE_SIZE } from "../../const";
 import { EmbedSettings, stub } from "../../context";
 import { useEmbed } from "../../hooks";
-import type { SerializedNodeWithChildren } from "../../types";
+import { DeepPartial } from "../../types";
 import { ERROR_UNKNOWN, isError } from "../../utils";
 import { Box, Flex, Loader, Text } from "../ui";
 
@@ -59,8 +59,6 @@ export interface EmbedProps {
 }
 
 export const SchematicEmbed = ({ id, accessToken }: EmbedProps) => {
-  const [children, setChildren] = useState<React.ReactNode>(<Loading />);
-
   const theme = useContext(ThemeContext);
 
   const {
@@ -73,6 +71,46 @@ export const SchematicEmbed = ({ id, accessToken }: EmbedProps) => {
     setAccessToken,
     updateSettings,
   } = useEmbed();
+
+  const compressedAst = data?.component?.ast;
+  const { children, parsedSettings, parseError } = useMemo(() => {
+    let children: React.ReactNode = null;
+    let parsedSettings: DeepPartial<EmbedSettings> | null = null;
+    let parseError: Error | null = null;
+
+    try {
+      if (compressedAst) {
+        // `inflate` is not guaranteed to return a string
+        const json: string | undefined = inflate(
+          Uint8Array.from(Object.values(compressedAst)),
+          { to: "string" },
+        );
+        const ast = getEditorState(json);
+
+        if (ast) {
+          const settings = ast.ROOT.props.settings as EmbedSettings;
+          // do not apply the `colorMode` setting from the builder since the provider handles it
+          const { colorMode, ...theme } = settings.theme;
+          const nodes = parseEditorState(ast);
+
+          children = nodes.map(renderer);
+          parsedSettings = {
+            mode: settings.mode,
+            theme,
+            badge: settings.badge,
+          };
+        }
+      }
+    } catch (err) {
+      parseError = isError(err) ? err : ERROR_UNKNOWN;
+    }
+
+    return {
+      children,
+      parsedSettings,
+      parseError,
+    };
+  }, [compressedAst]);
 
   useEffect(() => {
     if (accessToken) {
@@ -88,32 +126,16 @@ export const SchematicEmbed = ({ id, accessToken }: EmbedProps) => {
   }, [id, hydrateComponent, stale]);
 
   useEffect(() => {
-    try {
-      if (data?.component?.ast) {
-        const nodes: SerializedNodeWithChildren[] = [];
-        const compressed = data.component.ast;
-        // `inflate` is not guaranteed to return a string
-        const json: string | undefined = inflate(
-          Uint8Array.from(Object.values(compressed)),
-          { to: "string" },
-        );
-        const ast = getEditorState(json);
-        if (ast) {
-          const settings = ast.ROOT.props.settings as EmbedSettings;
-          // do not apply the `colorMode` setting from the builder since the provider handles it
-          const { colorMode, ...theme } = settings.theme;
-          const updated = { mode: settings.mode, theme, badge: settings.badge };
-          updateSettings(updated, { update: true });
-          nodes.push(...parseEditorState(ast));
-          // TODO: refactor `children`
-          // eslint-disable-next-line react-hooks/set-state-in-effect
-          setChildren(nodes.map(renderer));
-        }
-      }
-    } catch (err) {
-      setError(isError(err) ? err : ERROR_UNKNOWN);
+    if (parsedSettings) {
+      updateSettings(parsedSettings, { update: true });
     }
-  }, [data?.component?.ast, setError, updateSettings]);
+  }, [parsedSettings, updateSettings]);
+
+  useEffect(() => {
+    if (parseError) {
+      setError(parseError);
+    }
+  }, [parseError, setError]);
 
   // `EmbedProvider` provides a `ThemeContext`, therefore we need ensure that one exists.
   // If there is no `EmbedContext` available, we must check for the missing theme.
@@ -146,7 +168,7 @@ export const SchematicEmbed = ({ id, accessToken }: EmbedProps) => {
 
   return (
     <Box className="sch-Embed" data-testid="sch-embed">
-      {children}
+      {children ?? <Loading />}
     </Box>
   );
 };

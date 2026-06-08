@@ -7,19 +7,24 @@ import { adjectify, getPlanPrice } from "../../../utils";
 import { Button, Flex, Text, Tooltip } from "../../ui";
 
 interface PeriodToggleProps {
+  portal?: HTMLElement | null;
   options: string[];
   selectedOption: string;
   selectedPlan?: SelectedPlan;
   onSelect: (period: string) => void;
-  tooltipPortal?: HTMLElement | null;
 }
 
+const PERIOD_MONTH_COUNT: Record<string, number> = {
+  year: 12,
+  quarter: 3,
+};
+
 export const PeriodToggle = ({
+  portal,
   options,
   selectedOption,
   selectedPlan,
   onSelect,
-  tooltipPortal,
 }: PeriodToggleProps) => {
   const { t } = useTranslation();
 
@@ -27,14 +32,27 @@ export const PeriodToggle = ({
 
   const isLightBackground = useIsLightBackground();
 
-  const savingsPercentage = useMemo(() => {
-    if (selectedPlan) {
-      const monthlyBillingPrice = getPlanPrice(selectedPlan, "month");
-      const yearlyBillingPrice = getPlanPrice(selectedPlan, "year");
-      const monthly = (monthlyBillingPrice?.price ?? 0) * 12;
-      const yearly = yearlyBillingPrice?.price ?? 0;
-      return Math.round(((monthly - yearly) / monthly) * 10000) / 100;
+  const savingsByPeriod = useMemo(() => {
+    const result: Record<string, number> = {};
+    if (!selectedPlan) {
+      return result;
     }
+
+    const monthlyPrice = getPlanPrice(selectedPlan, "month")?.price ?? 0;
+    if (monthlyPrice <= 0) {
+      return result;
+    }
+
+    for (const [period, months] of Object.entries(PERIOD_MONTH_COUNT)) {
+      const periodPrice = getPlanPrice(selectedPlan, period)?.price ?? 0;
+      if (periodPrice > 0) {
+        const baseline = monthlyPrice * months;
+        result[period] =
+          Math.round(((baseline - periodPrice) / baseline) * 10000) / 100;
+      }
+    }
+
+    return result;
   }, [selectedPlan]);
 
   return (
@@ -94,23 +112,31 @@ export const PeriodToggle = ({
           </Button>
         );
 
-        if (option === "year" && typeof savingsPercentage === "number") {
+        const savingsPercentage = savingsByPeriod[option];
+        if (typeof savingsPercentage === "number") {
+          const isOptionYear = option === "year";
           return (
             <Tooltip
               key={option}
+              portal={portal}
               trigger={element}
               content={
                 <Text $size={11} $leading="none">
-                  {selectedOption === "month"
-                    ? t("Save with yearly billing", {
-                        percent: savingsPercentage,
-                      })
-                    : t("Saving with yearly billing", {
-                        percent: savingsPercentage,
-                      })}
+                  {selectedOption === option
+                    ? t(
+                        isOptionYear
+                          ? "Saving with yearly billing"
+                          : "Saving with quarterly billing",
+                        { percent: savingsPercentage },
+                      )
+                    : t(
+                        isOptionYear
+                          ? "Save with yearly billing"
+                          : "Save with quarterly billing",
+                        { percent: savingsPercentage },
+                      )}
                 </Text>
               }
-              portal={tooltipPortal}
               $flexGrow={1}
               $flexBasis="50%"
             />

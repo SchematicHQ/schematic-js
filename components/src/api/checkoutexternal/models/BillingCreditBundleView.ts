@@ -103,7 +103,7 @@ export interface BillingCreditBundleView {
    * @type {Array<CreditBundleCurrencyPrice>}
    * @memberof BillingCreditBundleView
    */
-  currencyPrices?: Array<CreditBundleCurrencyPrice>;
+  currencyPrices: Array<CreditBundleCurrencyPrice>;
   /**
    *
    * @type {BillingCreditExpiryType}
@@ -196,6 +196,8 @@ export function instanceOfBillingCreditBundleView(
   if (!("creditId" in value) || value["creditId"] === undefined) return false;
   if (!("creditName" in value) || value["creditName"] === undefined)
     return false;
+  if (!("currencyPrices" in value) || value["currencyPrices"] === undefined)
+    return false;
   if (!("expiryType" in value) || value["expiryType"] === undefined)
     return false;
   if (!("expiryUnit" in value) || value["expiryUnit"] === undefined)
@@ -231,12 +233,9 @@ export function BillingCreditBundleViewFromJSONTyped(
     creditIcon: json["credit_icon"] == null ? undefined : json["credit_icon"],
     creditId: json["credit_id"],
     creditName: json["credit_name"],
-    currencyPrices:
-      json["currency_prices"] == null
-        ? undefined
-        : (json["currency_prices"] as Array<any>).map(
-            CreditBundleCurrencyPriceFromJSON,
-          ),
+    currencyPrices: (json["currency_prices"] as Array<any>).map(
+      CreditBundleCurrencyPriceFromJSON,
+    ),
     expiryType: BillingCreditExpiryTypeFromJSON(json["expiry_type"]),
     expiryUnit: BillingCreditExpiryUnitFromJSON(json["expiry_unit"]),
     expiryUnitCount:
@@ -282,12 +281,9 @@ export function BillingCreditBundleViewToJSONTyped(
     credit_icon: value["creditIcon"],
     credit_id: value["creditId"],
     credit_name: value["creditName"],
-    currency_prices:
-      value["currencyPrices"] == null
-        ? undefined
-        : (value["currencyPrices"] as Array<any>).map(
-            CreditBundleCurrencyPriceToJSON,
-          ),
+    currency_prices: (value["currencyPrices"] as Array<any>).map(
+      CreditBundleCurrencyPriceToJSON,
+    ),
     expiry_type: BillingCreditExpiryTypeToJSON(value["expiryType"]),
     expiry_unit: BillingCreditExpiryUnitToJSON(value["expiryUnit"]),
     expiry_unit_count: value["expiryUnitCount"],

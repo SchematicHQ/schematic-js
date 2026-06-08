@@ -20,6 +20,20 @@ import {
   EntitlementValueTypeToJSON,
   EntitlementValueTypeToJSONTyped,
 } from "./EntitlementValueType";
+import type { MetricPeriodMonthReset } from "./MetricPeriodMonthReset";
+import {
+  MetricPeriodMonthResetFromJSON,
+  MetricPeriodMonthResetFromJSONTyped,
+  MetricPeriodMonthResetToJSON,
+  MetricPeriodMonthResetToJSONTyped,
+} from "./MetricPeriodMonthReset";
+import type { MetricPeriod } from "./MetricPeriod";
+import {
+  MetricPeriodFromJSON,
+  MetricPeriodFromJSONTyped,
+  MetricPeriodToJSON,
+  MetricPeriodToJSONTyped,
+} from "./MetricPeriod";
 import type { EntitlementPriceBehavior } from "./EntitlementPriceBehavior";
 import {
   EntitlementPriceBehaviorFromJSON,
@@ -67,16 +81,16 @@ export interface UsageBasedEntitlementResponseData {
   meteredPrice?: BillingPriceView;
   /**
    *
-   * @type {string}
+   * @type {MetricPeriod}
    * @memberof UsageBasedEntitlementResponseData
    */
-  metricPeriod?: string | null;
+  metricPeriod?: MetricPeriod | null;
   /**
    *
-   * @type {string}
+   * @type {MetricPeriodMonthReset}
    * @memberof UsageBasedEntitlementResponseData
    */
-  metricPeriodMonthReset?: string | null;
+  metricPeriodMonthReset?: MetricPeriodMonthReset | null;
   /**
    *
    * @type {BillingPriceView}
@@ -89,6 +103,18 @@ export interface UsageBasedEntitlementResponseData {
    * @memberof UsageBasedEntitlementResponseData
    */
   priceBehavior?: EntitlementPriceBehavior | null;
+  /**
+   *
+   * @type {BillingPriceView}
+   * @memberof UsageBasedEntitlementResponseData
+   */
+  quarterlyUsageBasedPrice?: BillingPriceView;
+  /**
+   * The committed unit quantity for this entitlement. For custom plans this is the quantity the company is contractually committed to; for standard plans it is the quantity pre-filled when subscribing. Only applies to pay-in-advance entitlements. Note: this is not yet enforced/auto-provisioned as a true default — it is currently stored for downstream billing use.
+   * @type {number}
+   * @memberof UsageBasedEntitlementResponseData
+   */
+  usageQuantity?: number | null;
   /**
    *
    * @type {boolean}
@@ -150,11 +176,13 @@ export function UsageBasedEntitlementResponseDataFromJSONTyped(
         ? undefined
         : BillingPriceViewFromJSON(json["metered_price"]),
     metricPeriod:
-      json["metric_period"] == null ? undefined : json["metric_period"],
+      json["metric_period"] == null
+        ? undefined
+        : MetricPeriodFromJSON(json["metric_period"]),
     metricPeriodMonthReset:
       json["metric_period_month_reset"] == null
         ? undefined
-        : json["metric_period_month_reset"],
+        : MetricPeriodMonthResetFromJSON(json["metric_period_month_reset"]),
     monthlyUsageBasedPrice:
       json["monthly_usage_based_price"] == null
         ? undefined
@@ -163,6 +191,12 @@ export function UsageBasedEntitlementResponseDataFromJSONTyped(
       json["price_behavior"] == null
         ? undefined
         : EntitlementPriceBehaviorFromJSON(json["price_behavior"]),
+    quarterlyUsageBasedPrice:
+      json["quarterly_usage_based_price"] == null
+        ? undefined
+        : BillingPriceViewFromJSON(json["quarterly_usage_based_price"]),
+    usageQuantity:
+      json["usage_quantity"] == null ? undefined : json["usage_quantity"],
     valueBool: json["value_bool"] == null ? undefined : json["value_bool"],
     valueNumeric:
       json["value_numeric"] == null ? undefined : json["value_numeric"],
@@ -193,12 +227,18 @@ export function UsageBasedEntitlementResponseDataToJSONTyped(
     consumption_rate: value["consumptionRate"],
     feature_id: value["featureId"],
     metered_price: BillingPriceViewToJSON(value["meteredPrice"]),
-    metric_period: value["metricPeriod"],
-    metric_period_month_reset: value["metricPeriodMonthReset"],
+    metric_period: MetricPeriodToJSON(value["metricPeriod"]),
+    metric_period_month_reset: MetricPeriodMonthResetToJSON(
+      value["metricPeriodMonthReset"],
+    ),
     monthly_usage_based_price: BillingPriceViewToJSON(
       value["monthlyUsageBasedPrice"],
     ),
     price_behavior: EntitlementPriceBehaviorToJSON(value["priceBehavior"]),
+    quarterly_usage_based_price: BillingPriceViewToJSON(
+      value["quarterlyUsageBasedPrice"],
+    ),
+    usage_quantity: value["usageQuantity"],
     value_bool: value["valueBool"],
     value_numeric: value["valueNumeric"],
     value_type: EntitlementValueTypeToJSON(value["valueType"]),

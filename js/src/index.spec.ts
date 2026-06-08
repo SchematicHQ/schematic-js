@@ -1,11 +1,14 @@
 import { vi } from "vitest";
+import { cacheVersion } from "./cacheVersion";
 import { Schematic } from "./index";
 import {
   CheckFlagReturnFromJSON,
   CheckPlanReturn,
   CheckPlanReturnFromJSON,
   RuleType,
+  StoragePersister,
 } from "./types";
+import { contextString } from "./utils";
 import { Server as WebSocketServer } from "mock-socket";
 
 import { version } from "./version";
@@ -24,6 +27,26 @@ const MockDeveloperToolbar = vi.hoisted(() =>
 vi.mock("./toolbar", () => ({
   DeveloperToolbar: MockDeveloperToolbar,
 }));
+
+type TestStorage = StoragePersister & {
+  _data: Map<string, string>;
+};
+
+const createTestStorage = (
+  initial: Record<string, string> = {},
+): TestStorage => {
+  const data = new Map<string, string>(Object.entries(initial));
+  return {
+    _data: data,
+    getItem: (key: string) => (data.has(key) ? data.get(key)! : null),
+    setItem: (key: string, value: string) => {
+      data.set(key, String(value));
+    },
+    removeItem: (key: string) => {
+      data.delete(key);
+    },
+  };
+};
 
 const mockFetch = vi.fn();
 globalThis.fetch = mockFetch as typeof fetch;
@@ -2846,9 +2869,8 @@ describe("Plan via WebSocket", () => {
       webSocketUrl: TEST_WS_URL,
     });
 
-    
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const listener1 = vi.fn((plan: CheckPlanReturn) => { });
+    const listener1 = vi.fn((plan: CheckPlanReturn) => {});
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const listener2 = vi.fn((plan: CheckPlanReturn) => {});
     schematic.addPlanListener(listener1);
@@ -3177,5 +3199,691 @@ describe("CheckFlagReturnFromJSON", () => {
 
     expect(result.creditRemaining).toBeUndefined();
     expect(result.softLimit).toBeUndefined();
+  });
+});
+
+describe("Persistent flag state cache", () => {
+  const cacheKey = "schematicCache:API_KEY";
+  const ctxA = { company: { id: "acme" }, user: { id: "alice" } };
+  const ctxB = { company: { id: "globex" }, user: { id: "bob" } };
+
+  afterEach(() => {
+    mockFetch.mockClear();
+  });
+
+  describe("hydration", () => {
+    it("hydrates checks for matching context and exposes them on setContext (REST mode)", async () => {
+      const storage = createTestStorage({
+        [cacheKey]: JSON.stringify({
+          version: cacheVersion,
+          contexts: {
+            [contextString(ctxA)]: {
+              checks: {
+                FEATURE_X: {
+                  flag: "FEATURE_X",
+                  value: true,
+                  reason: "cached",
+                },
+              },
+              updatedAt: Date.now(),
+            },
+          },
+        }),
+      });
+
+      const client = new Schematic("API_KEY", { storage });
+      await client.setContext(ctxA);
+
+      expect(client.getFlagValue("FEATURE_X")).toBe(true);
+      const check = client.getFlagCheck("FEATURE_X");
+      expect(check?.value).toBe(true);
+      expect(check?.reason).toBe("cached");
+    });
+
+    it("does not expose cached values for a non-matching context", async () => {
+      const storage = createTestStorage({
+        [cacheKey]: JSON.stringify({
+          version: cacheVersion,
+          contexts: {
+            [contextString(ctxA)]: {
+              checks: {
+                FEATURE_X: {
+                  flag: "FEATURE_X",
+                  value: true,
+                  reason: "cached",
+                },
+              },
+              updatedAt: Date.now(),
+            },
+          },
+        }),
+      });
+
+      const client = new Schematic("API_KEY", { storage });
+      await client.setContext(ctxB);
+
+      expect(client.getFlagValue("FEATURE_X")).toBeUndefined();
+    });
+
+    it("ignores cache when version does not match", async () => {
+      const storage = createTestStorage({
+        [cacheKey]: JSON.stringify({
+          version: "deadbeef",
+          contexts: {
+            [contextString(ctxA)]: {
+              checks: {
+                FEATURE_X: { flag: "FEATURE_X", value: true, reason: "stale" },
+              },
+              updatedAt: Date.now(),
+            },
+          },
+        }),
+      });
+
+      const client = new Schematic("API_KEY", { storage });
+      await client.setContext(ctxA);
+
+      expect(client.getFlagValue("FEATURE_X")).toBeUndefined();
+    });
+
+    it("ignores cache when JSON is malformed", async () => {
+      const storage = createTestStorage({
+        [cacheKey]: "{not valid json",
+      });
+
+      // Should not throw
+      const client = new Schematic("API_KEY", { storage });
+      await client.setContext(ctxA);
+
+      expect(client.getFlagValue("FEATURE_X")).toBeUndefined();
+    });
+
+    it("drops cached entries whose embedded flag does not match the map key", async () => {
+      const storage = createTestStorage({
+        [cacheKey]: JSON.stringify({
+          version: cacheVersion,
+          contexts: {
+            [contextString(ctxA)]: {
+              checks: {
+                FEATURE_X: {
+                  flag: "DIFFERENT_FLAG",
+                  value: true,
+                  reason: "tampered",
+                },
+                FEATURE_Y: {
+                  flag: "FEATURE_Y",
+                  value: true,
+                  reason: "ok",
+                },
+              },
+              updatedAt: Date.now(),
+            },
+          },
+        }),
+      });
+
+      const client = new Schematic("API_KEY", { storage });
+      await client.setContext(ctxA);
+
+      expect(client.getFlagValue("FEATURE_X")).toBeUndefined();
+      expect(client.getFlagValue("FEATURE_Y")).toBe(true);
+    });
+
+    it("does not crash when storage getItem throws", () => {
+      const storage: StoragePersister = {
+        getItem: () => {
+          throw new Error("storage unavailable");
+        },
+        setItem: () => {
+          throw new Error("storage unavailable");
+        },
+        removeItem: () => {},
+      };
+
+      expect(() => new Schematic("API_KEY", { storage })).not.toThrow();
+    });
+
+    it("does not read or write storage when persistFlagState is false", async () => {
+      const storage = createTestStorage({
+        [cacheKey]: JSON.stringify({
+          version: cacheVersion,
+          contexts: {
+            [contextString(ctxA)]: {
+              checks: {
+                FEATURE_X: { flag: "FEATURE_X", value: true, reason: "cached" },
+              },
+              updatedAt: Date.now(),
+            },
+          },
+        }),
+      });
+
+      const client = new Schematic("API_KEY", {
+        storage,
+        persistFlagState: false,
+      });
+      await client.setContext(ctxA);
+
+      // Cache was present but should not have been hydrated
+      expect(client.getFlagValue("FEATURE_X")).toBeUndefined();
+    });
+
+    it("revives Date fields on hydration", async () => {
+      const resetAt = new Date("2030-01-01T00:00:00Z");
+      const storage = createTestStorage({
+        [cacheKey]: JSON.stringify({
+          version: cacheVersion,
+          contexts: {
+            [contextString(ctxA)]: {
+              checks: {
+                FEATURE_X: {
+                  flag: "FEATURE_X",
+                  value: true,
+                  reason: "cached",
+                  featureUsageResetAt: resetAt.toISOString(),
+                },
+              },
+              updatedAt: Date.now(),
+            },
+          },
+        }),
+      });
+
+      const client = new Schematic("API_KEY", { storage });
+      await client.setContext(ctxA);
+
+      const check = client.getFlagCheck("FEATURE_X");
+      expect(check?.featureUsageResetAt).toBeInstanceOf(Date);
+      expect(check?.featureUsageResetAt?.getTime()).toBe(resetAt.getTime());
+    });
+  });
+
+  describe("WebSocket integration", () => {
+    let mockServer: WebSocketServer;
+    const TEST_WS_URL = "ws://localhost:1235";
+    const FULL_WS_URL = `${TEST_WS_URL}/flags/bootstrap?apiKey=API_KEY`;
+
+    beforeEach(() => {
+      mockServer?.stop();
+      mockServer = new WebSocketServer(FULL_WS_URL);
+    });
+
+    afterEach(async () => {
+      mockServer?.stop();
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    });
+
+    it("setContext with cache hit resolves isPending without waiting for the server", async () => {
+      const storage = createTestStorage({
+        [cacheKey]: JSON.stringify({
+          version: cacheVersion,
+          contexts: {
+            [contextString(ctxA)]: {
+              checks: {
+                FEATURE_X: {
+                  flag: "FEATURE_X",
+                  value: true,
+                  reason: "cached",
+                },
+              },
+              updatedAt: Date.now(),
+            },
+          },
+        }),
+      });
+
+      // Server accepts connections but never sends a message
+      mockServer.on("connection", () => {});
+
+      const client = new Schematic("API_KEY", {
+        storage,
+        useWebSocket: true,
+        webSocketUrl: TEST_WS_URL,
+      });
+
+      // Don't await — we want to verify isPending flips synchronously after the call
+      void client.setContext(ctxA);
+      expect(client.getIsPending()).toBe(false);
+      expect(client.getFlagValue("FEATURE_X")).toBe(true);
+
+      await client.cleanup();
+    });
+
+    it("setContext without a cache hit keeps isPending true until the server responds", async () => {
+      const storage = createTestStorage();
+
+      const client = new Schematic("API_KEY", {
+        storage,
+        useWebSocket: true,
+        webSocketUrl: TEST_WS_URL,
+      });
+
+      mockServer.on("connection", () => {});
+
+      void client.setContext(ctxA);
+      expect(client.getIsPending()).toBe(true);
+
+      await client.cleanup();
+    });
+
+    it("notifies flag listeners with cached values on cache-hit setContext", async () => {
+      const storage = createTestStorage({
+        [cacheKey]: JSON.stringify({
+          version: cacheVersion,
+          contexts: {
+            [contextString(ctxA)]: {
+              checks: {
+                FEATURE_X: {
+                  flag: "FEATURE_X",
+                  value: true,
+                  reason: "cached",
+                },
+              },
+              updatedAt: Date.now(),
+            },
+          },
+        }),
+      });
+
+      mockServer.on("connection", () => {});
+
+      const client = new Schematic("API_KEY", {
+        storage,
+        useWebSocket: true,
+        webSocketUrl: TEST_WS_URL,
+      });
+
+      const received: boolean[] = [];
+      const valueListener = vi.fn((value: boolean) => {
+        received.push(value);
+      });
+      client.addFlagValueListener("FEATURE_X", valueListener);
+
+      void client.setContext(ctxA);
+
+      expect(received).toContain(true);
+
+      await client.cleanup();
+    });
+
+    it("treats a plan-only cache entry (no checks) as a cache hit and notifies plan listeners", async () => {
+      const storage = createTestStorage({
+        [cacheKey]: JSON.stringify({
+          version: cacheVersion,
+          contexts: {
+            [contextString(ctxA)]: {
+              checks: {},
+              plan: { id: "plan_1", name: "Pro" },
+              updatedAt: Date.now(),
+            },
+          },
+        }),
+      });
+
+      mockServer.on("connection", () => {});
+
+      const client = new Schematic("API_KEY", {
+        storage,
+        useWebSocket: true,
+        webSocketUrl: TEST_WS_URL,
+      });
+
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const planListener = vi.fn((_plan: CheckPlanReturn) => {});
+      client.addPlanListener(planListener);
+
+      void client.setContext(ctxA);
+
+      expect(client.getIsPending()).toBe(false);
+      expect(planListener).toHaveBeenCalledWith(
+        expect.objectContaining({ id: "plan_1", name: "Pro" }),
+      );
+
+      await client.cleanup();
+    });
+
+    it("persists flag state to storage after a WebSocket message", async () => {
+      const storage = createTestStorage();
+
+      mockServer.on("connection", (socket) => {
+        socket.on("message", () => {
+          socket.send(
+            JSON.stringify({
+              flags: [
+                { flag: "FEATURE_X", value: true, reason: "Matched rule" },
+              ],
+            }),
+          );
+        });
+      });
+
+      const client = new Schematic("API_KEY", {
+        storage,
+        useWebSocket: true,
+        webSocketUrl: TEST_WS_URL,
+      });
+
+      const flagValue = await client.checkFlag({
+        key: "FEATURE_X",
+        context: ctxA,
+        fallback: false,
+      });
+      expect(flagValue).toBe(true);
+
+      const raw = storage.getItem(cacheKey);
+      expect(raw).not.toBeNull();
+      const parsed = JSON.parse(raw!);
+      expect(parsed.version).toBe(cacheVersion);
+      expect(parsed.contexts[contextString(ctxA)].checks.FEATURE_X.value).toBe(
+        true,
+      );
+
+      await client.cleanup();
+    });
+
+    it("evicts least-recently-updated contexts when more than 10 are written", async () => {
+      // Pre-seed storage with 10 recent contexts at distinct, monotonically-
+      // increasing updatedAt timestamps (within TTL window). The next persist
+      // should push the count to 11 and evict the oldest (old_0).
+      const seeded: Record<string, unknown> = {};
+      const baseUpdatedAt = Date.now() - 60_000;
+      for (let i = 0; i < 10; i++) {
+        seeded[contextString({ company: { id: `old_${i}` }, user: {} })] = {
+          checks: {
+            OLD: { flag: "OLD", value: false, reason: "old" },
+          },
+          updatedAt: baseUpdatedAt + i,
+        };
+      }
+      const storage = createTestStorage({
+        [cacheKey]: JSON.stringify({ version: cacheVersion, contexts: seeded }),
+      });
+
+      mockServer.on("connection", (socket) => {
+        socket.on("message", () => {
+          socket.send(
+            JSON.stringify({
+              flags: [{ flag: "NEW", value: true, reason: "fresh" }],
+            }),
+          );
+        });
+      });
+
+      const client = new Schematic("API_KEY", {
+        storage,
+        useWebSocket: true,
+        webSocketUrl: TEST_WS_URL,
+      });
+
+      const newCtx = { company: { id: "new" }, user: {} };
+      await client.checkFlag({
+        key: "NEW",
+        context: newCtx,
+        fallback: false,
+      });
+
+      const parsed = JSON.parse(storage.getItem(cacheKey)!);
+      expect(Object.keys(parsed.contexts).length).toBe(10);
+      expect(
+        parsed.contexts[contextString({ company: { id: "old_0" }, user: {} })],
+      ).toBeUndefined();
+      expect(parsed.contexts[contextString(newCtx)]).toBeDefined();
+
+      // Switching back to the evicted context should miss the cache: isPending
+      // flips to true (no synchronous resolution from in-memory state) and the
+      // previously-hydrated OLD value is gone.
+      const evictedCtx = { company: { id: "old_0" }, user: {} };
+      void client.setContext(evictedCtx);
+      expect(client.getIsPending()).toBe(true);
+      expect(client.getFlagValue("OLD")).toBeUndefined();
+
+      await client.cleanup();
+    });
+
+    it("does not persist when persistFlagState is false", async () => {
+      const storage = createTestStorage();
+
+      mockServer.on("connection", (socket) => {
+        socket.on("message", () => {
+          socket.send(
+            JSON.stringify({
+              flags: [{ flag: "FEATURE_X", value: true, reason: "match" }],
+            }),
+          );
+        });
+      });
+
+      const client = new Schematic("API_KEY", {
+        storage,
+        useWebSocket: true,
+        webSocketUrl: TEST_WS_URL,
+        persistFlagState: false,
+      });
+
+      await client.checkFlag({
+        key: "FEATURE_X",
+        context: ctxA,
+        fallback: false,
+      });
+
+      expect(storage.getItem(cacheKey)).toBeNull();
+
+      await client.cleanup();
+    });
+
+    it("does not crash when storage setItem throws on persist", async () => {
+      const storage: StoragePersister = {
+        getItem: () => null,
+        setItem: () => {
+          throw new Error("quota exceeded");
+        },
+        removeItem: () => {},
+      };
+
+      mockServer.on("connection", (socket) => {
+        socket.on("message", () => {
+          socket.send(
+            JSON.stringify({
+              flags: [{ flag: "FEATURE_X", value: true, reason: "match" }],
+            }),
+          );
+        });
+      });
+
+      const client = new Schematic("API_KEY", {
+        storage,
+        useWebSocket: true,
+        webSocketUrl: TEST_WS_URL,
+      });
+
+      // Should resolve normally despite storage write failure
+      const value = await client.checkFlag({
+        key: "FEATURE_X",
+        context: ctxA,
+        fallback: false,
+      });
+      expect(value).toBe(true);
+
+      await client.cleanup();
+    });
+  });
+
+  describe("TTL", () => {
+    it("ignores entries older than the default max age (7 days)", async () => {
+      const eightDaysAgo = Date.now() - 8 * 24 * 60 * 60 * 1000;
+      const storage = createTestStorage({
+        [cacheKey]: JSON.stringify({
+          version: cacheVersion,
+          contexts: {
+            [contextString(ctxA)]: {
+              checks: {
+                FEATURE_X: {
+                  flag: "FEATURE_X",
+                  value: true,
+                  reason: "stale",
+                },
+              },
+              updatedAt: eightDaysAgo,
+            },
+          },
+        }),
+      });
+
+      const client = new Schematic("API_KEY", { storage });
+      await client.setContext(ctxA);
+
+      expect(client.getFlagValue("FEATURE_X")).toBeUndefined();
+    });
+
+    it("respects a custom flagStateCacheMaxAgeMs", async () => {
+      const twoMinutesAgo = Date.now() - 2 * 60 * 1000;
+      const storage = createTestStorage({
+        [cacheKey]: JSON.stringify({
+          version: cacheVersion,
+          contexts: {
+            [contextString(ctxA)]: {
+              checks: {
+                FEATURE_X: {
+                  flag: "FEATURE_X",
+                  value: true,
+                  reason: "stale",
+                },
+              },
+              updatedAt: twoMinutesAgo,
+            },
+          },
+        }),
+      });
+
+      const client = new Schematic("API_KEY", {
+        storage,
+        flagStateCacheMaxAgeMs: 60_000,
+      });
+      await client.setContext(ctxA);
+
+      expect(client.getFlagValue("FEATURE_X")).toBeUndefined();
+    });
+
+    it("loads entries within the max-age window", async () => {
+      const tenSecondsAgo = Date.now() - 10_000;
+      const storage = createTestStorage({
+        [cacheKey]: JSON.stringify({
+          version: cacheVersion,
+          contexts: {
+            [contextString(ctxA)]: {
+              checks: {
+                FEATURE_X: {
+                  flag: "FEATURE_X",
+                  value: true,
+                  reason: "fresh",
+                },
+              },
+              updatedAt: tenSecondsAgo,
+            },
+          },
+        }),
+      });
+
+      const client = new Schematic("API_KEY", {
+        storage,
+        flagStateCacheMaxAgeMs: 60_000,
+      });
+      await client.setContext(ctxA);
+
+      expect(client.getFlagValue("FEATURE_X")).toBe(true);
+    });
+  });
+
+  describe("track-driven persistence", () => {
+    let mockServer: WebSocketServer;
+    const TEST_WS_URL = "ws://localhost:1236";
+    const FULL_WS_URL = `${TEST_WS_URL}/flags/bootstrap?apiKey=API_KEY`;
+
+    beforeEach(() => {
+      mockServer?.stop();
+      mockServer = new WebSocketServer(FULL_WS_URL);
+    });
+
+    afterEach(async () => {
+      mockServer?.stop();
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    });
+
+    it("persists incremented featureUsage after track()", async () => {
+      const storage = createTestStorage();
+
+      mockServer.on("connection", (socket) => {
+        socket.on("message", () => {
+          socket.send(
+            JSON.stringify({
+              flags: [
+                {
+                  flag: "FEATURE_X",
+                  value: true,
+                  reason: "match",
+                  feature_usage: 5,
+                  feature_allocation: 100,
+                  feature_usage_event: "consume",
+                },
+              ],
+            }),
+          );
+        });
+      });
+
+      const client = new Schematic("API_KEY", {
+        storage,
+        useWebSocket: true,
+        webSocketUrl: TEST_WS_URL,
+      });
+
+      await client.checkFlag({
+        key: "FEATURE_X",
+        context: ctxA,
+        fallback: false,
+      });
+
+      await client.track({ event: "consume", quantity: 3 });
+
+      const parsed = JSON.parse(storage.getItem(cacheKey)!);
+      expect(
+        parsed.contexts[contextString(ctxA)].checks.FEATURE_X.featureUsage,
+      ).toBe(8);
+
+      await client.cleanup();
+    });
+
+    it("does not write to storage when track() does not change any cached check", async () => {
+      const storage = createTestStorage();
+
+      mockServer.on("connection", (socket) => {
+        socket.on("message", () => {
+          socket.send(
+            JSON.stringify({
+              flags: [{ flag: "FEATURE_X", value: true, reason: "match" }],
+            }),
+          );
+        });
+      });
+
+      const client = new Schematic("API_KEY", {
+        storage,
+        useWebSocket: true,
+        webSocketUrl: TEST_WS_URL,
+      });
+
+      await client.checkFlag({
+        key: "FEATURE_X",
+        context: ctxA,
+        fallback: false,
+      });
+
+      const setItemSpy = vi.spyOn(storage, "setItem");
+      await client.track({ event: "unrelated_event", quantity: 1 });
+
+      expect(setItemSpy).not.toHaveBeenCalled();
+
+      await client.cleanup();
+    });
   });
 });

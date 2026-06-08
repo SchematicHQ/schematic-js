@@ -4,6 +4,7 @@ import {
   forwardRef,
   useCallback,
   useEffect,
+  useMemo,
   useState,
 } from "react";
 import { useTranslation } from "react-i18next";
@@ -13,11 +14,7 @@ import {
   type CompanyPlanDetailResponseData,
 } from "../../../api/checkoutexternal";
 import { type PlanViewPublicResponseData } from "../../../api/componentspublic";
-import {
-  DEFAULT_CURRENCY,
-  TEXT_BASE_SIZE,
-  VISIBLE_ENTITLEMENT_COUNT,
-} from "../../../const";
+import { DEFAULT_CURRENCY, TEXT_BASE_SIZE } from "../../../const";
 import { type FontStyle } from "../../../context";
 import {
   useAvailableCurrenciesWithInvalid,
@@ -25,7 +22,7 @@ import {
   useEmbed,
 } from "../../../hooks";
 import type { DeepPartial, ElementProps } from "../../../types";
-import { entitlementCountsReducer } from "../../../utils";
+import { getSubscriptionPeriod, planSupportsCurrency } from "../../../utils";
 import { Container, FussyChild } from "../../layout";
 import {
   CurrencyToggle,
@@ -168,7 +165,10 @@ export const PricingTable = forwardRef<
   );
 
   const [selectedPeriod, setSelectedPeriod] = useState(
-    () => data?.company?.plan?.planPeriod || "month",
+    () =>
+      getSubscriptionPeriod(data?.company?.billingSubscription) ||
+      data?.company?.plan?.planPeriod ||
+      "month",
   );
 
   const { currencies, invalidFilterEntries } =
@@ -177,12 +177,13 @@ export const PricingTable = forwardRef<
     () => currencies[0] ?? DEFAULT_CURRENCY,
   );
 
-  useEffect(() => {
-    if (currencies.length > 0 && !currencies.includes(selectedCurrency)) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setSelectedCurrency(currencies[0]);
-    }
-  }, [currencies, selectedCurrency]);
+  // Snap to a valid currency when the available set changes and the current
+  // selection is no longer offered. Done during render (not in an effect) to
+  // avoid a cascading re-render; the guard converges because the new value is
+  // always a member of `currencies`.
+  if (currencies.length > 0 && !currencies.includes(selectedCurrency)) {
+    setSelectedCurrency(currencies[0]);
+  }
 
   const showPeriodToggle =
     rest.showPeriodToggle ?? data?.displaySettings?.showPeriodToggle ?? true;
@@ -190,46 +191,44 @@ export const PricingTable = forwardRef<
   const showCurrencySelector = currencies.length > 1;
   const hasCurrency = currencies.length > 1 || hasCurrencyFilter;
   const hasNoUsableCurrency = currencies.length === 0;
-  const { plans, addOns, periods } = useAvailablePlans(selectedPeriod, {
+  const {
+    plans: allPlans,
+    addOns: allAddOns,
+    periods,
+  } = useAvailablePlans(selectedPeriod, {
     useSelectedPeriod: showPeriodToggle,
   });
 
-  const [entitlementCounts, setEntitlementCounts] = useState(() =>
-    plans.reduce(entitlementCountsReducer, {}),
+  // When a currency is in play (multi-currency data or an explicit
+  // currencyFilter), hide plans/add-ons that lack pricing in the selected
+  // currency rather than rendering them with a mismatched legacy fallback.
+  // Memoize so a stable reference is handed to the entitlement-count effect
+  // below — without this the filtered array would be a fresh value on every
+  // render and trigger an infinite update loop.
+  const plans = useMemo(
+    () =>
+      hasCurrency
+        ? allPlans.filter((plan) =>
+            planSupportsCurrency(plan, selectedCurrency),
+          )
+        : allPlans,
+    [allPlans, hasCurrency, selectedCurrency],
   );
-
-  const handleToggleShowAll = (id: string) => {
-    setEntitlementCounts((prev) => {
-      const count = prev[id] ? { ...prev[id] } : undefined;
-
-      if (count) {
-        return {
-          ...prev,
-          [id]: {
-            size: count.size,
-            limit:
-              count.limit > VISIBLE_ENTITLEMENT_COUNT
-                ? VISIBLE_ENTITLEMENT_COUNT
-                : count.size,
-          },
-        };
-      }
-
-      return prev;
-    });
-  };
+  const addOns = useMemo(
+    () =>
+      hasCurrency
+        ? allAddOns.filter((addOn) =>
+            planSupportsCurrency(addOn, selectedCurrency),
+          )
+        : allAddOns,
+    [allAddOns, hasCurrency, selectedCurrency],
+  );
 
   useEffect(() => {
     if (typeof data?.component === "undefined") {
       hydratePublic();
     }
   }, [data?.component, hydratePublic]);
-
-  useEffect(() => {
-    // TODO: refactor entitlement counts
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setEntitlementCounts(plans.reduce(entitlementCountsReducer, {}));
-  }, [plans]);
 
   if (isPending) {
     return (
@@ -342,9 +341,13 @@ export const PricingTable = forwardRef<
               {plans.map((plan, index, self) => {
                 const planPeriod = showPeriodToggle
                   ? selectedPeriod
-                  : plan.yearlyPrice && !plan.monthlyPrice
-                    ? BillingProductPriceInterval.Year
-                    : BillingProductPriceInterval.Month;
+                  : plan.monthlyPrice
+                    ? BillingProductPriceInterval.Month
+                    : plan.quarterlyPrice
+                      ? "quarter"
+                      : plan.yearlyPrice
+                        ? BillingProductPriceInterval.Year
+                        : BillingProductPriceInterval.Month;
 
                 return (
                   <Plan
@@ -361,8 +364,6 @@ export const PricingTable = forwardRef<
                     plans={self}
                     selectedPeriod={planPeriod}
                     currency={hasCurrency ? selectedCurrency : undefined}
-                    entitlementCounts={entitlementCounts}
-                    handleToggleShowAll={handleToggleShowAll}
                   />
                 );
               })}
@@ -401,9 +402,13 @@ export const PricingTable = forwardRef<
                 {addOns.map((addOn, index) => {
                   const addOnPeriod = showPeriodToggle
                     ? selectedPeriod
-                    : addOn.yearlyPrice && !addOn.monthlyPrice
-                      ? BillingProductPriceInterval.Year
-                      : BillingProductPriceInterval.Month;
+                    : addOn.monthlyPrice
+                      ? BillingProductPriceInterval.Month
+                      : addOn.quarterlyPrice
+                        ? "quarter"
+                        : addOn.yearlyPrice
+                          ? BillingProductPriceInterval.Year
+                          : BillingProductPriceInterval.Month;
 
                   return (
                     <AddOn

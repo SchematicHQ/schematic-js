@@ -8,4 +8,5 @@ export * from "./loader";
 export * from "./overlay";
 export * from "./progress-bar";
 export * from "./text";
+export * from "./toggle";
 export * from "./tooltip";

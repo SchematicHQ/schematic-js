@@ -15,6 +15,7 @@ import type {
 import {
   defaultSettings,
   type BypassConfig,
+  type CheckoutPrefill,
   type CheckoutState,
   type EmbedLayout,
   type EmbedSettings,
@@ -55,7 +56,8 @@ type EmbedAction =
   | { type: "SET_CHECKOUT_STATE"; state: CheckoutState }
   | { type: "SET_PLANID_BYPASS"; config: string | BypassConfig }
   | { type: "CLEAR_CHECKOUT_STATE" }
-  | { type: "SET_CURRENCY_FILTER"; currencyFilter?: string[] };
+  | { type: "SET_CURRENCY_FILTER"; currencyFilter?: string[] }
+  | { type: "SET_CHECKOUT_PREFILL"; checkoutPrefill?: CheckoutPrefill };
 
 function normalize(data?: HydrateData): HydrateDataWithCompanyContext {
   return merge({}, data, {
@@ -82,6 +84,7 @@ function normalize(data?: HydrateData): HydrateDataWithCompanyContext {
     },
     creditBundles: [],
     creditGrants: [],
+    customCheckoutFields: [],
     preventSelfServiceDowngrade: false,
   });
 }
@@ -277,6 +280,10 @@ export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {
           bypassCreditsSelection,
           ...(config.addOnIds && { addOnIds: config.addOnIds }),
           hideSkippedStages: config.hideSkipped ?? false,
+          startTrialIfAvailable:
+            isStringFormat || config.startTrialIfAvailable === undefined
+              ? true
+              : config.startTrialIfAvailable,
         },
       };
     }
@@ -292,6 +299,13 @@ export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {
       return {
         ...state,
         currencyFilter: action.currencyFilter,
+      };
+    }
+
+    case "SET_CHECKOUT_PREFILL": {
+      return {
+        ...state,
+        checkoutPrefill: action.checkoutPrefill,
       };
     }
   }

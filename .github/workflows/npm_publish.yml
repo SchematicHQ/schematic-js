@@ -1,0 +1,42 @@
+name: NPM Publish
+
+# Reusable workflow that publishes a package to npm using Trusted Publishing
+# (OIDC). All deploy_*.yml and release_candidate.yml call into this so that
+# only this one filename needs to be registered as the trusted publisher for
+# each @schematichq/* package on npmjs.com.
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        description: "Git tag to publish (e.g. schematic-react@1.3.0 or schematic-react@1.3.0-rc.1)"
+        required: true
+        type: string
+
+jobs:
+  publish:
+    name: Publish to NPM
+    runs-on: runs-on=${{ github.run_id }}/runner=4cpu-linux-x64/extras=s3-cache
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: runs-on/action@v2.0.3
+      - uses: actions/checkout@v6
+
+      - name: Set Node.js 24.x
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24.x
+
+      - name: Upgrade npm for Trusted Publishing
+        run: npm install -g npm@latest
+
+      - name: Publish
+        env:
+          # Disable provenance attestation: it requires a GitHub-hosted
+          # runner and we use self-hosted RunsOn runners. Without this,
+          # publish fails with E422 "Unsupported GitHub Actions runner
+          # environment: self-hosted". OIDC auth still works regardless.
+          NPM_CONFIG_PROVENANCE: "false"
+        run: TAG="${{ inputs.tag }}" ./scripts/publish-package.sh

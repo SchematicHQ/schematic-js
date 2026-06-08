@@ -51,20 +51,15 @@ function restoreCase(word: string, token: string): string {
 }
 
 /**
- * Interpolate a regexp string.
- */
-/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-function interpolate(str: string, args: any[]): string {
-  return str.replace(/\$(\d{1,2})/g, (match, index) => args[index] || "");
-}
-
-/**
  * Replace a word using a rule.
  */
 function replace(word: string, rule: Rule): string {
   return word.replace(rule[0], function (...args) {
     const [match, index] = args;
-    const result = interpolate(rule[1], args);
+    const result = rule[1].replace(
+      /\$(\d{1,2})/g,
+      (match, index) => args[index] || "",
+    );
 
     if (match === "") {
       return restoreCase(word[index - 1], result);
@@ -304,8 +299,7 @@ pluralize.addIrregularRule = function (single: string, plural: string): void {
  */
 [
   [/s?$/i, "s"],
-  // eslint-disable-next-line
-  [/[^\u0000-\u007F]$/i, "$0"],
+  [/[\u0080-\uFFFF]$/i, "$0"],
   [/([^aeiou]ese)$/i, "$1"],
   [/(ax|test)is$/i, "$1es"],
   [/(alias|[^aou]us|t[lm]as|gas|ris)$/i, "$1es"],

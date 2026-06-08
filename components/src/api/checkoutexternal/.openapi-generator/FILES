@@ -11,6 +11,7 @@ models/BillingCreditExpiryType.ts
 models/BillingCreditExpiryUnit.ts
 models/BillingCreditGrantReason.ts
 models/BillingCreditGrantZeroedOutReason.ts
+models/BillingCreditLedgerAuthority.ts
 models/BillingCreditResponseData.ts
 models/BillingCreditRolloverPolicy.ts
 models/BillingCreditView.ts
@@ -30,6 +31,7 @@ models/BillingProductPriceResponseData.ts
 models/BillingProductPriceTierResponseData.ts
 models/BillingProductResponseData.ts
 models/BillingProviderType.ts
+models/BillingStrategy.ts
 models/BillingSubscriptionDiscountView.ts
 models/BillingSubscriptionResponseData.ts
 models/BillingSubscriptionTrialEndSetting.ts
@@ -37,6 +39,8 @@ models/BillingSubscriptionView.ts
 models/BillingTiersMode.ts
 models/ChangeSubscriptionRequestBody.ts
 models/ChargeType.ts
+models/CheckoutFieldValue.ts
+models/CheckoutFieldWithValue.ts
 models/CheckoutResponse.ts
 models/CheckoutResponseData.ts
 models/CheckoutUnsubscribeResponse.ts
@@ -45,11 +49,13 @@ models/CompanyDetailResponseData.ts
 models/CompanyEventPeriodMetricsResponseData.ts
 models/CompanyOverrideNoteResponseData.ts
 models/CompanyOverrideResponseData.ts
+models/CompanyPlanCreditGrantView.ts
 models/CompanyPlanDetailResponseData.ts
 models/CompanyPlanInvalidReason.ts
 models/CompanyPlanWithBillingSubView.ts
 models/CompanyResponseData.ts
 models/CompanySubscriptionResponseData.ts
+models/ComparableOperator.ts
 models/CompatiblePlans.ts
 models/ComponentCapabilities.ts
 models/ComponentCheckoutSettings.ts
@@ -60,10 +66,12 @@ models/ComponentResponseData.ts
 models/ComponentState.ts
 models/Condition.ts
 models/ConditionGroup.ts
+models/ConditionType.ts
 models/CountResponse.ts
 models/CreateSetupIntentResponse.ts
 models/CreditBundleCurrencyPrice.ts
 models/CreditCompanyGrantView.ts
+models/CreditCurrencyPrice.ts
 models/CreditCurrencyPriceResponseData.ts
 models/CreditGrantDetail.ts
 models/CreditTransferView.ts
@@ -88,15 +96,15 @@ models/EntityTraitDetailResponseData.ts
 models/EntityTraitResponseData.ts
 models/EntityType.ts
 models/EventSummaryResponseData.ts
-models/FeatureDetailResponseData.ts
 models/FeatureEntitlement.ts
+models/FeatureInPlanResponseData.ts
 models/FeatureLifecyclePhase.ts
 models/FeatureResponseData.ts
 models/FeatureType.ts
 models/FeatureUsageDetailResponseData.ts
 models/FeatureUsageResponseData.ts
 models/FetchCustomerBalanceResponse.ts
-models/FlagDetailResponseData.ts
+models/FlagInPlanResponseData.ts
 models/FlagResponseData.ts
 models/FlagType.ts
 models/GenericPreviewObject.ts
@@ -108,6 +116,8 @@ models/InvoiceResponseData.ts
 models/InvoiceStatus.ts
 models/ListInvoicesParams.ts
 models/ListInvoicesResponse.ts
+models/MetricPeriod.ts
+models/MetricPeriodMonthReset.ts
 models/PaymentMethodResponseData.ts
 models/PlanCreditGrantView.ts
 models/PlanCurrencyPricesResponseData.ts
@@ -115,6 +125,7 @@ models/PlanDetailResponseData.ts
 models/PlanEntitlementResponseData.ts
 models/PlanGroupPlanDetailResponseData.ts
 models/PlanIcon.ts
+models/PlanPriceCadence.ts
 models/PlanResponseData.ts
 models/PlanType.ts
 models/PlanVersionResponseData.ts
@@ -132,6 +143,7 @@ models/RuleConditionGroupResponseData.ts
 models/RuleConditionResponseData.ts
 models/RuleDetailResponseData.ts
 models/RuleResponseData.ts
+models/RuleType.ts
 models/ScheduledDowngradeConfigBehavior.ts
 models/ScheduledDowngradeResponseData.ts
 models/SetupIntentResponseData.ts
@@ -139,6 +151,10 @@ models/StripeEmbedInfo.ts
 models/TraitDefinition.ts
 models/TraitType.ts
 models/UpdateAddOnRequestBody.ts
+models/UpdateAutoTopupOverrideRequestBody.ts
+models/UpdateCheckoutFieldValuesRequestBody.ts
+models/UpdateCheckoutFieldValuesResponse.ts
+models/UpdateCheckoutFieldValuesResponseData.ts
 models/UpdateCreditBundleRequestBody.ts
 models/UpdatePayInAdvanceRequestBody.ts
 models/UpdatePaymentMethodRequestBody.ts

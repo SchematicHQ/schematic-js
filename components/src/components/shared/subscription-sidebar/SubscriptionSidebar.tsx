@@ -11,10 +11,12 @@ import { useTranslation } from "react-i18next";
 
 import {
   EntitlementPriceBehavior,
+  ResponseError,
   type PreviewSubscriptionFinanceResponseData,
 } from "../../../api/checkoutexternal";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import type {
+  AutoTopupConfig,
   CreditBundle,
   CurrentUsageBasedEntitlement,
   SelectedPlan,
@@ -23,6 +25,7 @@ import type {
 import {
   ChargeType,
   buildAddOnRequestBody,
+  buildAutoTopupRequestBody,
   buildCreditBundlesRequestBody,
   buildPayInAdvanceRequestBody,
   entitlementHasCost,
@@ -34,6 +37,9 @@ import {
   getFeatureName,
   getMonthName,
   getPlanPrice,
+  getSubscriptionPeriod,
+  isScheduledCheckoutConflictMessage,
+  mergeCompanyGrants,
   shortenPeriod,
   toPrettyDate,
 } from "../../../utils";
@@ -45,11 +51,13 @@ import { EntitlementRow } from "./EntitlementRow";
 import { Proration } from "./Proration";
 
 interface SubscriptionSidebarProps extends Omit<BoxProps, "children"> {
-  portalRef?: React.RefObject<HTMLDialogElement | null>;
+  portal?: HTMLElement | null;
   planPeriod: string;
   selectedPlan?: SelectedPlan;
+  autoTopupConfigs?: Map<string, AutoTopupConfig>;
   addOns: SelectedPlan[];
   creditBundles?: CreditBundle[];
+  isCreditOnlyPurchase?: boolean;
   usageBasedEntitlements: UsageBasedEntitlement[];
   addOnUsageBasedEntitlements?: UsageBasedEntitlement[];
   addOnPayInAdvanceEntitlements?: UsageBasedEntitlement[];
@@ -82,11 +90,13 @@ export const SubscriptionSidebar = forwardRef<
 >(
   (
     {
-      portalRef,
+      portal,
       planPeriod,
       selectedPlan,
+      autoTopupConfigs,
       addOns,
       creditBundles = [],
+      isCreditOnlyPurchase = false,
       usageBasedEntitlements,
       addOnUsageBasedEntitlements = [],
       addOnPayInAdvanceEntitlements = [],
@@ -112,7 +122,7 @@ export const SubscriptionSidebar = forwardRef<
     },
     ref,
   ) => {
-    const portal = portalRef?.current || document.body;
+    const resolvedPortal = portal || document.body;
 
     const { t } = useTranslation();
 
@@ -165,6 +175,18 @@ export const SubscriptionSidebar = forwardRef<
       data?.trialPaymentMethodRequired,
     ]);
 
+    const planCreditGrants = useMemo(() => {
+      const grants = mergeCompanyGrants(
+        selectedPlan?.includedCreditGrants,
+        data?.company?.plan?.includedCreditGrants,
+      );
+
+      return grants;
+    }, [
+      selectedPlan?.includedCreditGrants,
+      data?.company?.plan?.includedCreditGrants,
+    ]);
+
     const { payInAdvanceEntitlements } = useMemo(() => {
       const payAsYouGoEntitlements: UsageBasedEntitlement[] = [];
       const payInAdvanceEntitlements = usageBasedEntitlements.filter(
@@ -209,7 +231,9 @@ export const SubscriptionSidebar = forwardRef<
       }
 
       const addOnCost = addOns.reduce((sum, addOn) => {
-        if (addOn.isSelected) {
+        // One-time charges are billed once at checkout and do not recur; they
+        // should not contribute to the recurring monthly/yearly total.
+        if (addOn.isSelected && addOn.chargeType !== ChargeType.oneTime) {
           sum += getAddOnPrice(addOn, planPeriod, currency)?.price ?? 0;
         }
 
@@ -227,6 +251,16 @@ export const SubscriptionSidebar = forwardRef<
       );
       total += payInAdvanceCost;
 
+      const addOnPayInAdvanceCost = addOnPayInAdvanceEntitlements.reduce(
+        (sum, entitlement) =>
+          sum +
+          entitlement.quantity *
+            (getEntitlementPrice(entitlement, planPeriod, currency)?.price ??
+              0),
+        0,
+      );
+      total += addOnPayInAdvanceCost;
+
       return formatCurrency(total, resolvedCurrency);
     }, [
       selectedPlan,
@@ -234,6 +268,7 @@ export const SubscriptionSidebar = forwardRef<
       planPeriod,
       addOns,
       payInAdvanceEntitlements,
+      addOnPayInAdvanceEntitlements,
       currency,
     ]);
 
@@ -414,16 +449,23 @@ export const SubscriptionSidebar = forwardRef<
         currencyPrice?.id ??
         (planPeriod === "year"
           ? selectedPlan?.yearlyPrice
-          : selectedPlan?.monthlyPrice
+          : planPeriod === "quarter"
+            ? selectedPlan?.quarterlyPrice
+            : selectedPlan?.monthlyPrice
         )?.id;
 
       try {
-        if (!planId || !planPriceId) {
+        if ((!planId || !planPriceId) && !isCreditOnlyPurchase) {
           throw new Error(t("Selected plan or associated price is missing."));
         }
 
         setError(undefined);
         setIsLoading(true);
+
+        const autoTopupRequestBody = buildAutoTopupRequestBody({
+          creditGrants: planCreditGrants,
+          autoTopupConfigs,
+        });
 
         const planPayInAdvanceRequestBody = buildPayInAdvanceRequestBody({
           entitlements: payInAdvanceEntitlements,
@@ -448,14 +490,15 @@ export const SubscriptionSidebar = forwardRef<
           buildCreditBundlesRequestBody(creditBundles);
 
         const checkoutResponseFromBackend = await checkout({
-          newPlanId: planId,
-          newPriceId: planPriceId,
-          addOnIds: addOnRequestBody,
-          payInAdvance: [
-            ...planPayInAdvanceRequestBody,
-            ...addOnPayInAdvanceRequestBody,
-          ],
+          newPlanId: isCreditOnlyPurchase ? "" : (planId ?? ""),
+          newPriceId: isCreditOnlyPurchase ? "" : (planPriceId ?? ""),
+          addOnIds: isCreditOnlyPurchase ? [] : addOnRequestBody,
+          autoTopupOverrides: isCreditOnlyPurchase ? [] : autoTopupRequestBody,
+          payInAdvance: isCreditOnlyPurchase
+            ? []
+            : [...planPayInAdvanceRequestBody, ...addOnPayInAdvanceRequestBody],
           creditBundles: creditBundlesRequestBody,
+          customFieldValues: [],
           skipTrial: !shouldTrial,
           ...(paymentMethodId && { paymentMethodId }),
           ...(promoCode && { promoCode }),
@@ -473,7 +516,10 @@ export const SubscriptionSidebar = forwardRef<
                 return;
               }
 
-              console.log("Payment intent has confirmed. Result: ", confirmed);
+              console.debug(
+                "Payment intent has confirmed. Result: ",
+                confirmed,
+              );
               setIsLoading(false);
               if (!confirmed) {
                 setError(
@@ -492,9 +538,43 @@ export const SubscriptionSidebar = forwardRef<
           setIsLoading(false);
           setLayout("portal");
         }
-      } catch {
+      } catch (err) {
         setIsLoading(false);
         setLayout("checkout");
+
+        if (err instanceof ResponseError) {
+          if (err.response.status === 401) {
+            setError(t("Session expired. Please refresh and try again."));
+            return;
+          }
+
+          // Read the body once; the `data.error` string is what the API
+          // helpers in lib/web/helpers.go put under the top-level error key.
+          let data: { error?: unknown } | undefined;
+          try {
+            data = await err.response.json();
+          } catch {
+            data = undefined;
+          }
+
+          if (
+            err.response.status === 409 &&
+            isScheduledCheckoutConflictMessage(data?.error)
+          ) {
+            setError(
+              t(
+                "Downgrade pending. Cancel the scheduled downgrade before making another change.",
+              ),
+            );
+            return;
+          }
+        }
+
+        // Default fallback. The original copy assumed every checkout error
+        // was a payment-method problem; that's right for Stripe-rejection
+        // failures (handled in the confirmPaymentIntent callback above), but
+        // misleading for transport / API errors. Keep the "try a different
+        // payment method" hint for now — broader copy review is out of scope.
         setError(
           t("Error processing payment. Please try a different payment method."),
         );
@@ -506,8 +586,11 @@ export const SubscriptionSidebar = forwardRef<
       paymentMethodId,
       planPeriod,
       selectedPlan,
+      planCreditGrants,
+      autoTopupConfigs,
       addOns,
       creditBundles,
+      isCreditOnlyPurchase,
       setError,
       setIsLoading,
       setLayout,
@@ -540,7 +623,11 @@ export const SubscriptionSidebar = forwardRef<
       selectedPlan?.isTrialable === true;
 
     const button = useMemo(() => {
-      const canCheckout = error !== t("Downgrade not permitted.");
+      const hasEntitlementDowngrade =
+        payInAdvanceEntitlements.some((e) => e.quantity < e.usage) ||
+        addOnPayInAdvanceEntitlements.some((e) => e.quantity < e.usage);
+      const canCheckout =
+        error !== t("Downgrade not permitted.") && !hasEntitlementDowngrade;
       const isSticky = !isButtonInView;
 
       switch (layout) {
@@ -565,6 +652,7 @@ export const SubscriptionSidebar = forwardRef<
               willTrialWithoutPaymentMethod={willTrialWithoutPaymentMethod}
               willScheduleDowngrade={willScheduleDowngrade}
               shouldTrial={shouldTrial}
+              isCreditOnlyPurchase={isCreditOnlyPurchase}
               checkout={handleCheckout}
             />
           );
@@ -606,6 +694,9 @@ export const SubscriptionSidebar = forwardRef<
       paymentMethodId,
       handleCheckout,
       handleUnsubscribe,
+      payInAdvanceEntitlements,
+      addOnPayInAdvanceEntitlements,
+      isCreditOnlyPurchase,
     ]);
 
     useLayoutEffect(() => {
@@ -618,7 +709,7 @@ export const SubscriptionSidebar = forwardRef<
         ([entry]) => {
           setIsButtonInView(entry.isIntersecting);
         },
-        { root: portal },
+        { root: resolvedPortal },
       );
 
       observer.observe(element);
@@ -626,7 +717,7 @@ export const SubscriptionSidebar = forwardRef<
       return () => {
         observer.disconnect();
       };
-    }, [portal]);
+    }, [resolvedPortal]);
 
     const { price: selectedPlanPrice, currency: selectedPlanCurrency } =
       selectedPlan
@@ -729,7 +820,12 @@ export const SubscriptionSidebar = forwardRef<
                         billingSubscription?.currency,
                       )}
                       <sub>
-                        /{shortenPeriod(currentPlan.planPeriod || planPeriod)}
+                        /
+                        {shortenPeriod(
+                          getSubscriptionPeriod(billingSubscription) ||
+                            currentPlan.planPeriod ||
+                            planPeriod,
+                        )}
                       </sub>
                     </Text>
                   </Box>
@@ -798,10 +894,10 @@ export const SubscriptionSidebar = forwardRef<
                         $color={settings.theme.typography.heading4.color}
                       >
                         <EntitlementRow
+                          portal={resolvedPortal}
                           {...entitlement}
                           planPeriod={planPeriod}
                           currency={currency}
-                          tooltipPortal={portalRef?.current}
                         />
                       </Flex>,
                     );
@@ -826,10 +922,10 @@ export const SubscriptionSidebar = forwardRef<
                           $color={settings.theme.typography.heading4.color}
                         >
                           <EntitlementRow
+                            portal={resolvedPortal}
                             {...previous}
                             planPeriod={planPeriod}
                             currency={currency}
-                            tooltipPortal={portalRef?.current}
                           />
                         </Flex>
 
@@ -839,10 +935,10 @@ export const SubscriptionSidebar = forwardRef<
                           $gap="1rem"
                         >
                           <EntitlementRow
+                            portal={resolvedPortal}
                             {...next}
                             planPeriod={planPeriod}
                             currency={currency}
-                            tooltipPortal={portalRef?.current}
                           />
                         </Flex>
                       </Flex>,
@@ -865,10 +961,10 @@ export const SubscriptionSidebar = forwardRef<
                         $gap="1rem"
                       >
                         <EntitlementRow
+                          portal={resolvedPortal}
                           {...entitlement}
                           planPeriod={planPeriod}
                           currency={currency}
-                          tooltipPortal={portalRef?.current}
                         />
                       </Flex>,
                     );
@@ -1143,7 +1239,7 @@ export const SubscriptionSidebar = forwardRef<
             </Flex>
           )}
 
-          {subscriptionPrice && (
+          {!isCreditOnlyPurchase && subscriptionPrice && (
             <Flex
               $justifyContent="space-between"
               $alignItems="center"
@@ -1153,7 +1249,9 @@ export const SubscriptionSidebar = forwardRef<
                 <Text>
                   {planPeriod === "year"
                     ? t("Yearly total")
-                    : t("Monthly total")}
+                    : planPeriod === "quarter"
+                      ? t("Quarterly total")
+                      : t("Monthly total")}
                   :
                 </Text>
               </Box>
@@ -1242,7 +1340,7 @@ export const SubscriptionSidebar = forwardRef<
               >
                 <Box $padding="1rem 1.5rem">{button}</Box>
               </Box>,
-              portal,
+              resolvedPortal,
             )}
           </div>
 
@@ -1267,7 +1365,7 @@ export const SubscriptionSidebar = forwardRef<
             </Flex>
           )}
 
-          {layout !== "unsubscribe" && (
+          {layout !== "unsubscribe" && !isCreditOnlyPurchase && (
             <Box $opacity="0.625">
               <Text>
                 {willScheduleDowngrade &&

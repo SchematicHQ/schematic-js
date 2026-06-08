@@ -1,12 +1,13 @@
 import type {
   BillingPriceView,
-  FeatureDetailResponseData,
+  FeatureInPlanResponseData,
   FeatureUsageResponseData,
 } from "../../api/checkoutexternal";
 import {
   EntitlementPriceBehavior,
   EntitlementType,
   EntitlementValueType,
+  MetricPeriod,
 } from "../../api/checkoutexternal";
 import {
   entitlementHasHardLimit,
@@ -266,8 +267,8 @@ describe("calculateCurrentUsageBasedEntitlements", () => {
         feature: {
           id: "feat1",
           name: "Feature 1",
-        } as FeatureDetailResponseData,
-        period: "month",
+        } as FeatureInPlanResponseData,
+        period: MetricPeriod.CurrentMonth,
       },
     ];
 
@@ -285,7 +286,7 @@ describe("calculateCurrentUsageBasedEntitlements", () => {
         id: "feat1",
         name: "Feature 1",
       },
-      period: "month",
+      period: "current_month",
     });
   });
 });

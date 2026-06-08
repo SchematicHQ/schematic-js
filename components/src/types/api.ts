@@ -3,10 +3,10 @@ import {
   type BillingPriceResponseData,
   type BillingPriceView,
   type BillingProductPriceTierResponseData,
+  type CompanyPlanCreditGrantView,
   type CompanyPlanDetailResponseData,
   type ComponentHydrateResponseData,
   type CreditCompanyGrantView,
-  type FeatureDetailResponseData,
   type FeatureResponseData,
   type FeatureUsageResponseData,
   type PlanEntitlementResponseData,
@@ -23,6 +23,13 @@ export type BillingPrice = BillingPriceView | BillingPriceResponseData;
 
 export type Plan = CompanyPlanDetailResponseData;
 export type SelectedPlan = Plan & { isSelected: boolean };
+
+export type AutoTopupConfig = Pick<
+  CompanyPlanCreditGrantView,
+  | "companyAutoTopupEnabled"
+  | "companyAutoTopupThresholdCredits"
+  | "companyAutoTopupAmount"
+>;
 
 export interface CreditWithCompanyContext {
   id: CreditCompanyGrantView["billingCreditId"];
@@ -53,7 +60,7 @@ export type Credit = Omit<
 
 export type CreditBundle = BillingCreditBundleView & { count: number };
 
-export type Feature = FeatureDetailResponseData | FeatureResponseData;
+export type Feature = FeatureResponseData;
 
 export type Entitlement =
   | PlanEntitlementResponseData

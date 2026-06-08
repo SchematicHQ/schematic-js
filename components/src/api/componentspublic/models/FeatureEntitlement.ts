@@ -20,6 +20,20 @@ import {
   EntitlementValueTypeToJSON,
   EntitlementValueTypeToJSONTyped,
 } from "./EntitlementValueType";
+import type { MetricPeriodMonthReset } from "./MetricPeriodMonthReset";
+import {
+  MetricPeriodMonthResetFromJSON,
+  MetricPeriodMonthResetFromJSONTyped,
+  MetricPeriodMonthResetToJSON,
+  MetricPeriodMonthResetToJSONTyped,
+} from "./MetricPeriodMonthReset";
+import type { MetricPeriod } from "./MetricPeriod";
+import {
+  MetricPeriodFromJSON,
+  MetricPeriodFromJSONTyped,
+  MetricPeriodToJSON,
+  MetricPeriodToJSONTyped,
+} from "./MetricPeriod";
 
 /**
  *
@@ -77,10 +91,10 @@ export interface FeatureEntitlement {
   featureKey: string;
   /**
    * For event-based feature entitlements, the period over which usage is tracked
-   * @type {string}
+   * @type {MetricPeriod}
    * @memberof FeatureEntitlement
    */
-  metricPeriod?: FeatureEntitlementMetricPeriodEnum | null;
+  metricPeriod?: MetricPeriod | null;
   /**
    * For event-based feature entitlements, when the usage period will reset
    * @type {Date}
@@ -89,10 +103,10 @@ export interface FeatureEntitlement {
   metricResetAt?: Date | null;
   /**
    * For event-based feature entitlements that have a monthly period, whether that monthly reset is based on the calendar month or a billing cycle
-   * @type {string}
+   * @type {MetricPeriodMonthReset}
    * @memberof FeatureEntitlement
    */
-  monthReset?: FeatureEntitlementMonthResetEnum | null;
+  monthReset?: MetricPeriodMonthReset | null;
   /**
    * For usage-based pricing, the soft limit for overage charges or the next tier boundary
    * @type {number}
@@ -112,28 +126,6 @@ export interface FeatureEntitlement {
    */
   valueType: EntitlementValueType;
 }
-
-/**
- * @export
- */
-export const FeatureEntitlementMetricPeriodEnum = {
-  AllTime: "all_time",
-  CurrentDay: "current_day",
-  CurrentMonth: "current_month",
-  CurrentWeek: "current_week",
-} as const;
-export type FeatureEntitlementMetricPeriodEnum =
-  (typeof FeatureEntitlementMetricPeriodEnum)[keyof typeof FeatureEntitlementMetricPeriodEnum];
-
-/**
- * @export
- */
-export const FeatureEntitlementMonthResetEnum = {
-  FirstOfMonth: "first_of_month",
-  BillingCycle: "billing_cycle",
-} as const;
-export type FeatureEntitlementMonthResetEnum =
-  (typeof FeatureEntitlementMonthResetEnum)[keyof typeof FeatureEntitlementMonthResetEnum];
 
 /**
  * Check if a given object implements the FeatureEntitlement interface.
@@ -171,12 +163,17 @@ export function FeatureEntitlementFromJSONTyped(
     featureId: json["feature_id"],
     featureKey: json["feature_key"],
     metricPeriod:
-      json["metric_period"] == null ? undefined : json["metric_period"],
+      json["metric_period"] == null
+        ? undefined
+        : MetricPeriodFromJSON(json["metric_period"]),
     metricResetAt:
       json["metric_reset_at"] == null
         ? undefined
         : new Date(json["metric_reset_at"]),
-    monthReset: json["month_reset"] == null ? undefined : json["month_reset"],
+    monthReset:
+      json["month_reset"] == null
+        ? undefined
+        : MetricPeriodMonthResetFromJSON(json["month_reset"]),
     softLimit: json["soft_limit"] == null ? undefined : json["soft_limit"],
     usage: json["usage"] == null ? undefined : json["usage"],
     valueType: EntitlementValueTypeFromJSON(json["value_type"]),
@@ -204,12 +201,12 @@ export function FeatureEntitlementToJSONTyped(
     event_name: value["eventName"],
     feature_id: value["featureId"],
     feature_key: value["featureKey"],
-    metric_period: value["metricPeriod"],
+    metric_period: MetricPeriodToJSON(value["metricPeriod"]),
     metric_reset_at:
       value["metricResetAt"] == null
         ? undefined
         : (value["metricResetAt"] as any).toISOString(),
-    month_reset: value["monthReset"],
+    month_reset: MetricPeriodMonthResetToJSON(value["monthReset"]),
     soft_limit: value["softLimit"],
     usage: value["usage"],
     value_type: EntitlementValueTypeToJSON(value["valueType"]),

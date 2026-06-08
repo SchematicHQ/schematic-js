@@ -13,7 +13,7 @@ describe("embedReducer - SET_PLANID_BYPASS", () => {
       });
 
       expect(result.layout).toBe("checkout");
-      expect(result.checkoutState).toEqual({
+      expect(result.checkoutState).toMatchObject({
         planId: "plan_xyz123",
         bypassPlanSelection: true,
         bypassAddOnSelection: false,
@@ -35,7 +35,7 @@ describe("embedReducer - SET_PLANID_BYPASS", () => {
       });
 
       expect(result.layout).toBe("checkout");
-      expect(result.checkoutState).toEqual({
+      expect(result.checkoutState).toMatchObject({
         planId: "plan_abc",
         bypassPlanSelection: false,
         bypassAddOnSelection: false,
@@ -55,7 +55,7 @@ describe("embedReducer - SET_PLANID_BYPASS", () => {
         config,
       });
 
-      expect(result.checkoutState).toEqual({
+      expect(result.checkoutState).toMatchObject({
         planId: "plan_abc",
         addOnIds: ["addon_1", "addon_2"],
         bypassPlanSelection: false,
@@ -183,7 +183,7 @@ describe("embedReducer - SET_PLANID_BYPASS", () => {
         config,
       });
 
-      expect(result.checkoutState).toEqual({
+      expect(result.checkoutState).toMatchObject({
         bypassPlanSelection: true,
         bypassAddOnSelection: false,
         bypassCreditsSelection: false,
@@ -223,6 +223,44 @@ describe("embedReducer - SET_PLANID_BYPASS", () => {
     });
   });
 
+  describe("startTrialIfAvailable configuration", () => {
+    it("should default startTrialIfAvailable to true", () => {
+      const config: BypassConfig = {
+        planId: "plan_xyz",
+      };
+
+      const result = reducer(initialState, {
+        type: "SET_PLANID_BYPASS",
+        config,
+      });
+
+      expect(result.checkoutState?.startTrialIfAvailable).toBe(true);
+    });
+
+    it("should default startTrialIfAvailable to true for legacy string format", () => {
+      const result = reducer(initialState, {
+        type: "SET_PLANID_BYPASS",
+        config: "plan_xyz",
+      });
+
+      expect(result.checkoutState?.startTrialIfAvailable).toBe(true);
+    });
+
+    it("should respect startTrialIfAvailable: false when explicitly set", () => {
+      const config: BypassConfig = {
+        planId: "plan_xyz",
+        startTrialIfAvailable: false,
+      };
+
+      const result = reducer(initialState, {
+        type: "SET_PLANID_BYPASS",
+        config,
+      });
+
+      expect(result.checkoutState?.startTrialIfAvailable).toBe(false);
+    });
+  });
+
   describe("Period configuration", () => {
     it("should set period when provided", () => {
       const config: BypassConfig = {
@@ -253,5 +291,50 @@ describe("embedReducer - SET_PLANID_BYPASS", () => {
 
       expect(result.checkoutState?.period).toBeUndefined();
     });
+  });
+});
+
+describe("embedReducer - SET_CHECKOUT_PREFILL", () => {
+  it("should set the checkout prefill", () => {
+    const result = reducer(initialState, {
+      type: "SET_CHECKOUT_PREFILL",
+      checkoutPrefill: {
+        billingDetails: { email: "a@b.com", name: "Ada Lovelace" },
+      },
+    });
+
+    expect(result.checkoutPrefill).toEqual({
+      billingDetails: { email: "a@b.com", name: "Ada Lovelace" },
+    });
+  });
+
+  it("should replace an existing prefill", () => {
+    const seeded = reducer(initialState, {
+      type: "SET_CHECKOUT_PREFILL",
+      checkoutPrefill: { billingDetails: { email: "a@b.com" } },
+    });
+
+    const result = reducer(seeded, {
+      type: "SET_CHECKOUT_PREFILL",
+      checkoutPrefill: { billingDetails: { name: "Grace Hopper" } },
+    });
+
+    expect(result.checkoutPrefill).toEqual({
+      billingDetails: { name: "Grace Hopper" },
+    });
+  });
+
+  it("should clear the prefill when set to undefined", () => {
+    const seeded = reducer(initialState, {
+      type: "SET_CHECKOUT_PREFILL",
+      checkoutPrefill: { billingDetails: { email: "a@b.com" } },
+    });
+
+    const result = reducer(seeded, {
+      type: "SET_CHECKOUT_PREFILL",
+      checkoutPrefill: undefined,
+    });
+
+    expect(result.checkoutPrefill).toBeUndefined();
   });
 });

@@ -1,14 +1,9 @@
 name: Deploy schematic-js
 
-permissions:
-  id-token: write
-  contents: read
-
 on:
   push:
     tags:
       - "schematic-js@*"
-      - "!schematic-js@*-rc*"
   workflow_dispatch:
 
 jobs:
@@ -21,8 +16,12 @@ jobs:
 
   deploy:
     name: Browser Deploy
+    if: ${{ !contains(github.ref_name, '-rc.') }}
     runs-on: runs-on=${{ github.run_id }}/runner=4cpu-linux-x64/extras=s3-cache
     needs: [lint_test]
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - uses: runs-on/action@v2.0.3
       - uses: actions/checkout@v6
@@ -40,12 +39,16 @@ jobs:
         working-directory: ./js
         run: ./version.sh
 
+      - name: Update cache version
+        working-directory: ./js
+        run: yarn cache-version
+
       - name: Build browser bundle
         working-directory: ./js
         run: yarn build:browser
 
       - name: 🚀auth-oidc-aws-prod
-        uses: aws-actions/configure-aws-credentials@v6.1.0
+        uses: aws-actions/configure-aws-credentials@6.1.3
         with:
           role-to-assume: ${{ vars.PROD_AWS_ROLE_ARN }}
           aws-region: ${{ vars.PROD_AWS_REGION }}
@@ -66,25 +69,17 @@ jobs:
 
   publish:
     name: NPM Publish
-    runs-on: runs-on=${{ github.run_id }}/runner=4cpu-linux-x64/extras=s3-cache
-    permissions:
-      packages: write
-      contents: read
     needs: [lint_test]
-    steps:
-      - uses: runs-on/action@v2.0.3
-      - uses: actions/checkout@v6
-      - name: Set Node.js 24.x
-        uses: actions/setup-node@v6
-        with:
-          node-version: 24.x
-      - name: Publish schematic-js
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: TAG="${{ github.ref_name }}" ./scripts/publish-package.sh
+    permissions:
+      id-token: write
+      contents: read
+    uses: ./.github/workflows/npm_publish.yml
+    with:
+      tag: ${{ github.ref_name }}
 
   notify_slack:
     name: Notify Slack
+    if: ${{ !contains(github.ref_name, '-rc.') }}
     runs-on: runs-on=${{ github.run_id }}/runner=1cpu-linux-arm64
     needs: [deploy, publish]
     steps:

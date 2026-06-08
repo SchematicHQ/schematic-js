@@ -94,6 +94,12 @@ export interface BillingPriceView {
   interval: BillingProductPriceInterval;
   /**
    *
+   * @type {number}
+   * @memberof BillingPriceView
+   */
+  intervalCount: number;
+  /**
+   *
    * @type {boolean}
    * @memberof BillingPriceView
    */
@@ -116,6 +122,12 @@ export interface BillingPriceView {
    * @memberof BillingPriceView
    */
   meterId?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof BillingPriceView
+   */
+  nickname?: string | null;
   /**
    *
    * @type {number}
@@ -208,6 +220,8 @@ export function instanceOfBillingPriceView(
   if (!("currency" in value) || value["currency"] === undefined) return false;
   if (!("id" in value) || value["id"] === undefined) return false;
   if (!("interval" in value) || value["interval"] === undefined) return false;
+  if (!("intervalCount" in value) || value["intervalCount"] === undefined)
+    return false;
   if (!("isActive" in value) || value["isActive"] === undefined) return false;
   if (!("packageSize" in value) || value["packageSize"] === undefined)
     return false;
@@ -248,6 +262,7 @@ export function BillingPriceViewFromJSONTyped(
     currency: json["currency"],
     id: json["id"],
     interval: BillingProductPriceIntervalFromJSON(json["interval"]),
+    intervalCount: json["interval_count"],
     isActive: json["is_active"],
     meterEventName:
       json["meter_event_name"] == null ? undefined : json["meter_event_name"],
@@ -256,6 +271,7 @@ export function BillingPriceViewFromJSONTyped(
         ? undefined
         : json["meter_event_payload_key"],
     meterId: json["meter_id"] == null ? undefined : json["meter_id"],
+    nickname: json["nickname"] == null ? undefined : json["nickname"],
     packageSize: json["package_size"],
     price: json["price"],
     priceDecimal:
@@ -296,10 +312,12 @@ export function BillingPriceViewToJSONTyped(
     currency: value["currency"],
     id: value["id"],
     interval: BillingProductPriceIntervalToJSON(value["interval"]),
+    interval_count: value["intervalCount"],
     is_active: value["isActive"],
     meter_event_name: value["meterEventName"],
     meter_event_payload_key: value["meterEventPayloadKey"],
     meter_id: value["meterId"],
+    nickname: value["nickname"],
     package_size: value["packageSize"],
     price: value["price"],
     price_decimal: value["priceDecimal"],

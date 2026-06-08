@@ -1,5 +1,6 @@
 import {
   BillingPlanCreditGrantResetCadence,
+  type CompanyPlanCreditGrantView,
   type CreditCompanyGrantView,
   type PlanCreditGrantView,
 } from "../../api/checkoutexternal";
@@ -111,4 +112,61 @@ export function groupCreditGrants(
   );
 
   return Object.values(map);
+}
+
+export function isAutoTopupEnabled(grant?: CompanyPlanCreditGrantView) {
+  if (grant?.billingCreditAutoTopupSelfService) {
+    return grant.companyAutoTopupEnabled ?? false;
+  }
+
+  return grant?.billingCreditAutoTopupEnabled ?? false;
+}
+
+export function getAutoTopupThresholdCredits(
+  grant?: CompanyPlanCreditGrantView,
+) {
+  return (
+    grant?.companyAutoTopupThresholdCredits ??
+    grant?.billingCreditAutoTopupThresholdCredits
+  );
+}
+
+export function getAutoTopupAmount(grant?: CompanyPlanCreditGrantView) {
+  return grant?.companyAutoTopupAmount ?? grant?.billingCreditAutoTopupAmount;
+}
+
+export function mergeAutoTopupOverrides(
+  grant: PlanCreditGrantView,
+  companyGrant?: CompanyPlanCreditGrantView,
+) {
+  if (!companyGrant) {
+    return grant;
+  }
+
+  const resolvedGrant: PlanCreditGrantView = {
+    ...grant,
+    billingCreditAutoTopupEnabled:
+      companyGrant.companyAutoTopupEnabled ??
+      grant.billingCreditAutoTopupEnabled,
+    billingCreditAutoTopupThresholdCredits:
+      companyGrant.companyAutoTopupThresholdCredits ??
+      grant.billingCreditAutoTopupThresholdCredits,
+    billingCreditAutoTopupAmount:
+      companyGrant.companyAutoTopupAmount ?? grant.billingCreditAutoTopupAmount,
+  };
+
+  return resolvedGrant;
+}
+
+export function mergeCompanyGrants(
+  grants: PlanCreditGrantView[] = [],
+  companyGrants?: CompanyPlanCreditGrantView[],
+) {
+  return grants.map((grant) => {
+    const match = companyGrants?.find(
+      (companyGrant) => grant.id === companyGrant.id,
+    );
+
+    return mergeAutoTopupOverrides(grant, match);
+  });
 }

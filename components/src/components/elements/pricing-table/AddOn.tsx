@@ -14,6 +14,7 @@ import {
   getEntitlementFeatureName,
   getEntitlementPrice,
   getFeatureName,
+  getSubscriptionPeriod,
   hexToHSL,
   isTieredPrice,
 } from "../../../utils";
@@ -142,11 +143,11 @@ export const AddOn = ({
 
   const cardPadding = settings.theme.card.padding / TEXT_BASE_SIZE;
 
-  const isActiveAddOn =
-    addOn.current &&
-    selectedPeriod ===
-      currentAddOns.find((currentAddOn) => currentAddOn.id === addOn.id)
-        ?.planPeriod;
+  const currentAddOnPeriod =
+    getSubscriptionPeriod(data?.company?.billingSubscription) ??
+    currentAddOns.find((currentAddOn) => currentAddOn.id === addOn.id)
+      ?.planPeriod;
+  const isActiveAddOn = addOn.current && selectedPeriod === currentAddOnPeriod;
   const { price: addOnPrice, currency: addOnCurrency } =
     getAddOnPrice(addOn, selectedPeriod, currency) || {};
 

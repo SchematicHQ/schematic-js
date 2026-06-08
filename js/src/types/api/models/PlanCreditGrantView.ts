@@ -107,6 +107,12 @@ export interface PlanCreditGrantView {
   billingCreditAutoTopupExpiryUnitCount?: number | null;
   /**
    *
+   * @type {boolean}
+   * @memberof PlanCreditGrantView
+   */
+  billingCreditAutoTopupSelfService: boolean;
+  /**
+   *
    * @type {number}
    * @memberof PlanCreditGrantView
    */
@@ -230,6 +236,12 @@ export interface PlanCreditGrantView {
    */
   resetType: BillingPlanCreditGrantResetType;
   /**
+   *
+   * @type {number}
+   * @memberof PlanCreditGrantView
+   */
+  rolloverPercentage: number;
+  /**
    * Deprecated field, will be removed in the future. Use Credit.SingularName instead.
    * @type {string}
    * @memberof PlanCreditGrantView
@@ -255,6 +267,11 @@ export function instanceOfPlanCreditGrantView(
     value["billingCreditAutoTopupEnabled"] === undefined
   )
     return false;
+  if (
+    !("billingCreditAutoTopupSelfService" in value) ||
+    value["billingCreditAutoTopupSelfService"] === undefined
+  )
+    return false;
   if (!("createdAt" in value) || value["createdAt"] === undefined) return false;
   if (!("creditAmount" in value) || value["creditAmount"] === undefined)
     return false;
@@ -269,6 +286,11 @@ export function instanceOfPlanCreditGrantView(
   if (!("id" in value) || value["id"] === undefined) return false;
   if (!("planId" in value) || value["planId"] === undefined) return false;
   if (!("resetType" in value) || value["resetType"] === undefined) return false;
+  if (
+    !("rolloverPercentage" in value) ||
+    value["rolloverPercentage"] === undefined
+  )
+    return false;
   if (!("updatedAt" in value) || value["updatedAt"] === undefined) return false;
   return true;
 }
@@ -310,6 +332,8 @@ export function PlanCreditGrantViewFromJSONTyped(
       json["billing_credit_auto_topup_expiry_unit_count"] == null
         ? undefined
         : json["billing_credit_auto_topup_expiry_unit_count"],
+    billingCreditAutoTopupSelfService:
+      json["billing_credit_auto_topup_self_service"],
     billingCreditAutoTopupThresholdCredits:
       json["billing_credit_auto_topup_threshold_credits"] == null
         ? undefined
@@ -356,6 +380,7 @@ export function PlanCreditGrantViewFromJSONTyped(
         ? undefined
         : BillingPlanCreditGrantResetStartFromJSON(json["reset_start"]),
     resetType: BillingPlanCreditGrantResetTypeFromJSON(json["reset_type"]),
+    rolloverPercentage: json["rollover_percentage"],
     singularName:
       json["singular_name"] == null ? undefined : json["singular_name"],
     updatedAt: new Date(json["updated_at"]),
@@ -387,6 +412,8 @@ export function PlanCreditGrantViewToJSONTyped(
     ),
     billing_credit_auto_topup_expiry_unit_count:
       value["billingCreditAutoTopupExpiryUnitCount"],
+    billing_credit_auto_topup_self_service:
+      value["billingCreditAutoTopupSelfService"],
     billing_credit_auto_topup_threshold_credits:
       value["billingCreditAutoTopupThresholdCredits"],
     billing_credit_auto_topup_threshold_percent:
@@ -411,6 +438,7 @@ export function PlanCreditGrantViewToJSONTyped(
     ),
     reset_start: BillingPlanCreditGrantResetStartToJSON(value["resetStart"]),
     reset_type: BillingPlanCreditGrantResetTypeToJSON(value["resetType"]),
+    rollover_percentage: value["rolloverPercentage"],
     singular_name: value["singularName"],
     updated_at: value["updatedAt"].toISOString(),
   };

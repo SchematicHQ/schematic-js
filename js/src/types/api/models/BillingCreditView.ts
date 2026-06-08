@@ -27,6 +27,13 @@ import {
   BillingProductResponseDataToJSON,
   BillingProductResponseDataToJSONTyped,
 } from "./BillingProductResponseData";
+import type { CreditCurrencyPrice } from "./CreditCurrencyPrice";
+import {
+  CreditCurrencyPriceFromJSON,
+  CreditCurrencyPriceFromJSONTyped,
+  CreditCurrencyPriceToJSON,
+  CreditCurrencyPriceToJSONTyped,
+} from "./CreditCurrencyPrice";
 import type { BillingPriceView } from "./BillingPriceView";
 import {
   BillingPriceViewFromJSON,
@@ -48,6 +55,13 @@ import {
   BillingCreditRolloverPolicyToJSON,
   BillingCreditRolloverPolicyToJSONTyped,
 } from "./BillingCreditRolloverPolicy";
+import type { BillingCreditLedgerAuthority } from "./BillingCreditLedgerAuthority";
+import {
+  BillingCreditLedgerAuthorityFromJSON,
+  BillingCreditLedgerAuthorityFromJSONTyped,
+  BillingCreditLedgerAuthorityToJSON,
+  BillingCreditLedgerAuthorityToJSONTyped,
+} from "./BillingCreditLedgerAuthority";
 
 /**
  *
@@ -79,6 +93,12 @@ export interface BillingCreditView {
    * @memberof BillingCreditView
    */
   createdAt: Date;
+  /**
+   *
+   * @type {Array<CreditCurrencyPrice>}
+   * @memberof BillingCreditView
+   */
+  currencyPrices: Array<CreditCurrencyPrice>;
   /**
    *
    * @type {BillingCreditExpiryUnit}
@@ -121,6 +141,12 @@ export interface BillingCreditView {
    * @memberof BillingCreditView
    */
   id: string;
+  /**
+   *
+   * @type {BillingCreditLedgerAuthority}
+   * @memberof BillingCreditView
+   */
+  ledgerAuthority: BillingCreditLedgerAuthority;
   /**
    *
    * @type {string}
@@ -183,6 +209,8 @@ export function instanceOfBillingCreditView(
   if (!("costEditable" in value) || value["costEditable"] === undefined)
     return false;
   if (!("createdAt" in value) || value["createdAt"] === undefined) return false;
+  if (!("currencyPrices" in value) || value["currencyPrices"] === undefined)
+    return false;
   if (
     !("defaultExpiryUnit" in value) ||
     value["defaultExpiryUnit"] === undefined
@@ -198,6 +226,8 @@ export function instanceOfBillingCreditView(
   if (!("environmentId" in value) || value["environmentId"] === undefined)
     return false;
   if (!("id" in value) || value["id"] === undefined) return false;
+  if (!("ledgerAuthority" in value) || value["ledgerAuthority"] === undefined)
+    return false;
   if (!("name" in value) || value["name"] === undefined) return false;
   if (!("updatedAt" in value) || value["updatedAt"] === undefined) return false;
   return true;
@@ -219,6 +249,9 @@ export function BillingCreditViewFromJSONTyped(
     burnStrategy: BillingCreditBurnStrategyFromJSON(json["burn_strategy"]),
     costEditable: json["cost_editable"],
     createdAt: new Date(json["created_at"]),
+    currencyPrices: (json["currency_prices"] as Array<any>).map(
+      CreditCurrencyPriceFromJSON,
+    ),
     defaultExpiryUnit: BillingCreditExpiryUnitFromJSON(
       json["default_expiry_unit"],
     ),
@@ -233,6 +266,9 @@ export function BillingCreditViewFromJSONTyped(
     environmentId: json["environment_id"],
     icon: json["icon"] == null ? undefined : json["icon"],
     id: json["id"],
+    ledgerAuthority: BillingCreditLedgerAuthorityFromJSON(
+      json["ledger_authority"],
+    ),
     name: json["name"],
     pluralName: json["plural_name"] == null ? undefined : json["plural_name"],
     price:
@@ -272,6 +308,9 @@ export function BillingCreditViewToJSONTyped(
     burn_strategy: BillingCreditBurnStrategyToJSON(value["burnStrategy"]),
     cost_editable: value["costEditable"],
     created_at: value["createdAt"].toISOString(),
+    currency_prices: (value["currencyPrices"] as Array<any>).map(
+      CreditCurrencyPriceToJSON,
+    ),
     default_expiry_unit: BillingCreditExpiryUnitToJSON(
       value["defaultExpiryUnit"],
     ),
@@ -283,6 +322,9 @@ export function BillingCreditViewToJSONTyped(
     environment_id: value["environmentId"],
     icon: value["icon"],
     id: value["id"],
+    ledger_authority: BillingCreditLedgerAuthorityToJSON(
+      value["ledgerAuthority"],
+    ),
     name: value["name"],
     plural_name: value["pluralName"],
     price: BillingPriceViewToJSON(value["price"]),

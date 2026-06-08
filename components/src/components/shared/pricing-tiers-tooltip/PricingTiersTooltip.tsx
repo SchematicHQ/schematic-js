@@ -23,12 +23,12 @@ interface PricingTiersTooltipProps extends Omit<
 }
 
 export const PricingTiersTooltip = ({
+  portal,
   feature,
   period,
   currency,
   priceTiers = [],
   tiersMode,
-  portal,
   position,
 }: PricingTiersTooltipProps) => {
   const { t } = useTranslation();
@@ -76,6 +76,7 @@ export const PricingTiersTooltip = ({
 
   return (
     <Tooltip
+      portal={portal}
       trigger={
         <Icon
           title="tiered pricing"
@@ -154,7 +155,6 @@ export const PricingTiersTooltip = ({
           )}
         </Flex>
       }
-      portal={portal}
       position={position}
     />
   );

@@ -9,6 +9,7 @@ import {
   buildAddOnRequestBody,
   buildCreditBundlesRequestBody,
   buildPayInAdvanceRequestBody,
+  isScheduledCheckoutConflictMessage,
 } from "./checkout";
 
 function makeUsageBasedEntitlement(
@@ -33,6 +34,8 @@ function makeUsageBasedEntitlement(
 
 function makeSelectedPlan(overrides: Partial<SelectedPlan> = {}): SelectedPlan {
   return {
+    availablePeriods: [],
+    billingStrategy: "schematic_managed",
     chargeType: "recurring" as any,
     companyCanTrial: false,
     companyCount: 0,
@@ -72,6 +75,7 @@ function makeBillingPriceView(
     currency: "USD",
     id: "price-view-1",
     interval: "month" as any,
+    intervalCount: 1,
     isActive: true,
     packageSize: 1,
     price: 1000,
@@ -94,6 +98,7 @@ function makeCreditBundle(overrides: Partial<CreditBundle> = {}): CreditBundle {
     createdAt: new Date(),
     creditId: "credit-1",
     creditName: "Credits",
+    currencyPrices: [],
     expiryType: "never" as any,
     expiryUnit: "month" as any,
     hasGrants: false,
@@ -264,6 +269,7 @@ describe("buildAddOnRequestBody", () => {
           currency: "USD",
           externalPriceId: "ext-1",
           interval: "month" as any,
+          intervalCount: 1,
           providerType: "stripe" as any,
           scheme: "per_unit" as any,
         },
@@ -289,6 +295,7 @@ describe("buildAddOnRequestBody", () => {
           currency: "USD",
           externalPriceId: "ext-1",
           interval: "month" as any,
+          intervalCount: 1,
           providerType: "stripe" as any,
           scheme: "per_unit" as any,
         },
@@ -314,6 +321,7 @@ describe("buildAddOnRequestBody", () => {
           currency: "USD",
           externalPriceId: "ext-1",
           interval: "month" as any,
+          intervalCount: 1,
           providerType: "stripe" as any,
           scheme: "per_unit" as any,
         },
@@ -339,6 +347,7 @@ describe("buildAddOnRequestBody", () => {
           currency: "USD",
           externalPriceId: "ext-1",
           interval: "year" as any,
+          intervalCount: 1,
           providerType: "stripe" as any,
           scheme: "per_unit" as any,
         },
@@ -364,6 +373,7 @@ describe("buildAddOnRequestBody", () => {
           currency: "USD",
           externalPriceId: "ext-1",
           interval: "month" as any,
+          intervalCount: 1,
           providerType: "stripe" as any,
           scheme: "per_unit" as any,
         },
@@ -408,6 +418,7 @@ describe("buildAddOnRequestBody", () => {
           currency: "USD",
           externalPriceId: "ext-1",
           interval: "month" as any,
+          intervalCount: 1,
           providerType: "stripe" as any,
           scheme: "per_unit" as any,
         },
@@ -442,6 +453,7 @@ describe("buildAddOnRequestBody", () => {
           currency: "USD",
           externalPriceId: "ext-1",
           interval: "month" as any,
+          intervalCount: 1,
           providerType: "stripe" as any,
           scheme: "per_unit" as any,
         },
@@ -455,6 +467,7 @@ describe("buildAddOnRequestBody", () => {
           currency: "USD",
           externalPriceId: "ext-2",
           interval: "month" as any,
+          intervalCount: 1,
           providerType: "stripe" as any,
           scheme: "per_unit" as any,
         },
@@ -468,6 +481,7 @@ describe("buildAddOnRequestBody", () => {
           currency: "USD",
           externalPriceId: "ext-3",
           interval: "month" as any,
+          intervalCount: 1,
           providerType: "stripe" as any,
           scheme: "per_unit" as any,
         },
@@ -546,5 +560,52 @@ describe("buildCreditBundlesRequestBody", () => {
     expect(result[0]).toHaveProperty("quantity", 42);
     expect(result[0]).not.toHaveProperty("id");
     expect(result[0]).not.toHaveProperty("count");
+  });
+});
+
+describe("isScheduledCheckoutConflictMessage", () => {
+  // Mirror the four 409 messages the API can emit (api/apps/errors/errors.go).
+  // All four must trip the matcher so the UI shows the friendly "downgrade
+  // pending" copy instead of the generic fallback.
+  it.each([
+    "a scheduled checkout already exists for this company",
+    "cannot purchase add-ons while a scheduled downgrade is pending; cancel the scheduled downgrade first",
+    "cannot purchase pay-in-advance entitlements while a scheduled downgrade is pending; cancel the scheduled downgrade first",
+    "cannot purchase credits while a scheduled downgrade is pending; cancel the scheduled downgrade first",
+  ])("matches the API conflict message: %s", (msg) => {
+    expect(isScheduledCheckoutConflictMessage(msg)).toBe(true);
+  });
+
+  it("matches when the backend tweaks casing or surrounding wording", () => {
+    expect(
+      isScheduledCheckoutConflictMessage(
+        "A Scheduled Checkout already exists.",
+      ),
+    ).toBe(true);
+    expect(
+      isScheduledCheckoutConflictMessage(
+        "request blocked: scheduled downgrade pending",
+      ),
+    ).toBe(true);
+  });
+
+  it.each([
+    "Invalid promo code",
+    "self-service downgrade not permitted",
+    "internal server error",
+    "",
+  ])("does not match unrelated message: %s", (msg) => {
+    expect(isScheduledCheckoutConflictMessage(msg)).toBe(false);
+  });
+
+  it("returns false for non-string inputs", () => {
+    expect(isScheduledCheckoutConflictMessage(undefined)).toBe(false);
+    expect(isScheduledCheckoutConflictMessage(null)).toBe(false);
+    expect(isScheduledCheckoutConflictMessage(409)).toBe(false);
+    expect(
+      isScheduledCheckoutConflictMessage({
+        message: "scheduled downgrade pending",
+      }),
+    ).toBe(false);
   });
 });

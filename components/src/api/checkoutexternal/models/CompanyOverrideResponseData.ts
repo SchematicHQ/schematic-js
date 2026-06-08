@@ -27,6 +27,13 @@ import {
   EntityTraitDefinitionResponseDataToJSON,
   EntityTraitDefinitionResponseDataToJSONTyped,
 } from "./EntityTraitDefinitionResponseData";
+import type { MetricPeriodMonthReset } from "./MetricPeriodMonthReset";
+import {
+  MetricPeriodMonthResetFromJSON,
+  MetricPeriodMonthResetFromJSONTyped,
+  MetricPeriodMonthResetToJSON,
+  MetricPeriodMonthResetToJSONTyped,
+} from "./MetricPeriodMonthReset";
 import type { FeatureResponseData } from "./FeatureResponseData";
 import {
   FeatureResponseDataFromJSON,
@@ -34,6 +41,13 @@ import {
   FeatureResponseDataToJSON,
   FeatureResponseDataToJSONTyped,
 } from "./FeatureResponseData";
+import type { MetricPeriod } from "./MetricPeriod";
+import {
+  MetricPeriodFromJSON,
+  MetricPeriodFromJSONTyped,
+  MetricPeriodToJSON,
+  MetricPeriodToJSONTyped,
+} from "./MetricPeriod";
 import type { CompanyOverrideNoteResponseData } from "./CompanyOverrideNoteResponseData";
 import {
   CompanyOverrideNoteResponseDataFromJSON,
@@ -111,16 +125,16 @@ export interface CompanyOverrideResponseData {
   id: string;
   /**
    *
-   * @type {string}
+   * @type {MetricPeriod}
    * @memberof CompanyOverrideResponseData
    */
-  metricPeriod?: string | null;
+  metricPeriod?: MetricPeriod | null;
   /**
    *
-   * @type {string}
+   * @type {MetricPeriodMonthReset}
    * @memberof CompanyOverrideResponseData
    */
-  metricPeriodMonthReset?: string | null;
+  metricPeriodMonthReset?: MetricPeriodMonthReset | null;
   /**
    *
    * @type {Array<CompanyOverrideNoteResponseData>}
@@ -229,11 +243,13 @@ export function CompanyOverrideResponseDataFromJSONTyped(
     featureId: json["feature_id"],
     id: json["id"],
     metricPeriod:
-      json["metric_period"] == null ? undefined : json["metric_period"],
+      json["metric_period"] == null
+        ? undefined
+        : MetricPeriodFromJSON(json["metric_period"]),
     metricPeriodMonthReset:
       json["metric_period_month_reset"] == null
         ? undefined
-        : json["metric_period_month_reset"],
+        : MetricPeriodMonthResetFromJSON(json["metric_period_month_reset"]),
     notes: (json["notes"] as Array<any>).map(
       CompanyOverrideNoteResponseDataFromJSON,
     ),
@@ -283,8 +299,10 @@ export function CompanyOverrideResponseDataToJSONTyped(
     feature: FeatureResponseDataToJSON(value["feature"]),
     feature_id: value["featureId"],
     id: value["id"],
-    metric_period: value["metricPeriod"],
-    metric_period_month_reset: value["metricPeriodMonthReset"],
+    metric_period: MetricPeriodToJSON(value["metricPeriod"]),
+    metric_period_month_reset: MetricPeriodMonthResetToJSON(
+      value["metricPeriodMonthReset"],
+    ),
     notes: (value["notes"] as Array<any>).map(
       CompanyOverrideNoteResponseDataToJSON,
     ),

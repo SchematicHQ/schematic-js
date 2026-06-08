@@ -34,6 +34,13 @@ import {
   InvoiceResponseDataToJSON,
   InvoiceResponseDataToJSONTyped,
 } from "./InvoiceResponseData";
+import type { BillingProviderType } from "./BillingProviderType";
+import {
+  BillingProviderTypeFromJSON,
+  BillingProviderTypeFromJSONTyped,
+  BillingProviderTypeToJSON,
+  BillingProviderTypeToJSONTyped,
+} from "./BillingProviderType";
 import type { PaymentMethodResponseData } from "./PaymentMethodResponseData";
 import {
   PaymentMethodResponseDataFromJSON,
@@ -110,6 +117,12 @@ export interface CompanySubscriptionResponseData {
   products: Array<BillingProductForSubscriptionResponseData>;
   /**
    *
+   * @type {BillingProviderType}
+   * @memberof CompanySubscriptionResponseData
+   */
+  providerType: BillingProviderType;
+  /**
+   *
    * @type {string}
    * @memberof CompanySubscriptionResponseData
    */
@@ -154,6 +167,8 @@ export function instanceOfCompanySubscriptionResponseData(
   if (!("discounts" in value) || value["discounts"] === undefined) return false;
   if (!("interval" in value) || value["interval"] === undefined) return false;
   if (!("products" in value) || value["products"] === undefined) return false;
+  if (!("providerType" in value) || value["providerType"] === undefined)
+    return false;
   if (!("status" in value) || value["status"] === undefined) return false;
   if (
     !("subscriptionExternalId" in value) ||
@@ -201,6 +216,7 @@ export function CompanySubscriptionResponseDataFromJSONTyped(
     products: (json["products"] as Array<any>).map(
       BillingProductForSubscriptionResponseDataFromJSON,
     ),
+    providerType: BillingProviderTypeFromJSON(json["provider_type"]),
     status: json["status"],
     subscriptionExternalId: json["subscription_external_id"],
     totalPrice: json["total_price"],
@@ -244,6 +260,7 @@ export function CompanySubscriptionResponseDataToJSONTyped(
     products: (value["products"] as Array<any>).map(
       BillingProductForSubscriptionResponseDataToJSON,
     ),
+    provider_type: BillingProviderTypeToJSON(value["providerType"]),
     status: value["status"],
     subscription_external_id: value["subscriptionExternalId"],
     total_price: value["totalPrice"],

@@ -4,7 +4,6 @@ on:
   push:
     tags:
       - 'schematic-components@*'
-      - '!schematic-components@*-rc*'
   workflow_dispatch:
 
 jobs:
@@ -17,25 +16,17 @@ jobs:
 
   publish:
     name: NPM Publish
-    runs-on: runs-on=${{ github.run_id }}/runner=4cpu-linux-x64/extras=s3-cache
-    permissions:
-      packages: write
-      contents: read
     needs: [lint_test]
-    steps:
-      - uses: runs-on/action@v2.0.3
-      - uses: actions/checkout@v6
-      - name: Set Node.js 24.x
-        uses: actions/setup-node@v6
-        with:
-          node-version: 24.x
-      - name: Publish schematic-components
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: TAG="${{ github.ref_name }}" ./scripts/publish-package.sh
+    permissions:
+      id-token: write
+      contents: read
+    uses: ./.github/workflows/npm_publish.yml
+    with:
+      tag: ${{ github.ref_name }}
 
   update_example_app:
     name: Update Example App
+    if: ${{ !contains(github.ref_name, '-rc.') }}
     runs-on: runs-on=${{ github.run_id }}/runner=4cpu-linux-x64/extras=s3-cache
     needs: [publish]
     steps:
@@ -56,7 +47,7 @@ jobs:
         with:
           repository: schematichq/schematic-next-example
           path: schematic-next-example
-          token: ${{ secrets.DEPENDENT_UPDATE_PAT }}
+          token: ${{ secrets.GH_TOKEN }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v6
@@ -78,7 +69,7 @@ jobs:
         if: steps.check_changes.outputs.HAS_CHANGES == 'true'
         uses: peter-evans/create-pull-request@v8.1.1
         with:
-          token: ${{ secrets.DEPENDENT_UPDATE_PAT }}
+          token: ${{ secrets.GH_TOKEN }}
           commit-message: Update @schematichq/schematic-components to ${{ steps.get_version.outputs.SCHEMATIC_COMPONENTS_VERSION }}
           title: Update @schematichq/schematic-components to ${{ steps.get_version.outputs.SCHEMATIC_COMPONENTS_VERSION }}
           body: |
@@ -90,8 +81,66 @@ jobs:
           delete-branch: true
           path: schematic-next-example
 
+  update_example_app_orb:
+    name: Update Example App (Orb)
+    if: ${{ !contains(github.ref_name, '-rc.') }}
+    runs-on: runs-on=${{ github.run_id }}/runner=4cpu-linux-x64/extras=s3-cache
+    needs: [publish]
+    steps:
+      - uses: runs-on/action@v2.0.3
+      - name: Checkout schematic-components
+        uses: actions/checkout@v6
+        with:
+          path: schematic-components
+
+      - name: Get component version
+        id: get_version
+        run: |
+          cd schematic-components/components
+          echo "SCHEMATIC_COMPONENTS_VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+
+      - name: Checkout example app
+        uses: actions/checkout@v6
+        with:
+          repository: schematichq/schematic-next-example-orb
+          path: schematic-next-example-orb
+          token: ${{ secrets.GH_TOKEN }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24.x
+
+      - name: Update example app dependencies
+        run: |
+          cd schematic-next-example-orb
+          yarn add @schematichq/schematic-components@${{ steps.get_version.outputs.SCHEMATIC_COMPONENTS_VERSION }}
+
+      - name: Check for changes
+        id: check_changes
+        run: |
+          cd schematic-next-example-orb
+          git diff --exit-code || echo "HAS_CHANGES=true" >> $GITHUB_OUTPUT
+
+      - name: Create Pull Request
+        if: steps.check_changes.outputs.HAS_CHANGES == 'true'
+        uses: peter-evans/create-pull-request@v8.1.1
+        with:
+          token: ${{ secrets.GH_TOKEN }}
+          commit-message: Update @schematichq/schematic-components to ${{ steps.get_version.outputs.SCHEMATIC_COMPONENTS_VERSION }}
+          title: Update @schematichq/schematic-components to ${{ steps.get_version.outputs.SCHEMATIC_COMPONENTS_VERSION }}
+          body: |
+            This PR updates the @schematichq/schematic-components package to version ${{ steps.get_version.outputs.SCHEMATIC_COMPONENTS_VERSION }}.
+
+            This update was automatically created by the schematic-components deployment process.
+          branch: schematic-components-${{ steps.get_version.outputs.SCHEMATIC_COMPONENTS_VERSION }}
+          base: main
+          delete-branch: true
+          path: schematic-next-example-orb
+
   notify_slack:
     name: Notify Slack
+    if: ${{ !contains(github.ref_name, '-rc.') }}
     runs-on: runs-on=${{ github.run_id }}/runner=1cpu-linux-arm64
     needs: [publish]
     steps:

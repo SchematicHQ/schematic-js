@@ -1,6 +1,7 @@
 {
   "$schema": "./node_modules/ng-packagr/ng-package.schema.json",
   "dest": "dist",
+  "allowedNonPeerDependencies": ["@schematichq/schematic-js"],
   "lib": {
     "entryFile": "src/index.ts"
   }

@@ -27,6 +27,8 @@ import type {
   HydrateUpcomingInvoiceResponse,
   ListInvoicesResponse,
   PreviewCheckoutResponse,
+  UpdateCheckoutFieldValuesRequestBody,
+  UpdateCheckoutFieldValuesResponse,
   UpdatePaymentMethodRequestBody,
   UpdatePaymentMethodResponse,
 } from "../models/index";
@@ -57,6 +59,10 @@ import {
   ListInvoicesResponseToJSON,
   PreviewCheckoutResponseFromJSON,
   PreviewCheckoutResponseToJSON,
+  UpdateCheckoutFieldValuesRequestBodyFromJSON,
+  UpdateCheckoutFieldValuesRequestBodyToJSON,
+  UpdateCheckoutFieldValuesResponseFromJSON,
+  UpdateCheckoutFieldValuesResponseToJSON,
   UpdatePaymentMethodRequestBodyFromJSON,
   UpdatePaymentMethodRequestBodyToJSON,
   UpdatePaymentMethodResponseFromJSON,
@@ -90,6 +96,10 @@ export interface ListInvoicesRequest {
 
 export interface PreviewCheckoutRequest {
   changeSubscriptionRequestBody: ChangeSubscriptionRequestBody;
+}
+
+export interface UpdateCheckoutFieldValuesRequest {
+  updateCheckoutFieldValuesRequestBody: UpdateCheckoutFieldValuesRequestBody;
 }
 
 export interface UpdatePaymentMethodRequest {
@@ -649,6 +659,64 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<PreviewCheckoutResponse> {
     const response = await this.previewCheckoutRaw(
+      requestParameters,
+      initOverrides,
+    );
+    return await response.value();
+  }
+
+  /**
+   * Update checkout field values
+   */
+  async updateCheckoutFieldValuesRaw(
+    requestParameters: UpdateCheckoutFieldValuesRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<UpdateCheckoutFieldValuesResponse>> {
+    if (requestParameters["updateCheckoutFieldValuesRequestBody"] == null) {
+      throw new runtime.RequiredError(
+        "updateCheckoutFieldValuesRequestBody",
+        'Required parameter "updateCheckoutFieldValuesRequestBody" was null or undefined when calling updateCheckoutFieldValues().',
+      );
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    headerParameters["Content-Type"] = "application/json";
+
+    if (this.configuration && this.configuration.apiKey) {
+      headerParameters["X-Schematic-Api-Key"] = await this.configuration.apiKey(
+        "X-Schematic-Api-Key",
+      ); // ApiKeyAuth authentication
+    }
+
+    const response = await this.request(
+      {
+        path: `/checkout/custom-field-values`,
+        method: "POST",
+        headers: headerParameters,
+        query: queryParameters,
+        body: UpdateCheckoutFieldValuesRequestBodyToJSON(
+          requestParameters["updateCheckoutFieldValuesRequestBody"],
+        ),
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      UpdateCheckoutFieldValuesResponseFromJSON(jsonValue),
+    );
+  }
+
+  /**
+   * Update checkout field values
+   */
+  async updateCheckoutFieldValues(
+    requestParameters: UpdateCheckoutFieldValuesRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<UpdateCheckoutFieldValuesResponse> {
+    const response = await this.updateCheckoutFieldValuesRaw(
       requestParameters,
       initOverrides,
     );

@@ -1,14 +1,42 @@
 import {
+  PlanCreditGrantView,
   type UpdateAddOnRequestBody,
+  type UpdateAutoTopupOverrideRequestBody,
   type UpdateCreditBundleRequestBody,
   type UpdatePayInAdvanceRequestBody,
 } from "../../api/checkoutexternal";
 import type {
+  AutoTopupConfig,
   CreditBundle,
   SelectedPlan,
   UsageBasedEntitlement,
 } from "../../types";
 import { getAddOnPrice, getEntitlementPrice } from "./billing";
+
+export function buildAutoTopupRequestBody(options: {
+  creditGrants: PlanCreditGrantView[];
+  autoTopupConfigs?: Map<string, AutoTopupConfig>;
+}) {
+  const { creditGrants, autoTopupConfigs } = options;
+
+  return creditGrants.reduce(
+    (acc: UpdateAutoTopupOverrideRequestBody[], grant) => {
+      if (autoTopupConfigs?.has(grant.id)) {
+        const config = autoTopupConfigs.get(grant.id);
+
+        acc.push({
+          planCreditGrantId: grant.id,
+          autoTopupEnabled: config?.companyAutoTopupEnabled,
+          autoTopupAmount: config?.companyAutoTopupAmount,
+          autoTopupThresholdCredits: config?.companyAutoTopupThresholdCredits,
+        });
+      }
+
+      return acc;
+    },
+    [],
+  );
+}
 
 export function buildPayInAdvanceRequestBody(options: {
   entitlements: UsageBasedEntitlement[];
@@ -56,6 +84,20 @@ export function buildAddOnRequestBody(options: {
 
     return acc;
   }, []);
+}
+
+// Recognizes 409 responses from POST /checkout(/preview) where a pending
+// scheduled checkout is blocking the action. The backend currently emits
+// four variants of this conflict (already-exists, blocks add-ons, blocks
+// pay-in-advance, blocks credits) — see api/apps/errors/errors.go. Match on
+// the shared phrasing rather than exact strings so a wording tweak on the
+// backend doesn't silently regress the friendly UI message.
+export function isScheduledCheckoutConflictMessage(message: unknown): boolean {
+  if (typeof message !== "string") {
+    return false;
+  }
+  const m = message.toLowerCase();
+  return m.includes("scheduled downgrade") || m.includes("scheduled checkout");
 }
 
 export function buildCreditBundlesRequestBody(

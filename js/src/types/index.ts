@@ -152,6 +152,14 @@ export type SchematicOptions = {
   /** Optionally provide a custom storage persister for client-side storage */
   storage?: StoragePersister;
 
+  /** Persist flag check results (and plan) keyed by context to the storage persister so subsequent page loads can boot with last-known values rather than fallbacks. Defaults to true; set false to disable.
+   *
+   * When a cache hit is found on `setContext`, `isPending` flips to false synchronously even if the cache only contains a subset of the flags the app subscribes to — uncached flags will resolve via configured fallbacks (`flagCheckDefaults`/`flagValueDefaults`) until the WebSocket reconciles. */
+  persistFlagState?: boolean;
+
+  /** Maximum age (ms) of a persisted cache entry before it is treated as stale on hydration. Per-context; older entries are dropped at construction time and on the next persist. Defaults to 7 days. */
+  flagStateCacheMaxAgeMs?: number;
+
   /** Use a WebSocket connection for real-time flag checks; if using this, run the cleanup function to close the connection */
   useWebSocket?: boolean;
 

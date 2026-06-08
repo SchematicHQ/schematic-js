@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { BillingProductPriceInterval } from "../../../api/checkoutexternal";
@@ -8,6 +9,7 @@ import {
   formatCurrency,
   getFeatureName,
   getPlanPrice,
+  getSubscriptionPeriod,
   groupPlanCreditGrants,
   hexToHSL,
 } from "../../../utils";
@@ -31,15 +33,6 @@ export interface PlanProps {
   plans: SelectedPlan[];
   selectedPeriod: string;
   currency?: string;
-  entitlementCounts: Record<
-    string,
-    | {
-        size: number;
-        limit: number;
-      }
-    | undefined
-  >;
-  handleToggleShowAll: (id: string) => void;
 }
 
 export const Plan = ({
@@ -49,8 +42,6 @@ export const Plan = ({
   plans,
   selectedPeriod,
   currency,
-  entitlementCounts,
-  handleToggleShowAll,
 }: PlanProps) => {
   const { layout } = sharedProps;
 
@@ -62,10 +53,28 @@ export const Plan = ({
 
   const trialEnd = useTrialEnd();
 
+  const [entitlementVisibility, setEntitlementVisibility] = useState<
+    Record<string, boolean | undefined>
+  >({});
+
+  const handleToggleShowAll = (id: string) => {
+    setEntitlementVisibility((prev) => {
+      const updated = !(prev[id] ?? false);
+
+      return {
+        ...prev,
+        [id]: updated,
+      };
+    });
+  };
+
   const cardPadding = settings.theme.card.padding / TEXT_BASE_SIZE;
 
   const isStandalone = typeof data?.component === "undefined";
-  const currentPeriod = data?.company?.plan?.planPeriod || "month";
+  const currentPeriod =
+    getSubscriptionPeriod(data?.company?.billingSubscription) ||
+    data?.company?.plan?.planPeriod ||
+    "month";
   const canCheckout = isStandalone || (data?.capabilities?.checkout ?? true);
   const isTrialSubscription =
     data?.company?.billingSubscription?.status === "trialing";
@@ -83,7 +92,7 @@ export const Plan = ({
     {};
   const credits = groupPlanCreditGrants(plan.includedCreditGrants);
 
-  const hasUsageBasedEntitlements = plan.entitlements.some(
+  const hasUsageBasedEntitlements = (plan.entitlements ?? []).some(
     (entitlement) => !!entitlement.priceBehavior,
   );
   const isFreePlan = planPrice === 0;
@@ -91,8 +100,7 @@ export const Plan = ({
   const headerPriceFontStyle =
     settings.theme.typography[layout.plans.name.fontStyle];
 
-  const count = entitlementCounts[plan.id];
-  const isExpanded = count && count.limit > VISIBLE_ENTITLEMENT_COUNT;
+  const isExpanded = entitlementVisibility[plan.id] ?? false;
 
   return (
     <Flex
@@ -166,14 +174,21 @@ export const Plan = ({
                         currency: planCurrency,
                         testSignificantDigits: false,
                       })
-                    : formatCurrency(planPrice ?? 0, planCurrency)}
+                    : showAsMonthlyPrices && selectedPeriod === "quarter"
+                      ? formatCurrency((planPrice ?? 0) / 3, {
+                          currency: planCurrency,
+                          testSignificantDigits: false,
+                        })
+                      : formatCurrency(planPrice ?? 0, planCurrency)}
             {!plan.custom && !isFreePlan && (
               <sub>
                 /
                 {showAsMonthlyPrices &&
                 selectedPeriod === BillingProductPriceInterval.Year
                   ? t("month, billed yearly")
-                  : t(selectedPeriod)}
+                  : showAsMonthlyPrices && selectedPeriod === "quarter"
+                    ? t("month, billed quarterly")
+                    : t(selectedPeriod)}
               </sub>
             )}
           </Text>
@@ -278,22 +293,28 @@ export const Plan = ({
               </Box>
             )}
 
-            {plan.entitlements
-              .map((entitlement, idx) => (
-                <Entitlement
-                  key={idx}
-                  entitlement={entitlement}
-                  credits={credits}
-                  selectedPeriod={selectedPeriod}
-                  currency={currency}
-                  showCredits={showCredits}
-                  sharedProps={{ layout }}
-                />
-              ))
-              .slice(0, count?.limit ?? VISIBLE_ENTITLEMENT_COUNT)}
+            {(plan.entitlements ?? []).reduce(
+              (acc: React.ReactNode[], entitlement, idx) => {
+                if (isExpanded || idx < VISIBLE_ENTITLEMENT_COUNT) {
+                  acc.push(
+                    <Entitlement
+                      key={idx}
+                      entitlement={entitlement}
+                      credits={credits}
+                      selectedPeriod={selectedPeriod}
+                      currency={currency}
+                      showCredits={showCredits}
+                      sharedProps={{ layout }}
+                    />,
+                  );
+                }
 
-            {(count?.size || plan.entitlements.length) >
-              VISIBLE_ENTITLEMENT_COUNT && (
+                return acc;
+              },
+              [],
+            )}
+
+            {(plan.entitlements ?? []).length > VISIBLE_ENTITLEMENT_COUNT && (
               <Flex
                 as="li"
                 $justifyContent="start"

@@ -35,6 +35,12 @@ import {
  */
 export interface CreateEventRequestBody {
   /**
+   * Requires a secret API key, and trusted_client_clock. Import historical data without affecting billing.
+   * @type {boolean}
+   * @memberof CreateEventRequestBody
+   */
+  backfill?: boolean | null;
+  /**
    *
    * @type {EventBody}
    * @memberof CreateEventRequestBody
@@ -47,11 +53,23 @@ export interface CreateEventRequestBody {
    */
   eventType: EventType;
   /**
+   * Optional client-supplied key. Duplicate events with the same key (scoped to the environment) are dropped for 24h.
+   * @type {string}
+   * @memberof CreateEventRequestBody
+   */
+  idempotencyKey?: string | null;
+  /**
    * Optionally provide a timestamp at which the event was sent to Schematic
    * @type {Date}
    * @memberof CreateEventRequestBody
    */
   sentAt?: Date | null;
+  /**
+   * Requires a secret API key and sent_at. Use sent_at as the effective timestamp.
+   * @type {boolean}
+   * @memberof CreateEventRequestBody
+   */
+  trustedClientClock?: boolean | null;
 }
 
 /**
@@ -78,9 +96,16 @@ export function CreateEventRequestBodyFromJSONTyped(
     return json;
   }
   return {
+    backfill: json["backfill"] == null ? undefined : json["backfill"],
     body: json["body"] == null ? undefined : EventBodyFromJSON(json["body"]),
     eventType: EventTypeFromJSON(json["event_type"]),
+    idempotencyKey:
+      json["idempotency_key"] == null ? undefined : json["idempotency_key"],
     sentAt: json["sent_at"] == null ? undefined : new Date(json["sent_at"]),
+    trustedClientClock:
+      json["trusted_client_clock"] == null
+        ? undefined
+        : json["trusted_client_clock"],
   };
 }
 
@@ -99,11 +124,14 @@ export function CreateEventRequestBodyToJSONTyped(
   }
 
   return {
+    backfill: value["backfill"],
     body: EventBodyToJSON(value["body"]),
     event_type: EventTypeToJSON(value["eventType"]),
+    idempotency_key: value["idempotencyKey"],
     sent_at:
       value["sentAt"] == null
         ? undefined
         : (value["sentAt"] as any).toISOString(),
+    trusted_client_clock: value["trustedClientClock"],
   };
 }

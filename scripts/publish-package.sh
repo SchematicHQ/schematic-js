@@ -14,8 +14,9 @@ set -euo pipefail
 #   TAG="schematic-react@1.3.0" ./scripts/publish-package.sh
 #   TAG="schematic-react@1.3.0-rc.1" ./scripts/publish-package.sh
 #
-# Environment variables:
-#   NPM_TOKEN - Required for publishing to NPM
+# In CI this runs under npm Trusted Publishing (OIDC); no NPM_TOKEN is needed.
+# If NPM_TOKEN is set in the environment, it is used as a fallback (useful for
+# local testing).
 
 if [[ -z "$TAG" ]]; then
     echo "Error: TAG env var required; should match git tag"
@@ -117,11 +118,55 @@ else
     PUBLISH_DIR="."
 fi
 
-# Set up npmrc if NPM_TOKEN is provided
-# Write to cwd (where npm publish runs); npm reads the project .npmrc from
-# cwd, not from the publish target directory.
-if [[ -n "${NPM_TOKEN:-}" ]]; then
-    echo "Setting up .npmrc..."
+# Authenticate to npm. In CI, exchange the GitHub OIDC token for a short-lived
+# npm publish token (Trusted Publishing). For local use, fall back to NPM_TOKEN.
+if [[ -n "${ACTIONS_ID_TOKEN_REQUEST_URL:-}" && -n "${ACTIONS_ID_TOKEN_REQUEST_TOKEN:-}" ]]; then
+    AUDIENCE="npm%3Aregistry.npmjs.org"
+    OIDC_URL="${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=${AUDIENCE}"
+
+    echo "Requesting GitHub OIDC token (audience: ${AUDIENCE})..."
+    GH_OIDC_RESPONSE=$(curl -fsSL --retry 3 \
+        -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
+        -H "Accept: application/json" \
+        "${OIDC_URL}") || { echo "Failed to fetch OIDC token from GitHub"; exit 1; }
+    OIDC_TOKEN=$(echo "$GH_OIDC_RESPONSE" | node -e 'let d=""; process.stdin.on("data",c=>d+=c).on("end",()=>console.log(JSON.parse(d).value))')
+    if [[ -z "$OIDC_TOKEN" || "$OIDC_TOKEN" == "undefined" ]]; then
+        echo "GitHub OIDC response did not contain a token: $GH_OIDC_RESPONSE"
+        exit 1
+    fi
+    echo "Got GitHub OIDC token (length: ${#OIDC_TOKEN})"
+
+    echo "Exchanging for npm publish token..."
+    # npm-package-arg's escapedName uses lowercase %2f for the slash in
+    # scoped names — match that exactly.
+    NPM_PACKAGE_PATH="@schematichq%2f${PACKAGE}"
+    NPM_EXCHANGE_URL="https://registry.npmjs.org/-/npm/v1/oidc/token/exchange/package/${NPM_PACKAGE_PATH}"
+    echo "POST ${NPM_EXCHANGE_URL}"
+
+    HTTP_STATUS=$(curl -sS --retry 3 -X POST --path-as-is \
+        -H "Authorization: Bearer ${OIDC_TOKEN}" \
+        -H "Accept: application/json" \
+        -o /tmp/npm-exchange-response.json \
+        -w "%{http_code}" \
+        "${NPM_EXCHANGE_URL}")
+    NPM_EXCHANGE_RESPONSE=$(cat /tmp/npm-exchange-response.json)
+    rm -f /tmp/npm-exchange-response.json
+
+    if [[ "$HTTP_STATUS" != "200" && "$HTTP_STATUS" != "201" ]]; then
+        echo "npm exchange returned HTTP $HTTP_STATUS"
+        echo "Response body: $NPM_EXCHANGE_RESPONSE"
+        exit 1
+    fi
+    NPM_PUBLISH_TOKEN=$(echo "$NPM_EXCHANGE_RESPONSE" | node -e 'let d=""; process.stdin.on("data",c=>d+=c).on("end",()=>console.log(JSON.parse(d).token))')
+    if [[ -z "$NPM_PUBLISH_TOKEN" || "$NPM_PUBLISH_TOKEN" == "undefined" ]]; then
+        echo "npm exchange response did not contain a token: $NPM_EXCHANGE_RESPONSE"
+        exit 1
+    fi
+    echo "Got npm publish token (length: ${#NPM_PUBLISH_TOKEN})"
+
+    echo "//registry.npmjs.org/:_authToken=${NPM_PUBLISH_TOKEN}" > .npmrc
+elif [[ -n "${NPM_TOKEN:-}" ]]; then
+    echo "Setting up .npmrc with NPM_TOKEN..."
     echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > .npmrc
 fi
 

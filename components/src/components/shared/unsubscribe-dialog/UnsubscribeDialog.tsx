@@ -2,7 +2,7 @@ import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useAvailablePlans, useEmbed } from "../../../hooks";
-import { toPrettyDate } from "../../../utils";
+import { getSubscriptionPeriod, toPrettyDate } from "../../../utils";
 import {
   Button,
   Dialog,
@@ -25,6 +25,15 @@ export const UnsubscribeDialog = ({ top }: UnsubscribeDialogProps) => {
     useEmbed();
 
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const sidebarRef = useRef<HTMLDivElement>(null);
+
+  const [dialogElement, setDialogElement] = useState<HTMLDialogElement | null>(
+    null,
+  );
+  const setDialog = useCallback((element: HTMLDialogElement | null) => {
+    dialogRef.current = element;
+    setDialogElement(element);
+  }, []);
 
   const [error, setError] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(false);
@@ -36,7 +45,10 @@ export const UnsubscribeDialog = ({ top }: UnsubscribeDialogProps) => {
         data?.subscription?.cancelAt || data?.upcomingInvoice?.dueDate;
 
       return {
-        planPeriod: data?.company?.plan?.planPeriod || "month",
+        planPeriod:
+          getSubscriptionPeriod(data?.company?.billingSubscription) ||
+          data?.company?.plan?.planPeriod ||
+          "month",
         currentPlan: data?.company?.plan,
         currentAddOns: data?.company?.addOns || [],
         featureUsage: data?.featureUsage,
@@ -44,6 +56,7 @@ export const UnsubscribeDialog = ({ top }: UnsubscribeDialogProps) => {
       };
     }, [
       data?.company?.addOns,
+      data?.company?.billingSubscription,
       data?.company?.plan,
       data?.featureUsage,
       data?.subscription?.cancelAt,
@@ -101,7 +114,7 @@ export const UnsubscribeDialog = ({ top }: UnsubscribeDialogProps) => {
 
   return (
     <Dialog
-      ref={dialogRef}
+      ref={setDialog}
       isModal={isModal}
       size="auto"
       top={top}
@@ -162,7 +175,8 @@ export const UnsubscribeDialog = ({ top }: UnsubscribeDialogProps) => {
         </Flex>
 
         <SubscriptionSidebar
-          portalRef={dialogRef}
+          ref={sidebarRef}
+          portal={dialogElement}
           planPeriod={planPeriod}
           addOns={addOns}
           usageBasedEntitlements={usageBasedEntitlements}

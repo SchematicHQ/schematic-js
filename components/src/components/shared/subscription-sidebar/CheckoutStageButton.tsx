@@ -9,6 +9,7 @@ type NoPaymentRequiredProps = {
   isLoading: boolean;
   isSticky?: boolean;
   willScheduleDowngrade?: boolean;
+  isCreditOnlyPurchase?: boolean;
   onClick: () => Promise<void>;
 };
 
@@ -17,6 +18,7 @@ const NoPaymentRequired = ({
   isLoading,
   isSticky = false,
   willScheduleDowngrade = false,
+  isCreditOnlyPurchase = false,
   onClick,
 }: NoPaymentRequiredProps) => {
   const { t } = useTranslation();
@@ -30,9 +32,11 @@ const NoPaymentRequired = ({
       $fullWidth
       $isLoading={isLoading}
     >
-      {willScheduleDowngrade
-        ? t("Schedule downgrade")
-        : t("Subscribe and close")}
+      {isCreditOnlyPurchase
+        ? t("Buy credits")
+        : willScheduleDowngrade
+          ? t("Schedule downgrade")
+          : t("Subscribe and close")}
     </Button>
   );
 };
@@ -55,6 +59,7 @@ type CheckoutStageButtonProps = {
   shouldTrial: boolean;
   willTrialWithoutPaymentMethod: boolean;
   willScheduleDowngrade: boolean;
+  isCreditOnlyPurchase?: boolean;
 };
 
 export const CheckoutStageButton = ({
@@ -74,10 +79,17 @@ export const CheckoutStageButton = ({
   shouldTrial,
   willTrialWithoutPaymentMethod,
   willScheduleDowngrade,
+  isCreditOnlyPurchase = false,
 }: CheckoutStageButtonProps) => {
   const { t } = useTranslation();
 
-  const isDisabled = isLoading || !hasPlan || inEditMode || !canCheckout;
+  // A credit-only purchase does not require a plan, so it must not be gated on
+  // one being selected.
+  const isDisabled =
+    isLoading ||
+    (!hasPlan && !isCreditOnlyPurchase) ||
+    inEditMode ||
+    !canCheckout;
 
   // Helper to get the next stage after the current one
   const getNextStageId = (currentStageId: string): string | undefined => {
@@ -91,6 +103,8 @@ export const CheckoutStageButton = ({
   // Helper to get stage display name
   const getStageDisplayName = (stageId: string | undefined): string => {
     switch (stageId) {
+      case "autoTopup":
+        return t("Auto Top-up");
       case "usage":
         return t("Quantity");
       case "addons":
@@ -140,6 +154,7 @@ export const CheckoutStageButton = ({
           isLoading={isLoading}
           onClick={checkout}
           isSticky={isSticky}
+          isCreditOnlyPurchase={isCreditOnlyPurchase}
         />
       );
     }
@@ -163,6 +178,45 @@ export const CheckoutStageButton = ({
     );
   }
 
+  if (checkoutStage === "autoTopup") {
+    const nextStage = getNextStageId("autoTopup");
+
+    if (!isPaymentMethodRequired && !nextStage) {
+      return (
+        <NoPaymentRequired
+          isDisabled={isDisabled}
+          isLoading={isLoading}
+          onClick={checkout}
+          isSticky={isSticky}
+          isCreditOnlyPurchase={isCreditOnlyPurchase}
+        />
+      );
+    }
+
+    return (
+      <Button
+        type="button"
+        disabled={isDisabled}
+        onClick={async () => {
+          setCheckoutStage?.(nextStage ?? "checkout");
+        }}
+        $size={isSticky ? "sm" : "md"}
+        $fullWidth
+        $isLoading={isLoading}
+      >
+        <Flex
+          $gap="0.5rem"
+          $justifyContent="center"
+          $alignItems="center"
+          $padding="0 1rem"
+        >
+          {t("Next")}: {getStageDisplayName(nextStage)}
+          <Icon name="arrow-right" />
+        </Flex>
+      </Button>
+    );
+  }
+
   if (checkoutStage === "usage") {
     const nextStage = getNextStageId("usage");
 
@@ -173,6 +227,7 @@ export const CheckoutStageButton = ({
           isLoading={isLoading}
           onClick={checkout}
           isSticky={isSticky}
+          isCreditOnlyPurchase={isCreditOnlyPurchase}
         />
       );
     }
@@ -211,6 +266,7 @@ export const CheckoutStageButton = ({
           isLoading={isLoading}
           onClick={checkout}
           isSticky={isSticky}
+          isCreditOnlyPurchase={isCreditOnlyPurchase}
         />
       );
     }
@@ -248,6 +304,7 @@ export const CheckoutStageButton = ({
           isLoading={isLoading}
           onClick={checkout}
           isSticky={isSticky}
+          isCreditOnlyPurchase={isCreditOnlyPurchase}
         />
       );
     }
@@ -277,13 +334,19 @@ export const CheckoutStageButton = ({
   }
 
   if (checkoutStage === "credits") {
-    if (!isPaymentMethodRequired) {
+    const nextStage = getNextStageId("credits");
+
+    // When credits is the final stage (no payment stage follows — e.g. a
+    // credit-only purchase with a payment method already on file), finalize
+    // directly instead of advancing.
+    if (!nextStage) {
       return (
         <NoPaymentRequired
           isDisabled={isDisabled}
           isLoading={isLoading}
           onClick={checkout}
           isSticky={isSticky}
+          isCreditOnlyPurchase={isCreditOnlyPurchase}
         />
       );
     }
@@ -293,7 +356,7 @@ export const CheckoutStageButton = ({
         type="button"
         disabled={isDisabled}
         onClick={async () => {
-          setCheckoutStage?.("checkout");
+          setCheckoutStage?.(nextStage);
         }}
         $fullWidth
         $isLoading={isLoading}
@@ -304,7 +367,7 @@ export const CheckoutStageButton = ({
           $alignItems="center"
           $padding="0 1rem"
         >
-          {t("Next")}: {t("Checkout")}
+          {t("Next")}: {getStageDisplayName(nextStage)}
           <Icon name="arrow-right" />
         </Flex>
       </Button>
@@ -319,6 +382,7 @@ export const CheckoutStageButton = ({
           isLoading={isLoading}
           onClick={checkout}
           isSticky={isSticky}
+          isCreditOnlyPurchase={isCreditOnlyPurchase}
         />
       );
     }
@@ -335,7 +399,9 @@ export const CheckoutStageButton = ({
           ? t("Schedule downgrade")
           : willTrialWithoutPaymentMethod
             ? t("Start trial")
-            : t("Pay now")}
+            : isCreditOnlyPurchase
+              ? t("Buy credits")
+              : t("Pay now")}
       </Button>
     );
   }
