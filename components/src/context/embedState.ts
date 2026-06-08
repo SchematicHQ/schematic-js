@@ -284,6 +284,25 @@ export interface BypassConfig {
    * is not eligible for a trial.
    */
   startTrialIfAvailable?: boolean;
+  /**
+   * Currency to pre-select (e.g. "EUR"). Case-insensitive.
+   *
+   * Useful for flows that skip the plan stage: the host can pin the checkout
+   * to a currency the customer never had a chance to choose. Ignored when the
+   * company already has an active subscription (its currency is locked), or
+   * when the value is not among the available currencies — in which case the
+   * checkout falls back to the first available currency.
+   */
+  currency?: string;
+  /**
+   * Whether to show the currency selector dropdown in checkout. Default: true.
+   *
+   * Set to false to hide the dropdown entirely — combine with `currency` to
+   * pin checkout to a single currency the customer cannot change. Has no
+   * effect when there is only one available currency or the subscription
+   * currency is locked (the selector is already hidden in those cases).
+   */
+  showCurrencySelector?: boolean;
 }
 
 /**
@@ -325,6 +344,7 @@ export type CheckoutState = {
   addOnIds?: string[];
   hideSkippedStages?: boolean;
   selectedCurrency?: string;
+  showCurrencySelector?: boolean;
   startTrialIfAvailable?: boolean;
 };
 

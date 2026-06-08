@@ -50,9 +50,11 @@ import {
   isError,
   isScheduledCheckoutConflictMessage,
   mergeCompanyGrants,
+  planOffersCurrencyForPeriod,
   planSupportsCurrency,
 } from "../../../utils";
 import {
+  CurrencyPeriodMismatchNotice,
   CurrencyToggle,
   InvalidCurrencyNotice,
   PeriodToggle,
@@ -241,17 +243,30 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     hasCurrencyFilter &&
     !!lockedCurrency &&
     !currencyFilter!.includes(lockedCurrency);
+  // Host-provided prefill (via initializeWithPlan's `currency`). Normalized to
+  // uppercase to match the hydrated currency codes, which are uppercased.
+  const prefilledCurrency = checkoutState?.selectedCurrency?.toUpperCase();
   const [selectedCurrency, setSelectedCurrency] = useState(
-    () =>
-      (checkoutState?.selectedCurrency &&
-      currencies.includes(checkoutState.selectedCurrency)
-        ? checkoutState.selectedCurrency
-        : undefined) ??
-      currencies[0] ??
-      DEFAULT_CURRENCY,
+    () => prefilledCurrency ?? currencies[0] ?? DEFAULT_CURRENCY,
   );
+
+  // Snap to a valid currency when the available set changes and the current
+  // selection is no longer offered (e.g. an invalid prefill, or `currencies`
+  // hydrating after mount). Done during render — not in an effect — to avoid a
+  // cascading re-render; the guard converges because the new value is always a
+  // member of `currencies`. Mirrors the PricingTable reconcile.
+  if (currencies.length > 0 && !currencies.includes(selectedCurrency)) {
+    setSelectedCurrency(currencies[0]);
+  }
+
   const effectiveCurrency = lockedCurrency ?? selectedCurrency;
-  const showCurrencySelector = currencies.length > 1 && !lockedCurrency;
+  // Host can force-hide the dropdown via initializeWithPlan's
+  // `showCurrencySelector: false` (e.g. to pin a single currency). Defaults to
+  // shown. The selector still requires a real choice (>1 currency, unlocked).
+  const currencySelectorEnabled =
+    checkoutState?.showCurrencySelector ?? true;
+  const canSelectCurrency =
+    currencies.length > 1 && !lockedCurrency && currencySelectorEnabled;
   const hasCurrency =
     !!lockedCurrency || currencies.length > 1 || hasCurrencyFilter;
   const hasNoUsableCurrency = !lockedCurrency && currencies.length === 0;
@@ -741,6 +756,62 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
   // this guard, whichever response resolves last wins and the dialog can
   // display charges for a quantity the user is no longer requesting.
   const previewRequestIdRef = useRef(0);
+
+  // Whether the plan stage is actually presented to the user. When the plan
+  // stage is absent or bypassed, the user never sees its currency toggle, so
+  // we surface the selector on the checkout stage instead.
+  const planStageVisible =
+    checkoutStages.some((stage) => stage.id === "plan") &&
+    !checkoutState?.bypassPlanSelection;
+
+  // In a plan-skipping flow the billing period is fixed (the period toggle
+  // lives on the plan stage), so only currencies that actually price that
+  // period belong in the checkout-stage selector. Filtering them out keeps the
+  // user from toggling into an incoherent combo we'd otherwise have to reject.
+  const checkoutStageCurrencies = useMemo(() => {
+    if (!selectedPlan) return currencies;
+    return currencies.filter((currency) =>
+      planOffersCurrencyForPeriod(selectedPlan, planPeriod, currency),
+    );
+  }, [currencies, selectedPlan, planPeriod]);
+
+  // Plan stage keeps the toggle when it's shown; otherwise the checkout stage
+  // hosts it so a plan-skipping flow can still choose a currency — but only
+  // when more than one currency actually offers the fixed period.
+  const showPlanCurrencySelector = canSelectCurrency && planStageVisible;
+  const showCheckoutCurrencySelector =
+    canSelectCurrency && !planStageVisible && checkoutStageCurrencies.length > 1;
+
+  // Incoherent host config: the effective currency does not price the fixed
+  // period on the selected plan. getPlanPrice would silently fall back to the
+  // plan's default-currency price; we refuse that and fail loudly instead.
+  // Scoped to plan-skipping flows — on the plan stage the user can correct the
+  // currency/period themselves via the toggles.
+  const currencyPeriodMismatch =
+    hasCurrency &&
+    !lockedCurrency &&
+    !planStageVisible &&
+    !!selectedPlan &&
+    !planOffersCurrencyForPeriod(selectedPlan, planPeriod, effectiveCurrency);
+
+  useEffect(() => {
+    if (currencyPeriodMismatch) {
+      console.error(
+        `[Schematic] No ${effectiveCurrency} price for the "${planPeriod}" billing period on the selected plan; refusing to fall back to the default currency.`,
+      );
+      debug("currency/period mismatch in checkout bypass config", {
+        currency: effectiveCurrency,
+        period: planPeriod,
+        planId: selectedPlan?.id,
+      });
+    }
+  }, [
+    currencyPeriodMismatch,
+    effectiveCurrency,
+    planPeriod,
+    selectedPlan?.id,
+    debug,
+  ]);
 
   const handlePreviewCheckout = useCallback(
     async (updates: PreviewCheckoutUpdates) => {
@@ -1444,6 +1515,33 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     );
   }
 
+  if (currencyPeriodMismatch) {
+    return (
+      <Dialog
+        ref={setDialog}
+        isModal={isModal}
+        size="lg"
+        top={top}
+        onClose={handleClose}
+        {...(!isModal && { open: layout === "checkout" })}
+      >
+        <DialogContent>
+          <Flex
+            $flexGrow={1}
+            $alignItems="center"
+            $justifyContent="center"
+            $padding="2rem"
+          >
+            <CurrencyPeriodMismatchNotice
+              currency={effectiveCurrency}
+              period={planPeriod}
+            />
+          </Flex>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   return (
     <Dialog
       ref={setDialog}
@@ -1546,7 +1644,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
             {effectiveCheckoutStage === "plan" && (
               <Flex $alignItems="center" $gap="0.75rem">
-                {showCurrencySelector && (
+                {showPlanCurrencySelector && (
                   <CurrencyToggle
                     currencies={currencies}
                     selectedCurrency={effectiveCurrency}
@@ -1565,6 +1663,17 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
                 )}
               </Flex>
             )}
+
+            {effectiveCheckoutStage === "checkout" &&
+              showCheckoutCurrencySelector && (
+                <Flex $alignItems="center" $gap="0.75rem">
+                  <CurrencyToggle
+                    currencies={checkoutStageCurrencies}
+                    selectedCurrency={effectiveCurrency}
+                    onSelect={setSelectedCurrency}
+                  />
+                </Flex>
+              )}
           </Flex>
 
           {isPending ? (
