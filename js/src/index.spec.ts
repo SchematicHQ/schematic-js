@@ -1586,7 +1586,6 @@ describe("WebSocket Fallback Behavior", () => {
         });
       });
 
-      // Establish the connection and receive the first value.
       const first = await schematic.checkFlag({
         key: "credit-remaining",
         context,
@@ -1602,16 +1601,65 @@ describe("WebSocket Fallback Behavior", () => {
       // Wait for the auto-reconnect (exponential backoff starts ~1s).
       await new Promise((resolve) => setTimeout(resolve, 2500));
 
-      // The client should have reconnected on its own without any explicit
-      // forceReconnect/setContext call.
+      // Reconnected on its own, with no explicit forceReconnect/setContext...
       expect(connectionCount).toBe(2);
 
-      // And it should now receive fresh pushes over the new connection.
+      // ...and now receiving fresh pushes over the new connection.
       const second = await schematic.checkFlag({
         key: "credit-remaining",
         context,
       });
       expect(second).toBe(false);
+
+      await schematic.cleanup();
+    }, 15000);
+
+    it("should open exactly one new connection on forceReconnect, without a spurious auto-reconnect", async () => {
+      const schematic = new Schematic("API_KEY", {
+        useWebSocket: true,
+        webSocketUrl: TEST_WS_URL,
+        flagValueDefaults: {
+          "credit-remaining": false,
+        },
+      });
+
+      const context = {
+        company: { companyId: "456" },
+        user: { userId: "123" },
+      };
+
+      let connectionCount = 0;
+      mockServer.on("connection", (socket) => {
+        connectionCount += 1;
+        socket.on("message", () => {
+          socket.send(
+            JSON.stringify({
+              flags: [
+                {
+                  flag: "credit-remaining",
+                  value: true,
+                  reason: `connection ${connectionCount}`,
+                },
+              ],
+            }),
+          );
+        });
+      });
+
+      await schematic.checkFlag({ key: "credit-remaining", context });
+      expect(connectionCount).toBe(1);
+
+      // Deliberately rebuild the connection in-place. This closes the existing
+      // (open) socket and opens a fresh one, so exactly one new connection
+      // should result.
+      await schematic.forceReconnect();
+      expect(connectionCount).toBe(2);
+
+      // Wait past the reconnect backoff window. Closing the old (open) socket
+      // during a deliberate reconnect must NOT trigger attemptReconnect(); if it
+      // did, a third connection would appear here.
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+      expect(connectionCount).toBe(2);
 
       await schematic.cleanup();
     }, 15000);
