@@ -263,8 +263,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
   // Host can force-hide the dropdown via initializeWithPlan's
   // `showCurrencySelector: false` (e.g. to pin a single currency). Defaults to
   // shown. The selector still requires a real choice (>1 currency, unlocked).
-  const currencySelectorEnabled =
-    checkoutState?.showCurrencySelector ?? true;
+  const currencySelectorEnabled = checkoutState?.showCurrencySelector ?? true;
   const canSelectCurrency =
     currencies.length > 1 && !lockedCurrency && currencySelectorEnabled;
   const hasCurrency =
@@ -780,7 +779,9 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
   // when more than one currency actually offers the fixed period.
   const showPlanCurrencySelector = canSelectCurrency && planStageVisible;
   const showCheckoutCurrencySelector =
-    canSelectCurrency && !planStageVisible && checkoutStageCurrencies.length > 1;
+    canSelectCurrency &&
+    !planStageVisible &&
+    checkoutStageCurrencies.length > 1;
 
   // Incoherent host config: the effective currency does not price the fixed
   // period on the selected plan. getPlanPrice would silently fall back to the
