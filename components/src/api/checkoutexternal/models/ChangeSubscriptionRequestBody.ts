@@ -99,6 +99,12 @@ export interface ChangeSubscriptionRequestBody {
   newPriceId: string;
   /**
    *
+   * @type {boolean}
+   * @memberof ChangeSubscriptionRequestBody
+   */
+  optInAccepted?: boolean | null;
+  /**
+   *
    * @type {Array<UpdatePayInAdvanceRequestBody>}
    * @memberof ChangeSubscriptionRequestBody
    */
@@ -183,6 +189,8 @@ export function ChangeSubscriptionRequestBodyFromJSONTyped(
     ),
     newPlanId: json["new_plan_id"],
     newPriceId: json["new_price_id"],
+    optInAccepted:
+      json["opt_in_accepted"] == null ? undefined : json["opt_in_accepted"],
     payInAdvance: (json["pay_in_advance"] as Array<any>).map(
       UpdatePayInAdvanceRequestBodyFromJSON,
     ),
@@ -223,6 +231,7 @@ export function ChangeSubscriptionRequestBodyToJSONTyped(
     ),
     new_plan_id: value["newPlanId"],
     new_price_id: value["newPriceId"],
+    opt_in_accepted: value["optInAccepted"],
     pay_in_advance: (value["payInAdvance"] as Array<any>).map(
       UpdatePayInAdvanceRequestBodyToJSON,
     ),
