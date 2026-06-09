@@ -44,6 +44,7 @@ type EmbedAction =
   | { type: "UNSUBSCRIBE"; data: DeleteResponse }
   | { type: "UPDATE_PAYMENT_METHOD"; paymentMethod: PaymentMethodResponseData }
   | { type: "DELETE_PAYMENT_METHOD"; paymentMethodId: string }
+  | { type: "UPDATE_CUSTOM_FIELD_VALUES"; values: Record<string, string> }
   | { type: "RESET" }
   | { type: "ERROR"; error: Error }
   | { type: "SET_DATA"; data: HydrateDataWithCompanyContext }
@@ -178,6 +179,22 @@ export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {
           (paymentMethod) => paymentMethod.id !== action.paymentMethodId,
         );
       }
+
+      return {
+        ...state,
+        data: updated,
+      };
+    }
+
+    case "UPDATE_CUSTOM_FIELD_VALUES": {
+      const updated = normalize(state.data);
+
+      updated.customCheckoutFields = updated.customCheckoutFields.map(
+        (field) =>
+          field.id in action.values
+            ? { ...field, value: action.values[field.id] }
+            : field,
+      );
 
       return {
         ...state,

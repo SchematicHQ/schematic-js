@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useEmbed } from "../../../hooks";
 import { PaymentMethodDetails } from "../../elements";
 import { Dialog, DialogContent, DialogHeader, Flex, Text } from "../../ui";
+import { EditableCustomCheckoutFields } from "../checkout-dialog/EditableCustomCheckoutFields";
 
 interface PaymentDialogProps {
   top?: number;
@@ -53,12 +54,18 @@ export const PaymentDialog = ({ top }: PaymentDialogProps) => {
       {...(!isModal && { open: layout === "payment" })}
     >
       <DialogHeader bordered onClose={handleClose}>
-        <Text $size={18}>{t("Edit payment method")}</Text>
+        <Text $size={18}>{t("Edit payment details")}</Text>
       </DialogHeader>
 
       <DialogContent>
-        <Flex $position="relative" $flexGrow={1} $overflow="auto">
+        <Flex
+          $position="relative"
+          $flexDirection="column"
+          $flexGrow={1}
+          $overflow="auto"
+        >
           <PaymentMethodDetails />
+          <EditableCustomCheckoutFields />
         </Flex>
       </DialogContent>
     </Dialog>

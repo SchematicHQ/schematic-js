@@ -57,6 +57,9 @@ export interface EmbedContextProps extends EmbedState {
   ) => DebouncedApiPromise<CheckoutResponse>;
   finishCheckout: (changeSubscriptionRequestBody: CheckoutResponseData) => void;
   unsubscribe: () => DebouncedApiPromise<CheckoutUnsubscribeResponse>;
+  updateCustomFieldValues: (
+    values: Record<string, string>,
+  ) => Promise<void> | undefined;
   setAccessToken: (token: string) => void;
   setError: (error: Error) => void;
   setLayout: (layout: EmbedLayout) => void;
@@ -90,6 +93,7 @@ export const initialContext = {
   previewCheckout: stub,
   checkout: stub,
   unsubscribe: stub,
+  updateCustomFieldValues: stub,
   setError: stub,
   setAccessToken: stub,
   setLayout: stub,

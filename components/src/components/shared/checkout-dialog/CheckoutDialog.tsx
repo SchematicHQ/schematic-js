@@ -581,6 +581,29 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
   const [promoCode, setPromoCode] = useState<string | null>(null);
 
+  const [customFieldValues, setCustomFieldValues] = useState<
+    Record<string, string>
+  >(() => {
+    const values: Record<string, string> = {};
+    for (const field of data?.customCheckoutFields ?? []) {
+      values[field.id] = field.value ?? "";
+    }
+    return values;
+  });
+
+  const hasIncompleteRequiredCustomFields = useMemo(() => {
+    return (data?.customCheckoutFields ?? []).some(
+      (field) => field.required && !customFieldValues[field.id]?.trim(),
+    );
+  }, [data?.customCheckoutFields, customFieldValues]);
+
+  const handleCustomFieldChange = useCallback(
+    (fieldId: string, value: string) => {
+      setCustomFieldValues((prev) => ({ ...prev, [fieldId]: value }));
+    },
+    [],
+  );
+
   const [isPaymentMethodRequired, setIsPaymentMethodRequired] = useState(false);
 
   const [willScheduleDowngrade, setWillScheduleDowngrade] = useState(false);
@@ -595,6 +618,14 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
   const checkoutStages = useMemo(() => {
     const stages: CheckoutStage[] = [];
+
+    // Required custom checkout fields are collected on the "checkout" stage. If
+    // that stage is never created (e.g. payment is not required), a required
+    // field with no existing value would leave the purchase button permanently
+    // disabled with no way to fill it. Track this so the stage is reachable
+    // whenever there are fields to collect.
+    const hasCustomCheckoutFields =
+      (data?.customCheckoutFields ?? []).length > 0;
 
     if (availablePlans.length > 0) {
       stages.push({
@@ -620,6 +651,13 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     }
 
     if (willTrialWithoutPaymentMethod) {
+      if (hasCustomCheckoutFields) {
+        stages.push({
+          id: "checkout",
+          name: t("Checkout"),
+          label: t("Checkout"),
+        });
+      }
       return stages;
     }
 
@@ -672,10 +710,13 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
     // A credit-only purchase needs a payment method too, but when the company
     // already has one on file we skip the dedicated payment stage so the user
-    // can buy credits directly from the Credits stage.
+    // can buy credits directly from the Credits stage. The stage is also needed
+    // whenever there are custom checkout fields to collect, even if no payment
+    // method is required.
     if (
-      isPaymentMethodRequired &&
-      !(isCreditOnlyPurchase && hasInitialPaymentMethod)
+      hasCustomCheckoutFields ||
+      (isPaymentMethodRequired &&
+        !(isCreditOnlyPurchase && hasInitialPaymentMethod))
     ) {
       stages.push({
         id: "checkout",
@@ -687,6 +728,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     return stages;
   }, [
     t,
+    data?.customCheckoutFields,
     availablePlans,
     selectedPlan?.includedCreditGrants,
     willTrialWithoutPaymentMethod,
@@ -920,7 +962,9 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
             ? []
             : [...planPayInAdvanceRequestBody, ...addOnPayInAdvanceRequestBody],
           creditBundles: creditBundlesRequestBody,
-          customFieldValues: [],
+          customFieldValues: Object.entries(customFieldValues).map(
+            ([id, value]) => ({ id, value }),
+          ),
           skipTrial,
           ...(code && { promoCode: code }),
         });
@@ -1012,6 +1056,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       addOnPayInAdvanceEntitlements,
       addOns,
       creditBundles,
+      customFieldValues,
       shouldTrial,
       promoCode,
       isBypassLoading,
@@ -1744,7 +1789,10 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
           ) : (
             effectiveCheckoutStage === "checkout" && (
               <Checkout
+                customCheckoutFields={data?.customCheckoutFields}
+                customFieldValues={customFieldValues}
                 isPaymentMethodRequired={isPaymentMethodRequired}
+                onCustomFieldChange={handleCustomFieldChange}
                 setPaymentMethodId={(id) => setPaymentMethodId(id)}
                 updatePromoCode={updatePromoCode}
                 confirmPaymentIntentProps={confirmPaymentIntentProps}
@@ -1766,6 +1814,8 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
           addOnUsageBasedEntitlements={addOnUsageBasedEntitlements}
           addOnPayInAdvanceEntitlements={addOnPayInAdvanceEntitlements}
           creditBundles={creditBundles}
+          customFieldValues={customFieldValues}
+          hasIncompleteRequiredCustomFields={hasIncompleteRequiredCustomFields}
           isCreditOnlyPurchase={isCreditOnlyPurchase}
           charges={charges}
           checkoutStage={effectiveCheckoutStage}

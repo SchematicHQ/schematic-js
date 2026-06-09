@@ -57,6 +57,8 @@ interface SubscriptionSidebarProps extends Omit<BoxProps, "children"> {
   autoTopupConfigs?: Map<string, AutoTopupConfig>;
   addOns: SelectedPlan[];
   creditBundles?: CreditBundle[];
+  customFieldValues?: Record<string, string>;
+  hasIncompleteRequiredCustomFields?: boolean;
   isCreditOnlyPurchase?: boolean;
   usageBasedEntitlements: UsageBasedEntitlement[];
   addOnUsageBasedEntitlements?: UsageBasedEntitlement[];
@@ -96,6 +98,8 @@ export const SubscriptionSidebar = forwardRef<
       autoTopupConfigs,
       addOns,
       creditBundles = [],
+      customFieldValues = {},
+      hasIncompleteRequiredCustomFields = false,
       isCreditOnlyPurchase = false,
       usageBasedEntitlements,
       addOnUsageBasedEntitlements = [],
@@ -498,7 +502,9 @@ export const SubscriptionSidebar = forwardRef<
             ? []
             : [...planPayInAdvanceRequestBody, ...addOnPayInAdvanceRequestBody],
           creditBundles: creditBundlesRequestBody,
-          customFieldValues: [],
+          customFieldValues: Object.entries(customFieldValues).map(
+            ([id, value]) => ({ id, value }),
+          ),
           skipTrial: !shouldTrial,
           ...(paymentMethodId && { paymentMethodId }),
           ...(promoCode && { promoCode }),
@@ -600,6 +606,7 @@ export const SubscriptionSidebar = forwardRef<
       promoCode,
       finishCheckout,
       currency,
+      customFieldValues,
     ]);
 
     const handleUnsubscribe = useCallback(async () => {
@@ -652,6 +659,9 @@ export const SubscriptionSidebar = forwardRef<
               willTrialWithoutPaymentMethod={willTrialWithoutPaymentMethod}
               willScheduleDowngrade={willScheduleDowngrade}
               shouldTrial={shouldTrial}
+              hasIncompleteRequiredCustomFields={
+                hasIncompleteRequiredCustomFields
+              }
               isCreditOnlyPurchase={isCreditOnlyPurchase}
               checkout={handleCheckout}
             />
@@ -697,6 +707,7 @@ export const SubscriptionSidebar = forwardRef<
       payInAdvanceEntitlements,
       addOnPayInAdvanceEntitlements,
       isCreditOnlyPurchase,
+      hasIncompleteRequiredCustomFields,
     ]);
 
     useLayoutEffect(() => {

@@ -415,6 +415,32 @@ export const EmbedProvider = ({
     [unsubscribe],
   );
 
+  const updateCustomFieldValues = useCallback(
+    async (values: Record<string, string>) => {
+      const companyId = state.data?.company?.id;
+      if (!companyId) {
+        // Surface as an error to the caller rather than silently resolving, so
+        // the UI does not report a successful save when nothing was persisted.
+        throw new Error("Cannot update custom field values without a company.");
+      }
+
+      await checkoutApi?.updateCheckoutFieldValues({
+        updateCheckoutFieldValuesRequestBody: {
+          values: Object.entries(values).map(([id, value]) => ({
+            id,
+            value,
+          })),
+        },
+      });
+
+      dispatch({
+        type: "UPDATE_CUSTOM_FIELD_VALUES",
+        values,
+      });
+    },
+    [checkoutApi, state.data?.company?.id],
+  );
+
   const getUpcomingInvoice = useCallback(
     async (id: string) => {
       return checkoutApi?.hydrateUpcomingInvoice({
@@ -616,6 +642,7 @@ export const EmbedProvider = ({
         checkout: debouncedCheckout,
         previewCheckout,
         unsubscribe: debouncedUnsubscribe,
+        updateCustomFieldValues,
         getUpcomingInvoice: debouncedGetUpcomingInvoice,
         getCustomerBalance: debouncedGetCustomerBalance,
         listInvoices: debouncedListInvoices,
