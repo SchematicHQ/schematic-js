@@ -1646,6 +1646,14 @@ export class Schematic {
     if (this.conn !== null) {
       try {
         const socket = await this.conn;
+
+        // Mark the existing socket as no longer current before closing it so
+        // its onclose handler doesn't schedule a reconnect while we're offline
+        // (reconnection is driven by handleNetworkOnline instead).
+        if (this.currentWebSocket === socket) {
+          this.currentWebSocket = null;
+        }
+
         // Close the zombie connection
         if (
           socket.readyState === WebSocket.OPEN ||
@@ -1881,6 +1889,11 @@ export class Schematic {
 
       let timeoutId: ReturnType<typeof setTimeout> | null = null;
       let isResolved = false;
+      // Tracks whether this socket ever successfully opened. We only want to
+      // auto-reconnect when an established connection is later lost (e.g. the
+      // server closes an idle connection), not when the initial handshake
+      // fails — those are handled by wsConnect's own retry loop.
+      let didOpen = false;
 
       // Set up connection timeout
       timeoutId = setTimeout(() => {
@@ -1897,6 +1910,7 @@ export class Schematic {
       webSocket.onopen = () => {
         if (isResolved) return; // Ignore if already timed out
         isResolved = true;
+        didOpen = true;
         if (timeoutId !== null) {
           clearTimeout(timeoutId);
         }
@@ -1930,15 +1944,19 @@ export class Schematic {
         this.conn = null;
 
         // Clean up tracking references when this specific socket closes
+        const wasCurrent = this.currentWebSocket === webSocket;
         if (this.currentWebSocket === webSocket) {
           this.currentWebSocket = null;
           this.isConnecting = false;
         }
 
-        // Only trigger reconnect if we successfully connected before (not during initial connection attempts)
-        // and not intentionally disconnected
+        // Only reconnect if this socket was the active connection lost
+        // unexpectedly. Deliberate reconnects null currentWebSocket before
+        // closing (so wasCurrent is false, avoiding a redundant reconnect), and
+        // initial-handshake failures (didOpen false) are handled by wsConnect.
         if (
-          !isResolved &&
+          wasCurrent &&
+          didOpen &&
           !this.wsIntentionalDisconnect &&
           this.webSocketReconnect
         ) {
