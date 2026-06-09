@@ -380,7 +380,7 @@ export const CheckoutStageButton = ({
     if (!isPaymentMethodRequired) {
       return (
         <NoPaymentRequired
-          isDisabled={isDisabled}
+          isDisabled={isDisabled || hasIncompleteRequiredCustomFields}
           isLoading={isLoading}
           onClick={checkout}
           isSticky={isSticky}
