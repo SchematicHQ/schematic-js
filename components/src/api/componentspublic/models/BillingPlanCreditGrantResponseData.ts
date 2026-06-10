@@ -236,6 +236,12 @@ export interface BillingPlanCreditGrantResponseData {
    */
   resetType?: BillingPlanCreditGrantResetType | null;
   /**
+   * Percentage of unused credits that carry over when this grant resets. Only meaningful when reset_type is plan_period.
+   * @type {number}
+   * @memberof BillingPlanCreditGrantResponseData
+   */
+  rolloverPercentage: number;
+  /**
    *
    * @type {Date}
    * @memberof BillingPlanCreditGrantResponseData
@@ -265,6 +271,11 @@ export function instanceOfBillingPlanCreditGrantResponseData(
   if (!("id" in value) || value["id"] === undefined) return false;
   if (!("planId" in value) || value["planId"] === undefined) return false;
   if (!("planName" in value) || value["planName"] === undefined) return false;
+  if (
+    !("rolloverPercentage" in value) ||
+    value["rolloverPercentage"] === undefined
+  )
+    return false;
   if (!("updatedAt" in value) || value["updatedAt"] === undefined) return false;
   return true;
 }
@@ -358,6 +369,7 @@ export function BillingPlanCreditGrantResponseDataFromJSONTyped(
       json["reset_type"] == null
         ? undefined
         : BillingPlanCreditGrantResetTypeFromJSON(json["reset_type"]),
+    rolloverPercentage: json["rollover_percentage"],
     updatedAt: new Date(json["updated_at"]),
   };
 }
@@ -410,6 +422,7 @@ export function BillingPlanCreditGrantResponseDataToJSONTyped(
     ),
     reset_start: BillingPlanCreditGrantResetStartToJSON(value["resetStart"]),
     reset_type: BillingPlanCreditGrantResetTypeToJSON(value["resetType"]),
+    rollover_percentage: value["rolloverPercentage"],
     updated_at: value["updatedAt"].toISOString(),
   };
 }

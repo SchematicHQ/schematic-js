@@ -234,6 +234,19 @@ export interface CheckoutStageSkipConfig {
  * @example
  * initializeWithPlan('plan_xyz')
  * // Equivalent to: { planId: 'plan_xyz', skipped: { planStage: true } }
+ *
+ * ## Trial Behavior
+ *
+ * When the pre-selected plan is trialable and the company is eligible for a
+ * trial, checkout starts in trial mode by default. Pass
+ * `startTrialIfAvailable: false` to skip the trial and charge immediately.
+ *
+ * @example
+ * // Opt out of the automatic trial for a trialable plan
+ * initializeWithPlan({
+ *   planId: 'plan_xyz',
+ *   startTrialIfAvailable: false,
+ * })
  */
 export interface BypassConfig {
   /**
@@ -262,6 +275,60 @@ export interface BypassConfig {
    * Optional - defaults to company's current period or "month".
    */
   period?: "month" | "year";
+  /**
+   * When the pre-selected plan is trialable and the company is eligible for a
+   * trial, automatically start the checkout in trial mode. Default: true.
+   *
+   * Set to false to charge the customer immediately even when a trial is
+   * available. Has no effect when the plan is not trialable or the company
+   * is not eligible for a trial.
+   */
+  startTrialIfAvailable?: boolean;
+  /**
+   * Currency to pre-select (e.g. "EUR"). Case-insensitive.
+   *
+   * Useful for flows that skip the plan stage: the host can pin the checkout
+   * to a currency the customer never had a chance to choose. Ignored when the
+   * company already has an active subscription (its currency is locked), or
+   * when the value is not among the available currencies — in which case the
+   * checkout falls back to the first available currency.
+   */
+  currency?: string;
+  /**
+   * Whether to show the currency selector dropdown in checkout. Default: true.
+   *
+   * Set to false to hide the dropdown entirely — combine with `currency` to
+   * pin checkout to a single currency the customer cannot change. Has no
+   * effect when there is only one available currency or the subscription
+   * currency is locked (the selector is already hidden in those cases).
+   */
+  showCurrencySelector?: boolean;
+}
+
+/**
+ * Host-provided initial values used to pre-populate the checkout payment form.
+ * Values come exclusively from the host application; nothing here is
+ * auto-detected from backend/hydrate data.
+ *
+ * Only the fields we currently consume are present. Additional fields (e.g.
+ * address, phone) can be added here as they are wired up.
+ */
+export interface CheckoutBillingDetails {
+  email?: string;
+  name?: string;
+}
+
+/**
+ * Configuration for pre-populating the checkout flow with host-provided values.
+ *
+ * @example
+ * <EmbedProvider
+ *   apiKey={apiKey}
+ *   checkoutPrefill={{ billingDetails: { email: "a@b.com", name: "Ada Lovelace" } }}
+ * >
+ */
+export interface CheckoutPrefill {
+  billingDetails?: CheckoutBillingDetails;
 }
 
 export type CheckoutState = {
@@ -277,6 +344,8 @@ export type CheckoutState = {
   addOnIds?: string[];
   hideSkippedStages?: boolean;
   selectedCurrency?: string;
+  showCurrencySelector?: boolean;
+  startTrialIfAvailable?: boolean;
 };
 
 export type EmbedMode = "edit" | "view";
@@ -291,6 +360,7 @@ export interface EmbedState {
   layout: EmbedLayout;
   checkoutState?: CheckoutState;
   currencyFilter?: string[];
+  checkoutPrefill?: CheckoutPrefill;
 }
 
 export const initialState: EmbedState = {

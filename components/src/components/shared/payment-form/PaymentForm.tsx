@@ -4,7 +4,7 @@ import {
   useElements,
   useStripe,
 } from "@stripe/react-stripe-js";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import type { PreviewSubscriptionFinanceResponseData } from "../../../api/checkoutexternal";
@@ -25,13 +25,23 @@ export const PaymentForm = ({ onConfirm, financeData }: PaymentFormProps) => {
   const stripe = useStripe();
   const elements = useElements();
 
-  const { data } = useEmbed();
+  const { data, checkoutPrefill } = useEmbed();
+  const billing = checkoutPrefill?.billingDetails;
+
+  const collectEmail = data?.checkoutSettings.collectEmail ?? false;
+  const collectPhone = data?.checkoutSettings.collectPhone ?? false;
+  const shouldCollectAddress = shouldCollectBillingAddress(
+    data?.checkoutSettings.collectAddress ?? false,
+    financeData,
+  );
+  const showBillingAddress = shouldCollectAddress || collectPhone;
 
   const loadTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined,
   );
 
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(() => billing?.email ?? "");
+  const userEditedEmailRef = useRef(false);
   const [message, setMessage] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
@@ -39,15 +49,22 @@ export const PaymentForm = ({ onConfirm, financeData }: PaymentFormProps) => {
   const [isPaymentReady, setIsPaymentReady] = useState(false);
   const [loadError, setLoadError] = useState<string | undefined>();
 
-  const [isAddressComplete, setIsAddressComplete] = useState(() => {
-    // Check if billing address collection is needed (either configured or required for tax)
-    const shouldCollectAddress = shouldCollectBillingAddress(
-      data?.checkoutSettings.collectAddress ?? false,
-      financeData,
-    );
+  const [isAddressComplete, setIsAddressComplete] = useState(
+    () => !shouldCollectAddress,
+  );
 
-    return !shouldCollectAddress;
-  });
+  // Stripe only reads AddressElement `defaultValues` on mount. Key the element
+  // by the prefill identity so a prefill that arrives after mount remounts it.
+  const addressDefaultsKey = useMemo(
+    () => JSON.stringify(billing ?? {}),
+    [billing],
+  );
+
+  useEffect(() => {
+    if (!userEditedEmailRef.current && billing?.email) {
+      setEmail(billing.email);
+    }
+  }, [billing?.email]);
 
   const handleSubmit: React.FormEventHandler<HTMLFormElement> = async (
     event,
@@ -62,14 +79,20 @@ export const PaymentForm = ({ onConfirm, financeData }: PaymentFormProps) => {
     setIsConfirmed(false);
     setMessage(undefined);
 
+    const billingDetails: { email?: string; name?: string } = {};
+    if (collectEmail && email) {
+      billingDetails.email = email;
+    }
+    if (showBillingAddress && billing?.name) {
+      billingDetails.name = billing.name;
+    }
+
     try {
       const { setupIntent, error } = await stripe.confirmSetup({
         elements,
         confirmParams: {
           payment_method_data: {
-            billing_details: {
-              email,
-            },
+            billing_details: billingDetails,
           },
           return_url: window.location.href,
         },
@@ -149,7 +172,7 @@ export const PaymentForm = ({ onConfirm, financeData }: PaymentFormProps) => {
         )}
       </Box>
 
-      {stripe && data?.checkoutSettings.collectEmail && (
+      {stripe && collectEmail && (
         <Box data-field="name" $marginBottom="1.5rem" $verticalAlign="top">
           <Label htmlFor="email">Email</Label>
           <Input
@@ -158,23 +181,26 @@ export const PaymentForm = ({ onConfirm, financeData }: PaymentFormProps) => {
             value={email}
             autoComplete="email"
             placeholder="Enter email address"
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {
+              userEditedEmailRef.current = true;
+              setEmail(e.target.value);
+            }}
           />
         </Box>
       )}
 
-      {(shouldCollectBillingAddress(
-        data?.checkoutSettings.collectAddress ?? false,
-        financeData,
-      ) ||
-        data?.checkoutSettings.collectPhone) && (
+      {showBillingAddress && (
         <Box $marginBottom="3.5rem">
           <AddressElement
+            key={addressDefaultsKey}
             options={{
               mode: "billing",
               fields: {
-                phone: data?.checkoutSettings.collectPhone ? "always" : "never",
+                phone: collectPhone ? "always" : "never",
               },
+              ...(billing?.name && {
+                defaultValues: { name: billing.name },
+              }),
             }}
             id="address-element"
             onChange={(event) => {

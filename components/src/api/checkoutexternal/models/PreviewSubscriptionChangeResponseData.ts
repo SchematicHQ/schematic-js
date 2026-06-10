@@ -72,6 +72,24 @@ export interface PreviewSubscriptionChangeResponseData {
    * @type {boolean}
    * @memberof PreviewSubscriptionChangeResponseData
    */
+  optInRequired: boolean;
+  /**
+   *
+   * @type {string}
+   * @memberof PreviewSubscriptionChangeResponseData
+   */
+  optInText?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof PreviewSubscriptionChangeResponseData
+   */
+  optInTitle?: string | null;
+  /**
+   *
+   * @type {boolean}
+   * @memberof PreviewSubscriptionChangeResponseData
+   */
   paymentMethodRequired: boolean;
   /**
    *
@@ -137,6 +155,8 @@ export function instanceOfPreviewSubscriptionChangeResponseData(
     return false;
   if (!("newCharges" in value) || value["newCharges"] === undefined)
     return false;
+  if (!("optInRequired" in value) || value["optInRequired"] === undefined)
+    return false;
   if (
     !("paymentMethodRequired" in value) ||
     value["paymentMethodRequired"] === undefined
@@ -176,6 +196,9 @@ export function PreviewSubscriptionChangeResponseDataFromJSONTyped(
         : PreviewSubscriptionFinanceResponseDataFromJSON(json["finance"]),
     isScheduledDowngrade: json["is_scheduled_downgrade"],
     newCharges: json["new_charges"],
+    optInRequired: json["opt_in_required"],
+    optInText: json["opt_in_text"] == null ? undefined : json["opt_in_text"],
+    optInTitle: json["opt_in_title"] == null ? undefined : json["opt_in_title"],
     paymentMethodRequired: json["payment_method_required"],
     percentOff: json["percent_off"],
     periodStart: new Date(json["period_start"]),
@@ -213,6 +236,9 @@ export function PreviewSubscriptionChangeResponseDataToJSONTyped(
     finance: PreviewSubscriptionFinanceResponseDataToJSON(value["finance"]),
     is_scheduled_downgrade: value["isScheduledDowngrade"],
     new_charges: value["newCharges"],
+    opt_in_required: value["optInRequired"],
+    opt_in_text: value["optInText"],
+    opt_in_title: value["optInTitle"],
     payment_method_required: value["paymentMethodRequired"],
     percent_off: value["percentOff"],
     period_start: value["periodStart"].toISOString(),

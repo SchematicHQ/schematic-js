@@ -1,7 +1,7 @@
 import { RefObject } from "react";
 import { useTranslation } from "react-i18next";
 
-import { Button, Flex, Icon } from "../../ui";
+import { Button, Flex, Icon, Text } from "../../ui";
 import { type CheckoutStage } from "../checkout-dialog";
 
 type NoPaymentRequiredProps = {
@@ -9,6 +9,7 @@ type NoPaymentRequiredProps = {
   isLoading: boolean;
   isSticky?: boolean;
   willScheduleDowngrade?: boolean;
+  isCreditOnlyPurchase?: boolean;
   onClick: () => Promise<void>;
 };
 
@@ -17,6 +18,7 @@ const NoPaymentRequired = ({
   isLoading,
   isSticky = false,
   willScheduleDowngrade = false,
+  isCreditOnlyPurchase = false,
   onClick,
 }: NoPaymentRequiredProps) => {
   const { t } = useTranslation();
@@ -30,9 +32,11 @@ const NoPaymentRequired = ({
       $fullWidth
       $isLoading={isLoading}
     >
-      {willScheduleDowngrade
-        ? t("Schedule downgrade")
-        : t("Subscribe and close")}
+      {isCreditOnlyPurchase
+        ? t("Buy credits")
+        : willScheduleDowngrade
+          ? t("Schedule downgrade")
+          : t("Subscribe and close")}
     </Button>
   );
 };
@@ -49,12 +53,16 @@ type CheckoutStageButtonProps = {
   isSticky?: boolean;
   checkoutButtonRef?: RefObject<HTMLDivElement>;
   isPaymentMethodRequired: boolean;
+  optInRequired?: boolean;
+  optInAccepted?: boolean;
   isSelectedPlanTrialable: boolean;
   setCheckoutStage?: (stage: string) => void;
   trialPaymentMethodRequired: boolean;
   shouldTrial: boolean;
   willTrialWithoutPaymentMethod: boolean;
   willScheduleDowngrade: boolean;
+  hasIncompleteRequiredCustomFields?: boolean;
+  isCreditOnlyPurchase?: boolean;
 };
 
 export const CheckoutStageButton = ({
@@ -68,16 +76,32 @@ export const CheckoutStageButton = ({
   isLoading,
   isSticky = false,
   isPaymentMethodRequired,
+  optInRequired = false,
+  optInAccepted = false,
   isSelectedPlanTrialable,
   setCheckoutStage,
   trialPaymentMethodRequired,
   shouldTrial,
   willTrialWithoutPaymentMethod,
   willScheduleDowngrade,
+  hasIncompleteRequiredCustomFields = false,
+  isCreditOnlyPurchase = false,
 }: CheckoutStageButtonProps) => {
   const { t } = useTranslation();
 
-  const isDisabled = isLoading || !hasPlan || inEditMode || !canCheckout;
+  // A credit-only purchase does not require a plan, so it must not be gated on
+  // one being selected.
+  const isDisabled =
+    isLoading ||
+    (!hasPlan && !isCreditOnlyPurchase) ||
+    inEditMode ||
+    !canCheckout;
+
+  // The opt-in agreement is collected on the final `checkout` stage, so it must
+  // only gate finalizing checkout there — never the "Next" buttons that move
+  // between earlier stages, which would otherwise trap the user before they can
+  // even reach the agreement.
+  const optInUnmet = optInRequired && !optInAccepted;
 
   // Helper to get the next stage after the current one
   const getNextStageId = (currentStageId: string): string | undefined => {
@@ -142,6 +166,7 @@ export const CheckoutStageButton = ({
           isLoading={isLoading}
           onClick={checkout}
           isSticky={isSticky}
+          isCreditOnlyPurchase={isCreditOnlyPurchase}
         />
       );
     }
@@ -175,6 +200,7 @@ export const CheckoutStageButton = ({
           isLoading={isLoading}
           onClick={checkout}
           isSticky={isSticky}
+          isCreditOnlyPurchase={isCreditOnlyPurchase}
         />
       );
     }
@@ -213,6 +239,7 @@ export const CheckoutStageButton = ({
           isLoading={isLoading}
           onClick={checkout}
           isSticky={isSticky}
+          isCreditOnlyPurchase={isCreditOnlyPurchase}
         />
       );
     }
@@ -251,6 +278,7 @@ export const CheckoutStageButton = ({
           isLoading={isLoading}
           onClick={checkout}
           isSticky={isSticky}
+          isCreditOnlyPurchase={isCreditOnlyPurchase}
         />
       );
     }
@@ -288,6 +316,7 @@ export const CheckoutStageButton = ({
           isLoading={isLoading}
           onClick={checkout}
           isSticky={isSticky}
+          isCreditOnlyPurchase={isCreditOnlyPurchase}
         />
       );
     }
@@ -317,13 +346,19 @@ export const CheckoutStageButton = ({
   }
 
   if (checkoutStage === "credits") {
-    if (!isPaymentMethodRequired) {
+    const nextStage = getNextStageId("credits");
+
+    // When credits is the final stage (no payment stage follows — e.g. a
+    // credit-only purchase with a payment method already on file), finalize
+    // directly instead of advancing.
+    if (!nextStage) {
       return (
         <NoPaymentRequired
           isDisabled={isDisabled}
           isLoading={isLoading}
           onClick={checkout}
           isSticky={isSticky}
+          isCreditOnlyPurchase={isCreditOnlyPurchase}
         />
       );
     }
@@ -333,7 +368,7 @@ export const CheckoutStageButton = ({
         type="button"
         disabled={isDisabled}
         onClick={async () => {
-          setCheckoutStage?.("checkout");
+          setCheckoutStage?.(nextStage);
         }}
         $fullWidth
         $isLoading={isLoading}
@@ -344,7 +379,7 @@ export const CheckoutStageButton = ({
           $alignItems="center"
           $padding="0 1rem"
         >
-          {t("Next")}: {t("Checkout")}
+          {t("Next")}: {getStageDisplayName(nextStage)}
           <Icon name="arrow-right" />
         </Flex>
       </Button>
@@ -352,31 +387,54 @@ export const CheckoutStageButton = ({
   }
 
   if (checkoutStage === "checkout") {
+    // Amber helper shown below the button when an unaccepted opt-in is blocking checkout.
+    const optInNotice = optInUnmet ? (
+      <Text $color="#D97706" $size={15}>
+        {t("Please accept the agreement to continue.")}
+      </Text>
+    ) : null;
+
     if (!isPaymentMethodRequired) {
       return (
-        <NoPaymentRequired
-          isDisabled={isDisabled}
-          isLoading={isLoading}
-          onClick={checkout}
-          isSticky={isSticky}
-        />
+        <Flex $flexDirection="column" $gap="0.5rem">
+          <NoPaymentRequired
+            isDisabled={
+              isDisabled || hasIncompleteRequiredCustomFields || optInUnmet
+            }
+            isLoading={isLoading}
+            onClick={checkout}
+            isSticky={isSticky}
+            isCreditOnlyPurchase={isCreditOnlyPurchase}
+          />
+          {optInNotice}
+        </Flex>
       );
     }
 
     return (
-      <Button
-        type="button"
-        disabled={isDisabled || !hasPaymentMethod}
-        onClick={checkout}
-        $fullWidth
-        $isLoading={isLoading}
-      >
-        {willScheduleDowngrade
-          ? t("Schedule downgrade")
-          : willTrialWithoutPaymentMethod
-            ? t("Start trial")
-            : t("Pay now")}
-      </Button>
+      <Flex $flexDirection="column" $gap="0.5rem">
+        <Button
+          type="button"
+          disabled={
+            isDisabled ||
+            !hasPaymentMethod ||
+            hasIncompleteRequiredCustomFields ||
+            optInUnmet
+          }
+          onClick={checkout}
+          $fullWidth
+          $isLoading={isLoading}
+        >
+          {willScheduleDowngrade
+            ? t("Schedule downgrade")
+            : willTrialWithoutPaymentMethod
+              ? t("Start trial")
+              : isCreditOnlyPurchase
+                ? t("Buy credits")
+                : t("Pay now")}
+        </Button>
+        {optInNotice}
+      </Flex>
     );
   }
 };

@@ -221,10 +221,28 @@ export interface CreditCompanyGrantView {
   renewalPeriod?: BillingPlanCreditGrantResetCadence | null;
   /**
    *
+   * @type {number}
+   * @memberof CreditCompanyGrantView
+   */
+  reserved?: number | null;
+  /**
+   *
+   * @type {number}
+   * @memberof CreditCompanyGrantView
+   */
+  settled?: number | null;
+  /**
+   *
    * @type {string}
    * @memberof CreditCompanyGrantView
    */
   singularName?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof CreditCompanyGrantView
+   */
+  sourceGrantId?: string | null;
   /**
    *
    * @type {string}
@@ -358,8 +376,12 @@ export function CreditCompanyGrantViewFromJSONTyped(
       json["renewal_period"] == null
         ? undefined
         : BillingPlanCreditGrantResetCadenceFromJSON(json["renewal_period"]),
+    reserved: json["reserved"] == null ? undefined : json["reserved"],
+    settled: json["settled"] == null ? undefined : json["settled"],
     singularName:
       json["singular_name"] == null ? undefined : json["singular_name"],
+    sourceGrantId:
+      json["source_grant_id"] == null ? undefined : json["source_grant_id"],
     sourceLabel: json["source_label"],
     transfers:
       json["transfers"] == null
@@ -427,7 +449,10 @@ export function CreditCompanyGrantViewToJSONTyped(
     renewal_period: BillingPlanCreditGrantResetCadenceToJSON(
       value["renewalPeriod"],
     ),
+    reserved: value["reserved"],
+    settled: value["settled"],
     singular_name: value["singularName"],
+    source_grant_id: value["sourceGrantId"],
     source_label: value["sourceLabel"],
     transfers:
       value["transfers"] == null

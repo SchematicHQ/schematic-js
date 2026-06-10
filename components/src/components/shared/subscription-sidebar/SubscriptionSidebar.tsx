@@ -57,6 +57,9 @@ interface SubscriptionSidebarProps extends Omit<BoxProps, "children"> {
   autoTopupConfigs?: Map<string, AutoTopupConfig>;
   addOns: SelectedPlan[];
   creditBundles?: CreditBundle[];
+  customFieldValues?: Record<string, string>;
+  hasIncompleteRequiredCustomFields?: boolean;
+  isCreditOnlyPurchase?: boolean;
   usageBasedEntitlements: UsageBasedEntitlement[];
   addOnUsageBasedEntitlements?: UsageBasedEntitlement[];
   addOnPayInAdvanceEntitlements?: UsageBasedEntitlement[];
@@ -66,6 +69,8 @@ interface SubscriptionSidebarProps extends Omit<BoxProps, "children"> {
   error?: string;
   isLoading: boolean;
   isPaymentMethodRequired: boolean;
+  optInRequired?: boolean;
+  optInAccepted?: boolean;
   paymentMethodId?: string;
   promoCode?: string | null;
   setCheckoutStage?: (stage: string) => void;
@@ -95,6 +100,9 @@ export const SubscriptionSidebar = forwardRef<
       autoTopupConfigs,
       addOns,
       creditBundles = [],
+      customFieldValues = {},
+      hasIncompleteRequiredCustomFields = false,
+      isCreditOnlyPurchase = false,
       usageBasedEntitlements,
       addOnUsageBasedEntitlements = [],
       addOnPayInAdvanceEntitlements = [],
@@ -104,6 +112,8 @@ export const SubscriptionSidebar = forwardRef<
       error,
       isLoading,
       isPaymentMethodRequired,
+      optInRequired = false,
+      optInAccepted = false,
       paymentMethodId,
       promoCode,
       setCheckoutStage,
@@ -453,7 +463,7 @@ export const SubscriptionSidebar = forwardRef<
         )?.id;
 
       try {
-        if (!planId || !planPriceId) {
+        if ((!planId || !planPriceId) && !isCreditOnlyPurchase) {
           throw new Error(t("Selected plan or associated price is missing."));
         }
 
@@ -488,16 +498,19 @@ export const SubscriptionSidebar = forwardRef<
           buildCreditBundlesRequestBody(creditBundles);
 
         const checkoutResponseFromBackend = await checkout({
-          newPlanId: planId,
-          newPriceId: planPriceId,
-          addOnIds: addOnRequestBody,
-          autoTopupOverrides: autoTopupRequestBody,
-          payInAdvance: [
-            ...planPayInAdvanceRequestBody,
-            ...addOnPayInAdvanceRequestBody,
-          ],
+          newPlanId: isCreditOnlyPurchase ? "" : (planId ?? ""),
+          newPriceId: isCreditOnlyPurchase ? "" : (planPriceId ?? ""),
+          addOnIds: isCreditOnlyPurchase ? [] : addOnRequestBody,
+          autoTopupOverrides: isCreditOnlyPurchase ? [] : autoTopupRequestBody,
+          payInAdvance: isCreditOnlyPurchase
+            ? []
+            : [...planPayInAdvanceRequestBody, ...addOnPayInAdvanceRequestBody],
           creditBundles: creditBundlesRequestBody,
+          customFieldValues: Object.entries(customFieldValues).map(
+            ([id, value]) => ({ id, value }),
+          ),
           skipTrial: !shouldTrial,
+          optInAccepted,
           ...(paymentMethodId && { paymentMethodId }),
           ...(promoCode && { promoCode }),
         });
@@ -588,6 +601,7 @@ export const SubscriptionSidebar = forwardRef<
       autoTopupConfigs,
       addOns,
       creditBundles,
+      isCreditOnlyPurchase,
       setError,
       setIsLoading,
       setLayout,
@@ -595,8 +609,10 @@ export const SubscriptionSidebar = forwardRef<
       addOnPayInAdvanceEntitlements,
       shouldTrial,
       promoCode,
+      optInAccepted,
       finishCheckout,
       currency,
+      customFieldValues,
     ]);
 
     const handleUnsubscribe = useCallback(async () => {
@@ -640,6 +656,8 @@ export const SubscriptionSidebar = forwardRef<
               checkoutStages={checkoutStages}
               hasPlan={typeof selectedPlan !== "undefined"}
               isPaymentMethodRequired={isPaymentMethodRequired}
+              optInRequired={optInRequired}
+              optInAccepted={optInAccepted}
               hasPaymentMethod={
                 typeof paymentMethod !== "undefined" ||
                 typeof paymentMethodId === "string"
@@ -649,6 +667,10 @@ export const SubscriptionSidebar = forwardRef<
               willTrialWithoutPaymentMethod={willTrialWithoutPaymentMethod}
               willScheduleDowngrade={willScheduleDowngrade}
               shouldTrial={shouldTrial}
+              hasIncompleteRequiredCustomFields={
+                hasIncompleteRequiredCustomFields
+              }
+              isCreditOnlyPurchase={isCreditOnlyPurchase}
               checkout={handleCheckout}
             />
           );
@@ -685,6 +707,8 @@ export const SubscriptionSidebar = forwardRef<
       willTrialWithoutPaymentMethod,
       shouldTrial,
       isPaymentMethodRequired,
+      optInRequired,
+      optInAccepted,
       willScheduleDowngrade,
       paymentMethod,
       paymentMethodId,
@@ -692,6 +716,8 @@ export const SubscriptionSidebar = forwardRef<
       handleUnsubscribe,
       payInAdvanceEntitlements,
       addOnPayInAdvanceEntitlements,
+      isCreditOnlyPurchase,
+      hasIncompleteRequiredCustomFields,
     ]);
 
     useLayoutEffect(() => {
@@ -1234,7 +1260,7 @@ export const SubscriptionSidebar = forwardRef<
             </Flex>
           )}
 
-          {subscriptionPrice && (
+          {!isCreditOnlyPurchase && subscriptionPrice && (
             <Flex
               $justifyContent="space-between"
               $alignItems="center"
@@ -1360,7 +1386,7 @@ export const SubscriptionSidebar = forwardRef<
             </Flex>
           )}
 
-          {layout !== "unsubscribe" && (
+          {layout !== "unsubscribe" && !isCreditOnlyPurchase && (
             <Box $opacity="0.625">
               <Text>
                 {willScheduleDowngrade &&

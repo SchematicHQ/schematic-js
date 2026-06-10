@@ -32,6 +32,12 @@ export interface EventBodyTrack {
    */
   event: string;
   /**
+   * Credit lease ID this track event is redeeming against
+   * @type {string}
+   * @memberof EventBodyTrack
+   */
+  leaseId?: string;
+  /**
    * Optionally specify the quantity of the event
    * @type {number}
    * @memberof EventBodyTrack
@@ -75,6 +81,7 @@ export function EventBodyTrackFromJSONTyped(
   return {
     company: json["company"] == null ? undefined : json["company"],
     event: json["event"],
+    leaseId: json["lease_id"] == null ? undefined : json["lease_id"],
     quantity: json["quantity"] == null ? undefined : json["quantity"],
     traits: json["traits"] == null ? undefined : json["traits"],
     user: json["user"] == null ? undefined : json["user"],
@@ -96,6 +103,7 @@ export function EventBodyTrackToJSONTyped(
   return {
     company: value["company"],
     event: value["event"],
+    lease_id: value["leaseId"],
     quantity: value["quantity"],
     traits: value["traits"],
     user: value["user"],

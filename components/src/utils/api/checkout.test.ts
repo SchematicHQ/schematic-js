@@ -34,6 +34,7 @@ function makeUsageBasedEntitlement(
 
 function makeSelectedPlan(overrides: Partial<SelectedPlan> = {}): SelectedPlan {
   return {
+    availablePeriods: [],
     billingStrategy: "schematic_managed",
     chargeType: "recurring" as any,
     companyCanTrial: false,

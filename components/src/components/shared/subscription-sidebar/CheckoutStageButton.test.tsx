@@ -236,6 +236,94 @@ describe("`CheckoutStageButton` component", () => {
     });
   });
 
+  describe("credit-only purchase flow", () => {
+    test("shows 'Buy credits' when credits is the final stage and is credit-only", () => {
+      render(
+        <CheckoutStageButton
+          {...defaultProps}
+          checkoutStage="credits"
+          checkoutStages={[
+            { id: "plan", name: "Plan" },
+            { id: "credits", name: "Credits" },
+          ]}
+          isCreditOnlyPurchase={true}
+        />,
+      );
+
+      expect(screen.getByText("Buy credits")).toBeInTheDocument();
+    });
+
+    test("shows 'Subscribe and close' on the final credits stage when not credit-only", () => {
+      render(
+        <CheckoutStageButton
+          {...defaultProps}
+          checkoutStage="credits"
+          checkoutStages={[
+            { id: "plan", name: "Plan" },
+            { id: "credits", name: "Credits" },
+          ]}
+          isCreditOnlyPurchase={false}
+        />,
+      );
+
+      expect(screen.getByText("Subscribe and close")).toBeInTheDocument();
+    });
+
+    test("advances to checkout when a payment stage follows the credits stage", async () => {
+      const setCheckoutStage = vi.fn();
+
+      render(
+        <CheckoutStageButton
+          {...defaultProps}
+          checkoutStage="credits"
+          checkoutStages={[
+            { id: "plan", name: "Plan" },
+            { id: "credits", name: "Credits" },
+            { id: "checkout", name: "Checkout" },
+          ]}
+          isCreditOnlyPurchase={true}
+          setCheckoutStage={setCheckoutStage}
+        />,
+      );
+
+      const button = screen.getByRole("button");
+      await act(async () => {
+        fireEvent.click(button);
+      });
+
+      expect(setCheckoutStage).toHaveBeenCalledWith("checkout");
+    });
+
+    test("shows 'Buy credits' instead of 'Pay now' at the checkout stage", () => {
+      render(
+        <CheckoutStageButton
+          {...defaultProps}
+          checkoutStage="checkout"
+          hasPaymentMethod={true}
+          isPaymentMethodRequired={true}
+          isCreditOnlyPurchase={true}
+        />,
+      );
+
+      expect(screen.getByText("Buy credits")).toBeInTheDocument();
+    });
+
+    test("button is enabled for a credit-only purchase even without a plan", () => {
+      render(
+        <CheckoutStageButton
+          {...defaultProps}
+          checkoutStage="credits"
+          checkoutStages={[{ id: "credits", name: "Credits" }]}
+          hasPlan={false}
+          isCreditOnlyPurchase={true}
+        />,
+      );
+
+      const button = screen.getByRole("button");
+      expect(button).not.toBeDisabled();
+    });
+  });
+
   describe("trial flow with payment method required", () => {
     test("navigates to checkout when trialing with payment method required", async () => {
       const setCheckoutStage = vi.fn();
@@ -271,6 +359,93 @@ describe("`CheckoutStageButton` component", () => {
       );
 
       expect(screen.getByText(/Checkout/)).toBeInTheDocument();
+    });
+  });
+
+  describe("custom opt-in", () => {
+    test("does not disable the 'Next' button on an earlier stage when opt-in is unaccepted", () => {
+      render(
+        <CheckoutStageButton
+          {...defaultProps}
+          checkoutStage="plan"
+          optInRequired={true}
+          optInAccepted={false}
+        />,
+      );
+
+      const button = screen.getByRole("button");
+      expect(button).not.toBeDisabled();
+    });
+
+    test("still navigates between stages when opt-in is unaccepted", async () => {
+      const setCheckoutStage = vi.fn();
+
+      render(
+        <CheckoutStageButton
+          {...defaultProps}
+          checkoutStage="plan"
+          optInRequired={true}
+          optInAccepted={false}
+          setCheckoutStage={setCheckoutStage}
+        />,
+      );
+
+      const button = screen.getByRole("button");
+      await act(async () => {
+        fireEvent.click(button);
+      });
+
+      expect(setCheckoutStage).toHaveBeenCalledWith("checkout");
+    });
+
+    test("disables 'Pay now' at the checkout stage when opt-in is unaccepted", () => {
+      render(
+        <CheckoutStageButton
+          {...defaultProps}
+          checkoutStage="checkout"
+          hasPaymentMethod={true}
+          isPaymentMethodRequired={true}
+          optInRequired={true}
+          optInAccepted={false}
+        />,
+      );
+
+      const button = screen.getByRole("button");
+      expect(button).toBeDisabled();
+      expect(
+        screen.getByText("Please accept the agreement to continue."),
+      ).toBeInTheDocument();
+    });
+
+    test("enables 'Pay now' at the checkout stage once opt-in is accepted", () => {
+      render(
+        <CheckoutStageButton
+          {...defaultProps}
+          checkoutStage="checkout"
+          hasPaymentMethod={true}
+          isPaymentMethodRequired={true}
+          optInRequired={true}
+          optInAccepted={true}
+        />,
+      );
+
+      const button = screen.getByRole("button");
+      expect(button).not.toBeDisabled();
+    });
+
+    test("gates the no-payment-required checkout button on opt-in acceptance", () => {
+      render(
+        <CheckoutStageButton
+          {...defaultProps}
+          checkoutStage="checkout"
+          isPaymentMethodRequired={false}
+          optInRequired={true}
+          optInAccepted={false}
+        />,
+      );
+
+      const button = screen.getByRole("button");
+      expect(button).toBeDisabled();
     });
   });
 });

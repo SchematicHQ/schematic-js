@@ -54,11 +54,23 @@ export interface FeatureEntitlement {
    */
   creditId?: string | null;
   /**
-   * If the company has a credit-based entitlement for this feature, the remaining credit amount
+   * If the company has a credit-based entitlement for this feature, the credit available to fund new consumption or a new lease hold — open lease holds are excluded. Clients that hold a lease should gate on this plus their own unspent hold; clients with no lease awareness should use credit_settled instead
    * @type {number}
    * @memberof FeatureEntitlement
    */
   creditRemaining?: number | null;
+  /**
+   * If the company has a credit-based entitlement for this feature, the unspent amount held by an open credit lease. Returns to credit_remaining when the lease is released
+   * @type {number}
+   * @memberof FeatureEntitlement
+   */
+  creditReserved?: number | null;
+  /**
+   * If the company has a credit-based entitlement for this feature, the balance net of actual consumption, unaffected by open lease holds (credit_remaining plus credit_reserved). The number to display to end users
+   * @type {number}
+   * @memberof FeatureEntitlement
+   */
+  creditSettled?: number | null;
   /**
    * If the company has a credit-based entitlement for this feature, the total credit amount
    * @type {number}
@@ -156,6 +168,10 @@ export function FeatureEntitlementFromJSONTyped(
     creditId: json["credit_id"] == null ? undefined : json["credit_id"],
     creditRemaining:
       json["credit_remaining"] == null ? undefined : json["credit_remaining"],
+    creditReserved:
+      json["credit_reserved"] == null ? undefined : json["credit_reserved"],
+    creditSettled:
+      json["credit_settled"] == null ? undefined : json["credit_settled"],
     creditTotal:
       json["credit_total"] == null ? undefined : json["credit_total"],
     creditUsed: json["credit_used"] == null ? undefined : json["credit_used"],
@@ -196,6 +212,8 @@ export function FeatureEntitlementToJSONTyped(
     allocation: value["allocation"],
     credit_id: value["creditId"],
     credit_remaining: value["creditRemaining"],
+    credit_reserved: value["creditReserved"],
+    credit_settled: value["creditSettled"],
     credit_total: value["creditTotal"],
     credit_used: value["creditUsed"],
     event_name: value["eventName"],

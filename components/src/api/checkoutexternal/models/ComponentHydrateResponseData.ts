@@ -111,6 +111,13 @@ import {
   FeatureUsageDetailResponseDataToJSON,
   FeatureUsageDetailResponseDataToJSONTyped,
 } from "./FeatureUsageDetailResponseData";
+import type { CheckoutFieldWithValue } from "./CheckoutFieldWithValue";
+import {
+  CheckoutFieldWithValueFromJSON,
+  CheckoutFieldWithValueFromJSONTyped,
+  CheckoutFieldWithValueToJSON,
+  CheckoutFieldWithValueToJSONTyped,
+} from "./CheckoutFieldWithValue";
 import type { CompanyDetailResponseData } from "./CompanyDetailResponseData";
 import {
   CompanyDetailResponseDataFromJSON,
@@ -192,6 +199,12 @@ export interface ComponentHydrateResponseData {
    * @memberof ComponentHydrateResponseData
    */
   creditGrants: Array<CreditCompanyGrantView>;
+  /**
+   *
+   * @type {Array<CheckoutFieldWithValue>}
+   * @memberof ComponentHydrateResponseData
+   */
+  customCheckoutFields: Array<CheckoutFieldWithValue>;
   /**
    *
    * @type {PlanDetailResponseData}
@@ -320,6 +333,11 @@ export function instanceOfComponentHydrateResponseData(
     return false;
   if (!("creditGrants" in value) || value["creditGrants"] === undefined)
     return false;
+  if (
+    !("customCheckoutFields" in value) ||
+    value["customCheckoutFields"] === undefined
+  )
+    return false;
   if (!("displaySettings" in value) || value["displaySettings"] === undefined)
     return false;
   if (
@@ -390,6 +408,9 @@ export function ComponentHydrateResponseDataFromJSONTyped(
     ),
     creditGrants: (json["credit_grants"] as Array<any>).map(
       CreditCompanyGrantViewFromJSON,
+    ),
+    customCheckoutFields: (json["custom_checkout_fields"] as Array<any>).map(
+      CheckoutFieldWithValueFromJSON,
     ),
     defaultPlan:
       json["default_plan"] == null
@@ -478,6 +499,9 @@ export function ComponentHydrateResponseDataToJSONTyped(
     ),
     credit_grants: (value["creditGrants"] as Array<any>).map(
       CreditCompanyGrantViewToJSON,
+    ),
+    custom_checkout_fields: (value["customCheckoutFields"] as Array<any>).map(
+      CheckoutFieldWithValueToJSON,
     ),
     default_plan: PlanDetailResponseDataToJSON(value["defaultPlan"]),
     display_settings: ComponentDisplaySettingsToJSON(value["displaySettings"]),

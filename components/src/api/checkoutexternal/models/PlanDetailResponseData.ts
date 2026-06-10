@@ -13,6 +13,41 @@
  */
 
 import { mapValues } from "../runtime";
+import type { BillingLinkedResourceResponseData } from "./BillingLinkedResourceResponseData";
+import {
+  BillingLinkedResourceResponseDataFromJSON,
+  BillingLinkedResourceResponseDataFromJSONTyped,
+  BillingLinkedResourceResponseDataToJSON,
+  BillingLinkedResourceResponseDataToJSONTyped,
+} from "./BillingLinkedResourceResponseData";
+import type { PlanEntitlementResponseData } from "./PlanEntitlementResponseData";
+import {
+  PlanEntitlementResponseDataFromJSON,
+  PlanEntitlementResponseDataFromJSONTyped,
+  PlanEntitlementResponseDataToJSON,
+  PlanEntitlementResponseDataToJSONTyped,
+} from "./PlanEntitlementResponseData";
+import type { FeatureInPlanResponseData } from "./FeatureInPlanResponseData";
+import {
+  FeatureInPlanResponseDataFromJSON,
+  FeatureInPlanResponseDataFromJSONTyped,
+  FeatureInPlanResponseDataToJSON,
+  FeatureInPlanResponseDataToJSONTyped,
+} from "./FeatureInPlanResponseData";
+import type { BillingProviderType } from "./BillingProviderType";
+import {
+  BillingProviderTypeFromJSON,
+  BillingProviderTypeFromJSONTyped,
+  BillingProviderTypeToJSON,
+  BillingProviderTypeToJSONTyped,
+} from "./BillingProviderType";
+import type { BillingProductDetailResponseData } from "./BillingProductDetailResponseData";
+import {
+  BillingProductDetailResponseDataFromJSON,
+  BillingProductDetailResponseDataFromJSONTyped,
+  BillingProductDetailResponseDataToJSON,
+  BillingProductDetailResponseDataToJSONTyped,
+} from "./BillingProductDetailResponseData";
 import type { BillingPlanCreditGrantResponseData } from "./BillingPlanCreditGrantResponseData";
 import {
   BillingPlanCreditGrantResponseDataFromJSON,
@@ -27,13 +62,6 @@ import {
   PlanCurrencyPricesResponseDataToJSON,
   PlanCurrencyPricesResponseDataToJSONTyped,
 } from "./PlanCurrencyPricesResponseData";
-import type { BillingLinkedResourceResponseData } from "./BillingLinkedResourceResponseData";
-import {
-  BillingLinkedResourceResponseDataFromJSON,
-  BillingLinkedResourceResponseDataFromJSONTyped,
-  BillingLinkedResourceResponseDataToJSON,
-  BillingLinkedResourceResponseDataToJSONTyped,
-} from "./BillingLinkedResourceResponseData";
 import type { ChargeType } from "./ChargeType";
 import {
   ChargeTypeFromJSON,
@@ -41,13 +69,6 @@ import {
   ChargeTypeToJSON,
   ChargeTypeToJSONTyped,
 } from "./ChargeType";
-import type { FeatureInPlanResponseData } from "./FeatureInPlanResponseData";
-import {
-  FeatureInPlanResponseDataFromJSON,
-  FeatureInPlanResponseDataFromJSONTyped,
-  FeatureInPlanResponseDataToJSON,
-  FeatureInPlanResponseDataToJSONTyped,
-} from "./FeatureInPlanResponseData";
 import type { PlanIcon } from "./PlanIcon";
 import {
   PlanIconFromJSON,
@@ -76,13 +97,6 @@ import {
   BillingPriceResponseDataToJSON,
   BillingPriceResponseDataToJSONTyped,
 } from "./BillingPriceResponseData";
-import type { BillingProviderType } from "./BillingProviderType";
-import {
-  BillingProviderTypeFromJSON,
-  BillingProviderTypeFromJSONTyped,
-  BillingProviderTypeToJSON,
-  BillingProviderTypeToJSONTyped,
-} from "./BillingProviderType";
 import type { BillingStrategy } from "./BillingStrategy";
 import {
   BillingStrategyFromJSON,
@@ -90,13 +104,6 @@ import {
   BillingStrategyToJSON,
   BillingStrategyToJSONTyped,
 } from "./BillingStrategy";
-import type { BillingProductDetailResponseData } from "./BillingProductDetailResponseData";
-import {
-  BillingProductDetailResponseDataFromJSON,
-  BillingProductDetailResponseDataFromJSONTyped,
-  BillingProductDetailResponseDataToJSON,
-  BillingProductDetailResponseDataToJSONTyped,
-} from "./BillingProductDetailResponseData";
 
 /**
  *
@@ -195,6 +202,12 @@ export interface PlanDetailResponseData {
    * @memberof PlanDetailResponseData
    */
   draftVersion?: PlanVersionResponseData;
+  /**
+   *
+   * @type {Array<PlanEntitlementResponseData>}
+   * @memberof PlanDetailResponseData
+   */
+  entitlements?: Array<PlanEntitlementResponseData> | null;
   /**
    *
    * @type {Array<FeatureInPlanResponseData>}
@@ -378,6 +391,12 @@ export function PlanDetailResponseDataFromJSONTyped(
       json["draft_version"] == null
         ? undefined
         : PlanVersionResponseDataFromJSON(json["draft_version"]),
+    entitlements:
+      json["entitlements"] == null
+        ? undefined
+        : (json["entitlements"] as Array<any>).map(
+            PlanEntitlementResponseDataFromJSON,
+          ),
     features: (json["features"] as Array<any>).map(
       FeatureInPlanResponseDataFromJSON,
     ),
@@ -454,6 +473,12 @@ export function PlanDetailResponseDataToJSONTyped(
     ),
     description: value["description"],
     draft_version: PlanVersionResponseDataToJSON(value["draftVersion"]),
+    entitlements:
+      value["entitlements"] == null
+        ? undefined
+        : (value["entitlements"] as Array<any>).map(
+            PlanEntitlementResponseDataToJSON,
+          ),
     features: (value["features"] as Array<any>).map(
       FeatureInPlanResponseDataToJSON,
     ),

@@ -15,6 +15,7 @@ import type {
 import {
   defaultSettings,
   type BypassConfig,
+  type CheckoutPrefill,
   type CheckoutState,
   type EmbedLayout,
   type EmbedSettings,
@@ -43,6 +44,7 @@ type EmbedAction =
   | { type: "UNSUBSCRIBE"; data: DeleteResponse }
   | { type: "UPDATE_PAYMENT_METHOD"; paymentMethod: PaymentMethodResponseData }
   | { type: "DELETE_PAYMENT_METHOD"; paymentMethodId: string }
+  | { type: "UPDATE_CUSTOM_FIELD_VALUES"; values: Record<string, string> }
   | { type: "RESET" }
   | { type: "ERROR"; error: Error }
   | { type: "SET_DATA"; data: HydrateDataWithCompanyContext }
@@ -55,7 +57,8 @@ type EmbedAction =
   | { type: "SET_CHECKOUT_STATE"; state: CheckoutState }
   | { type: "SET_PLANID_BYPASS"; config: string | BypassConfig }
   | { type: "CLEAR_CHECKOUT_STATE" }
-  | { type: "SET_CURRENCY_FILTER"; currencyFilter?: string[] };
+  | { type: "SET_CURRENCY_FILTER"; currencyFilter?: string[] }
+  | { type: "SET_CHECKOUT_PREFILL"; checkoutPrefill?: CheckoutPrefill };
 
 function normalize(data?: HydrateData): HydrateDataWithCompanyContext {
   return merge({}, data, {
@@ -82,6 +85,7 @@ function normalize(data?: HydrateData): HydrateDataWithCompanyContext {
     },
     creditBundles: [],
     creditGrants: [],
+    customCheckoutFields: [],
     preventSelfServiceDowngrade: false,
   });
 }
@@ -175,6 +179,22 @@ export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {
           (paymentMethod) => paymentMethod.id !== action.paymentMethodId,
         );
       }
+
+      return {
+        ...state,
+        data: updated,
+      };
+    }
+
+    case "UPDATE_CUSTOM_FIELD_VALUES": {
+      const updated = normalize(state.data);
+
+      updated.customCheckoutFields = updated.customCheckoutFields.map(
+        (field) =>
+          field.id in action.values
+            ? { ...field, value: action.values[field.id] }
+            : field,
+      );
 
       return {
         ...state,
@@ -276,7 +296,17 @@ export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {
           bypassAddOnSelection,
           bypassCreditsSelection,
           ...(config.addOnIds && { addOnIds: config.addOnIds }),
+          ...(config.currency && {
+            selectedCurrency: config.currency.toUpperCase(),
+          }),
+          ...(config.showCurrencySelector !== undefined && {
+            showCurrencySelector: config.showCurrencySelector,
+          }),
           hideSkippedStages: config.hideSkipped ?? false,
+          startTrialIfAvailable:
+            isStringFormat || config.startTrialIfAvailable === undefined
+              ? true
+              : config.startTrialIfAvailable,
         },
       };
     }
@@ -292,6 +322,13 @@ export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {
       return {
         ...state,
         currencyFilter: action.currencyFilter,
+      };
+    }
+
+    case "SET_CHECKOUT_PREFILL": {
+      return {
+        ...state,
+        checkoutPrefill: action.checkoutPrefill,
       };
     }
   }

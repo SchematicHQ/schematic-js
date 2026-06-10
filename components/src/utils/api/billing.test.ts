@@ -8,7 +8,57 @@ import {
   EntitlementValueType,
 } from "../../api/checkoutexternal";
 
-import { getEntitlementPrice } from "./billing";
+import type { Plan } from "../../types";
+
+import { getEntitlementPrice, planOffersCurrencyForPeriod } from "./billing";
+
+// Minimal plan priced monthly+yearly in USD (legacy fields) but only yearly in
+// EUR (currencyPrices). Exercises the silent-fallback path getPlanPrice takes
+// when a currency lacks the requested period.
+function makeCurrencyPlan(): Plan {
+  const usd = (price: number) => ({ currency: "USD", price });
+  const eur = (price: number) => ({ currency: "EUR", price });
+
+  return {
+    id: "plan-1",
+    monthlyPrice: usd(1000),
+    yearlyPrice: usd(10000),
+    currencyPrices: [
+      { currency: "EUR", yearlyPrice: eur(9000) },
+      { currency: "USD", monthlyPrice: usd(1000), yearlyPrice: usd(10000) },
+    ],
+  } as unknown as Plan;
+}
+
+describe("planOffersCurrencyForPeriod", () => {
+  it("returns true when no currency is requested", () => {
+    expect(planOffersCurrencyForPeriod(makeCurrencyPlan(), "month")).toBe(true);
+  });
+
+  it("returns true when the currency prices the requested period", () => {
+    expect(planOffersCurrencyForPeriod(makeCurrencyPlan(), "year", "EUR")).toBe(
+      true,
+    );
+  });
+
+  it("returns false when the currency lacks the requested period (would fall back)", () => {
+    // EUR has no monthly price; getPlanPrice would return the USD monthly price.
+    expect(
+      planOffersCurrencyForPeriod(makeCurrencyPlan(), "month", "EUR"),
+    ).toBe(false);
+  });
+
+  it("is case-insensitive about the currency code", () => {
+    expect(planOffersCurrencyForPeriod(makeCurrencyPlan(), "year", "eur")).toBe(
+      true,
+    );
+  });
+
+  it("returns true for a free/unpriced plan (nothing to mischarge)", () => {
+    const freePlan = { id: "free", currencyPrices: [] } as unknown as Plan;
+    expect(planOffersCurrencyForPeriod(freePlan, "month", "EUR")).toBe(true);
+  });
+});
 
 // Build a tiered Overage BillingPriceView whose parent `price` is 0 and the
 // per-unit cost lives in the highest priceTier entry. This mirrors what the

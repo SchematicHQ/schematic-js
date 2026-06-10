@@ -17,6 +17,7 @@
  * @export
  */
 export const BillingProviderType = {
+  Metronome: "metronome",
   Orb: "orb",
   Schematic: "schematic",
   Stripe: "stripe",

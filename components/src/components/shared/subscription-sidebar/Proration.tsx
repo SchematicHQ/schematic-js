@@ -1,4 +1,4 @@
-import { MouseEvent, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { type PreviewSubscriptionFinanceResponseData } from "../../../api/checkoutexternal";
@@ -20,7 +20,7 @@ export const Proration = ({ currency, charges }: ProrationProps) => {
 
   const [open, setOpen] = useState(false);
 
-  const toggle = (e: MouseEvent<HTMLButtonElement>) => {
+  const toggle = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     e.stopPropagation();
 

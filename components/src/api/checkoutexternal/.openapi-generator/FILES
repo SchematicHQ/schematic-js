@@ -11,6 +11,7 @@ models/BillingCreditExpiryType.ts
 models/BillingCreditExpiryUnit.ts
 models/BillingCreditGrantReason.ts
 models/BillingCreditGrantZeroedOutReason.ts
+models/BillingCreditLedgerAuthority.ts
 models/BillingCreditResponseData.ts
 models/BillingCreditRolloverPolicy.ts
 models/BillingCreditView.ts
@@ -38,6 +39,8 @@ models/BillingSubscriptionView.ts
 models/BillingTiersMode.ts
 models/ChangeSubscriptionRequestBody.ts
 models/ChargeType.ts
+models/CheckoutFieldValue.ts
+models/CheckoutFieldWithValue.ts
 models/CheckoutResponse.ts
 models/CheckoutResponseData.ts
 models/CheckoutUnsubscribeResponse.ts
@@ -122,6 +125,7 @@ models/PlanDetailResponseData.ts
 models/PlanEntitlementResponseData.ts
 models/PlanGroupPlanDetailResponseData.ts
 models/PlanIcon.ts
+models/PlanPriceCadence.ts
 models/PlanResponseData.ts
 models/PlanType.ts
 models/PlanVersionResponseData.ts
@@ -148,6 +152,9 @@ models/TraitDefinition.ts
 models/TraitType.ts
 models/UpdateAddOnRequestBody.ts
 models/UpdateAutoTopupOverrideRequestBody.ts
+models/UpdateCheckoutFieldValuesRequestBody.ts
+models/UpdateCheckoutFieldValuesResponse.ts
+models/UpdateCheckoutFieldValuesResponseData.ts
 models/UpdateCreditBundleRequestBody.ts
 models/UpdatePayInAdvanceRequestBody.ts
 models/UpdatePaymentMethodRequestBody.ts
