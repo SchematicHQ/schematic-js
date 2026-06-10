@@ -3,6 +3,7 @@ export * from "./color";
 export * from "./date";
 export * from "./error";
 export * from "./event";
+export * from "./markdown";
 export * from "./pluralize";
 export * from "./string";
 export * from "./style";

@@ -41,6 +41,13 @@ import {
   BillingProviderTypeToJSON,
   BillingProviderTypeToJSONTyped,
 } from "./BillingProviderType";
+import type { PlanPriceCadence } from "./PlanPriceCadence";
+import {
+  PlanPriceCadenceFromJSON,
+  PlanPriceCadenceFromJSONTyped,
+  PlanPriceCadenceToJSON,
+  PlanPriceCadenceToJSONTyped,
+} from "./PlanPriceCadence";
 import type { CustomPlanConfig } from "./CustomPlanConfig";
 import {
   CustomPlanConfigFromJSON,
@@ -131,6 +138,12 @@ export interface PlanViewPublicResponseData {
    * @deprecated
    */
   audienceType?: string | null;
+  /**
+   *
+   * @type {Array<PlanPriceCadence>}
+   * @memberof PlanViewPublicResponseData
+   */
+  availablePeriods: Array<PlanPriceCadence>;
   /**
    *
    * @type {BillingLinkedResourceResponseData}
@@ -232,7 +245,7 @@ export interface PlanViewPublicResponseData {
    * @type {Array<PlanEntitlementResponseData>}
    * @memberof PlanViewPublicResponseData
    */
-  entitlements: Array<PlanEntitlementResponseData>;
+  entitlements?: Array<PlanEntitlementResponseData> | null;
   /**
    *
    * @type {Array<FeatureInPlanResponseData>}
@@ -345,6 +358,8 @@ export interface PlanViewPublicResponseData {
 export function instanceOfPlanViewPublicResponseData(
   value: object,
 ): value is PlanViewPublicResponseData {
+  if (!("availablePeriods" in value) || value["availablePeriods"] === undefined)
+    return false;
   if (!("billingStrategy" in value) || value["billingStrategy"] === undefined)
     return false;
   if (!("chargeType" in value) || value["chargeType"] === undefined)
@@ -363,8 +378,6 @@ export function instanceOfPlanViewPublicResponseData(
     return false;
   if (!("custom" in value) || value["custom"] === undefined) return false;
   if (!("description" in value) || value["description"] === undefined)
-    return false;
-  if (!("entitlements" in value) || value["entitlements"] === undefined)
     return false;
   if (!("features" in value) || value["features"] === undefined) return false;
   if (!("icon" in value) || value["icon"] === undefined) return false;
@@ -406,6 +419,9 @@ export function PlanViewPublicResponseDataFromJSONTyped(
         : PlanVersionResponseDataFromJSON(json["active_version"]),
     audienceType:
       json["audience_type"] == null ? undefined : json["audience_type"],
+    availablePeriods: (json["available_periods"] as Array<any>).map(
+      PlanPriceCadenceFromJSON,
+    ),
     billingLinkedResource:
       json["billing_linked_resource"] == null
         ? undefined
@@ -442,9 +458,12 @@ export function PlanViewPublicResponseDataFromJSONTyped(
       json["draft_version"] == null
         ? undefined
         : PlanVersionResponseDataFromJSON(json["draft_version"]),
-    entitlements: (json["entitlements"] as Array<any>).map(
-      PlanEntitlementResponseDataFromJSON,
-    ),
+    entitlements:
+      json["entitlements"] == null
+        ? undefined
+        : (json["entitlements"] as Array<any>).map(
+            PlanEntitlementResponseDataFromJSON,
+          ),
     features: (json["features"] as Array<any>).map(
       FeatureInPlanResponseDataFromJSON,
     ),
@@ -500,6 +519,9 @@ export function PlanViewPublicResponseDataToJSONTyped(
   return {
     active_version: PlanVersionResponseDataToJSON(value["activeVersion"]),
     audience_type: value["audienceType"],
+    available_periods: (value["availablePeriods"] as Array<any>).map(
+      PlanPriceCadenceToJSON,
+    ),
     billing_linked_resource: BillingLinkedResourceResponseDataToJSON(
       value["billingLinkedResource"],
     ),
@@ -522,9 +544,12 @@ export function PlanViewPublicResponseDataToJSONTyped(
     custom_plan_config: CustomPlanConfigToJSON(value["customPlanConfig"]),
     description: value["description"],
     draft_version: PlanVersionResponseDataToJSON(value["draftVersion"]),
-    entitlements: (value["entitlements"] as Array<any>).map(
-      PlanEntitlementResponseDataToJSON,
-    ),
+    entitlements:
+      value["entitlements"] == null
+        ? undefined
+        : (value["entitlements"] as Array<any>).map(
+            PlanEntitlementResponseDataToJSON,
+          ),
     features: (value["features"] as Array<any>).map(
       FeatureInPlanResponseDataToJSON,
     ),

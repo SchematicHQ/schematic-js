@@ -1,3 +1,5 @@
+import type { DebouncedFunc } from "lodash";
+import debounce from "lodash/debounce";
 import {
   useCallback,
   useEffect,
@@ -17,7 +19,12 @@ import {
   type PlanEntitlementResponseData,
   type PreviewSubscriptionFinanceResponseData,
 } from "../../../api/checkoutexternal";
-import { DEFAULT_CURRENCY, TEXT_BASE_SIZE } from "../../../const";
+import {
+  DEFAULT_CURRENCY,
+  FETCH_DEBOUNCE_TIMEOUT,
+  TEXT_BASE_SIZE,
+  TRAILING_DEBOUNCE_SETTINGS,
+} from "../../../const";
 import {
   useAvailableCurrenciesWithInvalid,
   useAvailablePlans,
@@ -37,14 +44,17 @@ import {
   buildAutoTopupRequestBody,
   buildCreditBundlesRequestBody,
   buildPayInAdvanceRequestBody,
+  getAddOnPrice,
   getPlanPrice,
   getSubscriptionPeriod,
   isError,
   isScheduledCheckoutConflictMessage,
   mergeCompanyGrants,
+  planOffersCurrencyForPeriod,
   planSupportsCurrency,
 } from "../../../utils";
 import {
+  CurrencyPeriodMismatchNotice,
   CurrencyToggle,
   InvalidCurrencyNotice,
   PeriodToggle,
@@ -107,6 +117,18 @@ export interface CheckoutStage {
   name: string;
   label?: string;
   description?: string;
+}
+
+interface PreviewCheckoutUpdates {
+  period?: string;
+  plan?: SelectedPlan;
+  shouldTrial?: boolean;
+  autoTopupConfigs?: Map<string, AutoTopupConfig>;
+  addOns?: SelectedPlan[];
+  payInAdvanceEntitlements?: UsageBasedEntitlement[];
+  addOnPayInAdvanceEntitlements?: UsageBasedEntitlement[];
+  creditBundles?: CreditBundle[];
+  promoCode?: string | null;
 }
 
 interface CheckoutDialogProps {
@@ -221,17 +243,29 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     hasCurrencyFilter &&
     !!lockedCurrency &&
     !currencyFilter!.includes(lockedCurrency);
+  // Host-provided prefill (via initializeWithPlan's `currency`). Normalized to
+  // uppercase to match the hydrated currency codes, which are uppercased.
+  const prefilledCurrency = checkoutState?.selectedCurrency?.toUpperCase();
   const [selectedCurrency, setSelectedCurrency] = useState(
-    () =>
-      (checkoutState?.selectedCurrency &&
-      currencies.includes(checkoutState.selectedCurrency)
-        ? checkoutState.selectedCurrency
-        : undefined) ??
-      currencies[0] ??
-      DEFAULT_CURRENCY,
+    () => prefilledCurrency ?? currencies[0] ?? DEFAULT_CURRENCY,
   );
+
+  // Snap to a valid currency when the available set changes and the current
+  // selection is no longer offered (e.g. an invalid prefill, or `currencies`
+  // hydrating after mount). Done during render — not in an effect — to avoid a
+  // cascading re-render; the guard converges because the new value is always a
+  // member of `currencies`. Mirrors the PricingTable reconcile.
+  if (currencies.length > 0 && !currencies.includes(selectedCurrency)) {
+    setSelectedCurrency(currencies[0]);
+  }
+
   const effectiveCurrency = lockedCurrency ?? selectedCurrency;
-  const showCurrencySelector = currencies.length > 1 && !lockedCurrency;
+  // Host can force-hide the dropdown via initializeWithPlan's
+  // `showCurrencySelector: false` (e.g. to pin a single currency). Defaults to
+  // shown. The selector still requires a real choice (>1 currency, unlocked).
+  const currencySelectorEnabled = checkoutState?.showCurrencySelector ?? true;
+  const canSelectCurrency =
+    currencies.length > 1 && !lockedCurrency && currencySelectorEnabled;
   const hasCurrency =
     !!lockedCurrency || currencies.length > 1 || hasCurrencyFilter;
   const hasNoUsableCurrency = !lockedCurrency && currencies.length === 0;
@@ -394,6 +428,78 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     }));
   });
 
+  const selectedPlanPriceId = useMemo(() => {
+    if (!selectedPlan) {
+      return undefined;
+    }
+
+    const currencyPrice = getPlanPrice(
+      selectedPlan,
+      planPeriod,
+      { useSelectedPeriod: true },
+      hasCurrency ? effectiveCurrency : undefined,
+    );
+
+    return (
+      currencyPrice?.id ??
+      (planPeriod === "year"
+        ? selectedPlan.yearlyPrice?.id
+        : planPeriod === "quarter"
+          ? selectedPlan.quarterlyPrice?.id
+          : selectedPlan.monthlyPrice?.id)
+    );
+  }, [selectedPlan, planPeriod, hasCurrency, effectiveCurrency]);
+
+  // Whether the company already had a payment method when the dialog opened.
+  // Captured once at mount (lazy useState init) so entering a card mid-flow
+  // doesn't retroactively drop the checkout stage the user is standing on.
+  const [hasInitialPaymentMethod] = useState(
+    () =>
+      !!(
+        data?.subscription?.paymentMethod?.externalId ||
+        data?.company?.defaultPaymentMethod?.externalId
+      ),
+  );
+
+  // A credit-bundle-only purchase on a free/non-billing subscription: there is
+  // no subscription to create or change, so the backend charges for the credits
+  // standalone. Mirrors the API's isCreditBundleOnlyCheckout (bundles present,
+  // no add-ons / pay-in-advance, empty or non-billing plan), gated on the
+  // company having no active billing subscription.
+  const isCreditOnlyPurchase = useMemo(() => {
+    if (data?.company?.billingSubscription) {
+      return false;
+    }
+
+    if (selectedPlanPriceId) {
+      return false;
+    }
+
+    if (!creditBundles.some((bundle) => bundle.count > 0)) {
+      return false;
+    }
+
+    const hasPaidAddOn = addOns.some(
+      (addOn) =>
+        addOn.isSelected &&
+        !!getAddOnPrice(
+          addOn,
+          planPeriod,
+          hasCurrency ? effectiveCurrency : undefined,
+        )?.id,
+    );
+
+    return !hasPaidAddOn;
+  }, [
+    data?.company?.billingSubscription,
+    selectedPlanPriceId,
+    creditBundles,
+    addOns,
+    planPeriod,
+    hasCurrency,
+    effectiveCurrency,
+  ]);
+
   const [usageBasedEntitlements, setUsageBasedEntitlements] = useState(() =>
     (selectedPlan?.entitlements || []).reduce(
       createActiveUsageBasedEntitlementsReducer(featureUsage, planPeriod),
@@ -412,7 +518,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
           if (!availableAddOn) return [];
 
-          return availableAddOn.entitlements.reduce(
+          return (availableAddOn.entitlements ?? []).reduce(
             createActiveUsageBasedEntitlementsReducer(featureUsage, planPeriod),
             [],
           );
@@ -429,7 +535,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
           if (!availableAddOn) return [];
 
           // Calculate usage-based entitlements (same logic as toggleAddOn)
-          return availableAddOn.entitlements
+          return (availableAddOn.entitlements ?? [])
             .filter((entitlement) => !!entitlement.priceBehavior)
             .map((entitlement) => ({
               ...entitlement,
@@ -475,7 +581,44 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
   const [promoCode, setPromoCode] = useState<string | null>(null);
 
+  const [customFieldValues, setCustomFieldValues] = useState<
+    Record<string, string>
+  >(() => {
+    const values: Record<string, string> = {};
+    for (const field of data?.customCheckoutFields ?? []) {
+      values[field.id] = field.value ?? "";
+    }
+    return values;
+  });
+
+  const hasIncompleteRequiredCustomFields = useMemo(() => {
+    return (data?.customCheckoutFields ?? []).some(
+      (field) => field.required && !customFieldValues[field.id]?.trim(),
+    );
+  }, [data?.customCheckoutFields, customFieldValues]);
+
+  const handleCustomFieldChange = useCallback(
+    (fieldId: string, value: string) => {
+      setCustomFieldValues((prev) => ({ ...prev, [fieldId]: value }));
+    },
+    [],
+  );
+
   const [isPaymentMethodRequired, setIsPaymentMethodRequired] = useState(false);
+
+  // Custom opt-in (mirrors isPaymentMethodRequired): the API returns these on the
+  // checkout preview only for an initial paid subscription. optInAccepted is the
+  // end-user's transient checkbox state for this checkout session.
+  const [optInRequired, setOptInRequired] = useState(false);
+  const [optInTitle, setOptInTitle] = useState<string | null>(null);
+  const [optInText, setOptInText] = useState<string | null>(null);
+  const [optInAccepted, setOptInAccepted] = useState(false);
+
+  // Signature of the agreement currently presented to the user. When a preview
+  // returns different opt-in terms (e.g. the user switched to a plan with
+  // different terms), we drop any prior acceptance so they must re-accept what
+  // they are actually agreeing to. A ref avoids a setState-in-effect.
+  const presentedOptInRef = useRef<string | null>(null);
 
   const [willScheduleDowngrade, setWillScheduleDowngrade] = useState(false);
 
@@ -489,6 +632,19 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
   const checkoutStages = useMemo(() => {
     const stages: CheckoutStage[] = [];
+    const checkoutStage: CheckoutStage = {
+      id: "checkout",
+      name: t("Checkout"),
+      label: t("Checkout"),
+    };
+
+    // Required custom checkout fields are collected on the "checkout" stage. If
+    // that stage is never created (e.g. payment is not required), a required
+    // field with no existing value would leave the purchase button permanently
+    // disabled with no way to fill it. Track this so the stage is reachable
+    // whenever there are fields to collect.
+    const hasCustomCheckoutFields =
+      (data?.customCheckoutFields ?? []).length > 0;
 
     if (availablePlans.length > 0) {
       stages.push({
@@ -514,6 +670,12 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     }
 
     if (willTrialWithoutPaymentMethod) {
+      // Even when no payment is collected, a required opt-in or custom checkout
+      // fields still need a checkout stage — to render the agreement / collect
+      // the fields and gate finalization.
+      if (hasCustomCheckoutFields || optInRequired) {
+        stages.push(checkoutStage);
+      }
       return stages;
     }
 
@@ -538,7 +700,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     const hasUsageBasedAddOnSelected = addOns.some((addOn) => {
       return (
         addOn.isSelected &&
-        addOn.entitlements.some((entitlement) => {
+        (addOn.entitlements ?? []).some((entitlement) => {
           return (
             entitlement.priceBehavior === EntitlementPriceBehavior.PayInAdvance
           );
@@ -564,17 +726,24 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       });
     }
 
-    if (isPaymentMethodRequired) {
-      stages.push({
-        id: "checkout",
-        name: t("Checkout"),
-        label: t("Checkout"),
-      });
+    // A credit-only purchase needs a payment method too, but when the company
+    // already has one on file we skip the dedicated payment stage so the user
+    // can buy credits directly from the Credits stage. Custom checkout fields
+    // always need this stage to be collected; a required opt-in also needs it
+    // even when no payment is collected, so the user can read and accept the
+    // agreement before finalizing.
+    if (
+      hasCustomCheckoutFields ||
+      ((isPaymentMethodRequired || optInRequired) &&
+        !(isCreditOnlyPurchase && hasInitialPaymentMethod))
+    ) {
+      stages.push(checkoutStage);
     }
 
     return stages;
   }, [
     t,
+    data?.customCheckoutFields,
     availablePlans,
     selectedPlan?.includedCreditGrants,
     willTrialWithoutPaymentMethod,
@@ -584,6 +753,9 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     shouldTrial,
     creditBundles,
     isPaymentMethodRequired,
+    optInRequired,
+    isCreditOnlyPurchase,
+    hasInitialPaymentMethod,
   ]);
 
   // Track if we're in the initial bypass loading phase
@@ -635,18 +807,73 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     return id;
   }, [checkoutStage, checkoutStages, checkoutState, isBypassLoading]);
 
+  // Monotonically increasing id used to discard stale preview responses.
+  // Multiple previews can be in flight at once (e.g. typing "11" into a
+  // quantity input fires a preview for "1" and another for "11"); without
+  // this guard, whichever response resolves last wins and the dialog can
+  // display charges for a quantity the user is no longer requesting.
+  const previewRequestIdRef = useRef(0);
+
+  // Whether the plan stage is actually presented to the user. When the plan
+  // stage is absent or bypassed, the user never sees its currency toggle, so
+  // we surface the selector on the checkout stage instead.
+  const planStageVisible =
+    checkoutStages.some((stage) => stage.id === "plan") &&
+    !checkoutState?.bypassPlanSelection;
+
+  // In a plan-skipping flow the billing period is fixed (the period toggle
+  // lives on the plan stage), so only currencies that actually price that
+  // period belong in the checkout-stage selector. Filtering them out keeps the
+  // user from toggling into an incoherent combo we'd otherwise have to reject.
+  const checkoutStageCurrencies = useMemo(() => {
+    if (!selectedPlan) return currencies;
+    return currencies.filter((currency) =>
+      planOffersCurrencyForPeriod(selectedPlan, planPeriod, currency),
+    );
+  }, [currencies, selectedPlan, planPeriod]);
+
+  // Plan stage keeps the toggle when it's shown; otherwise the checkout stage
+  // hosts it so a plan-skipping flow can still choose a currency — but only
+  // when more than one currency actually offers the fixed period.
+  const showPlanCurrencySelector = canSelectCurrency && planStageVisible;
+  const showCheckoutCurrencySelector =
+    canSelectCurrency &&
+    !planStageVisible &&
+    checkoutStageCurrencies.length > 1;
+
+  // Incoherent host config: the effective currency does not price the fixed
+  // period on the selected plan. getPlanPrice would silently fall back to the
+  // plan's default-currency price; we refuse that and fail loudly instead.
+  // Scoped to plan-skipping flows — on the plan stage the user can correct the
+  // currency/period themselves via the toggles.
+  const currencyPeriodMismatch =
+    hasCurrency &&
+    !lockedCurrency &&
+    !planStageVisible &&
+    !!selectedPlan &&
+    !planOffersCurrencyForPeriod(selectedPlan, planPeriod, effectiveCurrency);
+
+  useEffect(() => {
+    if (currencyPeriodMismatch) {
+      console.error(
+        `[Schematic] No ${effectiveCurrency} price for the "${planPeriod}" billing period on the selected plan; refusing to fall back to the default currency.`,
+      );
+      debug("currency/period mismatch in checkout bypass config", {
+        currency: effectiveCurrency,
+        period: planPeriod,
+        planId: selectedPlan?.id,
+      });
+    }
+  }, [
+    currencyPeriodMismatch,
+    effectiveCurrency,
+    planPeriod,
+    selectedPlan?.id,
+    debug,
+  ]);
+
   const handlePreviewCheckout = useCallback(
-    async (updates: {
-      period?: string;
-      plan?: SelectedPlan;
-      shouldTrial?: boolean;
-      autoTopupConfigs?: Map<string, AutoTopupConfig>;
-      addOns?: SelectedPlan[];
-      payInAdvanceEntitlements?: UsageBasedEntitlement[];
-      addOnPayInAdvanceEntitlements?: UsageBasedEntitlement[];
-      creditBundles?: CreditBundle[];
-      promoCode?: string | null;
-    }) => {
+    async (updates: PreviewCheckoutUpdates) => {
       const period = updates.period || planPeriod;
       const plan = updates.plan || selectedPlan;
       const resolvedCurrency = hasCurrency ? effectiveCurrency : undefined;
@@ -671,12 +898,30 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
           : promoCode;
       const skipTrial = !(updates.shouldTrial ?? shouldTrial);
 
-      // do not preview if user updates do not result in a valid plan
-      if (!plan || !planPriceId) {
+      // A credit-bundle-only purchase on a non-billing subscription has no plan
+      // or price to send; the backend charges for the credits standalone.
+      const isCreditOnly =
+        !data?.company?.billingSubscription &&
+        !planPriceId &&
+        (updates.creditBundles || creditBundles).some(
+          (bundle) => bundle.count > 0,
+        ) &&
+        !(updates.addOns || addOns).some(
+          (addOn) =>
+            addOn.isSelected &&
+            !!getAddOnPrice(addOn, period, resolvedCurrency)?.id,
+        );
+
+      // do not preview if user updates do not result in a valid plan,
+      // unless this is a credit-only purchase that needs no plan
+      if ((!plan || !planPriceId) && !isCreditOnly) {
         // ensure selected plan is reset if no valid price is found
         setSelectedPlanId(null);
         return;
       }
+
+      const requestId = ++previewRequestIdRef.current;
+      const isStale = () => requestId !== previewRequestIdRef.current;
 
       setError(undefined);
       setCharges(undefined);
@@ -691,7 +936,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       const resolvedAddOns = updates.addOns || addOns;
       const resolvedCreditBundles = updates.creditBundles || creditBundles;
       const resolvedPlanCreditGrants = mergeCompanyGrants(
-        plan.includedCreditGrants,
+        plan?.includedCreditGrants,
         data?.company?.plan?.includedCreditGrants,
       );
 
@@ -725,22 +970,40 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
       try {
         const response = await previewCheckout({
-          newPlanId: plan.id,
-          newPriceId: planPriceId,
-          addOnIds: addOnRequestBody,
-          autoTopupOverrides: autoTopupRequestBody,
-          payInAdvance: [
-            ...planPayInAdvanceRequestBody,
-            ...addOnPayInAdvanceRequestBody,
-          ],
+          newPlanId: isCreditOnly ? "" : (plan?.id ?? ""),
+          newPriceId: isCreditOnly ? "" : (planPriceId ?? ""),
+          addOnIds: isCreditOnly ? [] : addOnRequestBody,
+          autoTopupOverrides: isCreditOnly ? [] : autoTopupRequestBody,
+          payInAdvance: isCreditOnly
+            ? []
+            : [...planPayInAdvanceRequestBody, ...addOnPayInAdvanceRequestBody],
           creditBundles: creditBundlesRequestBody,
+          customFieldValues: Object.entries(customFieldValues).map(
+            ([id, value]) => ({ id, value }),
+          ),
           skipTrial,
           ...(code && { promoCode: code }),
         });
 
+        // A newer preview superseded this one while it was in flight; let the
+        // newer request's response drive the UI.
+        if (isStale()) {
+          return;
+        }
+
         if (response) {
           setCharges(response.data.finance);
           setIsPaymentMethodRequired(response.data.paymentMethodRequired);
+          const nextOptInTitle = response.data.optInTitle ?? null;
+          const nextOptInText = response.data.optInText ?? null;
+          const nextSignature = `${nextOptInTitle ?? ""} ${nextOptInText ?? ""}`;
+          if (presentedOptInRef.current !== nextSignature) {
+            presentedOptInRef.current = nextSignature;
+            setOptInAccepted(false);
+          }
+          setOptInRequired(response.data.optInRequired);
+          setOptInTitle(nextOptInTitle);
+          setOptInText(nextOptInText);
           setWillScheduleDowngrade(response.data.isScheduledDowngrade);
         }
 
@@ -748,6 +1011,10 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
           setPromoCode(code);
         }
       } catch (err) {
+        if (isStale()) {
+          return;
+        }
+
         if (err instanceof ResponseError) {
           if (err.response.status === 401) {
             setError(t("Session expired. Please refresh and try again."));
@@ -790,16 +1057,21 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
         const { message: msg } = isError(err) ? err : ERROR_UNKNOWN;
         setError(msg);
       } finally {
-        setIsLoading(false);
-        // Turn off bypass loading after first API call completes
-        if (isBypassLoading) {
-          setIsBypassLoading(false);
+        // Loading state is owned by the latest request; a stale request must
+        // not clear the spinner while a newer one is still in flight.
+        if (!isStale()) {
+          setIsLoading(false);
+          // Turn off bypass loading after first API call completes
+          if (isBypassLoading) {
+            setIsBypassLoading(false);
+          }
         }
       }
     },
     [
       t,
       data?.company?.plan?.includedCreditGrants,
+      data?.company?.billingSubscription,
       previewCheckout,
       planPeriod,
       selectedPlan,
@@ -810,10 +1082,49 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       addOnPayInAdvanceEntitlements,
       addOns,
       creditBundles,
+      customFieldValues,
       shouldTrial,
       promoCode,
       isBypassLoading,
     ],
+  );
+
+  // Debounced preview for rapid-fire inputs (quantity fields, credit bundle
+  // counts, auto top-up amounts). Typing a multi-digit quantity fires
+  // `onChange` per keystroke; previewing each intermediate value both spams
+  // the API and (before the request-id guard above) raced responses. The
+  // debounced instance must survive re-renders — `handlePreviewCheckout` gets
+  // a new identity on every state change, so debouncing it directly would
+  // reset the timer's instance each keystroke — hence the ref indirection,
+  // wired up in an effect to keep refs out of render.
+  const handlePreviewCheckoutRef = useRef(handlePreviewCheckout);
+  useEffect(() => {
+    handlePreviewCheckoutRef.current = handlePreviewCheckout;
+  }, [handlePreviewCheckout]);
+
+  const debouncedPreviewCheckoutRef = useRef<DebouncedFunc<
+    (updates: PreviewCheckoutUpdates) => void
+  > | null>(null);
+  useEffect(() => {
+    const debounced = debounce(
+      (updates: PreviewCheckoutUpdates) =>
+        handlePreviewCheckoutRef.current(updates),
+      FETCH_DEBOUNCE_TIMEOUT,
+      TRAILING_DEBOUNCE_SETTINGS,
+    );
+    debouncedPreviewCheckoutRef.current = debounced;
+
+    return () => {
+      debounced.cancel();
+      debouncedPreviewCheckoutRef.current = null;
+    };
+  }, []);
+
+  const debouncedPreviewCheckout = useCallback(
+    (updates: PreviewCheckoutUpdates) => {
+      debouncedPreviewCheckoutRef.current?.(updates);
+    },
+    [],
   );
 
   const selectPlan = useCallback(
@@ -834,7 +1145,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
               ? BillingProductPriceInterval.Year
               : BillingProductPriceInterval.Month;
 
-      const updatedUsageBasedEntitlements = plan.entitlements.reduce(
+      const updatedUsageBasedEntitlements = (plan.entitlements ?? []).reduce(
         createActiveUsageBasedEntitlementsReducer(featureUsage, period),
         [],
       );
@@ -932,7 +1243,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       const updatedAddOnUsageBasedEntitlements = addOns
         .filter((addOn) => addOn.isSelected)
         .flatMap((addOn) =>
-          addOn.entitlements.reduce(
+          (addOn.entitlements ?? []).reduce(
             createActiveUsageBasedEntitlementsReducer(featureUsage, period),
             [] as UsageBasedEntitlement[],
           ),
@@ -983,7 +1294,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       const updatedAddOnEntitlements = updated
         .filter((addOn) => addOn.isSelected)
         .flatMap((addOn) => {
-          return addOn.entitlements
+          return (addOn.entitlements ?? [])
             .filter((entitlement) => !!entitlement.priceBehavior)
             .map((source) => {
               const found = addOnUsageBasedEntitlements.find(
@@ -1051,12 +1362,12 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
         nextMap.set(id, updatedConfig);
 
-        handlePreviewCheckout({ autoTopupConfigs: nextMap });
+        debouncedPreviewCheckout({ autoTopupConfigs: nextMap });
 
         return nextMap;
       });
     },
-    [handlePreviewCheckout, planCreditGrants],
+    [debouncedPreviewCheckout, planCreditGrants],
   );
 
   const updateUsageBasedEntitlementQuantity = useCallback(
@@ -1071,7 +1382,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
             : entitlement,
         );
 
-        handlePreviewCheckout({
+        debouncedPreviewCheckout({
           payInAdvanceEntitlements: updated.filter(
             ({ priceBehavior }) =>
               priceBehavior === EntitlementPriceBehavior.PayInAdvance,
@@ -1081,7 +1392,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
         return updated;
       });
     },
-    [handlePreviewCheckout],
+    [debouncedPreviewCheckout],
   );
 
   const updateCreditBundleCount = useCallback(
@@ -1096,12 +1407,12 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
             : bundle,
         );
 
-        handlePreviewCheckout({ creditBundles: updated });
+        debouncedPreviewCheckout({ creditBundles: updated });
 
         return updated;
       });
     },
-    [handlePreviewCheckout],
+    [debouncedPreviewCheckout],
   );
 
   const updateAddOnEntitlementQuantity = useCallback(
@@ -1120,14 +1431,14 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
           (entitlement) =>
             entitlement.priceBehavior === EntitlementPriceBehavior.PayInAdvance,
         );
-        handlePreviewCheckout({
+        debouncedPreviewCheckout({
           addOnPayInAdvanceEntitlements: updatedAddOnPayInAdvanceEntitlements,
         });
 
         return updated;
       });
     },
-    [handlePreviewCheckout],
+    [debouncedPreviewCheckout],
   );
 
   const updatePromoCode = useCallback(
@@ -1149,8 +1460,15 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
   useEffect(() => {
     if (!hasInitializedPlan.current && selectedPlan) {
       hasInitializedPlan.current = true;
-      selectPlan({ plan: selectedPlan, period: planPeriod });
+      const shouldTrial =
+        checkoutState?.startTrialIfAvailable &&
+        selectedPlan.isTrialable &&
+        selectedPlan.companyCanTrial;
+      selectPlan({ plan: selectedPlan, period: planPeriod, shouldTrial });
     }
+    // startTrialIfAvailable is set once by initializeWithPlan and is stable
+    // for the dialog's lifetime; intentionally excluded from deps.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedPlan, planPeriod, selectPlan]);
 
   useLayoutEffect(() => {
@@ -1269,6 +1587,33 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     );
   }
 
+  if (currencyPeriodMismatch) {
+    return (
+      <Dialog
+        ref={setDialog}
+        isModal={isModal}
+        size="lg"
+        top={top}
+        onClose={handleClose}
+        {...(!isModal && { open: layout === "checkout" })}
+      >
+        <DialogContent>
+          <Flex
+            $flexGrow={1}
+            $alignItems="center"
+            $justifyContent="center"
+            $padding="2rem"
+          >
+            <CurrencyPeriodMismatchNotice
+              currency={effectiveCurrency}
+              period={planPeriod}
+            />
+          </Flex>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   return (
     <Dialog
       ref={setDialog}
@@ -1371,7 +1716,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
             {effectiveCheckoutStage === "plan" && (
               <Flex $alignItems="center" $gap="0.75rem">
-                {showCurrencySelector && (
+                {showPlanCurrencySelector && (
                   <CurrencyToggle
                     currencies={currencies}
                     selectedCurrency={effectiveCurrency}
@@ -1390,6 +1735,17 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
                 )}
               </Flex>
             )}
+
+            {effectiveCheckoutStage === "checkout" &&
+              showCheckoutCurrencySelector && (
+                <Flex $alignItems="center" $gap="0.75rem">
+                  <CurrencyToggle
+                    currencies={checkoutStageCurrencies}
+                    selectedCurrency={effectiveCurrency}
+                    onSelect={setSelectedCurrency}
+                  />
+                </Flex>
+              )}
           </Flex>
 
           {isPending ? (
@@ -1459,7 +1815,15 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
           ) : (
             effectiveCheckoutStage === "checkout" && (
               <Checkout
+                customCheckoutFields={data?.customCheckoutFields}
+                customFieldValues={customFieldValues}
                 isPaymentMethodRequired={isPaymentMethodRequired}
+                onCustomFieldChange={handleCustomFieldChange}
+                optInRequired={optInRequired}
+                optInTitle={optInTitle}
+                optInText={optInText}
+                optInAccepted={optInAccepted}
+                setOptInAccepted={setOptInAccepted}
                 setPaymentMethodId={(id) => setPaymentMethodId(id)}
                 updatePromoCode={updatePromoCode}
                 confirmPaymentIntentProps={confirmPaymentIntentProps}
@@ -1481,12 +1845,17 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
           addOnUsageBasedEntitlements={addOnUsageBasedEntitlements}
           addOnPayInAdvanceEntitlements={addOnPayInAdvanceEntitlements}
           creditBundles={creditBundles}
+          customFieldValues={customFieldValues}
+          hasIncompleteRequiredCustomFields={hasIncompleteRequiredCustomFields}
+          isCreditOnlyPurchase={isCreditOnlyPurchase}
           charges={charges}
           checkoutStage={effectiveCheckoutStage}
           checkoutStages={navigableStages}
           error={error}
           isLoading={isLoading}
           isPaymentMethodRequired={isPaymentMethodRequired}
+          optInRequired={optInRequired}
+          optInAccepted={optInAccepted}
           paymentMethodId={paymentMethodId}
           promoCode={promoCode}
           setCheckoutStage={(stage) => setCheckoutStage(stage)}

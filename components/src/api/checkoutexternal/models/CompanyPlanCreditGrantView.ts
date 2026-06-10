@@ -254,6 +254,12 @@ export interface CompanyPlanCreditGrantView {
    */
   resetType: BillingPlanCreditGrantResetType;
   /**
+   *
+   * @type {number}
+   * @memberof CompanyPlanCreditGrantView
+   */
+  rolloverPercentage: number;
+  /**
    * Deprecated field, will be removed in the future. Use Credit.SingularName instead.
    * @type {string}
    * @memberof CompanyPlanCreditGrantView
@@ -298,6 +304,11 @@ export function instanceOfCompanyPlanCreditGrantView(
   if (!("id" in value) || value["id"] === undefined) return false;
   if (!("planId" in value) || value["planId"] === undefined) return false;
   if (!("resetType" in value) || value["resetType"] === undefined) return false;
+  if (
+    !("rolloverPercentage" in value) ||
+    value["rolloverPercentage"] === undefined
+  )
+    return false;
   if (!("updatedAt" in value) || value["updatedAt"] === undefined) return false;
   return true;
 }
@@ -401,6 +412,7 @@ export function CompanyPlanCreditGrantViewFromJSONTyped(
         ? undefined
         : BillingPlanCreditGrantResetStartFromJSON(json["reset_start"]),
     resetType: BillingPlanCreditGrantResetTypeFromJSON(json["reset_type"]),
+    rolloverPercentage: json["rollover_percentage"],
     singularName:
       json["singular_name"] == null ? undefined : json["singular_name"],
     updatedAt: new Date(json["updated_at"]),
@@ -464,6 +476,7 @@ export function CompanyPlanCreditGrantViewToJSONTyped(
     ),
     reset_start: BillingPlanCreditGrantResetStartToJSON(value["resetStart"]),
     reset_type: BillingPlanCreditGrantResetTypeToJSON(value["resetType"]),
+    rollover_percentage: value["rolloverPercentage"],
     singular_name: value["singularName"],
     updated_at: value["updatedAt"].toISOString(),
   };

@@ -1,5 +1,6 @@
 export * from "./box";
 export * from "./button";
+export * from "./checkbox";
 export * from "./dialog";
 export * from "./flex";
 export * from "./icon";
