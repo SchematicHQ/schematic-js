@@ -2,6 +2,7 @@ import {
   CheckFlagResponseDataFromJSON,
   DatastreamCompanyPlanFromJSON,
 } from "./api/models";
+import type { ContextSignatureProvider } from "../contextSignature";
 import { EventBodyFlagCheck } from "./api/models/EventBodyFlagCheck";
 import { type TrialStatus } from "./api/models/TrialStatus";
 
@@ -143,6 +144,17 @@ export type SchematicOptions = {
 
   /** Optionally provide a custom event URL */
   eventUrl?: string;
+
+  /** Optionally provide a function that returns an HMAC context signature
+   * (`iat.exp.sig`) for a given context. Required only when the Schematic
+   * environment has context-signature verification enabled. Because a
+   * publishable key is public, the signature must be produced by your backend
+   * (which holds the matching secret API key); this function typically forwards
+   * the context to that backend and returns the value it computes. The SDK
+   * caches the signature per context, derives its expiry from the returned
+   * string, and attaches it as the `X-Schematic-Context-Sig` header on flag
+   * checks, the WebSocket bootstrap, and events. */
+  getContextSignature?: ContextSignatureProvider;
 
   /** Enable offline mode to prevent all network requests.
    * When enabled, events are only logged not sent, and flag checks return fallback values.
