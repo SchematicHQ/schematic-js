@@ -94,6 +94,7 @@
         },
         "is_custom": false,
         "entitlements": [],
+        "available_periods": [],
         "compatible_plan_ids": [],
         "company_can_trial": false,
         "current": false,
@@ -293,6 +294,7 @@
             "currency_prices": []
           }
         ],
+        "available_periods": [],
         "compatible_plan_ids": [],
         "company_can_trial": false,
         "current": false,
@@ -668,6 +670,7 @@
             "currency_prices": []
           }
         ],
+        "available_periods": [],
         "compatible_plan_ids": [],
         "company_can_trial": false,
         "current": true,
@@ -1147,6 +1150,7 @@
             "currency_prices": []
           }
         ],
+        "available_periods": [],
         "compatible_plan_ids": [],
         "company_can_trial": false,
         "current": false,
@@ -1805,6 +1809,7 @@
             "currency_prices": []
           }
         ],
+        "available_periods": [],
         "compatible_plan_ids": [],
         "company_can_trial": false,
         "current": false,
@@ -2308,6 +2313,7 @@
             "currency_prices": []
           }
         ],
+        "available_periods": [],
         "compatible_plan_ids": [],
         "company_can_trial": false,
         "current": false,
@@ -3472,6 +3478,7 @@
       }
     ],
     "credit_grants": [],
+    "custom_checkout_fields": [],
     "prevent_self_service_downgrade": false,
     "prevent_self_service_downgrade_button_text": null,
     "prevent_self_service_downgrade_url": null,

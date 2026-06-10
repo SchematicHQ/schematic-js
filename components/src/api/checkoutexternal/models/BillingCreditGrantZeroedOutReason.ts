@@ -21,6 +21,7 @@ export const BillingCreditGrantZeroedOutReason = {
   Manual: "manual",
   PlanChange: "plan_change",
   PlanPeriodReset: "plan_period_reset",
+  Reconciled: "reconciled",
 } as const;
 export type BillingCreditGrantZeroedOutReason =
   (typeof BillingCreditGrantZeroedOutReason)[keyof typeof BillingCreditGrantZeroedOutReason];

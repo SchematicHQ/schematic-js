@@ -123,6 +123,38 @@ export function getPlanPrice(
   }
 }
 
+/**
+ * Whether the plan prices the given period in the given currency *specifically*
+ * — i.e. `getPlanPrice` would return a real currency price rather than silently
+ * falling back to the plan's default-currency price for that period.
+ *
+ * - Returns true when no currency is requested (nothing to mismatch).
+ * - Returns true for a free/unpriced plan (no price to mischarge).
+ * - Returns false only when a currency is requested and the resolved price
+ *   belongs to a different currency (the silent-fallback case).
+ *
+ * Use this to detect incoherent currency/period combinations passed via the
+ * checkout bypass config before they reach checkout.
+ */
+export function planOffersCurrencyForPeriod(
+  plan: Plan,
+  period = "month",
+  currency?: string,
+): boolean {
+  if (!currency) return true;
+
+  const price = getPlanPrice(
+    plan,
+    period,
+    { useSelectedPeriod: true },
+    currency,
+  );
+  // No price at all: free/unpriced plan — nothing to mischarge.
+  if (!price) return true;
+
+  return price.currency.toUpperCase() === currency.toUpperCase();
+}
+
 export function getAddOnPrice(
   addOn: Plan,
   period = "month",
