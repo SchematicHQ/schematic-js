@@ -606,6 +606,20 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
   const [isPaymentMethodRequired, setIsPaymentMethodRequired] = useState(false);
 
+  // Custom opt-in (mirrors isPaymentMethodRequired): the API returns these on the
+  // checkout preview only for an initial paid subscription. optInAccepted is the
+  // end-user's transient checkbox state for this checkout session.
+  const [optInRequired, setOptInRequired] = useState(false);
+  const [optInTitle, setOptInTitle] = useState<string | null>(null);
+  const [optInText, setOptInText] = useState<string | null>(null);
+  const [optInAccepted, setOptInAccepted] = useState(false);
+
+  // Signature of the agreement currently presented to the user. When a preview
+  // returns different opt-in terms (e.g. the user switched to a plan with
+  // different terms), we drop any prior acceptance so they must re-accept what
+  // they are actually agreeing to. A ref avoids a setState-in-effect.
+  const presentedOptInRef = useRef<string | null>(null);
+
   const [willScheduleDowngrade, setWillScheduleDowngrade] = useState(false);
 
   const willTrialWithoutPaymentMethod = useMemo(
@@ -618,6 +632,11 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
   const checkoutStages = useMemo(() => {
     const stages: CheckoutStage[] = [];
+    const checkoutStage: CheckoutStage = {
+      id: "checkout",
+      name: t("Checkout"),
+      label: t("Checkout"),
+    };
 
     // Required custom checkout fields are collected on the "checkout" stage. If
     // that stage is never created (e.g. payment is not required), a required
@@ -651,12 +670,11 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     }
 
     if (willTrialWithoutPaymentMethod) {
-      if (hasCustomCheckoutFields) {
-        stages.push({
-          id: "checkout",
-          name: t("Checkout"),
-          label: t("Checkout"),
-        });
+      // Even when no payment is collected, a required opt-in or custom checkout
+      // fields still need a checkout stage — to render the agreement / collect
+      // the fields and gate finalization.
+      if (hasCustomCheckoutFields || optInRequired) {
+        stages.push(checkoutStage);
       }
       return stages;
     }
@@ -710,19 +728,16 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
     // A credit-only purchase needs a payment method too, but when the company
     // already has one on file we skip the dedicated payment stage so the user
-    // can buy credits directly from the Credits stage. The stage is also needed
-    // whenever there are custom checkout fields to collect, even if no payment
-    // method is required.
+    // can buy credits directly from the Credits stage. Custom checkout fields
+    // always need this stage to be collected; a required opt-in also needs it
+    // even when no payment is collected, so the user can read and accept the
+    // agreement before finalizing.
     if (
       hasCustomCheckoutFields ||
-      (isPaymentMethodRequired &&
+      ((isPaymentMethodRequired || optInRequired) &&
         !(isCreditOnlyPurchase && hasInitialPaymentMethod))
     ) {
-      stages.push({
-        id: "checkout",
-        name: t("Checkout"),
-        label: t("Checkout"),
-      });
+      stages.push(checkoutStage);
     }
 
     return stages;
@@ -738,6 +753,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     shouldTrial,
     creditBundles,
     isPaymentMethodRequired,
+    optInRequired,
     isCreditOnlyPurchase,
     hasInitialPaymentMethod,
   ]);
@@ -978,6 +994,16 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
         if (response) {
           setCharges(response.data.finance);
           setIsPaymentMethodRequired(response.data.paymentMethodRequired);
+          const nextOptInTitle = response.data.optInTitle ?? null;
+          const nextOptInText = response.data.optInText ?? null;
+          const nextSignature = `${nextOptInTitle ?? ""} ${nextOptInText ?? ""}`;
+          if (presentedOptInRef.current !== nextSignature) {
+            presentedOptInRef.current = nextSignature;
+            setOptInAccepted(false);
+          }
+          setOptInRequired(response.data.optInRequired);
+          setOptInTitle(nextOptInTitle);
+          setOptInText(nextOptInText);
           setWillScheduleDowngrade(response.data.isScheduledDowngrade);
         }
 
@@ -1793,6 +1819,11 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
                 customFieldValues={customFieldValues}
                 isPaymentMethodRequired={isPaymentMethodRequired}
                 onCustomFieldChange={handleCustomFieldChange}
+                optInRequired={optInRequired}
+                optInTitle={optInTitle}
+                optInText={optInText}
+                optInAccepted={optInAccepted}
+                setOptInAccepted={setOptInAccepted}
                 setPaymentMethodId={(id) => setPaymentMethodId(id)}
                 updatePromoCode={updatePromoCode}
                 confirmPaymentIntentProps={confirmPaymentIntentProps}
@@ -1823,6 +1854,8 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
           error={error}
           isLoading={isLoading}
           isPaymentMethodRequired={isPaymentMethodRequired}
+          optInRequired={optInRequired}
+          optInAccepted={optInAccepted}
           paymentMethodId={paymentMethodId}
           promoCode={promoCode}
           setCheckoutStage={(stage) => setCheckoutStage(stage)}

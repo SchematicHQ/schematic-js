@@ -54,6 +54,7 @@ export const Text = styled.span
     ...(onClick && { tabIndex: 0 }),
   }))<TextProps>(
   ({
+    as,
     display = "text",
     theme,
     onClick,
@@ -97,7 +98,7 @@ export const Text = styled.span
         width: ${$width};
       `};
 
-      ${onClick &&
+      ${(onClick || as === "a" || display === "link") &&
       css`
         &:hover {
           cursor: pointer;
