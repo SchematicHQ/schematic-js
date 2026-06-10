@@ -30,6 +30,10 @@ import {
   CheckPlanReturnListenerFn,
 } from "./types";
 import { cacheVersion } from "./cacheVersion";
+import {
+  ContextSignatureManager,
+  contextSignatureHeader,
+} from "./contextSignature";
 import { contextString } from "./utils";
 import { version } from "./version";
 
@@ -49,10 +53,56 @@ type CachedFlagState = {
   contexts: Record<string, CachedContextEntry>;
 };
 
+/**
+ * Extract the `{company, user}` subset that the API will canonicalize and
+ * verify a context signature against for a given event. Mirrors the server's
+ * `extractContextSubset` (api/apps/events/web/contextsig.go): the shape of the
+ * keys depends on the event type, and absent keys are omitted entirely so the
+ * canonical form matches byte-for-byte.
+ */
+function extractEventContext(event: Event): SchematicContext {
+  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+  const body = event.body as Record<string, any>;
+  const context: SchematicContext = {};
+
+  switch (event.type) {
+    case "identify":
+      // User keys at body.keys; company keys at body.company.keys.
+      if (body.keys != null) {
+        context.user = body.keys;
+      }
+      if (body.company?.keys != null) {
+        context.company = body.company.keys;
+      }
+      break;
+    case "track":
+      // Both company and user are flat Keys objects at the top level.
+      if (body.company != null) {
+        context.company = body.company;
+      }
+      if (body.user != null) {
+        context.user = body.user;
+      }
+      break;
+    case "flag_check":
+      // Stored via EventBodyFlagCheckToJSON, so keys are snake_cased.
+      if (body.req_company != null) {
+        context.company = body.req_company;
+      }
+      if (body.req_user != null) {
+        context.user = body.req_user;
+      }
+      break;
+  }
+
+  return context;
+}
+
 /* @preserve */
 export class Schematic {
   private additionalHeaders: Record<string, string> = {};
   private apiKey: string;
+  private contextSignatureManager?: ContextSignatureManager;
   private apiUrl = "https://api.schematichq.com";
   private conn: Promise<WebSocket> | null = null;
   private context: SchematicContext = {};
@@ -160,6 +210,13 @@ export class Schematic {
       "X-Schematic-Client-Version": `schematic-js@${version}`,
       ...(options?.additionalHeaders ?? {}),
     };
+
+    if (options?.getContextSignature !== undefined) {
+      this.contextSignatureManager = new ContextSignatureManager(
+        options.getContextSignature,
+        this.debug.bind(this),
+      );
+    }
 
     if (options?.storage) {
       this.storage = options.storage;
@@ -380,12 +437,14 @@ export class Schematic {
 
     if (!this.useWebSocket) {
       const requestUrl = `${this.apiUrl}/flags/${key}/check`;
+      const sigHeaders = await this.contextSignatureHeaders(context);
       return fetch(requestUrl, {
         method: "POST",
         headers: {
           ...(this.additionalHeaders ?? {}),
           "Content-Type": "application/json;charset=UTF-8",
           "X-Schematic-Api-Key": this.apiKey,
+          ...sigHeaders,
         },
         body: JSON.stringify(context),
       })
@@ -514,6 +573,42 @@ export class Schematic {
     if (this.debugEnabled) {
       console.log(`[Schematic] ${message}`, ...args);
     }
+  }
+
+  /**
+   * Resolve the HMAC context-signature value for a context, if a signature
+   * provider is configured. Returns undefined when no provider is set, when
+   * offline, or when the signature could not be obtained.
+   */
+  private contextSignature(
+    context: SchematicContext,
+  ): string | undefined | Promise<string | undefined> {
+    if (this.contextSignatureManager === undefined || this.isOffline()) {
+      return undefined;
+    }
+    return this.contextSignatureManager.getSignature(context);
+  }
+
+  /**
+   * Build the `X-Schematic-Context-Sig` header for a context, or an empty
+   * object when no signature is available. Spread into request headers.
+   *
+   * Returns synchronously (not a Promise) when no signature provider is
+   * configured, so callers that dispatch on the same tick (e.g. fire-and-forget
+   * event sends) keep their existing timing; only a configured provider, which
+   * must fetch a signature, yields a Promise.
+   */
+  private contextSignatureHeaders(
+    context: SchematicContext,
+  ): Record<string, string> | Promise<Record<string, string>> {
+    if (this.contextSignatureManager === undefined || this.isOffline()) {
+      return {};
+    }
+    return this.contextSignatureManager
+      .getSignature(context)
+      .then((signature): Record<string, string> =>
+        signature === undefined ? {} : { [contextSignatureHeader]: signature },
+      );
   }
 
   /**
@@ -646,12 +741,14 @@ export class Schematic {
 
     const requestUrl = `${this.apiUrl}/flags/check`;
     const requestBody = JSON.stringify(context);
+    const sigHeaders = await this.contextSignatureHeaders(context);
     return fetch(requestUrl, {
       method: "POST",
       headers: {
         ...(this.additionalHeaders ?? {}),
         "Content-Type": "application/json;charset=UTF-8",
         "X-Schematic-Api-Key": this.apiKey,
+        ...sigHeaders,
       },
       body: requestBody,
     })
@@ -1337,12 +1434,21 @@ export class Schematic {
       return Promise.resolve();
     }
 
+    const maybeSigHeaders = this.contextSignatureHeaders(
+      extractEventContext(event),
+    );
+    const sigHeaders =
+      maybeSigHeaders instanceof Promise
+        ? await maybeSigHeaders
+        : maybeSigHeaders;
+
     try {
       const response = await fetch(captureUrl, {
         method: "POST",
         headers: {
           ...(this.additionalHeaders ?? {}),
           "Content-Type": "application/json;charset=UTF-8",
+          ...sigHeaders,
         },
         body: payload,
       });
@@ -2000,7 +2106,7 @@ export class Schematic {
 
       this.context = context;
 
-      const sendMessage = () => {
+      const sendMessage = async () => {
         let resolved = false;
 
         // Create persistent message handler using extracted method
@@ -2043,10 +2149,15 @@ export class Schematic {
           this.additionalHeaders["X-Schematic-Client-Version"] ??
           `schematic-js@${version}`;
 
+        // The server verifies the signature against the message `data`
+        // (the context), so sign the same context we are about to send.
+        const sig = await this.contextSignature(context);
+
         const messagePayload = {
           apiKey: this.apiKey,
           clientVersion,
           data: context,
+          ...(sig !== undefined ? { sig } : {}),
         };
 
         this.debug(`WebSocket sending message:`, messagePayload);
@@ -2057,11 +2168,11 @@ export class Schematic {
       if (socket.readyState === WebSocket.OPEN) {
         // If websocket is already open, send message immediately
         this.debug(`WebSocket already open, sending message`);
-        sendMessage();
+        void sendMessage();
       } else if (socket.readyState === WebSocket.CONNECTING) {
         // If websocket is connecting, wait for it to open before sending message
         this.debug(`WebSocket connecting, waiting for open to send message`);
-        socket.addEventListener("open", sendMessage);
+        socket.addEventListener("open", () => void sendMessage());
       } else {
         // If websocket is closed, reject the promise
         this.debug(`WebSocket is closed, cannot send message`);
@@ -2313,3 +2424,9 @@ const notifyPlanListener = (
 };
 
 export * from "./types";
+export {
+  ContextSignatureManager,
+  contextSignatureHeader,
+  parseSignatureExpiryMs,
+} from "./contextSignature";
+export type { ContextSignatureProvider } from "./contextSignature";
