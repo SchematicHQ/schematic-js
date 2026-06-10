@@ -1,12 +1,12 @@
 import type * as SchematicJS from "@schematichq/schematic-js";
 import React, { Suspense, createElement, useSyncExternalStore } from "react";
 
+import type { CheckoutPrefill } from "./components/embed/embedState";
 import {
   SchematicEmbedDisabledContext,
   getCachedEmbedAdapter,
   subscribeEmbedAdapter,
 } from "./embed-loader";
-import type { CheckoutPrefill } from "./components/embed/embedState";
 
 type CoreOptions = Omit<
   SchematicJS.SchematicOptions,

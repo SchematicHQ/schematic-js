@@ -110,6 +110,12 @@ export interface UsageBasedEntitlementResponseData {
    */
   quarterlyUsageBasedPrice?: BillingPriceView;
   /**
+   * The committed unit quantity for this entitlement. For custom plans this is the quantity the company is contractually committed to; for standard plans it is the quantity pre-filled when subscribing. Only applies to pay-in-advance entitlements. Note: this is not yet enforced/auto-provisioned as a true default — it is currently stored for downstream billing use.
+   * @type {number}
+   * @memberof UsageBasedEntitlementResponseData
+   */
+  usageQuantity?: number | null;
+  /**
    *
    * @type {boolean}
    * @memberof UsageBasedEntitlementResponseData
@@ -189,6 +195,8 @@ export function UsageBasedEntitlementResponseDataFromJSONTyped(
       json["quarterly_usage_based_price"] == null
         ? undefined
         : BillingPriceViewFromJSON(json["quarterly_usage_based_price"]),
+    usageQuantity:
+      json["usage_quantity"] == null ? undefined : json["usage_quantity"],
     valueBool: json["value_bool"] == null ? undefined : json["value_bool"],
     valueNumeric:
       json["value_numeric"] == null ? undefined : json["value_numeric"],
@@ -230,6 +238,7 @@ export function UsageBasedEntitlementResponseDataToJSONTyped(
     quarterly_usage_based_price: BillingPriceViewToJSON(
       value["quarterlyUsageBasedPrice"],
     ),
+    usage_quantity: value["usageQuantity"],
     value_bool: value["valueBool"],
     value_numeric: value["valueNumeric"],
     value_type: EntitlementValueTypeToJSON(value["valueType"]),

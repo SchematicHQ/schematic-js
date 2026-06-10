@@ -1,6 +1,7 @@
 export * from "./auto-topup-notice";
 export * from "./billing-threshold-tooltip";
 export * from "./checkout-dialog";
+export * from "./currency-period-mismatch-notice";
 export * from "./currency-toggle";
 export * from "./hard-limit-tooltip";
 export * from "./invalid-currency-notice";

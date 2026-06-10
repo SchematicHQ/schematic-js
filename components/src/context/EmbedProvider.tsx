@@ -27,6 +27,7 @@ import { reducer } from "./embedReducer";
 import {
   initialState,
   type BypassConfig,
+  type CheckoutPrefill,
   type CheckoutState,
   type EmbedLayout,
   type EmbedSettings,
@@ -50,6 +51,7 @@ export interface EmbedProviderProps {
    * ISO-4217 codes; case-insensitive. Omit to disable filtering.
    */
   currencyFilter?: string[];
+  checkoutPrefill?: CheckoutPrefill;
 }
 
 const normalizeCurrencyFilter = (
@@ -59,11 +61,31 @@ const normalizeCurrencyFilter = (
   return Array.from(new Set(filter.map((c) => c.toUpperCase())));
 };
 
+const normalizeString = (value: string | undefined): string | undefined => {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : undefined;
+};
+
+const normalizeCheckoutPrefill = (
+  prefill: CheckoutPrefill | undefined,
+): CheckoutPrefill | undefined => {
+  if (!prefill) return undefined;
+
+  const billingDetails = prefill.billingDetails;
+  const email = normalizeString(billingDetails?.email);
+  const name = normalizeString(billingDetails?.name);
+
+  if (!email && !name) return undefined;
+
+  return { billingDetails: { email, name } };
+};
+
 export const EmbedProvider = ({
   children,
   apiKey,
   apiConfig,
   currencyFilter,
+  checkoutPrefill,
   ...options
 }: EmbedProviderProps) => {
   const sessionId = useMemo(() => uuidv4(), []);
@@ -73,6 +95,7 @@ export const EmbedProvider = ({
     const providedState = {
       settings: opts.settings || {},
       currencyFilter: normalizeCurrencyFilter(currencyFilter),
+      checkoutPrefill: normalizeCheckoutPrefill(checkoutPrefill),
     };
     const resolvedState = merge({}, initialState, providedState);
 
@@ -392,6 +415,32 @@ export const EmbedProvider = ({
     [unsubscribe],
   );
 
+  const updateCustomFieldValues = useCallback(
+    async (values: Record<string, string>) => {
+      const companyId = state.data?.company?.id;
+      if (!companyId) {
+        // Surface as an error to the caller rather than silently resolving, so
+        // the UI does not report a successful save when nothing was persisted.
+        throw new Error("Cannot update custom field values without a company.");
+      }
+
+      await checkoutApi?.updateCheckoutFieldValues({
+        updateCheckoutFieldValuesRequestBody: {
+          values: Object.entries(values).map(([id, value]) => ({
+            id,
+            value,
+          })),
+        },
+      });
+
+      dispatch({
+        type: "UPDATE_CUSTOM_FIELD_VALUES",
+        values,
+      });
+    },
+    [checkoutApi, state.data?.company?.id],
+  );
+
   const getUpcomingInvoice = useCallback(
     async (id: string) => {
       return checkoutApi?.hydrateUpcomingInvoice({
@@ -550,6 +599,13 @@ export const EmbedProvider = ({
   }, [currencyFilter]);
 
   useEffect(() => {
+    dispatch({
+      type: "SET_CHECKOUT_PREFILL",
+      checkoutPrefill: normalizeCheckoutPrefill(checkoutPrefill),
+    });
+  }, [checkoutPrefill]);
+
+  useEffect(() => {
     function planChangedHandler(event: Event) {
       if (event instanceof CustomEvent) {
         debug("plan changed", event.detail);
@@ -575,6 +631,7 @@ export const EmbedProvider = ({
         layout: state.layout,
         checkoutState: state.checkoutState,
         currencyFilter: state.currencyFilter,
+        checkoutPrefill: state.checkoutPrefill,
         hydratePublic: debouncedHydratePublic,
         hydrate: debouncedHydrate,
         hydrateComponent: debouncedHydrateComponent,
@@ -585,6 +642,7 @@ export const EmbedProvider = ({
         checkout: debouncedCheckout,
         previewCheckout,
         unsubscribe: debouncedUnsubscribe,
+        updateCustomFieldValues,
         getUpcomingInvoice: debouncedGetUpcomingInvoice,
         getCustomerBalance: debouncedGetCustomerBalance,
         listInvoices: debouncedListInvoices,
