@@ -76,6 +76,7 @@ export const PaymentMethod = forwardRef<
   return (
     <Element ref={ref} className={className}>
       <PaymentMethodElement
+        customCheckoutFields={data?.customCheckoutFields}
         paymentMethod={paymentMethod}
         monthsToExpiration={monthsToExpiration}
         {...(allowEdit && { onEdit: () => setLayout("payment") })}
