@@ -1,7 +1,5 @@
 import { Fragment } from "react";
 
-import { Text } from "../components";
-
 // Matches the three opt-in markdown constructs we support, in precedence order:
 // a link `[text](url)`, bold `**text**`, then italic `*text*`. Anything else is
 // treated as plain text. We intentionally do NOT support headings/lists/code, per
@@ -49,16 +47,14 @@ export const renderOptInMarkdown = (text?: string | null): React.ReactNode => {
       const parts = LINK.exec(link);
       if (parts && isSafeUrl(parts[2])) {
         nodes.push(
-          <Text
-            as="a"
-            display="link"
+          <a
             key={key++}
             href={parts[2]}
             target="_blank"
             rel="noopener noreferrer"
           >
             {parts[1]}
-          </Text>,
+          </a>,
         );
       } else {
         nodes.push(<Fragment key={key++}>{parts ? parts[1] : token}</Fragment>);

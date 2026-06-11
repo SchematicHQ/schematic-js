@@ -13,6 +13,7 @@ import type {
 } from "../../../types";
 import { renderOptInMarkdown } from "../../../utils";
 import { PaymentMethodDetails } from "../../elements";
+import { Markdown } from "../../shared";
 import { Box, Checkbox, Flex, Input, Text } from "../../ui";
 
 import { CustomCheckoutFields } from "./CustomCheckoutFields";
@@ -185,7 +186,7 @@ export const Checkout = ({
               aria-label={optInTitle || t("Agreement")}
             />
             <Box $flexGrow={1}>
-              <Text>{renderOptInMarkdown(optInText)}</Text>
+              <Markdown>{renderOptInMarkdown(optInText)}</Markdown>
             </Box>
           </Flex>
         </Flex>
