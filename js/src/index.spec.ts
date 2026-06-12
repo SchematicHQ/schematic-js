@@ -3845,3 +3845,149 @@ describe("Persistent flag state cache", () => {
     });
   });
 });
+
+describe("Context signature (HMAC)", () => {
+  const nowSeconds = () => Math.floor(Date.now() / 1000);
+  const validSignature = (sig = "deadbeef") => {
+    const iat = nowSeconds();
+    return `${iat}.${iat + 600}.${sig}`;
+  };
+
+  afterEach(() => {
+    mockFetch.mockClear();
+  });
+
+  describe("REST", () => {
+    const context = {
+      company: { companyId: "456" },
+      user: { userId: "123" },
+    };
+
+    it("attaches X-Schematic-Context-Sig on checkFlag when configured", async () => {
+      const signature = validSignature();
+      const getContextSignature = vi.fn().mockResolvedValue(signature);
+      const schematic = new Schematic("API_KEY", { getContextSignature });
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: vi.fn().mockResolvedValueOnce({
+          data: { flag: "FLAG_KEY", reason: "matched", value: true },
+        }),
+      });
+      // flag check event to /e
+      mockFetch.mockResolvedValueOnce({ ok: true, status: 200 });
+
+      await schematic.checkFlag({ key: "FLAG_KEY", context });
+
+      expect(getContextSignature).toHaveBeenCalledWith(context);
+      expect(mockFetch.mock.calls[0][1].headers).toHaveProperty(
+        "X-Schematic-Context-Sig",
+        signature,
+      );
+    });
+
+    it("attaches X-Schematic-Context-Sig on checkFlags when configured", async () => {
+      const signature = validSignature();
+      const getContextSignature = vi.fn().mockResolvedValue(signature);
+      const schematic = new Schematic("API_KEY", { getContextSignature });
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: vi.fn().mockResolvedValueOnce({ data: { flags: [] } }),
+      });
+
+      await schematic.checkFlags(context);
+
+      expect(mockFetch.mock.calls[0][1].headers).toHaveProperty(
+        "X-Schematic-Context-Sig",
+        signature,
+      );
+    });
+
+    it("does not attach the header when no provider is configured", async () => {
+      const schematic = new Schematic("API_KEY");
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: vi.fn().mockResolvedValueOnce({ data: { flags: [] } }),
+      });
+
+      await schematic.checkFlags(context);
+
+      expect(mockFetch.mock.calls[0][1].headers).not.toHaveProperty(
+        "X-Schematic-Context-Sig",
+      );
+    });
+  });
+
+  describe("events", () => {
+    it("signs the event's {company, user} and attaches the header on /e", async () => {
+      const signature = validSignature();
+      const getContextSignature = vi.fn().mockResolvedValue(signature);
+      const schematic = new Schematic("API_KEY", { getContextSignature });
+
+      const company = { companyId: "456" };
+      const user = { userId: "123" };
+
+      mockFetch.mockResolvedValue({ ok: true, status: 200 });
+
+      await schematic.track({ event: "page_view", company, user });
+
+      const eventCall = mockFetch.mock.calls.find(
+        (call) => call[0] === "https://c.schematichq.com/e",
+      );
+      expect(eventCall).toBeDefined();
+      expect(getContextSignature).toHaveBeenCalledWith({ company, user });
+      expect(eventCall![1].headers).toHaveProperty(
+        "X-Schematic-Context-Sig",
+        signature,
+      );
+    });
+  });
+
+  describe("WebSocket", () => {
+    const TEST_WS_URL = "ws://localhost:1234";
+    const FULL_WS_URL = `${TEST_WS_URL}/flags/bootstrap?apiKey=API_KEY`;
+    let mockServer: WebSocketServer;
+
+    afterEach(async () => {
+      mockServer?.stop();
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      mockFetch.mockClear();
+    });
+
+    it("includes sig in the bootstrap envelope when configured", async () => {
+      mockServer = new WebSocketServer(FULL_WS_URL);
+      const signature = validSignature();
+      const getContextSignature = vi.fn().mockResolvedValue(signature);
+      const schematic = new Schematic("API_KEY", {
+        useWebSocket: true,
+        webSocketUrl: TEST_WS_URL,
+        getContextSignature,
+      });
+
+      const context = {
+        company: { companyId: "456" },
+        user: { userId: "123" },
+      };
+
+      let receivedSig: string | undefined;
+      mockServer.on("connection", (socket) => {
+        socket.on("message", (data) => {
+          const parsed = JSON.parse(data.toString());
+          receivedSig = parsed.sig;
+          socket.send(
+            JSON.stringify({ flags: [{ flag: "TEST_FLAG", value: true }] }),
+          );
+        });
+      });
+
+      await schematic.checkFlag({ key: "TEST_FLAG", context, fallback: false });
+
+      expect(getContextSignature).toHaveBeenCalledWith(context);
+      expect(receivedSig).toBe(signature);
+
+      await schematic.cleanup();
+    }, 15000);
+  });
+});
