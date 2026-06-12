@@ -13,6 +13,21 @@ import { Server as WebSocketServer } from "mock-socket";
 
 import { version } from "./version";
 
+const MockDeveloperToolbar = vi.hoisted(() =>
+  vi.fn().mockImplementation(() => ({
+    initialize: vi.fn(),
+    cleanup: vi.fn(),
+    hasManualOverride: vi.fn(() => false),
+    getManualOverride: vi.fn(() => undefined),
+    setManualOverride: vi.fn(),
+    getAllManualOverrides: vi.fn(() => ({})),
+  })),
+);
+
+vi.mock("./toolbar", () => ({
+  DeveloperToolbar: MockDeveloperToolbar,
+}));
+
 type TestStorage = StoragePersister & {
   _data: Map<string, string>;
 };
@@ -2487,6 +2502,149 @@ describe("reconnectIfNeeded", () => {
     // Should have made a new connection
     expect(connectionCount).toBe(2);
   }, 15000);
+});
+
+describe("Developer Toolbar integration", () => {
+  beforeEach(() => {
+    MockDeveloperToolbar.mockClear();
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+    mockFetch.mockClear();
+  });
+
+  describe("initializeDeveloperToolbar()", () => {
+    it("does nothing when developerToolbar option is not set", () => {
+      const schematic = new Schematic("API_KEY");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (schematic as any).initializeDeveloperToolbar();
+      expect(MockDeveloperToolbar).not.toHaveBeenCalled();
+    });
+
+    it("does nothing when window is undefined (SSR guard)", () => {
+      vi.stubGlobal("window", undefined);
+      const schematic = new Schematic("API_KEY", { developerToolbar: true });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (schematic as any).initializeDeveloperToolbar();
+      expect(MockDeveloperToolbar).not.toHaveBeenCalled();
+    });
+
+  });
+
+  describe("getFlagValue() with toolbar override", () => {
+    it("returns the override value when toolbar has a manual override", () => {
+      const schematic = new Schematic("API_KEY");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (schematic as any).developerToolbarEnabled = true;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (schematic as any).developerToolbar = {
+        hasManualOverride: vi.fn(() => true),
+        getManualOverride: vi.fn(() => ({
+          flag: "my-flag",
+          value: true,
+          reason: "Developer toolbar override",
+        })),
+      };
+
+      expect(schematic.getFlagValue("my-flag")).toBe(true);
+    });
+
+    it("falls through to normal flag logic when no manual override exists", () => {
+      const schematic = new Schematic("API_KEY", {
+        flagValueDefaults: { "my-flag": false },
+      });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (schematic as any).developerToolbarEnabled = true;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (schematic as any).developerToolbar = {
+        hasManualOverride: vi.fn(() => false),
+        getManualOverride: vi.fn(() => undefined),
+      };
+
+      expect(schematic.getFlagValue("my-flag")).toBe(false);
+    });
+
+    it("ignores the toolbar when developerToolbarEnabled is false", () => {
+      const schematic = new Schematic("API_KEY", {
+        flagValueDefaults: { "my-flag": false },
+      });
+      // developerToolbarEnabled is false by default — toolbar should be ignored even if set
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (schematic as any).developerToolbar = {
+        hasManualOverride: vi.fn(() => true),
+        getManualOverride: vi.fn(() => ({
+          flag: "my-flag",
+          value: true,
+          reason: "Developer toolbar override",
+        })),
+      };
+
+      expect(schematic.getFlagValue("my-flag")).toBe(false);
+    });
+  });
+
+  describe("getFlagCheck() with toolbar override", () => {
+    it("returns the override CheckFlagReturn when toolbar has a manual override", () => {
+      const schematic = new Schematic("API_KEY");
+      const override = {
+        flag: "my-flag",
+        value: true,
+        reason: "Developer toolbar override",
+      };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (schematic as any).developerToolbarEnabled = true;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (schematic as any).developerToolbar = {
+        hasManualOverride: vi.fn(() => true),
+        getManualOverride: vi.fn(() => override),
+      };
+
+      expect(schematic.getFlagCheck("my-flag")).toEqual(override);
+    });
+
+    it("falls through to normal flag logic when no manual override exists", () => {
+      const schematic = new Schematic("API_KEY", {
+        flagCheckDefaults: {
+          "my-flag": { flag: "my-flag", value: false, reason: "default" },
+        },
+      });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (schematic as any).developerToolbarEnabled = true;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (schematic as any).developerToolbar = {
+        hasManualOverride: vi.fn(() => false),
+        getManualOverride: vi.fn(() => undefined),
+      };
+
+      const result = schematic.getFlagCheck("my-flag");
+      expect(result?.value).toBe(false);
+    });
+  });
+
+  describe("getAllFlags()", () => {
+    it("returns {} when no flags have been checked", () => {
+      const schematic = new Schematic("API_KEY");
+      expect(schematic.getAllFlags()).toEqual({});
+    });
+
+    it("returns all flags stored for the current context", () => {
+      const schematic = new Schematic("API_KEY");
+      const contextStr = "{}";
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (schematic as any).checks[contextStr] = {
+        "flag-a": { flag: "flag-a", value: true, reason: "test" },
+        "flag-b": { flag: "flag-b", value: false, reason: "test" },
+      };
+
+      const result = schematic.getAllFlags();
+      expect(result["flag-a"]).toEqual({ flag: "flag-a", value: true, reason: "test" });
+      expect(result["flag-b"]).toEqual({ flag: "flag-b", value: false, reason: "test" });
+    });
+  });
 });
 
 describe("WebSocket auth error close code", () => {

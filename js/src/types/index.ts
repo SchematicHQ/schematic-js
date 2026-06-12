@@ -198,6 +198,9 @@ export type SchematicOptions = {
 
   /** Default CheckFlagReturn objects for flags when Schematic API cannot be reached and no callsite fallback is provided */
   flagCheckDefaults?: Record<string, CheckFlagReturn>;
+
+  /** Enable developer toolbar for testing flags (default: false) */
+  developerToolbar?: boolean;
 };
 
 export type CheckOptions = {
@@ -277,6 +280,23 @@ export const CheckFlagReturnFromJSON = (
     value,
   };
 };
+
+export interface DeveloperToolbarDependencies {
+  getAllFlags: () => Record<string, CheckFlagReturn>;
+  getFlagValue: (flagKey: string) => boolean | undefined;
+  addFlagValueListener: (flagKey: string, listener: (value: boolean) => void) => () => void;
+  notifyFlagCheckListeners: (flagKey: string, check: CheckFlagReturn) => void;
+  notifyFlagValueListeners: (flagKey: string, value: boolean) => void;
+}
+
+export interface DeveloperToolbarInterface {
+  initialize(): void;
+  cleanup(): void;
+  getManualOverride(flagKey: string): CheckFlagReturn | undefined;
+  hasManualOverride(flagKey: string): boolean;
+  setManualOverride(flagKey: string, value: boolean): void;
+  getAllManualOverrides(): Record<string, CheckFlagReturn>;
+}
 
 export const CheckPlanReturnFromJSON = (
   /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
