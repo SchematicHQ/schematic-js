@@ -11,12 +11,22 @@ import {
   PlanEntitlementResponseData,
   TraitType,
 } from "../../../api/checkoutexternal";
+import {
+  PricingTableContext,
+  PricingTablePlanContext,
+  type PricingTableContextValue,
+  type PricingTablePlanContextValue,
+} from "../../../composable/pricing-table";
 import { render } from "../../../test/setup";
 import type { DeepPartial, SelectedPlan } from "../../../types";
 
-import { AddOn, type AddOnProps } from "./AddOn";
+import { AddOn } from "./AddOn";
+import { type PricingTableProps } from "./PricingTable";
 
-const mockSetCheckoutState = vi.fn();
+const { mockOnCallToAction, mockSelectAddOn } = vi.hoisted(() => ({
+  mockOnCallToAction: vi.fn(),
+  mockSelectAddOn: vi.fn(),
+}));
 
 vi.mock("../../../hooks", () => ({
   useEmbed: () => ({
@@ -30,8 +40,12 @@ vi.mock("../../../hooks", () => ({
     },
     settings: {
       theme: {
+        primary: "#194BFB",
         card: {
+          background: "#FFFFFF",
           padding: 16,
+          borderRadius: 10,
+          hasShadow: true,
         },
         typography: {
           text: {
@@ -41,12 +55,9 @@ vi.mock("../../../hooks", () => ({
         },
       },
     },
-    setCheckoutState: mockSetCheckoutState,
   }),
   useIsLightBackground: () => true,
 }));
-
-type SharedProps = AddOnProps["sharedProps"];
 
 const mockAddOn = {
   id: "addon-1",
@@ -95,60 +106,121 @@ const mockAddOn = {
   },
 } satisfies DeepPartial<SelectedPlan> as SelectedPlan;
 
-const mockSharedProps = {
-  layout: {
-    showPeriodToggle: true,
-    showDiscount: true,
-    header: {
-      isVisible: true,
-      fontStyle: "heading3",
-    },
-    plans: {
-      isVisible: true,
-      name: {
-        fontStyle: "heading2",
-      },
-      description: {
-        isVisible: true,
-        fontStyle: "text",
-      },
-      showInclusionText: true,
-      showFeatureIcons: true,
-      showFeatureDescriptions: false,
-      showEntitlements: true,
-    },
-    addOns: {
-      isVisible: true,
-      showDescription: true,
-      showFeatureIcons: true,
-      showFeatureDescriptions: false,
-      showEntitlements: true,
-    },
-    upgrade: {
-      isVisible: true,
-      buttonSize: "md",
-      buttonStyle: "primary",
-    },
-    downgrade: {
-      isVisible: true,
-      buttonSize: "md",
-      buttonStyle: "primary",
-    },
+const mockLayout = {
+  showPeriodToggle: true,
+  showCurrencySelector: true,
+  showDiscount: true,
+  header: {
+    isVisible: true,
+    fontStyle: "heading3",
   },
-  showCallToAction: true,
-  callToActionUrl: "/checkout",
-  callToActionTarget: "_self",
-} satisfies DeepPartial<SharedProps> as SharedProps;
+  plans: {
+    isVisible: true,
+    name: {
+      fontStyle: "heading2",
+    },
+    description: {
+      isVisible: true,
+      fontStyle: "text",
+    },
+    showInclusionText: true,
+    showFeatureIcons: true,
+    showFeatureDescriptions: false,
+    showEntitlements: true,
+  },
+  addOns: {
+    isVisible: true,
+    showDescription: true,
+    showFeatureIcons: true,
+    showFeatureDescriptions: false,
+    showEntitlements: true,
+  },
+  upgrade: {
+    isVisible: true,
+    buttonSize: "md",
+    buttonStyle: "primary",
+  },
+  downgrade: {
+    isVisible: true,
+    buttonSize: "md",
+    buttonStyle: "primary",
+  },
+} satisfies DeepPartial<PricingTableProps> as PricingTableProps;
+
+function tableContext(
+  overrides: Partial<PricingTableContextValue> = {},
+): PricingTableContextValue {
+  return {
+    plans: [],
+    addOns: [],
+    periods: [],
+    currencies: [],
+    invalidFilterEntries: [],
+    currentPlan: undefined,
+    selectedPeriod: "month",
+    setSelectedPeriod: vi.fn(),
+    selectedCurrency: "USD",
+    setSelectedCurrency: vi.fn(),
+    isPending: false,
+    hasNoUsableCurrency: false,
+    showPeriodToggle: true,
+    showCurrencySelector: false,
+    hasCurrency: false,
+    isStandalone: true,
+    canCheckout: true,
+    showCallToAction: true,
+    callToActionUrl: "/checkout",
+    callToActionTarget: "_self",
+    onCallToAction: undefined,
+    getPlanPeriod: () => "month",
+    isPlanActive: () => false,
+    isAddOnActive: () => false,
+    selectPlan: vi.fn(),
+    selectAddOn: mockSelectAddOn,
+    ...overrides,
+  };
+}
+
+function planContext(
+  addOn: SelectedPlan,
+  overrides: Partial<PricingTablePlanContextValue> = {},
+): PricingTablePlanContextValue {
+  return {
+    plan: addOn,
+    index: 0,
+    plans: [addOn],
+    period: BillingProductPriceInterval.Month,
+    currency: undefined,
+    isActive: false,
+    kind: "addOn",
+    ...overrides,
+  };
+}
+
+function renderAddOn(
+  addOn: SelectedPlan,
+  {
+    layout = mockLayout,
+    plan: planOverrides,
+    table,
+  }: {
+    layout?: PricingTableProps;
+    plan?: Partial<PricingTablePlanContextValue>;
+    table?: Partial<PricingTableContextValue>;
+  } = {},
+) {
+  return render(
+    <PricingTableContext.Provider value={tableContext(table)}>
+      <PricingTablePlanContext.Provider value={planContext(addOn, planOverrides)}>
+        <AddOn layout={layout} />
+      </PricingTablePlanContext.Provider>
+    </PricingTableContext.Provider>,
+  );
+}
 
 describe("`AddOn` component", () => {
   test("renders add-on correctly", () => {
-    render(
-      <AddOn
-        addOn={mockAddOn}
-        sharedProps={mockSharedProps}
-        selectedPeriod={BillingProductPriceInterval.Month}
-      />,
-    );
+    renderAddOn(mockAddOn);
 
     expect(screen.getByText("API Boost")).toBeInTheDocument();
     expect(
@@ -158,23 +230,15 @@ describe("`AddOn` component", () => {
       "$9.99/month",
     );
 
-    // expect(screen.getByText("10,000 Extra API Calls")).toBeInTheDocument();
-    // expect(screen.getByText("Priority Support")).toBeInTheDocument();
-
     const ctaButton = screen.getByText("Choose add-on");
     expect(ctaButton).toBeInTheDocument();
     expect(ctaButton).toHaveAttribute("href", "/checkout");
   });
 
-  // `data` cannot be redefined
-  // TODO: figure out how to mock the value
-  test.skip("renders active add-on correctly", async () => {
-    render(
-      <AddOn
-        addOn={{ ...mockAddOn, current: true }}
-        sharedProps={mockSharedProps}
-        selectedPeriod={BillingProductPriceInterval.Month}
-      />,
+  test("renders active add-on correctly", () => {
+    renderAddOn(
+      { ...mockAddOn, current: true },
+      { plan: { isActive: true }, table: { callToActionUrl: undefined } },
     );
 
     expect(screen.getByText("Active")).toBeInTheDocument();
@@ -182,13 +246,9 @@ describe("`AddOn` component", () => {
   });
 
   test("renders yearly pricing when selected", () => {
-    render(
-      <AddOn
-        addOn={mockAddOn}
-        sharedProps={mockSharedProps}
-        selectedPeriod={BillingProductPriceInterval.Year}
-      />,
-    );
+    renderAddOn(mockAddOn, {
+      plan: { period: BillingProductPriceInterval.Year },
+    });
 
     expect(screen.getByTestId("sch-addon-price")).toHaveTextContent(
       "$99.99/year",
@@ -196,44 +256,29 @@ describe("`AddOn` component", () => {
   });
 
   test("renders 'Change add-on' for current add-on with different period", () => {
-    render(
-      <AddOn
-        addOn={{ ...mockAddOn, current: true }}
-        sharedProps={mockSharedProps}
-        selectedPeriod={BillingProductPriceInterval.Year}
-      />,
+    renderAddOn(
+      { ...mockAddOn, current: true },
+      { plan: { period: BillingProductPriceInterval.Year, isActive: false } },
     );
 
     expect(screen.getByText("Change add-on")).toBeInTheDocument();
   });
 
   test("hides features when `showEntitlements` is 'false'", () => {
-    const propsWithoutEntitlements = cloneDeep(mockSharedProps);
-    propsWithoutEntitlements.layout.addOns.showEntitlements = false;
+    const layout = cloneDeep(mockLayout);
+    layout.addOns.showEntitlements = false;
 
-    render(
-      <AddOn
-        addOn={mockAddOn}
-        sharedProps={propsWithoutEntitlements}
-        selectedPeriod={BillingProductPriceInterval.Month}
-      />,
-    );
+    renderAddOn(mockAddOn, { layout });
 
     expect(screen.queryByText("Extra API Calls")).not.toBeInTheDocument();
     expect(screen.queryByText("Priority Support")).not.toBeInTheDocument();
   });
 
   test("hides description when `showDescription` is 'false'", () => {
-    const propsWithoutDescription = cloneDeep(mockSharedProps);
-    propsWithoutDescription.layout.addOns.showDescription = false;
+    const layout = cloneDeep(mockLayout);
+    layout.addOns.showDescription = false;
 
-    render(
-      <AddOn
-        addOn={mockAddOn}
-        sharedProps={propsWithoutDescription}
-        selectedPeriod={BillingProductPriceInterval.Month}
-      />,
-    );
+    renderAddOn(mockAddOn, { layout });
 
     expect(
       screen.queryByText("Increase your API call limits"),
@@ -241,33 +286,24 @@ describe("`AddOn` component", () => {
   });
 
   test("hides feature icons when `showFeatureIcons` is 'false'", () => {
-    const propsWithoutIcons = cloneDeep(mockSharedProps);
-    propsWithoutIcons.layout.addOns.showFeatureIcons = false;
+    const layout = cloneDeep(mockLayout);
+    layout.addOns.showFeatureIcons = false;
 
-    render(
-      <AddOn
-        addOn={mockAddOn}
-        sharedProps={propsWithoutIcons}
-        selectedPeriod={BillingProductPriceInterval.Month}
-      />,
-    );
+    renderAddOn(mockAddOn, { layout });
 
     expect(screen.queryByTestId("sch-feature-icon")).not.toBeInTheDocument();
   });
 
-  test("calls `setCheckoutState` when clicking active add-on button", () => {
-    const mockOnCallToAction = vi.fn();
-
-    render(
-      <AddOn
-        addOn={{ ...mockAddOn, current: true }}
-        sharedProps={{
-          ...mockSharedProps,
+  test("delegates to `selectAddOn` when clicking active add-on button", () => {
+    renderAddOn(
+      { ...mockAddOn, current: true },
+      {
+        plan: { isActive: true },
+        table: {
           callToActionUrl: undefined,
           onCallToAction: mockOnCallToAction,
-        }}
-        selectedPeriod={BillingProductPriceInterval.Month}
-      />,
+        },
+      },
     );
 
     const button = screen.getByTestId("sch-addon-cta-button");
@@ -275,59 +311,46 @@ describe("`AddOn` component", () => {
       fireEvent.click(button);
     });
 
-    expect(mockOnCallToAction).toHaveBeenCalledWith({
+    expect(mockSelectAddOn).toHaveBeenCalledWith({
       ...mockAddOn,
       current: true,
     });
   });
 
-  test("calls `setCheckoutState` when clicking non-active add-on button", () => {
-    const mockOnCallToAction = vi.fn();
-
-    render(
-      <AddOn
-        addOn={mockAddOn}
-        sharedProps={{
-          ...mockSharedProps,
-          callToActionUrl: undefined,
-          onCallToAction: mockOnCallToAction,
-        }}
-        selectedPeriod={BillingProductPriceInterval.Month}
-      />,
-    );
+  test("delegates to `selectAddOn` when clicking non-active add-on button", () => {
+    renderAddOn(mockAddOn, {
+      table: {
+        callToActionUrl: undefined,
+        onCallToAction: mockOnCallToAction,
+      },
+    });
 
     const button = screen.getByTestId("sch-addon-cta-button");
     act(() => {
       fireEvent.click(button);
     });
 
-    expect(mockOnCallToAction).toHaveBeenCalledWith(mockAddOn);
+    expect(mockSelectAddOn).toHaveBeenCalledWith(mockAddOn);
   });
 
   test("does not render limited entitlements without a price behavior", () => {
-    render(
-      <AddOn
-        addOn={{
-          ...mockAddOn,
-          entitlements: [
-            {
-              id: "ent-1",
-              feature: {
-                id: "feat-1",
-                name: "API Calls",
-                icon: "api",
-                featureType: FeatureType.Event,
-              },
-              valueType: "numeric",
-              valueNumeric: 10000,
-              metricPeriod: MetricPeriod.CurrentMonth,
-            } as PlanEntitlementResponseData,
-          ],
-        }}
-        sharedProps={mockSharedProps}
-        selectedPeriod={BillingProductPriceInterval.Month}
-      />,
-    );
+    renderAddOn({
+      ...mockAddOn,
+      entitlements: [
+        {
+          id: "ent-1",
+          feature: {
+            id: "feat-1",
+            name: "API Calls",
+            icon: "api",
+            featureType: FeatureType.Event,
+          },
+          valueType: "numeric",
+          valueNumeric: 10000,
+          metricPeriod: MetricPeriod.CurrentMonth,
+        } as PlanEntitlementResponseData,
+      ],
+    });
 
     expect(
       screen.queryByText("10,000 API Calls per month"),
@@ -335,26 +358,20 @@ describe("`AddOn` component", () => {
   });
 
   test("renders unlimited entitlements correctly", () => {
-    render(
-      <AddOn
-        addOn={{
-          ...mockAddOn,
-          entitlements: [
-            {
-              id: "ent-1",
-              feature: {
-                id: "feat-1",
-                name: "API Calls",
-                icon: "api",
-              },
-              valueType: EntitlementValueType.Unlimited,
-            } as PlanEntitlementResponseData,
-          ],
-        }}
-        sharedProps={mockSharedProps}
-        selectedPeriod={BillingProductPriceInterval.Month}
-      />,
-    );
+    renderAddOn({
+      ...mockAddOn,
+      entitlements: [
+        {
+          id: "ent-1",
+          feature: {
+            id: "feat-1",
+            name: "API Calls",
+            icon: "api",
+          },
+          valueType: EntitlementValueType.Unlimited,
+        } as PlanEntitlementResponseData,
+      ],
+    });
 
     expect(screen.getByText("API Calls")).toBeInTheDocument();
     expect(screen.getByText("Unlimited")).toBeInTheDocument();

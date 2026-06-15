@@ -67,6 +67,36 @@ export default defineConfig([
     },
   },
   {
+    // The headless composable layer must stay free of styled-components,
+    // Stripe, i18next, icons, and the styled UI subtrees — that's what keeps
+    // the `/composable` bundle lightweight (a compile-time analog of
+    // `scripts/check-tree-shake.mjs`).
+    files: ["src/components/composable/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            "styled-components",
+            "i18next",
+            "react-i18next",
+            "@stripe/react-stripe-js",
+            "@stripe/stripe-js",
+            "@schematichq/schematic-icons",
+          ],
+          patterns: [
+            "**/components/ui/**",
+            "**/components/ui",
+            "**/components/layout/**",
+            "**/components/layout",
+            "**/components/shared/**",
+            "**/components/shared",
+          ],
+        },
+      ],
+    },
+  },
+  {
     files: ["**/*.json"],
     plugins: { json },
     language: "json/json",

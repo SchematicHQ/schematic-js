@@ -7,21 +7,26 @@ import {
   type FeatureUsageResponseData,
   type PlanEntitlementResponseData,
 } from "../../../api/checkoutexternal";
+import {
+  PricingTableContext,
+  PricingTablePlanContext,
+  type PricingTableContextValue,
+  type PricingTablePlanContextValue,
+} from "../../../composable/pricing-table";
 import { VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
 import { render } from "../../../test/setup";
 import type { DeepPartial, SelectedPlan } from "../../../types";
 
-import { Plan, type PlanProps } from "./Plan";
+import { Plan } from "./Plan";
+import { type PricingTableProps } from "./PricingTable";
 
-const { mockOnCallToAction, mockSetCheckoutState, trialEnd } = vi.hoisted(
-  () => {
-    const mockOnCallToAction = vi.fn();
-    const mockSetCheckoutState = vi.fn();
-    const trialEnd = new Date();
-    trialEnd.setDate(trialEnd.getDate() + 15);
-    return { mockOnCallToAction, mockSetCheckoutState, trialEnd };
-  },
-);
+const { mockOnCallToAction, mockSelectPlan, trialEnd } = vi.hoisted(() => {
+  const mockOnCallToAction = vi.fn();
+  const mockSelectPlan = vi.fn();
+  const trialEnd = new Date();
+  trialEnd.setDate(trialEnd.getDate() + 15);
+  return { mockOnCallToAction, mockSelectPlan, trialEnd };
+});
 
 vi.mock("../../../hooks", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../../../hooks")>();
@@ -66,7 +71,6 @@ vi.mock("../../../hooks", async (importOriginal) => {
           },
         },
       },
-      setCheckoutState: mockSetCheckoutState,
     }),
     useIsLightBackground: () => true,
     useTrialEnd: () => trialEnd,
@@ -122,62 +126,119 @@ const mockPlan = {
   ],
 } satisfies DeepPartial<SelectedPlan> as SelectedPlan;
 
-const mockSharedProps = {
-  layout: {
-    showPeriodToggle: true,
-    showDiscount: true,
-    header: {
-      isVisible: true,
-      fontStyle: "heading3",
-    },
-    plans: {
-      isVisible: true,
-      name: {
-        fontStyle: "heading2",
-      },
-      description: {
-        isVisible: true,
-        fontStyle: "text",
-      },
-      showInclusionText: true,
-      showFeatureIcons: true,
-      showFeatureDescriptions: false,
-      showEntitlements: true,
-    },
-    addOns: {
-      isVisible: true,
-      showDescription: true,
-      showFeatureIcons: true,
-      showFeatureDescriptions: false,
-      showEntitlements: true,
-    },
-    upgrade: {
-      isVisible: true,
-      buttonSize: "md",
-      buttonStyle: "primary",
-    },
-    downgrade: {
-      isVisible: true,
-      buttonSize: "md",
-      buttonStyle: "primary",
-    },
+const mockLayout = {
+  showPeriodToggle: true,
+  showCurrencySelector: true,
+  showDiscount: true,
+  header: {
+    isVisible: true,
+    fontStyle: "heading3",
   },
-  showCallToAction: true,
-  callToActionUrl: "/checkout",
-  callToActionTarget: "_self",
-} satisfies DeepPartial<PlanProps["sharedProps"]> as PlanProps["sharedProps"];
+  plans: {
+    isVisible: true,
+    name: {
+      fontStyle: "heading2",
+    },
+    description: {
+      isVisible: true,
+      fontStyle: "text",
+    },
+    showInclusionText: true,
+    showFeatureIcons: true,
+    showFeatureDescriptions: false,
+    showEntitlements: true,
+  },
+  addOns: {
+    isVisible: true,
+    showDescription: true,
+    showFeatureIcons: true,
+    showFeatureDescriptions: false,
+    showEntitlements: true,
+  },
+  upgrade: {
+    isVisible: true,
+    buttonSize: "md",
+    buttonStyle: "primary",
+  },
+  downgrade: {
+    isVisible: true,
+    buttonSize: "md",
+    buttonStyle: "primary",
+  },
+} satisfies DeepPartial<PricingTableProps> as PricingTableProps;
+
+function tableContext(
+  overrides: Partial<PricingTableContextValue> = {},
+): PricingTableContextValue {
+  return {
+    plans: [],
+    addOns: [],
+    periods: [],
+    currencies: [],
+    invalidFilterEntries: [],
+    currentPlan: undefined,
+    selectedPeriod: "month",
+    setSelectedPeriod: vi.fn(),
+    selectedCurrency: "USD",
+    setSelectedCurrency: vi.fn(),
+    isPending: false,
+    hasNoUsableCurrency: false,
+    showPeriodToggle: true,
+    showCurrencySelector: false,
+    hasCurrency: false,
+    isStandalone: true,
+    canCheckout: true,
+    showCallToAction: true,
+    callToActionUrl: "/checkout",
+    callToActionTarget: "_self",
+    onCallToAction: undefined,
+    getPlanPeriod: () => "month",
+    isPlanActive: () => false,
+    isAddOnActive: () => false,
+    selectPlan: mockSelectPlan,
+    selectAddOn: vi.fn(),
+    ...overrides,
+  };
+}
+
+function planContext(
+  plan: SelectedPlan,
+  overrides: Partial<PricingTablePlanContextValue> = {},
+): PricingTablePlanContextValue {
+  return {
+    plan,
+    index: 0,
+    plans: [plan],
+    period: BillingProductPriceInterval.Month,
+    currency: undefined,
+    isActive: false,
+    kind: "plan",
+    ...overrides,
+  };
+}
+
+function renderPlan(
+  plan: SelectedPlan,
+  {
+    plan: planOverrides,
+    table,
+  }: {
+    plan?: Partial<PricingTablePlanContextValue>;
+    table?: Partial<PricingTableContextValue>;
+  } = {},
+) {
+  return render(
+    <PricingTableContext.Provider value={tableContext(table)}>
+      <PricingTablePlanContext.Provider value={planContext(plan, planOverrides)}>
+        <Plan layout={mockLayout} />
+      </PricingTablePlanContext.Provider>
+    </PricingTableContext.Provider>,
+  );
+}
 
 describe("`Plan` component", () => {
   test("renders plan correctly", () => {
-    render(
-      <Plan
-        plan={mockPlan}
-        index={0}
-        sharedProps={mockSharedProps}
-        plans={[mockPlan]}
-        selectedPeriod={BillingProductPriceInterval.Month}
-      />,
-    );
+    renderPlan(mockPlan);
 
     expect(screen.getByText("Basic Plan")).toBeInTheDocument();
     expect(screen.getByText("A simple plan for startups")).toBeInTheDocument();
@@ -195,14 +256,9 @@ describe("`Plan` component", () => {
   });
 
   test("renders 'Current plan' when plan is active", () => {
-    render(
-      <Plan
-        plan={{ ...mockPlan, current: true }}
-        index={0}
-        sharedProps={mockSharedProps}
-        plans={[mockPlan]}
-        selectedPeriod={BillingProductPriceInterval.Month}
-      />,
+    renderPlan(
+      { ...mockPlan, current: true },
+      { plan: { isActive: true } },
     );
 
     expect(screen.getByText("Current plan")).toBeInTheDocument();
@@ -214,64 +270,41 @@ describe("`Plan` component", () => {
   // TODO: figure out how to render a subcomponent with company context (ie. not standalone)
   // NOTE: Cannot use vi.mock() inside test cases - mocks are hoisted and would override the main mock
   test.skip("renders trial badge for trial subscription", async () => {
-    render(
-      <Plan
-        plan={{
-          ...mockPlan,
-          current: true,
-          isTrialable: true,
-          companyCanTrial: true,
-          trialDays: 30,
-        }}
-        index={0}
-        sharedProps={mockSharedProps}
-        plans={[mockPlan]}
-        selectedPeriod={BillingProductPriceInterval.Month}
-      />,
+    renderPlan(
+      {
+        ...mockPlan,
+        current: true,
+        isTrialable: true,
+        companyCanTrial: true,
+        trialDays: 30,
+      },
+      { plan: { isActive: true } },
     );
 
     expect(await screen.findByText("14 days left")).toBeInTheDocument();
   });
 
   test("renders disabled button for invalid plans", () => {
-    render(
-      <Plan
-        plan={{
-          ...mockPlan,
-          valid: false,
-          usageViolations: [
-            { allocation: 5, usage: 8 } as FeatureUsageResponseData,
-          ],
-        }}
-        index={0}
-        sharedProps={mockSharedProps}
-        plans={[mockPlan]}
-        selectedPeriod={BillingProductPriceInterval.Month}
-      />,
-    );
+    renderPlan({
+      ...mockPlan,
+      valid: false,
+      usageViolations: [{ allocation: 5, usage: 8 } as FeatureUsageResponseData],
+    });
 
     const button = screen.getByTestId("sch-plan-cta-button");
     expect(button).toHaveTextContent("Over plan limit");
   });
 
   test("renders custom plans correctly", () => {
-    render(
-      <Plan
-        plan={{
-          ...mockPlan,
-          custom: true,
-          customPlanConfig: {
-            ctaText: "Contact sales",
-            priceText: "Custom pricing",
-            ctaWebSite: "https://example.com/contact",
-          },
-        }}
-        index={0}
-        sharedProps={mockSharedProps}
-        plans={[mockPlan]}
-        selectedPeriod={BillingProductPriceInterval.Month}
-      />,
-    );
+    renderPlan({
+      ...mockPlan,
+      custom: true,
+      customPlanConfig: {
+        ctaText: "Contact sales",
+        priceText: "Custom pricing",
+        ctaWebSite: "https://example.com/contact",
+      },
+    });
 
     expect(screen.getByText("Custom pricing")).toBeInTheDocument();
 
@@ -281,15 +314,9 @@ describe("`Plan` component", () => {
   });
 
   test("renders yearly pricing when selected", () => {
-    render(
-      <Plan
-        plan={mockPlan}
-        index={0}
-        sharedProps={mockSharedProps}
-        plans={[mockPlan]}
-        selectedPeriod={BillingProductPriceInterval.Year}
-      />,
-    );
+    renderPlan(mockPlan, {
+      plan: { period: BillingProductPriceInterval.Year },
+    });
 
     const planPrice = screen.getByTestId("sch-plan-price");
     expect(planPrice).toHaveTextContent("$199.99/year");
@@ -313,15 +340,9 @@ describe("`Plan` component", () => {
         ),
     };
 
-    render(
-      <Plan
-        plan={manyEntitlementsPlan}
-        index={0}
-        sharedProps={mockSharedProps}
-        plans={[manyEntitlementsPlan]}
-        selectedPeriod={BillingProductPriceInterval.Month}
-      />,
-    );
+    renderPlan(manyEntitlementsPlan, {
+      plan: { plans: [manyEntitlementsPlan] },
+    });
 
     // Collapsed: only the first VISIBLE_ENTITLEMENT_COUNT features are rendered.
     for (let i = 0; i < VISIBLE_ENTITLEMENT_COUNT; i++) {
@@ -356,18 +377,15 @@ describe("`Plan` component", () => {
   });
 
   test("shows inclusion text for non-first plans", () => {
-    render(
-      <Plan
-        plan={mockPlan}
-        index={1}
-        sharedProps={mockSharedProps}
-        plans={[
+    renderPlan(mockPlan, {
+      plan: {
+        index: 1,
+        plans: [
           { ...mockPlan, id: "previous-plan", name: "Starter Plan" },
           mockPlan,
-        ]}
-        selectedPeriod={BillingProductPriceInterval.Month}
-      />,
-    );
+        ],
+      },
+    });
 
     expect(screen.getByText(/Everything in Starter Plan/)).toBeInTheDocument();
   });
@@ -376,54 +394,39 @@ describe("`Plan` component", () => {
   // TODO: figure out how to mock the value
   // NOTE: Cannot use vi.mock() inside test cases - mocks are hoisted and would override the main mock
   test.skip("renders 'Free' text for free plans when `showZeroPriceAsFree` is true", async () => {
-    render(
-      <Plan
-        plan={{
-          ...mockPlan,
-          isFree: true,
-          monthlyPrice: {
-            price: 0,
-            priceDecimal: "0",
-            currency: "usd",
-          } as BillingPriceResponseData,
-          yearlyPrice: {
-            price: 0,
-            priceDecimal: "0",
-            currency: "usd",
-          } as BillingPriceResponseData,
-        }}
-        index={0}
-        sharedProps={mockSharedProps}
-        plans={[mockPlan]}
-        selectedPeriod={BillingProductPriceInterval.Month}
-      />,
-    );
+    renderPlan({
+      ...mockPlan,
+      isFree: true,
+      monthlyPrice: {
+        price: 0,
+        priceDecimal: "0",
+        currency: "usd",
+      } as BillingPriceResponseData,
+      yearlyPrice: {
+        price: 0,
+        priceDecimal: "0",
+        currency: "usd",
+      } as BillingPriceResponseData,
+    });
 
     const button = await screen.findByTestId("sch-plan-cta-button");
     expect(button).toHaveTextContent("Free");
   });
 
   test("handles call-to-action click", () => {
-    render(
-      <Plan
-        plan={mockPlan}
-        index={0}
-        sharedProps={{
-          ...mockSharedProps,
-          callToActionUrl: undefined,
-          onCallToAction: mockOnCallToAction,
-        }}
-        plans={[mockPlan]}
-        selectedPeriod={BillingProductPriceInterval.Month}
-      />,
-    );
+    renderPlan(mockPlan, {
+      table: {
+        callToActionUrl: undefined,
+        onCallToAction: mockOnCallToAction,
+      },
+    });
 
     const button = screen.getByText("Choose plan");
     act(() => {
       fireEvent.click(button);
     });
 
-    expect(mockOnCallToAction).toHaveBeenCalledWith(mockPlan);
-    expect(mockSetCheckoutState).not.toHaveBeenCalled();
+    // The CTA delegates to the controller's `selectPlan` action.
+    expect(mockSelectPlan).toHaveBeenCalledWith(mockPlan);
   });
 });

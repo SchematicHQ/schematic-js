@@ -21,6 +21,19 @@ The root entry stays lightweight; the heavier UI surface ships from
   root entry, plus `lazy`-wrapped UI components (`PricingTable`,
   `PaymentMethod`, `CheckoutDialog`, etc.) and the embed-side hooks
   (`useEmbed`, `useAvailablePlans`, …).
+- `@schematichq/schematic-react/composable` — headless primitive surface.
+  Fully headless, Radix-style compound components (`PricingTable.Root`,
+  `PricingTable.Plan`, `PaymentMethod.Root`, …): behavior + state +
+  semantic `data-schematic-*` attributes + `asChild` (Slot) polymorphism,
+  zero visual styling. Source lives in `src/components/composable/`. The
+  default-styled `/components` exports are thin wrappers over these
+  primitives. This bundle pulls in NONE of styled-components/Stripe/
+  i18next/icons — `scripts/check-tree-shake.mjs` enforces that, and an
+  ESLint `no-restricted-imports` rule scoped to
+  `src/components/composable/**` is the compile-time analog. Data/state is
+  sourced from the same styled-free hooks (`useEmbed`, `useAvailablePlans`),
+  so the bundle externalizes `@schematichq/schematic-react` to share the
+  single `SchematicContext` instance (SCHY-372).
 
 ## Architecture
 
@@ -135,6 +148,16 @@ live in `src/components/test/`.
 - New embed UI components must be `React.lazy`-wrapped in
   `src/components/index.tsx`; non-lazy exports would pull
   styled-components into the /components main bundle.
+- When decomposing a page component into the `/composable` layer, follow
+  the established pattern (`pricing-table`, `payment-method`): a
+  `usX()` controller hook + `context.tsx` that lifts the container's
+  state/derivation, a pure-provider `Root`, headless `parts`, and an
+  `index.tsx` that assembles the dot-notation namespace via
+  `Object.assign(Root, { … })`. The styled `/components` wrapper then
+  consumes the controller context and keeps the legacy markup, `sch-*`
+  classNames, and `data-testid`s unchanged. The dot-notation namespace
+  lives only on the (non-lazy) `/composable` export — never bolt statics
+  onto the lazy styled export.
 - When adding a new adapter slot or prop, update `pickWsProps` /
   `pickEmbedProps` in `provider.tsx` so each adapter only sees what it
   consumes.

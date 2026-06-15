@@ -1,0 +1,40 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/api-extractor/v7/api-extractor.schema.json",
+  "projectFolder": ".",
+  "mainEntryPointFilePath": "<projectFolder>/dist/components/composable/index.d.ts",
+  "compiler": {
+    "tsconfigFilePath": "<projectFolder>/tsconfig.apidoc.json"
+  },
+  "dtsRollup": {
+    "enabled": true,
+    "untrimmedFilePath": "",
+    "publicTrimmedFilePath": "<projectFolder>/dist/composable/schematic-react-composable.d.ts"
+  },
+  "docModel": {
+    "enabled": false
+  },
+  "apiReport": {
+    "enabled": false
+  },
+  "tsdocMetadata": {
+    "enabled": false
+  },
+  "messages": {
+    "tsdocMessageReporting": {
+      "default": {
+        "logLevel": "none"
+      }
+    },
+    "extractorMessageReporting": {
+      "ae-forgotten-export": {
+        "logLevel": "none"
+      },
+      "ae-missing-getter": {
+        "logLevel": "none"
+      },
+      "ae-missing-release-tag": {
+        "logLevel": "none"
+      }
+    }
+  }
+}

@@ -38,6 +38,18 @@ const COMPONENTS_EXTERNAL = [
   "@schematichq/schematic-react",
 ];
 
+// The /composable subpath ships the headless primitives. It bundles the
+// styled-free data hooks (which import `SchematicContext` from the external
+// root package), so it externalizes `@schematichq/schematic-react` for the
+// same single-instance reason as /components (SCHY-372). It should never
+// reach for the heavy UI peers — they stay external so a leak fails the
+// /composable tree-shake check rather than silently inlining.
+const COMPOSABLE_EXTERNAL = [
+  ...SHARED_EXTERNAL,
+  "react-dom",
+  "@schematichq/schematic-react",
+];
+
 const builds = [
   {
     name: "core:cjs",
@@ -75,6 +87,25 @@ const builds = [
     splitting: true,
     outdir: "dist/components",
     entryNames: "schematic-react-components.esm",
+    chunkNames: "chunks/[name]-[hash]",
+  },
+  {
+    name: "composable:cjs",
+    entryPoints: ["src/components/composable/index.tsx"],
+    bundle: true,
+    external: COMPOSABLE_EXTERNAL,
+    format: "cjs",
+    outfile: "dist/composable/schematic-react-composable.cjs.js",
+  },
+  {
+    name: "composable:esm",
+    entryPoints: ["src/components/composable/index.tsx"],
+    bundle: true,
+    external: COMPOSABLE_EXTERNAL,
+    format: "esm",
+    splitting: true,
+    outdir: "dist/composable",
+    entryNames: "schematic-react-composable.esm",
     chunkNames: "chunks/[name]-[hash]",
   },
 ];

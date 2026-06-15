@@ -2,14 +2,16 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { BillingProductPriceInterval } from "../../../api/checkoutexternal";
+import {
+  usePricingTable,
+  usePricingTablePlan,
+} from "../../../composable/pricing-table";
 import { TEXT_BASE_SIZE, VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
 import { useEmbed, useIsLightBackground, useTrialEnd } from "../../../hooks";
-import type { SelectedPlan } from "../../../types";
 import {
   formatCurrency,
   getFeatureName,
   getPlanPrice,
-  getSubscriptionPeriod,
   groupPlanCreditGrants,
   hexToHSL,
 } from "../../../utils";
@@ -18,36 +20,28 @@ import { UsageViolationText } from "../../shared";
 import { Box, Button, Flex, Icon, Text } from "../../ui";
 
 import { Entitlement } from "./Entitlement";
-import {
-  type PricingTableOptions,
-  type PricingTableProps,
-} from "./PricingTable";
+import { type PricingTableProps } from "./PricingTable";
 
 export interface PlanProps {
-  plan: SelectedPlan;
-  index: number;
-  sharedProps: PricingTableOptions & {
-    layout: PricingTableProps;
-    showCallToAction: boolean;
-  };
-  plans: SelectedPlan[];
-  selectedPeriod: string;
-  currency?: string;
+  layout: PricingTableProps;
 }
 
-export const Plan = ({
-  plan,
-  index,
-  sharedProps,
-  plans,
-  selectedPeriod,
-  currency,
-}: PlanProps) => {
-  const { layout } = sharedProps;
-
+export const Plan = ({ layout }: PlanProps) => {
   const { t } = useTranslation();
 
-  const { data, settings, setCheckoutState } = useEmbed();
+  const { data, settings } = useEmbed();
+
+  const {
+    plan,
+    index,
+    plans,
+    period: selectedPeriod,
+    currency,
+    isActive: isActivePlan,
+  } = usePricingTablePlan();
+
+  const { selectPlan, canCheckout, showCallToAction, callToActionUrl, callToActionTarget } =
+    usePricingTable();
 
   const isLightBackground = useIsLightBackground();
 
@@ -70,12 +64,6 @@ export const Plan = ({
 
   const cardPadding = settings.theme.card.padding / TEXT_BASE_SIZE;
 
-  const isStandalone = typeof data?.component === "undefined";
-  const currentPeriod =
-    getSubscriptionPeriod(data?.company?.billingSubscription) ||
-    data?.company?.plan?.planPeriod ||
-    "month";
-  const canCheckout = isStandalone || (data?.capabilities?.checkout ?? true);
   const isTrialSubscription =
     data?.company?.billingSubscription?.status === "trialing";
   const showCredits = data?.displaySettings?.showCredits ?? true;
@@ -86,7 +74,6 @@ export const Plan = ({
 
   const currentPlanIndex = plans.findIndex((plan) => plan.current);
 
-  const isActivePlan = plan.current && currentPeriod === selectedPeriod;
   const { price: planPrice, currency: planCurrency } =
     getPlanPrice(plan, selectedPeriod, { useSelectedPeriod: true }, currency) ||
     {};
@@ -371,7 +358,7 @@ export const Plan = ({
             </Text>
           </Flex>
         ) : (
-          sharedProps.showCallToAction &&
+          showCallToAction &&
           (layout.upgrade.isVisible || layout.downgrade.isVisible) && (
             <Flex $flexDirection="column" $gap="0.5rem">
               <Button
@@ -396,24 +383,16 @@ export const Plan = ({
                       target: "_blank",
                       rel: "noreferrer",
                     }
-                  : sharedProps.callToActionUrl
+                  : callToActionUrl
                     ? {
                         as: "a",
-                        href: sharedProps.callToActionUrl,
-                        target: sharedProps.callToActionTarget,
+                        href: callToActionUrl,
+                        target: callToActionTarget,
                         rel: "noreferrer",
                       }
                     : {
                         onClick: () => {
-                          sharedProps.onCallToAction?.(plan);
-
-                          if (!isStandalone && !plan.custom) {
-                            setCheckoutState({
-                              period: selectedPeriod,
-                              planId: isActivePlan ? null : plan.id,
-                              usage: false,
-                            });
-                          }
+                          selectPlan(plan);
                         },
                       })}
                 $fullWidth

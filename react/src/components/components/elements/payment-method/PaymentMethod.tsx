@@ -1,7 +1,7 @@
-import { forwardRef, useMemo } from "react";
+import { forwardRef } from "react";
 
+import { PaymentMethod as PaymentMethodPrimitive, usePaymentMethod  } from "../../../composable/payment-method";
 import { type FontStyle } from "../../../embed";
-import { useEmbed } from "../../../hooks";
 import type { DeepPartial, ElementProps } from "../../../types";
 import { Element } from "../../layout";
 
@@ -33,6 +33,12 @@ const resolveDesignProps = (props: DeepPartial<DesignProps>): DesignProps => {
 
 export type PaymentMethodProps = DesignProps;
 
+/**
+ * Default-styled PaymentMethod. A thin wrapper over the headless
+ * `PaymentMethod.*` primitives (see `src/components/composable/payment-method`):
+ * `Root` resolves the payment method + edit action; the body renders the
+ * legacy `PaymentMethodElement`.
+ */
 export const PaymentMethod = forwardRef<
   HTMLDivElement | null,
   ElementProps &
@@ -41,49 +47,41 @@ export const PaymentMethod = forwardRef<
       portal?: HTMLElement | null;
       allowEdit?: boolean;
     }
->(({ children, className, portal, allowEdit = true, ...rest }, ref) => {
+>(({ className, allowEdit = true, ...rest }, ref) => {
   const props = resolveDesignProps(rest);
 
-  const { data, setLayout } = useEmbed();
+  return (
+    <PaymentMethodPrimitive.Root allowEdit={allowEdit}>
+      <PaymentMethodBody ref={ref} design={props} className={className} />
+    </PaymentMethodPrimitive.Root>
+  );
+});
 
-  const { paymentMethod, monthsToExpiration } = useMemo(() => {
-    const paymentMethod =
-      data?.subscription?.paymentMethod || data?.company?.defaultPaymentMethod;
+PaymentMethod.displayName = "PaymentMethod";
 
-    let monthsToExpiration: number | undefined;
-    if (
-      typeof paymentMethod?.cardExpYear === "number" &&
-      typeof paymentMethod?.cardExpMonth === "number"
-    ) {
-      const now = new Date();
-      const currentYear = now.getFullYear();
-      const currentMonth = now.getMonth();
-      const timeToExpiration = Math.round(
-        +new Date(paymentMethod.cardExpYear, paymentMethod.cardExpMonth - 1) -
-          +new Date(currentYear, currentMonth),
-      );
-      monthsToExpiration = Math.round(
-        timeToExpiration / (1000 * 60 * 60 * 24 * 30),
-      );
-    }
+interface PaymentMethodBodyProps {
+  design: DesignProps;
+  className?: string;
+}
 
-    return {
-      paymentMethod,
-      monthsToExpiration,
-    };
-  }, [data?.company?.defaultPaymentMethod, data?.subscription?.paymentMethod]);
+const PaymentMethodBody = forwardRef<
+  HTMLDivElement | null,
+  PaymentMethodBodyProps
+>(({ design, className }, ref) => {
+  const { paymentMethod, monthsToExpiration, customCheckoutFields, onEdit } =
+    usePaymentMethod();
 
   return (
     <Element ref={ref} className={className}>
       <PaymentMethodElement
-        customCheckoutFields={data?.customCheckoutFields}
+        customCheckoutFields={customCheckoutFields}
         paymentMethod={paymentMethod}
         monthsToExpiration={monthsToExpiration}
-        {...(allowEdit && { onEdit: () => setLayout("payment") })}
-        {...props}
+        {...(onEdit && { onEdit })}
+        {...design}
       />
     </Element>
   );
 });
 
-PaymentMethod.displayName = "PaymentMethod";
+PaymentMethodBody.displayName = "PaymentMethodBody";

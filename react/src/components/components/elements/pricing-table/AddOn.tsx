@@ -1,39 +1,31 @@
-import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
   EntitlementPriceBehavior,
   type FeatureResponseData,
 } from "../../../api/checkoutexternal";
+import {
+  usePricingTable,
+  usePricingTablePlan,
+} from "../../../composable/pricing-table";
 import { TEXT_BASE_SIZE } from "../../../const";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
-import type { SelectedPlan } from "../../../types";
 import {
   formatCurrency,
   getAddOnPrice,
   getEntitlementFeatureName,
   getEntitlementPrice,
   getFeatureName,
-  getSubscriptionPeriod,
   hexToHSL,
   isTieredPrice,
 } from "../../../utils";
 import { cardBoxShadow } from "../../layout";
 import { Box, Button, Flex, Icon, Text } from "../../ui";
 
-import {
-  type PricingTableOptions,
-  type PricingTableProps,
-} from "./PricingTable";
+import { type PricingTableProps } from "./PricingTable";
 
 export interface AddOnProps {
-  addOn: SelectedPlan;
-  sharedProps: PricingTableOptions & {
-    layout: PricingTableProps;
-    showCallToAction: boolean;
-  };
-  selectedPeriod: string;
-  currency?: string;
+  layout: PricingTableProps;
 }
 
 interface MeteredEntitlementPricingProps {
@@ -117,37 +109,25 @@ function shouldShowUsageBased(
   );
 }
 
-export const AddOn = ({
-  addOn,
-  sharedProps,
-  selectedPeriod,
-  currency,
-}: AddOnProps) => {
-  const { layout } = sharedProps;
-
+export const AddOn = ({ layout }: AddOnProps) => {
   const { t } = useTranslation();
 
-  const { data, settings, setCheckoutState } = useEmbed();
+  const { settings } = useEmbed();
+
+  const {
+    plan: addOn,
+    period: selectedPeriod,
+    currency,
+    isActive: isActiveAddOn,
+  } = usePricingTablePlan();
+
+  const { selectAddOn, canCheckout, showCallToAction, callToActionUrl } =
+    usePricingTable();
 
   const isLightBackground = useIsLightBackground();
 
-  const { currentAddOns, canCheckout, isStandalone } = useMemo(() => {
-    const isStandalone = typeof data?.component === "undefined";
-
-    return {
-      currentAddOns: data?.company?.addOns || [],
-      canCheckout: isStandalone || (data?.capabilities?.checkout ?? true),
-      isStandalone,
-    };
-  }, [data?.capabilities?.checkout, data?.company?.addOns, data?.component]);
-
   const cardPadding = settings.theme.card.padding / TEXT_BASE_SIZE;
 
-  const currentAddOnPeriod =
-    getSubscriptionPeriod(data?.company?.billingSubscription) ??
-    currentAddOns.find((currentAddOn) => currentAddOn.id === addOn.id)
-      ?.planPeriod;
-  const isActiveAddOn = addOn.current && selectedPeriod === currentAddOnPeriod;
   const { price: addOnPrice, currency: addOnCurrency } =
     getAddOnPrice(addOn, selectedPeriod, currency) || {};
 
@@ -406,7 +386,7 @@ export const AddOn = ({
             </Flex>
           )}
 
-        {sharedProps.showCallToAction &&
+        {showCallToAction &&
           (layout.upgrade.isVisible || layout.downgrade.isVisible) && (
             <Flex $flexDirection="column" $gap="0.5rem">
               <Button
@@ -418,24 +398,16 @@ export const AddOn = ({
                 $variant={
                   isActiveAddOn ? "ghost" : addOn.current ? "outline" : "filled"
                 }
-                {...(sharedProps.callToActionUrl
+                {...(callToActionUrl
                   ? {
                       as: "a",
-                      href: sharedProps.callToActionUrl,
+                      href: callToActionUrl,
                       rel: "noreferrer",
                       target: "_blank",
                     }
                   : {
                       onClick: () => {
-                        sharedProps.onCallToAction?.(addOn);
-
-                        if (!isStandalone && !addOn.custom) {
-                          setCheckoutState({
-                            period: selectedPeriod,
-                            addOnId: isActiveAddOn ? null : addOn.id,
-                            usage: false,
-                          });
-                        }
+                        selectAddOn(addOn);
                       },
                     })}
                 $fullWidth
