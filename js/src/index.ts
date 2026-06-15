@@ -2593,9 +2593,4 @@ const notifyCreditBalanceListener = (
 
 export * from "./types";
 export * from "./billing";
-export {
-  ContextSignatureManager,
-  contextSignatureHeader,
-  parseSignatureExpiryMs,
-} from "./contextSignature";
 export type { ContextSignatureProvider } from "./contextSignature";
