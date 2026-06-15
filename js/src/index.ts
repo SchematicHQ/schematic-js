@@ -2424,9 +2424,4 @@ const notifyPlanListener = (
 };
 
 export * from "./types";
-export {
-  ContextSignatureManager,
-  contextSignatureHeader,
-  parseSignatureExpiryMs,
-} from "./contextSignature";
 export type { ContextSignatureProvider } from "./contextSignature";
