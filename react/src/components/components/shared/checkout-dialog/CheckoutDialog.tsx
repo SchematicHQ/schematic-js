@@ -20,6 +20,10 @@ import {
   type PreviewSubscriptionFinanceResponseData,
 } from "../../../api/checkoutexternal";
 import {
+  CheckoutDialog as CheckoutDialogPrimitive,
+  useCheckoutDialog,
+} from "../../../composable/checkout-dialog";
+import {
   DEFAULT_CURRENCY,
   FETCH_DEBOUNCE_TIMEOUT,
   TEXT_BASE_SIZE,
@@ -140,7 +144,13 @@ interface ConfirmPaymentIntentProps {
   callback: (confirmed: boolean) => void;
 }
 
-export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
+export const CheckoutDialog = (props: CheckoutDialogProps) => (
+  <CheckoutDialogPrimitive.Root>
+    <CheckoutDialogInner {...props} />
+  </CheckoutDialogPrimitive.Root>
+);
+
+const CheckoutDialogInner = ({ top }: CheckoutDialogProps) => {
   const { t } = useTranslation();
 
   const {
@@ -149,13 +159,15 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     settings,
     isPending,
     checkoutState,
-    clearCheckoutState,
     setCheckoutState,
     previewCheckout,
-    setLayout,
     currencyFilter,
     debug,
   } = useEmbed();
+
+  // The dialog open/close lifecycle is exposed via the composable seam
+  // (`useCheckoutDialog`); the rest of the checkout state machine stays here.
+  const { close: handleClose } = useCheckoutDialog();
 
   const isLightBackground = useIsLightBackground();
 
@@ -1447,11 +1459,6 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     },
     [handlePreviewCheckout],
   );
-
-  const handleClose = useCallback(() => {
-    clearCheckoutState();
-    setLayout("portal");
-  }, [setLayout, clearCheckoutState]);
 
   // this is needed to run the `selectPlan` logic on initial load
   // if the user is already on an available plan

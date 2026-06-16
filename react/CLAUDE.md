@@ -158,6 +158,13 @@ live in `src/components/test/`.
   classNames, and `data-testid`s unchanged. The dot-notation namespace
   lives only on the (non-lazy) `/composable` export — never bolt statics
   onto the lazy styled export.
+- Composable coverage: `PricingTable`, `PaymentMethod`, `IncludedFeatures`,
+  `Invoices`, `UpcomingBill`, `UnsubscribeButton`, `MeteredFeatures`,
+  `PlanManager` are fully decomposed. `CheckoutDialog` exposes only a
+  minimal open/close seam (`useCheckoutDialog` → `{ isOpen, close }` +
+  `CheckoutDialog.Close`); its checkout state machine stays in the styled
+  wrapper. `SchematicEmbed` is intentionally NOT decomposed (AST renderer +
+  styled-components `ThemeContext` guard make a headless split low-value).
 - When adding a new adapter slot or prop, update `pickWsProps` /
   `pickEmbedProps` in `provider.tsx` so each adapter only sees what it
   consumes.

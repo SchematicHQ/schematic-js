@@ -69,6 +69,15 @@ export {
   type IncludedFeaturesRootProps,
 } from "./included-features";
 
+// === CheckoutDialog (minimal open/close seam) ===
+export {
+  CheckoutDialog,
+  CheckoutDialogContext,
+  useCheckoutDialog,
+  type CheckoutDialogContextValue,
+  type CheckoutDialogRootProps,
+} from "./checkout-dialog";
+
 // === PlanManager ===
 export {
   PlanManager,
