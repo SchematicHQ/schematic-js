@@ -1,8 +1,10 @@
-import { Fragment, forwardRef, useMemo, useState } from "react";
+import { Fragment, forwardRef } from "react";
 import { useTranslation } from "react-i18next";
 
-import { type FeatureUsageResponseData } from "../../../api/checkoutexternal";
-import { VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
+import {
+  IncludedFeatures as IncludedFeaturesPrimitive,
+  useIncludedFeatures,
+} from "../../../composable/included-features";
 import { type FontStyle } from "../../../embed";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import type { DeepPartial, ElementProps } from "../../../types";
@@ -81,74 +83,44 @@ export const IncludedFeatures = forwardRef<
   HTMLDivElement | null,
   ElementProps & DeepPartial<DesignProps> & React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...rest }, ref) => {
-  const props = resolveDesignProps(rest);
+  const design = resolveDesignProps(rest);
 
+  return (
+    <IncludedFeaturesPrimitive.Root visibleFeatures={design.visibleFeatures}>
+      <IncludedFeaturesBody ref={ref} design={design} className={className} />
+    </IncludedFeaturesPrimitive.Root>
+  );
+});
+
+IncludedFeatures.displayName = "IncludedFeatures";
+
+interface IncludedFeaturesBodyProps {
+  design: DesignProps;
+  className?: string;
+}
+
+const IncludedFeaturesBody = forwardRef<
+  HTMLDivElement | null,
+  IncludedFeaturesBodyProps
+>(({ design, className }, ref) => {
   const { t } = useTranslation();
 
-  const { data, settings } = useEmbed();
+  const { settings } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
 
-  const [showCount, setShowCount] = useState(VISIBLE_ENTITLEMENT_COUNT);
+  const { shouldShow, displayedFeatures, hasMore, expanded, toggle } =
+    useIncludedFeatures();
 
-  const { plan, addOns, featureUsage } = useMemo(() => {
-    const orderedFeatureUsage = props.visibleFeatures?.reduce(
-      (acc: FeatureUsageResponseData[], id) => {
-        const mappedFeatureUsage = data?.featureUsage?.features.find(
-          (usage) => usage.feature?.id === id,
-        );
-
-        if (mappedFeatureUsage) {
-          acc.push(mappedFeatureUsage);
-        }
-
-        return acc;
-      },
-      [],
-    );
-
-    return {
-      plan: data?.company?.plan,
-      addOns: data?.company?.addOns || [],
-      featureUsage: orderedFeatureUsage || data?.featureUsage?.features || [],
-    };
-  }, [
-    props.visibleFeatures,
-    data?.company?.plan,
-    data?.company?.addOns,
-    data?.featureUsage?.features,
-  ]);
-
-  const featureListSize = featureUsage.length;
-
-  const handleToggleShowAll = () => {
-    setShowCount((prev) =>
-      prev > VISIBLE_ENTITLEMENT_COUNT
-        ? VISIBLE_ENTITLEMENT_COUNT
-        : featureListSize,
-    );
-  };
-
-  // Check if we should render this component at all:
-  // * If there are any plans or addons, render it, even if the list is empty.
-  // * If there are any features, show it (e.g., there could be features available via company overrides
-  //  even if the company has no plan or add-ons).
-  // * If none of the above, don't render the component.
-  const shouldShowFeatures =
-    featureUsage.length > 0 || plan || addOns.length > 0 || false;
-
-  if (!shouldShowFeatures) {
+  if (!shouldShow) {
     return null;
   }
 
-  const shouldShowExpand = featureListSize > VISIBLE_ENTITLEMENT_COUNT;
-  const isExpanded = showCount > VISIBLE_ENTITLEMENT_COUNT;
-
   return (
     <Element ref={ref} className={className} $containerType="inline-size">
-      {props.header.isVisible && (
+      {design.header.isVisible && (
         <Box $marginBottom="1.5rem">
-          <Text display={props.header.fontStyle}>{props.header.text}</Text>
+          <Text display={design.header.fontStyle}>{design.header.text}</Text>
         </Box>
       )}
 
@@ -163,10 +135,10 @@ export const IncludedFeatures = forwardRef<
           },
         }}
       >
-        {featureUsage.slice(0, showCount).map((entitlement, index) => {
+        {displayedFeatures.map((entitlement, index) => {
           return (
             <Fragment key={index}>
-              {props.icons.isVisible && entitlement.feature?.icon && (
+              {design.icons.isVisible && entitlement.feature?.icon && (
                 <Icon
                   name={entitlement.feature.icon}
                   color={settings.theme.primary}
@@ -186,23 +158,23 @@ export const IncludedFeatures = forwardRef<
                 $gap="0.25rem"
               >
                 {entitlement.feature?.name && (
-                  <Text display={props.icons.fontStyle}>
+                  <Text display={design.icons.fontStyle}>
                     {entitlement.feature.name}
                   </Text>
                 )}
 
-                {props.description.isVisible &&
+                {design.description.isVisible &&
                   entitlement.feature?.description && (
-                    <Text display={props.description.fontStyle}>
+                    <Text display={design.description.fontStyle}>
                       {entitlement.feature.description}
                     </Text>
                   )}
 
-                {props.entitlementExpiration.isVisible &&
+                {design.entitlementExpiration.isVisible &&
                   entitlement.entitlementExpirationDate && (
                     <Text
                       as="em"
-                      display={props.entitlementExpiration.fontStyle}
+                      display={design.entitlementExpiration.fontStyle}
                     >
                       {t("Expires", {
                         date: toPrettyDate(
@@ -232,26 +204,26 @@ export const IncludedFeatures = forwardRef<
                   },
                 }}
               >
-                <UsageDetails entitlement={entitlement} layout={props} />
+                <UsageDetails entitlement={entitlement} layout={design} />
               </Flex>
             </Fragment>
           );
         })}
       </Box>
 
-      {shouldShowExpand && (
+      {hasMore && (
         <Flex $alignItems="center" $marginTop="1rem">
           <Icon
-            name={isExpanded ? "chevron-up" : "chevron-down"}
+            name={expanded ? "chevron-up" : "chevron-down"}
             color="#D0D0D0"
           />
 
           <Text
-            onClick={handleToggleShowAll}
-            onKeyDown={createKeyboardExecutionHandler(handleToggleShowAll)}
+            onClick={toggle}
+            onKeyDown={createKeyboardExecutionHandler(toggle)}
             display="link"
           >
-            {isExpanded ? t("Hide all") : t("See all")}
+            {expanded ? t("Hide all") : t("See all")}
           </Text>
         </Flex>
       )}
@@ -259,4 +231,4 @@ export const IncludedFeatures = forwardRef<
   );
 });
 
-IncludedFeatures.displayName = "IncludedFeatures";
+IncludedFeaturesBody.displayName = "IncludedFeaturesBody";

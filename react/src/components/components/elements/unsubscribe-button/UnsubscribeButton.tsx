@@ -1,7 +1,10 @@
-import { forwardRef, useMemo } from "react";
+import { forwardRef } from "react";
 import { useTranslation } from "react-i18next";
 
-import { useEmbed } from "../../../hooks";
+import {
+  UnsubscribeButton as UnsubscribeButtonPrimitive,
+  useUnsubscribeButton,
+} from "../../../composable/unsubscribe-button";
 import { ComponentStyle, DeepPartial, ElementProps } from "../../../types";
 import { Element } from "../../layout";
 import {
@@ -62,19 +65,29 @@ export const UnsubscribeButton = forwardRef<
     React.HTMLAttributes<HTMLDivElement> & {
       portal?: HTMLElement | null;
     }
->(({ children, className, ...rest }, ref) => {
+>(({ className, ...rest }, ref) => {
   const props = resolveDesignProps(rest);
+
+  return (
+    <UnsubscribeButtonPrimitive.Root>
+      <UnsubscribeButtonBody ref={ref} design={props} className={className} />
+    </UnsubscribeButtonPrimitive.Root>
+  );
+});
+
+UnsubscribeButton.displayName = "UnsubscribeButton";
+
+interface UnsubscribeButtonBodyProps {
+  design: DesignProps;
+  className?: string;
+}
+
+const UnsubscribeButtonBody = forwardRef<
+  HTMLDivElement | null,
+  UnsubscribeButtonBodyProps
+>(({ design, className }, ref) => {
   const { t } = useTranslation();
-
-  const { data, setLayout } = useEmbed();
-
-  const hasActiveSubscription = useMemo(() => {
-    return (
-      data?.subscription &&
-      data.subscription.status !== "cancelled" &&
-      !data.subscription.cancelAt
-    );
-  }, [data?.subscription]);
+  const { hasActiveSubscription, unsubscribe } = useUnsubscribeButton();
 
   if (!hasActiveSubscription) {
     return null;
@@ -90,19 +103,17 @@ export const UnsubscribeButton = forwardRef<
     >
       <Button
         type="button"
-        onClick={() => {
-          setLayout("unsubscribe");
-        }}
-        $size={props.button.size}
-        $color={buttonStyles[props.button.style].color}
-        $variant={buttonStyles[props.button.style].variant}
-        $alignment={props.button.alignment}
-        $fullWidth={props.button.fullWidth}
+        onClick={unsubscribe}
+        $size={design.button.size}
+        $color={buttonStyles[design.button.style].color}
+        $variant={buttonStyles[design.button.style].variant}
+        $alignment={design.button.alignment}
+        $fullWidth={design.button.fullWidth}
       >
-        {t(props.button.text) ?? t("Unsubscribe")}
+        {t(design.button.text) ?? t("Unsubscribe")}
       </Button>
     </Element>
   );
 });
 
-UnsubscribeButton.displayName = "UnsubscribeButton";
+UnsubscribeButtonBody.displayName = "UnsubscribeButtonBody";

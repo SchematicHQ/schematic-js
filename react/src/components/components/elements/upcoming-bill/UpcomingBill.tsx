@@ -1,19 +1,14 @@
-import { forwardRef, useCallback, useEffect, useMemo, useState } from "react";
+import { forwardRef } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
-  type CurrencyBalance,
-  type InvoiceResponseData,
-} from "../../../api/checkoutexternal";
+  UpcomingBill as UpcomingBillPrimitive,
+  useUpcomingBill,
+} from "../../../composable/upcoming-bill";
 import { type FontStyle } from "../../../embed";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import type { DeepPartial, ElementProps } from "../../../types";
-import {
-  ERROR_UNKNOWN,
-  formatCurrency,
-  isError,
-  toPrettyDate,
-} from "../../../utils";
+import { formatCurrency, toPrettyDate } from "../../../utils";
 import { Element } from "../../layout";
 import { Box, Button, Flex, Loader, Text, TransitionBox } from "../../ui";
 
@@ -61,84 +56,41 @@ export const UpcomingBill = forwardRef<
 >(({ className, ...rest }, ref) => {
   const props = resolveDesignProps(rest);
 
+  return (
+    <UpcomingBillPrimitive.Root>
+      <UpcomingBillBody ref={ref} design={props} className={className} />
+    </UpcomingBillPrimitive.Root>
+  );
+});
+
+UpcomingBill.displayName = "UpcomingBill";
+
+interface UpcomingBillBodyProps {
+  design: DesignProps;
+  className?: string;
+}
+
+const UpcomingBillBody = forwardRef<
+  HTMLDivElement | null,
+  UpcomingBillBodyProps
+>(({ design, className }, ref) => {
   const { t } = useTranslation();
 
-  const { data, settings, debug, getUpcomingInvoice, getCustomerBalance } =
-    useEmbed();
+  const { settings } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
 
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<Error>();
-  const [upcomingInvoice, setUpcomingInvoice] = useState<
-    InvoiceResponseData | undefined
-  >(data?.upcomingInvoice);
-  const [balances, setBalances] = useState<CurrencyBalance[]>([]);
+  const {
+    isVisible,
+    isLoading,
+    error,
+    upcomingInvoice,
+    balances,
+    discounts,
+    retry: getInvoice,
+  } = useUpcomingBill();
 
-  const discounts = useMemo(() => {
-    return (data?.subscription?.discounts || []).map((discount) => ({
-      couponId: discount.couponId,
-      customerFacingCode: discount.customerFacingCode || undefined,
-      currency: discount.currency || undefined,
-      amountOff: discount.amountOff ?? undefined,
-      percentOff: discount.percentOff ?? undefined,
-      isActive: discount.isActive,
-    }));
-  }, [data?.subscription?.discounts]);
-
-  const getInvoice = useCallback(async () => {
-    if (
-      data?.component?.id &&
-      data?.subscription &&
-      !data.subscription.cancelAt
-    ) {
-      try {
-        setError(undefined);
-        setIsLoading(true);
-
-        const response = await getUpcomingInvoice(data.component.id);
-
-        if (response) {
-          setUpcomingInvoice(response.data);
-        }
-      } catch (err) {
-        setError(isError(err) ? err : ERROR_UNKNOWN);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-  }, [data?.component?.id, data?.subscription, getUpcomingInvoice]);
-
-  const getBalances = useCallback(async () => {
-    try {
-      const response = await getCustomerBalance();
-
-      if (response) {
-        setBalances(response.data.balances);
-      }
-    } catch (err) {
-      debug("Failed to fetch customer balance.", err);
-    }
-  }, [debug, getCustomerBalance]);
-
-  useEffect(() => {
-    getInvoice();
-  }, [getInvoice]);
-
-  useEffect(() => {
-    getBalances();
-  }, [getBalances]);
-
-  // ensure shared data updates are tracked
-  // used to keep in sync with preview data
-  // TODO: move this logic outside of components
-  useEffect(() => {
-    if (data?.upcomingInvoice) {
-      setUpcomingInvoice(data.upcomingInvoice);
-    }
-  }, [data?.upcomingInvoice]);
-
-  if (!data?.subscription || data.subscription.cancelAt) {
+  if (!isVisible) {
     return null;
   }
 
@@ -175,9 +127,9 @@ export const UpcomingBill = forwardRef<
           <TransitionBox>
             {upcomingInvoice ? (
               <Flex $flexDirection="column" $gap="1rem">
-                {props.header.isVisible && upcomingInvoice.dueDate && (
-                  <Text display={props.header.fontStyle}>
-                    {props.header.prefix}{" "}
+                {design.header.isVisible && upcomingInvoice.dueDate && (
+                  <Text display={design.header.fontStyle}>
+                    {design.header.prefix}{" "}
                     {toPrettyDate(upcomingInvoice.dueDate)}
                   </Text>
                 )}
@@ -187,8 +139,8 @@ export const UpcomingBill = forwardRef<
                   $alignItems="start"
                   $gap="1rem"
                 >
-                  {props.price.isVisible && (
-                    <Text display={props.price.fontStyle} $leading="none">
+                  {design.price.isVisible && (
+                    <Text display={design.price.fontStyle} $leading="none">
                       {formatCurrency(
                         upcomingInvoice.amountDue,
                         upcomingInvoice.currency,
@@ -197,7 +149,7 @@ export const UpcomingBill = forwardRef<
                   )}
 
                   <Box $maxWidth="10rem" $textAlign="right">
-                    <Text display={props.contractEndDate.fontStyle}>
+                    <Text display={design.contractEndDate.fontStyle}>
                       {t("Estimated bill")}
                     </Text>
                   </Box>
@@ -308,4 +260,4 @@ export const UpcomingBill = forwardRef<
   );
 });
 
-UpcomingBill.displayName = "UpcomingBill";
+UpcomingBillBody.displayName = "UpcomingBillBody";

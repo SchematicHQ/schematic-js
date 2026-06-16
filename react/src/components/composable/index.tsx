@@ -58,3 +58,45 @@ export {
   type PaymentMethodOptions,
   type PaymentMethodRootProps,
 } from "./payment-method";
+
+// === IncludedFeatures ===
+export {
+  IncludedFeatures,
+  IncludedFeaturesContext,
+  useIncludedFeatures,
+  type IncludedFeaturesContextValue,
+  type IncludedFeaturesOptions,
+  type IncludedFeaturesRootProps,
+} from "./included-features";
+
+// === Invoices ===
+export {
+  Invoices,
+  InvoicesContext,
+  formatInvoices,
+  useInvoices,
+  type FormattedInvoice,
+  type InvoicesContextValue,
+  type InvoicesOptions,
+  type InvoicesRootProps,
+} from "./invoices";
+
+// === UnsubscribeButton ===
+export {
+  UnsubscribeButton,
+  UnsubscribeButtonContext,
+  useUnsubscribeButton,
+  type UnsubscribeButtonContextValue,
+  type UnsubscribeButtonRootProps,
+} from "./unsubscribe-button";
+
+// === UpcomingBill ===
+export {
+  UpcomingBill,
+  UpcomingBillContext,
+  useUpcomingBill,
+  type UpcomingBillContentRenderProps,
+  type UpcomingBillContextValue,
+  type UpcomingBillDiscount,
+  type UpcomingBillRootProps,
+} from "./upcoming-bill";
