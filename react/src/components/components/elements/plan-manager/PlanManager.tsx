@@ -1,27 +1,19 @@
-import { forwardRef, useMemo } from "react";
+import { forwardRef } from "react";
 import { useTranslation } from "react-i18next";
 
-import { BillingCreditGrantReason } from "../../../api/checkoutexternal";
-import { type FontStyle } from "../../../embed";
 import {
-  useCustomPlanBilling,
-  useEmbed,
-  useIsLightBackground,
-  useTrialEnd,
-} from "../../../hooks";
-import type {
-  CreditWithCompanyContext,
-  DeepPartial,
-  ElementProps,
-} from "../../../types";
+  PlanManager as PlanManagerPrimitive,
+  usePlanManager,
+} from "../../../composable/plan-manager";
+import { type FontStyle } from "../../../embed";
+import { useEmbed, useIsLightBackground } from "../../../hooks";
+import type { DeepPartial, ElementProps } from "../../../types";
 import {
   darken,
   formatCurrency,
   getAutoTopupAmount,
   getAutoTopupThresholdCredits,
   getFeatureName,
-  getSubscriptionPeriod,
-  groupCreditGrants,
   isAutoTopupEnabled,
   lighten,
   shortenPeriod,
@@ -99,137 +91,60 @@ export const PlanManager = forwardRef<
     React.HTMLAttributes<HTMLDivElement> & {
       portal?: HTMLElement | null;
     }
->(({ children, className, portal, ...rest }, ref) => {
-  const props = resolveDesignProps(rest);
-
-  const { t } = useTranslation();
-
-  const { data, settings, setCheckoutState, setLayout } = useEmbed();
-
-  const isLightBackground = useIsLightBackground();
-
-  const trialEnd = useTrialEnd();
-
-  const customPlanBilling = useCustomPlanBilling();
-
-  /**
-   * Can change plan if there is:
-   * - a publishable key
-   * - a current plan with a billing association
-   * - any active plans
-   */
-  const {
-    currentPlan,
-    currentAddOns,
-    creditBundles,
-    creditGroups,
-    billingSubscription,
-    canCheckout,
-    postTrialPlan,
-    featureUsage,
-    showCredits,
-    showZeroPriceAsFree,
-    trialPaymentMethodRequired,
-  } = useMemo(() => {
-    return {
-      currentPlan: data?.company?.plan,
-      currentAddOns: data?.company?.addOns || [],
-      creditBundles: data?.creditBundles || [],
-      creditGroups: groupCreditGrants(data?.creditGrants || [], {
-        groupBy: "bundle",
-      }).reduce(
-        (
-          acc: {
-            plan: CreditWithCompanyContext[];
-            bundles: CreditWithCompanyContext[];
-            promotional: CreditWithCompanyContext[];
-          },
-          grant,
-        ) => {
-          switch (grant.grantReason) {
-            case BillingCreditGrantReason.Plan:
-              acc.plan.push(grant);
-              break;
-            case BillingCreditGrantReason.Purchased:
-              acc.bundles.push(grant);
-              break;
-            case BillingCreditGrantReason.Free:
-              acc.promotional.push(grant);
-          }
-
-          return acc;
-        },
-        { plan: [], bundles: [], promotional: [] },
-      ),
-      billingSubscription: data?.company?.billingSubscription,
-      canCheckout: data?.capabilities?.checkout ?? false,
-      postTrialPlan: data?.postTrialPlan,
-      featureUsage: data?.featureUsage?.features || [],
-      trialPaymentMethodRequired: data?.trialPaymentMethodRequired ?? false,
-      showCredits: data?.displaySettings?.showCredits ?? true,
-      showZeroPriceAsFree: data?.displaySettings?.showZeroPriceAsFree ?? false,
-    };
-  }, [
-    data?.capabilities?.checkout,
-    data?.company?.addOns,
-    data?.company?.billingSubscription,
-    data?.company?.plan,
-    data?.creditBundles,
-    data?.creditGrants,
-    data?.featureUsage?.features,
-    data?.postTrialPlan,
-    data?.displaySettings?.showCredits,
-    data?.displaySettings?.showZeroPriceAsFree,
-    data?.trialPaymentMethodRequired,
-  ]);
-
-  const usageBasedEntitlements = useMemo(
-    () =>
-      featureUsage.filter((usage) => typeof usage.priceBehavior === "string"),
-    [featureUsage],
-  );
-
-  const {
-    subscriptionInterval,
-    subscriptionCurrency,
-    willSubscriptionCancel,
-    isTrialSubscription,
-  } = useMemo(() => {
-    const subscriptionInterval =
-      getSubscriptionPeriod(billingSubscription) ??
-      billingSubscription?.interval;
-    const subscriptionCurrency = billingSubscription?.currency;
-    const isTrialSubscription = billingSubscription?.status === "trialing";
-    const willSubscriptionCancel =
-      typeof billingSubscription?.cancelAt === "number" &&
-      billingSubscription?.cancelAtPeriodEnd === true;
-
-    return {
-      subscriptionInterval,
-      subscriptionCurrency,
-      isTrialSubscription,
-      willSubscriptionCancel,
-    };
-  }, [billingSubscription]);
-
-  const currentPlanPeriod =
-    getSubscriptionPeriod(billingSubscription) ??
-    currentPlan?.planPeriod ??
-    undefined;
-
-  const { isFreePlan, isUsageBasedPlan } = useMemo(() => {
-    const isFreePlan = currentPlan?.planPrice === 0;
-    const isUsageBasedPlan = isFreePlan && usageBasedEntitlements.length > 0;
-    return { isFreePlan, isUsageBasedPlan };
-  }, [currentPlan, usageBasedEntitlements]);
-
-  const hasAutoTopupSelfService =
-    currentPlan?.includedCreditGrants.some((grant) => {
-      return grant.billingCreditAutoTopupSelfService;
-    }) ?? false;
+>(({ className, ...rest }, ref) => {
+  const design = resolveDesignProps(rest);
 
   return (
-    <>
+    <PlanManagerPrimitive.Root>
+      <PlanManagerBody ref={ref} design={design} className={className} />
+    </PlanManagerPrimitive.Root>
+  );
+});
+
+PlanManager.displayName = "PlanManager";
+
+interface PlanManagerBodyProps {
+  design: DesignProps;
+  className?: string;
+}
+
+const PlanManagerBody = forwardRef<HTMLDivElement | null, PlanManagerBodyProps>(
+  ({ design, className }, ref) => {
+    const { t } = useTranslation();
+
+    const { settings } = useEmbed();
+
+    const isLightBackground = useIsLightBackground();
+
+    const {
+      currentPlan,
+      currentAddOns,
+      creditBundles,
+      creditGroups,
+      billingSubscription,
+      canCheckout,
+      postTrialPlan,
+      usageBasedEntitlements,
+      showCredits,
+      showZeroPriceAsFree,
+      trialPaymentMethodRequired,
+      scheduledDowngrade,
+      subscriptionInterval,
+      subscriptionCurrency,
+      willSubscriptionCancel,
+      isTrialSubscription,
+      currentPlanPeriod,
+      isFreePlan,
+      isUsageBasedPlan,
+      hasAutoTopupSelfService,
+      customPlanBilling,
+      trialEnd,
+      changePlan,
+      editAutoTopup,
+    } = usePlanManager();
+
+    return (
+      <>
       {isTrialSubscription && !willSubscriptionCancel ? (
         <Notice
           as={Flex}
@@ -356,7 +271,7 @@ export const PlanManager = forwardRef<
           )}
         </Notice>
       ) : (
-        data?.company?.scheduledDowngrade?.toPlanName && (
+        scheduledDowngrade?.toPlanName && (
           <Notice
             as={Flex}
             $flexDirection="column"
@@ -371,7 +286,7 @@ export const PlanManager = forwardRef<
           >
             <Text as="h3" display="heading3">
               {t("Downgrade to plan scheduled", {
-                plan: data.company.scheduledDowngrade.toPlanName,
+                plan: scheduledDowngrade.toPlanName,
               })}
             </Text>
 
@@ -381,7 +296,7 @@ export const PlanManager = forwardRef<
                 $size={0.8125 * settings.theme.typography.text.fontSize}
               >
                 {t("Access to plan will end.", {
-                  plan: data.company.scheduledDowngrade.fromPlanName,
+                  plan: scheduledDowngrade.fromPlanName,
                   date: toPrettyDate(
                     new Date(billingSubscription.periodEnd * 1000),
                     {
@@ -402,33 +317,33 @@ export const PlanManager = forwardRef<
         $flexDirection="column"
         $gap="2rem"
       >
-        {props.header.isVisible && currentPlan && (
+        {design.header.isVisible && currentPlan && (
           <Flex
             $justifyContent="space-between"
             $alignItems="center"
             $gap="1rem"
           >
             <Flex $flexDirection="column" $gap="1rem">
-              <Text display={props.header.title.fontStyle} $leading="none">
+              <Text display={design.header.title.fontStyle} $leading="none">
                 {currentPlan.name}
               </Text>
 
-              {props.header.description.isVisible &&
+              {design.header.description.isVisible &&
                 currentPlan.description && (
-                  <Text display={props.header.description.fontStyle}>
+                  <Text display={design.header.description.fontStyle}>
                     {currentPlan.description}
                   </Text>
                 )}
             </Flex>
 
-            {props.header.price.isVisible &&
+            {design.header.price.isVisible &&
               typeof currentPlan.planPrice === "number" && (
                 <Box>
                   <Text
                     display={
                       isUsageBasedPlan
                         ? "heading3"
-                        : props.header.price.fontStyle
+                        : design.header.price.fontStyle
                     }
                   >
                     {isUsageBasedPlan
@@ -442,7 +357,7 @@ export const PlanManager = forwardRef<
                   </Text>
 
                   {!isFreePlan && currentPlanPeriod && (
-                    <Text display={props.header.price.fontStyle}>
+                    <Text display={design.header.price.fontStyle}>
                       <sub>/{shortenPeriod(currentPlanPeriod)}</sub>
                     </Text>
                   )}
@@ -451,9 +366,9 @@ export const PlanManager = forwardRef<
           </Flex>
         )}
 
-        {props.addOns.isVisible && currentAddOns.length > 0 && (
+        {design.addOns.isVisible && currentAddOns.length > 0 && (
           <Flex $flexDirection="column" $gap="0.5rem">
-            {props.addOns.showLabel && (
+            {design.addOns.showLabel && (
               <Text
                 $color={
                   isLightBackground
@@ -473,16 +388,16 @@ export const PlanManager = forwardRef<
                   addOn={addOn}
                   currency={subscriptionCurrency}
                   period={currentPlanPeriod}
-                  layout={props}
+                  layout={design}
                 />
               ))}
             </Flex>
           </Flex>
         )}
 
-        {props.addOns.isVisible && usageBasedEntitlements.length > 0 && (
+        {design.addOns.isVisible && usageBasedEntitlements.length > 0 && (
           <Flex $flexDirection="column" $gap="0.5rem">
-            {props.addOns.showLabel && (
+            {design.addOns.showLabel && (
               <Text
                 $color={
                   isLightBackground
@@ -504,7 +419,7 @@ export const PlanManager = forwardRef<
                     period={currentPlanPeriod || "month"}
                     currency={subscriptionCurrency}
                     showCredits={showCredits}
-                    layout={props}
+                    layout={design}
                   />
                 );
               })}
@@ -512,11 +427,11 @@ export const PlanManager = forwardRef<
           </Flex>
         )}
 
-        {props.addOns.isVisible &&
+        {design.addOns.isVisible &&
           showCredits &&
           creditGroups.plan.length > 0 && (
             <Flex $flexDirection="column" $gap="0.5rem">
-              {props.addOns.showLabel && (
+              {design.addOns.showLabel && (
                 <Text
                   $color={
                     isLightBackground
@@ -552,7 +467,7 @@ export const PlanManager = forwardRef<
                         $flexWrap="wrap"
                         $gap="0.5rem"
                       >
-                        <Text display={props.addOns.fontStyle}>
+                        <Text display={design.addOns.fontStyle}>
                           {group.quantity}{" "}
                           {getFeatureName(group, group.quantity)}{" "}
                           {subscriptionInterval && (
@@ -601,7 +516,7 @@ export const PlanManager = forwardRef<
                   $borderRadius="0.5rem"
                 >
                   <Flex $flexDirection="column" $gap="0.5rem">
-                    <Text display={props.addOns.fontStyle}>
+                    <Text display={design.addOns.fontStyle}>
                       {t("Auto top-up")}
                     </Text>
                     {currentPlan?.includedCreditGrants.reduce(
@@ -658,10 +573,7 @@ export const PlanManager = forwardRef<
 
                   <Button
                     type="button"
-                    onClick={() => {
-                      setCheckoutState({ bypassPlanSelection: true });
-                      setLayout("checkout");
-                    }}
+                    onClick={editAutoTopup}
                     $size="sm"
                     $variant="ghost"
                   >
@@ -672,9 +584,9 @@ export const PlanManager = forwardRef<
             </Flex>
           )}
 
-        {props.addOns.isVisible && creditGroups.bundles.length > 0 && (
+        {design.addOns.isVisible && creditGroups.bundles.length > 0 && (
           <Flex $flexDirection="column" $gap="0.5rem">
-            {props.addOns.showLabel && (
+            {design.addOns.showLabel && (
               <Text
                 $color={
                   isLightBackground
@@ -702,7 +614,7 @@ export const PlanManager = forwardRef<
                     $gap="0.5rem"
                   >
                     {bundle ? (
-                      <Text display={props.addOns.fontStyle}>
+                      <Text display={design.addOns.fontStyle}>
                         {group.grants.length > 1 && (
                           <Text style={{ opacity: 0.5 }}>
                             ({group.grants.length}){" "}
@@ -712,7 +624,7 @@ export const PlanManager = forwardRef<
                         {getFeatureName(group, group.quantity)})
                       </Text>
                     ) : (
-                      <Text display={props.addOns.fontStyle}>
+                      <Text display={design.addOns.fontStyle}>
                         {group.quantity} {getFeatureName(group, group.quantity)}
                       </Text>
                     )}
@@ -733,9 +645,9 @@ export const PlanManager = forwardRef<
           </Flex>
         )}
 
-        {props.addOns.isVisible && creditGroups.promotional.length > 0 && (
+        {design.addOns.isVisible && creditGroups.promotional.length > 0 && (
           <Flex $flexDirection="column" $gap="0.5rem">
-            {props.addOns.showLabel && (
+            {design.addOns.showLabel && (
               <Text
                 $color={
                   isLightBackground
@@ -758,7 +670,7 @@ export const PlanManager = forwardRef<
                     $flexWrap="wrap"
                     $gap="0.5rem"
                   >
-                    <Text display={props.addOns.fontStyle}>
+                    <Text display={design.addOns.fontStyle}>
                       {group.quantity} {getFeatureName(group, group.quantity)}
                     </Text>
 
@@ -779,15 +691,13 @@ export const PlanManager = forwardRef<
         )}
 
         {canCheckout &&
-          props.callToAction.isVisible &&
+          design.callToAction.isVisible &&
           !customPlanBilling?.isAwaitingActivation && (
             <Button
               type="button"
-              onClick={() => {
-                setLayout("checkout");
-              }}
-              $size={props.callToAction.buttonSize}
-              $color={props.callToAction.buttonStyle}
+              onClick={changePlan}
+              $size={design.callToAction.buttonSize}
+              $color={design.callToAction.buttonStyle}
               $fullWidth
             >
               {t("Change plan")}
@@ -798,4 +708,4 @@ export const PlanManager = forwardRef<
   );
 });
 
-PlanManager.displayName = "PlanManager";
+PlanManagerBody.displayName = "PlanManagerBody";

@@ -1,13 +1,16 @@
-import { forwardRef, useCallback, useMemo, useRef, useState } from "react";
+import { forwardRef, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
   BillingCreditGrantReason,
   EntitlementPriceBehavior,
   EntitlementValueType,
-  FeatureType,
   type FeatureUsageResponseData,
 } from "../../../api/checkoutexternal";
+import {
+  MeteredFeatures as MeteredFeaturesPrimitive,
+  useMeteredFeatures,
+} from "../../../composable/metered-features";
 import { TEXT_BASE_SIZE } from "../../../const";
 import { type FontStyle } from "../../../embed";
 import {
@@ -21,9 +24,7 @@ import {
   formatCurrency,
   formatNumber,
   getFeatureName,
-  getSubscriptionPeriod,
   getUsageDetails,
-  groupCreditGrants,
   modifyDate,
   toPrettyDate,
   type UsageDetails,
@@ -197,69 +198,51 @@ export const MeteredFeatures = forwardRef<
   HTMLDivElement | null,
   ElementProps & DeepPartial<DesignProps> & React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...rest }, ref) => {
-  const props = resolveDesignProps(rest);
+  const design = resolveDesignProps(rest);
 
+  return (
+    <MeteredFeaturesPrimitive.Root visibleFeatures={design.visibleFeatures}>
+      <MeteredFeaturesBody ref={ref} design={design} className={className} />
+    </MeteredFeaturesPrimitive.Root>
+  );
+});
+
+MeteredFeatures.displayName = "MeteredFeatures";
+
+interface MeteredFeaturesBodyProps {
+  design: DesignProps;
+  className?: string;
+}
+
+const MeteredFeaturesBody = forwardRef<
+  HTMLDivElement | null,
+  MeteredFeaturesBodyProps
+>(({ design, className }, ref) => {
   const elementsRef = useRef<HTMLElement[]>([]);
   const shouldWrapChildren = useWrapChildren(elementsRef);
 
   const { t } = useTranslation();
 
-  const { data, settings, setCheckoutState } = useEmbed();
+  const { settings } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
 
-  const meteredFeatures = useMemo(() => {
-    const orderedFeatureUsage = props.visibleFeatures?.reduce(
-      (acc: FeatureUsageResponseData[], id) => {
-        const mappedFeatureUsage = data?.featureUsage?.features.find(
-          (usage) => usage.feature?.id === id,
-        );
+  const {
+    meteredFeatures,
+    creditGroups,
+    shouldShow,
+    period,
+    canCheckout,
+    showCredits,
+    isCreditExpanded,
+    toggleBalanceDetails,
+    addUsage,
+    buyCredits,
+  } = useMeteredFeatures();
 
-        if (mappedFeatureUsage) {
-          acc.push(mappedFeatureUsage);
-        }
-
-        return acc;
-      },
-      [],
-    );
-
-    return (orderedFeatureUsage || data?.featureUsage?.features || []).filter(
-      ({ feature }) =>
-        feature?.featureType === FeatureType.Event ||
-        feature?.featureType === FeatureType.Trait,
-    );
-  }, [props.visibleFeatures, data?.featureUsage?.features]);
-
-  const creditGroups = groupCreditGrants(data?.creditGrants || [], {
-    groupBy: "credit",
-  });
-  const [creditVisibility, setCreditVisibility] = useState(
-    creditGroups.map(({ id }) => ({ id, isExpanded: false })),
-  );
-
-  const toggleBalanceDetails = useCallback((id: string) => {
-    setCreditVisibility((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, isExpanded: !item.isExpanded } : item,
-      ),
-    );
-  }, []);
-
-  const shouldShowFeatures =
-    meteredFeatures.length > 0 || creditGroups.length > 0;
-  if (!shouldShowFeatures) {
+  if (!shouldShow) {
     return null;
   }
-
-  const period =
-    getSubscriptionPeriod(data?.company?.billingSubscription) ??
-    (typeof data?.company?.plan?.planPeriod === "string"
-      ? data.company?.plan?.planPeriod
-      : undefined);
-
-  const canCheckout = data?.capabilities?.checkout ?? false;
-  const showCredits = data?.displaySettings?.showCredits ?? true;
 
   return (
     <styles.Container ref={ref} className={className}>
@@ -275,7 +258,7 @@ export const MeteredFeatures = forwardRef<
         acc.push(
           <Element key={index} as={Flex} $flexDirection="column" $gap="1.5rem">
             <Flex $gap="1.5rem">
-              {props.icon.isVisible && (
+              {design.icon.isVisible && (
                 <Icon
                   name={feature.icon}
                   color={settings.theme.primary}
@@ -300,14 +283,14 @@ export const MeteredFeatures = forwardRef<
                 >
                   <Flex $flexDirection="column" $gap="0.5rem" $flexGrow={1}>
                     <Box>
-                      <Text display={props.header.fontStyle}>
+                      <Text display={design.header.fontStyle}>
                         {feature.name}
                       </Text>
                     </Box>
 
-                    {props.description.isVisible && feature.description && (
+                    {design.description.isVisible && feature.description && (
                       <Box>
-                        <Text display={props.description.fontStyle}>
+                        <Text display={design.description.fontStyle}>
                           {feature.description}
                         </Text>
                       </Box>
@@ -319,9 +302,9 @@ export const MeteredFeatures = forwardRef<
                     $flexGrow={1}
                     $textAlign={shouldWrapChildren ? "left" : "right"}
                   >
-                    {props.usage.isVisible && (
+                    {design.usage.isVisible && (
                       <Box $whiteSpace="nowrap">
-                        <Text display={props.usage.fontStyle}>
+                        <Text display={design.usage.fontStyle}>
                           {priceBehavior ===
                           EntitlementPriceBehavior.PayInAdvance ? (
                             <>
@@ -342,17 +325,17 @@ export const MeteredFeatures = forwardRef<
                       </Box>
                     )}
 
-                    {props.allocation.isVisible && (
+                    {design.allocation.isVisible && (
                       <Limit
                         entitlement={entitlement}
                         usageDetails={usageDetails}
-                        fontStyle={props.allocation.fontStyle}
+                        fontStyle={design.allocation.fontStyle}
                       />
                     )}
                   </Box>
                 </Flex>
 
-                {props.isVisible &&
+                {design.isVisible &&
                   priceBehavior !== EntitlementPriceBehavior.PayAsYouGo &&
                   priceBehavior !== EntitlementPriceBehavior.CreditBurndown && (
                     <Meter entitlement={entitlement} />
@@ -362,9 +345,7 @@ export const MeteredFeatures = forwardRef<
                   priceBehavior === EntitlementPriceBehavior.PayInAdvance && (
                     <Button
                       type="button"
-                      onClick={() => {
-                        setCheckoutState({ usage: true });
-                      }}
+                      onClick={addUsage}
                       style={{ whiteSpace: "nowrap" }}
                     >
                       {t("Add More")}
@@ -389,14 +370,12 @@ export const MeteredFeatures = forwardRef<
 
       {showCredits &&
         creditGroups.map((credit, index) => {
-          const isExpanded =
-            creditVisibility.find(({ id }) => credit.id === id)?.isExpanded ??
-            false;
+          const isExpanded = isCreditExpanded(credit.id);
 
           return (
             <Element key={index} as={Flex} $flexDirection="column" $gap="1rem">
               <Flex $gap="1.5rem">
-                {props.icon.isVisible && (
+                {design.icon.isVisible && (
                   <Icon
                     // if `icon` is `undefined` this will render as a blank circle
                     name={credit.icon as string}
@@ -414,14 +393,14 @@ export const MeteredFeatures = forwardRef<
                   <Flex $flexWrap="wrap" $gap="1rem">
                     <Flex $flexDirection="column" $gap="0.5rem" $flexGrow={1}>
                       <Box>
-                        <Text display={props.header.fontStyle}>
+                        <Text display={design.header.fontStyle}>
                           {credit.name}
                         </Text>
                       </Box>
 
-                      {props.description.isVisible && credit.description && (
+                      {design.description.isVisible && credit.description && (
                         <Box>
-                          <Text display={props.description.fontStyle}>
+                          <Text display={design.description.fontStyle}>
                             {credit.description}
                           </Text>
                         </Box>
@@ -447,9 +426,7 @@ export const MeteredFeatures = forwardRef<
                     {canCheckout && (
                       <Button
                         type="button"
-                        onClick={() => {
-                          setCheckoutState({ credits: true });
-                        }}
+                        onClick={buyCredits}
                         style={{ whiteSpace: "nowrap" }}
                         $size="sm"
                       >
@@ -625,4 +602,4 @@ export const MeteredFeatures = forwardRef<
   );
 });
 
-MeteredFeatures.displayName = "MeteredFeatures";
+MeteredFeaturesBody.displayName = "MeteredFeaturesBody";

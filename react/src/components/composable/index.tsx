@@ -69,6 +69,28 @@ export {
   type IncludedFeaturesRootProps,
 } from "./included-features";
 
+// === PlanManager ===
+export {
+  PlanManager,
+  PlanManagerContext,
+  usePlanManager,
+  type ChangePlanTriggerProps,
+  type PlanManagerContextValue,
+  type PlanManagerCreditGroups,
+  type PlanManagerRootProps,
+} from "./plan-manager";
+
+// === MeteredFeatures ===
+export {
+  MeteredFeatures,
+  MeteredFeaturesContext,
+  useMeteredFeatures,
+  type MeteredCreditGroup,
+  type MeteredFeaturesContextValue,
+  type MeteredFeaturesOptions,
+  type MeteredFeaturesRootProps,
+} from "./metered-features";
+
 // === Invoices ===
 export {
   Invoices,
