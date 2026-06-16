@@ -99,6 +99,12 @@ export interface CompanySubscriptionResponseData {
   interval: string;
   /**
    *
+   * @type {boolean}
+   * @memberof CompanySubscriptionResponseData
+   */
+  isInitial: boolean;
+  /**
+   *
    * @type {InvoiceResponseData}
    * @memberof CompanySubscriptionResponseData
    */
@@ -166,6 +172,7 @@ export function instanceOfCompanySubscriptionResponseData(
     return false;
   if (!("discounts" in value) || value["discounts"] === undefined) return false;
   if (!("interval" in value) || value["interval"] === undefined) return false;
+  if (!("isInitial" in value) || value["isInitial"] === undefined) return false;
   if (!("products" in value) || value["products"] === undefined) return false;
   if (!("providerType" in value) || value["providerType"] === undefined)
     return false;
@@ -205,6 +212,7 @@ export function CompanySubscriptionResponseDataFromJSONTyped(
     expiredAt:
       json["expired_at"] == null ? undefined : new Date(json["expired_at"]),
     interval: json["interval"],
+    isInitial: json["is_initial"],
     latestInvoice:
       json["latest_invoice"] == null
         ? undefined
@@ -255,6 +263,7 @@ export function CompanySubscriptionResponseDataToJSONTyped(
         ? undefined
         : (value["expiredAt"] as any).toISOString(),
     interval: value["interval"],
+    is_initial: value["isInitial"],
     latest_invoice: InvoiceResponseDataToJSON(value["latestInvoice"]),
     payment_method: PaymentMethodResponseDataToJSON(value["paymentMethod"]),
     products: (value["products"] as Array<any>).map(
