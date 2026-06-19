@@ -133,9 +133,14 @@ export function useAvailableCurrenciesWithInvalid(): AvailableCurrenciesResult {
 /**
  * Returns the currency of the company's active subscription, if any.
  * Stripe does not allow mixing currencies on a subscription, so when
- * this is set the currency selector should be locked.
+ * this is set the currency selector should be locked. The initial (free,
+ * $0) plan is exempt: its subscription can be switched at checkout, so
+ * we treat it as having no locked currency.
  */
 export function useSubscriptionCurrency(): string | undefined {
   const { data } = useEmbed();
+  if (data?.subscription?.isInitial) {
+    return undefined;
+  }
   return data?.subscription?.currency?.toUpperCase();
 }
