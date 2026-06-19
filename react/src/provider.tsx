@@ -7,6 +7,11 @@ import {
   getCachedEmbedAdapter,
   subscribeEmbedAdapter,
 } from "./embed-loader";
+import {
+  SchematicWsDisabledContext,
+  getCachedWsAdapter,
+  subscribeWsAdapter,
+} from "./ws-loader";
 
 type CoreOptions = Omit<
   SchematicJS.SchematicOptions,
@@ -123,28 +128,44 @@ function pickEmbedProps(props: ForwardableProps): SchematicAdapterProps {
  *     content. Consumers wanting visible "loading…" UI place their own
  *     `<Suspense>` boundary closer to the affected component.
  *
- * Lazy embed loading: when no `embed` adapter is bound (the prop is
- * `undefined`), descendants that call `useEmbed` (and embed-specific hooks
- * built on it) throw the embed adapter's import promise. The inner
- * Suspense catches it; the provider subscribes to `embed-loader` via
- * `useSyncExternalStore` and re-renders with the dynamically-loaded
- * adapter mounted. Pass `embed={null}` to explicitly disable this — the
- * provider then publishes that decision via
- * `SchematicEmbedDisabledContext` so `useEmbed` throws a clear error
- * rather than looping on a Suspense throw that no one will resolve.
+ * Lazy adapter loading: when an adapter slot is unbound (the prop is
+ * `undefined`), descendants that need it trigger its import on first use.
+ * For embed, `useEmbed` throws the import promise; for WS, the
+ * client-returning core hooks (`useSchematic`, …) throw it while the value
+ * hooks (`useSchematicFlag`, …) start the load from an effect and render
+ * their fallback meanwhile. The inner Suspense catches any throw; the
+ * provider subscribes to `embed-loader` / `ws-loader` via
+ * `useSyncExternalStore` and re-renders with the dynamically-loaded adapter
+ * mounted. Pass `embed={null}` / `ws={null}` to explicitly disable a slot —
+ * the provider then publishes that decision via
+ * `SchematicEmbedDisabledContext` / `SchematicWsDisabledContext` so the
+ * affected hooks throw a clear error rather than looping on a Suspense
+ * throw that no one will resolve.
  */
 export const SchematicProvider: React.FC<SchematicProviderBaseProps> = ({
   children,
-  ws: Ws,
+  ws: ExplicitWs,
   embed: ExplicitEmbed,
   fallback,
   ...props
 }) => {
+  const LazyLoadedWs = useSyncExternalStore(
+    subscribeWsAdapter,
+    getCachedWsAdapter,
+    () => null,
+  );
   const LazyLoadedEmbed = useSyncExternalStore(
     subscribeEmbedAdapter,
     getCachedEmbedAdapter,
     () => null,
   );
+
+  // `ws === null` is an explicit opt-out (UI-only mode). Don't auto-load, and
+  // broadcast the decision so the client-returning core hooks throw a clear
+  // error instead of looping on a Suspense throw the provider never resolves.
+  const wsDisabled = ExplicitWs === null;
+  const Ws: SchematicAdapter | null =
+    ExplicitWs === undefined ? LazyLoadedWs : ExplicitWs;
 
   // `embed === null` is an explicit opt-out. Don't auto-load, and broadcast
   // the decision so `useEmbed` throws a clear error instead of looping.
@@ -152,9 +173,9 @@ export const SchematicProvider: React.FC<SchematicProviderBaseProps> = ({
   const Embed: SchematicAdapter | null =
     ExplicitEmbed === undefined ? LazyLoadedEmbed : ExplicitEmbed;
 
-  // Inner Suspense around children: a child's `useEmbed` throw is caught
-  // here so it doesn't bubble to the outer fallback, and so the adapter
-  // load swap re-renders inside this boundary specifically.
+  // Inner Suspense around children: a child's `useEmbed`/`useSchematic` throw
+  // is caught here so it doesn't bubble to the outer fallback, and so the
+  // adapter load swap re-renders inside this boundary specifically.
   let tree: React.ReactNode = <Suspense fallback={null}>{children}</Suspense>;
 
   if (Embed) {
@@ -174,8 +195,10 @@ export const SchematicProvider: React.FC<SchematicProviderBaseProps> = ({
   }
 
   return (
-    <SchematicEmbedDisabledContext.Provider value={embedDisabled}>
-      <Suspense fallback={fallback ?? null}>{tree}</Suspense>
-    </SchematicEmbedDisabledContext.Provider>
+    <SchematicWsDisabledContext.Provider value={wsDisabled}>
+      <SchematicEmbedDisabledContext.Provider value={embedDisabled}>
+        <Suspense fallback={fallback ?? null}>{tree}</Suspense>
+      </SchematicEmbedDisabledContext.Provider>
+    </SchematicWsDisabledContext.Provider>
   );
 };

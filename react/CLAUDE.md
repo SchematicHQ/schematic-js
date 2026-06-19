@@ -15,8 +15,10 @@ The root entry stays lightweight; the heavier UI surface ships from
 ## Subpath exports
 
 - `@schematichq/schematic-react` — root entry. WS-backed flags,
-  entitlements, events, plan info. Pulls in `react` and (as an external)
-  `@schematichq/schematic-js` and nothing else.
+  entitlements, events, plan info. Pulls in `react` and nothing else
+  eagerly: `@schematichq/schematic-js` (an external) is lazy-loaded with
+  the WS adapter on first core-hook use, so a consumer who only uses the
+  UI surface (`ws={null}`) tree-shakes it out.
 - `@schematichq/schematic-react/components` — UI surface. Re-exports the
   root entry, plus `lazy`-wrapped UI components (`PricingTable`,
   `PaymentMethod`, `CheckoutDialog`, etc.) and the embed-side hooks
@@ -38,33 +40,50 @@ tree and forwards a per-adapter slice of props to each.
 - `src/core/WsAdapter.tsx` — WS adapter. Constructs (or accepts) a
   `Schematic` client, provides the WS slot, cleans up on unmount. Warns
   in dev when `publishableKey` or `client` changes after mount (the
-  initial value is captured by design).
+  initial value is captured by design). It is the only root-entry code
+  that imports `@schematichq/schematic-js` at runtime (`new Schematic`),
+  so it is reachable only via a dynamic `import()` — lazy by default.
 - `src/components/embed/EmbedAdapter.tsx` — embed adapter. REST clients,
   reducer, theme, i18n, fonts. Heavy — only mounted from the /components
   subpath, and even then only lazily.
-- `src/embed-loader.ts` — coordinates the lazy embed mount. Exposes a
-  `useSyncExternalStore`-compatible store the bare provider subscribes
-  to, plus `SchematicEmbedDisabledContext` so `useEmbed` can throw an
-  explicit error when `embed={null}` is the active opt-out.
+- `src/embed-loader.ts` / `src/ws-loader.ts` — coordinate the lazy embed
+  and WS mounts. Each exposes a `useSyncExternalStore`-compatible store the
+  bare provider subscribes to, plus a disabled-signal context
+  (`SchematicEmbedDisabledContext` / `SchematicWsDisabledContext`) so the
+  relevant hooks throw an explicit error when `embed={null}` / `ws={null}`
+  is the active opt-out.
 
-### Lazy embed loading (the Path C mechanism)
+### Lazy adapter loading (the Path C mechanism)
 
-By default, neither entry's `SchematicProvider` pre-binds the embed
-adapter. When a descendant calls `useEmbed` (or mounts one of the lazy UI
-components), the hook throws the embed adapter's import promise. The
-inner Suspense boundary inside the bare provider catches it; the provider
-re-renders with the dynamically-loaded adapter mounted; the suspended
-component retries inside the populated context.
+By default, `SchematicProvider` pre-binds neither adapter — both the embed
+and WS adapters are loaded on demand via a dynamic `import()`. When a
+descendant needs an adapter, it triggers the import; the bare provider
+subscribes to that adapter's loader store via `useSyncExternalStore` and
+re-renders with the dynamically-loaded adapter mounted.
 
-Three opt-in / opt-out paths:
+Embed and WS differ in how the trigger surfaces:
 
-- `embed={undefined}` (default) — lazy load on first `useEmbed`.
-- `embed={EmbedAdapter}` — eager mount at provider time. `EmbedAdapter`
-  is exported from `/components` as a thin function-component wrapper
-  around a `React.lazy` ref (the chunk-split shape is preserved).
-- `embed={null}` — explicit opt-out. The provider publishes
-  `SchematicEmbedDisabledContext={true}`; `useEmbed` throws a clear error
-  instead of looping on a Suspense throw the provider would never resolve.
+- **Embed** — `useEmbed` (and the embed UI components) throw the import
+  promise; the inner Suspense boundary catches it and the suspended
+  component retries inside the populated context.
+- **WS** — the client-returning core hooks (`useSchematic`,
+  `useSchematicEvents`, `useSchematicContext`) throw the import promise
+  (suspend). The value hooks (`useSchematicFlag`, `useSchematicEntitlement`,
+  `useSchematicPlan`, `useSchematicIsPending`) do **not** suspend: they
+  trigger the load from an effect and return their fallback until the
+  client is bound, preserving the instant-fallback contract.
+
+Opt-in / opt-out paths (symmetric for `ws` and `embed`):
+
+- `undefined` (default) — lazy load on first use.
+- `EmbedAdapter` / `WsAdapter` — eager mount at provider time. Each is
+  exported as a thin function-component wrapper around a `React.lazy` ref
+  (the chunk-split shape is preserved); `EmbedAdapter` from `/components`,
+  `WsAdapter` from the root entry.
+- `null` — explicit opt-out (`ws={null}` is UI-only mode). The provider
+  publishes the matching disabled-signal context; the relevant hooks throw
+  a clear error instead of looping on a Suspense throw the provider would
+  never resolve.
 
 ### Provider props (discriminated union)
 
@@ -119,10 +138,22 @@ live in `src/components/test/`.
 
 ## Conventions
 
-- The root entry must not pull in any styled-components, Stripe, i18next,
-  or `@schematichq/schematic-icons` code. `scripts/check-tree-shake.mjs`
-  fails the build if any of those strings appear in
-  `dist/schematic-react.esm.js`.
+- The root entry's eager (static-import) graph must not pull in any
+  styled-components, Stripe, i18next, or `@schematichq/schematic-icons`
+  code, nor the WS adapter runtime. `scripts/check-tree-shake.mjs` walks
+  the static-import graph rooted at `dist/schematic-react.esm.js` and fails
+  the build if any forbidden dep string appears, or if the WS adapter's
+  marker (`X-Schematic-Client-Version`) shows up — that marker leaking out
+  of its dynamic chunk means `WsAdapter` (and `new Schematic`) is no longer
+  lazy. The WS adapter must therefore only ever be reached via a dynamic
+  `import()` (in `ws-loader.ts` and the `WsAdapter` export in
+  `src/index.tsx`); never add a static import of `./core/WsAdapter`.
+- `@schematichq/schematic-js`'s value re-exports (`Schematic`, `RuleType`,
+  `TrialStatus`, `UsagePeriod`) are the one place the specifier appears in
+  the eager graph — that's fine: they're pure re-export bindings of an
+  external, tree-shaken per-consumer when unused, and intentionally not in
+  the `check-tree-shake` forbidden list. Core hooks reference the package
+  with `import type` only.
 - `version.ts` is auto-generated by `version.sh` from `package.json`. Do
   not hand-edit it. Both adapters read this single source for their
   `X-Schematic-*-Version` headers.

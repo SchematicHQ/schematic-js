@@ -13,15 +13,16 @@
 // root entry and is re-exported (not duplicated) from `/components`.
 
 import type * as SchematicJS from "@schematichq/schematic-js";
-import React from "react";
+import React, { createElement, lazy } from "react";
 
 import type { ConfigurationParameters } from "./components/api/checkoutexternal";
 import type { EmbedSettings } from "./components/embed/embedState";
 import type { DeepPartial } from "./components/types/util";
-import { WsAdapter, type WsAdapterProps } from "./core/WsAdapter";
+import type { WsAdapterProps } from "./core/WsAdapter";
 import {
   SchematicProvider as BareSchematicProvider,
   type SchematicAdapter,
+  type SchematicAdapterProps,
   type SchematicProviderBaseProps,
 } from "./provider";
 
@@ -45,6 +46,17 @@ export {
   loadEmbedAdapter,
   subscribeEmbedAdapter,
 } from "./embed-loader";
+
+// WS adapter lazy-loader plumbing — same singleton-sharing rationale as the
+// embed-loader re-exports above. Lets the core hooks (and any /components
+// consumer reaching them via the self-package import) trigger the one shared
+// WS adapter chunk. Not part of the documented public API.
+export {
+  SchematicWsDisabledContext,
+  getCachedWsAdapter,
+  loadWsAdapter,
+  subscribeWsAdapter,
+} from "./ws-loader";
 
 export { UsageMeter } from "./core/components";
 export {
@@ -126,22 +138,40 @@ export type SchematicProviderProps = CommonProviderProps &
   (WithClient | WithPublishableKey | WithoutWs);
 
 /**
- * `SchematicProvider` — pre-binds the WS adapter so flag/entitlement hooks
- * work out of the box. Accepts exactly one of `client`, `publishableKey`,
- * or `ws={null}` (UI-only mode). Pass `ws={null}` to opt out of the WS
- * adapter — typically when only using UI components from `/components`.
+ * `SchematicProvider` — flag/entitlement hooks work out of the box: the WS
+ * adapter is lazy-loaded the first time a core hook is used (no eager bind, so
+ * `@schematichq/schematic-js` stays out of the consumer's main bundle until
+ * then). Accepts exactly one of `client`, `publishableKey`, or `ws={null}`
+ * (UI-only mode). Pass `ws={null}` to opt out of the WS adapter — typically
+ * when only using UI components from `/components` — or `ws={WsAdapter}` to
+ * eager-mount it at provider time instead of on first hook use.
  */
 const SchematicProvider: React.FC<SchematicProviderProps> = (props) => {
-  const { ws } = props;
-
+  // Forward `ws` unchanged: `undefined` reaches the bare provider as
+  // "lazy-load on first core-hook use", `null` as the explicit opt-out, and an
+  // explicit adapter (e.g. `WsAdapter`) as an eager bind.
   return (
     <BareSchematicProvider
       {...(props as unknown as SchematicProviderBaseProps)}
-      ws={ws === undefined ? WsAdapter : ws}
     />
   );
 };
 
 SchematicProvider.displayName = "SchematicProvider";
+
+// `WsAdapter` (opt-in eager binding) — a thin function-component wrapper around
+// the chunk-split lazy ref, mirroring the `EmbedAdapter` export in
+// `src/components/index.tsx`. Importing this symbol does not pull the WS
+// adapter (or `@schematichq/schematic-js`'s `new Schematic`) into the eager
+// graph; the dynamic-import seam loads it when the element first renders. Pass
+// it as `ws={WsAdapter}` to `SchematicProvider` to start that load on provider
+// mount instead of on first core-hook use.
+const InternalLazyWsAdapter = lazy(() =>
+  import("./core/WsAdapter").then((m) => ({ default: m.WsAdapter })),
+);
+
+const WsAdapter: SchematicAdapter = (props: SchematicAdapterProps) =>
+  createElement(InternalLazyWsAdapter, props);
+(WsAdapter as React.FC).displayName = "WsAdapter";
 
 export { SchematicProvider, WsAdapter, type WsAdapterProps };
