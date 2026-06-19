@@ -32,7 +32,7 @@ jobs:
     steps:
       - uses: runs-on/action@v2.0.3
       - name: Checkout schematic-components
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           path: schematic-components
 
@@ -43,7 +43,7 @@ jobs:
           echo "SCHEMATIC_COMPONENTS_VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
 
       - name: Checkout example app
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: schematichq/schematic-next-example
           path: schematic-next-example
@@ -89,7 +89,7 @@ jobs:
     steps:
       - uses: runs-on/action@v2.0.3
       - name: Checkout schematic-components
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           path: schematic-components
 
@@ -100,7 +100,7 @@ jobs:
           echo "SCHEMATIC_COMPONENTS_VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
 
       - name: Checkout example app
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: schematichq/schematic-next-example-orb
           path: schematic-next-example-orb
