@@ -51,6 +51,21 @@ const FORBIDDEN = [
   "uuid",
 ];
 
+// Markers for code that must only be reachable via a dynamic `import()`.
+//
+// `@schematichq/schematic-js` can't go in FORBIDDEN: the root entry
+// legitimately *re-exports* a few of its values (`Schematic`, `RuleType`,
+// `TrialStatus`, `UsagePeriod`), so its specifier appears on `export … from`
+// lines in the entry shim without pulling the WS client *runtime* into the
+// eager graph. The thing we actually want to keep lazy is the WS adapter,
+// which is the only code that constructs `new Schematic(...)`. We detect a
+// leak via a string only that adapter emits — the version header it sets when
+// constructing the client. If it shows up in a statically-reachable file, the
+// adapter (and `@schematichq/schematic-js` with it) escaped its lazy chunk.
+const DYNAMIC_ONLY_MARKERS = ["X-Schematic-Client-Version"];
+
+const NEEDLES = [...FORBIDDEN, ...DYNAMIC_ONLY_MARKERS];
+
 // Matches static `import`/`export … from "x"` (and side-effect `import "x"`).
 // Dynamic `import("x")` does NOT match: that form has `(` directly after
 // `import`, while this pattern requires `\s+` between `import` and what
@@ -96,7 +111,7 @@ for (const rel of ROOT_BUNDLES) {
     }
 
     const src = readFileSync(file, "utf8");
-    const hits = FORBIDDEN.filter((needle) => src.includes(needle));
+    const hits = NEEDLES.filter((needle) => src.includes(needle));
     if (hits.length > 0) {
       hitsByFile.push({ file, hits });
     }

@@ -1,9 +1,14 @@
 import { Schematic, type CreditBalances } from "@schematichq/schematic-js";
-import { act, render, renderHook } from "@testing-library/react";
+import { act, render, renderHook, waitFor } from "@testing-library/react";
 import React, { useContext } from "react";
 import { vi } from "vitest";
 
 import { SchematicContext } from "./context";
+// The raw (non-lazy) adapter. The `WsAdapter` exported from `./index` is a
+// `React.lazy`-wrapped ref that mounts asynchronously; for the synchronous
+// lifecycle assertions below we bind the raw component directly via
+// `ws={RawWsAdapter}` so it mounts (and constructs the client) on first render.
+import { WsAdapter as RawWsAdapter } from "./core/WsAdapter";
 
 import {
   SchematicProvider,
@@ -191,7 +196,7 @@ const createFakeClient = () => {
     };
 
     const { unmount } = render(
-      <SchematicProvider publishableKey="test-key">
+      <SchematicProvider publishableKey="test-key" ws={RawWsAdapter}>
         <Probe />
       </SchematicProvider>,
     );
@@ -211,7 +216,7 @@ const createFakeClient = () => {
     const cleanupSpy = vi.spyOn(client, "cleanup").mockResolvedValue(undefined);
 
     const { unmount } = render(
-      <SchematicProvider client={client}>
+      <SchematicProvider client={client} ws={RawWsAdapter}>
         <div>x</div>
       </SchematicProvider>,
     );
@@ -225,14 +230,14 @@ const createFakeClient = () => {
     const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
     const { rerender } = render(
-      <SchematicProvider publishableKey="key-1">
+      <SchematicProvider publishableKey="key-1" ws={RawWsAdapter}>
         <div>x</div>
       </SchematicProvider>,
     );
 
     await act(async () => {
       rerender(
-        <SchematicProvider publishableKey="key-2">
+        <SchematicProvider publishableKey="key-2" ws={RawWsAdapter}>
           <div>x</div>
         </SchematicProvider>,
       );
@@ -245,7 +250,7 @@ const createFakeClient = () => {
     warnSpy.mockRestore();
   });
 
-  it("ws={null} mounts no client; useSchematic throws inside the tree", () => {
+  it("ws={null} mounts no client; useSchematic throws a clear disabled error", () => {
     const errors: string[] = [];
     const Probe = () => {
       try {
@@ -266,7 +271,35 @@ const createFakeClient = () => {
       </SchematicProvider>,
     );
 
-    expect(errors[0]).toMatch(/within a SchematicProvider/i);
+    expect(errors[0]).toMatch(/ws=\{null\}/);
+    expect(errors[0]).toMatch(/disabled/i);
     errSpy.mockRestore();
+  });
+
+  it("lazy-loads the WS adapter on first core-hook use (default ws)", async () => {
+    // No `ws` prop → the adapter is lazy. The client is absent on first
+    // render; `useSchematicFlag` triggers the dynamic import from an effect
+    // (returning its fallback meanwhile), and once the chunk loads the
+    // provider re-renders with the adapter mounted and the client populated.
+    let captured: Schematic | null = null;
+    let flagValue: boolean | undefined;
+    const Probe = () => {
+      flagValue = useSchematicFlag("some-flag", { fallback: false });
+      captured = useContext(SchematicContext).client;
+      return null;
+    };
+
+    render(
+      <SchematicProvider publishableKey="test-key">
+        <Probe />
+      </SchematicProvider>,
+    );
+
+    // First paint: no Suspense flash, fallback returned, client not yet bound.
+    expect(flagValue).toBe(false);
+    expect(captured).toBeNull();
+
+    // After the dynamic import resolves and the adapter mounts.
+    await waitFor(() => expect(captured).not.toBeNull());
   });
 });
