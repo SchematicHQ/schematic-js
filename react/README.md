@@ -175,6 +175,46 @@ The hook returns an object with the following properties:
 | `trialEndDate` | `Date \| undefined` | The trial end date, if the company has or had a trial |
 | `trialStatus` | `"active" \| "expired" \| "converted" \| undefined` | The company's trial status: `active` if the trial is ongoing, `expired` if the trial ended without conversion, `converted` if the company converted to a paid plan, or `undefined` if the company has never trialed |
 
+### Credit balances
+
+To render a company's live, lease-aware credit balance, use the `useSchematicCreditBalance` hook. It is keyed by credit ID and updates reactively as balances change over the DataStream — including while a credit lease is open, when the raw `remaining` value would otherwise read stale or falsely "exhausted".
+
+By default the hook returns the **spendable** balance (`settled`), which is the only number end users should see:
+
+```tsx
+import { useSchematicCreditBalance } from "@schematichq/schematic-react";
+
+const CreditMeter = () => {
+    const { balance, isLoading } = useSchematicCreditBalance("credit-id");
+
+    if (isLoading) {
+        return <div>Loading…</div>;
+    }
+
+    return <div>{balance} credits remaining</div>;
+};
+```
+
+The hook returns an object with the following properties:
+
+| Property | Type | Description |
+| --- | --- | --- |
+| `balance` | `number` | The selected balance (`settled` by default — the spendable balance, `remaining + reserved`). `0` while loading or when the company holds no balance in this credit. |
+| `isLoading` | `boolean` | `true` while the balance is still loading and no value has arrived yet |
+
+`settled` is the right number to display: during an open lease, `remaining` can drop to `0` even though the company still has spendable credit, whereas `settled` reflects the true balance net of actual consumption.
+
+For advanced lease-aware accounting you can request a different balance via the `type` option:
+
+```tsx
+// "remaining" excludes the open lease hold; "reserved" is the held amount
+const { balance: remaining } = useSchematicCreditBalance("credit-id", {
+    type: "remaining",
+});
+```
+
+> The credit ID is available on a feature's entitlement — `useSchematicEntitlement(key)` returns `creditId` (along with `creditRemaining`, `creditReserved`, and `creditSettled`) for credit-based features.
+
 ## Fallback Behavior
 
 The SDK includes built-in fallback behavior you can use to ensure your application continues to function even when unable to reach Schematic (e.g., during service disruptions or network issues).

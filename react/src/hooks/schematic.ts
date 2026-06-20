@@ -18,6 +18,26 @@ export type UseSchematicPlanOpts = SchematicHookOpts & {
   fallback?: SchematicJS.CheckPlanReturn;
 };
 
+/**
+ * Which balance `useSchematicCreditBalance` surfaces. Defaults to "settled" —
+ * the spendable balance (remaining + reserved) and the only number end users
+ * should see. "remaining" / "reserved" are for advanced lease-aware accounting.
+ */
+export type CreditBalanceType = "settled" | "remaining" | "reserved";
+
+export type UseSchematicCreditBalanceOpts = SchematicHookOpts & {
+  /** Which balance to surface. Defaults to "settled". */
+  type?: CreditBalanceType;
+};
+
+/** A company's credit balance for a single credit type, plus a loading flag */
+export type SchematicCreditBalance = {
+  /** The selected balance (settled by default; choose another via `opts.type`); 0 while loading or when the company holds no balance in this credit */
+  balance: number;
+  /** True while the balance is still loading and no value has arrived yet */
+  isLoading: boolean;
+};
+
 export const useSchematicClient = (opts?: SchematicHookOpts) => {
   const schematic = useSchematic();
   const { client } = opts ?? {};
@@ -132,6 +152,56 @@ export const useSchematicPlan = (
   }, [client, fallbackPlan]);
 
   return useSyncExternalStore(subscribe, getSnapshot, () => fallbackPlan);
+};
+
+/**
+ * Returns a company's live, lease-aware credit balance for a single credit type.
+ *
+ * By default it surfaces `settled` — the spendable balance (remaining +
+ * reserved), and the only number end users should see. The value is sourced
+ * from the streamed `credit_balances` map (keyed by credit ID) and re-renders
+ * as `credit_reserved` / `credit_balances` partials arrive over the DataStream,
+ * so it stays accurate during an open lease — when the raw `remaining` would
+ * otherwise read stale / falsely "exhausted". Pass `opts.type` to surface
+ * `remaining` or `reserved` instead for advanced lease-aware accounting.
+ */
+export const useSchematicCreditBalance = (
+  creditId: string,
+  opts?: UseSchematicCreditBalanceOpts,
+): SchematicCreditBalance => {
+  const client = useSchematicClient(opts);
+  const type = opts?.type ?? "settled";
+
+  const subscribe = useCallback(
+    (callback: () => void) => client.addCreditBalanceListener(callback),
+    [client],
+  );
+
+  const getSnapshot = useCallback(
+    () => client.getCreditBalance(creditId),
+    [client, creditId],
+  );
+
+  const balance = useSyncExternalStore(subscribe, getSnapshot, () => undefined);
+
+  const isPendingSubscribe = useCallback(
+    (callback: () => void) => client.addIsPendingListener(callback),
+    [client],
+  );
+
+  const isPending = useSyncExternalStore(
+    isPendingSubscribe,
+    () => client.getIsPending(),
+    () => true,
+  );
+
+  return useMemo(
+    () => ({
+      balance: balance?.[type] ?? 0,
+      isLoading: balance === undefined && isPending,
+    }),
+    [balance, type, isPending],
+  );
 };
 
 export const useSchematicIsPending = (opts?: SchematicHookOpts) => {

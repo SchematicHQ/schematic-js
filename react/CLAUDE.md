@@ -63,6 +63,7 @@ The library is built on a React context pattern:
 2. Core Hooks:
    - `useSchematicFlag`: Check feature flag values
    - `useSchematicEntitlement`: Check entitlements with usage data
+   - `useSchematicCreditBalance`: Read a company's live, lease-aware credit balance by credit ID
    - `useSchematicEvents`: Track events and identify users/companies
    - `useSchematicIsPending`: Check if data is still loading
    - `useSchematicContext`: Access and modify context
