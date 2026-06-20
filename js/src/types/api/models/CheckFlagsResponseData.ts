@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from "../runtime";
+import type { CompanyCreditBalance } from "./CompanyCreditBalance";
+import {
+  CompanyCreditBalanceFromJSON,
+  CompanyCreditBalanceFromJSONTyped,
+  CompanyCreditBalanceToJSON,
+  CompanyCreditBalanceToJSONTyped,
+} from "./CompanyCreditBalance";
 import type { DatastreamCompanyPlan } from "./DatastreamCompanyPlan";
 import {
   DatastreamCompanyPlanFromJSON,
@@ -34,6 +41,12 @@ import {
  * @interface CheckFlagsResponseData
  */
 export interface CheckFlagsResponseData {
+  /**
+   * Lease-aware credit balances keyed by credit ID, covering every credit type the company holds a balance in
+   * @type {{ [key: string]: CompanyCreditBalance; }}
+   * @memberof CheckFlagsResponseData
+   */
+  creditBalances?: { [key: string]: CompanyCreditBalance };
   /**
    *
    * @type {Array<CheckFlagResponseData>}
@@ -72,6 +85,10 @@ export function CheckFlagsResponseDataFromJSONTyped(
     return json;
   }
   return {
+    creditBalances:
+      json["credit_balances"] == null
+        ? undefined
+        : mapValues(json["credit_balances"], CompanyCreditBalanceFromJSON),
     flags: (json["flags"] as Array<any>).map(CheckFlagResponseDataFromJSON),
     plan:
       json["plan"] == null
@@ -95,6 +112,10 @@ export function CheckFlagsResponseDataToJSONTyped(
   }
 
   return {
+    credit_balances:
+      value["creditBalances"] == null
+        ? undefined
+        : mapValues(value["creditBalances"], CompanyCreditBalanceToJSON),
     flags: (value["flags"] as Array<any>).map(CheckFlagResponseDataToJSON),
     plan: DatastreamCompanyPlanToJSON(value["plan"]),
   };

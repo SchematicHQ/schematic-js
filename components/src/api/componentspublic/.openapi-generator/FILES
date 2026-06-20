@@ -40,6 +40,7 @@ models/CheckFlagsBulkResponse.ts
 models/CheckFlagsBulkResponseData.ts
 models/CheckFlagsResponse.ts
 models/CheckFlagsResponseData.ts
+models/CompanyCreditBalance.ts
 models/ComparableOperator.ts
 models/CompatiblePlans.ts
 models/ComponentCapabilities.ts

@@ -35,6 +35,7 @@ export * from "./CheckFlagsBulkResponse";
 export * from "./CheckFlagsBulkResponseData";
 export * from "./CheckFlagsResponse";
 export * from "./CheckFlagsResponseData";
+export * from "./CompanyCreditBalance";
 export * from "./ComparableOperator";
 export * from "./CompatiblePlans";
 export * from "./ComponentCapabilities";
