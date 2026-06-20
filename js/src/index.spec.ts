@@ -5,6 +5,7 @@ import {
   CheckFlagReturnFromJSON,
   CheckPlanReturn,
   CheckPlanReturnFromJSON,
+  CreditBalancesFromJSON,
   RuleType,
   StoragePersister,
 } from "./types";
@@ -3158,6 +3159,237 @@ describe("CheckFlagReturnFromJSON", () => {
     expect(result.creditRemaining).toBeUndefined();
     expect(result.softLimit).toBeUndefined();
   });
+
+  it("should surface creditId, creditReserved, and creditSettled from entitlement", () => {
+    const result = CheckFlagReturnFromJSON({
+      flag: "test-flag",
+      value: true,
+      reason: "match",
+      entitlement: {
+        feature_id: "feat-1",
+        feature_key: "test-flag",
+        value_type: "credit",
+        credit_id: "credit-abc",
+        credit_remaining: 3442,
+        credit_reserved: 0,
+        credit_settled: 3442,
+      },
+    });
+
+    expect(result.creditId).toBe("credit-abc");
+    expect(result.creditRemaining).toBe(3442);
+    expect(result.creditReserved).toBe(0);
+    expect(result.creditSettled).toBe(3442);
+  });
+
+  it("should return undefined for credit fields when entitlement has null values", () => {
+    const result = CheckFlagReturnFromJSON({
+      flag: "test-flag",
+      value: true,
+      reason: "match",
+      entitlement: {
+        feature_id: "feat-1",
+        feature_key: "test-flag",
+        value_type: "boolean",
+        credit_id: null,
+        credit_reserved: null,
+        credit_settled: null,
+      },
+    });
+
+    expect(result.creditId).toBeUndefined();
+    expect(result.creditReserved).toBeUndefined();
+    expect(result.creditSettled).toBeUndefined();
+  });
+});
+
+describe("CreditBalancesFromJSON", () => {
+  it("should map a credit_balances payload keyed by credit ID", () => {
+    const result = CreditBalancesFromJSON({
+      "credit-abc": { remaining: 0, reserved: 3442, settled: 3442 },
+      "credit-xyz": { remaining: 100, reserved: 0, settled: 100 },
+    });
+
+    expect(result).toEqual({
+      "credit-abc": { remaining: 0, reserved: 3442, settled: 3442 },
+      "credit-xyz": { remaining: 100, reserved: 0, settled: 100 },
+    });
+  });
+
+  it("should coerce missing numeric fields to 0", () => {
+    const result = CreditBalancesFromJSON({
+      "credit-abc": { settled: 3442 },
+    });
+
+    expect(result["credit-abc"]).toEqual({
+      remaining: 0,
+      reserved: 0,
+      settled: 3442,
+    });
+  });
+
+  it("should return an empty map for null/undefined input", () => {
+    expect(CreditBalancesFromJSON(null)).toEqual({});
+    expect(CreditBalancesFromJSON(undefined)).toEqual({});
+  });
+});
+
+describe("Credit balances over WebSocket", () => {
+  const TEST_WS_URL = "ws://localhost:1234";
+  const FULL_WS_URL = `${TEST_WS_URL}/flags/bootstrap?apiKey=API_KEY`;
+  let mockServer: WebSocketServer;
+
+  const context = {
+    company: { companyId: "456" },
+    user: { userId: "123" },
+  };
+
+  beforeEach(() => {
+    mockServer?.stop();
+    mockServer = new WebSocketServer(FULL_WS_URL);
+  });
+
+  afterEach(async () => {
+    mockServer.stop();
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  });
+
+  it("should expose lease-aware credit balances from the DataStream", async () => {
+    // Repro from SCH-6526: 6000 grant, lease tracked to 2558. The streamed
+    // `remaining` froze at 0 mid-lease, but `settled` (spendable) is 3442.
+    mockServer.on("connection", (socket) => {
+      socket.on("message", () => {
+        socket.send(
+          JSON.stringify({
+            flags: [{ flag: "credits-feature", value: true }],
+            credit_balances: {
+              "credit-abc": { remaining: 0, reserved: 3442, settled: 3442 },
+            },
+          }),
+        );
+      });
+    });
+
+    const schematic = new Schematic("API_KEY", {
+      useWebSocket: true,
+      webSocketUrl: TEST_WS_URL,
+    });
+
+    await schematic.checkFlag({ key: "credits-feature", context });
+
+    const balance = schematic.getCreditBalance("credit-abc");
+    expect(balance).toEqual({ remaining: 0, reserved: 3442, settled: 3442 });
+    expect(balance?.settled).toBe(3442);
+
+    expect(schematic.getCreditBalances()).toEqual({
+      "credit-abc": { remaining: 0, reserved: 3442, settled: 3442 },
+    });
+
+    await schematic.cleanup();
+  });
+
+  it("should notify credit balance listeners on DataStream updates", async () => {
+    let sendUpdate: (() => void) | undefined;
+
+    mockServer.on("connection", (socket) => {
+      socket.on("message", () => {
+        socket.send(
+          JSON.stringify({
+            flags: [{ flag: "credits-feature", value: true }],
+            credit_balances: {
+              "credit-abc": { remaining: 3442, reserved: 0, settled: 3442 },
+            },
+          }),
+        );
+      });
+      sendUpdate = () =>
+        socket.send(
+          JSON.stringify({
+            credit_balances: {
+              "credit-abc": { remaining: 0, reserved: 3442, settled: 3442 },
+            },
+          }),
+        );
+    });
+
+    const schematic = new Schematic("API_KEY", {
+      useWebSocket: true,
+      webSocketUrl: TEST_WS_URL,
+    });
+
+    // Arity-1 listener so the dispatcher passes the balances value (an arity-0
+    // listener — like React's useSyncExternalStore subscriber — is notified
+    // with no args and reads state via the getter instead).
+    const listener = vi.fn((balances: unknown) => balances);
+    schematic.addCreditBalanceListener(listener);
+
+    await schematic.checkFlag({ key: "credits-feature", context });
+    expect(listener).toHaveBeenCalledWith({
+      "credit-abc": { remaining: 3442, reserved: 0, settled: 3442 },
+    });
+
+    // Simulate a credit_reserved partial arriving mid-lease
+    sendUpdate?.();
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    expect(schematic.getCreditBalance("credit-abc")?.settled).toBe(3442);
+    expect(schematic.getCreditBalance("credit-abc")?.reserved).toBe(3442);
+    expect(listener).toHaveBeenLastCalledWith({
+      "credit-abc": { remaining: 0, reserved: 3442, settled: 3442 },
+    });
+
+    await schematic.cleanup();
+  });
+
+  it("should merge partial credit_balances updates per credit ID", async () => {
+    let sendUpdate: (() => void) | undefined;
+
+    mockServer.on("connection", (socket) => {
+      socket.on("message", () => {
+        socket.send(
+          JSON.stringify({
+            flags: [{ flag: "credits-feature", value: true }],
+            credit_balances: {
+              "credit-abc": { remaining: 100, reserved: 0, settled: 100 },
+              "credit-xyz": { remaining: 50, reserved: 0, settled: 50 },
+            },
+          }),
+        );
+      });
+      sendUpdate = () =>
+        socket.send(
+          JSON.stringify({
+            credit_balances: {
+              "credit-abc": { remaining: 0, reserved: 100, settled: 100 },
+            },
+          }),
+        );
+    });
+
+    const schematic = new Schematic("API_KEY", {
+      useWebSocket: true,
+      webSocketUrl: TEST_WS_URL,
+    });
+
+    await schematic.checkFlag({ key: "credits-feature", context });
+
+    sendUpdate?.();
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    // The partial only touched credit-abc; credit-xyz must be retained.
+    expect(schematic.getCreditBalances()).toEqual({
+      "credit-abc": { remaining: 0, reserved: 100, settled: 100 },
+      "credit-xyz": { remaining: 50, reserved: 0, settled: 50 },
+    });
+
+    await schematic.cleanup();
+  });
+
+  it("should return undefined for an unknown credit ID and an empty map with no balances", () => {
+    const schematic = new Schematic("API_KEY", { offline: true });
+    expect(schematic.getCreditBalance("nope")).toBeUndefined();
+    expect(schematic.getCreditBalances()).toEqual({});
+  });
 });
 
 describe("Persistent flag state cache", () => {
@@ -3196,6 +3428,34 @@ describe("Persistent flag state cache", () => {
       const check = client.getFlagCheck("FEATURE_X");
       expect(check?.value).toBe(true);
       expect(check?.reason).toBe("cached");
+    });
+
+    it("hydrates credit balances for a matching context and exposes them on setContext", async () => {
+      const storage = createTestStorage({
+        [cacheKey]: JSON.stringify({
+          version: cacheVersion,
+          contexts: {
+            [contextString(ctxA)]: {
+              checks: {
+                FEATURE_X: { flag: "FEATURE_X", value: true, reason: "cached" },
+              },
+              creditBalances: {
+                "credit-abc": { remaining: 0, reserved: 3442, settled: 3442 },
+              },
+              updatedAt: Date.now(),
+            },
+          },
+        }),
+      });
+
+      const client = new Schematic("API_KEY", { storage });
+      await client.setContext(ctxA);
+
+      expect(client.getCreditBalance("credit-abc")).toEqual({
+        remaining: 0,
+        reserved: 3442,
+        settled: 3442,
+      });
     });
 
     it("does not expose cached values for a non-matching context", async () => {

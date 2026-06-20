@@ -86,6 +86,26 @@ await schematic.checkFlag("some-flag-key");
 schematic.cleanup();
 ```
 
+### Credit balances
+
+In websocket mode, the client also tracks the company's lease-aware credit balances, keyed by credit ID. These update in real time as balances change — including while a credit lease is open, when the raw `remaining` value would otherwise read stale.
+
+```typescript
+// Read the balance for a single credit type
+const balance = schematic.getCreditBalance("credit-id");
+// => { settled, remaining, reserved } | undefined
+
+// Or read all credit balances for the current context, keyed by credit ID
+const balances = schematic.getCreditBalances();
+
+// Subscribe to balance changes
+const unsubscribe = schematic.addCreditBalanceListener((balances) => {
+    console.log(balances["credit-id"]?.settled);
+});
+```
+
+Each balance has three fields: `settled` (the spendable balance including any open lease hold, i.e. `remaining + reserved` — the number to display to end users), `remaining` (available to fund new consumption, excluding any open lease hold), and `reserved` (the amount held by an open lease, `0` when none is open).
+
 ## Fallback Behavior
 
 The SDK includes built-in fallback behavior you can use to ensure your application continues to function even when unable to reach Schematic (e.g., during service disruptions or network issues).
