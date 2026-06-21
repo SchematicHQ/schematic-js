@@ -602,18 +602,38 @@ export class Schematic {
       ) {
         const contextStr = contextString(context);
         const updates = CreditBalancesFromJSON(message.credit_balances);
-        const merged: CreditBalances = {
-          ...(this.creditBalances[contextStr] ?? {}),
-          ...updates,
-        };
-        this.creditBalances[contextStr] = merged;
+        const previous = this.creditBalances[contextStr] ?? {};
 
-        this.debug(
-          `WebSocket credit balance update received. Notifying listeners`,
-          { creditBalances: merged },
-        );
+        // Merge per-credit, but only swap in the new object when the value
+        // actually changed. Debounced credit_reserved partials can re-carry an
+        // identical balance; keeping the existing reference for unchanged
+        // credits preserves referential stability for useSyncExternalStore
+        // consumers and lets us skip the notify entirely when nothing moved.
+        let changed = false;
+        const merged: CreditBalances = { ...previous };
+        for (const [creditId, next] of Object.entries(updates)) {
+          const current = previous[creditId];
+          if (
+            current === undefined ||
+            current.remaining !== next.remaining ||
+            current.reserved !== next.reserved ||
+            current.settled !== next.settled
+          ) {
+            merged[creditId] = next;
+            changed = true;
+          }
+        }
 
-        this.notifyCreditBalanceListeners(merged);
+        if (changed) {
+          this.creditBalances[contextStr] = merged;
+
+          this.debug(
+            `WebSocket credit balance update received. Notifying listeners`,
+            { creditBalances: merged },
+          );
+
+          this.notifyCreditBalanceListeners(merged);
+        }
       }
 
       // Persist updated flag state for this context so the next page load

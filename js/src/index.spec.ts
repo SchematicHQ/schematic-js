@@ -3385,6 +3385,105 @@ describe("Credit balances over WebSocket", () => {
     await schematic.cleanup();
   });
 
+  it("should not notify or churn references when a partial re-carries an unchanged balance", async () => {
+    let sendSame: (() => void) | undefined;
+
+    mockServer.on("connection", (socket) => {
+      socket.on("message", () => {
+        socket.send(
+          JSON.stringify({
+            flags: [{ flag: "credits-feature", value: true }],
+            credit_balances: {
+              "credit-abc": { remaining: 100, reserved: 0, settled: 100 },
+            },
+          }),
+        );
+      });
+      // A debounced credit_reserved partial that re-carries the identical value.
+      sendSame = () =>
+        socket.send(
+          JSON.stringify({
+            credit_balances: {
+              "credit-abc": { remaining: 100, reserved: 0, settled: 100 },
+            },
+          }),
+        );
+    });
+
+    const schematic = new Schematic("API_KEY", {
+      useWebSocket: true,
+      webSocketUrl: TEST_WS_URL,
+    });
+
+    const listener = vi.fn((balances: unknown) => balances);
+    schematic.addCreditBalanceListener(listener);
+
+    await schematic.checkFlag({ key: "credits-feature", context });
+    expect(listener).toHaveBeenCalledTimes(1);
+    const balanceRef = schematic.getCreditBalance("credit-abc");
+    const mapRef = schematic.getCreditBalances();
+
+    // An identical balance re-arrives: no notify, and the stored references are
+    // unchanged so useSyncExternalStore consumers don't re-render.
+    sendSame?.();
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    expect(listener).toHaveBeenCalledTimes(1);
+    expect(schematic.getCreditBalance("credit-abc")).toBe(balanceRef);
+    expect(schematic.getCreditBalances()).toBe(mapRef);
+
+    await schematic.cleanup();
+  });
+
+  it("should retain unchanged credit references when a different credit changes", async () => {
+    let changeXyz: (() => void) | undefined;
+
+    mockServer.on("connection", (socket) => {
+      socket.on("message", () => {
+        socket.send(
+          JSON.stringify({
+            flags: [{ flag: "credits-feature", value: true }],
+            credit_balances: {
+              "credit-abc": { remaining: 100, reserved: 0, settled: 100 },
+              "credit-xyz": { remaining: 50, reserved: 0, settled: 50 },
+            },
+          }),
+        );
+      });
+      changeXyz = () =>
+        socket.send(
+          JSON.stringify({
+            credit_balances: {
+              "credit-xyz": { remaining: 25, reserved: 25, settled: 50 },
+            },
+          }),
+        );
+    });
+
+    const schematic = new Schematic("API_KEY", {
+      useWebSocket: true,
+      webSocketUrl: TEST_WS_URL,
+    });
+
+    await schematic.checkFlag({ key: "credits-feature", context });
+    const abcRef = schematic.getCreditBalance("credit-abc");
+
+    // A partial that only moves credit-xyz must not churn credit-abc's
+    // reference — a useSchematicCreditBalance("credit-abc") consumer should not
+    // re-render.
+    changeXyz?.();
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    expect(schematic.getCreditBalance("credit-abc")).toBe(abcRef);
+    expect(schematic.getCreditBalance("credit-xyz")).toEqual({
+      remaining: 25,
+      reserved: 25,
+      settled: 50,
+    });
+
+    await schematic.cleanup();
+  });
+
   it("should return undefined for an unknown credit ID and an empty map with no balances", () => {
     const schematic = new Schematic("API_KEY", { offline: true });
     expect(schematic.getCreditBalance("nope")).toBeUndefined();
