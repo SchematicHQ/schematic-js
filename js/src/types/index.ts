@@ -339,13 +339,21 @@ export const CreditBalancesFromJSON = (
   for (const [creditId, raw] of Object.entries(json)) {
     if (raw == null || typeof raw !== "object") continue;
     const { remaining, reserved, settled } = CompanyCreditBalanceFromJSON(raw);
-    // Tolerant reader: the stream always sends all three, but coerce any
-    // missing/non-numeric field to 0 so consumers only deal with numbers.
-    balances[creditId] = {
-      remaining: typeof remaining === "number" ? remaining : 0,
-      reserved: typeof reserved === "number" ? reserved : 0,
-      settled: typeof settled === "number" ? settled : 0,
-    };
+    // Tolerant reader: the stream is expected to send all three for a credit,
+    // but skip any entry that's missing/non-numeric rather than zero-filling. A
+    // fabricated 0 would read as a real (and wrong) balance — a false
+    // "exhausted" — and could violate settled = remaining + reserved. A true
+    // field-subset partial is skipped whole, not merged; either way the merge in
+    // index.ts preserves the credit's last good value. Matches the strict shape
+    // check in reviveCachedCreditBalances.
+    if (
+      typeof remaining !== "number" ||
+      typeof reserved !== "number" ||
+      typeof settled !== "number"
+    ) {
+      continue;
+    }
+    balances[creditId] = { remaining, reserved, settled };
   }
 
   return balances;

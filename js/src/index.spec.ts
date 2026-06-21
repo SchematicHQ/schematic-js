@@ -3216,15 +3216,22 @@ describe("CreditBalancesFromJSON", () => {
     });
   });
 
-  it("should coerce missing numeric fields to 0", () => {
+  it("should skip credits with missing/non-numeric fields rather than zero-fill", () => {
     const result = CreditBalancesFromJSON({
-      "credit-abc": { settled: 3442 },
+      // missing remaining/reserved
+      "credit-partial": { settled: 3442 },
+      // non-numeric field
+      "credit-bad": { remaining: "0", reserved: 0, settled: 0 },
+      // complete entry is retained
+      "credit-ok": { remaining: 100, reserved: 0, settled: 100 },
     });
 
-    expect(result["credit-abc"]).toEqual({
-      remaining: 0,
+    expect(result["credit-partial"]).toBeUndefined();
+    expect(result["credit-bad"]).toBeUndefined();
+    expect(result["credit-ok"]).toEqual({
+      remaining: 100,
       reserved: 0,
-      settled: 3442,
+      settled: 100,
     });
   });
 
