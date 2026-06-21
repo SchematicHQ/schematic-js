@@ -88,14 +88,11 @@ schematic.cleanup();
 
 ### Credit balances
 
-In websocket mode, the client also tracks the company's lease-aware credit balances, keyed by credit ID. These update in real time as balances change — including while a credit lease is open, when the raw `remaining` value would otherwise read stale.
+In websocket mode, the client also tracks the company's credit balances, keyed by credit ID, updating in real time as balances change:
 
 ```typescript
-// Read the balance for a single credit type
+// Read the balance for a single credit, or all balances for the current context
 const balance = schematic.getCreditBalance("credit-id");
-// => { settled, remaining, reserved } | undefined
-
-// Or read all credit balances for the current context, keyed by credit ID
 const balances = schematic.getCreditBalances();
 
 // Subscribe to balance changes
@@ -104,7 +101,7 @@ const unsubscribe = schematic.addCreditBalanceListener((balances) => {
 });
 ```
 
-Each balance has three fields: `settled` (the spendable balance including any open lease hold, i.e. `remaining + reserved` — the number to display to end users), `remaining` (available to fund new consumption, excluding any open lease hold), and `reserved` (the amount held by an open lease, `0` when none is open).
+`settled` is the spendable balance and the number to display to end users.
 
 ## Fallback Behavior
 
