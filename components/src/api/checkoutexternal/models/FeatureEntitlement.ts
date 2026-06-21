@@ -48,6 +48,12 @@ export interface FeatureEntitlement {
    */
   allocation?: number | null;
   /**
+   * If the company has a credit-based entitlement for this feature, the credit cost per unit of usage
+   * @type {number}
+   * @memberof FeatureEntitlement
+   */
+  consumptionRate?: number | null;
+  /**
    * If the company has a credit-based entitlement for this feature, the ID of the credit
    * @type {string}
    * @memberof FeatureEntitlement
@@ -89,6 +95,12 @@ export interface FeatureEntitlement {
    * @memberof FeatureEntitlement
    */
   eventName?: string | null;
+  /**
+   * For event-based or credit-metered feature entitlements, the event subtype whose usage is tracked
+   * @type {string}
+   * @memberof FeatureEntitlement
+   */
+  eventSubtype?: string | null;
   /**
    * The ID of the feature
    * @type {string}
@@ -165,6 +177,8 @@ export function FeatureEntitlementFromJSONTyped(
   }
   return {
     allocation: json["allocation"] == null ? undefined : json["allocation"],
+    consumptionRate:
+      json["consumption_rate"] == null ? undefined : json["consumption_rate"],
     creditId: json["credit_id"] == null ? undefined : json["credit_id"],
     creditRemaining:
       json["credit_remaining"] == null ? undefined : json["credit_remaining"],
@@ -176,6 +190,8 @@ export function FeatureEntitlementFromJSONTyped(
       json["credit_total"] == null ? undefined : json["credit_total"],
     creditUsed: json["credit_used"] == null ? undefined : json["credit_used"],
     eventName: json["event_name"] == null ? undefined : json["event_name"],
+    eventSubtype:
+      json["event_subtype"] == null ? undefined : json["event_subtype"],
     featureId: json["feature_id"],
     featureKey: json["feature_key"],
     metricPeriod:
@@ -210,6 +226,7 @@ export function FeatureEntitlementToJSONTyped(
 
   return {
     allocation: value["allocation"],
+    consumption_rate: value["consumptionRate"],
     credit_id: value["creditId"],
     credit_remaining: value["creditRemaining"],
     credit_reserved: value["creditReserved"],
@@ -217,6 +234,7 @@ export function FeatureEntitlementToJSONTyped(
     credit_total: value["creditTotal"],
     credit_used: value["creditUsed"],
     event_name: value["eventName"],
+    event_subtype: value["eventSubtype"],
     feature_id: value["featureId"],
     feature_key: value["featureKey"],
     metric_period: MetricPeriodToJSON(value["metricPeriod"]),
