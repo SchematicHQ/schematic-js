@@ -67,6 +67,36 @@ export default defineConfig([
     },
   },
   {
+    // The headless headless layer must stay free of styled-components,
+    // Stripe, i18next, icons, and the styled UI subtrees — that's what keeps
+    // the `/headless` bundle lightweight (a compile-time analog of
+    // `scripts/check-tree-shake.mjs`).
+    files: ["src/headless/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            "styled-components",
+            "i18next",
+            "react-i18next",
+            "@stripe/react-stripe-js",
+            "@stripe/stripe-js",
+            "@schematichq/schematic-icons",
+          ],
+          patterns: [
+            "**/components/components/ui/**",
+            "**/components/components/ui",
+            "**/components/components/layout/**",
+            "**/components/components/layout",
+            "**/components/components/shared/**",
+            "**/components/components/shared",
+          ],
+        },
+      ],
+    },
+  },
+  {
     files: ["**/*.json"],
     plugins: { json },
     language: "json/json",

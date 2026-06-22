@@ -16,6 +16,11 @@
       "import": "./dist/components/schematic-react-components.esm.js",
       "require": "./dist/components/schematic-react-components.cjs.js"
     },
+    "./headless": {
+      "types": "./dist/headless/schematic-react-headless.d.ts",
+      "import": "./dist/headless/schematic-react-headless.esm.js",
+      "require": "./dist/headless/schematic-react-headless.cjs.js"
+    },
     "./package.json": "./package.json"
   },
   "sideEffects": [
@@ -34,7 +39,7 @@
     "dev": "yarn build:bundles --watch",
     "build": "./version.sh && yarn tsc && yarn format && yarn lint && yarn clean && yarn build:bundles && yarn build:types && yarn check:tree-shake",
     "build:bundles": "node scripts/build.mjs",
-    "build:types": "npx tsc && npx api-extractor run --config api-extractor.core.json && npx api-extractor run --config api-extractor.components.json",
+    "build:types": "npx tsc && npx api-extractor run --config api-extractor.core.json && npx api-extractor run --config api-extractor.components.json && npx api-extractor run --config api-extractor.headless.json",
     "check:tree-shake": "node scripts/check-tree-shake.mjs",
     "clean": "rm -rf dist",
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",

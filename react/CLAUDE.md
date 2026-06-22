@@ -23,6 +23,20 @@ The root entry stays lightweight; the heavier UI surface ships from
   root entry, plus `lazy`-wrapped UI components (`PricingTable`,
   `PaymentMethod`, `CheckoutDialog`, etc.) and the embed-side hooks
   (`useEmbed`, `useAvailablePlans`, …).
+- `@schematichq/schematic-react/headless` — headless primitive surface.
+  Fully headless, Radix-style compound components (`UsageMeter.Root`,
+  `UsageMeter.Track`, `UsageMeter.Fill`, …): behavior + state + semantic
+  `data-schematic-*` attributes + `asChild` (Slot) polymorphism, zero
+  visual styling. Source lives in `src/headless/`. The default-styled
+  exports (e.g. `UsageMeter` from the root entry) are thin wrappers over
+  the same controller hooks. This bundle pulls in NONE of
+  styled-components/Stripe/i18next/icons — `scripts/check-tree-shake.mjs`
+  enforces that, and an ESLint `no-restricted-imports` rule scoped to
+  `src/headless/**` is the compile-time analog. Data/state is sourced
+  from the same styled-free hooks (`useUsageMeter`, …) imported via the
+  package self-specifier, so the bundle externalizes
+  `@schematichq/schematic-react` to share the single `SchematicContext`
+  instance (SCHY-372).
 
 ## Architecture
 
@@ -166,6 +180,22 @@ live in `src/components/test/`.
 - New embed UI components must be `React.lazy`-wrapped in
   `src/components/index.tsx`; non-lazy exports would pull
   styled-components into the /components main bundle.
+- When decomposing a component into the `/headless` layer, follow the
+  `usage-meter` pattern: a styled-free controller hook that lifts all
+  derivation (`src/core/components/usage-meter/controller.ts`), a
+  pure-provider `Root`, headless `parts`, and an `index.tsx` assembling the
+  dot-notation namespace via `Object.assign(Root, { … })`. The headless
+  `Root` reads the controller via the package self-specifier
+  (`@schematichq/schematic-react`); that specifier is externalized in the
+  /components and /headless builds (so those bundles share the single
+  installed `SchematicContext`) and resolves to local source via the
+  tsconfig `paths` mapping in the root build. The default-styled export is a
+  thin wrapper that mounts the headless `Root` and styles the parts —
+  reading derived data from the part context hook
+  (`useUsageMeterContext`) — exactly as a consumer would. Importing the
+  headless parts into the root entry is fine: they pull in no heavy peers,
+  so the root tree-shake invariant still holds. The dot-notation namespace
+  lives only on the `/headless` export.
 - When adding a new adapter slot or prop, update `pickWsProps` /
   `pickEmbedProps` in `provider.tsx` so each adapter only sees what it
   consumes.

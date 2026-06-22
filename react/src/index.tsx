@@ -58,7 +58,11 @@ export {
   subscribeWsAdapter,
 } from "./ws-loader";
 
-export { UsageMeter } from "./core/components";
+export {
+  UsageMeter,
+  useUsageMeter,
+  type UsageMeterData,
+} from "./core/components";
 export {
   useSchematic,
   useSchematicContext,

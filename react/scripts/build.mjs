@@ -38,6 +38,18 @@ const COMPONENTS_EXTERNAL = [
   "@schematichq/schematic-react",
 ];
 
+// The /headless subpath ships the headless primitives. It bundles the
+// styled-free data hooks (which import `SchematicContext` from the external
+// root package), so it externalizes `@schematichq/schematic-react` for the
+// same single-instance reason as /components (SCHY-372). It should never
+// reach for the heavy UI peers — they stay external so a leak fails the
+// /headless tree-shake check rather than silently inlining.
+const HEADLESS_EXTERNAL = [
+  ...SHARED_EXTERNAL,
+  "react-dom",
+  "@schematichq/schematic-react",
+];
+
 const builds = [
   {
     name: "core:cjs",
@@ -75,6 +87,25 @@ const builds = [
     splitting: true,
     outdir: "dist/components",
     entryNames: "schematic-react-components.esm",
+    chunkNames: "chunks/[name]-[hash]",
+  },
+  {
+    name: "headless:cjs",
+    entryPoints: ["src/headless/index.tsx"],
+    bundle: true,
+    external: HEADLESS_EXTERNAL,
+    format: "cjs",
+    outfile: "dist/headless/schematic-react-headless.cjs.js",
+  },
+  {
+    name: "headless:esm",
+    entryPoints: ["src/headless/index.tsx"],
+    bundle: true,
+    external: HEADLESS_EXTERNAL,
+    format: "esm",
+    splitting: true,
+    outdir: "dist/headless",
+    entryNames: "schematic-react-headless.esm",
     chunkNames: "chunks/[name]-[hash]",
   },
 ];
