@@ -370,6 +370,32 @@ const isFeatureEnabled = useSchematicFlag("my-feature");
 </script>
 ```
 
+### Developer Toolbar
+
+Enables a developer toolbar at the top of the page for testing flags. The toolbar allows you to manually override flag values on/off for testing purposes.
+
+```typescript
+import { createApp } from "vue";
+import { SchematicPlugin } from "@schematichq/schematic-vue";
+
+const app = createApp(App);
+app.use(SchematicPlugin, {
+  publishableKey: "your-publishable-key",
+  developerToolbar: true,
+});
+```
+
+The toolbar will:
+- Only appear when a company/user has been identified
+- Show all available flags in a dropdown
+- Allow you to toggle flags on/off
+- Preserve manual overrides even when websocket updates arrive
+- Reset all overrides on page reload (not persisted)
+
+The toolbar is only included in development builds. If `developerToolbar: true` is left on in a production build, it will silently do nothing — no toolbar will appear and no errors will be thrown.
+
+If you're using Rollup without Vite, add `exportConditions: ['development']` to your `@rollup/plugin-node-resolve` config to enable the toolbar in your dev environment.
+
 ## License
 
 MIT
