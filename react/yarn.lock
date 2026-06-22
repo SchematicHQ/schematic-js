@@ -849,13 +849,13 @@
     argparse "~1.0.9"
     string-argv "~0.3.1"
 
-"@schematichq/schematic-js@^1.4.0":
-  version "1.4.0"
-  resolved "https://registry.yarnpkg.com/@schematichq/schematic-js/-/schematic-js-1.4.0.tgz#1cdb53f0c2053f97934d65c83a95af78754dcc89"
-  integrity sha512-/fb8BXbBXFS09y6xul8JqloQWijvbE3xIOrOed1wzuaftuFWLJ8wUEGvuBRE7/3op0GhcvyT8nLdJ1y+yipaAg==
+"@schematichq/schematic-js@^1.5.0":
+  version "1.5.0"
+  resolved "https://registry.yarnpkg.com/@schematichq/schematic-js/-/schematic-js-1.5.0.tgz#d1b3cf3d1e6f8a84c4d2aeeae159aa685309a60f"
+  integrity sha512-d+pMyDLwBKpZfpSsrna/+miGGj44qQei13vTqQ1TBVEMDKGC2S0/ad8DaZy+MslDTV6WBfUj/KEsORs6T+4PBA==
   dependencies:
     cross-fetch "^4.1.0"
-    uuid "^13.0.0"
+    uuid "^14.0.1"
 
 "@standard-schema/spec@^1.1.0":
   version "1.1.0"
@@ -3490,10 +3490,10 @@ uri-js@^4.2.2:
   dependencies:
     punycode "^2.1.0"
 
-uuid@^13.0.0:
-  version "13.0.2"
-  resolved "https://registry.yarnpkg.com/uuid/-/uuid-13.0.2.tgz#41bc9c07b12f665089c205f6507976adbdf84ff8"
-  integrity sha512-vzi9uRZ926x4XV73S/4qQaTwPXM2JBj6/6lI/byHH1jOpCzb0zDbfytgA9LcN/hzb2l7WQSQnxITOVx5un/wGw==
+uuid@^14.0.1:
+  version "14.0.1"
+  resolved "https://registry.yarnpkg.com/uuid/-/uuid-14.0.1.tgz#8a5975b3e038902bfd169a10b5202f5ec0cf3faf"
+  integrity sha512-6ZxzVpzDXDa3bJWaHilVayA+BH/1zmxCJoVgvmqJnid/gPoKHxUrS/aC/T6LGQtNHT+XHG9fXPJB4d+IrU30Ew==
 
 "vite@^6.0.0 || ^7.0.0 || ^8.0.0":
   version "8.0.16"
