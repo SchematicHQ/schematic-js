@@ -86,6 +86,23 @@ await schematic.checkFlag("some-flag-key");
 schematic.cleanup();
 ```
 
+### Credit balances
+
+In websocket mode, the client also tracks the company's credit balances, keyed by credit ID, updating in real time as balances change:
+
+```typescript
+// Read the balance for a single credit, or all balances for the current context
+const balance = schematic.getCreditBalance("credit-id");
+const balances = schematic.getCreditBalances();
+
+// Subscribe to balance changes
+const unsubscribe = schematic.addCreditBalanceListener((balances) => {
+    console.log(balances["credit-id"]?.settled);
+});
+```
+
+`settled` is the spendable balance and the number to display to end users.
+
 ## Fallback Behavior
 
 The SDK includes built-in fallback behavior you can use to ensure your application continues to function even when unable to reach Schematic (e.g., during service disruptions or network issues).

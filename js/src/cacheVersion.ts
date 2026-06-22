@@ -2,4 +2,4 @@
 // Hash of the structural shape of cached types; bumps automatically when any
 // of CachedFlagState, CachedContextEntry, CheckFlagReturn, or CheckPlanReturn
 // changes shape. See scripts/generate-cache-version.mjs for details.
-export const cacheVersion = "6edb2005";
+export const cacheVersion = "bb56e75d";

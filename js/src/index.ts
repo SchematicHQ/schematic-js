@@ -12,6 +12,11 @@ import {
   CheckPlanReturn,
   CheckPlanReturnFromJSON,
   CheckOptions,
+  CreditBalance,
+  CreditBalanceListenerFn,
+  CreditBalances,
+  CreditBalancesFromJSON,
+  CreditBalancesListenerFn,
   EmptyListenerFn,
   Event,
   EventBody,
@@ -41,6 +46,7 @@ const flagStateCacheDefaultMaxAgeMs = 7 * 24 * 60 * 60 * 1000;
 type CachedContextEntry = {
   checks: Record<string, CheckFlagReturn>;
   plan?: CheckPlanReturn;
+  creditBalances?: CreditBalances;
   updatedAt: number;
 };
 
@@ -48,6 +54,11 @@ type CachedFlagState = {
   version: string;
   contexts: Record<string, CachedContextEntry>;
 };
+
+// Shared stable empty reference returned by getCreditBalances() when a context
+// has no balances, so callers using it in React's useSyncExternalStore don't
+// see a new object on every render.
+const emptyCreditBalances: CreditBalances = Object.freeze({});
 
 /* @preserve */
 export class Schematic {
@@ -66,6 +77,7 @@ export class Schematic {
   private isPending: boolean = true;
   private isPendingListeners: Set<PendingListenerFn> = new Set();
   private planListeners: Set<PlanListenerFn> = new Set();
+  private creditBalanceListeners: Set<CreditBalanceListenerFn> = new Set();
   private storage: StoragePersister | undefined;
   private persistFlagState: boolean = true;
   private flagStateCacheKey: string;
@@ -81,6 +93,7 @@ export class Schematic {
     Record<string, CheckFlagReturn | undefined> | undefined
   > = {};
   private planChecks: Record<string, CheckPlanReturn | undefined> = {};
+  private creditBalances: Record<string, CreditBalances | undefined> = {};
   private webSocketUrl = "wss://api.schematichq.com";
   private webSocketConnectionTimeout = 10000;
   private webSocketReconnect = true;
@@ -580,6 +593,49 @@ export class Schematic {
         this.notifyPlanListeners(plan);
       }
 
+      // Lease-aware credit balances arrive keyed by credit ID. A message may
+      // carry only a subset of credit types (e.g. a debounced credit_reserved
+      // partial), so merge per-credit rather than replacing the whole map.
+      if (
+        message.credit_balances !== undefined &&
+        message.credit_balances !== null
+      ) {
+        const contextStr = contextString(context);
+        const updates = CreditBalancesFromJSON(message.credit_balances);
+        const previous = this.creditBalances[contextStr] ?? {};
+
+        // Merge per-credit, but only swap in the new object when the value
+        // actually changed. Debounced credit_reserved partials can re-carry an
+        // identical balance; keeping the existing reference for unchanged
+        // credits preserves referential stability for useSyncExternalStore
+        // consumers and lets us skip the notify entirely when nothing moved.
+        let changed = false;
+        const merged: CreditBalances = { ...previous };
+        for (const [creditId, next] of Object.entries(updates)) {
+          const current = previous[creditId];
+          if (
+            current === undefined ||
+            current.remaining !== next.remaining ||
+            current.reserved !== next.reserved ||
+            current.settled !== next.settled
+          ) {
+            merged[creditId] = next;
+            changed = true;
+          }
+        }
+
+        if (changed) {
+          this.creditBalances[contextStr] = merged;
+
+          this.debug(
+            `WebSocket credit balance update received. Notifying listeners`,
+            { creditBalances: merged },
+          );
+
+          this.notifyCreditBalanceListeners(merged);
+        }
+      }
+
       // Persist updated flag state for this context so the next page load
       // can boot with these values rather than fallbacks
       this.persistContextToCache(contextString(context));
@@ -757,6 +813,10 @@ export class Schematic {
         const cachedPlan = this.planChecks[newContextStr];
         if (cachedPlan !== undefined) {
           this.notifyPlanListeners(cachedPlan);
+        }
+        const cachedCreditBalances = this.creditBalances[newContextStr];
+        if (cachedCreditBalances !== undefined) {
+          this.notifyCreditBalanceListeners(cachedCreditBalances);
         }
       } else {
         this.setIsPending(true);
@@ -1100,7 +1160,14 @@ export class Schematic {
     if (cachedChecks !== undefined && Object.keys(cachedChecks).length > 0) {
       return true;
     }
-    return this.planChecks[contextStr] !== undefined;
+    if (this.planChecks[contextStr] !== undefined) {
+      return true;
+    }
+    const cachedCreditBalances = this.creditBalances[contextStr];
+    return (
+      cachedCreditBalances !== undefined &&
+      Object.keys(cachedCreditBalances).length > 0
+    );
   };
 
   private readFlagStateCache = (): CachedFlagState | null => {
@@ -1180,6 +1247,32 @@ export class Schematic {
     return revived;
   };
 
+  private reviveCachedCreditBalances = (
+    raw: unknown,
+  ): CreditBalances | null => {
+    if (raw === null || typeof raw !== "object") return null;
+    const revived: CreditBalances = {};
+    for (const [creditId, value] of Object.entries(
+      raw as Record<string, unknown>,
+    )) {
+      if (value === null || typeof value !== "object") continue;
+      const obj = value as Record<string, unknown>;
+      if (
+        typeof obj.remaining !== "number" ||
+        typeof obj.reserved !== "number" ||
+        typeof obj.settled !== "number"
+      ) {
+        continue;
+      }
+      revived[creditId] = {
+        remaining: obj.remaining,
+        reserved: obj.reserved,
+        settled: obj.settled,
+      };
+    }
+    return Object.keys(revived).length > 0 ? revived : null;
+  };
+
   private hydrateFlagStateFromCache = (): void => {
     const parsed = this.readFlagStateCache();
     if (parsed === null) return;
@@ -1226,9 +1319,19 @@ export class Schematic {
         }
       }
 
+      let revivedCreditBalances: CreditBalances | undefined;
+      if (entry.creditBalances !== undefined && entry.creditBalances !== null) {
+        const balances = this.reviveCachedCreditBalances(entry.creditBalances);
+        if (balances !== null) {
+          revivedCreditBalances = balances;
+          this.creditBalances[contextStr] = balances;
+        }
+      }
+
       fresh[contextStr] = {
         checks: revivedChecks,
         plan: revivedPlan,
+        creditBalances: revivedCreditBalances,
         updatedAt: entry.updatedAt,
       };
       contextsLoaded += 1;
@@ -1243,7 +1346,12 @@ export class Schematic {
   private persistContextToCache = (contextStr: string): void => {
     const checksForContext = this.checks[contextStr];
     const planForContext = this.planChecks[contextStr];
-    if (checksForContext === undefined && planForContext === undefined) {
+    const creditBalancesForContext = this.creditBalances[contextStr];
+    if (
+      checksForContext === undefined &&
+      planForContext === undefined &&
+      creditBalancesForContext === undefined
+    ) {
       return;
     }
 
@@ -1268,6 +1376,7 @@ export class Schematic {
     this.cachedFlagState.contexts[contextStr] = {
       checks: cleanChecks,
       plan: planForContext,
+      creditBalances: creditBalancesForContext,
       updatedAt: Date.now(),
     };
 
@@ -1285,6 +1394,9 @@ export class Schematic {
       }
       for (const key of Object.keys(this.planChecks)) {
         if (!survivorKeys.has(key)) delete this.planChecks[key];
+      }
+      for (const key of Object.keys(this.creditBalances)) {
+        if (!survivorKeys.has(key)) delete this.creditBalances[key];
       }
 
       this.cachedFlagState = {
@@ -2101,6 +2213,20 @@ export class Schematic {
     return plan;
   };
 
+  /** Get the company's lease-aware credit balances for the current context, keyed by credit ID */
+  getCreditBalances = (): CreditBalances => {
+    const contextStr = contextString(this.context);
+    // Return a stable empty reference when absent so callers using this in
+    // React's useSyncExternalStore don't see a new object every render.
+    return this.creditBalances[contextStr] ?? emptyCreditBalances;
+  };
+
+  /** Get the company's lease-aware balance for a single credit type in the current context */
+  getCreditBalance = (creditId: string): CreditBalance | undefined => {
+    const contextStr = contextString(this.context);
+    return this.creditBalances[contextStr]?.[creditId];
+  };
+
   // flag checks state
   getFlagCheck = (flagKey: string): CheckFlagReturn | undefined => {
     const contextStr = contextString(this.context);
@@ -2187,6 +2313,15 @@ export class Schematic {
     };
   };
 
+  /** Register an event listener that will be notified with the company's credit balances (keyed by credit ID) whenever they change */
+  addCreditBalanceListener = (listener: CreditBalanceListenerFn) => {
+    this.creditBalanceListeners.add(listener);
+
+    return () => {
+      this.creditBalanceListeners.delete(listener);
+    };
+  };
+
   private notifyFlagCheckListeners = (
     flagKey: string,
     check: CheckFlagReturn,
@@ -2269,6 +2404,20 @@ export class Schematic {
       });
     });
   };
+
+  private notifyCreditBalanceListeners = (value: CreditBalances) => {
+    const listeners = this.creditBalanceListeners ?? [];
+
+    if (listeners.size > 0) {
+      this.debug(`Notifying ${listeners.size} credit balance listeners`, {
+        value,
+      });
+    }
+
+    listeners.forEach((listener) =>
+      notifyCreditBalanceListener(listener, value),
+    );
+  };
 }
 
 const notifyPendingListener = (listener: PendingListenerFn, value: boolean) => {
@@ -2307,6 +2456,17 @@ const notifyPlanListener = (
 ) => {
   if (listener.length > 0) {
     (listener as CheckPlanReturnListenerFn)(value);
+  } else {
+    (listener as EmptyListenerFn)();
+  }
+};
+
+const notifyCreditBalanceListener = (
+  listener: CreditBalanceListenerFn,
+  value: CreditBalances,
+) => {
+  if (listener.length > 0) {
+    (listener as CreditBalancesListenerFn)(value);
   } else {
     (listener as EmptyListenerFn)();
   }

@@ -1,5 +1,6 @@
 import {
   CheckFlagResponseDataFromJSON,
+  CompanyCreditBalanceFromJSON,
   DatastreamCompanyPlanFromJSON,
 } from "./api/models";
 import { EventBodyFlagCheck } from "./api/models/EventBodyFlagCheck";
@@ -82,8 +83,14 @@ export type CheckFlagReturn = {
   featureUsageExceeded?: boolean;
   /** If company keys were provided and matched a company, its ID */
   companyId?: string;
-  /** If the company has a credit-based entitlement for this feature, the remaining credit amount */
+  /** If the company has a credit-based entitlement for this feature, the ID of the credit */
+  creditId?: string;
+  /** If the company has a credit-based entitlement for this feature, the credit available to fund new consumption excluding any open lease hold (the value lease-holding SDKs gate on) */
   creditRemaining?: number;
+  /** If the company has a credit-based entitlement for this feature, the unspent amount held by an open credit lease, 0 when none is open */
+  creditReserved?: number;
+  /** If the company has a credit-based entitlement for this feature, the spendable balance including any open lease hold (creditRemaining + creditReserved); the number to display to end users */
+  creditSettled?: number;
   /** If an error occurred while checking the flag, the error message */
   error?: string;
   /** If a numeric feature entitlement rule was matched, its allocation */
@@ -120,6 +127,19 @@ export type CheckPlanReturn = {
   trialEndDate?: Date;
   trialStatus?: TrialStatus;
 };
+
+/** A company's lease-aware balance for a single credit type */
+export type CreditBalance = {
+  /** Spendable balance including any open lease hold (remaining + reserved); the number to display to end users */
+  settled: number;
+  /** Remaining credit excluding any open lease hold (the value lease-holding SDKs gate on) */
+  remaining: number;
+  /** Amount held by the company's open credit lease, 0 when none is open */
+  reserved: number;
+};
+
+/** A company's lease-aware credit balances keyed by credit ID */
+export type CreditBalances = Record<string, CreditBalance>;
 
 /** Optional type for implementing custom client-side storage */
 export type StoragePersister = {
@@ -214,6 +234,10 @@ export type PendingListenerFn = BooleanListenerFn | EmptyListenerFn;
 export type CheckFlagReturnListenerFn = (value: CheckFlagReturn) => void;
 export type CheckPlanReturnListenerFn = (value: CheckPlanReturn) => void;
 export type PlanListenerFn = CheckPlanReturnListenerFn | EmptyListenerFn;
+export type CreditBalancesListenerFn = (value: CreditBalances) => void;
+export type CreditBalanceListenerFn =
+  | CreditBalancesListenerFn
+  | EmptyListenerFn;
 
 export const CheckFlagReturnFromJSON = (
   /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
@@ -253,10 +277,19 @@ export const CheckFlagReturnFromJSON = (
   return {
     featureUsageExceeded,
     companyId: companyId == null ? undefined : companyId,
+    creditId: entitlement?.creditId == null ? undefined : entitlement.creditId,
     creditRemaining:
       entitlement?.creditRemaining == null
         ? undefined
         : entitlement.creditRemaining,
+    creditReserved:
+      entitlement?.creditReserved == null
+        ? undefined
+        : entitlement.creditReserved,
+    creditSettled:
+      entitlement?.creditSettled == null
+        ? undefined
+        : entitlement.creditSettled,
     error: error == null ? undefined : error,
     featureAllocation:
       resolvedAllocation == null ? undefined : resolvedAllocation,
@@ -294,10 +327,43 @@ export const CheckPlanReturnFromJSON = (
   };
 };
 
+export const CreditBalancesFromJSON = (
+  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+  json: any,
+): CreditBalances => {
+  if (json == null || typeof json !== "object") {
+    return {};
+  }
+
+  const balances: CreditBalances = {};
+  for (const [creditId, raw] of Object.entries(json)) {
+    if (raw == null || typeof raw !== "object") continue;
+    const { remaining, reserved, settled } = CompanyCreditBalanceFromJSON(raw);
+    // Tolerant reader: the stream is expected to send all three for a credit,
+    // but skip any entry that's missing/non-numeric rather than zero-filling. A
+    // fabricated 0 would read as a real (and wrong) balance — a false
+    // "exhausted" — and could violate settled = remaining + reserved. A true
+    // field-subset partial is skipped whole, not merged; either way the merge in
+    // index.ts preserves the credit's last good value. Matches the strict shape
+    // check in reviveCachedCreditBalances.
+    if (
+      typeof remaining !== "number" ||
+      typeof reserved !== "number" ||
+      typeof settled !== "number"
+    ) {
+      continue;
+    }
+    balances[creditId] = { remaining, reserved, settled };
+  }
+
+  return balances;
+};
+
 export type { EventBodyFlagCheck } from "./api/models/EventBodyFlagCheck";
 export { EventBodyFlagCheckToJSON } from "./api/models/EventBodyFlagCheck";
 export type { CheckFlagResponseData } from "./api/models/CheckFlagResponseData";
 export { CheckFlagResponseFromJSON } from "./api/models/CheckFlagResponse";
+export type { CompanyCreditBalance } from "./api/models/CompanyCreditBalance";
 export { CheckFlagsResponseFromJSON } from "./api/models/CheckFlagsResponse";
 export { DatastreamCompanyPlanFromJSON } from "./api/models/DatastreamCompanyPlan";
 export { TrialStatus } from "./api/models/TrialStatus";
