@@ -1,80 +1,179 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code (claude.ai/code) when working with
+code in this repository.
 
-## Project Overview
+## Project overview
 
-`schematic-react` is a client-side React library for [Schematic](https://schematichq.com) that provides hooks to track events, check flags, and more. It offers React-specific wrappers around the core functionality provided by `@schematichq/schematic-js`.
+`@schematichq/schematic-react` is the unified React SDK for
+[Schematic](https://schematichq.com). It merges the legacy
+`schematic-react` (WS-backed flags/entitlements) and `schematic-components`
+(REST-backed UI) packages behind a single provider with subpath exports.
+The root entry stays lightweight; the heavier UI surface ships from
+`@schematichq/schematic-react/components`.
 
-## Repository Structure
+## Subpath exports
 
-- `/src/context`: Contains the SchematicProvider component and context
-- `/src/hooks`: Contains React hooks for interacting with Schematic
-- `/src/version.ts`: Auto-generated version info (do not edit directly)
-
-## Development Commands
-
-### Build Commands
-
-```bash
-# Watch mode for development
-yarn dev
-
-# Full build process
-yarn build
-
-# Individual build steps
-yarn build:cjs     # Build CommonJS bundle
-yarn build:esm     # Build ESM bundle 
-yarn build:types   # Build TypeScript types
-```
-
-### Code Quality Commands
-
-```bash
-# Run TypeScript compiler
-yarn tsc
-
-# Format code with Prettier
-yarn format
-
-# Run ESLint with auto-fix
-yarn lint
-
-# Run tests
-yarn test
-```
-
-### Other Commands
-
-```bash
-# Clean build artifacts
-yarn clean
-```
+- `@schematichq/schematic-react` — root entry. WS-backed flags,
+  entitlements, events, plan info. Pulls in `react` and nothing else
+  eagerly: `@schematichq/schematic-js` (an external) is lazy-loaded with
+  the WS adapter on first core-hook use, so a consumer who only uses the
+  UI surface (`ws={null}`) tree-shakes it out.
+- `@schematichq/schematic-react/components` — UI surface. Re-exports the
+  root entry, plus `lazy`-wrapped UI components (`PricingTable`,
+  `PaymentMethod`, `CheckoutDialog`, etc.) and the embed-side hooks
+  (`useEmbed`, `useAvailablePlans`, …).
 
 ## Architecture
 
-The library is built on a React context pattern:
+`SchematicProvider` is a thin wrapper around the bare plugin host in
+`src/provider.tsx`. The host composes optional adapter components into the
+tree and forwards a per-adapter slice of props to each.
 
-1. `SchematicProvider`: React context provider that initializes the Schematic client
-   - Accepts either a publishable key or a pre-configured client
-   - Manages client lifecycle (cleanup on unmount)
+- `src/context.ts` — the single `SchematicContext`. Value shape
+  `{ client, embed }`.
+- `src/provider.tsx` — bare provider. Wraps `children` in an inner
+  Suspense boundary (isolates `useEmbed` throws), mounts whichever
+  adapters are bound, and wraps the whole tree in an outer Suspense
+  boundary that uses the consumer's `fallback`. Filters props per-adapter
+  via `pickWsProps` / `pickEmbedProps`.
+- `src/core/WsAdapter.tsx` — WS adapter. Constructs (or accepts) a
+  `Schematic` client, provides the WS slot, cleans up on unmount. Warns
+  in dev when `publishableKey` or `client` changes after mount (the
+  initial value is captured by design). It is the only root-entry code
+  that imports `@schematichq/schematic-js` at runtime (`new Schematic`),
+  so it is reachable only via a dynamic `import()` — lazy by default.
+- `src/components/embed/EmbedAdapter.tsx` — embed adapter. REST clients,
+  reducer, theme, i18n, fonts. Heavy — only mounted from the /components
+  subpath, and even then only lazily.
+- `src/embed-loader.ts` / `src/ws-loader.ts` — coordinate the lazy embed
+  and WS mounts. Each exposes a `useSyncExternalStore`-compatible store the
+  bare provider subscribes to, plus a disabled-signal context
+  (`SchematicEmbedDisabledContext` / `SchematicWsDisabledContext`) so the
+  relevant hooks throw an explicit error when `embed={null}` / `ws={null}`
+  is the active opt-out.
 
-2. Core Hooks:
-   - `useSchematicFlag`: Check feature flag values
-   - `useSchematicEntitlement`: Check entitlements with usage data
-   - `useSchematicEvents`: Track events and identify users/companies
-   - `useSchematicIsPending`: Check if data is still loading
-   - `useSchematicContext`: Access and modify context
+### Lazy adapter loading (the Path C mechanism)
 
-## Development Guidelines
+By default, `SchematicProvider` pre-binds neither adapter — both the embed
+and WS adapters are loaded on demand via a dynamic `import()`. When a
+descendant needs an adapter, it triggers the import; the bare provider
+subscribes to that adapter's loader store via `useSyncExternalStore` and
+re-renders with the dynamically-loaded adapter mounted.
 
-- Maintain React best practices, especially regarding hooks dependencies and memoization
-- Ensure backward compatibility for public API
-- Follow existing patterns when adding new hooks or features
-- Make sure to run `yarn build` before committing changes to verify the build works
+Embed and WS differ in how the trigger surfaces:
+
+- **Embed** — `useEmbed` (and the embed UI components) throw the import
+  promise; the inner Suspense boundary catches it and the suspended
+  component retries inside the populated context.
+- **WS** — the client-returning core hooks (`useSchematic`,
+  `useSchematicEvents`, `useSchematicContext`) throw the import promise
+  (suspend). The value hooks (`useSchematicFlag`, `useSchematicEntitlement`,
+  `useSchematicPlan`, `useSchematicIsPending`) do **not** suspend: they
+  trigger the load from an effect and return their fallback until the
+  client is bound, preserving the instant-fallback contract.
+
+Opt-in / opt-out paths (symmetric for `ws` and `embed`):
+
+- `undefined` (default) — lazy load on first use.
+- `EmbedAdapter` / `WsAdapter` — eager mount at provider time. Each is
+  exported as a thin function-component wrapper around a `React.lazy` ref
+  (the chunk-split shape is preserved); `EmbedAdapter` from `/components`,
+  `WsAdapter` from the root entry.
+- `null` — explicit opt-out (`ws={null}` is UI-only mode). The provider
+  publishes the matching disabled-signal context; the relevant hooks throw
+  a clear error instead of looping on a Suspense throw the provider would
+  never resolve.
+
+### Provider props (discriminated union)
+
+Both entries restore the v1 `client xor publishableKey` requirement and
+add a third arm:
+
+```ts
+type SchematicProviderProps = CommonProps &
+  ( { client: Schematic; publishableKey?: never }
+  | { client?: never; publishableKey: string }
+  | { client?: never; publishableKey?: string; ws: null }
+  );
+```
+
+The bare provider in `provider.tsx` keeps a loose flat shape
+(`SchematicProviderBaseProps`); the wrappers in `src/index.tsx` and
+`src/components/index.tsx` apply the union at the public API boundary.
+
+## Development commands
+
+```bash
+# Watch mode (types only)
+yarn dev
+
+# Full build (regenerates version.ts, builds core + components, types,
+# tree-shake invariant)
+yarn build
+
+# Specific build steps
+yarn build:core:cjs
+yarn build:core:esm
+yarn build:components:cjs
+yarn build:components:esm
+yarn build:types
+yarn check:tree-shake   # fails if heavy deps leak into the root bundle
+
+# Quality
+yarn tsc
+yarn format
+yarn lint
+
+# Test
+yarn test           # one-shot
+yarn test:watch     # vitest watch
+
+# OpenAPI client regeneration
+yarn openapi
+```
+
+Tests run under `jsdom` (configured in `vitest.config.ts`); MSW handlers
+live in `src/components/test/`.
+
+## Conventions
+
+- The root entry's eager (static-import) graph must not pull in any
+  styled-components, Stripe, i18next, or `@schematichq/schematic-icons`
+  code, nor the WS adapter runtime. `scripts/check-tree-shake.mjs` walks
+  the static-import graph rooted at `dist/schematic-react.esm.js` and fails
+  the build if any forbidden dep string appears, or if the WS adapter's
+  marker (`X-Schematic-Client-Version`) shows up — that marker leaking out
+  of its dynamic chunk means `WsAdapter` (and `new Schematic`) is no longer
+  lazy. The WS adapter must therefore only ever be reached via a dynamic
+  `import()` (in `ws-loader.ts` and the `WsAdapter` export in
+  `src/index.tsx`); never add a static import of `./core/WsAdapter`.
+- `@schematichq/schematic-js`'s value re-exports (`Schematic`, `RuleType`,
+  `TrialStatus`, `UsagePeriod`) are the one place the specifier appears in
+  the eager graph — that's fine: they're pure re-export bindings of an
+  external, tree-shaken per-consumer when unused, and intentionally not in
+  the `check-tree-shake` forbidden list. Core hooks reference the package
+  with `import type` only.
+- `version.ts` is auto-generated by `version.sh` from `package.json`. Do
+  not hand-edit it. Both adapters read this single source for their
+  `X-Schematic-*-Version` headers.
+- `@schematichq/schematic-js` is **external** in all four esbuild builds
+  and declared in `dependencies` so the consumer's install supplies a
+  single instance (avoids the dual-package hazard).
+- WS adapter prop changes after mount are intentionally ignored (the
+  WebSocket connection should outlive prop churn); the dev-mode warning
+  exists so a stale credential isn't silently retained.
+- New embed UI components must be `React.lazy`-wrapped in
+  `src/components/index.tsx`; non-lazy exports would pull
+  styled-components into the /components main bundle.
+- When adding a new adapter slot or prop, update `pickWsProps` /
+  `pickEmbedProps` in `provider.tsx` so each adapter only sees what it
+  consumes.
 
 ## Dependencies
 
-- React >=18 (peer dependency)
-- @schematichq/schematic-js (main dependency)
+- `react >= 18` (peer)
+- `@schematichq/schematic-js` (runtime dep)
+- `/components` peers (optional): `@stripe/react-stripe-js`,
+  `@stripe/stripe-js`, `styled-components`, `i18next`, `react-i18next`,
+  `react-dom`.
