@@ -31,15 +31,13 @@ import { fileURLToPath } from "node:url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const pkgRoot = resolve(__dirname, "..");
 
-const ROOT_BUNDLES = ["dist/schematic-react.esm.js"];
-
 // Strings that should NEVER appear in any file reachable from the root
 // entry via static imports. Each entry is a dependency that only the
 // /components surface (or the lazy embed chunk) should reach for. All are
 // externalized in every esbuild build, so the only way one of these would
 // appear in the eagerly-loaded graph is if non-component code imported it
 // directly — which is the leak we're guarding against.
-const FORBIDDEN = [
+const ROOT_FORBIDDEN = [
   "@stripe/react-stripe-js",
   "@stripe/stripe-js",
   "styled-components",
@@ -49,6 +47,20 @@ const FORBIDDEN = [
   "lodash",
   "pako",
   "uuid",
+];
+
+// The /headless surface is the headless primitive layer. It may bundle the
+// styled-free data hooks, but it must NOT reach for any of the heavy UI peers
+// — that's the whole point of a separate, lightweight entry. (lodash/pako/uuid
+// are intentionally NOT forbidden here: a styled-free hook the primitives reuse
+// may pull a `lodash/*` helper, and those stay external regardless.)
+const HEADLESS_FORBIDDEN = [
+  "@stripe/react-stripe-js",
+  "@stripe/stripe-js",
+  "styled-components",
+  "i18next",
+  "react-i18next",
+  "@schematichq/schematic-icons",
 ];
 
 // Markers for code that must only be reachable via a dynamic `import()`.
@@ -64,7 +76,21 @@ const FORBIDDEN = [
 // adapter (and `@schematichq/schematic-js` with it) escaped its lazy chunk.
 const DYNAMIC_ONLY_MARKERS = ["X-Schematic-Client-Version"];
 
-const NEEDLES = [...FORBIDDEN, ...DYNAMIC_ONLY_MARKERS];
+// One guarded entry per checked bundle, each with its own needle set. The ESM
+// (splitting) builds are scanned because their entry shim statically imports
+// the real chunks; CJS is skipped (see the note above on inlined dynamic
+// imports). The headless bundle has no WS-adapter concern, so it omits the
+// dynamic-only marker.
+const GUARDED_BUNDLES = [
+  {
+    bundle: "dist/schematic-react.esm.js",
+    needles: [...ROOT_FORBIDDEN, ...DYNAMIC_ONLY_MARKERS],
+  },
+  {
+    bundle: "dist/headless/schematic-react-headless.esm.js",
+    needles: HEADLESS_FORBIDDEN,
+  },
+];
 
 // Matches static `import`/`export … from "x"` (and side-effect `import "x"`).
 // Dynamic `import("x")` does NOT match: that form has `(` directly after
@@ -85,7 +111,7 @@ function collectStaticImports(src) {
 
 let failed = false;
 
-for (const rel of ROOT_BUNDLES) {
+for (const { bundle: rel, needles } of GUARDED_BUNDLES) {
   const abs = resolve(pkgRoot, rel);
   if (!existsSync(abs)) {
     console.error(`[check-tree-shake] missing bundle: ${rel}`);
@@ -111,7 +137,7 @@ for (const rel of ROOT_BUNDLES) {
     }
 
     const src = readFileSync(file, "utf8");
-    const hits = NEEDLES.filter((needle) => src.includes(needle));
+    const hits = needles.filter((needle) => src.includes(needle));
     if (hits.length > 0) {
       hitsByFile.push({ file, hits });
     }

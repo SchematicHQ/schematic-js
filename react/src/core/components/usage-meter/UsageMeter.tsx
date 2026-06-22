@@ -1,37 +1,34 @@
 import { type CheckFlagReturn } from "@schematichq/schematic-js";
 
-import { useSchematicEntitlement } from "../../hooks";
+import {
+  UsageMeter as Primitive,
+  useUsageMeterContext,
+} from "../../../headless/usage-meter";
 
 export interface UsageMeterProps extends React.HTMLAttributes<HTMLDivElement> {
   flag: CheckFlagReturn["flag"];
 }
 
-export const UsageMeter = ({
-  flag,
+/**
+ * The default-styled view over the headless primitives — exactly the shape a
+ * consumer would author on top of `@schematichq/schematic-react/headless`:
+ * read the derived data from `useUsageMeterContext`, then style the
+ * `Track`/`Fill` parts. Visual defaults are wrapped in `var(--…, fallback)` so
+ * consumers can restyle without targeting our selectors or using `!important`;
+ * the fallbacks keep the component visually functional.
+ */
+const DefaultUsageMeter = ({
   className,
   style,
   ...rest
-}: UsageMeterProps) => {
-  const entitlement = useSchematicEntitlement(flag);
+}: React.HTMLAttributes<HTMLDivElement>) => {
+  const { flag, percent, hasData } = useUsageMeterContext();
 
-  const max = entitlement.featureAllocation;
-  if (typeof max !== "number") {
-    return;
+  // Match the legacy behavior: render nothing until usage/allocation resolve.
+  if (!hasData) {
+    return null;
   }
 
-  const value = entitlement.featureUsage;
-  if (typeof value !== "number") {
-    return;
-  }
-
-  const percent =
-    max > 0
-      ? Math.min(100, Math.max(0, Math.round((value / max) * 100 * 100) / 100))
-      : 0;
-
-  // Visual defaults are wrapped in `var(--…, fallback)` so consumers can
-  // restyle without targeting our selectors or using `!important`.
-  // The fallbacks keep the component visually functional
   const trackStyle = {
     height: "var(--schematic-meter-height, 0.5rem)",
     background:
@@ -49,12 +46,8 @@ export const UsageMeter = ({
   };
 
   return (
-    <div
+    <Primitive.Track
       id={flag}
-      role="meter"
-      aria-valuenow={value}
-      aria-valuemin={0}
-      aria-valuemax={max}
       data-schematic="usage-meter"
       className={
         className
@@ -64,11 +57,23 @@ export const UsageMeter = ({
       style={trackStyle}
       {...rest}
     >
-      <div
+      <Primitive.Fill
         data-schematic="usage-meter-fill"
         className="schematic-usage-meter__fill"
         style={fillStyle}
       />
-    </div>
+    </Primitive.Track>
   );
 };
+
+/**
+ * Default-styled UsageMeter: a thin wrapper that mounts the headless `Root`
+ * (which sources live entitlement data) and renders the default view. The
+ * public API is unchanged; consumers wanting full control compose the
+ * primitives from `@schematichq/schematic-react/headless` directly.
+ */
+export const UsageMeter = ({ flag, ...rest }: UsageMeterProps) => (
+  <Primitive.Root flag={flag}>
+    <DefaultUsageMeter {...rest} />
+  </Primitive.Root>
+);
