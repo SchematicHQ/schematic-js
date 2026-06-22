@@ -173,6 +173,32 @@ The composable returns an object with the following properties:
 | `trialEndDate` | `Date \| undefined` | The trial end date, if the company has or had a trial |
 | `trialStatus` | `"active" \| "expired" \| "converted" \| undefined` | The company's trial status: `active` if the trial is ongoing, `expired` if the trial ended without conversion, `converted` if the company converted to a paid plan, or `undefined` if the company has never trialed |
 
+### Credit balances
+
+To display a company's credit balance, use the `useSchematicCreditBalance` composable. It is keyed by credit ID and updates reactively as the balance changes over the DataStream:
+
+```vue
+<script setup lang="ts">
+import { useSchematicCreditBalance } from "@schematichq/schematic-vue";
+
+const { balance, isLoading } = useSchematicCreditBalance("credit-id");
+</script>
+
+<template>
+  <div v-if="isLoading">Loading…</div>
+  <div v-else>{{ balance }} credits remaining</div>
+</template>
+```
+
+The composable returns an object with the following reactive properties:
+
+| Property | Type | Description |
+| --- | --- | --- |
+| `balance` | `ComputedRef<number>` | The spendable balance, or `0` while loading or when the company holds no balance in this credit |
+| `isLoading` | `ComputedRef<boolean>` | `true` while the balance is still loading and no value has arrived yet |
+
+The credit ID is available on a feature's entitlement: `useSchematicEntitlement(key)` returns `creditId` for credit-based features.
+
 ## Fallback Behavior
 
 The SDK includes built-in fallback behavior you can use to ensure your application continues to function even when unable to reach Schematic (e.g., during service disruptions or network issues).

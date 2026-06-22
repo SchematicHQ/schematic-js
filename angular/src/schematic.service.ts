@@ -3,6 +3,18 @@ import * as SchematicJS from "@schematichq/schematic-js";
 import { Observable, distinctUntilChanged, finalize, shareReplay } from "rxjs";
 import { SCHEMATIC_CLIENT } from "./token";
 
+/**
+ * Which balance `creditBalance$` surfaces. Defaults to "settled" — the
+ * spendable balance (remaining + reserved) and the only number end users
+ * should see. "remaining" / "reserved" are for advanced lease-aware accounting.
+ */
+export type CreditBalanceType = "settled" | "remaining" | "reserved";
+
+export type SchematicCreditBalance = {
+  balance: number;
+  isLoading: boolean;
+};
+
 function shallowEqual<T extends Record<string, unknown>>(
   a: T | undefined,
   b: T | undefined,
@@ -30,6 +42,10 @@ export class SchematicService {
   private entitlementCache = new Map<
     string,
     Observable<SchematicJS.CheckFlagReturn>
+  >();
+  private creditBalanceCache = new Map<
+    string,
+    Observable<SchematicCreditBalance>
   >();
   private planCache?: Observable<SchematicJS.CheckPlanReturn | undefined>;
   private isPendingCache?: Observable<boolean>;
@@ -131,6 +147,58 @@ export class SchematicService {
     );
 
     return this.planCache;
+  }
+
+  /**
+   * Observe a company's live, lease-aware credit balance for a single credit type.
+   *
+   * By default it surfaces `settled` — the spendable balance (remaining +
+   * reserved), and the only number end users should see. The value is sourced
+   * from the streamed credit balances map (keyed by credit ID) and updates as
+   * partials arrive over the DataStream, so it stays accurate during an open
+   * lease — when the raw `remaining` would otherwise read stale / falsely
+   * "exhausted". Pass `type` to surface `remaining` or `reserved` instead for
+   * advanced lease-aware accounting.
+   *
+   * The credit ID is available on a feature's entitlement: `entitlement$(key)`
+   * emits `creditId` for credit-based features.
+   */
+  creditBalance$(
+    creditId: string,
+    type: CreditBalanceType = "settled",
+  ): Observable<SchematicCreditBalance> {
+    const cacheKey = `${creditId}:${type}`;
+    let cached = this.creditBalanceCache.get(cacheKey);
+    if (cached) return cached;
+
+    cached = new Observable<SchematicCreditBalance>((subscriber) => {
+      const emit = () => {
+        const balance = this.client.getCreditBalance(creditId);
+        subscriber.next({
+          balance: balance?.[type] ?? 0,
+          isLoading: balance === undefined && this.client.getIsPending(),
+        });
+      };
+
+      emit();
+
+      const unsubscribeBalance = this.client.addCreditBalanceListener(() =>
+        emit(),
+      );
+      const unsubscribePending = this.client.addIsPendingListener(() => emit());
+
+      return () => {
+        unsubscribeBalance();
+        unsubscribePending();
+      };
+    }).pipe(
+      distinctUntilChanged(shallowEqual),
+      shareReplay({ bufferSize: 1, refCount: true }),
+      finalize(() => this.creditBalanceCache.delete(cacheKey)),
+    );
+
+    this.creditBalanceCache.set(cacheKey, cached);
+    return cached;
   }
 
   isPending$(): Observable<boolean> {

@@ -15,6 +15,17 @@ export type UseSchematicPlanOpts = SchematicComposableOpts & {
 };
 
 /**
+ * Which balance `useSchematicCreditBalance` surfaces. Defaults to "settled" —
+ * the spendable balance (remaining + reserved) and the only number end users
+ * should see. "remaining" / "reserved" are for advanced lease-aware accounting.
+ */
+export type CreditBalanceType = "settled" | "remaining" | "reserved";
+
+export type UseSchematicCreditBalanceOpts = SchematicComposableOpts & {
+  type?: CreditBalanceType;
+};
+
+/**
  * Get the Schematic client instance
  * Can optionally override with a custom client
  */
@@ -248,6 +259,71 @@ export const useSchematicPlan = (
   });
 
   return plan;
+};
+
+/**
+ * Get a company's live, lease-aware credit balance for a single credit type.
+ * Returns reactive computed refs for the selected balance and a loading flag.
+ *
+ * By default it surfaces `settled` — the spendable balance (remaining +
+ * reserved), and the only number end users should see. The value is sourced
+ * from the streamed credit balances map (keyed by credit ID) and updates as
+ * partials arrive over the DataStream, so it stays accurate during an open
+ * lease — when the raw `remaining` would otherwise read stale / falsely
+ * "exhausted". Pass `opts.type` to surface `remaining` or `reserved` instead
+ * for advanced lease-aware accounting.
+ *
+ * The credit ID is available on a feature's entitlement: `useSchematicEntitlement(key)`
+ * returns `creditId` for credit-based features.
+ *
+ * @param creditId - The credit ID to read the balance for
+ * @param opts - Optional configuration including which balance to surface
+ * @returns Object with `balance` and `isLoading` computed refs
+ *
+ * @example
+ * ```typescript
+ * const { balance, isLoading } = useSchematicCreditBalance('credit-id')
+ *
+ * // In template
+ * <div v-if="isLoading">Loading…</div>
+ * <div v-else>{{ balance }} credits remaining</div>
+ * ```
+ */
+export const useSchematicCreditBalance = (
+  creditId: string,
+  opts?: UseSchematicCreditBalanceOpts,
+) => {
+  const client = useSchematicClient(opts);
+  const type = opts?.type ?? "settled";
+
+  const creditBalance = ref<SchematicJS.CreditBalance | undefined>(
+    client.getCreditBalance(creditId),
+  );
+  const isPending = ref<boolean>(client.getIsPending());
+
+  let unsubscribeBalance: (() => void) | null = null;
+  let unsubscribePending: (() => void) | null = null;
+
+  onMounted(() => {
+    unsubscribeBalance = client.addCreditBalanceListener(() => {
+      creditBalance.value = client.getCreditBalance(creditId);
+    });
+    unsubscribePending = client.addIsPendingListener(() => {
+      isPending.value = client.getIsPending();
+    });
+  });
+
+  onScopeDispose(() => {
+    unsubscribeBalance?.();
+    unsubscribePending?.();
+  });
+
+  return {
+    balance: computed(() => creditBalance.value?.[type] ?? 0),
+    isLoading: computed(
+      () => creditBalance.value === undefined && isPending.value,
+    ),
+  };
 };
 
 /**

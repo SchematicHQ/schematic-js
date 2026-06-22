@@ -7,12 +7,15 @@ import {
 import {
   useSchematicClient,
   useSchematicContext,
+  useSchematicCreditBalance,
   useSchematicEntitlement,
   useSchematicEvents,
   useSchematicFlag,
   useSchematicIsPending,
   useSchematicPlan,
+  type CreditBalanceType,
   type SchematicComposableOpts,
+  type UseSchematicCreditBalanceOpts,
   type UseSchematicFlagOpts,
   type UseSchematicPlanOpts,
 } from "./composables";
@@ -21,6 +24,7 @@ export {
   useSchematic,
   useSchematicClient,
   useSchematicContext,
+  useSchematicCreditBalance,
   useSchematicEntitlement,
   useSchematicEvents,
   useSchematicFlag,
@@ -30,9 +34,11 @@ export {
 };
 
 export type {
+  CreditBalanceType,
   SchematicComposableOpts,
   SchematicPluginOptions,
   SchematicContextValue,
+  UseSchematicCreditBalanceOpts,
   UseSchematicFlagOpts,
   UseSchematicPlanOpts,
 };
@@ -43,6 +49,9 @@ export { RuleType, Schematic, UsagePeriod } from "@schematichq/schematic-js";
 export type {
   CheckFlagReturn,
   CheckPlanReturn,
+  CompanyCreditBalance,
+  CreditBalance,
+  CreditBalances,
   Event,
   EventBody,
   EventBodyIdentify,

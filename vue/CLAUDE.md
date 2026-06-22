@@ -64,6 +64,7 @@ The library is built on Vue's provide/inject pattern:
 2. Core Composables:
    - `useSchematicFlag`: Check feature flag values (returns `Ref<boolean>`)
    - `useSchematicEntitlement`: Check entitlements with usage data (returns object with computed refs)
+   - `useSchematicCreditBalance`: Read a company's live, lease-aware credit balance by credit ID (returns object with computed refs)
    - `useSchematicEvents`: Track events and identify users/companies
    - `useSchematicIsPending`: Check if data is still loading (returns `Ref<boolean>`)
    - `useSchematicContext`: Access and modify context

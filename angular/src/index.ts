@@ -3,6 +3,10 @@ export type { SchematicConfig } from "./provide";
 export { SCHEMATIC_CLIENT } from "./token";
 
 export { SchematicService } from "./schematic.service";
+export type {
+  CreditBalanceType,
+  SchematicCreditBalance,
+} from "./schematic.service";
 
 export {
   RuleType,
@@ -14,6 +18,9 @@ export {
 export type {
   CheckFlagReturn,
   CheckPlanReturn,
+  CompanyCreditBalance,
+  CreditBalance,
+  CreditBalances,
   Event,
   EventBody,
   EventBodyIdentify,
