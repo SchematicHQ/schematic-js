@@ -10,8 +10,11 @@ import { SCHEMATIC_CLIENT } from "./token";
  */
 export type CreditBalanceType = "settled" | "remaining" | "reserved";
 
+/** A company's credit balance for a single credit type, plus a loading flag */
 export type SchematicCreditBalance = {
+  /** The selected balance (settled by default; choose another via `type`); 0 while loading or when the company holds no balance in this credit */
   balance: number;
+  /** True while the balance is still loading and no value has arrived yet */
   isLoading: boolean;
 };
 

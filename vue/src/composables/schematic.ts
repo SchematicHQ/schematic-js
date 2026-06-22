@@ -22,6 +22,7 @@ export type UseSchematicPlanOpts = SchematicComposableOpts & {
 export type CreditBalanceType = "settled" | "remaining" | "reserved";
 
 export type UseSchematicCreditBalanceOpts = SchematicComposableOpts & {
+  /** Which balance to surface. Defaults to "settled". */
   type?: CreditBalanceType;
 };
 
