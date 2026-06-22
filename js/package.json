@@ -40,7 +40,7 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@microsoft/api-extractor": "^7.58.9",
-    "@openapitools/openapi-generator-cli": "^2.38.0",
+    "@openapitools/openapi-generator-cli": "^2.39.0",
     "@vitest/browser": "^4.1.9",
     "esbuild": "^0.28.1",
     "eslint": "^10.5.0",
