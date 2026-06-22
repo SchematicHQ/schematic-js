@@ -11,10 +11,8 @@ import {
   useSchematicFlag,
   useSchematicIsPending,
   useSchematicPlan,
-  type CreditBalanceType,
   type SchematicCreditBalance,
   type SchematicHookOpts,
-  type UseSchematicCreditBalanceOpts,
   type UseSchematicPlanOpts,
   type UseSchematicFlagOpts,
 } from "./hooks";
@@ -32,11 +30,9 @@ export {
 };
 
 export type {
-  CreditBalanceType,
   SchematicCreditBalance,
   SchematicHookOpts,
   SchematicProviderProps,
-  UseSchematicCreditBalanceOpts,
   UseSchematicFlagOpts,
   UseSchematicPlanOpts,
 };

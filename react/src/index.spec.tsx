@@ -105,9 +105,8 @@ const createFakeClient = () => {
     const renderBalance = (
       creditId: string,
       client: ReturnType<typeof createFakeClient>,
-      opts?: { type?: "settled" | "remaining" | "reserved" },
     ) =>
-      renderHook(() => useSchematicCreditBalance(creditId, opts), {
+      renderHook(() => useSchematicCreditBalance(creditId), {
         wrapper: ({ children }: { children: React.ReactNode }) => (
           <SchematicProvider client={client as unknown as Schematic}>
             {children}
@@ -122,10 +121,10 @@ const createFakeClient = () => {
       expect(result.current).toEqual({ balance: 0, isLoading: true });
     });
 
-    it("surfaces settled as the default headline balance", () => {
+    it("surfaces the settled (spendable) balance", () => {
       // Repro from SCH-6526: 6000 grant, lease tracked to 2558. The streamed
       // `remaining` froze at 0 mid-lease; `settled` (spendable) is 3442 — and
-      // that's the default the hook returns.
+      // that's what the hook returns.
       const client = createFakeClient();
       const { result } = renderBalance("credit-abc", client);
 
@@ -137,26 +136,6 @@ const createFakeClient = () => {
       });
 
       expect(result.current).toEqual({ balance: 3442, isLoading: false });
-    });
-
-    it("surfaces remaining/reserved when requested via opts.type", () => {
-      const client = createFakeClient();
-      const remainingHook = renderBalance("credit-abc", client, {
-        type: "remaining",
-      });
-      const reservedHook = renderBalance("credit-abc", client, {
-        type: "reserved",
-      });
-
-      act(() => {
-        client.__setPending(false);
-        client.__emitBalances({
-          "credit-abc": { remaining: 0, reserved: 3442, settled: 3442 },
-        });
-      });
-
-      expect(remainingHook.result.current.balance).toBe(0);
-      expect(reservedHook.result.current.balance).toBe(3442);
     });
 
     it("re-renders as credit balance partials arrive", () => {
