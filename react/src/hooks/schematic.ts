@@ -18,6 +18,14 @@ export type UseSchematicPlanOpts = SchematicHookOpts & {
   fallback?: SchematicJS.CheckPlanReturn;
 };
 
+/** A company's credit balance for a single credit type, plus a loading flag */
+export type SchematicCreditBalance = {
+  /** The spendable balance; 0 while loading or when the company holds no balance in this credit */
+  balance: number;
+  /** True while the balance is still loading and no value has arrived yet */
+  isLoading: boolean;
+};
+
 export const useSchematicClient = (opts?: SchematicHookOpts) => {
   const schematic = useSchematic();
   const { client } = opts ?? {};
@@ -132,6 +140,52 @@ export const useSchematicPlan = (
   }, [client, fallbackPlan]);
 
   return useSyncExternalStore(subscribe, getSnapshot, () => fallbackPlan);
+};
+
+/**
+ * Returns a company's live, lease-aware credit balance for a single credit type.
+ *
+ * Surfaces the spendable `settled` balance, sourced from the streamed
+ * `credit_balances` map (keyed by credit ID). It re-renders as partials arrive
+ * over the DataStream, so it stays accurate during an open lease — when the raw
+ * `remaining` would otherwise read stale / falsely "exhausted".
+ */
+export const useSchematicCreditBalance = (
+  creditId: string,
+  opts?: SchematicHookOpts,
+): SchematicCreditBalance => {
+  const client = useSchematicClient(opts);
+
+  const subscribe = useCallback(
+    (callback: () => void) => client.addCreditBalanceListener(callback),
+    [client],
+  );
+
+  const getSnapshot = useCallback(
+    () => client.getCreditBalance(creditId),
+    [client, creditId],
+  );
+
+  const balance = useSyncExternalStore(subscribe, getSnapshot, () => undefined);
+
+  const isPendingSubscribe = useCallback(
+    (callback: () => void) => client.addIsPendingListener(callback),
+    [client],
+  );
+
+  const isPending = useSyncExternalStore(
+    isPendingSubscribe,
+    () => client.getIsPending(),
+    () => true,
+  );
+
+  return useMemo(
+    () => ({
+      balance: balance?.settled ?? 0,
+      isLoading: balance === undefined && isPending,
+    }),
+    [balance, isPending],
+  );
 };
 
 export const useSchematicIsPending = (opts?: SchematicHookOpts) => {
