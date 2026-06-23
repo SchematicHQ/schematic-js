@@ -6,6 +6,7 @@ import {
 } from "@stripe/react-stripe-js";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import isEmail from "validator/lib/isEmail";
 
 import type { PreviewSubscriptionFinanceResponseData } from "../../../api/checkoutexternal";
 import { useEmbed } from "../../../hooks";
@@ -52,6 +53,8 @@ export const PaymentForm = ({ onConfirm, financeData }: PaymentFormProps) => {
   const [isAddressComplete, setIsAddressComplete] = useState(
     () => !shouldCollectAddress,
   );
+
+  const isEmailComplete = !collectEmail || isEmail(email);
 
   // Stripe only reads AddressElement `defaultValues` on mount. Key the element
   // by the prefill identity so a prefill that arrives after mount remounts it.
@@ -218,7 +221,8 @@ export const PaymentForm = ({ onConfirm, financeData }: PaymentFormProps) => {
           !elements ||
           isConfirmed ||
           !isPaymentComplete ||
-          !isAddressComplete
+          !isAddressComplete ||
+          !isEmailComplete
         }
         style={{ flexShrink: 0 }}
         $color="primary"
