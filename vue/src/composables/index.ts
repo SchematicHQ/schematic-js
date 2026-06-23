@@ -7,9 +7,7 @@ export {
   useSchematicFlag,
   useSchematicIsPending,
   useSchematicPlan,
-  type CreditBalanceType,
   type SchematicComposableOpts,
-  type UseSchematicCreditBalanceOpts,
   type UseSchematicFlagOpts,
   type UseSchematicPlanOpts,
 } from "./schematic";

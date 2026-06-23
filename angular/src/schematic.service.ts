@@ -3,16 +3,9 @@ import * as SchematicJS from "@schematichq/schematic-js";
 import { Observable, distinctUntilChanged, finalize, shareReplay } from "rxjs";
 import { SCHEMATIC_CLIENT } from "./token";
 
-/**
- * Which balance `creditBalance$` surfaces. Defaults to "settled" — the
- * spendable balance (remaining + reserved) and the only number end users
- * should see. "remaining" / "reserved" are for advanced lease-aware accounting.
- */
-export type CreditBalanceType = "settled" | "remaining" | "reserved";
-
 /** A company's credit balance for a single credit type, plus a loading flag */
 export type SchematicCreditBalance = {
-  /** The selected balance (settled by default; choose another via `type`); 0 while loading or when the company holds no balance in this credit */
+  /** The spendable balance; 0 while loading or when the company holds no balance in this credit */
   balance: number;
   /** True while the balance is still loading and no value has arrived yet */
   isLoading: boolean;
@@ -155,30 +148,23 @@ export class SchematicService {
   /**
    * Observe a company's live, lease-aware credit balance for a single credit type.
    *
-   * By default it surfaces `settled` — the spendable balance (remaining +
-   * reserved), and the only number end users should see. The value is sourced
-   * from the streamed credit balances map (keyed by credit ID) and updates as
-   * partials arrive over the DataStream, so it stays accurate during an open
-   * lease — when the raw `remaining` would otherwise read stale / falsely
-   * "exhausted". Pass `type` to surface `remaining` or `reserved` instead for
-   * advanced lease-aware accounting.
+   * Surfaces the spendable `settled` balance, sourced from the streamed credit
+   * balances map (keyed by credit ID). It emits as partials arrive over the
+   * DataStream, so it stays accurate during an open lease — when the raw
+   * `remaining` would otherwise read stale / falsely "exhausted".
    *
    * The credit ID is available on a feature's entitlement: `entitlement$(key)`
    * emits `creditId` for credit-based features.
    */
-  creditBalance$(
-    creditId: string,
-    type: CreditBalanceType = "settled",
-  ): Observable<SchematicCreditBalance> {
-    const cacheKey = `${creditId}:${type}`;
-    let cached = this.creditBalanceCache.get(cacheKey);
+  creditBalance$(creditId: string): Observable<SchematicCreditBalance> {
+    let cached = this.creditBalanceCache.get(creditId);
     if (cached) return cached;
 
     cached = new Observable<SchematicCreditBalance>((subscriber) => {
       const emit = () => {
         const balance = this.client.getCreditBalance(creditId);
         subscriber.next({
-          balance: balance?.[type] ?? 0,
+          balance: balance?.settled ?? 0,
           isLoading: balance === undefined && this.client.getIsPending(),
         });
       };
@@ -197,10 +183,10 @@ export class SchematicService {
     }).pipe(
       distinctUntilChanged(shallowEqual),
       shareReplay({ bufferSize: 1, refCount: true }),
-      finalize(() => this.creditBalanceCache.delete(cacheKey)),
+      finalize(() => this.creditBalanceCache.delete(creditId)),
     );
 
-    this.creditBalanceCache.set(cacheKey, cached);
+    this.creditBalanceCache.set(creditId, cached);
     return cached;
   }
 

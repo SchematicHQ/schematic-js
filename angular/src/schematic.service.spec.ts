@@ -303,9 +303,9 @@ describe("SchematicService", () => {
       expect(result).toEqual({ balance: 0, isLoading: true });
     });
 
-    it("should surface settled as the default headline balance", async () => {
+    it("should surface the settled (spendable) balance", async () => {
       // Repro from SCH-6526: the streamed `remaining` froze at 0 mid-lease;
-      // `settled` (spendable) is 3442 — the default the service returns.
+      // `settled` (spendable) is 3442 — what the service returns.
       mockClient.getCreditBalance.mockReturnValue({
         remaining: 0,
         reserved: 3442,
@@ -314,25 +314,6 @@ describe("SchematicService", () => {
       mockClient.getIsPending.mockReturnValue(false);
       const result = await firstValueFrom(service.creditBalance$("credit-abc"));
       expect(result).toEqual({ balance: 3442, isLoading: false });
-    });
-
-    it("should surface remaining/reserved when requested via type", async () => {
-      mockClient.getCreditBalance.mockReturnValue({
-        remaining: 0,
-        reserved: 3442,
-        settled: 3442,
-      });
-      mockClient.getIsPending.mockReturnValue(false);
-
-      const remaining = await firstValueFrom(
-        service.creditBalance$("credit-abc", "remaining"),
-      );
-      const reserved = await firstValueFrom(
-        service.creditBalance$("credit-abc", "reserved"),
-      );
-
-      expect(remaining.balance).toBe(0);
-      expect(reserved.balance).toBe(3442);
     });
 
     it("should emit updated balances when listener fires", async () => {
@@ -366,15 +347,15 @@ describe("SchematicService", () => {
       expect(result).toEqual({ balance: 0, isLoading: false });
     });
 
-    it("should cache observables by credit id and type", () => {
+    it("should cache observables by credit id", () => {
       const obs1 = service.creditBalance$("credit-abc");
       const obs2 = service.creditBalance$("credit-abc");
       expect(obs1).toBe(obs2);
     });
 
-    it("should return different observables for different types", () => {
-      const obs1 = service.creditBalance$("credit-abc", "settled");
-      const obs2 = service.creditBalance$("credit-abc", "remaining");
+    it("should return different observables for different credit ids", () => {
+      const obs1 = service.creditBalance$("credit-abc");
+      const obs2 = service.creditBalance$("credit-xyz");
       expect(obs1).not.toBe(obs2);
     });
   });

@@ -265,7 +265,7 @@ export class CreditMeterComponent {
 | `balance` | `number` | The spendable balance, or `0` while loading or when the company holds no balance in this credit |
 | `isLoading` | `boolean` | `true` while the balance is still loading and no value has arrived yet |
 
-By default it surfaces the `settled` (spendable) balance. Pass a second argument (`"remaining"` or `"reserved"`) for advanced lease-aware accounting. The credit ID is available on a feature's entitlement: `entitlement$(key)` emits `creditId` for credit-based features.
+It surfaces the `settled` (spendable) balance. The credit ID is available on a feature's entitlement: `entitlement$(key)` emits `creditId` for credit-based features.
 
 ## API Reference
 
@@ -286,7 +286,7 @@ Injectable service providing all Schematic functionality:
 | `flagValue$(key, fallback?)` | `Observable<boolean>` | Observe a feature flag's boolean value |
 | `entitlement$(key, fallback?)` | `Observable<CheckFlagReturn>` | Observe detailed entitlement data |
 | `plan$()` | `Observable<CheckPlanReturn \| undefined>` | Observe plan information |
-| `creditBalance$(creditId, type?)` | `Observable<SchematicCreditBalance>` | Observe a company's lease-aware credit balance |
+| `creditBalance$(creditId)` | `Observable<SchematicCreditBalance>` | Observe a company's lease-aware credit balance |
 | `isPending$()` | `Observable<boolean>` | Observe loading state |
 
 ### `SCHEMATIC_CLIENT`

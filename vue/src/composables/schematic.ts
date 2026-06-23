@@ -15,18 +15,6 @@ export type UseSchematicPlanOpts = SchematicComposableOpts & {
 };
 
 /**
- * Which balance `useSchematicCreditBalance` surfaces. Defaults to "settled" —
- * the spendable balance (remaining + reserved) and the only number end users
- * should see. "remaining" / "reserved" are for advanced lease-aware accounting.
- */
-export type CreditBalanceType = "settled" | "remaining" | "reserved";
-
-export type UseSchematicCreditBalanceOpts = SchematicComposableOpts & {
-  /** Which balance to surface. Defaults to "settled". */
-  type?: CreditBalanceType;
-};
-
-/**
  * Get the Schematic client instance
  * Can optionally override with a custom client
  */
@@ -264,21 +252,18 @@ export const useSchematicPlan = (
 
 /**
  * Get a company's live, lease-aware credit balance for a single credit type.
- * Returns reactive computed refs for the selected balance and a loading flag.
+ * Returns reactive computed refs for the balance and a loading flag.
  *
- * By default it surfaces `settled` — the spendable balance (remaining +
- * reserved), and the only number end users should see. The value is sourced
- * from the streamed credit balances map (keyed by credit ID) and updates as
- * partials arrive over the DataStream, so it stays accurate during an open
- * lease — when the raw `remaining` would otherwise read stale / falsely
- * "exhausted". Pass `opts.type` to surface `remaining` or `reserved` instead
- * for advanced lease-aware accounting.
+ * Surfaces the spendable `settled` balance, sourced from the streamed credit
+ * balances map (keyed by credit ID). It updates as partials arrive over the
+ * DataStream, so it stays accurate during an open lease — when the raw
+ * `remaining` would otherwise read stale / falsely "exhausted".
  *
  * The credit ID is available on a feature's entitlement: `useSchematicEntitlement(key)`
  * returns `creditId` for credit-based features.
  *
  * @param creditId - The credit ID to read the balance for
- * @param opts - Optional configuration including which balance to surface
+ * @param opts - Optional configuration including a client override
  * @returns Object with `balance` and `isLoading` computed refs
  *
  * @example
@@ -292,10 +277,9 @@ export const useSchematicPlan = (
  */
 export const useSchematicCreditBalance = (
   creditId: string,
-  opts?: UseSchematicCreditBalanceOpts,
+  opts?: SchematicComposableOpts,
 ) => {
   const client = useSchematicClient(opts);
-  const type = opts?.type ?? "settled";
 
   const creditBalance = ref<SchematicJS.CreditBalance | undefined>(
     client.getCreditBalance(creditId),
@@ -320,7 +304,9 @@ export const useSchematicCreditBalance = (
   });
 
   return {
-    balance: computed(() => creditBalance.value?.[type] ?? 0),
+    /** The spendable balance; 0 while loading or when the company holds no balance in this credit */
+    balance: computed(() => creditBalance.value?.settled ?? 0),
+    /** True while the balance is still loading and no value has arrived yet */
     isLoading: computed(
       () => creditBalance.value === undefined && isPending.value,
     ),

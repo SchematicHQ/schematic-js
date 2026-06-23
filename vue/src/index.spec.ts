@@ -5,7 +5,6 @@ import {
   SchematicPlugin,
   useSchematicCreditBalance,
   useSchematicFlag,
-  type CreditBalanceType,
 } from "./index";
 
 // Mock fetch
@@ -108,7 +107,6 @@ describe("useSchematicCreditBalance", () => {
   const mountBalance = (
     creditId: string,
     client: ReturnType<typeof createFakeClient>,
-    opts?: { type?: CreditBalanceType },
   ) => {
     const result: { balance: number; isLoading: boolean } = {
       balance: -1,
@@ -117,10 +115,7 @@ describe("useSchematicCreditBalance", () => {
 
     const TestComponent = defineComponent({
       setup() {
-        const { balance, isLoading } = useSchematicCreditBalance(
-          creditId,
-          opts,
-        );
+        const { balance, isLoading } = useSchematicCreditBalance(creditId);
         return () => {
           result.balance = balance.value;
           result.isLoading = isLoading.value;
@@ -147,10 +142,10 @@ describe("useSchematicCreditBalance", () => {
     expect(result).toEqual({ balance: 0, isLoading: true });
   });
 
-  it("surfaces settled as the default headline balance", async () => {
+  it("surfaces the settled (spendable) balance", async () => {
     // Repro from SCH-6526: 6000 grant, lease tracked to 2558. The streamed
     // `remaining` froze at 0 mid-lease; `settled` (spendable) is 3442 — and
-    // that's the default the composable returns.
+    // that's what the composable returns.
     const client = createFakeClient();
     const { result } = mountBalance("credit-abc", client);
 
@@ -161,21 +156,6 @@ describe("useSchematicCreditBalance", () => {
     await nextTick();
 
     expect(result).toEqual({ balance: 3442, isLoading: false });
-  });
-
-  it("surfaces remaining/reserved when requested via opts.type", async () => {
-    const client = createFakeClient();
-    const remaining = mountBalance("credit-abc", client, { type: "remaining" });
-    const reserved = mountBalance("credit-abc", client, { type: "reserved" });
-
-    client.__setPending(false);
-    client.__emitBalances({
-      "credit-abc": { remaining: 0, reserved: 3442, settled: 3442 },
-    });
-    await nextTick();
-
-    expect(remaining.result.balance).toBe(0);
-    expect(reserved.result.balance).toBe(3442);
   });
 
   it("re-renders as credit balance partials arrive", async () => {

@@ -13,9 +13,7 @@ import {
   useSchematicFlag,
   useSchematicIsPending,
   useSchematicPlan,
-  type CreditBalanceType,
   type SchematicComposableOpts,
-  type UseSchematicCreditBalanceOpts,
   type UseSchematicFlagOpts,
   type UseSchematicPlanOpts,
 } from "./composables";
@@ -34,11 +32,9 @@ export {
 };
 
 export type {
-  CreditBalanceType,
   SchematicComposableOpts,
   SchematicPluginOptions,
   SchematicContextValue,
-  UseSchematicCreditBalanceOpts,
   UseSchematicFlagOpts,
   UseSchematicPlanOpts,
 };
