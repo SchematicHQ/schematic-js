@@ -5,11 +5,13 @@ import {
 } from "./context";
 import {
   useSchematicContext,
+  useSchematicCreditBalance,
   useSchematicEntitlement,
   useSchematicEvents,
   useSchematicFlag,
   useSchematicIsPending,
   useSchematicPlan,
+  type SchematicCreditBalance,
   type SchematicHookOpts,
   type UseSchematicPlanOpts,
   type UseSchematicFlagOpts,
@@ -18,6 +20,7 @@ import {
 export {
   useSchematic,
   useSchematicContext,
+  useSchematicCreditBalance,
   useSchematicEntitlement,
   useSchematicEvents,
   useSchematicFlag,
@@ -27,6 +30,7 @@ export {
 };
 
 export type {
+  SchematicCreditBalance,
   SchematicHookOpts,
   SchematicProviderProps,
   UseSchematicFlagOpts,
@@ -43,6 +47,9 @@ export {
 export type {
   CheckFlagReturn,
   CheckPlanReturn,
+  CompanyCreditBalance,
+  CreditBalance,
+  CreditBalances,
   Event,
   EventBody,
   EventBodyIdentify,
