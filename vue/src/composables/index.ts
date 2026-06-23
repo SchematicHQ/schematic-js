@@ -1,6 +1,7 @@
 export {
   useSchematicClient,
   useSchematicContext,
+  useSchematicCreditBalance,
   useSchematicEntitlement,
   useSchematicEvents,
   useSchematicFlag,

@@ -251,6 +251,69 @@ export const useSchematicPlan = (
 };
 
 /**
+ * Get a company's live, lease-aware credit balance for a single credit type.
+ * Returns reactive computed refs for the balance and a loading flag.
+ *
+ * Surfaces the spendable `settled` balance, sourced from the streamed credit
+ * balances map (keyed by credit ID). It updates as partials arrive over the
+ * DataStream, so it stays accurate during an open lease — when the raw
+ * `remaining` would otherwise read stale / falsely "exhausted".
+ *
+ * The credit ID is available on a feature's entitlement: `useSchematicEntitlement(key)`
+ * returns `creditId` for credit-based features.
+ *
+ * @param creditId - The credit ID to read the balance for
+ * @param opts - Optional configuration including a client override
+ * @returns Object with `balance` and `isLoading` computed refs
+ *
+ * @example
+ * ```typescript
+ * const { balance, isLoading } = useSchematicCreditBalance('credit-id')
+ *
+ * // In template
+ * <div v-if="isLoading">Loading…</div>
+ * <div v-else>{{ balance }} credits remaining</div>
+ * ```
+ */
+export const useSchematicCreditBalance = (
+  creditId: string,
+  opts?: SchematicComposableOpts,
+) => {
+  const client = useSchematicClient(opts);
+
+  const creditBalance = ref<SchematicJS.CreditBalance | undefined>(
+    client.getCreditBalance(creditId),
+  );
+  const isPending = ref<boolean>(client.getIsPending());
+
+  let unsubscribeBalance: (() => void) | null = null;
+  let unsubscribePending: (() => void) | null = null;
+
+  onMounted(() => {
+    unsubscribeBalance = client.addCreditBalanceListener(() => {
+      creditBalance.value = client.getCreditBalance(creditId);
+    });
+    unsubscribePending = client.addIsPendingListener(() => {
+      isPending.value = client.getIsPending();
+    });
+  });
+
+  onScopeDispose(() => {
+    unsubscribeBalance?.();
+    unsubscribePending?.();
+  });
+
+  return {
+    /** The spendable balance; 0 while loading or when the company holds no balance in this credit */
+    balance: computed(() => creditBalance.value?.settled ?? 0),
+    /** True while the balance is still loading and no value has arrived yet */
+    isLoading: computed(
+      () => creditBalance.value === undefined && isPending.value,
+    ),
+  };
+};
+
+/**
  * Check if Schematic data is still loading
  * Returns a reactive ref that is true while initial flag data is being fetched
  *

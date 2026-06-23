@@ -229,6 +229,44 @@ export class PlanComponent {
 }
 ```
 
+### Credit balances
+
+Use `creditBalance$` to observe a company's credit balance. It is keyed by credit ID and emits as the balance changes over the DataStream:
+
+```typescript
+import { Component, inject } from "@angular/core";
+import { AsyncPipe } from "@angular/common";
+import { SchematicService } from "@schematichq/schematic-angular";
+
+@Component({
+  selector: "app-credit-meter",
+  standalone: true,
+  imports: [AsyncPipe],
+  template: `
+    @if (creditBalance$ | async; as credit) {
+      @if (credit.isLoading) {
+        <div>Loading…</div>
+      } @else {
+        <div>{{ credit.balance }} credits remaining</div>
+      }
+    }
+  `,
+})
+export class CreditMeterComponent {
+  private schematic = inject(SchematicService);
+  creditBalance$ = this.schematic.creditBalance$("credit-id");
+}
+```
+
+`creditBalance$` emits an object with the following properties:
+
+| Property | Type | Description |
+| --- | --- | --- |
+| `balance` | `number` | The spendable balance, or `0` while loading or when the company holds no balance in this credit |
+| `isLoading` | `boolean` | `true` while the balance is still loading and no value has arrived yet |
+
+It surfaces the `settled` (spendable) balance. The credit ID is available on a feature's entitlement: `entitlement$(key)` emits `creditId` for credit-based features.
+
 ## API Reference
 
 ### `provideSchematic(config)`
@@ -248,6 +286,7 @@ Injectable service providing all Schematic functionality:
 | `flagValue$(key, fallback?)` | `Observable<boolean>` | Observe a feature flag's boolean value |
 | `entitlement$(key, fallback?)` | `Observable<CheckFlagReturn>` | Observe detailed entitlement data |
 | `plan$()` | `Observable<CheckPlanReturn \| undefined>` | Observe plan information |
+| `creditBalance$(creditId)` | `Observable<SchematicCreditBalance>` | Observe a company's lease-aware credit balance |
 | `isPending$()` | `Observable<boolean>` | Observe loading state |
 
 ### `SCHEMATIC_CLIENT`

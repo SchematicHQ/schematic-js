@@ -7,6 +7,7 @@ import {
 import {
   useSchematicClient,
   useSchematicContext,
+  useSchematicCreditBalance,
   useSchematicEntitlement,
   useSchematicEvents,
   useSchematicFlag,
@@ -21,6 +22,7 @@ export {
   useSchematic,
   useSchematicClient,
   useSchematicContext,
+  useSchematicCreditBalance,
   useSchematicEntitlement,
   useSchematicEvents,
   useSchematicFlag,
@@ -43,6 +45,9 @@ export { RuleType, Schematic, UsagePeriod } from "@schematichq/schematic-js";
 export type {
   CheckFlagReturn,
   CheckPlanReturn,
+  CompanyCreditBalance,
+  CreditBalance,
+  CreditBalances,
   Event,
   EventBody,
   EventBodyIdentify,

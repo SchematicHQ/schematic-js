@@ -7,6 +7,7 @@ import { SCHEMATIC_CLIENT } from "./token";
 import type {
   CheckFlagReturn,
   CheckPlanReturn,
+  CreditBalance,
 } from "@schematichq/schematic-js";
 
 const mockFetch = vi.fn();
@@ -17,6 +18,7 @@ function createMockClient() {
     flagValue: new Set(),
     flagCheck: new Set(),
     plan: new Set(),
+    creditBalance: new Set(),
     isPending: new Set(),
   };
 
@@ -24,6 +26,9 @@ function createMockClient() {
     getFlagValue: vi.fn().mockReturnValue(undefined),
     getFlagCheck: vi.fn().mockReturnValue(undefined),
     getPlan: vi.fn().mockReturnValue(undefined),
+    getCreditBalance: vi
+      .fn()
+      .mockReturnValue(undefined as CreditBalance | undefined),
     getIsPending: vi.fn().mockReturnValue(true),
     setContext: vi.fn(),
     identify: vi.fn(),
@@ -45,6 +50,12 @@ function createMockClient() {
       listeners.plan.add(callback);
       return () => listeners.plan.delete(callback);
     }),
+    addCreditBalanceListener: vi.fn(
+      (callback: (...args: unknown[]) => void) => {
+        listeners.creditBalance.add(callback);
+        return () => listeners.creditBalance.delete(callback);
+      },
+    ),
     addIsPendingListener: vi.fn((callback: (...args: unknown[]) => void) => {
       listeners.isPending.add(callback);
       return () => listeners.isPending.delete(callback);
@@ -281,6 +292,71 @@ describe("SchematicService", () => {
       const obs1 = service.plan$();
       const obs2 = service.plan$();
       expect(obs1).toBe(obs2);
+    });
+  });
+
+  describe("creditBalance$", () => {
+    it("should report isLoading until a balance is available", async () => {
+      mockClient.getCreditBalance.mockReturnValue(undefined);
+      mockClient.getIsPending.mockReturnValue(true);
+      const result = await firstValueFrom(service.creditBalance$("credit-abc"));
+      expect(result).toEqual({ balance: 0, isLoading: true });
+    });
+
+    it("should surface the settled (spendable) balance", async () => {
+      // Repro from SCH-6526: the streamed `remaining` froze at 0 mid-lease;
+      // `settled` (spendable) is 3442 — what the service returns.
+      mockClient.getCreditBalance.mockReturnValue({
+        remaining: 0,
+        reserved: 3442,
+        settled: 3442,
+      });
+      mockClient.getIsPending.mockReturnValue(false);
+      const result = await firstValueFrom(service.creditBalance$("credit-abc"));
+      expect(result).toEqual({ balance: 3442, isLoading: false });
+    });
+
+    it("should emit updated balances when listener fires", async () => {
+      mockClient.getCreditBalance.mockReturnValue(undefined);
+      mockClient.getIsPending.mockReturnValue(false);
+
+      const valuesPromise = firstValueFrom(
+        service.creditBalance$("credit-abc").pipe(take(2), toArray()),
+      );
+
+      mockClient.getCreditBalance.mockReturnValue({
+        remaining: 3442,
+        reserved: 0,
+        settled: 3442,
+      });
+      mockClient._notify("creditBalance");
+
+      const values = await valuesPromise;
+      expect(values).toEqual([
+        { balance: 0, isLoading: false },
+        { balance: 3442, isLoading: false },
+      ]);
+    });
+
+    it("should return 0 (not loading) for an unknown credit once loaded", async () => {
+      mockClient.getCreditBalance.mockReturnValue(undefined);
+      mockClient.getIsPending.mockReturnValue(false);
+      const result = await firstValueFrom(
+        service.creditBalance$("credit-missing"),
+      );
+      expect(result).toEqual({ balance: 0, isLoading: false });
+    });
+
+    it("should cache observables by credit id", () => {
+      const obs1 = service.creditBalance$("credit-abc");
+      const obs2 = service.creditBalance$("credit-abc");
+      expect(obs1).toBe(obs2);
+    });
+
+    it("should return different observables for different credit ids", () => {
+      const obs1 = service.creditBalance$("credit-abc");
+      const obs2 = service.creditBalance$("credit-xyz");
+      expect(obs1).not.toBe(obs2);
     });
   });
 

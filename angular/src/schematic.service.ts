@@ -3,6 +3,14 @@ import * as SchematicJS from "@schematichq/schematic-js";
 import { Observable, distinctUntilChanged, finalize, shareReplay } from "rxjs";
 import { SCHEMATIC_CLIENT } from "./token";
 
+/** A company's credit balance for a single credit type, plus a loading flag */
+export type SchematicCreditBalance = {
+  /** The spendable balance; 0 while loading or when the company holds no balance in this credit */
+  balance: number;
+  /** True while the balance is still loading and no value has arrived yet */
+  isLoading: boolean;
+};
+
 function shallowEqual<T extends Record<string, unknown>>(
   a: T | undefined,
   b: T | undefined,
@@ -30,6 +38,10 @@ export class SchematicService {
   private entitlementCache = new Map<
     string,
     Observable<SchematicJS.CheckFlagReturn>
+  >();
+  private creditBalanceCache = new Map<
+    string,
+    Observable<SchematicCreditBalance>
   >();
   private planCache?: Observable<SchematicJS.CheckPlanReturn | undefined>;
   private isPendingCache?: Observable<boolean>;
@@ -131,6 +143,51 @@ export class SchematicService {
     );
 
     return this.planCache;
+  }
+
+  /**
+   * Observe a company's live, lease-aware credit balance for a single credit type.
+   *
+   * Surfaces the spendable `settled` balance, sourced from the streamed credit
+   * balances map (keyed by credit ID). It emits as partials arrive over the
+   * DataStream, so it stays accurate during an open lease — when the raw
+   * `remaining` would otherwise read stale / falsely "exhausted".
+   *
+   * The credit ID is available on a feature's entitlement: `entitlement$(key)`
+   * emits `creditId` for credit-based features.
+   */
+  creditBalance$(creditId: string): Observable<SchematicCreditBalance> {
+    let cached = this.creditBalanceCache.get(creditId);
+    if (cached) return cached;
+
+    cached = new Observable<SchematicCreditBalance>((subscriber) => {
+      const emit = () => {
+        const balance = this.client.getCreditBalance(creditId);
+        subscriber.next({
+          balance: balance?.settled ?? 0,
+          isLoading: balance === undefined && this.client.getIsPending(),
+        });
+      };
+
+      emit();
+
+      const unsubscribeBalance = this.client.addCreditBalanceListener(() =>
+        emit(),
+      );
+      const unsubscribePending = this.client.addIsPendingListener(() => emit());
+
+      return () => {
+        unsubscribeBalance();
+        unsubscribePending();
+      };
+    }).pipe(
+      distinctUntilChanged(shallowEqual),
+      shareReplay({ bufferSize: 1, refCount: true }),
+      finalize(() => this.creditBalanceCache.delete(creditId)),
+    );
+
+    this.creditBalanceCache.set(creditId, cached);
+    return cached;
   }
 
   isPending$(): Observable<boolean> {
