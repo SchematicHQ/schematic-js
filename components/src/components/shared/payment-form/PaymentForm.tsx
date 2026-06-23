@@ -6,7 +6,6 @@ import {
 } from "@stripe/react-stripe-js";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import isEmail from "validator/lib/isEmail";
 
 import type { PreviewSubscriptionFinanceResponseData } from "../../../api/checkoutexternal";
 import { useEmbed } from "../../../hooks";
@@ -49,12 +48,11 @@ export const PaymentForm = ({ onConfirm, financeData }: PaymentFormProps) => {
   const [isPaymentComplete, setIsPaymentComplete] = useState(false);
   const [isPaymentReady, setIsPaymentReady] = useState(false);
   const [loadError, setLoadError] = useState<string | undefined>();
+  const [isEmailValid, setIsEmailValid] = useState(() => !collectEmail)
 
   const [isAddressComplete, setIsAddressComplete] = useState(
     () => !shouldCollectAddress,
   );
-
-  const isEmailComplete = !collectEmail || isEmail(email);
 
   // Stripe only reads AddressElement `defaultValues` on mount. Key the element
   // by the prefill identity so a prefill that arrives after mount remounts it.
@@ -180,13 +178,15 @@ export const PaymentForm = ({ onConfirm, financeData }: PaymentFormProps) => {
           <Label htmlFor="email">Email</Label>
           <Input
             id="email"
-            type="text"
+            type="email"
             value={email}
             autoComplete="email"
             placeholder="Enter email address"
+            required
             onChange={(e) => {
               userEditedEmailRef.current = true;
               setEmail(e.target.value);
+              setIsEmailValid(e.target.checkValidity())
             }}
           />
         </Box>
@@ -222,7 +222,7 @@ export const PaymentForm = ({ onConfirm, financeData }: PaymentFormProps) => {
           isConfirmed ||
           !isPaymentComplete ||
           !isAddressComplete ||
-          !isEmailComplete
+          !isEmailValid
         }
         style={{ flexShrink: 0 }}
         $color="primary"
