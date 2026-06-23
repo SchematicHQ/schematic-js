@@ -48,6 +48,8 @@ export const PaymentForm = ({ onConfirm, financeData }: PaymentFormProps) => {
   const [isPaymentComplete, setIsPaymentComplete] = useState(false);
   const [isPaymentReady, setIsPaymentReady] = useState(false);
   const [loadError, setLoadError] = useState<string | undefined>();
+  const [isEmailValid, setIsEmailValid] = useState(() => !collectEmail);
+  const emailInputRef = useRef<HTMLInputElement>(null);
 
   const [isAddressComplete, setIsAddressComplete] = useState(
     () => !shouldCollectAddress,
@@ -65,6 +67,13 @@ export const PaymentForm = ({ onConfirm, financeData }: PaymentFormProps) => {
       setEmail(billing.email);
     }
   }, [billing?.email]);
+
+  useEffect(() => {
+    setIsEmailValid(
+      !collectEmail || (emailInputRef.current?.checkValidity() ?? false),
+    );
+    // stripe in deps array because it controls mounting of the input
+  }, [email, collectEmail, stripe]);
 
   const handleSubmit: React.FormEventHandler<HTMLFormElement> = async (
     event,
@@ -176,11 +185,13 @@ export const PaymentForm = ({ onConfirm, financeData }: PaymentFormProps) => {
         <Box data-field="name" $marginBottom="1.5rem" $verticalAlign="top">
           <Label htmlFor="email">Email</Label>
           <Input
+            ref={emailInputRef}
             id="email"
-            type="text"
+            type="email"
             value={email}
             autoComplete="email"
             placeholder="Enter email address"
+            required
             onChange={(e) => {
               userEditedEmailRef.current = true;
               setEmail(e.target.value);
@@ -218,7 +229,8 @@ export const PaymentForm = ({ onConfirm, financeData }: PaymentFormProps) => {
           !elements ||
           isConfirmed ||
           !isPaymentComplete ||
-          !isAddressComplete
+          !isAddressComplete ||
+          !isEmailValid
         }
         style={{ flexShrink: 0 }}
         $color="primary"
