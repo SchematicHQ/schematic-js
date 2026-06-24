@@ -15,6 +15,8 @@ type PaymentMethodType =
   | "card"
   | "us_bank_account"
   | "amazon_pay"
+  | "apple_pay"
+  | "google_pay"
   | "cashapp"
   | "paypal"
   | "link"
@@ -123,6 +125,18 @@ const getPaymentMethodData = ({
       iconName: "amazonpay",
       iconTitle: billingName || billingEmail || "Amazon Pay account",
       label: billingName || billingEmail || "Amazon Pay account",
+    },
+    apple_pay: {
+      iconName: "applepay",
+      iconTitle: "Apple Pay",
+      label: cardLast4 ? "Apple Pay ending in" : "Apple Pay",
+      paymentLast4: cardLast4,
+    },
+    google_pay: {
+      iconName: "google",
+      iconTitle: "Google Pay",
+      label: cardLast4 ? "Google Pay ending in" : "Google Pay",
+      paymentLast4: cardLast4,
     },
     cashapp: {
       iconName: "cashapp",
