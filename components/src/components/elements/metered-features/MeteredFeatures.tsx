@@ -24,6 +24,7 @@ import {
   getSubscriptionPeriod,
   getUsageDetails,
   groupCreditGrants,
+  isTopupOff,
   modifyDate,
   toPrettyDate,
   type UsageDetails,
@@ -234,6 +235,18 @@ export const MeteredFeatures = forwardRef<
   const creditGroups = groupCreditGrants(data?.creditGrants || [], {
     groupBy: "credit",
   });
+
+  // Credits whose plan grant has top-up availability "off" cannot be purchased,
+  // so the "Buy More" button is hidden for them.
+  const topupOffCreditIds = useMemo(() => {
+    const ids = new Set<string>();
+    (data?.company?.plan?.includedCreditGrants ?? []).forEach((grant) => {
+      if (isTopupOff(grant)) {
+        ids.add(grant.creditId);
+      }
+    });
+    return ids;
+  }, [data?.company?.plan?.includedCreditGrants]);
   const [creditVisibility, setCreditVisibility] = useState(
     creditGroups.map(({ id }) => ({ id, isExpanded: false })),
   );
@@ -444,7 +457,7 @@ export const MeteredFeatures = forwardRef<
                       }
                     />
 
-                    {canCheckout && (
+                    {canCheckout && !topupOffCreditIds.has(credit.id) && (
                       <Button
                         type="button"
                         onClick={() => {
