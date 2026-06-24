@@ -57,13 +57,13 @@ export interface WhoAmIResponseData {
    * @type {string}
    * @memberof WhoAmIResponseData
    */
-  apiKeyId?: string;
+  apiKeyId?: string | null;
   /**
    *
    * @type {string}
    * @memberof WhoAmIResponseData
    */
-  environmentId?: string;
+  environmentId?: string | null;
   /**
    *
    * @type {Array<EnvironmentResponseData>}
