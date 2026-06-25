@@ -47,6 +47,8 @@ import {
   getAddOnPrice,
   getPlanPrice,
   getSubscriptionPeriod,
+  isAutoTopupOff,
+  isBundlePurchaseOff,
   isError,
   isScheduledCheckoutConflictMessage,
   mergeCompanyGrants,
@@ -445,10 +447,18 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
   ]);
 
   const [creditBundles, setCreditBundles] = useState<CreditBundle[]>(() => {
-    return (data?.creditBundles || []).map((bundle) => ({
-      ...bundle,
-      count: 0,
-    }));
+    const bundleOffCreditIds = new Set(
+      (data?.company?.plan?.includedCreditGrants ?? [])
+        .filter((grant) => isBundlePurchaseOff(grant))
+        .map((grant) => grant.creditId),
+    );
+
+    return (data?.creditBundles || [])
+      .filter((bundle) => !bundleOffCreditIds.has(bundle.creditId))
+      .map((bundle) => ({
+        ...bundle,
+        count: 0,
+      }));
   });
 
   const selectedPlanPriceId = useMemo(() => {
@@ -687,9 +697,11 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     const hasSelfServiceAutoTopup = selectedPlan?.includedCreditGrants.some(
       (grant) => {
         const isSelfService = grant.billingCreditAutoTopupSelfService ?? false;
-        return isSelfService;
+
+        return isSelfService && !isAutoTopupOff(grant);
       },
     );
+
     if (hasSelfServiceAutoTopup) {
       stages.push({
         id: "autoTopup",

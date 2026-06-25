@@ -5,7 +5,7 @@ import { PlanCreditGrantView } from "../../../api/checkoutexternal";
 import { TEXT_BASE_SIZE } from "../../../const";
 import { useEmbed } from "../../../hooks";
 import { AutoTopupConfig } from "../../../types";
-import { getFeatureName } from "../../../utils";
+import { getFeatureName, isAutoTopupOff } from "../../../utils";
 import { cardBoxShadow } from "../../layout";
 import { Box, Flex, Input, Text, Toggle } from "../../ui";
 
@@ -31,7 +31,7 @@ export const AutoTopup = ({
   const configurableCreditGrants = useMemo(() => {
     return planCreditGrants.reduce(
       (acc: (PlanCreditGrantView & { cost?: number })[], grant) => {
-        if (grant.billingCreditAutoTopupSelfService) {
+        if (grant.billingCreditAutoTopupSelfService && !isAutoTopupOff(grant)) {
           const {
             companyAutoTopupEnabled,
             companyAutoTopupThresholdCredits,

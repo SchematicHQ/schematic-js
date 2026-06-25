@@ -23,6 +23,7 @@ import {
   getSubscriptionPeriod,
   groupCreditGrants,
   isAutoTopupEnabled,
+  isAutoTopupOff,
   lighten,
   shortenPeriod,
   toPrettyDate,
@@ -225,7 +226,7 @@ export const PlanManager = forwardRef<
 
   const hasAutoTopupSelfService =
     currentPlan?.includedCreditGrants.some((grant) => {
-      return grant.billingCreditAutoTopupSelfService;
+      return grant.billingCreditAutoTopupSelfService && !isAutoTopupOff(grant);
     }) ?? false;
 
   return (
@@ -572,12 +573,14 @@ export const PlanManager = forwardRef<
                               $color={settings.theme.typography.text.color}
                             >
                               {group.total.used} {t("used")}
-                              {hasAutoTopup && planCreditGrant && (
-                                <AutoTopupNotice
-                                  thresholdCredits={thresholdCredits}
-                                  topupAmount={topupAmount}
-                                />
-                              )}
+                              {hasAutoTopup &&
+                                planCreditGrant &&
+                                !isAutoTopupOff(planCreditGrant) && (
+                                  <AutoTopupNotice
+                                    thresholdCredits={thresholdCredits}
+                                    topupAmount={topupAmount}
+                                  />
+                                )}
                             </Text>
                           </Flex>
                         )}

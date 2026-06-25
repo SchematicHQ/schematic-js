@@ -123,22 +123,24 @@ export function isAutoTopupEnabled(grant?: CompanyPlanCreditGrantView) {
   return grant?.billingCreditAutoTopupEnabled ?? false;
 }
 
-// isTopupOff reports whether a plan credit grant has top-up availability set to
-// "off", in which case buyers cannot purchase more credits or manage auto
-// top-up. The field is nullable on the wire; a missing value is treated as not
-// off so legacy grants keep their existing behavior. The grant's legacy
-// enabled/self_service booleans (which the self-service surfaces gate on) are
-// already derived to false when availability is off.
-export function isTopupOff(
+export function isAutoTopupOff(
   grant?: Pick<
     CompanyPlanCreditGrantView,
     "billingCreditAutoTopupAvailability"
   >,
-): boolean {
+) {
   return (
     grant?.billingCreditAutoTopupAvailability ===
     BillingCreditAutoTopupAvailability.Off
   );
+}
+
+export function isBundlePurchaseOff(
+  grant?: Partial<
+    Pick<CompanyPlanCreditGrantView, "billingCreditCanBuyBundles">
+  >,
+) {
+  return grant?.billingCreditCanBuyBundles === false;
 }
 
 export function getAutoTopupThresholdCredits(
