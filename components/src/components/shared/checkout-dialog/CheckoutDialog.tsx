@@ -942,14 +942,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
           : promoCode;
       const skipTrial = !(updates.shouldTrial ?? shouldTrial);
 
-      const bundleOffCreditIds = new Set(
-        (plan?.includedCreditGrants ?? [])
-          .filter((grant) => isBundlePurchaseOff(grant))
-          .map((grant) => grant.creditId),
-      );
-      const resolvedCreditBundles = (
-        updates.creditBundles || creditBundles
-      ).filter((bundle) => !bundleOffCreditIds.has(bundle.creditId));
+      const resolvedCreditBundles = updates.creditBundles || creditBundles;
 
       // A credit-bundle-only purchase on a non-billing subscription has no plan
       // or price to send; the backend charges for the credits standalone.
@@ -1130,6 +1123,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     },
     [
       t,
+      data?.addOnCompatibilities,
       data?.company?.plan?.includedCreditGrants,
       data?.company?.billingSubscription,
       previewCheckout,
@@ -1255,6 +1249,19 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
         setSelectedAddOnIds(new Set());
       }
 
+      // rederive credit bundles since they may depend on plan grant setting
+      const bundleOffCreditIds = new Set(
+        (plan?.includedCreditGrants ?? [])
+          .filter((grant) => isBundlePurchaseOff(grant))
+          .map((grant) => grant.creditId),
+      );
+      const resolvedCreditBundles = (data?.creditBundles || [])
+        .filter((bundle) => !bundleOffCreditIds.has(bundle.creditId))
+        .map((bundle) => ({
+          ...bundle,
+          count: bundleCounts[bundle.id] ?? 0,
+        }));
+
       handlePreviewCheckout({
         period,
         plan,
@@ -1270,13 +1277,16 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
                   priceBehavior === EntitlementPriceBehavior.PayInAdvance,
               ),
             }),
+        creditBundles: resolvedCreditBundles,
       });
     },
     [
+      data?.creditBundles,
       selectedPlan?.id,
       planPeriod,
       showPeriodToggle,
       featureUsage,
+      bundleCounts,
       shouldTrial,
       willTrialWithoutPaymentMethod,
       handlePreviewCheckout,
