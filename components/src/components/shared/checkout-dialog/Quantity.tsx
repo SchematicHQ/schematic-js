@@ -42,7 +42,7 @@ export const Quantity = ({
 
   return (
     <Flex $flexDirection="column" $gap="1rem">
-      {entitlements.reduce((acc: React.ReactElement[], entitlement, index) => {
+      {entitlements.reduce((acc: React.ReactElement[], entitlement) => {
         if (entitlement.feature) {
           const entitlementBillingPrice = getEntitlementPrice(
             entitlement,
@@ -60,8 +60,14 @@ export const Quantity = ({
           const tiered = isTieredPrice(entitlementBillingPrice);
 
           acc.push(
+            // Key by entitlement identity, not list index: the inputs are
+            // uncontrolled (defaultValue), so an index key would let React
+            // reuse one input's DOM node for a different entitlement on a
+            // plan switch, leaving a stale typed value. An identity key remounts
+            // a genuinely different entitlement (re-applying defaultValue) while
+            // leaving a surviving row's node — and its preserved value — intact.
             <Flex
-              key={index}
+              key={entitlement.id}
               $justifyContent="space-between"
               $alignItems="center"
               $gap="1rem"

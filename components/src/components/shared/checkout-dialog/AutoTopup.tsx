@@ -71,11 +71,11 @@ export const AutoTopup = ({
 
   return (
     <Flex $flexDirection="column" $gap="1rem">
-      {configurableCreditGrants.map((grant, index) => {
+      {configurableCreditGrants.map((grant) => {
         return (
           <Box
             as="section"
-            key={index}
+            key={grant.id}
             $padding={`${cardPadding}rem`}
             $backgroundColor={settings.theme.card.background}
             $borderRadius={`${settings.theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
