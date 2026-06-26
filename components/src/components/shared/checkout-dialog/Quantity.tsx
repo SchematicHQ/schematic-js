@@ -60,12 +60,6 @@ export const Quantity = ({
           const tiered = isTieredPrice(entitlementBillingPrice);
 
           acc.push(
-            // Key by entitlement identity, not list index: the inputs are
-            // uncontrolled (defaultValue), so an index key would let React
-            // reuse one input's DOM node for a different entitlement on a
-            // plan switch, leaving a stale typed value. An identity key remounts
-            // a genuinely different entitlement (re-applying defaultValue) while
-            // leaving a surviving row's node — and its preserved value — intact.
             <Flex
               key={entitlement.id}
               $justifyContent="space-between"

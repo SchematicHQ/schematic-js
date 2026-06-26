@@ -40,12 +40,6 @@ describe("`Quantity` component", () => {
     expect(screen.getByRole("spinbutton")).toHaveValue(5);
   });
 
-  // Regression guard for the uncontrolled-input + key bug: switching plans
-  // replaces the entitlement at a given position with a different one (new id).
-  // With an index-based key React reused the same uncontrolled <input> DOM node
-  // and `defaultValue` (a mount-only prop) was never re-applied, leaving the
-  // previous entitlement's typed value showing for a different feature. Keying
-  // by entitlement identity remounts the input so it reflects the new value.
   it("re-syncs the uncontrolled input when the entitlement at a position changes identity", () => {
     const { rerender } = render(
       <Quantity

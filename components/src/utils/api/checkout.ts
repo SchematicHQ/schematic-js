@@ -40,10 +40,6 @@ export function buildAutoTopupRequestBody(options: {
   );
 }
 
-// An add-on is compatible with a plan when it declares no compatibility
-// restrictions (no entry, or an empty `compatiblePlanIds`) or when the plan is
-// explicitly listed. Used both to render the available add-ons and to filter
-// add-ons out of a checkout preview for the plan being previewed.
 export function isAddOnCompatibleWithPlan(
   addOnId: string,
   planId: string | undefined,

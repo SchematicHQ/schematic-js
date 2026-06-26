@@ -977,10 +977,6 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
         updates.payInAdvanceEntitlements || payInAdvanceEntitlements;
       const resolvedAddOnPayInAdvanceEntitlements =
         updates.addOnPayInAdvanceEntitlements || addOnPayInAdvanceEntitlements;
-      // Drop add-ons incompatible with the plan being previewed. The closure's
-      // `addOns` is filtered against the currently selected plan, which lags a
-      // plan switch (the preview fires before the memo recomputes), so filter
-      // against the resolved `plan` here.
       const resolvedAddOns = (updates.addOns || addOns).filter((addOn) =>
         isAddOnCompatibleWithPlan(
           addOn.id,
