@@ -174,6 +174,22 @@ export interface CheckoutStageSkipConfig {
    * - undefined: Defaults to false (show stage)
    */
   creditStage?: boolean;
+
+  /**
+   * Skip the pay-in-advance quantity stage for the plan.
+   * - true: Skip directly to next stage (uses prefilled or current quantities)
+   * - false: Show quantity stage (user can review/change quantities)
+   * - undefined: Defaults to false (show stage)
+   */
+  usageStage?: boolean;
+
+  /**
+   * Skip the pay-in-advance quantity stage for add-ons.
+   * - true: Skip directly to next stage (uses prefilled or current quantities)
+   * - false: Show add-on quantity stage (user can review/change quantities)
+   * - undefined: Defaults to false (show stage)
+   */
+  addOnUsageStage?: boolean;
 }
 
 /**
@@ -303,6 +319,19 @@ export interface BypassConfig {
    * currency is locked (the selector is already hidden in those cases).
    */
   showCurrencySelector?: boolean;
+  /**
+   * Pre-fill pay-in-advance quantities, keyed by feature id.
+   *
+   * Only applies to entitlements whose price behavior is pay-in-advance; entries
+   * for other features (or unknown feature ids) are ignored. Values are clamped
+   * to whole numbers >= 0. Combine with `skipped.usageStage` /
+   * `skipped.addOnUsageStage` to land the customer directly on the checkout step
+   * with the quantities already set.
+   *
+   * @example
+   * { planId: "plan_abc", payInAdvanceQuantities: { feat_seats: 3 } }
+   */
+  payInAdvanceQuantities?: Record<string, number>;
 }
 
 /**
@@ -341,11 +370,14 @@ export type CheckoutState = {
   bypassPlanSelection?: boolean;
   bypassAddOnSelection?: boolean;
   bypassCreditsSelection?: boolean;
+  bypassUsageSelection?: boolean;
+  bypassAddOnUsageSelection?: boolean;
   addOnIds?: string[];
   hideSkippedStages?: boolean;
   selectedCurrency?: string;
   showCurrencySelector?: boolean;
   startTrialIfAvailable?: boolean;
+  payInAdvanceQuantities?: Record<string, number>;
 };
 
 export type EmbedMode = "edit" | "view";

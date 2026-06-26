@@ -48,23 +48,33 @@ selection stage.
 initializeWithPlan('plan_VBXv4bHjSf3');
 ```
 
-Passing a config object allows pre-selecting Add-ons as well as hiding
-specific stages.
+Passing a config object allows pre-selecting Add-ons and pay-in-advance
+quantities, as well as hiding specific stages.
 
 ```ts
 const config = {
   planId: 'plan_VBXv4bHjSf3',      // pre-select a Plan
   addOnIds: ['plan_AWv7bPjSx2'],   // pre-select 1 or more Add-ons
   period: 'month',                 // pre-select 'month' or 'year' for the billing period (optional)
+  payInAdvanceQuantities: {        // pre-fill pay-in-advance quantities, keyed by feature id (optional)
+    feat_seats: 3,
+  },
   skipped: {
     planStage: true,               // if true, skip Plan selection
-    addOnStage: true               // if true, skip Add-on selection
-  }
-  hideSkipped:  true               // if true, hide skipped stages from breadcrumb navigation
+    addOnStage: true,              // if true, skip Add-on selection
+    usageStage: true,              // if true, skip the pay-in-advance Quantity stage
+    addOnUsageStage: true,         // if true, skip the add-on Quantity stage
+  },
+  hideSkipped: true,               // if true, hide skipped stages from breadcrumb navigation
 };
 
 initializeWithPlan(config);
 ```
+
+`payInAdvanceQuantities` only applies to entitlements with pay-in-advance
+pricing; entries for other (or unknown) features are ignored. Combine it with
+`skipped.usageStage` / `skipped.addOnUsageStage` to send the customer straight to
+the final checkout step with the quantities already set.
 
 The Plans and Add-ons available to the checkout flows must be live in your
 Schematic account [Catalog configuration](https://docs.schematichq.com/catalog/overview).

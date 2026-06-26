@@ -112,6 +112,29 @@ export const createActiveUsageBasedEntitlementsReducer =
     return acc;
   };
 
+// Overlay host-provided prefill quantities (keyed by feature id) onto
+// pay-in-advance entitlements. Entries for non-pay-in-advance or unknown
+// features are ignored; values are clamped to whole numbers >= 0.
+export const applyPrefilledQuantities = (
+  entitlements: UsageBasedEntitlement[],
+  prefill?: Record<string, number>,
+): UsageBasedEntitlement[] => {
+  if (!prefill) {
+    return entitlements;
+  }
+
+  return entitlements.map((entitlement) => {
+    const prefilled = prefill[entitlement.featureId];
+    if (
+      entitlement.priceBehavior === EntitlementPriceBehavior.PayInAdvance &&
+      typeof prefilled === "number"
+    ) {
+      return { ...entitlement, quantity: Math.max(0, Math.floor(prefilled)) };
+    }
+    return entitlement;
+  });
+};
+
 export interface CheckoutStage {
   id: string;
   name: string;
@@ -501,9 +524,12 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
   ]);
 
   const [usageBasedEntitlements, setUsageBasedEntitlements] = useState(() =>
-    (selectedPlan?.entitlements || []).reduce(
-      createActiveUsageBasedEntitlementsReducer(featureUsage, planPeriod),
-      [],
+    applyPrefilledQuantities(
+      (selectedPlan?.entitlements || []).reduce(
+        createActiveUsageBasedEntitlementsReducer(featureUsage, planPeriod),
+        [] as UsageBasedEntitlement[],
+      ),
+      checkoutState?.payInAdvanceQuantities,
     ),
   );
 
@@ -558,7 +584,10 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
         }
       }
 
-      return allEntitlements;
+      return applyPrefilledQuantities(
+        allEntitlements,
+        checkoutState?.payInAdvanceQuantities,
+      );
     });
 
   const payInAdvanceEntitlements = useMemo(
@@ -763,7 +792,9 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     () =>
       checkoutState?.bypassPlanSelection ||
       checkoutState?.bypassAddOnSelection ||
-      checkoutState?.bypassCreditsSelection,
+      checkoutState?.bypassCreditsSelection ||
+      checkoutState?.bypassUsageSelection ||
+      checkoutState?.bypassAddOnUsageSelection,
   );
 
   const [checkoutStage, setCheckoutStage] = useState(() => {
@@ -796,7 +827,9 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     let id = checkoutStage;
     while (
       (id === "plan" && checkoutState?.bypassPlanSelection) ||
+      (id === "usage" && checkoutState?.bypassUsageSelection) ||
       (id === "addons" && checkoutState?.bypassAddOnSelection) ||
+      (id === "addonsUsage" && checkoutState?.bypassAddOnUsageSelection) ||
       (id === "credits" && checkoutState?.bypassCreditsSelection)
     ) {
       const idx = checkoutStages.findIndex((s) => s.id === id);
@@ -1145,9 +1178,19 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
               ? BillingProductPriceInterval.Year
               : BillingProductPriceInterval.Month;
 
-      const updatedUsageBasedEntitlements = (plan.entitlements ?? []).reduce(
-        createActiveUsageBasedEntitlementsReducer(featureUsage, period),
-        [],
+      // Overlay any host-provided prefill so the initial price preview reflects
+      // it. On the very first selection (mount) the merge block below is skipped
+      // because the plan/period are unchanged, so without this overlay the first
+      // preview would price default quantities even though the committed
+      // checkout state is prefilled. On later selections the merge block prefers
+      // the user's existing quantity, so this overlay only takes effect when no
+      // prior value exists (i.e. the initial render).
+      const updatedUsageBasedEntitlements = applyPrefilledQuantities(
+        (plan.entitlements ?? []).reduce(
+          createActiveUsageBasedEntitlementsReducer(featureUsage, period),
+          [] as UsageBasedEntitlement[],
+        ),
+        checkoutState?.payInAdvanceQuantities,
       );
 
       if (period !== planPeriod || plan.id !== selectedPlan?.id) {
@@ -1210,6 +1253,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       shouldTrial,
       willTrialWithoutPaymentMethod,
       handlePreviewCheckout,
+      checkoutState?.payInAdvanceQuantities,
     ],
   );
 
@@ -1524,7 +1568,16 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       if (stage.id === "plan" && checkoutState.bypassPlanSelection) {
         return false;
       }
+      if (stage.id === "usage" && checkoutState.bypassUsageSelection) {
+        return false;
+      }
       if (stage.id === "addons" && checkoutState.bypassAddOnSelection) {
+        return false;
+      }
+      if (
+        stage.id === "addonsUsage" &&
+        checkoutState.bypassAddOnUsageSelection
+      ) {
         return false;
       }
       if (stage.id === "credits" && checkoutState.bypassCreditsSelection) {
@@ -1540,7 +1593,16 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       if (stage.id === "plan" && checkoutState?.bypassPlanSelection) {
         return false;
       }
+      if (stage.id === "usage" && checkoutState?.bypassUsageSelection) {
+        return false;
+      }
       if (stage.id === "addons" && checkoutState?.bypassAddOnSelection) {
+        return false;
+      }
+      if (
+        stage.id === "addonsUsage" &&
+        checkoutState?.bypassAddOnUsageSelection
+      ) {
         return false;
       }
       if (stage.id === "credits" && checkoutState?.bypassCreditsSelection) {
@@ -1551,7 +1613,9 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
   }, [
     checkoutStages,
     checkoutState?.bypassPlanSelection,
+    checkoutState?.bypassUsageSelection,
     checkoutState?.bypassAddOnSelection,
+    checkoutState?.bypassAddOnUsageSelection,
     checkoutState?.bypassCreditsSelection,
   ]);
 
