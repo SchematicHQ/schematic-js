@@ -1,14 +1,23 @@
-import type { BillingPriceView } from "../../api/checkoutexternal";
-import { PlanIcon } from "../../api/checkoutexternal";
 import type {
+  BillingPriceView,
+  PlanCreditGrantView,
+} from "../../api/checkoutexternal";
+import {
+  BillingCreditAutoTopupAvailability,
+  PlanIcon,
+} from "../../api/checkoutexternal";
+import type {
+  AutoTopupConfig,
   CreditBundle,
   SelectedPlan,
   UsageBasedEntitlement,
 } from "../../types";
 import {
   buildAddOnRequestBody,
+  buildAutoTopupRequestBody,
   buildCreditBundlesRequestBody,
   buildPayInAdvanceRequestBody,
+  isAddOnCompatibleWithPlan,
   isScheduledCheckoutConflictMessage,
 } from "./checkout";
 
@@ -111,6 +120,132 @@ function makeCreditBundle(overrides: Partial<CreditBundle> = {}): CreditBundle {
     ...overrides,
   };
 }
+
+function makePlanCreditGrant(
+  overrides: Partial<PlanCreditGrantView> = {},
+): PlanCreditGrantView {
+  return {
+    id: "grant-1",
+    billingCreditAutoTopupAvailability: null,
+    ...overrides,
+  } as PlanCreditGrantView;
+}
+
+function makeAutoTopupConfig(
+  overrides: Partial<AutoTopupConfig> = {},
+): AutoTopupConfig {
+  return {
+    companyAutoTopupEnabled: true,
+    companyAutoTopupThresholdCredits: 10,
+    companyAutoTopupAmount: 100,
+    ...overrides,
+  };
+}
+
+describe("buildAutoTopupRequestBody", () => {
+  it("should return an empty array for empty credit grants", () => {
+    const result = buildAutoTopupRequestBody({
+      creditGrants: [],
+      autoTopupConfigs: new Map(),
+    });
+    expect(result).toEqual([]);
+  });
+
+  it("should emit an override for a grant with a config and availability not off", () => {
+    const creditGrants = [
+      makePlanCreditGrant({
+        id: "grant-1",
+        billingCreditAutoTopupAvailability:
+          BillingCreditAutoTopupAvailability.Automatic,
+      }),
+    ];
+    const autoTopupConfigs = new Map([["grant-1", makeAutoTopupConfig()]]);
+
+    const result = buildAutoTopupRequestBody({
+      creditGrants,
+      autoTopupConfigs,
+    });
+
+    expect(result).toEqual([
+      {
+        planCreditGrantId: "grant-1",
+        autoTopupEnabled: true,
+        autoTopupAmount: 100,
+        autoTopupThresholdCredits: 10,
+      },
+    ]);
+  });
+
+  it("should skip a grant whose availability is off even when a config exists", () => {
+    const creditGrants = [
+      makePlanCreditGrant({
+        id: "grant-1",
+        billingCreditAutoTopupAvailability:
+          BillingCreditAutoTopupAvailability.Off,
+      }),
+    ];
+    const autoTopupConfigs = new Map([
+      ["grant-1", makeAutoTopupConfig({ companyAutoTopupEnabled: false })],
+    ]);
+
+    const result = buildAutoTopupRequestBody({
+      creditGrants,
+      autoTopupConfigs,
+    });
+
+    expect(result).toEqual([]);
+  });
+
+  it("should skip a grant without a matching config", () => {
+    const creditGrants = [
+      makePlanCreditGrant({
+        id: "grant-1",
+        billingCreditAutoTopupAvailability:
+          BillingCreditAutoTopupAvailability.Automatic,
+      }),
+    ];
+
+    const result = buildAutoTopupRequestBody({
+      creditGrants,
+      autoTopupConfigs: new Map(),
+    });
+
+    expect(result).toEqual([]);
+  });
+
+  it("should emit overrides only for non-off grants in a mixed set", () => {
+    const creditGrants = [
+      makePlanCreditGrant({
+        id: "grant-on",
+        billingCreditAutoTopupAvailability:
+          BillingCreditAutoTopupAvailability.Automatic,
+      }),
+      makePlanCreditGrant({
+        id: "grant-off",
+        billingCreditAutoTopupAvailability:
+          BillingCreditAutoTopupAvailability.Off,
+      }),
+    ];
+    const autoTopupConfigs = new Map([
+      ["grant-on", makeAutoTopupConfig({ companyAutoTopupAmount: 50 })],
+      ["grant-off", makeAutoTopupConfig()],
+    ]);
+
+    const result = buildAutoTopupRequestBody({
+      creditGrants,
+      autoTopupConfigs,
+    });
+
+    expect(result).toEqual([
+      {
+        planCreditGrantId: "grant-on",
+        autoTopupEnabled: true,
+        autoTopupAmount: 50,
+        autoTopupThresholdCredits: 10,
+      },
+    ]);
+  });
+});
 
 describe("buildPayInAdvanceRequestBody", () => {
   it("should return an empty array for empty entitlements", () => {
@@ -498,6 +633,47 @@ describe("buildAddOnRequestBody", () => {
       { addOnId: "addon-1", priceId: "mp-1" },
       { addOnId: "addon-3", priceId: "mp-3" },
     ]);
+  });
+});
+
+describe("isAddOnCompatibleWithPlan", () => {
+  const compatibilities = [
+    { sourcePlanId: "addon-restricted", compatiblePlanIds: ["plan-a", "plan-b"] },
+    { sourcePlanId: "addon-empty", compatiblePlanIds: [] },
+  ];
+
+  it("should treat an add-on with no compatibility entry as compatible", () => {
+    expect(
+      isAddOnCompatibleWithPlan("addon-unknown", "plan-a", compatibilities),
+    ).toBe(true);
+  });
+
+  it("should treat an add-on with an empty compatiblePlanIds as compatible", () => {
+    expect(
+      isAddOnCompatibleWithPlan("addon-empty", "plan-a", compatibilities),
+    ).toBe(true);
+  });
+
+  it("should return true when the plan is in compatiblePlanIds", () => {
+    expect(
+      isAddOnCompatibleWithPlan("addon-restricted", "plan-b", compatibilities),
+    ).toBe(true);
+  });
+
+  it("should return false when the plan is not in compatiblePlanIds", () => {
+    expect(
+      isAddOnCompatibleWithPlan("addon-restricted", "plan-c", compatibilities),
+    ).toBe(false);
+  });
+
+  it("should return false for a restricted add-on when no plan is provided", () => {
+    expect(
+      isAddOnCompatibleWithPlan("addon-restricted", undefined, compatibilities),
+    ).toBe(false);
+  });
+
+  it("should treat any add-on as compatible when no compatibilities are provided", () => {
+    expect(isAddOnCompatibleWithPlan("addon-restricted", "plan-a")).toBe(true);
   });
 });
 

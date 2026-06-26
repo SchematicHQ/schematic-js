@@ -1,5 +1,6 @@
 import {
   PlanCreditGrantView,
+  type CompatiblePlans,
   type UpdateAddOnRequestBody,
   type UpdateAutoTopupOverrideRequestBody,
   type UpdateCreditBundleRequestBody,
@@ -12,6 +13,7 @@ import type {
   UsageBasedEntitlement,
 } from "../../types";
 import { getAddOnPrice, getEntitlementPrice } from "./billing";
+import { isAutoTopupOff } from "./credit";
 
 export function buildAutoTopupRequestBody(options: {
   creditGrants: PlanCreditGrantView[];
@@ -21,7 +23,7 @@ export function buildAutoTopupRequestBody(options: {
 
   return creditGrants.reduce(
     (acc: UpdateAutoTopupOverrideRequestBody[], grant) => {
-      if (autoTopupConfigs?.has(grant.id)) {
+      if (!isAutoTopupOff(grant) && autoTopupConfigs?.has(grant.id)) {
         const config = autoTopupConfigs.get(grant.id);
 
         acc.push({
@@ -36,6 +38,24 @@ export function buildAutoTopupRequestBody(options: {
     },
     [],
   );
+}
+
+// An add-on is compatible with a plan when it declares no compatibility
+// restrictions (no entry, or an empty `compatiblePlanIds`) or when the plan is
+// explicitly listed. Used both to render the available add-ons and to filter
+// add-ons out of a checkout preview for the plan being previewed.
+export function isAddOnCompatibleWithPlan(
+  addOnId: string,
+  planId: string | undefined,
+  compatibilities: CompatiblePlans[] = [],
+): boolean {
+  const compat = compatibilities.find((c) => c.sourcePlanId === addOnId);
+
+  if (!compat || !compat.compatiblePlanIds?.length) {
+    return true;
+  }
+
+  return !!planId && compat.compatiblePlanIds.includes(planId);
 }
 
 export function buildPayInAdvanceRequestBody(options: {

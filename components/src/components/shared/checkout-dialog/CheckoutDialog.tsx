@@ -47,6 +47,7 @@ import {
   getAddOnPrice,
   getPlanPrice,
   getSubscriptionPeriod,
+  isAddOnCompatibleWithPlan,
   isAutoTopupOff,
   isBundlePurchaseOff,
   isError,
@@ -423,15 +424,11 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
           return true;
         }
 
-        const ourCompats = data?.addOnCompatibilities.find(
-          (compat) => compat.sourcePlanId === availAddOn.id,
+        return isAddOnCompatibleWithPlan(
+          availAddOn.id,
+          selectedPlan.id,
+          data?.addOnCompatibilities,
         );
-
-        if (!ourCompats || !ourCompats.compatiblePlanIds?.length) {
-          return true;
-        }
-
-        return ourCompats?.compatiblePlanIds.includes(selectedPlan?.id);
       })
       .map((addOn) => ({
         ...addOn,
@@ -446,9 +443,11 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     selectedAddOnIds,
   ]);
 
-  const [creditBundles, setCreditBundles] = useState<CreditBundle[]>(() => {
+  const [bundleCounts, setBundleCounts] = useState<Record<string, number>>({});
+
+  const creditBundles = useMemo<CreditBundle[]>(() => {
     const bundleOffCreditIds = new Set(
-      (data?.company?.plan?.includedCreditGrants ?? [])
+      (selectedPlan?.includedCreditGrants ?? [])
         .filter((grant) => isBundlePurchaseOff(grant))
         .map((grant) => grant.creditId),
     );
@@ -457,9 +456,9 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       .filter((bundle) => !bundleOffCreditIds.has(bundle.creditId))
       .map((bundle) => ({
         ...bundle,
-        count: 0,
+        count: bundleCounts[bundle.id] ?? 0,
       }));
-  });
+  }, [selectedPlan?.includedCreditGrants, data?.creditBundles, bundleCounts]);
 
   const selectedPlanPriceId = useMemo(() => {
     if (!selectedPlan) {
@@ -943,14 +942,21 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
           : promoCode;
       const skipTrial = !(updates.shouldTrial ?? shouldTrial);
 
+      const bundleOffCreditIds = new Set(
+        (plan?.includedCreditGrants ?? [])
+          .filter((grant) => isBundlePurchaseOff(grant))
+          .map((grant) => grant.creditId),
+      );
+      const resolvedCreditBundles = (
+        updates.creditBundles || creditBundles
+      ).filter((bundle) => !bundleOffCreditIds.has(bundle.creditId));
+
       // A credit-bundle-only purchase on a non-billing subscription has no plan
       // or price to send; the backend charges for the credits standalone.
       const isCreditOnly =
         !data?.company?.billingSubscription &&
         !planPriceId &&
-        (updates.creditBundles || creditBundles).some(
-          (bundle) => bundle.count > 0,
-        ) &&
+        resolvedCreditBundles.some((bundle) => bundle.count > 0) &&
         !(updates.addOns || addOns).some(
           (addOn) =>
             addOn.isSelected &&
@@ -978,8 +984,17 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
         updates.payInAdvanceEntitlements || payInAdvanceEntitlements;
       const resolvedAddOnPayInAdvanceEntitlements =
         updates.addOnPayInAdvanceEntitlements || addOnPayInAdvanceEntitlements;
-      const resolvedAddOns = updates.addOns || addOns;
-      const resolvedCreditBundles = updates.creditBundles || creditBundles;
+      // Drop add-ons incompatible with the plan being previewed. The closure's
+      // `addOns` is filtered against the currently selected plan, which lags a
+      // plan switch (the preview fires before the memo recomputes), so filter
+      // against the resolved `plan` here.
+      const resolvedAddOns = (updates.addOns || addOns).filter((addOn) =>
+        isAddOnCompatibleWithPlan(
+          addOn.id,
+          plan?.id,
+          data?.addOnCompatibilities,
+        ),
+      );
       const resolvedPlanCreditGrants = mergeCompanyGrants(
         plan?.includedCreditGrants,
         data?.company?.plan?.includedCreditGrants,
@@ -1453,22 +1468,20 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
   const updateCreditBundleCount = useCallback(
     (id: string, updatedCount: number) => {
-      setCreditBundles((prev) => {
-        const updated = prev.map((bundle) =>
-          bundle.id === id
-            ? {
-                ...bundle,
-                count: updatedCount,
-              }
-            : bundle,
-        );
+      setBundleCounts((prev) => ({ ...prev, [id]: updatedCount }));
 
-        debouncedPreviewCheckout({ creditBundles: updated });
+      const updated = creditBundles.map((bundle) =>
+        bundle.id === id
+          ? {
+              ...bundle,
+              count: updatedCount,
+            }
+          : bundle,
+      );
 
-        return updated;
-      });
+      debouncedPreviewCheckout({ creditBundles: updated });
     },
-    [debouncedPreviewCheckout],
+    [creditBundles, debouncedPreviewCheckout],
   );
 
   const updateAddOnEntitlementQuantity = useCallback(
