@@ -13,10 +13,12 @@ import type {
   UsageBasedEntitlement,
 } from "../../types";
 import {
+  buildAddOnCompatibilityLookup,
   buildAddOnRequestBody,
   buildAutoTopupRequestBody,
   buildCreditBundlesRequestBody,
   buildPayInAdvanceRequestBody,
+  isAddOnCompatibleWithLookup,
   isAddOnCompatibleWithPlan,
   isScheduledCheckoutConflictMessage,
 } from "./checkout";
@@ -677,6 +679,46 @@ describe("isAddOnCompatibleWithPlan", () => {
 
   it("should treat any add-on as compatible when no compatibilities are provided", () => {
     expect(isAddOnCompatibleWithPlan("addon-restricted", "plan-a")).toBe(true);
+  });
+});
+
+describe("buildAddOnCompatibilityLookup / isAddOnCompatibleWithLookup", () => {
+  const compatibilities = [
+    {
+      sourcePlanId: "addon-restricted",
+      compatiblePlanIds: ["plan-a", "plan-b"],
+    },
+    { sourcePlanId: "addon-empty", compatiblePlanIds: [] },
+  ];
+
+  it("matches isAddOnCompatibleWithPlan across the same cases", () => {
+    const lookup = buildAddOnCompatibilityLookup(compatibilities);
+
+    for (const [addOnId, planId] of [
+      ["addon-unknown", "plan-a"],
+      ["addon-empty", "plan-a"],
+      ["addon-restricted", "plan-b"],
+      ["addon-restricted", "plan-c"],
+      ["addon-restricted", undefined],
+    ] as [string, string | undefined][]) {
+      expect(isAddOnCompatibleWithLookup(lookup, addOnId, planId)).toBe(
+        isAddOnCompatibleWithPlan(addOnId, planId, compatibilities),
+      );
+    }
+  });
+
+  it("keeps the first entry when a source plan id is duplicated", () => {
+    const lookup = buildAddOnCompatibilityLookup([
+      { sourcePlanId: "addon-dup", compatiblePlanIds: ["plan-a"] },
+      { sourcePlanId: "addon-dup", compatiblePlanIds: ["plan-b"] },
+    ]);
+
+    expect(isAddOnCompatibleWithLookup(lookup, "addon-dup", "plan-a")).toBe(
+      true,
+    );
+    expect(isAddOnCompatibleWithLookup(lookup, "addon-dup", "plan-b")).toBe(
+      false,
+    );
   });
 });
 

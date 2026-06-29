@@ -40,18 +40,20 @@ import type {
 } from "../../../types";
 import {
   ERROR_UNKNOWN,
+  buildAddOnCompatibilityLookup,
   buildAddOnRequestBody,
   buildAutoTopupRequestBody,
   buildCreditBundlesRequestBody,
   buildPayInAdvanceRequestBody,
   deriveCreditBundles,
+  filterCreditBundles,
   getAddOnPrice,
   getPlanPrice,
   getSubscriptionPeriod,
-  isAddOnCompatibleWithPlan,
-  isAutoTopupOff,
+  isAddOnCompatibleWithLookup,
   isError,
   isScheduledCheckoutConflictMessage,
+  isSelfServiceAutoTopupAvailable,
   mergeCompanyGrants,
   planOffersCurrencyForPeriod,
   planSupportsCurrency,
@@ -404,6 +406,11 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     return ids;
   });
 
+  const addOnCompatibilityLookup = useMemo(
+    () => buildAddOnCompatibilityLookup(data?.addOnCompatibilities),
+    [data?.addOnCompatibilities],
+  );
+
   const addOns = useMemo(() => {
     return availableAddOns
       .filter((availAddOn) => {
@@ -424,10 +431,10 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
           return true;
         }
 
-        return isAddOnCompatibleWithPlan(
+        return isAddOnCompatibleWithLookup(
+          addOnCompatibilityLookup,
           availAddOn.id,
           selectedPlan.id,
-          data?.addOnCompatibilities,
         );
       })
       .map((addOn) => ({
@@ -435,7 +442,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
         isSelected: selectedAddOnIds.has(addOn.id),
       }));
   }, [
-    data?.addOnCompatibilities,
+    addOnCompatibilityLookup,
     availableAddOns,
     selectedPlan,
     hasCurrency,
@@ -445,13 +452,20 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
   const [bundleCounts, setBundleCounts] = useState<Record<string, number>>({});
 
+  // Fall back to the company's current-plan grants when no plan is selected
+  // (e.g. a credit-only purchase, or a preview that reset selectedPlanId), so a
+  // bundle-off credit is still gated rather than slipping through unfiltered.
+  const bundleGatingGrants =
+    selectedPlan?.includedCreditGrants ??
+    data?.company?.plan?.includedCreditGrants;
+
   const creditBundles = useMemo<CreditBundle[]>(() => {
     return deriveCreditBundles(
-      selectedPlan?.includedCreditGrants,
+      bundleGatingGrants,
       data?.creditBundles,
       bundleCounts,
     );
-  }, [selectedPlan?.includedCreditGrants, data?.creditBundles, bundleCounts]);
+  }, [bundleGatingGrants, data?.creditBundles, bundleCounts]);
 
   const selectedPlanPriceId = useMemo(() => {
     if (!selectedPlan) {
@@ -687,11 +701,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     }
 
     const hasSelfServiceAutoTopup = selectedPlan?.includedCreditGrants.some(
-      (grant) => {
-        const isSelfService = grant.billingCreditAutoTopupSelfService ?? false;
-
-        return isSelfService && !isAutoTopupOff(grant);
-      },
+      (grant) => isSelfServiceAutoTopupAvailable(grant),
     );
 
     if (hasSelfServiceAutoTopup) {
@@ -938,9 +948,11 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       // Filter bundles against the plan being previewed: a stale debounced
       // update may carry a bundle for a credit whose grant on the resolved
       // plan has bundle purchase off, and that must not reach the request.
-      // No counts map — preserve the counts already on the passed bundles.
-      const resolvedCreditBundles = deriveCreditBundles(
-        plan?.includedCreditGrants,
+      // filterCreditBundles preserves the counts already on the passed bundles;
+      // fall back to the current-plan grants when previewing a credit-only
+      // purchase so the gating still applies.
+      const resolvedCreditBundles = filterCreditBundles(
+        plan?.includedCreditGrants ?? data?.company?.plan?.includedCreditGrants,
         updates.creditBundles || creditBundles,
       );
 
@@ -978,10 +990,10 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       const resolvedAddOnPayInAdvanceEntitlements =
         updates.addOnPayInAdvanceEntitlements || addOnPayInAdvanceEntitlements;
       const resolvedAddOns = (updates.addOns || addOns).filter((addOn) =>
-        isAddOnCompatibleWithPlan(
+        isAddOnCompatibleWithLookup(
+          addOnCompatibilityLookup,
           addOn.id,
           plan?.id,
-          data?.addOnCompatibilities,
         ),
       );
       const resolvedPlanCreditGrants = mergeCompanyGrants(
@@ -1119,7 +1131,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     },
     [
       t,
-      data?.addOnCompatibilities,
+      addOnCompatibilityLookup,
       data?.company?.plan?.includedCreditGrants,
       data?.company?.billingSubscription,
       previewCheckout,
@@ -1245,11 +1257,14 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
         setSelectedAddOnIds(new Set());
       }
 
-      // rederive credit bundles since they may depend on plan grant setting
-      const resolvedCreditBundles = deriveCreditBundles(
-        plan?.includedCreditGrants,
-        data?.creditBundles,
-        bundleCounts,
+      // Apply the latest counts to the raw bundles and let handlePreviewCheckout
+      // perform the single bundle-off filter against the resolved plan (avoids
+      // filtering here and again there for the same plan).
+      const resolvedCreditBundles = (data?.creditBundles ?? []).map(
+        (bundle) => ({
+          ...bundle,
+          count: bundleCounts[bundle.id] ?? 0,
+        }),
       );
 
       handlePreviewCheckout({
@@ -1468,20 +1483,23 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
   const updateCreditBundleCount = useCallback(
     (id: string, updatedCount: number) => {
-      setBundleCounts((prev) => ({ ...prev, [id]: updatedCount }));
+      setBundleCounts((prev) => {
+        const nextCounts = { ...prev, [id]: updatedCount };
 
-      const updated = creditBundles.map((bundle) =>
-        bundle.id === id
-          ? {
-              ...bundle,
-              count: updatedCount,
-            }
-          : bundle,
-      );
+        // Derive the preview payload from the latest counts inside the updater
+        // so rapid successive edits don't preview a stale snapshot.
+        debouncedPreviewCheckout({
+          creditBundles: deriveCreditBundles(
+            bundleGatingGrants,
+            data?.creditBundles,
+            nextCounts,
+          ),
+        });
 
-      debouncedPreviewCheckout({ creditBundles: updated });
+        return nextCounts;
+      });
     },
-    [creditBundles, debouncedPreviewCheckout],
+    [bundleGatingGrants, data?.creditBundles, debouncedPreviewCheckout],
   );
 
   const updateAddOnEntitlementQuantity = useCallback(

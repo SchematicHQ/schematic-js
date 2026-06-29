@@ -40,18 +40,47 @@ export function buildAutoTopupRequestBody(options: {
   );
 }
 
+/**
+ * Builds an add-on-id → compatible-plan-ids lookup so repeated compatibility
+ * checks against the same `addOnCompatibilities` are O(1) instead of re-scanning
+ * the list per add-on. First entry wins, matching the prior `.find` semantics.
+ */
+export function buildAddOnCompatibilityLookup(
+  compatibilities: CompatiblePlans[] = [],
+): Map<string, string[]> {
+  const lookup = new Map<string, string[]>();
+  for (const compat of compatibilities) {
+    if (!lookup.has(compat.sourcePlanId)) {
+      lookup.set(compat.sourcePlanId, compat.compatiblePlanIds ?? []);
+    }
+  }
+  return lookup;
+}
+
+export function isAddOnCompatibleWithLookup(
+  lookup: Map<string, string[]>,
+  addOnId: string,
+  planId: string | undefined,
+): boolean {
+  const compatiblePlanIds = lookup.get(addOnId);
+
+  if (!compatiblePlanIds || compatiblePlanIds.length === 0) {
+    return true;
+  }
+
+  return !!planId && compatiblePlanIds.includes(planId);
+}
+
 export function isAddOnCompatibleWithPlan(
   addOnId: string,
   planId: string | undefined,
   compatibilities: CompatiblePlans[] = [],
 ): boolean {
-  const compat = compatibilities.find((c) => c.sourcePlanId === addOnId);
-
-  if (!compat || !compat.compatiblePlanIds?.length) {
-    return true;
-  }
-
-  return !!planId && compat.compatiblePlanIds.includes(planId);
+  return isAddOnCompatibleWithLookup(
+    buildAddOnCompatibilityLookup(compatibilities),
+    addOnId,
+    planId,
+  );
 }
 
 export function buildPayInAdvanceRequestBody(options: {

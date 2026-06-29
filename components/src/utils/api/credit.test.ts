@@ -1,7 +1,14 @@
 import { describe, expect, it } from "vitest";
 
 import { BillingCreditAutoTopupAvailability } from "../../api/checkoutexternal";
-import { isAutoTopupOff, isBundlePurchaseOff } from "./credit";
+import {
+  deriveCreditBundles,
+  filterCreditBundles,
+  getBundleOffCreditIds,
+  isAutoTopupOff,
+  isBundlePurchaseOff,
+  isSelfServiceAutoTopupAvailable,
+} from "./credit";
 
 describe("isAutoTopupOff", () => {
   it("returns true when availability is off", () => {
@@ -75,5 +82,101 @@ describe("bundle purchase and auto top-up are independent", () => {
     };
     expect(isBundlePurchaseOff(grant)).toBe(false);
     expect(isAutoTopupOff(grant)).toBe(true);
+  });
+});
+
+describe("isSelfServiceAutoTopupAvailable", () => {
+  it("is true only when self-service and not off", () => {
+    expect(
+      isSelfServiceAutoTopupAvailable({
+        billingCreditAutoTopupSelfService: true,
+        billingCreditAutoTopupAvailability:
+          BillingCreditAutoTopupAvailability.UserControlled,
+      }),
+    ).toBe(true);
+  });
+
+  it("is false when availability is off, even with self-service", () => {
+    expect(
+      isSelfServiceAutoTopupAvailable({
+        billingCreditAutoTopupSelfService: true,
+        billingCreditAutoTopupAvailability:
+          BillingCreditAutoTopupAvailability.Off,
+      }),
+    ).toBe(false);
+  });
+
+  it("is false without self-service, and for missing grants", () => {
+    expect(
+      isSelfServiceAutoTopupAvailable({
+        billingCreditAutoTopupSelfService: false,
+        billingCreditAutoTopupAvailability:
+          BillingCreditAutoTopupAvailability.Automatic,
+      }),
+    ).toBe(false);
+    expect(isSelfServiceAutoTopupAvailable(undefined)).toBe(false);
+  });
+});
+
+describe("getBundleOffCreditIds", () => {
+  const grants = [
+    { creditId: "credit-off", billingCreditCanBuyBundles: false },
+    { creditId: "credit-on", billingCreditCanBuyBundles: true },
+    { creditId: "credit-legacy" } as { creditId: string },
+  ];
+
+  it("collects only the credit ids whose bundle purchase is off", () => {
+    const ids = getBundleOffCreditIds(grants);
+    expect(ids.has("credit-off")).toBe(true);
+    expect(ids.has("credit-on")).toBe(false);
+    expect(ids.has("credit-legacy")).toBe(false);
+  });
+
+  it("returns an empty set for missing grants", () => {
+    expect(getBundleOffCreditIds(undefined).size).toBe(0);
+  });
+});
+
+describe("filterCreditBundles", () => {
+  const grants = [
+    { creditId: "credit-off", billingCreditCanBuyBundles: false },
+    { creditId: "credit-on", billingCreditCanBuyBundles: true },
+  ];
+  const bundles = [
+    { id: "b1", creditId: "credit-off", count: 3 },
+    { id: "b2", creditId: "credit-on", count: 1 },
+  ];
+
+  it("drops bundles whose credit is bundle-off and preserves counts", () => {
+    expect(filterCreditBundles(grants, bundles)).toEqual([
+      { id: "b2", creditId: "credit-on", count: 1 },
+    ]);
+  });
+
+  it("filters nothing when grants are missing (helper fails open)", () => {
+    expect(filterCreditBundles(undefined, bundles)).toEqual(bundles);
+  });
+});
+
+describe("deriveCreditBundles", () => {
+  const grants = [
+    { creditId: "credit-off", billingCreditCanBuyBundles: false },
+    { creditId: "credit-on", billingCreditCanBuyBundles: true },
+  ];
+  const bundles = [
+    { id: "b1", creditId: "credit-off" },
+    { id: "b2", creditId: "credit-on" },
+  ];
+
+  it("filters bundle-off credits and applies counts from the map", () => {
+    expect(deriveCreditBundles(grants, bundles, { b2: 4 })).toEqual([
+      { id: "b2", creditId: "credit-on", count: 4 },
+    ]);
+  });
+
+  it("defaults a surviving bundle's count to 0 when absent from the map", () => {
+    expect(deriveCreditBundles(grants, bundles, {})).toEqual([
+      { id: "b2", creditId: "credit-on", count: 0 },
+    ]);
   });
 });

@@ -24,6 +24,7 @@ import {
   groupCreditGrants,
   isAutoTopupEnabled,
   isAutoTopupOff,
+  isSelfServiceAutoTopupAvailable,
   lighten,
   shortenPeriod,
   toPrettyDate,
@@ -225,9 +226,9 @@ export const PlanManager = forwardRef<
   }, [currentPlan, usageBasedEntitlements]);
 
   const hasAutoTopupSelfService =
-    currentPlan?.includedCreditGrants.some((grant) => {
-      return grant.billingCreditAutoTopupSelfService && !isAutoTopupOff(grant);
-    }) ?? false;
+    currentPlan?.includedCreditGrants.some((grant) =>
+      isSelfServiceAutoTopupAvailable(grant),
+    ) ?? false;
 
   return (
     <>
@@ -611,8 +612,7 @@ export const PlanManager = forwardRef<
                       (acc: React.ReactNode[], grant) => {
                         if (
                           !grant.credit ||
-                          !grant.billingCreditAutoTopupSelfService ||
-                          isAutoTopupOff(grant)
+                          !isSelfServiceAutoTopupAvailable(grant)
                         ) {
                           return acc;
                         }

@@ -6,11 +6,7 @@ import {
   type CreditCompanyGrantView,
   type PlanCreditGrantView,
 } from "../../api/checkoutexternal";
-import type {
-  Credit,
-  CreditBundle,
-  CreditWithCompanyContext,
-} from "../../types";
+import type { Credit, CreditWithCompanyContext } from "../../types";
 
 function getResetCadencePeriod(cadence: PlanCreditGrantView["resetCadence"]) {
   switch (cadence) {
@@ -140,6 +136,21 @@ export function isAutoTopupOff(
   );
 }
 
+/**
+ * A credit grant's self-service auto top-up controls are available only when the
+ * grant opts into self-service *and* its availability isn't `off`. Centralized so
+ * every surface (PlanManager notice/rows, AutoTopup card, checkout stage) gates
+ * identically and can't drift if the semantics change.
+ */
+export function isSelfServiceAutoTopupAvailable(
+  grant?: Pick<
+    CompanyPlanCreditGrantView,
+    "billingCreditAutoTopupSelfService" | "billingCreditAutoTopupAvailability"
+  >,
+) {
+  return !!grant?.billingCreditAutoTopupSelfService && !isAutoTopupOff(grant);
+}
+
 export function isBundlePurchaseOff(
   grant?: Partial<
     Pick<CompanyPlanCreditGrantView, "billingCreditCanBuyBundles">
@@ -148,25 +159,47 @@ export function isBundlePurchaseOff(
   return grant?.billingCreditCanBuyBundles === false;
 }
 
-export function deriveCreditBundles(
-  grants:
-    | Pick<PlanCreditGrantView, "creditId" | "billingCreditCanBuyBundles">[]
-    | undefined,
-  bundles: (BillingCreditBundleView & { count?: number })[] | undefined,
-  counts?: Record<string, number>,
-): CreditBundle[] {
-  const bundleOffCreditIds = new Set(
-    (grants ?? [])
-      .filter((grant) => isBundlePurchaseOff(grant))
-      .map((grant) => grant.creditId),
-  );
+type BundleGatingGrant = Pick<PlanCreditGrantView, "creditId"> &
+  Partial<Pick<PlanCreditGrantView, "billingCreditCanBuyBundles">>;
 
-  return (bundles ?? [])
-    .filter((bundle) => !bundleOffCreditIds.has(bundle.creditId))
-    .map((bundle) => ({
-      ...bundle,
-      count: counts ? (counts[bundle.id] ?? 0) : (bundle.count ?? 0),
-    }));
+/** The set of credit ids whose grant has bundle purchase turned off. */
+export function getBundleOffCreditIds(
+  grants?: BundleGatingGrant[],
+): Set<string> {
+  const ids = new Set<string>();
+  (grants ?? []).forEach((grant) => {
+    if (isBundlePurchaseOff(grant)) {
+      ids.add(grant.creditId);
+    }
+  });
+  return ids;
+}
+
+/** Drops bundles whose credit has bundle purchase off on the given plan's grants. */
+export function filterCreditBundles<
+  T extends Pick<BillingCreditBundleView, "creditId">,
+>(grants: BundleGatingGrant[] | undefined, bundles: T[] | undefined): T[] {
+  const bundleOffCreditIds = getBundleOffCreditIds(grants);
+  return (bundles ?? []).filter(
+    (bundle) => !bundleOffCreditIds.has(bundle.creditId),
+  );
+}
+
+/**
+ * Filters bundles by the plan's bundle-off gating and resolves each surviving
+ * bundle's `count` from the supplied counts map (keyed by bundle id).
+ */
+export function deriveCreditBundles<
+  T extends Pick<BillingCreditBundleView, "id" | "creditId">,
+>(
+  grants: BundleGatingGrant[] | undefined,
+  bundles: T[] | undefined,
+  counts: Record<string, number>,
+): (T & { count: number })[] {
+  return filterCreditBundles(grants, bundles).map((bundle) => ({
+    ...bundle,
+    count: counts[bundle.id] ?? 0,
+  }));
 }
 
 export function getAutoTopupThresholdCredits(

@@ -20,11 +20,11 @@ import {
   entitlementHasHardLimit,
   formatCurrency,
   formatNumber,
+  getBundleOffCreditIds,
   getFeatureName,
   getSubscriptionPeriod,
   getUsageDetails,
   groupCreditGrants,
-  isBundlePurchaseOff,
   modifyDate,
   toPrettyDate,
   type UsageDetails,
@@ -237,17 +237,12 @@ export const MeteredFeatures = forwardRef<
     [data?.creditGrants],
   );
 
-  const bundleOffCreditIds = useMemo(() => {
-    const ids = new Set<string>();
-    (data?.company?.plan?.includedCreditGrants ?? []).forEach((grant) => {
-      if (isBundlePurchaseOff(grant)) {
-        ids.add(grant.creditId);
-      }
-    });
-    return ids;
-  }, [data?.company?.plan?.includedCreditGrants]);
+  const bundleOffCreditIds = useMemo(
+    () => getBundleOffCreditIds(data?.company?.plan?.includedCreditGrants),
+    [data?.company?.plan?.includedCreditGrants],
+  );
 
-  const [creditVisibility, setCreditVisibility] = useState(
+  const [creditVisibility, setCreditVisibility] = useState(() =>
     creditGroups.map(({ id }) => ({ id, isExpanded: false })),
   );
 
