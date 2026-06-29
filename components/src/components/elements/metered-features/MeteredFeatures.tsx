@@ -92,7 +92,7 @@ const Limit = ({ entitlement, usageDetails, fontStyle }: LimitProps) => {
           : priceBehavior === EntitlementPriceBehavior.PayAsYouGo &&
               typeof cost === "number"
             ? formatCurrency(cost, billingPrice?.currency)
-            : data?.displaySettings.showCredits &&
+            : data?.displaySettings?.showCredits &&
                 priceBehavior === EntitlementPriceBehavior.CreditBurndown &&
                 typeof planEntitlement?.valueCredit !== "undefined" &&
                 typeof planEntitlement?.consumptionRate === "number"

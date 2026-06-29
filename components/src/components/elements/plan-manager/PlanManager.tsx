@@ -611,7 +611,8 @@ export const PlanManager = forwardRef<
                       (acc: React.ReactNode[], grant) => {
                         if (
                           !grant.credit ||
-                          !grant.billingCreditAutoTopupSelfService
+                          !grant.billingCreditAutoTopupSelfService ||
+                          isAutoTopupOff(grant)
                         ) {
                           return acc;
                         }

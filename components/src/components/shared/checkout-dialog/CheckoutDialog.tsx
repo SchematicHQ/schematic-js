@@ -942,7 +942,17 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
           : promoCode;
       const skipTrial = !(updates.shouldTrial ?? shouldTrial);
 
-      const resolvedCreditBundles = updates.creditBundles || creditBundles;
+      // Filter bundles against the plan being previewed: a stale debounced
+      // update may carry a bundle for a credit whose grant on the resolved
+      // plan has bundle purchase off, and that must not reach the request.
+      const bundleOffCreditIds = new Set(
+        (plan?.includedCreditGrants ?? [])
+          .filter((grant) => isBundlePurchaseOff(grant))
+          .map((grant) => grant.creditId),
+      );
+      const resolvedCreditBundles = (
+        updates.creditBundles || creditBundles
+      ).filter((bundle) => !bundleOffCreditIds.has(bundle.creditId));
 
       // A credit-bundle-only purchase on a non-billing subscription has no plan
       // or price to send; the backend charges for the credits standalone.
