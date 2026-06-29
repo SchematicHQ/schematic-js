@@ -1,11 +1,16 @@
 import {
+  type BillingCreditBundleView,
   BillingCreditAutoTopupAvailability,
   BillingPlanCreditGrantResetCadence,
   type CompanyPlanCreditGrantView,
   type CreditCompanyGrantView,
   type PlanCreditGrantView,
 } from "../../api/checkoutexternal";
-import type { Credit, CreditWithCompanyContext } from "../../types";
+import type {
+  Credit,
+  CreditBundle,
+  CreditWithCompanyContext,
+} from "../../types";
 
 function getResetCadencePeriod(cadence: PlanCreditGrantView["resetCadence"]) {
   switch (cadence) {
@@ -141,6 +146,27 @@ export function isBundlePurchaseOff(
   >,
 ) {
   return grant?.billingCreditCanBuyBundles === false;
+}
+
+export function deriveCreditBundles(
+  grants:
+    | Pick<PlanCreditGrantView, "creditId" | "billingCreditCanBuyBundles">[]
+    | undefined,
+  bundles: (BillingCreditBundleView & { count?: number })[] | undefined,
+  counts?: Record<string, number>,
+): CreditBundle[] {
+  const bundleOffCreditIds = new Set(
+    (grants ?? [])
+      .filter((grant) => isBundlePurchaseOff(grant))
+      .map((grant) => grant.creditId),
+  );
+
+  return (bundles ?? [])
+    .filter((bundle) => !bundleOffCreditIds.has(bundle.creditId))
+    .map((bundle) => ({
+      ...bundle,
+      count: counts ? (counts[bundle.id] ?? 0) : (bundle.count ?? 0),
+    }));
 }
 
 export function getAutoTopupThresholdCredits(

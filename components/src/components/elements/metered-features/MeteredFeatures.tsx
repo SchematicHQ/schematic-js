@@ -232,9 +232,10 @@ export const MeteredFeatures = forwardRef<
     );
   }, [props.visibleFeatures, data?.featureUsage?.features]);
 
-  const creditGroups = groupCreditGrants(data?.creditGrants || [], {
-    groupBy: "credit",
-  });
+  const creditGroups = useMemo(
+    () => groupCreditGrants(data?.creditGrants || [], { groupBy: "credit" }),
+    [data?.creditGrants],
+  );
 
   const bundleOffCreditIds = useMemo(() => {
     const ids = new Set<string>();

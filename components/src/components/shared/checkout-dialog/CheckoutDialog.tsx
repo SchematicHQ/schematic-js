@@ -44,12 +44,12 @@ import {
   buildAutoTopupRequestBody,
   buildCreditBundlesRequestBody,
   buildPayInAdvanceRequestBody,
+  deriveCreditBundles,
   getAddOnPrice,
   getPlanPrice,
   getSubscriptionPeriod,
   isAddOnCompatibleWithPlan,
   isAutoTopupOff,
-  isBundlePurchaseOff,
   isError,
   isScheduledCheckoutConflictMessage,
   mergeCompanyGrants,
@@ -446,18 +446,11 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
   const [bundleCounts, setBundleCounts] = useState<Record<string, number>>({});
 
   const creditBundles = useMemo<CreditBundle[]>(() => {
-    const bundleOffCreditIds = new Set(
-      (selectedPlan?.includedCreditGrants ?? [])
-        .filter((grant) => isBundlePurchaseOff(grant))
-        .map((grant) => grant.creditId),
+    return deriveCreditBundles(
+      selectedPlan?.includedCreditGrants,
+      data?.creditBundles,
+      bundleCounts,
     );
-
-    return (data?.creditBundles || [])
-      .filter((bundle) => !bundleOffCreditIds.has(bundle.creditId))
-      .map((bundle) => ({
-        ...bundle,
-        count: bundleCounts[bundle.id] ?? 0,
-      }));
   }, [selectedPlan?.includedCreditGrants, data?.creditBundles, bundleCounts]);
 
   const selectedPlanPriceId = useMemo(() => {
@@ -945,14 +938,11 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       // Filter bundles against the plan being previewed: a stale debounced
       // update may carry a bundle for a credit whose grant on the resolved
       // plan has bundle purchase off, and that must not reach the request.
-      const bundleOffCreditIds = new Set(
-        (plan?.includedCreditGrants ?? [])
-          .filter((grant) => isBundlePurchaseOff(grant))
-          .map((grant) => grant.creditId),
+      // No counts map — preserve the counts already on the passed bundles.
+      const resolvedCreditBundles = deriveCreditBundles(
+        plan?.includedCreditGrants,
+        updates.creditBundles || creditBundles,
       );
-      const resolvedCreditBundles = (
-        updates.creditBundles || creditBundles
-      ).filter((bundle) => !bundleOffCreditIds.has(bundle.creditId));
 
       // A credit-bundle-only purchase on a non-billing subscription has no plan
       // or price to send; the backend charges for the credits standalone.
@@ -1256,17 +1246,11 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       }
 
       // rederive credit bundles since they may depend on plan grant setting
-      const bundleOffCreditIds = new Set(
-        (plan?.includedCreditGrants ?? [])
-          .filter((grant) => isBundlePurchaseOff(grant))
-          .map((grant) => grant.creditId),
+      const resolvedCreditBundles = deriveCreditBundles(
+        plan?.includedCreditGrants,
+        data?.creditBundles,
+        bundleCounts,
       );
-      const resolvedCreditBundles = (data?.creditBundles || [])
-        .filter((bundle) => !bundleOffCreditIds.has(bundle.creditId))
-        .map((bundle) => ({
-          ...bundle,
-          count: bundleCounts[bundle.id] ?? 0,
-        }));
 
       handlePreviewCheckout({
         period,

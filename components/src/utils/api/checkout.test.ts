@@ -638,7 +638,10 @@ describe("buildAddOnRequestBody", () => {
 
 describe("isAddOnCompatibleWithPlan", () => {
   const compatibilities = [
-    { sourcePlanId: "addon-restricted", compatiblePlanIds: ["plan-a", "plan-b"] },
+    {
+      sourcePlanId: "addon-restricted",
+      compatiblePlanIds: ["plan-a", "plan-b"],
+    },
     { sourcePlanId: "addon-empty", compatiblePlanIds: [] },
   ];
 
