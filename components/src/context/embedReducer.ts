@@ -265,6 +265,8 @@ export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {
       let bypassPlanSelection: boolean;
       let bypassAddOnSelection: boolean;
       let bypassCreditsSelection: boolean;
+      let bypassUsageSelection: boolean;
+      let bypassAddOnUsageSelection: boolean;
 
       if (config.skipped !== undefined) {
         // Mode 2: Explicit skip configuration provided
@@ -272,18 +274,24 @@ export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {
         bypassPlanSelection = config.skipped.planStage ?? false;
         bypassAddOnSelection = config.skipped.addOnStage ?? false;
         bypassCreditsSelection = config.skipped.creditStage ?? false;
+        bypassUsageSelection = config.skipped.usageStage ?? false;
+        bypassAddOnUsageSelection = config.skipped.addOnUsageStage ?? false;
       } else if (isStringFormat) {
         // Mode 3: Legacy string format
         // Maintains backwards compatibility by skipping plan stage
         bypassPlanSelection = true;
         bypassAddOnSelection = false;
         bypassCreditsSelection = false;
+        bypassUsageSelection = false;
+        bypassAddOnUsageSelection = false;
       } else {
         // Mode 1: Pre-selection without explicit skip config
         // Show all stages with pre-selected values for user review
         bypassPlanSelection = false;
         bypassAddOnSelection = false;
         bypassCreditsSelection = false;
+        bypassUsageSelection = false;
+        bypassAddOnUsageSelection = false;
       }
 
       return {
@@ -295,7 +303,12 @@ export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {
           bypassPlanSelection,
           bypassAddOnSelection,
           bypassCreditsSelection,
+          bypassUsageSelection,
+          bypassAddOnUsageSelection,
           ...(config.addOnIds && { addOnIds: config.addOnIds }),
+          ...(config.payInAdvanceQuantities && {
+            payInAdvanceQuantities: config.payInAdvanceQuantities,
+          }),
           ...(config.currency && {
             selectedCurrency: config.currency.toUpperCase(),
           }),

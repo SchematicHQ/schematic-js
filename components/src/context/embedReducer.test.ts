@@ -352,6 +352,105 @@ describe("embedReducer - SET_PLANID_BYPASS", () => {
       expect(result.checkoutState?.showCurrencySelector).toBeUndefined();
     });
   });
+
+  describe("Usage stage skip configuration", () => {
+    it("should skip the usage stages when explicitly configured", () => {
+      const config: BypassConfig = {
+        planId: "plan_xyz",
+        skipped: {
+          usageStage: true,
+          addOnUsageStage: true,
+        },
+      };
+
+      const result = reducer(initialState, {
+        type: "SET_PLANID_BYPASS",
+        config,
+      });
+
+      expect(result.checkoutState).toMatchObject({
+        bypassUsageSelection: true,
+        bypassAddOnUsageSelection: true,
+      });
+    });
+
+    it("should default usage bypass flags to false in explicit skip mode", () => {
+      const config: BypassConfig = {
+        planId: "plan_xyz",
+        skipped: { planStage: true },
+      };
+
+      const result = reducer(initialState, {
+        type: "SET_PLANID_BYPASS",
+        config,
+      });
+
+      expect(result.checkoutState).toMatchObject({
+        bypassUsageSelection: false,
+        bypassAddOnUsageSelection: false,
+      });
+    });
+
+    it("should default usage bypass flags to false in pre-selection mode", () => {
+      const config: BypassConfig = {
+        planId: "plan_xyz",
+      };
+
+      const result = reducer(initialState, {
+        type: "SET_PLANID_BYPASS",
+        config,
+      });
+
+      expect(result.checkoutState).toMatchObject({
+        bypassUsageSelection: false,
+        bypassAddOnUsageSelection: false,
+      });
+    });
+
+    it("should default usage bypass flags to false for legacy string format", () => {
+      const result = reducer(initialState, {
+        type: "SET_PLANID_BYPASS",
+        config: "plan_xyz",
+      });
+
+      expect(result.checkoutState).toMatchObject({
+        bypassUsageSelection: false,
+        bypassAddOnUsageSelection: false,
+      });
+    });
+  });
+
+  describe("payInAdvanceQuantities configuration", () => {
+    it("should pass payInAdvanceQuantities through verbatim", () => {
+      const config: BypassConfig = {
+        planId: "plan_xyz",
+        payInAdvanceQuantities: { feat_seats: 3, feat_api: 2 },
+      };
+
+      const result = reducer(initialState, {
+        type: "SET_PLANID_BYPASS",
+        config,
+      });
+
+      expect(result.checkoutState?.payInAdvanceQuantities).toEqual({
+        feat_seats: 3,
+        feat_api: 2,
+      });
+    });
+
+    it("should leave payInAdvanceQuantities undefined when not provided", () => {
+      const config: BypassConfig = {
+        planId: "plan_xyz",
+      };
+
+      const result = reducer(initialState, {
+        type: "SET_PLANID_BYPASS",
+        config,
+      });
+
+      expect(result.checkoutState?.payInAdvanceQuantities).toBeUndefined();
+    });
+  });
 });
 
 describe("embedReducer - SET_CHECKOUT_PREFILL", () => {
