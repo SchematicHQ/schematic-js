@@ -57,7 +57,7 @@ const config = {
   addOnIds: ['plan_AWv7bPjSx2'],   // pre-select 1 or more Add-ons
   period: 'month',                 // pre-select 'month' or 'year' for the billing period (optional)
   payInAdvanceQuantities: {        // pre-fill pay-in-advance quantities, keyed by feature id (optional)
-    feat_seats: 3,
+    feat_cns2asuKAG2: 3,           // "feat_cns2asuKAG2" is a feature id, 3 is the quantity
   },
   skipped: {
     planStage: true,               // if true, skip Plan selection
