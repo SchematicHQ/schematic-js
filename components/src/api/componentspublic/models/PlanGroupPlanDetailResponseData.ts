@@ -185,6 +185,12 @@ export interface PlanGroupPlanDetailResponseData {
    * @type {string}
    * @memberof PlanGroupPlanDetailResponseData
    */
+  companyLogoUrl?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof PlanGroupPlanDetailResponseData
+   */
   companyName?: string | null;
   /**
    *
@@ -424,6 +430,8 @@ export function PlanGroupPlanDetailResponseDataFromJSONTyped(
     chargeType: ChargeTypeFromJSON(json["charge_type"]),
     companyCount: json["company_count"],
     companyId: json["company_id"] == null ? undefined : json["company_id"],
+    companyLogoUrl:
+      json["company_logo_url"] == null ? undefined : json["company_logo_url"],
     companyName:
       json["company_name"] == null ? undefined : json["company_name"],
     compatiblePlanIds: json["compatible_plan_ids"],
@@ -522,6 +530,7 @@ export function PlanGroupPlanDetailResponseDataToJSONTyped(
     charge_type: ChargeTypeToJSON(value["chargeType"]),
     company_count: value["companyCount"],
     company_id: value["companyId"],
+    company_logo_url: value["companyLogoUrl"],
     company_name: value["companyName"],
     compatible_plan_ids: value["compatiblePlanIds"],
     controlled_by: BillingProviderTypeToJSON(value["controlledBy"]),

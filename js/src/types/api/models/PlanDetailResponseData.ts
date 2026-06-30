@@ -165,6 +165,12 @@ export interface PlanDetailResponseData {
    * @type {string}
    * @memberof PlanDetailResponseData
    */
+  companyLogoUrl?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof PlanDetailResponseData
+   */
   companyName?: string | null;
   /**
    *
@@ -375,6 +381,8 @@ export function PlanDetailResponseDataFromJSONTyped(
     chargeType: ChargeTypeFromJSON(json["charge_type"]),
     companyCount: json["company_count"],
     companyId: json["company_id"] == null ? undefined : json["company_id"],
+    companyLogoUrl:
+      json["company_logo_url"] == null ? undefined : json["company_logo_url"],
     companyName:
       json["company_name"] == null ? undefined : json["company_name"],
     controlledBy: BillingProviderTypeFromJSON(json["controlled_by"]),
@@ -464,6 +472,7 @@ export function PlanDetailResponseDataToJSONTyped(
     charge_type: ChargeTypeToJSON(value["chargeType"]),
     company_count: value["companyCount"],
     company_id: value["companyId"],
+    company_logo_url: value["companyLogoUrl"],
     company_name: value["companyName"],
     controlled_by: BillingProviderTypeToJSON(value["controlledBy"]),
     copied_from_plan_id: value["copiedFromPlanId"],
