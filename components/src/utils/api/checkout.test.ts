@@ -19,7 +19,6 @@ import {
   buildCreditBundlesRequestBody,
   buildPayInAdvanceRequestBody,
   isAddOnCompatibleWithLookup,
-  isAddOnCompatibleWithPlan,
   isScheduledCheckoutConflictMessage,
 } from "./checkout";
 
@@ -638,50 +637,6 @@ describe("buildAddOnRequestBody", () => {
   });
 });
 
-describe("isAddOnCompatibleWithPlan", () => {
-  const compatibilities = [
-    {
-      sourcePlanId: "addon-restricted",
-      compatiblePlanIds: ["plan-a", "plan-b"],
-    },
-    { sourcePlanId: "addon-empty", compatiblePlanIds: [] },
-  ];
-
-  it("should treat an add-on with no compatibility entry as compatible", () => {
-    expect(
-      isAddOnCompatibleWithPlan("addon-unknown", "plan-a", compatibilities),
-    ).toBe(true);
-  });
-
-  it("should treat an add-on with an empty compatiblePlanIds as compatible", () => {
-    expect(
-      isAddOnCompatibleWithPlan("addon-empty", "plan-a", compatibilities),
-    ).toBe(true);
-  });
-
-  it("should return true when the plan is in compatiblePlanIds", () => {
-    expect(
-      isAddOnCompatibleWithPlan("addon-restricted", "plan-b", compatibilities),
-    ).toBe(true);
-  });
-
-  it("should return false when the plan is not in compatiblePlanIds", () => {
-    expect(
-      isAddOnCompatibleWithPlan("addon-restricted", "plan-c", compatibilities),
-    ).toBe(false);
-  });
-
-  it("should return false for a restricted add-on when no plan is provided", () => {
-    expect(
-      isAddOnCompatibleWithPlan("addon-restricted", undefined, compatibilities),
-    ).toBe(false);
-  });
-
-  it("should treat any add-on as compatible when no compatibilities are provided", () => {
-    expect(isAddOnCompatibleWithPlan("addon-restricted", "plan-a")).toBe(true);
-  });
-});
-
 describe("buildAddOnCompatibilityLookup / isAddOnCompatibleWithLookup", () => {
   const compatibilities = [
     {
@@ -690,33 +645,55 @@ describe("buildAddOnCompatibilityLookup / isAddOnCompatibleWithLookup", () => {
     },
     { sourcePlanId: "addon-empty", compatiblePlanIds: [] },
   ];
+  const lookup = buildAddOnCompatibilityLookup(compatibilities);
 
-  it("matches isAddOnCompatibleWithPlan across the same cases", () => {
-    const lookup = buildAddOnCompatibilityLookup(compatibilities);
+  it("treats an add-on with no compatibility entry as compatible", () => {
+    expect(isAddOnCompatibleWithLookup(lookup, "addon-unknown", "plan-a")).toBe(
+      true,
+    );
+  });
 
-    for (const [addOnId, planId] of [
-      ["addon-unknown", "plan-a"],
-      ["addon-empty", "plan-a"],
-      ["addon-restricted", "plan-b"],
-      ["addon-restricted", "plan-c"],
-      ["addon-restricted", undefined],
-    ] as [string, string | undefined][]) {
-      expect(isAddOnCompatibleWithLookup(lookup, addOnId, planId)).toBe(
-        isAddOnCompatibleWithPlan(addOnId, planId, compatibilities),
-      );
-    }
+  it("treats an add-on with an empty compatiblePlanIds as compatible", () => {
+    expect(isAddOnCompatibleWithLookup(lookup, "addon-empty", "plan-a")).toBe(
+      true,
+    );
+  });
+
+  it("returns true when the plan is in compatiblePlanIds", () => {
+    expect(isAddOnCompatibleWithLookup(lookup, "addon-restricted", "plan-b")).toBe(
+      true,
+    );
+  });
+
+  it("returns false when the plan is not in compatiblePlanIds", () => {
+    expect(isAddOnCompatibleWithLookup(lookup, "addon-restricted", "plan-c")).toBe(
+      false,
+    );
+  });
+
+  it("returns false for a restricted add-on when no plan is provided", () => {
+    expect(
+      isAddOnCompatibleWithLookup(lookup, "addon-restricted", undefined),
+    ).toBe(false);
+  });
+
+  it("treats any add-on as compatible for an empty lookup", () => {
+    const emptyLookup = buildAddOnCompatibilityLookup();
+    expect(
+      isAddOnCompatibleWithLookup(emptyLookup, "addon-restricted", "plan-a"),
+    ).toBe(true);
   });
 
   it("keeps the first entry when a source plan id is duplicated", () => {
-    const lookup = buildAddOnCompatibilityLookup([
+    const dupLookup = buildAddOnCompatibilityLookup([
       { sourcePlanId: "addon-dup", compatiblePlanIds: ["plan-a"] },
       { sourcePlanId: "addon-dup", compatiblePlanIds: ["plan-b"] },
     ]);
 
-    expect(isAddOnCompatibleWithLookup(lookup, "addon-dup", "plan-a")).toBe(
+    expect(isAddOnCompatibleWithLookup(dupLookup, "addon-dup", "plan-a")).toBe(
       true,
     );
-    expect(isAddOnCompatibleWithLookup(lookup, "addon-dup", "plan-b")).toBe(
+    expect(isAddOnCompatibleWithLookup(dupLookup, "addon-dup", "plan-b")).toBe(
       false,
     );
   });

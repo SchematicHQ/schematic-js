@@ -71,18 +71,6 @@ export function isAddOnCompatibleWithLookup(
   return !!planId && compatiblePlanIds.includes(planId);
 }
 
-export function isAddOnCompatibleWithPlan(
-  addOnId: string,
-  planId: string | undefined,
-  compatibilities: CompatiblePlans[] = [],
-): boolean {
-  return isAddOnCompatibleWithLookup(
-    buildAddOnCompatibilityLookup(compatibilities),
-    addOnId,
-    planId,
-  );
-}
-
 export function buildPayInAdvanceRequestBody(options: {
   entitlements: UsageBasedEntitlement[];
   period: string;

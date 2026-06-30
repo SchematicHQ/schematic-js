@@ -242,16 +242,23 @@ export const MeteredFeatures = forwardRef<
     [data?.company?.plan?.includedCreditGrants],
   );
 
-  const [creditVisibility, setCreditVisibility] = useState(() =>
-    creditGroups.map(({ id }) => ({ id, isExpanded: false })),
+  // Track expanded credits by id rather than seeding an array from creditGroups:
+  // the component can mount before credit data loads, and a seeded array would
+  // never resync, leaving the expand chevron a no-op for late-arriving credits.
+  const [expandedCreditIds, setExpandedCreditIds] = useState<Set<string>>(
+    () => new Set(),
   );
 
   const toggleBalanceDetails = useCallback((id: string) => {
-    setCreditVisibility((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, isExpanded: !item.isExpanded } : item,
-      ),
-    );
+    setExpandedCreditIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
   }, []);
 
   const shouldShowFeatures =
@@ -397,9 +404,7 @@ export const MeteredFeatures = forwardRef<
 
       {showCredits &&
         creditGroups.map((credit, index) => {
-          const isExpanded =
-            creditVisibility.find(({ id }) => credit.id === id)?.isExpanded ??
-            false;
+          const isExpanded = expandedCreditIds.has(credit.id);
 
           return (
             <Element key={index} as={Flex} $flexDirection="column" $gap="1rem">

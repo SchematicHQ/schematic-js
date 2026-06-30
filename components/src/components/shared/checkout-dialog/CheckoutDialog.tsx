@@ -451,6 +451,10 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
   ]);
 
   const [bundleCounts, setBundleCounts] = useState<Record<string, number>>({});
+  // Mirror of bundleCounts updated synchronously in updateCreditBundleCount so
+  // it can merge rapid successive edits without a stale closure, while keeping
+  // the setBundleCounts updater pure.
+  const bundleCountsRef = useRef(bundleCounts);
 
   // Fall back to the company's current-plan grants when no plan is selected
   // (e.g. a credit-only purchase, or a preview that reset selectedPlanId), so a
@@ -1483,20 +1487,19 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
   const updateCreditBundleCount = useCallback(
     (id: string, updatedCount: number) => {
-      setBundleCounts((prev) => {
-        const nextCounts = { ...prev, [id]: updatedCount };
+      // Merge against the ref (updated synchronously) so rapid successive edits
+      // don't preview a stale snapshot, without putting a side effect in the
+      // setBundleCounts updater (which must stay pure).
+      const nextCounts = { ...bundleCountsRef.current, [id]: updatedCount };
+      bundleCountsRef.current = nextCounts;
+      setBundleCounts(nextCounts);
 
-        // Derive the preview payload from the latest counts inside the updater
-        // so rapid successive edits don't preview a stale snapshot.
-        debouncedPreviewCheckout({
-          creditBundles: deriveCreditBundles(
-            bundleGatingGrants,
-            data?.creditBundles,
-            nextCounts,
-          ),
-        });
-
-        return nextCounts;
+      debouncedPreviewCheckout({
+        creditBundles: deriveCreditBundles(
+          bundleGatingGrants,
+          data?.creditBundles,
+          nextCounts,
+        ),
       });
     },
     [bundleGatingGrants, data?.creditBundles, debouncedPreviewCheckout],
